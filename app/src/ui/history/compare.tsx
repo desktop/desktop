@@ -376,8 +376,8 @@ export class CompareSidebar extends React.Component<
 
     const aheadBehind = currentBranch
       ? this.props.compareState.aheadBehindCache.get(
-          currentBranch.tip.sha,
-          branch.tip.sha
+          currentBranch.sha,
+          branch.sha
         )
       : null
 

@@ -121,16 +121,16 @@ export class ChooseBranchDialog extends React.Component<
     const { commits, base } = await promiseWithMinimumTimeout(async () => {
       const commits = await getCommitsInRange(
         repository,
-        baseBranch.tip.sha,
-        targetBranch.tip.sha
+        baseBranch.sha,
+        targetBranch.sha
       )
 
       // TODO: in what situations might this not be possible to compute?
 
       const base = await getMergeBase(
         repository,
-        baseBranch.tip.sha,
-        targetBranch.tip.sha
+        baseBranch.sha,
+        targetBranch.sha
       )
 
       return { commits, base }
@@ -146,7 +146,7 @@ export class ChooseBranchDialog extends React.Component<
     // the target branch is a direct descendant of the base branch
     // which means the target branch is already up to date and the commits
     // do not need to be applied
-    const isDirectDescendant = base === baseBranch.tip.sha
+    const isDirectDescendant = base === baseBranch.sha
     const commitsOrIgnore = isDirectDescendant ? [] : commits
 
     this.setState({

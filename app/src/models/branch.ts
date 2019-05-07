@@ -61,7 +61,9 @@ export class Branch {
   public constructor(
     public readonly name: string,
     public readonly upstream: string | null,
-    public readonly tip: Commit,
+    public readonly sha: string,
+    public readonly shortSha: string,
+    public readonly lastCommitDate: Date,
     public readonly type: BranchType
   ) {}
 

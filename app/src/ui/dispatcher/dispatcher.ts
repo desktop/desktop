@@ -353,7 +353,7 @@ export class Dispatcher {
         // and the remote branch has commits that don't exist on the base branch
         const remoteCommits = await getCommitsInRange(
           repository,
-          baseBranch.tip.sha,
+          baseBranch.sha,
           targetBranch.upstream
         )
 
@@ -774,7 +774,7 @@ export class Dispatcher {
   ) => {
     // if the commit id of the branch is unchanged, it can be excluded from
     // this list
-    if (tipWithBranch.branch.tip.sha === beforeRebaseSha) {
+    if (tipWithBranch.branch.sha === beforeRebaseSha) {
       return
     }
 
@@ -784,7 +784,7 @@ export class Dispatcher {
     const updatedMap = new Map<string, string>(rebasedBranches)
     updatedMap.set(
       tipWithBranch.branch.nameWithoutRemote,
-      tipWithBranch.branch.tip.sha
+      tipWithBranch.branch.sha
     )
 
     this.repositoryStateManager.updateBranchesState(repository, () => ({

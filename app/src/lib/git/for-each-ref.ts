@@ -2,14 +2,14 @@ import { git } from './core'
 import { GitError } from 'dugite'
 
 import { Repository } from '../../models/repository'
-import { Commit } from '../../models/commit'
+//import { Commit } from '../../models/commit'
 import { Branch, BranchType } from '../../models/branch'
 import { CommitIdentity } from '../../models/commit-identity'
 import { ForkedRemotePrefix } from '../../models/remote'
-import {
-  getTrailerSeparatorCharacters,
-  parseRawUnfoldedTrailers,
-} from './interpret-trailers'
+// import {
+//   getTrailerSeparatorCharacters,
+//   parseRawUnfoldedTrailers,
+// } from './interpret-trailers'
 
 const ForksReferencesPrefix = `refs/remotes/${ForkedRemotePrefix}`
 
@@ -65,7 +65,7 @@ export async function getBranches(
     return []
   }
 
-  const trailerSeparators = await getTrailerSeparatorCharacters(repository)
+  //const trailerSeparators = await getTrailerSeparatorCharacters(repository)
 
   const branches = []
 
@@ -86,29 +86,29 @@ export async function getBranches(
       throw new Error(`Couldn't parse author identity ${authorIdentity}`)
     }
 
-    const committerIdentity = pieces[6]
-    const committer = CommitIdentity.parseIdentity(committerIdentity)
+    // const committerIdentity = pieces[6]
+    // const committer = CommitIdentity.parseIdentity(committerIdentity)
 
-    if (!committer) {
-      throw new Error(`Couldn't parse committer identity ${committerIdentity}`)
-    }
+    // if (!committer) {
+    //   throw new Error(`Couldn't parse committer identity ${committerIdentity}`)
+    // }
 
-    const parentSHAs = pieces[7].split(' ')
+    //const parentSHAs = pieces[7].split(' ')
     const symref = pieces[8]
-    const summary = pieces[9]
-    const body = pieces[10]
-    const trailers = parseRawUnfoldedTrailers(pieces[11], trailerSeparators)
+    // const summary = pieces[9]
+    // const body = pieces[10]
+    // const trailers = parseRawUnfoldedTrailers(pieces[11], trailerSeparators)
 
-    const tip = new Commit(
-      sha,
-      shortSha,
-      summary,
-      body,
-      author,
-      committer,
-      parentSHAs,
-      trailers
-    )
+    // const tip = new Commit(
+    //   sha,
+    //   shortSha,
+    //   summary,
+    //   body,
+    //   author,
+    //   committer,
+    //   parentSHAs,
+    //   trailers
+    // )
 
     const type = ref.startsWith('refs/head')
       ? BranchType.Local
@@ -128,7 +128,14 @@ export async function getBranches(
     }
 
     branches.push(
-      new Branch(name, upstream.length > 0 ? upstream : null, tip, type)
+      new Branch(
+        name,
+        upstream.length > 0 ? upstream : null,
+        sha,
+        shortSha,
+        author.date,
+        type
+      )
     )
   }
 

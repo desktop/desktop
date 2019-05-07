@@ -53,7 +53,7 @@ describe('git/merge', () => {
         throw new Error('Unable to find branch: dev')
       }
 
-      const ref = await getMergeBase(repository, first.tip.sha, second.tip.sha)
+      const ref = await getMergeBase(repository, first.sha, second.sha)
       expect(ref).toEqual('df0d73dc92ff496c6a61f10843d527b7461703f4')
     })
 
@@ -92,7 +92,7 @@ describe('git/merge', () => {
         throw new Error(`Unable to find branch ${secondBranch}`)
       }
 
-      const ref = await getMergeBase(repository, first.tip.sha, second.tip.sha)
+      const ref = await getMergeBase(repository, first.sha, second.sha)
       expect(ref).toBeNull()
     })
 

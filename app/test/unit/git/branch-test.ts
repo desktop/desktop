@@ -69,10 +69,10 @@ describe('git/branch', () => {
       expect(tip.kind).toEqual(TipState.Valid)
       const onBranch = tip as IValidBranch
       expect(onBranch.branch.name).toEqual('commit-with-long-description')
-      expect(onBranch.branch.tip.sha).toEqual(
+      expect(onBranch.branch.sha).toEqual(
         'dfa96676b65e1c0ed43ca25492252a5e384c8efd'
       )
-      expect(onBranch.branch.tip.shortSha).toEqual('dfa9667')
+      expect(onBranch.branch.shortSha).toEqual('dfa9667')
     })
 
     it('returns non-origin remote', async () => {

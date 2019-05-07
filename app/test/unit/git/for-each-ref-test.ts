@@ -26,32 +26,22 @@ describe('git/for-each-ref', () => {
       const commitWithBody = branches[0]
       expect(commitWithBody.name).toBe('commit-with-long-description')
       expect(commitWithBody.upstream).toBeNull()
-      expect(commitWithBody.tip.sha).toBe(
+      expect(commitWithBody.sha).toBe(
         'dfa96676b65e1c0ed43ca25492252a5e384c8efd'
       )
-      expect(commitWithBody.tip.shortSha).toBe('dfa9667')
-      expect(commitWithBody.tip.summary).toBe('this is a commit title')
-      expect(commitWithBody.tip.body).toContain('lucky last')
-      expect(commitWithBody.tip.parentSHAs).toHaveLength(1)
+      expect(commitWithBody.shortSha).toBe('dfa9667')
 
       const commitNoBody = branches[1]
       expect(commitNoBody.name).toBe('commit-with-no-body')
       expect(commitNoBody.upstream).toBeNull()
-      expect(commitNoBody.tip.sha).toBe(
-        '49ec1e05f39eef8d1ab6200331a028fb3dd96828'
-      )
-      expect(commitNoBody.tip.shortSha).toBe('49ec1e0')
-      expect(commitNoBody.tip.summary).toBe('this is a commit title')
-      expect(commitNoBody.tip.body).toHaveLength(0)
-      expect(commitNoBody.tip.parentSHAs).toHaveLength(1)
+      expect(commitNoBody.sha).toBe('49ec1e05f39eef8d1ab6200331a028fb3dd96828')
+      expect(commitNoBody.shortSha).toBe('49ec1e0')
 
       const master = branches[2]
       expect(master.name).toBe('master')
       expect(master.upstream).toBeNull()
-      expect(master.tip.sha).toBe('b9ccfc3307240b86447bca2bd6c51a4bb4ade493')
-      expect(master.tip.shortSha).toBe('b9ccfc3')
-      expect(master.tip.summary).toBe('stubbed a README')
-      expect(master.tip.parentSHAs).toHaveLength(1)
+      expect(master.sha).toBe('b9ccfc3307240b86447bca2bd6c51a4bb4ade493')
+      expect(master.shortSha).toBe('b9ccfc3')
     })
 
     it('should return empty list for empty repo', async () => {

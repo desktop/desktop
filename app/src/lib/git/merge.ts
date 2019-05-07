@@ -75,18 +75,18 @@ export async function mergeTree(
   ours: Branch,
   theirs: Branch
 ): Promise<MergeResult | null> {
-  const mergeBase = await getMergeBase(repository, ours.tip.sha, theirs.tip.sha)
+  const mergeBase = await getMergeBase(repository, ours.sha, theirs.sha)
 
   if (mergeBase === null) {
     return { kind: ComputedAction.Invalid }
   }
 
-  if (mergeBase === ours.tip.sha || mergeBase === theirs.tip.sha) {
+  if (mergeBase === ours.sha || mergeBase === theirs.sha) {
     return { kind: ComputedAction.Clean, entries: [] }
   }
 
   const result = await spawnAndComplete(
-    ['merge-tree', mergeBase, ours.tip.sha, theirs.tip.sha],
+    ['merge-tree', mergeBase, ours.sha, theirs.sha],
     repository.path,
     'mergeTree'
   )

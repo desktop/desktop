@@ -120,11 +120,11 @@ export class AheadBehindUpdater {
   ) {
     this.clear()
 
-    const from = currentBranch.tip.sha
+    const from = currentBranch.sha
 
     const filterBranchesNotInCache = (branches: ReadonlyArray<Branch>) => {
       return branches
-        .map(b => b.tip.sha)
+        .map(b => b.sha)
         .filter(to => !this.comparisonCache.has(from, to))
     }
 

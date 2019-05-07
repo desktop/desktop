@@ -90,7 +90,7 @@ export function isCurrentBranchForcePush(
   let branchWasRebased = false
   if (tip.kind === TipState.Valid) {
     const localBranchName = tip.branch.nameWithoutRemote
-    const { sha } = tip.branch.tip
+    const { sha } = tip.branch
     const foundEntry = rebasedBranches.get(localBranchName)
     branchWasRebased = foundEntry === sha
   }

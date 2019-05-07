@@ -12,13 +12,14 @@ export function renderDefaultBranch(
   currentBranch: Branch | null
 ): JSX.Element {
   const branch = item.branch
-  const commit = branch.tip
+  const { lastCommitDate } = branch
   const currentBranchName = currentBranch ? currentBranch.name : null
   return (
     <BranchListItem
       name={branch.name}
       isCurrentBranch={branch.name === currentBranchName}
-      lastCommitDate={commit ? commit.author.date : null}
+      //lastCommitDate={commit ? commit.author.date : null}
+      lastCommitDate={lastCommitDate}
       matches={matches}
     />
   )

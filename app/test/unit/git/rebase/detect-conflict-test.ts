@@ -9,7 +9,6 @@ import {
   rebase,
   RebaseResult,
 } from '../../../../src/lib/git/rebase'
-import { Commit } from '../../../../src/models/commit'
 import {
   AppFileStatusKind,
   CommittedFileChange,
@@ -38,10 +37,10 @@ describe('git/rebase', () => {
         repository,
         featureBranchName
       )
-      originalBranchTip = featureBranch.tip.sha
+      originalBranchTip = featureBranch.sha
 
       const baseBranch = await getBranchOrError(repository, baseBranchName)
-      baseBranchTip = baseBranch.tip.sha
+      baseBranchTip = baseBranch.sha
 
       result = await rebase(repository, baseBranch, featureBranch)
 
@@ -125,10 +124,10 @@ describe('git/rebase', () => {
         repository,
         featureBranchName
       )
-      originalBranchTip = featureBranch.tip.sha
+      originalBranchTip = featureBranch.sha
 
       const baseBranch = await getBranchOrError(repository, baseBranchName)
-      baseBranchTip = baseBranch.tip.sha
+      baseBranchTip = baseBranch.sha
 
       await rebase(repository, baseBranch, featureBranch)
 
@@ -162,7 +161,7 @@ describe('git/rebase', () => {
   })
 
   describe('continue after resolving conflicts', () => {
-    let beforeRebaseTip: Commit
+    let beforeRebaseTip: string
     let result: RebaseResult
     let status: IStatusResult
 
@@ -176,7 +175,7 @@ describe('git/rebase', () => {
         repository,
         featureBranchName
       )
-      beforeRebaseTip = featureBranch.tip
+      beforeRebaseTip = featureBranch.sha
 
       const baseBranch = await getBranchOrError(repository, baseBranchName)
 
@@ -233,12 +232,12 @@ describe('git/rebase', () => {
     })
 
     it('branch is now a different ref', () => {
-      expect(status.currentTip).not.toBe(beforeRebaseTip.sha)
+      expect(status.currentTip).not.toBe(beforeRebaseTip)
     })
   })
 
   describe('continue with additional changes unrelated to conflicted files', () => {
-    let beforeRebaseTip: Commit
+    let beforeRebaseTip: string
     let filesInRebasedCommit: ReadonlyArray<CommittedFileChange>
     let result: RebaseResult
     let status: IStatusResult
@@ -253,7 +252,7 @@ describe('git/rebase', () => {
         repository,
         featureBranchName
       )
-      beforeRebaseTip = featureBranch.tip
+      beforeRebaseTip = featureBranch.sha
 
       const baseBranch = await getBranchOrError(repository, baseBranchName)
 
@@ -315,7 +314,7 @@ describe('git/rebase', () => {
     })
 
     it('branch is now a different ref', () => {
-      expect(status.currentTip).not.toBe(beforeRebaseTip.sha)
+      expect(status.currentTip).not.toBe(beforeRebaseTip)
     })
   })
 

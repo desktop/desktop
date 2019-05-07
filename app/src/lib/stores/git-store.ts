@@ -280,13 +280,6 @@ export class GitStore extends BaseStore {
       this.checkPullWithRebase()
     }
 
-    const commits = this._allBranches.map(b => b.tip)
-
-    for (const commit of commits) {
-      this.commitLookup.set(commit.sha, commit)
-    }
-
-    this.emitNewCommitsLoaded(commits)
     this.emitUpdate()
   }
 
@@ -929,7 +922,9 @@ export class GitStore extends BaseStore {
         const branch = new Branch(
           currentBranch,
           status.currentUpstreamBranch || null,
-          branchTipCommit,
+          branchTipCommit.sha,
+          branchTipCommit.shortSha,
+          branchTipCommit.author.date,
           BranchType.Local
         )
         this._tip = { kind: TipState.Valid, branch }

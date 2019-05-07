@@ -782,8 +782,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       if (inferredBranch !== null) {
         aheadBehindOfInferredBranch = compareState.aheadBehindCache.get(
-          tip.branch.tip.sha,
-          inferredBranch.tip.sha
+          tip.branch.sha,
+          inferredBranch.sha
         )
       }
     }
@@ -836,7 +836,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       let currentSha: string | null = null
 
       if (tip.kind === TipState.Valid) {
-        currentSha = tip.branch.tip.sha
+        currentSha = tip.branch.sha
       } else if (tip.kind === TipState.Detached) {
         currentSha = tip.currentSha
       }
@@ -939,7 +939,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     let currentSha: string | null = null
 
     if (tip.kind === TipState.Valid) {
-      currentSha = tip.branch.tip.sha
+      currentSha = tip.branch.sha
     } else if (tip.kind === TipState.Detached) {
       currentSha = tip.currentSha
     }
@@ -947,12 +947,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (this.currentAheadBehindUpdater != null && currentSha != null) {
       const from =
         action.comparisonMode === ComparisonMode.Ahead
-          ? comparisonBranch.tip.sha
+          ? comparisonBranch.sha
           : currentSha
       const to =
         action.comparisonMode === ComparisonMode.Ahead
           ? currentSha
-          : comparisonBranch.tip.sha
+          : comparisonBranch.sha
 
       this.currentAheadBehindUpdater.insert(from, to, aheadBehind)
     }
@@ -981,8 +981,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         .catch(err => {
           log.warn(
             `Error occurred while trying to merge ${tip.branch.name} (${
-              tip.branch.tip.sha
-            }) and ${action.branch.name} (${action.branch.tip.sha})`,
+              tip.branch.sha
+            }) and ${action.branch.name} (${action.branch.sha})`,
             err
           )
           return null
@@ -3447,7 +3447,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         await updateRef(
           repository,
           localRef,
-          branch.tip.sha,
+          branch.sha,
           upstreamRef,
           'pull: Fast-forward'
         )

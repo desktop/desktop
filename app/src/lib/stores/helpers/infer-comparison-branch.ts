@@ -95,10 +95,7 @@ async function getDefaultBranchOfFork(
     return getMasterBranch(branches)
   }
 
-  const aheadBehind = comparisonCache.get(
-    currentBranch.tip.sha,
-    defaultBranch.tip.sha
-  )
+  const aheadBehind = comparisonCache.get(currentBranch.sha, defaultBranch.sha)
 
   // we want to return the default branch of the fork if it's ahead
   // of the current branch; see https://github.com/desktop/desktop/issues/4766#issue-325764371

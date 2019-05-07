@@ -22,28 +22,9 @@ describe('git/checkout', () => {
       upstream: null,
       upstreamWithoutRemote: null,
       type: BranchType.Local,
-      tip: {
-        sha: '',
-        shortSha: '',
-        summary: '',
-        body: '',
-        author: {
-          name: '',
-          email: '',
-          date: new Date(),
-          tzOffset: 0,
-        },
-        committer: {
-          name: '',
-          email: '',
-          date: new Date(),
-          tzOffset: 0,
-        },
-        authoredByCommitter: true,
-        parentSHAs: [],
-        trailers: [],
-        coAuthors: [],
-      },
+      sha: '',
+      shortSha: '',
+      lastCommitDate: new Date(),
       remote: null,
     }
 

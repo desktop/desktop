@@ -338,8 +338,8 @@ export async function rebase(
   if (progressCallback !== undefined) {
     const commits = await getCommitsInRange(
       repository,
-      baseBranch.tip.sha,
-      targetBranch.tip.sha
+      baseBranch.sha,
+      targetBranch.sha
     )
 
     const totalCommitCount = commits.length

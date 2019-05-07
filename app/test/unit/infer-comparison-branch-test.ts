@@ -1,7 +1,5 @@
 import { inferComparisonBranch } from '../../src/lib/stores/helpers/infer-comparison-branch'
 import { Branch, BranchType } from '../../src/models/branch'
-import { Commit } from '../../src/models/commit'
-import { CommitIdentity } from '../../src/models/commit-identity'
 import { GitHubRepository } from '../../src/models/github-repository'
 import { Owner } from '../../src/models/owner'
 import { PullRequest, PullRequestRef } from '../../src/models/pull-request'
@@ -9,25 +7,22 @@ import { Repository } from '../../src/models/repository'
 import { IRemote } from '../../src/models/remote'
 import { ComparisonCache } from '../../src/lib/comparison-cache'
 
-function createTestCommit(sha: string) {
-  return new Commit(
-    sha,
-    sha.slice(0, 7),
-    '',
-    '',
-    new CommitIdentity('tester', 'tester@test.com', new Date()),
-    new CommitIdentity('tester', 'tester@test.com', new Date()),
-    [],
-    []
-  )
-}
-
 function createTestBranch(
   name: string,
   sha: string,
   remote: string | null = null
 ) {
-  return new Branch(name, remote, createTestCommit(sha), BranchType.Local)
+  const shortSha = sha.slice(0, 7)
+  const lastCommitDate = new Date()
+
+  return new Branch(
+    name,
+    remote,
+    sha,
+    shortSha,
+    lastCommitDate,
+    BranchType.Local
+  )
 }
 
 function createTestGhRepo(
@@ -63,7 +58,7 @@ function createTestPrRef(
   branch: Branch,
   ghRepo: GitHubRepository | null = null
 ) {
-  return new PullRequestRef(branch.name, branch.tip.sha, ghRepo)
+  return new PullRequestRef(branch.name, branch.sha, ghRepo)
 }
 
 function createTestPr(head: PullRequestRef, base: PullRequestRef) {
@@ -106,7 +101,7 @@ describe('inferComparisonBranch', () => {
     )
 
     expect(branch).not.toBeNull()
-    expect(branch!.tip.sha).toBe('0')
+    expect(branch!.sha).toBe('0')
   })
 
   it('Returns the default branch of a GitHub repository', async () => {
@@ -153,7 +148,7 @@ describe('inferComparisonBranch', () => {
     const fork = createTestGhRepo('fork', 'fork', parent)
     const repo = createTestRepo(fork)
 
-    comparisonCache.set(currentBranch.tip.sha, defaultBranch.tip.sha, {
+    comparisonCache.set(currentBranch.sha, defaultBranch.sha, {
       ahead: 1,
       behind: 0,
     })
@@ -189,14 +184,10 @@ describe('inferComparisonBranch', () => {
       return Promise.resolve(remotes)
     }
 
-    comparisonCache.set(
-      defaultBranchOfParent.tip.sha,
-      defaultBranchOfFork.tip.sha,
-      {
-        ahead: 0,
-        behind: 0,
-      }
-    )
+    comparisonCache.set(defaultBranchOfParent.sha, defaultBranchOfFork.sha, {
+      ahead: 0,
+      behind: 0,
+    })
 
     const branch = await inferComparisonBranch(
       repo,

@@ -2,31 +2,12 @@ import { getStartPoint } from '../../src/lib/create-branch'
 import { TipState, IValidBranch, IDetachedHead } from '../../src/models/tip'
 import { BranchType, StartPoint } from '../../src/models/branch'
 
-const stubAuthor = {
-  name: 'Brendan Forster',
-  email: 'brendan@example.com',
-  date: new Date(),
-  tzOffset: 0,
-}
-
-const stubTip = {
-  sha: 'deadbeef',
-  shortSha: 'dead',
-  summary: 'some commit',
-  body: '',
-  coAuthors: [],
-  author: stubAuthor,
-  committer: stubAuthor,
-  authoredByCommitter: true,
-  parentSHAs: [],
-  trailers: [],
-  isWebFlowCommitter: false,
-}
-
 const defaultBranch = {
   name: 'my-default-branch',
   upstream: null,
-  tip: stubTip,
+  sha: 'deadbeef',
+  shortSha: 'dead',
+  lastCommitDate: new Date(),
   type: BranchType.Local,
   remote: null,
   upstreamWithoutRemote: null,
@@ -36,7 +17,9 @@ const defaultBranch = {
 const someOtherBranch = {
   name: 'some-other-branch',
   upstream: null,
-  tip: stubTip,
+  sha: 'deadbeef',
+  shortSha: 'dead',
+  lastCommitDate: new Date(),
   type: BranchType.Local,
   remote: null,
   upstreamWithoutRemote: null,
