@@ -24,6 +24,7 @@ import {
   renderBranchNameExistsOnRemoteWarning,
 } from '../lib/branch-name-warnings'
 import { getStartPoint } from '../../lib/create-branch'
+import { groupLogMessages } from '../lib/group-log-messages'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -292,12 +293,14 @@ export class CreateBranch extends React.Component<
 
     if (name.length > 0) {
       this.setState({ isCreatingBranch: true })
+      const disposable = groupLogMessages('create branch')
       await this.props.dispatcher.createBranch(
         this.props.repository,
         name,
         startPoint
       )
       this.props.onDismissed()
+      disposable.dispose()
     }
   }
 }
