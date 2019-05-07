@@ -5025,10 +5025,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _createStash(
     repository: Repository,
     branchName: string,
-    preAction:
+    onPreviousStashEntryFound:
       | ((previousStashEntry: IStashEntry | null) => Promise<void>)
       | null,
-    postAction: ((stashEntry: IStashEntry) => Promise<void>) | null
+    onNewStashCreated: ((stashEntry: IStashEntry) => Promise<void>) | null
   ) {
     if (!enableStashing()) {
       return
@@ -5039,17 +5039,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    if (preAction != null) {
+    if (onPreviousStashEntryFound != null) {
       const previousStashEntry = await getLastDesktopStashEntryForBranch(
         repository,
         branchName
       )
-      await preAction(previousStashEntry)
+      await onPreviousStashEntryFound(previousStashEntry)
     }
 
     await createDesktopStashEntry(repository, branchName)
 
-    if (postAction != null) {
+    if (onNewStashCreated != null) {
       const previousStashEntry = await getLastDesktopStashEntryForBranch(
         repository,
         branchName
@@ -5057,10 +5057,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       // if we can't find the stash we just created, something went wrong
       if (previousStashEntry === null) {
-        throw new Error('The stash was not created. Check the logs for an underlying Git error because this shouldn't happen')
+        throw new Error(
+          "The stash was not created. Check the logs for an underlying Git error because this shouldn't happen"
+        )
       }
 
-      await postAction(previousStashEntry)
+      await onNewStashCreated(previousStashEntry)
     }
 
     await this._refreshRepository(repository)

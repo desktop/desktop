@@ -2047,20 +2047,22 @@ export class Dispatcher {
    *
    * @param repository the repository to create the stash entry in
    * @param branch the branch to associate the stash entry to
-   * @param preAction callback to execute **before** the stash entry is created
-   * @param postAction callback to execute **after** the stash entry is created
+   * @param onPreviousStashEntryFound callback to execute **before** the stash entry is created
+   * @param onNewStashCreated callback to execute **after** the stash entry is created
    */
   public async createStash(
     repository: Repository,
     branch: Branch,
-    preAction: ((previousStash: IStashEntry | null) => Promise<void>) | null,
-    postAction: ((stashEntry: IStashEntry) => Promise<void>) | null
+    onPreviousStashEntryFound:
+      | ((previousStash: IStashEntry | null) => Promise<void>)
+      | null,
+    onNewStashCreated: ((stashEntry: IStashEntry) => Promise<void>) | null
   ) {
     return this.appStore._createStash(
       repository,
       branch.name,
-      preAction,
-      postAction
+      onPreviousStashEntryFound,
+      onNewStashCreated
     )
   }
 }
