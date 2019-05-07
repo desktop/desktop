@@ -2861,6 +2861,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             repository,
             branch,
           },
+          checkoutBranch: foundBranch,
         }
       )
     )
