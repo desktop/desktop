@@ -741,8 +741,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     initialAction?: CompareAction
   ) {
-    log.debug('[AppStore] initializing compare state')
-
     const state = this.repositoryStateCache.get(repository)
 
     const { branchesState, compareState } = state
