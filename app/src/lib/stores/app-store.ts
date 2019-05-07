@@ -5060,7 +5060,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       // if we can't find the stash we just created, something went wrong
       if (previousStashEntry === null) {
-        throw Error('Something bad happened')
+        throw new Error('The stash was not created. Check the logs for an underlying Git error because this shouldn't happen')
       }
 
       await postAction(previousStashEntry)
