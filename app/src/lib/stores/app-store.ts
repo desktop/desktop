@@ -224,7 +224,11 @@ import {
   uncommittedChangesStrategyKind,
   askToStash,
 } from '../../models/uncommitted-changes-strategy'
-import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
+import {
+  IStashEntry,
+  StashedChangesLoadStates,
+  StashCallback,
+} from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
@@ -5025,10 +5029,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _createStash(
     repository: Repository,
     branchName: string,
-    onPreviousStashEntryFound:
-      | ((previousStashEntry: IStashEntry | null) => Promise<void>)
-      | null,
-    onNewStashCreated: ((stashEntry: IStashEntry) => Promise<void>) | null
+    onPreviousStashEntryFound: StashCallback | null,
+    onNewStashCreated: StashCallback | null
   ) {
     if (!enableStashing()) {
       return

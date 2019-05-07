@@ -83,7 +83,7 @@ import {
 import { MergeResult } from '../../models/merge'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
-import { IStashEntry } from '../../models/stash-entry'
+import { IStashEntry, StashCallback } from '../../models/stash-entry'
 
 /**
  * An error handler function.
@@ -2053,10 +2053,8 @@ export class Dispatcher {
   public async createStash(
     repository: Repository,
     branch: Branch,
-    onPreviousStashEntryFound:
-      | ((previousStash: IStashEntry | null) => Promise<void>)
-      | null,
-    onNewStashCreated: ((stashEntry: IStashEntry) => Promise<void>) | null
+    onPreviousStashEntryFound: StashCallback | null,
+    onNewStashCreated: StashCallback | null
   ) {
     return this.appStore._createStash(
       repository,
