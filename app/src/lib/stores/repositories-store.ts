@@ -299,7 +299,7 @@ export class RepositoriesStore extends BaseStore {
       )
     }
 
-    lastCheckDate = record!.lastStashCheckDate
+    lastCheckDate = record.lastStashCheckDate
     if (lastCheckDate !== null) {
       this.lastStashCheckCache.set(repoID, lastCheckDate)
     }
