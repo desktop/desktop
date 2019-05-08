@@ -1130,28 +1130,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _setBranchFilterText(
-    repository: Repository,
-    text: string
-  ): Promise<void> {
-    this.repositoryStateCache.update(repository, () => ({
-      branchFilterText: text,
-    }))
-    this.emitUpdate()
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _setPullRequestFilterText(
-    repository: Repository,
-    text: string
-  ): Promise<void> {
-    this.repositoryStateCache.update(repository, () => ({
-      pullRequestFilterText: text,
-    }))
-    this.emitUpdate()
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeFileSelection(
     repository: Repository,
     file: CommittedFileChange
