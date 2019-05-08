@@ -149,6 +149,10 @@ function convertToAppStatus(
   return fatalError(`Unknown file status ${status}`)
 }
 
+// List of known conflicted index entries for a file, extracted from mapStatus
+// inside `app/src/lib/status-parser.ts` for convenience
+const conflictStatusCodes = ['DD', 'AU', 'UD', 'UA', 'DU', 'AA', 'UU']
+
 /**
  *  Retrieve the status for a given repository,
  *  and fail gracefully if the location is not a Git repository
@@ -196,7 +200,9 @@ export async function getStatus(
   const entries = parsed.filter(isStatusEntry)
 
   const mergeHeadFound = await isMergeHeadSet(repository)
-  const conflictedFilesInIndex = entries.some(e => e.statusCode === 'UU')
+  const conflictedFilesInIndex = entries.some(
+    e => conflictStatusCodes.indexOf(e.statusCode) > -1
+  )
   const rebaseInternalState = await getRebaseInternalState(repository)
 
   const conflictDetails = await getConflictDetails(
