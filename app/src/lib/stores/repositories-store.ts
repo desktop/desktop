@@ -14,6 +14,9 @@ import { BaseStore } from './base-store'
 export class RepositoriesStore extends BaseStore {
   private db: RepositoriesDatabase
 
+  // Key-repo ID, Value-date
+  private lastStashCheckCache = new Map<number, number>()
+
   public constructor(db: RepositoriesDatabase) {
     super()
 
@@ -263,6 +266,8 @@ export class RepositoriesStore extends BaseStore {
       lastStashCheckDate: date,
     })
 
+    this.lastStashCheckCache.set(repoID, date)
+
     this.emitUpdate()
   }
 
@@ -281,6 +286,11 @@ export class RepositoriesStore extends BaseStore {
       )
     }
 
+    let lastCheckDate = this.lastStashCheckCache.get(repoID) || null
+    if (lastCheckDate !== null) {
+      return lastCheckDate
+    }
+
     const record = await this.db.repositories.get(repoID)
 
     if (record === undefined) {
@@ -289,7 +299,12 @@ export class RepositoriesStore extends BaseStore {
       )
     }
 
-    return record!.lastStashCheckDate
+    lastCheckDate = record!.lastStashCheckDate
+    if (lastCheckDate !== null) {
+      this.lastStashCheckCache.set(repoID, lastCheckDate)
+    }
+
+    return lastCheckDate
   }
 
   private async putOwner(endpoint: string, login: string): Promise<Owner> {
