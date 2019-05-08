@@ -1,5 +1,6 @@
 {
   "releases": {
+    "1.7.0-test1": ["Testing new CircleCI build image"],
     "1.7.0-beta6": [
       "[Fixed] Stash viewer does not disable restore button when changes present - #7409",
       "[Fixed] Stash viewer does not center \"no content\" text - #7299",
