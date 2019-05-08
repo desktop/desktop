@@ -251,8 +251,7 @@ describe('git/stash', () => {
     })
 
     describe('when there are (resolvable) conflicts', () => {
-      let entryToApply: IStashEntry
-      beforeEach(async () => {
+      it('restores changes and drops stash', async () => {
         await generateTestStashEntry(repository, 'master', true)
         const entries = await getDesktopStashEntries(repository)
         expect(entries.length).toBe(1)
@@ -264,32 +263,19 @@ describe('git/stash', () => {
           repository.path
         )
 
-        const status = await getStatusOrThrow(repository)
-        const files = status.workingDirectory.files
+        let status = await getStatusOrThrow(repository)
+        let files = status.workingDirectory.files
         expect(files).toHaveLength(0)
 
-        entryToApply = entries[0]
+        const entryToApply = entries[0]
         await popStashEntry(repository, entryToApply.stashSha)
-      })
 
-      it('restores changes and drops stash', async () => {
-        const status = await getStatusOrThrow(repository)
-        const files = status.workingDirectory.files
+        status = await getStatusOrThrow(repository)
+        files = status.workingDirectory.files
         expect(files).toHaveLength(1)
 
         const entriesAfter = await getDesktopStashEntries(repository)
         expect(entriesAfter).not.toContain(entryToApply)
-      })
-
-      it('detects conflicted file', async () => {
-        const status = await getStatusOrThrow(repository)
-        const files = status.workingDirectory.files
-        expect(files).toHaveLength(1)
-
-        const conflictedFiles = files.filter(
-          f => f.status.kind === AppFileStatusKind.Conflicted
-        )
-        expect(conflictedFiles).toHaveLength(1)
       })
     })
     describe('when there are unresolvable conflicts', () => {
