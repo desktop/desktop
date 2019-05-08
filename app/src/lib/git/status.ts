@@ -212,9 +212,7 @@ export async function getStatus(
       conflictedFilesInIndex,
       rebaseInternalState
     )
-    // a little optimization so we don't run `getWorkingDirectoryConflictDetails`
-    // when there are no files to even detect conflicts in
-  } else if (entries.length > 0) {
+  } else {
     conflictDetails = await getConflictDetails(
       repository,
       mergeHeadFound,
