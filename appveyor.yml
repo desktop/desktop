@@ -14,7 +14,7 @@ cache:
 branches:
   only:
     - development
-    - releases/*
+    - /releases\/.+/
     - /^__release-.*/
 
 skip_tags: true
