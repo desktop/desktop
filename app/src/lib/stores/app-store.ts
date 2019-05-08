@@ -2577,10 +2577,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /**
-   * Refresh in-memory indicators for a repository
-   *
-   * @param repository the repository to check and update
-   * @param tryBackgroundFetch whether the action should also try and fetch new changes from the remote
+   * Refresh indicator in repository list for a specific repository
    */
   private async refreshIndicatorForRepository(repository: Repository) {
     const lookup = this.localRepositoryStateLookup
