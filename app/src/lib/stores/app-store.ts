@@ -193,7 +193,7 @@ import {
 import { BranchPruner } from './helpers/branch-pruner'
 import { enableBranchPruning, enablePullWithRebase } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
-import moment = require('moment')
+import * as moment from 'moment'
 import { getStashSize } from '../git/stash'
 
 /**
