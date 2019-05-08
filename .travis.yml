@@ -23,7 +23,7 @@ addons:
 branches:
   only:
     - development
-    - releases/*
+    - /releases\/.+/
     - /^__release-.*/
 
 language: node_js
