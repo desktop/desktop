@@ -3,13 +3,10 @@ import '../lib/logging/main/install'
 import { app, Menu, ipcMain, BrowserWindow, shell } from 'electron'
 import * as Fs from 'fs'
 
+import { MenuLabelsEvent } from '../models/menu-labels'
+
 import { AppWindow } from './app-window'
-import {
-  buildDefaultMenu,
-  MenuEvent,
-  MenuLabels,
-  getAllMenuItems,
-} from './menu'
+import { buildDefaultMenu, MenuEvent, getAllMenuItems } from './menu'
 import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { parseAppURL } from '../lib/parse-app-url'
 import { handleSquirrelEvent } from './squirrel-updater'
@@ -236,11 +233,18 @@ app.on('ready', () => {
 
   createWindow()
 
-  Menu.setApplicationMenu(buildDefaultMenu({}))
+  Menu.setApplicationMenu(
+    buildDefaultMenu({
+      selectedShell: null,
+      selectedExternalEditor: null,
+      askForConfirmationOnRepositoryRemoval: false,
+      askForConfirmationOnForcePush: false,
+    })
+  )
 
   ipcMain.on(
     'update-preferred-app-menu-item-labels',
-    (event: Electron.IpcMessageEvent, labels: MenuLabels) => {
+    (event: Electron.IpcMessageEvent, labels: MenuLabelsEvent) => {
       // The current application menu is mutable and we frequently
       // change whether particular items are enabled or not through
       // the update-menu-state IPC event. This menu that we're creating
