@@ -33,7 +33,6 @@ export class PullRequestUpdater {
   /** Starts the updater */
   public start() {
     if (!this.running) {
-      console.log('[PRU] starting')
       this.running = true
       this.scheduleTick(MaxPullRequestRefreshFrequency)
     }
@@ -49,11 +48,8 @@ export class PullRequestUpdater {
   private scheduleTick(timeout: number = PullRequestInterval) {
     if (this.running) {
       const due = Math.max(timeout - this.getTimeSinceLastRefresh(), 0)
-
-      console.log('[PRU] starting pr timer in ' + due)
       this.timeoutId = window.setTimeout(() => this.tick(), due)
     } else {
-      console.log('[PRU] Updater no longer running, skipping scheduling')
     }
   }
 
@@ -63,18 +59,10 @@ export class PullRequestUpdater {
     }
 
     this.timeoutId = null
-    console.log(
-      `[PRU] Tick: Tme since last refresh: ${this.getTimeSinceLastRefresh()}`
-    )
-
     if (this.getTimeSinceLastRefresh() < MaxPullRequestRefreshFrequency) {
-      console.log(
-        '[PRU] Ignoring tick, PRs have been refreshed since scheduled'
-      )
       this.scheduleTick()
     }
 
-    console.log('[PRU] Refreshing')
     this.store
       .refreshPullRequests(this.repository, this.account)
       .catch(() => {})
@@ -83,7 +71,6 @@ export class PullRequestUpdater {
 
   public stop() {
     if (this.running) {
-      console.log('[PRU] stopping')
       if (this.timeoutId !== null) {
         window.clearTimeout(this.timeoutId)
         this.timeoutId = null
