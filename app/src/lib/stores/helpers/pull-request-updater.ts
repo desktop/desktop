@@ -49,7 +49,6 @@ export class PullRequestUpdater {
     if (this.running) {
       const due = Math.max(timeout - this.getTimeSinceLastRefresh(), 0)
       this.timeoutId = window.setTimeout(() => this.tick(), due)
-    } else {
     }
   }
 
