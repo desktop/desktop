@@ -172,6 +172,12 @@ export interface IAPIMentionableUser {
 }
 
 /**
+ * Error thrown by `fetchUpdatedPullRequests` when receiving more results than
+ * what the `maxResults` parameter allows for.
+ */
+export class MaxResultsError extends Error {}
+
+/**
  * `null` can be returned by the API for legacy reasons. A non-null value is
  * set for the primary email address currently, but in the future visibility
  * may be defined for each email address.
@@ -645,7 +651,7 @@ export class API {
         getNextPagePath: getNextPagePathWithIncreasingPageSize,
         continue(results) {
           if (results.length >= maxResults) {
-            throw new Error('got more than maxResults pull requests, aborting')
+            throw new MaxResultsError('got max pull requests, aborting')
           }
 
           // Given that we sort the results in descending order by their
