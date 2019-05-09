@@ -125,9 +125,10 @@ export class PullRequestDatabase extends BaseDatabase {
     // first ensure that the array is what _we_ expect it to
     // be (i.e. PullRequestKey[]) before typing it as any and
     // handing it off to Dexie.
-    const ids = (<PullRequestKey[]>(
-      prs.map(pr => [pr.base.repoId, pr.number])
-    )) as any
+    const ids = (prs.map(pr => [
+      pr.base.repoId,
+      pr.number,
+    ]) as PullRequestKey[]) as any
 
     return this.pullRequests.bulkDelete(ids)
   }
