@@ -305,6 +305,7 @@ function getNextPagePathFromLink(response: Response): string | null {
  * will stop at a page size of 100 since that's the maximum
  * that the GitHub API supports.
  *
+ * ```
  * |-----------|------|-----------|-----------------|
  * | Request # | Page | Page size | Retrieved items |
  * |-----------|------|-----------|-----------------|
@@ -318,7 +319,7 @@ function getNextPagePathFromLink(response: Response): string | null {
  * | 8         | 5    | 80        | 400             |
  * | 9         | 2    | 100       | 500             |
  * |-----------|------|-----------|-----------------|
- *
+ * ```
  * This algorithm means we can have the best of both worlds.
  * If there's a small number of changed pull requests since
  * our last update we'll do small requests that use minimal
