@@ -192,9 +192,7 @@ export class PullRequestStore {
   ) {
     if (await this.storePullRequests(pullRequestsFromAPI, repository)) {
       this.emitPullRequestsChanged(repository, await this.getAll(repository))
-      return true
     }
-    return false
   }
 
   /**
