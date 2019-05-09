@@ -183,6 +183,22 @@ export class PullRequestStore {
 
   /**
    * Stores all pull requests that are open and deletes all that are merged
+   * or closed. Returns a value indicating whether an update notification
+   * has been emitted, see `storePullRequests` for more details.
+   */
+  private async storePullRequestsAndEmitUpdate(
+    pullRequestsFromAPI: ReadonlyArray<IAPIPullRequest>,
+    repository: GitHubRepository
+  ) {
+    if (await this.storePullRequests(pullRequestsFromAPI, repository)) {
+      this.emitPullRequestsChanged(repository, await this.getAll(repository))
+      return true
+    }
+    return false
+  }
+
+  /**
+   * Stores all pull requests that are open and deletes all that are merged
    * or closed. Returns a value indicating whether it's safe to avoid
    * emitting an event that the store has been updated. In other words, when
    * this method returns false it's safe to say that nothing has been changed
