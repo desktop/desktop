@@ -26,7 +26,6 @@ import { fatalError } from '../../lib/fatal-error'
 import { isMergeHeadSet } from './merge'
 import { getBinaryPaths } from './diff'
 import { getRebaseInternalState } from './rebase'
-import { enablePullWithRebase } from '../feature-flag'
 import { RebaseInternalState } from '../../models/rebase'
 
 /**
@@ -150,6 +149,10 @@ function convertToAppStatus(
   return fatalError(`Unknown file status ${status}`)
 }
 
+// List of known conflicted index entries for a file, extracted from mapStatus
+// inside `app/src/lib/status-parser.ts` for convenience
+const conflictStatusCodes = ['DD', 'AU', 'UD', 'UA', 'DU', 'AA', 'UU']
+
 /**
  *  Retrieve the status for a given repository,
  *  and fail gracefully if the location is not a Git repository
@@ -196,25 +199,18 @@ export async function getStatus(
   const headers = parsed.filter(isStatusHeader)
   const entries = parsed.filter(isStatusEntry)
 
-  let conflictDetails: ConflictFilesDetails = {
-    conflictCountsByPath: new Map<string, number>(),
-    binaryFilePaths: new Array<string>(),
-  }
-
   const mergeHeadFound = await isMergeHeadSet(repository)
+  const conflictedFilesInIndex = entries.some(
+    e => conflictStatusCodes.indexOf(e.statusCode) > -1
+  )
   const rebaseInternalState = await getRebaseInternalState(repository)
 
-  if (enablePullWithRebase()) {
-    conflictDetails = await getConflictDetails(
-      repository,
-      mergeHeadFound,
-      rebaseInternalState
-    )
-    // a little optimization so we don't run `getWorkingDirectoryConflictDetails`
-    // when there are no files to even detect conflicts in
-  } else if (entries.length > 0) {
-    conflictDetails = await getConflictDetails(repository, mergeHeadFound, null)
-  }
+  const conflictDetails = await getConflictDetails(
+    repository,
+    mergeHeadFound,
+    conflictedFilesInIndex,
+    rebaseInternalState
+  )
 
   // Map of files keyed on their paths.
   const files = entries.reduce(
@@ -388,11 +384,13 @@ async function getWorkingDirectoryConflictDetails(repository: Repository) {
  *
  * @param repository to get details from
  * @param mergeHeadFound whether a merge conflict has been detected
+ * @param lookForStashConflicts whether it looks like a stash has introduced conflicts
  * @param rebaseInternalState details about the current rebase operation (if found)
  */
 async function getConflictDetails(
   repository: Repository,
   mergeHeadFound: boolean,
+  lookForStashConflicts: boolean,
   rebaseInternalState: RebaseInternalState | null
 ): Promise<ConflictFilesDetails> {
   try {
@@ -403,11 +401,18 @@ async function getConflictDetails(
     if (rebaseInternalState !== null) {
       return await getRebaseConflictDetails(repository)
     }
+
+    if (lookForStashConflicts) {
+      return await getWorkingDirectoryConflictDetails(repository)
+    }
   } catch (error) {
     log.error(
       'Unexpected error from git operations in getConflictDetails',
       error
     )
   }
-  return getWorkingDirectoryConflictDetails(repository)
+  return {
+    conflictCountsByPath: new Map<string, number>(),
+    binaryFilePaths: new Array<string>(),
+  }
 }
