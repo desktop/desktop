@@ -636,7 +636,6 @@ export class API {
       })
       return prs.filter(pr => Date.parse(pr.updated_at) >= sinceTime)
     } catch (e) {
-      )
       log.warn(`failed fetching updated PRs for repository ${owner}/${name}`, e)
       throw e
     }
