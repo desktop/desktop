@@ -204,6 +204,8 @@ export class PullRequestStore {
       return false
     }
 
+    let mostRecentlyUpdated = pullRequestsFromAPI[0].updated_at
+
     const prsToDelete = new Array<IPullRequest>()
     const prsToUpsert = new Array<IPullRequest>()
 
@@ -222,6 +224,12 @@ export class PullRequestStore {
     })
 
     for (const pr of pullRequestsFromAPI) {
+      // We can do this string comparison here rather than conver to date
+      // because ISO8601 is lexicographically sortable
+      if (pr.updated_at > mostRecentlyUpdated) {
+        mostRecentlyUpdated = pr.updated_at
+      }
+
       // `pr.head.repo` represents the source of the pull request. It might be
       // a branch associated with the current repository, or a fork of the
       // current repository.
@@ -299,6 +307,7 @@ export class PullRequestStore {
     await this.db.transaction('rw', this.db.pullRequests, async () => {
       await this.db.deletePullRequests(prsToDelete)
       await this.db.putPullRequests(prsToUpsert)
+      await this.db.setLastUpdated(repository, new Date(mostRecentlyUpdated))
     })
 
     return true
