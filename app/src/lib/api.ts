@@ -371,6 +371,7 @@ function getNextPagePathWithIncreasingPageSize(response: Response) {
   // Number of received items thus far
   const received = currentPage * per_page
 
+  // Can't go above 100, that's the max the API will allow.
   const nextPageSize = Math.min(100, per_page * 2)
 
   // Have we received exactly the amount of items
