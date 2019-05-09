@@ -117,14 +117,6 @@ export class PullRequestStore {
       ? await api.fetchUpdatedPullRequests(owner, name, lastUpdatedAt)
       : await api.fetchAllOpenPullRequests(owner, name)
 
-    if (apiResult.length > 0) {
-      const newLastUpdatedAt = apiResult.reduce(
-        (max, pr) => Math.max(Date.parse(pr.updated_at), max),
-        lastUpdatedAt ? lastUpdatedAt.getTime() : 0
-      )
-      await this.db.setLastUpdated(repo, new Date(newLastUpdatedAt))
-    }
-
     if (await this.storePullRequests(apiResult, repo)) {
       this.emitPullRequestsChanged(repo, await this.getAll(repo))
     }
