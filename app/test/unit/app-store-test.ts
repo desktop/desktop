@@ -96,7 +96,9 @@ describe('AppStore', () => {
   it('can select a repository', async () => {
     const appStore = await createAppStore()
 
-    const repo = await setupEmptyRepository()
+    const { path } = await setupEmptyRepository()
+    const repositories = await appStore._addRepositories([path])
+    const repo = repositories[0]
 
     await appStore._selectRepository(repo)
 
@@ -179,7 +181,11 @@ describe('AppStore', () => {
 
       beforeEach(async () => {
         appStore = await createAppStore()
-        repo = await setupConflictedRepoWithMultipleFiles()
+
+        const { path } = await setupConflictedRepoWithMultipleFiles()
+        const repositories = await appStore._addRepositories([path])
+        repo = repositories[0]
+
         await appStore._selectRepository(repo)
         status = await getStatusOrThrow(repo)
       })
@@ -215,7 +221,11 @@ describe('AppStore', () => {
 
       beforeEach(async () => {
         appStore = await createAppStore()
-        repo = await setupConflictedRepoWithUnrelatedCommittedChange()
+
+        const { path } = await setupConflictedRepoWithUnrelatedCommittedChange()
+        const repositories = await appStore._addRepositories([path])
+        repo = repositories[0]
+
         await appStore._selectRepository(repo)
         status = await getStatusOrThrow(repo)
       })

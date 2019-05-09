@@ -193,6 +193,8 @@ import {
 import { BranchPruner } from './helpers/branch-pruner'
 import { enableBranchPruning, enablePullWithRebase } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
+import * as moment from 'moment'
+import { getStashSize } from '../git/stash'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -1139,6 +1141,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return Promise.resolve(null)
     }
 
+    this.updateStashEntryCountMetric(repository)
     setNumber(LastSelectedRepositoryIDKey, repository.id)
 
     // if repository might be marked missing, try checking if it has been restored
@@ -3574,6 +3577,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
 
       this.emitUpdate()
+    }
+  }
+  private async updateStashEntryCountMetric(repository: Repository) {
+    const lastStashEntryCheck = await this.repositoriesStore.getLastStashCheckDate(
+      repository
+    )
+    const dateNow = moment()
+    const threshold = dateNow.subtract(24, 'hours')
+    if (lastStashEntryCheck == null || threshold.isAfter(lastStashEntryCheck)) {
+      // `lastStashEntryCheck` being equal to null means we've never checked for
+      // the given repo
+
+      try {
+        const stashSize = await getStashSize(repository)
+        this.statsStore.addStashEntriesCreatedOutsideDesktop(stashSize)
+      } finally {
+        await this.repositoriesStore.updateLastStashCheckDate(repository)
+      }
     }
   }
 

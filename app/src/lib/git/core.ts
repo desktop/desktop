@@ -264,6 +264,12 @@ function getDescriptionForError(error: DugiteError): string {
       return 'A lock file already exists in the repository, which blocks this operation from completing.'
     case DugiteError.NoMergeToAbort:
       return 'There is no merge in progress, so there is nothing to abort.'
+    case DugiteError.NoExistingRemoteBranch:
+      return 'The remote branch does not exist.'
+    case DugiteError.LocalChangesOverwritten:
+      return 'Unable to switch branches as there are working directory changes which would be overwritten. Please commit or stash your changes.'
+    case DugiteError.UnresolvedConflicts:
+      return 'There are unresolved conflicts in the working directory.'
     default:
       return assertNever(error, `Unknown error: ${error}`)
   }
