@@ -358,29 +358,32 @@ function getNextPagePathWithIncreasingPageSize(response: Response) {
   }
 
   const { pathname, query } = URL.parse(nextPath, true)
+  const { per_page, page } = query
 
-  const per_page =
-    typeof query.per_page === 'string' ? parseInt(query.per_page, 10) : NaN
+  const pageSize = typeof per_page === 'string' ? parseInt(per_page, 10) : NaN
+  const pageNumber = typeof page === 'string' ? parseInt(page, 10) : NaN
 
-  const page = typeof query.page === 'string' ? parseInt(query.page, 10) : NaN
+  if (!pageSize || !pageNumber) {
+    return nextPath
+  }
 
   // Confusing, but we're looking at the _next_ page path here
   // so the current is whatever came before it.
-  const currentPage = page - 1
+  const currentPage = pageNumber - 1
 
   // Number of received items thus far
-  const received = currentPage * per_page
+  const received = currentPage * pageSize
 
   // Can't go above 100, that's the max the API will allow.
-  const nextPageSize = Math.min(100, per_page * 2)
+  const nextPageSize = Math.min(100, pageSize * 2)
 
   // Have we received exactly the amount of items
   // such that doubling the page size and loading the
   // second page would seamlessly fit? No sense going
   // above 100 since that's the max the API supports
-  if (per_page !== nextPageSize && received % nextPageSize === 0) {
-    query['per_page'] = `${nextPageSize}`
-    query['page'] = '2'
+  if (pageSize !== nextPageSize && received % nextPageSize === 0) {
+    query.per_page = `${nextPageSize}`
+    query.page = '2'
     return URL.format({ pathname, query })
   }
 
