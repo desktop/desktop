@@ -609,11 +609,19 @@ export class API {
    * only grab as many pages as we need to until we no longer receive
    * PRs that have been update more recently than the `since`
    * parameter.
+   *
+   * If there's more than `maxResults` updated PRs since the last time
+   * we fetched this method will throw an error such that we can abort
+   * this strategy and commence loading all open PRs instead.
    */
   public async fetchUpdatedPullRequests(
     owner: string,
     name: string,
-    since: Date
+    since: Date,
+    // 320 is chosen because with a ramp-up page size starting with
+    // a page size of 10 we'll reach 320 in exactly 7 pages. See
+    // getNextPagePathWithIncreasingPageSize
+    maxResults = 320
   ) {
     const sinceTime = since.getTime()
     const url = urlWithQueryString(`repos/${owner}/${name}/pulls`, {
@@ -636,6 +644,10 @@ export class API {
         perPage: 10,
         getNextPagePath: getNextPagePathWithIncreasingPageSize,
         continue(results) {
+          if (results.length >= maxResults) {
+            throw new Error('got more than maxResults pull requests, aborting')
+          }
+
           // Given that we sort the results in descending order by their
           // updated_at field we can safely say that if the last item
           // is modified after our sinceTime then haven't reached the
