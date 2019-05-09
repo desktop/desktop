@@ -267,7 +267,7 @@ function getDescriptionForError(error: DugiteError): string {
     case DugiteError.NoExistingRemoteBranch:
       return 'The remote branch does not exist.'
     case DugiteError.LocalChangesOverwritten:
-      return 'Unable to switch branches as there are working directory changes that would be overwritten. Please commit or stash your changes.'
+      return 'Unable to switch branches as there are working directory changes which would be overwritten. Please commit or stash your changes.'
     case DugiteError.UnresolvedConflicts:
       return 'There are unresolved conflicts in the working directory.'
     default:
