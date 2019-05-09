@@ -296,11 +296,16 @@ export class PullRequestStore {
       }
     }
 
-    await this.db.transaction('rw', this.db.pullRequests, async () => {
-      await this.db.deletePullRequests(prsToDelete)
-      await this.db.putPullRequests(prsToUpsert)
-      await this.db.setLastUpdated(repository, new Date(mostRecentlyUpdated))
-    })
+    await this.db.transaction(
+      'rw',
+      this.db.pullRequests,
+      this.db.pullRequestsLastUpdated,
+      async () => {
+        await this.db.deletePullRequests(prsToDelete)
+        await this.db.putPullRequests(prsToUpsert)
+        await this.db.setLastUpdated(repository, new Date(mostRecentlyUpdated))
+      }
+    )
 
     return true
   }
