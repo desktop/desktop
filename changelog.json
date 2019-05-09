@@ -4,7 +4,7 @@
       "[Improved] Improve error message when publishing repo to an organization - #7472",
       "[Improved] \"View Stash\" button accessibility improvements - #7274",
       "[Improved] Performance improvements for bringing changes to another branch - #7471",
-      "[Improved] Perofmance improvements for detecting conflicts from restoring a stash - #7476"
+      "[Improved] Performance improvements for detecting conflicts from a restored stash - #7476"
     ],
     "1.7.0-beta6": [
       "[Fixed] Stash viewer does not disable restore button when changes present - #7409",
