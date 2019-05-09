@@ -45,6 +45,15 @@ interface IFetchAllOptions<T> {
    * implementation.
    */
   getNextPagePath?: (response: Response) => string | null
+
+  /**
+   * Whether or not to silently suppress request errors and
+   * return the results retrieved thus far. This is the default
+   * behavior. Setting this field to false will cause the
+   * fetchAll method to throw if it encounters an API error
+   * on any page.
+   */
+  suppressErrors?: boolean
 }
 
 const username: () => Promise<string> = require('username')
@@ -673,7 +682,7 @@ export class API {
     let nextPath: string | null = urlWithQueryString(path, params)
     do {
       const response: Response = await this.request('GET', nextPath)
-      if (!response.ok) {
+      if (opts.suppressErrors !== false && !response.ok) {
         log.warn(`fetchAll: '${path}' returned a ${response.status}`)
         return buf
       }
