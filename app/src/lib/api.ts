@@ -584,7 +584,7 @@ export class API {
     try {
       return await this.fetchAll<IAPIPullRequest>(url)
     } catch (e) {
-      log.warn(`fetchPullRequests: failed for repository ${owner}/${name}`, e)
+      log.warn(`failed fetching open PRs for repository ${owner}/${name}`, e)
       throw e
     }
   }
@@ -636,10 +636,8 @@ export class API {
       })
       return prs.filter(pr => Date.parse(pr.updated_at) >= sinceTime)
     } catch (e) {
-      log.warn(
-        `fetchPullRequestsUpdatedSince: failed for repository ${owner}/${name}`,
-        e
       )
+      log.warn(`failed fetching updated PRs for repository ${owner}/${name}`, e)
       throw e
     }
   }
