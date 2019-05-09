@@ -336,7 +336,7 @@ function getNextPagePathFromLink(response: Response): string | null {
  * would take 7.
  */
 function getNextPagePathWithIncreasingPageSize(response: Response) {
-  let nextPath = getNextPagePathFromLink(response)
+  const nextPath = getNextPagePathFromLink(response)
 
   if (!nextPath) {
     return null
@@ -344,10 +344,10 @@ function getNextPagePathWithIncreasingPageSize(response: Response) {
 
   const { pathname, query } = URL.parse(nextPath, true)
 
-  let per_page =
+  const per_page =
     typeof query.per_page === 'string' ? parseInt(query.per_page, 10) : NaN
 
-  let page = typeof query.page === 'string' ? parseInt(query.page, 10) : NaN
+  const page = typeof query.page === 'string' ? parseInt(query.page, 10) : NaN
 
   // Confusing, but we're looking at the _next_ page path here
   // so the current is whatever came before it.
