@@ -1,5 +1,10 @@
 {
   "releases": {
+    "1.6.6-test1": [
+      "[Fixed] Clicking \"Undo\" doesn't repopulate summary in commit form - #6390. Thanks @humphd!",
+      "[Fixed] Handle error when unable to create log file for app - #7096",
+      "[Fixed] Crash when selecting text while the underlying diff changes - #7131"
+    ],
     "1.6.5": [
       "[Fixed] Publish Repository does not let you publish to an organization on your Enterprise account - #7052"
     ],
