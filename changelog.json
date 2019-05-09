@@ -2,7 +2,7 @@
   "releases": {
     "1.7.0-beta7": [
       "[Improved] Error message when unable to publish private repository to an organization - #7472",
-      "[Improved] \"View Stash\" button accessibility improvements - #7274",
+      "[Improved] \"Stashed changes\" button accessibility improvements - #7274",
       "[Improved] Performance improvements for bringing changes to another branch - #7471",
       "[Improved] Performance improvements for detecting conflicts from a restored stash - #7476"
     ],
