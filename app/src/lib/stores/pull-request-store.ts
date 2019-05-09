@@ -3,12 +3,13 @@ import mem from 'mem'
 import { PullRequestDatabase, IPullRequest } from '../databases'
 import { GitHubRepository } from '../../models/github-repository'
 import { Account } from '../../models/account'
-import { API, IAPIPullRequest } from '../api'
+import { API, IAPIPullRequest, MaxResultsError } from '../api'
 import { fatalError, forceUnwrap } from '../fatal-error'
 import { RepositoriesStore } from './repositories-store'
 import { PullRequest, PullRequestRef } from '../../models/pull-request'
 import { structuralEquals } from '../equality'
 import { Emitter, Disposable } from 'event-kit'
+import { APIError } from '../http'
 
 /** The store for GitHub Pull Requests. */
 export class PullRequestStore {
@@ -101,24 +102,76 @@ export class PullRequestStore {
     account: Account
   ) {
     const api = API.fromAccount(account)
-    const owner = repo.owner.login
-    const name = repo.name
     const lastUpdatedAt = await this.db.getLastUpdated(repo)
 
     // If we don't have a lastUpdatedAt that mean we haven't fetched any PRs
     // for the repository yet which in turn means we only have to fetch the
     // currently open PRs. If we have fetched before we get all PRs
+    // If we have a lastUpdatedAt that mean we have fetched PRs
+    // for the repository before. If we have fetched before we get all PRs
     // that have been modified since the last time we fetched so that we
     // can prune closed issues from our database. Note that since
     // fetchPullRequestsUpdatedSince returns all issues modified _at_ or
     // after the timestamp we give it we will always get at least one issue
-    // back.
-    const apiResult = lastUpdatedAt
-      ? await api.fetchUpdatedPullRequests(owner, name, lastUpdatedAt)
-      : await api.fetchAllOpenPullRequests(owner, name)
+    // back. See `storePullRequests` for details on how that's handled.
+    if (!lastUpdatedAt) {
+      return this.fetchAndStoreOpenPullRequests(api, repo)
+    } else {
+      return this.fetchAndStoreUpdatedPullRequests(api, repo, lastUpdatedAt)
+    }
+  }
 
-    if (await this.storePullRequests(apiResult, repo)) {
-      this.emitPullRequestsChanged(repo, await this.getAll(repo))
+  private getNameWithOwner(repository: GitHubRepository) {
+    const owner = repository.owner.login
+    const name = repository.name
+    return { name, owner }
+  }
+
+  private async fetchAndStoreOpenPullRequests(
+    api: API,
+    repository: GitHubRepository
+  ) {
+    const { name, owner } = this.getNameWithOwner(repository)
+    const open = await api.fetchAllOpenPullRequests(owner, name)
+    await this.storePullRequestsAndEmitUpdate(open, repository)
+  }
+
+  private async fetchAndStoreUpdatedPullRequests(
+    api: API,
+    repository: GitHubRepository,
+    lastUpdatedAt: Date
+  ) {
+    const { name, owner } = this.getNameWithOwner(repository)
+    const updated = await api
+      .fetchUpdatedPullRequests(owner, name, lastUpdatedAt)
+      .catch(e =>
+        // Any other error we'll bubble up but these ones we
+        // can handle, see below.
+        e instanceof MaxResultsError || e instanceof APIError
+          ? Promise.resolve(null)
+          : Promise.reject(e)
+      )
+
+    if (updated !== null) {
+      return await this.storePullRequestsAndEmitUpdate(updated, repository)
+    } else {
+      // If we fail to load updated pull requests either because
+      // there's too many updated PRs since the last time we
+      // fetched (and it's likely that it'll be much more
+      // efficient to just load the open PRs) or it's because the
+      // API told us we couldn't load PRs (rate limit or permissions
+      // problems). In either case we delete the PRs we've got
+      // for this repo and attempt to load just the open ones.
+      //
+      // This scenario can happen for repositories that are
+      // very active while simultaneously infrequently used
+      // by the user. Think of a very active open source repository
+      // where the user only visits once a year to make a contribution.
+      // It's likely that there's at most a few hundred PRs open but
+      // the number of merged PRs since the last time we fetched could
+      // number in the thousands.
+      await this.db.deleteAllPullRequestsInRepository(repository)
+      await this.fetchAndStoreOpenPullRequests(api, repository)
     }
   }
 
