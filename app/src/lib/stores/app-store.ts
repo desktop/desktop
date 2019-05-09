@@ -2887,7 +2887,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     ) {
       const { transientStashEntry } = uncommittedChangesStrategy
       if (transientStashEntry !== null) {
-        await this._popStashEntry(repository, transientStashEntry)
+        await gitStore.performFailableOperation(() => {
+          return popStashEntry(repository, transientStashEntry.stashSha)
+        })
       }
     }
 
@@ -5035,11 +5037,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (!enableStashing()) {
       return
     }
-    const { branchesState } = this.repositoryStateCache.get(repository)
-    const { tip } = branchesState
-    if (tip.kind !== TipState.Valid) {
-      return
-    }
 
     if (onPreviousStashEntryFound != null) {
       const previousStashEntry = await getLastDesktopStashEntryForBranch(
@@ -5069,8 +5066,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       await onNewStashCreated(previousStashEntry)
     }
-
-    await this._refreshRepository(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -5109,7 +5104,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }`
     )
 
-    await this.gitStoreCache.get(repository).loadStashEntries()
+    await gitStore.loadStashEntries()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
