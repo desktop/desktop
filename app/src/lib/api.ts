@@ -643,6 +643,11 @@ export class API {
           const last = results[results.length - 1]
           return last !== undefined && Date.parse(last.updated_at) > sinceTime
         },
+        // We can't ignore errors here as that might mean that we haven't
+        // retrieved enough pages to fully capture the changes since the
+        // last time we updated. Ignoring errors here would mean that we'd
+        // store an incorrect lastUpdated field in the database.
+        suppressErrors: false,
       })
       return prs.filter(pr => Date.parse(pr.updated_at) >= sinceTime)
     } catch (e) {
