@@ -1,7 +1,7 @@
 import Dexie from 'dexie'
 import { BaseDatabase } from './base-database'
 import { GitHubRepository } from '../../models/github-repository'
-import { fatalError } from '../fatal-error'
+import { fatalError, forceUnwrap } from '../fatal-error'
 
 export interface IPullRequestRef {
   /**
@@ -115,6 +115,31 @@ export class PullRequestDatabase extends BaseDatabase {
   }
 
   /**
+   * Removes all the pull requests associated with the given repository
+   * from the database. Also clears the last updated date for that repository
+   * if it exists.
+   */
+  public async deleteAllPullRequestsInRepository(repository: GitHubRepository) {
+    const dbId = forceUnwrap(
+      "Can't delete PRs for repository, no dbId",
+      repository.dbID
+    )
+
+    await this.transaction(
+      'rw',
+      this.pullRequests,
+      this.pullRequestsLastUpdated,
+      async () => {
+        await this.clearLastUpdated(repository)
+        await this.pullRequests
+          .where('[base.repoId+number]')
+          .between([dbId], [dbId + 1])
+          .delete()
+      }
+    )
+  }
+
+  /**
    * Removes all the given pull requests from the database.
    */
   public async deletePullRequests(prs: IPullRequest[]) {
@@ -187,6 +212,18 @@ export class PullRequestDatabase extends BaseDatabase {
     const row = await this.pullRequestsLastUpdated.get(repository.dbID)
 
     return row ? new Date(row.lastUpdated) : null
+  }
+
+  /**
+   * Clears the stored date for the most recently updated PR seen for
+   * a given repository.
+   */
+  public clearLastUpdated(repository: GitHubRepository) {
+    if (repository.dbID === null) {
+      return fatalError("Can't clear last updated PR for repository, no dbId")
+    }
+
+    return this.pullRequestsLastUpdated.delete(repository.dbID)
   }
 
   /**
