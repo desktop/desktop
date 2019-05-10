@@ -4709,28 +4709,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  private findAssociatedPullRequest(
-    branch: Branch,
-    pullRequests: ReadonlyArray<PullRequest>,
-    remote: IRemote
-  ): PullRequest | null {
-    const upstream = branch.upstreamWithoutRemote
-
-    if (upstream == null) {
-      return null
-    }
-
-    const pr =
-      pullRequests.find(
-        pr =>
-          pr.head.ref === upstream &&
-          pr.head.gitHubRepository != null &&
-          repositoryMatchesRemote(pr.head.gitHubRepository, remote)
-      ) || null
-
-    return pr
-  }
-
   private updateCurrentPullRequest(repository: Repository) {
     const gitHubRepository = repository.gitHubRepository
 
@@ -4744,7 +4722,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const { remote } = this.repositoryStateCache.get(repository)
 
       if (state.tip.kind === TipState.Valid && remote) {
-        currentPullRequest = this.findAssociatedPullRequest(
+        currentPullRequest = findAssociatedPullRequest(
           state.tip.branch,
           state.openPullRequests,
           remote
@@ -5149,4 +5127,34 @@ function userIsStartingRebaseFlow(
   }
 
   return false
+}
+
+function findAssociatedPullRequest(
+  branch: Branch,
+  pullRequests: ReadonlyArray<PullRequest>,
+  remote: IRemote
+): PullRequest | null {
+  const upstream = branch.upstreamWithoutRemote
+
+  if (upstream == null) {
+    return null
+  }
+
+  return (
+    pullRequests.find(pr =>
+      isPullRequestAssociatedWithBranch(remote, branch, pr)
+    ) || null
+  )
+}
+
+function isPullRequestAssociatedWithBranch(
+  remote: IRemote,
+  branch: Branch,
+  pr: PullRequest
+) {
+  return (
+    pr.head.ref === branch.upstreamWithoutRemote &&
+    pr.head.gitHubRepository != null &&
+    repositoryMatchesRemote(pr.head.gitHubRepository, remote)
+  )
 }
