@@ -95,7 +95,10 @@ export function buildDefaultMenu({
         { role: 'hideothers' },
         { role: 'unhide' },
         separator,
-        { role: 'quit' },
+        {
+          role: 'quit',
+          accelerator: 'CmdOrCtrl+Shift+Q',
+        },
       ],
     })
   }
@@ -137,7 +140,10 @@ export function buildDefaultMenu({
         click: emit('show-preferences'),
       },
       separator,
-      { role: 'quit' }
+      {
+        role: 'quit',
+        accelerator: 'CmdOrCtrl+Shift+Q',
+      }
     )
   }
 
