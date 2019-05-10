@@ -33,7 +33,11 @@ import { FetchType } from '../../models/fetch'
 import { GitHubRepository } from '../../models/github-repository'
 import { Owner } from '../../models/owner'
 import { PullRequest } from '../../models/pull-request'
-import { forkPullRequestRemoteName, IRemote } from '../../models/remote'
+import {
+  forkPullRequestRemoteName,
+  IRemote,
+  remoteEquals,
+} from '../../models/remote'
 import {
   ILocalRepositoryState,
   nameOf,
@@ -45,7 +49,7 @@ import {
   WorkingDirectoryStatus,
   AppFileStatusKind,
 } from '../../models/status'
-import { TipState } from '../../models/tip'
+import { TipState, tipEquals } from '../../models/tip'
 import { ICommitMessage } from '../../models/commit-message'
 import {
   Progress,
@@ -608,13 +612,55 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private onGitStoreUpdated(repository: Repository, gitStore: GitStore) {
-    this.repositoryStateCache.updateBranchesState(repository, () => ({
-      tip: gitStore.tip,
-      defaultBranch: gitStore.defaultBranch,
-      allBranches: gitStore.allBranches,
-      recentBranches: gitStore.recentBranches,
-      pullWithRebase: gitStore.pullWithRebase,
-    }))
+    const prevRepositoryState = this.repositoryStateCache.get(repository)
+
+    this.repositoryStateCache.updateBranchesState(repository, state => {
+      let { currentPullRequest } = state
+      const { tip, currentRemote: remote } = gitStore
+
+      // If the tip has changed we need to re-evaluate whether or not the
+      // current pull request is still valid. Note that we're not using
+      // updateCurrentPullRequest here because we know for certain that
+      // the list of open pull requests haven't changed so we can find
+      // a happy path where the tip has changed but the current PR is
+      // still valid which doesn't require us to iterate through the
+      // list of open PRs.
+      if (
+        !tipEquals(state.tip, tip) ||
+        !remoteEquals(prevRepositoryState.remote, remote)
+      ) {
+        if (tip.kind !== TipState.Valid || remote === null) {
+          // The tip isn't a branch so or the current branch doesn't have a remote
+          // so there can't be a current pull request.
+          currentPullRequest = null
+        } else {
+          const { branch } = tip
+
+          if (
+            !currentPullRequest ||
+            !isPullRequestAssociatedWithBranch(
+              remote,
+              branch,
+              currentPullRequest
+            )
+          ) {
+            // Either we don't have a current pull request or the current pull
+            // request no longer matches the tip, let's go hunting for a new one.
+            const prs = state.openPullRequests
+            currentPullRequest = findAssociatedPullRequest(branch, prs, remote)
+          }
+        }
+      }
+
+      return {
+        tip: gitStore.tip,
+        defaultBranch: gitStore.defaultBranch,
+        allBranches: gitStore.allBranches,
+        recentBranches: gitStore.recentBranches,
+        pullWithRebase: gitStore.pullWithRebase,
+        currentPullRequest,
+      }
+    })
 
     let selectWorkingDirectory = false
     let selectStashEntry = false
