@@ -1,4 +1,5 @@
 import * as appProxy from '../ui/lib/app-proxy'
+import { URL } from 'url'
 
 /** The HTTP methods available. */
 export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'HEAD'
@@ -87,7 +88,10 @@ export function getAbsoluteUrl(endpoint: string, path: string): string {
   if (relativePath.startsWith('api/v3/')) {
     relativePath = relativePath.substr(7)
   }
-  return encodeURI(`${endpoint}/${relativePath}`)
+
+  const base = endpoint.endsWith('/') ? endpoint : `${endpoint}/`
+
+  return new URL(relativePath, base).toString()
 }
 
 /**
