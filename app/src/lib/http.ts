@@ -89,6 +89,12 @@ export function getAbsoluteUrl(endpoint: string, path: string): string {
     relativePath = relativePath.substr(7)
   }
 
+  // Our API endpoints are a bit sloppy in that they don't typically
+  // include the trailing slash (i.e. we use https://api.github.com for
+  // dotcom and https://ghe.enterprise.local/api/v3 for Enterprise when
+  // both of those should really include the trailing slash since that's
+  // the qualified base). We'll work around our past since here by ensuring
+  // that the endpoint ends with a trailing slash.
   const base = endpoint.endsWith('/') ? endpoint : `${endpoint}/`
 
   return new URL(relativePath, base).toString()
