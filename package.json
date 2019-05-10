@@ -51,7 +51,7 @@
   },
   "license": "MIT",
   "engines": {
-    "node": ">= 8.11",
+    "node": ">= 10",
     "yarn": ">= 1.9"
   },
   "dependencies": {
