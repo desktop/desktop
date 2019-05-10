@@ -1,5 +1,11 @@
 {
   "releases": {
+    "1.7.0-beta7": [
+      "[Improved] Error message when unable to publish private repository to an organization - #7472",
+      "[Improved] \"Stashed changes\" button accessibility improvements - #7274",
+      "[Improved] Performance improvements for bringing changes to another branch - #7471",
+      "[Improved] Performance improvements for detecting conflicts from a restored stash - #7476"
+    ],
     "1.7.0-beta6": [
       "[Fixed] Stash viewer does not disable restore button when changes present - #7409",
       "[Fixed] Stash viewer does not center \"no content\" text - #7299",
@@ -20,7 +26,7 @@
       "[Improved] Added explanatory text for \"Restore\" button for stashes - #7303",
       "[Improved] Ask for confirmation before discarding stash - #7348",
       "[Improved] Order stashed changes files alphabetically - #7327",
-      "[Improved] Clarify \"Overwrite Stash Confirmation\" dialog text - #7361.",
+      "[Improved] Clarify \"Overwrite Stash Confirmation\" dialog text - #7361",
       "[Improved] Message shown in rebase setup when target branch is already rebased  - #7343",
       "[Improved] Update stashing prompt verbiage - #7393.",
       "[Improved] Update \"Start Rebase\" dialog verbiage - #7391",
