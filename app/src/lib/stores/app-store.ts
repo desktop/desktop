@@ -2456,7 +2456,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const foundRepository =
       (await pathExists(repository.path)) &&
       (await isGitRepository(repository.path)) &&
-      (await this._loadStatus(repository))
+      (await this._loadStatus(repository)) !== null
 
     if (foundRepository) {
       return await this._updateRepositoryMissing(repository, false)
@@ -2485,9 +2485,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // is in a bad state - let's mark it as missing here and give up on the
     // further work
     const status = await this._loadStatus(repository)
-    if (!status) {
+    this.updateSidebarIndicator(repository, status)
+
+    if (status === null) {
       await this._updateRepositoryMissing(repository, true)
-      this.updateSidebarIndicator(repository, null)
       return
     }
 
@@ -2521,7 +2522,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.updateMenuItemLabels(latestState)
 
     this._initializeCompare(repository)
-    this.updateSidebarIndicator(repository, status)
   }
 
   /**
