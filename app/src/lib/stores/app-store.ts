@@ -1130,28 +1130,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _setBranchFilterText(
-    repository: Repository,
-    text: string
-  ): Promise<void> {
-    this.repositoryStateCache.update(repository, () => ({
-      branchFilterText: text,
-    }))
-    this.emitUpdate()
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _setPullRequestFilterText(
-    repository: Repository,
-    text: string
-  ): Promise<void> {
-    this.repositoryStateCache.update(repository, () => ({
-      pullRequestFilterText: text,
-    }))
-    this.emitUpdate()
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeFileSelection(
     repository: Repository,
     file: CommittedFileChange
@@ -2838,12 +2816,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
         uncommittedChangesStrategy ===
         UncommittedChangesStrategy.stashOnCurrentBranch
       ) {
-        await this._createStash(repository, currentBranch.name)
+        await this.createStash(repository, currentBranch.name)
       } else if (
         uncommittedChangesStrategy ===
         UncommittedChangesStrategy.moveToNewBranch
       ) {
-        await this._createStash(repository, foundBranch.name, false)
+        await createDesktopStashEntry(repository, foundBranch.name)
         shouldPopStash = true
       }
     }
@@ -2872,7 +2850,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
 
       if (stash !== null) {
-        await this._popStashEntry(repository, stash)
+        await gitStore.performFailableOperation(() => {
+          return popStashEntry(repository, stash.stashSha)
+        })
       } else {
         log.info(
           `[AppStore._checkoutBranch] no stash found that matches ${
@@ -5016,40 +4996,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _createStash(
-    repository: Repository,
-    branchName: string,
-    removePreviousStash: boolean = true
-  ) {
+  /**
+   *  Note: **drops the existing desktop stash** on that branch (if there is one)
+   */
+  private async createStash(repository: Repository, branchName: string) {
     if (!enableStashing()) {
-      return
-    }
-    const { branchesState } = this.repositoryStateCache.get(repository)
-    const { tip } = branchesState
-    if (tip.kind !== TipState.Valid) {
       return
     }
 
     // get the previous stash before we create a new one
-    const previousStash = removePreviousStash
-      ? await getLastDesktopStashEntryForBranch(repository, branchName)
-      : null
+    const previousStash = await getLastDesktopStashEntryForBranch(
+      repository,
+      branchName
+    )
 
     await createDesktopStashEntry(repository, branchName)
 
-    if (previousStash === null) {
-      return
+    if (previousStash !== null) {
+      await dropDesktopStashEntry(repository, previousStash.stashSha)
+      log.info(
+        `Dropped stash '${previousStash.stashSha}' associated with ${
+          previousStash.branchName
+        }`
+      )
     }
-
-    await dropDesktopStashEntry(repository, previousStash.stashSha)
-    log.info(
-      `Dropped stash '${previousStash.stashSha}' associated with ${
-        previousStash.branchName
-      }`
-    )
-
-    await this._refreshRepository(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -5088,7 +5058,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }`
     )
 
-    await this.gitStoreCache.get(repository).loadStashEntries()
+    await gitStore.loadStashEntries()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
