@@ -3,9 +3,8 @@ import { getDotComAPIEndpoint } from '../../src/lib/api'
 
 describe('getAbsoluteUrl', () => {
   it("doesn't mangle encoded query parameters", () => {
-    const dotcomEndpoint = getDotComAPIEndpoint()
     const result = getAbsoluteUrl(
-      dotcomEndpoint,
+      getDotComAPIEndpoint(),
       '/issues?since=2019-05-10T16%3A00%3A00Z'
     )
     expect(result).toBe(
