@@ -10,9 +10,5 @@ export function startApp() {
     return
   }
 
-  runningApp.on('close', () => {
-    process.exit(0)
-  })
-
   return runningApp
 }

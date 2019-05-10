@@ -1,7 +1,8 @@
 import * as puppeteer from 'puppeteer'
-import { promisify } from 'util'
 import { startApp } from '../../../script/start-app'
 import { ChildProcess } from 'child_process'
+import fetch from 'node-fetch'
+const waitForLocalHost = require('wait-for-localhost')
 
 const url = `http://localhost:1234/json/version`
 
@@ -15,12 +16,13 @@ describe('ui', () => {
 
     // Investigate using wait-port/wait-for-localhost or some other
     // method to ensure the server is running
-    await promisify(setTimeout)(5000)
 
-    console.log('Fetching wsl endpoint')
     try {
+      await waitForLocalHost({ port: 1234 })
+      console.log('LOCALHOST READY')
+
       const response = await fetch(url)
-      console.log('Done fetching')
+      console.log('FETCHING COMPLETE')
 
       const json = await response.json()
       endpoint = json.webSocketDebuggerUrl
