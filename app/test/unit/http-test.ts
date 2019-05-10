@@ -2,6 +2,17 @@ import { getAbsoluteUrl } from '../../src/lib/http'
 import { getDotComAPIEndpoint } from '../../src/lib/api'
 
 describe('getAbsoluteUrl', () => {
+  it("doesn't mangle encoded query parameters", () => {
+    const dotcomEndpoint = getDotComAPIEndpoint()
+    const result = getAbsoluteUrl(
+      dotcomEndpoint,
+      '/issues?since=2019-05-10T16%3A00%3A00Z'
+    )
+    expect(result).toBe(
+      'https://api.github.com/issues?since=2019-05-10T16%3A00%3A00Z'
+    )
+  })
+
   describe('dotcom endpoint', () => {
     const dotcomEndpoint = getDotComAPIEndpoint()
 
