@@ -8,7 +8,7 @@ import {
   enableNoChangesCreatePRBlankslateAction,
   enableStashing,
 } from '../../lib/feature-flag'
-import { MenuIDs } from '../../main-process/menu'
+import { MenuIDs } from '../../models/menu-ids'
 import { IMenu, MenuItem } from '../../models/app-menu'
 import memoizeOne from 'memoize-one'
 import { getPlatformSpecificNameOrSymbolForModifier } from '../../lib/menu-item'
