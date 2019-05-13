@@ -195,22 +195,6 @@ export class Dispatcher {
     return this.appStore._setRepositoryFilterText(text)
   }
 
-  /** Set the branch filter text. */
-  public setBranchFilterText(
-    repository: Repository,
-    text: string
-  ): Promise<void> {
-    return this.appStore._setBranchFilterText(repository, text)
-  }
-
-  /** Set the branch filter text. */
-  public setPullRequestFilterText(
-    repository: Repository,
-    text: string
-  ): Promise<void> {
-    return this.appStore._setPullRequestFilterText(repository, text)
-  }
-
   /** Select the repository. */
   public selectRepository(
     repository: Repository | CloningRepository
@@ -332,17 +316,6 @@ export class Dispatcher {
   /** Close the specified foldout. */
   public closeFoldout(foldout: FoldoutType): Promise<void> {
     return this.appStore._closeFoldout(foldout)
-  }
-
-  /**
-   * Compute a preview of the planned rebase action
-   */
-  public previewRebase(
-    repository: Repository,
-    baseBranch: Branch,
-    targetBranch: Branch
-  ) {
-    return this.appStore._previewRebase(repository, baseBranch, targetBranch)
   }
 
   /** Initialize and start the rebase operation */
@@ -2046,5 +2019,10 @@ export class Dispatcher {
    */
   public resetStashedFilesWidth = (): Promise<void> => {
     return this.appStore._resetStashedFilesWidth()
+  }
+
+  //** Hide the diff for stashed changes */
+  public hideStashedChanges(repository: Repository) {
+    return this.appStore._hideStashedChanges(repository)
   }
 }

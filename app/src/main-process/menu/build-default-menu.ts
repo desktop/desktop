@@ -7,7 +7,8 @@ import { ensureDir } from 'fs-extra'
 
 import { log } from '../log'
 import { openDirectorySafe } from '../shell'
-import { enableRebaseDialog } from '../../lib/feature-flag'
+import { enableRebaseDialog, enableStashing } from '../../lib/feature-flag'
+import { MenuLabelsEvent } from '../../models/menu-labels'
 
 const defaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'
@@ -15,13 +16,15 @@ const defaultEditorLabel = __DARWIN__
 const defaultShellLabel = __DARWIN__
   ? 'Open in Terminal'
   : 'Open in Command Prompt'
-const defaultPullRequestLabel = __DARWIN__
+const createPullRequestLabel = __DARWIN__
   ? 'Create Pull Request'
   : 'Create &pull request'
-const defaultBranchNameDefaultValue = __DARWIN__
-  ? 'Default Branch'
-  : 'default branch'
-const defaultRepositoryRemovalLabel = __DARWIN__ ? 'Remove' : '&Remove'
+const showPullRequestLabel = __DARWIN__
+  ? 'Show Pull Request'
+  : 'Show &pull request'
+const defaultBranchNameValue = __DARWIN__ ? 'Default Branch' : 'default branch'
+const confirmRepositoryRemovalLabel = __DARWIN__ ? 'Remove…' : '&Remove…'
+const repositoryRemovalLabel = __DARWIN__ ? 'Remove' : '&Remove'
 
 enum ZoomDirection {
   Reset,
@@ -29,26 +32,33 @@ enum ZoomDirection {
   Out,
 }
 
-export type MenuLabels = {
-  editorLabel?: string
-  shellLabel?: string
-  pullRequestLabel?: string
-  defaultBranchName?: string
-  removeRepoLabel?: string
-  isForcePushForCurrentRepository?: boolean
-  askForConfirmationOnForcePush?: boolean
-}
-
 export function buildDefaultMenu({
-  editorLabel = defaultEditorLabel,
-  shellLabel = defaultShellLabel,
-  pullRequestLabel = defaultPullRequestLabel,
-  defaultBranchName = defaultBranchNameDefaultValue,
-  removeRepoLabel = defaultRepositoryRemovalLabel,
+  selectedExternalEditor,
+  selectedShell,
+  askForConfirmationOnForcePush,
+  askForConfirmationOnRepositoryRemoval,
+  hasCurrentPullRequest = false,
+  defaultBranchName = defaultBranchNameValue,
   isForcePushForCurrentRepository = false,
-  askForConfirmationOnForcePush = false,
-}: MenuLabels): Electron.Menu {
+  isStashedChangesVisible = false,
+}: MenuLabelsEvent): Electron.Menu {
   defaultBranchName = truncateWithEllipsis(defaultBranchName, 25)
+
+  const removeRepoLabel = askForConfirmationOnRepositoryRemoval
+    ? confirmRepositoryRemovalLabel
+    : repositoryRemovalLabel
+
+  const pullRequestLabel = hasCurrentPullRequest
+    ? showPullRequestLabel
+    : createPullRequestLabel
+
+  const shellLabel =
+    selectedShell === null ? defaultShellLabel : `Open in ${selectedShell}`
+
+  const editorLabel =
+    selectedExternalEditor === null
+      ? defaultEditorLabel
+      : `Open in ${selectedExternalEditor}`
 
   const template = new Array<Electron.MenuItemConstructorOptions>()
   const separator: Electron.MenuItemConstructorOptions = { type: 'separator' }
@@ -183,6 +193,15 @@ export function buildDefaultMenu({
         id: 'go-to-commit-message',
         accelerator: 'CmdOrCtrl+G',
         click: emit('go-to-commit-message'),
+      },
+      {
+        label: getStashedChangesLabel(isStashedChangesVisible),
+        id: 'toggle-stashed-changes',
+        accelerator: 'Ctrl+H',
+        click: isStashedChangesVisible
+          ? emit('hide-stashed-changes')
+          : emit('show-stashed-changes'),
+        visible: enableStashing(),
       },
       {
         label: __DARWIN__ ? 'Toggle Full Screen' : 'Toggle &full screen',
@@ -325,6 +344,12 @@ export function buildDefaultMenu({
         id: 'delete-branch',
         accelerator: 'CmdOrCtrl+Shift+D',
         click: emit('delete-branch'),
+      },
+      separator,
+      {
+        label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
+        id: 'discard-all-changes',
+        click: emit('discard-all-changes'),
       },
       separator,
       {
@@ -510,6 +535,14 @@ function getPushLabel(
   }
 
   return __DARWIN__ ? 'Force Push' : 'Force P&ush'
+}
+
+function getStashedChangesLabel(isStashedChangesVisible: boolean): string {
+  if (isStashedChangesVisible) {
+    return __DARWIN__ ? 'Hide Stashed Changes' : 'H&ide stashed changes'
+  }
+
+  return __DARWIN__ ? 'Show Stashed Changes' : 'Sho&w stashed changes'
 }
 
 type ClickHandler = (

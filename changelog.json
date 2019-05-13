@@ -1,5 +1,37 @@
 {
   "releases": {
+    "1.7.0-beta7": [
+      "[Improved] Error message when unable to publish private repository to an organization - #7472",
+      "[Improved] \"Stashed changes\" button accessibility improvements - #7274",
+      "[Improved] Performance improvements for bringing changes to another branch - #7471",
+      "[Improved] Performance improvements for detecting conflicts from a restored stash - #7476"
+    ],
+    "1.7.0-beta6": [
+      "[Fixed] Stash viewer does not disable restore button when changes present - #7409",
+      "[Fixed] Stash viewer does not center \"no content\" text - #7299",
+      "[Fixed] Stash viewer pane width not remembered between sessions - #7416",
+      "[Fixed] \"Esc\" key does not close Repository or Branch list - #7177. Thanks @roottool!",
+      "[Fixed] Stash not cleaned up when it conflicts with working directory contents - #7383",
+      "[Improved] Branch names remain accurate in dialog when stashing and switching branches - #7402",
+      "[Improved] Moved \"Discard all changes\" to Branch menu to prevent unintentionally discarding all changes - #7394. Thanks @ahuth!",
+      "[Improved] UI responsiveness when using keyboard to choose branch in rebase flow - #7407"
+    ],
+    "1.7.0-beta5": [
+      "[Fixed] Handle warnings if stash creation encounters file permission issue - #7351",
+      "[Fixed] Add \"View stash entry\" action to suggested next steps - #7353",
+      "[Fixed] Handle and recover from failed rebase flow starts - #7223",
+      "[Fixed] Reverse button order when viewing a stash on macOS - #7273",
+      "[Fixed] Prevent console errors due to underlying component unmounts - #6970",
+      "[Fixed] Rebase success banner always includes base branch name - #7220",
+      "[Improved] Added explanatory text for \"Restore\" button for stashes - #7303",
+      "[Improved] Ask for confirmation before discarding stash - #7348",
+      "[Improved] Order stashed changes files alphabetically - #7327",
+      "[Improved] Clarify \"Overwrite Stash Confirmation\" dialog text - #7361",
+      "[Improved] Message shown in rebase setup when target branch is already rebased  - #7343",
+      "[Improved] Update stashing prompt verbiage - #7393.",
+      "[Improved] Update \"Start Rebase\" dialog verbiage - #7391",
+      "[Improved] Changes list now reflects what will be committed when handling rebase conflicts - #7006"
+    ],
     "1.7.0-beta4": [
       "[Fixed] Manual conflict resolution choice not updated when resolving rebase conflicts - #7255",
       "[Fixed] Menu items don't display the expected verbiage for force push and removing a repository - #4976 #7138"
@@ -17,14 +49,14 @@
       "[Improved] \"Add\" button in repository list should always be visible - #6646"
     ],
     "1.7.0-beta2": [
-        "[New] Rebase your current branch onto another branch using a guided flow - #5953",
-        "[Fixed] Horizontal scroll bar appears unnecessarily when switching branches - #7212",
-        "[Fixed] License templates do not end with newline character - #6999",
-        "[Fixed] Merge/Rebase conflicts banners do not clear when aborting the operation outside Desktop - #7046",
-        "[Fixed] Missing tooltips for change indicators in the sidebar - #7174",
-        "[Fixed] Icon accessibility labels fail when multiple icons are visible at the same time - #7174",
-        "[Improved] Pull requests load faster and PR build status updates automatically - #7163"
-      ],
+      "[New] Rebase your current branch onto another branch using a guided flow - #5953",
+      "[Fixed] Horizontal scroll bar appears unnecessarily when switching branches - #7212",
+      "[Fixed] License templates do not end with newline character - #6999",
+      "[Fixed] Merge/Rebase conflicts banners do not clear when aborting the operation outside Desktop - #7046",
+      "[Fixed] Missing tooltips for change indicators in the sidebar - #7174",
+      "[Fixed] Icon accessibility labels fail when multiple icons are visible at the same time - #7174",
+      "[Improved] Pull requests load faster and PR build status updates automatically - #7163"
+    ],
     "1.7.0-beta1": [
       "[New] Recently opened repositories appear at the top of the repository list - #7132",
       "[Fixed] Error when selecting diff text while diff is updating - #7131",
@@ -184,8 +216,7 @@
       "[Fixed] Enter when using keyboard to navigate app menu executed menu action twice - #5344",
       "[Improved] Image diff menu no longer covered by large images - #6520. Thanks @06b!"
     ],
-    "1.5.2-beta0": [
-    ],
+    "1.5.2-beta0": [],
     "1.5.1": [
       "[Added] Provide keyboard shortcut for getting to commit summary field - #1719. Thanks @bruncun!",
       "[Added] Add hover states on list items and tabs - #6310",
@@ -248,8 +279,7 @@
       "[Fixed] Focus branch selector when comparing to branch from menu - #5600",
       "[Fixed] Reverse fold/unfold icons for expand/collapse commit summary - #6196. Thanks @HazemAM!"
     ],
-    "1.5.1-beta0": [
-    ],
+    "1.5.1-beta0": [],
     "1.5.0": [
       "[New] Clone, create, or add repositories right from the repository dropdown - #5878",
       "[New] Drag-and-drop to add local repositories from macOS tray icon - #5048",
@@ -273,15 +303,13 @@
       "[Improved] Show the branch name in \"Update From Default Branch\" menu item - #3018. Thanks @a-golovanov!",
       "[Improved] Update license and .gitignore templates for initializing a new repository - #6024. Thanks @say25!"
     ],
-    "1.5.0-beta5": [
-    ],
+    "1.5.0-beta5": [],
     "1.5.0-beta4": [
       "[Fixed] \"Compare on GitHub\" menu item enabled when no repository is selected - #6078",
       "[Fixed] Diff viewer blocks keyboard navigation using reverse tab order - #2794",
       "[Improved] \"Publish Repository\" dialog handles emoji characters - #5980. Thanks @WaleedAshraf!"
     ],
-    "1.5.0-beta3": [
-    ],
+    "1.5.0-beta3": [],
     "1.5.0-beta2": [
       "[Added] Resolve merge conflicts through a guided flow - #5400",
       "[Added] Notify users when a merge is successfully completed - #5851",
@@ -304,8 +332,7 @@
       "[Improved] Avoid repository checks when no path is specified in \"Create Repository\" dialog - #5828. Thanks @JakeHL!",
       "[Improved] Display a more informative message on merge dialog when branch is up to date - #5890"
     ],
-    "1.4.4-beta0": [
-    ],
+    "1.4.4-beta0": [],
     "1.4.3": [
       "[Added] Add \"Remove Repository\" keyboard shortcut - #5848. Thanks @say25!",
       "[Added] Add keyboard shortcut to delete a branch - #5018. Thanks @JakeHL!",
@@ -326,8 +353,7 @@
       "[Fixed] Support Python 3 in Desktop CLI on macOS - #5843. Thanks @munir131!",
       "[Improved] Publish Branch dialog will publish commits when pressing Enter - #5777. Thanks @JKirkYuan!"
     ],
-    "1.4.3-beta0": [
-    ],
+    "1.4.3-beta0": [],
     "1.4.2": [
       "[New] Show resolved conflicts as resolved in Changes pane - #5609",
       "[Added] Add Terminator, MATE Terminal, and Terminology shells - #5753. Thanks @joaomlneto!",
@@ -342,8 +368,7 @@
       "[Improved] Display whether user entered incorrect username or email address - #5775. Thanks @tiagodenoronha!",
       "[Improved] Update Discard Changes dialog text when discarding all changes - #5744. Thanks @Daniel-McCarthy!"
     ],
-    "1.4.2-beta0": [
-    ],
+    "1.4.2-beta0": [],
     "1.4.1-test2": [
       "Testing changes to how Desktop performs CI platform checks"
     ],
@@ -378,8 +403,7 @@
       "[Improved] Branch names cannot start with a '+' character - #5594. Thanks @Daniel-McCarthy!",
       "[Improved] Warning if branch exists on remote when creating branch - #5141. Thanks @Daniel-McCarthy!"
     ],
-    "1.4.1-beta0": [
-    ],
+    "1.4.1-beta0": [],
     "1.4.0": [
       "[New] When an update is available for GitHub Desktop, release notes can be viewed in Desktop - #2774",
       "[New] Detect merge conflicts when comparing branches - #4588",
@@ -425,8 +449,7 @@
       "[Improved] Avoid multiple lookups of default remote - #5399",
       "[Improved] Skip optional locks when checking status of repository - #5376"
     ],
-    "1.4.0-beta0": [
-    ],
+    "1.4.0-beta0": [],
     "1.3.5": [
       "[Fixed] Disable delete button while deleting a branch - #5331",
       "[Fixed] History now avoids calling log.showSignature if set in config - #5466",
@@ -443,8 +466,7 @@
       "[Improved] Error message when publishing to missing organisation - #5380. Thanks @Daniel-McCarthy!",
       "[Improved] Don't hide commit details when commit summary description is expanded. - #5471. Thanks @aryyya!"
     ],
-    "1.3.5-beta0": [
-    ],
+    "1.3.5-beta0": [],
     "1.3.4": [
       "[Improved] Cloning message uses remote repo name not file destination - #5413. Thanks @lisavogtsf!",
       "[Improved] Support VSCode user scope installation - #5281. Thanks @saschanaz!"
@@ -453,8 +475,7 @@
       "[Improved] Cloning message uses remote repo name not file destination - #5413. Thanks @lisavogtsf!",
       "[Improved] Support VSCode user scope installation - #5281. Thanks @saschanaz!"
     ],
-    "1.3.4-beta0": [
-    ],
+    "1.3.4-beta0": [],
     "1.3.3": [
       "[Fixed] Maximize and restore app on Windows does not fill available space - #5033",
       "[Fixed] 'Clone repository' menu item label is obscured on Windows - #5348. Thanks @Daniel-McCarthy!",
@@ -467,24 +488,12 @@
       "[Fixed] User can toggle files when commit is in progress - #5341. Thanks @masungwon!",
       "[Improved] Repository indicator background work - #5317 #5326 #5363 #5241 #5320"
     ],
-    "1.3.3-test6": [
-      "Testing infrastructure changes"
-    ],
-    "1.3.3-test5": [
-      "Testing the new CircleCI config changes"
-    ],
-    "1.3.3-test4": [
-      "Testing the new CircleCI config changes"
-    ],
-    "1.3.3-test3": [
-      "Testing the new CircleCI config changes"
-    ],
-    "1.3.3-test2": [
-      "Testing the new CircleCI config changes"
-    ],
-    "1.3.3-test1": [
-      "Testing the new CircleCI config changes"
-    ],
+    "1.3.3-test6": ["Testing infrastructure changes"],
+    "1.3.3-test5": ["Testing the new CircleCI config changes"],
+    "1.3.3-test4": ["Testing the new CircleCI config changes"],
+    "1.3.3-test3": ["Testing the new CircleCI config changes"],
+    "1.3.3-test2": ["Testing the new CircleCI config changes"],
+    "1.3.3-test1": ["Testing the new CircleCI config changes"],
     "1.3.2": [
       "[Fixed] Bugfix for background checks not being aware of missing repositories - #5282",
       "[Fixed] Check the local state of a repository before performing Git operations - #5289",
@@ -547,12 +556,8 @@
       "[Improved] Diff gutter elements should be considered button elements when interacting - #5158",
       "[Improved] Status parsing significantly more performant when handling thousands of changed files - #2449 #5186"
     ],
-    "1.3.0-beta7": [
-
-    ],
-    "1.3.0-beta6": [
-
-    ],
+    "1.3.0-beta7": [],
+    "1.3.0-beta6": [],
     "1.3.0-beta5": [
       "[Fixed] Ensure commit message is cleared after successful commit - #4046",
       "[Fixed] History omits latest commit from list - #5243"
@@ -573,9 +578,7 @@
       "[Fixed] Markdown header elements hard to read in dark mode - #5133. Thanks @agisilaos!",
       "[Improved] Diff gutter elements should be considered button elements when interacting - #5158"
     ],
-    "1.2.7-test3": [
-      "Test deployment for electron version bump."
-    ],
+    "1.2.7-test3": ["Test deployment for electron version bump."],
     "1.3.0-beta1": [
       "[New] Notification displayed in History tab when the base branch moves ahead of the current branch - #4768",
       "[New] Repository list displays uncommitted changes count and ahead/behind information - #2259",
@@ -588,12 +591,8 @@
       "[Improved] Repository list badge style tweaks and tweaks for dark theme - #5095",
       "[Improved] Change primary button color to blue for dark theme - #5074"
     ],
-    "1.2.7-test2": [
-      "Test deployment for electron version bump."
-    ],
-    "1.2.7-test1": [
-      "Sanity check deployment for refactored scripts"
-    ],
+    "1.2.7-test2": ["Test deployment for electron version bump."],
+    "1.2.7-test1": ["Sanity check deployment for refactored scripts"],
     "1.2.7-beta0": [
       "[Fixed] Visual indicator for upcoming feature should not be shown - #5026"
     ],
@@ -622,9 +621,7 @@
       "[Improved] Only show overflow shadow when description overflows - #4898",
       "[Improved] Changes tab displays number of changed files instead of dot - #4772. Thanks @yongdamsh!"
     ],
-    "1.2.4-beta5": [
-
-    ],
+    "1.2.4-beta5": [],
     "1.2.4-beta4": [
       "[Fixed] Compare tab appends older commits when scrolling to bottom of list - #4964",
       "[Fixed] Remove temporary directory after Git LFS operation completes - #4414",
@@ -638,8 +635,7 @@
       "[Added] WebStorm support for macOS - #4841. Thanks @mrsimonfletcher!",
       "[Improved] Update banner message clarifies that only Desktop needs to be restarted - #4891. Thanks @KennethSweezy!"
     ],
-    "1.2.4-beta2": [
-    ],
+    "1.2.4-beta2": [],
     "1.2.4-beta1": [
       "[New] Dark Theme preview - #4849",
       "[Added] Syntax highlighting for Cake files - #4935. Thanks @say25!",
@@ -676,9 +672,7 @@
       "[Fixed] Updated embedded Git to 2.17.1 to address upstream security issue - #4791",
       "[Improved] Display the difference in file size of an image in the diff view - #4380. Thanks @ggajos!"
     ],
-    "1.2.1-test1": [
-      "Upgraded embedded Git to 2.17.0"
-    ],
+    "1.2.1-test1": ["Upgraded embedded Git to 2.17.0"],
     "1.2.1-beta1": [
       "[Added] Brackets support for macOS - #4608. Thanks @3raxton!",
       "[Added] Pull request number and author are included in fuzzy-find filtering - #4653. Thanks @damaneice!",
@@ -686,12 +680,8 @@
       "[Fixed] Updated embedded Git to 2.17.1 to address upstream security issue - #4791",
       "[Improved] Display the difference in file size of an image in the diff view - #4380. Thanks @ggajos!"
     ],
-    "1.2.1-beta0": [
-
-    ],
-    "1.1.2-test6": [
-      "Testing the Webpack v4 output from the project"
-    ],
+    "1.2.1-beta0": [],
+    "1.1.2-test6": ["Testing the Webpack v4 output from the project"],
     "1.2.0": [
       "[New] History now has ability to compare to another branch and merge outstanding commits",
       "[New] Support for selecting more than one file in the changes list - #1712. Thanks @icosamuel!",
@@ -723,20 +713,15 @@
       "[Improved] Pull request status text now matches format on GitHub - #3521",
       "[Improved] Add escape hatch to disable hardware acceleration when launching - #3921"
     ],
-    "1.1.2-beta7": [
-    ],
+    "1.1.2-beta7": [],
     "1.1.2-beta6": [
       "[Added] Add MacVim support for macOS - #4532. Thanks @johnelliott!",
       "[Fixed] Open in Shell on Linux ensures Git is available on the user's PATH - #4619. Thanks @ziggy42!",
       "[Fixed] Keyboard focus issues when navigating Pull Request list - #4673",
       "[Improved] Automatically add valid repository when using command line interface - #4513. Thanks @ggajos!"
     ],
-    "1.1.2-test5": [
-      "Actually upgrading fs-extra to v6 in the app"
-    ],
-    "1.1.2-test4": [
-      "Upgrading fs-extra to v6"
-    ],
+    "1.1.2-test5": ["Actually upgrading fs-extra to v6 in the app"],
+    "1.1.2-test4": ["Upgrading fs-extra to v6"],
     "1.1.2-beta5": [
       "[Added] Syntax highlighting for JavaServer Pages (JSP) - #4470. Thanks @damaneice!",
       "[Fixed] Prevent icon from shrinking in rename dialog - #4566"
@@ -762,9 +747,7 @@
       "[Improved] Checking out a Pull Request may skip unnecessary fetch - #4068. Thanks @agisilaos!",
       "[Improved] Commit summary now has a hint to indicate why committing is disabled - #4429."
     ],
-    "1.1.2-test3": [
-      "[New] Comparison Branch demo build"
-    ],
+    "1.1.2-test3": ["[New] Comparison Branch demo build"],
     "1.1.2-test2": [
       "Refactoring the diff internals to potentially land some SVG improvements"
     ],
@@ -780,9 +763,7 @@
       "[Improved] Pull request status text now matches format on GitHub - #3521",
       "[Improved] Add escape hatch to disable hardware acceleration when launching - #3921"
     ],
-    "1.1.2-beta1": [
-
-    ],
+    "1.1.2-beta1": [],
     "1.1.1": [
       "[New] Render WebP images in diffs - #4164. Thanks @agisilaos!",
       "[Fixed] Edit context menus in commit form input elements - #3886",
@@ -817,9 +798,7 @@
     "1.1.1-beta4": [
       "[Improved] Context menu in Changes tab now supports opening file in your preferred editor - #4030"
     ],
-    "1.1.1-beta3": [
-
-    ],
+    "1.1.1-beta3": [],
     "1.1.1-beta2": [
       "[New] Render WebP images in diffs - #4164. Thanks @agisilaos!",
       "[Fixed] Edit context menus in commit form input elements - #3886",
@@ -848,15 +827,11 @@
       "[Improved] Move forget password link to after the password dialog to maintain expected tab order - #4283. Thanks @iamnapo!",
       "[Improved] More descriptive text in repository toolbar button when no repositories are tracked - #4268. Thanks @agisilaos!"
     ],
-    "1.1.1-test2": [
-      "[Improved] Electron 1.8.3 upgrade (again)"
-    ],
+    "1.1.1-test2": ["[Improved] Electron 1.8.3 upgrade (again)"],
     "1.1.1-test1": [
       "[Improved] Forcing a focus on the window after the OAuth dance is done"
     ],
-    "1.1.1-beta1": [
-
-    ],
+    "1.1.1-beta1": [],
     "1.1.0": [
       "[New] Check out pull requests from collaborators or forks from within Desktop",
       "[New] View the commit status of the branch when it has an open pull request",
@@ -908,9 +883,7 @@
       "[Improved] Enable fuzzy search in the repository, branch, PR, and clone FilterLists - #911. Thanks @j-f1!",
       "[Improved] Tidy up commit summary and description layout in commit list - #3922. Thanks @willnode!"
     ],
-    "1.0.14-test1": [
-      "[Improved] Electron 1.8.2 upgrade"
-    ],
+    "1.0.14-test1": ["[Improved] Electron 1.8.2 upgrade"],
     "1.0.14-beta3": [
       "[Added] Add TextMate support for macOS - #3910. Thanks @caiofbpa!",
       "[Fixed] Handle Git errors when .gitmodules are malformed - #3912",
@@ -926,9 +899,7 @@
       "[Fixed] Ignore action assumes CRLF when core.autocrlf is unset - #3514",
       "[Improved] Use smaller default size when rendering Gravatar avatars - #3911"
     ],
-    "1.0.14-beta1": [
-      "[New] Commit together with co-authors - #3879"
-    ],
+    "1.0.14-beta1": ["[New] Commit together with co-authors - #3879"],
     "1.0.13": [
       "[New] Commit together with co-authors - #3879",
       "[New] PhpStorm is now a supported external editor on macOS - #3749. Thanks @hubgit!",

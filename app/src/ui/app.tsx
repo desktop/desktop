@@ -93,7 +93,6 @@ import { PopupType, Popup } from '../models/popup'
 import { OversizedFiles } from './changes/oversized-files-warning'
 import { UsageStatsChange } from './usage-stats-change'
 import { PushNeedsPullWarning } from './push-needs-pull'
-import { LocalChangesOverwrittenWarning } from './local-changes-overwritten'
 import { RebaseFlow, ConfirmForcePush } from './rebase'
 import {
   initializeNewRebaseFlow,
@@ -103,6 +102,7 @@ import {
 import { BannerType } from '../models/banner'
 import { StashAndSwitchBranch } from './stash-changes/stash-and-switch-branch-dialog'
 import { OverwriteStash } from './stash-changes/overwrite-stashed-changes-dialog'
+import { ConfirmDiscardStashDialog } from './stashing/confirm-discard-stash'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -190,10 +190,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       const initialTimeout = window.setTimeout(async () => {
         window.clearTimeout(initialTimeout)
 
-        await this.props.appStore.refreshAllIndicators()
+        await this.props.appStore.refreshAllSidebarIndicators()
 
         this.updateIntervalHandle = window.setInterval(() => {
-          this.props.appStore.refreshAllIndicators()
+          this.props.appStore.refreshAllSidebarIndicators()
         }, UpdateRepositoryIndicatorInterval)
       }, InitialRepositoryIndicatorTimeout)
     })
@@ -318,6 +318,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.renameBranch()
       case 'delete-branch':
         return this.deleteBranch()
+      case 'discard-all-changes':
+        return this.discardAllChanges()
       case 'show-preferences':
         return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
       case 'open-working-directory':
@@ -364,6 +366,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.selectAll()
       case 'show-release-notes-popup':
         return this.showFakeReleaseNotesPopup()
+      case 'show-stashed-changes':
+        return this.showStashedChanges()
+      case 'hide-stashed-changes':
+        return this.hideStashedChanges()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -604,6 +610,24 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
+  private discardAllChanges() {
+    const state = this.state.selectedState
+
+    if (state == null || state.type !== SelectionType.Repository) {
+      return
+    }
+
+    const { workingDirectory } = state.state.changesState
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.ConfirmDiscardChanges,
+      repository: state.repository,
+      files: workingDirectory.files,
+      showDiscardChangesSetting: false,
+      discardingAllChanges: true,
+    })
+  }
+
   private showAddLocalRepo = () => {
     return this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
   }
@@ -719,6 +743,24 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.pull(state.repository)
+  }
+
+  private showStashedChanges() {
+    const state = this.state.selectedState
+    if (state == null || state.type !== SelectionType.Repository) {
+      return
+    }
+
+    this.props.dispatcher.selectStashedFile(state.repository)
+  }
+
+  private hideStashedChanges() {
+    const state = this.state.selectedState
+    if (state == null || state.type !== SelectionType.Repository) {
+      return
+    }
+
+    this.props.dispatcher.hideStashedChanges(state.repository)
   }
 
   public componentDidMount() {
@@ -1556,27 +1598,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
           />
         )
-      case PopupType.LocalChangesOverwritten: {
-        const { selectedState } = this.state
-        if (
-          selectedState === null ||
-          selectedState.type !== SelectionType.Repository
-        ) {
-          return null
-        }
-
-        const { workingDirectory } = selectedState.state.changesState
-        return (
-          <LocalChangesOverwrittenWarning
-            dispatcher={this.props.dispatcher}
-            repository={popup.repository}
-            retryAction={popup.retryAction}
-            overwrittenFiles={popup.overwrittenFiles}
-            workingDirectory={workingDirectory}
-            onDismissed={this.onPopupDismissed}
-          />
-        )
-      }
       case PopupType.RebaseFlow: {
         const { selectedState, emoji } = this.state
 
@@ -1589,12 +1610,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         const { changesState, rebaseState } = selectedState.state
         const { workingDirectory, conflictState } = changesState
-        const {
-          progress,
-          step,
-          preview,
-          userHasResolvedConflicts,
-        } = rebaseState
+        const { progress, step, userHasResolvedConflicts } = rebaseState
 
         if (conflictState !== null && conflictState.kind === 'merge') {
           log.warn(
@@ -1619,7 +1635,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             workingDirectory={workingDirectory}
             progress={progress}
             step={step}
-            preview={preview}
             userHasResolvedConflicts={userHasResolvedConflicts}
             askForConfirmationOnForcePush={
               this.state.askForConfirmationOnForcePush
@@ -1677,6 +1692,18 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             repository={repository}
             branchToCheckout={branchToCheckout}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
+      }
+      case PopupType.ConfirmDiscardStash: {
+        const { repository, stash } = popup
+
+        return (
+          <ConfirmDiscardStashDialog
+            dispatcher={this.props.dispatcher}
+            repository={repository}
+            stash={stash}
             onDismissed={this.onPopupDismissed}
           />
         )
