@@ -224,11 +224,7 @@ import {
   UncommittedChangesStrategyKind,
   askToStash,
 } from '../../models/uncommitted-changes-strategy'
-import {
-  IStashEntry,
-  StashedChangesLoadStates,
-  StashCallback,
-} from '../../models/stash-entry'
+import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
@@ -2844,20 +2840,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
         uncommittedChangesStrategy.kind ===
         UncommittedChangesStrategyKind.stashOnCurrentBranch
       ) {
-        await this._createStash(
+        await this._createStashAndDropPreviousEntry(
           repository,
-          currentBranch.name,
-          async previousStash => {
-            if (previousStash !== null) {
-              await dropDesktopStashEntry(repository, previousStash.stashSha)
-              log.info(
-                `Dropped stash '${previousStash.stashSha}' associated with ${
-                  previousStash.branchName
-                }`
-              )
-            }
-          },
-          null
+          currentBranch.name
         )
       }
     }
@@ -5027,45 +5012,50 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _createStash(
+  public async _createStashAndDropPreviousEntry(
     repository: Repository,
-    branchName: string,
-    onPreviousStashEntryFound: StashCallback | null,
-    onNewStashCreated: StashCallback | null
+    branchName: string
   ) {
     if (!enableStashing()) {
       return
     }
 
-    if (onPreviousStashEntryFound != null) {
-      const previousStashEntry = await getLastDesktopStashEntryForBranch(
-        repository,
-        branchName
-      )
+    const previousStashEntry = await getLastDesktopStashEntryForBranch(
+      repository,
+      branchName
+    )
 
-      if (previousStashEntry !== null) {
-        await onPreviousStashEntryFound(previousStashEntry)
-      }
+    if (previousStashEntry !== null) {
+      await dropDesktopStashEntry(repository, previousStashEntry.stashSha)
+      log.info(
+        `Dropped stash '${previousStashEntry.stashSha}' associated with ${
+          previousStashEntry.branchName
+        }`
+      )
     }
 
     await createDesktopStashEntry(repository, branchName)
+  }
 
-    if (onNewStashCreated != null) {
-      const previousStashEntry = await getLastDesktopStashEntryForBranch(
-        repository,
-        branchName
-      )
-
-      // if we can't find the stash we just created, something went wrong
-      if (previousStashEntry === null) {
-        throw new Error(
-          "The stash was not created. Check the logs for an underlying Git error because this shouldn't happen"
-        )
-      }
-
-      await onNewStashCreated(previousStashEntry)
+  public async _moveChangesToBranchAndCheckout(
+    repository: Repository,
+    branchToCheckout: string
+  ) {
+    if (!enableStashing()) {
+      return
     }
+
+    await createDesktopStashEntry(repository, branchToCheckout)
+
+    const transientStashEntry = await getLastDesktopStashEntryForBranch(
+      repository,
+      branchToCheckout
+    )
+    const strategy: UncommittedChangesStrategy = {
+      kind: UncommittedChangesStrategyKind.moveToNewBranch,
+      transientStashEntry,
+    }
+    await this._checkoutBranch(repository, branchToCheckout, strategy)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

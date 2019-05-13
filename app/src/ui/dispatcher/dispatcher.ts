@@ -83,7 +83,7 @@ import {
 import { MergeResult } from '../../models/merge'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
-import { IStashEntry, StashCallback } from '../../models/stash-entry'
+import { IStashEntry } from '../../models/stash-entry'
 
 /**
  * An error handler function.
@@ -2042,25 +2042,13 @@ export class Dispatcher {
     return this.appStore._hideStashedChanges(repository)
   }
 
-  /**
-   * Creates a Desktop stash entry
-   *
-   * @param repository the repository to create the stash entry in
-   * @param branch the branch to associate the stash entry to
-   * @param onPreviousStashEntryFound callback to execute **before** the stash entry is created
-   * @param onNewStashCreated callback to execute **after** the stash entry is created
-   */
-  public async createStash(
+  public async moveChangesToBranchAndCheckout(
     repository: Repository,
-    branch: Branch,
-    onPreviousStashEntryFound: StashCallback | null,
-    onNewStashCreated: StashCallback | null
+    branchToCheckout: string
   ) {
-    return this.appStore._createStash(
+    return this.appStore._moveChangesToBranchAndCheckout(
       repository,
-      branch.name,
-      onPreviousStashEntryFound,
-      onNewStashCreated
+      branchToCheckout
     )
   }
 }

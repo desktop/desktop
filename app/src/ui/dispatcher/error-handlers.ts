@@ -13,7 +13,6 @@ import { UpstreamAlreadyExistsError } from '../../lib/stores/upstream-already-ex
 
 import { PopupType } from '../../models/popup'
 import { Repository } from '../../models/repository'
-import { uncommittedChangesStrategyKind } from '../../models/uncommitted-changes-strategy'
 import { enableStashing } from '../../lib/feature-flag'
 
 /** An error which also has a code property. */
@@ -455,21 +454,12 @@ export async function localChangesOverwrittenHandler(
     return error
   }
 
-  await dispatcher.createStash(
-    repository,
-    checkoutBranch,
-    null,
-    async stashEntry => {
-      await dispatcher.checkoutBranch(repository, checkoutBranch, {
-        kind: uncommittedChangesStrategyKind.moveToNewBranch,
-        transientStashEntry: stashEntry,
-      })
-    }
-  )
   if (gitContext.kind !== 'checkout') {
     return error
   }
   const { branchToCheckout } = gitContext
+
+  await dispatcher.moveChangesToBranchAndCheckout(repository, branchToCheckout)
 
   return null
 }
