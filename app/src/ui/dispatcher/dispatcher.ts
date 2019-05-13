@@ -2042,6 +2042,9 @@ export class Dispatcher {
     return this.appStore._hideStashedChanges(repository)
   }
 
+  /**
+   * Moves unconmitted changes to the branch being checked out
+   */
   public async moveChangesToBranchAndCheckout(
     repository: Repository,
     branchToCheckout: string

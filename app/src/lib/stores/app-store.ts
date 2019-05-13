@@ -5012,6 +5012,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _createStashAndDropPreviousEntry(
     repository: Repository,
     branchName: string
@@ -5037,6 +5038,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await createDesktopStashEntry(repository, branchName)
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _moveChangesToBranchAndCheckout(
     repository: Repository,
     branchToCheckout: string
