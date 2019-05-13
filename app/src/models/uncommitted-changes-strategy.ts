@@ -1,22 +1,22 @@
 import { IStashEntry } from './stash-entry'
 
-export enum uncommittedChangesStrategyKind {
+export enum UncommittedChangesStrategyKind {
   askForConfirmation,
   stashOnCurrentBranch,
   moveToNewBranch,
 }
 
 export type UncommittedChangesStrategy =
-  | { kind: uncommittedChangesStrategyKind.askForConfirmation }
-  | { kind: uncommittedChangesStrategyKind.stashOnCurrentBranch }
+  | { kind: UncommittedChangesStrategyKind.askForConfirmation }
+  | { kind: UncommittedChangesStrategyKind.stashOnCurrentBranch }
   | {
-      kind: uncommittedChangesStrategyKind.moveToNewBranch
+      kind: UncommittedChangesStrategyKind.moveToNewBranch
       transientStashEntry: IStashEntry | null
     }
 
 export const askToStash: UncommittedChangesStrategy = {
-  kind: uncommittedChangesStrategyKind.askForConfirmation,
+  kind: UncommittedChangesStrategyKind.askForConfirmation,
 }
 export const stashOnCurrentBranch: UncommittedChangesStrategy = {
-  kind: uncommittedChangesStrategyKind.stashOnCurrentBranch,
+  kind: UncommittedChangesStrategyKind.stashOnCurrentBranch,
 }
