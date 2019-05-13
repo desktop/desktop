@@ -190,10 +190,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       const initialTimeout = window.setTimeout(async () => {
         window.clearTimeout(initialTimeout)
 
-        await this.props.appStore.refreshAllIndicators()
+        await this.props.appStore.refreshAllSidebarIndicators()
 
         this.updateIntervalHandle = window.setInterval(() => {
-          this.props.appStore.refreshAllIndicators()
+          this.props.appStore.refreshAllSidebarIndicators()
         }, UpdateRepositoryIndicatorInterval)
       }, InitialRepositoryIndicatorTimeout)
     })
