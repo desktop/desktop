@@ -287,6 +287,10 @@ export async function mergeConflictHandler(
     return error
   }
 
+  if (!(gitContext.kind === 'merge' || gitContext.kind === 'pull')) {
+    return error
+  }
+
   switch (gitContext.kind) {
     case 'pull':
       dispatcher.mergeConflictDetectedFromPull()
@@ -396,6 +400,10 @@ export async function rebaseConflictsHandler(
     return error
   }
 
+  if (!(gitContext.kind === 'merge' || gitContext.kind === 'pull')) {
+    return error
+  }
+
   const { currentBranch } = gitContext
 
   dispatcher.launchRebaseFlow(repository, currentBranch)
@@ -430,7 +438,7 @@ export async function localChangesOverwrittenHandler(
     return error
   }
 
-  const { repository } = e.metadata
+  const { repository, gitContext } = e.metadata
   if (repository == null) {
     return error
   }
@@ -439,12 +447,11 @@ export async function localChangesOverwrittenHandler(
     return error
   }
 
-  const { checkoutBranch } = e.metadata
-  if (checkoutBranch === undefined) {
+  if (!enableStashing()) {
     return error
   }
 
-  if (!enableStashing()) {
+  if (gitContext == null) {
     return error
   }
 
@@ -459,6 +466,10 @@ export async function localChangesOverwrittenHandler(
       })
     }
   )
+  if (gitContext.kind !== 'checkout') {
+    return error
+  }
+  const { branchToCheckout } = gitContext
 
   return null
 }

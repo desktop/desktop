@@ -2,7 +2,6 @@ import { Repository } from '../models/repository'
 import { CloningRepository } from '../models/cloning-repository'
 import { RetryAction } from '../models/retry-actions'
 import { GitErrorContext } from './git-error-context'
-import { Branch } from '../models/branch'
 
 export interface IErrorMetadata {
   /** Was the action which caused this error part of a background task? */
@@ -16,9 +15,6 @@ export interface IErrorMetadata {
 
   /** Additional context that specific actions can provide fields for */
   readonly gitContext?: GitErrorContext
-
-  /** The branch intended to be checked out */
-  readonly checkoutBranch?: Branch
 }
 
 /** An error which contains additional metadata. */
