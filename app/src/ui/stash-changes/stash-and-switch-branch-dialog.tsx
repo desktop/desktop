@@ -168,6 +168,7 @@ export class StashAndSwitchBranch extends React.Component<
         stashOnCurrentBranch
       )
     } else if (selectedStashAction === StashAction.MoveToNewBranch) {
+      // attempt to checkout the branch without creating a stash entry
       await dispatcher.checkoutBranch(repository, branchToCheckout, {
         kind: UncommittedChangesStrategyKind.moveToNewBranch,
         transientStashEntry: null,
