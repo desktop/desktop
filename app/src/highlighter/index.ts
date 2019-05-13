@@ -113,6 +113,7 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.vcxproj': 'text/xml',
       '.vbproj': 'text/xml',
       '.svg': 'text/xml',
+      '.resx': 'text/xml',
     },
   },
   {
@@ -232,6 +233,37 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     install: () => import('codemirror/mode/powershell/powershell'),
     mappings: {
       '.ps1': 'application/x-powershell',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/vb/vb'),
+    mappings: {
+      '.vb': 'text/x-vb',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/fortran/fortran'),
+    mappings: {
+      '.f': 'text/x-fortran',
+      '.f90': 'text/x-fortran',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/lua/lua'),
+    mappings: {
+      '.lua': 'text/x-lua',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/crystal/crystal'),
+    mappings: {
+      '.cr': 'text/x-crystal',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/julia/julia'),
+    mappings: {
+      '.jl': 'text/x-julia',
     },
   },
 ]

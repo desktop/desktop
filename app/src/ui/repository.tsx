@@ -10,14 +10,21 @@ import { FilesChangedBadge } from './changes/files-changed-badge'
 import { SelectedCommit, CompareSidebar } from './history'
 import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
-import { IRepositoryState, RepositorySectionTab } from '../lib/app-state'
-import { Dispatcher } from '../lib/dispatcher'
+import {
+  IRepositoryState,
+  RepositorySectionTab,
+  ChangesSelectionKind,
+} from '../lib/app-state'
+import { Dispatcher } from './dispatcher'
 import { IssuesStore, GitHubUserStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { Account } from '../models/account'
 import { FocusContainer } from './lib/focus-container'
 import { OcticonSymbol, Octicon } from './octicons'
 import { ImageDiffType } from '../models/diff'
+import { IMenu } from '../models/app-menu'
+import { StashDiffViewer } from './stashing'
+import { StashedChangesLoadStates } from '../models/stash-entry'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -29,6 +36,7 @@ interface IRepositoryViewProps {
   readonly emoji: Map<string, string>
   readonly sidebarWidth: number
   readonly commitSummaryWidth: number
+  readonly stashedFilesWidth: number
   readonly issuesStore: IssuesStore
   readonly gitHubUserStore: GitHubUserStore
   readonly onViewCommitOnGitHub: (SHA: string) => void
@@ -46,10 +54,17 @@ interface IRepositoryViewProps {
    * @param fullPath The full path to the file on disk
    */
   readonly onOpenInExternalEditor: (fullPath: string) => void
+
+  /**
+   * The top-level application menu item.
+   */
+  readonly appMenu: IMenu | undefined
 }
 
 interface IRepositoryViewState {
   readonly sidebarHasFocusWithin: boolean
+  readonly changesListScrollTop: number
+  readonly compareListScrollTop: number
 }
 
 const enum Tab {
@@ -66,7 +81,17 @@ export class RepositoryView extends React.Component<
 
     this.state = {
       sidebarHasFocusWithin: false,
+      changesListScrollTop: 0,
+      compareListScrollTop: 0,
     }
+  }
+
+  private onChangesListScrolled = (scrollTop: number) => {
+    this.setState({ changesListScrollTop: scrollTop })
+  }
+
+  private onCompareListScrolled = (scrollTop: number) => {
+    this.setState({ compareListScrollTop: scrollTop })
   }
 
   private renderChangesBadge(): JSX.Element | null {
@@ -143,6 +168,8 @@ export class RepositoryView extends React.Component<
         accounts={this.props.accounts}
         externalEditorLabel={this.props.externalEditorLabel}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+        onChangesListScrolled={this.onChangesListScrolled}
+        changesListScrollTop={this.state.changesListScrollTop}
       />
     )
   }
@@ -164,6 +191,8 @@ export class RepositoryView extends React.Component<
         dispatcher={this.props.dispatcher}
         onRevertCommit={this.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
+        onCompareListScrolled={this.onCompareListScrolled}
+        compareListScrollTop={this.state.compareListScrollTop}
       />
     )
   }
@@ -219,28 +248,69 @@ export class RepositoryView extends React.Component<
     }
   }
 
+  private renderStashedChangesContent(): JSX.Element | null {
+    const { changesState } = this.props.state
+    const { selection, stashEntry, workingDirectory } = changesState
+    const isWorkingTreeClean = workingDirectory.files.length === 0
+
+    if (selection.kind !== ChangesSelectionKind.Stash || stashEntry === null) {
+      return null
+    }
+
+    if (stashEntry.files.kind === StashedChangesLoadStates.Loaded) {
+      return (
+        <StashDiffViewer
+          stashEntry={stashEntry}
+          selectedStashedFile={selection.selectedStashedFile}
+          stashedFileDiff={selection.selectedStashedFileDiff}
+          imageDiffType={this.props.imageDiffType}
+          fileListWidth={this.props.stashedFilesWidth}
+          repository={this.props.repository}
+          dispatcher={this.props.dispatcher}
+          isWorkingTreeClean={isWorkingTreeClean}
+        />
+      )
+    }
+
+    return null
+  }
+
   private renderContent(): JSX.Element | null {
     const selectedSection = this.props.state.selectedSection
-
     if (selectedSection === RepositorySectionTab.Changes) {
-      const changesState = this.props.state.changesState
-      const selectedFileIDs = changesState.selectedFileIDs
+      const { changesState } = this.props.state
+      const { workingDirectory, selection } = changesState
+
+      if (selection.kind === ChangesSelectionKind.Stash) {
+        return this.renderStashedChangesContent()
+      }
+
+      const { selectedFileIDs, diff } = selection
 
       if (selectedFileIDs.length > 1) {
         return <MultipleSelection count={selectedFileIDs.length} />
       }
 
-      if (
-        changesState.workingDirectory.files.length === 0 ||
-        selectedFileIDs.length === 0 ||
-        changesState.diff === null
-      ) {
-        return <NoChanges repository={this.props.repository} />
+      if (workingDirectory.files.length === 0) {
+        return (
+          <NoChanges
+            key={this.props.repository.id}
+            appMenu={this.props.appMenu}
+            repository={this.props.repository}
+            repositoryState={this.props.state}
+            isExternalEditorAvailable={
+              this.props.externalEditorLabel !== undefined
+            }
+          />
+        )
       } else {
-        const workingDirectory = changesState.workingDirectory
+        if (selectedFileIDs.length === 0 || diff === null) {
+          return null
+        }
+
         const selectedFile = workingDirectory.findFileWithID(selectedFileIDs[0])
 
-        if (!selectedFile) {
+        if (selectedFile === null) {
           return null
         }
 
@@ -249,7 +319,7 @@ export class RepositoryView extends React.Component<
             repository={this.props.repository}
             dispatcher={this.props.dispatcher}
             file={selectedFile}
-            diff={changesState.diff}
+            diff={diff}
             imageDiffType={this.props.imageDiffType}
           />
         )

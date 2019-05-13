@@ -13,6 +13,7 @@ import { Disposable } from 'event-kit'
 import { SignInMethod } from '../stores'
 import { assertNever } from '../fatal-error'
 import { getNumber, setNumber, getBoolean, setBoolean } from '../local-storage'
+import { PushOptions } from '../git'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -37,6 +38,8 @@ const FirstPushToGitHubAtKey = 'first-push-to-github-at'
 const FirstNonDefaultBranchCheckoutAtKey =
   'first-non-default-branch-checkout-at'
 const WelcomeWizardSignInMethodKey = 'welcome-wizard-sign-in-method'
+const terminalEmulatorKey = 'shell'
+const textEditorKey: string = 'externalEditor'
 
 /** How often daily stats should be submitted (i.e., 24 hours). */
 const DailyStatsReportInterval = 1000 * 60 * 60 * 24
@@ -60,8 +63,11 @@ const DefaultDailyMeasures: IDailyMeasures = {
   divergingBranchBannerInfluencedMerge: 0,
   divergingBranchBannerDisplayed: 0,
   dotcomPushCount: 0,
+  dotcomForcePushCount: 0,
   enterprisePushCount: 0,
+  enterpriseForcePushCount: 0,
   externalPushCount: 0,
+  externalForcePushCount: 0,
   active: false,
   mergeConflictFromPullCount: 0,
   mergeConflictFromExplicitMergeCount: 0,
@@ -73,6 +79,19 @@ const DefaultDailyMeasures: IDailyMeasures = {
   unattributedCommits: 0,
   enterpriseCommits: 0,
   dotcomCommits: 0,
+  mergeConflictsDialogDismissalCount: 0,
+  anyConflictsLeftOnMergeConflictsDialogDismissalCount: 0,
+  mergeConflictsDialogReopenedCount: 0,
+  guidedConflictedMergeCompletionCount: 0,
+  unguidedConflictedMergeCompletionCount: 0,
+  createPullRequestCount: 0,
+  rebaseConflictsDialogDismissalCount: 0,
+  rebaseConflictsDialogReopenedCount: 0,
+  rebaseAbortedAfterConflictsCount: 0,
+  rebaseSuccessAfterConflictsCount: 0,
+  pullWithRebaseCount: 0,
+  pullWithDefaultSettingCount: 0,
+  rebaseCurrentBranchMenuCount: 0,
 }
 
 interface IOnboardingStats {
@@ -223,6 +242,12 @@ interface ICalculatedStats {
    */
   readonly theme: string
 
+  /** The selected terminal emulator at the time of stats submission */
+  readonly selectedTerminalEmulator: string
+
+  /** The selected text editor at the time of stats submission */
+  readonly selectedTextEditor: string
+
   readonly eventType: 'usage'
 }
 
@@ -241,6 +266,8 @@ type DailyStats = ICalculatedStats &
 export interface IStatsStore {
   recordMergeAbortedAfterConflicts: () => void
   recordMergeSuccessAfterConflicts: () => void
+  recordRebaseAbortedAfterConflicts: () => void
+  recordRebaseSuccessAfterConflicts: () => void
 }
 
 /** The store for the app's stats. */
@@ -370,6 +397,9 @@ export class StatsStore implements IStatsStore {
     const userType = this.determineUserType(accounts)
     const repositoryCounts = this.categorizedRepositoryCounts(repositories)
     const onboardingStats = this.getOnboardingStats()
+    const selectedTerminalEmulator =
+      localStorage.getItem(terminalEmulatorKey) || 'none'
+    const selectedTextEditor = localStorage.getItem(textEditorKey) || 'none'
 
     return {
       eventType: 'usage',
@@ -377,6 +407,8 @@ export class StatsStore implements IStatsStore {
       osVersion: getOS(),
       platform: process.platform,
       theme: getPersistedThemeName(),
+      selectedTerminalEmulator,
+      selectedTextEditor,
       ...launchStats,
       ...dailyMeasures,
       ...userType,
@@ -589,6 +621,12 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  public recordMenuInitiatedRebase(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      rebaseCurrentBranchMenuCount: m.rebaseCurrentBranchMenuCount + 1,
+    }))
+  }
+
   /** Record that the user checked out a PR branch */
   public recordPRBranchCheckout(): Promise<void> {
     return this.updateDailyMeasures(m => ({
@@ -700,8 +738,27 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  public async recordPush(
+    githubAccount: Account | null,
+    options?: PushOptions
+  ) {
+    if (githubAccount === null) {
+      await this.recordPushToGenericRemote(options)
+    } else if (githubAccount.endpoint === getDotComAPIEndpoint()) {
+      await this.recordPushToGitHub(options)
+    } else {
+      await this.recordPushToGitHubEnterprise(options)
+    }
+  }
+
   /** Record that the user pushed to GitHub.com */
-  public async recordPushToGitHub(): Promise<void> {
+  private async recordPushToGitHub(options?: PushOptions): Promise<void> {
+    if (options && options.forceWithLease) {
+      await this.updateDailyMeasures(m => ({
+        dotcomForcePushCount: m.dotcomForcePushCount + 1,
+      }))
+    }
+
     await this.updateDailyMeasures(m => ({
       dotcomPushCount: m.dotcomPushCount + 1,
     }))
@@ -710,7 +767,15 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record that the user pushed to a GitHub Enterprise instance */
-  public async recordPushToGitHubEnterprise(): Promise<void> {
+  private async recordPushToGitHubEnterprise(
+    options?: PushOptions
+  ): Promise<void> {
+    if (options && options.forceWithLease) {
+      await this.updateDailyMeasures(m => ({
+        enterpriseForcePushCount: m.enterpriseForcePushCount + 1,
+      }))
+    }
+
     await this.updateDailyMeasures(m => ({
       enterprisePushCount: m.enterprisePushCount + 1,
     }))
@@ -721,8 +786,16 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record that the user pushed to a generic remote */
-  public async recordPushToGenericRemote(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
+  private async recordPushToGenericRemote(
+    options?: PushOptions
+  ): Promise<void> {
+    if (options && options.forceWithLease) {
+      await this.updateDailyMeasures(m => ({
+        externalForcePushCount: m.externalForcePushCount + 1,
+      }))
+    }
+
+    await this.updateDailyMeasures(m => ({
       externalPushCount: m.externalPushCount + 1,
     }))
   }
@@ -746,6 +819,122 @@ export class StatsStore implements IStatsStore {
     return this.updateDailyMeasures(m => ({
       mergedWithConflictWarningHintCount:
         m.mergedWithConflictWarningHintCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `mergeConflictsDialogDismissalCount` metric
+   */
+  public async recordMergeConflictsDialogDismissal(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergeConflictsDialogDismissalCount:
+        m.mergeConflictsDialogDismissalCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `anyConflictsLeftOnMergeConflictsDialogDismissalCount` metric
+   */
+  public async recordAnyConflictsLeftOnMergeConflictsDialogDismissal(): Promise<
+    void
+  > {
+    return this.updateDailyMeasures(m => ({
+      anyConflictsLeftOnMergeConflictsDialogDismissalCount:
+        m.anyConflictsLeftOnMergeConflictsDialogDismissalCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `mergeConflictsDialogReopenedCount` metric
+   */
+  public async recordMergeConflictsDialogReopened(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergeConflictsDialogReopenedCount:
+        m.mergeConflictsDialogReopenedCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `guidedConflictedMergeCompletionCount` metric
+   */
+  public async recordGuidedConflictedMergeCompletion(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      guidedConflictedMergeCompletionCount:
+        m.guidedConflictedMergeCompletionCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `unguidedConflictedMergeCompletionCount` metric
+   */
+  public async recordUnguidedConflictedMergeCompletion(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      unguidedConflictedMergeCompletionCount:
+        m.unguidedConflictedMergeCompletionCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `createPullRequestCount` metric
+   */
+  public async recordCreatePullRequest(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      createPullRequestCount: m.createPullRequestCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `rebaseConflictsDialogDismissalCount` metric
+   */
+  public async recordRebaseConflictsDialogDismissal(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      rebaseConflictsDialogDismissalCount:
+        m.rebaseConflictsDialogDismissalCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `rebaseConflictsDialogDismissalCount` metric
+   */
+  public async recordRebaseConflictsDialogReopened(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      rebaseConflictsDialogReopenedCount:
+        m.rebaseConflictsDialogReopenedCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `rebaseAbortedAfterConflictsCount` metric
+   */
+  public async recordRebaseAbortedAfterConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      rebaseAbortedAfterConflictsCount: m.rebaseAbortedAfterConflictsCount + 1,
+    }))
+  }
+  /**
+   * Increments the `pullWithRebaseCount` metric
+   */
+  public recordPullWithRebaseEnabled() {
+    return this.updateDailyMeasures(m => ({
+      pullWithRebaseCount: m.pullWithRebaseCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `rebaseSuccessAfterConflictsCount` metric
+   */
+  public async recordRebaseSuccessAfterConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      rebaseSuccessAfterConflictsCount: m.rebaseSuccessAfterConflictsCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `pullWithDefaultSettingCount` metric
+   */
+  public recordPullWithDefaultSetting() {
+    return this.updateDailyMeasures(m => ({
+      pullWithDefaultSettingCount: m.pullWithDefaultSettingCount + 1,
     }))
   }
 

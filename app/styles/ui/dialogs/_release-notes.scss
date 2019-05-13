@@ -41,6 +41,11 @@
     }
   }
 
+  .dialog-footer {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
   ul {
     list-style: none;
     padding-left: 0;

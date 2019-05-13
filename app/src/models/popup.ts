@@ -7,6 +7,7 @@ import { RetryAction } from './retry-actions'
 import { WorkingDirectoryFileChange } from './status'
 import { PreferencesTab } from './preferences'
 import { ICommitContext } from './commit'
+import { IStashEntry } from './stash-entry'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -41,6 +42,13 @@ export enum PopupType {
   AbortMerge,
   OversizedFiles,
   UsageReportingChanges,
+  CommitConflictsWarning,
+  PushNeedsPull,
+  RebaseFlow,
+  ConfirmForcePush,
+  StashAndSwitchBranch,
+  ConfirmOverwriteStash,
+  ConfirmDiscardStash,
 }
 
 export type Popup =
@@ -143,3 +151,40 @@ export type Popup =
       repository: Repository
     }
   | { type: PopupType.UsageReportingChanges }
+  | {
+      type: PopupType.CommitConflictsWarning
+      /** files that were selected for committing that are also conflicted */
+      files: ReadonlyArray<WorkingDirectoryFileChange>
+      /** repository user is committing in */
+      repository: Repository
+      /** information for completing the commit */
+      context: ICommitContext
+    }
+  | {
+      type: PopupType.PushNeedsPull
+      repository: Repository
+    }
+  | {
+      type: PopupType.ConfirmForcePush
+      repository: Repository
+      upstreamBranch: string
+    }
+  | {
+      type: PopupType.RebaseFlow
+      repository: Repository
+    }
+  | {
+      type: PopupType.StashAndSwitchBranch
+      repository: Repository
+      branchToCheckout: Branch
+    }
+  | {
+      type: PopupType.ConfirmOverwriteStash
+      repository: Repository
+      branchToCheckout: Branch
+    }
+  | {
+      type: PopupType.ConfirmDiscardStash
+      repository: Repository
+      stash: IStashEntry
+    }

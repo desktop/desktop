@@ -3,13 +3,10 @@ import '../lib/logging/main/install'
 import { app, Menu, ipcMain, BrowserWindow, shell } from 'electron'
 import * as Fs from 'fs'
 
+import { MenuLabelsEvent } from '../models/menu-labels'
+
 import { AppWindow } from './app-window'
-import {
-  buildDefaultMenu,
-  MenuEvent,
-  MenuLabels,
-  findMenuItemByID,
-} from './menu'
+import { buildDefaultMenu, MenuEvent, getAllMenuItems } from './menu'
 import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { parseAppURL } from '../lib/parse-app-url'
 import { handleSquirrelEvent } from './squirrel-updater'
@@ -45,12 +42,19 @@ let onDidLoadFns: Array<OnDidLoadFn> | null = []
 function handleUncaughtException(error: Error) {
   preventQuit = true
 
+  // If we haven't got a window we'll assume it's because
+  // we've just launched and haven't created it yet.
+  // It could also be because we're encountering an unhandled
+  // exception on shutdown but that's less likely and since
+  // this only affects the presentation of the crash dialog
+  // it's a safe assumption to make.
+  const isLaunchError = mainWindow === null
+
   if (mainWindow) {
     mainWindow.destroy()
     mainWindow = null
   }
 
-  const isLaunchError = !mainWindow
   showUncaughtException(isLaunchError, error)
 }
 
@@ -96,7 +100,10 @@ let isDuplicateInstance = false
 // We want to let the updated instance launch and do its work. It will then quit
 // once it's done.
 if (!handlingSquirrelEvent) {
-  isDuplicateInstance = app.makeSingleInstance((args, workingDirectory) => {
+  const gotSingleInstanceLock = app.requestSingleInstanceLock()
+  isDuplicateInstance = !gotSingleInstanceLock
+
+  app.on('second-instance', (event, args, workingDirectory) => {
     // Someone tried to run a second instance, we should focus our window.
     if (mainWindow) {
       if (mainWindow.isMinimized()) {
@@ -226,15 +233,85 @@ app.on('ready', () => {
 
   createWindow()
 
-  let menu = buildDefaultMenu({})
-  Menu.setApplicationMenu(menu)
+  Menu.setApplicationMenu(
+    buildDefaultMenu({
+      selectedShell: null,
+      selectedExternalEditor: null,
+      askForConfirmationOnRepositoryRemoval: false,
+      askForConfirmationOnForcePush: false,
+    })
+  )
 
   ipcMain.on(
     'update-preferred-app-menu-item-labels',
-    (event: Electron.IpcMessageEvent, labels: MenuLabels) => {
-      menu = buildDefaultMenu(labels)
-      Menu.setApplicationMenu(menu)
-      if (mainWindow) {
+    (event: Electron.IpcMessageEvent, labels: MenuLabelsEvent) => {
+      // The current application menu is mutable and we frequently
+      // change whether particular items are enabled or not through
+      // the update-menu-state IPC event. This menu that we're creating
+      // now will have all the items enabled so we need to merge the
+      // current state with the new in order to not get a temporary
+      // race conditions where menu items which shouldn't be enabled
+      // are.
+      const newMenu = buildDefaultMenu(labels)
+
+      const currentMenu = Menu.getApplicationMenu()
+
+      // This shouldn't happen but whenever one says that it does
+      // so here's the escape hatch when we can't merge the current
+      // menu with the new one; we just use the new one.
+      if (currentMenu === null) {
+        // https://github.com/electron/electron/issues/2717
+        Menu.setApplicationMenu(newMenu)
+
+        if (mainWindow !== null) {
+          mainWindow.sendAppMenu()
+        }
+
+        return
+      }
+
+      // It's possible that after rebuilding the menu we'll end up
+      // with the exact same structural menu as we had before so we
+      // keep track of whether anything has actually changed in order
+      // to avoid updating the global menu and telling the renderer
+      // about it.
+      let menuHasChanged = false
+
+      for (const newItem of getAllMenuItems(newMenu)) {
+        // Our menu items always have ids and Electron.MenuItem takes on whatever
+        // properties was defined on the MenuItemOptions template used to create it
+        // but doesn't surface those in the type declaration.
+        const id = (newItem as any).id
+
+        if (!id) {
+          continue
+        }
+
+        const currentItem = currentMenu.getMenuItemById(id)
+
+        // Unfortunately the type information for getMenuItemById
+        // doesn't specify if it'll return null or undefined when
+        // the item doesn't exist so we'll do a falsy check here.
+        if (!currentItem) {
+          menuHasChanged = true
+        } else {
+          if (currentItem.label !== newItem.label) {
+            menuHasChanged = true
+          }
+
+          // Copy the enabled property from the existing menu
+          // item since it'll be the most recent reflection of
+          // what the renderer wants.
+          if (currentItem.enabled !== newItem.enabled) {
+            newItem.enabled = currentItem.enabled
+            menuHasChanged = true
+          }
+        }
+      }
+
+      if (menuHasChanged && mainWindow) {
+        // https://github.com/electron/electron/issues/2717
+        Menu.setApplicationMenu(newMenu)
         mainWindow.sendAppMenu()
       }
     }
@@ -254,7 +331,13 @@ app.on('ready', () => {
   ipcMain.on(
     'execute-menu-item',
     (event: Electron.IpcMessageEvent, { id }: { id: string }) => {
-      const menuItem = findMenuItemByID(menu, id)
+      const currentMenu = Menu.getApplicationMenu()
+
+      if (currentMenu === null) {
+        return
+      }
+
+      const menuItem = currentMenu.getMenuItemById(id)
       if (menuItem) {
         const window = BrowserWindow.fromWebContents(event.sender)
         const fakeEvent = { preventDefault: () => {}, sender: event.sender }
@@ -273,7 +356,14 @@ app.on('ready', () => {
 
       for (const item of items) {
         const { id, state } = item
-        const menuItem = findMenuItemByID(menu, id)
+
+        const currentMenu = Menu.getApplicationMenu()
+
+        if (currentMenu === null) {
+          return
+        }
+
+        const menuItem = currentMenu.getMenuItemById(id)
 
         if (menuItem) {
           // Only send the updated app menu when the state actually changes

@@ -1,4 +1,3 @@
-import { expect } from 'chai'
 import { shell } from '../../helpers/test-app-shell'
 import {
   setupEmptyRepository,
@@ -25,6 +24,7 @@ describe('git/checkout', () => {
       type: BranchType.Local,
       tip: {
         sha: '',
+        shortSha: '',
         summary: '',
         body: '',
         author: {
@@ -52,10 +52,10 @@ describe('git/checkout', () => {
       await checkoutBranch(repository, null, branch)
     } catch (error) {
       errorRaised = true
-      expect(error.message).to.equal('fatal: invalid reference: ..\n')
+      expect(error.message).toBe('fatal: invalid reference: ..\n')
     }
 
-    expect(errorRaised).to.be.true
+    expect(errorRaised).toBe(true)
   })
 
   it('can checkout a valid branch name in an existing repository', async () => {
@@ -77,10 +77,10 @@ describe('git/checkout', () => {
     await store.loadStatus()
     const tip = store.tip
 
-    expect(tip.kind).to.equal(TipState.Valid)
+    expect(tip.kind).toBe(TipState.Valid)
 
     const validBranch = tip as IValidBranch
-    expect(validBranch.branch.name).to.equal('commit-with-long-description')
+    expect(validBranch.branch.name).toBe('commit-with-long-description')
   })
 
   it('can checkout a branch when it exists on multiple remotes', async () => {
@@ -112,12 +112,12 @@ describe('git/checkout', () => {
     await store.loadStatus()
     const tip = store.tip
 
-    expect(tip.kind).to.equal(TipState.Valid)
+    expect(tip.kind).toBe(TipState.Valid)
 
     const validBranch = tip as IValidBranch
-    expect(validBranch.branch.name).to.equal(expectedBranch)
-    expect(validBranch.branch.type).to.equal(BranchType.Local)
-    expect(validBranch.branch.remote).to.equal('first-remote')
+    expect(validBranch.branch.name).toBe(expectedBranch)
+    expect(validBranch.branch.type).toBe(BranchType.Local)
+    expect(validBranch.branch.remote).toBe('first-remote')
   })
 
   it('will fail when an existing branch matches the remote branch', async () => {
@@ -135,7 +135,7 @@ describe('git/checkout', () => {
       throw new Error(`Could not find branch: '${firstBranch}'`)
     }
 
-    await createBranch(repository, expectedBranch)
+    await createBranch(repository, expectedBranch, null)
 
     let errorRaised = false
 
@@ -143,10 +143,10 @@ describe('git/checkout', () => {
       await checkoutBranch(repository, null, remoteBranch)
     } catch (error) {
       errorRaised = true
-      expect(error.message).to.equal('A branch with that name already exists.')
+      expect(error.message).toBe('A branch with that name already exists.')
     }
 
-    expect(errorRaised).to.be.true
+    expect(errorRaised).toBe(true)
   })
 
   describe('with submodules', () => {
@@ -171,7 +171,7 @@ describe('git/checkout', () => {
 
       const status = await getStatusOrThrow(repository)
 
-      expect(status.workingDirectory.files.length).to.equal(0)
+      expect(status.workingDirectory.files).toHaveLength(0)
     })
 
     it('updates a changed submodule reference', async () => {
@@ -194,7 +194,7 @@ describe('git/checkout', () => {
       await checkoutBranch(repository, null, devBranch)
 
       const status = await getStatusOrThrow(repository)
-      expect(status.workingDirectory.files.length).equals(0)
+      expect(status.workingDirectory.files).toHaveLength(0)
     })
   })
 })

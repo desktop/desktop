@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Account } from '../../models/account'
 import { PreferencesTab } from '../../models/preferences'
 import { ExternalEditor } from '../../lib/editors'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { TabBar } from '../tab-bar'
 import { Accounts } from './accounts'
 import { Advanced } from './advanced'
@@ -33,9 +33,11 @@ interface IPreferencesProps {
   readonly initialSelectedTab?: PreferencesTab
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
+  readonly confirmForcePush: boolean
   readonly selectedExternalEditor?: ExternalEditor
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
+  readonly automaticallySwitchTheme: boolean
 }
 
 interface IPreferencesState {
@@ -46,6 +48,8 @@ interface IPreferencesState {
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
+  readonly confirmForcePush: boolean
+  readonly automaticallySwitchTheme: boolean
   readonly availableEditors: ReadonlyArray<ExternalEditor>
   readonly selectedExternalEditor?: ExternalEditor
   readonly availableShells: ReadonlyArray<Shell>
@@ -70,6 +74,8 @@ export class Preferences extends React.Component<
       optOutOfUsageTracking: false,
       confirmRepositoryRemoval: false,
       confirmDiscardChanges: false,
+      confirmForcePush: false,
+      automaticallySwitchTheme: false,
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
       selectedShell: this.props.selectedShell,
@@ -116,6 +122,7 @@ export class Preferences extends React.Component<
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
+      confirmForcePush: this.props.confirmForcePush,
       availableShells,
       availableEditors,
       mergeTool,
@@ -212,6 +219,10 @@ export class Preferences extends React.Component<
           <Appearance
             selectedTheme={this.props.selectedTheme}
             onSelectedThemeChanged={this.onSelectedThemeChanged}
+            automaticallySwitchTheme={this.props.automaticallySwitchTheme}
+            onAutomaticallySwitchThemeChanged={
+              this.onAutomaticallySwitchThemeChanged
+            }
           />
         )
       case PreferencesTab.Advanced: {
@@ -220,6 +231,7 @@ export class Preferences extends React.Component<
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             confirmRepositoryRemoval={this.state.confirmRepositoryRemoval}
             confirmDiscardChanges={this.state.confirmDiscardChanges}
+            confirmForcePush={this.state.confirmForcePush}
             availableEditors={this.state.availableEditors}
             selectedExternalEditor={this.state.selectedExternalEditor}
             onOptOutofReportingchanged={this.onOptOutofReportingChanged}
@@ -227,6 +239,7 @@ export class Preferences extends React.Component<
               this.onConfirmRepositoryRemovalChanged
             }
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
+            onConfirmForcePushChanged={this.onConfirmForcePushChanged}
             onSelectedEditorChanged={this.onSelectedEditorChanged}
             availableShells={this.state.availableShells}
             selectedShell={this.state.selectedShell}
@@ -252,6 +265,10 @@ export class Preferences extends React.Component<
 
   private onConfirmDiscardChangesChanged = (value: boolean) => {
     this.setState({ confirmDiscardChanges: value })
+  }
+
+  private onConfirmForcePushChanged = (value: boolean) => {
+    this.setState({ confirmForcePush: value })
   }
 
   private onCommitterNameChanged = (committerName: string) => {
@@ -282,6 +299,14 @@ export class Preferences extends React.Component<
 
   private onSelectedThemeChanged = (theme: ApplicationTheme) => {
     this.props.dispatcher.setSelectedTheme(theme)
+  }
+
+  private onAutomaticallySwitchThemeChanged = (
+    automaticallySwitchTheme: boolean
+  ) => {
+    this.props.dispatcher.onAutomaticallySwitchThemeChanged(
+      automaticallySwitchTheme
+    )
   }
 
   private renderFooter() {
@@ -319,6 +344,10 @@ export class Preferences extends React.Component<
     )
     await this.props.dispatcher.setConfirmRepoRemovalSetting(
       this.state.confirmRepositoryRemoval
+    )
+
+    await this.props.dispatcher.setConfirmForcePushSetting(
+      this.state.confirmForcePush
     )
 
     if (this.state.selectedExternalEditor) {

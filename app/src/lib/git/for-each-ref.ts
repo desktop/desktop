@@ -26,6 +26,7 @@ export async function getBranches(
     '%(refname:short)',
     '%(upstream:short)',
     '%(objectname)', // SHA
+    '%(objectname:short)', // short SHA
     '%(author)',
     '%(committer)',
     '%(parent)', // parent SHAs
@@ -76,29 +77,31 @@ export async function getBranches(
     const name = pieces[1]
     const upstream = pieces[2]
     const sha = pieces[3]
+    const shortSha = pieces[4]
 
-    const authorIdentity = pieces[4]
+    const authorIdentity = pieces[5]
     const author = CommitIdentity.parseIdentity(authorIdentity)
 
     if (!author) {
       throw new Error(`Couldn't parse author identity ${authorIdentity}`)
     }
 
-    const committerIdentity = pieces[5]
+    const committerIdentity = pieces[6]
     const committer = CommitIdentity.parseIdentity(committerIdentity)
 
     if (!committer) {
       throw new Error(`Couldn't parse committer identity ${committerIdentity}`)
     }
 
-    const parentSHAs = pieces[6].split(' ')
-    const symref = pieces[7]
-    const summary = pieces[8]
-    const body = pieces[9]
-    const trailers = parseRawUnfoldedTrailers(pieces[10], trailerSeparators)
+    const parentSHAs = pieces[7].split(' ')
+    const symref = pieces[8]
+    const summary = pieces[9]
+    const body = pieces[10]
+    const trailers = parseRawUnfoldedTrailers(pieces[11], trailerSeparators)
 
     const tip = new Commit(
       sha,
+      shortSha,
       summary,
       body,
       author,

@@ -4,6 +4,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 interface IBannerProps {
   readonly id?: string
   readonly timeout?: number
+  readonly dismissable?: boolean
   readonly onDismissed: () => void
 }
 
@@ -14,11 +15,22 @@ export class Banner extends React.Component<IBannerProps, {}> {
     return (
       <div id={this.props.id} className="banner">
         <div className="contents">{this.props.children}</div>
-        <div className="close">
-          <a onClick={this.props.onDismissed}>
-            <Octicon symbol={OcticonSymbol.x} />
-          </a>
-        </div>
+        {this.renderCloseButton()}
+      </div>
+    )
+  }
+
+  private renderCloseButton() {
+    const { dismissable } = this.props
+    if (dismissable === undefined || dismissable === false) {
+      return null
+    }
+
+    return (
+      <div className="close">
+        <a onClick={this.props.onDismissed}>
+          <Octicon symbol={OcticonSymbol.x} />
+        </a>
       </div>
     )
   }

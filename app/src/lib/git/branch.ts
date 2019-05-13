@@ -4,6 +4,19 @@ import { Repository } from '../../models/repository'
 import { Branch, BranchType } from '../../models/branch'
 import { IGitAccount } from '../../models/git-account'
 import { envForAuthentication } from './authentication'
+import { formatAsLocalRef } from './refs'
+
+export interface IMergedBranch {
+  /**
+   * The canonical reference to the merged branch
+   */
+  readonly canonicalRef: string
+
+  /**
+   * The full-length Object ID (SHA) in HEX (32 chars)
+   */
+  readonly sha: string
+}
 
 /**
  * Create a new branch from the given start point.
@@ -17,9 +30,10 @@ import { envForAuthentication } from './authentication'
 export async function createBranch(
   repository: Repository,
   name: string,
-  startPoint?: string
+  startPoint: string | null
 ): Promise<Branch | null> {
-  const args = startPoint ? ['branch', name, startPoint] : ['branch', name]
+  const args =
+    startPoint !== null ? ['branch', name, startPoint] : ['branch', name]
 
   try {
     await git(args, repository.path, 'createBranch')
@@ -47,6 +61,18 @@ export async function renameBranch(
 }
 
 /**
+ * Delete the branch locally, see `deleteBranch` if you're looking to delete the
+ * branch from the remote as well.
+ */
+export async function deleteLocalBranch(
+  repository: Repository,
+  branchName: string
+): Promise<true> {
+  await git(['branch', '-D', branchName], repository.path, 'deleteLocalBranch')
+  return true
+}
+
+/**
  * Delete the branch. If the branch has a remote branch and `includeRemote` is true, it too will be
  * deleted. Silently deletes local branch if remote one is already deleted.
  */
@@ -57,11 +83,7 @@ export async function deleteBranch(
   includeRemote: boolean
 ): Promise<true> {
   if (branch.type === BranchType.Local) {
-    await git(
-      ['branch', '-D', branch.name],
-      repository.path,
-      'deleteLocalBranch'
-    )
+    await deleteLocalBranch(repository, branch.name)
   }
 
   const remote = branch.remote
@@ -155,4 +177,49 @@ export async function getBranchesPointedAt(
   }
   // split (and remove trailing element cause its always an empty string)
   return stdout.split('\n').slice(0, -1)
+}
+
+/**
+ * Gets all branches that have been merged into the given branch
+ *
+ * @param repository The repository in which to search
+ * @param branchName The to be used as the base branch
+ */
+export async function getMergedBranches(
+  repository: Repository,
+  branchName: string
+): Promise<ReadonlyArray<IMergedBranch>> {
+  const canonicalBranchRef = formatAsLocalRef(branchName)
+
+  const args = [
+    'branch',
+    `--format=%(objectname)%00%(refname)`,
+    '--merged',
+    branchName,
+  ]
+
+  const { stdout } = await git(args, repository.path, 'mergedBranches')
+  const lines = stdout.split('\n')
+
+  // Remove the trailing newline
+  lines.splice(-1, 1)
+  const mergedBranches = new Array<IMergedBranch>()
+
+  for (const line of lines) {
+    const [sha, canonicalRef] = line.split('\0')
+
+    if (sha === undefined || canonicalRef === undefined) {
+      continue
+    }
+
+    // Don't include the branch we're using to compare against
+    // in the list of branches merged into that branch.
+    if (canonicalRef === canonicalBranchRef) {
+      continue
+    }
+
+    mergedBranches.push({ sha, canonicalRef })
+  }
+
+  return mergedBranches
 }

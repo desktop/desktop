@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { Repository } from '../../models/repository'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { sanitizedBranchName } from '../../lib/sanitize-branch'
 import { Branch, StartPoint } from '../../models/branch'
 import { TextBox } from '../lib/text-box'
@@ -24,6 +24,7 @@ import {
   renderBranchNameExistsOnRemoteWarning,
 } from '../lib/branch-name-warnings'
 import { getStartPoint } from '../../lib/create-branch'
+import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -275,7 +276,7 @@ export class CreateBranch extends React.Component<
   private createBranch = async () => {
     const name = this.state.sanitizedName
 
-    let startPoint = undefined
+    let startPoint: string | null = null
 
     if (this.state.startPoint === StartPoint.DefaultBranch) {
       // This really shouldn't happen, we take all kinds of precautions
@@ -295,9 +296,9 @@ export class CreateBranch extends React.Component<
       await this.props.dispatcher.createBranch(
         this.props.repository,
         name,
-        startPoint
+        startPoint,
+        UncommittedChangesStrategy.askForConfirmation
       )
-      this.props.onDismissed()
     }
   }
 }

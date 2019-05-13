@@ -1,4 +1,3 @@
-import { expect } from 'chai'
 import { GitError } from 'dugite'
 
 import { Repository } from '../../../src/models/repository'
@@ -22,12 +21,12 @@ describe('git/core', () => {
         const result = await git(args, repository!.path, 'test', {
           expectedErrors: new Set([GitError.BadRevision]),
         })
-        expect(result.gitError).to.equal(GitError.BadRevision)
+        expect(result.gitError).toBe(GitError.BadRevision)
       } catch (e) {
         threw = true
       }
 
-      expect(threw).to.equal(false)
+      expect(threw).toBe(false)
     })
 
     it('throws for errors that were not expected', async () => {
@@ -42,7 +41,7 @@ describe('git/core', () => {
         threw = true
       }
 
-      expect(threw).to.equal(true)
+      expect(threw).toBe(true)
     })
   })
 
@@ -55,12 +54,12 @@ describe('git/core', () => {
         const result = await git(args, repository!.path, 'test', {
           successExitCodes: new Set([128]),
         })
-        expect(result.exitCode).to.equal(128)
+        expect(result.exitCode).toBe(128)
       } catch (e) {
         threw = true
       }
 
-      expect(threw).to.equal(false)
+      expect(threw).toBe(false)
     })
 
     it('throws for exit codes that were not expected', async () => {
@@ -75,7 +74,7 @@ describe('git/core', () => {
         threw = true
       }
 
-      expect(threw).to.equal(true)
+      expect(threw).toBe(true)
     })
   })
 })

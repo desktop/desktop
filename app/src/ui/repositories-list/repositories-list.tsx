@@ -6,24 +6,36 @@ import {
   IRepositoryListItem,
   Repositoryish,
   RepositoryGroupIdentifier,
+  KnownRepositoryGroup,
+  makeRecentRepositoriesGroup,
 } from './group-repositories'
-import { FilterList } from '../lib/filter-list'
+import { FilterList, IFilterListGroup } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
-import { assertNever } from '../../lib/fatal-error'
 import { ILocalRepositoryState } from '../../models/repository'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { PopupType } from '../../models/popup'
+import { encodePathAsUrl } from '../../lib/path'
+import memoizeOne from 'memoize-one'
+import { enableGroupRepositoriesByOwner } from '../../lib/feature-flag'
+
+const BlankSlateImage = encodePathAsUrl(__dirname, 'static/empty-no-repo.svg')
+
+const recentRepositoriesThreshold = 7
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
   readonly repositories: ReadonlyArray<Repositoryish>
+  readonly recentRepositories: ReadonlyArray<number>
 
   /** A cache of the latest repository state values, keyed by the repository id */
-  readonly localRepositoryStateLookup: Map<number, ILocalRepositoryState>
+  readonly localRepositoryStateLookup: ReadonlyMap<
+    number,
+    ILocalRepositoryState
+  >
 
   /** Called when a repository has been selected. */
   readonly onSelectionChanged: (repository: Repositoryish) => void
@@ -60,11 +72,59 @@ interface IRepositoriesListProps {
 
 const RowHeight = 29
 
+/**
+ * Iterate over all groups until a list item is found that matches
+ * the id of the provided repository.
+ */
+function findMatchingListItem(
+  groups: ReadonlyArray<IFilterListGroup<IRepositoryListItem>>,
+  selectedRepository: Repositoryish | null
+) {
+  if (selectedRepository !== null) {
+    for (const group of groups) {
+      for (const item of group.items) {
+        if (item.repository.id === selectedRepository.id) {
+          return item
+        }
+      }
+    }
+  }
+
+  return null
+}
+
 /** The list of user-added repositories. */
 export class RepositoriesList extends React.Component<
   IRepositoriesListProps,
   {}
 > {
+  /**
+   * A memoized function for grouping repositories for display
+   * in the FilterList. The group will not be recomputed as long
+   * as the provided list of repositories is equal to the last
+   * time the method was called (reference equality).
+   */
+  private getRepositoryGroups = memoizeOne(
+    (
+      repositories: ReadonlyArray<Repositoryish> | null,
+      localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>
+    ) =>
+      repositories === null
+        ? []
+        : groupRepositories(repositories, localRepositoryStateLookup)
+  )
+
+  /**
+   * A memoized function for finding the selected list item based
+   * on an IAPIRepository instance. The selected item will not be
+   * recomputed as long as the provided list of repositories and
+   * the selected data object is equal to the last time the method
+   * was called (reference equality).
+   *
+   * See findMatchingListItem for more details.
+   */
+  private getSelectedListItem = memoizeOne(findMatchingListItem)
+
   private renderItem = (item: IRepositoryListItem, matches: IMatches) => {
     const repository = item.repository
     return (
@@ -89,14 +149,12 @@ export class RepositoriesList extends React.Component<
   }
 
   private getGroupLabel(identifier: RepositoryGroupIdentifier) {
-    if (identifier === 'github') {
-      return 'GitHub.com'
-    } else if (identifier === 'enterprise') {
+    if (identifier === KnownRepositoryGroup.Enterprise) {
       return 'Enterprise'
-    } else if (identifier === 'other') {
+    } else if (identifier === KnownRepositoryGroup.NonGitHub) {
       return 'Other'
     } else {
-      return assertNever(identifier, `Unknown identifier: ${identifier}`)
+      return identifier
     }
   }
 
@@ -121,30 +179,28 @@ export class RepositoriesList extends React.Component<
   }
 
   public render() {
-    if (this.props.repositories.length < 1) {
-      return this.noRepositories()
-    }
-
-    const groups = groupRepositories(
+    const baseGroups = this.getRepositoryGroups(
       this.props.repositories,
       this.props.localRepositoryStateLookup
     )
 
-    let selectedItem: IRepositoryListItem | null = null
-    const selectedRepository = this.props.selectedRepository
-    if (selectedRepository) {
-      for (const group of groups) {
-        selectedItem =
-          group.items.find(i => {
-            const repository = i.repository
-            return repository.id === selectedRepository.id
-          }) || null
+    const selectedItem = this.getSelectedListItem(
+      baseGroups,
+      this.props.selectedRepository
+    )
 
-        if (selectedItem) {
-          break
-        }
-      }
-    }
+    const groups =
+      enableGroupRepositoriesByOwner() &&
+      this.props.repositories.length > recentRepositoriesThreshold
+        ? [
+            makeRecentRepositoriesGroup(
+              this.props.recentRepositories,
+              this.props.repositories,
+              this.props.localRepositoryStateLookup
+            ),
+            ...baseGroups,
+          ]
+        : baseGroups
 
     return (
       <div className="repository-list">
@@ -157,6 +213,7 @@ export class RepositoriesList extends React.Component<
           renderGroupHeader={this.renderGroupHeader}
           onItemClick={this.onItemClick}
           renderPostFilter={this.renderPostFilter}
+          renderNoItems={this.renderNoItems}
           groups={groups}
           invalidationProps={{
             repositories: this.props.repositories,
@@ -179,6 +236,56 @@ export class RepositoriesList extends React.Component<
     )
   }
 
+  private renderNoItems = () => {
+    return (
+      <div className="no-items no-results-found">
+        <img src={BlankSlateImage} className="blankslate-image" />
+        <div className="title">Sorry, I can't find that repository</div>
+
+        <div className="protip">
+          ProTip! Press {this.renderAddLocalShortcut()} to quickly add a local
+          repository, and {this.renderCloneRepositoryShortcut()} to clone from
+          anywhere within the app
+        </div>
+      </div>
+    )
+  }
+
+  private renderAddLocalShortcut() {
+    if (__DARWIN__) {
+      return (
+        <div className="kbd-shortcut">
+          <kbd>⌘</kbd>
+          <kbd>O</kbd>
+        </div>
+      )
+    } else {
+      return (
+        <div className="kbd-shortcut">
+          <kbd>Ctrl</kbd> + <kbd>O</kbd>
+        </div>
+      )
+    }
+  }
+
+  private renderCloneRepositoryShortcut() {
+    if (__DARWIN__) {
+      return (
+        <div className="kbd-shortcut">
+          <kbd>⇧</kbd>
+          <kbd>⌘</kbd>
+          <kbd>O</kbd>
+        </div>
+      )
+    } else {
+      return (
+        <div className="kbd-shortcut">
+          <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>O</kbd>
+        </div>
+      )
+    }
+  }
+
   private onNewRepositoryButtonClick = () => {
     const items: IMenuItem[] = [
       {
@@ -186,14 +293,14 @@ export class RepositoriesList extends React.Component<
         action: this.onCloneRepository,
       },
       {
+        label: __DARWIN__ ? 'Create New Repository…' : 'Create new repository…',
+        action: this.onCreateNewRepository,
+      },
+      {
         label: __DARWIN__
           ? 'Add Existing Repository…'
           : 'Add existing repository…',
         action: this.onAddExistingRepository,
-      },
-      {
-        label: __DARWIN__ ? 'Create New Repository…' : 'Create new repository…',
-        action: this.onCreateNewRepository,
       },
     ]
 
@@ -213,15 +320,5 @@ export class RepositoriesList extends React.Component<
 
   private onCreateNewRepository = () => {
     this.props.dispatcher.showPopup({ type: PopupType.CreateRepository })
-  }
-
-  private noRepositories() {
-    return (
-      <div className="repository-list">
-        <div className="filter-list">
-          <div className="sidebar-message">No repositories</div>
-        </div>
-      </div>
-    )
   }
 }

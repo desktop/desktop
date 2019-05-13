@@ -14,6 +14,31 @@ import { uuid } from './uuid'
 import { getAvatarWithEnterpriseFallback } from './gravatar'
 import { getDefaultEmail } from './email'
 
+/**
+ * Optional set of configurable settings for the fetchAll method
+ */
+interface IFetchAllOptions<T> {
+  /**
+   * The number of results to ask for on each page when making
+   * requests to paged API endpoints.
+   */
+  perPage?: number
+
+  /**
+   * An optional predicate which determines whether or not to
+   * continue loading results from the API. This can be used
+   * to put a limit on the number of results to return from
+   * a paged API resource.
+   *
+   * As an example, to stop loading results after 500 results:
+   *
+   * `(results) => results.length < 500`
+   *
+   * @param results  All results retrieved thus far
+   */
+  continue?: (results: ReadonlyArray<T>) => boolean
+}
+
 const username: () => Promise<string> = require('username')
 
 const ClientID = process.env.TEST_ENV ? '' : __OAUTH_CLIENT_ID__
@@ -24,6 +49,8 @@ if (!ClientID || !ClientID.length || !ClientSecret || !ClientSecret.length) {
     `DESKTOP_OAUTH_CLIENT_ID and/or DESKTOP_OAUTH_CLIENT_SECRET is undefined. You won't be able to authenticate new users.`
   )
 }
+
+type GitHubAccountType = 'User' | 'Organization'
 
 /** The OAuth scopes we need. */
 const Scopes = ['repo', 'user']
@@ -44,7 +71,7 @@ export interface IAPIRepository {
   readonly ssh_url: string
   readonly html_url: string
   readonly name: string
-  readonly owner: IAPIUser
+  readonly owner: IAPIIdentity
   readonly private: boolean
   readonly fork: boolean
   readonly default_branch: string
@@ -57,13 +84,42 @@ export interface IAPIRepository {
  */
 export interface IAPICommit {
   readonly sha: string
-  readonly author: IAPIUser | null
+  readonly author: IAPIIdentity | {} | null
 }
 
 /**
- * Information about a user as returned by the GitHub API.
+ * Entity returned by the `/user/orgs` endpoint.
+ *
+ * Because this is specific to one endpoint it omits the `type` member from
+ * `IAPIIdentity` that callers might expect.
  */
-export interface IAPIUser {
+export interface IAPIOrganization {
+  readonly id: number
+  readonly url: string
+  readonly login: string
+  readonly avatar_url: string
+}
+
+/**
+ * Minimum subset of an identity returned by the GitHub API
+ */
+export interface IAPIIdentity {
+  readonly id: number
+  readonly url: string
+  readonly login: string
+  readonly avatar_url: string
+  readonly type: GitHubAccountType
+}
+
+/**
+ * Complete identity details returned in some situations by the GitHub API.
+ *
+ * If you are not sure what is returned as part of an API response, you should
+ * use `IAPIIdentity` as that contains the known subset of an identity and does
+ * not cover scenarios where privacy settings of a user control what information
+ * is returned.
+ */
+interface IAPIFullIdentity {
   readonly id: number
   readonly url: string
   readonly login: string
@@ -80,7 +136,7 @@ export interface IAPIUser {
    * specified a public email address in their profile.
    */
   readonly email: string | null
-  readonly type: 'User' | 'Organization'
+  readonly type: GitHubAccountType
 }
 
 /** The users we get from the mentionables endpoint. */
@@ -139,7 +195,7 @@ export interface IAPIRefStatusItem {
 }
 
 /** The API response to a ref status request. */
-interface IAPIRefStatus {
+export interface IAPIRefStatus {
   readonly state: APIRefState
   readonly total_count: number
   readonly statuses: ReadonlyArray<IAPIRefStatusItem>
@@ -161,7 +217,7 @@ export interface IAPIPullRequest {
   readonly number: number
   readonly title: string
   readonly created_at: string
-  readonly user: IAPIUser
+  readonly user: IAPIIdentity
   readonly head: IAPIPullRequestRef
   readonly base: IAPIPullRequestRef
 }
@@ -283,10 +339,10 @@ export class API {
   }
 
   /** Fetch the logged in account. */
-  public async fetchAccount(): Promise<IAPIUser> {
+  public async fetchAccount(): Promise<IAPIFullIdentity> {
     try {
       const response = await this.request('GET', 'user')
-      const result = await parsedResponse<IAPIUser>(response)
+      const result = await parsedResponse<IAPIFullIdentity>(response)
       return result
     } catch (e) {
       log.warn(`fetchAccount: failed with endpoint ${this.endpoint}`, e)
@@ -320,7 +376,7 @@ export class API {
         log.warn(`fetchCommit: '${path}' returned a 404`)
         return null
       }
-      return parsedResponse<IAPICommit>(response)
+      return await parsedResponse<IAPICommit>(response)
     } catch (e) {
       log.warn(`fetchCommit: returned an error '${owner}/${name}@${sha}'`, e)
       return null
@@ -328,12 +384,20 @@ export class API {
   }
 
   /** Search for a user with the given public email. */
-  public async searchForUserWithEmail(email: string): Promise<IAPIUser | null> {
+  public async searchForUserWithEmail(
+    email: string
+  ): Promise<IAPIIdentity | null> {
+    if (email.length === 0) {
+      return null
+    }
+
     try {
       const params = { q: `${email} in:email type:user` }
       const url = urlWithQueryString('search/users', params)
       const response = await this.request('GET', url)
-      const result = await parsedResponse<ISearchResults<IAPIUser>>(response)
+      const result = await parsedResponse<ISearchResults<IAPIIdentity>>(
+        response
+      )
       const items = result.items
       if (items.length) {
         // The results are sorted by score, best to worst. So the first result
@@ -349,9 +413,9 @@ export class API {
   }
 
   /** Fetch all the orgs to which the user belongs. */
-  public async fetchOrgs(): Promise<ReadonlyArray<IAPIUser>> {
+  public async fetchOrgs(): Promise<ReadonlyArray<IAPIOrganization>> {
     try {
-      return this.fetchAll<IAPIUser>('user/orgs')
+      return await this.fetchAll<IAPIOrganization>('user/orgs')
     } catch (e) {
       log.warn(`fetchOrgs: failed with endpoint ${this.endpoint}`, e)
       return []
@@ -360,7 +424,7 @@ export class API {
 
   /** Create a new GitHub repository with the given properties. */
   public async createRepository(
-    org: IAPIUser | null,
+    org: IAPIOrganization | null,
     name: string,
     description: string,
     private_: boolean
@@ -380,7 +444,7 @@ export class API {
           throw new Error(
             `Unable to create repository for organization '${
               org.login
-            }'. Verify it exists and that you have permission to create a repository there.`
+            }'. Verify that it exists, that it's a paid organization, and that you have permission to create a repository there.`
           )
         }
         throw e
@@ -438,24 +502,20 @@ export class API {
     }
   }
 
-  /** Get the combined status for the given ref. */
+  /**
+   * Get the combined status for the given ref.
+   *
+   * Note: Contrary to many other methods in this class this will not
+   * suppress or log errors, callers must ensure that they handle errors.
+   */
   public async fetchCombinedRefStatus(
     owner: string,
     name: string,
     ref: string
   ): Promise<IAPIRefStatus> {
     const path = `repos/${owner}/${name}/commits/${ref}/status`
-    try {
-      const response = await this.request('GET', path)
-      const status = await parsedResponse<IAPIRefStatus>(response)
-      return status
-    } catch (e) {
-      log.warn(
-        `fetchCombinedRefStatus: failed for repository ${owner}/${name} on ref ${ref}`,
-        e
-      )
-      throw e
-    }
+    const response = await this.request('GET', path)
+    return await parsedResponse<IAPIRefStatus>(response)
   }
 
   /**
@@ -465,31 +525,26 @@ export class API {
    * pages when available, buffers all items and returns them in
    * one array when done.
    */
-  private async fetchAll<T>(path: string): Promise<ReadonlyArray<T>> {
+  private async fetchAll<T>(path: string, options?: IFetchAllOptions<T>) {
     const buf = new Array<T>()
+    const opts: IFetchAllOptions<T> = { perPage: 100, ...options }
+    const params = { per_page: `${opts.perPage}` }
 
-    const params = {
-      per_page: '100',
-    }
     let nextPath: string | null = urlWithQueryString(path, params)
-
     do {
       const response = await this.request('GET', nextPath)
-      if (response.status === HttpStatusCode.NotFound) {
-        log.warn(`fetchAll: '${path}' returned a 404`)
-        return []
-      }
-      if (response.status === HttpStatusCode.NotModified) {
-        log.warn(`fetchAll: '${path}' returned a 304`)
-        return []
+      if (!response.ok) {
+        log.warn(`fetchAll: '${path}' returned a ${response.status}`)
+        return buf
       }
 
       const items = await parsedResponse<ReadonlyArray<T>>(response)
       if (items) {
         buf.push(...items)
       }
+
       nextPath = getNextPagePath(response)
-    } while (nextPath)
+    } while (nextPath && (!opts.continue || opts.continue(buf)))
 
     return buf
   }
@@ -569,7 +624,7 @@ export class API {
    * Retrieve the public profile information of a user with
    * a given username.
    */
-  public async fetchUser(login: string): Promise<IAPIUser | null> {
+  public async fetchUser(login: string): Promise<IAPIFullIdentity | null> {
     try {
       const response = await this.request(
         'GET',
@@ -580,7 +635,7 @@ export class API {
         return null
       }
 
-      return await parsedResponse<IAPIUser>(response)
+      return await parsedResponse<IAPIFullIdentity>(response)
     } catch (e) {
       log.warn(`fetchUser: failed with endpoint ${this.endpoint}`, e)
       throw e
