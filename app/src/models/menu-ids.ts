@@ -1,6 +1,8 @@
+/** A list of menu ids associated with the main menu in GitHub Desktop */
 export type MenuIDs =
   | 'rename-branch'
   | 'delete-branch'
+  | 'discard-all-changes'
   | 'preferences'
   | 'update-branch'
   | 'merge-branch'

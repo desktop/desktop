@@ -11,6 +11,7 @@ export type MenuEvent =
   | 'create-repository'
   | 'rename-branch'
   | 'delete-branch'
+  | 'discard-all-changes'
   | 'show-preferences'
   | 'choose-repository'
   | 'open-working-directory'

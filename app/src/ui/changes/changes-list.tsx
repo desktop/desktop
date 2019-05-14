@@ -36,14 +36,10 @@ import { RebaseConflictState } from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
 import { enablePullWithRebase, enableStashing } from '../../lib/feature-flag'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { FocusContainer } from '../lib/focus-container'
 import { IStashEntry } from '../../models/stash-entry'
 import * as classNames from 'classnames'
 
 const RowHeight = 29
-const StashListRowStyle: React.CSSProperties = {
-  height: RowHeight,
-}
 const StashIcon = new OcticonSymbol(
   16,
   16,
@@ -107,9 +103,9 @@ interface IChangesListProps {
   readonly onDiscardChanges: (file: WorkingDirectoryFileChange) => void
   readonly askForConfirmationOnDiscardChanges: boolean
   readonly focusCommitMessage: boolean
-  readonly onDiscardAllChanges: (
+  readonly onDiscardChangesFromFiles: (
     files: ReadonlyArray<WorkingDirectoryFileChange>,
-    isDiscardingAllChanges?: boolean
+    isDiscardingAllChanges: boolean
   ) => void
 
   /** Callback that fires on page scroll to pass the new scrollTop location */
@@ -262,10 +258,6 @@ export class ChangesList extends React.Component<
     )
   }
 
-  private onDiscardAllChanges = () => {
-    this.props.onDiscardAllChanges(this.props.workingDirectory.files)
-  }
-
   private onDiscardChanges = (files: ReadonlyArray<string>) => {
     const workingDirectory = this.props.workingDirectory
 
@@ -292,7 +284,10 @@ export class ChangesList extends React.Component<
         const discardingAllChanges =
           modifiedFiles.length === workingDirectory.files.length
 
-        this.props.onDiscardAllChanges(modifiedFiles, discardingAllChanges)
+        this.props.onDiscardChangesFromFiles(
+          modifiedFiles,
+          discardingAllChanges
+        )
       }
     }
   }
@@ -310,38 +305,12 @@ export class ChangesList extends React.Component<
     return this.props.askForConfirmationOnDiscardChanges ? `${label}…` : label
   }
 
-  private onContextMenu = (event: React.MouseEvent<any>) => {
-    event.preventDefault()
-
-    // need to preserve the working directory state while dealing with conflicts
-    if (this.props.rebaseConflictState !== null) {
-      return
-    }
-
-    const items: IMenuItem[] = [
-      {
-        label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
-        action: this.onDiscardAllChanges,
-        enabled: this.props.workingDirectory.files.length > 0,
-      },
-    ]
-
-    showContextualMenu(items)
-  }
-
   private getDiscardChangesMenuItem = (
     paths: ReadonlyArray<string>
   ): IMenuItem => {
     return {
       label: this.getDiscardChangesMenuItemLabel(paths),
       action: () => this.onDiscardChanges(paths),
-    }
-  }
-
-  private getDiscardAllChangesMenuItem = (): IMenuItem => {
-    return {
-      label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
-      action: () => this.onDiscardAllChanges(),
     }
   }
 
@@ -426,7 +395,6 @@ export class ChangesList extends React.Component<
 
     const items: IMenuItem[] = [
       this.getDiscardChangesMenuItem(paths),
-      this.getDiscardAllChangesMenuItem(),
       { type: 'separator' },
     ]
     if (paths.length === 1) {
@@ -642,23 +610,21 @@ export class ChangesList extends React.Component<
     }
 
     const className = classNames(
-      'stashed-changes-row',
+      'stashed-changes-button',
       this.props.isShowingStashEntry ? 'selected' : null
     )
 
     return (
-      <FocusContainer className="stash-focus-container">
-        <div
-          className={className}
-          style={StashListRowStyle}
-          onClick={this.onStashEntryClicked}
-          tabIndex={0}
-        >
-          <Octicon className="icon" symbol={StashIcon} />
-          <div className="text">Stashed Changes</div>
-          <Octicon className="arrow" symbol={OcticonSymbol.chevronRight} />
-        </div>
-      </FocusContainer>
+      <button
+        className={className}
+        onClick={this.onStashEntryClicked}
+        tabIndex={0}
+        aria-selected={this.props.isShowingStashEntry}
+      >
+        <Octicon className="stack-icon" symbol={StashIcon} />
+        <div className="text">Stashed Changes</div>
+        <Octicon symbol={OcticonSymbol.chevronRight} />
+      </button>
     )
   }
 
@@ -678,7 +644,7 @@ export class ChangesList extends React.Component<
 
     return (
       <div className="changes-list-container file-list">
-        <div className="header" onContextMenu={this.onContextMenu}>
+        <div className="header">
           <Checkbox
             label={filesDescription}
             value={includeAllValue}
