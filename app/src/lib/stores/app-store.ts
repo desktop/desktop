@@ -224,7 +224,7 @@ import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-str
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { arrayEquals } from '../equality'
-import moment = require('moment')
+import * as moment from 'moment'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 
 /**
