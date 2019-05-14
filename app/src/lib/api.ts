@@ -226,6 +226,11 @@ export interface IAPIRefStatus {
   readonly statuses: ReadonlyArray<IAPIRefStatusItem>
 }
 
+export interface IAPIBranch {
+  readonly name: string
+  readonly protected: boolean
+}
+
 interface IAPIPullRequestRef {
   readonly ref: string
   readonly sha: string
@@ -694,6 +699,15 @@ export class API {
     const path = `repos/${owner}/${name}/commits/${ref}/status`
     const response = await this.request('GET', path)
     return await parsedResponse<IAPIRefStatus>(response)
+  }
+
+  public async fetchProtectedBranches(
+    owner: string,
+    name: string
+  ): Promise<ReadonlyArray<IAPIBranch>> {
+    const path = `repos/${owner}/${name}/branches?protected=true`
+    const response = await this.request('GET', path)
+    return await parsedResponse<IAPIBranch[]>(response)
   }
 
   /**

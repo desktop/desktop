@@ -2,12 +2,13 @@ import {
   RepositoriesDatabase,
   IDatabaseGitHubRepository,
   IDatabaseOwner,
+  IDatabaseGitHubBranch,
 } from '../databases/repositories-database'
 import { Owner } from '../../models/owner'
 import { GitHubRepository } from '../../models/github-repository'
 import { Repository } from '../../models/repository'
 import { fatalError } from '../fatal-error'
-import { IAPIRepository } from '../api'
+import { IAPIRepository, IAPIBranch } from '../api'
 import { BaseStore } from './base-store'
 
 /** The store for local repositories. */
@@ -374,7 +375,8 @@ export class RepositoriesStore extends BaseStore {
   public async updateGitHubRepository(
     repository: Repository,
     endpoint: string,
-    gitHubRepository: IAPIRepository
+    gitHubRepository: IAPIRepository,
+    branches: ReadonlyArray<IAPIBranch>
   ): Promise<Repository> {
     const repoID = repository.id
     if (!repoID) {
@@ -387,6 +389,7 @@ export class RepositoriesStore extends BaseStore {
       'rw',
       this.db.repositories,
       this.db.gitHubRepositories,
+      this.db.githubBranches,
       this.db.owners,
       async () => {
         const localRepo = (await this.db.repositories.get(repoID))!
@@ -398,6 +401,18 @@ export class RepositoriesStore extends BaseStore {
         await this.db.repositories.update(localRepo.id!, {
           gitHubRepositoryID: updatedGitHubRepo.dbID,
         })
+
+        await this.db.githubBranches
+          .where('repoId')
+          .equals(updatedGitHubRepo.dbID!)
+          .delete()
+
+        const items = branches.map<IDatabaseGitHubBranch>(b => ({
+          ...b,
+          repoId: updatedGitHubRepo.dbID!,
+        }))
+
+        await this.db.githubBranches.bulkAdd(items)
 
         return updatedGitHubRepo
       }
