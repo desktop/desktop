@@ -12,7 +12,7 @@ const dismissGracePeriodMs = 250
 
 /**
  * The time (in milliseconds) that we should wait after focusing before we
- * re-enable click dismissal. Note that this is only used on Windows.
+ * re-enable click dismissal.
  */
 const DisableClickDismissalDelay = 500
 
