@@ -2493,8 +2493,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       refreshSectionPromise,
     ])
 
-    await this.updateStashEntryCountMetric(repository, gitStore)
-
+    // this promise is fire-and-forget, so no need to await it
+    this.updateStashEntryCountMetric(repository, gitStore)
     this._updateCurrentPullRequest(repository)
 
     const latestState = this.repositoryStateCache.get(repository)
