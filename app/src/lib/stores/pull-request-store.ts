@@ -111,7 +111,7 @@ export class PullRequestStore {
     // for the repository before. If we have fetched before we get all PRs
     // that have been modified since the last time we fetched so that we
     // can prune closed issues from our database. Note that since
-    // fetchPullRequestsUpdatedSince returns all issues modified _at_ or
+    // `api.fetchUpdatedPullRequests` returns all issues modified _at_ or
     // after the timestamp we give it we will always get at least one issue
     // back. See `storePullRequests` for details on how that's handled.
     if (!lastUpdatedAt) {
