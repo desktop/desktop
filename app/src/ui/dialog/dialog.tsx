@@ -216,16 +216,18 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     // On Windows and Linux, a click which focuses the window will also get
     // passed down into the DOM. But we don't want to dismiss the dialog based
     // on that click. See https://github.com/desktop/desktop/issues/2486.
-    if (__WIN32__ || __LINUX__) {
-      this.clearClickDismissalTimer()
+    // macOS normally automatically disables "click-through" behavior but
+    // we've intentionally turned that off so we need to apply the same
+    // behavior regardless of platform.
+    // See https://github.com/desktop/desktop/pull/3843.
+    this.clearClickDismissalTimer()
 
-      this.disableClickDismissal = true
+    this.disableClickDismissal = true
 
-      this.disableClickDismissalTimeoutId = window.setTimeout(() => {
-        this.disableClickDismissal = false
-        this.disableClickDismissalTimeoutId = null
-      }, DisableClickDismissalDelay)
-    }
+    this.disableClickDismissalTimeoutId = window.setTimeout(() => {
+      this.disableClickDismissal = false
+      this.disableClickDismissalTimeoutId = null
+    }, DisableClickDismissalDelay)
   }
 
   private clearClickDismissalTimer() {
