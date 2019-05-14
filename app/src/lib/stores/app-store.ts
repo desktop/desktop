@@ -2112,7 +2112,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       refreshSectionPromise,
     ])
 
-    // this promise is fire-and-forget, so kno need to await it
+    // this promise is fire-and-forget, so no need to await it
     this.updateStashEntryCountMetric(repository)
     this._updateCurrentPullRequest(repository)
     this.updateMenuItemLabels(repository)
