@@ -144,6 +144,7 @@ import {
   PushOptions,
   RebaseResult,
   getRebaseSnapshot,
+  IStatusResult,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -222,8 +223,8 @@ import {
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
-import { MenuLabels } from '../../main-process/menu'
 import { arrayEquals } from '../equality'
+import { MenuLabelsEvent } from '../../models/menu-labels'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -332,7 +333,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
 
-  private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
+  private askForConfirmationOnRepositoryRemoval: boolean = confirmRepoRemovalDefault
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
@@ -577,7 +578,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
       currentBanner: this.currentBanner,
-      askForConfirmationOnRepositoryRemoval: this.confirmRepoRemoval,
+      askForConfirmationOnRepositoryRemoval: this
+        .askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
       askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
       selectedExternalEditor: this.selectedExternalEditor,
@@ -740,8 +742,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     initialAction?: CompareAction
   ) {
-    log.debug('[AppStore] initializing compare state')
-
     const state = this.repositoryStateCache.get(repository)
 
     const { branchesState, compareState } = state
@@ -1125,28 +1125,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _setRepositoryFilterText(text: string): Promise<void> {
     this.repositoryFilterText = text
-    this.emitUpdate()
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _setBranchFilterText(
-    repository: Repository,
-    text: string
-  ): Promise<void> {
-    this.repositoryStateCache.update(repository, () => ({
-      branchFilterText: text,
-    }))
-    this.emitUpdate()
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _setPullRequestFilterText(
-    repository: Repository,
-    text: string
-  ): Promise<void> {
-    this.repositoryStateCache.update(repository, () => ({
-      pullRequestFilterText: text,
-    }))
     this.emitUpdate()
   }
 
@@ -1575,7 +1553,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       defaultStashedFilesWidth
     )
 
-    this.confirmRepoRemoval = getBoolean(
+    this.askForConfirmationOnRepositoryRemoval = getBoolean(
       confirmRepoRemovalKey,
       confirmRepoRemovalDefault
     )
@@ -1676,65 +1654,48 @@ export class AppStore extends TypedBaseStore<IAppState> {
    *              being cloned or is missing
    */
   private updateMenuItemLabels(state: IRepositoryState | null) {
-    const shellLabel = `Open in ${this.selectedShell}`
-    const removeRepoLabel = this.getRemoveRepoLabel()
+    const {
+      selectedShell,
+      selectedExternalEditor,
+      askForConfirmationOnRepositoryRemoval,
+      askForConfirmationOnForcePush,
+    } = this
 
-    let labels: MenuLabels = {
-      shellLabel,
-      removeRepoLabel,
+    const labels: MenuLabelsEvent = {
+      selectedShell,
+      selectedExternalEditor: selectedExternalEditor || null,
+      askForConfirmationOnRepositoryRemoval,
+      askForConfirmationOnForcePush,
     }
 
-    if (this.selectedExternalEditor !== undefined) {
-      labels = {
-        ...labels,
-        editorLabel: `Open in ${this.selectedExternalEditor}`,
-      }
+    if (state === null) {
+      updatePreferredAppMenuItemLabels(labels)
+      return
     }
 
-    if (state !== null) {
-      labels = {
-        ...labels,
-        pullRequestLabel: this.getPullRequestLabel(state),
-        defaultBranchName: this.getDefaultBranchName(state),
-        isForcePushForCurrentRepository: this.isCurrentBranchForcePush(state),
-        askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
-        isStashedChangesVisible:
-          state.changesState.selection.kind === ChangesSelectionKind.Stash,
-      }
-    }
+    const { changesState, branchesState, aheadBehind } = state
+    const { defaultBranch, currentPullRequest } = branchesState
 
-    updatePreferredAppMenuItemLabels(labels)
-  }
+    const defaultBranchName =
+      defaultBranch === null || defaultBranch.upstreamWithoutRemote === null
+        ? undefined
+        : defaultBranch.upstreamWithoutRemote
 
-  private isCurrentBranchForcePush(state: IRepositoryState) {
-    const { branchesState, aheadBehind } = state
-    return isCurrentBranchForcePush(branchesState, aheadBehind)
-  }
+    const isForcePushForCurrentRepository = isCurrentBranchForcePush(
+      branchesState,
+      aheadBehind
+    )
 
-  private getRemoveRepoLabel() {
-    return this.confirmRepoRemoval
-      ? __DARWIN__
-        ? 'Remove…'
-        : '&Remove…'
-      : __DARWIN__
-      ? 'Remove'
-      : '&Remove'
-  }
+    const isStashedChangesVisible =
+      changesState.selection.kind === ChangesSelectionKind.Stash
 
-  private getPullRequestLabel(state: IRepositoryState) {
-    if (state.branchesState.currentPullRequest === null) {
-      return undefined
-    }
-
-    return __DARWIN__ ? 'Show Pull Request' : 'Show &pull request'
-  }
-
-  private getDefaultBranchName(state: IRepositoryState) {
-    const { defaultBranch } = state.branchesState
-    if (defaultBranch == null || defaultBranch.upstreamWithoutRemote == null) {
-      return undefined
-    }
-    return defaultBranch.upstreamWithoutRemote
+    updatePreferredAppMenuItemLabels({
+      ...labels,
+      defaultBranchName,
+      isForcePushForCurrentRepository,
+      isStashedChangesVisible,
+      hasCurrentPullRequest: currentPullRequest !== null,
+    })
   }
 
   private updateRepositorySelectionAfterRepositoriesChanged() {
@@ -1780,12 +1741,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _loadStatus(
     repository: Repository,
     clearPartialState: boolean = false
-  ): Promise<boolean> {
+  ): Promise<IStatusResult | null> {
     const gitStore = this.gitStoreCache.get(repository)
     const status = await gitStore.loadStatus()
 
-    if (!status) {
-      return false
+    if (status === null) {
+      return null
     }
 
     this.repositoryStateCache.updateChangesState(repository, state =>
@@ -1806,7 +1767,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.updateChangesWorkingDirectoryDiff(repository)
 
-    return true
+    return status
   }
 
   /**
@@ -2471,7 +2432,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const foundRepository =
       (await pathExists(repository.path)) &&
       (await isGitRepository(repository.path)) &&
-      (await this._loadStatus(repository))
+      (await this._loadStatus(repository)) !== null
 
     if (foundRepository) {
       return await this._updateRepositoryMissing(repository, false)
@@ -2500,7 +2461,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // is in a bad state - let's mark it as missing here and give up on the
     // further work
     const status = await this._loadStatus(repository)
-    if (!status) {
+    this.updateSidebarIndicator(repository, status)
+
+    if (status === null) {
       await this._updateRepositoryMissing(repository, true)
       return
     }
@@ -2535,27 +2498,45 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.updateMenuItemLabels(latestState)
 
     this._initializeCompare(repository)
-    this.refreshIndicatorsForRepositories([repository], false)
-  }
-
-  public refreshAllIndicators() {
-    return this.refreshIndicatorsForRepositories(this.repositories, true)
   }
 
   /**
-   * Refresh in-memory indicators for a set of repositories
-   *
-   * @param repositories the set of repositories to update
-   * @param tryBackgroundFetch whether the action should also try and fetch new changes from the remote
+   * Update the repository sidebar indicator for the repository
    */
-  private async refreshIndicatorsForRepositories(
-    repositories: ReadonlyArray<Repository>,
-    tryBackgroundFetch: boolean
+  private async updateSidebarIndicator(
+    repository: Repository,
+    status: IStatusResult | null
   ): Promise<void> {
+    const lookup = this.localRepositoryStateLookup
+
+    if (repository.missing) {
+      lookup.delete(repository.id)
+      return
+    }
+
+    if (status === null) {
+      lookup.delete(repository.id)
+      return
+    }
+
+    lookup.set(repository.id, {
+      aheadBehind: status.branchAheadBehind || null,
+      changedFilesCount: status.workingDirectory.files.length,
+    })
+  }
+
+  /**
+   * Refresh sidebar indicators for the set of repositories tracked in the app.
+   */
+  public async refreshAllSidebarIndicators() {
     const startTime = performance && performance.now ? performance.now() : null
 
+    // keep a reference to the current set of repositories to avoid the array
+    // changing while this is running
+    const repositories = new Array<Repository>(...this.repositories)
+
     for (const repo of repositories) {
-      await this.refreshIndicatorForRepository(repo, tryBackgroundFetch)
+      await this.refreshIndicatorForRepository(repo)
     }
 
     if (startTime && repositories.length > 1) {
@@ -2572,15 +2553,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /**
-   * Refresh in-memory indicators for a repository
-   *
-   * @param repository the repository to check and update
-   * @param tryBackgroundFetch whether the action should also try and fetch new changes from the remote
+   * Refresh indicator in repository list for a specific repository
    */
-  private async refreshIndicatorForRepository(
-    repository: Repository,
-    tryBackgroundFetch: boolean
-  ) {
+  private async refreshIndicatorForRepository(repository: Repository) {
     const lookup = this.localRepositoryStateLookup
 
     if (repository.missing) {
@@ -2601,16 +2576,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    if (tryBackgroundFetch) {
-      const lastPush = await inferLastPushForRepository(
-        this.accounts,
-        gitStore,
-        repository
-      )
+    const lastPush = await inferLastPushForRepository(
+      this.accounts,
+      gitStore,
+      repository
+    )
 
-      if (this.shouldBackgroundFetch(repository, lastPush)) {
-        await this._fetch(repository, FetchType.BackgroundTask)
-      }
+    if (this.shouldBackgroundFetch(repository, lastPush)) {
+      await this._fetch(repository, FetchType.BackgroundTask)
     }
 
     lookup.set(repository.id, {
@@ -2854,12 +2827,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
         uncommittedChangesStrategy ===
         UncommittedChangesStrategy.stashOnCurrentBranch
       ) {
-        await this._createStash(repository, currentBranch.name)
+        await this.createStash(repository, currentBranch.name)
       } else if (
         uncommittedChangesStrategy ===
         UncommittedChangesStrategy.moveToNewBranch
       ) {
-        await this._createStash(repository, foundBranch.name, false)
+        await createDesktopStashEntry(repository, foundBranch.name)
         shouldPopStash = true
       }
     }
@@ -2888,7 +2861,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
 
       if (stash !== null) {
-        await this._popStashEntry(repository, stash)
+        await gitStore.performFailableOperation(() => {
+          return popStashEntry(repository, stash.stashSha)
+        })
       } else {
         log.info(
           `[AppStore._checkoutBranch] no stash found that matches ${
@@ -4109,7 +4084,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setConfirmRepositoryRemovalSetting(
     confirmRepoRemoval: boolean
   ): Promise<void> {
-    this.confirmRepoRemoval = confirmRepoRemoval
+    this.askForConfirmationOnRepositoryRemoval = confirmRepoRemoval
     setBoolean(confirmRepoRemovalKey, confirmRepoRemoval)
 
     this.updateMenuLabelsForSelectedRepository()
@@ -5032,40 +5007,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _createStash(
-    repository: Repository,
-    branchName: string,
-    removePreviousStash: boolean = true
-  ) {
+  /**
+   *  Note: **drops the existing desktop stash** on that branch (if there is one)
+   */
+  private async createStash(repository: Repository, branchName: string) {
     if (!enableStashing()) {
-      return
-    }
-    const { branchesState } = this.repositoryStateCache.get(repository)
-    const { tip } = branchesState
-    if (tip.kind !== TipState.Valid) {
       return
     }
 
     // get the previous stash before we create a new one
-    const previousStash = removePreviousStash
-      ? await getLastDesktopStashEntryForBranch(repository, branchName)
-      : null
+    const previousStash = await getLastDesktopStashEntryForBranch(
+      repository,
+      branchName
+    )
 
     await createDesktopStashEntry(repository, branchName)
 
-    if (previousStash === null) {
-      return
+    if (previousStash !== null) {
+      await dropDesktopStashEntry(repository, previousStash.stashSha)
+      log.info(
+        `Dropped stash '${previousStash.stashSha}' associated with ${
+          previousStash.branchName
+        }`
+      )
     }
-
-    await dropDesktopStashEntry(repository, previousStash.stashSha)
-    log.info(
-      `Dropped stash '${previousStash.stashSha}' associated with ${
-        previousStash.branchName
-      }`
-    )
-
-    await this._refreshRepository(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -5104,7 +5069,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }`
     )
 
-    await this.gitStoreCache.get(repository).loadStashEntries()
+    await gitStore.loadStashEntries()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

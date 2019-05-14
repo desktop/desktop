@@ -93,7 +93,6 @@ import { PopupType, Popup } from '../models/popup'
 import { OversizedFiles } from './changes/oversized-files-warning'
 import { UsageStatsChange } from './usage-stats-change'
 import { PushNeedsPullWarning } from './push-needs-pull'
-import { LocalChangesOverwrittenWarning } from './local-changes-overwritten'
 import { RebaseFlow, ConfirmForcePush } from './rebase'
 import {
   initializeNewRebaseFlow,
@@ -191,10 +190,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       const initialTimeout = window.setTimeout(async () => {
         window.clearTimeout(initialTimeout)
 
-        await this.props.appStore.refreshAllIndicators()
+        await this.props.appStore.refreshAllSidebarIndicators()
 
         this.updateIntervalHandle = window.setInterval(() => {
-          this.props.appStore.refreshAllIndicators()
+          this.props.appStore.refreshAllSidebarIndicators()
         }, UpdateRepositoryIndicatorInterval)
       }, InitialRepositoryIndicatorTimeout)
     })
@@ -319,6 +318,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.renameBranch()
       case 'delete-branch':
         return this.deleteBranch()
+      case 'discard-all-changes':
+        return this.discardAllChanges()
       case 'show-preferences':
         return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
       case 'open-working-directory':
@@ -607,6 +608,24 @@ export class App extends React.Component<IAppProps, IAppState> {
         })
       }
     }
+  }
+
+  private discardAllChanges() {
+    const state = this.state.selectedState
+
+    if (state == null || state.type !== SelectionType.Repository) {
+      return
+    }
+
+    const { workingDirectory } = state.state.changesState
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.ConfirmDiscardChanges,
+      repository: state.repository,
+      files: workingDirectory.files,
+      showDiscardChangesSetting: false,
+      discardingAllChanges: true,
+    })
   }
 
   private showAddLocalRepo = () => {
@@ -1579,27 +1598,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
           />
         )
-      case PopupType.LocalChangesOverwritten: {
-        const { selectedState } = this.state
-        if (
-          selectedState === null ||
-          selectedState.type !== SelectionType.Repository
-        ) {
-          return null
-        }
-
-        const { workingDirectory } = selectedState.state.changesState
-        return (
-          <LocalChangesOverwrittenWarning
-            dispatcher={this.props.dispatcher}
-            repository={popup.repository}
-            retryAction={popup.retryAction}
-            overwrittenFiles={popup.overwrittenFiles}
-            workingDirectory={workingDirectory}
-            onDismissed={this.onPopupDismissed}
-          />
-        )
-      }
       case PopupType.RebaseFlow: {
         const { selectedState, emoji } = this.state
 
