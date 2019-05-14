@@ -402,14 +402,16 @@ export class RepositoriesStore extends BaseStore {
           gitHubRepositoryID: updatedGitHubRepo.dbID,
         })
 
+        const repoId = updatedGitHubRepo.dbID!
+
         await this.db.githubBranches
           .where('repoId')
-          .equals(updatedGitHubRepo.dbID!)
+          .equals(repoId)
           .delete()
 
         const items = branches.map<IDatabaseGitHubBranch>(b => ({
           ...b,
-          repoId: updatedGitHubRepo.dbID!,
+          repoId,
         }))
 
         await this.db.githubBranches.bulkAdd(items)
