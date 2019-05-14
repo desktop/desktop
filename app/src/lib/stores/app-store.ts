@@ -2373,6 +2373,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
             }
           }
         }
+
+        if (gitStore.tip.kind === TipState.Valid) {
+          // look up if the tracked branch matches a protected remote branch
+          const { upstreamWithoutRemote } = gitStore.tip.branch
+
+          if (upstreamWithoutRemote !== null) {
+            const protectedBranches = await this.repositoriesStore.getProtectedBranches(
+              repository.gitHubRepository
+            )
+
+            if (protectedBranches.indexOf(upstreamWithoutRemote) >= 0) {
+              log.debug(
+                `[_commitIncludedChanges] the branch '${upstreamWithoutRemote}' is protected by the GitHub API`
+              )
+            }
+          }
+        }
       }
 
       await this._refreshRepository(repository)
