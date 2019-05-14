@@ -1141,7 +1141,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return Promise.resolve(null)
     }
 
-    this.updateStashEntryCountMetric(repository)
     setNumber(LastSelectedRepositoryIDKey, repository.id)
 
     // if repository might be marked missing, try checking if it has been restored
@@ -2113,6 +2112,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       refreshSectionPromise,
     ])
 
+    // this promise is fire-and-forget, so kno need to await it
+    this.updateStashEntryCountMetric(repository)
     this._updateCurrentPullRequest(repository)
     this.updateMenuItemLabels(repository)
     this._initializeCompare(repository)
