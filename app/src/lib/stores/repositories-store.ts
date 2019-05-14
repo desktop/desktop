@@ -500,4 +500,21 @@ export class RepositoriesStore extends BaseStore {
 
     return record!.lastPruneDate
   }
+
+  public async getProtectedBranches(
+    gitHubRepository: GitHubRepository
+  ): Promise<ReadonlyArray<string>> {
+    if (gitHubRepository.dbID === null) {
+      return fatalError(
+        'unable to get protected branches, GitHub repository has a null dbID'
+      )
+    }
+
+    const results = await this.db.githubBranches
+      .where('repoId')
+      .equals(gitHubRepository.dbID)
+      .toArray()
+
+    return results.map(r => r.name)
+  }
 }
