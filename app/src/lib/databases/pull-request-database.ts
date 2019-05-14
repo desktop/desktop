@@ -220,7 +220,9 @@ export class PullRequestDatabase extends BaseDatabase {
    */
   public clearLastUpdated(repository: GitHubRepository) {
     if (repository.dbID === null) {
-      return fatalError("Can't clear last updated PR for repository with a null dbID")
+      return fatalError(
+        "Can't clear last updated PR for repository with a null dbID"
+      )
     }
 
     return this.pullRequestsLastUpdated.delete(repository.dbID)
