@@ -2374,18 +2374,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
           }
         }
 
-        if (gitStore.tip.kind === TipState.Valid) {
+        if (
+          gitStore.tip.kind === TipState.Valid &&
+          gitStore.currentRemote !== null
+        ) {
           // look up if the tracked branch matches a protected remote branch
-          const { upstreamWithoutRemote } = gitStore.tip.branch
+          const { upstream } = gitStore.tip.branch
 
-          if (upstreamWithoutRemote !== null) {
-            const protectedBranches = await this.repositoriesStore.getProtectedBranches(
+          if (upstream !== null) {
+            const remoteName = gitStore.currentRemote.name
+
+            const protectedBranchNames = await this.repositoriesStore.getProtectedBranches(
               repository.gitHubRepository
             )
 
-            if (protectedBranches.indexOf(upstreamWithoutRemote) >= 0) {
+            // convert these branches to a canonical reference to avoid the need
+            // to rely on the logic in `upstreamWithoutRemote`
+            const protectedBranches = protectedBranchNames.map(
+              b => `${remoteName}/${b}`
+            )
+
+            if (protectedBranches.indexOf(upstream) >= 0) {
               log.debug(
-                `[_commitIncludedChanges] the branch '${upstreamWithoutRemote}' is protected by the GitHub API`
+                `[_commitIncludedChanges] the upstream ref '${upstream}' is protected by the GitHub API`
               )
             }
           }
