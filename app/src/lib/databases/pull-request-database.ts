@@ -188,7 +188,7 @@ export class PullRequestDatabase extends BaseDatabase {
    */
   public getPullRequest(repository: GitHubRepository, prNumber: number) {
     if (repository.dbID === null) {
-      return fatalError("Can't retrieve PRs for repository, no dbId")
+      return fatalError("Can't retrieve PRs for repository with a null dbID")
     }
 
     return this.pullRequests.get([repository.dbID, prNumber])
@@ -206,7 +206,7 @@ export class PullRequestDatabase extends BaseDatabase {
    */
   public async getLastUpdated(repository: GitHubRepository) {
     if (repository.dbID === null) {
-      return fatalError("Can't retrieve PRs for repository, no dbId")
+      return fatalError("Can't retrieve PRs for repository with a null dbID")
     }
 
     const row = await this.pullRequestsLastUpdated.get(repository.dbID)
@@ -220,7 +220,7 @@ export class PullRequestDatabase extends BaseDatabase {
    */
   public clearLastUpdated(repository: GitHubRepository) {
     if (repository.dbID === null) {
-      return fatalError("Can't clear last updated PR for repository, no dbId")
+      return fatalError("Can't clear last updated PR for repository with a null dbID")
     }
 
     return this.pullRequestsLastUpdated.delete(repository.dbID)
@@ -238,7 +238,7 @@ export class PullRequestDatabase extends BaseDatabase {
    */
   public async setLastUpdated(repository: GitHubRepository, lastUpdated: Date) {
     if (repository.dbID === null) {
-      throw new Error("Can't set last updated for PR, no dbId")
+      throw new Error("Can't set last updated for PR with a null dbID")
     }
 
     await this.pullRequestsLastUpdated.put({

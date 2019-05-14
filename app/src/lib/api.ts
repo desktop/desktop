@@ -307,7 +307,7 @@ function getNextPagePathFromLink(response: Response): string | null {
 
 /**
  * Parses the 'next' Link header from GitHub using
- * `getNextPagePathFromLink`. Unlike getNextPagePathFromLink
+ * `getNextPagePathFromLink`. Unlike `getNextPagePathFromLink`
  * this method will attempt to double the page size when
  * the current page index and the page size allows for it
  * leading to a ramp up in page size.

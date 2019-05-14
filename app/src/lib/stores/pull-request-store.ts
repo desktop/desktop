@@ -283,7 +283,7 @@ export class PullRequestStore {
     })
 
     for (const pr of pullRequestsFromAPI) {
-      // We can do this string comparison here rather than conver to date
+      // We can do this string comparison here rather than convert to date
       // because ISO8601 is lexicographically sortable
       if (pr.updated_at > mostRecentlyUpdated) {
         mostRecentlyUpdated = pr.updated_at
