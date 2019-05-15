@@ -135,6 +135,24 @@ export class PullRequestDatabase extends BaseDatabase {
   }
 
   /**
+   * Create a pull request key from a GitHub repository and a PR number.
+   *
+   * This method is mainly a helper function to ensure we don't
+   * accidentally swap the order of the repository id and the pr number
+   * if we were to create the key array manually.
+   *
+   * @param repository The GitHub repository to which this PR belongs
+   * @param prNumber   The PR number as returned from the GitHub API
+   */
+  public getPullRequestKey(repository: GitHubRepository, prNumber: number) {
+    const dbId = forceUnwrap(
+      `Can get key for PR, repository not inserted in database.`,
+      repository.dbID
+    )
+    return [dbId, prNumber] as PullRequestKey
+  }
+
+  /**
    * Removes all the given pull requests from the database.
    */
   public async deletePullRequests(keys: PullRequestKey[]) {
