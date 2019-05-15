@@ -1,6 +1,6 @@
 import mem from 'mem'
 
-import { PullRequestDatabase, IPullRequest } from '../databases'
+import { PullRequestDatabase, IPullRequest, PullRequestKey } from '../databases'
 import { GitHubRepository } from '../../models/github-repository'
 import { Account } from '../../models/account'
 import { API, IAPIPullRequest, MaxResultsError } from '../api'
@@ -267,7 +267,7 @@ export class PullRequestStore {
 
     let mostRecentlyUpdated = pullRequestsFromAPI[0].updated_at
 
-    const prsToDelete = new Array<IPullRequest>()
+    const prsToDelete = new Array<PullRequestKey>()
     const prsToUpsert = new Array<IPullRequest>()
 
     // The API endpoint for this PR, i.e api.github.com or a GHE url
@@ -303,6 +303,11 @@ export class PullRequestStore {
         return fatalError('PR cannot have a null parent database id')
       }
 
+      if (pr.state === 'closed') {
+        prsToDelete.push(this.db.getPullRequestKey(baseGitHubRepo, pr.number))
+        continue
+      }
+
       // `pr.head.repo` represents the source of the pull request. It might be
       // a branch associated with the current repository, or a fork of the
       // current repository.
@@ -316,7 +321,7 @@ export class PullRequestStore {
             repository.fullName
           } as it has no head repository associated with it`
         )
-        // TODO ensure that it doesn't exist in the db
+        prsToDelete.push(this.db.getPullRequestKey(baseGitHubRepo, pr.number))
         continue
       }
 
@@ -326,7 +331,7 @@ export class PullRequestStore {
         return fatalError('PR cannot have non-existent repo')
       }
 
-      const dbPr: IPullRequest = {
+      prsToUpsert.push({
         number: pr.number,
         title: pr.title,
         createdAt: pr.created_at,
@@ -342,13 +347,7 @@ export class PullRequestStore {
           repoId: baseGitHubRepo.dbID,
         },
         author: pr.user.login,
-      }
-
-      if (pr.state === 'closed') {
-        prsToDelete.push(dbPr)
-      } else {
-        prsToUpsert.push(dbPr)
-      }
+      })
     }
 
     // When loading only PRs that has changed since the last fetch
