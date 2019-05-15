@@ -3,7 +3,7 @@ import { getKeyForAccount } from '../auth'
 import { Account } from '../../models/account'
 import { fetchUser, EmailVisibility } from '../api'
 import { fatalError } from '../fatal-error'
-import { BaseStore } from './base-store'
+import { TypedBaseStore } from './base-store'
 
 /** The data-only interface for storage. */
 interface IEmail {
@@ -46,7 +46,7 @@ interface IAccount {
 }
 
 /** The store for logged in accounts. */
-export class AccountsStore extends BaseStore {
+export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   private dataStore: IDataStore
   private secureStore: ISecureStore
 
@@ -118,7 +118,7 @@ export class AccountsStore extends BaseStore {
     )
 
     this.save()
-    this.emitUpdate()
+    this.emitUpdate(this.accounts)
   }
 
   /**
@@ -197,7 +197,7 @@ export class AccountsStore extends BaseStore {
     }
 
     this.accounts = accountsWithTokens
-    this.emitUpdate()
+    this.emitUpdate(this.accounts)
   }
 
   private save() {
@@ -206,7 +206,7 @@ export class AccountsStore extends BaseStore {
     )
     this.dataStore.setItem('users', JSON.stringify(usersWithoutTokens))
 
-    this.emitUpdate()
+    this.emitUpdate(this.accounts)
   }
 }
 

@@ -8,6 +8,7 @@ import {
   ICompareState,
   ICompareBranch,
   ComparisonMode,
+  IDisplayHistory,
 } from '../../lib/app-state'
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
@@ -260,7 +261,11 @@ export class CompareSidebar extends React.Component<
         localCommitSHAs={this.props.localCommitSHAs}
         emoji={this.props.emoji}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
-        onRevertCommit={this.props.onRevertCommit}
+        onRevertCommit={
+          ableToRevertCommit(this.props.compareState.formState)
+            ? this.props.onRevertCommit
+            : undefined
+        }
         onCommitSelected={this.onCommitSelected}
         onScroll={this.onScroll}
         emptyListMessage={emptyListMessage}
@@ -583,4 +588,17 @@ function getPlaceholderText(state: ICompareState) {
   } else {
     return undefined
   }
+}
+
+// determine if the `onRevertCommit` function should be exposed to the CommitList/CommitListItem.
+// `onRevertCommit` is only exposed if the form state of the branch compare form is either
+// 1: History mode, 2: Comparison Mode with the 'Ahead' list shown.
+// When not exposed, the context menu item 'Revert this commit' is disabled.
+function ableToRevertCommit(
+  formState: IDisplayHistory | ICompareBranch
+): boolean {
+  return (
+    formState.kind === HistoryTabMode.History ||
+    formState.comparisonMode === ComparisonMode.Ahead
+  )
 }

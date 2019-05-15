@@ -63,6 +63,11 @@ describe('git/remote', () => {
   })
 
   describe('findDefaultRemote', () => {
+    it('returns null for empty array', async () => {
+      const result = await findDefaultRemote([])
+      expect(result).toBeNull()
+    })
+
     it('returns origin when multiple remotes found', async () => {
       const testRepoPath = await setupFixtureRepository(
         'repo-with-multiple-remotes'

@@ -6,6 +6,7 @@
   flex-direction: column;
   align-items: center;
   overflow-y: auto;
+  overflow-x: hidden;
 
   .header {
     display: flex;

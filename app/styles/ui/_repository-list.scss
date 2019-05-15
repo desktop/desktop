@@ -101,6 +101,8 @@
   }
 
   .new-repository-button {
+    flex-shrink: 0;
+
     .octicon {
       margin-left: 5px;
       width: 9px;

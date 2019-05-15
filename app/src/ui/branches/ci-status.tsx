@@ -1,24 +1,100 @@
 import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { APIRefState } from '../../lib/api'
+import { APIRefState, IAPIRefStatus } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
-import { PullRequestStatus } from '../../models/pull-request'
-import { getPRStatusSummary } from './pull-request-status'
+import { getRefStatusSummary } from './pull-request-status'
+import { GitHubRepository } from '../../models/github-repository'
+import { IDisposable } from 'event-kit'
+import { Dispatcher } from '../dispatcher'
 
 interface ICIStatusProps {
   /** The classname for the underlying element. */
   readonly className?: string
 
-  /** The status to display. */
-  readonly status: PullRequestStatus
+  readonly dispatcher: Dispatcher
+
+  /** The GitHub repository to use when looking up commit status. */
+  readonly repository: GitHubRepository
+
+  /** The commit ref (can be a SHA or a Git ref) for which to fetch status. */
+  readonly commitRef: string
+}
+
+interface ICIStatusState {
+  readonly status: IAPIRefStatus | null
 }
 
 /** The little CI status indicator. */
-export class CIStatus extends React.Component<ICIStatusProps, {}> {
+export class CIStatus extends React.PureComponent<
+  ICIStatusProps,
+  ICIStatusState
+> {
+  private statusSubscription: IDisposable | null = null
+
+  public constructor(props: ICIStatusProps) {
+    super(props)
+    this.state = {
+      status: props.dispatcher.tryGetCommitStatus(
+        this.props.repository,
+        this.props.commitRef
+      ),
+    }
+  }
+
+  private subscribe() {
+    this.unsubscribe()
+
+    this.statusSubscription = this.props.dispatcher.subscribeToCommitStatus(
+      this.props.repository,
+      this.props.commitRef,
+      this.onStatus
+    )
+  }
+
+  private unsubscribe() {
+    if (this.statusSubscription) {
+      this.statusSubscription.dispose()
+      this.statusSubscription = null
+    }
+  }
+
+  public componentDidUpdate(prevProps: ICIStatusProps) {
+    // Re-subscribe if we're being reused to show a different status.
+    if (
+      this.props.repository !== prevProps.repository ||
+      this.props.commitRef !== prevProps.commitRef
+    ) {
+      this.setState({
+        status: this.props.dispatcher.tryGetCommitStatus(
+          this.props.repository,
+          this.props.commitRef
+        ),
+      })
+      this.subscribe()
+    }
+  }
+
+  public componentDidMount() {
+    this.subscribe()
+  }
+
+  public componentWillUnmount() {
+    this.unsubscribe()
+  }
+
+  private onStatus = (status: IAPIRefStatus | null) => {
+    this.setState({ status })
+  }
+
   public render() {
-    const status = this.props.status
-    const title = getPRStatusSummary(status)
+    const { status } = this.state
+
+    if (status === null || status.total_count === 0) {
+      return null
+    }
+
+    const title = getRefStatusSummary(status)
     const state = status.state
 
     return (

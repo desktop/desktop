@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Account } from '../../models/account'
-import { API, IAPIUser } from '../../lib/api'
+import { API, IAPIOrganization } from '../../lib/api'
 import { TextBox } from '../lib/text-box'
 import { Select } from '../lib/select'
 import { DialogContent } from '../dialog'
@@ -23,7 +23,7 @@ interface IPublishRepositoryProps {
 }
 
 interface IPublishRepositoryState {
-  readonly orgs: ReadonlyArray<IAPIUser>
+  readonly orgs: ReadonlyArray<IAPIOrganization>
 }
 
 /** The Publish Repository component. */
@@ -55,7 +55,8 @@ export class PublishRepository extends React.Component<
 
   private async fetchOrgs(account: Account) {
     const api = API.fromAccount(account)
-    const orgs = (await api.fetchOrgs()) as Array<IAPIUser>
+    const apiOrgs = await api.fetchOrgs()
+    const orgs = [...apiOrgs]
     orgs.sort((a, b) => caseInsensitiveCompare(a.login, b.login))
     this.setState({ orgs })
   }

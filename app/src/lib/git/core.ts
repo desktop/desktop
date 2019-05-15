@@ -44,7 +44,7 @@ export interface IGitExecutionOptions extends DugiteExecutionOptions {
  */
 export interface IGitResult extends DugiteResult {
   /**
-   * The parsed git error. This will be null when the exit code is include in
+   * The parsed git error. This will be null when the exit code is included in
    * the `successExitCodes`, or when dugite was unable to parse the
    * error.
    */
@@ -149,16 +149,18 @@ export async function git(
   }
 
   // The caller should either handle this error, or expect that exit code.
-  const errorMessage = []
+  const errorMessage = new Array<string>()
   errorMessage.push(
     `\`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}.`
   )
 
   if (result.stdout) {
+    errorMessage.push('stdout:')
     errorMessage.push(result.stdout)
   }
 
   if (result.stderr) {
+    errorMessage.push('stderr:')
     errorMessage.push(result.stderr)
   }
 

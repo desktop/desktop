@@ -86,11 +86,20 @@ export interface IDailyMeasures {
   /** The number of times the user pushes to GitHub.com */
   readonly dotcomPushCount: number
 
+  /** The number of times the user pushes with `--force-with-lease` to GitHub.com */
+  readonly dotcomForcePushCount: number
+
   /** The number of times the user pushed to a GitHub enterprise instance */
   readonly enterprisePushCount: number
 
+  /** The number of times the user pushes with `--force-with-lease` to a GitHub Enterprise instance */
+  readonly enterpriseForcePushCount: number
+
   /** The number of times the users pushes to a generic remote */
   readonly externalPushCount: number
+
+  /** The number of times the users pushes with `--force-with-lease` to a generic remote */
+  readonly externalForcePushCount: number
 
   /** The number of times the user merged before seeing the result of the merge hint */
   readonly mergedWithLoadingHintCount: number
@@ -175,6 +184,9 @@ export interface IDailyMeasures {
    * message "Some of your changes would be overwritten"
    */
   readonly errorWhenSwitchingBranchesWithUncommmittedChanges: number
+
+  /** The number of times the user opens the "Rebase current branch" menu item */
+  readonly rebaseCurrentBranchMenuCount: number
 }
 
 export class StatsDatabase extends Dexie {

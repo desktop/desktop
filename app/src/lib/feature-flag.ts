@@ -75,3 +75,13 @@ export function enablePullWithRebase(): boolean {
 export function enableGroupRepositoriesByOwner(): boolean {
   return enableBetaFeatures()
 }
+
+/** Should the app show the "rebase current branch" dialog? */
+export function enableRebaseDialog(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should the app show the "stash changes" dialog? */
+export function enableStashing(): boolean {
+  return enableBetaFeatures()
+}

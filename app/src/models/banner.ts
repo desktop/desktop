@@ -33,6 +33,6 @@ export type Banner =
       readonly type: BannerType.RebaseConflictsFound
       /** name of the branch that was used to rebase */
       readonly targetBranch: string
-      /** popup to be shown when opening the banner */
-      readonly popup: Popup
+      /** callback to run when user clicks on link in banner text */
+      readonly onOpenDialog: () => void
     }

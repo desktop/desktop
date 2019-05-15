@@ -43,8 +43,6 @@ describe('RepositoriesStore', () => {
         url: 'https://github.com/my-user',
         login: 'my-user',
         avatar_url: 'https://github.com/my-user.png',
-        email: 'my-user@users.noreply.github.com',
-        name: 'My User',
         type: 'User',
       },
       private: true,

@@ -677,5 +677,41 @@ describe('git/commit', () => {
       expect(commit!.summary).toEqual('commit again!')
       expect(commit!.shortSha).toEqual(sha)
     })
+
+    it('file is deleted in index', async () => {
+      const repo = await setupEmptyRepository()
+      await FSE.writeFile(path.join(repo.path, 'secret'), 'contents\n')
+      await FSE.writeFile(path.join(repo.path, '.gitignore'), '')
+
+      // Setup repo to reproduce bug
+      await GitProcess.exec(['add', '.'], repo.path)
+      await GitProcess.exec(['commit', '-m', 'Initial commit'], repo.path)
+
+      // Make changes that should remain secret
+      await FSE.writeFile(path.join(repo.path, 'secret'), 'Somethign secret\n')
+
+      // Ignore it
+      await FSE.writeFile(path.join(repo.path, '.gitignore'), 'secret')
+
+      // Remove from index to mark as deleted
+      await GitProcess.exec(['rm', '--cached', 'secret'], repo.path)
+
+      // Make sure that file is marked as deleted
+      const beforeCommit = await getStatusOrThrow(repo)
+      const files = beforeCommit.workingDirectory.files
+      expect(files.length).toBe(2)
+      expect(files[1].status.kind).toBe(AppFileStatusKind.Deleted)
+
+      // Commit changes
+      await createCommit(repo!, 'FAIL commit', files)
+      const afterCommit = await getStatusOrThrow(repo)
+      expect(beforeCommit.currentTip).not.toBe(afterCommit.currentTip)
+
+      // Verify the file was delete in repo
+      const changedFiles = await getChangedFiles(repo, afterCommit.currentTip!)
+      expect(changedFiles.length).toBe(2)
+      expect(changedFiles[0].status.kind).toBe(AppFileStatusKind.Modified)
+      expect(changedFiles[1].status.kind).toBe(AppFileStatusKind.Deleted)
+    })
   })
 })

@@ -57,6 +57,23 @@ implementing features:
 | [:mag_right:][user-research]      | `user-research`      | Issues that may benefit from user interviews, validations, and/or usability testing |
 | [:mag_right:][needs-design-input] | `needs-design-input` | Issues that require design input from the core team before the work can be started |
 
+### Epics
+
+As we work on new parts of the application or refine existing workflows, we use
+epic labels, ex: `epic:rebase` to track issues and PRs that are part of a common feature focus area, or epic.
+
+This label is intended to make searching for issues related to an epic easier, and a
+project board should be used to organize and prioritize the work within an epic
+based on the upcoming release schedule.
+
+Each label should be removed from the repository when the project board is closed, so
+these labels do not become overused and add noise to the issue tracker.
+
+|                              | Label name     |  Description |
+| ---------------------------- | -------------- |  ----------- |
+| [:mag_right:][epic:rebase]   | `epic:rebase`  | Supporting rebase flows in the app |
+| [:mag_right:][epic:stashing] | `epic:stashing`| Supporting stashing uncommitted changes in the app |
+
 ### Specialized areas
 
 We use these labels to identify issues related to a specific area or the app,
@@ -101,6 +118,8 @@ time:
 [docs]: https://github.com/desktop/desktop/labels/docs
 [electron]: https://github.com/desktop/desktop/labels/electron
 [enhancement]: https://github.com/desktop/desktop/labels/enhancement
+[epic:rebase]:https://github.com/desktop/desktop/labels/epic%3Arebase
+[epic:stashing]:https://github.com/desktop/desktop/labels/epic%3Astashing
 [good first issue]: https://github.com/desktop/desktop/labels/good%20first%20issue
 [help wanted]: https://github.com/desktop/desktop/labels/help%20wanted
 [infrastructure]: https://github.com/desktop/desktop/labels/infrastructure

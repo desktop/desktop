@@ -71,7 +71,6 @@ export interface IPullRequestStatus {
 
 export class PullRequestDatabase extends BaseDatabase {
   public pullRequests!: Dexie.Table<IPullRequest, number>
-  public pullRequestStatus!: Dexie.Table<IPullRequestStatus, number>
 
   public constructor(name: string, schemaVersion?: number) {
     super(name, schemaVersion)
@@ -88,25 +87,13 @@ export class PullRequestDatabase extends BaseDatabase {
       pullRequestStatus: 'id++, &[sha+pullRequestId], pullRequestId',
     })
 
-    // we need to run the upgrade function to ensure we add
-    // a status field to all previous records
-    this.conditionalVersion(4, {}, this.addStatusesField)
-  }
+    // Version 4 added status fields to the pullRequestStatus table
+    // which we've removed in version 5 so it makes no sense keeping
+    // that upgrade path available and that's why it appears as if
+    // we've got a no-change version.
+    this.conditionalVersion(4, {})
 
-  private addStatusesField = async (transaction: Dexie.Transaction) => {
-    const table = this.pullRequestStatus
-
-    await table.toCollection().modify(async prStatus => {
-      if (prStatus.statuses == null) {
-        const newPrStatus = { statuses: [], ...prStatus }
-
-        await table
-          .where('[sha+pullRequestId]')
-          .equals([prStatus.sha, prStatus.pullRequestId])
-          .delete()
-
-        await table.add(newPrStatus)
-      }
-    })
+    // Remove the pullRequestStatus table
+    this.conditionalVersion(5, { pullRequestStatus: null })
   }
 }

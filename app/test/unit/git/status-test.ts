@@ -20,6 +20,7 @@ import {
 import * as temp from 'temp'
 import { getStatus } from '../../../src/lib/git'
 import { isConflictedFile } from '../../../src/lib/status'
+import { setupLocalConfig } from '../../helpers/local-config'
 
 const _temp = temp.track()
 const mkdir = _temp.mkdir
@@ -100,6 +101,40 @@ describe('git/status', () => {
             them: GitStatusEntry.Deleted,
           },
         })
+      })
+
+      it('parses conflicted files resulting from popping a stash', async () => {
+        const repository = await setupEmptyRepository()
+        const readme = path.join(repository.path, 'README.md')
+        await FSE.writeFile(readme, '')
+        await GitProcess.exec(['add', 'README.md'], repository.path)
+        await GitProcess.exec(
+          ['commit', '-m', 'initial commit'],
+          repository.path
+        )
+
+        // write a change to the readme into the stash
+        await FSE.appendFile(readme, Math.random()) // eslint-disable-line insecure-random
+        await GitProcess.exec(['stash'], repository.path)
+
+        // write a different change to the README and commit it
+        await FSE.appendFile(readme, Math.random()) // eslint-disable-line insecure-random
+        await GitProcess.exec(
+          ['commit', '-am', 'later commit'],
+          repository.path
+        )
+
+        // pop the stash to introduce a conflict into the index
+        await GitProcess.exec(['stash', 'pop'], repository.path)
+
+        const status = await getStatusOrThrow(repository)
+        const files = status.workingDirectory.files
+        expect(files).toHaveLength(1)
+
+        const conflictedFiles = files.filter(
+          f => f.status.kind === AppFileStatusKind.Conflicted
+        )
+        expect(conflictedFiles).toHaveLength(1)
       })
 
       it('parses resolved files', async () => {
@@ -229,10 +264,7 @@ describe('git/status', () => {
         // Git 2.18 now uses a new config value to handle detecting copies, so
         // users who have this enabled will see this. For reference, Desktop does
         // not enable this by default.
-        await GitProcess.exec(
-          ['config', '--local', 'status.renames', 'copies'],
-          repository.path
-        )
+        await setupLocalConfig(repository, [['status.renames', 'copies']])
 
         await GitProcess.exec(['add', '.'], repository.path)
 
