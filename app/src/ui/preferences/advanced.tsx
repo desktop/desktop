@@ -203,7 +203,7 @@ export class Advanced extends React.Component<
     const { selectedExternalEditor } = this.state
     const isVisualStudioCode =
       selectedExternalEditor === 'Visual Studio Code' ||
-      'Visual Studio Code (Insiders)'
+      selectedExternalEditor === 'Visual Studio Code (Insiders)'
 
     if (isVisualStudioCode) {
       return (
