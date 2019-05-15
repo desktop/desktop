@@ -1,6 +1,5 @@
 import { ipcRenderer, remote } from 'electron'
-import { pathExists } from 'fs-extra'
-import { lstatSync } from 'fs'
+import { lstat, pathExists } from 'fs-extra'
 import { escape } from 'querystring'
 import {
   AccountsStore,
@@ -4139,12 +4138,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
         match.editor === 'Visual Studio Code' ||
         match.editor === 'Visual Studio Code (Insiders)'
       const useWorkspaceFileInVSCode = this.getState().useWorkspaceFileInVSCode
+      const stats = await lstat(fullPath)
+      const isDirectory = stats.isDirectory
 
-      if (
-        isVisualStudioCode &&
-        lstatSync(fullPath).isDirectory() &&
-        useWorkspaceFileInVSCode
-      ) {
+      if (isVisualStudioCode && isDirectory && useWorkspaceFileInVSCode) {
         this._showPopup({
           type: PopupType.openRepositoryInVSCode,
           editor: match,
