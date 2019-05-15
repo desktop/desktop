@@ -281,6 +281,14 @@ export class PullRequestStore {
     // and reuse the same object without going to the database for all that
     // follow.
     const upsertRepo = mem(store.upsertGitHubRepository.bind(store), {
+      // The first argument which we're ignoring here is the endpoint
+      // which is constant throughout the lifetime of this function.
+      // The second argument is an `IAPIRepository` which is basically
+      // the raw object that we got from the API which could consist of
+      // more than just the fields we've modelled in the interface. The
+      // only thing we really care about to determine whether the
+      // repository has already been inserted in the database is the clone
+      // url since that's what the upsert method uses as its key.
       cacheKey: (_, repo) => repo.clone_url,
     })
 
