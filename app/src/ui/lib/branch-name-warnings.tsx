@@ -4,6 +4,7 @@ import { Branch, BranchType } from '../../models/branch'
 import { Row } from './row'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Ref } from './ref'
+import { IStashEntry } from '../../models/stash-entry'
 
 export function renderBranchNameWarning(
   proposedName: string,
@@ -66,6 +67,18 @@ export function renderBranchNameExistsOnRemoteWarning(
       <p>
         A branch named <Ref>{sanitizedName}</Ref> already exists on the remote.
       </p>
+    </Row>
+  )
+}
+
+export function renderStashWillBeLostWarning(stash: IStashEntry | null) {
+  if (stash === null) {
+    return null
+  }
+  return (
+    <Row className="warning-helper-text">
+      <Octicon symbol={OcticonSymbol.alert} />
+      <p>Stashed changes on this branch will be lost if it is renamed.</p>
     </Row>
   )
 }
