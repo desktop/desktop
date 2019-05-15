@@ -48,8 +48,10 @@ interface IFetchAllOptions<T> {
 
   /**
    * Whether or not to silently suppress request errors and
-   * return the results retrieved thus far. This is the default
-   * behavior. Setting this field to false will cause the
+   * return the results retrieved thus far. If this field is
+   * `true` the fetchAll method will suppress errors (this is
+   * also the default behavior if not value is provided for
+   * this field). Setting this field to false will cause the
    * fetchAll method to throw if it encounters an API error
    * on any page.
    */
