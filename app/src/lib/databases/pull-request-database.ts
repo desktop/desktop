@@ -61,11 +61,13 @@ interface IPullRequestsLastUpdated {
 }
 
 /**
- * Internal helper type, Pull Requests are keyed on
- * the ID of the GitHubRepository that they belong to _and_
- * the PR number.
+ * Pull Requests are keyed on the ID of the GitHubRepository
+ * that they belong to _and_ the PR number.
+ *
+ * Index 0 contains the GitHubRepository dbID and index 1
+ * contains the PR number.
  */
-type PullRequestKey = [number, number]
+export type PullRequestKey = [number, number]
 
 export class PullRequestDatabase extends BaseDatabase {
   public pullRequests!: Dexie.Table<IPullRequest, PullRequestKey>
@@ -135,20 +137,13 @@ export class PullRequestDatabase extends BaseDatabase {
   /**
    * Removes all the given pull requests from the database.
    */
-  public async deletePullRequests(prs: IPullRequest[]) {
+  public async deletePullRequests(keys: PullRequestKey[]) {
     // I believe this to be a bug in Dexie's type declarations.
     // It definitely supports passing an array of keys but the
     // type thinks that if it's an array it should be an array
     // of void which I believe to be a mistake. Therefore we
-    // first ensure that the array is what _we_ expect it to
-    // be (i.e. PullRequestKey[]) before typing it as any and
-    // handing it off to Dexie.
-    const ids = (prs.map(pr => [
-      pr.base.repoId,
-      pr.number,
-    ]) as PullRequestKey[]) as any
-
-    return this.pullRequests.bulkDelete(ids)
+    // type it as any and hand it off to Dexie.
+    return this.pullRequests.bulkDelete(keys as any)
   }
 
   /**
