@@ -245,10 +245,10 @@ export class Preferences extends React.Component<
             }
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
             onConfirmForcePushChanged={this.onConfirmForcePushChanged}
+            onSelectedEditorChanged={this.onSelectedEditorChanged}
             onUseWorkspaceFileInVSCodeChanged={
               this.onUseWorkspaceFileInVSCodeChanged
             }
-            onSelectedEditorChanged={this.onSelectedEditorChanged}
             availableShells={this.state.availableShells}
             selectedShell={this.state.selectedShell}
             onSelectedShellChanged={this.onSelectedShellChanged}

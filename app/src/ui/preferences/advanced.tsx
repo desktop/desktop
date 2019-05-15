@@ -25,8 +25,8 @@ interface IAdvancedPreferencesProps {
   readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
   readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
   readonly onConfirmForcePushChanged: (checked: boolean) => void
-  readonly onUseWorkspaceFileInVSCodeChanged: (checked: boolean) => void
   readonly onSelectedEditorChanged: (editor: ExternalEditor) => void
+  readonly onUseWorkspaceFileInVSCodeChanged: (checked: boolean) => void
   readonly onSelectedShellChanged: (shell: Shell) => void
 
   readonly mergeTool: IMergeTool | null
@@ -127,15 +127,6 @@ export class Advanced extends React.Component<
     this.props.onConfirmRepositoryRemovalChanged(value)
   }
 
-  private onUseWorkspaceFileInVSCodeChanged = (
-    event: React.FormEvent<HTMLInputElement>
-  ) => {
-    const value = event.currentTarget.checked
-
-    this.setState({ useWorkspaceFileInVSCode: value })
-    this.props.onUseWorkspaceFileInVSCodeChanged(value)
-  }
-
   private onSelectedEditorChanged = (
     event: React.FormEvent<HTMLSelectElement>
   ) => {
@@ -144,6 +135,15 @@ export class Advanced extends React.Component<
       this.setState({ selectedExternalEditor: value })
       this.props.onSelectedEditorChanged(value)
     }
+  }
+
+  private onUseWorkspaceFileInVSCodeChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+
+    this.setState({ useWorkspaceFileInVSCode: value })
+    this.props.onUseWorkspaceFileInVSCodeChanged(value)
   }
 
   private onSelectedShellChanged = (
