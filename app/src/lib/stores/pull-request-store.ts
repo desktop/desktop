@@ -204,10 +204,12 @@ export class PullRequestStore {
     const getRepo = mem(store.findGitHubRepositoryByID.bind(store))
 
     for (const record of records) {
-      const headRepository = record.head.repoId
-        ? await getRepo(record.head.repoId)
-        : null
+      const headRepository = await getRepo(record.head.repoId)
       const baseRepository = await getRepo(record.base.repoId)
+
+      if (headRepository === null) {
+        return fatalError("head repository can't be null")
+      }
 
       if (baseRepository === null) {
         return fatalError("base repository can't be null")
@@ -302,6 +304,7 @@ export class PullRequestStore {
             repository.fullName
           } as it has no head repository associated with it`
         )
+        // TODO ensure that it doesn't exist in the db
         continue
       }
 

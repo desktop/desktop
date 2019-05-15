@@ -8,20 +8,13 @@ export interface IPullRequestRef {
    * The database ID of the GitHub repository in which this ref lives. It could
    * be null if the repository was deleted on the site after the PR was opened.
    */
-  readonly repoId: number | null
+  readonly repoId: number
 
   /** The name of the ref. */
   readonly ref: string
 
   /** The SHA of the ref. */
   readonly sha: string
-}
-
-export interface IBasePullRequestRef extends IPullRequestRef {
-  /**
-   * The database ID of the GitHub repository in which this ref lives.
-   */
-  readonly repoId: number
 }
 
 export interface IPullRequest {
@@ -41,7 +34,7 @@ export interface IPullRequest {
   readonly head: IPullRequestRef
 
   /** The ref which the pull request is targetting. */
-  readonly base: IBasePullRequestRef
+  readonly base: IPullRequestRef
 
   /** The login of the author. */
   readonly author: string
