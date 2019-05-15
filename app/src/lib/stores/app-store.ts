@@ -4134,14 +4134,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
         return
       }
 
-      const isVisualStudioCode =
-        match.editor === 'Visual Studio Code' ||
-        match.editor === 'Visual Studio Code (Insiders)'
       const useWorkspaceFileInVSCode = this.getState().useWorkspaceFileInVSCode
       const stats = await lstat(fullPath)
       const isDirectory = stats.isDirectory
 
-      if (isVisualStudioCode && isDirectory && useWorkspaceFileInVSCode) {
+      if (useWorkspaceFileInVSCode && isDirectory) {
         this._showPopup({
           type: PopupType.openRepositoryInVSCode,
           editor: match,

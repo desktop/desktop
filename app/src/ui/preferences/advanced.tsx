@@ -91,6 +91,13 @@ export class Advanced extends React.Component<
     })
   }
 
+  private isVisualStudioCode = (editor: ExternalEditor) => {
+    const isVisualStudioCode =
+      editor === 'Visual Studio Code' ||
+      editor === 'Visual Studio Code (Insiders)'
+    return isVisualStudioCode
+  }
+
   private onReportingOptOutChanged = (
     event: React.FormEvent<HTMLInputElement>
   ) => {
@@ -134,6 +141,13 @@ export class Advanced extends React.Component<
     if (value) {
       this.setState({ selectedExternalEditor: value })
       this.props.onSelectedEditorChanged(value)
+
+      // Resets useWorkspaceFileInVSCode if selected an editor other than VSCode
+      const { useWorkspaceFileInVSCode } = this.state
+      if (useWorkspaceFileInVSCode && !this.isVisualStudioCode(value)) {
+        this.setState({ useWorkspaceFileInVSCode: false })
+        this.props.onUseWorkspaceFileInVSCodeChanged(false)
+      }
     }
   }
 
@@ -201,11 +215,11 @@ export class Advanced extends React.Component<
 
   private renderUseWorkspaceFileInVSCode() {
     const { selectedExternalEditor } = this.state
-    const isVisualStudioCode =
-      selectedExternalEditor === 'Visual Studio Code' ||
-      selectedExternalEditor === 'Visual Studio Code (Insiders)'
 
-    if (isVisualStudioCode) {
+    if (
+      selectedExternalEditor &&
+      this.isVisualStudioCode(selectedExternalEditor)
+    ) {
       return (
         <Row>
           <Checkbox
