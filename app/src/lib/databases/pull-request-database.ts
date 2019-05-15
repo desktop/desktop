@@ -101,7 +101,8 @@ export class PullRequestDatabase extends BaseDatabase {
     // in version 7 with a new primary key
     this.conditionalVersion(6, { pullRequests: null })
 
-    // new primary key
+    // new primary key and a new table dedicated to keeping track
+    // of the most recently updated PR we've seen.
     this.conditionalVersion(7, {
       pullRequests: '[base.repoId+number]',
       pullRequestsLastUpdated: 'repoId',
