@@ -1436,10 +1436,8 @@ export class GitStore extends BaseStore {
     const prRemotes = new Set<string>()
 
     for (const pr of openPRs) {
-      const prRepo = pr.head.gitHubRepository
-
-      if (prRepo !== null && prRepo.cloneURL !== null) {
-        prRemotes.add(prRepo.cloneURL)
+      if (pr.head.gitHubRepository.cloneURL !== null) {
+        prRemotes.add(pr.head.gitHubRepository.cloneURL)
       }
     }
 

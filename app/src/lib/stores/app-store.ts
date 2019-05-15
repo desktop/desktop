@@ -4834,7 +4834,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
     const head = pullRequest.head
     const isRefInThisRepo =
-      head.gitHubRepository &&
       head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
 
     if (isRefInThisRepo) {
@@ -4859,7 +4858,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         }
       }
       await this._checkoutBranch(repository, head.ref)
-    } else if (head.gitHubRepository != null) {
+    } else {
       const cloneURL = forceUnwrap(
         "This pull request's clone URL is not populated but should be",
         head.gitHubRepository.cloneURL
@@ -5189,7 +5188,6 @@ function isPullRequestAssociatedWithBranch(
 ) {
   return (
     pr.head.ref === branch.upstreamWithoutRemote &&
-    pr.head.gitHubRepository != null &&
     repositoryMatchesRemote(pr.head.gitHubRepository, remote)
   )
 }

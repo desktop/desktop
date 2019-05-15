@@ -11,7 +11,7 @@ export class PullRequestRef {
   public constructor(
     public readonly ref: string,
     public readonly sha: string,
-    public readonly gitHubRepository: GitHubRepository | null
+    public readonly gitHubRepository: GitHubRepository
   ) {}
 }
 
