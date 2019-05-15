@@ -142,7 +142,7 @@ export class Advanced extends React.Component<
       this.setState({ selectedExternalEditor: value })
       this.props.onSelectedEditorChanged(value)
 
-      // Resets useWorkspaceFileInVSCode if selected an editor other than VSCode
+      // Resets useWorkspaceFileInVSCode if selected the other editor than VSCode.
       const { useWorkspaceFileInVSCode } = this.state
       if (useWorkspaceFileInVSCode && !this.isVisualStudioCode(value)) {
         this.setState({ useWorkspaceFileInVSCode: false })
