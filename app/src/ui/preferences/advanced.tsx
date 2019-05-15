@@ -92,10 +92,10 @@ export class Advanced extends React.Component<
   }
 
   private isVisualStudioCode = (editor: ExternalEditor) => {
-    const isVisualStudioCode =
+    return (
       editor === 'Visual Studio Code' ||
       editor === 'Visual Studio Code (Insiders)'
-    return isVisualStudioCode
+    )
   }
 
   private onReportingOptOutChanged = (
