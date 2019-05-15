@@ -129,18 +129,6 @@ export class StashAndSwitchBranch extends React.Component<
   }
 
   private onSubmit = async () => {
-    this.setState({ isStashingChanges: true })
-
-    try {
-      await this.stashAndCheckout()
-    } finally {
-      this.setState({ isStashingChanges: false }, () => {
-        this.props.onDismissed()
-      })
-    }
-  }
-
-  private async stashAndCheckout() {
     const {
       repository,
       branchToCheckout,
@@ -161,17 +149,25 @@ export class StashAndSwitchBranch extends React.Component<
       return
     }
 
-    if (selectedStashAction === StashAction.StashOnCurrentBranch) {
-      await dispatcher.checkoutBranch(
-        repository,
-        branchToCheckout,
-        stashOnCurrentBranch
-      )
-    } else if (selectedStashAction === StashAction.MoveToNewBranch) {
-      // attempt to checkout the branch without creating a stash entry
-      await dispatcher.checkoutBranch(repository, branchToCheckout, {
-        kind: UncommittedChangesStrategyKind.moveToNewBranch,
-        transientStashEntry: null,
+    this.setState({ isStashingChanges: true })
+
+    try {
+      if (selectedStashAction === StashAction.StashOnCurrentBranch) {
+        await dispatcher.checkoutBranch(
+          repository,
+          branchToCheckout,
+          stashOnCurrentBranch
+        )
+      } else if (selectedStashAction === StashAction.MoveToNewBranch) {
+        // attempt to checkout the branch without creating a stash entry
+        await dispatcher.checkoutBranch(repository, branchToCheckout, {
+          kind: UncommittedChangesStrategyKind.moveToNewBranch,
+          transientStashEntry: null,
+        })
+      }
+    } finally {
+      this.setState({ isStashingChanges: false }, () => {
+        this.props.onDismissed()
       })
     }
   }
