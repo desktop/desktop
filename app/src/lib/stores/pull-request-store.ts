@@ -291,6 +291,18 @@ export class PullRequestStore {
         mostRecentlyUpdated = pr.updated_at
       }
 
+      // We know the base repo isn't null since that's where we got the PR from
+      // in the first place.
+      if (pr.base.repo === null) {
+        return fatalError('PR cannot have a null base repo')
+      }
+
+      const baseGitHubRepo = await upsertRepo(endpoint, pr.base.repo)
+
+      if (baseGitHubRepo.dbID === null) {
+        return fatalError('PR cannot have a null parent database id')
+      }
+
       // `pr.head.repo` represents the source of the pull request. It might be
       // a branch associated with the current repository, or a fork of the
       // current repository.
@@ -312,18 +324,6 @@ export class PullRequestStore {
 
       if (headRepo.dbID === null) {
         return fatalError('PR cannot have non-existent repo')
-      }
-
-      // We know the base repo isn't null since that's where we got the PR from
-      // in the first place.
-      if (pr.base.repo === null) {
-        return fatalError('PR cannot have a null base repo')
-      }
-
-      const baseGitHubRepo = await upsertRepo(endpoint, pr.base.repo)
-
-      if (baseGitHubRepo.dbID === null) {
-        return fatalError('PR cannot have a null parent database id')
       }
 
       const dbPr: IPullRequest = {
