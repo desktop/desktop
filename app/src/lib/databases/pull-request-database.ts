@@ -176,7 +176,7 @@ export class PullRequestDatabase extends BaseDatabase {
    * Retrieve all PRs for the given repository.
    *
    * Note: This method will throw if the GitHubRepository hasn't
-   * yet been inserted into the databas (i.e the dbID field is null).
+   * yet been inserted into the database (i.e the dbID field is null).
    */
   public getAllPullRequestsInRepository(repository: GitHubRepository) {
     if (repository.dbID === null) {
