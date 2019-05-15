@@ -101,10 +101,9 @@ export class PullRequestDatabase extends BaseDatabase {
     // in version 7 with a new primary key
     this.conditionalVersion(6, { pullRequests: null })
 
-    // new primary key and a new index for updatedAt
+    // new primary key
     this.conditionalVersion(7, {
-      pullRequests:
-        '[base.repoId+number], base.repoId, [base.repoId+updatedAt]',
+      pullRequests: '[base.repoId+number]',
       pullRequestsLastUpdated: 'repoId',
     })
   }
