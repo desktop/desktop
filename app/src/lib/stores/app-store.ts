@@ -2479,8 +2479,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return repository
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _refreshRepository(repository: Repository): Promise<void> {
+  private async refreshRepository(repository: Repository): Promise<void> {}
+
+  private async actuallyRefreshRepository(
+    repository: Repository
+  ): Promise<void> {
     if (repository.missing) {
       return
     }
@@ -2535,6 +2538,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.updateMenuItemLabels(latestState)
 
     this._initializeCompare(repository)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _refreshRepository(repository: Repository): Promise<void> {
+    return this.refreshRepository(repository)
   }
 
   /**
