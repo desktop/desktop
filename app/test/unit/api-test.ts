@@ -34,6 +34,16 @@ function assertNext(current: IPageInfo, expected: IPageInfo) {
 
   expect(per_page).toBe(expected.per_page)
   expect(page).toBe(expected.page)
+
+  // If getNextPagePathWithIncreasingPageSize has fiddled with the
+  // page size or page number we want to ensure that the next page will
+  // get us more items than what we've gotten thus far.
+  if (current.per_page !== per_page || current.page !== page) {
+    const receivedCurrent = current.per_page * current.page
+    const receivedNext = per_page * page
+
+    expect(receivedNext).toBeGreaterThan(receivedCurrent)
+  }
 }
 
 describe('API', () => {
