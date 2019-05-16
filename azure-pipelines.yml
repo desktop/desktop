@@ -6,7 +6,6 @@ trigger:
   branches:
     include:
       - development
-      - releases/*
 
 pr:
   autoCancel: true
