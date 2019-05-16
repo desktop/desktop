@@ -7,6 +7,7 @@
       "[Improved] Command line warns when trying to open a remote URL - #7452. Thanks @msztech!",
       "[Improved] Lowercase pronoun - #7534",
       "[Improved] Release notes component layout - #7093. Thanks @alejandronanez!",
+      "[Improved] Updates to open pull requests list - #7501",
       "[Removed] Branch and pull request filter text persistence - #7437"
     ],
     "1.7.0-beta7": [
