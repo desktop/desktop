@@ -1,12 +1,32 @@
 import { Emitter, Disposable } from 'event-kit'
 
+/**
+ * A generic promise cache for use where the application is running an action
+ * that can take a long time to complete. This should be used when
+ */
 export class PromiseCache<TInput, TResult> {
   private readonly cache = new Map<string, Promise<TResult>>()
   private readonly emitter = new Emitter()
 
   public constructor(
+    /**
+     * A unique identifier for the cache to help with development-time tracing
+     */
     private readonly kind: string,
+    /**
+     * A function to compute the key of the input object, which is then used to
+     * lookup a cached promise. This key should be stable and predictable to
+     * ensure only one promise is alive per input object.
+     */
     private readonly getKey: (input: TInput) => string,
+    /**
+     * The function to create the new promise, which will be wrapped and managed
+     * by the cache.
+     *
+     * Errors are not swallowed by the cache, so ensure the caller has wrapped
+     * the function being used here in its own error handling, to ensure it
+     * does not propagate into the app itself.
+     */
     private readonly create: (input: TInput) => Promise<TResult>
   ) {}
 
