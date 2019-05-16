@@ -14,7 +14,7 @@ import {
 } from '../../models/branch'
 import { Tip, TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
-import { IRemote } from '../../models/remote'
+import { IRemote, ForkedRemotePrefix } from '../../models/remote'
 import { IFetchProgress, IRevertProgress } from '../../models/progress'
 import {
   ICommitMessage,
@@ -63,6 +63,7 @@ import {
   revSymmetricDifference,
   getSymbolicRef,
   getConfigValue,
+  removeRemote,
 } from '../git'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import { UpstreamAlreadyExistsError } from './upstream-already-exists-error'
@@ -80,6 +81,7 @@ import { BaseStore } from './base-store'
 import { enablePullWithRebase, enableStashing } from '../feature-flag'
 import { getDesktopStashEntries, getStashedFiles } from '../git/stash'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
+import { PullRequest } from '../../models/pull-request'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -1426,6 +1428,23 @@ export class GitStore extends BaseStore {
       commits,
       ahead: aheadBehind.ahead,
       behind: aheadBehind.behind,
+    }
+  }
+
+  public async pruneForkedRemotes(openPRs: ReadonlyArray<PullRequest>) {
+    const remotes = await getRemotes(this.repository)
+    const prRemotes = new Set<string>()
+
+    for (const pr of openPRs) {
+      if (pr.head.gitHubRepository.cloneURL !== null) {
+        prRemotes.add(pr.head.gitHubRepository.cloneURL)
+      }
+    }
+
+    for (const r of remotes) {
+      if (r.name.startsWith(ForkedRemotePrefix) && !prRemotes.has(r.url)) {
+        await removeRemote(this.repository, r.name)
+      }
     }
   }
 }
