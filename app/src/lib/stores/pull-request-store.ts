@@ -1,6 +1,11 @@
 import mem from 'mem'
 
-import { PullRequestDatabase, IPullRequest, PullRequestKey } from '../databases'
+import {
+  PullRequestDatabase,
+  IPullRequest,
+  PullRequestKey,
+  getPullRequestKey,
+} from '../databases/pull-request-database'
 import { GitHubRepository } from '../../models/github-repository'
 import { Account } from '../../models/account'
 import { API, IAPIPullRequest, MaxResultsError } from '../api'
@@ -306,7 +311,7 @@ export class PullRequestStore {
       }
 
       if (pr.state === 'closed') {
-        prsToDelete.push(this.db.getPullRequestKey(baseGitHubRepo, pr.number))
+        prsToDelete.push(getPullRequestKey(baseGitHubRepo, pr.number))
         continue
       }
 
@@ -323,7 +328,7 @@ export class PullRequestStore {
             repository.fullName
           } as it has no head repository associated with it`
         )
-        prsToDelete.push(this.db.getPullRequestKey(baseGitHubRepo, pr.number))
+        prsToDelete.push(getPullRequestKey(baseGitHubRepo, pr.number))
         continue
       }
 
