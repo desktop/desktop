@@ -352,7 +352,7 @@ function getNextPagePathFromLink(response: Response): string | null {
  * that obviously took 32 requests. With this new regime it
  * would take 7.
  */
-function getNextPagePathWithIncreasingPageSize(response: Response) {
+export function getNextPagePathWithIncreasingPageSize(response: Response) {
   const nextPath = getNextPagePathFromLink(response)
 
   if (!nextPath) {
