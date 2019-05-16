@@ -155,21 +155,21 @@ export class PullRequestDatabase extends BaseDatabase {
   /**
    * Removes all the given pull requests from the database.
    */
-  public deletePullRequests(keys: PullRequestKey[]) {
+  public async deletePullRequests(keys: PullRequestKey[]) {
     // I believe this to be a bug in Dexie's type declarations.
     // It definitely supports passing an array of keys but the
     // type thinks that if it's an array it should be an array
     // of void which I believe to be a mistake. Therefore we
     // type it as any and hand it off to Dexie.
-    return this.pullRequests.bulkDelete(keys as any)
+    await this.pullRequests.bulkDelete(keys as any)
   }
 
   /**
    * Inserts the given pull requests, overwriting any existing records
    * in the process.
    */
-  public putPullRequests(prs: IPullRequest[]) {
-    return this.pullRequests.bulkPut(prs)
+  public async putPullRequests(prs: IPullRequest[]) {
+    await this.pullRequests.bulkPut(prs)
   }
 
   /**
@@ -224,14 +224,14 @@ export class PullRequestDatabase extends BaseDatabase {
    * Clears the stored date for the most recently updated PR seen for
    * a given repository.
    */
-  public clearLastUpdated(repository: GitHubRepository) {
+  public async clearLastUpdated(repository: GitHubRepository) {
     if (repository.dbID === null) {
       return fatalError(
         "Can't clear last updated PR for repository with a null dbID"
       )
     }
 
-    return this.pullRequestsLastUpdated.delete(repository.dbID)
+    await this.pullRequestsLastUpdated.delete(repository.dbID)
   }
 
   /**
