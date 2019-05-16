@@ -185,11 +185,7 @@ describe('AppStore', () => {
       let repo: Repository
 
       beforeEach(async () => {
-        const { path } = await setupConflictedRepoWithMultipleFiles()
-        const repositories = await appStore._addRepositories([path])
-        repo = repositories[0]
-
-        await appStore._selectRepository(repo)
+        repo = await setupConflictedRepoWithMultipleFiles()
       })
 
       it('commits tracked files', async () => {
