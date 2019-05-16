@@ -176,12 +176,15 @@ describe('AppStore', () => {
     })
   })
   describe('_finishConflictedMerge', () => {
+    let appStore: AppStore
+    beforeEach(async () => {
+      appStore = await createAppStore()
+    })
+
     describe('with tracked and untracked files', () => {
-      let appStore: AppStore, repo: Repository, status: IStatusResult
+      let repo: Repository, status: IStatusResult
 
       beforeEach(async () => {
-        appStore = await createAppStore()
-
         const { path } = await setupConflictedRepoWithMultipleFiles()
         const repositories = await appStore._addRepositories([path])
         repo = repositories[0]
@@ -217,11 +220,9 @@ describe('AppStore', () => {
     })
 
     describe('with unrelated changes that are uncommitted', () => {
-      let appStore: AppStore, repo: Repository, status: IStatusResult
+      let repo: Repository, status: IStatusResult
 
       beforeEach(async () => {
-        appStore = await createAppStore()
-
         const { path } = await setupConflictedRepoWithUnrelatedCommittedChange()
         const repositories = await appStore._addRepositories([path])
         repo = repositories[0]
