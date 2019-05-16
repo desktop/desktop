@@ -1,9 +1,39 @@
 import { getNextPagePathWithIncreasingPageSize } from '../../src/lib/api'
+import * as URL from 'url'
+
+interface IPageInfo {
+  per_page: number
+  page: number
+}
 
 function createHeadersWithNextLink(url: string) {
   return new Headers({
     Link: `<${url}>; rel="next"`,
   })
+}
+
+function assertNext(current: IPageInfo, expected: IPageInfo) {
+  const headers = createHeadersWithNextLink(
+    `/items?per_page=${current.per_page}&page=${current.page}`
+  )
+
+  const nextPath = getNextPagePathWithIncreasingPageSize(
+    new Response(null, { headers })
+  )
+
+  expect(nextPath).not.toBeNull()
+  const { pathname, query } = URL.parse(nextPath!, true)
+
+  expect(pathname).toBe('/items')
+
+  const per_page = parseInt(
+    typeof query.per_page === 'string' ? query.per_page : '',
+    10
+  )
+  const page = parseInt(typeof query.page === 'string' ? query.page : '', 10)
+
+  expect(per_page).toBe(expected.per_page)
+  expect(page).toBe(expected.page)
 }
 
 describe('API', () => {
@@ -40,6 +70,19 @@ describe('API', () => {
       )
 
       expect(nextPath).toEqual('/items?per_page=10&page=2')
+    })
+
+    it('increases page size on alignment with an initial page size of 10', () => {
+      assertNext({ per_page: 10, page: 2 }, { per_page: 10, page: 2 })
+      assertNext({ per_page: 10, page: 3 }, { per_page: 20, page: 2 })
+      assertNext({ per_page: 20, page: 2 }, { per_page: 20, page: 2 })
+      assertNext({ per_page: 20, page: 3 }, { per_page: 40, page: 2 })
+      assertNext({ per_page: 40, page: 2 }, { per_page: 40, page: 2 })
+      assertNext({ per_page: 40, page: 3 }, { per_page: 80, page: 2 })
+      assertNext({ per_page: 80, page: 3 }, { per_page: 80, page: 3 })
+      assertNext({ per_page: 80, page: 4 }, { per_page: 80, page: 4 })
+      assertNext({ per_page: 80, page: 5 }, { per_page: 80, page: 5 })
+      assertNext({ per_page: 80, page: 6 }, { per_page: 100, page: 5 })
     })
   })
 })
