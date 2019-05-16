@@ -18,6 +18,14 @@ export class PromiseCache<TInput, TResult> {
     this.emitter.emit('promise-created', input)
   }
 
+  public onPromiseCompleted(fn: (input: TInput) => void): Disposable {
+    return this.emitter.on('promise-completed', fn)
+  }
+
+  private promiseDidComplete(input: TInput) {
+    this.emitter.emit('promise-completed', input)
+  }
+
   public get(input: TInput): Promise<TResult> {
     const key = this.getKey(input)
     const existing = this.cache.get(key)
@@ -31,6 +39,7 @@ export class PromiseCache<TInput, TResult> {
       log.debug(
         `[PromiseCache] removing completed promise for cache for ${this.kind}`
       )
+      this.promiseDidComplete(input)
       this.cache.delete(key)
     }
 
