@@ -2535,7 +2535,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     // this promise is fire-and-forget, so no need to await it
     this.updateStashEntryCountMetric(repository)
-    this._updateCurrentPullRequest(repository)
+    this.updateCurrentPullRequest(repository)
 
     const latestState = this.repositoryStateCache.get(repository)
     this.updateMenuItemLabels(latestState)
