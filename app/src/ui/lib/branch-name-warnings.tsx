@@ -78,7 +78,7 @@ export function renderStashWillBeLostWarning(stash: IStashEntry | null) {
   return (
     <Row className="warning-helper-text">
       <Octicon symbol={OcticonSymbol.alert} />
-      <p>Stashed changes on this branch will be lost if it is renamed.</p>
+      <p>Your current stashed changes on this branch will no longer be visible in GitHub Desktop if the branch is renamed.</p>
     </Row>
   )
 }
