@@ -37,6 +37,25 @@ interface IFetchAllOptions<T> {
    * @param results  All results retrieved thus far
    */
   continue?: (results: ReadonlyArray<T>) => boolean
+
+  /**
+   * Calculate the next page path given the response.
+   *
+   * Optional, see `getNextPagePathFromLink` for the default
+   * implementation.
+   */
+  getNextPagePath?: (response: Response) => string | null
+
+  /**
+   * Whether or not to silently suppress request errors and
+   * return the results retrieved thus far. If this field is
+   * `true` the fetchAll method will suppress errors (this is
+   * also the default behavior if no value is provided for
+   * this field). Setting this field to false will cause the
+   * fetchAll method to throw if it encounters an API error
+   * on any page.
+   */
+  suppressErrors?: boolean
 }
 
 const username: () => Promise<string> = require('username')
@@ -155,6 +174,12 @@ export interface IAPIMentionableUser {
 }
 
 /**
+ * Error thrown by `fetchUpdatedPullRequests` when receiving more results than
+ * what the `maxResults` parameter allows for.
+ */
+export class MaxResultsError extends Error {}
+
+/**
  * `null` can be returned by the API for legacy reasons. A non-null value is
  * set for the primary email address currently, but in the future visibility
  * may be defined for each email address.
@@ -217,9 +242,11 @@ export interface IAPIPullRequest {
   readonly number: number
   readonly title: string
   readonly created_at: string
+  readonly updated_at: string
   readonly user: IAPIIdentity
   readonly head: IAPIPullRequestRef
   readonly base: IAPIPullRequestRef
+  readonly state: 'open' | 'closed'
 }
 
 /** The metadata about a GitHub server. */
@@ -260,7 +287,7 @@ interface ISearchResults<T> {
  *
  * If no link rel next header is found this method returns null.
  */
-function getNextPagePath(response: Response): string | null {
+function getNextPagePathFromLink(response: Response): string | null {
   const linkHeader = response.headers.get('Link')
 
   if (!linkHeader) {
@@ -278,6 +305,91 @@ function getNextPagePath(response: Response): string | null {
   }
 
   return null
+}
+
+/**
+ * Parses the 'next' Link header from GitHub using
+ * `getNextPagePathFromLink`. Unlike `getNextPagePathFromLink`
+ * this method will attempt to double the page size when
+ * the current page index and the page size allows for it
+ * leading to a ramp up in page size.
+ *
+ * This might sound confusing, and it is, but the primary use
+ * case for this is when retrieving updated PRs. By specifying
+ * an initial page size of, for example, 10 this method will
+ * increase the page size to 20 once the second page has been
+ * loaded. See the table below for an example. The ramp-up
+ * will stop at a page size of 100 since that's the maximum
+ * that the GitHub API supports.
+ *
+ * ```
+ * |-----------|------|-----------|-----------------|
+ * | Request # | Page | Page size | Retrieved items |
+ * |-----------|------|-----------|-----------------|
+ * | 1         | 1    | 10        | 10              |
+ * | 2         | 2    | 10        | 20              |
+ * | 3         | 2    | 20        | 40              |
+ * | 4         | 2    | 40        | 80              |
+ * | 5         | 2    | 80        | 160             |
+ * | 6         | 3    | 80        | 240             |
+ * | 7         | 4    | 80        | 320             |
+ * | 8         | 5    | 80        | 400             |
+ * | 9         | 5    | 100       | 500             |
+ * |-----------|------|-----------|-----------------|
+ * ```
+ * This algorithm means we can have the best of both worlds.
+ * If there's a small number of changed pull requests since
+ * our last update we'll do small requests that use minimal
+ * bandwidth but if we encounter a repository where a lot
+ * of PRs have changed since our last fetch (like a very
+ * active repository or one we haven't fetched in a long time)
+ * we'll spool up our page size in just a few requests and load
+ * in bulk.
+ *
+ * As an example I used a very active internal repository and
+ * asked for all PRs updated in the last 24 hours which was 320.
+ * With the previous regime of fetching with a page size of 10
+ * that obviously took 32 requests. With this new regime it
+ * would take 7.
+ */
+export function getNextPagePathWithIncreasingPageSize(response: Response) {
+  const nextPath = getNextPagePathFromLink(response)
+
+  if (!nextPath) {
+    return null
+  }
+
+  const { pathname, query } = URL.parse(nextPath, true)
+  const { per_page, page } = query
+
+  const pageSize = typeof per_page === 'string' ? parseInt(per_page, 10) : NaN
+  const pageNumber = typeof page === 'string' ? parseInt(page, 10) : NaN
+
+  if (!pageSize || !pageNumber) {
+    return nextPath
+  }
+
+  // Confusing, but we're looking at the _next_ page path here
+  // so the current is whatever came before it.
+  const currentPage = pageNumber - 1
+
+  // Number of received items thus far
+  const received = currentPage * pageSize
+
+  // Can't go above 100, that's the max the API will allow.
+  const nextPageSize = Math.min(100, pageSize * 2)
+
+  // Have we received exactly the amount of items
+  // such that doubling the page size and loading the
+  // second page would seamlessly fit? No sense going
+  // above 100 since that's the max the API supports
+  if (pageSize !== nextPageSize && received % nextPageSize === 0) {
+    query.per_page = `${nextPageSize}`
+    query.page = `${received / nextPageSize + 1}`
+    return URL.format({ pathname, query })
+  }
+
+  return nextPath
 }
 
 /**
@@ -486,18 +598,84 @@ export class API {
     }
   }
 
-  /** Fetch the pull requests in the given repository. */
-  public async fetchPullRequests(
+  /** Fetch all open pull requests in the given repository. */
+  public async fetchAllOpenPullRequests(owner: string, name: string) {
+    const url = urlWithQueryString(`repos/${owner}/${name}/pulls`, {
+      state: 'open',
+    })
+    try {
+      return await this.fetchAll<IAPIPullRequest>(url)
+    } catch (e) {
+      log.warn(`failed fetching open PRs for repository ${owner}/${name}`, e)
+      throw e
+    }
+  }
+
+  /**
+   * Fetch all pull requests in the given repository that have been
+   * updated on or after the provided date.
+   *
+   * Note: The GitHub API doesn't support providing a last-updated
+   * limitation for PRs like it does for issues so we're emulating
+   * the issues API by sorting PRs descending by last updated and
+   * only grab as many pages as we need to until we no longer receive
+   * PRs that have been update more recently than the `since`
+   * parameter.
+   *
+   * If there's more than `maxResults` updated PRs since the last time
+   * we fetched this method will throw an error such that we can abort
+   * this strategy and commence loading all open PRs instead.
+   */
+  public async fetchUpdatedPullRequests(
     owner: string,
     name: string,
-    state: 'open' | 'closed' | 'all'
-  ): Promise<ReadonlyArray<IAPIPullRequest>> {
-    const url = urlWithQueryString(`repos/${owner}/${name}/pulls`, { state })
+    since: Date,
+    // 320 is chosen because with a ramp-up page size starting with
+    // a page size of 10 we'll reach 320 in exactly 7 pages. See
+    // getNextPagePathWithIncreasingPageSize
+    maxResults = 320
+  ) {
+    const sinceTime = since.getTime()
+    const url = urlWithQueryString(`repos/${owner}/${name}/pulls`, {
+      state: 'all',
+      sort: 'updated',
+      direction: 'desc',
+    })
+
     try {
-      const prs = await this.fetchAll<IAPIPullRequest>(url)
-      return prs
+      const prs = await this.fetchAll<IAPIPullRequest>(url, {
+        // We use a page size smaller than our default 100 here because we
+        // expect that the majority use case will return much less than
+        // 100 results. Given that as long as _any_ PR has changed we'll
+        // get the full list back (PRs doesn't support ?since=) we want
+        // to keep this number fairly conservative in order to not use
+        // up bandwidth needlessly while balancing it such that we don't
+        // have to use a lot of requests to update our database. We then
+        // ramp up the page size (see getNextPagePathWithIncreasingPageSize)
+        // if it turns out there's a lot of updated PRs.
+        perPage: 10,
+        getNextPagePath: getNextPagePathWithIncreasingPageSize,
+        continue(results) {
+          if (results.length >= maxResults) {
+            throw new MaxResultsError('got max pull requests, aborting')
+          }
+
+          // Given that we sort the results in descending order by their
+          // updated_at field we can safely say that if the last item
+          // is modified after our sinceTime then haven't reached the
+          // end of updated PRs.
+          const last = results[results.length - 1]
+          return last !== undefined && Date.parse(last.updated_at) > sinceTime
+        },
+        // We can't ignore errors here as that might mean that we haven't
+        // retrieved enough pages to fully capture the changes since the
+        // last time we updated. Ignoring errors here would mean that we'd
+        // store an incorrect lastUpdated field in the database.
+        suppressErrors: false,
+      })
+      return prs.filter(pr => Date.parse(pr.updated_at) >= sinceTime)
     } catch (e) {
-      log.warn(`fetchPullRequests: failed for repository ${owner}/${name}`, e)
+      log.warn(`failed fetching updated PRs for repository ${owner}/${name}`, e)
       throw e
     }
   }
@@ -532,8 +710,8 @@ export class API {
 
     let nextPath: string | null = urlWithQueryString(path, params)
     do {
-      const response = await this.request('GET', nextPath)
-      if (!response.ok) {
+      const response: Response = await this.request('GET', nextPath)
+      if (opts.suppressErrors !== false && !response.ok) {
         log.warn(`fetchAll: '${path}' returned a ${response.status}`)
         return buf
       }
@@ -543,7 +721,9 @@ export class API {
         buf.push(...items)
       }
 
-      nextPath = getNextPagePath(response)
+      nextPath = opts.getNextPagePath
+        ? opts.getNextPagePath(response)
+        : getNextPagePathFromLink(response)
     } while (nextPath && (!opts.continue || opts.continue(buf)))
 
     return buf
