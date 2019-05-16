@@ -1,11 +1,22 @@
+import { Emitter, Disposable } from 'event-kit'
+
 export class PromiseCache<TInput, TResult> {
   private readonly cache = new Map<string, Promise<TResult>>()
+  private readonly emitter = new Emitter()
 
   public constructor(
     private readonly kind: string,
     private readonly getKey: (input: TInput) => string,
     private readonly create: (input: TInput) => Promise<TResult>
   ) {}
+
+  public onPromiseCreated(fn: (input: TInput) => void): Disposable {
+    return this.emitter.on('promise-created', fn)
+  }
+
+  private promiseWasCreated(input: TInput) {
+    this.emitter.emit('promise-created', input)
+  }
 
   public get(input: TInput): Promise<TResult> {
     const key = this.getKey(input)
@@ -35,6 +46,8 @@ export class PromiseCache<TInput, TResult> {
         return Promise.reject(error)
       }
     )
+
+    this.promiseWasCreated(input)
 
     this.cache.set(key, wrappedPromise)
     return wrappedPromise
