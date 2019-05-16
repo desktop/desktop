@@ -208,7 +208,7 @@ export class PullRequestDatabase extends BaseDatabase {
    */
   public async clearLastUpdated(repository: GitHubRepository) {
     if (repository.dbID === null) {
-      return fatalError(
+      throw new Error(
         "Can't clear last updated PR for repository with a null dbID"
       )
     }
