@@ -334,7 +334,7 @@ function getNextPagePathFromLink(response: Response): string | null {
  * | 6         | 3    | 80        | 240             |
  * | 7         | 4    | 80        | 320             |
  * | 8         | 5    | 80        | 400             |
- * | 9         | 2    | 100       | 500             |
+ * | 9         | 5    | 100       | 500             |
  * |-----------|------|-----------|-----------------|
  * ```
  * This algorithm means we can have the best of both worlds.
@@ -385,7 +385,7 @@ export function getNextPagePathWithIncreasingPageSize(response: Response) {
   // above 100 since that's the max the API supports
   if (pageSize !== nextPageSize && received % nextPageSize === 0) {
     query.per_page = `${nextPageSize}`
-    query.page = '2'
+    query.page = `${received / nextPageSize + 1}`
     return URL.format({ pathname, query })
   }
 
