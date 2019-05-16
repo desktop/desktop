@@ -121,17 +121,11 @@ export class PullRequestStore {
     }
   }
 
-  private getNameWithOwner(repository: GitHubRepository) {
-    const owner = repository.owner.login
-    const name = repository.name
-    return { name, owner }
-  }
-
   private async fetchAndStoreOpenPullRequests(
     api: API,
     repository: GitHubRepository
   ) {
-    const { name, owner } = this.getNameWithOwner(repository)
+    const { name, owner } = getNameWithOwner(repository)
     const open = await api.fetchAllOpenPullRequests(owner, name)
     await this.storePullRequestsAndEmitUpdate(open, repository)
   }
@@ -141,7 +135,7 @@ export class PullRequestStore {
     repository: GitHubRepository,
     lastUpdatedAt: Date
   ) {
-    const { name, owner } = this.getNameWithOwner(repository)
+    const { name, owner } = getNameWithOwner(repository)
     const updated = await api
       .fetchUpdatedPullRequests(owner, name, lastUpdatedAt)
       .catch(e =>
@@ -386,4 +380,10 @@ export class PullRequestStore {
 
     return true
   }
+}
+
+function getNameWithOwner(repository: GitHubRepository) {
+  const owner = repository.owner.login
+  const name = repository.name
+  return { name, owner }
 }
