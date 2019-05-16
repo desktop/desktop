@@ -90,6 +90,20 @@ describe('API', () => {
       assertNext({ per_page: 5, page: 3 }, { per_page: 10, page: 2 })
     })
 
+    it('increases page size on alignment with an initial page size of 1', () => {
+      assertNext({ per_page: 1, page: 2 }, { per_page: 1, page: 2 })
+      assertNext({ per_page: 1, page: 3 }, { per_page: 2, page: 2 })
+      assertNext({ per_page: 2, page: 3 }, { per_page: 4, page: 2 })
+      assertNext({ per_page: 4, page: 2 }, { per_page: 4, page: 2 })
+      assertNext({ per_page: 4, page: 3 }, { per_page: 8, page: 2 })
+      assertNext({ per_page: 8, page: 2 }, { per_page: 8, page: 2 })
+      assertNext({ per_page: 8, page: 3 }, { per_page: 16, page: 2 })
+      assertNext({ per_page: 16, page: 2 }, { per_page: 16, page: 2 })
+      assertNext({ per_page: 16, page: 3 }, { per_page: 32, page: 2 })
+      assertNext({ per_page: 32, page: 2 }, { per_page: 32, page: 2 })
+      assertNext({ per_page: 32, page: 3 }, { per_page: 64, page: 2 })
+    })
+
     it("doesn't increase page size when page size is 100", () => {
       assertNext({ per_page: 100, page: 2 }, { per_page: 100, page: 2 })
       assertNext({ per_page: 100, page: 3 }, { per_page: 100, page: 3 })
