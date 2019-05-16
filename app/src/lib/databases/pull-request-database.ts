@@ -155,7 +155,7 @@ export class PullRequestDatabase extends BaseDatabase {
   /**
    * Removes all the given pull requests from the database.
    */
-  public async deletePullRequests(keys: PullRequestKey[]) {
+  public deletePullRequests(keys: PullRequestKey[]) {
     // I believe this to be a bug in Dexie's type declarations.
     // It definitely supports passing an array of keys but the
     // type thinks that if it's an array it should be an array
