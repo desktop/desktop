@@ -1,5 +1,14 @@
 {
   "releases": {
+    "1.7.0-beta8": [
+      "[Added] Accelerator and access key to \"Exit\" menu item - #6507. Thanks @AndreiMaga!",
+      "[Fixed] Pressing \"Shift\" + \"Alt\" in Commit summary moves input-focus to app menu - #6366. Thanks @AndreiMaga!",
+      "[Fixed] Incorrectly encoding URLs affects issue filtering - #7506",
+      "[Improved] Command line interface warns with helpful message when given a remote URL - #7452. Thanks @msztech!",
+      "[Improved] Lowercase pronoun in \"Revert this commit\" menu item - #7534",
+      "[Improved] \"Pull Requests\" list reflects pull requests from GitHub more quickly - #7501",
+      "[Removed] Branch and pull request filter text persistence - #7437"
+    ],
     "1.7.0-beta7": [
       "[Improved] Error message when unable to publish private repository to an organization - #7472",
       "[Improved] \"Stashed changes\" button accessibility improvements - #7274",
