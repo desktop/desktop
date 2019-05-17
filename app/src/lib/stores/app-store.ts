@@ -2824,6 +2824,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
+    let transientStashCreated = false
     if (enableStashing() && currentBranch !== null) {
       if (
         uncommittedChangesStrategy.kind ===
@@ -2833,18 +2834,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
           repository,
           currentBranch.name
         )
+      } else if (
+        uncommittedChangesStrategy.kind ===
+        UncommittedChangesStrategyKind.moveToNewBranch
+      ) {
+        const hasDeletedFiles = changesState.workingDirectory.files.some(
+          file => file.status.kind === AppFileStatusKind.Deleted
+        )
+        if (hasDeletedFiles) {
+          await gitStore.performFailableOperation(() => {
+            return createDesktopStashEntry(repository, foundBranch.name)
+          })
+          transientStashCreated = true
+        }
       }
-    }
-
-    const hasDeletedFiles = changesState.workingDirectory.files.some(
-      file => file.status.kind === AppFileStatusKind.Deleted
-    )
-    let transientStashCreated = false
-    if (hasDeletedFiles) {
-      await gitStore.performFailableOperation(() => {
-        return createDesktopStashEntry(repository, foundBranch.name)
-      })
-      transientStashCreated = true
     }
 
     await this.withAuthenticatingUser(repository, (repository, account) =>
@@ -2876,18 +2879,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
           return popStashEntry(repository, transientStashEntry.stashSha)
         })
       }
-    }
 
-    if (transientStashCreated) {
-      const transientStashEntry = await getLastDesktopStashEntryForBranch(
-        repository,
-        foundBranch.name
-      )
+      if (transientStashCreated) {
+        const transientStashEntry = await getLastDesktopStashEntryForBranch(
+          repository,
+          foundBranch.name
+        )
 
-      if (transientStashEntry !== null) {
-        await gitStore.performFailableOperation(() => {
-          return popStashEntry(repository, transientStashEntry.stashSha)
-        })
+        if (transientStashEntry !== null) {
+          await gitStore.performFailableOperation(() => {
+            return popStashEntry(repository, transientStashEntry.stashSha)
+          })
+        }
       }
     }
 
