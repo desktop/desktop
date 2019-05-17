@@ -47,7 +47,7 @@ import { ManualConflictResolutionKind } from '../../src/models/manual-conflict-r
 jest.mock('../../src/lib/window-state')
 
 describe('AppStore', () => {
-  async function createAppStore(): Promise<AppStore> {
+  async function createAppStore() {
     const db = new TestGitHubUserDatabase()
     await db.reset()
 
@@ -79,7 +79,7 @@ describe('AppStore', () => {
 
     const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 
-    return new AppStore(
+    const appStore = new AppStore(
       githubUserStore,
       new CloningRepositoriesStore(),
       new IssuesStore(issuesDb),
@@ -91,14 +91,18 @@ describe('AppStore', () => {
       repositoryStateManager,
       apiRepositoriesStore
     )
+
+    return { appStore, repositoriesStore }
   }
 
   it('can select a repository', async () => {
-    const appStore = await createAppStore()
+    const { appStore, repositoriesStore } = await createAppStore()
 
     const { path } = await setupEmptyRepository()
     const repositories = await appStore._addRepositories([path])
     const repo = repositories[0]
+
+    await repositoriesStore.updateLastStashCheckDate(repo)
 
     await appStore._selectRepository(repo)
 
@@ -157,7 +161,7 @@ describe('AppStore', () => {
     it.skip('clears the undo commit dialog', async () => {
       const repository = repo!
 
-      const appStore = await createAppStore()
+      const { appStore } = await createAppStore()
 
       // select the repository and show the changes view
       await appStore._selectRepository(repository)
@@ -177,14 +181,21 @@ describe('AppStore', () => {
   })
   describe('_finishConflictedMerge', () => {
     let appStore: AppStore
+    let repositoriesStore: RepositoriesStore
+
     beforeEach(async () => {
-      appStore = await createAppStore()
+      const result = await createAppStore()
+      appStore = result.appStore
+      repositoriesStore = result.repositoriesStore
     })
 
     describe('with tracked and untracked files', () => {
       it('commits tracked files', async () => {
         let repo = await setupConflictedRepoWithMultipleFiles()
         repo = (await appStore._addRepositories([repo.path]))[0]
+
+        await repositoriesStore.updateLastStashCheckDate(repo)
+
         const status = await getStatusOrThrow(repo)
 
         await appStore._finishConflictedMerge(
@@ -201,6 +212,9 @@ describe('AppStore', () => {
       it('leaves untracked files untracked', async () => {
         let repo = await setupConflictedRepoWithMultipleFiles()
         repo = (await appStore._addRepositories([repo.path]))[0]
+
+        await repositoriesStore.updateLastStashCheckDate(repo)
+
         const status = await getStatusOrThrow(repo)
         await appStore._finishConflictedMerge(
           repo,
@@ -221,6 +235,7 @@ describe('AppStore', () => {
       beforeEach(async () => {
         repo = await setupConflictedRepoWithUnrelatedCommittedChange()
         repo = (await appStore._addRepositories([repo.path]))[0]
+        await repositoriesStore.updateLastStashCheckDate(repo)
         status = await getStatusOrThrow(repo)
       })
       it("doesn't commit unrelated changes", async () => {
