@@ -6,12 +6,9 @@ trigger:
   branches:
     include:
       - development
-      - releases/*
 
 pr:
   autoCancel: true
-  branches:
-    include: '*'
 
 jobs:
   - job: Windows
