@@ -12,7 +12,7 @@ pr:
   autoCancel: true
   branches:
     include:
-    - '*'
+      - '*'
 
 jobs:
   - job: Windows
