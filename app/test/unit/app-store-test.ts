@@ -182,18 +182,11 @@ describe('AppStore', () => {
     })
 
     describe('with tracked and untracked files', () => {
-      let repo: Repository, status: IStatusResult
-
-      beforeEach(async () => {
-        const { path } = await setupConflictedRepoWithMultipleFiles()
-        const repositories = await appStore._addRepositories([path])
-        repo = repositories[0]
-
-        await appStore._selectRepository(repo)
-        status = await getStatusOrThrow(repo)
-      })
-
       it('commits tracked files', async () => {
+        let repo = await setupConflictedRepoWithMultipleFiles()
+        repo = (await appStore._addRepositories([repo.path]))[0]
+        const status = await getStatusOrThrow(repo)
+
         await appStore._finishConflictedMerge(
           repo,
           status.workingDirectory,
@@ -206,6 +199,9 @@ describe('AppStore', () => {
         expect(trackedFiles).toHaveLength(0)
       })
       it('leaves untracked files untracked', async () => {
+        let repo = await setupConflictedRepoWithMultipleFiles()
+        repo = (await appStore._addRepositories([repo.path]))[0]
+        const status = await getStatusOrThrow(repo)
         await appStore._finishConflictedMerge(
           repo,
           status.workingDirectory,
@@ -223,11 +219,8 @@ describe('AppStore', () => {
       let repo: Repository, status: IStatusResult
 
       beforeEach(async () => {
-        const { path } = await setupConflictedRepoWithUnrelatedCommittedChange()
-        const repositories = await appStore._addRepositories([path])
-        repo = repositories[0]
-
-        await appStore._selectRepository(repo)
+        repo = await setupConflictedRepoWithUnrelatedCommittedChange()
+        repo = (await appStore._addRepositories([repo.path]))[0]
         status = await getStatusOrThrow(repo)
       })
       it("doesn't commit unrelated changes", async () => {

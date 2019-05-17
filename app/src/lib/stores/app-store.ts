@@ -4242,7 +4242,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       try {
         const stashSize = await getStashSize(repository)
-        this.statsStore.addStashEntriesCreatedOutsideDesktop(stashSize)
+        await this.statsStore.addStashEntriesCreatedOutsideDesktop(stashSize)
       } finally {
         await this.repositoriesStore.updateLastStashCheckDate(repository)
       }
