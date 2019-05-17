@@ -21,14 +21,20 @@ export function getDistPath() {
 }
 
 export function getExecutableName() {
-  const suffix = process.env.NODE_ENV === 'development' ? '-dev' : ''
+  let suffix = ''
+  const env = process.env.NODE_ENV
+  if (env === 'development') {
+    suffix = '-dev'
+  } else if (env === 'ui-test') {
+    suffix = '-ui-test'
+  }
 
   if (process.platform === 'win32') {
     return `${getWindowsIdentifierName()}${suffix}`
   } else if (process.platform === 'linux') {
     return 'desktop'
   } else {
-    return productName
+    return `${productName}${suffix}`
   }
 }
 

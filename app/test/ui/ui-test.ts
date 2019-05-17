@@ -11,7 +11,7 @@ const waitForLocalHost = require('wait-for-localhost')
 const url = `http://localhost:1234/json/version`
 
 async function setup() {
-  const rootPath = `${homedir()}/Library/Application Support/GitHub Desktop-dev`
+  const rootPath = `${homedir()}/Library/Application Support/GitHub Desktop-ui-test`
   const pathsToDelete = ['IndexedDB', 'Local Storage']
 
   for (const thing of pathsToDelete) {
@@ -23,9 +23,11 @@ async function setup() {
   }
 }
 
+jest.setTimeout(75000)
+
 describe('ui', () => {
   let browser: puppeteer.Browser
-  let app: ChildProcess | null
+  let app: ChildProcess | null = null
   let appWindow: puppeteer.Page
 
   beforeAll(async () => {
@@ -40,11 +42,8 @@ describe('ui', () => {
 
     try {
       await waitForLocalHost({ port: 1234 })
-      console.log('LOCALHOST READY')
 
       const response = await fetch(url)
-      console.log('FETCHING COMPLETE')
-
       const json = await response.json()
       const endpoint: string = json.webSocketDebuggerUrl
 
@@ -78,5 +77,11 @@ describe('ui', () => {
     expect(content).not.toBeNull()
   })
 
-  it('launces to welcome flow', async () => {})
+  it('launces to welcome flow', async () => {
+    await appWindow.waitForSelector('.welcome-title', { timeout: 75000 })
+
+    const content = await appWindow.$eval(`.welcome-title`, el => el.innerHTML)
+
+    expect(content).toEqual('Welcome to GitHub&nbsp;Desktop')
+  })
 })
