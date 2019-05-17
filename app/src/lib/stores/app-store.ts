@@ -2841,31 +2841,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { changesState, branchesState } = this.repositoryStateCache.get(
       repository
     )
-    const { tip } = branchesState
-    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
-    const hasChanges = changesState.workingDirectory.files.length > 0
-
-    if (
-      enableStashing() &&
-      hasChanges &&
-      currentBranch !== null &&
-      uncommittedChangesStrategy.kind ===
-        UncommittedChangesStrategyKind.askForConfirmation
-    ) {
-      this._showPopup({
-        type: PopupType.StashAndSwitchBranch,
-        branchToCheckout: foundBranch,
-        repository,
-      })
-
-      return repository
-    }
 
     let transientStashCreated = false
-    if (enableStashing() && currentBranch !== null) {
+    if (enableStashing()) {
+      const hasChanges = changesState.workingDirectory.files.length > 0
       if (
+        hasChanges &&
         uncommittedChangesStrategy.kind ===
-        UncommittedChangesStrategyKind.stashOnCurrentBranch
+          UncommittedChangesStrategyKind.askForConfirmation
+      ) {
+        this._showPopup({
+          type: PopupType.StashAndSwitchBranch,
+          branchToCheckout: foundBranch,
+          repository,
+        })
+
+        return repository
+      }
+
+      const { tip } = branchesState
+      const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+      if (
+        currentBranch !== null &&
+        uncommittedChangesStrategy.kind ===
+          UncommittedChangesStrategyKind.stashOnCurrentBranch
       ) {
         await this._createStashAndDropPreviousEntry(
           repository,
@@ -2915,9 +2914,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         await gitStore.performFailableOperation(() => {
           return popStashEntry(repository, transientStashEntry.stashSha)
         })
-      }
-
-      if (transientStashCreated) {
+      } else if (transientStashCreated) {
         const transientStashEntry = await getLastDesktopStashEntryForBranch(
           repository,
           foundBranch.name
