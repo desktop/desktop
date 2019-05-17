@@ -48,6 +48,7 @@ jest.mock('../../src/lib/window-state')
 
 describe('AppStore', () => {
   async function createAppStore(): Promise<AppStore> {
+    jest.genMockFromModule('../../src/lib/stats')
     const db = new TestGitHubUserDatabase()
     await db.reset()
 
