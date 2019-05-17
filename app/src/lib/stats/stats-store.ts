@@ -539,7 +539,7 @@ export class StatsStore implements IStatsStore {
       }
       const newMeasures = merge(measuresWithDefaults, fn(measuresWithDefaults))
 
-      return this.db.dailyMeasures.put(newMeasures)
+      return await this.db.dailyMeasures.put(newMeasures)
     })
   }
 
@@ -987,7 +987,7 @@ export class StatsStore implements IStatsStore {
   public async addStashEntriesCreatedOutsideDesktop(
     stashCount: number
   ): Promise<void> {
-    return this.updateDailyMeasures(m => ({
+    return await this.updateDailyMeasures(m => ({
       stashEntriesCreatedOutsideDesktop:
         m.stashEntriesCreatedOutsideDesktop + stashCount,
     }))
