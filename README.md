@@ -46,7 +46,7 @@ beta channel to get access to early builds of Desktop:
 
 Installer packages for various Linux distributions are available from the [`shiftkey/desktop`](https://github.com/shiftkey/desktop) fork of this project.
 
-Arch Linux users can install the latest version from the [AUR](https://aur.archlinux.org/packages/github-desktop/).
+Arch Linux users can install the latest version from the [AUR](https://aur.archlinux.org/packages/github-desktop-bin/).
 
 ## Is GitHub Desktop right for me? What are the primary areas of focus?
 
