@@ -26,7 +26,6 @@ There are several community-supported package managers that can be used to insta
       `c:\> choco install github-desktop`
  - macOS users can install using [Homebrew](https://brew.sh/) package manager:
       `$ brew cask install github`
- - Arch Linux users can install the latest version from the [AUR](https://aur.archlinux.org/packages/github-desktop/).
 
 You can install this alongside your existing GitHub Desktop for Mac or GitHub
 Desktop for Windows application.
@@ -42,6 +41,12 @@ beta channel to get access to early builds of Desktop:
 
  - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin?env=beta)
  - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32?env=beta)
+
+### Linux installers
+
+Installer packages for various Linux distributions are available from the [`shiftkey/desktop`](https://github.com/shiftkey/desktop) fork of this project.
+
+Arch Linux users can install the latest version from the [AUR](https://aur.archlinux.org/packages/github-desktop/).
 
 ## Is GitHub Desktop right for me? What are the primary areas of focus?
 
