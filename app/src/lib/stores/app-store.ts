@@ -1337,7 +1337,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.pullRequestStore.getAll(gitHubRepository).then(prs => {
         this.onPullRequestChanged(gitHubRepository, prs)
       })
-      this._refreshPullRequests(repository)
     }
 
     // The selected repository could have changed while we were refreshing.
