@@ -87,7 +87,7 @@ export class RepositoriesDatabase extends BaseDatabase {
     })
 
     this.conditionalVersion(6, {
-      protectedBranches: '[repoId+name]',
+      protectedBranches: '[repoId+name], repoId',
     })
   }
 }
