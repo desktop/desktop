@@ -1957,6 +1957,11 @@ export class Dispatcher {
     this.statsStore.recordRebaseConflictsDialogReopened()
   }
 
+  /** Increments the `errorWhenSwitchingBranchesWithUncommmittedChanges` metric */
+  public recordErrorWhenSwitchingBranchesWithUncommmittedChanges() {
+    return this.statsStore.recordErrorWhenSwitchingBranchesWithUncommmittedChanges()
+  }
+
   /**
    * Refresh the list of open pull requests for the given repository.
    */
