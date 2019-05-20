@@ -18,6 +18,8 @@ export class RepositoriesStore extends BaseStore {
   // Key-repo ID, Value-date
   private lastStashCheckCache = new Map<number, number>()
 
+  private branchProtectionCache = new Map<string, boolean>()
+
   public constructor(db: RepositoriesDatabase) {
     super()
 
@@ -513,13 +515,22 @@ export class RepositoriesStore extends BaseStore {
       )
     }
 
+    const key = `${gitHubRepository.dbID}-${branchName}`
+
+    const existing = this.branchProtectionCache.get(key)
+    if (existing !== undefined) {
+      return existing
+    }
+
     const result = await this.db.protectedBranches
       .where('[repoId+name]')
       .equals([gitHubRepository.dbID, branchName])
       .first()
 
-    // TODO: caching?
+    const value = !!result
 
-    return !!result
+    this.branchProtectionCache.set(key, value)
+
+    return value
   }
 }
