@@ -81,7 +81,10 @@ import {
   StatusCallBack,
 } from '../../lib/stores/commit-status-store'
 import { MergeResult } from '../../models/merge'
-import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
+import {
+  StashAction,
+  BranchAction,
+} from '../../models/uncommitted-changes-strategy'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { IStashEntry } from '../../models/stash-entry'
 
@@ -410,28 +413,16 @@ export class Dispatcher {
   public createBranch(
     repository: Repository,
     name: string,
-    startPoint: string | null,
-    uncommittedChangesStrategy: UncommittedChangesStrategy = UncommittedChangesStrategy.askForConfirmation
   ): Promise<Repository> {
-    return this.appStore._createBranch(
-      repository,
-      name,
-      startPoint,
-      uncommittedChangesStrategy
-    )
+    return this.appStore._createBranch(repository, name, startPoint)
   }
 
   /** Check out the given branch. */
   public checkoutBranch(
     repository: Repository,
-    branch: Branch | string,
-    uncommittedChangesStrategy?: UncommittedChangesStrategy
+    branch: Branch | string
   ): Promise<Repository> {
-    return this.appStore._checkoutBranch(
-      repository,
-      branch,
-      uncommittedChangesStrategy
-    )
+    return this.appStore._checkoutBranch(repository, branch)
   }
 
   /** Push the current branch. */

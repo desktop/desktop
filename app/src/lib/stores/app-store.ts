@@ -2760,8 +2760,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _createBranch(
     repository: Repository,
     name: string,
-    startPoint: string | null,
-    uncommittedChangesStrategy: UncommittedChangesStrategy = UncommittedChangesStrategy.askForConfirmation
+    startPoint: string | null
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
     const branch = await gitStore.performFailableOperation(() =>
@@ -2826,8 +2825,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _checkoutBranch(
     repository: Repository,
-    branch: Branch | string,
-    uncommittedChangesStrategy: UncommittedChangesStrategy = UncommittedChangesStrategy.askForConfirmation
+    branch: Branch | string
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
     const kind = 'checkout'

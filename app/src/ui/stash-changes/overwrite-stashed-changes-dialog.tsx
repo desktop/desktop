@@ -5,13 +5,13 @@ import { Branch } from '../../models/branch'
 import { Dispatcher } from '../dispatcher'
 import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
-import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { Row } from '../lib/row'
+import { BranchAction } from '../../models/uncommitted-changes-strategy'
 
 interface IOverwriteStashProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
-  readonly branchToCheckout: Branch
+  readonly branchAction: BranchAction
   readonly onDismissed: () => void
 }
 
@@ -64,7 +64,7 @@ export class OverwriteStash extends React.Component<
   }
 
   private onSubmit = async () => {
-    const { dispatcher, repository, branchToCheckout, onDismissed } = this.props
+    const { dispatcher, repository, branchAction, onDismissed } = this.props
 
     this.setState({
       isCheckingOutBranch: true,

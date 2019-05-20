@@ -7,21 +7,21 @@ import { Row } from '../lib/row'
 import { Branch } from '../../models/branch'
 import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
-import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
+import {
+  StashAction,
+  BranchAction,
+  getBranchName,
+} from '../../models/uncommitted-changes-strategy'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PopupType } from '../../models/popup'
 
-enum StashAction {
-  StashOnCurrentBranch,
-  MoveToNewBranch,
-}
 interface ISwitchBranchProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch
 
   /** The branch to checkout after the user selects a stash action */
-  readonly branchToCheckout: Branch
+  readonly branchAction: BranchAction
 
   /** Whether `currentBranch` has an existing stash association */
   readonly hasAssociatedStash: boolean
@@ -96,7 +96,6 @@ export class StashAndSwitchBranch extends React.Component<
   }
 
   private renderStashActions() {
-    const { branchToCheckout } = this.props
     const items = [
       {
         title: `Leave my changes on ${this.state.currentBranchName}`,
@@ -104,7 +103,7 @@ export class StashAndSwitchBranch extends React.Component<
           'Your in-progress work will be stashed on this branch for you to return to later',
       },
       {
-        title: `Bring my changes to ${branchToCheckout.name}`,
+        title: `Bring my changes to ${getBranchName(this.props.stashAction)}`,
         description: 'Your in-progress work will follow you to the new branch',
       },
     ]
@@ -130,7 +129,7 @@ export class StashAndSwitchBranch extends React.Component<
       repository,
       dispatcher,
       hasAssociatedStash,
-      branchToCheckout,
+      branchAction,
     } = this.props
 
     if (
@@ -140,7 +139,7 @@ export class StashAndSwitchBranch extends React.Component<
       dispatcher.showPopup({
         type: PopupType.ConfirmOverwriteStash,
         repository,
-        branchToCheckout,
+        branchAction,
       })
       return
     }
@@ -157,7 +156,7 @@ export class StashAndSwitchBranch extends React.Component<
   }
 
   private async stashAndCheckout() {
-    const { repository, branchToCheckout, dispatcher } = this.props
+    const { repository, branchAction, dispatcher } = this.props
     const { selectedStashAction } = this.state
 
     if (selectedStashAction === StashAction.StashOnCurrentBranch) {
