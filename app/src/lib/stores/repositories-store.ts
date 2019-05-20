@@ -416,6 +416,12 @@ export class RepositoriesStore extends BaseStore {
           name: b.name,
         }))
 
+        for (const item of items) {
+          // update cached values to avoid database lookup
+          const key = getKey(repoId, item.name)
+          this.branchProtectionCache.set(key, true)
+        }
+
         await this.db.protectedBranches.bulkAdd(items)
 
         return updatedGitHubRepo
@@ -515,7 +521,7 @@ export class RepositoriesStore extends BaseStore {
       )
     }
 
-    const key = `${gitHubRepository.dbID}-${branchName}`
+    const key = getKey(gitHubRepository.dbID, branchName)
 
     const existing = this.branchProtectionCache.get(key)
     if (existing !== undefined) {
@@ -533,4 +539,9 @@ export class RepositoriesStore extends BaseStore {
 
     return value
   }
+}
+
+/** Compute the key for the branch protection cache */
+function getKey(dbID: number, branchName: string) {
+  return `${dbID}-${branchName}`
 }
