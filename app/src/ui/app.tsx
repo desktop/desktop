@@ -1666,7 +1666,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       }
       case PopupType.StashAndSwitchBranch: {
-        const { repository, branchToCheckout } = popup
+        const { repository, branchAction } = popup
         const {
           branchesState,
           changesState,
@@ -1685,19 +1685,19 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             currentBranch={currentBranch}
-            branchToCheckout={branchToCheckout}
+            branchAction={branchAction}
             hasAssociatedStash={hasAssociatedStash}
             onDismissed={this.onPopupDismissed}
           />
         )
       }
       case PopupType.ConfirmOverwriteStash: {
-        const { repository, branchToCheckout: branchToCheckout } = popup
+        const { repository, branchAction } = popup
         return (
           <OverwriteStash
             dispatcher={this.props.dispatcher}
             repository={repository}
-            branchToCheckout={branchToCheckout}
+            branchAction={branchAction}
             onDismissed={this.onPopupDismissed}
           />
         )
