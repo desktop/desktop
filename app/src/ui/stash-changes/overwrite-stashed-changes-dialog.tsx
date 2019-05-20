@@ -1,7 +1,6 @@
 import React = require('react')
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Repository } from '../../models/repository'
-import { Branch } from '../../models/branch'
 import { Dispatcher } from '../dispatcher'
 import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
@@ -71,11 +70,7 @@ export class OverwriteStash extends React.Component<
     })
 
     try {
-      await dispatcher.checkoutBranch(
-        repository,
-        branchToCheckout,
-        UncommittedChangesStrategy.stashOnCurrentBranch
-      )
+      await dispatcher.overwriteStashAndCheckout(repository, branchAction)
     } finally {
       this.setState({
         isCheckingOutBranch: false,

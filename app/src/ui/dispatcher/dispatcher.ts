@@ -413,6 +413,7 @@ export class Dispatcher {
   public createBranch(
     repository: Repository,
     name: string,
+    startPoint: string | null
   ): Promise<Repository> {
     return this.appStore._createBranch(repository, name, startPoint)
   }
@@ -2020,5 +2021,24 @@ export class Dispatcher {
   //** Hide the diff for stashed changes */
   public hideStashedChanges(repository: Repository) {
     return this.appStore._hideStashedChanges(repository)
+  }
+
+  public overwriteStashAndCheckout(
+    repository: Repository,
+    postStashAction: BranchAction
+  ) {
+    return this.appStore._overwriteStashAndCheckout(repository, postStashAction)
+  }
+
+  public completeMoveToBranch(
+    repository: Repository,
+    stashAction: StashAction,
+    postStashAction: BranchAction
+  ) {
+    return this.appStore._completeMoveToBranch(
+      repository,
+      stashAction,
+      postStashAction
+    )
   }
 }

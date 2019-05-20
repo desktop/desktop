@@ -159,18 +159,10 @@ export class StashAndSwitchBranch extends React.Component<
     const { repository, branchAction, dispatcher } = this.props
     const { selectedStashAction } = this.state
 
-    if (selectedStashAction === StashAction.StashOnCurrentBranch) {
-      await dispatcher.checkoutBranch(
-        repository,
-        branchToCheckout,
-        UncommittedChangesStrategy.stashOnCurrentBranch
-      )
-    } else if (selectedStashAction === StashAction.MoveToNewBranch) {
-      await dispatcher.checkoutBranch(
-        repository,
-        branchToCheckout,
-        UncommittedChangesStrategy.moveToNewBranch
-      )
-    }
+    await dispatcher.completeMoveToBranch(
+      repository,
+      selectedStashAction,
+      branchAction
+    )
   }
 }
