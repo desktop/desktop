@@ -1338,7 +1338,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       case PopupType.CreateBranch: {
         const state = this.props.repositoryStateManager.get(popup.repository)
-        const branchesState = state.branchesState
+        const { changesState, branchesState } = state
         const repository = popup.repository
 
         if (branchesState.tip.kind === TipState.Unknown) {
@@ -1356,6 +1356,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
             initialName={popup.initialName || ''}
+            currentWorkingDirectoryStatus={changesState.workingDirectory}
           />
         )
       }
