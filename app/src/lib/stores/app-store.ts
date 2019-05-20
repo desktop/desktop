@@ -2379,24 +2379,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
           gitStore.currentRemote !== null
         ) {
           // look up if the tracked branch matches a protected remote branch
-          const { upstream } = gitStore.tip.branch
+          const { upstreamWithoutRemote } = gitStore.tip.branch
 
-          if (upstream !== null) {
-            const remoteName = gitStore.currentRemote.name
-
-            const protectedBranchNames = await this.repositoriesStore.getProtectedBranches(
-              repository.gitHubRepository
+          if (upstreamWithoutRemote !== null) {
+            const isProtected = await this.repositoriesStore.isBranchProtected(
+              repository.gitHubRepository,
+              upstreamWithoutRemote
             )
 
-            // convert these branches to a canonical reference to avoid the need
-            // to rely on the logic in `upstreamWithoutRemote`
-            const protectedBranches = protectedBranchNames.map(
-              b => `${remoteName}/${b}`
-            )
-
-            if (protectedBranches.indexOf(upstream) >= 0) {
+            if (isProtected) {
               log.debug(
-                `[_commitIncludedChanges] the upstream ref '${upstream}' is protected by the GitHub API`
+                `[_commitIncludedChanges] the upstream ref '${upstreamWithoutRemote}' is protected by the GitHub API`
               )
             }
           }

@@ -2,7 +2,7 @@ import {
   RepositoriesDatabase,
   IDatabaseGitHubRepository,
   IDatabaseOwner,
-  IDatabaseGitHubBranch,
+  IDatabaseProtectedBranch,
 } from '../databases/repositories-database'
 import { Owner } from '../../models/owner'
 import { GitHubRepository } from '../../models/github-repository'
@@ -389,7 +389,7 @@ export class RepositoriesStore extends BaseStore {
       'rw',
       this.db.repositories,
       this.db.gitHubRepositories,
-      this.db.githubBranches,
+      this.db.protectedBranches,
       this.db.owners,
       async () => {
         const localRepo = (await this.db.repositories.get(repoID))!
@@ -404,17 +404,17 @@ export class RepositoriesStore extends BaseStore {
 
         const repoId = updatedGitHubRepo.dbID!
 
-        await this.db.githubBranches
+        await this.db.protectedBranches
           .where('repoId')
           .equals(repoId)
           .delete()
 
-        const items = branches.map<IDatabaseGitHubBranch>(b => ({
-          ...b,
+        const items = branches.map<IDatabaseProtectedBranch>(b => ({
           repoId,
+          name: b.name,
         }))
 
-        await this.db.githubBranches.bulkAdd(items)
+        await this.db.protectedBranches.bulkAdd(items)
 
         return updatedGitHubRepo
       }
@@ -503,20 +503,23 @@ export class RepositoriesStore extends BaseStore {
     return record!.lastPruneDate
   }
 
-  public async getProtectedBranches(
-    gitHubRepository: GitHubRepository
-  ): Promise<ReadonlyArray<string>> {
+  public async isBranchProtected(
+    gitHubRepository: GitHubRepository,
+    branchName: string
+  ): Promise<boolean> {
     if (gitHubRepository.dbID === null) {
       return fatalError(
         'unable to get protected branches, GitHub repository has a null dbID'
       )
     }
 
-    const results = await this.db.githubBranches
-      .where('repoId')
-      .equals(gitHubRepository.dbID)
-      .toArray()
+    const result = await this.db.protectedBranches
+      .where('[repoId+name]')
+      .equals([gitHubRepository.dbID, branchName])
+      .first()
 
-    return results.map(r => r.name)
+    // TODO: caching?
+
+    return !!result
   }
 }

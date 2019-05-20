@@ -23,10 +23,9 @@ export interface IDatabaseGitHubRepository {
   readonly lastPruneDate: number | null
 }
 
-export interface IDatabaseGitHubBranch {
+export interface IDatabaseProtectedBranch {
   readonly repoId: number
   readonly name: string
-  readonly protected: boolean
 }
 
 export interface IDatabaseRepository {
@@ -48,7 +47,7 @@ export class RepositoriesDatabase extends BaseDatabase {
   public gitHubRepositories!: Dexie.Table<IDatabaseGitHubRepository, number>
 
   /** The branch lookup table for GitHub repositories table. */
-  public githubBranches!: Dexie.Table<IDatabaseGitHubBranch, number>
+  public protectedBranches!: Dexie.Table<IDatabaseProtectedBranch, number>
 
   /** The GitHub repository owners table. */
   public owners!: Dexie.Table<IDatabaseOwner, number>
@@ -88,7 +87,7 @@ export class RepositoriesDatabase extends BaseDatabase {
     })
 
     this.conditionalVersion(6, {
-      githubBranches: '[repoId+name], repoId',
+      protectedBranches: '[repoId+name]',
     })
   }
 }
