@@ -24,7 +24,10 @@ import {
   renderBranchNameExistsOnRemoteWarning,
 } from '../lib/branch-name-warnings'
 import { getStartPoint } from '../../lib/create-branch'
-import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
+import { enableStashing } from '../../lib/feature-flag'
+import { WorkingDirectoryStatus } from '../../models/status'
+import { PopupType } from '../../models/popup'
+import { BranchActionKind } from '../../models/uncommitted-changes-strategy'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -34,6 +37,7 @@ interface ICreateBranchProps {
   readonly defaultBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
   readonly initialName: string
+  readonly currentWorkingDirectoryStatus: WorkingDirectoryStatus
 }
 
 interface ICreateBranchState {
@@ -293,12 +297,25 @@ export class CreateBranch extends React.Component<
 
     if (name.length > 0) {
       this.setState({ isCreatingBranch: true })
-      await this.props.dispatcher.createBranch(
-        this.props.repository,
-        name,
-        startPoint,
-        UncommittedChangesStrategy.askForConfirmation
-      )
+      const hasChanges =
+        this.props.currentWorkingDirectoryStatus.files.length > 0
+      if (enableStashing() && hasChanges) {
+        this.props.dispatcher.showPopup({
+          type: PopupType.StashAndSwitchBranch,
+          branchAction: {
+            type: BranchActionKind.Create,
+            branchName: name,
+            startPoint,
+          },
+          repository: this.props.repository,
+        })
+      } else {
+        await this.props.dispatcher.createBranch(
+          this.props.repository,
+          name,
+          startPoint
+        )
+      }
     }
   }
 }
