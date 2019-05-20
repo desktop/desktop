@@ -11,20 +11,26 @@ import {
   StashAction,
   BranchAction,
   getBranchName,
+  BranchActionKind,
 } from '../../models/uncommitted-changes-strategy'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PopupType } from '../../models/popup'
+import { WorkingDirectoryStatus, AppFileStatusKind } from '../../models/status'
 
 interface ISwitchBranchProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch
 
+  /** Status for this repository */
+  readonly workingDirectory: WorkingDirectoryStatus
+
   /** The branch to checkout after the user selects a stash action */
   readonly branchAction: BranchAction
 
   /** Whether `currentBranch` has an existing stash association */
   readonly hasAssociatedStash: boolean
+
   readonly onDismissed: () => void
 }
 
@@ -159,10 +165,23 @@ export class StashAndSwitchBranch extends React.Component<
     const { repository, branchAction, dispatcher } = this.props
     const { selectedStashAction } = this.state
 
-    await dispatcher.completeMoveToBranch(
-      repository,
-      selectedStashAction,
-      branchAction
-    )
+    if (
+      branchAction.type === BranchActionKind.Checkout &&
+      this.props.workingDirectory.files.some(f => {
+        f.status.kind === AppFileStatusKind.Deleted
+      })
+    ) {
+      await dispatcher.completeMoveToBranch(
+        repository,
+        selectedStashAction,
+        branchAction
+      )
+    } else {
+      const branchName =
+        branchAction.type === BranchActionKind.Checkout
+          ? branchAction.branch.name
+          : branchAction.branchName
+      await dispatcher.checkoutBranch(repository, branchName)
+    }
   }
 }
