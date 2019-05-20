@@ -21,6 +21,8 @@ import { PullRequestList } from './pull-request-list'
 import { IBranchListItem } from './group-branches'
 import { renderDefaultBranch } from './branch-renderer'
 import { IMatches } from '../../lib/fuzzy-find'
+import { enableStashing } from '../../lib/feature-flag'
+import { BranchActionKind } from '../../models/uncommitted-changes-strategy'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -37,6 +39,7 @@ interface IBranchesContainerProps {
 
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
+  readonly hasUncommitedChanges: boolean
 }
 
 interface IBranchesContainerState {
@@ -236,7 +239,18 @@ export class BranchesContainer extends React.Component<
     const currentBranch = this.props.currentBranch
 
     if (currentBranch == null || currentBranch.name !== branch.name) {
-      this.props.dispatcher.checkoutBranch(this.props.repository, branch)
+      if (enableStashing() && this.props.hasUncommitedChanges) {
+        this.props.dispatcher.showPopup({
+          type: PopupType.StashAndSwitchBranch,
+          branchAction: {
+            type: BranchActionKind.Checkout,
+            branch: branch,
+          },
+          repository: this.props.repository,
+        })
+      } else {
+        this.props.dispatcher.checkoutBranch(this.props.repository, branch)
+      }
     }
   }
 
