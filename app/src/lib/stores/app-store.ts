@@ -1435,13 +1435,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private startPullRequestUpdater(repository: Repository) {
     if (this.currentPullRequestUpdater) {
-      fatalError(
-        `A pull request updater is already active and cannot start updating on ${nameOf(
-          repository
-        )}`
-      )
-
-      return
+      this.stopPullRequestUpdater()
     }
 
     // We don't want to run the pull request updater when the app is in
