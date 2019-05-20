@@ -50,11 +50,11 @@ interface IBranchDropdownProps {
 export class BranchDropdown extends React.Component<IBranchDropdownProps> {
   private renderBranchFoldout = (): JSX.Element | null => {
     const repositoryState = this.props.repositoryState
-    const branchesState = repositoryState.branchesState
+    const { changesState, branchesState } = repositoryState
 
     const tip = repositoryState.branchesState.tip
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
-
+    const hasUncommitedChanges = changesState.workingDirectory.files.length > 0
     return (
       <BranchesContainer
         allBranches={branchesState.allBranches}
@@ -67,6 +67,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         pullRequests={this.props.pullRequests}
         currentPullRequest={this.props.currentPullRequest}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
+        hasUncommitedChanges={hasUncommitedChanges}
       />
     )
   }
