@@ -46,7 +46,7 @@ export class RepositoriesDatabase extends BaseDatabase {
   /** The GitHub repositories table. */
   public gitHubRepositories!: Dexie.Table<IDatabaseGitHubRepository, number>
 
-  /** The branch lookup table for GitHub repositories table. */
+  /** A table containing the names of protected branches per repository. */
   public protectedBranches!: Dexie.Table<IDatabaseProtectedBranch, number>
 
   /** The GitHub repository owners table. */
