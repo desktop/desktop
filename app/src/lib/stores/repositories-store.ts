@@ -28,13 +28,13 @@ export class RepositoriesStore extends BaseStore {
    * Key is the GitHubRepository id, value is the protected branch count reported
    * by the GitHub API.
    */
-  private branchProtectionFoundCache = new Map<number, boolean>()
+  private branchProtectionSettingsFoundCache = new Map<number, boolean>()
 
   /**
    * Key is the lookup by the GitHubRepository id and branch name, value is the
    * flag whether this branch is considered protected by the GitHub API
    */
-  private branchProtectionCache = new Map<string, boolean>()
+  private protectionEnabledForBranchCache = new Map<string, boolean>()
 
   public constructor(db: RepositoriesDatabase) {
     super()
@@ -433,10 +433,10 @@ export class RepositoriesStore extends BaseStore {
 
           const prefix = getKeyPrefix(repoId)
 
-          for (const key of this.branchProtectionCache.keys()) {
+          for (const key of this.protectionEnabledForBranchCache.keys()) {
             // invalidate any cached entries belonging to this repository
             if (key.startsWith(prefix)) {
-              this.branchProtectionCache.delete(key)
+              this.protectionEnabledForBranchCache.delete(key)
             }
           }
 
@@ -448,10 +448,10 @@ export class RepositoriesStore extends BaseStore {
           // update cached values to avoid database lookup
           for (const item of branchRecords) {
             const key = getKey(repoId, item.name)
-            this.branchProtectionCache.set(key, true)
+            this.protectionEnabledForBranchCache.set(key, true)
           }
 
-          this.branchProtectionFoundCache.set(repoId, true)
+          this.branchProtectionSettingsFoundCache.set(repoId, true)
 
           await this.db.protectedBranches
             .where('repoId')
@@ -560,7 +560,7 @@ export class RepositoriesStore extends BaseStore {
 
     const repoID = gitHubRepository.dbID
 
-    const cachedBranchProtectionFound = this.branchProtectionFoundCache.get(
+    const cachedBranchProtectionFound = this.branchProtectionSettingsFoundCache.get(
       repoID
     )
 
@@ -593,12 +593,12 @@ export class RepositoriesStore extends BaseStore {
 
     for (const branch of branches) {
       const key = getKey(repoID, branch.name)
-      this.branchProtectionCache.set(key, true)
+      this.protectionEnabledForBranchCache.set(key, true)
     }
 
     // find the current branch in the cache, or false if not found
     const key = getKey(repoID, branchName)
-    const isProtected = this.branchProtectionCache.get(key) || false
+    const isProtected = this.protectionEnabledForBranchCache.get(key) || false
 
     return {
       branchProtectionsFound,
@@ -612,7 +612,7 @@ export class RepositoriesStore extends BaseStore {
   ): Promise<boolean> {
     const key = getKey(repoID, branchName)
 
-    const existing = this.branchProtectionCache.get(key)
+    const existing = this.protectionEnabledForBranchCache.get(key)
     if (existing !== undefined) {
       return existing
     }
@@ -621,7 +621,7 @@ export class RepositoriesStore extends BaseStore {
 
     const value = result !== undefined
 
-    this.branchProtectionCache.set(key, value)
+    this.protectionEnabledForBranchCache.set(key, value)
 
     return value
   }
