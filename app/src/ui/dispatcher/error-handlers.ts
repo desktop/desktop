@@ -447,6 +447,7 @@ export async function localChangesOverwrittenHandler(
   }
 
   if (!enableStashing()) {
+    dispatcher.recordErrorWhenSwitchingBranchesWithUncommmittedChanges()
     return error
   }
 

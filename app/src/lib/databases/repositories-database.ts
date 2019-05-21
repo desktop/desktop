@@ -28,6 +28,9 @@ export interface IDatabaseRepository {
   readonly gitHubRepositoryID: number | null
   readonly path: string
   readonly missing: boolean
+
+  /** The last time the stash entries were checked for the repository */
+  readonly lastStashCheckDate: number | null
 }
 
 /** The repositories database. */
