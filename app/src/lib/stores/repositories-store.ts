@@ -557,21 +557,18 @@ export class RepositoriesStore extends BaseStore {
         'unable to get protected branches, GitHub repository has a null dbID'
       )
     }
+
+    const repoID = gitHubRepository.dbID
+
     const cachedBranchProtectionFound = this.branchProtectionFoundCache.get(
-      gitHubRepository.dbID
+      repoID
     )
 
     if (cachedBranchProtectionFound === undefined) {
-      return this.loadAndCacheBranchProtection(
-        gitHubRepository.dbID,
-        branchName
-      )
+      return this.loadAndCacheBranchProtection(repoID, branchName)
     } else {
       // fall back to the current behaviour for now
-      const isProtected = await this.isBranchProtected(
-        gitHubRepository,
-        branchName
-      )
+      const isProtected = await this.isBranchProtected(repoID, branchName)
 
       return {
         branchProtectionsFound: cachedBranchProtectionFound,
@@ -610,26 +607,17 @@ export class RepositoriesStore extends BaseStore {
   }
 
   private async isBranchProtected(
-    gitHubRepository: GitHubRepository,
+    repoID: number,
     branchName: string
   ): Promise<boolean> {
-    if (gitHubRepository.dbID === null) {
-      return fatalError(
-        'unable to get protected branches, GitHub repository has a null dbID'
-      )
-    }
-
-    const key = getKey(gitHubRepository.dbID, branchName)
+    const key = getKey(repoID, branchName)
 
     const existing = this.branchProtectionCache.get(key)
     if (existing !== undefined) {
       return existing
     }
 
-    const result = await this.db.protectedBranches.get([
-      gitHubRepository.dbID,
-      branchName,
-    ])
+    const result = await this.db.protectedBranches.get([repoID, branchName])
 
     const value = result !== undefined
 
