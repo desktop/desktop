@@ -683,6 +683,13 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  /** Record that the user made a commit to a protected GitHub or GitHub Enterprise repository */
+  public recordCommitMadeToProtectedBranch(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      commitMadeToProtectedBranch: m.commitMadeToProtectedBranch + 1,
+    }))
+  }
+
   /** Set whether the user has opted out of stats reporting. */
   public async setOptOut(
     optOut: boolean,
