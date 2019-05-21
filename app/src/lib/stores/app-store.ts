@@ -2886,28 +2886,33 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    await this.withAuthenticatingUser(repository, (repository, account) =>
-      gitStore.performFailableOperation(
-        () =>
-          checkoutBranch(repository, account, foundBranch, progress => {
-            this.updateCheckoutProgress(repository, progress)
-          }),
-        {
-          repository,
-          retryAction: {
-            type: RetryActionType.Checkout,
+    const checkoutSucceeded =
+      (await this.withAuthenticatingUser(repository, (repository, account) =>
+        gitStore.performFailableOperation(
+          () =>
+            checkoutBranch(repository, account, foundBranch, progress => {
+              this.updateCheckoutProgress(repository, progress)
+            }),
+          {
             repository,
-            branch,
-          },
-          gitContext: { kind: 'checkout', branchToCheckout: foundBranch.name },
-        }
-      )
-    )
+            retryAction: {
+              type: RetryActionType.Checkout,
+              repository,
+              branch,
+            },
+            gitContext: {
+              kind: 'checkout',
+              branchToCheckout: foundBranch.name,
+            },
+          }
+        )
+      )) !== undefined
 
     if (
       enableStashing() &&
       uncommittedChangesStrategy.kind ===
-        UncommittedChangesStrategyKind.moveToNewBranch
+        UncommittedChangesStrategyKind.moveToNewBranch &&
+      checkoutSucceeded
     ) {
       const { transientStashEntry } = uncommittedChangesStrategy
       if (transientStashEntry !== null) {
