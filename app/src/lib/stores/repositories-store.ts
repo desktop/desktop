@@ -563,20 +563,28 @@ export class RepositoriesStore extends BaseStore {
 
     const repoID = gitHubRepository.dbID
 
-    const cachedBranchProtectionFound = this.branchProtectionSettingsFoundCache.get(
+    const branchProtectionsFound = this.branchProtectionSettingsFoundCache.get(
       repoID
     )
 
-    if (cachedBranchProtectionFound === undefined) {
+    if (branchProtectionsFound === undefined) {
       return this.loadAndCacheBranchProtection(repoID, branchName)
-    } else {
-      // fall back to the current behaviour for now
+    } else if (branchProtectionsFound) {
+      // as we know branch protections are enabled for the repository, check
+      // this specific branch either in the cache or the database
       const isProtected = await this.isBranchProtected(repoID, branchName)
 
       return {
-        branchProtectionsFound: cachedBranchProtectionFound,
+        branchProtectionsFound,
         isProtected,
       }
+    }
+
+    // we have no branch protections enabled for this repository, therefore the
+    // current branch cannot be protected
+    return {
+      branchProtectionsFound,
+      isProtected: false,
     }
   }
 
