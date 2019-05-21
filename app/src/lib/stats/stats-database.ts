@@ -134,7 +134,7 @@ export interface IDailyMeasures {
    */
   readonly enterpriseCommits: number
 
-  /** The number of time the user made a commit to a repo hosted on Github.com */
+  /** The number of times the user made a commit to a repo hosted on Github.com */
   readonly dotcomCommits: number
 
   /** The number of times the user made a commit to a protected GitHub or GitHub Enterprise repository */
