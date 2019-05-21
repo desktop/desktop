@@ -1686,6 +1686,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             currentBranch={currentBranch}
             stashContext={stashContext}
+            workingDirectory={changesState.workingDirectory}
             hasAssociatedStash={hasAssociatedStash}
             onDismissed={this.onPopupDismissed}
           />

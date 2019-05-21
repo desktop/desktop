@@ -13,6 +13,11 @@ import { UpstreamAlreadyExistsError } from '../../lib/stores/upstream-already-ex
 
 import { PopupType } from '../../models/popup'
 import { Repository } from '../../models/repository'
+import {
+  CheckoutAction,
+  UncommittedChangesAction,
+} from '../../models/uncommitted-changes-strategy'
+import { enableStashing } from '../../lib/feature-flag'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -285,6 +290,10 @@ export async function mergeConflictHandler(
     return error
   }
 
+  if (!(gitContext.kind === 'merge' || gitContext.kind === 'pull')) {
+    return error
+  }
+
   switch (gitContext.kind) {
     case 'pull':
       dispatcher.mergeConflictDetectedFromPull()
@@ -394,6 +403,10 @@ export async function rebaseConflictsHandler(
     return error
   }
 
+  if (!(gitContext.kind === 'merge' || gitContext.kind === 'pull')) {
+    return error
+  }
+
   const { currentBranch } = gitContext
 
   dispatcher.launchRebaseFlow(repository, currentBranch)
@@ -428,7 +441,7 @@ export async function localChangesOverwrittenHandler(
     return error
   }
 
-  const { repository } = e.metadata
+  const { repository, gitContext } = e.metadata
   if (repository == null) {
     return error
   }
@@ -439,5 +452,27 @@ export async function localChangesOverwrittenHandler(
 
   dispatcher.recordErrorWhenSwitchingBranchesWithUncommmittedChanges()
 
-  return error
+  if (!enableStashing()) {
+    return error
+  }
+
+  if (gitContext == null) {
+    return error
+  }
+
+  if (gitContext.kind !== 'checkout') {
+    return error
+  }
+  const { branchToCheckout } = gitContext
+
+  await dispatcher.completeMoveToBranch(
+    repository,
+    UncommittedChangesAction.MoveToNewBranch,
+    {
+      kind: CheckoutAction.Checkout,
+      branch: branchToCheckout,
+    }
+  )
+
+  return null
 }
