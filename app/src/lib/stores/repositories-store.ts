@@ -10,6 +10,7 @@ import { Repository } from '../../models/repository'
 import { fatalError } from '../fatal-error'
 import { IAPIRepository, IAPIBranch } from '../api'
 import { BaseStore } from './base-store'
+import { enableBranchProtectionWarning } from '../feature-flag'
 
 /** The store for local repositories. */
 export class RepositoriesStore extends BaseStore {
@@ -404,25 +405,27 @@ export class RepositoriesStore extends BaseStore {
           gitHubRepositoryID: updatedGitHubRepo.dbID,
         })
 
-        const repoId = updatedGitHubRepo.dbID!
+        if (enableBranchProtectionWarning()) {
+          const repoId = updatedGitHubRepo.dbID!
 
-        await this.db.protectedBranches
-          .where('repoId')
-          .equals(repoId)
-          .delete()
+          await this.db.protectedBranches
+            .where('repoId')
+            .equals(repoId)
+            .delete()
 
-        const items = branches.map<IDatabaseProtectedBranch>(b => ({
-          repoId,
-          name: b.name,
-        }))
+          const items = branches.map<IDatabaseProtectedBranch>(b => ({
+            repoId,
+            name: b.name,
+          }))
 
-        for (const item of items) {
-          // update cached values to avoid database lookup
-          const key = getKey(repoId, item.name)
-          this.branchProtectionCache.set(key, true)
+          for (const item of items) {
+            // update cached values to avoid database lookup
+            const key = getKey(repoId, item.name)
+            this.branchProtectionCache.set(key, true)
+          }
+
+          await this.db.protectedBranches.bulkAdd(items)
         }
-
-        await this.db.protectedBranches.bulkAdd(items)
 
         return updatedGitHubRepo
       }
