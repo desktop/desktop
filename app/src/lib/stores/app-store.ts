@@ -78,6 +78,7 @@ import {
   getAccountForEndpoint,
   getDotComAPIEndpoint,
   IAPIOrganization,
+  IAPIBranch,
 } from '../api'
 import { shell } from '../app-shell'
 import {
@@ -214,6 +215,7 @@ import {
   enablePullWithRebase,
   enableGroupRepositoriesByOwner,
   enableStashing,
+  enableBranchProtectionWarning,
 } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import * as moment from 'moment'
@@ -2375,6 +2377,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         }
 
         if (
+          enableBranchProtectionWarning() &&
           gitStore.tip.kind === TipState.Valid &&
           gitStore.currentRemote !== null
         ) {
@@ -3039,7 +3042,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
-    const branches = await api.fetchProtectedBranches(owner, name)
+    const branches = enableBranchProtectionWarning()
+      ? await api.fetchProtectedBranches(owner, name)
+      : new Array<IAPIBranch>()
 
     const endpoint = matchedGitHubRepository.endpoint
     return this.repositoriesStore.updateGitHubRepository(
