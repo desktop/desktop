@@ -21,12 +21,6 @@ Download the official installer for your operating system:
  - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32)
  - [Windows machine-wide install](https://central.github.com/deployments/desktop/desktop/latest/win32?format=msi)
 
-There are several community-supported package managers that can be used to install Github Desktop.
- - Windows users can install using [Chocolatey](https://chocolatey.org/) package manager:
-      `c:\> choco install github-desktop`
- - macOS users can install using [Homebrew](https://brew.sh/) package manager:
-      `$ brew cask install github`
-
 You can install this alongside your existing GitHub Desktop for Mac or GitHub
 Desktop for Windows application.
 
@@ -42,7 +36,13 @@ beta channel to get access to early builds of Desktop:
  - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin?env=beta)
  - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32?env=beta)
 
-### Linux installers
+### Community releases
+
+There are several community-supported package managers that can be used to install GitHub Desktop:
+ - Windows users can install using [Chocolatey](https://chocolatey.org/) package manager:
+      `c:\> choco install github-desktop`
+ - macOS users can install using [Homebrew](https://brew.sh/) package manager:
+      `$ brew cask install github`
 
 Installer packages for various Linux distributions are available from the [`shiftkey/desktop`](https://github.com/shiftkey/desktop) fork of this project.
 
