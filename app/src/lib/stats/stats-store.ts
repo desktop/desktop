@@ -684,13 +684,14 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  /** Record that the user made a commit to a protected GitHub or GitHub Enterprise repository */
+  /** Record the user made a commit to a protected GitHub or GitHub Enterprise repository */
   public recordCommitToProtectedBranch(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       commitsToProtectedBranch: m.commitsToProtectedBranch + 1,
     }))
   }
 
+  /** Record the user made a commit to repository which has branch protections enabled */
   public recordCommitWithBranchProtectionsEnabled(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       commitWithBranchProtectionsEnabled: true,
