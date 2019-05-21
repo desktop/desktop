@@ -101,6 +101,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   suggestedStepPublishBranch: 0,
   suggestedStepCreatePullRequest: 0,
   commitsToProtectedBranch: 0,
+  commitWithBranchProtectionsEnabled: false,
 }
 
 interface IOnboardingStats {
