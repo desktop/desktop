@@ -12,6 +12,11 @@ import { IAPIRepository, IAPIBranch } from '../api'
 import { BaseStore } from './base-store'
 import { enableBranchProtectionWarning } from '../feature-flag'
 
+type BranchProtectionContext = {
+  readonly branchProtectionCount: number
+  readonly isProtected: boolean
+}
+
 /** The store for local repositories. */
 export class RepositoriesStore extends BaseStore {
   private db: RepositoriesDatabase
@@ -19,6 +24,16 @@ export class RepositoriesStore extends BaseStore {
   // Key-repo ID, Value-date
   private lastStashCheckCache = new Map<number, number>()
 
+  /**
+   * Key is the GitHubRepository id, value is the protected branch count reported
+   * by the GitHub API.
+   */
+  private branchProtectionCountCache = new Map<number, number>()
+
+  /**
+   * Key is the lookup by the GitHubRepository id and branch name, value is the
+   * flag whether this branch is considered protected by the GitHub API
+   */
   private branchProtectionCache = new Map<string, boolean>()
 
   public constructor(db: RepositoriesDatabase) {
@@ -436,6 +451,8 @@ export class RepositoriesStore extends BaseStore {
             this.branchProtectionCache.set(key, true)
           }
 
+          this.branchProtectionCountCache.set(repoId, branchRecords.length)
+
           await this.db.protectedBranches
             .where('repoId')
             .equals(repoId)
@@ -531,7 +548,24 @@ export class RepositoriesStore extends BaseStore {
     return record!.lastPruneDate
   }
 
-  public async isBranchProtected(
+  public async getBranchProtectionContext(
+    gitHubRepository: GitHubRepository,
+    branchName: string
+  ): Promise<BranchProtectionContext> {
+    const isProtected = await this.isBranchProtected(
+      gitHubRepository,
+      branchName
+    )
+    // TODO: wire up this logic
+    const branchProtectionCount = 0
+
+    return {
+      isProtected,
+      branchProtectionCount,
+    }
+  }
+
+  private async isBranchProtected(
     gitHubRepository: GitHubRepository,
     branchName: string
   ): Promise<boolean> {

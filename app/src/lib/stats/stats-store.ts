@@ -691,6 +691,12 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  public recordCommitWithBranchProtectionsEnabled(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      commitWithBranchProtectionsEnabled: true,
+    }))
+  }
+
   /** Set whether the user has opted out of stats reporting. */
   public async setOptOut(
     optOut: boolean,

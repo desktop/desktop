@@ -2382,10 +2382,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
           const { upstreamWithoutRemote } = gitStore.tip.branch
 
           if (upstreamWithoutRemote !== null) {
-            const isProtected = await this.repositoriesStore.isBranchProtected(
+            const {
+              branchProtectionCount,
+              isProtected,
+            } = await this.repositoriesStore.getBranchProtectionContext(
               repository.gitHubRepository,
               upstreamWithoutRemote
             )
+
+            if (branchProtectionCount > 0) {
+              this.statsStore.recordCommitWithBranchProtectionsEnabled()
+            }
 
             if (isProtected) {
               this.statsStore.recordCommitToProtectedBranch()
