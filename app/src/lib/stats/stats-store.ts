@@ -100,7 +100,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   suggestedStepPublishRepository: 0,
   suggestedStepPublishBranch: 0,
   suggestedStepCreatePullRequest: 0,
-  commitMadeToProtectedBranch: 0,
+  commitsMadeToProtectedBranch: 0,
 }
 
 interface IOnboardingStats {
@@ -686,7 +686,7 @@ export class StatsStore implements IStatsStore {
   /** Record that the user made a commit to a protected GitHub or GitHub Enterprise repository */
   public recordCommitMadeToProtectedBranch(): Promise<void> {
     return this.updateDailyMeasures(m => ({
-      commitMadeToProtectedBranch: m.commitMadeToProtectedBranch + 1,
+      commitsMadeToProtectedBranch: m.commitsMadeToProtectedBranch + 1,
     }))
   }
 
