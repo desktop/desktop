@@ -2023,6 +2023,7 @@ export class Dispatcher {
     return this.appStore._hideStashedChanges(repository)
   }
 
+  /** Overwrites a stash entry */
   public overwriteStashAndCheckout(
     repository: Repository,
     postStashAction: BranchAction
@@ -2030,6 +2031,10 @@ export class Dispatcher {
     return this.appStore._overwriteStashAndCheckout(repository, postStashAction)
   }
 
+  /**
+   * Creates a stash entry and check out the
+   * new branch using the given context
+   */
   public completeMoveToBranch(
     repository: Repository,
     stashAction: StashAction,

@@ -2803,6 +2803,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public _overwriteStashAndCheckout(
     repository: Repository,
     postStashAction: BranchAction
@@ -2814,6 +2815,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _completeMoveToBranch(
     repository: Repository,
     stashAction: StashAction,
