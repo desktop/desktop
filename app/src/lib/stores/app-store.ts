@@ -163,6 +163,7 @@ import {
   IMatchedGitHubRepository,
   matchGitHubRepository,
   repositoryMatchesRemote,
+  urlMatchesCloneURL,
 } from '../repository-matching'
 import {
   initializeRebaseFlowForConflictedRepository,
@@ -2381,7 +2382,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
           // look up if the tracked branch matches a protected remote branch
           const { upstreamWithoutRemote } = gitStore.tip.branch
 
-          if (upstreamWithoutRemote !== null) {
+          // ensure the remote associated with this branch is the one we
+          // are checking the branch protections against
+          const remoteURL = gitStore.currentRemote.url
+
+          if (
+            upstreamWithoutRemote !== null &&
+            urlMatchesCloneURL(remoteURL, repository.gitHubRepository)
+          ) {
             const {
               branchProtectionsFound,
               isProtected,
