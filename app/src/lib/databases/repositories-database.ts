@@ -23,8 +23,14 @@ export interface IDatabaseGitHubRepository {
   readonly lastPruneDate: number | null
 }
 
+/** A record to track the protected branch information for a GitHub repository */
 export interface IDatabaseProtectedBranch {
   readonly repoId: number
+  /**
+   * The branch name associated with the branch protection settings
+   *
+   * NOTE: this is NOT a fully-qualified ref (i.e. `refs/heads/master`)
+   */
   readonly name: string
 }
 

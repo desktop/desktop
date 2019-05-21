@@ -226,8 +226,20 @@ export interface IAPIRefStatus {
   readonly statuses: ReadonlyArray<IAPIRefStatusItem>
 }
 
+/** Branch information returned by the GitHub API */
 export interface IAPIBranch {
+  /**
+   * The name of the branch stored on the remote.
+   *
+   * NOTE: this is NOT a fully-qualified ref (i.e. `refs/heads/master`)
+   */
   readonly name: string
+  /**
+   * Branch protection settings:
+   *
+   *  - `true` indicates that the branch is protected in some way
+   *  - `false` indicates no branch protection set
+   */
   readonly protected: boolean
 }
 
