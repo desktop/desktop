@@ -1,5 +1,14 @@
 {
   "releases": {
+    "1.7.0-beta8": [
+      "[Added] Accelerator and access key to \"Exit\" menu item - #6507. Thanks @AndreiMaga!",
+      "[Fixed] Pressing \"Shift\" + \"Alt\" in Commit summary moves input-focus to app menu - #6366. Thanks @AndreiMaga!",
+      "[Fixed] Incorrectly encoding URLs affects issue filtering - #7506",
+      "[Improved] Command line interface warns with helpful message when given a remote URL - #7452. Thanks @msztech!",
+      "[Improved] Lowercase pronoun in \"Revert this commit\" menu item - #7534",
+      "[Improved] \"Pull Requests\" list reflects pull requests from GitHub more quickly - #7501",
+      "[Removed] Branch and pull request filter text persistence - #7437"
+    ],
     "1.7.0-beta7": [
       "[Improved] Error message when unable to publish private repository to an organization - #7472",
       "[Improved] \"Stashed changes\" button accessibility improvements - #7274",
@@ -71,6 +80,16 @@
       "[Improved] Visual feedback on \"Remove Repository\" and \"Discard Changes\" dialogs to show progress - #7015. Thanks @HashimotoYT!",
       "[Improved] Onboarding language for blank slate components - #6638. Thanks @jamesgeorge007!",
       "[Improved] Manually refresh pull requests instead of having to wait for a fetch - #7027"
+    ],
+    "1.6.6": [
+      "[Fixed] Clicking \"Undo\" doesn't repopulate summary in commit form - #6390. Thanks @humphd!",
+      "[Fixed] Handle error when unable to create log file for app - #7096",
+      "[Fixed] Crash when selecting text while the underlying diff changes - #7131"
+    ],
+    "1.6.6-test1": [
+      "[Fixed] Clicking \"Undo\" doesn't repopulate summary in commit form - #6390. Thanks @humphd!",
+      "[Fixed] Handle error when unable to create log file for app - #7096",
+      "[Fixed] Crash when selecting text while the underlying diff changes - #7131"
     ],
     "1.6.5": [
       "[Fixed] Publish Repository does not let you publish to an organization on your Enterprise account - #7052"
