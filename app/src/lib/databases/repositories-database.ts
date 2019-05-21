@@ -48,7 +48,7 @@ export interface IDatabaseRepository {
  * Branches are keyed on the ID of the GitHubRepository that they belong to
  * and the short name of the branch.
  */
-export type BranchKey = [number, string]
+type BranchKey = [number, string]
 
 /** The repositories database. */
 export class RepositoriesDatabase extends BaseDatabase {
