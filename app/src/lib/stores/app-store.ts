@@ -2388,7 +2388,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             )
 
             if (isProtected) {
-              this.statsStore.recordCommitMadeToProtectedBranch()
+              this.statsStore.recordCommitToProtectedBranch()
             }
           }
         }
