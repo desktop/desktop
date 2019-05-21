@@ -44,6 +44,12 @@ export interface IDatabaseRepository {
   readonly lastStashCheckDate: number | null
 }
 
+/**
+ * Branches are keyed on the ID of the GitHubRepository that they belong to
+ * and the short name of the branch.
+ */
+export type BranchKey = [number, string]
+
 /** The repositories database. */
 export class RepositoriesDatabase extends BaseDatabase {
   /** The local repositories table. */
@@ -53,10 +59,7 @@ export class RepositoriesDatabase extends BaseDatabase {
   public gitHubRepositories!: Dexie.Table<IDatabaseGitHubRepository, number>
 
   /** A table containing the names of protected branches per repository. */
-  public protectedBranches!: Dexie.Table<
-    IDatabaseProtectedBranch,
-    [number, string]
-  >
+  public protectedBranches!: Dexie.Table<IDatabaseProtectedBranch, BranchKey>
 
   /** The GitHub repository owners table. */
   public owners!: Dexie.Table<IDatabaseOwner, number>
