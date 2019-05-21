@@ -594,11 +594,15 @@ export class RepositoriesStore extends BaseStore {
     }
   }
 
+  /**
+   * Load the branch protection information for a repository from the database
+   * and cache the results in memory
+   */
   private async loadAndCacheBranchProtection(
     repoID: number,
     branchName: string
   ) {
-    //  hit the database to find any protected branches
+    // query the database to find any protected branches
     const branches = await this.db.protectedBranches
       .where('repoId')
       .equals(repoID)
@@ -607,13 +611,12 @@ export class RepositoriesStore extends BaseStore {
     const branchProtectionsFound = branches.length > 0
 
     // fill the retrieved records into the per-branch cache
-
     for (const branch of branches) {
       const key = getKey(repoID, branch.name)
       this.protectionEnabledForBranchCache.set(key, true)
     }
 
-    // find the current branch in the cache, or false if not found
+    // find the current branch in the cache, or return `false` if not found
     const key = getKey(repoID, branchName)
     const isProtected = this.protectionEnabledForBranchCache.get(key) || false
 
@@ -623,6 +626,7 @@ export class RepositoriesStore extends BaseStore {
     }
   }
 
+  /** Check for the branch protection of a given branch on the remote */
   private async isBranchProtected(
     repoID: number,
     branchName: string
