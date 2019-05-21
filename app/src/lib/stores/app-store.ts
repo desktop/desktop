@@ -2848,7 +2848,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository
     )
 
-    let transientStashEntry = null
+    let createdStashEntry = null
     if (enableStashing()) {
       const hasChanges = changesState.workingDirectory.files.length > 0
       if (
@@ -2887,7 +2887,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           await gitStore.performFailableOperation(() => {
             return createDesktopStashEntry(repository, foundBranch.name)
           })
-          transientStashEntry = await getLastDesktopStashEntryForBranch(
+          createdStashEntry = await getLastDesktopStashEntryForBranch(
             repository,
             foundBranch.name
           )
@@ -2924,7 +2924,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       checkoutSucceeded
     ) {
       const stashToPop =
-        transientStashEntry || uncommittedChangesStrategy.transientStashEntry
+        createdStashEntry || uncommittedChangesStrategy.transientStashEntry
       if (stashToPop !== null) {
         await gitStore.performFailableOperation(() => {
           return popStashEntry(repository, stashToPop.stashSha)
