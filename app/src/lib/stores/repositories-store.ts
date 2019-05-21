@@ -548,10 +548,10 @@ export class RepositoriesStore extends BaseStore {
       return existing
     }
 
-    const result = await this.db.protectedBranches.get({
-      repoId: gitHubRepository.dbID,
-      name: branchName,
-    })
+    const result = await this.db.protectedBranches.get([
+      gitHubRepository.dbID,
+      branchName,
+    ])
 
     const value = result !== undefined
 
