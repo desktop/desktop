@@ -2848,7 +2848,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository
     )
 
-    let transientStashCreated = false
+    let transientStashEntry = null
     if (enableStashing()) {
       const hasChanges = changesState.workingDirectory.files.length > 0
       if (
@@ -2887,7 +2887,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
           await gitStore.performFailableOperation(() => {
             return createDesktopStashEntry(repository, foundBranch.name)
           })
-          transientStashCreated = true
+          transientStashEntry = await getLastDesktopStashEntryForBranch(
+            repository,
+            foundBranch.name
+          )
         }
       }
     }
@@ -2920,22 +2923,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
         UncommittedChangesStrategyKind.moveToNewBranch &&
       checkoutSucceeded
     ) {
-      const { transientStashEntry } = uncommittedChangesStrategy
-      if (transientStashEntry !== null) {
+      const stashToPop =
+        transientStashEntry || uncommittedChangesStrategy.transientStashEntry
+      if (stashToPop !== null) {
         await gitStore.performFailableOperation(() => {
-          return popStashEntry(repository, transientStashEntry.stashSha)
+          return popStashEntry(repository, stashToPop.stashSha)
         })
-      } else if (transientStashCreated) {
-        const transientStashEntry = await getLastDesktopStashEntryForBranch(
-          repository,
-          foundBranch.name
-        )
-
-        if (transientStashEntry !== null) {
-          await gitStore.performFailableOperation(() => {
-            return popStashEntry(repository, transientStashEntry.stashSha)
-          })
-        }
       }
     }
 
