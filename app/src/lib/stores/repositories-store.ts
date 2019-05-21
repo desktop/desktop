@@ -12,8 +12,14 @@ import { IAPIRepository, IAPIBranch } from '../api'
 import { BaseStore } from './base-store'
 import { enableBranchProtectionWarning } from '../feature-flag'
 
+/**
+ * Branch protection information associated with a given GitHub or GitHub
+ * Enterprise repository.
+ */
 type BranchProtectionContext = {
+  /** Does the repository have any branch protections enabled? */
   readonly branchProtectionsFound: boolean
+  /** Is the current branch marked as protected on the remote repository? */
   readonly isProtected: boolean
 }
 
