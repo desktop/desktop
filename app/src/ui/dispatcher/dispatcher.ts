@@ -414,7 +414,7 @@ export class Dispatcher {
     repository: Repository,
     name: string,
     startPoint: string | null
-  ): Promise<Repository> {
+  ): Promise<boolean> {
     return this.appStore._createBranch(repository, name, startPoint)
   }
 
@@ -422,7 +422,7 @@ export class Dispatcher {
   public checkoutBranch(
     repository: Repository,
     branch: Branch | string
-  ): Promise<Repository> {
+  ): Promise<boolean> {
     return this.appStore._checkoutBranch(repository, branch)
   }
 
@@ -2026,9 +2026,9 @@ export class Dispatcher {
   /** Overwrites a stash entry */
   public overwriteStashAndCheckout(
     repository: Repository,
-    context: StashContext
+    stashContext: StashContext
   ) {
-    return this.appStore._overwriteStashAndCheckout(repository, context)
+    return this.appStore._overwriteStashAndCheckout(repository, stashContext)
   }
 
   /**

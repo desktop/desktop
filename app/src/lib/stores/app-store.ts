@@ -2766,18 +2766,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     name: string,
     startPoint: string | null
-  ): Promise<Repository> {
+  ): Promise<boolean> {
     const gitStore = this.gitStoreCache.get(repository)
     const branch = await gitStore.performFailableOperation(() =>
       createBranch(repository, name, startPoint)
     )
     if (branch == null) {
-      return repository
+      return false
     }
 
-    const repo = await this._checkoutBranch(repository, branch)
+    const didCheckoutSucceed = await this._checkoutBranch(repository, branch)
     this._closePopup()
-    return repo
+    return didCheckoutSucceed
   }
 
   private updateCheckoutProgress(
@@ -2840,8 +2840,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     // Do the checkout
+    let didCheckoutSucceed = false
     if (stashContext.kind === CheckoutAction.Checkout) {
-      await this._checkoutBranch(repository, stashContext.branch)
+      didCheckoutSucceed = await this._checkoutBranch(
+        repository,
+        stashContext.branch
+      )
     } else {
       await this._createBranch(
         repository,
@@ -2851,7 +2855,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const gitStore = this.gitStoreCache.get(repository)
-    if (shouldPopStash) {
+    if (shouldPopStash && didCheckoutSucceed) {
       const stash = await getLastDesktopStashEntryForBranch(repository, branch)
       if (stash !== null) {
         await gitStore.performFailableOperation(() => {
@@ -2876,7 +2880,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _checkoutBranch(
     repository: Repository,
     branch: Branch | string
-  ): Promise<Repository> {
+  ): Promise<boolean> {
     const gitStore = this.gitStoreCache.get(repository)
     const kind = 'checkout'
     const foundBranch =
@@ -2885,26 +2889,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
         : branch
 
     if (foundBranch == null) {
-      return repository
+      return false
     }
 
     const { branchesState } = this.repositoryStateCache.get(repository)
 
-    await this.withAuthenticatingUser(repository, (repository, account) =>
-      gitStore.performFailableOperation(
-        () =>
-          checkoutBranch(repository, account, foundBranch, progress => {
-            this.updateCheckoutProgress(repository, progress)
-          }),
-        {
-          repository,
-          retryAction: {
-            type: RetryActionType.Checkout,
+    const result = await this.withAuthenticatingUser(
+      repository,
+      (repository, account) =>
+        gitStore.performFailableOperation(
+          () =>
+            checkoutBranch(repository, account, foundBranch, progress => {
+              this.updateCheckoutProgress(repository, progress)
+            }),
+          {
             repository,
-            branch,
-          },
-        }
-      )
+            retryAction: {
+              type: RetryActionType.Checkout,
+              repository,
+              branch,
+            },
+          }
+        )
     )
 
     // Make sure changes or suggested next step are visible after branch checkout
@@ -2931,7 +2937,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.statsStore.recordNonDefaultBranchCheckout()
     }
 
-    return repository
+    return result !== undefined
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
