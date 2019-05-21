@@ -548,12 +548,12 @@ export class RepositoriesStore extends BaseStore {
       return existing
     }
 
-    const result = await this.db.protectedBranches
-      .where('[repoId+name]')
-      .equals([gitHubRepository.dbID, branchName])
-      .first()
+    const result = await this.db.protectedBranches.get({
+      repoId: gitHubRepository.dbID,
+      name: branchName,
+    })
 
-    const value = !!result
+    const value = result !== undefined
 
     this.branchProtectionCache.set(key, value)
 
