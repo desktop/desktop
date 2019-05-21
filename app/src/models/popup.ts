@@ -8,7 +8,7 @@ import { WorkingDirectoryFileChange } from './status'
 import { PreferencesTab } from './preferences'
 import { ICommitContext } from './commit'
 import { IStashEntry } from './stash-entry'
-import { BranchAction } from './uncommitted-changes-strategy'
+import { StashContext } from './uncommitted-changes-strategy'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -177,12 +177,12 @@ export type Popup =
   | {
       type: PopupType.StashAndSwitchBranch
       repository: Repository
-      branchAction: BranchAction
+      stashContext: StashContext
     }
   | {
       type: PopupType.ConfirmOverwriteStash
       repository: Repository
-      branchAction: BranchAction
+      stashContext: StashContext
     }
   | {
       type: PopupType.ConfirmDiscardStash

@@ -8,8 +8,8 @@ import { Branch } from '../../models/branch'
 import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
 import {
-  StashAction,
-  BranchAction,
+  UncommittedChangesAction,
+  StashContext,
   getBranchName,
 } from '../../models/uncommitted-changes-strategy'
 import { Octicon, OcticonSymbol } from '../octicons'
@@ -21,7 +21,7 @@ interface ISwitchBranchProps {
   readonly currentBranch: Branch
 
   /** The branch to checkout after the user selects a stash action */
-  readonly branchAction: BranchAction
+  readonly stashContext: StashContext
 
   /** Whether `currentBranch` has an existing stash association */
   readonly hasAssociatedStash: boolean
@@ -30,7 +30,7 @@ interface ISwitchBranchProps {
 
 interface ISwitchBranchState {
   readonly isStashingChanges: boolean
-  readonly selectedStashAction: StashAction
+  readonly uncommittedChangesAction: UncommittedChangesAction
   readonly currentBranchName: string
 }
 
@@ -47,7 +47,7 @@ export class StashAndSwitchBranch extends React.Component<
 
     this.state = {
       isStashingChanges: false,
-      selectedStashAction: StashAction.StashOnCurrentBranch,
+      uncommittedChangesAction: UncommittedChangesAction.StashOnCurrentBranch,
       currentBranchName: props.currentBranch.name,
     }
   }
@@ -82,7 +82,8 @@ export class StashAndSwitchBranch extends React.Component<
   private renderStashOverwriteWarning() {
     if (
       !this.props.hasAssociatedStash ||
-      this.state.selectedStashAction !== StashAction.StashOnCurrentBranch
+      this.state.uncommittedChangesAction !==
+        UncommittedChangesAction.StashOnCurrentBranch
     ) {
       return null
     }
@@ -103,7 +104,7 @@ export class StashAndSwitchBranch extends React.Component<
           'Your in-progress work will be stashed on this branch for you to return to later',
       },
       {
-        title: `Bring my changes to ${getBranchName(this.props.stashAction)}`,
+        title: `Bring my changes to ${getBranchName(this.props.stashContext)}`,
         description: 'Your in-progress work will follow you to the new branch',
       },
     ]
@@ -113,15 +114,15 @@ export class StashAndSwitchBranch extends React.Component<
         <VerticalSegmentedControl
           label="You have changes on this branch. What would you like to do with them?"
           items={items}
-          selectedIndex={this.state.selectedStashAction}
+          selectedIndex={this.state.uncommittedChangesAction}
           onSelectionChanged={this.onSelectionChanged}
         />
       </Row>
     )
   }
 
-  private onSelectionChanged = (action: StashAction) => {
-    this.setState({ selectedStashAction: action })
+  private onSelectionChanged = (action: UncommittedChangesAction) => {
+    this.setState({ uncommittedChangesAction: action })
   }
 
   private onSubmit = async () => {
@@ -129,17 +130,18 @@ export class StashAndSwitchBranch extends React.Component<
       repository,
       dispatcher,
       hasAssociatedStash,
-      branchAction,
+      stashContext: branchAction,
     } = this.props
 
     if (
-      this.state.selectedStashAction === StashAction.StashOnCurrentBranch &&
+      this.state.uncommittedChangesAction ===
+        UncommittedChangesAction.StashOnCurrentBranch &&
       hasAssociatedStash
     ) {
       dispatcher.showPopup({
         type: PopupType.ConfirmOverwriteStash,
         repository,
-        branchAction,
+        stashContext: branchAction,
       })
       return
     }
@@ -156,8 +158,8 @@ export class StashAndSwitchBranch extends React.Component<
   }
 
   private async stashAndCheckout() {
-    const { repository, branchAction, dispatcher } = this.props
-    const { selectedStashAction } = this.state
+    const { repository, stashContext: branchAction, dispatcher } = this.props
+    const { uncommittedChangesAction: selectedStashAction } = this.state
 
     await dispatcher.completeMoveToBranch(
       repository,

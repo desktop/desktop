@@ -227,10 +227,10 @@ import {
   dropDesktopStashEntry,
 } from '../git/stash'
 import {
-  StashAction,
-  BranchAction,
+  UncommittedChangesAction,
+  StashContext,
   getBranchName,
-  BranchActionKind,
+  CheckoutAction,
 } from '../../models/uncommitted-changes-strategy'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
@@ -2806,25 +2806,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _overwriteStashAndCheckout(
     repository: Repository,
-    postStashAction: BranchAction
+    stashContext: StashContext
   ) {
     this._completeMoveToBranch(
       repository,
-      StashAction.StashOnCurrentBranch,
-      postStashAction
+      UncommittedChangesAction.StashOnCurrentBranch,
+      stashContext
     )
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _completeMoveToBranch(
     repository: Repository,
-    stashAction: StashAction,
-    branchAction: BranchAction
+    uncommittedChangesAction: UncommittedChangesAction,
+    stashContext: StashContext
   ) {
-    const branch = getBranchName(branchAction)
-
+    const branch = getBranchName(stashContext)
     let shouldPopStash = false
-    if (stashAction === StashAction.MoveToNewBranch) {
+    if (uncommittedChangesAction === UncommittedChangesAction.MoveToNewBranch) {
       await createDesktopStashEntry(repository, branch)
       shouldPopStash = true
     } else {
@@ -2841,18 +2840,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     // Do the checkout
-    if (branchAction.type === BranchActionKind.Checkout) {
-      await this._checkoutBranch(repository, branchAction.branch)
+    if (stashContext.kind === CheckoutAction.Checkout) {
+      await this._checkoutBranch(repository, stashContext.branch)
     } else {
       await this._createBranch(
         repository,
-        branchAction.branchName,
-        branchAction.startPoint
+        stashContext.branchName,
+        stashContext.startPoint
       )
     }
 
     const gitStore = this.gitStoreCache.get(repository)
-    // Do the stuff after checkout completes
     if (shouldPopStash) {
       const stash = await getLastDesktopStashEntryForBranch(repository, branch)
       if (stash !== null) {

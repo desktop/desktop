@@ -22,7 +22,7 @@ import { IBranchListItem } from './group-branches'
 import { renderDefaultBranch } from './branch-renderer'
 import { IMatches } from '../../lib/fuzzy-find'
 import { enableStashing } from '../../lib/feature-flag'
-import { BranchActionKind } from '../../models/uncommitted-changes-strategy'
+import { CheckoutAction } from '../../models/uncommitted-changes-strategy'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -242,8 +242,8 @@ export class BranchesContainer extends React.Component<
       if (enableStashing() && this.props.hasUncommitedChanges) {
         this.props.dispatcher.showPopup({
           type: PopupType.StashAndSwitchBranch,
-          branchAction: {
-            type: BranchActionKind.Checkout,
+          stashContext: {
+            kind: CheckoutAction.Checkout,
             branch: branch,
           },
           repository: this.props.repository,

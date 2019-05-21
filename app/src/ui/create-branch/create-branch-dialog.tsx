@@ -27,7 +27,7 @@ import { getStartPoint } from '../../lib/create-branch'
 import { enableStashing } from '../../lib/feature-flag'
 import { WorkingDirectoryStatus } from '../../models/status'
 import { PopupType } from '../../models/popup'
-import { BranchActionKind } from '../../models/uncommitted-changes-strategy'
+import { CheckoutAction } from '../../models/uncommitted-changes-strategy'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -302,8 +302,8 @@ export class CreateBranch extends React.Component<
       if (enableStashing() && hasChanges) {
         this.props.dispatcher.showPopup({
           type: PopupType.StashAndSwitchBranch,
-          branchAction: {
-            type: BranchActionKind.Create,
+          stashContext: {
+            kind: CheckoutAction.Create,
             branchName: name,
             startPoint,
           },

@@ -82,8 +82,8 @@ import {
 } from '../../lib/stores/commit-status-store'
 import { MergeResult } from '../../models/merge'
 import {
-  StashAction,
-  BranchAction,
+  UncommittedChangesAction,
+  StashContext,
 } from '../../models/uncommitted-changes-strategy'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { IStashEntry } from '../../models/stash-entry'
@@ -2026,9 +2026,9 @@ export class Dispatcher {
   /** Overwrites a stash entry */
   public overwriteStashAndCheckout(
     repository: Repository,
-    postStashAction: BranchAction
+    context: StashContext
   ) {
-    return this.appStore._overwriteStashAndCheckout(repository, postStashAction)
+    return this.appStore._overwriteStashAndCheckout(repository, context)
   }
 
   /**
@@ -2037,13 +2037,13 @@ export class Dispatcher {
    */
   public completeMoveToBranch(
     repository: Repository,
-    stashAction: StashAction,
-    postStashAction: BranchAction
+    uncommittedChangesAction: UncommittedChangesAction,
+    stashContext: StashContext
   ) {
     return this.appStore._completeMoveToBranch(
       repository,
-      stashAction,
-      postStashAction
+      uncommittedChangesAction,
+      stashContext
     )
   }
 }

@@ -1,30 +1,40 @@
 import { Branch } from './branch'
 
-export enum StashAction {
+/**
+ * Represents the various actions that can be
+ * taken with uncommitted changes
+ */
+export enum UncommittedChangesAction {
   StashOnCurrentBranch,
   MoveToNewBranch,
 }
 
-export enum BranchActionKind {
+/**
+ * Represents the reasons why a branch
+ * is being checked out
+ */
+export enum CheckoutAction {
   Checkout,
   Create,
 }
 
-export type BranchAction =
+/** Context used by stashing operations */
+export type StashContext =
   | {
-      type: BranchActionKind.Checkout
+      kind: CheckoutAction.Checkout
       branch: Branch
     }
   | {
-      type: BranchActionKind.Create
+      kind: CheckoutAction.Create
       branchName: string
       startPoint: string | null
     }
 
-export function getBranchName(postStashAction: BranchAction) {
-  if (postStashAction.type === BranchActionKind.Checkout) {
-    return postStashAction.branch.name
+/** Returns the branch name from stash context */
+export function getBranchName(context: StashContext) {
+  if (context.kind === CheckoutAction.Checkout) {
+    return context.branch.name
   }
 
-  return postStashAction.branchName
+  return context.branchName
 }
