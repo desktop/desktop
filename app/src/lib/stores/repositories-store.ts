@@ -557,43 +557,55 @@ export class RepositoriesStore extends BaseStore {
         'unable to get protected branches, GitHub repository has a null dbID'
       )
     }
-
-    let branchProtectionsFound = false
-    let isProtected = false
-
     const cachedBranchProtectionFound = this.branchProtectionFoundCache.get(
       gitHubRepository.dbID
     )
 
     if (cachedBranchProtectionFound === undefined) {
-      //  hit the database to find any protected branches
-      const branches = await this.db.protectedBranches
-        .where('repoId')
-        .equals(gitHubRepository.dbID)
-        .toArray()
-
-      branchProtectionsFound = branches.length > 0
-
-      // fill the retrieved records into the per-branch cache
-
-      for (const branch of branches) {
-        const key = getKey(gitHubRepository.dbID, branch.name)
-        this.branchProtectionCache.set(key, true)
-      }
-
-      // find the current branch in the cache, or false if not found
-      const key = getKey(gitHubRepository.dbID, branchName)
-      isProtected = this.branchProtectionCache.get(key) || false
+      return this.loadAndCacheBranchProtection(
+        gitHubRepository.dbID,
+        branchName
+      )
     } else {
-      branchProtectionsFound = cachedBranchProtectionFound
-
       // fall back to the current behaviour for now
-      isProtected = await this.isBranchProtected(gitHubRepository, branchName)
+      const isProtected = await this.isBranchProtected(
+        gitHubRepository,
+        branchName
+      )
+
+      return {
+        branchProtectionsFound: cachedBranchProtectionFound,
+        isProtected,
+      }
+    }
+  }
+
+  private async loadAndCacheBranchProtection(
+    repoID: number,
+    branchName: string
+  ) {
+    //  hit the database to find any protected branches
+    const branches = await this.db.protectedBranches
+      .where('repoId')
+      .equals(repoID)
+      .toArray()
+
+    const branchProtectionsFound = branches.length > 0
+
+    // fill the retrieved records into the per-branch cache
+
+    for (const branch of branches) {
+      const key = getKey(repoID, branch.name)
+      this.branchProtectionCache.set(key, true)
     }
 
+    // find the current branch in the cache, or false if not found
+    const key = getKey(repoID, branchName)
+    const isProtected = this.branchProtectionCache.get(key) || false
+
     return {
-      isProtected,
       branchProtectionsFound,
+      isProtected,
     }
   }
 
