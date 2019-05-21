@@ -451,14 +451,17 @@ export class RepositoriesStore extends BaseStore {
             this.protectionEnabledForBranchCache.set(key, true)
           }
 
-          this.branchProtectionSettingsFoundCache.set(repoId, true)
-
           await this.db.protectedBranches
             .where('repoId')
             .equals(repoId)
             .delete()
 
-          await this.db.protectedBranches.bulkAdd(branchRecords)
+          const protectionsFound = branchRecords.length > 0
+          this.branchProtectionSettingsFoundCache.set(repoId, protectionsFound)
+
+          if (branchRecords.length > 0) {
+            await this.db.protectedBranches.bulkAdd(branchRecords)
+          }
         }
 
         return updatedGitHubRepo
