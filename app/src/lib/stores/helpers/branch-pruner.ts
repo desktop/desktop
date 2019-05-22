@@ -1,6 +1,6 @@
 import { Repository } from '../../../models/repository'
 import { RepositoriesStore } from '../repositories-store'
-import { Branch } from '../../../models/branch'
+import { Branch, BranchType } from '../../../models/branch'
 import { GitStoreCache } from '../git-store-cache'
 import {
   getMergedBranches,
@@ -114,7 +114,7 @@ export class BranchPruner {
 
     // Get list of branches that have been merged
     const { branchesState } = this.repositoriesStateCache.get(this.repository)
-    const { defaultBranch } = branchesState
+    const { defaultBranch, allBranches } = branchesState
 
     if (defaultBranch === null) {
       return
@@ -149,13 +149,32 @@ export class BranchPruner {
       mb => !ReservedRefs.includes(mb.canonicalRef)
     )
 
-    const branchesReadyForPruning = candidateBranches.filter(
-      mb => !recentlyCheckedOutCanonicalRefs.has(mb.canonicalRef)
-    )
+    const branchesReadyForPruning = candidateBranches.filter(mb => {
+      if (recentlyCheckedOutCanonicalRefs.has(mb.canonicalRef)) {
+        return false
+      }
 
-    // TODO: find the local branch in repository state
-    // TODO: find if it is tracking a remote ref
-    // TODO: if that remote ref exists, exclude local branch from list
+      const localBranch = allBranches.find(
+        b => b.type === BranchType.Local && b.name === mb.canonicalRef
+      )
+
+      if (localBranch === undefined) {
+        // if we can't find this ref in repository state, should we preserve it?
+        debugger
+        return false
+      }
+
+      if (localBranch.upstream !== null) {
+        // the upstream ref for this branch has not been deleted, we should
+        // not clean this up even if it has been merged
+        debugger
+        return false
+      }
+
+      debugger
+
+      return true
+    })
 
     log.info(
       `Pruning ${
