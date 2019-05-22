@@ -78,10 +78,18 @@ export function enableGroupRepositoriesByOwner(): boolean {
 
 /** Should the app show the "rebase current branch" dialog? */
 export function enableRebaseDialog(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should the app show the "stash changes" dialog? */
 export function enableStashing(): boolean {
   return enableBetaFeatures()
+}
+
+/**
+ * Should the app warn the user when they are committing that they are using a
+ * protected branch?
+ */
+export function enableBranchProtectionWarning(): boolean {
+  return enableDevelopmentFeatures()
 }

@@ -2,13 +2,15 @@ import {
   RepositoriesDatabase,
   IDatabaseGitHubRepository,
   IDatabaseOwner,
+  IDatabaseProtectedBranch,
 } from '../databases/repositories-database'
 import { Owner } from '../../models/owner'
 import { GitHubRepository } from '../../models/github-repository'
 import { Repository } from '../../models/repository'
 import { fatalError } from '../fatal-error'
-import { IAPIRepository } from '../api'
+import { IAPIRepository, IAPIBranch } from '../api'
 import { BaseStore } from './base-store'
+import { enableBranchProtectionWarning } from '../feature-flag'
 
 /** The store for local repositories. */
 export class RepositoriesStore extends BaseStore {
@@ -16,6 +18,8 @@ export class RepositoriesStore extends BaseStore {
 
   // Key-repo ID, Value-date
   private lastStashCheckCache = new Map<number, number>()
+
+  private branchProtectionCache = new Map<string, boolean>()
 
   public constructor(db: RepositoriesDatabase) {
     super()
@@ -374,7 +378,8 @@ export class RepositoriesStore extends BaseStore {
   public async updateGitHubRepository(
     repository: Repository,
     endpoint: string,
-    gitHubRepository: IAPIRepository
+    gitHubRepository: IAPIRepository,
+    branches: ReadonlyArray<IAPIBranch>
   ): Promise<Repository> {
     const repoID = repository.id
     if (!repoID) {
@@ -387,6 +392,7 @@ export class RepositoriesStore extends BaseStore {
       'rw',
       this.db.repositories,
       this.db.gitHubRepositories,
+      this.db.protectedBranches,
       this.db.owners,
       async () => {
         const localRepo = (await this.db.repositories.get(repoID))!
@@ -398,6 +404,45 @@ export class RepositoriesStore extends BaseStore {
         await this.db.repositories.update(localRepo.id!, {
           gitHubRepositoryID: updatedGitHubRepo.dbID,
         })
+
+        if (enableBranchProtectionWarning()) {
+          const repoId = updatedGitHubRepo.dbID!
+
+          // This update flow is organized into two stages:
+          //
+          // - update the in-memory cache
+          // - update the underyling database state
+          //
+          // This should ensure any stale values are not being used, and avoids
+          // the need to query the database while the results are in memory.
+
+          const prefix = getKeyPrefix(repoId)
+
+          for (const key of this.branchProtectionCache.keys()) {
+            // invalidate any cached entries belonging to this repository
+            if (key.startsWith(prefix)) {
+              this.branchProtectionCache.delete(key)
+            }
+          }
+
+          const branchRecords = branches.map<IDatabaseProtectedBranch>(b => ({
+            repoId,
+            name: b.name,
+          }))
+
+          // update cached values to avoid database lookup
+          for (const item of branchRecords) {
+            const key = getKey(repoId, item.name)
+            this.branchProtectionCache.set(key, true)
+          }
+
+          await this.db.protectedBranches
+            .where('repoId')
+            .equals(repoId)
+            .delete()
+
+          await this.db.protectedBranches.bulkAdd(branchRecords)
+        }
 
         return updatedGitHubRepo
       }
@@ -485,4 +530,43 @@ export class RepositoriesStore extends BaseStore {
 
     return record!.lastPruneDate
   }
+
+  public async isBranchProtected(
+    gitHubRepository: GitHubRepository,
+    branchName: string
+  ): Promise<boolean> {
+    if (gitHubRepository.dbID === null) {
+      return fatalError(
+        'unable to get protected branches, GitHub repository has a null dbID'
+      )
+    }
+
+    const key = getKey(gitHubRepository.dbID, branchName)
+
+    const existing = this.branchProtectionCache.get(key)
+    if (existing !== undefined) {
+      return existing
+    }
+
+    const result = await this.db.protectedBranches.get([
+      gitHubRepository.dbID,
+      branchName,
+    ])
+
+    const value = result !== undefined
+
+    this.branchProtectionCache.set(key, value)
+
+    return value
+  }
+}
+
+/** Compute the key for the branch protection cache */
+function getKey(dbID: number, branchName: string) {
+  return `${getKeyPrefix(dbID)}${branchName}`
+}
+
+/** Compute the key prefix for the branch protection cache */
+function getKeyPrefix(dbID: number) {
+  return `${dbID}-`
 }
