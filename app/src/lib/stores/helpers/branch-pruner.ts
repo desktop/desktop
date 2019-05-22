@@ -107,7 +107,11 @@ export class BranchPruner {
 
     // Using type coelescing behavior to deal with Dexie returning `undefined`
     // for records that haven't been updated with the new field yet
-    if (lastPruneDate != null && threshold.isBefore(lastPruneDate)) {
+    if (
+      !__DEV__ &&
+      lastPruneDate != null &&
+      threshold.isBefore(lastPruneDate)
+    ) {
       log.info(
         `[Branch Pruner] last prune took place ${moment(lastPruneDate).from(
           dateNow
