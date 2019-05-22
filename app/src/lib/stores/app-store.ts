@@ -2928,8 +2928,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     ) {
       stashToPop = stashToPop || uncommittedChangesStrategy.transientStashEntry
       if (stashToPop !== null) {
+        const stashSha = stashToPop.stashSha
         await gitStore.performFailableOperation(() => {
-          return popStashEntry(repository, stashToPop!.stashSha)
+          return popStashEntry(repository, stashSha)
         })
       }
     }
