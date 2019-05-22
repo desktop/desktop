@@ -557,6 +557,10 @@ export class RepositoriesStore extends BaseStore {
     return record!.lastPruneDate
   }
 
+  /**
+   * Inspect the cache or database to find out information about the branch
+   * protection configuration for the current repository and branch.
+   */
   public async getBranchProtectionContext(
     gitHubRepository: GitHubRepository,
     branchName: string
