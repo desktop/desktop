@@ -195,22 +195,6 @@ export class Dispatcher {
     return this.appStore._setRepositoryFilterText(text)
   }
 
-  /** Set the branch filter text. */
-  public setBranchFilterText(
-    repository: Repository,
-    text: string
-  ): Promise<void> {
-    return this.appStore._setBranchFilterText(repository, text)
-  }
-
-  /** Set the branch filter text. */
-  public setPullRequestFilterText(
-    repository: Repository,
-    text: string
-  ): Promise<void> {
-    return this.appStore._setPullRequestFilterText(repository, text)
-  }
-
   /** Select the repository. */
   public selectRepository(
     repository: Repository | CloningRepository
@@ -1971,6 +1955,11 @@ export class Dispatcher {
    */
   public recordRebaseConflictsDialogReopened() {
     this.statsStore.recordRebaseConflictsDialogReopened()
+  }
+
+  /** Increments the `errorWhenSwitchingBranchesWithUncommmittedChanges` metric */
+  public recordErrorWhenSwitchingBranchesWithUncommmittedChanges() {
+    return this.statsStore.recordErrorWhenSwitchingBranchesWithUncommmittedChanges()
   }
 
   /**

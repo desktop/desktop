@@ -118,7 +118,10 @@ export class CommitMessage extends React.Component<
   public componentWillUnmount() {
     // We're unmounting, likely due to the user switching to the history tab.
     // Let's persist our commit message in the dispatcher.
-    this.props.dispatcher.setCommitMessage(this.props.repository, this.state)
+    this.props.dispatcher.setCommitMessage(this.props.repository, {
+      summary: this.state.summary,
+      description: this.state.description,
+    })
   }
 
   /**
