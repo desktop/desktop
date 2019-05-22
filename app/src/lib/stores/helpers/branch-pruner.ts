@@ -4,7 +4,7 @@ import { Branch, BranchType } from '../../../models/branch'
 import { GitStoreCache } from '../git-store-cache'
 import {
   getMergedBranches,
-  getCheckoutsAfterDate,
+  getBranchCheckouts,
   getSymbolicRef,
   IMergedBranch,
   formatAsLocalRef,
@@ -62,6 +62,10 @@ export class BranchPruner {
 
     clearInterval(this.timer)
     this.timer = null
+  }
+
+  public async prune(): Promise<void> {
+    return this.pruneLocalBranches()
   }
 
   private async findBranchesMergedIntoDefaultBranch(
@@ -135,7 +139,7 @@ export class BranchPruner {
       .subtract(2, 'weeks')
       .toDate()
 
-    const recentlyCheckedOutBranches = await getCheckoutsAfterDate(
+    const recentlyCheckedOutBranches = await getBranchCheckouts(
       this.repository,
       twoWeeksAgo
     )
@@ -193,6 +197,16 @@ export class BranchPruner {
       }
 
       const branchName = branch.canonicalRef.substr(branchRefPrefix.length)
+
+      // don't delete branches when in development mode to help with testing
+      if (__DEV__) {
+        log.info(
+          `[Branch Pruner] ${branchName} (was ${
+            branch.sha
+          }) has been marked for pruning.`
+        )
+        continue
+      }
 
       const isDeleted = await gitStore.performFailableOperation(() =>
         deleteLocalBranch(this.repository, branchName)
