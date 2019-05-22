@@ -451,7 +451,13 @@ export async function localChangesOverwrittenHandler(
     return error
   }
 
-  if (gitContext == null) {
+  // This indicates to us whether the action which triggered the
+  // LocalChangesOverwritten was the AppStore _checkoutBranch method.
+  // Other actions that might trigger this error such as deleting
+  // a branch will not provide this specific gitContext and that's
+  // how we know we can safely move the changes to the destination
+  // branch.
+  if (gitContext === undefined || gitContext.kind !== 'checkout') {
     return error
   }
 
