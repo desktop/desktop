@@ -1339,7 +1339,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.pullRequestStore.getAll(gitHubRepository).then(prs => {
         this.onPullRequestChanged(gitHubRepository, prs)
       })
-      this._refreshPullRequests(repository)
     }
 
     // The selected repository could have changed while we were refreshing.
@@ -1437,13 +1436,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private startPullRequestUpdater(repository: Repository) {
     if (this.currentPullRequestUpdater) {
-      fatalError(
-        `A pull request updater is already active and cannot start updating on ${nameOf(
-          repository
-        )}`
-      )
-
-      return
+      this.stopPullRequestUpdater()
     }
 
     // We don't want to run the pull request updater when the app is in
@@ -3757,7 +3750,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.updatePushPullFetchProgress(repository, null)
 
         if (fetchType === FetchType.UserInitiatedTask) {
-          this._refreshPullRequests(repository)
           if (repository.gitHubRepository != null) {
             this._refreshIssues(repository.gitHubRepository)
           }
