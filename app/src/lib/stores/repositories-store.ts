@@ -20,7 +20,7 @@ type BranchProtectionContext = {
   /** Does the repository have any branch protections enabled? */
   readonly branchProtectionsFound: boolean
   /** Is the current branch marked as protected on the remote repository? */
-  readonly isProtected: boolean
+  readonly isRemoteBranchProtected: boolean
 }
 
 /** The store for local repositories. */
@@ -578,11 +578,14 @@ export class RepositoriesStore extends BaseStore {
     } else if (branchProtectionsFound) {
       // as we know branch protections are enabled for the repository, check
       // this specific branch either in the cache or the database
-      const isProtected = await this.isBranchProtected(repoID, branchName)
+      const isRemoteBranchProtected = await this.isBranchProtected(
+        repoID,
+        branchName
+      )
 
       return {
         branchProtectionsFound,
-        isProtected,
+        isRemoteBranchProtected,
       }
     }
 
@@ -590,7 +593,7 @@ export class RepositoriesStore extends BaseStore {
     // current branch cannot be protected
     return {
       branchProtectionsFound,
-      isProtected: false,
+      isRemoteBranchProtected: false,
     }
   }
 
@@ -618,11 +621,12 @@ export class RepositoriesStore extends BaseStore {
 
     // find the current branch in the cache, or return `false` if not found
     const key = getKey(repoID, branchName)
-    const isProtected = this.protectionEnabledForBranchCache.get(key) || false
+    const isRemoteBranchProtected =
+      this.protectionEnabledForBranchCache.get(key) || false
 
     return {
       branchProtectionsFound,
-      isProtected,
+      isRemoteBranchProtected,
     }
   }
 
