@@ -171,31 +171,31 @@ export class BranchPruner {
       )
 
       if (localBranch === undefined) {
-        // if we can't find this ref in repository state, should we preserve it?
-        debugger
+        // unable to find the local branch in repository state, this feels
+        // sufficient concerning to indicate we shouldn't try and delete this
+        // reference
         return false
       }
 
       if (localBranch.upstream === null) {
-        // no upstream ref is known for this branch, which means we can clean it
-        // up fine
-        debugger
+        // no remote ref is being tracked for this branch, which means it
+        // most likely wasn't pushed to the remote, so we can include this
+        // in our prune list
         return true
       }
 
-      const remoteBranch = allBranches.find(
+      const remoteRef = allBranches.find(
         b => b.type === BranchType.Remote && b.name === localBranch.upstream
       )
 
-      if (remoteBranch !== null) {
-        // upstream ref still exists on the remote, so we should not prune it
-        debugger
-        return false
+      if (remoteRef === undefined) {
+        // the remote ref cannot be found for this branch, which is a good
+        // indicator it was deleted from the repository and can be cleaned up
+        // here too
+        return true
       }
 
-      debugger
-
-      return true
+      return false
     })
 
     log.info(
