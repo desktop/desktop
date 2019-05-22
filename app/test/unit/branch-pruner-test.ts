@@ -222,7 +222,8 @@ async function initializeTestRepo(
     repository = await repositoriesStore.updateGitHubRepository(
       repository,
       '',
-      ghAPIResult
+      ghAPIResult,
+      []
     )
   }
   await primeCaches(repository, repositoriesStateCache)

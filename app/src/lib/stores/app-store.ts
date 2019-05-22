@@ -78,6 +78,7 @@ import {
   getAccountForEndpoint,
   getDotComAPIEndpoint,
   IAPIOrganization,
+  IAPIBranch,
 } from '../api'
 import { shell } from '../app-shell'
 import {
@@ -214,6 +215,7 @@ import {
   enablePullWithRebase,
   enableGroupRepositoriesByOwner,
   enableStashing,
+  enableBranchProtectionWarning,
 } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import * as moment from 'moment'
@@ -1341,7 +1343,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.pullRequestStore.getAll(gitHubRepository).then(prs => {
         this.onPullRequestChanged(gitHubRepository, prs)
       })
-      this._refreshPullRequests(repository)
     }
 
     // The selected repository could have changed while we were refreshing.
@@ -1439,13 +1440,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private startPullRequestUpdater(repository: Repository) {
     if (this.currentPullRequestUpdater) {
-      fatalError(
-        `A pull request updater is already active and cannot start updating on ${nameOf(
-          repository
-        )}`
-      )
-
-      return
+      this.stopPullRequestUpdater()
     }
 
     // We don't want to run the pull request updater when the app is in
@@ -2377,6 +2372,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
             }
           }
         }
+
+        if (
+          enableBranchProtectionWarning() &&
+          gitStore.tip.kind === TipState.Valid &&
+          gitStore.currentRemote !== null
+        ) {
+          // look up if the tracked branch matches a protected remote branch
+          const { upstreamWithoutRemote } = gitStore.tip.branch
+
+          if (upstreamWithoutRemote !== null) {
+            const isProtected = await this.repositoriesStore.isBranchProtected(
+              repository.gitHubRepository,
+              upstreamWithoutRemote
+            )
+
+            if (isProtected) {
+              log.debug(
+                `[_commitIncludedChanges] the upstream ref '${upstreamWithoutRemote}' is protected by the GitHub API`
+              )
+            }
+          }
+        }
       }
 
       await this._refreshRepository(repository)
@@ -3017,11 +3034,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
+    const { owner, name } = matchedGitHubRepository
+
     const api = API.fromAccount(account)
-    const apiRepo = await api.fetchRepository(
-      matchedGitHubRepository.owner,
-      matchedGitHubRepository.name
-    )
+    const apiRepo = await api.fetchRepository(owner, name)
 
     if (!apiRepo) {
       // This is the same as above. If the request fails, we wanna preserve the
@@ -3038,11 +3054,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
+    const branches = enableBranchProtectionWarning()
+      ? await api.fetchProtectedBranches(owner, name)
+      : new Array<IAPIBranch>()
+
     const endpoint = matchedGitHubRepository.endpoint
     return this.repositoriesStore.updateGitHubRepository(
       repository,
       endpoint,
-      apiRepo
+      apiRepo,
+      branches
     )
   }
 
@@ -3748,7 +3769,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.updatePushPullFetchProgress(repository, null)
 
         if (fetchType === FetchType.UserInitiatedTask) {
-          this._refreshPullRequests(repository)
           if (repository.gitHubRepository != null) {
             this._refreshIssues(repository.gitHubRepository)
           }

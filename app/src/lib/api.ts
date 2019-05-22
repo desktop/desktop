@@ -226,6 +226,23 @@ export interface IAPIRefStatus {
   readonly statuses: ReadonlyArray<IAPIRefStatusItem>
 }
 
+/** Branch information returned by the GitHub API */
+export interface IAPIBranch {
+  /**
+   * The name of the branch stored on the remote.
+   *
+   * NOTE: this is NOT a fully-qualified ref (i.e. `refs/heads/master`)
+   */
+  readonly name: string
+  /**
+   * Branch protection settings:
+   *
+   *  - `true` indicates that the branch is protected in some way
+   *  - `false` indicates no branch protection set
+   */
+  readonly protected: boolean
+}
+
 interface IAPIPullRequestRef {
   readonly ref: string
   readonly sha: string
@@ -694,6 +711,15 @@ export class API {
     const path = `repos/${owner}/${name}/commits/${ref}/status`
     const response = await this.request('GET', path)
     return await parsedResponse<IAPIRefStatus>(response)
+  }
+
+  public async fetchProtectedBranches(
+    owner: string,
+    name: string
+  ): Promise<ReadonlyArray<IAPIBranch>> {
+    const path = `repos/${owner}/${name}/branches?protected=true`
+    const response = await this.request('GET', path)
+    return await parsedResponse<IAPIBranch[]>(response)
   }
 
   /**
