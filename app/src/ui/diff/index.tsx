@@ -194,7 +194,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       ) {
         return (
           <div className="panel empty">
-            The file is in conflict and must be resolved via command line.
+            The file is in conflict and must be resolved via the command line.
           </div>
         )
       }
