@@ -153,13 +153,17 @@ export class BranchPruner {
       mb => !ReservedRefs.includes(mb.canonicalRef)
     )
 
+    const branchRefPrefix = `refs/heads/`
+
     const branchesReadyForPruning = candidateBranches.filter(mb => {
       if (recentlyCheckedOutCanonicalRefs.has(mb.canonicalRef)) {
         return false
       }
 
+      const branchName = mb.canonicalRef.substr(branchRefPrefix.length)
+
       const localBranch = allBranches.find(
-        b => b.type === BranchType.Local && b.name === mb.canonicalRef
+        b => b.type === BranchType.Local && b.name === branchName
       )
 
       if (localBranch === undefined) {
@@ -168,9 +172,19 @@ export class BranchPruner {
         return false
       }
 
-      if (localBranch.upstream !== null) {
-        // the upstream ref for this branch has not been deleted, we should
-        // not clean this up even if it has been merged
+      if (localBranch.upstream === null) {
+        // no upstream ref is known for this branch, which means we can clean it
+        // up fine
+        debugger
+        return true
+      }
+
+      const remoteBranch = allBranches.find(
+        b => b.type === BranchType.Remote && b.name === localBranch.upstream
+      )
+
+      if (remoteBranch !== null) {
+        // upstream ref still exists on the remote, so we should not prune it
         debugger
         return false
       }
@@ -189,7 +203,6 @@ export class BranchPruner {
     )
 
     const gitStore = this.gitStoreCache.get(this.repository)
-    const branchRefPrefix = `refs/heads/`
 
     for (const branch of branchesReadyForPruning) {
       if (!branch.canonicalRef.startsWith(branchRefPrefix)) {
