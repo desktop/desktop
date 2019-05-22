@@ -134,10 +134,12 @@ export class BranchPruner {
     const twoWeeksAgo = moment()
       .subtract(2, 'weeks')
       .toDate()
+
     const recentlyCheckedOutBranches = await getCheckoutsAfterDate(
       this.repository,
       twoWeeksAgo
     )
+
     const recentlyCheckedOutCanonicalRefs = new Set(
       [...recentlyCheckedOutBranches.keys()].map(formatAsLocalRef)
     )
@@ -150,6 +152,10 @@ export class BranchPruner {
     const branchesReadyForPruning = candidateBranches.filter(
       mb => !recentlyCheckedOutCanonicalRefs.has(mb.canonicalRef)
     )
+
+    // TODO: find the local branch in repository state
+    // TODO: find if it is tracking a remote ref
+    // TODO: if that remote ref exists, exclude local branch from list
 
     log.info(
       `Pruning ${
