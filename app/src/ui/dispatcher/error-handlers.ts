@@ -13,7 +13,6 @@ import { UpstreamAlreadyExistsError } from '../../lib/stores/upstream-already-ex
 
 import { PopupType } from '../../models/popup'
 import { Repository } from '../../models/repository'
-import { enableStashing } from '../../lib/feature-flag'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -446,11 +445,6 @@ export async function localChangesOverwrittenHandler(
     return error
   }
 
-  if (!enableStashing()) {
-    dispatcher.recordErrorWhenSwitchingBranchesWithUncommmittedChanges()
-    return error
-  }
-
   // This indicates to us whether the action which triggered the
   // LocalChangesOverwritten was the AppStore _checkoutBranch method.
   // Other actions that might trigger this error such as deleting
@@ -458,12 +452,10 @@ export async function localChangesOverwrittenHandler(
   // how we know we can safely move the changes to the destination
   // branch.
   if (gitContext === undefined || gitContext.kind !== 'checkout') {
+    dispatcher.recordErrorWhenSwitchingBranchesWithUncommmittedChanges()
     return error
   }
 
-  if (gitContext.kind !== 'checkout') {
-    return error
-  }
   const { branchToCheckout } = gitContext
 
   await dispatcher.moveChangesToBranchAndCheckout(repository, branchToCheckout)
