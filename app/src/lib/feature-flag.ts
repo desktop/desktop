@@ -85,3 +85,11 @@ export function enableRebaseDialog(): boolean {
 export function enableStashing(): boolean {
   return enableBetaFeatures()
 }
+
+/**
+ * Should the app warn the user when they are committing that they are using a
+ * protected branch?
+ */
+export function enableBranchProtectionWarning(): boolean {
+  return enableDevelopmentFeatures()
+}
