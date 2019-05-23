@@ -9,6 +9,7 @@ import {
   IMergedBranch,
   formatAsLocalRef,
   deleteLocalBranch,
+  getBranches,
 } from '../../git'
 import { fatalError } from '../../fatal-error'
 import { RepositoryStateCache } from '../repository-state-cache'
@@ -194,7 +195,7 @@ export class BranchPruner {
 
     const branchRefPrefix = `refs/heads/`
 
-    const branchesReadyForPruning = candidateBranches.filter(mb => {
+    const branchesReadyForPruning = candidateBranches.filter(async mb => {
       if (recentlyCheckedOutCanonicalRefs.has(mb.canonicalRef)) {
         // branch was recently checked out, exclude it from pruning
         return false
@@ -225,11 +226,20 @@ export class BranchPruner {
         return true
       }
 
-      const remoteRef = allBranches.find(
-        b => b.type === BranchType.Remote && b.name === localBranch.upstream
+      // we cannot use `allBranches` here because it merges together local and
+      // remote branches to de-dupe results, so instead we're going to make a
+      // Git call, one per candidate branch that reaches this point, and see if
+      // the remote ref exists
+      //
+      // As the app runs `git fetch --prune` regularly, this is a good enough
+      // indicator that the remote ref is gone especially when we're only
+      // filtering local branches that have not been used in the past 2 weeks
+      const remoteBranch = await getBranches(
+        this.repository,
+        `refs/remotes/${localBranch.upstream}`
       )
 
-      if (remoteRef === undefined) {
+      if (remoteBranch.length === 0) {
         // the remote ref cannot be found for this branch, which is a good
         // indicator it was deleted from the repository and can be cleaned up
         // here too
