@@ -81,7 +81,7 @@ export class MenuBackedBlankslateAction extends React.Component<
     )
   }
 
-  private onClick = () => {
+  private onClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     executeMenuItemById(this.props.menuItemId)
   }
 }
