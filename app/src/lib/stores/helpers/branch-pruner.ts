@@ -48,9 +48,14 @@ export class BranchPruner {
       )
     }
 
-    await this.pruneLocalBranches()
+    const defaultOptions = {
+      enforcePruneThreshold: true,
+      deleteBranch: true,
+    }
+
+    await this.pruneLocalBranches(defaultOptions)
     this.timer = window.setInterval(
-      () => this.pruneLocalBranches(),
+      () => this.pruneLocalBranches(defaultOptions),
       BackgroundPruneMinimumInterval
     )
   }
@@ -65,7 +70,10 @@ export class BranchPruner {
   }
 
   public async testPrune(): Promise<void> {
-    return this.pruneLocalBranches(false)
+    return this.pruneLocalBranches({
+      enforcePruneThreshold: false,
+      deleteBranch: false,
+    })
   }
 
   private async findBranchesMergedIntoDefaultBranch(
@@ -91,9 +99,10 @@ export class BranchPruner {
         )
   }
 
-  private async pruneLocalBranches(
-    deleteBranch: boolean = true
-  ): Promise<void> {
+  private async pruneLocalBranches(options: {
+    enforcePruneThreshold: boolean
+    deleteBranch: boolean
+  }): Promise<void> {
     if (this.repository.gitHubRepository === null) {
       return
     }
@@ -110,7 +119,7 @@ export class BranchPruner {
     // Using type coelescing behavior to deal with Dexie returning `undefined`
     // for records that haven't been updated with the new field yet
     if (
-      !__DEV__ &&
+      options.enforcePruneThreshold &&
       lastPruneDate != null &&
       threshold.isBefore(lastPruneDate)
     ) {
@@ -220,7 +229,7 @@ export class BranchPruner {
       const branchName = branch.canonicalRef.substr(branchRefPrefix.length)
 
       // only perform the delete when the right flag is set when calling this function
-      if (!deleteBranch) {
+      if (!options.deleteBranch) {
         log.info(
           `[Branch Pruner] ${branchName} (was ${
             branch.sha
