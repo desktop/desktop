@@ -2030,4 +2030,28 @@ export class Dispatcher {
   public hideStashedChanges(repository: Repository) {
     return this.appStore._hideStashedChanges(repository)
   }
+
+  public async recordSuggestedStepOpenInExternalEditor(): Promise<void> {
+    this.statsStore.recordSuggestedStepOpenInExternalEditor()
+  }
+
+  public async recordSuggestedStepOpenWorkingDirectory(): Promise<void> {
+    this.statsStore.recordSuggestedStepOpenWorkingDirectory()
+  }
+
+  public async recordSuggestedStepViewOnGitHub(): Promise<void> {
+    this.statsStore.recordSuggestedStepViewOnGitHub()
+  }
+
+  public async recordSuggestedStepPublishRepository(): Promise<void> {
+    this.statsStore.recordSuggestedStepPublishRepository()
+  }
+
+  public async recordSuggestedStepPublishBranch(): Promise<void> {
+    this.statsStore.recordSuggestedStepPublishBranch()
+  }
+
+  public async recordSuggestedStepCreatePR(): Promise<void> {
+    this.statsStore.recordSuggestedStepCreatePR()
+  }
 }

@@ -1012,6 +1012,44 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  public async recordSuggestedStepOpenInExternalEditor(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepOpenInExternalEditor:
+        m.suggestedStepOpenInExternalEditor + 1,
+    }))
+  }
+
+  public async recordSuggestedStepOpenWorkingDirectory(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepOpenWorkingDirectory:
+        m.suggestedStepOpenWorkingDirectory + 1,
+    }))
+  }
+
+  public async recordSuggestedStepViewOnGitHub(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepViewOnGitHub: m.suggestedStepViewOnGitHub + 1,
+    }))
+  }
+
+  public async recordSuggestedStepPublishRepository(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepPublishRepository: m.suggestedStepPublishRepository + 1,
+    }))
+  }
+
+  public async recordSuggestedStepPublishBranch(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepPublishBranch: m.suggestedStepPublishBranch + 1,
+    }))
+  }
+
+  public async recordSuggestedStepCreatePR(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepCreatePR: m.suggestedStepCreatePR + 1,
+    }))
+  }
+
   private onUiActivity = async () => {
     this.disableUiActivityMonitoring()
 
