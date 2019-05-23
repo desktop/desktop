@@ -2,7 +2,7 @@
   "releases": {
     "1.7.0-beta9": [
       "[Fixed] Add warning when renaming a branch with a stash - #7283",
-      "[Fixed] Address Case of the Missing Monitor - #7418 #2107. Thanks @say25!",
+      "[Fixed] Restore Desktop to main screen when external monitor removed - #7418 #2107. Thanks @say25!",
       "[Improved] Performance for Bringing changes to another branch - #7474"
     ],
     "1.7.0-beta8": [
