@@ -579,7 +579,7 @@ export class RepositoriesStore extends BaseStore {
 
     if (branchProtectionsFound === undefined) {
       return this.loadAndCacheBranchProtection(repoID, branchName)
-    } else if (branchProtectionsFound) {
+    } else if (branchProtectionsFound === true) {
       // as we know branch protections are enabled for the repository, check
       // this specific branch either in the cache or the database
       const isRemoteBranchProtected = await this.isBranchProtected(
