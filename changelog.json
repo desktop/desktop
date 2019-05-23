@@ -1,11 +1,8 @@
 {
   "releases": {
     "1.7.0-beta9": [
-      "[???] Dial down on the explicit fetching of pull requests - #7594",
-      "[???] Retrieve and cache protected branch information per-repository - #7529",
       "[Fixed] Add warning when renaming a branch with a stash - #7283",
-      "[Fixed] Address Case of the Missing Monitor - #7418 #2107. Thanks @say25!",
-      "[Fixed] Enable new rebase flow for all users - #7376"
+      "[Fixed] Address Case of the Missing Monitor - #7418 #2107. Thanks @say25!"
     ],
     "1.7.0-beta8": [
       "[Added] Accelerator and access key to \"Exit\" menu item - #6507. Thanks @AndreiMaga!",
