@@ -307,8 +307,16 @@ export class NoChanges extends React.Component<
       </>
     )
 
-    return this.renderMenuBackedAction(itemId, title, description)
+    return this.renderMenuBackedAction(
+      itemId,
+      title,
+      description,
+      this.onOpenInExternalEditorClicked
+    )
   }
+
+  private onOpenInExternalEditorClicked = () =>
+    this.props.dispatcher.recordSuggestedStepOpenInExternalEditor()
 
   private renderRemoteAction() {
     const { remote, aheadBehind, branchesState } = this.props.repositoryState
