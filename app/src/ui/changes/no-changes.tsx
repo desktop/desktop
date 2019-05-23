@@ -452,9 +452,13 @@ export class NoChanges extends React.Component<
         menuItemId={itemId}
         type="primary"
         disabled={!menuItem.enabled}
+        onClick={this.onPublishRepositoryClicked}
       />
     )
   }
+
+  private onPublishRepositoryClicked = () =>
+    this.props.dispatcher.recordSuggestedStepPublishRepository()
 
   private renderPublishBranchAction(tip: IValidBranch) {
     // This is a bit confusing, there's no dedicated
