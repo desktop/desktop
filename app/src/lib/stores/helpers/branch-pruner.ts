@@ -28,6 +28,31 @@ const ReservedRefs = [
   'refs/heads/release',
 ]
 
+/**
+ * Behavior flags for the branch prune execution, to aid with testing and
+ * verifying locally.
+ */
+type PruneRuntimeOptions = {
+  /**
+   * By default the branch pruner will only run every 24 hours
+   *
+   * Set this flag to `false` to ignore this check.
+   */
+  readonly enforcePruneThreshold: boolean
+  /**
+   * By default the branch pruner will also delete the branches it believes can
+   * be pruned safely.
+   *
+   * Set this to `false` to keep these in your repository.
+   */
+  readonly deleteBranch: boolean
+}
+
+const DefaultPruneOptions: PruneRuntimeOptions = {
+  enforcePruneThreshold: true,
+  deleteBranch: true,
+}
+
 export class BranchPruner {
   private timer: number | null = null
 
@@ -48,14 +73,9 @@ export class BranchPruner {
       )
     }
 
-    const defaultOptions = {
-      enforcePruneThreshold: true,
-      deleteBranch: true,
-    }
-
-    await this.pruneLocalBranches(defaultOptions)
+    await this.pruneLocalBranches(DefaultPruneOptions)
     this.timer = window.setInterval(
-      () => this.pruneLocalBranches(defaultOptions),
+      () => this.pruneLocalBranches(DefaultPruneOptions),
       BackgroundPruneMinimumInterval
     )
   }
@@ -99,10 +119,14 @@ export class BranchPruner {
         )
   }
 
-  private async pruneLocalBranches(options: {
-    enforcePruneThreshold: boolean
-    deleteBranch: boolean
-  }): Promise<void> {
+  /**
+   * Prune the local branches for the repository
+   *
+   * @param options configure the behaviour of the branch pruning process
+   */
+  private async pruneLocalBranches(
+    options: PruneRuntimeOptions
+  ): Promise<void> {
     if (this.repository.gitHubRepository === null) {
       return
     }
