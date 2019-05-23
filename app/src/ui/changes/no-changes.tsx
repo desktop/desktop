@@ -641,9 +641,13 @@ export class NoChanges extends React.Component<
         discoverabilityContent={this.renderDiscoverabilityElements(menuItem)}
         type="primary"
         disabled={!menuItem.enabled}
+        onClick={this.onCreatePullRequestClicked}
       />
     )
   }
+
+  private onCreatePullRequestClicked = () =>
+    this.props.dispatcher.recordSuggestedStepCreatePR()
 
   private renderActions() {
     return (
