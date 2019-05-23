@@ -21,6 +21,7 @@ import { IAheadBehind } from '../../models/branch'
 import { IRemote } from '../../models/remote'
 import { isCurrentBranchForcePush } from '../../lib/rebase'
 import { StashedChangesLoadStates } from '../../models/stash-entry'
+import { Dispatcher } from '../dispatcher'
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
@@ -38,6 +39,8 @@ function formatParentMenuLabel(menuItem: IMenuItemInfo) {
 const PaperStackImage = encodePathAsUrl(__dirname, 'static/paper-stack.svg')
 
 interface INoChangesProps {
+  readonly dispatcher: Dispatcher
+
   /**
    * The currently selected repository
    */
