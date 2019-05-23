@@ -501,9 +501,13 @@ export class NoChanges extends React.Component<
         buttonText="Publish branch"
         type="primary"
         disabled={!menuItem.enabled}
+        onClick={this.onPublishBranchClicked}
       />
     )
   }
+
+  private onPublishBranchClicked = () =>
+    this.props.dispatcher.recordSuggestedStepPublishBranch()
 
   private renderPullBranchAction(
     tip: IValidBranch,
