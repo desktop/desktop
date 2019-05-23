@@ -324,21 +324,17 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
       case 'open-working-directory':
         return this.openCurrentRepositoryWorkingDirectory()
-      case 'update-branch': {
+      case 'update-branch':
         this.props.dispatcher.recordMenuInitiatedUpdate()
         return this.updateBranch()
-      }
-      case 'compare-to-branch': {
+      case 'compare-to-branch':
         return this.showHistory(true)
-      }
-      case 'merge-branch': {
+      case 'merge-branch':
         this.props.dispatcher.recordMenuInitiatedMerge()
         return this.mergeBranch()
-      }
-      case 'rebase-branch': {
+      case 'rebase-branch':
         this.props.dispatcher.recordMenuInitiatedRebase()
         return this.showRebaseDialog()
-      }
       case 'show-repository-settings':
         return this.showRepositorySettings()
       case 'view-repository-on-github':
@@ -355,9 +351,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.boomtown()
       case 'go-to-commit-message':
         return this.goToCommitMessage()
-      case 'open-pull-request': {
+      case 'open-pull-request':
         return this.openPullRequest()
-      }
       case 'install-cli':
         return this.props.dispatcher.installCLI()
       case 'open-external-editor':
