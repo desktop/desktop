@@ -214,7 +214,8 @@ export class NoChanges extends React.Component<
   private renderMenuBackedAction(
     itemId: MenuIDs,
     title: string,
-    description?: string | JSX.Element
+    description?: string | JSX.Element,
+    onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
   ) {
     const menuItem = this.getMenuItemInfo(itemId)
 
@@ -231,6 +232,7 @@ export class NoChanges extends React.Component<
         menuItemId={itemId}
         buttonText={formatMenuItemLabel(menuItem.label)}
         disabled={!menuItem.enabled}
+        onClick={onClick}
       />
     )
   }
