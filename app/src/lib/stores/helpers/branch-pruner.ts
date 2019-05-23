@@ -179,20 +179,11 @@ export class BranchPruner {
       .subtract(2, 'weeks')
       .toDate()
 
-    const recentlyCheckedOutBranches = await getBranchCheckouts(
-      this.repository,
-      twoWeeksAgo
-    )
-
-    const recentlyCheckedOutCanonicalRefs = new Set(
-      [...recentlyCheckedOutBranches.keys()].map(formatAsLocalRef)
-    )
-
     const branchRefPrefix = `refs/heads/`
 
     const branchesReadyForPruning = await this.filterBranches(
       mergedBranches,
-      recentlyCheckedOutCanonicalRefs
+      twoWeeksAgo
     )
 
     log.info(
@@ -243,12 +234,20 @@ export class BranchPruner {
 
   private async filterBranches(
     mergedBranches: ReadonlyArray<IMergedBranch>,
-    recentlyCheckedOutCanonicalRefs: Set<string>
+    afterDate: Date
   ): Promise<ReadonlyArray<IMergedBranch>> {
     const { branchesState } = this.repositoriesStateCache.get(this.repository)
     const { allBranches } = branchesState
 
-    // Create array of branches that can be pruned
+    const recentlyCheckedOutBranches = await getBranchCheckouts(
+      this.repository,
+      afterDate
+    )
+
+    const recentlyCheckedOutCanonicalRefs = new Set(
+      [...recentlyCheckedOutBranches.keys()].map(formatAsLocalRef)
+    )
+
     const candidateBranches = mergedBranches.filter(
       mb => !ReservedRefs.includes(mb.canonicalRef)
     )
