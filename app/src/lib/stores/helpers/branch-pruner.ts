@@ -247,20 +247,25 @@ export class BranchPruner {
       } (${defaultBranch.tip.sha}), from '${this.repository.name}`
     )
 
-    const gitStore = this.gitStoreCache.get(this.repository)
-
-    for (const branch of branchesReadyForPruning) {
-      const branchName = branch.canonicalRef.substr(branchRefPrefix.length)
-
-      // only perform the delete when the right flag is set when calling this function
-      if (!options.deleteBranch) {
+    if (!options.deleteBranch) {
+      log.info(
+        `[Branch Pruner] Branch pruning will not delete any branches because options.deleteBranch is false.`
+      )
+      for (const branch of branchesReadyForPruning) {
+        const branchName = branch.canonicalRef.substr(branchRefPrefix.length)
         log.info(
           `[Branch Pruner] ${branchName} (was ${
             branch.sha
           }) has been marked for pruning.`
         )
-        continue
       }
+      return
+    }
+
+    const gitStore = this.gitStoreCache.get(this.repository)
+
+    for (const branch of branchesReadyForPruning) {
+      const branchName = branch.canonicalRef.substr(branchRefPrefix.length)
 
       const isDeleted = await gitStore.performFailableOperation(() =>
         deleteLocalBranch(this.repository, branchName)
