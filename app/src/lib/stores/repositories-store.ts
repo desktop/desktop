@@ -616,6 +616,7 @@ export class RepositoriesStore extends BaseStore {
       .toArray()
 
     const branchProtectionsFound = branches.length > 0
+    this.branchProtectionSettingsFoundCache.set(repoID, branchProtectionsFound)
 
     // fill the retrieved records into the per-branch cache
     for (const branch of branches) {
