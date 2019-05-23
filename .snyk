@@ -1,0 +1,17 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.13.3
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  'npm:debug:20170905':
+    - stop-build > ggit > debug:
+        patched: '2019-05-23T07:35:09.985Z'
+  'npm:lodash:20180130':
+    - stop-build > ggit > lodash:
+        patched: '2019-05-23T07:35:09.985Z'
+  'npm:moment:20170905':
+    - stop-build > ggit > moment:
+        patched: '2019-05-23T07:35:09.985Z'
+  'npm:ms:20170412':
+    - stop-build > ggit > debug > ms:
+        patched: '2019-05-23T07:35:09.985Z'
