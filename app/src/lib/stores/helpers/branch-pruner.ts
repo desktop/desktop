@@ -232,6 +232,21 @@ export class BranchPruner {
     this.onPruneCompleted(this.repository)
   }
 
+  /**
+   * Filter merged branches to avoid pruning important branches
+   *
+   * This function excludes branches that have been merged into the default
+   * branch, but satisfy some other condition that indicates they are still
+   * active:
+   *
+   *  - were checked out after `afterDate`
+   *  - match an entry in the reserved list of branch names found in `ReservedRefs`
+   *  - a ref that doesn't match the `refs/heads/{name}` format
+   *  - cannot be found in application state
+   *  - are tracking a remote ref that has not been deleted
+   *
+   * @param afterDate exclude branches that have beeen checked out since this date
+   */
   private async filterBranches(
     mergedBranches: ReadonlyArray<IMergedBranch>,
     afterDate: Date
