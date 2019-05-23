@@ -34,7 +34,7 @@
     // name and truncate accordingly
     width: 100%;
 
-    .octicon {
+    .icon-for-repository {
       // Some room between the icon and repository name
       margin-right: var(--spacing-half);
 
@@ -62,15 +62,24 @@
       }
     }
 
+    .repo-indicators {
+      margin-left: auto;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
     .change-indicator {
       color: var(--tab-bar-active-color);
-      margin-right: 0;
       width: auto;
     }
 
     .change-indicator-wrapper {
       display: flex;
       min-width: 12px;
+      margin-left: var(--spacing-half);
+      justify-content: center;
+      align-items: center;
     }
 
     .ahead-behind {
@@ -98,10 +107,6 @@
         width: 12px;
       }
     }
-  }
-
-  .repository-list-item.group-repositories-by-owner {
-    padding: 0 var(--spacing) 0 0;
   }
 
   .filter-list-group-header.group-repositories-by-owner {
