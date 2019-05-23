@@ -161,6 +161,12 @@ export class BranchPruner {
 
     const branchesReadyForPruning = candidateBranches.filter(mb => {
       if (recentlyCheckedOutCanonicalRefs.has(mb.canonicalRef)) {
+        // branch was recently checked out, exclude it from pruning
+        return false
+      }
+
+      if (!mb.canonicalRef.startsWith(branchRefPrefix)) {
+        // branch does not match the expected conventions, exclude it
         return false
       }
 
@@ -209,10 +215,6 @@ export class BranchPruner {
     const gitStore = this.gitStoreCache.get(this.repository)
 
     for (const branch of branchesReadyForPruning) {
-      if (!branch.canonicalRef.startsWith(branchRefPrefix)) {
-        continue
-      }
-
       const branchName = branch.canonicalRef.substr(branchRefPrefix.length)
 
       // don't delete branches when in development mode to help with testing
