@@ -5228,6 +5228,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     return Promise.resolve()
   }
+
+  public async _testPruneBranches() {
+    if (this.currentBranchPruner === null) {
+      return
+    }
+
+    await this.currentBranchPruner.testPrune()
+  }
 }
 
 /**
