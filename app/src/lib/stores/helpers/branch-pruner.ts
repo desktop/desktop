@@ -29,6 +29,8 @@ const ReservedRefs = [
   'refs/heads/release',
 ]
 
+const BranchRefPrefix = `refs/heads/`
+
 /**
  * Behavior flags for the branch prune execution, to aid with testing and
  * verifying locally.
@@ -179,8 +181,6 @@ export class BranchPruner {
       .subtract(2, 'weeks')
       .toDate()
 
-    const branchRefPrefix = `refs/heads/`
-
     const branchesReadyForPruning = await this.filterBranches(
       mergedBranches,
       twoWeeksAgo
@@ -199,7 +199,7 @@ export class BranchPruner {
         `[Branch Pruner] Branch pruning will not delete any branches because options.deleteBranch is false.`
       )
       for (const branch of branchesReadyForPruning) {
-        const branchName = branch.canonicalRef.substr(branchRefPrefix.length)
+        const branchName = branch.canonicalRef.substr(BranchRefPrefix.length)
         log.info(
           `[Branch Pruner] ${branchName} (was ${
             branch.sha
@@ -212,7 +212,7 @@ export class BranchPruner {
     const gitStore = this.gitStoreCache.get(this.repository)
 
     for (const branch of branchesReadyForPruning) {
-      const branchName = branch.canonicalRef.substr(branchRefPrefix.length)
+      const branchName = branch.canonicalRef.substr(BranchRefPrefix.length)
 
       const isDeleted = await gitStore.performFailableOperation(() =>
         deleteLocalBranch(this.repository, branchName)
@@ -252,8 +252,6 @@ export class BranchPruner {
       mb => !ReservedRefs.includes(mb.canonicalRef)
     )
 
-    const branchRefPrefix = `refs/heads/`
-
     const branchesReadyForPruning = new Array<IMergedBranch>()
 
     for (const mb of candidateBranches) {
@@ -262,12 +260,12 @@ export class BranchPruner {
         continue
       }
 
-      if (!mb.canonicalRef.startsWith(branchRefPrefix)) {
+      if (!mb.canonicalRef.startsWith(BranchRefPrefix)) {
         // branch does not match the expected conventions, exclude it
         continue
       }
 
-      const branchName = mb.canonicalRef.substr(branchRefPrefix.length)
+      const branchName = mb.canonicalRef.substr(BranchRefPrefix.length)
 
       const localBranch = allBranches.find(
         b => b.type === BranchType.Local && b.name === branchName
