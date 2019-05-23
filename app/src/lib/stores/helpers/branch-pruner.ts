@@ -240,9 +240,6 @@ export class BranchPruner {
       )
 
       if (remoteBranch.length === 0) {
-        // the remote ref cannot be found for this branch, which is a good
-        // indicator it was deleted from the repository and can be cleaned up
-        // here too
         return true
       }
 
