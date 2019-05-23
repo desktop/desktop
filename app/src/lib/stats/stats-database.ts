@@ -187,6 +187,12 @@ export interface IDailyMeasures {
 
   /** The number of times the user opens the "Rebase current branch" menu item */
   readonly rebaseCurrentBranchMenuCount: number
+  suggestedStepOpenInExternalEditor: number
+  suggestedStepOpenWorkingDirectory: number
+  suggestedStepViewOnGitHub: number
+  suggestedStepPublishRepository: number
+  suggestedStepPublishBranch: number
+  suggestedStepCreatePR: number
 }
 
 export class StatsDatabase extends Dexie {
