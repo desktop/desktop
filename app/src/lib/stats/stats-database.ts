@@ -192,37 +192,37 @@ export interface IDailyMeasures {
    * The number of times the user has opened their external editor from the
    * suggested next steps view
    */
-  suggestedStepOpenInExternalEditor: number
+  readonly suggestedStepOpenInExternalEditor: number
 
   /**
    * The number of times the user has opened their repository in Finder/Explorer
    * from the suggested next steps view
    */
-  suggestedStepOpenWorkingDirectory: number
+  readonly suggestedStepOpenWorkingDirectory: number
 
   /**
    * The number of times the user has opened their repository on GitHub from the
    * suggested next steps view
    */
-  suggestedStepViewOnGitHub: number
+  readonly suggestedStepViewOnGitHub: number
 
   /**
    * The number of times the user has used the publish repository action from the
    * suggested next steps view
    */
-  suggestedStepPublishRepository: number
+  readonly suggestedStepPublishRepository: number
 
   /**
    * The number of times the user has used the publish branch action branch from
    * the suggested next steps view
    */
-  suggestedStepPublishBranch: number
+  readonly suggestedStepPublishBranch: number
 
   /**
    * The number of times the user has used the Create PR suggestion
    * in the suggested next steps view
    */
-  suggestedStepCreatePR: number
+  readonly suggestedStepCreatePR: number
 }
 
 export class StatsDatabase extends Dexie {
