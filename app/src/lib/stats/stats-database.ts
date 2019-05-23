@@ -187,11 +187,41 @@ export interface IDailyMeasures {
 
   /** The number of times the user opens the "Rebase current branch" menu item */
   readonly rebaseCurrentBranchMenuCount: number
+
+  /**
+   * The number of times the user has opened their external editor from the
+   * suggested next steps view
+   */
   suggestedStepOpenInExternalEditor: number
+
+  /**
+   * The number of times the user has opened their repository in Finder/Explorer
+   * from the suggested next steps view
+   */
   suggestedStepOpenWorkingDirectory: number
+
+  /**
+   * The number of times the user has opened their repository on GitHub from the
+   * suggested next steps view
+   */
   suggestedStepViewOnGitHub: number
+
+  /**
+   * The number of times the user has used the publish repository action from the
+   * suggested next steps view
+   */
   suggestedStepPublishRepository: number
+
+  /**
+   * The number of times the user has used the publish branch action branch from
+   * the suggested next steps view
+   */
   suggestedStepPublishBranch: number
+
+  /**
+   * The number of times the user has used the Create PR suggestion
+   * in the suggested next steps view
+   */
   suggestedStepCreatePR: number
 }
 
