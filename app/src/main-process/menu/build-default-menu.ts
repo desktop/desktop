@@ -497,6 +497,10 @@ export function buildDefaultMenu({
             click: emit('show-release-notes-popup'),
           },
         ],
+      },
+      {
+        label: 'Prune branches',
+        click: emit('test-prune-branches'),
       }
     )
   }

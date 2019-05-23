@@ -4,7 +4,7 @@ import { Branch } from '../../../models/branch'
 import { GitStoreCache } from '../git-store-cache'
 import {
   getMergedBranches,
-  getCheckoutsAfterDate,
+  getBranchCheckouts,
   getSymbolicRef,
   IMergedBranch,
   formatAsLocalRef,
@@ -28,6 +28,31 @@ const ReservedRefs = [
   'refs/heads/release',
 ]
 
+/**
+ * Behavior flags for the branch prune execution, to aid with testing and
+ * verifying locally.
+ */
+type PruneRuntimeOptions = {
+  /**
+   * By default the branch pruner will only run every 24 hours
+   *
+   * Set this flag to `false` to ignore this check.
+   */
+  readonly enforcePruneThreshold: boolean
+  /**
+   * By default the branch pruner will also delete the branches it believes can
+   * be pruned safely.
+   *
+   * Set this to `false` to keep these in your repository.
+   */
+  readonly deleteBranch: boolean
+}
+
+const DefaultPruneOptions: PruneRuntimeOptions = {
+  enforcePruneThreshold: true,
+  deleteBranch: true,
+}
+
 export class BranchPruner {
   private timer: number | null = null
 
@@ -48,9 +73,9 @@ export class BranchPruner {
       )
     }
 
-    await this.pruneLocalBranches()
+    await this.pruneLocalBranches(DefaultPruneOptions)
     this.timer = window.setInterval(
-      () => this.pruneLocalBranches(),
+      () => this.pruneLocalBranches(DefaultPruneOptions),
       BackgroundPruneMinimumInterval
     )
   }
@@ -62,6 +87,13 @@ export class BranchPruner {
 
     clearInterval(this.timer)
     this.timer = null
+  }
+
+  public async testPrune(): Promise<void> {
+    return this.pruneLocalBranches({
+      enforcePruneThreshold: false,
+      deleteBranch: false,
+    })
   }
 
   private async findBranchesMergedIntoDefaultBranch(
@@ -87,7 +119,14 @@ export class BranchPruner {
         )
   }
 
-  private async pruneLocalBranches(): Promise<void> {
+  /**
+   * Prune the local branches for the repository
+   *
+   * @param options configure the behaviour of the branch pruning process
+   */
+  private async pruneLocalBranches(
+    options: PruneRuntimeOptions
+  ): Promise<void> {
     if (this.repository.gitHubRepository === null) {
       return
     }
@@ -103,7 +142,11 @@ export class BranchPruner {
 
     // Using type coelescing behavior to deal with Dexie returning `undefined`
     // for records that haven't been updated with the new field yet
-    if (lastPruneDate != null && threshold.isBefore(lastPruneDate)) {
+    if (
+      options.enforcePruneThreshold &&
+      lastPruneDate != null &&
+      threshold.isBefore(lastPruneDate)
+    ) {
       log.info(
         `Last prune took place ${moment(lastPruneDate).from(
           dateNow
@@ -134,7 +177,7 @@ export class BranchPruner {
     const twoWeeksAgo = moment()
       .subtract(2, 'weeks')
       .toDate()
-    const recentlyCheckedOutBranches = await getCheckoutsAfterDate(
+    const recentlyCheckedOutBranches = await getBranchCheckouts(
       this.repository,
       twoWeeksAgo
     )
@@ -167,14 +210,16 @@ export class BranchPruner {
         continue
       }
 
-      const branchName = branch.canonicalRef.substr(branchRefPrefix.length)
+      if (options.deleteBranch) {
+        const branchName = branch.canonicalRef.substr(branchRefPrefix.length)
 
-      const isDeleted = await gitStore.performFailableOperation(() =>
-        deleteLocalBranch(this.repository, branchName)
-      )
+        const isDeleted = await gitStore.performFailableOperation(() =>
+          deleteLocalBranch(this.repository, branchName)
+        )
 
-      if (isDeleted) {
-        log.info(`Pruned branch ${branchName} (was ${branch.sha})`)
+        if (isDeleted) {
+          log.info(`Pruned branch ${branchName} (was ${branch.sha})`)
+        }
       }
     }
 

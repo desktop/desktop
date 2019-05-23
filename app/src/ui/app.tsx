@@ -370,6 +370,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showStashedChanges()
       case 'hide-stashed-changes':
         return this.hideStashedChanges()
+      case 'test-prune-branches':
+        return this.testPruneBranches()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -428,6 +430,14 @@ export class App extends React.Component<IAppProps, IAppState> {
         },
       })
     }
+  }
+
+  private testPruneBranches() {
+    if (!__DEV__) {
+      return
+    }
+
+    this.props.appStore._testPruneBranches()
   }
 
   /**
