@@ -158,7 +158,7 @@ export class BranchPruner {
 
     // Get list of branches that have been merged
     const { branchesState } = this.repositoriesStateCache.get(this.repository)
-    const { defaultBranch, allBranches } = branchesState
+    const { defaultBranch } = branchesState
 
     if (defaultBranch === null) {
       return
@@ -188,63 +188,12 @@ export class BranchPruner {
       [...recentlyCheckedOutBranches.keys()].map(formatAsLocalRef)
     )
 
-    // Create array of branches that can be pruned
-    const candidateBranches = mergedBranches.filter(
-      mb => !ReservedRefs.includes(mb.canonicalRef)
-    )
-
     const branchRefPrefix = `refs/heads/`
 
-    const branchesReadyForPruning = candidateBranches.filter(async mb => {
-      if (recentlyCheckedOutCanonicalRefs.has(mb.canonicalRef)) {
-        // branch was recently checked out, exclude it from pruning
-        return false
-      }
-
-      if (!mb.canonicalRef.startsWith(branchRefPrefix)) {
-        // branch does not match the expected conventions, exclude it
-        return false
-      }
-
-      const branchName = mb.canonicalRef.substr(branchRefPrefix.length)
-
-      const localBranch = allBranches.find(
-        b => b.type === BranchType.Local && b.name === branchName
-      )
-
-      if (localBranch === undefined) {
-        // unable to find the local branch in repository state, this feels
-        // sufficient concerning to indicate we shouldn't try and delete this
-        // reference
-        return false
-      }
-
-      if (localBranch.upstream === null) {
-        // no remote ref is being tracked for this branch, which means it
-        // most likely wasn't pushed to the remote, so we can include this
-        // in our prune list
-        return true
-      }
-
-      // we cannot use `allBranches` here because it merges together local and
-      // remote branches to de-dupe results, so instead we're going to make a
-      // Git call, one per candidate branch that reaches this point, and see if
-      // the remote ref exists
-      //
-      // As the app runs `git fetch --prune` regularly, this is a good enough
-      // indicator that the remote ref is gone especially when we're only
-      // filtering local branches that have not been used in the past 2 weeks
-      const remoteBranch = await getBranches(
-        this.repository,
-        `refs/remotes/${localBranch.upstream}`
-      )
-
-      if (remoteBranch.length === 0) {
-        return true
-      }
-
-      return false
-    })
+    const branchesReadyForPruning = await this.filterBranches(
+      mergedBranches,
+      recentlyCheckedOutCanonicalRefs
+    )
 
     log.info(
       `[Branch Pruner] pruning ${
@@ -290,5 +239,74 @@ export class BranchPruner {
       Date.now()
     )
     this.onPruneCompleted(this.repository)
+  }
+
+  private async filterBranches(
+    mergedBranches: ReadonlyArray<IMergedBranch>,
+    recentlyCheckedOutCanonicalRefs: Set<string>
+  ): Promise<ReadonlyArray<IMergedBranch>> {
+    const { branchesState } = this.repositoriesStateCache.get(this.repository)
+    const { allBranches } = branchesState
+
+    // Create array of branches that can be pruned
+    const candidateBranches = mergedBranches.filter(
+      mb => !ReservedRefs.includes(mb.canonicalRef)
+    )
+
+    const branchRefPrefix = `refs/heads/`
+
+    const branchesReadyForPruning = new Array<IMergedBranch>()
+
+    for (const mb of candidateBranches) {
+      if (recentlyCheckedOutCanonicalRefs.has(mb.canonicalRef)) {
+        // branch was recently checked out, exclude it from pruning
+        continue
+      }
+
+      if (!mb.canonicalRef.startsWith(branchRefPrefix)) {
+        // branch does not match the expected conventions, exclude it
+        continue
+      }
+
+      const branchName = mb.canonicalRef.substr(branchRefPrefix.length)
+
+      const localBranch = allBranches.find(
+        b => b.type === BranchType.Local && b.name === branchName
+      )
+
+      if (localBranch === undefined) {
+        // unable to find the local branch in repository state, this feels
+        // sufficient concerning to indicate we shouldn't try and delete this
+        // reference
+        continue
+      }
+
+      if (localBranch.upstream === null) {
+        // no remote ref is being tracked for this branch, which means it
+        // most likely wasn't pushed to the remote, so we can include this
+        // in our prune list
+        branchesReadyForPruning.push(mb)
+        continue
+      }
+
+      // we cannot use `allBranches` here because it merges together local and
+      // remote branches to de-dupe results, so instead we're going to make a
+      // Git call, one per candidate branch that reaches this point, and see if
+      // the remote ref exists
+      //
+      // As the app runs `git fetch --prune` regularly, this is a good enough
+      // indicator that the remote ref is gone especially when we're only
+      // filtering local branches that have not been used in the past 2 weeks
+      const remoteBranch = await getBranches(
+        this.repository,
+        `refs/remotes/${localBranch.upstream}`
+      )
+
+      if (remoteBranch.length === 0) {
+        branchesReadyForPruning.push(mb)
+      }
+    }
+
+    return branchesReadyForPruning
   }
 }
