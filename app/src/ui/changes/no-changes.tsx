@@ -245,9 +245,14 @@ export class NoChanges extends React.Component<
 
     return this.renderMenuBackedAction(
       'open-working-directory',
-      `View the files of your repository in ${fileManager}`
+      `View the files of your repository in ${fileManager}`,
+      undefined,
+      this.onShowInFileManagerClicked
     )
   }
+
+  private onShowInFileManagerClicked = () =>
+    this.props.dispatcher.recordSuggestedStepOpenWorkingDirectory()
 
   private renderViewOnGitHub() {
     const isGitHub = this.props.repository.gitHubRepository !== null
