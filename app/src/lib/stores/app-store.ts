@@ -5145,7 +5145,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    await this.currentBranchPruner.prune()
+    await this.currentBranchPruner.testPrune()
   }
 }
 

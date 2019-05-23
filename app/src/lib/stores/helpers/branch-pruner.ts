@@ -64,8 +64,8 @@ export class BranchPruner {
     this.timer = null
   }
 
-  public async prune(): Promise<void> {
-    return this.pruneLocalBranches()
+  public async testPrune(): Promise<void> {
+    return this.pruneLocalBranches(false)
   }
 
   private async findBranchesMergedIntoDefaultBranch(
@@ -91,7 +91,9 @@ export class BranchPruner {
         )
   }
 
-  private async pruneLocalBranches(): Promise<void> {
+  private async pruneLocalBranches(
+    deleteBranch: boolean = true
+  ): Promise<void> {
     if (this.repository.gitHubRepository === null) {
       return
     }
@@ -217,8 +219,8 @@ export class BranchPruner {
     for (const branch of branchesReadyForPruning) {
       const branchName = branch.canonicalRef.substr(branchRefPrefix.length)
 
-      // don't delete branches when in development mode to help with testing
-      if (__DEV__) {
+      // only perform the delete when the right flag is set when calling this function
+      if (!deleteBranch) {
         log.info(
           `[Branch Pruner] ${branchName} (was ${
             branch.sha
