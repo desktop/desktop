@@ -220,7 +220,11 @@ export interface IDailyMeasures {
 
   /**
    * The number of times the user has used the Create PR suggestion
-   * in the suggested next steps view
+   * in the suggested next steps view. Note that this number is a
+   * subset of `createPullRequestCount`. I.e. if the Create PR suggestion
+   * is invoked both `suggestedStepCreatePR` and `createPullRequestCount`
+   * will increment whereas if a PR is created from the menu or from
+   * a keyboard shortcut only `createPullRequestCount` will increment.
    */
   readonly suggestedStepCreatePR: number
 }
