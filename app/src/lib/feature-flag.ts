@@ -60,7 +60,7 @@ export function enableBranchPruning(): boolean {
  * just yet.
  */
 export function enableNoChangesCreatePRBlankslateAction(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should the app detect and handle rebase conflicts when `pull.rebase` is set? */

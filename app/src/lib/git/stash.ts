@@ -121,7 +121,7 @@ export function createDesktopStashMessage(branchName: string) {
 export async function createDesktopStashEntry(
   repository: Repository,
   branchName: string
-) {
+): Promise<true> {
   const message = createDesktopStashMessage(branchName)
   const args = ['stash', 'push', '--include-untracked', '-m', message]
 
@@ -149,6 +149,8 @@ export async function createDesktopStashEntry(
       } reported. stderr: ${result.stderr}`
     )
   }
+
+  return true
 }
 
 async function getStashEntryMatchingSha(repository: Repository, sha: string) {
