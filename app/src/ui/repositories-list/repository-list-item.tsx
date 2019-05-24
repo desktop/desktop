@@ -108,9 +108,9 @@ export class RepositoryListItem extends React.Component<
         </div>
 
         {repository instanceof Repository &&
-          renderRepoIndicator({
+          renderRepoIndicators({
             aheadBehind: this.props.aheadBehind,
-            hasChanges,
+            hasChanges: enableGroupRepositoriesByOwner() && hasChanges,
           })}
       </div>
     )
@@ -183,7 +183,7 @@ export class RepositoryListItem extends React.Component<
   }
 }
 
-const renderRepoIndicator: React.SFC<{
+const renderRepoIndicators: React.SFC<{
   aheadBehind: IAheadBehind | null
   hasChanges: boolean
 }> = props => {
@@ -217,15 +217,15 @@ const renderAheadBehindIndicator = (aheadBehind: IAheadBehind) => {
 }
 
 const renderChangesIndicator = () => {
+  const classNames = enableGroupRepositoriesByOwner()
+    ? 'change-indicator-wrapper group-repositories-by-owner'
+    : 'change-indicator-wrapper'
   return (
     <div
-      className="change-indicator-wrapper"
+      className={classNames}
       title="There are uncommitted changes in this repository"
     >
-      <Octicon
-        className="change-indicator"
-        symbol={OcticonSymbol.primitiveDot}
-      />
+      <Octicon symbol={OcticonSymbol.primitiveDot} />
     </div>
   )
 }
