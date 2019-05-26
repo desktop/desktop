@@ -617,6 +617,8 @@ export class CloneRepository extends React.Component<
         } else {
           url = repo.clone_url
         }
+      } else {
+        return null
       }
     }
 
