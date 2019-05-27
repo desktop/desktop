@@ -2031,26 +2031,50 @@ export class Dispatcher {
     return this.appStore._hideStashedChanges(repository)
   }
 
+  /**
+   * Increment the number of times the user has opened their external editor
+   * from the suggested next steps view
+   */
   public async recordSuggestedStepOpenInExternalEditor(): Promise<void> {
     this.statsStore.recordSuggestedStepOpenInExternalEditor()
   }
 
+  /**
+   * Increment the number of times the user has opened their repository in
+   * Finder/Explorerfrom the suggested next steps view
+   */
   public async recordSuggestedStepOpenWorkingDirectory(): Promise<void> {
     this.statsStore.recordSuggestedStepOpenWorkingDirectory()
   }
 
+  /**
+   * Increment the number of times the user has opened their repository on
+   * GitHub from the suggested next steps view
+   */
   public async recordSuggestedStepViewOnGitHub(): Promise<void> {
     this.statsStore.recordSuggestedStepViewOnGitHub()
   }
 
+  /**
+   * Increment the number of times the user has used the publish repository
+   * action from the suggested next steps view
+   */
   public async recordSuggestedStepPublishRepository(): Promise<void> {
     this.statsStore.recordSuggestedStepPublishRepository()
   }
 
+  /**
+   * Increment the number of times the user has used the publish branch
+   * action branch from the suggested next steps view
+   */
   public async recordSuggestedStepPublishBranch(): Promise<void> {
     this.statsStore.recordSuggestedStepPublishBranch()
   }
 
+  /**
+   * Increment the number of times the user has used the Create PR suggestion
+   * in the suggested next steps view.
+   */
   public async recordSuggestedStepCreatePR(): Promise<void> {
     this.statsStore.recordSuggestedStepCreatePR()
   }
