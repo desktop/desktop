@@ -70,7 +70,7 @@ export type ManualConflict = {
 /** Union of potential conflict scenarios the application should handle */
 export type ConflictedFileStatus = ConflictsWithMarkers | ManualConflict
 
-/** Custom typeguard to differentiate ConflictsWithMarkers from other Conflict types */
+/** Custom typeguard to differentiate Conflict files from other types */
 export function isConflictedFileStatus(
   appFileStatus: AppFileStatus
 ): appFileStatus is ConflictedFileStatus {

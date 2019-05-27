@@ -411,7 +411,7 @@ export class Dispatcher {
     repository: Repository,
     name: string,
     startPoint: string | null,
-    uncommittedChangesStrategy: UncommittedChangesStrategy = UncommittedChangesStrategy.askForConfirmation
+    uncommittedChangesStrategy?: UncommittedChangesStrategy
   ): Promise<Repository> {
     return this.appStore._createBranch(
       repository,
@@ -2026,7 +2026,7 @@ export class Dispatcher {
     return this.appStore._resetStashedFilesWidth()
   }
 
-  //** Hide the diff for stashed changes */
+  /** Hide the diff for stashed changes */
   public hideStashedChanges(repository: Repository) {
     return this.appStore._hideStashedChanges(repository)
   }
@@ -2053,5 +2053,18 @@ export class Dispatcher {
 
   public async recordSuggestedStepCreatePR(): Promise<void> {
     this.statsStore.recordSuggestedStepCreatePR()
+  }
+
+  /**
+   * Moves unconmitted changes to the branch being checked out
+   */
+  public async moveChangesToBranchAndCheckout(
+    repository: Repository,
+    branchToCheckout: string
+  ) {
+    return this.appStore._moveChangesToBranchAndCheckout(
+      repository,
+      branchToCheckout
+    )
   }
 }
