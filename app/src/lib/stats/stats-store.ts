@@ -1012,6 +1012,10 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  /**
+   * Increment the number of times the user has opened their external editor
+   * from the suggested next steps view
+   */
   public async recordSuggestedStepOpenInExternalEditor(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       suggestedStepOpenInExternalEditor:
@@ -1019,6 +1023,10 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  /**
+   * Increment the number of times the user has opened their repository in
+   * Finder/Explorerfrom the suggested next steps view
+   */
   public async recordSuggestedStepOpenWorkingDirectory(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       suggestedStepOpenWorkingDirectory:
@@ -1026,24 +1034,40 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  /**
+   * Increment the number of times the user has opened their repository on
+   * GitHub from the suggested next steps view
+   */
   public async recordSuggestedStepViewOnGitHub(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       suggestedStepViewOnGitHub: m.suggestedStepViewOnGitHub + 1,
     }))
   }
 
+  /**
+   * Increment the number of times the user has used the publish repository
+   * action from the suggested next steps view
+   */
   public async recordSuggestedStepPublishRepository(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       suggestedStepPublishRepository: m.suggestedStepPublishRepository + 1,
     }))
   }
 
+  /**
+   * Increment the number of times the user has used the publish branch
+   * action branch from the suggested next steps view
+   */
   public async recordSuggestedStepPublishBranch(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       suggestedStepPublishBranch: m.suggestedStepPublishBranch + 1,
     }))
   }
 
+  /**
+   * Increment the number of times the user has used the Create PR suggestion
+   * in the suggested next steps view.
+   */
   public async recordSuggestedStepCreatePR(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       suggestedStepCreatePR: m.suggestedStepCreatePR + 1,
