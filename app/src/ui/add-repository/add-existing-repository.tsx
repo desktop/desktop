@@ -1,4 +1,3 @@
-import { remote } from 'electron'
 import * as React from 'react'
 
 import { Dispatcher } from '../dispatcher'
@@ -11,6 +10,7 @@ import { Row } from '../lib/row'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { LinkButton } from '../lib/link-button'
+import { showOpenDialog } from '../lib/show-open-dialog'
 import { PopupType } from '../../models/popup'
 import * as Path from 'path'
 
@@ -174,10 +174,9 @@ export class AddExistingRepository extends React.Component<
   }
 
   private showFilePicker = async () => {
-    const directory: string[] | null = remote.dialog.showOpenDialog({
-      properties: ['createDirectory', 'openDirectory'],
-    })
-    if (!directory) {
+    const directory = await showOpenDialog(['openDirectory', 'createDirectory'])
+
+    if (directory === undefined) {
       return
     }
 
