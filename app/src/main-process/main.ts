@@ -1,6 +1,6 @@
 import '../lib/logging/main/install'
 
-import { app, Menu, ipcMain, BrowserWindow, shell } from 'electron'
+import { app, Menu, ipcMain, BrowserWindow, shell, dialog } from 'electron'
 import * as Fs from 'fs'
 
 import { MenuLabelsEvent } from '../models/menu-labels'
@@ -25,6 +25,7 @@ import { now } from './now'
 import { showUncaughtException } from './show-uncaught-exception'
 import { IMenuItem } from '../lib/menu-item'
 import { buildContextMenu } from './menu/build-context-menu'
+import { OpenDialogPreferences } from '../models/electron'
 
 enableSourceMaps()
 
@@ -464,6 +465,25 @@ app.on('ready', () => {
 
       const result = shell.openExternal(path)
       event.sender.send('open-external-result', { result })
+    }
+  )
+
+  ipcMain.on(
+    'show-open-dialog',
+    (
+      event: Electron.IpcMessageEvent,
+      { properties }: { properties: Array<OpenDialogPreferences> }
+    ) => {
+      const browserWindow = BrowserWindow.fromWebContents(event.sender)
+
+      const directories: string[] | undefined = dialog.showOpenDialog(
+        browserWindow,
+        {
+          properties,
+        }
+      )
+
+      event.sender.send('show-open-dialog-result', { directories })
     }
   )
 
