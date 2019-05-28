@@ -550,50 +550,52 @@ export class RepositoriesStore extends BaseStore {
    * Load the branch protection information for a repository from the database
    * and cache the results in memory
    */
-  private async loadAndCacheBranchProtection(repoID: number) {
+  private async loadAndCacheBranchProtection(dbID: number) {
     // query the database to find any protected branches
     const branches = await this.db.protectedBranches
       .where('repoId')
-      .equals(repoID)
+      .equals(dbID)
       .toArray()
 
     const branchProtectionsFound = branches.length > 0
-    this.branchProtectionSettingsFoundCache.set(repoID, branchProtectionsFound)
+    this.branchProtectionSettingsFoundCache.set(dbID, branchProtectionsFound)
 
     // fill the retrieved records into the per-branch cache
     for (const branch of branches) {
-      const key = getKey(repoID, branch.name)
+      const key = getKey(dbID, branch.name)
       this.protectionEnabledForBranchCache.set(key, true)
     }
 
     return branchProtectionsFound
   }
 
-  private async findBranchProtection(repoID: number): Promise<boolean> {
+  /** Check the cache or load results from IndexedDB into cache */
+  private async findOrCacheBranchProtections(dbID: number): Promise<boolean> {
     const branchProtectionsFound = this.branchProtectionSettingsFoundCache.get(
-      repoID
+      dbID
     )
 
     if (branchProtectionsFound === undefined) {
-      return this.loadAndCacheBranchProtection(repoID)
+      return this.loadAndCacheBranchProtection(dbID)
     }
 
     return branchProtectionsFound
   }
 
   private async isBranchProtected(
-    repoID: number,
+    dbID: number,
     branchName: string
   ): Promise<boolean> {
-    const key = getKey(repoID, branchName)
+    const key = getKey(dbID, branchName)
 
     const existing = this.protectionEnabledForBranchCache.get(key)
     if (existing === true) {
       return existing
     }
 
-    const result = await this.db.protectedBranches.get([repoID, branchName])
+    const result = await this.db.protectedBranches.get([dbID, branchName])
 
+    // if no row found, this means no protection is found for the branch
     const value = result !== undefined
 
     this.protectionEnabledForBranchCache.set(key, value)
@@ -618,7 +620,7 @@ export class RepositoriesStore extends BaseStore {
     }
 
     const repoID = gitHubRepository.dbID
-    const found = await this.findBranchProtection(repoID)
+    const found = await this.findOrCacheBranchProtections(repoID)
 
     if (found) {
       return true
@@ -629,8 +631,7 @@ export class RepositoriesStore extends BaseStore {
       gitHubRepository.parent.dbID !== null
     ) {
       const parentID = gitHubRepository.parent.dbID
-
-      return await this.findBranchProtection(parentID)
+      return await this.findOrCacheBranchProtections(parentID)
     }
 
     return false
