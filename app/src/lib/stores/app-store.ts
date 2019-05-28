@@ -373,7 +373,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private selectedTheme = ApplicationTheme.Light
   private automaticallySwitchTheme = false
 
-  private hasUserViewedStash: boolean = false
+  private hasUserViewedStash = false
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
