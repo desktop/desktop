@@ -2035,48 +2035,48 @@ export class Dispatcher {
    * Increment the number of times the user has opened their external editor
    * from the suggested next steps view
    */
-  public async recordSuggestedStepOpenInExternalEditor(): Promise<void> {
-    this.statsStore.recordSuggestedStepOpenInExternalEditor()
+  public recordSuggestedStepOpenInExternalEditor(): Promise<void> {
+    return this.statsStore.recordSuggestedStepOpenInExternalEditor()
   }
 
   /**
    * Increment the number of times the user has opened their repository in
    * Finder/Explorerfrom the suggested next steps view
    */
-  public async recordSuggestedStepOpenWorkingDirectory(): Promise<void> {
-    this.statsStore.recordSuggestedStepOpenWorkingDirectory()
+  public recordSuggestedStepOpenWorkingDirectory(): Promise<void> {
+    return this.statsStore.recordSuggestedStepOpenWorkingDirectory()
   }
 
   /**
    * Increment the number of times the user has opened their repository on
    * GitHub from the suggested next steps view
    */
-  public async recordSuggestedStepViewOnGitHub(): Promise<void> {
-    this.statsStore.recordSuggestedStepViewOnGitHub()
+  public recordSuggestedStepViewOnGitHub(): Promise<void> {
+    return this.statsStore.recordSuggestedStepViewOnGitHub()
   }
 
   /**
    * Increment the number of times the user has used the publish repository
    * action from the suggested next steps view
    */
-  public async recordSuggestedStepPublishRepository(): Promise<void> {
-    this.statsStore.recordSuggestedStepPublishRepository()
+  public recordSuggestedStepPublishRepository(): Promise<void> {
+    return this.statsStore.recordSuggestedStepPublishRepository()
   }
 
   /**
    * Increment the number of times the user has used the publish branch
    * action branch from the suggested next steps view
    */
-  public async recordSuggestedStepPublishBranch(): Promise<void> {
-    this.statsStore.recordSuggestedStepPublishBranch()
+  public recordSuggestedStepPublishBranch(): Promise<void> {
+    return this.statsStore.recordSuggestedStepPublishBranch()
   }
 
   /**
    * Increment the number of times the user has used the Create PR suggestion
    * in the suggested next steps view.
    */
-  public async recordSuggestedStepCreatePR(): Promise<void> {
-    this.statsStore.recordSuggestedStepCreatePR()
+  public recordSuggestedStepCreatePR(): Promise<void> {
+    return this.statsStore.recordSuggestedStepCreatePR()
   }
 
   /**
