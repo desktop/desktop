@@ -2900,6 +2900,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           repository,
           currentBranch.name
         )
+        this.statsStore.recordStashCreatedOnCurrentBranch()
       } else if (
         uncommittedChangesStrategy.kind ===
         UncommittedChangesStrategyKind.moveToNewBranch
@@ -2916,11 +2917,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
           })
 
           if (stashCreated) {
-            this.statsStore.recordChangesTakenToNewBranch()
             stashToPop = await getLastDesktopStashEntryForBranch(
               repository,
               foundBranch.name
             )
+            this.statsStore.recordChangesTakenToNewBranch()
           }
         }
       }
