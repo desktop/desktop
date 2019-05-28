@@ -569,40 +569,6 @@ export class RepositoriesStore extends BaseStore {
     return branchProtectionsFound
   }
 
-  /** Check the cache or load results from IndexedDB into cache */
-  private async findOrCacheBranchProtections(dbID: number): Promise<boolean> {
-    const branchProtectionsFound = this.branchProtectionSettingsFoundCache.get(
-      dbID
-    )
-
-    if (branchProtectionsFound === undefined) {
-      return this.loadAndCacheBranchProtection(dbID)
-    }
-
-    return branchProtectionsFound
-  }
-
-  private async isBranchProtected(
-    dbID: number,
-    branchName: string
-  ): Promise<boolean> {
-    const key = getKey(dbID, branchName)
-
-    const existing = this.protectionEnabledForBranchCache.get(key)
-    if (existing === true) {
-      return existing
-    }
-
-    const result = await this.db.protectedBranches.get([dbID, branchName])
-
-    // if no row found, this means no protection is found for the branch
-    const value = result !== undefined
-
-    this.protectionEnabledForBranchCache.set(key, value)
-
-    return value
-  }
-
   /**
    * Check if any branch protection settings are enabled for the repository
    * through the GitHub API.
@@ -616,7 +582,16 @@ export class RepositoriesStore extends BaseStore {
       )
     }
 
-    return await this.findOrCacheBranchProtections(gitHubRepository.dbID)
+    const { dbID } = gitHubRepository
+    const branchProtectionsFound = this.branchProtectionSettingsFoundCache.get(
+      dbID
+    )
+
+    if (branchProtectionsFound === undefined) {
+      return this.loadAndCacheBranchProtection(dbID)
+    }
+
+    return branchProtectionsFound
   }
 
   /**
@@ -634,7 +609,21 @@ export class RepositoriesStore extends BaseStore {
     }
 
     const { dbID } = gitHubRepository
-    return await this.isBranchProtected(dbID, branchName)
+    const key = getKey(dbID, branchName)
+
+    const existing = this.protectionEnabledForBranchCache.get(key)
+    if (existing === true) {
+      return existing
+    }
+
+    const result = await this.db.protectedBranches.get([dbID, branchName])
+
+    // if no row found, this means no protection is found for the branch
+    const value = result !== undefined
+
+    this.protectionEnabledForBranchCache.set(key, value)
+
+    return value
   }
 }
 
