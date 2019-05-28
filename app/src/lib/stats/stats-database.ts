@@ -205,6 +205,45 @@ export interface IDailyMeasures {
 
   /** The number of times the user takes no action on a stash entry once viewed */
   readonly noActionTakenOnStashCount: number
+  /**
+   * The number of times the user has opened their external editor from the
+   * suggested next steps view
+   */
+  readonly suggestedStepOpenInExternalEditor: number
+
+  /**
+   * The number of times the user has opened their repository in Finder/Explorer
+   * from the suggested next steps view
+   */
+  readonly suggestedStepOpenWorkingDirectory: number
+
+  /**
+   * The number of times the user has opened their repository on GitHub from the
+   * suggested next steps view
+   */
+  readonly suggestedStepViewOnGitHub: number
+
+  /**
+   * The number of times the user has used the publish repository action from the
+   * suggested next steps view
+   */
+  readonly suggestedStepPublishRepository: number
+
+  /**
+   * The number of times the user has used the publish branch action branch from
+   * the suggested next steps view
+   */
+  readonly suggestedStepPublishBranch: number
+
+  /**
+   * The number of times the user has used the Create PR suggestion
+   * in the suggested next steps view. Note that this number is a
+   * subset of `createPullRequestCount`. I.e. if the Create PR suggestion
+   * is invoked both `suggestedStepCreatePR` and `createPullRequestCount`
+   * will increment whereas if a PR is created from the menu or from
+   * a keyboard shortcut only `createPullRequestCount` will increment.
+   */
+  readonly suggestedStepCreatePullRequest: number
 }
 
 export class StatsDatabase extends Dexie {
