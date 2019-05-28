@@ -2258,6 +2258,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.updateChangesStashDiff(repository)
 
     if (!this.hasUserViewedStash) {
+      // `hasUserViewedStash` is reset to false on every branch checkout
+      // so we increment the metric before setting `hasUserViewedStash` to true
+      // to make sure we only increment on the first view after checkout
       this.statsStore.recordStashViewedAfterCheckout()
       this.hasUserViewedStash = true
     }
