@@ -9,7 +9,7 @@ import {
   getLastDesktopStashEntryForBranch,
   dropDesktopStashEntry,
   popStashEntry,
-  getStash,
+  getStashes,
 } from '../../../src/lib/git/stash'
 import { getStatusOrThrow } from '../../helpers/status'
 import { AppFileStatusKind } from '../../../src/models/status'
@@ -34,13 +34,13 @@ describe('git/stash', () => {
     it('handles unborn repo by returning empty list', async () => {
       const repo = await setupEmptyRepository()
 
-      const stash = await getStash(repo)
+      const stash = await getStashes(repo)
 
       expect(stash.desktopEntries).toHaveLength(0)
     })
 
     it('returns an empty list when no stash entries have been created', async () => {
-      const stash = await getStash(repository)
+      const stash = await getStashes(repository)
 
       expect(stash.desktopEntries).toHaveLength(0)
     })
@@ -50,7 +50,7 @@ describe('git/stash', () => {
       await generateTestStashEntry(repository, 'master', false)
       await generateTestStashEntry(repository, 'master', true)
 
-      const stash = await getStash(repository)
+      const stash = await getStashes(repository)
       const entries = stash.desktopEntries
       expect(entries).toHaveLength(1)
       expect(entries[0].branchName).toBe('master')
@@ -74,7 +74,7 @@ describe('git/stash', () => {
 
       await createDesktopStashEntry(repository, 'master')
 
-      const stash = await getStash(repository)
+      const stash = await getStashes(repository)
       const entries = stash.desktopEntries
 
       expect(entries).toHaveLength(1)
@@ -128,7 +128,7 @@ describe('git/stash', () => {
       await generateTestStashEntry(repository, branchName, true)
       await generateTestStashEntry(repository, branchName, true)
 
-      const stash = await getStash(repository)
+      const stash = await getStashes(repository)
       // entries are returned in LIFO order
       const lastEntry = stash.desktopEntries[0]
 
@@ -168,7 +168,7 @@ describe('git/stash', () => {
       await generateTestStashEntry(repository, 'master', true)
       await generateTestStashEntry(repository, 'master', true)
 
-      let stash = await getStash(repository)
+      let stash = await getStashes(repository)
       let entries = stash.desktopEntries
       expect(entries.length).toBe(2)
 
@@ -177,7 +177,7 @@ describe('git/stash', () => {
 
       // using this function to get stashSha since it parses
       // the output from git into easy to use objects
-      stash = await getStash(repository)
+      stash = await getStashes(repository)
       entries = stash.desktopEntries
       expect(entries.length).toBe(1)
       expect(entries[0].stashSha).not.toEqual(stashToDelete)
@@ -237,7 +237,7 @@ describe('git/stash', () => {
     describe('without any conflicts', () => {
       it('restores changes back to the working directory', async () => {
         await generateTestStashEntry(repository, 'master', true)
-        const stash = await getStash(repository)
+        const stash = await getStashes(repository)
         const { desktopEntries } = stash
         expect(desktopEntries.length).toBe(1)
 
@@ -257,7 +257,7 @@ describe('git/stash', () => {
     describe('when there are (resolvable) conflicts', () => {
       it('restores changes and drops stash', async () => {
         await generateTestStashEntry(repository, 'master', true)
-        const stash = await getStash(repository)
+        const stash = await getStashes(repository)
         const { desktopEntries } = stash
         expect(desktopEntries.length).toBe(1)
 
@@ -279,7 +279,7 @@ describe('git/stash', () => {
         files = status.workingDirectory.files
         expect(files).toHaveLength(1)
 
-        const stashAfter = await getStash(repository)
+        const stashAfter = await getStashes(repository)
         expect(stashAfter.desktopEntries).not.toContain(entryToApply)
       })
     })
@@ -287,7 +287,7 @@ describe('git/stash', () => {
     describe('when there are unresolvable conflicts', () => {
       it('throws an error', async () => {
         await generateTestStashEntry(repository, 'master', true)
-        const stash = await getStash(repository)
+        const stash = await getStashes(repository)
         const { desktopEntries } = stash
         expect(desktopEntries.length).toBe(1)
 

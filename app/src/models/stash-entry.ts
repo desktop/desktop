@@ -14,17 +14,6 @@ export interface IStashEntry {
   readonly files: StashedFileChanges
 }
 
-export interface IStashCollection {
-  /** The stash entries created by Desktop */
-  readonly desktopEntries: ReadonlyArray<IStashEntry>
-
-  /**
-   * The total amount of stash entries,
-   * i.e. stash entries created by desktop and outside of desktop
-   */
-  readonly stashEntryCount: number
-}
-
 /** Whether file changes for a stash entry are loaded or not */
 export enum StashedChangesLoadStates {
   NotLoaded = 'NotLoaded',

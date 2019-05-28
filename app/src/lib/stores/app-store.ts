@@ -232,11 +232,7 @@ import {
   UncommittedChangesStrategyKind,
   askToStash,
 } from '../../models/uncommitted-changes-strategy'
-import {
-  IStashEntry,
-  StashedChangesLoadStates,
-  IStashCollection,
-} from '../../models/stash-entry'
+import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'

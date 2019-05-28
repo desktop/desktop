@@ -79,7 +79,7 @@ import { GitAuthor } from '../../models/git-author'
 import { IGitAccount } from '../../models/git-account'
 import { BaseStore } from './base-store'
 import { enablePullWithRebase, enableStashing } from '../feature-flag'
-import { getStash, getStashedFiles } from '../git/stash'
+import { getStashes, getStashedFiles } from '../git/stash'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { PullRequest } from '../../models/pull-request'
 
@@ -984,7 +984,7 @@ export class GitStore extends BaseStore {
     }
 
     const map = new Map<string, IStashEntry>()
-    const stash = await getStash(this.repository)
+    const stash = await getStashes(this.repository)
 
     for (const entry of stash.desktopEntries) {
       // we only want the first entry we find for each branch,

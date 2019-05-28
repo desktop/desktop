@@ -5,7 +5,6 @@ import {
   IStashEntry,
   StashedChangesLoadStates,
   StashedFileChanges,
-  IStash,
 } from '../../models/stash-entry'
 import { CommittedFileChange } from '../../models/status'
 
@@ -27,7 +26,18 @@ const desktopStashEntryMessageRe = /!!GitHub_Desktop<(.+)>$/
  * using the default ordering of `git stash list` (i.e., LIFO ordering) as well as
  * the total amount of stash entries.
  */
-export async function getStashes(repository: Repository): Promise<IStash> {
+export async function getStashes(
+  repository: Repository
+): Promise<{
+  /** The stash entries created by Desktop */
+  readonly desktopEntries: ReadonlyArray<IStashEntry>
+
+  /**
+   * The total amount of stash entries,
+   * i.e. stash entries created by desktop and outside of desktop
+   */
+  readonly stashEntryCount: number
+}> {
   const delimiter = '1F'
   const delimiterString = String.fromCharCode(parseInt(delimiter, 16))
   const format = ['%gd', '%H', '%gs'].join(`%x${delimiter}`)
@@ -48,7 +58,9 @@ export async function getStashes(repository: Repository): Promise<IStash> {
   }
 
   const desktopStashEntries: Array<IStashEntry> = []
-  const files: StashedFileChanges = { kind: StashedChangesLoadStates.NotLoaded }
+  const files: StashedFileChanges = {
+    kind: StashedChangesLoadStates.NotLoaded,
+  }
 
   const entries = result.stdout.split('\0')
   for (const entry of entries) {
@@ -59,7 +71,12 @@ export async function getStashes(repository: Repository): Promise<IStash> {
       const branchName = extractBranchFromMessage(message)
 
       if (branchName !== null) {
-        desktopStashEntries.push({ name, branchName, stashSha, files })
+        desktopStashEntries.push({
+          name,
+          branchName,
+          stashSha,
+          files,
+        })
       }
     }
   }
@@ -77,7 +94,7 @@ export async function getLastDesktopStashEntryForBranch(
   repository: Repository,
   branchName: string
 ) {
-  const stash = await getStash(repository)
+  const stash = await getStashes(repository)
 
   // Since stash objects are returned in a LIFO manner, the first
   // entry found is guaranteed to be the last entry created
@@ -130,7 +147,7 @@ export async function createDesktopStashEntry(
 }
 
 async function getStashEntryMatchingSha(repository: Repository, sha: string) {
-  const stash = await getStash(repository)
+  const stash = await getStashes(repository)
   return stash.desktopEntries.find(e => e.stashSha === sha) || null
 }
 
