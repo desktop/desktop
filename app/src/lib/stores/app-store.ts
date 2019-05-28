@@ -232,7 +232,11 @@ import {
   UncommittedChangesStrategyKind,
   askToStash,
 } from '../../models/uncommitted-changes-strategy'
-import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
+import {
+  IStashEntry,
+  StashedChangesLoadStates,
+  IStashCollection,
+} from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
@@ -2554,7 +2558,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     ])
 
     // this promise is fire-and-forget, so no need to await it
-    this.updateStashEntryCountMetric(repository, gitStore)
+    this.updateStashEntryCountMetric(
+      repository,
+      gitStore.desktopStashEntryCount,
+      gitStore.stashEntryCount
+    )
     this.updateCurrentPullRequest(repository)
 
     const latestState = this.repositoryStateCache.get(repository)
@@ -2565,7 +2573,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private async updateStashEntryCountMetric(
     repository: Repository,
-    gitStore: GitStore
+    desktopStashEntryCount: number,
+    stashEntryCount: number
   ) {
     const lastStashEntryCheck = await this.repositoriesStore.getLastStashCheckDate(
       repository
@@ -2576,7 +2585,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // we've never checked for the given repo
     if (lastStashEntryCheck == null || threshold.isAfter(lastStashEntryCheck)) {
       await this.repositoriesStore.updateLastStashCheckDate(repository)
-      const { stashEntryCount, desktopStashEntryCount } = gitStore
       const numEntriesCreatedOutsideDesktop =
         stashEntryCount - desktopStashEntryCount
       this.statsStore.addStashEntriesCreatedOutsideDesktop(
