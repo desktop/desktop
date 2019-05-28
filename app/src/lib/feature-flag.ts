@@ -83,7 +83,7 @@ export function enableRebaseDialog(): boolean {
 
 /** Should the app show the "stash changes" dialog? */
 export function enableStashing(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /**
