@@ -22,6 +22,36 @@ export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 const desktopStashEntryMessageRe = /!!GitHub_Desktop<(.+)>$/
 
 /**
+ * Gets the number of stash entries for the given repository
+ */
+export async function getStashSize(repository: Repository): Promise<number> {
+  const delimiter = '1F'
+  const format = ['%gd', '%H', '%gs'].join(`%x${delimiter}`)
+
+  const result = await git(
+    ['log', '-g', '-z', `--pretty=${format}`, 'refs/stash'],
+    repository.path,
+    'getStashSize',
+    {
+      successExitCodes: new Set([0, 128]),
+    }
+  )
+
+  // There's no refs/stashes reflog in the repository or it's not
+  // even a repository. In either case we don't care
+  if (result.exitCode === 128) {
+    return 0
+  }
+
+  const stashEntries = result.stdout
+    .split('\0')
+    .filter(s => s !== '')
+    .filter(s => !desktopStashEntryMessageRe.test(s))
+
+  return stashEntries.length
+}
+
+/**
  * Get the list of stash entries created by Desktop in the current repository
  * using the default ordering of `git stash list` (i.e., LIFO ordering).
  */
@@ -91,7 +121,7 @@ export function createDesktopStashMessage(branchName: string) {
 export async function createDesktopStashEntry(
   repository: Repository,
   branchName: string
-) {
+): Promise<true> {
   const message = createDesktopStashMessage(branchName)
   const args = ['stash', 'push', '--include-untracked', '-m', message]
 
@@ -119,6 +149,8 @@ export async function createDesktopStashEntry(
       } reported. stderr: ${result.stderr}`
     )
   }
+
+  return true
 }
 
 async function getStashEntryMatchingSha(repository: Repository, sha: string) {
