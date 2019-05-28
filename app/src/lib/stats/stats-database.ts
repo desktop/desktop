@@ -203,6 +203,12 @@ export interface IDailyMeasures {
   /** The number of times the user elects to discard a stash entry */
   readonly stashDiscardCount: number
 
+  /**
+   * The number of times the user views the stash entry as a result
+   * of clicking the "Stashed changes" row directly
+   */
+  readonly stashViewCount: number
+
   /** The number of times the user takes no action on a stash entry once viewed */
   readonly noActionTakenOnStashCount: number
   /**

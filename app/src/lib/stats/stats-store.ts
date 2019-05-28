@@ -99,6 +99,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   changesTakenToNewBranchCount: 0,
   stashRestoreCount: 0,
   stashDiscardCount: 0,
+  stashViewCount: 0,
   noActionTakenOnStashCount: 0,
   suggestedStepOpenInExternalEditor: 0,
   suggestedStepOpenWorkingDirectory: 0,
@@ -1021,6 +1022,13 @@ export class StatsStore implements IStatsStore {
   public async recordStashDiscard(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       stashDiscardCount: m.stashDiscardCount + 1,
+    }))
+  }
+
+  /** Record when the user views a stash entry */
+  public async recordStashView(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      stashViewCount: m.stashViewCount + 1,
     }))
   }
 

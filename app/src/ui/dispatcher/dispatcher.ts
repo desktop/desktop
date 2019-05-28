@@ -2104,4 +2104,9 @@ export class Dispatcher {
   public recordNoActionTakenOnStash(): Promise<void> {
     return this.statsStore.recordNoActionTakenOnStash()
   }
+
+  /** Record when the user views the stash entry */
+  public recordStashView(): Promise<void> {
+    return this.statsStore.recordStashView()
+  }
 }
