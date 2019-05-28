@@ -619,10 +619,12 @@ export class RepositoriesStore extends BaseStore {
       )
     }
 
-    const repoID = gitHubRepository.dbID
-    const found = await this.findOrCacheBranchProtections(repoID)
+    const { dbID } = gitHubRepository
+    const isBranchProtectionsFound = await this.findOrCacheBranchProtections(
+      dbID
+    )
 
-    if (found) {
+    if (isBranchProtectionsFound) {
       return true
     }
 
@@ -654,10 +656,10 @@ export class RepositoriesStore extends BaseStore {
       )
     }
 
-    const repoID = gitHubRepository.dbID
-    const found = await this.isBranchProtected(repoID, branchName)
+    const { dbID } = gitHubRepository
+    const isProtected = await this.isBranchProtected(dbID, branchName)
 
-    if (found) {
+    if (isProtected) {
       return true
     }
 
