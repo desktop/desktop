@@ -2924,7 +2924,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
               repository,
               foundBranch.name
             )
-            this.statsStore.recordChangesTakenToNewBranch()
           }
         }
       }
@@ -2958,6 +2957,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         UncommittedChangesStrategyKind.moveToNewBranch &&
       checkoutSucceeded
     ) {
+      this.statsStore.recordChangesTakenToNewBranch()
+
       stashToPop = stashToPop || uncommittedChangesStrategy.transientStashEntry
       if (stashToPop !== null) {
         const stashSha = stashToPop.stashSha
@@ -4296,7 +4297,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
     const dateNow = moment()
     const threshold = dateNow.subtract(24, 'hours')
-    if (lastStashEntryCheck == null || threshold.isAfter(lastStashEntryCheck)) {
+    if (
+      lastStashEntryCheck == null ||
+      threshold.isAfter(lastStashEntryCheck) ||
+      __DEV__
+    ) {
       // `lastStashEntryCheck` being equal to null means we've never checked for
       // the given repo
 
