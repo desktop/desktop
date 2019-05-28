@@ -244,6 +244,11 @@ export interface IDailyMeasures {
    * a keyboard shortcut only `createPullRequestCount` will increment.
    */
   readonly suggestedStepCreatePullRequest: number
+
+  /** The number of times the user has used the view stash action from
+   * the suggested next steps view
+   */
+  readonly suggestedStepViewStash: number
 }
 
 export class StatsDatabase extends Dexie {

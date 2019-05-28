@@ -106,6 +106,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   suggestedStepPublishRepository: 0,
   suggestedStepPublishBranch: 0,
   suggestedStepCreatePullRequest: 0,
+  suggestedStepViewStash: 0,
 }
 
 interface IOnboardingStats {
@@ -1119,6 +1120,16 @@ export class StatsStore implements IStatsStore {
   public recordSuggestedStepCreatePullRequest(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       suggestedStepCreatePullRequest: m.suggestedStepCreatePullRequest + 1,
+    }))
+  }
+
+  /**
+   * Increment the number of times the user has used the View Stash suggestion
+   * in the suggested next steps view.
+   */
+  public recordSuggestedStepViewStash(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepViewStash: m.suggestedStepViewStash + 1,
     }))
   }
 
