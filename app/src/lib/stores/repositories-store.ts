@@ -12,17 +12,6 @@ import { IAPIRepository, IAPIBranch } from '../api'
 import { BaseStore } from './base-store'
 import { enableBranchProtectionWarning } from '../feature-flag'
 
-/**
- * Branch protection information associated with a given GitHub or GitHub
- * Enterprise repository.
- */
-type BranchProtectionContext = {
-  /** Does the repository have any branch protections enabled? */
-  readonly branchProtectionsFound: boolean
-  /** Is the current branch marked as protected on the remote repository? */
-  readonly isRemoteBranchProtected: boolean
-}
-
 /** The store for local repositories. */
 export class RepositoriesStore extends BaseStore {
   private db: RepositoriesDatabase
@@ -558,57 +547,10 @@ export class RepositoriesStore extends BaseStore {
   }
 
   /**
-   * Inspect the cache or database to find out information about the branch
-   * protection configuration for the current repository and branch.
-   */
-  public async getBranchProtectionContext(
-    gitHubRepository: GitHubRepository,
-    branchName: string
-  ): Promise<BranchProtectionContext> {
-    if (gitHubRepository.dbID === null) {
-      return fatalError(
-        'unable to get protected branches, GitHub repository has a null dbID'
-      )
-    }
-
-    const repoID = gitHubRepository.dbID
-
-    const branchProtectionsFound = this.branchProtectionSettingsFoundCache.get(
-      repoID
-    )
-
-    if (branchProtectionsFound === undefined) {
-      return this.loadAndCacheBranchProtection(repoID, branchName)
-    } else if (branchProtectionsFound === true) {
-      // as we know branch protections are enabled for the repository, check
-      // this specific branch either in the cache or the database
-      const isRemoteBranchProtected = await this.isBranchProtected(
-        repoID,
-        branchName
-      )
-
-      return {
-        branchProtectionsFound,
-        isRemoteBranchProtected,
-      }
-    }
-
-    // we have no branch protections enabled for this repository, therefore the
-    // current branch cannot be protected
-    return {
-      branchProtectionsFound,
-      isRemoteBranchProtected: false,
-    }
-  }
-
-  /**
    * Load the branch protection information for a repository from the database
    * and cache the results in memory
    */
-  private async loadAndCacheBranchProtection(
-    repoID: number,
-    branchName: string
-  ) {
+  private async loadAndCacheBranchProtection(repoID: number) {
     // query the database to find any protected branches
     const branches = await this.db.protectedBranches
       .where('repoId')
@@ -624,18 +566,21 @@ export class RepositoriesStore extends BaseStore {
       this.protectionEnabledForBranchCache.set(key, true)
     }
 
-    // find the current branch in the cache, or return `false` if not found
-    const key = getKey(repoID, branchName)
-    const isRemoteBranchProtected =
-      this.protectionEnabledForBranchCache.get(key) || false
-
-    return {
-      branchProtectionsFound,
-      isRemoteBranchProtected,
-    }
+    return branchProtectionsFound
   }
 
-  /** Check for the branch protection of a given branch on the remote */
+  private async findBranchProtection(repoID: number): Promise<boolean> {
+    const branchProtectionsFound = this.branchProtectionSettingsFoundCache.get(
+      repoID
+    )
+
+    if (branchProtectionsFound === undefined) {
+      return this.loadAndCacheBranchProtection(repoID)
+    }
+
+    return branchProtectionsFound
+  }
+
   private async isBranchProtected(
     repoID: number,
     branchName: string
@@ -643,7 +588,7 @@ export class RepositoriesStore extends BaseStore {
     const key = getKey(repoID, branchName)
 
     const existing = this.protectionEnabledForBranchCache.get(key)
-    if (existing !== undefined) {
+    if (existing === true) {
       return existing
     }
 
@@ -654,6 +599,67 @@ export class RepositoriesStore extends BaseStore {
     this.protectionEnabledForBranchCache.set(key, value)
 
     return value
+  }
+
+  /**
+   * Check if any branch protection settings are enabled for the current
+   * repository or parent repository, using the GitHub API configuration.
+   */
+  public async hasBranchProtectionsConfigured(
+    gitHubRepository: GitHubRepository
+  ): Promise<boolean> {
+    if (gitHubRepository.dbID === null) {
+      return fatalError(
+        'unable to get protected branches, GitHub repository has a null dbID'
+      )
+    }
+
+    const repoID = gitHubRepository.dbID
+    const found = await this.findBranchProtection(repoID)
+
+    if (found) {
+      return true
+    }
+
+    if (
+      gitHubRepository.parent !== null &&
+      gitHubRepository.parent.dbID !== null
+    ) {
+      const parentID = gitHubRepository.parent.dbID
+
+      return await this.findBranchProtection(parentID)
+    }
+
+    return false
+  }
+
+  /** Check for the branch protection of a given branch on the remote */
+  public async isBranchProtectedOnRemote(
+    gitHubRepository: GitHubRepository,
+    branchName: string
+  ): Promise<boolean> {
+    if (gitHubRepository.dbID === null) {
+      return fatalError(
+        'unable to get protected branches, GitHub repository has a null dbID'
+      )
+    }
+
+    const repoID = gitHubRepository.dbID
+    const found = await this.isBranchProtected(repoID, branchName)
+
+    if (found) {
+      return true
+    }
+
+    if (
+      gitHubRepository.parent !== null &&
+      gitHubRepository.parent.dbID !== null
+    ) {
+      const parentID = gitHubRepository.parent.dbID
+      return await this.isBranchProtected(parentID, branchName)
+    }
+
+    return false
   }
 }
 

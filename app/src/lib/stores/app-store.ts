@@ -163,7 +163,6 @@ import {
   IMatchedGitHubRepository,
   matchGitHubRepository,
   repositoryMatchesRemote,
-  urlMatchesCloneURL,
 } from '../repository-matching'
 import {
   initializeRebaseFlowForConflictedRepository,
@@ -238,6 +237,7 @@ import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
+import { findBranchName } from './helpers/find-branch-name'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -2374,33 +2374,31 @@ export class AppStore extends TypedBaseStore<IAppState> {
           }
         }
 
-        if (
-          enableBranchProtectionWarning() &&
-          gitStore.tip.kind === TipState.Valid &&
-          gitStore.currentRemote !== null
-        ) {
-          // look up if the tracked branch matches a protected remote branch
-          const { upstreamWithoutRemote } = gitStore.tip.branch
+        if (enableBranchProtectionWarning()) {
+          // first, see if there are any branch protections enabled for this
+          // repository (or the upstream if working in a fork)
 
-          // ensure the remote associated with this branch is the one we
-          // are checking the branch protections against
-          const remoteURL = gitStore.currentRemote.url
+          const branchProtectionsFound = await this.repositoriesStore.hasBranchProtectionsConfigured(
+            repository.gitHubRepository
+          )
 
-          if (
-            upstreamWithoutRemote !== null &&
-            urlMatchesCloneURL(remoteURL, repository.gitHubRepository)
-          ) {
-            const {
-              branchProtectionsFound,
-              isRemoteBranchProtected,
-            } = await this.repositoriesStore.getBranchProtectionContext(
+          if (branchProtectionsFound) {
+            this.statsStore.recordCommitToRepositoryWithBranchProtections()
+          }
+
+          // second, check the current branch to determine whether branch
+          // protections are enabled - we can use the remote branch name if
+          // tracking information is set, or fall back to using the local branch
+          // name because 99.99% (citation needed) of users like to keep their
+          // naming patterns consistent between local and remote repositories
+
+          const branchName = findBranchName(gitStore.tip)
+
+          if (branchName !== null) {
+            const isRemoteBranchProtected = await this.repositoriesStore.isBranchProtectedOnRemote(
               repository.gitHubRepository,
-              upstreamWithoutRemote
+              branchName
             )
-
-            if (branchProtectionsFound) {
-              this.statsStore.recordCommitToRepositoryWithBranchProtections()
-            }
 
             if (isRemoteBranchProtected) {
               this.statsStore.recordCommitToProtectedBranch()
