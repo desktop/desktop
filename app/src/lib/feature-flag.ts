@@ -91,5 +91,5 @@ export function enableStashing(): boolean {
  * protected branch?
  */
 export function enableBranchProtectionWarning(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
