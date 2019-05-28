@@ -602,8 +602,11 @@ export class RepositoriesStore extends BaseStore {
   }
 
   /**
-   * Check if any branch protection settings are enabled for the current
-   * repository or parent repository, using the GitHub API configuration.
+   * Check if any branch protection settings are enabled for the repository
+   * through the GitHub API.
+   *
+   * Will also check the parent repository if is defined and the fork repository
+   * does not have this branch protected.
    */
   public async hasBranchProtectionsConfigured(
     gitHubRepository: GitHubRepository
@@ -633,7 +636,13 @@ export class RepositoriesStore extends BaseStore {
     return false
   }
 
-  /** Check for the branch protection of a given branch on the remote */
+  /**
+   * Check if the given branch for the repository is protected through the
+   * GitHub API.
+   *
+   * Will also check the parent repository if is defined and the fork repository
+   * does not have this branch protected.
+   */
   public async isBranchProtectedOnRemote(
     gitHubRepository: GitHubRepository,
     branchName: string
