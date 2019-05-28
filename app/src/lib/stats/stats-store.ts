@@ -96,6 +96,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   rebaseCurrentBranchMenuCount: 0,
   stashViewedAfterCheckoutCount: 0,
   stashCreatedOnCurrentBranchCount: 0,
+  stashNotViewedAfterCheckoutCount: 0,
   changesTakenToNewBranchCount: 0,
   stashRestoreCount: 0,
   stashDiscardCount: 0,
@@ -1001,6 +1002,13 @@ export class StatsStore implements IStatsStore {
   public async recordStashViewedAfterCheckout(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       stashViewedAfterCheckoutCount: m.stashViewedAfterCheckoutCount + 1,
+    }))
+  }
+
+  /** Record when the user **doesn't** view a stash entry after checking out a branch */
+  public async recordStashNotViewedAfterCheckout(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      stashNotViewedAfterCheckoutCount: m.stashNotViewedAfterCheckoutCount + 1,
     }))
   }
 

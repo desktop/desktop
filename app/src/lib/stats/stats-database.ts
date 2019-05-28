@@ -191,6 +191,9 @@ export interface IDailyMeasures {
   /** The number of times the users views a stash entry after checking out a branch */
   readonly stashViewedAfterCheckoutCount: number
 
+  /** The number of times the user **doesn't** view a stash entry after checking out a branch */
+  readonly stashNotViewedAfterCheckoutCount: number
+
   /** The number of times the user elects to stash changes on the current branch  */
   readonly stashCreatedOnCurrentBranchCount: number
 
