@@ -91,9 +91,9 @@ const DefaultDailyMeasures: IDailyMeasures = {
   rebaseSuccessAfterConflictsCount: 0,
   pullWithRebaseCount: 0,
   pullWithDefaultSettingCount: 0,
-  rebaseCurrentBranchMenuCount: 0,
-  stashesCreatedOutsideDesktop: 0,
+  stashEntriesCreatedOutsideDesktop: 0,
   errorWhenSwitchingBranchesWithUncommmittedChanges: 0,
+  rebaseCurrentBranchMenuCount: 0,
 }
 
 interface IOnboardingStats {
@@ -984,11 +984,20 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record the number of stash entries created outside of Desktop for the day */
+<<<<<<< HEAD
   public async addStashesCreatedOutsideDesktop(
     stashCount: number
   ): Promise<void> {
     return this.updateDailyMeasures(m => ({
       stashesCreatedOutsideDesktop: m.stashesCreatedOutsideDesktop + stashCount,
+=======
+  public async addStashEntriesCreatedOutsideDesktop(
+    stashCount: number
+  ): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      stashEntriesCreatedOutsideDesktop:
+        m.stashEntriesCreatedOutsideDesktop + stashCount,
+>>>>>>> development
     }))
   }
 

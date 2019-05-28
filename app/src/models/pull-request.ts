@@ -11,7 +11,7 @@ export class PullRequestRef {
   public constructor(
     public readonly ref: string,
     public readonly sha: string,
-    public readonly gitHubRepository: GitHubRepository | null
+    public readonly gitHubRepository: GitHubRepository
   ) {}
 }
 
@@ -24,7 +24,6 @@ export interface ICommitStatus {
 
 export class PullRequest {
   /**
-   * @param id The database ID.
    * @param created The date on which the PR was created.
    * @param status The status of the PR. This will be `null` if we haven't looked up its
    *               status yet or if an error occurred while looking it up.
@@ -35,7 +34,6 @@ export class PullRequest {
    * @param author The author's login.
    */
   public constructor(
-    public readonly id: number,
     public readonly created: Date,
     public readonly title: string,
     public readonly pullRequestNumber: number,

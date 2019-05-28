@@ -48,3 +48,5 @@ export type StashedFileChanges =
       readonly kind: StashedChangesLoadStates.Loaded
       readonly files: ReadonlyArray<CommittedFileChange>
     }
+
+export type StashCallback = (stashEntry: IStashEntry) => Promise<void>
