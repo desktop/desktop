@@ -611,15 +611,18 @@ export class RepositoriesStore extends BaseStore {
     const { dbID } = gitHubRepository
     const key = getKey(dbID, branchName)
 
-    const existing = this.protectionEnabledForBranchCache.get(key)
-    if (existing === true) {
-      return existing
+    const cachedProtectionValue = this.protectionEnabledForBranchCache.get(key)
+    if (cachedProtectionValue === true) {
+      return cachedProtectionValue
     }
 
-    const result = await this.db.protectedBranches.get([dbID, branchName])
+    const databaseValue = await this.db.protectedBranches.get([
+      dbID,
+      branchName,
+    ])
 
     // if no row found, this means no protection is found for the branch
-    const value = result !== undefined
+    const value = databaseValue !== undefined
 
     this.protectionEnabledForBranchCache.set(key, value)
 
