@@ -4,8 +4,11 @@ import * as ReactCSSTransitionReplace from 'react-css-transition-replace'
 import { encodePathAsUrl } from '../../lib/path'
 import { Repository } from '../../models/repository'
 import { LinkButton } from '../lib/link-button'
-import { enableNoChangesCreatePRBlankslateAction } from '../../lib/feature-flag'
-import { MenuIDs } from '../../main-process/menu'
+import {
+  enableNoChangesCreatePRBlankslateAction,
+  enableStashing,
+} from '../../lib/feature-flag'
+import { MenuIDs } from '../../models/menu-ids'
 import { IMenu, MenuItem } from '../../models/app-menu'
 import memoizeOne from 'memoize-one'
 import { getPlatformSpecificNameOrSymbolForModifier } from '../../lib/menu-item'
@@ -16,6 +19,8 @@ import { TipState, IValidBranch } from '../../models/tip'
 import { Ref } from '../lib/ref'
 import { IAheadBehind } from '../../models/branch'
 import { IRemote } from '../../models/remote'
+import { isCurrentBranchForcePush } from '../../lib/rebase'
+import { StashedChangesLoadStates } from '../../models/stash-entry'
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
@@ -292,12 +297,7 @@ export class NoChanges extends React.Component<
 
   private renderRemoteAction() {
     const { remote, aheadBehind, branchesState } = this.props.repositoryState
-    const {
-      tip,
-      defaultBranch,
-      currentPullRequest,
-      rebasedBranches,
-    } = branchesState
+    const { tip, defaultBranch, currentPullRequest } = branchesState
 
     if (tip.kind !== TipState.Valid) {
       return null
@@ -312,12 +312,8 @@ export class NoChanges extends React.Component<
       return this.renderPublishBranchAction(tip)
     }
 
-    const localBranchName = tip.branch.nameWithoutRemote
-    const { sha } = tip.branch.tip
-    const foundEntry = rebasedBranches.get(localBranchName)
-    const branchWasRebased = foundEntry === sha
-
-    if (branchWasRebased) {
+    const isForcePush = isCurrentBranchForcePush(branchesState, aheadBehind)
+    if (isForcePush) {
       // do not render an action currently after the rebase has completed, as
       // the default behaviour is currently to pull in changes from the tracking
       // branch which will could potentially lead to a more confusing history
@@ -342,6 +338,63 @@ export class NoChanges extends React.Component<
         return this.renderCreatePullRequestAction(tip)
       }
     }
+
+    return null
+  }
+
+  private renderStashAction() {
+    if (!enableStashing()) {
+      return null
+    }
+
+    const { changesState, branchesState } = this.props.repositoryState
+
+    const { tip } = branchesState
+    if (tip.kind !== TipState.Valid) {
+      return null
+    }
+
+    const { stashEntry } = changesState
+    if (stashEntry === null) {
+      return null
+    }
+
+    if (stashEntry.files.kind !== StashedChangesLoadStates.Loaded) {
+      return null
+    }
+
+    const numChanges = stashEntry.files.files.length
+    const description = (
+      <>
+        You have {numChanges} {numChanges === 1 ? 'change' : 'changes'} in
+        progress that you have not yet committed.
+      </>
+    )
+    const discoverabilityContent = (
+      <>
+        When a stash exists, access it at the bottom of the Changes tab to the
+        left.
+      </>
+    )
+    const itemId: MenuIDs = 'toggle-stashed-changes'
+    const menuItem = this.getMenuItemInfo(itemId)
+    if (menuItem === undefined) {
+      log.error(`Could not find matching menu item for ${itemId}`)
+      return null
+    }
+
+    return (
+      <MenuBackedBlankslateAction
+        key="view-stash-action"
+        title="View your stashed changes"
+        menuItemId={itemId}
+        description={description}
+        discoverabilityContent={discoverabilityContent}
+        buttonText="View stash"
+        type="primary"
+        disabled={menuItem !== null && !menuItem.enabled}
+      />
+    )
 
     return null
   }
@@ -575,7 +628,7 @@ export class NoChanges extends React.Component<
           transitionEnterTimeout={750}
           transitionLeaveTimeout={500}
         >
-          {this.renderRemoteAction()}
+          {this.renderStashAction() || this.renderRemoteAction()}
         </ReactCSSTransitionReplace>
         <div className="actions">
           {this.renderOpenInExternalEditor()}

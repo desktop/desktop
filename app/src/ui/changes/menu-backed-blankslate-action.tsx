@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { BlankslateAction } from './blankslate-action'
-import { MenuIDs } from '../../main-process/menu'
+import { MenuIDs } from '../../models/menu-ids'
 import { executeMenuItemById } from '../main-process-proxy'
 
 interface IMenuBackedBlankSlateActionProps {

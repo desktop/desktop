@@ -10,7 +10,6 @@ import {
   FoldoutType,
   ICompareFormUpdate,
   RepositorySectionTab,
-  isRebaseConflictState,
   isMergeConflictState,
   RebaseConflictState,
 } from '../../lib/app-state'
@@ -20,7 +19,12 @@ import {
   setGenericPassword,
   setGenericUsername,
 } from '../../lib/generic-git-auth'
-import { isGitRepository, RebaseResult, PushOptions } from '../../lib/git'
+import {
+  isGitRepository,
+  RebaseResult,
+  PushOptions,
+  getCommitsInRange,
+} from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
 import {
   rejectOAuthRequest,
@@ -79,6 +83,7 @@ import {
 import { MergeResult } from '../../models/merge'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
+import { IStashEntry } from '../../models/stash-entry'
 
 /**
  * An error handler function.
@@ -190,22 +195,6 @@ export class Dispatcher {
     return this.appStore._setRepositoryFilterText(text)
   }
 
-  /** Set the branch filter text. */
-  public setBranchFilterText(
-    repository: Repository,
-    text: string
-  ): Promise<void> {
-    return this.appStore._setBranchFilterText(repository, text)
-  }
-
-  /** Set the branch filter text. */
-  public setPullRequestFilterText(
-    repository: Repository,
-    text: string
-  ): Promise<void> {
-    return this.appStore._setPullRequestFilterText(repository, text)
-  }
-
   /** Select the repository. */
   public selectRepository(
     repository: Repository | CloningRepository
@@ -221,12 +210,34 @@ export class Dispatcher {
     return this.appStore._changeRepositorySection(repository, section)
   }
 
-  /** Change the currently selected file in Changes. */
-  public changeChangesSelection(
+  /**
+   * Changes the selection in the changes view to the working directory and
+   * optionally selects one or more files from the working directory.
+   *
+   *  @param files An array of files to select when showing the working directory.
+   *               If undefined this method will preserve the previously selected
+   *               files or pick the first changed file if no selection exists.
+   */
+  public selectWorkingDirectoryFiles(
     repository: Repository,
-    selectedFiles: WorkingDirectoryFileChange[]
+    selectedFiles?: WorkingDirectoryFileChange[]
   ): Promise<void> {
-    return this.appStore._changeChangesSelection(repository, selectedFiles)
+    return this.appStore._selectWorkingDirectoryFiles(repository, selectedFiles)
+  }
+
+  /**
+   * Changes the selection in the changes view to the stash entry view and
+   * optionally selects a particular file from the current stash entry.
+   *
+   *  @param file  A file to select when showing the stash entry.
+   *               If undefined this method will preserve the previously selected
+   *               file or pick the first changed file if no selection exists.
+   */
+  public selectStashedFile(
+    repository: Repository,
+    file?: CommittedFileChange | null
+  ): Promise<void> {
+    return this.appStore._selectStashedFile(repository, file)
   }
 
   /**
@@ -307,15 +318,51 @@ export class Dispatcher {
     return this.appStore._closeFoldout(foldout)
   }
 
-  /**
-   * Compute a preview of the planned rebase action
-   */
-  public previewRebase(
+  /** Initialize and start the rebase operation */
+  public async startRebase(
     repository: Repository,
     baseBranch: Branch,
-    targetBranch: Branch
-  ) {
-    return this.appStore._previewRebase(repository, baseBranch, targetBranch)
+    targetBranch: Branch,
+    commits: ReadonlyArray<CommitOneLine>,
+    options?: { continueWithForcePush: boolean }
+  ): Promise<void> {
+    const { askForConfirmationOnForcePush } = this.appStore.getState()
+
+    const hasOverridenForcePushCheck =
+      options !== undefined && options.continueWithForcePush
+
+    if (askForConfirmationOnForcePush && !hasOverridenForcePushCheck) {
+      // if the branch is tracking a remote branch
+      if (targetBranch.upstream !== null) {
+        // and the remote branch has commits that don't exist on the base branch
+        const remoteCommits = await getCommitsInRange(
+          repository,
+          baseBranch.tip.sha,
+          targetBranch.upstream
+        )
+
+        if (remoteCommits.length > 0) {
+          this.setRebaseFlowStep(repository, {
+            kind: RebaseStep.WarnForcePush,
+            baseBranch,
+            targetBranch,
+            commits,
+          })
+          return
+        }
+      }
+    }
+
+    this.initializeRebaseProgress(repository, commits)
+
+    const startRebaseAction = () => {
+      return this.rebase(repository, baseBranch, targetBranch)
+    }
+
+    this.setRebaseFlowStep(repository, {
+      kind: RebaseStep.ShowProgress,
+      rebaseAction: startRebaseAction,
+    })
   }
 
   /**
@@ -331,7 +378,10 @@ export class Dispatcher {
       return
     }
 
-    const updatedConflictState = { ...conflictState, targetBranch }
+    const updatedConflictState = {
+      ...conflictState,
+      targetBranch,
+    }
 
     this.repositoryStateManager.updateChangesState(repository, () => ({
       conflictState: updatedConflictState,
@@ -360,9 +410,15 @@ export class Dispatcher {
   public createBranch(
     repository: Repository,
     name: string,
-    startPoint?: string
+    startPoint: string | null,
+    uncommittedChangesStrategy?: UncommittedChangesStrategy
   ): Promise<Repository> {
-    return this.appStore._createBranch(repository, name, startPoint)
+    return this.appStore._createBranch(
+      repository,
+      name,
+      startPoint,
+      uncommittedChangesStrategy
+    )
   }
 
   /** Check out the given branch. */
@@ -784,18 +840,20 @@ export class Dispatcher {
   /** Starts a rebase for the given base and target branch */
   public async rebase(
     repository: Repository,
-    baseBranch: string,
-    targetBranch: string
+    baseBranch: Branch,
+    targetBranch: Branch
   ): Promise<void> {
     const stateBefore = this.repositoryStateManager.get(repository)
 
     const beforeSha = getTipSha(stateBefore.branchesState.tip)
 
-    log.info(`[rebase] starting rebase for ${targetBranch} at ${beforeSha}`)
+    log.info(
+      `[rebase] starting rebase for ${targetBranch.name} at ${beforeSha}`
+    )
     log.info(
       `[rebase] to restore the previous state if this completed rebase is unsatisfactory:`
     )
-    log.info(`[rebase] - git checkout ${targetBranch}`)
+    log.info(`[rebase] - git checkout ${targetBranch.name}`)
     log.info(`[rebase] - git reset ${beforeSha} --hard`)
 
     const result = await this.appStore._rebase(
@@ -832,11 +890,17 @@ export class Dispatcher {
         return
       }
 
-      this.switchToConflicts(repository, conflictState)
+      const conflictsWithBranches: RebaseConflictState = {
+        ...conflictState,
+        baseBranch: baseBranch.name,
+        targetBranch: targetBranch.name,
+      }
+
+      this.switchToConflicts(repository, conflictsWithBranches)
     } else if (result === RebaseResult.CompletedWithoutError) {
       if (tip.kind !== TipState.Valid) {
         log.warn(
-          `[continueRebase] tip after completing rebase is ${
+          `[rebase] tip after completing rebase is ${
             tip.kind
           } but this should be a valid tip if the rebase completed without error`
         )
@@ -847,12 +911,17 @@ export class Dispatcher {
         repository,
         {
           type: BannerType.SuccessfulRebase,
-          targetBranch: targetBranch,
-          baseBranch: baseBranch,
+          targetBranch: targetBranch.name,
+          baseBranch: baseBranch.name,
         },
         tip,
         beforeSha
       )
+    } else if (result === RebaseResult.Error) {
+      // we were unable to successfully start the rebase, and an error should
+      // be shown through the default error handling infrastructure, so we can
+      // just abandon the rebase for now
+      this.endRebaseFlow(repository)
     }
   }
 
@@ -869,19 +938,15 @@ export class Dispatcher {
   public async continueRebase(
     repository: Repository,
     workingDirectory: WorkingDirectoryStatus,
-    manualResolutions: ReadonlyMap<string, ManualConflictResolution>
+    conflictsState: RebaseConflictState
   ): Promise<void> {
     const stateBefore = this.repositoryStateManager.get(repository)
-    const { conflictState } = stateBefore.changesState
-
-    if (conflictState === null || !isRebaseConflictState(conflictState)) {
-      log.warn(
-        `[continueRebase] no conflicts found, likely an invalid rebase state`
-      )
-      return
-    }
-
-    const { targetBranch, baseBranch, originalBranchTip } = conflictState
+    const {
+      targetBranch,
+      baseBranch,
+      originalBranchTip,
+      manualResolutions,
+    } = conflictsState
 
     const beforeSha = getTipSha(stateBefore.branchesState.tip)
 
@@ -920,7 +985,14 @@ export class Dispatcher {
         return
       }
 
-      this.switchToConflicts(repository, conflictState)
+      // ensure branches are persisted when transitioning back to conflicts
+      const conflictsWithBranches: RebaseConflictState = {
+        ...conflictState,
+        baseBranch,
+        targetBranch,
+      }
+
+      this.switchToConflicts(repository, conflictsWithBranches)
     } else if (result === RebaseResult.CompletedWithoutError) {
       if (tip.kind !== TipState.Valid) {
         log.warn(
@@ -1885,6 +1957,11 @@ export class Dispatcher {
     this.statsStore.recordRebaseConflictsDialogReopened()
   }
 
+  /** Increments the `errorWhenSwitchingBranchesWithUncommmittedChanges` metric */
+  public recordErrorWhenSwitchingBranchesWithUncommmittedChanges() {
+    return this.statsStore.recordErrorWhenSwitchingBranchesWithUncommmittedChanges()
+  }
+
   /**
    * Refresh the list of open pull requests for the given repository.
    */
@@ -1923,27 +2000,48 @@ export class Dispatcher {
     return this.commitStatusStore.subscribe(repository, ref, callback)
   }
 
-  /**
-   * Stashes all changes, including those in untracked files, in the working directory
-   *
-   * @param branch the branch the stash should be associated with
-   */
-  public createStash(repository: Repository, branch: Branch): Promise<void> {
-    return this.appStore._createStash(repository, branch.name)
+  /** Drops the given stash in the given repository */
+  public dropStash(repository: Repository, stashEntry: IStashEntry) {
+    return this.appStore._dropStashEntry(repository, stashEntry)
+  }
+
+  /** Pop the given stash in the given repository */
+  public popStash(repository: Repository, stashEntry: IStashEntry) {
+    return this.appStore._popStashEntry(repository, stashEntry)
   }
 
   /**
-   * Show the UI for stashed changes
+   * Set the width of the commit summary column in the
+   * history view to the given value.
    */
-  public showStashEntry(repository: Repository) {
-    return this.appStore._showStashEntry(repository)
+  public setStashedFilesWidth = (width: number): Promise<void> => {
+    return this.appStore._setStashedFilesWidth(width)
   }
 
   /**
-   * Hide the UI for stashed changes
+   * Reset the width of the commit summary column in the
+   * history view to its default value.
    */
-  public hideStashEntry(repository: Repository) {
-    return this.appStore._hideStashEntry(repository)
+  public resetStashedFilesWidth = (): Promise<void> => {
+    return this.appStore._resetStashedFilesWidth()
+  }
+
+  /** Hide the diff for stashed changes */
+  public hideStashedChanges(repository: Repository) {
+    return this.appStore._hideStashedChanges(repository)
+  }
+
+  /**
+   * Moves unconmitted changes to the branch being checked out
+   */
+  public async moveChangesToBranchAndCheckout(
+    repository: Repository,
+    branchToCheckout: string
+  ) {
+    return this.appStore._moveChangesToBranchAndCheckout(
+      repository,
+      branchToCheckout
+    )
   }
 
   /** Record when the user takes no action on the stash entry */

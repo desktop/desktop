@@ -275,7 +275,7 @@ export class CreateBranch extends React.Component<
   private createBranch = async () => {
     const name = this.state.sanitizedName
 
-    let startPoint = undefined
+    let startPoint: string | null = null
 
     if (this.state.startPoint === StartPoint.DefaultBranch) {
       // This really shouldn't happen, we take all kinds of precautions
@@ -297,7 +297,6 @@ export class CreateBranch extends React.Component<
         name,
         startPoint
       )
-      this.props.onDismissed()
     }
   }
 }

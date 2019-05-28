@@ -1,5 +1,6 @@
 export type MenuEvent =
   | 'push'
+  | 'force-push'
   | 'pull'
   | 'show-changes'
   | 'show-history'
@@ -10,6 +11,7 @@ export type MenuEvent =
   | 'create-repository'
   | 'rename-branch'
   | 'delete-branch'
+  | 'discard-all-changes'
   | 'show-preferences'
   | 'choose-repository'
   | 'open-working-directory'
@@ -30,3 +32,5 @@ export type MenuEvent =
   | 'open-external-editor'
   | 'select-all'
   | 'show-release-notes-popup'
+  | 'show-stashed-changes'
+  | 'hide-stashed-changes'

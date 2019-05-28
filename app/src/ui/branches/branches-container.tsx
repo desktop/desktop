@@ -31,8 +31,6 @@ interface IBranchesContainerProps {
   readonly currentBranch: Branch | null
   readonly recentBranches: ReadonlyArray<Branch>
   readonly pullRequests: ReadonlyArray<PullRequest>
-  readonly branchFilterText: string
-  readonly pullRequestFilterText: string
 
   /** The pull request associated with the current branch. */
   readonly currentPullRequest: PullRequest | null
@@ -59,8 +57,8 @@ export class BranchesContainer extends React.Component<
     this.state = {
       selectedBranch: props.currentBranch,
       selectedPullRequest: props.currentPullRequest,
-      branchFilterText: props.branchFilterText,
-      pullRequestFilterText: props.pullRequestFilterText,
+      branchFilterText: '',
+      pullRequestFilterText: '',
     }
   }
 
@@ -95,16 +93,19 @@ export class BranchesContainer extends React.Component<
     )
   }
 
+  private renderOpenPullRequestsBubble() {
+    const { pullRequests } = this.props
+
+    if (pullRequests.length > 0) {
+      return <span className="count">{pullRequests.length}</span>
+    }
+
+    return null
+  }
+
   private renderTabBar() {
     if (!this.props.repository.gitHubRepository) {
       return null
-    }
-
-    let countElement = null
-    if (this.props.pullRequests) {
-      countElement = (
-        <span className="count">{this.props.pullRequests.length}</span>
-      )
     }
 
     return (
@@ -115,8 +116,7 @@ export class BranchesContainer extends React.Component<
         <span>Branches</span>
         <span className="pull-request-tab">
           {__DARWIN__ ? 'Pull Requests' : 'Pull requests'}
-
-          {countElement}
+          {this.renderOpenPullRequestsBubble()}
         </span>
       </TabBar>
     )
@@ -284,16 +284,5 @@ export class BranchesContainer extends React.Component<
     )
 
     this.onPullRequestSelectionChanged(pullRequest)
-  }
-
-  public componentWillUnmount() {
-    this.props.dispatcher.setBranchFilterText(
-      this.props.repository,
-      this.state.branchFilterText
-    )
-    this.props.dispatcher.setPullRequestFilterText(
-      this.props.repository,
-      this.state.pullRequestFilterText
-    )
   }
 }

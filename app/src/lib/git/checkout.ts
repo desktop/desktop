@@ -61,7 +61,7 @@ export async function checkoutBranch(
   account: IGitAccount | null,
   branch: Branch,
   progressCallback?: ProgressCallback
-): Promise<void> {
+): Promise<true> {
   let opts: IGitExecutionOptions = {
     env: envForAuthentication(account),
     expectedErrors: AuthenticationErrors,
@@ -97,6 +97,9 @@ export async function checkoutBranch(
   )
 
   await git(args, repository.path, 'checkoutBranch', opts)
+  // we return `true` here so `GitStore.performFailableGitOperation`
+  // will return _something_ differentiable from `undefined` if this succeeds
+  return true
 }
 
 /** Check out the paths at HEAD. */

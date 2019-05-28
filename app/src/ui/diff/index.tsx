@@ -10,6 +10,8 @@ import {
   CommittedFileChange,
   WorkingDirectoryFileChange,
   AppFileStatusKind,
+  isManualConflict,
+  isConflictedFileStatus,
 } from '../../models/status'
 import {
   DiffSelection,
@@ -182,6 +184,17 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
         return (
           <div className="panel renamed">
             The file was renamed but not changed
+          </div>
+        )
+      }
+
+      if (
+        isConflictedFileStatus(this.props.file.status) &&
+        isManualConflict(this.props.file.status)
+      ) {
+        return (
+          <div className="panel empty">
+            The file is in conflict and must be resolved via the command line.
           </div>
         )
       }

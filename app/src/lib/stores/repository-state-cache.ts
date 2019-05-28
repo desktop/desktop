@@ -17,12 +17,12 @@ import {
   RepositorySectionTab,
   ICommitSelection,
   IRebaseState,
+  ChangesSelectionKind,
 } from '../app-state'
 import { ComparisonCache } from '../comparison-cache'
 import { IGitHubUser } from '../databases'
 import { merge } from '../merge'
 import { DefaultCommitMessage } from '../../models/commit-message'
-import { IStashEntry } from '../../models/stash-entry'
 
 export class RepositoryStateCache {
   private readonly repositoryState = new Map<string, IRepositoryState>()
@@ -124,13 +124,16 @@ function getInitialRepositoryState(): IRepositoryState {
       workingDirectory: WorkingDirectoryStatus.fromFiles(
         new Array<WorkingDirectoryFileChange>()
       ),
-      selectedFileIDs: [],
-      diff: null,
+      selection: {
+        kind: ChangesSelectionKind.WorkingDirectory,
+        selectedFileIDs: [],
+        diff: null,
+      },
       commitMessage: DefaultCommitMessage,
       coAuthors: [],
       showCoAuthoredBy: false,
       conflictState: null,
-      shouldShowStashedChanges: false,
+      stashEntry: null,
     },
     selectedSection: RepositorySectionTab.Changes,
     branchesState: {
@@ -162,7 +165,6 @@ function getInitialRepositoryState(): IRepositoryState {
     rebaseState: {
       step: null,
       progress: null,
-      preview: null,
       commits: null,
       userHasResolvedConflicts: false,
     },
@@ -178,8 +180,5 @@ function getInitialRepositoryState(): IRepositoryState {
     checkoutProgress: null,
     pushPullFetchProgress: null,
     revertProgress: null,
-    branchFilterText: '',
-    pullRequestFilterText: '',
-    stashEntries: new Map<string, IStashEntry>(),
   }
 }

@@ -9,9 +9,10 @@ import { createRepository as createLongRebaseTest } from '../../../helpers/repos
 import { getStatusOrThrow } from '../../../helpers/status'
 import { GitRebaseSnapshot } from '../../../../src/models/rebase'
 import { setupEmptyDirectory } from '../../../helpers/repositories'
+import { getBranchOrError } from '../../../helpers/git'
 
-const baseBranch = 'base-branch'
-const featureBranch = 'this-is-a-feature'
+const baseBranchName = 'base-branch'
+const featureBranchName = 'this-is-a-feature'
 
 describe('git/rebase', () => {
   describe('skips a normal repository', () => {
@@ -30,7 +31,17 @@ describe('git/rebase', () => {
     let status: IStatusResult
 
     beforeEach(async () => {
-      const repository = await createShortRebaseTest(baseBranch, featureBranch)
+      const repository = await createShortRebaseTest(
+        baseBranchName,
+        featureBranchName
+      )
+
+      const featureBranch = await getBranchOrError(
+        repository,
+        featureBranchName
+      )
+
+      const baseBranch = await getBranchOrError(repository, baseBranchName)
 
       result = await rebase(repository, baseBranch, featureBranch)
 
@@ -66,7 +77,17 @@ describe('git/rebase', () => {
     let status: IStatusResult
 
     beforeEach(async () => {
-      const repository = await createLongRebaseTest(baseBranch, featureBranch)
+      const repository = await createLongRebaseTest(
+        baseBranchName,
+        featureBranchName
+      )
+
+      const featureBranch = await getBranchOrError(
+        repository,
+        featureBranchName
+      )
+
+      const baseBranch = await getBranchOrError(repository, baseBranchName)
 
       result = await rebase(repository, baseBranch, featureBranch)
 

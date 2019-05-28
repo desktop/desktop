@@ -1,0 +1,63 @@
+@import '../variables';
+
+#stash-diff-viewer {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  .header {
+    display: flex;
+    flex-direction: column;
+    border-bottom: var(--base-border);
+    padding: var(--spacing-triple) var(--spacing-double);
+
+    h3 {
+      font-weight: var(--font-weight-light);
+      font-size: var(--font-size-xl);
+      line-height: 1;
+      margin-bottom: var(--spacing);
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      margin-top: var(--spacing);
+    }
+
+    .button-group {
+      display: flex;
+      button {
+        margin-right: var(--spacing);
+      }
+    }
+
+    .explanatory-text {
+      display: flex;
+      align-items: center;
+      flex-grow: 1;
+      margin-left: var(--spacing-half);
+
+      .text {
+        flex-grow: 1;
+      }
+
+      .octicon {
+        fill: var(--text-secondary-color);
+        margin: 0 var(--spacing-half);
+        flex-shrink: 0;
+      }
+    }
+  }
+
+  // Necessary so that the diff doesn't expand
+  // beyond the width of the history
+  min-width: 0;
+
+  // for stash diff viewer
+  .file-list {
+    display: flex;
+    flex: 1;
+
+    border-right: var(--base-border);
+  }
+}

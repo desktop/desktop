@@ -26,6 +26,8 @@ import { stageManualConflictResolution } from './stage'
 import { stageFiles } from './update-index'
 import { getStatus } from './status'
 import { getCommitsInRange } from './rev-list'
+import { Branch } from '../../models/branch'
+import { enablePullWithRebase } from '../feature-flag'
 
 /**
  * Check the `.git/REBASE_HEAD` file exists in a repository to confirm
@@ -47,6 +49,10 @@ function isRebaseHeadSet(repository: Repository) {
 export async function getRebaseInternalState(
   repository: Repository
 ): Promise<RebaseInternalState | null> {
+  if (!enablePullWithRebase()) {
+    return null
+  }
+
   const isRebase = await isRebaseHeadSet(repository)
 
   if (!isRebase) {
@@ -319,8 +325,8 @@ function configureOptionsForRebase(
  */
 export async function rebase(
   repository: Repository,
-  baseBranch: string,
-  targetBranch: string,
+  baseBranch: Branch,
+  targetBranch: Branch,
   progressCallback?: (progress: IRebaseProgress) => void
 ): Promise<RebaseResult> {
   const baseOptions: IGitExecutionOptions = {
@@ -332,8 +338,8 @@ export async function rebase(
   if (progressCallback !== undefined) {
     const commits = await getCommitsInRange(
       repository,
-      baseBranch,
-      targetBranch
+      baseBranch.tip.sha,
+      targetBranch.tip.sha
     )
 
     const totalCommitCount = commits.length
@@ -346,7 +352,7 @@ export async function rebase(
   }
 
   const result = await git(
-    ['rebase', baseBranch, targetBranch],
+    ['rebase', baseBranch.name, targetBranch.name],
     repository.path,
     'rebase',
     options
