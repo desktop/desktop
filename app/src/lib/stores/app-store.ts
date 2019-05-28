@@ -2392,7 +2392,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
           // name because 99.99% (citation needed) of users like to keep their
           // naming patterns consistent between local and remote repositories
 
-          const branchName = findBranchName(gitStore.tip)
+          const branchName = findBranchName(
+            gitStore.tip,
+            gitStore.currentRemote,
+            repository.gitHubRepository
+          )
 
           if (branchName !== null) {
             const isRemoteBranchProtected = await this.repositoriesStore.isBranchProtectedOnRemote(
