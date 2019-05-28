@@ -62,7 +62,7 @@ export async function getStashes(
     kind: StashedChangesLoadStates.NotLoaded,
   }
 
-  const entries = result.stdout.split('\0')
+  const entries = result.stdout.split('\0').filter(s => s !== '')
   for (const entry of entries) {
     const pieces = entry.split(delimiterString)
 
