@@ -12,7 +12,7 @@ import { urlMatchesCloneURL } from '../../repository-matching'
  * branch name as that's a reasonable approximation for what would happen if the
  * user tries to push the new branch.
  */
-export function findBranchName(
+export function findRemoteBranchName(
   tip: Tip,
   remote: IRemote | null,
   gitHubRepository: GitHubRepository

@@ -237,7 +237,7 @@ import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
-import { findBranchName } from './helpers/find-branch-name'
+import { findRemoteBranchName } from './helpers/find-branch-name'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -2375,9 +2375,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         }
 
         if (enableBranchProtectionWarning()) {
-          // first, see if there are any branch protections enabled for this
-          // repository (or the upstream if working in a fork)
-
           const branchProtectionsFound = await this.repositoriesStore.hasBranchProtectionsConfigured(
             repository.gitHubRepository
           )
@@ -2386,13 +2383,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             this.statsStore.recordCommitToRepositoryWithBranchProtections()
           }
 
-          // second, check the current branch to determine whether branch
-          // protections are enabled - we can use the remote branch name if
-          // tracking information is set, or fall back to using the local branch
-          // name because 99.99% (citation needed) of users like to keep their
-          // naming patterns consistent between local and remote repositories
-
-          const branchName = findBranchName(
+          const branchName = findRemoteBranchName(
             gitStore.tip,
             gitStore.currentRemote,
             repository.gitHubRepository
