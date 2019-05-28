@@ -2399,7 +2399,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             )
 
             if (branchProtectionsFound) {
-              this.statsStore.recordCommitWithBranchProtectionsEnabled()
+              this.statsStore.recordCommitToRepositoryWithBranchProtections()
             }
 
             if (isRemoteBranchProtected) {

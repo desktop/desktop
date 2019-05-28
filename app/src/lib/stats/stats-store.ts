@@ -101,7 +101,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   suggestedStepPublishBranch: 0,
   suggestedStepCreatePullRequest: 0,
   commitsToProtectedBranch: 0,
-  commitWithBranchProtectionsEnabled: false,
+  commitsToRepositoryWithBranchProtections: 0,
 }
 
 interface IOnboardingStats {
@@ -692,9 +692,10 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record the user made a commit to repository which has branch protections enabled */
-  public recordCommitWithBranchProtectionsEnabled(): Promise<void> {
+  public recordCommitToRepositoryWithBranchProtections(): Promise<void> {
     return this.updateDailyMeasures(m => ({
-      commitWithBranchProtectionsEnabled: true,
+      commitsToRepositoryWithBranchProtections:
+        m.commitsToRepositoryWithBranchProtections + 1,
     }))
   }
 
