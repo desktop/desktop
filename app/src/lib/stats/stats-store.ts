@@ -94,6 +94,12 @@ const DefaultDailyMeasures: IDailyMeasures = {
   stashEntriesCreatedOutsideDesktop: 0,
   errorWhenSwitchingBranchesWithUncommmittedChanges: 0,
   rebaseCurrentBranchMenuCount: 0,
+  suggestedStepOpenInExternalEditor: 0,
+  suggestedStepOpenWorkingDirectory: 0,
+  suggestedStepViewOnGitHub: 0,
+  suggestedStepPublishRepository: 0,
+  suggestedStepPublishBranch: 0,
+  suggestedStepCreatePullRequest: 0,
 }
 
 interface IOnboardingStats {
@@ -1003,6 +1009,68 @@ export class StatsStore implements IStatsStore {
     return this.updateDailyMeasures(m => ({
       errorWhenSwitchingBranchesWithUncommmittedChanges:
         m.errorWhenSwitchingBranchesWithUncommmittedChanges + 1,
+    }))
+  }
+
+  /**
+   * Increment the number of times the user has opened their external editor
+   * from the suggested next steps view
+   */
+  public recordSuggestedStepOpenInExternalEditor(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepOpenInExternalEditor:
+        m.suggestedStepOpenInExternalEditor + 1,
+    }))
+  }
+
+  /**
+   * Increment the number of times the user has opened their repository in
+   * Finder/Explorer from the suggested next steps view
+   */
+  public recordSuggestedStepOpenWorkingDirectory(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepOpenWorkingDirectory:
+        m.suggestedStepOpenWorkingDirectory + 1,
+    }))
+  }
+
+  /**
+   * Increment the number of times the user has opened their repository on
+   * GitHub from the suggested next steps view
+   */
+  public recordSuggestedStepViewOnGitHub(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepViewOnGitHub: m.suggestedStepViewOnGitHub + 1,
+    }))
+  }
+
+  /**
+   * Increment the number of times the user has used the publish repository
+   * action from the suggested next steps view
+   */
+  public recordSuggestedStepPublishRepository(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepPublishRepository: m.suggestedStepPublishRepository + 1,
+    }))
+  }
+
+  /**
+   * Increment the number of times the user has used the publish branch
+   * action branch from the suggested next steps view
+   */
+  public recordSuggestedStepPublishBranch(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepPublishBranch: m.suggestedStepPublishBranch + 1,
+    }))
+  }
+
+  /**
+   * Increment the number of times the user has used the Create PR suggestion
+   * in the suggested next steps view.
+   */
+  public recordSuggestedStepCreatePullRequest(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepCreatePullRequest: m.suggestedStepCreatePullRequest + 1,
     }))
   }
 

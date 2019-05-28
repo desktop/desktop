@@ -49,6 +49,16 @@ interface IMenuBackedBlankSlateActionProps {
    * clickable.
    */
   readonly disabled?: boolean
+
+  /**
+   * A callback which is invoked when the user clicks
+   * or activates the action using their keyboard.
+   *
+   * In order to suppress the menu backed action from being invoked
+   * consumers of this event will need to suppress the default behavior
+   * by calling `e.preventDefault`.
+   */
+  readonly onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
 }
 
 /**
@@ -81,7 +91,13 @@ export class MenuBackedBlankslateAction extends React.Component<
     )
   }
 
-  private onClick = () => {
-    executeMenuItemById(this.props.menuItemId)
+  private onClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (this.props.onClick !== undefined) {
+      this.props.onClick(e)
+    }
+
+    if (!e.defaultPrevented) {
+      executeMenuItemById(this.props.menuItemId)
+    }
   }
 }
