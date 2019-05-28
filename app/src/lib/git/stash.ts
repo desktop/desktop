@@ -57,7 +57,7 @@ export async function getStashSize(repository: Repository): Promise<number> {
  * using the default ordering of `git stash list` (i.e., LIFO ordering) as well as
  * the total amount of stash entries.
  */
-export async function getStash(repository: Repository): Promise<IStash> {
+export async function getStashes(repository: Repository): Promise<IStash> {
   const delimiter = '1F'
   const delimiterString = String.fromCharCode(parseInt(delimiter, 16))
   const format = ['%gd', '%H', '%gs'].join(`%x${delimiter}`)
