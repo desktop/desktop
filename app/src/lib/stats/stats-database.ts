@@ -188,7 +188,7 @@ export interface IDailyMeasures {
   /** The number of times the user opens the "Rebase current branch" menu item */
   readonly rebaseCurrentBranchMenuCount: number
 
-  /** The number of times the users views a stash entry after checking out a branch */
+  /** The number of times the user views a stash entry after checking out a branch */
   readonly stashViewedAfterCheckoutCount: number
 
   /** The number of times the user **doesn't** view a stash entry after checking out a branch */
