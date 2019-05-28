@@ -23,8 +23,8 @@ const desktopStashEntryMessageRe = /!!GitHub_Desktop<(.+)>$/
 
 /**
  * Get the list of stash entries created by Desktop in the current repository
- * using the default ordering of `git stash list` (i.e., LIFO ordering) as well as
- * the total amount of stash entries.
+ * using the default ordering of refs (wich is LIFO ordering),
+ * as well as the total amount of stash entries.
  */
 export async function getStashes(
   repository: Repository
