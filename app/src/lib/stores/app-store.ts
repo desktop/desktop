@@ -5160,7 +5160,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }`
     )
 
-    this.statsStore.recordStashPop()
+    this.statsStore.recordStashRestore()
     await this._refreshRepository(repository)
   }
 
@@ -5182,7 +5182,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }`
     )
 
-    this.statsStore.recordStashDrop()
+    this.statsStore.recordStashDiscard()
     await gitStore.loadStashEntries()
   }
 

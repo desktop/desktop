@@ -97,8 +97,8 @@ const DefaultDailyMeasures: IDailyMeasures = {
   stashViewedAfterCheckoutCount: 0,
   stashCreatedOnCurrentBranchCount: 0,
   changesTakenToNewBranchCount: 0,
-  stashPopCount: 0,
-  stashDropCount: 0,
+  stashRestoreCount: 0,
+  stashDiscardCount: 0,
   noActionTakenOnStashCount: 0,
 }
 
@@ -1010,17 +1010,17 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  /** Record when the user drops the stash entry */
-  public async recordStashDrop(): Promise<void> {
+  /** Record when the user discards a stash entry */
+  public async recordStashDiscard(): Promise<void> {
     return this.updateDailyMeasures(m => ({
-      stashDropCount: m.stashDropCount + 1,
+      stashDiscardCount: m.stashDiscardCount + 1,
     }))
   }
 
-  /** Record when the user pops the stash entry */
-  public async recordStashPop(): Promise<void> {
+  /** Record when the user restores a stash entry */
+  public async recordStashRestore(): Promise<void> {
     return this.updateDailyMeasures(m => ({
-      stashPopCount: m.stashPopCount + 1,
+      stashRestoreCount: m.stashRestoreCount + 1,
     }))
   }
 
