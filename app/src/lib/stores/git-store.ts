@@ -134,7 +134,7 @@ export class GitStore extends BaseStore {
 
   private _desktopStashEntries = new Map<string, IStashEntry>()
 
-  private _stashEntryCount: number = 0
+  private _stashEntryCount = 0
 
   public constructor(repository: Repository, shell: IAppShell) {
     super()
