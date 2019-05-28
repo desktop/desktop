@@ -622,9 +622,6 @@ export class RepositoriesStore extends BaseStore {
   /**
    * Check if the given branch for the repository is protected through the
    * GitHub API.
-   *
-   * Will also check the parent repository if is defined and the fork repository
-   * does not have this branch protected.
    */
   public async isBranchProtectedOnRemote(
     gitHubRepository: GitHubRepository,
@@ -637,21 +634,7 @@ export class RepositoriesStore extends BaseStore {
     }
 
     const { dbID } = gitHubRepository
-    const isProtected = await this.isBranchProtected(dbID, branchName)
-
-    if (isProtected) {
-      return true
-    }
-
-    if (
-      gitHubRepository.parent !== null &&
-      gitHubRepository.parent.dbID !== null
-    ) {
-      const parentID = gitHubRepository.parent.dbID
-      return await this.isBranchProtected(parentID, branchName)
-    }
-
-    return false
+    return await this.isBranchProtected(dbID, branchName)
   }
 }
 
