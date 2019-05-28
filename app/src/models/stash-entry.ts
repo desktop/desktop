@@ -14,7 +14,7 @@ export interface IStashEntry {
   readonly files: StashedFileChanges
 }
 
-export interface IStash {
+export interface IStashCollection {
   /** The stash entries created by Desktop */
   readonly desktopEntries: ReadonlyArray<IStashEntry>
 
