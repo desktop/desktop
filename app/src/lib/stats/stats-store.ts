@@ -1016,7 +1016,7 @@ export class StatsStore implements IStatsStore {
    * Increment the number of times the user has opened their external editor
    * from the suggested next steps view
    */
-  public async recordSuggestedStepOpenInExternalEditor(): Promise<void> {
+  public recordSuggestedStepOpenInExternalEditor(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       suggestedStepOpenInExternalEditor:
         m.suggestedStepOpenInExternalEditor + 1,
@@ -1025,7 +1025,7 @@ export class StatsStore implements IStatsStore {
 
   /**
    * Increment the number of times the user has opened their repository in
-   * Finder/Explorerfrom the suggested next steps view
+   * Finder/Explorer from the suggested next steps view
    */
   public async recordSuggestedStepOpenWorkingDirectory(): Promise<void> {
     return this.updateDailyMeasures(m => ({
