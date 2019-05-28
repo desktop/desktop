@@ -606,9 +606,6 @@ export class RepositoriesStore extends BaseStore {
   /**
    * Check if any branch protection settings are enabled for the repository
    * through the GitHub API.
-   *
-   * Will also check the parent repository if is defined and the fork repository
-   * does not have this branch protected.
    */
   public async hasBranchProtectionsConfigured(
     gitHubRepository: GitHubRepository
@@ -619,24 +616,7 @@ export class RepositoriesStore extends BaseStore {
       )
     }
 
-    const { dbID } = gitHubRepository
-    const isBranchProtectionsFound = await this.findOrCacheBranchProtections(
-      dbID
-    )
-
-    if (isBranchProtectionsFound) {
-      return true
-    }
-
-    if (
-      gitHubRepository.parent !== null &&
-      gitHubRepository.parent.dbID !== null
-    ) {
-      const parentID = gitHubRepository.parent.dbID
-      return await this.findOrCacheBranchProtections(parentID)
-    }
-
-    return false
+    return await this.findOrCacheBranchProtections(gitHubRepository.dbID)
   }
 
   /**
