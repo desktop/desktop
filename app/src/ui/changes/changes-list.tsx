@@ -596,6 +596,9 @@ export class ChangesList extends React.Component<
   private onStashEntryClicked = () => {
     if (this.props.isShowingStashEntry) {
       this.props.dispatcher.selectWorkingDirectoryFiles(this.props.repository)
+
+      // If the button is clicked, that implies the stash was not restored or discarded
+      this.props.dispatcher.recordNoActionTakenOnStash()
     } else {
       this.props.dispatcher.selectStashedFile(this.props.repository)
     }
