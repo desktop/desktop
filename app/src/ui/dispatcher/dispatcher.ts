@@ -2075,8 +2075,8 @@ export class Dispatcher {
    * Increment the number of times the user has used the Create PR suggestion
    * in the suggested next steps view.
    */
-  public recordSuggestedStepCreatePR(): Promise<void> {
-    return this.statsStore.recordSuggestedStepCreatePR()
+  public recordSuggestedStepCreatePullRequest(): Promise<void> {
+    return this.statsStore.recordSuggestedStepCreatePullRequest()
   }
 
   /**

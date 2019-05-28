@@ -647,7 +647,7 @@ export class NoChanges extends React.Component<
   }
 
   private onCreatePullRequestClicked = () =>
-    this.props.dispatcher.recordSuggestedStepCreatePR()
+    this.props.dispatcher.recordSuggestedStepCreatePullRequest()
 
   private renderActions() {
     return (

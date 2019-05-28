@@ -99,7 +99,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   suggestedStepViewOnGitHub: 0,
   suggestedStepPublishRepository: 0,
   suggestedStepPublishBranch: 0,
-  suggestedStepCreatePR: 0,
+  suggestedStepCreatePullRequest: 0,
 }
 
 interface IOnboardingStats {
@@ -1068,9 +1068,9 @@ export class StatsStore implements IStatsStore {
    * Increment the number of times the user has used the Create PR suggestion
    * in the suggested next steps view.
    */
-  public recordSuggestedStepCreatePR(): Promise<void> {
+  public recordSuggestedStepCreatePullRequest(): Promise<void> {
     return this.updateDailyMeasures(m => ({
-      suggestedStepCreatePR: m.suggestedStepCreatePR + 1,
+      suggestedStepCreatePullRequest: m.suggestedStepCreatePullRequest + 1,
     }))
   }
 

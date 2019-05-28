@@ -226,7 +226,7 @@ export interface IDailyMeasures {
    * will increment whereas if a PR is created from the menu or from
    * a keyboard shortcut only `createPullRequestCount` will increment.
    */
-  readonly suggestedStepCreatePR: number
+  readonly suggestedStepCreatePullRequest: number
 }
 
 export class StatsDatabase extends Dexie {
