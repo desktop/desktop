@@ -999,7 +999,7 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record when the user views a stash entry after checking out a branch */
-  public async recordStashViewedAfterCheckout(): Promise<void> {
+  public recordStashViewedAfterCheckout(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       stashViewedAfterCheckoutCount: m.stashViewedAfterCheckoutCount + 1,
     }))
