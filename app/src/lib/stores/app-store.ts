@@ -218,6 +218,7 @@ import {
   enableBranchProtectionWarning,
 } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
+import * as moment from 'moment'
 import { isDarkModeEnabled } from '../../ui/lib/dark-theme'
 import { ComputedAction } from '../../models/computed-action'
 import {
@@ -234,7 +235,6 @@ import {
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { arrayEquals } from '../equality'
-import * as moment from 'moment'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 
 /**
