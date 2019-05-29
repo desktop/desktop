@@ -1,5 +1,10 @@
 {
   "releases": {
+    "1.7.1-beta1": [
+      "[Fixed] Tab Bar focus ring outlines clip into other elements - #5802. Thanks @Daniel-McCarthy!",
+      "[Improved] Show explanation for manually conflicted text files in diff viewer - #7611",
+      "[Improved] Alignment of entries in repository list - #7133"
+    ],
     "1.7.0-beta9": [
       "[Fixed] Add warning when renaming a branch with a stash - #7283",
       "[Fixed] Restore Desktop to main screen when external monitor removed - #7418 #2107. Thanks @say25!",
