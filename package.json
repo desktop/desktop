@@ -167,6 +167,6 @@
     "electron": "3.1.6",
     "electron-builder": "20.28.4",
     "electron-packager": "^13.1.0",
-    "electron-winstaller": "2.5.2"
+    "electron-winstaller": "3.0.0"
   }
 }
