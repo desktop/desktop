@@ -1,5 +1,6 @@
 {
   "releases": {
+    "1.7.1-test1": [],
     "1.7.1-beta1": [
       "[Fixed] Tab Bar focus ring outlines clip into other elements - #5802. Thanks @Daniel-McCarthy!",
       "[Improved] Show explanation for manually conflicted text files in diff viewer - #7611",
