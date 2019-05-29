@@ -715,14 +715,14 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record that user dismissed diverging branch notification */
-  public recordDivergingBranchBannerDismissal(): Promise<void> {
+  public async recordDivergingBranchBannerDismissal(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       divergingBranchBannerDismissal: m.divergingBranchBannerDismissal + 1,
     }))
   }
 
   /** Record that user initiated a merge from within the notification banner */
-  public recordDivergingBranchBannerInitatedMerge(): Promise<void> {
+  public async recordDivergingBranchBannerInitatedMerge(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       divergingBranchBannerInitatedMerge:
         m.divergingBranchBannerInitatedMerge + 1,
@@ -730,7 +730,7 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record that user initiated a compare from within the notification banner */
-  public recordDivergingBranchBannerInitiatedCompare(): Promise<void> {
+  public async recordDivergingBranchBannerInitiatedCompare(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       divergingBranchBannerInitiatedCompare:
         m.divergingBranchBannerInitiatedCompare + 1,
@@ -741,7 +741,7 @@ export class StatsStore implements IStatsStore {
    * Record that user initiated a merge after getting to compare view
    * from within notification banner
    */
-  public recordDivergingBranchBannerInfluencedMerge(): Promise<void> {
+  public async recordDivergingBranchBannerInfluencedMerge(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       divergingBranchBannerInfluencedMerge:
         m.divergingBranchBannerInfluencedMerge + 1,
@@ -749,7 +749,7 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record that the user was shown the notification banner */
-  public recordDivergingBranchBannerDisplayed(): Promise<void> {
+  public async recordDivergingBranchBannerDisplayed(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       divergingBranchBannerDisplayed: m.divergingBranchBannerDisplayed + 1,
     }))
@@ -818,21 +818,21 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
-  public recordUserProceededWhileLoading(): Promise<void> {
+  public async recordUserProceededWhileLoading(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergedWithLoadingHintCount: m.mergedWithLoadingHintCount + 1,
     }))
   }
 
   /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
-  public recordMergeHintSuccessAndUserProceeded(): Promise<void> {
+  public async recordMergeHintSuccessAndUserProceeded(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergedWithCleanMergeHintCount: m.mergedWithCleanMergeHintCount + 1,
     }))
   }
 
   /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
-  public recordUserProceededAfterConflictWarning(): Promise<void> {
+  public async recordUserProceededAfterConflictWarning(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergedWithConflictWarningHintCount:
         m.mergedWithConflictWarningHintCount + 1,
@@ -842,7 +842,7 @@ export class StatsStore implements IStatsStore {
   /**
    * Increments the `mergeConflictsDialogDismissalCount` metric
    */
-  public recordMergeConflictsDialogDismissal(): Promise<void> {
+  public async recordMergeConflictsDialogDismissal(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergeConflictsDialogDismissalCount:
         m.mergeConflictsDialogDismissalCount + 1,
@@ -852,7 +852,7 @@ export class StatsStore implements IStatsStore {
   /**
    * Increments the `anyConflictsLeftOnMergeConflictsDialogDismissalCount` metric
    */
-  public recordAnyConflictsLeftOnMergeConflictsDialogDismissal(): Promise<
+  public async recordAnyConflictsLeftOnMergeConflictsDialogDismissal(): Promise<
     void
   > {
     return this.updateDailyMeasures(m => ({
@@ -864,7 +864,7 @@ export class StatsStore implements IStatsStore {
   /**
    * Increments the `mergeConflictsDialogReopenedCount` metric
    */
-  public recordMergeConflictsDialogReopened(): Promise<void> {
+  public async recordMergeConflictsDialogReopened(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergeConflictsDialogReopenedCount:
         m.mergeConflictsDialogReopenedCount + 1,
@@ -874,7 +874,7 @@ export class StatsStore implements IStatsStore {
   /**
    * Increments the `guidedConflictedMergeCompletionCount` metric
    */
-  public recordGuidedConflictedMergeCompletion(): Promise<void> {
+  public async recordGuidedConflictedMergeCompletion(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       guidedConflictedMergeCompletionCount:
         m.guidedConflictedMergeCompletionCount + 1,
@@ -884,7 +884,7 @@ export class StatsStore implements IStatsStore {
   /**
    * Increments the `unguidedConflictedMergeCompletionCount` metric
    */
-  public recordUnguidedConflictedMergeCompletion(): Promise<void> {
+  public async recordUnguidedConflictedMergeCompletion(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       unguidedConflictedMergeCompletionCount:
         m.unguidedConflictedMergeCompletionCount + 1,
@@ -903,7 +903,7 @@ export class StatsStore implements IStatsStore {
   /**
    * Increments the `rebaseConflictsDialogDismissalCount` metric
    */
-  public recordRebaseConflictsDialogDismissal(): Promise<void> {
+  public async recordRebaseConflictsDialogDismissal(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       rebaseConflictsDialogDismissalCount:
         m.rebaseConflictsDialogDismissalCount + 1,
@@ -913,7 +913,7 @@ export class StatsStore implements IStatsStore {
   /**
    * Increments the `rebaseConflictsDialogDismissalCount` metric
    */
-  public recordRebaseConflictsDialogReopened(): Promise<void> {
+  public async recordRebaseConflictsDialogReopened(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       rebaseConflictsDialogReopenedCount:
         m.rebaseConflictsDialogReopenedCount + 1,
@@ -923,7 +923,7 @@ export class StatsStore implements IStatsStore {
   /**
    * Increments the `rebaseAbortedAfterConflictsCount` metric
    */
-  public recordRebaseAbortedAfterConflicts(): Promise<void> {
+  public async recordRebaseAbortedAfterConflicts(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       rebaseAbortedAfterConflictsCount: m.rebaseAbortedAfterConflictsCount + 1,
     }))
@@ -985,77 +985,77 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record when a conflicted merge was successfully completed by the user */
-  public recordMergeSuccessAfterConflicts(): Promise<void> {
+  public async recordMergeSuccessAfterConflicts(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergeSuccessAfterConflictsCount: m.mergeSuccessAfterConflictsCount + 1,
     }))
   }
 
   /** Record when a conflicted merge was aborted by the user */
-  public recordMergeAbortedAfterConflicts(): Promise<void> {
+  public async recordMergeAbortedAfterConflicts(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergeAbortedAfterConflictsCount: m.mergeAbortedAfterConflictsCount + 1,
     }))
   }
 
   /** Record when the user views a stash entry after checking out a branch */
-  public recordStashViewedAfterCheckout(): Promise<void> {
+  public async recordStashViewedAfterCheckout(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       stashViewedAfterCheckoutCount: m.stashViewedAfterCheckoutCount + 1,
     }))
   }
 
   /** Record when the user **doesn't** view a stash entry after checking out a branch */
-  public recordStashNotViewedAfterCheckout(): Promise<void> {
+  public async recordStashNotViewedAfterCheckout(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       stashNotViewedAfterCheckoutCount: m.stashNotViewedAfterCheckoutCount + 1,
     }))
   }
 
   /** Record when the user elects to take changes to new branch over stashing */
-  public recordChangesTakenToNewBranch(): Promise<void> {
+  public async recordChangesTakenToNewBranch(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       changesTakenToNewBranchCount: m.changesTakenToNewBranchCount + 1,
     }))
   }
 
   /** Record when the user elects to stash changes on the current branch */
-  public recordStashCreatedOnCurrentBranch(): Promise<void> {
+  public async recordStashCreatedOnCurrentBranch(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       stashCreatedOnCurrentBranchCount: m.stashCreatedOnCurrentBranchCount + 1,
     }))
   }
 
   /** Record when the user discards a stash entry */
-  public recordStashDiscard(): Promise<void> {
+  public async recordStashDiscard(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       stashDiscardCount: m.stashDiscardCount + 1,
     }))
   }
 
   /** Record when the user views a stash entry */
-  public recordStashView(): Promise<void> {
+  public async recordStashView(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       stashViewCount: m.stashViewCount + 1,
     }))
   }
 
   /** Record when the user restores a stash entry */
-  public recordStashRestore(): Promise<void> {
+  public async recordStashRestore(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       stashRestoreCount: m.stashRestoreCount + 1,
     }))
   }
 
   /** Record when the user takes no action on the stash entry */
-  public recordNoActionTakenOnStash(): Promise<void> {
+  public async recordNoActionTakenOnStash(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       noActionTakenOnStashCount: m.noActionTakenOnStashCount + 1,
     }))
   }
 
   /** Record the number of stash entries created outside of Desktop for the day */
-  public addStashEntriesCreatedOutsideDesktop(
+  public async addStashEntriesCreatedOutsideDesktop(
     stashCount: number
   ): Promise<void> {
     return this.updateDailyMeasures(m => ({
@@ -1068,7 +1068,7 @@ export class StatsStore implements IStatsStore {
    * Record the number of times the user experiences the error
    * "Some of your changes would be overwritten" when switching branches
    */
-  public recordErrorWhenSwitchingBranchesWithUncommmittedChanges(): Promise<
+  public async recordErrorWhenSwitchingBranchesWithUncommmittedChanges(): Promise<
     void
   > {
     return this.updateDailyMeasures(m => ({
