@@ -2988,7 +2988,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         UncommittedChangesStrategyKind.moveToNewBranch &&
       checkoutSucceeded
     ) {
-      // We increment the metric after checkout succeeds to gaurd
+      // We increment the metric after checkout succeeds to guard
       // against double counting when an error occurs on checkout.
       // When an error occurs, one of our error handlers will inspect
       // it and make a call to `moveChangesToBranchAndCheckout` which will
