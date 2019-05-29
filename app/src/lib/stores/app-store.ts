@@ -219,7 +219,6 @@ import {
 } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import * as moment from 'moment'
-import { getStashSize } from '../git/stash'
 import { isDarkModeEnabled } from '../../ui/lib/dark-theme'
 import { ComputedAction } from '../../models/computed-action'
 import {
@@ -237,6 +236,7 @@ import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
+import { findRemoteBranchName } from './helpers/find-branch-name'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -2383,24 +2383,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
           }
         }
 
-        if (
-          enableBranchProtectionWarning() &&
-          gitStore.tip.kind === TipState.Valid &&
-          gitStore.currentRemote !== null
-        ) {
-          // look up if the tracked branch matches a protected remote branch
-          const { upstreamWithoutRemote } = gitStore.tip.branch
+        if (enableBranchProtectionWarning()) {
+          const branchProtectionsFound = await this.repositoriesStore.hasBranchProtectionsConfigured(
+            repository.gitHubRepository
+          )
 
-          if (upstreamWithoutRemote !== null) {
-            const isProtected = await this.repositoriesStore.isBranchProtected(
+          if (branchProtectionsFound) {
+            this.statsStore.recordCommitToRepositoryWithBranchProtections()
+          }
+
+          const branchName = findRemoteBranchName(
+            gitStore.tip,
+            gitStore.currentRemote,
+            repository.gitHubRepository
+          )
+
+          if (branchName !== null) {
+            const isRemoteBranchProtected = await this.repositoriesStore.isBranchProtectedOnRemote(
               repository.gitHubRepository,
-              upstreamWithoutRemote
+              branchName
             )
 
-            if (isProtected) {
-              log.debug(
-                `[_commitIncludedChanges] the upstream ref '${upstreamWithoutRemote}' is protected by the GitHub API`
-              )
+            if (isRemoteBranchProtected) {
+              this.statsStore.recordCommitToProtectedBranch()
             }
           }
         }
@@ -2565,13 +2570,39 @@ export class AppStore extends TypedBaseStore<IAppState> {
     ])
 
     // this promise is fire-and-forget, so no need to await it
-    this.updateStashEntryCountMetric(repository)
+    this.updateStashEntryCountMetric(
+      repository,
+      gitStore.desktopStashEntryCount,
+      gitStore.stashEntryCount
+    )
     this.updateCurrentPullRequest(repository)
 
     const latestState = this.repositoryStateCache.get(repository)
     this.updateMenuItemLabels(latestState)
 
     this._initializeCompare(repository)
+  }
+
+  private async updateStashEntryCountMetric(
+    repository: Repository,
+    desktopStashEntryCount: number,
+    stashEntryCount: number
+  ) {
+    const lastStashEntryCheck = await this.repositoriesStore.getLastStashCheckDate(
+      repository
+    )
+    const dateNow = moment()
+    const threshold = dateNow.subtract(24, 'hours')
+    // `lastStashEntryCheck` being equal to `null` means
+    // we've never checked for the given repo
+    if (lastStashEntryCheck == null || threshold.isAfter(lastStashEntryCheck)) {
+      await this.repositoriesStore.updateLastStashCheckDate(repository)
+      const numEntriesCreatedOutsideDesktop =
+        stashEntryCount - desktopStashEntryCount
+      this.statsStore.addStashEntriesCreatedOutsideDesktop(
+        numEntriesCreatedOutsideDesktop
+      )
+    }
   }
 
   /**
@@ -4289,24 +4320,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
 
       this.emitUpdate()
-    }
-  }
-  private async updateStashEntryCountMetric(repository: Repository) {
-    const lastStashEntryCheck = await this.repositoriesStore.getLastStashCheckDate(
-      repository
-    )
-    const dateNow = moment()
-    const threshold = dateNow.subtract(24, 'hours')
-    if (lastStashEntryCheck == null || threshold.isAfter(lastStashEntryCheck)) {
-      // `lastStashEntryCheck` being equal to null means we've never checked for
-      // the given repo
-
-      try {
-        const stashSize = await getStashSize(repository)
-        await this.statsStore.addStashEntriesCreatedOutsideDesktop(stashSize)
-      } finally {
-        await this.repositoriesStore.updateLastStashCheckDate(repository)
-      }
     }
   }
 

@@ -34,6 +34,8 @@ These are general metrics about feature usage and specific feature behaviors. Th
 | `branchComparisons` | The number of times a branch is compared to an arbitrary branch. | To understand usage patterns around the compare branches feature. |
 | `coAuthoredCommits` | The number of commits created with one or more co-authors. | To understand usage patterns of commits made in Desktop. |
 | `commits` | The number of commits made. | To understand usage patterns of commits made in Desktop. |
+| `commitsToProtectedBranch` | The number of commits made to a protected branch. | To understand whether the app could guide users depending on the repository configuration. |
+| `commitsToRepositoryWithBranchProtections` | The number of commits made to a repository which has branch protections enabled. | To understand whether the app could guide users depending on the repository configuration. |
 | `createPullRequestCount` | The number of times the user is taken to the create pull request page on GitHub.com. | To understand how people are creating pull requests via Desktop. |
 | `defaultBranchComparisons` | The number of times a branch is compared to the default branch. | To understand usage patterns around the compare branches feature. |
 | `divergingBranchBannerDismissal` | The number of times the user dismisses the diverged branch notification. | To understand usage patterns around the notification of diverging from the default branch feature. |
