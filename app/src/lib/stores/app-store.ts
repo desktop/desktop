@@ -373,6 +373,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private selectedTheme = ApplicationTheme.Light
   private automaticallySwitchTheme = false
 
+  private hasUserViewedStash = false
+
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
     private readonly cloningRepositoriesStore: CloningRepositoriesStore,
@@ -2254,6 +2256,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.updateMenuLabelsForSelectedRepository()
     this.emitUpdate()
     this.updateChangesStashDiff(repository)
+
+    if (!this.hasUserViewedStash) {
+      // `hasUserViewedStash` is reset to false on every branch checkout
+      // so we increment the metric before setting `hasUserViewedStash` to true
+      // to make sure we only increment on the first view after checkout
+      this.statsStore.recordStashViewedAfterCheckout()
+      this.hasUserViewedStash = true
+    }
   }
 
   private async updateChangesStashDiff(repository: Repository) {
@@ -2924,6 +2934,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           repository,
           currentBranch.name
         )
+        this.statsStore.recordStashCreatedOnCurrentBranch()
       } else if (
         uncommittedChangesStrategy.kind ===
         UncommittedChangesStrategyKind.moveToNewBranch
@@ -2977,6 +2988,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
         UncommittedChangesStrategyKind.moveToNewBranch &&
       checkoutSucceeded
     ) {
+      // We increment the metric after checkout succeeds to guard
+      // against double counting when an error occurs on checkout.
+      // When an error occurs, one of our error handlers will inspect
+      // it and make a call to `moveChangesToBranchAndCheckout` which will
+      // call this method again once the working directory has been cleared.
+      this.statsStore.recordChangesTakenToNewBranch()
+
       stashToPop = stashToPop || uncommittedChangesStrategy.transientStashEntry
       if (stashToPop !== null) {
         const stashSha = stashToPop.stashSha
@@ -3009,6 +3027,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (defaultBranch !== null && foundBranch.name !== defaultBranch.name) {
       this.statsStore.recordNonDefaultBranchCheckout()
     }
+
+    if (changesState.stashEntry !== null && !this.hasUserViewedStash) {
+      this.statsStore.recordStashNotViewedAfterCheckout()
+    }
+
+    this.hasUserViewedStash = false
 
     return repository
   }
@@ -5163,6 +5187,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }`
     )
 
+    this.statsStore.recordStashRestore()
     await this._refreshRepository(repository)
   }
 
@@ -5184,6 +5209,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }`
     )
 
+    this.statsStore.recordStashDiscard()
     await gitStore.loadStashEntries()
   }
 

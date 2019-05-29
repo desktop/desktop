@@ -2080,6 +2080,14 @@ export class Dispatcher {
   }
 
   /**
+   * Increment the number of times the user has used the View Stash suggestion
+   * in the suggested next steps view.
+   */
+  public recordSuggestedStepViewStash(): Promise<void> {
+    return this.statsStore.recordSuggestedStepViewStash()
+  }
+
+  /**
    * Moves unconmitted changes to the branch being checked out
    */
   public async moveChangesToBranchAndCheckout(
@@ -2090,5 +2098,15 @@ export class Dispatcher {
       repository,
       branchToCheckout
     )
+  }
+
+  /** Record when the user takes no action on the stash entry */
+  public recordNoActionTakenOnStash(): Promise<void> {
+    return this.statsStore.recordNoActionTakenOnStash()
+  }
+
+  /** Record when the user views the stash entry */
+  public recordStashView(): Promise<void> {
+    return this.statsStore.recordStashView()
   }
 }
