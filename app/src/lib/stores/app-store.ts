@@ -2957,13 +2957,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
         UncommittedChangesStrategyKind.moveToNewBranch &&
       checkoutSucceeded
     ) {
+      this.statsStore.recordChangesTakenToNewBranch()
+
       stashToPop = stashToPop || uncommittedChangesStrategy.transientStashEntry
       if (stashToPop !== null) {
         const stashSha = stashToPop.stashSha
         await gitStore.performFailableOperation(() => {
           return popStashEntry(repository, stashSha)
         })
-        this.statsStore.recordChangesTakenToNewBranch()
       }
     }
 
