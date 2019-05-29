@@ -74,7 +74,7 @@ export class OverwriteStash extends React.Component<
       await dispatcher.checkoutBranch(
         repository,
         branchToCheckout,
-        UncommittedChangesStrategy.stashOnCurrentBranch
+        UncommittedChangesStrategy.StashOnCurrentBranch
       )
     } finally {
       this.setState({

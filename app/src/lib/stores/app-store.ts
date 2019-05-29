@@ -2667,7 +2667,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     name: string,
     startPoint: string | null,
-    uncommittedChangesStrategy: UncommittedChangesStrategy = UncommittedChangesStrategy.askForConfirmation
+    uncommittedChangesStrategy: UncommittedChangesStrategy = UncommittedChangesStrategy.AskForConfirmation
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
     const branch = await gitStore.performFailableOperation(() =>
@@ -2690,7 +2690,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       hasChanges &&
       currentBranch !== null &&
       uncommittedChangesStrategy ===
-        UncommittedChangesStrategy.askForConfirmation
+        UncommittedChangesStrategy.AskForConfirmation
     ) {
       this._showPopup({
         type: PopupType.StashAndSwitchBranch,
@@ -2731,7 +2731,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _checkoutBranch(
     repository: Repository,
     branch: Branch | string,
-    uncommittedChangesStrategy: UncommittedChangesStrategy = UncommittedChangesStrategy.askForConfirmation
+    uncommittedChangesStrategy: UncommittedChangesStrategy = UncommittedChangesStrategy.AskForConfirmation
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
     const kind = 'checkout'
@@ -2756,7 +2756,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       hasChanges &&
       currentBranch !== null &&
       uncommittedChangesStrategy ===
-        UncommittedChangesStrategy.askForConfirmation
+        UncommittedChangesStrategy.AskForConfirmation
     ) {
       this._showPopup({
         type: PopupType.StashAndSwitchBranch,
@@ -2772,12 +2772,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (enableStashing() && currentBranch !== null) {
       if (
         uncommittedChangesStrategy ===
-        UncommittedChangesStrategy.stashOnCurrentBranch
+        UncommittedChangesStrategy.StashOnCurrentBranch
       ) {
         await this._createStash(repository, currentBranch.name)
       } else if (
         uncommittedChangesStrategy ===
-        UncommittedChangesStrategy.moveToNewBranch
+        UncommittedChangesStrategy.MoveToNewBranch
       ) {
         await this._createStash(repository, foundBranch.name, false)
         shouldPopStash = true

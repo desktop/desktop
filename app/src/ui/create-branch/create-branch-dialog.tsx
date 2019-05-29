@@ -297,7 +297,7 @@ export class CreateBranch extends React.Component<
         this.props.repository,
         name,
         startPoint,
-        UncommittedChangesStrategy.askForConfirmation
+        UncommittedChangesStrategy.AskForConfirmation
       )
     }
   }
