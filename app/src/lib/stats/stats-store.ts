@@ -100,6 +100,8 @@ const DefaultDailyMeasures: IDailyMeasures = {
   suggestedStepPublishRepository: 0,
   suggestedStepPublishBranch: 0,
   suggestedStepCreatePullRequest: 0,
+  commitsToProtectedBranch: 0,
+  commitsToRepositoryWithBranchProtections: 0,
 }
 
 interface IOnboardingStats {
@@ -679,6 +681,21 @@ export class StatsStore implements IStatsStore {
   public recordCommitToDotcom(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       dotcomCommits: m.dotcomCommits + 1,
+    }))
+  }
+
+  /** Record the user made a commit to a protected GitHub or GitHub Enterprise repository */
+  public recordCommitToProtectedBranch(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      commitsToProtectedBranch: m.commitsToProtectedBranch + 1,
+    }))
+  }
+
+  /** Record the user made a commit to repository which has branch protections enabled */
+  public recordCommitToRepositoryWithBranchProtections(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      commitsToRepositoryWithBranchProtections:
+        m.commitsToRepositoryWithBranchProtections + 1,
     }))
   }
 

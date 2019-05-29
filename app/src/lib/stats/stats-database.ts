@@ -134,8 +134,14 @@ export interface IDailyMeasures {
    */
   readonly enterpriseCommits: number
 
-  /** The number of time the user made a commit to a repo hosted on Github.com */
+  /** The number of times the user made a commit to a repo hosted on Github.com */
   readonly dotcomCommits: number
+
+  /** The number of times the user made a commit to a protected GitHub or GitHub Enterprise repository */
+  readonly commitsToProtectedBranch: number
+
+  /** The number of times the user made a commit to a repository with branch protections enabled */
+  readonly commitsToRepositoryWithBranchProtections: number
 
   /** The number of times the user dismissed the merge conflicts dialog */
   readonly mergeConflictsDialogDismissalCount: number
