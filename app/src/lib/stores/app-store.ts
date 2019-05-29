@@ -237,6 +237,7 @@ import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
+import { findRemoteBranchName } from './helpers/find-branch-name'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -2373,24 +2374,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
           }
         }
 
-        if (
-          enableBranchProtectionWarning() &&
-          gitStore.tip.kind === TipState.Valid &&
-          gitStore.currentRemote !== null
-        ) {
-          // look up if the tracked branch matches a protected remote branch
-          const { upstreamWithoutRemote } = gitStore.tip.branch
+        if (enableBranchProtectionWarning()) {
+          const branchProtectionsFound = await this.repositoriesStore.hasBranchProtectionsConfigured(
+            repository.gitHubRepository
+          )
 
-          if (upstreamWithoutRemote !== null) {
-            const isProtected = await this.repositoriesStore.isBranchProtected(
+          if (branchProtectionsFound) {
+            this.statsStore.recordCommitToRepositoryWithBranchProtections()
+          }
+
+          const branchName = findRemoteBranchName(
+            gitStore.tip,
+            gitStore.currentRemote,
+            repository.gitHubRepository
+          )
+
+          if (branchName !== null) {
+            const isRemoteBranchProtected = await this.repositoriesStore.isBranchProtectedOnRemote(
               repository.gitHubRepository,
-              upstreamWithoutRemote
+              branchName
             )
 
-            if (isProtected) {
-              log.debug(
-                `[_commitIncludedChanges] the upstream ref '${upstreamWithoutRemote}' is protected by the GitHub API`
-              )
+            if (isRemoteBranchProtected) {
+              this.statsStore.recordCommitToProtectedBranch()
             }
           }
         }
