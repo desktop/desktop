@@ -2988,6 +2988,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
         UncommittedChangesStrategyKind.moveToNewBranch &&
       checkoutSucceeded
     ) {
+      // We increment the metric after checkout succeeds to gaurd
+      // against double counting when an error occurs on checkout.
+      // When an error occurs, one of our error handlers will inspect
+      // it and make a call to `moveChangesToBranchAndCheckout` which will
+      // call this method again once the working directory has been cleared.
       this.statsStore.recordChangesTakenToNewBranch()
 
       stashToPop = stashToPop || uncommittedChangesStrategy.transientStashEntry
