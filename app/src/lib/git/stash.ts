@@ -22,42 +22,22 @@ export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 const desktopStashEntryMessageRe = /!!GitHub_Desktop<(.+)>$/
 
 /**
- * Gets the number of stash entries for the given repository
- */
-export async function getStashSize(repository: Repository): Promise<number> {
-  const delimiter = '1F'
-  const format = ['%gd', '%H', '%gs'].join(`%x${delimiter}`)
-
-  const result = await git(
-    ['log', '-g', '-z', `--pretty=${format}`, 'refs/stash'],
-    repository.path,
-    'getStashSize',
-    {
-      successExitCodes: new Set([0, 128]),
-    }
-  )
-
-  // There's no refs/stashes reflog in the repository or it's not
-  // even a repository. In either case we don't care
-  if (result.exitCode === 128) {
-    return 0
-  }
-
-  const stashEntries = result.stdout
-    .split('\0')
-    .filter(s => s !== '')
-    .filter(s => !desktopStashEntryMessageRe.test(s))
-
-  return stashEntries.length
-}
-
-/**
  * Get the list of stash entries created by Desktop in the current repository
- * using the default ordering of `git stash list` (i.e., LIFO ordering).
+ * using the default ordering of refs (wich is LIFO ordering),
+ * as well as the total amount of stash entries.
  */
-export async function getDesktopStashEntries(
+export async function getStashes(
   repository: Repository
-): Promise<ReadonlyArray<IStashEntry>> {
+): Promise<{
+  /** The stash entries created by Desktop */
+  readonly desktopEntries: ReadonlyArray<IStashEntry>
+
+  /**
+   * The total amount of stash entries,
+   * i.e. stash entries created by desktop and outside of desktop
+   */
+  readonly stashEntryCount: number
+}> {
   const delimiter = '1F'
   const delimiterString = String.fromCharCode(parseInt(delimiter, 16))
   const format = ['%gd', '%H', '%gs'].join(`%x${delimiter}`)
@@ -74,26 +54,37 @@ export async function getDesktopStashEntries(
   // There's no refs/stashes reflog in the repository or it's not
   // even a repository. In either case we don't care
   if (result.exitCode === 128) {
-    return []
+    return { desktopEntries: [], stashEntryCount: 0 }
   }
 
-  const stashEntries: Array<IStashEntry> = []
-  const files: StashedFileChanges = { kind: StashedChangesLoadStates.NotLoaded }
+  const desktopStashEntries: Array<IStashEntry> = []
+  const files: StashedFileChanges = {
+    kind: StashedChangesLoadStates.NotLoaded,
+  }
 
-  for (const line of result.stdout.split('\0')) {
-    const pieces = line.split(delimiterString)
+  const entries = result.stdout.split('\0').filter(s => s !== '')
+  for (const entry of entries) {
+    const pieces = entry.split(delimiterString)
 
     if (pieces.length === 3) {
       const [name, stashSha, message] = pieces
       const branchName = extractBranchFromMessage(message)
 
       if (branchName !== null) {
-        stashEntries.push({ name, branchName, stashSha, files })
+        desktopStashEntries.push({
+          name,
+          branchName,
+          stashSha,
+          files,
+        })
       }
     }
   }
 
-  return stashEntries
+  return {
+    desktopEntries: desktopStashEntries,
+    stashEntryCount: entries.length - 1,
+  }
 }
 
 /**
@@ -103,11 +94,13 @@ export async function getLastDesktopStashEntryForBranch(
   repository: Repository,
   branchName: string
 ) {
-  const entries = await getDesktopStashEntries(repository)
+  const stash = await getStashes(repository)
 
   // Since stash objects are returned in a LIFO manner, the first
   // entry found is guaranteed to be the last entry created
-  return entries.find(stash => stash.branchName === branchName) || null
+  return (
+    stash.desktopEntries.find(stash => stash.branchName === branchName) || null
+  )
 }
 
 /** Creates a stash entry message that idicates the entry was created by Desktop */
@@ -154,8 +147,8 @@ export async function createDesktopStashEntry(
 }
 
 async function getStashEntryMatchingSha(repository: Repository, sha: string) {
-  const stashEntries = await getDesktopStashEntries(repository)
-  return stashEntries.find(e => e.stashSha === sha) || null
+  const stash = await getStashes(repository)
+  return stash.desktopEntries.find(e => e.stashSha === sha) || null
 }
 
 /**

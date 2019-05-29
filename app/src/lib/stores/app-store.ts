@@ -219,7 +219,6 @@ import {
 } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import * as moment from 'moment'
-import { getStashSize } from '../git/stash'
 import { isDarkModeEnabled } from '../../ui/lib/dark-theme'
 import { ComputedAction } from '../../models/computed-action'
 import {
@@ -2561,13 +2560,39 @@ export class AppStore extends TypedBaseStore<IAppState> {
     ])
 
     // this promise is fire-and-forget, so no need to await it
-    this.updateStashEntryCountMetric(repository)
+    this.updateStashEntryCountMetric(
+      repository,
+      gitStore.desktopStashEntryCount,
+      gitStore.stashEntryCount
+    )
     this.updateCurrentPullRequest(repository)
 
     const latestState = this.repositoryStateCache.get(repository)
     this.updateMenuItemLabels(latestState)
 
     this._initializeCompare(repository)
+  }
+
+  private async updateStashEntryCountMetric(
+    repository: Repository,
+    desktopStashEntryCount: number,
+    stashEntryCount: number
+  ) {
+    const lastStashEntryCheck = await this.repositoriesStore.getLastStashCheckDate(
+      repository
+    )
+    const dateNow = moment()
+    const threshold = dateNow.subtract(24, 'hours')
+    // `lastStashEntryCheck` being equal to `null` means
+    // we've never checked for the given repo
+    if (lastStashEntryCheck == null || threshold.isAfter(lastStashEntryCheck)) {
+      await this.repositoriesStore.updateLastStashCheckDate(repository)
+      const numEntriesCreatedOutsideDesktop =
+        stashEntryCount - desktopStashEntryCount
+      this.statsStore.addStashEntriesCreatedOutsideDesktop(
+        numEntriesCreatedOutsideDesktop
+      )
+    }
   }
 
   /**
@@ -4276,24 +4301,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
 
       this.emitUpdate()
-    }
-  }
-  private async updateStashEntryCountMetric(repository: Repository) {
-    const lastStashEntryCheck = await this.repositoriesStore.getLastStashCheckDate(
-      repository
-    )
-    const dateNow = moment()
-    const threshold = dateNow.subtract(24, 'hours')
-    if (lastStashEntryCheck == null || threshold.isAfter(lastStashEntryCheck)) {
-      // `lastStashEntryCheck` being equal to null means we've never checked for
-      // the given repo
-
-      try {
-        const stashSize = await getStashSize(repository)
-        await this.statsStore.addStashEntriesCreatedOutsideDesktop(stashSize)
-      } finally {
-        await this.repositoriesStore.updateLastStashCheckDate(repository)
-      }
     }
   }
 
