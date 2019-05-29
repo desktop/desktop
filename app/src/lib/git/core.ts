@@ -149,16 +149,18 @@ export async function git(
   }
 
   // The caller should either handle this error, or expect that exit code.
-  const errorMessage = []
+  const errorMessage = new Array<string>()
   errorMessage.push(
     `\`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}.`
   )
 
   if (result.stdout) {
+    errorMessage.push('stdout:')
     errorMessage.push(result.stdout)
   }
 
   if (result.stderr) {
+    errorMessage.push('stderr:')
     errorMessage.push(result.stderr)
   }
 
@@ -267,7 +269,7 @@ function getDescriptionForError(error: DugiteError): string {
     case DugiteError.NoExistingRemoteBranch:
       return 'The remote branch does not exist.'
     case DugiteError.LocalChangesOverwritten:
-      return 'Some of your changes would be overwritten.'
+      return 'Unable to switch branches as there are working directory changes which would be overwritten. Please commit or stash your changes.'
     case DugiteError.UnresolvedConflicts:
       return 'There are unresolved conflicts in the working directory.'
     default:

@@ -24,7 +24,6 @@ import {
   renderBranchNameExistsOnRemoteWarning,
 } from '../lib/branch-name-warnings'
 import { getStartPoint } from '../../lib/create-branch'
-import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -296,8 +295,7 @@ export class CreateBranch extends React.Component<
       await this.props.dispatcher.createBranch(
         this.props.repository,
         name,
-        startPoint,
-        UncommittedChangesStrategy.AskForConfirmation
+        startPoint
       )
     }
   }
