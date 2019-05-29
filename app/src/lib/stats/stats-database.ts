@@ -260,7 +260,8 @@ export interface IDailyMeasures {
    */
   readonly suggestedStepCreatePullRequest: number
 
-  /** The number of times the user has used the view stash action from
+  /**
+   * The number of times the user has used the view stash action from
    * the suggested next steps view
    */
   readonly suggestedStepViewStash: number
