@@ -1,14 +1,15 @@
-import { git } from '.'
-import { Repository } from '../../models/repository'
 import { GitError as DugiteError } from 'dugite'
+
+import { Repository } from '../../models/repository'
 import {
   IStashEntry,
   StashedChangesLoadStates,
   StashedFileChanges,
 } from '../../models/stash-entry'
 import { CommittedFileChange } from '../../models/status'
+
+import { git, GitError } from './core'
 import { parseChangedFiles } from './log'
-import { compare } from '../compare'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 
@@ -22,11 +23,21 @@ const desktopStashEntryMessageRe = /!!GitHub_Desktop<(.+)>$/
 
 /**
  * Get the list of stash entries created by Desktop in the current repository
- * using the default ordering of `git stash list` (i.e., LIFO ordering).
+ * using the default ordering of refs (wich is LIFO ordering),
+ * as well as the total amount of stash entries.
  */
-export async function getDesktopStashEntries(
+export async function getStashes(
   repository: Repository
-): Promise<ReadonlyArray<IStashEntry>> {
+): Promise<{
+  /** The stash entries created by Desktop */
+  readonly desktopEntries: ReadonlyArray<IStashEntry>
+
+  /**
+   * The total amount of stash entries,
+   * i.e. stash entries created by desktop and outside of desktop
+   */
+  readonly stashEntryCount: number
+}> {
   const delimiter = '1F'
   const delimiterString = String.fromCharCode(parseInt(delimiter, 16))
   const format = ['%gd', '%H', '%gs'].join(`%x${delimiter}`)
@@ -43,26 +54,37 @@ export async function getDesktopStashEntries(
   // There's no refs/stashes reflog in the repository or it's not
   // even a repository. In either case we don't care
   if (result.exitCode === 128) {
-    return []
+    return { desktopEntries: [], stashEntryCount: 0 }
   }
 
-  const stashEntries: Array<IStashEntry> = []
-  const files: StashedFileChanges = { kind: StashedChangesLoadStates.NotLoaded }
+  const desktopStashEntries: Array<IStashEntry> = []
+  const files: StashedFileChanges = {
+    kind: StashedChangesLoadStates.NotLoaded,
+  }
 
-  for (const line of result.stdout.split('\0')) {
-    const pieces = line.split(delimiterString)
+  const entries = result.stdout.split('\0').filter(s => s !== '')
+  for (const entry of entries) {
+    const pieces = entry.split(delimiterString)
 
     if (pieces.length === 3) {
       const [name, stashSha, message] = pieces
       const branchName = extractBranchFromMessage(message)
 
       if (branchName !== null) {
-        stashEntries.push({ name, branchName, stashSha, files })
+        desktopStashEntries.push({
+          name,
+          branchName,
+          stashSha,
+          files,
+        })
       }
     }
   }
 
-  return stashEntries
+  return {
+    desktopEntries: desktopStashEntries,
+    stashEntryCount: entries.length - 1,
+  }
 }
 
 /**
@@ -72,11 +94,13 @@ export async function getLastDesktopStashEntryForBranch(
   repository: Repository,
   branchName: string
 ) {
-  const entries = await getDesktopStashEntries(repository)
+  const stash = await getStashes(repository)
 
   // Since stash objects are returned in a LIFO manner, the first
   // entry found is guaranteed to be the last entry created
-  return entries.find(stash => stash.branchName === branchName) || null
+  return (
+    stash.desktopEntries.find(stash => stash.branchName === branchName) || null
+  )
 }
 
 /** Creates a stash entry message that idicates the entry was created by Desktop */
@@ -90,15 +114,41 @@ export function createDesktopStashMessage(branchName: string) {
 export async function createDesktopStashEntry(
   repository: Repository,
   branchName: string
-) {
+): Promise<true> {
   const message = createDesktopStashMessage(branchName)
   const args = ['stash', 'push', '--include-untracked', '-m', message]
-  await git(args, repository.path, 'createStashEntry')
+
+  const result = await git(args, repository.path, 'createStashEntry', {
+    successExitCodes: new Set<number>([0, 1]),
+  })
+
+  if (result.exitCode === 1) {
+    // search for any line starting with `error:` -  /m here to ensure this is
+    // applied to each line, without needing to split the text
+    const errorPrefixRe = /^error: /m
+
+    const matches = errorPrefixRe.exec(result.stderr)
+    if (matches !== null && matches.length > 0) {
+      // rethrow, because these messages should prevent the stash from being created
+      throw new GitError(result, args)
+    }
+
+    // if no error messages were emitted by Git, we should log but continue because
+    // a valid stash was created and this should not interfere with the checkout
+
+    log.info(
+      `[createDesktopStashEntry] a stash was created successfully but exit code ${
+        result.exitCode
+      } reported. stderr: ${result.stderr}`
+    )
+  }
+
+  return true
 }
 
 async function getStashEntryMatchingSha(repository: Repository, sha: string) {
-  const stashEntries = await getDesktopStashEntries(repository)
-  return stashEntries.find(e => e.stashSha === sha) || null
+  const stash = await getStashes(repository)
+  return stash.desktopEntries.find(e => e.stashSha === sha) || null
 }
 
 /**
@@ -132,11 +182,33 @@ export async function popStashEntry(
   // ignoring these git errors for now, this will change when we start
   // implementing the stash conflict flow
   const expectedErrors = new Set<DugiteError>([DugiteError.MergeConflicts])
+  const successExitCodes = new Set<number>([0, 1])
   const stashToPop = await getStashEntryMatchingSha(repository, stashSha)
 
   if (stashToPop !== null) {
-    const args = ['stash', 'pop', `${stashToPop.name}`]
-    await git(args, repository.path, 'popStashEntry', { expectedErrors })
+    const args = ['stash', 'pop', '--quiet', `${stashToPop.name}`]
+    const result = await git(args, repository.path, 'popStashEntry', {
+      expectedErrors,
+      successExitCodes,
+    })
+
+    // popping a stashes that create conflicts in the working directory
+    // report an exit code of `1` and are not dropped after being applied.
+    // so, we check for this case and drop them manually
+    if (result.exitCode === 1) {
+      if (result.stderr.length > 0) {
+        // rethrow, because anything in stderr should prevent the stash from being popped
+        throw new GitError(result, args)
+      }
+
+      log.info(
+        `[popStashEntry] a stash was popped successfully but exit code ${
+          result.exitCode
+        } reported.`
+      )
+      // bye bye
+      await dropDesktopStashEntry(repository, stashSha)
+    }
   }
 }
 
@@ -163,7 +235,7 @@ export async function getStashedFiles(
   const files = new Map<string, CommittedFileChange>()
   trackedFiles.forEach(x => files.set(x.path, x))
   untrackedFiles.forEach(x => files.set(x.path, x))
-  return [...files.values()].sort((x, y) => compare(x.path, y.path))
+  return [...files.values()].sort((x, y) => x.path.localeCompare(y.path))
 }
 
 /**

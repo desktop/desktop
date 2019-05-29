@@ -211,11 +211,11 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   private hunkHighlightRange: ISelection | null = null
 
   private async initDiffSyntaxMode() {
-    const { file, hunks, repository } = this.props
-
     if (!this.codeMirror) {
       return
     }
+
+    const { file, hunks, repository } = this.props
 
     // Store the current props to that we can see if anything
     // changes from underneath us as we're making asynchronous
@@ -223,14 +223,14 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     const propsSnapshot = this.props
 
     const lineFilters = getLineFilters(hunks)
+    const tsOpt = this.codeMirror.getOption('tabSize')
+    const tabSize = typeof tsOpt === 'number' ? tsOpt : 4
+
     const contents = await getFileContents(repository, file, lineFilters)
 
     if (!highlightParametersEqual(this.props, propsSnapshot)) {
       return
     }
-
-    const tsOpt = this.codeMirror.getOption('tabSize')
-    const tabSize = typeof tsOpt === 'number' ? tsOpt : 4
 
     const tokens = await highlightContents(contents, tabSize, lineFilters)
 
@@ -245,7 +245,9 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       newTokens: tokens.newTokens,
     }
 
-    this.codeMirror.setOption('mode', spec)
+    if (this.codeMirror) {
+      this.codeMirror.setOption('mode', spec)
+    }
   }
 
   /**

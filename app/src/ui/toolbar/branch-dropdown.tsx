@@ -67,8 +67,6 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         pullRequests={this.props.pullRequests}
         currentPullRequest={this.props.currentPullRequest}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
-        branchFilterText={repositoryState.branchFilterText}
-        pullRequestFilterText={repositoryState.pullRequestFilterText}
       />
     )
   }

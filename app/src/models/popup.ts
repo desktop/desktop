@@ -7,6 +7,7 @@ import { RetryAction } from './retry-actions'
 import { WorkingDirectoryFileChange } from './status'
 import { PreferencesTab } from './preferences'
 import { ICommitContext } from './commit'
+import { IStashEntry } from './stash-entry'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -43,11 +44,11 @@ export enum PopupType {
   UsageReportingChanges,
   CommitConflictsWarning,
   PushNeedsPull,
-  LocalChangesOverwritten,
   RebaseFlow,
   ConfirmForcePush,
   StashAndSwitchBranch,
   ConfirmOverwriteStash,
+  ConfirmDiscardStash,
 }
 
 export type Popup =
@@ -164,13 +165,6 @@ export type Popup =
       repository: Repository
     }
   | {
-      type: PopupType.LocalChangesOverwritten
-      /** repository user is checking out in */
-      repository: Repository
-      retryAction: RetryAction
-      overwrittenFiles: ReadonlyArray<string>
-    }
-  | {
       type: PopupType.ConfirmForcePush
       repository: Repository
       upstreamBranch: string
@@ -188,4 +182,9 @@ export type Popup =
       type: PopupType.ConfirmOverwriteStash
       repository: Repository
       branchToCheckout: Branch
+    }
+  | {
+      type: PopupType.ConfirmDiscardStash
+      repository: Repository
+      stash: IStashEntry
     }

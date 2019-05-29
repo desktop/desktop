@@ -9,7 +9,7 @@ import {
   ShowConflictsStep,
   ConfirmAbortStep,
 } from '../../models/rebase-flow-step'
-import { GitRebaseProgress, RebasePreview } from '../../models/rebase'
+import { GitRebaseProgress } from '../../models/rebase'
 import { WorkingDirectoryStatus } from '../../models/status'
 
 import { Dispatcher } from '../dispatcher'
@@ -34,12 +34,6 @@ interface IRebaseFlowProps {
    * state needed for the UI components.
    */
   readonly step: RebaseFlowStep
-
-  /**
-   * A preview of the rebase, using the selected base branch to test whether the
-   * current branch will be cleanly applied.
-   */
-  readonly preview: RebasePreview | null
 
   /** Git progress information about the current rebase */
   readonly progress: GitRebaseProgress | null
@@ -102,7 +96,7 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
       return this.props.dispatcher.continueRebase(
         this.props.repository,
         this.props.workingDirectory,
-        conflictState.manualResolutions
+        conflictState
       )
     }
 
@@ -185,7 +179,6 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
             currentBranch={currentBranch}
             initialBranch={initialBranch}
             onDismissed={this.onFlowEnded}
-            rebasePreviewStatus={this.props.preview}
           />
         )
       }
