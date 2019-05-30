@@ -186,7 +186,7 @@ function getDescriptionForError(error: DugiteError): string {
 - You are not logged in to your account: see ${
         __DARWIN__ ? 'Preferences' : 'Options'
       }
-- You may need to logout and login to refresh your token.
+- You may need to log out and log back in to refresh your token.
 - You do not have permission to access this repository.
 - The repository is archived on GitHub. Check the repository settings to confirm you are still permitted to push commits.
 - If you use SSH authentication, check your key is added to the SSH agent and associated with your account.`
