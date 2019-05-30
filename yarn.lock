@@ -78,6 +78,13 @@
   resolved "https://registry.yarnpkg.com/@babel/parser/-/parser-7.0.0-beta.51.tgz#27cec2df409df60af58270ed8f6aa55409ea86f6"
   integrity sha1-J87C30Cd9gr1gnDtj2qlVAnqhvY=
 
+"@babel/runtime@^7.3.4":
+  version "7.4.5"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.4.5.tgz#582bb531f5f9dc67d2fcb682979894f75e253f12"
+  integrity sha512-TuI4qpWZP6lGOGIuGWtp9sPluqYICmbk8T/1vpSysqJxRPkudh/ofFWyqdcMsDf2s7KvDL4/YHgKyvcS3g9CJQ==
+  dependencies:
+    regenerator-runtime "^0.13.2"
+
 "@babel/template@7.0.0-beta.51":
   version "7.0.0-beta.51"
   resolved "https://registry.yarnpkg.com/@babel/template/-/template-7.0.0-beta.51.tgz#9602a40aebcf357ae9677e2532ef5fc810f5fbff"
@@ -3425,11 +3432,12 @@ electron-publish@20.28.3:
     lazy-val "^1.0.3"
     mime "^2.3.1"
 
-electron-winstaller@3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/electron-winstaller/-/electron-winstaller-3.0.0.tgz#e09e216b859a9a83b06280fcfd253c4b10760c74"
-  integrity sha512-+OZb2BEA3q7oVH/mOl4ludEAWlOtzxjx5SqjXHptVX2VJwmZVysmwL/duZaXFhTQmucjs3a4vB2h7g1qNHaHwQ==
+electron-winstaller@3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/electron-winstaller/-/electron-winstaller-3.0.1.tgz#55bc0e186bf04e15129ee9c2b42c00c354a76f4e"
+  integrity sha512-hyjNELj9XdOW1WMUf2wsIvMlWZmhi4FE3+99UIkOsOTA5eEQ6ORC68qvskPwoEayft32C50tXg7iHFQCiUXYzw==
   dependencies:
+    "@babel/runtime" "^7.3.4"
     asar "^1.0.0"
     debug "^4.1.1"
     fs-extra "^7.0.1"
@@ -8332,6 +8340,11 @@ regenerator-runtime@^0.11.0:
   version "0.11.0"
   resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.11.0.tgz#7e54fe5b5ccd5d6624ea6255c3473be090b802e1"
   integrity sha512-/aA0kLeRb5N9K0d4fw7ooEbI+xDe+DKD499EQqygGqeS8N3xto15p09uY2xj7ixP81sNPXvRLnAQIqdVStgb1A==
+
+regenerator-runtime@^0.13.2:
+  version "0.13.2"
+  resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.13.2.tgz#32e59c9a6fb9b1a4aff09b4930ca2d4477343447"
+  integrity sha512-S/TQAZJO+D3m9xeN1WTI8dLKBBiRgXBlTJvbWjCThHWZj9EvHK70Ff50/tYj2J/fvBY6JtFVwRuazHN2E7M9BA==
 
 regex-cache@^0.4.2:
   version "0.4.4"
