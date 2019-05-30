@@ -93,6 +93,8 @@ export class CommitMessage extends React.Component<
   ICommitMessageProps,
   ICommitMessageState
 > {
+  // _isMounted is used instead of this.isMounted due to it being depreciated
+  // See documentation for info https://reactjs.org/blog/2015/12/16/ismounted-antipattern.html
   private _isMounted: boolean = false
   private descriptionComponent: AutocompletingTextArea | null = null
 
