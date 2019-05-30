@@ -9,10 +9,8 @@ import { log } from '../log'
 import { openDirectorySafe } from '../shell'
 import { enableRebaseDialog, enableStashing } from '../../lib/feature-flag'
 import { MenuLabelsEvent } from '../../models/menu-labels'
+import { DefaultEditorLabel } from '../../ui/lib/context-menu'
 
-const defaultEditorLabel = __DARWIN__
-  ? 'Open in External Editor'
-  : 'Open in external editor'
 const defaultShellLabel = __DARWIN__
   ? 'Open in Terminal'
   : 'Open in Command Prompt'
@@ -57,7 +55,7 @@ export function buildDefaultMenu({
 
   const editorLabel =
     selectedExternalEditor === null
-      ? defaultEditorLabel
+      ? DefaultEditorLabel
       : `Open in ${selectedExternalEditor}`
 
   const template = new Array<Electron.MenuItemConstructorOptions>()
