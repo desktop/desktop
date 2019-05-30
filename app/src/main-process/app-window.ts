@@ -76,6 +76,12 @@ export class AppWindow {
       windowOptions.frame = false
     } else if (__LINUX__) {
       windowOptions.icon = path.join(__dirname, 'static', 'icon-logo.png')
+
+      // relax restriction here for users trying to run app at a small
+      // resolution and any other side-effects of dropping this restriction are
+      // currently unsupported
+      delete windowOptions.minHeight
+      delete windowOptions.minWidth
     }
 
     this.window = new BrowserWindow(windowOptions)
