@@ -184,7 +184,7 @@ function getDescriptionForError(error: DugiteError): string {
     case DugiteError.HTTPSAuthenticationFailed:
       return `Authentication failed. Some common reasons include:
 - You are not logged in to your account: see ${
-        __DARWIN__ ? 'Preferences' : 'Options'
+        __DARWIN__ ? 'Preferences.' : 'Options.'
       }
 - You may need to log out and log back in to refresh your token.
 - You do not have permission to access this repository.
