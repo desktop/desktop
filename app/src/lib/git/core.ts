@@ -188,7 +188,7 @@ function getDescriptionForError(error: DugiteError): string {
       }
 - You may need to logout and login to refresh your token.
 - You do not have permission to access this repository.
-- The repository is archived. Check the repository settings on GitHub.com
+- The repository is archived on GitHub. Check the repository settings to confirm you are still permitted to push commits.
 - If you use SSH, check the validity of your key.`
     case DugiteError.RemoteDisconnection:
       return 'The remote disconnected. Check your Internet connection and try again.'
