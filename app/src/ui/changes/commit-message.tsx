@@ -93,6 +93,7 @@ export class CommitMessage extends React.Component<
   ICommitMessageProps,
   ICommitMessageState
 > {
+  private _isMounted: boolean = false
   private descriptionComponent: AutocompletingTextArea | null = null
 
   private summaryTextInput: HTMLInputElement | null = null
@@ -115,6 +116,11 @@ export class CommitMessage extends React.Component<
     }
   }
 
+  public componentDidMount() {
+    //Set the _isMounted variable so that it reflects that the component mounted
+    this._isMounted = true
+  }
+
   public componentWillUnmount() {
     // We're unmounting, likely due to the user switching to the history tab.
     // Let's persist our commit message in the dispatcher.
@@ -122,6 +128,9 @@ export class CommitMessage extends React.Component<
       summary: this.state.summary,
       description: this.state.description,
     })
+
+    //Set the _isMounted to false so we can check before we set states
+    this._isMounted = false
   }
 
   /**
@@ -139,7 +148,11 @@ export class CommitMessage extends React.Component<
       return
     }
 
-    if (this.state.summary === '' && !this.state.description) {
+    if (
+      this.state.summary === '' &&
+      !this.state.description &&
+      this._isMounted
+    ) {
       this.setState({
         summary: commitMessage.summary,
         description: commitMessage.description,
