@@ -351,6 +351,7 @@ export function buildDefaultMenu({
       {
         label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
         id: 'discard-all-changes',
+        accelerator: 'CmdOrCtrl+Shift+Delete',
         click: emit('discard-all-changes'),
       },
       separator,
