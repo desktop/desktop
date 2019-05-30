@@ -182,13 +182,13 @@ function getDescriptionForError(error: DugiteError): string {
     case DugiteError.SSHAuthenticationFailed:
     case DugiteError.SSHPermissionDenied:
     case DugiteError.HTTPSAuthenticationFailed:
-      return `Authentication failed. Some common reasons include:<br />
+      return `Authentication failed. Some common reasons include:
 - You are not logged in to your account: see ${
         __DARWIN__ ? 'Preferences' : 'Options'
-      }<br />
-- You may need to logout and login to refresh your token.<br />
-- You do not have permission to access this repository.<br />
-- The repository is archived. Check the repository settings on GitHub.com<br />
+      }
+- You may need to logout and login to refresh your token.
+- You do not have permission to access this repository.
+- The repository is archived. Check the repository settings on GitHub.com
 - If you use SSH, check the validity of your key.`
     case DugiteError.RemoteDisconnection:
       return 'The remote disconnected. Check your Internet connection and try again.'
