@@ -71,7 +71,6 @@ these labels do not become overused and add noise to the issue tracker.
 
 |                              | Label name     |  Description |
 | ---------------------------- | -------------- |  ----------- |
-| [:mag_right:][epic:rebase]   | `epic:rebase`  | Supporting rebase flows in the app |
 | [:mag_right:][epic:stashing] | `epic:stashing`| Supporting stashing uncommitted changes in the app |
 
 ### Specialized areas

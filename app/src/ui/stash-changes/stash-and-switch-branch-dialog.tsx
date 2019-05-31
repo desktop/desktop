@@ -7,7 +7,10 @@ import { Row } from '../lib/row'
 import { Branch } from '../../models/branch'
 import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
-import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
+import {
+  UncommittedChangesStrategyKind,
+  stashOnCurrentBranch,
+} from '../../models/uncommitted-changes-strategy'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PopupType } from '../../models/popup'
 
@@ -128,13 +131,14 @@ export class StashAndSwitchBranch extends React.Component<
   private onSubmit = async () => {
     const {
       repository,
+      branchToCheckout,
       dispatcher,
       hasAssociatedStash,
-      branchToCheckout,
     } = this.props
+    const { selectedStashAction } = this.state
 
     if (
-      this.state.selectedStashAction === StashAction.StashOnCurrentBranch &&
+      selectedStashAction === StashAction.StashOnCurrentBranch &&
       hasAssociatedStash
     ) {
       dispatcher.showPopup({
@@ -148,30 +152,23 @@ export class StashAndSwitchBranch extends React.Component<
     this.setState({ isStashingChanges: true })
 
     try {
-      await this.stashAndCheckout()
+      if (selectedStashAction === StashAction.StashOnCurrentBranch) {
+        await dispatcher.checkoutBranch(
+          repository,
+          branchToCheckout,
+          stashOnCurrentBranch
+        )
+      } else if (selectedStashAction === StashAction.MoveToNewBranch) {
+        // attempt to checkout the branch without creating a stash entry
+        await dispatcher.checkoutBranch(repository, branchToCheckout, {
+          kind: UncommittedChangesStrategyKind.MoveToNewBranch,
+          transientStashEntry: null,
+        })
+      }
     } finally {
       this.setState({ isStashingChanges: false }, () => {
         this.props.onDismissed()
       })
-    }
-  }
-
-  private async stashAndCheckout() {
-    const { repository, branchToCheckout, dispatcher } = this.props
-    const { selectedStashAction } = this.state
-
-    if (selectedStashAction === StashAction.StashOnCurrentBranch) {
-      await dispatcher.checkoutBranch(
-        repository,
-        branchToCheckout,
-        UncommittedChangesStrategy.stashOnCurrentBranch
-      )
-    } else if (selectedStashAction === StashAction.MoveToNewBranch) {
-      await dispatcher.checkoutBranch(
-        repository,
-        branchToCheckout,
-        UncommittedChangesStrategy.moveToNewBranch
-      )
     }
   }
 }

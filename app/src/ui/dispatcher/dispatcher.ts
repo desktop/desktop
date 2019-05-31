@@ -411,7 +411,7 @@ export class Dispatcher {
     repository: Repository,
     name: string,
     startPoint: string | null,
-    uncommittedChangesStrategy: UncommittedChangesStrategy = UncommittedChangesStrategy.askForConfirmation
+    uncommittedChangesStrategy?: UncommittedChangesStrategy
   ): Promise<Repository> {
     return this.appStore._createBranch(
       repository,
@@ -1957,6 +1957,11 @@ export class Dispatcher {
     this.statsStore.recordRebaseConflictsDialogReopened()
   }
 
+  /** Increments the `errorWhenSwitchingBranchesWithUncommmittedChanges` metric */
+  public recordErrorWhenSwitchingBranchesWithUncommmittedChanges() {
+    return this.statsStore.recordErrorWhenSwitchingBranchesWithUncommmittedChanges()
+  }
+
   /**
    * Refresh the list of open pull requests for the given repository.
    */
@@ -2021,8 +2026,87 @@ export class Dispatcher {
     return this.appStore._resetStashedFilesWidth()
   }
 
-  //** Hide the diff for stashed changes */
+  /** Hide the diff for stashed changes */
   public hideStashedChanges(repository: Repository) {
     return this.appStore._hideStashedChanges(repository)
+  }
+
+  /**
+   * Increment the number of times the user has opened their external editor
+   * from the suggested next steps view
+   */
+  public recordSuggestedStepOpenInExternalEditor(): Promise<void> {
+    return this.statsStore.recordSuggestedStepOpenInExternalEditor()
+  }
+
+  /**
+   * Increment the number of times the user has opened their repository in
+   * Finder/Explorerfrom the suggested next steps view
+   */
+  public recordSuggestedStepOpenWorkingDirectory(): Promise<void> {
+    return this.statsStore.recordSuggestedStepOpenWorkingDirectory()
+  }
+
+  /**
+   * Increment the number of times the user has opened their repository on
+   * GitHub from the suggested next steps view
+   */
+  public recordSuggestedStepViewOnGitHub(): Promise<void> {
+    return this.statsStore.recordSuggestedStepViewOnGitHub()
+  }
+
+  /**
+   * Increment the number of times the user has used the publish repository
+   * action from the suggested next steps view
+   */
+  public recordSuggestedStepPublishRepository(): Promise<void> {
+    return this.statsStore.recordSuggestedStepPublishRepository()
+  }
+
+  /**
+   * Increment the number of times the user has used the publish branch
+   * action branch from the suggested next steps view
+   */
+  public recordSuggestedStepPublishBranch(): Promise<void> {
+    return this.statsStore.recordSuggestedStepPublishBranch()
+  }
+
+  /**
+   * Increment the number of times the user has used the Create PR suggestion
+   * in the suggested next steps view.
+   */
+  public recordSuggestedStepCreatePullRequest(): Promise<void> {
+    return this.statsStore.recordSuggestedStepCreatePullRequest()
+  }
+
+  /**
+   * Increment the number of times the user has used the View Stash suggestion
+   * in the suggested next steps view.
+   */
+  public recordSuggestedStepViewStash(): Promise<void> {
+    return this.statsStore.recordSuggestedStepViewStash()
+  }
+
+  /**
+   * Moves unconmitted changes to the branch being checked out
+   */
+  public async moveChangesToBranchAndCheckout(
+    repository: Repository,
+    branchToCheckout: string
+  ) {
+    return this.appStore._moveChangesToBranchAndCheckout(
+      repository,
+      branchToCheckout
+    )
+  }
+
+  /** Record when the user takes no action on the stash entry */
+  public recordNoActionTakenOnStash(): Promise<void> {
+    return this.statsStore.recordNoActionTakenOnStash()
+  }
+
+  /** Record when the user views the stash entry */
+  public recordStashView(): Promise<void> {
+    return this.statsStore.recordStashView()
   }
 }
