@@ -27,7 +27,7 @@ type StashResult = {
 
   /**
    * The total amount of stash entries,
-   * i.e. stash entries created by desktop and outside of desktop
+   * i.e. stash entries created both by Desktop and outside of Desktop
    */
   readonly stashEntryCount: number
 }
