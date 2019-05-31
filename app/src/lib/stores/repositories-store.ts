@@ -19,7 +19,17 @@ export class RepositoriesStore extends BaseStore {
   // Key-repo ID, Value-date
   private lastStashCheckCache = new Map<number, number>()
 
-  private branchProtectionCache = new Map<string, boolean>()
+  /**
+   * Key is the GitHubRepository id, value is the protected branch count reported
+   * by the GitHub API.
+   */
+  private branchProtectionSettingsFoundCache = new Map<number, boolean>()
+
+  /**
+   * Key is the lookup by the GitHubRepository id and branch name, value is the
+   * flag whether this branch is considered protected by the GitHub API
+   */
+  private protectionEnabledForBranchCache = new Map<string, boolean>()
 
   public constructor(db: RepositoriesDatabase) {
     super()
@@ -418,10 +428,10 @@ export class RepositoriesStore extends BaseStore {
 
           const prefix = getKeyPrefix(repoId)
 
-          for (const key of this.branchProtectionCache.keys()) {
+          for (const key of this.protectionEnabledForBranchCache.keys()) {
             // invalidate any cached entries belonging to this repository
             if (key.startsWith(prefix)) {
-              this.branchProtectionCache.delete(key)
+              this.protectionEnabledForBranchCache.delete(key)
             }
           }
 
@@ -433,7 +443,7 @@ export class RepositoriesStore extends BaseStore {
           // update cached values to avoid database lookup
           for (const item of branchRecords) {
             const key = getKey(repoId, item.name)
-            this.branchProtectionCache.set(key, true)
+            this.protectionEnabledForBranchCache.set(key, true)
           }
 
           await this.db.protectedBranches
@@ -441,7 +451,12 @@ export class RepositoriesStore extends BaseStore {
             .equals(repoId)
             .delete()
 
-          await this.db.protectedBranches.bulkAdd(branchRecords)
+          const protectionsFound = branchRecords.length > 0
+          this.branchProtectionSettingsFoundCache.set(repoId, protectionsFound)
+
+          if (branchRecords.length > 0) {
+            await this.db.protectedBranches.bulkAdd(branchRecords)
+          }
         }
 
         return updatedGitHubRepo
@@ -531,7 +546,59 @@ export class RepositoriesStore extends BaseStore {
     return record!.lastPruneDate
   }
 
-  public async isBranchProtected(
+  /**
+   * Load the branch protection information for a repository from the database
+   * and cache the results in memory
+   */
+  private async loadAndCacheBranchProtection(dbID: number) {
+    // query the database to find any protected branches
+    const branches = await this.db.protectedBranches
+      .where('repoId')
+      .equals(dbID)
+      .toArray()
+
+    const branchProtectionsFound = branches.length > 0
+    this.branchProtectionSettingsFoundCache.set(dbID, branchProtectionsFound)
+
+    // fill the retrieved records into the per-branch cache
+    for (const branch of branches) {
+      const key = getKey(dbID, branch.name)
+      this.protectionEnabledForBranchCache.set(key, true)
+    }
+
+    return branchProtectionsFound
+  }
+
+  /**
+   * Check if any branch protection settings are enabled for the repository
+   * through the GitHub API.
+   */
+  public async hasBranchProtectionsConfigured(
+    gitHubRepository: GitHubRepository
+  ): Promise<boolean> {
+    if (gitHubRepository.dbID === null) {
+      return fatalError(
+        'unable to get protected branches, GitHub repository has a null dbID'
+      )
+    }
+
+    const { dbID } = gitHubRepository
+    const branchProtectionsFound = this.branchProtectionSettingsFoundCache.get(
+      dbID
+    )
+
+    if (branchProtectionsFound === undefined) {
+      return this.loadAndCacheBranchProtection(dbID)
+    }
+
+    return branchProtectionsFound
+  }
+
+  /**
+   * Check if the given branch for the repository is protected through the
+   * GitHub API.
+   */
+  public async isBranchProtectedOnRemote(
     gitHubRepository: GitHubRepository,
     branchName: string
   ): Promise<boolean> {
@@ -541,21 +608,23 @@ export class RepositoriesStore extends BaseStore {
       )
     }
 
-    const key = getKey(gitHubRepository.dbID, branchName)
+    const { dbID } = gitHubRepository
+    const key = getKey(dbID, branchName)
 
-    const existing = this.branchProtectionCache.get(key)
-    if (existing !== undefined) {
-      return existing
+    const cachedProtectionValue = this.protectionEnabledForBranchCache.get(key)
+    if (cachedProtectionValue === true) {
+      return cachedProtectionValue
     }
 
-    const result = await this.db.protectedBranches.get([
-      gitHubRepository.dbID,
+    const databaseValue = await this.db.protectedBranches.get([
+      dbID,
       branchName,
     ])
 
-    const value = result !== undefined
+    // if no row found, this means no protection is found for the branch
+    const value = databaseValue !== undefined
 
-    this.branchProtectionCache.set(key, value)
+    this.protectionEnabledForBranchCache.set(key, value)
 
     return value
   }

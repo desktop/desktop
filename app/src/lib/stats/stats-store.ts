@@ -94,6 +94,23 @@ const DefaultDailyMeasures: IDailyMeasures = {
   stashEntriesCreatedOutsideDesktop: 0,
   errorWhenSwitchingBranchesWithUncommmittedChanges: 0,
   rebaseCurrentBranchMenuCount: 0,
+  stashViewedAfterCheckoutCount: 0,
+  stashCreatedOnCurrentBranchCount: 0,
+  stashNotViewedAfterCheckoutCount: 0,
+  changesTakenToNewBranchCount: 0,
+  stashRestoreCount: 0,
+  stashDiscardCount: 0,
+  stashViewCount: 0,
+  noActionTakenOnStashCount: 0,
+  suggestedStepOpenInExternalEditor: 0,
+  suggestedStepOpenWorkingDirectory: 0,
+  suggestedStepViewOnGitHub: 0,
+  suggestedStepPublishRepository: 0,
+  suggestedStepPublishBranch: 0,
+  suggestedStepCreatePullRequest: 0,
+  suggestedStepViewStash: 0,
+  commitsToProtectedBranch: 0,
+  commitsToRepositoryWithBranchProtections: 0,
 }
 
 interface IOnboardingStats {
@@ -676,6 +693,21 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  /** Record the user made a commit to a protected GitHub or GitHub Enterprise repository */
+  public recordCommitToProtectedBranch(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      commitsToProtectedBranch: m.commitsToProtectedBranch + 1,
+    }))
+  }
+
+  /** Record the user made a commit to repository which has branch protections enabled */
+  public recordCommitToRepositoryWithBranchProtections(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      commitsToRepositoryWithBranchProtections:
+        m.commitsToRepositoryWithBranchProtections + 1,
+    }))
+  }
+
   /** Set whether the user has opted out of stats reporting. */
   public async setOptOut(
     optOut: boolean,
@@ -983,6 +1015,62 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  /** Record when the user views a stash entry after checking out a branch */
+  public async recordStashViewedAfterCheckout(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      stashViewedAfterCheckoutCount: m.stashViewedAfterCheckoutCount + 1,
+    }))
+  }
+
+  /** Record when the user **doesn't** view a stash entry after checking out a branch */
+  public async recordStashNotViewedAfterCheckout(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      stashNotViewedAfterCheckoutCount: m.stashNotViewedAfterCheckoutCount + 1,
+    }))
+  }
+
+  /** Record when the user elects to take changes to new branch over stashing */
+  public async recordChangesTakenToNewBranch(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      changesTakenToNewBranchCount: m.changesTakenToNewBranchCount + 1,
+    }))
+  }
+
+  /** Record when the user elects to stash changes on the current branch */
+  public async recordStashCreatedOnCurrentBranch(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      stashCreatedOnCurrentBranchCount: m.stashCreatedOnCurrentBranchCount + 1,
+    }))
+  }
+
+  /** Record when the user discards a stash entry */
+  public async recordStashDiscard(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      stashDiscardCount: m.stashDiscardCount + 1,
+    }))
+  }
+
+  /** Record when the user views a stash entry */
+  public async recordStashView(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      stashViewCount: m.stashViewCount + 1,
+    }))
+  }
+
+  /** Record when the user restores a stash entry */
+  public async recordStashRestore(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      stashRestoreCount: m.stashRestoreCount + 1,
+    }))
+  }
+
+  /** Record when the user takes no action on the stash entry */
+  public async recordNoActionTakenOnStash(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      noActionTakenOnStashCount: m.noActionTakenOnStashCount + 1,
+    }))
+  }
+
   /** Record the number of stash entries created outside of Desktop for the day */
   public async addStashEntriesCreatedOutsideDesktop(
     stashCount: number
@@ -1003,6 +1091,78 @@ export class StatsStore implements IStatsStore {
     return this.updateDailyMeasures(m => ({
       errorWhenSwitchingBranchesWithUncommmittedChanges:
         m.errorWhenSwitchingBranchesWithUncommmittedChanges + 1,
+    }))
+  }
+
+  /**
+   * Increment the number of times the user has opened their external editor
+   * from the suggested next steps view
+   */
+  public recordSuggestedStepOpenInExternalEditor(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepOpenInExternalEditor:
+        m.suggestedStepOpenInExternalEditor + 1,
+    }))
+  }
+
+  /**
+   * Increment the number of times the user has opened their repository in
+   * Finder/Explorer from the suggested next steps view
+   */
+  public recordSuggestedStepOpenWorkingDirectory(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepOpenWorkingDirectory:
+        m.suggestedStepOpenWorkingDirectory + 1,
+    }))
+  }
+
+  /**
+   * Increment the number of times the user has opened their repository on
+   * GitHub from the suggested next steps view
+   */
+  public recordSuggestedStepViewOnGitHub(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepViewOnGitHub: m.suggestedStepViewOnGitHub + 1,
+    }))
+  }
+
+  /**
+   * Increment the number of times the user has used the publish repository
+   * action from the suggested next steps view
+   */
+  public recordSuggestedStepPublishRepository(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepPublishRepository: m.suggestedStepPublishRepository + 1,
+    }))
+  }
+
+  /**
+   * Increment the number of times the user has used the publish branch
+   * action branch from the suggested next steps view
+   */
+  public recordSuggestedStepPublishBranch(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepPublishBranch: m.suggestedStepPublishBranch + 1,
+    }))
+  }
+
+  /**
+   * Increment the number of times the user has used the Create PR suggestion
+   * in the suggested next steps view.
+   */
+  public recordSuggestedStepCreatePullRequest(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepCreatePullRequest: m.suggestedStepCreatePullRequest + 1,
+    }))
+  }
+
+  /**
+   * Increment the number of times the user has used the View Stash suggestion
+   * in the suggested next steps view.
+   */
+  public recordSuggestedStepViewStash(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepViewStash: m.suggestedStepViewStash + 1,
     }))
   }
 

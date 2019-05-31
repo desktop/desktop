@@ -21,6 +21,7 @@ import { IAheadBehind } from '../../models/branch'
 import { IRemote } from '../../models/remote'
 import { isCurrentBranchForcePush } from '../../lib/rebase'
 import { StashedChangesLoadStates } from '../../models/stash-entry'
+import { Dispatcher } from '../dispatcher'
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
@@ -38,6 +39,8 @@ function formatParentMenuLabel(menuItem: IMenuItemInfo) {
 const PaperStackImage = encodePathAsUrl(__dirname, 'static/paper-stack.svg')
 
 interface INoChangesProps {
+  readonly dispatcher: Dispatcher
+
   /**
    * The currently selected repository
    */
@@ -214,7 +217,8 @@ export class NoChanges extends React.Component<
   private renderMenuBackedAction(
     itemId: MenuIDs,
     title: string,
-    description?: string | JSX.Element
+    description?: string | JSX.Element,
+    onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
   ) {
     const menuItem = this.getMenuItemInfo(itemId)
 
@@ -231,6 +235,7 @@ export class NoChanges extends React.Component<
         menuItemId={itemId}
         buttonText={formatMenuItemLabel(menuItem.label)}
         disabled={!menuItem.enabled}
+        onClick={onClick}
       />
     )
   }
@@ -240,9 +245,14 @@ export class NoChanges extends React.Component<
 
     return this.renderMenuBackedAction(
       'open-working-directory',
-      `View the files of your repository in ${fileManager}`
+      `View the files of your repository in ${fileManager}`,
+      undefined,
+      this.onShowInFileManagerClicked
     )
   }
+
+  private onShowInFileManagerClicked = () =>
+    this.props.dispatcher.recordSuggestedStepOpenWorkingDirectory()
 
   private renderViewOnGitHub() {
     const isGitHub = this.props.repository.gitHubRepository !== null
@@ -253,9 +263,14 @@ export class NoChanges extends React.Component<
 
     return this.renderMenuBackedAction(
       'view-repository-on-github',
-      `Open the repository page on GitHub in your browser`
+      `Open the repository page on GitHub in your browser`,
+      undefined,
+      this.onViewOnGitHubClicked
     )
   }
+
+  private onViewOnGitHubClicked = () =>
+    this.props.dispatcher.recordSuggestedStepViewOnGitHub()
 
   private openPreferences = () => {
     executeMenuItemById('preferences')
@@ -292,8 +307,16 @@ export class NoChanges extends React.Component<
       </>
     )
 
-    return this.renderMenuBackedAction(itemId, title, description)
+    return this.renderMenuBackedAction(
+      itemId,
+      title,
+      description,
+      this.onOpenInExternalEditorClicked
+    )
   }
+
+  private onOpenInExternalEditorClicked = () =>
+    this.props.dispatcher.recordSuggestedStepOpenInExternalEditor()
 
   private renderRemoteAction() {
     const { remote, aheadBehind, branchesState } = this.props.repositoryState
@@ -342,7 +365,7 @@ export class NoChanges extends React.Component<
     return null
   }
 
-  private renderStashAction() {
+  private renderViewStashAction() {
     if (!enableStashing()) {
       return null
     }
@@ -393,11 +416,13 @@ export class NoChanges extends React.Component<
         buttonText="View stash"
         type="primary"
         disabled={menuItem !== null && !menuItem.enabled}
+        onClick={this.onViewStashClicked}
       />
     )
-
-    return null
   }
+
+  private onViewStashClicked = () =>
+    this.props.dispatcher.recordSuggestedStepViewStash()
 
   private renderPublishRepositoryAction() {
     // This is a bit confusing, there's no dedicated
@@ -429,9 +454,13 @@ export class NoChanges extends React.Component<
         menuItemId={itemId}
         type="primary"
         disabled={!menuItem.enabled}
+        onClick={this.onPublishRepositoryClicked}
       />
     )
   }
+
+  private onPublishRepositoryClicked = () =>
+    this.props.dispatcher.recordSuggestedStepPublishRepository()
 
   private renderPublishBranchAction(tip: IValidBranch) {
     // This is a bit confusing, there's no dedicated
@@ -474,9 +503,13 @@ export class NoChanges extends React.Component<
         buttonText="Publish branch"
         type="primary"
         disabled={!menuItem.enabled}
+        onClick={this.onPublishBranchClicked}
       />
     )
   }
+
+  private onPublishBranchClicked = () =>
+    this.props.dispatcher.recordSuggestedStepPublishBranch()
 
   private renderPullBranchAction(
     tip: IValidBranch,
@@ -610,9 +643,13 @@ export class NoChanges extends React.Component<
         discoverabilityContent={this.renderDiscoverabilityElements(menuItem)}
         type="primary"
         disabled={!menuItem.enabled}
+        onClick={this.onCreatePullRequestClicked}
       />
     )
   }
+
+  private onCreatePullRequestClicked = () =>
+    this.props.dispatcher.recordSuggestedStepCreatePullRequest()
 
   private renderActions() {
     return (
@@ -628,7 +665,7 @@ export class NoChanges extends React.Component<
           transitionEnterTimeout={750}
           transitionLeaveTimeout={500}
         >
-          {this.renderStashAction() || this.renderRemoteAction()}
+          {this.renderViewStashAction() || this.renderRemoteAction()}
         </ReactCSSTransitionReplace>
         <div className="actions">
           {this.renderOpenInExternalEditor()}

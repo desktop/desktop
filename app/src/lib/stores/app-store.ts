@@ -219,7 +219,6 @@ import {
 } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import * as moment from 'moment'
-import { getStashSize } from '../git/stash'
 import { isDarkModeEnabled } from '../../ui/lib/dark-theme'
 import { ComputedAction } from '../../models/computed-action'
 import {
@@ -228,11 +227,16 @@ import {
   popStashEntry,
   dropDesktopStashEntry,
 } from '../git/stash'
-import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
+import {
+  UncommittedChangesStrategy,
+  UncommittedChangesStrategyKind,
+  askToStash,
+} from '../../models/uncommitted-changes-strategy'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
+import { findRemoteBranchName } from './helpers/find-branch-name'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -368,6 +372,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.Light
   private automaticallySwitchTheme = false
+
+  private hasUserViewedStash = false
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
@@ -2250,6 +2256,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.updateMenuLabelsForSelectedRepository()
     this.emitUpdate()
     this.updateChangesStashDiff(repository)
+
+    if (!this.hasUserViewedStash) {
+      // `hasUserViewedStash` is reset to false on every branch checkout
+      // so we increment the metric before setting `hasUserViewedStash` to true
+      // to make sure we only increment on the first view after checkout
+      this.statsStore.recordStashViewedAfterCheckout()
+      this.hasUserViewedStash = true
+    }
   }
 
   private async updateChangesStashDiff(repository: Repository) {
@@ -2369,24 +2383,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
           }
         }
 
-        if (
-          enableBranchProtectionWarning() &&
-          gitStore.tip.kind === TipState.Valid &&
-          gitStore.currentRemote !== null
-        ) {
-          // look up if the tracked branch matches a protected remote branch
-          const { upstreamWithoutRemote } = gitStore.tip.branch
+        if (enableBranchProtectionWarning()) {
+          const branchProtectionsFound = await this.repositoriesStore.hasBranchProtectionsConfigured(
+            repository.gitHubRepository
+          )
 
-          if (upstreamWithoutRemote !== null) {
-            const isProtected = await this.repositoriesStore.isBranchProtected(
+          if (branchProtectionsFound) {
+            this.statsStore.recordCommitToRepositoryWithBranchProtections()
+          }
+
+          const branchName = findRemoteBranchName(
+            gitStore.tip,
+            gitStore.currentRemote,
+            repository.gitHubRepository
+          )
+
+          if (branchName !== null) {
+            const isRemoteBranchProtected = await this.repositoriesStore.isBranchProtectedOnRemote(
               repository.gitHubRepository,
-              upstreamWithoutRemote
+              branchName
             )
 
-            if (isProtected) {
-              log.debug(
-                `[_commitIncludedChanges] the upstream ref '${upstreamWithoutRemote}' is protected by the GitHub API`
-              )
+            if (isRemoteBranchProtected) {
+              this.statsStore.recordCommitToProtectedBranch()
             }
           }
         }
@@ -2551,13 +2570,39 @@ export class AppStore extends TypedBaseStore<IAppState> {
     ])
 
     // this promise is fire-and-forget, so no need to await it
-    this.updateStashEntryCountMetric(repository)
+    this.updateStashEntryCountMetric(
+      repository,
+      gitStore.desktopStashEntryCount,
+      gitStore.stashEntryCount
+    )
     this.updateCurrentPullRequest(repository)
 
     const latestState = this.repositoryStateCache.get(repository)
     this.updateMenuItemLabels(latestState)
 
     this._initializeCompare(repository)
+  }
+
+  private async updateStashEntryCountMetric(
+    repository: Repository,
+    desktopStashEntryCount: number,
+    stashEntryCount: number
+  ) {
+    const lastStashEntryCheck = await this.repositoriesStore.getLastStashCheckDate(
+      repository
+    )
+    const dateNow = moment()
+    const threshold = dateNow.subtract(24, 'hours')
+    // `lastStashEntryCheck` being equal to `null` means
+    // we've never checked for the given repo
+    if (lastStashEntryCheck == null || threshold.isAfter(lastStashEntryCheck)) {
+      await this.repositoriesStore.updateLastStashCheckDate(repository)
+      const numEntriesCreatedOutsideDesktop =
+        stashEntryCount - desktopStashEntryCount
+      this.statsStore.addStashEntriesCreatedOutsideDesktop(
+        numEntriesCreatedOutsideDesktop
+      )
+    }
   }
 
   /**
@@ -2778,7 +2823,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     name: string,
     startPoint: string | null,
-    uncommittedChangesStrategy: UncommittedChangesStrategy = UncommittedChangesStrategy.askForConfirmation
+    uncommittedChangesStrategy: UncommittedChangesStrategy = askToStash
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
     const branch = await gitStore.performFailableOperation(() =>
@@ -2800,8 +2845,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       enableStashing() &&
       hasChanges &&
       currentBranch !== null &&
-      uncommittedChangesStrategy ===
-        UncommittedChangesStrategy.askForConfirmation
+      uncommittedChangesStrategy.kind ===
+        UncommittedChangesStrategyKind.AskForConfirmation
     ) {
       this._showPopup({
         type: PopupType.StashAndSwitchBranch,
@@ -2844,7 +2889,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _checkoutBranch(
     repository: Repository,
     branch: Branch | string,
-    uncommittedChangesStrategy: UncommittedChangesStrategy = UncommittedChangesStrategy.askForConfirmation
+    uncommittedChangesStrategy: UncommittedChangesStrategy = askToStash
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
     const kind = 'checkout'
@@ -2860,76 +2905,101 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { changesState, branchesState } = this.repositoryStateCache.get(
       repository
     )
-    const { tip } = branchesState
-    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
-    const hasChanges = changesState.workingDirectory.files.length > 0
 
-    if (
-      enableStashing() &&
-      hasChanges &&
-      currentBranch !== null &&
-      uncommittedChangesStrategy ===
-        UncommittedChangesStrategy.askForConfirmation
-    ) {
-      this._showPopup({
-        type: PopupType.StashAndSwitchBranch,
-        branchToCheckout: foundBranch,
-        repository,
-      })
-
-      return repository
-    }
-
-    let shouldPopStash = false
-
-    if (enableStashing() && currentBranch !== null) {
+    let stashToPop: IStashEntry | null = null
+    if (enableStashing()) {
+      const hasChanges = changesState.workingDirectory.files.length > 0
       if (
-        uncommittedChangesStrategy ===
-        UncommittedChangesStrategy.stashOnCurrentBranch
+        hasChanges &&
+        uncommittedChangesStrategy.kind ===
+          UncommittedChangesStrategyKind.AskForConfirmation
       ) {
-        await this.createStash(repository, currentBranch.name)
+        this._showPopup({
+          type: PopupType.StashAndSwitchBranch,
+          branchToCheckout: foundBranch,
+          repository,
+        })
+        return repository
+      }
+
+      const { tip } = branchesState
+      const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+      if (
+        currentBranch !== null &&
+        uncommittedChangesStrategy.kind ===
+          UncommittedChangesStrategyKind.StashOnCurrentBranch
+      ) {
+        await this._createStashAndDropPreviousEntry(
+          repository,
+          currentBranch.name
+        )
+        this.statsStore.recordStashCreatedOnCurrentBranch()
       } else if (
-        uncommittedChangesStrategy ===
-        UncommittedChangesStrategy.moveToNewBranch
+        uncommittedChangesStrategy.kind ===
+        UncommittedChangesStrategyKind.MoveToNewBranch
       ) {
-        await createDesktopStashEntry(repository, foundBranch.name)
-        shouldPopStash = true
+        const hasDeletedFiles = changesState.workingDirectory.files.some(
+          file => file.status.kind === AppFileStatusKind.Deleted
+        )
+        if (
+          hasDeletedFiles &&
+          uncommittedChangesStrategy.transientStashEntry === null
+        ) {
+          const stashCreated = await gitStore.performFailableOperation(() => {
+            return createDesktopStashEntry(repository, foundBranch.name)
+          })
+
+          if (stashCreated) {
+            stashToPop = await getLastDesktopStashEntryForBranch(
+              repository,
+              foundBranch.name
+            )
+          }
+        }
       }
     }
 
-    await this.withAuthenticatingUser(repository, (repository, account) =>
-      gitStore.performFailableOperation(
-        () =>
-          checkoutBranch(repository, account, foundBranch, progress => {
-            this.updateCheckoutProgress(repository, progress)
-          }),
-        {
-          repository,
-          retryAction: {
-            type: RetryActionType.Checkout,
+    const checkoutSucceeded =
+      (await this.withAuthenticatingUser(repository, (repository, account) =>
+        gitStore.performFailableOperation(
+          () =>
+            checkoutBranch(repository, account, foundBranch, progress => {
+              this.updateCheckoutProgress(repository, progress)
+            }),
+          {
             repository,
-            branch,
-          },
-        }
-      )
-    )
-
-    if (shouldPopStash) {
-      const stash = await getLastDesktopStashEntryForBranch(
-        repository,
-        foundBranch.name
-      )
-
-      if (stash !== null) {
-        await gitStore.performFailableOperation(() => {
-          return popStashEntry(repository, stash.stashSha)
-        })
-      } else {
-        log.info(
-          `[AppStore._checkoutBranch] no stash found that matches ${
-            foundBranch.name
-          }`
+            retryAction: {
+              type: RetryActionType.Checkout,
+              repository,
+              branch,
+            },
+            gitContext: {
+              kind: 'checkout',
+              branchToCheckout: foundBranch.name,
+            },
+          }
         )
+      )) !== undefined
+
+    if (
+      enableStashing() &&
+      uncommittedChangesStrategy.kind ===
+        UncommittedChangesStrategyKind.MoveToNewBranch &&
+      checkoutSucceeded
+    ) {
+      // We increment the metric after checkout succeeds to guard
+      // against double counting when an error occurs on checkout.
+      // When an error occurs, one of our error handlers will inspect
+      // it and make a call to `moveChangesToBranchAndCheckout` which will
+      // call this method again once the working directory has been cleared.
+      this.statsStore.recordChangesTakenToNewBranch()
+
+      stashToPop = stashToPop || uncommittedChangesStrategy.transientStashEntry
+      if (stashToPop !== null) {
+        const stashSha = stashToPop.stashSha
+        await gitStore.performFailableOperation(() => {
+          return popStashEntry(repository, stashSha)
+        })
       }
     }
 
@@ -2956,6 +3026,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (defaultBranch !== null && foundBranch.name !== defaultBranch.name) {
       this.statsStore.recordNonDefaultBranchCheckout()
     }
+
+    if (changesState.stashEntry !== null && !this.hasUserViewedStash) {
+      this.statsStore.recordStashNotViewedAfterCheckout()
+    }
+
+    this.hasUserViewedStash = false
 
     return repository
   }
@@ -4250,24 +4326,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitUpdate()
     }
   }
-  private async updateStashEntryCountMetric(repository: Repository) {
-    const lastStashEntryCheck = await this.repositoriesStore.getLastStashCheckDate(
-      repository
-    )
-    const dateNow = moment()
-    const threshold = dateNow.subtract(24, 'hours')
-    if (lastStashEntryCheck == null || threshold.isAfter(lastStashEntryCheck)) {
-      // `lastStashEntryCheck` being equal to null means we've never checked for
-      // the given repo
-
-      try {
-        const stashSize = await getStashSize(repository)
-        await this.statsStore.addStashEntriesCreatedOutsideDesktop(stashSize)
-      } finally {
-        await this.repositoriesStore.updateLastStashCheckDate(repository)
-      }
-    }
-  }
 
   public _reportStats() {
     // ensure the user has seen and acknowledged the current usage stats setting
@@ -5058,30 +5116,59 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  /**
-   *  Note: **drops the existing desktop stash** on that branch (if there is one)
-   */
-  private async createStash(repository: Repository, branchName: string) {
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _createStashAndDropPreviousEntry(
+    repository: Repository,
+    branchName: string
+  ) {
     if (!enableStashing()) {
       return
     }
 
-    // get the previous stash before we create a new one
-    const previousStash = await getLastDesktopStashEntryForBranch(
+    const previousStashEntry = await getLastDesktopStashEntryForBranch(
       repository,
       branchName
     )
 
-    await createDesktopStashEntry(repository, branchName)
-
-    if (previousStash !== null) {
-      await dropDesktopStashEntry(repository, previousStash.stashSha)
+    if (previousStashEntry !== null) {
+      await dropDesktopStashEntry(repository, previousStashEntry.stashSha)
       log.info(
-        `Dropped stash '${previousStash.stashSha}' associated with ${
-          previousStash.branchName
+        `Dropped stash '${previousStashEntry.stashSha}' associated with ${
+          previousStashEntry.branchName
         }`
       )
     }
+
+    await createDesktopStashEntry(repository, branchName)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _moveChangesToBranchAndCheckout(
+    repository: Repository,
+    branchToCheckout: string
+  ) {
+    if (!enableStashing()) {
+      return
+    }
+
+    const gitStore = this.gitStoreCache.get(repository)
+    const isStashCreated = await gitStore.performFailableOperation(() => {
+      return createDesktopStashEntry(repository, branchToCheckout)
+    })
+
+    if (!isStashCreated) {
+      return
+    }
+
+    const transientStashEntry = await getLastDesktopStashEntryForBranch(
+      repository,
+      branchToCheckout
+    )
+    const strategy: UncommittedChangesStrategy = {
+      kind: UncommittedChangesStrategyKind.MoveToNewBranch,
+      transientStashEntry,
+    }
+    await this._checkoutBranch(repository, branchToCheckout, strategy)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -5099,6 +5186,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }`
     )
 
+    this.statsStore.recordStashRestore()
     await this._refreshRepository(repository)
   }
 
@@ -5120,6 +5208,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }`
     )
 
+    this.statsStore.recordStashDiscard()
     await gitStore.loadStashEntries()
   }
 

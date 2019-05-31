@@ -73,7 +73,7 @@ export function enablePullWithRebase(): boolean {
  *  grouping and filtering (GitHub) repositories by owner/organization.
  */
 export function enableGroupRepositoriesByOwner(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should the app show the "rebase current branch" dialog? */
@@ -83,7 +83,7 @@ export function enableRebaseDialog(): boolean {
 
 /** Should the app show the "stash changes" dialog? */
 export function enableStashing(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /**
@@ -91,5 +91,5 @@ export function enableStashing(): boolean {
  * protected branch?
  */
 export function enableBranchProtectionWarning(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
