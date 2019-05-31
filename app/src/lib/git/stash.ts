@@ -34,7 +34,7 @@ type StashResult = {
 
 /**
  * Get the list of stash entries created by Desktop in the current repository
- * using the default ordering of refs (wich is LIFO ordering),
+ * using the default ordering of refs (which is LIFO ordering),
  * as well as the total amount of stash entries.
  */
 export async function getStashes(repository: Repository): Promise<StashResult> {
