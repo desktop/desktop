@@ -21,6 +21,7 @@ import * as temp from 'temp'
 import { getStatus } from '../../../src/lib/git'
 import { isConflictedFile } from '../../../src/lib/status'
 import { setupLocalConfig } from '../../helpers/local-config'
+import { generateString } from '../../helpers/random-data'
 
 const _temp = temp.track()
 const mkdir = _temp.mkdir
@@ -114,11 +115,11 @@ describe('git/status', () => {
         )
 
         // write a change to the readme into the stash
-        await FSE.appendFile(readme, Math.random()) // eslint-disable-line insecure-random
+        await FSE.appendFile(readme, generateString())
         await GitProcess.exec(['stash'], repository.path)
 
         // write a different change to the README and commit it
-        await FSE.appendFile(readme, Math.random()) // eslint-disable-line insecure-random
+        await FSE.appendFile(readme, generateString())
         await GitProcess.exec(
           ['commit', '-am', 'later commit'],
           repository.path
