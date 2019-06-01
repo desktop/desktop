@@ -103,7 +103,7 @@ interface IBlankSlateState {
 export class BlankSlateView extends React.Component<
   IBlankSlateProps,
   IBlankSlateState
-> {
+  > {
   public constructor(props: IBlankSlateProps) {
     super(props)
 
