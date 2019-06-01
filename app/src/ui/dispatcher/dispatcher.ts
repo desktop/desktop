@@ -84,6 +84,7 @@ import { MergeResult } from '../../models/merge'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { IStashEntry } from '../../models/stash-entry'
+import { showOpenDialog } from '../lib/show-open-dialog'
 
 /**
  * An error handler function.
@@ -1295,9 +1296,7 @@ export class Dispatcher {
    * Update the location of an existing repository and clear the missing flag.
    */
   public async relocateRepository(repository: Repository): Promise<void> {
-    const directories = remote.dialog.showOpenDialog({
-      properties: ['openDirectory'],
-    })
+    const directories = await showOpenDialog(['openDirectory'])
 
     if (directories && directories.length > 0) {
       const newPath = directories[0]
