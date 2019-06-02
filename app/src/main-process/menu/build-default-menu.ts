@@ -284,7 +284,7 @@ export function buildDefaultMenu({
       {
         label: removeRepoLabel,
         id: 'remove-repository',
-        accelerator: 'CmdOrCtrl+Delete',
+        accelerator: 'CmdOrCtrl+Backspace',
         click: emit('remove-repository'),
       },
       separator,
@@ -351,7 +351,7 @@ export function buildDefaultMenu({
       {
         label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
         id: 'discard-all-changes',
-        accelerator: 'CmdOrCtrl+Shift+Delete',
+        accelerator: 'CmdOrCtrl+Shift+Backspace',
         click: emit('discard-all-changes'),
       },
       separator,
