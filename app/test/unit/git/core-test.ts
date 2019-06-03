@@ -5,7 +5,7 @@ import { git } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../helpers/repositories'
 
 describe('git/core', () => {
-  let repository: Repository | null = null
+  let repository: Repository
 
   beforeEach(async () => {
     const testRepoPath = await setupFixtureRepository('test-repo')
@@ -18,7 +18,7 @@ describe('git/core', () => {
 
       let threw = false
       try {
-        const result = await git(args, repository!.path, 'test', {
+        const result = await git(args, repository.path, 'test', {
           expectedErrors: new Set([GitError.BadRevision]),
         })
         expect(result.gitError).toBe(GitError.BadRevision)
@@ -34,7 +34,7 @@ describe('git/core', () => {
 
       let threw = false
       try {
-        await git(args, repository!.path, 'test', {
+        await git(args, repository.path, 'test', {
           expectedErrors: new Set([GitError.SSHKeyAuditUnverified]),
         })
       } catch (e) {
@@ -51,7 +51,7 @@ describe('git/core', () => {
 
       let threw = false
       try {
-        const result = await git(args, repository!.path, 'test', {
+        const result = await git(args, repository.path, 'test', {
           successExitCodes: new Set([128]),
         })
         expect(result.exitCode).toBe(128)
@@ -67,7 +67,7 @@ describe('git/core', () => {
 
       let threw = false
       try {
-        await git(args, repository!.path, 'test', {
+        await git(args, repository.path, 'test', {
           successExitCodes: new Set([2]),
         })
       } catch (e) {
