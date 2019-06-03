@@ -4,6 +4,7 @@
       "[New] You can now choose to bring your changes with you to a new branch or stash them on the current branch when switching branches - #6107",
       "[New] Rebase your current branch onto another branch using a guided flow - #5953",
       "[New] Recently opened repositories appear at the top of the repository list - #7132",
+      "[New] Suggested next steps now includes suggestion to create a pull request after publishing a branch - #7505",
       "[Added] .resx syntax highlighting - #7235. Thanks @say25!",
       "[Added] \"Exit\" menu item now has accelerator and access key - #6507. Thanks @AndreiMaga!",
       "[Added] Help menu entry to view documentation about keyboard shortcuts  - #7184",
