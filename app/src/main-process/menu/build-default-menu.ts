@@ -137,7 +137,11 @@ export function buildDefaultMenu({
         click: emit('show-preferences'),
       },
       separator,
-      { role: 'quit' }
+      {
+        role: 'quit',
+        label: 'E&xit',
+        accelerator: 'Alt+F4',
+      }
     )
   }
 
