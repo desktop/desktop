@@ -182,9 +182,16 @@ function getDescriptionForError(error: DugiteError): string {
     case DugiteError.SSHAuthenticationFailed:
     case DugiteError.SSHPermissionDenied:
     case DugiteError.HTTPSAuthenticationFailed:
-      return `Authentication failed. You may not have permission to access the repository or the repository may have been archived. Open ${
-        __DARWIN__ ? 'preferences' : 'options'
-      } and verify that you're signed in with an account that has permission to access this repository.`
+      const menuHint = __DARWIN__
+        ? 'GitHub Desktop > Preferences.'
+        : 'File > Options.'
+      return `Authentication failed. Some common reasons include:
+
+- You are not logged in to your account: see ${menuHint}
+- You may need to log out and log back in to refresh your token.
+- You do not have permission to access this repository.
+- The repository is archived on GitHub. Check the repository settings to confirm you are still permitted to push commits.
+- If you use SSH authentication, check that your key is added to the ssh-agent and associated with your account.`
     case DugiteError.RemoteDisconnection:
       return 'The remote disconnected. Check your Internet connection and try again.'
     case DugiteError.HostDown:
