@@ -85,3 +85,8 @@ export function enableRebaseDialog(): boolean {
 export function enableStashing(): boolean {
   return enableBetaFeatures()
 }
+
+/** Should the app detect Windows Subsystem for Linux as a valid shell? */
+export function enableWSLDetection(): boolean {
+  return enableDevelopmentFeatures()
+}

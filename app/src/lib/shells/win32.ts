@@ -5,6 +5,7 @@ import { pathExists } from 'fs-extra'
 
 import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
+import { enableWSLDetection } from '../feature-flag'
 
 export enum Shell {
   Cmd = 'Command Prompt',
@@ -100,12 +101,14 @@ export async function getAvailableShells(): Promise<
     })
   }
 
-  const wslPath = await findWSL()
-  if (wslPath != null) {
-    shells.push({
-      shell: Shell.WSL,
-      path: wslPath,
-    })
+  if (enableWSLDetection()) {
+    const wslPath = await findWSL()
+    if (wslPath != null) {
+      shells.push({
+        shell: Shell.WSL,
+        path: wslPath,
+      })
+    }
   }
 
   return shells
