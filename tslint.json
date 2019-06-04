@@ -40,8 +40,6 @@
       }
     ],
     // recommendations: `camelcase`, `no-underscore-dangle`, `id-blacklist`, and/or `id-match` from core
-    "variable-name": [true, "ban-keywords"],
-    // recommendation: `import/no-deprecated` from `eslint-plugin-import`
-    "deprecation": true
+    "variable-name": [true, "ban-keywords"]
   }
 }

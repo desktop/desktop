@@ -5,6 +5,7 @@ plugins:
   - babel
   - react
   - json
+  - import
 
 settings:
   react:
@@ -69,6 +70,9 @@ rules:
   react/no-string-refs: error
   react/jsx-uses-vars: error
   react/jsx-uses-react: error
+
+  # Import
+  import/no-deprecated: error
 
   ###########
   # BUILTIN #
