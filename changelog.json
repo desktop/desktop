@@ -10,7 +10,6 @@
       "[Added] Help menu entry to view documentation about keyboard shortcuts  - #7184",
       "[Added] \"Discard all changes\" action under Branch menu - #7394. Thanks @ahuth!",
       "[Fixed] \"Esc\" key does not close Repository or Branch list - #7177. Thanks @roottool!",
-      "[Fixed] Warn when renaming a branch with a stash - #7283",
       "[Fixed] Attempting to revert commits not on current branch results in an error - #6300. Thanks @msftrncs!",
       "[Fixed] Clicking \"Undo\" doesn't repopulate summary in commit form - #6390. Thanks @humphd!",
       "[Fixed] Crash when unable to create log file on disk - #7096",
