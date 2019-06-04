@@ -210,9 +210,9 @@ export class BranchPruner {
         continue
       }
 
-      if (options.deleteBranch) {
-        const branchName = branch.canonicalRef.substr(branchRefPrefix.length)
+      const branchName = branch.canonicalRef.substr(branchRefPrefix.length)
 
+      if (options.deleteBranch) {
         const isDeleted = await gitStore.performFailableOperation(() =>
           deleteLocalBranch(this.repository, branchName)
         )
@@ -220,6 +220,8 @@ export class BranchPruner {
         if (isDeleted) {
           log.info(`Pruned branch ${branchName} (was ${branch.sha})`)
         }
+      } else {
+        log.info(`Branch '${branchName}' marked for deletion`)
       }
     }
 
