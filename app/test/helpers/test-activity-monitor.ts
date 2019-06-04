@@ -5,8 +5,9 @@ import {
 import { Emitter, Disposable } from 'event-kit'
 
 export class TestActivityMonitor implements IUiActivityMonitor {
-  private readonly emitter = new Emitter()
   public subscriptionCount = 0
+
+  private readonly emitter = new Emitter()
 
   public onActivity(handler: (kind: UiActivityKind) => void) {
     this.subscriptionCount++

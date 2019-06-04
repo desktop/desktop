@@ -93,12 +93,12 @@ const RecentBranchesLimit = 5
 
 /** The store for a repository's git data. */
 export class GitStore extends BaseStore {
-  private readonly shell: IAppShell
-
   /** The commits keyed by their SHA. */
   public readonly commitLookup = new Map<string, Commit>()
 
   public pullWithRebase?: boolean
+
+  private readonly shell: IAppShell
 
   private _history: ReadonlyArray<string> = new Array()
 
