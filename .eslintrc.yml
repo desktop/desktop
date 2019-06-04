@@ -6,6 +6,10 @@ plugins:
   - react
   - json
 
+settings:
+  react:
+    version: '16.3'
+
 extends:
   - prettier
   - prettier/react
