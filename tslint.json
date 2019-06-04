@@ -1,13 +1,16 @@
 {
   "rulesDirectory": [
+    // what default rules should we be using that can be moved over to ESLint?
     "node_modules/tslint-react/rules",
+    // we have one more rule that we'd love to be able to port over to ESLint below
     "node_modules/tslint-microsoft-contrib/",
+    // our custom rules, outlined below
     "tslint-rules/"
   ],
   "rules": {
     // local TSLint rule that should be ported
     "button-group-order": true,
-    // not ported
+    // not ported from TSLint core
     "promise-must-complete": true,
     // local TSLint rule that should be ported
     "react-no-unbound-dispatcher-props": true,
@@ -23,7 +26,7 @@
         "state-interface-regex": "State$"
       }
     ],
-    // not ported from tslint-microsoft-contrib
+    // not ported from `tslint-microsoft-contrib`
     "react-this-binding-issue": true,
     // recommendations: `camelcase`, `no-underscore-dangle`, `id-blacklist`, and/or `id-match` from core
     "variable-name": [true, "ban-keywords"]
