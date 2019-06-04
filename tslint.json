@@ -8,8 +8,6 @@
   "rules": {
     // local TSLint rule that should be ported
     "button-group-order": true,
-    // ported to @typescript-eslint/class-name-casing
-    "class-name": true,
     // JSDoc rules deprecated in core ESLint and the recommended plugin is `eslint-plugin-jsdoc`
     "jsdoc-format": true,
     // ported to `@typescript-eslint/member-ordering`
