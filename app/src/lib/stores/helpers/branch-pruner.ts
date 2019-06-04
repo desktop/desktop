@@ -148,7 +148,7 @@ export class BranchPruner {
       threshold.isBefore(lastPruneDate)
     ) {
       log.info(
-        `Last prune took place ${moment(lastPruneDate).from(
+        `[BranchPruner] Last prune took place ${moment(lastPruneDate).from(
           dateNow
         )} - skipping`
       )
@@ -169,7 +169,7 @@ export class BranchPruner {
     )
 
     if (mergedBranches.length === 0) {
-      log.info('No branches to prune.')
+      log.info('[BranchPruner] No branches to prune.')
       return
     }
 
@@ -195,7 +195,7 @@ export class BranchPruner {
     )
 
     log.info(
-      `Pruning ${
+      `[BranchPruner] Pruning ${
         branchesReadyForPruning.length
       } branches that have been merged into the default branch, ${
         defaultBranch.name
@@ -218,10 +218,12 @@ export class BranchPruner {
         )
 
         if (isDeleted) {
-          log.info(`Pruned branch ${branchName} (was ${branch.sha})`)
+          log.info(
+            `[BranchPruner] Pruned branch ${branchName} (was ${branch.sha})`
+          )
         }
       } else {
-        log.info(`Branch '${branchName}' marked for deletion`)
+        log.info(`[BranchPruner] Branch '${branchName}' marked for deletion`)
       }
     }
 
