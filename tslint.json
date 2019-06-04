@@ -6,19 +6,29 @@
     "tslint-rules/"
   ],
   "rules": {
+    // local TSLint rule that should be ported
     "button-group-order": true,
+    // ported to @typescript-eslint/class-name-casing
     "class-name": true,
+    // JSDoc rules deprecated in core ESLint and the recommended plugin is `eslint-plugin-jsdoc`
     "jsdoc-format": true,
+    // ported to `@typescript-eslint/member-ordering`
     "member-ordering": [
       true,
       "static-before-instance",
       "variables-before-functions"
     ],
+    // this has been ported to `typescript-eslint/no-extraneous-class
     "no-unnecessary-class": true,
+    // not ported
     "promise-must-complete": true,
+    // local TSLint rule that should be ported
     "react-no-unbound-dispatcher-props": true,
+    // local TSLint rule that should be ported
     "react-proper-lifecycle-methods": true,
+    // local TSLint rule that should be ported
     "react-readonly-props-and-state": true,
+    // local TSLint rule that should be ported
     "react-unused-props-and-state": [
       true,
       {
@@ -26,7 +36,9 @@
         "state-interface-regex": "State$"
       }
     ],
+    // not ported from tslint-microsoft-contrib
     "react-this-binding-issue": true,
+    // this is covered by Prettier and should not need to be checked here too
     "typedef-whitespace": [
       true,
       {
@@ -37,7 +49,9 @@
         "variable-declaration": "nospace"
       }
     ],
+    // recommendations: `camelcase`, `no-underscore-dangle`, `id-blacklist`, and/or `id-match` from core
     "variable-name": [true, "ban-keywords"],
+    // recommendation: `import/no-deprecated` from `eslint-plugin-import`
     "deprecation": true
   }
 }
