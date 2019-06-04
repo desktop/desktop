@@ -1,5 +1,4 @@
 {
-  "extends": ["tslint-config-prettier"],
   "rulesDirectory": [
     "node_modules/tslint-react/rules",
     "node_modules/tslint-microsoft-contrib/",
