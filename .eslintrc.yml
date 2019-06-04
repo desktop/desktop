@@ -6,6 +6,7 @@ plugins:
   - react
   - json
   - import
+  - jsdoc
 
 settings:
   react:
@@ -73,6 +74,10 @@ rules:
 
   # Import
   import/no-deprecated: error
+
+  # JSDoc
+  jsdoc/check-syntax: error
+  jsdoc/check-alignment: error
 
   ###########
   # BUILTIN #

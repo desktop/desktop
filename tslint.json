@@ -8,8 +8,6 @@
   "rules": {
     // local TSLint rule that should be ported
     "button-group-order": true,
-    // JSDoc rules deprecated in core ESLint and the recommended plugin is `eslint-plugin-jsdoc`
-    "jsdoc-format": true,
     // not ported
     "promise-must-complete": true,
     // local TSLint rule that should be ported
