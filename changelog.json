@@ -21,7 +21,7 @@
       "[Fixed] Icon accessibility labels fail when multiple icons are visible at the same time - #7174",
       "[Fixed] Incorrectly encoding URLs affects issue filtering - #7506",
       "[Fixed] License templates do not end with newline character - #6999",
-      "[Fixed] Merge and rebase conflicts banners do not hide after aborting operation outside Desktop - #7046",
+      "[Fixed] Conflicts banners do not hide after aborting operation outside Desktop - #7046",
       "[Fixed] Missing tooltips for change indicators in the sidebar - #7174",
       "[Fixed] Mistaken classification of all crashes being related to launch - #7126",
       "[Fixed] Unable to switch keyboard layout and retain keyboard focus while using commit form - #6366. Thanks @AndreiMaga!",
