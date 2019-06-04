@@ -10,12 +10,6 @@
     "button-group-order": true,
     // JSDoc rules deprecated in core ESLint and the recommended plugin is `eslint-plugin-jsdoc`
     "jsdoc-format": true,
-    // ported to `@typescript-eslint/member-ordering`
-    "member-ordering": [
-      true,
-      "static-before-instance",
-      "variables-before-functions"
-    ],
     // not ported
     "promise-must-complete": true,
     // local TSLint rule that should be ported

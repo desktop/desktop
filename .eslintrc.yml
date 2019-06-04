@@ -39,8 +39,23 @@ rules:
     - functions: false
       variables: false
       typedefs: false
-  # this rule now works but generates a lot of issues with the codebase
-  # '@typescript-eslint/member-ordering': error
+  '@typescript-eslint/member-ordering':
+    - error
+    - default:
+        # emulating variables-before-functions
+        - public-static-field
+        - protected-static-field
+        - private-static-field
+        - public-instance-field
+        - protected-instance-field
+        - private-instance-field
+        # emulating static-before-instance
+        - public-static-method
+        - protected-static-method
+        - private-static-method
+        - public-static-field
+        - protected-static-field
+        - private-static-field
 
   # Babel
   babel/no-invalid-this: error
