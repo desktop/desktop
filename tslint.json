@@ -28,17 +28,6 @@
     ],
     // not ported from tslint-microsoft-contrib
     "react-this-binding-issue": true,
-    // this is covered by Prettier and should not need to be checked here too
-    "typedef-whitespace": [
-      true,
-      {
-        "call-signature": "nospace",
-        "index-signature": "nospace",
-        "parameter": "nospace",
-        "property-declaration": "nospace",
-        "variable-declaration": "nospace"
-      }
-    ],
     // recommendations: `camelcase`, `no-underscore-dangle`, `id-blacklist`, and/or `id-match` from core
     "variable-name": [true, "ban-keywords"]
   }
