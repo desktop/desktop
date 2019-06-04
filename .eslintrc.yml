@@ -36,8 +36,6 @@ rules:
   # this rule now works but generates a lot of issues with the codebase
   # '@typescript-eslint/member-ordering': error
 
-  '@typescript-eslint/type-annotation-spacing': error
-
   # Babel
   babel/no-invalid-this: error
 
