@@ -28,6 +28,7 @@ rules:
     - error
     - always
   '@typescript-eslint/class-name-casing': error
+  '@typescript-eslint/no-extraneous-class': error
   '@typescript-eslint/no-angle-bracket-type-assertion': error
   '@typescript-eslint/explicit-member-accessibility': error
   '@typescript-eslint/no-unused-vars':

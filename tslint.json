@@ -16,8 +16,6 @@
       "static-before-instance",
       "variables-before-functions"
     ],
-    // this has been ported to `typescript-eslint/no-extraneous-class
-    "no-unnecessary-class": true,
     // not ported
     "promise-must-complete": true,
     // local TSLint rule that should be ported
