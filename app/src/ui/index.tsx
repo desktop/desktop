@@ -35,7 +35,7 @@ import {
 } from '../lib/stores'
 import { GitHubUserDatabase } from '../lib/databases'
 import { URLActionType } from '../lib/parse-app-url'
-import { SelectionType } from '../lib/app-state'
+import { SelectionType, IAppState } from '../lib/app-state'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import {
   IssuesDatabase,
@@ -89,6 +89,8 @@ if (!process.env.TEST_ENV) {
   require('../../styles/desktop.scss')
 }
 
+let currentState: IAppState | null = null
+
 process.once('uncaughtException', (error: Error) => {
   error = withSourceMappedStack(error)
 
@@ -102,6 +104,47 @@ process.once('uncaughtException', (error: Error) => {
     const extra: Record<string, string> = {
       osVersion: getOS(),
       guid: getGUID(),
+    }
+
+    try {
+      if (currentState) {
+        if (currentState.currentBanner !== null) {
+          extra.currentBanner = currentState.currentBanner.type
+        }
+
+        if (currentState.currentPopup !== null) {
+          extra.currentPopup = `${currentState.currentPopup.type}`
+        }
+
+        if (currentState.selectedState !== null) {
+          extra.selectedState = `${currentState.selectedState.type}`
+        }
+
+        if (currentState.currentFoldout !== null) {
+          extra.currentFoldout = `${currentState.currentFoldout.type}`
+        }
+
+        if (currentState.showWelcomeFlow) {
+          extra.inWelcomeFlow = 'true'
+        }
+
+        if (currentState.windowZoomFactor !== 1) {
+          extra.windowZoomFactor = `${currentState.windowZoomFactor}`
+        }
+
+        if (currentState.errors.length > 0) {
+          extra.activeAppErrors = `${currentState.errors.length}`
+        }
+
+        extra.repositoryCount = `${currentState.repositories.length}`
+        extra.windowState = currentState.windowState
+        extra.accounts = `${currentState.accounts.length}`
+        extra.automaticallySwitchTheme = `${
+          currentState.automaticallySwitchTheme
+        }`
+      }
+    } catch (err) {
+      /* ignore */
     }
 
     sendErrorReport(error, extra)
@@ -151,6 +194,10 @@ const appStore = new AppStore(
   repositoryStateManager,
   apiRepositoriesStore
 )
+
+appStore.onDidUpdate(state => {
+  currentState = state
+})
 
 const dispatcher = new Dispatcher(
   appStore,
