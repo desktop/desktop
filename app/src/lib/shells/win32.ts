@@ -294,7 +294,8 @@ async function findWSL(): Promise<string | null> {
 
   if (!(await pathExists(wslPath))) {
     return null
-  } else if (!(await pathExists(wslConfigPath))) {
+  }
+  if (!(await pathExists(wslConfigPath))) {
     log.debug(
       `[WSL] found wsl.exe, but wslconfig.exe does not exist at '${wslConfigPath}'`
     )
