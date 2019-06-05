@@ -120,6 +120,12 @@ process.once('uncaughtException', (error: Error) => {
 
         if (currentState.selectedState !== null) {
           extra.selectedState = `${currentState.selectedState.type}`
+
+          if (currentState.selectedState.type === SelectionType.Repository) {
+            extra.selectedRepositorySection = `${
+              currentState.selectedState.state.selectedSection
+            }`
+          }
         }
 
         if (currentState.currentFoldout !== null) {
