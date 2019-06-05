@@ -99,10 +99,12 @@ process.once('uncaughtException', (error: Error) => {
       `An uncaught exception was thrown. If this were a production build it would be reported to Central. Instead, maybe give it a lil lookyloo.`
     )
   } else {
-    sendErrorReport(error, {
+    const extra: Record<string, string> = {
       osVersion: getOS(),
       guid: getGUID(),
-    })
+    }
+
+    sendErrorReport(error, extra)
   }
 
   reportUncaughtException(error)
