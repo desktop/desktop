@@ -1,6 +1,8 @@
 {
   "releases": {
-    "2.0.1": [],
+    "2.0.1": [
+      "[Fixed] Crash when attempting to update pull requests with partially updated repository information. - #7688"
+    ],
     "2.0.0": [
       "[New] You can now choose to bring your changes with you to a new branch or stash them on the current branch when switching branches - #6107",
       "[New] Rebase your current branch onto another branch using a guided flow - #5953",
