@@ -4467,7 +4467,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // a refresh of the repositories available for cloning straight away
     // in order to have the list of repositories ready for them when they
     // get to the blankslate.
-    if (this.showWelcomeFlow && storedAccount) {
+    if (this.showWelcomeFlow && storedAccount !== null) {
       this.apiRepositoriesStore.loadRepositories(storedAccount)
     }
   }
