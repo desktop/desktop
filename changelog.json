@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.0.3": [],
     "2.0.2": [
       "[Added] Extend crash reports with more information about application state for troubleshooting. - #7693"
     ],
