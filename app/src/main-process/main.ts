@@ -65,11 +65,15 @@ function getUptimeInSeconds() {
   return (now() - launchTime) / 1000
 }
 
+function getExtraErrorContext(): Record<string, string> {
+  return {
+    uptime: getUptimeInSeconds().toFixed(3),
+  }
+}
+
 process.on('uncaughtException', (error: Error) => {
   error = withSourceMappedStack(error)
-  reportError(error, {
-    uptime: getUptimeInSeconds().toFixed(3),
-  })
+  reportError(error, getExtraErrorContext())
   handleUncaughtException(error)
 })
 
@@ -456,7 +460,7 @@ app.on('ready', () => {
       { error, extra }: { error: Error; extra: { [key: string]: string } }
     ) => {
       reportError(error, {
-        uptime: getUptimeInSeconds().toFixed(3),
+        ...getExtraErrorContext(),
         ...extra,
       })
     }
