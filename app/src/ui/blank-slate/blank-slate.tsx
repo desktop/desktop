@@ -159,7 +159,7 @@ export class BlankSlateView extends React.Component<
     if (account !== null) {
       const accountState = this.props.apiRepositories.get(account)
 
-      if (accountState === undefined || accountState.repositories === null) {
+      if (accountState === undefined) {
         this.props.onRefreshRepositories(account)
       }
     }
