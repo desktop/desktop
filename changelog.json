@@ -1,6 +1,8 @@
 {
   "releases": {
-    "2.0.2": [],
+    "2.0.2": [
+      "[Added] Extend crash reports with more information about application state for troubleshooting. - #7693"
+    ],
     "2.0.1": [
       "[Fixed] Crash when attempting to update pull requests with partially updated repository information. - #7688"
     ],
