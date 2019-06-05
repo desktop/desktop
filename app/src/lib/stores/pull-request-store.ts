@@ -191,8 +191,13 @@ export class PullRequestStore {
 
   /** Gets all stored pull requests for the given repository. */
   public async getAll(repository: GitHubRepository) {
-    if (repository.dbID == null) {
-      return fatalError("Can't fetch PRs for repository, no dbId")
+    if (repository.dbID === null) {
+      // This can happen when the `repositoryWithRefreshedGitHubRepository`
+      // method in AppStore fails to retrieve API information about the current
+      // repository either due to the user being signed out or the API failing
+      // to provide a response. There's nothing for us to do when that happens
+      // so instead of crashing we'll bail here.
+      return []
     }
 
     const records = await this.db.getAllPullRequestsInRepository(repository)
