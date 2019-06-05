@@ -4450,7 +4450,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     log.info(
       `[AppStore] adding account ${account.login} (${account.name}) to store`
     )
-    await this.accountsStore.addAccount(account)
+    const storedAccount = await this.accountsStore.addAccount(account)
     const selectedState = this.getState().selectedState
 
     if (selectedState && selectedState.type === SelectionType.Repository) {
@@ -4467,8 +4467,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // a refresh of the repositories available for cloning straight away
     // in order to have the list of repositories ready for them when they
     // get to the blankslate.
-    if (this.showWelcomeFlow) {
-      this.apiRepositoriesStore.loadRepositories(account)
+    if (this.showWelcomeFlow && storedAccount !== null) {
+      this.apiRepositoriesStore.loadRepositories(storedAccount)
     }
   }
 
