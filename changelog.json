@@ -1,5 +1,8 @@
 {
   "releases": {
+    "2.0.3": [
+      "[Fixed] Crash when loading repositories after signing in through the welcome flow. - #7699"
+    ],
     "2.0.2": [
       "[Added] Extend crash reports with more information about application state for troubleshooting. - #7693"
     ],
