@@ -1,6 +1,6 @@
 {
   "releases": {
-    "1.7.1": [
+    "2.0.0": [
       "[New] You can now choose to bring your changes with you to a new branch or stash them on the current branch when switching branches - #6107",
       "[New] Rebase your current branch onto another branch using a guided flow - #5953",
       "[New] Repositories grouped by owner, and recent repositories listed at top - #6923 #7132",
