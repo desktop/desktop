@@ -149,9 +149,12 @@ process.once('uncaughtException', (error: Error) => {
         extra.repositoryCount = `${currentState.repositories.length}`
         extra.windowState = currentState.windowState
         extra.accounts = `${currentState.accounts.length}`
-        extra.automaticallySwitchTheme = `${
-          currentState.automaticallySwitchTheme
-        }`
+
+        if (__DARWIN__) {
+          extra.automaticallySwitchTheme = `${
+            currentState.automaticallySwitchTheme
+          }`
+        }
       }
     } catch (err) {
       /* ignore */
