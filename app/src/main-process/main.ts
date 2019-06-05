@@ -58,10 +58,18 @@ function handleUncaughtException(error: Error) {
   showUncaughtException(isLaunchError, error)
 }
 
+/**
+ * Calculates the number of seconds the app has been running
+ */
+function getUptimeInSeconds() {
+  return (now() - launchTime) / 1000
+}
+
 process.on('uncaughtException', (error: Error) => {
   error = withSourceMappedStack(error)
-
-  reportError(error)
+  reportError(error, {
+    uptime: getUptimeInSeconds().toFixed(3),
+  })
   handleUncaughtException(error)
 })
 
@@ -447,7 +455,10 @@ app.on('ready', () => {
       event: Electron.IpcMessageEvent,
       { error, extra }: { error: Error; extra: { [key: string]: string } }
     ) => {
-      reportError(error, extra)
+      reportError(error, {
+        uptime: getUptimeInSeconds().toFixed(3),
+        ...extra,
+      })
     }
   )
 
