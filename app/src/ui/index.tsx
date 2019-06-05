@@ -90,8 +90,8 @@ if (!process.env.TEST_ENV) {
 }
 
 let currentState: IAppState | null = null
-let lastPromiseRejection: string | null = null
-let lastPromiseRejectionTime: Date | null = null
+let lastUnhandledRejection: string | null = null
+let lastUnhandledRejectionTime: Date | null = null
 
 process.once('uncaughtException', (error: Error) => {
   error = withSourceMappedStack(error)
@@ -139,11 +139,11 @@ process.once('uncaughtException', (error: Error) => {
         }
 
         if (
-          lastPromiseRejection !== null &&
-          lastPromiseRejectionTime !== null
+          lastUnhandledRejection !== null &&
+          lastUnhandledRejectionTime !== null
         ) {
-          extra.lastPromiseRejection = lastPromiseRejection
-          extra.lastPromiseRejectionTime = lastPromiseRejectionTime.toString()
+          extra.lastUnhandledRejection = lastUnhandledRejection
+          extra.lastUnhandledRejectionTime = lastUnhandledRejectionTime.toString()
         }
 
         extra.repositoryCount = `${currentState.repositories.length}`
@@ -166,8 +166,8 @@ process.once('uncaughtException', (error: Error) => {
 window.addEventListener('unhandledrejection', ev => {
   if (ev.reason !== null && ev.reason !== undefined) {
     try {
-      lastPromiseRejection = `${ev.reason}`
-      lastPromiseRejectionTime = new Date()
+      lastUnhandledRejection = `${ev.reason}`
+      lastUnhandledRejectionTime = new Date()
     } catch (err) {
       /* ignore */
     }
