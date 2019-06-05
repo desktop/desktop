@@ -90,6 +90,8 @@ if (!process.env.TEST_ENV) {
 }
 
 let currentState: IAppState | null = null
+let lastPromiseRejection: string | null = null
+let lastPromiseRejectionTime: Date | null = null
 
 process.once('uncaughtException', (error: Error) => {
   error = withSourceMappedStack(error)
@@ -136,6 +138,14 @@ process.once('uncaughtException', (error: Error) => {
           extra.activeAppErrors = `${currentState.errors.length}`
         }
 
+        if (
+          lastPromiseRejection !== null &&
+          lastPromiseRejectionTime !== null
+        ) {
+          extra.lastPromiseRejection = lastPromiseRejection
+          extra.lastPromiseRejectionTime = lastPromiseRejectionTime.toString()
+        }
+
         extra.repositoryCount = `${currentState.repositories.length}`
         extra.windowState = currentState.windowState
         extra.accounts = `${currentState.accounts.length}`
@@ -151,6 +161,17 @@ process.once('uncaughtException', (error: Error) => {
   }
 
   reportUncaughtException(error)
+})
+
+window.addEventListener('unhandledrejection', ev => {
+  if (ev.reason !== null && ev.reason !== undefined) {
+    try {
+      lastPromiseRejection = `${ev.reason}`
+      lastPromiseRejectionTime = new Date()
+    } catch (err) {
+      /* ignore */
+    }
+  }
 })
 
 const gitHubUserStore = new GitHubUserStore(
