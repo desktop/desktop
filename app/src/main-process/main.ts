@@ -68,6 +68,7 @@ function getUptimeInSeconds() {
 function getExtraErrorContext(): Record<string, string> {
   return {
     uptime: getUptimeInSeconds().toFixed(3),
+    time: new Date().toString(),
   }
 }
 
