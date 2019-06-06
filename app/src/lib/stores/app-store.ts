@@ -2846,7 +2846,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       hasChanges &&
       currentBranch !== null &&
       uncommittedChangesStrategy.kind ===
-        UncommittedChangesStrategyKind.askForConfirmation
+        UncommittedChangesStrategyKind.AskForConfirmation
     ) {
       this._showPopup({
         type: PopupType.StashAndSwitchBranch,
@@ -2912,14 +2912,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (
         hasChanges &&
         uncommittedChangesStrategy.kind ===
-          UncommittedChangesStrategyKind.askForConfirmation
+          UncommittedChangesStrategyKind.AskForConfirmation
       ) {
         this._showPopup({
           type: PopupType.StashAndSwitchBranch,
           branchToCheckout: foundBranch,
           repository,
         })
-
         return repository
       }
 
@@ -2928,7 +2927,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (
         currentBranch !== null &&
         uncommittedChangesStrategy.kind ===
-          UncommittedChangesStrategyKind.stashOnCurrentBranch
+          UncommittedChangesStrategyKind.StashOnCurrentBranch
       ) {
         await this._createStashAndDropPreviousEntry(
           repository,
@@ -2937,7 +2936,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.statsStore.recordStashCreatedOnCurrentBranch()
       } else if (
         uncommittedChangesStrategy.kind ===
-        UncommittedChangesStrategyKind.moveToNewBranch
+        UncommittedChangesStrategyKind.MoveToNewBranch
       ) {
         const hasDeletedFiles = changesState.workingDirectory.files.some(
           file => file.status.kind === AppFileStatusKind.Deleted
@@ -2985,7 +2984,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (
       enableStashing() &&
       uncommittedChangesStrategy.kind ===
-        UncommittedChangesStrategyKind.moveToNewBranch &&
+        UncommittedChangesStrategyKind.MoveToNewBranch &&
       checkoutSucceeded
     ) {
       // We increment the metric after checkout succeeds to guard
@@ -5166,7 +5165,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       branchToCheckout
     )
     const strategy: UncommittedChangesStrategy = {
-      kind: UncommittedChangesStrategyKind.moveToNewBranch,
+      kind: UncommittedChangesStrategyKind.MoveToNewBranch,
       transientStashEntry,
     }
     await this._checkoutBranch(repository, branchToCheckout, strategy)
