@@ -7,12 +7,11 @@ import { IMenuItem } from '../../lib/menu-item'
 import { HighlightText } from '../lib/highlight-text'
 import { IMatches } from '../../lib/fuzzy-find'
 import { IAheadBehind } from '../../models/branch'
-import { RevealInFileManagerLabel } from '../lib/context-menu'
+import {
+  RevealInFileManagerLabel,
+  DefaultEditorLabel,
+} from '../lib/context-menu'
 import { enableGroupRepositoriesByOwner } from '../../lib/feature-flag'
-
-const defaultEditorLabel = __DARWIN__
-  ? 'Open in External Editor'
-  : 'Open in external editor'
 
 interface IRepositoryListItemProps {
   readonly repository: Repositoryish
@@ -137,7 +136,7 @@ export class RepositoryListItem extends React.Component<
     const missing = repository instanceof Repository && repository.missing
     const openInExternalEditor = this.props.externalEditorLabel
       ? `Open in ${this.props.externalEditorLabel}`
-      : defaultEditorLabel
+      : DefaultEditorLabel
 
     const items: ReadonlyArray<IMenuItem> = [
       {
