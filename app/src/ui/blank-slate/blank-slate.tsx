@@ -142,15 +142,24 @@ export class BlankSlateView extends React.Component<
     this.ensureRepositoriesForAccount(this.getSelectedAccount())
   }
 
-  public componentDidUpdate(prevProps: IBlankSlateProps) {
-    this.ensureRepositoriesForAccount(this.getSelectedAccount())
+  public componentDidUpdate(
+    prevProps: IBlankSlateProps,
+    prevState: IBlankSlateState
+  ) {
+    if (
+      prevProps.dotComAccount !== this.props.dotComAccount ||
+      prevProps.enterpriseAccount !== this.props.enterpriseAccount ||
+      prevState.selectedTab !== this.state.selectedTab
+    ) {
+      this.ensureRepositoriesForAccount(this.getSelectedAccount())
+    }
   }
 
   private ensureRepositoriesForAccount(account: Account | null) {
     if (account !== null) {
       const accountState = this.props.apiRepositories.get(account)
 
-      if (accountState === undefined || accountState.repositories === null) {
+      if (accountState === undefined) {
         this.props.onRefreshRepositories(account)
       }
     }
