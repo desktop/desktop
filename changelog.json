@@ -1,5 +1,64 @@
 {
   "releases": {
+    "2.0.4-beta0": [
+      "[Added] Extend crash reports with more information about application state for troubleshooting - #7693",
+      "[Fixed] Crash when attempting to update pull requests with partially updated repository information - #7688",
+      "[Fixed] Crash when loading repositories after signing in through the welcome flow - #7699"
+    ],
+    "2.0.3": [
+      "[Fixed] Crash when loading repositories after signing in through the welcome flow - #7699"
+    ],
+    "2.0.2": [
+      "[Added] Extend crash reports with more information about application state for troubleshooting - #7693"
+    ],
+    "2.0.1": [
+      "[Fixed] Crash when attempting to update pull requests with partially updated repository information - #7688"
+    ],
+    "2.0.0": [
+      "[New] You can now choose to bring your changes with you to a new branch or stash them on the current branch when switching branches - #6107",
+      "[New] Rebase your current branch onto another branch using a guided flow - #5953",
+      "[New] Repositories grouped by owner, and recent repositories listed at top - #6923 #7132",
+      "[New] Suggested next steps now includes suggestion to create a pull request after publishing a branch - #7505",
+      "[Added] .resx syntax highlighting - #7235. Thanks @say25!",
+      "[Added] \"Exit\" menu item now has accelerator and access key - #6507. Thanks @AndreiMaga!",
+      "[Added] Help menu entry to view documentation about keyboard shortcuts - #7184",
+      "[Added] \"Discard all changes\" action under Branch menu - #7394. Thanks @ahuth!",
+      "[Fixed] \"Esc\" key does not close Repository or Branch list - #7177. Thanks @roottool!",
+      "[Fixed] Attempting to revert commits not on current branch results in an error - #6300. Thanks @msftrncs!",
+      "[Fixed] Emoji rendering in app when account name has special characters - #6909",
+      "[Fixed] Files staged outside Desktop for deletion are incorrectly marked as modified after committing - #4133",
+      "[Fixed] Horizontal scroll bar appears unnecessarily when switching branches - #7212",
+      "[Fixed] Icon accessibility labels fail when multiple icons are visible at the same time - #7174",
+      "[Fixed] Incorrectly encoding URLs affects issue filtering - #7506",
+      "[Fixed] License templates do not end with newline character - #6999",
+      "[Fixed] Conflicts banners do not hide after aborting operation outside Desktop - #7046",
+      "[Fixed] Missing tooltips for change indicators in the sidebar - #7174",
+      "[Fixed] Mistaken classification of all crashes being related to launch - #7126",
+      "[Fixed] Unable to switch keyboard layout and retain keyboard focus while using commit form - #6366. Thanks @AndreiMaga!",
+      "[Fixed] Prevent console errors due to underlying component unmounts - #6970",
+      "[Fixed] Menus disabled by activity in inactive repositories - #6313",
+      "[Fixed] Race condition with Git remote lookup may cause push to incorrect remote - #6986",
+      "[Fixed] Restore GitHub Desktop to main screen if external monitor removed - #7418 #2107. Thanks @say25!",
+      "[Fixed] Tab Bar focus ring outlines clip into other elements - #5802. Thanks @Daniel-McCarthy!",
+      "[Improved] \"Automatically Switch Theme\" on macOS checks theme on launch - #7116. Thanks @say25!",
+      "[Improved] \"Add\" button in repository list should always be visible - #6646",
+      "[Improved] Pull Requests list loads and updates pull requests from GitHub more quickly - #7501 #7163",
+      "[Improved] Indicator hidden in Pull Requests list when there are no open pull requests - #7258",
+      "[Improved] Manually refresh pull requests instead of having to wait for a fetch - #7027",
+      "[Improved] Accessibility attributes for dialog - #6496. Thanks @HirdayGupta!",
+      "[Improved] Alignment of icons in repository list - #7133",
+      "[Improved] Command line interface warning when using \"github open\" with a remote URL - #7452. Thanks @msztech!",
+      "[Improved] Error message when unable to publish private repository to an organization - #7472",
+      "[Improved] Initiate cloning by pressing \"Enter\" when a repository is selected - #6570. Thanks @Daniel-McCarthy!",
+      "[Improved] Lowercase pronoun in \"Revert this commit\" menu item - #7534",
+      "[Improved] Styles for manual resolution button in \"Resolve Conflicts\" dialog - #7302",
+      "[Improved] Onboarding language for blank slate components - #6638. Thanks @jamesgeorge007!",
+      "[Improved] Explanation for manually conflicted text files in diff viewer - #7611",
+      "[Improved] Visual progress on \"Remove Repository\" and \"Discard Changes\" dialogs - #7015. Thanks @HashimotoYT!",
+      "[Improved] Menu items now aware of force push state and preference to confirm repository removal - #4976 #7138",
+      "[Removed] Branch and pull request filter text persistence - #7437",
+      "[Removed] \"Discard all changes\" context menu item from Changes list - #7394. Thanks @ahuth!"
+    ],
     "1.7.1-beta1": [
       "[Fixed] Tab Bar focus ring outlines clip into other elements - #5802. Thanks @Daniel-McCarthy!",
       "[Improved] Show explanation for manually conflicted text files in diff viewer - #7611",
