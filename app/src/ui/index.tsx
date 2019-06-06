@@ -35,7 +35,7 @@ import {
 } from '../lib/stores'
 import { GitHubUserDatabase } from '../lib/databases'
 import { URLActionType } from '../lib/parse-app-url'
-import { SelectionType } from '../lib/app-state'
+import { SelectionType, IAppState } from '../lib/app-state'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import {
   IssuesDatabase,
@@ -89,6 +89,10 @@ if (!process.env.TEST_ENV) {
   require('../../styles/desktop.scss')
 }
 
+let currentState: IAppState | null = null
+let lastUnhandledRejection: string | null = null
+let lastUnhandledRejectionTime: Date | null = null
+
 process.once('uncaughtException', (error: Error) => {
   error = withSourceMappedStack(error)
 
@@ -99,13 +103,98 @@ process.once('uncaughtException', (error: Error) => {
       `An uncaught exception was thrown. If this were a production build it would be reported to Central. Instead, maybe give it a lil lookyloo.`
     )
   } else {
-    sendErrorReport(error, {
+    const extra: Record<string, string> = {
       osVersion: getOS(),
       guid: getGUID(),
-    })
+    }
+
+    try {
+      if (currentState) {
+        if (currentState.currentBanner !== null) {
+          extra.currentBanner = currentState.currentBanner.type
+        }
+
+        if (currentState.currentPopup !== null) {
+          extra.currentPopup = `${currentState.currentPopup.type}`
+        }
+
+        if (currentState.selectedState !== null) {
+          extra.selectedState = `${currentState.selectedState.type}`
+
+          if (currentState.selectedState.type === SelectionType.Repository) {
+            extra.selectedRepositorySection = `${
+              currentState.selectedState.state.selectedSection
+            }`
+          }
+        }
+
+        if (currentState.currentFoldout !== null) {
+          extra.currentFoldout = `${currentState.currentFoldout.type}`
+        }
+
+        if (currentState.showWelcomeFlow) {
+          extra.inWelcomeFlow = 'true'
+        }
+
+        if (currentState.windowZoomFactor !== 1) {
+          extra.windowZoomFactor = `${currentState.windowZoomFactor}`
+        }
+
+        if (currentState.errors.length > 0) {
+          extra.activeAppErrors = `${currentState.errors.length}`
+        }
+
+        if (
+          lastUnhandledRejection !== null &&
+          lastUnhandledRejectionTime !== null
+        ) {
+          extra.lastUnhandledRejection = lastUnhandledRejection
+          extra.lastUnhandledRejectionTime = lastUnhandledRejectionTime.toString()
+        }
+
+        extra.repositoryCount = `${currentState.repositories.length}`
+        extra.windowState = currentState.windowState
+        extra.accounts = `${currentState.accounts.length}`
+
+        if (__DARWIN__) {
+          extra.automaticallySwitchTheme = `${
+            currentState.automaticallySwitchTheme
+          }`
+        }
+      }
+    } catch (err) {
+      /* ignore */
+    }
+
+    sendErrorReport(error, extra)
   }
 
   reportUncaughtException(error)
+})
+
+/**
+ * Chromium won't crash on an unhandled rejection (similar to how
+ * it won't crash on an unhandled error). We've taken the approach
+ * that unhandled errors should crash the app and very likely we
+ * should do the same thing for unhandled promise rejections but
+ * that's a bit too risky to do until we've established some sense
+ * of how often it happens. For now this simply stores the last
+ * rejection so that we can pass it along with the crash report
+ * if the app does crash. Note that this does not prevent the
+ * default browser behavior of logging since we're not calling
+ * `preventDefault` on the event.
+ *
+ * See https://developer.mozilla.org/en-US/docs/Web/API/Window/unhandledrejection_event
+ */
+window.addEventListener('unhandledrejection', ev => {
+  if (ev.reason !== null && ev.reason !== undefined) {
+    try {
+      lastUnhandledRejection = `${ev.reason}`
+      lastUnhandledRejectionTime = new Date()
+    } catch (err) {
+      /* ignore */
+    }
+  }
 })
 
 const gitHubUserStore = new GitHubUserStore(
@@ -149,6 +238,10 @@ const appStore = new AppStore(
   repositoryStateManager,
   apiRepositoriesStore
 )
+
+appStore.onDidUpdate(state => {
+  currentState = state
+})
 
 const dispatcher = new Dispatcher(
   appStore,
