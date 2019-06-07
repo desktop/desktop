@@ -100,7 +100,7 @@ export interface IAuthenticationState extends ISignInState {
    * The URL to the host which we're currently authenticating
    * against. This will be either https://api.github.com when
    * signing in against GitHub.com or a user-specified
-   * URL when signing in against a GitHub Enterprise Server 
+   * URL when signing in against a GitHub Enterprise Server
    * instance.
    */
   readonly endpoint: string
