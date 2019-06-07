@@ -60,10 +60,10 @@ export class UntrustedCertificate extends React.Component<
           </p>
           <p>In some cases, this may be expected. For example:</p>
           <ul>
-            <li>If this is a GitHub Enterprise trial.</li>
+            <li>If this is a GitHub Enterprise Server trial.</li>
             <li>
-              If your GitHub Enterprise instance is run on an unusual top-level
-              domain.
+              If your GitHub Enterprise Server instance is run on an unusual
+              top-level domain.
             </li>
           </ul>
           <p>
