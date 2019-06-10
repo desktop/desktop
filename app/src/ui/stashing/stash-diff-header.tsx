@@ -92,8 +92,8 @@ export class StashDiffHeader extends React.Component<
   private onRestoreClick = async () => {
     const { dispatcher, repository, stashEntry } = this.props
 
-    this.setState({ isRestoring: true })
-
-    await dispatcher.popStash(repository, stashEntry)
+    this.setState({ isRestoring: true }, async () => {
+      await dispatcher.popStash(repository, stashEntry)
+    })
   }
 }
