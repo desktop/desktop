@@ -22,6 +22,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { IAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
 import { ICommitContext } from '../../models/commit'
+import { startTimer } from '../lib/timing'
 
 const addAuthorIcon = new OcticonSymbol(
   12,
@@ -217,7 +218,9 @@ export class CommitMessage extends React.Component<
       trailers,
     }
 
+    const timer = startTimer('create commit', this.props.repository)
     const commitCreated = await this.props.onCreateCommit(commitContext)
+    timer.done()
 
     if (commitCreated) {
       this.clearCommitMessage()
