@@ -1,13 +1,13 @@
 ### Download Desktop
-  - [ ] User can download latest (Mac & Windows) Desktop from https://desktop.github.com/    
-    - [ ] Mac: https://central.github.com/deployments/desktop/desktop/latest/darwin
+  - [ ] [User can download latest (Mac & Windows) Desktop](https://desktop.github.com/) 
+    - [ ] [Mac](https://central.github.com/deployments/desktop/desktop/latest/darwin)
       - [ ] Homebrew package manager: `brew cask install github-desktop`
-    - [ ] Windows: https://central.github.com/deployments/desktop/desktop/latest/win32
+    - [ ] [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32)
       - [ ] Chocolatey package manager: `choco install github-desktop`
       - [ ] 64-bit and up
     - [ ] Data is retained if you download and open a fresh copy
-  - [ ] Release notes page is up-to-date in app and here https://desktop.github.com/release-notes/
-  - [ ] Help page is accessible https://help.github.com/desktop/
+  - [ ] Release notes page is up-to-date in app and can be accessed from [here](https://desktop.github.com/release-notes/)
+  - [ ] [Help page](https://help.github.com/desktop/) is accessible
   - [ ] 'Please update' notification shown in Classic apps
 
 ### Welcome Flow
