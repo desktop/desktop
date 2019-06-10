@@ -175,6 +175,9 @@ If an error occurs during the release process, a needle will be reported to Cent
 
 After the release is deployed, you should monitor Desktop's [Haystack](https://haystack.githubapp.com/desktop) closely for 15 minutes to ensure no unexpected needles appear.
 
+#### Final Beta release
+If the current version being released is the last beta before a production release, extra care should be taken when looking at Desktop's [Haystack](https://haystack.githubapp.com/desktop) roll-ups. Look out for new and unexpected errors the past beta releases leading up to the final one. If an error is discovered bring it up with the rest of the team so we can diagnose and implement a fix.
+
 ### 6. Celebrate
 
 Once your app updates and you see the visible changes in your app and there are no spikes in errors, celebrate 🎉!!! You did it!
