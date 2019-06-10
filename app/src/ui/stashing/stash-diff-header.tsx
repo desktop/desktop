@@ -48,7 +48,7 @@ export class StashDiffHeader extends React.Component<
         <div className="row">
           <ButtonGroup destructive={false}>
             <Button
-              disabled={!isWorkingTreeClean && this.state.isRestoring}
+              disabled={!isWorkingTreeClean || this.state.isRestoring}
               onClick={this.onRestoreClick}
               type="submit"
             >
