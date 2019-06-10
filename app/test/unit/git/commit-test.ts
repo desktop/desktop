@@ -44,7 +44,7 @@ async function getTextDiff(
 }
 
 describe('git/commit', () => {
-  let repository: Repository | null = null
+  let repository: Repository
 
   beforeEach(async () => {
     const testRepoPath = await setupFixtureRepository('test-repo')
@@ -53,35 +53,29 @@ describe('git/commit', () => {
 
   describe('createCommit normal', () => {
     it('commits the given files', async () => {
-      await FSE.writeFile(
-        path.join(repository!.path, 'README.md'),
-        'Hi world\n'
-      )
+      await FSE.writeFile(path.join(repository.path, 'README.md'), 'Hi world\n')
 
-      let status = await getStatusOrThrow(repository!)
+      let status = await getStatusOrThrow(repository)
       let files = status.workingDirectory.files
       expect(files.length).toEqual(1)
 
-      const sha = await createCommit(repository!, 'Special commit', files)
+      const sha = await createCommit(repository, 'Special commit', files)
       expect(sha).toHaveLength(7)
 
-      status = await getStatusOrThrow(repository!)
+      status = await getStatusOrThrow(repository)
       files = status.workingDirectory.files
       expect(files.length).toEqual(0)
 
-      const commits = await getCommits(repository!, 'HEAD', 100)
+      const commits = await getCommits(repository, 'HEAD', 100)
       expect(commits.length).toEqual(6)
       expect(commits[0].summary).toEqual('Special commit')
       expect(commits[0].sha.substring(0, 7)).toEqual(sha)
     })
 
     it('commit does not strip commentary by default', async () => {
-      await FSE.writeFile(
-        path.join(repository!.path, 'README.md'),
-        'Hi world\n'
-      )
+      await FSE.writeFile(path.join(repository.path, 'README.md'), 'Hi world\n')
 
-      const status = await getStatusOrThrow(repository!)
+      const status = await getStatusOrThrow(repository)
       const files = status.workingDirectory.files
       expect(files.length).toEqual(1)
 
@@ -89,10 +83,10 @@ describe('git/commit', () => {
 
 # this is a comment`
 
-      const sha = await createCommit(repository!, message, files)
+      const sha = await createCommit(repository, message, files)
       expect(sha).toHaveLength(7)
 
-      const commit = await getCommit(repository!, 'HEAD')
+      const commit = await getCommit(repository, 'HEAD')
       expect(commit).not.toBeNull()
       expect(commit!.summary).toEqual('Special commit')
       expect(commit!.body).toEqual('# this is a comment\n')
@@ -165,7 +159,7 @@ describe('git/commit', () => {
     })
 
     it('can commit some lines from new file', async () => {
-      const previousTip = (await getCommits(repository!, 'HEAD', 1))[0]
+      const previousTip = (await getCommits(repository, 'HEAD', 1))[0]
 
       const newFileName = 'new-file.md'
 
@@ -181,22 +175,22 @@ describe('git/commit', () => {
       )
 
       // commit just this change, ignore everything else
-      const sha = await createCommit(repository!, 'title', [file])
+      const sha = await createCommit(repository, 'title', [file])
       expect(sha).toHaveLength(7)
 
       // verify that the HEAD of the repository has moved
-      const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
+      const newTip = (await getCommits(repository, 'HEAD', 1))[0]
       expect(newTip.sha).not.toEqual(previousTip.sha)
       expect(newTip.summary).toEqual('title')
       expect(newTip.shortSha).toEqual(sha)
 
       // verify that the contents of this new commit are just the new file
-      const changedFiles = await getChangedFiles(repository!, newTip.sha)
+      const changedFiles = await getChangedFiles(repository, newTip.sha)
       expect(changedFiles.length).toEqual(1)
       expect(changedFiles[0].path).toEqual(newFileName)
 
       // verify that changes remain for this new file
-      const status = await getStatusOrThrow(repository!)
+      const status = await getStatusOrThrow(repository)
       expect(status.workingDirectory.files.length).toEqual(4)
 
       // verify that the file is now tracked
@@ -208,7 +202,7 @@ describe('git/commit', () => {
     })
 
     it('can commit second hunk from modified file', async () => {
-      const previousTip = (await getCommits(repository!, 'HEAD', 1))[0]
+      const previousTip = (await getCommits(repository, 'HEAD', 1))[0]
 
       const modifiedFile = 'modified-file.md'
 
@@ -221,7 +215,7 @@ describe('git/commit', () => {
         unselectedFile
       )
 
-      const diff = await getTextDiff(repository!, file)
+      const diff = await getTextDiff(repository, file)
 
       const selection = DiffSelection.fromInitialSelection(
         DiffSelectionType.All
@@ -234,21 +228,21 @@ describe('git/commit', () => {
       const updatedFile = file.withSelection(selection)
 
       // commit just this change, ignore everything else
-      const sha = await createCommit(repository!, 'title', [updatedFile])
+      const sha = await createCommit(repository, 'title', [updatedFile])
       expect(sha).toHaveLength(7)
 
       // verify that the HEAD of the repository has moved
-      const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
+      const newTip = (await getCommits(repository, 'HEAD', 1))[0]
       expect(newTip.sha).not.toEqual(previousTip.sha)
       expect(newTip.summary).toEqual('title')
 
       // verify that the contents of this new commit are just the modified file
-      const changedFiles = await getChangedFiles(repository!, newTip.sha)
+      const changedFiles = await getChangedFiles(repository, newTip.sha)
       expect(changedFiles.length).toEqual(1)
       expect(changedFiles[0].path).toEqual(modifiedFile)
 
       // verify that changes remain for this modified file
-      const status = await getStatusOrThrow(repository!)
+      const status = await getStatusOrThrow(repository)
       expect(status.workingDirectory.files.length).toEqual(4)
 
       // verify that the file is still marked as modified
@@ -260,7 +254,7 @@ describe('git/commit', () => {
     })
 
     it('can commit single delete from modified file', async () => {
-      const previousTip = (await getCommits(repository!, 'HEAD', 1))[0]
+      const previousTip = (await getCommits(repository, 'HEAD', 1))[0]
 
       const fileName = 'modified-file.md'
 
@@ -273,7 +267,7 @@ describe('git/commit', () => {
         unselectedFile
       )
 
-      const diff = await getTextDiff(repository!, modifiedFile)
+      const diff = await getTextDiff(repository, modifiedFile)
 
       const secondRemovedLine = diff.hunks[0].unifiedDiffStart + 5
 
@@ -288,23 +282,23 @@ describe('git/commit', () => {
       )
 
       // commit just this change, ignore everything else
-      const sha = await createCommit(repository!, 'title', [file])
+      const sha = await createCommit(repository, 'title', [file])
       expect(sha).toHaveLength(7)
 
       // verify that the HEAD of the repository has moved
-      const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
+      const newTip = (await getCommits(repository, 'HEAD', 1))[0]
       expect(newTip.sha).not.toEqual(previousTip.sha)
       expect(newTip.summary).toEqual('title')
       expect(newTip.shortSha).toEqual(sha)
 
       // verify that the contents of this new commit are just the modified file
-      const changedFiles = await getChangedFiles(repository!, newTip.sha)
+      const changedFiles = await getChangedFiles(repository, newTip.sha)
       expect(changedFiles.length).toEqual(1)
       expect(changedFiles[0].path).toEqual(fileName)
     })
 
     it('can commit multiple hunks from modified file', async () => {
-      const previousTip = (await getCommits(repository!, 'HEAD', 1))[0]
+      const previousTip = (await getCommits(repository, 'HEAD', 1))[0]
 
       const modifiedFile = 'modified-file.md'
 
@@ -317,7 +311,7 @@ describe('git/commit', () => {
         unselectedFile
       )
 
-      const diff = await getTextDiff(repository!, file)
+      const diff = await getTextDiff(repository, file)
 
       const selection = DiffSelection.fromInitialSelection(
         DiffSelectionType.All
@@ -334,22 +328,22 @@ describe('git/commit', () => {
       )
 
       // commit just this change, ignore everything else
-      const sha = await createCommit(repository!, 'title', [updatedFile])
+      const sha = await createCommit(repository, 'title', [updatedFile])
       expect(sha).toHaveLength(7)
 
       // verify that the HEAD of the repository has moved
-      const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
+      const newTip = (await getCommits(repository, 'HEAD', 1))[0]
       expect(newTip.sha).not.toEqual(previousTip.sha)
       expect(newTip.summary).toEqual('title')
       expect(newTip.shortSha).toEqual(sha)
 
       // verify that the contents of this new commit are just the modified file
-      const changedFiles = await getChangedFiles(repository!, newTip.sha)
+      const changedFiles = await getChangedFiles(repository, newTip.sha)
       expect(changedFiles.length).toEqual(1)
       expect(changedFiles[0].path).toEqual(modifiedFile)
 
       // verify that changes remain for this modified file
-      const status = await getStatusOrThrow(repository!)
+      const status = await getStatusOrThrow(repository)
       expect(status.workingDirectory.files.length).toEqual(4)
 
       // verify that the file is still marked as modified
@@ -361,7 +355,7 @@ describe('git/commit', () => {
     })
 
     it('can commit some lines from deleted file', async () => {
-      const previousTip = (await getCommits(repository!, 'HEAD', 1))[0]
+      const previousTip = (await getCommits(repository, 'HEAD', 1))[0]
 
       const deletedFile = 'deleted-file.md'
 
@@ -376,22 +370,22 @@ describe('git/commit', () => {
       )
 
       // commit just this change, ignore everything else
-      const sha = await createCommit(repository!, 'title', [file])
+      const sha = await createCommit(repository, 'title', [file])
       expect(sha).toHaveLength(7)
 
       // verify that the HEAD of the repository has moved
-      const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
+      const newTip = (await getCommits(repository, 'HEAD', 1))[0]
       expect(newTip.sha).not.toEqual(previousTip.sha)
       expect(newTip.summary).toEqual('title')
       expect(newTip.sha.substring(0, 7)).toEqual(sha)
 
       // verify that the contents of this new commit are just the new file
-      const changedFiles = await getChangedFiles(repository!, newTip.sha)
+      const changedFiles = await getChangedFiles(repository, newTip.sha)
       expect(changedFiles.length).toEqual(1)
       expect(changedFiles[0].path).toEqual(deletedFile)
 
       // verify that changes remain for this new file
-      const status = await getStatusOrThrow(repository!)
+      const status = await getStatusOrThrow(repository)
       expect(status.workingDirectory.files.length).toEqual(4)
 
       // verify that the file is now tracked

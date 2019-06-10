@@ -9,7 +9,7 @@ import { GitProcess } from 'dugite'
 import * as FSE from 'fs-extra'
 
 describe('git/reset', () => {
-  let repository: Repository | null = null
+  let repository: Repository
 
   beforeEach(async () => {
     const testRepoPath = await setupFixtureRepository('test-repo')
@@ -18,22 +18,22 @@ describe('git/reset', () => {
 
   describe('reset', () => {
     it('can hard reset a repository', async () => {
-      const repoPath = repository!.path
+      const repoPath = repository.path
       const fileName = 'README.md'
       const filePath = path.join(repoPath, fileName)
 
       await FSE.writeFile(filePath, 'Hi world\n')
 
-      await reset(repository!, GitResetMode.Hard, 'HEAD')
+      await reset(repository, GitResetMode.Hard, 'HEAD')
 
-      const status = await getStatusOrThrow(repository!)
+      const status = await getStatusOrThrow(repository)
       expect(status.workingDirectory.files).toHaveLength(0)
     })
   })
 
   describe('resetPaths', () => {
     it.skip('resets discarded staged file', async () => {
-      const repoPath = repository!.path
+      const repoPath = repository.path
       const fileName = 'README.md'
       const filePath = path.join(repoPath, fileName)
 
@@ -44,7 +44,7 @@ describe('git/reset', () => {
       GitProcess.exec(['add', fileName], repoPath)
       await FSE.unlink(filePath)
 
-      await resetPaths(repository!, GitResetMode.Mixed, 'HEAD', [filePath])
+      await resetPaths(repository, GitResetMode.Mixed, 'HEAD', [filePath])
 
       // then checkout the version from the index to restore it
       await GitProcess.exec(
@@ -52,7 +52,7 @@ describe('git/reset', () => {
         repoPath
       )
 
-      const status = await getStatusOrThrow(repository!)
+      const status = await getStatusOrThrow(repository)
       expect(status.workingDirectory.files).toHaveLength(0)
     })
   })

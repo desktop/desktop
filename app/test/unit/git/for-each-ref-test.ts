@@ -8,7 +8,7 @@ import { getBranches } from '../../../src/lib/git/for-each-ref'
 import { BranchType } from '../../../src/models/branch'
 
 describe('git/for-each-ref', () => {
-  let repository: Repository | null = null
+  let repository: Repository
 
   beforeEach(async () => {
     const testRepoPath = await setupFixtureRepository('repo-with-many-refs')
@@ -17,7 +17,7 @@ describe('git/for-each-ref', () => {
 
   describe('getBranches', () => {
     it('fetches branches using for-each-ref', async () => {
-      const branches = (await getBranches(repository!)).filter(
+      const branches = (await getBranches(repository)).filter(
         b => b.type === BranchType.Local
       )
 
