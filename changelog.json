@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.0.5-test1": [],
     "2.0.4-beta0": [
       "[Added] Extend crash reports with more information about application state for troubleshooting - #7693",
       "[Fixed] Crash when attempting to update pull requests with partially updated repository information - #7688",
@@ -576,12 +577,24 @@
       "[Fixed] User can toggle files when commit is in progress - #5341. Thanks @masungwon!",
       "[Improved] Repository indicator background work - #5317 #5326 #5363 #5241 #5320"
     ],
-    "1.3.3-test6": ["Testing infrastructure changes"],
-    "1.3.3-test5": ["Testing the new CircleCI config changes"],
-    "1.3.3-test4": ["Testing the new CircleCI config changes"],
-    "1.3.3-test3": ["Testing the new CircleCI config changes"],
-    "1.3.3-test2": ["Testing the new CircleCI config changes"],
-    "1.3.3-test1": ["Testing the new CircleCI config changes"],
+    "1.3.3-test6": [
+      "Testing infrastructure changes"
+    ],
+    "1.3.3-test5": [
+      "Testing the new CircleCI config changes"
+    ],
+    "1.3.3-test4": [
+      "Testing the new CircleCI config changes"
+    ],
+    "1.3.3-test3": [
+      "Testing the new CircleCI config changes"
+    ],
+    "1.3.3-test2": [
+      "Testing the new CircleCI config changes"
+    ],
+    "1.3.3-test1": [
+      "Testing the new CircleCI config changes"
+    ],
     "1.3.2": [
       "[Fixed] Bugfix for background checks not being aware of missing repositories - #5282",
       "[Fixed] Check the local state of a repository before performing Git operations - #5289",
@@ -666,7 +679,9 @@
       "[Fixed] Markdown header elements hard to read in dark mode - #5133. Thanks @agisilaos!",
       "[Improved] Diff gutter elements should be considered button elements when interacting - #5158"
     ],
-    "1.2.7-test3": ["Test deployment for electron version bump."],
+    "1.2.7-test3": [
+      "Test deployment for electron version bump."
+    ],
     "1.3.0-beta1": [
       "[New] Notification displayed in History tab when the base branch moves ahead of the current branch - #4768",
       "[New] Repository list displays uncommitted changes count and ahead/behind information - #2259",
@@ -679,8 +694,12 @@
       "[Improved] Repository list badge style tweaks and tweaks for dark theme - #5095",
       "[Improved] Change primary button color to blue for dark theme - #5074"
     ],
-    "1.2.7-test2": ["Test deployment for electron version bump."],
-    "1.2.7-test1": ["Sanity check deployment for refactored scripts"],
+    "1.2.7-test2": [
+      "Test deployment for electron version bump."
+    ],
+    "1.2.7-test1": [
+      "Sanity check deployment for refactored scripts"
+    ],
     "1.2.7-beta0": [
       "[Fixed] Visual indicator for upcoming feature should not be shown - #5026"
     ],
@@ -760,7 +779,9 @@
       "[Fixed] Updated embedded Git to 2.17.1 to address upstream security issue - #4791",
       "[Improved] Display the difference in file size of an image in the diff view - #4380. Thanks @ggajos!"
     ],
-    "1.2.1-test1": ["Upgraded embedded Git to 2.17.0"],
+    "1.2.1-test1": [
+      "Upgraded embedded Git to 2.17.0"
+    ],
     "1.2.1-beta1": [
       "[Added] Brackets support for macOS - #4608. Thanks @3raxton!",
       "[Added] Pull request number and author are included in fuzzy-find filtering - #4653. Thanks @damaneice!",
@@ -769,7 +790,9 @@
       "[Improved] Display the difference in file size of an image in the diff view - #4380. Thanks @ggajos!"
     ],
     "1.2.1-beta0": [],
-    "1.1.2-test6": ["Testing the Webpack v4 output from the project"],
+    "1.1.2-test6": [
+      "Testing the Webpack v4 output from the project"
+    ],
     "1.2.0": [
       "[New] History now has ability to compare to another branch and merge outstanding commits",
       "[New] Support for selecting more than one file in the changes list - #1712. Thanks @icosamuel!",
@@ -808,8 +831,12 @@
       "[Fixed] Keyboard focus issues when navigating Pull Request list - #4673",
       "[Improved] Automatically add valid repository when using command line interface - #4513. Thanks @ggajos!"
     ],
-    "1.1.2-test5": ["Actually upgrading fs-extra to v6 in the app"],
-    "1.1.2-test4": ["Upgrading fs-extra to v6"],
+    "1.1.2-test5": [
+      "Actually upgrading fs-extra to v6 in the app"
+    ],
+    "1.1.2-test4": [
+      "Upgrading fs-extra to v6"
+    ],
     "1.1.2-beta5": [
       "[Added] Syntax highlighting for JavaServer Pages (JSP) - #4470. Thanks @damaneice!",
       "[Fixed] Prevent icon from shrinking in rename dialog - #4566"
@@ -835,7 +862,9 @@
       "[Improved] Checking out a Pull Request may skip unnecessary fetch - #4068. Thanks @agisilaos!",
       "[Improved] Commit summary now has a hint to indicate why committing is disabled - #4429."
     ],
-    "1.1.2-test3": ["[New] Comparison Branch demo build"],
+    "1.1.2-test3": [
+      "[New] Comparison Branch demo build"
+    ],
     "1.1.2-test2": [
       "Refactoring the diff internals to potentially land some SVG improvements"
     ],
@@ -915,7 +944,9 @@
       "[Improved] Move forget password link to after the password dialog to maintain expected tab order - #4283. Thanks @iamnapo!",
       "[Improved] More descriptive text in repository toolbar button when no repositories are tracked - #4268. Thanks @agisilaos!"
     ],
-    "1.1.1-test2": ["[Improved] Electron 1.8.3 upgrade (again)"],
+    "1.1.1-test2": [
+      "[Improved] Electron 1.8.3 upgrade (again)"
+    ],
     "1.1.1-test1": [
       "[Improved] Forcing a focus on the window after the OAuth dance is done"
     ],
@@ -971,7 +1002,9 @@
       "[Improved] Enable fuzzy search in the repository, branch, PR, and clone FilterLists - #911. Thanks @j-f1!",
       "[Improved] Tidy up commit summary and description layout in commit list - #3922. Thanks @willnode!"
     ],
-    "1.0.14-test1": ["[Improved] Electron 1.8.2 upgrade"],
+    "1.0.14-test1": [
+      "[Improved] Electron 1.8.2 upgrade"
+    ],
     "1.0.14-beta3": [
       "[Added] Add TextMate support for macOS - #3910. Thanks @caiofbpa!",
       "[Fixed] Handle Git errors when .gitmodules are malformed - #3912",
@@ -987,7 +1020,9 @@
       "[Fixed] Ignore action assumes CRLF when core.autocrlf is unset - #3514",
       "[Improved] Use smaller default size when rendering Gravatar avatars - #3911"
     ],
-    "1.0.14-beta1": ["[New] Commit together with co-authors - #3879"],
+    "1.0.14-beta1": [
+      "[New] Commit together with co-authors - #3879"
+    ],
     "1.0.13": [
       "[New] Commit together with co-authors - #3879",
       "[New] PhpStorm is now a supported external editor on macOS - #3749. Thanks @hubgit!",
@@ -1517,7 +1552,9 @@
     "0.7.3-beta2": [],
     "0.7.3-beta1": [],
     "0.7.3-beta0": [],
-    "0.7.2": ["[Fixed] Issues with auto-updating to 0.7.1."],
+    "0.7.2": [
+      "[Fixed] Issues with auto-updating to 0.7.1."
+    ],
     "0.7.2-beta0": [],
     "0.7.1": [
       "[Improved] Redesigned error and warning dialogs to be clearer - #2277",
@@ -1736,7 +1773,9 @@
       "[Improved] Performance updating menu items - #1321",
       "[Improved] Windows: Dim the title bar when the app loses focus - #1189"
     ],
-    "0.0.39": ["[Fixed] An uncaught exception when adding a user - #1394"],
+    "0.0.39": [
+      "[Fixed] An uncaught exception when adding a user - #1394"
+    ],
     "0.0.38": [
       "[New] Shiny new icon! - #1221",
       "[New] More helpful blank slate view - #871",
@@ -1808,7 +1847,9 @@
       "[Improved] Command or control-W now closes open dialogs - #949",
       "[Improved] Less memory usage while parsing large diffs - #1235"
     ],
-    "0.0.33": ["[Fixed] Update Now wouldn't update now - #1209"],
+    "0.0.33": [
+      "[Fixed] Update Now wouldn't update now - #1209"
+    ],
     "0.0.32": [
       "[New] You can now disable stats reporting from Preferences > Advanced - #1120",
       "[New] Acknowledgements are now available from About - #810",
@@ -1853,7 +1894,9 @@
       "[Fixed] Protected branches show a descriptive error when the push is rejected - #1036",
       "[Fixed] 'Open in shell' on Windows opens to repository location - #1037"
     ],
-    "0.0.28": ["[Fixed] Bumping release notes to test deployments again"],
+    "0.0.28": [
+      "[Fixed] Bumping release notes to test deployments again"
+    ],
     "0.0.27": [
       "[Fixed] 2FA dialog when authenticating has information for SMS authentication - #1009",
       "[Fixed] Autocomplete for users handles accounts containing `-` - #1008"
@@ -1874,6 +1917,9 @@
       "[Fixed] Application creates repository path if it doesn't exist on disk - #925",
       "[Improved] Preferences sign-in flow updated to standalone dialogs - #961"
     ],
-    "0.0.24": ["Changed a thing", "Added another thing"]
+    "0.0.24": [
+      "Changed a thing",
+      "Added another thing"
+    ]
   }
 }
