@@ -21,6 +21,7 @@ import { PullRequestList } from './pull-request-list'
 import { IBranchListItem } from './group-branches'
 import { renderDefaultBranch } from './branch-renderer'
 import { IMatches } from '../../lib/fuzzy-find'
+import { startTimer } from '../lib/timing'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -236,7 +237,14 @@ export class BranchesContainer extends React.Component<
     const currentBranch = this.props.currentBranch
 
     if (currentBranch == null || currentBranch.name !== branch.name) {
-      this.props.dispatcher.checkoutBranch(this.props.repository, branch)
+      const timer = startTimer(
+        'checkout branch from list',
+        this.props.repository
+      )
+
+      this.props.dispatcher
+        .checkoutBranch(this.props.repository, branch)
+        .then(() => timer.done())
     }
   }
 
@@ -278,10 +286,13 @@ export class BranchesContainer extends React.Component<
 
   private onPullRequestClicked = (pullRequest: PullRequest) => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
-    this.props.dispatcher.checkoutPullRequest(
-      this.props.repository,
-      pullRequest
+    const timer = startTimer(
+      'checkout pull request from list',
+      this.props.repository
     )
+    this.props.dispatcher
+      .checkoutPullRequest(this.props.repository, pullRequest)
+      .then(() => timer.done())
 
     this.onPullRequestSelectionChanged(pullRequest)
   }
