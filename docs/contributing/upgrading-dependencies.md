@@ -10,9 +10,9 @@ In the interest of stability and caution we tend to stay a version (or more) beh
 | Dependency  | Versions Behind Latest |
 | --- | --- |
 | electron | >= 1 major |
-| electron-builder | >= 1 major |
+| electron-builder | >= 1 minor |
 | electron-packager | >= 1 major |
-| electron-winstaller | >= 1 major |
+| electron-winstaller | >= 1 minor |
 | typescript | >= 1 minor |
 | codemirror | >= 1 minor |
 | react | >= 1 minor |
