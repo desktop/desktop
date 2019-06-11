@@ -312,7 +312,7 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private onSelectAll = (event: Event) => {
+  private onSelectAll = (event: Event | React.SyntheticEvent<any>) => {
     const selectionMode = this.props.selectionMode
 
     if (selectionMode !== 'range' && selectionMode !== 'multi') {
