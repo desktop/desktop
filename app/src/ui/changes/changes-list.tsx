@@ -258,6 +258,10 @@ export class ChangesList extends React.Component<
     )
   }
 
+  private onDiscardAllChanges = () => {
+    this.props.onDiscardChangesFromFiles(this.props.workingDirectory.files, true)
+  }
+
   private onDiscardChanges = (files: ReadonlyArray<string>) => {
     const workingDirectory = this.props.workingDirectory
 
