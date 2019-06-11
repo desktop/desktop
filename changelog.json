@@ -1,5 +1,10 @@
 {
   "releases": {
+    "2.0.4-beta1": [
+      "[Fixed] Refresh for Enterprise repositories did not handle API error querying branches - #7713",
+      "[Fixed] Missing \"Discard all changes\" context menu in Changes header - #7696",
+      "[Fixed] \"Select all\" keyboard shortcut not firing on Windows - #7759"
+    ],
     "2.0.3": [
       "[Fixed] Crash when loading repositories after signing in through the welcome flow. - #7699"
     ],
