@@ -401,6 +401,8 @@ export class List extends React.Component<IListProps, IListState> {
         this.moveSelection('up', event)
       }
       event.preventDefault()
+    } else if (!__DARWIN__ && event.key === 'a' && event.ctrlKey) {
+      this.onSelectAll(event)
     }
   }
 
