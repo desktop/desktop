@@ -30,12 +30,12 @@ import { ApiRepositoriesStore } from '../../src/lib/stores/api-repositories-stor
 import { CommitStatusStore } from '../../src/lib/stores/commit-status-store'
 
 describe('App', () => {
-  let appStore: AppStore | null = null
-  let dispatcher: Dispatcher | null = null
-  let statsStore: StatsStore | null = null
-  let repositoryStateManager: RepositoryStateCache | null = null
-  let githubUserStore: GitHubUserStore | null = null
-  let issuesStore: IssuesStore | null = null
+  let appStore: AppStore
+  let dispatcher: Dispatcher
+  let statsStore: StatsStore
+  let repositoryStateManager: RepositoryStateCache
+  let githubUserStore: GitHubUserStore
+  let issuesStore: IssuesStore
 
   beforeEach(async () => {
     const db = new TestGitHubUserDatabase()
@@ -66,7 +66,7 @@ describe('App', () => {
     issuesStore = new IssuesStore(issuesDb)
 
     repositoryStateManager = new RepositoryStateCache(repo =>
-      githubUserStore!.getUsersForRepository(repo)
+      githubUserStore.getUsersForRepository(repo)
     )
 
     const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
@@ -96,11 +96,11 @@ describe('App', () => {
   it('renders', async () => {
     const app = TestUtils.renderIntoDocument(
       <App
-        dispatcher={dispatcher!}
-        appStore={appStore!}
-        repositoryStateManager={repositoryStateManager!}
-        issuesStore={issuesStore!}
-        gitHubUserStore={githubUserStore!}
+        dispatcher={dispatcher}
+        appStore={appStore}
+        repositoryStateManager={repositoryStateManager}
+        issuesStore={issuesStore}
+        gitHubUserStore={githubUserStore}
         startTime={0}
       />
     ) as React.Component<any, any>

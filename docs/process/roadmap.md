@@ -2,30 +2,10 @@
 
 The following are the larger areas of upcoming work the GitHub Desktop team intends to explore. This is not inclusive of everything we're working on, and it's not written in stone. We'll continue to update it as our priorities evolve.
 
-#### Support rebase when pulling (in progress)
-
-- Respect user's git config for pull --rebase and resolve conflicts: [#3422](https://github.com/desktop/desktop/issues/3422)
-- Measuring success: [#6550](https://github.com/desktop/desktop/issues/6550)
-
-#### Support full rebase story, including rebasing one branch onto another locally (in progress)
-
-- Improve rebase workflows: [#5953](https://github.com/desktop/desktop/issues/5953)
-- Measuring success: TBD alongside the work + usability testing
-
 #### Branch list grows with merged & deleted branches making it difficult to find those you care about (in progress)
 
 - Prune branches after they've been deleted: [#750](https://github.com/desktop/desktop/issues/750)
 - Measuring success: N/A for now
-
-#### Repositories are difficult to find, navigate, and differentiate (in progress)
-
-- Help people navigate between and visually differentiate between repos: [#6460](https://github.com/desktop/desktop/issues/6460)
-- Measuring success: TBD alongside the work + usability testing
-
-#### Working with uncommitted changes (in progress)
-
-- Improve workflows when you have uncommitted changes: [#6107](https://github.com/desktop/desktop/issues/6107)
-- Measuring success: TBD alongside the work + usability testing
 
 #### Users behind corporate proxies cannot clone without manual setup
 
@@ -33,6 +13,26 @@ The following are the larger areas of upcoming work the GitHub Desktop team inte
 - Measuring success: TBD alongside the work
 
 ## Shipped in previous releases
+
+#### Working with uncommitted changes, aka stashing (2.0)
+
+- Improve workflows when you have uncommitted changes: [#6107](https://github.com/desktop/desktop/issues/6107)
+- Measuring success: TBD alongside the work + usability testing
+
+#### Support rebase when pulling (2.0)
+
+- Respect user's git config for pull --rebase and resolve conflicts: [#3422](https://github.com/desktop/desktop/issues/3422)
+- Measuring success: [#6550](https://github.com/desktop/desktop/issues/6550)
+
+#### Support full rebase story, including rebasing one branch onto another locally (2.0)
+
+- Improve rebase workflows: [#5953](https://github.com/desktop/desktop/issues/5953)
+- Measuring success: TBD alongside the work + usability testing
+
+#### Repositories are difficult to find, navigate, and differentiate (2.0)
+
+- Help people navigate between and visually differentiate between repos: [#6460](https://github.com/desktop/desktop/issues/6460)
+- Measuring success: TBD alongside the work + usability testing
 
 #### Onboarding (1.6)
   

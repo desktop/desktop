@@ -2846,7 +2846,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       hasChanges &&
       currentBranch !== null &&
       uncommittedChangesStrategy.kind ===
-        UncommittedChangesStrategyKind.askForConfirmation
+        UncommittedChangesStrategyKind.AskForConfirmation
     ) {
       this._showPopup({
         type: PopupType.StashAndSwitchBranch,
@@ -2912,14 +2912,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (
         hasChanges &&
         uncommittedChangesStrategy.kind ===
-          UncommittedChangesStrategyKind.askForConfirmation
+          UncommittedChangesStrategyKind.AskForConfirmation
       ) {
         this._showPopup({
           type: PopupType.StashAndSwitchBranch,
           branchToCheckout: foundBranch,
           repository,
         })
-
         return repository
       }
 
@@ -2928,7 +2927,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (
         currentBranch !== null &&
         uncommittedChangesStrategy.kind ===
-          UncommittedChangesStrategyKind.stashOnCurrentBranch
+          UncommittedChangesStrategyKind.StashOnCurrentBranch
       ) {
         await this._createStashAndDropPreviousEntry(
           repository,
@@ -2937,7 +2936,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.statsStore.recordStashCreatedOnCurrentBranch()
       } else if (
         uncommittedChangesStrategy.kind ===
-        UncommittedChangesStrategyKind.moveToNewBranch
+        UncommittedChangesStrategyKind.MoveToNewBranch
       ) {
         const hasDeletedFiles = changesState.workingDirectory.files.some(
           file => file.status.kind === AppFileStatusKind.Deleted
@@ -2985,7 +2984,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (
       enableStashing() &&
       uncommittedChangesStrategy.kind ===
-        UncommittedChangesStrategyKind.moveToNewBranch &&
+        UncommittedChangesStrategyKind.MoveToNewBranch &&
       checkoutSucceeded
     ) {
       // We increment the metric after checkout succeeds to guard
@@ -4450,7 +4449,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     log.info(
       `[AppStore] adding account ${account.login} (${account.name}) to store`
     )
-    await this.accountsStore.addAccount(account)
+    const storedAccount = await this.accountsStore.addAccount(account)
     const selectedState = this.getState().selectedState
 
     if (selectedState && selectedState.type === SelectionType.Repository) {
@@ -4467,8 +4466,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // a refresh of the repositories available for cloning straight away
     // in order to have the list of repositories ready for them when they
     // get to the blankslate.
-    if (this.showWelcomeFlow) {
-      this.apiRepositoriesStore.loadRepositories(account)
+    if (this.showWelcomeFlow && storedAccount !== null) {
+      this.apiRepositoriesStore.loadRepositories(storedAccount)
     }
   }
 
@@ -5166,7 +5165,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       branchToCheckout
     )
     const strategy: UncommittedChangesStrategy = {
-      kind: UncommittedChangesStrategyKind.moveToNewBranch,
+      kind: UncommittedChangesStrategyKind.MoveToNewBranch,
       transientStashEntry,
     }
     await this._checkoutBranch(repository, branchToCheckout, strategy)
@@ -5228,6 +5227,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     return Promise.resolve()
+  }
+
+  public async _testPruneBranches() {
+    if (this.currentBranchPruner === null) {
+      return
+    }
+
+    await this.currentBranchPruner.testPrune()
   }
 }
 

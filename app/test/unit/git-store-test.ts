@@ -96,41 +96,41 @@ describe('GitStore', () => {
   })
 
   describe('undo first commit', () => {
-    let repo: Repository | null = null
+    let repository: Repository
     let firstCommit: Commit | null = null
 
     const commitMessage = 'added file'
 
     beforeEach(async () => {
-      repo = await setupEmptyRepository()
+      repository = await setupEmptyRepository()
 
       const file = 'README.md'
-      const filePath = Path.join(repo.path, file)
+      const filePath = Path.join(repository.path, file)
 
       await FSE.writeFile(filePath, 'SOME WORDS GO HERE\n')
 
-      await GitProcess.exec(['add', file], repo.path)
-      await GitProcess.exec(['commit', '-m', commitMessage], repo.path)
+      await GitProcess.exec(['add', file], repository.path)
+      await GitProcess.exec(['commit', '-m', commitMessage], repository.path)
 
-      firstCommit = await getCommit(repo!, 'master')
+      firstCommit = await getCommit(repository, 'master')
       expect(firstCommit).not.toBeNull()
       expect(firstCommit!.parentSHAs).toHaveLength(0)
     })
 
     it('reports the repository is unborn', async () => {
-      const gitStore = new GitStore(repo!, shell)
+      const gitStore = new GitStore(repository, shell)
 
       await gitStore.loadStatus()
       expect(gitStore.tip.kind).toEqual(TipState.Valid)
 
       await gitStore.undoCommit(firstCommit!)
 
-      const after = await getStatusOrThrow(repo!)
+      const after = await getStatusOrThrow(repository)
       expect(after.currentTip).toBeUndefined()
     })
 
     it('pre-fills the commit message', async () => {
-      const gitStore = new GitStore(repo!, shell)
+      const gitStore = new GitStore(repository, shell)
 
       await gitStore.undoCommit(firstCommit!)
 
@@ -140,7 +140,7 @@ describe('GitStore', () => {
     })
 
     it('clears the undo commit dialog', async () => {
-      const gitStore = new GitStore(repo!, shell)
+      const gitStore = new GitStore(repository, shell)
 
       await gitStore.loadStatus()
 
@@ -160,7 +160,7 @@ describe('GitStore', () => {
     })
 
     it('has no staged files', async () => {
-      const gitStore = new GitStore(repo!, shell)
+      const gitStore = new GitStore(repository, shell)
 
       await gitStore.loadStatus()
 
@@ -181,7 +181,7 @@ describe('GitStore', () => {
           '-z',
           '4b825dc642cb6eb9a060e54bf8d69288fbee4904',
         ],
-        repo!.path
+        repository.path
       )
       expect(result.stdout.length).toEqual(0)
     })
