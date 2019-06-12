@@ -35,6 +35,7 @@ cache:
   timeout: 600
   directories:
     - $HOME/.electron
+    - .eslintcache
     - $HOME/.cache/electron-builder
 
 install:
