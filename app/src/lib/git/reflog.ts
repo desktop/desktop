@@ -69,10 +69,10 @@ export async function getRecentBranches(
  * Returns a map keyed on branch names
  *
  * @param repository the repository who's reflog you want to check
- * @param afterDate the minimum date a checkout has to occur
+ * @param afterDate filters checkouts so that only those occuring on or after this date are returned
  * @returns map of branch name -> checkout date
  */
-export async function getCheckoutsAfterDate(
+export async function getBranchCheckouts(
   repository: Repository,
   afterDate: Date
 ): Promise<Map<string, Date>> {
