@@ -1,5 +1,15 @@
 {
   "releases": {
+    "2.0.4": [
+      "[Fixed] Refresh for Enterprise repositories did not handle API error querying branches - #7713",
+      "[Fixed] Missing \"Discard all changes\" context menu in Changes header - #7696",
+      "[Fixed] \"Select all\" keyboard shortcut not firing on Windows - #7759"
+    ],
+    "2.0.4-beta1": [
+      "[Fixed] Refresh for Enterprise repositories did not handle API error querying branches - #7713",
+      "[Fixed] Missing \"Discard all changes\" context menu in Changes header - #7696",
+      "[Fixed] \"Select all\" keyboard shortcut not firing on Windows - #7759"
+    ],
     "2.0.4-beta0": [
       "[Added] Extend crash reports with more information about application state for troubleshooting - #7693",
       "[Fixed] Crash when attempting to update pull requests with partially updated repository information - #7688",
