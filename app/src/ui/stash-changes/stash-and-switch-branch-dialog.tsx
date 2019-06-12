@@ -13,11 +13,13 @@ import {
 } from '../../models/uncommitted-changes-strategy'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PopupType } from '../../models/popup'
+import { startTimer } from '../lib/timing'
 
 enum StashAction {
   StashOnCurrentBranch,
   MoveToNewBranch,
 }
+
 interface ISwitchBranchProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
@@ -151,6 +153,7 @@ export class StashAndSwitchBranch extends React.Component<
 
     this.setState({ isStashingChanges: true })
 
+    const timer = startTimer('stash and checkout', repository)
     try {
       if (selectedStashAction === StashAction.StashOnCurrentBranch) {
         await dispatcher.checkoutBranch(
@@ -161,11 +164,12 @@ export class StashAndSwitchBranch extends React.Component<
       } else if (selectedStashAction === StashAction.MoveToNewBranch) {
         // attempt to checkout the branch without creating a stash entry
         await dispatcher.checkoutBranch(repository, branchToCheckout, {
-          kind: UncommittedChangesStrategyKind.moveToNewBranch,
+          kind: UncommittedChangesStrategyKind.MoveToNewBranch,
           transientStashEntry: null,
         })
       }
     } finally {
+      timer.done()
       this.setState({ isStashingChanges: false }, () => {
         this.props.onDismissed()
       })

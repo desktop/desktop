@@ -17,7 +17,7 @@ import { GitProcess } from 'dugite'
 import { mkdirSync } from '../../helpers/temp'
 
 describe('git/rev-parse', () => {
-  let repository: Repository | null = null
+  let repository: Repository
 
   beforeEach(async () => {
     const testRepoPath = await setupFixtureRepository('test-repo')
@@ -26,12 +26,12 @@ describe('git/rev-parse', () => {
 
   describe('isGitRepository', () => {
     it('should return true for a repository', async () => {
-      const result = await isGitRepository(repository!.path)
+      const result = await isGitRepository(repository.path)
       expect(result).toBe(true)
     })
 
     it('should return false for a directory', async () => {
-      const result = await isGitRepository(path.dirname(repository!.path))
+      const result = await isGitRepository(path.dirname(repository.path))
       expect(result).toBe(false)
     })
   })
@@ -72,14 +72,14 @@ describe('git/rev-parse', () => {
 
   describe('getTopLevelWorkingDirectory', () => {
     it('should return an absolute path when run inside a working directory', async () => {
-      const result = await getTopLevelWorkingDirectory(repository!.path)
-      expect(result).toBe(repository!.path)
+      const result = await getTopLevelWorkingDirectory(repository.path)
+      expect(result).toBe(repository.path)
 
-      const subdirPath = path.join(repository!.path, 'subdir')
+      const subdirPath = path.join(repository.path, 'subdir')
       await FSE.mkdir(subdirPath)
 
-      const subDirResult = await getTopLevelWorkingDirectory(repository!.path)
-      expect(subDirResult).toBe(repository!.path)
+      const subDirResult = await getTopLevelWorkingDirectory(repository.path)
+      expect(subDirResult).toBe(repository.path)
     })
 
     it('should return null when not run inside a working directory', async () => {
@@ -88,7 +88,7 @@ describe('git/rev-parse', () => {
     })
 
     it('should resolve top level directory run inside the .git folder', async () => {
-      const p = path.join(repository!.path, '.git')
+      const p = path.join(repository.path, '.git')
       const result = await getTopLevelWorkingDirectory(p)
       expect(result).toBe(p)
     })
