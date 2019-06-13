@@ -179,6 +179,8 @@ export interface IAppState {
   /** The external editor to use when opening repositories */
   readonly selectedExternalEditor?: ExternalEditor
 
+  /** The current setting for whether the user has disable usage reports */
+  readonly optOutOfUsageTracking: boolean
   /**
    * A cached entry representing an external editor found on the user's machine:
    *
