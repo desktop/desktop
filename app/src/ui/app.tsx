@@ -365,6 +365,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showStashedChanges()
       case 'hide-stashed-changes':
         return this.hideStashedChanges()
+      case 'test-prune-branches':
+        return this.testPruneBranches()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -425,6 +427,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
+  private testPruneBranches() {
+    if (!__DEV__) {
+      return
+    }
+
+    this.props.appStore._testPruneBranches()
+  }
+
   /**
    * Handler for the 'select-all' menu event, dispatches
    * a custom DOM event originating from the element which
@@ -473,18 +483,14 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private getDotComAccount(): Account | null {
-    const state = this.props.appStore.getState()
-    const accounts = state.accounts
-    const dotComAccount = accounts.find(
+    const dotComAccount = this.state.accounts.find(
       a => a.endpoint === getDotComAPIEndpoint()
     )
     return dotComAccount || null
   }
 
   private getEnterpriseAccount(): Account | null {
-    const state = this.props.appStore.getState()
-    const accounts = state.accounts
-    const enterpriseAccount = accounts.find(
+    const enterpriseAccount = this.state.accounts.find(
       a => a.endpoint !== getDotComAPIEndpoint()
     )
     return enterpriseAccount || null
