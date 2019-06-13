@@ -237,8 +237,7 @@ function performEffectsForRebaseStateChange(
       previousTip !== currentTip &&
       currentBranch === prevConflictState.targetBranch
 
-    if (previousTipChanged) {
-    } else {
+    if (!previousTipChanged) {
       statsStore.recordRebaseAbortedAfterConflicts()
     }
   }
