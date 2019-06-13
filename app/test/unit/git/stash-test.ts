@@ -4,12 +4,12 @@ import { Repository } from '../../../src/models/repository'
 import { setupEmptyRepository } from '../../helpers/repositories'
 import { GitProcess } from 'dugite'
 import {
-  getDesktopStashEntries,
   createDesktopStashMessage,
   createDesktopStashEntry,
   getLastDesktopStashEntryForBranch,
   dropDesktopStashEntry,
   popStashEntry,
+  getStashes,
 } from '../../../src/lib/git/stash'
 import { getStatusOrThrow } from '../../helpers/status'
 import { AppFileStatusKind } from '../../../src/models/status'
@@ -17,9 +17,10 @@ import {
   IStashEntry,
   StashedChangesLoadStates,
 } from '../../../src/models/stash-entry'
+import { generateString } from '../../helpers/random-data'
 
 describe('git/stash', () => {
-  describe('getDesktopStashEntries', () => {
+  describe('getStash', () => {
     let repository: Repository
     let readme: string
 
@@ -34,15 +35,15 @@ describe('git/stash', () => {
     it('handles unborn repo by returning empty list', async () => {
       const repo = await setupEmptyRepository()
 
-      const entries = await getDesktopStashEntries(repo)
+      const stash = await getStashes(repo)
 
-      expect(entries).toHaveLength(0)
+      expect(stash.desktopEntries).toHaveLength(0)
     })
 
     it('returns an empty list when no stash entries have been created', async () => {
-      const entries = await getDesktopStashEntries(repository)
+      const stash = await getStashes(repository)
 
-      expect(entries).toHaveLength(0)
+      expect(stash.desktopEntries).toHaveLength(0)
     })
 
     it('returns all stash entries created by Desktop', async () => {
@@ -50,10 +51,10 @@ describe('git/stash', () => {
       await generateTestStashEntry(repository, 'master', false)
       await generateTestStashEntry(repository, 'master', true)
 
-      const stashEntries = await getDesktopStashEntries(repository)
-
-      expect(stashEntries).toHaveLength(1)
-      expect(stashEntries[0].branchName).toBe('master')
+      const stash = await getStashes(repository)
+      const entries = stash.desktopEntries
+      expect(entries).toHaveLength(1)
+      expect(entries[0].branchName).toBe('master')
     })
   })
 
@@ -74,7 +75,8 @@ describe('git/stash', () => {
 
       await createDesktopStashEntry(repository, 'master')
 
-      const entries = await getDesktopStashEntries(repository)
+      const stash = await getStashes(repository)
+      const entries = stash.desktopEntries
 
       expect(entries).toHaveLength(1)
       expect(entries[0].branchName).toBe('master')
@@ -127,9 +129,9 @@ describe('git/stash', () => {
       await generateTestStashEntry(repository, branchName, true)
       await generateTestStashEntry(repository, branchName, true)
 
-      const stashEntries = await getDesktopStashEntries(repository)
+      const stash = await getStashes(repository)
       // entries are returned in LIFO order
-      const lastEntry = stashEntries[0]
+      const lastEntry = stash.desktopEntries[0]
 
       const actual = await getLastDesktopStashEntryForBranch(
         repository,
@@ -167,17 +169,19 @@ describe('git/stash', () => {
       await generateTestStashEntry(repository, 'master', true)
       await generateTestStashEntry(repository, 'master', true)
 
-      let stashEntries = await getDesktopStashEntries(repository)
-      expect(stashEntries.length).toBe(2)
+      let stash = await getStashes(repository)
+      let entries = stash.desktopEntries
+      expect(entries.length).toBe(2)
 
-      const stashToDelete = stashEntries[1]
+      const stashToDelete = entries[1]
       await dropDesktopStashEntry(repository, stashToDelete.stashSha)
 
       // using this function to get stashSha since it parses
       // the output from git into easy to use objects
-      stashEntries = await getDesktopStashEntries(repository)
-      expect(stashEntries.length).toBe(1)
-      expect(stashEntries[0].stashSha).not.toEqual(stashToDelete)
+      stash = await getStashes(repository)
+      entries = stash.desktopEntries
+      expect(entries.length).toBe(1)
+      expect(entries[0].stashSha).not.toEqual(stashToDelete)
     })
 
     it('does not fail when attempting to delete when stash is empty', async () => {
@@ -234,14 +238,15 @@ describe('git/stash', () => {
     describe('without any conflicts', () => {
       it('restores changes back to the working directory', async () => {
         await generateTestStashEntry(repository, 'master', true)
-        const entries = await getDesktopStashEntries(repository)
-        expect(entries.length).toBe(1)
+        const stash = await getStashes(repository)
+        const { desktopEntries } = stash
+        expect(desktopEntries.length).toBe(1)
 
         let status = await getStatusOrThrow(repository)
         let files = status.workingDirectory.files
         expect(files).toHaveLength(0)
 
-        const entryToApply = entries[0]
+        const entryToApply = desktopEntries[0]
         await popStashEntry(repository, entryToApply.stashSha)
 
         status = await getStatusOrThrow(repository)
@@ -253,11 +258,12 @@ describe('git/stash', () => {
     describe('when there are (resolvable) conflicts', () => {
       it('restores changes and drops stash', async () => {
         await generateTestStashEntry(repository, 'master', true)
-        const entries = await getDesktopStashEntries(repository)
-        expect(entries.length).toBe(1)
+        const stash = await getStashes(repository)
+        const { desktopEntries } = stash
+        expect(desktopEntries.length).toBe(1)
 
         const readme = path.join(repository.path, 'README.md')
-        await FSE.appendFile(readme, Math.random()) // eslint-disable-line insecure-random
+        await FSE.appendFile(readme, generateString())
         await GitProcess.exec(
           ['commit', '-am', 'later commit'],
           repository.path
@@ -267,27 +273,29 @@ describe('git/stash', () => {
         let files = status.workingDirectory.files
         expect(files).toHaveLength(0)
 
-        const entryToApply = entries[0]
+        const entryToApply = desktopEntries[0]
         await popStashEntry(repository, entryToApply.stashSha)
 
         status = await getStatusOrThrow(repository)
         files = status.workingDirectory.files
         expect(files).toHaveLength(1)
 
-        const entriesAfter = await getDesktopStashEntries(repository)
-        expect(entriesAfter).not.toContain(entryToApply)
+        const stashAfter = await getStashes(repository)
+        expect(stashAfter.desktopEntries).not.toContain(entryToApply)
       })
     })
+
     describe('when there are unresolvable conflicts', () => {
       it('throws an error', async () => {
         await generateTestStashEntry(repository, 'master', true)
-        const entries = await getDesktopStashEntries(repository)
-        expect(entries.length).toBe(1)
+        const stash = await getStashes(repository)
+        const { desktopEntries } = stash
+        expect(desktopEntries.length).toBe(1)
 
         const readme = path.join(repository.path, 'README.md')
-        await FSE.writeFile(readme, Math.random()) // eslint-disable-line insecure-random
+        await FSE.writeFile(readme, generateString())
 
-        const entryToApply = entries[0]
+        const entryToApply = desktopEntries[0]
         await expect(
           popStashEntry(repository, entryToApply.stashSha)
         ).rejects.toThrowError()
@@ -325,6 +333,6 @@ async function generateTestStashEntry(
 ): Promise<void> {
   const message = simulateDesktopEntry ? null : 'Should get filtered'
   const readme = path.join(repository.path, 'README.md')
-  await FSE.appendFile(readme, Math.random()) // eslint-disable-line insecure-random
+  await FSE.appendFile(readme, generateString())
   await stash(repository, branchName, message)
 }

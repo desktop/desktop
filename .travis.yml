@@ -23,6 +23,7 @@ addons:
 branches:
   only:
     - development
+    - /releases\/.+/
     - /^__release-.*/
 
 language: node_js
@@ -34,7 +35,6 @@ cache:
   timeout: 600
   directories:
     - $HOME/.electron
-    - .eslintcache
     - $HOME/.cache/electron-builder
 
 install:

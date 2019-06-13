@@ -8,20 +8,21 @@ import { ensureDir } from 'fs-extra'
 import { log } from '../log'
 import { openDirectorySafe } from '../shell'
 import { enableRebaseDialog, enableStashing } from '../../lib/feature-flag'
+import { MenuLabelsEvent } from '../../models/menu-labels'
+import { DefaultEditorLabel } from '../../ui/lib/context-menu'
 
-const defaultEditorLabel = __DARWIN__
-  ? 'Open in External Editor'
-  : 'Open in external editor'
 const defaultShellLabel = __DARWIN__
   ? 'Open in Terminal'
   : 'Open in Command Prompt'
-const defaultPullRequestLabel = __DARWIN__
+const createPullRequestLabel = __DARWIN__
   ? 'Create Pull Request'
   : 'Create &pull request'
-const defaultBranchNameDefaultValue = __DARWIN__
-  ? 'Default Branch'
-  : 'default branch'
-const defaultRepositoryRemovalLabel = __DARWIN__ ? 'Remove' : '&Remove'
+const showPullRequestLabel = __DARWIN__
+  ? 'Show Pull Request'
+  : 'Show &pull request'
+const defaultBranchNameValue = __DARWIN__ ? 'Default Branch' : 'default branch'
+const confirmRepositoryRemovalLabel = __DARWIN__ ? 'Remove…' : '&Remove…'
+const repositoryRemovalLabel = __DARWIN__ ? 'Remove' : '&Remove'
 
 enum ZoomDirection {
   Reset,
@@ -29,28 +30,33 @@ enum ZoomDirection {
   Out,
 }
 
-export type MenuLabels = {
-  editorLabel?: string
-  shellLabel?: string
-  pullRequestLabel?: string
-  defaultBranchName?: string
-  removeRepoLabel?: string
-  isForcePushForCurrentRepository?: boolean
-  askForConfirmationOnForcePush?: boolean
-  isStashedChangesVisible?: boolean
-}
-
 export function buildDefaultMenu({
-  editorLabel = defaultEditorLabel,
-  shellLabel = defaultShellLabel,
-  pullRequestLabel = defaultPullRequestLabel,
-  defaultBranchName = defaultBranchNameDefaultValue,
-  removeRepoLabel = defaultRepositoryRemovalLabel,
+  selectedExternalEditor,
+  selectedShell,
+  askForConfirmationOnForcePush,
+  askForConfirmationOnRepositoryRemoval,
+  hasCurrentPullRequest = false,
+  defaultBranchName = defaultBranchNameValue,
   isForcePushForCurrentRepository = false,
-  askForConfirmationOnForcePush = false,
   isStashedChangesVisible = false,
-}: MenuLabels): Electron.Menu {
+}: MenuLabelsEvent): Electron.Menu {
   defaultBranchName = truncateWithEllipsis(defaultBranchName, 25)
+
+  const removeRepoLabel = askForConfirmationOnRepositoryRemoval
+    ? confirmRepositoryRemovalLabel
+    : repositoryRemovalLabel
+
+  const pullRequestLabel = hasCurrentPullRequest
+    ? showPullRequestLabel
+    : createPullRequestLabel
+
+  const shellLabel =
+    selectedShell === null ? defaultShellLabel : `Open in ${selectedShell}`
+
+  const editorLabel =
+    selectedExternalEditor === null
+      ? DefaultEditorLabel
+      : `Open in ${selectedExternalEditor}`
 
   const template = new Array<Electron.MenuItemConstructorOptions>()
   const separator: Electron.MenuItemConstructorOptions = { type: 'separator' }
@@ -129,7 +135,11 @@ export function buildDefaultMenu({
         click: emit('show-preferences'),
       },
       separator,
-      { role: 'quit' }
+      {
+        role: 'quit',
+        label: 'E&xit',
+        accelerator: 'Alt+F4',
+      }
     )
   }
 
@@ -274,7 +284,7 @@ export function buildDefaultMenu({
       {
         label: removeRepoLabel,
         id: 'remove-repository',
-        accelerator: 'CmdOrCtrl+Delete',
+        accelerator: 'CmdOrCtrl+Backspace',
         click: emit('remove-repository'),
       },
       separator,
@@ -341,6 +351,7 @@ export function buildDefaultMenu({
       {
         label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
         id: 'discard-all-changes',
+        accelerator: 'CmdOrCtrl+Shift+Backspace',
         click: emit('discard-all-changes'),
       },
       separator,
@@ -485,6 +496,10 @@ export function buildDefaultMenu({
             click: emit('show-release-notes-popup'),
           },
         ],
+      },
+      {
+        label: 'Prune branches',
+        click: emit('test-prune-branches'),
       }
     )
   }

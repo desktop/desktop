@@ -190,10 +190,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       const initialTimeout = window.setTimeout(async () => {
         window.clearTimeout(initialTimeout)
 
-        await this.props.appStore.refreshAllIndicators()
+        await this.props.appStore.refreshAllSidebarIndicators()
 
         this.updateIntervalHandle = window.setInterval(() => {
-          this.props.appStore.refreshAllIndicators()
+          this.props.appStore.refreshAllSidebarIndicators()
         }, UpdateRepositoryIndicatorInterval)
       }, InitialRepositoryIndicatorTimeout)
     })
@@ -324,21 +324,17 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
       case 'open-working-directory':
         return this.openCurrentRepositoryWorkingDirectory()
-      case 'update-branch': {
+      case 'update-branch':
         this.props.dispatcher.recordMenuInitiatedUpdate()
         return this.updateBranch()
-      }
-      case 'compare-to-branch': {
+      case 'compare-to-branch':
         return this.showHistory(true)
-      }
-      case 'merge-branch': {
+      case 'merge-branch':
         this.props.dispatcher.recordMenuInitiatedMerge()
         return this.mergeBranch()
-      }
-      case 'rebase-branch': {
+      case 'rebase-branch':
         this.props.dispatcher.recordMenuInitiatedRebase()
         return this.showRebaseDialog()
-      }
       case 'show-repository-settings':
         return this.showRepositorySettings()
       case 'view-repository-on-github':
@@ -355,9 +351,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.boomtown()
       case 'go-to-commit-message':
         return this.goToCommitMessage()
-      case 'open-pull-request': {
+      case 'open-pull-request':
         return this.openPullRequest()
-      }
       case 'install-cli':
         return this.props.dispatcher.installCLI()
       case 'open-external-editor':
@@ -370,6 +365,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showStashedChanges()
       case 'hide-stashed-changes':
         return this.hideStashedChanges()
+      case 'test-prune-branches':
+        return this.testPruneBranches()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -430,6 +427,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
+  private testPruneBranches() {
+    if (!__DEV__) {
+      return
+    }
+
+    this.props.appStore._testPruneBranches()
+  }
+
   /**
    * Handler for the 'select-all' menu event, dispatches
    * a custom DOM event originating from the element which
@@ -478,18 +483,14 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private getDotComAccount(): Account | null {
-    const state = this.props.appStore.getState()
-    const accounts = state.accounts
-    const dotComAccount = accounts.find(
+    const dotComAccount = this.state.accounts.find(
       a => a.endpoint === getDotComAPIEndpoint()
     )
     return dotComAccount || null
   }
 
   private getEnterpriseAccount(): Account | null {
-    const state = this.props.appStore.getState()
-    const accounts = state.accounts
-    const enterpriseAccount = accounts.find(
+    const enterpriseAccount = this.state.accounts.find(
       a => a.endpoint !== getDotComAPIEndpoint()
     )
     return enterpriseAccount || null
@@ -815,7 +816,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     if (shouldRenderApplicationMenu()) {
-      if (event.key === 'Alt') {
+      if (event.key === 'Shift' && event.altKey) {
+        this.props.dispatcher.setAccessKeyHighlightState(false)
+      } else if (event.key === 'Alt') {
+        if (event.shiftKey) {
+          return
+        }
         // Immediately close the menu if open and the user hits Alt. This is
         // a Windows convention.
         if (
@@ -1179,12 +1185,18 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     switch (popup.type) {
       case PopupType.RenameBranch:
+        const stash =
+          this.state.selectedState !== null &&
+          this.state.selectedState.type === SelectionType.Repository
+            ? this.state.selectedState.state.changesState.stashEntry
+            : null
         return (
           <RenameBranch
             key="rename-branch"
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             branch={popup.branch}
+            stash={stash}
           />
         )
       case PopupType.DeleteBranch:
@@ -1239,7 +1251,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             }
             confirmForcePush={this.state.askForConfirmationOnForcePush}
             selectedExternalEditor={this.state.selectedExternalEditor}
-            optOutOfUsageTracking={this.props.appStore.getStatsOptOut()}
+            optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             enterpriseAccount={this.getEnterpriseAccount()}
             onDismissed={this.onPopupDismissed}
             selectedShell={this.state.selectedShell}
@@ -2271,7 +2283,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     return (
       <Welcome
         dispatcher={this.props.dispatcher}
-        appStore={this.props.appStore}
+        optOut={this.state.optOutOfUsageTracking}
+        accounts={this.state.accounts}
         signInState={this.state.signInState}
       />
     )

@@ -7,13 +7,13 @@ environment:
   nodejs_version: '8.12'
 
 cache:
-  - .eslintcache
   - '%USERPROFILE%\.electron'
   - '%LOCALAPPDATA%\Yarn\Cache\v4'
 
 branches:
   only:
     - development
+    - /releases\/.+/
     - /^__release-.*/
 
 skip_tags: true
