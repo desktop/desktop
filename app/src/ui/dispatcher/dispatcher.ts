@@ -1005,6 +1005,8 @@ export class Dispatcher {
         return
       }
 
+      this.statsStore.recordRebaseSuccessAfterConflicts()
+
       await this.completeRebase(
         repository,
         {
