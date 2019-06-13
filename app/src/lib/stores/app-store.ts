@@ -619,6 +619,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedTheme: this.selectedTheme,
       automaticallySwitchTheme: this.automaticallySwitchTheme,
       apiRepositories: this.apiRepositoriesStore.getState(),
+      optOutOfUsageTracking: this.statsStore.getOptOut(),
     }
   }
 
@@ -4199,11 +4200,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     await saveGitIgnore(repository, text)
     return this._refreshRepository(repository)
-  }
-
-  /** Has the user opted out of stats reporting? */
-  public getStatsOptOut(): boolean {
-    return this.statsStore.getOptOut()
   }
 
   /** Set whether the user has opted out of stats reporting. */
