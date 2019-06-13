@@ -1251,7 +1251,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             }
             confirmForcePush={this.state.askForConfirmationOnForcePush}
             selectedExternalEditor={this.state.selectedExternalEditor}
-            optOutOfUsageTracking={this.props.appStore.getStatsOptOut()}
+            optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             enterpriseAccount={this.getEnterpriseAccount()}
             onDismissed={this.onPopupDismissed}
             selectedShell={this.state.selectedShell}
@@ -2283,7 +2283,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     return (
       <Welcome
         dispatcher={this.props.dispatcher}
-        appStore={this.props.appStore}
+        optOut={this.state.optOutOfUsageTracking}
+        accounts={this.state.accounts}
         signInState={this.state.signInState}
       />
     )
