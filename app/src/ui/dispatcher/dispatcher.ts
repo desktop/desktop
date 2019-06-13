@@ -1295,7 +1295,8 @@ export class Dispatcher {
    * Update the location of an existing repository and clear the missing flag.
    */
   public async relocateRepository(repository: Repository): Promise<void> {
-    const directories = remote.dialog.showOpenDialog({
+    const window = remote.getCurrentWindow()
+    const directories = remote.dialog.showOpenDialog(window, {
       properties: ['openDirectory'],
     })
 
