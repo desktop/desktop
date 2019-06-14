@@ -365,6 +365,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showStashedChanges()
       case 'hide-stashed-changes':
         return this.hideStashedChanges()
+      case 'test-prune-branches':
+        return this.testPruneBranches()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -425,6 +427,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
+  private testPruneBranches() {
+    if (!__DEV__) {
+      return
+    }
+
+    this.props.appStore._testPruneBranches()
+  }
+
   /**
    * Handler for the 'select-all' menu event, dispatches
    * a custom DOM event originating from the element which
@@ -473,18 +483,14 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private getDotComAccount(): Account | null {
-    const state = this.props.appStore.getState()
-    const accounts = state.accounts
-    const dotComAccount = accounts.find(
+    const dotComAccount = this.state.accounts.find(
       a => a.endpoint === getDotComAPIEndpoint()
     )
     return dotComAccount || null
   }
 
   private getEnterpriseAccount(): Account | null {
-    const state = this.props.appStore.getState()
-    const accounts = state.accounts
-    const enterpriseAccount = accounts.find(
+    const enterpriseAccount = this.state.accounts.find(
       a => a.endpoint !== getDotComAPIEndpoint()
     )
     return enterpriseAccount || null
@@ -1245,7 +1251,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             }
             confirmForcePush={this.state.askForConfirmationOnForcePush}
             selectedExternalEditor={this.state.selectedExternalEditor}
-            optOutOfUsageTracking={this.props.appStore.getStatsOptOut()}
+            optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             enterpriseAccount={this.getEnterpriseAccount()}
             onDismissed={this.onPopupDismissed}
             selectedShell={this.state.selectedShell}
@@ -1414,16 +1420,23 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.RemoveRepository:
         return (
           <ConfirmRemoveRepository
+            key="confirm-remove-repository"
             repository={popup.repository}
             onConfirmation={this.onConfirmRepoRemoval}
             onDismissed={this.onPopupDismissed}
           />
         )
       case PopupType.TermsAndConditions:
-        return <TermsAndConditions onDismissed={this.onPopupDismissed} />
+        return (
+          <TermsAndConditions
+            key="terms-and-conditions"
+            onDismissed={this.onPopupDismissed}
+          />
+        )
       case PopupType.PushBranchCommits:
         return (
           <PushBranchCommits
+            key="push-branch-commits"
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             branch={popup.branch}
@@ -1433,10 +1446,16 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.CLIInstalled:
-        return <CLIInstalled onDismissed={this.onPopupDismissed} />
+        return (
+          <CLIInstalled
+            key="cli-installed"
+            onDismissed={this.onPopupDismissed}
+          />
+        )
       case PopupType.GenericGitAuthentication:
         return (
           <GenericGitAuthentication
+            key="generic-git-authentication"
             hostname={popup.hostname}
             onDismiss={this.onPopupDismissed}
             onSave={this.onSaveCredentials}
@@ -1469,6 +1488,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.InitializeLFS:
         return (
           <InitializeLFS
+            key="initialize-lfs"
             repositories={popup.repositories}
             onDismissed={this.onPopupDismissed}
             onInitialize={this.initializeLFS}
@@ -1477,6 +1497,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.LFSAttributeMismatch:
         return (
           <AttributeMismatch
+            key="lsf-attribute-mismatch"
             onDismissed={this.onPopupDismissed}
             onUpdateExistingFilters={this.updateExistingLFSFilters}
           />
@@ -1484,6 +1505,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.UpstreamAlreadyExists:
         return (
           <UpstreamAlreadyExists
+            key="upstream-already-exists"
             repository={popup.repository}
             existingRemote={popup.existingRemote}
             onDismissed={this.onPopupDismissed}
@@ -1494,6 +1516,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.ReleaseNotes:
         return (
           <ReleaseNotes
+            key="release-notes"
             emoji={this.state.emoji}
             newRelease={popup.newRelease}
             onDismissed={this.onPopupDismissed}
@@ -1502,6 +1525,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.DeletePullRequest:
         return (
           <DeletePullRequest
+            key="delete-pull-request"
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             branch={popup.branch}
@@ -1529,6 +1553,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         return (
           <MergeConflictsDialog
+            key="merge-conflicts-dialog"
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             workingDirectory={workingDirectory}
@@ -1545,6 +1570,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.OversizedFiles:
         return (
           <OversizedFiles
+            key="oversized-files"
             oversizedFiles={popup.oversizedFiles}
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
@@ -1571,6 +1597,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         return (
           <AbortMergeWarning
+            key="abort-merge-warning"
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             onDismissed={this.onPopupDismissed}
@@ -1582,6 +1609,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.UsageReportingChanges:
         return (
           <UsageStatsChange
+            key="usage-stats-change"
             onOpenUsageDataUrl={this.openUsageDataUrl}
             onDismissed={this.onUsageReportingDismissed}
           />
@@ -1589,6 +1617,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.CommitConflictsWarning:
         return (
           <CommitConflictsWarning
+            key="commit-conflicts-warning"
             dispatcher={this.props.dispatcher}
             files={popup.files}
             repository={popup.repository}
@@ -1599,6 +1628,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.PushNeedsPull:
         return (
           <PushNeedsPullWarning
+            key="push-needs-pull"
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             onDismissed={this.onPopupDismissed}
@@ -1634,6 +1664,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         return (
           <RebaseFlow
+            key="rebase-flow"
             repository={popup.repository}
             openFileInExternalEditor={this.openFileInExternalEditor}
             dispatcher={this.props.dispatcher}
@@ -1657,6 +1688,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         return (
           <ConfirmForcePush
+            key="confirm-force-push"
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             upstreamBranch={popup.upstreamBranch}
@@ -1682,6 +1714,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         return (
           <StashAndSwitchBranch
+            key="stash-and-switch-branch"
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             currentBranch={currentBranch}
@@ -1695,6 +1728,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         const { repository, branchToCheckout: branchToCheckout } = popup
         return (
           <OverwriteStash
+            key="overwite-stash"
             dispatcher={this.props.dispatcher}
             repository={repository}
             branchToCheckout={branchToCheckout}
@@ -1707,6 +1741,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         return (
           <ConfirmDiscardStashDialog
+            key="confirm-discard-stash-dialog"
             dispatcher={this.props.dispatcher}
             repository={repository}
             stash={stash}
@@ -2277,7 +2312,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     return (
       <Welcome
         dispatcher={this.props.dispatcher}
-        appStore={this.props.appStore}
+        optOut={this.state.optOutOfUsageTracking}
+        accounts={this.state.accounts}
         signInState={this.state.signInState}
       />
     )

@@ -24,6 +24,7 @@ import {
   renderBranchNameExistsOnRemoteWarning,
 } from '../lib/branch-name-warnings'
 import { getStartPoint } from '../../lib/create-branch'
+import { startTimer } from '../lib/timing'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -292,11 +293,13 @@ export class CreateBranch extends React.Component<
 
     if (name.length > 0) {
       this.setState({ isCreatingBranch: true })
+      const timer = startTimer('create branch', this.props.repository)
       await this.props.dispatcher.createBranch(
         this.props.repository,
         name,
         startPoint
       )
+      timer.done()
     }
   }
 }

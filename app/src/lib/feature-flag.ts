@@ -91,7 +91,7 @@ export function enableStashing(): boolean {
  * protected branch?
  */
 export function enableBranchProtectionWarning(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should the app detect Windows Subsystem for Linux as a valid shell? */

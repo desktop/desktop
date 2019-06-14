@@ -6,6 +6,10 @@ plugins:
   - react
   - json
 
+settings:
+  react:
+    version: '16.3'
+
 extends:
   - prettier
   - prettier/react
@@ -35,8 +39,6 @@ rules:
       typedefs: false
   # this rule now works but generates a lot of issues with the codebase
   # '@typescript-eslint/member-ordering': error
-
-  '@typescript-eslint/type-annotation-spacing': error
 
   # Babel
   babel/no-invalid-this: error
