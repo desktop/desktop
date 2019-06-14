@@ -184,7 +184,11 @@ import {
   hasSeenUsageStatsNote,
 } from '../stats'
 import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
-import { getWindowState, WindowState } from '../window-state'
+import {
+  getWindowState,
+  WindowState,
+  windowStateChannelName,
+} from '../window-state'
 import { TypedBaseStore } from './base-store'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import { MergeResult } from '../../models/merge'
@@ -412,7 +416,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private wireupIpcEventHandlers(window: Electron.BrowserWindow) {
     ipcRenderer.on(
-      'window-state-changed',
+      windowStateChannelName,
       (event: Electron.IpcMessageEvent, args: any[]) => {
         this.windowState = getWindowState(window)
         this.emitUpdate()
