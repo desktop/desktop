@@ -718,8 +718,16 @@ export class API {
     name: string
   ): Promise<ReadonlyArray<IAPIBranch>> {
     const path = `repos/${owner}/${name}/branches?protected=true`
-    const response = await this.request('GET', path)
-    return await parsedResponse<IAPIBranch[]>(response)
+    try {
+      const response = await this.request('GET', path)
+      return await parsedResponse<IAPIBranch[]>(response)
+    } catch (err) {
+      log.info(
+        `[fetchProtectedBranches] unable to list protected branches`,
+        err
+      )
+      return new Array<IAPIBranch>()
+    }
   }
 
   /**

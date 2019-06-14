@@ -258,6 +258,13 @@ export class ChangesList extends React.Component<
     )
   }
 
+  private onDiscardAllChanges = () => {
+    this.props.onDiscardChangesFromFiles(
+      this.props.workingDirectory.files,
+      true
+    )
+  }
+
   private onDiscardChanges = (files: ReadonlyArray<string>) => {
     const workingDirectory = this.props.workingDirectory
 
@@ -303,6 +310,25 @@ export class ChangesList extends React.Component<
         : `Discard ${files.length} selected changes`
 
     return this.props.askForConfirmationOnDiscardChanges ? `${label}…` : label
+  }
+
+  private onContextMenu = (event: React.MouseEvent<any>) => {
+    event.preventDefault()
+
+    // need to preserve the working directory state while dealing with conflicts
+    if (this.props.rebaseConflictState !== null) {
+      return
+    }
+
+    const items: IMenuItem[] = [
+      {
+        label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
+        action: this.onDiscardAllChanges,
+        enabled: this.props.workingDirectory.files.length > 0,
+      },
+    ]
+
+    showContextualMenu(items)
   }
 
   private getDiscardChangesMenuItem = (
@@ -650,7 +676,7 @@ export class ChangesList extends React.Component<
 
     return (
       <div className="changes-list-container file-list">
-        <div className="header">
+        <div className="header" onContextMenu={this.onContextMenu}>
           <Checkbox
             label={filesDescription}
             value={includeAllValue}

@@ -7,8 +7,8 @@ environment:
   nodejs_version: '8.12'
 
 cache:
-  - .eslintcache
   - '%USERPROFILE%\.electron'
+  - .eslintcache
   - '%LOCALAPPDATA%\Yarn\Cache\v4'
 
 branches:
