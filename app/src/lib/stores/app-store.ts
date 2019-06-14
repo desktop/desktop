@@ -417,8 +417,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private wireupIpcEventHandlers(window: Electron.BrowserWindow) {
     ipcRenderer.on(
       windowStateChannelName,
-      (event: Electron.IpcMessageEvent, args: any[]) => {
-        this.windowState = getWindowState(window)
+      (event: Electron.IpcMessageEvent, windowState: WindowState) => {
+        this.windowState = windowState
         this.emitUpdate()
       }
     )
