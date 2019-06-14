@@ -218,7 +218,7 @@ export class CloneRepository extends React.Component<
           selectedIndex={this.props.selectedTab}
         >
           <span>GitHub.com</span>
-          <span>Enterprise Server</span>
+          <span>GitHub Enterprise Server</span>
           <span>URL</span>
         </TabBar>
 
