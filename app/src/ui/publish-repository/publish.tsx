@@ -141,7 +141,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
           selectedIndex={this.state.currentTab}
         >
           <span>GitHub.com</span>
-          <span>Enterprise Server</span>
+          <span>GitHub Enterprise Server</span>
         </TabBar>
 
         {currentTabState.error ? (
