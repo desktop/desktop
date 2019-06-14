@@ -205,7 +205,7 @@ function orderByPosition(x: ActualTextMarker, y: ActualTextMarker) {
 
 // The types for CodeMirror.TextMarker is all wrong, this is what it
 // actually looks like
-// eslint-disable-next-line typescript/interface-name-prefix
+// eslint-disable-next-line @typescript-eslint/interface-name-prefix
 interface ActualTextMarker extends CodeMirror.TextMarkerOptions {
   /** Remove the mark. */
   clear(): void

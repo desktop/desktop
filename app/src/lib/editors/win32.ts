@@ -20,6 +20,7 @@ export enum ExternalEditor {
   CFBuilder = 'ColdFusion Builder',
   Typora = 'Typora',
   SlickEdit = 'SlickEdit',
+  Webstorm = 'JetBrains Webstorm',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -229,6 +230,15 @@ function getRegistryKeys(
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{7CC0E567-ACD6-41E8-95DA-154CEEDB0A18}',
         },
       ]
+    case ExternalEditor.Webstorm:
+      return [
+        // 32-bit version of WebStorm
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\WebStorm 2018.3',
+        },
+      ]
 
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
@@ -260,6 +270,8 @@ function getExecutableShim(
       return Path.join(installLocation, 'bin', 'typora.exe')
     case ExternalEditor.SlickEdit:
       return Path.join(installLocation, 'win', 'vs.exe')
+    case ExternalEditor.Webstorm:
+      return Path.join(installLocation, 'bin', 'webstorm.exe')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -305,6 +317,10 @@ function isExpectedInstallation(
     case ExternalEditor.SlickEdit:
       return (
         displayName.startsWith('SlickEdit') && publisher === 'SlickEdit Inc.'
+      )
+    case ExternalEditor.Webstorm:
+      return (
+        displayName.startsWith('WebStorm') && publisher === 'JetBrains s.r.o.'
       )
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
@@ -395,6 +411,36 @@ function extractApplicationInformation(
     const displayName = getKeyOrEmpty(keys, 'DisplayName')
     const publisher = getKeyOrEmpty(keys, 'Publisher')
     const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
+    return { displayName, publisher, installLocation }
+  }
+
+  if (editor === ExternalEditor.Webstorm) {
+    let displayName = ''
+    let publisher = ''
+    let installLocation = ''
+
+    for (const item of keys) {
+      // NOTE:
+      // Webstorm adds the current release number to the end of the Display Name, below checks for "WebStorm"
+      if (
+        item.name === 'DisplayName' &&
+        item.type === RegistryValueType.REG_SZ &&
+        item.data.startsWith('WebStorm ')
+      ) {
+        displayName = 'WebStorm'
+      } else if (
+        item.name === 'Publisher' &&
+        item.type === RegistryValueType.REG_SZ
+      ) {
+        publisher = item.data
+      } else if (
+        item.name === 'InstallLocation' &&
+        item.type === RegistryValueType.REG_SZ
+      ) {
+        installLocation = item.data
+      }
+    }
+
     return { displayName, publisher, installLocation }
   }
 

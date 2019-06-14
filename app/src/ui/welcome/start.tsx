@@ -2,7 +2,12 @@ import * as React from 'react'
 import { WelcomeStep } from './welcome'
 import { LinkButton } from '../lib/link-button'
 
-const CreateAccountURL = 'https://github.com/join?source=github-desktop'
+/**
+ * The URL to the sign-up page on GitHub.com. Used in conjunction
+ * with account actions in the app where the user might want to
+ * consider signing up.
+ */
+export const CreateAccountURL = 'https://github.com/join?source=github-desktop'
 
 interface IStartProps {
   readonly advance: (step: WelcomeStep) => void
@@ -31,7 +36,7 @@ export class Start extends React.Component<IStartProps, {}> {
 
         <div>
           <LinkButton className="welcome-button" onClick={this.signInToDotCom}>
-            Sign into GitHub.com
+            Sign in to GitHub.com
           </LinkButton>
         </div>
 
@@ -40,7 +45,7 @@ export class Start extends React.Component<IStartProps, {}> {
             className="welcome-button"
             onClick={this.signInToEnterprise}
           >
-            Sign into GitHub Enterprise
+            Sign in to GitHub Enterprise
           </LinkButton>
         </div>
 

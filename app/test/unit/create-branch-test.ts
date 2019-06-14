@@ -11,6 +11,7 @@ const stubAuthor = {
 
 const stubTip = {
   sha: 'deadbeef',
+  shortSha: 'dead',
   summary: 'some commit',
   body: '',
   coAuthors: [],

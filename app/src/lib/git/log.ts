@@ -4,6 +4,7 @@ import {
   AppFileStatusKind,
   PlainFileStatus,
   CopiedOrRenamedFileStatus,
+  UntrackedFileStatus,
 } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
@@ -20,7 +21,7 @@ import {
 function mapStatus(
   rawStatus: string,
   oldPath?: string
-): PlainFileStatus | CopiedOrRenamedFileStatus {
+): PlainFileStatus | CopiedOrRenamedFileStatus | UntrackedFileStatus {
   const status = rawStatus.trim()
 
   if (status === 'M') {
@@ -29,6 +30,9 @@ function mapStatus(
   if (status === 'A') {
     return { kind: AppFileStatusKind.New }
   } // added
+  if (status === '?') {
+    return { kind: AppFileStatusKind.Untracked }
+  } // untracked
   if (status === 'D') {
     return { kind: AppFileStatusKind.Deleted }
   } // deleted
@@ -65,6 +69,7 @@ export async function getCommits(
   const delimiterString = String.fromCharCode(parseInt(delimiter, 16))
   const prettyFormat = [
     '%H', // SHA
+    '%h', // short SHA
     '%s', // summary
     '%b', // body
     // author identity string, matching format of GIT_AUTHOR_IDENT.
@@ -113,14 +118,15 @@ export async function getCommits(
   const commits = lines.map(line => {
     const pieces = line.split(delimiterString)
     const sha = pieces[0]
-    const summary = pieces[1]
-    const body = pieces[2]
-    const authorIdentity = pieces[3]
-    const committerIdentity = pieces[4]
-    const shaList = pieces[5]
+    const shortSha = pieces[1]
+    const summary = pieces[2]
+    const body = pieces[3]
+    const authorIdentity = pieces[4]
+    const committerIdentity = pieces[5]
+    const shaList = pieces[6]
 
     const parentSHAs = shaList.length ? shaList.split(' ') : []
-    const trailers = parseRawUnfoldedTrailers(pieces[6], trailerSeparators)
+    const trailers = parseRawUnfoldedTrailers(pieces[7], trailerSeparators)
 
     const author = CommitIdentity.parseIdentity(authorIdentity)
 
@@ -136,6 +142,7 @@ export async function getCommits(
 
     return new Commit(
       sha,
+      shortSha,
       summary,
       body,
       author,
@@ -172,11 +179,23 @@ export async function getChangedFiles(
   ]
   const result = await git(args, repository.path, 'getChangedFiles')
 
-  const out = result.stdout
-  const lines = out.split('\0')
+  return parseChangedFiles(result.stdout, sha)
+}
+
+/**
+ * Parses git `log` or `diff` output into a list of changed files
+ * (see `getChangedFiles` for an example of use)
+ *
+ * @param stdout raw ouput from a git `-z` and `--name-status` flags
+ * @param committish commitish command was run against
+ */
+export function parseChangedFiles(
+  stdout: string,
+  committish: string
+): ReadonlyArray<CommittedFileChange> {
+  const lines = stdout.split('\0')
   // Remove the trailing empty line
   lines.splice(-1, 1)
-
   const files: CommittedFileChange[] = []
   for (let i = 0; i < lines.length; i++) {
     const statusText = lines[i]
@@ -194,7 +213,7 @@ export async function getChangedFiles(
 
     const path = lines[++i]
 
-    files.push(new CommittedFileChange(path, status, sha))
+    files.push(new CommittedFileChange(path, status, committish))
   }
 
   return files

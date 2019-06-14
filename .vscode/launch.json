@@ -10,16 +10,16 @@
       "args": [
         "--silent",
         "--config",
-        "${workspaceFolder}/jest.config.js"
+        "${workspaceFolder}/app/jest.unit.config.js"
       ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "env":{
+      "env": {
         "ELECTRON_RUN_AS_NODE": "1"
       },
       "windows": {
         "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
-      },
+      }
     },
     {
       "type": "node",
@@ -30,17 +30,17 @@
       "args": [
         "--silent",
         "--config",
-        "${workspaceFolder}/jest.config.js",
+        "${workspaceFolder}/app/jest.unit.config.js",
         "${relativeFile}"
       ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "env":{
+      "env": {
         "ELECTRON_RUN_AS_NODE": "1"
       },
       "windows": {
         "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
-      },
-    },
+      }
+    }
   ]
 }

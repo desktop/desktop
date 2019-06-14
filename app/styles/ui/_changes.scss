@@ -1,6 +1,9 @@
 @import 'changes/commit-message';
+@import 'changes/continue-rebase';
 @import 'changes/changes-list';
 @import 'changes/sidebar';
 @import 'changes/undo-commit';
 @import 'changes/changes-view';
 @import 'changes/no-changes';
+@import 'changes/oversized-files-warning';
+@import 'changes/blankslate-action';

@@ -37,7 +37,7 @@ GitHub Desktop recently announced its
 [1.0 release](https://github.com/blog/2437-announcing-github-desktop-1-0) and
 are working towards deprecating the classic Mac and Windows applications.
 
-Beyond that, we are working on a roadmap you can read [here](https://github.com/desktop/desktop/blob/master/docs/process/roadmap.md).
+Beyond that, we are working on a roadmap you can read [here](https://github.com/desktop/desktop/blob/development/docs/process/roadmap.md).
 The immediate milestones are more detailed, and the latter milestones are more
 fuzzy and subject to change.
 
@@ -139,15 +139,15 @@ interested in the issue.
 
 ### Set Up Your Machine
 
-Start [here](https://github.com/desktop/desktop/blob/master/docs/contributing/setup.md).
+Start [here](https://github.com/desktop/desktop/blob/development/docs/contributing/setup.md).
 
 
 ## Process Documentation
 
 These documents are useful resources for contributors  to learn more about the project and how it is run:
 
- - [Teams](https://github.com/desktop/desktop/blob/master/docs/process/teams.md)
- - [Release Planning](https://github.com/desktop/desktop/blob/master/docs/process/release-planning.md)
- - [Issue Triage](https://github.com/desktop/desktop/blob/master/docs/process/issue-triage.md)
- - [Issue and Pull Request Labels](https://github.com/desktop/desktop/blob/master/docs/process/labels.md)
- - [Pull Request Triage](https://github.com/desktop/desktop/blob/master/docs/process/pull-request-triage.md)
+ - [Teams](https://github.com/desktop/desktop/blob/development/docs/process/teams.md)
+ - [Release Planning](https://github.com/desktop/desktop/blob/development/docs/process/release-planning.md)
+ - [Issue Triage](https://github.com/desktop/desktop/blob/development/docs/process/issue-triage.md)
+ - [Issue and Pull Request Labels](https://github.com/desktop/desktop/blob/development/docs/process/labels.md)
+ - [Pull Request Triage](https://github.com/desktop/desktop/blob/development/docs/process/pull-request-triage.md)

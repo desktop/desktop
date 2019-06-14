@@ -9,7 +9,10 @@ import { IPullProgress } from '../../models/progress'
 import { IGitAccount } from '../../models/git-account'
 import { PullProgressParser, executionOptionsWithProgress } from '../progress'
 import { envForAuthentication, AuthenticationErrors } from './authentication'
-import { enableRecurseSubmodulesFlag } from '../feature-flag'
+import {
+  enableRecurseSubmodulesFlag,
+  enablePullWithRebase,
+} from '../feature-flag'
 
 async function getPullArgs(
   repository: Repository,
@@ -19,28 +22,23 @@ async function getPullArgs(
 ) {
   const networkArguments = await gitNetworkArguments(repository, account)
 
-  if (enableRecurseSubmodulesFlag()) {
-    return progressCallback != null
-      ? [
-          ...networkArguments,
-          'pull',
-          '--no-rebase',
-          '--recurse-submodules',
-          '--progress',
-          remote,
-        ]
-      : [
-          ...networkArguments,
-          'pull',
-          '--no-rebase',
-          '--recurse-submodules',
-          remote,
-        ]
-  } else {
-    return progressCallback != null
-      ? [...networkArguments, 'pull', '--no-rebase', '--progress', remote]
-      : [...networkArguments, 'pull', '--no-rebase', remote]
+  const args = [...networkArguments, 'pull']
+
+  if (!enablePullWithRebase()) {
+    args.push('--no-rebase')
   }
+
+  if (enableRecurseSubmodulesFlag()) {
+    args.push('--recurse-submodules')
+  }
+
+  if (progressCallback != null) {
+    args.push('--progress')
+  }
+
+  args.push(remote)
+
+  return args
 }
 
 /**

@@ -23,6 +23,9 @@ interface INoPullRequestsProps {
 
   /** Called when the user wants to create a pull request. */
   readonly onCreatePullRequest: () => void
+
+  /** Are we currently loading pull requests? */
+  readonly isLoadingPullRequests: boolean
 }
 
 /** The placeholder for when there are no open pull requests. */
@@ -40,6 +43,8 @@ export class NoPullRequests extends React.Component<INoPullRequestsProps, {}> {
   private renderTitle() {
     if (this.props.isSearch) {
       return <div className="title">Sorry, I can't find that pull request!</div>
+    } else if (this.props.isLoadingPullRequests) {
+      return <div className="title">Hang tight</div>
     } else {
       return (
         <div>
@@ -53,6 +58,14 @@ export class NoPullRequests extends React.Component<INoPullRequestsProps, {}> {
   }
 
   private renderCallToAction() {
+    if (this.props.isLoadingPullRequests) {
+      return (
+        <div className="call-to-action">
+          Loading pull requests as fast as I can!
+        </div>
+      )
+    }
+
     if (this.props.isOnDefaultBranch) {
       return (
         <div className="call-to-action">

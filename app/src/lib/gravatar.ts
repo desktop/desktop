@@ -35,7 +35,11 @@ export function getAvatarWithEnterpriseFallback(
   email: string | null,
   endpoint: string
 ): string {
-  if (endpoint === getDotComAPIEndpoint() || email === null) {
+  if (
+    endpoint === getDotComAPIEndpoint() ||
+    email === null ||
+    email.length === 0
+  ) {
     return avatar_url
   }
 

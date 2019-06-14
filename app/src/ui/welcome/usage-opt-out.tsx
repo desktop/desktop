@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { WelcomeStep } from './welcome'
 import { LinkButton } from '../lib/link-button'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'

@@ -1,4 +1,9 @@
-import { abortMerge, getMergeBase, getBranches } from '../../../src/lib/git'
+import {
+  abortMerge,
+  getMergeBase,
+  getBranches,
+  merge,
+} from '../../../src/lib/git'
 import {
   setupEmptyRepository,
   setupFixtureRepository,
@@ -8,6 +13,30 @@ import { GitProcess } from 'dugite'
 import { Repository } from '../../../src/models/repository'
 
 describe('git/merge', () => {
+  describe('merge', () => {
+    describe('and is successful', () => {
+      let repository: Repository
+      beforeEach(async () => {
+        const path = await setupFixtureRepository('merge-base-test')
+        repository = new Repository(path, -1, null, false)
+      })
+      it('returns true', async () => {
+        expect(await merge(repository, 'dev')).toBe(true)
+      })
+    })
+    describe('and is a noop', () => {
+      let repository: Repository
+      beforeEach(async () => {
+        const path = await setupFixtureRepository('merge-base-test')
+        repository = new Repository(path, -1, null, false)
+        await merge(repository, 'dev')
+      })
+      it('returns false', async () => {
+        expect(await merge(repository, 'dev')).toBe(false)
+      })
+    })
+  })
+
   describe('getMergeBase', () => {
     it('returns the common ancestor of two branches', async () => {
       const path = await setupFixtureRepository('merge-base-test')
