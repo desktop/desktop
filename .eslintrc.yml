@@ -99,6 +99,7 @@ rules:
     - error
     - global
   no-buffer-constructor: error
+  no-unreachable: error
 
   ###########
   # SPECIAL #
