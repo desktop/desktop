@@ -929,7 +929,7 @@ export class StatsStore implements IStatsStore {
   }
 
   /**
-   * Increments the `rebaseConflictsDialogDismissalCount` metric
+   * Increments the `rebaseConflictsDialogReopenedCount` metric
    */
   public async recordRebaseConflictsDialogReopened(): Promise<void> {
     return this.updateDailyMeasures(m => ({
