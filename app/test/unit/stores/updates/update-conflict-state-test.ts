@@ -282,7 +282,7 @@ describe('updateConflictState', () => {
       expect(statsStore.recordRebaseAbortedAfterConflicts).toHaveBeenCalled()
     })
 
-    it('increments success counter when conflict resolved and tip has changed', () => {
+    it('does not increment aborted counter when conflict resolved and tip has changed', () => {
       const prevState = createState({
         conflictState: {
           kind: 'rebase',
@@ -301,7 +301,9 @@ describe('updateConflictState', () => {
 
       updateConflictState(prevState, status, statsStore)
 
-      expect(statsStore.recordRebaseSuccessAfterConflicts).toHaveBeenCalled()
+      expect(
+        statsStore.recordRebaseAbortedAfterConflicts
+      ).not.toHaveBeenCalled()
     })
   })
 })
