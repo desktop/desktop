@@ -407,12 +407,6 @@ export interface IRepositoryState {
    */
   readonly revertProgress: IRevertProgress | null
 
-  /** The current branch filter text. */
-  readonly branchFilterText: string
-
-  /** The current pull request filter text. */
-  readonly pullRequestFilterText: string
-
   /** Is a renaming operation in progress */
   readonly isRenaming: boolean
 }
