@@ -75,7 +75,7 @@ These are general metrics about feature usage and specific feature behaviors. Th
 | `rebaseConflictsDialogReopenedCount` | The number of times the rebase conflicts dialog is reopened. |To understand how users respond when they encounter rebase conflicts. |
 | `rebaseCurrentBranchMenuCount` | The number of times the `Branch -> Rebase Current Branch` menu item is used. | To understand how often users start a rebase in the app. |
 | `rebaseSuccessAfterConflictsCount` |  The number of times a successful rebase is made in the app after the user resolved conflicts. | To understand whether users are able to complete the rebase conflicts flow. |
-| `rebaseSuccessWithoutConflictsCount` | The number of times a successful rebase is made in the app without the user needing to resolve conflicts. | To understand whether users are able to complete the rebase conflicts flow. |
+| `rebaseSuccessWithoutConflictsCount` | The number of times a successful rebase is made in the app without the user needing to resolve conflicts. | To understand how frequently people are rebasing compared to merging. |
 | `rendererReadyTime` | The time (in milliseconds) it takes from when our renderer process code is first loaded until the renderer `ready` event is emitted. | To make sure new versions of Desktop are not regressing on performance. |
 | `repoWithIndicatorClicked` | The numbers of times a repo with indicators is clicked on repo list view. | To understand usage patterns around the repository indicators feature. |
 | `repoWithoutIndicatorClicked` | The numbers of times a repo without indicators is clicked on repo list view.  | To understand usage patterns around the repository indicators feature. |
