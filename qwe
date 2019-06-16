@@ -1,0 +1,33 @@
+package asdd;
+
+
+
+public class lx2 {
+	  int[] a = new int[5];
+	int i = 0;
+	public static void main(String[] args) {
+		lx2 a = new lx2();
+		a.in(1);
+		a.in(2);
+		a.in(1);
+		a.in(1);
+		a.in(1);
+		System.out.println(a.out());
+		System.out.println(a.out());
+		System.out.println(a.out());
+		System.out.println(a.out());
+		System.out.println(a.out());
+		
+	}
+	public void in(int x){
+		a[i++]=x;
+	}
+	public int out(){
+		int t = a[0];
+		for(int j=1;j<i;j++)
+		{
+			a[j-1]=a[j];
+		}
+		return t;
+	}
+}
