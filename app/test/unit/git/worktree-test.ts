@@ -4,7 +4,10 @@ import * as FSE from 'fs-extra'
 import { GitProcess } from 'dugite'
 
 import { setupEmptyRepository } from '../../helpers/repositories'
-import { listWorktrees } from '../../../src/lib/git/worktree'
+import {
+  listWorktrees,
+  findOrCreateTemporaryWorkTree,
+} from '../../../src/lib/git/worktree'
 import { Repository } from '../../../src/models/repository'
 
 describe('git/worktree', () => {
@@ -102,12 +105,51 @@ describe('git/worktree', () => {
     })
   })
 
-  describe('addWorkTree', () => {
-    it.skip('creates worktree at desired path', () => {})
-  })
-
   describe('findOrCreateTemporaryWorkTree', () => {
-    it.skip('creates worktree at temporary path', () => {})
-    it.skip('subsequent calls return the same result', () => {})
+    let repository: Repository
+    let currentHeadSha: string
+
+    beforeEach(async () => {
+      repository = await setupEmptyRepository()
+      await GitProcess.exec(
+        ['commit', '--allow-empty', '-m', '"first commit!"'],
+        repository.path
+      )
+      await GitProcess.exec(
+        ['commit', '--allow-empty', '-m', '"second commit!"'],
+        repository.path
+      )
+      await GitProcess.exec(
+        ['commit', '--allow-empty', '-m', '"third commit!"'],
+        repository.path
+      )
+
+      const result = await GitProcess.exec(
+        ['rev-parse', 'HEAD'],
+        repository.path
+      )
+      currentHeadSha = result.stdout.trim()
+    })
+
+    it('creates worktree at temporary path', async () => {
+      const workTree = await findOrCreateTemporaryWorkTree(repository, 'HEAD')
+      const tmpDir = Os.tmpdir()
+
+      expect(workTree.head).toBe(currentHeadSha)
+      expect(workTree.path).toContain(tmpDir)
+    })
+
+    it('subsequent calls return the same result', async () => {
+      const firstWorkTree = await findOrCreateTemporaryWorkTree(
+        repository,
+        'HEAD'
+      )
+      const secondWorkTree = await findOrCreateTemporaryWorkTree(
+        repository,
+        'HEAD'
+      )
+
+      expect(firstWorkTree).toEqual(secondWorkTree)
+    })
   })
 })
