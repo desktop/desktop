@@ -550,10 +550,10 @@ form-data@~2.3.2:
     combined-stream "1.0.6"
     mime-types "^2.1.12"
 
-fs-admin@^0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/fs-admin/-/fs-admin-0.3.0.tgz#8045f656f2dc5625a17bb87191c30aeb4b6dc7f5"
-  integrity sha512-ndP+ilYoI0pROAUY7DiWIDw5/Ty9eKpvwyPn9aF9oZjzHRZGAHZumADzyGnvhkHMToWIlpVflmF/rFY+dL+29A==
+fs-admin@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/fs-admin/-/fs-admin-0.3.1.tgz#e4ee88d5cbf1ac6dc36446c9451ff65bbe90cce6"
+  integrity sha512-V1aJK5ajyw+EuypnCglXdf5An9pYgMQ8VAMalLtque63CLlAM0whD+oCcYWrIP4wgqGJ2LSUb3ztnxWqyYuLQQ==
   dependencies:
     nan "^2.12.1"
 
@@ -948,9 +948,9 @@ nan@2.12.1:
   integrity sha512-JY7V6lRkStKcKTvHO5NVSQRv+RV+FIL5pvDoLiAtSL9pKlC5x9PKQcZDsq7m4FO4d57mkhC6Z+QhAh3Jdk5JFw==
 
 nan@^2.12.1:
-  version "2.13.2"
-  resolved "https://registry.yarnpkg.com/nan/-/nan-2.13.2.tgz#f51dc7ae66ba7d5d55e1e6d4d8092e802c9aefe7"
-  integrity sha512-TghvYc72wlMGMVMluVo9WRJc0mB8KxxF/gZ4YYFy7V2ZQX9l7rgbPg7vjS9mt6U5HXODVFVI2bOduCzwOMv/lw==
+  version "2.14.0"
+  resolved "https://registry.yarnpkg.com/nan/-/nan-2.14.0.tgz#7818f722027b2459a86f0295d434d1fc2336c52c"
+  integrity sha512-INOFj37C7k3AfaNTtX8RhsTw7qRy7eLET14cROi9+5HAVbbHuIWUHEauBv5qT4Av2tWasiTY1Jw6puUNqRJXQg==
 
 nan@^2.8.0:
   version "2.8.0"

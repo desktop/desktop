@@ -170,8 +170,11 @@ export interface IDailyMeasures {
   /** The number of times an aborted rebase is detected */
   readonly rebaseAbortedAfterConflictsCount: number
 
-  /** The number of times a successful rebase is detected */
+  /** The number of times a successful rebase after handling conflicts is detected */
   readonly rebaseSuccessAfterConflictsCount: number
+
+  /** The number of times a successful rebase without conflicts is detected */
+  readonly rebaseSuccessWithoutConflictsCount: number
 
   /** The number of times a user performed a pull with `pull.rebase` in config set to `true` */
   readonly pullWithRebaseCount: number

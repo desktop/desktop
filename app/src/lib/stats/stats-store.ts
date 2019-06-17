@@ -89,6 +89,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   rebaseConflictsDialogReopenedCount: 0,
   rebaseAbortedAfterConflictsCount: 0,
   rebaseSuccessAfterConflictsCount: 0,
+  rebaseSuccessWithoutConflictsCount: 0,
   pullWithRebaseCount: 0,
   pullWithDefaultSettingCount: 0,
   stashEntriesCreatedOutsideDesktop: 0,
@@ -928,7 +929,7 @@ export class StatsStore implements IStatsStore {
   }
 
   /**
-   * Increments the `rebaseConflictsDialogDismissalCount` metric
+   * Increments the `rebaseConflictsDialogReopenedCount` metric
    */
   public recordRebaseConflictsDialogReopened(): Promise<void> {
     return this.updateDailyMeasures(m => ({
@@ -951,6 +952,16 @@ export class StatsStore implements IStatsStore {
   public recordPullWithRebaseEnabled() {
     return this.updateDailyMeasures(m => ({
       pullWithRebaseCount: m.pullWithRebaseCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `rebaseSuccessWithoutConflictsCount` metric
+   */
+  public recordRebaseSuccessWithoutConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      rebaseSuccessWithoutConflictsCount:
+        m.rebaseSuccessWithoutConflictsCount + 1,
     }))
   }
 
