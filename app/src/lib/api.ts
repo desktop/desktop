@@ -1078,7 +1078,7 @@ export function getHTMLURL(endpoint: string): string {
   // In the case of GitHub.com, the HTML site lives on the parent domain.
   //  E.g., https://api.github.com -> https://github.com
   //
-  // Whereas with Enterprise, it lives on the same domain but without the
+  // Whereas with Enterprise Server, it lives on the same domain but without the
   // API path:
   //  E.g., https://github.mycompany.com/api/v3 -> https://github.mycompany.com
   //
