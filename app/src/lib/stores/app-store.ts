@@ -216,7 +216,6 @@ import {
 import { BranchPruner } from './helpers/branch-pruner'
 import {
   enableBranchPruning,
-  enablePullWithRebase,
   enableGroupRepositoriesByOwner,
   enableStashing,
   enableBranchProtectionChecks,
@@ -1884,24 +1883,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async _triggerConflictsFlow(repository: Repository) {
-    if (enablePullWithRebase()) {
-      const state = this.repositoryStateCache.get(repository)
-      const { conflictState } = state.changesState
+    const state = this.repositoryStateCache.get(repository)
+    const { conflictState } = state.changesState
 
-      if (conflictState === null) {
-        this.clearConflictsFlowVisuals(state)
-        return
-      }
+    if (conflictState === null) {
+      this.clearConflictsFlowVisuals(state)
+      return
+    }
 
-      if (conflictState.kind === 'merge') {
-        await this.showMergeConflictsDialog(repository, conflictState)
-      } else if (conflictState.kind === 'rebase') {
-        await this.showRebaseConflictsDialog(repository, conflictState)
-      } else {
-        assertNever(conflictState, `Unsupported conflict kind`)
-      }
+    if (conflictState.kind === 'merge') {
+      await this.showMergeConflictsDialog(repository, conflictState)
+    } else if (conflictState.kind === 'rebase') {
+      await this.showRebaseConflictsDialog(repository, conflictState)
     } else {
-      this._triggerMergeConflictsFlow(repository)
+      assertNever(conflictState, `Unsupported conflict kind`)
     }
   }
 

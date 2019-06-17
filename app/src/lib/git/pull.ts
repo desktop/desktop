@@ -9,10 +9,7 @@ import { IPullProgress } from '../../models/progress'
 import { IGitAccount } from '../../models/git-account'
 import { PullProgressParser, executionOptionsWithProgress } from '../progress'
 import { envForAuthentication, AuthenticationErrors } from './authentication'
-import {
-  enableRecurseSubmodulesFlag,
-  enablePullWithRebase,
-} from '../feature-flag'
+import { enableRecurseSubmodulesFlag } from '../feature-flag'
 
 async function getPullArgs(
   repository: Repository,
@@ -23,10 +20,6 @@ async function getPullArgs(
   const networkArguments = await gitNetworkArguments(repository, account)
 
   const args = [...networkArguments, 'pull']
-
-  if (!enablePullWithRebase()) {
-    args.push('--no-rebase')
-  }
 
   if (enableRecurseSubmodulesFlag()) {
     args.push('--recurse-submodules')
