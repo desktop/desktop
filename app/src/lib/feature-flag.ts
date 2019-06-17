@@ -63,11 +63,6 @@ export function enableNoChangesCreatePRBlankslateAction(): boolean {
   return true
 }
 
-/** Should the app detect and handle rebase conflicts when `pull.rebase` is set? */
-export function enablePullWithRebase(): boolean {
-  return true
-}
-
 /**
  *  Enables a new UI for the repository picker that supports
  *  grouping and filtering (GitHub) repositories by owner/organization.
