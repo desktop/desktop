@@ -15,8 +15,14 @@ function getBaseName(path: string): string {
   return baseName
 }
 
+/** The minimal shape required for a repository to be used in Git operations */
+export type OnDiskRepository = {
+  /** The working directory of this repository */
+  readonly path: string
+}
+
 /** A local repository. */
-export class Repository {
+export class Repository implements OnDiskRepository {
   public readonly name: string
 
   /**
