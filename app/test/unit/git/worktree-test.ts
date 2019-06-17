@@ -1,10 +1,14 @@
+import * as Os from 'os'
+import * as Path from 'path'
+import * as FSE from 'fs-extra'
+import { GitProcess } from 'dugite'
+
 import { setupEmptyRepository } from '../../helpers/repositories'
 import { listWorktrees } from '../../../src/lib/git/worktree'
 import { Repository } from '../../../src/models/repository'
-import { GitProcess } from 'dugite'
 
 describe('git/worktree', () => {
-  describe('list', () => {
+  describe('listWorktrees', () => {
     describe('for an unborn repository', () => {
       let repository: Repository
 
@@ -59,6 +63,51 @@ describe('git/worktree', () => {
         const first = result[0]
         expect(first.head).toBe(currentHeadSha)
       })
+
+      describe('after adding a worktree manually', () => {
+        const workTreePrefix = Path.join(
+          Os.tmpdir(),
+          'test-desktop-worktree-path'
+        )
+        let workTreePath: string
+
+        beforeEach(async () => {
+          workTreePath = await FSE.mkdtemp(workTreePrefix)
+          const result = await GitProcess.exec(
+            ['worktree', 'add', '-f', workTreePath, 'HEAD'],
+            repository.path
+          )
+          expect(result.exitCode).toBe(0)
+        })
+
+        afterEach(async () => {
+          await GitProcess.exec(
+            ['worktree', 'remove', '-f', workTreePath],
+            repository.path
+          )
+        })
+
+        it('returns another entry', async () => {
+          const result = await listWorktrees(repository)
+          expect(result).toHaveLength(2)
+        })
+
+        it('points to same commit sha', async () => {
+          const result = await listWorktrees(repository)
+          const first = result[0]
+          const last = result[1]
+          expect(first.head).toBe(last.head)
+        })
+      })
     })
+  })
+
+  describe('addWorkTree', () => {
+    it.skip('creates worktree at desired path', () => {})
+  })
+
+  describe('findOrCreateTemporaryWorkTree', () => {
+    it.skip('creates worktree at temporary path', () => {})
+    it.skip('subsequent calls return the same result', () => {})
   })
 })
