@@ -301,8 +301,9 @@ async function findWSL(): Promise<string | null> {
     )
     return null
   }
-  const exitCode = new Promise<number>(resolve => {
+  const exitCode = new Promise<number>((resolve, reject) => {
     const wslDistros = spawn(wslConfigPath, ['/list'])
+    wslDistros.on('error', reject)
     wslDistros.on('exit', resolve)
   })
   if ((await exitCode) !== 0) {
