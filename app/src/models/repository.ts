@@ -50,6 +50,12 @@ export class Repository implements OnDiskRepository {
   }
 }
 
+/** A minimal shape representing a worktree of a Git repository */
+export type WorkTree = OnDiskRepository & {
+  /** The commit associated with the HEAD of the repository */
+  readonly head: string
+}
+
 /**
  * A snapshot for the local state for a given repository
  */
