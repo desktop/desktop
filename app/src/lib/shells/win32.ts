@@ -293,6 +293,7 @@ async function findWSL(): Promise<string | null> {
   const wslConfigPath = Path.join(system32, 'wslconfig.exe')
 
   if (!(await pathExists(wslPath))) {
+    log.debug(`[WSL] wsl.exe does not exist at '${wslPath}'`)
     return null
   }
   if (!(await pathExists(wslConfigPath))) {
