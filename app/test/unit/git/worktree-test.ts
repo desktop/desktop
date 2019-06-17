@@ -7,8 +7,9 @@ import { setupEmptyRepository } from '../../helpers/repositories'
 import {
   listWorktrees,
   findOrCreateTemporaryWorkTree,
+  cleanupTemporaryWorkTrees,
 } from '../../../src/lib/git/worktree'
-import { Repository } from '../../../src/models/repository'
+import { Repository, WorkTree } from '../../../src/models/repository'
 
 describe('git/worktree', () => {
   describe('listWorktrees', () => {
@@ -150,6 +151,63 @@ describe('git/worktree', () => {
       )
 
       expect(firstWorkTree).toEqual(secondWorkTree)
+    })
+  })
+
+  describe('cleanupTemporaryWorkTrees', () => {
+    let repository: Repository
+    let internalWorkTree: WorkTree
+    let externalWorkTreePath: string
+
+    beforeEach(async () => {
+      repository = await setupEmptyRepository()
+      await GitProcess.exec(
+        ['commit', '--allow-empty', '-m', '"first commit!"'],
+        repository.path
+      )
+      await GitProcess.exec(
+        ['commit', '--allow-empty', '-m', '"second commit!"'],
+        repository.path
+      )
+      await GitProcess.exec(
+        ['commit', '--allow-empty', '-m', '"third commit!"'],
+        repository.path
+      )
+
+      internalWorkTree = await findOrCreateTemporaryWorkTree(repository, 'HEAD')
+
+      const workTreePrefix = Path.join(Os.tmpdir(), 'some-other-worktree-path')
+
+      externalWorkTreePath = await FSE.mkdtemp(workTreePrefix)
+      const result = await GitProcess.exec(
+        ['worktree', 'add', '-f', externalWorkTreePath, 'HEAD'],
+        repository.path
+      )
+      expect(result.exitCode).toBe(0)
+
+      const workTrees = await listWorktrees(repository)
+      expect(workTrees).toHaveLength(3)
+    })
+
+    it('will cleanup temporary worktree', async () => {
+      await cleanupTemporaryWorkTrees(repository)
+
+      const workTrees = await listWorktrees(repository)
+      expect(workTrees).toHaveLength(2)
+    })
+
+    it('internal worktree no longer exists on disk', async () => {
+      await cleanupTemporaryWorkTrees(repository)
+
+      const exists = await FSE.pathExists(internalWorkTree.path)
+      expect(exists).toBe(false)
+    })
+
+    it('worktree created outside Desktop remains', async () => {
+      await cleanupTemporaryWorkTrees(repository)
+
+      const exists = await FSE.pathExists(externalWorkTreePath)
+      expect(exists).toBe(true)
     })
   })
 })
