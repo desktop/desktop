@@ -307,7 +307,7 @@ async function findWSL(): Promise<string | null> {
   })
   if ((await exitCode) !== 0) {
     log.debug(
-      `[WSL] found wsl.exe and wslconfig.exe, but no distros are installed`
+      `[WSL] found wsl.exe and wslconfig.exe, but no distros are installed. Error Code: ${exitCode}`
     )
     return null
   }
