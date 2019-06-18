@@ -216,6 +216,7 @@ import {
   enableGroupRepositoriesByOwner,
   enableStashing,
   enableBranchProtectionChecks,
+  enableBranchProtectionWarningFlow,
 } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import * as moment from 'moment'
@@ -623,7 +624,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  private onGitStoreUpdated(repository: Repository, gitStore: GitStore) {
+  private async onGitStoreUpdated(repository: Repository, gitStore: GitStore) {
     const prevRepositoryState = this.repositoryStateCache.get(repository)
 
     this.repositoryStateCache.updateBranchesState(repository, state => {
@@ -703,6 +704,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
         stashEntry,
       }
     })
+
+    if (enableBranchProtectionWarningFlow()) {
+      if (
+        gitStore.tip.kind === TipState.Valid &&
+        repository.gitHubRepository !== null
+      ) {
+        const branchName = findRemoteBranchName(
+          gitStore.tip,
+          gitStore.currentRemote,
+          repository.gitHubRepository
+        )
+
+        if (branchName !== null) {
+          const currentBranchProtected = await this.repositoriesStore.isBranchProtectedOnRemote(
+            repository.gitHubRepository,
+            branchName
+          )
+          this.repositoryStateCache.updateChangesState(repository, () => ({
+            currentBranchProtected,
+          }))
+        }
+      }
+    }
 
     this.repositoryStateCache.update(repository, () => ({
       commitLookup: gitStore.commitLookup,
