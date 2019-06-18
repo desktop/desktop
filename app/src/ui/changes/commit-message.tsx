@@ -24,6 +24,7 @@ import { IMenuItem } from '../../lib/menu-item'
 import { ICommitContext } from '../../models/commit'
 import { startTimer } from '../lib/timing'
 import { ProtectedBranchWarning } from './protected-branch-warning'
+import { enableBranchProtectionWarningFlow } from '../../lib/feature-flag'
 
 const addAuthorIcon = new OcticonSymbol(
   12,
@@ -442,6 +443,10 @@ export class CommitMessage extends React.Component<
   }
 
   private renderProtectedBranchWarning = (branch: string) => {
+    if (!enableBranchProtectionWarningFlow()) {
+      return null
+    }
+
     const { currentBranchProtected } = this.props
 
     if (!currentBranchProtected) {
