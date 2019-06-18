@@ -416,6 +416,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           changesListScrollTop={this.props.changesListScrollTop}
           stashEntry={this.props.changes.stashEntry}
           isShowingStashEntry={isShowingStashEntry}
+          currentBranchProtected={true}
         />
         {this.renderUndoCommit(rebaseConflictState)}
       </div>

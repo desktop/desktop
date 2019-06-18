@@ -38,6 +38,7 @@ import { enablePullWithRebase, enableStashing } from '../../lib/feature-flag'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { IStashEntry } from '../../models/stash-entry'
 import * as classNames from 'classnames'
+import { ProtectedBranchWarning } from './protected-branch-warning'
 
 const RowHeight = 29
 const StashIcon = new OcticonSymbol(
@@ -125,6 +126,7 @@ interface IChangesListProps {
   readonly dispatcher: Dispatcher
   readonly availableWidth: number
   readonly isCommitting: boolean
+  readonly currentBranchProtected: boolean
 
   /**
    * Click event handler passed directly to the onRowClick prop of List, see
@@ -560,6 +562,7 @@ export class ChangesList extends React.Component<
       repository,
       dispatcher,
       isCommitting,
+      currentBranchProtected,
     } = this.props
 
     if (rebaseConflictState !== null && enablePullWithRebase()) {
@@ -577,6 +580,10 @@ export class ChangesList extends React.Component<
           hasUntrackedChanges={hasUntrackedChanges}
         />
       )
+    }
+
+    if (currentBranchProtected && this.props.branch !== null) {
+      return <ProtectedBranchWarning currentBranch={this.props.branch} />
     }
 
     const fileCount = workingDirectory.files.length
