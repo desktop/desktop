@@ -577,6 +577,9 @@ export interface IChangesState {
    * for more information about the differences between the two.
    */
   readonly selection: ChangesSelection
+
+  /** `true` if the GitHub API reports that the branch is protected */
+  readonly currentBranchProtected: boolean
 }
 
 /**
