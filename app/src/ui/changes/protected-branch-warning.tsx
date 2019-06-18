@@ -1,8 +1,11 @@
 import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { LinkButton } from '../lib/link-button'
+import { Dispatcher } from '../dispatcher'
+import { FoldoutType } from '../../lib/app-state'
 
 interface IProtectedBranchWarningProps {
+  readonly dispatcher: Dispatcher
   readonly currentBranch: string
 }
 
@@ -10,7 +13,7 @@ export class ProtectedBranchWarning extends React.Component<
   IProtectedBranchWarningProps
 > {
   private onSwitchBranch = () => {
-    // TODO: wire up event handler to fire and move to a new branch
+    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
   }
 
   public render() {

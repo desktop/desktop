@@ -447,13 +447,15 @@ export class CommitMessage extends React.Component<
       return null
     }
 
-    const { currentBranchProtected } = this.props
+    const { currentBranchProtected, dispatcher } = this.props
 
     if (!currentBranchProtected) {
       return null
     }
 
-    return <ProtectedBranchWarning currentBranch={branch} />
+    return (
+      <ProtectedBranchWarning currentBranch={branch} dispatcher={dispatcher} />
+    )
   }
 
   public render() {
