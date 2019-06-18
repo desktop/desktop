@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Button } from '../lib/button'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { LinkButton } from '../lib/link-button'
 
 interface IProtectedBranchWarningProps {
   readonly currentBranch: string
@@ -9,6 +10,10 @@ interface IProtectedBranchWarningProps {
 export class ProtectedBranchWarning extends React.Component<
   IProtectedBranchWarningProps
 > {
+  private onSwitchBranch = () => {
+    // TODO: wire up event handler to fire and move to a new branch
+  }
+
   public render() {
     return (
       <div id="protected-branch">
@@ -20,12 +25,16 @@ export class ProtectedBranchWarning extends React.Component<
         </div>
 
         <div className="warning-message">
-          You can't commit to <strong>{this.props.currentBranch}</strong>{' '}
-          because it's a protected branch.
+          <strong>{this.props.currentBranch}</strong> is a protected branch.
+          Want to{' '}
+          <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>
+          ?
         </div>
 
-        <Button type="submit" className="commit-button" disabled={true}>
-          <span>Switch branch...</span>
+        <Button type="submit" className="commit-button">
+          <span>
+            Commit to <strong>{this.props.currentBranch}</strong> anyway...
+          </span>
         </Button>
       </div>
     )
