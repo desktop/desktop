@@ -94,3 +94,15 @@ export function enableStashing(): boolean {
 export function enableBranchProtectionChecks(): boolean {
   return true
 }
+
+/**
+ * Should the application warn the user when they are about to commit to a
+ * protected branch, and encourage them into a flow to move their changes to
+ * a new branch?
+ *
+ * As this builds upon existing branch protection features in the codebase, this
+ * flag is linked to to `enableBranchProtectionChecks()`.
+ */
+export function enableBranchProtectionWarningFlow(): boolean {
+  return enableBranchProtectionChecks() && enableDevelopmentFeatures()
+}
