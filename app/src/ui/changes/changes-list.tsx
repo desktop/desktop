@@ -38,7 +38,6 @@ import { enablePullWithRebase, enableStashing } from '../../lib/feature-flag'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { IStashEntry } from '../../models/stash-entry'
 import * as classNames from 'classnames'
-import { ProtectedBranchWarning } from './protected-branch-warning'
 
 const RowHeight = 29
 const StashIcon = new OcticonSymbol(
@@ -582,10 +581,6 @@ export class ChangesList extends React.Component<
       )
     }
 
-    if (currentBranchProtected && this.props.branch !== null) {
-      return <ProtectedBranchWarning currentBranch={this.props.branch} />
-    }
-
     const fileCount = workingDirectory.files.length
 
     const includeAllValue = getIncludeAllValue(
@@ -622,6 +617,7 @@ export class ChangesList extends React.Component<
         )}
         singleFileCommit={singleFileCommit}
         key={repository.id}
+        currentBranchProtected={currentBranchProtected}
       />
     )
   }

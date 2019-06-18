@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { Button } from '../lib/button'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { LinkButton } from '../lib/link-button'
 
@@ -30,12 +29,6 @@ export class ProtectedBranchWarning extends React.Component<
           <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>
           ?
         </div>
-
-        <Button type="submit" className="commit-button">
-          <span>
-            Commit to <strong>{this.props.currentBranch}</strong> anyway...
-          </span>
-        </Button>
       </div>
     )
   }
