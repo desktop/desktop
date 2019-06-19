@@ -2929,7 +2929,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
-    const repo = await this._checkoutBranch(repository, branch)
+    const repo = await this._checkoutBranch(
+      repository,
+      branch,
+      uncommittedChangesStrategy
+    )
     this._closePopup()
     return repo
   }
