@@ -9,6 +9,8 @@ import {
   IMergedBranch,
   formatAsLocalRef,
   deleteLocalBranch,
+  getBranches,
+  getRemotes,
 } from '../../git'
 import { fatalError } from '../../fatal-error'
 import { RepositoryStateCache } from '../repository-state-cache'
@@ -127,7 +129,8 @@ export class BranchPruner {
   private async pruneLocalBranches(
     options: PruneRuntimeOptions
   ): Promise<void> {
-    if (this.repository.gitHubRepository === null) {
+    const { gitHubRepository } = this.repository
+    if (gitHubRepository === null) {
       return
     }
 
@@ -190,8 +193,24 @@ export class BranchPruner {
       mb => !ReservedRefs.includes(mb.canonicalRef)
     )
 
+    // get the local remote ref name for the github repository attached to this repo
+    const defaultRemoteRefName = (await getRemotes(this.repository)).find(
+      r =>
+        r.url === gitHubRepository.cloneURL ||
+        r.url === gitHubRepository.cloneURL
+    )
+
+    // get the locally cached branches of remotes (ie `remotes/origin/master`)
+    const remoteBranches = (await getBranches(
+      this.repository,
+      `refs/remotes/${defaultRemoteRefName}`
+    )).map(b => formatAsLocalRef(b.name))
+
     const branchesReadyForPruning = candidateBranches.filter(
-      mb => !recentlyCheckedOutCanonicalRefs.has(mb.canonicalRef)
+      candidate =>
+        !recentlyCheckedOutCanonicalRefs.has(candidate.canonicalRef) &&
+        !remoteBranches.includes(candidate.canonicalRef)
+      // do i need to have the upstream of the merged branch to make this check?
     )
 
     log.info(
