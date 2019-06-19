@@ -580,6 +580,12 @@ export interface IChangesState {
 
   /** `true` if the GitHub API reports that the branch is protected */
   readonly currentBranchProtected: boolean
+
+  /**
+   * A flag to indicate the user clicked the "switch branch" link when they
+   * saw the prompt about the current branch being protected.
+   */
+  readonly userWantsToMoveChangesFromProtectedBranch: boolean
 }
 
 /**

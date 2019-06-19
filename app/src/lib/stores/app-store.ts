@@ -2839,8 +2839,34 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    if (
+      this.selectedRepository !== null &&
+      this.selectedRepository instanceof Repository
+    ) {
+      log.warn(
+        `[AppStore._closeFoldout] clearing flag for userWantsToMoveChangesFromProtectedBranch`
+      )
+      this.repositoryStateCache.updateChangesState(
+        this.selectedRepository,
+        () => ({
+          userWantsToMoveChangesFromProtectedBranch: false,
+        })
+      )
+    }
+
     this.currentFoldout = null
     this.emitUpdate()
+  }
+
+  public _moveChangesToAnotherBranch(repository: Repository) {
+    log.warn(
+      `[AppStore._moveChangesToAnotherBranch] setting flag for userWantsToMoveChangesFromProtectedBranch`
+    )
+    this.repositoryStateCache.updateChangesState(repository, () => ({
+      userWantsToMoveChangesFromProtectedBranch: true,
+    }))
+
+    return this._showFoldout({ type: FoldoutType.Branch })
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

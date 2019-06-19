@@ -402,6 +402,16 @@ export class Dispatcher {
   }
 
   /**
+   * Start the flow to move the changes to another branch
+   *
+   * This just launches the branch foldout to keep things simple, but we need to
+   * track some internal state here as well to use in future steps.
+   */
+  public moveChangesToAnotherBranch(repository: Repository) {
+    return this.appStore._moveChangesToAnotherBranch(repository)
+  }
+
+  /**
    * Create a new branch from the given starting point and check it out.
    *
    * If the startPoint argument is omitted the new branch will be created based

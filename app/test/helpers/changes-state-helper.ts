@@ -20,6 +20,7 @@ export function createState<K extends keyof IChangesState>(
     conflictState: null,
     stashEntry: null,
     currentBranchProtected: false,
+    userWantsToMoveChangesFromProtectedBranch: false,
   }
 
   return merge(baseChangesState, pick)
