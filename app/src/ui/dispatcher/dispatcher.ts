@@ -313,9 +313,17 @@ export class Dispatcher {
     return this.appStore._closeCurrentFoldout()
   }
 
-  /** Close the specified foldout. */
-  public closeFoldout(foldout: FoldoutType): Promise<void> {
-    return this.appStore._closeFoldout(foldout)
+  /**
+   * Close the specified foldout
+   *
+   * @param foldout the type of foldout to close
+   * @param preserveProtectedBranchFlag ensure the "Protected Branch" flow is not cleared (if set)
+   */
+  public closeFoldout(
+    foldout: FoldoutType,
+    preserveProtectedBranchFlag: boolean = false
+  ): Promise<void> {
+    return this.appStore._closeFoldout(foldout, preserveProtectedBranchFlag)
   }
 
   /** Initialize and start the rebase operation */

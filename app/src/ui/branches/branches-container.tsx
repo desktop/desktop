@@ -232,7 +232,7 @@ export class BranchesContainer extends React.Component<
   }
 
   private onBranchItemClick = (branch: Branch) => {
-    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+    this.props.dispatcher.closeFoldout(FoldoutType.Branch, true)
 
     const currentBranch = this.props.currentBranch
 
@@ -257,7 +257,7 @@ export class BranchesContainer extends React.Component<
   }
 
   private onCreateBranchWithName = (name: string) => {
-    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+    this.props.dispatcher.closeFoldout(FoldoutType.Branch, true)
     this.props.dispatcher.showPopup({
       type: PopupType.CreateBranch,
       repository: this.props.repository,

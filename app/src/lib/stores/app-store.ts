@@ -2809,6 +2809,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    if (
+      this.selectedRepository !== null &&
+      this.selectedRepository instanceof Repository
+    ) {
+      log.warn(
+        `[AppStore._closePopup] clearing flag for userWantsToMoveChangesFromProtectedBranch`
+      )
+      this.repositoryStateCache.updateChangesState(
+        this.selectedRepository,
+        () => ({
+          userWantsToMoveChangesFromProtectedBranch: false,
+        })
+      )
+    }
+
     this.currentPopup = null
     this.emitUpdate()
   }
@@ -2830,7 +2845,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _closeFoldout(foldout: FoldoutType): Promise<void> {
+  public async _closeFoldout(
+    foldout: FoldoutType,
+    preserveProtectedBranchFlag: boolean = false
+  ): Promise<void> {
     if (this.currentFoldout == null) {
       return
     }
@@ -2840,6 +2858,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (
+      !preserveProtectedBranchFlag &&
       this.selectedRepository !== null &&
       this.selectedRepository instanceof Repository
     ) {
@@ -2888,6 +2907,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { changesState, branchesState } = this.repositoryStateCache.get(
       repository
     )
+
+    log.warn(
+      `[AppStore._createBranch] userWantsToMoveChangesFromProtectedBranch is currently ${
+        changesState.userWantsToMoveChangesFromProtectedBranch
+      }`
+    )
+
+    if (changesState.userWantsToMoveChangesFromProtectedBranch) {
+      // if we find this flag set as a result of the Protected Branch flow
+      // we should bypass any sort of "Switch Branch" flow to get out of the
+      // user's way
+      uncommittedChangesStrategy = {
+        kind: UncommittedChangesStrategyKind.MoveToNewBranch,
+        transientStashEntry: null,
+      }
+
+      // TODO: clear the `userWantsToMoveChangesFromProtectedBranch` state
+    }
+
     const { tip } = branchesState
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
     const hasChanges = changesState.workingDirectory.files.length > 0
@@ -2956,6 +2994,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { changesState, branchesState } = this.repositoryStateCache.get(
       repository
     )
+
+    log.warn(
+      `[AppStore._checkoutBranch] userWantsToMoveChangesFromProtectedBranch is currently ${
+        changesState.userWantsToMoveChangesFromProtectedBranch
+      }`
+    )
+
+    if (changesState.userWantsToMoveChangesFromProtectedBranch) {
+      // if we find this flag set as a result of the Protected Branch flow
+      // we should bypass any sort of "Switch Branch" flow to get out of the
+      // user's way
+      uncommittedChangesStrategy = {
+        kind: UncommittedChangesStrategyKind.MoveToNewBranch,
+        transientStashEntry: null,
+      }
+
+      // TODO: clear the `userWantsToMoveChangesFromProtectedBranch` state
+    }
 
     let stashToPop: IStashEntry | null = null
     if (enableStashing()) {
