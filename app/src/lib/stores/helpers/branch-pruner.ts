@@ -196,13 +196,12 @@ export class BranchPruner {
       `refs/remotes/`
     )).map(b => formatAsLocalRef(b.name))
 
-    const branchesReadyForPruning = candidateBranches.filter(
-      ref =>
-        !recentlyCheckedOutCanonicalRefs.has(ref) &&
-        !remoteBranches.includes(
-          getUpstreamRefForLocalBranchRef(ref, allBranches) || ''
-        )
-    )
+    const branchesReadyForPruning = candidateBranches.filter(ref => {
+      if (recentlyCheckedOutCanonicalRefs.has(ref)) {return false}
+      const upstream = getUpstreamRefForLocalBranchRef(ref, allBranches)
+      if (upstream === undefined) {return false}
+      return !remoteBranches.includes(upstream)
+    })
 
     log.info(
       `[BranchPruner] Pruning ${
