@@ -664,6 +664,19 @@ export class ChangesList extends React.Component<
     )
   }
 
+  private onRowKeyDown = (
+    _row: number,
+    event: React.KeyboardEvent<HTMLDivElement>
+  ) => {
+    // The commit is already in-flight but this check prevents the
+    // user from changing selection.
+    if (this.props.isCommitting) {
+      event.preventDefault()
+    }
+
+    return
+  }
+
   public render() {
     const fileCount = this.props.workingDirectory.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
@@ -700,6 +713,7 @@ export class ChangesList extends React.Component<
           onRowClick={this.props.onRowClick}
           onScroll={this.onScroll}
           setScrollTop={this.props.changesListScrollTop}
+          onRowKeyDown={this.onRowKeyDown}
         />
         {this.renderStashedChanges()}
         {this.renderCommitMessageForm()}
