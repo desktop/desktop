@@ -705,29 +705,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     })
 
-    if (enableBranchProtectionWarningFlow()) {
-      if (
-        gitStore.tip.kind === TipState.Valid &&
-        repository.gitHubRepository !== null
-      ) {
-        const branchName = findRemoteBranchName(
-          gitStore.tip,
-          gitStore.currentRemote,
-          repository.gitHubRepository
-        )
-
-        if (branchName !== null) {
-          const currentBranchProtected = await this.repositoriesStore.isBranchProtectedOnRemote(
-            repository.gitHubRepository,
-            branchName
-          )
-          this.repositoryStateCache.updateChangesState(repository, () => ({
-            currentBranchProtected,
-          }))
-        }
-      }
-    }
-
     this.repositoryStateCache.update(repository, () => ({
       commitLookup: gitStore.commitLookup,
       localCommitSHAs: gitStore.localCommitSHAs,
@@ -735,6 +712,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       remote: gitStore.currentRemote,
       lastFetched: gitStore.lastFetched,
     }))
+
+    await this.refreshCurrentBranchProtections(repository)
 
     // _selectWorkingDirectoryFiles and _selectStashedFile will
     // emit updates by themselves.
@@ -744,6 +723,35 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this._selectStashedFile(repository)
     } else {
       this.emitUpdate()
+    }
+  }
+
+  private async refreshCurrentBranchProtections(repository: Repository) {
+    if (!enableBranchProtectionWarningFlow()) {
+      return
+    }
+
+    const gitStore = this.gitStoreCache.get(repository)
+
+    if (
+      gitStore.tip.kind === TipState.Valid &&
+      repository.gitHubRepository !== null
+    ) {
+      const branchName = findRemoteBranchName(
+        gitStore.tip,
+        gitStore.currentRemote,
+        repository.gitHubRepository
+      )
+
+      if (branchName !== null) {
+        const currentBranchProtected = await this.repositoriesStore.isBranchProtectedOnRemote(
+          repository.gitHubRepository,
+          branchName
+        )
+        this.repositoryStateCache.updateChangesState(repository, () => ({
+          currentBranchProtected,
+        }))
+      }
     }
   }
 
@@ -3411,6 +3419,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             })
 
             await this._refreshRepository(repository)
+            await this.refreshCurrentBranchProtections(repository)
 
             this.updatePushPullFetchProgress(repository, {
               kind: 'generic',
