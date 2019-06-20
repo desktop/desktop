@@ -713,8 +713,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       lastFetched: gitStore.lastFetched,
     }))
 
-    await this.refreshBranchProtectionState(repository)
-
     // _selectWorkingDirectoryFiles and _selectStashedFile will
     // emit updates by themselves.
     if (selectWorkingDirectory) {
@@ -2599,6 +2597,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       gitStore.updateLastFetched(),
       gitStore.loadStashEntries(),
       this.refreshAuthor(repository),
+      this.refreshBranchProtectionState(repository),
       refreshSectionPromise,
     ])
 
