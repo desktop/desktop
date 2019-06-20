@@ -731,6 +731,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    await this.updateBranchProtections(repository)
+
     const gitStore = this.gitStoreCache.get(repository)
 
     if (
