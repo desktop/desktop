@@ -3447,13 +3447,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
               value: refreshStartProgress,
             })
 
-            await this._refreshRepository(repository)
-
             // manually refresh branch protections after the push, to ensure
             // any new branch will immediately report as protected
-
             await this.updateBranchProtectionsFromAPI(repository)
-            await this.refreshBranchProtectionState(repository)
+
+            await this._refreshRepository(repository)
 
             this.updatePushPullFetchProgress(repository, {
               kind: 'generic',
@@ -3644,6 +3642,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
           if (mergeBase) {
             await gitStore.reconcileHistory(mergeBase)
           }
+
+          // manually refresh branch protections after the push, to ensure
+          // any new branch will immediately report as protected
+          await this.updateBranchProtectionsFromAPI(repository)
 
           await this._refreshRepository(repository)
 
@@ -3942,6 +3944,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
           title: refreshTitle,
           value: fetchWeight,
         })
+
+        // manually refresh branch protections after the push, to ensure
+        // any new branch will immediately report as protected
+        await this.updateBranchProtectionsFromAPI(repository)
 
         await this._refreshRepository(repository)
 
