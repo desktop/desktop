@@ -155,6 +155,12 @@ export class BranchPruner {
       return
     }
 
+    // update the last prune date first thing after we check it!
+    await this.repositoriesStore.updateLastPruneDate(
+      this.repository,
+      Date.now()
+    )
+
     // Get list of branches that have been merged
     const { branchesState } = this.repositoriesStateCache.get(this.repository)
     const { defaultBranch } = branchesState
@@ -226,11 +232,6 @@ export class BranchPruner {
         log.info(`[BranchPruner] Branch '${branchName}' marked for deletion`)
       }
     }
-
-    await this.repositoriesStore.updateLastPruneDate(
-      this.repository,
-      Date.now()
-    )
     this.onPruneCompleted(this.repository)
   }
 }
