@@ -17,9 +17,18 @@ export class ProtectedBranchWarning extends React.Component<
     this.props.dispatcher.moveChangesToAnotherBranch(this.props.repository)
   }
 
+  private ignoreContextMenu = (event: React.MouseEvent<any>) => {
+    // this prevents the context menu for the root element of CommitMessage from
+    // firing - it shows 'Add Co-Authors' or 'Remove Co-Authors' based on the
+    // form state, and for now I'm going to leave that behaviour as-is
+
+    // feel free to remove this if that behaviouris revisited
+    event.preventDefault()
+  }
+
   public render() {
     return (
-      <div id="protected-branch">
+      <div id="protected-branch" onContextMenu={this.ignoreContextMenu}>
         <div className="protected-branch-icon-container">
           <Octicon
             className="protected-branch-icon"
