@@ -513,6 +513,10 @@ export class ChangesList extends React.Component<
     file: WorkingDirectoryFileChange,
     event: React.MouseEvent<HTMLDivElement>
   ) => {
+    if (this.props.isCommitting) {
+      return
+    }
+
     event.preventDefault()
 
     const items =
