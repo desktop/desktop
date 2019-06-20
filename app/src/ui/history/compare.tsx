@@ -401,11 +401,11 @@ export class CompareSidebar extends React.Component<
         event.preventDefault()
         return
       }
-      if (this.state.focusedBranch == null) {
+      const branch = this.state.focusedBranch
+
+      if (branch == null) {
         this.viewHistoryForBranch()
       } else {
-        const branch = this.state.focusedBranch
-
         this.props.dispatcher.executeCompare(this.props.repository, {
           kind: HistoryTabMode.Compare,
           comparisonMode: ComparisonMode.Behind,
