@@ -6,11 +6,9 @@ import {
   getMergedBranches,
   getBranchCheckouts,
   getSymbolicRef,
-  IMergedBranch,
   formatAsLocalRef,
   deleteLocalBranch,
   getBranches,
-  getRemotes,
 } from '../../git'
 import { fatalError } from '../../fatal-error'
 import { RepositoryStateCache } from '../repository-state-cache'
@@ -98,10 +96,11 @@ export class BranchPruner {
     })
   }
 
+  /** @returns a list of canonical refs */
   private async findBranchesMergedIntoDefaultBranch(
     repository: Repository,
     defaultBranch: Branch
-  ): Promise<ReadonlyArray<IMergedBranch>> {
+  ): Promise<ReadonlyArray<string>> {
     const gitStore = this.gitStoreCache.get(repository)
     const mergedBranches = await gitStore.performFailableOperation(() =>
       getMergedBranches(repository, defaultBranch.name)
@@ -116,9 +115,7 @@ export class BranchPruner {
     // remove the current branch
     return currentBranchCanonicalRef === null
       ? mergedBranches
-      : mergedBranches.filter(
-          mb => mb.canonicalRef !== currentBranchCanonicalRef
-        )
+      : mergedBranches.filter(ref => ref !== currentBranchCanonicalRef)
   }
 
   /**
@@ -160,7 +157,7 @@ export class BranchPruner {
 
     // Get list of branches that have been merged
     const { branchesState } = this.repositoriesStateCache.get(this.repository)
-    const { defaultBranch } = branchesState
+    const { defaultBranch, allBranches } = branchesState
 
     if (defaultBranch === null) {
       return
@@ -190,27 +187,21 @@ export class BranchPruner {
 
     // Create array of branches that can be pruned
     const candidateBranches = mergedBranches.filter(
-      mb => !ReservedRefs.includes(mb.canonicalRef)
-    )
-
-    // get the local remote ref name for the github repository attached to this repo
-    const defaultRemoteRefName = (await getRemotes(this.repository)).find(
-      r =>
-        r.url === gitHubRepository.cloneURL ||
-        r.url === gitHubRepository.cloneURL
+      ref => !ReservedRefs.includes(ref)
     )
 
     // get the locally cached branches of remotes (ie `remotes/origin/master`)
     const remoteBranches = (await getBranches(
       this.repository,
-      `refs/remotes/${defaultRemoteRefName}`
+      `refs/remotes/`
     )).map(b => formatAsLocalRef(b.name))
 
     const branchesReadyForPruning = candidateBranches.filter(
-      candidate =>
-        !recentlyCheckedOutCanonicalRefs.has(candidate.canonicalRef) &&
-        !remoteBranches.includes(candidate.canonicalRef)
-      // do i need to have the upstream of the merged branch to make this check?
+      ref =>
+        !recentlyCheckedOutCanonicalRefs.has(ref) &&
+        !remoteBranches.includes(
+          getUpstreamRefForLocalBranchRef(ref, allBranches) || ''
+        )
     )
 
     log.info(
@@ -224,12 +215,12 @@ export class BranchPruner {
     const gitStore = this.gitStoreCache.get(this.repository)
     const branchRefPrefix = `refs/heads/`
 
-    for (const branch of branchesReadyForPruning) {
-      if (!branch.canonicalRef.startsWith(branchRefPrefix)) {
+    for (const branchCanonicalRef of branchesReadyForPruning) {
+      if (!branchCanonicalRef.startsWith(branchRefPrefix)) {
         continue
       }
 
-      const branchName = branch.canonicalRef.substr(branchRefPrefix.length)
+      const branchName = branchCanonicalRef.substr(branchRefPrefix.length)
 
       if (options.deleteBranch) {
         const isDeleted = await gitStore.performFailableOperation(() =>
@@ -238,7 +229,7 @@ export class BranchPruner {
 
         if (isDeleted) {
           log.info(
-            `[BranchPruner] Pruned branch ${branchName} (was ${branch.sha})`
+            `[BranchPruner] Pruned branch ${branchName} (was ${branchCanonicalRef})`
           )
         }
       } else {
@@ -252,4 +243,19 @@ export class BranchPruner {
     )
     this.onPruneCompleted(this.repository)
   }
+}
+
+function getUpstreamRefForLocalBranchRef(
+  ref: string,
+  allBranches: ReadonlyArray<Branch>
+): string | undefined {
+  const branch = allBranches.find(b => formatAsLocalRef(b.name) === ref)
+  if (branch === undefined) {
+    return undefined
+  }
+  const { upstream } = branch
+  if (upstream === null) {
+    return undefined
+  }
+  return formatAsLocalRef(upstream)
 }
