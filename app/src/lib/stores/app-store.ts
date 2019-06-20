@@ -713,7 +713,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       lastFetched: gitStore.lastFetched,
     }))
 
-    await this.refreshCurrentBranchProtections(repository)
+    await this.refreshBranchProtectionState(repository)
 
     // _selectWorkingDirectoryFiles and _selectStashedFile will
     // emit updates by themselves.
@@ -726,12 +726,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  private async refreshCurrentBranchProtections(repository: Repository) {
+  private async refreshBranchProtectionState(repository: Repository) {
     if (!enableBranchProtectionWarningFlow()) {
       return
     }
-
-    await this.updateBranchProtections(repository)
 
     const gitStore = this.gitStoreCache.get(repository)
 
@@ -3216,12 +3214,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       apiRepo
     )
 
-    await this.updateBranchProtections(repository)
+    await this.updateBranchProtectionsFromAPI(repository)
 
     return updatedRepository
   }
 
-  private async updateBranchProtections(repository: Repository) {
+  private async updateBranchProtectionsFromAPI(repository: Repository) {
     if (
       repository.gitHubRepository === null ||
       repository.gitHubRepository.dbID === null
@@ -3246,7 +3244,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       ? await api.fetchProtectedBranches(owner.login, name)
       : new Array<IAPIBranch>()
 
-    return this.repositoriesStore.updateBranchProtections(
+    await this.repositoriesStore.updateBranchProtections(
       repository.gitHubRepository,
       branches
     )
@@ -3451,7 +3449,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
             })
 
             await this._refreshRepository(repository)
-            await this.refreshCurrentBranchProtections(repository)
+
+            // manually refresh branch protections after the push, to ensure
+            // any new branch will immediately report as protected
+
+            await this.updateBranchProtectionsFromAPI(repository)
+            await this.refreshBranchProtectionState(repository)
 
             this.updatePushPullFetchProgress(repository, {
               kind: 'generic',
