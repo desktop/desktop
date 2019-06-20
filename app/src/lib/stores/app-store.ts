@@ -3220,6 +3220,37 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
   }
 
+  private async updateBranchProtections(repository: Repository) {
+    if (
+      repository.gitHubRepository === null ||
+      repository.gitHubRepository.dbID === null
+    ) {
+      return
+    }
+
+    const { owner, name } = repository.gitHubRepository
+
+    const account = getAccountForEndpoint(
+      this.accounts,
+      repository.gitHubRepository.endpoint
+    )
+
+    if (account === null) {
+      return
+    }
+
+    const api = API.fromAccount(account)
+
+    const branches = enableBranchProtectionChecks()
+      ? await api.fetchProtectedBranches(owner.login, name)
+      : new Array<IAPIBranch>()
+
+    return this.repositoriesStore.updateBranchProtections(
+      repository.gitHubRepository,
+      branches
+    )
+  }
+
   private async matchGitHubRepository(
     repository: Repository
   ): Promise<IMatchedGitHubRepository | null> {
