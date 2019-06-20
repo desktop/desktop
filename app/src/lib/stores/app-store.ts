@@ -3209,17 +3209,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
-    const branches = enableBranchProtectionChecks()
-      ? await api.fetchProtectedBranches(owner, name)
-      : new Array<IAPIBranch>()
-
     const endpoint = matchedGitHubRepository.endpoint
-    return this.repositoriesStore.updateGitHubRepository(
+    const updatedRepository = this.repositoriesStore.updateGitHubRepository(
       repository,
       endpoint,
-      apiRepo,
-      branches
+      apiRepo
     )
+
+    await this.updateBranchProtections(repository)
+
+    return updatedRepository
   }
 
   private async updateBranchProtections(repository: Repository) {
