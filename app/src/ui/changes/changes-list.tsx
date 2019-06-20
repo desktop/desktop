@@ -316,7 +316,7 @@ export class ChangesList extends React.Component<
     event.preventDefault()
 
     // need to preserve the working directory state while dealing with conflicts
-    if (this.props.rebaseConflictState !== null) {
+    if (this.props.rebaseConflictState !== null || this.props.isCommitting) {
       return
     }
 
