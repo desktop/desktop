@@ -670,7 +670,10 @@ export class ChangesList extends React.Component<
   ) => {
     // The commit is already in-flight but this check prevents the
     // user from changing selection.
-    if (event.key === 'Enter' || event.key === ' ') {
+    if (
+      this.props.isCommitting &&
+      (event.key === 'Enter' || event.key === ' ')
+    ) {
       event.preventDefault()
     }
 
