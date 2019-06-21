@@ -89,6 +89,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   rebaseConflictsDialogReopenedCount: 0,
   rebaseAbortedAfterConflictsCount: 0,
   rebaseSuccessAfterConflictsCount: 0,
+  rebaseSuccessWithoutConflictsCount: 0,
   pullWithRebaseCount: 0,
   pullWithDefaultSettingCount: 0,
   stashEntriesCreatedOutsideDesktop: 0,
@@ -170,7 +171,7 @@ interface IOnboardingStats {
    * Time (in seconds) from when the user first launched
    * the application and entered the welcome wizard until
    * the user performed their first push of a repository
-   * to GitHub.com or GitHub Enterprise. This metric
+   * to GitHub.com or GitHub Enterprise Server. This metric
    * does not track pushes to non-GitHub remotes.
    */
   readonly timeToFirstGitHubPush?: number
@@ -252,7 +253,7 @@ interface ICalculatedStats {
   /** Is the user logged in with a GitHub.com account? */
   readonly dotComAccount: boolean
 
-  /** Is the user logged in with an Enterprise account? */
+  /** Is the user logged in with an Enterprise Server account? */
   readonly enterpriseAccount: boolean
 
   /**
@@ -667,8 +668,8 @@ export class StatsStore implements IStatsStore {
   /**
    * Records that the user made a commit using an email address that
    * was not associated with the user's account on GitHub.com or GitHub
-   * Enterprise, meaning that the commit will not be attributed to the user's
-   * account.
+   * Enterprise Server, meaning that the commit will not be attributed to the
+   * user's account.
    */
   public recordUnattributedCommit(): Promise<void> {
     return this.updateDailyMeasures(m => ({
@@ -678,7 +679,7 @@ export class StatsStore implements IStatsStore {
 
   /**
    * Records that the user made a commit to a repository hosted on
-   * a GitHub Enterprise instance
+   * a GitHub Enterprise Server instance
    */
   public recordCommitToEnterprise(): Promise<void> {
     return this.updateDailyMeasures(m => ({
@@ -693,7 +694,7 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  /** Record the user made a commit to a protected GitHub or GitHub Enterprise repository */
+  /** Record the user made a commit to a protected GitHub or GitHub Enterprise Server repository */
   public recordCommitToProtectedBranch(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       commitsToProtectedBranch: m.commitsToProtectedBranch + 1,
@@ -800,7 +801,7 @@ export class StatsStore implements IStatsStore {
     createLocalStorageTimestamp(FirstPushToGitHubAtKey)
   }
 
-  /** Record that the user pushed to a GitHub Enterprise instance */
+  /** Record that the user pushed to a GitHub Enterprise Server instance */
   private async recordPushToGitHubEnterprise(
     options?: PushOptions
   ): Promise<void> {
@@ -928,7 +929,7 @@ export class StatsStore implements IStatsStore {
   }
 
   /**
-   * Increments the `rebaseConflictsDialogDismissalCount` metric
+   * Increments the `rebaseConflictsDialogReopenedCount` metric
    */
   public recordRebaseConflictsDialogReopened(): Promise<void> {
     return this.updateDailyMeasures(m => ({
@@ -951,6 +952,16 @@ export class StatsStore implements IStatsStore {
   public recordPullWithRebaseEnabled() {
     return this.updateDailyMeasures(m => ({
       pullWithRebaseCount: m.pullWithRebaseCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `rebaseSuccessWithoutConflictsCount` metric
+   */
+  public recordRebaseSuccessWithoutConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      rebaseSuccessWithoutConflictsCount:
+        m.rebaseSuccessWithoutConflictsCount + 1,
     }))
   }
 
