@@ -307,13 +307,20 @@ async function findWSL(): Promise<string | null> {
     wslDistros.on('error', reject)
     wslDistros.on('exit', resolve)
   })
-  if ((await exitCode) !== 0) {
-    log.debug(
-      `[WSL] found wsl.exe and wslconfig.exe, but no distros are installed. Error Code: ${exitCode}`
-    )
-    return null
+
+  try {
+    const result = await exitCode
+    if (result !== 0) {
+      log.debug(
+        `[WSL] found wsl.exe and wslconfig.exe, but no distros are installed. Error Code: ${result}`
+      )
+      return null
+    }
+    return wslPath
+  } catch (err) {
+    log.error(`[WSL] unhandled error when invoking 'wsl /list'`, err)
   }
-  return wslPath
+  return null
 }
 
 export function launch(
