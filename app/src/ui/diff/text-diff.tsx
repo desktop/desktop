@@ -133,18 +133,27 @@ function showSearch(cm: Editor) {
   cm.execCommand('findPersistent')
   const wrapper = cm.getWrapperElement()
 
-  if (wrapper) {
-    const searchLabel = wrapper.querySelector('.CodeMirror-search-label')
-    const searchField = wrapper.querySelector('.CodeMirror-search-field')
+  if (!wrapper) {
+    return
+  }
 
-    if (
-      searchLabel instanceof HTMLElement &&
-      searchField instanceof HTMLInputElement
-    ) {
-      searchLabel.style.display = 'none'
-      searchField.placeholder = 'Search'
-      searchField.style.width = null
-    }
+  const dialog = wrapper.querySelector('.CodeMirror-dialog')
+
+  if (!dialog) {
+    return
+  }
+
+  dialog.classList.add('CodeMirror-search-dialog')
+  const searchLabel = dialog.querySelector('.CodeMirror-search-label')
+  const searchField = dialog.querySelector('.CodeMirror-search-field')
+
+  if (
+    searchLabel instanceof HTMLElement &&
+    searchField instanceof HTMLInputElement
+  ) {
+    searchLabel.style.display = 'none'
+    searchField.placeholder = 'Search'
+    searchField.style.width = null
   }
 }
 
