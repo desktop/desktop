@@ -10,7 +10,7 @@ import { Repository } from '../../models/repository'
 import { fatalError } from '../fatal-error'
 import { IAPIRepository, IAPIBranch } from '../api'
 import { BaseStore } from './base-store'
-import { enableBranchProtectionWarning } from '../feature-flag'
+import { enableBranchProtectionChecks } from '../feature-flag'
 
 /** The store for local repositories. */
 export class RepositoriesStore extends BaseStore {
@@ -415,7 +415,7 @@ export class RepositoriesStore extends BaseStore {
           gitHubRepositoryID: updatedGitHubRepo.dbID,
         })
 
-        if (enableBranchProtectionWarning()) {
+        if (enableBranchProtectionChecks()) {
           const repoId = updatedGitHubRepo.dbID!
 
           // This update flow is organized into two stages:
