@@ -96,26 +96,28 @@ export class BranchPruner {
     })
   }
 
-  /** @returns a list of canonical refs */
+  /** @returns a map of canonical refs to their shas */
   private async findBranchesMergedIntoDefaultBranch(
     repository: Repository,
     defaultBranch: Branch
-  ): Promise<ReadonlyArray<string>> {
+  ): Promise<ReadonlyMap<string, string>> {
     const gitStore = this.gitStoreCache.get(repository)
     const mergedBranches = await gitStore.performFailableOperation(() =>
       getMergedBranches(repository, defaultBranch.name)
     )
 
     if (mergedBranches === undefined) {
-      return []
+      return new Map<string, string>()
     }
 
     const currentBranchCanonicalRef = await getSymbolicRef(repository, 'HEAD')
 
     // remove the current branch
-    return currentBranchCanonicalRef === null
-      ? mergedBranches
-      : mergedBranches.filter(ref => ref !== currentBranchCanonicalRef)
+    if (currentBranchCanonicalRef) {
+      mergedBranches.delete(currentBranchCanonicalRef)
+    }
+
+    return mergedBranches
   }
 
   /**
@@ -174,7 +176,7 @@ export class BranchPruner {
       defaultBranch
     )
 
-    if (mergedBranches.length === 0) {
+    if (mergedBranches.size === 0) {
       log.info('[BranchPruner] No branches to prune.')
       return
     }
@@ -191,27 +193,28 @@ export class BranchPruner {
       [...recentlyCheckedOutBranches.keys()].map(formatAsLocalRef)
     )
 
-    // Create array of branches that can be pruned
-    const candidateBranches = mergedBranches.filter(
-      ref => !ReservedRefs.includes(ref)
-    )
-
     // get the locally cached branches of remotes (ie `remotes/origin/master`)
     const remoteBranches = (await getBranches(
       this.repository,
       `refs/remotes/`
     )).map(b => formatAsLocalRef(b.name))
 
-    const branchesReadyForPruning = candidateBranches.filter(ref => {
-      if (recentlyCheckedOutCanonicalRefs.has(ref)) {
-        return false
+    // create list of branches to be pruned
+    const branchesReadyForPruning = Array.from(mergedBranches.keys()).filter(
+      ref => {
+        if (ReservedRefs.includes(ref)) {
+          return false
+        }
+        if (recentlyCheckedOutCanonicalRefs.has(ref)) {
+          return false
+        }
+        const upstreamRef = getUpstreamRefForLocalBranchRef(ref, allBranches)
+        if (upstreamRef === undefined) {
+          return false
+        }
+        return !remoteBranches.includes(upstreamRef)
       }
-      const upstreamRef = getUpstreamRefForLocalBranchRef(ref, allBranches)
-      if (upstreamRef === undefined) {
-        return false
-      }
-      return !remoteBranches.includes(upstreamRef)
-    })
+    )
 
     log.info(
       `[BranchPruner] Pruning ${
@@ -238,7 +241,9 @@ export class BranchPruner {
 
         if (isDeleted) {
           log.info(
-            `[BranchPruner] Pruned branch ${branchName} (was ${branchCanonicalRef})`
+            `[BranchPruner] Pruned branch ${branchName} ((was ${mergedBranches.get(
+              branchCanonicalRef
+            )}))`
           )
         }
       } else {
