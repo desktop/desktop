@@ -624,7 +624,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  private async onGitStoreUpdated(repository: Repository, gitStore: GitStore) {
+  private onGitStoreUpdated(repository: Repository, gitStore: GitStore) {
     const prevRepositoryState = this.repositoryStateCache.get(repository)
 
     this.repositoryStateCache.updateBranchesState(repository, state => {
