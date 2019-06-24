@@ -43,7 +43,8 @@ interface IBranchesContainerProps {
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
 
-  readonly handleProtectedBranchWarning: boolean
+  /** Was this component launched from the "Protected Branch" warning message? */
+  readonly handleProtectedBranchWarning?: boolean
 }
 
 interface IBranchesContainerState {

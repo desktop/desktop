@@ -2869,7 +2869,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { changesState, branchesState } = this.repositoryStateCache.get(
       repository
     )
-
     const { tip } = branchesState
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
     const hasChanges = changesState.workingDirectory.files.length > 0
@@ -3149,7 +3148,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const endpoint = matchedGitHubRepository.endpoint
-    const updatedRepository = this.repositoriesStore.updateGitHubRepository(
+    const updatedRepository = await this.repositoriesStore.updateGitHubRepository(
       repository,
       endpoint,
       apiRepo

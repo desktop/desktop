@@ -1363,9 +1363,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
             initialName={popup.initialName || ''}
-            handleProtectedBranchWarning={
-              popup.handleProtectedBranchWarning || false
-            }
+            handleProtectedBranchWarning={popup.handleProtectedBranchWarning}
           />
         )
       }
@@ -2157,12 +2155,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     const currentFoldout = this.state.currentFoldout
 
     let isOpen = false
-    let handleProtectedBranchWarning = false
+    let handleProtectedBranchWarning: boolean | undefined
 
     if (currentFoldout !== null && currentFoldout.type === FoldoutType.Branch) {
       isOpen = true
-      handleProtectedBranchWarning =
-        currentFoldout.handleProtectedBranchWarning || false
+      handleProtectedBranchWarning = currentFoldout.handleProtectedBranchWarning
     }
 
     const repository = selection.repository

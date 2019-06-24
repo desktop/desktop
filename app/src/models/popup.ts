@@ -88,6 +88,7 @@ export type Popup =
        * saw the prompt about the current branch being protected.
        */
       handleProtectedBranchWarning?: boolean
+
       initialName?: string
     }
   | { type: PopupType.SignIn }
