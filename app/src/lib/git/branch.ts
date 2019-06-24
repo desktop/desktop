@@ -172,12 +172,12 @@ export async function getBranchesPointedAt(
  *
  * @param repository The repository in which to search
  * @param branchName The to be used as the base branch
- * @returns list of each branch's canonical ref
+ * @returns map of branch canonical refs paired to its sha
  */
 export async function getMergedBranches(
   repository: Repository,
   branchName: string
-): Promise<ReadonlyArray<string>> {
+): Promise<Map<string, string>> {
   const canonicalBranchRef = formatAsLocalRef(branchName)
 
   const args = [
@@ -192,7 +192,7 @@ export async function getMergedBranches(
 
   // Remove the trailing newline
   lines.splice(-1, 1)
-  const mergedBranches = new Array<string>()
+  const mergedBranches = new Map<string, string>()
 
   for (const line of lines) {
     const [sha, canonicalRef] = line.split('\0')
@@ -207,7 +207,7 @@ export async function getMergedBranches(
       continue
     }
 
-    mergedBranches.push(canonicalRef)
+    mergedBranches.set(canonicalRef, sha)
   }
 
   return mergedBranches
