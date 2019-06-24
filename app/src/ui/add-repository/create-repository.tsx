@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Path from 'path'
 import * as FSE from 'fs-extra'
 
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import {
   initGitRepository,
   createCommit,
@@ -158,7 +158,8 @@ export class CreateRepository extends React.Component<
   }
 
   private showFilePicker = async () => {
-    const directory: string[] | null = remote.dialog.showOpenDialog({
+    const window = remote.getCurrentWindow()
+    const directory: string[] | null = remote.dialog.showOpenDialog(window, {
       properties: ['createDirectory', 'openDirectory'],
     })
 
@@ -232,7 +233,11 @@ export class CreateRepository extends React.Component<
 
     if (this.state.createWithReadme) {
       try {
-        await writeDefaultReadme(fullPath, this.state.name)
+        await writeDefaultReadme(
+          fullPath,
+          this.state.name,
+          this.state.description
+        )
       } catch (e) {
         log.error(`createRepository: unable to write README at ${fullPath}`, e)
         this.props.dispatcher.postError(e)

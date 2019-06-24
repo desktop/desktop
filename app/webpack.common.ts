@@ -88,6 +88,10 @@ export const renderer = merge({}, commonConfig, {
         test: /\.(jpe?g|png|gif|ico)$/,
         use: ['file?name=[path][name].[ext]'],
       },
+      {
+        test: /\.cmd$/,
+        loader: 'file-loader',
+      },
     ],
   },
   plugins: [

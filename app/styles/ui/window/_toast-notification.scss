@@ -27,12 +27,8 @@
   }
 
   kbd {
-    border-radius: var(--border-radius);
-    border: var(--base-border);
-    display: inline-block;
-    font-family: var(--font-family-monospace);
     padding: var(--spacing-half);
-    line-height: 1;
+    border-color: $gray-300;
   }
 }
 

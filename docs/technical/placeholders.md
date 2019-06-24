@@ -4,7 +4,7 @@ As GitHub Desktop uses Webpack to transpile, minify and merge our code
 into unified scripts for each configuration we define, we use some tricks
 to manage complexity and enable some optimizations.
 
-For example, you might come across this code in [`app-window.ts`](https://github.com/desktop/desktop/blob/master/app/src/main-process/app-window.ts):
+For example, you might come across this code in [`app-window.ts`](https://github.com/desktop/desktop/blob/development/app/src/main-process/app-window.ts):
 
 ```ts
 if (__DARWIN__) {
@@ -29,7 +29,7 @@ we get significant benefits from doing it the first way.
 
 ### Replacements
 
-The replacements defined for Desktop are found in [`app/app-info.ts`](https://github.com/desktop/desktop/blob/master/app/app-info.ts)
+The replacements defined for Desktop are found in [`app/app-info.ts`](https://github.com/desktop/desktop/blob/development/app/app-info.ts)
 as a hash of key-value pairs.
 
 ```ts
@@ -102,7 +102,7 @@ JavaScript is interpreted and executed at runtime.
 ### Placeholders
 
 As we are working in TypeScript, we need to define these placeholders as
-globals under [`app/src/lib/globals.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/globals.d.ts)
+globals under [`app/src/lib/globals.ts`](https://github.com/desktop/desktop/blob/development/app/src/lib/globals.d.ts)
 to provide the appropriate type information to the source code.
 
 For example, the values for `__DARWIN__` and `__WIN32__` are declared as

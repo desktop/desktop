@@ -1,144 +1,80 @@
 import { PullRequestStore } from '../pull-request-store'
 import { Account } from '../../../models/account'
-import { fatalError, forceUnwrap } from '../../fatal-error'
-import { PullRequest } from '../../../models/pull-request'
-import { Repository } from '../../../models/repository'
+import { GitHubRepository } from '../../../models/github-repository'
 
-//** Interval to check for pull requests */
-const PullRequestInterval = 1000 * 60 * 10
-
-//** Interval to check for pull request statuses */
-const StatusInterval = 1000 * 60 * 10
-
-//** Interval to check for pull request statuses after commits have been pushed */
-const PostPushInterval = 1000 * 60
-
-enum TimeoutHandles {
-  PullRequest = 'PullRequestHandle',
-  Status = 'StatusHandle',
-  PushedPullRequest = 'PushedPullRequestHandle',
-}
+/** Check for new or updated pull requests every 30 minutes */
+const PullRequestInterval = 30 * 60 * 1000
 
 /**
- * Acts as a service for downloading the latest pull request
- * and status info from GitHub.
+ * Never check for new or updated pull requests more
+ * frequently than every 2 minutes
+ */
+const MaxPullRequestRefreshFrequency = 2 * 60 * 1000
+
+/**
+ * Periodically requests a refresh of the list of open pull requests
+ * for a particular GitHub repository. The intention is for the
+ * updater to only run when the app is in focus. When the updater
+ * is started (in other words when the app is focused) it will
+ * refresh the list of open pull requests as soon as possible while
+ * ensuring that we never update more frequently than the value
+ * indicated by the `MaxPullRequestRefreshFrequency` variable.
  */
 export class PullRequestUpdater {
-  private readonly repository: Repository
-  private readonly account: Account
-  private readonly store: PullRequestStore
-
-  private readonly timeoutHandles = new Map<TimeoutHandles, number>()
-  private isStopped: boolean = true
-
-  private currentPullRequests: ReadonlyArray<PullRequest> = []
+  private timeoutId: number | null = null
+  private running = false
 
   public constructor(
-    repository: Repository,
-    account: Account,
-    pullRequestStore: PullRequestStore
-  ) {
-    this.repository = repository
-    this.account = account
-    this.store = pullRequestStore
-  }
+    private readonly repository: GitHubRepository,
+    private readonly account: Account,
+    private readonly store: PullRequestStore
+  ) {}
 
   /** Starts the updater */
   public start() {
-    const githubRepo = forceUnwrap(
-      'Can only refresh pull requests for GitHub repositories',
-      this.repository.gitHubRepository
-    )
+    if (!this.running) {
+      this.running = true
+      this.scheduleTick(MaxPullRequestRefreshFrequency)
+    }
+  }
 
-    if (!this.isStopped) {
-      fatalError(
-        'Cannot start the Pull Request Updater that is already running.'
-      )
+  private getTimeSinceLastRefresh() {
+    const lastRefreshed = this.store.getLastRefreshed(this.repository)
+    const timeSince =
+      lastRefreshed === undefined ? Infinity : Date.now() - lastRefreshed
+    return timeSince
+  }
 
+  private scheduleTick(timeout: number = PullRequestInterval) {
+    if (this.running) {
+      const due = Math.max(timeout - this.getTimeSinceLastRefresh(), 0)
+      this.timeoutId = window.setTimeout(() => this.tick(), due)
+    }
+  }
+
+  private tick() {
+    if (!this.running) {
       return
     }
 
-    this.timeoutHandles.set(
-      TimeoutHandles.PullRequest,
+    this.timeoutId = null
+    if (this.getTimeSinceLastRefresh() < MaxPullRequestRefreshFrequency) {
+      this.scheduleTick()
+    }
 
-      window.setTimeout(() => {
-        this.store.fetchAndCachePullRequests(this.repository, this.account)
-      }, PullRequestInterval)
-    )
-
-    this.timeoutHandles.set(
-      TimeoutHandles.Status,
-      window.setTimeout(() => {
-        this.store.fetchPullRequestStatuses(githubRepo, this.account)
-      }, StatusInterval)
-    )
+    this.store
+      .refreshPullRequests(this.repository, this.account)
+      .catch(() => {})
+      .then(() => this.scheduleTick())
   }
 
   public stop() {
-    this.isStopped = true
-
-    for (const timeoutHandle of this.timeoutHandles.values()) {
-      window.clearTimeout(timeoutHandle)
-    }
-
-    this.timeoutHandles.clear()
-  }
-
-  /** Starts fetching the statuses of PRs at an accelerated rate */
-  public didPushPullRequest(pullRequest: PullRequest) {
-    if (this.currentPullRequests.find(p => p.id === pullRequest.id)) {
-      return
-    }
-
-    this.currentPullRequests = [...this.currentPullRequests, pullRequest]
-
-    const pushedPRHandle = this.timeoutHandles.get(
-      TimeoutHandles.PushedPullRequest
-    )
-    if (pushedPRHandle) {
-      return
-    }
-
-    const handle = window.setTimeout(
-      () => this.refreshPullRequestStatus(),
-      PostPushInterval
-    )
-    this.timeoutHandles.set(TimeoutHandles.PushedPullRequest, handle)
-  }
-
-  private async refreshPullRequestStatus() {
-    const githubRepo = forceUnwrap(
-      'Can only refresh pull requests for GitHub repositories',
-      this.repository.gitHubRepository
-    )
-
-    await this.store.fetchPullRequestStatuses(githubRepo, this.account)
-    const prs = await this.store.fetchPullRequestsFromCache(githubRepo)
-
-    for (const pr of prs) {
-      const status = pr.status
-      if (!status) {
-        continue
+    if (this.running) {
+      if (this.timeoutId !== null) {
+        window.clearTimeout(this.timeoutId)
+        this.timeoutId = null
       }
-
-      if (
-        !status.totalCount ||
-        status.state === 'success' ||
-        status.state === 'failure'
-      ) {
-        this.currentPullRequests = this.currentPullRequests.filter(
-          p => p.pullRequestNumber !== status.pullRequestNumber
-        )
-      }
-    }
-
-    if (!this.currentPullRequests.length) {
-      const handle = this.timeoutHandles.get(TimeoutHandles.PushedPullRequest)
-
-      if (handle) {
-        window.clearTimeout(handle)
-        this.timeoutHandles.delete(TimeoutHandles.PushedPullRequest)
-      }
+      this.running = false
     }
   }
 }

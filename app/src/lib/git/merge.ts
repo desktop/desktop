@@ -5,7 +5,8 @@ import { git } from './core'
 import { GitError } from 'dugite'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
-import { MergeResult, MergeResultKind } from '../../models/merge'
+import { MergeResult } from '../../models/merge'
+import { ComputedAction } from '../../models/computed-action'
 import { parseMergeResult } from '../merge-tree-parser'
 import { spawnAndComplete } from './spawn'
 
@@ -14,11 +15,23 @@ export async function merge(
   repository: Repository,
   branch: string
 ): Promise<boolean> {
-  const result = await git(['merge', branch], repository.path, 'merge', {
-    expectedErrors: new Set([GitError.MergeConflicts]),
-  })
-  return result.exitCode === 0
+  const { exitCode, stdout } = await git(
+    ['merge', branch],
+    repository.path,
+    'merge',
+    {
+      expectedErrors: new Set([GitError.MergeConflicts]),
+    }
+  )
+
+  if (exitCode === 0 && stdout !== noopMergeMessage) {
+    return true
+  } else {
+    return false
+  }
 }
+
+const noopMergeMessage = 'Already up to date.\n'
 
 /**
  * Find the base commit between two commit-ish identifiers
@@ -65,11 +78,11 @@ export async function mergeTree(
   const mergeBase = await getMergeBase(repository, ours.tip.sha, theirs.tip.sha)
 
   if (mergeBase === null) {
-    return { kind: MergeResultKind.Invalid }
+    return { kind: ComputedAction.Invalid }
   }
 
   if (mergeBase === ours.tip.sha || mergeBase === theirs.tip.sha) {
-    return { kind: MergeResultKind.Clean, entries: [] }
+    return { kind: ComputedAction.Clean, entries: [] }
   }
 
   const result = await spawnAndComplete(
@@ -82,7 +95,7 @@ export async function mergeTree(
 
   if (output.length === 0) {
     // the merge commit will be empty - this is fine!
-    return { kind: MergeResultKind.Clean, entries: [] }
+    return { kind: ComputedAction.Clean, entries: [] }
   }
 
   return parseMergeResult(output)

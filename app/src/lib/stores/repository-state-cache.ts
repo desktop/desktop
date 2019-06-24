@@ -16,10 +16,13 @@ import {
   IRepositoryState,
   RepositorySectionTab,
   ICommitSelection,
+  IRebaseState,
+  ChangesSelectionKind,
 } from '../app-state'
 import { ComparisonCache } from '../comparison-cache'
 import { IGitHubUser } from '../databases'
 import { merge } from '../merge'
+import { DefaultCommitMessage } from '../../models/commit-message'
 
 export class RepositoryStateCache {
   private readonly repositoryState = new Map<string, IRepositoryState>()
@@ -96,6 +99,17 @@ export class RepositoryStateCache {
       return { branchesState: newState }
     })
   }
+
+  public updateRebaseState<K extends keyof IRebaseState>(
+    repository: Repository,
+    fn: (branchesState: IRebaseState) => Pick<IRebaseState, K>
+  ) {
+    this.update(repository, state => {
+      const { rebaseState } = state
+      const newState = merge(rebaseState, fn(rebaseState))
+      return { rebaseState: newState }
+    })
+  }
 }
 
 function getInitialRepositoryState(): IRepositoryState {
@@ -110,12 +124,16 @@ function getInitialRepositoryState(): IRepositoryState {
       workingDirectory: WorkingDirectoryStatus.fromFiles(
         new Array<WorkingDirectoryFileChange>()
       ),
-      selectedFileIDs: [],
-      diff: null,
-      commitMessage: null,
+      selection: {
+        kind: ChangesSelectionKind.WorkingDirectory,
+        selectedFileIDs: [],
+        diff: null,
+      },
+      commitMessage: DefaultCommitMessage,
       coAuthors: [],
       showCoAuthoredBy: false,
       conflictState: null,
+      stashEntry: null,
     },
     selectedSection: RepositorySectionTab.Changes,
     branchesState: {
@@ -126,6 +144,7 @@ function getInitialRepositoryState(): IRepositoryState {
       openPullRequests: new Array<PullRequest>(),
       currentPullRequest: null,
       isLoadingPullRequests: false,
+      rebasedBranches: new Map<string, string>(),
     },
     compareState: {
       isDivergingBranchBannerVisible: false,
@@ -143,6 +162,12 @@ function getInitialRepositoryState(): IRepositoryState {
       defaultBranch: null,
       inferredComparisonBranch: { branch: null, aheadBehind: null },
     },
+    rebaseState: {
+      step: null,
+      progress: null,
+      commits: null,
+      userHasResolvedConflicts: false,
+    },
     commitAuthor: null,
     gitHubUsers: new Map<string, IGitHubUser>(),
     commitLookup: new Map<string, Commit>(),
@@ -155,7 +180,5 @@ function getInitialRepositoryState(): IRepositoryState {
     checkoutProgress: null,
     pushPullFetchProgress: null,
     revertProgress: null,
-    branchFilterText: '',
-    pullRequestFilterText: '',
   }
 }

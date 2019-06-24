@@ -18,6 +18,20 @@ export interface IDatabaseGitHubRepository {
 
   /** The database ID of the parent repository if the repository is a fork. */
   readonly parentID: number | null
+
+  /** The last time a prune was attempted on the repository */
+  readonly lastPruneDate: number | null
+}
+
+/** A record to track the protected branch information for a GitHub repository */
+export interface IDatabaseProtectedBranch {
+  readonly repoId: number
+  /**
+   * The branch name associated with the branch protection settings
+   *
+   * NOTE: this is NOT a fully-qualified ref (i.e. `refs/heads/master`)
+   */
+  readonly name: string
 }
 
 export interface IDatabaseRepository {
@@ -25,7 +39,16 @@ export interface IDatabaseRepository {
   readonly gitHubRepositoryID: number | null
   readonly path: string
   readonly missing: boolean
+
+  /** The last time the stash entries were checked for the repository */
+  readonly lastStashCheckDate: number | null
 }
+
+/**
+ * Branches are keyed on the ID of the GitHubRepository that they belong to
+ * and the short name of the branch.
+ */
+type BranchKey = [number, string]
 
 /** The repositories database. */
 export class RepositoriesDatabase extends BaseDatabase {
@@ -34,6 +57,9 @@ export class RepositoriesDatabase extends BaseDatabase {
 
   /** The GitHub repositories table. */
   public gitHubRepositories!: Dexie.Table<IDatabaseGitHubRepository, number>
+
+  /** A table containing the names of protected branches per repository. */
+  public protectedBranches!: Dexie.Table<IDatabaseProtectedBranch, BranchKey>
 
   /** The GitHub repository owners table. */
   public owners!: Dexie.Table<IDatabaseOwner, number>
@@ -70,6 +96,10 @@ export class RepositoriesDatabase extends BaseDatabase {
 
     this.conditionalVersion(5, {
       gitHubRepositories: '++id, name, &[ownerID+name], cloneURL',
+    })
+
+    this.conditionalVersion(6, {
+      protectedBranches: '[repoId+name], repoId',
     })
   }
 }

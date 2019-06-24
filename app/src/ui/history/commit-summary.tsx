@@ -292,7 +292,7 @@ export class CommitSummary extends React.Component<
     const fileCount = this.props.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
-    const shortSHA = this.props.commit.sha.slice(0, 7)
+    const shortSHA = this.props.commit.shortSha
 
     const className = classNames({
       expanded: this.props.isExpanded,

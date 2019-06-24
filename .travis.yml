@@ -22,7 +22,8 @@ addons:
 
 branches:
   only:
-    - master
+    - development
+    - /releases\/.+/
     - /^__release-.*/
 
 language: node_js
@@ -33,7 +34,6 @@ cache:
   yarn: true
   timeout: 600
   directories:
-    - node_modules
     - $HOME/.electron
     - .eslintcache
     - $HOME/.cache/electron-builder
@@ -42,8 +42,12 @@ install:
   - yarn install --force
 
 script:
-  - yarn lint && yarn validate-changelog && yarn build:prod && yarn test:setup
-    && yarn test && yarn test:report
+  - yarn lint && yarn validate-changelog && yarn check-modified && yarn
+    build:prod && yarn test:setup && yarn test
+
+after_success:
+  - yarn test:report
 
 after_failure:
+  - yarn test:report
   - yarn test:review

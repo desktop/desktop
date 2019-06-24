@@ -2,10 +2,10 @@ import { Repository } from '../../../src/models/repository'
 import { getChangedFiles, getCommits } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../helpers/repositories'
 import { AppFileStatusKind } from '../../../src/models/status'
-import { GitProcess } from 'dugite'
+import { setupLocalConfig } from '../../helpers/local-config'
 
 describe('git/log', () => {
-  let repository: Repository | null = null
+  let repository: Repository
 
   beforeEach(async () => {
     const testRepoPath = await setupFixtureRepository('test-repo')
@@ -14,12 +14,13 @@ describe('git/log', () => {
 
   describe('getCommits', () => {
     it('loads history', async () => {
-      const commits = await getCommits(repository!, 'HEAD', 100)
+      const commits = await getCommits(repository, 'HEAD', 100)
       expect(commits).toHaveLength(5)
 
       const firstCommit = commits[commits.length - 1]
       expect(firstCommit.summary).toBe('first')
       expect(firstCommit.sha).toBe('7cd6640e5b6ca8dbfd0b33d0281ebe702127079c')
+      expect(firstCommit.shortSha).toBe('7cd6640')
     })
 
     it('handles repository with HEAD file on disk', async () => {
@@ -33,23 +34,23 @@ describe('git/log', () => {
       const path = await setupFixtureRepository('just-doing-some-signing')
       const repository = new Repository(path, 1, null, false)
 
-      // ensure the test repository is configured to detect copies
-      await GitProcess.exec(
-        ['config', 'log.showSignature', 'true'],
-        repository.path
-      )
+      // ensure the default config is to try and show signatures
+      // this should be overriden by the `getCommits` function as it may not
+      // have a valid GPG agent configured
+      await setupLocalConfig(repository, [['log.showSignature', 'true']])
 
       const commits = await getCommits(repository, 'HEAD', 100)
 
       expect(commits).toHaveLength(1)
       expect(commits[0].sha).toBe('415e4987158c49c383ce7114e0ef00ebf4b070c1')
+      expect(commits[0].shortSha).toBe('415e498')
     })
   })
 
   describe('getChangedFiles', () => {
     it('loads the files changed in the commit', async () => {
       const files = await getChangedFiles(
-        repository!,
+        repository,
         '7cd6640e5b6ca8dbfd0b33d0281ebe702127079c'
       )
       expect(files).toHaveLength(1)
@@ -89,10 +90,7 @@ describe('git/log', () => {
       repository = new Repository(testRepoPath, -1, null, false)
 
       // ensure the test repository is configured to detect copies
-      await GitProcess.exec(
-        ['config', 'diff.renames', 'copies'],
-        repository.path
-      )
+      await setupLocalConfig(repository, [['diff.renames', 'copies']])
 
       const files = await getChangedFiles(repository, 'a500bf415')
       expect(files).toHaveLength(2)
@@ -111,7 +109,7 @@ describe('git/log', () => {
     })
 
     it('handles commit when HEAD exists on disk', async () => {
-      const files = await getChangedFiles(repository!, 'HEAD')
+      const files = await getChangedFiles(repository, 'HEAD')
       expect(files).toHaveLength(1)
       expect(files[0].path).toBe('README.md')
       expect(files[0].status.kind).toBe(AppFileStatusKind.Modified)

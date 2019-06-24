@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { IAutocompletionProvider } from './index'
 import { IssuesStore } from '../../lib/stores'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { GitHubRepository } from '../../models/github-repository'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 

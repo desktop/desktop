@@ -22,6 +22,7 @@ import {
   getWorkingDirectoryDiff,
   getWorkingDirectoryImage,
   getBlobImage,
+  getBinaryPaths,
 } from '../../../src/lib/git'
 import { getStatusOrThrow } from '../../helpers/status'
 
@@ -37,7 +38,7 @@ async function getTextDiff(
 }
 
 describe('git/diff', () => {
-  let repository: Repository | null = null
+  let repository: Repository
 
   beforeEach(async () => {
     const testRepoPath = await setupFixtureRepository('repo-with-image-changes')
@@ -54,7 +55,7 @@ describe('git/diff', () => {
         { kind: AppFileStatusKind.New },
         diffSelection
       )
-      const current = await getWorkingDirectoryImage(repository!, file)
+      const current = await getWorkingDirectoryImage(repository, file)
 
       expect(current.mediaType).toBe('image/png')
       expect(current.contents).toMatch(/A2HkbLsBYSgAAAABJRU5ErkJggg==$/)
@@ -69,7 +70,7 @@ describe('git/diff', () => {
         { kind: AppFileStatusKind.Modified },
         diffSelection
       )
-      const current = await getWorkingDirectoryImage(repository!, file)
+      const current = await getWorkingDirectoryImage(repository, file)
       expect(current.mediaType).toBe('image/jpg')
       expect(current.contents).toMatch(/gdTTb6MClWJ3BU8T8PTtXoB88kFL\/9k=$/)
     })
@@ -85,7 +86,7 @@ describe('git/diff', () => {
         { kind: AppFileStatusKind.Modified },
         diffSelection
       )
-      const current = await getBlobImage(repository!, file.path, 'HEAD')
+      const current = await getBlobImage(repository, file.path, 'HEAD')
 
       expect(current.mediaType).toBe('image/jpg')
       expect(current.contents).toMatch(
@@ -102,7 +103,7 @@ describe('git/diff', () => {
         { kind: AppFileStatusKind.Deleted },
         diffSelection
       )
-      const previous = await getBlobImage(repository!, file.path, 'HEAD')
+      const previous = await getBlobImage(repository, file.path, 'HEAD')
 
       expect(previous.mediaType).toBe('image/gif')
       expect(previous.contents).toMatch(
@@ -121,7 +122,7 @@ describe('git/diff', () => {
         { kind: AppFileStatusKind.Modified },
         diffSelection
       )
-      const diff = await getWorkingDirectoryDiff(repository!, file)
+      const diff = await getWorkingDirectoryDiff(repository, file)
 
       expect(diff.kind === DiffType.Image)
 
@@ -142,7 +143,7 @@ describe('git/diff', () => {
         { kind: AppFileStatusKind.New },
         diffSelection
       )
-      const diff = await getTextDiff(repository!, file)
+      const diff = await getTextDiff(repository, file)
 
       expect(diff.hunks.length).toBeGreaterThan(0)
     })
@@ -163,7 +164,7 @@ describe('git/diff', () => {
         { kind: AppFileStatusKind.New },
         diffSelection
       )
-      const diff = await getTextDiff(repository!, file)
+      const diff = await getTextDiff(repository, file)
 
       const hunk = diff.hunks[0]
 
@@ -188,7 +189,7 @@ describe('git/diff', () => {
         { kind: AppFileStatusKind.Modified },
         diffSelection
       )
-      const diff = await getTextDiff(repository!, file)
+      const diff = await getTextDiff(repository, file)
 
       const first = diff.hunks[0]
       expect(first.lines[0].text).toContain('@@ -4,10 +4,6 @@')
@@ -216,7 +217,7 @@ describe('git/diff', () => {
         { kind: AppFileStatusKind.Modified },
         diffSelection
       )
-      const diff = await getTextDiff(repository!, file)
+      const diff = await getTextDiff(repository, file)
 
       const first = diff.hunks[0]
       expect(first.lines[0].text).toContain('@@ -2,7 +2,7 @@ ')
@@ -347,6 +348,7 @@ describe('git/diff', () => {
         repo.path
       )
 
+      // change config on-the-fly to trigger the line endings change warning
       await GitProcess.exec(['config', 'core.autocrlf', 'true'], repo.path)
       lineEnding = '\n\n'
 
@@ -382,6 +384,60 @@ describe('git/diff', () => {
 
       const diff = await getTextDiff(repo, files[0])
       expect(diff.text).toBe(`@@ -0,0 +1 @@\n+${testString}`)
+    })
+  })
+
+  describe('getBinaryPaths', () => {
+    describe('in empty repo', () => {
+      let repo: Repository
+      beforeEach(async () => {
+        repo = await setupEmptyRepository()
+      })
+      it('throws since HEAD doesnt exist', () => {
+        expect(getBinaryPaths(repo, 'HEAD')).rejects.toThrow()
+      })
+    })
+    describe('in repo with text only files', () => {
+      let repo: Repository
+      beforeEach(async () => {
+        const testRepoPath = await setupFixtureRepository('repo-with-changes')
+        repo = new Repository(testRepoPath, -1, null, false)
+      })
+      it('returns an empty array', async () => {
+        expect(await getBinaryPaths(repo, 'HEAD')).toHaveLength(0)
+      })
+    })
+    describe('in repo with image changes', () => {
+      let repo: Repository
+      beforeEach(async () => {
+        const testRepoPath = await setupFixtureRepository(
+          'repo-with-image-changes'
+        )
+        repo = new Repository(testRepoPath, -1, null, false)
+      })
+      it('returns all changed image files', async () => {
+        expect(await getBinaryPaths(repo, 'HEAD')).toEqual([
+          'modified-image.jpg',
+          'new-animated-image.gif',
+          'new-image.png',
+        ])
+      })
+    })
+    describe('in repo with merge conflicts on image files', () => {
+      let repo: Repository
+      beforeEach(async () => {
+        const testRepoPath = await setupFixtureRepository(
+          'detect-conflict-in-binary-file'
+        )
+        repo = new Repository(testRepoPath, -1, null, false)
+        await GitProcess.exec(['checkout', 'make-a-change'], repo.path)
+        await GitProcess.exec(['merge', 'master'], repo.path)
+      })
+      it('returns all conflicted image files', async () => {
+        expect(await getBinaryPaths(repo, 'MERGE_HEAD')).toEqual([
+          'my-cool-image.png',
+        ])
+      })
     })
   })
 })

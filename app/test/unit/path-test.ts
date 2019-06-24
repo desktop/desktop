@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import { encodePathAsUrl } from '../../src/lib/path'
 
 describe('path', () => {

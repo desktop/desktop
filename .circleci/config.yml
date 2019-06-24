@@ -3,7 +3,7 @@ version: 2
 defaults: &defaults
   working_directory: ~/desktop/desktop
   macos:
-    xcode: '9.3.0'
+    xcode: '9.3.1'
 
 jobs:
   build:
@@ -31,11 +31,10 @@ jobs:
             - vendor/bundle
             - .eslintcache
             - ~/.electron
-            - ~/Library/Caches/Yarn/v1
-            - ./node_modules
+            - ~/Library/Caches/Yarn/v4
       - run:
-          name: Lint and validate changelog
-          command: yarn lint && yarn validate-changelog
+          name: Linting
+          command: yarn lint && yarn validate-changelog && yarn check-modified
       - run:
           name: Build
           command: yarn build:prod
@@ -47,6 +46,7 @@ jobs:
       - run:
           name: Report to codecov
           command: yarn test:report
+          when: always
       - run:
           name: Teardown
           command:

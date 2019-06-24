@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { sanitizedBranchName } from '../../lib/sanitize-branch'
@@ -12,12 +12,15 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import {
   renderBranchNameWarning,
   renderBranchHasRemoteWarning,
+  renderStashWillBeLostWarning,
 } from '../lib/branch-name-warnings'
+import { IStashEntry } from '../../models/stash-entry'
 
 interface IRenameBranchProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly branch: Branch
+  readonly stash: IStashEntry | null
 }
 
 interface IRenameBranchState {
@@ -58,6 +61,7 @@ export class RenameBranch extends React.Component<
             sanitizedBranchName(this.state.newName)
           )}
           {renderBranchHasRemoteWarning(this.props.branch)}
+          {renderStashWillBeLostWarning(this.props.stash)}
         </DialogContent>
 
         <DialogFooter>

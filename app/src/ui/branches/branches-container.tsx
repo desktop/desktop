@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { CSSTransitionGroup } from 'react-transition-group'
 
 import { PullRequest } from '../../models/pull-request'
 import { Repository, nameOf } from '../../models/repository'
@@ -7,7 +6,7 @@ import { Branch } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
 import { PopupType } from '../../models/popup'
 
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { FoldoutType } from '../../lib/app-state'
 import { assertNever } from '../../lib/fatal-error'
 
@@ -19,13 +18,10 @@ import { Button } from '../lib/button'
 
 import { BranchList } from './branch-list'
 import { PullRequestList } from './pull-request-list'
-import { PullRequestsLoading } from './pull-requests-loading'
 import { IBranchListItem } from './group-branches'
 import { renderDefaultBranch } from './branch-renderer'
 import { IMatches } from '../../lib/fuzzy-find'
-
-const PullRequestsLoadingCrossFadeInTimeout = 300
-const PullRequestsLoadingCrossFadeOutTimeout = 200
+import { startTimer } from '../lib/timing'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -36,8 +32,6 @@ interface IBranchesContainerProps {
   readonly currentBranch: Branch | null
   readonly recentBranches: ReadonlyArray<Branch>
   readonly pullRequests: ReadonlyArray<PullRequest>
-  readonly branchFilterText: string
-  readonly pullRequestFilterText: string
 
   /** The pull request associated with the current branch. */
   readonly currentPullRequest: PullRequest | null
@@ -64,8 +58,8 @@ export class BranchesContainer extends React.Component<
     this.state = {
       selectedBranch: props.currentBranch,
       selectedPullRequest: props.currentPullRequest,
-      branchFilterText: props.branchFilterText,
-      pullRequestFilterText: props.pullRequestFilterText,
+      branchFilterText: '',
+      pullRequestFilterText: '',
     }
   }
 
@@ -100,16 +94,19 @@ export class BranchesContainer extends React.Component<
     )
   }
 
+  private renderOpenPullRequestsBubble() {
+    const { pullRequests } = this.props
+
+    if (pullRequests.length > 0) {
+      return <span className="count">{pullRequests.length}</span>
+    }
+
+    return null
+  }
+
   private renderTabBar() {
     if (!this.props.repository.gitHubRepository) {
       return null
-    }
-
-    let countElement = null
-    if (this.props.pullRequests) {
-      countElement = (
-        <span className="count">{this.props.pullRequests.length}</span>
-      )
     }
 
     return (
@@ -120,8 +117,7 @@ export class BranchesContainer extends React.Component<
         <span>Branches</span>
         <span className="pull-request-tab">
           {__DARWIN__ ? 'Pull Requests' : 'Pull requests'}
-
-          {countElement}
+          {this.renderOpenPullRequestsBubble()}
         </span>
       </TabBar>
     )
@@ -157,17 +153,7 @@ export class BranchesContainer extends React.Component<
         )
 
       case BranchesTab.PullRequests: {
-        return (
-          <CSSTransitionGroup
-            transitionName="cross-fade"
-            component="div"
-            id="pr-transition-div"
-            transitionEnterTimeout={PullRequestsLoadingCrossFadeInTimeout}
-            transitionLeaveTimeout={PullRequestsLoadingCrossFadeOutTimeout}
-          >
-            {this.renderPullRequests()}
-          </CSSTransitionGroup>
-        )
+        return this.renderPullRequests()
       }
     }
 
@@ -175,8 +161,10 @@ export class BranchesContainer extends React.Component<
   }
 
   private renderPullRequests() {
-    if (this.props.isLoadingPullRequests) {
-      return <PullRequestsLoading key="prs-loading" />
+    const repository = this.props.repository.gitHubRepository
+
+    if (repository === null) {
+      return null
     }
 
     const pullRequests = this.props.pullRequests
@@ -200,7 +188,30 @@ export class BranchesContainer extends React.Component<
         onFilterTextChanged={this.onPullRequestFilterTextChanged}
         onItemClick={this.onPullRequestClicked}
         onDismiss={this.onDismiss}
+        renderPostFilter={this.renderPullRequestPostFilter}
+        dispatcher={this.props.dispatcher}
+        repository={repository}
+        isLoadingPullRequests={this.props.isLoadingPullRequests}
       />
+    )
+  }
+
+  private onRefreshPullRequests = () => {
+    this.props.dispatcher.refreshPullRequests(this.props.repository)
+  }
+
+  private renderPullRequestPostFilter = () => {
+    return (
+      <Button
+        disabled={this.props.isLoadingPullRequests}
+        onClick={this.onRefreshPullRequests}
+        tooltip="Refresh the list of pull requests"
+      >
+        <Octicon
+          symbol={OcticonSymbol.sync}
+          className={this.props.isLoadingPullRequests ? 'spin' : undefined}
+        />
+      </Button>
     )
   }
 
@@ -226,7 +237,14 @@ export class BranchesContainer extends React.Component<
     const currentBranch = this.props.currentBranch
 
     if (currentBranch == null || currentBranch.name !== branch.name) {
-      this.props.dispatcher.checkoutBranch(this.props.repository, branch)
+      const timer = startTimer(
+        'checkout branch from list',
+        this.props.repository
+      )
+
+      this.props.dispatcher
+        .checkoutBranch(this.props.repository, branch)
+        .then(() => timer.done())
     }
   }
 
@@ -268,22 +286,14 @@ export class BranchesContainer extends React.Component<
 
   private onPullRequestClicked = (pullRequest: PullRequest) => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
-    this.props.dispatcher.checkoutPullRequest(
-      this.props.repository,
-      pullRequest
+    const timer = startTimer(
+      'checkout pull request from list',
+      this.props.repository
     )
+    this.props.dispatcher
+      .checkoutPullRequest(this.props.repository, pullRequest)
+      .then(() => timer.done())
 
     this.onPullRequestSelectionChanged(pullRequest)
-  }
-
-  public componentWillUnmount() {
-    this.props.dispatcher.setBranchFilterText(
-      this.props.repository,
-      this.state.branchFilterText
-    )
-    this.props.dispatcher.setPullRequestFilterText(
-      this.props.repository,
-      this.state.pullRequestFilterText
-    )
   }
 }
