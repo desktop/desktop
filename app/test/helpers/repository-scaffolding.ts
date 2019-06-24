@@ -97,3 +97,17 @@ export async function switchTo(repository: Repository, branch: string) {
     await GitProcess.exec(['checkout', branch], repository.path)
   }
 }
+
+export async function cloneLocalRepository(
+  repository: Repository
+): Promise<Repository> {
+  const repoPath = mkdirSync('blank-folder')
+  const args = ['clone', '--', repository.path, repoPath]
+  const result = await GitProcess.exec(args, repository.path)
+
+  if (result.exitCode === 128) {
+    throw new Error(JSON.stringify(result))
+  } else {
+    return new Repository(repoPath, -1, null, true)
+  }
+}
