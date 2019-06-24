@@ -10,6 +10,7 @@ import { TestRepositoriesDatabase } from '../helpers/databases'
 import { GitProcess } from 'dugite'
 import { IGitHubUser } from '../../src/lib/databases'
 import { IAPIRepository } from '../../src/lib/api'
+import { createRepository as createPrunedRepository } from '../helpers/repository-builder-branch-pruner'
 
 describe('BranchPruner', () => {
   const onGitStoreUpdated = () => {}
@@ -172,6 +173,64 @@ describe('BranchPruner', () => {
     for (const branch of expectedBranchesAfterPruning) {
       expect(branchesAfterPruning).toContain(branch)
     }
+  })
+
+  it('prunes branch that is merged and valid but lacks an upstream', async () => {
+    const path = await createPrunedRepository()
+
+    const fixedDate = moment()
+    const lastPruneDate = fixedDate.subtract(1, 'day')
+
+    let repository = await repositoriesStore.addRepository(path)
+
+    const ghAPIResult: IAPIRepository = {
+      clone_url: 'string',
+      ssh_url: 'string',
+      html_url: 'string',
+      name: 'string',
+      owner: {
+        id: 0,
+        url: '',
+        login: '',
+        avatar_url: '',
+        type: 'User',
+      },
+      private: false,
+      fork: false,
+      default_branch: 'master',
+      pushed_at: 'string',
+      parent: null,
+    }
+
+    repository = await repositoriesStore.updateGitHubRepository(
+      repository,
+      '',
+      ghAPIResult,
+      []
+    )
+
+    await primeCaches(repository, repositoriesStateCache)
+
+    if (lastPruneDate) {
+      repositoriesStore.updateLastPruneDate(
+        repository,
+        lastPruneDate.toDate().getTime()
+      )
+    }
+
+    const branchPruner = new BranchPruner(
+      repository,
+      gitStoreCache,
+      repositoriesStore,
+      repositoriesStateCache,
+      onPruneCompleted
+    )
+
+    await branchPruner.start()
+    const branchesAfterPruning = await getBranchesFromGit(repository)
+
+    expect(branchesAfterPruning).toContain('master')
+    expect(branchesAfterPruning).not.toContain('other-branch')
   })
 })
 
