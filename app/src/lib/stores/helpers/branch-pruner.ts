@@ -249,15 +249,22 @@ export class BranchPruner {
   }
 }
 
+/**
+ * @param ref the canonical ref for a local branch
+ * @param allBranches a list of all branches in the Repository model
+ * @returns the canonical upstream branch ref or undefined if upstream can't be reliably determined
+ */
 function getUpstreamRefForLocalBranchRef(
   ref: string,
   allBranches: ReadonlyArray<Branch>
 ): string | undefined {
   const branch = allBranches.find(b => formatAsLocalRef(b.name) === ref)
+  // if we can't find a branch model, we can't determine the ref's upstream
   if (branch === undefined) {
     return undefined
   }
   const { upstream } = branch
+  // if there's no upstream in the branch, there's nothing to lookup
   if (upstream === null) {
     return undefined
   }
