@@ -137,7 +137,11 @@ const defaultEditorOptions: IEditorConfigurationExtra = {
   lineWrapping: true,
   mode: { name: DiffSyntaxMode.ModeName },
   // Make sure CodeMirror doesn't capture Tab (and Shift-Tab) and thus destroy tab navigation
-  extraKeys: { Tab: false, 'Shift-Tab': false },
+  extraKeys: {
+    Tab: false,
+    'Shift-Tab': false,
+    [__DARWIN__ ? 'Cmd-F' : 'Ctrl-F']: 'findPersistent',
+  },
   scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
   styleSelectedText: true,
   lineSeparator: '\n',
