@@ -5,6 +5,7 @@ import { RepositoriesStore, GitStore } from '../../src/lib/stores'
 import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
 import { Repository } from '../../src/models/repository'
 import { IAPIRepository } from '../../src/lib/api'
+import { shell } from './test-app-shell'
 
 export async function createRepository() {
   const repo = await setupEmptyRepository()
