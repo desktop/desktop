@@ -286,24 +286,29 @@ export class CreateBranch extends React.Component<
 
     let startPoint: string | null = null
 
+    const {
+      defaultBranch,
+      handleProtectedBranchWarning,
+      repository,
+    } = this.props
+
     if (this.state.startPoint === StartPoint.DefaultBranch) {
       // This really shouldn't happen, we take all kinds of precautions
       // to make sure the startPoint state is valid given the current props.
-      if (!this.props.defaultBranch) {
+      if (!defaultBranch) {
         this.setState({
           currentError: new Error('Could not determine the default branch'),
         })
         return
       }
 
-      startPoint = this.props.defaultBranch.name
+      startPoint = defaultBranch.name
     }
 
     if (name.length > 0) {
       // if the user arrived at this dialog from the Protected Branch flow
       // we should bypass the "Switch Branch" flow and get out of the user's way
-      const strategy: UncommittedChangesStrategy = this.props
-        .handleProtectedBranchWarning
+      const strategy: UncommittedChangesStrategy = handleProtectedBranchWarning
         ? {
             kind: UncommittedChangesStrategyKind.MoveToNewBranch,
             transientStashEntry: null,
@@ -311,9 +316,9 @@ export class CreateBranch extends React.Component<
         : askToStash
 
       this.setState({ isCreatingBranch: true })
-      const timer = startTimer('create branch', this.props.repository)
+      const timer = startTimer('create branch', repository)
       await this.props.dispatcher.createBranch(
-        this.props.repository,
+        repository,
         name,
         startPoint,
         strategy
