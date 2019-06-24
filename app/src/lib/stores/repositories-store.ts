@@ -427,7 +427,7 @@ export class RepositoriesStore extends BaseStore {
     )
   }
 
-  /** Add or update the repository's GitHub repository. */
+  /** Add or update the branch protections associated with a GitHub repository. */
   public async updateBranchProtections(
     gitHubRepository: GitHubRepository,
     protectedBranches: ReadonlyArray<IAPIBranch>
