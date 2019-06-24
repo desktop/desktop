@@ -43,6 +43,7 @@ interface IBranchDropdownProps {
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
 
+  /** Was this component launched from the "Protected Branch" warning message? */
   readonly handleProtectedBranchWarning?: boolean
 }
 
