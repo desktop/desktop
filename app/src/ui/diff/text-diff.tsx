@@ -129,6 +129,25 @@ interface ITextDiffProps {
 
 const diffGutterName = 'diff-gutter'
 
+function showSearch(cm: Editor) {
+  cm.execCommand('findPersistent')
+  const wrapper = cm.getWrapperElement()
+
+  if (wrapper) {
+    const searchLabel = wrapper.querySelector('.CodeMirror-search-label')
+    const searchField = wrapper.querySelector('.CodeMirror-search-field')
+
+    if (
+      searchLabel instanceof HTMLElement &&
+      searchField instanceof HTMLInputElement
+    ) {
+      searchLabel.style.display = 'none'
+      searchField.placeholder = 'Search'
+      searchField.style.width = null
+    }
+  }
+}
+
 const defaultEditorOptions: IEditorConfigurationExtra = {
   lineNumbers: false,
   readOnly: true,
@@ -140,7 +159,7 @@ const defaultEditorOptions: IEditorConfigurationExtra = {
   extraKeys: {
     Tab: false,
     'Shift-Tab': false,
-    [__DARWIN__ ? 'Cmd-F' : 'Ctrl-F']: 'findPersistent',
+    [__DARWIN__ ? 'Cmd-F' : 'Ctrl-F']: showSearch,
   },
   scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
   styleSelectedText: true,
