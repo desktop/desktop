@@ -87,9 +87,22 @@ export function enableStashing(): boolean {
 }
 
 /**
- * Should the app warn the user when they are committing that they are using a
- * protected branch?
+ * Should the application query for branch protection information and store this
+ * to help the maintainers understand how broadly branch protections are
+ * encountered?
  */
-export function enableBranchProtectionWarning(): boolean {
+export function enableBranchProtectionChecks(): boolean {
   return true
+}
+
+/**
+ * Should the application warn the user when they are about to commit to a
+ * protected branch, and encourage them into a flow to move their changes to
+ * a new branch?
+ *
+ * As this builds upon existing branch protection features in the codebase, this
+ * flag is linked to to `enableBranchProtectionChecks()`.
+ */
+export function enableBranchProtectionWarningFlow(): boolean {
+  return enableBranchProtectionChecks() && enableDevelopmentFeatures()
 }

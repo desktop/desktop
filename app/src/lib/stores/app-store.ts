@@ -215,7 +215,7 @@ import {
   enablePullWithRebase,
   enableGroupRepositoriesByOwner,
   enableStashing,
-  enableBranchProtectionWarning,
+  enableBranchProtectionChecks,
 } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import * as moment from 'moment'
@@ -2384,7 +2384,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           }
         }
 
-        if (enableBranchProtectionWarning()) {
+        if (enableBranchProtectionChecks()) {
           const branchProtectionsFound = await this.repositoriesStore.hasBranchProtectionsConfigured(
             repository.gitHubRepository
           )
@@ -3112,7 +3112,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
-    const branches = enableBranchProtectionWarning()
+    const branches = enableBranchProtectionChecks()
       ? await api.fetchProtectedBranches(owner, name)
       : new Array<IAPIBranch>()
 
