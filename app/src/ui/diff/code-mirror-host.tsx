@@ -19,6 +19,8 @@ if (__DARWIN__) {
   require('codemirror/addon/scroll/simplescrollbars')
 }
 
+require('codemirror/addon/search/search')
+
 interface ICodeMirrorHostProps {
   /**
    * An optional class name for the wrapper element around the
