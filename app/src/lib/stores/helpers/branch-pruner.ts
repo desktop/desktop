@@ -206,11 +206,11 @@ export class BranchPruner {
       if (recentlyCheckedOutCanonicalRefs.has(ref)) {
         return false
       }
-      const upstream = getUpstreamRefForLocalBranchRef(ref, allBranches)
-      if (upstream === undefined) {
+      const upstreamRef = getUpstreamRefForLocalBranchRef(ref, allBranches)
+      if (upstreamRef === undefined) {
         return false
       }
-      return !remoteBranches.includes(upstream)
+      return !remoteBranches.includes(upstreamRef)
     })
 
     log.info(
