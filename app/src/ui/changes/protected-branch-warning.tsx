@@ -22,7 +22,7 @@ export class ProtectedBranchWarning extends React.Component<
     // firing - it shows 'Add Co-Authors' or 'Remove Co-Authors' based on the
     // form state, and for now I'm going to leave that behaviour as-is
 
-    // feel free to remove this if that behaviouris revisited
+    // feel free to remove this if that behaviour is revisited
     event.preventDefault()
   }
 

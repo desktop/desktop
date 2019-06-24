@@ -1,6 +1,5 @@
 @import '../../mixins';
 
-/** A React component holding the commit message entry */
 #protected-branch {
   border-top: 1px solid var(--box-border-color);
   flex-direction: column;
@@ -28,7 +27,7 @@
     text-align: center;
 
     .protected-branch-icon {
-      color: var(--status-pending-color);
+      color: var(--dialog-warning-color);
 
       background: var(--box-alt-background-color);
       border-width: 0 var(--spacing-half);
