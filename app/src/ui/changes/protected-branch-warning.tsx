@@ -2,11 +2,10 @@ import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { LinkButton } from '../lib/link-button'
 import { Dispatcher } from '../dispatcher'
-import { Repository } from '../../models/repository'
+import { FoldoutType } from '../../lib/app-state'
 
 interface IProtectedBranchWarningProps {
   readonly dispatcher: Dispatcher
-  readonly repository: Repository
   readonly currentBranch: string
 }
 
@@ -14,7 +13,10 @@ export class ProtectedBranchWarning extends React.Component<
   IProtectedBranchWarningProps
 > {
   private onSwitchBranch = () => {
-    this.props.dispatcher.moveChangesToAnotherBranch(this.props.repository)
+    this.props.dispatcher.showFoldout({
+      type: FoldoutType.Branch,
+      handleProtectedBranchWarning: true,
+    })
   }
 
   private ignoreContextMenu = (event: React.MouseEvent<any>) => {

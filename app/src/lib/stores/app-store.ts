@@ -2816,27 +2816,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    if (popupType !== undefined && popupType === PopupType.CreateBranch) {
-      this.clearProtectedBranchFlag()
-    }
-
     this.currentPopup = null
     this.emitUpdate()
-  }
-
-  private clearProtectedBranchFlag() {
-    if (
-      this.selectedRepository !== null &&
-      this.selectedRepository instanceof Repository
-    ) {
-      this.clearProtectedBranchFlagForRepository(this.selectedRepository)
-    }
-  }
-
-  private clearProtectedBranchFlagForRepository(repository: Repository) {
-    this.repositoryStateCache.updateChangesState(repository, () => ({
-      userWantsToMoveChangesFromProtectedBranch: false,
-    }))
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -2856,10 +2837,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _closeFoldout(
-    foldout: FoldoutType,
-    preserveProtectedBranchFlag: boolean = false
-  ): Promise<void> {
+  public async _closeFoldout(foldout: FoldoutType): Promise<void> {
     if (this.currentFoldout == null) {
       return
     }
@@ -2868,20 +2846,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    if (!preserveProtectedBranchFlag) {
-      this.clearProtectedBranchFlag()
-    }
-
     this.currentFoldout = null
     this.emitUpdate()
-  }
-
-  public _moveChangesToAnotherBranch(repository: Repository) {
-    this.repositoryStateCache.updateChangesState(repository, () => ({
-      userWantsToMoveChangesFromProtectedBranch: true,
-    }))
-
-    return this._showFoldout({ type: FoldoutType.Branch })
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -2903,18 +2869,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { changesState, branchesState } = this.repositoryStateCache.get(
       repository
     )
-
-    if (changesState.userWantsToMoveChangesFromProtectedBranch) {
-      // if we find this flag set as a result of the Protected Branch flow
-      // we should bypass any sort of "Switch Branch" flow to get out of the
-      // user's way
-      uncommittedChangesStrategy = {
-        kind: UncommittedChangesStrategyKind.MoveToNewBranch,
-        transientStashEntry: null,
-      }
-
-      this.clearProtectedBranchFlagForRepository(repository)
-    }
 
     const { tip } = branchesState
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
@@ -2988,18 +2942,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { changesState, branchesState } = this.repositoryStateCache.get(
       repository
     )
-
-    if (changesState.userWantsToMoveChangesFromProtectedBranch) {
-      // if we find this flag set as a result of the Protected Branch flow
-      // we should bypass any sort of "Switch Branch" flow to get out of the
-      // user's way
-      uncommittedChangesStrategy = {
-        kind: UncommittedChangesStrategyKind.MoveToNewBranch,
-        transientStashEntry: null,
-      }
-
-      this.clearProtectedBranchFlagForRepository(repository)
-    }
 
     let stashToPop: IStashEntry | null = null
     if (enableStashing()) {

@@ -319,11 +319,8 @@ export class Dispatcher {
    * @param foldout the type of foldout to close
    * @param preserveProtectedBranchFlag ensure the "Protected Branch" flow is not cleared (if set)
    */
-  public closeFoldout(
-    foldout: FoldoutType,
-    preserveProtectedBranchFlag: boolean = false
-  ): Promise<void> {
-    return this.appStore._closeFoldout(foldout, preserveProtectedBranchFlag)
+  public closeFoldout(foldout: FoldoutType): Promise<void> {
+    return this.appStore._closeFoldout(foldout)
   }
 
   /** Initialize and start the rebase operation */
@@ -407,16 +404,6 @@ export class Dispatcher {
       type: PopupType.RebaseFlow,
       repository,
     })
-  }
-
-  /**
-   * Start the flow to move the changes to another branch
-   *
-   * This just launches the branch foldout to keep things simple, but we need to
-   * track some internal state here as well to use in future steps.
-   */
-  public moveChangesToAnotherBranch(repository: Repository) {
-    return this.appStore._moveChangesToAnotherBranch(repository)
   }
 
   /**

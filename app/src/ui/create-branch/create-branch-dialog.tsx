@@ -25,6 +25,11 @@ import {
 } from '../lib/branch-name-warnings'
 import { getStartPoint } from '../../lib/create-branch'
 import { startTimer } from '../lib/timing'
+import {
+  UncommittedChangesStrategy,
+  UncommittedChangesStrategyKind,
+  askToStash,
+} from '../../models/uncommitted-changes-strategy'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -34,6 +39,7 @@ interface ICreateBranchProps {
   readonly defaultBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
   readonly initialName: string
+  readonly handleProtectedBranchWarning: boolean
 }
 
 interface ICreateBranchState {
@@ -292,12 +298,23 @@ export class CreateBranch extends React.Component<
     }
 
     if (name.length > 0) {
+      // if the user arrived at this dialog from the Protected Branch flow
+      // we should bypass the "Switch Branch" flow and get out of the user's way
+      const strategy: UncommittedChangesStrategy = this.props
+        .handleProtectedBranchWarning
+        ? {
+            kind: UncommittedChangesStrategyKind.MoveToNewBranch,
+            transientStashEntry: null,
+          }
+        : askToStash
+
       this.setState({ isCreatingBranch: true })
       const timer = startTimer('create branch', this.props.repository)
       await this.props.dispatcher.createBranch(
         this.props.repository,
         name,
-        startPoint
+        startPoint,
+        strategy
       )
       timer.done()
     }

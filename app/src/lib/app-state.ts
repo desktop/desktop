@@ -256,10 +256,20 @@ export type AppMenuFoldout = {
   openedWithAccessKey?: boolean
 }
 
+export type BranchFoldout = {
+  type: FoldoutType.Branch
+
+  /**
+   * A flag to indicate the user clicked the "switch branch" link when they
+   * saw the prompt about the current branch being protected.
+   */
+  handleProtectedBranchWarning?: boolean
+}
+
 export type Foldout =
   | { type: FoldoutType.Repository }
-  | { type: FoldoutType.Branch }
   | { type: FoldoutType.AddMenu }
+  | BranchFoldout
   | AppMenuFoldout
 
 export enum RepositorySectionTab {
@@ -580,12 +590,6 @@ export interface IChangesState {
 
   /** `true` if the GitHub API reports that the branch is protected */
   readonly currentBranchProtected: boolean
-
-  /**
-   * A flag to indicate the user clicked the "switch branch" link when they
-   * saw the prompt about the current branch being protected.
-   */
-  readonly userWantsToMoveChangesFromProtectedBranch: boolean
 }
 
 /**
