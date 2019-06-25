@@ -183,7 +183,9 @@ export class CreateRepository extends React.Component<
 
     const fullPath = Path.join(path, sanitizedRepositoryName(name), 'README.md')
     const readMeExists = await FSE.pathExists(fullPath)
-    this.setState({ readMeExists })
+
+    // Only update readMeExists if the path is still the same
+    this.setState(state => (state.path === path ? { readMeExists } : null))
   }
 
   private resolveRepositoryRoot = async (): Promise<string> => {
