@@ -401,35 +401,34 @@ export class CompareSidebar extends React.Component<
         event.preventDefault()
         return
       }
+      const branch = this.state.focusedBranch
 
-      if (this.props.compareState.filterText.length === 0) {
-        this.handleEscape()
+      if (branch === null) {
+        this.viewHistoryForBranch()
       } else {
-        if (this.state.focusedBranch == null) {
-          this.viewHistoryForBranch()
-        } else {
-          const branch = this.state.focusedBranch
+        this.props.dispatcher.executeCompare(this.props.repository, {
+          kind: HistoryTabMode.Compare,
+          comparisonMode: ComparisonMode.Behind,
+          branch,
+        })
 
-          this.props.dispatcher.executeCompare(this.props.repository, {
-            kind: HistoryTabMode.Compare,
-            comparisonMode: ComparisonMode.Behind,
-            branch,
-          })
+        this.props.dispatcher.updateCompareForm(this.props.repository, {
+          filterText: branch.name,
+        })
+      }
 
-          this.props.dispatcher.updateCompareForm(this.props.repository, {
-            filterText: branch.name,
-          })
-        }
-
-        if (this.textbox) {
-          this.textbox.blur()
-        }
+      if (this.textbox) {
+        this.textbox.blur()
       }
     } else if (key === 'Escape') {
       this.handleEscape()
     } else if (key === 'ArrowDown') {
       if (this.branchList !== null) {
-        this.branchList.selectFirstItem(true)
+        this.branchList.selectNextItem(true, 'down')
+      }
+    } else if (key === 'ArrowUp') {
+      if (this.branchList !== null) {
+        this.branchList.selectNextItem(true, 'up')
       }
     }
   }
