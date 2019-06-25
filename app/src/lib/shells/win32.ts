@@ -5,6 +5,7 @@ import { pathExists } from 'fs-extra'
 
 import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
+import { enableWSLDetection } from '../feature-flag'
 
 export enum Shell {
   Cmd = 'Command Prompt',
@@ -13,6 +14,7 @@ export enum Shell {
   Hyper = 'Hyper',
   GitBash = 'Git Bash',
   Cygwin = 'Cygwin',
+  WSL = 'WSL',
 }
 
 export const Default = Shell.Cmd
@@ -40,6 +42,10 @@ export function parse(label: string): Shell {
 
   if (label === Shell.Cygwin) {
     return Shell.Cygwin
+  }
+
+  if (label === Shell.WSL) {
+    return Shell.WSL
   }
 
   return Default
@@ -93,6 +99,16 @@ export async function getAvailableShells(): Promise<
       shell: Shell.Cygwin,
       path: cygwinPath,
     })
+  }
+
+  if (enableWSLDetection()) {
+    const wslPath = await findWSL()
+    if (wslPath != null) {
+      shells.push({
+        shell: Shell.WSL,
+        path: wslPath,
+      })
+    }
   }
 
   return shells
@@ -268,6 +284,45 @@ async function findCygwin(): Promise<string | null> {
   return null
 }
 
+async function findWSL(): Promise<string | null> {
+  const system32 = Path.join(
+    process.env.SystemRoot || 'C:\\Windows',
+    'System32'
+  )
+  const wslPath = Path.join(system32, 'wsl.exe')
+  const wslConfigPath = Path.join(system32, 'wslconfig.exe')
+
+  if (!(await pathExists(wslPath))) {
+    log.debug(`[WSL] wsl.exe does not exist at '${wslPath}'`)
+    return null
+  }
+  if (!(await pathExists(wslConfigPath))) {
+    log.debug(
+      `[WSL] found wsl.exe, but wslconfig.exe does not exist at '${wslConfigPath}'`
+    )
+    return null
+  }
+  const exitCode = new Promise<number>((resolve, reject) => {
+    const wslDistros = spawn(wslConfigPath, ['/list'])
+    wslDistros.on('error', reject)
+    wslDistros.on('exit', resolve)
+  })
+
+  try {
+    const result = await exitCode
+    if (result !== 0) {
+      log.debug(
+        `[WSL] found wsl.exe and wslconfig.exe, but no distros are installed. Error Code: ${result}`
+      )
+      return null
+    }
+    return wslPath
+  } catch (err) {
+    log.error(`[WSL] unhandled error when invoking 'wsl /list'`, err)
+  }
+  return null
+}
+
 export function launch(
   foundShell: IFoundShell<Shell>,
   path: string
@@ -312,6 +367,8 @@ export function launch(
           cwd: path,
         }
       )
+    case Shell.WSL:
+      return spawn('START', ['wsl'], { shell: true, cwd: path })
     case Shell.Cmd:
       return spawn('START', ['cmd'], { shell: true, cwd: path })
     default:
