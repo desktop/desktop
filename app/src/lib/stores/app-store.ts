@@ -216,6 +216,7 @@ import {
   enableGroupRepositoriesByOwner,
   enableStashing,
   enableBranchProtectionChecks,
+  enableBranchProtectionWarningFlow,
 } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import * as moment from 'moment'
@@ -720,6 +721,35 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this._selectStashedFile(repository)
     } else {
       this.emitUpdate()
+    }
+  }
+
+  private async refreshBranchProtectionState(repository: Repository) {
+    if (!enableBranchProtectionWarningFlow()) {
+      return
+    }
+
+    const gitStore = this.gitStoreCache.get(repository)
+
+    if (
+      gitStore.tip.kind === TipState.Valid &&
+      repository.gitHubRepository !== null
+    ) {
+      const branchName = findRemoteBranchName(
+        gitStore.tip,
+        gitStore.currentRemote,
+        repository.gitHubRepository
+      )
+
+      if (branchName !== null) {
+        const currentBranchProtected = await this.repositoriesStore.isBranchProtectedOnRemote(
+          repository.gitHubRepository,
+          branchName
+        )
+        this.repositoryStateCache.updateChangesState(repository, () => ({
+          currentBranchProtected,
+        }))
+      }
     }
   }
 
@@ -2567,6 +2597,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       gitStore.updateLastFetched(),
       gitStore.loadStashEntries(),
       this.refreshAuthor(repository),
+      this.refreshBranchProtectionState(repository),
       refreshSectionPromise,
     ])
 
@@ -2858,7 +2889,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
-    const repo = await this._checkoutBranch(repository, branch)
+    const repo = await this._checkoutBranch(
+      repository,
+      branch,
+      uncommittedChangesStrategy
+    )
     this._closePopup()
     return repo
   }
@@ -3112,15 +3147,45 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
-    const branches = enableBranchProtectionChecks()
-      ? await api.fetchProtectedBranches(owner, name)
-      : new Array<IAPIBranch>()
-
     const endpoint = matchedGitHubRepository.endpoint
-    return this.repositoriesStore.updateGitHubRepository(
+    const updatedRepository = await this.repositoriesStore.updateGitHubRepository(
       repository,
       endpoint,
-      apiRepo,
+      apiRepo
+    )
+
+    await this.updateBranchProtectionsFromAPI(repository)
+
+    return updatedRepository
+  }
+
+  private async updateBranchProtectionsFromAPI(repository: Repository) {
+    if (
+      repository.gitHubRepository === null ||
+      repository.gitHubRepository.dbID === null
+    ) {
+      return
+    }
+
+    const { owner, name } = repository.gitHubRepository
+
+    const account = getAccountForEndpoint(
+      this.accounts,
+      repository.gitHubRepository.endpoint
+    )
+
+    if (account === null) {
+      return
+    }
+
+    const api = API.fromAccount(account)
+
+    const branches = enableBranchProtectionChecks()
+      ? await api.fetchProtectedBranches(owner.login, name)
+      : new Array<IAPIBranch>()
+
+    await this.repositoriesStore.updateBranchProtections(
+      repository.gitHubRepository,
       branches
     )
   }
@@ -3323,6 +3388,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
               value: refreshStartProgress,
             })
 
+            // manually refresh branch protections after the push, to ensure
+            // any new branch will immediately report as protected
+            await this.updateBranchProtectionsFromAPI(repository)
+
             await this._refreshRepository(repository)
 
             this.updatePushPullFetchProgress(repository, {
@@ -3514,6 +3583,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
           if (mergeBase) {
             await gitStore.reconcileHistory(mergeBase)
           }
+
+          // manually refresh branch protections after the push, to ensure
+          // any new branch will immediately report as protected
+          await this.updateBranchProtectionsFromAPI(repository)
 
           await this._refreshRepository(repository)
 
@@ -3812,6 +3885,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
           title: refreshTitle,
           value: fetchWeight,
         })
+
+        // manually refresh branch protections after the push, to ensure
+        // any new branch will immediately report as protected
+        await this.updateBranchProtectionsFromAPI(repository)
 
         await this._refreshRepository(repository)
 
