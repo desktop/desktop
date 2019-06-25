@@ -87,8 +87,7 @@ export async function setupRepository(
     repository = await repositoriesStore.updateGitHubRepository(
       repository,
       '',
-      ghAPIResult,
-      []
+      ghAPIResult
     )
   }
   await primeCaches(repository, repositoriesStateCache)
