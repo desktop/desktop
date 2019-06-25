@@ -586,9 +586,9 @@ export class CreateRepository extends React.Component<
     )
   }
 
-  private onWindowFocus = async () => {
+  private onWindowFocus = () => {
     // Verify whether or not a README.md file exists at the chosen directory
     // in case one has been added or removed and the warning can be displayed.
-    await this.updateReadMeExists(this.state.path, this.state.name)
+    this.updateReadMeExists(this.state.path, this.state.name)
   }
 }
