@@ -145,11 +145,11 @@ export class CreateRepository extends React.Component<
     this.setState({ isRepository, path, isValidPath: null })
   }
 
-  private onNameChanged = async (name: string) => {
+  private onNameChanged = (name: string) => {
     this.setState({ name })
 
     if (enableReadmeOverwriteWarning()) {
-      await this.updateReadMeExists(this.state.path, name)
+      this.updateReadMeExists(this.state.path, name)
     }
   }
 
