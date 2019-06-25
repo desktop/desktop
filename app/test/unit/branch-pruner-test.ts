@@ -192,7 +192,7 @@ describe('BranchPruner', () => {
     }
   })
 
-  it('prunes branch that is merged and valid but lacks an upstream', async () => {
+  it('never prunes a branch that lacks an upstream', async () => {
     const path = await createPrunedRepository()
 
     const fixedDate = moment()
@@ -219,7 +219,7 @@ describe('BranchPruner', () => {
     const branchesAfterPruning = await getBranchesFromGit(repo)
 
     expect(branchesAfterPruning).toContain('master')
-    expect(branchesAfterPruning).not.toContain('other-branch')
+    expect(branchesAfterPruning).toContain('other-branch')
   })
 })
 
