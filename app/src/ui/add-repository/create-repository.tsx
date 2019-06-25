@@ -147,10 +147,7 @@ export class CreateRepository extends React.Component<
 
   private onNameChanged = (name: string) => {
     this.setState({ name })
-
-    if (enableReadmeOverwriteWarning()) {
-      this.updateReadMeExists(this.state.path, name)
-    }
+    this.updateReadMeExists(this.state.path, name)
   }
 
   private onDescriptionChanged = (description: string) => {
@@ -174,6 +171,10 @@ export class CreateRepository extends React.Component<
   }
 
   private async updateReadMeExists(path: string, name: string) {
+    if (!enableReadmeOverwriteWarning()) {
+      return
+    }
+
     const fullPath = Path.join(path, sanitizedRepositoryName(name), 'README.md')
     const readMeExists = await FSE.pathExists(fullPath)
     this.setState({ readMeExists })
@@ -588,8 +589,6 @@ export class CreateRepository extends React.Component<
   private onWindowFocus = async () => {
     // Verify whether or not a README.md file exists at the chosen directory
     // in case one has been added or removed and the warning can be displayed.
-    if (enableReadmeOverwriteWarning()) {
-      await this.updateReadMeExists(this.state.path, this.state.name)
-    }
+    await this.updateReadMeExists(this.state.path, this.state.name)
   }
 }
