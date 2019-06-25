@@ -120,6 +120,8 @@ export class CreateRepository extends React.Component<
   }
 
   public async componentDidMount() {
+    window.addEventListener('focus', this.onWindowFocus)
+
     const gitIgnoreNames = await getGitIgnoreNames()
     this.setState({ gitIgnoreNames })
 
@@ -129,9 +131,7 @@ export class CreateRepository extends React.Component<
     const isRepository = await isGitRepository(this.state.path)
     this.setState({ isRepository })
 
-    await this.updateReadMeExists(this.state.path, this.state.name)
-
-    window.addEventListener('focus', this.onWindowFocus)
+    this.updateReadMeExists(this.state.path, this.state.name)
   }
 
   public componentWillUnmount() {
