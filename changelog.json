@@ -1,5 +1,18 @@
 {
   "releases": {
+    "2.1.0-beta1": [
+      "[New] Commit form will warn user when working on a protected branch - #7826",
+      "[Added] Keyboard shortcut for \"Discard All Changes\" menu item - #7588. Thanks @say25!",
+      "[Fixed] New repository does not write description into README - #7571. Thanks @noelledusahel!",
+      "[Fixed] Disable \"Discard\" and \"Restore\" buttons while restoring stash - #7289",
+      "[Fixed] \"Unable to restore\" warning message appears when restoring stash - #7652",
+      "[Fixed] Unresponsive app on macOS if user switches away from file dialog - #7636",
+      "[Fixed] Launching app on Windows after being maximized does not restore correct window state - #7750",
+      "[Improved] Update mentions of \"Enterprise\" to \"Enterprise Server\" in app - #7728 #7845 #7835. Thanks @nathos!",
+      "[Improved] Update license and .gitignore templates for initializing a new repository - #7548 #7661. Thanks @VADS!",
+      "[Improved] \"Authentication failed\" dialog provides more help to diagnose issue -  #7622"
+    ],
+    "2.0.4-test2": ["Upgrading infrastructure to Node 10"],
     "2.0.4": [
       "[Fixed] Refresh for Enterprise repositories did not handle API error querying branches - #7713",
       "[Fixed] Missing \"Discard all changes\" context menu in Changes header - #7696",
