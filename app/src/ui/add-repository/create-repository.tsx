@@ -139,10 +139,16 @@ export class CreateRepository extends React.Component<
   }
 
   private onPathChanged = async (path: string) => {
-    const isRepository = await isGitRepository(path)
-    await this.updateReadMeExists(path, this.state.name)
+    this.setState({ path, isValidPath: null })
 
-    this.setState({ isRepository, path, isValidPath: null })
+    const isRepository = await isGitRepository(path)
+
+    // Only update isRepository if the path is still the
+    // same one we were using to check whether it looked
+    // like a repository.
+    this.setState(state => (state.path === path ? { isRepository } : null))
+
+    this.updateReadMeExists(path, this.state.name)
   }
 
   private onNameChanged = (name: string) => {
