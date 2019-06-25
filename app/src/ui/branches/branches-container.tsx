@@ -22,6 +22,11 @@ import { IBranchListItem } from './group-branches'
 import { renderDefaultBranch } from './branch-renderer'
 import { IMatches } from '../../lib/fuzzy-find'
 import { startTimer } from '../lib/timing'
+import {
+  UncommittedChangesStrategyKind,
+  UncommittedChangesStrategy,
+  askToStash,
+} from '../../models/uncommitted-changes-strategy'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -38,6 +43,9 @@ interface IBranchesContainerProps {
 
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
+
+  /** Was this component launched from the "Protected Branch" warning message? */
+  readonly handleProtectedBranchWarning?: boolean
 }
 
 interface IBranchesContainerState {
@@ -234,16 +242,26 @@ export class BranchesContainer extends React.Component<
   private onBranchItemClick = (branch: Branch) => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
 
-    const currentBranch = this.props.currentBranch
+    const {
+      currentBranch,
+      repository,
+      handleProtectedBranchWarning,
+    } = this.props
 
     if (currentBranch == null || currentBranch.name !== branch.name) {
-      const timer = startTimer(
-        'checkout branch from list',
-        this.props.repository
-      )
+      const timer = startTimer('checkout branch from list', repository)
+
+      // if the user arrived at this dialog from the Protected Branch flow
+      // we should bypass the "Switch Branch" flow and get out of the user's way
+      const strategy: UncommittedChangesStrategy = handleProtectedBranchWarning
+        ? {
+            kind: UncommittedChangesStrategyKind.MoveToNewBranch,
+            transientStashEntry: null,
+          }
+        : askToStash
 
       this.props.dispatcher
-        .checkoutBranch(this.props.repository, branch)
+        .checkoutBranch(repository, branch, strategy)
         .then(() => timer.done())
     }
   }
@@ -257,10 +275,13 @@ export class BranchesContainer extends React.Component<
   }
 
   private onCreateBranchWithName = (name: string) => {
+    const { repository, handleProtectedBranchWarning } = this.props
+
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
     this.props.dispatcher.showPopup({
       type: PopupType.CreateBranch,
-      repository: this.props.repository,
+      repository,
+      handleProtectedBranchWarning,
       initialName: name,
     })
   }
