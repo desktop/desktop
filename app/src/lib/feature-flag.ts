@@ -109,5 +109,5 @@ export function enableWSLDetection(): boolean {
  * flag is linked to to `enableBranchProtectionChecks()`.
  */
 export function enableBranchProtectionWarningFlow(): boolean {
-  return enableBranchProtectionChecks() && enableDevelopmentFeatures()
+  return enableBranchProtectionChecks() && enableBetaFeatures()
 }
