@@ -131,6 +131,9 @@ export async function getCommitsInRange(
     // BadRevision can be raised here if git rev-list is unable to resolve a ref
     // to a commit ID, so we need to signal to the caller that this rebase is
     // not possible to perform
+    log.warn(
+      'Unable to rebase these branches because one or both of the refs do not exist in the repository'
+    )
     return null
   }
 
