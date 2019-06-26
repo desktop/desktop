@@ -1,7 +1,9 @@
 {
   "releases": {
+    "2.1.0-beta2": [
+      "[New] Commit form will warn user when working on a protected branch - #7826"
+    ],
     "2.1.0-beta1": [
-      "[New] Commit form will warn user when working on a protected branch - #7826",
       "[Added] Keyboard shortcut for \"Discard All Changes\" menu item - #7588. Thanks @say25!",
       "[Fixed] New repository does not write description into README - #7571. Thanks @noelledusahel!",
       "[Fixed] Disable \"Discard\" and \"Restore\" buttons while restoring stash - #7289",
