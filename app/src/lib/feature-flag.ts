@@ -95,6 +95,11 @@ export function enableBranchProtectionChecks(): boolean {
   return true
 }
 
+/** Should the app detect Windows Subsystem for Linux as a valid shell? */
+export function enableWSLDetection(): boolean {
+  return enableDevelopmentFeatures()
+}
+
 /**
  * Should the application warn the user when they are about to commit to a
  * protected branch, and encourage them into a flow to move their changes to
