@@ -301,6 +301,10 @@ export class ChooseBranchDialog extends React.Component<
       )
     }
 
+    if (rebaseStatus.kind === ComputedAction.Invalid) {
+      return this.renderInvalidRebaseMessage()
+    }
+
     // TODO: other scenarios to display some context about
 
     return null
@@ -308,6 +312,10 @@ export class ChooseBranchDialog extends React.Component<
 
   private renderLoadingRebaseMessage() {
     return <>Checking for ability to rebase automatically...</>
+  }
+
+  private renderInvalidRebaseMessage() {
+    return <>Unable to start rebase. Check you have chosen a valid branch.</>
   }
 
   private renderCleanRebaseMessage(
