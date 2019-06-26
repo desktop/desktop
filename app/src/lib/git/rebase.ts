@@ -193,7 +193,7 @@ export async function getRebaseSnapshot(
       originalBranchTip
     )
 
-    if (commits.length === 0) {
+    if (commits === null || commits.length === 0) {
       return null
     }
 
@@ -341,6 +341,10 @@ export async function rebase(
       baseBranch.tip.sha,
       targetBranch.tip.sha
     )
+
+    if (commits === null) {
+      return RebaseResult.Error
+    }
 
     const totalCommitCount = commits.length
 

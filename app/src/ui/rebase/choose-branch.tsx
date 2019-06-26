@@ -143,6 +143,17 @@ export class ChooseBranchDialog extends React.Component<
       return
     }
 
+    // if we are unable to find any commits to rebase, indicate that we're
+    // unable to proceed with the rebase
+    if (commits === null) {
+      this.setState({
+        rebasePreview: {
+          kind: ComputedAction.Invalid,
+        },
+      })
+      return
+    }
+
     // the target branch is a direct descendant of the base branch
     // which means the target branch is already up to date and the commits
     // do not need to be applied

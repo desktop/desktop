@@ -341,7 +341,7 @@ export class Dispatcher {
           targetBranch.upstream
         )
 
-        if (remoteCommits.length > 0) {
+        if (remoteCommits !== null && remoteCommits.length > 0) {
           this.setRebaseFlowStep(repository, {
             kind: RebaseStep.WarnForcePush,
             baseBranch,
