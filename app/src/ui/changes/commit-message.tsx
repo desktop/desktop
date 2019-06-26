@@ -25,6 +25,7 @@ import { ICommitContext } from '../../models/commit'
 import { startTimer } from '../lib/timing'
 import { ProtectedBranchWarning } from './protected-branch-warning'
 import { enableBranchProtectionWarningFlow } from '../../lib/feature-flag'
+import { getDotComAPIEndpoint } from '../../lib/api'
 
 const addAuthorIcon = new OcticonSymbol(
   12,
@@ -447,9 +448,19 @@ export class CommitMessage extends React.Component<
       return null
     }
 
-    const { currentBranchProtected, dispatcher } = this.props
+    const { currentBranchProtected, dispatcher, repository } = this.props
 
     if (!currentBranchProtected) {
+      return null
+    }
+
+    if (
+      repository.gitHubRepository === null ||
+      repository.gitHubRepository.endpoint !== getDotComAPIEndpoint()
+    ) {
+      // don't prompt for GitHub Enterprise repositories because we may not able
+      // to access the list of teams that are permitted to push to this protected
+      // branch
       return null
     }
 
