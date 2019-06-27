@@ -17,7 +17,43 @@ export interface IMenuItem {
    * When specified the click property will be ignored.
    * See https://electronjs.org/docs/api/menu-item#roles
    */
-  readonly role?: string
+  readonly role?:
+    | 'undo'
+    | 'redo'
+    | 'cut'
+    | 'copy'
+    | 'paste'
+    | 'pasteandmatchstyle'
+    | 'delete'
+    | 'selectall'
+    | 'reload'
+    | 'forcereload'
+    | 'toggledevtools'
+    | 'resetzoom'
+    | 'zoomin'
+    | 'zoomout'
+    | 'togglefullscreen'
+    | 'window'
+    | 'minimize'
+    | 'close'
+    | 'help'
+    | 'about'
+    | 'services'
+    | 'hide'
+    | 'hideothers'
+    | 'unhide'
+    | 'quit'
+    | 'startspeaking'
+    | 'stopspeaking'
+    | 'close'
+    | 'minimize'
+    | 'zoom'
+    | 'front'
+    | 'appMenu'
+    | 'fileMenu'
+    | 'editMenu'
+    | 'viewMenu'
+    | 'windowMenu'
 }
 
 /**
