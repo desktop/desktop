@@ -45,7 +45,12 @@ export function registerWindowStateChangedEvents(
   window.on('unmaximize', () => sendWindowStateEvent(window, 'normal'))
   window.on('restore', () => sendWindowStateEvent(window, 'normal'))
   window.on('hide', () => sendWindowStateEvent(window, 'hidden'))
-  window.on('show', () => sendWindowStateEvent(window, 'normal'))
+  window.on('show', () => {
+    // because the app can be maximized before being closed - which will restore it
+    // maximized on the next launch - this function should inspect the current state
+    // rather than always assume it is a 'normal' launch
+    sendWindowStateEvent(window, getWindowState(window))
+  })
 }
 
 /**
