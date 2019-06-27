@@ -319,6 +319,36 @@ export class Dispatcher {
     return this.appStore._closeFoldout(foldout)
   }
 
+  /** Check for remote commits that could affect the rebase operation */
+  private async warnAboutRemoteCommits(
+    repository: Repository,
+    baseBranch: Branch,
+    targetBranch: Branch
+  ): Promise<boolean> {
+    if (targetBranch.upstream === null) {
+      return false
+    }
+
+    // if the branch is tracking a remote branch
+    const upstreamBranchesMatching = await getBranches(
+      repository,
+      `refs/remotes/${targetBranch.upstream}`
+    )
+
+    if (upstreamBranchesMatching.length === 0) {
+      return false
+    }
+
+    // and the remote branch has commits that don't exist on the base branch
+    const remoteCommits = await getCommitsInRange(
+      repository,
+      baseBranch.tip.sha,
+      targetBranch.upstream
+    )
+
+    return remoteCommits !== null && remoteCommits.length > 0
+  }
+
   /** Initialize and start the rebase operation */
   public async startRebase(
     repository: Repository,
@@ -333,31 +363,20 @@ export class Dispatcher {
       options !== undefined && options.continueWithForcePush
 
     if (askForConfirmationOnForcePush && !hasOverridenForcePushCheck) {
-      // if the branch is tracking a remote branch
-      if (targetBranch.upstream !== null) {
-        const upstreamBranchesMatching = await getBranches(
-          repository,
-          `refs/remotes/${targetBranch.upstream}`
-        )
+      const showWarning = await this.warnAboutRemoteCommits(
+        repository,
+        baseBranch,
+        targetBranch
+      )
 
-        if (upstreamBranchesMatching.length > 0) {
-          // and the remote branch has commits that don't exist on the base branch
-          const remoteCommits = await getCommitsInRange(
-            repository,
-            baseBranch.tip.sha,
-            targetBranch.upstream
-          )
-
-          if (remoteCommits !== null && remoteCommits.length > 0) {
-            this.setRebaseFlowStep(repository, {
-              kind: RebaseStep.WarnForcePush,
-              baseBranch,
-              targetBranch,
-              commits,
-            })
-            return
-          }
-        }
+      if (showWarning) {
+        this.setRebaseFlowStep(repository, {
+          kind: RebaseStep.WarnForcePush,
+          baseBranch,
+          targetBranch,
+          commits,
+        })
+        return
       }
     }
 
