@@ -92,7 +92,10 @@ export class ChooseBranchDialog extends React.Component<
       rebasePreview: null,
       filterText: '',
     }
+  }
 
+  public componentDidMount() {
+    const { selectedBranch } = this.state
     if (selectedBranch !== null) {
       this.onBranchChanged(selectedBranch)
     }
