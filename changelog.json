@@ -1,5 +1,10 @@
 {
   "releases": {
+    "2.1.0-beta3": [
+      "[Added] Search text within diffs using shortcut - #7538",
+      "[Fixed] Repository name moves cursor to end in \"Create Repository\" dialog - #7862",
+      "[Fixed] Keyboard navigation inside \"Compare Branch\" list - #7802. Thanks @ADustyOldMuffin!"
+    ],
     "2.1.0-beta2": [
       "[New] Commit form will warn user when working on a protected branch - #7826"
     ],
