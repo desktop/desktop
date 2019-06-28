@@ -34,7 +34,7 @@ interface ICloneRepositoryProps {
   /** The logged in accounts. */
   readonly dotComAccount: Account | null
 
-  /** The logged in Enterprise account. */
+  /** The logged in Enterprise Server account. */
   readonly enterpriseAccount: Account | null
 
   /** The initial URL or `owner/name` shortcut to use. */
@@ -47,7 +47,7 @@ interface ICloneRepositoryProps {
   readonly onTabSelected: (tab: CloneRepositoryTab) => void
 
   /**
-   * A map keyed on a user account (GitHub.com or GitHub Enterprise)
+   * A map keyed on a user account (GitHub.com or GitHub Enterprise Server)
    * containing an object with repositories that the authenticated
    * user has explicit permission (:read, :write, or :admin) to access
    * as well as information about whether the list of repositories
@@ -92,7 +92,7 @@ interface ICloneRepositoryState {
 
   /**
    * The persisted state of the CloneGitHubRepository component for
-   * the GitHub Enterprise account.
+   * the GitHub Enterprise Server account.
    */
   readonly enterpriseTabState: IGitHubTabState
 
@@ -218,7 +218,7 @@ export class CloneRepository extends React.Component<
           selectedIndex={this.props.selectedTab}
         >
           <span>GitHub.com</span>
-          <span>Enterprise</span>
+          <span>GitHub Enterprise Server</span>
           <span>URL</span>
         </TabBar>
 
@@ -453,8 +453,8 @@ export class CloneRepository extends React.Component<
             onAction={this.signInEnterprise}
           >
             <div>
-              If you have a GitHub Enterprise account at work, sign in to it to
-              get access to your repositories.
+              If you have a GitHub Enterprise Server account at work, sign in to
+              it to get access to your repositories.
             </div>
           </CallToAction>
         )
@@ -510,7 +510,8 @@ export class CloneRepository extends React.Component<
   }
 
   private onChooseDirectory = async () => {
-    const directories = remote.dialog.showOpenDialog({
+    const window = remote.getCurrentWindow()
+    const directories = remote.dialog.showOpenDialog(window, {
       properties: ['createDirectory', 'openDirectory'],
     })
 

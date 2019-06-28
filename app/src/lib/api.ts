@@ -718,8 +718,16 @@ export class API {
     name: string
   ): Promise<ReadonlyArray<IAPIBranch>> {
     const path = `repos/${owner}/${name}/branches?protected=true`
-    const response = await this.request('GET', path)
-    return await parsedResponse<IAPIBranch[]>(response)
+    try {
+      const response = await this.request('GET', path)
+      return await parsedResponse<IAPIBranch[]>(response)
+    } catch (err) {
+      log.info(
+        `[fetchProtectedBranches] unable to list protected branches`,
+        err
+      )
+      return new Array<IAPIBranch>()
+    }
   }
 
   /**
@@ -1070,7 +1078,7 @@ export function getHTMLURL(endpoint: string): string {
   // In the case of GitHub.com, the HTML site lives on the parent domain.
   //  E.g., https://api.github.com -> https://github.com
   //
-  // Whereas with Enterprise, it lives on the same domain but without the
+  // Whereas with Enterprise Server, it lives on the same domain but without the
   // API path:
   //  E.g., https://github.mycompany.com/api/v3 -> https://github.mycompany.com
   //

@@ -75,7 +75,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   /**
    * Add the account to the store.
    */
-  public async addAccount(account: Account): Promise<void> {
+  public async addAccount(account: Account): Promise<Account | null> {
     await this.loadingPromise
 
     let updated = account
@@ -103,12 +103,13 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       } else {
         this.emitError(e)
       }
-      return
+      return null
     }
 
     this.accounts = [...this.accounts, updated]
 
     this.save()
+    return updated
   }
 
   /** Refresh all accounts by fetching their latest info from the API. */

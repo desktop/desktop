@@ -313,7 +313,7 @@ export class Dispatcher {
     return this.appStore._closeCurrentFoldout()
   }
 
-  /** Close the specified foldout. */
+  /** Close the specified foldout */
   public closeFoldout(foldout: FoldoutType): Promise<void> {
     return this.appStore._closeFoldout(foldout)
   }
@@ -907,6 +907,8 @@ export class Dispatcher {
         return
       }
 
+      this.statsStore.recordRebaseSuccessWithoutConflicts()
+
       await this.completeRebase(
         repository,
         {
@@ -1002,6 +1004,8 @@ export class Dispatcher {
         )
         return
       }
+
+      this.statsStore.recordRebaseSuccessAfterConflicts()
 
       await this.completeRebase(
         repository,
@@ -1295,7 +1299,8 @@ export class Dispatcher {
    * Update the location of an existing repository and clear the missing flag.
    */
   public async relocateRepository(repository: Repository): Promise<void> {
-    const directories = remote.dialog.showOpenDialog({
+    const window = remote.getCurrentWindow()
+    const directories = remote.dialog.showOpenDialog(window, {
       properties: ['openDirectory'],
     })
 

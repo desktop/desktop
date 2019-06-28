@@ -89,10 +89,10 @@ export interface IDailyMeasures {
   /** The number of times the user pushes with `--force-with-lease` to GitHub.com */
   readonly dotcomForcePushCount: number
 
-  /** The number of times the user pushed to a GitHub enterprise instance */
+  /** The number of times the user pushed to a GitHub Enterprise Server instance */
   readonly enterprisePushCount: number
 
-  /** The number of times the user pushes with `--force-with-lease` to a GitHub Enterprise instance */
+  /** The number of times the user pushes with `--force-with-lease` to a GitHub Enterprise Server instance */
   readonly enterpriseForcePushCount: number
 
   /** The number of times the users pushes to a generic remote */
@@ -130,14 +130,14 @@ export interface IDailyMeasures {
 
   /**
    * The number of times the user made a commit to a repo hosted on
-   * a GitHub Enterprise instance
+   * a GitHub Enterprise Server instance
    */
   readonly enterpriseCommits: number
 
   /** The number of times the user made a commit to a repo hosted on Github.com */
   readonly dotcomCommits: number
 
-  /** The number of times the user made a commit to a protected GitHub or GitHub Enterprise repository */
+  /** The number of times the user made a commit to a protected GitHub or GitHub Enterprise Server repository */
   readonly commitsToProtectedBranch: number
 
   /** The number of times the user made a commit to a repository with branch protections enabled */
@@ -170,8 +170,11 @@ export interface IDailyMeasures {
   /** The number of times an aborted rebase is detected */
   readonly rebaseAbortedAfterConflictsCount: number
 
-  /** The number of times a successful rebase is detected */
+  /** The number of times a successful rebase after handling conflicts is detected */
   readonly rebaseSuccessAfterConflictsCount: number
+
+  /** The number of times a successful rebase without conflicts is detected */
+  readonly rebaseSuccessWithoutConflictsCount: number
 
   /** The number of times a user performed a pull with `pull.rebase` in config set to `true` */
   readonly pullWithRebaseCount: number

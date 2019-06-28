@@ -21,23 +21,23 @@ export const DesktopStashEntryMarker = '!!GitHub_Desktop'
  */
 const desktopStashEntryMessageRe = /!!GitHub_Desktop<(.+)>$/
 
-/**
- * Get the list of stash entries created by Desktop in the current repository
- * using the default ordering of refs (wich is LIFO ordering),
- * as well as the total amount of stash entries.
- */
-export async function getStashes(
-  repository: Repository
-): Promise<{
+type StashResult = {
   /** The stash entries created by Desktop */
   readonly desktopEntries: ReadonlyArray<IStashEntry>
 
   /**
    * The total amount of stash entries,
-   * i.e. stash entries created by desktop and outside of desktop
+   * i.e. stash entries created both by Desktop and outside of Desktop
    */
   readonly stashEntryCount: number
-}> {
+}
+
+/**
+ * Get the list of stash entries created by Desktop in the current repository
+ * using the default ordering of refs (which is LIFO ordering),
+ * as well as the total amount of stash entries.
+ */
+export async function getStashes(repository: Repository): Promise<StashResult> {
   const delimiter = '1F'
   const delimiterString = String.fromCharCode(parseInt(delimiter, 16))
   const format = ['%gd', '%H', '%gs'].join(`%x${delimiter}`)

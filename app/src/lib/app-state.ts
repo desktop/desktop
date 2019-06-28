@@ -179,6 +179,8 @@ export interface IAppState {
   /** The external editor to use when opening repositories */
   readonly selectedExternalEditor?: ExternalEditor
 
+  /** The current setting for whether the user has disable usage reports */
+  readonly optOutOfUsageTracking: boolean
   /**
    * A cached entry representing an external editor found on the user's machine:
    *
@@ -254,10 +256,20 @@ export type AppMenuFoldout = {
   openedWithAccessKey?: boolean
 }
 
+export type BranchFoldout = {
+  type: FoldoutType.Branch
+
+  /**
+   * A flag to indicate the user clicked the "switch branch" link when they
+   * saw the prompt about the current branch being protected.
+   */
+  handleProtectedBranchWarning?: boolean
+}
+
 export type Foldout =
   | { type: FoldoutType.Repository }
-  | { type: FoldoutType.Branch }
   | { type: FoldoutType.AddMenu }
+  | BranchFoldout
   | AppMenuFoldout
 
 export enum RepositorySectionTab {
@@ -575,6 +587,9 @@ export interface IChangesState {
    * for more information about the differences between the two.
    */
   readonly selection: ChangesSelection
+
+  /** `true` if the GitHub API reports that the branch is protected */
+  readonly currentBranchProtected: boolean
 }
 
 /**
