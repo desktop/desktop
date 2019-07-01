@@ -7,7 +7,7 @@
       "[Fixed] Keyboard navigation inside \"Compare Branch\" list - #7802. Thanks @ADustyOldMuffin!",
       "[Fixed] New repository does not write description into README - #7571. Thanks @noelledusahel!",
       "[Fixed] Disable \"Discard\" and \"Restore\" buttons while restoring stash - #7289",
-      "[Fixed] \"Unable to restore\" warning message appears when restoring stash - #7652",
+      "[Fixed] \"Unable to restore\" warning message appears momentarily when restoring stash - #7652",
       "[Fixed] Unresponsive app on macOS if user switches away from file dialog - #7636",
       "[Fixed] Launching app on Windows after being maximized does not restore correct window state - #7750",
       "[Improved] Update mentions of \"Enterprise\" to \"Enterprise Server\" in app - #7728 #7845 #7835. Thanks @nathos!",
