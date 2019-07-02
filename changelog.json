@@ -1,5 +1,20 @@
 {
   "releases": {
+    "2.1.0": [
+      "[New] Branches that have been merged and deleted on GitHub.com will now be pruned after two weeks - #750",
+      "[Added] Search text within diffs using shortcut - #7538",
+      "[Added] Keyboard shortcut for \"Discard All Changes\" menu item - #7588. Thanks @say25!",
+      "[Fixed] Repository name moves cursor to end in \"Create Repository\" dialog - #7862",
+      "[Fixed] Keyboard navigation inside \"Compare Branch\" list - #7802. Thanks @ADustyOldMuffin!",
+      "[Fixed] New repository does not write description into README - #7571. Thanks @noelledusahel!",
+      "[Fixed] Disable \"Discard\" and \"Restore\" buttons while restoring stash - #7289",
+      "[Fixed] \"Unable to restore\" warning message appears momentarily when restoring stash - #7652",
+      "[Fixed] Unresponsive app on macOS if user switches away from file dialog - #7636",
+      "[Fixed] Launching app on Windows after being maximized does not restore correct window state - #7750",
+      "[Improved] Update mentions of \"Enterprise\" to \"Enterprise Server\" in app - #7728 #7845 #7835. Thanks @nathos!",
+      "[Improved] Update license and .gitignore templates for initializing a new repository - #7548 #7661. Thanks @VADS!",
+      "[Improved] \"Authentication failed\" dialog provides more help to diagnose issue -  #7622"
+    ],
     "2.1.0-beta3": [
       "[Added] Search text within diffs using shortcut - #7538",
       "[Fixed] Repository name moves cursor to end in \"Create Repository\" dialog - #7862",
