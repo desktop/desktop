@@ -308,7 +308,7 @@ export class BlankSlateView extends React.Component<
     return (
       <TabBar selectedIndex={selectedIndex} onTabClicked={this.onTabClicked}>
         <span>GitHub.com</span>
-        <span>Enterprise</span>
+        <span>GitHub Enterprise Server</span>
       </TabBar>
     )
   }

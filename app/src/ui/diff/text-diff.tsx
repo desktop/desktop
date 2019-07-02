@@ -129,6 +129,34 @@ interface ITextDiffProps {
 
 const diffGutterName = 'diff-gutter'
 
+function showSearch(cm: Editor) {
+  cm.execCommand('findPersistent')
+  const wrapper = cm.getWrapperElement()
+
+  if (!wrapper) {
+    return
+  }
+
+  const dialog = wrapper.querySelector('.CodeMirror-dialog')
+
+  if (!dialog) {
+    return
+  }
+
+  dialog.classList.add('CodeMirror-search-dialog')
+  const searchLabel = dialog.querySelector('.CodeMirror-search-label')
+  const searchField = dialog.querySelector('.CodeMirror-search-field')
+
+  if (
+    searchLabel instanceof HTMLElement &&
+    searchField instanceof HTMLInputElement
+  ) {
+    searchLabel.style.display = 'none'
+    searchField.placeholder = 'Search'
+    searchField.style.width = null
+  }
+}
+
 const defaultEditorOptions: IEditorConfigurationExtra = {
   lineNumbers: false,
   readOnly: true,
@@ -137,7 +165,11 @@ const defaultEditorOptions: IEditorConfigurationExtra = {
   lineWrapping: true,
   mode: { name: DiffSyntaxMode.ModeName },
   // Make sure CodeMirror doesn't capture Tab (and Shift-Tab) and thus destroy tab navigation
-  extraKeys: { Tab: false, 'Shift-Tab': false },
+  extraKeys: {
+    Tab: false,
+    'Shift-Tab': false,
+    [__DARWIN__ ? 'Cmd-F' : 'Ctrl-F']: showSearch,
+  },
   scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
   styleSelectedText: true,
   lineSeparator: '\n',

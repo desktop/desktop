@@ -10,7 +10,7 @@ import { Repository } from '../../models/repository'
 import { fatalError } from '../fatal-error'
 import { IAPIRepository, IAPIBranch } from '../api'
 import { BaseStore } from './base-store'
-import { enableBranchProtectionWarning } from '../feature-flag'
+import { enableBranchProtectionChecks } from '../feature-flag'
 
 /** The store for local repositories. */
 export class RepositoriesStore extends BaseStore {
@@ -388,8 +388,7 @@ export class RepositoriesStore extends BaseStore {
   public async updateGitHubRepository(
     repository: Repository,
     endpoint: string,
-    gitHubRepository: IAPIRepository,
-    branches: ReadonlyArray<IAPIBranch>
+    gitHubRepository: IAPIRepository
   ): Promise<Repository> {
     const repoID = repository.id
     if (!repoID) {
@@ -402,7 +401,6 @@ export class RepositoriesStore extends BaseStore {
       'rw',
       this.db.repositories,
       this.db.gitHubRepositories,
-      this.db.protectedBranches,
       this.db.owners,
       async () => {
         const localRepo = (await this.db.repositories.get(repoID))!
@@ -414,50 +412,6 @@ export class RepositoriesStore extends BaseStore {
         await this.db.repositories.update(localRepo.id!, {
           gitHubRepositoryID: updatedGitHubRepo.dbID,
         })
-
-        if (enableBranchProtectionWarning()) {
-          const repoId = updatedGitHubRepo.dbID!
-
-          // This update flow is organized into two stages:
-          //
-          // - update the in-memory cache
-          // - update the underyling database state
-          //
-          // This should ensure any stale values are not being used, and avoids
-          // the need to query the database while the results are in memory.
-
-          const prefix = getKeyPrefix(repoId)
-
-          for (const key of this.protectionEnabledForBranchCache.keys()) {
-            // invalidate any cached entries belonging to this repository
-            if (key.startsWith(prefix)) {
-              this.protectionEnabledForBranchCache.delete(key)
-            }
-          }
-
-          const branchRecords = branches.map<IDatabaseProtectedBranch>(b => ({
-            repoId,
-            name: b.name,
-          }))
-
-          // update cached values to avoid database lookup
-          for (const item of branchRecords) {
-            const key = getKey(repoId, item.name)
-            this.protectionEnabledForBranchCache.set(key, true)
-          }
-
-          await this.db.protectedBranches
-            .where('repoId')
-            .equals(repoId)
-            .delete()
-
-          const protectionsFound = branchRecords.length > 0
-          this.branchProtectionSettingsFoundCache.set(repoId, protectionsFound)
-
-          if (branchRecords.length > 0) {
-            await this.db.protectedBranches.bulkAdd(branchRecords)
-          }
-        }
 
         return updatedGitHubRepo
       }
@@ -471,6 +425,69 @@ export class RepositoriesStore extends BaseStore {
       updatedGitHubRepo,
       repository.missing
     )
+  }
+
+  /** Add or update the branch protections associated with a GitHub repository. */
+  public async updateBranchProtections(
+    gitHubRepository: GitHubRepository,
+    protectedBranches: ReadonlyArray<IAPIBranch>
+  ): Promise<void> {
+    if (!enableBranchProtectionChecks()) {
+      return
+    }
+
+    const dbID = gitHubRepository.dbID
+    if (!dbID) {
+      return fatalError(
+        '`updateBranchProtections` can only update a GitHub repository for a repository which has been added to the database.'
+      )
+    }
+
+    await this.db.transaction('rw', this.db.protectedBranches, async () => {
+      // This update flow is organized into two stages:
+      //
+      // - update the in-memory cache
+      // - update the underyling database state
+      //
+      // This should ensure any stale values are not being used, and avoids
+      // the need to query the database while the results are in memory.
+
+      const prefix = getKeyPrefix(dbID)
+
+      for (const key of this.protectionEnabledForBranchCache.keys()) {
+        // invalidate any cached entries belonging to this repository
+        if (key.startsWith(prefix)) {
+          this.protectionEnabledForBranchCache.delete(key)
+        }
+      }
+
+      const branchRecords = protectedBranches.map<IDatabaseProtectedBranch>(
+        b => ({
+          repoId: dbID,
+          name: b.name,
+        })
+      )
+
+      // update cached values to avoid database lookup
+      for (const item of branchRecords) {
+        const key = getKey(dbID, item.name)
+        this.protectionEnabledForBranchCache.set(key, true)
+      }
+
+      await this.db.protectedBranches
+        .where('repoId')
+        .equals(dbID)
+        .delete()
+
+      const protectionsFound = branchRecords.length > 0
+      this.branchProtectionSettingsFoundCache.set(dbID, protectionsFound)
+
+      if (branchRecords.length > 0) {
+        await this.db.protectedBranches.bulkAdd(branchRecords)
+      }
+    })
+
+    this.emitUpdate()
   }
 
   /**

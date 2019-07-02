@@ -60,8 +60,7 @@ describe('RepositoriesStore', () => {
       await repositoriesStore!.updateGitHubRepository(
         addedRepo,
         'https://api.github.com',
-        gitHubRepo,
-        []
+        gitHubRepo
       )
 
       const repositories = await repositoriesStore!.getAll()
@@ -80,8 +79,7 @@ describe('RepositoriesStore', () => {
       const updatedFirstRepo = await repositoriesStore!.updateGitHubRepository(
         firstRepo,
         'https://api.github.com',
-        gitHubRepo,
-        []
+        gitHubRepo
       )
 
       const secondRepo = await repositoriesStore!.addRepository(
@@ -90,8 +88,7 @@ describe('RepositoriesStore', () => {
       const updatedSecondRepo = await repositoriesStore!.updateGitHubRepository(
         secondRepo,
         'https://api.github.com',
-        gitHubRepo,
-        []
+        gitHubRepo
       )
 
       expect(updatedFirstRepo.gitHubRepository!.dbID).toBe(
