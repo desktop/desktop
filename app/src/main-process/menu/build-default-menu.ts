@@ -164,7 +164,7 @@ export function buildDefaultMenu({
         id: 'find',
         label: __DARWIN__ ? 'Find' : '&Find',
         accelerator: 'CmdOrCtrl+F',
-        click: emit('find'),
+        click: emit('find-text'),
       },
     ],
   })
