@@ -64,8 +64,8 @@ https://github.com/desktop/desktop/blob/development/docs/contributing/timeline-p
 <!--
 Attach your log file (You can simply drag your file here to insert it) to this issue. Please make sure the generated link to your log file is **below** this comment section otherwise it will not appear when you submit your issue.
 
-macOS logs location: `~/Library/Application Support/GitHub Desktop/logs/*.desktop.production.log`
-Windows logs location: `%APPDATA%\GitHub Desktop\logs\*.desktop.production.log`
+macOS logs accessible from the Help menu or location: `~/Library/Application Support/GitHub Desktop/logs/*.desktop.production.log`
+Windows logs accessible from the Help menu or location: `%APPDATA%\GitHub Desktop\logs\*.desktop.production.log`
 
 The log files are organized by date, so see if anything was generated for today's date.
 -->
