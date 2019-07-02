@@ -22,11 +22,11 @@ const editors: ILinuxExternalEditor[] = [
   },
   {
     name: 'Visual Studio Code',
-    paths: ['/usr/bin/code'],
+    paths: ['/snap/bin/code', '/usr/bin/code'],
   },
   {
     name: 'Visual Studio Code (Insiders)',
-    paths: ['/usr/bin/code-insiders'],
+    paths: ['/snap/bin/code-insiders', '/usr/bin/code-insiders'],
   },
   {
     name: 'VSCodium',
