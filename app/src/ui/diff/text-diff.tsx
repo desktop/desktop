@@ -741,7 +741,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   public componentWillUnmount() {
     this.cancelSelection()
     this.codeMirror = null
-    document.removeEventListener('x-find-text', this.onFindText)
+    document.removeEventListener('find-text', this.onFindText)
   }
 
   public componentDidUpdate(
