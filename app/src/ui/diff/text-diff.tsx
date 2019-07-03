@@ -741,6 +741,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   public componentWillUnmount() {
     this.cancelSelection()
     this.codeMirror = null
+    document.removeEventListener('find-text', this.onFindText)
   }
 
   public componentDidUpdate(
@@ -788,6 +789,17 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
   public componentDidMount() {
     this.initDiffSyntaxMode()
+
+    // Listen for the custom event find-text (see app.tsx)
+    // and trigger the search plugin if we see it.
+    document.addEventListener('find-text', this.onFindText)
+  }
+
+  private onFindText = (ev: Event) => {
+    if (!ev.defaultPrevented && this.codeMirror) {
+      ev.preventDefault()
+      showSearch(this.codeMirror)
+    }
   }
 
   public render() {
