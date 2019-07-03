@@ -35,3 +35,4 @@ export type MenuEvent =
   | 'show-stashed-changes'
   | 'hide-stashed-changes'
   | 'test-prune-branches'
+  | 'find-text'
