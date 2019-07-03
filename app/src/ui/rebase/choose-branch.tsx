@@ -146,6 +146,17 @@ export class ChooseBranchDialog extends React.Component<
       return
     }
 
+    // if we are unable to find any commits to rebase, indicate that we're
+    // unable to proceed with the rebase
+    if (commits === null) {
+      this.setState({
+        rebasePreview: {
+          kind: ComputedAction.Invalid,
+        },
+      })
+      return
+    }
+
     // the target branch is a direct descendant of the base branch
     // which means the target branch is already up to date and the commits
     // do not need to be applied
@@ -293,6 +304,10 @@ export class ChooseBranchDialog extends React.Component<
       )
     }
 
+    if (rebaseStatus.kind === ComputedAction.Invalid) {
+      return this.renderInvalidRebaseMessage()
+    }
+
     // TODO: other scenarios to display some context about
 
     return null
@@ -300,6 +315,10 @@ export class ChooseBranchDialog extends React.Component<
 
   private renderLoadingRebaseMessage() {
     return <>Checking for ability to rebase automatically...</>
+  }
+
+  private renderInvalidRebaseMessage() {
+    return <>Unable to start rebase. Check you have chosen a valid branch.</>
   }
 
   private renderCleanRebaseMessage(
