@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.1.1-beta1": [],
     "2.1.0": [
       "[New] Branches that have been merged and deleted on GitHub.com will now be pruned after two weeks - #750",
       "[Added] Search text within diffs using shortcut - #7538",
