@@ -356,6 +356,9 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     install: () => import('codemirror/mode/properties/properties'),
     mappings: {
       '.properties': 'text/x-properties',
+      '.gitattributes': 'text/x-properties',
+      '.gitignore': 'text/x-properties',
+      '.editorconfig': 'text/x-properties',
       '.ini': 'text/x-ini',
     },
   },
@@ -369,12 +372,6 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     install: () => import('codemirror/mode/asciiarmor/asciiarmor'),
     mappings: {
       '.pgp': 'application/pgp',
-    },
-  },
-  {
-    install: () => import('codemirror/mode/octave/octave'),
-    mappings: {
-      '.m': 'text/x-octave',
     },
   },
   {
