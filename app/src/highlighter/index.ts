@@ -6,10 +6,10 @@
 import {
   getMode,
   innerMode,
-  StringStream
-} from "codemirror/addon/runmode/runmode.node.js";
+  StringStream,
+} from 'codemirror/addon/runmode/runmode.node.js'
 
-import { ITokens, IHighlightRequest } from "../lib/highlighter/types";
+import { ITokens, IHighlightRequest } from '../lib/highlighter/types'
 
 /**
  * A mode definition object is used to map a certain file
@@ -23,7 +23,7 @@ interface IModeDefinition {
    * is idempotent and can be called multiple times with no adverse
    * effect.
    */
-  readonly install: () => Promise<void>;
+  readonly install: () => Promise<void>
 
   /**
    * A map between file extensions (including the leading dot, i.e.
@@ -32,8 +32,8 @@ interface IModeDefinition {
    * the CodeMirror mode itself.
    */
   readonly mappings: {
-    readonly [key: string]: string;
-  };
+    readonly [key: string]: string
+  }
 }
 
 /**
@@ -42,358 +42,358 @@ interface IModeDefinition {
  */
 const extensionModes: ReadonlyArray<IModeDefinition> = [
   {
-    install: () => import("codemirror/mode/javascript/javascript"),
+    install: () => import('codemirror/mode/javascript/javascript'),
     mappings: {
-      ".ts": "text/typescript",
-      ".js": "text/javascript",
-      ".json": "application/json"
-    }
+      '.ts': 'text/typescript',
+      '.js': 'text/javascript',
+      '.json': 'application/json',
+    },
   },
   {
-    install: () => import("codemirror/mode/coffeescript/coffeescript"),
+    install: () => import('codemirror/mode/coffeescript/coffeescript'),
     mappings: {
-      ".coffee": "text/x-coffeescript"
-    }
+      '.coffee': 'text/x-coffeescript',
+    },
   },
   {
-    install: () => import("codemirror/mode/jsx/jsx"),
+    install: () => import('codemirror/mode/jsx/jsx'),
     mappings: {
-      ".tsx": "text/typescript-jsx",
-      ".jsx": "text/jsx"
-    }
+      '.tsx': 'text/typescript-jsx',
+      '.jsx': 'text/jsx',
+    },
   },
   {
-    install: () => import("codemirror/mode/htmlmixed/htmlmixed"),
+    install: () => import('codemirror/mode/htmlmixed/htmlmixed'),
     mappings: {
-      ".html": "text/html",
-      ".htm": "text/html"
-    }
+      '.html': 'text/html',
+      '.htm': 'text/html',
+    },
   },
   {
-    install: () => import("codemirror/mode/htmlembedded/htmlembedded"),
+    install: () => import('codemirror/mode/htmlembedded/htmlembedded'),
     mappings: {
-      ".jsp": "application/x-jsp"
-    }
+      '.jsp': 'application/x-jsp',
+    },
   },
   {
-    install: () => import("codemirror/mode/css/css"),
+    install: () => import('codemirror/mode/css/css'),
     mappings: {
-      ".css": "text/css",
-      ".scss": "text/x-scss",
-      ".less": "text/x-less"
-    }
+      '.css': 'text/css',
+      '.scss': 'text/x-scss',
+      '.less': 'text/x-less',
+    },
   },
   {
-    install: () => import("codemirror/mode/vue/vue"),
+    install: () => import('codemirror/mode/vue/vue'),
     mappings: {
-      ".vue": "text/x-vue"
-    }
+      '.vue': 'text/x-vue',
+    },
   },
   {
-    install: () => import("codemirror/mode/markdown/markdown"),
+    install: () => import('codemirror/mode/markdown/markdown'),
     mappings: {
-      ".markdown": "text/x-markdown",
-      ".md": "text/x-markdown"
-    }
+      '.markdown': 'text/x-markdown',
+      '.md': 'text/x-markdown',
+    },
   },
   {
-    install: () => import("codemirror/mode/yaml/yaml"),
+    install: () => import('codemirror/mode/yaml/yaml'),
     mappings: {
-      ".yaml": "text/yaml",
-      ".yml": "text/yaml"
-    }
+      '.yaml': 'text/yaml',
+      '.yml': 'text/yaml',
+    },
   },
   {
-    install: () => import("codemirror/mode/xml/xml"),
+    install: () => import('codemirror/mode/xml/xml'),
     mappings: {
-      ".xml": "text/xml",
-      ".xaml": "text/xml",
-      ".csproj": "text/xml",
-      ".fsproj": "text/xml",
-      ".vcxproj": "text/xml",
-      ".vbproj": "text/xml",
-      ".svg": "text/xml",
-      ".resx": "text/xml"
-    }
+      '.xml': 'text/xml',
+      '.xaml': 'text/xml',
+      '.csproj': 'text/xml',
+      '.fsproj': 'text/xml',
+      '.vcxproj': 'text/xml',
+      '.vbproj': 'text/xml',
+      '.svg': 'text/xml',
+      '.resx': 'text/xml',
+    },
   },
   {
-    install: () => import("codemirror/mode/clike/clike"),
+    install: () => import('codemirror/mode/clike/clike'),
     mappings: {
-      ".m": "text/x-objectivec",
-      ".scala": "text/x-scala",
-      ".sc": "text/x-scala",
-      ".cs": "text/x-csharp",
-      ".cake": "text/x-csharp",
-      ".java": "text/x-java",
-      ".c": "text/x-c",
-      ".h": "text/x-c",
-      ".cpp": "text/x-c++src",
-      ".hpp": "text/x-c++src",
-      ".kt": "text/x-kotlin"
-    }
+      '.m': 'text/x-objectivec',
+      '.scala': 'text/x-scala',
+      '.sc': 'text/x-scala',
+      '.cs': 'text/x-csharp',
+      '.cake': 'text/x-csharp',
+      '.java': 'text/x-java',
+      '.c': 'text/x-c',
+      '.h': 'text/x-c',
+      '.cpp': 'text/x-c++src',
+      '.hpp': 'text/x-c++src',
+      '.kt': 'text/x-kotlin',
+    },
   },
   {
-    install: () => import("codemirror/mode/mllike/mllike"),
+    install: () => import('codemirror/mode/mllike/mllike'),
     mappings: {
-      ".ml": "text/x-ocaml",
-      ".fs": "text/x-fsharp",
-      ".fsx": "text/x-fsharp",
-      ".fsi": "text/x-fsharp"
-    }
+      '.ml': 'text/x-ocaml',
+      '.fs': 'text/x-fsharp',
+      '.fsx': 'text/x-fsharp',
+      '.fsi': 'text/x-fsharp',
+    },
   },
   {
-    install: () => import("codemirror/mode/swift/swift"),
+    install: () => import('codemirror/mode/swift/swift'),
     mappings: {
-      ".swift": "text/x-swift"
-    }
+      '.swift': 'text/x-swift',
+    },
   },
   {
-    install: () => import("codemirror/mode/shell/shell"),
+    install: () => import('codemirror/mode/shell/shell'),
     mappings: {
-      ".sh": "text/x-sh"
-    }
+      '.sh': 'text/x-sh',
+    },
   },
   {
-    install: () => import("codemirror/mode/sql/sql"),
+    install: () => import('codemirror/mode/sql/sql'),
     mappings: {
-      ".sql": "text/x-sql"
-    }
+      '.sql': 'text/x-sql',
+    },
   },
   {
-    install: () => import("codemirror/mode/cypher/cypher"),
+    install: () => import('codemirror/mode/cypher/cypher'),
     mappings: {
-      ".cql": "application/x-cypher-query"
-    }
+      '.cql': 'application/x-cypher-query',
+    },
   },
   {
-    install: () => import("codemirror/mode/go/go"),
+    install: () => import('codemirror/mode/go/go'),
     mappings: {
-      ".go": "text/x-go"
-    }
+      '.go': 'text/x-go',
+    },
   },
   {
-    install: () => import("codemirror/mode/perl/perl"),
+    install: () => import('codemirror/mode/perl/perl'),
     mappings: {
-      ".pl": "text/x-perl"
-    }
+      '.pl': 'text/x-perl',
+    },
   },
   {
-    install: () => import("codemirror/mode/php/php"),
+    install: () => import('codemirror/mode/php/php'),
     mappings: {
-      ".php": "application/x-httpd-php"
-    }
+      '.php': 'application/x-httpd-php',
+    },
   },
   {
-    install: () => import("codemirror/mode/python/python"),
+    install: () => import('codemirror/mode/python/python'),
     mappings: {
-      ".py": "text/x-python"
-    }
+      '.py': 'text/x-python',
+    },
   },
   {
-    install: () => import("codemirror/mode/ruby/ruby"),
+    install: () => import('codemirror/mode/ruby/ruby'),
     mappings: {
-      ".rb": "text/x-ruby"
-    }
+      '.rb': 'text/x-ruby',
+    },
   },
   {
-    install: () => import("codemirror/mode/clojure/clojure"),
+    install: () => import('codemirror/mode/clojure/clojure'),
     mappings: {
-      ".clj": "text/x-clojure",
-      ".cljc": "text/x-clojure",
-      ".cljs": "text/x-clojure",
-      ".edn": "text/x-clojure"
-    }
+      '.clj': 'text/x-clojure',
+      '.cljc': 'text/x-clojure',
+      '.cljs': 'text/x-clojure',
+      '.edn': 'text/x-clojure',
+    },
   },
   {
-    install: () => import("codemirror/mode/rust/rust"),
+    install: () => import('codemirror/mode/rust/rust'),
     mappings: {
-      ".rs": "text/x-rustsrc"
-    }
+      '.rs': 'text/x-rustsrc',
+    },
   },
   {
-    install: () => import("codemirror-mode-elixir"),
+    install: () => import('codemirror-mode-elixir'),
     mappings: {
-      ".ex": "text/x-elixir",
-      ".exs": "text/x-elixir"
-    }
+      '.ex': 'text/x-elixir',
+      '.exs': 'text/x-elixir',
+    },
   },
   {
-    install: () => import("codemirror/mode/haxe/haxe"),
+    install: () => import('codemirror/mode/haxe/haxe'),
     mappings: {
-      ".hx": "text/x-haxe"
-    }
+      '.hx': 'text/x-haxe',
+    },
   },
   {
-    install: () => import("codemirror/mode/r/r"),
+    install: () => import('codemirror/mode/r/r'),
     mappings: {
-      ".r": "text/x-rsrc"
-    }
+      '.r': 'text/x-rsrc',
+    },
   },
   {
-    install: () => import("codemirror/mode/powershell/powershell"),
+    install: () => import('codemirror/mode/powershell/powershell'),
     mappings: {
-      ".ps1": "application/x-powershell"
-    }
+      '.ps1': 'application/x-powershell',
+    },
   },
   {
-    install: () => import("codemirror/mode/vb/vb"),
+    install: () => import('codemirror/mode/vb/vb'),
     mappings: {
-      ".vb": "text/x-vb"
-    }
+      '.vb': 'text/x-vb',
+    },
   },
   {
-    install: () => import("codemirror/mode/fortran/fortran"),
+    install: () => import('codemirror/mode/fortran/fortran'),
     mappings: {
-      ".f": "text/x-fortran",
-      ".f90": "text/x-fortran"
-    }
+      '.f': 'text/x-fortran',
+      '.f90': 'text/x-fortran',
+    },
   },
   {
-    install: () => import("codemirror/mode/lua/lua"),
+    install: () => import('codemirror/mode/lua/lua'),
     mappings: {
-      ".lua": "text/x-lua"
-    }
+      '.lua': 'text/x-lua',
+    },
   },
   {
-    install: () => import("codemirror/mode/crystal/crystal"),
+    install: () => import('codemirror/mode/crystal/crystal'),
     mappings: {
-      ".cr": "text/x-crystal"
-    }
+      '.cr': 'text/x-crystal',
+    },
   },
   {
-    install: () => import("codemirror/mode/julia/julia"),
+    install: () => import('codemirror/mode/julia/julia'),
     mappings: {
-      ".jl": "text/x-julia"
-    }
+      '.jl': 'text/x-julia',
+    },
   },
   {
-    install: () => import("codemirror/mode/stex/stex"),
+    install: () => import('codemirror/mode/stex/stex'),
     mappings: {
-      ".tex": "text/x-stex"
-    }
+      '.tex': 'text/x-stex',
+    },
   },
   {
-    install: () => import("codemirror/mode/sparql/sparql"),
+    install: () => import('codemirror/mode/sparql/sparql'),
     mappings: {
-      ".rq": "application/sparql-query"
-    }
+      '.rq': 'application/sparql-query',
+    },
   },
   {
-    install: () => import("codemirror/mode/stylus/stylus"),
+    install: () => import('codemirror/mode/stylus/stylus'),
     mappings: {
-      ".styl": "text/x-styl"
-    }
+      '.styl': 'text/x-styl',
+    },
   },
   {
-    install: () => import("codemirror/mode/soy/soy"),
+    install: () => import('codemirror/mode/soy/soy'),
     mappings: {
-      ".soy": "text/x-soy"
-    }
+      '.soy': 'text/x-soy',
+    },
   },
   {
-    install: () => import("codemirror/mode/smalltalk/smalltalk"),
+    install: () => import('codemirror/mode/smalltalk/smalltalk'),
     mappings: {
-      ".st": "text/x-stsrc"
-    }
+      '.st': 'text/x-stsrc',
+    },
   },
   {
-    install: () => import("codemirror/mode/slim/slim"),
+    install: () => import('codemirror/mode/slim/slim'),
     mappings: {
-      ".slim": "application/x-slim"
-    }
+      '.slim': 'application/x-slim',
+    },
   },
   {
-    install: () => import("codemirror/mode/sieve/sieve"),
+    install: () => import('codemirror/mode/sieve/sieve'),
     mappings: {
-      ".sieve": "application/sieve"
-    }
+      '.sieve': 'application/sieve',
+    },
   },
   {
-    install: () => import("codemirror/mode/scheme/scheme"),
+    install: () => import('codemirror/mode/scheme/scheme'),
     mappings: {
-      ".ss": "text/x-scheme",
-      ".sls": "text/x-scheme",
-      ".scm": "text/x-scheme"
-    }
+      '.ss': 'text/x-scheme',
+      '.sls': 'text/x-scheme',
+      '.scm': 'text/x-scheme',
+    },
   },
   {
-    install: () => import("codemirror/mode/rst/rst"),
+    install: () => import('codemirror/mode/rst/rst'),
     mappings: {
-      ".rst": "text/x-rst"
-    }
+      '.rst': 'text/x-rst',
+    },
   },
   {
-    install: () => import("codemirror/mode/rpm/rpm"),
+    install: () => import('codemirror/mode/rpm/rpm'),
     mappings: {
-      ".rpm": "text/x-rpm-spec"
-    }
+      '.rpm': 'text/x-rpm-spec',
+    },
   },
   {
-    install: () => import("codemirror/mode/q/q"),
+    install: () => import('codemirror/mode/q/q'),
     mappings: {
-      ".q": "text/x-q"
-    }
+      '.q': 'text/x-q',
+    },
   },
   {
-    install: () => import("codemirror/mode/puppet/puppet"),
+    install: () => import('codemirror/mode/puppet/puppet'),
     mappings: {
-      ".pp": "text/x-puppet"
-    }
+      '.pp': 'text/x-puppet',
+    },
   },
   {
-    install: () => import("codemirror/mode/pug/pug"),
+    install: () => import('codemirror/mode/pug/pug'),
     mappings: {
-      ".pug": "text/x-pug"
-    }
+      '.pug': 'text/x-pug',
+    },
   },
   {
-    install: () => import("codemirror/mode/protobuf/protobuf"),
+    install: () => import('codemirror/mode/protobuf/protobuf'),
     mappings: {
-      ".proto": "text/x-protobuf"
-    }
+      '.proto': 'text/x-protobuf',
+    },
   },
   {
-    install: () => import("codemirror/mode/properties/properties"),
+    install: () => import('codemirror/mode/properties/properties'),
     mappings: {
-      ".properties": "text/x-properties",
-      ".gitattributes": "text/x-properties",
-      ".gitignore": "text/x-properties",
-      ".editorconfig": "text/x-properties",
-      ".ini": "text/x-ini"
-    }
+      '.properties': 'text/x-properties',
+      '.gitattributes': 'text/x-properties',
+      '.gitignore': 'text/x-properties',
+      '.editorconfig': 'text/x-properties',
+      '.ini': 'text/x-ini',
+    },
   },
   {
-    install: () => import("codemirror/mode/pig/pig"),
+    install: () => import('codemirror/mode/pig/pig'),
     mappings: {
-      ".pig": "text/x-pig"
-    }
+      '.pig': 'text/x-pig',
+    },
   },
   {
-    install: () => import("codemirror/mode/asciiarmor/asciiarmor"),
+    install: () => import('codemirror/mode/asciiarmor/asciiarmor'),
     mappings: {
-      ".pgp": "application/pgp"
-    }
+      '.pgp': 'application/pgp',
+    },
   },
   {
-    install: () => import("codemirror/mode/oz/oz"),
+    install: () => import('codemirror/mode/oz/oz'),
     mappings: {
-      ".oz": "text/x-oz"
-    }
+      '.oz': 'text/x-oz',
+    },
   },
   {
-    install: () => import("codemirror/mode/pascal/pascal"),
+    install: () => import('codemirror/mode/pascal/pascal'),
     mappings: {
-      ".pas": "text/x-pascal"
-    }
-  }
-];
+      '.pas': 'text/x-pascal',
+    },
+  },
+]
 
 /**
  * A map between file extensions and mime types, see
  * the 'mappings' property on the IModeDefinition interface
  * for more information
  */
-const extensionMIMEMap = new Map<string, string>();
+const extensionMIMEMap = new Map<string, string>()
 
 /**
  * Array describing all currently supported basenameModes and the file names
@@ -401,71 +401,71 @@ const extensionMIMEMap = new Map<string, string>();
  */
 const basenameModes: ReadonlyArray<IModeDefinition> = [
   {
-    install: () => import("codemirror/mode/dockerfile/dockerfile"),
+    install: () => import('codemirror/mode/dockerfile/dockerfile'),
     mappings: {
-      dockerfile: "text/x-dockerfile"
-    }
-  }
-];
+      dockerfile: 'text/x-dockerfile',
+    },
+  },
+]
 
 /**
  * A map between file basenames and mime types, see
  * the 'basenames' property on the IModeDefinition interface
  * for more information
  */
-const basenameMIMEMap = new Map<string, string>();
+const basenameMIMEMap = new Map<string, string>()
 
 /**
  * A map between mime types and mode definitions. See the
  * documentation for the IModeDefinition interface
  * for more information
  */
-const mimeModeMap = new Map<string, IModeDefinition>();
+const mimeModeMap = new Map<string, IModeDefinition>()
 
 for (const extensionMode of extensionModes) {
   for (const [mapping, mimeType] of Object.entries(extensionMode.mappings)) {
-    extensionMIMEMap.set(mapping, mimeType);
-    mimeModeMap.set(mimeType, extensionMode);
+    extensionMIMEMap.set(mapping, mimeType)
+    mimeModeMap.set(mimeType, extensionMode)
   }
 }
 
 for (const basenameMode of basenameModes) {
   for (const [mapping, mimeType] of Object.entries(basenameMode.mappings)) {
-    basenameMIMEMap.set(mapping, mimeType);
-    mimeModeMap.set(mimeType, basenameMode);
+    basenameMIMEMap.set(mapping, mimeType)
+    mimeModeMap.set(mimeType, basenameMode)
   }
 }
 
 function guessMimeType(contents: string) {
-  if (contents.startsWith("<?xml")) {
-    return "text/xml";
+  if (contents.startsWith('<?xml')) {
+    return 'text/xml'
   }
 
-  if (contents.startsWith("#!")) {
+  if (contents.startsWith('#!')) {
     const m = /^#!.*?(ts-node|node|bash|sh|python(?:[\d.]+)?)\r?\n/g.exec(
       contents
-    );
+    )
 
     if (m) {
       switch (m[1]) {
-        case "ts-node":
-          return "text/typescript";
-        case "node":
-          return "text/javascript";
-        case "sh":
-        case "bash":
-          return "text/x-sh";
-        case "perl":
-          return "text/x-perl";
+        case 'ts-node':
+          return 'text/typescript'
+        case 'node':
+          return 'text/javascript'
+        case 'sh':
+        case 'bash':
+          return 'text/x-sh'
+        case 'perl':
+          return 'text/x-perl'
       }
 
-      if (m[1].startsWith("python")) {
-        return "text/x-python";
+      if (m[1].startsWith('python')) {
+        return 'text/x-python'
       }
     }
   }
 
-  return null;
+  return null
 }
 
 async function detectMode(
@@ -474,26 +474,26 @@ async function detectMode(
   const mimeType =
     extensionMIMEMap.get(request.extension.toLowerCase()) ||
     basenameMIMEMap.get(request.basename.toLowerCase()) ||
-    guessMimeType(request.contents);
+    guessMimeType(request.contents)
 
   if (!mimeType) {
-    return null;
+    return null
   }
 
-  const modeDefinition = mimeModeMap.get(mimeType);
+  const modeDefinition = mimeModeMap.get(mimeType)
 
   if (modeDefinition === undefined) {
-    return null;
+    return null
   }
 
-  await modeDefinition.install();
+  await modeDefinition.install()
 
-  return getMode({}, mimeType) || null;
+  return getMode({}, mimeType) || null
 }
 
 function getModeName(mode: CodeMirror.Mode<{}>): string | null {
-  const name = (mode as any).name;
-  return name && typeof name === "string" ? name : null;
+  const name = (mode as any).name
+  return name && typeof name === 'string' ? name : null
 }
 
 /**
@@ -505,8 +505,8 @@ function getInnerModeName(
   mode: CodeMirror.Mode<{}>,
   state: any
 ): string | null {
-  const inner = innerMode(mode, state);
-  return inner && inner.mode ? getModeName(inner.mode) : null;
+  const inner = innerMode(mode, state)
+  return inner && inner.mode ? getModeName(inner.mode) : null
 }
 
 /**
@@ -538,84 +538,84 @@ function readToken(
   addModeClass: boolean
 ): string | null {
   for (let i = 0; i < 10; i++) {
-    const innerModeName = addModeClass ? getInnerModeName(mode, state) : null;
-    const token = mode.token(stream, state);
+    const innerModeName = addModeClass ? getInnerModeName(mode, state) : null
+    const token = mode.token(stream, state)
 
     if (stream.pos > stream.start) {
-      return token && innerModeName ? `m-${innerModeName} ${token}` : token;
+      return token && innerModeName ? `m-${innerModeName} ${token}` : token
     }
   }
 
-  throw new Error(`Mode ${getModeName(mode)} failed to advance stream.`);
+  throw new Error(`Mode ${getModeName(mode)} failed to advance stream.`)
 }
 
 onmessage = async (ev: MessageEvent) => {
-  const request = ev.data as IHighlightRequest;
+  const request = ev.data as IHighlightRequest
 
-  const tabSize = request.tabSize || 4;
-  const contents = request.contents;
-  const addModeClass = request.addModeClass === true;
+  const tabSize = request.tabSize || 4
+  const contents = request.contents
+  const addModeClass = request.addModeClass === true
 
-  const mode = await detectMode(request);
+  const mode = await detectMode(request)
 
   if (!mode) {
-    postMessage({});
-    return;
+    postMessage({})
+    return
   }
 
   const lineFilter =
     request.lines && request.lines.length
       ? new Set<number>(request.lines)
-      : null;
+      : null
 
   // If we've got a set of requested lines we can keep track of the maximum
   // line we need so that we can bail immediately when we've reached it.
-  const maxLine = lineFilter ? Math.max(...lineFilter) : null;
+  const maxLine = lineFilter ? Math.max(...lineFilter) : null
 
-  const lines = contents.split(/\r?\n/);
-  const state: any = mode.startState ? mode.startState() : null;
+  const lines = contents.split(/\r?\n/)
+  const state: any = mode.startState ? mode.startState() : null
 
-  const tokens: ITokens = {};
+  const tokens: ITokens = {}
 
   for (const [ix, line] of lines.entries()) {
     // No need to continue after the max line
     if (maxLine !== null && ix > maxLine) {
-      break;
+      break
     }
 
     // For stateless modes we can optimize by only running
     // the tokenizer over lines we care about.
     if (lineFilter && !state) {
       if (!lineFilter.has(ix)) {
-        continue;
+        continue
       }
     }
 
     if (!line.length) {
       if (mode.blankLine) {
-        mode.blankLine(state);
+        mode.blankLine(state)
       }
 
-      continue;
+      continue
     }
 
-    const lineCtx = { lines, line: ix };
-    const lineStream = new StringStream(line, tabSize, lineCtx);
+    const lineCtx = { lines, line: ix }
+    const lineStream = new StringStream(line, tabSize, lineCtx)
 
     while (!lineStream.eol()) {
-      const token = readToken(mode, lineStream, state, addModeClass);
+      const token = readToken(mode, lineStream, state, addModeClass)
 
       if (token && (!lineFilter || lineFilter.has(ix))) {
-        tokens[ix] = tokens[ix] || {};
+        tokens[ix] = tokens[ix] || {}
         tokens[ix][lineStream.start] = {
           length: lineStream.pos - lineStream.start,
-          token
-        };
+          token,
+        }
       }
 
-      lineStream.start = lineStream.pos;
+      lineStream.start = lineStream.pos
     }
   }
 
-  postMessage(tokens);
-};
+  postMessage(tokens)
+}
