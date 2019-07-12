@@ -118,7 +118,7 @@ export function launch(
     //
     // This workaround launches the internal `kitty` executable which
     // will open a new window to the desired path.
-    return spawn(foundShell.path, ['--directory', path])
+    return spawn(foundShell.path, ['--single-instance', '--directory', path])
   } else {
     const bundleID = getBundleID(foundShell.shell)
     return spawn('open', ['-b', bundleID, path])
