@@ -28,5 +28,11 @@
   "eslint.options": {
     "configFile": ".eslintrc.yml",
     "rulePaths": ["eslint-rules"]
-  }
+  },
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ]
 }
