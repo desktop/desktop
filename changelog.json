@@ -2,8 +2,8 @@
   "releases": {
     "2.1.1-beta1": [
       "[Added] WSL Support - #7821 #7891. Thanks @ADustyOldMuffin @say25!",
-      "[Improved] Error handling when trying to rebase onto an invalid ref - #7871",
       "[Fixed] Tooltip does not display on the entire hit area for list items - #7910. Thanks @say25!",
+      "[Improved] Error handling when trying to rebase onto an invalid ref - #7871",
       "[Improved] Trigger diff search even when CodeMirror doesn't have focus - #7899"
     ],
     "2.1.0": [
