@@ -1,5 +1,12 @@
 {
   "releases": {
+    "2.1.1-beta1": [
+      "[Added] WSL Support - #7821 #7891. Thanks @ADustyOldMuffin @say25!",
+      "[Fixed] Handle \"bad revision\" error when starting a rebase - #7871",
+      "[Fixed] Hover Shows on list item - #7910. Thanks @say25!",
+      "[Fixed] Upgrade to Electron Five (5) - #6888",
+      "[Improved] Trigger diff search even when CodeMirror doesn't have focus - #7899"
+    ],
     "2.1.0": [
       "[New] Branches that have been merged and deleted on GitHub.com will now be pruned after two weeks - #750",
       "[Added] Search text within diffs using shortcut - #7538",
