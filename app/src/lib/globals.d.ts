@@ -188,13 +188,6 @@ interface XMLHttpRequest extends XMLHttpRequestEventTarget {
 }
 
 declare namespace Electron {
-  interface MenuItem {
-    readonly accelerator?: Electron.Accelerator
-    readonly submenu?: Electron.Menu
-    readonly role?: string
-    readonly type: 'normal' | 'separator' | 'submenu' | 'checkbox' | 'radio'
-  }
-
   interface RequestOptions {
     readonly method: string
     readonly url: string
