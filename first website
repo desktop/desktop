@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>CSS</title>
+<link rel="stylesheet" type="text/css" href="css.css">
+</head>
+<body>
+<header>
+<nav>
+<ul>
+<li>Home</li>
+<li><a href="about.html">About</a></li>
+<li><a href="login.html">Login</a></li>
+</ul>
+</nav>
+</header>
+<h1>Home</h1>
+<p>Lorem ipsum dolor sit amet.</p>
+</section>
+</body>
+</html>
