@@ -406,9 +406,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const window = remote.getCurrentWindow()
     this.windowState = getWindowState(window)
 
-    window.webContents.getZoomFactor(factor => {
-      this.onWindowZoomFactorChanged(factor)
-    })
+    this.onWindowZoomFactorChanged(window.webContents.getZoomFactor())
 
     this.wireupIpcEventHandlers(window)
     this.wireupStoreEventHandlers()
