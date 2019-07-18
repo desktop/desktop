@@ -17,7 +17,7 @@ export interface IMenuItem {
    * When specified the click property will be ignored.
    * See https://electronjs.org/docs/api/menu-item#roles
    */
-  readonly role?: string
+  readonly role?: Electron.MenuItemConstructorOptions['role']
 }
 
 /**

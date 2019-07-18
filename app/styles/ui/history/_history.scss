@@ -5,6 +5,7 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+  max-height: 100%;
 
   // Necessary so that the diff doesn't expand
   // beyond the width of the history
