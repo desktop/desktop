@@ -92,7 +92,7 @@ export function enableBranchProtectionChecks(): boolean {
 
 /** Should the app detect Windows Subsystem for Linux as a valid shell? */
 export function enableWSLDetection(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
 
 /**
