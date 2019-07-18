@@ -46,9 +46,9 @@ export function enableReadmeOverwriteWarning(): boolean {
   return enableBetaFeatures()
 }
 
-/** Shoult the app automatically prune branches that are no longer actively being used */
+/** Should the app automatically prune branches that are no longer actively being used */
 export function enableBranchPruning(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /**
@@ -97,7 +97,7 @@ export function enableBranchProtectionChecks(): boolean {
 
 /** Should the app detect Windows Subsystem for Linux as a valid shell? */
 export function enableWSLDetection(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
 
 /**
@@ -109,5 +109,5 @@ export function enableWSLDetection(): boolean {
  * flag is linked to to `enableBranchProtectionChecks()`.
  */
 export function enableBranchProtectionWarningFlow(): boolean {
-  return enableBranchProtectionChecks() && enableBetaFeatures()
+  return enableBranchProtectionChecks() && enableDevelopmentFeatures()
 }

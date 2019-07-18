@@ -159,6 +159,13 @@ export function buildDefaultMenu({
         accelerator: 'CmdOrCtrl+A',
         click: emit('select-all'),
       },
+      separator,
+      {
+        id: 'find',
+        label: __DARWIN__ ? 'Find' : '&Find',
+        accelerator: 'CmdOrCtrl+F',
+        click: emit('find-text'),
+      },
     ],
   })
 
@@ -604,29 +611,27 @@ function zoom(direction: ZoomDirection): ClickHandler {
       webContents.setZoomFactor(1)
       webContents.send('zoom-factor-changed', 1)
     } else {
-      webContents.getZoomFactor(rawZoom => {
-        const zoomFactors =
-          direction === ZoomDirection.In ? ZoomInFactors : ZoomOutFactors
+      const rawZoom = webContents.getZoomFactor()
+      const zoomFactors =
+        direction === ZoomDirection.In ? ZoomInFactors : ZoomOutFactors
 
-        // So the values that we get from getZoomFactor are floating point
-        // precision numbers from chromium that don't always round nicely so
-        // we'll have to do a little trick to figure out which of our supported
-        // zoom factors the value is referring to.
-        const currentZoom = findClosestValue(zoomFactors, rawZoom)
+      // So the values that we get from getZoomFactor are floating point
+      // precision numbers from chromium that don't always round nicely so
+      // we'll have to do a little trick to figure out which of our supported
+      // zoom factors the value is referring to.
+      const currentZoom = findClosestValue(zoomFactors, rawZoom)
 
-        const nextZoomLevel = zoomFactors.find(f =>
-          direction === ZoomDirection.In ? f > currentZoom : f < currentZoom
-        )
+      const nextZoomLevel = zoomFactors.find(f =>
+        direction === ZoomDirection.In ? f > currentZoom : f < currentZoom
+      )
 
-        // If we couldn't find a zoom level (likely due to manual manipulation
-        // of the zoom factor in devtools) we'll just snap to the closest valid
-        // factor we've got.
-        const newZoom =
-          nextZoomLevel === undefined ? currentZoom : nextZoomLevel
+      // If we couldn't find a zoom level (likely due to manual manipulation
+      // of the zoom factor in devtools) we'll just snap to the closest valid
+      // factor we've got.
+      const newZoom = nextZoomLevel === undefined ? currentZoom : nextZoomLevel
 
-        webContents.setZoomFactor(newZoom)
-        webContents.send('zoom-factor-changed', newZoom)
-      })
+      webContents.setZoomFactor(newZoom)
+      webContents.send('zoom-factor-changed', newZoom)
     }
   }
 }

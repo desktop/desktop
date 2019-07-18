@@ -61,6 +61,34 @@
   .diff-gutter {
     width: 125px;
   }
+
+  .CodeMirror-search-dialog {
+    left: auto;
+    border: var(--base-border);
+    border-top: 0;
+    right: var(--spacing);
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    padding: var(--spacing-half) var(--spacing);
+    box-shadow: var(--base-box-shadow);
+
+    .CodeMirror-search-hint {
+      display: none;
+    }
+
+    input.CodeMirror-search-field {
+      background: var(--box-background-color);
+      color: var(--text-color);
+      font-size: var(--font-size);
+      font-family: var(--font-family-sans-serif);
+      height: var(--text-field-height);
+      padding: 0;
+      width: 180px;
+    }
+
+    .buttons {
+      display: inline-block;
+    }
+  }
 }
 
 // The container element which holds the before and after

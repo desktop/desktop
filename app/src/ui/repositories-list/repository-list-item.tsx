@@ -76,7 +76,11 @@ export class RepositoryListItem extends React.Component<
       : 'repository-list-item'
 
     return (
-      <div onContextMenu={this.onContextMenu} className={className}>
+      <div
+        onContextMenu={this.onContextMenu}
+        className={className}
+        title={repoTooltip}
+      >
         {!enableGroupRepositoriesByOwner() && (
           <div
             className="change-indicator-wrapper"
@@ -98,7 +102,7 @@ export class RepositoryListItem extends React.Component<
           className="icon-for-repository"
           symbol={iconForRepository(repository)}
         />
-        <div className="name" title={repoTooltip}>
+        <div className="name">
           {prefix ? <span className="prefix">{prefix}</span> : null}
           <HighlightText
             text={repository.name}
