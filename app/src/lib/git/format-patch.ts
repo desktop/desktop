@@ -12,7 +12,7 @@ export async function formatPatch(
 ): Promise<string> {
   const range = revRange(base, head)
   const result = await git(
-    ['format-patch', '--stdout', range],
+    ['diff', '--unified=1', '--minimal', range],
     repository.path,
     'formatPatch'
   )
