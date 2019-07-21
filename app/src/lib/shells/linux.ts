@@ -12,6 +12,7 @@ export enum Shell {
   Konsole = 'Konsole',
   Xterm = 'XTerm',
   Terminology = 'Terminology',
+  Deepin = 'Deepin Terminal',
 }
 
 export const Default = Shell.Gnome
@@ -49,6 +50,10 @@ export function parse(label: string): Shell {
     return Shell.Terminology
   }
 
+  if (label === Shell.Deepin) {
+    return Shell.Deepin
+  }
+
   return Default
 }
 
@@ -74,6 +79,8 @@ function getShellPath(shell: Shell): Promise<string | null> {
       return getPathIfAvailable('/usr/bin/xterm')
     case Shell.Terminology:
       return getPathIfAvailable('/usr/bin/terminology')
+    case Shell.Deepin:
+      return getPathIfAvailable('/usr/bin/deepin-terminal')
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }
@@ -91,6 +98,7 @@ export async function getAvailableShells(): Promise<
     konsolePath,
     xtermPath,
     terminologyPath,
+    deepinPath,
   ] = await Promise.all([
     getShellPath(Shell.Gnome),
     getShellPath(Shell.Mate),
@@ -100,6 +108,7 @@ export async function getAvailableShells(): Promise<
     getShellPath(Shell.Konsole),
     getShellPath(Shell.Xterm),
     getShellPath(Shell.Terminology),
+    getShellPath(Shell.Deepin),
   ])
 
   const shells: Array<IFoundShell<Shell>> = []
@@ -135,6 +144,10 @@ export async function getAvailableShells(): Promise<
     shells.push({ shell: Shell.Terminology, path: terminologyPath })
   }
 
+  if (deepinPath) {
+    shells.push({ shell: Shell.Deepin, path: deepinPath })
+  }
+
   return shells
 }
 
@@ -157,6 +170,8 @@ export function launch(
       return spawn(foundShell.path, ['-e', '/bin/bash'], { cwd: path })
     case Shell.Terminology:
       return spawn(foundShell.path, ['-d', path])
+    case Shell.Deepin:
+      return spawn(foundShell.path, ['-w', path])
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }
