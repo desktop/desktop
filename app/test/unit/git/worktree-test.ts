@@ -5,11 +5,11 @@ import { GitProcess } from 'dugite'
 
 import { setupEmptyRepository } from '../../helpers/repositories'
 import {
-  listWorktrees,
+  listWorkTrees,
   findOrCreateTemporaryWorkTree,
   cleanupTemporaryWorkTrees,
 } from '../../../src/lib/git/worktree'
-import { Repository, WorkTree } from '../../../src/models/repository'
+import { Repository, LinkedWorkTree } from '../../../src/models/repository'
 
 describe('git/worktree', () => {
   describe('listWorktrees', () => {
@@ -21,13 +21,13 @@ describe('git/worktree', () => {
       })
 
       it('returns one entry', async () => {
-        const result = await listWorktrees(repository)
+        const result = await listWorkTrees(repository)
         expect(result).toHaveLength(1)
       })
 
       it('contains the head and path of the main repository', async () => {
         const { path } = repository
-        const result = await listWorktrees(repository)
+        const result = await listWorkTrees(repository)
         const first = result[0]
         expect(first.head).toBe('0000000000000000000000000000000000000000')
 
@@ -63,7 +63,7 @@ describe('git/worktree', () => {
       })
 
       it('the head points to the right commit', async () => {
-        const result = await listWorktrees(repository)
+        const result = await listWorkTrees(repository)
         const first = result[0]
         expect(first.head).toBe(currentHeadSha)
       })
@@ -92,12 +92,12 @@ describe('git/worktree', () => {
         })
 
         it('returns another entry', async () => {
-          const result = await listWorktrees(repository)
+          const result = await listWorkTrees(repository)
           expect(result).toHaveLength(2)
         })
 
         it('points to same commit sha', async () => {
-          const result = await listWorktrees(repository)
+          const result = await listWorkTrees(repository)
           const first = result[0]
           const last = result[1]
           expect(first.head).toBe(last.head)
@@ -156,7 +156,7 @@ describe('git/worktree', () => {
 
   describe('cleanupTemporaryWorkTrees', () => {
     let repository: Repository
-    let internalWorkTree: WorkTree
+    let internalWorkTree: LinkedWorkTree
     let externalWorkTreePath: string
 
     beforeEach(async () => {
@@ -185,14 +185,14 @@ describe('git/worktree', () => {
       )
       expect(result.exitCode).toBe(0)
 
-      const workTrees = await listWorktrees(repository)
+      const workTrees = await listWorkTrees(repository)
       expect(workTrees).toHaveLength(3)
     })
 
     it('will cleanup temporary worktree', async () => {
       await cleanupTemporaryWorkTrees(repository)
 
-      const workTrees = await listWorktrees(repository)
+      const workTrees = await listWorkTrees(repository)
       expect(workTrees).toHaveLength(2)
     })
 
