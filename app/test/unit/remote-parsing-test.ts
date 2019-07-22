@@ -96,36 +96,4 @@ describe('URL remote parsing', () => {
     expect(remote!.owner).toBe('hubot')
     expect(remote!.name).toBe('repo')
   })
-
-  it('parses HTTPS URLs that are too long by 2 destinations', () => {
-    const remote = parseRemote('https://github.com/hubot/repo/tree/branch')
-    expect(remote).not.toBeNull()
-    expect(remote!.hostname).toBe('github.com')
-    expect(remote!.owner).toBe('hubot')
-    expect(remote!.name).toBe('repo')
-  })
-
-  it('parses HTTPS URLs that are too long by 1 destination', () => {
-    const remote = parseRemote('https://github.com/hubot/repo/tree')
-    expect(remote).not.toBeNull()
-    expect(remote!.hostname).toBe('github.com')
-    expect(remote!.owner).toBe('hubot')
-    expect(remote!.name).toBe('repo')
-  })
-
-  it('parses SSH URLs that are too long by 2 destinations', () => {
-    const remote = parseRemote('git@github.com:hubot/repo/tree/branch.git')
-    expect(remote).not.toBeNull()
-    expect(remote!.hostname).toBe('github.com')
-    expect(remote!.owner).toBe('hubot')
-    expect(remote!.name).toBe('repo')
-  })
-
-  it('parses SSH URLs that are too long by 1 destinations', () => {
-    const remote = parseRemote('git@github.com:hubot/repo/tree')
-    expect(remote).not.toBeNull()
-    expect(remote!.hostname).toBe('github.com')
-    expect(remote!.owner).toBe('hubot')
-    expect(remote!.name).toBe('repo')
-  })
 })
