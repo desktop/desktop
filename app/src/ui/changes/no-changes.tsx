@@ -582,7 +582,7 @@ export class NoChanges extends React.Component<
       <>
         You have{' '}
         {aheadBehind.ahead === 1 ? 'one local commit' : 'local commits'} waiting
-        to be pushed to {isGitHub ? 'GitHub' : 'the remote'}
+        to be pushed to {isGitHub ? 'GitHub' : 'the remote'}.
       </>
     )
 
