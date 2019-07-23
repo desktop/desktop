@@ -5,6 +5,7 @@ import * as FSE from 'fs-extra'
 import { git } from './core'
 
 import { Repository, LinkedWorkTree } from '../../models/repository'
+import { getMatches } from '../helpers/regex'
 
 /** Enumerate the list of work trees reported by Git for a repository */
 export async function listWorkTrees(
@@ -18,26 +19,23 @@ export async function listWorkTrees(
 
   const worktrees = new Array<LinkedWorkTree>()
 
-  let match: RegExpMatchArray | null = null
-
   // the porcelain output from git-worktree covers multiple lines
-  const worktreeRegex = /worktree (.*)\nHEAD ([a-f0-9]*)\n(branch .*|detached)\n/gm
+  const listWorkTreeRe = /worktree (.*)\nHEAD ([a-f0-9]*)\n(branch .*|detached)\n/gm
 
-  while ((match = worktreeRegex.exec(result.stdout)) !== null) {
-    if (match.length !== 4) {
+  getMatches(result.stdout, listWorkTreeRe).forEach(m => {
+    if (m.length === 4) {
+      worktrees.push({
+        path: m[1],
+        head: m[2],
+      })
+    } else {
       log.debug(
         `[listWorkTrees] match '${
-          match[0]
-        }' does not have the expected number of groups. Skipping...`
+          m[0]
+        }' does not have the expected data or output. Skipping...`
       )
-      continue
     }
-
-    const path = match[1]
-    const head = match[2]
-
-    worktrees.push({ path, head })
-  }
+  })
 
   return worktrees
 }
@@ -76,12 +74,13 @@ async function addWorkTree(
 export async function removeWorkTree(
   repository: Repository,
   path: string
-): Promise<void> {
+): Promise<true> {
   await git(
     ['worktree', 'remove', '-f', path],
     repository.path,
     'removeWorkTree'
   )
+  return true
 }
 
 const DesktopWorkTreePrefix = 'github-desktop-worktree-'
