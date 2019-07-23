@@ -23,8 +23,9 @@ export type WorkingTree = {
 /** A local repository. */
 export class Repository {
   public readonly name: string
-  /** The main working tree's path
-   * (also what we commonly think of as the repository's working directory)
+  /**
+   * The main working tree (what we commonly
+   * think of as the repository's working directory)
    */
   private readonly mainWorkTree: WorkingTree
 
