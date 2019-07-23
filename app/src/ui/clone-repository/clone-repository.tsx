@@ -619,7 +619,12 @@ export class CloneRepository extends React.Component<
           url = repo.clone_url
         }
       }
-    }
+    } /*else if (!account && identifier) {
+      if (identifier.hostname && identifier.hostname.indexOf('/') >= 0) {
+        //The hostname has extra paths to it so the URL must be to long
+        return null
+      }
+    }*/
 
     return url
   }
@@ -646,6 +651,15 @@ export class CloneRepository extends React.Component<
       this.setSelectedTabState({ error })
       return
     }
+
+    /*if (url.substring(url.length - 4) !== '.git') {
+      const error = new Error(
+        `There seems to be an issue with the repository URL. Check that it is correct and is not too long.`
+      )
+      this.setState({ loading: false })
+      this.setSelectedTabState({ error })
+      return
+    }*/
 
     try {
       this.cloneImpl(url.trim(), path)
