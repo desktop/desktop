@@ -606,8 +606,6 @@ export class CloneRepository extends React.Component<
     }
 
     const account = await findAccountForRemoteURL(url, accounts)
-    console.log(identifier)
-    console.log(account)
     if (identifier && account) {
       const api = API.fromAccount(account)
       const repo = await api.fetchRepository(identifier.owner, identifier.name)
