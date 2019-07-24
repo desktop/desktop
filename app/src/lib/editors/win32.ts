@@ -15,7 +15,7 @@ import { assertNever } from '../fatal-error'
 export enum ExternalEditor {
   Atom = 'Atom',
   AtomBeta = 'Atom Beta',
-  AtomNightly ='Atom Nightly',
+  AtomNightly = 'Atom Nightly',
   VisualStudioCode = 'Visual Studio Code',
   VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
@@ -319,7 +319,7 @@ function isExpectedInstallation(
     case ExternalEditor.AtomBeta:
       return displayName === 'Atom Beta' && publisher === 'GitHub Inc.'
     case ExternalEditor.AtomNightly:
-      return displayName === 'Atom Nightly' && publisher === 'GitHub Inc.'  
+      return displayName === 'Atom Nightly' && publisher === 'GitHub Inc.'
     case ExternalEditor.VisualStudioCode:
       return (
         displayName.startsWith('Microsoft Visual Studio Code') &&
