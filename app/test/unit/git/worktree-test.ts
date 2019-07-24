@@ -35,9 +35,7 @@ describe('git/worktree', () => {
         // Well, on macOS the path emitted by Git may start with a `/private`
         // which is super-annoying and also different to what NodeJS returns,
         // so we need to manage and reconcile these two cases
-        expect(Path.normalize(first.path).endsWith(Path.normalize(path))).toBe(
-          true
-        )
+        expect(Path.normalize(first.path)).toEndWith(Path.normalize(path))
       })
     })
 
@@ -138,7 +136,7 @@ describe('git/worktree', () => {
       const tmpDir = Path.normalize(Os.tmpdir())
 
       expect(workTree.head).toBe(currentHeadSha)
-      expect(Path.normalize(workTree.path)).toContain(tmpDir)
+      expect(Path.normalize(workTree.path)).toInclude(tmpDir)
     })
 
     it('subsequent calls return the same result', async () => {
