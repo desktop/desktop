@@ -216,7 +216,6 @@ import {
 import { BranchPruner } from './helpers/branch-pruner'
 import {
   enableBranchPruning,
-  enablePullWithRebase,
   enableGroupRepositoriesByOwner,
   enableStashing,
   enableBranchProtectionChecks,
@@ -1882,24 +1881,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async _triggerConflictsFlow(repository: Repository) {
-    if (enablePullWithRebase()) {
-      const state = this.repositoryStateCache.get(repository)
-      const { conflictState } = state.changesState
+    const state = this.repositoryStateCache.get(repository)
+    const { conflictState } = state.changesState
 
-      if (conflictState === null) {
-        this.clearConflictsFlowVisuals(state)
-        return
-      }
+    if (conflictState === null) {
+      this.clearConflictsFlowVisuals(state)
+      return
+    }
 
-      if (conflictState.kind === 'merge') {
-        await this.showMergeConflictsDialog(repository, conflictState)
-      } else if (conflictState.kind === 'rebase') {
-        await this.showRebaseConflictsDialog(repository, conflictState)
-      } else {
-        assertNever(conflictState, `Unsupported conflict kind`)
-      }
+    if (conflictState.kind === 'merge') {
+      await this.showMergeConflictsDialog(repository, conflictState)
+    } else if (conflictState.kind === 'rebase') {
+      await this.showRebaseConflictsDialog(repository, conflictState)
     } else {
-      this._triggerMergeConflictsFlow(repository)
+      assertNever(conflictState, `Unsupported conflict kind`)
     }
   }
 
@@ -1971,51 +1966,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.currentBanner.type === BannerType.MergeConflictsFound
 
     if (alreadyInFlow || alreadyExitedFlow) {
-      return
-    }
-
-    const possibleTheirsBranches = await getBranchesPointedAt(
-      repository,
-      'MERGE_HEAD'
-    )
-    // null means we encountered an error
-    if (possibleTheirsBranches === null) {
-      return
-    }
-    const theirBranch =
-      possibleTheirsBranches.length === 1
-        ? possibleTheirsBranches[0]
-        : undefined
-
-    const ourBranch = conflictState.currentBranch
-    this._showPopup({
-      type: PopupType.MergeConflicts,
-      repository,
-      ourBranch,
-      theirBranch,
-    })
-  }
-
-  /** starts the conflict resolution flow, if appropriate */
-  private async _triggerMergeConflictsFlow(repository: Repository) {
-    // are we already in the merge conflicts flow?
-    const alreadyInFlow =
-      this.currentPopup !== null &&
-      (this.currentPopup.type === PopupType.MergeConflicts ||
-        this.currentPopup.type === PopupType.AbortMerge)
-
-    // have we already been shown the merge conflicts flow *and closed it*?
-    const alreadyExitedFlow =
-      this.currentBanner !== null &&
-      this.currentBanner.type === BannerType.MergeConflictsFound
-
-    if (alreadyInFlow || alreadyExitedFlow) {
-      return
-    }
-
-    const repoState = this.repositoryStateCache.get(repository)
-    const { conflictState } = repoState.changesState
-    if (conflictState === null || !isMergeConflictState(conflictState)) {
       return
     }
 

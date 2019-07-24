@@ -7,7 +7,6 @@ import {
 
 import { assertNever } from '../fatal-error'
 import { getDotComAPIEndpoint } from '../api'
-import { enableGitProtocolVersionTwo } from '../feature-flag'
 
 import { IGitAccount } from '../../models/git-account'
 
@@ -314,10 +313,6 @@ export async function gitNetworkArguments(
     '-c',
     'credential.helper=',
   ]
-
-  if (!enableGitProtocolVersionTwo()) {
-    return baseArgs
-  }
 
   if (account === null) {
     return baseArgs
