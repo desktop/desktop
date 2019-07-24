@@ -27,7 +27,6 @@ import { stageFiles } from './update-index'
 import { getStatus } from './status'
 import { getCommitsInRange } from './rev-list'
 import { Branch } from '../../models/branch'
-import { enablePullWithRebase } from '../feature-flag'
 
 /** The app-specific results from attempting to rebase a repository */
 export enum RebaseResult {
@@ -80,10 +79,6 @@ function isRebaseHeadSet(repository: Repository) {
 export async function getRebaseInternalState(
   repository: Repository
 ): Promise<RebaseInternalState | null> {
-  if (!enablePullWithRebase()) {
-    return null
-  }
-
   const isRebase = await isRebaseHeadSet(repository)
 
   if (!isRebase) {

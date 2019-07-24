@@ -34,7 +34,7 @@ import { basename } from 'path'
 import { ICommitContext } from '../../models/commit'
 import { RebaseConflictState } from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
-import { enablePullWithRebase, enableStashing } from '../../lib/feature-flag'
+import { enableStashing } from '../../lib/feature-flag'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { IStashEntry } from '../../models/stash-entry'
 import * as classNames from 'classnames'
@@ -564,7 +564,7 @@ export class ChangesList extends React.Component<
       currentBranchProtected,
     } = this.props
 
-    if (rebaseConflictState !== null && enablePullWithRebase()) {
+    if (rebaseConflictState !== null) {
       const hasUntrackedChanges = workingDirectory.files.some(
         f => f.status.kind === AppFileStatusKind.Untracked
       )
