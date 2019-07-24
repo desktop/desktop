@@ -383,21 +383,21 @@ function extractApplicationInformation(
     const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
     return { displayName, publisher, installLocation }
   }
- 
+
   if (editor === ExternalEditor.AtomBeta) {
     const displayName = getKeyOrEmpty(keys, 'DisplayName')
     const publisher = getKeyOrEmpty(keys, 'Publisher')
     const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
     return { displayName, publisher, installLocation }
   }
- 
+
   if (editor === ExternalEditor.AtomNightly) {
     const displayName = getKeyOrEmpty(keys, 'DisplayName')
     const publisher = getKeyOrEmpty(keys, 'Publisher')
     const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
     return { displayName, publisher, installLocation }
   }
- 
+
   if (
     editor === ExternalEditor.VisualStudioCode ||
     editor === ExternalEditor.VisualStudioCodeInsiders
@@ -585,7 +585,6 @@ export async function getAvailableEditors(): Promise<
       usesShell: true,
     })
   }
-
 
   if (codePath) {
     results.push({
