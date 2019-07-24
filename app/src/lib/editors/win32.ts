@@ -572,7 +572,7 @@ export async function getAvailableEditors(): Promise<
 
   if (atomBetaPath) {
     results.push({
-      editor: ExternalEditor.Atom,
+      editor: ExternalEditor.AtomBeta,
       path: atomBetaPath,
       usesShell: true,
     })
