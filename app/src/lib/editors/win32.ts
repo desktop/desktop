@@ -14,6 +14,8 @@ import { assertNever } from '../fatal-error'
 
 export enum ExternalEditor {
   Atom = 'Atom',
+  AtomBeta = 'Atom Beta',
+  AtomNightly ='Atom Nightly',
   VisualStudioCode = 'Visual Studio Code',
   VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
@@ -26,6 +28,12 @@ export enum ExternalEditor {
 export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.Atom) {
     return ExternalEditor.Atom
+  }
+  if (label === ExternalEditor.AtomBeta) {
+    return ExternalEditor.AtomBeta
+  }
+  if (label === ExternalEditor.AtomNightly) {
+    return ExternalEditor.AtomNightly
   }
   if (label === ExternalEditor.VisualStudioCode) {
     return ExternalEditor.VisualStudioCode
@@ -67,6 +75,22 @@ function getRegistryKeys(
           key: HKEY.HKEY_CURRENT_USER,
           subKey:
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\atom',
+        },
+      ]
+    case ExternalEditor.AtomBeta:
+      return [
+        {
+          key: HKEY.HKEY_CURRENT_USER,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\atom-beta',
+        },
+      ]
+    case ExternalEditor.AtomNightly:
+      return [
+        {
+          key: HKEY.HKEY_CURRENT_USER,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\atom-nightly',
         },
       ]
     case ExternalEditor.VisualStudioCode:
@@ -292,8 +316,12 @@ function isExpectedInstallation(
   switch (editor) {
     case ExternalEditor.Atom:
       return displayName === 'Atom' && publisher === 'GitHub Inc.'
+    case ExternalEditor.AtomBeta:
+      return displayName === 'Atom Beta' && publisher === 'GitHub Inc.'
+    case ExternalEditor.AtomNightly:
+      return displayName === 'Atom Nightly' && publisher === 'GitHub Inc.'  
     case ExternalEditor.VisualStudioCode:
-      return (
+      return ( 
         displayName.startsWith('Microsoft Visual Studio Code') &&
         publisher === 'Microsoft Corporation'
       )
