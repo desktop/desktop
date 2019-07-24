@@ -580,7 +580,7 @@ export async function getAvailableEditors(): Promise<
 
   if (atomNightlyPath) {
     results.push({
-      editor: ExternalEditor.Atom,
+      editor: ExternalEditor.AtomNightly,
       path: atomNightlyPath,
       usesShell: true,
     })
