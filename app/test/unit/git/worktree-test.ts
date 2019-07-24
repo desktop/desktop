@@ -136,6 +136,10 @@ describe('git/worktree', () => {
       const tmpDir = Path.normalize(Os.tmpdir())
 
       expect(workTree.head).toBe(currentHeadSha)
+      // You might be wondering why this isn't a `.toStartWith` comparsion.
+      // Well, on macOS the path emitted by Git may start with a `/private`
+      // which is super-annoying and also different to what NodeJS returns,
+      // so we need to manage and reconcile these two cases
       expect(Path.normalize(workTree.path)).toInclude(tmpDir)
     })
 
