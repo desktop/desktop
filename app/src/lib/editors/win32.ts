@@ -321,7 +321,7 @@ function isExpectedInstallation(
     case ExternalEditor.AtomNightly:
       return displayName === 'Atom Nightly' && publisher === 'GitHub Inc.'  
     case ExternalEditor.VisualStudioCode:
-      return ( 
+      return (
         displayName.startsWith('Microsoft Visual Studio Code') &&
         publisher === 'Microsoft Corporation'
       )
