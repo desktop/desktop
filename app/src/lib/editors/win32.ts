@@ -573,7 +573,7 @@ export async function getAvailableEditors(): Promise<
   if (atomBetaPath) {
     results.push({
       editor: ExternalEditor.Atom,
-      path: atomPath,
+      path: atomBetaPath,
       usesShell: true,
     })
   }
@@ -581,7 +581,7 @@ export async function getAvailableEditors(): Promise<
   if (atomNightlyPath) {
     results.push({
       editor: ExternalEditor.Atom,
-      path: atomPath,
+      path: atomNightlyPath,
       usesShell: true,
     })
   }
