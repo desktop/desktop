@@ -1,5 +1,9 @@
 {
   "releases": {
+    "2.1.1-beta2": [
+      "[Fixed] Incorrect proportions for \"stashed changes\" button - #7964",
+      "[Fixed] Overflowing diffs push UI elements out of window - #7967"
+    ],
     "2.1.1-beta1": [
       "[Added] WSL Support - #7821 #7891. Thanks @ADustyOldMuffin @say25!",
       "[Fixed] Tooltip does not display on the entire hit area for list items - #7910. Thanks @say25!",
