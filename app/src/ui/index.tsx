@@ -54,7 +54,6 @@ import {
 import { UiActivityMonitor } from './lib/ui-activity-monitor'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { ApiRepositoriesStore } from '../lib/stores/api-repositories-store'
-import { enablePullWithRebase } from '../lib/feature-flag'
 import { CommitStatusStore } from '../lib/stores/commit-status-store'
 
 if (__DEV__) {
@@ -261,10 +260,7 @@ dispatcher.registerErrorHandler(pushNeedsPullHandler)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(missingRepositoryHandler)
 dispatcher.registerErrorHandler(localChangesOverwrittenHandler)
-
-if (enablePullWithRebase()) {
-  dispatcher.registerErrorHandler(rebaseConflictsHandler)
-}
+dispatcher.registerErrorHandler(rebaseConflictsHandler)
 
 document.body.classList.add(`platform-${process.platform}`)
 
