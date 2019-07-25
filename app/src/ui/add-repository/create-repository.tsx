@@ -120,6 +120,8 @@ export class CreateRepository extends React.Component<
   }
 
   public async componentDidMount() {
+    window.addEventListener('focus', this.onWindowFocus)
+
     const gitIgnoreNames = await getGitIgnoreNames()
     this.setState({ gitIgnoreNames })
 
@@ -129,9 +131,7 @@ export class CreateRepository extends React.Component<
     const isRepository = await isGitRepository(this.state.path)
     this.setState({ isRepository })
 
-    await this.updateReadMeExists(this.state.path, this.state.name)
-
-    window.addEventListener('focus', this.onWindowFocus)
+    this.updateReadMeExists(this.state.path, this.state.name)
   }
 
   public componentWillUnmount() {
@@ -139,18 +139,21 @@ export class CreateRepository extends React.Component<
   }
 
   private onPathChanged = async (path: string) => {
-    const isRepository = await isGitRepository(path)
-    await this.updateReadMeExists(path, this.state.name)
+    this.setState({ path, isValidPath: null })
 
-    this.setState({ isRepository, path, isValidPath: null })
+    const isRepository = await isGitRepository(path)
+
+    // Only update isRepository if the path is still the
+    // same one we were using to check whether it looked
+    // like a repository.
+    this.setState(state => (state.path === path ? { isRepository } : null))
+
+    this.updateReadMeExists(path, this.state.name)
   }
 
-  private onNameChanged = async (name: string) => {
-    if (enableReadmeOverwriteWarning()) {
-      await this.updateReadMeExists(this.state.path, name)
-    }
-
+  private onNameChanged = (name: string) => {
     this.setState({ name })
+    this.updateReadMeExists(this.state.path, name)
   }
 
   private onDescriptionChanged = (description: string) => {
@@ -159,11 +162,11 @@ export class CreateRepository extends React.Component<
 
   private showFilePicker = async () => {
     const window = remote.getCurrentWindow()
-    const directory: string[] | null = remote.dialog.showOpenDialog(window, {
+    const directory = remote.dialog.showOpenDialog(window, {
       properties: ['createDirectory', 'openDirectory'],
     })
 
-    if (!directory) {
+    if (directory === undefined) {
       return
     }
 
@@ -174,9 +177,15 @@ export class CreateRepository extends React.Component<
   }
 
   private async updateReadMeExists(path: string, name: string) {
+    if (!enableReadmeOverwriteWarning()) {
+      return
+    }
+
     const fullPath = Path.join(path, sanitizedRepositoryName(name), 'README.md')
     const readMeExists = await FSE.pathExists(fullPath)
-    this.setState({ readMeExists })
+
+    // Only update readMeExists if the path is still the same
+    this.setState(state => (state.path === path ? { readMeExists } : null))
   }
 
   private resolveRepositoryRoot = async (): Promise<string> => {
@@ -585,11 +594,9 @@ export class CreateRepository extends React.Component<
     )
   }
 
-  private onWindowFocus = async () => {
+  private onWindowFocus = () => {
     // Verify whether or not a README.md file exists at the chosen directory
     // in case one has been added or removed and the warning can be displayed.
-    if (enableReadmeOverwriteWarning()) {
-      await this.updateReadMeExists(this.state.path, this.state.name)
-    }
+    this.updateReadMeExists(this.state.path, this.state.name)
   }
 }

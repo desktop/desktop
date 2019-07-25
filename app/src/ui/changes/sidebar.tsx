@@ -31,7 +31,6 @@ import { PopupType } from '../../models/popup'
 import { filesNotTrackedByLFS } from '../../lib/git/lfs'
 import { getLargeFilePaths } from '../../lib/large-files'
 import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
-import { enablePullWithRebase } from '../../lib/feature-flag'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -340,7 +339,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   private renderUndoCommit = (
     rebaseConflictState: RebaseConflictState | null
   ): JSX.Element | null => {
-    if (rebaseConflictState !== null && enablePullWithRebase()) {
+    if (rebaseConflictState !== null) {
       return null
     }
 
@@ -355,6 +354,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
       coAuthors,
       conflictState,
       selection,
+      currentBranchProtected,
     } = this.props.changes
 
     // TODO: I think user will expect the avatar to match that which
@@ -417,6 +417,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           changesListScrollTop={this.props.changesListScrollTop}
           stashEntry={this.props.changes.stashEntry}
           isShowingStashEntry={isShowingStashEntry}
+          currentBranchProtected={currentBranchProtected}
         />
         {this.renderUndoCommit(rebaseConflictState)}
       </div>

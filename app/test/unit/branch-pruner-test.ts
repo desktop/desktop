@@ -2,14 +2,17 @@ import * as moment from 'moment'
 import { BranchPruner } from '../../src/lib/stores/helpers/branch-pruner'
 import { Repository } from '../../src/models/repository'
 import { GitStoreCache } from '../../src/lib/stores/git-store-cache'
-import { RepositoriesStore, GitStore } from '../../src/lib/stores'
+import { RepositoriesStore } from '../../src/lib/stores'
 import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
 import { setupFixtureRepository } from '../helpers/repositories'
 import { shell } from '../helpers/test-app-shell'
 import { TestRepositoriesDatabase } from '../helpers/databases'
 import { GitProcess } from 'dugite'
 import { IGitHubUser } from '../../src/lib/databases'
-import { IAPIRepository } from '../../src/lib/api'
+import {
+  createRepository as createPrunedRepository,
+  setupRepository,
+} from '../helpers/repository-builder-branch-pruner'
 
 describe('BranchPruner', () => {
   const onGitStoreUpdated = () => {}
@@ -41,12 +44,16 @@ describe('BranchPruner', () => {
   })
 
   it('does nothing on non GitHub repositories', async () => {
-    const repo = await initializeTestRepo(
+    const path = await setupFixtureRepository('branch-prune-tests')
+
+    const repo = await setupRepository(
+      path,
       repositoriesStore,
       repositoriesStateCache,
       false,
       'master'
     )
+
     const branchPruner = new BranchPruner(
       repo,
       gitStoreCache,
@@ -65,7 +72,10 @@ describe('BranchPruner', () => {
   it('prunes for GitHub repository', async () => {
     const fixedDate = moment()
     const lastPruneDate = fixedDate.subtract(1, 'day')
-    const repo = await initializeTestRepo(
+
+    const path = await setupFixtureRepository('branch-prune-tests')
+    const repo = await setupRepository(
+      path,
       repositoriesStore,
       repositoriesStateCache,
       true,
@@ -83,20 +93,16 @@ describe('BranchPruner', () => {
     await branchPruner.start()
     const branchesAfterPruning = await getBranchesFromGit(repo)
 
-    const expectedBranchesAfterPruning = [
-      'not-deleted-branch-1',
-      'deleted-branch-1',
-    ]
-
-    for (const branch of expectedBranchesAfterPruning) {
-      expect(branchesAfterPruning).not.toContain(branch)
-    }
+    expect(branchesAfterPruning).not.toContain('deleted-branch-1')
+    expect(branchesAfterPruning).toContain('not-deleted-branch-1')
   })
 
   it('does not prune if the last prune date is less than 24 hours ago', async () => {
     const fixedDate = moment()
     const lastPruneDate = fixedDate.subtract(4, 'hours')
-    const repo = await initializeTestRepo(
+    const path = await setupFixtureRepository('branch-prune-tests')
+    const repo = await setupRepository(
+      path,
       repositoriesStore,
       repositoriesStateCache,
       true,
@@ -121,7 +127,10 @@ describe('BranchPruner', () => {
   it('does not prune if there is no default branch', async () => {
     const fixedDate = moment()
     const lastPruneDate = fixedDate.subtract(1, 'day')
-    const repo = await initializeTestRepo(
+    const path = await setupFixtureRepository('branch-prune-tests')
+
+    const repo = await setupRepository(
+      path,
       repositoriesStore,
       repositoriesStateCache,
       true,
@@ -146,7 +155,10 @@ describe('BranchPruner', () => {
   it('does not prune reserved branches', async () => {
     const fixedDate = moment()
     const lastPruneDate = fixedDate.subtract(1, 'day')
-    const repo = await initializeTestRepo(
+
+    const path = await setupFixtureRepository('branch-prune-tests')
+    const repo = await setupRepository(
+      path,
       repositoriesStore,
       repositoriesStateCache,
       true,
@@ -179,6 +191,36 @@ describe('BranchPruner', () => {
       expect(branchesAfterPruning).toContain(branch)
     }
   })
+
+  it('never prunes a branch that lacks an upstream', async () => {
+    const path = await createPrunedRepository()
+
+    const fixedDate = moment()
+    const lastPruneDate = fixedDate.subtract(1, 'day')
+
+    const repo = await setupRepository(
+      path,
+      repositoriesStore,
+      repositoriesStateCache,
+      true,
+      'master',
+      lastPruneDate.toDate()
+    )
+
+    const branchPruner = new BranchPruner(
+      repo,
+      gitStoreCache,
+      repositoriesStore,
+      repositoriesStateCache,
+      onPruneCompleted
+    )
+
+    await branchPruner.start()
+    const branchesAfterPruning = await getBranchesFromGit(repo)
+
+    expect(branchesAfterPruning).toContain('master')
+    expect(branchesAfterPruning).toContain('other-branch')
+  })
 })
 
 async function getBranchesFromGit(repository: Repository) {
@@ -187,74 +229,4 @@ async function getBranchesFromGit(repository: Repository) {
     .split('\n')
     .filter(s => s.length > 0)
     .map(s => s.substr(2))
-}
-
-async function initializeTestRepo(
-  repositoriesStore: RepositoriesStore,
-  repositoriesStateCache: RepositoryStateCache,
-  includesGhRepo: boolean,
-  defaultBranchName: string,
-  lastPruneDate?: Date
-) {
-  const path = await setupFixtureRepository('branch-prune-tests')
-
-  let repository = await repositoriesStore.addRepository(path)
-  if (includesGhRepo) {
-    const ghAPIResult: IAPIRepository = {
-      clone_url: 'string',
-      ssh_url: 'string',
-      html_url: 'string',
-      name: 'string',
-      owner: {
-        id: 0,
-        url: '',
-        login: '',
-        avatar_url: '',
-        type: 'User',
-      },
-      private: false,
-      fork: false,
-      default_branch: defaultBranchName,
-      pushed_at: 'string',
-      parent: null,
-    }
-
-    repository = await repositoriesStore.updateGitHubRepository(
-      repository,
-      '',
-      ghAPIResult,
-      []
-    )
-  }
-  await primeCaches(repository, repositoriesStateCache)
-
-  lastPruneDate &&
-    repositoriesStore.updateLastPruneDate(repository, lastPruneDate.getTime())
-  return repository
-}
-
-/**
- * Setup state correctly without having to expose
- * the internals of the GitStore and caches
- */
-async function primeCaches(
-  repository: Repository,
-  repositoriesStateCache: RepositoryStateCache
-) {
-  const gitStore = new GitStore(repository, shell)
-
-  // rather than re-create the branches and stuff as objects, these calls
-  // will run the underlying Git operations and update the GitStore state
-  await gitStore.loadRemotes()
-  await gitStore.loadBranches()
-  await gitStore.loadStatus()
-
-  // once that is done, we can populate the repository state in the same way
-  // that AppStore does for the sake of this test
-  repositoriesStateCache.updateBranchesState(repository, () => ({
-    tip: gitStore.tip,
-    defaultBranch: gitStore.defaultBranch,
-    allBranches: gitStore.allBranches,
-    recentBranches: gitStore.recentBranches,
-  }))
 }

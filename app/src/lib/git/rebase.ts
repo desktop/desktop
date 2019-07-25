@@ -27,7 +27,37 @@ import { stageFiles } from './update-index'
 import { getStatus } from './status'
 import { getCommitsInRange } from './rev-list'
 import { Branch } from '../../models/branch'
-import { enablePullWithRebase } from '../feature-flag'
+
+/** The app-specific results from attempting to rebase a repository */
+export enum RebaseResult {
+  /**
+   * Git completed the rebase without reporting any errors, and the caller can
+   * signal success to the user.
+   */
+  CompletedWithoutError = 'CompletedWithoutError',
+  /**
+   * The rebase encountered conflicts while attempting to rebase, and these
+   * need to be resolved by the user before the rebase can continue.
+   */
+  ConflictsEncountered = 'ConflictsEncountered',
+  /**
+   * The rebase was not able to continue as tracked files were not staged in
+   * the index.
+   */
+  OutstandingFilesNotStaged = 'OutstandingFilesNotStaged',
+  /**
+   * The rebase was not attempted because it could not check the status of the
+   * repository. The caller needs to confirm the repository is in a usable
+   * state.
+   */
+  Aborted = 'Aborted',
+  /**
+   * An unexpected error as part of the rebase flow was caught and handled.
+   *
+   * Check the logs to find the relevant Git details.
+   */
+  Error = 'Error',
+}
 
 /**
  * Check the `.git/REBASE_HEAD` file exists in a repository to confirm
@@ -49,10 +79,6 @@ function isRebaseHeadSet(repository: Repository) {
 export async function getRebaseInternalState(
   repository: Repository
 ): Promise<RebaseInternalState | null> {
-  if (!enablePullWithRebase()) {
-    return null
-  }
-
   const isRebase = await isRebaseHeadSet(repository)
 
   if (!isRebase) {
@@ -193,7 +219,7 @@ export async function getRebaseSnapshot(
       originalBranchTip
     )
 
-    if (commits.length === 0) {
+    if (commits === null || commits.length === 0) {
       return null
     }
 
@@ -342,6 +368,10 @@ export async function rebase(
       targetBranch.tip.sha
     )
 
+    if (commits === null) {
+      return RebaseResult.Error
+    }
+
     const totalCommitCount = commits.length
 
     options = configureOptionsForRebase(baseOptions, {
@@ -364,37 +394,6 @@ export async function rebase(
 /** Abandon the current rebase operation */
 export async function abortRebase(repository: Repository) {
   await git(['rebase', '--abort'], repository.path, 'abortRebase')
-}
-
-/** The app-specific results from attempting to rebase a repository */
-export enum RebaseResult {
-  /**
-   * Git completed the rebase without reporting any errors, and the caller can
-   * signal success to the user.
-   */
-  CompletedWithoutError = 'CompletedWithoutError',
-  /**
-   * The rebase encountered conflicts while attempting to rebase, and these
-   * need to be resolved by the user before the rebase can continue.
-   */
-  ConflictsEncountered = 'ConflictsEncountered',
-  /**
-   * The rebase was not able to continue as tracked files were not staged in
-   * the index.
-   */
-  OutstandingFilesNotStaged = 'OutstandingFilesNotStaged',
-  /**
-   * The rebase was not attempted because it could not check the status of the
-   * repository. The caller needs to confirm the repository is in a usable
-   * state.
-   */
-  Aborted = 'Aborted',
-  /**
-   * An unexpected error as part of the rebase flow was caught and handled.
-   *
-   * Check the logs to find the relevant Git details.
-   */
-  Error = 'Error',
 }
 
 function parseRebaseResult(result: IGitResult): RebaseResult {

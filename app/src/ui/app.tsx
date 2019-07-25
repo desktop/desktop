@@ -367,6 +367,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.hideStashedChanges()
       case 'test-prune-branches':
         return this.testPruneBranches()
+      case 'find-text':
+        return this.findText()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -453,6 +455,28 @@ export class App extends React.Component<IAppProps, IAppState> {
       document.activeElement.dispatchEvent(event)
     ) {
       remote.getCurrentWebContents().selectAll()
+    }
+  }
+
+  /**
+   * Handler for the 'find-text' menu event, dispatches
+   * a custom DOM event originating from the element which
+   * currently has keyboard focus (or the document if no element
+   * has focus). Components have a chance to intercept this
+   * event and implement their own 'find-text' logic. One
+   * example of this custom event is the text diff which
+   * will trigger a search dialog when seeing this event.
+   */
+  private findText() {
+    const event = new CustomEvent('find-text', {
+      bubbles: true,
+      cancelable: true,
+    })
+
+    if (document.activeElement != null) {
+      document.activeElement.dispatchEvent(event)
+    } else {
+      document.dispatchEvent(event)
     }
   }
 
@@ -1363,6 +1387,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
             initialName={popup.initialName || ''}
+            handleProtectedBranchWarning={popup.handleProtectedBranchWarning}
           />
         )
       }
@@ -2152,8 +2177,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const currentFoldout = this.state.currentFoldout
-    const isOpen =
-      !!currentFoldout && currentFoldout.type === FoldoutType.Branch
+
+    let isOpen = false
+    let handleProtectedBranchWarning: boolean | undefined
+
+    if (currentFoldout !== null && currentFoldout.type === FoldoutType.Branch) {
+      isOpen = true
+      handleProtectedBranchWarning = currentFoldout.handleProtectedBranchWarning
+    }
 
     const repository = selection.repository
     const branchesState = selection.state.branchesState
@@ -2169,6 +2200,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         pullRequests={branchesState.openPullRequests}
         currentPullRequest={branchesState.currentPullRequest}
         isLoadingPullRequests={branchesState.isLoadingPullRequests}
+        handleProtectedBranchWarning={handleProtectedBranchWarning}
       />
     )
   }

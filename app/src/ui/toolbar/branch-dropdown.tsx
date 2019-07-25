@@ -9,7 +9,6 @@ import { BranchesContainer, PullRequestBadge } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
 import { BranchesTab } from '../../models/branches-tab'
 import { PullRequest } from '../../models/pull-request'
-import { enablePullWithRebase } from '../../lib/feature-flag'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -42,6 +41,9 @@ interface IBranchDropdownProps {
 
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
+
+  /** Was this component launched from the "Protected Branch" warning message? */
+  readonly handleProtectedBranchWarning?: boolean
 }
 
 /**
@@ -67,6 +69,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         pullRequests={this.props.pullRequests}
         currentPullRequest={this.props.currentPullRequest}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
+        handleProtectedBranchWarning={this.props.handleProtectedBranchWarning}
       />
     )
   }
@@ -134,11 +137,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       icon = OcticonSymbol.sync
       iconClassName = 'spin'
       canOpen = false
-    } else if (
-      conflictState !== null &&
-      isRebaseConflictState(conflictState) &&
-      enablePullWithRebase()
-    ) {
+    } else if (conflictState !== null && isRebaseConflictState(conflictState)) {
       title = conflictState.targetBranch
       description = 'Rebasing branch'
       icon = OcticonSymbol.gitBranch

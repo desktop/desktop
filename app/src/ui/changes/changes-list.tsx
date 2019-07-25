@@ -34,7 +34,7 @@ import { basename } from 'path'
 import { ICommitContext } from '../../models/commit'
 import { RebaseConflictState } from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
-import { enablePullWithRebase, enableStashing } from '../../lib/feature-flag'
+import { enableStashing } from '../../lib/feature-flag'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { IStashEntry } from '../../models/stash-entry'
 import * as classNames from 'classnames'
@@ -125,6 +125,7 @@ interface IChangesListProps {
   readonly dispatcher: Dispatcher
   readonly availableWidth: number
   readonly isCommitting: boolean
+  readonly currentBranchProtected: boolean
 
   /**
    * Click event handler passed directly to the onRowClick prop of List, see
@@ -564,9 +565,10 @@ export class ChangesList extends React.Component<
       repository,
       dispatcher,
       isCommitting,
+      currentBranchProtected,
     } = this.props
 
-    if (rebaseConflictState !== null && enablePullWithRebase()) {
+    if (rebaseConflictState !== null) {
       const hasUntrackedChanges = workingDirectory.files.some(
         f => f.status.kind === AppFileStatusKind.Untracked
       )
@@ -619,6 +621,7 @@ export class ChangesList extends React.Component<
         )}
         singleFileCommit={singleFileCommit}
         key={repository.id}
+        currentBranchProtected={currentBranchProtected}
       />
     )
   }

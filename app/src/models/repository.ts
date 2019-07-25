@@ -15,21 +15,36 @@ function getBaseName(path: string): string {
   return baseName
 }
 
+/** Base type for a directory you can run git commands successfully */
+export type WorkingTree = {
+  readonly path: string
+}
+
 /** A local repository. */
 export class Repository {
   public readonly name: string
+  /**
+   * The main working tree (what we commonly
+   * think of as the repository's working directory)
+   */
+  private readonly mainWorkTree: WorkingTree
 
   /**
    * @param path The working directory of this repository
    * @param missing Was the repository missing on disk last we checked?
    */
   public constructor(
-    public readonly path: string,
+    path: string,
     public readonly id: number,
     public readonly gitHubRepository: GitHubRepository | null,
     public readonly missing: boolean
   ) {
+    this.mainWorkTree = { path }
     this.name = (gitHubRepository && gitHubRepository.name) || getBaseName(path)
+  }
+
+  public get path(): string {
+    return this.mainWorkTree.path
   }
 
   /**
@@ -42,6 +57,12 @@ export class Repository {
       this.path
     }+${this.missing}+${this.name}`
   }
+}
+
+/** A worktree linked to a main working tree (aka `Repository`) */
+export type LinkedWorkTree = WorkingTree & {
+  /** The sha of the head commit in this work tree */
+  readonly head: string
 }
 
 /**

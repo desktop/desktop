@@ -6,8 +6,6 @@ import { IAheadBehind } from '../../models/branch'
 import { TipState } from '../../models/tip'
 import { FetchType } from '../../models/fetch'
 
-import { enablePullWithRebase } from '../../lib/feature-flag'
-
 import { Dispatcher } from '../dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { RelativeTime } from '../relative-time'
@@ -202,10 +200,9 @@ function pullButton(
   pullWithRebase: boolean,
   onClick: () => void
 ) {
-  const title =
-    pullWithRebase && enablePullWithRebase()
-      ? `Pull ${remoteName} with rebase`
-      : `Pull ${remoteName}`
+  const title = pullWithRebase
+    ? `Pull ${remoteName} with rebase`
+    : `Pull ${remoteName}`
 
   return (
     <ToolbarButton
