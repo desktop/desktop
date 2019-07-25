@@ -419,10 +419,6 @@ export class List extends React.Component<IListProps, IListState> {
       this.props.onRowKeyDown(rowIndex, event)
     }
 
-    if (event.defaultPrevented) {
-      return
-    }
-
     // We give consumers the power to prevent the onRowClick event by subscribing
     // to the onRowKeyDown event and calling event.preventDefault. This lets
     // consumers add their own semantics for keyboard presses.
