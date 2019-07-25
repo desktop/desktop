@@ -45,7 +45,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
             repository={this.props.repository}
             imageDiffType={this.props.imageDiffType}
             file={file}
-            readOnly={isCommitting ? true : false}
+            readOnly={isCommitting}
             onIncludeChanged={this.onDiffLineIncludeChanged}
             diff={diff}
             dispatcher={this.props.dispatcher}
