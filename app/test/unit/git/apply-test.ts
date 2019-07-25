@@ -1,8 +1,5 @@
 import { GitProcess } from 'dugite'
-import {
-  setupTwoCommitRepo,
-  setupEmptyRepository,
-} from '../../helpers/repositories'
+import { setupTwoCommitRepo } from '../../helpers/repositories'
 import { Repository } from '../../../src/models/repository'
 import { checkPatch } from '../../../src/lib/git'
 import {
