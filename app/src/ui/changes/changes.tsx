@@ -12,6 +12,8 @@ interface IChangesProps {
   readonly diff: IDiff
   readonly dispatcher: Dispatcher
   readonly imageDiffType: ImageDiffType
+
+  /** Whether a commit is in progress */
   readonly isCommitting: boolean
 }
 
