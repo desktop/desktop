@@ -4,6 +4,11 @@ import { Repository } from '../../models/repository'
 
 /**
  * Generate a patch containing the changes associated with this range of commits
+ *
+ * @param repository where to generate path from
+ * @param base starting commit in range
+ * @param head ending commit in rage
+ * @returns patch generated
  */
 export async function formatPatch(
   repository: Repository,
