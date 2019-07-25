@@ -32,10 +32,8 @@ describe('git/worktree', () => {
         const first = result[0]
         expect(first.head).toBe('0000000000000000000000000000000000000000')
 
-        // You might be wondering why this isn't a `.toBe` comparsion.
-        // Well, on macOS the path emitted by Git may start with a `/private`
-        // which is super-annoying and also different to what NodeJS returns,
-        // so we need to manage and reconcile these two cases
+        // we use realpathSync here because git and windows/macOS report different
+        // paths even though they are the same folder
         expect(realpathSync(first.path)).toBe(realpathSync(path))
       })
     })
@@ -137,10 +135,8 @@ describe('git/worktree', () => {
       const tmpDir = Os.tmpdir()
 
       expect(workTree.head).toBe(currentHeadSha)
-      // You might be wondering why this isn't a `.toStartWith` comparsion.
-      // Well, on macOS the path emitted by Git may start with a `/private`
-      // which is super-annoying and also different to what NodeJS returns,
-      // so we need to manage and reconcile these two cases
+      // we use realpathSync here because git and windows/macOS report different
+      // paths even though they are the same folder
       expect(realpathSync(workTree.path)).toStartWith(realpathSync(tmpDir))
     })
 
