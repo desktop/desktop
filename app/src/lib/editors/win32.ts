@@ -18,6 +18,7 @@ export enum ExternalEditor {
   AtomNightly = 'Atom Nightly',
   VisualStudioCode = 'Visual Studio Code',
   VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
+  VSCodium = 'Visual Studio Codium',
   SublimeText = 'Sublime Text',
   CFBuilder = 'ColdFusion Builder',
   Typora = 'Typora',
@@ -40,6 +41,9 @@ export function parse(label: string): ExternalEditor | null {
   }
   if (label === ExternalEditor.VisualStudioCodeInsiders) {
     return ExternalEditor.VisualStudioCodeInsiders
+  }
+  if (label === ExternalEditor.VSCodium) {
+    return ExternalEditor.VSCodium
   }
   if (label === ExternalEditor.SublimeText) {
     return ExternalEditor.SublimeText
