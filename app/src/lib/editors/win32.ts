@@ -294,6 +294,8 @@ function getExecutableShim(
       return Path.join(installLocation, 'bin', 'code.cmd') // remember, CMD must 'useShell'
     case ExternalEditor.VisualStudioCodeInsiders:
       return Path.join(installLocation, 'bin', 'code-insiders.cmd') // remember, CMD must 'useShell'
+    case ExternalEditor.VSCodium:
+      return Path.join(installLocation, 'bin', 'codium.cmd') // remember, CMD must 'useShell'
     case ExternalEditor.SublimeText:
       return Path.join(installLocation, 'subl.exe')
     case ExternalEditor.CFBuilder:
@@ -338,6 +340,10 @@ function isExpectedInstallation(
         displayName.startsWith('Microsoft Visual Studio Code Insiders') &&
         publisher === 'Microsoft Corporation'
       )
+    case ExternalEditor.VSCodium:
+      return (
+        displayName.startsWith === 'Visual Source Codium' &&
+        publisher === 'Unknown'
     case ExternalEditor.SublimeText:
       return (
         displayName === 'Sublime Text' && publisher === 'Sublime HQ Pty Ltd'
