@@ -40,7 +40,10 @@ export async function listWorkTrees(
   return worktrees
 }
 
-/** Create a new work tree at the desired location on disk */
+/**
+ * Create a new work tree at the desired location on disk, checked
+ * out to the given commit
+ */
 async function addWorkTree(
   repository: Repository,
   path: string,
@@ -108,8 +111,9 @@ async function findTemporaryWorkTrees(repository: Repository) {
 }
 
 /**
- * Lookup or create a new temporary work tree for use in Desktop without
- * touching the user's current repository state.
+ * Finds an existing temporary work tree for use in Desktop or creates a new one.
+ * Won't modify the repository's working directory.
+ * _The returned worktree will be checked out to the given commit._
  */
 export async function findOrCreateTemporaryWorkTree(
   repository: Repository,
