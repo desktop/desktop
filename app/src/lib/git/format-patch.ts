@@ -21,7 +21,5 @@ export async function formatPatch(
     repository.path,
     'formatPatch'
   )
-  // `.toString()` in a promise in case its a large buffer
-  const outputString = await (async () => output.toString('utf8'))()
-  return outputString
+  return output.toString('utf8')
 }
