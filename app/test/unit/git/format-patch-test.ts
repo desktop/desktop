@@ -1,4 +1,7 @@
-import { setupTwoCommitRepo } from '../../helpers/repositories'
+import {
+  setupTwoCommitRepo,
+  setupFixtureRepository,
+} from '../../helpers/repositories'
 import { Repository } from '../../../src/models/repository'
 import { formatPatch } from '../../../src/lib/git'
 import {
@@ -46,6 +49,24 @@ describe('formatPatch', () => {
         })
         expect(result).toBeTruthy()
       })
+    })
+  })
+  describe('in a repo with 105 commits', () => {
+    let repository: Repository
+    let firstCommit: string
+    beforeEach(async () => {
+      const path = await setupFixtureRepository('repository-with-105-commits')
+      repository = new Repository(path, -1, null, false)
+      const { stdout } = await GitProcess.exec(
+        ['rev-list', '--max-parents=0', 'HEAD'],
+        path
+      )
+      firstCommit = stdout.trim()
+    })
+    it('resolves with a string', async () => {
+      await expect(
+        formatPatch(repository, firstCommit, 'HEAD')
+      ).resolves.toBeString()
     })
   })
 })
