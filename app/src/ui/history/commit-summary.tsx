@@ -10,6 +10,7 @@ import { Commit } from '../../models/commit'
 import { getAvatarUsersForCommit, IAvatarUser } from '../../models/avatar'
 import { AvatarStack } from '../lib/avatar-stack'
 import { CommitAttribution } from '../lib/commit-attribution'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -32,6 +33,9 @@ interface ICommitSummaryProps {
   readonly onDescriptionBottomChanged: (descriptionBottom: Number) => void
 
   readonly hideDescriptionBorder: boolean
+
+  readonly hideWhitespaceInDiff: boolean
+  readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
 }
 
 interface ICommitSummaryState {
@@ -125,6 +129,13 @@ export class CommitSummary extends React.Component<
   private readonly resizeObserver: ResizeObserver | null = null
   private updateOverflowTimeoutId: NodeJS.Immediate | null = null
   private descriptionRef: HTMLDivElement | null = null
+
+  private onHideWhitespaceInDiffChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+    this.props.onHideWhitespaceInDiffChanged(value)
+  }
 
   public constructor(props: ICommitSummaryProps) {
     super(props)
@@ -330,13 +341,26 @@ export class CommitSummary extends React.Component<
               <span className="sha">{shortSHA}</span>
             </li>
 
-            <li className="commit-summary-meta-item" title={filesDescription}>
+            <li
+              className="commit-summary-meta-item commit-summary-file-name"
+              title={filesDescription}
+            >
               <span aria-hidden="true">
                 <Octicon symbol={OcticonSymbol.diff} />
               </span>
 
               {filesDescription}
             </li>
+
+            <Checkbox
+              label="Hide Whitespace"
+              value={
+                this.props.hideWhitespaceInDiff
+                  ? CheckboxValue.On
+                  : CheckboxValue.Off
+              }
+              onChange={this.onHideWhitespaceInDiffChanged}
+            />
           </ul>
         </div>
 

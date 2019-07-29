@@ -194,6 +194,9 @@ export interface IAppState {
   /** What type of visual diff mode we should use to compare images */
   readonly imageDiffType: ImageDiffType
 
+  /** Whether we should hide white space changes in diff */
+  readonly hideWhitespaceInDiff: boolean
+
   /** The user's preferred shell. */
   readonly selectedShell: Shell
 
