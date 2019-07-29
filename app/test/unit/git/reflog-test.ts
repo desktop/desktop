@@ -71,7 +71,7 @@ describe('git/reflog', () => {
     })
   })
 
-  describe('getCheckoutsAfterDate', () => {
+  describe('getBranchCheckouts', () => {
     it('returns does not return the branches that were checked out before a specific date', async () => {
       await createAndCheckout(repository, 'branch-1')
       await createAndCheckout(repository, 'branch-2')
