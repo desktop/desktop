@@ -64,6 +64,10 @@ export async function getRecentBranches(
   return [...names]
 }
 
+const noCommitsOnBranchRe = new RegExp(
+  "fatal: your current branch '.*' does not have any commits yet"
+)
+
 /**
  * Gets the distinct list of branches that have been checked out after a specific date
  * Returns a map keyed on branch names
@@ -90,9 +94,23 @@ export async function getBranchCheckouts(
       '--',
     ],
     repository.path,
-    'getCheckoutsAfterDate'
+    'getCheckoutsAfterDate',
+    { successExitCodes: new Set([0, 128]) }
   )
+
   const checkouts = new Map<string, Date>()
+
+  // edge case where orphaned branch is created but Git raises error when
+  // reading the reflog on this new branch as it has no commits
+  //
+  // see https://github.com/desktop/desktop/issues/7983 for more information
+  if (
+    gitOutput.exitCode === 128 &&
+    noCommitsOnBranchRe.test(gitOutput.stderr)
+  ) {
+    return checkouts
+  }
+
   const lines = gitOutput.stdout.split('\n')
   for (const line of lines) {
     const parsedLine = regex.exec(line)
