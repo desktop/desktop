@@ -84,7 +84,7 @@ export async function getBranchCheckouts(
   const regex = new RegExp(
     /^[a-z0-9]{40}\sHEAD@{(.*)}\scheckout: moving from\s.*\sto\s(.*)$/
   )
-  const gitOutput = await git(
+  const result = await git(
     [
       'reflog',
       '--date=iso',
@@ -104,14 +104,11 @@ export async function getBranchCheckouts(
   // reading the reflog on this new branch as it has no commits
   //
   // see https://github.com/desktop/desktop/issues/7983 for more information
-  if (
-    gitOutput.exitCode === 128 &&
-    noCommitsOnBranchRe.test(gitOutput.stderr)
-  ) {
+  if (result.exitCode === 128 && noCommitsOnBranchRe.test(result.stderr)) {
     return checkouts
   }
 
-  const lines = gitOutput.stdout.split('\n')
+  const lines = result.stdout.split('\n')
   for (const line of lines) {
     const parsedLine = regex.exec(line)
 
