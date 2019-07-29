@@ -582,7 +582,7 @@ export class NoChanges extends React.Component<
       <>
         You have{' '}
         {aheadBehind.ahead === 1 ? 'one local commit' : 'local commits'} waiting
-        to be pushed to {isGitHub ? 'GitHub' : 'the remote'}
+        to be pushed to {isGitHub ? 'GitHub' : 'the remote'}.
       </>
     )
 
@@ -697,8 +697,8 @@ export class NoChanges extends React.Component<
             <div className="text">
               <h1>No local changes</h1>
               <p>
-                You have no uncommitted changes in your repository! Here are
-                some friendly suggestions for what to do next.
+                There are no uncommitted changes for this repository. Here are
+                some actions you may find useful:
               </p>
             </div>
             <img src={PaperStackImage} className="blankslate-image" />
