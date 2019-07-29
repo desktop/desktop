@@ -3,7 +3,7 @@ import { Repository } from '../../models/repository'
 import { spawnAndComplete } from './spawn'
 
 /**
- * Generate a patch containing the changes associated with this range of commits
+ * Generate a patch representing the changes associated with a range of commits
  *
  * @param repository where to generate path from
  * @param base starting commit in range
