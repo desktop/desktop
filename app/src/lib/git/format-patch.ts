@@ -1,6 +1,6 @@
-import { git } from './core'
 import { revRange } from './rev-list'
 import { Repository } from '../../models/repository'
+import { spawnAndComplete } from './spawn'
 
 /**
  * Generate a patch containing the changes associated with this range of commits
@@ -16,11 +16,12 @@ export async function formatPatch(
   head: string
 ): Promise<string> {
   const range = revRange(base, head)
-  const result = await git(
+  const { output } = await spawnAndComplete(
     ['format-patch', '--unified=1', '--minimal', '--stdout', range],
     repository.path,
     'formatPatch'
   )
-
-  return result.stdout
+  // `.toString()` in a promise in case its a large buffer
+  const outputString = await (async () => output.toString('utf8'))()
+  return outputString
 }

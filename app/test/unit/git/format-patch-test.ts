@@ -12,9 +12,15 @@ describe('formatPatch', () => {
     let repository: Repository
     beforeEach(async () => {
       repository = await setupTwoCommitRepo()
+      await makeCommit(repository, {
+        entries: [{ path: 'another-one', contents: 'dusty' }],
+      })
     })
-    it('returns a string for a commit range', async () => {
+    it('returns a string for a single commit range', async () => {
       expect(await formatPatch(repository, 'HEAD~', 'HEAD')).toBeTruthy()
+    })
+    it('returns a string for a multi commit range', async () => {
+      expect(await formatPatch(repository, 'HEAD~~', 'HEAD')).toBeTruthy()
     })
     it('returns empty string for no range', async () => {
       expect(await formatPatch(repository, 'HEAD', 'HEAD')).toBeFalsy()
