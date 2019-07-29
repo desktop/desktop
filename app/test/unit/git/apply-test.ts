@@ -32,10 +32,11 @@ describe('git/apply', () => {
       let patch: string
       beforeEach(async () => {
         const originalRepo = await setupTwoCommitRepo()
-        ;({ stdout: patch } = await GitProcess.exec(
+        const result = await GitProcess.exec(
           ['format-patch', '--stdout', 'HEAD~'],
           originalRepo.path
-        ))
+        )
+        patch = result.stdout
         repository = await cloneLocalRepository(originalRepo)
         await makeCommit(repository, {
           entries: [{ path: 'good-file', contents: 'okay' }],
