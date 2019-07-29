@@ -17,13 +17,19 @@ describe('formatPatch', () => {
       })
     })
     it('returns a string for a single commit range', async () => {
-      expect(await formatPatch(repository, 'HEAD~', 'HEAD')).toBeTruthy()
+      const patch = await formatPatch(repository, 'HEAD~', 'HEAD')
+      expect(patch).toBeString()
+      expect(patch).not.toBeEmpty()
     })
     it('returns a string for a multi commit range', async () => {
-      expect(await formatPatch(repository, 'HEAD~~', 'HEAD')).toBeTruthy()
+      const patch = await formatPatch(repository, 'HEAD~~', 'HEAD')
+      expect(patch).toBeString()
+      expect(patch).not.toBeEmpty()
     })
     it('returns empty string for no range', async () => {
-      expect(await formatPatch(repository, 'HEAD', 'HEAD')).toBeFalsy()
+      const patch = await formatPatch(repository, 'HEAD', 'HEAD')
+      expect(patch).toBeString()
+      expect(patch).toBeEmpty()
     })
     describe('applied in a related repo', () => {
       let clonedRepository: Repository
