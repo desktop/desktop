@@ -21,6 +21,12 @@ import { PullRequestList } from './pull-request-list'
 import { IBranchListItem } from './group-branches'
 import { renderDefaultBranch } from './branch-renderer'
 import { IMatches } from '../../lib/fuzzy-find'
+import { startTimer } from '../lib/timing'
+import {
+  UncommittedChangesStrategyKind,
+  UncommittedChangesStrategy,
+  askToStash,
+} from '../../models/uncommitted-changes-strategy'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -31,14 +37,15 @@ interface IBranchesContainerProps {
   readonly currentBranch: Branch | null
   readonly recentBranches: ReadonlyArray<Branch>
   readonly pullRequests: ReadonlyArray<PullRequest>
-  readonly branchFilterText: string
-  readonly pullRequestFilterText: string
 
   /** The pull request associated with the current branch. */
   readonly currentPullRequest: PullRequest | null
 
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
+
+  /** Was this component launched from the "Protected Branch" warning message? */
+  readonly handleProtectedBranchWarning?: boolean
 }
 
 interface IBranchesContainerState {
@@ -59,8 +66,8 @@ export class BranchesContainer extends React.Component<
     this.state = {
       selectedBranch: props.currentBranch,
       selectedPullRequest: props.currentPullRequest,
-      branchFilterText: props.branchFilterText,
-      pullRequestFilterText: props.pullRequestFilterText,
+      branchFilterText: '',
+      pullRequestFilterText: '',
     }
   }
 
@@ -95,16 +102,19 @@ export class BranchesContainer extends React.Component<
     )
   }
 
+  private renderOpenPullRequestsBubble() {
+    const { pullRequests } = this.props
+
+    if (pullRequests.length > 0) {
+      return <span className="count">{pullRequests.length}</span>
+    }
+
+    return null
+  }
+
   private renderTabBar() {
     if (!this.props.repository.gitHubRepository) {
       return null
-    }
-
-    let countElement = null
-    if (this.props.pullRequests) {
-      countElement = (
-        <span className="count">{this.props.pullRequests.length}</span>
-      )
     }
 
     return (
@@ -115,8 +125,7 @@ export class BranchesContainer extends React.Component<
         <span>Branches</span>
         <span className="pull-request-tab">
           {__DARWIN__ ? 'Pull Requests' : 'Pull requests'}
-
-          {countElement}
+          {this.renderOpenPullRequestsBubble()}
         </span>
       </TabBar>
     )
@@ -233,10 +242,27 @@ export class BranchesContainer extends React.Component<
   private onBranchItemClick = (branch: Branch) => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
 
-    const currentBranch = this.props.currentBranch
+    const {
+      currentBranch,
+      repository,
+      handleProtectedBranchWarning,
+    } = this.props
 
     if (currentBranch == null || currentBranch.name !== branch.name) {
-      this.props.dispatcher.checkoutBranch(this.props.repository, branch)
+      const timer = startTimer('checkout branch from list', repository)
+
+      // if the user arrived at this dialog from the Protected Branch flow
+      // we should bypass the "Switch Branch" flow and get out of the user's way
+      const strategy: UncommittedChangesStrategy = handleProtectedBranchWarning
+        ? {
+            kind: UncommittedChangesStrategyKind.MoveToNewBranch,
+            transientStashEntry: null,
+          }
+        : askToStash
+
+      this.props.dispatcher
+        .checkoutBranch(repository, branch, strategy)
+        .then(() => timer.done())
     }
   }
 
@@ -249,10 +275,13 @@ export class BranchesContainer extends React.Component<
   }
 
   private onCreateBranchWithName = (name: string) => {
+    const { repository, handleProtectedBranchWarning } = this.props
+
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
     this.props.dispatcher.showPopup({
       type: PopupType.CreateBranch,
-      repository: this.props.repository,
+      repository,
+      handleProtectedBranchWarning,
       initialName: name,
     })
   }
@@ -278,22 +307,14 @@ export class BranchesContainer extends React.Component<
 
   private onPullRequestClicked = (pullRequest: PullRequest) => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
-    this.props.dispatcher.checkoutPullRequest(
-      this.props.repository,
-      pullRequest
+    const timer = startTimer(
+      'checkout pull request from list',
+      this.props.repository
     )
+    this.props.dispatcher
+      .checkoutPullRequest(this.props.repository, pullRequest)
+      .then(() => timer.done())
 
     this.onPullRequestSelectionChanged(pullRequest)
-  }
-
-  public componentWillUnmount() {
-    this.props.dispatcher.setBranchFilterText(
-      this.props.repository,
-      this.state.branchFilterText
-    )
-    this.props.dispatcher.setPullRequestFilterText(
-      this.props.repository,
-      this.state.pullRequestFilterText
-    )
   }
 }

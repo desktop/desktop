@@ -1,14 +1,22 @@
-import { IRepositoryState, RebaseConflictState } from '../lib/app-state'
+import {
+  IRepositoryState,
+  RebaseConflictState,
+  IBranchesState,
+} from '../lib/app-state'
 import {
   ChooseBranchesStep,
   RebaseStep,
   ShowConflictsStep,
-} from '../models/rebase-flow-state'
-import { Branch } from '../models/branch'
+} from '../models/rebase-flow-step'
+import { Branch, IAheadBehind } from '../models/branch'
 import { TipState } from '../models/tip'
 import { clamp } from './clamp'
 
-export const initializeNewRebaseFlow = (state: IRepositoryState) => {
+/**
+ * Setup the rebase flow state when the user neeeds to select a branch as the
+ * base for the operation.
+ */
+export function initializeNewRebaseFlow(state: IRepositoryState) {
   const {
     defaultBranch,
     allBranches,
@@ -36,17 +44,21 @@ export const initializeNewRebaseFlow = (state: IRepositoryState) => {
   return initialState
 }
 
-export const initializeRebaseFlowForConflictedRepository = (
+/**
+ * Setup the rebase flow when rebase conflicts are detected in the repository.
+ *
+ * This indicates a rebase is in progress, and the application needs to guide
+ * the user to resolve conflicts and complete the rebae.
+ *
+ * @param conflictState current set of conflicts
+ */
+export function initializeRebaseFlowForConflictedRepository(
   conflictState: RebaseConflictState
-) => {
-  const { targetBranch, baseBranch } = conflictState
-
+): ShowConflictsStep {
   const initialState: ShowConflictsStep = {
     kind: RebaseStep.ShowConflicts,
-    targetBranch,
-    baseBranch,
+    conflictState,
   }
-
   return initialState
 }
 
@@ -57,4 +69,31 @@ export const initializeRebaseFlowForConflictedRepository = (
  */
 export function formatRebaseValue(value: number) {
   return Math.round(clamp(value, 0, 1) * 100) / 100
+}
+
+/**
+ * Check application state to see whether the action applied to the current
+ * branch should be a force push
+ */
+export function isCurrentBranchForcePush(
+  branchesState: IBranchesState,
+  aheadBehind: IAheadBehind | null
+) {
+  if (aheadBehind === null) {
+    // no tracking branch found
+    return false
+  }
+
+  const { tip, rebasedBranches } = branchesState
+  const { ahead, behind } = aheadBehind
+
+  let branchWasRebased = false
+  if (tip.kind === TipState.Valid) {
+    const localBranchName = tip.branch.nameWithoutRemote
+    const { sha } = tip.branch.tip
+    const foundEntry = rebasedBranches.get(localBranchName)
+    branchWasRebased = foundEntry === sha
+  }
+
+  return branchWasRebased && behind > 0 && ahead > 0
 }

@@ -40,7 +40,7 @@ export function lookupPreferredEmail(
  */
 function isEmailPublic(email: IAPIEmail): boolean {
   // If an email doesn't have a visibility setting it means it's coming from an
-  // older Enterprise server which doesn't have the concept of visiblity.
+  // older Enterprise Server which doesn't have the concept of visiblity.
   return email.visibility === 'public' || !email.visibility
 }
 

@@ -60,8 +60,8 @@ export class UsageStatsChange extends React.Component<
               <li>
                 <span>
                   <strong>
-                    If you are only signed into a GitHub Enterprise account, or
-                    only using Desktop with non-GitHub remotes
+                    If you are only signed into a GitHub Enterprise Server
+                    account, or only using Desktop with non-GitHub remotes
                   </strong>
                   , nothing is going to change.
                 </span>

@@ -5,7 +5,7 @@ import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
-import { MergeStatusHeader } from './merge-status-header'
+import { ActionStatusIcon } from '../lib/action-status-icon'
 import { MergeResult } from '../../models/merge'
 import { ComputedAction } from '../../models/computed-action'
 
@@ -52,7 +52,10 @@ export class MergeCallToActionWithConflicts extends React.Component<
   private renderMergeStatus() {
     return (
       <div className="merge-status-component">
-        <MergeStatusHeader status={this.props.mergeStatus} />
+        <ActionStatusIcon
+          status={this.props.mergeStatus}
+          classNamePrefix="merge-status"
+        />
 
         {this.renderMergeDetails(
           this.props.currentBranch,

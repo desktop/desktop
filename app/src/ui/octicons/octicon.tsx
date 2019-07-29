@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { OcticonSymbol } from './octicons.generated'
 import * as classNames from 'classnames'
+import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
 
 interface IOcticonProps {
   /**
@@ -20,11 +21,6 @@ interface IOcticonProps {
    * An optional string to use as a tooltip for the icon
    */
   readonly title?: string
-
-  /**
-   * An optional string to provide accessible descriptive text
-   */
-  readonly description?: string
 }
 
 /**
@@ -35,56 +31,47 @@ interface IOcticonProps {
  * not the minimum size.
  *
  * Usage: `<Octicon symbol={OcticonSymbol.mark_github} />`
- *
- * @see OcticonProps
- * @extends React.Component<OcticonProps, void>
  */
 export class Octicon extends React.Component<IOcticonProps, {}> {
-  public static defaultProps: IOcticonProps = {
-    symbol: OcticonSymbol.markGithub,
-  }
+  private titleId: string | null = null
 
-  public shouldComponentUpdate(nextProps: IOcticonProps) {
-    if (
-      nextProps.symbol.w !== this.props.symbol.w ||
-      nextProps.symbol.h !== this.props.symbol.h ||
-      nextProps.symbol.d !== this.props.symbol.d ||
-      nextProps.className !== this.props.className
-    ) {
-      return true
+  public componentWillUnmount() {
+    if (this.titleId !== null) {
+      releaseUniqueId(this.titleId)
     }
-
-    return false
-  }
-
-  private renderTitle() {
-    const title = this.props.title
-
-    if (!title) {
-      return null
-    }
-
-    return <title>{title}</title>
   }
 
   public render() {
-    const symbol = this.props.symbol
+    const { symbol, title } = this.props
     const viewBox = `0 0 ${symbol.w} ${symbol.h}`
-    const shortClassName = this.props.className
-    const className = classNames('octicon', shortClassName)
-    const title = this.props.title
-    const description = this.props.description
+    const className = classNames('octicon', this.props.className)
+
+    let labelledBy: string | undefined = undefined
+    let titleElem: JSX.Element | null = null
+
+    if (title && title.length > 0) {
+      if (this.titleId === null) {
+        this.titleId = createUniqueId('Octicon_Title')
+      }
+      labelledBy = this.titleId
+      titleElem = <title id={this.titleId}>{title}</title>
+    }
+
+    // Hide the octicon from screen readers when it's only being used
+    // as a visual without any attached meaning applicable to users
+    // consuming the app through an accessibility interface.
+    const ariaHidden = labelledBy === undefined ? 'true' : undefined
 
     return (
       <svg
-        aria-labelledby="octiconTitle octiconDescription"
+        aria-labelledby={labelledBy}
+        aria-hidden={ariaHidden}
         className={className}
         version="1.1"
         viewBox={viewBox}
       >
-        <title id="octiconTitle">{title}</title>
-        <desc id="octiconDescription">{description}</desc>
-        <path d={symbol.d}>{this.renderTitle()}</path>
+        {titleElem}
+        <path d={symbol.d} />
       </svg>
     )
   }

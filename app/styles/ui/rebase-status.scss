@@ -1,0 +1,68 @@
+.rebase-status-component {
+  .rebase-status-icon-container {
+    height: 20px;
+    position: relative;
+    text-align: center;
+
+    .rebase-status {
+      background: var(--background-color);
+      border-width: 0 var(--spacing-half);
+      border: solid transparent;
+      box-sizing: content-box;
+      position: relative;
+      z-index: 1;
+    }
+  }
+
+  .rebase-status-loading {
+    color: var(--status-pending-color);
+  }
+
+  .rebase-status-conflicts {
+    color: var(--color-conflicted);
+  }
+
+  .rebase-status-invalid {
+    color: var(--status-error-color);
+  }
+
+  .rebase-status-clean {
+    color: var(--status-success-color);
+  }
+
+  .rebase-message,
+  .rebase-info {
+    margin-bottom: 0;
+    text-align: center;
+    color: var(--text-secondary-color);
+
+    strong {
+      color: var(--text-color);
+    }
+  }
+
+  .rebase-message {
+    padding-bottom: var(--spacing);
+  }
+}
+
+dialog#rebase {
+  .rebase-info {
+    margin-top: var(--spacing-half);
+    margin-bottom: var(--spacing);
+  }
+
+  .rebase-status-component {
+    margin-top: 0;
+  }
+
+  .rebase-status-icon-container {
+    &:after {
+      border-bottom: 0;
+    }
+  }
+
+  .dialog-footer {
+    padding-top: var(--spacing);
+  }
+}

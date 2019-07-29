@@ -11,7 +11,7 @@ import {
   cloneRepository,
   makeCommit,
 } from '../../../helpers/repository-scaffolding'
-import { getTipOrError, getRefOrError } from '../../../helpers/tip'
+import { getTipOrError, getRefOrError } from '../../../helpers/git'
 import { setupLocalConfig } from '../../../helpers/local-config'
 
 const featureBranch = 'this-is-a-feature'

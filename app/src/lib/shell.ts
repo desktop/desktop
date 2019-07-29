@@ -57,12 +57,10 @@ async function getRawShellEnv(): Promise<string | null> {
       cleanup()
     }, 5000)
 
-    const options = {
+    child = ChildProcess.spawn(shell, ['-ilc', 'command env'], {
       detached: true,
       stdio: ['ignore', 'pipe', process.stderr],
-    }
-
-    child = ChildProcess.spawn(shell, ['-ilc', 'command env'], options)
+    })
 
     const buffers: Array<Buffer> = []
 

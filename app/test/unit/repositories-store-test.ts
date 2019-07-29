@@ -3,7 +3,7 @@ import { TestRepositoriesDatabase } from '../helpers/databases'
 import { IAPIRepository } from '../../src/lib/api'
 
 describe('RepositoriesStore', () => {
-  let repositoriesStore: RepositoriesStore | null = null
+  let repositoriesStore: RepositoriesStore
 
   beforeEach(async () => {
     const db = new TestRepositoriesDatabase()
@@ -15,19 +15,19 @@ describe('RepositoriesStore', () => {
   describe('adding a new repository', () => {
     it('contains the added repository', async () => {
       const repoPath = '/some/cool/path'
-      await repositoriesStore!.addRepository(repoPath)
+      await repositoriesStore.addRepository(repoPath)
 
-      const repositories = await repositoriesStore!.getAll()
+      const repositories = await repositoriesStore.getAll()
       expect(repositories[0].path).toBe(repoPath)
     })
   })
 
   describe('getting all repositories', () => {
     it('returns multiple repositories', async () => {
-      await repositoriesStore!.addRepository('/some/cool/path')
-      await repositoriesStore!.addRepository('/some/other/path')
+      await repositoriesStore.addRepository('/some/cool/path')
+      await repositoriesStore.addRepository('/some/other/path')
 
-      const repositories = await repositoriesStore!.getAll()
+      const repositories = await repositoriesStore.getAll()
       expect(repositories).toHaveLength(2)
     })
   })

@@ -3,19 +3,17 @@ import { GitStoreCache } from '../../src/lib/stores/git-store-cache'
 import { shell } from '../helpers/test-app-shell'
 
 describe('GitStoreCache', () => {
-  let r: Repository | null = null
+  let repository: Repository
 
   const onGitStoreUpdated = () => {}
   const onDidLoadNewCommits = () => {}
   const onDidError = () => {}
 
   beforeEach(() => {
-    r = new Repository('/something/path', 1, null, false)
+    repository = new Repository('/something/path', 1, null, false)
   })
 
   it('returns same instance of GitStore', () => {
-    const repository = r!
-
     const cache = new GitStoreCache(
       shell,
       onGitStoreUpdated,
@@ -30,8 +28,6 @@ describe('GitStoreCache', () => {
   })
 
   it('returns different instance of GitStore after removing', () => {
-    const repository = r!
-
     const cache = new GitStoreCache(
       shell,
       onGitStoreUpdated,

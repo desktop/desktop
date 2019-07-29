@@ -2,17 +2,25 @@ import * as React from 'react'
 
 import { Branch } from '../../models/branch'
 import { Repository } from '../../models/repository'
+import { RebasePreview } from '../../models/rebase'
+import { ComputedAction } from '../../models/computed-action'
 
 import { IMatches } from '../../lib/fuzzy-find'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
+import { getCommitsInRange, getMergeBase } from '../../lib/git'
 
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
+import { ActionStatusIcon } from '../lib/action-status-icon'
 
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
+import { Dispatcher } from '../dispatcher'
+import { promiseWithMinimumTimeout } from '../../lib/promise'
 
 interface IChooseBranchDialogProps {
+  readonly dispatcher: Dispatcher
+
   readonly repository: Repository
 
   /**
@@ -45,18 +53,17 @@ interface IChooseBranchDialogProps {
    * ways described in the Dialog component's dismissable prop.
    */
   readonly onDismissed: () => void
-
-  /** Callback to signal to start the rebase */
-  readonly onStartRebase: (
-    baseBranch: string,
-    targetBranch: string,
-    expectedCommitCount: number
-  ) => void
 }
 
 interface IChooseBranchDialogState {
   /** The currently selected branch. */
   readonly selectedBranch: Branch | null
+
+  /**
+   * A preview of the rebase, using the selected base branch to test whether the
+   * current branch will be cleanly applied.
+   */
+  readonly rebasePreview: RebasePreview | null
 
   /** The filter text to use in the branch selector */
   readonly filterText: string
@@ -67,6 +74,8 @@ export class ChooseBranchDialog extends React.Component<
   IChooseBranchDialogProps,
   IChooseBranchDialogState
 > {
+  private computingRebaseForBranch: string | null = null
+
   public constructor(props: IChooseBranchDialogProps) {
     super(props)
 
@@ -80,7 +89,15 @@ export class ChooseBranchDialog extends React.Component<
 
     this.state = {
       selectedBranch,
+      rebasePreview: null,
       filterText: '',
+    }
+  }
+
+  public componentDidMount() {
+    const { selectedBranch } = this.state
+    if (selectedBranch !== null) {
+      this.onBranchChanged(selectedBranch)
     }
   }
 
@@ -88,8 +105,82 @@ export class ChooseBranchDialog extends React.Component<
     this.setState({ filterText })
   }
 
+  private onBranchChanged = async (selectedBranch: Branch) => {
+    const { currentBranch } = this.props
+
+    await this.updateRebaseStatus(selectedBranch, currentBranch)
+  }
+
+  private async updateRebaseStatus(baseBranch: Branch, targetBranch: Branch) {
+    this.computingRebaseForBranch = baseBranch.name
+
+    const { repository } = this.props
+    this.setState({
+      rebasePreview: {
+        kind: ComputedAction.Loading,
+      },
+    })
+
+    const { commits, base } = await promiseWithMinimumTimeout(async () => {
+      const commits = await getCommitsInRange(
+        repository,
+        baseBranch.tip.sha,
+        targetBranch.tip.sha
+      )
+
+      // TODO: in what situations might this not be possible to compute?
+
+      const base = await getMergeBase(
+        repository,
+        baseBranch.tip.sha,
+        targetBranch.tip.sha
+      )
+
+      return { commits, base }
+    }, 500)
+
+    // if the branch being track has changed since we started this work, abandon
+    // any further state updates (this function is re-entrant if the user is
+    // using the keyboard to quickly switch branches)
+    if (this.computingRebaseForBranch !== baseBranch.name) {
+      return
+    }
+
+    // if we are unable to find any commits to rebase, indicate that we're
+    // unable to proceed with the rebase
+    if (commits === null) {
+      this.setState({
+        rebasePreview: {
+          kind: ComputedAction.Invalid,
+        },
+      })
+      return
+    }
+
+    // the target branch is a direct descendant of the base branch
+    // which means the target branch is already up to date and the commits
+    // do not need to be applied
+    const isDirectDescendant = base === baseBranch.tip.sha
+    const commitsOrIgnore = isDirectDescendant ? [] : commits
+
+    this.setState({
+      rebasePreview: {
+        kind: ComputedAction.Clean,
+        commits: commitsOrIgnore,
+      },
+    })
+
+    // TODO: generate the patches associated with these commits and see if
+    //       they will apply to the base branch - if it fails, there will be
+    //       conflicts to come
+  }
+
   private onSelectionChanged = (selectedBranch: Branch | null) => {
     this.setState({ selectedBranch })
+
+    if (selectedBranch !== null) {
+      this.onBranchChanged(selectedBranch)
+    }
   }
 
   private renderBranch = (item: IBranchListItem, matches: IMatches) => {
@@ -97,7 +188,7 @@ export class ChooseBranchDialog extends React.Component<
   }
 
   public render() {
-    const { selectedBranch } = this.state
+    const { selectedBranch, rebasePreview } = this.state
     const { currentBranch } = this.props
 
     const selectedBranchIsNotCurrentBranch =
@@ -105,7 +196,18 @@ export class ChooseBranchDialog extends React.Component<
       currentBranch === null ||
       currentBranch.name === selectedBranch.name
 
-    const disabled = selectedBranchIsNotCurrentBranch
+    const noCommitsToRebase =
+      rebasePreview !== null && rebasePreview.kind === ComputedAction.Clean
+        ? rebasePreview.commits.length === 0
+        : true
+
+    const disabled = selectedBranchIsNotCurrentBranch || noCommitsToRebase
+
+    const tooltip = selectedBranchIsNotCurrentBranch
+      ? 'You are not able to rebase this branch onto itself'
+      : noCommitsToRebase
+      ? 'There are no commits on the current branch to rebase'
+      : undefined
 
     const currentBranchName = currentBranch.name
 
@@ -120,11 +222,10 @@ export class ChooseBranchDialog extends React.Component<
         id="rebase"
         onDismissed={this.props.onDismissed}
         onSubmit={this.startRebase}
-        disabled={disabled}
         dismissable={true}
         title={
           <>
-            Rebase <strong>{truncatedCurrentBranchName}</strong> onto…
+            Rebase <strong>{truncatedCurrentBranchName}</strong>…
           </>
         }
       >
@@ -143,10 +244,10 @@ export class ChooseBranchDialog extends React.Component<
           />
         </DialogContent>
         <DialogFooter>
+          {this.renderRebaseStatus()}
           <ButtonGroup>
-            <Button type="submit">
-              Rebase <strong>{currentBranchName}</strong> onto{' '}
-              <strong>{selectedBranch ? selectedBranch.name : ''}</strong>
+            <Button type="submit" disabled={disabled} tooltip={tooltip}>
+              Start rebase
             </Button>
           </ButtonGroup>
         </DialogFooter>
@@ -154,15 +255,115 @@ export class ChooseBranchDialog extends React.Component<
     )
   }
 
+  private renderRebaseStatus = () => {
+    const { currentBranch } = this.props
+    const { selectedBranch, rebasePreview } = this.state
+
+    if (rebasePreview === null) {
+      return null
+    }
+
+    if (selectedBranch === null) {
+      return null
+    }
+
+    if (currentBranch.name === selectedBranch.name) {
+      return null
+    }
+
+    return (
+      <div className="rebase-status-component">
+        <ActionStatusIcon
+          status={rebasePreview}
+          classNamePrefix="rebase-status"
+        />
+        <p className="rebase-message">
+          {this.renderRebaseDetails(
+            currentBranch,
+            selectedBranch,
+            rebasePreview
+          )}
+        </p>
+      </div>
+    )
+  }
+
+  private renderRebaseDetails(
+    currentBranch: Branch,
+    baseBranch: Branch,
+    rebaseStatus: RebasePreview
+  ): JSX.Element | null {
+    if (rebaseStatus.kind === ComputedAction.Loading) {
+      return this.renderLoadingRebaseMessage()
+    }
+    if (rebaseStatus.kind === ComputedAction.Clean) {
+      return this.renderCleanRebaseMessage(
+        currentBranch,
+        baseBranch,
+        rebaseStatus.commits.length
+      )
+    }
+
+    if (rebaseStatus.kind === ComputedAction.Invalid) {
+      return this.renderInvalidRebaseMessage()
+    }
+
+    // TODO: other scenarios to display some context about
+
+    return null
+  }
+
+  private renderLoadingRebaseMessage() {
+    return <>Checking for ability to rebase automatically...</>
+  }
+
+  private renderInvalidRebaseMessage() {
+    return <>Unable to start rebase. Check you have chosen a valid branch.</>
+  }
+
+  private renderCleanRebaseMessage(
+    currentBranch: Branch,
+    baseBranch: Branch,
+    commitsToRebase: number
+  ) {
+    if (commitsToRebase <= 0) {
+      return (
+        <>
+          This branch is up to date with{` `}
+          <strong>{currentBranch.name}</strong>
+        </>
+      )
+    }
+
+    const pluralized = commitsToRebase === 1 ? 'commit' : 'commits'
+    return (
+      <>
+        This will update <strong>{currentBranch.name}</strong>
+        {` by applying its `}
+        <strong>{` ${commitsToRebase} ${pluralized}`}</strong>
+        {` on top of `}
+        <strong>{baseBranch.name}</strong>
+      </>
+    )
+  }
+
   private startRebase = async () => {
-    const branch = this.state.selectedBranch
-    if (!branch) {
+    const { selectedBranch, rebasePreview } = this.state
+    const { repository, currentBranch } = this.props
+    if (!selectedBranch) {
       return
     }
 
-    // TODO: compute the number of expected commits that will be rebased
+    if (rebasePreview === null || rebasePreview.kind !== ComputedAction.Clean) {
+      return
+    }
 
-    this.props.onStartRebase(branch.name, this.props.currentBranch.name, 20)
+    this.props.dispatcher.startRebase(
+      repository,
+      selectedBranch,
+      currentBranch,
+      rebasePreview.commits
+    )
   }
 }
 

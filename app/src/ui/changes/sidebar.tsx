@@ -7,6 +7,7 @@ import {
   IChangesState,
   RebaseConflictState,
   isRebaseConflictState,
+  ChangesSelectionKind,
 } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
@@ -30,7 +31,6 @@ import { PopupType } from '../../models/popup'
 import { filesNotTrackedByLFS } from '../../lib/git/lfs'
 import { getLargeFilePaths } from '../../lib/large-files'
 import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
-import { enablePullWithRebase } from '../../lib/feature-flag'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -188,7 +188,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
 
   private onFileSelectionChanged = (rows: ReadonlyArray<number>) => {
     const files = rows.map(i => this.props.changes.workingDirectory.files[i])
-    this.props.dispatcher.changeChangesSelection(this.props.repository, files)
+    this.props.dispatcher.selectWorkingDirectoryFiles(
+      this.props.repository,
+      files
+    )
   }
 
   private onIncludeChanged = (path: string, include: boolean) => {
@@ -228,9 +231,9 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     }
   }
 
-  private onDiscardAllChanges = (
+  private onDiscardChangesFromFiles = (
     files: ReadonlyArray<WorkingDirectoryFileChange>,
-    isDiscardingAllChanges: boolean = true
+    isDiscardingAllChanges: boolean
   ) => {
     this.props.dispatcher.showPopup({
       type: PopupType.ConfirmDiscardChanges,
@@ -335,7 +338,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   private renderUndoCommit = (
     rebaseConflictState: RebaseConflictState | null
   ): JSX.Element | null => {
-    if (rebaseConflictState !== null && enablePullWithRebase()) {
+    if (rebaseConflictState !== null) {
       return null
     }
 
@@ -344,12 +347,13 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
 
   public render() {
     const {
-      selectedFileIDs,
       workingDirectory,
       commitMessage,
       showCoAuthoredBy,
       coAuthors,
       conflictState,
+      selection,
+      currentBranchProtected,
     } = this.props.changes
 
     // TODO: I think user will expect the avatar to match that which
@@ -369,6 +373,13 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
         : null
     }
 
+    const selectedFileIDs =
+      selection.kind === ChangesSelectionKind.WorkingDirectory
+        ? selection.selectedFileIDs
+        : []
+
+    const isShowingStashEntry = selection.kind === ChangesSelectionKind.Stash
+
     return (
       <div id="changes-sidebar-contents">
         <ChangesList
@@ -385,7 +396,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           askForConfirmationOnDiscardChanges={
             this.props.askForConfirmationOnDiscardChanges
           }
-          onDiscardAllChanges={this.onDiscardAllChanges}
+          onDiscardChangesFromFiles={this.onDiscardChangesFromFiles}
           onOpenItem={this.onOpenItem}
           onRowClick={this.onChangedItemClick}
           commitAuthor={this.props.commitAuthor}
@@ -403,6 +414,9 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           onOpenInExternalEditor={this.props.onOpenInExternalEditor}
           onChangesListScrolled={this.props.onChangesListScrolled}
           changesListScrollTop={this.props.changesListScrollTop}
+          stashEntry={this.props.changes.stashEntry}
+          isShowingStashEntry={isShowingStashEntry}
+          currentBranchProtected={currentBranchProtected}
         />
         {this.renderUndoCommit(rebaseConflictState)}
       </div>

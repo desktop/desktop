@@ -22,6 +22,9 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { IAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
 import { ICommitContext } from '../../models/commit'
+import { startTimer } from '../lib/timing'
+import { ProtectedBranchWarning } from './protected-branch-warning'
+import { enableBranchProtectionWarningFlow } from '../../lib/feature-flag'
 
 const addAuthorIcon = new OcticonSymbol(
   12,
@@ -46,6 +49,7 @@ interface ICommitMessageProps {
   readonly isCommitting: boolean
   readonly placeholder: string
   readonly singleFileCommit: boolean
+  readonly currentBranchProtected: boolean
 
   /**
    * Whether or not to show a field for adding co-authors to
@@ -118,7 +122,10 @@ export class CommitMessage extends React.Component<
   public componentWillUnmount() {
     // We're unmounting, likely due to the user switching to the history tab.
     // Let's persist our commit message in the dispatcher.
-    this.props.dispatcher.setCommitMessage(this.props.repository, this.state)
+    this.props.dispatcher.setCommitMessage(this.props.repository, {
+      summary: this.state.summary,
+      description: this.state.description,
+    })
   }
 
   /**
@@ -214,7 +221,9 @@ export class CommitMessage extends React.Component<
       trailers,
     }
 
+    const timer = startTimer('create commit', this.props.repository)
     const commitCreated = await this.props.onCreateCommit(commitContext)
+    timer.done()
 
     if (commitCreated) {
       this.clearCommitMessage()
@@ -433,6 +442,22 @@ export class CommitMessage extends React.Component<
     return <div className={className}>{this.renderCoAuthorToggleButton()}</div>
   }
 
+  private renderProtectedBranchWarning = (branch: string) => {
+    if (!enableBranchProtectionWarningFlow()) {
+      return null
+    }
+
+    const { currentBranchProtected, dispatcher } = this.props
+
+    if (!currentBranchProtected) {
+      return null
+    }
+
+    return (
+      <ProtectedBranchWarning currentBranch={branch} dispatcher={dispatcher} />
+    )
+  }
+
   public render() {
     const branchName = this.props.branch ? this.props.branch : 'master'
 
@@ -494,6 +519,8 @@ export class CommitMessage extends React.Component<
         </FocusContainer>
 
         {this.renderCoAuthorInput()}
+
+        {this.renderProtectedBranchWarning(branchName)}
 
         <Button
           type="submit"
