@@ -9,6 +9,7 @@ import {
 } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../helpers/repositories'
 import * as moment from 'moment'
+import { GitProcess } from 'dugite'
 
 async function createAndCheckout(
   repository: Repository,
@@ -96,6 +97,22 @@ describe('git/reflog', () => {
           .toDate()
       )
       expect(branches.size).toBe(2)
+    })
+
+    it('returns empty when current branch is orphaned', async () => {
+      const result = await GitProcess.exec(
+        ['checkout', '--orphan', 'orphan-branch'],
+        repository.path
+      )
+      expect(result.exitCode).toBe(0)
+
+      const branches = await getBranchCheckouts(
+        repository,
+        moment()
+          .subtract(1, 'hour')
+          .toDate()
+      )
+      expect(branches.size).toBe(0)
     })
   })
 })
