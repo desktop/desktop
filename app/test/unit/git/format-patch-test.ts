@@ -25,7 +25,7 @@ describe('formatPatch', () => {
       expect(patch).not.toBeEmpty()
     })
     it('returns a string for a multi commit range', async () => {
-      const patch = await formatPatch(repository, 'HEAD~~', 'HEAD')
+      const patch = await formatPatch(repository, 'HEAD~2', 'HEAD')
       expect(patch).toBeString()
       expect(patch).not.toBeEmpty()
     })
@@ -42,7 +42,7 @@ describe('formatPatch', () => {
           entries: [{ path: 'okay-file', contents: 'okay' }],
         })
       })
-      it('is valid', async () => {
+      it('will be applied cleanly', async () => {
         const patch = await formatPatch(repository, 'HEAD~', 'HEAD')
         const result = await GitProcess.exec(['apply'], clonedRepository.path, {
           stdin: patch,
@@ -63,7 +63,7 @@ describe('formatPatch', () => {
       )
       firstCommit = stdout.trim()
     })
-    it('resolves with a string', async () => {
+    it('can create a series of commits from start to HEAD', async () => {
       await expect(
         formatPatch(repository, firstCommit, 'HEAD')
       ).resolves.toBeString()
