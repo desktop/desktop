@@ -18,10 +18,11 @@ describe('git/apply', () => {
         await makeCommit(originalRepo, {
           entries: [{ path: 'just-okay-file', contents: 'okay' }],
         })
-        ;({ stdout: patch } = await GitProcess.exec(
+        const result = await GitProcess.exec(
           ['format-patch', '--stdout', 'HEAD~'],
           originalRepo.path
-        ))
+        )
+        patch = result.stdout
       })
       it('returns true', async () => {
         expect(await checkPatch(repository, patch)).toBe(true)
