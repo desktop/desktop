@@ -101,3 +101,8 @@ export function enableWSLDetection(): boolean {
 export function enableBranchProtectionWarningFlow(): boolean {
   return enableBranchProtectionChecks() && enableDevelopmentFeatures()
 }
+
+/** Feature flag for git worktree based conflict detection for rebasing */
+export function enableRebaseConflictDetection(): boolean {
+  return enableBetaFeatures()
+}
