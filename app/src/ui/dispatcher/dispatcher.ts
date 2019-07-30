@@ -1625,7 +1625,7 @@ export class Dispatcher {
     return this.appStore._changeImageDiffType(type)
   }
 
-  /** Change the selected image diff type. */
+  /** Change the hide whitespace in diff setting */
   public onHideWhitespaceInDiffChanged(
     hideWhitespaceInDiff: boolean,
     repository: Repository,
