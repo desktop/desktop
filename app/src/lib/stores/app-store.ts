@@ -220,6 +220,7 @@ import {
   enableStashing,
   enableBranchProtectionChecks,
   enableBranchProtectionWarningFlow,
+  enableHideWhitespaceInDiffOption,
 } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import * as moment from 'moment'
@@ -1262,7 +1263,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository,
       file,
       sha,
-      this.hideWhitespaceInDiff
+      enableHideWhitespaceInDiffOption() ? this.hideWhitespaceInDiff : false
     )
 
     const stateAfterLoad = this.repositoryStateCache.get(repository)
