@@ -12,6 +12,9 @@ interface IChangesProps {
   readonly diff: IDiff
   readonly dispatcher: Dispatcher
   readonly imageDiffType: ImageDiffType
+
+  /** Whether a commit is in progress */
+  readonly isCommitting: boolean
 }
 
 export class Changes extends React.Component<IChangesProps, {}> {
@@ -27,6 +30,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
   public render() {
     const diff = this.props.diff
     const file = this.props.file
+    const isCommitting = this.props.isCommitting
     return (
       <div className="changed-file">
         <ChangedFileDetails
@@ -41,7 +45,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
             repository={this.props.repository}
             imageDiffType={this.props.imageDiffType}
             file={file}
-            readOnly={false}
+            readOnly={isCommitting}
             onIncludeChanged={this.onDiffLineIncludeChanged}
             diff={diff}
             dispatcher={this.props.dispatcher}
