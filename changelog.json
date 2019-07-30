@@ -1,7 +1,7 @@
 {
   "releases": {
     "2.1.1-beta3": [
-      "[Added] Syntax highlighting support for 20 more languages - #7217. Thanks @KennethSweezy!",
+      "[Added] Syntax highlighting support for 20 more programming languages - #7217. Thanks @KennethSweezy!",
       "[Added] Kitty shell support for macOS - #5162",
       "[Added] Atom editor support on Windows for beta and nightly channels - #8010. Thanks @Rexogamer!",
       "[Fixed] File checkboxes and line selection in diffs are not disabled when committing - #3814 #5934. Thanks @HashimotoYT!",
