@@ -9,7 +9,7 @@ interface IBannerProps {
 }
 
 export class Banner extends React.Component<IBannerProps, {}> {
-  private timeoutId: NodeJS.Timer | null = null
+  private timeoutId: number | null = null
 
   public render() {
     return (
@@ -37,7 +37,9 @@ export class Banner extends React.Component<IBannerProps, {}> {
 
   public componentDidMount = () => {
     if (this.props.timeout !== undefined) {
-      this.timeoutId = setTimeout(() => {
+      // i shouldn't have to specifiy `window` here, but i do
+      // see https://github.com/DefinitelyTyped/DefinitelyTyped/issues/21310
+      this.timeoutId = window.setTimeout(() => {
         this.props.onDismissed()
       }, this.props.timeout)
     }
