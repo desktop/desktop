@@ -1825,6 +1825,20 @@ export class Dispatcher {
     return this.appStore._setConfirmForcePushSetting(value)
   }
 
+  public checkPotentialRebase(
+    repository: Repository,
+    baseBranch: Branch,
+    targetBranch: Branch,
+    commits: ReadonlyArray<CommitOneLine>
+  ) {
+    return this.appStore._checkPotentialRebase(
+      repository,
+      baseBranch,
+      targetBranch,
+      commits
+    )
+  }
+
   /**
    * Updates the application state to indicate a conflict is in-progress
    * as a result of a pull and increments the relevant metric.

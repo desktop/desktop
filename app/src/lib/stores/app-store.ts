@@ -242,6 +242,7 @@ import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
+import { checkPotentialRebase } from './generators/rebase-conflict-detection'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -315,6 +316,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private currentBanner: Banner | null = null
   private errors: ReadonlyArray<Error> = new Array<Error>()
   private emitQueued = false
+
+  private checkPotentialRebaseGen: AsyncIterableIterator<{
+    kind: ComputedAction
+  }> = (async function*() {
+    return {
+      kind: ComputedAction.Loading,
+    }
+  })()
 
   private readonly localRepositoryStateLookup = new Map<
     number,
@@ -5263,6 +5272,38 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     await this.currentBranchPruner.testPrune()
+  }
+
+  public async _checkPotentialRebase(
+    repository: Repository,
+    baseBranch: Branch,
+    targetBranch: Branch,
+    commits: ReadonlyArray<CommitOneLine>
+  ) {
+    const checker = checkPotentialRebase({
+      repository,
+      baseBranch,
+      targetBranch,
+      commits,
+    })
+    this.checkPotentialRebaseGen = checker
+    try {
+      const prom = await new Promise<{ kind: ComputedAction }>(
+        async (resolve, reject) => {
+          for await (const x of checker) {
+            if (checker !== this.checkPotentialRebaseGen) {
+              reject()
+            }
+            if (x.kind !== ComputedAction.Loading) {
+              resolve(x)
+            }
+          }
+        }
+      )
+      log.warn(prom.kind)
+    } catch {
+      log.warn('rejected')
+    }
   }
 }
 
