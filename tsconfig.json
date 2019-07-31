@@ -10,7 +10,15 @@
     "jsx": "react",
     "strict": true,
     "noEmit": true,
-    "outDir": "./out"
+    "outDir": "./out",
+    "lib": [
+      "es6",
+      "es2017",
+      "dom",
+      "dom.iterable",
+      "scripthost",
+      "esnext.asynciterable"
+    ]
   },
   "plugins": [
     {
