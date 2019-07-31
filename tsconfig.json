@@ -12,7 +12,6 @@
     "noEmit": true,
     "outDir": "./out",
     "lib": [
-      "es6",
       "es2017",
       "dom",
       "dom.iterable",
