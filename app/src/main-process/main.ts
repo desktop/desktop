@@ -396,6 +396,7 @@ app.on('ready', () => {
       }
 
       if (sendMenuChangedEvent && mainWindow) {
+        Menu.setApplicationMenu(currentMenu)
         mainWindow.sendAppMenu()
       }
     }
