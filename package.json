@@ -85,6 +85,7 @@
     "glob": "^7.1.2",
     "html-webpack-plugin": "^3.2.0",
     "jest": "^23.5.0",
+    "jest-extended": "^0.11.2",
     "jest-junit": "^5.0.0",
     "jest-localstorage-mock": "^2.3.0",
     "json-pretty": "^0.0.1",

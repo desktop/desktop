@@ -321,6 +321,7 @@ export class RepositoryView extends React.Component<
             dispatcher={this.props.dispatcher}
             file={selectedFile}
             diff={diff}
+            isCommitting={this.props.state.isCommitting}
             imageDiffType={this.props.imageDiffType}
           />
         )
