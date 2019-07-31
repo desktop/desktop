@@ -7,13 +7,7 @@ import { ComputedAction } from '../../models/computed-action'
 
 import { IMatches } from '../../lib/fuzzy-find'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
-import {
-  getCommitsInRange,
-  getMergeBase,
-  findOrCreateTemporaryWorkTree,
-  formatPatch,
-  checkPatch,
-} from '../../lib/git'
+import { getCommitsInRange, getMergeBase } from '../../lib/git'
 
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
@@ -199,33 +193,12 @@ export class ChooseBranchDialog extends React.Component<
     }
 
     if (enableRebaseConflictDetection()) {
-      const worktree = await findOrCreateTemporaryWorkTree(
+      this.props.dispatcher.checkPotentialRebase(
         repository,
-        baseBranch.tip.sha
+        baseBranch,
+        targetBranch,
+        commits
       )
-
-      const patch = await formatPatch(
-        repository,
-        baseBranch.tip.sha,
-        targetBranch.tip.sha
-      )
-
-      const result = await checkPatch(worktree, patch)
-
-      if (result) {
-        this.setState({
-          rebasePreview: {
-            kind: ComputedAction.Clean,
-            commits,
-          },
-        })
-      } else {
-        this.setState({
-          rebasePreview: {
-            kind: ComputedAction.Conflicts,
-          },
-        })
-      }
     }
   }
 
