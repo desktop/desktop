@@ -121,17 +121,13 @@ export class ChooseBranchDialog extends React.Component<
   }
 
   private onBranchChanged = async (selectedBranch: Branch) => {
-    const { currentBranch } = this.props
-
-    await this.updateRebaseStatus(selectedBranch, currentBranch)
+    await this.updateRebaseStatus(selectedBranch, this.props.currentBranch)
   }
 
   private async updateRebaseStatus(baseBranch: Branch, targetBranch: Branch) {
-    const { repository } = this.props
-
     if (enableRebaseConflictDetection()) {
       this.props.dispatcher.checkPotentialRebase(
-        repository,
+        this.props.repository,
         baseBranch,
         targetBranch
       )
