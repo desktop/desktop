@@ -70,6 +70,7 @@ export class StashDiffViewer extends React.PureComponent<
           diff={stashedFileDiff}
           dispatcher={dispatcher}
           imageDiffType={imageDiffType}
+          hideWhitespaceInDiff={false}
         />
       ) : null
 
