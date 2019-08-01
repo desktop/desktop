@@ -1868,14 +1868,12 @@ export class Dispatcher {
   public checkPotentialRebase(
     repository: Repository,
     baseBranch: Branch,
-    targetBranch: Branch,
-    commits: ReadonlyArray<CommitOneLine>
+    targetBranch: Branch
   ) {
     return this.appStore._checkPotentialRebase(
       repository,
       baseBranch,
-      targetBranch,
-      commits
+      targetBranch
     )
   }
 

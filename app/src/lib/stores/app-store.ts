@@ -249,6 +249,7 @@ import {
 import { OnboardingTutorialAssessor } from './helpers/tutorial-assessor'
 import { getUntrackedFiles } from '../status'
 import { checkPotentialRebase } from './generators/rebase-conflict-detection'
+import { RebasePreview } from '../../models/rebase'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -5492,32 +5493,45 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _checkPotentialRebase(
     repository: Repository,
     baseBranch: Branch,
-    targetBranch: Branch,
-    commits: ReadonlyArray<CommitOneLine>
+    targetBranch: Branch
   ) {
     const checker = checkPotentialRebase({
       repository,
       baseBranch,
       targetBranch,
-      commits,
     })
     this.checkPotentialRebaseGen = checker
+    let val: RebasePreview
     try {
-      const prom = await new Promise<{ kind: ComputedAction }>(
-        async (resolve, reject) => {
-          for await (const x of checker) {
-            if (checker !== this.checkPotentialRebaseGen) {
-              reject()
-            }
-            if (x.kind !== ComputedAction.Loading) {
-              resolve(x)
-            }
+      val = await new Promise<RebasePreview>(async (resolve, reject) => {
+        for await (const x of checker) {
+          if (checker !== this.checkPotentialRebaseGen) {
+            reject()
+          }
+          if (x.kind !== ComputedAction.Loading) {
+            resolve(x)
           }
         }
-      )
-      log.warn(prom.kind)
+      })
     } catch {
-      log.warn('rejected')
+      log.debug('cancelled')
+    } finally {
+      this.repositoryStateCache.updateRebaseState(repository, rebaseState => {
+        if (
+          rebaseState.step &&
+          rebaseState.step.kind === RebaseStep.ChooseBranch
+        ) {
+          return {
+            ...rebaseState,
+            step: {
+              ...rebaseState.step,
+              rebasePreview: val,
+            },
+          }
+        }
+        return rebaseState
+      })
+      this.emitUpdate()
     }
   }
 }
