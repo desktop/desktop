@@ -54,13 +54,31 @@ export async function stageManualConflictResolution(
       )).exitCode
       break
     }
-    case GitStatusEntry.Added:
-    case GitStatusEntry.UpdatedButUnmerged: {
+    case GitStatusEntry.Added: {
       exitCode = (await git(
         ['add', file.path],
         repository.path,
         'addConflictedFile'
       )).exitCode
+      break
+    }
+    case GitStatusEntry.UpdatedButUnmerged: {
+      const choiceFlag =
+        manualResolution === ManualConflictResolutionKind.theirs
+          ? 'theirs'
+          : 'ours'
+      exitCode = (await git(
+        ['checkout', `--${choiceFlag}`, '--', file.path],
+        repository.path,
+        'checkoutConflictedFile'
+      )).exitCode
+      if (exitCode === 0) {
+        exitCode = (await git(
+          ['add', file.path],
+          repository.path,
+          'addConflictedFile'
+        )).exitCode
+      }
       break
     }
     default:
