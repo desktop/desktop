@@ -5501,21 +5501,44 @@ export class AppStore extends TypedBaseStore<IAppState> {
       targetBranch,
     })
     this.checkPotentialRebaseGen = checker
-    let val: RebasePreview
+    let val: RebasePreview | undefined = {
+      kind: ComputedAction.Loading,
+    }
     try {
+      // let 'em know we're loading now
+      this.repositoryStateCache.updateRebaseState(repository, rebaseState => {
+        if (
+          rebaseState.step &&
+          rebaseState.step.kind === RebaseStep.ChooseBranch
+        ) {
+          return {
+            ...rebaseState,
+            step: {
+              ...rebaseState.step,
+              rebasePreview: val,
+            },
+          }
+        }
+        return rebaseState
+      })
+      this.emitUpdate()
+      // now lets get started
       val = await new Promise<RebasePreview>(async (resolve, reject) => {
-        for await (const x of checker) {
+        for await (const y of checker) {
           if (checker !== this.checkPotentialRebaseGen) {
             reject()
           }
-          if (x.kind !== ComputedAction.Loading) {
-            resolve(x)
+          if (y.kind !== ComputedAction.Loading) {
+            resolve(y)
           }
         }
       })
     } catch {
       log.debug('cancelled')
+      val = undefined
     } finally {
+      // what do we do if there's an error? vs when this gets cancelled?
+      // race conditions!
       this.repositoryStateCache.updateRebaseState(repository, rebaseState => {
         if (
           rebaseState.step &&
