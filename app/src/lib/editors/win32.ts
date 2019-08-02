@@ -159,6 +159,14 @@ function getRegistryKeys(
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Sublime Text 3_is1',
         },
       ]
+    case ExternalEditor.VSCodium:
+      return [
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\placeholder',
+        },
+      ]
     case ExternalEditor.CFBuilder:
       return [
         // 64-bit version of ColdFusionBuilder3
