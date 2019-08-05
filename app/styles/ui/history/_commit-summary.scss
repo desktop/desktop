@@ -127,6 +127,10 @@
     @include ellipsis;
   }
 
+  &-file-name {
+    flex-grow: 1;
+  }
+
   &-meta-item {
     display: flex;
     flex-direction: row;

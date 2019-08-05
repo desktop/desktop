@@ -1625,6 +1625,19 @@ export class Dispatcher {
     return this.appStore._changeImageDiffType(type)
   }
 
+  /** Change the hide whitespace in diff setting */
+  public onHideWhitespaceInDiffChanged(
+    hideWhitespaceInDiff: boolean,
+    repository: Repository,
+    file: CommittedFileChange | null = null
+  ): Promise<void> {
+    return this.appStore._setHideWhitespaceInDiff(
+      hideWhitespaceInDiff,
+      repository,
+      file
+    )
+  }
+
   /** Install the global Git LFS filters. */
   public installGlobalLFSFilters(force: boolean): Promise<void> {
     return this.appStore._installGlobalLFSFilters(force)
