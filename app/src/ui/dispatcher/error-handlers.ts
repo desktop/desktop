@@ -422,17 +422,7 @@ export async function localChangesOverwrittenHandler(
     return error
   }
 
-  const gitError = asGitError(e.underlyingError)
-  if (!gitError) {
-    return error
-  }
-
-  const dugiteError = gitError.result.gitError
-  if (!dugiteError) {
-    return error
-  }
-
-  if (dugiteError !== DugiteError.LocalChangesOverwritten) {
+  if (!isLocalChangesWouldBeOverwrittenError(e)) {
     return error
   }
 
@@ -461,4 +451,28 @@ export async function localChangesOverwrittenHandler(
   await dispatcher.moveChangesToBranchAndCheckout(repository, branchToCheckout)
 
   return null
+}
+
+/**
+ * Checks if the given error has a `DugiteError.LocalChangesOverwritten`
+ *
+ * @todo This might be better to have live in a different file?
+ */
+export function isLocalChangesWouldBeOverwrittenError(
+  error: ErrorWithMetadata
+): DugiteError.LocalChangesOverwritten | null {
+  const gitError = asGitError(error.underlyingError)
+  if (!gitError) {
+    return null
+  }
+
+  const dugiteError = gitError.result.gitError
+  if (!dugiteError) {
+    return null
+  }
+
+  if (dugiteError !== DugiteError.LocalChangesOverwritten) {
+    return null
+  }
+  return dugiteError
 }
