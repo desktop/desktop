@@ -242,6 +242,7 @@ import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
+import { isLocalChangesWouldBeOverwrittenError } from '../../ui/dispatcher';
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -2963,10 +2964,48 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const checkoutSucceeded =
       (await this.withAuthenticatingUser(repository, (repository, account) =>
         gitStore.performFailableOperation(
-          () =>
-            checkoutBranch(repository, account, foundBranch, progress => {
-              this.updateCheckoutProgress(repository, progress)
-            }),
+          async () => {
+            try {
+              await checkoutBranch(
+                repository,
+                account,
+                foundBranch,
+                progress => {
+                  this.updateCheckoutProgress(repository, progress)
+                }
+              )
+              return true
+            } catch (err) {
+              if (
+                !isLocalChangesWouldBeOverwrittenError(err) ||
+                stashToPop !== null
+              ) {
+                throw err
+              }
+
+              if (
+                !(await gitStore.performFailableOperation(() => {
+                  return createDesktopStashEntry(repository, foundBranch.name)
+                }))
+              ) {
+                return false
+              }
+
+              stashToPop = await getLastDesktopStashEntryForBranch(
+                repository,
+                foundBranch.name
+              )
+
+              return await checkoutBranch(
+                repository,
+                account,
+                foundBranch,
+                progress => {
+                  this.updateCheckoutProgress(repository, progress)
+                }
+              )
+            }
+          },
           {
             repository,
             retryAction: {
