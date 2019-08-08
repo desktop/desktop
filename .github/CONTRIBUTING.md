@@ -33,11 +33,7 @@ Please report unacceptable behavior to [opensource+desktop@github.com](mailto:op
 
 ### The Roadmap
 
-GitHub Desktop recently announced its
-[1.0 release](https://github.com/blog/2437-announcing-github-desktop-1-0) and
-are working towards deprecating the classic Mac and Windows applications.
-
-Beyond that, we are working on a roadmap you can read [here](https://github.com/desktop/desktop/blob/development/docs/process/roadmap.md).
+You can read our roadmap [here](https://github.com/desktop/desktop/blob/development/docs/process/roadmap.md).
 The immediate milestones are more detailed, and the latter milestones are more
 fuzzy and subject to change.
 
