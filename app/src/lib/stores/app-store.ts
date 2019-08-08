@@ -2988,7 +2988,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     try {
       this.updateCheckoutProgress(repository, {
-        kind: "checkout",
+        kind: 'checkout',
         title: __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository',
         value: 1,
         targetBranch: foundBranch.name,
@@ -3068,7 +3068,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           repository,
           branch.name
         )
-        await authenticatedCheckoutBranch(repository)  
+        await authenticatedCheckoutBranch(repository)
         return stash
       } else {
         return null
