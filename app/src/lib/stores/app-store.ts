@@ -243,6 +243,7 @@ import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
 import { isLocalChangesWouldBeOverwrittenError } from '../../ui/dispatcher'
+import { IErrorMetadata } from '../error-with-metadata'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -2893,8 +2894,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     branch: Branch | string,
     uncommittedChangesStrategy: UncommittedChangesStrategy = askToStash
   ): Promise<Repository> {
-    const gitStore = this.gitStoreCache.get(repository)
-    const kind = 'checkout'
     const foundBranch =
       typeof branch === 'string'
         ? this.getLocalBranch(repository, branch)
@@ -2910,7 +2909,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     let stashToPop: IStashEntry | null = null
     const hasChanges = changesState.workingDirectory.files.length > 0
-    if (hasChanges && uncommittedChangesStrategy.kind === askToStash.kind ) {
+    if (hasChanges && uncommittedChangesStrategy.kind === askToStash.kind) {
       this._showPopup({
         type: PopupType.StashAndSwitchBranch,
         branchToCheckout: foundBranch,
@@ -2942,6 +2941,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         hasDeletedFiles &&
         uncommittedChangesStrategy.transientStashEntry === null
       ) {
+        const gitStore = this.gitStoreCache.get(repository)
         const stashCreated = await gitStore.performFailableOperation(() => {
           return createDesktopStashEntry(repository, foundBranch.name)
         })
@@ -2955,70 +2955,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    const checkoutSucceeded =
-      (await this.withAuthenticatingUser(repository, (repository, account) =>
-        gitStore.performFailableOperation(
-          async () => {
-            try {
-              await checkoutBranch(
-                repository,
-                account,
-                foundBranch,
-                progress => {
-                  this.updateCheckoutProgress(repository, progress)
-                }
-              )
-              return true
-            } catch (err) {
-              const noLocalChangesOrHasStash =
-                !isLocalChangesWouldBeOverwrittenError(err) ||
-                stashToPop !== null
-              if (noLocalChangesOrHasStash) {
-                throw err
-              }
-
-              if (
-                !(await gitStore.performFailableOperation(() => {
-                  return createDesktopStashEntry(repository, foundBranch.name)
-                }))
-              ) {
-                return false
-              }
-
-              stashToPop = await getLastDesktopStashEntryForBranch(
-                repository,
-                foundBranch.name
-              )
-
-              return await checkoutBranch(
-                repository,
-                account,
-                foundBranch,
-                progress => {
-                  this.updateCheckoutProgress(repository, progress)
-                }
-              )
-            }
-          },
-          {
-            repository,
-            retryAction: {
-              type: RetryActionType.Checkout,
-              repository,
-              branch,
-            },
-            gitContext: {
-              kind: 'checkout',
-              branchToCheckout: foundBranch.name,
-            },
-          }
-        )
-      )) !== undefined
+    stashToPop = await this._checkoutBranchWithRetry(
+      repository,
+      foundBranch,
+      Boolean(stashToPop)
+    )
 
     if (
       uncommittedChangesStrategy.kind ===
         UncommittedChangesStrategyKind.MoveToNewBranch &&
-      checkoutSucceeded
+      stashToPop
     ) {
       // We increment the metric after checkout succeeds to guard
       // against double counting when an error occurs on checkout.
@@ -3030,6 +2976,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       stashToPop = stashToPop || uncommittedChangesStrategy.transientStashEntry
       if (stashToPop !== null) {
         const stashSha = stashToPop.stashSha
+        const gitStore = this.gitStoreCache.get(repository)
         await gitStore.performFailableOperation(() => {
           return popStashEntry(repository, stashSha)
         })
@@ -3041,7 +2988,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     try {
       this.updateCheckoutProgress(repository, {
-        kind,
+        kind: "checkout",
         title: __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository',
         value: 1,
         targetBranch: foundBranch.name,
@@ -3067,6 +3014,66 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.hasUserViewedStash = false
 
     return repository
+  }
+
+  private async _checkoutBranchWithRetry(
+    repository: Repository,
+    branch: Branch,
+    hasStash: boolean
+  ): Promise<IStashEntry | null> {
+    const gitStore = this.gitStoreCache.get(repository)
+    const authenticatedCheckoutBranch = (repository: Repository) => {
+      const metadata: IErrorMetadata = {
+        repository,
+        retryAction: {
+          type: RetryActionType.Checkout,
+          repository,
+          branch: branch.name,
+        },
+        gitContext: {
+          kind: 'checkout',
+          branchToCheckout: branch.name,
+        },
+      }
+
+      return this.withAuthenticatingUser(repository, (repository, account) =>
+        gitStore.performFailableOperation(
+          () =>
+            checkoutBranch(repository, account, branch, progress => {
+              this.updateCheckoutProgress(repository, progress)
+            }),
+          metadata
+        )
+      )
+    }
+
+    try {
+      await authenticatedCheckoutBranch(repository)
+      return null
+    } catch (err) {
+      if (!isLocalChangesWouldBeOverwrittenError(err)) {
+        throw err
+      }
+
+      if (hasStash) {
+        throw err
+      }
+
+      const stashSuccessful = await gitStore.performFailableOperation(() => {
+        return createDesktopStashEntry(repository, branch.name)
+      })
+
+      if (stashSuccessful) {
+        const stash = await getLastDesktopStashEntryForBranch(
+          repository,
+          branch.name
+        )
+        await authenticatedCheckoutBranch(repository)  
+        return stash
+      } else {
+        return null
+      }
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
