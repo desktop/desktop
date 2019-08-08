@@ -242,7 +242,7 @@ import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
-import { isLocalChangesWouldBeOverwrittenError } from '../../ui/dispatcher';
+import { isLocalChangesWouldBeOverwrittenError } from '../../ui/dispatcher'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -2909,54 +2909,48 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     let stashToPop: IStashEntry | null = null
-    if (enableStashing()) {
-      const hasChanges = changesState.workingDirectory.files.length > 0
+    const hasChanges = changesState.workingDirectory.files.length > 0
+    if (hasChanges && uncommittedChangesStrategy.kind === askToStash.kind ) {
+      this._showPopup({
+        type: PopupType.StashAndSwitchBranch,
+        branchToCheckout: foundBranch,
+        repository,
+      })
+      return repository
+    }
+
+    const { tip } = branchesState
+    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+    if (
+      currentBranch !== null &&
+      uncommittedChangesStrategy.kind ===
+        UncommittedChangesStrategyKind.StashOnCurrentBranch
+    ) {
+      await this._createStashAndDropPreviousEntry(
+        repository,
+        currentBranch.name
+      )
+      this.statsStore.recordStashCreatedOnCurrentBranch()
+    } else if (
+      uncommittedChangesStrategy.kind ===
+      UncommittedChangesStrategyKind.MoveToNewBranch
+    ) {
+      const hasDeletedFiles = changesState.workingDirectory.files.some(
+        file => file.status.kind === AppFileStatusKind.Deleted
+      )
       if (
-        hasChanges &&
-        uncommittedChangesStrategy.kind ===
-          UncommittedChangesStrategyKind.AskForConfirmation
+        hasDeletedFiles &&
+        uncommittedChangesStrategy.transientStashEntry === null
       ) {
-        this._showPopup({
-          type: PopupType.StashAndSwitchBranch,
-          branchToCheckout: foundBranch,
-          repository,
+        const stashCreated = await gitStore.performFailableOperation(() => {
+          return createDesktopStashEntry(repository, foundBranch.name)
         })
-        return repository
-      }
 
-      const { tip } = branchesState
-      const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
-      if (
-        currentBranch !== null &&
-        uncommittedChangesStrategy.kind ===
-          UncommittedChangesStrategyKind.StashOnCurrentBranch
-      ) {
-        await this._createStashAndDropPreviousEntry(
-          repository,
-          currentBranch.name
-        )
-        this.statsStore.recordStashCreatedOnCurrentBranch()
-      } else if (
-        uncommittedChangesStrategy.kind ===
-        UncommittedChangesStrategyKind.MoveToNewBranch
-      ) {
-        const hasDeletedFiles = changesState.workingDirectory.files.some(
-          file => file.status.kind === AppFileStatusKind.Deleted
-        )
-        if (
-          hasDeletedFiles &&
-          uncommittedChangesStrategy.transientStashEntry === null
-        ) {
-          const stashCreated = await gitStore.performFailableOperation(() => {
-            return createDesktopStashEntry(repository, foundBranch.name)
-          })
-
-          if (stashCreated) {
-            stashToPop = await getLastDesktopStashEntryForBranch(
-              repository,
-              foundBranch.name
-            )
-          }
+        if (stashCreated) {
+          stashToPop = await getLastDesktopStashEntryForBranch(
+            repository,
+            foundBranch.name
+          )
         }
       }
     }
@@ -2976,10 +2970,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
               )
               return true
             } catch (err) {
-              if (
+              const noLocalChangesOrHasStash =
                 !isLocalChangesWouldBeOverwrittenError(err) ||
                 stashToPop !== null
-              ) {
+              if (noLocalChangesOrHasStash) {
                 throw err
               }
 
@@ -3022,7 +3016,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )) !== undefined
 
     if (
-      enableStashing() &&
       uncommittedChangesStrategy.kind ===
         UncommittedChangesStrategyKind.MoveToNewBranch &&
       checkoutSucceeded
