@@ -2963,23 +2963,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (
       uncommittedChangesStrategy.kind ===
-        UncommittedChangesStrategyKind.MoveToNewBranch &&
-      stashToPop
+      UncommittedChangesStrategyKind.MoveToNewBranch
     ) {
-      // We increment the metric after checkout succeeds to guard
-      // against double counting when an error occurs on checkout.
-      // When an error occurs, one of our error handlers will inspect
-      // it and make a call to `moveChangesToBranchAndCheckout` which will
-      // call this method again once the working directory has been cleared.
-      this.statsStore.recordChangesTakenToNewBranch()
-
       stashToPop = stashToPop || uncommittedChangesStrategy.transientStashEntry
-      if (stashToPop !== null) {
+      if (stashToPop) {
+        // We increment the metric after checkout succeeds to guard
+        // against double counting when an error occurs on checkout.
+        // When an error occurs, one of our error handlers will inspect
+        // it and make a call to `moveChangesToBranchAndCheckout` which will
+        // call this method again once the working directory has been cleared.
+        this.statsStore.recordChangesTakenToNewBranch()
         const stashSha = stashToPop.stashSha
         const gitStore = this.gitStoreCache.get(repository)
-        await gitStore.performFailableOperation(() => {
-          return popStashEntry(repository, stashSha)
-        })
+        await gitStore.performFailableOperation(() =>
+          popStashEntry(repository, stashSha)
+        )
       }
     }
 
