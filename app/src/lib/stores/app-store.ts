@@ -2907,58 +2907,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository
     )
 
-    let stashToPop: IStashEntry | null = null
-    if (enableStashing()) {
-      const hasChanges = changesState.workingDirectory.files.length > 0
-      if (
-        hasChanges &&
-        uncommittedChangesStrategy.kind ===
-          UncommittedChangesStrategyKind.AskForConfirmation
-      ) {
-        this._showPopup({
-          type: PopupType.StashAndSwitchBranch,
-          branchToCheckout: foundBranch,
-          repository,
-        })
-        return repository
-      }
-
-      const { tip } = branchesState
-      const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
-      if (
-        currentBranch !== null &&
-        uncommittedChangesStrategy.kind ===
-          UncommittedChangesStrategyKind.StashOnCurrentBranch
-      ) {
-        await this._createStashAndDropPreviousEntry(
-          repository,
-          currentBranch.name
-        )
-        this.statsStore.recordStashCreatedOnCurrentBranch()
-      } else if (
-        uncommittedChangesStrategy.kind ===
-        UncommittedChangesStrategyKind.MoveToNewBranch
-      ) {
-        const hasDeletedFiles = changesState.workingDirectory.files.some(
-          file => file.status.kind === AppFileStatusKind.Deleted
-        )
-        if (
-          hasDeletedFiles &&
-          uncommittedChangesStrategy.transientStashEntry === null
-        ) {
-          const stashCreated = await gitStore.performFailableOperation(() => {
-            return createDesktopStashEntry(repository, foundBranch.name)
-          })
-
-          if (stashCreated) {
-            stashToPop = await getLastDesktopStashEntryForBranch(
-              repository,
-              foundBranch.name
-            )
-          }
-        }
-      }
+    const hasChanges = changesState.workingDirectory.files.length > 0
+    if (hasChanges && uncommittedChangesStrategy.kind === askToStash.kind) {
+      this._showPopup({
+        type: PopupType.StashAndSwitchBranch,
+        branchToCheckout: foundBranch,
+        repository,
+      })
+      return repository
     }
+
+    let stashToPop: IStashEntry | null = this._stashIfNeeded(
+      repository,
+      foundBranch,
+      uncommittedChangesStrategy
+    )
 
     const checkoutSucceeded =
       (await this.withAuthenticatingUser(repository, (repository, account) =>
@@ -3035,6 +2998,50 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.hasUserViewedStash = false
 
     return repository
+  }
+
+  private async _stashIfNeeded(
+    repository: Repository,
+    branch: Branch,
+    uncommittedChangesStrategy: UncommittedChangesStrategy = askToStash
+  ): Promise<IStashEntry | null> {
+    const {
+      changesState,
+      branchesState: { tip },
+    } = this.repositoryStateCache.get(repository)
+    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+
+    if (
+      currentBranch !== null &&
+      uncommittedChangesStrategy.kind ===
+        UncommittedChangesStrategyKind.StashOnCurrentBranch
+    ) {
+      await this._createStashAndDropPreviousEntry(
+        repository,
+        currentBranch.name
+      )
+      this.statsStore.recordStashCreatedOnCurrentBranch()
+    } else if (
+      uncommittedChangesStrategy.kind ===
+      UncommittedChangesStrategyKind.MoveToNewBranch
+    ) {
+      const hasDeletedFiles = changesState.workingDirectory.files.some(
+        file => file.status.kind === AppFileStatusKind.Deleted
+      )
+      const { transientStashEntry } = uncommittedChangesStrategy
+      if (hasDeletedFiles && !transientStashEntry) {
+        const gitStore = this.gitStoreCache.get(repository)
+        const stashCreated = await gitStore.performFailableOperation(() => {
+          return createDesktopStashEntry(repository, branch.name)
+        })
+
+        if (stashCreated) {
+          return getLastDesktopStashEntryForBranch(repository, branch.name)
+        }
+      }
+    }
+
+    return null
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
