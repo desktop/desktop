@@ -243,7 +243,6 @@ import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
 import { isLocalChangesWouldBeOverwrittenError } from '../../ui/dispatcher'
-import { IErrorMetadata } from '../error-with-metadata'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -3021,27 +3020,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<IStashEntry | null> {
     const gitStore = this.gitStoreCache.get(repository)
     const authenticatedCheckoutBranch = (repository: Repository) => {
-      const metadata: IErrorMetadata = {
-        repository,
-        retryAction: {
-          type: RetryActionType.Checkout,
-          repository,
-          branch: branch.name,
-        },
-        gitContext: {
-          kind: 'checkout',
-          branchToCheckout: branch.name,
-        },
-      }
-
       return this.withAuthenticatingUser(repository, (repository, account) =>
-        gitStore.performFailableOperation(
-          () =>
-            checkoutBranch(repository, account, branch, progress => {
+          checkoutBranch(
+            repository,
+            account,
+            branch,
+            progress => {
               this.updateCheckoutProgress(repository, progress)
-            }),
-          metadata
-        )
+            }
+          )
       )
     }
 
