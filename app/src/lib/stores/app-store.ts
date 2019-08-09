@@ -242,6 +242,7 @@ import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
+import { stageFiles } from '../git/update-index'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -5205,7 +5206,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const gitStore = this.gitStoreCache.get(repository)
-    const isStashCreated = await gitStore.performFailableOperation(() => {
+
+    const { changesState } = this.repositoryStateCache.get(repository)
+    const untrackedFiles = changesState.workingDirectory.files.filter(
+      file => file.status.kind === AppFileStatusKind.Untracked
+    )
+
+    const isStashCreated = await gitStore.performFailableOperation(async () => {
+      if (untrackedFiles.length) {
+        await stageFiles(repository, untrackedFiles)
+      }
       return createDesktopStashEntry(repository, branchToCheckout)
     })
 
