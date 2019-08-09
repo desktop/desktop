@@ -2917,7 +2917,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
-    let stashToPop: IStashEntry | null = this._stashIfNeeded(
+    let stashToPop: IStashEntry | null = await this._stashBasedOnUncommittedChangesStrategy(
       repository,
       foundBranch,
       uncommittedChangesStrategy
@@ -3000,7 +3000,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return repository
   }
 
-  private async _stashIfNeeded(
+  private async _stashBasedOnUncommittedChangesStrategy(
     repository: Repository,
     branch: Branch,
     uncommittedChangesStrategy: UncommittedChangesStrategy = askToStash
