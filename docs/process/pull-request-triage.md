@@ -8,7 +8,7 @@ a consistent process for contributions from the core team and the community.
 1. **Contributor** opens pull request.
 1. When it's ready for review, add a comment to the pull request.
 1. A member of the reviewer team will give it a quick look over and
-   add the `ready-for-review` label.
+   add the `ready-for-review` label and add to [PR Priority Project board](https://github.com/desktop/desktop/projects/21) and any relevant release board.
 1. A **reviewer** with bandwidth will appear.
 1. **Reviewer** assigns the PR to themselves.
 1. **Reviewer** leaves line comments with suggestions or questions.
@@ -63,7 +63,7 @@ After being approved, most contributions will remain in this state for at least
 who are normally spread around the world, has a chance to provide feedback about
 the changes.
 
-### No Self-Merges
+### No Self-Merges Without Review
 
 We encourage a strong review culture, and contributors should not merge their
 own PRs unless there are exceptional reasons.
@@ -78,9 +78,7 @@ Examples of exceptional situations:
   change introduced unexpectedly on `development` but would affect everyone when they
   updated their local repositories.
 
-These should be called out by the merging person with a `#jolo` - "Josh Only
-Lives Once" - to acknowledge to everyone that they're bypassing the review
-process, and the reasons for doing that.
+These should be called out by the merging person with an explanation for why they are bypassing the review process.
 
 ### Stale Pull Requests
 
