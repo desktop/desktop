@@ -126,7 +126,7 @@ export class ChooseBranchDialog extends React.Component<
 
   private async updateRebaseStatus(baseBranch: Branch, targetBranch: Branch) {
     if (enableRebaseConflictDetection()) {
-      this.props.dispatcher.checkPotentialRebase(
+      this.props.dispatcher.startRebasePreviewer(
         this.props.repository,
         baseBranch,
         targetBranch

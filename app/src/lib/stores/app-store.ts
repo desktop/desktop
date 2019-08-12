@@ -318,13 +318,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private errors: ReadonlyArray<Error> = new Array<Error>()
   private emitQueued = false
 
-  private checkPotentialRebaseGen: AsyncIterableIterator<{
-    kind: ComputedAction
-  }> = (async function*() {
-    return {
-      kind: ComputedAction.Loading,
-    }
-  })()
+  private rebasePreviewGen: ReturnType<
+    typeof checkPotentialRebase
+  > | null = null
 
   private readonly localRepositoryStateLookup = new Map<
     number,
@@ -5275,71 +5271,55 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this.currentBranchPruner.testPrune()
   }
 
-  public async _checkPotentialRebase(
+  public _cancelRebasePreviewer() {
+    this.rebasePreviewGen = null
+  }
+
+  public async _startRebasePreviewer(
     repository: Repository,
     baseBranch: Branch,
     targetBranch: Branch
   ) {
-    const checker = checkPotentialRebase({
+    const rebasePreviewer = checkPotentialRebase({
       repository,
       baseBranch,
       targetBranch,
     })
-    this.checkPotentialRebaseGen = checker
-    let val: RebasePreview | undefined = {
-      kind: ComputedAction.Loading,
-    }
+    this.rebasePreviewGen = rebasePreviewer
     try {
-      // let 'em know we're loading now
-      this.repositoryStateCache.updateRebaseState(repository, rebaseState => {
-        if (
-          rebaseState.step &&
-          rebaseState.step.kind === RebaseStep.ChooseBranch
-        ) {
-          return {
-            ...rebaseState,
-            step: {
-              ...rebaseState.step,
-              rebasePreview: val,
-            },
+      await new Promise<RebasePreview>(async (resolve, reject) => {
+        for await (const preview of rebasePreviewer) {
+          if (rebasePreviewer !== this.rebasePreviewGen) {
+            reject('new rebase checker started (or unset)')
+          }
+          this.repositoryStateCache.updateRebaseState(
+            repository,
+            rebaseState => {
+              // make sure we're in the right part of the rebase flow, just in case
+              if (
+                rebaseState.step &&
+                rebaseState.step.kind === RebaseStep.ChooseBranch
+              ) {
+                // is there a way to merge state here more gracefully?
+                return {
+                  ...rebaseState,
+                  step: {
+                    ...rebaseState.step,
+                    rebasePreview: preview,
+                  },
+                }
+              }
+              return rebaseState
+            }
+          )
+          this.emitUpdate()
+          if (preview.kind !== ComputedAction.Loading) {
+            resolve(preview)
           }
         }
-        return rebaseState
       })
-      this.emitUpdate()
-      // now lets get started
-      val = await new Promise<RebasePreview>(async (resolve, reject) => {
-        for await (const y of checker) {
-          if (checker !== this.checkPotentialRebaseGen) {
-            reject()
-          }
-          if (y.kind !== ComputedAction.Loading) {
-            resolve(y)
-          }
-        }
-      })
-    } catch {
-      log.debug('cancelled')
-      val = undefined
-    } finally {
-      // what do we do if there's an error? vs when this gets cancelled?
-      // race conditions!
-      this.repositoryStateCache.updateRebaseState(repository, rebaseState => {
-        if (
-          rebaseState.step &&
-          rebaseState.step.kind === RebaseStep.ChooseBranch
-        ) {
-          return {
-            ...rebaseState,
-            step: {
-              ...rebaseState.step,
-              rebasePreview: val,
-            },
-          }
-        }
-        return rebaseState
-      })
-      this.emitUpdate()
+    } catch (e) {
+      log.debug('cancelled _checkPotentialRebase')
     }
   }
 }
