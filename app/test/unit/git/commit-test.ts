@@ -548,9 +548,9 @@ describe('git/commit', () => {
           trackedFiles,
           manualResolutions
         )
-        expect(await FSE.pathExists(path.join(repository.path, 'bar'))).toBe(
-          true
-        )
+        expect(
+          await FSE.pathExists(path.join(repository.path, 'bar'))
+        ).toBeTrue()
         const newStatus = await getStatusOrThrow(repository)
         expect(sha).toHaveLength(7)
         expect(newStatus.workingDirectory.files).toHaveLength(1)
@@ -568,9 +568,9 @@ describe('git/commit', () => {
           trackedFiles,
           manualResolutions
         )
-        expect(await FSE.pathExists(path.join(repository.path, 'bar'))).toBe(
-          false
-        )
+        expect(
+          await FSE.pathExists(path.join(repository.path, 'bar'))
+        ).toBeFalse()
         const newStatus = await getStatusOrThrow(repository)
         expect(sha).toHaveLength(7)
         expect(newStatus.workingDirectory.files).toHaveLength(1)
