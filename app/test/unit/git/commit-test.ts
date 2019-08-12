@@ -555,6 +555,58 @@ describe('git/commit', () => {
         expect(sha).toHaveLength(7)
         expect(newStatus.workingDirectory.files).toHaveLength(1)
       })
+      it.skip('chooses their version of a file and commits', async () => {
+        const fileName = 'foo'
+        const {
+          workingDirectory: { files },
+        } = await getStatusOrThrow(repository)
+        const trackedFiles = files.filter(
+          f => f.status.kind !== AppFileStatusKind.Untracked
+        )
+        const manualResolutions = new Map([
+          [fileName, ManualConflictResolutionKind.theirs],
+        ])
+        const sha = await createMergeCommit(
+          repository,
+          trackedFiles,
+          manualResolutions
+        )
+        expect(sha).toBeString()
+        expect(sha).not.toBeEmpty()
+        expect(
+          await FSE.readFile(path.join(repository.path, fileName), 'utf8')
+        ).toInclude('b1')
+        const {
+          workingDirectory: { files: newFiles },
+        } = await getStatusOrThrow(repository)
+        expect(newFiles.some(f => f.path === fileName)).toBeFalse()
+      })
+      it.skip('chooses our version of a file and commits', async () => {
+        const fileName = 'foo'
+        const {
+          workingDirectory: { files },
+        } = await getStatusOrThrow(repository)
+        const trackedFiles = files.filter(
+          f => f.status.kind !== AppFileStatusKind.Untracked
+        )
+        const manualResolutions = new Map([
+          [fileName, ManualConflictResolutionKind.ours],
+        ])
+        const sha = await createMergeCommit(
+          repository,
+          trackedFiles,
+          manualResolutions
+        )
+        expect(sha).toBeString()
+        expect(sha).not.toBeEmpty()
+        expect(
+          await FSE.readFile(path.join(repository.path, fileName), 'utf8')
+        ).toInclude('b2')
+        const {
+          workingDirectory: { files: newFiles },
+        } = await getStatusOrThrow(repository)
+        expect(newFiles.some(f => f.path === fileName)).toBeFalse()
+      })
       it('deletes files chosen to be removed and commits', async () => {
         const status = await getStatusOrThrow(repository)
         const trackedFiles = status.workingDirectory.files.filter(
