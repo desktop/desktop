@@ -2917,7 +2917,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
-    let stashToPop: IStashEntry | null = await this._stashBasedOnUncommittedChangesStrategy(
+    const stashToPop = await this.stashBasedOnUncommittedChangesStrategy(
       repository,
       foundBranch,
       uncommittedChangesStrategy
@@ -2958,11 +2958,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // call this method again once the working directory has been cleared.
       this.statsStore.recordChangesTakenToNewBranch()
 
-      stashToPop = stashToPop || uncommittedChangesStrategy.transientStashEntry
-      if (stashToPop !== null) {
-        const stashSha = stashToPop.stashSha
+      const stash = stashToPop || uncommittedChangesStrategy.transientStashEntry
+      if (stash) {
         await gitStore.performFailableOperation(() => {
-          return popStashEntry(repository, stashSha)
+          return popStashEntry(repository, stash.stashSha)
         })
       }
     }
@@ -3000,7 +2999,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return repository
   }
 
-  private async _stashBasedOnUncommittedChangesStrategy(
+  private async stashBasedOnUncommittedChangesStrategy(
     repository: Repository,
     branch: Branch,
     uncommittedChangesStrategy: UncommittedChangesStrategy = askToStash
