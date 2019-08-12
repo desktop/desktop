@@ -24,6 +24,7 @@ import {
   AppFileStatusKind,
   UnmergedEntrySummary,
   GitStatusEntry,
+  isManualConflict,
 } from '../../../src/models/status'
 import {
   DiffSelectionType,
@@ -33,6 +34,7 @@ import {
 } from '../../../src/models/diff'
 import { getStatusOrThrow } from '../../helpers/status'
 import { ManualConflictResolutionKind } from '../../../src/models/manual-conflict-resolution'
+import { isConflictedFile } from '../../../src/lib/status'
 
 async function getTextDiff(
   repo: Repository,
@@ -555,58 +557,7 @@ describe('git/commit', () => {
         expect(sha).toHaveLength(7)
         expect(newStatus.workingDirectory.files).toHaveLength(1)
       })
-      it.skip('chooses their version of a file and commits', async () => {
-        const fileName = 'foo'
-        const {
-          workingDirectory: { files },
-        } = await getStatusOrThrow(repository)
-        const trackedFiles = files.filter(
-          f => f.status.kind !== AppFileStatusKind.Untracked
-        )
-        const manualResolutions = new Map([
-          [fileName, ManualConflictResolutionKind.theirs],
-        ])
-        const sha = await createMergeCommit(
-          repository,
-          trackedFiles,
-          manualResolutions
-        )
-        expect(sha).toBeString()
-        expect(sha).not.toBeEmpty()
-        expect(
-          await FSE.readFile(path.join(repository.path, fileName), 'utf8')
-        ).toInclude('b1')
-        const {
-          workingDirectory: { files: newFiles },
-        } = await getStatusOrThrow(repository)
-        expect(newFiles.some(f => f.path === fileName)).toBeFalse()
-      })
-      it.skip('chooses our version of a file and commits', async () => {
-        const fileName = 'foo'
-        const {
-          workingDirectory: { files },
-        } = await getStatusOrThrow(repository)
-        const trackedFiles = files.filter(
-          f => f.status.kind !== AppFileStatusKind.Untracked
-        )
-        const manualResolutions = new Map([
-          [fileName, ManualConflictResolutionKind.ours],
-        ])
-        const sha = await createMergeCommit(
-          repository,
-          trackedFiles,
-          manualResolutions
-        )
-        expect(sha).toBeString()
-        expect(sha).not.toBeEmpty()
-        expect(
-          await FSE.readFile(path.join(repository.path, fileName), 'utf8')
-        ).toInclude('b2')
-        const {
-          workingDirectory: { files: newFiles },
-        } = await getStatusOrThrow(repository)
-        expect(newFiles.some(f => f.path === fileName)).toBeFalse()
-      })
+
       it('deletes files chosen to be removed and commits', async () => {
         const status = await getStatusOrThrow(repository)
         const trackedFiles = status.workingDirectory.files.filter(
@@ -626,6 +577,99 @@ describe('git/commit', () => {
         const newStatus = await getStatusOrThrow(repository)
         expect(sha).toHaveLength(7)
         expect(newStatus.workingDirectory.files).toHaveLength(1)
+      })
+
+      describe('binary file conflicts', () => {
+        beforeEach(async () => {
+          const path = await setupFixtureRepository(
+            'detect-conflict-in-binary-file'
+          )
+          repository = new Repository(path, -1, null, false)
+          await GitProcess.exec(['checkout', 'make-a-change'], repository.path)
+        })
+
+        it('chooses `their` version of a file and commits', async () => {
+          const repo = repository
+
+          await GitProcess.exec(['merge', 'master'], repo.path)
+
+          const status = await getStatusOrThrow(repo)
+          const files = status.workingDirectory.files
+          expect(files).toHaveLength(1)
+
+          const file = files[0]
+          expect(file.status.kind).toBe(AppFileStatusKind.Conflicted)
+          expect(
+            isConflictedFile(file.status) && isManualConflict(file.status)
+          ).toBe(true)
+
+          const fileContentsOurs = await FSE.readFile(
+            path.join(repository.path, file.path),
+            'utf8'
+          )
+
+          const trackedFiles = files.filter(
+            f => f.status.kind !== AppFileStatusKind.Untracked
+          )
+
+          const manualResolutions = new Map([
+            [file.path, ManualConflictResolutionKind.theirs],
+          ])
+          await createMergeCommit(repository, trackedFiles, manualResolutions)
+
+          const fileContents = await FSE.readFile(
+            path.join(repository.path, file.path),
+            'utf8'
+          )
+
+          expect(fileContents).not.toStrictEqual(fileContentsOurs)
+
+          await GitProcess.exec(['checkout', 'master'], repo.path)
+
+          const fileContentsTheirs = await FSE.readFile(
+            path.join(repository.path, file.path),
+            'utf8'
+          )
+
+          expect(fileContents).toStrictEqual(fileContentsTheirs)
+        })
+
+        it('chooses `our` version of a file and commits', async () => {
+          const repo = repository
+
+          await GitProcess.exec(['merge', 'master'], repo.path)
+
+          const status = await getStatusOrThrow(repo)
+          const files = status.workingDirectory.files
+          expect(files).toHaveLength(1)
+
+          const file = files[0]
+          expect(file.status.kind).toBe(AppFileStatusKind.Conflicted)
+          expect(
+            isConflictedFile(file.status) && isManualConflict(file.status)
+          ).toBe(true)
+
+          const fileContentsOurs = await FSE.readFile(
+            path.join(repository.path, file.path),
+            'utf8'
+          )
+
+          const trackedFiles = files.filter(
+            f => f.status.kind !== AppFileStatusKind.Untracked
+          )
+
+          const manualResolutions = new Map([
+            [file.path, ManualConflictResolutionKind.ours],
+          ])
+          await createMergeCommit(repository, trackedFiles, manualResolutions)
+
+          const fileContents = await FSE.readFile(
+            path.join(repository.path, file.path),
+            'utf8'
+          )
+
+          expect(fileContents).toStrictEqual(fileContentsOurs)
+        })
       })
     })
 
