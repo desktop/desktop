@@ -580,12 +580,28 @@ describe('git/commit', () => {
       })
 
       describe('binary file conflicts', () => {
+        let fileName: string
+        let fileContentsOurs: string, fileContentsTheirs: string
         beforeEach(async () => {
-          const path = await setupFixtureRepository(
+          const repoPath = await setupFixtureRepository(
             'detect-conflict-in-binary-file'
           )
-          repository = new Repository(path, -1, null, false)
-          await GitProcess.exec(['checkout', 'make-a-change'], repository.path)
+          repository = new Repository(repoPath, -1, null, false)
+          fileName = 'my-cool-image.png'
+
+          await GitProcess.exec(['checkout', 'master'], repoPath)
+
+          fileContentsTheirs = await FSE.readFile(
+            path.join(repoPath, fileName),
+            'utf8'
+          )
+
+          await GitProcess.exec(['checkout', 'make-a-change'], repoPath)
+
+          fileContentsOurs = await FSE.readFile(
+            path.join(repoPath, fileName),
+            'utf8'
+          )
         })
 
         it('chooses `their` version of a file and commits', async () => {
@@ -603,11 +619,6 @@ describe('git/commit', () => {
             isConflictedFile(file.status) && isManualConflict(file.status)
           ).toBe(true)
 
-          const fileContentsOurs = await FSE.readFile(
-            path.join(repository.path, file.path),
-            'utf8'
-          )
-
           const trackedFiles = files.filter(
             f => f.status.kind !== AppFileStatusKind.Untracked
           )
@@ -623,14 +634,6 @@ describe('git/commit', () => {
           )
 
           expect(fileContents).not.toStrictEqual(fileContentsOurs)
-
-          await GitProcess.exec(['checkout', 'master'], repo.path)
-
-          const fileContentsTheirs = await FSE.readFile(
-            path.join(repository.path, file.path),
-            'utf8'
-          )
-
           expect(fileContents).toStrictEqual(fileContentsTheirs)
         })
 
@@ -648,11 +651,6 @@ describe('git/commit', () => {
           expect(
             isConflictedFile(file.status) && isManualConflict(file.status)
           ).toBe(true)
-
-          const fileContentsOurs = await FSE.readFile(
-            path.join(repository.path, file.path),
-            'utf8'
-          )
 
           const trackedFiles = files.filter(
             f => f.status.kind !== AppFileStatusKind.Untracked
