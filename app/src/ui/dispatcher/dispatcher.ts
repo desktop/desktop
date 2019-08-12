@@ -1865,12 +1865,12 @@ export class Dispatcher {
     return this.appStore._setConfirmForcePushSetting(value)
   }
 
-  public checkPotentialRebase(
+  public startRebasePreviewer(
     repository: Repository,
     baseBranch: Branch,
     targetBranch: Branch
   ) {
-    return this.appStore._checkPotentialRebase(
+    return this.appStore._startRebasePreviewer(
       repository,
       baseBranch,
       targetBranch
