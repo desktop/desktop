@@ -221,6 +221,7 @@ import {
   enableStashing,
   enableBranchProtectionChecks,
   enableBranchProtectionWarningFlow,
+  enableHideWhitespaceInDiffOption,
 } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import * as moment from 'moment'
@@ -282,6 +283,9 @@ const externalEditorKey: string = 'externalEditor'
 
 const imageDiffTypeDefault = ImageDiffType.TwoUp
 const imageDiffTypeKey = 'image-diff-type'
+
+const hideWhitespaceInDiffDefault = false
+const hideWhitespaceInDiffKey = 'hide-whitespace-in-diff'
 
 const shellKey = 'shell'
 
@@ -360,6 +364,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
+  private hideWhitespaceInDiff: boolean = hideWhitespaceInDiffDefault
 
   private selectedExternalEditor?: ExternalEditor
 
@@ -620,6 +625,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
       selectedExternalEditor: this.selectedExternalEditor,
       imageDiffType: this.imageDiffType,
+      hideWhitespaceInDiff: this.hideWhitespaceInDiff,
       selectedShell: this.selectedShell,
       repositoryFilterText: this.repositoryFilterText,
       resolvedExternalEditor: this.resolvedExternalEditor,
@@ -1260,7 +1266,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    const diff = await getCommitDiff(repository, file, sha)
+    const diff = await getCommitDiff(
+      repository,
+      file,
+      sha,
+      enableHideWhitespaceInDiffOption() ? this.hideWhitespaceInDiff : false
+    )
 
     const stateAfterLoad = this.repositoryStateCache.get(repository)
 
@@ -1664,6 +1675,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       imageDiffTypeValue === null
         ? imageDiffTypeDefault
         : parseInt(imageDiffTypeValue)
+
+    this.hideWhitespaceInDiff = getBoolean(hideWhitespaceInDiffKey, false)
 
     this.automaticallySwitchTheme = getAutoSwitchPersistedTheme()
 
@@ -3587,7 +3600,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       eligibleBranches =
         defaultBranch != null &&
         eligibleForFastForward(defaultBranch, currentBranchName)
-          ? [defaultBranch]
+          ? [defaultBranch, ...state.branchesState.recentBranches]
           : []
     }
 
@@ -4314,6 +4327,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     return Promise.resolve()
+  }
+
+  public _setHideWhitespaceInDiff(
+    hideWhitespaceInDiff: boolean,
+    repository: Repository,
+    file: CommittedFileChange | null
+  ): Promise<void> {
+    setBoolean(hideWhitespaceInDiffKey, hideWhitespaceInDiff)
+    this.hideWhitespaceInDiff = hideWhitespaceInDiff
+
+    if (file === null) {
+      return this.updateChangesWorkingDirectoryDiff(repository)
+    } else {
+      return this._changeFileSelection(repository, file)
+    }
   }
 
   public _setUpdateBannerVisibility(visibility: boolean) {

@@ -106,3 +106,7 @@ export function enableBranchProtectionWarningFlow(): boolean {
 export function enableRebaseConflictDetection(): boolean {
   return enableBetaFeatures()
 }
+
+export function enableHideWhitespaceInDiffOption(): boolean {
+  return enableBetaFeatures()
+}
