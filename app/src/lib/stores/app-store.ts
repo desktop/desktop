@@ -5316,7 +5316,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
     this.rebasePreviewGen = rebasePreviewer
     try {
-      await new Promise<RebasePreview>(async (resolve) => {
+      await new Promise<RebasePreview>(async resolve => {
         for await (const preview of rebasePreviewer) {
           if (rebasePreviewer !== this.rebasePreviewGen) {
             log.debug('cancelled _checkPotentialRebase')
