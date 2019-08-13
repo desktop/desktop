@@ -4199,6 +4199,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       preview: null,
       userHasResolvedConflicts: false,
     }))
+    this._cancelRebasePreviewer()
 
     this.emitUpdate()
 
@@ -5502,10 +5503,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
     this.rebasePreviewGen = rebasePreviewer
     try {
-      await new Promise<RebasePreview>(async (resolve, reject) => {
+      await new Promise<RebasePreview>(async (resolve) => {
         for await (const preview of rebasePreviewer) {
           if (rebasePreviewer !== this.rebasePreviewGen) {
-            reject('new rebase checker started (or unset)')
+            log.debug('cancelled _checkPotentialRebase')
+            return resolve()
           }
           this.repositoryStateCache.updateRebaseState(
             repository,
@@ -5534,7 +5536,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         }
       })
     } catch (e) {
-      log.debug('cancelled _checkPotentialRebase')
+      log.error(`_rebasePreviewer failed (with ${e})`)
     }
   }
 }
