@@ -15,6 +15,7 @@ interface IChangesProps {
 
   /** Whether a commit is in progress */
   readonly isCommitting: boolean
+  readonly hideWhitespaceInDiff: boolean
 }
 
 export class Changes extends React.Component<IChangesProps, {}> {
@@ -49,6 +50,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
             onIncludeChanged={this.onDiffLineIncludeChanged}
             diff={diff}
             dispatcher={this.props.dispatcher}
+            hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
           />
         </div>
       </div>

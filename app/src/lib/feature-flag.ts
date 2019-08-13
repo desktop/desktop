@@ -101,3 +101,7 @@ export function enableWSLDetection(): boolean {
 export function enableBranchProtectionWarningFlow(): boolean {
   return enableBranchProtectionChecks() && enableDevelopmentFeatures()
 }
+
+export function enableHideWhitespaceInDiffOption(): boolean {
+  return enableBetaFeatures()
+}
