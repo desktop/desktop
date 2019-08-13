@@ -9,7 +9,7 @@ import {
   ManualConflictResolution,
   ManualConflictResolutionKind,
 } from '../../models/manual-conflict-resolution'
-import { git } from '.'
+import { runGitCommand } from '.'
 import { assertNever } from '../fatal-error'
 
 /**
@@ -80,19 +80,4 @@ export async function stageManualConflictResolution(
     default:
       return assertNever(chosen, 'unnacounted for git status entry possibility')
   }
-}
-
-/**
- * Run a Git command and return whether the exit code indicated success
- *
- * This defers to the default error handling infrastructure inside if an error
- * is encountered.
- */
-async function runGitCommand(
-  args: string[],
-  path: string,
-  name: string
-): Promise<boolean> {
-  const { exitCode } = await git(args, path, name)
-  return exitCode === 0
 }
