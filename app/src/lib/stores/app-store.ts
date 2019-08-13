@@ -248,8 +248,7 @@ import {
 } from '../../models/tutorial-step'
 import { OnboardingTutorialAssessor } from './helpers/tutorial-assessor'
 import { getUntrackedFiles } from '../status'
-import { checkPotentialRebase } from './generators/rebase-conflict-detection'
-import { makeRebasePreviewer } from './generators/rebase-conflict-detection'
+import { makeRebasePreviewer } from './generators/rebase-previewer'
 import { RebasePreview } from '../../models/rebase'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
