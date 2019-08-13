@@ -1,5 +1,8 @@
 {
   "releases": {
+    "2.1.1-beta4": [
+      "[Fixed] Update embedded Git on Windows to address security vulnerability - #8101"
+    ],
     "2.1.1-beta3": [
       "[Added] Syntax highlighting support for 20 more programming languages - #7217. Thanks @KennethSweezy!",
       "[Added] Kitty shell support for macOS - #5162",
