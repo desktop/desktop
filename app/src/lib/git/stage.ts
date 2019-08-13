@@ -43,46 +43,56 @@ export async function stageManualConflictResolution(
       ? status.entry.them
       : status.entry.us
 
-  let exitCode: number = -1
-
   switch (chosen) {
     case GitStatusEntry.Deleted: {
-      exitCode = (await git(
+      return await runGitCommand(
         ['rm', file.path],
         repository.path,
         'removeConflictedFile'
-      )).exitCode
-      break
+      )
     }
     case GitStatusEntry.Added: {
-      exitCode = (await git(
+      return await runGitCommand(
         ['add', file.path],
         repository.path,
         'addConflictedFile'
-      )).exitCode
-      break
+      )
     }
     case GitStatusEntry.UpdatedButUnmerged: {
       const choiceFlag =
         manualResolution === ManualConflictResolutionKind.theirs
           ? 'theirs'
           : 'ours'
-      exitCode = (await git(
+      const checkoutCompleted = await runGitCommand(
         ['checkout', `--${choiceFlag}`, '--', file.path],
         repository.path,
         'checkoutConflictedFile'
-      )).exitCode
-      if (exitCode === 0) {
-        exitCode = (await git(
+      )
+      if (checkoutCompleted) {
+        return await runGitCommand(
           ['add', file.path],
           repository.path,
           'addConflictedFile'
-        )).exitCode
+        )
       }
-      break
+      return false
     }
     default:
-      assertNever(chosen, 'unnacounted for git status entry possibility')
+      return assertNever(chosen, 'unnacounted for git status entry possibility')
   }
+}
+
+/**
+ * Run a Git command and return whether the exit code indicated success
+ *
+ * This defers to the default error handling infrastructure inside if an error
+ * is encountered.
+ */
+async function runGitCommand(
+  args: string[],
+  path: string,
+  name: string
+): Promise<boolean> {
+  const { exitCode } = await git(args, path, name)
   return exitCode === 0
 }
