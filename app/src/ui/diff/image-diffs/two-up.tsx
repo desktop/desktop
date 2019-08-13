@@ -6,8 +6,6 @@ import { formatBytes, Sign } from '../../lib/bytes'
 import * as classNames from 'classnames'
 
 interface ITwoUpProps extends ICommonImageDiffProperties {
-  readonly containerWidth: number
-
   readonly previousImageSize: ISize | null
   readonly currentImageSize: ISize | null
 }
