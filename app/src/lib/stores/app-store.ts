@@ -249,6 +249,7 @@ import {
 import { OnboardingTutorialAssessor } from './helpers/tutorial-assessor'
 import { getUntrackedFiles } from '../status'
 import { checkPotentialRebase } from './generators/rebase-conflict-detection'
+import { makeRebasePreviewer } from './generators/rebase-conflict-detection'
 import { RebasePreview } from '../../models/rebase'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -320,9 +321,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private errors: ReadonlyArray<Error> = new Array<Error>()
   private emitQueued = false
 
-  private rebasePreviewGen: ReturnType<
-    typeof checkPotentialRebase
-  > | null = null
+  private rebasePreviewGen: ReturnType<typeof makeRebasePreviewer> | null = null
 
   private readonly localRepositoryStateLookup = new Map<
     number,
@@ -5487,24 +5486,41 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this.currentBranchPruner.testPrune()
   }
 
+  /**
+   * Cancel currently running rebase preview generators
+   *
+   * Sets the `rebasePreviewGen` property to null so that
+   * any running rebase previwers will cancel (after their next `yield`)
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
   public _cancelRebasePreviewer() {
     this.rebasePreviewGen = null
   }
 
+  /**
+   * Kicks off a new rebase preview
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
   public async _startRebasePreviewer(
     repository: Repository,
     baseBranch: Branch,
     targetBranch: Branch
-  ) {
-    const rebasePreviewer = checkPotentialRebase({
+  ): Promise<void> {
+    const rebasePreviewer = makeRebasePreviewer({
       repository,
       baseBranch,
       targetBranch,
     })
+    // set this so we can compare later
     this.rebasePreviewGen = rebasePreviewer
     try {
       await new Promise<RebasePreview>(async resolve => {
         for await (const preview of rebasePreviewer) {
+          // check if there's a new generator that's been
+          // kicked off since this one started and if so
+          // finish early
           if (rebasePreviewer !== this.rebasePreviewGen) {
             log.debug('cancelled _checkPotentialRebase')
             return resolve()
@@ -5517,7 +5533,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
                 rebaseState.step &&
                 rebaseState.step.kind === RebaseStep.ChooseBranch
               ) {
-                // is there a way to merge state here more gracefully?
+                // is there a way to merge state here more gracefully? (probably)
                 return {
                   ...rebaseState,
                   step: {
@@ -5535,6 +5551,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           }
         }
       })
+      // just in case
     } catch (e) {
       log.error(`_rebasePreviewer failed (with ${e})`)
     }

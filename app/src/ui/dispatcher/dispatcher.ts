@@ -1865,6 +1865,7 @@ export class Dispatcher {
     return this.appStore._setConfirmForcePushSetting(value)
   }
 
+  /** Kicks off a new rebase preview */
   public startRebasePreviewer(
     repository: Repository,
     baseBranch: Branch,

@@ -10,11 +10,23 @@ import { Branch } from '../../../models/branch'
 import { Repository } from '../../../models/repository'
 import { RebasePreview, RebaseLoading } from '../../../models/rebase'
 
+/** Status for still loading */
 const loadingStatus: RebaseLoading = {
   kind: ComputedAction.Loading,
 }
 
-export async function* checkPotentialRebase({
+/**
+ * Constructs a generator to determine whether a rebase is valid and will encounter conflicts.
+ *
+ * Will `yield loadingStatus` between every git operation until the final result.
+ *
+ * No outside input is accepted (via the `yield` mechanism) into this generator as it runs.
+ *
+ * May throw (unexpected) errors, so be ready to `catch` them!
+ *
+ * @returns a generator you can iterate to get the final answer
+ */
+export async function* makeRebasePreviewer({
   repository,
   baseBranch,
   targetBranch,
