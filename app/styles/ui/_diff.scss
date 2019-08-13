@@ -369,14 +369,16 @@
 
 .image-diff-container {
   display: flex;
-  flex: 1;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  flex-direction: column;
 
   .image-diff-two-up {
     display: flex;
-    align-items: center;
+    max-height: 100%;
+    padding: 0 var(--spacing-double);
 
     .image-diff-previous {
       margin-right: var(--spacing-half);
