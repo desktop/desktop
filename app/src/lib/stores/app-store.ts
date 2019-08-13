@@ -243,7 +243,7 @@ import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
-import { makeRebasePreviewer } from './generators/rebase-conflict-detection'
+import { makeRebasePreviewer } from './generators/rebase-previewer'
 import { RebasePreview } from '../../models/rebase'
 
 /**
