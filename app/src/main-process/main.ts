@@ -367,14 +367,15 @@ app.on('ready', () => {
     ) => {
       let sendMenuChangedEvent = false
 
+      const currentMenu = Menu.getApplicationMenu()
+
+      if (currentMenu === null) {
+        log.debug(`unable to get current menu, bailing out...`)
+        return
+      }
+
       for (const item of items) {
         const { id, state } = item
-
-        const currentMenu = Menu.getApplicationMenu()
-
-        if (currentMenu === null) {
-          return
-        }
 
         const menuItem = currentMenu.getMenuItemById(id)
 
@@ -395,6 +396,7 @@ app.on('ready', () => {
       }
 
       if (sendMenuChangedEvent && mainWindow) {
+        Menu.setApplicationMenu(currentMenu)
         mainWindow.sendAppMenu()
       }
     }
