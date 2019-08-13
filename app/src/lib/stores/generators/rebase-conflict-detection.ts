@@ -10,7 +10,7 @@ import { Branch } from '../../../models/branch'
 import { Repository } from '../../../models/repository'
 import { RebasePreview, RebaseLoading } from '../../../models/rebase'
 
-/** Status for still loading */
+/** Status for "still loading" */
 const loadingStatus: RebaseLoading = {
   kind: ComputedAction.Loading,
 }
