@@ -367,6 +367,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.hideStashedChanges()
       case 'test-prune-branches':
         return this.testPruneBranches()
+      case 'find-text':
+        return this.findText()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -453,6 +455,28 @@ export class App extends React.Component<IAppProps, IAppState> {
       document.activeElement.dispatchEvent(event)
     ) {
       remote.getCurrentWebContents().selectAll()
+    }
+  }
+
+  /**
+   * Handler for the 'find-text' menu event, dispatches
+   * a custom DOM event originating from the element which
+   * currently has keyboard focus (or the document if no element
+   * has focus). Components have a chance to intercept this
+   * event and implement their own 'find-text' logic. One
+   * example of this custom event is the text diff which
+   * will trigger a search dialog when seeing this event.
+   */
+  private findText() {
+    const event = new CustomEvent('find-text', {
+      bubbles: true,
+      cancelable: true,
+    })
+
+    if (document.activeElement != null) {
+      document.activeElement.dispatchEvent(event)
+    } else {
+      document.dispatchEvent(event)
     }
   }
 
@@ -2287,6 +2311,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           gitHubUserStore={this.props.gitHubUserStore}
           onViewCommitOnGitHub={this.onViewCommitOnGitHub}
           imageDiffType={state.imageDiffType}
+          hideWhitespaceInDiff={state.hideWhitespaceInDiff}
           focusCommitMessage={state.focusCommitMessage}
           askForConfirmationOnDiscardChanges={
             state.askForConfirmationOnDiscardChanges

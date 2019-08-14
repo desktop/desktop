@@ -34,7 +34,7 @@ import { basename } from 'path'
 import { ICommitContext } from '../../models/commit'
 import { RebaseConflictState } from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
-import { enablePullWithRebase, enableStashing } from '../../lib/feature-flag'
+import { enableStashing } from '../../lib/feature-flag'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { IStashEntry } from '../../models/stash-entry'
 import * as classNames from 'classnames'
@@ -317,7 +317,7 @@ export class ChangesList extends React.Component<
     event.preventDefault()
 
     // need to preserve the working directory state while dealing with conflicts
-    if (this.props.rebaseConflictState !== null) {
+    if (this.props.rebaseConflictState !== null || this.props.isCommitting) {
       return
     }
 
@@ -514,6 +514,10 @@ export class ChangesList extends React.Component<
     file: WorkingDirectoryFileChange,
     event: React.MouseEvent<HTMLDivElement>
   ) => {
+    if (this.props.isCommitting) {
+      return
+    }
+
     event.preventDefault()
 
     const items =
@@ -564,7 +568,7 @@ export class ChangesList extends React.Component<
       currentBranchProtected,
     } = this.props
 
-    if (rebaseConflictState !== null && enablePullWithRebase()) {
+    if (rebaseConflictState !== null) {
       const hasUntrackedChanges = workingDirectory.files.some(
         f => f.status.kind === AppFileStatusKind.Untracked
       )
@@ -663,6 +667,22 @@ export class ChangesList extends React.Component<
     )
   }
 
+  private onRowKeyDown = (
+    _row: number,
+    event: React.KeyboardEvent<HTMLDivElement>
+  ) => {
+    // The commit is already in-flight but this check prevents the
+    // user from changing selection.
+    if (
+      this.props.isCommitting &&
+      (event.key === 'Enter' || event.key === ' ')
+    ) {
+      event.preventDefault()
+    }
+
+    return
+  }
+
   public render() {
     const fileCount = this.props.workingDirectory.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
@@ -699,6 +719,7 @@ export class ChangesList extends React.Component<
           onRowClick={this.props.onRowClick}
           onScroll={this.onScroll}
           setScrollTop={this.props.changesListScrollTop}
+          onRowKeyDown={this.onRowKeyDown}
         />
         {this.renderStashedChanges()}
         {this.renderCommitMessageForm()}

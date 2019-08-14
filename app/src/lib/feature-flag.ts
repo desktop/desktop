@@ -37,11 +37,6 @@ export function enableRecurseSubmodulesFlag(): boolean {
   return enableBetaFeatures()
 }
 
-/** Should the app set protocol.version=2 for any fetch/push/pull/clone operation? */
-export function enableGitProtocolVersionTwo(): boolean {
-  return true
-}
-
 export function enableReadmeOverwriteWarning(): boolean {
   return enableBetaFeatures()
 }
@@ -60,11 +55,6 @@ export function enableBranchPruning(): boolean {
  * just yet.
  */
 export function enableNoChangesCreatePRBlankslateAction(): boolean {
-  return true
-}
-
-/** Should the app detect and handle rebase conflicts when `pull.rebase` is set? */
-export function enablePullWithRebase(): boolean {
   return true
 }
 
@@ -97,7 +87,7 @@ export function enableBranchProtectionChecks(): boolean {
 
 /** Should the app detect Windows Subsystem for Linux as a valid shell? */
 export function enableWSLDetection(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
 
 /**
@@ -110,4 +100,8 @@ export function enableWSLDetection(): boolean {
  */
 export function enableBranchProtectionWarningFlow(): boolean {
   return enableBranchProtectionChecks() && enableDevelopmentFeatures()
+}
+
+export function enableHideWhitespaceInDiffOption(): boolean {
+  return enableBetaFeatures()
 }

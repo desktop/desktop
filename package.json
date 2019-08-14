@@ -55,8 +55,8 @@
     "yarn": ">= 1.9"
   },
   "dependencies": {
-    "@typescript-eslint/eslint-plugin": "1.6.0",
-    "@typescript-eslint/parser": "1.6.0",
+    "@typescript-eslint/eslint-plugin": "1.10.2",
+    "@typescript-eslint/parser": "1.10.2",
     "airbnb-browser-shims": "^3.0.0",
     "ajv": "^6.4.0",
     "awesome-node-loader": "^1.1.0",
@@ -85,6 +85,7 @@
     "glob": "^7.1.2",
     "html-webpack-plugin": "^3.2.0",
     "jest": "^23.5.0",
+    "jest-extended": "^0.11.2",
     "jest-junit": "^5.0.0",
     "jest-localstorage-mock": "^2.3.0",
     "json-pretty": "^0.0.1",
@@ -141,7 +142,7 @@
     "@types/memoize-one": "^3.1.1",
     "@types/mini-css-extract-plugin": "^0.2.0",
     "@types/mri": "^1.1.0",
-    "@types/node": "10.1.4",
+    "@types/node": "10.12.18",
     "@types/react": "^16.3.16",
     "@types/react-css-transition-replace": "^2.1.3",
     "@types/react-dom": "^16.0.5",
@@ -164,12 +165,9 @@
     "@types/webpack-merge": "^4.1.3",
     "@types/winston": "^2.2.0",
     "@types/xml2js": "^0.4.0",
-    "electron": "3.1.6",
+    "electron": "5.0.6",
     "electron-builder": "20.28.4",
     "electron-packager": "^13.1.0",
     "electron-winstaller": "2.5.2"
-  },
-  "resolutions": {
-    "**/@types/node": "10.1.4"
   }
 }

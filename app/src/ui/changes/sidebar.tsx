@@ -31,7 +31,6 @@ import { PopupType } from '../../models/popup'
 import { filesNotTrackedByLFS } from '../../lib/git/lfs'
 import { getLargeFilePaths } from '../../lib/large-files'
 import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
-import { enablePullWithRebase } from '../../lib/feature-flag'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -319,6 +318,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           commit={commit}
           onUndo={this.onUndo}
           emoji={this.props.emoji}
+          isCommitting={this.props.isCommitting}
         />
       )
     }
@@ -339,7 +339,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   private renderUndoCommit = (
     rebaseConflictState: RebaseConflictState | null
   ): JSX.Element | null => {
-    if (rebaseConflictState !== null && enablePullWithRebase()) {
+    if (rebaseConflictState !== null) {
       return null
     }
 

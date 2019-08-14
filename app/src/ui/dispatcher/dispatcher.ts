@@ -24,6 +24,7 @@ import {
   RebaseResult,
   PushOptions,
   getCommitsInRange,
+  getBranches,
 } from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
 import {
@@ -318,6 +319,36 @@ export class Dispatcher {
     return this.appStore._closeFoldout(foldout)
   }
 
+  /** Check for remote commits that could affect the rebase operation */
+  private async warnAboutRemoteCommits(
+    repository: Repository,
+    baseBranch: Branch,
+    targetBranch: Branch
+  ): Promise<boolean> {
+    if (targetBranch.upstream === null) {
+      return false
+    }
+
+    // if the branch is tracking a remote branch
+    const upstreamBranchesMatching = await getBranches(
+      repository,
+      `refs/remotes/${targetBranch.upstream}`
+    )
+
+    if (upstreamBranchesMatching.length === 0) {
+      return false
+    }
+
+    // and the remote branch has commits that don't exist on the base branch
+    const remoteCommits = await getCommitsInRange(
+      repository,
+      baseBranch.tip.sha,
+      targetBranch.upstream
+    )
+
+    return remoteCommits !== null && remoteCommits.length > 0
+  }
+
   /** Initialize and start the rebase operation */
   public async startRebase(
     repository: Repository,
@@ -332,24 +363,20 @@ export class Dispatcher {
       options !== undefined && options.continueWithForcePush
 
     if (askForConfirmationOnForcePush && !hasOverridenForcePushCheck) {
-      // if the branch is tracking a remote branch
-      if (targetBranch.upstream !== null) {
-        // and the remote branch has commits that don't exist on the base branch
-        const remoteCommits = await getCommitsInRange(
-          repository,
-          baseBranch.tip.sha,
-          targetBranch.upstream
-        )
+      const showWarning = await this.warnAboutRemoteCommits(
+        repository,
+        baseBranch,
+        targetBranch
+      )
 
-        if (remoteCommits.length > 0) {
-          this.setRebaseFlowStep(repository, {
-            kind: RebaseStep.WarnForcePush,
-            baseBranch,
-            targetBranch,
-            commits,
-          })
-          return
-        }
+      if (showWarning) {
+        this.setRebaseFlowStep(repository, {
+          kind: RebaseStep.WarnForcePush,
+          baseBranch,
+          targetBranch,
+          commits,
+        })
+        return
       }
     }
 
@@ -1596,6 +1623,19 @@ export class Dispatcher {
   /** Change the selected image diff type. */
   public changeImageDiffType(type: ImageDiffType): Promise<void> {
     return this.appStore._changeImageDiffType(type)
+  }
+
+  /** Change the hide whitespace in diff setting */
+  public onHideWhitespaceInDiffChanged(
+    hideWhitespaceInDiff: boolean,
+    repository: Repository,
+    file: CommittedFileChange | null = null
+  ): Promise<void> {
+    return this.appStore._setHideWhitespaceInDiff(
+      hideWhitespaceInDiff,
+      repository,
+      file
+    )
   }
 
   /** Install the global Git LFS filters. */
