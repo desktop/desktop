@@ -2919,7 +2919,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         return repository
       }
 
-      stashToPop = await this.stashBasedOnUncommittedChangesStrategy(
+      stashToPop = await this.stashToPopAfterBranchCheckout(
         repository,
         foundBranch,
         uncommittedChangesStrategy
@@ -2961,10 +2961,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // call this method again once the working directory has been cleared.
       this.statsStore.recordChangesTakenToNewBranch()
 
-      const stash = stashToPop || uncommittedChangesStrategy.transientStashEntry
-      if (stash) {
+      if (stashToPop) {
+        const stashSha = stashToPop.stashSha
         await gitStore.performFailableOperation(() => {
-          return popStashEntry(repository, stash.stashSha)
+          return popStashEntry(repository, stashSha)
         })
       }
     }
@@ -3002,7 +3002,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return repository
   }
 
-  private async stashBasedOnUncommittedChangesStrategy(
+  // Depending on the UncommittedChangesStrategy and the state of the uncomitted
+  // changes there could be a stash to pop after checking out a branch. This method
+  // handles retrieving or creating the stash so it can be popped after the checkout
+  // is complete.
+  private async stashToPopAfterBranchCheckout(
     repository: Repository,
     branch: Branch,
     uncommittedChangesStrategy: UncommittedChangesStrategy = askToStash
@@ -3041,6 +3045,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
           return getLastDesktopStashEntryForBranch(repository, branch.name)
         }
       }
+
+      return transientStashEntry
     }
 
     return null
