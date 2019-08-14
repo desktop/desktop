@@ -9,7 +9,7 @@ import {
   ManualConflictResolution,
   ManualConflictResolutionKind,
 } from '../../models/manual-conflict-resolution'
-import { runGitCommand } from '.'
+import { git } from '.'
 import { assertNever } from '../fatal-error'
 
 /**
@@ -24,18 +24,18 @@ export async function stageManualConflictResolution(
   repository: Repository,
   file: WorkingDirectoryFileChange,
   manualResolution: ManualConflictResolution
-): Promise<boolean> {
+): Promise<void> {
   const { status } = file
   // if somehow the file isn't in a conflicted state
   if (!isConflictedFileStatus(status)) {
     log.error(`tried to manually resolve unconflicted file (${file.path})`)
-    return false
+    return
   }
   if (!isManualConflict(status)) {
     log.error(
       `tried to manually resolve conflicted file with markers (${file.path})`
     )
-    return false
+    return
   }
 
   const chosen =
@@ -45,39 +45,29 @@ export async function stageManualConflictResolution(
 
   switch (chosen) {
     case GitStatusEntry.Deleted: {
-      return await runGitCommand(
-        ['rm', file.path],
-        repository.path,
-        'removeConflictedFile'
-      )
+      await git(['rm', file.path], repository.path, 'removeConflictedFile')
+      break
     }
     case GitStatusEntry.Added: {
-      return await runGitCommand(
-        ['add', file.path],
-        repository.path,
-        'addConflictedFile'
-      )
+      await git(['add', file.path], repository.path, 'addConflictedFile')
+      break
     }
     case GitStatusEntry.UpdatedButUnmerged: {
       const choiceFlag =
         manualResolution === ManualConflictResolutionKind.theirs
           ? 'theirs'
           : 'ours'
-      const checkoutCompleted = await runGitCommand(
+      const checkoutCompleted = await git(
         ['checkout', `--${choiceFlag}`, '--', file.path],
         repository.path,
         'checkoutConflictedFile'
       )
       if (checkoutCompleted) {
-        return await runGitCommand(
-          ['add', file.path],
-          repository.path,
-          'addConflictedFile'
-        )
+        await git(['add', file.path], repository.path, 'addConflictedFile')
       }
-      return false
+      break
     }
     default:
-      return assertNever(chosen, 'unnacounted for git status entry possibility')
+      assertNever(chosen, 'unnacounted for git status entry possibility')
   }
 }

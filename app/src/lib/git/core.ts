@@ -347,18 +347,3 @@ export async function gitNetworkArguments(
 export function parseCommitSHA(result: IGitResult): string {
   return result.stdout.split(']')[0].split(' ')[1]
 }
-
-/**
- * Run a Git command and return whether the exit code indicated success
- *
- * This defers to the default error handling infrastructure inside if an error
- * is encountered.
- */
-export async function runGitCommand(
-  args: string[],
-  path: string,
-  name: string
-): Promise<boolean> {
-  const { exitCode } = await git(args, path, name)
-  return exitCode === 0
-}
