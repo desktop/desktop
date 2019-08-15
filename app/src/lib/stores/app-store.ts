@@ -3594,7 +3594,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       eligibleBranches =
         defaultBranch != null &&
         eligibleForFastForward(defaultBranch, currentBranchName)
-          ? [defaultBranch]
+          ? [defaultBranch, ...state.branchesState.recentBranches]
           : []
     }
 
