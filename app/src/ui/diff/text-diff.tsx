@@ -168,6 +168,8 @@ const defaultEditorOptions: IEditorConfigurationExtra = {
   extraKeys: {
     Tab: false,
     'Shift-Tab': false,
+    // Steal the default key binding so that we can launch our
+    // custom search UI.
     [__DARWIN__ ? 'Cmd-F' : 'Ctrl-F']: showSearch,
   },
   scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
