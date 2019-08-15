@@ -168,9 +168,6 @@ export class ModifiedImageDiff extends React.Component<
         return (
           <TwoUp
             {...this.getCommonProps(maxSize)}
-            containerWidth={
-              (this.state.containerSize && this.state.containerSize.width) || 0
-            }
             previousImageSize={this.state.previousImageSize}
             currentImageSize={this.state.currentImageSize}
           />
