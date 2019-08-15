@@ -57,14 +57,12 @@ export async function stageManualConflictResolution(
         manualResolution === ManualConflictResolutionKind.theirs
           ? 'theirs'
           : 'ours'
-      const checkoutCompleted = await git(
+      await git(
         ['checkout', `--${choiceFlag}`, '--', file.path],
         repository.path,
         'checkoutConflictedFile'
       )
-      if (checkoutCompleted) {
-        await git(['add', file.path], repository.path, 'addConflictedFile')
-      }
+      await git(['add', file.path], repository.path, 'addConflictedFile')
       break
     }
     default:
