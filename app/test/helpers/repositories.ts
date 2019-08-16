@@ -183,13 +183,6 @@ export async function setupConflictedRepoWithMultipleFiles(): Promise<
   Repository
 > {
   const repo = await setupEmptyRepository()
-  const filePaths = [
-    Path.join(repo.path, 'foo'),
-    Path.join(repo.path, 'bar'),
-    Path.join(repo.path, 'baz'),
-    Path.join(repo.path, 'cat'),
-    Path.join(repo.path, 'dog'),
-  ]
 
   const firstCommit = {
     entries: [{ path: 'foo', contents: 'b0' }, { path: 'bar', contents: 'b0' }],
@@ -225,7 +218,7 @@ export async function setupConflictedRepoWithMultipleFiles(): Promise<
 
   await makeCommit(repo, thirdCommit)
 
-  await FSE.writeFile(filePaths[4], 'touch')
+  await FSE.writeFile(Path.join(repo.path, 'dog'), 'touch')
 
   await GitProcess.exec(['merge', 'master'], repo.path)
 
