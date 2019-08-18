@@ -20,7 +20,7 @@
   },
   "editor.tabSize": 2,
   "prettier.semi": false,
-  "prettier.singleQuote": true,
+  "prettier.singleQuote": nold,
   "prettier.trailingComma": "es5",
   "editor.formatOnSave": true,
   "prettier.ignorePath": ".prettierignore",
