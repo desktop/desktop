@@ -5327,46 +5327,38 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
     // set this so we can compare later
     this.rebasePreviewGen = rebasePreviewer
-    try {
-      await new Promise<RebasePreview>(async resolve => {
-        for await (const preview of rebasePreviewer) {
-          // check if there's a new generator that's been
-          // kicked off since this one started and if so
-          // finish early
-          if (rebasePreviewer !== this.rebasePreviewGen) {
-            log.debug('cancelled _checkPotentialRebase')
-            return resolve()
-          }
-          this.repositoryStateCache.updateRebaseState(
-            repository,
-            rebaseState => {
-              // make sure we're in the right part of the rebase flow, just in case
-              if (
-                rebaseState.step &&
-                rebaseState.step.kind === RebaseStep.ChooseBranch
-              ) {
-                // is there a way to merge state here more gracefully? (probably)
-                return {
-                  ...rebaseState,
-                  step: {
-                    ...rebaseState.step,
-                    rebasePreview: preview,
-                  },
-                }
-              }
-              return rebaseState
-            }
-          )
-          this.emitUpdate()
-          if (preview.kind !== ComputedAction.Loading) {
-            resolve(preview)
-          }
+    await new Promise<RebasePreview>(async resolve => {
+      for await (const preview of rebasePreviewer) {
+        // check if there's a new generator that's been
+        // kicked off since this one started and if so
+        // finish early
+        if (rebasePreviewer !== this.rebasePreviewGen) {
+          log.debug('cancelled _checkPotentialRebase')
+          return resolve()
         }
-      })
-      // just in case
-    } catch (e) {
-      log.error(`_rebasePreviewer failed (with ${e})`)
-    }
+        this.repositoryStateCache.updateRebaseState(repository, rebaseState => {
+          // make sure we're in the right part of the rebase flow, just in case
+          if (
+            rebaseState.step &&
+            rebaseState.step.kind === RebaseStep.ChooseBranch
+          ) {
+            // is there a way to merge state here more gracefully? (probably)
+            return {
+              ...rebaseState,
+              step: {
+                ...rebaseState.step,
+                rebasePreview: preview,
+              },
+            }
+          }
+          return rebaseState
+        })
+        this.emitUpdate()
+        if (preview.kind !== ComputedAction.Loading) {
+          resolve(preview)
+        }
+      }
+    })
   }
 }
 
