@@ -16,7 +16,7 @@
       "internalConsoleOptions": "neverOpen",
       "env": {
         "ELECTRON_RUN_AS_NODE": "1"
-      },
+      },amcc
       "windows": {
         "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
       }
