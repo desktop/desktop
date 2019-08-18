@@ -80,9 +80,6 @@ interface IChooseBranchDialogProps {
 }
 
 interface IChooseBranchDialogState {
-  /** The currently selected branch. */
-  readonly selectedBranch: Branch | null
-
   /** The filter text to use in the branch selector */
   readonly filterText: string
 }
@@ -94,23 +91,13 @@ export class ChooseBranchDialog extends React.Component<
 > {
   public constructor(props: IChooseBranchDialogProps) {
     super(props)
-
-    const { initialBranch, currentBranch, defaultBranch } = props
-
-    const selectedBranch = resolveSelectedBranch(
-      currentBranch,
-      defaultBranch,
-      initialBranch
-    )
-
     this.state = {
-      selectedBranch,
       filterText: '',
     }
   }
 
   public componentDidMount() {
-    const { selectedBranch } = this.state
+    const selectedBranch = resolveSelectedBranch(this.props)
     if (selectedBranch !== null) {
       this.onBranchChanged(selectedBranch)
     }
@@ -135,8 +122,6 @@ export class ChooseBranchDialog extends React.Component<
   }
 
   private onSelectionChanged = (selectedBranch: Branch | null) => {
-    this.setState({ selectedBranch })
-
     if (selectedBranch !== null) {
       this.onBranchChanged(selectedBranch)
     }
@@ -147,7 +132,7 @@ export class ChooseBranchDialog extends React.Component<
   }
 
   public render() {
-    const { selectedBranch } = this.state
+    const selectedBranch = resolveSelectedBranch(this.props)
     const { currentBranch, rebasePreview } = this.props
 
     const selectedBranchIsNotCurrentBranch =
@@ -213,7 +198,7 @@ export class ChooseBranchDialog extends React.Component<
 
   private renderRebaseStatus = () => {
     const { currentBranch, rebasePreview } = this.props
-    const { selectedBranch } = this.state
+    const selectedBranch = resolveSelectedBranch(this.props)
 
     if (rebasePreview === undefined) {
       return null
@@ -321,11 +306,11 @@ export class ChooseBranchDialog extends React.Component<
   }
 
   private startRebase = async () => {
-    const { selectedBranch } = this.state
-    const { repository, currentBranch, rebasePreview } = this.props
     if (!selectedBranch) {
       return
     }
+    const { repository, rebasePreview, currentBranch } = this.props
+    const selectedBranch = resolveSelectedBranch(this.props)
 
     if (
       rebasePreview === undefined ||
@@ -352,11 +337,20 @@ export class ChooseBranchDialog extends React.Component<
  * If the current branch is the default branch, `null` is returned. Otherwise
  * the default branch is used.
  */
-function resolveSelectedBranch(
-  currentBranch: Branch,
-  defaultBranch: Branch | null,
-  initialBranch: Branch | undefined
-) {
+function resolveSelectedBranch({
+  rebasePreview,
+  currentBranch,
+  defaultBranch,
+  initialBranch,
+}: {
+  rebasePreview?: RebasePreview
+  currentBranch: Branch
+  defaultBranch: Branch | null
+  initialBranch?: Branch
+}) {
+  if (rebasePreview !== undefined) {
+    return rebasePreview.baseBranch
+  }
   if (initialBranch !== undefined) {
     return initialBranch
   }
