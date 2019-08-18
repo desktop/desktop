@@ -10,11 +10,6 @@ import { Branch } from '../../../models/branch'
 import { Repository } from '../../../models/repository'
 import { RebasePreview, RebaseLoading } from '../../../models/rebase'
 
-/** Status for "still loading" */
-const loadingStatus: RebaseLoading = {
-  kind: ComputedAction.Loading,
-}
-
 /**
  * Constructs a generator to determine whether a rebase is valid and will encounter conflicts.
  *
@@ -35,6 +30,12 @@ export async function* makeRebasePreviewer({
   baseBranch: Branch
   targetBranch: Branch
 }): AsyncIterableIterator<RebasePreview> {
+  /** Status for "still loading" */
+  const loadingStatus: RebaseLoading = {
+    kind: ComputedAction.Loading,
+    baseBranch,
+  }
+
   yield loadingStatus
 
   try {
@@ -60,6 +61,7 @@ export async function* makeRebasePreviewer({
     if (base === baseBranch.tip.sha) {
       yield {
         kind: ComputedAction.Clean,
+        baseBranch,
         commits: [],
       }
       return
@@ -85,11 +87,13 @@ export async function* makeRebasePreviewer({
     const rebasePreview: RebasePreview = (await checkPatch(worktree, patch))
       ? {
           kind: ComputedAction.Clean,
+          baseBranch,
           commits,
         }
       : {
           kind: ComputedAction.Conflicts,
           baseBranch,
+          commits,
         }
 
     yield rebasePreview
@@ -99,6 +103,7 @@ export async function* makeRebasePreviewer({
     )
     yield {
       kind: ComputedAction.Invalid,
+      baseBranch,
     }
   }
 }
