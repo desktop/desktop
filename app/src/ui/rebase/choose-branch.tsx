@@ -252,7 +252,11 @@ export class ChooseBranchDialog extends React.Component<
     }
 
     if (rebaseStatus.kind === ComputedAction.Conflicts) {
-      return this.renderConflictsWarningMessage(currentBranch, baseBranch)
+      return this.renderConflictsWarningMessage(
+        currentBranch,
+        baseBranch,
+        rebaseStatus.commits.length
+      )
     }
     // TODO: other scenarios to display some context about
 
@@ -295,11 +299,15 @@ export class ChooseBranchDialog extends React.Component<
 
   private renderConflictsWarningMessage(
     currentBranch: Branch,
-    baseBranch: Branch
+    baseBranch: Branch,
+    commitsToRebase: number
   ) {
+    const pluralized = commitsToRebase === 1 ? 'commit' : 'commits'
     return (
       <>
-        Conflicts will need to be resolved to apply the commits from{' '}
+        Conflicts will need to be resolved to apply the
+        <strong>{` ${commitsToRebase} ${pluralized}`}</strong>
+        {` from `}
         <strong>{currentBranch.name}</strong>
         {` on top of `}
         <strong>{baseBranch.name}</strong>
