@@ -2,7 +2,11 @@ import * as React from 'react'
 
 import { Branch } from '../../models/branch'
 import { Repository } from '../../models/repository'
-import { RebasePreview } from '../../models/rebase'
+import {
+  RebasePreview,
+  CleanRebase,
+  RebaseWithConflicts,
+} from '../../models/rebase'
 import { ComputedAction } from '../../models/computed-action'
 
 import { IMatches } from '../../lib/fuzzy-find'
@@ -17,7 +21,9 @@ import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
 import { Dispatcher } from '../dispatcher'
 import { enableRebaseConflictDetection } from '../../lib/feature-flag'
 
-function canStartRebase(rebasePreview?: RebasePreview) {
+function canStartRebase(
+  rebasePreview?: RebasePreview
+): rebasePreview is CleanRebase | RebaseWithConflicts {
   if (rebasePreview === undefined) {
     return false
   }
@@ -27,10 +33,6 @@ function canStartRebase(rebasePreview?: RebasePreview) {
     rebasePreview.kind === ComputedAction.Invalid
   ) {
     return false
-  }
-
-  if (rebasePreview.kind === ComputedAction.Conflicts) {
-    return true
   }
 
   return rebasePreview.commits.length > 0
@@ -306,16 +308,10 @@ export class ChooseBranchDialog extends React.Component<
   }
 
   private startRebase = async () => {
-    if (!selectedBranch) {
-      return
-    }
     const { repository, rebasePreview, currentBranch } = this.props
     const selectedBranch = resolveSelectedBranch(this.props)
 
-    if (
-      rebasePreview === undefined ||
-      rebasePreview.kind !== ComputedAction.Clean
-    ) {
+    if (selectedBranch === null || !canStartRebase(rebasePreview)) {
       return
     }
 
