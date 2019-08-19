@@ -24,6 +24,7 @@ import {
   AppFileStatusKind,
   UnmergedEntrySummary,
   GitStatusEntry,
+  isManualConflict,
 } from '../../../src/models/status'
 import {
   DiffSelectionType,
@@ -33,6 +34,7 @@ import {
 } from '../../../src/models/diff'
 import { getStatusOrThrow } from '../../helpers/status'
 import { ManualConflictResolutionKind } from '../../../src/models/manual-conflict-resolution'
+import { isConflictedFile } from '../../../src/lib/status'
 
 async function getTextDiff(
   repo: Repository,
@@ -548,13 +550,14 @@ describe('git/commit', () => {
           trackedFiles,
           manualResolutions
         )
-        expect(await FSE.pathExists(path.join(repository.path, 'bar'))).toBe(
-          true
-        )
+        expect(
+          await FSE.pathExists(path.join(repository.path, 'bar'))
+        ).toBeTrue()
         const newStatus = await getStatusOrThrow(repository)
         expect(sha).toHaveLength(7)
         expect(newStatus.workingDirectory.files).toHaveLength(1)
       })
+
       it('deletes files chosen to be removed and commits', async () => {
         const status = await getStatusOrThrow(repository)
         const trackedFiles = status.workingDirectory.files.filter(
@@ -568,12 +571,103 @@ describe('git/commit', () => {
           trackedFiles,
           manualResolutions
         )
-        expect(await FSE.pathExists(path.join(repository.path, 'bar'))).toBe(
-          false
-        )
+        expect(
+          await FSE.pathExists(path.join(repository.path, 'bar'))
+        ).toBeFalse()
         const newStatus = await getStatusOrThrow(repository)
         expect(sha).toHaveLength(7)
         expect(newStatus.workingDirectory.files).toHaveLength(1)
+      })
+
+      describe('binary file conflicts', () => {
+        let fileName: string
+        let fileContentsOurs: string, fileContentsTheirs: string
+        beforeEach(async () => {
+          const repoPath = await setupFixtureRepository(
+            'detect-conflict-in-binary-file'
+          )
+          repository = new Repository(repoPath, -1, null, false)
+          fileName = 'my-cool-image.png'
+
+          await GitProcess.exec(['checkout', 'master'], repoPath)
+
+          fileContentsTheirs = await FSE.readFile(
+            path.join(repoPath, fileName),
+            'utf8'
+          )
+
+          await GitProcess.exec(['checkout', 'make-a-change'], repoPath)
+
+          fileContentsOurs = await FSE.readFile(
+            path.join(repoPath, fileName),
+            'utf8'
+          )
+        })
+
+        it('chooses `their` version of a file and commits', async () => {
+          const repo = repository
+
+          await GitProcess.exec(['merge', 'master'], repo.path)
+
+          const status = await getStatusOrThrow(repo)
+          const files = status.workingDirectory.files
+          expect(files).toHaveLength(1)
+
+          const file = files[0]
+          expect(file.status.kind).toBe(AppFileStatusKind.Conflicted)
+          expect(
+            isConflictedFile(file.status) && isManualConflict(file.status)
+          ).toBe(true)
+
+          const trackedFiles = files.filter(
+            f => f.status.kind !== AppFileStatusKind.Untracked
+          )
+
+          const manualResolutions = new Map([
+            [file.path, ManualConflictResolutionKind.theirs],
+          ])
+          await createMergeCommit(repository, trackedFiles, manualResolutions)
+
+          const fileContents = await FSE.readFile(
+            path.join(repository.path, file.path),
+            'utf8'
+          )
+
+          expect(fileContents).not.toStrictEqual(fileContentsOurs)
+          expect(fileContents).toStrictEqual(fileContentsTheirs)
+        })
+
+        it('chooses `our` version of a file and commits', async () => {
+          const repo = repository
+
+          await GitProcess.exec(['merge', 'master'], repo.path)
+
+          const status = await getStatusOrThrow(repo)
+          const files = status.workingDirectory.files
+          expect(files).toHaveLength(1)
+
+          const file = files[0]
+          expect(file.status.kind).toBe(AppFileStatusKind.Conflicted)
+          expect(
+            isConflictedFile(file.status) && isManualConflict(file.status)
+          ).toBe(true)
+
+          const trackedFiles = files.filter(
+            f => f.status.kind !== AppFileStatusKind.Untracked
+          )
+
+          const manualResolutions = new Map([
+            [file.path, ManualConflictResolutionKind.ours],
+          ])
+          await createMergeCommit(repository, trackedFiles, manualResolutions)
+
+          const fileContents = await FSE.readFile(
+            path.join(repository.path, file.path),
+            'utf8'
+          )
+
+          expect(fileContents).toStrictEqual(fileContentsOurs)
+        })
       })
     })
 
