@@ -7,7 +7,7 @@
       "[Fixed] Disable some unavailable actions while committing - #3814 #5934. Thanks @HashimotoYT!",
       "[Fixed] Branch pruner errors on \"orphaned\" branches - #7983",
       "[Fixed] Prevent CodeMirror search plugin from stealing registered global keyboard shortcuts - #8068",
-      "[Improved] Re-word blank slate view summary - #8007. Thanks @rexogamer!",
+      "[Improved] Re-word \"No local changes\" view summary - #8007. Thanks @rexogamer!",
       "[Improved] Expand hover area on repository list items - #7910. Thanks @say25!",
       "[Improved] Always fast forward recent branches after fetch - #7761"
     ],
