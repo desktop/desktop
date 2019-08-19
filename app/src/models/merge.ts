@@ -16,7 +16,7 @@ export interface IMergeEntry {
   readonly hasConflicts?: boolean
 }
 
-export type MergeSuccess = {
+export type MergeClean = {
   readonly kind: ComputedAction.Clean
   readonly entries: ReadonlyArray<IMergeEntry>
 }
@@ -35,7 +35,7 @@ export type MergeLoading = {
 }
 
 export type MergePreview =
-  | MergeSuccess
+  | MergeClean
   | MergeError
   | MergeUnsupported
   | MergeLoading
