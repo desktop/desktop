@@ -1,4 +1,4 @@
-import { IMergeEntry, MergeResult } from '../models/merge'
+import { IMergeEntry, MergePreview } from '../models/merge'
 import { ComputedAction } from '../models/computed-action'
 
 interface IBlobSource {
@@ -92,7 +92,7 @@ const blobEntryRe = /^\s{2}(result|our|their|base)\s+(\d{6})\s([0-9a-f]{40})\s(.
  * @param text the stdout from a `git merge-tree` command
  *
  */
-export function parseMergeResult(text: string): MergeResult {
+export function parseMergeResult(text: string): MergePreview {
   const entries = new Array<IMergeEntry>()
 
   const lines = text.split('\n')

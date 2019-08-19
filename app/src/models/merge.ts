@@ -34,7 +34,7 @@ export type MergeLoading = {
   readonly kind: ComputedAction.Loading
 }
 
-export type MergeResult =
+export type MergePreview =
   | MergeSuccess
   | MergeError
   | MergeUnsupported

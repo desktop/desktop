@@ -189,7 +189,7 @@ import {
 } from '../window-state'
 import { TypedBaseStore } from './base-store'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
-import { MergeResult } from '../../models/merge'
+import { MergePreview } from '../../models/merge'
 import { promiseWithMinimumTimeout, timeout } from '../promise'
 import { BackgroundFetcher } from './helpers/background-fetcher'
 import { inferComparisonBranch } from './helpers/infer-comparison-branch'
@@ -1151,7 +1151,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.currentAheadBehindUpdater.insert(from, to, aheadBehind)
     }
 
-    const loadingMerge: MergeResult = {
+    const loadingMerge: MergePreview = {
       kind: ComputedAction.Loading,
     }
 
@@ -4090,7 +4090,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _mergeBranch(
     repository: Repository,
     branch: string,
-    mergeStatus: MergeResult | null
+    mergeStatus: MergePreview | null
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
 
