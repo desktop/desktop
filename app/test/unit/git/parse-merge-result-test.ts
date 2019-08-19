@@ -4,7 +4,7 @@ import * as glob from 'glob'
 
 import { parseMergeResult } from '../../../src/lib/merge-tree-parser'
 
-import { MergeSuccess, MergeError } from '../../../src/models/merge'
+import { MergeClean, MergeError } from '../../../src/models/merge'
 import { ComputedAction } from '../../../src/models/computed-action'
 
 const filenameRegex = /merge\-(.*)\-into\-(.*).txt/
@@ -45,7 +45,7 @@ describe('parseMergeResult', () => {
     const result = parseMergeResult(input)
     expect(result.kind).toBe(ComputedAction.Clean)
 
-    const mergeResult = result as MergeSuccess
+    const mergeResult = result as MergeClean
     expect(mergeResult.entries).toHaveLength(21)
     mergeResult.entries.forEach(e => {
       expect(e.diff).not.toBe('')
