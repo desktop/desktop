@@ -1,4 +1,6 @@
 import { ComputedAction } from './computed-action'
+import { Branch } from './branch'
+import { CommitOneLine } from './commit'
 
 interface IBlobResult {
   readonly mode: string
@@ -16,26 +18,33 @@ export interface IMergeEntry {
   readonly hasConflicts?: boolean
 }
 
+interface ISupportedMergeInfo {
+  readonly headBranch: Branch
+  readonly commits: ReadonlyArray<CommitOneLine>
+}
+
 export type MergeClean = {
   readonly kind: ComputedAction.Clean
   readonly entries: ReadonlyArray<IMergeEntry>
-}
+} & ISupportedMergeInfo
 
-export type MergeError = {
+export type MergeWithConflicts = {
   readonly kind: ComputedAction.Conflicts
   readonly conflictedFiles: number
-}
+} & ISupportedMergeInfo
 
 export type MergeUnsupported = {
   readonly kind: ComputedAction.Invalid
+  readonly headBranch: Branch
 }
 
 export type MergeLoading = {
   readonly kind: ComputedAction.Loading
+  readonly headBranch: Branch
 }
 
 export type MergePreview =
   | MergeClean
-  | MergeError
+  | MergeWithConflicts
   | MergeUnsupported
   | MergeLoading
