@@ -81,7 +81,7 @@ import {
   CommitStatusStore,
   StatusCallBack,
 } from '../../lib/stores/commit-status-store'
-import { MergeResult } from '../../models/merge'
+import { MergePreview } from '../../models/merge'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { IStashEntry } from '../../models/stash-entry'
@@ -769,7 +769,7 @@ export class Dispatcher {
   public mergeBranch(
     repository: Repository,
     branch: string,
-    mergeStatus: MergeResult | null
+    mergeStatus: MergePreview | null
   ): Promise<void> {
     return this.appStore._mergeBranch(repository, branch, mergeStatus)
   }
