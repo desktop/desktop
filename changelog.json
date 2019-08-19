@@ -1,9 +1,9 @@
 {
   "releases": {
     "2.1.2-beta1": [
-      "[Added] Hide whitespace in historical commits - #8045. Thanks @say25!",
-      "[Fixed] Tiny images in two-up image rendering - #8103",
-      "[Fixed] Manual conflict resolution for binary files always chose same version - #8059",
+      "[Added] Option to hide whitespace in historical commits - #8045. Thanks @say25!",
+      "[Fixed] Small images are scaled down too much in two-up image rendering - #7520",
+      "[Fixed] Manual conflict resolution for binary files always chooses same version - #8059",
       "[Fixed] Disable some unavailable actions while committing - #3814 #5934. Thanks @HashimotoYT!",
       "[Fixed] Branch pruner errors on \"orphaned\" branches - #7983",
       "[Fixed] Prevent CodeMirror search plugin from stealing registered global keyboard shortcuts - #8068",
