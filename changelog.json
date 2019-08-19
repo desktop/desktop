@@ -11,6 +11,9 @@
       "[Improved] Expand hover area on repository list items - #7910. Thanks @say25!",
       "[Improved] Always fast forward recent branches after fetch - #7761"
     ],
+    "2.1.1": [
+      "[Fixed] Update embedded Git on Windows to address security vulnerability - #8101"
+    ],
     "2.1.1-beta4": [
       "[Fixed] Update embedded Git on Windows to address security vulnerability - #8101"
     ],
