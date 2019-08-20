@@ -1,8 +1,6 @@
 {
   "releases": {
-    "2.1.2-beta2": [
-      "[Fixed] Update embedded Git on Windows - #8133"
-    ],
+    "2.1.2-beta2": ["[Fixed] Update embedded Git on Windows - #8133"],
     "2.1.2-beta1": [
       "[Added] Option to hide whitespace in historical commits - #8045. Thanks @say25!",
       "[Fixed] Small images are scaled down too much in two-up image rendering - #7520",
