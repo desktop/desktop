@@ -5,6 +5,7 @@ import {
   getCommitsInRange,
   getMergeBase,
   createWorkTree,
+  ensureWorkTree,
 } from '../../git'
 import { ComputedAction } from '../../../models/computed-action'
 import { Branch } from '../../../models/branch'
@@ -101,17 +102,5 @@ export async function* makeRebasePreviewer({
       kind: ComputedAction.Invalid,
       baseBranch,
     }
-  }
-}
-
-/** find the existing worktree, but if that fails make a new one */
-async function ensureWorkTree(
-  repository: Repository,
-  sha: string
-): Promise<LinkedWorkTree> {
-  try {
-    return await findOrCreateTemporaryWorkTree(repository, sha)
-  } catch (e) {
-    return await createWorkTree(repository, sha)
   }
 }
