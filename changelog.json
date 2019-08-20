@@ -1,5 +1,20 @@
 {
   "releases": {
+    "2.1.2-beta2": ["[Fixed] Update embedded Git on Windows - #8133"],
+    "2.1.2-beta1": [
+      "[Added] Option to hide whitespace in historical commits - #8045. Thanks @say25!",
+      "[Fixed] Small images are scaled down too much in two-up image rendering - #7520",
+      "[Fixed] Manual conflict resolution for binary files always chooses same version - #8059",
+      "[Fixed] Disable some unavailable actions while committing - #3814 #5934. Thanks @HashimotoYT!",
+      "[Fixed] Branch pruner errors on \"orphaned\" branches - #7983",
+      "[Fixed] Prevent CodeMirror search plugin from stealing registered global keyboard shortcuts - #8068",
+      "[Improved] Re-word \"No local changes\" view summary - #8007. Thanks @rexogamer!",
+      "[Improved] Expand hover area on repository list items - #7910. Thanks @say25!",
+      "[Improved] Always fast forward recent branches after fetch - #7761"
+    ],
+    "2.1.1": [
+      "[Fixed] Update embedded Git on Windows to address security vulnerability - #8101"
+    ],
     "2.1.1-beta4": [
       "[Fixed] Update embedded Git on Windows to address security vulnerability - #8101"
     ],
