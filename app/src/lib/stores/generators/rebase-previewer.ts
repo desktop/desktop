@@ -1,15 +1,13 @@
 import {
-  findOrCreateTemporaryWorkTree,
   formatPatch,
   checkPatch,
   getCommitsInRange,
   getMergeBase,
-  createWorkTree,
   ensureWorkTree,
 } from '../../git'
 import { ComputedAction } from '../../../models/computed-action'
 import { Branch } from '../../../models/branch'
-import { Repository, LinkedWorkTree } from '../../../models/repository'
+import { Repository } from '../../../models/repository'
 import { RebasePreview, RebaseLoading } from '../../../models/rebase'
 
 /**
