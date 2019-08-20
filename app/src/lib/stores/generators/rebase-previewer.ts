@@ -4,10 +4,11 @@ import {
   checkPatch,
   getCommitsInRange,
   getMergeBase,
+  createWorkTree,
 } from '../../git'
 import { ComputedAction } from '../../../models/computed-action'
 import { Branch } from '../../../models/branch'
-import { Repository } from '../../../models/repository'
+import { Repository, LinkedWorkTree } from '../../../models/repository'
 import { RebasePreview, RebaseLoading } from '../../../models/rebase'
 
 /**
@@ -16,8 +17,6 @@ import { RebasePreview, RebaseLoading } from '../../../models/rebase'
  * Will `yield loadingStatus` between every git operation until the final result.
  *
  * No outside input is accepted (via the `yield` mechanism) into this generator as it runs.
- *
- * May throw (unexpected) errors, so be ready to `catch` them!
  *
  * @returns a generator you can iterate to get the final answer
  */
@@ -69,10 +68,7 @@ export async function* makeRebasePreviewer({
 
     yield loadingStatus
 
-    const worktree = await findOrCreateTemporaryWorkTree(
-      repository,
-      baseBranch.tip.sha
-    )
+    const worktree = await ensureWorkTree(repository, baseBranch.tip.sha)
 
     yield loadingStatus
 
@@ -105,5 +101,17 @@ export async function* makeRebasePreviewer({
       kind: ComputedAction.Invalid,
       baseBranch,
     }
+  }
+}
+
+/** find the existing worktree, but if that fails make a new one */
+async function ensureWorkTree(
+  repository: Repository,
+  sha: string
+): Promise<LinkedWorkTree> {
+  try {
+    return await findOrCreateTemporaryWorkTree(repository, sha)
+  } catch (e) {
+    return await createWorkTree(repository, sha)
   }
 }
