@@ -94,20 +94,20 @@ export async function destroyWorkTree(
   repository: Repository,
   workTree: LinkedWorkTree
 ): Promise<true> {
-  return await removeWorkTree(repository.path, workTree.path)
+  await removeWorkTree(repository.path, workTree.path)
+  return true
 }
 
 /** Cleanup the temporary worktree at a given location */
 async function removeWorkTree(
   repositoryPath: string,
   workTreePath: string
-): Promise<true> {
+): Promise<void> {
   await git(
     ['worktree', 'remove', '-f', workTreePath],
     repositoryPath,
     'removeWorkTree'
   )
-  return true
 }
 
 const DesktopWorkTreePrefix = 'github-desktop-worktree-'
