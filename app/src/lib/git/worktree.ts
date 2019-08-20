@@ -41,6 +41,39 @@ export async function listWorkTrees(
 }
 
 /**
+ * Creates a temporary work tree for use in Desktop, even if one already exists
+ * for that repository. Won't modify the repository's working directory.
+ * _The returned worktree will be checked out to the given commit._
+ */
+export async function createWorkTree(
+  repository: Repository,
+  commit: string
+): Promise<LinkedWorkTree> {
+  const directory = await FSE.mkdtemp(getTemporaryDirectoryPrefix())
+  await addWorkTree(repository, directory, commit)
+  // Because Git doesn't give enough information from stdout for the previous
+  // Git call, this function enumerates the available worktrees to find the
+  // expected worktree
+
+  // we want these ordered most recently created first
+  const workTrees: ReadonlyArray<LinkedWorkTree> = Array.from(
+    await listWorkTrees(repository)
+  ).reverse()
+
+  const directoryName = Path.basename(directory)
+  const workTree = workTrees.find(t => Path.basename(t.path) === directoryName)
+
+  // intentionally vague here to cover `undefined` and `null`
+  if (!workTree) {
+    throw new Error(
+      `[addWorkTree] Unable to find created worktree at path ${directory}`
+    )
+  }
+
+  return workTree
+}
+
+/**
  * Create a new work tree at the desired location on disk, checked
  * out to the given commit
  */
@@ -48,39 +81,30 @@ async function addWorkTree(
   repository: Repository,
   path: string,
   commit: string
-): Promise<LinkedWorkTree> {
+): Promise<void> {
   await git(
     ['worktree', 'add', '-f', path, commit],
     repository.path,
     'addWorkTree'
   )
+}
 
-  // Because Git doesn't give enough information from stdout for the previous
-  // Git call, this function enumerates the available worktrees to find the
-  // expected worktree
-
-  const workTrees = await listWorkTrees(repository)
-
-  const directoryName = Path.basename(path)
-  const workTree = workTrees.find(t => Path.basename(t.path) === directoryName)
-
-  if (workTree == null) {
-    throw new Error(
-      `[addWorkTree] Unable to find created worktree at path ${path}`
-    )
-  }
-
-  return workTree
+/** Nicer external API for `removeWorkTree` */
+export async function destroyWorkTree(
+  repository: Repository,
+  workTree: LinkedWorkTree
+): Promise<true> {
+  return await removeWorkTree(repository.path, workTree.path)
 }
 
 /** Cleanup the temporary worktree at a given location */
-export async function removeWorkTree(
-  repository: Repository,
-  path: string
+async function removeWorkTree(
+  repositoryPath: string,
+  workTreePath: string
 ): Promise<true> {
   await git(
-    ['worktree', 'remove', '-f', path],
-    repository.path,
+    ['worktree', 'remove', '-f', workTreePath],
+    repositoryPath,
     'removeWorkTree'
   )
   return true
@@ -92,7 +116,9 @@ function getTemporaryDirectoryPrefix() {
   return Path.join(Os.tmpdir(), DesktopWorkTreePrefix)
 }
 
-async function findTemporaryWorkTrees(repository: Repository) {
+async function findTemporaryWorkTrees(
+  repository: Repository
+): Promise<ReadonlyArray<LinkedWorkTree>> {
   const workTrees = await listWorkTrees(repository)
 
   // always exclude the first entry as that will be "main" worktree and we
@@ -122,10 +148,7 @@ export async function findOrCreateTemporaryWorkTree(
   const temporaryWorkTrees = await findTemporaryWorkTrees(repository)
 
   if (temporaryWorkTrees.length === 0) {
-    const tmpdir = getTemporaryDirectoryPrefix()
-    const directory = await FSE.mkdtemp(tmpdir)
-    const workTree = await addWorkTree(repository, directory, commit)
-    return workTree
+    return await createWorkTree(repository, commit)
   }
 
   const worktreeForDesktop = temporaryWorkTrees[0]
@@ -141,7 +164,7 @@ export async function cleanupTemporaryWorkTrees(
 ): Promise<void> {
   const temporaryWorkTrees = await findTemporaryWorkTrees(repository)
 
-  for (const worktree of temporaryWorkTrees) {
-    await removeWorkTree(repository, worktree.path)
+  for (const workTree of temporaryWorkTrees) {
+    await destroyWorkTree(repository, workTree)
   }
 }
