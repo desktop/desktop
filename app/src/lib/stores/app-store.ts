@@ -3038,7 +3038,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (hasDeletedFiles && !transientStashEntry) {
         const gitStore = this.gitStoreCache.get(repository)
         const stashCreated = await gitStore.performFailableOperation(() => {
-          return createDesktopStashEntry(repository, branch.name)
+          return createDesktopStashEntry(
+            repository,
+            branch.name,
+            this.getUntrackedFiles(repository)
+          )
         })
 
         if (stashCreated) {
@@ -5184,6 +5188,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  private getUntrackedFiles(repository: Repository) {
+    const { changesState } = this.repositoryStateCache.get(repository)
+    return changesState.workingDirectory.files
+      .filter(file => file.status.kind === AppFileStatusKind.Untracked)
+      .map(file => file.path)
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _createStashAndDropPreviousEntry(
     repository: Repository,
@@ -5207,7 +5218,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     }
 
-    await createDesktopStashEntry(repository, branchName)
+    await createDesktopStashEntry(
+      repository,
+      branchName,
+      this.getUntrackedFiles(repository)
+    )
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -5221,7 +5236,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const gitStore = this.gitStoreCache.get(repository)
     const isStashCreated = await gitStore.performFailableOperation(() => {
-      return createDesktopStashEntry(repository, branchToCheckout)
+      return createDesktopStashEntry(
+        repository,
+        branchToCheckout,
+        this.getUntrackedFiles(repository)
+      )
     })
 
     if (!isStashCreated) {

@@ -111,11 +111,18 @@ export function createDesktopStashMessage(branchName: string) {
  */
 export async function createDesktopStashEntry(
   repository: Repository,
-  branchName: string
+  branchName: string,
+  untrackedFilesToStage: ReadonlyArray<string>
 ): Promise<true> {
-  // We must ensure that no untracked files are present before stashing
-  // See https://github.com/desktop/desktop/pull/8085
-  await stageUntrackedFiles(repository)
+  // // We must ensure that no untracked files are present before stashing
+  // // See https://github.com/desktop/desktop/pull/8085
+  if (untrackedFilesToStage.length) {
+    await git(
+      ['add', ...untrackedFilesToStage],
+      repository.path,
+      'stageUntrackedFilesBeforeStashing'
+    )
+  }
 
   const message = createDesktopStashMessage(branchName)
   const args = ['stash', 'push', '-m', message]
@@ -146,28 +153,6 @@ export async function createDesktopStashEntry(
   }
 
   return true
-}
-
-async function stageUntrackedFiles(repository: Repository) {
-  // Alternatively, we could simply stage ALL files (`git add .`)
-  // which would be more efficient (fewer git calls)
-  // and simpler app logic (this method would be reduced to `await git(['add', '.'], repository.path)`)
-  // but we would be unnecessarily staging tracked files for users...
-  // Honestly, since Desktop doesn't actually reflect the user's index on disk
-  // and seems to always load with all files indicated as staged, I might advocate for staging everything before stashing
-
-  const { stdout } = await git(
-    ['ls-files', '-z', '--others', '--exclude-standard'],
-    repository.path,
-    'getUntrackedFilesToStage'
-  )
-
-  if (stdout.length) {
-    const untrackedFiles = stdout.slice(0, stdout.length - 1).split('\0')
-
-    const args = ['add', ...untrackedFiles]
-    await git(args, repository.path, 'stageUntrackedFiles')
-  }
 }
 
 async function getStashEntryMatchingSha(repository: Repository, sha: string) {
