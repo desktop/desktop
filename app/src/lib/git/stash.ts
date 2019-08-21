@@ -115,8 +115,10 @@ export async function createDesktopStashEntry(
   repository: Repository,
   branchName: string
 ): Promise<true> {
+  await git(['add', '.'], repository.path, 'stageAllFilesBeforeStashing')
+
   const message = createDesktopStashMessage(branchName)
-  const args = ['stash', 'push', '--include-untracked', '-m', message]
+  const args = ['stash', 'push', '-m', message]
 
   const result = await git(args, repository.path, 'createStashEntry', {
     successExitCodes: new Set<number>([0, 1]),
