@@ -114,8 +114,8 @@ export async function createDesktopStashEntry(
   branchName: string,
   untrackedFilesToStage: ReadonlyArray<string>
 ): Promise<true> {
-  // // We must ensure that no untracked files are present before stashing
-  // // See https://github.com/desktop/desktop/pull/8085
+  // We must ensure that no untracked files are present before stashing
+  // See https://github.com/desktop/desktop/pull/8085
   if (untrackedFilesToStage.length) {
     await git(
       ['add', ...untrackedFilesToStage],
