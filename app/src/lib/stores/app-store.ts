@@ -3052,7 +3052,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return null
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
+  /**
+   * refetches the associated GitHub remote repository, if possible
+   *
+   * if refetching fails, will return the given `repository` with
+   * the same info it was passed in with
+   *
+   * @param repository
+   * @returns repository model (hopefully with fresh `gitHubRepository` info)
+   */
   private async repositoryWithRefreshedGitHubRepository(
     repository: Repository
   ): Promise<Repository> {
