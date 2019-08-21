@@ -64,6 +64,7 @@ import {
   getSymbolicRef,
   getConfigValue,
   removeRemote,
+  getChangedFiles,
 } from '../git'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import { UpstreamAlreadyExistsError } from './upstream-already-exists-error'
@@ -79,7 +80,7 @@ import { GitAuthor } from '../../models/git-author'
 import { IGitAccount } from '../../models/git-account'
 import { BaseStore } from './base-store'
 import { enableStashing } from '../feature-flag'
-import { getStashes, getStashedFiles } from '../git/stash'
+import { getStashes } from '../git/stash'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { PullRequest } from '../../models/pull-request'
 
@@ -1051,7 +1052,7 @@ export class GitStore extends BaseStore {
     })
     this.emitUpdate()
 
-    const files = await getStashedFiles(this.repository, stashEntry.stashSha)
+    const files = await getChangedFiles(this.repository, stashEntry.stashSha)
 
     // It's possible that we've refreshed the list of stash entries since we
     // started getStashedFiles. Load the latest entry for the branch and make
