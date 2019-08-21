@@ -6,10 +6,8 @@ import {
   StashedChangesLoadStates,
   StashedFileChanges,
 } from '../../models/stash-entry'
-import { CommittedFileChange } from '../../models/status'
 
 import { git, GitError } from './core'
-import { parseChangedFiles } from './log'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 
