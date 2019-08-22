@@ -105,3 +105,7 @@ export function enableBranchProtectionWarningFlow(): boolean {
 export function enableHideWhitespaceInDiffOption(): boolean {
   return enableBetaFeatures()
 }
+
+export function enableTutorial(): boolean {
+  return enableDevelopmentFeatures()
+}
