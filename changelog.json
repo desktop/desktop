@@ -1,5 +1,23 @@
 {
   "releases": {
+    "2.1.2": [
+      "[Added] Syntax highlighting support for 20 more programming languages - #7217. Thanks @KennethSweezy!",
+      "[Added] Kitty shell support for macOS - #5162",
+      "[Added] Atom editor support on Windows for beta and nightly channels - #8010. Thanks @Rexogamer!",
+      "[Fixed] File checkboxes and line selection in diffs are not disabled when committing - #3814 #5934. Thanks @HashimotoYT!",
+      "[Fixed] Small images are scaled down too much in two-up image rendering - #7520",
+      "[Fixed] Manual conflict resolution for binary files always chooses same version - #8059",
+      "[Fixed] Branch pruner errors on \"orphaned\" branches - #7983",
+      "[Fixed] Prevent CodeMirror search plugin from stealing registered global keyboard shortcuts - #8068",
+      "[Fixed] Update embedded Git on Windows to remove erroneous errors - #8133",
+      "[Fixed] Menu state not updated for macOS after performing some actions - #8055",
+      "[Fixed] Error message could appear outside the boundary of its container - #7988",
+      "[Fixed] Improved error handling when trying to rebase a ref that doesn't exist - #7881",
+      "[Improved] Expand hover area on repository list items - #7910. Thanks @say25!",
+      "[Improved] Always fast forward recent branches after fetch - #7761",
+      "[Improved] Ensure recent branches are updated during remote interactions - #8081"
+    ],
+    "2.1.2-beta2": ["[Fixed] Update embedded Git on Windows - #8133"],
     "2.1.2-beta1": [
       "[Added] Option to hide whitespace in historical commits - #8045. Thanks @say25!",
       "[Fixed] Small images are scaled down too much in two-up image rendering - #7520",
