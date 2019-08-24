@@ -8,6 +8,7 @@ export enum ExternalEditor {
   MacVim = 'MacVim',
   VSCode = 'Visual Studio Code',
   VSCodeInsiders = 'Visual Studio Code (Insiders)',
+  VSCodium = 'VSCodium',
   SublimeText = 'Sublime Text',
   BBEdit = 'BBEdit',
   PhpStorm = 'PhpStorm',
@@ -31,7 +32,11 @@ export function parse(label: string): ExternalEditor | null {
   }
   if (label === ExternalEditor.VSCodeInsiders) {
     return ExternalEditor.VSCodeInsiders
+
+  if (label === ExternalEditor.VSCodium) {
+    return ExternalEditor.VSCodium
   }
+
   if (label === ExternalEditor.SublimeText) {
     return ExternalEditor.SublimeText
   }
@@ -77,6 +82,8 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['com.microsoft.VSCode']
     case ExternalEditor.VSCodeInsiders:
       return ['com.microsoft.VSCodeInsiders']
+    case ExternalEditor.VSCodium:
+      return ['com.visualstudio.code.oss']
     case ExternalEditor.SublimeText:
       return ['com.sublimetext.3']
     case ExternalEditor.BBEdit:
@@ -121,6 +128,15 @@ function getExecutableShim(
         'app',
         'bin',
         'code'
+      )
+    case ExternalEditor.vscodium:
+      return Path.join(
+        installPath,
+        'Contents',
+        'Resources',
+        'app',
+        'bin',
+        'codium'
       )
     case ExternalEditor.MacVim:
       return Path.join(installPath, 'Contents', 'MacOS', 'MacVim')
@@ -181,6 +197,7 @@ export async function getAvailableEditors(): Promise<
     macVimPath,
     codePath,
     codeInsidersPath,
+    codiumPath,
     sublimePath,
     bbeditPath,
     phpStormPath,
@@ -195,6 +212,7 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.MacVim),
     findApplication(ExternalEditor.VSCode),
     findApplication(ExternalEditor.VSCodeInsiders),
+    findApplication(ExternalEditor.VSCodium),
     findApplication(ExternalEditor.SublimeText),
     findApplication(ExternalEditor.BBEdit),
     findApplication(ExternalEditor.PhpStorm),
@@ -220,6 +238,10 @@ export async function getAvailableEditors(): Promise<
 
   if (codeInsidersPath) {
     results.push({ editor: ExternalEditor.VSCodeInsiders, path: codeInsidersPath, })
+  }
+
+  if (codiumPath) {
+    results.push({ editor: ExternalEditor.VSCodium, path: codiumPath,})
   }
 
   if (sublimePath) {
