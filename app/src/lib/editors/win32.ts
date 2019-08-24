@@ -16,8 +16,8 @@ export enum ExternalEditor {
   Atom = 'Atom',
   AtomBeta = 'Atom Beta',
   AtomNightly = 'Atom Nightly',
-  VisualStudioCode = 'Visual Studio Code',
-  VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
+  VSCode = 'Visual Studio Code',
+  VSCodeInsiders = 'Visual Studio Code (Insiders)',
   VSCodium = 'Visual Studio Codium',
   SublimeText = 'Sublime Text',
   CFBuilder = 'ColdFusion Builder',
@@ -36,11 +36,11 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.AtomNightly) {
     return ExternalEditor.AtomNightly
   }
-  if (label === ExternalEditor.VisualStudioCode) {
-    return ExternalEditor.VisualStudioCode
+  if (label === ExternalEditor.VSCode) {
+    return ExternalEditor.VSCode
   }
-  if (label === ExternalEditor.VisualStudioCodeInsiders) {
-    return ExternalEditor.VisualStudioCodeInsiders
+  if (label === ExternalEditor.VSCodeInsiders) {
+    return ExternalEditor.VSCodeInsiders
   }
   if (label === ExternalEditor.VSCodium) {
     return ExternalEditor.VSCodium
@@ -97,7 +97,7 @@ function getRegistryKeys(
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\atom-nightly',
         },
       ]
-    case ExternalEditor.VisualStudioCode:
+    case ExternalEditor.VSCode:
       return [
         // 64-bit version of VSCode (user) - provided by default in 64-bit Windows
         {
@@ -124,7 +124,7 @@ function getRegistryKeys(
             'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{F8A2A208-72B3-4D61-95FC-8A65D340689B}_is1',
         },
       ]
-    case ExternalEditor.VisualStudioCodeInsiders:
+    case ExternalEditor.VSCodeInsiders:
       return [
         // 64-bit version of VSCode (user) - provided by default in 64-bit Windows
         {
@@ -298,9 +298,9 @@ function getExecutableShim(
       return Path.join(installLocation, 'bin', 'atom-beta.cmd') // remember, CMD must 'useShell'
     case ExternalEditor.AtomNightly:
       return Path.join(installLocation, 'bin', 'atom-nightly.cmd') // remember, CMD must 'useShell'
-    case ExternalEditor.VisualStudioCode:
+    case ExternalEditor.VSCode:
       return Path.join(installLocation, 'bin', 'code.cmd') // remember, CMD must 'useShell'
-    case ExternalEditor.VisualStudioCodeInsiders:
+    case ExternalEditor.VSCodeInsiders:
       return Path.join(installLocation, 'bin', 'code-insiders.cmd') // remember, CMD must 'useShell'
     case ExternalEditor.VSCodium:
       return Path.join(installLocation, 'bin', 'codium.cmd') // remember, CMD must 'useShell'
@@ -338,12 +338,12 @@ function isExpectedInstallation(
       return displayName === 'Atom Beta' && publisher === 'GitHub Inc.'
     case ExternalEditor.AtomNightly:
       return displayName === 'Atom Nightly' && publisher === 'GitHub Inc.'
-    case ExternalEditor.VisualStudioCode:
+    case ExternalEditor.VSCode:
       return (
         displayName.startsWith('Microsoft Visual Studio Code') &&
         publisher === 'Microsoft Corporation'
       )
-    case ExternalEditor.VisualStudioCodeInsiders:
+    case ExternalEditor.VSCodeInsiders:
       return (
         displayName.startsWith('Microsoft Visual Studio Code Insiders') &&
         publisher === 'Microsoft Corporation'
@@ -352,6 +352,7 @@ function isExpectedInstallation(
       return (
         displayName.startsWith === 'Visual Source Codium' &&
         publisher === 'Unknown'
+      )
     case ExternalEditor.SublimeText:
       return (
         displayName === 'Sublime Text' && publisher === 'Sublime HQ Pty Ltd'
@@ -395,21 +396,11 @@ function extractApplicationInformation(
   editor: ExternalEditor,
   keys: ReadonlyArray<RegistryValue>
 ): { displayName: string; publisher: string; installLocation: string } {
-  if (editor === ExternalEditor.Atom) {
-    const displayName = getKeyOrEmpty(keys, 'DisplayName')
-    const publisher = getKeyOrEmpty(keys, 'Publisher')
-    const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
-    return { displayName, publisher, installLocation }
-  }
-
-  if (editor === ExternalEditor.AtomBeta) {
-    const displayName = getKeyOrEmpty(keys, 'DisplayName')
-    const publisher = getKeyOrEmpty(keys, 'Publisher')
-    const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
-    return { displayName, publisher, installLocation }
-  }
-
-  if (editor === ExternalEditor.AtomNightly) {
+  if (
+    editor === ExternalEditor.Atom ||
+    editor === ExternalEditor.AtomBeta ||
+    editor === ExternalEditor.AtomNightly
+  ) {
     const displayName = getKeyOrEmpty(keys, 'DisplayName')
     const publisher = getKeyOrEmpty(keys, 'Publisher')
     const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
@@ -417,8 +408,17 @@ function extractApplicationInformation(
   }
 
   if (
-    editor === ExternalEditor.VisualStudioCode ||
-    editor === ExternalEditor.VisualStudioCodeInsiders
+    editor === ExternalEditor.VSCode ||
+    editor === ExternalEditor.VSCodeInsiders
+  ) {
+    const displayName = getKeyOrEmpty(keys, 'DisplayName')
+    const publisher = getKeyOrEmpty(keys, 'Publisher')
+    const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
+    return { displayName, publisher, installLocation }
+  }
+ 
+  if (
+    editor === ExternalEditor.VSCodium
   ) {
     const displayName = getKeyOrEmpty(keys, 'DisplayName')
     const publisher = getKeyOrEmpty(keys, 'Publisher')
@@ -564,6 +564,7 @@ export async function getAvailableEditors(): Promise<
     atomNightlyPath,
     codePath,
     codeInsidersPath,
+    codiumPath,
     sublimePath,
     cfBuilderPath,
     typoraPath,
@@ -572,8 +573,9 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.AtomBeta),
     findApplication(ExternalEditor.AtomNightly),
-    findApplication(ExternalEditor.VisualStudioCode),
-    findApplication(ExternalEditor.VisualStudioCodeInsiders),
+    findApplication(ExternalEditor.VSCode),
+    findApplication(ExternalEditor.VSCodeInsiders),
+    findApplication(ExternalEditor.VSCodium),
     findApplication(ExternalEditor.SublimeText),
     findApplication(ExternalEditor.CFBuilder),
     findApplication(ExternalEditor.Typora),
@@ -606,7 +608,7 @@ export async function getAvailableEditors(): Promise<
 
   if (codePath) {
     results.push({
-      editor: ExternalEditor.VisualStudioCode,
+      editor: ExternalEditor.VSCode,
       path: codePath,
       usesShell: true,
     })
@@ -614,12 +616,20 @@ export async function getAvailableEditors(): Promise<
 
   if (codeInsidersPath) {
     results.push({
-      editor: ExternalEditor.VisualStudioCodeInsiders,
+      editor: ExternalEditor.VSCodeInsiders,
       path: codeInsidersPath,
       usesShell: true,
     })
   }
 
+  if (codiumPath) {
+    results.push({
+      editor: ExternalEditor.VSCodium,
+      path: codeInsidersPath,
+      usesShell: true,
+    })
+  }
+  
   if (sublimePath) {
     results.push({
       editor: ExternalEditor.SublimeText,
