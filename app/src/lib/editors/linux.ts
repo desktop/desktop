@@ -7,6 +7,7 @@ export enum ExternalEditor {
   Atom = 'Atom',
   VSCode = 'Visual Studio Code',
   VSCodeInsiders = 'Visual Studio Code (Insiders)',
+  VSCodium = 'VSCodium',
   SublimeText = 'Sublime Text',
   Typora = 'Typora',
   SlickEdit = 'SlickEdit',
