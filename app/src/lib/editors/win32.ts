@@ -151,6 +151,33 @@ function getRegistryKeys(
             'SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{C26E74D1-022E-4238-8B9D-1E7564A36CC9}_is1',
         },
       ]
+    case ExternalEditor.VSCode:
+      return [
+        // 64-bit version of VSCodium (user)
+        {
+          key: HKEY.HKEY_CURRENT_USER,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{2E1F05D1-C245-4562-81EE-28188DB6FD17}_is1',
+        },
+        // 32-bit version of VSCodium (user)
+        {
+          key: HKEY.HKEY_CURRENT_USER,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{C6065F05-9603-4FC4-8101-B9781A25D88E}}_is1',
+        },
+        // 64-bit version of VSCodium (system)
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{D77B7E06-80BA-4137-BCF4-654B95CCEBC5}_is1',
+        },
+        // 32-bit version of VSCodium (system)
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{E34003BB-9E10-4501-8C11-BE3FAA83F23F}_is1',
+        },
+      ]
     case ExternalEditor.SublimeText:
       return [
         {
