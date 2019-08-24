@@ -6,8 +6,8 @@ import { assertNever } from '../fatal-error'
 export enum ExternalEditor {
   Atom = 'Atom',
   MacVim = 'MacVim',
-  VisualStudioCode = 'Visual Studio Code',
-  VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
+  VSCode = 'Visual Studio Code',
+  VSCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
   BBEdit = 'BBEdit',
   PhpStorm = 'PhpStorm',
@@ -26,11 +26,11 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.MacVim) {
     return ExternalEditor.MacVim
   }
-  if (label === ExternalEditor.VisualStudioCode) {
-    return ExternalEditor.VisualStudioCode
+  if (label === ExternalEditor.VSCode) {
+    return ExternalEditor.VSCode
   }
-  if (label === ExternalEditor.VisualStudioCodeInsiders) {
-    return ExternalEditor.VisualStudioCodeInsiders
+  if (label === ExternalEditor.VSCodeInsiders) {
+    return ExternalEditor.VSCodeInsiders
   }
   if (label === ExternalEditor.SublimeText) {
     return ExternalEditor.SublimeText
@@ -73,9 +73,9 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['com.github.atom']
     case ExternalEditor.MacVim:
       return ['org.vim.MacVim']
-    case ExternalEditor.VisualStudioCode:
+    case ExternalEditor.VSCode:
       return ['com.microsoft.VSCode']
-    case ExternalEditor.VisualStudioCodeInsiders:
+    case ExternalEditor.VSCodeInsiders:
       return ['com.microsoft.VSCodeInsiders']
     case ExternalEditor.SublimeText:
       return ['com.sublimetext.3']
@@ -112,8 +112,8 @@ function getExecutableShim(
   switch (editor) {
     case ExternalEditor.Atom:
       return Path.join(installPath, 'Contents', 'Resources', 'app', 'atom.sh')
-    case ExternalEditor.VisualStudioCode:
-    case ExternalEditor.VisualStudioCodeInsiders:
+    case ExternalEditor.VSCode:
+    case ExternalEditor.VSCodeInsiders:
       return Path.join(
         installPath,
         'Contents',
@@ -193,8 +193,8 @@ export async function getAvailableEditors(): Promise<
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.MacVim),
-    findApplication(ExternalEditor.VisualStudioCode),
-    findApplication(ExternalEditor.VisualStudioCodeInsiders),
+    findApplication(ExternalEditor.VSCode),
+    findApplication(ExternalEditor.VSCodeInsiders),
     findApplication(ExternalEditor.SublimeText),
     findApplication(ExternalEditor.BBEdit),
     findApplication(ExternalEditor.PhpStorm),
@@ -215,14 +215,11 @@ export async function getAvailableEditors(): Promise<
   }
 
   if (codePath) {
-    results.push({ editor: ExternalEditor.VisualStudioCode, path: codePath })
+    results.push({ editor: ExternalEditor.VSCode, path: codePath })
   }
 
   if (codeInsidersPath) {
-    results.push({
-      editor: ExternalEditor.VisualStudioCodeInsiders,
-      path: codeInsidersPath,
-    })
+    results.push({ editor: ExternalEditor.VSCodeInsiders, path: codeInsidersPath, })
   }
 
   if (sublimePath) {
