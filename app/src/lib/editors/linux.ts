@@ -119,6 +119,7 @@ export async function getAvailableEditors(): Promise<
   if (codiumPath) {
     results.push({ editor: ExternalEditor.VSCodium, path: codiumPath })
   }
+
   if (sublimePath) {
     results.push({ editor: ExternalEditor.SublimeText, path: sublimePath })
   }
