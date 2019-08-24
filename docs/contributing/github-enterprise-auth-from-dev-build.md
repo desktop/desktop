@@ -2,6 +2,8 @@
 
 So you want to do some testing using GitHub Enterprise in your dev build of GitHub Desktop... here's how!
 
+"GitHub Desktop" is an authorized OAuth app for ghe.io allowing us to login from stable and beta instances of Desktop. However, "GitHub Desktop-dev" is not authorized. So, in order to sign into GitHub Enterprise Server from our development build, we must go through a few extra steps:
+
 1. Find or create an organization on the GHE instance that you are an owner of
 1. [Create a new OAuth app](https://developer.github.com/apps/building-oauth-apps/creating-an-oauth-app/) in the organization. Input `x-github-client://oauth` as the authorization callback URL:
    <img width="558" alt="New_OAuth_Application" src="https://user-images.githubusercontent.com/7910250/63631725-2ffd8200-c5e0-11e9-92e4-b2e5b61d9c89.png">
