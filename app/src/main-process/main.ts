@@ -185,16 +185,18 @@ if (__DARWIN__) {
  *             path
  */
 function handlePossibleProtocolLauncherArgs(args: ReadonlyArray<string>) {
-  log.info(`Received possible protocol arguments: ${args.length}`)
-
   if (__WIN32__) {
     // Desktop registers it's protocol handler callback on Windows as
-    // `[executable path] --protocol-launcher "%1"`. At launch it checks
-    // for that exact scenario here before doing any processing, and only
-    // processing the first argument. If there's more than 3 args because of a
-    // malformed or untrusted url then we bail out.
-    if (args.length === 3 && args[1] === '--protocol-launcher') {
-      handleAppURL(args[2])
+    // `[executable path] --protocol-launcher "%1"`. Since there might
+    // be other arguments in the mix from Electron, we find this flag
+    // and grab the path from the following argument in the list
+    const protocolArgIndex = args.findIndex(a => a === '--protocol-launcher')
+    const pathArgIndex = protocolArgIndex + 1
+    const maxIndex = args.length - 1 // 0 indexing :sideye:
+    if (protocolArgIndex > -1 && !(pathArgIndex > maxIndex)) {
+      handleAppURL(args[pathArgIndex])
+    } else {
+      log.error(`Malformed launch arguments: ${args}`)
     }
   } else if (args.length > 1) {
     handleAppURL(args[1])
