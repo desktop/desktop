@@ -218,6 +218,8 @@ function handlePossibleProtocolLauncherArgs(args: ReadonlyArray<string>) {
 
     if (args.includes('--protocol-launcher') && matchingUrls.length === 1) {
       handleAppURL(matchingUrls[0])
+    } else {
+      log.error(`Malformed launch arguments received: ${args}`)
     }
   } else if (args.length > 1) {
     handleAppURL(args[1])
