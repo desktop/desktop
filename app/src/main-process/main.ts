@@ -73,6 +73,9 @@ function getExtraErrorContext(): Record<string, string> {
   }
 }
 
+/** Extra argument for the protocol launcher on Windows */
+const protocolLauncherArg = '--protocol-launcher'
+
 const possibleProtocols = new Set(['x-github-client'])
 if (__DEV__) {
   possibleProtocols.add('x-github-desktop-dev-auth')
@@ -216,7 +219,7 @@ function handlePossibleProtocolLauncherArgs(args: ReadonlyArray<string>) {
       return url.protocol && possibleProtocols.has(url.protocol.slice(0, -1))
     })
 
-    if (args.includes('--protocol-launcher') && matchingUrls.length === 1) {
+    if (args.includes(protocolLauncherArg) && matchingUrls.length === 1) {
       handleAppURL(matchingUrls[0])
     } else {
       log.error(`Malformed launch arguments received: ${args}`)
@@ -233,7 +236,7 @@ function handlePossibleProtocolLauncherArgs(args: ReadonlyArray<string>) {
 function setAsDefaultProtocolClient(protocol: string) {
   if (__WIN32__) {
     app.setAsDefaultProtocolClient(protocol, process.execPath, [
-      '--protocol-launcher',
+      protocolLauncherArg,
     ])
   } else {
     app.setAsDefaultProtocolClient(protocol)
