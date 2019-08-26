@@ -3605,11 +3605,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
 
       const defaultBranch = state.branchesState.defaultBranch
-      eligibleBranches =
+      const recentEligibleBranches = state.branchesState.recentBranches.filter(
+        b => eligibleForFastForward(b, currentBranchName)
+      )
+      eligibleBranches = 
         defaultBranch != null &&
         eligibleForFastForward(defaultBranch, currentBranchName)
-          ? [defaultBranch, ...state.branchesState.recentBranches]
-          : []
+          ? [defaultBranch, ...recentEligibleBranches]
+          : recentEligibleBranches
     }
 
     for (const branch of eligibleBranches) {
