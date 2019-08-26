@@ -212,6 +212,7 @@ function handlePossibleProtocolLauncherArgs(args: ReadonlyArray<string>) {
 
     const matchingUrls = args.filter(arg => {
       const url = URL.parse(arg)
+      // i think this `slice` is just removing a trailing `:`
       return url.protocol && possibleProtocols.has(url.protocol.slice(0, -1))
     })
 
