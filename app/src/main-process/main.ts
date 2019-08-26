@@ -216,7 +216,7 @@ function handlePossibleProtocolLauncherArgs(args: ReadonlyArray<string>) {
       return url.protocol && possibleProtocols.has(url.protocol.slice(0, -1))
     })
 
-    if (args[1] === '--protocol-launcher' && matchingUrls.length === 1) {
+    if (args.includes('--protocol-launcher') && matchingUrls.length === 1) {
       handleAppURL(matchingUrls[0])
     }
   } else if (args.length > 1) {
