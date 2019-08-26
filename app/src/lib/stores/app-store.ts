@@ -240,13 +240,6 @@ import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
 import { findBranchesForFastForward } from './helpers/find-branches-for-fast-forward'
 
-/**
- * As fast-forwarding local branches is proportional to the number of local
- * branches, and is run after every fetch/push/pull, this is skipped when the
- * number of eligible branches is greater than a given threshold.
- */
-const FastForwardBranchesThreshold = 20
-
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
 const RecentRepositoriesKey = 'recently-selected-repositories'
