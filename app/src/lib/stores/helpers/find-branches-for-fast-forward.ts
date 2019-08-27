@@ -36,31 +36,11 @@ export function findBranchesForFastForward(
     } eligible branches (Threshold is ${FastForwardBranchesThreshold} eligible branches).`
   )
 
-  // add default branch to list of recents
-  const shortListBranches = addBranchIfEligibleAndUniqueish(
-    defaultBranch,
-    recentBranches
-  )
+  const shortListBranches =
+    defaultBranch !== null ? [...recentBranches, defaultBranch] : recentBranches
 
-  // make sure they are all eligible
   const eligibleShortListBranches = shortListBranches.filter(b =>
     eligibleForFastForward(b, currentBranchName)
   )
-
   return eligibleShortListBranches
-}
-
-/**
- * this really just exists to make sure we don't
- * duplicate a recent branch when we add the
- * default branch to this list
- */
-function addBranchIfEligibleAndUniqueish(
-  candidateBranch: Branch | null,
-  branches: ReadonlyArray<Branch>
-): ReadonlyArray<Branch> {
-  if (candidateBranch && !branches.some(b => b.name === candidateBranch.name)) {
-    return [candidateBranch, ...branches]
-  }
-  return branches
 }
