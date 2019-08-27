@@ -3578,9 +3578,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async fastForwardBranches(repository: Repository) {
     const { branchesState } = this.repositoryStateCache.get(repository)
 
-    const eligibleBranches = findBranchesForFastForward(
-      branchesState
-    )
+    const eligibleBranches = findBranchesForFastForward(branchesState)
 
     for (const branch of eligibleBranches) {
       const aheadBehind = await getBranchAheadBehind(repository, branch)
