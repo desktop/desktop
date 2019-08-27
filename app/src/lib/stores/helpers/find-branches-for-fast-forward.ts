@@ -36,6 +36,8 @@ export function findBranchesForFastForward(
     } eligible branches (Threshold is ${FastForwardBranchesThreshold} eligible branches).`
   )
 
+  // we don't have to worry about this being a duplicate, because recent branches
+  // never include the default branch (at least right now)
   const shortListBranches =
     defaultBranch !== null ? [...recentBranches, defaultBranch] : recentBranches
 
