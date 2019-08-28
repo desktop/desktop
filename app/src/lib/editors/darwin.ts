@@ -130,7 +130,7 @@ function getExecutableShim(
         'bin',
         'code'
       )
-    case ExternalEditor.vscodium:
+    case ExternalEditor.VSCodium:
       return Path.join(
         installPath,
         'Contents',
