@@ -151,7 +151,7 @@ function getRegistryKeys(
             'SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{C26E74D1-022E-4238-8B9D-1E7564A36CC9}_is1',
         },
       ]
-    case ExternalEditor.VSCode:
+    case ExternalEditor.VSCodium:
       return [
         // 64-bit version of VSCodium (user)
         {
@@ -184,14 +184,6 @@ function getRegistryKeys(
           key: HKEY.HKEY_LOCAL_MACHINE,
           subKey:
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Sublime Text 3_is1',
-        },
-      ]
-    case ExternalEditor.VSCodium:
-      return [
-        {
-          key: HKEY.HKEY_LOCAL_MACHINE,
-          subKey:
-            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\placeholder',
         },
       ]
     case ExternalEditor.CFBuilder:
@@ -378,7 +370,7 @@ function isExpectedInstallation(
     case ExternalEditor.VSCodium:
       return (
         displayName.startsWith === 'Visual Source Codium' &&
-        publisher === 'Unknown'
+        publisher === 'VSCodium'
       )
     case ExternalEditor.SublimeText:
       return (
@@ -650,7 +642,7 @@ export async function getAvailableEditors(): Promise<
   if (codiumPath) {
     results.push({
       editor: ExternalEditor.VSCodium,
-      path: codeInsidersPath,
+      path: codiumPath,
       usesShell: true,
     })
   }
