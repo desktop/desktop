@@ -369,7 +369,7 @@ function isExpectedInstallation(
       )
     case ExternalEditor.VSCodium:
       return (
-        displayName.startsWith === 'Visual Source Codium' &&
+        displayName === 'Visual Source Codium' &&
         publisher === 'VSCodium'
       )
     case ExternalEditor.SublimeText:
