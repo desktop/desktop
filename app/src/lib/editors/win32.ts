@@ -443,10 +443,8 @@ function extractApplicationInformation(
     const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
     return { displayName, publisher, installLocation }
   }
- 
-  if (
-    editor === ExternalEditor.VSCodium
-  ) {
+
+  if (editor === ExternalEditor.VSCodium) {
     const displayName = getKeyOrEmpty(keys, 'DisplayName')
     const publisher = getKeyOrEmpty(keys, 'Publisher')
     const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
@@ -656,7 +654,7 @@ export async function getAvailableEditors(): Promise<
       usesShell: true,
     })
   }
-  
+
   if (sublimePath) {
     results.push({
       editor: ExternalEditor.SublimeText,

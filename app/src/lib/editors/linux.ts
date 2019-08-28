@@ -25,7 +25,7 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.VSCodeInsiders) {
     return ExternalEditor.VSCode
   }
-  
+
   if (label === ExternalEditor.VSCodium) {
     return ExternalEditor.VSCodium
   }
