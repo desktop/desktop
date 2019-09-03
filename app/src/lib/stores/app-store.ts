@@ -3136,6 +3136,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const endpoint = matchedGitHubRepository.endpoint
+    const gitStore = this.gitStoreCache.get(repository)
+    if (gitStore.currentRemote) {
+      const updatedRemoteUrl = await this.repositoriesStore.updateRemoteUrl(
+        repository,
+        apiRepo
+      )
+      if (updatedRemoteUrl) {
+        this._setRemoteURL(
+          repository,
+          gitStore.currentRemote.name,
+          updatedRemoteUrl
+        )
+      }
+    }
+
     const updatedRepository = await this.repositoriesStore.updateGitHubRepository(
       repository,
       endpoint,
@@ -3143,20 +3158,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     await this.updateBranchProtectionsFromAPI(repository)
-
-    const gitStore = this.gitStoreCache.get(repository)
-
-    if (
-      gitStore.currentRemote &&
-      repository.gitHubRepository &&
-      repository.gitHubRepository.cloneURL !== apiRepo.clone_url
-    ) {
-      await this._setRemoteURL(
-        repository,
-        gitStore.currentRemote.name,
-        apiRepo.clone_url
-      )
-    }
 
     return updatedRepository
   }
