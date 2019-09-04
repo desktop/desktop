@@ -7,8 +7,8 @@ export const updateRemoteUrl = async (
   repository: Repository,
   apiRepo: IAPIRepository
 ): Promise<void> => {
-  // I'm not sure when these early exit conditions would be met, but if there are
-  // we don't have enough information to continue.
+  // I'm not sure when these early exit conditions would be met. But when they are
+  // we don't have enough information to continue so exit early!
   if (!gitStore.currentRemote) {
     return
   }
