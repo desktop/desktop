@@ -22,6 +22,10 @@
 
     @include octicon-status;
 
+    .checkbox-component {
+      margin-right: var(--spacing-half);
+    }
+
     .octicon {
       flex-shrink: 0;
       vertical-align: text-bottom;

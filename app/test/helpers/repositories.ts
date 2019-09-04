@@ -183,13 +183,6 @@ export async function setupConflictedRepoWithMultipleFiles(): Promise<
   Repository
 > {
   const repo = await setupEmptyRepository()
-  const filePaths = [
-    Path.join(repo.path, 'foo'),
-    Path.join(repo.path, 'bar'),
-    Path.join(repo.path, 'baz'),
-    Path.join(repo.path, 'cat'),
-    Path.join(repo.path, 'dog'),
-  ]
 
   const firstCommit = {
     entries: [{ path: 'foo', contents: 'b0' }, { path: 'bar', contents: 'b0' }],
@@ -225,9 +218,34 @@ export async function setupConflictedRepoWithMultipleFiles(): Promise<
 
   await makeCommit(repo, thirdCommit)
 
-  await FSE.writeFile(filePaths[4], 'touch')
+  await FSE.writeFile(Path.join(repo.path, 'dog'), 'touch')
 
   await GitProcess.exec(['merge', 'master'], repo.path)
 
+  return repo
+}
+/**
+ * Setup a repo with a single commit
+ *
+ * files are `great-file` and `good-file`, which are both added in the one commit
+ */
+export async function setupTwoCommitRepo(): Promise<Repository> {
+  const repo = await setupEmptyRepository()
+
+  const firstCommit = {
+    entries: [
+      { path: 'good-file', contents: 'wishes it was great' },
+      { path: 'great-file', contents: 'wishes it was good' },
+    ],
+  }
+  const secondCommit = {
+    entries: [
+      { path: 'good-file', contents: 'is great' },
+      { path: 'great-file', contents: 'is good' },
+    ],
+  }
+
+  await makeCommit(repo, firstCommit)
+  await makeCommit(repo, secondCommit)
   return repo
 }

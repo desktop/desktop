@@ -14,11 +14,7 @@ import {
 import { Account } from '../../models/account'
 import { AppMenu, IMenu } from '../../models/app-menu'
 import { IAuthor } from '../../models/author'
-import {
-  Branch,
-  eligibleForFastForward,
-  IAheadBehind,
-} from '../../models/branch'
+import { Branch, IAheadBehind } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloningRepository } from '../../models/cloning-repository'
@@ -220,6 +216,7 @@ import {
   enableStashing,
   enableBranchProtectionChecks,
   enableBranchProtectionWarningFlow,
+  enableHideWhitespaceInDiffOption,
 } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import * as moment from 'moment'
@@ -241,13 +238,7 @@ import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
-
-/**
- * As fast-forwarding local branches is proportional to the number of local
- * branches, and is run after every fetch/push/pull, this is skipped when the
- * number of eligible branches is greater than a given threshold.
- */
-const FastForwardBranchesThreshold = 20
+import { findBranchesForFastForward } from './helpers/find-branches-for-fast-forward'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -279,6 +270,9 @@ const externalEditorKey: string = 'externalEditor'
 
 const imageDiffTypeDefault = ImageDiffType.TwoUp
 const imageDiffTypeKey = 'image-diff-type'
+
+const hideWhitespaceInDiffDefault = false
+const hideWhitespaceInDiffKey = 'hide-whitespace-in-diff'
 
 const shellKey = 'shell'
 
@@ -353,6 +347,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
+  private hideWhitespaceInDiff: boolean = hideWhitespaceInDiffDefault
 
   private selectedExternalEditor?: ExternalEditor
 
@@ -613,6 +608,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
       selectedExternalEditor: this.selectedExternalEditor,
       imageDiffType: this.imageDiffType,
+      hideWhitespaceInDiff: this.hideWhitespaceInDiff,
       selectedShell: this.selectedShell,
       repositoryFilterText: this.repositoryFilterText,
       resolvedExternalEditor: this.resolvedExternalEditor,
@@ -1253,7 +1249,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    const diff = await getCommitDiff(repository, file, sha)
+    const diff = await getCommitDiff(
+      repository,
+      file,
+      sha,
+      enableHideWhitespaceInDiffOption() ? this.hideWhitespaceInDiff : false
+    )
 
     const stateAfterLoad = this.repositoryStateCache.get(repository)
 
@@ -1657,6 +1658,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       imageDiffTypeValue === null
         ? imageDiffTypeDefault
         : parseInt(imageDiffTypeValue)
+
+    this.hideWhitespaceInDiff = getBoolean(hideWhitespaceInDiffKey, false)
 
     this.automaticallySwitchTheme = getAutoSwitchPersistedTheme()
 
@@ -2897,11 +2900,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     let stashToPop: IStashEntry | null = null
     if (enableStashing()) {
       const hasChanges = changesState.workingDirectory.files.length > 0
-      if (
-        hasChanges &&
-        uncommittedChangesStrategy.kind ===
-          UncommittedChangesStrategyKind.AskForConfirmation
-      ) {
+      if (hasChanges && uncommittedChangesStrategy.kind === askToStash.kind) {
         this._showPopup({
           type: PopupType.StashAndSwitchBranch,
           branchToCheckout: foundBranch,
@@ -2910,41 +2909,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
         return repository
       }
 
-      const { tip } = branchesState
-      const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
-      if (
-        currentBranch !== null &&
-        uncommittedChangesStrategy.kind ===
-          UncommittedChangesStrategyKind.StashOnCurrentBranch
-      ) {
-        await this._createStashAndDropPreviousEntry(
-          repository,
-          currentBranch.name
-        )
-        this.statsStore.recordStashCreatedOnCurrentBranch()
-      } else if (
-        uncommittedChangesStrategy.kind ===
-        UncommittedChangesStrategyKind.MoveToNewBranch
-      ) {
-        const hasDeletedFiles = changesState.workingDirectory.files.some(
-          file => file.status.kind === AppFileStatusKind.Deleted
-        )
-        if (
-          hasDeletedFiles &&
-          uncommittedChangesStrategy.transientStashEntry === null
-        ) {
-          const stashCreated = await gitStore.performFailableOperation(() => {
-            return createDesktopStashEntry(repository, foundBranch.name)
-          })
-
-          if (stashCreated) {
-            stashToPop = await getLastDesktopStashEntryForBranch(
-              repository,
-              foundBranch.name
-            )
-          }
-        }
-      }
+      stashToPop = await this.stashToPopAfterBranchCheckout(
+        repository,
+        foundBranch,
+        uncommittedChangesStrategy
+      )
     }
 
     const checkoutSucceeded =
@@ -2982,8 +2951,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // call this method again once the working directory has been cleared.
       this.statsStore.recordChangesTakenToNewBranch()
 
-      stashToPop = stashToPop || uncommittedChangesStrategy.transientStashEntry
-      if (stashToPop !== null) {
+      if (stashToPop) {
         const stashSha = stashToPop.stashSha
         await gitStore.performFailableOperation(() => {
           return popStashEntry(repository, stashSha)
@@ -3022,6 +2990,56 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.hasUserViewedStash = false
 
     return repository
+  }
+
+  // Depending on the UncommittedChangesStrategy and the state of the uncomitted
+  // changes there could be a stash to pop after checking out a branch. This method
+  // handles retrieving or creating the stash so it can be popped after the checkout
+  // is complete.
+  private async stashToPopAfterBranchCheckout(
+    repository: Repository,
+    branch: Branch,
+    uncommittedChangesStrategy: UncommittedChangesStrategy = askToStash
+  ): Promise<IStashEntry | null> {
+    const {
+      changesState,
+      branchesState: { tip },
+    } = this.repositoryStateCache.get(repository)
+    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+
+    if (
+      currentBranch !== null &&
+      uncommittedChangesStrategy.kind ===
+        UncommittedChangesStrategyKind.StashOnCurrentBranch
+    ) {
+      await this._createStashAndDropPreviousEntry(
+        repository,
+        currentBranch.name
+      )
+      this.statsStore.recordStashCreatedOnCurrentBranch()
+    } else if (
+      uncommittedChangesStrategy.kind ===
+      UncommittedChangesStrategyKind.MoveToNewBranch
+    ) {
+      const hasDeletedFiles = changesState.workingDirectory.files.some(
+        file => file.status.kind === AppFileStatusKind.Deleted
+      )
+      const { transientStashEntry } = uncommittedChangesStrategy
+      if (hasDeletedFiles && !transientStashEntry) {
+        const gitStore = this.gitStoreCache.get(repository)
+        const stashCreated = await gitStore.performFailableOperation(() => {
+          return createDesktopStashEntry(repository, branch.name)
+        })
+
+        if (stashCreated) {
+          return getLastDesktopStashEntryForBranch(repository, branch.name)
+        }
+      }
+
+      return transientStashEntry
+    }
+
+    return null
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -3558,31 +3576,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async fastForwardBranches(repository: Repository) {
-    const state = this.repositoryStateCache.get(repository)
-    const branches = state.branchesState.allBranches
+    const { branchesState } = this.repositoryStateCache.get(repository)
 
-    const tip = state.branchesState.tip
-    const currentBranchName =
-      tip.kind === TipState.Valid ? tip.branch.name : null
-
-    let eligibleBranches = branches.filter(b =>
-      eligibleForFastForward(b, currentBranchName)
-    )
-
-    if (eligibleBranches.length >= FastForwardBranchesThreshold) {
-      log.info(
-        `skipping fast-forward for all branches as there are ${
-          eligibleBranches.length
-        } local branches - this will run again when there are less than ${FastForwardBranchesThreshold} local branches tracking remotes`
-      )
-
-      const defaultBranch = state.branchesState.defaultBranch
-      eligibleBranches =
-        defaultBranch != null &&
-        eligibleForFastForward(defaultBranch, currentBranchName)
-          ? [defaultBranch]
-          : []
-    }
+    const eligibleBranches = findBranchesForFastForward(branchesState)
 
     for (const branch of eligibleBranches) {
       const aheadBehind = await getBranchAheadBehind(repository, branch)
@@ -4304,6 +4300,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     return Promise.resolve()
+  }
+
+  public _setHideWhitespaceInDiff(
+    hideWhitespaceInDiff: boolean,
+    repository: Repository,
+    file: CommittedFileChange | null
+  ): Promise<void> {
+    setBoolean(hideWhitespaceInDiffKey, hideWhitespaceInDiff)
+    this.hideWhitespaceInDiff = hideWhitespaceInDiff
+
+    if (file === null) {
+      return this.updateChangesWorkingDirectoryDiff(repository)
+    } else {
+      return this._changeFileSelection(repository, file)
+    }
   }
 
   public _setUpdateBannerVisibility(visibility: boolean) {
