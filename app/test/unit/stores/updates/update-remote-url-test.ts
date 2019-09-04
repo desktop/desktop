@@ -28,40 +28,51 @@ describe('Update remote url', () => {
   }
 
   let gitStore: GitStore
-  let repositoriesStore: RepositoriesStore
-  let repository: Repository
 
-  beforeEach(async () => {
+  const createRepository = async (remoteUrl = 'https://whatever.git') => {
     const db = new TestRepositoriesDatabase()
     await db.reset()
-    repositoriesStore = new RepositoriesStore(db)
+    const repositoriesStore = new RepositoriesStore(db)
 
     const repoPath = await setupFixtureRepository('test-repo')
     const blankRepo = await repositoriesStore.addRepository(repoPath)
-    repository = await repositoriesStore.updateGitHubRepository(
+    const repository = await repositoriesStore.updateGitHubRepository(
       blankRepo,
       '',
       apiRepository
     )
-    await addRemote(repository, 'origin', 'https://whatever.git')
-
+    await addRemote(repository, 'origin', remoteUrl)
     gitStore = new GitStore(repository, shell)
     await gitStore.loadRemotes()
-  })
+
+    return { repository, gitStore }
+  }
 
   it("updates the repository's remote url when the cloned url changes", async () => {
+    const { repository, gitStore } = await createRepository()
     const originalUrl = gitStore.defaultRemote!.url
     const updatedUrl = 'https://github.com/my-user/my-updated-repo'
-    const updatedGitHubRepo = { ...apiRepository, clone_url: updatedUrl }
-    await updateRemoteUrl(gitStore, repository, updatedGitHubRepo)
+    const updatedApiRepository = { ...apiRepository, clone_url: updatedUrl }
+    await updateRemoteUrl(gitStore, repository, updatedApiRepository)
     expect(originalUrl).not.toBe(updatedUrl)
     expect(gitStore.defaultRemote!.url).toBe(updatedUrl)
   })
 
   it("doesn't update the repository's remote url when the cloned url is the same", async () => {
+    const { repository, gitStore } = await createRepository()
     const originalUrl = gitStore.defaultRemote!.url
     expect(originalUrl).not.toBeEmpty()
     await updateRemoteUrl(gitStore, repository, apiRepository)
+    expect(gitStore.defaultRemote!.url).toBe(originalUrl)
+  })
+
+  it("doesn't update the repository's remote url when the protocol is something other than https", async () => {
+    const originalUrl = 'git@github.com:desktop/desktop.git'
+    const { repository, gitStore } = await createRepository(originalUrl)
+    const updatedUrl = 'https://github.com/my-user/my-updated-repo'
+    const updatedApiRepository = { ...apiRepository, clone_url: updatedUrl }
+
+    await updateRemoteUrl(gitStore, repository, updatedApiRepository)
     expect(gitStore.defaultRemote!.url).toBe(originalUrl)
   })
 })
