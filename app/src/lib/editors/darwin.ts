@@ -244,7 +244,7 @@ export async function getAvailableEditors(): Promise<
   if (codeExplorationPath) {
     results.push({
       editor: ExternalEditor.VisualStudioCodeExploration,
-      path: codeInsidersPath,
+      path: codeExplorationPath,
     })
   }
 
