@@ -47,7 +47,7 @@ describe('Update remote url', () => {
     return { repository, gitStore }
   }
 
-  it("updates the repository's remote url when the cloned url changes", async () => {
+  it("updates the repository's remote url when the github url changes", async () => {
     const { repository, gitStore } = await createRepository()
     const originalUrl = gitStore.currentRemote!.url
     const updatedUrl = 'https://github.com/my-user/my-updated-repo'
@@ -57,7 +57,7 @@ describe('Update remote url', () => {
     expect(gitStore.currentRemote!.url).toBe(updatedUrl)
   })
 
-  it("doesn't update the repository's remote url when the cloned url is the same", async () => {
+  it("doesn't update the repository's remote url when the github url is the same", async () => {
     const { repository, gitStore } = await createRepository()
     const originalUrl = gitStore.currentRemote!.url
     expect(originalUrl).not.toBeEmpty()
@@ -75,7 +75,7 @@ describe('Update remote url', () => {
     expect(gitStore.currentRemote!.url).toBe(originalUrl)
   })
 
-  it("doesn't update the repository's remote url if the clone_url is different than the default remote url", async () => {
+  it("doesn't update the repository's remote url if the github url is different than the default remote url", async () => {
     const originalUrl = 'https://github.com/my-user/something-different'
     const { repository, gitStore } = await createRepository(originalUrl)
 
