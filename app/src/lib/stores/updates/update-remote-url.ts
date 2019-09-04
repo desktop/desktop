@@ -2,32 +2,20 @@ import { Repository } from '../../../models/repository'
 import { IAPIRepository } from '../../api'
 import { GitStore } from '../git-store'
 
-const updateRemoteUrl = (
+const updateRemoteUrl = async (
   gitStore: GitStore,
   repository: Repository,
   apiRepo: IAPIRepository
-) => {
-  if (gitStore.currentRemote) {
-    const updatedRemoteUrl = await this.repositoriesStore.updateRemoteUrl(
-      repository,
-      apiRepo
-    )
-    if (updatedRemoteUrl) {
-      this._setRemoteURL(
-        repository,
-        gitStore.currentRemote.name,
-        updatedRemoteUrl
-      )
-    }
-  }
+): Promise<void> => {
+  // I'm not sure when these early exit conditions would be met, but if there are
+  // we don't have enough information to continue.
+  if (!gitStore.currentRemote) return
+  if (!repository.gitHubRepository) return
 
-  if (
-    repository.gitHubRepository &&
-    repository.gitHubRepository.cloneURL !== apiRepo.clone_url
-  ) {
-    return apiRepo.clone_url
-  } else {
-    return null
+  const currentRemoteUrl = repository.gitHubRepository.cloneURL
+  const updatedRemoteUrl = apiRepo.clone_url
+  if (currentRemoteUrl !== updatedRemoteUrl) {
+    await gitStore.setRemoteURL(gitStore.currentRemote.name, updatedRemoteUrl)
   }
 }
 

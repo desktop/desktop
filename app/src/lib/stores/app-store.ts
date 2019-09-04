@@ -242,6 +242,7 @@ import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
+import updateRemoteUrl from './updates/update-remote-url'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
@@ -3135,22 +3136,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
-    const endpoint = matchedGitHubRepository.endpoint
-    const gitStore = this.gitStoreCache.get(repository)
-    if (gitStore.currentRemote) {
-      const updatedRemoteUrl = await this.repositoriesStore.updateRemoteUrl(
-        repository,
-        apiRepo
-      )
-      if (updatedRemoteUrl) {
-        this._setRemoteURL(
-          repository,
-          gitStore.currentRemote.name,
-          updatedRemoteUrl
-        )
-      }
-    }
+    await updateRemoteUrl(
+      this.gitStoreCache.get(repository),
+      repository,
+      apiRepo
+    )
 
+    const endpoint = matchedGitHubRepository.endpoint
     const updatedRepository = await this.repositoriesStore.updateGitHubRepository(
       repository,
       endpoint,
