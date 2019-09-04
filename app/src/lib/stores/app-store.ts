@@ -242,7 +242,7 @@ import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
-import updateRemoteUrl from './updates/update-remote-url'
+import {updateRemoteUrl} from './updates/update-remote-url'
 
 /**
  * As fast-forwarding local branches is proportional to the number of local
