@@ -29,7 +29,7 @@ describe('Update remote url', () => {
 
   let gitStore: GitStore
 
-  const createRepository = async (remoteUrl = 'https://whatever.git') => {
+  const createRepository = async (remoteUrl = apiRepository.clone_url) => {
     const db = new TestRepositoriesDatabase()
     await db.reset()
     const repositoriesStore = new RepositoriesStore(db)

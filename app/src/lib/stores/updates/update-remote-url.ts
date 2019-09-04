@@ -12,9 +12,10 @@ const updateRemoteUrl = async (
   if (!gitStore.defaultRemote) return
   if (!repository.gitHubRepository) return
 
-  const remoteUrl = repository.gitHubRepository.cloneURL
+  const remoteUrl = gitStore.defaultRemote.url
   const updatedRemoteUrl = apiRepo.clone_url
-  if (remoteUrl !== updatedRemoteUrl) {
+  const isHttpsProtocol = remoteUrl && remoteUrl.startsWith('https://')
+  if (isHttpsProtocol && remoteUrl !== updatedRemoteUrl) {
     await gitStore.setRemoteURL(gitStore.defaultRemote.name, updatedRemoteUrl)
   }
 }
