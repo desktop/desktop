@@ -8,6 +8,7 @@ export enum ExternalEditor {
   MacVim = 'MacVim',
   VisualStudioCode = 'Visual Studio Code',
   VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
+  VisualStudioCodeInsiders = 'Visual Studio Code (Exploration)',
   SublimeText = 'Sublime Text',
   BBEdit = 'BBEdit',
   PhpStorm = 'PhpStorm',
@@ -31,6 +32,9 @@ export function parse(label: string): ExternalEditor | null {
   }
   if (label === ExternalEditor.VisualStudioCodeInsiders) {
     return ExternalEditor.VisualStudioCodeInsiders
+  }
+  if (label === ExternalEditor.VisualStudioCodeExploration) {
+    return ExternalEditor.VisualStudioCodeExploration
   }
   if (label === ExternalEditor.SublimeText) {
     return ExternalEditor.SublimeText
@@ -77,6 +81,8 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['com.microsoft.VSCode']
     case ExternalEditor.VisualStudioCodeInsiders:
       return ['com.microsoft.VSCodeInsiders']
+    case ExternalEditor.VisualStudioCodeExploration:
+      return ['com.microsoft.VSCodeExploration']
     case ExternalEditor.SublimeText:
       return ['com.sublimetext.3']
     case ExternalEditor.BBEdit:
@@ -114,6 +120,15 @@ function getExecutableShim(
       return Path.join(installPath, 'Contents', 'Resources', 'app', 'atom.sh')
     case ExternalEditor.VisualStudioCode:
     case ExternalEditor.VisualStudioCodeInsiders:
+      return Path.join(
+        installPath,
+        'Contents',
+        'Resources',
+        'app',
+        'bin',
+        'code'
+      )
+    case ExternalEditor.VisualStudioCodeExploration:
       return Path.join(
         installPath,
         'Contents',
@@ -195,6 +210,7 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.MacVim),
     findApplication(ExternalEditor.VisualStudioCode),
     findApplication(ExternalEditor.VisualStudioCodeInsiders),
+    findApplication(ExternalEditor.VisualStudioCodeExploration),
     findApplication(ExternalEditor.SublimeText),
     findApplication(ExternalEditor.BBEdit),
     findApplication(ExternalEditor.PhpStorm),
@@ -221,6 +237,13 @@ export async function getAvailableEditors(): Promise<
   if (codeInsidersPath) {
     results.push({
       editor: ExternalEditor.VisualStudioCodeInsiders,
+      path: codeInsidersPath,
+    })
+  }
+  
+  if (codeExplorationPath) {
+    results.push({
+      editor: ExternalEditor.VisualStudioCodeExploration,
       path: codeInsidersPath,
     })
   }
