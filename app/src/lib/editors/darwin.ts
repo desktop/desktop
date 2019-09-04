@@ -196,6 +196,7 @@ export async function getAvailableEditors(): Promise<
     macVimPath,
     codePath,
     codeInsidersPath,
+    codeExplorationPath,
     sublimePath,
     bbeditPath,
     phpStormPath,
