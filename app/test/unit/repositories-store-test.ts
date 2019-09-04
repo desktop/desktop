@@ -95,35 +95,5 @@ describe('RepositoriesStore', () => {
         updatedSecondRepo.gitHubRepository!.dbID
       )
     })
-
-    it("updates the repository's remote url when the cloned url changes", async () => {
-      const repo = await repositoriesStore!.updateGitHubRepository(
-        await repositoriesStore!.addRepository('/some/cool/path'),
-        'https://api.github.com',
-        gitHubRepo
-      )
-
-      const updatedGitHubRepo = {
-        ...gitHubRepo,
-        clone_url: 'https://github.com/my-user/my-updated-repo',
-      }
-
-      const newUrl = repositoriesStore.updateRemoteUrl(repo, updatedGitHubRepo)
-
-      expect(gitHubRepo.clone_url).not.toBe(updatedGitHubRepo.clone_url)
-      expect(newUrl).toBe(updatedGitHubRepo.clone_url)
-    })
-
-    it("doesn't update the repository's remote url when the cloned url is the same", async () => {
-      const repo = await repositoriesStore!.addRepository('/some/cool/path')
-
-      await repositoriesStore!.updateGitHubRepository(
-        repo,
-        'https://api.github.com',
-        gitHubRepo
-      )
-
-      expect(repositoriesStore.updateRemoteUrl(repo, gitHubRepo)).toBeNull()
-    })
   })
 })

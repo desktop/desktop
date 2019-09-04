@@ -563,20 +563,6 @@ export class RepositoriesStore extends BaseStore {
     return record!.lastPruneDate
   }
 
-  public updateRemoteUrl(
-    repository: Repository,
-    apiRepo: IAPIRepository
-  ): string | null {
-    if (
-      repository.gitHubRepository &&
-      repository.gitHubRepository.cloneURL !== apiRepo.clone_url
-    ) {
-      return apiRepo.clone_url
-    } else {
-      return null
-    }
-  }
-
   /**
    * Load the branch protection information for a repository from the database
    * and cache the results in memory
