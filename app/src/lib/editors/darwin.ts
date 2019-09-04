@@ -8,7 +8,7 @@ export enum ExternalEditor {
   MacVim = 'MacVim',
   VisualStudioCode = 'Visual Studio Code',
   VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
-  VisualStudioCodeInsiders = 'Visual Studio Code (Exploration)',
+  VisualStudioCodeExploration = 'Visual Studio Code (Exploration)',
   SublimeText = 'Sublime Text',
   BBEdit = 'BBEdit',
   PhpStorm = 'PhpStorm',
