@@ -270,7 +270,7 @@ export async function getAvailableEditors(): Promise<
   if (codeRunnerPath) {
     results.push({ editor: ExternalEditor.CodeRunner, path: codeRunnerPath })
   }
-  
+
   if (slickeditPath) {
     results.push({ editor: ExternalEditor.SlickEdit, path: slickeditPath })
   }
