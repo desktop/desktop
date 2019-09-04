@@ -9,13 +9,13 @@ const updateRemoteUrl = async (
 ): Promise<void> => {
   // I'm not sure when these early exit conditions would be met, but if there are
   // we don't have enough information to continue.
-  if (!gitStore.currentRemote) return
+  if (!gitStore.defaultRemote) return
   if (!repository.gitHubRepository) return
 
-  const currentRemoteUrl = repository.gitHubRepository.cloneURL
+  const remoteUrl = repository.gitHubRepository.cloneURL
   const updatedRemoteUrl = apiRepo.clone_url
-  if (currentRemoteUrl !== updatedRemoteUrl) {
-    await gitStore.setRemoteURL(gitStore.currentRemote.name, updatedRemoteUrl)
+  if (remoteUrl !== updatedRemoteUrl) {
+    await gitStore.setRemoteURL(gitStore.defaultRemote.name, updatedRemoteUrl)
   }
 }
 

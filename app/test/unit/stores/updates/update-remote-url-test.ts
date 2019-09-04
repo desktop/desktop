@@ -4,10 +4,7 @@ import { IAPIRepository } from '../../../../src/lib/api'
 import updateRemoteUrl from '../../../../src/lib/stores/updates/update-remote-url'
 import { Repository } from '../../../../src/models/repository'
 import { shell } from '../../../helpers/test-app-shell'
-import {
-  setupEmptyRepository,
-  setupFixtureRepository,
-} from '../../../helpers/repositories'
+import { setupFixtureRepository } from '../../../helpers/repositories'
 import { addRemote } from '../../../../src/lib/git'
 
 describe('Update remote url', () => {
@@ -46,28 +43,25 @@ describe('Update remote url', () => {
       '',
       apiRepository
     )
-    addRemote(repository, 'origin', 'https://whatever.git')
+    await addRemote(repository, 'origin', 'https://whatever.git')
 
     gitStore = new GitStore(repository, shell)
     await gitStore.loadRemotes()
   })
 
   it("updates the repository's remote url when the cloned url changes", async () => {
-    // const clone_url = 'https://github.com/my-user/my-updated-repo'
-    // const updatedGitHubRepo = { ...gitHubRepo, clone_url }
-    // const newUrl = await updateRemoteUrl(
-    //   gitStore,
-    //   repository,
-    //   updatedGitHubRepo
-    // )
-    // expect(gitHubRepo.clone_url).not.toBe(updatedGitHubRepo.clone_url)
-    // expect(newUrl).toBe(updatedGitHubRepo.clone_url)
+    const originalUrl = gitStore.defaultRemote!.url
+    const updatedUrl = 'https://github.com/my-user/my-updated-repo'
+    const updatedGitHubRepo = { ...apiRepository, clone_url: updatedUrl }
+    await updateRemoteUrl(gitStore, repository, updatedGitHubRepo)
+    expect(originalUrl).not.toBe(updatedUrl)
+    expect(gitStore.defaultRemote!.url).toBe(updatedUrl)
   })
 
-  fit("doesn't update the repository's remote url when the cloned url is the same", async () => {
-    const originalUrl = gitStore.currentRemote!.url
+  it("doesn't update the repository's remote url when the cloned url is the same", async () => {
+    const originalUrl = gitStore.defaultRemote!.url
     expect(originalUrl).not.toBeEmpty()
     await updateRemoteUrl(gitStore, repository, apiRepository)
-    expect(gitStore.currentRemote!.url).toBe(originalUrl)
+    expect(gitStore.defaultRemote!.url).toBe(originalUrl)
   })
 })
