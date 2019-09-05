@@ -321,7 +321,6 @@ export class BlankSlateView extends React.Component<
     }
   }
 
-  private onShowClone = () => this.props.onClone()
 
   private renderButtonGroupButton(
     symbol: OcticonSymbol,
@@ -345,7 +344,7 @@ export class BlankSlateView extends React.Component<
       __DARWIN__
         ? 'Clone a Repository from the Internet…'
         : 'Clone a repository from the Internet…',
-      this.onShowClone
+      this.props.onClone
     )
   }
 
