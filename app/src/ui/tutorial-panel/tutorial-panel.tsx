@@ -2,7 +2,7 @@ import * as React from 'react'
 
 export function renderTutorialPanel() {
   return (
-    <div id="tutorial-steps" className="panel">
+    <div id="tutorial" className="panel">
       <ol>
         <li>Step 1</li>
         <li>Step 2</li>
