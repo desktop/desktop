@@ -273,31 +273,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     )
   }
 
-  private async updateMergeStatus(branch: Branch) {
-    this.setState({ mergeStatus: { kind: ComputedAction.Loading } })
-
-    const { currentBranch } = this.props
-
-    if (currentBranch != null) {
-      const mergeStatus = await promiseWithMinimumTimeout(
-        () => mergeTree(this.props.repository, currentBranch, branch),
-        500
-      )
-
-      this.setState({ mergeStatus })
-    }
-
-    const range = revSymmetricDifference('', branch.name)
-    const aheadBehind = await getAheadBehind(this.props.repository, range)
-    const commitCount = aheadBehind ? aheadBehind.behind : 0
-
-    if (this.state.selectedBranch !== branch) {
-      // The branch changed while we were waiting on the result of `getAheadBehind`.
-      this.setState({ commitCount: undefined })
-    } else {
-      this.setState({ commitCount })
-    }
-  }
+  private async updateMergeStatus(branch: Branch) {}
 
   private merge = () => {
     const branch = resolveSelectedBranch(this.props)
