@@ -6,6 +6,8 @@ const environmentVariables = {
   GIT_COMMITTER_EMAIL: 'joe.bloggs@somewhere.com',
   // signalling to dugite to use the bundled Git environment
   TEST_ENV: '1',
+  HOME: '',
+  USERPROFILE: '',
 }
 
 process.env = { ...process.env, ...environmentVariables }

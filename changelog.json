@@ -1,5 +1,13 @@
 {
   "releases": {
+    "2.1.3": [
+      "[Fixed] Changes from remote branch erroneously displayed on corresponding branch on Desktop - #8155 #8167",
+      "[Fixed] Sign-in flow for Windows users not possible via OAuth - #8154 #8142"
+    ],
+    "2.1.3-beta1": [
+      "[Fixed] Changes from remote branch erroneously displayed on corresponding branch on Desktop - #8155 #8167",
+      "[Fixed] Sign-in flow for Windows users not possible via OAuth - #8154 #8142"
+    ],
     "2.1.2": [
       "[Added] Syntax highlighting support for 20 more programming languages - #7217. Thanks @KennethSweezy!",
       "[Added] Kitty shell support for macOS - #5162",
