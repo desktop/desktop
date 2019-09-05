@@ -1,16 +1,26 @@
 import * as React from 'react'
 
-export function renderTutorialPanel() {
-  return (
-    <div id="tutorial" className="panel">
-      <ol>
-        <li>Step 1</li>
-        <li>Step 2</li>
-        <li>Step 3</li>
-        <li>Step 4</li>
-        <li>Step 5</li>
-        <li>Step 6</li>
-      </ol>
-    </div>
-  )
-}
+export const TutorialPanel: React.SFC<{}> = props => (
+  <div id="tutorial" className="panel">
+    <ol>
+      <ListItem summaryText="Step 1" />
+      <ListItem summaryText="Step 2" />
+      <ListItem summaryText="Step 3" />
+      <ListItem summaryText="Step 4" />
+      <ListItem summaryText="Step 5" />
+      <ListItem summaryText="Step 6" />
+    </ol>
+  </div>
+)
+
+const ListItem: React.SFC<{
+  readonly summaryText: string
+  readonly open?: boolean
+}> = props => (
+  <li key={props.summaryText}>
+    <details open={props.open}>
+      <summary>{props.summaryText}</summary>
+      {`description and details for ${props.summaryText} here!`}
+    </details>
+  </li>
+)
