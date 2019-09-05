@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Repository as Repo } from '../models/repository'
+import { Repository } from '../models/repository'
 import { Commit } from '../models/commit'
 import { TipState } from '../models/tip'
 import { UiView } from './ui-view'
@@ -31,7 +31,7 @@ import { renderTutorialPanel } from './tutorial-panel'
 const MaxSidebarWidth = 495
 
 interface IRepositoryViewProps {
-  readonly repository: Repo
+  readonly repository: Repository
   readonly state: IRepositoryState
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, string>
