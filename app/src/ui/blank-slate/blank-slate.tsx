@@ -323,40 +323,59 @@ export class BlankSlateView extends React.Component<
 
   private onShowClone = () => this.props.onClone()
 
+  private renderButtonGroupButton(
+    symbol: OcticonSymbol,
+    title: string,
+    onClick: () => void,
+    type?: 'submit'
+  ) {
+    return (
+      <li>
+        <Button onClick={onClick} type={type}>
+          <Octicon symbol={symbol} />
+          <div>{title}</div>
+        </Button>
+      </li>
+    )
+  }
+
+  private renderCloneButton() {
+    return this.renderButtonGroupButton(
+      OcticonSymbol.repoClone,
+      __DARWIN__
+        ? 'Clone a Repository from the Internet…'
+        : 'Clone a repository from the Internet…',
+      this.onShowClone
+    )
+  }
+
+  private renderCreateRepositoryButton() {
+    return this.renderButtonGroupButton(
+      OcticonSymbol.plus,
+      __DARWIN__
+        ? 'Create a New Repository on your Hard Drive…'
+        : 'Create a New Repository on your hard drive…',
+      this.props.onCreate
+    )
+  }
+
+  private renderAddExistingRepositoryButton() {
+    return this.renderButtonGroupButton(
+      OcticonSymbol.fileDirectory,
+      __DARWIN__
+        ? 'Add an Existing Repository from your Hard Drive…'
+        : 'Add an Existing Repository from your hard drive…',
+      this.props.onAdd
+    )
+  }
+
   private renderRightPanel() {
     return (
       <div className="content-pane right">
         <ul className="button-group">
-          <li>
-            <Button onClick={this.onShowClone}>
-              <Octicon symbol={OcticonSymbol.repoClone} />
-              <div>
-                {__DARWIN__
-                  ? 'Clone a Repository from the Internet…'
-                  : 'Clone a repository from the Internet…'}
-              </div>
-            </Button>
-          </li>
-          <li>
-            <Button onClick={this.props.onCreate}>
-              <Octicon symbol={OcticonSymbol.plus} />
-              <div>
-                {__DARWIN__
-                  ? 'Create a New Repository on your Hard Drive…'
-                  : 'Create a New Repository on your hard drive…'}
-              </div>
-            </Button>
-          </li>
-          <li>
-            <Button onClick={this.props.onAdd}>
-              <Octicon symbol={OcticonSymbol.fileDirectory} />
-              <div>
-                {__DARWIN__
-                  ? 'Add an Existing Repository from your Hard Drive…'
-                  : 'Add an Existing Repository from your hard drive…'}
-              </div>
-            </Button>
-          </li>
+          {this.renderCloneButton()}
+          {this.renderCreateRepositoryButton()}
+          {this.renderAddExistingRepositoryButton()}
         </ul>
 
         <div className="drag-drop-info">
