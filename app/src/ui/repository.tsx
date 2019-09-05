@@ -367,7 +367,7 @@ export class RepositoryView extends React.Component<
       <UiView id="repository" onKeyDown={this.onKeyDown}>
         {this.renderSidebar()}
         {this.renderContent()}
-        {maybeRenderTutorialPanel(this.props.repository)}
+        {maybeRenderTutorialPanel(this.props.repository, this.props.dispatcher)}
       </UiView>
     )
   }
@@ -412,9 +412,12 @@ export class RepositoryView extends React.Component<
   }
 }
 
-function maybeRenderTutorialPanel(repository: Repository): JSX.Element | null {
+function maybeRenderTutorialPanel(
+  repository: Repository,
+  dispatcher: Dispatcher
+): JSX.Element | null {
   if (enableTutorial() && repository.isTutorialRepository) {
-    return <TutorialPanel />
+    return <TutorialPanel dispatcher={dispatcher} repository={repository} />
   }
   return null
 }

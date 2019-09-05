@@ -1,12 +1,29 @@
 import * as React from 'react'
+import { join } from 'path'
 import { LinkButton } from '../lib/link-button'
 import { Button } from '../lib/button'
 import { Monospaced } from '../lib/monospaced'
+import { Repository } from '../../models/repository'
+import { Dispatcher } from '../dispatcher'
 
-export class TutorialPanel extends React.Component<{}, { openId: string }> {
-  public constructor(props: {}) {
+interface ITutorialPanelProps {
+  readonly dispatcher: Dispatcher
+  readonly repository: Repository
+}
+
+export class TutorialPanel extends React.Component<
+  ITutorialPanelProps,
+  { openId: string }
+> {
+  public constructor(props: ITutorialPanelProps) {
     super(props)
     this.state = { openId: 'step-1' }
+  }
+
+  private openFileInEditor = () => {
+    this.props.dispatcher.openInExternalEditor(
+      join(this.props.repository.path, 'README.md')
+    )
   }
 
   public render() {
@@ -58,7 +75,7 @@ export class TutorialPanel extends React.Component<{}, { openId: string }> {
               Open this repository in your preferred text editor. Edit the{' '}
               <Monospaced>README.md</Monospaced> file, save it, and come back.
             </div>
-            <Button>Open Editor</Button>
+            <Button onClick={this.openFileInEditor}>Open Editor</Button>
             <kbd>⇧⌘A</kbd>
           </ListItem>
           <ListItem
