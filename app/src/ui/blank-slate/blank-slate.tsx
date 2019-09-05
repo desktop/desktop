@@ -321,6 +321,7 @@ export class BlankSlateView extends React.Component<
     }
   }
 
+  private onCreateTutorialRepository = () => {}
 
   private renderButtonGroupButton(
     symbol: OcticonSymbol,
@@ -335,6 +336,25 @@ export class BlankSlateView extends React.Component<
           <div>{title}</div>
         </Button>
       </li>
+    )
+  }
+
+  private renderCreateTutorialRepositoryButton() {
+    // No tutorial if you're not signed in.
+    if (
+      this.props.dotComAccount === null &&
+      this.props.enterpriseAccount === null
+    ) {
+      return null
+    }
+
+    return this.renderButtonGroupButton(
+      OcticonSymbol.mortarBoard,
+      __DARWIN__
+        ? 'Create a Tutorial Repository…'
+        : 'Create a tutorial repository…',
+      this.onCreateTutorialRepository,
+      'submit'
     )
   }
 
@@ -372,6 +392,7 @@ export class BlankSlateView extends React.Component<
     return (
       <div className="content-pane right">
         <ul className="button-group">
+          {this.renderCreateTutorialRepositoryButton()}
           {this.renderCloneButton()}
           {this.renderCreateRepositoryButton()}
           {this.renderAddExistingRepositoryButton()}
