@@ -46,7 +46,7 @@ export class TutorialPanel extends React.Component<{}, { openId: string }> {
               Create a branch by going into the branch menu in the top bar and
               clicking New Branch.
             </div>
-            <div>⇧⌘N</div>
+            <kbd>⇧⌘N</kbd>
           </ListItem>
           <ListItem
             summaryText="Step 3"
@@ -59,7 +59,7 @@ export class TutorialPanel extends React.Component<{}, { openId: string }> {
               <Monospaced>README.md</Monospaced> file, save it, and come back.
             </div>
             <Button>Open Editor</Button>
-            <div>⇧⌘A</div>
+            <kbd>⇧⌘A</kbd>
           </ListItem>
           <ListItem
             summaryText="Step 4"
@@ -71,7 +71,7 @@ export class TutorialPanel extends React.Component<{}, { openId: string }> {
               Write a message that describes the changes you made. When you’re
               done, click the commit button to finish.
             </div>
-            <div>⌘ Enter</div>
+            <kbd>⌘ Enter</kbd>
           </ListItem>
           <ListItem
             summaryText="Step 5"
@@ -83,7 +83,7 @@ export class TutorialPanel extends React.Component<{}, { openId: string }> {
               Pushing your commits updates the repository on GitHub with any
               commits made on your computer to a branch.
             </div>
-            <div>⌘P</div>
+            <kbd>⌘P</kbd>
           </ListItem>
           <ListItem
             summaryText="Step 6"
@@ -96,7 +96,7 @@ export class TutorialPanel extends React.Component<{}, { openId: string }> {
               requesting that someone review and merge them.
             </div>
             <Button>Open pull request</Button>
-            <div>⌘R</div>
+            <kbd>⌘R</kbd>
           </ListItem>
         </ol>
       </div>
