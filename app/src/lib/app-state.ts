@@ -155,9 +155,6 @@ export interface IAppState {
   /** The width of the files list in the stash view */
   readonly stashedFilesWidth: number
 
-  /** Whether we should hide the toolbar (and show inverted window controls) */
-  readonly titleBarStyle: 'light' | 'dark'
-
   /**
    * Used to highlight access keys throughout the app when the
    * Alt key is pressed. Only applicable on non-macOS platforms.
