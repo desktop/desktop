@@ -5,8 +5,9 @@ import { assertNever } from '../fatal-error'
 
 export enum ExternalEditor {
   Atom = 'Atom',
-  VisualStudioCode = 'Visual Studio Code',
-  VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
+  VSCode = 'Visual Studio Code',
+  VSCodeInsiders = 'Visual Studio Code (Insiders)',
+  VSCodium = 'VSCodium',
   SublimeText = 'Sublime Text',
   Typora = 'Typora',
   SlickEdit = 'SlickEdit',
@@ -17,12 +18,16 @@ export function parse(label: string): ExternalEditor | null {
     return ExternalEditor.Atom
   }
 
-  if (label === ExternalEditor.VisualStudioCode) {
-    return ExternalEditor.VisualStudioCode
+  if (label === ExternalEditor.VSCode) {
+    return ExternalEditor.VSCode
   }
 
-  if (label === ExternalEditor.VisualStudioCodeInsiders) {
-    return ExternalEditor.VisualStudioCode
+  if (label === ExternalEditor.VSCodeInsiders) {
+    return ExternalEditor.VSCode
+  }
+
+  if (label === ExternalEditor.VSCodium) {
+    return ExternalEditor.VSCodium
   }
 
   if (label === ExternalEditor.SublimeText) {
@@ -48,10 +53,12 @@ async function getEditorPath(editor: ExternalEditor): Promise<string | null> {
   switch (editor) {
     case ExternalEditor.Atom:
       return getPathIfAvailable('/usr/bin/atom')
-    case ExternalEditor.VisualStudioCode:
+    case ExternalEditor.VSCode:
       return getPathIfAvailable('/usr/bin/code')
-    case ExternalEditor.VisualStudioCodeInsiders:
+    case ExternalEditor.VSCodeInsiders:
       return getPathIfAvailable('/usr/bin/code-insiders')
+    case ExternalEditor.VSCodium:
+      return getPathIfAvailable('/usr/bin/codium')
     case ExternalEditor.SublimeText:
       return getPathIfAvailable('/usr/bin/subl')
     case ExternalEditor.Typora:
@@ -84,13 +91,15 @@ export async function getAvailableEditors(): Promise<
     atomPath,
     codePath,
     codeInsidersPath,
+    codiumPath,
     sublimePath,
     typoraPath,
     slickeditPath,
   ] = await Promise.all([
     getEditorPath(ExternalEditor.Atom),
-    getEditorPath(ExternalEditor.VisualStudioCode),
-    getEditorPath(ExternalEditor.VisualStudioCodeInsiders),
+    getEditorPath(ExternalEditor.VSCode),
+    getEditorPath(ExternalEditor.VSCodeInsiders),
+    getEditorPath(ExternalEditor.VSCodium),
     getEditorPath(ExternalEditor.SublimeText),
     getEditorPath(ExternalEditor.Typora),
     getEditorPath(ExternalEditor.SlickEdit),
@@ -101,14 +110,15 @@ export async function getAvailableEditors(): Promise<
   }
 
   if (codePath) {
-    results.push({ editor: ExternalEditor.VisualStudioCode, path: codePath })
+    results.push({ editor: ExternalEditor.VSCode, path: codePath })
   }
 
   if (codeInsidersPath) {
-    results.push({
-      editor: ExternalEditor.VisualStudioCode,
-      path: codeInsidersPath,
-    })
+    results.push({ editor: ExternalEditor.VSCode, path: codeInsidersPath })
+  }
+
+  if (codiumPath) {
+    results.push({ editor: ExternalEditor.VSCodium, path: codiumPath })
   }
 
   if (sublimePath) {
