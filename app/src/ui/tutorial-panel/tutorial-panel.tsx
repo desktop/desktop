@@ -1,4 +1,7 @@
 import * as React from 'react'
+import { LinkButton } from '../lib/link-button'
+import { Button } from '../lib/button'
+import { Monospaced } from '../lib/monospaced'
 
 export class TutorialPanel extends React.Component<{}, { openId: string }> {
   public constructor(props: {}) {
@@ -18,9 +21,20 @@ export class TutorialPanel extends React.Component<{}, { openId: string }> {
           >
             <div>
               It doesn’t look like you have a text editor installed. We can
-              recommend Atom or Visual Studio Code, but feel free to use any.
+              recommend{' '}
+              <LinkButton uri="https://atom.io" title="Open the Atom website">
+                Atom
+              </LinkButton>
+              {` or `}
+              <LinkButton
+                uri="https://code.visualstudio.com"
+                title="Open the VS Code website"
+              >
+                Visual Studio Code
+              </LinkButton>
+              , but feel free to use any.
             </div>
-            <div>I have an editor</div>
+            <LinkButton>I have an editor</LinkButton>
           </ListItem>
           <ListItem
             summaryText="Step 2"
@@ -32,7 +46,7 @@ export class TutorialPanel extends React.Component<{}, { openId: string }> {
               Create a branch by going into the branch menu in the top bar and
               clicking New Branch.
             </div>
-            <div> ⇧⌘N</div>
+            <div>⇧⌘N</div>
           </ListItem>
           <ListItem
             summaryText="Step 3"
@@ -41,10 +55,10 @@ export class TutorialPanel extends React.Component<{}, { openId: string }> {
             onClick={this.handleToggle}
           >
             <div>
-              Open this repository in your preferred text editor. Edit the
-              README.md file, save it, and come back.
+              Open this repository in your preferred text editor. Edit the{' '}
+              <Monospaced>README.md</Monospaced> file, save it, and come back.
             </div>
-            <button>Open Editor</button>
+            <Button>Open Editor</Button>
             <div>⇧⌘A</div>
           </ListItem>
           <ListItem
@@ -81,7 +95,7 @@ export class TutorialPanel extends React.Component<{}, { openId: string }> {
               Pull Requests are how you propose changes. By opening one, you’re
               requesting that someone review and merge them.
             </div>
-            <button>Open pull request</button>
+            <Button>Open pull request</Button>
             <div>⌘R</div>
           </ListItem>
         </ol>
