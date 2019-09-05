@@ -9,6 +9,7 @@ import { Dispatcher } from '../dispatcher'
 interface ITutorialPanelProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
+  readonly externalEditorLabel?: string
 }
 
 export class TutorialPanel extends React.Component<
@@ -75,7 +76,12 @@ export class TutorialPanel extends React.Component<
               Open this repository in your preferred text editor. Edit the{' '}
               <Monospaced>README.md</Monospaced> file, save it, and come back.
             </div>
-            <Button onClick={this.openFileInEditor}>Open Editor</Button>
+            <Button
+              onClick={this.openFileInEditor}
+              disabled={!this.props.externalEditorLabel}
+            >
+              Open Editor
+            </Button>
             <kbd>⇧⌘A</kbd>
           </ListItem>
           <ListItem
