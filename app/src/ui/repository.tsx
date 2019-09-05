@@ -26,6 +26,7 @@ import { IMenu } from '../models/app-menu'
 import { StashDiffViewer } from './stashing'
 import { StashedChangesLoadStates } from '../models/stash-entry'
 import { renderTutorialPanel } from './tutorial-panel'
+import { enableTutorial } from '../lib/feature-flag'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -366,7 +367,7 @@ export class RepositoryView extends React.Component<
       <UiView id="repository" onKeyDown={this.onKeyDown}>
         {this.renderSidebar()}
         {this.renderContent()}
-        {renderTutorialPanel()}
+        {maybeRenderTutorialPanel(this.props.repository)}
       </UiView>
     )
   }
@@ -409,4 +410,11 @@ export class RepositoryView extends React.Component<
       })
     }
   }
+}
+
+function maybeRenderTutorialPanel(repository: Repository): JSX.Element | null {
+  if (enableTutorial() && repository.isTutorialRepository) {
+    return renderTutorialPanel()
+  }
+  return null
 }
