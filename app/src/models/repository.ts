@@ -64,7 +64,11 @@ export class Repository {
    * tutorial repository.
    */
   public get isTutorialRepository(): boolean {
-    return enableTutorial() && this.name === 'tutorial'
+    return (
+      enableTutorial() &&
+      this.name.startsWith('desktop-tutorial') &&
+      this.gitHubRepository !== null
+    )
   }
 }
 
