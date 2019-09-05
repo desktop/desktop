@@ -81,7 +81,7 @@ export async function resetSubmodulePaths(
   paths: ReadonlyArray<string>
 ): Promise<void> {
   await git(
-    ['submodule', 'update', '--recursive', '--', ...paths],
+    ['submodule', 'update', '--recursive', '--force', '--', ...paths],
     repository.path,
     'updateSubmodule'
   )

@@ -1,4 +1,5 @@
 import * as path from 'path'
+import { readFile, writeFile } from 'fs-extra'
 
 import { Repository } from '../../../src/models/repository'
 import {
@@ -72,6 +73,21 @@ describe('git/submodule', () => {
 
       result = await listSubmodules(repository)
       expect(result[0].describe).toBe('first-tag~2')
+    })
+
+    it('eliminate submodule dirty state', async () => {
+      const testRepoPath = await setupFixtureRepository('submodule-basic-setup')
+      const repository = new Repository(testRepoPath, -1, null, false)
+
+      const submodulePath = path.join(testRepoPath, 'foo', 'submodule')
+
+      const filePath = path.join(submodulePath, 'README.md')
+      await writeFile(filePath, 'changed', { encoding: 'utf8' })
+
+      await resetSubmodulePaths(repository, ['foo/submodule'])
+
+      const result = await readFile(filePath, { encoding: 'utf8' })
+      expect(result).toBe('# submodule-test-case')
     })
   })
 })
