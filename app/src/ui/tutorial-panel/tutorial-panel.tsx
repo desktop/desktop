@@ -14,7 +14,7 @@ export class TutorialPanel extends React.Component<{}, { openId: string }> {
       <div id="tutorial" className="panel">
         <ol>
           <ListItem
-            summaryText="Step 1"
+            summaryText="Install a text editor"
             id="step-1"
             openId={this.state.openId}
             onClick={this.handleToggle}
@@ -37,7 +37,7 @@ export class TutorialPanel extends React.Component<{}, { openId: string }> {
             <LinkButton>I have an editor</LinkButton>
           </ListItem>
           <ListItem
-            summaryText="Step 2"
+            summaryText="Make a branch"
             id="step-2"
             openId={this.state.openId}
             onClick={this.handleToggle}
@@ -49,7 +49,7 @@ export class TutorialPanel extends React.Component<{}, { openId: string }> {
             <kbd>⇧⌘N</kbd>
           </ListItem>
           <ListItem
-            summaryText="Step 3"
+            summaryText="Edit a file"
             id="step-3"
             openId={this.state.openId}
             onClick={this.handleToggle}
@@ -62,7 +62,7 @@ export class TutorialPanel extends React.Component<{}, { openId: string }> {
             <kbd>⇧⌘A</kbd>
           </ListItem>
           <ListItem
-            summaryText="Step 4"
+            summaryText="Make a commit"
             id="step-4"
             openId={this.state.openId}
             onClick={this.handleToggle}
@@ -74,7 +74,7 @@ export class TutorialPanel extends React.Component<{}, { openId: string }> {
             <kbd>⌘ Enter</kbd>
           </ListItem>
           <ListItem
-            summaryText="Step 5"
+            summaryText="Push to GitHub"
             id="step-5"
             openId={this.state.openId}
             onClick={this.handleToggle}
@@ -86,7 +86,7 @@ export class TutorialPanel extends React.Component<{}, { openId: string }> {
             <kbd>⌘P</kbd>
           </ListItem>
           <ListItem
-            summaryText="Step 6"
+            summaryText="Open a pull request"
             id="step-6"
             openId={this.state.openId}
             onClick={this.handleToggle}
