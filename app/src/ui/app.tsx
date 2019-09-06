@@ -1008,6 +1008,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     return state.repository
   }
 
+  private addRepository = async (path: string) => {
+    return (await this.addRepositories([path]))[0]
+  }
+
   private async addRepositories(paths: ReadonlyArray<string>) {
     const repositories = await this.props.dispatcher.addRepositories(paths)
     if (repositories.length) {
@@ -2284,6 +2288,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           onCreate={this.showCreateRepository}
           onClone={this.showCloneRepo}
           onAdd={this.showAddLocalRepo}
+          onAddLocalRepository={this.addRepository}
           apiRepositories={this.state.apiRepositories}
           onRefreshRepositories={this.onRefreshRepositories}
         />

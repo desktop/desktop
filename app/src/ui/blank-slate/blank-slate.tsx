@@ -28,6 +28,14 @@ interface IBlankSlateProps {
   /** A function to call when the user chooses to add a local repository. */
   readonly onAdd: () => void
 
+  /**
+   * A function called when the blank slate has a specific repository
+   * to be added to the application. Currently this is used for when
+   * the tutorial repository has been created and is ready to be added
+   * into the app.
+   */
+  readonly onAddLocalRepository: (path: string) => void
+
   /** The logged in account for GitHub.com. */
   readonly dotComAccount: Account | null
 
@@ -362,6 +370,8 @@ export class BlankSlateView extends React.Component<
       'tutorial:add-remote'
     )
     await git(['push', '-u', 'origin', 'master'], path, 'tutorial:push')
+
+    this.props.onAddLocalRepository(path)
   }
 
   private renderButtonGroupButton(
