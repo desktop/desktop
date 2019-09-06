@@ -27,6 +27,10 @@ export class TutorialPanel extends React.Component<
     )
   }
 
+  private openPullRequest = () => {
+    this.props.dispatcher.createPullRequest(this.props.repository)
+  }
+
   public render() {
     return (
       <div id="tutorial" className="panel">
@@ -118,13 +122,14 @@ export class TutorialPanel extends React.Component<
               Pull Requests are how you propose changes. By opening one, you’re
               requesting that someone review and merge them.
             </div>
-            <Button>Open pull request</Button>
+            <Button onClick={this.openPullRequest}>Open pull request</Button>
             <kbd>⌘R</kbd>
           </ListItem>
         </ol>
       </div>
     )
   }
+
   public handleToggle = (id: string) => {
     this.setState({ openId: id })
   }
