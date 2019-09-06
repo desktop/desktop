@@ -35,6 +35,11 @@
   .titleArea {
     border-bottom: var(--base-border);
   }
+
+  li {
+    padding: var(--spacing-double);
+    padding-right: var(--spacing);
+  }
   summary {
     display: flex;
     font-weight: var(--font-weight-semibold);
