@@ -102,7 +102,7 @@ to see if the enhancement has already been suggested. If it has, add a
 :thumbsup: to indicate your interest in it, or comment if there is additional
 information you would like to add.
 
-#### How Do I Submit A Enhancement Suggestion?
+#### How Do I Submit An Enhancement Suggestion?
 
 Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com/features/issues/).
 
