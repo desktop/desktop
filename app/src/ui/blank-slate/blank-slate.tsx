@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Path from 'path'
 import { UiView } from '../ui-view'
 import { Button } from '../lib/button'
 import { Octicon, OcticonSymbol } from '../octicons'
@@ -10,9 +11,12 @@ import { IAccountRepositories } from '../../lib/stores/api-repositories-store'
 import { Account } from '../../models/account'
 import { TabBar } from '../tab-bar'
 import { CloneableRepositoryFilterList } from '../clone-repository/cloneable-repository-filter-list'
-import { IAPIRepository } from '../../lib/api'
+import { IAPIRepository, API } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 import { ClickSource } from '../lib/list'
+import { git } from '../../lib/git'
+import { getDefaultDir } from '../lib/default-dir'
+import { ensureDir, writeFile } from 'fs-extra'
 
 interface IBlankSlateProps {
   /** A function to call when the user chooses to create a repository. */
@@ -321,7 +325,44 @@ export class BlankSlateView extends React.Component<
     }
   }
 
-  private onCreateTutorialRepository = () => {}
+  private onCreateTutorialRepository = async () => {
+    const account = this.props.dotComAccount || this.props.enterpriseAccount
+
+    if (account === null) {
+      return
+    }
+
+    const api = new API(account.endpoint, account.token)
+    const name = 'desktop-tutorial'
+    const repo = await api.createRepository(null, name, '', true)
+    const path = Path.resolve(getDefaultDir(), name)
+
+    await ensureDir(path)
+
+    const nl = __WIN32__ ? '\r\n' : '\n'
+    await writeFile(
+      Path.join(path, 'README.md'),
+      `# Welcome to GitHub Desktop!${nl}${nl}` +
+        `This is your README. READMEs are where you can communicate ` +
+        `what your project is and how to use it.${nl}${nl}` +
+        `Make any change to this file, save it, and then head ` +
+        `back to GitHub Desktop.${nl}`
+    )
+
+    await git(['init'], path, 'tutorial:init')
+    await git(['add', '--', 'README.md'], path, 'tutorial:add')
+    await git(
+      ['commit', '-m', 'Initial commit', '--', 'README.md'],
+      path,
+      'tutorial:commit'
+    )
+    await git(
+      ['remote', 'add', 'origin', repo.clone_url],
+      path,
+      'tutorial:add-remote'
+    )
+    await git(['push', '-u', 'origin', 'master'], path, 'tutorial:push')
+  }
 
   private renderButtonGroupButton(
     symbol: OcticonSymbol,
