@@ -1,6 +1,24 @@
 #tutorial {
   min-width: 300px;
 
+  .titleArea {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-left: var(--spacing-quint);
+    margin-right: var(--spacing);
+
+    h1 {
+      margin: 0;
+      font-weight: var(--font-weight-light);
+    }
+    svg {
+      height: 56px;
+      width: 56px;
+      color: $blue;
+    }
+  }
+
   ol,
   li,
   summary {
