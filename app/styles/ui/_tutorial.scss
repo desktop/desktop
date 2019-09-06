@@ -75,4 +75,10 @@
       color: var(--text-secondary-color);
     }
   }
+  details[open] summary {
+    margin-bottom: var(--spacing);
+    .summary-text {
+      opacity: 1;
+    }
+  }
 }
