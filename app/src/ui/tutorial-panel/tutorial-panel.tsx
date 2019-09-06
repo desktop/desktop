@@ -5,6 +5,7 @@ import { Button } from '../lib/button'
 import { Monospaced } from '../lib/monospaced'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 interface ITutorialPanelProps {
   readonly dispatcher: Dispatcher
@@ -34,6 +35,10 @@ export class TutorialPanel extends React.Component<
   public render() {
     return (
       <div id="tutorial" className="panel">
+        <div className="titleArea">
+          <h1>Get started</h1>
+          <Octicon symbol={OcticonSymbol.bell} />
+        </div>
         <ol>
           <ListItem
             summaryText="Install a text editor"
