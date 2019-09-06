@@ -73,7 +73,7 @@ export class TutorialPanel extends React.Component<
               Create a branch by going into the branch menu in the top bar and
               clicking New Branch.
             </div>
-            <kbd>⇧⌘N</kbd>
+            <span className="shortcut">⇧⌘N</span>
           </ListItem>
           <ListItem
             summaryText="Edit a file"
@@ -91,7 +91,7 @@ export class TutorialPanel extends React.Component<
             >
               Open Editor
             </Button>
-            <kbd>⇧⌘A</kbd>
+            <span className="shortcut">⇧⌘A</span>
           </ListItem>
           <ListItem
             summaryText="Make a commit"
@@ -103,7 +103,7 @@ export class TutorialPanel extends React.Component<
               Write a message that describes the changes you made. When you’re
               done, click the commit button to finish.
             </div>
-            <kbd>⌘ Enter</kbd>
+            <span className="shortcut">⌘ Enter</span>
           </ListItem>
           <ListItem
             summaryText="Push to GitHub"
@@ -115,7 +115,7 @@ export class TutorialPanel extends React.Component<
               Pushing your commits updates the repository on GitHub with any
               commits made on your computer to a branch.
             </div>
-            <kbd>⌘P</kbd>
+            <span className="shortcut">⌘P</span>
           </ListItem>
           <ListItem
             summaryText="Open a pull request"
@@ -128,7 +128,7 @@ export class TutorialPanel extends React.Component<
               requesting that someone review and merge them.
             </div>
             <Button onClick={this.openPullRequest}>Open pull request</Button>
-            <kbd>⌘R</kbd>
+            <span className="shortcut">⌘R</span>
           </ListItem>
         </ol>
       </div>
