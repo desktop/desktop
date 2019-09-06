@@ -62,4 +62,17 @@
       flex-grow: 0;
     }
   }
+
+  details .contents {
+    padding-left: var(--spacing-triple);
+    .description {
+      margin-bottom: var(--spacing-three-halves);
+    }
+    .button-component {
+      margin-right: var(--spacing);
+    }
+    .shortcut {
+      color: var(--text-secondary-color);
+    }
+  }
 }
