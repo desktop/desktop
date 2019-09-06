@@ -154,6 +154,9 @@ class ListItem extends React.PureComponent<{
           onClick={this.onClick}
         >
           <summary>
+            <div className="green-circle">
+              <Octicon symbol={OcticonSymbol.check} />
+            </div>
             <span className="summary-text">{this.props.summaryText}</span>
           </summary>
           <div className="contents">{this.props.children}</div>
