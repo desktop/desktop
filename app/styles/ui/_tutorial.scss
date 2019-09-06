@@ -1,5 +1,6 @@
 #tutorial {
   min-width: 300px;
+  box-shadow: var(--base-box-shadow);
 
   .titleArea {
     display: flex;
@@ -26,6 +27,11 @@
   }
   summary::-webkit-details-marker {
     display: none;
+  }
+
+  li,
+  .titleArea {
+    border-bottom: var(--base-border);
   }
   summary {
     display: flex;
