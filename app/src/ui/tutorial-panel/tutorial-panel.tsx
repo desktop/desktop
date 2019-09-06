@@ -153,8 +153,10 @@ class ListItem extends React.PureComponent<{
           open={this.props.id === this.props.openId}
           onClick={this.onClick}
         >
-          <summary>{this.props.summaryText}</summary>
-          {this.props.children}
+          <summary>
+            <span className="summary-text">{this.props.summaryText}</span>
+          </summary>
+          <div className="contents">{this.props.children}</div>
         </details>
       </li>
     )
