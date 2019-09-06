@@ -46,7 +46,7 @@ export class TutorialPanel extends React.Component<
             openId={this.state.openId}
             onClick={this.handleToggle}
           >
-            <div>
+            <div className="description">
               It doesn’t look like you have a text editor installed. We can
               recommend{' '}
               <LinkButton uri="https://atom.io" title="Open the Atom website">
@@ -69,7 +69,7 @@ export class TutorialPanel extends React.Component<
             openId={this.state.openId}
             onClick={this.handleToggle}
           >
-            <div>
+            <div className="description">
               Create a branch by going into the branch menu in the top bar and
               clicking New Branch.
             </div>
@@ -81,7 +81,7 @@ export class TutorialPanel extends React.Component<
             openId={this.state.openId}
             onClick={this.handleToggle}
           >
-            <div>
+            <div className="description">
               Open this repository in your preferred text editor. Edit the{' '}
               <Monospaced>README.md</Monospaced> file, save it, and come back.
             </div>
@@ -99,7 +99,7 @@ export class TutorialPanel extends React.Component<
             openId={this.state.openId}
             onClick={this.handleToggle}
           >
-            <div>
+            <div className="description">
               Write a message that describes the changes you made. When you’re
               done, click the commit button to finish.
             </div>
@@ -111,7 +111,7 @@ export class TutorialPanel extends React.Component<
             openId={this.state.openId}
             onClick={this.handleToggle}
           >
-            <div>
+            <div className="description">
               Pushing your commits updates the repository on GitHub with any
               commits made on your computer to a branch.
             </div>
@@ -123,7 +123,7 @@ export class TutorialPanel extends React.Component<
             openId={this.state.openId}
             onClick={this.handleToggle}
           >
-            <div>
+            <div className="description">
               Pull Requests are how you propose changes. By opening one, you’re
               requesting that someone review and merge them.
             </div>
