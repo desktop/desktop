@@ -24,6 +24,8 @@
   li,
   summary {
     list-style: none;
+    padding: 0;
+    margin: 0;
   }
   summary::-webkit-details-marker {
     display: none;
