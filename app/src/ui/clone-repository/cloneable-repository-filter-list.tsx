@@ -259,7 +259,7 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
       return (
         <div className="no-items no-results-found">
           <div>
-            Sorry, I can't find any repository matching{' '}
+            Sorry, no repository matching{' '} could be found...
             <Ref>{this.props.filterText}</Ref>
           </div>
         </div>
