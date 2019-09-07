@@ -6,9 +6,9 @@ import { assertNever } from '../fatal-error'
 export enum ExternalEditor {
   Atom = 'Atom',
   MacVim = 'MacVim',
-  VisualStudioCode = 'Visual Studio Code',
-  VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
-  VisualStudioCodeExploration = 'Visual Studio Code (Exploration)',
+  VSCode = 'Visual Studio Code',
+  VSCodeInsiders = 'Visual Studio Code (Insiders)',
+  VSCodeExploration = 'Visual Studio Code (Exploration)',
   VSCodium = 'VSCodium',
   SublimeText = 'Sublime Text',
   BBEdit = 'BBEdit',
@@ -35,8 +35,8 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.VSCodeInsiders) {
     return ExternalEditor.VSCodeInsiders
   }
-  if (label === ExternalEditor.VisualStudioCodeExploration) {
-    return ExternalEditor.VisualStudioCodeExploration
+  if (label === ExternalEditor.VSCodeExploration) {
+    return ExternalEditor.VSCodeExploration
   }
   if (label === ExternalEditor.VSCodium) {
     return ExternalEditor.VSCodium
@@ -89,7 +89,7 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['com.microsoft.VSCode']
     case ExternalEditor.VSCodeInsiders:
       return ['com.microsoft.VSCodeInsiders']
-    case ExternalEditor.VisualStudioCodeExploration:
+    case ExternalEditor.VSCodeExploration:
       return ['com.microsoft.VSCodeExploration']
     case ExternalEditor.VSCodium:
       return ['com.visualstudio.code.oss']
@@ -263,17 +263,11 @@ export async function getAvailableEditors(): Promise<
   }
 
   if (codeInsidersPath) {
-    results.push({
-      editor: ExternalEditor.VSCodeInsiders,
-      path: codeInsidersPath,
-    })
+    results.push({ editor: ExternalEditor.VSCodeInsiders, path: codeInsidersPath })
   }
   
   if (codeExplorationPath) {
-    results.push({
-      editor: ExternalEditor.VisualStudioCodeExploration,
-      path: codeExplorationPath,
-    })
+    results.push({ editor: ExternalEditor.VSCodeExploration, path: codeExplorationPath })
   }
 
   if (codiumPath) {
