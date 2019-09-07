@@ -42,7 +42,7 @@ export class NoPullRequests extends React.Component<INoPullRequestsProps, {}> {
 
   private renderTitle() {
     if (this.props.isSearch) {
-      return <div className="title">Sorry, I can't find that pull request!</div>
+      return <div className="title">Sorry, that pull request can't be found...</div>
     } else if (this.props.isLoadingPullRequests) {
       return <div className="title">Hang tight</div>
     } else {
@@ -61,7 +61,7 @@ export class NoPullRequests extends React.Component<INoPullRequestsProps, {}> {
     if (this.props.isLoadingPullRequests) {
       return (
         <div className="call-to-action">
-          Loading pull requests as fast as I can!
+          Loading pull requests...
         </div>
       )
     }
