@@ -324,7 +324,7 @@
       - [ ] Right clicking any commit shows options: Revert This Commit, Copy SHA, View on GitHub
       - [ ] Hover shows file name in tooltip
     - [ ] Placing cursor in search field show all branches with number of commits behind/ahead; list is alpha and categorized
-      - [ ] Filtering for branch name that doesn't exist shows "Sorry, I can't find that branch"
+      - [ ] Filtering for branch name that doesn't exist shows "Sorry, that branch can't be found..."
     - [ ] User can search to a target branch to filter commits; `esc` key to exit; autocomplete and text prediction intact
       - [ ] User can toggle between behind/ahead, with counts shown; Behind tab is shown by default
           - [ ] If more than 0 commits behind, a list of commits are shown in reverse chronological order
