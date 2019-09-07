@@ -27,7 +27,7 @@ export enum StartPoint {
 }
 
 /**
- * Check if a branch is eligible for beign fast forarded.
+ * Check if a branch is eligible for being fast-forwarded.
  *
  * Requirements:
  *   1. It's local.
