@@ -21,7 +21,7 @@ export class NoBranches extends React.Component<INoBranchesProps> {
         <div className="no-branches">
           <img src={BlankSlateImage} className="blankslate-image" />
 
-          <div className="title">Sorry, I can't find that branch</div>
+          <div className="title">Sorry, that branch can't be found...</div>
 
           <div className="subtitle">
             Do you want to create a new branch instead?
@@ -43,7 +43,7 @@ export class NoBranches extends React.Component<INoBranchesProps> {
       )
     }
 
-    return <div className="no-branches">Sorry, I can't find that branch</div>
+    return <div className="no-branches">Sorry, that branch can't be found...</div>
   }
 
   private renderShortcut() {
