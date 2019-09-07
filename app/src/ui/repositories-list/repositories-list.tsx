@@ -243,12 +243,12 @@ export class RepositoriesList extends React.Component<
     return (
       <div className="no-items no-results-found">
         <img src={BlankSlateImage} className="blankslate-image" />
-        <div className="title">Sorry, I can't find that repository</div>
+        <div className="title">Sorry, that repository can't be found...</div>
 
         <div className="protip">
           ProTip! Press {this.renderAddLocalShortcut()} to quickly add a local
           repository, and {this.renderCloneRepositoryShortcut()} to clone from
-          anywhere within the app
+          anywhere within the app.
         </div>
       </div>
     )
