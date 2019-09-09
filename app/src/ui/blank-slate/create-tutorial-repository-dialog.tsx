@@ -18,6 +18,11 @@ import { getDefaultDir } from '../lib/default-dir'
 import { writeFile, pathExists, ensureDir } from 'fs-extra'
 import { git, GitError } from '../../lib/git'
 import { envForAuthentication } from '../../lib/git/authentication'
+import {
+  PushProgressParser,
+  executionOptionsWithProgress,
+} from '../../lib/progress'
+import { Progress } from '../../models/progress'
 
 interface ICreateTutorialRepositoryDialogProps {
   /**
@@ -48,6 +53,7 @@ interface ICreateTutorialRepositoryDialogState {
    * well as temporarily disable dismissal of the dialog.
    */
   readonly loading?: boolean
+  readonly progress?: Progress
 }
 
 /** The Create Branch component. */
@@ -86,6 +92,8 @@ export class CreateTutorialRepositoryDialog extends React.Component<
     this.setState({ loading: true })
 
     const name = 'desktop-tutorial'
+    const initWeight = 0.2
+    const pushWeight = 0.8
 
     try {
       const path = Path.resolve(getDefaultDir(), name)
@@ -96,6 +104,14 @@ export class CreateTutorialRepositoryDialog extends React.Component<
             'out of the way, or remove it, and then try again.'
         )
       }
+
+      this.setState({
+        progress: {
+          kind: 'generic',
+          title: 'Creating repository on ' + friendlyEndpointName(account),
+          value: 0,
+        },
+      })
 
       const repo = await this.createAPIRepository(account, name)
       await ensureDir(path)
@@ -126,6 +142,33 @@ export class CreateTutorialRepositoryDialog extends React.Component<
         env: envForAuthentication(account),
       })
 
+      const pushOpts = await executionOptionsWithProgress(
+        {
+          env: envForAuthentication(account),
+        },
+        new PushProgressParser(),
+        progress => {
+          if (progress.kind === 'progress') {
+            this.setState({
+              progress: {
+                kind: 'generic',
+                title: pushTitle,
+                description: progress.details.text,
+                value: initWeight + progress.percent * pushWeight,
+              },
+            })
+          }
+        }
+      )
+
+      await git(
+        ['push', '-u', 'origin', 'master'],
+        path,
+        'tutorial:push',
+        pushOpts
+      )
+
+      this.setState({ progress: undefined })
       this.props.onTutorialRepositoryCreated(path, repo)
       this.props.onDismissed()
     } catch (err) {
@@ -147,11 +190,31 @@ export class CreateTutorialRepositoryDialog extends React.Component<
     this.props.onDismissed()
   }
 
+  private renderProgress() {
+    if (this.state.progress === undefined) {
+      return null
+    }
+
+    const { progress } = this.state
+    const description = progress.description ? (
+      <div className="description">{progress.description}</div>
+    ) : null
+
+    return (
+      <div className="progress-container">
+        <div>{progress.title}</div>
+        <progress value={progress.value} />
+        {description}
+      </div>
+    )
+  }
+
   public render() {
     const { account } = this.props
 
     return (
       <Dialog
+        id="create-tutorial-repository-dialog"
         title="Start tutorial"
         onDismissed={this.onCancel}
         onSubmit={this.onSubmit}
@@ -159,12 +222,15 @@ export class CreateTutorialRepositoryDialog extends React.Component<
         loading={this.state.loading}
       >
         <DialogContent>
-          This will create a repository on your local machine, and push it to
-          your account <Ref>@{this.props.account.login}</Ref> on{' '}
-          <LinkButton uri={getHTMLURL(account.endpoint)}>
-            {friendlyEndpointName(account)}
-          </LinkButton>
-          .
+          <div>
+            This will create a repository on your local machine, and push it to
+            your account <Ref>@{this.props.account.login}</Ref> on{' '}
+            <LinkButton uri={getHTMLURL(account.endpoint)}>
+              {friendlyEndpointName(account)}
+            </LinkButton>
+            .
+          </div>
+          {this.renderProgress()}
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
