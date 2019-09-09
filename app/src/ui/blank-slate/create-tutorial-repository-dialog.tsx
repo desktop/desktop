@@ -15,7 +15,7 @@ import {
 import { Ref } from '../lib/ref'
 import { LinkButton } from '../lib/link-button'
 import { getDefaultDir } from '../lib/default-dir'
-import { ensureDir, writeFile } from 'fs-extra'
+import { ensureDir, writeFile, pathExists } from 'fs-extra'
 import { git, GitError } from '../../lib/git'
 import { envForAuthentication } from '../../lib/git/authentication'
 
@@ -88,10 +88,16 @@ export class CreateTutorialRepositoryDialog extends React.Component<
     const name = 'desktop-tutorial'
 
     try {
-      const repo = await this.createAPIRepository(account, name)
-
       const path = Path.resolve(getDefaultDir(), name)
 
+      if (pathExists(path)) {
+        throw new Error(
+          `The path ${path} already exists. Please move that folder ` +
+            'out of the way, or remove it, and then try again.'
+        )
+      }
+
+      const repo = await this.createAPIRepository(account, name)
       await ensureDir(path)
 
       const nl = __WIN32__ ? '\r\n' : '\n'
