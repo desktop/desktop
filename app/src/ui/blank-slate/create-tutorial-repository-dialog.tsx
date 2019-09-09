@@ -90,7 +90,7 @@ export class CreateTutorialRepositoryDialog extends React.Component<
     try {
       const path = Path.resolve(getDefaultDir(), name)
 
-      if (pathExists(path)) {
+      if (await pathExists(path)) {
         throw new Error(
           `The path ${path} already exists. Please move it ` +
             'out of the way, or remove it, and then try again.'
