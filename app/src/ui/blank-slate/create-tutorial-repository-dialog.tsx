@@ -34,7 +34,15 @@ interface ICreateTutorialRepositoryDialogProps {
   ) => void
 }
 
-interface ICreateTutorialRepositoryDialogState {}
+interface ICreateTutorialRepositoryDialogState {
+  /**
+   * Whether or not the dialog is currently in the process of creating
+   * the tutorial repository. When true this will render a spinning
+   * progress icon in the dialog header (if the dialog has a header) as
+   * well as temporarily disable dismissal of the dialog.
+   */
+  readonly loading?: boolean
+}
 
 /** The Create Branch component. */
 export class CreateTutorialRepositoryDialog extends React.Component<
@@ -49,6 +57,7 @@ export class CreateTutorialRepositoryDialog extends React.Component<
 
   public onSubmit = async () => {
     const { account } = this.props
+    this.setState({ loading: true })
 
     const api = new API(account.endpoint, account.token)
     const name = 'desktop-tutorial'
@@ -83,7 +92,10 @@ export class CreateTutorialRepositoryDialog extends React.Component<
       env: envForAuthentication(account),
     })
 
+    this.setState({ loading: false })
+
     this.props.onTutorialRepositoryCreated(path, repo)
+    this.props.onDismissed()
   }
 
   public onCancel = () => {
@@ -100,6 +112,8 @@ export class CreateTutorialRepositoryDialog extends React.Component<
         title="Start tutorial"
         onDismissed={this.onCancel}
         onSubmit={this.onSubmit}
+        dismissable={this.state.loading !== true}
+        loading={this.state.loading}
       >
         <DialogContent>
           This will create a repository on your local machine, and push it to
