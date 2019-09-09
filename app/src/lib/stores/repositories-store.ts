@@ -151,7 +151,7 @@ export class RepositoriesStore extends BaseStore {
           apiRepository
         )
 
-        const existingRepo = await this.db.gitHubRepositories.get({ path })
+        const existingRepo = await this.db.repositories.get({ path })
         const existingRepoId =
           existingRepo && existingRepo.id !== null ? existingRepo.id : undefined
 
