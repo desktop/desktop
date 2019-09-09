@@ -37,4 +37,12 @@ export class OnboardingTutorial {
     }
     return false
   }
+
+  skipEditorInstall() {
+    this.skipEditorInstall = true
+  }
+
+  skipCreatePR() {
+    this.skipCreatePR = true
+  }
 }
