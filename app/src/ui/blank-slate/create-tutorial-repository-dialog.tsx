@@ -15,7 +15,7 @@ import {
 import { Ref } from '../lib/ref'
 import { LinkButton } from '../lib/link-button'
 import { getDefaultDir } from '../lib/default-dir'
-import { ensureDir, writeFile, pathExists } from 'fs-extra'
+import { writeFile, pathExists } from 'fs-extra'
 import { git, GitError } from '../../lib/git'
 import { envForAuthentication } from '../../lib/git/authentication'
 
@@ -98,7 +98,7 @@ export class CreateTutorialRepositoryDialog extends React.Component<
       }
 
       const repo = await this.createAPIRepository(account, name)
-      await ensureDir(path)
+      await git(['init'], path, 'tutorial:init')
 
       const nl = __WIN32__ ? '\r\n' : '\n'
       await writeFile(
@@ -110,7 +110,6 @@ export class CreateTutorialRepositoryDialog extends React.Component<
           `back to GitHub Desktop.${nl}`
       )
 
-      await git(['init'], path, 'tutorial:init')
       await git(['add', '--', 'README.md'], path, 'tutorial:add')
       await git(
         ['commit', '-m', 'Initial commit', '--', 'README.md'],
