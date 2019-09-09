@@ -124,7 +124,8 @@ export class RepositoriesStore extends BaseStore {
             repo.path,
             repo.id!,
             gitHubRepository,
-            repo.missing
+            repo.missing,
+            repo.isTutorialRepository
           )
           inflatedRepos.push(inflatedRepo)
         }
@@ -240,7 +241,8 @@ export class RepositoriesStore extends BaseStore {
       repository.path,
       repository.id,
       repository.gitHubRepository,
-      missing
+      missing,
+      repository.isTutorialRepository
     )
   }
 
@@ -267,7 +269,8 @@ export class RepositoriesStore extends BaseStore {
       path,
       repository.id,
       repository.gitHubRepository,
-      false
+      false,
+      repository.isTutorialRepository
     )
   }
 
@@ -436,7 +439,8 @@ export class RepositoriesStore extends BaseStore {
       repository.path,
       repository.id,
       updatedGitHubRepo,
-      repository.missing
+      repository.missing,
+      repository.isTutorialRepository
     )
   }
 

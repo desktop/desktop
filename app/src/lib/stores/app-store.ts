@@ -3075,7 +3075,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository.path,
       repository.id,
       skeletonGitHubRepository,
-      repository.missing
+      repository.missing,
+      false
     )
 
     const account = getAccountForEndpoint(
