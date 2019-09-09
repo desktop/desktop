@@ -68,46 +68,50 @@ export class CreateTutorialRepositoryDialog extends React.Component<
     const api = new API(account.endpoint, account.token)
     const name = 'desktop-tutorial'
 
-    const repo = await api.createRepository(
-      null,
-      name,
-      'GitHub Desktop tutorial repository',
-      true
-    )
-    const path = Path.resolve(getDefaultDir(), name)
+    try {
+      const repo = await api.createRepository(
+        null,
+        name,
+        'GitHub Desktop tutorial repository',
+        true
+      )
+      const path = Path.resolve(getDefaultDir(), name)
 
-    await ensureDir(path)
+      await ensureDir(path)
 
-    const nl = __WIN32__ ? '\r\n' : '\n'
-    await writeFile(
-      Path.join(path, 'README.md'),
-      `# Welcome to GitHub Desktop!${nl}${nl}` +
-        `This is your README. READMEs are where you can communicate ` +
-        `what your project is and how to use it.${nl}${nl}` +
-        `Make any change to this file, save it, and then head ` +
-        `back to GitHub Desktop.${nl}`
-    )
+      const nl = __WIN32__ ? '\r\n' : '\n'
+      await writeFile(
+        Path.join(path, 'README.md'),
+        `# Welcome to GitHub Desktop!${nl}${nl}` +
+          `This is your README. READMEs are where you can communicate ` +
+          `what your project is and how to use it.${nl}${nl}` +
+          `Make any change to this file, save it, and then head ` +
+          `back to GitHub Desktop.${nl}`
+      )
 
-    await git(['init'], path, 'tutorial:init')
-    await git(['add', '--', 'README.md'], path, 'tutorial:add')
-    await git(
-      ['commit', '-m', 'Initial commit', '--', 'README.md'],
-      path,
-      'tutorial:commit'
-    )
-    await git(
-      ['remote', 'add', 'origin', repo.clone_url],
-      path,
-      'tutorial:add-remote'
-    )
-    await git(['push', '-u', 'origin', 'master'], path, 'tutorial:push', {
-      env: envForAuthentication(account),
-    })
+      await git(['init'], path, 'tutorial:init')
+      await git(['add', '--', 'README.md'], path, 'tutorial:add')
+      await git(
+        ['commit', '-m', 'Initial commit', '--', 'README.md'],
+        path,
+        'tutorial:commit'
+      )
+      await git(
+        ['remote', 'add', 'origin', repo.clone_url],
+        path,
+        'tutorial:add-remote'
+      )
+      await git(['push', '-u', 'origin', 'master'], path, 'tutorial:push', {
+        env: envForAuthentication(account),
+      })
 
-    this.setState({ loading: false })
-
-    this.props.onTutorialRepositoryCreated(path, repo)
-    this.props.onDismissed()
+      this.props.onTutorialRepositoryCreated(path, repo)
+      this.props.onDismissed()
+    } catch (err) {
+      this.props.onError(err)
+    } finally {
+      this.setState({ loading: false })
+    }
   }
 
   public onCancel = () => {
