@@ -108,7 +108,9 @@ export class CreateTutorialRepositoryDialog extends React.Component<
       this.props.onTutorialRepositoryCreated(path, repo)
       this.props.onDismissed()
     } catch (err) {
-      this.props.onError(err)
+      this.props.onError(
+        new Error(`Failed creating the tutorial repository.\n\n${err}`)
+      )
     } finally {
       this.setState({ loading: false })
     }
