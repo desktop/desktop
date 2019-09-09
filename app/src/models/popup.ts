@@ -8,6 +8,7 @@ import { WorkingDirectoryFileChange } from './status'
 import { PreferencesTab } from './preferences'
 import { ICommitContext } from './commit'
 import { IStashEntry } from './stash-entry'
+import { Account } from '../models/account'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -49,6 +50,7 @@ export enum PopupType {
   StashAndSwitchBranch,
   ConfirmOverwriteStash,
   ConfirmDiscardStash,
+  CreateTutorialRepository,
 }
 
 export type Popup =
@@ -194,4 +196,8 @@ export type Popup =
       type: PopupType.ConfirmDiscardStash
       repository: Repository
       stash: IStashEntry
+    }
+  | {
+      type: PopupType.CreateTutorialRepository
+      account: Account
     }

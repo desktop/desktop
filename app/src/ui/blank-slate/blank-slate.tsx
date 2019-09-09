@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as Path from 'path'
 import { UiView } from '../ui-view'
 import { Button } from '../lib/button'
 import { Octicon, OcticonSymbol } from '../octicons'
@@ -11,13 +10,9 @@ import { IAccountRepositories } from '../../lib/stores/api-repositories-store'
 import { Account } from '../../models/account'
 import { TabBar } from '../tab-bar'
 import { CloneableRepositoryFilterList } from '../clone-repository/cloneable-repository-filter-list'
-import { IAPIRepository, API } from '../../lib/api'
+import { IAPIRepository } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 import { ClickSource } from '../lib/list'
-import { git } from '../../lib/git'
-import { getDefaultDir } from '../lib/default-dir'
-import { ensureDir, writeFile } from 'fs-extra'
-import { envForAuthentication } from '../../lib/git/authentication'
 
 interface IBlankSlateProps {
   /** A function to call when the user chooses to create a repository. */
@@ -29,13 +24,8 @@ interface IBlankSlateProps {
   /** A function to call when the user chooses to add a local repository. */
   readonly onAdd: () => void
 
-  /**
-   * A function called when the blank slate has a specific repository
-   * to be added to the application. Currently this is used for when
-   * the tutorial repository has been created and is ready to be added
-   * into the app.
-   */
-  readonly onAddLocalRepository: (path: string) => void
+  /** Called when the user chooses to create a tutorial repository */
+  readonly onCreateTutorialRepository: () => void
 
   /** The logged in account for GitHub.com. */
   readonly dotComAccount: Account | null
@@ -334,49 +324,6 @@ export class BlankSlateView extends React.Component<
     }
   }
 
-  private onCreateTutorialRepository = async () => {
-    const account = this.props.dotComAccount || this.props.enterpriseAccount
-
-    if (account === null) {
-      return
-    }
-
-    const api = new API(account.endpoint, account.token)
-    const name = 'desktop-tutorial'
-    const repo = await api.createRepository(null, name, '', true)
-    const path = Path.resolve(getDefaultDir(), name)
-
-    await ensureDir(path)
-
-    const nl = __WIN32__ ? '\r\n' : '\n'
-    await writeFile(
-      Path.join(path, 'README.md'),
-      `# Welcome to GitHub Desktop!${nl}${nl}` +
-        `This is your README. READMEs are where you can communicate ` +
-        `what your project is and how to use it.${nl}${nl}` +
-        `Make any change to this file, save it, and then head ` +
-        `back to GitHub Desktop.${nl}`
-    )
-
-    await git(['init'], path, 'tutorial:init')
-    await git(['add', '--', 'README.md'], path, 'tutorial:add')
-    await git(
-      ['commit', '-m', 'Initial commit', '--', 'README.md'],
-      path,
-      'tutorial:commit'
-    )
-    await git(
-      ['remote', 'add', 'origin', repo.clone_url],
-      path,
-      'tutorial:add-remote'
-    )
-    await git(['push', '-u', 'origin', 'master'], path, 'tutorial:push', {
-      env: envForAuthentication(account),
-    })
-
-    this.props.onAddLocalRepository(path)
-  }
-
   private renderButtonGroupButton(
     symbol: OcticonSymbol,
     title: string,
@@ -407,7 +354,7 @@ export class BlankSlateView extends React.Component<
       __DARWIN__
         ? 'Create a Tutorial Repository…'
         : 'Create a tutorial repository…',
-      this.onCreateTutorialRepository,
+      this.props.onCreateTutorialRepository,
       'submit'
     )
   }
