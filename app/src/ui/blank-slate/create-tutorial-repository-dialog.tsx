@@ -147,8 +147,15 @@ export class CreateTutorialRepositoryDialog extends React.Component<
         path,
         'tutorial:add-remote'
       )
-      await git(['push', '-u', 'origin', 'master'], path, 'tutorial:push', {
-        env: envForAuthentication(account),
+
+      const pushTitle = `Pushing repository to ${friendlyEndpointName(account)}`
+
+      this.setState({
+        progress: {
+          kind: 'generic',
+          title: pushTitle,
+          value: initWeight,
+        },
       })
 
       const pushOpts = await executionOptionsWithProgress(
