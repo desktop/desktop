@@ -111,7 +111,9 @@ export class CreateTutorialRepositoryDialog extends React.Component<
   public render() {
     const { endpoint } = this.props.account
     const friendlyEndpointAddress =
-      endpoint === getDotComAPIEndpoint() ? 'GitHub.com' : URL.parse(endpoint)
+      endpoint === getDotComAPIEndpoint()
+        ? 'GitHub.com'
+        : URL.parse(endpoint).hostname || endpoint
 
     return (
       <Dialog
