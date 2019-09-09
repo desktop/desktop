@@ -61,20 +61,35 @@ export class CreateTutorialRepositoryDialog extends React.Component<
     this.state = {}
   }
 
-  public onSubmit = async () => {
-    const { account } = this.props
-    this.setState({ loading: true })
-
+  private async createAPIRepository(account: Account, name: string) {
     const api = new API(account.endpoint, account.token)
-    const name = 'desktop-tutorial'
 
     try {
-      const repo = await api.createRepository(
+      return await api.createRepository(
         null,
         name,
         'GitHub Desktop tutorial repository',
         true
       )
+    } catch (err) {
+      throw new Error(
+        'Could not create the tutorial repository. ' +
+          'The most likely reason is that you already have a repository named ' +
+          `"${name}" on your account at ${friendlyEndpointName(account)}.\n\n` +
+          'Please delete the repository and try again.'
+      )
+    }
+  }
+
+  public onSubmit = async () => {
+    const { account } = this.props
+    this.setState({ loading: true })
+
+    const name = 'desktop-tutorial'
+
+    try {
+      const repo = await this.createAPIRepository(account, name)
+
       const path = Path.resolve(getDefaultDir(), name)
 
       await ensureDir(path)
