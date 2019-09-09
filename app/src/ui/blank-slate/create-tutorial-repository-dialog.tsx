@@ -39,6 +39,7 @@ interface ICreateTutorialRepositoryDialogProps {
 
   readonly onTutorialRepositoryCreated: (
     path: string,
+    account: Account,
     apiRepository: IAPIRepository
   ) => void
 
@@ -185,7 +186,7 @@ export class CreateTutorialRepositoryDialog extends React.Component<
       )
 
       this.setState({ progress: undefined })
-      this.props.onTutorialRepositoryCreated(path, repo)
+      this.props.onTutorialRepositoryCreated(path, account, repo)
       this.props.onDismissed()
     } catch (err) {
       if (err instanceof GitError) {

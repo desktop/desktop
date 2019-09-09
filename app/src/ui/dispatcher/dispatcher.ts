@@ -2,7 +2,7 @@ import { remote } from 'electron'
 import { Disposable, IDisposable } from 'event-kit'
 import * as Path from 'path'
 
-import { IAPIOrganization, IAPIRefStatus } from '../../lib/api'
+import { IAPIOrganization, IAPIRefStatus, IAPIRepository } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
   CompareAction,
@@ -124,6 +124,14 @@ export class Dispatcher {
     paths: ReadonlyArray<string>
   ): Promise<ReadonlyArray<Repository>> {
     return this.appStore._addRepositories(paths)
+  }
+
+  public addTutorialRepository(
+    path: string,
+    endpoint: string,
+    apiRepository: IAPIRepository
+  ) {
+    return this.appStore._addTutorialRepository(path, endpoint, apiRepository)
   }
 
   /** Remove the repositories represented by the given IDs from local storage. */

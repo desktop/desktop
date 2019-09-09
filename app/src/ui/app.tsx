@@ -1027,10 +1027,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     return state.repository
   }
 
-  private addRepository = async (path: string) => {
-    return (await this.addRepositories([path]))[0]
-  }
-
   private async addRepositories(paths: ReadonlyArray<string>) {
     const repositories = await this.props.dispatcher.addRepositories(paths)
     if (repositories.length) {
@@ -1822,7 +1818,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     path: string,
     apiRepository: IAPIRepository
   ) => {
-    this.addRepository(path)
+    this.props.dispatcher.addTutorialRepository(
+      path,
+      account.endpoint,
+      apiRepository
+    )
   }
 
   private onShowRebaseConflictsBanner = (

@@ -75,6 +75,7 @@ import {
   getDotComAPIEndpoint,
   IAPIOrganization,
   IAPIBranch,
+  IAPIRepository,
 } from '../api'
 import { shell } from '../app-shell'
 import {
@@ -4527,6 +4528,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
     missing: boolean
   ): Promise<Repository> {
     return this.repositoriesStore.updateRepositoryMissing(repository, missing)
+  }
+
+  public async _addTutorialRepository(
+    path: string,
+    endpoint: string,
+    apiRepository: IAPIRepository
+  ) {
+    const validatedPath = await validatedRepositoryPath(path)
+    if (validatedPath) {
+      log.info(
+        `[AppStore] adding tutorial repository at ${validatedPath} to store`
+      )
+
+      await this.repositoriesStore.addTutorialRepository(
+        validatedPath,
+        endpoint,
+        apiRepository
+      )
+    } else {
+      const error = new Error(`${path} isn't a git repository.`)
+      this.emitError(error)
+    }
   }
 
   public async _addRepositories(

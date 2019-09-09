@@ -134,6 +134,42 @@ export class RepositoriesStore extends BaseStore {
     )
   }
 
+  public async addTutorialRepository(
+    path: string,
+    endpoint: string,
+    apiRepository: IAPIRepository
+  ) {
+    await this.db.transaction(
+      'rw',
+      this.db.repositories,
+      this.db.gitHubRepositories,
+      this.db.owners,
+      async () => {
+        const gitHubRepository = await this.upsertGitHubRepository(
+          endpoint,
+          apiRepository
+        )
+
+        const existingRepo = await this.db.gitHubRepositories.get({ path })
+        const existingRepoId =
+          existingRepo && existingRepo.id !== null ? existingRepo.id : undefined
+
+        return await this.db.repositories.put(
+          {
+            path,
+            gitHubRepositoryID: gitHubRepository.dbID,
+            missing: false,
+            lastStashCheckDate: null,
+            isTutorialRepository: true,
+          },
+          existingRepoId
+        )
+      }
+    )
+
+    this.emitUpdate()
+  }
+
   /**
    * Add a new local repository.
    *
