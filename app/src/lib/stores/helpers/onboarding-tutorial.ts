@@ -5,7 +5,7 @@ export class OnboardingTutorial {
   }
 
   getCurrentStep() {
-    // call all other methods to check
+    // call all other methods to check where we're at
   }
 
   isEditorInstalled() {
@@ -15,13 +15,21 @@ export class OnboardingTutorial {
     return false
   }
 
-  isBranchCreated() {}
+  isBranchCreated() {
+    return false
+  }
 
-  isReadmeEdited() {}
+  isReadmeEdited() {
+    return false
+  }
 
-  hasCommit() {}
+  hasCommit() {
+    return false
+  }
 
-  commitPushed() {}
+  commitPushed() {
+    return false
+  }
 
   pullRequestCreated() {
     if (this.skipCreatePR) {
