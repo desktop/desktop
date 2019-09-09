@@ -32,6 +32,8 @@ interface ICreateTutorialRepositoryDialogProps {
     path: string,
     apiRepository: IAPIRepository
   ) => void
+
+  readonly onError: (error: Error) => void
 }
 
 interface ICreateTutorialRepositoryDialogState {

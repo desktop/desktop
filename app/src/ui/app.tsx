@@ -1799,12 +1799,18 @@ export class App extends React.Component<IAppProps, IAppState> {
             account={popup.account}
             onDismissed={this.onPopupDismissed}
             onTutorialRepositoryCreated={this.onTutorialRepositoryCreated}
+            onError={this.onTutorialRepositoryError}
           />
         )
       }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private onTutorialRepositoryError = (error: Error) => {
+    this.props.dispatcher.closePopup(PopupType.CreateTutorialRepository)
+    this.props.dispatcher.postError(error)
   }
 
   private onTutorialRepositoryCreated = (
