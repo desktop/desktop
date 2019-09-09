@@ -20,6 +20,10 @@ import { git } from '../../lib/git'
 import { envForAuthentication } from '../../lib/git/authentication'
 
 interface ICreateTutorialRepositoryDialogProps {
+  /**
+   * The GitHub.com, or GitHub Enterprise Server account that will
+   * be the owner of the tutorial repository.
+   */
   readonly account: Account
 
   /**
