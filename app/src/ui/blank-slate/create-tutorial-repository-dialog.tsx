@@ -50,8 +50,6 @@ export class CreateTutorialRepositoryDialog extends React.Component<
   public onSubmit = async () => {
     const { account } = this.props
 
-    debugger
-
     const api = new API(account.endpoint, account.token)
     const name = 'desktop-tutorial'
     const repo = await api.createRepository(null, name, '', true)
