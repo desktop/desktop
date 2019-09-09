@@ -17,6 +17,7 @@ import { ClickSource } from '../lib/list'
 import { git } from '../../lib/git'
 import { getDefaultDir } from '../lib/default-dir'
 import { ensureDir, writeFile } from 'fs-extra'
+import { envForAuthentication } from '../../lib/git/authentication'
 
 interface IBlankSlateProps {
   /** A function to call when the user chooses to create a repository. */
@@ -369,7 +370,9 @@ export class BlankSlateView extends React.Component<
       path,
       'tutorial:add-remote'
     )
-    await git(['push', '-u', 'origin', 'master'], path, 'tutorial:push')
+    await git(['push', '-u', 'origin', 'master'], path, 'tutorial:push', {
+      env: envForAuthentication(account),
+    })
 
     this.props.onAddLocalRepository(path)
   }
