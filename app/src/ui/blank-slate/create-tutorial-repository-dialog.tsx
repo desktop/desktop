@@ -114,6 +114,15 @@ export class CreateTutorialRepositoryDialog extends React.Component<
       })
 
       const repo = await this.createAPIRepository(account, name)
+
+      this.setState({
+        progress: {
+          kind: 'generic',
+          title: 'Initializing local repository',
+          value: 0.1,
+        },
+      })
+
       await ensureDir(path)
       await git(['init'], path, 'tutorial:init')
 
