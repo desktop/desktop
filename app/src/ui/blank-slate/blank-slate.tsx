@@ -13,6 +13,7 @@ import { CloneableRepositoryFilterList } from '../clone-repository/cloneable-rep
 import { IAPIRepository } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 import { ClickSource } from '../lib/list'
+import { enableTutorial } from '../../lib/feature-flag'
 
 interface IBlankSlateProps {
   /** A function to call when the user chooses to create a repository. */
@@ -341,6 +342,10 @@ export class BlankSlateView extends React.Component<
   }
 
   private renderCreateTutorialRepositoryButton() {
+    if (!enableTutorial()) {
+      return null
+    }
+
     // No tutorial if you're not signed in.
     if (
       this.props.dotComAccount === null &&

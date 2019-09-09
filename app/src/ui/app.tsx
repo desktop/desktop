@@ -104,6 +104,7 @@ import { StashAndSwitchBranch } from './stash-changes/stash-and-switch-branch-di
 import { OverwriteStash } from './stash-changes/overwrite-stashed-changes-dialog'
 import { ConfirmDiscardStashDialog } from './stashing/confirm-discard-stash'
 import { CreateTutorialRepositoryDialog } from './blank-slate/create-tutorial-repository-dialog'
+import { enableTutorial } from '../lib/feature-flag'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -681,6 +682,10 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onCreateTutorialRepository = () => {
+    if (!enableTutorial()) {
+      return
+    }
+
     const account = this.getDotComAccount() || this.getEnterpriseAccount()
 
     if (account === null) {
