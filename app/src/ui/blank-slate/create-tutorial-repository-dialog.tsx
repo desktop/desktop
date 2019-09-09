@@ -67,7 +67,13 @@ export class CreateTutorialRepositoryDialog extends React.Component<
 
     const api = new API(account.endpoint, account.token)
     const name = 'desktop-tutorial'
-    const repo = await api.createRepository(null, name, '', true)
+
+    const repo = await api.createRepository(
+      null,
+      name,
+      'GitHub Desktop tutorial repository',
+      true
+    )
     const path = Path.resolve(getDefaultDir(), name)
 
     await ensureDir(path)
