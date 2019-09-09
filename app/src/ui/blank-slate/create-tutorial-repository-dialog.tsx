@@ -121,11 +121,7 @@ export class CreateTutorialRepositoryDialog extends React.Component<
   }
 
   public render() {
-    const { endpoint } = this.props.account
-    const friendlyEndpointAddress =
-      endpoint === getDotComAPIEndpoint()
-        ? 'GitHub.com'
-        : URL.parse(endpoint).hostname || endpoint
+    const { account } = this.props
 
     return (
       <Dialog
@@ -138,8 +134,8 @@ export class CreateTutorialRepositoryDialog extends React.Component<
         <DialogContent>
           This will create a repository on your local machine, and push it to
           your account <Ref>@{this.props.account.login}</Ref> on{' '}
-          <LinkButton uri={getHTMLURL(endpoint)}>
-            {friendlyEndpointAddress}
+          <LinkButton uri={getHTMLURL(account.endpoint)}>
+            {friendlyEndpointName(account)}
           </LinkButton>
           .
         </DialogContent>
@@ -152,4 +148,10 @@ export class CreateTutorialRepositoryDialog extends React.Component<
       </Dialog>
     )
   }
+}
+
+function friendlyEndpointName(account: Account) {
+  return account.endpoint === getDotComAPIEndpoint()
+    ? 'GitHub.com'
+    : URL.parse(account.endpoint).hostname || account.endpoint
 }
