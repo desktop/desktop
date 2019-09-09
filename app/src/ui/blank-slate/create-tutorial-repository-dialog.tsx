@@ -16,7 +16,7 @@ import { Ref } from '../lib/ref'
 import { LinkButton } from '../lib/link-button'
 import { getDefaultDir } from '../lib/default-dir'
 import { ensureDir, writeFile } from 'fs-extra'
-import { git } from '../../lib/git'
+import { git, GitError } from '../../lib/git'
 import { envForAuthentication } from '../../lib/git/authentication'
 
 interface ICreateTutorialRepositoryDialogProps {
