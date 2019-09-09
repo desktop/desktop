@@ -1816,6 +1816,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onTutorialRepositoryCreated = (
     path: string,
+    account: Account,
     apiRepository: IAPIRepository
   ) => {
     this.props.dispatcher.addTutorialRepository(
