@@ -257,7 +257,8 @@ export class CreateTutorialRepositoryDialog extends React.Component<
             <LinkButton uri={getHTMLURL(account.endpoint)}>
               {friendlyEndpointName(account)}
             </LinkButton>
-            .
+            . This repository will only be visible to you, and not visible
+            publicly.
           </div>
           {this.renderProgress()}
         </DialogContent>
