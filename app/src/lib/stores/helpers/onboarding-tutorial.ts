@@ -4,45 +4,45 @@ export class OnboardingTutorial {
     this.skipCreatePR = false
   }
 
-  getCurrentStep() {
+  public getCurrentStep() {
     // call all other methods to check where we're at
   }
 
-  isEditorInstalled() {
     if (this.skipInstallEditor) {
+  private async isEditorInstalled(): Promise<boolean> {
       return true
     }
     return false
   }
 
-  isBranchCreated() {
+  private isBranchCreated(): boolean {
     return false
   }
 
-  isReadmeEdited() {
+  private isReadmeEdited(): boolean {
     return false
   }
 
-  hasCommit() {
+  private hasCommit(): boolean {
     return false
   }
 
-  commitPushed() {
+  private commitPushed(): boolean {
     return false
   }
 
-  pullRequestCreated() {
+  private pullRequestCreated(): boolean {
     if (this.skipCreatePR) {
       return true
     }
     return false
   }
 
-  skipEditorInstall() {
+  public skipEditorInstall() {
     this.skipEditorInstall = true
   }
 
-  skipCreatePR() {
+  public skipCreatePR() {
     this.skipCreatePR = true
   }
 }
