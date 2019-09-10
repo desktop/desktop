@@ -126,18 +126,10 @@ export class CreateTutorialRepositoryDialog extends React.Component<
   private async pushRepo(
     path: string,
     account: Account,
-    startProgress: number
+    progressCb: (title: string, value: number, description?: string) => void
   ) {
     const pushTitle = `Pushing repository to ${friendlyEndpointName(account)}`
-    const progressWeight = 1 - startProgress
-
-    this.setState({
-      progress: {
-        kind: 'generic',
-        title: pushTitle,
-        value: startProgress,
-      },
-    })
+    progressCb(pushTitle, 0)
 
     const pushOpts = await executionOptionsWithProgress(
       {
@@ -146,14 +138,7 @@ export class CreateTutorialRepositoryDialog extends React.Component<
       new PushProgressParser(),
       progress => {
         if (progress.kind === 'progress') {
-          this.setState({
-            progress: {
-              kind: 'generic',
-              title: pushTitle,
-              description: progress.details.text,
-              value: startProgress + progress.percent * progressWeight,
-            },
-          })
+          progressCb(pushTitle, progress.percent, progress.details.text)
         }
       }
     )
@@ -164,10 +149,10 @@ export class CreateTutorialRepositoryDialog extends React.Component<
 
   public onSubmit = async () => {
     const { account } = this.props
+    const endpointName = friendlyEndpointName(account)
     this.setState({ loading: true })
 
     const name = 'desktop-tutorial'
-    const initWeight = 0.2
 
     try {
       const path = Path.resolve(getDefaultDir(), name)
@@ -179,23 +164,11 @@ export class CreateTutorialRepositoryDialog extends React.Component<
         )
       }
 
-      this.setState({
-        progress: {
-          kind: 'generic',
-          title: 'Creating repository on ' + friendlyEndpointName(account),
-          value: 0,
-        },
-      })
+      this.setProgress(`Creating repository on ${endpointName}`, 0)
 
       const repo = await this.createAPIRepository(account, name)
 
-      this.setState({
-        progress: {
-          kind: 'generic',
-          title: 'Initializing local repository',
-          value: 0.1,
-        },
-      })
+      this.setProgress('Initializing local repository', 0.2)
 
       await ensureDir(path)
       await git(['init'], path, 'tutorial:init')
@@ -214,7 +187,9 @@ export class CreateTutorialRepositoryDialog extends React.Component<
         'tutorial:add-remote'
       )
 
-      await this.pushRepo(path, account, initWeight)
+      await this.pushRepo(path, account, (title, value, description) => {
+        this.setProgress(title, 0.3 + value * 0.7, description)
+      })
 
       this.setState({ progress: undefined })
       this.props.onTutorialRepositoryCreated(path, account, repo)
@@ -232,6 +207,12 @@ export class CreateTutorialRepositoryDialog extends React.Component<
     } finally {
       this.setState({ loading: false })
     }
+  }
+
+  private setProgress(title: string, value: number, description?: string) {
+    this.setState({
+      progress: { kind: 'generic', title, value, description },
+    })
   }
 
   public onCancel = () => {
