@@ -239,7 +239,7 @@ import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
 import { findBranchesForFastForward } from './helpers/find-branches-for-fast-forward'
-import { TutorialStep, TutorialStepOrder } from '../../models/tutorial-step'
+import { TutorialStep } from '../../models/tutorial-step'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
