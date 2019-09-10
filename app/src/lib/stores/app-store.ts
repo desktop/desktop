@@ -430,7 +430,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return quickLog(TutorialStep.CreateBranch)
     } else if (!this.hasChangedFile(repository)) {
       return quickLog(TutorialStep.EditFile)
-    } else if (!this.hasCommit()) {
+    } else if (!(await this.hasCommit(repository))) {
       return quickLog(TutorialStep.MakeCommit)
     } else if (!this.commitPushed()) {
       return quickLog(TutorialStep.PushBranch)
@@ -473,8 +473,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return changesState.workingDirectory.files.length > 0
   }
 
-  private hasCommit(): boolean {
-    return false
+  private async hasCommit(repository: Repository): Promise<boolean> {
+    const gitStore = this.gitStoreCache.get(repository)
+    const commits = await gitStore.loadCommitBatch('HEAD')
+    return commits !== null && commits.length > 1
   }
 
   private commitPushed(): boolean {
