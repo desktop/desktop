@@ -417,9 +417,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   public async _getCurrentStep(
     repository: Repository
-  ): Promise<TutorialStep | null> {
+  ): Promise<TutorialStep> {
     if (!repository.isTutorialRepository) {
-      return null
+      return TutorialStep.NotApplicable
     } else if (!(await this.isEditorInstalled)) {
       return TutorialStep.PickEditor
     } else if (!this.isBranchCreated()) {
