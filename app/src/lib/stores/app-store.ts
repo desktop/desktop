@@ -416,22 +416,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * To be extracted into separate class
    */
   public async _getCurrentStep(repository: Repository): Promise<TutorialStep> {
+    // TODO: delete this helper fn
+    function quickLog(step: TutorialStep) {
+      log.warn(`Current Tutorial Step: ${step}`)
+      return step
+    }
+
     if (!repository.isTutorialRepository) {
-      return TutorialStep.NotApplicable
+      return quickLog(TutorialStep.NotApplicable)
     } else if (!(await this.isEditorInstalled)) {
-      return TutorialStep.PickEditor
+      return quickLog(TutorialStep.PickEditor)
     } else if (!this.isBranchCreated()) {
-      return TutorialStep.CreateBranch
+      return quickLog(TutorialStep.CreateBranch)
     } else if (!this.hasChangedFile(repository)) {
-      return TutorialStep.EditFile
+      return quickLog(TutorialStep.EditFile)
     } else if (!this.hasCommit()) {
-      return TutorialStep.MakeCommit
+      return quickLog(TutorialStep.MakeCommit)
     } else if (!this.commitPushed()) {
-      return TutorialStep.PushBranch
+      return quickLog(TutorialStep.PushBranch)
     } else if (!this.pullRequestCreated()) {
-      return TutorialStep.OpenPullRequest
+      return quickLog(TutorialStep.OpenPullRequest)
     } else {
-      return TutorialStep.AllDone
+      return quickLog(TutorialStep.AllDone)
     }
   }
 
