@@ -6,6 +6,7 @@ import { Monospaced } from '../lib/monospaced'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { Fragment } from 'react'
 
 interface ITutorialPanelProps {
   readonly dispatcher: Dispatcher
@@ -96,13 +97,12 @@ export class TutorialPanel extends React.Component<
               Open this repository in your preferred text editor. Edit the{' '}
               <Monospaced>README.md</Monospaced> file, save it, and come back.
             </div>
-            <Button
-              onClick={this.openFileInEditor}
-              disabled={!this.props.externalEditorLabel}
-            >
-              Open Editor
-            </Button>
-            <span className="shortcut">⇧⌘A</span>
+            {this.props.externalEditorLabel ? (
+              <Fragment>
+                <Button onClick={this.openFileInEditor}>Open Editor</Button>
+                <span className="shortcut">⇧⌘A</span>
+              </Fragment>
+            ) : null}
           </ListItem>
           <ListItem
             summaryText="Make a commit"
