@@ -23,8 +23,8 @@ export class OnboardingTutorial {
     return false
   }
 
-  private isReadmeEdited(): boolean {
-    return false
+  private hasChangedFile(repository): boolean {
+    return this.getChangedFiles(repository).length > 0
   }
 
   private hasCommit(): boolean {
