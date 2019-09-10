@@ -123,13 +123,51 @@ export class CreateTutorialRepositoryDialog extends React.Component<
     }
   }
 
+  private async pushRepo(
+    path: string,
+    account: Account,
+    startProgress: number
+  ) {
+    const pushTitle = `Pushing repository to ${friendlyEndpointName(account)}`
+    const progressWeight = 1 - startProgress
+
+    this.setState({
+      progress: {
+        kind: 'generic',
+        title: pushTitle,
+        value: startProgress,
+      },
+    })
+
+    const pushOpts = await executionOptionsWithProgress(
+      {
+        env: envForAuthentication(account),
+      },
+      new PushProgressParser(),
+      progress => {
+        if (progress.kind === 'progress') {
+          this.setState({
+            progress: {
+              kind: 'generic',
+              title: pushTitle,
+              description: progress.details.text,
+              value: startProgress + progress.percent * progressWeight,
+            },
+          })
+        }
+      }
+    )
+
+    const args = ['push', '-u', 'origin', 'master']
+    await git(args, path, 'tutorial:push', pushOpts)
+  }
+
   public onSubmit = async () => {
     const { account } = this.props
     this.setState({ loading: true })
 
     const name = 'desktop-tutorial'
     const initWeight = 0.2
-    const pushWeight = 0.8
 
     try {
       const path = Path.resolve(getDefaultDir(), name)
@@ -176,41 +214,7 @@ export class CreateTutorialRepositoryDialog extends React.Component<
         'tutorial:add-remote'
       )
 
-      const pushTitle = `Pushing repository to ${friendlyEndpointName(account)}`
-
-      this.setState({
-        progress: {
-          kind: 'generic',
-          title: pushTitle,
-          value: initWeight,
-        },
-      })
-
-      const pushOpts = await executionOptionsWithProgress(
-        {
-          env: envForAuthentication(account),
-        },
-        new PushProgressParser(),
-        progress => {
-          if (progress.kind === 'progress') {
-            this.setState({
-              progress: {
-                kind: 'generic',
-                title: pushTitle,
-                description: progress.details.text,
-                value: initWeight + progress.percent * pushWeight,
-              },
-            })
-          }
-        }
-      )
-
-      await git(
-        ['push', '-u', 'origin', 'master'],
-        path,
-        'tutorial:push',
-        pushOpts
-      )
+      await this.pushRepo(path, account, initWeight)
 
       this.setState({ progress: undefined })
       this.props.onTutorialRepositoryCreated(path, account, repo)
