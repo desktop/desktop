@@ -420,17 +420,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<TutorialStep | null> {
     if (!repository.isTutorialRepository) {
       return null
-    } else if (await this.isEditorInstalled) {
+    } else if (!(await this.isEditorInstalled)) {
       return TutorialStep.PickEditor
-    } else if (this.isBranchCreated()) {
+    } else if (!this.isBranchCreated()) {
       return TutorialStep.CreateBranch
-    } else if (this.hasChangedFile(repository)) {
+    } else if (!this.hasChangedFile(repository)) {
       return TutorialStep.EditFile
-    } else if (this.hasCommit()) {
+    } else if (!this.hasCommit()) {
       return TutorialStep.MakeCommit
-    } else if (this.commitPushed()) {
+    } else if (!this.commitPushed()) {
       return TutorialStep.PushBranch
-    } else if (this.pullRequestCreated()) {
+    } else if (!this.pullRequestCreated()) {
       return TutorialStep.OpenPullRequest
     } else {
       return TutorialStep.AllDone
