@@ -126,6 +126,17 @@ export class Dispatcher {
     return this.appStore._addRepositories(paths)
   }
 
+  /**
+   * Add a tutorial repository.
+   *
+   * This method differs from the `addRepositories` method in that it
+   * requires that the repository has been created on the remote and
+   * set up to track it. Given that tutorial repositories are created
+   * from the no-repositories blank slate it shouldn't be possible for
+   * another repository with the same path to exist but in case that
+   * changes in the future this method will set the tutorial flag on
+   * the existing repository at the given path.
+   */
   public addTutorialRepository(
     path: string,
     endpoint: string,
