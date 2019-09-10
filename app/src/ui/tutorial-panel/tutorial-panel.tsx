@@ -41,7 +41,9 @@ export class TutorialPanel extends React.Component<
         </div>
         <ol>
           <ListItem
+            stepNumber={1}
             summaryText="Install a text editor"
+            completed={true}
             id="step-1"
             openId={this.state.openId}
             onClick={this.handleToggle}
@@ -64,7 +66,9 @@ export class TutorialPanel extends React.Component<
             <LinkButton>I have an editor</LinkButton>
           </ListItem>
           <ListItem
+            stepNumber={2}
             summaryText="Make a branch"
+            completed={true}
             id="step-2"
             openId={this.state.openId}
             onClick={this.handleToggle}
@@ -76,7 +80,9 @@ export class TutorialPanel extends React.Component<
             <span className="shortcut">⇧⌘N</span>
           </ListItem>
           <ListItem
+            stepNumber={3}
             summaryText="Edit a file"
+            completed={false}
             id="step-3"
             openId={this.state.openId}
             onClick={this.handleToggle}
@@ -94,7 +100,9 @@ export class TutorialPanel extends React.Component<
             <span className="shortcut">⇧⌘A</span>
           </ListItem>
           <ListItem
+            stepNumber={4}
             summaryText="Make a commit"
+            completed={false}
             id="step-4"
             openId={this.state.openId}
             onClick={this.handleToggle}
@@ -106,7 +114,9 @@ export class TutorialPanel extends React.Component<
             <span className="shortcut">⌘ Enter</span>
           </ListItem>
           <ListItem
+            stepNumber={5}
             summaryText="Push to GitHub"
+            completed={false}
             id="step-5"
             openId={this.state.openId}
             onClick={this.handleToggle}
@@ -118,7 +128,9 @@ export class TutorialPanel extends React.Component<
             <span className="shortcut">⌘P</span>
           </ListItem>
           <ListItem
+            stepNumber={6}
             summaryText="Open a pull request"
+            completed={false}
             id="step-6"
             openId={this.state.openId}
             onClick={this.handleToggle}
@@ -142,6 +154,8 @@ export class TutorialPanel extends React.Component<
 
 class ListItem extends React.PureComponent<{
   readonly summaryText: string
+  readonly stepNumber: number
+  readonly completed: boolean
   readonly id: string
   readonly openId: string
   readonly onClick: (id: string) => void
@@ -154,8 +168,14 @@ class ListItem extends React.PureComponent<{
           onClick={this.onClick}
         >
           <summary>
-            <div className="green-circle">
-              <Octicon symbol={OcticonSymbol.check} />
+            <div
+              className={this.props.completed ? 'green-circle' : 'blue-circle'}
+            >
+              {this.props.completed ? (
+                `${this.props.stepNumber}`
+              ) : (
+                <Octicon symbol={OcticonSymbol.check} />
+              )}
             </div>
             <span className="summary-text">{this.props.summaryText}</span>
           </summary>
