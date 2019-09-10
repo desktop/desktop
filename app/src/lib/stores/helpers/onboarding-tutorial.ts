@@ -1,18 +1,22 @@
 export class OnboardingTutorial {
-  public constructor() {
+  public constructor({ resolveEditor, getEditor }) {
     this.skipInstallEditor = false
     this.skipCreatePR = false
+    this.resolveEditor = resolveEditor
+    this.getEditor = getEditor
   }
 
   public getCurrentStep() {
     // call all other methods to check where we're at
   }
 
-    if (this.skipInstallEditor) {
   private async isEditorInstalled(): Promise<boolean> {
+    if (this.skipInstallEditor || this.getEditor()) {
       return true
+    } else {
+      await this.resolveEditor()
+      return !!this.getEditor()
     }
-    return false
   }
 
   private isBranchCreated(): boolean {
