@@ -73,6 +73,14 @@ interface ICreateTutorialRepositoryDialogState {
   readonly progress?: Progress
 }
 
+const nl = __WIN32__ ? '\r\n' : '\n'
+const InititalReadmeContents =
+  `# Welcome to GitHub Desktop!${nl}${nl}` +
+  `This is your README. READMEs are where you can communicate ` +
+  `what your project is and how to use it.${nl}${nl}` +
+  `Make any change to this file, save it, and then head ` +
+  `back to GitHub Desktop.${nl}`
+
 /**
  * A dialog component reponsible for initializing, publishing, and adding
  * a tutorial repository to the application.
@@ -146,15 +154,7 @@ export class CreateTutorialRepositoryDialog extends React.Component<
       await ensureDir(path)
       await git(['init'], path, 'tutorial:init')
 
-      const nl = __WIN32__ ? '\r\n' : '\n'
-      await writeFile(
-        Path.join(path, 'README.md'),
-        `# Welcome to GitHub Desktop!${nl}${nl}` +
-          `This is your README. READMEs are where you can communicate ` +
-          `what your project is and how to use it.${nl}${nl}` +
-          `Make any change to this file, save it, and then head ` +
-          `back to GitHub Desktop.${nl}`
-      )
+      await writeFile(Path.join(path, 'README.md'), InititalReadmeContents)
 
       await git(['add', '--', 'README.md'], path, 'tutorial:add')
       await git(
