@@ -138,7 +138,7 @@ export class RepositoriesStore extends BaseStore {
   /**
    * Add a tutorial repository.
    *
-   * This method differs from the addRepository method in that it
+   * This method differs from the `addRepository` method in that it
    * requires that the repository has been created on the remote and
    * set up to track it. Given that tutorial repositories are created
    * from the no-repositories blank slate it shouldn't be possible for
