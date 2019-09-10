@@ -239,6 +239,7 @@ import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
 import { findBranchesForFastForward } from './helpers/find-branches-for-fast-forward'
+import { TutorialStep } from '../../models/tutorial-step'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -414,24 +415,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * Onboarding tutorial methods
    * To be extracted into separate class
    */
-  public async _getCurrentStep(repository: Repository) {
-    // TODO: return symbols for steps instead of strings
+  public async _getCurrentStep(
+    repository: Repository
+  ): Promise<TutorialStep | null> {
     if (!repository.isTutorialRepository) {
       return null
     } else if (await this.isEditorInstalled) {
-      return 'step-1'
+      return TutorialStep.PickEditor
     } else if (this.isBranchCreated()) {
-      return 'step-2'
+      return TutorialStep.CreateBranch
     } else if (this.hasChangedFile(repository)) {
-      return 'step-3'
+      return TutorialStep.EditFile
     } else if (this.hasCommit()) {
-      return 'step-4'
+      return TutorialStep.MakeCommit
     } else if (this.commitPushed()) {
-      return 'step-5'
+      return TutorialStep.PushBranch
     } else if (this.pullRequestCreated()) {
-      return 'step-6'
+      return TutorialStep.OpenPullRequest
     } else {
-      return null
+      return TutorialStep.AllDone
     }
   }
 
