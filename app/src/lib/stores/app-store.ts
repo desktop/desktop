@@ -405,7 +405,71 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.wireupIpcEventHandlers(window)
     this.wireupStoreEventHandlers()
     getAppMenu()
+
+    this.initializeOnboardingTutorialState()
   }
+
+  /**
+   * Onboarding tutorial methods
+   * To be extracted into separate class
+   */
+
+  private initializeOnboardingTutorialState() {
+    this.skipInstallEditor = false
+    this.skipCreatePR = false
+  }
+
+  public async getCurrentStep(repository) {
+    if (!repository.isTutorialRepository) {
+      return null
+    }
+    // call all other methods to check where we're at
+  }
+
+  private async isEditorInstalled(): Promise<boolean> {
+    if (this.skipInstallEditor || this.resolvedExternalEditor) {
+      return true
+    } else {
+      await this._resolveCurrentEditor()
+      return !!this.resolvedExternalEditor
+    }
+  }
+
+  private isBranchCreated(): boolean {
+    return false
+  }
+
+  private hasChangedFile(repository): boolean {
+    const { changesState } = this.repositoryStateCache.get(repository)
+    return changesState.workingDirectory.files.length > 0
+  }
+
+  private hasCommit(): boolean {
+    return false
+  }
+
+  private commitPushed(): boolean {
+    return false
+  }
+
+  private pullRequestCreated(): boolean {
+    if (this.skipCreatePR) {
+      return true
+    }
+    return false
+  }
+
+  public skipEditorInstall() {
+    this.skipEditorInstall = true
+  }
+
+  public skipCreatePR() {
+    this.skipCreatePR = true
+  }
+  /**
+   * [END] Onboarding tutorial methods
+   * To be extracted into separate class
+   */
 
   private wireupIpcEventHandlers(window: Electron.BrowserWindow) {
     ipcRenderer.on(
