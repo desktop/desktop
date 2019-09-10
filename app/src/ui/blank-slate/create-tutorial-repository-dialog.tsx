@@ -57,7 +57,10 @@ interface ICreateTutorialRepositoryDialogState {
   readonly progress?: Progress
 }
 
-/** The Create Branch component. */
+/**
+ * A dialog component reponsible for initializing, publishing, and adding
+ * a tutorial repository to the application.
+ */
 export class CreateTutorialRepositoryDialog extends React.Component<
   ICreateTutorialRepositoryDialogProps,
   ICreateTutorialRepositoryDialogState
