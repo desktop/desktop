@@ -64,7 +64,7 @@ interface ICreateTutorialRepositoryDialogState {
    * progress icon in the dialog header (if the dialog has a header) as
    * well as temporarily disable dismissal of the dialog.
    */
-  readonly loading?: boolean
+  readonly loading: boolean
 
   /**
    * The current progress in creating the tutorial repository. Undefined
@@ -91,8 +91,7 @@ export class CreateTutorialRepositoryDialog extends React.Component<
 > {
   public constructor(props: ICreateTutorialRepositoryDialogProps) {
     super(props)
-
-    this.state = {}
+    this.state = { loading: false }
   }
 
   private async createAPIRepository(account: Account, name: string) {
@@ -254,7 +253,7 @@ export class CreateTutorialRepositoryDialog extends React.Component<
         title="Start tutorial"
         onDismissed={this.onCancel}
         onSubmit={this.onSubmit}
-        dismissable={this.state.loading !== true}
+        dismissable={!this.state.loading}
         loading={this.state.loading}
       >
         <DialogContent>
