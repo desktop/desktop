@@ -249,3 +249,18 @@ export async function setupTwoCommitRepo(): Promise<Repository> {
   await makeCommit(repo, secondCommit)
   return repo
 }
+
+/**
+ * Setup an onboarding tutorial repo
+ *
+ * has only `README.md` file
+ */
+export async function setupOnboardingTutorialRepo(): Promise<Repository> {
+  const repo = await setupEmptyRepository()
+
+  const initialCommit = {
+    entries: [{ path: 'README.md', contents: 'Welcome to GitHub Desktop!' }],
+  }
+  await makeCommit(repo, initialCommit)
+  return repo
+}
