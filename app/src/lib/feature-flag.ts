@@ -105,3 +105,11 @@ export function enableBranchProtectionWarningFlow(): boolean {
 export function enableHideWhitespaceInDiffOption(): boolean {
   return enableBetaFeatures()
 }
+
+/**
+ * Should we enable the onboarding tutorial. This includes the initial
+ * configuration of the tutorial repo as well as the tutorial itself.
+ */
+export function enableTutorial(): boolean {
+  return enableDevelopmentFeatures()
+}
