@@ -426,7 +426,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return quickLog(TutorialStep.NotApplicable)
     } else if (!(await this.isEditorInstalled)) {
       return quickLog(TutorialStep.PickEditor)
-    } else if (!this.isBranchCreated()) {
+    } else if (!this.isBranchCreated(repository)) {
       return quickLog(TutorialStep.CreateBranch)
     } else if (!this.hasChangedFile(repository)) {
       return quickLog(TutorialStep.EditFile)
@@ -450,8 +450,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  private isBranchCreated(): boolean {
-    return false
+  private isBranchCreated(repository: Repository): boolean {
+    const { branchesState } = this.repositoryStateCache.get(repository)
+    const { tip } = branchesState
+
+    const currentBranchName =
+      tip.kind === TipState.Valid ? tip.branch.name : null
+    const defaultBranchName =
+      branchesState.defaultBranch !== null
+        ? branchesState.defaultBranch.name
+        : null
+
+    return (
+      currentBranchName !== null &&
+      defaultBranchName !== null &&
+      defaultBranchName !== defaultBranchName
+    )
   }
 
   private hasChangedFile(repository: Repository): boolean {
