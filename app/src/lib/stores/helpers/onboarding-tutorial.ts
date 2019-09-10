@@ -6,7 +6,10 @@ export class OnboardingTutorial {
     this.getEditor = getEditor
   }
 
-  public getCurrentStep() {
+  public getCurrentStep(repository) {
+    if (!repository.isTutorialRepository) {
+      return null
+    }
     // call all other methods to check where we're at
   }
 
