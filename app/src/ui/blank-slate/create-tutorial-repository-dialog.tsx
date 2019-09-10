@@ -37,12 +37,23 @@ interface ICreateTutorialRepositoryDialogProps {
    */
   readonly onDismissed: () => void
 
+  /**
+   * Event triggered when the tutorial repository has been created
+   * locally, initialized with the expected tutorial contents, and
+   * pushed to the remote.
+   */
   readonly onTutorialRepositoryCreated: (
     path: string,
     account: Account,
     apiRepository: IAPIRepository
   ) => void
 
+  /**
+   * Event triggered when the component encounters and error while
+   * attempting to create the tutorial repository. Consumers are
+   * intended to display an error message to the end user in response
+   * to this event.
+   */
   readonly onError: (error: Error) => void
 }
 
@@ -54,6 +65,11 @@ interface ICreateTutorialRepositoryDialogState {
    * well as temporarily disable dismissal of the dialog.
    */
   readonly loading?: boolean
+
+  /**
+   * The current progress in creating the tutorial repository. Undefined
+   * until the creation process starts.
+   */
   readonly progress?: Progress
 }
 
