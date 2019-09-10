@@ -239,7 +239,7 @@ import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
 import { findBranchesForFastForward } from './helpers/find-branches-for-fast-forward'
-import { TutorialStep } from '../../models/tutorial-step'
+import { TutorialStep, TutorialStepOrder } from '../../models/tutorial-step'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -415,9 +415,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * Onboarding tutorial methods
    * To be extracted into separate class
    */
-  public async _getCurrentStep(
-    repository: Repository
-  ): Promise<TutorialStep> {
+  public async _getCurrentStep(repository: Repository): Promise<TutorialStep> {
     if (!repository.isTutorialRepository) {
       return TutorialStep.NotApplicable
     } else if (!(await this.isEditorInstalled)) {
@@ -4503,6 +4501,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (this.appIsFocused) {
       if (this.selectedRepository instanceof Repository) {
         this.startPullRequestUpdater(this.selectedRepository)
+        // TODO: replace direct call to `_getCurrentStep` here with stored state lookup
+        if (
+          (await this._getCurrentStep(this.selectedRepository)) ===
+          TutorialStep.PickEditor
+        ) {
+          await this._resolveCurrentEditor()
+        }
       }
     } else {
       this.stopPullRequestUpdater()
