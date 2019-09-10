@@ -374,6 +374,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private hasUserViewedStash = false
 
+  private installEditorSkipped = false
+  private createPRSkipped = false
+
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
     private readonly cloningRepositoriesStore: CloningRepositoriesStore,
@@ -405,29 +408,35 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.wireupIpcEventHandlers(window)
     this.wireupStoreEventHandlers()
     getAppMenu()
-
-    this.initializeOnboardingTutorialState()
   }
 
   /**
    * Onboarding tutorial methods
    * To be extracted into separate class
    */
-
-  private initializeOnboardingTutorialState() {
-    this.skipInstallEditor = false
-    this.skipCreatePR = false
-  }
-
-  public async getCurrentStep(repository) {
+  public async _getCurrentStep(repository: Repository) {
+    // TODO: return symbols for steps instead of strings
     if (!repository.isTutorialRepository) {
       return null
+    } else if (await this.isEditorInstalled) {
+      return 'step-1'
+    } else if (this.isBranchCreated()) {
+      return 'step-2'
+    } else if (this.hasChangedFile(repository)) {
+      return 'step-3'
+    } else if (this.hasCommit()) {
+      return 'step-4'
+    } else if (this.commitPushed()) {
+      return 'step-5'
+    } else if (this.pullRequestCreated()) {
+      return 'step-6'
+    } else {
+      return null
     }
-    // call all other methods to check where we're at
   }
 
   private async isEditorInstalled(): Promise<boolean> {
-    if (this.skipInstallEditor || this.resolvedExternalEditor) {
+    if (this.installEditorSkipped || this.resolvedExternalEditor) {
       return true
     } else {
       await this._resolveCurrentEditor()
@@ -439,7 +448,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return false
   }
 
-  private hasChangedFile(repository): boolean {
+  private hasChangedFile(repository: Repository): boolean {
     const { changesState } = this.repositoryStateCache.get(repository)
     return changesState.workingDirectory.files.length > 0
   }
@@ -453,18 +462,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private pullRequestCreated(): boolean {
-    if (this.skipCreatePR) {
+    if (this.createPRSkipped) {
       return true
     }
     return false
   }
 
   public skipEditorInstall() {
-    this.skipEditorInstall = true
+    this.installEditorSkipped = true
   }
 
   public skipCreatePR() {
-    this.skipCreatePR = true
+    this.createPRSkipped = true
   }
   /**
    * [END] Onboarding tutorial methods

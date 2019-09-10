@@ -15,11 +15,22 @@ interface ITutorialPanelProps {
 
 export class TutorialPanel extends React.Component<
   ITutorialPanelProps,
-  { openId: string }
+  { openId: string | null }
 > {
   public constructor(props: ITutorialPanelProps) {
     super(props)
-    this.state = { openId: 'step-1' }
+    this.state = {
+      openId: 'step-1',
+    }
+    this.updateStep()
+  }
+
+  private async updateStep() {
+    this.setState({
+      openId: await this.props.dispatcher.getCurrentOnboardingTutorialStep(
+        this.props.repository
+      ),
+    })
   }
 
   private openFileInEditor = () => {
@@ -143,7 +154,7 @@ export class TutorialPanel extends React.Component<
 class ListItem extends React.PureComponent<{
   readonly summaryText: string
   readonly id: string
-  readonly openId: string
+  readonly openId: string | null
   readonly onClick: (id: string) => void
 }> {
   public render() {

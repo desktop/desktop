@@ -2154,4 +2154,8 @@ export class Dispatcher {
   public recordStashView(): Promise<void> {
     return this.statsStore.recordStashView()
   }
+
+  public getCurrentOnboardingTutorialStep(repostory: Repository) {
+    return this.appStore._getCurrentStep(repostory)
+  }
 }
