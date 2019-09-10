@@ -41,6 +41,15 @@ interface ICreateTutorialRepositoryDialogProps {
    * Event triggered when the tutorial repository has been created
    * locally, initialized with the expected tutorial contents, and
    * pushed to the remote.
+   *
+   * @param path    The path on the local machine where the tutorial
+   *                repository was created
+   *
+   * @param account The account (and thereby the GitHub host) under
+   *                which the repository was created
+   *
+   * @param apiRepository The repository information as returned by
+   *                      the GitHub API as the repository was created.
    */
   readonly onTutorialRepositoryCreated: (
     path: string,
