@@ -61,7 +61,9 @@ export class TutorialPanel extends React.Component<
         </div>
         <ol>
           <ListItem
+            stepNumber={1}
             summaryText="Install a text editor"
+            completed={true}
             id="step-1"
             openId={this.state.openId}
             onClick={this.handleToggle}
@@ -87,7 +89,9 @@ export class TutorialPanel extends React.Component<
             <LinkButton onClick={this.skipEditorInstall}>Skip</LinkButton>
           </ListItem>
           <ListItem
+            stepNumber={2}
             summaryText="Make a branch"
+            completed={true}
             id="step-2"
             openId={this.state.openId}
             onClick={this.handleToggle}
@@ -99,7 +103,9 @@ export class TutorialPanel extends React.Component<
             <span className="shortcut">⇧⌘N</span>
           </ListItem>
           <ListItem
+            stepNumber={3}
             summaryText="Edit a file"
+            completed={false}
             id="step-3"
             openId={this.state.openId}
             onClick={this.handleToggle}
@@ -116,7 +122,9 @@ export class TutorialPanel extends React.Component<
             ) : null}
           </ListItem>
           <ListItem
+            stepNumber={4}
             summaryText="Make a commit"
+            completed={false}
             id="step-4"
             openId={this.state.openId}
             onClick={this.handleToggle}
@@ -128,7 +136,9 @@ export class TutorialPanel extends React.Component<
             <span className="shortcut">⌘ Enter</span>
           </ListItem>
           <ListItem
+            stepNumber={5}
             summaryText="Push to GitHub"
+            completed={false}
             id="step-5"
             openId={this.state.openId}
             onClick={this.handleToggle}
@@ -140,7 +150,9 @@ export class TutorialPanel extends React.Component<
             <span className="shortcut">⌘P</span>
           </ListItem>
           <ListItem
+            stepNumber={6}
             summaryText="Open a pull request"
+            completed={false}
             id="step-6"
             openId={this.state.openId}
             onClick={this.handleToggle}
@@ -165,28 +177,34 @@ export class TutorialPanel extends React.Component<
 
 class ListItem extends React.PureComponent<{
   readonly summaryText: string
+  readonly stepNumber: number
+  readonly completed: boolean
   readonly id: string
   readonly openId: string | null
   readonly onClick: (id: string) => void
 }> {
   public render() {
     return (
-      <li key={this.props.id}>
+      <li key={this.props.id} onClick={this.onClick}>
         <details
           open={this.props.id === this.props.openId}
           onClick={this.onClick}
         >
-          <summary>
-            <div className="green-circle">
-              <Octicon symbol={OcticonSymbol.check} />
-            </div>
-            <span className="summary-text">{this.props.summaryText}</span>
-          </summary>
+          {this.renderSummary()}
           <div className="contents">{this.props.children}</div>
         </details>
       </li>
     )
   }
+
+  private renderSummary = () => (
+    <summary>
+      {renderTutorialStepIcon(this.props.completed, this.props.stepNumber)}
+      <span className="summary-text">{this.props.summaryText}</span>
+      <Octicon className="chevron-icon" symbol={OcticonSymbol.chevronDown} />
+    </summary>
+  )
+
   private onClick = (e: React.MouseEvent<HTMLElement>) => {
     // prevents the default behavior of toggling on a `details` html element
     // so we don't have to fight it with our react state
@@ -195,4 +213,14 @@ class ListItem extends React.PureComponent<{
     e.preventDefault()
     this.props.onClick(this.props.id)
   }
+}
+
+function renderTutorialStepIcon(completed: boolean, stepNumber: number) {
+  return completed ? (
+    <div className="green-circle">
+      <Octicon symbol={OcticonSymbol.check} />
+    </div>
+  ) : (
+    <div className="blue-circle">{stepNumber}</div>
+  )
 }
