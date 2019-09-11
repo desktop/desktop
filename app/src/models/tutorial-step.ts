@@ -25,4 +25,5 @@ export const orderedSteps: ReadonlyArray<ValidTutorialStep> = [
   TutorialStep.MakeCommit,
   TutorialStep.PushBranch,
   TutorialStep.OpenPullRequest,
+  TutorialStep.AllDone,
 ]
