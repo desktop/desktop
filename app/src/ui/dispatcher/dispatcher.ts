@@ -2155,10 +2155,6 @@ export class Dispatcher {
     return this.statsStore.recordStashView()
   }
 
-  public getCurrentOnboardingTutorialStep(repostory: Repository) {
-    return this.appStore._getCurrentStep(repostory)
-  }
-
   public skipEditorInstall() {
     return this.appStore._skipEditorInstall()
   }

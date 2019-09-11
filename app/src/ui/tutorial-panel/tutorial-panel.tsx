@@ -23,15 +23,6 @@ export class TutorialPanel extends React.Component<
     this.state = {
       openId: 'step-1',
     }
-    this.updateStep()
-  }
-
-  private async updateStep() {
-    this.setState({
-      openId: await this.props.dispatcher.getCurrentOnboardingTutorialStep(
-        this.props.repository
-      ),
-    })
   }
 
   private openFileInEditor = () => {
