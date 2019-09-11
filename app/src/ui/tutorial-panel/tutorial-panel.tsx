@@ -44,6 +44,10 @@ export class TutorialPanel extends React.Component<
     this.props.dispatcher.createPullRequest(this.props.repository)
   }
 
+  private skipEditorInstall = () => {
+    this.props.dispatcher.skipEditorInstall()
+  }
+
   public render() {
     return (
       <div id="tutorial" className="panel">
@@ -73,7 +77,9 @@ export class TutorialPanel extends React.Component<
               </LinkButton>
               , but feel free to use any.
             </div>
-            <LinkButton>I have an editor</LinkButton>
+            <LinkButton onClick={this.skipEditorInstall}>
+              I have an editor
+            </LinkButton>
           </ListItem>
           <ListItem
             summaryText="Make a branch"
