@@ -375,8 +375,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private hasUserViewedStash = false
 
+  // Onboarding Tutorial State
   private installEditorSkipped = false
   private createPRSkipped = false
+  private currentTutorialStep = TutorialStep.NotApplicable
+  // End of Onboarding Tutorial State
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
