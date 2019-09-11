@@ -7,21 +7,23 @@ import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Fragment } from 'react'
+import { ValidTutorialStep, TutorialStep } from '../../models/tutorial-step'
 
 interface ITutorialPanelProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly externalEditorLabel?: string
+  readonly currentTutorialStep: ValidTutorialStep
 }
 
 export class TutorialPanel extends React.Component<
   ITutorialPanelProps,
-  { openId: string | null }
+  { openId: ValidTutorialStep }
 > {
   public constructor(props: ITutorialPanelProps) {
     super(props)
     this.state = {
-      openId: 'step-1',
+      openId: this.props.currentTutorialStep,
     }
   }
 
