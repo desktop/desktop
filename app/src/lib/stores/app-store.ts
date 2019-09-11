@@ -498,11 +498,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return false
   }
 
-  public skipEditorInstall() {
+  public _skipEditorInstall() {
     this.installEditorSkipped = true
   }
 
-  public skipCreatePR() {
+  public _skipCreatePR() {
     this.createPRSkipped = true
   }
   /**
