@@ -162,7 +162,7 @@ class ListItem extends React.PureComponent<{
 }> {
   public render() {
     return (
-      <li key={this.props.id}>
+      <li key={this.props.id} onClick={this.onClick}>
         <details
           open={this.props.id === this.props.openId}
           onClick={this.onClick}
