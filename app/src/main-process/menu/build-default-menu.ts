@@ -425,32 +425,40 @@ export function buildDefaultMenu({
   const submitIssueItem: Electron.MenuItemConstructorOptions = {
     label: __DARWIN__ ? 'Report Issue…' : 'Report issue…',
     click() {
-      shell.openExternal('https://github.com/desktop/desktop/issues/new/choose')
+      shell
+        .openExternal('https://github.com/desktop/desktop/issues/new/choose')
+        .catch(err => log('error', `Call to openExternal failed: '${err}'`))
     },
   }
 
   const contactSupportItem: Electron.MenuItemConstructorOptions = {
     label: __DARWIN__ ? 'Contact GitHub Support…' : '&Contact GitHub support…',
     click() {
-      shell.openExternal(
-        `https://github.com/contact?from_desktop_app=1&app_version=${app.getVersion()}`
-      )
+      shell
+        .openExternal(
+          `https://github.com/contact?from_desktop_app=1&app_version=${app.getVersion()}`
+        )
+        .catch(err => log('error', `Call to openExternal failed: '${err}'`))
     },
   }
 
   const showUserGuides: Electron.MenuItemConstructorOptions = {
     label: 'Show User Guides',
     click() {
-      shell.openExternal('https://help.github.com/desktop/guides/')
+      shell
+        .openExternal('https://help.github.com/desktop/guides/')
+        .catch(err => log('error', `Call to openExternal failed: '${err}'`))
     },
   }
 
   const showKeyboardShortcuts: Electron.MenuItemConstructorOptions = {
     label: __DARWIN__ ? 'Show Keyboard Shortcuts' : 'Show keyboard shortcuts',
     click() {
-      shell.openExternal(
-        'https://help.github.com/en/desktop/getting-started-with-github-desktop/keyboard-shortcuts-in-github-desktop'
-      )
+      shell
+        .openExternal(
+          'https://help.github.com/en/desktop/getting-started-with-github-desktop/keyboard-shortcuts-in-github-desktop'
+        )
+        .catch(err => log('error', `Call to openExternal failed: '${err}'`))
     },
   }
 
