@@ -163,7 +163,7 @@ export class TutorialPanel extends React.Component<
     )
   }
 
-  public handleToggle = (id: string) => {
+  public handleToggle = (id: ValidTutorialStep) => {
     this.setState({ openId: id })
   }
 }
@@ -172,9 +172,9 @@ class ListItem extends React.PureComponent<{
   readonly summaryText: string
   readonly stepNumber: number
   readonly completed: boolean
-  readonly id: string
+  readonly id: ValidTutorialStep
   readonly openId: string | null
-  readonly onClick: (id: string) => void
+  readonly onClick: (id: ValidTutorialStep) => void
 }> {
   public render() {
     return (
