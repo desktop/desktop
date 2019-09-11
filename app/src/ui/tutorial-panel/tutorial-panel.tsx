@@ -178,10 +178,10 @@ class ListItem extends React.PureComponent<{
               )}
             </div>
             <span className="summary-text">{this.props.summaryText}</span>
+            {this.renderChevron()}
           </summary>
           <div className="contents">{this.props.children}</div>
         </details>
-        {this.renderChevron()}
       </li>
     )
   }

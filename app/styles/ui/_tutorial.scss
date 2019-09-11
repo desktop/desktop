@@ -38,13 +38,17 @@
 
   li {
     padding: var(--spacing-double);
-    padding-right: var(--spacing);
+    padding-right: var(--spacing-three-halves);
   }
   summary {
     display: flex;
     font-weight: var(--font-weight-semibold);
+
     .summary-text {
       opacity: 0.5;
+    }
+    .chevron-icon {
+      margin-left: auto;
     }
   }
 
