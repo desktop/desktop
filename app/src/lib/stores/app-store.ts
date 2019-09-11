@@ -490,10 +490,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return true
     }
 
-    const gitHubRepository = repository.gitHubRepository
-    if (gitHubRepository !== null) {
-      const prs = await this.pullRequestStore.getAll(gitHubRepository)
-      return prs.length > 0
+    const { remote, branchesState } = this.repositoryStateCache.get(repository)
+    const { tip, openPullRequests } = branchesState
+
+    if (tip.kind === TipState.Valid && remote) {
+      return (
+        findAssociatedPullRequest(tip.branch, openPullRequests, remote) !== null
+      )
     }
     return false
   }
