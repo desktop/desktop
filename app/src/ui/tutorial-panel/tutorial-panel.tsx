@@ -35,8 +35,10 @@ export class TutorialPanel extends React.Component<
     this.state = { currentlyOpenSectionId: 'step-1' }
   }
 
-  private openFileInEditor = () => {
+  private openTutorialFileInEditor = () => {
     this.props.dispatcher.openInExternalEditor(
+      // TODO: tie this filename to a shared constant
+      // for tutorial repos
       join(this.props.repository.path, 'README.md')
     )
   }
