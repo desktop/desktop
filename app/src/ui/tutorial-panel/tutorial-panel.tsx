@@ -6,6 +6,12 @@ import { Monospaced } from '../lib/monospaced'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { encodePathAsUrl } from '../../lib/path'
+
+const TutorialPanelImage = encodePathAsUrl(
+  __dirname,
+  'static/required-status-check.svg'
+)
 
 interface ITutorialPanelProps {
   readonly dispatcher: Dispatcher
@@ -37,7 +43,7 @@ export class TutorialPanel extends React.Component<
       <div id="tutorial" className="panel">
         <div className="titleArea">
           <h1>Get started</h1>
-          <Octicon symbol={OcticonSymbol.bell} />
+          <img src={TutorialPanelImage} />
         </div>
         <ol>
           <ListItem

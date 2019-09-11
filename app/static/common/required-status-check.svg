@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="56px" height="56px" viewBox="0 0 56 56" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 57.1 (83088) - https://sketch.com -->
+    <title>Required status check</title>
+    <g id="light" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Slides" transform="translate(-912.000000, 0.000000)"></g>
+        <g id="Required-Status-Check" transform="translate(6.000000, 6.000000)">
+            <path d="M28,37 L20,37" id="Stroke-1" stroke="#79B8FF" stroke-width="2" stroke-linecap="round"></path>
+            <path d="M29,7 L15,7" id="Stroke-2" stroke="#2088FF" stroke-width="2"></path>
+            <g id="Group-23">
+                <path d="M7,36 C7,36.5523077 6.55230769,37 6,37 C5.44769231,37 5,36.5523077 5,36 C5,35.4476923 5.44769231,35 6,35 C6.55230769,35 7,35.4476923 7,36 Z" id="Fill-5" fill="#79B8FF"></path>
+                <path d="M11,36 C11,36.5523077 10.5523077,37 10,37 C9.44769231,37 9,36.5523077 9,36 C9,35.4476923 9.44769231,35 10,35 C10.5523077,35 11,35.4476923 11,36 Z" id="Fill-7" fill="#79B8FF"></path>
+                <path d="M8,28 C12.4182178,28 16,31.5809901 16,36 C16,40.4182178 12.4182178,44 8,44 C3.58178218,44 0,40.4182178 0,36 C0,31.5809901 3.58178218,28 8,28 Z" id="Stroke-9" stroke="#2088FF" stroke-width="2" stroke-linecap="round"></path>
+                <path d="M31.0369873,13.0201416 L12.0290527,30.006958" id="Stroke-11" stroke="#2088FF" stroke-width="2"></path>
+                <path d="M36,0 C40.4182178,0 44,3.58178218 44,8.00079208 C44,12.4190099 40.4182178,16 36,16 C31.5817822,16 28,12.4190099 28,8.00079208 C28,3.58178218 31.5817822,0 36,0 Z" id="Stroke-13" stroke="#2088FF" stroke-width="2" stroke-linecap="round"></path>
+                <path d="M8,0 C12.4182178,0 16,3.58178218 16,8.00079208 C16,12.4190099 12.4182178,16 8,16 C3.58178218,16 0,12.4190099 0,8.00079208 C0,3.58178218 3.58178218,0 8,0 Z" id="Stroke-15" stroke="#2088FF" stroke-width="2" stroke-linecap="round"></path>
+                <polyline id="Stroke-10" stroke="#2088FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="10.9660174 6.00469971 6.96650571 9.99890137 4.96436948 8.00384521"></polyline>
+                <polyline id="Stroke-10" stroke="#2088FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="38.9660174 6.00469971 34.9665057 9.99890137 32.9643695 8.00384521"></polyline>
+                <path d="M36,28 C40.4182178,28 44,31.5809901 44,36 C44,40.4182178 40.4182178,44 36,44 C31.5817822,44 28,40.4182178 28,36 C28,31.5809901 31.5817822,28 36,28 Z" id="Stroke-21" stroke="#79B8FF" stroke-width="2" stroke-linecap="round"></path>
+            </g>
+        </g>
+    </g>
+</svg>
