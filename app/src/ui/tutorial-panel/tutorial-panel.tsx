@@ -98,7 +98,7 @@ export class TutorialPanel extends React.Component<
               onClick={this.openFileInEditor}
               disabled={!this.props.externalEditorLabel}
             >
-              Open Editor
+              {__DARWIN__ ? 'Open Editor' : 'Open editor' }
             </Button>
             <kbd>⇧⌘A</kbd>
           </TutorialListItem>
@@ -136,7 +136,9 @@ export class TutorialPanel extends React.Component<
               Pull Requests are how you propose changes. By opening one, you’re
               requesting that someone review and merge them.
             </div>
-            <Button onClick={this.openPullRequest}>Open pull request</Button>
+            <Button onClick={this.openPullRequest}>
+              {__DARWIN__ ? 'Open Pull Request' : 'Open pull request'}
+            </Button>
             <kbd>⌘R</kbd>
           </TutorialListItem>
         </ol>
