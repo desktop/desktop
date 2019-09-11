@@ -4540,11 +4540,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (this.appIsFocused) {
       if (this.selectedRepository instanceof Repository) {
         this.startPullRequestUpdater(this.selectedRepository)
-        // TODO: replace direct call to `_getCurrentStep` here with stored state lookup
-        if (
-          (await this._getCurrentStep(this.selectedRepository)) ===
-          TutorialStep.PickEditor
-        ) {
+        if (this.currentTutorialStep === TutorialStep.PickEditor) {
           await this._resolveCurrentEditor()
         }
       }
