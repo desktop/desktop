@@ -1110,11 +1110,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    // Don't render the menu bar when the blank slate is shown
-    if (this.state.repositories.length < 1) {
-      return null
-    }
-
     const currentFoldout = this.state.currentFoldout
 
     // AppMenuBar requires us to pass a strongly typed AppMenuFoldout state or
@@ -1162,11 +1157,23 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const showAppIcon = __WIN32__ && !this.state.showWelcomeFlow
+    const inWelcomeFlow = this.state.showWelcomeFlow
+    const inNoRepositoriesView = this.state.repositories.length === 0
+
+    // The light title bar style should only be used while we're in
+    // the welcome flow as well as the no-repositories blank slate
+    // on macOS. The latter case has to do with the application menu
+    // being part of the title bar on Windows. We need to render
+    // the app menu in the no-repositories blank slate on Windows but
+    // the menu doesn't support the light style at the moment so we're
+    // forcing it to use the dark style.
+    const titleBarStyle =
+      inWelcomeFlow || (__DARWIN__ && inNoRepositoriesView) ? 'light' : 'dark'
 
     return (
       <TitleBar
         showAppIcon={showAppIcon}
-        titleBarStyle={this.state.titleBarStyle}
+        titleBarStyle={titleBarStyle}
         windowState={this.state.windowState}
         windowZoomFactor={this.state.windowZoomFactor}
       >
