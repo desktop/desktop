@@ -2678,8 +2678,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.updateMenuItemLabels(latestState)
 
     this._initializeCompare(repository)
-    // TODO: maybe update state here? or somewhere else?
-    this._getCurrentStep(repository)
+
+    this._updateCurrentTutorialStep(repository)
   }
 
   private async updateStashEntryCountMetric(
