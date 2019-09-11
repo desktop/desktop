@@ -57,7 +57,7 @@ export class TutorialPanel extends React.Component<
             stepNumber={1}
             summaryText="Install a text editor"
             completed={true}
-            id="step-1"
+            id={TutorialStep.PickEditor}
             openId={this.state.openId}
             onClick={this.handleToggle}
           >
@@ -85,7 +85,7 @@ export class TutorialPanel extends React.Component<
             stepNumber={2}
             summaryText="Make a branch"
             completed={true}
-            id="step-2"
+            id={TutorialStep.CreateBranch}
             openId={this.state.openId}
             onClick={this.handleToggle}
           >
@@ -99,7 +99,7 @@ export class TutorialPanel extends React.Component<
             stepNumber={3}
             summaryText="Edit a file"
             completed={false}
-            id="step-3"
+            id={TutorialStep.EditFile}
             openId={this.state.openId}
             onClick={this.handleToggle}
           >
@@ -118,7 +118,7 @@ export class TutorialPanel extends React.Component<
             stepNumber={4}
             summaryText="Make a commit"
             completed={false}
-            id="step-4"
+            id={TutorialStep.MakeCommit}
             openId={this.state.openId}
             onClick={this.handleToggle}
           >
@@ -132,7 +132,7 @@ export class TutorialPanel extends React.Component<
             stepNumber={5}
             summaryText="Push to GitHub"
             completed={false}
-            id="step-5"
+            id={TutorialStep.PushBranch}
             openId={this.state.openId}
             onClick={this.handleToggle}
           >
@@ -146,7 +146,7 @@ export class TutorialPanel extends React.Component<
             stepNumber={6}
             summaryText="Open a pull request"
             completed={false}
-            id="step-6"
+            id={TutorialStep.OpenPullRequest}
             openId={this.state.openId}
             onClick={this.handleToggle}
           >
