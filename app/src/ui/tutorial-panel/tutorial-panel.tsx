@@ -181,9 +181,23 @@ class ListItem extends React.PureComponent<{
           </summary>
           <div className="contents">{this.props.children}</div>
         </details>
+        {this.renderChevron()}
       </li>
     )
   }
+
+  private renderChevron() {
+    if (this.props.id === this.props.openId) {
+      return (
+        <Octicon className="chevron-icon" symbol={OcticonSymbol.chevronUp} />
+      )
+    } else {
+      return (
+        <Octicon className="chevron-icon" symbol={OcticonSymbol.chevronDown} />
+      )
+    }
+  }
+
   private onClick = (e: React.MouseEvent<HTMLElement>) => {
     // prevents the default behavior of toggling on a `details` html element
     // so we don't have to fight it with our react state
