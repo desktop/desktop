@@ -2162,4 +2162,8 @@ export class Dispatcher {
   public skipEditorInstall() {
     return this.appStore._skipEditorInstall()
   }
+
+  public skipCreatePR() {
+    return this.appStore._skipCreatePR()
+  }
 }

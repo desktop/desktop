@@ -48,6 +48,10 @@ export class TutorialPanel extends React.Component<
     this.props.dispatcher.skipEditorInstall()
   }
 
+  private skipCreatePR = () => {
+    this.props.dispatcher.skipCreatePR()
+  }
+
   public render() {
     return (
       <div id="tutorial" className="panel">
@@ -147,6 +151,7 @@ export class TutorialPanel extends React.Component<
             </div>
             <Button onClick={this.openPullRequest}>Open pull request</Button>
             <span className="shortcut">⌘R</span>
+            <LinkButton onClick={this.skipCreatePR}>Skip</LinkButton>
           </ListItem>
         </ol>
       </div>
