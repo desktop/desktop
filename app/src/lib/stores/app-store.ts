@@ -437,7 +437,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return TutorialStep.CreateBranch
     } else if (!(await this.hasChangedFile(repository))) {
       return TutorialStep.EditFile
-    } else if (!(await this.hasCommit(repository))) {
+    } else if (!(await this.hasMultipleCommits(repository))) {
       return TutorialStep.MakeCommit
     } else if (!(await this.commitPushed(repository))) {
       return TutorialStep.PushBranch
@@ -476,7 +476,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async hasChangedFile(repository: Repository): Promise<boolean> {
-    if (await this.hasCommit(repository)) {
+    if (await this.hasMultipleCommits(repository)) {
       // User has already committed a change
       return true
     }
@@ -484,9 +484,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return changesState.workingDirectory.files.length > 0
   }
 
-  private async hasCommit(repository: Repository): Promise<boolean> {
     const gitStore = this.gitStoreCache.get(repository)
     const commits = await gitStore.loadCommitBatch('HEAD')
+  private async hasMultipleCommits(repository: Repository): Promise<boolean> {
     // TODO: Verify with @niik that there will only be one commit initially
     return commits !== null && commits.length > 1
   }
