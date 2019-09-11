@@ -97,7 +97,7 @@ export class TutorialPanel extends React.Component<
               <Monospaced>README.md</Monospaced> file, save it, and come back.
             </div>
             <Button
-              onClick={this.openFileInEditor}
+              onClick={this.openTutorialFileInEditor}
               disabled={!this.props.externalEditorLabel}
             >
               {__DARWIN__ ? 'Open Editor' : 'Open editor'}
