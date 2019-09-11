@@ -435,7 +435,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return TutorialStep.PickEditor
     } else if (!this.isBranchCheckedOut(repository)) {
       return TutorialStep.CreateBranch
-    } else if (!this.hasChangedFile(repository)) {
+    } else if (!(await this.hasChangedFile(repository))) {
       return TutorialStep.EditFile
     } else if (!(await this.hasCommit(repository))) {
       return TutorialStep.MakeCommit
@@ -475,7 +475,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
   }
 
-  private hasChangedFile(repository: Repository): boolean {
+  private async hasChangedFile(repository: Repository): Promise<boolean> {
+    if (await this.hasCommit(repository)) {
+      // User has already committed a change
+      return true
+    }
     const { changesState } = this.repositoryStateCache.get(repository)
     return changesState.workingDirectory.files.length > 0
   }
