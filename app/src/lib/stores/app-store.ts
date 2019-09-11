@@ -423,7 +423,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository
   ): Promise<void> {
     const currentStep = await this.getCurrentStep(repository)
-    log.debug(`Current tutorial step is ${currentStep}`)
+    log.info(`Current tutorial step is ${currentStep}`)
     this.currentTutorialStep = currentStep
     this.emitUpdate()
   }
@@ -471,7 +471,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return (
       currentBranchName !== null &&
       defaultBranchName !== null &&
-      defaultBranchName !== defaultBranchName
+      currentBranchName !== defaultBranchName
     )
   }
 
