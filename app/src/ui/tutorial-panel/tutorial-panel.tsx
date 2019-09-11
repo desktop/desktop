@@ -178,24 +178,15 @@ class ListItem extends React.PureComponent<{
               )}
             </div>
             <span className="summary-text">{this.props.summaryText}</span>
-            {this.renderChevron()}
+            <Octicon
+              className="chevron-icon"
+              symbol={OcticonSymbol.chevronDown}
+            />
           </summary>
           <div className="contents">{this.props.children}</div>
         </details>
       </li>
     )
-  }
-
-  private renderChevron() {
-    if (this.props.id === this.props.openId) {
-      return (
-        <Octicon className="chevron-icon" symbol={OcticonSymbol.chevronUp} />
-      )
-    } else {
-      return (
-        <Octicon className="chevron-icon" symbol={OcticonSymbol.chevronDown} />
-      )
-    }
   }
 
   private onClick = (e: React.MouseEvent<HTMLElement>) => {
