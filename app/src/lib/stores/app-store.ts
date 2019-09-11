@@ -432,7 +432,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return quickLog(TutorialStep.EditFile)
     } else if (!(await this.hasCommit(repository))) {
       return quickLog(TutorialStep.MakeCommit)
-    } else if (!this.commitPushed()) {
+    } else if (!(await this.commitPushed(repository))) {
       return quickLog(TutorialStep.PushBranch)
     } else if (!this.pullRequestCreated()) {
       return quickLog(TutorialStep.OpenPullRequest)
@@ -480,8 +480,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return commits !== null && commits.length > 1
   }
 
-  private commitPushed(): boolean {
-    return false
+  private async commitPushed(repository: Repository): Promise<boolean> {
+    const { aheadBehind } = this.repositoryStateCache.get(repository)
+    return aheadBehind !== null && aheadBehind.ahead === 0
   }
 
   private pullRequestCreated(): boolean {
