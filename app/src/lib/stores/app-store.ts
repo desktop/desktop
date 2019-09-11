@@ -415,29 +415,33 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * Onboarding tutorial methods
    * To be extracted into separate class
    */
-  public async _getCurrentStep(repository: Repository): Promise<TutorialStep> {
-    // TODO: delete this helper fn
-    function quickLog(step: TutorialStep) {
-      log.warn(`Current Tutorial Step: ${step}`)
-      return step
-    }
 
+  public async _updateCurrentTutorialStep(
+    repository: Repository
+  ): Promise<void> {
+    const currentStep = await this.getCurrentStep(repository)
+    log.debug(`Current tutorial step is ${currentStep}`)
+    this.currentTutorialStep = currentStep
+    this.emitUpdate()
+  }
+
+  private async getCurrentStep(repository: Repository): Promise<TutorialStep> {
     if (!repository.isTutorialRepository) {
-      return quickLog(TutorialStep.NotApplicable)
+      return TutorialStep.NotApplicable
     } else if (!(await this.isEditorInstalled)) {
-      return quickLog(TutorialStep.PickEditor)
+      return TutorialStep.PickEditor
     } else if (!this.isBranchCheckedOut(repository)) {
-      return quickLog(TutorialStep.CreateBranch)
+      return TutorialStep.CreateBranch
     } else if (!this.hasChangedFile(repository)) {
-      return quickLog(TutorialStep.EditFile)
+      return TutorialStep.EditFile
     } else if (!(await this.hasCommit(repository))) {
-      return quickLog(TutorialStep.MakeCommit)
+      return TutorialStep.MakeCommit
     } else if (!(await this.commitPushed(repository))) {
-      return quickLog(TutorialStep.PushBranch)
+      return TutorialStep.PushBranch
     } else if (!(await this.pullRequestCreated(repository))) {
-      return quickLog(TutorialStep.OpenPullRequest)
+      return TutorialStep.OpenPullRequest
     } else {
-      return quickLog(TutorialStep.AllDone)
+      return TutorialStep.AllDone
     }
   }
 
