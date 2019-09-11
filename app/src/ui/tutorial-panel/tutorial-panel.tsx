@@ -98,7 +98,7 @@ export class TutorialPanel extends React.Component<
               onClick={this.openFileInEditor}
               disabled={!this.props.externalEditorLabel}
             >
-              {__DARWIN__ ? 'Open Editor' : 'Open editor' }
+              {__DARWIN__ ? 'Open Editor' : 'Open editor'}
             </Button>
             <kbd>⇧⌘A</kbd>
           </TutorialListItem>
