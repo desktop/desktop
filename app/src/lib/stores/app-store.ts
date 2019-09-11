@@ -728,6 +728,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       automaticallySwitchTheme: this.automaticallySwitchTheme,
       apiRepositories: this.apiRepositoriesStore.getState(),
       optOutOfUsageTracking: this.statsStore.getOptOut(),
+      installEditorSkipped: this.installEditorSkipped,
+      createPRSkipped: this.createPRSkipped,
+      currentTutorialStep: this.currentTutorialStep,
     }
   }
 
