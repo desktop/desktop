@@ -167,27 +167,20 @@ class ListItem extends React.PureComponent<{
           open={this.props.id === this.props.openId}
           onClick={this.onClick}
         >
-          <summary>
-            <div
-              className={this.props.completed ? 'green-circle' : 'blue-circle'}
-            >
-              {this.props.completed ? (
-                `${this.props.stepNumber}`
-              ) : (
-                <Octicon symbol={OcticonSymbol.check} />
-              )}
-            </div>
-            <span className="summary-text">{this.props.summaryText}</span>
-            <Octicon
-              className="chevron-icon"
-              symbol={OcticonSymbol.chevronDown}
-            />
-          </summary>
+          {this.renderSummary()}
           <div className="contents">{this.props.children}</div>
         </details>
       </li>
     )
   }
+
+  private renderSummary = () => (
+    <summary>
+      {renderTutorialStepIcon(this.props.completed, this.props.stepNumber)}
+      <span className="summary-text">{this.props.summaryText}</span>
+      <Octicon className="chevron-icon" symbol={OcticonSymbol.chevronDown} />
+    </summary>
+  )
 
   private onClick = (e: React.MouseEvent<HTMLElement>) => {
     // prevents the default behavior of toggling on a `details` html element
@@ -197,4 +190,14 @@ class ListItem extends React.PureComponent<{
     e.preventDefault()
     this.props.onClick(this.props.id)
   }
+}
+
+function renderTutorialStepIcon(completed: boolean, stepNumber: number) {
+  return completed ? (
+    <div className="green-circle">
+      <Octicon symbol={OcticonSymbol.check} />
+    </div>
+  ) : (
+    <div className="blue-circle">{stepNumber}</div>
+  )
 }
