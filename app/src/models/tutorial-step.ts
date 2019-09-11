@@ -17,3 +17,12 @@ export type ValidTutorialStep =
   | TutorialStep.PushBranch
   | TutorialStep.OpenPullRequest
   | TutorialStep.AllDone
+
+export const orderedSteps: ReadonlyArray<ValidTutorialStep> = [
+  TutorialStep.PickEditor,
+  TutorialStep.CreateBranch,
+  TutorialStep.EditFile,
+  TutorialStep.MakeCommit,
+  TutorialStep.PushBranch,
+  TutorialStep.OpenPullRequest,
+]

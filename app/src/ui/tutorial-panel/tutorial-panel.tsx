@@ -7,7 +7,11 @@ import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Fragment } from 'react'
-import { ValidTutorialStep, TutorialStep } from '../../models/tutorial-step'
+import {
+  ValidTutorialStep,
+  TutorialStep,
+  orderedSteps,
+} from '../../models/tutorial-step'
 
 interface ITutorialPanelProps {
   readonly dispatcher: Dispatcher
@@ -45,6 +49,13 @@ export class TutorialPanel extends React.Component<
     this.props.dispatcher.skipCreatePR()
   }
 
+  private isStepComplete = (step: ValidTutorialStep) => {
+    return (
+      orderedSteps.indexOf(step) <
+      orderedSteps.indexOf(this.props.currentTutorialStep)
+    )
+  }
+
   public render() {
     return (
       <div id="tutorial" className="panel">
@@ -56,7 +67,7 @@ export class TutorialPanel extends React.Component<
           <ListItem
             stepNumber={1}
             summaryText="Install a text editor"
-            completed={true}
+            isComplete={this.isStepComplete}
             id={TutorialStep.PickEditor}
             openId={this.state.openId}
             onClick={this.handleToggle}
@@ -84,7 +95,7 @@ export class TutorialPanel extends React.Component<
           <ListItem
             stepNumber={2}
             summaryText="Make a branch"
-            completed={true}
+            isComplete={this.isStepComplete}
             id={TutorialStep.CreateBranch}
             openId={this.state.openId}
             onClick={this.handleToggle}
@@ -98,7 +109,7 @@ export class TutorialPanel extends React.Component<
           <ListItem
             stepNumber={3}
             summaryText="Edit a file"
-            completed={false}
+            isComplete={this.isStepComplete}
             id={TutorialStep.EditFile}
             openId={this.state.openId}
             onClick={this.handleToggle}
@@ -117,7 +128,7 @@ export class TutorialPanel extends React.Component<
           <ListItem
             stepNumber={4}
             summaryText="Make a commit"
-            completed={false}
+            isComplete={this.isStepComplete}
             id={TutorialStep.MakeCommit}
             openId={this.state.openId}
             onClick={this.handleToggle}
@@ -131,7 +142,7 @@ export class TutorialPanel extends React.Component<
           <ListItem
             stepNumber={5}
             summaryText="Push to GitHub"
-            completed={false}
+            isComplete={this.isStepComplete}
             id={TutorialStep.PushBranch}
             openId={this.state.openId}
             onClick={this.handleToggle}
@@ -145,7 +156,7 @@ export class TutorialPanel extends React.Component<
           <ListItem
             stepNumber={6}
             summaryText="Open a pull request"
-            completed={false}
+            isComplete={this.isStepComplete}
             id={TutorialStep.OpenPullRequest}
             openId={this.state.openId}
             onClick={this.handleToggle}
@@ -171,7 +182,7 @@ export class TutorialPanel extends React.Component<
 class ListItem extends React.PureComponent<{
   readonly summaryText: string
   readonly stepNumber: number
-  readonly completed: boolean
+  readonly isComplete: (step: ValidTutorialStep) => boolean
   readonly id: ValidTutorialStep
   readonly openId: string | null
   readonly onClick: (id: ValidTutorialStep) => void
@@ -192,7 +203,10 @@ class ListItem extends React.PureComponent<{
 
   private renderSummary = () => (
     <summary>
-      {renderTutorialStepIcon(this.props.completed, this.props.stepNumber)}
+      {renderTutorialStepIcon(
+        this.props.isComplete(this.props.id),
+        this.props.stepNumber
+      )}
       <span className="summary-text">{this.props.summaryText}</span>
       <Octicon className="chevron-icon" symbol={OcticonSymbol.chevronDown} />
     </summary>
