@@ -47,7 +47,7 @@ export class TutorialPanel extends React.Component<
 
   public render() {
     return (
-      <div id="tutorial" className="panel">
+      <div className="tutorial-panel-component panel">
         <ol>
           <TutorialListItem
             summaryText="Install a text editor"
