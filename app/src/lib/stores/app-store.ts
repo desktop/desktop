@@ -509,15 +509,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return true
     }
 
-    const { remote, branchesState } = this.repositoryStateCache.get(repository)
-    const { tip, openPullRequests } = branchesState
-
-    if (tip.kind === TipState.Valid && remote) {
-      return (
-        findAssociatedPullRequest(tip.branch, openPullRequests, remote) !== null
-      )
-    }
-    return false
+    const {
+      branchesState: { currentPullRequest },
+    } = this.repositoryStateCache.get(repository)
+    return currentPullRequest !== null
   }
 
   public _skipEditorInstall() {
