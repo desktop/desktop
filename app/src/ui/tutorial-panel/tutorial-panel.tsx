@@ -80,6 +80,7 @@ export class TutorialPanel extends React.Component<
             <LinkButton onClick={this.skipEditorInstall}>
               I have an editor
             </LinkButton>
+            <LinkButton onClick={this.skipEditorInstall}>Skip</LinkButton>
           </ListItem>
           <ListItem
             summaryText="Make a branch"
