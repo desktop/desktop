@@ -426,7 +426,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return quickLog(TutorialStep.NotApplicable)
     } else if (!(await this.isEditorInstalled)) {
       return quickLog(TutorialStep.PickEditor)
-    } else if (!this.isBranchCreated(repository)) {
+    } else if (!this.isBranchCheckedOut(repository)) {
       return quickLog(TutorialStep.CreateBranch)
     } else if (!this.hasChangedFile(repository)) {
       return quickLog(TutorialStep.EditFile)
@@ -450,7 +450,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  private isBranchCreated(repository: Repository): boolean {
+  private isBranchCheckedOut(repository: Repository): boolean {
     const { branchesState } = this.repositoryStateCache.get(repository)
     const { tip } = branchesState
 
