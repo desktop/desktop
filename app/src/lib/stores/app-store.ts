@@ -476,6 +476,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async hasCommit(repository: Repository): Promise<boolean> {
     const gitStore = this.gitStoreCache.get(repository)
     const commits = await gitStore.loadCommitBatch('HEAD')
+    // TODO: Verify with @niik that there will only be one commit initially
     return commits !== null && commits.length > 1
   }
 
