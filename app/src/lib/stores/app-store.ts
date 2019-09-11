@@ -484,11 +484,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return changesState.workingDirectory.files.length > 0
   }
 
-    const gitStore = this.gitStoreCache.get(repository)
-    const commits = await gitStore.loadCommitBatch('HEAD')
   private async hasMultipleCommits(repository: Repository): Promise<boolean> {
+    const { branchesState } = this.repositoryStateCache.get(repository)
+    const { tip } = branchesState
+
     // TODO: Verify with @niik that there will only be one commit initially
-    return commits !== null && commits.length > 1
+    if (tip.kind === TipState.Valid) {
+      // For some reason sometimes the initial commit has a parent sha
+      // listed as an empty string...
+      // For now I'm filtering those out. Would be better to prevent that from happening
+      return tip.branch.tip.parentSHAs.filter(Boolean).length > 0
+    }
+
+    return false
   }
 
   private async commitPushed(repository: Repository): Promise<boolean> {
