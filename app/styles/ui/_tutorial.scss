@@ -6,16 +6,15 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-left: var(--spacing-quint);
-    padding-right: var(--spacing);
+    padding: var(--spacing-triple) var(--spacing-double) var(--spacing-double) var(--spacing-quint);
 
     h1 {
       margin: 0;
       font-weight: var(--font-weight-light);
     }
     svg {
-      height: 56px;
-      width: 56px;
+      height: 55px;
+      width: 55px;
     }
   }
 
