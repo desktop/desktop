@@ -95,7 +95,7 @@ export class TutorialPanel extends React.Component<
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             onClick={this.handleToggle}
           >
-            <div>
+            <div className="description">
               {`Create a branch by going into the branch menu in the top bar and
               clicking "${__DARWIN__ ? 'New Branch' : 'New branch'}".`}
             </div>
