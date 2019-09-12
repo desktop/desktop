@@ -71,7 +71,7 @@ export function parse(label: string): ExternalEditor | null {
     return ExternalEditor.SlickEdit
   }
   if (label == ExternalEditor.Xcode) {
-      return ExternalEditor.Xcode
+    return ExternalEditor.Xcode
   }
   return null
 }
@@ -119,9 +119,7 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
         'com.slickedit.SlickEditPro2015',
       ]
     case ExternalEditor.Xcode:
-      return [
-          'com.apple.dt.Xcode'
-      ]
+      return ['com.apple.dt.Xcode']
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -311,7 +309,7 @@ export async function getAvailableEditors(): Promise<
   }
 
   if (xCodePath) {
-      results.push({ editor: ExternalEditor.Xcode, path: xCodePath })
+    results.push({ editor: ExternalEditor.Xcode, path: xCodePath })
   }
 
   return results

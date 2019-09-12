@@ -14,14 +14,13 @@ export async function launchExternalEditor(
   fullPath: string,
   editor: FoundEditor
 ): Promise<void> {
-
   const editorPath = editor.path
 
   //Special launching for Xcode.
   if (editor.editor === Darwin.Xcode) {
     const projectFiles = await findFilesMatching('*.xcodeproj', fullPath)
     const workspaces = await findFilesMatching('*.xcworkspaces', fullPath)
-    if (projectFiles.length === 0 || workspaces.length === 0) {
+    if (projectFiles.length === 0 && workspaces.length === 0) {
       const label = __DARWIN__ ? 'Preferences' : 'Options'
       throw new ExternalEditorError(
         `Could not find executable for '${editor.editor}' at path '${
@@ -31,12 +30,12 @@ export async function launchExternalEditor(
       )
     } else {
       //If both project file and workspace exist, open the workspace file.
-      if (workspaces.length != 0){
-        spawn(editorPath, fullPath + '/' + workspaces[0])
+      if (workspaces.length != 0) {
+        spawn(editorPath, [fullPath + '/' + workspaces[0]])
       } else {
         //Right now, if there're multiple project files, this code
         //will open the first one in array
-        spawn(editorPath, fullPath + '/' + projectFiles[0])
+        spawn(editorPath, [fullPath + '/' + projectFiles[0]])
       }
     }
     return

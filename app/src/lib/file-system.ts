@@ -27,7 +27,8 @@ export async function findFilesMatching(
   cwd: string
 ): Promise<ReadonlyArray<string>> {
   return new Promise<ReadonlyArray<string>>((resolve, reject) => {
-    glob(pattern, { cwd }, (error, files) => {
+    glob
+(pattern, { cwd }, (error, files) => {
       if (error != null) {
         reject(error)
         return
