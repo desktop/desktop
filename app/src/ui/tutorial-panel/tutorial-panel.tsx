@@ -6,7 +6,6 @@ import { Monospaced } from '../lib/monospaced'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { Fragment } from 'react'
 import {
   ValidTutorialStep,
   TutorialStep,
@@ -141,12 +140,12 @@ export class TutorialPanel extends React.Component<
               <Monospaced>README.md</Monospaced> file, save it, and come back.
             </div>
             {this.props.externalEditorLabel ? (
-              <Fragment>
+              <>
                 <Button onClick={this.openTutorialFileInEditor}>
                   {__DARWIN__ ? 'Open Editor' : 'Open editor'}
                 </Button>
                 <span className="shortcut">⇧⌘A</span>
-              </Fragment>
+              </>
             ) : null}
           </TutorialListItem>
           <TutorialListItem
