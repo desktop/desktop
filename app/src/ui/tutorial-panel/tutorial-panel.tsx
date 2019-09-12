@@ -55,11 +55,11 @@ export class TutorialPanel extends React.Component<
   }
 
   private skipEditorInstall = () => {
-    this.props.dispatcher.skipEditorInstall()
+    this.props.dispatcher.skipEditorInstall(this.props.repository)
   }
 
   private skipCreatePR = () => {
-    this.props.dispatcher.skipCreatePR()
+    this.props.dispatcher.skipCreatePR(this.props.repository)
   }
 
   private isStepComplete = (step: ValidTutorialStep) => {

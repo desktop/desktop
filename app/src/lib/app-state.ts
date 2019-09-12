@@ -232,11 +232,8 @@ export interface IAppState {
    */
   readonly apiRepositories: ReadonlyMap<Account, IAccountRepositories>
 
-  // Onboarding Tutorial State
-  readonly installEditorSkipped: boolean
-  readonly createPRSkipped: boolean
+  /** Which step the user is on in the Onboarding Tutorial */
   readonly currentTutorialStep: TutorialStep
-  // End of Onboarding Tutorial State
 }
 
 export enum FoldoutType {

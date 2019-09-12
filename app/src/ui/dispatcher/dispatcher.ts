@@ -2155,11 +2155,11 @@ export class Dispatcher {
     return this.statsStore.recordStashView()
   }
 
-  public skipEditorInstall() {
-    return this.appStore._skipEditorInstall()
+  public skipEditorInstall(repository: Repository) {
+    return this.appStore._skipEditorInstall(repository)
   }
 
-  public skipCreatePR() {
-    return this.appStore._skipCreatePR()
+  public skipCreatePR(repository: Repository) {
+    return this.appStore._skipCreatePR(repository)
   }
 }

@@ -240,6 +240,7 @@ import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
 import { findBranchesForFastForward } from './helpers/find-branches-for-fast-forward'
 import { TutorialStep } from '../../models/tutorial-step'
+import { OnboardingTutorialInformant } from './helpers/tutorial-informant'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -376,9 +377,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private hasUserViewedStash = false
 
   // Onboarding Tutorial State
-  private installEditorSkipped = false
-  private createPRSkipped = false
   private currentTutorialStep = TutorialStep.NotApplicable
+  private tutorialInformant: OnboardingTutorialInformant
   // End of Onboarding Tutorial State
 
   public constructor(
@@ -412,6 +412,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.wireupIpcEventHandlers(window)
     this.wireupStoreEventHandlers()
     getAppMenu()
+    this.tutorialInformant = new OnboardingTutorialInformant(
+      this._resolveCurrentEditor,
+      this.getResolvedExternalEditor
+    )
   }
 
   /**
@@ -422,105 +426,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _updateCurrentTutorialStep(
     repository: Repository
   ): Promise<void> {
-    const currentStep = await this.getCurrentStep(repository)
+    const currentStep = await this.tutorialInformant.getCurrentStep(
+      repository.isTutorialRepository,
+      this.repositoryStateCache.get(repository)
+    )
     log.info(`Current tutorial step is ${currentStep}`)
     this.currentTutorialStep = currentStep
     this.emitUpdate()
   }
 
-  private async getCurrentStep(repository: Repository): Promise<TutorialStep> {
-    if (!repository.isTutorialRepository) {
-      return TutorialStep.NotApplicable
-    } else if (!(await this.isEditorInstalled)) {
-      return TutorialStep.PickEditor
-    } else if (!this.isBranchCheckedOut(repository)) {
-      return TutorialStep.CreateBranch
-    } else if (!(await this.hasChangedFile(repository))) {
-      return TutorialStep.EditFile
-    } else if (!(await this.hasMultipleCommits(repository))) {
-      return TutorialStep.MakeCommit
-    } else if (!(await this.commitPushed(repository))) {
-      return TutorialStep.PushBranch
-    } else if (!(await this.pullRequestCreated(repository))) {
-      return TutorialStep.OpenPullRequest
-    } else {
-      return TutorialStep.AllDone
-    }
+  public async _skipEditorInstall(repository: Repository) {
+    this.tutorialInformant.skipInstallEditor()
+    await this._updateCurrentTutorialStep(repository)
   }
 
-  private async isEditorInstalled(): Promise<boolean> {
-    if (this.installEditorSkipped || this.resolvedExternalEditor) {
-      return true
-    } else {
-      await this._resolveCurrentEditor()
-      return !!this.resolvedExternalEditor
-    }
-  }
-
-  private isBranchCheckedOut(repository: Repository): boolean {
-    const { branchesState } = this.repositoryStateCache.get(repository)
-    const { tip } = branchesState
-
-    const currentBranchName =
-      tip.kind === TipState.Valid ? tip.branch.name : null
-    const defaultBranchName =
-      branchesState.defaultBranch !== null
-        ? branchesState.defaultBranch.name
-        : null
-
-    return (
-      currentBranchName !== null &&
-      defaultBranchName !== null &&
-      currentBranchName !== defaultBranchName
-    )
-  }
-
-  private async hasChangedFile(repository: Repository): Promise<boolean> {
-    if (await this.hasMultipleCommits(repository)) {
-      // User has already committed a change
-      return true
-    }
-    const { changesState } = this.repositoryStateCache.get(repository)
-    return changesState.workingDirectory.files.length > 0
-  }
-
-  private async hasMultipleCommits(repository: Repository): Promise<boolean> {
-    const { branchesState } = this.repositoryStateCache.get(repository)
-    const { tip } = branchesState
-
-    // TODO: Verify with @niik that there will only be one commit initially
-    if (tip.kind === TipState.Valid) {
-      // For some reason sometimes the initial commit has a parent sha
-      // listed as an empty string...
-      // For now I'm filtering those out. Would be better to prevent that from happening
-      return tip.branch.tip.parentSHAs.filter(Boolean).length > 0
-    }
-
-    return false
-  }
-
-  private async commitPushed(repository: Repository): Promise<boolean> {
-    const { aheadBehind } = this.repositoryStateCache.get(repository)
-    return aheadBehind !== null && aheadBehind.ahead === 0
-  }
-
-  private async pullRequestCreated(repository: Repository): Promise<boolean> {
-    if (this.createPRSkipped) {
-      return true
-    }
-
-    const {
-      branchesState: { currentPullRequest },
-    } = this.repositoryStateCache.get(repository)
-    return currentPullRequest !== null
-  }
-
-  public _skipEditorInstall() {
-    this.installEditorSkipped = true
-  }
-
-  public _skipCreatePR() {
-    this.createPRSkipped = true
+  public async _skipCreatePR(repository: Repository) {
+    this.tutorialInformant.skipCreatePR()
+    await this._updateCurrentTutorialStep(repository)
   }
   /**
    * [END] Onboarding tutorial methods
@@ -738,8 +660,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       automaticallySwitchTheme: this.automaticallySwitchTheme,
       apiRepositories: this.apiRepositoriesStore.getState(),
       optOutOfUsageTracking: this.statsStore.getOptOut(),
-      installEditorSkipped: this.installEditorSkipped,
-      createPRSkipped: this.createPRSkipped,
       currentTutorialStep: this.currentTutorialStep,
     }
   }
@@ -5222,13 +5142,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-  public async _resolveCurrentEditor() {
+  public _resolveCurrentEditor = async () => {
     const match = await findEditorOrDefault(this.selectedExternalEditor)
     const resolvedExternalEditor = match != null ? match.editor : null
     if (this.resolvedExternalEditor !== resolvedExternalEditor) {
       this.resolvedExternalEditor = resolvedExternalEditor
       this.emitUpdate()
     }
+  }
+
+  public getResolvedExternalEditor = () => {
+    return this.resolvedExternalEditor
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
