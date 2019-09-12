@@ -16,23 +16,37 @@ import {
 interface ITutorialPanelProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
+
+  /** name of the configured external editor
+   * (`undefined` if none is configured.)
+   */
   readonly externalEditorLabel?: string
   readonly currentTutorialStep: ValidTutorialStep
 }
 
+interface ITutorialPanelState {
+  /** ID of the currently expanded tutorial step */
+  readonly currentlyOpenSectionId: ValidTutorialStep
+}
+
+/** The Onboarding Tutorial Panel
+ *  Renders a list of expandable tutorial steps (`TutorialListItem`).
+ *  Enforces only having one step expanded at a time through
+ *  event callbacks and local state.
+ */
 export class TutorialPanel extends React.Component<
   ITutorialPanelProps,
-  { openId: ValidTutorialStep }
+  ITutorialPanelState
 > {
   public constructor(props: ITutorialPanelProps) {
     super(props)
-    this.state = {
-      openId: this.props.currentTutorialStep,
-    }
+    this.state = { currentlyOpenSectionId: this.props.currentTutorialStep }
   }
 
-  private openFileInEditor = () => {
+  private openTutorialFileInEditor = () => {
     this.props.dispatcher.openInExternalEditor(
+      // TODO: tie this filename to a shared constant
+      // for tutorial repos
       join(this.props.repository.path, 'README.md')
     )
   }
@@ -59,25 +73,25 @@ export class TutorialPanel extends React.Component<
   public componentWillReceiveProps(nextProps: ITutorialPanelProps) {
     if (this.props.currentTutorialStep !== nextProps.currentTutorialStep) {
       this.setState({
-        openId: nextProps.currentTutorialStep,
+        currentlyOpenSectionId: nextProps.currentTutorialStep,
       })
     }
   }
 
   public render() {
     return (
-      <div id="tutorial" className="panel">
+      <div className="tutorial-panel-component panel">
         <div className="titleArea">
           <h1>Get started</h1>
           <Octicon symbol={OcticonSymbol.bell} />
         </div>
         <ol>
-          <ListItem
+          <TutorialListItem
             stepNumber={1}
             summaryText="Install a text editor"
             isComplete={this.isStepComplete}
-            id={TutorialStep.PickEditor}
-            openId={this.state.openId}
+            sectionId={TutorialStep.PickEditor}
+            currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             onClick={this.handleToggle}
           >
             <div className="description">
@@ -99,27 +113,27 @@ export class TutorialPanel extends React.Component<
               I have an editor
             </LinkButton>
             <LinkButton onClick={this.skipEditorInstall}>Skip</LinkButton>
-          </ListItem>
-          <ListItem
+          </TutorialListItem>
+          <TutorialListItem
             stepNumber={2}
             summaryText="Make a branch"
             isComplete={this.isStepComplete}
-            id={TutorialStep.CreateBranch}
-            openId={this.state.openId}
+            sectionId={TutorialStep.CreateBranch}
+            currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             onClick={this.handleToggle}
           >
             <div className="description">
-              Create a branch by going into the branch menu in the top bar and
-              clicking New Branch.
+              {`Create a branch by going into the branch menu in the top bar and
+              clicking "${__DARWIN__ ? 'New Branch' : 'New branch'}".`}
             </div>
             <span className="shortcut">⇧⌘N</span>
-          </ListItem>
-          <ListItem
+          </TutorialListItem>
+          <TutorialListItem
             stepNumber={3}
             summaryText="Edit a file"
             isComplete={this.isStepComplete}
-            id={TutorialStep.EditFile}
-            openId={this.state.openId}
+            sectionId={TutorialStep.EditFile}
+            currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             onClick={this.handleToggle}
           >
             <div className="description">
@@ -128,17 +142,19 @@ export class TutorialPanel extends React.Component<
             </div>
             {this.props.externalEditorLabel ? (
               <Fragment>
-                <Button onClick={this.openFileInEditor}>Open Editor</Button>
+                <Button onClick={this.openTutorialFileInEditor}>
+                  {__DARWIN__ ? 'Open Editor' : 'Open editor'}
+                </Button>
                 <span className="shortcut">⇧⌘A</span>
               </Fragment>
             ) : null}
-          </ListItem>
-          <ListItem
+          </TutorialListItem>
+          <TutorialListItem
             stepNumber={4}
             summaryText="Make a commit"
             isComplete={this.isStepComplete}
-            id={TutorialStep.MakeCommit}
-            openId={this.state.openId}
+            sectionId={TutorialStep.MakeCommit}
+            currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             onClick={this.handleToggle}
           >
             <div className="description">
@@ -146,13 +162,13 @@ export class TutorialPanel extends React.Component<
               done, click the commit button to finish.
             </div>
             <span className="shortcut">⌘ Enter</span>
-          </ListItem>
-          <ListItem
+          </TutorialListItem>
+          <TutorialListItem
             stepNumber={5}
             summaryText="Push to GitHub"
             isComplete={this.isStepComplete}
-            id={TutorialStep.PushBranch}
-            openId={this.state.openId}
+            sectionId={TutorialStep.PushBranch}
+            currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             onClick={this.handleToggle}
           >
             <div className="description">
@@ -160,46 +176,56 @@ export class TutorialPanel extends React.Component<
               commits made on your computer to a branch.
             </div>
             <span className="shortcut">⌘P</span>
-          </ListItem>
-          <ListItem
+          </TutorialListItem>
+          <TutorialListItem
             stepNumber={6}
             summaryText="Open a pull request"
             isComplete={this.isStepComplete}
-            id={TutorialStep.OpenPullRequest}
-            openId={this.state.openId}
+            sectionId={TutorialStep.OpenPullRequest}
+            currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             onClick={this.handleToggle}
           >
             <div className="description">
               Pull Requests are how you propose changes. By opening one, you’re
               requesting that someone review and merge them.
             </div>
-            <Button onClick={this.openPullRequest}>Open pull request</Button>
+            <Button onClick={this.openPullRequest}>
+              {__DARWIN__ ? 'Open Pull Request' : 'Open pull request'}
+            </Button>
             <span className="shortcut">⌘R</span>
             <LinkButton onClick={this.skipCreatePR}>Skip</LinkButton>
-          </ListItem>
+          </TutorialListItem>
         </ol>
       </div>
     )
   }
-
+  /** this makes sure we only have one `TutorialListItem` open at a time */
   public handleToggle = (id: ValidTutorialStep) => {
-    this.setState({ openId: id })
+    this.setState({ currentlyOpenSectionId: id })
   }
 }
 
-class ListItem extends React.PureComponent<{
+/** A step (summary and expandable description) in the tutorial side panel */
+class TutorialListItem extends React.PureComponent<{
+  /** Text displayed to summarize this step */
   readonly summaryText: string
   readonly stepNumber: number
   readonly isComplete: (step: ValidTutorialStep) => boolean
-  readonly id: ValidTutorialStep
-  readonly openId: string | null
+  /** ID for this section */
+  readonly sectionId: ValidTutorialStep
+
+  /** ID of the currently expanded tutorial step
+   * (used to determine if this step is expanded)
+   */
+  readonly currentlyOpenSectionId: string | null
+  /** Handler to open and close section */
   readonly onClick: (id: ValidTutorialStep) => void
 }> {
   public render() {
     return (
-      <li key={this.props.id} onClick={this.onClick}>
+      <li key={this.props.sectionId} onClick={this.onClick}>
         <details
-          open={this.props.id === this.props.openId}
+          open={this.props.sectionId === this.props.currentlyOpenSectionId}
           onClick={this.onClick}
         >
           {this.renderSummary()}
@@ -212,7 +238,7 @@ class ListItem extends React.PureComponent<{
   private renderSummary = () => (
     <summary>
       {renderTutorialStepIcon(
-        this.props.isComplete(this.props.id),
+        this.props.isComplete(this.props.sectionId),
         this.props.stepNumber
       )}
       <span className="summary-text">{this.props.summaryText}</span>
@@ -226,7 +252,7 @@ class ListItem extends React.PureComponent<{
     // for more info see:
     // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/details#Events
     e.preventDefault()
-    this.props.onClick(this.props.id)
+    this.props.onClick(this.props.sectionId)
   }
 }
 
