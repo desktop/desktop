@@ -2,6 +2,7 @@ import * as Path from 'path'
 
 import { GitHubRepository } from './github-repository'
 import { IAheadBehind } from './branch'
+import { enableTutorial } from '../lib/feature-flag'
 
 function getBaseName(path: string): string {
   const baseName = Path.basename(path)
@@ -56,6 +57,18 @@ export class Repository {
     return `${this.id}+${this.gitHubRepository && this.gitHubRepository.hash}+${
       this.path
     }+${this.missing}+${this.name}`
+  }
+
+  /**
+   * Whether or not this repository is set up as the onboarding
+   * tutorial repository.
+   */
+  public get isTutorialRepository(): boolean {
+    return (
+      enableTutorial() &&
+      this.name.startsWith('desktop-tutorial') &&
+      this.gitHubRepository !== null
+    )
   }
 }
 
