@@ -4556,6 +4556,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
         if (this.currentTutorialStep === TutorialStep.PickEditor) {
           await this._resolveCurrentEditor()
         }
+        if (this.currentTutorialStep === TutorialStep.OpenPullRequest) {
+          await this._refreshPullRequests(this.selectedRepository)
+        }
       }
     } else {
       this.stopPullRequestUpdater()
