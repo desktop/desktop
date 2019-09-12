@@ -99,7 +99,7 @@ export class TutorialPanel extends React.Component<
               {`Create a branch by going into the branch menu in the top bar and
               clicking "${__DARWIN__ ? 'New Branch' : 'New branch'}".`}
             </div>
-            <span className="shortcut">⇧⌘N</span>
+            <span className="shortcut">⇧ ⌘ N</span>
           </TutorialListItem>
           <TutorialListItem
             stepNumber={3}
@@ -119,7 +119,7 @@ export class TutorialPanel extends React.Component<
             >
               {__DARWIN__ ? 'Open Editor' : 'Open editor'}
             </Button>
-            <span className="shortcut">⇧⌘A</span>
+            <span className="shortcut">⇧ ⌘ A</span>
           </TutorialListItem>
           <TutorialListItem
             stepNumber={4}
@@ -147,7 +147,7 @@ export class TutorialPanel extends React.Component<
               Pushing your commits updates the repository on GitHub with any
               commits made on your computer to a branch.
             </div>
-            <span className="shortcut">⌘P</span>
+            <span className="shortcut">⌘ P</span>
           </TutorialListItem>
           <TutorialListItem
             stepNumber={6}
@@ -164,7 +164,7 @@ export class TutorialPanel extends React.Component<
             <Button onClick={this.openPullRequest}>
               {__DARWIN__ ? 'Open Pull Request' : 'Open pull request'}
             </Button>
-            <span className="shortcut">⌘R</span>
+            <span className="shortcut">⌘ R</span>
           </TutorialListItem>
         </ol>
       </div>
