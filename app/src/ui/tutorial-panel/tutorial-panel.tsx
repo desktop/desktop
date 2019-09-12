@@ -86,7 +86,6 @@ export class TutorialPanel extends React.Component<
         </div>
         <ol>
           <TutorialListItem
-            stepNumber={1}
             summaryText="Install a text editor"
             isComplete={this.isStepComplete}
             sectionId={TutorialStep.PickEditor}
@@ -114,7 +113,6 @@ export class TutorialPanel extends React.Component<
             <LinkButton onClick={this.skipEditorInstall}>Skip</LinkButton>
           </TutorialListItem>
           <TutorialListItem
-            stepNumber={2}
             summaryText="Make a branch"
             isComplete={this.isStepComplete}
             sectionId={TutorialStep.CreateBranch}
@@ -128,7 +126,6 @@ export class TutorialPanel extends React.Component<
             <span className="shortcut">⇧⌘N</span>
           </TutorialListItem>
           <TutorialListItem
-            stepNumber={3}
             summaryText="Edit a file"
             isComplete={this.isStepComplete}
             sectionId={TutorialStep.EditFile}
@@ -149,7 +146,6 @@ export class TutorialPanel extends React.Component<
             ) : null}
           </TutorialListItem>
           <TutorialListItem
-            stepNumber={4}
             summaryText="Make a commit"
             isComplete={this.isStepComplete}
             sectionId={TutorialStep.MakeCommit}
@@ -163,7 +159,6 @@ export class TutorialPanel extends React.Component<
             <span className="shortcut">⌘ Enter</span>
           </TutorialListItem>
           <TutorialListItem
-            stepNumber={5}
             summaryText="Push to GitHub"
             isComplete={this.isStepComplete}
             sectionId={TutorialStep.PushBranch}
@@ -177,7 +172,6 @@ export class TutorialPanel extends React.Component<
             <span className="shortcut">⌘P</span>
           </TutorialListItem>
           <TutorialListItem
-            stepNumber={6}
             summaryText="Open a pull request"
             isComplete={this.isStepComplete}
             sectionId={TutorialStep.OpenPullRequest}
@@ -208,7 +202,6 @@ export class TutorialPanel extends React.Component<
 class TutorialListItem extends React.PureComponent<{
   /** Text displayed to summarize this step */
   readonly summaryText: string
-  readonly stepNumber: number
   readonly isComplete: (step: ValidTutorialStep) => boolean
   /** ID for this section */
   readonly sectionId: ValidTutorialStep
@@ -238,7 +231,7 @@ class TutorialListItem extends React.PureComponent<{
     <summary>
       {renderTutorialStepIcon(
         this.props.isComplete(this.props.sectionId),
-        this.props.stepNumber
+        this.props.sectionId
       )}
       <span className="summary-text">{this.props.summaryText}</span>
       <Octicon className="chevron-icon" symbol={OcticonSymbol.chevronDown} />
@@ -255,12 +248,17 @@ class TutorialListItem extends React.PureComponent<{
   }
 }
 
-function renderTutorialStepIcon(completed: boolean, stepNumber: number) {
+function renderTutorialStepIcon(
+  completed: boolean,
+  sectionId: ValidTutorialStep
+) {
   return completed ? (
     <div className="green-circle">
       <Octicon symbol={OcticonSymbol.check} />
     </div>
   ) : (
-    <div className="blue-circle">{stepNumber}</div>
+    <div className="blue-circle">
+      {orderedTutorialSteps.indexOf(sectionId) + 1 /* ugh, zero-indexing */}
+    </div>
   )
 }
