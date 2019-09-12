@@ -55,6 +55,7 @@ export class TutorialPanel extends React.Component<
   }
 
   public render() {
+    const currentSectionId = 'step-3'
     return (
       <div className="tutorial-panel-component panel">
         <div className="titleArea">
@@ -67,6 +68,7 @@ export class TutorialPanel extends React.Component<
             summaryText="Install a text editor"
             sectionId="step-1"
             completed={true}
+            currentSectionId={currentSectionId}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             onClick={this.handleToggle}
           >
@@ -92,6 +94,7 @@ export class TutorialPanel extends React.Component<
             completed={true}
             summaryText="Make a branch"
             sectionId="step-2"
+            currentSectionId={currentSectionId}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             onClick={this.handleToggle}
           >
@@ -106,6 +109,7 @@ export class TutorialPanel extends React.Component<
             summaryText="Edit a file"
             sectionId="step-3"
             completed={false}
+            currentSectionId={currentSectionId}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             onClick={this.handleToggle}
           >
@@ -126,6 +130,7 @@ export class TutorialPanel extends React.Component<
             summaryText="Make a commit"
             completed={false}
             sectionId="step-4"
+            currentSectionId={currentSectionId}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             onClick={this.handleToggle}
           >
@@ -140,6 +145,7 @@ export class TutorialPanel extends React.Component<
             summaryText="Push to GitHub"
             completed={false}
             sectionId="step-5"
+            currentSectionId={currentSectionId}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             onClick={this.handleToggle}
           >
@@ -154,6 +160,7 @@ export class TutorialPanel extends React.Component<
             summaryText="Open a pull request"
             completed={false}
             sectionId="step-6"
+            currentSectionId={currentSectionId}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             onClick={this.handleToggle}
           >
@@ -184,6 +191,8 @@ class TutorialListItem extends React.PureComponent<{
   readonly stepNumber: number
   /** has this step been completed by the user already? */
   readonly completed: boolean
+  /** The next step for the user to complete in the tutorial */
+  readonly currentSectionId: string
   /** ID for this section */
   readonly sectionId: string
 
@@ -211,11 +220,29 @@ class TutorialListItem extends React.PureComponent<{
 
   private renderSummary = () => (
     <summary>
-      {renderTutorialStepIcon(this.props.completed, this.props.stepNumber)}
+      {this.renderTutorialStepIcon()}
       <span className="summary-text">{this.props.summaryText}</span>
       <Octicon className="chevron-icon" symbol={OcticonSymbol.chevronDown} />
     </summary>
   )
+
+  private renderTutorialStepIcon = () => {
+    if (this.props.completed) {
+      return (
+        <div className="green-circle">
+          <Octicon symbol={OcticonSymbol.check} />
+        </div>
+      )
+    }
+
+    return this.props.currentSectionId === this.props.sectionId ? (
+      <div className="blue-circle">{this.props.stepNumber}</div>
+    ) : (
+      <div className="empty-circle">
+        <span className="opacity">{this.props.stepNumber}</span>
+      </div>
+    )
+  }
 
   private onClick = (e: React.MouseEvent<HTMLElement>) => {
     // prevents the default behavior of toggling on a `details` html element
@@ -225,14 +252,4 @@ class TutorialListItem extends React.PureComponent<{
     e.preventDefault()
     this.props.onClick(this.props.sectionId)
   }
-}
-
-function renderTutorialStepIcon(completed: boolean, stepNumber: number) {
-  return completed ? (
-    <div className="green-circle">
-      <Octicon symbol={OcticonSymbol.check} />
-    </div>
-  ) : (
-    <div className="blue-circle">{stepNumber}</div>
-  )
 }
