@@ -180,7 +180,9 @@ export class TutorialPanel extends React.Component<
 class TutorialListItem extends React.PureComponent<{
   /** Text displayed to summarize this step */
   readonly summaryText: string
+  /** Where in the order of steps is this one? (1-6) */
   readonly stepNumber: number
+  /** has this step been completed by the user already? */
   readonly completed: boolean
   /** ID for this section */
   readonly sectionId: string
