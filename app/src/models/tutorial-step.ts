@@ -18,7 +18,7 @@ export type ValidTutorialStep =
   | TutorialStep.OpenPullRequest
   | TutorialStep.AllDone
 
-export const orderedSteps: ReadonlyArray<ValidTutorialStep> = [
+export const orderedTutorialSteps: ReadonlyArray<ValidTutorialStep> = [
   TutorialStep.PickEditor,
   TutorialStep.CreateBranch,
   TutorialStep.EditFile,

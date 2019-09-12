@@ -9,7 +9,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import {
   ValidTutorialStep,
   TutorialStep,
-  orderedSteps,
+  orderedTutorialSteps,
 } from '../../models/tutorial-step'
 
 interface ITutorialPanelProps {
@@ -64,8 +64,8 @@ export class TutorialPanel extends React.Component<
 
   private isStepComplete = (step: ValidTutorialStep) => {
     return (
-      orderedSteps.indexOf(step) <
-      orderedSteps.indexOf(this.props.currentTutorialStep)
+      orderedTutorialSteps.indexOf(step) <
+      orderedTutorialSteps.indexOf(this.props.currentTutorialStep)
     )
   }
 
