@@ -89,7 +89,7 @@ export class TutorialPanel extends React.Component<
           </TutorialListItem>
           <TutorialListItem
             stepNumber={2}
-            completed={false}
+            completed={true}
             summaryText="Make a branch"
             sectionId="step-2"
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
