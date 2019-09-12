@@ -30,7 +30,7 @@ export async function launchExternalEditor(
       )
     } else {
       //If both project file and workspace exist, open the workspace file.
-      if (workspaces.length != 0) {
+      if (workspaces.length !== 0) {
         spawn(editorPath, [fullPath + '/' + workspaces[0]])
       } else {
         //Right now, if there're multiple project files, this code
