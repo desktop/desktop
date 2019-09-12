@@ -56,6 +56,14 @@ export class TutorialPanel extends React.Component<
     )
   }
 
+  public componentWillReceiveProps(nextProps: ITutorialPanelProps) {
+    if (this.props.currentTutorialStep !== nextProps.currentTutorialStep) {
+      this.setState({
+        openId: nextProps.currentTutorialStep,
+      })
+    }
+  }
+
   public render() {
     return (
       <div id="tutorial" className="panel">
