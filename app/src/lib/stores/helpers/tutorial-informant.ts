@@ -128,9 +128,6 @@ export class OnboardingTutorialInformant {
       return true
     }
 
-    const {
-      branchesState: { currentPullRequest },
-    } = repositoryState
-    return currentPullRequest !== null
+    return repositoryState.branchesState.currentPullRequest !== null
   }
 }
