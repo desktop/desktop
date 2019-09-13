@@ -233,7 +233,7 @@ export interface IAppState {
   readonly apiRepositories: ReadonlyMap<Account, IAccountRepositories>
 
   /** Which step the user is on in the Onboarding Tutorial */
-  readonly currentTutorialStep: TutorialStep
+  readonly currentOnboardingTutorialStep: TutorialStep
 }
 
 export enum FoldoutType {

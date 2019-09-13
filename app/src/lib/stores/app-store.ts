@@ -376,10 +376,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private hasUserViewedStash = false
 
-  // Onboarding Tutorial State
-  private currentTutorialStep = TutorialStep.NotApplicable
+  /** Which step the user needs to complete next in the onboarding tutorial */
+  private currentOnboardingTutorialStep = TutorialStep.NotApplicable
   private tutorialAssessor: OnboardingTutorialAssessor
-  // End of Onboarding Tutorial State
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
@@ -419,7 +418,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** Figure out what step of the tutorial the user needs to do next */
-  public async _updateCurrentTutorialStep(
+  private async updateCurrentTutorialStep(
     repository: Repository
   ): Promise<void> {
     const currentStep = await this.tutorialAssessor.getCurrentStep(
@@ -427,23 +426,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.repositoryStateCache.get(repository)
     )
     log.info(`Current tutorial step is ${currentStep}`)
-    this.currentTutorialStep = currentStep
+    this.currentOnboardingTutorialStep = currentStep
     this.emitUpdate()
   }
 
   public async _skipEditorInstall(repository: Repository) {
     this.tutorialAssessor.skipInstallEditor()
-    await this._updateCurrentTutorialStep(repository)
+    await this.updateCurrentTutorialStep(repository)
   }
 
   public async _skipCreatePR(repository: Repository) {
     this.tutorialAssessor.skipCreatePR()
-    await this._updateCurrentTutorialStep(repository)
+    await this.updateCurrentTutorialStep(repository)
   }
-  /**
-   * [END] Onboarding tutorial methods
-   * To be extracted into separate class
-   */
 
   private wireupIpcEventHandlers(window: Electron.BrowserWindow) {
     ipcRenderer.on(
@@ -656,7 +651,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       automaticallySwitchTheme: this.automaticallySwitchTheme,
       apiRepositories: this.apiRepositoriesStore.getState(),
       optOutOfUsageTracking: this.statsStore.getOptOut(),
-      currentTutorialStep: this.currentTutorialStep,
+      currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
     }
   }
 
@@ -2612,7 +2607,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this._initializeCompare(repository)
 
-    this._updateCurrentTutorialStep(repository)
+    this.updateCurrentTutorialStep(repository)
   }
 
   private async updateStashEntryCountMetric(
@@ -4473,10 +4468,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (this.appIsFocused) {
       if (this.selectedRepository instanceof Repository) {
         this.startPullRequestUpdater(this.selectedRepository)
-        if (this.currentTutorialStep === TutorialStep.PickEditor) {
+        if (this.currentOnboardingTutorialStep === TutorialStep.PickEditor) {
           await this._resolveCurrentEditor()
         }
-        if (this.currentTutorialStep === TutorialStep.OpenPullRequest) {
+        if (
+          this.currentOnboardingTutorialStep === TutorialStep.OpenPullRequest
+        ) {
           await this._refreshPullRequests(this.selectedRepository)
         }
       }
