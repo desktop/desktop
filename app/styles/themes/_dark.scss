@@ -30,6 +30,8 @@ body.theme-dark {
   --secondary-button-focus-shadow-color: #{rgba($gray-200, 0.75)};
   --secondary-button-focus-border-color: #{$gray-300};
 
+  --badge-icon-color: #{$gray-300};
+
   /**
    * Background color for custom scroll bars.
    * The color is applied to the thumb part of the scrollbar.
