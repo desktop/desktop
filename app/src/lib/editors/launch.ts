@@ -19,14 +19,11 @@ export async function launchExternalEditor(
   //Special launching for Xcode.
   if (editor.editor === Darwin.Xcode) {
     const projectFiles = await findFilesMatching('*.xcodeproj', fullPath)
-    const workspaces = await findFilesMatching('*.xcworkspaces', fullPath)
+    const workspaces = await findFilesMatching('*.xcworkspace', fullPath)
     if (projectFiles.length === 0 && workspaces.length === 0) {
-      const label = __DARWIN__ ? 'Preferences' : 'Options'
-      throw new ExternalEditorError(
-        `Could not find executable for '${editor.editor}' at path '${
-          editor.path
-        }'.  Please open ${label} and select an available editor.`,
-        { openPreferences: true }
+      // const label = __DARWIN__ ? 'Preferences' : 'Options'
+      throw new Error(
+        `Could not find Xcode project or workspace files in the repository folder.`
       )
     } else {
       //If both project file and workspace exist, open the workspace file.
