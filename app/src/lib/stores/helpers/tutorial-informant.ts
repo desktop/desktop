@@ -6,27 +6,44 @@ import { setBoolean, getBoolean } from '../../local-storage'
 
 const skipInstallEditorKey = 'tutorial-install-editor-skipped'
 const skipCreatePullRequestKey = 'tutorial-skip-create-pull-request'
+
+/**
+ * Used to determine which step of the onboarding
+ * tutorial the user needs to complete next
+ *
+ * Stores some state that only it needs to know about. The
+ * actual step result is stored in App Store so the rest of
+ * the app can access it.
+ */
 export class OnboardingTutorialInformant {
+  /** Has the user opted to skip the install editor step? */
   private installEditorSkipped: boolean = getBoolean(
     skipInstallEditorKey,
     false
   )
+  /** Has the user opted to skip the create pull request step? */
   private createPRSkipped: boolean = getBoolean(skipCreatePullRequestKey, false)
 
   public constructor(
+    /** Method to call when we need to re-check for an editor */
     private resolveCurrentEditor: () => Promise<void>,
+    /** Method to call when we need to get the current editor */
     private getResolvedExternalEditor: () => ExternalEditor | null
   ) {}
 
+  /** Call when the user opts to skip the install editor step */
   public skipInstallEditor = () => {
     this.installEditorSkipped = true
     setBoolean(skipInstallEditorKey, this.installEditorSkipped)
   }
+
+  /** Call when the user opts to skip the create pull request step */
   public skipCreatePR = () => {
     this.createPRSkipped = true
     setBoolean(skipCreatePullRequestKey, this.createPRSkipped)
   }
 
+  /** Determines what step the user needs to complete next in the Onboarding Tutorial */
   public async getCurrentStep(
     isTutorialRepo: boolean,
     repositoryState: IRepositoryState
