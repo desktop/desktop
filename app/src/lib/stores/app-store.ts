@@ -1325,6 +1325,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.selectedRepository = repository
 
+    // TODO: Remove this call when this code is merged with the work in
+    // https://github.com/desktop/desktop/pull/8244
+    this.tutorialAssessor.onNewTutorialRepository()
+
     this.emitUpdate()
     this.stopBackgroundFetching()
     this.stopPullRequestUpdater()
