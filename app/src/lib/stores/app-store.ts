@@ -240,7 +240,7 @@ import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
 import { findBranchesForFastForward } from './helpers/find-branches-for-fast-forward'
 import { TutorialStep } from '../../models/tutorial-step'
-import { OnboardingTutorialAssessor } from './helpers/tutorial-informant'
+import { OnboardingTutorialAssessor } from './helpers/tutorial-assessor'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
