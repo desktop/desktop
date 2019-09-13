@@ -90,6 +90,7 @@ export class TutorialPanel extends React.Component<
             isComplete={this.isStepComplete}
             sectionId={TutorialStep.PickEditor}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
+            skipLinkButton={<SkipLinkButton onClick={this.skipEditorInstall} />}
             onClick={this.handleToggle}
           >
             <div className="description">
@@ -110,7 +111,6 @@ export class TutorialPanel extends React.Component<
             <LinkButton onClick={this.skipEditorInstall}>
               I have an editor
             </LinkButton>
-            <LinkButton onClick={this.skipEditorInstall}>Skip</LinkButton>
           </TutorialListItem>
           <TutorialListItem
             summaryText="Make a branch"
@@ -176,6 +176,7 @@ export class TutorialPanel extends React.Component<
             isComplete={this.isStepComplete}
             sectionId={TutorialStep.OpenPullRequest}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
+            skipLinkButton={<SkipLinkButton onClick={this.skipCreatePR} />}
             onClick={this.handleToggle}
           >
             <div className="description">
@@ -186,7 +187,6 @@ export class TutorialPanel extends React.Component<
               {__DARWIN__ ? 'Open Pull Request' : 'Open pull request'}
             </Button>
             <span className="shortcut">⌘R</span>
-            <LinkButton onClick={this.skipCreatePR}>Skip</LinkButton>
           </TutorialListItem>
         </ol>
       </div>
@@ -211,6 +211,9 @@ class TutorialListItem extends React.PureComponent<{
    * (used to determine if this step is expanded)
    */
   readonly currentlyOpenSectionId: string | null
+
+  /** Skip button (if possible for this step) */
+  readonly skipLinkButton?: JSX.Element
   /** Handler to open and close section */
   readonly onClick: (id: ValidTutorialStep) => void
 }> {
@@ -223,6 +226,7 @@ class TutorialListItem extends React.PureComponent<{
         >
           {this.renderSummary()}
           <div className="contents">{this.props.children}</div>
+          {this.props.skipLinkButton !== undefined && this.props.skipLinkButton}
         </details>
       </li>
     )
@@ -263,3 +267,10 @@ function renderTutorialStepIcon(
     </div>
   )
 }
+
+const SkipLinkButton: React.SFC<{ onClick: () => void }> = props => (
+  <>
+    <br />
+    <LinkButton onClick={props.onClick}>Skip</LinkButton>
+  </>
+)
