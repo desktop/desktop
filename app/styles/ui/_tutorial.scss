@@ -5,6 +5,7 @@
   max-width: 350px;
   box-shadow: var(--base-box-shadow);
   z-index: var(--side-panel-z-index);
+  overflow-y: scroll;
 
   .titleArea {
     display: flex;
