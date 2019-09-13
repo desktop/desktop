@@ -54,13 +54,13 @@ export class OnboardingTutorialInformant {
       return TutorialStep.PickEditor
     } else if (!this.isBranchCheckedOut(repositoryState)) {
       return TutorialStep.CreateBranch
-    } else if (!(await this.hasChangedFile(repositoryState))) {
+    } else if (!this.hasChangedFile(repositoryState)) {
       return TutorialStep.EditFile
-    } else if (!(await this.hasMultipleCommits(repositoryState))) {
+    } else if (!this.hasMultipleCommits(repositoryState)) {
       return TutorialStep.MakeCommit
-    } else if (!(await this.commitPushed(repositoryState))) {
+    } else if (!this.commitPushed(repositoryState)) {
       return TutorialStep.PushBranch
-    } else if (!(await this.pullRequestCreated(repositoryState))) {
+    } else if (!this.pullRequestCreated(repositoryState)) {
       return TutorialStep.OpenPullRequest
     } else {
       return TutorialStep.AllDone
@@ -94,10 +94,8 @@ export class OnboardingTutorialInformant {
     )
   }
 
-  private async hasChangedFile(
-    repositoryState: IRepositoryState
-  ): Promise<boolean> {
-    if (await this.hasMultipleCommits(repositoryState)) {
+  private hasChangedFile(repositoryState: IRepositoryState): boolean {
+    if (this.hasMultipleCommits(repositoryState)) {
       // User has already committed a change
       return true
     }
@@ -105,9 +103,7 @@ export class OnboardingTutorialInformant {
     return changesState.workingDirectory.files.length > 0
   }
 
-  private async hasMultipleCommits(
-    repositoryState: IRepositoryState
-  ): Promise<boolean> {
+  private hasMultipleCommits(repositoryState: IRepositoryState): boolean {
     const { branchesState } = repositoryState
     const { tip } = branchesState
 
@@ -122,16 +118,12 @@ export class OnboardingTutorialInformant {
     return false
   }
 
-  private async commitPushed(
-    repositoryState: IRepositoryState
-  ): Promise<boolean> {
+  private commitPushed(repositoryState: IRepositoryState): boolean {
     const { aheadBehind } = repositoryState
     return aheadBehind !== null && aheadBehind.ahead === 0
   }
 
-  private async pullRequestCreated(
-    repositoryState: IRepositoryState
-  ): Promise<boolean> {
+  private pullRequestCreated(repositoryState: IRepositoryState): boolean {
     if (this.createPRSkipped) {
       return true
     }
