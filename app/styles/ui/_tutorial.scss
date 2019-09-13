@@ -3,6 +3,7 @@
   flex-flow: column nowrap;
   min-width: 300px;
   max-width: 350px;
+  background-color: var(--background-color);
   box-shadow: var(--base-box-shadow);
   z-index: var(--side-panel-z-index);
   overflow-y: scroll;
