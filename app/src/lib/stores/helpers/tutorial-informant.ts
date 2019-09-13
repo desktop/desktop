@@ -15,7 +15,7 @@ const skipCreatePullRequestKey = 'tutorial-skip-create-pull-request'
  * actual step result is stored in App Store so the rest of
  * the app can access it.
  */
-export class OnboardingTutorialInformant {
+export class OnboardingTutorialAssessor {
   /** Has the user opted to skip the install editor step? */
   private installEditorSkipped: boolean = getBoolean(
     skipInstallEditorKey,

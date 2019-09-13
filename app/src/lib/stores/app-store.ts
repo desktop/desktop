@@ -240,7 +240,7 @@ import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
 import { findBranchesForFastForward } from './helpers/find-branches-for-fast-forward'
 import { TutorialStep } from '../../models/tutorial-step'
-import { OnboardingTutorialInformant } from './helpers/tutorial-informant'
+import { OnboardingTutorialAssessor } from './helpers/tutorial-informant'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -378,7 +378,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   // Onboarding Tutorial State
   private currentTutorialStep = TutorialStep.NotApplicable
-  private tutorialInformant: OnboardingTutorialInformant
+  private tutorialAssessor: OnboardingTutorialAssessor
   // End of Onboarding Tutorial State
 
   public constructor(
@@ -412,7 +412,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.wireupIpcEventHandlers(window)
     this.wireupStoreEventHandlers()
     getAppMenu()
-    this.tutorialInformant = new OnboardingTutorialInformant(
+    this.tutorialAssessor = new OnboardingTutorialAssessor(
       this._resolveCurrentEditor,
       this.getResolvedExternalEditor
     )
@@ -426,7 +426,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _updateCurrentTutorialStep(
     repository: Repository
   ): Promise<void> {
-    const currentStep = await this.tutorialInformant.getCurrentStep(
+    const currentStep = await this.tutorialAssessor.getCurrentStep(
       repository.isTutorialRepository,
       this.repositoryStateCache.get(repository)
     )
@@ -436,12 +436,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _skipEditorInstall(repository: Repository) {
-    this.tutorialInformant.skipInstallEditor()
+    this.tutorialAssessor.skipInstallEditor()
     await this._updateCurrentTutorialStep(repository)
   }
 
   public async _skipCreatePR(repository: Repository) {
-    this.tutorialInformant.skipCreatePR()
+    this.tutorialAssessor.skipCreatePR()
     await this._updateCurrentTutorialStep(repository)
   }
   /**
