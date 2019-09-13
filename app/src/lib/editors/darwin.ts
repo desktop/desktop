@@ -225,7 +225,7 @@ export async function getAvailableEditors(): Promise<
     typoraPath,
     codeRunnerPath,
     slickeditPath,
-    xCodePath,
+    xcodePath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.MacVim),
@@ -308,8 +308,8 @@ export async function getAvailableEditors(): Promise<
     results.push({ editor: ExternalEditor.SlickEdit, path: slickeditPath })
   }
 
-  if (xCodePath) {
-    results.push({ editor: ExternalEditor.Xcode, path: xCodePath })
+  if (xcodePath) {
+    results.push({ editor: ExternalEditor.Xcode, path: xcodePath })
   }
 
   return results
