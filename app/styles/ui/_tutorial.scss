@@ -1,4 +1,5 @@
 .tutorial-panel-component {
+  z-index: var(--side-panel-z-index);
   min-width: 300px;
   box-shadow: var(--base-box-shadow);
 
