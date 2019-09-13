@@ -31,18 +31,6 @@ export class OnboardingTutorialInformant {
     private getResolvedExternalEditor: () => ExternalEditor | null
   ) {}
 
-  /** Call when the user opts to skip the install editor step */
-  public skipInstallEditor = () => {
-    this.installEditorSkipped = true
-    setBoolean(skipInstallEditorKey, this.installEditorSkipped)
-  }
-
-  /** Call when the user opts to skip the create pull request step */
-  public skipCreatePR = () => {
-    this.createPRSkipped = true
-    setBoolean(skipCreatePullRequestKey, this.createPRSkipped)
-  }
-
   /** Determines what step the user needs to complete next in the Onboarding Tutorial */
   public async getCurrentStep(
     isTutorialRepo: boolean,
@@ -129,5 +117,29 @@ export class OnboardingTutorialInformant {
     }
 
     return repositoryState.branchesState.currentPullRequest !== null
+  }
+
+  /** Call when the user opts to skip the install editor step */
+  public skipInstallEditor = () => {
+    this.installEditorSkipped = true
+    setBoolean(skipInstallEditorKey, this.installEditorSkipped)
+  }
+
+  /** Call when the user opts to skip the create pull request step */
+  public skipCreatePR = () => {
+    this.createPRSkipped = true
+    setBoolean(skipCreatePullRequestKey, this.createPRSkipped)
+  }
+
+  /**
+   * Call when a new tutorial repository is created
+   *
+   * (Resets its internal skipped steps state.)
+   */
+  public onNewTutorialRepository = () => {
+    this.installEditorSkipped = false
+    localStorage.removeItem(skipInstallEditorKey)
+    this.createPRSkipped = false
+    localStorage.removeItem(skipCreatePullRequestKey)
   }
 }
