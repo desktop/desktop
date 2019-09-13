@@ -4468,6 +4468,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (this.appIsFocused) {
       if (this.selectedRepository instanceof Repository) {
         this.startPullRequestUpdater(this.selectedRepository)
+        // if we're in the tutorial and we don't have an editor yet, check for one!
         if (this.currentOnboardingTutorialStep === TutorialStep.PickEditor) {
           await this._resolveCurrentEditor()
         }
