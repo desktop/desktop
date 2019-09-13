@@ -418,11 +418,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
   }
 
-  /**
-   * Onboarding tutorial methods
-   * To be extracted into separate class
-   */
-
+  /** Figure out what step of the tutorial the user needs to do next */
   public async _updateCurrentTutorialStep(
     repository: Repository
   ): Promise<void> {
