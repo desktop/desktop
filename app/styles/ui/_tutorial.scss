@@ -55,17 +55,19 @@
     .green-circle {
       @extend %circle;
       background-color: $green;
+      border-color: $green;
       color: var(--badge-icon-color);
     }
     .blue-circle {
       @extend %circle;
       background-color: $blue;
+      border-color: $blue;
       color: var(--badge-icon-color);
     }
     .empty-circle {
       @extend %circle;
       background-color: transparent;
-      border: 1px solid var(--text-color);
+      border-color: var(--text-color);
       opacity: 0.5;
       color: var(--text-color);
     }
@@ -99,8 +101,9 @@
 
 %circle {
   border-radius: 50%;
-  height: 20px;
-  width: 20px;
+  border: 1px solid currentColor;
+  height: 19px;
+  width: 19px;
   display: flex;
   justify-content: center;
   align-items: center;
