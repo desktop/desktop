@@ -51,21 +51,19 @@
     .green-circle {
       @extend %circle;
       background-color: $green;
-      color: var(--background-color);
+      color: var(--badge-icon-color);
     }
     .blue-circle {
       @extend %circle;
       background-color: $blue;
-      color: var(--background-color);
+      color: var(--badge-icon-color);
     }
     .empty-circle {
       @extend %circle;
       background-color: transparent;
-      border: var(--base-border);
+      border: 1px solid var(--text-color);
+      opacity: 0.5;
       color: var(--text-color);
-      .opacity {
-        opacity: 0.5;
-      }
     }
   }
 
@@ -89,7 +87,7 @@
     .chevron-icon {
       transform: rotate(180deg);
     }
-    .empty-circle .opacity {
+    .empty-circle {
       opacity: 1;
     }
   }

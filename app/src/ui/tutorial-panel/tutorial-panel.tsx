@@ -238,9 +238,7 @@ class TutorialListItem extends React.PureComponent<{
     return this.props.currentSectionId === this.props.sectionId ? (
       <div className="blue-circle">{this.props.stepNumber}</div>
     ) : (
-      <div className="empty-circle">
-        <span className="opacity">{this.props.stepNumber}</span>
-      </div>
+      <div className="empty-circle">{this.props.stepNumber}</div>
     )
   }
 
