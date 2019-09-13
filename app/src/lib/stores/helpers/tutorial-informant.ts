@@ -2,10 +2,17 @@ import { IRepositoryState } from '../../app-state'
 import { TutorialStep } from '../../../models/tutorial-step'
 import { TipState } from '../../../models/tip'
 import { ExternalEditor } from '../../editors'
+import { setBoolean, getBoolean } from '../../local-storage'
 
+const skipInstallEditorKey = 'tutorial-install-editor-skipped'
+const skipCreatePullRequestKey = 'tutorial-skip-create-pull-request'
 export class OnboardingTutorialInformant {
-  private installEditorSkipped: boolean = false
-  private createPRSkipped: boolean = false
+  private installEditorSkipped: boolean = getBoolean(
+    skipInstallEditorKey,
+    false
+  )
+  private createPRSkipped: boolean = getBoolean(skipCreatePullRequestKey, false)
+
   public constructor(
     private resolveCurrentEditor: () => Promise<void>,
     private getResolvedExternalEditor: () => ExternalEditor | null
@@ -13,9 +20,11 @@ export class OnboardingTutorialInformant {
 
   public skipInstallEditor = () => {
     this.installEditorSkipped = true
+    setBoolean(skipInstallEditorKey, this.installEditorSkipped)
   }
   public skipCreatePR = () => {
     this.createPRSkipped = true
+    setBoolean(skipCreatePullRequestKey, this.createPRSkipped)
   }
 
   public async getCurrentStep(
