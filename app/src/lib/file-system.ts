@@ -1,7 +1,6 @@
 import * as FSE from 'fs-extra'
 import * as Os from 'os'
 import * as Path from 'path'
-import * as glob from 'glob'
 import { Disposable } from 'event-kit'
 import { Tailer } from './tailer'
 
@@ -15,26 +14,6 @@ export async function getTempFilePath(name: string): Promise<string> {
   const tempDir = Path.join(Os.tmpdir(), `${name}-`)
   const directory = await FSE.mkdtemp(tempDir)
   return Path.join(directory, name)
-}
-
-/**
- * Find files matching a given pattern on disk.
- *
- * Wraps the `glob` library to return a promise.
- */
-export async function findFilesMatching(
-  pattern: string,
-  cwd: string
-): Promise<ReadonlyArray<string>> {
-  return new Promise<ReadonlyArray<string>>((resolve, reject) => {
-    glob(pattern, { cwd }, (error, files) => {
-      if (error != null) {
-        reject(error)
-        return
-      }
-      resolve(files)
-    })
-  })
 }
 
 /**

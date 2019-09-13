@@ -2,7 +2,7 @@ import { spawn } from 'child_process'
 import { pathExists } from 'fs-extra'
 import { ExternalEditorError, FoundEditor } from './shared'
 import { ExternalEditor as Darwin } from './darwin'
-import { findFilesMatching } from '../file-system'
+import { readdir } from 'fs-extra'
 
 /**
  * Open a given file or folder in the desired external editor.
@@ -18,26 +18,28 @@ export async function launchExternalEditor(
 
   //Special launching for Xcode.
   if (editor.editor === Darwin.Xcode) {
-    const projectFiles = await findFilesMatching('*.xcodeproj', fullPath)
-    const workspaces = await findFilesMatching('*.xcworkspace', fullPath)
+    //Query the file system for xCode related files
+    const files = await readdir(fullPath)
+    const projectFiles = files.filter(f => f.endsWith('.xcodeproj'))
+    const workspaces = files.filter(f => f.endsWith('.xcworkspace'))
     if (projectFiles.length === 0 && workspaces.length === 0) {
       throw new Error(
         `Could not find Xcode project or workspace files in the repository folder.`
       )
     } else {
-      //If both project file and workspace exist, open the workspace file.
+      //If both project and workspace files exist, open the workspace.
       if (workspaces.length !== 0) {
         spawn(editorPath, [fullPath + '/' + workspaces[0]])
       } else {
-        //Right now, if there're multiple project files, this code
-        //will open the first one in array
+        //If there're multiple project files, the first one in the Array
+        //will open
         spawn(editorPath, [fullPath + '/' + projectFiles[0]])
       }
     }
     return
   }
 
-  //For all other editors
+  //For other editors
 
   const exists = await pathExists(editorPath)
   if (!exists) {
