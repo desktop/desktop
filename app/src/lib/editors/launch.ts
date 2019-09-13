@@ -21,7 +21,6 @@ export async function launchExternalEditor(
     const projectFiles = await findFilesMatching('*.xcodeproj', fullPath)
     const workspaces = await findFilesMatching('*.xcworkspace', fullPath)
     if (projectFiles.length === 0 && workspaces.length === 0) {
-      // const label = __DARWIN__ ? 'Preferences' : 'Options'
       throw new Error(
         `Could not find Xcode project or workspace files in the repository folder.`
       )
