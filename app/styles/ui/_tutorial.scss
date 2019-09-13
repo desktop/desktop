@@ -103,7 +103,8 @@
 
 %circle {
   border-radius: 50%;
-  border: 1px solid currentColor;
+  border-style: solid;
+  border-width: 1px;
   height: 19px;
   width: 19px;
   display: flex;
