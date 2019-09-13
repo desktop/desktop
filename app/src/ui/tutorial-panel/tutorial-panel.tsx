@@ -202,8 +202,9 @@ export class TutorialPanel extends React.Component<
 class TutorialListItem extends React.PureComponent<{
   /** Text displayed to summarize this step */
   readonly summaryText: string
+  /** Used to find out if this step has been completed */
   readonly isComplete: (step: ValidTutorialStep) => boolean
-  /** ID for this section */
+  /** The step for this section */
   readonly sectionId: ValidTutorialStep
 
   /** ID of the currently expanded tutorial step
