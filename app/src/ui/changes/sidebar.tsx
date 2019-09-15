@@ -382,7 +382,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     const isShowingStashEntry = selection.kind === ChangesSelectionKind.Stash
 
     return (
-      <div className="panel">
+      <div id="changes-sidebar-contents">
         <ChangesList
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
