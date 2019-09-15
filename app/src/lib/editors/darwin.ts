@@ -17,7 +17,6 @@ export enum ExternalEditor {
   Brackets = 'Brackets',
   WebStorm = 'WebStorm',
   Typora = 'Typora',
-  CodeRunner = 'CodeRunner',
   SlickEdit = 'SlickEdit',
 }
 
@@ -63,9 +62,6 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.Typora) {
     return ExternalEditor.Typora
   }
-  if (label === ExternalEditor.CodeRunner) {
-    return ExternalEditor.CodeRunner
-  }
   if (label === ExternalEditor.SlickEdit) {
     return ExternalEditor.SlickEdit
   }
@@ -105,8 +101,6 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['com.jetbrains.WebStorm']
     case ExternalEditor.Typora:
       return ['abnerworks.Typora']
-    case ExternalEditor.CodeRunner:
-      return ['com.krill.CodeRunner']
     case ExternalEditor.SlickEdit:
       return [
         'com.slickedit.SlickEditPro2018',
@@ -163,8 +157,6 @@ function getExecutableShim(
       return Path.join(installPath, 'Contents', 'MacOS', 'WebStorm')
     case ExternalEditor.Typora:
       return Path.join(installPath, 'Contents', 'MacOS', 'Typora')
-    case ExternalEditor.CodeRunner:
-      return Path.join(installPath, 'Contents', 'MacOS', 'CodeRunner')
     case ExternalEditor.SlickEdit:
       return Path.join(installPath, 'Contents', 'MacOS', 'vs')
     default:
@@ -215,7 +207,6 @@ export async function getAvailableEditors(): Promise<
     bracketsPath,
     webStormPath,
     typoraPath,
-    codeRunnerPath,
     slickeditPath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
@@ -231,7 +222,6 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.Brackets),
     findApplication(ExternalEditor.WebStorm),
     findApplication(ExternalEditor.Typora),
-    findApplication(ExternalEditor.CodeRunner),
     findApplication(ExternalEditor.SlickEdit),
   ])
 
@@ -288,10 +278,6 @@ export async function getAvailableEditors(): Promise<
 
   if (typoraPath) {
     results.push({ editor: ExternalEditor.Typora, path: typoraPath })
-  }
-
-  if (codeRunnerPath) {
-    results.push({ editor: ExternalEditor.CodeRunner, path: codeRunnerPath })
   }
 
   if (slickeditPath) {
