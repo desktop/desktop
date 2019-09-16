@@ -59,7 +59,7 @@ export class TutorialPanel extends React.Component<
     return (
       <div className="tutorial-panel-component panel">
         <div className="titleArea">
-          <h1>Get started</h1>
+          <h3>Get started</h3>
           <img src={TutorialPanelImage} />
         </div>
         <ol>
