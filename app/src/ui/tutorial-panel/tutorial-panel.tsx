@@ -101,8 +101,12 @@ export class TutorialPanel extends React.Component<
             <p className="description">
               {`Create a branch by going into the branch menu in the top bar and
               clicking "${__DARWIN__ ? 'New Branch' : 'New branch'}".`}
-            <span className="shortcut">⇧ ⌘ N</span>
             </p>
+            <span>
+              <kbd>⇧</kbd>
+              <kbd>⌘</kbd>
+              <kbd>N</kbd>
+            </span>
           </TutorialListItem>
           <TutorialListItem
             stepNumber={3}
@@ -123,7 +127,11 @@ export class TutorialPanel extends React.Component<
             >
               {__DARWIN__ ? 'Open Editor' : 'Open editor'}
             </Button>
-            <span className="shortcut">⇧ ⌘ A</span>
+            <span>
+              <kbd>⇧</kbd>
+              <kbd>⌘</kbd>
+              <kbd>R</kbd>
+            </span>
           </TutorialListItem>
           <TutorialListItem
             stepNumber={4}
@@ -137,8 +145,11 @@ export class TutorialPanel extends React.Component<
             <p className="description">
               Write a message that describes the changes you made. When you’re
               done, click the commit button to finish.
-            <span className="shortcut">⌘ Enter</span>
             </p>
+            <span>
+              <kbd>⌘</kbd>
+              <kbd>Enter</kbd>
+            </span>
           </TutorialListItem>
           <TutorialListItem
             stepNumber={5}
@@ -152,8 +163,11 @@ export class TutorialPanel extends React.Component<
             <p className="description">
               Pushing your commits updates the repository on GitHub with any
               commits made on your computer to a branch.
-            <span className="shortcut">⌘ P</span>
             </p>
+            <span>
+              <kbd>⌘</kbd>
+              <kbd>P</kbd>
+            </span>
           </TutorialListItem>
           <TutorialListItem
             stepNumber={6}
@@ -167,11 +181,14 @@ export class TutorialPanel extends React.Component<
             <p className="description">
               Pull Requests are how you propose changes. By opening one, you’re
               requesting that someone review and merge them.
+            </p>
             <Button onClick={this.openPullRequest}>
               {__DARWIN__ ? 'Open Pull Request' : 'Open pull request'}
             </Button>
-            <span className="shortcut">⌘ R</span>
-            </p>
+            <span>
+              <kbd>⌘</kbd>
+              <kbd>R</kbd>
+            </span>
           </TutorialListItem>
         </ol>
       </div>
