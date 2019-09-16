@@ -46,7 +46,7 @@
 
   li {
     padding: var(--spacing-double);
-    padding-right: var(--spacing-three-halves);
+    padding-right: var(--spacing);
   }
   summary {
     display: flex;
@@ -82,7 +82,7 @@
 
   details .contents {
     padding-left: var(--spacing-triple);
-    padding-right: var(--spacing-double);
+    padding-right: var(--spacing);
     .description {
       margin-bottom: var(--spacing-three-halves);
     }
