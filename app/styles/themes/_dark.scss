@@ -30,6 +30,10 @@ body.theme-dark {
   --secondary-button-focus-shadow-color: #{rgba($gray-200, 0.75)};
   --secondary-button-focus-border-color: #{$gray-300};
 
+  /**
+   * Color for icons that are placed on top of a colored backing
+   * (like a circle badge icon)
+   */
   --badge-icon-color: #{$gray-300};
 
   /**
