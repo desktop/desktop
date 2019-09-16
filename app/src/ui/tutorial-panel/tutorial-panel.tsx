@@ -118,8 +118,11 @@ export class TutorialPanel extends React.Component<
             onClick={this.handleToggle}
           >
             <p className="description">
-              Open this repository in your preferred text editor. Edit the{' '}
-              <Monospaced>README.md</Monospaced> file, save it, and come back.
+              Open this repository in your preferred text editor. Edit the
+              {` `}
+              <Monospaced>README.md</Monospaced>
+              {` `}
+              file, save it, and come back.
             </p>
             <Button
               onClick={this.openTutorialFileInEditor}

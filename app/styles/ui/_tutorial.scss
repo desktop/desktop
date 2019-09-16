@@ -5,6 +5,7 @@
   max-width: 350px;
   background-color: var(--background-color);
   box-shadow: var(--base-box-shadow);
+
   // we need this to be high so the panel's box shadow
   // appears on top of the codemirror buffer
   z-index: var(--side-panel-z-index);
