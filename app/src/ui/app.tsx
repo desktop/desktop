@@ -17,7 +17,7 @@ import { updateStore, UpdateStatus } from './lib/update-store'
 import { RetryAction } from '../models/retry-actions'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { matchExistingRepository } from '../lib/repository-matching'
-import { getDotComAPIEndpoint } from '../lib/api'
+import { getDotComAPIEndpoint, IAPIRepository } from '../lib/api'
 import { ILaunchStats, SamplesURL } from '../lib/stats'
 import { getVersion, getName } from './lib/app-proxy'
 import { getOS } from '../lib/get-os'
@@ -103,6 +103,8 @@ import { BannerType } from '../models/banner'
 import { StashAndSwitchBranch } from './stash-changes/stash-and-switch-branch-dialog'
 import { OverwriteStash } from './stash-changes/overwrite-stashed-changes-dialog'
 import { ConfirmDiscardStashDialog } from './stashing/confirm-discard-stash'
+import { CreateTutorialRepositoryDialog } from './blank-slate/create-tutorial-repository-dialog'
+import { enableTutorial } from '../lib/feature-flag'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -676,6 +678,23 @@ export class App extends React.Component<IAppProps, IAppState> {
     return this.props.dispatcher.showPopup({
       type: PopupType.CloneRepository,
       initialURL,
+    })
+  }
+
+  private onCreateTutorialRepository = () => {
+    if (!enableTutorial()) {
+      return
+    }
+
+    const account = this.getDotComAccount() || this.getEnterpriseAccount()
+
+    if (account === null) {
+      return
+    }
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.CreateTutorialRepository,
+      account,
     })
   }
 
@@ -1781,9 +1800,37 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.CreateTutorialRepository: {
+        return (
+          <CreateTutorialRepositoryDialog
+            key="create-tutorial-repository-dialog"
+            account={popup.account}
+            onDismissed={this.onPopupDismissed}
+            onTutorialRepositoryCreated={this.onTutorialRepositoryCreated}
+            onError={this.onTutorialRepositoryError}
+          />
+        )
+      }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private onTutorialRepositoryError = (error: Error) => {
+    this.props.dispatcher.closePopup(PopupType.CreateTutorialRepository)
+    this.props.dispatcher.postError(error)
+  }
+
+  private onTutorialRepositoryCreated = (
+    path: string,
+    account: Account,
+    apiRepository: IAPIRepository
+  ) => {
+    this.props.dispatcher.addTutorialRepository(
+      path,
+      account.endpoint,
+      apiRepository
+    )
   }
 
   private onShowRebaseConflictsBanner = (
@@ -2291,6 +2338,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           onCreate={this.showCreateRepository}
           onClone={this.showCloneRepo}
           onAdd={this.showAddLocalRepo}
+          onCreateTutorialRepository={this.onCreateTutorialRepository}
           apiRepositories={this.state.apiRepositories}
           onRefreshRepositories={this.onRefreshRepositories}
         />

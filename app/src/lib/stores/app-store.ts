@@ -75,6 +75,7 @@ import {
   getDotComAPIEndpoint,
   IAPIOrganization,
   IAPIBranch,
+  IAPIRepository,
 } from '../api'
 import { shell } from '../app-shell'
 import {
@@ -3072,7 +3073,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository.path,
       repository.id,
       skeletonGitHubRepository,
-      repository.missing
+      repository.missing,
+      false
     )
 
     const account = getAccountForEndpoint(
@@ -4525,6 +4527,39 @@ export class AppStore extends TypedBaseStore<IAppState> {
     missing: boolean
   ): Promise<Repository> {
     return this.repositoriesStore.updateRepositoryMissing(repository, missing)
+  }
+
+  /**
+   * Add a tutorial repository.
+   *
+   * This method differs from the `_addRepositories` method in that it
+   * requires that the repository has been created on the remote and
+   * set up to track it. Given that tutorial repositories are created
+   * from the no-repositories blank slate it shouldn't be possible for
+   * another repository with the same path to exist in the repositories
+   * table but in case that hanges in the future this method will set
+   * the tutorial flag on the existing repository at the given path.
+   */
+  public async _addTutorialRepository(
+    path: string,
+    endpoint: string,
+    apiRepository: IAPIRepository
+  ) {
+    const validatedPath = await validatedRepositoryPath(path)
+    if (validatedPath) {
+      log.info(
+        `[AppStore] adding tutorial repository at ${validatedPath} to store`
+      )
+
+      await this.repositoriesStore.addTutorialRepository(
+        validatedPath,
+        endpoint,
+        apiRepository
+      )
+    } else {
+      const error = new Error(`${path} isn't a git repository.`)
+      this.emitError(error)
+    }
   }
 
   public async _addRepositories(
