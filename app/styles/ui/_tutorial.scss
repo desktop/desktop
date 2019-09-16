@@ -14,7 +14,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--spacing-triple) var(--spacing-double) var(--spacing-double) var(--spacing-quint);
+    padding: var(--spacing-triple);
+    padding-left: var(--spacing-quint);
 
     h1 {
       margin: 0;
@@ -22,8 +23,8 @@
       font-size: var(--font-size-lg);
     }
     svg {
-      height: 55px;
-      width: 55px;
+      height: 46px;
+      width: 46px;
     }
   }
 
