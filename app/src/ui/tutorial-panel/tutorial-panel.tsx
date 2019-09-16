@@ -72,7 +72,7 @@ export class TutorialPanel extends React.Component<
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             onClick={this.handleToggle}
           >
-            <div className="description">
+            <p className="description">
               It doesn’t look like you have a text editor installed. We can
               recommend{' '}
               <LinkButton uri="https://atom.io" title="Open the Atom website">
@@ -86,7 +86,7 @@ export class TutorialPanel extends React.Component<
                 Visual Studio Code
               </LinkButton>
               , but feel free to use any.
-            </div>
+            </p>
             <LinkButton>I have an editor</LinkButton>
           </TutorialListItem>
           <TutorialListItem
@@ -98,11 +98,11 @@ export class TutorialPanel extends React.Component<
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             onClick={this.handleToggle}
           >
-            <div className="description">
+            <p className="description">
               {`Create a branch by going into the branch menu in the top bar and
               clicking "${__DARWIN__ ? 'New Branch' : 'New branch'}".`}
-            </div>
             <span className="shortcut">⇧ ⌘ N</span>
+            </p>
           </TutorialListItem>
           <TutorialListItem
             stepNumber={3}
@@ -113,10 +113,10 @@ export class TutorialPanel extends React.Component<
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             onClick={this.handleToggle}
           >
-            <div className="description">
+            <p className="description">
               Open this repository in your preferred text editor. Edit the{' '}
               <Monospaced>README.md</Monospaced> file, save it, and come back.
-            </div>
+            </p>
             <Button
               onClick={this.openTutorialFileInEditor}
               disabled={!this.props.externalEditorLabel}
@@ -134,11 +134,11 @@ export class TutorialPanel extends React.Component<
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             onClick={this.handleToggle}
           >
-            <div className="description">
+            <p className="description">
               Write a message that describes the changes you made. When you’re
               done, click the commit button to finish.
-            </div>
             <span className="shortcut">⌘ Enter</span>
+            </p>
           </TutorialListItem>
           <TutorialListItem
             stepNumber={5}
@@ -149,11 +149,11 @@ export class TutorialPanel extends React.Component<
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             onClick={this.handleToggle}
           >
-            <div className="description">
+            <p className="description">
               Pushing your commits updates the repository on GitHub with any
               commits made on your computer to a branch.
-            </div>
             <span className="shortcut">⌘ P</span>
+            </p>
           </TutorialListItem>
           <TutorialListItem
             stepNumber={6}
@@ -164,14 +164,14 @@ export class TutorialPanel extends React.Component<
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             onClick={this.handleToggle}
           >
-            <div className="description">
+            <p className="description">
               Pull Requests are how you propose changes. By opening one, you’re
               requesting that someone review and merge them.
-            </div>
             <Button onClick={this.openPullRequest}>
               {__DARWIN__ ? 'Open Pull Request' : 'Open pull request'}
             </Button>
             <span className="shortcut">⌘ R</span>
+            </p>
           </TutorialListItem>
         </ol>
       </div>
