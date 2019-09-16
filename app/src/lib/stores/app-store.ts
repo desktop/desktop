@@ -4536,9 +4536,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * requires that the repository has been created on the remote and
    * set up to track it. Given that tutorial repositories are created
    * from the no-repositories blank slate it shouldn't be possible for
-   * another repository with the same path to exist but in case that
-   * changes in the future this method will set the tutorial flag on
-   * the existing repository at the given path.
+   * another repository with the same path to exist in the repositories
+   * table but in case that hanges in the future this method will set
+   * the tutorial flag on the existing repository at the given path.
    */
   public async _addTutorialRepository(
     path: string,
