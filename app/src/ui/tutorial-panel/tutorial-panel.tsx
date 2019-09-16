@@ -87,7 +87,9 @@ export class TutorialPanel extends React.Component<
               </LinkButton>
               , but feel free to use any.
             </p>
-            <LinkButton>I have an editor</LinkButton>
+            <div className="action">
+              <LinkButton>I have an editor</LinkButton>
+            </div>
           </TutorialListItem>
           <TutorialListItem
             stepNumber={2}
@@ -102,11 +104,11 @@ export class TutorialPanel extends React.Component<
               {`Create a branch by going into the branch menu in the top bar and
               clicking "${__DARWIN__ ? 'New Branch' : 'New branch'}".`}
             </p>
-            <span>
+            <div className="action">
               <kbd>⇧</kbd>
               <kbd>⌘</kbd>
               <kbd>N</kbd>
-            </span>
+            </div>
           </TutorialListItem>
           <TutorialListItem
             stepNumber={3}
@@ -124,17 +126,18 @@ export class TutorialPanel extends React.Component<
               {` `}
               file, save it, and come back.
             </p>
-            <Button
-              onClick={this.openTutorialFileInEditor}
-              disabled={!this.props.externalEditorLabel}
-            >
-              {__DARWIN__ ? 'Open Editor' : 'Open editor'}
-            </Button>
-            <span>
+            <div className="action">
+              <Button
+                onClick={this.openTutorialFileInEditor}
+                disabled={!this.props.externalEditorLabel}
+              >
+                {__DARWIN__ ? 'Open Editor' : 'Open editor'}
+              </Button>
+
               <kbd>⇧</kbd>
               <kbd>⌘</kbd>
               <kbd>R</kbd>
-            </span>
+            </div>
           </TutorialListItem>
           <TutorialListItem
             stepNumber={4}
@@ -149,10 +152,10 @@ export class TutorialPanel extends React.Component<
               Write a message that describes the changes you made. When you’re
               done, click the commit button to finish.
             </p>
-            <span>
+            <div className="action">
               <kbd>⌘</kbd>
               <kbd>Enter</kbd>
-            </span>
+            </div>
           </TutorialListItem>
           <TutorialListItem
             stepNumber={5}
@@ -167,10 +170,10 @@ export class TutorialPanel extends React.Component<
               Pushing your commits updates the repository on GitHub with any
               commits made on your computer to a branch.
             </p>
-            <span>
+            <div className="action">
               <kbd>⌘</kbd>
               <kbd>P</kbd>
-            </span>
+            </div>
           </TutorialListItem>
           <TutorialListItem
             stepNumber={6}
@@ -185,13 +188,13 @@ export class TutorialPanel extends React.Component<
               Pull Requests are how you propose changes. By opening one, you’re
               requesting that someone review and merge them.
             </p>
-            <Button onClick={this.openPullRequest}>
-              {__DARWIN__ ? 'Open Pull Request' : 'Open pull request'}
-            </Button>
-            <span>
+            <div className="action">
+              <Button onClick={this.openPullRequest}>
+                {__DARWIN__ ? 'Open Pull Request' : 'Open pull request'}
+              </Button>
               <kbd>⌘</kbd>
               <kbd>R</kbd>
-            </span>
+            </div>
           </TutorialListItem>
         </ol>
       </div>

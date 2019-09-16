@@ -87,8 +87,21 @@
     .description {
       margin-bottom: var(--spacing);
     }
-    .button-component {
-      margin-right: var(--spacing);
+    .action {
+      display: flex;
+      align-items: center;
+
+      .button-component {
+        margin-right: var(--spacing);
+      }
+
+      kbd {
+        // get these to align properly in a flex box
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-secondary-color);
+      }
     }
   }
   details[open] summary {
