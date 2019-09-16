@@ -58,7 +58,7 @@ interface ICreateTutorialRepositoryDialogProps {
   ) => void
 
   /**
-   * Event triggered when the component encounters and error while
+   * Event triggered when the component encounters an error while
    * attempting to create the tutorial repository. Consumers are
    * intended to display an error message to the end user in response
    * to this event.
