@@ -226,7 +226,7 @@ class TutorialListItem extends React.PureComponent<{
     </summary>
   )
 
-  private renderTutorialStepIcon = () => {
+  private renderTutorialStepIcon() {
     if (this.props.completed) {
       return (
         <div className="green-circle">

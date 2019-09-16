@@ -17,6 +17,7 @@
     h1 {
       margin: 0;
       font-weight: var(--font-weight-light);
+      font-size: var(--font-size-lg);
     }
     svg {
       height: 55px;
@@ -46,6 +47,7 @@
   }
   summary {
     display: flex;
+    align-items: center;
     font-weight: var(--font-weight-semibold);
 
     .summary-text {
@@ -106,8 +108,8 @@
   border-radius: 50%;
   border-style: solid;
   border-width: 1px;
-  height: 19px;
-  width: 19px;
+  height: 20px;
+  width: 20px;
   display: flex;
   justify-content: center;
   align-items: center;
