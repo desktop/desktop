@@ -119,11 +119,13 @@ export class TutorialPanel extends React.Component<
               </LinkButton>
               , but feel free to use any.
             </p>
-            <div className="action">
-              <LinkButton onClick={this.skipEditorInstall}>
-                I have an editor
-              </LinkButton>
-            </div>
+            {!this.isStepComplete(TutorialStep.PickEditor) && (
+              <div className="action">
+                <LinkButton onClick={this.skipEditorInstall}>
+                  I have an editor
+                </LinkButton>
+              </div>
+            )}
           </TutorialListItem>
           <TutorialListItem
             summaryText="Make a branch"
