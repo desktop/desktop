@@ -25,8 +25,6 @@ export class OnboardingTutorialAssessor {
   private createPRSkipped: boolean = getBoolean(skipCreatePullRequestKey, false)
 
   public constructor(
-    /** Method to call when we need to re-check for an editor */
-    private resolveCurrentEditor: () => Promise<void>,
     /** Method to call when we need to get the current editor */
     private getResolvedExternalEditor: () => ExternalEditor | null
   ) {}
@@ -56,12 +54,9 @@ export class OnboardingTutorialAssessor {
   }
 
   private async isEditorInstalled(): Promise<boolean> {
-    if (this.installEditorSkipped || this.getResolvedExternalEditor()) {
-      return true
-    } else {
-      await this.resolveCurrentEditor()
-      return this.getResolvedExternalEditor() !== null
-    }
+    return (
+      this.installEditorSkipped || this.getResolvedExternalEditor() !== null
+    )
   }
 
   private isBranchCheckedOut(repositoryState: IRepositoryState): boolean {

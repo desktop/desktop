@@ -413,7 +413,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.wireupStoreEventHandlers()
     getAppMenu()
     this.tutorialAssessor = new OnboardingTutorialAssessor(
-      this._resolveCurrentEditor,
       this.getResolvedExternalEditor
     )
   }
@@ -5168,7 +5167,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-  public _resolveCurrentEditor = async () => {
+  public async _resolveCurrentEditor() {
     const match = await findEditorOrDefault(this.selectedExternalEditor)
     const resolvedExternalEditor = match != null ? match.editor : null
     if (this.resolvedExternalEditor !== resolvedExternalEditor) {
