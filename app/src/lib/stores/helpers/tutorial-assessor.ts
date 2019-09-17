@@ -60,7 +60,7 @@ export class OnboardingTutorialAssessor {
       return true
     } else {
       await this.resolveCurrentEditor()
-      return !!this.getResolvedExternalEditor()
+      return this.getResolvedExternalEditor() !== null
     }
   }
 
@@ -95,12 +95,11 @@ export class OnboardingTutorialAssessor {
     const { branchesState } = repositoryState
     const { tip } = branchesState
 
-    // TODO: Verify with @niik that there will only be one commit initially
     if (tip.kind === TipState.Valid) {
       // For some reason sometimes the initial commit has a parent sha
       // listed as an empty string...
       // For now I'm filtering those out. Would be better to prevent that from happening
-      return tip.branch.tip.parentSHAs.filter(Boolean).length > 0
+      return tip.branch.tip.parentSHAs.some(x => x.length > 0)
     }
 
     return false
