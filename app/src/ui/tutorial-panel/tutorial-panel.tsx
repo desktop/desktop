@@ -5,6 +5,13 @@ import { Button } from '../lib/button'
 import { Monospaced } from '../lib/monospaced'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
+import { Octicon, OcticonSymbol } from '../octicons'
+import { encodePathAsUrl } from '../../lib/path'
+
+const TutorialPanelImage = encodePathAsUrl(
+  __dirname,
+  'static/required-status-check.svg'
+)
 
 interface ITutorialPanelProps {
   readonly dispatcher: Dispatcher
@@ -48,16 +55,24 @@ export class TutorialPanel extends React.Component<
   }
 
   public render() {
+    const currentSectionId = 'step-3'
     return (
       <div className="tutorial-panel-component panel">
+        <div className="titleArea">
+          <h3>Get started</h3>
+          <img src={TutorialPanelImage} />
+        </div>
         <ol>
           <TutorialListItem
+            stepNumber={1}
             summaryText="Install a text editor"
             sectionId="step-1"
+            completed={true}
+            currentSectionId={currentSectionId}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             onClick={this.handleToggle}
           >
-            <div>
+            <p className="description">
               It doesn’t look like you have a text editor installed. We can
               recommend{' '}
               <LinkButton uri="https://atom.io" title="Open the Atom website">
@@ -71,77 +86,115 @@ export class TutorialPanel extends React.Component<
                 Visual Studio Code
               </LinkButton>
               , but feel free to use any.
+            </p>
+            <div className="action">
+              <LinkButton>I have an editor</LinkButton>
             </div>
-            <LinkButton>I have an editor</LinkButton>
           </TutorialListItem>
           <TutorialListItem
+            stepNumber={2}
+            completed={true}
             summaryText="Make a branch"
             sectionId="step-2"
+            currentSectionId={currentSectionId}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             onClick={this.handleToggle}
           >
-            <div>
+            <p className="description">
               {`Create a branch by going into the branch menu in the top bar and
               clicking "${__DARWIN__ ? 'New Branch' : 'New branch'}".`}
+            </p>
+            <div className="action">
+              <kbd>⇧</kbd>
+              <kbd>⌘</kbd>
+              <kbd>N</kbd>
             </div>
-            <kbd>⇧⌘N</kbd>
           </TutorialListItem>
           <TutorialListItem
+            stepNumber={3}
             summaryText="Edit a file"
             sectionId="step-3"
+            completed={false}
+            currentSectionId={currentSectionId}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             onClick={this.handleToggle}
           >
-            <div>
-              Open this repository in your preferred text editor. Edit the{' '}
-              <Monospaced>README.md</Monospaced> file, save it, and come back.
+            <p className="description">
+              Open this repository in your preferred text editor. Edit the
+              {` `}
+              <Monospaced>README.md</Monospaced>
+              {` `}
+              file, save it, and come back.
+            </p>
+            <div className="action">
+              <Button
+                onClick={this.openTutorialFileInEditor}
+                disabled={!this.props.externalEditorLabel}
+              >
+                {__DARWIN__ ? 'Open Editor' : 'Open editor'}
+              </Button>
+
+              <kbd>⇧</kbd>
+              <kbd>⌘</kbd>
+              <kbd>R</kbd>
             </div>
-            <Button
-              onClick={this.openTutorialFileInEditor}
-              disabled={!this.props.externalEditorLabel}
-            >
-              {__DARWIN__ ? 'Open Editor' : 'Open editor'}
-            </Button>
-            <kbd>⇧⌘A</kbd>
           </TutorialListItem>
           <TutorialListItem
+            stepNumber={4}
             summaryText="Make a commit"
+            completed={false}
             sectionId="step-4"
+            currentSectionId={currentSectionId}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             onClick={this.handleToggle}
           >
-            <div>
+            <p className="description">
               Write a message that describes the changes you made. When you’re
               done, click the commit button to finish.
+            </p>
+            <div className="action">
+              <kbd>⌘</kbd>
+              <kbd>Enter</kbd>
             </div>
-            <kbd>⌘ Enter</kbd>
           </TutorialListItem>
           <TutorialListItem
+            stepNumber={5}
             summaryText="Push to GitHub"
+            completed={false}
             sectionId="step-5"
+            currentSectionId={currentSectionId}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             onClick={this.handleToggle}
           >
-            <div>
+            <p className="description">
               Pushing your commits updates the repository on GitHub with any
               commits made on your computer to a branch.
+            </p>
+            <div className="action">
+              <kbd>⌘</kbd>
+              <kbd>P</kbd>
             </div>
-            <kbd>⌘P</kbd>
           </TutorialListItem>
           <TutorialListItem
+            stepNumber={6}
             summaryText="Open a pull request"
+            completed={false}
             sectionId="step-6"
+            currentSectionId={currentSectionId}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             onClick={this.handleToggle}
           >
-            <div>
+            <p className="description">
               Pull Requests are how you propose changes. By opening one, you’re
               requesting that someone review and merge them.
+            </p>
+            <div className="action">
+              <Button onClick={this.openPullRequest}>
+                {__DARWIN__ ? 'Open Pull Request' : 'Open pull request'}
+              </Button>
+              <kbd>⌘</kbd>
+              <kbd>R</kbd>
             </div>
-            <Button onClick={this.openPullRequest}>
-              {__DARWIN__ ? 'Open Pull Request' : 'Open pull request'}
-            </Button>
-            <kbd>⌘R</kbd>
           </TutorialListItem>
         </ol>
       </div>
@@ -157,6 +210,12 @@ export class TutorialPanel extends React.Component<
 class TutorialListItem extends React.PureComponent<{
   /** Text displayed to summarize this step */
   readonly summaryText: string
+  /** Where in the order of steps is this one? (1-6) */
+  readonly stepNumber: number
+  /** has this step been completed by the user already? */
+  readonly completed: boolean
+  /** The next step for the user to complete in the tutorial */
+  readonly currentSectionId: string
   /** ID for this section */
   readonly sectionId: string
 
@@ -170,17 +229,42 @@ class TutorialListItem extends React.PureComponent<{
 }> {
   public render() {
     return (
-      <li key={this.props.sectionId}>
+      <li key={this.props.sectionId} onClick={this.onClick}>
         <details
           open={this.props.sectionId === this.props.currentlyOpenSectionId}
           onClick={this.onClick}
         >
-          <summary>{this.props.summaryText}</summary>
-          {this.props.children}
+          {this.renderSummary()}
+          <div className="contents">{this.props.children}</div>
         </details>
       </li>
     )
   }
+
+  private renderSummary = () => (
+    <summary>
+      {this.renderTutorialStepIcon()}
+      <span className="summary-text">{this.props.summaryText}</span>
+      <Octicon className="chevron-icon" symbol={OcticonSymbol.chevronDown} />
+    </summary>
+  )
+
+  private renderTutorialStepIcon() {
+    if (this.props.completed) {
+      return (
+        <div className="green-circle">
+          <Octicon symbol={OcticonSymbol.check} />
+        </div>
+      )
+    }
+
+    return this.props.currentSectionId === this.props.sectionId ? (
+      <div className="blue-circle">{this.props.stepNumber}</div>
+    ) : (
+      <div className="empty-circle">{this.props.stepNumber}</div>
+    )
+  }
+
   private onClick = (e: React.MouseEvent<HTMLElement>) => {
     // prevents the default behavior of toggling on a `details` html element
     // so we don't have to fight it with our react state
