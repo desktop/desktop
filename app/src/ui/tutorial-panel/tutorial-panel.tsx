@@ -249,7 +249,7 @@ class TutorialListItem extends React.PureComponent<{
   /** ID of the currently expanded tutorial step
    * (used to determine if this step is expanded)
    */
-  readonly currentlyOpenSectionId: string | null
+  readonly currentlyOpenSectionId: ValidTutorialStep
 
   /** Skip button (if possible for this step) */
   readonly skipLinkButton?: JSX.Element
