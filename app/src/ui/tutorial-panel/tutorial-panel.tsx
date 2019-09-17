@@ -120,7 +120,9 @@ export class TutorialPanel extends React.Component<
               , but feel free to use any.
             </p>
             <div className="action">
-              <LinkButton>I have an editor</LinkButton>
+              <LinkButton onClick={this.skipEditorInstall}>
+                I have an editor
+              </LinkButton>
             </div>
           </TutorialListItem>
           <TutorialListItem
@@ -265,19 +267,31 @@ class TutorialListItem extends React.PureComponent<{
         >
           {this.renderSummary()}
           <div className="contents">{this.props.children}</div>
-          {this.props.skipLinkButton !== undefined && this.props.skipLinkButton}
         </details>
       </li>
     )
   }
 
-  private renderSummary = () => (
-    <summary>
-      {this.renderTutorialStepIcon()}
-      <span className="summary-text">{this.props.summaryText}</span>
-      <Octicon className="chevron-icon" symbol={OcticonSymbol.chevronDown} />
-    </summary>
-  )
+  private renderSummary = () => {
+    const shouldShowSkipLink =
+      this.props.skipLinkButton !== undefined &&
+      this.props.currentlyOpenSectionId === this.props.sectionId &&
+      this.props.isNextStepTodo(this.props.sectionId)
+    return (
+      <summary>
+        {this.renderTutorialStepIcon()}
+        <span className="summary-text">{this.props.summaryText}</span>
+        {shouldShowSkipLink ? (
+          this.props.skipLinkButton
+        ) : (
+          <Octicon
+            className="hang-right chevron-icon"
+            symbol={OcticonSymbol.chevronDown}
+          />
+        )}
+      </summary>
+    )
+  }
 
   private renderTutorialStepIcon() {
     if (this.props.isComplete(this.props.sectionId)) {
@@ -308,8 +322,7 @@ class TutorialListItem extends React.PureComponent<{
 }
 
 const SkipLinkButton: React.SFC<{ onClick: () => void }> = props => (
-  <>
-    <br />
-    <LinkButton onClick={props.onClick}>Skip</LinkButton>
-  </>
+  <LinkButton className="hang-right" onClick={props.onClick}>
+    Skip
+  </LinkButton>
 )
