@@ -486,7 +486,7 @@ app.on('ready', () => {
 
   ipcMain.on(
     'open-external',
-    (event: Electron.IpcMessageEvent, { path }: { path: string }) => {
+    async (event: Electron.IpcMessageEvent, { path }: { path: string }) => {
       const pathLowerCase = path.toLowerCase()
       if (
         pathLowerCase.startsWith('http://') ||
@@ -495,7 +495,14 @@ app.on('ready', () => {
         log.info(`opening in browser: ${path}`)
       }
 
-      const result = shell.openExternal(path)
+      let result
+      try {
+        await shell.openExternal(path)
+        result = true
+      } catch (e) {
+        log.error(`Call to openExternal failed: '${e}'`)
+        result = false
+      }
       event.sender.send('open-external-result', { result })
     }
   )

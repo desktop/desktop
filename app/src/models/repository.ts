@@ -38,7 +38,8 @@ export class Repository {
     path: string,
     public readonly id: number,
     public readonly gitHubRepository: GitHubRepository | null,
-    public readonly missing: boolean
+    public readonly missing: boolean,
+    private readonly _isTutorialRepository?: boolean
   ) {
     this.mainWorkTree = { path }
     this.name = (gitHubRepository && gitHubRepository.name) || getBaseName(path)
@@ -56,19 +57,17 @@ export class Repository {
   public get hash(): string {
     return `${this.id}+${this.gitHubRepository && this.gitHubRepository.hash}+${
       this.path
-    }+${this.missing}+${this.name}`
+    }+${this.missing}+${this.name}+${this.isTutorialRepository}`
   }
 
   /**
-   * Whether or not this repository is set up as the onboarding
-   * tutorial repository.
+   * True if the repository is a tutorial repository created as part
+   * of the onboarding flow. Tutorial repositories trigger a tutorial
+   * user experience which introduces new users to some core concepts
+   * of Git and GitHub.
    */
-  public get isTutorialRepository(): boolean {
-    return (
-      enableTutorial() &&
-      this.name.startsWith('desktop-tutorial') &&
-      this.gitHubRepository !== null
-    )
+  public get isTutorialRepository() {
+    return enableTutorial() && this._isTutorialRepository === true
   }
 }
 

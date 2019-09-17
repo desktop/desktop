@@ -1,22 +1,32 @@
 .tutorial-panel-component {
+  display: flex;
+  flex-flow: column nowrap;
   min-width: 300px;
+  max-width: 350px;
+  background-color: var(--background-color);
   box-shadow: var(--base-box-shadow);
+
+  // we need this to be high so the panel's box shadow
+  // appears on top of the codemirror buffer
+  z-index: var(--side-panel-z-index);
+  overflow-y: scroll;
 
   .titleArea {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    padding: var(--spacing-triple);
     padding-left: var(--spacing-quint);
-    padding-right: var(--spacing);
+    padding-right: var(--spacing-double);
 
-    h1 {
+    h3 {
       margin: 0;
       font-weight: var(--font-weight-light);
+      font-size: var(--font-size-lg);
     }
     svg {
-      height: 56px;
-      width: 56px;
-      color: $blue;
+      height: 46px;
+      width: 46px;
     }
   }
 
@@ -38,10 +48,10 @@
 
   li {
     padding: var(--spacing-double);
-    padding-right: var(--spacing-three-halves);
   }
   summary {
     display: flex;
+    align-items: center;
     font-weight: var(--font-weight-semibold);
 
     .summary-text {
@@ -50,18 +60,47 @@
     .chevron-icon {
       margin-left: auto;
     }
+    .green-circle {
+      @extend %circle;
+      background-color: $green;
+      border-color: $green;
+      color: var(--badge-icon-color);
+    }
+    .blue-circle {
+      @extend %circle;
+      background-color: $blue;
+      border-color: $blue;
+      color: var(--badge-icon-color);
+    }
+    .empty-circle {
+      @extend %circle;
+      background-color: transparent;
+      border-color: var(--text-color);
+      opacity: 0.5;
+      color: var(--text-color);
+    }
   }
 
   details .contents {
     padding-left: var(--spacing-triple);
     .description {
-      margin-bottom: var(--spacing-three-halves);
+      margin-bottom: var(--spacing);
     }
-    .button-component {
-      margin-right: var(--spacing);
-    }
-    .shortcut {
-      color: var(--text-secondary-color);
+    .action {
+      display: flex;
+      align-items: center;
+
+      .button-component {
+        margin-right: var(--spacing);
+      }
+
+      kbd {
+        // get these to align properly in a flex box
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-secondary-color);
+      }
     }
   }
   details[open] summary {
@@ -72,26 +111,22 @@
     .chevron-icon {
       transform: rotate(180deg);
     }
+    .empty-circle {
+      opacity: 1;
+    }
   }
+}
 
-  %circle {
-    color: var(--background-color);
-    border-radius: 50%;
-    height: 20px;
-    width: 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-right: var(--spacing);
-    flex-shrink: 0;
-    flex-grow: 0;
-  }
-  .green-circle {
-    @extend %circle;
-    background-color: $green;
-  }
-  .blue-circle {
-    @extend %circle;
-    background-color: $blue;
-  }
+%circle {
+  border-radius: 50%;
+  border-style: solid;
+  border-width: 1px;
+  height: 18px;
+  width: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: var(--spacing);
+  flex-shrink: 0;
+  flex-grow: 0;
 }
