@@ -17,6 +17,7 @@
     justify-content: space-between;
     padding: var(--spacing-triple);
     padding-left: var(--spacing-quint);
+    padding-right: var(--spacing-double);
 
     h3 {
       margin: 0;
@@ -47,7 +48,6 @@
 
   li {
     padding: var(--spacing-double);
-    padding-right: var(--spacing);
   }
   summary {
     display: flex;
@@ -83,7 +83,6 @@
 
   details .contents {
     padding-left: var(--spacing-triple);
-    padding-right: var(--spacing);
     .description {
       margin-bottom: var(--spacing);
     }
