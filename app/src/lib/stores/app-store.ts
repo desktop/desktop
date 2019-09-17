@@ -1318,10 +1318,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.selectedRepository = repository
 
-    // TODO: Remove this call when this code is merged with the work in
-    // https://github.com/desktop/desktop/pull/8244
-    this.tutorialAssessor.onNewTutorialRepository()
-
     this.emitUpdate()
     this.stopBackgroundFetching()
     this.stopPullRequestUpdater()
@@ -4599,6 +4595,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         endpoint,
         apiRepository
       )
+      this.tutorialAssessor.onNewTutorialRepository()
     } else {
       const error = new Error(`${path} isn't a git repository.`)
       this.emitError(error)
