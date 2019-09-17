@@ -263,11 +263,17 @@ export async function getAvailableEditors(): Promise<
   }
 
   if (codeInsidersPath) {
-    results.push({ editor: ExternalEditor.VSCodeInsiders, path: codeInsidersPath })
+    results.push({
+      editor: ExternalEditor.VSCodeInsiders,
+      path: codeInsidersPath
+    })
   }
-  
+
   if (codeExplorationPath) {
-    results.push({ editor: ExternalEditor.VSCodeExploration, path: codeExplorationPath })
+    results.push({
+      editor: ExternalEditor.VSCodeExploration,
+      path: codeExplorationPath
+    })
   }
 
   if (codiumPath) {
