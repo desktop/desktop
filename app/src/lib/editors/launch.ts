@@ -2,7 +2,7 @@ import { spawn } from 'child_process'
 import { pathExists } from 'fs-extra'
 import { ExternalEditorError, FoundEditor } from './shared'
 import { ExternalEditor as Darwin } from './darwin'
-import { readdir } from 'fs-extra'
+import { readdir, lstatSync } from 'fs-extra'
 
 /**
  * Open a given file or folder in the desired external editor.
@@ -18,7 +18,12 @@ export async function launchExternalEditor(
 
   //Special launching for Xcode.
   if (editor.editor === Darwin.Xcode) {
-    //Query the file system for xCode related files
+    //Directly open if the fullPath contains a file
+    if (lstatSync(fullPath).isFile()) {
+      spawn(editorPath, [fullPath])
+      return
+    }
+    //Otherwise, check the folder content for xCode related files
     const files = await readdir(fullPath)
     const projectFiles = files.filter(f => f.endsWith('.xcodeproj'))
     const workspaces = files.filter(f => f.endsWith('.xcworkspace'))
