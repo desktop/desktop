@@ -379,7 +379,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** Which step the user needs to complete next in the onboarding tutorial */
   private currentOnboardingTutorialStep = TutorialStep.NotApplicable
-  private tutorialAssessor: OnboardingTutorialAssessor
+  private readonly tutorialAssessor: OnboardingTutorialAssessor
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
