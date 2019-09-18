@@ -239,8 +239,7 @@ export class TutorialPanel extends React.Component<
   }
 }
 
-/** A step (summary and expandable description) in the tutorial side panel */
-class TutorialListItem extends React.PureComponent<{
+interface ITutorialListItemProps {
   /** Text displayed to summarize this step */
   readonly summaryText: string
   /** Used to find out if this step has been completed */
@@ -259,7 +258,10 @@ class TutorialListItem extends React.PureComponent<{
   readonly skipLinkButton?: JSX.Element
   /** Handler to open and close section */
   readonly onClick: (id: ValidTutorialStep) => void
-}> {
+}
+
+/** A step (summary and expandable description) in the tutorial side panel */
+class TutorialListItem extends React.PureComponent<ITutorialListItemProps> {
   public render() {
     return (
       <li key={this.props.sectionId} onClick={this.onClick}>
