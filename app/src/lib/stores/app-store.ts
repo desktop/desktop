@@ -426,8 +426,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.repositoryStateCache.get(repository)
     )
     log.info(`Current tutorial step is ${currentStep}`)
-    this.currentOnboardingTutorialStep = currentStep
-    this.emitUpdate()
+    // only emit an update if its changed
+    if (currentStep !== this.currentOnboardingTutorialStep) {
+      this.currentOnboardingTutorialStep = currentStep
+      this.emitUpdate()
+    }
   }
 
   /** Call via `Dispatcher` when the user opts to skip the pick editor step of the onboarding tutorial */
