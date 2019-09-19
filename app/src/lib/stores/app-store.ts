@@ -14,11 +14,7 @@ import {
 import { Account } from '../../models/account'
 import { AppMenu, IMenu } from '../../models/app-menu'
 import { IAuthor } from '../../models/author'
-import {
-  Branch,
-  eligibleForFastForward,
-  IAheadBehind,
-} from '../../models/branch'
+import { Branch, IAheadBehind } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloningRepository } from '../../models/cloning-repository'
@@ -79,6 +75,7 @@ import {
   getDotComAPIEndpoint,
   IAPIOrganization,
   IAPIBranch,
+  IAPIRepository,
 } from '../api'
 import { shell } from '../app-shell'
 import {
@@ -242,13 +239,7 @@ import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
-
-/**
- * As fast-forwarding local branches is proportional to the number of local
- * branches, and is run after every fetch/push/pull, this is skipped when the
- * number of eligible branches is greater than a given threshold.
- */
-const FastForwardBranchesThreshold = 20
+import { findBranchesForFastForward } from './helpers/find-branches-for-fast-forward'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -607,8 +598,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commitSummaryWidth: this.commitSummaryWidth,
       stashedFilesWidth: this.stashedFilesWidth,
       appMenuState: this.appMenu ? this.appMenu.openMenus : [],
-      titleBarStyle:
-        this.showWelcomeFlow || repositories.length === 0 ? 'light' : 'dark',
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
       currentBanner: this.currentBanner,
@@ -3084,7 +3073,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository.path,
       repository.id,
       skeletonGitHubRepository,
-      repository.missing
+      repository.missing,
+      false
     )
 
     const account = getAccountForEndpoint(
@@ -3586,31 +3576,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async fastForwardBranches(repository: Repository) {
-    const state = this.repositoryStateCache.get(repository)
-    const branches = state.branchesState.allBranches
+    const { branchesState } = this.repositoryStateCache.get(repository)
 
-    const tip = state.branchesState.tip
-    const currentBranchName =
-      tip.kind === TipState.Valid ? tip.branch.name : null
-
-    let eligibleBranches = branches.filter(b =>
-      eligibleForFastForward(b, currentBranchName)
-    )
-
-    if (eligibleBranches.length >= FastForwardBranchesThreshold) {
-      log.info(
-        `skipping fast-forward for all branches as there are ${
-          eligibleBranches.length
-        } local branches - this will run again when there are less than ${FastForwardBranchesThreshold} local branches tracking remotes`
-      )
-
-      const defaultBranch = state.branchesState.defaultBranch
-      eligibleBranches =
-        defaultBranch != null &&
-        eligibleForFastForward(defaultBranch, currentBranchName)
-          ? [defaultBranch, ...state.branchesState.recentBranches]
-          : []
-    }
+    const eligibleBranches = findBranchesForFastForward(branchesState)
 
     for (const branch of eligibleBranches) {
       const aheadBehind = await getBranchAheadBehind(repository, branch)
@@ -4559,6 +4527,39 @@ export class AppStore extends TypedBaseStore<IAppState> {
     missing: boolean
   ): Promise<Repository> {
     return this.repositoriesStore.updateRepositoryMissing(repository, missing)
+  }
+
+  /**
+   * Add a tutorial repository.
+   *
+   * This method differs from the `_addRepositories` method in that it
+   * requires that the repository has been created on the remote and
+   * set up to track it. Given that tutorial repositories are created
+   * from the no-repositories blank slate it shouldn't be possible for
+   * another repository with the same path to exist in the repositories
+   * table but in case that hanges in the future this method will set
+   * the tutorial flag on the existing repository at the given path.
+   */
+  public async _addTutorialRepository(
+    path: string,
+    endpoint: string,
+    apiRepository: IAPIRepository
+  ) {
+    const validatedPath = await validatedRepositoryPath(path)
+    if (validatedPath) {
+      log.info(
+        `[AppStore] adding tutorial repository at ${validatedPath} to store`
+      )
+
+      await this.repositoriesStore.addTutorialRepository(
+        validatedPath,
+        endpoint,
+        apiRepository
+      )
+    } else {
+      const error = new Error(`${path} isn't a git repository.`)
+      this.emitError(error)
+    }
   }
 
   public async _addRepositories(
