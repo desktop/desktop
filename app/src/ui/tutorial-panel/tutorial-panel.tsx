@@ -104,7 +104,7 @@ export class TutorialPanel extends React.Component<
             sectionId={TutorialStep.PickEditor}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             skipLinkButton={<SkipLinkButton onClick={this.skipEditorInstall} />}
-            onClick={this.onStepSummaryClick}
+            onSummaryClick={this.onStepSummaryClick}
           >
             <p className="description">
               It doesn’t look like you have a text editor installed. We can
@@ -135,7 +135,7 @@ export class TutorialPanel extends React.Component<
             isNextStepTodo={this.isStepNextTodo}
             sectionId={TutorialStep.CreateBranch}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
-            onClick={this.onStepSummaryClick}
+            onSummaryClick={this.onStepSummaryClick}
           >
             <p className="description">
               {`Create a branch by going into the branch menu in the top bar and
@@ -153,7 +153,7 @@ export class TutorialPanel extends React.Component<
             isNextStepTodo={this.isStepNextTodo}
             sectionId={TutorialStep.EditFile}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
-            onClick={this.onStepSummaryClick}
+            onSummaryClick={this.onStepSummaryClick}
           >
             <p className="description">
               Open this repository in your preferred text editor. Edit the
@@ -182,7 +182,7 @@ export class TutorialPanel extends React.Component<
             isNextStepTodo={this.isStepNextTodo}
             sectionId={TutorialStep.MakeCommit}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
-            onClick={this.onStepSummaryClick}
+            onSummaryClick={this.onStepSummaryClick}
           >
             <p className="description">
               Write a message that describes the changes you made. When you’re
@@ -199,7 +199,7 @@ export class TutorialPanel extends React.Component<
             isNextStepTodo={this.isStepNextTodo}
             sectionId={TutorialStep.PushBranch}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
-            onClick={this.onStepSummaryClick}
+            onSummaryClick={this.onStepSummaryClick}
           >
             <p className="description">
               Pushing your commits updates the repository on GitHub with any
@@ -217,7 +217,7 @@ export class TutorialPanel extends React.Component<
             sectionId={TutorialStep.OpenPullRequest}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             skipLinkButton={<SkipLinkButton onClick={this.skipCreatePR} />}
-            onClick={this.onStepSummaryClick}
+            onSummaryClick={this.onStepSummaryClick}
           >
             <p className="description">
               Pull Requests are how you propose changes. By opening one, you’re
@@ -259,7 +259,7 @@ interface ITutorialListItemProps {
   /** Skip button (if possible for this step) */
   readonly skipLinkButton?: JSX.Element
   /** Handler to open and close section */
-  readonly onClick: (id: ValidTutorialStep) => void
+  readonly onSummaryClick: (id: ValidTutorialStep) => void
 }
 
 /** A step (summary and expandable description) in the tutorial side panel */
@@ -268,10 +268,10 @@ class TutorialStepInstructions extends React.PureComponent<
 > {
   public render() {
     return (
-      <li key={this.props.sectionId} onClick={this.onClick}>
+      <li key={this.props.sectionId} onClick={this.onSummaryClick}>
         <details
           open={this.props.sectionId === this.props.currentlyOpenSectionId}
-          onClick={this.onClick}
+          onClick={this.onSummaryClick}
         >
           {this.renderSummary()}
           <div className="contents">{this.props.children}</div>
@@ -319,13 +319,13 @@ class TutorialStepInstructions extends React.PureComponent<
     )
   }
 
-  private onClick = (e: React.MouseEvent<HTMLElement>) => {
+  private onSummaryClick = (e: React.MouseEvent<HTMLElement>) => {
     // prevents the default behavior of toggling on a `details` html element
     // so we don't have to fight it with our react state
     // for more info see:
     // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/details#Events
     e.preventDefault()
-    this.props.onClick(this.props.sectionId)
+    this.props.onSummaryClick(this.props.sectionId)
   }
 }
 
