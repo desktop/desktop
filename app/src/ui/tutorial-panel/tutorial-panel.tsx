@@ -172,7 +172,7 @@ export class TutorialPanel extends React.Component<
                 </Button>
                 <kbd>⇧</kbd>
                 <kbd>⌘</kbd>
-                <kbd>R</kbd>
+                <kbd>A</kbd>
               </div>
             )}
           </TutorialStepInstructions>
