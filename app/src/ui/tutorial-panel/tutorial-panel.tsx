@@ -263,7 +263,7 @@ interface ITutorialStepInstructionsProps {
 }
 
 /** A step (summary and expandable description) in the tutorial side panel */
-class TutorialStepInstructions extends React.PureComponent<
+class TutorialStepInstructions extends React.Component<
   ITutorialStepInstructionsProps
 > {
   public render() {
