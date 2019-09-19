@@ -222,7 +222,7 @@ export class TutorialPanel extends React.Component<
             onSummaryClick={this.onStepSummaryClick}
           >
             <p className="description">
-              Pull Requests are how you propose changes. By opening one, you’re
+              A pull requests allows you to propose changes to the code. By opening one, you’re
               requesting that someone review and merge them. Since this is a
               demo repository, this pull request will be private.
             </p>
