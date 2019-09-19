@@ -1,0 +1,24 @@
+#include <iostream>
+#include <cmath>
+using namespace std;
+float base;
+float altura1;
+float altura2;
+float radio;
+double pi = M_PI;
+int main()
+	{
+		cout <<"Aqui calcularemos referentes areas " <<endl <<"introduzca una altura: ";
+		cin >> altura1;
+		cout << "introduzca la distancia base: ";
+		cin >> base;
+		cout << "esta es el area del triengulo equilatero: " <<(pow(3,(1/2))/4)*pow(base,2)<<endl;
+		cout << "esta es el area del rectangulo: " <<base*altura1 <<endl;
+		cout <<"Aqui calcularemos el volumen" <<endl <<"introduzca el radio: ";
+		cin >> radio;
+		cout << "introduzca una altura: ";
+		cin >> altura2;
+		cout <<"este es el volumen del cilindro: " << (pi*(pow(radio,2)))*altura2 <<endl;
+		cout << "este es el volumen del cono: " <<((pi*(pow(radio,2)))*altura2)/3.00;
+		return 0;
+	}
