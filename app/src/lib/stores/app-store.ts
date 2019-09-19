@@ -4601,6 +4601,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
         apiRepository
       )
       this.tutorialAssessor.onNewTutorialRepository()
+
+      // if we don't have an editor, check for one
+      // this is so that we can mark the 1st step as done
+      // if an editor is found
+      if (this.resolvedExternalEditor === null) {
+        await this._resolveCurrentEditor()
+      }
     } else {
       const error = new Error(`${path} isn't a git repository.`)
       this.emitError(error)
