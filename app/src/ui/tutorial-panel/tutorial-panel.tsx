@@ -97,14 +97,14 @@ export class TutorialPanel extends React.Component<
           <img src={TutorialPanelImage} />
         </div>
         <ol>
-          <TutorialListItem
+          <TutorialStepInstructions
             summaryText="Install a text editor"
             isComplete={this.isStepComplete}
             isNextStepTodo={this.isStepNextTodo}
             sectionId={TutorialStep.PickEditor}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             skipLinkButton={<SkipLinkButton onClick={this.skipEditorInstall} />}
-            onClick={this.handleToggle}
+            onClick={this.onStepSummaryClick}
           >
             <p className="description">
               It doesn’t look like you have a text editor installed. We can
@@ -128,14 +128,14 @@ export class TutorialPanel extends React.Component<
                 </LinkButton>
               </div>
             )}
-          </TutorialListItem>
-          <TutorialListItem
+          </TutorialStepInstructions>
+          <TutorialStepInstructions
             summaryText="Make a branch"
             isComplete={this.isStepComplete}
             isNextStepTodo={this.isStepNextTodo}
             sectionId={TutorialStep.CreateBranch}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
-            onClick={this.handleToggle}
+            onClick={this.onStepSummaryClick}
           >
             <p className="description">
               {`Create a branch by going into the branch menu in the top bar and
@@ -146,14 +146,14 @@ export class TutorialPanel extends React.Component<
               <kbd>⌘</kbd>
               <kbd>N</kbd>
             </div>
-          </TutorialListItem>
-          <TutorialListItem
+          </TutorialStepInstructions>
+          <TutorialStepInstructions
             summaryText="Edit a file"
             isComplete={this.isStepComplete}
             isNextStepTodo={this.isStepNextTodo}
             sectionId={TutorialStep.EditFile}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
-            onClick={this.handleToggle}
+            onClick={this.onStepSummaryClick}
           >
             <p className="description">
               Open this repository in your preferred text editor. Edit the
@@ -175,14 +175,14 @@ export class TutorialPanel extends React.Component<
                 <kbd>R</kbd>
               </div>
             )}
-          </TutorialListItem>
-          <TutorialListItem
+          </TutorialStepInstructions>
+          <TutorialStepInstructions
             summaryText="Make a commit"
             isComplete={this.isStepComplete}
             isNextStepTodo={this.isStepNextTodo}
             sectionId={TutorialStep.MakeCommit}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
-            onClick={this.handleToggle}
+            onClick={this.onStepSummaryClick}
           >
             <p className="description">
               Write a message that describes the changes you made. When you’re
@@ -192,14 +192,14 @@ export class TutorialPanel extends React.Component<
               <kbd>⌘</kbd>
               <kbd>Enter</kbd>
             </div>
-          </TutorialListItem>
-          <TutorialListItem
+          </TutorialStepInstructions>
+          <TutorialStepInstructions
             summaryText="Push to GitHub"
             isComplete={this.isStepComplete}
             isNextStepTodo={this.isStepNextTodo}
             sectionId={TutorialStep.PushBranch}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
-            onClick={this.handleToggle}
+            onClick={this.onStepSummaryClick}
           >
             <p className="description">
               Pushing your commits updates the repository on GitHub with any
@@ -209,15 +209,15 @@ export class TutorialPanel extends React.Component<
               <kbd>⌘</kbd>
               <kbd>P</kbd>
             </div>
-          </TutorialListItem>
-          <TutorialListItem
+          </TutorialStepInstructions>
+          <TutorialStepInstructions
             summaryText="Open a pull request"
             isComplete={this.isStepComplete}
             isNextStepTodo={this.isStepNextTodo}
             sectionId={TutorialStep.OpenPullRequest}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
             skipLinkButton={<SkipLinkButton onClick={this.skipCreatePR} />}
-            onClick={this.handleToggle}
+            onClick={this.onStepSummaryClick}
           >
             <p className="description">
               Pull Requests are how you propose changes. By opening one, you’re
@@ -230,13 +230,13 @@ export class TutorialPanel extends React.Component<
               <kbd>⌘</kbd>
               <kbd>R</kbd>
             </div>
-          </TutorialListItem>
+          </TutorialStepInstructions>
         </ol>
       </div>
     )
   }
   /** this makes sure we only have one `TutorialListItem` open at a time */
-  public handleToggle = (id: ValidTutorialStep) => {
+  public onStepSummaryClick = (id: ValidTutorialStep) => {
     this.setState({ currentlyOpenSectionId: id })
   }
 }
@@ -263,7 +263,9 @@ interface ITutorialListItemProps {
 }
 
 /** A step (summary and expandable description) in the tutorial side panel */
-class TutorialListItem extends React.PureComponent<ITutorialListItemProps> {
+class TutorialStepInstructions extends React.PureComponent<
+  ITutorialListItemProps
+> {
   public render() {
     return (
       <li key={this.props.sectionId} onClick={this.onClick}>
