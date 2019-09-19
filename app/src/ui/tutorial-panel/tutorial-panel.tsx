@@ -241,7 +241,7 @@ export class TutorialPanel extends React.Component<
   }
 }
 
-interface ITutorialListItemProps {
+interface ITutorialStepInstructionsProps {
   /** Text displayed to summarize this step */
   readonly summaryText: string
   /** Used to find out if this step has been completed */
@@ -264,7 +264,7 @@ interface ITutorialListItemProps {
 
 /** A step (summary and expandable description) in the tutorial side panel */
 class TutorialStepInstructions extends React.PureComponent<
-  ITutorialListItemProps
+  ITutorialStepInstructionsProps
 > {
   public render() {
     return (
