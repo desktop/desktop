@@ -186,10 +186,9 @@ export class TutorialPanel extends React.Component<
             onSummaryClick={this.onStepSummaryClick}
           >
             <p className="description">
-              Commits are how you save sets of changes. Write a
-              message that describes the changes you made in the
-              text box in the bottom left area. When you’re
-              done, click the blue Commit button to finish.
+              Commits are how you save sets of changes. Write a message that
+              describes the changes you made in the text box in the bottom left
+              area. When you’re done, click the blue Commit button to finish.
             </p>
             <div className="action">
               <kbd>⌘</kbd>
@@ -205,8 +204,8 @@ export class TutorialPanel extends React.Component<
             onSummaryClick={this.onStepSummaryClick}
           >
             <p className="description">
-              Publishing will “push”, or upload, your commits
-              to this branch on this repository on GitHub.com.
+              Publishing will “push”, or upload, your commits to this branch on
+              this repository on GitHub.com.
             </p>
             <div className="action">
               <kbd>⌘</kbd>
@@ -224,8 +223,8 @@ export class TutorialPanel extends React.Component<
           >
             <p className="description">
               Pull Requests are how you propose changes. By opening one, you’re
-              requesting that someone review and merge them. Since this is a demo
-              repository, this pull request will be private.
+              requesting that someone review and merge them. Since this is a
+              demo repository, this pull request will be private.
             </p>
             <div className="action">
               <Button onClick={this.openPullRequest}>
