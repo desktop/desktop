@@ -289,14 +289,13 @@ class TutorialStepInstructions extends React.PureComponent<
       <summary>
         {this.renderTutorialStepIcon()}
         <span className="summary-text">{this.props.summaryText}</span>
-        {shouldShowSkipLink ? (
-          this.props.skipLinkButton
-        ) : (
-          <Octicon
-            className="hang-right chevron-icon"
-            symbol={OcticonSymbol.chevronDown}
-          />
-        )}
+        <span className="hang-right">
+          {shouldShowSkipLink ? (
+            this.props.skipLinkButton
+          ) : (
+            <Octicon symbol={OcticonSymbol.chevronDown} />
+          )}
+        </span>
       </summary>
     )
   }
@@ -330,7 +329,5 @@ class TutorialStepInstructions extends React.PureComponent<
 }
 
 const SkipLinkButton: React.SFC<{ onClick: () => void }> = props => (
-  <LinkButton className="hang-right" onClick={props.onClick}>
-    Skip
-  </LinkButton>
+  <LinkButton onClick={props.onClick}>Skip</LinkButton>
 )
