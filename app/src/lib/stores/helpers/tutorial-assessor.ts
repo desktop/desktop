@@ -114,13 +114,13 @@ export class OnboardingTutorialAssessor {
   }
 
   /** Call when the user opts to skip the install editor step */
-  public skipInstallEditor = () => {
+  public skipPickEditor = () => {
     this.installEditorSkipped = true
     setBoolean(skipInstallEditorKey, this.installEditorSkipped)
   }
 
   /** Call when the user opts to skip the create pull request step */
-  public skipCreatePR = () => {
+  public skipCreatePullRequest = () => {
     this.createPRSkipped = true
     setBoolean(skipCreatePullRequestKey, this.createPRSkipped)
   }

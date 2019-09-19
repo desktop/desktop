@@ -2174,11 +2174,13 @@ export class Dispatcher {
     return this.statsStore.recordStashView()
   }
 
-  public skipEditorInstall(repository: Repository) {
-    return this.appStore._skipEditorInstall(repository)
+  /** Call when the user opts to skip the pick editor step of the onboarding tutorial */
+  public skipPickEditorTutorialStep(repository: Repository) {
+    return this.appStore._skipPickEditorTutorialStep(repository)
   }
 
-  public skipCreatePR(repository: Repository) {
-    return this.appStore._skipCreatePR(repository)
+  /** Call when the user opts to skip the create pull request step of the onboarding tutorial */
+  public skipCreatePullRequestTutorialStep(repository: Repository) {
+    return this.appStore._skipCreatePullRequestTutorialStep(repository)
   }
 }

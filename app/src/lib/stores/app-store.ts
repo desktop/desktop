@@ -430,13 +430,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public async _skipEditorInstall(repository: Repository) {
-    this.tutorialAssessor.skipInstallEditor()
+  /** Call via `Dispatcher` when the user opts to skip the pick editor step of the onboarding tutorial */
+  public async _skipPickEditorTutorialStep(repository: Repository) {
+    this.tutorialAssessor.skipPickEditor()
     await this.updateCurrentTutorialStep(repository)
   }
 
-  public async _skipCreatePR(repository: Repository) {
-    this.tutorialAssessor.skipCreatePR()
+  /** Call via `Dispatcher` when the user opts to skip the create pull request step of the onboarding tutorial */
+  public async _skipCreatePullRequestTutorialStep(repository: Repository) {
+    this.tutorialAssessor.skipCreatePullRequest()
     await this.updateCurrentTutorialStep(repository)
   }
 
