@@ -188,10 +188,6 @@ export class TutorialPanel extends React.Component<
               Write a message that describes the changes you made. When you’re
               done, click the commit button to finish.
             </p>
-            <div className="action">
-              <kbd>⌘</kbd>
-              <kbd>Enter</kbd>
-            </div>
           </TutorialStepInstructions>
           <TutorialStepInstructions
             summaryText="Push to GitHub"
