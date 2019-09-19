@@ -138,7 +138,7 @@ export class TutorialPanel extends React.Component<
             onSummaryClick={this.onStepSummaryClick}
           >
             <p className="description">
-              {`Branches are how you work on different versions of a repository at one time. Create a
+              {`A branch allows you to work on different versions of a repository at one time. Create a
                 branch by going into the branch menu in the top bar and
               clicking "${__DARWIN__ ? 'New Branch' : 'New branch'}".`}
             </p>
