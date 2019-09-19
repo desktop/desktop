@@ -142,9 +142,19 @@ export class TutorialPanel extends React.Component<
               clicking "${__DARWIN__ ? 'New Branch' : 'New branch'}".`}
             </p>
             <div className="action">
-              <kbd>⇧</kbd>
-              <kbd>⌘</kbd>
-              <kbd>N</kbd>
+              {__DARWIN__ ? (
+                <>
+                  <kbd>⌘</kbd>
+                  <kbd>⇧</kbd>
+                  <kbd>N</kbd>
+                </>
+              ) : (
+                <>
+                  <kbd>Ctrl</kbd>
+                  <kbd>Shift</kbd>
+                  <kbd>N</kbd>
+                </>
+              )}
             </div>
           </TutorialStepInstructions>
           <TutorialStepInstructions
@@ -170,9 +180,19 @@ export class TutorialPanel extends React.Component<
                 >
                   {__DARWIN__ ? 'Open Editor' : 'Open editor'}
                 </Button>
-                <kbd>⇧</kbd>
-                <kbd>⌘</kbd>
-                <kbd>A</kbd>
+                {__DARWIN__ ? (
+                  <>
+                    <kbd>⌘</kbd>
+                    <kbd>⇧</kbd>
+                    <kbd>A</kbd>
+                  </>
+                ) : (
+                  <>
+                    <kbd>Ctrl</kbd>
+                    <kbd>Shift</kbd>
+                    <kbd>A</kbd>
+                  </>
+                )}
               </div>
             )}
           </TutorialStepInstructions>
@@ -202,8 +222,17 @@ export class TutorialPanel extends React.Component<
               commits made on your computer to a branch.
             </p>
             <div className="action">
-              <kbd>⌘</kbd>
-              <kbd>P</kbd>
+              {__DARWIN__ ? (
+                <>
+                  <kbd>⌘</kbd>
+                  <kbd>P</kbd>
+                </>
+              ) : (
+                <>
+                  <kbd>Ctrl</kbd>
+                  <kbd>P</kbd>
+                </>
+              )}
             </div>
           </TutorialStepInstructions>
           <TutorialStepInstructions
@@ -223,8 +252,17 @@ export class TutorialPanel extends React.Component<
               <Button onClick={this.openPullRequest}>
                 {__DARWIN__ ? 'Open Pull Request' : 'Open pull request'}
               </Button>
-              <kbd>⌘</kbd>
-              <kbd>R</kbd>
+              {__DARWIN__ ? (
+                <>
+                  <kbd>⌘</kbd>
+                  <kbd>R</kbd>
+                </>
+              ) : (
+                <>
+                  <kbd>Ctrl</kbd>
+                  <kbd>R</kbd>
+                </>
+              )}
             </div>
           </TutorialStepInstructions>
         </ol>
