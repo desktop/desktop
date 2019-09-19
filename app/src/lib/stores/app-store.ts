@@ -1321,6 +1321,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<Repository | null> {
     const previouslySelectedRepository = this.selectedRepository
 
+    // do this quick check to see if we have a tutorial respository
+    // cause if its not we can quickly hide the tutorial pane
+    // in the first `emitUpdate` below
+    const previouslyInTutorial =
+      this.currentOnboardingTutorialStep !== TutorialStep.NotApplicable
+    if (
+      previouslyInTutorial &&
+      (!(repository instanceof Repository) || !repository.isTutorialRepository)
+    ) {
+      this.currentOnboardingTutorialStep = TutorialStep.NotApplicable
+    }
+
     this.selectedRepository = repository
 
     this.emitUpdate()
