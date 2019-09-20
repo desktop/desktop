@@ -5203,6 +5203,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const resolvedExternalEditor = match != null ? match.editor : null
     if (this.resolvedExternalEditor !== resolvedExternalEditor) {
       this.resolvedExternalEditor = resolvedExternalEditor
+
+      // Make sure we let the tutorial assesor know that we have a new editor
+      // in case it's stuck waiting for one to be selected.
+      if (this.currentOnboardingTutorialStep === TutorialStep.PickEditor) {
+        if (this.selectedRepository instanceof Repository) {
+          this.updateCurrentTutorialStep(this.selectedRepository)
+        }
+      }
+
       this.emitUpdate()
     }
   }
