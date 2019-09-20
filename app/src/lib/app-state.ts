@@ -38,6 +38,7 @@ import { Banner } from '../models/banner'
 import { GitRebaseProgress } from '../models/rebase'
 import { RebaseFlowStep } from '../models/rebase-flow-step'
 import { IStashEntry } from '../models/stash-entry'
+import { TutorialStep } from '../models/tutorial-step'
 
 export enum SelectionType {
   Repository,
@@ -227,6 +228,9 @@ export interface IAppState {
    * See the ApiRepositoriesStore for more details on loading repositories
    */
   readonly apiRepositories: ReadonlyMap<Account, IAccountRepositories>
+
+  /** Which step the user is on in the Onboarding Tutorial */
+  readonly currentOnboardingTutorialStep: TutorialStep
 }
 
 export enum FoldoutType {

@@ -2173,4 +2173,14 @@ export class Dispatcher {
   public recordStashView(): Promise<void> {
     return this.statsStore.recordStashView()
   }
+
+  /** Call when the user opts to skip the pick editor step of the onboarding tutorial */
+  public skipPickEditorTutorialStep(repository: Repository) {
+    return this.appStore._skipPickEditorTutorialStep(repository)
+  }
+
+  /** Call when the user opts to skip the create pull request step of the onboarding tutorial */
+  public skipCreatePullRequestTutorialStep(repository: Repository) {
+    return this.appStore._skipCreatePullRequestTutorialStep(repository)
+  }
 }

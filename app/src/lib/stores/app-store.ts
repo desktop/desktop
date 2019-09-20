@@ -240,6 +240,8 @@ import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
 import { findBranchesForFastForward } from './helpers/find-branches-for-fast-forward'
+import { TutorialStep } from '../../models/tutorial-step'
+import { OnboardingTutorialAssessor } from './helpers/tutorial-assessor'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -375,6 +377,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private hasUserViewedStash = false
 
+  /** Which step the user needs to complete next in the onboarding tutorial */
+  private currentOnboardingTutorialStep = TutorialStep.NotApplicable
+  private readonly tutorialAssessor: OnboardingTutorialAssessor
+
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
     private readonly cloningRepositoriesStore: CloningRepositoriesStore,
@@ -406,6 +412,37 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.wireupIpcEventHandlers(window)
     this.wireupStoreEventHandlers()
     getAppMenu()
+    this.tutorialAssessor = new OnboardingTutorialAssessor(
+      this.getResolvedExternalEditor
+    )
+  }
+
+  /** Figure out what step of the tutorial the user needs to do next */
+  private async updateCurrentTutorialStep(
+    repository: Repository
+  ): Promise<void> {
+    const currentStep = await this.tutorialAssessor.getCurrentStep(
+      repository.isTutorialRepository,
+      this.repositoryStateCache.get(repository)
+    )
+    log.info(`Current tutorial step is ${currentStep}`)
+    // only emit an update if its changed
+    if (currentStep !== this.currentOnboardingTutorialStep) {
+      this.currentOnboardingTutorialStep = currentStep
+      this.emitUpdate()
+    }
+  }
+
+  /** Call via `Dispatcher` when the user opts to skip the pick editor step of the onboarding tutorial */
+  public async _skipPickEditorTutorialStep(repository: Repository) {
+    this.tutorialAssessor.skipPickEditor()
+    await this.updateCurrentTutorialStep(repository)
+  }
+
+  /** Call via `Dispatcher` when the user opts to skip the create pull request step of the onboarding tutorial */
+  public async _skipCreatePullRequestTutorialStep(repository: Repository) {
+    this.tutorialAssessor.skipCreatePullRequest()
+    await this.updateCurrentTutorialStep(repository)
   }
 
   private wireupIpcEventHandlers(window: Electron.BrowserWindow) {
@@ -617,6 +654,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       automaticallySwitchTheme: this.automaticallySwitchTheme,
       apiRepositories: this.apiRepositoriesStore.getState(),
       optOutOfUsageTracking: this.statsStore.getOptOut(),
+      currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
     }
   }
 
@@ -1282,6 +1320,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository | CloningRepository | null
   ): Promise<Repository | null> {
     const previouslySelectedRepository = this.selectedRepository
+
+    // do this quick check to see if we have a tutorial respository
+    // cause if its not we can quickly hide the tutorial pane
+    // in the first `emitUpdate` below
+    const previouslyInTutorial =
+      this.currentOnboardingTutorialStep !== TutorialStep.NotApplicable
+    if (
+      previouslyInTutorial &&
+      (!(repository instanceof Repository) || !repository.isTutorialRepository)
+    ) {
+      this.currentOnboardingTutorialStep = TutorialStep.NotApplicable
+    }
 
     this.selectedRepository = repository
 
@@ -2567,6 +2617,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.updateMenuItemLabels(latestState)
 
     this._initializeCompare(repository)
+
+    this.updateCurrentTutorialStep(repository)
   }
 
   private async updateStashEntryCountMetric(
@@ -4428,6 +4480,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (this.appIsFocused) {
       if (this.selectedRepository instanceof Repository) {
         this.startPullRequestUpdater(this.selectedRepository)
+        // if we're in the tutorial and we don't have an editor yet, check for one!
+        if (this.currentOnboardingTutorialStep === TutorialStep.PickEditor) {
+          await this._resolveCurrentEditor()
+        }
       }
     } else {
       this.stopPullRequestUpdater()
@@ -4556,6 +4612,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
         endpoint,
         apiRepository
       )
+      this.tutorialAssessor.onNewTutorialRepository()
+
+      // if we don't have an editor, check for one
+      // this is so that we can mark the 1st step as done
+      // if an editor is found
+      if (this.resolvedExternalEditor === null) {
+        await this._resolveCurrentEditor()
+      }
     } else {
       const error = new Error(`${path} isn't a git repository.`)
       this.emitError(error)
@@ -5131,6 +5195,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.resolvedExternalEditor = resolvedExternalEditor
       this.emitUpdate()
     }
+  }
+
+  public getResolvedExternalEditor = () => {
+    return this.resolvedExternalEditor
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

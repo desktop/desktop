@@ -6,6 +6,11 @@ import { Monospaced } from '../lib/monospaced'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
+import {
+  ValidTutorialStep,
+  TutorialStep,
+  orderedTutorialSteps,
+} from '../../models/tutorial-step'
 import { encodePathAsUrl } from '../../lib/path'
 
 const TutorialPanelImage = encodePathAsUrl(
@@ -21,11 +26,12 @@ interface ITutorialPanelProps {
    * (`undefined` if none is configured.)
    */
   readonly externalEditorLabel?: string
+  readonly currentTutorialStep: ValidTutorialStep
 }
 
 interface ITutorialPanelState {
   /** ID of the currently expanded tutorial step */
-  readonly currentlyOpenSectionId: string
+  readonly currentlyOpenSectionId: ValidTutorialStep
 }
 
 /** The Onboarding Tutorial Panel
@@ -39,7 +45,7 @@ export class TutorialPanel extends React.Component<
 > {
   public constructor(props: ITutorialPanelProps) {
     super(props)
-    this.state = { currentlyOpenSectionId: 'step-1' }
+    this.state = { currentlyOpenSectionId: this.props.currentTutorialStep }
   }
 
   private openTutorialFileInEditor = () => {
@@ -54,8 +60,36 @@ export class TutorialPanel extends React.Component<
     this.props.dispatcher.createPullRequest(this.props.repository)
   }
 
+  private skipEditorInstall = () => {
+    this.props.dispatcher.skipPickEditorTutorialStep(this.props.repository)
+  }
+
+  private skipCreatePR = () => {
+    this.props.dispatcher.skipCreatePullRequestTutorialStep(
+      this.props.repository
+    )
+  }
+
+  private isStepComplete = (step: ValidTutorialStep) => {
+    return (
+      orderedTutorialSteps.indexOf(step) <
+      orderedTutorialSteps.indexOf(this.props.currentTutorialStep)
+    )
+  }
+
+  private isStepNextTodo = (step: ValidTutorialStep) => {
+    return step === this.props.currentTutorialStep
+  }
+
+  public componentWillReceiveProps(nextProps: ITutorialPanelProps) {
+    if (this.props.currentTutorialStep !== nextProps.currentTutorialStep) {
+      this.setState({
+        currentlyOpenSectionId: nextProps.currentTutorialStep,
+      })
+    }
+  }
+
   public render() {
-    const currentSectionId = 'step-3'
     return (
       <div className="tutorial-panel-component panel">
         <div className="titleArea">
@@ -63,14 +97,14 @@ export class TutorialPanel extends React.Component<
           <img src={TutorialPanelImage} />
         </div>
         <ol>
-          <TutorialListItem
-            stepNumber={1}
+          <TutorialStepInstructions
             summaryText="Install a text editor"
-            sectionId="step-1"
-            completed={true}
-            currentSectionId={currentSectionId}
+            isComplete={this.isStepComplete}
+            isNextStepTodo={this.isStepNextTodo}
+            sectionId={TutorialStep.PickEditor}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
-            onClick={this.handleToggle}
+            skipLinkButton={<SkipLinkButton onClick={this.skipEditorInstall} />}
+            onSummaryClick={this.onStepSummaryClick}
           >
             <p className="description">
               It doesn’t look like you have a text editor installed. We can
@@ -87,18 +121,21 @@ export class TutorialPanel extends React.Component<
               </LinkButton>
               , but feel free to use any.
             </p>
-            <div className="action">
-              <LinkButton>I have an editor</LinkButton>
-            </div>
-          </TutorialListItem>
-          <TutorialListItem
-            stepNumber={2}
-            completed={true}
+            {!this.isStepComplete(TutorialStep.PickEditor) && (
+              <div className="action">
+                <LinkButton onClick={this.skipEditorInstall}>
+                  I have an editor
+                </LinkButton>
+              </div>
+            )}
+          </TutorialStepInstructions>
+          <TutorialStepInstructions
             summaryText="Make a branch"
-            sectionId="step-2"
-            currentSectionId={currentSectionId}
+            isComplete={this.isStepComplete}
+            isNextStepTodo={this.isStepNextTodo}
+            sectionId={TutorialStep.CreateBranch}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
-            onClick={this.handleToggle}
+            onSummaryClick={this.onStepSummaryClick}
           >
             <p className="description">
               {`Create a branch by going into the branch menu in the top bar and
@@ -109,15 +146,14 @@ export class TutorialPanel extends React.Component<
               <kbd>⌘</kbd>
               <kbd>N</kbd>
             </div>
-          </TutorialListItem>
-          <TutorialListItem
-            stepNumber={3}
+          </TutorialStepInstructions>
+          <TutorialStepInstructions
             summaryText="Edit a file"
-            sectionId="step-3"
-            completed={false}
-            currentSectionId={currentSectionId}
+            isComplete={this.isStepComplete}
+            isNextStepTodo={this.isStepNextTodo}
+            sectionId={TutorialStep.EditFile}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
-            onClick={this.handleToggle}
+            onSummaryClick={this.onStepSummaryClick}
           >
             <p className="description">
               Open this repository in your preferred text editor. Edit the
@@ -126,27 +162,27 @@ export class TutorialPanel extends React.Component<
               {` `}
               file, save it, and come back.
             </p>
-            <div className="action">
-              <Button
-                onClick={this.openTutorialFileInEditor}
-                disabled={!this.props.externalEditorLabel}
-              >
-                {__DARWIN__ ? 'Open Editor' : 'Open editor'}
-              </Button>
-
-              <kbd>⇧</kbd>
-              <kbd>⌘</kbd>
-              <kbd>R</kbd>
-            </div>
-          </TutorialListItem>
-          <TutorialListItem
-            stepNumber={4}
+            {this.props.externalEditorLabel && (
+              <div className="action">
+                <Button
+                  onClick={this.openTutorialFileInEditor}
+                  disabled={!this.props.externalEditorLabel}
+                >
+                  {__DARWIN__ ? 'Open Editor' : 'Open editor'}
+                </Button>
+                <kbd>⇧</kbd>
+                <kbd>⌘</kbd>
+                <kbd>R</kbd>
+              </div>
+            )}
+          </TutorialStepInstructions>
+          <TutorialStepInstructions
             summaryText="Make a commit"
-            completed={false}
-            sectionId="step-4"
-            currentSectionId={currentSectionId}
+            isComplete={this.isStepComplete}
+            isNextStepTodo={this.isStepNextTodo}
+            sectionId={TutorialStep.MakeCommit}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
-            onClick={this.handleToggle}
+            onSummaryClick={this.onStepSummaryClick}
           >
             <p className="description">
               Write a message that describes the changes you made. When you’re
@@ -156,15 +192,14 @@ export class TutorialPanel extends React.Component<
               <kbd>⌘</kbd>
               <kbd>Enter</kbd>
             </div>
-          </TutorialListItem>
-          <TutorialListItem
-            stepNumber={5}
+          </TutorialStepInstructions>
+          <TutorialStepInstructions
             summaryText="Push to GitHub"
-            completed={false}
-            sectionId="step-5"
-            currentSectionId={currentSectionId}
+            isComplete={this.isStepComplete}
+            isNextStepTodo={this.isStepNextTodo}
+            sectionId={TutorialStep.PushBranch}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
-            onClick={this.handleToggle}
+            onSummaryClick={this.onStepSummaryClick}
           >
             <p className="description">
               Pushing your commits updates the repository on GitHub with any
@@ -174,15 +209,15 @@ export class TutorialPanel extends React.Component<
               <kbd>⌘</kbd>
               <kbd>P</kbd>
             </div>
-          </TutorialListItem>
-          <TutorialListItem
-            stepNumber={6}
+          </TutorialStepInstructions>
+          <TutorialStepInstructions
             summaryText="Open a pull request"
-            completed={false}
-            sectionId="step-6"
-            currentSectionId={currentSectionId}
+            isComplete={this.isStepComplete}
+            isNextStepTodo={this.isStepNextTodo}
+            sectionId={TutorialStep.OpenPullRequest}
             currentlyOpenSectionId={this.state.currentlyOpenSectionId}
-            onClick={this.handleToggle}
+            skipLinkButton={<SkipLinkButton onClick={this.skipCreatePR} />}
+            onSummaryClick={this.onStepSummaryClick}
           >
             <p className="description">
               Pull Requests are how you propose changes. By opening one, you’re
@@ -195,44 +230,48 @@ export class TutorialPanel extends React.Component<
               <kbd>⌘</kbd>
               <kbd>R</kbd>
             </div>
-          </TutorialListItem>
+          </TutorialStepInstructions>
         </ol>
       </div>
     )
   }
   /** this makes sure we only have one `TutorialListItem` open at a time */
-  public handleToggle = (id: string) => {
+  public onStepSummaryClick = (id: ValidTutorialStep) => {
     this.setState({ currentlyOpenSectionId: id })
   }
 }
 
-/** A step (summary and expandable description) in the tutorial side panel */
-class TutorialListItem extends React.PureComponent<{
+interface ITutorialStepInstructionsProps {
   /** Text displayed to summarize this step */
   readonly summaryText: string
-  /** Where in the order of steps is this one? (1-6) */
-  readonly stepNumber: number
-  /** has this step been completed by the user already? */
-  readonly completed: boolean
-  /** The next step for the user to complete in the tutorial */
-  readonly currentSectionId: string
-  /** ID for this section */
-  readonly sectionId: string
+  /** Used to find out if this step has been completed */
+  readonly isComplete: (step: ValidTutorialStep) => boolean
+  /** The step for this section */
+  readonly sectionId: ValidTutorialStep
+  /** Used to find out if this is the next step for the user to complete */
+  readonly isNextStepTodo: (step: ValidTutorialStep) => boolean
 
   /** ID of the currently expanded tutorial step
    * (used to determine if this step is expanded)
    */
-  readonly currentlyOpenSectionId: string
+  readonly currentlyOpenSectionId: ValidTutorialStep
 
+  /** Skip button (if possible for this step) */
+  readonly skipLinkButton?: JSX.Element
   /** Handler to open and close section */
-  readonly onClick: (id: string) => void
-}> {
+  readonly onSummaryClick: (id: ValidTutorialStep) => void
+}
+
+/** A step (summary and expandable description) in the tutorial side panel */
+class TutorialStepInstructions extends React.Component<
+  ITutorialStepInstructionsProps
+> {
   public render() {
     return (
-      <li key={this.props.sectionId} onClick={this.onClick}>
+      <li key={this.props.sectionId} onClick={this.onSummaryClick}>
         <details
           open={this.props.sectionId === this.props.currentlyOpenSectionId}
-          onClick={this.onClick}
+          onClick={this.onSummaryClick}
         >
           {this.renderSummary()}
           <div className="contents">{this.props.children}</div>
@@ -241,16 +280,28 @@ class TutorialListItem extends React.PureComponent<{
     )
   }
 
-  private renderSummary = () => (
-    <summary>
-      {this.renderTutorialStepIcon()}
-      <span className="summary-text">{this.props.summaryText}</span>
-      <Octicon className="chevron-icon" symbol={OcticonSymbol.chevronDown} />
-    </summary>
-  )
+  private renderSummary = () => {
+    const shouldShowSkipLink =
+      this.props.skipLinkButton !== undefined &&
+      this.props.currentlyOpenSectionId === this.props.sectionId &&
+      this.props.isNextStepTodo(this.props.sectionId)
+    return (
+      <summary>
+        {this.renderTutorialStepIcon()}
+        <span className="summary-text">{this.props.summaryText}</span>
+        <span className="hang-right">
+          {shouldShowSkipLink ? (
+            this.props.skipLinkButton
+          ) : (
+            <Octicon symbol={OcticonSymbol.chevronDown} />
+          )}
+        </span>
+      </summary>
+    )
+  }
 
   private renderTutorialStepIcon() {
-    if (this.props.completed) {
+    if (this.props.isComplete(this.props.sectionId)) {
       return (
         <div className="green-circle">
           <Octicon symbol={OcticonSymbol.check} />
@@ -258,19 +309,25 @@ class TutorialListItem extends React.PureComponent<{
       )
     }
 
-    return this.props.currentSectionId === this.props.sectionId ? (
-      <div className="blue-circle">{this.props.stepNumber}</div>
+    // ugh zero-indexing
+    const stepNumber = orderedTutorialSteps.indexOf(this.props.sectionId) + 1
+    return this.props.isNextStepTodo(this.props.sectionId) ? (
+      <div className="blue-circle">{stepNumber}</div>
     ) : (
-      <div className="empty-circle">{this.props.stepNumber}</div>
+      <div className="empty-circle">{stepNumber}</div>
     )
   }
 
-  private onClick = (e: React.MouseEvent<HTMLElement>) => {
+  private onSummaryClick = (e: React.MouseEvent<HTMLElement>) => {
     // prevents the default behavior of toggling on a `details` html element
     // so we don't have to fight it with our react state
     // for more info see:
     // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/details#Events
     e.preventDefault()
-    this.props.onClick(this.props.sectionId)
+    this.props.onSummaryClick(this.props.sectionId)
   }
 }
+
+const SkipLinkButton: React.SFC<{ onClick: () => void }> = props => (
+  <LinkButton onClick={props.onClick}>Skip</LinkButton>
+)
