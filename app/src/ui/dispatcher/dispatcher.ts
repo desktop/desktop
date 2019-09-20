@@ -1797,10 +1797,6 @@ export class Dispatcher {
     return this.appStore._updateCompareForm(repository, newState)
   }
 
-  public resolveCurrentEditor() {
-    return this.appStore._resolveCurrentEditor()
-  }
-
   /**
    *  update the manual resolution method for a file
    */
