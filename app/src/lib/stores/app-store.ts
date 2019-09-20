@@ -4334,14 +4334,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-  public _setExternalEditor(selectedEditor: ExternalEditor): Promise<void> {
+  public async _setExternalEditor(selectedEditor: ExternalEditor) {
     this.selectedExternalEditor = selectedEditor
     localStorage.setItem(externalEditorKey, selectedEditor)
     this.emitUpdate()
 
     this.updateMenuLabelsForSelectedRepository()
 
-    return Promise.resolve()
+    // Make sure we keep the resolved (cached) editor
+    // in sync when the user changes their editor choice.
+    await this._resolveCurrentEditor()
   }
 
   public _setShell(shell: Shell): Promise<void> {
