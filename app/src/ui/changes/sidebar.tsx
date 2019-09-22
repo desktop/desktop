@@ -67,7 +67,7 @@ interface IChangesSidebarProps {
    */
   readonly onOpenInExternalEditor: (fullPath: string) => void
   readonly onChangesListScrolled: (scrollTop: number) => void
-  readonly changesListScrollTop: number
+  readonly changesListScrollTop?: number
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
