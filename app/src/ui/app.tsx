@@ -2376,6 +2376,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           onOpenInExternalEditor={this.openFileInExternalEditor}
           appMenu={this.state.appMenuState[0]}
           currentTutorialStep={this.state.currentOnboardingTutorialStep}
+          isShowingModal={this.isShowingModal}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
