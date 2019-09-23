@@ -93,7 +93,9 @@ export class YoureDonePane extends React.Component<IYoureDonePaneProps, {}> {
             Work on an existing project in GitHub Desktop
           </p>
         </div>
-        <Button type="submit">Add repository</Button>
+        <Button type="submit" onClick={this.onAddExistingRepository}>
+          Add repository
+        </Button>
       </div>
     )
   }
@@ -105,6 +107,12 @@ export class YoureDonePane extends React.Component<IYoureDonePaneProps, {}> {
   private onCreateNewRepository = () => {
     this.props.dispatcher.showPopup({
       type: PopupType.CreateRepository,
+    })
+  }
+
+  private onAddExistingRepository = () => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.AddRepository,
     })
   }
 }
