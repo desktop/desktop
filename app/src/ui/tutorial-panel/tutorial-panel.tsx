@@ -130,7 +130,7 @@ export class TutorialPanel extends React.Component<
             )}
           </TutorialStepInstructions>
           <TutorialStepInstructions
-            summaryText="Make a branch"
+            summaryText="Create a branch"
             isComplete={this.isStepComplete}
             isNextStepTodo={this.isStepNextTodo}
             sectionId={TutorialStep.CreateBranch}
@@ -138,7 +138,8 @@ export class TutorialPanel extends React.Component<
             onSummaryClick={this.onStepSummaryClick}
           >
             <p className="description">
-              {`Create a branch by going into the branch menu in the top bar and
+              {`A branch allows you to work on different versions of a repository at one time. Create a
+                branch by going into the branch menu in the top bar and
               clicking "${__DARWIN__ ? 'New Branch' : 'New branch'}".`}
             </p>
             <div className="action">
@@ -205,12 +206,13 @@ export class TutorialPanel extends React.Component<
             onSummaryClick={this.onStepSummaryClick}
           >
             <p className="description">
-              Write a message that describes the changes you made. When you’re
-              done, click the commit button to finish.
+              A commit allows you to save sets of changes. In the bottom left
+              area, write a message that describes the changes you made. When
+              you’re done, click the blue Commit button to finish.
             </p>
           </TutorialStepInstructions>
           <TutorialStepInstructions
-            summaryText="Push to GitHub"
+            summaryText="Publish to GitHub"
             isComplete={this.isStepComplete}
             isNextStepTodo={this.isStepNextTodo}
             sectionId={TutorialStep.PushBranch}
@@ -218,8 +220,8 @@ export class TutorialPanel extends React.Component<
             onSummaryClick={this.onStepSummaryClick}
           >
             <p className="description">
-              Pushing your commits updates the repository on GitHub with any
-              commits made on your computer to a branch.
+              Publishing will “push”, or upload, your commits to this branch of
+              your repository on GitHub.com.
             </p>
             <div className="action">
               {__DARWIN__ ? (
@@ -245,8 +247,10 @@ export class TutorialPanel extends React.Component<
             onSummaryClick={this.onStepSummaryClick}
           >
             <p className="description">
-              Pull Requests are how you propose changes. By opening one, you’re
-              requesting that someone review and merge them.
+              A pull request allows you to propose changes to the code. By
+              opening one, you’re requesting that someone review and merge them.
+              Since this is a demo repository, this pull request will be
+              private.
             </p>
             <div className="action">
               <Button onClick={this.openPullRequest}>
