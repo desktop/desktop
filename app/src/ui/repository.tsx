@@ -281,85 +281,93 @@ export class RepositoryView extends React.Component<
     return null
   }
 
-  private renderContent(): JSX.Element | null {
-    const selectedSection = this.props.state.selectedSection
-    if (selectedSection === RepositorySectionTab.Changes) {
-      const { changesState } = this.props.state
-      const { workingDirectory, selection } = changesState
+  private renderContentForHistory(): JSX.Element {
+    const { commitSelection } = this.props.state
 
-      if (selection.kind === ChangesSelectionKind.Stash) {
-        return this.renderStashedChangesContent()
+    const sha = commitSelection.sha
+
+    const selectedCommit =
+      sha != null ? this.props.state.commitLookup.get(sha) || null : null
+
+    const { changedFiles, file, diff } = commitSelection
+
+    return (
+      <SelectedCommit
+        repository={this.props.repository}
+        dispatcher={this.props.dispatcher}
+        selectedCommit={selectedCommit}
+        changedFiles={changedFiles}
+        selectedFile={file}
+        currentDiff={diff}
+        emoji={this.props.emoji}
+        commitSummaryWidth={this.props.commitSummaryWidth}
+        gitHubUsers={this.props.state.gitHubUsers}
+        selectedDiffType={this.props.imageDiffType}
+        externalEditorLabel={this.props.externalEditorLabel}
+        onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+        hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+      />
+    )
+  }
+
+  private renderContentForChanges(): JSX.Element | null {
+    const { changesState } = this.props.state
+    const { workingDirectory, selection } = changesState
+
+    if (selection.kind === ChangesSelectionKind.Stash) {
+      return this.renderStashedChangesContent()
+    }
+
+    const { selectedFileIDs, diff } = selection
+
+    if (selectedFileIDs.length > 1) {
+      return <MultipleSelection count={selectedFileIDs.length} />
+    }
+
+    if (workingDirectory.files.length === 0) {
+      return (
+        <NoChanges
+          key={this.props.repository.id}
+          appMenu={this.props.appMenu}
+          repository={this.props.repository}
+          repositoryState={this.props.state}
+          isExternalEditorAvailable={
+            this.props.externalEditorLabel !== undefined
+          }
+          dispatcher={this.props.dispatcher}
+        />
+      )
+    } else {
+      if (selectedFileIDs.length === 0 || diff === null) {
+        return null
       }
 
-      const { selectedFileIDs, diff } = selection
+      const selectedFile = workingDirectory.findFileWithID(selectedFileIDs[0])
 
-      if (selectedFileIDs.length > 1) {
-        return <MultipleSelection count={selectedFileIDs.length} />
+      if (selectedFile === null) {
+        return null
       }
-
-      if (workingDirectory.files.length === 0) {
-        return (
-          <NoChanges
-            key={this.props.repository.id}
-            appMenu={this.props.appMenu}
-            repository={this.props.repository}
-            repositoryState={this.props.state}
-            isExternalEditorAvailable={
-              this.props.externalEditorLabel !== undefined
-            }
-            dispatcher={this.props.dispatcher}
-          />
-        )
-      } else {
-        if (selectedFileIDs.length === 0 || diff === null) {
-          return null
-        }
-
-        const selectedFile = workingDirectory.findFileWithID(selectedFileIDs[0])
-
-        if (selectedFile === null) {
-          return null
-        }
-
-        return (
-          <Changes
-            repository={this.props.repository}
-            dispatcher={this.props.dispatcher}
-            file={selectedFile}
-            diff={diff}
-            isCommitting={this.props.state.isCommitting}
-            imageDiffType={this.props.imageDiffType}
-            hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
-          />
-        )
-      }
-    } else if (selectedSection === RepositorySectionTab.History) {
-      const { commitSelection } = this.props.state
-
-      const sha = commitSelection.sha
-
-      const selectedCommit =
-        sha != null ? this.props.state.commitLookup.get(sha) || null : null
-
-      const { changedFiles, file, diff } = commitSelection
 
       return (
-        <SelectedCommit
+        <Changes
           repository={this.props.repository}
           dispatcher={this.props.dispatcher}
-          selectedCommit={selectedCommit}
-          changedFiles={changedFiles}
-          selectedFile={file}
-          currentDiff={diff}
-          emoji={this.props.emoji}
-          commitSummaryWidth={this.props.commitSummaryWidth}
-          gitHubUsers={this.props.state.gitHubUsers}
-          selectedDiffType={this.props.imageDiffType}
-          externalEditorLabel={this.props.externalEditorLabel}
-          onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+          file={selectedFile}
+          diff={diff}
+          isCommitting={this.props.state.isCommitting}
+          imageDiffType={this.props.imageDiffType}
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
         />
       )
+    }
+  }
+
+  private renderContent(): JSX.Element | null {
+    const selectedSection = this.props.state.selectedSection
+    if (selectedSection === RepositorySectionTab.Changes) {
+      return this.renderContentForChanges()
+    } else if (selectedSection === RepositorySectionTab.History) {
+      return this.renderContentForHistory()
     } else {
       return assertNever(selectedSection, 'Unknown repository section')
     }
