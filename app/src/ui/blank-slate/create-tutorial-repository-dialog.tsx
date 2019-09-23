@@ -195,6 +195,8 @@ export class CreateTutorialRepositoryDialog extends React.Component<
       this.props.onTutorialRepositoryCreated(path, account, repo)
       this.props.onDismissed()
     } catch (err) {
+      this.setState({ loading: false })
+
       if (err instanceof GitError) {
         this.props.onError(err)
       } else {
@@ -204,8 +206,6 @@ export class CreateTutorialRepositoryDialog extends React.Component<
           )
         )
       }
-    } finally {
-      this.setState({ loading: false })
     }
   }
 
