@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Repository as Repo } from '../models/repository'
+import { Repository } from '../models/repository'
 import { Commit } from '../models/commit'
 import { TipState } from '../models/tip'
 import { UiView } from './ui-view'
@@ -25,12 +25,15 @@ import { ImageDiffType } from '../models/diff'
 import { IMenu } from '../models/app-menu'
 import { StashDiffViewer } from './stashing'
 import { StashedChangesLoadStates } from '../models/stash-entry'
+import { TutorialPanel } from './tutorial-panel'
+import { enableTutorial } from '../lib/feature-flag'
+import { TutorialStep } from '../models/tutorial-step'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
 
 interface IRepositoryViewProps {
-  readonly repository: Repo
+  readonly repository: Repository
   readonly state: IRepositoryState
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, string>
@@ -60,6 +63,8 @@ interface IRepositoryViewProps {
    * The top-level application menu item.
    */
   readonly appMenu: IMenu | undefined
+
+  readonly currentTutorialStep: TutorialStep
 }
 
 interface IRepositoryViewState {
@@ -365,6 +370,7 @@ export class RepositoryView extends React.Component<
       <UiView id="repository" onKeyDown={this.onKeyDown}>
         {this.renderSidebar()}
         {this.renderContent()}
+        {this.maybeRenderTutorialPanel()}
       </UiView>
     )
   }
@@ -406,5 +412,22 @@ export class RepositoryView extends React.Component<
         showBranchList: false,
       })
     }
+  }
+
+  private maybeRenderTutorialPanel(): JSX.Element | null {
+    if (
+      enableTutorial() &&
+      this.props.currentTutorialStep !== TutorialStep.NotApplicable
+    ) {
+      return (
+        <TutorialPanel
+          dispatcher={this.props.dispatcher}
+          repository={this.props.repository}
+          externalEditorLabel={this.props.externalEditorLabel}
+          currentTutorialStep={this.props.currentTutorialStep}
+        />
+      )
+    }
+    return null
   }
 }
