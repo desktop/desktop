@@ -25,7 +25,7 @@ import { ImageDiffType } from '../models/diff'
 import { IMenu } from '../models/app-menu'
 import { StashDiffViewer } from './stashing'
 import { StashedChangesLoadStates } from '../models/stash-entry'
-import { TutorialPanel } from './tutorial-panel'
+import { TutorialPanel } from './tutorial'
 import { enableTutorial } from '../lib/feature-flag'
 import { TutorialStep } from '../models/tutorial-step'
 
