@@ -1,7 +1,7 @@
 {
   "releases": {
     "2.2.0-beta1": [
-      "[New] Interactive tutorial for new users to become productive using Git and GitHub more quickly",
+      "[New] Interactive tutorial for new users to become productive using Git and GitHub more quickly - #8148 #8149",
       "[Fixed] Commit summaries with comma delimited issues are parsed. Thanks @say25!",
       "[Fixed] Support CodeRunner as an external editor - #8091. Thanks @ns-ccollins!",
       "[Fixed] Support VSCodium as an external editor - #8000. Thanks @Rexogamer!",
