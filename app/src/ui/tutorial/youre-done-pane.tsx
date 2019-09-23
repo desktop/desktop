@@ -4,6 +4,7 @@ import { encodePathAsUrl } from '../../lib/path'
 import { Button } from '../lib/button'
 import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
+import { PopupType } from '../../models/popup'
 
 const TutorialPanelImage = encodePathAsUrl(
   __dirname,
@@ -75,7 +76,9 @@ export class YoureDonePane extends React.Component<IYoureDonePaneProps, {}> {
           <h2>Start a new project</h2>
           <p className="description">Start a new project</p>
         </div>
-        <Button type="submit">Create repository</Button>
+        <Button type="submit" onClick={this.onCreateNewRepository}>
+          Create repository
+        </Button>
       </div>
     )
   }
@@ -97,5 +100,11 @@ export class YoureDonePane extends React.Component<IYoureDonePaneProps, {}> {
 
   private openDotcomExplore = () => {
     this.props.dispatcher.showDotcomExplore(this.props.repository)
+  }
+
+  private onCreateNewRepository = () => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.CreateRepository,
+    })
   }
 }
