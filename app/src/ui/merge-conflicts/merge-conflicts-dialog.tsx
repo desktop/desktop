@@ -50,10 +50,6 @@ export class MergeConflictsDialog extends React.Component<
   IMergeConflictsDialogProps,
   {}
 > {
-  public async componentDidMount() {
-    this.props.dispatcher.resolveCurrentEditor()
-  }
-
   /**
    *  commits the merge displays the repository changes tab and dismisses the modal
    */

@@ -415,6 +415,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.tutorialAssessor = new OnboardingTutorialAssessor(
       this.getResolvedExternalEditor
     )
+
+    // Deferred, attempts to resolve the user's selected editor (i.e.
+    // ensures that it's actually present on the machine), needs to
+    // happen after the tutorial assessor has been initialized, see:
+    // https://github.com/desktop/desktop/pull/8242#pullrequestreview-289936574
+    this._resolveCurrentEditor().catch(e =>
+      log.error('Failed resolving current editor at startup', e)
+    )
   }
 
   /** Figure out what step of the tutorial the user needs to do next */
@@ -4326,14 +4334,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-  public _setExternalEditor(selectedEditor: ExternalEditor): Promise<void> {
+  public async _setExternalEditor(selectedEditor: ExternalEditor) {
     this.selectedExternalEditor = selectedEditor
     localStorage.setItem(externalEditorKey, selectedEditor)
     this.emitUpdate()
 
     this.updateMenuLabelsForSelectedRepository()
 
-    return Promise.resolve()
+    // Make sure we keep the resolved (cached) editor
+    // in sync when the user changes their editor choice.
+    await this._resolveCurrentEditor()
   }
 
   public _setShell(shell: Shell): Promise<void> {
@@ -4613,13 +4623,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         apiRepository
       )
       this.tutorialAssessor.onNewTutorialRepository()
-
-      // if we don't have an editor, check for one
-      // this is so that we can mark the 1st step as done
-      // if an editor is found
-      if (this.resolvedExternalEditor === null) {
-        await this._resolveCurrentEditor()
-      }
     } else {
       const error = new Error(`${path} isn't a git repository.`)
       this.emitError(error)
@@ -5193,6 +5196,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const resolvedExternalEditor = match != null ? match.editor : null
     if (this.resolvedExternalEditor !== resolvedExternalEditor) {
       this.resolvedExternalEditor = resolvedExternalEditor
+
+      // Make sure we let the tutorial assesor know that we have a new editor
+      // in case it's stuck waiting for one to be selected.
+      if (this.currentOnboardingTutorialStep === TutorialStep.PickEditor) {
+        if (this.selectedRepository instanceof Repository) {
+          this.updateCurrentTutorialStep(this.selectedRepository)
+        }
+      }
+
       this.emitUpdate()
     }
   }
