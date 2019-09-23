@@ -25,10 +25,9 @@ import { ImageDiffType } from '../models/diff'
 import { IMenu } from '../models/app-menu'
 import { StashDiffViewer } from './stashing'
 import { StashedChangesLoadStates } from '../models/stash-entry'
-import { TutorialPanel } from './tutorial'
+import { TutorialPanel, WelcomeTutorialPane, YoureDonePane } from './tutorial'
 import { enableTutorial } from '../lib/feature-flag'
 import { TutorialStep } from '../models/tutorial-step'
-import { WelcomeTutorialPane } from './tutorial/welcome-tutorial-pane'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -313,7 +312,7 @@ export class RepositoryView extends React.Component<
 
   private renderTutorialPane(): JSX.Element {
     if (this.props.currentTutorialStep === TutorialStep.AllDone) {
-      return <div>All Done!</div>
+      return <YoureDonePane />
     } else {
       return <WelcomeTutorialPane />
     }
