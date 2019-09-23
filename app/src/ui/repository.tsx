@@ -312,7 +312,12 @@ export class RepositoryView extends React.Component<
 
   private renderTutorialPane(): JSX.Element {
     if (this.props.currentTutorialStep === TutorialStep.AllDone) {
-      return <YoureDonePane />
+      return (
+        <YoureDonePane
+          dispatcher={this.props.dispatcher}
+          repository={this.props.repository}
+        />
+      )
     } else {
       return <WelcomeTutorialPane />
     }

@@ -4880,6 +4880,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
+  public async _showDotcomExplore(repository: Repository): Promise<void> {
+    // TODO: support enterprise
+    await this._openInBrowser('https://github.com/explore')
+  }
+
   public async _createPullRequest(repository: Repository): Promise<void> {
     const gitHubRepository = repository.gitHubRepository
     if (!gitHubRepository) {

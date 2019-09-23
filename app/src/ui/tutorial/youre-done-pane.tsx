@@ -2,12 +2,23 @@ import * as React from 'react'
 
 import { encodePathAsUrl } from '../../lib/path'
 import { Button } from '../lib/button'
+import { Dispatcher } from '../dispatcher'
+import { Repository } from '../../models/repository'
 
 const TutorialPanelImage = encodePathAsUrl(
   __dirname,
   'static/required-status-check.svg'
 )
-export class YoureDonePane extends React.Component {
+
+interface IYoureDonePaneProps {
+  readonly dispatcher: Dispatcher
+
+  /**
+   * The currently selected repository
+   */
+  readonly repository: Repository
+}
+export class YoureDonePane extends React.Component<IYoureDonePaneProps, {}> {
   public render() {
     return (
       <div id="youre-done-tutorial">
@@ -49,7 +60,9 @@ export class YoureDonePane extends React.Component {
             Contribute to a project that interests you
           </p>
         </div>
-        <Button type="submit">Open in browser</Button>
+        <Button type="submit" onClick={this.openDotcomExplore}>
+          Open in browser
+        </Button>
       </div>
     )
   }
@@ -80,5 +93,9 @@ export class YoureDonePane extends React.Component {
         <Button type="submit">Add repository</Button>
       </div>
     )
+  }
+
+  private openDotcomExplore = () => {
+    this.props.dispatcher.showDotcomExplore(this.props.repository)
   }
 }

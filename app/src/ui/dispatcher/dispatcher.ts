@@ -1694,6 +1694,13 @@ export class Dispatcher {
   }
 
   /**
+   * Open the Explore page at https://github.com/explore
+   */
+  public showDotcomExplore(repository: Repository): Promise<void> {
+    return this.appStore._showDotcomExplore(repository)
+  }
+
+  /**
    * Open the Create Pull Request page on GitHub after verifying ahead/behind.
    *
    * Note that this method will present the user with a dialog in case the
