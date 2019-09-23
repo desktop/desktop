@@ -1,0 +1,118 @@
+<html>
+<head>
+	<title></title>
+	<link rel="stylesheet" type="text/css" href="Resume.css"/>
+</head>
+<style>
+	p
+	{
+		border:5px solid green
+	}
+</style>
+<p>
+<body>
+	<div class="header">
+	<center>
+      <div class="resume">
+		<h1>
+			<u> MY RESUME</u>
+		</h1>
+	</div>
+	</center>
+	
+	<h3>SARATH KUMAR S</h3>
+	<img src="data:image/png;base64,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"width=100 height=100 hspace = 300 align = right>
+	<h5>THIRUVALLA, KERALA</h5>
+    <H5>sarathkumar1201@gmail.com</H5>
+    <h5>Contact No : 9495192654</h5><hr>
+</div>
+ <div class="abc"> 
+    <h2>
+    	<div style="background-color:black;color:white;padding:05px;">
+    	<u> CAREER OBJECTIVE</u> 
+    </h2> 
+    		<h3>To succeed in an environment of growth and excellence and earn a job which provides me job Satistaction and self development and help me achieve <br> personal as well as organisation goals.</h3>
+    	
+    	
+    		<h2>
+
+
+    			<div style="background-color:black;color:white;padding:05px;">
+    				<u>ACADEMIC QUALIFICATION</u></h2>
+    	  </div>
+    			
+    
+    		<div class="hai">
+    	  
+    	  	<table border = 5 width= 1332>
+    		<tr bgcolor="#B0C4DE">
+    
+    			<th>QUALIFICATION</th>
+    			<th>BOARD/UNIVERSITY</th>
+    			<th>SCHOOL/COLLEGE</th>
+    			<th>YEAR OF PASSING</th>
+    			<th>MARKS</th>
+    		
+    		</tr>
+    		<tr bgcolor="#B0E0E6">
+    			<th>10th </th>
+    			<th>CBSE</th>
+    			<th>Christ School</th>
+    			<th>2016</th>
+    			<th>95%</th>
+    		</tr>
+    		<tr bgcolor="#B0E0E6">
+    			<th>12th</th>
+    			<th>CBSE</th>
+    			<th>Christ School</th>
+    			<th>2018</th>
+    			<th>92%</th>
+    		</tr>
+    		<tr bgcolor="#B0E0E6">
+    			<th>Btech</th>
+    			<th>KTU</th>
+    			<th>CEC</th>
+    			<th>2018-PRESENT</th>
+    			<th>-</th>
+    		</tr>
+    	</table>
+    </div>
+    	<div class="abc">
+    	<h2>
+
+    		<div style="background-color:black;color:white;padding:05px;">
+    		    			<u>STRENGTH</u>
+    	</h2>
+    	<ul>
+    		 <h3>
+    		 	<b>
+    		 		<li> Good communication and inter-personal skill</li>
+    		 		<li>Focused and confident with positive attitude</li>
+    		 		<li>Self Motivated</li>
+    		 	</b>
+    		 </h3>
+    	</ul>
+    	<h2>
+    		<div style="background-color:black;color:white;padding:05px;">
+    		<u>Personal Details</u>
+    		</h2>
+    			<ul>
+    				 <b>
+    				 	<h3>
+    				 		<li>Name : Sarath Kumar S</li>
+    				 		<li>Married : No</li>
+    				 		<li>Hobbies : </li>
+    				 		     <ul>
+    				 		     	<li>Reading</li>
+    				 		     	<li>Chess</li>
+    				 		     </ul>
+
+    				 	</h3>
+    				 </b>
+    			</ul>
+    	
+    	</h2>
+   
+</body>
+</p>
+</html>
