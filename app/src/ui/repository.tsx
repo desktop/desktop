@@ -310,6 +310,14 @@ export class RepositoryView extends React.Component<
     )
   }
 
+  private renderTutorialPane(): JSX.Element {
+    if (this.props.currentTutorialStep === TutorialStep.AllDone) {
+      return <div>All Done!</div>
+    } else {
+      return <div>Welcome!</div>
+    }
+  }
+
   private renderContentForChanges(): JSX.Element | null {
     const { changesState } = this.props.state
     const { workingDirectory, selection } = changesState
@@ -325,18 +333,25 @@ export class RepositoryView extends React.Component<
     }
 
     if (workingDirectory.files.length === 0) {
-      return (
-        <NoChanges
-          key={this.props.repository.id}
-          appMenu={this.props.appMenu}
-          repository={this.props.repository}
-          repositoryState={this.props.state}
-          isExternalEditorAvailable={
-            this.props.externalEditorLabel !== undefined
-          }
-          dispatcher={this.props.dispatcher}
-        />
-      )
+      if (
+        enableTutorial() &&
+        this.props.currentTutorialStep !== TutorialStep.NotApplicable
+      ) {
+        return this.renderTutorialPane()
+      } else {
+        return (
+          <NoChanges
+            key={this.props.repository.id}
+            appMenu={this.props.appMenu}
+            repository={this.props.repository}
+            repositoryState={this.props.state}
+            isExternalEditorAvailable={
+              this.props.externalEditorLabel !== undefined
+            }
+            dispatcher={this.props.dispatcher}
+          />
+        )
+      }
     } else {
       if (selectedFileIDs.length === 0 || diff === null) {
         return null
@@ -423,6 +438,7 @@ export class RepositoryView extends React.Component<
   }
 
   private maybeRenderTutorialPanel(): JSX.Element | null {
+    // TODO: extract conditional check without making the TS compiler unhappy about currentTutorialStep type
     if (
       enableTutorial() &&
       this.props.currentTutorialStep !== TutorialStep.NotApplicable
