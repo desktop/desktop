@@ -249,6 +249,7 @@ export class CreateTutorialRepositoryDialog extends React.Component<
         onSubmit={this.onSubmit}
         dismissable={!this.state.loading}
         loading={this.state.loading}
+        disabled={this.state.loading}
       >
         <DialogContent>
           <div>
