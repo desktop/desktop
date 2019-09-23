@@ -1694,7 +1694,7 @@ export class Dispatcher {
   }
 
   /**
-   * Open the Explore page at https://github.com/explore
+   * Open the Explore page at {account_endpoint}/explore
    */
   public showDotcomExplore(repository: Repository): Promise<void> {
     return this.appStore._showDotcomExplore(repository)
