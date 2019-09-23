@@ -164,4 +164,9 @@
 
     margin-bottom: var(--spacing-double);
   }
+
+  .descriptions {
+    display: flex;
+    flex-direction: row;
+  }
 }
