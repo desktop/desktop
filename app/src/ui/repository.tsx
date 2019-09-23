@@ -28,6 +28,7 @@ import { StashedChangesLoadStates } from '../models/stash-entry'
 import { TutorialPanel } from './tutorial'
 import { enableTutorial } from '../lib/feature-flag'
 import { TutorialStep } from '../models/tutorial-step'
+import { WelcomeTutorialPane } from './tutorial/welcome-tutorial-pane'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -314,7 +315,7 @@ export class RepositoryView extends React.Component<
     if (this.props.currentTutorialStep === TutorialStep.AllDone) {
       return <div>All Done!</div>
     } else {
-      return <div>Welcome!</div>
+      return <WelcomeTutorialPane />
     }
   }
 
