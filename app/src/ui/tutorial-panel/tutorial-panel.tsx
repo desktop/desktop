@@ -186,9 +186,9 @@ export class TutorialPanel extends React.Component<
             onSummaryClick={this.onStepSummaryClick}
           >
             <p className="description">
-              A commit allows you to save sets of changes. In the bottom left area, 
-              write a message that describes the changes you made. 
-              When you’re done, click the blue Commit button to finish.
+              A commit allows you to save sets of changes. In the bottom left
+              area, write a message that describes the changes you made. When
+              you’re done, click the blue Commit button to finish.
             </p>
             <div className="action">
               <kbd>⌘</kbd>
