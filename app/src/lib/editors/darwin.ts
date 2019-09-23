@@ -174,7 +174,7 @@ function getExecutableShim(
     case ExternalEditor.SlickEdit:
       return Path.join(installPath, 'Contents', 'MacOS', 'vs')
     case ExternalEditor.Xcode:
-      return Path.join(installPath, 'Contents', 'MacOS', 'Xcode')
+      return '/usr/bin/xed'
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
