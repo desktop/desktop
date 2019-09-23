@@ -6,7 +6,7 @@
       "[Fixed] Support CodeRunner as an external editor - #8091. Thanks @ns-ccollins!",
       "[Fixed] Support VSCodium as an external editor - #8000. Thanks @Rexogamer!",
       "[Fixed] Commit description shadow visibility updates when typing - #7994. Thanks @KarstenRa!",
-      "[Improved] Application menu bar is visible when no repositories have been added to the app."
+      "[Improved] Application menu bar is visible when no repositories have been added to the app - #8209"
     ],
     "2.1.3": [
       "[Fixed] Changes from remote branch erroneously displayed on corresponding branch on Desktop - #8155 #8167",
