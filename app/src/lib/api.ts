@@ -965,6 +965,12 @@ export async function createAuthorization(
       ) {
         // Authorization API does not support providing personal access tokens
         return { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
+      } else if (
+        response.status === 403 &&
+        apiError.message ===
+          'This user belongs to one or more organizations with SAML enabled.'
+      ) {
+        return { kind: AuthorizationResponseKind.SAMLWebFlowRequired }
       } else if (response.status === 422) {
         if (apiError.errors) {
           for (const error of apiError.errors) {
