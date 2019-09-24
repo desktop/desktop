@@ -866,11 +866,10 @@ export enum AuthorizationResponseKind {
   Error,
   EnterpriseTooOld,
   /**
-   * The API has indicated that the current user belongs to
-   * one or more organizations using SAML and as a result is
-   * required to pass through the web flow for authentication.
+   * The API has indicated that the user is required to go through
+   * the web authentication flow.
    */
-  SAMLWebFlowRequired,
+  WebFlowRequired,
 }
 
 export type AuthorizationResponse =
@@ -884,7 +883,7 @@ export type AuthorizationResponse =
   | { kind: AuthorizationResponseKind.UserRequiresVerification }
   | { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
   | { kind: AuthorizationResponseKind.EnterpriseTooOld }
-  | { kind: AuthorizationResponseKind.SAMLWebFlowRequired }
+  | { kind: AuthorizationResponseKind.WebFlowRequired }
 
 /**
  * Create an authorization with the given login, password, and one-time
@@ -966,7 +965,7 @@ export async function createAuthorization(
         // Authorization API does not support providing personal access tokens
         return { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
       } else if (response.status === 410) {
-        return { kind: AuthorizationResponseKind.SAMLWebFlowRequired }
+        return { kind: AuthorizationResponseKind.WebFlowRequired }
       } else if (response.status === 422) {
         if (apiError.errors) {
           for (const error of apiError.errors) {

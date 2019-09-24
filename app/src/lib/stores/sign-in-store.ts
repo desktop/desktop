@@ -390,9 +390,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
           loading: false,
           error: new Error(EnterpriseTooOldMessage),
         })
-      } else if (
-        response.kind === AuthorizationResponseKind.SAMLWebFlowRequired
-      ) {
+      } else if (response.kind === AuthorizationResponseKind.WebFlowRequired) {
         this.setState({
           ...currentState,
           loading: false,
@@ -630,7 +628,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
         case AuthorizationResponseKind.EnterpriseTooOld:
           this.emitError(new Error(EnterpriseTooOldMessage))
           break
-        case AuthorizationResponseKind.SAMLWebFlowRequired:
+        case AuthorizationResponseKind.WebFlowRequired:
           this.setState({
             ...currentState,
             forgotPasswordUrl: this.getForgotPasswordURL(currentState.endpoint),
