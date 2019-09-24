@@ -89,6 +89,8 @@ export class TutorialPanel extends React.Component<
     }
   }
 
+  private exitTutorial = () => {}
+
   public render() {
     return (
       <div className="tutorial-panel-component panel">
@@ -270,6 +272,9 @@ export class TutorialPanel extends React.Component<
             </div>
           </TutorialStepInstructions>
         </ol>
+        <Button onClick={this.exitTutorial}>
+          {__DARWIN__ ? 'Exit Tutorial' : 'Exit tutorial'}
+        </Button>
       </div>
     )
   }
