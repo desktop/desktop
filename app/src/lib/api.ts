@@ -865,6 +865,12 @@ export enum AuthorizationResponseKind {
   PersonalAccessTokenBlocked,
   Error,
   EnterpriseTooOld,
+  /**
+   * The API has indicated that the current user belongs to
+   * one or more organizations using SAML and as a result is
+   * required to pass through the web flow for authentication.
+   */
+  SAMLWebFlowRequired,
 }
 
 export type AuthorizationResponse =
@@ -878,6 +884,7 @@ export type AuthorizationResponse =
   | { kind: AuthorizationResponseKind.UserRequiresVerification }
   | { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
   | { kind: AuthorizationResponseKind.EnterpriseTooOld }
+  | { kind: AuthorizationResponseKind.SAMLWebFlowRequired }
 
 /**
  * Create an authorization with the given login, password, and one-time
