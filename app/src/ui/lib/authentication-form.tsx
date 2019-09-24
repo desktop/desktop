@@ -171,7 +171,16 @@ export class AuthenticationForm extends React.Component<
 
   private renderEndpointRequiresWebFlow() {
     if (this.props.endpoint === getDotComAPIEndpoint()) {
-      return <p>Please continue the sign-in process in your browser.</p>
+      return (
+        <>
+          <p>GitHub.com requires you to sign in with your browser.</p>
+          <p>
+            Your browser will redirect you back to GitHub Desktop once you've
+            signed in. If your browser asks for your permission to launch GitHub
+            Desktop please allow it to.
+          </p>
+        </>
+      )
     } else {
       return (
         <p>

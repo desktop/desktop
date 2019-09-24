@@ -186,7 +186,12 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
       if (state.endpoint === getDotComAPIEndpoint()) {
         return (
           <DialogContent>
-            <p>Please continue the sign-in process in your browser.</p>
+            <p>GitHub.com requires you to sign in with your browser.</p>
+            <p>
+              Your browser will redirect you back to GitHub Desktop once you've
+              signed in. If your browser asks for your permission to launch
+              GitHub Desktop please allow it to.
+            </p>
           </DialogContent>
         )
       } else {
