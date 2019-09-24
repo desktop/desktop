@@ -32,6 +32,12 @@ interface ISignInState {
   readonly otpToken: string
 }
 
+const SignInWithBrowserTitle = __DARWIN__
+  ? 'Sign in Using Your Browser'
+  : 'Sign in using your browser'
+
+const DefaultTitle = 'Sign in'
+
 export class SignIn extends React.Component<ISignInProps, ISignInState> {
   public constructor(props: ISignInProps) {
     super(props)
@@ -297,10 +303,17 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
       <DialogError>{state.error.message}</DialogError>
     ) : null
 
+    const title =
+      this.props.signInState &&
+      this.props.signInState.kind === SignInStep.Authentication &&
+      !this.props.signInState.supportsBasicAuth
+        ? SignInWithBrowserTitle
+        : DefaultTitle
+
     return (
       <Dialog
         id="sign-in"
-        title="Sign in"
+        title={title}
         disabled={disabled}
         onDismissed={this.props.onDismissed}
         onSubmit={this.onSubmit}
