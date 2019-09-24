@@ -176,10 +176,7 @@ export class TutorialPanel extends React.Component<
             </p>
             {this.props.resolvedExternalEditor && (
               <div className="action">
-                <Button
-                  onClick={this.openTutorialFileInEditor}
-                  disabled={!this.props.resolvedExternalEditor}
-                >
+                <Button onClick={this.openTutorialFileInEditor}>
                   {__DARWIN__ ? 'Open Editor' : 'Open editor'}
                 </Button>
                 {__DARWIN__ ? (
