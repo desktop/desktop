@@ -17,6 +17,7 @@ import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
 
 import { getWelcomeMessage } from '../../lib/2fa'
+import { getDotComAPIEndpoint } from '../../lib/api'
 
 interface ISignInProps {
   readonly dispatcher: Dispatcher
@@ -176,14 +177,22 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
 
   private renderAuthenticationStep(state: IAuthenticationState) {
     if (!state.supportsBasicAuth) {
-      return (
-        <DialogContent>
-          <p>
-            Your GitHub Enterprise Server instance requires you to sign in with
-            your browser.
-          </p>
-        </DialogContent>
-      )
+      if (state.endpoint === getDotComAPIEndpoint()) {
+        return (
+          <DialogContent>
+            <p>Please continue the sign-in process in your browser.</p>
+          </DialogContent>
+        )
+      } else {
+        return (
+          <DialogContent>
+            <p>
+              Your GitHub Enterprise Server instance requires you to sign in
+              with your browser.
+            </p>
+          </DialogContent>
+        )
+      }
     }
 
     const disableSubmit = state.loading
