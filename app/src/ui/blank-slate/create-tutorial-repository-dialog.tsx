@@ -55,7 +55,7 @@ interface ICreateTutorialRepositoryDialogProps {
     path: string,
     account: Account,
     apiRepository: IAPIRepository
-  ) => void
+  ) => Promise<void>
 
   /**
    * Event triggered when the component encounters an error while
@@ -188,13 +188,15 @@ export class CreateTutorialRepositoryDialog extends React.Component<
       )
 
       await this.pushRepo(path, account, (title, value, description) => {
-        this.setProgress(title, 0.3 + value * 0.7, description)
+        this.setProgress(title, 0.3 + value * 0.6, description)
       })
 
-      this.setState({ progress: undefined })
-      this.props.onTutorialRepositoryCreated(path, account, repo)
+      this.setProgress('Finalizing tutorial repository', 0.9)
+      await this.props.onTutorialRepositoryCreated(path, account, repo)
       this.props.onDismissed()
     } catch (err) {
+      this.setState({ loading: false, progress: undefined })
+
       if (err instanceof GitError) {
         this.props.onError(err)
       } else {
@@ -204,8 +206,6 @@ export class CreateTutorialRepositoryDialog extends React.Component<
           )
         )
       }
-    } finally {
-      this.setState({ loading: false })
     }
   }
 
@@ -249,6 +249,7 @@ export class CreateTutorialRepositoryDialog extends React.Component<
         onSubmit={this.onSubmit}
         dismissable={!this.state.loading}
         loading={this.state.loading}
+        disabled={this.state.loading}
       >
         <DialogContent>
           <div>
