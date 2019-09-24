@@ -15,7 +15,7 @@ const CloudServerImage = encodePathAsUrl(
 export class TutorialWelcome extends React.Component {
   public render() {
     return (
-      <div className="tutorial-welcome-component">
+      <div id="tutorial-welcome">
         <div className="header">
           <h1>Welcome to GitHub Desktop</h1>
           <p>
