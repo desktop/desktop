@@ -12,6 +12,7 @@ import {
   orderedTutorialSteps,
 } from '../../models/tutorial-step'
 import { encodePathAsUrl } from '../../lib/path'
+import { ExternalEditor } from '../../lib/editors'
 
 const TutorialPanelImage = encodePathAsUrl(
   __dirname,
@@ -25,7 +26,7 @@ interface ITutorialPanelProps {
   /** name of the configured external editor
    * (`undefined` if none is configured.)
    */
-  readonly externalEditorLabel?: string
+  readonly resolvedExternalEditor: ExternalEditor | null
   readonly currentTutorialStep: ValidTutorialStep
 }
 
@@ -173,11 +174,11 @@ export class TutorialPanel extends React.Component<
               {` `}
               file, save it, and come back.
             </p>
-            {this.props.externalEditorLabel && (
+            {this.props.resolvedExternalEditor && (
               <div className="action">
                 <Button
                   onClick={this.openTutorialFileInEditor}
-                  disabled={!this.props.externalEditorLabel}
+                  disabled={!this.props.resolvedExternalEditor}
                 >
                   {__DARWIN__ ? 'Open Editor' : 'Open editor'}
                 </Button>
