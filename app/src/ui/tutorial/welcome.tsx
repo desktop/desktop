@@ -12,7 +12,7 @@ const CloudServerImage = encodePathAsUrl(
   'static/github-for-business.svg'
 )
 
-export class WelcomeTutorialPane extends React.Component {
+export class TutorialWelcome extends React.Component {
   public render() {
     return (
       <div id="welcome-tutorial">

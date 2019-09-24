@@ -13,7 +13,7 @@ const ClappingHandsImage = encodePathAsUrl(
 )
 const ExploreImage = encodePathAsUrl(__dirname, 'static/explore.svg')
 
-interface IYoureDonePaneProps {
+interface ITutorialDoneProps {
   readonly dispatcher: Dispatcher
 
   /**
@@ -21,7 +21,7 @@ interface IYoureDonePaneProps {
    */
   readonly repository: Repository
 }
-export class YoureDonePane extends React.Component<IYoureDonePaneProps, {}> {
+export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
   public render() {
     return (
       <div id="youre-done-tutorial">

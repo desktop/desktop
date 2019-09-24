@@ -25,7 +25,7 @@ import { ImageDiffType } from '../models/diff'
 import { IMenu } from '../models/app-menu'
 import { StashDiffViewer } from './stashing'
 import { StashedChangesLoadStates } from '../models/stash-entry'
-import { TutorialPanel, WelcomeTutorialPane, YoureDonePane } from './tutorial'
+import { TutorialPanel, TutorialWelcome, TutorialDone } from './tutorial'
 import { enableTutorial } from '../lib/feature-flag'
 import { TutorialStep } from '../models/tutorial-step'
 
@@ -313,13 +313,13 @@ export class RepositoryView extends React.Component<
   private renderTutorialPane(): JSX.Element {
     if (this.props.currentTutorialStep === TutorialStep.AllDone) {
       return (
-        <YoureDonePane
+        <TutorialDone
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
         />
       )
     } else {
-      return <WelcomeTutorialPane />
+      return <TutorialWelcome />
     }
   }
 
