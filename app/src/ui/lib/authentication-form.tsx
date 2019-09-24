@@ -173,7 +173,10 @@ export class AuthenticationForm extends React.Component<
     if (this.props.endpoint === getDotComAPIEndpoint()) {
       return (
         <>
-          <p>GitHub.com requires you to sign in with your browser.</p>
+          <p>
+            To improve the security of your account, GitHub now requires you to
+            sign in through your browser.
+          </p>
           <p>
             Your browser will redirect you back to GitHub Desktop once you've
             signed in. If your browser asks for your permission to launch GitHub
