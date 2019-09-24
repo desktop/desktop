@@ -105,6 +105,7 @@ import { OverwriteStash } from './stash-changes/overwrite-stashed-changes-dialog
 import { ConfirmDiscardStashDialog } from './stashing/confirm-discard-stash'
 import { CreateTutorialRepositoryDialog } from './blank-slate/create-tutorial-repository-dialog'
 import { enableTutorial } from '../lib/feature-flag'
+import { ConfirmExitTutorial } from './tutorial'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1811,6 +1812,15 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.ConfirmExitTutorial: {
+        return (
+          <ConfirmExitTutorial
+            key="confirm-exit-tutorial"
+            onDismissed={this.onPopupDismissed}
+            onContinue={this.onExitTutorialToHomeScreen}
+          />
+        )
+      }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -2076,6 +2086,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     // for now I'm assuming the single repository is the tutorial repo
     if (this.state.repositories.length === 1) {
       // show BlankSlateView
+      this.props.dispatcher.showPopup({type: PopupType.ConfirmExitTutorial})
     } else {
       // show RepositoriesListView
       this.onRepositoryDropdownStateChanged('open')
