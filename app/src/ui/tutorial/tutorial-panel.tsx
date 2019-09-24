@@ -27,6 +27,7 @@ interface ITutorialPanelProps {
    */
   readonly externalEditorLabel?: string
   readonly currentTutorialStep: ValidTutorialStep
+  readonly onExitTutorial: () => void
 }
 
 interface ITutorialPanelState {
@@ -88,8 +89,6 @@ export class TutorialPanel extends React.Component<
       })
     }
   }
-
-  private exitTutorial = () => {}
 
   public render() {
     return (
@@ -272,7 +271,7 @@ export class TutorialPanel extends React.Component<
             </div>
           </TutorialStepInstructions>
         </ol>
-        <Button onClick={this.exitTutorial}>
+        <Button onClick={this.props.onExitTutorial}>
           {__DARWIN__ ? 'Exit Tutorial' : 'Exit tutorial'}
         </Button>
       </div>

@@ -2071,6 +2071,16 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
+  private onExitTutorial = () => {
+    // TODO: consider making this check more robust...
+    // for now I'm assuming the single repository is the tutorial repo
+    if (this.state.repositories.length === 1) {
+      // show BlankSlateView
+    } else {
+      // show RepositoriesListView
+    }
+  }
+
   private renderRepositoryToolbarButton() {
     const selection = this.state.selectedState
 
@@ -2376,6 +2386,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           onOpenInExternalEditor={this.openFileInExternalEditor}
           appMenu={this.state.appMenuState[0]}
           currentTutorialStep={this.state.currentOnboardingTutorialStep}
+          onExitTutorial={this.onExitTutorial}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
