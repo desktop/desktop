@@ -24,21 +24,16 @@ interface ITutorialDoneProps {
 export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
   public render() {
     return (
-      <div id="youre-done-tutorial">
-        <div className="content">
-          <div className="header">
-            <div className="text">
-              <h1>You're done!</h1>
-              <p>
-                You’ve learned the basics on how to use GitHub Desktop.
-                <br />
-                Here are some suggestions for what to do next.
-              </p>
-            </div>
-            <img src={ClappingHandsImage} className="youre-done-image" />
-          </div>
-          {this.renderActions()}
+      <div className="tutorial-center-component">
+        <div className="header">
+          <h1>You're done!</h1>
+          <p>
+            You’ve learned the basics on how to use GitHub Desktop. Here are
+            some suggestions for what to do next.
+          </p>
+          <img src={ClappingHandsImage} />
         </div>
+        {this.renderActions()}
       </div>
     )
   }

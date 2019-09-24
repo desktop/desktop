@@ -1,4 +1,4 @@
-#tutorial-welcome {
+.tutorial-center-component {
   display: flex;
   flex-flow: column nowrap;
   align-items: center;
@@ -40,5 +40,7 @@
         text-align: start;
       }
     }
+  }
+  .actions {
   }
 }
