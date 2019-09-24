@@ -384,6 +384,10 @@ export class RepositoryView extends React.Component<
     window.addEventListener('keydown', this.onGlobalKeyDown)
   }
 
+  public componentWillUnmount() {
+    window.removeEventListener('keydown', this.onGlobalKeyDown)
+  }
+
   private onGlobalKeyDown = (event: KeyboardEvent) => {
     if (event.defaultPrevented) {
       return
