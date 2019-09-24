@@ -5,11 +5,13 @@ import { Button } from '../lib/button'
 import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { PopupType } from '../../models/popup'
+import { Octicon, OcticonSymbol } from '../octicons'
 
-const TutorialPanelImage = encodePathAsUrl(
+const ClappingHandsImage = encodePathAsUrl(
   __dirname,
-  'static/required-status-check.svg'
+  'static/admin-mentoring.svg'
 )
+const ExploreImage = encodePathAsUrl(__dirname, 'static/explore.svg')
 
 interface IYoureDonePaneProps {
   readonly dispatcher: Dispatcher
@@ -33,7 +35,7 @@ export class YoureDonePane extends React.Component<IYoureDonePaneProps, {}> {
                 Here are some suggestions for what to do next.
               </p>
             </div>
-            <img src={TutorialPanelImage} className="youre-done-image" />
+            <img src={ClappingHandsImage} className="youre-done-image" />
           </div>
           {this.renderActions()}
         </div>
@@ -54,7 +56,7 @@ export class YoureDonePane extends React.Component<IYoureDonePaneProps, {}> {
   private renderExploreProjects() {
     return (
       <div>
-        <img src={TutorialPanelImage} className="youre-done-image" />
+        <img src={ExploreImage} className="youre-done-image" />
         <div className="text-wrapper">
           <h2>Explore projects on GitHub</h2>
           <p className="description">
@@ -71,7 +73,10 @@ export class YoureDonePane extends React.Component<IYoureDonePaneProps, {}> {
   private renderStartNewProject() {
     return (
       <div>
-        <img src={TutorialPanelImage} className="youre-done-image" />
+        <Octicon
+          symbol={OcticonSymbol.repoTemplate}
+          className="youre-done-image"
+        />
         <div className="text-wrapper">
           <h2>Start a new project</h2>
           <p className="description">Start a new project</p>
@@ -86,7 +91,10 @@ export class YoureDonePane extends React.Component<IYoureDonePaneProps, {}> {
   private renderAddLocalRepo() {
     return (
       <div>
-        <img src={TutorialPanelImage} className="youre-done-image" />
+        <Octicon
+          symbol={OcticonSymbol.fileDirectory}
+          className="youre-done-image"
+        />
         <div className="text-wrapper">
           <h2>Add a local repository</h2>
           <p className="description">

@@ -1,3 +1,3 @@
 export { TutorialPanel } from './tutorial-panel'
-export { WelcomeTutorialPane } from './welcome-tutorial-pane'
-export { YoureDonePane } from './youre-done-pane'
+export { WelcomeTutorialPane } from './welcome'
+export { YoureDonePane } from './done'

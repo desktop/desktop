@@ -2,10 +2,16 @@ import * as React from 'react'
 
 import { encodePathAsUrl } from '../../lib/path'
 
-const TutorialPanelImage = encodePathAsUrl(
+const CodeImage = encodePathAsUrl(__dirname, 'static/code.svg')
+const TeamDiscussionImage = encodePathAsUrl(
   __dirname,
-  'static/required-status-check.svg'
+  'static/github-for-teams.svg'
 )
+const CloudServerImage = encodePathAsUrl(
+  __dirname,
+  'static/github-for-business.svg'
+)
+
 export class WelcomeTutorialPane extends React.Component {
   public render() {
     return (
@@ -20,28 +26,28 @@ export class WelcomeTutorialPane extends React.Component {
               </p>
             </div>
           </div>
-          <div className="descriptions">
-            <div>
-              <img src={TutorialPanelImage} />
+          <ul className="descriptions">
+            <li>
+              <img src={CodeImage} />
               <div>
                 <strong>Git</strong> is the version control system.
               </div>
-            </div>
-            <div>
-              <img src={TutorialPanelImage} />
+            </li>
+            <li>
+              <img src={TeamDiscussionImage} />
               <div>
                 <strong>GitHub</strong> is where you store your code and
                 collaborate with others.
               </div>
-            </div>
-            <div>
-              <img src={TutorialPanelImage} />
+            </li>
+            <li>
+              <img src={CloudServerImage} />
               <div>
                 <strong>GitHub Desktop</strong> helps you work with GitHub
                 locally.
               </div>
-            </div>
-          </div>
+            </li>
+          </ul>
         </div>
       </div>
     )
