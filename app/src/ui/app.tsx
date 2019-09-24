@@ -2078,6 +2078,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       // show BlankSlateView
     } else {
       // show RepositoriesListView
+      this.onRepositoryDropdownStateChanged('open')
     }
   }
 
