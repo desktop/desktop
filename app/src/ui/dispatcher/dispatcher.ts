@@ -145,18 +145,41 @@ export class Dispatcher {
     return this.appStore._addTutorialRepository(path, endpoint, apiRepository)
   }
 
-  /** Remove the repositories represented by the given IDs from local storage. */
-  public removeRepositories(
+  /**
+   * Remove the repositories represented by the given IDs from local storage.
+   *
+   * When `moveToTrash` is enabled, only the repositories that were successfully
+   * deleted on disk are removed from the app. If some failed due to files being
+   * open elsewhere, an error is thrown.
+   */
+  public async removeRepositories(
     repositories: ReadonlyArray<Repository | CloningRepository>,
     moveToTrash: boolean
   ): Promise<void> {
+    let repositoriesToRemove = repositories
+    let error: Error | null = null
+
     if (moveToTrash) {
-      repositories.forEach(repository => {
-        shell.moveItemToTrash(repository.path)
-      })
+      const trashResults = await Promise.all(
+        repositories.map(async repo => {
+          try {
+            await shell.moveItemToTrash(repo.path)
+            return true
+          } catch (err) {
+            if (!error) {
+              error = err
+            }
+            return false
+          }
+        })
+      )
+      repositoriesToRemove = repositories.filter((_, i) => trashResults[i])
     }
 
-    return this.appStore._removeRepositories(repositories)
+    await this.appStore._removeRepositories(repositoriesToRemove)
+    if (error) {
+      throw error
+    }
   }
 
   /** Update the repository's `missing` flag. */
