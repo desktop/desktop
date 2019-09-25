@@ -31,6 +31,12 @@ body.theme-dark {
   --secondary-button-focus-border-color: #{$gray-300};
 
   /**
+   * Color for icons that are placed on top of a colored backing
+   * (like a circle badge icon)
+   */
+  --badge-icon-color: #{$gray-300};
+
+  /**
    * Background color for custom scroll bars.
    * The color is applied to the thumb part of the scrollbar.
    *

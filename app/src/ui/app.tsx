@@ -1826,7 +1826,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     account: Account,
     apiRepository: IAPIRepository
   ) => {
-    this.props.dispatcher.addTutorialRepository(
+    return this.props.dispatcher.addTutorialRepository(
       path,
       account.endpoint,
       apiRepository
@@ -2375,6 +2375,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           externalEditorLabel={externalEditorLabel}
           onOpenInExternalEditor={this.openFileInExternalEditor}
           appMenu={this.state.appMenuState[0]}
+          currentTutorialStep={this.state.currentOnboardingTutorialStep}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
