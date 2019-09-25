@@ -28,6 +28,7 @@ import { StashedChangesLoadStates } from '../models/stash-entry'
 import { TutorialPanel, TutorialWelcome, TutorialDone } from './tutorial'
 import { enableTutorial } from '../lib/feature-flag'
 import { TutorialStep } from '../models/tutorial-step'
+import { ExternalEditor } from '../lib/editors'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -51,6 +52,9 @@ interface IRepositoryViewProps {
 
   /** The name of the currently selected external editor */
   readonly externalEditorLabel?: string
+
+  /** A cached entry representing an external editor found on the user's machine */
+  readonly resolvedExternalEditor: ExternalEditor | null
 
   /**
    * Callback to open a selected file using the configured external editor
@@ -452,7 +456,7 @@ export class RepositoryView extends React.Component<
         <TutorialPanel
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
-          externalEditorLabel={this.props.externalEditorLabel}
+          resolvedExternalEditor={this.props.resolvedExternalEditor}
           currentTutorialStep={this.props.currentTutorialStep}
         />
       )
