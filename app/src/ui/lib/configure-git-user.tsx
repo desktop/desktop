@@ -45,7 +45,13 @@ export class ConfigureGitUser extends React.Component<
   public constructor(props: IConfigureGitUserProps) {
     super(props)
 
-    this.state = { name: '', email: '', avatarURL: null }
+    this.state = {
+      globalUserName: null,
+      globalUserEmail: null,
+      name: '',
+      email: '',
+      avatarURL: null,
+    }
   }
 
   public async componentWillMount() {
