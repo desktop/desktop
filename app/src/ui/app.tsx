@@ -2515,7 +2515,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       kind: HistoryTabMode.History,
     })
   }
-  private istutorialPaused: () => boolean = () => {
+  private isTutorialPaused: () => boolean = () => {
     return this.state.currentOnboardingTutorialStep === TutorialStep.Paused
   }
 }
