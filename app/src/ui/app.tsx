@@ -2381,8 +2381,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           onAdd={this.showAddLocalRepo}
           onCreateTutorialRepository={this.onCreateTutorialRepository}
           onResumeTutorialRepository={this.onResumeTutorialRepository}
-          apiRepositories={this.state.apiRepositories}
           tutorialPaused={this.isTutorialPaused()}
+          apiRepositories={state.apiRepositories}
           onRefreshRepositories={this.onRefreshRepositories}
         />
       )
@@ -2418,8 +2418,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           externalEditorLabel={externalEditorLabel}
           resolvedExternalEditor={state.resolvedExternalEditor}
           onOpenInExternalEditor={this.openFileInExternalEditor}
-          appMenu={this.state.appMenuState[0]}
-          currentTutorialStep={this.state.currentOnboardingTutorialStep}
+          appMenu={state.appMenuState[0]}
+          currentTutorialStep={state.currentOnboardingTutorialStep}
           onExitTutorial={this.onExitTutorial}
         />
       )
