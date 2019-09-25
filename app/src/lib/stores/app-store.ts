@@ -429,6 +429,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async updateCurrentTutorialStep(
     repository: Repository
   ): Promise<void> {
+    if (this.currentOnboardingTutorialStep === TutorialStep.Paused) {
+      return
+    }
+
     const currentStep = await this.tutorialAssessor.getCurrentStep(
       repository.isTutorialRepository,
       this.repositoryStateCache.get(repository)
