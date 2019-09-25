@@ -5276,11 +5276,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  private getUntrackedFiles(repository: Repository) {
-    const { changesState } = this.repositoryStateCache.get(repository)
-    return changesState.workingDirectory.files
-      .filter(file => file.status.kind === AppFileStatusKind.Untracked)
-      .map(file => file.path)
+  private getUntrackedFiles(
+    repository: Repository
+  ): ReadonlyArray<WorkingDirectoryFileChange> {
+    const {
+      changesState: { workingDirectory },
+    } = this.repositoryStateCache.get(repository)
+    return workingDirectory.files.filter(
+      file => file.status.kind === AppFileStatusKind.Untracked
+    )
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

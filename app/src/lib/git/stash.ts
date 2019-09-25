@@ -1,13 +1,16 @@
 import { GitError as DugiteError } from 'dugite'
-
+import { git, GitError } from './core'
 import { Repository } from '../../models/repository'
 import {
   IStashEntry,
   StashedChangesLoadStates,
   StashedFileChanges,
 } from '../../models/stash-entry'
-
-import { git, GitError } from './core'
+import {
+  WorkingDirectoryFileChange,
+  CommittedFileChange,
+} from '../../models/status'
+import { parseChangedFiles } from './log'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 
@@ -112,13 +115,14 @@ export function createDesktopStashMessage(branchName: string) {
 export async function createDesktopStashEntry(
   repository: Repository,
   branchName: string,
-  untrackedFilesToStage: ReadonlyArray<string>
+  untrackedFilesToStage: ReadonlyArray<WorkingDirectoryFileChange>
 ): Promise<true> {
   // We must ensure that no untracked files are present before stashing
   // See https://github.com/desktop/desktop/pull/8085
-  if (untrackedFilesToStage.length) {
+  if (untrackedFilesToStage.length > 0) {
+    const untrackedFilepaths = untrackedFilesToStage.map(uf => uf.path)
     await git(
-      ['add', ...untrackedFilesToStage],
+      ['add', ...untrackedFilepaths],
       repository.path,
       'stageUntrackedFilesBeforeStashing'
     )
