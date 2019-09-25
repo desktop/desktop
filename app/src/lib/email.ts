@@ -1,4 +1,6 @@
-import { IAPIEmail } from './api'
+import * as URL from 'url'
+
+import { IAPIEmail, getDotComAPIEndpoint } from './api'
 import { Account } from '../models/account'
 
 /**
@@ -26,9 +28,12 @@ export function lookupPreferredEmail(account: Account): IAPIEmail | null {
     return primary
   }
 
+  const stealthSuffix = `@${getStealthEmailHostForEndpoint(account.endpoint)}`
+
   const noReply = emails.find(e =>
-    e.email.toLowerCase().endsWith('@users.noreply.github.com')
+    e.email.toLowerCase().endsWith(stealthSuffix)
   )
+
   if (noReply) {
     return noReply
   }
@@ -58,4 +63,10 @@ export function getDefaultEmail(emails: ReadonlyArray<IAPIEmail>): string {
   }
 
   return emails[0].email || ''
+}
+function getStealthEmailHostForEndpoint(endpoint: string) {
+  const url = URL.parse(endpoint)
+  return getDotComAPIEndpoint() !== endpoint
+    ? `users.noreply.${url.hostname}`
+    : 'users.noreply.github.com'
 }
