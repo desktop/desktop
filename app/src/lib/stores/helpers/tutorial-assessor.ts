@@ -109,11 +109,7 @@ export class OnboardingTutorialAssessor {
   }
 
   private pullRequestCreated(repositoryState: IRepositoryState): boolean {
-    if (this.prStepComplete) {
-      return true
-    }
-
-    return repositoryState.branchesState.currentPullRequest !== null
+    return this.prStepComplete
   }
 
   /** Call when the user opts to skip the install editor step */
