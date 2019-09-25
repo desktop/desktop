@@ -145,6 +145,10 @@ export class Dispatcher {
     return this.appStore._addTutorialRepository(path, endpoint, apiRepository)
   }
 
+  public pauseTutorial() {
+    return this.appStore._pauseTutorial()
+  }
+
   /** Remove the repositories represented by the given IDs from local storage. */
   public removeRepositories(
     repositories: ReadonlyArray<Repository | CloningRepository>,

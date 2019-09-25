@@ -448,7 +448,8 @@ export class RepositoryView extends React.Component<
     // TODO: extract conditional check without making the TS compiler unhappy about currentTutorialStep type
     if (
       enableTutorial() &&
-      this.props.currentTutorialStep !== TutorialStep.NotApplicable
+      this.props.currentTutorialStep !== TutorialStep.NotApplicable &&
+      this.props.currentTutorialStep !== TutorialStep.Paused
     ) {
       return (
         <TutorialPanel

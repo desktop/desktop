@@ -441,6 +441,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  public _pauseTutorial() {
+    this.currentOnboardingTutorialStep = TutorialStep.Paused
+    log.info(`Current tutorial step is ${TutorialStep.Paused}`)
+    this.emitUpdate()
+  }
+
   /** Call via `Dispatcher` when the user opts to skip the pick editor step of the onboarding tutorial */
   public async _skipPickEditorTutorialStep(repository: Repository) {
     this.tutorialAssessor.skipPickEditor()

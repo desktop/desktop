@@ -7,6 +7,7 @@ export enum TutorialStep {
   PushBranch = 'PushBranch',
   OpenPullRequest = 'OpenPullRequest',
   AllDone = 'AllDone',
+  Paused = 'Paused',
 }
 
 export type ValidTutorialStep =

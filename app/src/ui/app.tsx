@@ -1826,6 +1826,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
+  private onExitTutorialToHomeScreen = () => {
+    // Pause tutorial and render BlankSlateView
+    this.props.dispatcher.pauseTutorial()
+  }
+
   private onTutorialRepositoryError = (error: Error) => {
     this.props.dispatcher.closePopup(PopupType.CreateTutorialRepository)
     this.props.dispatcher.postError(error)
@@ -2086,7 +2091,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     // for now I'm assuming the single repository is the tutorial repo
     if (this.state.repositories.length === 1) {
       // show BlankSlateView
-      this.props.dispatcher.showPopup({type: PopupType.ConfirmExitTutorial})
+      this.props.dispatcher.showPopup({ type: PopupType.ConfirmExitTutorial })
     } else {
       // show RepositoriesListView
       this.onRepositoryDropdownStateChanged('open')
