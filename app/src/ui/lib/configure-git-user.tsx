@@ -69,6 +69,12 @@ export class ConfigureGitUser extends React.Component<
     }))
   }
 
+  public componentDidMount() {
+    if (this.props.accounts.length > 0) {
+      this.setDefaultValuesFromAccount(this.props.accounts[0])
+    }
+  }
+
   public componentDidUpdate(prevProps: IConfigureGitUserProps) {
     if (
       this.props.accounts !== prevProps.accounts &&
