@@ -55,6 +55,19 @@ export class ConfigureGitUser extends React.Component<
   }
 
   public async componentWillMount() {
+    const [globalUserName, globalUserEmail] = await Promise.all([
+      getGlobalConfigValue('user.name'),
+      getGlobalConfigValue('user.email'),
+    ])
+
+    this.setState(prevState => ({
+      globalUserName,
+      globalUserEmail,
+      name: prevState.name.length === 0 ? globalUserName || '' : prevState.name,
+      email:
+        prevState.email.length === 0 ? globalUserEmail || '' : prevState.name,
+    }))
+  }
 
       }
     }
