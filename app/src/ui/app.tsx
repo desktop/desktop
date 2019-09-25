@@ -1830,6 +1830,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onExitTutorialToHomeScreen = () => {
     // Pause tutorial and render BlankSlateView
     this.props.dispatcher.pauseTutorial()
+    this.props.dispatcher.closePopup()
   }
 
   private onTutorialRepositoryError = (error: Error) => {
