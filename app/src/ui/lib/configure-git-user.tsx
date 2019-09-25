@@ -55,23 +55,9 @@ export class ConfigureGitUser extends React.Component<
   }
 
   public async componentWillMount() {
-    let name = await getGlobalConfigValue('user.name')
-    let email = await getGlobalConfigValue('user.email')
 
-    const user = this.props.accounts[0]
-    if ((!name || !name.length) && user) {
-      name = user.name && user.name.length ? user.name : user.login
-    }
-
-    if ((!email || !email.length) && user) {
-      const found = lookupPreferredEmail(user.emails)
-      if (found) {
-        email = found.email
       }
     }
-
-    const avatarURL = email ? this.avatarURLForEmail(email) : null
-    this.setState({ name: name || '', email: email || '', avatarURL })
   }
 
   private dateWithMinuteOffset(date: Date, minuteOffset: number): Date {
