@@ -106,6 +106,7 @@ import { ConfirmDiscardStashDialog } from './stashing/confirm-discard-stash'
 import { CreateTutorialRepositoryDialog } from './blank-slate/create-tutorial-repository-dialog'
 import { enableTutorial } from '../lib/feature-flag'
 import { ConfirmExitTutorial } from './tutorial'
+import { TutorialStep } from '../models/tutorial-step'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2357,7 +2358,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderRepository() {
     const state = this.state
-    if (state.repositories.length < 1) {
+    if (
+      state.repositories.length < 1 ||
+      state.currentOnboardingTutorialStep === TutorialStep.Paused
+    ) {
       return (
         <BlankSlateView
           dotComAccount={this.getDotComAccount()}
