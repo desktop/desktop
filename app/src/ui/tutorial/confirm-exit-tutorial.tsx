@@ -20,7 +20,7 @@ export class ConfirmExitTutorial extends React.Component<
         title="Exit tutorial"
         onDismissed={this.props.onDismissed}
         onSubmit={this.props.onContinue}
-        type="warning"
+        type="normal"
       >
         <DialogContent>
           <p>
