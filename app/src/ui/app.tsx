@@ -2371,7 +2371,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderRepository() {
     const state = this.state
-    const tutorialPaused = this.isTutorialPaused()
     if (this.inNoRepositoriesBlankSlateState()) {
       return (
         <BlankSlateView
@@ -2382,8 +2381,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           onAdd={this.showAddLocalRepo}
           onCreateTutorialRepository={this.onCreateTutorialRepository}
           onResumeTutorialRepository={this.onResumeTutorialRepository}
-          tutorialPaused={tutorialPaused}
           apiRepositories={this.state.apiRepositories}
+          tutorialPaused={this.isTutorialPaused()}
           onRefreshRepositories={this.onRefreshRepositories}
         />
       )
