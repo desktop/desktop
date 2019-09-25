@@ -448,8 +448,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** Call via `Dispatcher` when the user opts to skip the create pull request step of the onboarding tutorial */
-  public async _skipCreatePullRequestTutorialStep(repository: Repository) {
-    this.tutorialAssessor.skipCreatePullRequest()
+  public async _markPullRequestTutorialStepAsComplete(repository: Repository) {
+    this.tutorialAssessor.markPullRequestTutorialStepAsComplete()
     await this.updateCurrentTutorialStep(repository)
   }
 

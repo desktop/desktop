@@ -2176,7 +2176,7 @@ export class Dispatcher {
   }
 
   /** Call when the user opts to skip the create pull request step of the onboarding tutorial */
-  public skipCreatePullRequestTutorialStep(repository: Repository) {
-    return this.appStore._skipCreatePullRequestTutorialStep(repository)
+  public markPullRequestTutorialStepAsComplete(repository: Repository) {
+    return this.appStore._markPullRequestTutorialStepAsComplete(repository)
   }
 }

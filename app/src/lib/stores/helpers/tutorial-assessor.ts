@@ -120,7 +120,7 @@ export class OnboardingTutorialAssessor {
   }
 
   /** Call when the user opts to skip the create pull request step */
-  public skipCreatePullRequest = () => {
+  public markPullRequestTutorialStepAsComplete = () => {
     this.createPRSkipped = true
     setBoolean(skipCreatePullRequestKey, this.createPRSkipped)
   }
