@@ -69,6 +69,29 @@ export class ConfigureGitUser extends React.Component<
     }))
   }
 
+  public componentDidUpdate(prevProps: IConfigureGitUserProps) {
+    if (
+      this.props.accounts !== prevProps.accounts &&
+      this.props.accounts.length > 0
+    ) {
+      if (this.props.accounts[0] !== prevProps.accounts[0]) {
+        const account = this.props.accounts[0]
+
+        if (this.state.name.length === 0) {
+          this.setState({
+            name: account.name || account.login,
+          })
+        }
+
+        if (this.state.email.length === 0) {
+          const preferredEmail = lookupPreferredEmail(account.emails)
+          if (preferredEmail) {
+            this.setState({
+              email: preferredEmail.email,
+              avatarURL: this.avatarURLForEmail(preferredEmail.email),
+            })
+          }
+        }
       }
     }
   }
