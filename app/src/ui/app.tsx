@@ -2359,10 +2359,9 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderRepository() {
     const state = this.state
-    if (
-      state.repositories.length < 1 ||
+    const tutorialPaused =
       state.currentOnboardingTutorialStep === TutorialStep.Paused
-    ) {
+    if (state.repositories.length < 1 || tutorialPaused) {
       return (
         <BlankSlateView
           dotComAccount={this.getDotComAccount()}
