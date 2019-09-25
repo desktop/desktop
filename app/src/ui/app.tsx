@@ -2371,8 +2371,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderRepository() {
     const state = this.state
-    const tutorialPaused =
-      state.currentOnboardingTutorialStep === TutorialStep.Paused
+    const tutorialPaused = this.isTutorialPaused()
     if (state.repositories.length < 1 || tutorialPaused) {
       return (
         <BlankSlateView
@@ -2514,6 +2513,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.executeCompare(repository, {
       kind: HistoryTabMode.History,
     })
+  }
+  private istutorialPaused: () => boolean = () => {
+    return this.state.currentOnboardingTutorialStep === TutorialStep.Paused
   }
 }
 
