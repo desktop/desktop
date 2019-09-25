@@ -64,6 +64,12 @@ export function getDefaultEmail(emails: ReadonlyArray<IAPIEmail>): string {
 
   return emails[0].email || ''
 }
+
+/**
+ * Returns the stealth email host name for a given endpoint. The stealth
+ * email host is hardcoded to the subdomain users.noreply under the
+ * endpoint host.
+ */
 function getStealthEmailHostForEndpoint(endpoint: string) {
   const url = URL.parse(endpoint)
   return getDotComAPIEndpoint() !== endpoint
