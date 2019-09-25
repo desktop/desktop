@@ -109,6 +109,12 @@ export class OnboardingTutorialAssessor {
   }
 
   private pullRequestCreated(repositoryState: IRepositoryState): boolean {
+    // If we see a PR at any point let's persist that. This is for the
+    // edge case where a user leaves the app to manually create the PR
+    if (repositoryState.branchesState.currentPullRequest !== null) {
+      this.markPullRequestTutorialStepAsComplete()
+    }
+
     return this.prStepComplete
   }
 
