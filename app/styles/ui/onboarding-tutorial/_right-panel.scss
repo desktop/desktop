@@ -1,7 +1,8 @@
 .tutorial-panel-component {
   display: flex;
   flex-flow: column nowrap;
-  min-width: 300px;
+  flex: 1 1 350px;
+  min-width: 264px;
   max-width: 350px;
   background-color: var(--background-color);
   box-shadow: var(--base-box-shadow);
