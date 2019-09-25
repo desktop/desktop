@@ -103,7 +103,7 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
   }
 
   private openDotcomExplore = () => {
-    this.props.dispatcher.showDotcomExplore(this.props.repository)
+    this.props.dispatcher.showGitHubExplore(this.props.repository)
   }
 
   private onCreateNewRepository = () => {
