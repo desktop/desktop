@@ -119,7 +119,7 @@
   .footer {
     display: flex;
     justify-content: center;
-    padding-bottom: var(--spacing-double);
+    padding: var(--spacing-double) 0;
     margin-top: auto;
   }
 }
