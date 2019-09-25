@@ -5,7 +5,6 @@ import { Button } from '../lib/button'
 import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { PopupType } from '../../models/popup'
-import { Octicon, OcticonSymbol } from '../octicons'
 
 const ClappingHandsImage = encodePathAsUrl(
   __dirname,
@@ -24,82 +23,74 @@ interface ITutorialDoneProps {
 export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
   public render() {
     return (
-      <div className="tutorial-center-component">
-        <div className="header">
-          <h1>You're done!</h1>
-          <p>
-            You’ve learned the basics on how to use GitHub Desktop. Here are
-            some suggestions for what to do next.
-          </p>
-          <img src={ClappingHandsImage} />
+      <div id="no-changes">
+        <div className="content">
+          <div className="header">
+            <div className="text">
+              <h1>You're done!</h1>
+              <p>
+                You’ve learned the basics on how to use GitHub Desktop. Here are
+                some suggestions for what to do next.
+              </p>
+            </div>
+            <img src={ClappingHandsImage} className="blankslate-image" />
+          </div>
+          {this.renderActions()}
         </div>
-        {this.renderActions()}
       </div>
     )
   }
 
   private renderActions() {
     return (
-      <div className="actions">
+      <ul className="actions">
         {this.renderExploreProjects()}
         {this.renderStartNewProject()}
         {this.renderAddLocalRepo()}
-      </div>
+      </ul>
     )
   }
 
   private renderExploreProjects() {
     return (
-      <div>
-        <img src={ExploreImage} className="youre-done-image" />
+      <li className="blankslate-action">
+        <img src={ExploreImage} />
         <div className="text-wrapper">
           <h2>Explore projects on GitHub</h2>
           <p className="description">
             Contribute to a project that interests you
           </p>
         </div>
-        <Button type="submit" onClick={this.openDotcomExplore}>
-          Open in browser
-        </Button>
-      </div>
+        <Button onClick={this.openDotcomExplore}>Open in browser</Button>
+      </li>
     )
   }
 
   private renderStartNewProject() {
     return (
-      <div>
-        <Octicon
-          symbol={OcticonSymbol.repoTemplate}
-          className="youre-done-image"
-        />
+      <li className="blankslate-action">
+        <img src={ExploreImage} />
         <div className="text-wrapper">
           <h2>Start a new project</h2>
-          <p className="description">Start a new project</p>
+          <p className="description">Create a new repository</p>
         </div>
-        <Button type="submit" onClick={this.onCreateNewRepository}>
-          Create repository
-        </Button>
-      </div>
+        <Button onClick={this.onCreateNewRepository}>Create repository</Button>
+      </li>
     )
   }
 
   private renderAddLocalRepo() {
     return (
-      <div>
-        <Octicon
-          symbol={OcticonSymbol.fileDirectory}
-          className="youre-done-image"
-        />
+      <li className="blankslate-action">
+        <img src={ExploreImage} />
         <div className="text-wrapper">
           <h2>Add a local repository</h2>
           <p className="description">
             Work on an existing project in GitHub Desktop
           </p>
         </div>
-        <Button type="submit" onClick={this.onAddExistingRepository}>
-          Add repository
-        </Button>
-      </div>
+        <Button onClick={this.onAddExistingRepository}>Add repository</Button>
+      </li>
     )
   }
 
