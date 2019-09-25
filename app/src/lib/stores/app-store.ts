@@ -427,9 +427,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** Figure out what step of the tutorial the user needs to do next */
   private async updateCurrentTutorialStep(
-    repository: Repository
+    repository: Repository,
+    unpause?: boolean
   ): Promise<void> {
-    if (this.currentOnboardingTutorialStep === TutorialStep.Paused) {
+    if (
+      !unpause &&
+      this.currentOnboardingTutorialStep === TutorialStep.Paused
+    ) {
       return
     }
 
@@ -443,6 +447,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.currentOnboardingTutorialStep = currentStep
       this.emitUpdate()
     }
+  }
+
+  public _unpauseTutorial(repository: Repository) {
+    this.updateCurrentTutorialStep(repository, true)
   }
 
   public _pauseTutorial() {

@@ -145,6 +145,10 @@ export class Dispatcher {
     return this.appStore._addTutorialRepository(path, endpoint, apiRepository)
   }
 
+  public unpauseTutorial(repository: Repository) {
+    return this.appStore._unpauseTutorial(repository)
+  }
+
   public pauseTutorial() {
     return this.appStore._pauseTutorial()
   }
