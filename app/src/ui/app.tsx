@@ -705,7 +705,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     const selectedRepository =
       state && state.type === SelectionType.Repository ? state.repository : null
 
-    if (!enableTutorial() || !selectedRepository) {
+    if (
+      !enableTutorial() ||
+      !selectedRepository ||
+      !selectedRepository.isTutorialRepository
+    ) {
       return
     }
 
