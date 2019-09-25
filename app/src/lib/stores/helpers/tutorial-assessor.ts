@@ -119,7 +119,10 @@ export class OnboardingTutorialAssessor {
     setBoolean(skipInstallEditorKey, this.installEditorSkipped)
   }
 
-  /** Call when the user opts to skip the create pull request step */
+  /**
+   * Call when the user has either created a pull request or opts to
+   * skip the create pull request step of the onboarding tutorial
+   */
   public markPullRequestTutorialStepAsComplete = () => {
     this.createPRSkipped = true
     setBoolean(skipCreatePullRequestKey, this.createPRSkipped)
