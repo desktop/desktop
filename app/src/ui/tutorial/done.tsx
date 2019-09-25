@@ -56,7 +56,9 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
   private renderExploreProjects() {
     return (
       <li className="blankslate-action">
-        <img src={ExploreImage} />
+        <div className="image-wrapper">
+          <img src={ExploreImage} />
+        </div>
         <div className="text-wrapper">
           <h2>Explore projects on GitHub</h2>
           <p className="description">
@@ -71,7 +73,9 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
   private renderStartNewProject() {
     return (
       <li className="blankslate-action">
-        <img src={NewRepoImage} />
+        <div className="image-wrapper">
+          <img src={NewRepoImage} />
+        </div>
         <div className="text-wrapper">
           <h2>Start a new project</h2>
           <p className="description">Create a new repository</p>
@@ -84,7 +88,9 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
   private renderAddLocalRepo() {
     return (
       <li className="blankslate-action">
-        <img src={FolderImage} />
+        <div className="image-wrapper">
+          <img src={FolderImage} />
+        </div>
         <div className="text-wrapper">
           <h2>Add a local repository</h2>
           <p className="description">
