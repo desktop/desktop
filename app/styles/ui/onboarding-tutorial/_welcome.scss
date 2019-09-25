@@ -1,4 +1,4 @@
-.tutorial-center-component {
+#tutorial-welcome {
   display: flex;
   flex-flow: column nowrap;
   align-items: center;
@@ -24,7 +24,7 @@
   .definitions {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: space-around;
     padding: 0;
     max-width: 600px;
 
@@ -40,7 +40,5 @@
         text-align: start;
       }
     }
-  }
-  .actions {
   }
 }

@@ -19,6 +19,12 @@ export type ValidTutorialStep =
   | TutorialStep.OpenPullRequest
   | TutorialStep.AllDone
 
+export function isValidTutorialStep(
+  step: TutorialStep
+): step is ValidTutorialStep {
+  return step !== TutorialStep.NotApplicable && step !== TutorialStep.Paused
+}
+
 export const orderedTutorialSteps: ReadonlyArray<ValidTutorialStep> = [
   TutorialStep.PickEditor,
   TutorialStep.CreateBranch,

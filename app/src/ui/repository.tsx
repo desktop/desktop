@@ -27,7 +27,7 @@ import { StashDiffViewer } from './stashing'
 import { StashedChangesLoadStates } from '../models/stash-entry'
 import { TutorialPanel, TutorialWelcome, TutorialDone } from './tutorial'
 import { enableTutorial } from '../lib/feature-flag'
-import { TutorialStep } from '../models/tutorial-step'
+import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { ExternalEditor } from '../lib/editors'
 
 /** The widest the sidebar can be with the minimum window size. */
@@ -449,12 +449,9 @@ export class RepositoryView extends React.Component<
   }
 
   private maybeRenderTutorialPanel(): JSX.Element | null {
-    // TODO: extract conditional check without making the TS compiler unhappy about currentTutorialStep type
     if (
       enableTutorial() &&
-      this.props.currentTutorialStep !== TutorialStep.NotApplicable &&
-      // TODO: look for other places to add this check
-      this.props.currentTutorialStep !== TutorialStep.Paused
+      isValidTutorialStep(this.props.currentTutorialStep)
     ) {
       return (
         <TutorialPanel

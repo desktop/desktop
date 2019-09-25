@@ -4901,9 +4901,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-  public async _showDotcomExplore(repository: Repository): Promise<void> {
-    // TODO: support enterprise
-    await this._openInBrowser('https://github.com/explore')
+  public async _showGitHubExplore(repository: Repository): Promise<void> {
+    const { gitHubRepository } = repository
+    if (!gitHubRepository || gitHubRepository.htmlURL === null) {
+      return
+    }
+
+    const url = new URL(gitHubRepository.htmlURL)
+    url.pathname = '/explore'
+
+    await this._openInBrowser(url.toString())
   }
 
   public async _createPullRequest(repository: Repository): Promise<void> {
