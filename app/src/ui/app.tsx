@@ -106,7 +106,7 @@ import { ConfirmDiscardStashDialog } from './stashing/confirm-discard-stash'
 import { CreateTutorialRepositoryDialog } from './blank-slate/create-tutorial-repository-dialog'
 import { enableTutorial } from '../lib/feature-flag'
 import { ConfirmExitTutorial } from './tutorial'
-import { TutorialStep } from '../models/tutorial-step'
+import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2101,13 +2101,17 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onExitTutorial = () => {
-    // TODO: consider making this check more robust...
-    // for now I'm assuming the single repository is the tutorial repo
-    if (this.state.repositories.length === 1) {
-      // show BlankSlateView
-      this.props.dispatcher.showPopup({ type: PopupType.ConfirmExitTutorial })
+    if (
+      this.state.repositories.length === 1 &&
+      isValidTutorialStep(this.state.currentOnboardingTutorialStep)
+    ) {
+      // If the only repository present is the tutorial repo,
+      // prompt for confirmation and exit to the BlankSlateView
+      this.props.dispatcher.showPopup({
+        type: PopupType.ConfirmExitTutorial,
+      })
     } else {
-      // show RepositoriesListView
+      // Otherwise pop open repositories panel
       this.onRepositoryDropdownStateChanged('open')
     }
   }
