@@ -145,6 +145,7 @@ export class Dispatcher {
     return this.appStore._addTutorialRepository(path, endpoint, apiRepository)
   }
 
+  /** Resume an already started onboarding tutorial */
   public unpauseTutorial(repository: Repository) {
     return this.appStore._unpauseTutorial(repository)
   }
