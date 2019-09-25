@@ -1191,7 +1191,8 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const showAppIcon = __WIN32__ && !this.state.showWelcomeFlow
     const inWelcomeFlow = this.state.showWelcomeFlow
-    const inNoRepositoriesView = this.state.repositories.length === 0
+    const inNoRepositoriesView =
+      this.state.repositories.length === 0 || this.istutorialPaused()
 
     // The light title bar style should only be used while we're in
     // the welcome flow as well as the no-repositories blank slate
@@ -2306,7 +2307,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     // can't support banners at the moment. So for the
     // no-repositories blank slate we'll have to live without
     // them.
-    if (this.state.repositories.length === 0) {
+    if (this.state.repositories.length === 0 || this.istutorialPaused()) {
       return null
     }
 
@@ -2351,7 +2352,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     /**
      * No toolbar if we're in the blank slate view.
      */
-    if (this.state.repositories.length === 0) {
+    if (this.state.repositories.length === 0 || this.istutorialPaused()) {
       return null
     }
 
