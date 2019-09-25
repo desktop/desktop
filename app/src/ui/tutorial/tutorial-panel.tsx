@@ -271,7 +271,7 @@ export class TutorialPanel extends React.Component<
             </div>
           </TutorialStepInstructions>
         </ol>
-        <Button onClick={this.props.onExitTutorial}>
+        <Button className="exit-button" onClick={this.props.onExitTutorial}>
           {__DARWIN__ ? 'Exit Tutorial' : 'Exit tutorial'}
         </Button>
       </div>
