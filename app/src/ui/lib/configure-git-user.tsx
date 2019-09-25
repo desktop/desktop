@@ -65,7 +65,7 @@ export class ConfigureGitUser extends React.Component<
       globalUserEmail,
       name: prevState.name.length === 0 ? globalUserName || '' : prevState.name,
       email:
-        prevState.email.length === 0 ? globalUserEmail || '' : prevState.name,
+        prevState.email.length === 0 ? globalUserEmail || '' : prevState.email,
     }))
   }
 
