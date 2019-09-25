@@ -225,3 +225,48 @@ function extractBranchFromMessage(message: string): string | null {
   const match = desktopStashEntryMessageRe.exec(message)
   return match === null || match[1].length === 0 ? null : match[1]
 }
+
+/**
+ * Get the files that were changed in the given stash commit.
+ *
+ * This is different than `getChangedFiles` because stashes
+ * have _3 parents(!!!)_
+ */
+export async function getStashedFiles(
+  repository: Repository,
+  stashSha: string
+): Promise<ReadonlyArray<CommittedFileChange>> {
+  const files = await getChangedFilesWithinStash(repository, stashSha)
+  return [...files].sort((x, y) => x.path.localeCompare(y.path))
+}
+
+/**
+ * Same thing as `getChangedFiles` but with extra handling for 128 exit code
+ * (which happens if the commit's parent is not valid)
+ *
+ * **TODO:** merge this with `getChangedFiles` in `log.ts`
+ */
+async function getChangedFilesWithinStash(repository: Repository, sha: string) {
+  // opt-in for rename detection (-M) and copies detection (-C)
+  // this is equivalent to the user configuring 'diff.renames' to 'copies'
+  // NOTE: order here matters - doing -M before -C means copies aren't detected
+  const args = [
+    'log',
+    sha,
+    '-C',
+    '-M',
+    '-m',
+    '-1',
+    '--no-show-signature',
+    '--first-parent',
+    '--name-status',
+    '--format=format:',
+    '-z',
+    '--',
+  ]
+  const result = await git(args, repository.path, 'getChangedFilesForStash')
+  if (result.exitCode === 0 && result.stdout.length > 0) {
+    return parseChangedFiles(result.stdout, sha)
+  }
+  return []
+}
