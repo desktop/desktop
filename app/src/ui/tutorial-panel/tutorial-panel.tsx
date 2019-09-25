@@ -66,7 +66,7 @@ export class TutorialPanel extends React.Component<
   }
 
   private skipCreatePR = () => {
-    this.props.dispatcher.skipCreatePullRequestTutorialStep(
+    this.props.dispatcher.markPullRequestTutorialStepAsComplete(
       this.props.repository
     )
   }
