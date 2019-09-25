@@ -25,6 +25,9 @@ interface IConfigureGitUserProps {
 }
 
 interface IConfigureGitUserState {
+  readonly globalUserName: string | null
+  readonly globalUserEmail: string | null
+
   readonly name: string
   readonly email: string
   readonly avatarURL: string | null
