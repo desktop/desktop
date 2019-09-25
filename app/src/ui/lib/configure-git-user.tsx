@@ -190,14 +190,13 @@ export class ConfigureGitUser extends React.Component<
     if (this.props.onSave) {
       this.props.onSave()
     }
+    const { name, email, globalUserName, globalUserEmail } = this.state
 
-    const name = this.state.name
-    if (name.length) {
+    if (name.length > 0 && name !== globalUserName) {
       await setGlobalConfigValue('user.name', name)
     }
 
-    const email = this.state.email
-    if (email.length) {
+    if (email.length > 0 && email !== globalUserEmail) {
       await setGlobalConfigValue('user.email', email)
     }
   }
