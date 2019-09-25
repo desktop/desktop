@@ -2373,6 +2373,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           }
           accounts={state.accounts}
           externalEditorLabel={externalEditorLabel}
+          resolvedExternalEditor={state.resolvedExternalEditor}
           onOpenInExternalEditor={this.openFileInExternalEditor}
           appMenu={this.state.appMenuState[0]}
           currentTutorialStep={this.state.currentOnboardingTutorialStep}
