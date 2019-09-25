@@ -1011,11 +1011,18 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  private onConfirmRepoRemoval = (
+  private onConfirmRepoRemoval = async (
     repository: Repository,
     deleteRepoFromDisk: boolean
   ) => {
-    this.props.dispatcher.removeRepositories([repository], deleteRepoFromDisk)
+    try {
+      await this.props.dispatcher.removeRepositories(
+        [repository],
+        deleteRepoFromDisk
+      )
+    } catch (error) {
+      this.props.dispatcher.presentError(error)
+    }
   }
 
   private getRepository(): Repository | CloningRepository | null {
