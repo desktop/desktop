@@ -17,7 +17,7 @@ import { updateStore, UpdateStatus } from './lib/update-store'
 import { RetryAction } from '../models/retry-actions'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { matchExistingRepository } from '../lib/repository-matching'
-import { getDotComAPIEndpoint } from '../lib/api'
+import { getDotComAPIEndpoint, IAPIRepository } from '../lib/api'
 import { ILaunchStats, SamplesURL } from '../lib/stats'
 import { getVersion, getName } from './lib/app-proxy'
 import { getOS } from '../lib/get-os'
@@ -103,6 +103,8 @@ import { BannerType } from '../models/banner'
 import { StashAndSwitchBranch } from './stash-changes/stash-and-switch-branch-dialog'
 import { OverwriteStash } from './stash-changes/overwrite-stashed-changes-dialog'
 import { ConfirmDiscardStashDialog } from './stashing/confirm-discard-stash'
+import { CreateTutorialRepositoryDialog } from './blank-slate/create-tutorial-repository-dialog'
+import { enableTutorial } from '../lib/feature-flag'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -679,6 +681,23 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
+  private onCreateTutorialRepository = () => {
+    if (!enableTutorial()) {
+      return
+    }
+
+    const account = this.getDotComAccount() || this.getEnterpriseAccount()
+
+    if (account === null) {
+      return
+    }
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.CreateTutorialRepository,
+      account,
+    })
+  }
+
   private showAbout() {
     this.props.dispatcher.showPopup({ type: PopupType.About })
   }
@@ -1110,11 +1129,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    // Don't render the menu bar when the blank slate is shown
-    if (this.state.repositories.length < 1) {
-      return null
-    }
-
     const currentFoldout = this.state.currentFoldout
 
     // AppMenuBar requires us to pass a strongly typed AppMenuFoldout state or
@@ -1162,11 +1176,23 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const showAppIcon = __WIN32__ && !this.state.showWelcomeFlow
+    const inWelcomeFlow = this.state.showWelcomeFlow
+    const inNoRepositoriesView = this.state.repositories.length === 0
+
+    // The light title bar style should only be used while we're in
+    // the welcome flow as well as the no-repositories blank slate
+    // on macOS. The latter case has to do with the application menu
+    // being part of the title bar on Windows. We need to render
+    // the app menu in the no-repositories blank slate on Windows but
+    // the menu doesn't support the light style at the moment so we're
+    // forcing it to use the dark style.
+    const titleBarStyle =
+      inWelcomeFlow || (__DARWIN__ && inNoRepositoriesView) ? 'light' : 'dark'
 
     return (
       <TitleBar
         showAppIcon={showAppIcon}
-        titleBarStyle={this.state.titleBarStyle}
+        titleBarStyle={titleBarStyle}
         windowState={this.state.windowState}
         windowZoomFactor={this.state.windowZoomFactor}
       >
@@ -1774,9 +1800,37 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.CreateTutorialRepository: {
+        return (
+          <CreateTutorialRepositoryDialog
+            key="create-tutorial-repository-dialog"
+            account={popup.account}
+            onDismissed={this.onPopupDismissed}
+            onTutorialRepositoryCreated={this.onTutorialRepositoryCreated}
+            onError={this.onTutorialRepositoryError}
+          />
+        )
+      }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private onTutorialRepositoryError = (error: Error) => {
+    this.props.dispatcher.closePopup(PopupType.CreateTutorialRepository)
+    this.props.dispatcher.postError(error)
+  }
+
+  private onTutorialRepositoryCreated = (
+    path: string,
+    account: Account,
+    apiRepository: IAPIRepository
+  ) => {
+    return this.props.dispatcher.addTutorialRepository(
+      path,
+      account.endpoint,
+      apiRepository
+    )
   }
 
   private onShowRebaseConflictsBanner = (
@@ -2284,6 +2338,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           onCreate={this.showCreateRepository}
           onClone={this.showCloneRepo}
           onAdd={this.showAddLocalRepo}
+          onCreateTutorialRepository={this.onCreateTutorialRepository}
           apiRepositories={this.state.apiRepositories}
           onRefreshRepositories={this.onRefreshRepositories}
         />
@@ -2318,8 +2373,10 @@ export class App extends React.Component<IAppProps, IAppState> {
           }
           accounts={state.accounts}
           externalEditorLabel={externalEditorLabel}
+          resolvedExternalEditor={state.resolvedExternalEditor}
           onOpenInExternalEditor={this.openFileInExternalEditor}
           appMenu={this.state.appMenuState[0]}
+          currentTutorialStep={this.state.currentOnboardingTutorialStep}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {

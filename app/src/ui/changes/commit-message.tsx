@@ -399,7 +399,7 @@ export class CommitMessage extends React.Component<
 
   private onDescriptionTextAreaRef = (elem: HTMLTextAreaElement | null) => {
     if (elem) {
-      elem.addEventListener('scroll', () => {
+      const checkDescriptionScrollState = () => {
         if (this.descriptionTextAreaScrollDebounceId !== null) {
           cancelAnimationFrame(this.descriptionTextAreaScrollDebounceId)
           this.descriptionTextAreaScrollDebounceId = null
@@ -407,7 +407,9 @@ export class CommitMessage extends React.Component<
         this.descriptionTextAreaScrollDebounceId = requestAnimationFrame(
           this.onDescriptionTextAreaScroll
         )
-      })
+      }
+      elem.addEventListener('input', checkDescriptionScrollState)
+      elem.addEventListener('scroll', checkDescriptionScrollState)
     }
 
     this.descriptionTextArea = elem
