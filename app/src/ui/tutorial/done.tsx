@@ -11,6 +11,8 @@ const ClappingHandsImage = encodePathAsUrl(
   'static/admin-mentoring.svg'
 )
 const ExploreImage = encodePathAsUrl(__dirname, 'static/explore.svg')
+const NewRepoImage = encodePathAsUrl(__dirname, 'static/repo-template.svg')
+const FolderImage = encodePathAsUrl(__dirname, 'static/file-directory.svg')
 
 interface ITutorialDoneProps {
   readonly dispatcher: Dispatcher
@@ -69,7 +71,7 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
   private renderStartNewProject() {
     return (
       <li className="blankslate-action">
-        <img src={ExploreImage} />
+        <img src={NewRepoImage} />
         <div className="text-wrapper">
           <h2>Start a new project</h2>
           <p className="description">Create a new repository</p>
@@ -82,7 +84,7 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
   private renderAddLocalRepo() {
     return (
       <li className="blankslate-action">
-        <img src={ExploreImage} />
+        <img src={FolderImage} />
         <div className="text-wrapper">
           <h2>Add a local repository</h2>
           <p className="description">
