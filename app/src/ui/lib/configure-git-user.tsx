@@ -76,22 +76,25 @@ export class ConfigureGitUser extends React.Component<
     ) {
       if (this.props.accounts[0] !== prevProps.accounts[0]) {
         const account = this.props.accounts[0]
+        this.setDefaultValuesFromAccount(account)
+      }
+    }
+  }
 
-        if (this.state.name.length === 0) {
-          this.setState({
-            name: account.name || account.login,
-          })
-        }
+  private setDefaultValuesFromAccount(account: Account) {
+    if (this.state.name.length === 0) {
+      this.setState({
+        name: account.name || account.login,
+      })
+    }
 
-        if (this.state.email.length === 0) {
-          const preferredEmail = lookupPreferredEmail(account)
-          if (preferredEmail) {
-            this.setState({
-              email: preferredEmail.email,
-              avatarURL: this.avatarURLForEmail(preferredEmail.email),
-            })
-          }
-        }
+    if (this.state.email.length === 0) {
+      const preferredEmail = lookupPreferredEmail(account)
+      if (preferredEmail) {
+        this.setState({
+          email: preferredEmail.email,
+          avatarURL: this.avatarURLForEmail(preferredEmail.email),
+        })
       }
     }
   }
