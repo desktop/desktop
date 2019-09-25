@@ -146,8 +146,8 @@ export class Dispatcher {
   }
 
   /** Resume an already started onboarding tutorial */
-  public unpauseTutorial(repository: Repository) {
-    return this.appStore._unpauseTutorial(repository)
+  public resumeTutorial(repository: Repository) {
+    return this.appStore._resumeTutorial(repository)
   }
 
   /** Suspend the onboarding tutorial and go to the no repositories blank slate view */

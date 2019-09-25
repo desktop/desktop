@@ -713,7 +713,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    this.props.dispatcher.unpauseTutorial(selectedRepository)
+    this.props.dispatcher.resumeTutorial(selectedRepository)
   }
 
   private showAbout() {
