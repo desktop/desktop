@@ -449,6 +449,7 @@ export class RepositoryView extends React.Component<
     if (
       enableTutorial() &&
       this.props.currentTutorialStep !== TutorialStep.NotApplicable &&
+      // TODO: look for other places to add this check
       this.props.currentTutorialStep !== TutorialStep.Paused
     ) {
       return (
