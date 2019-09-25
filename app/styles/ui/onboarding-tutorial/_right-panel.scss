@@ -116,6 +116,12 @@
       opacity: 1;
     }
   }
+  .panel-footer {
+    display: flex;
+    justify-content: center;
+    padding-bottom: var(--spacing-double);
+    margin-top: auto;
+  }
 }
 
 %circle {
