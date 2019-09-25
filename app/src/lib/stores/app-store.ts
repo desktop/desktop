@@ -4914,10 +4914,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
     } else {
       await this._openCreatePullRequestInBrowser(repository, branch)
-
-      if (this.currentOnboardingTutorialStep === TutorialStep.OpenPullRequest) {
-        this._markPullRequestTutorialStepAsComplete(repository)
-      }
     }
   }
 
@@ -5030,6 +5026,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }/pull/new/${urlEncodedBranchName}`
 
     await this._openInBrowser(baseURL)
+
+    if (this.currentOnboardingTutorialStep === TutorialStep.OpenPullRequest) {
+      this._markPullRequestTutorialStepAsComplete(repository)
+    }
   }
 
   public async _updateExistingUpstreamRemote(
