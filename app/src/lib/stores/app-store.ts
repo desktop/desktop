@@ -4914,6 +4914,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
     } else {
       await this._openCreatePullRequestInBrowser(repository, branch)
+
+      if (this.currentOnboardingTutorialStep === TutorialStep.OpenPullRequest) {
+        this._markPullRequestTutorialStepAsComplete(repository)
+      }
     }
   }
 
