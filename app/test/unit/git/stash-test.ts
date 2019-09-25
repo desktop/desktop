@@ -92,7 +92,11 @@ describe('git/stash', () => {
       expect(files).toHaveLength(1)
       expect(files[0].status.kind).toBe(AppFileStatusKind.Untracked)
 
-      await createDesktopStashEntry(repository, 'master', ['not-tracked.txt'])
+      const untrackedFiles = status.workingDirectory.files.filter(
+        f => f.status.kind === AppFileStatusKind.Untracked
+      )
+
+      await createDesktopStashEntry(repository, 'master', untrackedFiles)
 
       status = await getStatusOrThrow(repository)
       files = status.workingDirectory.files
