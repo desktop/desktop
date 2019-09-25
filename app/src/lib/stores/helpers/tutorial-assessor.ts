@@ -5,7 +5,7 @@ import { ExternalEditor } from '../../editors'
 import { setBoolean, getBoolean } from '../../local-storage'
 
 const skipInstallEditorKey = 'tutorial-install-editor-skipped'
-const skipCreatePullRequestKey = 'tutorial-skip-create-pull-request'
+const pullRequestStepCompleteKey = 'tutorial-pull-request-step-complete'
 
 /**
  * Used to determine which step of the onboarding
@@ -22,7 +22,10 @@ export class OnboardingTutorialAssessor {
     false
   )
   /** Has the user opted to skip the create pull request step? */
-  private createPRSkipped: boolean = getBoolean(skipCreatePullRequestKey, false)
+  private prStepComplete: boolean = getBoolean(
+    pullRequestStepCompleteKey,
+    false
+  )
 
   public constructor(
     /** Method to call when we need to get the current editor */
@@ -106,7 +109,7 @@ export class OnboardingTutorialAssessor {
   }
 
   private pullRequestCreated(repositoryState: IRepositoryState): boolean {
-    if (this.createPRSkipped) {
+    if (this.prStepComplete) {
       return true
     }
 
@@ -124,8 +127,8 @@ export class OnboardingTutorialAssessor {
    * skip the create pull request step of the onboarding tutorial
    */
   public markPullRequestTutorialStepAsComplete = () => {
-    this.createPRSkipped = true
-    setBoolean(skipCreatePullRequestKey, this.createPRSkipped)
+    this.prStepComplete = true
+    setBoolean(pullRequestStepCompleteKey, this.prStepComplete)
   }
 
   /**
@@ -136,7 +139,7 @@ export class OnboardingTutorialAssessor {
   public onNewTutorialRepository = () => {
     this.installEditorSkipped = false
     localStorage.removeItem(skipInstallEditorKey)
-    this.createPRSkipped = false
-    localStorage.removeItem(skipCreatePullRequestKey)
+    this.prStepComplete = false
+    localStorage.removeItem(pullRequestStepCompleteKey)
   }
 }
