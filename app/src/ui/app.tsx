@@ -2370,6 +2370,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           onClone={this.showCloneRepo}
           onAdd={this.showAddLocalRepo}
           onCreateTutorialRepository={this.onCreateTutorialRepository}
+          tutorialPaused={tutorialPaused}
           apiRepositories={this.state.apiRepositories}
           onRefreshRepositories={this.onRefreshRepositories}
         />

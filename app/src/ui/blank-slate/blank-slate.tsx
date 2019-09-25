@@ -28,6 +28,9 @@ interface IBlankSlateProps {
   /** Called when the user chooses to create a tutorial repository */
   readonly onCreateTutorialRepository: () => void
 
+  /** true if tutorial is in paused state. */
+  readonly tutorialPaused: boolean
+
   /** The logged in account for GitHub.com. */
   readonly dotComAccount: Account | null
 
@@ -341,7 +344,7 @@ export class BlankSlateView extends React.Component<
     )
   }
 
-  private renderCreateTutorialRepositoryButton() {
+  private renderTutorialRepositoryButton() {
     if (!enableTutorial()) {
       return null
     }
@@ -354,14 +357,25 @@ export class BlankSlateView extends React.Component<
       return null
     }
 
-    return this.renderButtonGroupButton(
-      OcticonSymbol.mortarBoard,
-      __DARWIN__
-        ? 'Create a Tutorial Repository…'
-        : 'Create a tutorial repository…',
-      this.props.onCreateTutorialRepository,
-      'submit'
-    )
+    if (this.props.tutorialPaused) {
+      return this.renderButtonGroupButton(
+        OcticonSymbol.mortarBoard,
+        __DARWIN__
+          ? 'Return to In Progress Tutorial'
+          : 'Return to in progress tutorial',
+        this.props.onResumeTutorialRepository,
+        'submit'
+      )
+    } else {
+      return this.renderButtonGroupButton(
+        OcticonSymbol.mortarBoard,
+        __DARWIN__
+          ? 'Create a Tutorial Repository…'
+          : 'Create a tutorial repository…',
+        this.props.onCreateTutorialRepository,
+        'submit'
+      )
+    }
   }
 
   private renderCloneButton() {
@@ -398,7 +412,7 @@ export class BlankSlateView extends React.Component<
     return (
       <div className="content-pane right">
         <ul className="button-group">
-          {this.renderCreateTutorialRepositoryButton()}
+          {this.renderTutorialRepositoryButton()}
           {this.renderCloneButton()}
           {this.renderCreateRepositoryButton()}
           {this.renderAddExistingRepositoryButton()}
