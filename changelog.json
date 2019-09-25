@@ -1,5 +1,13 @@
 {
   "releases": {
+    "2.2.0-beta1": [
+      "[New] Interactive tutorial for new users to become productive using Git and GitHub more quickly - #8148 #8149",
+      "[Added] Support CodeRunner as an external editor - #8091. Thanks @ns-ccollins!",
+      "[Added] Support VSCodium as an external editor - #8000. Thanks @Rexogamer!",
+      "[Fixed] Commit summaries with comma delimited issues are parsed - #8162. Thanks @say25!",
+      "[Fixed] Commit description shadow visibility updates when typing - #7994. Thanks @KarstenRa!",
+      "[Improved] Application menu bar is visible when no repositories have been added to the app - #8209"
+    ],
     "2.1.3": [
       "[Fixed] Changes from remote branch erroneously displayed on corresponding branch on Desktop - #8155 #8167",
       "[Fixed] Sign-in flow for Windows users not possible via OAuth - #8154 #8142"
