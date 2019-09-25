@@ -3093,7 +3093,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           return createDesktopStashEntry(
             repository,
             branch.name,
-            this.getUntrackedFiles(repository)
+            getUntrackedFiles(changesState.workingDirectory)
           )
         })
 
@@ -5276,17 +5276,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  private getUntrackedFiles(
-    repository: Repository
-  ): ReadonlyArray<WorkingDirectoryFileChange> {
-    const {
-      changesState: { workingDirectory },
-    } = this.repositoryStateCache.get(repository)
-    return workingDirectory.files.filter(
-      file => file.status.kind === AppFileStatusKind.Untracked
-    )
-  }
-
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _createStashAndDropPreviousEntry(
     repository: Repository,
@@ -5310,10 +5299,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     }
 
+    const {
+      changesState: { workingDirectory },
+    } = this.repositoryStateCache.get(repository)
+
     await createDesktopStashEntry(
       repository,
       branchName,
-      this.getUntrackedFiles(repository)
+      getUntrackedFiles(workingDirectory)
     )
   }
 
@@ -5326,12 +5319,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    const {
+      changesState: { workingDirectory },
+    } = this.repositoryStateCache.get(repository)
     const gitStore = this.gitStoreCache.get(repository)
     const isStashCreated = await gitStore.performFailableOperation(() => {
       return createDesktopStashEntry(
         repository,
         branchToCheckout,
-        this.getUntrackedFiles(repository)
+        getUntrackedFiles(workingDirectory)
       )
     })
 
@@ -5509,5 +5505,13 @@ function isPullRequestAssociatedWithBranch(
   return (
     pr.head.ref === branch.upstreamWithoutRemote &&
     repositoryMatchesRemote(pr.head.gitHubRepository, remote)
+  )
+}
+
+function getUntrackedFiles(
+  workingDirectoryStatus: WorkingDirectoryStatus
+): ReadonlyArray<WorkingDirectoryFileChange> {
+  return workingDirectoryStatus.files.filter(
+    file => file.status.kind === AppFileStatusKind.Untracked
   )
 }
