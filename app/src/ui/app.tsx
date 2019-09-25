@@ -700,6 +700,18 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
+  private onResumeTutorialRepository = () => {
+    const state = this.state.selectedState
+    const selectedRepository =
+      state && state.type === SelectionType.Repository ? state.repository : null
+
+    if (!enableTutorial() || !selectedRepository) {
+      return
+    }
+
+    this.props.dispatcher.unpauseTutorial(selectedRepository)
+  }
+
   private showAbout() {
     this.props.dispatcher.showPopup({ type: PopupType.About })
   }
@@ -2370,6 +2382,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           onClone={this.showCloneRepo}
           onAdd={this.showAddLocalRepo}
           onCreateTutorialRepository={this.onCreateTutorialRepository}
+          onResumeTutorialRepository={this.onResumeTutorialRepository}
           tutorialPaused={tutorialPaused}
           apiRepositories={this.state.apiRepositories}
           onRefreshRepositories={this.onRefreshRepositories}

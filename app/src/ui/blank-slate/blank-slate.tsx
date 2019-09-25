@@ -28,6 +28,9 @@ interface IBlankSlateProps {
   /** Called when the user chooses to create a tutorial repository */
   readonly onCreateTutorialRepository: () => void
 
+  /** Called when the user chooses to resume a tutorial repository */
+  readonly onResumeTutorialRepository: () => void
+
   /** true if tutorial is in paused state. */
   readonly tutorialPaused: boolean
 
