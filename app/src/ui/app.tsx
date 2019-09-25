@@ -977,7 +977,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     // it if needed.
     if (paths.length > 1) {
       const addedRepositories = await this.addRepositories(paths)
-      if (addedRepositories.length) {
+      if (addedRepositories.length > 0) {
         this.props.dispatcher.recordAddExistingRepository()
       }
     } else {
@@ -1043,7 +1043,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private async addRepositories(paths: ReadonlyArray<string>) {
     const repositories = await this.props.dispatcher.addRepositories(paths)
-    if (repositories.length) {
+    if (repositories.length > 0) {
       this.props.dispatcher.selectRepository(repositories[0])
     }
 
