@@ -1191,8 +1191,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const showAppIcon = __WIN32__ && !this.state.showWelcomeFlow
     const inWelcomeFlow = this.state.showWelcomeFlow
-    const inNoRepositoriesView =
-      this.state.repositories.length === 0 || this.istutorialPaused()
+    const inNoRepositoriesView = this.inNoRepositoriesBlankSlateState()
 
     // The light title bar style should only be used while we're in
     // the welcome flow as well as the no-repositories blank slate
@@ -2307,7 +2306,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     // can't support banners at the moment. So for the
     // no-repositories blank slate we'll have to live without
     // them.
-    if (this.state.repositories.length === 0 || this.istutorialPaused()) {
+    if (this.inNoRepositoriesBlankSlateState()) {
       return null
     }
 
@@ -2352,7 +2351,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     /**
      * No toolbar if we're in the blank slate view.
      */
-    if (this.state.repositories.length === 0 || this.istutorialPaused()) {
+    if (this.inNoRepositoriesBlankSlateState()) {
       return null
     }
 
@@ -2373,7 +2372,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private renderRepository() {
     const state = this.state
     const tutorialPaused = this.isTutorialPaused()
-    if (state.repositories.length < 1 || tutorialPaused) {
+    if (this.inNoRepositoriesBlankSlateState()) {
       return (
         <BlankSlateView
           dotComAccount={this.getDotComAccount()}
@@ -2515,6 +2514,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       kind: HistoryTabMode.History,
     })
   }
+
+  private inNoRepositoriesBlankSlateState: () => boolean = () => {
+    return this.state.repositories.length === 0 || this.isTutorialPaused()
+  }
+
   private isTutorialPaused: () => boolean = () => {
     return this.state.currentOnboardingTutorialStep === TutorialStep.Paused
   }
