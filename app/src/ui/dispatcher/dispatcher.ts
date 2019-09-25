@@ -150,6 +150,7 @@ export class Dispatcher {
     return this.appStore._unpauseTutorial(repository)
   }
 
+  /** Suspend the onboarding tutorial and go to the no repositories blank slate view */
   public pauseTutorial() {
     return this.appStore._pauseTutorial()
   }
