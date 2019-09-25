@@ -187,9 +187,6 @@ export class ConfigureGitUser extends React.Component<
   }
 
   private save = async () => {
-    if (this.props.onSave) {
-      this.props.onSave()
-    }
     const { name, email, globalUserName, globalUserEmail } = this.state
 
     if (name.length > 0 && name !== globalUserName) {
@@ -198,6 +195,10 @@ export class ConfigureGitUser extends React.Component<
 
     if (email.length > 0 && email !== globalUserEmail) {
       await setGlobalConfigValue('user.email', email)
+    }
+
+    if (this.props.onSave) {
+      this.props.onSave()
     }
   }
 }
