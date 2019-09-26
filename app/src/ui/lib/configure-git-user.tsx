@@ -58,22 +58,40 @@ export class ConfigureGitUser extends React.Component<
   }
 
   public async componentDidMount() {
+    // Capture the current accounts prop because we'll be
+    // doing a bunch of asynchronous stuff and we can't
+    // rely on this.props.account to tell us what that prop
+    // was at mount-time.
+    const accounts = this.props.accounts
+
     const [globalUserName, globalUserEmail] = await Promise.all([
       this.globalUsernamePromise,
       this.globalEmailPromise,
     ])
 
-    this.setState(prevState => ({
-      globalUserName,
-      globalUserEmail,
-      name: prevState.name.length === 0 ? globalUserName || '' : prevState.name,
-      email:
-        prevState.email.length === 0 ? globalUserEmail || '' : prevState.email,
-    }))
-
-    if (this.props.accounts.length > 0) {
-      this.setDefaultValuesFromAccount(this.props.accounts[0])
-    }
+    this.setState(
+      prevState => ({
+        globalUserName,
+        globalUserEmail,
+        name:
+          prevState.name.length === 0 ? globalUserName || '' : prevState.name,
+        email:
+          prevState.email.length === 0
+            ? globalUserEmail || ''
+            : prevState.email,
+      }),
+      () => {
+        // Chances are low that we actually have an account at mount-time
+        // the way things are designed now but in case the app changes around
+        // us and we do get passed an account at mount time in the future we
+        // want to make sure that not only was it passed at mount time but also
+        // that it hasn't been changed since (if it has been then
+        // componentDidUpdate would be responsible for handling it).
+        if (accounts === this.props.accounts && accounts.length > 0) {
+          this.setDefaultValuesFromAccount(accounts[0])
+        }
+      }
+    )
   }
 
   public componentDidUpdate(prevProps: IConfigureGitUserProps) {
