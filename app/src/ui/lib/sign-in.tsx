@@ -63,6 +63,7 @@ export class SignIn extends React.Component<ISignInProps, {}> {
         onBrowserSignInRequested={this.onBrowserSignInRequested}
         onSubmit={this.onCredentialsEntered}
         forgotPasswordUrl={state.forgotPasswordUrl}
+        endpoint={state.endpoint}
       />
     )
   }

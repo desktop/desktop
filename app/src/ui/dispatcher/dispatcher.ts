@@ -145,6 +145,16 @@ export class Dispatcher {
     return this.appStore._addTutorialRepository(path, endpoint, apiRepository)
   }
 
+  /** Resume an already started onboarding tutorial */
+  public resumeTutorial(repository: Repository) {
+    return this.appStore._resumeTutorial(repository)
+  }
+
+  /** Suspend the onboarding tutorial and go to the no repositories blank slate view */
+  public pauseTutorial(repository: Repository) {
+    return this.appStore._pauseTutorial(repository)
+  }
+
   /** Remove the repositories represented by the given IDs from local storage. */
   public removeRepositories(
     repositories: ReadonlyArray<Repository | CloningRepository>,
@@ -1694,6 +1704,13 @@ export class Dispatcher {
   }
 
   /**
+   * Open the Explore page at the GitHub instance of this repository
+   */
+  public showGitHubExplore(repository: Repository): Promise<void> {
+    return this.appStore._showGitHubExplore(repository)
+  }
+
+  /**
    * Open the Create Pull Request page on GitHub after verifying ahead/behind.
    *
    * Note that this method will present the user with a dialog in case the
@@ -2175,8 +2192,11 @@ export class Dispatcher {
     return this.appStore._skipPickEditorTutorialStep(repository)
   }
 
-  /** Call when the user opts to skip the create pull request step of the onboarding tutorial */
-  public skipCreatePullRequestTutorialStep(repository: Repository) {
-    return this.appStore._skipCreatePullRequestTutorialStep(repository)
+  /**
+   * Call when the user has either created a pull request or opts to
+   * skip the create pull request step of the onboarding tutorial
+   */
+  public markPullRequestTutorialStepAsComplete(repository: Repository) {
+    return this.appStore._markPullRequestTutorialStepAsComplete(repository)
   }
 }

@@ -12,6 +12,7 @@ import {
   orderedTutorialSteps,
 } from '../../models/tutorial-step'
 import { encodePathAsUrl } from '../../lib/path'
+import { ExternalEditor } from '../../lib/editors'
 
 const TutorialPanelImage = encodePathAsUrl(
   __dirname,
@@ -25,8 +26,9 @@ interface ITutorialPanelProps {
   /** name of the configured external editor
    * (`undefined` if none is configured.)
    */
-  readonly externalEditorLabel?: string
+  readonly resolvedExternalEditor: ExternalEditor | null
   readonly currentTutorialStep: ValidTutorialStep
+  readonly onExitTutorial: () => void
 }
 
 interface ITutorialPanelState {
@@ -65,7 +67,7 @@ export class TutorialPanel extends React.Component<
   }
 
   private skipCreatePR = () => {
-    this.props.dispatcher.skipCreatePullRequestTutorialStep(
+    this.props.dispatcher.markPullRequestTutorialStepAsComplete(
       this.props.repository
     )
   }
@@ -173,12 +175,9 @@ export class TutorialPanel extends React.Component<
               {` `}
               file, save it, and come back.
             </p>
-            {this.props.externalEditorLabel && (
+            {this.props.resolvedExternalEditor && (
               <div className="action">
-                <Button
-                  onClick={this.openTutorialFileInEditor}
-                  disabled={!this.props.externalEditorLabel}
-                >
+                <Button onClick={this.openTutorialFileInEditor}>
                   {__DARWIN__ ? 'Open Editor' : 'Open editor'}
                 </Button>
                 {__DARWIN__ ? (
@@ -270,6 +269,11 @@ export class TutorialPanel extends React.Component<
             </div>
           </TutorialStepInstructions>
         </ol>
+        <div className="footer">
+          <Button onClick={this.props.onExitTutorial}>
+            {__DARWIN__ ? 'Exit Tutorial' : 'Exit tutorial'}
+          </Button>
+        </div>
       </div>
     )
   }

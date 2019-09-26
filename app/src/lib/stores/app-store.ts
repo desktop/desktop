@@ -242,6 +242,7 @@ import { findRemoteBranchName } from './helpers/find-branch-name'
 import { findBranchesForFastForward } from './helpers/find-branches-for-fast-forward'
 import { TutorialStep } from '../../models/tutorial-step'
 import { OnboardingTutorialAssessor } from './helpers/tutorial-assessor'
+import { getUntrackedFiles } from '../status'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -441,15 +442,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  public async _resumeTutorial(repository: Repository) {
+    this.tutorialAssessor.resumeTutorial()
+    await this.updateCurrentTutorialStep(repository)
+  }
+
+  public async _pauseTutorial(repository: Repository) {
+    this.tutorialAssessor.pauseTutorial()
+    await this.updateCurrentTutorialStep(repository)
+  }
+
   /** Call via `Dispatcher` when the user opts to skip the pick editor step of the onboarding tutorial */
   public async _skipPickEditorTutorialStep(repository: Repository) {
     this.tutorialAssessor.skipPickEditor()
     await this.updateCurrentTutorialStep(repository)
   }
 
-  /** Call via `Dispatcher` when the user opts to skip the create pull request step of the onboarding tutorial */
-  public async _skipCreatePullRequestTutorialStep(repository: Repository) {
-    this.tutorialAssessor.skipCreatePullRequest()
+  /**
+   * Call  via `Dispatcher` when the user has either created a pull request or opts to
+   * skip the create pull request step of the onboarding tutorial
+   */
+  public async _markPullRequestTutorialStepAsComplete(repository: Repository) {
+    this.tutorialAssessor.markPullRequestTutorialStepAsComplete()
     await this.updateCurrentTutorialStep(repository)
   }
 
@@ -3087,7 +3101,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (hasDeletedFiles && !transientStashEntry) {
         const gitStore = this.gitStoreCache.get(repository)
         const stashCreated = await gitStore.performFailableOperation(() => {
-          return createDesktopStashEntry(repository, branch.name)
+          return createDesktopStashEntry(
+            repository,
+            branch.name,
+            getUntrackedFiles(changesState.workingDirectory)
+          )
         })
 
         if (stashCreated) {
@@ -4880,6 +4898,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
+  public async _showGitHubExplore(repository: Repository): Promise<void> {
+    const { gitHubRepository } = repository
+    if (!gitHubRepository || gitHubRepository.htmlURL === null) {
+      return
+    }
+
+    const url = new URL(gitHubRepository.htmlURL)
+    url.pathname = '/explore'
+
+    await this._openInBrowser(url.toString())
+  }
+
   public async _createPullRequest(repository: Repository): Promise<void> {
     const gitHubRepository = repository.gitHubRepository
     if (!gitHubRepository) {
@@ -5023,6 +5053,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }/pull/new/${urlEncodedBranchName}`
 
     await this._openInBrowser(baseURL)
+
+    if (this.currentOnboardingTutorialStep === TutorialStep.OpenPullRequest) {
+      this._markPullRequestTutorialStepAsComplete(repository)
+    }
   }
 
   public async _updateExistingUpstreamRemote(
@@ -5288,7 +5322,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     }
 
-    await createDesktopStashEntry(repository, branchName)
+    const {
+      changesState: { workingDirectory },
+    } = this.repositoryStateCache.get(repository)
+
+    await createDesktopStashEntry(
+      repository,
+      branchName,
+      getUntrackedFiles(workingDirectory)
+    )
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -5300,9 +5342,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    const {
+      changesState: { workingDirectory },
+    } = this.repositoryStateCache.get(repository)
     const gitStore = this.gitStoreCache.get(repository)
     const isStashCreated = await gitStore.performFailableOperation(() => {
-      return createDesktopStashEntry(repository, branchToCheckout)
+      return createDesktopStashEntry(
+        repository,
+        branchToCheckout,
+        getUntrackedFiles(workingDirectory)
+      )
     })
 
     if (!isStashCreated) {

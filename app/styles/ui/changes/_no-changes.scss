@@ -1,6 +1,6 @@
 #no-changes {
   padding: var(--spacing-quad);
-  width: 100%;
+  flex: 1 1 700px;
   min-height: 100%;
   display: flex;
   flex-direction: column;
@@ -52,6 +52,11 @@
     &.primary {
       margin-bottom: var(--spacing);
     }
+  }
+
+  ul.actions {
+    // override default ul styles
+    padding: 0;
   }
 
   .action-leave {

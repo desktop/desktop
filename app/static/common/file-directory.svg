@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- yes, this is the "file directory" octicon -->
+<svg width="24" height="28" viewBox="0 0 24 28" fill="none" 
+  xmlns="http://www.w3.org/2000/svg">
+  <title>File Directory</title>
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M22.2857 7H12V5.25C12 4.095 11.4686 3.5 10.2857 3.5H1.71429C0.771429 3.5 0 4.2875 0 5.25V22.75C0 23.7125 0.771429 24.5 1.71429 24.5H22.2857C23.2286 24.5 24 23.7125 24 22.75V8.75C24 7.7875 23.2286 7 22.2857 7ZM10.2857 7H1.71429V5.25H10.2857V7Z" fill="#2188FF"/>
+</svg>
