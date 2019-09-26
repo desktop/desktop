@@ -71,8 +71,14 @@ if (!ClientID || !ClientID.length || !ClientSecret || !ClientSecret.length) {
 
 type GitHubAccountType = 'User' | 'Organization'
 
-/** The OAuth scopes we need. */
-const Scopes = ['repo', 'user']
+/** The OAuth scopes we want to request from GitHub.com. */
+const DotComOAuthScopes = ['repo', 'user']
+
+/**
+ * The OAuth scopes we want to request from GitHub
+ * Enterprise Server.
+ */
+const EnterpriseOAuthScopes = ['repo', 'user']
 
 enum HttpStatusCode {
   NotModified = 304,
@@ -900,6 +906,10 @@ export async function createAuthorization(
   const optHeader = oneTimePassword ? { 'X-GitHub-OTP': oneTimePassword } : {}
 
   const note = await getNote()
+  const scopes =
+    endpoint === getDotComAPIEndpoint()
+      ? DotComOAuthScopes
+      : EnterpriseOAuthScopes
 
   const response = await request(
     endpoint,
@@ -907,7 +917,7 @@ export async function createAuthorization(
     'POST',
     'authorizations',
     {
-      scopes: Scopes,
+      scopes,
       client_id: ClientID,
       client_secret: ClientSecret,
       note: note,
