@@ -221,6 +221,7 @@ export class CreateBranch extends React.Component<
         title={__DARWIN__ ? 'Create a Branch' : 'Create a branch'}
         onSubmit={this.createBranch}
         onDismissed={this.props.onDismissed}
+        disableClickDismissalAlways={true}
         loading={this.state.isCreatingBranch}
         disabled={this.state.isCreatingBranch}
       >

@@ -135,6 +135,7 @@ export class Preferences extends React.Component<
         id="preferences"
         title={__DARWIN__ ? 'Preferences' : 'Options'}
         onDismissed={this.props.onDismissed}
+        disableClickDismissalAlways={true}
         onSubmit={this.onSave}
       >
         {this.renderDisallowedCharactersError()}

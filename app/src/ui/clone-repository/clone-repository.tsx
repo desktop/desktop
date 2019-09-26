@@ -211,6 +211,7 @@ export class CloneRepository extends React.Component<
         title={__DARWIN__ ? 'Clone a Repository' : 'Clone a repository'}
         onSubmit={this.clone}
         onDismissed={this.props.onDismissed}
+        disableClickDismissalAlways={true}
         loading={this.state.loading}
       >
         <TabBar

@@ -132,6 +132,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
         id="publish-repository"
         title={__DARWIN__ ? 'Publish Repository' : 'Publish repository'}
         onDismissed={this.props.onDismissed}
+        disableClickDismissalAlways={true}
         onSubmit={this.publishRepository}
         disabled={this.state.publishing}
         loading={this.state.publishing}

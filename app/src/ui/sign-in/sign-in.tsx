@@ -324,6 +324,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         title={title}
         disabled={disabled}
         onDismissed={this.props.onDismissed}
+        disableClickDismissalAlways={true}
         onSubmit={this.onSubmit}
         loading={state.loading}
       >

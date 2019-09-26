@@ -140,6 +140,7 @@ export class AddExistingRepository extends React.Component<
         title={__DARWIN__ ? 'Add Local Repository' : 'Add local repository'}
         onSubmit={this.addRepository}
         onDismissed={this.props.onDismissed}
+        disableClickDismissalAlways={true}
       >
         <DialogContent>
           <Row>

@@ -525,6 +525,7 @@ export class CreateRepository extends React.Component<
         loading={this.state.creating}
         onSubmit={this.createRepository}
         onDismissed={this.props.onDismissed}
+        disableClickDismissalAlways={true}
       >
         {this.renderInvalidPathError()}
 

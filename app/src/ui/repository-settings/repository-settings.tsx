@@ -84,6 +84,7 @@ export class RepositorySettings extends React.Component<
         id="repository-settings"
         title={__DARWIN__ ? 'Repository Settings' : 'Repository settings'}
         onDismissed={this.props.onDismissed}
+        disableClickDismissalAlways={true}
         onSubmit={this.onSubmit}
         disabled={this.state.disabled}
       >

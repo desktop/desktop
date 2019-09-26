@@ -45,6 +45,7 @@ export class RenameBranch extends React.Component<
         id="rename-branch"
         title={__DARWIN__ ? 'Rename Branch' : 'Rename branch'}
         onDismissed={this.cancel}
+        disableClickDismissalAlways={true}
         onSubmit={this.renameBranch}
       >
         <DialogContent>
