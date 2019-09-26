@@ -1844,7 +1844,21 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onExitTutorialToHomeScreen = () => {
-    this.props.dispatcher.pauseTutorial()
+    const { selectedState } = this.state
+    const selectedRepository =
+      selectedState && selectedState.type === SelectionType.Repository
+        ? selectedState.repository
+        : null
+
+    if (
+      !enableTutorial() ||
+      !selectedRepository ||
+      !selectedRepository.isTutorialRepository
+    ) {
+      return
+    }
+
+    this.props.dispatcher.pauseTutorial(selectedRepository)
     this.props.dispatcher.closePopup()
   }
 

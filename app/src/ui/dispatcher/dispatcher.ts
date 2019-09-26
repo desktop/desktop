@@ -151,8 +151,8 @@ export class Dispatcher {
   }
 
   /** Suspend the onboarding tutorial and go to the no repositories blank slate view */
-  public pauseTutorial() {
-    return this.appStore._pauseTutorial()
+  public pauseTutorial(repository: Repository) {
+    return this.appStore._pauseTutorial(repository)
   }
 
   /** Remove the repositories represented by the given IDs from local storage. */
