@@ -701,19 +701,27 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onResumeTutorialRepository = () => {
-    const state = this.state.selectedState
-    const selectedRepository =
-      state && state.type === SelectionType.Repository ? state.repository : null
-
-    if (
-      !enableTutorial() ||
-      !selectedRepository ||
-      !selectedRepository.isTutorialRepository
-    ) {
+    const tutorialRepository = this.getSelectedTutorialRepository()
+    if (!tutorialRepository) {
       return
     }
 
-    this.props.dispatcher.resumeTutorial(selectedRepository)
+    this.props.dispatcher.resumeTutorial(tutorialRepository)
+  }
+
+  private getSelectedTutorialRepository() {
+    const { selectedState } = this.state
+    const selectedRepository =
+      selectedState && selectedState.type === SelectionType.Repository
+        ? selectedState.repository
+        : null
+
+    const isTutorialRepository =
+      enableTutorial() &&
+      selectedRepository &&
+      selectedRepository.isTutorialRepository
+
+    return isTutorialRepository ? selectedRepository : null
   }
 
   private showAbout() {
@@ -1844,21 +1852,12 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onExitTutorialToHomeScreen = () => {
-    const { selectedState } = this.state
-    const selectedRepository =
-      selectedState && selectedState.type === SelectionType.Repository
-        ? selectedState.repository
-        : null
-
-    if (
-      !enableTutorial() ||
-      !selectedRepository ||
-      !selectedRepository.isTutorialRepository
-    ) {
+    const tutorialRepository = this.getSelectedTutorialRepository()
+    if (!tutorialRepository) {
       return
     }
 
-    this.props.dispatcher.pauseTutorial(selectedRepository)
+    this.props.dispatcher.pauseTutorial(tutorialRepository)
     this.props.dispatcher.closePopup()
   }
 
