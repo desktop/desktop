@@ -42,6 +42,9 @@ export class ConfigureGitUser extends React.Component<
   IConfigureGitUserProps,
   IConfigureGitUserState
 > {
+  private readonly globalUsernamePromise = getGlobalConfigValue('user.name')
+  private readonly globalEmailPromise = getGlobalConfigValue('user.email')
+
   public constructor(props: IConfigureGitUserProps) {
     super(props)
 
@@ -54,10 +57,10 @@ export class ConfigureGitUser extends React.Component<
     }
   }
 
-  public async componentWillMount() {
+  public async componentDidMount() {
     const [globalUserName, globalUserEmail] = await Promise.all([
-      getGlobalConfigValue('user.name'),
-      getGlobalConfigValue('user.email'),
+      this.globalUsernamePromise,
+      this.globalEmailPromise,
     ])
 
     this.setState(prevState => ({
@@ -67,9 +70,7 @@ export class ConfigureGitUser extends React.Component<
       email:
         prevState.email.length === 0 ? globalUserEmail || '' : prevState.email,
     }))
-  }
 
-  public componentDidMount() {
     if (this.props.accounts.length > 0) {
       this.setDefaultValuesFromAccount(this.props.accounts[0])
     }
