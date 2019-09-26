@@ -65,7 +65,9 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
             Contribute to a project that interests you
           </p>
         </div>
-        <Button onClick={this.openDotcomExplore}>Open in browser</Button>
+        <Button onClick={this.openDotcomExplore}>
+          {__DARWIN__ ? 'Open in Browser' : 'Open in browser'}
+        </Button>
       </li>
     )
   }
@@ -80,7 +82,9 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
           <h2>Start a new project</h2>
           <p className="description">Create a new repository</p>
         </div>
-        <Button onClick={this.onCreateNewRepository}>Create repository</Button>
+        <Button onClick={this.onCreateNewRepository}>
+          {__DARWIN__ ? 'Create Repository' : 'Create repository'}
+        </Button>
       </li>
     )
   }
@@ -97,7 +101,9 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
             Work on an existing project in GitHub Desktop
           </p>
         </div>
-        <Button onClick={this.onAddExistingRepository}>Add repository</Button>
+        <Button onClick={this.onAddExistingRepository}>
+          {__DARWIN__ ? 'Add Repository' : 'Add repository'}
+        </Button>
       </li>
     )
   }

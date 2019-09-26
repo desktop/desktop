@@ -36,6 +36,7 @@
     width: 36px;
     height: 36px;
     margin-right: var(--spacing-double);
+    flex-shrink: 0;
     img {
       max-width: 100%;
       max-height: 100%;
