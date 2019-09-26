@@ -242,6 +242,7 @@ import { findRemoteBranchName } from './helpers/find-branch-name'
 import { findBranchesForFastForward } from './helpers/find-branches-for-fast-forward'
 import { TutorialStep } from '../../models/tutorial-step'
 import { OnboardingTutorialAssessor } from './helpers/tutorial-assessor'
+import { getUntrackedFiles } from '../status'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -3100,7 +3101,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (hasDeletedFiles && !transientStashEntry) {
         const gitStore = this.gitStoreCache.get(repository)
         const stashCreated = await gitStore.performFailableOperation(() => {
-          return createDesktopStashEntry(repository, branch.name)
+          return createDesktopStashEntry(
+            repository,
+            branch.name,
+            getUntrackedFiles(changesState.workingDirectory)
+          )
         })
 
         if (stashCreated) {
@@ -5317,7 +5322,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     }
 
-    await createDesktopStashEntry(repository, branchName)
+    const {
+      changesState: { workingDirectory },
+    } = this.repositoryStateCache.get(repository)
+
+    await createDesktopStashEntry(
+      repository,
+      branchName,
+      getUntrackedFiles(workingDirectory)
+    )
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -5329,9 +5342,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    const {
+      changesState: { workingDirectory },
+    } = this.repositoryStateCache.get(repository)
     const gitStore = this.gitStoreCache.get(repository)
     const isStashCreated = await gitStore.performFailableOperation(() => {
-      return createDesktopStashEntry(repository, branchToCheckout)
+      return createDesktopStashEntry(
+        repository,
+        branchToCheckout,
+        getUntrackedFiles(workingDirectory)
+      )
     })
 
     if (!isStashCreated) {
