@@ -30,7 +30,7 @@ export class ConfirmExitTutorial extends React.Component<
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
-            <Button type="submit">Continue</Button>
+            <Button type="submit">Exit tutorial</Button>
             <Button onClick={this.props.onDismissed}>Cancel</Button>
           </ButtonGroup>
         </DialogFooter>
