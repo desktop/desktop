@@ -442,6 +442,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  public async _resumeTutorial(repository: Repository) {
+    this.tutorialAssessor.resumeTutorial()
+    await this.updateCurrentTutorialStep(repository)
+  }
+
+  public async _pauseTutorial(repository: Repository) {
+    this.tutorialAssessor.pauseTutorial()
+    await this.updateCurrentTutorialStep(repository)
+  }
+
   /** Call via `Dispatcher` when the user opts to skip the pick editor step of the onboarding tutorial */
   public async _skipPickEditorTutorialStep(repository: Repository) {
     this.tutorialAssessor.skipPickEditor()
@@ -4886,6 +4896,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     return Promise.resolve()
+  }
+
+  public async _showGitHubExplore(repository: Repository): Promise<void> {
+    const { gitHubRepository } = repository
+    if (!gitHubRepository || gitHubRepository.htmlURL === null) {
+      return
+    }
+
+    const url = new URL(gitHubRepository.htmlURL)
+    url.pathname = '/explore'
+
+    await this._openInBrowser(url.toString())
   }
 
   public async _createPullRequest(repository: Repository): Promise<void> {
