@@ -906,10 +906,6 @@ export async function createAuthorization(
   const optHeader = oneTimePassword ? { 'X-GitHub-OTP': oneTimePassword } : {}
 
   const note = await getNote()
-  const scopes =
-    endpoint === getDotComAPIEndpoint()
-      ? DotComOAuthScopes
-      : EnterpriseOAuthScopes
 
   const response = await request(
     endpoint,
@@ -917,7 +913,7 @@ export async function createAuthorization(
     'POST',
     'authorizations',
     {
-      scopes,
+      scopes: getOAuthScopesForEndpoint(endpoint),
       client_id: ClientID,
       client_secret: ClientSecret,
       note: note,
@@ -1147,7 +1143,8 @@ export function getOAuthAuthorizationURL(
   state: string
 ): string {
   const urlBase = getHTMLURL(endpoint)
-  const scope = encodeURIComponent(Scopes.join(' '))
+  const scopes = getOAuthScopesForEndpoint(endpoint)
+  const scope = encodeURIComponent(scopes.join(' '))
   return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=${scope}&state=${state}`
 }
 
@@ -1174,4 +1171,10 @@ export async function requestOAuthToken(
     log.warn(`requestOAuthToken: failed with endpoint ${endpoint}`, e)
     return null
   }
+}
+
+function getOAuthScopesForEndpoint(endpoint: string) {
+  return endpoint === getDotComAPIEndpoint()
+    ? DotComOAuthScopes
+    : EnterpriseOAuthScopes
 }
