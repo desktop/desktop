@@ -23,15 +23,12 @@ export async function createBranch(
   const args =
     startPoint !== null ? ['branch', name, startPoint] : ['branch', name]
 
-  try {
-    await git(args, repository.path, 'createBranch')
-    const branches = await getBranches(repository, `refs/heads/${name}`)
-    if (branches.length > 0) {
-      return branches[0]
-    }
-  } catch (err) {
-    log.error('createBranch failed', err)
+  await git(args, repository.path, 'createBranch')
+  const branches = await getBranches(repository, `refs/heads/${name}`)
+  if (branches.length > 0) {
+    return branches[0]
   }
+
   return null
 }
 
