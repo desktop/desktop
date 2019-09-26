@@ -72,7 +72,7 @@ if (!ClientID || !ClientID.length || !ClientSecret || !ClientSecret.length) {
 type GitHubAccountType = 'User' | 'Organization'
 
 /** The OAuth scopes we want to request from GitHub.com. */
-const DotComOAuthScopes = ['repo', 'user']
+const DotComOAuthScopes = ['repo', 'user', 'workflow']
 
 /**
  * The OAuth scopes we want to request from GitHub
