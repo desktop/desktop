@@ -242,6 +242,7 @@ import { findRemoteBranchName } from './helpers/find-branch-name'
 import { findBranchesForFastForward } from './helpers/find-branches-for-fast-forward'
 import { TutorialStep } from '../../models/tutorial-step'
 import { OnboardingTutorialAssessor } from './helpers/tutorial-assessor'
+import { getUntrackedFiles } from '../status'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -5505,13 +5506,5 @@ function isPullRequestAssociatedWithBranch(
   return (
     pr.head.ref === branch.upstreamWithoutRemote &&
     repositoryMatchesRemote(pr.head.gitHubRepository, remote)
-  )
-}
-
-function getUntrackedFiles(
-  workingDirectoryStatus: WorkingDirectoryStatus
-): ReadonlyArray<WorkingDirectoryFileChange> {
-  return workingDirectoryStatus.files.filter(
-    file => file.status.kind === AppFileStatusKind.Untracked
   )
 }
