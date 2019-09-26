@@ -122,7 +122,7 @@ export async function createDesktopStashEntry(
   if (untrackedFilesToStage.length > 0) {
     const untrackedFilepaths = untrackedFilesToStage.map(uf => uf.path)
     await git(
-      ['add', ...untrackedFilepaths],
+      ['add', '--', ...untrackedFilepaths],
       repository.path,
       'stageUntrackedFilesBeforeStashing'
     )
