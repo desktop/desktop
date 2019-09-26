@@ -2521,11 +2521,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private inNoRepositoriesBlankSlateState: () => boolean = () => {
+  private inNoRepositoriesBlankSlateState() {
     return this.state.repositories.length === 0 || this.isTutorialPaused()
   }
 
-  private isTutorialPaused: () => boolean = () => {
+  private isTutorialPaused() {
     return this.state.currentOnboardingTutorialStep === TutorialStep.Paused
   }
 }

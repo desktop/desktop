@@ -442,7 +442,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public _resumeTutorial(repository: Repository) {
-    if (this.currentOnboardingTutorialStep === TutorialStep.Paused) {
+    if (this.currentOnboardingTutorialStep !== TutorialStep.Paused) {
       return
     }
     this.updateCurrentTutorialStep(repository)
