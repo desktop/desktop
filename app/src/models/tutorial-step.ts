@@ -7,6 +7,7 @@ export enum TutorialStep {
   PushBranch = 'PushBranch',
   OpenPullRequest = 'OpenPullRequest',
   AllDone = 'AllDone',
+  Paused = 'Paused',
 }
 
 export type ValidTutorialStep =
@@ -21,7 +22,7 @@ export type ValidTutorialStep =
 export function isValidTutorialStep(
   step: TutorialStep
 ): step is ValidTutorialStep {
-  return step !== TutorialStep.NotApplicable
+  return step !== TutorialStep.NotApplicable && step !== TutorialStep.Paused
 }
 
 export const orderedTutorialSteps: ReadonlyArray<ValidTutorialStep> = [
