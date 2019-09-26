@@ -240,8 +240,15 @@ export async function getStashedFiles(
   repository: Repository,
   stashSha: string
 ): Promise<ReadonlyArray<CommittedFileChange>> {
-  const files = await getChangedFilesWithinStash(repository, stashSha)
-  return [...files].sort((x, y) => x.path.localeCompare(y.path))
+  const [trackedFiles, untrackedFiles] = await Promise.all([
+    getChangedFilesWithinStash(repository, stashSha),
+    getChangedFilesWithinStash(repository, `${stashSha}^3`),
+  ])
+
+  const files = new Map<string, CommittedFileChange>()
+  trackedFiles.forEach(x => files.set(x.path, x))
+  untrackedFiles.forEach(x => files.set(x.path, x))
+  return [...files.values()].sort((x, y) => x.path.localeCompare(y.path))
 }
 
 /**
@@ -268,7 +275,12 @@ async function getChangedFilesWithinStash(repository: Repository, sha: string) {
     '-z',
     '--',
   ]
-  const result = await git(args, repository.path, 'getChangedFilesForStash')
+  const result = await git(args, repository.path, 'getChangedFilesForStash', {
+    // if this fails, its most likely
+    // because there weren't any untracked files,
+    // and that's okay!
+    successExitCodes: new Set([0, 128]),
+  })
   if (result.exitCode === 0 && result.stdout.length > 0) {
     return parseChangedFiles(result.stdout, sha)
   }
