@@ -17,6 +17,7 @@ import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
 
 import { getWelcomeMessage } from '../../lib/2fa'
+import { getDotComAPIEndpoint } from '../../lib/api'
 
 interface ISignInProps {
   readonly dispatcher: Dispatcher
@@ -30,6 +31,12 @@ interface ISignInState {
   readonly password: string
   readonly otpToken: string
 }
+
+const SignInWithBrowserTitle = __DARWIN__
+  ? 'Sign in Using Your Browser'
+  : 'Sign in using your browser'
+
+const DefaultTitle = 'Sign in'
 
 export class SignIn extends React.Component<ISignInProps, ISignInState> {
   public constructor(props: ISignInProps) {
@@ -176,14 +183,30 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
 
   private renderAuthenticationStep(state: IAuthenticationState) {
     if (!state.supportsBasicAuth) {
-      return (
-        <DialogContent>
-          <p>
-            Your GitHub Enterprise Server instance requires you to sign in with
-            your browser.
-          </p>
-        </DialogContent>
-      )
+      if (state.endpoint === getDotComAPIEndpoint()) {
+        return (
+          <DialogContent>
+            <p>
+              To improve the security of your account, GitHub now requires you
+              to sign in through your browser.
+            </p>
+            <p>
+              Your browser will redirect you back to GitHub Desktop once you've
+              signed in. If your browser asks for your permission to launch
+              GitHub Desktop please allow it to.
+            </p>
+          </DialogContent>
+        )
+      } else {
+        return (
+          <DialogContent>
+            <p>
+              Your GitHub Enterprise Server instance requires you to sign in
+              with your browser.
+            </p>
+          </DialogContent>
+        )
+      }
     }
 
     const disableSubmit = state.loading
@@ -288,10 +311,17 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
       <DialogError>{state.error.message}</DialogError>
     ) : null
 
+    const title =
+      this.props.signInState &&
+      this.props.signInState.kind === SignInStep.Authentication &&
+      !this.props.signInState.supportsBasicAuth
+        ? SignInWithBrowserTitle
+        : DefaultTitle
+
     return (
       <Dialog
         id="sign-in"
-        title="Sign in"
+        title={title}
         disabled={disabled}
         onDismissed={this.props.onDismissed}
         onSubmit={this.onSubmit}
