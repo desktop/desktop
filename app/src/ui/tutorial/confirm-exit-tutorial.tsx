@@ -17,7 +17,7 @@ export class ConfirmExitTutorial extends React.Component<
   public render() {
     return (
       <Dialog
-        title={ __DARWIN__ ? "Exit Tutorial" : "Exit tutorial" }
+        title={__DARWIN__ ? 'Exit Tutorial' : 'Exit tutorial'}
         onDismissed={this.props.onDismissed}
         onSubmit={this.props.onContinue}
         type="normal"
