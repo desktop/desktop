@@ -1021,7 +1021,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         deleteRepoFromDisk
       )
     } catch (error) {
-      this.props.dispatcher.presentError(error)
+      this.props.dispatcher.postError(error)
     }
   }
 
