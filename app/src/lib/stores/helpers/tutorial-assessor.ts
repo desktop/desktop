@@ -153,13 +153,13 @@ export class OnboardingTutorialAssessor {
   }
 
   /** Call when the user pauses the tutorial */
-  public pauseTutorial = () => {
+  public pauseTutorial() {
     this.tutorialPaused = true
     setBoolean(tutorialPausedKey, this.tutorialPaused)
   }
 
   /** Call when the user resumes the tutorial */
-  public resumeTutorial = () => {
+  public resumeTutorial() {
     this.tutorialPaused = false
     setBoolean(tutorialPausedKey, this.tutorialPaused)
   }
