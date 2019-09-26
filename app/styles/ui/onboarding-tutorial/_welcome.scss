@@ -3,6 +3,8 @@
   flex-flow: column nowrap;
   align-items: center;
   flex: 1 1 630px;
+  height: 100%;
+  padding: 0 var(--spacing-triple);
 
   .header {
     width: 100%;
