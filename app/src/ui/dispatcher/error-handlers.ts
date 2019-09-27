@@ -510,7 +510,10 @@ export async function refusedWorkflowUpdate(
 
   const rejectedPath = match[1]
 
-  if (!rejectedPath.startsWith('.github/workflows/')) {
+  if (
+    rejectedPath.startsWith('.github/') &&
+    rejectedPath.indexOf('workflow') >= 0
+  ) {
     return error
   }
 
