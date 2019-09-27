@@ -438,7 +438,40 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // only emit an update if its changed
     if (currentStep !== this.currentOnboardingTutorialStep) {
       this.currentOnboardingTutorialStep = currentStep
+      this.recordTutorialStepCompleted(currentStep)
       this.emitUpdate()
+    }
+  }
+
+  private recordTutorialStepCompleted(step: TutorialStep): void {
+    switch (step) {
+      case TutorialStep.PickEditor:
+        this.statsStore.recordTutorialRepoCreated()
+        break
+      case TutorialStep.CreateBranch:
+        this.statsStore.recordTutorialEditorInstalled()
+        break
+      case TutorialStep.EditFile:
+        this.statsStore.recordTutorialBranchCreated()
+        break
+      case TutorialStep.MakeCommit:
+        this.statsStore.recordTutorialFileEdited()
+        break
+      case TutorialStep.PushBranch:
+        this.statsStore.recordTutorialCommitCreated()
+        break
+      case TutorialStep.OpenPullRequest:
+        this.statsStore.recordTutorialBranchPushed()
+        break
+      case TutorialStep.AllDone:
+        this.statsStore.recordCreatedPullRequest()
+        this.statsStore.recordTutorialCompleted()
+        break
+      case TutorialStep.NotApplicable:
+      case TutorialStep.Paused:
+        break
+      default:
+        assertNever(step, 'Unaccounted for step type')
     }
   }
 

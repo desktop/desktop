@@ -921,7 +921,7 @@ export class StatsStore implements IStatsStore {
   /**
    * Increments the `createPullRequestCount` metric
    */
-  public recordCreatePullRequest(): Promise<void> {
+  public recordCreatedPullRequest(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       createPullRequestCount: m.createPullRequestCount + 1,
     }))
