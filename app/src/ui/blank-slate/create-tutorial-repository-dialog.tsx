@@ -23,6 +23,7 @@ import {
   executionOptionsWithProgress,
 } from '../../lib/progress'
 import { Progress } from '../../models/progress'
+import { Dispatcher } from '../dispatcher'
 
 interface ICreateTutorialRepositoryDialogProps {
   /**
@@ -30,6 +31,8 @@ interface ICreateTutorialRepositoryDialogProps {
    * be the owner of the tutorial repository.
    */
   readonly account: Account
+
+  readonly dispatcher: Dispatcher
 
   /**
    * Event triggered when the dialog is dismissed by the user in the
@@ -148,6 +151,8 @@ export class CreateTutorialRepositoryDialog extends React.Component<
   }
 
   public onSubmit = async () => {
+    this.props.dispatcher.recordTutorialStarted()
+
     const { account } = this.props
     const endpointName = friendlyEndpointName(account)
     this.setState({ loading: true })
