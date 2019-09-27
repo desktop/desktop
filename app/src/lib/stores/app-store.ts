@@ -464,7 +464,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.statsStore.recordTutorialBranchPushed()
         break
       case TutorialStep.AllDone:
-        this.statsStore.recordCreatedPullRequest()
+        this.statsStore.recordTutorialPrCreated()
         this.statsStore.recordTutorialCompleted()
         break
       case TutorialStep.NotApplicable:
