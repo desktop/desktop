@@ -149,7 +149,9 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       return
     }
 
-    this.accounts = this.accounts.filter(a => a.id !== account.id)
+    this.accounts = this.accounts.filter(
+      a => !(a.endpoint === account.endpoint && a.id === account.id)
+    )
 
     this.save()
   }
