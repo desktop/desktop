@@ -105,6 +105,7 @@ import { OverwriteStash } from './stash-changes/overwrite-stashed-changes-dialog
 import { ConfirmDiscardStashDialog } from './stashing/confirm-discard-stash'
 import { CreateTutorialRepositoryDialog } from './blank-slate/create-tutorial-repository-dialog'
 import { enableTutorial } from '../lib/feature-flag'
+import { WorkflowPushRejectedDialog } from './workflow-push-rejected/workflow-push-rejected'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1811,6 +1812,14 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.PushRejectedDueToMissingWorkflowScope:
+        return (
+          <WorkflowPushRejectedDialog
+            onDismissed={this.onPopupDismissed}
+            rejectedPath={popup.rejectedPath}
+            dispatcher={this.props.dispatcher}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
