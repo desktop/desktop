@@ -1968,7 +1968,7 @@ export class Dispatcher {
    * Increments the `createPullRequestCount` metric
    */
   public recordCreatePullRequest() {
-    return this.statsStore.recordCreatedPullRequest()
+    return this.statsStore.recordCreatePullRequest()
   }
 
   public recordWelcomeWizardInitiated() {
