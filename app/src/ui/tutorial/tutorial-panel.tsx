@@ -108,27 +108,36 @@ export class TutorialPanel extends React.Component<
             skipLinkButton={<SkipLinkButton onClick={this.skipEditorInstall} />}
             onSummaryClick={this.onStepSummaryClick}
           >
-            <p className="description">
-              It doesn’t look like you have a text editor installed. We can
-              recommend{' '}
-              <LinkButton uri="https://atom.io" title="Open the Atom website">
-                Atom
-              </LinkButton>
-              {` or `}
-              <LinkButton
-                uri="https://code.visualstudio.com"
-                title="Open the VS Code website"
-              >
-                Visual Studio Code
-              </LinkButton>
-              , but feel free to use any.
-            </p>
-            {!this.isStepComplete(TutorialStep.PickEditor) && (
-              <div className="action">
-                <LinkButton onClick={this.skipEditorInstall}>
-                  I have an editor
-                </LinkButton>
-              </div>
+            {!this.isStepComplete(TutorialStep.PickEditor) ? (
+              <>
+                <p className="description">
+                  It doesn’t look like you have a text editor installed. We can
+                  recommend{' '}
+                  <LinkButton
+                    uri="https://atom.io"
+                    title="Open the Atom website"
+                  >
+                    Atom
+                  </LinkButton>
+                  {` or `}
+                  <LinkButton
+                    uri="https://code.visualstudio.com"
+                    title="Open the VS Code website"
+                  >
+                    Visual Studio Code
+                  </LinkButton>
+                  , but feel free to use any.
+                </p>
+                <div className="action">
+                  <LinkButton onClick={this.skipEditorInstall}>
+                    I have an editor
+                  </LinkButton>
+                </div>
+              </>
+            ) : (
+              <p className="description">
+                Your default editor is {this.props.resolvedExternalEditor}
+              </p>
             )}
           </TutorialStepInstructions>
           <TutorialStepInstructions
