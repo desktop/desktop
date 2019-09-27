@@ -13,18 +13,27 @@ interface IWorkflowPushRejectedDialogProps {
 
   readonly onDismissed: () => void
 }
-
+interface IWorkflowPushRejectedDialogState {
+  readonly loading: boolean
+}
 /**
  * The dialog shown when a push is rejected due to it modifying a
  * workflow file without the workflow oauth scope.
  */
 export class WorkflowPushRejectedDialog extends React.Component<
-  IWorkflowPushRejectedDialogProps
+  IWorkflowPushRejectedDialogProps,
+  IWorkflowPushRejectedDialogState
 > {
+  public constructor(props: IWorkflowPushRejectedDialogProps) {
+    super(props)
+    this.state = { loading: false }
+  }
+
   public render() {
     return (
       <Dialog
         title={__DARWIN__ ? 'Push Rejected' : 'Push rejected'}
+        loading={this.state.loading}
         onDismissed={this.props.onDismissed}
         onSubmit={this.onSignIn}
         type="error"
@@ -32,14 +41,9 @@ export class WorkflowPushRejectedDialog extends React.Component<
         <DialogContent>
           <p>
             The push was rejected by the server for containing a modification to
-            a workflow file located at
-          </p>
-          <p>
-            <Ref>{this.props.rejectedPath}</Ref>
-          </p>
-          <p>
-            In order to be able to push to workflow files GitHub Desktop needs
-            to request additional permissions.
+            a workflow file ( <Ref>{this.props.rejectedPath}</Ref>). In order to
+            be able to push to workflow files GitHub Desktop needs to request
+            additional permissions.
           </p>
           <p>
             Would you like to open a browser to grant GitHub Desktop permission
@@ -48,10 +52,8 @@ export class WorkflowPushRejectedDialog extends React.Component<
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
-            <Button type="submit">
-              {__DARWIN__ ? 'Open Browser' : 'Open browser'}
-            </Button>
-            <Button onClick={this.props.onDismissed}>Close</Button>
+            <Button type="submit">Grant</Button>
+            <Button onClick={this.props.onDismissed}>Cancel</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
