@@ -96,7 +96,13 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       return null
     }
 
-    this.accounts = [...this.accounts, account]
+    const accountsByEndpoint = this.accounts.reduce(
+      (map, x) => map.set(x.endpoint, x),
+      new Map<string, Account>()
+    )
+    accountsByEndpoint.set(account.endpoint, account)
+
+    this.accounts = [...accountsByEndpoint.values()]
 
     this.save()
     return account
