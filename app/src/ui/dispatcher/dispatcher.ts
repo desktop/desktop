@@ -2199,4 +2199,11 @@ export class Dispatcher {
   public markPullRequestTutorialStepAsComplete(repository: Repository) {
     return this.appStore._markPullRequestTutorialStepAsComplete(repository)
   }
+
+  /**
+   * Onboarding tutorial has been started
+   */
+  public recordTutorialStarted() {
+    return this.statsStore.recordTutorialStarted()
+  }
 }
