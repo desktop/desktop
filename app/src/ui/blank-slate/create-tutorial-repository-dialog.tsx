@@ -138,12 +138,7 @@ export class CreateTutorialRepositoryDialog extends React.Component<
         }
       }
 
-      throw new Error(
-        'Could not create the tutorial repository.\n\n' +
-          err.message +
-          '\n\n' +
-          'Please check if you have an internet connection and try again.'
-      )
+      throw err
     }
   }
 
