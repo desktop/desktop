@@ -23,6 +23,7 @@ import {
   executionOptionsWithProgress,
 } from '../../lib/progress'
 import { Progress } from '../../models/progress'
+import { APIError } from '../../lib/http'
 
 interface ICreateTutorialRepositoryDialogProps {
   /**
@@ -114,11 +115,34 @@ export class CreateTutorialRepositoryDialog extends React.Component<
         true
       )
     } catch (err) {
+      if (
+        err instanceof APIError &&
+        err.responseStatus === 422 &&
+        err.apiError !== null
+      ) {
+        if (err.apiError.message === 'Repository creation failed.') {
+          if (
+            err.apiError.errors &&
+            err.apiError.errors.some(
+              x => x.message === 'name already exists on this account'
+            )
+          ) {
+            throw new Error(
+              'You already have a repository named ' +
+                `"${name}" on your account at ${friendlyEndpointName(
+                  account
+                )}.\n\n` +
+                'Please delete the repository and try again.'
+            )
+          }
+        }
+      }
+
       throw new Error(
-        'Could not create the tutorial repository. ' +
-          'The most likely reason is that you already have a repository named ' +
-          `"${name}" on your account at ${friendlyEndpointName(account)}.\n\n` +
-          'Please delete the repository and try again.'
+        'Could not create the tutorial repository.\n\n' +
+          err.message +
+          '\n\n' +
+          'Please check if you have an internet connection and try again.'
       )
     }
   }
