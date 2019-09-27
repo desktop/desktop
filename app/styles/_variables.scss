@@ -427,6 +427,10 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --status-pending-color: #{$yellow-700};
   --status-error-color: #{$red-500};
   --status-success-color: #{$green-500};
+
+  /** octicon blues */
+  --octicon-blue-darker: #2188ff;
+  --octicon-blue-lighter: #79b8ff;
 }
 
 ::backdrop {
