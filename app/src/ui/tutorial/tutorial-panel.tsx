@@ -138,8 +138,9 @@ export class TutorialPanel extends React.Component<
               </>
             ) : (
               <p className="description">
-                Your default editor is <strong>{this.props.resolvedExternalEditor}</strong>. You
-                can change your preferred editor in{' '}
+                Your default editor is{' '}
+                <strong>{this.props.resolvedExternalEditor}</strong>. You can
+                change your preferred editor in{' '}
                 <LinkButton onClick={this.onPreferencesClick}>
                   {__DARWIN__ ? 'Preferences' : 'options'}
                 </LinkButton>
