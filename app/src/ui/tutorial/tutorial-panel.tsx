@@ -14,6 +14,7 @@ import {
 import { encodePathAsUrl } from '../../lib/path'
 import { ExternalEditor } from '../../lib/editors'
 import { PopupType } from '../../models/popup'
+import { PreferencesTab } from '../../models/preferences'
 
 const TutorialPanelImage = encodePathAsUrl(
   __dirname,
@@ -297,7 +298,10 @@ export class TutorialPanel extends React.Component<
   }
 
   private onPreferencesClick = () => {
-    this.props.dispatcher.showPopup({ type: PopupType.Preferences })
+    this.props.dispatcher.showPopup({
+      type: PopupType.Preferences,
+      initialSelectedTab: PreferencesTab.Advanced,
+    })
   }
 }
 
