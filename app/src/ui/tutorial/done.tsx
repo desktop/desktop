@@ -79,8 +79,8 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
           <img src={NewRepoImage} />
         </div>
         <div className="text-wrapper">
-          <h2>Start a new project</h2>
-          <p className="description">Create a new repository</p>
+          <h2>Create a new repository</h2>
+          <p className="description">Get started on a brand new project</p>
         </div>
         <Button onClick={this.onCreateNewRepository}>
           {__DARWIN__ ? 'Create Repository' : 'Create repository'}
