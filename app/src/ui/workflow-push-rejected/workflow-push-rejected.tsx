@@ -25,7 +25,7 @@ export class WorkflowPushRejectedDialog extends React.Component<
         title={__DARWIN__ ? 'Push Rejected' : 'Push rejected'}
         onDismissed={this.props.onDismissed}
         onSubmit={this.onSignIn}
-        type="warning"
+        type="error"
       >
         <DialogContent>
           <p>
