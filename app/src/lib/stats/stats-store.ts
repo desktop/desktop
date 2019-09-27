@@ -112,6 +112,15 @@ const DefaultDailyMeasures: IDailyMeasures = {
   suggestedStepViewStash: 0,
   commitsToProtectedBranch: 0,
   commitsToRepositoryWithBranchProtections: 0,
+  tutorialStarted: false,
+  tutorialRepoCreated: false,
+  tutorialEditorInstalled: false,
+  tutorialBranchCreated: false,
+  tutorialFileEdited: false,
+  tutorialCommitCreated: false,
+  tutorialBranchPushed: false,
+  tutorialPrCreated: false,
+  tutorialCompleted: false,
 }
 
 interface IOnboardingStats {
@@ -1182,6 +1191,63 @@ export class StatsStore implements IStatsStore {
 
     return this.updateDailyMeasures(m => ({
       active: true,
+    }))
+  }
+
+  /**
+   * Onboarding tutorial metrics
+   */
+  public recordTutorialStarted() {
+    return this.updateDailyMeasures(() => ({
+      tutorialStarted: true,
+    }))
+  }
+
+  public recordTutorialRepoCreated() {
+    return this.updateDailyMeasures(() => ({
+      tutorialRepoCreated: true,
+    }))
+  }
+
+  public recordTutorialEditorInstalled() {
+    return this.updateDailyMeasures(() => ({
+      tutorialEditorInstalled: true,
+    }))
+  }
+
+  public recordTutorialBranchCreated() {
+    return this.updateDailyMeasures(() => ({
+      tutorialBranchCreated: true,
+    }))
+  }
+
+  public recordTutorialFileEdited() {
+    return this.updateDailyMeasures(() => ({
+      tutorialFileEdited: true,
+    }))
+  }
+
+  public recordTutorialCommitCreated() {
+    return this.updateDailyMeasures(() => ({
+      tutorialCommitCreated: true,
+    }))
+  }
+
+  public recordTutorialBranchPushed() {
+    return this.updateDailyMeasures(() => ({
+      tutorialBranchPushed: true,
+    }))
+  }
+
+  public recordTutorialPrCreated() {
+    return this.updateDailyMeasures(() => ({
+      tutorialPrCreated: true,
+    }))
+  }
+
+  public recordTutorialCompleted() {
+    return this.updateDailyMeasures(() => ({
+      tutorialCompleted: true,
     }))
   }
 
