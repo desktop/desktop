@@ -13,6 +13,7 @@ import {
 } from '../../models/tutorial-step'
 import { encodePathAsUrl } from '../../lib/path'
 import { ExternalEditor } from '../../lib/editors'
+import { PopupType } from '../../models/popup'
 
 const TutorialPanelImage = encodePathAsUrl(
   __dirname,
@@ -136,7 +137,11 @@ export class TutorialPanel extends React.Component<
               </>
             ) : (
               <p className="description">
-                Your default editor is {this.props.resolvedExternalEditor}
+                Your default editor is {this.props.resolvedExternalEditor}. You
+                can select your preferred editor in{' '}
+                <LinkButton onClick={this.onPreferencesClick}>
+                  {__DARWIN__ ? 'Preferences' : 'options'}
+                </LinkButton>
               </p>
             )}
           </TutorialStepInstructions>
@@ -289,6 +294,10 @@ export class TutorialPanel extends React.Component<
   /** this makes sure we only have one `TutorialListItem` open at a time */
   public onStepSummaryClick = (id: ValidTutorialStep) => {
     this.setState({ currentlyOpenSectionId: id })
+  }
+
+  private onPreferencesClick = () => {
+    this.props.dispatcher.showPopup({ type: PopupType.Preferences })
   }
 }
 
