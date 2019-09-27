@@ -78,18 +78,11 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   public async addAccount(account: Account): Promise<Account | null> {
     await this.loadingPromise
 
-    let updated = account
-    try {
-      updated = await updatedAccount(account)
-    } catch (e) {
-      log.warn(`Failed to fetch user ${account.login}`, e)
-    }
-
     try {
       await this.secureStore.setItem(
-        getKeyForAccount(updated),
-        updated.login,
-        updated.token
+        getKeyForAccount(account),
+        account.login,
+        account.token
       )
     } catch (e) {
       log.error(`Error adding account '${account.login}'`, e)
@@ -106,10 +99,10 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       return null
     }
 
-    this.accounts = [...this.accounts, updated]
+    this.accounts = [...this.accounts, account]
 
     this.save()
-    return updated
+    return account
   }
 
   /** Refresh all accounts by fetching their latest info from the API. */
