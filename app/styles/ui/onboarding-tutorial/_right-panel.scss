@@ -1,8 +1,10 @@
 .tutorial-panel-component {
   display: flex;
   flex-flow: column nowrap;
-  min-width: 300px;
+  flex: 1 1 350px;
+  min-width: 264px;
   max-width: 350px;
+  height: 100%;
   background-color: var(--background-color);
   box-shadow: var(--base-box-shadow);
 
@@ -115,6 +117,12 @@
     .empty-circle {
       opacity: 1;
     }
+  }
+  .footer {
+    display: flex;
+    justify-content: center;
+    padding: var(--spacing-double) 0;
+    margin-top: auto;
   }
 }
 

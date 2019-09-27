@@ -105,6 +105,8 @@ import { OverwriteStash } from './stash-changes/overwrite-stashed-changes-dialog
 import { ConfirmDiscardStashDialog } from './stashing/confirm-discard-stash'
 import { CreateTutorialRepositoryDialog } from './blank-slate/create-tutorial-repository-dialog'
 import { enableTutorial } from '../lib/feature-flag'
+import { ConfirmExitTutorial } from './tutorial'
+import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { WorkflowPushRejectedDialog } from './workflow-push-rejected/workflow-push-rejected'
 
 const MinuteInMilliseconds = 1000 * 60
@@ -699,6 +701,30 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
+  private onResumeTutorialRepository = () => {
+    const tutorialRepository = this.getSelectedTutorialRepository()
+    if (!tutorialRepository) {
+      return
+    }
+
+    this.props.dispatcher.resumeTutorial(tutorialRepository)
+  }
+
+  private getSelectedTutorialRepository() {
+    const { selectedState } = this.state
+    const selectedRepository =
+      selectedState && selectedState.type === SelectionType.Repository
+        ? selectedState.repository
+        : null
+
+    const isTutorialRepository =
+      enableTutorial() &&
+      selectedRepository &&
+      selectedRepository.isTutorialRepository
+
+    return isTutorialRepository ? selectedRepository : null
+  }
+
   private showAbout() {
     this.props.dispatcher.showPopup({ type: PopupType.About })
   }
@@ -964,7 +990,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     // it if needed.
     if (paths.length > 1) {
       const addedRepositories = await this.addRepositories(paths)
-      if (addedRepositories.length) {
+      if (addedRepositories.length > 0) {
         this.props.dispatcher.recordAddExistingRepository()
       }
     } else {
@@ -1030,7 +1056,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private async addRepositories(paths: ReadonlyArray<string>) {
     const repositories = await this.props.dispatcher.addRepositories(paths)
-    if (repositories.length) {
+    if (repositories.length > 0) {
       this.props.dispatcher.selectRepository(repositories[0])
     }
 
@@ -1178,7 +1204,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const showAppIcon = __WIN32__ && !this.state.showWelcomeFlow
     const inWelcomeFlow = this.state.showWelcomeFlow
-    const inNoRepositoriesView = this.state.repositories.length === 0
+    const inNoRepositoriesView = this.inNoRepositoriesBlankSlateState()
 
     // The light title bar style should only be used while we're in
     // the welcome flow as well as the no-repositories blank slate
@@ -1812,6 +1838,15 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.ConfirmExitTutorial: {
+        return (
+          <ConfirmExitTutorial
+            key="confirm-exit-tutorial"
+            onDismissed={this.onPopupDismissed}
+            onContinue={this.onExitTutorialToHomeScreen}
+          />
+        )
+      }
       case PopupType.PushRejectedDueToMissingWorkflowScope:
         return (
           <WorkflowPushRejectedDialog
@@ -1824,6 +1859,16 @@ export class App extends React.Component<IAppProps, IAppState> {
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private onExitTutorialToHomeScreen = () => {
+    const tutorialRepository = this.getSelectedTutorialRepository()
+    if (!tutorialRepository) {
+      return
+    }
+
+    this.props.dispatcher.pauseTutorial(tutorialRepository)
+    this.props.dispatcher.closePopup()
   }
 
   private onTutorialRepositoryError = (error: Error) => {
@@ -2081,6 +2126,22 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
+  private onExitTutorial = () => {
+    if (
+      this.state.repositories.length === 1 &&
+      isValidTutorialStep(this.state.currentOnboardingTutorialStep)
+    ) {
+      // If the only repository present is the tutorial repo,
+      // prompt for confirmation and exit to the BlankSlateView
+      this.props.dispatcher.showPopup({
+        type: PopupType.ConfirmExitTutorial,
+      })
+    } else {
+      // Otherwise pop open repositories panel
+      this.onRepositoryDropdownStateChanged('open')
+    }
+  }
+
   private renderRepositoryToolbarButton() {
     const selection = this.state.selectedState
 
@@ -2275,7 +2336,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     // can't support banners at the moment. So for the
     // no-repositories blank slate we'll have to live without
     // them.
-    if (this.state.repositories.length === 0) {
+    if (this.inNoRepositoriesBlankSlateState()) {
       return null
     }
 
@@ -2320,7 +2381,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     /**
      * No toolbar if we're in the blank slate view.
      */
-    if (this.state.repositories.length === 0) {
+    if (this.inNoRepositoriesBlankSlateState()) {
       return null
     }
 
@@ -2340,7 +2401,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderRepository() {
     const state = this.state
-    if (state.repositories.length < 1) {
+    if (this.inNoRepositoriesBlankSlateState()) {
       return (
         <BlankSlateView
           dotComAccount={this.getDotComAccount()}
@@ -2349,7 +2410,9 @@ export class App extends React.Component<IAppProps, IAppState> {
           onClone={this.showCloneRepo}
           onAdd={this.showAddLocalRepo}
           onCreateTutorialRepository={this.onCreateTutorialRepository}
-          apiRepositories={this.state.apiRepositories}
+          onResumeTutorialRepository={this.onResumeTutorialRepository}
+          tutorialPaused={this.isTutorialPaused()}
+          apiRepositories={state.apiRepositories}
           onRefreshRepositories={this.onRefreshRepositories}
         />
       )
@@ -2385,8 +2448,9 @@ export class App extends React.Component<IAppProps, IAppState> {
           externalEditorLabel={externalEditorLabel}
           resolvedExternalEditor={state.resolvedExternalEditor}
           onOpenInExternalEditor={this.openFileInExternalEditor}
-          appMenu={this.state.appMenuState[0]}
-          currentTutorialStep={this.state.currentOnboardingTutorialStep}
+          appMenu={state.appMenuState[0]}
+          currentTutorialStep={state.currentOnboardingTutorialStep}
+          onExitTutorial={this.onExitTutorial}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
@@ -2478,6 +2542,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.executeCompare(repository, {
       kind: HistoryTabMode.History,
     })
+  }
+
+  private inNoRepositoriesBlankSlateState() {
+    return this.state.repositories.length === 0 || this.isTutorialPaused()
+  }
+
+  private isTutorialPaused() {
+    return this.state.currentOnboardingTutorialStep === TutorialStep.Paused
   }
 }
 

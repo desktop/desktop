@@ -145,6 +145,16 @@ export class Dispatcher {
     return this.appStore._addTutorialRepository(path, endpoint, apiRepository)
   }
 
+  /** Resume an already started onboarding tutorial */
+  public resumeTutorial(repository: Repository) {
+    return this.appStore._resumeTutorial(repository)
+  }
+
+  /** Suspend the onboarding tutorial and go to the no repositories blank slate view */
+  public pauseTutorial(repository: Repository) {
+    return this.appStore._pauseTutorial(repository)
+  }
+
   /** Remove the repositories represented by the given IDs from local storage. */
   public removeRepositories(
     repositories: ReadonlyArray<Repository | CloningRepository>,
@@ -1686,6 +1696,13 @@ export class Dispatcher {
   /** Change the selected Branches foldout tab. */
   public changeBranchesTab(tab: BranchesTab): Promise<void> {
     return this.appStore._changeBranchesTab(tab)
+  }
+
+  /**
+   * Open the Explore page at the GitHub instance of this repository
+   */
+  public showGitHubExplore(repository: Repository): Promise<void> {
+    return this.appStore._showGitHubExplore(repository)
   }
 
   /**
