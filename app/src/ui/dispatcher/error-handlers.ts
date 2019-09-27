@@ -517,6 +517,7 @@ export async function refusedWorkflowUpdate(
   dispatcher.showPopup({
     type: PopupType.PushRejectedDueToMissingWorkflowScope,
     rejectedPath,
+    repository,
   })
 
   return null

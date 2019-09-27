@@ -4,9 +4,11 @@ import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
 import { Dispatcher } from '../dispatcher'
 import { Ref } from '../lib/ref'
+import { Repository } from '../../models/repository'
 
 interface IWorkflowPushRejectedDialogProps {
   readonly rejectedPath: string
+  readonly repository: Repository
   readonly dispatcher: Dispatcher
 
   readonly onDismissed: () => void
@@ -56,8 +58,13 @@ export class WorkflowPushRejectedDialog extends React.Component<
     )
   }
 
-  private onSignIn = () => {
-    this.props.dispatcher.beginDotComSignIn()
+  private onSignIn = async () => {
+    this.setState({ loading: true })
+
+    await this.props.dispatcher.beginDotComSignIn()
+    await this.props.dispatcher.requestBrowserAuthentication()
+
+    this.props.dispatcher.push(this.props.repository)
     this.props.onDismissed()
   }
 }

@@ -1818,6 +1818,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
             rejectedPath={popup.rejectedPath}
             dispatcher={this.props.dispatcher}
+            repository={popup.repository}
           />
         )
       default:
