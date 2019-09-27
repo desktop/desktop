@@ -71,8 +71,14 @@ if (!ClientID || !ClientID.length || !ClientSecret || !ClientSecret.length) {
 
 type GitHubAccountType = 'User' | 'Organization'
 
-/** The OAuth scopes we need. */
-const Scopes = ['repo', 'user']
+/** The OAuth scopes we want to request from GitHub.com. */
+const DotComOAuthScopes = ['repo', 'user', 'workflow']
+
+/**
+ * The OAuth scopes we want to request from GitHub
+ * Enterprise Server.
+ */
+const EnterpriseOAuthScopes = ['repo', 'user']
 
 enum HttpStatusCode {
   NotModified = 304,
@@ -907,7 +913,7 @@ export async function createAuthorization(
     'POST',
     'authorizations',
     {
-      scopes: Scopes,
+      scopes: getOAuthScopesForEndpoint(endpoint),
       client_id: ClientID,
       client_secret: ClientSecret,
       note: note,
@@ -1137,7 +1143,8 @@ export function getOAuthAuthorizationURL(
   state: string
 ): string {
   const urlBase = getHTMLURL(endpoint)
-  const scope = encodeURIComponent(Scopes.join(' '))
+  const scopes = getOAuthScopesForEndpoint(endpoint)
+  const scope = encodeURIComponent(scopes.join(' '))
   return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=${scope}&state=${state}`
 }
 
@@ -1164,4 +1171,10 @@ export async function requestOAuthToken(
     log.warn(`requestOAuthToken: failed with endpoint ${endpoint}`, e)
     return null
   }
+}
+
+function getOAuthScopesForEndpoint(endpoint: string) {
+  return endpoint === getDotComAPIEndpoint()
+    ? DotComOAuthScopes
+    : EnterpriseOAuthScopes
 }
