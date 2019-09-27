@@ -79,11 +79,8 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     await this.loadingPromise
 
     try {
-      await this.secureStore.setItem(
-        getKeyForAccount(account),
-        account.login,
-        account.token
-      )
+      const key = getKeyForAccount(account)
+      await this.secureStore.setItem(key, account.login, account.token)
     } catch (e) {
       log.error(`Error adding account '${account.login}'`, e)
 
