@@ -5,6 +5,10 @@
 // Primer colors, see https://github.com/primer/primer-css/blob/master/modules/primer-support/lib/variables/color-system.scss
 @import '~primer-support/lib/variables/color-system.scss';
 
+#desktop-app-title-bar {
+  border-bottom: 1px solid #181818!important;
+}
+
 body.theme-dark {
   --color-new: #{$green};
   --color-deleted: #{$red};
@@ -71,7 +75,7 @@ body.theme-dark {
   /**
    * Border color for boxes.
    */
-  --box-border-color: #141414;
+  --box-border-color: #191919;
   --box-border-accent-color: #{$blue};
 
   /**
