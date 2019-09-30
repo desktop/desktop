@@ -222,7 +222,7 @@ export class TutorialPanel extends React.Component<
           >
             <p className="description">
               A commit allows you to save sets of changes. In the “summary“
-              field in the bottom left, write a message that describes the
+              field in the bottom left, write a short message that describes the
               changes you made. When you’re done, click the blue Commit button
               to finish.
             </p>
