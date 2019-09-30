@@ -4,8 +4,6 @@ import { MenuEvent } from './menu-event'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
 import { ensureDir } from 'fs-extra'
-
-import { log } from '../log'
 import { openDirectorySafe } from '../shell'
 import { enableRebaseDialog, enableStashing } from '../../lib/feature-flag'
 import { MenuLabelsEvent } from '../../models/menu-labels'
