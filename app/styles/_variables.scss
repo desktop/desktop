@@ -316,6 +316,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    */
   --primary-blankslate-action-background: #{$blue-000};
   --primary-blankslate-action-border-color: #{$blue-200};
+  --blankslate-action-icon-color: #{$blue-400};
 
   /**
    * Diff view
@@ -427,9 +428,6 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --status-pending-color: #{$yellow-700};
   --status-error-color: #{$red-500};
   --status-success-color: #{$green-500};
-
-  /** octicon blues */
-  --blankslate-action-icon-color: #{$blue-400};
 }
 
 ::backdrop {
