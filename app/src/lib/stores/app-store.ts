@@ -240,7 +240,11 @@ import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
 import { findBranchesForFastForward } from './helpers/find-branches-for-fast-forward'
-import { TutorialStep } from '../../models/tutorial-step'
+import {
+  TutorialStep,
+  orderedTutorialSteps,
+  isValidTutorialStep,
+} from '../../models/tutorial-step'
 import { OnboardingTutorialAssessor } from './helpers/tutorial-assessor'
 import { getUntrackedFiles } from '../status'
 
@@ -444,9 +448,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private recordTutorialStepCompleted(step: TutorialStep): void {
+    if (!isValidTutorialStep(step)) {
+      return
+    }
+
+    this.statsStore.recordHighestTutorialStepCompleted(
+      orderedTutorialSteps.indexOf(step)
+    )
+
     switch (step) {
       case TutorialStep.PickEditor:
-        this.statsStore.recordTutorialRepoCreated()
+        // don't need to record anything for the first step
         break
       case TutorialStep.CreateBranch:
         this.statsStore.recordTutorialEditorInstalled()
@@ -466,9 +478,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       case TutorialStep.AllDone:
         this.statsStore.recordTutorialPrCreated()
         this.statsStore.recordTutorialCompleted()
-        break
-      case TutorialStep.NotApplicable:
-      case TutorialStep.Paused:
         break
       default:
         assertNever(step, 'Unaccounted for step type')

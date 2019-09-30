@@ -121,6 +121,8 @@ const DefaultDailyMeasures: IDailyMeasures = {
   tutorialBranchPushed: false,
   tutorialPrCreated: false,
   tutorialCompleted: false,
+  // this is `-1` because `0` signifies "tutorial created"
+  highestTutorialStepCompleted: -1,
 }
 
 interface IOnboardingStats {
@@ -1217,30 +1219,45 @@ export class StatsStore implements IStatsStore {
 
   public recordTutorialBranchCreated() {
     return this.updateDailyMeasures(() => ({
+      tutorialEditorInstalled: true,
       tutorialBranchCreated: true,
     }))
   }
 
   public recordTutorialFileEdited() {
     return this.updateDailyMeasures(() => ({
+      tutorialEditorInstalled: true,
+      tutorialBranchCreated: true,
       tutorialFileEdited: true,
     }))
   }
 
   public recordTutorialCommitCreated() {
     return this.updateDailyMeasures(() => ({
+      tutorialEditorInstalled: true,
+      tutorialBranchCreated: true,
+      tutorialFileEdited: true,
       tutorialCommitCreated: true,
     }))
   }
 
   public recordTutorialBranchPushed() {
     return this.updateDailyMeasures(() => ({
+      tutorialEditorInstalled: true,
+      tutorialBranchCreated: true,
+      tutorialFileEdited: true,
+      tutorialCommitCreated: true,
       tutorialBranchPushed: true,
     }))
   }
 
   public recordTutorialPrCreated() {
     return this.updateDailyMeasures(() => ({
+      tutorialEditorInstalled: true,
+      tutorialBranchCreated: true,
+      tutorialFileEdited: true,
+      tutorialCommitCreated: true,
+      tutorialBranchPushed: true,
       tutorialPrCreated: true,
     }))
   }
@@ -1248,6 +1265,15 @@ export class StatsStore implements IStatsStore {
   public recordTutorialCompleted() {
     return this.updateDailyMeasures(() => ({
       tutorialCompleted: true,
+    }))
+  }
+
+  public recordHighestTutorialStepCompleted(step: number) {
+    return this.updateDailyMeasures(m => ({
+      highestTutorialStepCompleted: Math.max(
+        step,
+        m.highestTutorialStepCompleted
+      ),
     }))
   }
 
