@@ -2,7 +2,7 @@ import { remote } from 'electron'
 import { Disposable, IDisposable } from 'event-kit'
 import * as Path from 'path'
 
-import { IAPIOrganization, IAPIRefStatus } from '../../lib/api'
+import { IAPIOrganization, IAPIRefStatus, IAPIRepository } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
   CompareAction,
@@ -124,6 +124,35 @@ export class Dispatcher {
     paths: ReadonlyArray<string>
   ): Promise<ReadonlyArray<Repository>> {
     return this.appStore._addRepositories(paths)
+  }
+
+  /**
+   * Add a tutorial repository.
+   *
+   * This method differs from the `addRepositories` method in that it
+   * requires that the repository has been created on the remote and
+   * set up to track it. Given that tutorial repositories are created
+   * from the no-repositories blank slate it shouldn't be possible for
+   * another repository with the same path to exist but in case that
+   * changes in the future this method will set the tutorial flag on
+   * the existing repository at the given path.
+   */
+  public addTutorialRepository(
+    path: string,
+    endpoint: string,
+    apiRepository: IAPIRepository
+  ) {
+    return this.appStore._addTutorialRepository(path, endpoint, apiRepository)
+  }
+
+  /** Resume an already started onboarding tutorial */
+  public resumeTutorial(repository: Repository) {
+    return this.appStore._resumeTutorial(repository)
+  }
+
+  /** Suspend the onboarding tutorial and go to the no repositories blank slate view */
+  public pauseTutorial(repository: Repository) {
+    return this.appStore._pauseTutorial(repository)
   }
 
   /** Remove the repositories represented by the given IDs from local storage. */
@@ -1675,6 +1704,13 @@ export class Dispatcher {
   }
 
   /**
+   * Open the Explore page at the GitHub instance of this repository
+   */
+  public showGitHubExplore(repository: Repository): Promise<void> {
+    return this.appStore._showGitHubExplore(repository)
+  }
+
+  /**
    * Open the Create Pull Request page on GitHub after verifying ahead/behind.
    *
    * Note that this method will present the user with a dialog in case the
@@ -1776,10 +1812,6 @@ export class Dispatcher {
     newState: Pick<ICompareFormUpdate, K>
   ) {
     return this.appStore._updateCompareForm(repository, newState)
-  }
-
-  public resolveCurrentEditor() {
-    return this.appStore._resolveCurrentEditor()
   }
 
   /**
@@ -2153,5 +2185,18 @@ export class Dispatcher {
   /** Record when the user views the stash entry */
   public recordStashView(): Promise<void> {
     return this.statsStore.recordStashView()
+  }
+
+  /** Call when the user opts to skip the pick editor step of the onboarding tutorial */
+  public skipPickEditorTutorialStep(repository: Repository) {
+    return this.appStore._skipPickEditorTutorialStep(repository)
+  }
+
+  /**
+   * Call when the user has either created a pull request or opts to
+   * skip the create pull request step of the onboarding tutorial
+   */
+  public markPullRequestTutorialStepAsComplete(repository: Repository) {
+    return this.appStore._markPullRequestTutorialStepAsComplete(repository)
   }
 }

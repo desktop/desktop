@@ -6,6 +6,7 @@ import {
   isConflictWithMarkers,
   GitStatusEntry,
   isConflictedFileStatus,
+  WorkingDirectoryFileChange,
 } from '../models/status'
 import { assertNever } from './fatal-error'
 import {
@@ -133,6 +134,15 @@ export function getLabelForManualResolutionOption(
 /** Filter working directory changes for conflicted or resolved files  */
 export function getUnmergedFiles(status: WorkingDirectoryStatus) {
   return status.files.filter(f => isConflictedFile(f.status))
+}
+
+/** Filter working directory changes for untracked files  */
+export function getUntrackedFiles(
+  workingDirectoryStatus: WorkingDirectoryStatus
+): ReadonlyArray<WorkingDirectoryFileChange> {
+  return workingDirectoryStatus.files.filter(
+    file => file.status.kind === AppFileStatusKind.Untracked
+  )
 }
 
 /** Filter working directory changes for resolved files  */

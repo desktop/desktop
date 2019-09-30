@@ -61,10 +61,6 @@ export class ShowConflictedFilesDialog extends React.Component<
     }
   }
 
-  public componentDidMount() {
-    this.props.dispatcher.resolveCurrentEditor()
-  }
-
   public componentWillUnmount() {
     const { workingDirectory, step, userHasResolvedConflicts } = this.props
     const { conflictState } = step

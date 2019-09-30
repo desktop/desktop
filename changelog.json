@@ -1,5 +1,25 @@
 {
   "releases": {
+    "2.2.0-beta2": [
+      "[Added] Add \"Welcome\" and \"You're done!\" screens to onboarding tutorial - #8232",
+      "[Added] Button to exit and resume onboarding tutorial - #8231",
+      "[Added] Enforce web flow authentication for users who are part of orgs using single sign-on - #8327",
+      "[Fixed] Git configuration fields in onboarding were not pre-filled from user's profile - #8323",
+      "[Fixed] Make app's version selectable in \"About\" dialog - #8334",
+      "[Fixed] Keep conflicting untracked files when bringing changes to another branch - #8084 #8200",
+      "[Fixed] Mark pull request step in tutorial done more quickly - #8317",
+      "[Fixed] Prevent triggering multiple tutorial creation flows in parallel - #8288",
+      "[Fixed] Surface errors from branch creation to user - #8306 #5997 #8106",
+      "[Fixed] Reliably show \"Open editor\" button in tutorial after editor has been installed - #8315"
+    ],
+    "2.2.0-beta1": [
+      "[New] Interactive tutorial for new users to become productive using Git and GitHub more quickly - #8148 #8149",
+      "[Added] Support CodeRunner as an external editor - #8091. Thanks @ns-ccollins!",
+      "[Added] Support VSCodium as an external editor - #8000. Thanks @Rexogamer!",
+      "[Fixed] Commit summaries with comma delimited issues are parsed - #8162. Thanks @say25!",
+      "[Fixed] Commit description shadow visibility updates when typing - #7994. Thanks @KarstenRa!",
+      "[Improved] Application menu bar is visible when no repositories have been added to the app - #8209"
+    ],
     "2.1.3": [
       "[Fixed] Changes from remote branch erroneously displayed on corresponding branch on Desktop - #8155 #8167",
       "[Fixed] Sign-in flow for Windows users not possible via OAuth - #8154 #8142"
