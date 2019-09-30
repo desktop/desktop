@@ -13,6 +13,8 @@ import {
 } from '../../models/tutorial-step'
 import { encodePathAsUrl } from '../../lib/path'
 import { ExternalEditor } from '../../lib/editors'
+import { PopupType } from '../../models/popup'
+import { PreferencesTab } from '../../models/preferences'
 
 const TutorialPanelImage = encodePathAsUrl(
   __dirname,
@@ -108,27 +110,41 @@ export class TutorialPanel extends React.Component<
             skipLinkButton={<SkipLinkButton onClick={this.skipEditorInstall} />}
             onSummaryClick={this.onStepSummaryClick}
           >
-            <p className="description">
-              It doesn’t look like you have a text editor installed. We can
-              recommend{' '}
-              <LinkButton uri="https://atom.io" title="Open the Atom website">
-                Atom
-              </LinkButton>
-              {` or `}
-              <LinkButton
-                uri="https://code.visualstudio.com"
-                title="Open the VS Code website"
-              >
-                Visual Studio Code
-              </LinkButton>
-              , but feel free to use any.
-            </p>
-            {!this.isStepComplete(TutorialStep.PickEditor) && (
-              <div className="action">
-                <LinkButton onClick={this.skipEditorInstall}>
-                  I have an editor
+            {!this.isStepComplete(TutorialStep.PickEditor) ? (
+              <>
+                <p className="description">
+                  It doesn’t look like you have a text editor installed. We can
+                  recommend{' '}
+                  <LinkButton
+                    uri="https://atom.io"
+                    title="Open the Atom website"
+                  >
+                    Atom
+                  </LinkButton>
+                  {` or `}
+                  <LinkButton
+                    uri="https://code.visualstudio.com"
+                    title="Open the VS Code website"
+                  >
+                    Visual Studio Code
+                  </LinkButton>
+                  , but feel free to use any.
+                </p>
+                <div className="action">
+                  <LinkButton onClick={this.skipEditorInstall}>
+                    I have an editor
+                  </LinkButton>
+                </div>
+              </>
+            ) : (
+              <p className="description">
+                Your default editor is{' '}
+                <strong>{this.props.resolvedExternalEditor}</strong>. You can
+                change your preferred editor in{' '}
+                <LinkButton onClick={this.onPreferencesClick}>
+                  {__DARWIN__ ? 'Preferences' : 'options'}
                 </LinkButton>
-              </div>
+              </p>
             )}
           </TutorialStepInstructions>
           <TutorialStepInstructions
@@ -280,6 +296,13 @@ export class TutorialPanel extends React.Component<
   /** this makes sure we only have one `TutorialListItem` open at a time */
   public onStepSummaryClick = (id: ValidTutorialStep) => {
     this.setState({ currentlyOpenSectionId: id })
+  }
+
+  private onPreferencesClick = () => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.Preferences,
+      initialSelectedTab: PreferencesTab.Advanced,
+    })
   }
 }
 
