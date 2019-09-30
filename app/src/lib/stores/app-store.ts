@@ -432,8 +432,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     const currentStep = await this.tutorialAssessor.getCurrentStep(
       repository.isTutorialRepository,
-      this.repositoryStateCache.get(repository),
-      this.repositories.length
+      this.repositoryStateCache.get(repository)
     )
     log.info(`Current tutorial step is ${currentStep}`)
     // only emit an update if its changed
