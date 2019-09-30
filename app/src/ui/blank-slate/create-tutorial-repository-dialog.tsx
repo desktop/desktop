@@ -23,6 +23,7 @@ import {
   executionOptionsWithProgress,
 } from '../../lib/progress'
 import { Progress } from '../../models/progress'
+import { APIError } from '../../lib/http'
 
 interface ICreateTutorialRepositoryDialogProps {
   /**
@@ -114,12 +115,30 @@ export class CreateTutorialRepositoryDialog extends React.Component<
         true
       )
     } catch (err) {
-      throw new Error(
-        'Could not create the tutorial repository. ' +
-          'The most likely reason is that you already have a repository named ' +
-          `"${name}" on your account at ${friendlyEndpointName(account)}.\n\n` +
-          'Please delete the repository and try again.'
-      )
+      if (
+        err instanceof APIError &&
+        err.responseStatus === 422 &&
+        err.apiError !== null
+      ) {
+        if (err.apiError.message === 'Repository creation failed.') {
+          if (
+            err.apiError.errors &&
+            err.apiError.errors.some(
+              x => x.message === 'name already exists on this account'
+            )
+          ) {
+            throw new Error(
+              'You already have a repository named ' +
+                `"${name}" on your account at ${friendlyEndpointName(
+                  account
+                )}.\n\n` +
+                'Please delete the repository and try again.'
+            )
+          }
+        }
+      }
+
+      throw err
     }
   }
 
