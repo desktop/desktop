@@ -335,3 +335,11 @@ body.theme-dark {
 .CodeMirror-cursor {
   border-left-color: currentColor;
 }
+
+.window-controls button:hover {
+  background-color: #363d45!important;
+}
+
+.window-controls button.close:hover {
+  background-color: #bc0005!important;
+}
