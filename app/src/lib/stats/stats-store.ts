@@ -1219,30 +1219,45 @@ export class StatsStore implements IStatsStore {
 
   public recordTutorialBranchCreated() {
     return this.updateDailyMeasures(() => ({
+      tutorialEditorInstalled: true,
       tutorialBranchCreated: true,
     }))
   }
 
   public recordTutorialFileEdited() {
     return this.updateDailyMeasures(() => ({
+      tutorialEditorInstalled: true,
+      tutorialBranchCreated: true,
       tutorialFileEdited: true,
     }))
   }
 
   public recordTutorialCommitCreated() {
     return this.updateDailyMeasures(() => ({
+      tutorialEditorInstalled: true,
+      tutorialBranchCreated: true,
+      tutorialFileEdited: true,
       tutorialCommitCreated: true,
     }))
   }
 
   public recordTutorialBranchPushed() {
     return this.updateDailyMeasures(() => ({
+      tutorialEditorInstalled: true,
+      tutorialBranchCreated: true,
+      tutorialFileEdited: true,
+      tutorialCommitCreated: true,
       tutorialBranchPushed: true,
     }))
   }
 
   public recordTutorialPrCreated() {
     return this.updateDailyMeasures(() => ({
+      tutorialEditorInstalled: true,
+      tutorialBranchCreated: true,
+      tutorialFileEdited: true,
+      tutorialCommitCreated: true,
+      tutorialBranchPushed: true,
       tutorialPrCreated: true,
     }))
   }
