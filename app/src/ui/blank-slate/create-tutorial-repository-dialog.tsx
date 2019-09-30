@@ -23,6 +23,7 @@ import {
   executionOptionsWithProgress,
 } from '../../lib/progress'
 import { Progress } from '../../models/progress'
+import { APIError } from '../../lib/http'
 
 interface ICreateTutorialRepositoryDialogProps {
   /**
@@ -55,7 +56,7 @@ interface ICreateTutorialRepositoryDialogProps {
     path: string,
     account: Account,
     apiRepository: IAPIRepository
-  ) => void
+  ) => Promise<void>
 
   /**
    * Event triggered when the component encounters an error while
@@ -114,12 +115,30 @@ export class CreateTutorialRepositoryDialog extends React.Component<
         true
       )
     } catch (err) {
-      throw new Error(
-        'Could not create the tutorial repository. ' +
-          'The most likely reason is that you already have a repository named ' +
-          `"${name}" on your account at ${friendlyEndpointName(account)}.\n\n` +
-          'Please delete the repository and try again.'
-      )
+      if (
+        err instanceof APIError &&
+        err.responseStatus === 422 &&
+        err.apiError !== null
+      ) {
+        if (err.apiError.message === 'Repository creation failed.') {
+          if (
+            err.apiError.errors &&
+            err.apiError.errors.some(
+              x => x.message === 'name already exists on this account'
+            )
+          ) {
+            throw new Error(
+              'You already have a repository named ' +
+                `"${name}" on your account at ${friendlyEndpointName(
+                  account
+                )}.\n\n` +
+                'Please delete the repository and try again.'
+            )
+          }
+        }
+      }
+
+      throw err
     }
   }
 
@@ -188,13 +207,15 @@ export class CreateTutorialRepositoryDialog extends React.Component<
       )
 
       await this.pushRepo(path, account, (title, value, description) => {
-        this.setProgress(title, 0.3 + value * 0.7, description)
+        this.setProgress(title, 0.3 + value * 0.6, description)
       })
 
-      this.setState({ progress: undefined })
-      this.props.onTutorialRepositoryCreated(path, account, repo)
+      this.setProgress('Finalizing tutorial repository', 0.9)
+      await this.props.onTutorialRepositoryCreated(path, account, repo)
       this.props.onDismissed()
     } catch (err) {
+      this.setState({ loading: false, progress: undefined })
+
       if (err instanceof GitError) {
         this.props.onError(err)
       } else {
@@ -204,8 +225,6 @@ export class CreateTutorialRepositoryDialog extends React.Component<
           )
         )
       }
-    } finally {
-      this.setState({ loading: false })
     }
   }
 
@@ -249,6 +268,7 @@ export class CreateTutorialRepositoryDialog extends React.Component<
         onSubmit={this.onSubmit}
         dismissable={!this.state.loading}
         loading={this.state.loading}
+        disabled={this.state.loading}
       >
         <DialogContent>
           <div>

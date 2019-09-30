@@ -11,7 +11,7 @@ Download the `GitHub Desktop.zip`, unpack the application and put it wherever yo
 On Windows you have two options:
 
  - Download the `GitHubDesktopSetup.exe` and run it to install it for the current user.
- - Download the `GitHubDesktopSetup.msi` and run it to install a machine-wide version of GitHub Desktop - each logged-in user will then be able to run GitHub Desktop from the program at `%PROGRAMFILES(x86)\GitHub Desktop Installer\desktop.exe`
+ - Download the `GitHubDesktopSetup.msi` and run it to install a machine-wide version of GitHub Desktop - each logged-in user will then be able to run GitHub Desktop from the program at `%PROGRAMFILES(x86)\GitHub Desktop Installer\desktop.exe`.
 
 ## Data Directories
 

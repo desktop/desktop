@@ -16,6 +16,7 @@ branches:
     - development
     - /releases\/.+/
     - /^__release-.*/
+    - /epic\/.*/
 
 skip_tags: true
 

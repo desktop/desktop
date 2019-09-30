@@ -111,5 +111,5 @@ export function enableHideWhitespaceInDiffOption(): boolean {
  * configuration of the tutorial repo as well as the tutorial itself.
  */
 export function enableTutorial(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
