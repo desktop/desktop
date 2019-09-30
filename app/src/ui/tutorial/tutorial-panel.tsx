@@ -221,9 +221,10 @@ export class TutorialPanel extends React.Component<
             onSummaryClick={this.onStepSummaryClick}
           >
             <p className="description">
-              A commit allows you to save sets of changes. In the “summary“ field in the bottom left,
-              write a message that describes the changes you made. When
-              you’re done, click the blue Commit button to finish.
+              A commit allows you to save sets of changes. In the “summary“
+              field in the bottom left, write a message that describes the
+              changes you made. When you’re done, click the blue Commit button
+              to finish.
             </p>
           </TutorialStepInstructions>
           <TutorialStepInstructions
@@ -236,7 +237,8 @@ export class TutorialPanel extends React.Component<
           >
             <p className="description">
               Publishing will “push”, or upload, your commits to this branch of
-              your repository on GitHub.com. Publish using the third button in the top bar.
+              your repository on GitHub.com. Publish using the third button in
+              the top bar.
             </p>
             <div className="action">
               {__DARWIN__ ? (
