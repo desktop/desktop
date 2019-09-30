@@ -38,11 +38,12 @@ export class OnboardingTutorialAssessor {
   /** Determines what step the user needs to complete next in the Onboarding Tutorial */
   public async getCurrentStep(
     isTutorialRepo: boolean,
-    repositoryState: IRepositoryState
+    repositoryState: IRepositoryState,
+    repoCount: number
   ): Promise<TutorialStep> {
     if (!isTutorialRepo) {
       return TutorialStep.NotApplicable
-    } else if (this.tutorialPaused) {
+    } else if (this.tutorialPaused && repoCount === 1) {
       return TutorialStep.Paused
     } else if (!(await this.isEditorInstalled())) {
       return TutorialStep.PickEditor
