@@ -322,6 +322,13 @@ export interface IDailyMeasures {
    * Has the user completed all tutorial steps?
    */
   readonly tutorialCompleted: boolean
+
+  /**
+   * _[Onboarding tutorial]_
+   * What's the highest tutorial step completed by user?
+   * (`0` is tutorial created, first step is `1`)
+   */
+  readonly highestTutorialStepCompleted: number
 }
 
 export class StatsDatabase extends Dexie {

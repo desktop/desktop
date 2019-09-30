@@ -121,6 +121,8 @@ const DefaultDailyMeasures: IDailyMeasures = {
   tutorialBranchPushed: false,
   tutorialPrCreated: false,
   tutorialCompleted: false,
+  // this is `-1` because `0` signifies "tutorial created"
+  highestTutorialStepCompleted: -1,
 }
 
 interface IOnboardingStats {
@@ -1248,6 +1250,15 @@ export class StatsStore implements IStatsStore {
   public recordTutorialCompleted() {
     return this.updateDailyMeasures(() => ({
       tutorialCompleted: true,
+    }))
+  }
+
+  public recordHighestTutorialStepCompleted(step: number) {
+    return this.updateDailyMeasures(m => ({
+      highestTutorialStepCompleted: Math.max(
+        step,
+        m.highestTutorialStepCompleted
+      ),
     }))
   }
 

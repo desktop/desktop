@@ -452,7 +452,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (!isValidTutorialStep(step)) {
       return
     }
+
     const stepInd = orderedTutorialSteps.indexOf(step)
+    this.statsStore.recordHighestTutorialStepCompleted(stepInd)
+
     if (stepInd > orderedTutorialSteps.indexOf(TutorialStep.PickEditor)) {
       this.statsStore.recordTutorialEditorInstalled()
     }
