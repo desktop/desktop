@@ -120,7 +120,10 @@ export async function createDesktopStashEntry(
 ): Promise<true> {
   // We must ensure that no untracked files are present before stashing
   // See https://github.com/desktop/desktop/pull/8085
-  await stageFiles(repository, untrackedFilesToStage)
+  await stageFiles(
+    repository,
+    untrackedFilesToStage.map(x => x.withIncludeAll(true))
+  )
 
   const message = createDesktopStashMessage(branchName)
   const args = ['stash', 'push', '-m', message]
