@@ -425,7 +425,7 @@ export function buildDefaultMenu({
     click() {
       shell
         .openExternal('https://github.com/desktop/desktop/issues/new/choose')
-        .catch(err => log('error', `Call to openExternal failed: '${err}'`))
+        .catch(err => log.error('Failed opening issue creation page', err))
     },
   }
 
@@ -436,7 +436,7 @@ export function buildDefaultMenu({
         .openExternal(
           `https://github.com/contact?from_desktop_app=1&app_version=${app.getVersion()}`
         )
-        .catch(err => log('error', `Call to openExternal failed: '${err}'`))
+        .catch(err => log.error('Failed opening contact support page', err))
     },
   }
 
@@ -445,7 +445,7 @@ export function buildDefaultMenu({
     click() {
       shell
         .openExternal('https://help.github.com/desktop/guides/')
-        .catch(err => log('error', `Call to openExternal failed: '${err}'`))
+        .catch(err => log.error('Failed opening user guides page', err))
     },
   }
 
@@ -456,7 +456,7 @@ export function buildDefaultMenu({
         .openExternal(
           'https://help.github.com/en/desktop/getting-started-with-github-desktop/keyboard-shortcuts-in-github-desktop'
         )
-        .catch(err => log('error', `Call to openExternal failed: '${err}'`))
+        .catch(err => log.error('Failed opening keyboard shortcuts page', err))
     },
   }
 
@@ -475,7 +475,7 @@ export function buildDefaultMenu({
           openDirectorySafe(logPath)
         })
         .catch(err => {
-          log('error', err.message)
+          log.error('Failed opening logs directory', err)
         })
     },
   }

@@ -20,7 +20,7 @@ export function openDirectorySafe(path: string) {
 
     shell
       .openExternal(directoryURL)
-      .catch(err => log.error(`Call to openExternal failed: '${err}'`))
+      .catch(err => log.error(`Failed to open directory (${path})`, err))
   } else {
     shell.openItem(path)
   }
