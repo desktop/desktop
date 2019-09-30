@@ -202,9 +202,21 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   }
 
   public componentDidMount() {
+    if (!this.dialogElement) {
+      return
+    }
+
     // This cast to any is necessary since React doesn't know about the
     // dialog element yet.
     ;(this.dialogElement as any).showModal()
+    // Provide an event that components can subscribe to in order to perform
+    // tasks such as re-layout after the dialog is visible
+    this.dialogElement.dispatchEvent(
+      new CustomEvent('dialog-show', {
+        bubbles: true,
+        cancelable: false,
+      })
+    )
 
     this.setState({ isAppearing: true })
     this.scheduleDismissGraceTimeout()
