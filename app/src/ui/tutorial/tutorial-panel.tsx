@@ -236,7 +236,7 @@ export class TutorialPanel extends React.Component<
           >
             <p className="description">
               Publishing will “push”, or upload, your commits to this branch of
-              your repository on GitHub.com.
+              your repository on GitHub.com. Publish using the third button in the top bar.
             </p>
             <div className="action">
               {__DARWIN__ ? (
