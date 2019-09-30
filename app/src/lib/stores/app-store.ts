@@ -240,7 +240,11 @@ import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
 import { findBranchesForFastForward } from './helpers/find-branches-for-fast-forward'
-import { TutorialStep } from '../../models/tutorial-step'
+import {
+  TutorialStep,
+  isValidTutorialStep,
+  orderedTutorialSteps,
+} from '../../models/tutorial-step'
 import { OnboardingTutorialAssessor } from './helpers/tutorial-assessor'
 import { getUntrackedFiles } from '../status'
 
@@ -444,34 +448,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private recordTutorialStepCompleted(step: TutorialStep): void {
-    switch (step) {
-      case TutorialStep.PickEditor:
-        this.statsStore.recordTutorialRepoCreated()
-        break
-      case TutorialStep.CreateBranch:
-        this.statsStore.recordTutorialEditorInstalled()
-        break
-      case TutorialStep.EditFile:
-        this.statsStore.recordTutorialBranchCreated()
-        break
-      case TutorialStep.MakeCommit:
-        this.statsStore.recordTutorialFileEdited()
-        break
-      case TutorialStep.PushBranch:
-        this.statsStore.recordTutorialCommitCreated()
-        break
-      case TutorialStep.OpenPullRequest:
-        this.statsStore.recordTutorialBranchPushed()
-        break
-      case TutorialStep.AllDone:
-        this.statsStore.recordTutorialPrCreated()
-        this.statsStore.recordTutorialCompleted()
-        break
-      case TutorialStep.NotApplicable:
-      case TutorialStep.Paused:
-        break
-      default:
-        assertNever(step, 'Unaccounted for step type')
+    // if it's not a valid step, we don't need to record anything
+    if (!isValidTutorialStep(step)) {
+      return
+    }
+    const stepInd = orderedTutorialSteps.indexOf(step)
+    if (stepInd > orderedTutorialSteps.indexOf(TutorialStep.PickEditor)) {
+      this.statsStore.recordTutorialEditorInstalled()
+    }
+    if (stepInd > orderedTutorialSteps.indexOf(TutorialStep.CreateBranch)) {
+      this.statsStore.recordTutorialBranchCreated()
+    }
+    if (stepInd > orderedTutorialSteps.indexOf(TutorialStep.EditFile)) {
+      this.statsStore.recordTutorialFileEdited()
+    }
+    if (stepInd > orderedTutorialSteps.indexOf(TutorialStep.MakeCommit)) {
+      this.statsStore.recordTutorialCommitCreated()
+    }
+    if (stepInd > orderedTutorialSteps.indexOf(TutorialStep.PushBranch)) {
+      this.statsStore.recordTutorialBranchPushed()
+    }
+    if (stepInd > orderedTutorialSteps.indexOf(TutorialStep.OpenPullRequest)) {
+      this.statsStore.recordTutorialPrCreated()
+      this.statsStore.recordTutorialCompleted()
     }
   }
 
