@@ -8,7 +8,8 @@
       "[Improved] Tutorial welcome design revisions - #8344",
       "[Improved] Support stashing lots of untracked files on Windows - #8345",
       "[Improved] Specific error message when tutorial creation fails due to repository already existing - #8351",
-      "[Improved] Tweak responsive styles for welcome pane - #8352"
+      "[Improved] Tweak responsive styles for welcome pane - #8352",
+      "[Improved] Tutorial step instructions are more clear - #8374"
     ],
     "2.2.0-beta2": [
       "[Added] Add \"Welcome\" and \"You're done!\" screens to onboarding tutorial - #8232",
