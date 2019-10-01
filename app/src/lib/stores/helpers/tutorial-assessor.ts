@@ -6,6 +6,7 @@ import { setBoolean, getBoolean } from '../../local-storage'
 
 const skipInstallEditorKey = 'tutorial-install-editor-skipped'
 const pullRequestStepCompleteKey = 'tutorial-pull-request-step-complete'
+const tutorialPausedKey = 'tutorial-paused'
 
 /**
  * Used to determine which step of the onboarding
@@ -26,6 +27,8 @@ export class OnboardingTutorialAssessor {
     pullRequestStepCompleteKey,
     false
   )
+  /** Is the tutorial currently paused? */
+  private tutorialPaused: boolean = getBoolean(tutorialPausedKey, false)
 
   public constructor(
     /** Method to call when we need to get the current editor */
@@ -38,7 +41,15 @@ export class OnboardingTutorialAssessor {
     repositoryState: IRepositoryState
   ): Promise<TutorialStep> {
     if (!isTutorialRepo) {
+      // If a new repo has been added, we can unpause the tutorial repo
+      // as we will no longer present the no-repos blank slate view resume button
+      // Fixes https://github.com/desktop/desktop/issues/8341
+      if (this.tutorialPaused) {
+        this.resumeTutorial()
+      }
       return TutorialStep.NotApplicable
+    } else if (this.tutorialPaused) {
+      return TutorialStep.Paused
     } else if (!(await this.isEditorInstalled())) {
       return TutorialStep.PickEditor
     } else if (!this.isBranchCheckedOut(repositoryState)) {
@@ -143,5 +154,19 @@ export class OnboardingTutorialAssessor {
     localStorage.removeItem(skipInstallEditorKey)
     this.prStepComplete = false
     localStorage.removeItem(pullRequestStepCompleteKey)
+    this.tutorialPaused = false
+    localStorage.removeItem(tutorialPausedKey)
+  }
+
+  /** Call when the user pauses the tutorial */
+  public pauseTutorial() {
+    this.tutorialPaused = true
+    setBoolean(tutorialPausedKey, this.tutorialPaused)
+  }
+
+  /** Call when the user resumes the tutorial */
+  public resumeTutorial() {
+    this.tutorialPaused = false
+    setBoolean(tutorialPausedKey, this.tutorialPaused)
   }
 }

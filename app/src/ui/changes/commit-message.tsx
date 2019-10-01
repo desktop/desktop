@@ -48,7 +48,7 @@ interface ICommitMessageProps {
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
   readonly isCommitting: boolean
   readonly placeholder: string
-  readonly singleFileCommit: boolean
+  readonly prepopulateCommitSummary: boolean
   readonly currentBranchProtected: boolean
 
   /**
@@ -211,7 +211,7 @@ export class CommitMessage extends React.Component<
     const trailers = this.getCoAuthorTrailers()
 
     const summaryOrPlaceholder =
-      this.props.singleFileCommit && !this.state.summary
+      this.props.prepopulateCommitSummary && !this.state.summary
         ? this.props.placeholder
         : summary
 
@@ -233,7 +233,7 @@ export class CommitMessage extends React.Component<
   private canCommit(): boolean {
     return (
       (this.props.anyFilesSelected && this.state.summary.length > 0) ||
-      this.props.singleFileCommit
+      this.props.prepopulateCommitSummary
     )
   }
 

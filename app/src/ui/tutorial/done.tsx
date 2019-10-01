@@ -5,14 +5,12 @@ import { Button } from '../lib/button'
 import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { PopupType } from '../../models/popup'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 const ClappingHandsImage = encodePathAsUrl(
   __dirname,
   'static/admin-mentoring.svg'
 )
-const ExploreImage = encodePathAsUrl(__dirname, 'static/explore.svg')
-const NewRepoImage = encodePathAsUrl(__dirname, 'static/repo-template.svg')
-const FolderImage = encodePathAsUrl(__dirname, 'static/file-directory.svg')
 
 interface ITutorialDoneProps {
   readonly dispatcher: Dispatcher
@@ -57,7 +55,7 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
     return (
       <li className="blankslate-action">
         <div className="image-wrapper">
-          <img src={ExploreImage} />
+          <Octicon symbol={OcticonSymbol.telescope} />
         </div>
         <div className="text-wrapper">
           <h2>Explore projects on GitHub</h2>
@@ -65,7 +63,9 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
             Contribute to a project that interests you
           </p>
         </div>
-        <Button onClick={this.openDotcomExplore}>Open in browser</Button>
+        <Button onClick={this.openDotcomExplore}>
+          {__DARWIN__ ? 'Open in Browser' : 'Open in browser'}
+        </Button>
       </li>
     )
   }
@@ -74,13 +74,15 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
     return (
       <li className="blankslate-action">
         <div className="image-wrapper">
-          <img src={NewRepoImage} />
+          <Octicon symbol={OcticonSymbol.plus} />
         </div>
         <div className="text-wrapper">
-          <h2>Start a new project</h2>
-          <p className="description">Create a new repository</p>
+          <h2>Create a new repository</h2>
+          <p className="description">Get started on a brand new project</p>
         </div>
-        <Button onClick={this.onCreateNewRepository}>Create repository</Button>
+        <Button onClick={this.onCreateNewRepository}>
+          {__DARWIN__ ? 'Create Repository' : 'Create repository'}
+        </Button>
       </li>
     )
   }
@@ -89,7 +91,7 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
     return (
       <li className="blankslate-action">
         <div className="image-wrapper">
-          <img src={FolderImage} />
+          <Octicon symbol={OcticonSymbol.fileDirectory} />
         </div>
         <div className="text-wrapper">
           <h2>Add a local repository</h2>
@@ -97,7 +99,9 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
             Work on an existing project in GitHub Desktop
           </p>
         </div>
-        <Button onClick={this.onAddExistingRepository}>Add repository</Button>
+        <Button onClick={this.onAddExistingRepository}>
+          {__DARWIN__ ? 'Add Repository' : 'Add repository'}
+        </Button>
       </li>
     )
   }
