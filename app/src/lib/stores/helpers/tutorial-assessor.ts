@@ -41,6 +41,12 @@ export class OnboardingTutorialAssessor {
     repositoryState: IRepositoryState
   ): Promise<TutorialStep> {
     if (!isTutorialRepo) {
+      // If a new repo has been added, we can unpause the tutorial repo
+      // as we will no longer present the no-repos blank slate view resume button
+      // Fixes https://github.com/desktop/desktop/issues/8341
+      if (this.tutorialPaused) {
+        this.resumeTutorial()
+      }
       return TutorialStep.NotApplicable
     } else if (this.tutorialPaused) {
       return TutorialStep.Paused
