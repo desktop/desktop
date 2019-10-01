@@ -96,7 +96,7 @@ export class Preferences extends React.Component<
         }
 
         if (!committerEmail) {
-          const found = lookupPreferredEmail(account.emails)
+          const found = lookupPreferredEmail(account)
           if (found) {
             committerEmail = found.email
           }

@@ -21,7 +21,7 @@ describe('git/merge', () => {
         repository = new Repository(path, -1, null, false)
       })
       it('returns true', async () => {
-        expect(await merge(repository, 'dev')).toBe(true)
+        expect(await merge(repository, 'dev')).toBeTrue()
       })
     })
     describe('and is a noop', () => {
@@ -32,7 +32,7 @@ describe('git/merge', () => {
         await merge(repository, 'dev')
       })
       it('returns false', async () => {
-        expect(await merge(repository, 'dev')).toBe(false)
+        expect(await merge(repository, 'dev')).toBeFalse()
       })
     })
   })

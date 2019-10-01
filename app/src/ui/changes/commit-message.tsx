@@ -48,7 +48,7 @@ interface ICommitMessageProps {
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
   readonly isCommitting: boolean
   readonly placeholder: string
-  readonly singleFileCommit: boolean
+  readonly prepopulateCommitSummary: boolean
   readonly currentBranchProtected: boolean
 
   /**
@@ -211,7 +211,7 @@ export class CommitMessage extends React.Component<
     const trailers = this.getCoAuthorTrailers()
 
     const summaryOrPlaceholder =
-      this.props.singleFileCommit && !this.state.summary
+      this.props.prepopulateCommitSummary && !this.state.summary
         ? this.props.placeholder
         : summary
 
@@ -233,7 +233,7 @@ export class CommitMessage extends React.Component<
   private canCommit(): boolean {
     return (
       (this.props.anyFilesSelected && this.state.summary.length > 0) ||
-      this.props.singleFileCommit
+      this.props.prepopulateCommitSummary
     )
   }
 
@@ -399,7 +399,7 @@ export class CommitMessage extends React.Component<
 
   private onDescriptionTextAreaRef = (elem: HTMLTextAreaElement | null) => {
     if (elem) {
-      elem.addEventListener('scroll', () => {
+      const checkDescriptionScrollState = () => {
         if (this.descriptionTextAreaScrollDebounceId !== null) {
           cancelAnimationFrame(this.descriptionTextAreaScrollDebounceId)
           this.descriptionTextAreaScrollDebounceId = null
@@ -407,7 +407,9 @@ export class CommitMessage extends React.Component<
         this.descriptionTextAreaScrollDebounceId = requestAnimationFrame(
           this.onDescriptionTextAreaScroll
         )
-      })
+      }
+      elem.addEventListener('input', checkDescriptionScrollState)
+      elem.addEventListener('scroll', checkDescriptionScrollState)
     }
 
     this.descriptionTextArea = elem
