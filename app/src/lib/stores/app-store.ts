@@ -420,14 +420,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.tutorialAssessor = new OnboardingTutorialAssessor(
       this.getResolvedExternalEditor
     )
-
-    // Deferred, attempts to resolve the user's selected editor (i.e.
-    // ensures that it's actually present on the machine), needs to
-    // happen after the tutorial assessor has been initialized, see:
-    // https://github.com/desktop/desktop/pull/8242#pullrequestreview-289936574
-    this._resolveCurrentEditor().catch(e =>
-      log.error('Failed resolving current editor at startup', e)
-    )
   }
 
   /** Figure out what step of the tutorial the user needs to do next */
@@ -1760,6 +1752,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (externalEditorValue) {
       this.selectedExternalEditor = externalEditorValue
     }
+
+    // Deferred, attempts to resolve the user's selected editor (i.e.
+    // ensures that it's actually present on the machine), needs to
+    // happen after the tutorial assessor has been initialized, see:
+    // https://github.com/desktop/desktop/pull/8242#pullrequestreview-289936574
+    this._resolveCurrentEditor().catch(e =>
+      log.error('Failed resolving current editor at startup', e)
+    )
 
     const shellValue = localStorage.getItem(shellKey)
     this.selectedShell = shellValue ? parseShell(shellValue) : DefaultShell
