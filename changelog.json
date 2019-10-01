@@ -2,7 +2,7 @@
   "releases": {
     "2.2.0-beta3": [
       "[Fixed] File path truncation in merge conflicts dialog - #6666",
-      "[Fixed] Support pushing workflow files to GitHub.com - #7079",
+      "[Fixed] Support pushing workflow files for GitHub Actions to GitHub.com - #7079",
       "[Fixed] Resume tutorial if new repo has been added - #8341",
       "[Fixed] Retain commit summary placeholder in tutorial repo - #8354",
       "[Improved] Tutorial welcome design revisions - #8344",
