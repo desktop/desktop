@@ -23,6 +23,7 @@ import {
   executionOptionsWithProgress,
 } from '../../lib/progress'
 import { Progress } from '../../models/progress'
+import { Dispatcher } from '../dispatcher'
 import { APIError } from '../../lib/http'
 
 interface ICreateTutorialRepositoryDialogProps {
@@ -31,6 +32,8 @@ interface ICreateTutorialRepositoryDialogProps {
    * be the owner of the tutorial repository.
    */
   readonly account: Account
+
+  readonly dispatcher: Dispatcher
 
   /**
    * Event triggered when the dialog is dismissed by the user in the
@@ -167,6 +170,8 @@ export class CreateTutorialRepositoryDialog extends React.Component<
   }
 
   public onSubmit = async () => {
+    this.props.dispatcher.recordTutorialStarted()
+
     const { account } = this.props
     const endpointName = friendlyEndpointName(account)
     this.setState({ loading: true })
@@ -212,6 +217,7 @@ export class CreateTutorialRepositoryDialog extends React.Component<
 
       this.setProgress('Finalizing tutorial repository', 0.9)
       await this.props.onTutorialRepositoryCreated(path, account, repo)
+      this.props.dispatcher.recordTutorialRepositoryCreated()
       this.props.onDismissed()
     } catch (err) {
       this.setState({ loading: false, progress: undefined })
