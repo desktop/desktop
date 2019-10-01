@@ -18,7 +18,9 @@ export function openDirectorySafe(path: string) {
       slashes: true,
     })
 
-    shell.openExternal(directoryURL)
+    shell
+      .openExternal(directoryURL)
+      .catch(err => log.error(`Failed to open directory (${path})`, err))
   } else {
     shell.openItem(path)
   }

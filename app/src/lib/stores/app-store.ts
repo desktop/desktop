@@ -240,7 +240,11 @@ import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
 import { findBranchesForFastForward } from './helpers/find-branches-for-fast-forward'
-import { TutorialStep } from '../../models/tutorial-step'
+import {
+  TutorialStep,
+  orderedTutorialSteps,
+  isValidTutorialStep,
+} from '../../models/tutorial-step'
 import { OnboardingTutorialAssessor } from './helpers/tutorial-assessor'
 import { getUntrackedFiles } from '../status'
 
@@ -438,7 +442,45 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // only emit an update if its changed
     if (currentStep !== this.currentOnboardingTutorialStep) {
       this.currentOnboardingTutorialStep = currentStep
+      this.recordTutorialStepCompleted(currentStep)
       this.emitUpdate()
+    }
+  }
+
+  private recordTutorialStepCompleted(step: TutorialStep): void {
+    if (!isValidTutorialStep(step)) {
+      return
+    }
+
+    this.statsStore.recordHighestTutorialStepCompleted(
+      orderedTutorialSteps.indexOf(step)
+    )
+
+    switch (step) {
+      case TutorialStep.PickEditor:
+        // don't need to record anything for the first step
+        break
+      case TutorialStep.CreateBranch:
+        this.statsStore.recordTutorialEditorInstalled()
+        break
+      case TutorialStep.EditFile:
+        this.statsStore.recordTutorialBranchCreated()
+        break
+      case TutorialStep.MakeCommit:
+        this.statsStore.recordTutorialFileEdited()
+        break
+      case TutorialStep.PushBranch:
+        this.statsStore.recordTutorialCommitCreated()
+        break
+      case TutorialStep.OpenPullRequest:
+        this.statsStore.recordTutorialBranchPushed()
+        break
+      case TutorialStep.AllDone:
+        this.statsStore.recordTutorialPrCreated()
+        this.statsStore.recordTutorialCompleted()
+        break
+      default:
+        assertNever(step, 'Unaccounted for step type')
     }
   }
 
