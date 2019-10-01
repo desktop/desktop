@@ -1748,7 +1748,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnForcePushDefault
     )
 
-    this.selectedExternalEditor = await this.getSelectedExternalEditor()
+    this.selectedExternalEditor = await this.lookupSelectedExternalEditor()
 
     // Deferred, attempts to resolve the user's selected editor (i.e.
     // ensures that it's actually present on the machine), needs to
@@ -1794,7 +1794,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.accountsStore.refresh()
   }
 
-  private async getSelectedExternalEditor(): Promise<ExternalEditor | null> {
+  private async lookupSelectedExternalEditor(): Promise<ExternalEditor | null> {
     const externalEditorValue = localStorage.getItem(externalEditorKey)
     if (externalEditorValue) {
       const value = parse(externalEditorValue)
