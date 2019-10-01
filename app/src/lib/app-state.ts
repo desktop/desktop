@@ -175,7 +175,7 @@ export interface IAppState {
   readonly askForConfirmationOnForcePush: boolean
 
   /** The external editor to use when opening repositories */
-  readonly selectedExternalEditor?: ExternalEditor
+  readonly selectedExternalEditor: ExternalEditor | null
 
   /** The current setting for whether the user has disable usage reports */
   readonly optOutOfUsageTracking: boolean

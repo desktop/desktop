@@ -357,7 +357,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
   private hideWhitespaceInDiff: boolean = hideWhitespaceInDiffDefault
 
-  private selectedExternalEditor?: ExternalEditor
+  private selectedExternalEditor: ExternalEditor | null = null
 
   private resolvedExternalEditor: ExternalEditor | null = null
 
@@ -1748,10 +1748,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnForcePushDefault
     )
 
-    const externalEditorValue = await this.getSelectedExternalEditor()
-    if (externalEditorValue) {
-      this.selectedExternalEditor = externalEditorValue
-    }
+    this.selectedExternalEditor = await this.getSelectedExternalEditor()
 
     // Deferred, attempts to resolve the user's selected editor (i.e.
     // ensures that it's actually present on the machine), needs to
@@ -1853,7 +1850,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const labels: MenuLabelsEvent = {
       selectedShell,
-      selectedExternalEditor: selectedExternalEditor || null,
+      selectedExternalEditor,
       askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnForcePush,
     }
