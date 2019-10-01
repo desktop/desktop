@@ -1,5 +1,16 @@
 {
   "releases": {
+    "2.2.0-beta3": [
+      "[Fixed] File path truncation in merge conflicts dialog - #6666",
+      "[Fixed] Support pushing workflow files for GitHub Actions to GitHub.com - #7079",
+      "[Fixed] Resume tutorial if new repo has been added - #8341",
+      "[Improved] Retain commit summary placeholder in tutorial repo - #8354",
+      "[Improved] Tutorial welcome design revisions - #8344",
+      "[Improved] Support stashing lots of untracked files on Windows - #8345",
+      "[Improved] Specific error message when tutorial creation fails due to repository already existing - #8351",
+      "[Improved] Tweak responsive styles for welcome pane - #8352",
+      "[Improved] Tutorial step instructions are more clear - #8374"
+    ],
     "2.2.0-beta2": [
       "[Added] Add \"Welcome\" and \"You're done!\" screens to onboarding tutorial - #8232",
       "[Added] Button to exit and resume onboarding tutorial - #8231",
