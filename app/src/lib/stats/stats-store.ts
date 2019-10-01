@@ -112,6 +112,17 @@ const DefaultDailyMeasures: IDailyMeasures = {
   suggestedStepViewStash: 0,
   commitsToProtectedBranch: 0,
   commitsToRepositoryWithBranchProtections: 0,
+  tutorialStarted: false,
+  tutorialRepoCreated: false,
+  tutorialEditorInstalled: false,
+  tutorialBranchCreated: false,
+  tutorialFileEdited: false,
+  tutorialCommitCreated: false,
+  tutorialBranchPushed: false,
+  tutorialPrCreated: false,
+  tutorialCompleted: false,
+  // this is `-1` because `0` signifies "tutorial created"
+  highestTutorialStepCompleted: -1,
 }
 
 interface IOnboardingStats {
@@ -1182,6 +1193,87 @@ export class StatsStore implements IStatsStore {
 
     return this.updateDailyMeasures(m => ({
       active: true,
+    }))
+  }
+
+  /**
+   * Onboarding tutorial metrics
+   */
+  public recordTutorialStarted() {
+    return this.updateDailyMeasures(() => ({
+      tutorialStarted: true,
+    }))
+  }
+
+  public recordTutorialRepoCreated() {
+    return this.updateDailyMeasures(() => ({
+      tutorialRepoCreated: true,
+    }))
+  }
+
+  public recordTutorialEditorInstalled() {
+    return this.updateDailyMeasures(() => ({
+      tutorialEditorInstalled: true,
+    }))
+  }
+
+  public recordTutorialBranchCreated() {
+    return this.updateDailyMeasures(() => ({
+      tutorialEditorInstalled: true,
+      tutorialBranchCreated: true,
+    }))
+  }
+
+  public recordTutorialFileEdited() {
+    return this.updateDailyMeasures(() => ({
+      tutorialEditorInstalled: true,
+      tutorialBranchCreated: true,
+      tutorialFileEdited: true,
+    }))
+  }
+
+  public recordTutorialCommitCreated() {
+    return this.updateDailyMeasures(() => ({
+      tutorialEditorInstalled: true,
+      tutorialBranchCreated: true,
+      tutorialFileEdited: true,
+      tutorialCommitCreated: true,
+    }))
+  }
+
+  public recordTutorialBranchPushed() {
+    return this.updateDailyMeasures(() => ({
+      tutorialEditorInstalled: true,
+      tutorialBranchCreated: true,
+      tutorialFileEdited: true,
+      tutorialCommitCreated: true,
+      tutorialBranchPushed: true,
+    }))
+  }
+
+  public recordTutorialPrCreated() {
+    return this.updateDailyMeasures(() => ({
+      tutorialEditorInstalled: true,
+      tutorialBranchCreated: true,
+      tutorialFileEdited: true,
+      tutorialCommitCreated: true,
+      tutorialBranchPushed: true,
+      tutorialPrCreated: true,
+    }))
+  }
+
+  public recordTutorialCompleted() {
+    return this.updateDailyMeasures(() => ({
+      tutorialCompleted: true,
+    }))
+  }
+
+  public recordHighestTutorialStepCompleted(step: number) {
+    return this.updateDailyMeasures(m => ({
+      highestTutorialStepCompleted: Math.max(
+        step,
+        m.highestTutorialStepCompleted
+      ),
     }))
   }
 

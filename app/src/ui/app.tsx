@@ -1830,6 +1830,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <CreateTutorialRepositoryDialog
             key="create-tutorial-repository-dialog"
+            dispatcher={this.props.dispatcher}
             account={popup.account}
             onDismissed={this.onPopupDismissed}
             onTutorialRepositoryCreated={this.onTutorialRepositoryCreated}
