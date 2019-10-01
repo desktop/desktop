@@ -11,6 +11,7 @@ import {
   CommittedFileChange,
 } from '../../models/status'
 import { parseChangedFiles } from './log'
+import { stageFiles } from './update-index'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 
@@ -119,14 +120,12 @@ export async function createDesktopStashEntry(
 ): Promise<true> {
   // We must ensure that no untracked files are present before stashing
   // See https://github.com/desktop/desktop/pull/8085
-  if (untrackedFilesToStage.length > 0) {
-    const untrackedFilepaths = untrackedFilesToStage.map(uf => uf.path)
-    await git(
-      ['add', '--', ...untrackedFilepaths],
-      repository.path,
-      'stageUntrackedFilesBeforeStashing'
-    )
-  }
+  // First ensure that all changes in file are selected
+  // (in case the user has not explicitly checked the checkboxes for the untracked files)
+  const fullySelectedUntrackedFiles = untrackedFilesToStage.map(x =>
+    x.withIncludeAll(true)
+  )
+  await stageFiles(repository, fullySelectedUntrackedFiles)
 
   const message = createDesktopStashMessage(branchName)
   const args = ['stash', 'push', '-m', message]
