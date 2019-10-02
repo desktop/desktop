@@ -29,6 +29,21 @@
     margin-right: var(--spacing-double);
   }
 
+  .image-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin-right: var(--spacing-double);
+    flex-shrink: 0;
+    .octicon {
+      height: 100%;
+      width: 100%;
+      color: var(--blankslate-action-icon-color);
+    }
+  }
+
   h2 {
     margin: 0;
     padding: 0;
