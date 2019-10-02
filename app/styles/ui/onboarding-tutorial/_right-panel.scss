@@ -93,7 +93,15 @@
       align-items: center;
 
       .button-component {
+        display: flex;
+        align-items: center;
         margin-right: var(--spacing);
+        .octicon {
+          margin-left: var(--spacing);
+          color: var(--text-secondary-color);
+          height: 14px;
+          width: 14px;
+        }
       }
 
       kbd {
