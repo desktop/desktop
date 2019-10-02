@@ -5268,6 +5268,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _resolveCurrentEditor() {
+    // findEditorOrDefault may, despite its name, throw when given a
+    // preferred editor argument. When given no arguments it will never
+    // throw. In this instance we really don't want it to throw but we
+    // also want to attempt to resolve the user's preferred editor so
+    // we'll try twice (which is fine from a performance perspective since
+    // the list of available editors is cached).
     const match = await findEditorOrDefault(this.selectedExternalEditor).catch(
       () => findEditorOrDefault()
     )
