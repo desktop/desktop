@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.2.1-beta0": [],
     "2.2.0": [
       "[New] Interactive tutorial for new users to become productive using Git and GitHub more quickly - #8148 #8149",
       "[Added] Support pushing workflow files for GitHub Actions to GitHub.com - #7079",
