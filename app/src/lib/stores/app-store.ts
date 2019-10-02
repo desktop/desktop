@@ -240,7 +240,11 @@ import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
 import { findBranchesForFastForward } from './helpers/find-branches-for-fast-forward'
-import { TutorialStep } from '../../models/tutorial-step'
+import {
+  TutorialStep,
+  orderedTutorialSteps,
+  isValidTutorialStep,
+} from '../../models/tutorial-step'
 import { OnboardingTutorialAssessor } from './helpers/tutorial-assessor'
 import { getUntrackedFiles } from '../status'
 
@@ -416,14 +420,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.tutorialAssessor = new OnboardingTutorialAssessor(
       this.getResolvedExternalEditor
     )
-
-    // Deferred, attempts to resolve the user's selected editor (i.e.
-    // ensures that it's actually present on the machine), needs to
-    // happen after the tutorial assessor has been initialized, see:
-    // https://github.com/desktop/desktop/pull/8242#pullrequestreview-289936574
-    this._resolveCurrentEditor().catch(e =>
-      log.error('Failed resolving current editor at startup', e)
-    )
   }
 
   /** Figure out what step of the tutorial the user needs to do next */
@@ -438,7 +434,45 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // only emit an update if its changed
     if (currentStep !== this.currentOnboardingTutorialStep) {
       this.currentOnboardingTutorialStep = currentStep
+      this.recordTutorialStepCompleted(currentStep)
       this.emitUpdate()
+    }
+  }
+
+  private recordTutorialStepCompleted(step: TutorialStep): void {
+    if (!isValidTutorialStep(step)) {
+      return
+    }
+
+    this.statsStore.recordHighestTutorialStepCompleted(
+      orderedTutorialSteps.indexOf(step)
+    )
+
+    switch (step) {
+      case TutorialStep.PickEditor:
+        // don't need to record anything for the first step
+        break
+      case TutorialStep.CreateBranch:
+        this.statsStore.recordTutorialEditorInstalled()
+        break
+      case TutorialStep.EditFile:
+        this.statsStore.recordTutorialBranchCreated()
+        break
+      case TutorialStep.MakeCommit:
+        this.statsStore.recordTutorialFileEdited()
+        break
+      case TutorialStep.PushBranch:
+        this.statsStore.recordTutorialCommitCreated()
+        break
+      case TutorialStep.OpenPullRequest:
+        this.statsStore.recordTutorialBranchPushed()
+        break
+      case TutorialStep.AllDone:
+        this.statsStore.recordTutorialPrCreated()
+        this.statsStore.recordTutorialCompleted()
+        break
+      default:
+        assertNever(step, 'Unaccounted for step type')
     }
   }
 
@@ -1718,6 +1752,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (externalEditorValue) {
       this.selectedExternalEditor = externalEditorValue
     }
+
+    // Deferred, attempts to resolve the user's selected editor (i.e.
+    // ensures that it's actually present on the machine), needs to
+    // happen after the tutorial assessor has been initialized, see:
+    // https://github.com/desktop/desktop/pull/8242#pullrequestreview-289936574
+    this._resolveCurrentEditor().catch(e =>
+      log.error('Failed resolving current editor at startup', e)
+    )
 
     const shellValue = localStorage.getItem(shellKey)
     this.selectedShell = shellValue ? parseShell(shellValue) : DefaultShell
