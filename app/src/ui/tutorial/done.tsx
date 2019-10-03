@@ -1,7 +1,6 @@
 import * as React from 'react'
 
 import { encodePathAsUrl } from '../../lib/path'
-import { Button } from '../lib/button'
 import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { PopupType } from '../../models/popup'
@@ -54,37 +53,27 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
 
   private renderExploreProjects() {
     return (
-      <li className="blankslate-action">
-        <div className="image-wrapper">
-          <Octicon symbol={OcticonSymbol.telescope} />
-        </div>
-        <div className="text-wrapper">
-          <h2>Explore projects on GitHub</h2>
-          <p className="description">
-            Contribute to a project that interests you
-          </p>
-        </div>
-        <Button onClick={this.openDotcomExplore}>
-          {__DARWIN__ ? 'Open in Browser' : 'Open in browser'}
-        </Button>
-      </li>
+      <BlankslateAction
+        title="Explore projects on GitHub"
+        description="Contribute to a project that interests you"
+        buttonText={__DARWIN__ ? 'Open in Browser' : 'Open in browser'}
+        onClick={this.openDotcomExplore}
+        type="normal"
+        image={<Octicon symbol={OcticonSymbol.telescope} />}
+      />
     )
   }
 
   private renderStartNewProject() {
     return (
-      <li className="blankslate-action">
-        <div className="image-wrapper">
-          <Octicon symbol={OcticonSymbol.plus} />
-        </div>
-        <div className="text-wrapper">
-          <h2>Create a new repository</h2>
-          <p className="description">Get started on a brand new project</p>
-        </div>
-        <Button onClick={this.onCreateNewRepository}>
-          {__DARWIN__ ? 'Create Repository' : 'Create repository'}
-        </Button>
-      </li>
+      <BlankslateAction
+        title="Create a new repository"
+        description="Get started on a brand new project"
+        buttonText={__DARWIN__ ? 'Create Repository' : 'Create repository'}
+        onClick={this.onCreateNewRepository}
+        type="normal"
+        image={<Octicon symbol={OcticonSymbol.plus} />}
+      />
     )
   }
 
