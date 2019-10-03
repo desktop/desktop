@@ -2,9 +2,9 @@ import * as React from 'react'
 import * as classNames from 'classnames'
 import { Button } from '../lib/button'
 
-interface IBlankSlateActionProps {
+interface ISuggestedActionProps {
   /**
-   * The title, or "header" text for a blank slate
+   * The title, or "header" text for a suggested
    * action.
    */
   readonly title: string
@@ -18,7 +18,7 @@ interface IBlankSlateActionProps {
   /**
    * A text or set of elements used to present information
    * to the user about how and where to access the action
-   * outside of the blank slate action.
+   * outside of the suggested action.
    */
   readonly discoverabilityContent?: string | JSX.Element
 
@@ -53,13 +53,13 @@ interface IBlankSlateActionProps {
 }
 
 /**
- * A small container component for rendering an "action" in a blank
- * slate view. An action is usally contained within an action group
+ * A small container component for rendering an "action" in a suggested
+ * actions view. An action is usally contained within an action group
  * which visually connects one or more actions. An action component
  * has a title, a description, and a button label.
  */
-export class BlankslateAction extends React.Component<
-  IBlankSlateActionProps,
+export class SuggestedAction extends React.Component<
+  ISuggestedActionProps,
   {}
 > {
   public render() {

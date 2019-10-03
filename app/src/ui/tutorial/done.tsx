@@ -5,7 +5,7 @@ import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { PopupType } from '../../models/popup'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { BlankslateAction } from '../changes/blankslate-action'
+import { SuggestedAction } from '../suggested-actions/suggested-action'
 
 const ClappingHandsImage = encodePathAsUrl(
   __dirname,
@@ -57,7 +57,7 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
 
   private renderExploreProjects() {
     return (
-      <BlankslateAction
+      <SuggestedAction
         title="Explore projects on GitHub"
         description="Contribute to a project that interests you"
         buttonText={__DARWIN__ ? 'Open in Browser' : 'Open in browser'}
@@ -70,7 +70,7 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
 
   private renderStartNewProject() {
     return (
-      <BlankslateAction
+      <SuggestedAction
         title="Create a new repository"
         description="Get started on a brand new project"
         buttonText={__DARWIN__ ? 'Create Repository' : 'Create repository'}
@@ -83,7 +83,7 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
 
   private renderAddLocalRepo() {
     return (
-      <BlankslateAction
+      <SuggestedAction
         title="Add a local repository"
         description="Work on an existing project in GitHub Desktop"
         buttonText={__DARWIN__ ? 'Add Repository' : 'Add repository'}
