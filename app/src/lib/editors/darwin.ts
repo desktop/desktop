@@ -19,6 +19,7 @@ export enum ExternalEditor {
   Typora = 'Typora',
   CodeRunner = 'CodeRunner',
   SlickEdit = 'SlickEdit',
+  IntelliJ = 'IntelliJ',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -69,6 +70,9 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.SlickEdit) {
     return ExternalEditor.SlickEdit
   }
+  if (label === ExternalEditor.IntelliJ) {
+    return ExternalEditor.IntelliJ
+  }
   return null
 }
 
@@ -97,6 +101,8 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['com.jetbrains.PhpStorm']
     case ExternalEditor.RubyMine:
       return ['com.jetbrains.RubyMine']
+    case ExternalEditor.IntelliJ:
+      return ['com.jetbrains.intellij']
     case ExternalEditor.TextMate:
       return ['com.macromates.TextMate']
     case ExternalEditor.Brackets:
@@ -161,6 +167,8 @@ function getExecutableShim(
       return Path.join(installPath, 'Contents', 'MacOS', 'Brackets')
     case ExternalEditor.WebStorm:
       return Path.join(installPath, 'Contents', 'MacOS', 'WebStorm')
+    case ExternalEditor.IntelliJ:
+      return Path.join(installPath, 'Contents', 'MacOS', 'idea')
     case ExternalEditor.Typora:
       return Path.join(installPath, 'Contents', 'MacOS', 'Typora')
     case ExternalEditor.CodeRunner:
@@ -217,6 +225,7 @@ export async function getAvailableEditors(): Promise<
     typoraPath,
     codeRunnerPath,
     slickeditPath,
+    intellijPath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.MacVim),
@@ -233,6 +242,7 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.Typora),
     findApplication(ExternalEditor.CodeRunner),
     findApplication(ExternalEditor.SlickEdit),
+    findApplication(ExternalEditor.IntelliJ),
   ])
 
   if (atomPath) {
@@ -296,6 +306,10 @@ export async function getAvailableEditors(): Promise<
 
   if (slickeditPath) {
     results.push({ editor: ExternalEditor.SlickEdit, path: slickeditPath })
+  }
+
+  if (intellijPath) {
+    results.push({ editor: ExternalEditor.IntelliJ, path: intellijPath })
   }
 
   return results
