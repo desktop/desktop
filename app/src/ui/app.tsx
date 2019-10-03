@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { ipcRenderer, remote } from 'electron'
 import { CSSTransitionGroup } from 'react-transition-group'
+import * as URL from 'url'
 
 import {
   IAppState,
@@ -149,6 +150,18 @@ export const dialogTransitionLeaveTimeout = 100
  * changes. See https://github.com/desktop/desktop/issues/1398.
  */
 const ReadyDelay = 100
+
+/**
+ * Check if url is valid by checking to see if it can be parsed
+ */
+export function isValidUrl(url: string): boolean {
+  try {
+    URL.parse(url)
+    return true
+  } catch (e) {
+    return false
+  }
+}
 
 export class App extends React.Component<IAppProps, IAppState> {
   private loading = true
@@ -670,7 +683,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private showCloneRepo = (cloneUrl?: string) => {
     let initialURL: string | null = null
 
-    if (cloneUrl !== undefined) {
+    if (cloneUrl !== undefined && isValidUrl(cloneUrl)) {
       this.props.dispatcher.changeCloneRepositoriesTab(
         CloneRepositoryTab.Generic
       )
