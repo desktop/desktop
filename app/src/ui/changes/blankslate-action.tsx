@@ -21,7 +21,7 @@ interface IBlankSlateActionProps {
    * to the user about how and where to access the action
    * outside of the blank slate action.
    */
-  readonly discoverabilityContent: string | JSX.Element
+  readonly discoverabilityContent?: string | JSX.Element
 
   /**
    * The text, or "label", for the action button.
@@ -82,7 +82,11 @@ export class BlankslateAction extends React.Component<
         <div className="text-wrapper">
           <h2>{this.props.title}</h2>
           {description}
-          <p className="discoverability">{this.props.discoverabilityContent}</p>
+          {this.props.discoverabilityContent && (
+            <p className="discoverability">
+              {this.props.discoverabilityContent}
+            </p>
+          )}
         </div>
         <Button
           type={primary ? 'submit' : undefined}
