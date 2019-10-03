@@ -1,5 +1,3 @@
-## Overview
-
 <!--
 What GitHub Desktop issue does this PR address? (for example, #1234)
 -->
