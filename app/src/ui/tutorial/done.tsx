@@ -6,6 +6,7 @@ import { Repository } from '../../models/repository'
 import { PopupType } from '../../models/popup'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { SuggestedAction } from '../suggested-actions/suggested-action'
+import { SuggestedActionGroup } from '../suggested-actions/suggested-action-group'
 
 const ClappingHandsImage = encodePathAsUrl(
   __dirname,
@@ -39,58 +40,36 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
             </div>
             <img src={ClappingHandsImage} className="image" />
           </div>
-          {this.renderActions()}
+          <SuggestedActionGroup>
+            <SuggestedAction
+              title="Explore projects on GitHub"
+              description="Contribute to a project that interests you"
+              buttonText={__DARWIN__ ? 'Open in Browser' : 'Open in browser'}
+              onClick={this.openDotcomExplore}
+              type="normal"
+              image={TelescopeOcticon}
+            />
+            <SuggestedAction
+              title="Create a new repository"
+              description="Get started on a brand new project"
+              buttonText={
+                __DARWIN__ ? 'Create Repository' : 'Create repository'
+              }
+              onClick={this.onCreateNewRepository}
+              type="normal"
+              image={PlusOcticon}
+            />
+            <SuggestedAction
+              title="Add a local repository"
+              description="Work on an existing project in GitHub Desktop"
+              buttonText={__DARWIN__ ? 'Add Repository' : 'Add repository'}
+              onClick={this.onAddExistingRepository}
+              type="normal"
+              image={FileDirectoryOcticon}
+            />
+          </SuggestedActionGroup>
         </div>
       </div>
-    )
-  }
-
-  private renderActions() {
-    return (
-      <ul className="actions">
-        {this.renderExploreProjects()}
-        {this.renderStartNewProject()}
-        {this.renderAddLocalRepo()}
-      </ul>
-    )
-  }
-
-  private renderExploreProjects() {
-    return (
-      <SuggestedAction
-        title="Explore projects on GitHub"
-        description="Contribute to a project that interests you"
-        buttonText={__DARWIN__ ? 'Open in Browser' : 'Open in browser'}
-        onClick={this.openDotcomExplore}
-        type="normal"
-        image={TelescopeOcticon}
-      />
-    )
-  }
-
-  private renderStartNewProject() {
-    return (
-      <SuggestedAction
-        title="Create a new repository"
-        description="Get started on a brand new project"
-        buttonText={__DARWIN__ ? 'Create Repository' : 'Create repository'}
-        onClick={this.onCreateNewRepository}
-        type="normal"
-        image={PlusOcticon}
-      />
-    )
-  }
-
-  private renderAddLocalRepo() {
-    return (
-      <SuggestedAction
-        title="Add a local repository"
-        description="Work on an existing project in GitHub Desktop"
-        buttonText={__DARWIN__ ? 'Add Repository' : 'Add repository'}
-        onClick={this.onAddExistingRepository}
-        type="normal"
-        image={FileDirectoryOcticon}
-      />
     )
   }
 
