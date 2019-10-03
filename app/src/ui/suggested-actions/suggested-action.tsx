@@ -64,7 +64,7 @@ export class SuggestedAction extends React.Component<
 > {
   public render() {
     const primary = this.props.type === 'primary'
-    const cn = classNames('blankslate-action', { primary })
+    const cn = classNames('suggested-action', { primary })
     const description =
       this.props.description === undefined ? (
         undefined
