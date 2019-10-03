@@ -22,6 +22,7 @@ import { IRemote } from '../../models/remote'
 import { isCurrentBranchForcePush } from '../../lib/rebase'
 import { StashedChangesLoadStates } from '../../models/stash-entry'
 import { Dispatcher } from '../dispatcher'
+import { SuggestedActionGroup } from '../suggested-actions/suggested-action-group'
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
@@ -653,7 +654,7 @@ export class NoChanges extends React.Component<
 
   private renderActions() {
     return (
-      <>
+      <SuggestedActionGroup>
         <ReactCSSTransitionReplace
           transitionAppear={false}
           transitionEnter={this.state.enableTransitions}
@@ -667,12 +668,10 @@ export class NoChanges extends React.Component<
         >
           {this.renderViewStashAction() || this.renderRemoteAction()}
         </ReactCSSTransitionReplace>
-        <div className="actions">
-          {this.renderOpenInExternalEditor()}
-          {this.renderShowInFileManager()}
-          {this.renderViewOnGitHub()}
-        </div>
-      </>
+        {this.renderOpenInExternalEditor()}
+        {this.renderShowInFileManager()}
+        {this.renderViewOnGitHub()}
+      </SuggestedActionGroup>
     )
   }
 
