@@ -6,6 +6,7 @@ import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { PopupType } from '../../models/popup'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { BlankslateAction } from '../changes/blankslate-action'
 
 const ClappingHandsImage = encodePathAsUrl(
   __dirname,
@@ -89,20 +90,14 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
 
   private renderAddLocalRepo() {
     return (
-      <li className="blankslate-action">
-        <div className="image-wrapper">
-          <Octicon symbol={OcticonSymbol.fileDirectory} />
-        </div>
-        <div className="text-wrapper">
-          <h2>Add a local repository</h2>
-          <p className="description">
-            Work on an existing project in GitHub Desktop
-          </p>
-        </div>
-        <Button onClick={this.onAddExistingRepository}>
-          {__DARWIN__ ? 'Add Repository' : 'Add repository'}
-        </Button>
-      </li>
+      <BlankslateAction
+        title="Add a local repository"
+        description="Work on an existing project in GitHub Desktop"
+        buttonText={__DARWIN__ ? 'Add Repository' : 'Add repository'}
+        onClick={this.onAddExistingRepository}
+        type="normal"
+        image={<Octicon symbol={OcticonSymbol.fileDirectory} />}
+      />
     )
   }
 
