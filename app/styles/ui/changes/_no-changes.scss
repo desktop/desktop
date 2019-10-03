@@ -45,15 +45,6 @@
     max-width: 600px;
   }
 
-  .actions {
-    display: flex;
-    flex-direction: column;
-
-    &.primary {
-      margin-bottom: var(--spacing);
-    }
-  }
-
   .action-leave {
     opacity: 1;
     transform: translate3d(0, 0, 0);

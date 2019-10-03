@@ -44,13 +44,4 @@
     width: 100%;
     max-width: 600px;
   }
-
-  .actions {
-    display: flex;
-    flex-direction: column;
-
-    &.primary {
-      margin-bottom: var(--spacing);
-    }
-  }
 }
