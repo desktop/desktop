@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as classNames from 'classnames'
 import { Button } from '../lib/button'
-import { OcticonSymbol, Octicon } from '../octicons'
 
 interface IBlankSlateActionProps {
   /**
@@ -49,8 +48,8 @@ interface IBlankSlateActionProps {
    */
   readonly disabled?: boolean
 
-  /** If passed, will render this octicon at the left end of the component */
-  readonly octiconSymbol?: OcticonSymbol
+  /** If passed, will render this at the left end of the component */
+  readonly image?: JSX.Element
 }
 
 /**
@@ -74,10 +73,8 @@ export class BlankslateAction extends React.Component<
       )
     return (
       <div className={cn}>
-        {this.props.octiconSymbol && (
-          <div className="image-wrapper">
-            <Octicon symbol={this.props.octiconSymbol} />
-          </div>
+        {this.props.image && (
+          <div className="image-wrapper">{this.props.image}</div>
         )}
         <div className="text-wrapper">
           <h2>{this.props.title}</h2>
