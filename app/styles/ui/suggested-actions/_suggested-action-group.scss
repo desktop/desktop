@@ -1,0 +1,8 @@
+.suggested-action-group {
+  display: flex;
+  flex-direction: column;
+
+  &.primary {
+    margin-bottom: var(--spacing);
+  }
+}

@@ -6,6 +6,6 @@ import * as React from 'react'
  */
 export class SuggestedActionGroup extends React.Component<{}, {}> {
   public render() {
-    return <div className="actions">{this.props.children}</div>
+    return <div className="suggested-action-group">{this.props.children}</div>
   }
 }
