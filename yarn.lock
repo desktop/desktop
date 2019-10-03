@@ -149,6 +149,13 @@
     "@types/istanbul-reports" "^1.1.1"
     "@types/yargs" "^12.0.9"
 
+"@primer/octicons@^9.1.0":
+  version "9.1.1"
+  resolved "https://registry.yarnpkg.com/@primer/octicons/-/octicons-9.1.1.tgz#a72a59e8ec77521cc2eefb36c345f780a61c79fb"
+  integrity sha512-7EGM0+Kx39bIgaYr9bTCzFvBCxm+fqh/YJIoSns8zfCwss32ZJ2GDP3024UH709VQtM5cKFU4JcIYPHyGdSfIg==
+  dependencies:
+    object-assign "^4.1.1"
+
 "@types/body-parser@*":
   version "1.16.8"
   resolved "https://registry.yarnpkg.com/@types/body-parser/-/body-parser-1.16.8.tgz#687ec34140624a3bec2b1a8ea9268478ae8f3be3"
@@ -7322,13 +7329,6 @@ object.values@^1.0.4:
     es-abstract "^1.6.1"
     function-bind "^1.1.0"
     has "^1.0.1"
-
-octicons@^8.2.0:
-  version "8.2.0"
-  resolved "https://registry.yarnpkg.com/octicons/-/octicons-8.2.0.tgz#cf077d62442248c1c54d1b00df3b19913d47f29d"
-  integrity sha512-m8qID8+tU9ETSwaHVWq8Z9Nv8dW08sPGpSuV1nyf8ziG3EdE7phUOxwW+ev5saeY9UnwwFCaHsE8ymZFq6vhDQ==
-  dependencies:
-    object-assign "^4.1.1"
 
 on-finished@~2.3.0:
   version "2.3.0"

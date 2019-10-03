@@ -258,10 +258,28 @@ export class PathText extends React.PureComponent<
 
   public componentDidMount() {
     this.resizeIfNecessary()
+    document.addEventListener('dialog-show', this.onDialogShow)
+  }
+
+  public componentWillUnmount() {
+    document.removeEventListener('dialog-show', this.onDialogShow)
   }
 
   public componentDidUpdate() {
     this.resizeIfNecessary()
+  }
+
+  // In case this component is contained within a <dialog>, make sure to resize
+  // it after the dialog element is shown in order to apply correct layout.
+  // https://github.com/desktop/desktop/issues/6666
+  private onDialogShow = (event: Event) => {
+    const dialogElement = event.target
+    if (
+      dialogElement instanceof Element &&
+      dialogElement.contains(this.pathElement)
+    ) {
+      this.resizeIfNecessary()
+    }
   }
 
   private onPathElementRef = (element: HTMLDivElement | null) => {
