@@ -12,6 +12,10 @@ const ClappingHandsImage = encodePathAsUrl(
   'static/admin-mentoring.svg'
 )
 
+const TelescopeOcticon = <Octicon symbol={OcticonSymbol.telescope} />
+const PlusOcticon = <Octicon symbol={OcticonSymbol.plus} />
+const FileDirectoryOcticon = <Octicon symbol={OcticonSymbol.fileDirectory} />
+
 interface ITutorialDoneProps {
   readonly dispatcher: Dispatcher
 
@@ -59,7 +63,7 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
         buttonText={__DARWIN__ ? 'Open in Browser' : 'Open in browser'}
         onClick={this.openDotcomExplore}
         type="normal"
-        image={<Octicon symbol={OcticonSymbol.telescope} />}
+        image={TelescopeOcticon}
       />
     )
   }
@@ -72,7 +76,7 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
         buttonText={__DARWIN__ ? 'Create Repository' : 'Create repository'}
         onClick={this.onCreateNewRepository}
         type="normal"
-        image={<Octicon symbol={OcticonSymbol.plus} />}
+        image={PlusOcticon}
       />
     )
   }
@@ -85,7 +89,7 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
         buttonText={__DARWIN__ ? 'Add Repository' : 'Add repository'}
         onClick={this.onAddExistingRepository}
         type="normal"
-        image={<Octicon symbol={OcticonSymbol.fileDirectory} />}
+        image={FileDirectoryOcticon}
       />
     )
   }
