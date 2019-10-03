@@ -23,7 +23,7 @@ interface ITutorialDoneProps {
 export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
   public render() {
     return (
-      <div id="no-changes">
+      <div id="tutorial-done">
         <div className="content">
           <div className="header">
             <div className="text">
@@ -33,7 +33,7 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
                 some suggestions for what to do next.
               </p>
             </div>
-            <img src={ClappingHandsImage} className="blankslate-image" />
+            <img src={ClappingHandsImage} className="image" />
           </div>
           {this.renderActions()}
         </div>
