@@ -58,10 +58,7 @@ interface ISuggestedActionProps {
  * which visually connects one or more actions. An action component
  * has a title, a description, and a button label.
  */
-export class SuggestedAction extends React.Component<
-  ISuggestedActionProps,
-  {}
-> {
+export class SuggestedAction extends React.Component<ISuggestedActionProps> {
   public render() {
     const primary = this.props.type === 'primary'
     const cn = classNames('suggested-action', { primary })
