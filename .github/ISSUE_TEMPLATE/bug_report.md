@@ -33,7 +33,7 @@ Add screenshots to help explain your problem, if applicable.
 
 ### Logs
 
-Attach you logs by opening the `Help` menu and selecting `Show Logs...`, if applicable.
+Attach your logs by opening the `Help` menu and selecting `Show Logs...`, if applicable.
 
 ### Additional context
 
