@@ -5,8 +5,8 @@ import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { PopupType } from '../../models/popup'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { SuggestedAction } from '../suggested-actions/suggested-action'
-import { SuggestedActionGroup } from '../suggested-actions/suggested-action-group'
+import { SuggestedAction } from '../suggested-actions'
+import { SuggestedActionGroup } from '../suggested-actions'
 
 const ClappingHandsImage = encodePathAsUrl(
   __dirname,

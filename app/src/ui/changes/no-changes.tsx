@@ -12,7 +12,7 @@ import { MenuIDs } from '../../models/menu-ids'
 import { IMenu, MenuItem } from '../../models/app-menu'
 import memoizeOne from 'memoize-one'
 import { getPlatformSpecificNameOrSymbolForModifier } from '../../lib/menu-item'
-import { MenuBackedSuggestedAction } from '../suggested-actions/menu-backed-suggested-action'
+import { MenuBackedSuggestedAction } from '../suggested-actions'
 import { executeMenuItemById } from '../main-process-proxy'
 import { IRepositoryState } from '../../lib/app-state'
 import { TipState, IValidBranch } from '../../models/tip'
@@ -22,7 +22,7 @@ import { IRemote } from '../../models/remote'
 import { isCurrentBranchForcePush } from '../../lib/rebase'
 import { StashedChangesLoadStates } from '../../models/stash-entry'
 import { Dispatcher } from '../dispatcher'
-import { SuggestedActionGroup } from '../suggested-actions/suggested-action-group'
+import { SuggestedActionGroup } from '../suggested-actions'
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
