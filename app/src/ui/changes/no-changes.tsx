@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as ReactCSSTransitionReplace from 'react-css-transition-replace'
 
 import { encodePathAsUrl } from '../../lib/path'
 import { Repository } from '../../models/repository'
@@ -654,24 +653,20 @@ export class NoChanges extends React.Component<
 
   private renderActions() {
     return (
-      <SuggestedActionGroup>
-        <ReactCSSTransitionReplace
-          transitionAppear={false}
-          transitionEnter={this.state.enableTransitions}
-          transitionLeave={this.state.enableTransitions}
-          overflowHidden={false}
-          transitionName="action"
-          component="div"
-          className="actions primary"
-          transitionEnterTimeout={750}
-          transitionLeaveTimeout={500}
+      <>
+        <SuggestedActionGroup
+          type="primary"
+          transitions={'replace'}
+          enableTransitions={this.state.enableTransitions}
         >
           {this.renderViewStashAction() || this.renderRemoteAction()}
-        </ReactCSSTransitionReplace>
-        {this.renderOpenInExternalEditor()}
-        {this.renderShowInFileManager()}
-        {this.renderViewOnGitHub()}
-      </SuggestedActionGroup>
+        </SuggestedActionGroup>
+        <SuggestedActionGroup>
+          {this.renderOpenInExternalEditor()}
+          {this.renderShowInFileManager()}
+          {this.renderViewOnGitHub()}
+        </SuggestedActionGroup>
+      </>
     )
   }
 
