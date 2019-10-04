@@ -331,6 +331,12 @@ export class BlankSlateView extends React.Component<
     }
   }
 
+  // Note: this wrapper is necessary in order to ensure
+  // `onClone` does not get passed a click event
+  // and accidentally interpret that as a url
+  // See https://github.com/desktop/desktop/issues/8394
+  private onShowClone = () => this.props.onClone()
+
   private renderButtonGroupButton(
     symbol: OcticonSymbol,
     title: string,
@@ -387,7 +393,7 @@ export class BlankSlateView extends React.Component<
       __DARWIN__
         ? 'Clone a Repository from the Internet…'
         : 'Clone a repository from the Internet…',
-      this.props.onClone
+      this.onShowClone
     )
   }
 

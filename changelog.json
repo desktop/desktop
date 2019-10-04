@@ -1,5 +1,22 @@
 {
   "releases": {
+    "2.2.1-beta0": [],
+    "2.2.0": [
+      "[New] Interactive tutorial for new users to become productive using Git and GitHub more quickly - #8148 #8149",
+      "[Added] Support pushing workflow files for GitHub Actions to GitHub.com - #7079",
+      "[Added] Enforce web flow authentication for users who are part of orgs using single sign-on - #8327",
+      "[Added] Support CodeRunner as an external editor - #8091. Thanks @ns-ccollins!",
+      "[Added] Support VSCodium as an external editor - #8000. Thanks @Rexogamer!",
+      "[Fixed] Commit description shadow visibility updates when typing - #7994. Thanks @KarstenRa!",
+      "[Fixed] Commit summaries with comma delimited issues are not parsed - #8162. Thanks @say25!",
+      "[Fixed] File path truncation in merge conflicts dialog - #6666",
+      "[Fixed] Git configuration fields in onboarding were not pre-filled from user's profile - #8323",
+      "[Fixed] Keep conflicting untracked files when bringing changes to another branch - #8084 #8200",
+      "[Fixed] Make app's version selectable in \"About\" dialog - #8334",
+      "[Improved] Application menu bar is visible when no repositories have been added to the app - #8209",
+      "[Improved] Support stashing lots of untracked files on Windows - #8345",
+      "[Improved] Surface errors from branch creation to user - #8306 #5997 #8106"
+    ],
     "2.2.0-beta3": [
       "[Fixed] File path truncation in merge conflicts dialog - #6666",
       "[Fixed] Support pushing workflow files for GitHub Actions to GitHub.com - #7079",
