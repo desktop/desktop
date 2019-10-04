@@ -48,15 +48,18 @@ interface ISuggestedActionProps {
    */
   readonly disabled?: boolean
 
-  /** If passed, will render this at the left end of the component */
+  /**
+   * An image to illustrate what this component's action does
+   */
   readonly image?: JSX.Element
 }
 
 /**
- * A small container component for rendering an "action" in a suggested
- * actions view. An action is usally contained within an action group
- * which visually connects one or more actions. An action component
- * has a title, a description, and a button label.
+ * A small container component for rendering a "suggsted action",
+ * which was first used in the "No Changes" view. An action is
+ * usally contained within an `SuggestedActionGroup`, which visually
+ * connects one or more actions. An action component has a title,
+ * a description, a button label, and an optional image.
  */
 export class SuggestedAction extends React.Component<ISuggestedActionProps> {
   public render() {
