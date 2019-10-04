@@ -485,9 +485,6 @@ export async function refusedWorkflowUpdate(
   }
 
   const { repository } = e.metadata
-  if (repository == null) {
-    return error
-  }
 
   if (!(repository instanceof Repository)) {
     return error
