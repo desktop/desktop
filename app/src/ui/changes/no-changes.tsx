@@ -9,9 +9,8 @@ import {
   enableStashing,
 } from '../../lib/feature-flag'
 import { MenuIDs } from '../../models/menu-ids'
-import { IMenu, MenuItem } from '../../models/app-menu'
+import { IMenu } from '../../models/app-menu'
 import memoizeOne from 'memoize-one'
-import { getPlatformSpecificNameOrSymbolForModifier } from '../../lib/menu-item'
 import { MenuBackedBlankslateAction } from './menu-backed-blankslate-action'
 import { executeMenuItemById } from '../main-process-proxy'
 import { IRepositoryState } from '../../lib/app-state'
@@ -22,6 +21,7 @@ import { IRemote } from '../../models/remote'
 import { isCurrentBranchForcePush } from '../../lib/rebase'
 import { StashedChangesLoadStates } from '../../models/stash-entry'
 import { Dispatcher } from '../dispatcher'
+import { extractKeyCombo, KeyboardShortcut } from '../keyboard-shortcut'
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
@@ -120,20 +120,6 @@ interface INoChangesState {
   readonly enableTransitions: boolean
 }
 
-function getItemAcceleratorKeys(item: MenuItem) {
-  if (item.type === 'separator' || item.type === 'submenuItem') {
-    return []
-  }
-
-  if (item.accelerator === null) {
-    return []
-  }
-
-  return item.accelerator
-    .split('+')
-    .map(getPlatformSpecificNameOrSymbolForModifier)
-}
-
 function buildMenuItemInfoMap(
   menu: IMenu,
   map = new Map<string, IMenuItemInfo>(),
@@ -146,7 +132,7 @@ function buildMenuItemInfoMap(
 
     const infoItem: IMenuItemInfo = {
       label: item.label,
-      acceleratorKeys: getItemAcceleratorKeys(item),
+      acceleratorKeys: extractKeyCombo(item),
       parentMenuLabels:
         parent === undefined ? [] : [parent.label, ...parent.parentMenuLabels],
       enabled: item.enabled,
@@ -211,7 +197,7 @@ export class NoChanges extends React.Component<
   }
 
   private renderDiscoverabilityKeyboardShortcut(menuItem: IMenuItemInfo) {
-    return menuItem.acceleratorKeys.map((k, i) => <kbd key={k + i}>{k}</kbd>)
+    return <KeyboardShortcut keyCombo={menuItem.acceleratorKeys} />
   }
 
   private renderMenuBackedAction(
