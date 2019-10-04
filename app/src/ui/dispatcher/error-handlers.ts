@@ -506,13 +506,10 @@ export async function refusedWorkflowUpdate(
   }
 
   const rejectedPath = match[1]
+  const pathIsLikelyWorkflowFile =
+    rejectedPath.startsWith('.github/') && rejectedPath.indexOf('workflow') >= 0
 
-  if (
-    !(
-      rejectedPath.startsWith('.github/') &&
-      rejectedPath.indexOf('workflow') >= 0
-    )
-  ) {
+  if (!pathIsLikelyWorkflowFile) {
     return error
   }
 
