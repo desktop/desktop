@@ -316,7 +316,7 @@ export class RepositoryView extends React.Component<
     )
   }
 
-  private renderTutorialPane(): JSX.Element {
+  private renderTutorialCenterView(): JSX.Element {
     if (this.props.currentTutorialStep === TutorialStep.AllDone) {
       return (
         <TutorialDone
@@ -348,7 +348,7 @@ export class RepositoryView extends React.Component<
         enableTutorial() &&
         this.props.currentTutorialStep !== TutorialStep.NotApplicable
       ) {
-        return this.renderTutorialPane()
+        return this.renderTutorialCenterView()
       } else {
         return (
           <NoChanges
