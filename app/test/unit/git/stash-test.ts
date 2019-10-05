@@ -73,7 +73,7 @@ describe('git/stash', () => {
     it('creates a stash entry when repo is not unborn or in any kind of conflict or rebase state', async () => {
       await FSE.appendFile(readme, 'just testing stuff')
 
-      await createDesktopStashEntry(repository, 'master')
+      await createDesktopStashEntry(repository, 'master', [])
 
       const stash = await getStashes(repository)
       const entries = stash.desktopEntries
@@ -92,7 +92,11 @@ describe('git/stash', () => {
       expect(files).toHaveLength(1)
       expect(files[0].status.kind).toBe(AppFileStatusKind.Untracked)
 
-      await createDesktopStashEntry(repository, 'master')
+      const untrackedFiles = status.workingDirectory.files.filter(
+        f => f.status.kind === AppFileStatusKind.Untracked
+      )
+
+      await createDesktopStashEntry(repository, 'master', untrackedFiles)
 
       status = await getStatusOrThrow(repository)
       files = status.workingDirectory.files

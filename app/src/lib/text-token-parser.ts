@@ -147,6 +147,12 @@ export class Tokenizer {
       maybeIssue = text.slice(index, nextIndex)
     }
 
+    // handle list of issues
+    if (maybeIssue.endsWith(',')) {
+      nextIndex -= 1
+      maybeIssue = text.slice(index, nextIndex)
+    }
+
     if (!/^#\d+$/.test(maybeIssue)) {
       return null
     }
