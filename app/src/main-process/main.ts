@@ -26,7 +26,7 @@ import {
 import { now } from './now'
 import { showUncaughtException } from './show-uncaught-exception'
 import { IMenuItem } from '../lib/menu-item'
-import { buildContextMenu } from './menu/build-context-menu
+import { buildContextMenu } from './menu/build-context-menu'
 
 enableSourceMaps()
 
