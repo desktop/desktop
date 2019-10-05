@@ -96,6 +96,7 @@
     "@primer/octicons": "^9.1.0",
     "parallel-webpack": "^2.3.0",
     "prettier": "1.16.0",
+    "rage-edit": "1.2.0",
     "request": "^2.72.0",
     "rimraf": "^2.5.2",
     "sass-loader": "^7.0.1",
