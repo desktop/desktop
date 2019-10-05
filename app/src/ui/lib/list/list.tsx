@@ -379,7 +379,16 @@ export class List extends React.Component<IListProps, IListState> {
       return
     }
 
-    if (event.key === 'ArrowDown') {
+    const { ctrlKey, key } = event
+
+    // macOS also supports emacs-inspired shortcuts for moving up/down lists
+    // see https://jblevins.org/log/kbd for more information
+    const isArrowDown =
+      key === 'ArrowDown' || (__DARWIN__ && ctrlKey && key === 'n')
+    const isArrowUp =
+      key === 'ArrowUp' || (__DARWIN__ && ctrlKey && key === 'p')
+
+    if (isArrowDown) {
       if (
         event.shiftKey &&
         this.props.selectionMode &&
@@ -390,7 +399,7 @@ export class List extends React.Component<IListProps, IListState> {
         this.moveSelection('down', event)
       }
       event.preventDefault()
-    } else if (event.key === 'ArrowUp') {
+    } else if (isArrowUp) {
       if (
         event.shiftKey &&
         this.props.selectionMode &&

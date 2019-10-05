@@ -394,7 +394,14 @@ export class CompareSidebar extends React.Component<
   private onBranchFilterKeyDown = (
     event: React.KeyboardEvent<HTMLInputElement>
   ) => {
-    const key = event.key
+    const { ctrlKey, key } = event
+
+    // macOS also supports emacs-inspired shortcuts for moving up/down lists
+    // see https://jblevins.org/log/kbd for more information
+    const isArrowDown =
+      key === 'ArrowDown' || (__DARWIN__ && ctrlKey && key === 'n')
+    const isArrowUp =
+      key === 'ArrowUp' || (__DARWIN__ && ctrlKey && key === 'p')
 
     if (key === 'Enter') {
       if (this.resultCount === 0) {
@@ -422,11 +429,11 @@ export class CompareSidebar extends React.Component<
       }
     } else if (key === 'Escape') {
       this.handleEscape()
-    } else if (key === 'ArrowDown') {
+    } else if (isArrowDown) {
       if (this.branchList !== null) {
         this.branchList.selectNextItem(true, 'down')
       }
-    } else if (key === 'ArrowUp') {
+    } else if (isArrowUp) {
       if (this.branchList !== null) {
         this.branchList.selectNextItem(true, 'up')
       }

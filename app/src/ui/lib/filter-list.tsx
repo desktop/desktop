@@ -407,9 +407,18 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
     let shouldFocus = false
 
-    if (event.key === 'ArrowUp' && row === firstSelectableRow) {
+    const { ctrlKey, key } = event
+
+    // macOS also supports emacs-inspired shortcuts for moving up/down lists
+    // see https://jblevins.org/log/kbd for more information
+    const isArrowDown =
+      key === 'ArrowDown' || (__DARWIN__ && ctrlKey && key === 'n')
+    const isArrowUp =
+      key === 'ArrowUp' || (__DARWIN__ && ctrlKey && key === 'p')
+
+    if (isArrowUp && row === firstSelectableRow) {
       shouldFocus = true
-    } else if (event.key === 'ArrowDown' && row === lastSelectableRow) {
+    } else if (isArrowDown && row === lastSelectableRow) {
       shouldFocus = true
     }
 
@@ -425,7 +434,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     const list = this.list
-    const key = event.key
+    const { ctrlKey, key } = event
 
     if (!list) {
       return
@@ -441,7 +450,12 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
     const rowCount = this.state.rows.length
 
-    if (key === 'ArrowDown') {
+    // macOS also supports emacs-inspired shortcuts for moving up/down lists
+    // see https://jblevins.org/log/kbd for more information
+    const isArrowDown =
+      key === 'ArrowDown' || (__DARWIN__ && ctrlKey && key === 'n')
+
+    if (isArrowDown) {
       if (rowCount > 0) {
         const selectedRow = findNextSelectableRow(
           rowCount,

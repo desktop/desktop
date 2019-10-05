@@ -126,12 +126,21 @@ export class VerticalSegmentedControl extends React.Component<
   }
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLUListElement>) => {
-    if (event.key === 'ArrowUp') {
+    const { ctrlKey, key } = event
+
+    // macOS also supports emacs-inspired shortcuts for moving up/down lists
+    // see https://jblevins.org/log/kbd for more information
+    const isArrowDown =
+      key === 'ArrowDown' || (__DARWIN__ && ctrlKey && key === 'n')
+    const isArrowUp =
+      key === 'ArrowUp' || (__DARWIN__ && ctrlKey && key === 'p')
+
+    if (isArrowUp) {
       if (this.props.selectedIndex > 0) {
         this.props.onSelectionChanged(this.props.selectedIndex - 1)
       }
       event.preventDefault()
-    } else if (event.key === 'ArrowDown') {
+    } else if (isArrowDown) {
       if (this.props.selectedIndex < this.props.items.length - 1) {
         this.props.onSelectionChanged(this.props.selectedIndex + 1)
       }

@@ -224,8 +224,15 @@ export class AppMenuBarButton extends React.Component<
 
     this.props.onKeyDown(this.props.menuItem, event)
 
+    const { ctrlKey, key } = event
+
+    // macOS also supports emacs-inspired shortcuts for moving up/down lists
+    // see https://jblevins.org/log/kbd for more information
+    const isArrowDown =
+      key === 'ArrowDown' || (__DARWIN__ && ctrlKey && key === 'n')
+
     if (!this.isMenuOpen && !event.defaultPrevented) {
-      if (event.key === 'ArrowDown') {
+      if (isArrowDown) {
         this.props.onOpen(this.props.menuItem, true)
         event.preventDefault()
       }

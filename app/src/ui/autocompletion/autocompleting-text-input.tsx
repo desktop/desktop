@@ -375,11 +375,19 @@ export abstract class AutocompletingTextInput<
   private getMovementDirection(
     event: React.KeyboardEvent<any>
   ): SelectionDirection | null {
-    switch (event.key) {
-      case 'ArrowUp':
-        return 'up'
-      case 'ArrowDown':
-        return 'down'
+    const { ctrlKey, key } = event
+
+    // macOS also supports emacs-inspired shortcuts for moving up/down lists
+    // see https://jblevins.org/log/kbd for more information
+    const isArrowDown =
+      key === 'ArrowDown' || (__DARWIN__ && ctrlKey && key === 'n')
+    const isArrowUp =
+      key === 'ArrowUp' || (__DARWIN__ && ctrlKey && key === 'p')
+
+    if (isArrowUp) {
+      return 'up'
+    } else if (isArrowDown) {
+      return 'down'
     }
 
     return null
