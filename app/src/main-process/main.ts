@@ -3,6 +3,7 @@ import '../lib/logging/main/install'
 import { app, Menu, ipcMain, BrowserWindow, shell } from 'electron'
 import * as Fs from 'fs'
 import * as URL from 'url'
+import { Registry } from 'rage-edit'
 
 import { MenuLabelsEvent } from '../models/menu-labels'
 
@@ -25,7 +26,7 @@ import {
 import { now } from './now'
 import { showUncaughtException } from './show-uncaught-exception'
 import { IMenuItem } from '../lib/menu-item'
-import { buildContextMenu } from './menu/build-context-menu'
+import { buildContextMenu } from './menu/build-context-menu
 
 enableSourceMaps()
 
@@ -257,6 +258,20 @@ app.on('ready', () => {
 
   readyTime = now() - launchTime
 
+  if(__WIN32__) {
+
+    (async () => {
+        await Registry.set('HKCU\\Software\\GitHubDesktop\\Capabilities', 'ApplicationName', 'GitHubDesktop');
+
+        await Registry.set('HKCU\\Software\\GitHubDesktop\\Capabilities', 'ApplicationDescription', 'GitHubDesktop');
+
+        await Registry.set('HKCU\\Software\\GitHubDesktop\\Capabilities\\URLAssociations', 'github-windows', 'github-windows');
+
+        await Registry.set('HKCU\\Software\\GitHubDesktop\\Capabilities\\URLAssociations', 'x-github-client', 'x-github-client');
+
+        await Registry.set('HKCU\\Software\\RegisteredApplications', 'GitHubDesktop', 'Software\\GitHubDesktop\\Capabilities');
+    })();
+  }
   possibleProtocols.forEach(protocol => setAsDefaultProtocolClient(protocol))
 
   createWindow()
