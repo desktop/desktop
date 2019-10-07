@@ -89,6 +89,16 @@ if (__DARWIN__) {
   possibleProtocols.add('github-windows')
 }
 
+app.on('window-all-closed', () => {
+  // If we don't subscribe to this event and all windows are closed, the default
+  // behavior is to quit the app. We don't want that though, we control that
+  // behavior through the mainWindow onClose event such that on macOS we only
+  // hide the main window when a user attempts to close it.
+  //
+  // If we don't subscribe to this and change the default behavior we break
+  // the crash process window which is shown after the main window is closed.
+})
+
 process.on('uncaughtException', (error: Error) => {
   error = withSourceMappedStack(error)
   reportError(error, getExtraErrorContext())
