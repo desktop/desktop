@@ -13,6 +13,7 @@ import { UpstreamAlreadyExistsError } from '../../lib/stores/upstream-already-ex
 
 import { PopupType } from '../../models/popup'
 import { Repository } from '../../models/repository'
+import { getDotComAPIEndpoint } from '../../lib/api'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -459,6 +460,64 @@ export async function localChangesOverwrittenHandler(
   const { branchToCheckout } = gitContext
 
   await dispatcher.moveChangesToBranchAndCheckout(repository, branchToCheckout)
+
+  return null
+}
+
+const rejectedPathRe = /^ ! \[remote rejected\] .*? -> .*? \(refusing to allow an integration to create or update (.*?)\)$/m
+
+/**
+ * Attempts to detect whether an error is the result of a failed push
+ * due to insufficient OAuth permissions (missing workflow scope)
+ */
+export async function refusedWorkflowUpdate(
+  error: Error,
+  dispatcher: Dispatcher
+) {
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError) {
+    return error
+  }
+
+  const { repository } = e.metadata
+
+  if (!(repository instanceof Repository)) {
+    return error
+  }
+
+  if (repository.gitHubRepository === null) {
+    return error
+  }
+
+  // DotCom only for now.
+  if (repository.gitHubRepository.endpoint !== getDotComAPIEndpoint()) {
+    return error
+  }
+
+  const match = rejectedPathRe.exec(error.message)
+
+  if (!match) {
+    return error
+  }
+
+  const rejectedPath = match[1]
+  const pathIsLikelyWorkflowFile =
+    rejectedPath.startsWith('.github/') && rejectedPath.indexOf('workflow') >= 0
+
+  if (!pathIsLikelyWorkflowFile) {
+    return error
+  }
+
+  dispatcher.showPopup({
+    type: PopupType.PushRejectedDueToMissingWorkflowScope,
+    rejectedPath,
+    repository,
+  })
 
   return null
 }
