@@ -143,7 +143,7 @@ function getExecutableShim(
         'Resources',
         'app',
         'bin',
-        'codium'
+        'code'
       )
     case ExternalEditor.MacVim:
       return Path.join(installPath, 'Contents', 'MacOS', 'MacVim')
