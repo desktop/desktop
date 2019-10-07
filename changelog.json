@@ -2,7 +2,7 @@
   "releases": {
     "2.2.1-beta1": [
       "[Fixed] Improperly formatted url pre-filled in \"Clone Repository\" dialog - #8394",
-      "[Fixed] VSCodium integration on macOS -  #8424. Thanks @akim8!",
+      "[Fixed] VSCodium integration on macOS - #8424. Thanks @akim8!",
       "[Fixed] Partially hidden icon in \"Open Pull Request\" button - #8410",
       "[Improved] Ensure crash reports are sent when app closes unexpectedly - #8405"
     ],
