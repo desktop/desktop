@@ -1,5 +1,8 @@
 {
   "releases": {
+    "2.2.2-beta0": [
+      "[Added] Prompt users unable to push a workflow file to re-authenticate - #8357"
+    ],
     "2.2.1": [
       "[Fixed] Improperly formatted url pre-filled in \"Clone Repository\" dialog - #8394",
       "[Fixed] VSCodium integration on macOS - #8424. Thanks @akim8!",
