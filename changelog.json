@@ -1,5 +1,15 @@
 {
   "releases": {
+    "2.2.1": [
+      "[Fixed] Improperly formatted url pre-filled in \"Clone Repository\" dialog - #8394",
+      "[Fixed] VSCodium integration on macOS - #8424. Thanks @akim8!",
+      "[Fixed] Partially hidden icon in \"Open Pull Request\" button - #8410"
+    ],
+    "2.2.1-beta1": [
+      "[Fixed] Improperly formatted url pre-filled in \"Clone Repository\" dialog - #8394",
+      "[Fixed] VSCodium integration on macOS - #8424. Thanks @akim8!",
+      "[Fixed] Partially hidden icon in \"Open Pull Request\" button - #8410"
+    ],
     "2.2.1-beta0": [],
     "2.2.0": [
       "[New] Interactive tutorial for new users to become productive using Git and GitHub more quickly - #8148 #8149",
