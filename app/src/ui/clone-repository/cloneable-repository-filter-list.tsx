@@ -250,9 +250,15 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
 
   private renderNoItems = () => {
     const { loading, repositories } = this.props
+    const endpointName =
+      this.props.account.endpoint === getDotComAPIEndpoint()
+        ? 'GitHub.com'
+        : getHTMLURL(this.props.account.endpoint)
 
     if (loading && (repositories === null || repositories.length === 0)) {
-      return <div className="no-items loading">Loading repositories…</div>
+      return (
+        <div className="no-items loading">{`Loading repositories from ${endpointName}…`}</div>
+      )
     }
 
     if (this.props.filterText.length !== 0) {
@@ -265,11 +271,6 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
         </div>
       )
     }
-
-    const endpointName =
-      this.props.account.endpoint === getDotComAPIEndpoint()
-        ? 'GitHub.com'
-        : getHTMLURL(this.props.account.endpoint)
 
     return (
       <div className="no-items empty-repository-list">
