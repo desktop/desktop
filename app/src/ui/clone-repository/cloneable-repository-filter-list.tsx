@@ -276,10 +276,10 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
     return (
       <div className="no-items empty-repository-list">
         <div>
-          Couldn't find any repositories for the account{' '}
+          Couldn't find any repositories for{' '}
           <Ref>{this.props.account.login}</Ref> on {endpointName}.{' '}
           <LinkButton onClick={this.refreshRepositories}>
-            Refresh the list
+            Refresh this list
           </LinkButton>{' '}
           if you've created a repository recently.
         </div>
