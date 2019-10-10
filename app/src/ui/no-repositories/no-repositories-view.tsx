@@ -135,8 +135,8 @@ export class NoRepositoriesView extends React.Component<
         </header>
 
         <div className="content">
-          {this.renderLeftPanel()}
-          {this.renderRightPanel()}
+          {this.renderGetStartedActions()}
+          {this.renderRepositoryList()}
         </div>
 
         <img
@@ -189,7 +189,7 @@ export class NoRepositoriesView extends React.Component<
     }
   }
 
-  private renderLeftPanel() {
+  private renderRepositoryList() {
     const account = this.getSelectedAccount()
 
     if (account === null) {
@@ -202,7 +202,7 @@ export class NoRepositoriesView extends React.Component<
     return (
       <div className="content-pane left">
         {this.renderAccountsTabBar()}
-        {this.renderAccountTab(account, accountState)}
+        {this.renderAccountRepositoryList(account, accountState)}
       </div>
     )
   }
@@ -213,7 +213,7 @@ export class NoRepositoriesView extends React.Component<
       : this.state.selectedEnterpriseRepository
   }
 
-  private renderAccountTab(
+  private renderAccountRepositoryList(
     account: Account,
     accountState: IAccountRepositories | undefined
   ) {
@@ -420,7 +420,7 @@ export class NoRepositoriesView extends React.Component<
     )
   }
 
-  private renderRightPanel() {
+  private renderGetStartedActions() {
     return (
       <div className="content-pane right">
         <ul className="button-group">
