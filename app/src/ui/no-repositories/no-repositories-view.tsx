@@ -200,7 +200,7 @@ export class NoRepositoriesView extends React.Component<
     const accountState = this.props.apiRepositories.get(account)
 
     return (
-      <div className="content-pane left">
+      <div className="content-pane repository-list">
         {this.renderAccountsTabBar()}
         {this.renderAccountRepositoryList(account, accountState)}
       </div>
