@@ -422,7 +422,7 @@ export class NoRepositoriesView extends React.Component<
 
   private renderGetStartedActions() {
     return (
-      <div className="content-pane right">
+      <div className="content-pane">
         <ul className="button-group">
           {this.renderTutorialRepositoryButton()}
           {this.renderCloneButton()}
