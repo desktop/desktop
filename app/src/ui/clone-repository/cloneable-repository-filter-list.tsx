@@ -176,6 +176,7 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
         renderNoItems={this.renderNoItems}
         renderPostFilter={this.renderPostFilter}
         onItemClick={this.props.onItemClicked ? this.onItemClick : undefined}
+        placeholderText="Filter repositories"
       />
     )
   }
