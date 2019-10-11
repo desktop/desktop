@@ -746,11 +746,6 @@ export class Dispatcher {
     return this.appStore._setCommitMessage(repository, message)
   }
 
-  /** Add the account to the app. */
-  public addAccount(account: Account): Promise<void> {
-    return this.appStore._addAccount(account)
-  }
-
   /** Remove the given account from the app. */
   public removeAccount(account: Account): Promise<void> {
     return this.appStore._removeAccount(account)
@@ -2198,5 +2193,18 @@ export class Dispatcher {
    */
   public markPullRequestTutorialStepAsComplete(repository: Repository) {
     return this.appStore._markPullRequestTutorialStepAsComplete(repository)
+  }
+
+  /**
+   * Onboarding tutorial has been started
+   */
+  public recordTutorialStarted() {
+    return this.statsStore.recordTutorialStarted()
+  }
+  /**
+   * Onboarding tutorial has been successfully created
+   */
+  public recordTutorialRepositoryCreated() {
+    return this.statsStore.recordTutorialRepoCreated()
   }
 }

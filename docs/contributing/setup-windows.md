@@ -22,7 +22,7 @@ You can download Node from the [Node.js website](https://nodejs.org/), install t
 If you see the output `v10.x.y` or later, you're good to go.
 
 **Node.js installation notes:**
- - make sure you allow the Node.js installer to add `node` to the PATH.
+ - make sure you allow the Node.js installer to add `node` to the `PATH`.
 
 ### I need to use different versions of Node.js in different projects!
 
@@ -32,7 +32,7 @@ We currently support `nvm`.
 
 1. Install `nvm` using the instructions [here](https://github.com/coreybutler/nvm-windows).
 
-2. Within the Desktop source directory, install version of Node.js it requires:
+2. Within the Desktop source directory, install the version of Node.js it requires:
 
 ```shellsession
 $ nvm install
@@ -89,7 +89,7 @@ don't have any Node tools installed. You can install Python 2.7 from the
 ## Visual C++ Build Tools
 
 To build native Node modules, you will need a recent version of Visual C++ which
-can be obtained in several ways
+can be obtained in several ways:
 
 ### Visual Studio 2017
 
@@ -100,7 +100,7 @@ workload included.
 <img width="1265" src="https://user-images.githubusercontent.com/359239/48849855-a2091800-ed7d-11e8-950b-93465eba7cd1.png">
 
 Once you've confirmed that, open a shell and run this command to update the
-configuration of NPM::
+configuration of NPM:
 
 ```shellsession
 $ npm config set msvs_version 2017
