@@ -6,7 +6,12 @@ import { readdir } from 'fs-extra'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dispatcher } from '../dispatcher'
-import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
+import {
+  getDefaultDir,
+  setDefaultDir,
+  getDefaultDirLayout,
+  setDefaultDirLayout,
+} from '../lib/default-dir'
 import { Account } from '../../models/account'
 import {
   IRepositoryIdentifier,
@@ -541,13 +546,24 @@ export class CloneRepository extends React.Component<
     let newPath: string
 
     if (lastParsedIdentifier) {
+      const ownerDir = Path.dirname(tabState.path)
+      const ownerName = Path.basename(ownerDir)
       if (parsed) {
-        newPath = Path.join(Path.dirname(tabState.path), parsed.name)
+        if (lastParsedIdentifier.owner === ownerName) {
+          const baseDir = Path.dirname(ownerDir)
+          newPath = Path.join(baseDir, parsed.owner, parsed.name)
+        } else {
+          newPath = Path.join(ownerDir, parsed.name)
+        }
       } else {
-        newPath = Path.dirname(tabState.path)
+        newPath = Path.dirname(ownerDir)
       }
     } else if (parsed) {
-      newPath = Path.join(tabState.path, parsed.name)
+      if (getDefaultDirLayout() === 'ownerName') {
+        newPath = Path.join(tabState.path, parsed.owner, parsed.name)
+      } else {
+        newPath = Path.join(tabState.path, parsed.name)
+      }
     } else {
       newPath = tabState.path
     }
@@ -660,7 +676,17 @@ export class CloneRepository extends React.Component<
     this.props.dispatcher.clone(url, path)
     this.props.onDismissed()
 
-    setDefaultDir(Path.resolve(path, '..'))
+    const parsedUrl = parseRemote(url)
+    let defaultDir = Path.resolve(path, '..')
+    const basename = Path.basename(defaultDir)
+    if (parsedUrl != null && basename === parsedUrl.owner) {
+      defaultDir = Path.resolve(defaultDir, '..')
+      setDefaultDirLayout('ownerName')
+    } else {
+      setDefaultDirLayout('name')
+    }
+
+    setDefaultDir(defaultDir)
   }
 
   private onWindowFocus = () => {
