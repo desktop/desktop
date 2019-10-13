@@ -9,8 +9,9 @@ import { Dispatcher } from '../dispatcher'
 import {
   getDefaultDir,
   setDefaultDir,
-  getDefaultDirLayout,
-  setDefaultDirLayout,
+  getRepositoryLayout,
+  setRepositoryLayout,
+  RepositoryLayout,
 } from '../lib/default-dir'
 import { Account } from '../../models/account'
 import {
@@ -559,7 +560,7 @@ export class CloneRepository extends React.Component<
         newPath = Path.dirname(ownerDir)
       }
     } else if (parsed) {
-      if (getDefaultDirLayout() === 'ownerName') {
+      if (getRepositoryLayout() === RepositoryLayout.OwnerName) {
         newPath = Path.join(tabState.path, parsed.owner, parsed.name)
       } else {
         newPath = Path.join(tabState.path, parsed.name)
@@ -681,9 +682,9 @@ export class CloneRepository extends React.Component<
     const basename = Path.basename(defaultDir)
     if (parsedUrl != null && basename === parsedUrl.owner) {
       defaultDir = Path.resolve(defaultDir, '..')
-      setDefaultDirLayout('ownerName')
+      setRepositoryLayout(RepositoryLayout.OwnerName)
     } else {
-      setDefaultDirLayout('name')
+      setRepositoryLayout(RepositoryLayout.Name)
     }
 
     setDefaultDir(defaultDir)
