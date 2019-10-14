@@ -18,7 +18,7 @@ interface ILinuxExternalEditor {
 const editors: ILinuxExternalEditor[] = [
   {
     name: 'Atom',
-    paths: ['/usr/bin/atom'],
+    paths: ['/snap/bin/atom', '/usr/bin/atom'],
   },
   {
     name: 'Visual Studio Code',
