@@ -64,9 +64,9 @@ async function getFirstPathIfAvailable(
 async function getEditorPath(editor: ExternalEditor): Promise<string | null> {
   switch (editor) {
     case ExternalEditor.Atom:
-      return getPathIfAvailable('/usr/bin/atom')
+      return getFirstPathIfAvailable(['/snap/bin/atom', '/usr/bin/atom'])
     case ExternalEditor.VSCode:
-      return getPathIfAvailable('/usr/bin/code')
+      return getFirstPathIfAvailable(['/snap/bin/code', '/usr/bin/code'])
     case ExternalEditor.VSCodeInsiders:
       return getFirstPathIfAvailable([
         '/snap/bin/code-insiders',
