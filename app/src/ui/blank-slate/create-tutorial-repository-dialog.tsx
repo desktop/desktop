@@ -222,6 +222,8 @@ export class CreateTutorialRepositoryDialog extends React.Component<
     } catch (err) {
       this.setState({ loading: false, progress: undefined })
 
+      process.emit('warning', err)
+
       if (err instanceof GitError) {
         this.props.onError(err)
       } else {

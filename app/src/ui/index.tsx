@@ -93,7 +93,7 @@ let currentState: IAppState | null = null
 let lastUnhandledRejection: string | null = null
 let lastUnhandledRejectionTime: Date | null = null
 
-process.once('uncaughtException', (error: Error) => {
+const sendErrorWithContext = (error: Error, nonFatal?: boolean) => {
   error = withSourceMappedStack(error)
 
   console.error('Uncaught exception', error)
@@ -166,10 +166,17 @@ process.once('uncaughtException', (error: Error) => {
       /* ignore */
     }
 
-    sendErrorReport(error, extra)
+    sendErrorReport(error, extra, nonFatal)
   }
+}
 
+process.once('uncaughtException', (error: Error) => {
+  sendErrorWithContext(error)
   reportUncaughtException(error)
+})
+
+process.on('warning', (error: Error) => {
+  sendErrorWithContext(error, true)
 })
 
 /**
