@@ -1,6 +1,6 @@
 {
   "releases": {
-    "2.2.2-beta0": [
+    "2.2.2-beta1": [
       "[Added] Prompt users to re-authenticate if they are unable to push changes to a workflow file - #8357"
     ],
     "2.2.1": [
