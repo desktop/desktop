@@ -485,12 +485,20 @@ app.on('ready', () => {
     'send-error-report',
     (
       event: Electron.IpcMessageEvent,
-      { error, extra }: { error: Error; extra: { [key: string]: string } }
+      {
+        error,
+        extra,
+        nonFatal,
+      }: { error: Error; extra: { [key: string]: string }; nonFatal?: boolean }
     ) => {
-      reportError(error, {
-        ...getExtraErrorContext(),
-        ...extra,
-      })
+      reportError(
+        error,
+        {
+          ...getExtraErrorContext(),
+          ...extra,
+        },
+        nonFatal
+      )
     }
   )
 
