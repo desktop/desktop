@@ -205,7 +205,7 @@ function orderByPosition(x: ActualTextMarker, y: ActualTextMarker) {
 
 // The types for CodeMirror.TextMarker is all wrong, this is what it
 // actually looks like
-// eslint-disable-next-line typescript/interface-name-prefix
+// eslint-disable-next-line @typescript-eslint/interface-name-prefix
 interface ActualTextMarker extends CodeMirror.TextMarkerOptions {
   /** Remove the mark. */
   clear(): void
@@ -708,6 +708,12 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
         'Ctrl-Space': 'autocomplete',
         'Ctrl-Enter': false,
         'Cmd-Enter': false,
+        // Disable all search-related shortcuts.
+        [__DARWIN__ ? 'Cmd-F' : 'Ctrl-F']: false, // find
+        [__DARWIN__ ? 'Cmd-G' : 'Ctrl-G']: false, // findNext
+        [__DARWIN__ ? 'Shift-Cmd-G' : 'Shift-Ctrl-G']: false, // findPrev
+        [__DARWIN__ ? 'Cmd-Alt-F' : 'Shift-Ctrl-F']: false, // replace
+        [__DARWIN__ ? 'Shift-Cmd-Alt-F' : 'Shift-Ctrl-R']: false, // replaceAll
       },
       readOnly: this.props.disabled ? 'nocursor' : false,
       hintOptions: {

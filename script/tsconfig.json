@@ -8,7 +8,7 @@
     "noUnusedLocals": true,
     "sourceMap": false,
     "noEmit": true,
-    "strict": true,
+    "strict": true
   },
   "compileOnSave": false
 }

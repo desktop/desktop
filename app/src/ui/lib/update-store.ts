@@ -13,6 +13,7 @@ import { parseError } from '../../lib/squirrel-error-parser'
 
 import { ReleaseSummary } from '../../models/release-notes'
 import { generateReleaseSummary } from '../../lib/release-notes'
+import { setNumber, getNumber } from '../../lib/local-storage'
 
 /** The states the auto updater can be in. */
 export enum UpdateStatus {
@@ -46,16 +47,10 @@ class UpdateStore {
   private userInitiatedUpdate = true
 
   public constructor() {
-    const lastSuccessfulCheckValue = localStorage.getItem(
-      lastSuccessfulCheckKey
-    )
+    const lastSuccessfulCheckTime = getNumber(lastSuccessfulCheckKey, 0)
 
-    if (lastSuccessfulCheckValue) {
-      const lastSuccessfulCheckTime = parseInt(lastSuccessfulCheckValue, 10)
-
-      if (!isNaN(lastSuccessfulCheckTime)) {
-        this.lastSuccessfulCheck = new Date(lastSuccessfulCheckTime)
-      }
+    if (lastSuccessfulCheckTime > 0) {
+      this.lastSuccessfulCheck = new Date(lastSuccessfulCheckTime)
     }
 
     autoUpdater.on('error', this.onAutoUpdaterError)
@@ -81,10 +76,8 @@ class UpdateStore {
 
   private touchLastChecked() {
     const now = new Date()
-    const persistedValue = now.getTime().toString()
-
     this.lastSuccessfulCheck = now
-    localStorage.setItem(lastSuccessfulCheckKey, persistedValue)
+    setNumber(lastSuccessfulCheckKey, now.getTime())
   }
 
   private onAutoUpdaterError = (error: Error) => {

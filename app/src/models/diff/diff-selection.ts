@@ -5,11 +5,11 @@ import { assertNever } from '../../lib/fatal-error'
  */
 export enum DiffSelectionType {
   /** The entire file should be committed */
-  All,
+  All = 'All',
   /** A subset of lines in the file have been selected for committing */
-  Partial,
+  Partial = 'Partial',
   /** The file should be excluded from committing */
-  None,
+  None = 'None',
 }
 
 /**

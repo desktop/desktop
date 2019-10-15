@@ -5,6 +5,8 @@ import {
   List,
   SelectionSource as ListSelectionSource,
   findNextSelectableRow,
+  ClickSource,
+  SelectionDirection,
 } from '../lib/list'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
@@ -71,8 +73,20 @@ interface IFilterListProps<T extends IFilterListItem> {
   /** Called to render content before/above the filter and list. */
   readonly renderPreList?: () => JSX.Element | null
 
-  /** Called when an item is clicked. */
-  readonly onItemClick?: (item: T) => void
+  /**
+   * This function will be called when a pointer device is pressed and then
+   * released on a selectable row. Note that this follows the conventions
+   * of button elements such that pressing Enter or Space on a keyboard
+   * while focused on a particular row will also trigger this event. Consumers
+   * can differentiate between the two using the source parameter.
+   *
+   * Note that this event handler will not be called for keyboard events
+   * if `event.preventDefault()` was called in the onRowKeyDown event handler.
+   *
+   * Consumers of this event do _not_ have to call event.preventDefault,
+   * when this event is subscribed to the list will automatically call it.
+   */
+  readonly onItemClick?: (item: T, source: ClickSource) => void
 
   /**
    * This function will be called when the selection changes as a result of a
@@ -252,19 +266,37 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     )
   }
 
-  public selectFirstItem(focus: boolean = false) {
+  public selectNextItem(
+    focus: boolean = false,
+    inDirection: SelectionDirection = 'down'
+  ) {
     if (this.list === null) {
       return
     }
+    let next: number | null = null
 
-    const next = findNextSelectableRow(
-      this.state.rows.length,
-      {
-        direction: 'down',
-        row: -1,
-      },
-      this.canSelectRow
-    )
+    if (
+      this.state.selectedRow === -1 ||
+      this.state.selectedRow === this.state.rows.length
+    ) {
+      next = findNextSelectableRow(
+        this.state.rows.length,
+        {
+          direction: inDirection,
+          row: -1,
+        },
+        this.canSelectRow
+      )
+    } else {
+      next = findNextSelectableRow(
+        this.state.rows.length,
+        {
+          direction: inDirection,
+          row: this.state.selectedRow,
+        },
+        this.canSelectRow
+      )
+    }
 
     if (next !== null) {
       this.setState({ selectedRow: next }, () => {
@@ -344,12 +376,12 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     return row.kind === 'item'
   }
 
-  private onRowClick = (index: number) => {
+  private onRowClick = (index: number, source: ClickSource) => {
     if (this.props.onItemClick) {
       const row = this.state.rows[index]
 
       if (row.kind === 'item') {
-        this.props.onItemClick(row.item)
+        this.props.onItemClick(row.item, source)
       }
     }
   }
@@ -458,7 +490,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       )
 
       if (row != null) {
-        this.onRowClick(row)
+        this.onRowClick(row, { kind: 'keyboard', event })
       }
     }
   }

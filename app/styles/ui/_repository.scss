@@ -5,6 +5,8 @@
   display: flex;
   flex-direction: row;
   flex: 1;
+  border-top: var(--base-border);
+  max-height: 100%;
 
   > .focus-container {
     display: flex;

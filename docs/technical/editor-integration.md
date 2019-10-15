@@ -20,22 +20,25 @@ please fork and contribute a pull request for the team to review.
 ## Windows
 
 The source for the editor integration on Windows is found in
-[`app/src/lib/editors/win32.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/editors/win32.ts).
+[`app/src/lib/editors/win32.ts`](https://github.com/desktop/desktop/blob/development/app/src/lib/editors/win32.ts).
 
 These editors are currently supported:
 
- - [Atom](https://atom.io/)
+ - [Atom](https://atom.io/) - stable, Beta and Nightly
  - [Visual Studio Code](https://code.visualstudio.com/) - both stable and Insiders channel
  - [Sublime Text](https://www.sublimetext.com/)
  - [ColdFusion Builder](https://www.adobe.com/products/coldfusion-builder.html)
  - [Typora](https://typora.io/)
  - [SlickEdit](https://www.slickedit.com)
+ - [JetBrains WebStorm](https://www.jetbrains.com/webstorm/)
 
 These are defined in an enum at the top of the file:
 
 ```ts
 export enum ExternalEditor {
   Atom = 'Atom',
+  AtomBeta = 'Atom Beta',
+  AtomNightly = 'Atom Nightly',
   VisualStudioCode = 'Visual Studio Code',
   VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
@@ -189,7 +192,7 @@ function isExpectedInstallation(
 }
 ```
 
-### Step 3: Launch the program
+### Step 3: Determine the program to launch
 
 Now that Desktop knows the program is the one it expects, it can use the
 install location to then find the executable to launch. Many editors provide a
@@ -214,10 +217,34 @@ function getExecutableShim(
 Desktop will confirm this file exists on disk before launching - if it's
 missing or lost it won't let you launch the external editor.
 
+If the external editor utilizes a CMD.EXE shell script to launch, Desktop
+needs to know this in order to properly launch the CMD.EXE shell.  This is 
+done by setting the property `usesShell: true` in `getAvailableEditors`.
+
+```ts
+export async function getAvailableEditors(): Promise<
+  ReadonlyArray<IFoundEditor<ExternalEditor>>
+> {
+  ...
+
+  if (codePath) {
+    results.push({
+      editor: ExternalEditor.VisualStudioCode,
+      path: codePath,
+      usesShell: true,
+    })
+  }
+
+  ...
+
+  return results
+}
+```
+
 ## macOS
 
 The source for the editor integration on macOS is found in
-[`app/src/lib/editors/darwin.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/editors/darwin.ts).
+[`app/src/lib/editors/darwin.ts`](https://github.com/desktop/desktop/blob/development/app/src/lib/editors/darwin.ts).
 
 These editors are currently supported:
 
@@ -330,7 +357,7 @@ function getExecutableShim(
 
 
 The source for the editor integration on Linux is found in
-[`app/src/lib/editors/linux.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/editors/linux.ts).
+[`app/src/lib/editors/linux.ts`](https://github.com/desktop/desktop/blob/development/app/src/lib/editors/linux.ts).
 
 These editors are currently supported:
 

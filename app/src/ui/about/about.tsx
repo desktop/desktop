@@ -1,17 +1,19 @@
 import * as React from 'react'
-import { clipboard } from 'electron'
 
 import { Row } from '../lib/row'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
-import { Octicon, OcticonSymbol } from '../octicons'
 import { LinkButton } from '../lib/link-button'
 import { updateStore, IUpdateState, UpdateStatus } from '../lib/update-store'
 import { Disposable } from 'event-kit'
 import { Loading } from '../lib/loading'
 import { RelativeTime } from '../relative-time'
 import { assertNever } from '../../lib/fatal-error'
+import { ReleaseNotesUri } from '../lib/releases'
+import { encodePathAsUrl } from '../../lib/path'
+
+const DesktopLogo = encodePathAsUrl(__dirname, 'static/logo-64x64@2x.png')
 
 interface IAboutProps {
   /**
@@ -43,8 +45,6 @@ interface IAboutState {
   readonly updateState: IUpdateState
 }
 
-const releaseNotesUri = 'https://desktop.github.com/release-notes/'
-
 /**
  * A dialog that presents information about the
  * running application such as name and version.
@@ -67,10 +67,6 @@ export class About extends React.Component<IAboutProps, IAboutState> {
 
   private onUpdateStateChanged = (updateState: IUpdateState) => {
     this.setState({ updateState })
-  }
-
-  private onClickVersion = () => {
-    clipboard.writeText(this.props.applicationVersion)
   }
 
   public componentDidMount() {
@@ -246,8 +242,10 @@ export class About extends React.Component<IAboutProps, IAboutState> {
     const name = this.props.applicationName
     const version = this.props.applicationVersion
     const releaseNotesLink = (
-      <LinkButton uri={releaseNotesUri}>release notes</LinkButton>
+      <LinkButton uri={ReleaseNotesUri}>release notes</LinkButton>
     )
+
+    const versionText = __DEV__ ? `Build ${version}` : `Version ${version}`
 
     return (
       <Dialog
@@ -258,18 +256,17 @@ export class About extends React.Component<IAboutProps, IAboutState> {
         {this.renderUpdateErrors()}
         <DialogContent>
           <Row className="logo">
-            <Octicon symbol={OcticonSymbol.markGithub} />
+            <img
+              src={DesktopLogo}
+              alt="GitHub Desktop"
+              width="64"
+              height="64"
+            />
           </Row>
           <h2>{name}</h2>
           <p className="no-padding">
-            <LinkButton
-              title="Click to copy"
-              className="version-text"
-              onClick={this.onClickVersion}
-            >
-              Version {version}
-            </LinkButton>{' '}
-            ({releaseNotesLink})
+            <span className="selectable-text">{versionText}</span> (
+            {releaseNotesLink})
           </p>
           <p className="no-padding">
             <LinkButton onClick={this.props.onShowTermsAndConditions}>

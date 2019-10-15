@@ -1,4 +1,3 @@
-import { expect } from 'chai'
 import { GitError } from 'dugite'
 
 import { Repository } from '../../../src/models/repository'
@@ -6,7 +5,7 @@ import { git } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../helpers/repositories'
 
 describe('git/core', () => {
-  let repository: Repository | null = null
+  let repository: Repository
 
   beforeEach(async () => {
     const testRepoPath = await setupFixtureRepository('test-repo')
@@ -19,15 +18,15 @@ describe('git/core', () => {
 
       let threw = false
       try {
-        const result = await git(args, repository!.path, 'test', {
+        const result = await git(args, repository.path, 'test', {
           expectedErrors: new Set([GitError.BadRevision]),
         })
-        expect(result.gitError).to.equal(GitError.BadRevision)
+        expect(result.gitError).toBe(GitError.BadRevision)
       } catch (e) {
         threw = true
       }
 
-      expect(threw).to.equal(false)
+      expect(threw).toBe(false)
     })
 
     it('throws for errors that were not expected', async () => {
@@ -35,14 +34,14 @@ describe('git/core', () => {
 
       let threw = false
       try {
-        await git(args, repository!.path, 'test', {
+        await git(args, repository.path, 'test', {
           expectedErrors: new Set([GitError.SSHKeyAuditUnverified]),
         })
       } catch (e) {
         threw = true
       }
 
-      expect(threw).to.equal(true)
+      expect(threw).toBe(true)
     })
   })
 
@@ -52,15 +51,15 @@ describe('git/core', () => {
 
       let threw = false
       try {
-        const result = await git(args, repository!.path, 'test', {
+        const result = await git(args, repository.path, 'test', {
           successExitCodes: new Set([128]),
         })
-        expect(result.exitCode).to.equal(128)
+        expect(result.exitCode).toBe(128)
       } catch (e) {
         threw = true
       }
 
-      expect(threw).to.equal(false)
+      expect(threw).toBe(false)
     })
 
     it('throws for exit codes that were not expected', async () => {
@@ -68,14 +67,14 @@ describe('git/core', () => {
 
       let threw = false
       try {
-        await git(args, repository!.path, 'test', {
+        await git(args, repository.path, 'test', {
           successExitCodes: new Set([2]),
         })
       } catch (e) {
         threw = true
       }
 
-      expect(threw).to.equal(true)
+      expect(threw).toBe(true)
     })
   })
 })

@@ -16,3 +16,20 @@ export function getOS() {
     return `${OS.type()} ${OS.release()}`
   }
 }
+
+/** See the OS we're currently running on is at least Mojave. */
+export function isMojaveOrLater() {
+  if (__DARWIN__) {
+    const parser = new UAParser()
+    const os = parser.getOS()
+
+    if (os.version === undefined) {
+      return false
+    }
+
+    const [major, minor] = os.version.split('.')
+
+    return major === '10' && minor > '13'
+  }
+  return false
+}

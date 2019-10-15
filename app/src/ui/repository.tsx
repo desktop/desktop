@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Repository as Repo } from '../models/repository'
+import { Repository } from '../models/repository'
 import { Commit } from '../models/commit'
 import { TipState } from '../models/tip'
 import { UiView } from './ui-view'
@@ -10,35 +10,51 @@ import { FilesChangedBadge } from './changes/files-changed-badge'
 import { SelectedCommit, CompareSidebar } from './history'
 import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
-import { IRepositoryState, RepositorySectionTab } from '../lib/app-state'
-import { Dispatcher } from '../lib/dispatcher'
+import {
+  IRepositoryState,
+  RepositorySectionTab,
+  ChangesSelectionKind,
+} from '../lib/app-state'
+import { Dispatcher } from './dispatcher'
 import { IssuesStore, GitHubUserStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { Account } from '../models/account'
-import { enableNotificationOfBranchUpdates } from '../lib/feature-flag'
 import { FocusContainer } from './lib/focus-container'
 import { OcticonSymbol, Octicon } from './octicons'
 import { ImageDiffType } from '../models/diff'
+import { IMenu } from '../models/app-menu'
+import { StashDiffViewer } from './stashing'
+import { StashedChangesLoadStates } from '../models/stash-entry'
+import { TutorialPanel, TutorialWelcome, TutorialDone } from './tutorial'
+import { enableTutorial } from '../lib/feature-flag'
+import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
+import { ExternalEditor } from '../lib/editors'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
 
 interface IRepositoryViewProps {
-  readonly repository: Repo
+  readonly repository: Repository
   readonly state: IRepositoryState
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, string>
   readonly sidebarWidth: number
   readonly commitSummaryWidth: number
+  readonly stashedFilesWidth: number
   readonly issuesStore: IssuesStore
   readonly gitHubUserStore: GitHubUserStore
   readonly onViewCommitOnGitHub: (SHA: string) => void
   readonly imageDiffType: ImageDiffType
+  readonly hideWhitespaceInDiff: boolean
   readonly askForConfirmationOnDiscardChanges: boolean
+  readonly focusCommitMessage: boolean
   readonly accounts: ReadonlyArray<Account>
 
   /** The name of the currently selected external editor */
   readonly externalEditorLabel?: string
+
+  /** A cached entry representing an external editor found on the user's machine */
+  readonly resolvedExternalEditor: ExternalEditor | null
 
   /**
    * Callback to open a selected file using the configured external editor
@@ -46,10 +62,21 @@ interface IRepositoryViewProps {
    * @param fullPath The full path to the file on disk
    */
   readonly onOpenInExternalEditor: (fullPath: string) => void
+
+  /**
+   * The top-level application menu item.
+   */
+  readonly appMenu: IMenu | undefined
+
+  readonly currentTutorialStep: TutorialStep
+
+  readonly onExitTutorial: () => void
 }
 
 interface IRepositoryViewState {
   readonly sidebarHasFocusWithin: boolean
+  readonly changesListScrollTop: number
+  readonly compareListScrollTop: number
 }
 
 const enum Tab {
@@ -66,7 +93,17 @@ export class RepositoryView extends React.Component<
 
     this.state = {
       sidebarHasFocusWithin: false,
+      changesListScrollTop: 0,
+      compareListScrollTop: 0,
     }
+  }
+
+  private onChangesListScrolled = (scrollTop: number) => {
+    this.setState({ changesListScrollTop: scrollTop })
+  }
+
+  private onCompareListScrolled = (scrollTop: number) => {
+    this.setState({ compareListScrollTop: scrollTop })
   }
 
   private renderChangesBadge(): JSX.Element | null {
@@ -95,8 +132,7 @@ export class RepositoryView extends React.Component<
 
         <div className="with-indicator">
           <span>History</span>
-          {enableNotificationOfBranchUpdates() &&
-          this.props.state.compareState.isDivergingBranchBannerVisible ? (
+          {this.props.state.compareState.isDivergingBranchBannerVisible ? (
             <Octicon
               className="indicator"
               symbol={OcticonSymbol.primitiveDot}
@@ -137,12 +173,15 @@ export class RepositoryView extends React.Component<
         gitHubUserStore={this.props.gitHubUserStore}
         isCommitting={this.props.state.isCommitting}
         isPushPullFetchInProgress={this.props.state.isPushPullFetchInProgress}
+        focusCommitMessage={this.props.focusCommitMessage}
         askForConfirmationOnDiscardChanges={
           this.props.askForConfirmationOnDiscardChanges
         }
         accounts={this.props.accounts}
         externalEditorLabel={this.props.externalEditorLabel}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+        onChangesListScrolled={this.onChangesListScrolled}
+        changesListScrollTop={this.state.changesListScrollTop}
       />
     )
   }
@@ -164,6 +203,8 @@ export class RepositoryView extends React.Component<
         dispatcher={this.props.dispatcher}
         onRevertCommit={this.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
+        onCompareListScrolled={this.onCompareListScrolled}
+        compareListScrollTop={this.state.compareListScrollTop}
       />
     )
   }
@@ -219,67 +260,140 @@ export class RepositoryView extends React.Component<
     }
   }
 
-  private renderContent(): JSX.Element | null {
-    const selectedSection = this.props.state.selectedSection
+  private renderStashedChangesContent(): JSX.Element | null {
+    const { changesState } = this.props.state
+    const { selection, stashEntry, workingDirectory } = changesState
+    const isWorkingTreeClean = workingDirectory.files.length === 0
 
-    if (selectedSection === RepositorySectionTab.Changes) {
-      const changesState = this.props.state.changesState
-      const selectedFileIDs = changesState.selectedFileIDs
+    if (selection.kind !== ChangesSelectionKind.Stash || stashEntry === null) {
+      return null
+    }
 
-      if (selectedFileIDs.length > 1) {
-        return <MultipleSelection count={selectedFileIDs.length} />
-      }
+    if (stashEntry.files.kind === StashedChangesLoadStates.Loaded) {
+      return (
+        <StashDiffViewer
+          stashEntry={stashEntry}
+          selectedStashedFile={selection.selectedStashedFile}
+          stashedFileDiff={selection.selectedStashedFileDiff}
+          imageDiffType={this.props.imageDiffType}
+          fileListWidth={this.props.stashedFilesWidth}
+          repository={this.props.repository}
+          dispatcher={this.props.dispatcher}
+          isWorkingTreeClean={isWorkingTreeClean}
+        />
+      )
+    }
 
+    return null
+  }
+
+  private renderContentForHistory(): JSX.Element {
+    const { commitSelection } = this.props.state
+
+    const sha = commitSelection.sha
+
+    const selectedCommit =
+      sha != null ? this.props.state.commitLookup.get(sha) || null : null
+
+    const { changedFiles, file, diff } = commitSelection
+
+    return (
+      <SelectedCommit
+        repository={this.props.repository}
+        dispatcher={this.props.dispatcher}
+        selectedCommit={selectedCommit}
+        changedFiles={changedFiles}
+        selectedFile={file}
+        currentDiff={diff}
+        emoji={this.props.emoji}
+        commitSummaryWidth={this.props.commitSummaryWidth}
+        gitHubUsers={this.props.state.gitHubUsers}
+        selectedDiffType={this.props.imageDiffType}
+        externalEditorLabel={this.props.externalEditorLabel}
+        onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+        hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+      />
+    )
+  }
+
+  private renderTutorialPane(): JSX.Element {
+    if (this.props.currentTutorialStep === TutorialStep.AllDone) {
+      return (
+        <TutorialDone
+          dispatcher={this.props.dispatcher}
+          repository={this.props.repository}
+        />
+      )
+    } else {
+      return <TutorialWelcome />
+    }
+  }
+
+  private renderContentForChanges(): JSX.Element | null {
+    const { changesState } = this.props.state
+    const { workingDirectory, selection } = changesState
+
+    if (selection.kind === ChangesSelectionKind.Stash) {
+      return this.renderStashedChangesContent()
+    }
+
+    const { selectedFileIDs, diff } = selection
+
+    if (selectedFileIDs.length > 1) {
+      return <MultipleSelection count={selectedFileIDs.length} />
+    }
+
+    if (workingDirectory.files.length === 0) {
       if (
-        changesState.workingDirectory.files.length === 0 ||
-        selectedFileIDs.length === 0 ||
-        changesState.diff === null
+        enableTutorial() &&
+        this.props.currentTutorialStep !== TutorialStep.NotApplicable
       ) {
-        return <NoChanges repository={this.props.repository} />
+        return this.renderTutorialPane()
       } else {
-        const workingDirectory = changesState.workingDirectory
-        const selectedFile = workingDirectory.findFileWithID(selectedFileIDs[0])
-
-        if (!selectedFile) {
-          return null
-        }
-
         return (
-          <Changes
+          <NoChanges
+            key={this.props.repository.id}
+            appMenu={this.props.appMenu}
             repository={this.props.repository}
+            repositoryState={this.props.state}
+            isExternalEditorAvailable={
+              this.props.externalEditorLabel !== undefined
+            }
             dispatcher={this.props.dispatcher}
-            file={selectedFile}
-            diff={changesState.diff}
-            imageDiffType={this.props.imageDiffType}
           />
         )
       }
-    } else if (selectedSection === RepositorySectionTab.History) {
-      const { commitSelection } = this.props.state
+    } else {
+      if (selectedFileIDs.length === 0 || diff === null) {
+        return null
+      }
 
-      const sha = commitSelection.sha
+      const selectedFile = workingDirectory.findFileWithID(selectedFileIDs[0])
 
-      const selectedCommit =
-        sha != null ? this.props.state.commitLookup.get(sha) || null : null
-
-      const { changedFiles, file, diff } = commitSelection
+      if (selectedFile === null) {
+        return null
+      }
 
       return (
-        <SelectedCommit
+        <Changes
           repository={this.props.repository}
           dispatcher={this.props.dispatcher}
-          selectedCommit={selectedCommit}
-          changedFiles={changedFiles}
-          selectedFile={file}
-          currentDiff={diff}
-          emoji={this.props.emoji}
-          commitSummaryWidth={this.props.commitSummaryWidth}
-          gitHubUsers={this.props.state.gitHubUsers}
-          selectedDiffType={this.props.imageDiffType}
-          externalEditorLabel={this.props.externalEditorLabel}
-          onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+          file={selectedFile}
+          diff={diff}
+          isCommitting={this.props.state.isCommitting}
+          imageDiffType={this.props.imageDiffType}
+          hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
         />
       )
+    }
+  }
+
+  private renderContent(): JSX.Element | null {
+    const selectedSection = this.props.state.selectedSection
+    if (selectedSection === RepositorySectionTab.Changes) {
+      return this.renderContentForChanges()
+    } else if (selectedSection === RepositorySectionTab.History) {
+      return this.renderContentForHistory()
     } else {
       return assertNever(selectedSection, 'Unknown repository section')
     }
@@ -290,6 +404,7 @@ export class RepositoryView extends React.Component<
       <UiView id="repository" onKeyDown={this.onKeyDown}>
         {this.renderSidebar()}
         {this.renderContent()}
+        {this.maybeRenderTutorialPanel()}
       </UiView>
     )
   }
@@ -331,5 +446,23 @@ export class RepositoryView extends React.Component<
         showBranchList: false,
       })
     }
+  }
+
+  private maybeRenderTutorialPanel(): JSX.Element | null {
+    if (
+      enableTutorial() &&
+      isValidTutorialStep(this.props.currentTutorialStep)
+    ) {
+      return (
+        <TutorialPanel
+          dispatcher={this.props.dispatcher}
+          repository={this.props.repository}
+          resolvedExternalEditor={this.props.resolvedExternalEditor}
+          currentTutorialStep={this.props.currentTutorialStep}
+          onExitTutorial={this.props.onExitTutorial}
+        />
+      )
+    }
+    return null
   }
 }

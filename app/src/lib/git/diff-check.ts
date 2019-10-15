@@ -20,7 +20,7 @@ export async function getFilesWithConflictMarkers(
 
   // result parsing
   const outputStr = output.toString('utf8')
-  const captures = await getCaptures(outputStr, fileNameCaptureRe)
+  const captures = getCaptures(outputStr, fileNameCaptureRe)
   if (captures.length === 0) {
     return new Map<string, number>()
   }

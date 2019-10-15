@@ -23,6 +23,9 @@ export async function launchExternalEditor(
       { openPreferences: true }
     )
   }
-
-  spawn(editorPath, [fullPath])
+  if (editor.usesShell) {
+    spawn(`"${editorPath}"`, [`"${fullPath}"`], { shell: true })
+  } else {
+    spawn(editorPath, [fullPath])
+  }
 }

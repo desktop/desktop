@@ -19,8 +19,15 @@ export interface ICompareResult extends IAheadBehind {
   readonly commits: ReadonlyArray<Commit>
 }
 
+/** Default rules for where to create a branch from */
+export enum StartPoint {
+  CurrentBranch = 'CurrentBranch',
+  DefaultBranch = 'DefaultBranch',
+  Head = 'Head',
+}
+
 /**
- * Check if a branch is eligible for beign fast forarded.
+ * Check if a branch is eligible for being fast-forwarded.
  *
  * Requirements:
  *   1. It's local.

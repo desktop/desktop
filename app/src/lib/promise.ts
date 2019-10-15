@@ -37,3 +37,18 @@ export function promiseWithMinimumTimeout<T>(
       .catch(reject)
   })
 }
+
+/**
+ * `async`/`await`-friendly wrapper around `window.setTimeout` for places where
+ * callers want to defer async work and avoid the ceremony of this setup and
+ * using callbacks
+ *
+ * @param timeout the time to wait before resolving the promise (in milliseconds)
+ */
+export async function timeout(timeout: number): Promise<void> {
+  return new Promise((resolve, reject) => {
+    window.setTimeout(() => {
+      resolve()
+    }, timeout)
+  })
+}

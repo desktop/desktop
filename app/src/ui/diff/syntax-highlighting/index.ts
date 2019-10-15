@@ -10,10 +10,11 @@ import { ITokens } from '../../../lib/highlighter/types'
 import {
   CommittedFileChange,
   WorkingDirectoryFileChange,
-  AppFileStatus,
+  AppFileStatusKind,
 } from '../../../models/status'
 import { Repository } from '../../../models/repository'
 import { DiffHunk, DiffLineType, DiffLine } from '../../../models/diff'
+import { getOldPathOrDefault } from '../../../lib/get-old-path'
 
 /** The maximum number of bytes we'll process for highlighting. */
 const MaxHighlightContentLength = 256 * 1024
@@ -40,8 +41,11 @@ async function getOldFileContent(
   repository: Repository,
   file: ChangedFile
 ): Promise<Buffer> {
-  if (file.status === AppFileStatus.New) {
-    return new Buffer(0)
+  if (
+    file.status.kind === AppFileStatusKind.New ||
+    file.status.kind === AppFileStatusKind.Untracked
+  ) {
+    return Buffer.alloc(0)
   }
 
   let commitish
@@ -61,7 +65,7 @@ async function getOldFileContent(
   return getPartialBlobContents(
     repository,
     commitish,
-    file.oldPath || file.path,
+    getOldPathOrDefault(file),
     MaxHighlightContentLength
   )
 }
@@ -70,8 +74,8 @@ async function getNewFileContent(
   repository: Repository,
   file: ChangedFile
 ): Promise<Buffer> {
-  if (file.status === AppFileStatus.Deleted) {
-    return new Buffer(0)
+  if (file.status.kind === AppFileStatusKind.Deleted) {
+    return Buffer.alloc(0)
   }
 
   if (file instanceof WorkingDirectoryFileChange) {
@@ -99,20 +103,20 @@ export async function getFileContents(
 ): Promise<IFileContents> {
   const oldContentsPromise = lineFilters.oldLineFilter.length
     ? getOldFileContent(repo, file)
-    : Promise.resolve(new Buffer(0))
+    : Promise.resolve(Buffer.alloc(0))
 
   const newContentsPromise = lineFilters.newLineFilter.length
     ? getNewFileContent(repo, file)
-    : Promise.resolve(new Buffer(0))
+    : Promise.resolve(Buffer.alloc(0))
 
   const [oldContents, newContents] = await Promise.all([
     oldContentsPromise.catch(e => {
       log.error('Could not load old contents for syntax highlighting', e)
-      return new Buffer(0)
+      return Buffer.alloc(0)
     }),
     newContentsPromise.catch(e => {
       log.error('Could not load new contents for syntax highlighting', e)
-      return new Buffer(0)
+      return Buffer.alloc(0)
     }),
   ])
 
@@ -176,10 +180,13 @@ export async function highlightContents(
 ): Promise<IFileTokens> {
   const { file, oldContents, newContents } = contents
 
+  const oldPath = getOldPathOrDefault(file)
+
   const [oldTokens, newTokens] = await Promise.all([
     highlight(
       oldContents.toString('utf8'),
-      Path.extname(file.oldPath || file.path),
+      Path.basename(oldPath),
+      Path.extname(oldPath),
       tabSize,
       lineFilters.oldLineFilter
     ).catch(e => {
@@ -188,6 +195,7 @@ export async function highlightContents(
     }),
     highlight(
       newContents.toString('utf8'),
+      Path.basename(file.path),
       Path.extname(file.path),
       tabSize,
       lineFilters.newLineFilter

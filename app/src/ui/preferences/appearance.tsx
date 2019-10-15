@@ -1,4 +1,7 @@
 import * as React from 'react'
+import { supportsDarkMode, isDarkModeEnabled } from '../lib/dark-theme'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import { Row } from '../lib/row'
 import { DialogContent } from '../dialog'
 import {
   VerticalSegmentedControl,
@@ -10,6 +13,8 @@ import { fatalError } from '../../lib/fatal-error'
 interface IAppearanceProps {
   readonly selectedTheme: ApplicationTheme
   readonly onSelectedThemeChanged: (theme: ApplicationTheme) => void
+  readonly automaticallySwitchTheme: boolean
+  readonly onAutomaticallySwitchThemeChanged: (checked: boolean) => void
 }
 
 const themes: ReadonlyArray<ISegmentedItem> = [
@@ -30,20 +35,62 @@ export class Appearance extends React.Component<IAppearanceProps, {}> {
     } else {
       fatalError(`Unknown theme index ${index}`)
     }
+    this.props.onAutomaticallySwitchThemeChanged(false)
+  }
+
+  private onAutomaticallySwitchThemeChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+
+    if (value) {
+      this.onSelectedThemeChanged(isDarkModeEnabled() ? 1 : 0)
+    }
+
+    this.props.onAutomaticallySwitchThemeChanged(value)
   }
 
   public render() {
+    return (
+      <DialogContent>
+        {this.renderThemeOptions()}
+        {this.renderAutoSwitcherOption()}
+      </DialogContent>
+    )
+  }
+
+  public renderThemeOptions() {
     const selectedIndex =
       this.props.selectedTheme === ApplicationTheme.Dark ? 1 : 0
 
     return (
-      <DialogContent>
+      <Row>
         <VerticalSegmentedControl
           items={themes}
           selectedIndex={selectedIndex}
           onSelectionChanged={this.onSelectedThemeChanged}
         />
-      </DialogContent>
+      </Row>
+    )
+  }
+
+  public renderAutoSwitcherOption() {
+    if (!supportsDarkMode()) {
+      return null
+    }
+
+    return (
+      <Row>
+        <Checkbox
+          label="Automatically switch theme to match system theme."
+          value={
+            this.props.automaticallySwitchTheme
+              ? CheckboxValue.On
+              : CheckboxValue.Off
+          }
+          onChange={this.onAutomaticallySwitchThemeChanged}
+        />
+      </Row>
     )
   }
 }

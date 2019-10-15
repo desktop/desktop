@@ -1,9 +1,9 @@
 import * as React from 'react'
 
 import { Repository } from '../../models/repository'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { sanitizedBranchName } from '../../lib/sanitize-branch'
-import { Branch } from '../../models/branch'
+import { Branch, StartPoint } from '../../models/branch'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Ref } from '../lib/ref'
@@ -23,6 +23,13 @@ import {
   renderBranchNameWarning,
   renderBranchNameExistsOnRemoteWarning,
 } from '../lib/branch-name-warnings'
+import { getStartPoint } from '../../lib/create-branch'
+import { startTimer } from '../lib/timing'
+import {
+  UncommittedChangesStrategy,
+  UncommittedChangesStrategyKind,
+  askToStash,
+} from '../../models/uncommitted-changes-strategy'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -32,12 +39,9 @@ interface ICreateBranchProps {
   readonly defaultBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
   readonly initialName: string
-}
 
-enum StartPoint {
-  CurrentBranch,
-  DefaultBranch,
-  Head,
+  /** Was this component launched from the "Protected Branch" warning message? */
+  readonly handleProtectedBranchWarning?: boolean
 }
 
 interface ICreateBranchState {
@@ -78,34 +82,6 @@ interface ICreateBranchState {
 enum SelectedBranch {
   DefaultBranch = 0,
   CurrentBranch = 1,
-}
-
-function getStartPoint(
-  props: ICreateBranchProps,
-  preferred: StartPoint
-): StartPoint {
-  if (preferred === StartPoint.DefaultBranch && props.defaultBranch) {
-    return preferred
-  }
-
-  if (
-    preferred === StartPoint.CurrentBranch &&
-    props.tip.kind === TipState.Valid
-  ) {
-    return preferred
-  }
-
-  if (preferred === StartPoint.Head) {
-    return preferred
-  }
-
-  if (props.defaultBranch) {
-    return StartPoint.DefaultBranch
-  } else if (props.tip.kind === TipState.Valid) {
-    return StartPoint.CurrentBranch
-  } else {
-    return StartPoint.Head
-  }
 }
 
 /** The Create Branch component. */
@@ -308,29 +284,46 @@ export class CreateBranch extends React.Component<
   private createBranch = async () => {
     const name = this.state.sanitizedName
 
-    let startPoint = undefined
+    let startPoint: string | null = null
+
+    const {
+      defaultBranch,
+      handleProtectedBranchWarning,
+      repository,
+    } = this.props
 
     if (this.state.startPoint === StartPoint.DefaultBranch) {
       // This really shouldn't happen, we take all kinds of precautions
       // to make sure the startPoint state is valid given the current props.
-      if (!this.props.defaultBranch) {
+      if (!defaultBranch) {
         this.setState({
           currentError: new Error('Could not determine the default branch'),
         })
         return
       }
 
-      startPoint = this.props.defaultBranch.name
+      startPoint = defaultBranch.name
     }
 
     if (name.length > 0) {
+      // if the user arrived at this dialog from the Protected Branch flow
+      // we should bypass the "Switch Branch" flow and get out of the user's way
+      const strategy: UncommittedChangesStrategy = handleProtectedBranchWarning
+        ? {
+            kind: UncommittedChangesStrategyKind.MoveToNewBranch,
+            transientStashEntry: null,
+          }
+        : askToStash
+
       this.setState({ isCreatingBranch: true })
+      const timer = startTimer('create branch', repository)
       await this.props.dispatcher.createBranch(
-        this.props.repository,
+        repository,
         name,
-        startPoint
+        startPoint,
+        strategy
       )
-      this.props.onDismissed()
+      timer.done()
     }
   }
 }

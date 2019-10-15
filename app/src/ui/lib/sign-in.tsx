@@ -3,7 +3,7 @@ import { AuthenticationForm } from './authentication-form'
 import { assertNever } from '../../lib/fatal-error'
 import { TwoFactorAuthentication } from '../lib/two-factor-authentication'
 import { EnterpriseServerEntry } from '../lib/enterprise-server-entry'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import {
   SignInState,
   SignInStep,
@@ -63,6 +63,7 @@ export class SignIn extends React.Component<ISignInProps, {}> {
         onBrowserSignInRequested={this.onBrowserSignInRequested}
         onSubmit={this.onCredentialsEntered}
         forgotPasswordUrl={state.forgotPasswordUrl}
+        endpoint={state.endpoint}
       />
     )
   }

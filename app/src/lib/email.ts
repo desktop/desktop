@@ -1,4 +1,7 @@
-import { IAPIEmail } from './api'
+import * as URL from 'url'
+
+import { IAPIEmail, getDotComAPIEndpoint } from './api'
+import { Account } from '../models/account'
 
 /**
  * Lookup a suitable email address to display in the application, based on the
@@ -13,9 +16,9 @@ import { IAPIEmail } from './api'
  *
  * @param emails array of email addresses associated with an account
  */
-export function lookupPreferredEmail(
-  emails: ReadonlyArray<IAPIEmail>
-): IAPIEmail | null {
+export function lookupPreferredEmail(account: Account): IAPIEmail | null {
+  const emails = account.emails
+
   if (emails.length === 0) {
     return null
   }
@@ -25,9 +28,12 @@ export function lookupPreferredEmail(
     return primary
   }
 
+  const stealthSuffix = `@${getStealthEmailHostForEndpoint(account.endpoint)}`
+
   const noReply = emails.find(e =>
-    e.email.toLowerCase().endsWith('@users.noreply.github.com')
+    e.email.toLowerCase().endsWith(stealthSuffix)
   )
+
   if (noReply) {
     return noReply
   }
@@ -40,7 +46,7 @@ export function lookupPreferredEmail(
  */
 function isEmailPublic(email: IAPIEmail): boolean {
   // If an email doesn't have a visibility setting it means it's coming from an
-  // older Enterprise server which doesn't have the concept of visiblity.
+  // older Enterprise Server which doesn't have the concept of visiblity.
   return email.visibility === 'public' || !email.visibility
 }
 
@@ -57,4 +63,16 @@ export function getDefaultEmail(emails: ReadonlyArray<IAPIEmail>): string {
   }
 
   return emails[0].email || ''
+}
+
+/**
+ * Returns the stealth email host name for a given endpoint. The stealth
+ * email host is hardcoded to the subdomain users.noreply under the
+ * endpoint host.
+ */
+function getStealthEmailHostForEndpoint(endpoint: string) {
+  const url = URL.parse(endpoint)
+  return getDotComAPIEndpoint() !== endpoint
+    ? `users.noreply.${url.hostname}`
+    : 'users.noreply.github.com'
 }
