@@ -222,7 +222,7 @@ function getRegistryKeys(
         {
           key: HKEY.HKEY_LOCAL_MACHINE,
           subKey:
-            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\vs.exe'
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\vs.exe',
         },
         // 32-bit version of SlickEdit
         {
