@@ -395,7 +395,7 @@ function isExpectedInstallation(
       return displayName.startsWith('Typora') && publisher === 'typora.io'
     case ExternalEditor.SlickEdit:
       return (
-        displayName.startsWith('SlickEdit') && publisher === 'SlickEdit Inc.'
+        displayName.startsWith('SlickEdit') && publisher === 'SlickEdit, Inc.'
       )
     case ExternalEditor.Webstorm:
       return (
