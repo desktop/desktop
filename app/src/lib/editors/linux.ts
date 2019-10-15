@@ -58,6 +58,7 @@ async function getEditorPath(editor: ExternalEditor): Promise<string | null> {
       return getPathIfAvailable('/usr/bin/typora')
     case ExternalEditor.SlickEdit:
       const possiblePaths = [
+        '/opt/slickedit-pro2019/bin/vs',
         '/opt/slickedit-pro2018/bin/vs',
         '/opt/slickedit-pro2017/bin/vs',
         '/opt/slickedit-pro2016/bin/vs',

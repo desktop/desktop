@@ -95,6 +95,7 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['abnerworks.Typora']
     case ExternalEditor.SlickEdit:
       return [
+        'com.slickedit.SlickEditPro2019',
         'com.slickedit.SlickEditPro2018',
         'com.slickedit.SlickEditPro2017',
         'com.slickedit.SlickEditPro2016',
