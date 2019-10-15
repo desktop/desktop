@@ -4424,7 +4424,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-  public async _setExternalEditor(selectedEditor: ExternalEditor): Promise<void> {
+  public async _setExternalEditor(
+    selectedEditor: ExternalEditor
+  ): Promise<void> {
     this.selectedExternalEditor = selectedEditor
     localStorage.setItem(externalEditorKey, selectedEditor)
     this.emitUpdate()

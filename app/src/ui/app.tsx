@@ -582,7 +582,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const compareURL = `${htmlURL}/compare/${
       branchTip.branch.upstreamWithoutRemote
-      }`
+    }`
     this.props.dispatcher.openInBrowser(compareURL)
   }
 
@@ -1265,7 +1265,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.RenameBranch:
         const stash =
           this.state.selectedState !== null &&
-            this.state.selectedState.type === SelectionType.Repository
+          this.state.selectedState.type === SelectionType.Repository
             ? this.state.selectedState.state.changesState.stashEntry
             : null
         return (
