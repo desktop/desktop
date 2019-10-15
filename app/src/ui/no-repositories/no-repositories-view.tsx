@@ -15,7 +15,7 @@ import { assertNever } from '../../lib/fatal-error'
 import { ClickSource } from '../lib/list'
 import { enableTutorial } from '../../lib/feature-flag'
 
-interface IBlankSlateProps {
+interface INoRepositoriesProps {
   /** A function to call when the user chooses to create a repository. */
   readonly onCreate: () => void
 
@@ -72,7 +72,7 @@ enum AccountTab {
   enterprise,
 }
 
-interface IBlankSlateState {
+interface INoRepositoriesState {
   /**
    * The selected account, or rather the preferred selection.
    * Has no effect when the user isn't signed in to any account.
@@ -107,14 +107,14 @@ interface IBlankSlateState {
 }
 
 /**
- * The blank slate view. This is shown when the user hasn't added any
+ * The "No Repositories" view. This is shown when the user hasn't added any
  * repositories to the app.
  */
-export class BlankSlateView extends React.Component<
-  IBlankSlateProps,
-  IBlankSlateState
+export class NoRepositoriesView extends React.Component<
+  INoRepositoriesProps,
+  INoRepositoriesState
 > {
-  public constructor(props: IBlankSlateProps) {
+  public constructor(props: INoRepositoriesProps) {
     super(props)
 
     this.state = {
@@ -128,7 +128,7 @@ export class BlankSlateView extends React.Component<
 
   public render() {
     return (
-      <UiView id="blank-slate">
+      <UiView id="no-repositories">
         <header>
           <h1>Let's get started!</h1>
           <p>Add a repository to GitHub Desktop to start collaborating</p>
@@ -139,9 +139,12 @@ export class BlankSlateView extends React.Component<
           {this.renderRightPanel()}
         </div>
 
-        <img className="blankslate-graphic-top" src={WelcomeLeftTopImageUri} />
         <img
-          className="blankslate-graphic-bottom"
+          className="no-repositories-graphic-top"
+          src={WelcomeLeftTopImageUri}
+        />
+        <img
+          className="no-repositories-graphic-bottom"
           src={WelcomeLeftBottomImageUri}
         />
       </UiView>
@@ -153,8 +156,8 @@ export class BlankSlateView extends React.Component<
   }
 
   public componentDidUpdate(
-    prevProps: IBlankSlateProps,
-    prevState: IBlankSlateState
+    prevProps: INoRepositoriesProps,
+    prevState: INoRepositoriesState
   ) {
     if (
       prevProps.dotComAccount !== this.props.dotComAccount ||
