@@ -498,46 +498,46 @@ function extractApplicationInformation(
   }
 
   if (editor === ExternalEditor.SlickEdit) {
-      let displayName = ''
-      let publisher = ''
-      let installLocation = ''
+    let displayName = ''
+    let publisher = ''
+    let installLocation = ''
 
-      for (const item of keys) {
-        // NOTE:
-        // We have two types keys we might get so we need to handle either.
-        // 1) App Path - used by Windows for the run dialog
-        //    type in the exe name without being in the path
-        //    based on exe name only and not version installed
-        // 2) Uninstall key
-        //    per version, per bitness, per edition
-        //    needs updating every version
-        if (
-          item.name === 'Path' &&
-          item.type === RegistryValueType.REG_SZ &&
-          item.data.endsWith('win')
-        ) {
-          publisher = 'SlickEdit Inc.'
-          installLocation = item.data
-          displayName = 'SlickEdit'
-        } else if (
-          item.name === 'DisplayName' &&
-          item.type === RegistryValueType.REG_SZ
-        ) {
-          displayName = item.data
-        } else if (
-          item.name === 'Publisher' &&
-          item.type === RegistryValueType.REG_SZ
-        ) {
-          publisher = item.data
-        } else if (
-          item.name === 'InstallLocation' &&
-          item.type === RegistryValueType.REG_SZ
-        ) {
-          // In the uninstall key, InstallLocation points to the root directory
-          // so we need to add '/win'
-          installLocation = Path.join(item.data, 'win')
-        }
+    for (const item of keys) {
+      // NOTE:
+      // We have two types keys we might get so we need to handle either.
+      // 1) App Path - used by Windows for the run dialog
+      //    type in the exe name without being in the path
+      //    based on exe name only and not version installed
+      // 2) Uninstall key
+      //    per version, per bitness, per edition
+      //    needs updating every version
+      if (
+        item.name === 'Path' &&
+        item.type === RegistryValueType.REG_SZ &&
+        item.data.endsWith('win')
+      ) {
+        publisher = 'SlickEdit Inc.'
+        installLocation = item.data
+        displayName = 'SlickEdit'
+      } else if (
+        item.name === 'DisplayName' &&
+        item.type === RegistryValueType.REG_SZ
+      ) {
+        displayName = item.data
+      } else if (
+        item.name === 'Publisher' &&
+        item.type === RegistryValueType.REG_SZ
+      ) {
+        publisher = item.data
+      } else if (
+        item.name === 'InstallLocation' &&
+        item.type === RegistryValueType.REG_SZ
+      ) {
+        // In the uninstall key, InstallLocation points to the root directory
+        // so we need to add '/win'
+        installLocation = Path.join(item.data, 'win')
       }
+    }
     return { displayName, publisher, installLocation }
   }
 
