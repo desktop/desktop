@@ -162,6 +162,18 @@ function getRegistryKeys(
       ]
     case ExternalEditor.SlickEdit:
       return [
+        // 64-bit version of SlickEdit
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\vs.exe'
+        },
+        // 32-bit version of SlickEdit
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\App Paths\\vs.exe',
+        },
         // 64-bit version of SlickEdit Pro 2018
         {
           key: HKEY.HKEY_LOCAL_MACHINE,
@@ -259,7 +271,7 @@ function getExecutableShim(
     case ExternalEditor.Typora:
       return Path.join(installLocation, 'bin', 'typora.exe')
     case ExternalEditor.SlickEdit:
-      return Path.join(installLocation, 'win', 'vs.exe')
+      return Path.join(installLocation, 'vs.exe')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -392,9 +404,46 @@ function extractApplicationInformation(
   }
 
   if (editor === ExternalEditor.SlickEdit) {
-    const displayName = getKeyOrEmpty(keys, 'DisplayName')
-    const publisher = getKeyOrEmpty(keys, 'Publisher')
-    const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
+      let displayName = ''
+      let publisher = ''
+      let installLocation = ''
+
+      for (const item of keys) {
+        // NOTE:
+        // We have two types keys we might get so we need to handle either.
+        // 1) App Path - used by Windows for the run dialog
+        //    type in the exe name without being in the path
+        //    based on exe name only and not version installed
+        // 2) Uninstall key
+        //    per version, per bitness, per edition
+        //    needs updating every version
+        if (
+          item.name === 'Path' &&
+          item.type === RegistryValueType.REG_SZ &&
+          item.data.endsWith('win')
+        ) {
+          publisher = 'SlickEdit, Inc.'
+          installLocation = item.data
+          displayName = 'SlickEdit'
+        } else if (
+          item.name === 'DisplayName' &&
+          item.type === RegistryValueType.REG_SZ
+        ) {
+          displayName = item.data
+        } else if (
+          item.name === 'Publisher' &&
+          item.type === RegistryValueType.REG_SZ
+        ) {
+          publisher = item.data
+        } else if (
+          item.name === 'InstallLocation' &&
+          item.type === RegistryValueType.REG_SZ
+        ) {
+          // In the uninstall key, InstallLocation points to the root directory
+          // so we need to add '/win'
+          installLocation = Path.join(item.data, 'win')
+        }
+      }
     return { displayName, publisher, installLocation }
   }
 
