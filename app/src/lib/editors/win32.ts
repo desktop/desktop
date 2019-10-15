@@ -395,7 +395,7 @@ function isExpectedInstallation(
       return displayName.startsWith('Typora') && publisher === 'typora.io'
     case ExternalEditor.SlickEdit:
       return (
-        displayName.startsWith('SlickEdit') && publisher === 'SlickEdit, Inc.'
+        displayName.startsWith('SlickEdit') && publisher === 'SlickEdit Inc.'
       )
     case ExternalEditor.Webstorm:
       return (
@@ -516,7 +516,7 @@ function extractApplicationInformation(
           item.type === RegistryValueType.REG_SZ &&
           item.data.endsWith('win')
         ) {
-          publisher = 'SlickEdit, Inc.'
+          publisher = 'SlickEdit Inc.'
           installLocation = item.data
           displayName = 'SlickEdit'
         } else if (
