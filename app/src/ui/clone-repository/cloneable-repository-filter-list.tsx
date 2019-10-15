@@ -176,7 +176,7 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
         renderNoItems={this.renderNoItems}
         renderPostFilter={this.renderPostFilter}
         onItemClick={this.props.onItemClicked ? this.onItemClick : undefined}
-        placeholderText="Filter repositories"
+        placeholderText="Filter your repositories"
       />
     )
   }
@@ -276,7 +276,7 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
     return (
       <div className="no-items empty-repository-list">
         <div>
-          Couldn't find any repositories for{' '}
+          Looks like there are no repositories for{' '}
           <Ref>{this.props.account.login}</Ref> on {endpointName}.{' '}
           <LinkButton onClick={this.refreshRepositories}>
             Refresh this list
