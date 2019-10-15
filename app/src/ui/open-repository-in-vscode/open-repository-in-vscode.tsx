@@ -51,7 +51,7 @@ export class OpenRepositoryInVSCode extends React.Component<
       {
         locationName: __DARWIN__
           ? 'The Repository Root Directory'
-          : 'The repository root directry',
+          : 'The repository root directory',
         path: this.props.repositoryPath,
       },
     ]
