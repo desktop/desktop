@@ -24,7 +24,7 @@ The source for the editor integration on Windows is found in
 
 These editors are currently supported:
 
- - [Atom](https://atom.io/)
+ - [Atom](https://atom.io/) - stable, Beta and Nightly
  - [Visual Studio Code](https://code.visualstudio.com/) - both stable and Insiders channel
  - [Sublime Text](https://www.sublimetext.com/)
  - [ColdFusion Builder](https://www.adobe.com/products/coldfusion-builder.html)
@@ -37,6 +37,8 @@ These are defined in an enum at the top of the file:
 ```ts
 export enum ExternalEditor {
   Atom = 'Atom',
+  AtomBeta = 'Atom Beta',
+  AtomNightly = 'Atom Nightly',
   VisualStudioCode = 'Visual Studio Code',
   VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',

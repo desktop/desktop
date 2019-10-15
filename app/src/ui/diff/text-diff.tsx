@@ -129,6 +129,34 @@ interface ITextDiffProps {
 
 const diffGutterName = 'diff-gutter'
 
+function showSearch(cm: Editor) {
+  cm.execCommand('findPersistent')
+  const wrapper = cm.getWrapperElement()
+
+  if (!wrapper) {
+    return
+  }
+
+  const dialog = wrapper.querySelector('.CodeMirror-dialog')
+
+  if (!dialog) {
+    return
+  }
+
+  dialog.classList.add('CodeMirror-search-dialog')
+  const searchLabel = dialog.querySelector('.CodeMirror-search-label')
+  const searchField = dialog.querySelector('.CodeMirror-search-field')
+
+  if (
+    searchLabel instanceof HTMLElement &&
+    searchField instanceof HTMLInputElement
+  ) {
+    searchLabel.style.display = 'none'
+    searchField.placeholder = 'Search'
+    searchField.style.width = null
+  }
+}
+
 const defaultEditorOptions: IEditorConfigurationExtra = {
   lineNumbers: false,
   readOnly: true,
@@ -137,7 +165,19 @@ const defaultEditorOptions: IEditorConfigurationExtra = {
   lineWrapping: true,
   mode: { name: DiffSyntaxMode.ModeName },
   // Make sure CodeMirror doesn't capture Tab (and Shift-Tab) and thus destroy tab navigation
-  extraKeys: { Tab: false, 'Shift-Tab': false },
+  extraKeys: {
+    Tab: false,
+    'Shift-Tab': false,
+    // Steal the default key binding so that we can launch our
+    // custom search UI.
+    [__DARWIN__ ? 'Cmd-F' : 'Ctrl-F']: showSearch,
+    // Disable all other search-related shortcuts so that they
+    // don't interfer with global app shortcuts.
+    [__DARWIN__ ? 'Cmd-G' : 'Ctrl-G']: false, // findNext
+    [__DARWIN__ ? 'Shift-Cmd-G' : 'Shift-Ctrl-G']: false, // findPrev
+    [__DARWIN__ ? 'Cmd-Alt-F' : 'Shift-Ctrl-F']: false, // replace
+    [__DARWIN__ ? 'Shift-Cmd-Alt-F' : 'Shift-Ctrl-R']: false, // replaceAll
+  },
   scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
   styleSelectedText: true,
   lineSeparator: '\n',
@@ -709,6 +749,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   public componentWillUnmount() {
     this.cancelSelection()
     this.codeMirror = null
+    document.removeEventListener('find-text', this.onFindText)
   }
 
   public componentDidUpdate(
@@ -756,6 +797,17 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
   public componentDidMount() {
     this.initDiffSyntaxMode()
+
+    // Listen for the custom event find-text (see app.tsx)
+    // and trigger the search plugin if we see it.
+    document.addEventListener('find-text', this.onFindText)
+  }
+
+  private onFindText = (ev: Event) => {
+    if (!ev.defaultPrevented && this.codeMirror) {
+      ev.preventDefault()
+      showSearch(this.codeMirror)
+    }
   }
 
   public render() {

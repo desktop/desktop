@@ -11,6 +11,7 @@ export type MenuEvent =
   | 'create-repository'
   | 'rename-branch'
   | 'delete-branch'
+  | 'discard-all-changes'
   | 'show-preferences'
   | 'choose-repository'
   | 'open-working-directory'
@@ -33,3 +34,5 @@ export type MenuEvent =
   | 'show-release-notes-popup'
   | 'show-stashed-changes'
   | 'hide-stashed-changes'
+  | 'test-prune-branches'
+  | 'find-text'

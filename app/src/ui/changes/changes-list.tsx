@@ -34,16 +34,12 @@ import { basename } from 'path'
 import { ICommitContext } from '../../models/commit'
 import { RebaseConflictState } from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
-import { enablePullWithRebase, enableStashing } from '../../lib/feature-flag'
-import { ListRow } from '../lib/list/list-row'
+import { enableStashing } from '../../lib/feature-flag'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { FocusContainer } from '../lib/focus-container'
 import { IStashEntry } from '../../models/stash-entry'
+import * as classNames from 'classnames'
 
 const RowHeight = 29
-const StashListRowStyle: React.CSSProperties = {
-  height: RowHeight,
-}
 const StashIcon = new OcticonSymbol(
   16,
   16,
@@ -107,9 +103,9 @@ interface IChangesListProps {
   readonly onDiscardChanges: (file: WorkingDirectoryFileChange) => void
   readonly askForConfirmationOnDiscardChanges: boolean
   readonly focusCommitMessage: boolean
-  readonly onDiscardAllChanges: (
+  readonly onDiscardChangesFromFiles: (
     files: ReadonlyArray<WorkingDirectoryFileChange>,
-    isDiscardingAllChanges?: boolean
+    isDiscardingAllChanges: boolean
   ) => void
 
   /** Callback that fires on page scroll to pass the new scrollTop location */
@@ -129,6 +125,7 @@ interface IChangesListProps {
   readonly dispatcher: Dispatcher
   readonly availableWidth: number
   readonly isCommitting: boolean
+  readonly currentBranchProtected: boolean
 
   /**
    * Click event handler passed directly to the onRowClick prop of List, see
@@ -263,7 +260,10 @@ export class ChangesList extends React.Component<
   }
 
   private onDiscardAllChanges = () => {
-    this.props.onDiscardAllChanges(this.props.workingDirectory.files)
+    this.props.onDiscardChangesFromFiles(
+      this.props.workingDirectory.files,
+      true
+    )
   }
 
   private onDiscardChanges = (files: ReadonlyArray<string>) => {
@@ -292,7 +292,10 @@ export class ChangesList extends React.Component<
         const discardingAllChanges =
           modifiedFiles.length === workingDirectory.files.length
 
-        this.props.onDiscardAllChanges(modifiedFiles, discardingAllChanges)
+        this.props.onDiscardChangesFromFiles(
+          modifiedFiles,
+          discardingAllChanges
+        )
       }
     }
   }
@@ -314,7 +317,7 @@ export class ChangesList extends React.Component<
     event.preventDefault()
 
     // need to preserve the working directory state while dealing with conflicts
-    if (this.props.rebaseConflictState !== null) {
+    if (this.props.rebaseConflictState !== null || this.props.isCommitting) {
       return
     }
 
@@ -335,13 +338,6 @@ export class ChangesList extends React.Component<
     return {
       label: this.getDiscardChangesMenuItemLabel(paths),
       action: () => this.onDiscardChanges(paths),
-    }
-  }
-
-  private getDiscardAllChangesMenuItem = (): IMenuItem => {
-    return {
-      label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
-      action: () => this.onDiscardAllChanges(),
     }
   }
 
@@ -426,7 +422,6 @@ export class ChangesList extends React.Component<
 
     const items: IMenuItem[] = [
       this.getDiscardChangesMenuItem(paths),
-      this.getDiscardAllChangesMenuItem(),
       { type: 'separator' },
     ]
     if (paths.length === 1) {
@@ -519,6 +514,10 @@ export class ChangesList extends React.Component<
     file: WorkingDirectoryFileChange,
     event: React.MouseEvent<HTMLDivElement>
   ) => {
+    if (this.props.isCommitting) {
+      return
+    }
+
     event.preventDefault()
 
     const items =
@@ -531,9 +530,9 @@ export class ChangesList extends React.Component<
 
   private getPlaceholderMessage(
     files: ReadonlyArray<WorkingDirectoryFileChange>,
-    singleFileCommit: boolean
+    prepopulateCommitSummary: boolean
   ) {
-    if (!singleFileCommit) {
+    if (!prepopulateCommitSummary) {
       return 'Summary (required)'
     }
 
@@ -566,9 +565,10 @@ export class ChangesList extends React.Component<
       repository,
       dispatcher,
       isCommitting,
+      currentBranchProtected,
     } = this.props
 
-    if (rebaseConflictState !== null && enablePullWithRebase()) {
+    if (rebaseConflictState !== null) {
       const hasUntrackedChanges = workingDirectory.files.some(
         f => f.status.kind === AppFileStatusKind.Untracked
       )
@@ -598,7 +598,13 @@ export class ChangesList extends React.Component<
     const filesSelected = workingDirectory.files.filter(
       f => f.selection.getSelectionType() !== DiffSelectionType.None
     )
-    const singleFileCommit = filesSelected.length === 1
+
+    // When a single file is selected, we use a default commit summary
+    // based on the file name and change status.
+    // However, for onboarding tutorial repositories, we don't want to do this.
+    // See https://github.com/desktop/desktop/issues/8354
+    const prepopulateCommitSummary =
+      filesSelected.length === 1 && !repository.isTutorialRepository
 
     return (
       <CommitMessage
@@ -617,19 +623,26 @@ export class ChangesList extends React.Component<
         coAuthors={this.props.coAuthors}
         placeholder={this.getPlaceholderMessage(
           filesSelected,
-          singleFileCommit
+          prepopulateCommitSummary
         )}
-        singleFileCommit={singleFileCommit}
+        prepopulateCommitSummary={prepopulateCommitSummary}
         key={repository.id}
+        currentBranchProtected={currentBranchProtected}
       />
     )
   }
 
   private onStashEntryClicked = () => {
-    if (this.props.isShowingStashEntry) {
-      this.props.dispatcher.selectWorkingDirectoryFiles(this.props.repository)
+    const { isShowingStashEntry, dispatcher, repository } = this.props
+
+    if (isShowingStashEntry) {
+      dispatcher.selectWorkingDirectoryFiles(repository)
+
+      // If the button is clicked, that implies the stash was not restored or discarded
+      dispatcher.recordNoActionTakenOnStash()
     } else {
-      this.props.dispatcher.selectStashedFile(this.props.repository)
+      dispatcher.selectStashedFile(repository)
+      dispatcher.recordStashView()
     }
   }
 
@@ -641,26 +654,39 @@ export class ChangesList extends React.Component<
       return null
     }
 
-    return (
-      <FocusContainer className="list-focus-container">
-        <ListRow
-          rowCount={1}
-          rowIndex={0}
-          selectable={true}
-          selected={this.props.isShowingStashEntry}
-          onRowClick={this.onStashEntryClicked}
-          tabIndex={0}
-          style={StashListRowStyle}
-          className="stash-entry-row"
-        >
-          <div className="stash-entry-row-content">
-            <Octicon className="icon" symbol={StashIcon} />
-            <div className="text">Stashed Changes</div>
-            <Octicon className="arrow" symbol={OcticonSymbol.chevronRight} />
-          </div>
-        </ListRow>
-      </FocusContainer>
+    const className = classNames(
+      'stashed-changes-button',
+      this.props.isShowingStashEntry ? 'selected' : null
     )
+
+    return (
+      <button
+        className={className}
+        onClick={this.onStashEntryClicked}
+        tabIndex={0}
+        aria-selected={this.props.isShowingStashEntry}
+      >
+        <Octicon className="stack-icon" symbol={StashIcon} />
+        <div className="text">Stashed Changes</div>
+        <Octicon symbol={OcticonSymbol.chevronRight} />
+      </button>
+    )
+  }
+
+  private onRowKeyDown = (
+    _row: number,
+    event: React.KeyboardEvent<HTMLDivElement>
+  ) => {
+    // The commit is already in-flight but this check prevents the
+    // user from changing selection.
+    if (
+      this.props.isCommitting &&
+      (event.key === 'Enter' || event.key === ' ')
+    ) {
+      event.preventDefault()
+    }
+
+    return
   }
 
   public render() {
@@ -699,6 +725,7 @@ export class ChangesList extends React.Component<
           onRowClick={this.props.onRowClick}
           onScroll={this.onScroll}
           setScrollTop={this.props.changesListScrollTop}
+          onRowKeyDown={this.onRowKeyDown}
         />
         {this.renderStashedChanges()}
         {this.renderCommitMessageForm()}

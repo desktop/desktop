@@ -1,4 +1,5 @@
 import * as appProxy from '../ui/lib/app-proxy'
+import { URL } from 'url'
 
 /** The HTTP methods available. */
 export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'HEAD'
@@ -29,6 +30,9 @@ export class APIError extends Error {
   /** The error as sent from the API, if one could be parsed. */
   public readonly apiError: IAPIError | null
 
+  /** The HTTP response code that the error was delivered with */
+  public readonly responseStatus: number
+
   public constructor(response: Response, apiError: IAPIError | null) {
     let message
     if (apiError && apiError.message) {
@@ -47,6 +51,7 @@ export class APIError extends Error {
 
     super(message)
 
+    this.responseStatus = response.status
     this.apiError = apiError
   }
 }
@@ -87,7 +92,16 @@ export function getAbsoluteUrl(endpoint: string, path: string): string {
   if (relativePath.startsWith('api/v3/')) {
     relativePath = relativePath.substr(7)
   }
-  return encodeURI(`${endpoint}/${relativePath}`)
+
+  // Our API endpoints are a bit sloppy in that they don't typically
+  // include the trailing slash (i.e. we use https://api.github.com for
+  // dotcom and https://ghe.enterprise.local/api/v3 for Enterprise Server when
+  // both of those should really include the trailing slash since that's
+  // the qualified base). We'll work around our past since here by ensuring
+  // that the endpoint ends with a trailing slash.
+  const base = endpoint.endsWith('/') ? endpoint : `${endpoint}/`
+
+  return new URL(relativePath, base).toString()
 }
 
 /**

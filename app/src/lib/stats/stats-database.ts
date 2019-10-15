@@ -89,10 +89,10 @@ export interface IDailyMeasures {
   /** The number of times the user pushes with `--force-with-lease` to GitHub.com */
   readonly dotcomForcePushCount: number
 
-  /** The number of times the user pushed to a GitHub enterprise instance */
+  /** The number of times the user pushed to a GitHub Enterprise Server instance */
   readonly enterprisePushCount: number
 
-  /** The number of times the user pushes with `--force-with-lease` to a GitHub Enterprise instance */
+  /** The number of times the user pushes with `--force-with-lease` to a GitHub Enterprise Server instance */
   readonly enterpriseForcePushCount: number
 
   /** The number of times the users pushes to a generic remote */
@@ -130,12 +130,18 @@ export interface IDailyMeasures {
 
   /**
    * The number of times the user made a commit to a repo hosted on
-   * a GitHub Enterprise instance
+   * a GitHub Enterprise Server instance
    */
   readonly enterpriseCommits: number
 
-  /** The number of time the user made a commit to a repo hosted on Github.com */
+  /** The number of times the user made a commit to a repo hosted on Github.com */
   readonly dotcomCommits: number
+
+  /** The number of times the user made a commit to a protected GitHub or GitHub Enterprise Server repository */
+  readonly commitsToProtectedBranch: number
+
+  /** The number of times the user made a commit to a repository with branch protections enabled */
+  readonly commitsToRepositoryWithBranchProtections: number
 
   /** The number of times the user dismissed the merge conflicts dialog */
   readonly mergeConflictsDialogDismissalCount: number
@@ -164,8 +170,11 @@ export interface IDailyMeasures {
   /** The number of times an aborted rebase is detected */
   readonly rebaseAbortedAfterConflictsCount: number
 
-  /** The number of times a successful rebase is detected */
+  /** The number of times a successful rebase after handling conflicts is detected */
   readonly rebaseSuccessAfterConflictsCount: number
+
+  /** The number of times a successful rebase without conflicts is detected */
+  readonly rebaseSuccessWithoutConflictsCount: number
 
   /** The number of times a user performed a pull with `pull.rebase` in config set to `true` */
   readonly pullWithRebaseCount: number
@@ -173,8 +182,153 @@ export interface IDailyMeasures {
   /** The number of times a user has pulled with `pull.rebase` unset or set to `false` */
   readonly pullWithDefaultSettingCount: number
 
+  /**
+   * The number of stash entries created outside of Desktop
+   * in a given 24 hour day
+   */
+  readonly stashEntriesCreatedOutsideDesktop: number
+
+  /**
+   * The number of times the user is presented with the error
+   * message "Some of your changes would be overwritten"
+   */
+  readonly errorWhenSwitchingBranchesWithUncommmittedChanges: number
+
   /** The number of times the user opens the "Rebase current branch" menu item */
   readonly rebaseCurrentBranchMenuCount: number
+
+  /** The number of times the user views a stash entry after checking out a branch */
+  readonly stashViewedAfterCheckoutCount: number
+
+  /** The number of times the user **doesn't** view a stash entry after checking out a branch */
+  readonly stashNotViewedAfterCheckoutCount: number
+
+  /** The number of times the user elects to stash changes on the current branch  */
+  readonly stashCreatedOnCurrentBranchCount: number
+
+  /** The number of times the user elects to take changes to new branch instead of stashing them */
+  readonly changesTakenToNewBranchCount: number
+
+  /** The number of times the user elects to restore an entry from their stash */
+  readonly stashRestoreCount: number
+
+  /** The number of times the user elects to discard a stash entry */
+  readonly stashDiscardCount: number
+
+  /**
+   * The number of times the user views the stash entry as a result
+   * of clicking the "Stashed changes" row directly
+   */
+  readonly stashViewCount: number
+
+  /** The number of times the user takes no action on a stash entry once viewed */
+  readonly noActionTakenOnStashCount: number
+  /**
+   * The number of times the user has opened their external editor from the
+   * suggested next steps view
+   */
+  readonly suggestedStepOpenInExternalEditor: number
+
+  /**
+   * The number of times the user has opened their repository in Finder/Explorer
+   * from the suggested next steps view
+   */
+  readonly suggestedStepOpenWorkingDirectory: number
+
+  /**
+   * The number of times the user has opened their repository on GitHub from the
+   * suggested next steps view
+   */
+  readonly suggestedStepViewOnGitHub: number
+
+  /**
+   * The number of times the user has used the publish repository action from the
+   * suggested next steps view
+   */
+  readonly suggestedStepPublishRepository: number
+
+  /**
+   * The number of times the user has used the publish branch action branch from
+   * the suggested next steps view
+   */
+  readonly suggestedStepPublishBranch: number
+
+  /**
+   * The number of times the user has used the Create PR suggestion
+   * in the suggested next steps view. Note that this number is a
+   * subset of `createPullRequestCount`. I.e. if the Create PR suggestion
+   * is invoked both `suggestedStepCreatePR` and `createPullRequestCount`
+   * will increment whereas if a PR is created from the menu or from
+   * a keyboard shortcut only `createPullRequestCount` will increment.
+   */
+  readonly suggestedStepCreatePullRequest: number
+
+  /**
+   * The number of times the user has used the view stash action from
+   * the suggested next steps view
+   */
+  readonly suggestedStepViewStash: number
+
+  /**
+   *  _[Onboarding tutorial]_
+   *  Has the user clicked the button to start the onboarding tutorial?
+   */
+  readonly tutorialStarted: boolean
+
+  /**
+   * _[Onboarding tutorial]_
+   * Has the user successfully created a tutorial repo?
+   */
+  readonly tutorialRepoCreated: boolean
+
+  /**
+   * _[Onboarding tutorial]_
+   * Has the user installed an editor, skipped this step, or have an editor already installed?
+   */
+  readonly tutorialEditorInstalled: boolean
+
+  /**
+   * _[Onboarding tutorial]_
+   * Has the user successfully completed the create a branch step?
+   */
+  readonly tutorialBranchCreated: boolean
+
+  /**
+   * _[Onboarding tutorial]_
+   * Has the user completed the edit a file step?
+   */
+  readonly tutorialFileEdited: boolean
+
+  /**
+   * _[Onboarding tutorial]_
+   * Has the user completed the commit a file change step?
+   */
+  readonly tutorialCommitCreated: boolean
+
+  /**
+   * _[Onboarding tutorial]_
+   * Has the user completed the push a branch step?
+   */
+  readonly tutorialBranchPushed: boolean
+
+  /**
+   * _[Onboarding tutorial]_
+   * Has the user compeleted the create a PR step?
+   */
+  readonly tutorialPrCreated: boolean
+
+  /**
+   * _[Onboarding tutorial]_
+   * Has the user completed all tutorial steps?
+   */
+  readonly tutorialCompleted: boolean
+
+  /**
+   * _[Onboarding tutorial]_
+   * What's the highest tutorial step completed by user?
+   * (`0` is tutorial created, first step is `1`)
+   */
+  readonly highestTutorialStepCompleted: number
 }
 
 export class StatsDatabase extends Dexie {

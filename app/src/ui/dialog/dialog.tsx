@@ -12,7 +12,7 @@ const dismissGracePeriodMs = 250
 
 /**
  * The time (in milliseconds) that we should wait after focusing before we
- * re-enable click dismissal. Note that this is only used on Windows.
+ * re-enable click dismissal.
  */
 const DisableClickDismissalDelay = 500
 
@@ -202,9 +202,21 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   }
 
   public componentDidMount() {
+    if (!this.dialogElement) {
+      return
+    }
+
     // This cast to any is necessary since React doesn't know about the
     // dialog element yet.
     ;(this.dialogElement as any).showModal()
+    // Provide an event that components can subscribe to in order to perform
+    // tasks such as re-layout after the dialog is visible
+    this.dialogElement.dispatchEvent(
+      new CustomEvent('dialog-show', {
+        bubbles: true,
+        cancelable: false,
+      })
+    )
 
     this.setState({ isAppearing: true })
     this.scheduleDismissGraceTimeout()
@@ -216,16 +228,18 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     // On Windows and Linux, a click which focuses the window will also get
     // passed down into the DOM. But we don't want to dismiss the dialog based
     // on that click. See https://github.com/desktop/desktop/issues/2486.
-    if (__WIN32__ || __LINUX__) {
-      this.clearClickDismissalTimer()
+    // macOS normally automatically disables "click-through" behavior but
+    // we've intentionally turned that off so we need to apply the same
+    // behavior regardless of platform.
+    // See https://github.com/desktop/desktop/pull/3843.
+    this.clearClickDismissalTimer()
 
-      this.disableClickDismissal = true
+    this.disableClickDismissal = true
 
-      this.disableClickDismissalTimeoutId = window.setTimeout(() => {
-        this.disableClickDismissal = false
-        this.disableClickDismissalTimeoutId = null
-      }, DisableClickDismissalDelay)
-    }
+    this.disableClickDismissalTimeoutId = window.setTimeout(() => {
+      this.disableClickDismissal = false
+      this.disableClickDismissalTimeoutId = null
+    }, DisableClickDismissalDelay)
   }
 
   private clearClickDismissalTimer() {

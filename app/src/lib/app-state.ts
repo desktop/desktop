@@ -35,9 +35,10 @@ import { ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { Banner } from '../models/banner'
-import { GitRebaseProgress, RebasePreview } from '../models/rebase'
+import { GitRebaseProgress } from '../models/rebase'
 import { RebaseFlowStep } from '../models/rebase-flow-step'
 import { IStashEntry } from '../models/stash-entry'
+import { TutorialStep } from '../models/tutorial-step'
 
 export enum SelectionType {
   Repository,
@@ -155,9 +156,6 @@ export interface IAppState {
   /** The width of the files list in the stash view */
   readonly stashedFilesWidth: number
 
-  /** Whether we should hide the toolbar (and show inverted window controls) */
-  readonly titleBarStyle: 'light' | 'dark'
-
   /**
    * Used to highlight access keys throughout the app when the
    * Alt key is pressed. Only applicable on non-macOS platforms.
@@ -182,6 +180,8 @@ export interface IAppState {
   /** The external editor to use when opening repositories */
   readonly selectedExternalEditor?: ExternalEditor
 
+  /** The current setting for whether the user has disable usage reports */
+  readonly optOutOfUsageTracking: boolean
   /**
    * A cached entry representing an external editor found on the user's machine:
    *
@@ -194,6 +194,9 @@ export interface IAppState {
 
   /** What type of visual diff mode we should use to compare images */
   readonly imageDiffType: ImageDiffType
+
+  /** Whether we should hide white space changes in diff */
+  readonly hideWhitespaceInDiff: boolean
 
   /** The user's preferred shell. */
   readonly selectedShell: Shell
@@ -228,6 +231,9 @@ export interface IAppState {
    * See the ApiRepositoriesStore for more details on loading repositories
    */
   readonly apiRepositories: ReadonlyMap<Account, IAccountRepositories>
+
+  /** Which step the user is on in the Onboarding Tutorial */
+  readonly currentOnboardingTutorialStep: TutorialStep
 }
 
 export enum FoldoutType {
@@ -257,10 +263,20 @@ export type AppMenuFoldout = {
   openedWithAccessKey?: boolean
 }
 
+export type BranchFoldout = {
+  type: FoldoutType.Branch
+
+  /**
+   * A flag to indicate the user clicked the "switch branch" link when they
+   * saw the prompt about the current branch being protected.
+   */
+  handleProtectedBranchWarning?: boolean
+}
+
 export type Foldout =
   | { type: FoldoutType.Repository }
-  | { type: FoldoutType.Branch }
   | { type: FoldoutType.AddMenu }
+  | BranchFoldout
   | AppMenuFoldout
 
 export enum RepositorySectionTab {
@@ -407,12 +423,6 @@ export interface IRepositoryState {
    * null if no such operation is in flight.
    */
   readonly revertProgress: IRevertProgress | null
-
-  /** The current branch filter text. */
-  readonly branchFilterText: string
-
-  /** The current pull request filter text. */
-  readonly pullRequestFilterText: string
 }
 
 export interface IBranchesState {
@@ -474,16 +484,6 @@ export interface IRebaseState {
    * `null` indicates that there is no rebase underway.
    */
   readonly step: RebaseFlowStep | null
-
-  /**
-   * A preview of the rebase, tested before performing the rebase itself, using
-   * the selected base branch to test whether the current branch will be cleanly
-   * applied.
-   *
-   * This will be set to `null` when no base branch has been selected to
-   * initiate the rebase.
-   */
-  readonly preview: RebasePreview | null
 
   /**
    * The underlying Git information associated with the current rebase
@@ -594,6 +594,9 @@ export interface IChangesState {
    * for more information about the differences between the two.
    */
   readonly selection: ChangesSelection
+
+  /** `true` if the GitHub API reports that the branch is protected */
+  readonly currentBranchProtected: boolean
 }
 
 /**

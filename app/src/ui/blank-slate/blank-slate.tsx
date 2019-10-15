@@ -13,6 +13,7 @@ import { CloneableRepositoryFilterList } from '../clone-repository/cloneable-rep
 import { IAPIRepository } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 import { ClickSource } from '../lib/list'
+import { enableTutorial } from '../../lib/feature-flag'
 
 interface IBlankSlateProps {
   /** A function to call when the user chooses to create a repository. */
@@ -24,14 +25,23 @@ interface IBlankSlateProps {
   /** A function to call when the user chooses to add a local repository. */
   readonly onAdd: () => void
 
+  /** Called when the user chooses to create a tutorial repository */
+  readonly onCreateTutorialRepository: () => void
+
+  /** Called when the user chooses to resume a tutorial repository */
+  readonly onResumeTutorialRepository: () => void
+
+  /** true if tutorial is in paused state. */
+  readonly tutorialPaused: boolean
+
   /** The logged in account for GitHub.com. */
   readonly dotComAccount: Account | null
 
-  /** The logged in account for GitHub Enterprise. */
+  /** The logged in account for GitHub Enterprise Server. */
   readonly enterpriseAccount: Account | null
 
   /**
-   * A map keyed on a user account (GitHub.com or GitHub Enterprise)
+   * A map keyed on a user account (GitHub.com or GitHub Enterprise Server)
    * containing an object with repositories that the authenticated
    * user has explicit permission (:read, :write, or :admin) to access
    * as well as information about whether the list of repositories
@@ -142,15 +152,24 @@ export class BlankSlateView extends React.Component<
     this.ensureRepositoriesForAccount(this.getSelectedAccount())
   }
 
-  public componentDidUpdate(prevProps: IBlankSlateProps) {
-    this.ensureRepositoriesForAccount(this.getSelectedAccount())
+  public componentDidUpdate(
+    prevProps: IBlankSlateProps,
+    prevState: IBlankSlateState
+  ) {
+    if (
+      prevProps.dotComAccount !== this.props.dotComAccount ||
+      prevProps.enterpriseAccount !== this.props.enterpriseAccount ||
+      prevState.selectedTab !== this.state.selectedTab
+    ) {
+      this.ensureRepositoriesForAccount(this.getSelectedAccount())
+    }
   }
 
   private ensureRepositoriesForAccount(account: Account | null) {
     if (account !== null) {
       const accountState = this.props.apiRepositories.get(account)
 
-      if (accountState === undefined || accountState.repositories === null) {
+      if (accountState === undefined) {
         this.props.onRefreshRepositories(account)
       }
     }
@@ -299,7 +318,7 @@ export class BlankSlateView extends React.Component<
     return (
       <TabBar selectedIndex={selectedIndex} onTabClicked={this.onTabClicked}>
         <span>GitHub.com</span>
-        <span>Enterprise</span>
+        <span>GitHub Enterprise Server</span>
       </TabBar>
     )
   }
@@ -312,42 +331,100 @@ export class BlankSlateView extends React.Component<
     }
   }
 
+  // Note: this wrapper is necessary in order to ensure
+  // `onClone` does not get passed a click event
+  // and accidentally interpret that as a url
+  // See https://github.com/desktop/desktop/issues/8394
   private onShowClone = () => this.props.onClone()
+
+  private renderButtonGroupButton(
+    symbol: OcticonSymbol,
+    title: string,
+    onClick: () => void,
+    type?: 'submit'
+  ) {
+    return (
+      <li>
+        <Button onClick={onClick} type={type}>
+          <Octicon symbol={symbol} />
+          <div>{title}</div>
+        </Button>
+      </li>
+    )
+  }
+
+  private renderTutorialRepositoryButton() {
+    if (!enableTutorial()) {
+      return null
+    }
+
+    // No tutorial if you're not signed in.
+    if (
+      this.props.dotComAccount === null &&
+      this.props.enterpriseAccount === null
+    ) {
+      return null
+    }
+
+    if (this.props.tutorialPaused) {
+      return this.renderButtonGroupButton(
+        OcticonSymbol.mortarBoard,
+        __DARWIN__
+          ? 'Return to In Progress Tutorial'
+          : 'Return to in progress tutorial',
+        this.props.onResumeTutorialRepository,
+        'submit'
+      )
+    } else {
+      return this.renderButtonGroupButton(
+        OcticonSymbol.mortarBoard,
+        __DARWIN__
+          ? 'Create a Tutorial Repository…'
+          : 'Create a tutorial repository…',
+        this.props.onCreateTutorialRepository,
+        'submit'
+      )
+    }
+  }
+
+  private renderCloneButton() {
+    return this.renderButtonGroupButton(
+      OcticonSymbol.repoClone,
+      __DARWIN__
+        ? 'Clone a Repository from the Internet…'
+        : 'Clone a repository from the Internet…',
+      this.onShowClone
+    )
+  }
+
+  private renderCreateRepositoryButton() {
+    return this.renderButtonGroupButton(
+      OcticonSymbol.plus,
+      __DARWIN__
+        ? 'Create a New Repository on your Hard Drive…'
+        : 'Create a New Repository on your hard drive…',
+      this.props.onCreate
+    )
+  }
+
+  private renderAddExistingRepositoryButton() {
+    return this.renderButtonGroupButton(
+      OcticonSymbol.fileDirectory,
+      __DARWIN__
+        ? 'Add an Existing Repository from your Hard Drive…'
+        : 'Add an Existing Repository from your hard drive…',
+      this.props.onAdd
+    )
+  }
 
   private renderRightPanel() {
     return (
       <div className="content-pane right">
         <ul className="button-group">
-          <li>
-            <Button onClick={this.onShowClone}>
-              <Octicon symbol={OcticonSymbol.repoClone} />
-              <div>
-                {__DARWIN__
-                  ? 'Clone a Repository from the Internet…'
-                  : 'Clone a repository from the Internet…'}
-              </div>
-            </Button>
-          </li>
-          <li>
-            <Button onClick={this.props.onCreate}>
-              <Octicon symbol={OcticonSymbol.plus} />
-              <div>
-                {__DARWIN__
-                  ? 'Create a New Repository on your Hard Drive…'
-                  : 'Create a New Repository on your hard drive…'}
-              </div>
-            </Button>
-          </li>
-          <li>
-            <Button onClick={this.props.onAdd}>
-              <Octicon symbol={OcticonSymbol.fileDirectory} />
-              <div>
-                {__DARWIN__
-                  ? 'Add an Existing Repository from your Hard Drive…'
-                  : 'Add an Existing Repository from your hard drive…'}
-              </div>
-            </Button>
-          </li>
+          {this.renderTutorialRepositoryButton()}
+          {this.renderCloneButton()}
+          {this.renderCreateRepositoryButton()}
+          {this.renderAddExistingRepositoryButton()}
         </ul>
 
         <div className="drag-drop-info">

@@ -10,6 +10,8 @@ import {
   CommittedFileChange,
   WorkingDirectoryFileChange,
   AppFileStatusKind,
+  isManualConflict,
+  isConflictedFileStatus,
 } from '../../models/status'
 import {
   DiffSelection,
@@ -59,6 +61,9 @@ interface IDiffProps {
 
   /** The type of image diff to display. */
   readonly imageDiffType: ImageDiffType
+
+  /** Hiding whitespace in diff. */
+  readonly hideWhitespaceInDiff: boolean
 }
 
 interface IDiffState {
@@ -184,6 +189,21 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
             The file was renamed but not changed
           </div>
         )
+      }
+
+      if (
+        isConflictedFileStatus(this.props.file.status) &&
+        isManualConflict(this.props.file.status)
+      ) {
+        return (
+          <div className="panel empty">
+            The file is in conflict and must be resolved via the command line.
+          </div>
+        )
+      }
+
+      if (this.props.hideWhitespaceInDiff) {
+        return <div className="panel empty">Only whitespace changes found</div>
       }
 
       return <div className="panel empty">No content changes found</div>

@@ -8,7 +8,7 @@ We introduced syntax highlighted diffs in [#3101](https://github.com/desktop/des
 
 We currently support syntax highlighting for the following languages.
 
-JavaScript, JSON, TypeScript, Coffeescript, HTML, CSS, SCSS, LESS, VUE, Markdown, Yaml, XML, Objective-C, Scala, C#, Java, C, C++, Kotlin, Ocaml, F#, sh/bash, Swift, SQL, CYPHER, Go, Perl, PHP, Python, Ruby, Clojure, Rust, Elixir, Haxe, R, JavaServer Pages, PowerShell, Docker, Visual Basic, Fortran, Lua, Crystal, Julia
+JavaScript, JSON, TypeScript, Coffeescript, HTML, CSS, SCSS, LESS, VUE, Markdown, Yaml, XML, Objective-C, Scala, C#, Java, C, C++, Kotlin, Ocaml, F#, sh/bash, Swift, SQL, CYPHER, Go, Perl, PHP, Python, Ruby, Clojure, Rust, Elixir, Haxe, R, JavaServer Pages, PowerShell, Docker, Visual Basic, Fortran, Lua, Crystal, Julia, sTex, SPARQL, Stylus, Soy, Smalltalk, Slim, Sieve, Scheme, ReStructuredText, RPM, Q, Puppet, Pug, Protobuf, Properties, Apache Pig, ASCII Armor (PGP), Oz and Pascal.
 
 This list was never meant to be exhaustive, we expect to add more languages going forward but this seemed like a good first step.
 

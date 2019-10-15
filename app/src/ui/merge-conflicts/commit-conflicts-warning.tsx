@@ -49,13 +49,13 @@ export class CommitConflictsWarning extends React.Component<
 
   private renderFiles(files: ReadonlyArray<WorkingDirectoryFileChange>) {
     return (
-      <p>
+      <div className="conflicted-files-text">
         {files.map(f => (
           <Monospaced key={f.path}>
             <PathText path={f.path} />
           </Monospaced>
         ))}
-      </p>
+      </div>
     )
   }
 

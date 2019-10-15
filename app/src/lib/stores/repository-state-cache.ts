@@ -134,6 +134,7 @@ function getInitialRepositoryState(): IRepositoryState {
       showCoAuthoredBy: false,
       conflictState: null,
       stashEntry: null,
+      currentBranchProtected: false,
     },
     selectedSection: RepositorySectionTab.Changes,
     branchesState: {
@@ -165,7 +166,6 @@ function getInitialRepositoryState(): IRepositoryState {
     rebaseState: {
       step: null,
       progress: null,
-      preview: null,
       commits: null,
       userHasResolvedConflicts: false,
     },
@@ -181,7 +181,5 @@ function getInitialRepositoryState(): IRepositoryState {
     checkoutProgress: null,
     pushPullFetchProgress: null,
     revertProgress: null,
-    branchFilterText: '',
-    pullRequestFilterText: '',
   }
 }

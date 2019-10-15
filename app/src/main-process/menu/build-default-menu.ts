@@ -4,24 +4,23 @@ import { MenuEvent } from './menu-event'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
 import { ensureDir } from 'fs-extra'
-
-import { log } from '../log'
 import { openDirectorySafe } from '../shell'
 import { enableRebaseDialog, enableStashing } from '../../lib/feature-flag'
+import { MenuLabelsEvent } from '../../models/menu-labels'
+import { DefaultEditorLabel } from '../../ui/lib/context-menu'
 
-const defaultEditorLabel = __DARWIN__
-  ? 'Open in External Editor'
-  : 'Open in external editor'
 const defaultShellLabel = __DARWIN__
   ? 'Open in Terminal'
   : 'Open in Command Prompt'
-const defaultPullRequestLabel = __DARWIN__
+const createPullRequestLabel = __DARWIN__
   ? 'Create Pull Request'
   : 'Create &pull request'
-const defaultBranchNameDefaultValue = __DARWIN__
-  ? 'Default Branch'
-  : 'default branch'
-const defaultRepositoryRemovalLabel = __DARWIN__ ? 'Remove' : '&Remove'
+const showPullRequestLabel = __DARWIN__
+  ? 'Show Pull Request'
+  : 'Show &pull request'
+const defaultBranchNameValue = __DARWIN__ ? 'Default Branch' : 'default branch'
+const confirmRepositoryRemovalLabel = __DARWIN__ ? 'Remove…' : '&Remove…'
+const repositoryRemovalLabel = __DARWIN__ ? 'Remove' : '&Remove'
 
 enum ZoomDirection {
   Reset,
@@ -29,28 +28,33 @@ enum ZoomDirection {
   Out,
 }
 
-export type MenuLabels = {
-  editorLabel?: string
-  shellLabel?: string
-  pullRequestLabel?: string
-  defaultBranchName?: string
-  removeRepoLabel?: string
-  isForcePushForCurrentRepository?: boolean
-  askForConfirmationOnForcePush?: boolean
-  isStashedChangesVisible?: boolean
-}
-
 export function buildDefaultMenu({
-  editorLabel = defaultEditorLabel,
-  shellLabel = defaultShellLabel,
-  pullRequestLabel = defaultPullRequestLabel,
-  defaultBranchName = defaultBranchNameDefaultValue,
-  removeRepoLabel = defaultRepositoryRemovalLabel,
+  selectedExternalEditor,
+  selectedShell,
+  askForConfirmationOnForcePush,
+  askForConfirmationOnRepositoryRemoval,
+  hasCurrentPullRequest = false,
+  defaultBranchName = defaultBranchNameValue,
   isForcePushForCurrentRepository = false,
-  askForConfirmationOnForcePush = false,
   isStashedChangesVisible = false,
-}: MenuLabels): Electron.Menu {
+}: MenuLabelsEvent): Electron.Menu {
   defaultBranchName = truncateWithEllipsis(defaultBranchName, 25)
+
+  const removeRepoLabel = askForConfirmationOnRepositoryRemoval
+    ? confirmRepositoryRemovalLabel
+    : repositoryRemovalLabel
+
+  const pullRequestLabel = hasCurrentPullRequest
+    ? showPullRequestLabel
+    : createPullRequestLabel
+
+  const shellLabel =
+    selectedShell === null ? defaultShellLabel : `Open in ${selectedShell}`
+
+  const editorLabel =
+    selectedExternalEditor === null
+      ? DefaultEditorLabel
+      : `Open in ${selectedExternalEditor}`
 
   const template = new Array<Electron.MenuItemConstructorOptions>()
   const separator: Electron.MenuItemConstructorOptions = { type: 'separator' }
@@ -129,7 +133,11 @@ export function buildDefaultMenu({
         click: emit('show-preferences'),
       },
       separator,
-      { role: 'quit' }
+      {
+        role: 'quit',
+        label: 'E&xit',
+        accelerator: 'Alt+F4',
+      }
     )
   }
 
@@ -148,6 +156,13 @@ export function buildDefaultMenu({
         label: __DARWIN__ ? 'Select All' : 'Select &all',
         accelerator: 'CmdOrCtrl+A',
         click: emit('select-all'),
+      },
+      separator,
+      {
+        id: 'find',
+        label: __DARWIN__ ? 'Find' : '&Find',
+        accelerator: 'CmdOrCtrl+F',
+        click: emit('find-text'),
       },
     ],
   })
@@ -274,7 +289,7 @@ export function buildDefaultMenu({
       {
         label: removeRepoLabel,
         id: 'remove-repository',
-        accelerator: 'CmdOrCtrl+Delete',
+        accelerator: 'CmdOrCtrl+Backspace',
         click: emit('remove-repository'),
       },
       separator,
@@ -336,6 +351,13 @@ export function buildDefaultMenu({
         id: 'delete-branch',
         accelerator: 'CmdOrCtrl+Shift+D',
         click: emit('delete-branch'),
+      },
+      separator,
+      {
+        label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
+        id: 'discard-all-changes',
+        accelerator: 'CmdOrCtrl+Shift+Backspace',
+        click: emit('discard-all-changes'),
       },
       separator,
       {
@@ -401,32 +423,40 @@ export function buildDefaultMenu({
   const submitIssueItem: Electron.MenuItemConstructorOptions = {
     label: __DARWIN__ ? 'Report Issue…' : 'Report issue…',
     click() {
-      shell.openExternal('https://github.com/desktop/desktop/issues/new/choose')
+      shell
+        .openExternal('https://github.com/desktop/desktop/issues/new/choose')
+        .catch(err => log.error('Failed opening issue creation page', err))
     },
   }
 
   const contactSupportItem: Electron.MenuItemConstructorOptions = {
     label: __DARWIN__ ? 'Contact GitHub Support…' : '&Contact GitHub support…',
     click() {
-      shell.openExternal(
-        `https://github.com/contact?from_desktop_app=1&app_version=${app.getVersion()}`
-      )
+      shell
+        .openExternal(
+          `https://github.com/contact?from_desktop_app=1&app_version=${app.getVersion()}`
+        )
+        .catch(err => log.error('Failed opening contact support page', err))
     },
   }
 
   const showUserGuides: Electron.MenuItemConstructorOptions = {
     label: 'Show User Guides',
     click() {
-      shell.openExternal('https://help.github.com/desktop/guides/')
+      shell
+        .openExternal('https://help.github.com/desktop/guides/')
+        .catch(err => log.error('Failed opening user guides page', err))
     },
   }
 
   const showKeyboardShortcuts: Electron.MenuItemConstructorOptions = {
     label: __DARWIN__ ? 'Show Keyboard Shortcuts' : 'Show keyboard shortcuts',
     click() {
-      shell.openExternal(
-        'https://help.github.com/en/desktop/getting-started-with-github-desktop/keyboard-shortcuts-in-github-desktop'
-      )
+      shell
+        .openExternal(
+          'https://help.github.com/en/desktop/getting-started-with-github-desktop/keyboard-shortcuts-in-github-desktop'
+        )
+        .catch(err => log.error('Failed opening keyboard shortcuts page', err))
     },
   }
 
@@ -445,7 +475,7 @@ export function buildDefaultMenu({
           openDirectorySafe(logPath)
         })
         .catch(err => {
-          log('error', err.message)
+          log.error('Failed opening logs directory', err)
         })
     },
   }
@@ -479,6 +509,10 @@ export function buildDefaultMenu({
             click: emit('show-release-notes-popup'),
           },
         ],
+      },
+      {
+        label: 'Prune branches',
+        click: emit('test-prune-branches'),
       }
     )
   }
@@ -583,29 +617,27 @@ function zoom(direction: ZoomDirection): ClickHandler {
       webContents.setZoomFactor(1)
       webContents.send('zoom-factor-changed', 1)
     } else {
-      webContents.getZoomFactor(rawZoom => {
-        const zoomFactors =
-          direction === ZoomDirection.In ? ZoomInFactors : ZoomOutFactors
+      const rawZoom = webContents.getZoomFactor()
+      const zoomFactors =
+        direction === ZoomDirection.In ? ZoomInFactors : ZoomOutFactors
 
-        // So the values that we get from getZoomFactor are floating point
-        // precision numbers from chromium that don't always round nicely so
-        // we'll have to do a little trick to figure out which of our supported
-        // zoom factors the value is referring to.
-        const currentZoom = findClosestValue(zoomFactors, rawZoom)
+      // So the values that we get from getZoomFactor are floating point
+      // precision numbers from chromium that don't always round nicely so
+      // we'll have to do a little trick to figure out which of our supported
+      // zoom factors the value is referring to.
+      const currentZoom = findClosestValue(zoomFactors, rawZoom)
 
-        const nextZoomLevel = zoomFactors.find(f =>
-          direction === ZoomDirection.In ? f > currentZoom : f < currentZoom
-        )
+      const nextZoomLevel = zoomFactors.find(f =>
+        direction === ZoomDirection.In ? f > currentZoom : f < currentZoom
+      )
 
-        // If we couldn't find a zoom level (likely due to manual manipulation
-        // of the zoom factor in devtools) we'll just snap to the closest valid
-        // factor we've got.
-        const newZoom =
-          nextZoomLevel === undefined ? currentZoom : nextZoomLevel
+      // If we couldn't find a zoom level (likely due to manual manipulation
+      // of the zoom factor in devtools) we'll just snap to the closest valid
+      // factor we've got.
+      const newZoom = nextZoomLevel === undefined ? currentZoom : nextZoomLevel
 
-        webContents.setZoomFactor(newZoom)
-        webContents.send('zoom-factor-changed', newZoom)
-      })
+      webContents.setZoomFactor(newZoom)
+      webContents.send('zoom-factor-changed', newZoom)
     }
   }
 }
