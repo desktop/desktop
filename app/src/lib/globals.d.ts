@@ -174,6 +174,15 @@ declare namespace NodeJS {
   interface Process extends EventEmitter {
     once(event: 'uncaughtException', listener: (error: Error) => void): this
     on(event: 'uncaughtException', listener: (error: Error) => void): this
+    on(
+      event: 'tutorial-repo-creation-error',
+      listener: (error: Error, context?: { [key: string]: string }) => void
+    ): this
+    emit(
+      event: 'tutorial-repo-creation-error',
+      error: Error,
+      context?: { [key: string]: string }
+    ): this
     removeListener(event: 'exit', listener: Function): this
     once(event: 'exit', listener: Function): this
   }
