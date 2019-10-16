@@ -72,7 +72,7 @@ import { About } from './about'
 import { Publish } from './publish-repository'
 import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
-import { BlankSlateView } from './blank-slate'
+import { NoRepositoriesView } from './no-repositories'
 import { ConfirmRemoveRepository } from './remove-repository'
 import { TermsAndConditions } from './terms-and-conditions'
 import { PushBranchCommits } from './branches'
@@ -103,7 +103,7 @@ import { BannerType } from '../models/banner'
 import { StashAndSwitchBranch } from './stash-changes/stash-and-switch-branch-dialog'
 import { OverwriteStash } from './stash-changes/overwrite-stashed-changes-dialog'
 import { ConfirmDiscardStashDialog } from './stashing/confirm-discard-stash'
-import { CreateTutorialRepositoryDialog } from './blank-slate/create-tutorial-repository-dialog'
+import { CreateTutorialRepositoryDialog } from './no-repositories/create-tutorial-repository-dialog'
 import { enableTutorial } from '../lib/feature-flag'
 import { ConfirmExitTutorial } from './tutorial'
 import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
@@ -1204,7 +1204,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const showAppIcon = __WIN32__ && !this.state.showWelcomeFlow
     const inWelcomeFlow = this.state.showWelcomeFlow
-    const inNoRepositoriesView = this.inNoRepositoriesBlankSlateState()
+    const inNoRepositoriesView = this.inNoRepositoriesViewState()
 
     // The light title bar style should only be used while we're in
     // the welcome flow as well as the no-repositories blank slate
@@ -2337,7 +2337,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     // can't support banners at the moment. So for the
     // no-repositories blank slate we'll have to live without
     // them.
-    if (this.inNoRepositoriesBlankSlateState()) {
+    if (this.inNoRepositoriesViewState()) {
       return null
     }
 
@@ -2382,7 +2382,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     /**
      * No toolbar if we're in the blank slate view.
      */
-    if (this.inNoRepositoriesBlankSlateState()) {
+    if (this.inNoRepositoriesViewState()) {
       return null
     }
 
@@ -2402,9 +2402,9 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderRepository() {
     const state = this.state
-    if (this.inNoRepositoriesBlankSlateState()) {
+    if (this.inNoRepositoriesViewState()) {
       return (
-        <BlankSlateView
+        <NoRepositoriesView
           dotComAccount={this.getDotComAccount()}
           enterpriseAccount={this.getEnterpriseAccount()}
           onCreate={this.showCreateRepository}
@@ -2545,7 +2545,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private inNoRepositoriesBlankSlateState() {
+  private inNoRepositoriesViewState() {
     return this.state.repositories.length === 0 || this.isTutorialPaused()
   }
 
