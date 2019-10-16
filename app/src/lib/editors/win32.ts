@@ -727,4 +727,3 @@ export async function getAvailableEditors(): Promise<
 
   return results
 }
-
