@@ -93,7 +93,11 @@ let currentState: IAppState | null = null
 let lastUnhandledRejection: string | null = null
 let lastUnhandledRejectionTime: Date | null = null
 
-const sendErrorWithContext = (error: Error, nonFatal?: boolean) => {
+const sendErrorWithContext = (
+  error: Error,
+  context: { [key: string]: string } = {},
+  nonFatal?: boolean
+) => {
   error = withSourceMappedStack(error)
 
   console.error('Uncaught exception', error)
@@ -106,6 +110,7 @@ const sendErrorWithContext = (error: Error, nonFatal?: boolean) => {
     const extra: Record<string, string> = {
       osVersion: getOS(),
       guid: getGUID(),
+      ...context,
     }
 
     try {
@@ -175,9 +180,12 @@ process.once('uncaughtException', (error: Error) => {
   reportUncaughtException(error)
 })
 
-process.on('warning', (error: Error) => {
-  sendErrorWithContext(error, true)
-})
+process.on(
+  'tutorial-repo-creation-error',
+  (error: Error, context?: { [key: string]: string }) => {
+    sendErrorWithContext(error, context, true)
+  }
+)
 
 /**
  * Chromium won't crash on an unhandled rejection (similar to how
