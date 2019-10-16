@@ -136,6 +136,8 @@ If a maintainer would like to backport a pull request to the next release, it is
 
 Once your release branch is ready to review and ship, add the `ready-for-review` label and ask the other maintainers to review and approve the changes!
 
+IMPORTANT NOTE: Do NOT "Update branch" and merge development into the release branch. This might be tempting if the "branch is out-of-date with the base branch" dotcom feature is enabled. However, doing so would inadvertently release everything on development to production or beta 🙀 
+
 ### 3. Releasing
 
 When you are ready to start the deployment, run this command in chat (where `X.Y.Z-release` is the name of your release branch):
@@ -147,6 +149,8 @@ When you are ready to start the deployment, run this command in chat (where `X.Y
 We're using `.release` with a bang so that we don't have to wait for any current CI on the branch to finish. This might feel a little wrong, but it's OK since making the release itself will also run CI.
 
 If you're releasing a `production` update, release a `beta` update for the next version too, so that beta users are on the latest release. For example, if the version just released to production is `1.2.0` then the beta release should be `1.2.1-beta0` to indicate there are no new changes on top of what's currently on `production`.
+
+IMPORTANT NOTE: Ensure that you indicate which channel to release to. If not, chatops will default to releasing to production 🙀
 
 ### 4. Check for Completed Release
 
