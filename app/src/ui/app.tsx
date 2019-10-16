@@ -2064,6 +2064,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       ? this.state.selectedState.repository
       : null
     const externalEditorLabel = this.state.selectedExternalEditor
+      ? this.state.selectedExternalEditor
+      : undefined
     const shellLabel = this.state.selectedShell
     const filterText = this.state.repositoryFilterText
     return (
@@ -2426,6 +2428,8 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     if (selectedState.type === SelectionType.Repository) {
       const externalEditorLabel = state.selectedExternalEditor
+        ? state.selectedExternalEditor
+        : undefined
 
       return (
         <RepositoryView
