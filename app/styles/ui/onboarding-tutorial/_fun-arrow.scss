@@ -1,4 +1,4 @@
-.fun-arrow {
+.nudge-arrow {
   // basic octicon up arrow
   %arrow-up {
     background-image: url("data:image/svg+xml,%3Csvg width='22' height='36' viewBox='0 0 22 36' fill='none' xmlns='http://www.w3.org/2000/svg'%3E %3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M11 6.59998L0 19.8H6.6V28.6H15.4V19.8H22L11 6.59998Z' fill='%232188FF'/%3E %3C/svg%3E ");
@@ -19,21 +19,15 @@
   }
 
   // branch menu highlight arrow
-  &.branch-menu::after {
-    @extend %arrow-up;
-    left: 35%;
-    animation: pointup 1s infinite alternate;
-  }
-
   // push branch button highlight arrow
-  &.push-button::after {
+  &.nudge-arrow-up::after {
     @extend %arrow-up;
     left: 35%;
     animation: pointup 1s infinite alternate;
   }
 
   // commit message box highlight arrow
-  &.commit-field::after {
+  &.nudge-arrow-left::after {
     @extend %arrow-left;
     top: 25%;
     animation: pointleft 1s infinite alternate;
