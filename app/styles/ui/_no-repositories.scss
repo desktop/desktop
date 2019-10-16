@@ -1,4 +1,4 @@
-#blank-slate {
+#no-repositories {
   display: flex;
   padding: calc(var(--spacing) * 6);
   align-items: center;
@@ -91,7 +91,7 @@
     }
   }
 
-  .blankslate-graphic-bottom {
+  .no-repositories-graphic-bottom {
     position: absolute;
     right: var(--spacing);
     bottom: var(--spacing);
@@ -102,7 +102,7 @@
     z-index: -1;
   }
 
-  .blankslate-graphic-top {
+  .no-repositories-graphic-top {
     position: absolute;
     right: 80px;
     top: 40px;
@@ -113,7 +113,7 @@
     z-index: -1;
   }
 
-  .content-pane.left {
+  .content-pane.repository-list {
     .tab-bar {
       margin-bottom: var(--spacing);
       border: var(--base-border);
@@ -180,7 +180,7 @@
 // image any more (due to zooming or having DevTools docked
 // in the app window)
 @media (max-height: 400px) {
-  #blank-slate {
+  #no-repositories {
     padding: var(--spacing);
 
     header {

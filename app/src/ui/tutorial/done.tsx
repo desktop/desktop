@@ -1,16 +1,21 @@
 import * as React from 'react'
 
 import { encodePathAsUrl } from '../../lib/path'
-import { Button } from '../lib/button'
 import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { PopupType } from '../../models/popup'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { SuggestedAction } from '../suggested-actions'
+import { SuggestedActionGroup } from '../suggested-actions'
 
 const ClappingHandsImage = encodePathAsUrl(
   __dirname,
   'static/admin-mentoring.svg'
 )
+
+const TelescopeOcticon = <Octicon symbol={OcticonSymbol.telescope} />
+const PlusOcticon = <Octicon symbol={OcticonSymbol.plus} />
+const FileDirectoryOcticon = <Octicon symbol={OcticonSymbol.fileDirectory} />
 
 interface ITutorialDoneProps {
   readonly dispatcher: Dispatcher
@@ -23,7 +28,7 @@ interface ITutorialDoneProps {
 export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
   public render() {
     return (
-      <div id="no-changes">
+      <div id="tutorial-done">
         <div className="content">
           <div className="header">
             <div className="text">
@@ -33,76 +38,38 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
                 some suggestions for what to do next.
               </p>
             </div>
-            <img src={ClappingHandsImage} className="blankslate-image" />
+            <img src={ClappingHandsImage} className="image" />
           </div>
-          {this.renderActions()}
+          <SuggestedActionGroup>
+            <SuggestedAction
+              title="Explore projects on GitHub"
+              description="Contribute to a project that interests you"
+              buttonText={__DARWIN__ ? 'Open in Browser' : 'Open in browser'}
+              onClick={this.openDotcomExplore}
+              type="normal"
+              image={TelescopeOcticon}
+            />
+            <SuggestedAction
+              title="Create a new repository"
+              description="Get started on a brand new project"
+              buttonText={
+                __DARWIN__ ? 'Create Repository' : 'Create repository'
+              }
+              onClick={this.onCreateNewRepository}
+              type="normal"
+              image={PlusOcticon}
+            />
+            <SuggestedAction
+              title="Add a local repository"
+              description="Work on an existing project in GitHub Desktop"
+              buttonText={__DARWIN__ ? 'Add Repository' : 'Add repository'}
+              onClick={this.onAddExistingRepository}
+              type="normal"
+              image={FileDirectoryOcticon}
+            />
+          </SuggestedActionGroup>
         </div>
       </div>
-    )
-  }
-
-  private renderActions() {
-    return (
-      <ul className="actions">
-        {this.renderExploreProjects()}
-        {this.renderStartNewProject()}
-        {this.renderAddLocalRepo()}
-      </ul>
-    )
-  }
-
-  private renderExploreProjects() {
-    return (
-      <li className="blankslate-action">
-        <div className="image-wrapper">
-          <Octicon symbol={OcticonSymbol.telescope} />
-        </div>
-        <div className="text-wrapper">
-          <h2>Explore projects on GitHub</h2>
-          <p className="description">
-            Contribute to a project that interests you
-          </p>
-        </div>
-        <Button onClick={this.openDotcomExplore}>
-          {__DARWIN__ ? 'Open in Browser' : 'Open in browser'}
-        </Button>
-      </li>
-    )
-  }
-
-  private renderStartNewProject() {
-    return (
-      <li className="blankslate-action">
-        <div className="image-wrapper">
-          <Octicon symbol={OcticonSymbol.plus} />
-        </div>
-        <div className="text-wrapper">
-          <h2>Create a new repository</h2>
-          <p className="description">Get started on a brand new project</p>
-        </div>
-        <Button onClick={this.onCreateNewRepository}>
-          {__DARWIN__ ? 'Create Repository' : 'Create repository'}
-        </Button>
-      </li>
-    )
-  }
-
-  private renderAddLocalRepo() {
-    return (
-      <li className="blankslate-action">
-        <div className="image-wrapper">
-          <Octicon symbol={OcticonSymbol.fileDirectory} />
-        </div>
-        <div className="text-wrapper">
-          <h2>Add a local repository</h2>
-          <p className="description">
-            Work on an existing project in GitHub Desktop
-          </p>
-        </div>
-        <Button onClick={this.onAddExistingRepository}>
-          {__DARWIN__ ? 'Add Repository' : 'Add repository'}
-        </Button>
-      </li>
     )
   }
 

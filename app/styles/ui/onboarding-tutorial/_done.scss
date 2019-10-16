@@ -1,6 +1,6 @@
-#no-changes {
+#tutorial-done {
   padding: var(--spacing-quad);
-  width: 100%;
+  flex: 1 1 700px;
   min-height: 100%;
   display: flex;
   flex-direction: column;
@@ -28,7 +28,7 @@
       }
     }
 
-    .blankslate-image {
+    .image {
       flex: 0;
       height: 70px;
       width: 73px;
@@ -43,17 +43,5 @@
   .content {
     width: 100%;
     max-width: 600px;
-  }
-
-  /** Lessen the padding at 1.5x zoom and above  **/
-  @media screen and (max-width: 640px) {
-    padding: var(--spacing-double);
-  }
-
-  /** Hide the blankslate image at high zoom levels **/
-  @media screen and (max-width: 550px) {
-    .header .blankslate-image {
-      display: none;
-    }
   }
 }
