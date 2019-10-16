@@ -21,6 +21,7 @@ import {
   upstreamAlreadyExistsHandler,
   rebaseConflictsHandler,
   localChangesOverwrittenHandler,
+  refusedWorkflowUpdate,
 } from './dispatcher'
 import {
   AppStore,
@@ -261,6 +262,7 @@ dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(missingRepositoryHandler)
 dispatcher.registerErrorHandler(localChangesOverwrittenHandler)
 dispatcher.registerErrorHandler(rebaseConflictsHandler)
+dispatcher.registerErrorHandler(refusedWorkflowUpdate)
 
 document.body.classList.add(`platform-${process.platform}`)
 
