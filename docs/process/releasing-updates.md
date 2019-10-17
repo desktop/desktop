@@ -66,7 +66,7 @@ When naming the branch, ensure you use the `releases/[version]` pattern to ensur
 
 ### 2. Create Draft Release
 
-Once the personal access token is set, run the script below, which will determine the next version from what was previously published, based on the desired channel.
+Run the script below (which relies on the your personal acccess token being set), which will determine the next version from what was previously published, based on the desired channel.
 
 For `production` and `beta` releases, run:
 
