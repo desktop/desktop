@@ -2234,6 +2234,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         pullWithRebase={pullWithRebase}
         rebaseInProgress={rebaseInProgress}
         isForcePush={isForcePush}
+        shouldNudge={
+          this.state.currentOnboardingTutorialStep === TutorialStep.PushBranch
+        }
       />
     )
   }
