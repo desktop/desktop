@@ -2330,6 +2330,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         currentPullRequest={branchesState.currentPullRequest}
         isLoadingPullRequests={branchesState.isLoadingPullRequests}
         handleProtectedBranchWarning={handleProtectedBranchWarning}
+        shouldNudge={
+          this.state.currentOnboardingTutorialStep === TutorialStep.CreateBranch
+        }
       />
     )
   }
