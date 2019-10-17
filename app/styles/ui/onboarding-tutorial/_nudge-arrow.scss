@@ -14,7 +14,7 @@
     height: 36px;
     left: 35%;
     filter: opacity(0%);
-    animation: pointup 1.5s ease-out 3s infinite;
+    animation: pointup 2s ease-out 3s infinite;
   }
 
   // commit message box highlight arrow
@@ -25,62 +25,112 @@
     height: 22px;
     top: 25%;
     filter: opacity(0%);
-    animation: pointleft 1.5s ease-out 3s infinite;
+    animation: pointleft 2s ease-out 3s infinite;
   }
 
   @keyframes pointup {
+    // Faded out
     0% {
       filter: opacity(0%);
-      bottom: -62px;
+      bottom: -55px;
     }
+
+    // Faded out hold
     20% {
+      filter: opacity(0%);
+      bottom: -55px;
+    }
+
+    // Fade in
+    30% {
       filter: opacity(100%);
       bottom: -40px;
     }
-    35% {
+
+    // Hold fade in
+    40% {
       bottom: -40px;
     }
+
+    // Pulse out
     50% {
-      bottom: -62px;
+      bottom: -55px;
     }
-    65% {
+
+    // Pulse in
+    60% {
       bottom: -40px;
     }
-    80% {
+
+    // Hold
+    70% {
       filter: opacity(100%);
       bottom: -40px;
     }
+
+    // Fade out
+    80% {
+      filter: opacity(0%);
+      bottom: -55px;
+    }
+
+    // Fade out hold
     100% {
       filter: opacity(0%);
-      bottom: -62px;
+      bottom: -55px;
     }
   }
 
   @keyframes pointleft {
+    // Faded out
     0% {
       filter: opacity(0%);
-      right: -72px;
+      right: -65px;
     }
+
+    // Faded out hold
     20% {
+      filter: opacity(0%);
+      right: -65px;
+    }
+
+    // Fade in
+    30% {
       filter: opacity(100%);
       right: -50px;
     }
-    35% {
+
+    // Hold fade in
+    40% {
       right: -50px;
     }
+
+    // Pulse out
     50% {
-      right: -72px;
+      right: -65px;
     }
-    65% {
+
+    // Pulse in
+    60% {
       right: -50px;
     }
-    80% {
+
+    // Hold
+    70% {
       filter: opacity(100%);
       right: -50px;
     }
+
+    // Fade out
+    80% {
+      filter: opacity(0%);
+      right: -65px;
+    }
+
+    // Fade out hold
     100% {
       filter: opacity(0%);
-      right: -72px;
+      right: -65px;
     }
   }
 }
