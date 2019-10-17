@@ -54,6 +54,16 @@ $ set GITHUB_ACCESS_TOKEN={your token here}
 $ $env:GITHUB_ACCESS_TOKEN="{your token here}"
 ```
 
+### 2. Create Release Branch
+
+Create a new branch to represent the work that will be released to users:
+
+ - for `beta` releases, branch from `development` to ensure the latest changes are published
+ - for `production` releases, branch from the latest beta tag
+    - to find this tag: `git tag | grep 'beta' | sort -r | head -n 1`
+
+When naming the branch, ensure you use the `releases/[version]` pattern to ensure all CI platforms are aware of the branch and will build any PRs that target the branch.
+
 ### 2. Create Draft Release
 
 Once the personal access token is set, run the script below, which will determine the next version from what was previously published, based on the desired channel.
@@ -117,14 +127,6 @@ Here's an example of the previous changelog draft after it has been edited:
   ]
 }
 ```
-
-Create a new branch to represent the work that will be released to users:
-
- - for `beta` releases, branch from `development` to ensure the latest changes are published
- - for `production` releases, branch from the latest beta tag
-    - to find this tag: `git tag | grep 'beta' | sort -r | head -n 1`
-
-When naming the branch, ensure you use the `releases/[version]` pattern to ensure all CI platforms are aware of the branch and will build any PRs that target the branch.
 
 If you are creating a new beta release, the `yarn draft-release beta` command will help you find the new release entries for the changelog.
 
