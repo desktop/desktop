@@ -180,8 +180,9 @@ process.once('uncaughtException', (error: Error) => {
   reportUncaughtException(error)
 })
 
+// See sendNonFatalException for more information
 process.on(
-  'tutorial-repo-creation-error',
+  'send-non-fatal-exception',
   (error: Error, context?: { [key: string]: string }) => {
     sendErrorWithContext(error, context, true)
   }

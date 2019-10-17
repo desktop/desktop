@@ -175,11 +175,11 @@ declare namespace NodeJS {
     once(event: 'uncaughtException', listener: (error: Error) => void): this
     on(event: 'uncaughtException', listener: (error: Error) => void): this
     on(
-      event: 'tutorial-repo-creation-error',
+      event: 'send-non-fatal-exception',
       listener: (error: Error, context?: { [key: string]: string }) => void
     ): this
     emit(
-      event: 'tutorial-repo-creation-error',
+      event: 'send-non-fatal-exception',
       error: Error,
       context?: { [key: string]: string }
     ): this
