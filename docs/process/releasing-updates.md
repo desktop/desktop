@@ -138,7 +138,7 @@ If a maintainer would like to backport a pull request to the next release, it is
 
 Once your release branch is ready to review and ship, ask the other maintainers to review and approve the changes!
 
-IMPORTANT NOTE: Do NOT "Update branch" and merge development into the release branch. This might be tempting if the "branch is out-of-date with the base branch" dotcom feature is enabled. However, doing so would inadvertently release everything on development to production or beta 🙀 
+IMPORTANT NOTE: Do NOT "Update branch" and merge development into the release branch. This might be tempting if the "branch is out-of-date with the base branch" dotcom feature is enabled. However, doing so would inadvertently release everything on development to production or beta 🙀
 
 ### 3. Releasing
 
