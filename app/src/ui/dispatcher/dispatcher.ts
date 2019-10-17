@@ -2204,7 +2204,7 @@ export class Dispatcher {
   /**
    * Onboarding tutorial has been successfully created
    */
-  public recordTutorialRepositoryCreated() {
+  public recordTutorialRepoCreated() {
     return this.statsStore.recordTutorialRepoCreated()
   }
 }

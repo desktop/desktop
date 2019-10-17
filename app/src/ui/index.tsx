@@ -93,7 +93,11 @@ let currentState: IAppState | null = null
 let lastUnhandledRejection: string | null = null
 let lastUnhandledRejectionTime: Date | null = null
 
-process.once('uncaughtException', (error: Error) => {
+const sendErrorWithContext = (
+  error: Error,
+  context: { [key: string]: string } = {},
+  nonFatal?: boolean
+) => {
   error = withSourceMappedStack(error)
 
   console.error('Uncaught exception', error)
@@ -106,6 +110,7 @@ process.once('uncaughtException', (error: Error) => {
     const extra: Record<string, string> = {
       osVersion: getOS(),
       guid: getGUID(),
+      ...context,
     }
 
     try {
@@ -166,11 +171,22 @@ process.once('uncaughtException', (error: Error) => {
       /* ignore */
     }
 
-    sendErrorReport(error, extra)
+    sendErrorReport(error, extra, nonFatal)
   }
+}
 
+process.once('uncaughtException', (error: Error) => {
+  sendErrorWithContext(error)
   reportUncaughtException(error)
 })
+
+// See sendNonFatalException for more information
+process.on(
+  'send-non-fatal-exception',
+  (error: Error, context?: { [key: string]: string }) => {
+    sendErrorWithContext(error, context, true)
+  }
+)
 
 /**
  * Chromium won't crash on an unhandled rejection (similar to how
