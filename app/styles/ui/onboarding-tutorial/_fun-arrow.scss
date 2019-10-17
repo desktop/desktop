@@ -13,6 +13,7 @@
     width: 22px;
     height: 36px;
     left: 35%;
+    filter: opacity(0%);
     animation: pointup 1s 5s infinite alternate;
   }
 
@@ -23,6 +24,7 @@
     width: 36px;
     height: 22px;
     top: 25%;
+    filter: opacity(0%);
     animation: pointleft 1s 5s infinite alternate;
   }
 
