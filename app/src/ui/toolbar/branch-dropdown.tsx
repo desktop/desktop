@@ -9,7 +9,7 @@ import { BranchesContainer, PullRequestBadge } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
 import { BranchesTab } from '../../models/branches-tab'
 import { PullRequest } from '../../models/pull-request'
-import classNames = require('classnames')
+import * as classNames from 'classnames'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher

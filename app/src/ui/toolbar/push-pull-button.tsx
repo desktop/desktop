@@ -11,7 +11,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { RelativeTime } from '../relative-time'
 
 import { ToolbarButton, ToolbarButtonStyle } from './button'
-import classNames = require('classnames')
+import * as classNames from 'classnames'
 
 interface IPushPullButtonProps {
   /**
