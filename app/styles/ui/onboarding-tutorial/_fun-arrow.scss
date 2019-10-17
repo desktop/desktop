@@ -48,7 +48,7 @@
 
   @keyframes pointleft {
     0% {
-      right: -70px;
+      right: -80px;
       filter: opacity(0%);
       animation-timing-function: ease-in;
     }
@@ -57,11 +57,11 @@
       animation-timing-function: ease-in;
     }
     50% {
-      right: -35px;
+      right: -45px;
       animation-timing-function: ease-in-out;
     }
     100% {
-      right: -50px;
+      right: -60px;
       animation-timing-function: ease-in-out;
     }
   }
