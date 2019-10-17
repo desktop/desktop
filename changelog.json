@@ -1,5 +1,9 @@
 {
   "releases": {
+    "2.2.2-beta2": [
+      "[Fixed] Fallback to installed editor if preferred is missing - #8386",
+      "[Improved] Prominence of \"Start tutorial\" button on \"No Repositories\" view - #8441"
+    ],
     "2.2.2-beta1": [
       "[Added] Prompt users to re-authenticate if they are unable to push changes to a workflow file - #8357"
     ],
