@@ -173,6 +173,10 @@ If you don't have the app for `beta`, for example, you can always download the p
 
 _Make sure you move your application out of the Downloads folder and into the Applications folder for macOS or it won't auto-update_.
 
+### 6. Merge PR with changelog entries
+
+So that we keep the `changelog.json` up to date. Beta entries will be used for the upcoming production release.
+
 ### 6. Check Error Reporting
 
 If an error occurs during the release process, a needle will be reported to Central's [Haystack](https://haystack.githubapp.com/central).
