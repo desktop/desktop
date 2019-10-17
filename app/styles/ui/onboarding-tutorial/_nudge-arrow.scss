@@ -3,6 +3,7 @@
   &::after {
     position: absolute;
     content: '';
+    z-index: var(--side-panel-z-index);
   }
 
   // branch menu highlight arrow
