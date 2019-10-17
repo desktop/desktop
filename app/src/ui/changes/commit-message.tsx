@@ -491,7 +491,7 @@ export class CommitMessage extends React.Component<
 
           <AutocompletingInput
             isRequired={true}
-            className="summary-field"
+            className="summary-field nudge-arrow nudge-arrow-left"
             placeholder={this.props.placeholder}
             value={this.state.summary}
             onValueChanged={this.onSummaryChanged}

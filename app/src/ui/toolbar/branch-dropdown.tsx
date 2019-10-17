@@ -162,6 +162,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         disabled={disabled}
         showDisclosureArrow={canOpen}
         progressValue={progressValue}
+        buttonClassName="nudge-arrow nudge-arrow-up"
       >
         {this.renderPullRequestInfo()}
       </ToolbarDropdown>

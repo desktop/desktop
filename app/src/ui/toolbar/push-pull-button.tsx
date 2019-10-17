@@ -96,7 +96,7 @@ function renderLastFetched(lastFetched: Date | null): JSX.Element | string {
 
 /** The common props for all button states */
 const defaultProps = {
-  className: 'push-pull-button',
+  className: 'push-pull-button nudge-arrow nudge-arrow-up',
   style: ToolbarButtonStyle.Subtitle,
 }
 
