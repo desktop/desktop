@@ -25,6 +25,7 @@ import {
 import { Progress } from '../../models/progress'
 import { Dispatcher } from '../dispatcher'
 import { APIError } from '../../lib/http'
+import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
 
 interface ICreateTutorialRepositoryDialogProps {
   /**
@@ -222,9 +223,7 @@ export class CreateTutorialRepositoryDialog extends React.Component<
     } catch (err) {
       this.setState({ loading: false, progress: undefined })
 
-      process.emit('tutorial-repo-creation-error', err, {
-        kind: 'tutorialRepoCreationError',
-      })
+      sendNonFatalException('tutorialRepoCreation', err)
 
       if (err instanceof GitError) {
         this.props.onError(err)
