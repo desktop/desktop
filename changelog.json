@@ -1,7 +1,7 @@
 {
   "releases": {
     "2.2.2-beta2": [
-      "[Fixed] Fallback to installed editor if preferred is missing - #8386",
+      "[Improved] Use a different editor if previously selected editor cannot be found - #8386",
       "[Improved] Prominence of \"Start tutorial\" button on \"No Repositories\" view - #8441"
     ],
     "2.2.2-beta1": [
