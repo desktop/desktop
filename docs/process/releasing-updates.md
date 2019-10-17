@@ -74,6 +74,10 @@ For `production` and `beta` releases, run:
 $ yarn draft-release (production|beta)
 ```
 
+If you are creating a new beta release, the `yarn draft-release beta` command will help you find the new release entries for the changelog.
+
+If you are create a new `production` release, you should just combine and sort the previous `beta` changelog entries.
+
 (For `test` releases, follow the directions in the steps below to update `app/package.json`'s `version` to a higher version and add a changelog entry. The script does not support test yet.)
 
 The script will output a draft changelog, which covers everything that's been merged, and probably needs some love.
@@ -127,10 +131,6 @@ Here's an example of the previous changelog draft after it has been edited:
   ]
 }
 ```
-
-If you are creating a new beta release, the `yarn draft-release beta` command will help you find the new release entries for the changelog.
-
-If you are create a new `production` release, you should just combine and sort the previous `beta` changelog entries.
 
 Add your new changelog entries to `changelog.json`, update the version in `app/package.json`, commit the changes, and push this branch to GitHub. This becomes the release branch, and lets other maintainers continue to merge into `development` without affecting your release.
 
