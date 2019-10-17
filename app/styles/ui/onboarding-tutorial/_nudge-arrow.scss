@@ -14,7 +14,7 @@
     height: 36px;
     left: 35%;
     filter: opacity(0%);
-    animation: pointup 1s 5s infinite alternate;
+    animation: pointup 1.5s ease-out 3s infinite;
   }
 
   // commit message box highlight arrow
@@ -25,46 +25,62 @@
     height: 22px;
     top: 25%;
     filter: opacity(0%);
-    animation: pointleft 1s 5s infinite alternate;
+    animation: pointleft 1.5s ease-out 3s infinite;
   }
 
   @keyframes pointup {
     0% {
-      bottom: -70px;
       filter: opacity(0%);
-      animation-timing-function: ease-in;
+      bottom: -62px;
     }
-    25% {
+    20% {
       filter: opacity(100%);
-      animation-timing-function: ease-in;
+      bottom: -40px;
+    }
+    35% {
+      bottom: -40px;
     }
     50% {
-      bottom: -35px;
-      animation-timing-function: ease-in-out;
+      bottom: -62px;
+    }
+    65% {
+      bottom: -40px;
+    }
+    80% {
+      filter: opacity(100%);
+      bottom: -40px;
     }
     100% {
-      bottom: -50px;
-      animation-timing-function: ease-in-out;
+      filter: opacity(0%);
+      bottom: -62px;
     }
   }
 
   @keyframes pointleft {
     0% {
-      right: -80px;
       filter: opacity(0%);
-      animation-timing-function: ease-in;
+      right: -72px;
     }
-    25% {
+    20% {
       filter: opacity(100%);
-      animation-timing-function: ease-in;
+      right: -50px;
+    }
+    35% {
+      right: -50px;
     }
     50% {
-      right: -45px;
-      animation-timing-function: ease-in-out;
+      right: -72px;
+    }
+    65% {
+      right: -50px;
+    }
+    80% {
+      filter: opacity(100%);
+      right: -50px;
     }
     100% {
-      right: -60px;
-      animation-timing-function: ease-in-out;
+      filter: opacity(0%);
+      right: -72px;
     }
   }
 }
