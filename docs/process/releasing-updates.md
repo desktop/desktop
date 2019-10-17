@@ -64,7 +64,7 @@ Create a new branch to represent the work that will be released to users:
 
 When naming the branch, ensure you use the `releases/[version]` pattern to ensure all CI platforms are aware of the branch and will build any PRs that target the branch.
 
-### 2. Create Draft Release
+### 3. Create Draft Release
 
 Run the script below (which relies on the your personal acccess token being set), which will determine the next version from what was previously published, based on the desired channel.
 
@@ -140,7 +140,7 @@ Once your release branch is ready to review and ship, ask the other maintainers 
 
 IMPORTANT NOTE: Do NOT "Update branch" and merge development into the release branch. This might be tempting if the "branch is out-of-date with the base branch" dotcom feature is enabled. However, doing so would inadvertently release everything on development to production or beta 🙀
 
-### 3. Releasing
+### 4. Releasing
 
 When you are ready to start the deployment, run this command in chat (where `X.Y.Z-release` is the name of your release branch):
 
@@ -154,7 +154,7 @@ If you're releasing a `production` update, release a `beta` update for the next 
 
 IMPORTANT NOTE: Ensure that you indicate which channel to release to. If not, chatops will default to releasing to production 🙀
 
-### 4. Check for Completed Release
+### 5. Check for Completed Release
 
 Go to [Central's Deployments](https://central.github.com/deployments) to find your release; you'll see something at the top of the page like:
 ```
@@ -165,7 +165,7 @@ it will initially specify its state as `State: pending` and will be completed wh
 You will also see this in Chat:
 `desktopbot tagged desktop/release-{YOUR_VERSION}`
 
-### 5. Test that your app auto-updates to new version
+### 6. Test that your app auto-updates to new version
 
 When the release in Central is in `State: released` for `beta` or `production`, switch to your installed Desktop instance and make sure that the corresponding (prod|beta) app auto-updates.
 
@@ -175,11 +175,11 @@ If you don't have the app for `beta`, for example, you can always download the p
 
 _Make sure you move your application out of the Downloads folder and into the Applications folder for macOS or it won't auto-update_.
 
-### 6. Merge PR with changelog entries
+### 7. Merge PR with changelog entries
 
 So that we keep the `changelog.json` up to date. Beta entries will be used for the upcoming production release.
 
-### 6. Check Error Reporting
+### 8. Check Error Reporting
 
 If an error occurs during the release process, a needle will be reported to Central's [Haystack](https://haystack.githubapp.com/central).
 
@@ -188,7 +188,7 @@ After the release is deployed, you should monitor Desktop's [Haystack](https://h
 #### Final Beta release
 If the active beta is the last beta prior to a production release, extra care should be taken when looking at Desktop's [Haystack](https://haystack.githubapp.com/desktop) roll-ups. The lead engineer responsible for deployment should produce a _Haystack report_ the day before and after the release. The report should contain a list of any new or unexpected errors from the past beta releases in the milestone and be published to the team's Slack channel.
 
-### 6. Celebrate
+### 9. Celebrate
 
 Once your app updates and you see the visible changes in your app and there are no spikes in errors, celebrate 🎉!!! You did it!
 
