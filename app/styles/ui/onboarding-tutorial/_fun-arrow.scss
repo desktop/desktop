@@ -13,7 +13,7 @@
     width: 22px;
     height: 36px;
     left: 35%;
-    animation: pointup 1s infinite alternate;
+    animation: pointup 1s 5s infinite alternate;
   }
 
   // commit message box highlight arrow
@@ -23,7 +23,7 @@
     width: 36px;
     height: 22px;
     top: 25%;
-    animation: pointleft 1s infinite alternate;
+    animation: pointleft 1s 5s infinite alternate;
   }
 
   @keyframes pointup {
