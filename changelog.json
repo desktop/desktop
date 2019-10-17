@@ -1,5 +1,9 @@
 {
   "releases": {
+    "2.2.2-beta2": [
+      "[Improved] Use a different editor if previously selected editor cannot be found - #8386",
+      "[Improved] Starting the tutorial is more prominent when getting started with GitHub Desktop - #8441"
+    ],
     "2.2.2-beta1": [
       "[Added] Prompt users to re-authenticate if they are unable to push changes to a workflow file - #8357"
     ],
