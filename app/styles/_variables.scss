@@ -282,14 +282,15 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * codemirror is all over the place with their z-indexes and uses at least
    * 0-6.
    */
-  --popup-z-index: 10;
+  --popup-z-index: 20;
   --popup-overlay-z-index: calc(var(--popup-z-index) - 1);
   --foldout-z-index: calc(var(--popup-z-index) - 2);
+  --nudge-arrow-z-index: calc(var(--popup-z-index) - 3);
   /**
    * This is 7 to make sure it appears on top code mirror
    * but behind popups, overlays, and foldouts 
    */
-  --side-panel-z-index: calc(var(--popup-z-index) - 3);
+  --side-panel-z-index: calc(var(--popup-z-index) - 4);
 
   /**
    * Toast notifications are shown temporarily for things like the zoom

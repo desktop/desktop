@@ -9,6 +9,7 @@ import { BranchesContainer, PullRequestBadge } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
 import { BranchesTab } from '../../models/branches-tab'
 import { PullRequest } from '../../models/pull-request'
+import * as classNames from 'classnames'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -44,6 +45,9 @@ interface IBranchDropdownProps {
 
   /** Was this component launched from the "Protected Branch" warning message? */
   readonly handleProtectedBranchWarning?: boolean
+
+  /** Whether this component should show its onboarding tutorial nudge arrow */
+  readonly shouldNudge: boolean
 }
 
 /**
@@ -147,6 +151,9 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
 
     const isOpen = this.props.isOpen
     const currentState: DropdownState = isOpen && canOpen ? 'open' : 'closed'
+    const buttonClassName = classNames('nudge-arrow', {
+      'nudge-arrow-up': this.props.shouldNudge,
+    })
 
     return (
       <ToolbarDropdown
@@ -162,6 +169,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         disabled={disabled}
         showDisclosureArrow={canOpen}
         progressValue={progressValue}
+        buttonClassName={buttonClassName}
       >
         {this.renderPullRequestInfo()}
       </ToolbarDropdown>
