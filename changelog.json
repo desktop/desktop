@@ -1,5 +1,8 @@
 {
   "releases": {
+    "2.2.2-beta3": [
+      "[Added] Helpful animations during the onboarding tutorial - #8487"
+    ],
     "2.2.2-beta2": [
       "[Improved] Use a different editor if previously selected editor cannot be found - #8386",
       "[Improved] Starting the tutorial is more prominent when getting started with GitHub Desktop - #8441"
