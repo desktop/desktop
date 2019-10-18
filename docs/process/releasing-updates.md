@@ -193,3 +193,17 @@ If the active beta is the last beta prior to a production release, extra care sh
 Once your app updates and you see the visible changes in your app and there are no spikes in errors, celebrate 🎉!!! You did it!
 
 Also it might make sense to continue to monitor Haystack in the background for the next 24 hours.
+
+## Stopping a Release Mid-flight
+
+So let's say you kicked off a release with chatops on accident. Here's how you fix that.
+
+When you kicked off the release, a branch with the prefix `__release-${channel}-` was created in the GitHub repo. Use that branch name to find the proper CI jobs below.
+
+1. Delete the pending release from Central
+2. Cancel the Appveyor release job
+3. Cancel the CircleCI release job
+4. Delete the CI release job branch from GitHub
+5. Breathe a sigh of relief
+
+You don't need to do anything with your manually created release branch, that you referred to in the chatops command. Feel free to re-use it.
