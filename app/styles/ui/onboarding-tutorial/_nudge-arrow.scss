@@ -46,7 +46,7 @@
 
     // Fade in
     30% {
-      filter: opacity(100%);
+      filter: opacity(100%) drop-shadow(0 0 2px var(--background-color));
       bottom: -40px;
     }
 
@@ -99,7 +99,7 @@
 
     // Fade in
     30% {
-      filter: opacity(100%);
+      filter: opacity(100%) drop-shadow(0 0 2px var(--background-color));
       right: -50px;
     }
 
@@ -120,7 +120,7 @@
 
     // Hold
     70% {
-      filter: opacity(100%);
+      filter: opacity(100%) drop-shadow(0 0 2px var(--background-color));
       right: -50px;
     }
 
