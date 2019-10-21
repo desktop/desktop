@@ -182,6 +182,9 @@ export class RepositoryView extends React.Component<
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         onChangesListScrolled={this.onChangesListScrolled}
         changesListScrollTop={this.state.changesListScrollTop}
+        shouldNudgeToCommit={
+          this.props.currentTutorialStep === TutorialStep.MakeCommit
+        }
       />
     )
   }

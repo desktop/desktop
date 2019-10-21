@@ -168,6 +168,12 @@ interface IChangesListProps {
   readonly stashEntry: IStashEntry | null
 
   readonly isShowingStashEntry: boolean
+
+  /**
+   * Whether we should show the onboarding tutorial nudge
+   * arrow pointing at the commit summary box
+   */
+  readonly shouldNudgeToCommit: boolean
 }
 
 interface IChangesState {
@@ -628,6 +634,7 @@ export class ChangesList extends React.Component<
         prepopulateCommitSummary={prepopulateCommitSummary}
         key={repository.id}
         currentBranchProtected={currentBranchProtected}
+        shouldNudge={this.props.shouldNudgeToCommit}
       />
     )
   }

@@ -11,6 +11,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { RelativeTime } from '../relative-time'
 
 import { ToolbarButton, ToolbarButtonStyle } from './button'
+import * as classNames from 'classnames'
 
 interface IPushPullButtonProps {
   /**
@@ -52,6 +53,9 @@ interface IPushPullButtonProps {
 
   /** If the current branch has been rebased, the user is permitted to force-push */
   readonly isForcePush: boolean
+
+  /** Whether this component should show its onboarding tutorial nudge arrow */
+  readonly shouldNudge: boolean
 }
 
 function renderAheadBehind(aheadBehind: IAheadBehind) {
@@ -157,10 +161,18 @@ function detachedHeadButton(rebaseInProgress: boolean) {
   )
 }
 
-function publishBranchButton(isGitHub: boolean, onClick: () => void) {
+function publishBranchButton(
+  isGitHub: boolean,
+  onClick: () => void,
+  shouldNudge: boolean
+) {
   const description = isGitHub
     ? 'Publish this branch to GitHub'
     : 'Publish this branch to the remote'
+
+  const className = classNames(defaultProps.className, 'nudge-arrow', {
+    'nudge-arrow-up': shouldNudge,
+  })
 
   return (
     <ToolbarButton
@@ -169,6 +181,7 @@ function publishBranchButton(isGitHub: boolean, onClick: () => void) {
       description={description}
       icon={OcticonSymbol.cloudUpload}
       onClick={onClick}
+      className={className}
     />
   )
 }
@@ -321,7 +334,11 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
 
     if (aheadBehind === null) {
       const isGitHubRepository = repository.gitHubRepository !== null
-      return publishBranchButton(isGitHubRepository, this.push)
+      return publishBranchButton(
+        isGitHubRepository,
+        this.push,
+        this.props.shouldNudge
+      )
     }
 
     const { ahead, behind } = aheadBehind
