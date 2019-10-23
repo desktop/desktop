@@ -17,7 +17,6 @@ uses [React](https://facebook.github.io/react/).
 
 ## Where can I get it?
 
-Pretty please don't merge this PR 
 Download the official installer for your operating system:
 
  - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin)
