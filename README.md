@@ -37,6 +37,8 @@ Desktop for Windows application.
 repositories into the new application - you can drag-and-drop your repositories
 from disk onto the application to get started.
 
+Still don't merge
+
 ### Beta Channel
 
 Want to test out new features and get fixes before everyone else? Install the
