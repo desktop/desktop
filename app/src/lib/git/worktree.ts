@@ -50,62 +50,42 @@ export async function createTemporaryWorkTree(
   repository: Repository,
   commit: string
 ): Promise<LinkedWorkTree> {
-  const directory = await FSE.mkdtemp(getTemporaryDirectoryPrefix())
-  await addWorkTree(repository, directory, commit)
+  const workTreePath = await FSE.mkdtemp(getTemporaryDirectoryPrefix())
+  await git(
+    ['worktree', 'add', '-f', workTreePath, commit],
+    repository.path,
+    'addWorkTree'
+  )
   // Because Git doesn't give enough information from stdout for the previous
   // Git call, this function enumerates the available worktrees to find the
   // expected worktree
 
   const workTrees = await listWorkTrees(repository)
 
-  const directoryName = Path.basename(directory)
+  const directoryName = Path.basename(workTreePath)
   const workTree = workTrees.find(t => Path.basename(t.path) === directoryName)
 
   // intentionally vague here to cover `undefined` and `null`
   if (!workTree) {
     throw new Error(
-      `[addWorkTree] Unable to find created worktree at path ${directory}`
+      `[addWorkTree] Unable to find created worktree at path ${workTreePath}`
     )
   }
 
   return workTree
 }
 
-/**
- * Create a new work tree at the desired location on disk, checked
- * out to the given commit
- */
-async function addWorkTree(
-  repository: Repository,
-  path: string,
-  commit: string
-): Promise<void> {
-  await git(
-    ['worktree', 'add', '-f', path, commit],
-    repository.path,
-    'addWorkTree'
-  )
-}
-
-/** Nicer external API for `removeWorkTree` */
+/** Cleanup the temporary worktree at a given location */
 export async function destroyWorkTree(
   repository: Repository,
   workTree: LinkedWorkTree
 ): Promise<true> {
-  await removeWorkTree(repository.path, workTree.path)
-  return true
-}
-
-/** Cleanup the temporary worktree at a given location */
-async function removeWorkTree(
-  repositoryPath: string,
-  workTreePath: string
-): Promise<void> {
   await git(
-    ['worktree', 'remove', '-f', workTreePath],
-    repositoryPath,
+    ['worktree', 'remove', '-f', workTree.path],
+    repository.path,
     'removeWorkTree'
   )
+  return true
 }
 
 const DesktopWorkTreePrefix = 'github-desktop-worktree-'
