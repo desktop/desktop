@@ -8,6 +8,8 @@ import { v4 as uuid } from 'uuid'
 import { Repository, LinkedWorkTree } from '../../models/repository'
 import { getMatches } from '../helpers/regex'
 
+const DesktopWorkTreePrefix = 'github-desktop-worktree-'
+
 /** Enumerate the list of work trees reported by Git for a repository */
 export async function listWorkTrees(
   repository: Repository
@@ -87,8 +89,6 @@ export async function destroyWorkTree(
   )
   return true
 }
-
-const DesktopWorkTreePrefix = 'github-desktop-worktree-'
 
 // creates a unique (to desktop) path in the OS's temp dir
 function getTemporaryDirectoryPrefix() {
