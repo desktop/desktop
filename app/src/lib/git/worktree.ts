@@ -3,6 +3,7 @@ import * as Path from 'path'
 import * as FSE from 'fs-extra'
 
 import { git } from './core'
+import { v4 as uuid } from 'uuid'
 
 import { Repository, LinkedWorkTree } from '../../models/repository'
 import { getMatches } from '../helpers/regex'
@@ -45,7 +46,7 @@ export async function listWorkTrees(
  * for that repository. Won't modify the repository's working directory.
  * _The returned worktree will be checked out to the given commit._
  */
-export async function createWorkTree(
+export async function createTemporaryWorkTree(
   repository: Repository,
   commit: string
 ): Promise<LinkedWorkTree> {
@@ -55,10 +56,7 @@ export async function createWorkTree(
   // Git call, this function enumerates the available worktrees to find the
   // expected worktree
 
-  // we want these ordered most recently created first
-  const workTrees: ReadonlyArray<LinkedWorkTree> = Array.from(
-    await listWorkTrees(repository)
-  ).reverse()
+  const workTrees = await listWorkTrees(repository)
 
   const directoryName = Path.basename(directory)
   const workTree = workTrees.find(t => Path.basename(t.path) === directoryName)
@@ -112,8 +110,9 @@ async function removeWorkTree(
 
 const DesktopWorkTreePrefix = 'github-desktop-worktree-'
 
+// creates a unique (to desktop) path in the OS's temp dir
 function getTemporaryDirectoryPrefix() {
-  return Path.join(Os.tmpdir(), DesktopWorkTreePrefix)
+  return Path.join(Os.tmpdir(), `${DesktopWorkTreePrefix}${uuid()}`)
 }
 
 async function findTemporaryWorkTrees(
