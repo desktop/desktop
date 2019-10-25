@@ -16,7 +16,7 @@ import { Repository } from '../../models/repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
 
 /** An error which also has a code property. */
-export interface IErrorWithCode extends Error {
+interface IErrorWithCode extends Error {
   readonly code: string
 }
 
@@ -28,7 +28,7 @@ export interface IErrorWithCode extends Error {
  *
  * See https://nodejs.org/api/util.html#util_util_getsystemerrorname_err
  */
-export function isErrorWithCode(error: any): error is IErrorWithCode {
+function isErrorWithCode(error: any): error is IErrorWithCode {
   return error instanceof Error && typeof (error as any).code === 'string'
 }
 
