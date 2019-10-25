@@ -16,8 +16,12 @@ import { Repository } from '../../models/repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
 
 /** An error which also has a code property. */
-interface IErrorWithCode extends Error {
+export interface IErrorWithCode extends Error {
   readonly code: string
+}
+
+export function isErrorWithCode(error: any): error is IErrorWithCode {
+  return error instanceof Error && typeof (error as any).code === 'string'
 }
 
 /**
