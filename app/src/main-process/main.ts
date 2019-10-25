@@ -26,7 +26,6 @@ import { now } from './now'
 import { showUncaughtException } from './show-uncaught-exception'
 import { IMenuItem } from '../lib/menu-item'
 import { buildContextMenu } from './menu/build-context-menu'
-import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 
 enableSourceMaps()
 
@@ -232,7 +231,6 @@ function handlePossibleProtocolLauncherArgs(args: ReadonlyArray<string>) {
         return url.protocol && possibleProtocols.has(url.protocol.slice(0, -1))
       } catch (e) {
         log.error(`Unable to parse argument as URL: ${arg}`)
-        sendNonFatalException('winProtocolHandler', e)
         return false
       }
     })
