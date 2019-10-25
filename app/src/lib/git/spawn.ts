@@ -1,5 +1,6 @@
 import { GitProcess } from 'dugite'
 import * as GitPerf from '../../ui/lib/git-perf'
+import { isErrnoException } from '../errno-exception'
 
 type ProcessOutput = {
   /** The contents of stdout received from the spawned process */
@@ -62,9 +63,16 @@ export function spawnAndComplete(
         })
 
         process.on('error', err => {
-          // for unhandled errors raised by the process, let's surface this in the
-          // promise and make the caller handle it
-          reject(err)
+          // If this is an exception thrown by Node.js while attempting to
+          // spawn let's keep the salient details but include the name of
+          // the operation.
+          if (isErrnoException(err)) {
+            reject(new Error(`${name} ${err.syscall} failed: ${err.code}`))
+          } else {
+            // for unhandled errors raised by the process, let's surface this in the
+            // promise and make the caller handle it
+            reject(err)
+          }
         })
 
         process.on('close', (code, signal) => {
