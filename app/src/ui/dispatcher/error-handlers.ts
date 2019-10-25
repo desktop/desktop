@@ -20,6 +20,14 @@ export interface IErrorWithCode extends Error {
   readonly code: string
 }
 
+/**
+ * A type-guard method which determines whether the given object is an
+ * Error instance with a `code` string property. This type of error
+ * is commonly returned by NodeJS process- and file system libraries
+ * as well as Dugite.
+ *
+ * See https://nodejs.org/api/util.html#util_util_getsystemerrorname_err
+ */
 export function isErrorWithCode(error: any): error is IErrorWithCode {
   return error instanceof Error && typeof (error as any).code === 'string'
 }
