@@ -37,12 +37,7 @@ export function isErrorWithCode(error: any): error is IErrorWithCode {
  * return null.
  */
 function asErrorWithCode(error: Error): IErrorWithCode | null {
-  const e = error as any
-  if (e.code) {
-    return e
-  } else {
-    return null
-  }
+  return isErrorWithCode(error) ? error : null
 }
 
 /**
