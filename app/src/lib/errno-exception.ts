@@ -3,6 +3,11 @@ interface IErrnoException extends Error {
   readonly syscall: string
 }
 
+/**
+ * Determine whether the given object conforms to the shape of an
+ * internal Node.js low-level exception, see IErrnoException for
+ * more details.
+ */
 export function isErrnoException(err: any): err is IErrnoException {
   return (
     err instanceof Error &&
