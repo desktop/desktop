@@ -103,7 +103,7 @@ export function enableBranchProtectionWarningFlow(): boolean {
 }
 
 export function enableHideWhitespaceInDiffOption(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /**
