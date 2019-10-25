@@ -16,7 +16,7 @@
     left: 35%;
     // initially transparent
     filter: opacity(0%);
-    animation: pointup 2s ease-out 3s infinite;
+    animation: pointup 2s ease-out 6s infinite;
   }
 
   // commit message box highlight arrow
@@ -28,7 +28,7 @@
     top: 25%;
     // initially transparent
     filter: opacity(0%);
-    animation: pointleft 2s ease-out 5s infinite;
+    animation: pointleft 2s ease-out 6s infinite;
   }
 
   @keyframes pointup {
