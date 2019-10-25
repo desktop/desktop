@@ -14,4 +14,4 @@ How will it benefit Desktop and its users?
 
 ### Additional context
 
-Add any other context like screenshots or mockups are helpful, if applicable.
+Add any other context here. Screenshots or mockups are helpful (if applicable.)
