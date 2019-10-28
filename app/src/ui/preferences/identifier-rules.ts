@@ -14,10 +14,6 @@ export function disallowedCharacters(values: string): string | null {
 }
 
 function disallowedCharacter(value: string): boolean {
-  if (value.length !== 1) {
-    return fatalError('`value` must be a single character')
-  }
-
   const disallowedCharacters = [
     '.',
     ',',
