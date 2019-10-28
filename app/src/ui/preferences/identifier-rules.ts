@@ -1,33 +1,13 @@
-import { fatalError } from '../../lib/fatal-error'
+const disallowedCharactersRe = /^[\x00-\x20.,:;<>"\\']+$/
 
 export function disallowedCharacters(values: string): string | null {
   if (values.length === 0) {
     return null
   }
 
-  for (const value of values) {
-    if (disallowedCharacter(value) === false) {
-      return null
-    }
+  if (disallowedCharactersRe.test(values)) {
+    return values
   }
-  return values
-}
 
-function disallowedCharacter(value: string): boolean {
-  const disallowedCharacters = [
-    '.',
-    ',',
-    ':',
-    ';',
-    '<',
-    '>',
-    '"',
-    '\\',
-    "'",
-    ' ',
-  ]
-  const hasDisallowedCharacter = disallowedCharacters.indexOf(value) >= 0
-  const hasDisallowedAsciiCharacter = value.charCodeAt(0) <= 32
-
-  return hasDisallowedCharacter || hasDisallowedAsciiCharacter
+  return null
 }
