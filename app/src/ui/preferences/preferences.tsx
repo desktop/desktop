@@ -168,15 +168,10 @@ export class Preferences extends React.Component<
     this.props.dispatcher.removeAccount(account)
   }
 
-  private disallowedCharacterErrorMessage(name: string, email: string) {
+  private disallowedCharacterErrorMessage(name: string) {
     const disallowedNameCharacters = disallowedCharacters(name)
     if (disallowedNameCharacters != null) {
       return `Git name field cannot be a disallowed character "${disallowedNameCharacters}"`
-    }
-
-    const disallowedEmailCharacters = disallowedCharacters(email)
-    if (disallowedEmailCharacters != null) {
-      return `Git email field cannot be a disallowed character "${disallowedEmailCharacters}"`
     }
 
     return null
@@ -273,20 +268,14 @@ export class Preferences extends React.Component<
 
   private onCommitterNameChanged = (committerName: string) => {
     const disallowedCharactersMessage = this.disallowedCharacterErrorMessage(
-      committerName,
-      this.state.committerEmail
+      committerName
     )
 
     this.setState({ committerName, disallowedCharactersMessage })
   }
 
   private onCommitterEmailChanged = (committerEmail: string) => {
-    const disallowedCharactersMessage = this.disallowedCharacterErrorMessage(
-      this.state.committerName,
-      committerEmail
-    )
-
-    this.setState({ committerEmail, disallowedCharactersMessage })
+    this.setState({ committerEmail })
   }
 
   private onSelectedEditorChanged = (editor: ExternalEditor) => {
