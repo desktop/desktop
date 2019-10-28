@@ -63,7 +63,6 @@ rules:
     - builtinGlobals: true
   no-eval: error
   no-sync: error
-  no-unreachable: error
   no-unused-expressions: error
   no-var: error
   prefer-const: error
