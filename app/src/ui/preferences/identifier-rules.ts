@@ -12,6 +12,9 @@ const crudCharactersRe = /^[\x00-\x20.,:;<>"\\']+$/
  *
  * This logic is intended to be an exact copy of that of Git's own
  * logic, see https://github.com/git/git/blob/e629a7d28a/ident.c#L401
+ *
+ * Note that this method considers an empty string to be a valid
+ * author name.
  */
 export function gitAuthorNameIsValid(name: string): boolean {
   return !crudCharactersRe.test(name)
