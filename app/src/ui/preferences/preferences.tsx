@@ -168,15 +168,6 @@ export class Preferences extends React.Component<
     this.props.dispatcher.removeAccount(account)
   }
 
-  private disallowedCharacterErrorMessage(name: string) {
-    const disallowedNameCharacters = gitAuthorNameIsValid(name)
-    if (disallowedNameCharacters != null) {
-      return `Git name field cannot be a disallowed character "${disallowedNameCharacters}"`
-    }
-
-    return null
-  }
-
   private renderDisallowedCharactersError() {
     const message = this.state.disallowedCharactersMessage
     if (message != null) {
@@ -267,11 +258,12 @@ export class Preferences extends React.Component<
   }
 
   private onCommitterNameChanged = (committerName: string) => {
-    const disallowedCharactersMessage = this.disallowedCharacterErrorMessage(
-      committerName
-    )
-
-    this.setState({ committerName, disallowedCharactersMessage })
+    this.setState({
+      committerName,
+      disallowedCharactersMessage: gitAuthorNameIsValid(committerName)
+        ? null
+        : "Name isn't a valid Git name, it consists only of disallowed characters.",
+    })
   }
 
   private onCommitterEmailChanged = (committerEmail: string) => {
