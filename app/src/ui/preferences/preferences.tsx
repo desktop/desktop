@@ -20,7 +20,7 @@ import {
 import { lookupPreferredEmail } from '../../lib/email'
 import { Shell, getAvailableShells } from '../../lib/shells'
 import { getAvailableEditors } from '../../lib/editors/lookup'
-import { disallowedCharacters } from './identifier-rules'
+import { gitAuthorNameIsValid } from './identifier-rules'
 import { Appearance } from './appearance'
 import { ApplicationTheme } from '../lib/application-theme'
 
@@ -169,7 +169,7 @@ export class Preferences extends React.Component<
   }
 
   private disallowedCharacterErrorMessage(name: string) {
-    const disallowedNameCharacters = disallowedCharacters(name)
+    const disallowedNameCharacters = gitAuthorNameIsValid(name)
     if (disallowedNameCharacters != null) {
       return `Git name field cannot be a disallowed character "${disallowedNameCharacters}"`
     }

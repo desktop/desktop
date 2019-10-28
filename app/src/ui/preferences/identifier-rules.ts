@@ -4,9 +4,9 @@
 // See https://github.com/git/git/blob/e629a7d28a405e/ident.c#L191-L203
 const crudCharactersRe = /^[\x00-\x20.,:;<>"\\']+$/
 
-export function disallowedCharacters(values: string): string | null {
-  if (crudCharactersRe.test(values)) {
-    return values
+export function gitAuthorNameIsValid(name: string): string | null {
+  if (crudCharactersRe.test(name)) {
+    return name
   }
 
   return null
