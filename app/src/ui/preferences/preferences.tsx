@@ -262,7 +262,7 @@ export class Preferences extends React.Component<
       committerName,
       disallowedCharactersMessage: gitAuthorNameIsValid(committerName)
         ? null
-        : "Name isn't a valid Git name, it consists only of disallowed characters.",
+        : 'Name is invalid, it consists only of disallowed characters.',
     })
   }
 
