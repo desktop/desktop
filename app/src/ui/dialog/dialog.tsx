@@ -270,7 +270,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     this.onDismiss()
   }
 
-  private onDialogClick = (e: React.MouseEvent<HTMLElement>) => {
+  private onDialogMouseDown = (e: React.MouseEvent<HTMLElement>) => {
     if (this.isDismissable() === false) {
       return
     }
@@ -386,7 +386,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       <dialog
         ref={this.onDialogRef}
         id={this.props.id}
-        onClick={this.onDialogClick}
+        onMouseDown={this.onDialogMouseDown}
         className={className}
         aria-labelledby={this.state.titleId}
       >
