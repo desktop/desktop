@@ -257,6 +257,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     }
 
     window.removeEventListener('focus', this.onWindowFocus)
+    document.removeEventListener('mouseup', this.onDocumentMouseUp)
   }
 
   public componentDidUpdate() {
