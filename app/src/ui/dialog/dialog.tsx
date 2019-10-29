@@ -339,6 +339,12 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     return isInDialog
   }
 
+  /**
+   * Subscribed to from the onDialogMouseDown when the user
+   * presses down on the backdrop, ensures that we only dismiss
+   * the dialog if they release their pointer device over the
+   * backdrop as well (as opposed to over the dialog itself).
+   */
   private onDocumentMouseUp = (e: MouseEvent) => {
     if (
       !e.defaultPrevented &&
