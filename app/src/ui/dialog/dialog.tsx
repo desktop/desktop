@@ -302,6 +302,10 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       !this.props.disableClickDismissalAlways &&
       !this.mouseEventIsInsideDialog(e)
     ) {
+      // The user has pressed down on their pointer device outside of the
+      // dialog (i.e. on the backdrop). Now we subscribe to the global
+      // mouse up event where we can make sure that they release the pointer
+      // device on the backdrop as well.
       document.addEventListener('mouseup', this.onDocumentMouseUp, {
         once: true,
       })
