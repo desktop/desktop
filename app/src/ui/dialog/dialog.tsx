@@ -271,6 +271,10 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   }
 
   private onDialogMouseDown = (e: React.MouseEvent<HTMLElement>) => {
+    if (e.defaultPrevented) {
+      return
+    }
+
     if (this.isDismissable() === false) {
       return
     }
