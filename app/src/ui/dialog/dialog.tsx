@@ -288,12 +288,6 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       return
     }
 
-    const isInTitleBar = e.clientY <= titleBarHeight
-
-    if (isInTitleBar) {
-      return
-    }
-
     // Ignore the first click right after the window's been focused. It could
     // be the click that focused the window, in which case we don't wanna
     // dismiss the dialog.
@@ -303,8 +297,32 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       return
     }
 
+    if (
+      !this.props.disableClickDismissalAlways &&
+      !this.mouseEventIsInsideDialog(e)
+    ) {
+      document.addEventListener('mouseup', this.onDocumentMouseUp, {
+        once: true,
+      })
+    }
+  }
+
+  private mouseEventIsInsideDialog(
+    e: React.MouseEvent<HTMLElement> | MouseEvent
+  ) {
+    // it's possible that we've been unmounted
+    if (this.dialogElement === null) {
+      return false
+    }
+
+    const isInTitleBar = e.clientY <= titleBarHeight
+
+    if (isInTitleBar) {
+      return false
+    }
+
     // Figure out if the user clicked on the backdrop or in the dialog itself.
-    const rect = e.currentTarget.getBoundingClientRect()
+    const rect = this.dialogElement.getBoundingClientRect()
 
     // http://stackoverflow.com/a/26984690/2114
     const isInDialog =
@@ -313,7 +331,15 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       rect.left <= e.clientX &&
       e.clientX <= rect.left + rect.width
 
-    if (!this.props.disableClickDismissalAlways && !isInDialog) {
+    return isInDialog
+  }
+
+  private onDocumentMouseUp = (e: MouseEvent) => {
+    if (
+      !e.defaultPrevented &&
+      !this.props.disableClickDismissalAlways &&
+      !this.mouseEventIsInsideDialog(e)
+    ) {
       e.preventDefault()
       this.onDismiss()
     }
