@@ -3361,7 +3361,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoryStateCache.update(repository, () => ({
       pushPullFetchProgress,
     }))
-
+    if (pushPullFetchProgress !== null) {
+      log.info('setting progress' + pushPullFetchProgress.value)
+      remote.getCurrentWindow().setProgressBar(pushPullFetchProgress.value)
+    }
     if (this.selectedRepository === repository) {
       this.emitUpdate()
     }
