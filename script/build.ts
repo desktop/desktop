@@ -147,6 +147,18 @@ function packageApp() {
     )
   }
 
+  const notarizationCredentials = getNotarizationCredentials()
+  if (
+    isPublishableBuild &&
+    isCircleCI() &&
+    notarizationCredentials === undefined
+  ) {
+    // we can't publish a mac build without these
+    throw new Error(
+      'Unable to retreive appleId and/or appleIdPassword to notarize macOS build'
+    )
+  }
+
   const options: packager.Options & IPackageAdditionalOptions = {
     name: getExecutableName(),
     platform: toPackagePlatform(process.platform),
@@ -172,6 +184,7 @@ function packageApp() {
     appCategoryType: 'public.app-category.developer-tools',
     darwinDarkModeSupport: true,
     osxSign: true,
+    osxNotarize: notarizationCredentials,
     protocols: [
       {
         name: getBundleID(),
@@ -409,4 +422,18 @@ ${licenseText}`
 
   // sweep up the choosealicense directory as the important bits have been bundled in the app
   fs.removeSync(chooseALicense)
+}
+
+function getNotarizationCredentials():
+  | packager.ElectronNotarizeOptions
+  | undefined {
+  const appleId = process.env.APPLE_ID
+  const appleIdPassword = process.env.APPLE_ID_PASSWORD
+  if (appleId === undefined || appleIdPassword === undefined) {
+    return undefined
+  }
+  return {
+    appleId,
+    appleIdPassword,
+  }
 }
