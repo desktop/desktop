@@ -168,6 +168,7 @@
     "electron": "5.0.6",
     "electron-builder": "20.28.4",
     "electron-packager": "^13.1.0",
+    "electron-notarize": "github:desktop/electron-notarize#tolerate-poll-fail",
     "electron-winstaller": "2.5.2"
   }
 }
