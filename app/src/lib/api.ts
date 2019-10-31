@@ -233,6 +233,25 @@ export interface IAPIRefStatus {
 }
 
 /** Branch information returned by the GitHub API */
+export interface IAPIPushControl {
+  /**
+   * Branch protection enabled:
+   *
+   *  - `true` indicates protection rules in place
+   *  - `false` indicates no protection rules in place
+   */
+  readonly protected: boolean
+
+  /**
+   * Branch protection settings:
+   *
+   *  - `true` indicates that the user can probably push
+   *  - `false` indicates that the user probably can't push
+   */
+  readonly push: boolean
+}
+
+/** Branch information returned by the GitHub API */
 export interface IAPIBranch {
   /**
    * The name of the branch stored on the remote.
@@ -717,6 +736,24 @@ export class API {
     const path = `repos/${owner}/${name}/commits/${ref}/status`
     const response = await this.request('GET', path)
     return await parsedResponse<IAPIRefStatus>(response)
+  }
+
+  public async fetchPushControl(
+    owner: string,
+    name: string,
+    branch: string
+  ): Promise<IAPIPushControl> {
+    const path = `repos/${owner}/${name}/branches/${branch}/push_control`
+    try {
+      const response = await this.request('GET', path)
+      return await parsedResponse<IAPIPushControl>(response)
+    } catch (err) {
+      log.info(
+        `[fetchPushControl] unable to check if branch is potentially pushable`,
+        err
+      )
+      return { protected: false, push: true }
+    }
   }
 
   public async fetchProtectedBranches(
