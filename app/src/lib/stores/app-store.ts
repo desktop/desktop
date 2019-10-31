@@ -825,19 +825,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
       gitStore.tip.kind === TipState.Valid &&
       repository.gitHubRepository !== null
     ) {
+      const gitHubRepo = repository.gitHubRepository
       const branchName = findRemoteBranchName(
         gitStore.tip,
         gitStore.currentRemote,
-        repository.gitHubRepository
+        gitHubRepo
       )
 
       if (branchName !== null) {
-        const currentBranchProtected = await this.repositoriesStore.isBranchProtectedOnRemote(
-          repository.gitHubRepository,
-          branchName
+        const account = getAccountForEndpoint(
+          this.accounts,
+          gitHubRepo.endpoint
         )
+
+        if (account === null) {
+          return
+        }
+
+        const name = gitHubRepo.name
+        const owner = gitHubRepo.owner.login
+        const api = API.fromAccount(account)
+        const response = await api.fetchPushControl(owner, name, branchName)
+
         this.repositoryStateCache.updateChangesState(repository, () => ({
-          currentBranchProtected,
+          currentBranchProtected: response.protected && !response.push,
         }))
       }
     }
