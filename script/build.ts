@@ -183,7 +183,11 @@ function packageApp() {
     appBundleId: getBundleID(),
     appCategoryType: 'public.app-category.developer-tools',
     darwinDarkModeSupport: true,
-    osxSign: true,
+    osxSign: {
+      // @ts-ignore
+      hardenedRuntime: false,
+      identity: true,
+    },
     osxNotarize: notarizationCredentials,
     protocols: [
       {
