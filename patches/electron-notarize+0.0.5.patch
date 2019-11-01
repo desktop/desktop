@@ -1,0 +1,32 @@
+diff --git a/node_modules/electron-notarize/lib/index.js b/node_modules/electron-notarize/lib/index.js
+index f57aaf7..a5211f2 100644
+--- a/node_modules/electron-notarize/lib/index.js
++++ b/node_modules/electron-notarize/lib/index.js
+@@ -120,17 +120,21 @@ function waitForNotarize(opts) {
+                         ])];
+                 case 1:
+                     result = _a.sent();
+-                    if (result.code !== 0) {
+-                        throw new Error("Failed to check status of notarization request: " + opts.uuid + "\n\n" + result.output);
+-                    }
+-                    notarizationInfo = helpers_1.parseNotarizationInfo(result.output);
+-                    if (!(notarizationInfo.status === 'in progress')) return [3 /*break*/, 3];
+-                    d('still in progress, waiting 30 seconds');
++                    if (!(result.code !== 0)) return [3 /*break*/, 3];
++                    d("Failed to check status of notarization request: " + opts.uuid + "\n\n" + result.output);
+                     return [4 /*yield*/, new Promise(function (r) { return setTimeout(r, 30000); })];
+                 case 2:
+                     _a.sent();
+                     return [2 /*return*/, waitForNotarize(opts)];
+                 case 3:
++                    notarizationInfo = helpers_1.parseNotarizationInfo(result.output);
++                    if (!(notarizationInfo.status === 'in progress')) return [3 /*break*/, 5];
++                    d('still in progress, waiting 30 seconds');
++                    return [4 /*yield*/, new Promise(function (r) { return setTimeout(r, 30000); })];
++                case 4:
++                    _a.sent();
++                    return [2 /*return*/, waitForNotarize(opts)];
++                case 5:
+                     d('notarzation done with info:', notarizationInfo);
+                     if (notarizationInfo.status === 'invalid') {
+                         d('notarization failed');
