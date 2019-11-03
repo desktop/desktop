@@ -188,8 +188,8 @@ function packageApp() {
     appCategoryType: 'public.app-category.developer-tools',
     darwinDarkModeSupport: true,
     osxSign: {
-      // @ts-ignore
-      hardenedRuntime: false,
+      // @ts-ignore (the library's type definition is wrong)
+      hardenedRuntime: true,
       identity: true,
       entitlements: entitlementsPath,
       'entitlements-inherit': entitlementsPath,
