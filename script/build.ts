@@ -147,7 +147,10 @@ function packageApp() {
     )
   }
 
-  const notarizationCredentials = getNotarizationCredentials()
+  // get notarization deets, unless we're not going to publish this
+  const notarizationCredentials = isPublishableBuild
+    ? getNotarizationCredentials()
+    : undefined
   if (
     isPublishableBuild &&
     isCircleCI() &&
