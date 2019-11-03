@@ -194,7 +194,6 @@ function packageApp() {
       entitlements: entitlementsPath,
       'entitlements-inherit': entitlementsPath,
       type: isPublishableBuild ? 'distribution' : 'development',
-      version: '5.0.6',
     },
     osxNotarize: notarizationCredentials,
     protocols: [
