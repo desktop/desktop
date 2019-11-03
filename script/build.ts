@@ -44,6 +44,7 @@ import { updateLicenseDump } from './licenses/update-license-dump'
 import { verifyInjectedSassVariables } from './validate-sass/validate-all'
 
 const projectRoot = path.join(__dirname, '..')
+const entitlementsPath = `${projectRoot}/script/entitlements.plist`
 const outRoot = path.join(projectRoot, 'out')
 
 const isPublishableBuild = getReleaseChannel() !== 'development'
@@ -190,6 +191,8 @@ function packageApp() {
       // @ts-ignore
       hardenedRuntime: false,
       identity: true,
+      entitlements: entitlementsPath,
+      'entitlements-inherit': entitlementsPath,
     },
     osxNotarize: notarizationCredentials,
     protocols: [
