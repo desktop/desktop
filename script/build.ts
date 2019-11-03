@@ -45,6 +45,7 @@ import { verifyInjectedSassVariables } from './validate-sass/validate-all'
 
 const projectRoot = path.join(__dirname, '..')
 const entitlementsPath = `${projectRoot}/script/entitlements.plist`
+const extendInfoPath = `${projectRoot}/script/info.plist`
 const outRoot = path.join(projectRoot, 'out')
 
 const isPublishableBuild = getReleaseChannel() !== 'development'
@@ -208,7 +209,7 @@ function packageApp() {
         ],
       },
     ],
-    extendInfo: `${projectRoot}/script/info.plist`,
+    extendInfo: extendInfoPath,
 
     // Windows
     win32metadata: {
