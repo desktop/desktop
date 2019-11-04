@@ -28,6 +28,8 @@ export async function getBlobContents(
 ): Promise<Buffer> {
   const successExitCodes = new Set([0, 1])
   const setBinaryEncoding: (process: ChildProcess) => void = cb => {
+    // If Node.js encounters a synchronous runtime error while spawning
+    // `stdout` will be null and the error will be emitted asynchronously
     if (cb.stdout) {
       cb.stdout.setEncoding('binary')
     }
