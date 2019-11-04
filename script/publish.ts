@@ -3,7 +3,7 @@ import * as gitInfo from '../app/git-info'
 import * as packageInfo from '../app/package-info'
 import * as platforms from './build-platforms'
 
-if (distInfo.isPublishable()) {
+if (!distInfo.isPublishable()) {
   console.log('Not a publishable build. Skipping publish.')
   process.exit(0)
 }
