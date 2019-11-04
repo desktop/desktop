@@ -37,7 +37,12 @@ import {
   getProductName,
 } from '../app/package-info'
 
-import { getReleaseChannel, getDistRoot, getExecutableName } from './dist-info'
+import {
+  getChannel,
+  getDistRoot,
+  getExecutableName,
+  isPublishable,
+} from './dist-info'
 import { isRunningOnFork, isCircleCI } from './build-platforms'
 
 import { updateLicenseDump } from './licenses/update-license-dump'
@@ -48,9 +53,9 @@ const entitlementsPath = `${projectRoot}/script/entitlements.plist`
 const extendInfoPath = `${projectRoot}/script/info.plist`
 const outRoot = path.join(projectRoot, 'out')
 
-const isPublishableBuild = getReleaseChannel() !== 'development'
+const isPublishableBuild = isPublishable()
 
-console.log(`Building for ${getReleaseChannel()}…`)
+console.log(`Building for ${getChannel()}…`)
 
 console.log('Removing old distribution…')
 fs.removeSync(getDistRoot())
