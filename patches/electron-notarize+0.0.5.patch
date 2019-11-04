@@ -1,3 +1,4 @@
+# see https://github.com/desktop/electron-notarize/commit/2795347201ab8d32d1240147cebdd68c4a94d8fc for the underlying change for this patch
 diff --git a/node_modules/electron-notarize/lib/index.js b/node_modules/electron-notarize/lib/index.js
 index f57aaf7..a5211f2 100644
 --- a/node_modules/electron-notarize/lib/index.js
