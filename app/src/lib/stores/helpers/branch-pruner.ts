@@ -67,9 +67,7 @@ export class BranchPruner {
   public async start() {
     if (this.timer !== null) {
       fatalError(
-        `A background prune task is already active and cannot begin pruning on ${
-          this.repository.name
-        }`
+        `A background prune task is already active and cannot begin pruning on ${this.repository.name}`
       )
     }
 
@@ -217,11 +215,7 @@ export class BranchPruner {
     )
 
     log.info(
-      `[BranchPruner] Pruning ${
-        branchesReadyForPruning.length
-      } branches that have been merged into the default branch, ${
-        defaultBranch.name
-      } (${defaultBranch.tip.sha}), from '${this.repository.name}`
+      `[BranchPruner] Pruning ${branchesReadyForPruning.length} branches that have been merged into the default branch, ${defaultBranch.name} (${defaultBranch.tip.sha}), from '${this.repository.name}`
     )
 
     const gitStore = this.gitStoreCache.get(this.repository)

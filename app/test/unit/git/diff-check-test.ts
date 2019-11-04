@@ -28,7 +28,11 @@ describe('getFilesWithConflictMarkers', () => {
     })
     it('finds multiple conflicted files', async () => {
       expect(await getFilesWithConflictMarkers(repository.path)).toEqual(
-        new Map([['baz', 3], ['cat', 3], ['foo', 3]])
+        new Map([
+          ['baz', 3],
+          ['cat', 3],
+          ['foo', 3],
+        ])
       )
     })
   })

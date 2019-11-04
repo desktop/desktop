@@ -26,9 +26,7 @@ function getUserDataPath() {
     return path.join(home, '.config', getProductName())
   } else {
     throw new Error(
-      `I dunno how to resolve the user data path for ${process.platform} ${
-        process.arch
-      } :(`
+      `I dunno how to resolve the user data path for ${process.platform} ${process.arch} :(`
     )
   }
 }

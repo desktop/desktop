@@ -185,7 +185,10 @@ export async function setupConflictedRepoWithMultipleFiles(): Promise<
   const repo = await setupEmptyRepository()
 
   const firstCommit = {
-    entries: [{ path: 'foo', contents: 'b0' }, { path: 'bar', contents: 'b0' }],
+    entries: [
+      { path: 'foo', contents: 'b0' },
+      { path: 'bar', contents: 'b0' },
+    ],
   }
 
   await makeCommit(repo, firstCommit)

@@ -85,9 +85,7 @@ export async function launchShell(
   if (!exists) {
     const label = __DARWIN__ ? 'Preferences' : 'Options'
     throw new ShellError(
-      `Could not find executable for '${shell.shell}' at path '${
-        shell.path
-      }'.  Please open ${label} and select an available shell.`
+      `Could not find executable for '${shell.shell}' at path '${shell.path}'.  Please open ${label} and select an available shell.`
     )
   }
 
@@ -106,9 +104,7 @@ export async function launchShell(
     return Promise.resolve()
   } else {
     return Promise.reject(
-      `Platform not currently supported for launching shells: ${
-        process.platform
-      }`
+      `Platform not currently supported for launching shells: ${process.platform}`
     )
   }
 }

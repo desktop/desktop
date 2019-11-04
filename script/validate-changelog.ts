@@ -20,9 +20,7 @@ function formatErrors(errors: Ajv.ErrorObject[]): string {
       let additionalPropertyText = ''
 
       if (additionalProperty != null) {
-        additionalPropertyText = `, found: '${
-          additionalProperties.additionalProperty
-        }'`
+        additionalPropertyText = `, found: '${additionalProperties.additionalProperty}'`
       }
 
       // dataPath starts with a leading "."," which is a bit confusing

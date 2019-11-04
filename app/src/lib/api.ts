@@ -577,9 +577,7 @@ export class API {
       if (e instanceof APIError) {
         if (org !== null) {
           throw new Error(
-            `Unable to create repository for organization '${
-              org.login
-            }'. Verify that it exists, that it's a paid organization, and that you have permission to create a repository there.`
+            `Unable to create repository for organization '${org.login}'. Verify that it exists, that it's a paid organization, and that you have permission to create a repository there.`
           )
         }
         throw e
