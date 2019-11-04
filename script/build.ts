@@ -119,6 +119,9 @@ interface IPackageAdditionalOptions {
     readonly name: string
     readonly schemes: ReadonlyArray<string>
   }>
+  readonly osxSign: packager.ElectronOsXSignOptions & {
+    readonly hardenedRuntime?: boolean
+  }
 }
 
 function packageApp() {
@@ -189,7 +192,6 @@ function packageApp() {
     appCategoryType: 'public.app-category.developer-tools',
     darwinDarkModeSupport: true,
     osxSign: {
-      // @ts-ignore (the library's type definition is wrong)
       hardenedRuntime: true,
       identity: true,
       entitlements: entitlementsPath,
