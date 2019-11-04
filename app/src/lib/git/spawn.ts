@@ -43,7 +43,7 @@ export function spawnAndComplete(
           // spawn let's keep the salient details but include the name of
           // the operation.
           if (isErrnoException(err)) {
-            reject(new Error(`${name} ${err.syscall} failed: ${err.code}`))
+            reject(new Error(`Failed to execute ${name}: ${err.code}`))
           } else {
             // for unhandled errors raised by the process, let's surface this in the
             // promise and make the caller handle it

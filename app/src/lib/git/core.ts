@@ -126,7 +126,7 @@ export async function git(
     // dugite) let's keep the salient details but include the name of
     // the operation.
     if (isErrnoException(err)) {
-      throw new Error(`${name} ${err.syscall} failed: ${err.code}`)
+      throw new Error(`Failed to execute ${name}: ${err.code}`)
     }
 
     throw err
