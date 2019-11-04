@@ -193,7 +193,6 @@ function packageApp() {
     darwinDarkModeSupport: true,
     osxSign: {
       hardenedRuntime: true,
-      identity: true,
       entitlements: entitlementsPath,
       'entitlements-inherit': entitlementsPath,
       type: isPublishableBuild ? 'distribution' : 'development',
