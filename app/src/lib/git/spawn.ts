@@ -55,26 +55,35 @@ export function spawnAndComplete(
         let killSignalSent = false
 
         const stdoutChunks = new Array<Buffer>()
-        process.stdout.on('data', (chunk: Buffer) => {
-          if (!stdOutMaxLength || totalStdoutLength < stdOutMaxLength) {
-            stdoutChunks.push(chunk)
-            totalStdoutLength += chunk.length
-          }
 
-          if (
-            stdOutMaxLength &&
-            totalStdoutLength >= stdOutMaxLength &&
-            !killSignalSent
-          ) {
-            process.kill()
-            killSignalSent = true
-          }
-        })
+        // If Node.js encounters a synchronous runtime error while spawning
+        // `stdout` will be null and the error will be emitted asynchronously
+        if (process.stdout) {
+          process.stdout.on('data', (chunk: Buffer) => {
+            if (!stdOutMaxLength || totalStdoutLength < stdOutMaxLength) {
+              stdoutChunks.push(chunk)
+              totalStdoutLength += chunk.length
+            }
+
+            if (
+              stdOutMaxLength &&
+              totalStdoutLength >= stdOutMaxLength &&
+              !killSignalSent
+            ) {
+              process.kill()
+              killSignalSent = true
+            }
+          })
+        }
 
         const stderrChunks = new Array<Buffer>()
-        process.stderr.on('data', (chunk: Buffer) => {
-          stderrChunks.push(chunk)
-        })
+
+        // See comment above about stdout and asynchronous errors.
+        if (process.stderr) {
+          process.stderr.on('data', (chunk: Buffer) => {
+            stderrChunks.push(chunk)
+          })
+        }
 
         process.on('close', (code, signal) => {
           const stdout = Buffer.concat(
