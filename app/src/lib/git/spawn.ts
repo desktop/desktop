@@ -37,6 +37,20 @@ export function spawnAndComplete(
     () =>
       new Promise<ProcessOutput>((resolve, reject) => {
         const process = GitProcess.spawn(args, path)
+
+        process.on('error', err => {
+          // If this is an exception thrown by Node.js while attempting to
+          // spawn let's keep the salient details but include the name of
+          // the operation.
+          if (isErrnoException(err)) {
+            reject(new Error(`${name} ${err.syscall} failed: ${err.code}`))
+          } else {
+            // for unhandled errors raised by the process, let's surface this in the
+            // promise and make the caller handle it
+            reject(err)
+          }
+        })
+
         let totalStdoutLength = 0
         let killSignalSent = false
 
@@ -60,19 +74,6 @@ export function spawnAndComplete(
         const stderrChunks = new Array<Buffer>()
         process.stderr.on('data', (chunk: Buffer) => {
           stderrChunks.push(chunk)
-        })
-
-        process.on('error', err => {
-          // If this is an exception thrown by Node.js while attempting to
-          // spawn let's keep the salient details but include the name of
-          // the operation.
-          if (isErrnoException(err)) {
-            reject(new Error(`${name} ${err.syscall} failed: ${err.code}`))
-          } else {
-            // for unhandled errors raised by the process, let's surface this in the
-            // promise and make the caller handle it
-            reject(err)
-          }
         })
 
         process.on('close', (code, signal) => {
