@@ -245,7 +245,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       '[tabindex]:not(:disabled):not([tabindex="-1"])',
     ].join(', ')
 
-    let maxTabIndex: { 0: number; 1: HTMLElement | null } = [-1, null]
+    let firstExplicit: { 0: number; 1: HTMLElement | null } = [Infinity, null]
     let firstSubmitButton: HTMLElement | null = null
     let firstButton: HTMLElement | null = null
     let firstTabbable: HTMLElement | null = null
@@ -271,8 +271,8 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
       const tabIndex = parseInt(candidate.getAttribute('tabindex') || '', 10)
 
-      if (tabIndex > 0 && tabIndex > maxTabIndex[0]) {
-        maxTabIndex = [tabIndex, candidate]
+      if (tabIndex > 0 && tabIndex < firstExplicit[0]) {
+        firstExplicit = [tabIndex, candidate]
       } else if (
         !firstTabbable &&
         (tabIndex === 0 || candidate.matches(inputSelector))
@@ -285,9 +285,8 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       }
     }
 
-    const maxTabIndexElement = maxTabIndex[0] !== -1 ? maxTabIndex[1] : null
     const newActive =
-      maxTabIndexElement || firstTabbable || firstSubmitButton || firstButton
+      firstExplicit[1] || firstTabbable || firstSubmitButton || firstButton
 
     if (newActive) {
       console.log(`making ${newActive.outerHTML} the new active`)
