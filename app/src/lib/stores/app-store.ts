@@ -2691,7 +2691,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       gitStore.updateLastFetched(),
       gitStore.loadStashEntries(),
       this.refreshAuthor(repository),
-      this.refreshBranchProtectionState(repository),
       refreshSectionPromise,
     ])
 
