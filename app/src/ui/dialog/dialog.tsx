@@ -226,6 +226,56 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     window.addEventListener('focus', this.onWindowFocus)
   }
 
+  /**
+   * Attempts to move keyboard focus to the first _suitable_ child of the
+   * dialog.
+   *
+   * The original motivation for this function is that while the order of the
+   * Ok, and Cancel buttons differ between platforms (see OkCancelButtonGroup)
+   * we don't want to accidentally put keyboard focus on the destructive
+   * button (like the Ok button in the discard changes dialog) but rather
+   * on the non-destructive action. This logic originates from the macOS
+   * human interface guidelines
+   *
+   * From https://developer.apple.com/design/human-interface-guidelines/macos/windows-and-views/dialogs/:
+   *
+   *   "Users sometimes press Return merely to dismiss a dialog, without
+   *   reading its content, so it’s crucial that a default button initiate
+   *   a harmless action. [...] when a dialog may result in a destructive
+   *   action, Cancel can be set as the default button."
+   *
+   * The same guidelines also has this to say about focus:
+   *
+   *   "Set the initial focus to the first location that accepts user input.
+   *    Doing so lets the user begin entering data immediately, without needing
+   *    to click a specific item like a text field or list."
+   *
+   * In attempting to follow the guidelines outlined above we follow a priority
+   * order in determining the first suitable child.
+   *
+   *  1. The element with the lowest positive tabIndex
+   *     This might sound counterintuitive but imagine the following pseudo
+   *     dialog this would be button D as button D would be the first button
+   *     to get focused when hitting Tab.
+   *
+   *     <dialog>
+   *      <button>A</button>
+   *      <button tabIndex=3>B</button>
+   *      <button tabIndex=2>C</button>
+   *      <button tabIndex=1>D</button>
+   *     </dialog>
+   *
+   *  2. The first element which is either implicitly keyboard focusable (like a
+   *     text input field) or explicitly focusable through tabIndex=0 (like a TabBar
+   *     tab)
+   *
+   *  3. The first submit button. We use this as a proxy for what macOS HIG calls
+   *     "default button". It's not the same thing but for our purposes it's close
+   *     enough.
+   *
+   *  4. Any remaining button
+   *
+   */
   private focusFirstSuitableChild() {
     const dialog = this.dialogElement
     const activeElement = document.activeElement
