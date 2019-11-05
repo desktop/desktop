@@ -845,10 +845,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const name = gitHubRepo.name
         const owner = gitHubRepo.owner.login
         const api = API.fromAccount(account)
-        const response = await api.fetchPushControl(owner, name, branchName)
+
+        const {
+          user_permitted,
+          statuses_required,
+          approving_reviews_required,
+        } = await api.fetchPushControl(owner, name, branchName)
+
+        const pushableByUser =
+          user_permitted &&
+          statuses_required.length === 0 &&
+          approving_reviews_required === 0
 
         this.repositoryStateCache.updateChangesState(repository, () => ({
-          currentBranchProtected: response.protected && !response.push,
+          currentBranchProtected: !pushableByUser,
         }))
       }
     }
