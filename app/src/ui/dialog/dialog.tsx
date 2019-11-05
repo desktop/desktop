@@ -251,12 +251,12 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     let firstTabbable: HTMLElement | null = null
 
     const excludedInputTypes = [
-      ':not[type=button]',
-      ':not[type=submit]',
-      ':not[type=reset]',
-      ':not[type=hidden]',
-      ':not[type=checkbox]',
-      ':not[type=radio]',
+      ':not([type=button])',
+      ':not([type=submit])',
+      ':not([type=reset])',
+      ':not([type=hidden])',
+      ':not([type=checkbox])',
+      ':not([type=radio])',
     ]
 
     const inputSelector = `input${excludedInputTypes.join('')}, textarea`
