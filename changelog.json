@@ -1,7 +1,6 @@
 {
   "releases": {
     "2.2.3-beta1": [
-      "[Fixed] Guard against URL parsing failures in Windows protocol handler - #8522",
       "[Fixed] Prevent text overflow in crash dialog - #8542",
       "[Fixed] Address warnings on macOS Catalina preventing app from opening after install - #8555",
       "[Improved] Update to most recent gitignore templates - #8527"
