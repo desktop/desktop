@@ -2524,12 +2524,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
           )
 
           if (branchName !== null) {
-            const isRemoteBranchProtected = await this.repositoriesStore.isBranchProtectedOnRemote(
-              repository.gitHubRepository,
-              branchName
-            )
-
-            if (isRemoteBranchProtected) {
+            const { changesState } = this.repositoryStateCache.get(repository)
+            if (changesState.currentBranchProtected) {
               this.statsStore.recordCommitToProtectedBranch()
             }
           }
