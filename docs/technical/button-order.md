@@ -6,6 +6,10 @@ On Windows the default order is to put the affirmitive action on the left side o
 
 We believe it's important that GitHub Desktop adheres to these platform-specific conventions since users often rely on muscle memory when reacting to a dialog.
 
+The breakdown of how destructive and non-destructive dialogs should work on each platform:
+
+![button conventions](https://user-images.githubusercontent.com/5091167/68219886-f794ff80-ffa3-11e9-9f25-40a9bb2e9a71.png)
+
 ## Dangerous or destructive actions
 
 macOS interface guidelines specifically call out the need for a separate treatment of action buttons when the associated action is dangerous or destructive. An example of such an action would be deleting a branch.
