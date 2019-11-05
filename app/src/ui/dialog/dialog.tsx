@@ -347,7 +347,6 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       firstExplicit[1] || firstTabbable || firstSubmitButton || firstButton
 
     if (newActive) {
-      console.log(`making ${newActive.outerHTML} the new active`)
       newActive.focus()
     }
   }
