@@ -1494,6 +1494,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     previouslySelectedRepository: Repository | CloningRepository | null
   ): Promise<Repository | null> {
+
+    this.refreshBranchProtectionState(repository)
+
     this._refreshRepository(repository)
 
     const gitHubRepository = repository.gitHubRepository
@@ -3108,6 +3111,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         targetBranch: foundBranch.name,
       })
 
+      await this.refreshBranchProtectionState(repository)
       await this._refreshRepository(repository)
     } finally {
       this.updateCheckoutProgress(repository, null)
