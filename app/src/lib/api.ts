@@ -592,6 +592,24 @@ export class API {
     }
   }
 
+  /** Fork a given GitHub repository into the authenticated user's namespace. */
+  public async forkRepository(
+    owner: string,
+    name: string
+  ): Promise<IAPIRepository> {
+    try {
+      const apiPath = `${owner}/${name}`
+      const response = await this.request('POST', apiPath)
+
+      return await parsedResponse<IAPIRepository>(response)
+    } catch (e) {
+      log.error(`forkRepository: failed with endpoint ${this.endpoint}`, e)
+      throw new Error(
+        `Unable to fork repository. Please check if you have an internet connection and try again.`
+      )
+    }
+  }
+
   /**
    * Fetch the issues with the given state that have been created or updated
    * since the given date.
