@@ -54,6 +54,7 @@ const extendInfoPath = `${projectRoot}/script/info.plist`
 const outRoot = path.join(projectRoot, 'out')
 
 const isPublishableBuild = isPublishable()
+const isDevelopmentBuild = getChannel() === 'development'
 
 console.log(`Building for ${getChannel()}…`)
 
@@ -85,7 +86,7 @@ verifyInjectedSassVariables(outRoot)
       'Error verifying the Sass variables in the rendered app. This is fatal for a published build.'
     )
 
-    if (isPublishableBuild) {
+    if (!isDevelopmentBuild) {
       process.exit(1)
     }
   })
@@ -97,7 +98,7 @@ verifyInjectedSassVariables(outRoot)
       )
       console.error(err)
 
-      if (isPublishableBuild) {
+      if (!isDevelopmentBuild) {
         process.exit(1)
       }
     })
@@ -207,7 +208,7 @@ function packageApp() {
       {
         name: getBundleID(),
         schemes: [
-          isPublishableBuild
+          !isDevelopmentBuild
             ? 'x-github-desktop-auth'
             : 'x-github-desktop-dev-auth',
           'x-github-client',
@@ -294,7 +295,7 @@ function copyDependencies() {
   const oldDevDependencies = originalPackage.devDependencies
   const newDevDependencies: PackageLookup = {}
 
-  if (!isPublishableBuild) {
+  if (isDevelopmentBuild) {
     for (const name of Object.keys(oldDevDependencies)) {
       const spec = oldDevDependencies[name]
       if (externals.indexOf(name) !== -1) {
@@ -311,7 +312,7 @@ function copyDependencies() {
     devDependencies: newDevDependencies,
   })
 
-  if (isPublishableBuild) {
+  if (!isDevelopmentBuild) {
     delete updatedPackage.devDependencies
   }
 
@@ -330,7 +331,7 @@ function copyDependencies() {
     cp.execSync('yarn install', { cwd: outRoot, env: process.env })
   }
 
-  if (!isPublishableBuild) {
+  if (isDevelopmentBuild) {
     console.log(
       '  Installing 7zip (dependency for electron-devtools-installer)'
     )
