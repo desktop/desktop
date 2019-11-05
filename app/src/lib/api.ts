@@ -235,20 +235,36 @@ export interface IAPIRefStatus {
 /** Branch information returned by the GitHub API */
 export interface IAPIPushControl {
   /**
-   * Branch protection enabled:
+   * What status checks are required before merging?
    *
-   *  - `true` indicates protection rules in place
-   *  - `false` indicates no protection rules in place
+   * Empty array if user is admin and branch is not admin-enforced
    */
-  readonly protected: boolean
+  statuses_required: Array<string>
 
   /**
-   * Branch protection settings:
+   * How many reviews are required before merging?
    *
-   *  - `true` indicates that the user can probably push
-   *  - `false` indicates that the user probably can't push
+   * 0 if user is admin and branch is not admin-enforced
    */
-  readonly push: boolean
+  approving_reviews_required: number
+
+  /**
+   * Is user permitted?
+   *
+   * Always `true` for admins.
+   * `false` if `Restrict who can push` is enable and user is not in list.
+   * `true` if `Restrict who can push` is not enabled.
+   */
+  user_permitted: boolean
+
+  /**
+   * Currently unused properties
+   */
+  pattern: string | null
+  signed_commits_required: boolean
+  linear_history_required: boolean
+  deletions_permitted: boolean
+  force_pushes_permitted: boolean
 }
 
 /** Branch information returned by the GitHub API */
@@ -752,7 +768,16 @@ export class API {
         `[fetchPushControl] unable to check if branch is potentially pushable`,
         err
       )
-      return { protected: false, push: true }
+      return {
+        pattern: null,
+        signed_commits_required: false,
+        statuses_required: [],
+        approving_reviews_required: 0,
+        linear_history_required: false,
+        user_permitted: false,
+        deletions_permitted: false,
+        force_pushes_permitted: false,
+      }
     }
   }
 
