@@ -3363,7 +3363,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
     if (pushPullFetchProgress !== null) {
       remote.getCurrentWindow().setProgressBar(pushPullFetchProgress.value)
-    }else{
+    } else {
       remote.getCurrentWindow().setProgressBar(0)
     }
     if (this.selectedRepository === repository) {
