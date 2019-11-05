@@ -19,13 +19,13 @@ versions look similar to the below output:
 
 ```shellsession
 $ node -v
-v8.12.0
+v10.15.4
 
 $ yarn -v
-1.9.4
+1.15.2
 
 $ python --version
-Python 2.7.13
+Python 2.7.15
 ```
 
 There are also [additional resources](tooling.md) to configure your favorite
@@ -33,8 +33,9 @@ editor to work nicely with the GitHub Desktop repository.
 
 ## Building Desktop
 
-After cloning the repository, the typical workflow to get up running
-is as follows:
+First, create a fork of `desktop/desktop` and then clone the repository to your local machine. You'll need to be inside the repository in order to build the application locally.
+
+The typical workflow to get up running is as follows:
 
 * Run `yarn` to get all required dependencies on your machine.
 * Run `yarn build:dev` to create a development build of the app.
@@ -55,6 +56,8 @@ If you've made changes in the `main-process` folder you need to run `yarn
 build:dev` to rebuild the package, and then `yarn start` for these changes to be
 reflected in the running app.
 
+If you are using GitHub Enterprise Server with your development build of GitHub Desktop, you will need to follow a few extra steps to [authenticate properly](github-enterprise-auth-from-dev-build.md).
+
 If you're still encountering issues with building, refer to our
 [troubleshooting](troubleshooting.md) guide for more common
 problems.
@@ -62,7 +65,10 @@ problems.
 ## Running tests
 
 - `yarn test` - Runs all unit and integration tests
-- `yarn test:unit` - Runs all unit tests (add `--debug` to open Chrome Dev Tools while running tests)
+- `yarn test:unit` - Runs all unit tests
+  - Add `<file>` or `<pattern>` argument to only run tests in the specified file or files matching a pattern
+  - Add `-t <regex>` to only match tests whose name matches a regex
+  - For more information on these and other arguments, see [Jest CLI options](https://jestjs.io/docs/en/23.x/cli)
 - `yarn test:integration` - Runs all integration tests
 
 ## Debugging

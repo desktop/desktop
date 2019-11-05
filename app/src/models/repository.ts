@@ -2,6 +2,7 @@ import * as Path from 'path'
 
 import { GitHubRepository } from './github-repository'
 import { IAheadBehind } from './branch'
+import { enableTutorial } from '../lib/feature-flag'
 
 function getBaseName(path: string): string {
   const baseName = Path.basename(path)
@@ -15,21 +16,37 @@ function getBaseName(path: string): string {
   return baseName
 }
 
+/** Base type for a directory you can run git commands successfully */
+export type WorkingTree = {
+  readonly path: string
+}
+
 /** A local repository. */
 export class Repository {
   public readonly name: string
+  /**
+   * The main working tree (what we commonly
+   * think of as the repository's working directory)
+   */
+  private readonly mainWorkTree: WorkingTree
 
   /**
    * @param path The working directory of this repository
    * @param missing Was the repository missing on disk last we checked?
    */
   public constructor(
-    public readonly path: string,
+    path: string,
     public readonly id: number,
     public readonly gitHubRepository: GitHubRepository | null,
-    public readonly missing: boolean
+    public readonly missing: boolean,
+    private readonly _isTutorialRepository?: boolean
   ) {
+    this.mainWorkTree = { path }
     this.name = (gitHubRepository && gitHubRepository.name) || getBaseName(path)
+  }
+
+  public get path(): string {
+    return this.mainWorkTree.path
   }
 
   /**
@@ -40,8 +57,24 @@ export class Repository {
   public get hash(): string {
     return `${this.id}+${this.gitHubRepository && this.gitHubRepository.hash}+${
       this.path
-    }+${this.missing}+${this.name}`
+    }+${this.missing}+${this.name}+${this.isTutorialRepository}`
   }
+
+  /**
+   * True if the repository is a tutorial repository created as part
+   * of the onboarding flow. Tutorial repositories trigger a tutorial
+   * user experience which introduces new users to some core concepts
+   * of Git and GitHub.
+   */
+  public get isTutorialRepository() {
+    return enableTutorial() && this._isTutorialRepository === true
+  }
+}
+
+/** A worktree linked to a main working tree (aka `Repository`) */
+export type LinkedWorkTree = WorkingTree & {
+  /** The sha of the head commit in this work tree */
+  readonly head: string
 }
 
 /**

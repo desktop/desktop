@@ -9,6 +9,11 @@
 
   .filter-field-row {
     margin: var(--spacing);
+    min-width: 0;
+
+    .filter-list-filter-field {
+      min-width: 0;
+    }
   }
 
   &-container {

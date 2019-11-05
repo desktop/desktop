@@ -174,6 +174,15 @@ declare namespace NodeJS {
   interface Process extends EventEmitter {
     once(event: 'uncaughtException', listener: (error: Error) => void): this
     on(event: 'uncaughtException', listener: (error: Error) => void): this
+    on(
+      event: 'send-non-fatal-exception',
+      listener: (error: Error, context?: { [key: string]: string }) => void
+    ): this
+    emit(
+      event: 'send-non-fatal-exception',
+      error: Error,
+      context?: { [key: string]: string }
+    ): this
     removeListener(event: 'exit', listener: Function): this
     once(event: 'exit', listener: Function): this
   }
@@ -188,13 +197,6 @@ interface XMLHttpRequest extends XMLHttpRequestEventTarget {
 }
 
 declare namespace Electron {
-  interface MenuItem {
-    readonly accelerator?: Electron.Accelerator
-    readonly submenu?: Electron.Menu
-    readonly role?: string
-    readonly type: 'normal' | 'separator' | 'submenu' | 'checkbox' | 'radio'
-  }
-
   interface RequestOptions {
     readonly method: string
     readonly url: string

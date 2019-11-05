@@ -6,8 +6,18 @@ import { Form } from './form'
 import { Button } from './button'
 import { TextBox } from './text-box'
 import { Errors } from './errors'
+import { getDotComAPIEndpoint } from '../../lib/api'
 
 interface IAuthenticationFormProps {
+  /**
+   * The URL to the host which we're currently authenticating
+   * against. This will be either https://api.github.com when
+   * signing in against GitHub.com or a user-specified
+   * URL when signing in against a GitHub Enterprise Server
+   * instance.
+   */
+  readonly endpoint: string
+
   /** Does the server support basic auth? */
   readonly supportsBasicAuth: boolean
 
@@ -149,12 +159,7 @@ export class AuthenticationForm extends React.Component<
     return (
       <div>
         {basicAuth ? <hr className="short-rule" /> : null}
-        {basicAuth ? null : (
-          <p>
-            Your GitHub Enterprise instance requires you to sign in with your
-            browser.
-          </p>
-        )}
+        {basicAuth ? null : this.renderEndpointRequiresWebFlow()}
 
         <div className="sign-in-footer">
           {basicAuth ? browserSignInLink : browserSignInButton}
@@ -162,6 +167,31 @@ export class AuthenticationForm extends React.Component<
         </div>
       </div>
     )
+  }
+
+  private renderEndpointRequiresWebFlow() {
+    if (this.props.endpoint === getDotComAPIEndpoint()) {
+      return (
+        <>
+          <p>
+            To improve the security of your account, GitHub now requires you to
+            sign in through your browser.
+          </p>
+          <p>
+            Your browser will redirect you back to GitHub Desktop once you've
+            signed in. If your browser asks for your permission to launch GitHub
+            Desktop please allow it to.
+          </p>
+        </>
+      )
+    } else {
+      return (
+        <p>
+          Your GitHub Enterprise Server instance requires you to sign in with
+          your browser.
+        </p>
+      )
+    }
   }
 
   private renderError() {

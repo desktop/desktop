@@ -1,10 +1,11 @@
 {
   "typescript.tsdk": "./node_modules/typescript/lib",
   "search.exclude": {
-    "**/node_modules": true,
+    ".awcache": true,
     "**/dist": true,
+    "**/node_modules": true,
     "**/out": true,
-    ".awcache": true
+    "app/test/fixtures": true
   },
   "files.exclude": {
     "**/.git": true,
@@ -24,5 +25,15 @@
   "prettier.trailingComma": "es5",
   "editor.formatOnSave": true,
   "prettier.ignorePath": ".prettierignore",
-  "tslint.ignoreDefinitionFiles": true
+  "tslint.ignoreDefinitionFiles": true,
+  "eslint.options": {
+    "configFile": ".eslintrc.yml",
+    "rulePaths": ["eslint-rules"]
+  },
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ]
 }

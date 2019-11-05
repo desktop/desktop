@@ -1,4 +1,4 @@
-import { ComputedActionKind } from './action'
+import { ComputedAction } from './computed-action'
 
 interface IBlobResult {
   readonly mode: string
@@ -17,21 +17,21 @@ export interface IMergeEntry {
 }
 
 export type MergeSuccess = {
-  readonly kind: ComputedActionKind.Clean
+  readonly kind: ComputedAction.Clean
   readonly entries: ReadonlyArray<IMergeEntry>
 }
 
 export type MergeError = {
-  readonly kind: ComputedActionKind.Conflicts
+  readonly kind: ComputedAction.Conflicts
   readonly conflictedFiles: number
 }
 
 export type MergeUnsupported = {
-  readonly kind: ComputedActionKind.Invalid
+  readonly kind: ComputedAction.Invalid
 }
 
 export type MergeLoading = {
-  readonly kind: ComputedActionKind.Loading
+  readonly kind: ComputedAction.Loading
 }
 
 export type MergeResult =

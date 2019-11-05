@@ -59,7 +59,7 @@ export class ModifiedImageDiff extends React.Component<
   private container: HTMLElement | null = null
 
   private readonly resizeObserver: ResizeObserver
-  private resizedTimeoutID: number | null = null
+  private resizedTimeoutID: NodeJS.Immediate | null = null
 
   public constructor(props: IModifiedImageDiffProps) {
     super(props)
@@ -168,9 +168,6 @@ export class ModifiedImageDiff extends React.Component<
         return (
           <TwoUp
             {...this.getCommonProps(maxSize)}
-            containerWidth={
-              (this.state.containerSize && this.state.containerSize.width) || 0
-            }
             previousImageSize={this.state.previousImageSize}
             currentImageSize={this.state.currentImageSize}
           />

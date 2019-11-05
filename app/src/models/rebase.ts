@@ -1,10 +1,23 @@
 import { IRebaseProgress } from './progress'
-import { ComputedActionKind } from './action'
-import { Commit } from './commit'
+import { ComputedAction } from './computed-action'
+import { CommitOneLine } from './commit'
 
-export type RebaseContext = {
+/**
+ * Rebase internal state used to track how and where the rebase is applied to
+ * the repository.
+ */
+export type RebaseInternalState = {
+  /** The branch containing commits that should be rebased */
   readonly targetBranch: string
+  /**
+   * The commit ID of the base branch, to be used as a starting point for
+   * the rebase.
+   */
   readonly baseBranchTip: string
+  /**
+   * The commit ID of the target branch at the start of the rebase, which points
+   * to the original commit history.
+   */
   readonly originalBranchTip: string
 }
 
@@ -20,36 +33,45 @@ export type RebaseProgressOptions = {
   progressCallback: (progress: IRebaseProgress) => void
 }
 
-export type RebaseSuccess = {
-  readonly kind: ComputedActionKind.Clean
-  readonly commits: ReadonlyArray<Commit>
+export type CleanRebase = {
+  readonly kind: ComputedAction.Clean
+  readonly commits: ReadonlyArray<CommitOneLine>
 }
 
-export type RebaseConflicts = {
-  readonly kind: ComputedActionKind.Conflicts
+export type RebaseWithConflicts = {
+  readonly kind: ComputedAction.Conflicts
 }
 
-export type RebaseUnsupported = {
-  readonly kind: ComputedActionKind.Invalid
+export type RebaseNotSupported = {
+  readonly kind: ComputedAction.Invalid
 }
 
 export type RebaseLoading = {
-  readonly kind: ComputedActionKind.Loading
+  readonly kind: ComputedAction.Loading
 }
 
-export type RebasePreviewResult =
-  | RebaseSuccess
-  | RebaseConflicts
-  | RebaseUnsupported
+export type RebasePreview =
+  | CleanRebase
+  | RebaseWithConflicts
+  | RebaseNotSupported
   | RebaseLoading
 
-export type RebaseProgressSummary = {
-  /** A numeric value between 0 and 1 representing the rebase progress */
+/** Represents the progress of a Git rebase operation to be shown to the user */
+export type GitRebaseProgress = {
+  /** A numeric value between 0 and 1 representing the percent completed */
   readonly value: number
-  /** Track the current number of commits rebased across dialogs and states */
+  /** The current number of commits rebased as part of this operation */
   readonly rebasedCommitCount: number
-  /** Track the total number of commits to rebase across dialog and states */
+  /** The commit summary associated with the current commit (if found) */
+  readonly currentCommitSummary: string | null
+  /** The count of known commits that will be rebased onto the base branch */
   readonly totalCommitCount: number
-  /** The commit summary associated with the current commit (if known) */
-  readonly commitSummary?: string
+}
+
+/** Represents a snapshot of the rebase state from the Git repository  */
+export type GitRebaseSnapshot = {
+  /** The sequence of commits that are used in the rebase */
+  readonly commits: ReadonlyArray<CommitOneLine>
+  /** The progress of the operation */
+  readonly progress: GitRebaseProgress
 }

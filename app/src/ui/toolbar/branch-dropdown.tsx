@@ -9,7 +9,7 @@ import { BranchesContainer, PullRequestBadge } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
 import { BranchesTab } from '../../models/branches-tab'
 import { PullRequest } from '../../models/pull-request'
-import { enablePullWithRebase } from '../../lib/feature-flag'
+import * as classNames from 'classnames'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -42,6 +42,12 @@ interface IBranchDropdownProps {
 
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
+
+  /** Was this component launched from the "Protected Branch" warning message? */
+  readonly handleProtectedBranchWarning?: boolean
+
+  /** Whether this component should show its onboarding tutorial nudge arrow */
+  readonly shouldNudge: boolean
 }
 
 /**
@@ -67,8 +73,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         pullRequests={this.props.pullRequests}
         currentPullRequest={this.props.currentPullRequest}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
-        branchFilterText={repositoryState.branchFilterText}
-        pullRequestFilterText={repositoryState.pullRequestFilterText}
+        handleProtectedBranchWarning={this.props.handleProtectedBranchWarning}
       />
     )
   }
@@ -136,11 +141,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       icon = OcticonSymbol.sync
       iconClassName = 'spin'
       canOpen = false
-    } else if (
-      conflictState !== null &&
-      isRebaseConflictState(conflictState) &&
-      enablePullWithRebase()
-    ) {
+    } else if (conflictState !== null && isRebaseConflictState(conflictState)) {
       title = conflictState.targetBranch
       description = 'Rebasing branch'
       icon = OcticonSymbol.gitBranch
@@ -150,6 +151,9 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
 
     const isOpen = this.props.isOpen
     const currentState: DropdownState = isOpen && canOpen ? 'open' : 'closed'
+    const buttonClassName = classNames('nudge-arrow', {
+      'nudge-arrow-up': this.props.shouldNudge,
+    })
 
     return (
       <ToolbarDropdown
@@ -165,6 +169,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         disabled={disabled}
         showDisclosureArrow={canOpen}
         progressValue={progressValue}
+        buttonClassName={buttonClassName}
       >
         {this.renderPullRequestInfo()}
       </ToolbarDropdown>

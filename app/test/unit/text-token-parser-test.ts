@@ -42,8 +42,7 @@ describe('Tokenizer', () => {
     const htmlURL = `${host}/${login}/${name}`
     const cloneURL = `${host}/${login}/${name}.git`
 
-    let gitHubRepository: GitHubRepository | null = null
-    gitHubRepository = {
+    const gitHubRepository: GitHubRepository = {
       dbID: 1,
       name,
       owner: {
@@ -301,6 +300,78 @@ describe('Tokenizer', () => {
 
       expect(results[10].kind).toBe(TokenType.Text)
       expect(results[10].text).toBe(' and ')
+
+      expect(results[11].kind).toBe(TokenType.Link)
+      const thirdUserLink = results[11] as HyperlinkMatch
+
+      expect(thirdUserLink.text).toBe('@jt2k')
+      expect(thirdUserLink.url).toBe('https://github.com/jt2k')
+
+      expect(results[12].kind).toBe(TokenType.Text)
+      expect(results[12].text).toBe(`!`)
+    })
+
+    it('renders multiple issue links and mentions even with commas', () => {
+      const firstId = 3174
+      const firstExpectedUrl = `${htmlURL}/issues/${firstId}`
+      const secondId = 3184
+      const secondExpectedUrl = `${htmlURL}/issues/${secondId}`
+      const thirdId = 3207
+      const thirdExpectedUrl = `${htmlURL}/issues/${thirdId}`
+      const text =
+        'Assorted changelog typos - #3174, #3184 & #3207. Thanks @strafe, @alanaasmaa, and @jt2k!'
+
+      const tokenizer = new Tokenizer(emoji, repository)
+      const results = tokenizer.tokenize(text)
+      expect(results).toHaveLength(13)
+
+      expect(results[0].kind).toBe(TokenType.Text)
+      expect(results[0].text).toBe('Assorted changelog typos - ')
+
+      expect(results[1].kind).toBe(TokenType.Link)
+      const firstIssueLink = results[1] as HyperlinkMatch
+
+      expect(firstIssueLink.text).toBe('#3174')
+      expect(firstIssueLink.url).toBe(firstExpectedUrl)
+
+      expect(results[2].kind).toBe(TokenType.Text)
+      expect(results[2].text).toBe(', ')
+
+      expect(results[3].kind).toBe(TokenType.Link)
+      const secondIssueLink = results[3] as HyperlinkMatch
+
+      expect(secondIssueLink.text).toBe('#3184')
+      expect(secondIssueLink.url).toBe(secondExpectedUrl)
+
+      expect(results[4].kind).toBe(TokenType.Text)
+      expect(results[4].text).toBe(' & ')
+
+      expect(results[5].kind).toBe(TokenType.Link)
+      const thirdIssueLink = results[5] as HyperlinkMatch
+
+      expect(thirdIssueLink.text).toBe('#3207')
+      expect(thirdIssueLink.url).toBe(thirdExpectedUrl)
+
+      expect(results[6].kind).toBe(TokenType.Text)
+      expect(results[6].text).toBe('. Thanks ')
+
+      expect(results[7].kind).toBe(TokenType.Link)
+      const firstUserLink = results[7] as HyperlinkMatch
+
+      expect(firstUserLink.text).toBe('@strafe')
+      expect(firstUserLink.url).toBe('https://github.com/strafe')
+
+      expect(results[8].kind).toBe(TokenType.Text)
+      expect(results[8].text).toBe(', ')
+
+      expect(results[9].kind).toBe(TokenType.Link)
+      const secondUserLink = results[9] as HyperlinkMatch
+
+      expect(secondUserLink.text).toBe('@alanaasmaa')
+      expect(secondUserLink.url).toBe('https://github.com/alanaasmaa')
+
+      expect(results[10].kind).toBe(TokenType.Text)
+      expect(results[10].text).toBe(', and ')
 
       expect(results[11].kind).toBe(TokenType.Link)
       const thirdUserLink = results[11] as HyperlinkMatch

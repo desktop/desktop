@@ -2,13 +2,13 @@
   "compilerOptions": {
     "module": "commonjs",
     "moduleResolution": "node",
-    "target": "es6",
+    "target": "es2017",
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noUnusedLocals": true,
     "sourceMap": false,
     "noEmit": true,
-    "strict": true,
+    "strict": true
   },
   "compileOnSave": false
 }

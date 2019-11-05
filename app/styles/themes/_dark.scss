@@ -31,6 +31,12 @@ body.theme-dark {
   --secondary-button-focus-border-color: #{$gray-300};
 
   /**
+   * Color for icons that are placed on top of a colored backing
+   * (like a circle badge icon)
+   */
+  --badge-icon-color: #{$gray-300};
+
+  /**
    * Background color for custom scroll bars.
    * The color is applied to the thumb part of the scrollbar.
    *
@@ -223,8 +229,9 @@ body.theme-dark {
   /**
    * Blankslate actions, see `BlankslateAction` component.
    */
-  --primary-blankslate-action-background: #{$blue-900};
-  --primary-blankslate-action-border-color: #{$blue-700};
+  --primary-suggested-action-background: #{$blue-900};
+  --primary-suggested-action-border-color: #{$blue-700};
+  --suggested-action-icon-color: #{$blue-400};
 
   /**
    * Diff view
@@ -316,6 +323,11 @@ body.theme-dark {
   --notification-banner-background: #{$gray-800};
   --notification-banner-border-color: #{$gray-700};
   --notification-ref-background: #{$gray-700};
+
+  /** merge/rebase status indicators */
+  --status-pending-color: #{$yellow-700};
+  --status-error-color: #{$red-500};
+  --status-success-color: #{$green-500};
 }
 
 // this emulates the cursor for the co-author input because it isn't exactly

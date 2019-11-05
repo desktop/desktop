@@ -5,30 +5,13 @@ import { ISize } from './sizing'
 import { formatBytes, Sign } from '../../lib/bytes'
 import * as classNames from 'classnames'
 
-/**
- * The height of the Deleted/Added labels at the top and the image dimension
- * labels.
- */
-const ControlsHeight = 60
-
-const XPadding = 20
-
 interface ITwoUpProps extends ICommonImageDiffProperties {
-  readonly containerWidth: number
-
   readonly previousImageSize: ISize | null
   readonly currentImageSize: ISize | null
 }
 
 export class TwoUp extends React.Component<ITwoUpProps, {}> {
   public render() {
-    const style: React.CSSProperties = {
-      maxWidth: Math.min(
-        (this.props.containerWidth - XPadding) / 2,
-        this.props.maxSize.width
-      ),
-      maxHeight: this.props.maxSize.height - ControlsHeight,
-    }
     const percentDiff = (previous: number, current: number) => {
       const diff = Math.round((100 * (current - previous)) / previous)
       const sign = diff > 0 ? '+' : ''
@@ -52,7 +35,6 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
             <ImageContainer
               image={this.props.previous}
               onElementLoad={this.props.onPreviousImageLoad}
-              style={style}
             />
 
             <div className="image-diff-footer">
@@ -68,7 +50,6 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
             <ImageContainer
               image={this.props.current}
               onElementLoad={this.props.onCurrentImageLoad}
-              style={style}
             />
 
             <div className="image-diff-footer">

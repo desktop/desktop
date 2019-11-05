@@ -125,6 +125,9 @@ export interface IToolbarDropdownProps {
 
   readonly role?: string
   readonly buttonRole?: string
+
+  /** Classes to be appended to `ToolbarButton` component */
+  readonly buttonClassName?: string
 }
 
 interface IToolbarDropdownState {
@@ -279,6 +282,7 @@ export class ToolbarDropdown extends React.Component<
         <div
           className="foldout"
           style={this.getFoldoutStyle()}
+          tabIndex={-1}
           onKeyDown={this.onFoldoutKeyDown}
         >
           {this.props.dropdownContentRenderer()}
@@ -318,6 +322,7 @@ export class ToolbarDropdown extends React.Component<
       >
         {this.renderDropdownContents()}
         <ToolbarButton
+          className={this.props.buttonClassName}
           ref={this.onRef}
           icon={this.props.icon}
           title={this.props.title}
