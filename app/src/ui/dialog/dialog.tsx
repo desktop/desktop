@@ -145,7 +145,7 @@ interface IDialogState {
  * out of the dialog without first dismissing it.
  */
 export class Dialog extends React.Component<IDialogProps, IDialogState> {
-  private dialogElement: HTMLElement | null = null
+  private dialogElement: HTMLDialogElement | null = null
   private dismissGraceTimeoutId?: number
 
   private disableClickDismissalTimeoutId: number | null = null
@@ -206,9 +206,8 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       return
     }
 
-    // This cast to any is necessary since React doesn't know about the
-    // dialog element yet.
-    ;(this.dialogElement as any).showModal()
+    this.dialogElement.showModal()
+
     // Provide an event that components can subscribe to in order to perform
     // tasks such as re-layout after the dialog is visible
     this.dialogElement.dispatchEvent(
@@ -444,7 +443,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     }
   }
 
-  private onDialogRef = (e: HTMLElement | null) => {
+  private onDialogRef = (e: HTMLDialogElement | null) => {
     // We need to explicitly subscribe to and unsubscribe from the dialog
     // element as react doesn't yet understand the element and which events
     // it has.
