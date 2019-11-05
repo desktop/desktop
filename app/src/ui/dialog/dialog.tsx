@@ -245,9 +245,18 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       '[tabindex]:not(:disabled):not([tabindex="-1"])',
     ].join(', ')
 
+    // The element which has the lowest explicit tab index (i.e. greater than 0)
     let firstExplicit: { 0: number; 1: HTMLElement | null } = [Infinity, null]
+
+    // First submit button
     let firstSubmitButton: HTMLElement | null = null
+
+    // The first button-like element (input, submit, reset etc)
     let firstButton: HTMLElement | null = null
+
+    // The first element which is either implicitly keyboard focusable (like a
+    // text input field) or explicitly focusable through tabIndex=0 (like an
+    // anchor tag masquerading as a button)
     let firstTabbable: HTMLElement | null = null
 
     const excludedInputTypes = [
