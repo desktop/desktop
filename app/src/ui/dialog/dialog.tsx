@@ -346,7 +346,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     const newActive =
       firstExplicit[1] || firstTabbable || firstSubmitButton || firstButton
 
-    if (newActive) {
+    if (newActive !== null) {
       newActive.focus()
     }
   }
