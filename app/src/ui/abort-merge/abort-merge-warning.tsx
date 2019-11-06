@@ -93,6 +93,7 @@ export class AbortMergeWarning extends React.Component<
         </DialogContent>
         <DialogFooter>
           <OkCancelButtonGroup
+            destructive={true}
             okButtonText={abortButtonString}
             cancelButtonText={cancelButtonString}
           />
