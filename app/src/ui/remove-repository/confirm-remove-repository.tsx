@@ -98,7 +98,7 @@ export class ConfirmRemoveRepository extends React.Component<
               Cancel
             </Button>
             <Button onClick={this.onConfirmed} disabled={isRemovingRepository}>
-              Remove
+              Remove repository
             </Button>
           </ButtonGroup>
         </DialogFooter>
