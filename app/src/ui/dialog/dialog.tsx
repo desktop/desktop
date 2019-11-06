@@ -332,13 +332,16 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       if (tabIndex > 0 && tabIndex < firstExplicit[0]) {
         firstExplicit = [tabIndex, candidate]
       } else if (
-        !firstTabbable &&
+        firstTabbable === null &&
         (tabIndex === 0 || candidate.matches(inputSelector))
       ) {
         firstTabbable = candidate
-      } else if (!firstSubmitButton && candidate.matches(submitSelector)) {
+      } else if (
+        firstSubmitButton === null &&
+        candidate.matches(submitSelector)
+      ) {
         firstSubmitButton = candidate
-      } else if (!firstButton && candidate.matches(buttonSelector)) {
+      } else if (firstButton === null && candidate.matches(buttonSelector)) {
         firstButton = candidate
       }
     }
