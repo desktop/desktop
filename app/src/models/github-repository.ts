@@ -26,6 +26,7 @@ export class GitHubRepository {
     htmlURL: string | null = null,
     defaultBranch: string | null = 'master',
     cloneURL: string | null = null,
+    public readonly permissions: 'read' | 'write' | 'admin' | null = null,
     parent: GitHubRepository | null = null
   ) {
     this.name = name
