@@ -2,8 +2,12 @@ import * as React from 'react'
 
 import { Row } from '../lib/row'
 import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
-import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
+import {
+  Dialog,
+  DialogError,
+  DialogContent,
+  DefaultDialogFooter,
+} from '../dialog'
 import { LinkButton } from '../lib/link-button'
 import { updateStore, IUpdateState, UpdateStatus } from '../lib/update-store'
 import { Disposable } from 'event-kit'
@@ -267,12 +271,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
           {this.renderUpdateDetails()}
           {this.renderUpdateButton()}
         </DialogContent>
-
-        <DialogFooter>
-          <ButtonGroup>
-            <Button onClick={this.props.onDismissed}>Close</Button>
-          </ButtonGroup>
-        </DialogFooter>
+        <DefaultDialogFooter />
       </Dialog>
     )
   }
