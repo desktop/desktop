@@ -3,11 +3,28 @@ import { OkCancelButtonGroup } from './ok-cancel-button-group'
 import { DialogFooter } from './footer'
 
 interface IDefaultDialogFooterProps {
+  /** An optional text/label for the submit button, defaults to "Close" */
   readonly buttonText?: string
+
+  /**
+   * An optional event handler for when the submit button is clicked (either
+   * explicitly or as the result of a form keyboard submission). If specified
+   * the consumer is responsible for preventing the default behavior which
+   * is to submit the form (and thereby triggering the Dialog's submit event)
+   */
   readonly onButtonClick?: (event: React.MouseEvent<HTMLButtonElement>) => void
+
+  /** An optional title (i.e. tooltip) for the submit button, defaults to none */
   readonly buttonTitle?: string
 }
 
+/**
+ * A component which renders a default footer in a Dialog.
+ *
+ * A default footer consists of a single submit button inside
+ * of a button group which triggers the onSubmit event on the
+ * dialog when clicked.
+ */
 export class DefaultDialogFooter extends React.Component<
   IDefaultDialogFooterProps,
   {}
