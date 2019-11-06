@@ -33,11 +33,23 @@ interface IOkCancelButtonGroupProps {
   /** Whether the Ok button will be disabled or not, defaults to false */
   readonly okButtonDisabled?: boolean
 
+  /** An optional text/label for the Ok button, defaults to "Ok" */
   readonly cancelButtonText?: string
+
+  /** An optional title (i.e. tooltip) for the Ok button, defaults to none */
   readonly cancelButtonTitle?: string
+
+  /**
+   * An optional event handler for when the Cancel button is clicked (either
+   * explicitly or as the result of a form keyboard submission). If specified
+   * the consumer is responsible for preventing the default behavior which
+   * is to reset the form (and thereby triggering the Dialog's cancel event)
+   */
   readonly onCancelButtonClick?: (
     event: React.MouseEvent<HTMLButtonElement>
   ) => void
+
+  /** Whether the Cancel button will be disabled or not, defaults to false */
   readonly cancelButtonDisabled?: boolean
 }
 
