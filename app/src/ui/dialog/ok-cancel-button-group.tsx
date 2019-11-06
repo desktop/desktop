@@ -15,7 +15,7 @@ interface IOkCancelButtonGroupProps {
   readonly destructive?: boolean
 
   /** An optional text/label for the Ok button, defaults to "Ok" */
-  readonly okButtonText?: string
+  readonly okButtonText?: string | JSX.Element
 
   /** An optional title (i.e. tooltip) for the Ok button, defaults to none */
   readonly okButtonTitle?: string
@@ -34,7 +34,7 @@ interface IOkCancelButtonGroupProps {
   readonly okButtonDisabled?: boolean
 
   /** An optional text/label for the Ok button, defaults to "Ok" */
-  readonly cancelButtonText?: string
+  readonly cancelButtonText?: string | JSX.Element
 
   /** An optional title (i.e. tooltip) for the Ok button, defaults to none */
   readonly cancelButtonTitle?: string
