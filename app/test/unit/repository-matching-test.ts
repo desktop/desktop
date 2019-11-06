@@ -162,6 +162,7 @@ describe('repository-matching', () => {
       endpoint: 'https://api.github.com/',
       fork: true,
       hash: 'whatever',
+      permissions: 'write',
     }
 
     const repositoryWithoutCloneURL: GitHubRepository = {
@@ -182,6 +183,7 @@ describe('repository-matching', () => {
       endpoint: 'https://api.github.com/',
       fork: true,
       hash: 'whatever',
+      permissions: null,
     }
 
     it('returns true for exact match', () => {

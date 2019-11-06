@@ -60,6 +60,7 @@ describe('Tokenizer', () => {
       defaultBranch: 'master',
       hash: '',
       parent: null,
+      permissions: null,
     }
 
     const repository = new Repository(

@@ -30,6 +30,7 @@ function createSampleGitHubRepository() {
     defaultBranch: 'master',
     hash: '',
     parent: null,
+    permissions: 'write',
   }
 }
 
