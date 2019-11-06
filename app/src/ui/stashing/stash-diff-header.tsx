@@ -36,6 +36,7 @@ export class StashDiffHeader extends React.Component<
 
   public render() {
     const { isWorkingTreeClean } = this.props
+    const { isRestoring } = this.state
 
     // we pass `false` to `ButtonGroup` below because it assumes
     // the "submit" button performs the destructive action.
@@ -48,16 +49,13 @@ export class StashDiffHeader extends React.Component<
         <div className="row">
           <ButtonGroup destructive={false}>
             <Button
-              disabled={!isWorkingTreeClean || this.state.isRestoring}
+              disabled={!isWorkingTreeClean || isRestoring}
               onClick={this.onRestoreClick}
               type="submit"
             >
               Restore
             </Button>
-            <Button
-              disabled={this.state.isRestoring}
-              onClick={this.onDiscardClick}
-            >
+            <Button disabled={isRestoring} onClick={this.onDiscardClick}>
               Discard
             </Button>
           </ButtonGroup>
