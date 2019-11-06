@@ -8,8 +8,6 @@ import { Accounts } from './accounts'
 import { Advanced } from './advanced'
 import { Git } from './git'
 import { assertNever } from '../../lib/fatal-error'
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogFooter, DialogError } from '../dialog'
 import {
   getGlobalConfigValue,
@@ -23,6 +21,7 @@ import { getAvailableEditors } from '../../lib/editors/lookup'
 import { disallowedCharacters } from './identifier-rules'
 import { Appearance } from './appearance'
 import { ApplicationTheme } from '../lib/application-theme'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -321,12 +320,10 @@ export class Preferences extends React.Component<
       case PreferencesTab.Git: {
         return (
           <DialogFooter>
-            <ButtonGroup>
-              <Button type="submit" disabled={hasDisabledError}>
-                Save
-              </Button>
-              <Button onClick={this.props.onDismissed}>Cancel</Button>
-            </ButtonGroup>
+            <OkCancelButtonGroup
+              okButtonText="Save"
+              okButtonDisabled={hasDisabledError}
+            />
           </DialogFooter>
         )
       }
