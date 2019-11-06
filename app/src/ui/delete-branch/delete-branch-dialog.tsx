@@ -57,7 +57,7 @@ export class DeleteBranch extends React.Component<
         <DialogFooter>
           <ButtonGroup destructive={true}>
             <Button type="submit">Cancel</Button>
-            <Button onClick={this.deleteBranch}>Delete</Button>
+            <Button onClick={this.deleteBranch}>Delete branch</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
