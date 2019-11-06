@@ -148,7 +148,6 @@ export class AddExistingRepository extends React.Component<
               label={__DARWIN__ ? 'Local Path' : 'Local path'}
               placeholder="repository path"
               onValueChanged={this.onPathChanged}
-              autoFocus={true}
             />
             <Button onClick={this.showFilePicker}>Choose…</Button>
           </Row>
