@@ -25,6 +25,7 @@ function getTestRepository(
     defaultBranch: 'master',
     hash: '',
     parent: null,
+    permissions: null,
   }
 }
 
