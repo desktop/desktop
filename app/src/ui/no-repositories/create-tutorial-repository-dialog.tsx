@@ -3,8 +3,6 @@ import * as URL from 'url'
 import * as Path from 'path'
 
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Account } from '../../models/account'
 import {
   getDotComAPIEndpoint,
