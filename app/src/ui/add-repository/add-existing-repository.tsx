@@ -1,18 +1,18 @@
-import { remote } from 'electron'
 import * as React from 'react'
+import * as Path from 'path'
 
+import { remote } from 'electron'
 import { Dispatcher } from '../dispatcher'
 import { isGitRepository } from '../../lib/git'
 import { isBareRepository } from '../../lib/git'
 import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { LinkButton } from '../lib/link-button'
 import { PopupType } from '../../models/popup'
-import * as Path from 'path'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 import untildify = require('untildify')
 
@@ -156,12 +156,10 @@ export class AddExistingRepository extends React.Component<
         </DialogContent>
 
         <DialogFooter>
-          <ButtonGroup>
-            <Button disabled={disabled} type="submit">
-              {__DARWIN__ ? 'Add Repository' : 'Add repository'}
-            </Button>
-            <Button onClick={this.props.onDismissed}>Cancel</Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            okButtonText={__DARWIN__ ? 'Add Repository' : 'Add repository'}
+            okButtonDisabled={disabled}
+          />
         </DialogFooter>
       </Dialog>
     )
