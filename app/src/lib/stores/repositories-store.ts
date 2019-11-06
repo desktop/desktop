@@ -85,6 +85,7 @@ export class RepositoriesStore extends BaseStore {
       dbRepo.htmlURL,
       dbRepo.defaultBranch,
       dbRepo.cloneURL,
+      dbRepo.permissions,
       parent
     )
   }
@@ -378,6 +379,13 @@ export class RepositoriesStore extends BaseStore {
 
     const login = gitHubRepository.owner.login.toLowerCase()
     const owner = await this.putOwner(endpoint, login)
+    const permissions = gitHubRepository.permissions.admin
+      ? 'admin'
+      : gitHubRepository.permissions.push
+      ? 'write'
+      : gitHubRepository.permissions.pull
+      ? 'read'
+      : null
 
     const existingRepo = await this.db.gitHubRepositories
       .where('[ownerID+name]')
@@ -393,6 +401,7 @@ export class RepositoriesStore extends BaseStore {
       cloneURL: gitHubRepository.clone_url,
       parentID: parent ? parent.dbID : null,
       lastPruneDate: null,
+      permissions,
     }
     if (existingRepo) {
       updatedGitHubRepo = { ...updatedGitHubRepo, id: existingRepo.id }
@@ -407,6 +416,7 @@ export class RepositoriesStore extends BaseStore {
       updatedGitHubRepo.htmlURL,
       updatedGitHubRepo.defaultBranch,
       updatedGitHubRepo.cloneURL,
+      updatedGitHubRepo.permissions,
       parent
     )
   }
