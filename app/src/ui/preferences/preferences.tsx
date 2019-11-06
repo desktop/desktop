@@ -323,7 +323,7 @@ export class Preferences extends React.Component<
           <DialogFooter>
             <ButtonGroup>
               <Button type="submit" disabled={hasDisabledError}>
-                Save
+                Save preferences
               </Button>
               <Button onClick={this.props.onDismissed}>Cancel</Button>
             </ButtonGroup>
