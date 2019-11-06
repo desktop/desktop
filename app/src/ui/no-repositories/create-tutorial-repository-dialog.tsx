@@ -293,7 +293,7 @@ export class CreateTutorialRepositoryDialog extends React.Component<
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
-            <Button type="submit">Continue</Button>
+            <Button type="submit">Create tutorial repository</Button>
             <Button onClick={this.onCancel}>Cancel</Button>
           </ButtonGroup>
         </DialogFooter>
