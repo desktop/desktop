@@ -107,7 +107,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
         )
       }
       default:
-        return <DefaultDialogFooter />
+        return <DefaultDialogFooter onButtonClick={this.onCloseButtonClick} />
     }
   }
 
@@ -165,7 +165,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       return this.renderGitErrorFooter(error)
     }
 
-    return <DefaultDialogFooter />
+    return <DefaultDialogFooter onButtonClick={this.onCloseButtonClick} />
   }
 
   public render() {
