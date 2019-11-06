@@ -82,8 +82,8 @@ export class PushBranchCommits extends React.Component<
         id="push-branch-commits"
         key="push-branch-commits"
         title={this.renderDialogTitle()}
-        onDismissed={this.cancel}
-        onSubmit={this.cancel}
+        onDismissed={this.props.onDismissed}
+        onSubmit={this.onSubmit}
         loading={this.state.isPushingOrPublishing}
         disabled={this.state.isPushingOrPublishing}
       >
@@ -135,7 +135,6 @@ export class PushBranchCommits extends React.Component<
       return (
         <OkCancelButtonGroup
           okButtonText={__DARWIN__ ? 'Publish Branch' : 'Publish branch'}
-          onOkButtonClick={this.onPushOrPublishButtonClick}
         />
       )
     }
@@ -143,17 +142,12 @@ export class PushBranchCommits extends React.Component<
     return (
       <OkCancelButtonGroup
         okButtonText={__DARWIN__ ? 'Push Commits' : 'Push commits'}
-        onOkButtonClick={this.onPushOrPublishButtonClick}
         cancelButtonText={
           __DARWIN__ ? 'Create Without Pushing' : 'Create without pushing'
         }
         onCancelButtonClick={this.onCreateWithoutPushButtonClick}
       />
     )
-  }
-
-  private cancel = () => {
-    this.props.onDismissed()
   }
 
   private onCreateWithoutPushButtonClick = (
@@ -164,11 +158,7 @@ export class PushBranchCommits extends React.Component<
     this.props.onDismissed()
   }
 
-  private onPushOrPublishButtonClick = async (
-    e: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    e.preventDefault()
-
+  private onSubmit = async () => {
     const { repository, branch } = this.props
 
     this.setState({ isPushingOrPublishing: true })
