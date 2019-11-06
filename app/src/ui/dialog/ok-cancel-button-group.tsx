@@ -42,6 +42,10 @@ interface IOkCancelButtonGroupProps {
  * abstract concepts indicating an affirmitive or dissenting
  * answer to a question posed by a dialog. The actual labels
  * for the buttons can be customized to fit the dialog contents.
+ *
+ * This component also takes care of selecting the appropriate
+ * default button depending on whether an affirmitive answer
+ * from the user would result in a destructive action or not.
  */
 export class OkCancelButtonGroup extends React.Component<
   IOkCancelButtonGroupProps,
