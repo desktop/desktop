@@ -62,7 +62,6 @@ export class CommitConflictsWarning extends React.Component<
     return (
       <Dialog
         id="commit-conflict-markers-warning"
-        dismissable={false}
         onDismissed={this.onCancel}
         onSubmit={this.onSubmit}
         title={'Confirm committing conflicted files'}
@@ -82,7 +81,6 @@ export class CommitConflictsWarning extends React.Component<
             okButtonText={
               __DARWIN__ ? 'Yes, Commit Files' : 'Yes, commit files'
             }
-            onCancelButtonClick={this.onCancel}
           />
         </DialogFooter>
       </Dialog>
