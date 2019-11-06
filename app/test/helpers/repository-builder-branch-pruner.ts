@@ -97,8 +97,10 @@ export async function setupRepository(
   }
   await primeCaches(repository, repositoriesStateCache)
 
-  lastPruneDate &&
+  if (lastPruneDate) {
     repositoriesStore.updateLastPruneDate(repository, lastPruneDate.getTime())
+  }
+
   return repository
 }
 
