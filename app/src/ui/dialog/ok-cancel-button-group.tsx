@@ -128,6 +128,7 @@ export class OkCancelButtonGroup extends React.Component<
   }
 
   private renderButtons() {
+    // See https://www.nngroup.com/articles/ok-cancel-or-cancel-ok/
     if (__DARWIN__) {
       return (
         <>
