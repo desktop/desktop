@@ -2,14 +2,14 @@ import * as fs from 'fs'
 import * as Path from 'path'
 
 import { getSHA } from './git-info'
-import { getUpdatesURL, getReleaseChannel } from '../script/dist-info'
+import { getUpdatesURL, getChannel } from '../script/dist-info'
 
 const projectRoot = Path.dirname(__dirname)
 
 const devClientId = '3a723b10ac5575cc5bb9'
 const devClientSecret = '22c34d87789a365981ed921352a7b9a8c3f69d54'
 
-const channel = getReleaseChannel()
+const channel = getChannel()
 
 export function getCLICommands() {
   return (
