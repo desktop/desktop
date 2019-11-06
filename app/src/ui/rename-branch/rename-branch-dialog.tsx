@@ -17,6 +17,7 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IRenameBranchProps {
   readonly dispatcher: Dispatcher
+  readonly onDismissed: () => void
   readonly repository: Repository
   readonly branch: Branch
   readonly stash: IStashEntry | null
@@ -43,7 +44,7 @@ export class RenameBranch extends React.Component<
       <Dialog
         id="rename-branch"
         title={__DARWIN__ ? 'Rename Branch' : 'Rename branch'}
-        onDismissed={this.cancel}
+        onDismissed={this.props.onDismissed}
         onSubmit={this.renameBranch}
       >
         <DialogContent>
@@ -76,10 +77,6 @@ export class RenameBranch extends React.Component<
     this.setState({ newName: name })
   }
 
-  private cancel = () => {
-    this.props.dispatcher.closePopup()
-  }
-
   private renameBranch = () => {
     const name = sanitizedBranchName(this.state.newName)
     this.props.dispatcher.renameBranch(
@@ -87,6 +84,6 @@ export class RenameBranch extends React.Component<
       this.props.branch,
       name
     )
-    this.props.dispatcher.closePopup()
+    this.props.onDismissed()
   }
 }
