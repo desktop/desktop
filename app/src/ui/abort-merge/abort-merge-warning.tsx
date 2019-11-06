@@ -85,9 +85,9 @@ export class AbortMergeWarning extends React.Component<
         title={titleString}
         onDismissed={this.onCancel}
         onSubmit={this.onSubmit}
+        type="warning"
       >
-        <DialogContent className="content-wrapper">
-          <Octicon symbol={OcticonSymbol.alert} />
+        <DialogContent>
           {this.renderTextContent(this.props.ourBranch, this.props.theirBranch)}
         </DialogContent>
         <DialogFooter>
