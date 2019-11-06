@@ -51,7 +51,6 @@ export class RenameBranch extends React.Component<
           <Row>
             <TextBox
               label="Name"
-              autoFocus={true}
               value={this.state.newName}
               onValueChanged={this.onNameChange}
             />
