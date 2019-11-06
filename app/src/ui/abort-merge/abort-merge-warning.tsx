@@ -13,10 +13,6 @@ interface IAbortMergeWarningProps {
   readonly theirBranch?: string
 }
 
-const titleString = 'Confirm abort merge'
-const cancelButtonString = 'Cancel'
-const abortButtonString = 'Abort merge'
-
 /**
  * Modal to tell the user their merge encountered conflicts
  */
@@ -81,7 +77,7 @@ export class AbortMergeWarning extends React.Component<
     return (
       <Dialog
         id="abort-merge-warning"
-        title={titleString}
+        title={__DARWIN__ ? 'Confirm Abort Merge' : 'Confirm abort merge'}
         onDismissed={this.onCancel}
         onSubmit={this.onSubmit}
         type="warning"
@@ -92,8 +88,7 @@ export class AbortMergeWarning extends React.Component<
         <DialogFooter>
           <OkCancelButtonGroup
             destructive={true}
-            okButtonText={abortButtonString}
-            cancelButtonText={cancelButtonString}
+            okButtonText={__DARWIN__ ? 'Abort Merge' : 'Abort merge'}
           />
         </DialogFooter>
       </Dialog>
