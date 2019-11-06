@@ -40,6 +40,17 @@ interface IOkCancelButtonGroupProps {
   readonly cancelButtonTitle?: string
 
   /**
+   * Whether or not the cancel button should be rendered. The intention
+   * behind this property is to enable the DefaultDialogFooter component
+   * to reuse the layout of the OkCancelButtonGroup. This property was
+   * not intended to be used directly by generic consumers of this component.
+   * Note that use of this renders the destructive prop inoperable.
+   *
+   * Defaults to true
+   */
+  readonly cancelButtonVisible?: boolean
+
+  /**
    * An optional event handler for when the Cancel button is clicked (either
    * explicitly or as the result of a form keyboard submission). If specified
    * the consumer is responsible for preventing the default behavior which
@@ -140,6 +151,10 @@ export class OkCancelButtonGroup extends React.Component<
   }
 
   private renderCancelButton() {
+    if (this.props.cancelButtonVisible === false) {
+      return null
+    }
+
     return (
       <Button
         onClick={this.onCancelButtonClick}
