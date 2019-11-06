@@ -6,8 +6,6 @@ import { Branch } from '../../models/branch'
 import { sanitizedBranchName } from '../../lib/sanitize-branch'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import {
   renderBranchNameWarning,
@@ -15,6 +13,7 @@ import {
   renderStashWillBeLostWarning,
 } from '../lib/branch-name-warnings'
 import { IStashEntry } from '../../models/stash-entry'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IRenameBranchProps {
   readonly dispatcher: Dispatcher
@@ -64,12 +63,10 @@ export class RenameBranch extends React.Component<
         </DialogContent>
 
         <DialogFooter>
-          <ButtonGroup>
-            <Button type="submit" disabled={disabled}>
-              Rename {this.props.branch.name}
-            </Button>
-            <Button onClick={this.cancel}>Cancel</Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            okButtonText={`Rename ${this.props.branch.name}`}
+            okButtonDisabled={disabled}
+          />
         </DialogFooter>
       </Dialog>
     )
