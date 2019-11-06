@@ -11,7 +11,7 @@ import { DiffSelection, DiffSelectionType } from '../../src/models/diff'
 import { HistoryTabMode, IDisplayHistory } from '../../src/lib/app-state'
 import { IGitHubUser } from '../../src/lib/databases'
 
-function createSampleGitHubRepository() {
+function createSampleGitHubRepository(): GitHubRepository {
   return {
     dbID: 1,
     name: 'desktop',
