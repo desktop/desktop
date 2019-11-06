@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Dispatcher } from '../dispatcher'
 import { PopupType } from '../../models/popup'
 import { Repository } from '../../models/repository'
-import { Octicon, OcticonSymbol } from '../octicons'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IAbortMergeWarningProps {
