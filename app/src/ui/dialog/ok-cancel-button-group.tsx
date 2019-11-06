@@ -60,6 +60,15 @@ export class OkCancelButtonGroup extends React.Component<
       return
     }
 
+    // If the button group is destructive the Ok button will be regular
+    // button as opposed to a submit button and the cancel button will
+    // be a submit button. The reason for this is that we want the default
+    // button to be the safest choice and we want that safe button to be
+    // what gets clicked if the user submits the form using the keyboard.
+    //
+    // The dialog component, however, will always treat a form submission
+    // as the "affirmitive"/Ok action and a form reset as the cancel action
+    // so we flip the event we actually send to the dialog here.
     if (this.props.destructive === true) {
       event.preventDefault()
       if (event.currentTarget.form) {
