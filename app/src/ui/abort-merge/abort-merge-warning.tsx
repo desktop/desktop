@@ -1,11 +1,10 @@
 import * as React from 'react'
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Dispatcher } from '../dispatcher'
 import { PopupType } from '../../models/popup'
 import { Repository } from '../../models/repository'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IAbortMergeWarningProps {
   readonly dispatcher: Dispatcher
@@ -93,10 +92,10 @@ export class AbortMergeWarning extends React.Component<
           {this.renderTextContent(this.props.ourBranch, this.props.theirBranch)}
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup>
-            <Button type="submit">{abortButtonString}</Button>
-            <Button onClick={this.onCancel}>{cancelButtonString}</Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            okButtonText={abortButtonString}
+            cancelButtonText={cancelButtonString}
+          />
         </DialogFooter>
       </Dialog>
     )
