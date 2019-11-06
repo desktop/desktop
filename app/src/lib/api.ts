@@ -239,14 +239,14 @@ export interface IAPIPushControl {
    *
    * Empty array if user is admin and branch is not admin-enforced
    */
-  statuses_required: Array<string>
+  required_status_checks: Array<string>
 
   /**
    * How many reviews are required before merging?
    *
    * 0 if user is admin and branch is not admin-enforced
    */
-  approving_reviews_required: number
+  required_approving_review_count: number
 
   /**
    * Is user permitted?
@@ -255,16 +255,16 @@ export interface IAPIPushControl {
    * `false` if `Restrict who can push` is enable and user is not in list.
    * `true` if `Restrict who can push` is not enabled.
    */
-  user_permitted: boolean
+  allow_actor: boolean
 
   /**
    * Currently unused properties
    */
   pattern: string | null
-  signed_commits_required: boolean
-  linear_history_required: boolean
-  deletions_permitted: boolean
-  force_pushes_permitted: boolean
+  required_signatures: boolean
+  required_linear_history: boolean
+  allow_deletions: boolean
+  allow_force_pushes: boolean
 }
 
 /** Branch information returned by the GitHub API */
