@@ -1,7 +1,5 @@
 import * as React from 'react'
-import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { ButtonGroup } from '../lib/button-group'
-import { Button } from '../lib/button'
+import { Dialog, DialogContent, DefaultDialogFooter } from '../dialog'
 import { LinkButton } from '../lib/link-button'
 
 interface ITermsAndConditionsProps {
@@ -232,11 +230,7 @@ export class TermsAndConditions extends React.Component<
           </ol>
         </DialogContent>
 
-        <DialogFooter>
-          <ButtonGroup>
-            <Button type="submit">Close</Button>
-          </ButtonGroup>
-        </DialogFooter>
+        <DefaultDialogFooter />
       </Dialog>
     )
   }
