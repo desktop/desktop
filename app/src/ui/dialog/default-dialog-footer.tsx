@@ -16,6 +16,9 @@ interface IDefaultDialogFooterProps {
 
   /** An optional title (i.e. tooltip) for the submit button, defaults to none */
   readonly buttonTitle?: string
+
+  /** Whether the submit button will be disabled or not, defaults to false */
+  readonly disabled?: boolean
 }
 
 /**
@@ -36,6 +39,7 @@ export class DefaultDialogFooter extends React.Component<
           okButtonText={this.props.buttonText || 'Close'}
           okButtonTitle={this.props.buttonTitle}
           onOkButtonClick={this.props.onButtonClick}
+          okButtonDisabled={this.props.disabled}
           cancelButtonVisible={false}
         />
       </DialogFooter>
