@@ -19,32 +19,6 @@ export class TermsAndConditions extends React.Component<
   ITermsAndConditionsProps,
   {}
 > {
-  private dialogContainerRef: HTMLDivElement | null = null
-  private closeButtonRef: HTMLButtonElement | null = null
-
-  private onDialogContainerRef = (element: HTMLDivElement | null) => {
-    this.dialogContainerRef = element
-  }
-
-  private onCloseButtonRef = (element: HTMLButtonElement | null) => {
-    this.closeButtonRef = element
-  }
-
-  public componentDidMount() {
-    // When the dialog is mounted it automatically moves focus to the first
-    // focusable element which in this case is a link far down in the terms
-    // and conditions which will cause the contents to scroll down. We don't
-    // want that so let's just reset it.
-    if (this.dialogContainerRef) {
-      this.dialogContainerRef.scrollTop = 0
-    }
-
-    // And let's just move focus to the close button.
-    if (this.closeButtonRef) {
-      this.closeButtonRef.focus()
-    }
-  }
-
   public render() {
     return (
       <Dialog
@@ -53,7 +27,7 @@ export class TermsAndConditions extends React.Component<
         onSubmit={this.props.onDismissed}
         onDismissed={this.props.onDismissed}
       >
-        <DialogContent onRef={this.onDialogContainerRef}>
+        <DialogContent>
           <p>
             These GitHub Open Source Applications Terms and Conditions
             ("Application Terms") are a legal agreement between you (either as
@@ -260,9 +234,7 @@ export class TermsAndConditions extends React.Component<
 
         <DialogFooter>
           <ButtonGroup>
-            <Button type="submit" onButtonRef={this.onCloseButtonRef}>
-              Close
-            </Button>
+            <Button type="submit">Close</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
