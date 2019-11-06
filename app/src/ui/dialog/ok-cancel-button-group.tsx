@@ -89,6 +89,9 @@ export class OkCancelButtonGroup extends React.Component<
       return
     }
 
+    // If the button group is destructive the Cancel button will the submit
+    // button and the Ok button will be a regular button. See the
+    // explanation for this in onOkButtonClick
     if (this.props.destructive === true) {
       event.preventDefault()
       if (event.currentTarget.form) {
