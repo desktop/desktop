@@ -535,7 +535,6 @@ export class CreateRepository extends React.Component<
               label="Name"
               placeholder="repository name"
               onValueChanged={this.onNameChanged}
-              autoFocus={true}
             />
           </Row>
 
