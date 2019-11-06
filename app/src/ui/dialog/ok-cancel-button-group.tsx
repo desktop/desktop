@@ -29,6 +29,20 @@ interface IOkCancelButtonGroupProps {
   readonly cancelButtonDisabled?: boolean
 }
 
+/**
+ * A component for rendering Ok and Cancel buttons in
+ * a dialog in the platform specific order.
+ *
+ * Ie, on Windows we expect the button order to be Ok, Cancel
+ * whereas on Mac we expect it to be Cancel, Ok.
+ *
+ * See https://www.nngroup.com/articles/ok-cancel-or-cancel-ok/
+ *
+ * For the purposes of this component Ok and Cancel are
+ * abstract concepts indicating an affirmitive or dissenting
+ * answer to a question posed by a dialog. The actual labels
+ * for the buttons can be customized to fit the dialog contents.
+ */
 export class OkCancelButtonGroup extends React.Component<
   IOkCancelButtonGroupProps,
   {}
