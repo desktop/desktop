@@ -63,9 +63,10 @@ interface IOkCancelButtonGroupProps {
  * See https://www.nngroup.com/articles/ok-cancel-or-cancel-ok/
  *
  * For the purposes of this component Ok and Cancel are
- * abstract concepts indicating an affirmitive or dissenting
- * answer to a question posed by a dialog. The actual labels
- * for the buttons can be customized to fit the dialog contents.
+ * abstract concepts indicating an affirmitive answer to a
+ * question posed by a dialog or a dismissal of the dialog.
+ * The actual labels for the buttons can be customized to
+ * fit the dialog contents.
  *
  * This component also takes care of selecting the appropriate
  * default button depending on whether an affirmitive answer
