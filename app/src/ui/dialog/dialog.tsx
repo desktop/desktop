@@ -277,13 +277,8 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
    */
   private focusFirstSuitableChild() {
     const dialog = this.dialogElement
-    const activeElement = document.activeElement
 
-    if (dialog === null || activeElement === null) {
-      return
-    }
-
-    if (activeElement.hasAttribute('autofocus')) {
+    if (dialog === null) {
       return
     }
 
