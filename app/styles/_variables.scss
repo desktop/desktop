@@ -205,7 +205,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --toolbar-background-color: #{$gray-900};
   --toolbar-border-color: #{$gray-900};
   --toolbar-text-color: #{$white};
-  --toolbar-text-secondary-color: #{$gray-300};
+  --toolbar-text-secondary-color: #{$gray-200};
 
   --toolbar-button-color: var(--toolbar-text-color);
   --toolbar-button-background-color: transparent;
@@ -225,7 +225,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --toolbar-button-progress-color: #{$gray-800};
   --toolbar-button-focus-progress-color: #{$gray-700};
   --toolbar-button-hover-progress-color: #{$gray-700};
-  --toolbar-dropdown-open-progress-color: #{$gray-200};
+  --toolbar-dropdown-open-progress-color: #{$gray-100};
 
   /**
    * App menu bar colors (Windows/Linux only)
