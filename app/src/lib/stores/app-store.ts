@@ -74,6 +74,7 @@ import {
   getAccountForEndpoint,
   getDotComAPIEndpoint,
   IAPIOrganization,
+  IAPIBranch,
   IAPIRepository,
 } from '../api'
 import { shell } from '../app-shell'
@@ -3269,6 +3270,37 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this.refreshBranchProtectionState(repository)
 
     return updatedRepository
+  }
+
+  private async updateBranchProtectionsFromAPI(repository: Repository) {
+    if (
+      repository.gitHubRepository === null ||
+      repository.gitHubRepository.dbID === null
+    ) {
+      return
+    }
+
+     const { owner, name } = repository.gitHubRepository
+
+     const account = getAccountForEndpoint(
+      this.accounts,
+      repository.gitHubRepository.endpoint
+    )
+
+     if (account === null) {
+      return
+    }
+
+     const api = API.fromAccount(account)
+
+     const branches = enableBranchProtectionChecks()
+      ? await api.fetchProtectedBranches(owner.login, name)
+      : new Array<IAPIBranch>()
+
+     await this.repositoriesStore.updateBranchProtections(
+      repository.gitHubRepository,
+      branches
+    )
   }
 
   private async matchGitHubRepository(
