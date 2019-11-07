@@ -573,41 +573,6 @@ export class RepositoriesStore extends BaseStore {
 
     return branchProtectionsFound
   }
-
-  /**
-   * Check if the given branch for the repository is protected through the
-   * GitHub API.
-   */
-  public async isBranchProtectedOnRemote(
-    gitHubRepository: GitHubRepository,
-    branchName: string
-  ): Promise<boolean> {
-    if (gitHubRepository.dbID === null) {
-      return fatalError(
-        'unable to get protected branches, GitHub repository has a null dbID'
-      )
-    }
-
-    const { dbID } = gitHubRepository
-    const key = getKey(dbID, branchName)
-
-    const cachedProtectionValue = this.protectionEnabledForBranchCache.get(key)
-    if (cachedProtectionValue === true) {
-      return cachedProtectionValue
-    }
-
-    const databaseValue = await this.db.protectedBranches.get([
-      dbID,
-      branchName,
-    ])
-
-    // if no row found, this means no protection is found for the branch
-    const value = databaseValue !== undefined
-
-    this.protectionEnabledForBranchCache.set(key, value)
-
-    return value
-  }
 }
 
 /** Compute the key for the branch protection cache */
