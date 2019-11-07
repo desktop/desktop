@@ -232,7 +232,7 @@ export interface IAPIRefStatus {
   readonly statuses: ReadonlyArray<IAPIRefStatusItem>
 }
 
-/** Branch information returned by the GitHub API */
+/** Protected branch information returned by the GitHub API */
 export interface IAPIPushControl {
   /**
    * What status checks are required before merging?
