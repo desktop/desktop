@@ -14,10 +14,7 @@ are constrained to within the dialog itself.
     ...
   </DialogContent>
   <DialogFooter>
-    <ButtonGroup>
-      <Button type='submit'>Ok</Button>
-      <Button>Cancel</Button>
-    </ButtonGroup>
+    <OkCancelButtonGroup />
   </DialogFooter>
 </Dialog>
 ```
@@ -41,10 +38,7 @@ Dialog itself.
     ...
   </DialogContent>
   <DialogFooter>
-    <ButtonGroup>
-      <Button type='submit'>Ok</Button>
-      <Button>Cancel</Button>
-    </ButtonGroup>
+    <OkCancelButtonGroup />
   </DialogFooter>
 </Dialog>
 ```
@@ -71,10 +65,7 @@ dialog/form/row styles in a more straightforward way.
   <TabBar>...</TabBar>
   {this.renderActiveTab()}
   <DialogFooter>
-    <ButtonGroup>
-      <Button type='submit'>Ok</Button>
-      <Button>Cancel</Button>
-    </ButtonGroup>
+    <OkCancelButtonGroup />
   </DialogFooter>
 </Dialog>
 
@@ -95,10 +86,7 @@ dialog/form/row styles in a more straightforward way.
     {this.renderActiveTab()}
   </DialogContent>
   <DialogFooter>
-    <ButtonGroup>
-      <Button type='submit'>Ok</Button>
-      <Button>Cancel</Button>
-    </ButtonGroup>
+    <OkCancelButtonGroup />
   </DialogFooter>
 </Dialog>
 
