@@ -19,6 +19,19 @@ are constrained to within the dialog itself.
 </Dialog>
 ```
 
+## Footer
+
+A typical dialog footer will normally be made up of two buttons, an affirmitive/Ok
+button and a dismissal/Cancel button. The ordering of these two buttons is
+platform-specific, see our [dedicated documentation about button order](button-order.md)
+for the specifics. For this reason we have a dedicated component called
+`OkCancelButtonGroup` which is used in the majority of our dialogs and renders
+the buttons in the expected order for the platform.
+
+For dialogs that only need a single button it's possible to use the `OkCancelButtonGroup`
+but for simple dialogs it's probably better to replace the `DialogFooter` component
+with the `DefaultDialogFooter` component which includes a single close button.
+
 ## Errors
 
 Dialogs should, when practical, render errors caused by its actions inline as
