@@ -774,9 +774,9 @@ export class API {
         required_status_checks: [],
         required_approving_review_count: 0,
         required_linear_history: false,
-        allow_actor: false,
-        allow_deletions: false,
-        allow_force_pushes: false,
+        allow_actor: true,
+        allow_deletions: true,
+        allow_force_pushes: true,
       }
     }
   }
