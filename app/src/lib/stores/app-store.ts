@@ -1497,6 +1497,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<Repository | null> {
 
     this.refreshBranchProtectionState(repository)
+    this.updateBranchProtectionsFromAPI(repository)
 
     this._refreshRepository(repository)
 
