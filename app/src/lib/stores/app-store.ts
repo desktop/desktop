@@ -847,15 +847,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const api = API.fromAccount(account)
 
         const {
-          user_permitted,
-          statuses_required,
-          approving_reviews_required,
+          allow_actor,
+          required_status_checks,
+          required_approving_review_count,
         } = await api.fetchPushControl(owner, name, branchName)
 
         const pushableByUser =
-          user_permitted &&
-          statuses_required.length === 0 &&
-          approving_reviews_required === 0
+          allow_actor &&
+          required_status_checks.length === 0 &&
+          required_approving_review_count === 0
 
         this.repositoryStateCache.updateChangesState(repository, () => ({
           currentBranchProtected: !pushableByUser,

@@ -770,13 +770,13 @@ export class API {
       )
       return {
         pattern: null,
-        signed_commits_required: false,
-        statuses_required: [],
-        approving_reviews_required: 0,
-        linear_history_required: false,
-        user_permitted: false,
-        deletions_permitted: false,
-        force_pushes_permitted: false,
+        required_signatures: false,
+        required_status_checks: [],
+        required_approving_review_count: 0,
+        required_linear_history: false,
+        allow_actor: false,
+        allow_deletions: false,
+        allow_force_pushes: false,
       }
     }
   }
