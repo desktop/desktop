@@ -1495,7 +1495,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     previouslySelectedRepository: Repository | CloningRepository | null
   ): Promise<Repository | null> {
-
     this.refreshBranchProtectionState(repository)
 
     // This is now purely for metrics collection for `commitsToRepositoryWithBranchProtections`
@@ -3283,24 +3282,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-     const { owner, name } = repository.gitHubRepository
+    const { owner, name } = repository.gitHubRepository
 
-     const account = getAccountForEndpoint(
+    const account = getAccountForEndpoint(
       this.accounts,
       repository.gitHubRepository.endpoint
     )
 
-     if (account === null) {
+    if (account === null) {
       return
     }
 
-     const api = API.fromAccount(account)
+    const api = API.fromAccount(account)
 
-     const branches = enableBranchProtectionChecks()
+    const branches = enableBranchProtectionChecks()
       ? await api.fetchProtectedBranches(owner.login, name)
       : new Array<IAPIBranch>()
 
-     await this.repositoriesStore.updateBranchProtections(
+    await this.repositoriesStore.updateBranchProtections(
       repository.gitHubRepository,
       branches
     )
