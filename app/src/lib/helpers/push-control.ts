@@ -4,7 +4,6 @@ import { IAPIPushControl } from '../api'
  * Determine if branch can be pushed to by user based on results from
  * push_control API.
  *
- *
  * `allow_actor` indicates if user is permitted
  * Always `true` for admins.
  * `true` if `Restrict who can push` is not enabled.
@@ -16,7 +15,6 @@ import { IAPIPushControl } from '../api'
  *
  * `required_approving_review_count` indicates if reviews are required before merging
  * 0 if user is admin and branch is not admin-enforced
- *
  */
 
 export function isBranchPushable(pushControl: IAPIPushControl) {
