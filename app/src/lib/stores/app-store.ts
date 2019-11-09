@@ -3104,8 +3104,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
 
       await this._refreshRepository(repository)
-    } finally {
       await this.refreshBranchProtectionState(repository)
+    } finally {
       this.updateCheckoutProgress(repository, null)
       this._initializeCompare(repository, {
         kind: HistoryTabMode.History,
