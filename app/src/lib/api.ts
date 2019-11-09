@@ -14,6 +14,8 @@ import { uuid } from './uuid'
 import { getAvatarWithEnterpriseFallback } from './gravatar'
 import { getDefaultEmail } from './email'
 
+const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
+
 /**
  * Optional set of configurable settings for the fetchAll method
  */
@@ -1159,7 +1161,7 @@ export function getHTMLURL(endpoint: string): string {
   //  E.g., https://github.mycompany.com/api/v3 -> https://github.mycompany.com
   //
   // We need to normalize them.
-  if (endpoint === getDotComAPIEndpoint()) {
+  if (endpoint === getDotComAPIEndpoint() && !envEndpoint) {
     return 'https://github.com'
   } else {
     const parsed = URL.parse(endpoint)
@@ -1184,7 +1186,6 @@ export function getDotComAPIEndpoint(): string {
   // developing against a local version of GitHub the Website, and need to debug
   // the server-side interaction. For all other cases you should leave this
   // unset.
-  const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
   if (envEndpoint && envEndpoint.length > 0) {
     return envEndpoint
   }
