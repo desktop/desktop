@@ -247,6 +247,7 @@ import {
 } from '../../models/tutorial-step'
 import { OnboardingTutorialAssessor } from './helpers/tutorial-assessor'
 import { getUntrackedFiles } from '../status'
+import { isBranchPushable } from '../helpers/push-control'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -846,19 +847,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const owner = gitHubRepo.owner.login
         const api = API.fromAccount(account)
 
-        const {
-          allow_actor,
-          required_status_checks,
-          required_approving_review_count,
-        } = await api.fetchPushControl(owner, name, branchName)
-
-        const pushableByUser =
-          allow_actor &&
-          required_status_checks.length === 0 &&
-          required_approving_review_count === 0
+        const pushControl = await api.fetchPushControl(owner, name, branchName)
+        const currentBranchProtected = !isBranchPushable(pushControl)
 
         this.repositoryStateCache.updateChangesState(repository, () => ({
-          currentBranchProtected: !pushableByUser,
+          currentBranchProtected,
         }))
         this.emitUpdate()
       }
