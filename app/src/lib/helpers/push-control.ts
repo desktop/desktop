@@ -4,6 +4,9 @@ import { IAPIPushControl } from '../api'
  * Determine if branch can be pushed to by user based on results from
  * push_control API.
  *
+ * Note: "admin-enforced" means that admins are restricted according to branch
+ * protection rules. By default admins are not restricted.
+ *
  * `allow_actor` indicates if user is permitted
  * Always `true` for admins.
  * `true` if `Restrict who can push` is not enabled.
@@ -24,7 +27,10 @@ export function isBranchPushable(pushControl: IAPIPushControl) {
     required_approving_review_count,
   } = pushControl
 
-  // If user is admin, required status checks and reviews get zeroed out in API response
+  // If user is admin and branch is not admin-enforced,
+  // required status checks and reviews get zeroed out in API response (no merge requirements).
+  // If user is admin and branch is admin-enforced,
+  // required status checks and reviews do NOT get zeroed out in API response.
   // If user is allowed to push based on `Restrict who can push` setting, they must still
   // respect the merge requirements, and can't push if checks or reviews are required for merging
   const noMergeRequirements =

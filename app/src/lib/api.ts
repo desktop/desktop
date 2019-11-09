@@ -254,8 +254,9 @@ export interface IAPIPushControl {
    * Is user permitted?
    *
    * Always `true` for admins.
-   * `false` if `Restrict who can push` is enabled and user is not in list.
    * `true` if `Restrict who can push` is not enabled.
+   * `true` if `Restrict who can push` is enabled and user is in list.
+   * `false` if `Restrict who can push` is enabled and user is not in list.
    */
   allow_actor: boolean
 
