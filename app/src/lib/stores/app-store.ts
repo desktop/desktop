@@ -860,6 +860,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.repositoryStateCache.updateChangesState(repository, () => ({
           currentBranchProtected: !pushableByUser,
         }))
+        this.emitUpdate()
       }
     }
   }
