@@ -1495,8 +1495,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     previouslySelectedRepository: Repository | CloningRepository | null
   ): Promise<Repository | null> {
-    this.refreshBranchProtectionState(repository)
-
     // This is now purely for metrics collection for `commitsToRepositoryWithBranchProtections`
     // Understanding how many users actually contribute to repos with branch protections gives us
     // insight into who our users are and what kinds of work they do
