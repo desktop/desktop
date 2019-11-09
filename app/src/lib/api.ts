@@ -756,6 +756,11 @@ export class API {
     return await parsedResponse<IAPIRefStatus>(response)
   }
 
+  /**
+   * Get branch protection info to determine if a user can push to a given branch.
+   *
+   * Note: if request fails, the default returned value assumes full access for the user
+   */
   public async fetchPushControl(
     owner: string,
     name: string,
