@@ -1445,6 +1445,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return Promise.resolve(null)
     }
 
+    // This is now purely for metrics collection for `commitsToRepositoryWithBranchProtections`
+    // Understanding how many users actually contribute to repos with branch protections gives us
+    // insight into who our users are and what kinds of work they do
+    this.updateBranchProtectionsFromAPI(repository)
+
     return this._selectRepositoryRefreshTasks(
       refreshedRepository,
       previouslySelectedRepository
@@ -1495,11 +1500,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     previouslySelectedRepository: Repository | CloningRepository | null
   ): Promise<Repository | null> {
-    // This is now purely for metrics collection for `commitsToRepositoryWithBranchProtections`
-    // Understanding how many users actually contribute to repos with branch protections gives us
-    // insight into who our users are and what kinds of work they do
-    this.updateBranchProtectionsFromAPI(repository)
-
     this._refreshRepository(repository)
 
     const gitHubRepository = repository.gitHubRepository
