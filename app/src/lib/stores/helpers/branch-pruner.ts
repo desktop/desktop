@@ -192,10 +192,9 @@ export class BranchPruner {
     )
 
     // get the locally cached branches of remotes (ie `remotes/origin/master`)
-    const remoteBranches = (await getBranches(
-      this.repository,
-      `refs/remotes/`
-    )).map(b => formatAsLocalRef(b.name))
+    const remoteBranches = (
+      await getBranches(this.repository, `refs/remotes/`)
+    ).map(b => formatAsLocalRef(b.name))
 
     // create list of branches to be pruned
     const branchesReadyForPruning = Array.from(mergedBranches.keys()).filter(
