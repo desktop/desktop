@@ -224,9 +224,15 @@ function handlePossibleProtocolLauncherArgs(args: ReadonlyArray<string>) {
     // malformed or untrusted url then we bail out.
 
     const matchingUrls = args.filter(arg => {
-      const url = URL.parse(arg)
-      // i think this `slice` is just removing a trailing `:`
-      return url.protocol && possibleProtocols.has(url.protocol.slice(0, -1))
+      // sometimes `URL.parse` throws an error
+      try {
+        const url = URL.parse(arg)
+        // i think this `slice` is just removing a trailing `:`
+        return url.protocol && possibleProtocols.has(url.protocol.slice(0, -1))
+      } catch (e) {
+        log.error(`Unable to parse argument as URL: ${arg}`)
+        return false
+      }
     })
 
     if (args.includes(protocolLauncherArg) && matchingUrls.length === 1) {
