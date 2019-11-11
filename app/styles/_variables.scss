@@ -339,9 +339,9 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --diff-selected-text-color: var(--background-color);
 
   --diff-add-background-color: #{darken($green-000, 2%)};
-  --diff-add-border-color: #{$green-300};
-  --diff-add-gutter-color: #{$green-300};
-  --diff-add-gutter-background-color: #{darken($green-100, 3%)};
+  --diff-add-border-color: #{$pink-300};
+  --diff-add-gutter-color: #{$pink-300};
+  --diff-add-gutter-background-color: #{darken($pink-100, 3%)};
   --diff-add-inner-background-color: #acf2bd;
 
   --diff-add-text-color: var(--diff-text-color);
