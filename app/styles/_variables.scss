@@ -339,16 +339,16 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --diff-selected-text-color: var(--background-color);
 
   --diff-add-background-color: #{darken($green-000, 2%)};
-  --diff-add-border-color: #{$pink-300};
-  --diff-add-gutter-color: #{$pink-300};
-  --diff-add-gutter-background-color: #{darken($pink-100, 3%)};
+  --diff-add-border-color: #{$green-300};
+  --diff-add-gutter-color: #{$green-300};
+  --diff-add-gutter-background-color: #{darken($green-100, 3%)};
   --diff-add-inner-background-color: #acf2bd;
 
   --diff-add-text-color: var(--diff-text-color);
-  --diff-delete-background-color: #{$blue-000};
-  --diff-delete-border-color: #{$blue-200};
-  --diff-delete-gutter-color: #{$blue-200};
-  --diff-delete-gutter-background-color: #{$blue-100};
+  --diff-delete-background-color: #{$red-000};
+  --diff-delete-border-color: #{$red-200};
+  --diff-delete-gutter-color: #{$red-200};
+  --diff-delete-gutter-background-color: #{$red-100};
   --diff-delete-inner-background-color: #fdb8c0;
   --diff-delete-text-color: var(--diff-text-color);
 
