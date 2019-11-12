@@ -768,8 +768,13 @@ export class API {
     branch: string
   ): Promise<IAPIPushControl> {
     const path = `repos/${owner}/${name}/branches/${branch}/push_control`
+
+    const headers: any = {
+      Accept: 'application/vnd.github.phandalin-preview',
+    }
+
     try {
-      const response = await this.request('GET', path)
+      const response = await this.request('GET', path, undefined, headers)
       return await parsedResponse<IAPIPushControl>(response)
     } catch (err) {
       log.info(
