@@ -32,6 +32,26 @@ For dialogs that only need a single button it's possible to use the `OkCancelBut
 but for simple dialogs it's probably better to replace the `DialogFooter` component
 with the `DefaultDialogFooter` component which includes a single close button.
 
+## OkCancelButtonGroup
+
+The `OkCancelButtonGroup` is a high-level component which aims to eliminate the decision
+making process around which order buttons should appear on the different platforms.
+
+Used without any props the component will render two buttons, `Ok`, and `Cancel`. By
+default the `Ok` button will trigger the `onSubmit` event on the `Dialog` and the `Cancel`
+button will trigger the `onDismissed` event. It's possible to add a button-specific
+event handler instead of relying on the dialog submit/dismiss events but it's rarely
+necessary.
+
+The `destructive` prop controls whether a dialog is considered destructive. One
+definition of a destructive dialog is if the user chooses to answer the dialog in
+the affirmitive (`Ok`) whether the subsequent action be dangerous and/or hard to
+recover from. Setting the `destructive` prop will make the dismissal (`Cancel`)
+button the default button (i.e. it will be the submit button). Note that setting
+the `destructive` prop does not impact which button triggers the `onSubmit` vs
+`onDismissed` event on the dialog so converting a previously non-destructive dialog
+to a destructive one is as simple as setting the prop on the button group.
+
 ## Errors
 
 Dialogs should, when practical, render errors caused by its actions inline as
