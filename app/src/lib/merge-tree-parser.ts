@@ -100,7 +100,8 @@ export function parseMergeResult(text: string): MergeResult {
   let mergeEntryHeader: string | undefined
   let currentMergeEntry: IMergeEntry | undefined
 
-  for (const line of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
     const headerMatch = contextHeaderRe.exec(line)
     if (headerMatch != null) {
       mergeEntryHeader = headerMatch[1]
@@ -133,7 +134,7 @@ export function parseMergeResult(text: string): MergeResult {
 
       if (mergeEntryHeader == null) {
         log.warn(
-          `An unknown header was set while trying to parse the blob ${line}`
+          `An unknown header was set while trying to parse the blob on line ${i}`
         )
         continue
       }
@@ -160,7 +161,7 @@ export function parseMergeResult(text: string): MergeResult {
 
     if (currentMergeEntry == null) {
       throw new Error(
-        `invalid state - trying to append the diff to a merge entry that isn't defined. line: '${line}'`
+        `invalid state - trying to append the diff to a merge entry that isn't defined on line ${i}`
       )
     } else {
       const currentDiff = currentMergeEntry.diff
