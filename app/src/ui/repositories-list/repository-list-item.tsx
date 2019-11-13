@@ -70,6 +70,7 @@ export class RepositoryListItem extends React.Component<
     if (this.props.needsDisambiguation && gitHubRepo) {
       prefix = `${gitHubRepo.owner.login}/`
     }
+    let tooltip: string
 
     const className = enableGroupRepositoriesByOwner()
       ? 'repository-list-item group-repositories-by-owner'
@@ -145,6 +146,7 @@ export class RepositoryListItem extends React.Component<
     const items: ReadonlyArray<IMenuItem> = [
       {
         label: `Open in ${this.props.shellLabel}`,
+        tooltip: `Open in ${this.props.shellLabel}`,
         action: this.openInShell,
         enabled: !missing,
       },
