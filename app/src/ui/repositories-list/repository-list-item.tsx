@@ -70,7 +70,6 @@ export class RepositoryListItem extends React.Component<
     if (this.props.needsDisambiguation && gitHubRepo) {
       prefix = `${gitHubRepo.owner.login}/`
     }
-    let tooltip: string
 
     const className = enableGroupRepositoriesByOwner()
       ? 'repository-list-item group-repositories-by-owner'
