@@ -1,5 +1,46 @@
 {
   "releases": {
+    "2.2.3": [
+      "[Fixed] Prevent text overflow in crash dialog - #8542",
+      "[Fixed] Address warnings on macOS Catalina preventing app from opening after install - #8555",
+      "[Improved] Update to most recent gitignore templates - #8527"
+    ],
+    "2.2.3-beta1": [
+      "[Fixed] Prevent text overflow in crash dialog - #8542",
+      "[Fixed] Address warnings on macOS Catalina preventing app from opening after install - #8555",
+      "[Improved] Update to most recent gitignore templates - #8527"
+    ],
+    "2.2.3-test5": ["Testing entitlements + notarization for mac app"],
+    "2.2.3-test4": ["Testing entitlements + notarization for mac app"],
+    "2.2.3-test3": ["Testing entitlements + notarization for mac app"],
+    "2.2.3-test2": ["Testing notarization for mac app"],
+    "2.2.3-test1": ["Testing notarization for mac app"],
+    "2.2.2": [
+      "[Added] Onboarding tutorial animations help guide users to the next action - #8487",
+      "[Added] Prompt users to re-authenticate if they are unable to push changes to a workflow file - #8357",
+      "[Improved] Starting the tutorial is more prominent when getting started with GitHub Desktop - #8441",
+      "[Improved] Use a different editor if previously selected editor cannot be found - #8386"
+    ],
+    "2.2.2-beta3": [
+      "[Added] Helpful animations during the onboarding tutorial - #8487"
+    ],
+    "2.2.2-beta2": [
+      "[Improved] Use a different editor if previously selected editor cannot be found - #8386",
+      "[Improved] Starting the tutorial is more prominent when getting started with GitHub Desktop - #8441"
+    ],
+    "2.2.2-beta1": [
+      "[Added] Prompt users to re-authenticate if they are unable to push changes to a workflow file - #8357"
+    ],
+    "2.2.1": [
+      "[Fixed] Improperly formatted url pre-filled in \"Clone Repository\" dialog - #8394",
+      "[Fixed] VSCodium integration on macOS - #8424. Thanks @akim8!",
+      "[Fixed] Partially hidden icon in \"Open Pull Request\" button - #8410"
+    ],
+    "2.2.1-beta1": [
+      "[Fixed] Improperly formatted url pre-filled in \"Clone Repository\" dialog - #8394",
+      "[Fixed] VSCodium integration on macOS - #8424. Thanks @akim8!",
+      "[Fixed] Partially hidden icon in \"Open Pull Request\" button - #8410"
+    ],
     "2.2.1-beta0": [],
     "2.2.0": [
       "[New] Interactive tutorial for new users to become productive using Git and GitHub more quickly - #8148 #8149",

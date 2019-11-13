@@ -34,7 +34,7 @@ interface IPreferencesProps {
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
-  readonly selectedExternalEditor?: ExternalEditor
+  readonly selectedExternalEditor: ExternalEditor | null
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
   readonly automaticallySwitchTheme: boolean
@@ -51,7 +51,7 @@ interface IPreferencesState {
   readonly confirmForcePush: boolean
   readonly automaticallySwitchTheme: boolean
   readonly availableEditors: ReadonlyArray<ExternalEditor>
-  readonly selectedExternalEditor?: ExternalEditor
+  readonly selectedExternalEditor: ExternalEditor | null
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
   readonly mergeTool: IMergeTool | null
