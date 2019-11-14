@@ -77,8 +77,12 @@ function createProgressProcessCallback(
       })
     }
 
-    byline(process.stderr).on('data', (line: string) => {
-      progressCallback(parser.parse(line))
-    })
+    // If Node.js encounters a synchronous runtime error while spawning
+    // `stderr` will be undefined and the error will be emitted asynchronously
+    if (process.stderr) {
+      byline(process.stderr).on('data', (line: string) => {
+        progressCallback(parser.parse(line))
+      })
+    }
   }
 }
