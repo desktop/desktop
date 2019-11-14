@@ -1,5 +1,20 @@
 {
   "releases": {
+    "2.2.3": [
+      "[Fixed] Prevent text overflow in crash dialog - #8542",
+      "[Fixed] Address warnings on macOS Catalina preventing app from opening after install - #8555",
+      "[Improved] Update to most recent gitignore templates - #8527"
+    ],
+    "2.2.3-beta1": [
+      "[Fixed] Prevent text overflow in crash dialog - #8542",
+      "[Fixed] Address warnings on macOS Catalina preventing app from opening after install - #8555",
+      "[Improved] Update to most recent gitignore templates - #8527"
+    ],
+    "2.2.3-test5": ["Testing entitlements + notarization for mac app"],
+    "2.2.3-test4": ["Testing entitlements + notarization for mac app"],
+    "2.2.3-test3": ["Testing entitlements + notarization for mac app"],
+    "2.2.3-test2": ["Testing notarization for mac app"],
+    "2.2.3-test1": ["Testing notarization for mac app"],
     "2.2.2": [
       "[Added] Onboarding tutorial animations help guide users to the next action - #8487",
       "[Added] Prompt users to re-authenticate if they are unable to push changes to a workflow file - #8357",
