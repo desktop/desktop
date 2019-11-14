@@ -54,7 +54,7 @@ describe('Tokenizer', () => {
       cloneURL,
       endpoint: 'https://api.github.com',
       fullName: `${login}/${name}`,
-      private: false,
+      isPrivate: false,
       fork: false,
       htmlURL: htmlURL,
       defaultBranch: 'master',

@@ -23,7 +23,7 @@ function createSampleGitHubRepository(): GitHubRepository {
     },
     endpoint: 'https://api.github.com',
     fullName: 'shiftkey/some-repo',
-    private: false,
+    isPrivate: false,
     fork: false,
     cloneURL: 'https://github.com/desktop/desktop.git',
     htmlURL: 'https://github.com/desktop/desktop',
