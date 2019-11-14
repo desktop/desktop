@@ -21,16 +21,23 @@ interface IErrorWithCode extends Error {
 }
 
 /**
+ * A type-guard method which determines whether the given object is an
+ * Error instance with a `code` string property. This type of error
+ * is commonly returned by NodeJS process- and file system libraries
+ * as well as Dugite.
+ *
+ * See https://nodejs.org/api/util.html#util_util_getsystemerrorname_err
+ */
+function isErrorWithCode(error: any): error is IErrorWithCode {
+  return error instanceof Error && typeof (error as any).code === 'string'
+}
+
+/**
  * Cast the error to an error containing a code if it has a code. Otherwise
  * return null.
  */
 function asErrorWithCode(error: Error): IErrorWithCode | null {
-  const e = error as any
-  if (e.code) {
-    return e
-  } else {
-    return null
-  }
+  return isErrorWithCode(error) ? error : null
 }
 
 /**

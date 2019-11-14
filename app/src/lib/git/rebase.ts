@@ -323,6 +323,11 @@ function configureOptionsForRebase(
 
   return merge(options, {
     processCallback: (process: ChildProcess) => {
+      // If Node.js encounters a synchronous runtime error while spawning
+      // `stdout` will be undefined and the error will be emitted asynchronously
+      if (!process.stdout) {
+        return
+      }
       const parser = new GitRebaseParser(rebasedCommitCount, totalCommitCount)
 
       // rebase emits progress messages on `stdout`, not `stderr`
