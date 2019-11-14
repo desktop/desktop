@@ -69,7 +69,7 @@ export class RepositoriesStore extends BaseStore {
     const owner = await this.db.owners.get(dbRepo.ownerID)
 
     if (owner == null) {
-      throw new Error(`Couldn't find the owner for ${dbRepo.name}`)
+      throw new Error(`Couldn't find repository owner ${dbRepo.ownerID}`)
     }
 
     let parent: GitHubRepository | null = null

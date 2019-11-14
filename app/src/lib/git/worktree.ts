@@ -70,7 +70,7 @@ export async function createTemporaryWorkTree(
   // intentionally vague here to cover `undefined` and `null`
   if (!workTree) {
     throw new Error(
-      `[addWorkTree] Unable to find created worktree at path ${workTreePath}`
+      `[addWorkTree] Unable to find created worktree "${directoryName}"`
     )
   }
 
