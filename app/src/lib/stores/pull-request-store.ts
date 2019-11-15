@@ -318,7 +318,9 @@ export class PullRequestStore {
         return fatalError('PR cannot have a null base repo')
       }
 
-      const baseGitHubRepo = await upsertRepo(endpoint, pr.base.repo)
+      const baseGitHubRepo = repository.fork
+        ? repository
+        : await upsertRepo(endpoint, pr.base.repo)
 
       if (baseGitHubRepo.dbID === null) {
         return fatalError('PR cannot have a null parent database id')
@@ -402,7 +404,9 @@ export class PullRequestStore {
 }
 
 function getNameWithOwner(repository: GitHubRepository) {
-  const owner = repository.owner.login
-  const name = repository.name
+  const prSourceRepo =
+    repository.fork && repository.parent ? repository.parent : repository
+  const owner = prSourceRepo.owner.login
+  const name = prSourceRepo.name
   return { name, owner }
 }
