@@ -720,7 +720,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.repositoryStateCache.updateBranchesState(repository, state => {
       let { currentPullRequest } = state
-      const { tip, currentRemote: remote } = gitStore
+      const { tip, currentRemote, upstreamRemote } = gitStore
+      const inFork =
+        repository.gitHubRepository !== null && repository.gitHubRepository.fork
+      const remote = upstreamRemote && inFork ? upstreamRemote : currentRemote
 
       // If the tip has changed we need to re-evaluate whether or not the
       // current pull request is still valid. Note that we're not using
@@ -5008,7 +5011,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _showPullRequest(repository: Repository): Promise<void> {
-    const gitHubRepository = repository.gitHubRepository
+    const inFork =
+      repository.gitHubRepository !== null && repository.gitHubRepository.fork
+    const gitHubRepository = inFork
+      ? repository.gitHubRepository!.parent
+      : repository.gitHubRepository
 
     if (!gitHubRepository) {
       return
@@ -5105,16 +5112,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     branch: Branch
   ): Promise<void> {
-    const gitHubRepository = repository.gitHubRepository
+    const inFork =
+      repository.gitHubRepository !== null && repository.gitHubRepository.fork
+    const gitHubRepository = inFork
+      ? // just checked if that was null! cmon, typescript
+        repository.gitHubRepository!.parent
+      : repository.gitHubRepository
     if (!gitHubRepository) {
       return
     }
 
     const urlEncodedBranchName = escape(branch.nameWithoutRemote)
-    const baseURL = `${
-      gitHubRepository.htmlURL
-    }/pull/new/${urlEncodedBranchName}`
-
+    const baseURL = inFork
+      ? `${gitHubRepository.htmlURL}/compare/${escape(
+          repository.gitHubRepository!.owner.login
+        )}:${urlEncodedBranchName}`
+      : `${gitHubRepository.htmlURL}/pull/new/${urlEncodedBranchName}`
     await this._openInBrowser(baseURL)
 
     if (this.currentOnboardingTutorialStep === TutorialStep.OpenPullRequest) {
