@@ -386,6 +386,8 @@ export class List extends React.Component<IListProps, IListState> {
         this.props.selectionMode !== 'single'
       ) {
         this.addSelection('down', event)
+      } else if (event.ctrlKey) {
+        this.scrollRowToVisible(this.props.rowCount - 1)
       } else {
         this.moveSelection('down', event)
       }
@@ -397,6 +399,8 @@ export class List extends React.Component<IListProps, IListState> {
         this.props.selectionMode !== 'single'
       ) {
         this.addSelection('up', event)
+      } else if (event.ctrlKey) {
+        this.scrollRowToVisible(0)
       } else {
         this.moveSelection('up', event)
       }
@@ -408,6 +412,10 @@ export class List extends React.Component<IListProps, IListState> {
       // on Windows. Clicking on the menu item still emits the
       // 'select-all' custom DOM event.
       this.onSelectAll(event)
+    } else if (event.key == 'Home') {
+      this.scrollRowToVisible(0)
+    } else if (event.key == 'End') {
+      this.scrollRowToVisible(this.props.rowCount - 1)
     }
   }
 
