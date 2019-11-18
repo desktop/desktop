@@ -412,9 +412,9 @@ export class List extends React.Component<IListProps, IListState> {
       // on Windows. Clicking on the menu item still emits the
       // 'select-all' custom DOM event.
       this.onSelectAll(event)
-    } else if (event.key == 'Home') {
+    } else if (event.key === 'Home') {
       this.scrollRowToVisible(0)
-    } else if (event.key == 'End') {
+    } else if (event.key === 'End') {
       this.scrollRowToVisible(this.props.rowCount - 1)
     }
   }
