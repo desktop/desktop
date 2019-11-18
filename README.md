@@ -1,104 +1,68 @@
-# [GitHub Desktop](https://desktop.github.com)
+# [Start Bootstrap - Freelancer](https://startbootstrap.com/template-overviews/freelancer/)
 
-[![Travis](https://img.shields.io/travis/desktop/desktop.svg?style=flat-square&label=Travis+CI)](https://travis-ci.org/desktop/desktop)
-[![CircleCI](https://img.shields.io/circleci/project/github/desktop/desktop.svg?style=flat-square&label=CircleCI)](https://circleci.com/gh/desktop/desktop)
-[![AppVeyor Build Status](https://img.shields.io/appveyor/ci/github-windows/desktop/development.svg?style=flat-square&label=AppVeyor&logo=appveyor)](https://ci.appveyor.com/project/github-windows/desktop/branch/development)
-[![Azure DevOps Pipelines Build Status](https://dev.azure.com/github/Desktop/_apis/build/status/Continuous%20Integration)](https://dev.azure.com/github/Desktop/_build/latest?definitionId=3)
-[![license](https://img.shields.io/github/license/desktop/desktop.svg?style=flat-square)](https://github.com/desktop/desktop/blob/development/LICENSE)
-![90+% TypeScript](https://img.shields.io/github/languages/top/desktop/desktop.svg?style=flat-square&colorB=green)
+[Freelancer](http://startbootstrap.com/template-overviews/freelancer/) is a one page freelancer portfolio theme for [Bootstrap](http://getbootstrap.com/) created by [Start Bootstrap](http://startbootstrap.com/). This theme features several content sections, a responsive portfolio grid, window modals for each portfolio item, and a working PHP contact form.
 
-GitHub Desktop is an open source [Electron](https://electron.atom.io)-based
-GitHub app. It is written in [TypeScript](http://www.typescriptlang.org) and
-uses [React](https://facebook.github.io/react/).
+## Preview
 
-![GitHub Desktop screenshot - Windows](https://cloud.githubusercontent.com/assets/359239/26094502/a1f56d02-3a5d-11e7-8799-23c7ba5e5106.png)
+[![Freelancer Preview](https://startbootstrap.com/assets/img/screenshots/themes/freelancer.png)](https://blackrockdigital.github.io/startbootstrap-freelancer/)
 
-## Where can I get it?
+**[View Live Preview](https://blackrockdigital.github.io/startbootstrap-freelancer/)**
 
-Download the official installer for your operating system:
+## Status
 
- - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin)
- - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32)
- - [Windows machine-wide install](https://central.github.com/deployments/desktop/desktop/latest/win32?format=msi)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/BlackrockDigital/startbootstrap-freelancer/master/LICENSE)
+[![npm version](https://img.shields.io/npm/v/startbootstrap-freelancer.svg)](https://www.npmjs.com/package/startbootstrap-freelancer)
+[![Build Status](https://travis-ci.org/BlackrockDigital/startbootstrap-freelancer.svg?branch=master)](https://travis-ci.org/BlackrockDigital/startbootstrap-freelancer)
+[![dependencies Status](https://david-dm.org/BlackrockDigital/startbootstrap-freelancer/status.svg)](https://david-dm.org/BlackrockDigital/startbootstrap-freelancer)
+[![devDependencies Status](https://david-dm.org/BlackrockDigital/startbootstrap-freelancer/dev-status.svg)](https://david-dm.org/BlackrockDigital/startbootstrap-freelancer?type=dev)
 
-You can install this alongside your existing GitHub Desktop for Mac or GitHub
-Desktop for Windows application.
+## Download and Installation
 
-**NOTE**: there is no current migration path to import your existing
-repositories into the new application - you can drag-and-drop your repositories
-from disk onto the application to get started.
+To begin using this template, choose one of the following options to get started:
+* [Download the latest release on Start Bootstrap](https://startbootstrap.com/template-overviews/freelancer/)
+* Install via npm: `npm i startbootstrap-freelancer`
+* Clone the repo: `git clone https://github.com/BlackrockDigital/startbootstrap-freelancer.git`
+* [Fork, Clone, or Download on GitHub](https://github.com/BlackrockDigital/startbootstrap-freelancer)
 
-### Beta Channel
+## Usage
 
-Want to test out new features and get fixes before everyone else? Install the
-beta channel to get access to early builds of Desktop:
+### Basic Usage
 
- - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin?env=beta)
- - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32?env=beta)
+After downloading, simply edit the HTML and CSS files included with the template in a code editor to make changes. These are the only files you need to worry about, you can ignore everything else! To preview the changes you make to the code, you can open the `index.html` file in your web browser.
 
-### Community Releases
+### Advanced Usage
 
-There are several community-supported package managers that can be used to
-install GitHub Desktop:
- - Windows users can install using [Chocolatey](https://chocolatey.org/) package manager:
-      `c:\> choco install github-desktop`
- - macOS users can install using [Homebrew](https://brew.sh/) package manager:
-      `$ brew cask install github`
+After installation, run `npm install` and then run `npm start` which will open up a preview of the template in your default browser, watch for changes to core template files, and live reload the browser when changes are saved. You can view the `gulpfile.js` to see which tasks are included with the dev environment.
 
-Installers for various Linux distributions can be found on the
-[`shiftkey/desktop`](https://github.com/shiftkey/desktop) fork.
+#### Gulp Tasks
 
-Arch Linux users can install the latest version from the
-[AUR](https://aur.archlinux.org/packages/github-desktop-bin/).
+- `gulp` the default task that builds everything
+- `gulp watch` browserSync opens the project in your default browser and live reloads when changes are made
+- `gulp css` compiles SCSS files into CSS and minifies the compiled CSS
+- `gulp js` minifies the themes JS file
+- `gulp vendor` copies dependencies from node_modules to the vendor directory
 
-## Is GitHub Desktop right for me? What are the primary areas of focus?
+You must have npm and Gulp installed globally in order to use these features.
 
-[This document](https://github.com/desktop/desktop/blob/development/docs/process/what-is-desktop.md) describes the focus of GitHub Desktop and who the product is most useful for.
+## Bugs and Issues
 
-And to see what the team is working on currently and in the near future, check out the [GitHub Desktop roadmap](https://github.com/desktop/desktop/blob/development/docs/process/roadmap.md).
+Have a bug or an issue with this template? [Open a new issue](https://github.com/BlackrockDigital/startbootstrap-freelancer/issues) here on GitHub or leave a comment on the [template overview page at Start Bootstrap](http://startbootstrap.com/template-overviews/freelancer/).
 
-## I have a problem with GitHub Desktop
+## About
 
-Note: The [GitHub Desktop Code of Conduct](https://github.com/desktop/desktop/blob/development/CODE_OF_CONDUCT.md) applies in all interactions relating to the GitHub Desktop project.
+Start Bootstrap is an open source library of free Bootstrap templates and themes. All of the free templates and themes on Start Bootstrap are released under the MIT license, which means you can use them for any purpose, even for commercial projects.
 
-First, please search the [open issues](https://github.com/desktop/desktop/issues?q=is%3Aopen)
-and [closed issues](https://github.com/desktop/desktop/issues?q=is%3Aclosed)
-to see if your issue hasn't already been reported (it may also be fixed).
+* https://startbootstrap.com
+* https://twitter.com/SBootstrap
 
-There is also a list of [known issues](https://github.com/desktop/desktop/blob/development/docs/known-issues.md)
-that are being tracked against Desktop, and some of these issues have workarounds.
+Start Bootstrap was created by and is maintained by **[David Miller](http://davidmiller.io/)**, Owner of [Blackrock Digital](http://blackrockdigital.io/).
 
-If you can't find an issue that matches what you're seeing, open a [new issue](https://github.com/desktop/desktop/issues/new/choose),
-choose the right template and provide us with enough information to investigate
-further.
+* http://davidmiller.io
+* https://twitter.com/davidmillerskt
+* https://github.com/davidtmiller
 
-## The issue I reported isn't fixed yet. What can I do?
+Start Bootstrap is based on the [Bootstrap](http://getbootstrap.com/) framework created by [Mark Otto](https://twitter.com/mdo) and [Jacob Thorton](https://twitter.com/fat).
 
-If nobody has responded to your issue in a few days, you're welcome to respond to it with a friendly ping in the issue. Please do not respond more than a second time if nobody has responded. The GitHub Desktop maintainers are constrained in time and resources, and diagnosing individual configurations can be difficult and time consuming. While we'll try to at least get you pointed in the right direction, we can't guarantee we'll be able to dig too deeply into any one person's issue.
+## Copyright and License
 
-## How can I contribute to GitHub Desktop?
-
-The [CONTRIBUTING.md](./.github/CONTRIBUTING.md) document will help you get setup and
-familiar with the source. The [documentation](docs/) folder also contains more
-resources relevant to the project.
-
-If you're looking for something to work on, check out the [help wanted](https://github.com/desktop/desktop/issues?q=is%3Aissue+is%3Aopen+label%3A%22help%20wanted%22) label.
-
-## More Resources
-
-See [desktop.github.com](https://desktop.github.com) for more product-oriented
-information about GitHub Desktop.
-
-## License
-
-**[MIT](LICENSE)**
-
-The MIT license grant is not for GitHub's trademarks, which include the logo
-designs. GitHub reserves all trademark and copyright rights in and to all
-GitHub trademarks. GitHub's logos include, for instance, the stylized
-Invertocat designs that include "logo" in the file title in the following
-folder: [logos](app/static/logos).
-
-GitHub® and its stylized versions and the Invertocat mark are GitHub's
-Trademarks or registered Trademarks. When using GitHub's logos, be sure to
-follow the GitHub [logo guidelines](https://github.com/logos).
+Copyright 2013-2019 Blackrock Digital LLC. Code released under the [MIT](https://github.com/BlackrockDigital/startbootstrap-freelancer/blob/gh-pages/LICENSE) license.
