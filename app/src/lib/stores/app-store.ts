@@ -247,7 +247,10 @@ import {
 import { OnboardingTutorialAssessor } from './helpers/tutorial-assessor'
 import { getUntrackedFiles } from '../status'
 import { isBranchPushable } from '../helpers/push-control'
-import { findAssociatedPullRequest, isPullRequestAssociatedWithBranch } from '../helpers/pull-request-matching'
+import {
+  findAssociatedPullRequest,
+  isPullRequestAssociatedWithBranch,
+} from '../helpers/pull-request-matching'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -721,9 +724,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoryStateCache.updateBranchesState(repository, state => {
       let { currentPullRequest } = state
       const { tip, currentRemote, upstreamRemote } = gitStore
-      const inFork =
-        repository.gitHubRepository !== null && repository.gitHubRepository.fork
-      const remote = upstreamRemote && inFork ? upstreamRemote : currentRemote
 
       // If the tip has changed we need to re-evaluate whether or not the
       // current pull request is still valid. Note that we're not using
@@ -734,27 +734,34 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // list of open PRs.
       if (
         !tipEquals(state.tip, tip) ||
-        !remoteEquals(prevRepositoryState.remote, remote)
+        !remoteEquals(prevRepositoryState.remote, currentRemote)
       ) {
-        if (tip.kind !== TipState.Valid || remote === null) {
+        if (tip.kind !== TipState.Valid || currentRemote === null) {
           // The tip isn't a branch so or the current branch doesn't have a remote
           // so there can't be a current pull request.
           currentPullRequest = null
         } else {
           const { branch } = tip
-
+          const availableRemotes = {
+            default: currentRemote,
+            upstream: upstreamRemote,
+          }
           if (
             !currentPullRequest ||
             !isPullRequestAssociatedWithBranch(
-              remote,
               branch,
-              currentPullRequest
+              currentPullRequest,
+              availableRemotes
             )
           ) {
             // Either we don't have a current pull request or the current pull
             // request no longer matches the tip, let's go hunting for a new one.
             const prs = state.openPullRequests
-            currentPullRequest = findAssociatedPullRequest(branch, prs, remote)
+            currentPullRequest = findAssociatedPullRequest(
+              branch,
+              prs,
+              availableRemotes
+            )
           }
         }
       }
@@ -5092,20 +5099,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.repositoryStateCache.updateBranchesState(repository, state => {
       let currentPullRequest: PullRequest | null = null
-
-      const inFork =
-        repository.gitHubRepository !== null && repository.gitHubRepository.fork
-
       const { remote, upstreamRemote } = this.repositoryStateCache.get(
         repository
       )
-      const lookupRemote = inFork ? upstreamRemote : remote
 
-      if (state.tip.kind === TipState.Valid && lookupRemote) {
+      if (state.tip.kind === TipState.Valid && remote) {
         currentPullRequest = findAssociatedPullRequest(
           state.tip.branch,
           state.openPullRequests,
-          lookupRemote
+          { default: remote, upstream: upstreamRemote }
         )
       }
 
@@ -5119,9 +5121,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     branch: Branch
   ): Promise<void> {
-    const inFork =
-      repository.gitHubRepository !== null && repository.gitHubRepository.fork
-    const gitHubRepository = inFork
+    const gitHubRepository = repository.isGitHubFork
       ? // just checked if that was null! cmon, typescript
         repository.gitHubRepository!.parent
       : repository.gitHubRepository
@@ -5130,7 +5130,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const urlEncodedBranchName = escape(branch.nameWithoutRemote)
-    const baseURL = inFork
+    const baseURL = repository.isGitHubFork
       ? `${gitHubRepository.htmlURL}/compare/${escape(
           repository.gitHubRepository!.owner.login
         )}:${urlEncodedBranchName}`

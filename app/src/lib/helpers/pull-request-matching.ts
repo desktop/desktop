@@ -3,44 +3,93 @@ import { repositoryMatchesRemote } from '../repository-matching'
 import { Branch } from '../../models/branch'
 import { PullRequest } from '../../models/pull-request'
 
+/**
+ * Remotes to use in searching for matching pull requests
+ */
+export type AvailableRemotes = {
+  /** Default remote for repo (usually called `origin`) */
+  default: IRemote
+  /** Upstream remote for repo (usually called `upstream`) */
+  upstream: IRemote | null
+}
+
+/** Possible remote matches for looking up a pull request */
+const enum MatchedWithRemote {
+  default,
+  upstream,
+  none,
+}
+
+/**
+ * Find the pull request for this branch.
+ *
+ * The upstream remote is only used
+ * if the default remote returns no matches.
+ *
+ * @param branch branch in question
+ * @param pullRequests list to search
+ * @param remotes remotes to use for matching
+ */
 export function findAssociatedPullRequest(
   branch: Branch,
   pullRequests: ReadonlyArray<PullRequest>,
-  remotes: { default: IRemote; upstream: IRemote }
+  remotes: AvailableRemotes
 ): PullRequest | null {
-  const upstream = branch.upstreamWithoutRemote
-
-  if (upstream == null) {
+  if (branch.upstreamWithoutRemote == null) {
     return null
   }
 
-  // first look for pull requests in the default remote
-  const defaultRemotePr = pullRequests.find(pr =>
-    isPullRequestAssociatedWithBranch(remotes.default, branch, pr)
+  const matchingPulls = pullRequests.filter(
+    pr =>
+      getMatchingRemoteForBranchPullRequest(branch, pr, remotes) !==
+      MatchedWithRemote.none
   )
-  if (defaultRemotePr !== undefined) {
-    return defaultRemotePr
+  switch (matchingPulls.length) {
+    case 0:
+      return null
+    case 1:
+      return matchingPulls[0]
+    default: {
+      return (
+        matchingPulls.find(
+          pr =>
+            getMatchingRemoteForBranchPullRequest(branch, pr, remotes) ===
+            MatchedWithRemote.default
+        ) ||
+        matchingPulls.find(
+          pr =>
+            getMatchingRemoteForBranchPullRequest(branch, pr, remotes) ===
+            MatchedWithRemote.upstream
+        ) ||
+        null
+      )
+    }
   }
+}
 
-  // if there isn't one, look for pull requests in the upstream remote
-  const upstreamRemotePr = pullRequests.find(pr =>
-    isPullRequestAssociatedWithBranch(remotes.upstream, branch, pr)
-  )
-  if (upstreamRemotePr !== undefined) {
-    return upstreamRemotePr
+function getMatchingRemoteForBranchPullRequest(
+  branch: Branch,
+  pr: PullRequest,
+  remotes: AvailableRemotes
+): MatchedWithRemote {
+  if (pr.head.ref === branch.upstreamWithoutRemote) {
+    return repositoryMatchesRemote(pr.head.gitHubRepository, remotes.default)
+      ? MatchedWithRemote.default
+      : remotes.upstream &&
+        repositoryMatchesRemote(pr.head.gitHubRepository, remotes.upstream)
+      ? MatchedWithRemote.upstream
+      : MatchedWithRemote.none
   }
-
-  // otherwise, return `null` for nothing found
-  return null
+  return MatchedWithRemote.none
 }
 
 export function isPullRequestAssociatedWithBranch(
-  remote: IRemote,
   branch: Branch,
-  pr: PullRequest
-) {
+  pr: PullRequest,
+  remotes: AvailableRemotes
+): boolean {
   return (
-    pr.head.ref === branch.upstreamWithoutRemote &&
-    repositoryMatchesRemote(pr.head.gitHubRepository, remote)
+    getMatchingRemoteForBranchPullRequest(branch, pr, remotes) !==
+    MatchedWithRemote.none
   )
 }
