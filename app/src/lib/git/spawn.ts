@@ -1,5 +1,6 @@
 import { GitProcess } from 'dugite'
 import * as GitPerf from '../../ui/lib/git-perf'
+import { isErrnoException } from '../errno-exception'
 
 type ProcessOutput = {
   /** The contents of stdout received from the spawned process */
@@ -36,36 +37,53 @@ export function spawnAndComplete(
     () =>
       new Promise<ProcessOutput>((resolve, reject) => {
         const process = GitProcess.spawn(args, path)
+
+        process.on('error', err => {
+          // If this is an exception thrown by Node.js while attempting to
+          // spawn let's keep the salient details but include the name of
+          // the operation.
+          if (isErrnoException(err)) {
+            reject(new Error(`Failed to execute ${name}: ${err.code}`))
+          } else {
+            // for unhandled errors raised by the process, let's surface this in the
+            // promise and make the caller handle it
+            reject(err)
+          }
+        })
+
         let totalStdoutLength = 0
         let killSignalSent = false
 
         const stdoutChunks = new Array<Buffer>()
-        process.stdout.on('data', (chunk: Buffer) => {
-          if (!stdOutMaxLength || totalStdoutLength < stdOutMaxLength) {
-            stdoutChunks.push(chunk)
-            totalStdoutLength += chunk.length
-          }
 
-          if (
-            stdOutMaxLength &&
-            totalStdoutLength >= stdOutMaxLength &&
-            !killSignalSent
-          ) {
-            process.kill()
-            killSignalSent = true
-          }
-        })
+        // If Node.js encounters a synchronous runtime error while spawning
+        // `stdout` will be undefined and the error will be emitted asynchronously
+        if (process.stdout) {
+          process.stdout.on('data', (chunk: Buffer) => {
+            if (!stdOutMaxLength || totalStdoutLength < stdOutMaxLength) {
+              stdoutChunks.push(chunk)
+              totalStdoutLength += chunk.length
+            }
+
+            if (
+              stdOutMaxLength &&
+              totalStdoutLength >= stdOutMaxLength &&
+              !killSignalSent
+            ) {
+              process.kill()
+              killSignalSent = true
+            }
+          })
+        }
 
         const stderrChunks = new Array<Buffer>()
-        process.stderr.on('data', (chunk: Buffer) => {
-          stderrChunks.push(chunk)
-        })
 
-        process.on('error', err => {
-          // for unhandled errors raised by the process, let's surface this in the
-          // promise and make the caller handle it
-          reject(err)
-        })
+        // See comment above about stdout and asynchronous errors.
+        if (process.stderr) {
+          process.stderr.on('data', (chunk: Buffer) => {
+            stderrChunks.push(chunk)
+          })
+        }
 
         process.on('close', (code, signal) => {
           const stdout = Buffer.concat(
