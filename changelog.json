@@ -1,5 +1,11 @@
 {
   "releases": {
+    "2.2.4-beta1": [
+      "[Fixed] Prevent application crash when spawn fails - #8614",
+      "[Fixed] Don't crash when attempting to use multibyte characters as name - #8534",
+      "[Fixed] Don't dismiss dialogs when dragging from the dialog to the backdrop - #8544",
+      "[Improved] Greater accuracy in branch protection checks - #7023"
+    ],
     "2.2.3": [
       "[Fixed] Prevent text overflow in crash dialog - #8542",
       "[Fixed] Address warnings on macOS Catalina preventing app from opening after install - #8555",
