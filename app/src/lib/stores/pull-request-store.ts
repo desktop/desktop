@@ -31,7 +31,10 @@ export class PullRequestStore {
     repository: GitHubRepository,
     pullRequests: ReadonlyArray<PullRequest>
   ) {
-    this.emitter.emit('onPullRequestsChanged', { repository, pullRequests })
+    this.emitter.emit('onPullRequestsChanged', {
+      repository,
+      pullRequests,
+    })
   }
 
   /** Register a function to be called when the store updates. */
@@ -139,9 +142,16 @@ export class PullRequestStore {
     api: API,
     repository: GitHubRepository
   ) {
-    const { name, owner } = getNameWithOwner(repository)
-    const open = await api.fetchAllOpenPullRequests(owner, name)
-    await this.storePullRequestsAndEmitUpdate(open, repository)
+    const bothPrLists = await Promise.all([
+      fetchOpenPullRequests(api, repository),
+      repository.fork && repository.parent
+        ? fetchOpenPullRequests(api, repository)
+        : Promise.resolve([]),
+    ])
+    await this.storePullRequestsAndEmitUpdate(
+      [...bothPrLists[0], ...bothPrLists[1]],
+      repository
+    )
   }
 
   private async fetchAndStoreUpdatedPullRequests(
@@ -403,10 +413,16 @@ export class PullRequestStore {
   }
 }
 
+async function fetchOpenPullRequests(
+  api: API,
+  repository: GitHubRepository
+): Promise<ReadonlyArray<IAPIPullRequest>> {
+  const { name, owner } = getNameWithOwner(repository)
+  return await api.fetchAllOpenPullRequests(owner, name)
+}
+
 function getNameWithOwner(repository: GitHubRepository) {
-  const prSourceRepo =
-    repository.fork && repository.parent ? repository.parent : repository
-  const owner = prSourceRepo.owner.login
-  const name = prSourceRepo.name
+  const owner = repository.owner.login
+  const name = repository.name
   return { name, owner }
 }
