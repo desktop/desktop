@@ -15,9 +15,9 @@ export type AvailableRemotes = {
 
 /** Possible remote matches for looking up a pull request */
 const enum MatchedWithRemote {
-  default,
-  upstream,
-  none,
+  Default,
+  Upstream,
+  None,
 }
 
 /**
@@ -42,7 +42,7 @@ export function findAssociatedPullRequest(
   const matchingPulls = pullRequests.filter(
     pr =>
       getMatchingRemoteForBranchPullRequest(branch, pr, remotes) !==
-      MatchedWithRemote.none
+      MatchedWithRemote.None
   )
   switch (matchingPulls.length) {
     case 0:
@@ -54,12 +54,12 @@ export function findAssociatedPullRequest(
         matchingPulls.find(
           pr =>
             getMatchingRemoteForBranchPullRequest(branch, pr, remotes) ===
-            MatchedWithRemote.default
+            MatchedWithRemote.Default
         ) ||
         matchingPulls.find(
           pr =>
             getMatchingRemoteForBranchPullRequest(branch, pr, remotes) ===
-            MatchedWithRemote.upstream
+            MatchedWithRemote.Upstream
         ) ||
         null
       )
@@ -74,13 +74,13 @@ function getMatchingRemoteForBranchPullRequest(
 ): MatchedWithRemote {
   if (pr.head.ref === branch.upstreamWithoutRemote) {
     return repositoryMatchesRemote(pr.head.gitHubRepository, remotes.default)
-      ? MatchedWithRemote.default
+      ? MatchedWithRemote.Default
       : remotes.upstream &&
         repositoryMatchesRemote(pr.head.gitHubRepository, remotes.upstream)
-      ? MatchedWithRemote.upstream
-      : MatchedWithRemote.none
+      ? MatchedWithRemote.Upstream
+      : MatchedWithRemote.None
   }
-  return MatchedWithRemote.none
+  return MatchedWithRemote.None
 }
 
 export function isPullRequestAssociatedWithBranch(
@@ -90,6 +90,6 @@ export function isPullRequestAssociatedWithBranch(
 ): boolean {
   return (
     getMatchingRemoteForBranchPullRequest(branch, pr, remotes) !==
-    MatchedWithRemote.none
+    MatchedWithRemote.None
   )
 }
