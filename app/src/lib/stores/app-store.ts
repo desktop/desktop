@@ -5093,13 +5093,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoryStateCache.updateBranchesState(repository, state => {
       let currentPullRequest: PullRequest | null = null
 
-      const { remote } = this.repositoryStateCache.get(repository)
+      const inFork =
+        repository.gitHubRepository !== null && repository.gitHubRepository.fork
 
-      if (state.tip.kind === TipState.Valid && remote) {
+      const { remote, upstreamRemote } = this.repositoryStateCache.get(
+        repository
+      )
+      const lookupRemote = inFork ? upstreamRemote : remote
+
+      if (state.tip.kind === TipState.Valid && lookupRemote) {
         currentPullRequest = findAssociatedPullRequest(
           state.tip.branch,
           state.openPullRequests,
-          remote
+          lookupRemote
         )
       }
 
