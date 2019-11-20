@@ -13,6 +13,7 @@ import {
   getWindowsInstallerName,
   shouldMakeDelta,
   getUpdatesURL,
+  getIconFileName,
 } from './dist-info'
 import { isAppveyor } from './build-platforms'
 
@@ -61,7 +62,7 @@ function packageWindows() {
     'app',
     'static',
     'logos',
-    'icon-logo.ico'
+    `${getIconFileName()}.ico`
   )
 
   if (!fs.existsSync(iconSource)) {
