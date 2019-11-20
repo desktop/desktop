@@ -175,7 +175,6 @@ function getInitialRepositoryState(): IRepositoryState {
     localCommitSHAs: [],
     aheadBehind: null,
     remote: null,
-    upstreamRemote: null,
     isPushPullFetchInProgress: false,
     isCommitting: false,
     lastFetched: null,

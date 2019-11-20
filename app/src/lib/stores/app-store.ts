@@ -807,7 +807,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       localCommitSHAs: gitStore.localCommitSHAs,
       aheadBehind: gitStore.aheadBehind,
       remote: gitStore.currentRemote,
-      upstreamRemote: gitStore.upstreamRemote,
       lastFetched: gitStore.lastFetched,
     }))
 
