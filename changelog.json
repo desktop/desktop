@@ -1,10 +1,10 @@
 {
   "releases": {
     "2.2.4-beta1": [
-      "[Fixed] Prevent application crash when spawn fails - #8614",
-      "[Fixed] Don't crash when attempting to use multibyte characters as name - #8534",
-      "[Fixed] Don't dismiss dialogs when dragging from the dialog to the backdrop - #8544",
-      "[Improved] Greater accuracy in branch protection checks - #7023"
+      "[New] Warn when committing to a protected branch - #7023",
+      "[Fixed] Prevent application crash when background process spawn fails - #8614",
+      "[Fixed] Handle multibyte characters in names - #8534",
+      "[Fixed] Don't dismiss dialogs when dragging from the dialog to the backdrop - #8544"
     ],
     "2.2.3": [
       "[Fixed] Prevent text overflow in crash dialog - #8542",
