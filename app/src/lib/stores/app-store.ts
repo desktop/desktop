@@ -723,7 +723,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.repositoryStateCache.updateBranchesState(repository, state => {
       let { currentPullRequest } = state
-      const { tip, currentRemote, upstreamRemote } = gitStore
+      const { tip, currentRemote } = gitStore
 
       // If the tip has changed we need to re-evaluate whether or not the
       // current pull request is still valid. Note that we're not using
@@ -742,16 +742,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
           currentPullRequest = null
         } else {
           const { branch } = tip
-          const availableRemotes = {
-            default: currentRemote,
-            upstream: upstreamRemote,
-          }
           if (
             !currentPullRequest ||
             !isPullRequestAssociatedWithBranch(
               branch,
               currentPullRequest,
-              availableRemotes
+              currentRemote
             )
           ) {
             // Either we don't have a current pull request or the current pull
@@ -760,7 +756,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             currentPullRequest = findAssociatedPullRequest(
               branch,
               prs,
-              availableRemotes
+              currentRemote
             )
           }
         }
@@ -5099,15 +5095,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.repositoryStateCache.updateBranchesState(repository, state => {
       let currentPullRequest: PullRequest | null = null
-      const { remote, upstreamRemote } = this.repositoryStateCache.get(
-        repository
-      )
+      const { remote } = this.repositoryStateCache.get(repository)
 
       if (state.tip.kind === TipState.Valid && remote) {
         currentPullRequest = findAssociatedPullRequest(
           state.tip.branch,
           state.openPullRequests,
-          { default: remote, upstream: upstreamRemote }
+          remote
         )
       }
 
