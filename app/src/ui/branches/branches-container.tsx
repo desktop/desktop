@@ -175,8 +175,6 @@ export class BranchesContainer extends React.Component<
       return null
     }
 
-    const pullRequests = this.props.pullRequests
-    const repo = this.props.repository
     const isOnDefaultBranch =
       this.props.defaultBranch &&
       this.props.currentBranch &&
@@ -185,9 +183,9 @@ export class BranchesContainer extends React.Component<
     return (
       <PullRequestList
         key="pr-list"
-        pullRequests={pullRequests}
+        pullRequests={this.getPullRequests()}
         selectedPullRequest={this.state.selectedPullRequest}
-        repositoryName={nameOf(repo)}
+        repositoryName={nameOf(this.props.repository)}
         isOnDefaultBranch={!!isOnDefaultBranch}
         onSelectionChanged={this.onPullRequestSelectionChanged}
         onCreateBranch={this.onCreateBranch}
@@ -316,5 +314,14 @@ export class BranchesContainer extends React.Component<
       .then(() => timer.done())
 
     this.onPullRequestSelectionChanged(pullRequest)
+  }
+
+  private getPullRequests() {
+    const { gitHubRepository } = this.props.repository
+    return gitHubRepository !== null
+      ? this.props.pullRequests.filter(
+          pr => pr.base.gitHubRepository.hash === gitHubRepository.hash
+        )
+      : this.props.pullRequests
   }
 }
