@@ -294,7 +294,7 @@ function getRegistryKeys(
       ]
     case ExternalEditor.Webstorm:
       return [
-        // Webstorm 2019.3
+        // Webstorm 2018.3
         {
           key: HKEY.HKEY_LOCAL_MACHINE,
           subKey:
@@ -575,7 +575,7 @@ function extractApplicationInformation(
         item.type === RegistryValueType.REG_SZ &&
         item.data.startsWith('PhpStorm ')
       ) {
-        displayName = 'WebStorm'
+        displayName = 'PhpStorm'
       } else if (
         item.name === 'Publisher' &&
         item.type === RegistryValueType.REG_SZ
