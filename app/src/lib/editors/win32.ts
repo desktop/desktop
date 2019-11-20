@@ -24,6 +24,7 @@ export enum ExternalEditor {
   Typora = 'Typora',
   SlickEdit = 'SlickEdit',
   Webstorm = 'JetBrains Webstorm',
+  Phpstorm = 'JetBrains Phpstorm',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -56,6 +57,12 @@ export function parse(label: string): ExternalEditor | null {
   }
   if (label === ExternalEditor.SlickEdit) {
     return ExternalEditor.SlickEdit
+  }
+  if (label === ExternalEditor.Webstorm) {
+    return ExternalEditor.Webstorm
+  }
+  if (label === ExternalEditor.Phpstorm) {
+    return ExternalEditor.Phpstorm
   }
 
   return null
@@ -287,11 +294,38 @@ function getRegistryKeys(
       ]
     case ExternalEditor.Webstorm:
       return [
-        // 32-bit version of WebStorm
+        // Webstorm 2019.3
         {
           key: HKEY.HKEY_LOCAL_MACHINE,
           subKey:
             'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\WebStorm 2018.3',
+        },
+        // Webstorm 2019.2
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\WebStorm 2019.2',
+        },
+        // Webstorm 2019.2.4
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\WebStorm 2019.2.4',
+        },
+      ]
+    case ExternalEditor.Phpstorm:
+      return [
+        // PhpStorm 2019.2
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\PhpStorm 2019.2',
+        },
+        // PhpStorm 2019.2.4
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\PhpStorm 2019.2.4',
         },
       ]
 
@@ -333,6 +367,8 @@ function getExecutableShim(
       return Path.join(installLocation, 'win', 'vs.exe')
     case ExternalEditor.Webstorm:
       return Path.join(installLocation, 'bin', 'webstorm.exe')
+    case ExternalEditor.Phpstorm:
+      return Path.join(installLocation, 'bin', 'phpstorm.exe')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -388,6 +424,10 @@ function isExpectedInstallation(
     case ExternalEditor.Webstorm:
       return (
         displayName.startsWith('WebStorm') && publisher === 'JetBrains s.r.o.'
+      )
+    case ExternalEditor.Phpstorm:
+      return (
+        displayName.startsWith('PhpStorm') && publisher === 'JetBrains s.r.o.'
       )
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
@@ -522,6 +562,36 @@ function extractApplicationInformation(
     return { displayName, publisher, installLocation }
   }
 
+  if (editor === ExternalEditor.Phpstorm) {
+    let displayName = ''
+    let publisher = ''
+    let installLocation = ''
+
+    for (const item of keys) {
+      // NOTE:
+      // Webstorm adds the current release number to the end of the Display Name, below checks for "PhpStorm"
+      if (
+        item.name === 'DisplayName' &&
+        item.type === RegistryValueType.REG_SZ &&
+        item.data.startsWith('PhpStorm ')
+      ) {
+        displayName = 'WebStorm'
+      } else if (
+        item.name === 'Publisher' &&
+        item.type === RegistryValueType.REG_SZ
+      ) {
+        publisher = item.data
+      } else if (
+        item.name === 'InstallLocation' &&
+        item.type === RegistryValueType.REG_SZ
+      ) {
+        installLocation = item.data
+      }
+    }
+
+    return { displayName, publisher, installLocation }
+  }
+
   return assertNever(editor, `Unknown external editor: ${editor}`)
 }
 
@@ -583,6 +653,8 @@ export async function getAvailableEditors(): Promise<
     cfBuilderPath,
     typoraPath,
     slickeditPath,
+    webstormPath,
+    phpstormPath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.AtomBeta),
@@ -594,6 +666,8 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.CFBuilder),
     findApplication(ExternalEditor.Typora),
     findApplication(ExternalEditor.SlickEdit),
+    findApplication(ExternalEditor.Webstorm),
+    findApplication(ExternalEditor.Phpstorm),
   ])
 
   if (atomPath) {
@@ -672,6 +746,20 @@ export async function getAvailableEditors(): Promise<
     results.push({
       editor: ExternalEditor.SlickEdit,
       path: slickeditPath,
+    })
+  }
+
+  if (webstormPath) {
+    results.push({
+      editor: ExternalEditor.Webstorm,
+      path: webstormPath,
+    })
+  }
+
+  if (phpstormPath) {
+    results.push({
+      editor: ExternalEditor.Phpstorm,
+      path: phpstormPath,
     })
   }
 
