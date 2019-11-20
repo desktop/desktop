@@ -5014,15 +5014,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _showPullRequest(repository: Repository): Promise<void> {
-    const inFork =
-      repository.gitHubRepository !== null && repository.gitHubRepository.fork
-    const gitHubRepository = inFork
-      ? repository.gitHubRepository!.parent
-      : repository.gitHubRepository
+    const { gitHubRepository } = repository
 
     if (!gitHubRepository) {
       return
     }
+
+    const lookupGitHubRepository =
+      gitHubRepository.fork && gitHubRepository.parent
+        ? gitHubRepository.parent
+        : gitHubRepository
 
     const state = this.repositoryStateCache.get(repository)
     const currentPullRequest = state.branchesState.currentPullRequest
@@ -5031,7 +5032,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const baseURL = `${gitHubRepository.htmlURL}/pull/${
+    const baseURL = `${lookupGitHubRepository.htmlURL}/pull/${
       currentPullRequest.pullRequestNumber
     }`
 
@@ -5114,20 +5115,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     branch: Branch
   ): Promise<void> {
-    const gitHubRepository = repository.isGitHubFork
-      ? // just checked if that was null! cmon, typescript
-        repository.gitHubRepository!.parent
-      : repository.gitHubRepository
+    const { gitHubRepository } = repository
+
     if (!gitHubRepository) {
       return
     }
 
+    const { parent: parentGitHubRepository } = gitHubRepository
+
     const urlEncodedBranchName = escape(branch.nameWithoutRemote)
-    const baseURL = repository.isGitHubFork
-      ? `${gitHubRepository.htmlURL}/compare/${escape(
-          repository.gitHubRepository!.owner.login
-        )}:${urlEncodedBranchName}`
-      : `${gitHubRepository.htmlURL}/pull/new/${urlEncodedBranchName}`
+    const baseURL =
+      repository.isGitHubFork && parentGitHubRepository
+        ? `${gitHubRepository.htmlURL}/compare/${escape(
+            parentGitHubRepository.owner.login
+          )}:${urlEncodedBranchName}`
+        : `${gitHubRepository.htmlURL}/pull/new/${urlEncodedBranchName}`
     await this._openInBrowser(baseURL)
 
     if (this.currentOnboardingTutorialStep === TutorialStep.OpenPullRequest) {
