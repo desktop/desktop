@@ -26,9 +26,7 @@ describe('git/worktree', () => {
         expect(result).toHaveLength(1)
       })
 
-      // skipping due to differences on windows CI providers
-      // (this test passes on Appveyor but not Azure)
-      it.skip('contains the head and path of the main repository', async () => {
+      it('contains the head and path of the main repository', async () => {
         const { path } = repository
         const result = await listWorkTrees(repository)
         const first = result[0]
