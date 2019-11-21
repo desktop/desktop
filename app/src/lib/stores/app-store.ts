@@ -5523,6 +5523,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     await this.currentBranchPruner.testPrune()
   }
+
+  public async _createFork(repository: Repository) {}
 }
 
 /**
