@@ -23,7 +23,7 @@ import { IAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
 import { ICommitContext } from '../../models/commit'
 import { startTimer } from '../lib/timing'
-import { ProtectedBranchWarning } from './protected-branch-warning'
+import { BranchPermissionWarning } from './protected-branch-warning'
 import { enableBranchProtectionWarningFlow } from '../../lib/feature-flag'
 
 const addAuthorIcon = new OcticonSymbol(
@@ -50,6 +50,7 @@ interface ICommitMessageProps {
   readonly placeholder: string
   readonly prepopulateCommitSummary: boolean
   readonly currentBranchProtected: boolean
+  readonly hasWritePermissionForRepository: boolean
 
   /**
    * Whether or not to show a field for adding co-authors to
@@ -452,14 +453,24 @@ export class CommitMessage extends React.Component<
       return null
     }
 
-    const { currentBranchProtected, dispatcher } = this.props
+    const {
+      currentBranchProtected,
+      hasWritePermissionForRepository,
+      dispatcher,
+      repository,
+    } = this.props
 
-    if (!currentBranchProtected) {
+    if (hasWritePermissionForRepository && !currentBranchProtected) {
       return null
     }
 
     return (
-      <ProtectedBranchWarning currentBranch={branch} dispatcher={dispatcher} />
+      <BranchPermissionWarning
+        currentBranch={branch}
+        repositoryName={repository.name}
+        hasWritePermissionForRepository={hasWritePermissionForRepository}
+        dispatcher={dispatcher}
+      />
     )
   }
 

@@ -4,13 +4,19 @@ import { LinkButton } from '../lib/link-button'
 import { Dispatcher } from '../dispatcher'
 import { FoldoutType } from '../../lib/app-state'
 
-interface IProtectedBranchWarningProps {
+interface IBranchPermissionWarningProps {
   readonly dispatcher: Dispatcher
   readonly currentBranch: string
+  readonly repositoryName: string
+  readonly hasWritePermissionForRepository: boolean
 }
 
-export class ProtectedBranchWarning extends React.Component<
-  IProtectedBranchWarningProps
+/** A warning for the user if they won't be able to push to a branch,
+ *  either because its a *protected branch* or they don't have *write
+ *  permission* for the repository.
+ */
+export class BranchPermissionWarning extends React.Component<
+  IBranchPermissionWarningProps
 > {
   private onSwitchBranch = () => {
     this.props.dispatcher.showFoldout({
@@ -37,14 +43,45 @@ export class ProtectedBranchWarning extends React.Component<
             symbol={OcticonSymbol.alert}
           />
         </div>
-
-        <div className="warning-message">
-          <strong>{this.props.currentBranch}</strong> is a protected branch.
-          Want to{' '}
-          <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>
-          ?
-        </div>
+        {this.renderWarningMesage()}
       </div>
     )
   }
+
+  private renderWarningMesage() {
+    return (
+      <div className="warning-message">
+        {this.props.hasWritePermissionForRepository ? (
+          <ProtectedBranchMessage
+            currentBranch={this.props.currentBranch}
+            onSwitchBranch={this.onSwitchBranch}
+          />
+        ) : (
+          <ReadonlyRepoMessage name={this.props.repositoryName} />
+        )}
+      </div>
+    )
+  }
+}
+
+const ReadonlyRepoMessage: React.SFC<{
+  name: string
+}> = props => {
+  return (
+    <>
+      You do not have permission to push to <strong>{props.name}</strong>.
+    </>
+  )
+}
+
+const ProtectedBranchMessage: React.SFC<{
+  currentBranch: string
+  onSwitchBranch: () => void
+}> = props => {
+  return (
+    <>
+      <strong>{props.currentBranch}</strong> is a protected branch. Want to{' '}
+      <LinkButton onClick={props.onSwitchBranch}>switch branches</LinkButton>?
+    </>
+  )
 }

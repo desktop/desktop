@@ -612,6 +612,12 @@ export class ChangesList extends React.Component<
     const prepopulateCommitSummary =
       filesSelected.length === 1 && !repository.isTutorialRepository
 
+    const hasWritePermissionForRepository =
+      this.props.repository.gitHubRepository &&
+      this.props.repository.gitHubRepository.permissions === 'read'
+        ? false
+        : true
+
     return (
       <CommitMessage
         onCreateCommit={this.props.onCreateCommit}
@@ -634,6 +640,7 @@ export class ChangesList extends React.Component<
         prepopulateCommitSummary={prepopulateCommitSummary}
         key={repository.id}
         currentBranchProtected={currentBranchProtected}
+        hasWritePermissionForRepository={hasWritePermissionForRepository}
         shouldNudge={this.props.shouldNudgeToCommit}
       />
     )
