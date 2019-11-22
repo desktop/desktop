@@ -36,12 +36,12 @@ export class PermissionsCommitWarning extends React.Component<
 
   public render() {
     return (
-      <div id="protected-branch" onContextMenu={this.ignoreContextMenu}>
-        <div className="protected-branch-icon-container">
-          <Octicon
-            className="protected-branch-icon"
-            symbol={OcticonSymbol.alert}
-          />
+      <div
+        id="permissions-commit-warning"
+        onContextMenu={this.ignoreContextMenu}
+      >
+        <div className="warning-icon-container">
+          <Octicon className="warning-icon" symbol={OcticonSymbol.alert} />
         </div>
         {this.renderWarningMesage()}
       </div>
