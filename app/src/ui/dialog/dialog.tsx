@@ -257,6 +257,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     }
 
     window.removeEventListener('focus', this.onWindowFocus)
+    document.removeEventListener('mouseup', this.onDocumentMouseUp)
   }
 
   public componentDidUpdate() {
@@ -270,7 +271,11 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     this.onDismiss()
   }
 
-  private onDialogClick = (e: React.MouseEvent<HTMLElement>) => {
+  private onDialogMouseDown = (e: React.MouseEvent<HTMLElement>) => {
+    if (e.defaultPrevented) {
+      return
+    }
+
     if (this.isDismissable() === false) {
       return
     }
@@ -284,12 +289,6 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       return
     }
 
-    const isInTitleBar = e.clientY <= titleBarHeight
-
-    if (isInTitleBar) {
-      return
-    }
-
     // Ignore the first click right after the window's been focused. It could
     // be the click that focused the window, in which case we don't wanna
     // dismiss the dialog.
@@ -299,8 +298,36 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       return
     }
 
+    if (
+      !this.props.disableClickDismissalAlways &&
+      !this.mouseEventIsInsideDialog(e)
+    ) {
+      // The user has pressed down on their pointer device outside of the
+      // dialog (i.e. on the backdrop). Now we subscribe to the global
+      // mouse up event where we can make sure that they release the pointer
+      // device on the backdrop as well.
+      document.addEventListener('mouseup', this.onDocumentMouseUp, {
+        once: true,
+      })
+    }
+  }
+
+  private mouseEventIsInsideDialog(
+    e: React.MouseEvent<HTMLElement> | MouseEvent
+  ) {
+    // it's possible that we've been unmounted
+    if (this.dialogElement === null) {
+      return false
+    }
+
+    const isInTitleBar = e.clientY <= titleBarHeight
+
+    if (isInTitleBar) {
+      return false
+    }
+
     // Figure out if the user clicked on the backdrop or in the dialog itself.
-    const rect = e.currentTarget.getBoundingClientRect()
+    const rect = this.dialogElement.getBoundingClientRect()
 
     // http://stackoverflow.com/a/26984690/2114
     const isInDialog =
@@ -309,7 +336,21 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       rect.left <= e.clientX &&
       e.clientX <= rect.left + rect.width
 
-    if (!this.props.disableClickDismissalAlways && !isInDialog) {
+    return isInDialog
+  }
+
+  /**
+   * Subscribed to from the onDialogMouseDown when the user
+   * presses down on the backdrop, ensures that we only dismiss
+   * the dialog if they release their pointer device over the
+   * backdrop as well (as opposed to over the dialog itself).
+   */
+  private onDocumentMouseUp = (e: MouseEvent) => {
+    if (
+      !e.defaultPrevented &&
+      !this.props.disableClickDismissalAlways &&
+      !this.mouseEventIsInsideDialog(e)
+    ) {
       e.preventDefault()
       this.onDismiss()
     }
@@ -386,7 +427,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       <dialog
         ref={this.onDialogRef}
         id={this.props.id}
-        onClick={this.onDialogClick}
+        onMouseDown={this.onDialogMouseDown}
         className={className}
         aria-labelledby={this.state.titleId}
       >
