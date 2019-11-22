@@ -23,7 +23,7 @@ import { IAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
 import { ICommitContext } from '../../models/commit'
 import { startTimer } from '../lib/timing'
-import { BranchPermissionWarning } from './protected-branch-warning'
+import { PermissionsCommitWarning } from './permissions-commit-warning'
 import { enableBranchProtectionWarningFlow } from '../../lib/feature-flag'
 
 const addAuthorIcon = new OcticonSymbol(
@@ -465,7 +465,7 @@ export class CommitMessage extends React.Component<
     }
 
     return (
-      <BranchPermissionWarning
+      <PermissionsCommitWarning
         currentBranch={branch}
         repositoryName={repository.name}
         hasWritePermissionForRepository={hasWritePermissionForRepository}

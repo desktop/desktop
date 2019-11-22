@@ -4,7 +4,7 @@ import { LinkButton } from '../lib/link-button'
 import { Dispatcher } from '../dispatcher'
 import { FoldoutType } from '../../lib/app-state'
 
-interface IBranchPermissionWarningProps {
+interface IPermissionsCommitWarningProps {
   readonly dispatcher: Dispatcher
   readonly currentBranch: string
   readonly repositoryName: string
@@ -15,8 +15,8 @@ interface IBranchPermissionWarningProps {
  *  either because its a *protected branch* or they don't have *write
  *  permission* for the repository.
  */
-export class BranchPermissionWarning extends React.Component<
-  IBranchPermissionWarningProps
+export class PermissionsCommitWarning extends React.Component<
+  IPermissionsCommitWarningProps
 > {
   private onSwitchBranch = () => {
     this.props.dispatcher.showFoldout({
