@@ -86,7 +86,14 @@ function createNoNewlineIndicatorWidget() {
   svgElem.setAttribute('aria-hidden', 'true')
   svgElem.setAttribute('version', '1.1')
   svgElem.setAttribute('viewBox', `0 0 ${w} ${h}`)
+  svgElem.setAttribute('aria-labelledby', 'no-newline-svg-title')
   svgElem.classList.add('no-newline')
+
+  const titleElem = document.createElementNS(xmlns, 'title')
+  titleElem.setAttribute('id', 'no-newline-svg-title')
+  titleElem.setAttribute('lang', 'en')
+  titleElem.textContent = 'No newline at end of file'
+  svgElem.appendChild(titleElem)
 
   const pathElem = document.createElementNS(xmlns, 'path')
   pathElem.setAttribute('d', d)
