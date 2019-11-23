@@ -54,12 +54,13 @@ describe('Tokenizer', () => {
       cloneURL,
       endpoint: 'https://api.github.com',
       fullName: `${login}/${name}`,
-      private: false,
+      isPrivate: false,
       fork: false,
       htmlURL: htmlURL,
       defaultBranch: 'master',
       hash: '',
       parent: null,
+      permissions: null,
     }
 
     const repository = new Repository(
