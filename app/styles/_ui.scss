@@ -53,7 +53,7 @@
 @import 'ui/call-to-action';
 @import 'ui/acknowledgements';
 @import 'ui/vertical-segmented-control';
-@import 'ui/blank-slate';
+@import 'ui/no-repositories';
 @import 'ui/terms-and-conditions';
 @import 'ui/ref';
 @import 'ui/monospaced';
@@ -72,3 +72,9 @@
 @import 'ui/cloneable-repository-filter-list';
 @import 'ui/stash-diff-viewer';
 @import 'ui/commit-details';
+@import 'ui/onboarding-tutorial/right-panel';
+@import 'ui/onboarding-tutorial/welcome';
+@import 'ui/onboarding-tutorial/nudge-arrow';
+@import 'ui/onboarding-tutorial/done';
+@import 'ui/suggested-actions/suggested-action';
+@import 'ui/suggested-actions/suggested-action-group';

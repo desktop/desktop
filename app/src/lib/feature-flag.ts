@@ -99,9 +99,17 @@ export function enableWSLDetection(): boolean {
  * flag is linked to to `enableBranchProtectionChecks()`.
  */
 export function enableBranchProtectionWarningFlow(): boolean {
-  return enableBranchProtectionChecks() && enableDevelopmentFeatures()
+  return enableBranchProtectionChecks() && enableBetaFeatures()
 }
 
 export function enableHideWhitespaceInDiffOption(): boolean {
-  return enableBetaFeatures()
+  return true
+}
+
+/**
+ * Should we enable the onboarding tutorial. This includes the initial
+ * configuration of the tutorial repo as well as the tutorial itself.
+ */
+export function enableTutorial(): boolean {
+  return true
 }

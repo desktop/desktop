@@ -1,8 +1,126 @@
 {
   "releases": {
-    "2.1.2-beta2": [
-      "[Fixed] Update embedded Git on Windows - #8133"
+    "2.2.4-beta1": [
+      "[New] Warn when committing to a protected branch - #7023",
+      "[Fixed] Prevent application crash when background process spawn fails - #8614",
+      "[Fixed] Handle multibyte characters in names - #8534",
+      "[Fixed] Don't dismiss dialogs when dragging from the dialog to the backdrop - #8544"
     ],
+    "2.2.3": [
+      "[Fixed] Prevent text overflow in crash dialog - #8542",
+      "[Fixed] Address warnings on macOS Catalina preventing app from opening after install - #8555",
+      "[Improved] Update to most recent gitignore templates - #8527"
+    ],
+    "2.2.3-beta1": [
+      "[Fixed] Prevent text overflow in crash dialog - #8542",
+      "[Fixed] Address warnings on macOS Catalina preventing app from opening after install - #8555",
+      "[Improved] Update to most recent gitignore templates - #8527"
+    ],
+    "2.2.3-test5": ["Testing entitlements + notarization for mac app"],
+    "2.2.3-test4": ["Testing entitlements + notarization for mac app"],
+    "2.2.3-test3": ["Testing entitlements + notarization for mac app"],
+    "2.2.3-test2": ["Testing notarization for mac app"],
+    "2.2.3-test1": ["Testing notarization for mac app"],
+    "2.2.2": [
+      "[Added] Onboarding tutorial animations help guide users to the next action - #8487",
+      "[Added] Prompt users to re-authenticate if they are unable to push changes to a workflow file - #8357",
+      "[Improved] Starting the tutorial is more prominent when getting started with GitHub Desktop - #8441",
+      "[Improved] Use a different editor if previously selected editor cannot be found - #8386"
+    ],
+    "2.2.2-beta3": [
+      "[Added] Helpful animations during the onboarding tutorial - #8487"
+    ],
+    "2.2.2-beta2": [
+      "[Improved] Use a different editor if previously selected editor cannot be found - #8386",
+      "[Improved] Starting the tutorial is more prominent when getting started with GitHub Desktop - #8441"
+    ],
+    "2.2.2-beta1": [
+      "[Added] Prompt users to re-authenticate if they are unable to push changes to a workflow file - #8357"
+    ],
+    "2.2.1": [
+      "[Fixed] Improperly formatted url pre-filled in \"Clone Repository\" dialog - #8394",
+      "[Fixed] VSCodium integration on macOS - #8424. Thanks @akim8!",
+      "[Fixed] Partially hidden icon in \"Open Pull Request\" button - #8410"
+    ],
+    "2.2.1-beta1": [
+      "[Fixed] Improperly formatted url pre-filled in \"Clone Repository\" dialog - #8394",
+      "[Fixed] VSCodium integration on macOS - #8424. Thanks @akim8!",
+      "[Fixed] Partially hidden icon in \"Open Pull Request\" button - #8410"
+    ],
+    "2.2.1-beta0": [],
+    "2.2.0": [
+      "[New] Interactive tutorial for new users to become productive using Git and GitHub more quickly - #8148 #8149",
+      "[Added] Support pushing workflow files for GitHub Actions to GitHub.com - #7079",
+      "[Added] Enforce web flow authentication for users who are part of orgs using single sign-on - #8327",
+      "[Added] Support CodeRunner as an external editor - #8091. Thanks @ns-ccollins!",
+      "[Added] Support VSCodium as an external editor - #8000. Thanks @Rexogamer!",
+      "[Fixed] Commit description shadow visibility updates when typing - #7994. Thanks @KarstenRa!",
+      "[Fixed] Commit summaries with comma delimited issues are not parsed - #8162. Thanks @say25!",
+      "[Fixed] File path truncation in merge conflicts dialog - #6666",
+      "[Fixed] Git configuration fields in onboarding were not pre-filled from user's profile - #8323",
+      "[Fixed] Keep conflicting untracked files when bringing changes to another branch - #8084 #8200",
+      "[Fixed] Make app's version selectable in \"About\" dialog - #8334",
+      "[Improved] Application menu bar is visible when no repositories have been added to the app - #8209",
+      "[Improved] Support stashing lots of untracked files on Windows - #8345",
+      "[Improved] Surface errors from branch creation to user - #8306 #5997 #8106"
+    ],
+    "2.2.0-beta3": [
+      "[Fixed] File path truncation in merge conflicts dialog - #6666",
+      "[Fixed] Support pushing workflow files for GitHub Actions to GitHub.com - #7079",
+      "[Fixed] Resume tutorial if new repo has been added - #8341",
+      "[Improved] Retain commit summary placeholder in tutorial repo - #8354",
+      "[Improved] Tutorial welcome design revisions - #8344",
+      "[Improved] Support stashing lots of untracked files on Windows - #8345",
+      "[Improved] Specific error message when tutorial creation fails due to repository already existing - #8351",
+      "[Improved] Tweak responsive styles for welcome pane - #8352",
+      "[Improved] Tutorial step instructions are more clear - #8374"
+    ],
+    "2.2.0-beta2": [
+      "[Added] Add \"Welcome\" and \"You're done!\" screens to onboarding tutorial - #8232",
+      "[Added] Button to exit and resume onboarding tutorial - #8231",
+      "[Added] Enforce web flow authentication for users who are part of orgs using single sign-on - #8327",
+      "[Fixed] Git configuration fields in onboarding were not pre-filled from user's profile - #8323",
+      "[Fixed] Make app's version selectable in \"About\" dialog - #8334",
+      "[Fixed] Keep conflicting untracked files when bringing changes to another branch - #8084 #8200",
+      "[Fixed] Mark pull request step in tutorial done more quickly - #8317",
+      "[Fixed] Prevent triggering multiple tutorial creation flows in parallel - #8288",
+      "[Fixed] Surface errors from branch creation to user - #8306 #5997 #8106",
+      "[Fixed] Reliably show \"Open editor\" button in tutorial after editor has been installed - #8315"
+    ],
+    "2.2.0-beta1": [
+      "[New] Interactive tutorial for new users to become productive using Git and GitHub more quickly - #8148 #8149",
+      "[Added] Support CodeRunner as an external editor - #8091. Thanks @ns-ccollins!",
+      "[Added] Support VSCodium as an external editor - #8000. Thanks @Rexogamer!",
+      "[Fixed] Commit summaries with comma delimited issues are parsed - #8162. Thanks @say25!",
+      "[Fixed] Commit description shadow visibility updates when typing - #7994. Thanks @KarstenRa!",
+      "[Improved] Application menu bar is visible when no repositories have been added to the app - #8209"
+    ],
+    "2.1.3": [
+      "[Fixed] Changes from remote branch erroneously displayed on corresponding branch on Desktop - #8155 #8167",
+      "[Fixed] Sign-in flow for Windows users not possible via OAuth - #8154 #8142"
+    ],
+    "2.1.3-beta1": [
+      "[Fixed] Changes from remote branch erroneously displayed on corresponding branch on Desktop - #8155 #8167",
+      "[Fixed] Sign-in flow for Windows users not possible via OAuth - #8154 #8142"
+    ],
+    "2.1.2": [
+      "[Added] Syntax highlighting support for 20 more programming languages - #7217. Thanks @KennethSweezy!",
+      "[Added] Kitty shell support for macOS - #5162",
+      "[Added] Atom editor support on Windows for beta and nightly channels - #8010. Thanks @Rexogamer!",
+      "[Fixed] File checkboxes and line selection in diffs are not disabled when committing - #3814 #5934. Thanks @HashimotoYT!",
+      "[Fixed] Small images are scaled down too much in two-up image rendering - #7520",
+      "[Fixed] Manual conflict resolution for binary files always chooses same version - #8059",
+      "[Fixed] Branch pruner errors on \"orphaned\" branches - #7983",
+      "[Fixed] Prevent CodeMirror search plugin from stealing registered global keyboard shortcuts - #8068",
+      "[Fixed] Update embedded Git on Windows to remove erroneous errors - #8133",
+      "[Fixed] Menu state not updated for macOS after performing some actions - #8055",
+      "[Fixed] Error message could appear outside the boundary of its container - #7988",
+      "[Fixed] Improved error handling when trying to rebase a ref that doesn't exist - #7881",
+      "[Improved] Expand hover area on repository list items - #7910. Thanks @say25!",
+      "[Improved] Always fast forward recent branches after fetch - #7761",
+      "[Improved] Ensure recent branches are updated during remote interactions - #8081"
+    ],
+    "2.1.2-beta2": ["[Fixed] Update embedded Git on Windows - #8133"],
     "2.1.2-beta1": [
       "[Added] Option to hide whitespace in historical commits - #8045. Thanks @say25!",
       "[Fixed] Small images are scaled down too much in two-up image rendering - #7520",
