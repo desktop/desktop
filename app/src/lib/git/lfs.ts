@@ -39,7 +39,6 @@ export async function isUsingLFS(repository: Repository): Promise<boolean> {
   return result.stdout.length > 0
 }
 
-<<<<<<< HEAD
 /**
  * Check if a provided file path is being tracked by Git LFS
  *
@@ -102,7 +101,6 @@ export async function filesNotTrackedByLFS(
   }
 
   return filesNotTrackedByGitLFS
-=======
 export async function getLFSPaths(
   repository: Repository
 ): Promise<ReadonlyArray<string>> {
@@ -118,5 +116,4 @@ export async function getLFSPaths(
     match = trackExpressionRegex.exec(stdout)
   }
   return matches
->>>>>>> origin/add-lfs-path-lookup
 }

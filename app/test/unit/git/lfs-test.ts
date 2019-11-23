@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import * as Path from 'path'
 import { writeFile } from 'fs-extra'
 
@@ -13,12 +12,10 @@ import {
   isTrackedByLFS,
   filesNotTrackedByLFS,
 } from '../../../src/lib/git/lfs'
-=======
 import { setupFixtureRepository } from '../../helpers/repositories'
 import { Repository } from '../../../src/models/repository'
 import { GitProcess } from 'dugite'
 import { isUsingLFS, getLFSPaths } from '../../../src/lib/git/lfs'
->>>>>>> origin/add-lfs-path-lookup
 
 describe('git-lfs', () => {
   describe('isUsingLFS', () => {
@@ -41,7 +38,6 @@ describe('git-lfs', () => {
     })
   })
 
-<<<<<<< HEAD
   describe('isTrackedByLFS', () => {
     it('returns false for repository not using LFS', async () => {
       const repository = await setupEmptyRepository()
@@ -128,7 +124,6 @@ describe('git-lfs', () => {
       ])
 
       expect(notFound).toHaveLength(0)
-=======
   describe('getLFSPaths', () => {
     it('returns empty array for repository not using LFS', async () => {
       const path = await setupFixtureRepository('test-repo')
@@ -152,7 +147,6 @@ describe('git-lfs', () => {
       expect(paths).toContain('*.psd')
       expect(paths).toContain('*.png')
       expect(paths).toContain('app/*.iso')
->>>>>>> origin/add-lfs-path-lookup
     })
   })
 })
