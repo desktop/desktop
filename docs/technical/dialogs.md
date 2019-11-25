@@ -14,13 +14,23 @@ are constrained to within the dialog itself.
     ...
   </DialogContent>
   <DialogFooter>
-    <ButtonGroup>
-      <Button type='submit'>Ok</Button>
-      <Button>Cancel</Button>
-    </ButtonGroup>
+    <OkCancelButtonGroup />
   </DialogFooter>
 </Dialog>
 ```
+
+## Footer
+
+A typical dialog footer will normally be made up of two buttons, an affirmitive/Ok
+button and a dismissal/Cancel button. The ordering of these two buttons is
+platform-specific, see our [dedicated documentation about button order](button-order.md)
+for the specifics. For this reason we have a dedicated component called
+`OkCancelButtonGroup` which is used in the majority of our dialogs and renders
+the buttons in the expected order for the platform.
+
+For dialogs that only need a single button it's possible to use the `OkCancelButtonGroup`
+but for simple dialogs it's probably better to replace the `DialogFooter` component
+with the `DefaultDialogFooter` component which includes a single close button.
 
 ## Errors
 
@@ -41,10 +51,7 @@ Dialog itself.
     ...
   </DialogContent>
   <DialogFooter>
-    <ButtonGroup>
-      <Button type='submit'>Ok</Button>
-      <Button>Cancel</Button>
-    </ButtonGroup>
+    <OkCancelButtonGroup />
   </DialogFooter>
 </Dialog>
 ```
@@ -71,10 +78,7 @@ dialog/form/row styles in a more straightforward way.
   <TabBar>...</TabBar>
   {this.renderActiveTab()}
   <DialogFooter>
-    <ButtonGroup>
-      <Button type='submit'>Ok</Button>
-      <Button>Cancel</Button>
-    </ButtonGroup>
+    <OkCancelButtonGroup />
   </DialogFooter>
 </Dialog>
 
@@ -95,10 +99,7 @@ dialog/form/row styles in a more straightforward way.
     {this.renderActiveTab()}
   </DialogContent>
   <DialogFooter>
-    <ButtonGroup>
-      <Button type='submit'>Ok</Button>
-      <Button>Cancel</Button>
-    </ButtonGroup>
+    <OkCancelButtonGroup />
   </DialogFooter>
 </Dialog>
 

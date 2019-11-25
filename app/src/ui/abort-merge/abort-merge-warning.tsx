@@ -1,11 +1,9 @@
 import * as React from 'react'
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Dispatcher } from '../dispatcher'
 import { PopupType } from '../../models/popup'
 import { Repository } from '../../models/repository'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IAbortMergeWarningProps {
   readonly dispatcher: Dispatcher
@@ -14,10 +12,6 @@ interface IAbortMergeWarningProps {
   readonly ourBranch: string
   readonly theirBranch?: string
 }
-
-const titleString = 'Confirm abort merge'
-const cancelButtonString = 'Cancel'
-const abortButtonString = 'Abort merge'
 
 /**
  * Modal to tell the user their merge encountered conflicts
@@ -83,20 +77,19 @@ export class AbortMergeWarning extends React.Component<
     return (
       <Dialog
         id="abort-merge-warning"
-        title={titleString}
-        dismissable={false}
+        title={__DARWIN__ ? 'Confirm Abort Merge' : 'Confirm abort merge'}
         onDismissed={this.onCancel}
         onSubmit={this.onSubmit}
+        type="warning"
       >
-        <DialogContent className="content-wrapper">
-          <Octicon symbol={OcticonSymbol.alert} />
+        <DialogContent>
           {this.renderTextContent(this.props.ourBranch, this.props.theirBranch)}
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup>
-            <Button type="submit">{abortButtonString}</Button>
-            <Button onClick={this.onCancel}>{cancelButtonString}</Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            destructive={true}
+            okButtonText={__DARWIN__ ? 'Abort Merge' : 'Abort merge'}
+          />
         </DialogFooter>
       </Dialog>
     )
