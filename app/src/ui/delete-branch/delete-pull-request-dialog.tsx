@@ -35,7 +35,8 @@ export class DeletePullRequest extends React.Component<IDeleteBranchProps, {}> {
             <LinkButton onClick={this.openPullRequest}>
               #{this.props.pullRequest.pullRequestNumber}
             </LinkButton>{' '}
-            has been merged, you can also go to GitHub.com to delete the remote branch.
+            has been merged, you can also go to GitHub.com to delete the remote
+            branch.
           </p>
         </DialogContent>
         <DialogFooter>
