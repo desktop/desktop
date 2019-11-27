@@ -10,7 +10,8 @@ interface IOkCancelButtonGroupProps {
 
   /**
    * Does the affirmitive (Ok) button perform a destructive action? This controls
-   * whether the Ok button, or the Cancel button will be the default button.
+   * whether the Ok button, or the Cancel button will be the default button,
+   * defaults to false.
    */
   readonly destructive?: boolean
 
