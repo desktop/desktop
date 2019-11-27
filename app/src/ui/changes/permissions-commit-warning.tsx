@@ -9,11 +9,14 @@ interface IPermissionsCommitWarningProps {
   readonly currentBranch: string
   readonly repositoryName: string
   readonly hasWritePermissionForRepository: boolean
+  readonly currentBranchProtected: boolean
 }
 
 /** A warning for the user if they won't be able to push to a branch,
  *  either because its a *protected branch* or they don't have *write
  *  permission* for the repository.
+ *
+ * (If neither of those conditions are met, this component renders nothing.)
  */
 export class PermissionsCommitWarning extends React.Component<
   IPermissionsCommitWarningProps
@@ -35,6 +38,13 @@ export class PermissionsCommitWarning extends React.Component<
   }
 
   public render() {
+    if (
+      this.props.hasWritePermissionForRepository &&
+      !this.props.currentBranchProtected
+    ) {
+      return null
+    }
+
     return (
       <div
         id="permissions-commit-warning"
@@ -43,24 +53,24 @@ export class PermissionsCommitWarning extends React.Component<
         <div className="warning-icon-container">
           <Octicon className="warning-icon" symbol={OcticonSymbol.alert} />
         </div>
-        {this.renderWarningMesage()}
+        <div className="warning-message">{this.renderWarningMesage()}</div>
       </div>
     )
   }
 
   private renderWarningMesage() {
-    return (
-      <div className="warning-message">
-        {this.props.hasWritePermissionForRepository ? (
-          <ProtectedBranchMessage
-            currentBranch={this.props.currentBranch}
-            onSwitchBranch={this.onSwitchBranch}
-          />
-        ) : (
-          <ReadonlyRepoMessage name={this.props.repositoryName} />
-        )}
-      </div>
-    )
+    if (!this.props.hasWritePermissionForRepository) {
+      return <ReadonlyRepoMessage name={this.props.repositoryName} />
+    }
+    if (this.props.currentBranchProtected) {
+      return (
+        <ProtectedBranchMessage
+          currentBranch={this.props.currentBranch}
+          onSwitchBranch={this.onSwitchBranch}
+        />
+      )
+    }
+    return <></>
   }
 }
 

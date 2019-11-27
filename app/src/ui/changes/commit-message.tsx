@@ -448,7 +448,7 @@ export class CommitMessage extends React.Component<
     return <div className={className}>{this.renderCoAuthorToggleButton()}</div>
   }
 
-  private renderProtectedBranchWarning = (branch: string) => {
+  private renderPermissionsCommitWarning = (branch: string) => {
     if (!enableBranchProtectionWarningFlow()) {
       return null
     }
@@ -460,15 +460,12 @@ export class CommitMessage extends React.Component<
       repository,
     } = this.props
 
-    if (hasWritePermissionForRepository && !currentBranchProtected) {
-      return null
-    }
-
     return (
       <PermissionsCommitWarning
         currentBranch={branch}
         repositoryName={repository.name}
         hasWritePermissionForRepository={hasWritePermissionForRepository}
+        currentBranchProtected={currentBranchProtected}
         dispatcher={dispatcher}
       />
     )
@@ -540,7 +537,7 @@ export class CommitMessage extends React.Component<
 
         {this.renderCoAuthorInput()}
 
-        {this.renderProtectedBranchWarning(branchName)}
+        {this.renderPermissionsCommitWarning(branchName)}
 
         <Button
           type="submit"
