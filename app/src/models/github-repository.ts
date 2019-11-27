@@ -16,6 +16,7 @@ export class GitHubRepository {
     public readonly htmlURL: string | null = null,
     public readonly defaultBranch: string | null = 'master',
     public readonly cloneURL: string | null = null,
+    /** The user's permissions for this github repository. `null` if unknown. */
     public readonly permissions: 'read' | 'write' | 'admin' | null = null,
     public readonly parent: GitHubRepository | null = null
   ) {}
@@ -45,4 +46,18 @@ export class GitHubRepository {
     }+${this.name}+${this.htmlURL}+${this.owner.hash}+${this.parent &&
       this.parent.hash}`
   }
+}
+
+/**
+ * Can the user push to this GitHub repository?
+ *
+ * (If their permissions are unknown, we assume they can.)
+ */
+export function hasWritePermission(
+  gitHubRepository: GitHubRepository
+): boolean {
+  return (
+    gitHubRepository.permissions === null ||
+    gitHubRepository.permissions !== 'read'
+  )
 }

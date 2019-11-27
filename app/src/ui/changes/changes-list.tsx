@@ -38,6 +38,7 @@ import { enableStashing } from '../../lib/feature-flag'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { IStashEntry } from '../../models/stash-entry'
 import * as classNames from 'classnames'
+import { hasWritePermission } from '../../models/github-repository'
 
 const RowHeight = 29
 const StashIcon = new OcticonSymbol(
@@ -612,11 +613,11 @@ export class ChangesList extends React.Component<
     const prepopulateCommitSummary =
       filesSelected.length === 1 && !repository.isTutorialRepository
 
+    // if this is not a github repo, we don't want to
+    // restrict what the user can do at all
     const hasWritePermissionForRepository =
-      this.props.repository.gitHubRepository &&
-      this.props.repository.gitHubRepository.permissions === 'read'
-        ? false
-        : true
+      this.props.repository.gitHubRepository === null ||
+      hasWritePermission(this.props.repository.gitHubRepository)
 
     return (
       <CommitMessage
