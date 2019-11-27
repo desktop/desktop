@@ -272,13 +272,13 @@ export class BranchesContainer extends React.Component<
   }
 
   private onCreateBranchWithName = (name: string) => {
-    const { repository, handleProtectedBranchWarning } = this.props
+    const { repository, currentBranchProtected } = this.props
 
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
     this.props.dispatcher.showPopup({
       type: PopupType.CreateBranch,
       repository,
-      handleProtectedBranchWarning,
+      currentBranchProtected,
       initialName: name,
     })
   }

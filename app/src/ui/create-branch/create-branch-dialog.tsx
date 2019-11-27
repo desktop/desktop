@@ -41,6 +41,8 @@ interface ICreateBranchProps {
 
   /** Was this component launched from the "Protected Branch" warning message? */
   readonly handleProtectedBranchWarning?: boolean
+
+  readonly currentBranchProtected: boolean
 }
 
 interface ICreateBranchState {
@@ -283,11 +285,7 @@ export class CreateBranch extends React.Component<
 
     let startPoint: string | null = null
 
-    const {
-      defaultBranch,
-      handleProtectedBranchWarning,
-      repository,
-    } = this.props
+    const { defaultBranch, currentBranchProtected, repository } = this.props
 
     if (this.state.startPoint === StartPoint.DefaultBranch) {
       // This really shouldn't happen, we take all kinds of precautions
@@ -303,9 +301,8 @@ export class CreateBranch extends React.Component<
     }
 
     if (name.length > 0) {
-      // if the user arrived at this dialog from the Protected Branch flow
-      // we should bypass the "Switch Branch" flow and get out of the user's way
-      const strategy: UncommittedChangesStrategy = handleProtectedBranchWarning
+      // never prompt to stash changes if someone is switching away from a protected branch
+      const strategy: UncommittedChangesStrategy = currentBranchProtected
         ? {
             kind: UncommittedChangesStrategyKind.MoveToNewBranch,
             transientStashEntry: null,

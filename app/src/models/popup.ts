@@ -93,6 +93,8 @@ export type Popup =
        */
       handleProtectedBranchWarning?: boolean
 
+      currentBranchProtected: boolean
+
       initialName?: string
     }
   | { type: PopupType.SignIn }
