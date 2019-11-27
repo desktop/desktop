@@ -33,7 +33,7 @@ const repository = new Repository(
       endpoint: getDotComAPIEndpoint(),
       hash: '',
     },
-    private: false,
+    isPrivate: false,
     parent: null,
     htmlURL: 'https://github.com/desktop/desktop',
     defaultBranch: 'master',
@@ -42,6 +42,7 @@ const repository = new Repository(
     fullName: 'desktop/desktop',
     fork: false,
     hash: '',
+    permissions: null,
   },
   true
 )
