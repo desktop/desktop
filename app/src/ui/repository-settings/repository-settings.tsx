@@ -7,11 +7,10 @@ import { IRemote } from '../../models/remote'
 import { Dispatcher } from '../dispatcher'
 import { PopupType } from '../../models/popup'
 import { Repository } from '../../models/repository'
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogError, DialogFooter } from '../dialog'
 import { NoRemote } from './no-remote'
 import { readGitIgnoreAtRoot } from '../../lib/git'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IRepositorySettingsProps {
   readonly dispatcher: Dispatcher
@@ -112,10 +111,7 @@ export class RepositorySettings extends React.Component<
 
     return (
       <DialogFooter>
-        <ButtonGroup>
-          <Button type="submit">Save</Button>
-          <Button onClick={this.props.onDismissed}>Cancel</Button>
-        </ButtonGroup>
+        <OkCancelButtonGroup okButtonText="Save" />
       </DialogFooter>
     )
   }

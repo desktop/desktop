@@ -38,6 +38,7 @@ import { enableStashing } from '../../lib/feature-flag'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { IStashEntry } from '../../models/stash-entry'
 import * as classNames from 'classnames'
+import { hasWritePermission } from '../../models/github-repository'
 
 const RowHeight = 29
 const StashIcon = new OcticonSymbol(
@@ -168,6 +169,12 @@ interface IChangesListProps {
   readonly stashEntry: IStashEntry | null
 
   readonly isShowingStashEntry: boolean
+
+  /**
+   * Whether we should show the onboarding tutorial nudge
+   * arrow pointing at the commit summary box
+   */
+  readonly shouldNudgeToCommit: boolean
 }
 
 interface IChangesState {
@@ -606,6 +613,12 @@ export class ChangesList extends React.Component<
     const prepopulateCommitSummary =
       filesSelected.length === 1 && !repository.isTutorialRepository
 
+    // if this is not a github repo, we don't want to
+    // restrict what the user can do at all
+    const hasWritePermissionForRepository =
+      this.props.repository.gitHubRepository === null ||
+      hasWritePermission(this.props.repository.gitHubRepository)
+
     return (
       <CommitMessage
         onCreateCommit={this.props.onCreateCommit}
@@ -628,6 +641,8 @@ export class ChangesList extends React.Component<
         prepopulateCommitSummary={prepopulateCommitSummary}
         key={repository.id}
         currentBranchProtected={currentBranchProtected}
+        hasWritePermissionForRepository={hasWritePermissionForRepository}
+        shouldNudge={this.props.shouldNudgeToCommit}
       />
     )
   }

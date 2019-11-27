@@ -2,9 +2,9 @@ import * as React from 'react'
 import * as classNames from 'classnames'
 import { Button } from '../lib/button'
 
-interface IBlankSlateActionProps {
+interface ISuggestedActionProps {
   /**
-   * The title, or "header" text for a blank slate
+   * The title, or "header" text for a suggested
    * action.
    */
   readonly title: string
@@ -18,9 +18,9 @@ interface IBlankSlateActionProps {
   /**
    * A text or set of elements used to present information
    * to the user about how and where to access the action
-   * outside of the blank slate action.
+   * outside of the suggested action.
    */
-  readonly discoverabilityContent: string | JSX.Element
+  readonly discoverabilityContent?: string | JSX.Element
 
   /**
    * The text, or "label", for the action button.
@@ -47,21 +47,24 @@ interface IBlankSlateActionProps {
    * clickable.
    */
   readonly disabled?: boolean
+
+  /**
+   * An image to illustrate what this component's action does
+   */
+  readonly image?: JSX.Element
 }
 
 /**
- * A small container component for rendering an "action" in a blank
- * slate view. An action is usally contained within an action group
- * which visually connects one or more actions. An action component
- * has a title, a description, and a button label.
+ * A small container component for rendering a "suggsted action",
+ * which was first used in the "No Changes" view. An action is
+ * usally contained within an `SuggestedActionGroup`, which visually
+ * connects one or more actions. An action component has a title,
+ * a description, a button label, and an optional image.
  */
-export class BlankslateAction extends React.Component<
-  IBlankSlateActionProps,
-  {}
-> {
+export class SuggestedAction extends React.Component<ISuggestedActionProps> {
   public render() {
     const primary = this.props.type === 'primary'
-    const cn = classNames('blankslate-action', { primary })
+    const cn = classNames('suggested-action', { primary })
     const description =
       this.props.description === undefined ? (
         undefined
@@ -70,10 +73,17 @@ export class BlankslateAction extends React.Component<
       )
     return (
       <div className={cn}>
+        {this.props.image && (
+          <div className="image-wrapper">{this.props.image}</div>
+        )}
         <div className="text-wrapper">
           <h2>{this.props.title}</h2>
           {description}
-          <p className="discoverability">{this.props.discoverabilityContent}</p>
+          {this.props.discoverabilityContent && (
+            <p className="discoverability">
+              {this.props.discoverabilityContent}
+            </p>
+          )}
         </div>
         <Button
           type={primary ? 'submit' : undefined}
