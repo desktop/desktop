@@ -86,13 +86,6 @@ export type Popup =
   | {
       type: PopupType.CreateBranch
       repository: Repository
-
-      /**
-       * A flag to indicate the user clicked the "switch branch" link when they
-       * saw the prompt about the current branch being protected.
-       */
-      handleProtectedBranchWarning?: boolean
-
       currentBranchProtected: boolean
 
       initialName?: string

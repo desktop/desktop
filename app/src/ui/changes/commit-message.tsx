@@ -484,7 +484,6 @@ export class CommitMessage extends React.Component<
   private onSwitchBranch = () => {
     this.props.dispatcher.showFoldout({
       type: FoldoutType.Branch,
-      handleProtectedBranchWarning: true,
     })
   }
 

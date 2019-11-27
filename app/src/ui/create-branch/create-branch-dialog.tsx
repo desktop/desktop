@@ -38,10 +38,6 @@ interface ICreateBranchProps {
   readonly defaultBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
   readonly initialName: string
-
-  /** Was this component launched from the "Protected Branch" warning message? */
-  readonly handleProtectedBranchWarning?: boolean
-
   readonly currentBranchProtected: boolean
 }
 

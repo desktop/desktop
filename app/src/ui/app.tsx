@@ -1442,7 +1442,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
             initialName={popup.initialName || ''}
-            handleProtectedBranchWarning={popup.handleProtectedBranchWarning}
             currentBranchProtected={currentBranchProtected}
           />
         )
@@ -2316,13 +2315,8 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const currentFoldout = this.state.currentFoldout
 
-    let isOpen = false
-    let handleProtectedBranchWarning: boolean | undefined
-
-    if (currentFoldout !== null && currentFoldout.type === FoldoutType.Branch) {
-      isOpen = true
-      handleProtectedBranchWarning = currentFoldout.handleProtectedBranchWarning
-    }
+    const isOpen =
+      currentFoldout !== null && currentFoldout.type === FoldoutType.Branch
 
     const repository = selection.repository
     const branchesState = selection.state.branchesState
@@ -2338,7 +2332,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         pullRequests={branchesState.openPullRequests}
         currentPullRequest={branchesState.currentPullRequest}
         isLoadingPullRequests={branchesState.isLoadingPullRequests}
-        handleProtectedBranchWarning={handleProtectedBranchWarning}
         shouldNudge={
           this.state.currentOnboardingTutorialStep === TutorialStep.CreateBranch
         }
