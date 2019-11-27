@@ -1,10 +1,8 @@
 import * as Path from 'path'
 import * as React from 'react'
+
 import { remote } from 'electron'
 import { readdir } from 'fs-extra'
-
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Dispatcher } from '../dispatcher'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Account } from '../../models/account'
@@ -20,12 +18,12 @@ import { TabBar } from '../tab-bar'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloneGenericRepository } from './clone-generic-repository'
 import { CloneGithubRepository } from './clone-github-repository'
-
 import { assertNever } from '../../lib/fatal-error'
 import { CallToAction } from '../lib/call-to-action'
 import { IAccountRepositories } from '../../lib/stores/api-repositories-store'
 import { merge } from '../../lib/merge'
 import { ClickSource } from '../lib/list'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -255,12 +253,7 @@ export class CloneRepository extends React.Component<
 
     return (
       <DialogFooter>
-        <ButtonGroup>
-          <Button disabled={disabled} type="submit">
-            Clone
-          </Button>
-          <Button onClick={this.props.onDismissed}>Cancel</Button>
-        </ButtonGroup>
+        <OkCancelButtonGroup okButtonText="Clone" okButtonDisabled={disabled} />
       </DialogFooter>
     )
   }
