@@ -21,6 +21,8 @@ export interface IDatabaseGitHubRepository {
 
   /** The last time a prune was attempted on the repository */
   readonly lastPruneDate: number | null
+
+  readonly permissions?: 'read' | 'write' | 'admin' | null
 }
 
 /** A record to track the protected branch information for a GitHub repository */

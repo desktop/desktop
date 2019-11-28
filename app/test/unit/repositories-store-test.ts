@@ -50,6 +50,11 @@ describe('RepositoriesStore', () => {
       default_branch: 'master',
       parent: null,
       pushed_at: '1995-12-17T03:24:00',
+      permissions: {
+        pull: true,
+        push: true,
+        admin: false,
+      },
     }
 
     it('adds a new GitHub repository', async () => {
@@ -65,7 +70,7 @@ describe('RepositoriesStore', () => {
 
       const repositories = await repositoriesStore!.getAll()
       const repo = repositories[0]
-      expect(repo.gitHubRepository!.private).toBe(true)
+      expect(repo.gitHubRepository!.isPrivate).toBe(true)
       expect(repo.gitHubRepository!.fork).toBe(false)
       expect(repo.gitHubRepository!.htmlURL).toBe(
         'https://github.com/my-user/my-repo'
