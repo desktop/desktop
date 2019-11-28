@@ -143,7 +143,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
         <p>
           The diff is too large to be displayed by default.
           <br />
-          You can try to show it anyways, but performance may be negatively
+          You can try to show it anyway, but performance may be negatively
           impacted.
         </p>
         <Button onClick={this.showLargeDiff}>

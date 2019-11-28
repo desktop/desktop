@@ -104,6 +104,18 @@ export interface IAPIRepository {
   readonly default_branch: string
   readonly pushed_at: string
   readonly parent: IAPIRepository | null
+  readonly permissions: IAPIRepositoryPermissions
+}
+
+/*
+ * Information about how the user is permitted to interact with a repository.
+ */
+export interface IAPIRepositoryPermissions {
+  readonly admin: boolean
+  /* aka 'write' */
+  readonly push: boolean
+  /* aka 'read' */
+  readonly pull: boolean
 }
 
 /**

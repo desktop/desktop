@@ -18,13 +18,14 @@ function getTestRepository(
     },
     endpoint: 'https://api.github.com',
     fullName: 'shiftkey/some-repo',
-    private: isPrivate,
+    isPrivate: isPrivate,
     fork: isFork,
     cloneURL: 'https://github.com/shiftkey/some-repo.git',
     htmlURL: 'https://github.com/shiftkey/some-repo',
     defaultBranch: 'master',
     hash: '',
     parent: null,
+    permissions: null,
   }
 }
 
