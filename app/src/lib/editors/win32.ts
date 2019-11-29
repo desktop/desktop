@@ -312,6 +312,12 @@ function getRegistryKeys(
           subKey:
             'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\WebStorm 2019.2.4',
         },
+        // Webstorm 2019.3
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\WebStorm 2019.3',
+        },
       ]
     case ExternalEditor.Phpstorm:
       return [
@@ -326,6 +332,12 @@ function getRegistryKeys(
           key: HKEY.HKEY_LOCAL_MACHINE,
           subKey:
             'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\PhpStorm 2019.2.4',
+        },
+        // PhpStorm 2019.3
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\PhpStorm 2019.3',
         },
       ]
 
