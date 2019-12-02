@@ -51,6 +51,8 @@ export enum PopupType {
   ConfirmOverwriteStash,
   ConfirmDiscardStash,
   CreateTutorialRepository,
+  ConfirmExitTutorial,
+  PushRejectedDueToMissingWorkflowScope,
 }
 
 export type Popup =
@@ -200,4 +202,12 @@ export type Popup =
   | {
       type: PopupType.CreateTutorialRepository
       account: Account
+    }
+  | {
+      type: PopupType.ConfirmExitTutorial
+    }
+  | {
+      type: PopupType.PushRejectedDueToMissingWorkflowScope
+      rejectedPath: string
+      repository: Repository
     }

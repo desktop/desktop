@@ -99,11 +99,11 @@ export function enableWSLDetection(): boolean {
  * flag is linked to to `enableBranchProtectionChecks()`.
  */
 export function enableBranchProtectionWarningFlow(): boolean {
-  return enableBranchProtectionChecks() && enableDevelopmentFeatures()
+  return enableBranchProtectionChecks() && enableBetaFeatures()
 }
 
 export function enableHideWhitespaceInDiffOption(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /**
@@ -111,5 +111,5 @@ export function enableHideWhitespaceInDiffOption(): boolean {
  * configuration of the tutorial repo as well as the tutorial itself.
  */
 export function enableTutorial(): boolean {
-  return enableDevelopmentFeatures()
+  return true
 }

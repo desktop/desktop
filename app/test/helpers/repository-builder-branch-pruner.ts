@@ -82,6 +82,11 @@ export async function setupRepository(
       default_branch: defaultBranchName,
       pushed_at: 'string',
       parent: null,
+      permissions: {
+        pull: true,
+        push: true,
+        admin: false,
+      },
     }
 
     repository = await repositoriesStore.updateGitHubRepository(
@@ -92,8 +97,10 @@ export async function setupRepository(
   }
   await primeCaches(repository, repositoriesStateCache)
 
-  lastPruneDate &&
+  if (lastPruneDate) {
     repositoriesStore.updateLastPruneDate(repository, lastPruneDate.getTime())
+  }
+
   return repository
 }
 

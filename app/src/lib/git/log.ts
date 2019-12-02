@@ -131,13 +131,13 @@ export async function getCommits(
     const author = CommitIdentity.parseIdentity(authorIdentity)
 
     if (!author) {
-      throw new Error(`Couldn't parse author identity ${authorIdentity}`)
+      throw new Error(`Couldn't parse author identity for '${shortSha}'`)
     }
 
     const committer = CommitIdentity.parseIdentity(committerIdentity)
 
     if (!committer) {
-      throw new Error(`Couldn't parse committer identity ${committerIdentity}`)
+      throw new Error(`Couldn't parse committer identity for '${shortSha}'`)
     }
 
     return new Commit(

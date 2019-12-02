@@ -69,7 +69,7 @@ export class RepositoriesStore extends BaseStore {
     const owner = await this.db.owners.get(dbRepo.ownerID)
 
     if (owner == null) {
-      throw new Error(`Couldn't find the owner for ${dbRepo.name}`)
+      throw new Error(`Couldn't find repository owner ${dbRepo.ownerID}`)
     }
 
     let parent: GitHubRepository | null = null
@@ -85,6 +85,7 @@ export class RepositoriesStore extends BaseStore {
       dbRepo.htmlURL,
       dbRepo.defaultBranch,
       dbRepo.cloneURL,
+      dbRepo.permissions,
       parent
     )
   }
@@ -378,6 +379,13 @@ export class RepositoriesStore extends BaseStore {
 
     const login = gitHubRepository.owner.login.toLowerCase()
     const owner = await this.putOwner(endpoint, login)
+    const permissions = gitHubRepository.permissions.admin
+      ? 'admin'
+      : gitHubRepository.permissions.push
+      ? 'write'
+      : gitHubRepository.permissions.pull
+      ? 'read'
+      : null
 
     const existingRepo = await this.db.gitHubRepositories
       .where('[ownerID+name]')
@@ -393,6 +401,7 @@ export class RepositoriesStore extends BaseStore {
       cloneURL: gitHubRepository.clone_url,
       parentID: parent ? parent.dbID : null,
       lastPruneDate: null,
+      permissions,
     }
     if (existingRepo) {
       updatedGitHubRepo = { ...updatedGitHubRepo, id: existingRepo.id }
@@ -407,6 +416,7 @@ export class RepositoriesStore extends BaseStore {
       updatedGitHubRepo.htmlURL,
       updatedGitHubRepo.defaultBranch,
       updatedGitHubRepo.cloneURL,
+      updatedGitHubRepo.permissions,
       parent
     )
   }
@@ -637,41 +647,6 @@ export class RepositoriesStore extends BaseStore {
     }
 
     return branchProtectionsFound
-  }
-
-  /**
-   * Check if the given branch for the repository is protected through the
-   * GitHub API.
-   */
-  public async isBranchProtectedOnRemote(
-    gitHubRepository: GitHubRepository,
-    branchName: string
-  ): Promise<boolean> {
-    if (gitHubRepository.dbID === null) {
-      return fatalError(
-        'unable to get protected branches, GitHub repository has a null dbID'
-      )
-    }
-
-    const { dbID } = gitHubRepository
-    const key = getKey(dbID, branchName)
-
-    const cachedProtectionValue = this.protectionEnabledForBranchCache.get(key)
-    if (cachedProtectionValue === true) {
-      return cachedProtectionValue
-    }
-
-    const databaseValue = await this.db.protectedBranches.get([
-      dbID,
-      branchName,
-    ])
-
-    // if no row found, this means no protection is found for the branch
-    const value = databaseValue !== undefined
-
-    this.protectionEnabledForBranchCache.set(key, value)
-
-    return value
   }
 }
 

@@ -9,11 +9,14 @@ import { IMatches } from '../../lib/fuzzy-find'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 import { getCommitsInRange, getMergeBase } from '../../lib/git'
 
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { ActionStatusIcon } from '../lib/action-status-icon'
 
-import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  OkCancelButtonGroup,
+} from '../dialog'
 import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
 import { Dispatcher } from '../dispatcher'
 import { promiseWithMinimumTimeout } from '../../lib/promise'
@@ -245,11 +248,12 @@ export class ChooseBranchDialog extends React.Component<
         </DialogContent>
         <DialogFooter>
           {this.renderRebaseStatus()}
-          <ButtonGroup>
-            <Button type="submit" disabled={disabled} tooltip={tooltip}>
-              Start rebase
-            </Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            okButtonText="Start rebase"
+            okButtonDisabled={disabled}
+            okButtonTitle={tooltip}
+            cancelButtonVisible={false}
+          />
         </DialogFooter>
       </Dialog>
     )

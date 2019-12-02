@@ -240,6 +240,14 @@ import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
 import { findBranchesForFastForward } from './helpers/find-branches-for-fast-forward'
+import {
+  TutorialStep,
+  orderedTutorialSteps,
+  isValidTutorialStep,
+} from '../../models/tutorial-step'
+import { OnboardingTutorialAssessor } from './helpers/tutorial-assessor'
+import { getUntrackedFiles } from '../status'
+import { isBranchPushable } from '../helpers/push-control'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -350,7 +358,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
   private hideWhitespaceInDiff: boolean = hideWhitespaceInDiffDefault
 
-  private selectedExternalEditor?: ExternalEditor
+  private selectedExternalEditor: ExternalEditor | null = null
 
   private resolvedExternalEditor: ExternalEditor | null = null
 
@@ -374,6 +382,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private automaticallySwitchTheme = false
 
   private hasUserViewedStash = false
+
+  /** Which step the user needs to complete next in the onboarding tutorial */
+  private currentOnboardingTutorialStep = TutorialStep.NotApplicable
+  private readonly tutorialAssessor: OnboardingTutorialAssessor
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
@@ -406,6 +418,88 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.wireupIpcEventHandlers(window)
     this.wireupStoreEventHandlers()
     getAppMenu()
+    this.tutorialAssessor = new OnboardingTutorialAssessor(
+      this.getResolvedExternalEditor
+    )
+  }
+
+  /** Figure out what step of the tutorial the user needs to do next */
+  private async updateCurrentTutorialStep(
+    repository: Repository
+  ): Promise<void> {
+    const currentStep = await this.tutorialAssessor.getCurrentStep(
+      repository.isTutorialRepository,
+      this.repositoryStateCache.get(repository)
+    )
+    log.info(`Current tutorial step is ${currentStep}`)
+    // only emit an update if its changed
+    if (currentStep !== this.currentOnboardingTutorialStep) {
+      this.currentOnboardingTutorialStep = currentStep
+      this.recordTutorialStepCompleted(currentStep)
+      this.emitUpdate()
+    }
+  }
+
+  private recordTutorialStepCompleted(step: TutorialStep): void {
+    if (!isValidTutorialStep(step)) {
+      return
+    }
+
+    this.statsStore.recordHighestTutorialStepCompleted(
+      orderedTutorialSteps.indexOf(step)
+    )
+
+    switch (step) {
+      case TutorialStep.PickEditor:
+        // don't need to record anything for the first step
+        break
+      case TutorialStep.CreateBranch:
+        this.statsStore.recordTutorialEditorInstalled()
+        break
+      case TutorialStep.EditFile:
+        this.statsStore.recordTutorialBranchCreated()
+        break
+      case TutorialStep.MakeCommit:
+        this.statsStore.recordTutorialFileEdited()
+        break
+      case TutorialStep.PushBranch:
+        this.statsStore.recordTutorialCommitCreated()
+        break
+      case TutorialStep.OpenPullRequest:
+        this.statsStore.recordTutorialBranchPushed()
+        break
+      case TutorialStep.AllDone:
+        this.statsStore.recordTutorialPrCreated()
+        this.statsStore.recordTutorialCompleted()
+        break
+      default:
+        assertNever(step, 'Unaccounted for step type')
+    }
+  }
+
+  public async _resumeTutorial(repository: Repository) {
+    this.tutorialAssessor.resumeTutorial()
+    await this.updateCurrentTutorialStep(repository)
+  }
+
+  public async _pauseTutorial(repository: Repository) {
+    this.tutorialAssessor.pauseTutorial()
+    await this.updateCurrentTutorialStep(repository)
+  }
+
+  /** Call via `Dispatcher` when the user opts to skip the pick editor step of the onboarding tutorial */
+  public async _skipPickEditorTutorialStep(repository: Repository) {
+    this.tutorialAssessor.skipPickEditor()
+    await this.updateCurrentTutorialStep(repository)
+  }
+
+  /**
+   * Call  via `Dispatcher` when the user has either created a pull request or opts to
+   * skip the create pull request step of the onboarding tutorial
+   */
+  public async _markPullRequestTutorialStepAsComplete(repository: Repository) {
+    this.tutorialAssessor.markPullRequestTutorialStepAsComplete()
+    await this.updateCurrentTutorialStep(repository)
   }
 
   private wireupIpcEventHandlers(window: Electron.BrowserWindow) {
@@ -617,6 +711,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       automaticallySwitchTheme: this.automaticallySwitchTheme,
       apiRepositories: this.apiRepositoriesStore.getState(),
       optOutOfUsageTracking: this.statsStore.getOptOut(),
+      currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
     }
   }
 
@@ -731,20 +826,34 @@ export class AppStore extends TypedBaseStore<IAppState> {
       gitStore.tip.kind === TipState.Valid &&
       repository.gitHubRepository !== null
     ) {
+      const gitHubRepo = repository.gitHubRepository
       const branchName = findRemoteBranchName(
         gitStore.tip,
         gitStore.currentRemote,
-        repository.gitHubRepository
+        gitHubRepo
       )
 
       if (branchName !== null) {
-        const currentBranchProtected = await this.repositoriesStore.isBranchProtectedOnRemote(
-          repository.gitHubRepository,
-          branchName
+        const account = getAccountForEndpoint(
+          this.accounts,
+          gitHubRepo.endpoint
         )
+
+        if (account === null) {
+          return
+        }
+
+        const name = gitHubRepo.name
+        const owner = gitHubRepo.owner.login
+        const api = API.fromAccount(account)
+
+        const pushControl = await api.fetchPushControl(owner, name, branchName)
+        const currentBranchProtected = !isBranchPushable(pushControl)
+
         this.repositoryStateCache.updateChangesState(repository, () => ({
           currentBranchProtected,
         }))
+        this.emitUpdate()
       }
     }
   }
@@ -1283,6 +1392,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<Repository | null> {
     const previouslySelectedRepository = this.selectedRepository
 
+    // do this quick check to see if we have a tutorial respository
+    // cause if its not we can quickly hide the tutorial pane
+    // in the first `emitUpdate` below
+    const previouslyInTutorial =
+      this.currentOnboardingTutorialStep !== TutorialStep.NotApplicable
+    if (
+      previouslyInTutorial &&
+      (!(repository instanceof Repository) || !repository.isTutorialRepository)
+    ) {
+      this.currentOnboardingTutorialStep = TutorialStep.NotApplicable
+    }
+
     this.selectedRepository = repository
 
     this.emitUpdate()
@@ -1317,6 +1438,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.gitStoreCache.remove(repository)
       return Promise.resolve(null)
     }
+
+    // This is now purely for metrics collection for `commitsToRepositoryWithBranchProtections`
+    // Understanding how many users actually contribute to repos with branch protections gives us
+    // insight into who our users are and what kinds of work they do
+    this.updateBranchProtectionsFromAPI(repository)
 
     return this._selectRepositoryRefreshTasks(
       refreshedRepository,
@@ -1642,10 +1768,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnForcePushDefault
     )
 
-    const externalEditorValue = await this.getSelectedExternalEditor()
-    if (externalEditorValue) {
-      this.selectedExternalEditor = externalEditorValue
-    }
+    this.updateSelectedExternalEditor(
+      await this.lookupSelectedExternalEditor()
+    ).catch(e => log.error('Failed resolving current editor at startup', e))
 
     const shellValue = localStorage.getItem(shellKey)
     this.selectedShell = shellValue ? parseShell(shellValue) : DefaultShell
@@ -1683,18 +1808,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.accountsStore.refresh()
   }
 
-  private async getSelectedExternalEditor(): Promise<ExternalEditor | null> {
+  private updateSelectedExternalEditor(
+    selectedEditor: ExternalEditor | null
+  ): Promise<void> {
+    this.selectedExternalEditor = selectedEditor
+
+    // Make sure we keep the resolved (cached) editor
+    // in sync when the user changes their editor choice.
+    return this._resolveCurrentEditor()
+  }
+
+  private async lookupSelectedExternalEditor(): Promise<ExternalEditor | null> {
+    const editors = (await getAvailableEditors()).map(found => found.editor)
+
     const externalEditorValue = localStorage.getItem(externalEditorKey)
     if (externalEditorValue) {
       const value = parse(externalEditorValue)
-      if (value) {
+      // ensure editor is still installed
+      if (value && editors.includes(value)) {
         return value
       }
     }
 
-    const editors = await getAvailableEditors()
     if (editors.length) {
-      const value = editors[0].editor
+      const value = editors[0]
       // store this value to avoid the lookup next time
       localStorage.setItem(externalEditorKey, value)
       return value
@@ -1739,7 +1876,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const labels: MenuLabelsEvent = {
       selectedShell,
-      selectedExternalEditor: selectedExternalEditor || null,
+      selectedExternalEditor,
       askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnForcePush,
     }
@@ -2384,12 +2521,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
           )
 
           if (branchName !== null) {
-            const isRemoteBranchProtected = await this.repositoriesStore.isBranchProtectedOnRemote(
-              repository.gitHubRepository,
-              branchName
-            )
-
-            if (isRemoteBranchProtected) {
+            const { changesState } = this.repositoryStateCache.get(repository)
+            if (changesState.currentBranchProtected) {
               this.statsStore.recordCommitToProtectedBranch()
             }
           }
@@ -2551,7 +2684,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       gitStore.updateLastFetched(),
       gitStore.loadStashEntries(),
       this.refreshAuthor(repository),
-      this.refreshBranchProtectionState(repository),
       refreshSectionPromise,
     ])
 
@@ -2567,6 +2699,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.updateMenuItemLabels(latestState)
 
     this._initializeCompare(repository)
+
+    this.updateCurrentTutorialStep(repository)
   }
 
   private async updateStashEntryCountMetric(
@@ -2970,6 +3104,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
 
       await this._refreshRepository(repository)
+      await this.refreshBranchProtectionState(repository)
     } finally {
       this.updateCheckoutProgress(repository, null)
       this._initializeCompare(repository, {
@@ -3027,7 +3162,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (hasDeletedFiles && !transientStashEntry) {
         const gitStore = this.gitStoreCache.get(repository)
         const stashCreated = await gitStore.performFailableOperation(() => {
-          return createDesktopStashEntry(repository, branch.name)
+          return createDesktopStashEntry(
+            repository,
+            branch.name,
+            getUntrackedFiles(changesState.workingDirectory)
+          )
         })
 
         if (stashCreated) {
@@ -3124,7 +3263,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       apiRepo
     )
 
-    await this.updateBranchProtectionsFromAPI(repository)
+    await this.refreshBranchProtectionState(repository)
 
     return updatedRepository
   }
@@ -3164,6 +3303,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository
   ): Promise<IMatchedGitHubRepository | null> {
     const gitStore = this.gitStoreCache.get(repository)
+
+    if (!gitStore.defaultRemote) {
+      await gitStore.loadRemotes()
+    }
+
     const remote = gitStore.defaultRemote
     return remote !== null
       ? matchGitHubRepository(this.accounts, remote.url)
@@ -3360,7 +3504,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
             // manually refresh branch protections after the push, to ensure
             // any new branch will immediately report as protected
-            await this.updateBranchProtectionsFromAPI(repository)
+            await this.refreshBranchProtectionState(repository)
 
             await this._refreshRepository(repository)
 
@@ -3556,7 +3700,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
           // manually refresh branch protections after the push, to ensure
           // any new branch will immediately report as protected
-          await this.updateBranchProtectionsFromAPI(repository)
+          await this.refreshBranchProtectionState(repository)
 
           await this._refreshRepository(repository)
 
@@ -3836,7 +3980,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
         // manually refresh branch protections after the push, to ensure
         // any new branch will immediately report as protected
-        await this.updateBranchProtectionsFromAPI(repository)
+        await this.refreshBranchProtectionState(repository)
 
         await this._refreshRepository(repository)
 
@@ -4274,14 +4418,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-  public _setExternalEditor(selectedEditor: ExternalEditor): Promise<void> {
-    this.selectedExternalEditor = selectedEditor
+  public _setExternalEditor(selectedEditor: ExternalEditor) {
+    const promise = this.updateSelectedExternalEditor(selectedEditor)
     localStorage.setItem(externalEditorKey, selectedEditor)
     this.emitUpdate()
 
     this.updateMenuLabelsForSelectedRepository()
-
-    return Promise.resolve()
+    return promise
   }
 
   public _setShell(shell: Shell): Promise<void> {
@@ -4428,6 +4571,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (this.appIsFocused) {
       if (this.selectedRepository instanceof Repository) {
         this.startPullRequestUpdater(this.selectedRepository)
+        // if we're in the tutorial and we don't have an editor yet, check for one!
+        if (this.currentOnboardingTutorialStep === TutorialStep.PickEditor) {
+          await this._resolveCurrentEditor()
+        }
       }
     } else {
       this.stopPullRequestUpdater()
@@ -4481,7 +4628,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.accountsStore.removeAccount(account)
   }
 
-  public async _addAccount(account: Account): Promise<void> {
+  private async _addAccount(account: Account): Promise<void> {
     log.info(
       `[AppStore] adding account ${account.login} (${account.name}) to store`
     )
@@ -4556,6 +4703,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         endpoint,
         apiRepository
       )
+      this.tutorialAssessor.onNewTutorialRepository()
     } else {
       const error = new Error(`${path} isn't a git repository.`)
       this.emitError(error)
@@ -4813,6 +4961,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
+  public async _showGitHubExplore(repository: Repository): Promise<void> {
+    const { gitHubRepository } = repository
+    if (!gitHubRepository || gitHubRepository.htmlURL === null) {
+      return
+    }
+
+    const url = new URL(gitHubRepository.htmlURL)
+    url.pathname = '/explore'
+
+    await this._openInBrowser(url.toString())
+  }
+
   public async _createPullRequest(repository: Repository): Promise<void> {
     const gitHubRepository = repository.gitHubRepository
     if (!gitHubRepository) {
@@ -4956,6 +5116,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }/pull/new/${urlEncodedBranchName}`
 
     await this._openInBrowser(baseURL)
+
+    if (this.currentOnboardingTutorialStep === TutorialStep.OpenPullRequest) {
+      this._markPullRequestTutorialStepAsComplete(repository)
+    }
   }
 
   public async _updateExistingUpstreamRemote(
@@ -5129,8 +5293,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const resolvedExternalEditor = match != null ? match.editor : null
     if (this.resolvedExternalEditor !== resolvedExternalEditor) {
       this.resolvedExternalEditor = resolvedExternalEditor
+
+      // Make sure we let the tutorial assesor know that we have a new editor
+      // in case it's stuck waiting for one to be selected.
+      if (this.currentOnboardingTutorialStep === TutorialStep.PickEditor) {
+        if (this.selectedRepository instanceof Repository) {
+          this.updateCurrentTutorialStep(this.selectedRepository)
+        }
+      }
+
       this.emitUpdate()
     }
+  }
+
+  public getResolvedExternalEditor = () => {
+    return this.resolvedExternalEditor
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -5208,7 +5385,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     }
 
-    await createDesktopStashEntry(repository, branchName)
+    const {
+      changesState: { workingDirectory },
+    } = this.repositoryStateCache.get(repository)
+
+    await createDesktopStashEntry(
+      repository,
+      branchName,
+      getUntrackedFiles(workingDirectory)
+    )
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -5220,9 +5405,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    const {
+      changesState: { workingDirectory },
+    } = this.repositoryStateCache.get(repository)
     const gitStore = this.gitStoreCache.get(repository)
     const isStashCreated = await gitStore.performFailableOperation(() => {
-      return createDesktopStashEntry(repository, branchToCheckout)
+      return createDesktopStashEntry(
+        repository,
+        branchToCheckout,
+        getUntrackedFiles(workingDirectory)
+      )
     })
 
     if (!isStashCreated) {
