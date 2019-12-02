@@ -20,7 +20,7 @@ const MaxPullRequestRefreshFrequency = 2 * 60 * 1000
  * ensuring that we never update more frequently than the value
  * indicated by the `MaxPullRequestRefreshFrequency` variable.
  */
-export class PullRequestUpdater {
+class PullRequestTicker {
   private timeoutId: number | null = null
   private running = false
 
@@ -75,6 +75,40 @@ export class PullRequestUpdater {
         this.timeoutId = null
       }
       this.running = false
+    }
+  }
+}
+
+/**
+ * Manages a set of `PullRequestTicker`s that are related to a single repository.
+ * At most, the list is two tickers long, one for the repository remote and one for its upstream.
+ */
+export class PullRequestUpdater {
+  private readonly tickers = new Array<PullRequestTicker>()
+
+  public constructor(
+    repository: GitHubRepository,
+    account: Account,
+    store: PullRequestStore
+  ) {
+    this.tickers.push(new PullRequestTicker(repository, account, store))
+    if (repository.fork && repository.parent !== null) {
+      this.tickers.push(
+        new PullRequestTicker(repository.parent, account, store)
+      )
+    }
+  }
+
+  /** Starts the updater */
+  public start() {
+    for (const ticker of this.tickers) {
+      ticker.start()
+    }
+  }
+
+  public stop() {
+    for (const ticker of this.tickers) {
+      ticker.stop()
     }
   }
 }
