@@ -1,9 +1,8 @@
 import * as React from 'react'
 
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { shell } from '../../lib/app-shell'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IInstallGitProps {
   /**
@@ -31,11 +30,12 @@ export class InstallGit extends React.Component<IInstallGitProps, {}> {
     super(props)
   }
 
-  private onContinue = () => {
+  private onSubmit = () => {
     this.props.onOpenShell(this.props.path)
+    this.props.onDismissed()
   }
 
-  private onExternalLink = () => {
+  private onExternalLink = (e: React.MouseEvent<HTMLButtonElement>) => {
     const url = `https://help.github.com/articles/set-up-git/#setting-up-git`
     shell.openExternal(url)
   }
@@ -46,7 +46,7 @@ export class InstallGit extends React.Component<IInstallGitProps, {}> {
         id="install-git"
         type="warning"
         title={__DARWIN__ ? 'Unable to Locate Git' : 'Unable to locate Git'}
-        onSubmit={this.props.onDismissed}
+        onSubmit={this.onSubmit}
         onDismissed={this.props.onDismissed}
       >
         <DialogContent>
@@ -61,12 +61,11 @@ export class InstallGit extends React.Component<IInstallGitProps, {}> {
           </p>
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup>
-            <Button type="submit" onClick={this.onContinue}>
-              Open without Git
-            </Button>
-            <Button onClick={this.onExternalLink}>Install Git</Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            okButtonText={__DARWIN__ ? 'Open Without Git' : 'Open without Git'}
+            cancelButtonText="Install Git"
+            onCancelButtonClick={this.onExternalLink}
+          />
         </DialogFooter>
       </Dialog>
     )

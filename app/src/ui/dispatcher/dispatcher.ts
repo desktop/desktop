@@ -145,6 +145,16 @@ export class Dispatcher {
     return this.appStore._addTutorialRepository(path, endpoint, apiRepository)
   }
 
+  /** Resume an already started onboarding tutorial */
+  public resumeTutorial(repository: Repository) {
+    return this.appStore._resumeTutorial(repository)
+  }
+
+  /** Suspend the onboarding tutorial and go to the no repositories blank slate view */
+  public pauseTutorial(repository: Repository) {
+    return this.appStore._pauseTutorial(repository)
+  }
+
   /** Remove the repositories represented by the given IDs from local storage. */
   public removeRepositories(
     repositories: ReadonlyArray<Repository | CloningRepository>,
@@ -734,11 +744,6 @@ export class Dispatcher {
     message: ICommitMessage
   ): Promise<void> {
     return this.appStore._setCommitMessage(repository, message)
-  }
-
-  /** Add the account to the app. */
-  public addAccount(account: Account): Promise<void> {
-    return this.appStore._addAccount(account)
   }
 
   /** Remove the given account from the app. */
@@ -1694,6 +1699,13 @@ export class Dispatcher {
   }
 
   /**
+   * Open the Explore page at the GitHub instance of this repository
+   */
+  public showGitHubExplore(repository: Repository): Promise<void> {
+    return this.appStore._showGitHubExplore(repository)
+  }
+
+  /**
    * Open the Create Pull Request page on GitHub after verifying ahead/behind.
    *
    * Note that this method will present the user with a dialog in case the
@@ -1795,10 +1807,6 @@ export class Dispatcher {
     newState: Pick<ICompareFormUpdate, K>
   ) {
     return this.appStore._updateCompareForm(repository, newState)
-  }
-
-  public resolveCurrentEditor() {
-    return this.appStore._resolveCurrentEditor()
   }
 
   /**
@@ -2172,5 +2180,31 @@ export class Dispatcher {
   /** Record when the user views the stash entry */
   public recordStashView(): Promise<void> {
     return this.statsStore.recordStashView()
+  }
+
+  /** Call when the user opts to skip the pick editor step of the onboarding tutorial */
+  public skipPickEditorTutorialStep(repository: Repository) {
+    return this.appStore._skipPickEditorTutorialStep(repository)
+  }
+
+  /**
+   * Call when the user has either created a pull request or opts to
+   * skip the create pull request step of the onboarding tutorial
+   */
+  public markPullRequestTutorialStepAsComplete(repository: Repository) {
+    return this.appStore._markPullRequestTutorialStepAsComplete(repository)
+  }
+
+  /**
+   * Onboarding tutorial has been started
+   */
+  public recordTutorialStarted() {
+    return this.statsStore.recordTutorialStarted()
+  }
+  /**
+   * Onboarding tutorial has been successfully created
+   */
+  public recordTutorialRepoCreated() {
+    return this.statsStore.recordTutorialRepoCreated()
   }
 }

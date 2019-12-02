@@ -89,6 +89,16 @@ if (__DARWIN__) {
   possibleProtocols.add('github-windows')
 }
 
+app.on('window-all-closed', () => {
+  // If we don't subscribe to this event and all windows are closed, the default
+  // behavior is to quit the app. We don't want that though, we control that
+  // behavior through the mainWindow onClose event such that on macOS we only
+  // hide the main window when a user attempts to close it.
+  //
+  // If we don't subscribe to this and change the default behavior we break
+  // the crash process window which is shown after the main window is closed.
+})
+
 process.on('uncaughtException', (error: Error) => {
   error = withSourceMappedStack(error)
   reportError(error, getExtraErrorContext())
@@ -214,9 +224,15 @@ function handlePossibleProtocolLauncherArgs(args: ReadonlyArray<string>) {
     // malformed or untrusted url then we bail out.
 
     const matchingUrls = args.filter(arg => {
-      const url = URL.parse(arg)
-      // i think this `slice` is just removing a trailing `:`
-      return url.protocol && possibleProtocols.has(url.protocol.slice(0, -1))
+      // sometimes `URL.parse` throws an error
+      try {
+        const url = URL.parse(arg)
+        // i think this `slice` is just removing a trailing `:`
+        return url.protocol && possibleProtocols.has(url.protocol.slice(0, -1))
+      } catch (e) {
+        log.error(`Unable to parse argument as URL: ${arg}`)
+        return false
+      }
     })
 
     if (args.includes(protocolLauncherArg) && matchingUrls.length === 1) {
@@ -475,12 +491,20 @@ app.on('ready', () => {
     'send-error-report',
     (
       event: Electron.IpcMessageEvent,
-      { error, extra }: { error: Error; extra: { [key: string]: string } }
+      {
+        error,
+        extra,
+        nonFatal,
+      }: { error: Error; extra: { [key: string]: string }; nonFatal?: boolean }
     ) => {
-      reportError(error, {
-        ...getExtraErrorContext(),
-        ...extra,
-      })
+      reportError(
+        error,
+        {
+          ...getExtraErrorContext(),
+          ...extra,
+        },
+        nonFatal
+      )
     }
   )
 
