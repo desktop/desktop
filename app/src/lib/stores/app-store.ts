@@ -1509,6 +1509,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.pullRequestStore.getAll(gitHubRepository).then(prs => {
         this.onPullRequestChanged(gitHubRepository, prs)
       })
+
+      // if there's an upstream, we want to add those pull requests, too
+      if (gitHubRepository.fork && gitHubRepository.parent !== null) {
+        this.pullRequestStore.getAll(gitHubRepository).then(prs => {
+          this.onPullRequestChanged(gitHubRepository, prs)
+        })
+      }
     }
 
     // The selected repository could have changed while we were refreshing.
