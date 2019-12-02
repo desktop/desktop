@@ -19,6 +19,7 @@ export enum ExternalEditor {
   Typora = 'Typora',
   CodeRunner = 'CodeRunner',
   SlickEdit = 'SlickEdit',
+  Xcode = 'Xcode',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -69,6 +70,9 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.SlickEdit) {
     return ExternalEditor.SlickEdit
   }
+  if (label === ExternalEditor.Xcode) {
+    return ExternalEditor.Xcode
+  }
   return null
 }
 
@@ -114,6 +118,8 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
         'com.slickedit.SlickEditPro2016',
         'com.slickedit.SlickEditPro2015',
       ]
+    case ExternalEditor.Xcode:
+      return ['com.apple.dt.Xcode']
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -167,6 +173,8 @@ function getExecutableShim(
       return Path.join(installPath, 'Contents', 'MacOS', 'CodeRunner')
     case ExternalEditor.SlickEdit:
       return Path.join(installPath, 'Contents', 'MacOS', 'vs')
+    case ExternalEditor.Xcode:
+      return '/usr/bin/xed'
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -217,6 +225,7 @@ export async function getAvailableEditors(): Promise<
     typoraPath,
     codeRunnerPath,
     slickeditPath,
+    xcodePath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.MacVim),
@@ -233,6 +242,7 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.Typora),
     findApplication(ExternalEditor.CodeRunner),
     findApplication(ExternalEditor.SlickEdit),
+    findApplication(ExternalEditor.Xcode),
   ])
 
   if (atomPath) {
@@ -296,6 +306,10 @@ export async function getAvailableEditors(): Promise<
 
   if (slickeditPath) {
     results.push({ editor: ExternalEditor.SlickEdit, path: slickeditPath })
+  }
+
+  if (xcodePath) {
+    results.push({ editor: ExternalEditor.Xcode, path: xcodePath })
   }
 
   return results
