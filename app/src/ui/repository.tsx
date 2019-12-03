@@ -88,6 +88,9 @@ export class RepositoryView extends React.Component<
   IRepositoryViewProps,
   IRepositoryViewState
 > {
+  private previousSection: RepositorySectionTab = this.props.state
+    .selectedSection
+
   public constructor(props: IRepositoryViewProps) {
     super(props)
 
@@ -158,6 +161,12 @@ export class RepositoryView extends React.Component<
     // -1 Because of right hand side border
     const availableWidth = this.props.sidebarWidth - 1
 
+    const scrollTop =
+      this.previousSection === RepositorySectionTab.History
+        ? this.state.compareListScrollTop
+        : undefined
+    this.previousSection = RepositorySectionTab.Changes
+
     return (
       <ChangesSidebar
         repository={this.props.repository}
@@ -181,7 +190,7 @@ export class RepositoryView extends React.Component<
         externalEditorLabel={this.props.externalEditorLabel}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         onChangesListScrolled={this.onChangesListScrolled}
-        changesListScrollTop={this.state.changesListScrollTop}
+        changesListScrollTop={scrollTop}
         shouldNudgeToCommit={
           this.props.currentTutorialStep === TutorialStep.MakeCommit
         }
@@ -192,6 +201,12 @@ export class RepositoryView extends React.Component<
   private renderCompareSidebar(): JSX.Element {
     const tip = this.props.state.branchesState.tip
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+
+    const scrollTop =
+      this.previousSection === RepositorySectionTab.Changes
+        ? this.state.compareListScrollTop
+        : undefined
+    this.previousSection = RepositorySectionTab.History
 
     return (
       <CompareSidebar
@@ -207,7 +222,7 @@ export class RepositoryView extends React.Component<
         onRevertCommit={this.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         onCompareListScrolled={this.onCompareListScrolled}
-        compareListScrollTop={this.state.compareListScrollTop}
+        compareListScrollTop={scrollTop}
       />
     )
   }
