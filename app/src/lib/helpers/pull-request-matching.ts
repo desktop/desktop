@@ -6,12 +6,9 @@ import { PullRequest } from '../../models/pull-request'
 /**
  * Find the pull request for this branch.
  *
- * The upstream remote is only used
- * if the default remote returns no matches.
- *
  * @param branch branch in question
  * @param pullRequests list to search
- * @param remote remote to use for matching
+ * @param remote remote for the pull request's head
  */
 export function findAssociatedPullRequest(
   branch: Branch,
