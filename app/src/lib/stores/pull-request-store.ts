@@ -286,6 +286,12 @@ export class PullRequestStore {
   ) {
     if (await this.storePullRequests(pullRequestsFromAPI, repository)) {
       this.emitPullRequestsChanged(repository, await this.getAll(repository))
+
+      // if this repo has forks, emit updates for them too
+      const forks = await this.getForksForRepository(repository)
+      forks.forEach(async f =>
+        this.emitPullRequestsChanged(f, await this.getAll(f))
+      )
     }
   }
 
@@ -424,6 +430,21 @@ export class PullRequestStore {
     )
 
     return true
+  }
+
+  private async getForksForRepository(
+    repository: GitHubRepository
+  ): Promise<ReadonlyArray<GitHubRepository>> {
+    if (repository.dbID === null) {
+      return []
+    }
+    const ghRepos = await this.repositoryStore.getAllGitHubRepositories()
+    return ghRepos.filter(
+      ghr =>
+        ghr.parent !== null &&
+        ghr.parent.dbID !== null &&
+        ghr.parent.dbID === repository.dbID
+    )
   }
 }
 
