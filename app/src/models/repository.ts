@@ -69,11 +69,6 @@ export class Repository {
   public get isTutorialRepository() {
     return enableTutorial() && this._isTutorialRepository === true
   }
-
-  /** Is this associated with a GitHub fork? */
-  public get isGitHubFork() {
-    return this.gitHubRepository !== null && this.gitHubRepository.fork
-  }
 }
 
 /** A worktree linked to a main working tree (aka `Repository`) */
