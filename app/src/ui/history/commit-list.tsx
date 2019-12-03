@@ -51,7 +51,7 @@ interface ICommitListProps {
   readonly onCompareListScrolled?: (scrollTop: number) => void
 
   /* The scrollTop of the compareList. It is stored to allow for scroll position persistence */
-  readonly compareListScrollTop: number
+  readonly compareListScrollTop?: number
 }
 
 /** A component which displays the list of commits. */

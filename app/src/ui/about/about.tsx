@@ -2,8 +2,12 @@ import * as React from 'react'
 
 import { Row } from '../lib/row'
 import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
-import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
+import {
+  Dialog,
+  DialogError,
+  DialogContent,
+  DefaultDialogFooter,
+} from '../dialog'
 import { LinkButton } from '../lib/link-button'
 import { updateStore, IUpdateState, UpdateStatus } from '../lib/update-store'
 import { Disposable } from 'event-kit'
@@ -50,7 +54,6 @@ interface IAboutState {
  * running application such as name and version.
  */
 export class About extends React.Component<IAboutProps, IAboutState> {
-  private closeButton: Button | null = null
   private updateStoreEventHandle: Disposable | null = null
 
   public constructor(props: IAboutProps) {
@@ -59,10 +62,6 @@ export class About extends React.Component<IAboutProps, IAboutState> {
     this.state = {
       updateState: updateStore.state,
     }
-  }
-
-  private onCloseButtonRef = (button: Button | null) => {
-    this.closeButton = button
   }
 
   private onUpdateStateChanged = (updateState: IUpdateState) => {
@@ -74,15 +73,6 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       this.onUpdateStateChanged
     )
     this.setState({ updateState: updateStore.state })
-
-    // A modal dialog autofocuses the first element that can receive
-    // focus (and our dialog even uses the autofocus attribute on its
-    // fieldset). In our case that's the release notes link button and
-    // we don't want that to have focus so we'll move it over to the
-    // close button instead.
-    if (this.closeButton) {
-      this.closeButton.focus()
-    }
   }
 
   public componentWillUnmount() {
@@ -281,17 +271,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
           {this.renderUpdateDetails()}
           {this.renderUpdateButton()}
         </DialogContent>
-
-        <DialogFooter>
-          <ButtonGroup>
-            <Button
-              ref={this.onCloseButtonRef}
-              onClick={this.props.onDismissed}
-            >
-              Close
-            </Button>
-          </ButtonGroup>
-        </DialogFooter>
+        <DefaultDialogFooter />
       </Dialog>
     )
   }
