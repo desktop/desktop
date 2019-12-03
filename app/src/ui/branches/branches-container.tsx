@@ -316,6 +316,10 @@ export class BranchesContainer extends React.Component<
     this.onPullRequestSelectionChanged(pullRequest)
   }
 
+  /**
+   *  Returns which Pull Requests to display
+   *  (For now, filters out any pull requests targeting upstream)
+   */
   private getPullRequests() {
     const { gitHubRepository } = this.props.repository
     return gitHubRepository !== null
