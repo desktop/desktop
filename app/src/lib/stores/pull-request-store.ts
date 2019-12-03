@@ -268,9 +268,7 @@ export class PullRequestStore {
         this.db.getAllPullRequestsInRepository(repository.parent),
         this.db.getAllPullRequestsInRepository(repository),
       ])
-      const records = new Array<IPullRequest>()
-      records.push(...upstreamRecords, ...forkRecords)
-      return records
+      return [...upstreamRecords, ...forkRecords]
     }
     return await this.db.getAllPullRequestsInRepository(repository)
   }
