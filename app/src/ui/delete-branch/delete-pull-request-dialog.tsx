@@ -29,13 +29,14 @@ export class DeletePullRequest extends React.Component<IDeleteBranchProps, {}> {
         onSubmit={this.deleteBranch}
       >
         <DialogContent>
-          <p>This branch has an open pull request associated with it.</p>
+          <p>This branch may have an open pull request associated with it.</p>
           <p>
             If{' '}
             <LinkButton onClick={this.openPullRequest}>
               #{this.props.pullRequest.pullRequestNumber}
             </LinkButton>{' '}
-            has been merged, you can also remove the remote branch on GitHub.
+            has been merged, you can also go to GitHub to delete the remote
+            branch.
           </p>
         </DialogContent>
         <DialogFooter>
