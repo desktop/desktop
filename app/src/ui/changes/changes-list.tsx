@@ -113,7 +113,7 @@ interface IChangesListProps {
   readonly onChangesListScrolled: (scrollTop: number) => void
 
   /* The scrollTop of the compareList. It is stored to allow for scroll position persistence */
-  readonly changesListScrollTop: number
+  readonly changesListScrollTop?: number
 
   /**
    * Called to open a file it its default application
