@@ -69,24 +69,25 @@ export class PullRequestStore {
 
   /** Loads all pull requests against the given repository. */
   public refreshPullRequests(repo: GitHubRepository, account: Account) {
-    const dbId = repo.dbID
+    const { dbID } = repo
 
-    if (dbId === null) {
+    if (dbID === null) {
       // This can happen when the `repositoryWithRefreshedGitHubRepository`
       // method in AppStore fails to retrieve API information about the current
       // repository either due to the user being signed out or the API failing
       // to provide a response. There's nothing for us to do when that happens
       // so instead of crashing we'll bail here.
+      log.warn(`[refreshPullRequests] no dbID for ${repo.fullName}`)
       return Promise.resolve()
     }
 
-    const currentOp = this.currentRefreshOperations.get(dbId)
+    const currentOp = this.currentRefreshOperations.get(dbID)
 
     if (currentOp !== undefined) {
       return currentOp
     }
 
-    this.lastRefreshForRepository.set(dbId, Date.now())
+    this.lastRefreshForRepository.set(dbID, Date.now())
     this.emitIsLoadingPullRequests(repo, true)
 
     const promise = this.fetchAndStorePullRequests(repo, account)
@@ -94,11 +95,11 @@ export class PullRequestStore {
         log.error(`Error refreshing pull requests for '${repo.fullName}'`, err)
       })
       .then(() => {
-        this.currentRefreshOperations.delete(dbId)
+        this.currentRefreshOperations.delete(dbID)
         this.emitIsLoadingPullRequests(repo, false)
       })
 
-    this.currentRefreshOperations.set(dbId, promise)
+    this.currentRefreshOperations.set(dbID, promise)
     return promise
   }
 
