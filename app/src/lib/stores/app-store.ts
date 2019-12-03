@@ -5131,11 +5131,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { parent: parentGitHubRepository } = gitHubRepository
 
     const urlEncodedBranchName = escape(branch.nameWithoutRemote)
+    const urlEncodedOwner = escape(gitHubRepository.owner.login)
+
     const baseURL =
-      repository.isGitHubFork && parentGitHubRepository
-        ? `${gitHubRepository.htmlURL}/compare/${escape(
-            parentGitHubRepository.owner.login
-          )}:${urlEncodedBranchName}`
+      gitHubRepository.fork && parentGitHubRepository
+        ? `${
+            gitHubRepository.htmlURL
+          }/compare/${urlEncodedOwner}:${urlEncodedBranchName}`
         : `${gitHubRepository.htmlURL}/pull/new/${urlEncodedBranchName}`
     await this._openInBrowser(baseURL)
 
