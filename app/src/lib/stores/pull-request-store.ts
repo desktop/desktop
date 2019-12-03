@@ -257,7 +257,9 @@ export class PullRequestStore {
    * Gets all records in the Pull Request database for the given repository
    * and its parent/upstream, if it has one.
    */
-  private async getAllRecords(repository: GitHubRepository) {
+  private async getAllRecords(
+    repository: GitHubRepository
+  ): Promise<ReadonlyArray<IPullRequest>> {
     if (repository.dbID === null) {
       return []
     }
@@ -266,9 +268,11 @@ export class PullRequestStore {
         this.db.getAllPullRequestsInRepository(repository.parent),
         this.db.getAllPullRequestsInRepository(repository),
       ])
-      return upstreamRecords.push(...forkRecords)
+      const records = new Array<IPullRequest>()
+      records.push(...upstreamRecords, ...forkRecords)
+      return records
     }
-    return this.db.getAllPullRequestsInRepository(repository)
+    return await this.db.getAllPullRequestsInRepository(repository)
   }
 
   /**
