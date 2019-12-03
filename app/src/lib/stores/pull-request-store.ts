@@ -287,8 +287,10 @@ export class PullRequestStore {
 
       // if this repo has forks, emit updates for them too
       const forks = await this.getForksForRepository(repository)
-      forks.forEach(async f =>
-        this.emitPullRequestsChanged(f, await this.getAll(f))
+      await Promise.all(
+        forks.map(async f =>
+          this.emitPullRequestsChanged(f, await this.getAll(f))
+        )
       )
     }
   }
