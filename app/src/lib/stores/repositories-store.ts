@@ -135,6 +135,19 @@ export class RepositoriesStore extends BaseStore {
     )
   }
 
+  public async getAllGitHubRepositories(): Promise<
+    ReadonlyArray<GitHubRepository>
+  > {
+    return await this.db.transaction(
+      'r',
+      this.db.gitHubRepositories,
+      async () => {
+        const ghRepos = await this.db.gitHubRepositories.toArray()
+        return await Promise.all(ghRepos.map(this.buildGitHubRepository))
+      }
+    )
+  }
+
   /**
    * Add a tutorial repository.
    *
