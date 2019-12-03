@@ -1,11 +1,9 @@
 import * as React from 'react'
 import { Dispatcher } from '../dispatcher'
-import { ButtonGroup } from '../lib/button-group'
 import { DialogFooter, DialogContent, Dialog } from '../dialog'
 import { FetchType } from '../../models/fetch'
-import { Button } from '../lib/button'
 import { Repository } from '../../models/repository'
-import { Loading } from '../lib/loading'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IPushNeedsPullWarningProps {
   readonly dispatcher: Dispatcher
@@ -36,8 +34,10 @@ export class PushNeedsPullWarning extends React.Component<
           __DARWIN__ ? 'Newer Commits on Remote' : 'Newer commits on remote'
         }
         dismissable={!this.state.isLoading}
+        disabled={this.state.isLoading}
         onDismissed={this.props.onDismissed}
         onSubmit={this.onFetch}
+        loading={this.state.isLoading}
         type="warning"
       >
         <DialogContent>
@@ -49,11 +49,10 @@ export class PushNeedsPullWarning extends React.Component<
           </p>
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup>
-            <Button type="submit" disabled={this.state.isLoading}>
-              {this.state.isLoading ? <Loading /> : null} Fetch
-            </Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            okButtonText="Fetch"
+            okButtonDisabled={this.state.isLoading}
+          />
         </DialogFooter>
       </Dialog>
     )
