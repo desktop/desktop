@@ -103,7 +103,7 @@ export class BranchesContainer extends React.Component<
   }
 
   private renderOpenPullRequestsBubble() {
-    const { pullRequests } = this.props
+    const pullRequests = this.getPullRequests()
 
     if (pullRequests.length > 0) {
       return <span className="count">{pullRequests.length}</span>
