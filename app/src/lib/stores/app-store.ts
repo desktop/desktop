@@ -5021,25 +5021,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _showPullRequest(repository: Repository): Promise<void> {
-    const { gitHubRepository } = repository
-
-    if (!gitHubRepository) {
-      return
-    }
-
-    const lookupGitHubRepository =
-      gitHubRepository.fork && gitHubRepository.parent
-        ? gitHubRepository.parent
-        : gitHubRepository
-
-    const state = this.repositoryStateCache.get(repository)
-    const currentPullRequest = state.branchesState.currentPullRequest
+    const currentPullRequest = this.repositoryStateCache.get(repository)
+      .branchesState.currentPullRequest
 
     if (!currentPullRequest) {
       return
     }
 
-    const baseURL = `${lookupGitHubRepository.htmlURL}/pull/${
+    const baseURL = `${currentPullRequest.base.gitHubRepository.htmlURL}/pull/${
       currentPullRequest.pullRequestNumber
     }`
 
