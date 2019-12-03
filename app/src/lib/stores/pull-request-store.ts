@@ -31,7 +31,10 @@ export class PullRequestStore {
     repository: GitHubRepository,
     pullRequests: ReadonlyArray<PullRequest>
   ) {
-    this.emitter.emit('onPullRequestsChanged', { repository, pullRequests })
+    this.emitter.emit('onPullRequestsChanged', {
+      repository,
+      pullRequests,
+    })
   }
 
   /** Register a function to be called when the store updates. */
@@ -201,7 +204,7 @@ export class PullRequestStore {
       return []
     }
 
-    const records = await this.db.getAllPullRequestsInRepository(repository)
+    const records = await this.getAllRecords(repository)
     const result = new Array<PullRequest>()
 
     // In order to avoid what would otherwise be a very expensive
@@ -248,6 +251,24 @@ export class PullRequestStore {
     // getAll method as opposed to creating a reverse cursor. Reversing
     // in place versus unshifting is also dramatically more performant.
     return result.reverse()
+  }
+
+  /**
+   * Gets all records in the Pull Request database for the given repository
+   * and its parent/upstream, if it has one.
+   */
+  private async getAllRecords(repository: GitHubRepository) {
+    if (repository.dbID === null) {
+      return []
+    }
+    if (repository.fork && repository.parent && repository.parent.dbID) {
+      const [upstreamRecords, forkRecords] = await Promise.all([
+        this.db.getAllPullRequestsInRepository(repository.parent),
+        this.db.getAllPullRequestsInRepository(repository),
+      ])
+      return upstreamRecords.push(...forkRecords)
+    }
+    return this.db.getAllPullRequestsInRepository(repository)
   }
 
   /**
