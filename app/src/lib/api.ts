@@ -104,6 +104,14 @@ export interface IAPIRepository {
   readonly default_branch: string
   readonly pushed_at: string
   readonly parent: IAPIRepository | null
+
+  /**
+   * The high-level permissions that the currently authenticated
+   * user enjoys for the repository. Undefined if the API call
+   * was made without an authenticated user or if the repository
+   * isn't the primarily requested one (i.e. if this is the parent
+   * repository of the requested repository)
+   */
   readonly permissions?: IAPIRepositoryPermissions
 }
 
