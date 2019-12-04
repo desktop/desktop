@@ -194,7 +194,9 @@ export class PullRequestStore {
   }
 
   /** Gets all stored pull requests for the given repository. */
-  public async getAll(repository: GitHubRepository) {
+  public async getAll(
+    repository: GitHubRepository
+  ): Promise<ReadonlyArray<PullRequest>> {
     if (repository.dbID === null) {
       // This can happen when the `repositoryWithRefreshedGitHubRepository`
       // method in AppStore fails to retrieve API information about the current
@@ -204,7 +206,16 @@ export class PullRequestStore {
       return []
     }
 
-    const records = await this.getAllRecords(repository)
+    return await this.buildPullRequestList(await this.getAllRecords(repository))
+  }
+
+  /**
+   * Turns a list of pull request db records into a list of pull request
+   * models for use in the rest of the desktop app
+   */
+  private async buildPullRequestList(
+    records: ReadonlyArray<IPullRequest>
+  ): Promise<ReadonlyArray<PullRequest>> {
     const result = new Array<PullRequest>()
 
     // In order to avoid what would otherwise be a very expensive
@@ -283,16 +294,48 @@ export class PullRequestStore {
     repository: GitHubRepository
   ) {
     if (await this.storePullRequests(pullRequestsFromAPI, repository)) {
-      this.emitPullRequestsChanged(repository, await this.getAll(repository))
+      const allPullRequestsForRepository = await this.getAll(repository)
+      this.emitPullRequestsChanged(repository, allPullRequestsForRepository)
 
       // if this repo has forks, emit updates for them too
       const forks = await this.getForksForRepository(repository)
-      await Promise.all(
-        forks.map(async f =>
-          this.emitPullRequestsChanged(f, await this.getAll(f))
+      if (forks.length > 0) {
+        // Make sure we only have pull requests for upstream, and not the upstream's upstream
+        // It's possible for forks to have forks, so we need to guard against
+        // going more than one level up.
+        const upstreamPullRequests = allPullRequestsForRepository.filter(
+          pr => pr.base.gitHubRepository.dbID === repository.dbID
         )
-      )
+        await Promise.all(
+          forks.map(async f =>
+            this.emitPullRequestsChanged(
+              f,
+              await this.getAllForFork(f, upstreamPullRequests)
+            )
+          )
+        )
+      }
     }
+  }
+
+  /**
+   * Useful when you already have the upstream pull request list,
+   * but need to emit an update for its forks too.
+   *
+   * Prevents needing to get the upstream pull request records from the
+   * database again, when we know they are current.
+   *
+   * @param repository
+   * @param upstreamPullRequests
+   */
+  private async getAllForFork(
+    repository: GitHubRepository,
+    upstreamPullRequests: ReadonlyArray<PullRequest>
+  ) {
+    const forkPullRequests = await this.buildPullRequestList(
+      await this.db.getAllPullRequestsInRepository(repository)
+    )
+    return [...forkPullRequests, ...upstreamPullRequests]
   }
 
   /**
