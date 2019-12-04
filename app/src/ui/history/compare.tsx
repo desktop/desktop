@@ -44,7 +44,7 @@ interface ICompareSidebarProps {
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
   readonly onCompareListScrolled: (scrollTop: number) => void
-  readonly compareListScrollTop: number
+  readonly compareListScrollTop?: number
 }
 
 interface ICompareSidebarState {
