@@ -103,7 +103,7 @@ export interface IAPIRepository {
   readonly fork: boolean
   readonly default_branch: string
   readonly pushed_at: string
-  readonly parent: IAPIRepository | null
+  readonly parent?: IAPIRepository
 
   /**
    * The high-level permissions that the currently authenticated
