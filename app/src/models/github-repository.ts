@@ -1,5 +1,7 @@
 import { Owner } from './owner'
 
+export type GitHubRepositoryPermission = 'read' | 'write' | 'admin' | null
+
 /** A GitHub repository. */
 export class GitHubRepository {
   public constructor(
@@ -17,7 +19,7 @@ export class GitHubRepository {
     public readonly defaultBranch: string | null = 'master',
     public readonly cloneURL: string | null = null,
     /** The user's permissions for this github repository. `null` if unknown. */
-    public readonly permissions: 'read' | 'write' | 'admin' | null = null,
+    public readonly permissions: GitHubRepositoryPermission = null,
     public readonly parent: GitHubRepository | null = null
   ) {}
 
