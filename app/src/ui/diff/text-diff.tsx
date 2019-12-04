@@ -35,6 +35,7 @@ import memoizeOne from 'memoize-one'
 import { structuralEquals } from '../../lib/equality'
 import { assertNever } from '../../lib/fatal-error'
 import { clamp } from '../../lib/clamp'
+import { uuid } from '../../lib/uuid'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -77,18 +78,26 @@ interface ISelection {
 
 function createNoNewlineIndicatorWidget() {
   const widget = document.createElement('span')
-  widget.title = 'No newline at end of file'
+  const titleId = uuid()
 
   const { w, h, d } = narrowNoNewlineSymbol
 
   const xmlns = 'http://www.w3.org/2000/svg'
   const svgElem = document.createElementNS(xmlns, 'svg')
-  svgElem.setAttribute('aria-hidden', 'true')
   svgElem.setAttribute('version', '1.1')
   svgElem.setAttribute('viewBox', `0 0 ${w} ${h}`)
+  svgElem.setAttribute('role', 'img')
+  svgElem.setAttribute('aria-labelledby', titleId)
   svgElem.classList.add('no-newline')
 
+  const titleElem = document.createElementNS(xmlns, 'title')
+  titleElem.setAttribute('id', titleId)
+  titleElem.setAttribute('lang', 'en')
+  titleElem.textContent = 'No newline at end of file'
+  svgElem.appendChild(titleElem)
+
   const pathElem = document.createElementNS(xmlns, 'path')
+  pathElem.setAttribute('role', 'presentation')
   pathElem.setAttribute('d', d)
   pathElem.textContent = 'No newline at end of file'
   svgElem.appendChild(pathElem)
