@@ -111,6 +111,14 @@ export interface IAPIRepository {
    * was made without an authenticated user or if the repository
    * isn't the primarily requested one (i.e. if this is the parent
    * repository of the requested repository)
+   *
+   * The permissions hash will also be omitted when the repository
+   * information is embedded within another object such as a pull
+   * request (base.repo or head.repo).
+   *
+   * In other words, the only time when the permissions property
+   * will be present is when explicitly fetching the repository
+   * through the `/repos/user/name` endpoint or similar.
    */
   readonly permissions?: IAPIRepositoryPermissions
 }
