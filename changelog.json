@@ -1,7 +1,7 @@
 {
   "releases": {
     "2.2.4-beta3": [
-      "[Fixed] Newly cloned repositories fail to load pull requests - #8745",
+      "[Fixed] Make newly cloned repositories load pull requests correctly - #8745",
       "[Improved] Make no newline indicator in file diffs readable by screenreaders. - #6494. Thanks @jmhammock!"
     ],
     "2.2.4-beta2": [
