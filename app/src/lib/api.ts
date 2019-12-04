@@ -104,7 +104,7 @@ export interface IAPIRepository {
   readonly default_branch: string
   readonly pushed_at: string
   readonly parent: IAPIRepository | null
-  readonly permissions: IAPIRepositoryPermissions
+  readonly permissions?: IAPIRepositoryPermissions
 }
 
 /*
