@@ -1,5 +1,9 @@
 {
   "releases": {
+    "2.2.4-beta3": [
+      "[Fixed] Newly cloned repositories fail to load pull requests - #8745",
+      "[Improved] Add screenreader markup to no newline icon. - #6494. Thanks @jmhammock!"
+    ],
     "2.2.4-beta2": [
       "[Added] Adding integration for Xcode as external editor - #8255. Thanks @msztech!",
       "[Fixed] Changed wording to match git autocrlf behavior - #5741. Thanks @jmhammock!",
