@@ -21,6 +21,10 @@ export class PullRequestStore {
   protected readonly emitter = new Emitter()
   private readonly currentRefreshOperations = new Map<number, Promise<void>>()
   private readonly lastRefreshForRepository = new Map<number, number>()
+  private readonly forksForRepository = new Map<
+    number,
+    ReadonlyArray<GitHubRepository>
+  >()
 
   public constructor(
     private readonly db: PullRequestDatabase,
@@ -58,6 +62,11 @@ export class PullRequestStore {
       repository,
       isLoadingPullRequests,
     })
+    this.getForksForRepository(repository).then(forks => {
+      for (const f of forks) {
+        this.emitIsLoadingPullRequests(f, isLoadingPullRequests)
+      }
+    })
   }
 
   /** Register a function to be called when the store updates. */
@@ -89,6 +98,9 @@ export class PullRequestStore {
     if (currentOp !== undefined) {
       return currentOp
     }
+
+    // force the cache to refresh
+    this.forksForRepository.delete(dbID)
 
     this.lastRefreshForRepository.set(dbID, Date.now())
     this.emitIsLoadingPullRequests(repo, true)
@@ -481,13 +493,22 @@ export class PullRequestStore {
     if (repository.dbID === null) {
       return []
     }
-    const ghRepos = await this.repositoryStore.getAllGitHubRepositories()
-    return ghRepos.filter(
+
+    // return cached list if we have one
+    const cachedList = this.forksForRepository.get(repository.dbID)
+    if (cachedList) {
+      return cachedList
+    }
+
+    const ghRepos = (await this.repositoryStore.getAllGitHubRepositories()).filter(
       ghr =>
         ghr.parent !== null &&
         ghr.parent.dbID !== null &&
         ghr.parent.dbID === repository.dbID
     )
+    // cache it for later
+    this.forksForRepository.set(repository.dbID, ghRepos)
+    return ghRepos
   }
 }
 
