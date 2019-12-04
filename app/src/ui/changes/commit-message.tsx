@@ -25,6 +25,8 @@ import { ICommitContext } from '../../models/commit'
 import { startTimer } from '../lib/timing'
 import { PermissionsCommitWarning } from './permissions-commit-warning'
 import { enableBranchProtectionWarningFlow } from '../../lib/feature-flag'
+import { LinkButton } from '../lib/link-button'
+import { FoldoutType } from '../../lib/app-state'
 
 const addAuthorIcon = new OcticonSymbol(
   12,
@@ -456,19 +458,33 @@ export class CommitMessage extends React.Component<
     const {
       currentBranchProtected,
       hasWritePermissionForRepository,
-      dispatcher,
       repository,
     } = this.props
 
-    return (
-      <PermissionsCommitWarning
-        currentBranch={branch}
-        repositoryName={repository.name}
-        hasWritePermissionForRepository={hasWritePermissionForRepository}
-        currentBranchProtected={currentBranchProtected}
-        dispatcher={dispatcher}
-      />
-    )
+    if (!hasWritePermissionForRepository) {
+      return (
+        <PermissionsCommitWarning>
+          You do not have permission to push to{' '}
+          <strong>{repository.name}</strong>.
+        </PermissionsCommitWarning>
+      )
+    } else if (currentBranchProtected) {
+      return (
+        <PermissionsCommitWarning>
+          <strong>{branch}</strong> is a protected branch. Want to{' '}
+          <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>
+          ?
+        </PermissionsCommitWarning>
+      )
+    } else {
+      return null
+    }
+  }
+
+  private onSwitchBranch = () => {
+    this.props.dispatcher.showFoldout({
+      type: FoldoutType.Branch,
+    })
   }
 
   public render() {

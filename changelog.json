@@ -1,5 +1,15 @@
 {
   "releases": {
+    "2.2.4-beta2": [
+      "[Added] Adding integration for Xcode as external editor - #8255. Thanks @msztech!",
+      "[Fixed] Changed wording to match git autocrlf behavior - #5741. Thanks @jmhammock!",
+      "[Fixed] Fix arrow key navigation of Changes and History lists (#6845) - #6845. Thanks @JMcKiern!",
+      "[Fixed] Standardize dialogs' button orders - #7186 #2463 #5883",
+      "[Fixed] Keep PR badge on top of progress bar - #8622",
+      "[Fixed] Show autocomplete suggestions on top of CodeMirror author input - #4084",
+      "[Improved] Warn user if they're committing to a repo they don't have write permission for - #8665",
+      "[Improved] Don't prompt to stash changes when switching away from protected branch - #8664"
+    ],
     "2.2.4-beta1": [
       "[New] Warn when committing to a protected branch - #7023",
       "[Fixed] Prevent application crash when background process spawn fails - #8614",
