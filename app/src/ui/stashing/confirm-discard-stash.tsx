@@ -2,10 +2,9 @@ import * as React from 'react'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
-import { ButtonGroup } from '../lib/button-group'
-import { Button } from '../lib/button'
 import { Row } from '../lib/row'
 import { IStashEntry } from '../../models/stash-entry'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IConfirmDiscardStashProps {
   readonly dispatcher: Dispatcher
@@ -42,23 +41,20 @@ export class ConfirmDiscardStashDialog extends React.Component<
         title={title}
         loading={this.state.isDiscarding}
         disabled={this.state.isDiscarding}
-        onSubmit={this.props.onDismissed}
+        onSubmit={this.onSubmit}
         onDismissed={this.props.onDismissed}
       >
         <DialogContent>
           <Row>Are you sure you want to discard these stashed changes?</Row>
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup destructive={true}>
-            <Button type="submit">Cancel</Button>
-            <Button onClick={this.onDiscardClick}>Discard</Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup destructive={true} okButtonText="Discard" />
         </DialogFooter>
       </Dialog>
     )
   }
 
-  private onDiscardClick = async () => {
+  private onSubmit = async () => {
     const { dispatcher, repository, stash, onDismissed } = this.props
 
     this.setState({

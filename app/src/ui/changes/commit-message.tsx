@@ -23,8 +23,10 @@ import { IAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
 import { ICommitContext } from '../../models/commit'
 import { startTimer } from '../lib/timing'
-import { ProtectedBranchWarning } from './protected-branch-warning'
+import { PermissionsCommitWarning } from './permissions-commit-warning'
 import { enableBranchProtectionWarningFlow } from '../../lib/feature-flag'
+import { LinkButton } from '../lib/link-button'
+import { FoldoutType } from '../../lib/app-state'
 
 const addAuthorIcon = new OcticonSymbol(
   12,
@@ -50,6 +52,7 @@ interface ICommitMessageProps {
   readonly placeholder: string
   readonly prepopulateCommitSummary: boolean
   readonly currentBranchProtected: boolean
+  readonly hasWritePermissionForRepository: boolean
 
   /**
    * Whether or not to show a field for adding co-authors to
@@ -447,20 +450,41 @@ export class CommitMessage extends React.Component<
     return <div className={className}>{this.renderCoAuthorToggleButton()}</div>
   }
 
-  private renderProtectedBranchWarning = (branch: string) => {
+  private renderPermissionsCommitWarning = (branch: string) => {
     if (!enableBranchProtectionWarningFlow()) {
       return null
     }
 
-    const { currentBranchProtected, dispatcher } = this.props
+    const {
+      currentBranchProtected,
+      hasWritePermissionForRepository,
+      repository,
+    } = this.props
 
-    if (!currentBranchProtected) {
+    if (!hasWritePermissionForRepository) {
+      return (
+        <PermissionsCommitWarning>
+          You do not have permission to push to{' '}
+          <strong>{repository.name}</strong>.
+        </PermissionsCommitWarning>
+      )
+    } else if (currentBranchProtected) {
+      return (
+        <PermissionsCommitWarning>
+          <strong>{branch}</strong> is a protected branch. Want to{' '}
+          <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>
+          ?
+        </PermissionsCommitWarning>
+      )
+    } else {
       return null
     }
+  }
 
-    return (
-      <ProtectedBranchWarning currentBranch={branch} dispatcher={dispatcher} />
-    )
+  private onSwitchBranch = () => {
+    this.props.dispatcher.showFoldout({
+      type: FoldoutType.Branch,
+    })
   }
 
   public render() {
@@ -529,7 +553,7 @@ export class CommitMessage extends React.Component<
 
         {this.renderCoAuthorInput()}
 
-        {this.renderProtectedBranchWarning(branchName)}
+        {this.renderPermissionsCommitWarning(branchName)}
 
         <Button
           type="submit"

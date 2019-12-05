@@ -19,6 +19,7 @@ export enum ExternalEditor {
   Typora = 'Typora',
   CodeRunner = 'CodeRunner',
   SlickEdit = 'SlickEdit',
+  Xcode = 'Xcode',
   Vim = 'vim',
 }
 
@@ -70,6 +71,9 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.SlickEdit) {
     return ExternalEditor.SlickEdit
   }
+  if (label === ExternalEditor.Xcode) {
+    return ExternalEditor.Xcode
+  }
   if (label === ExternalEditor.Vim) {
     return ExternalEditor.Vim
   }
@@ -118,6 +122,8 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
         'com.slickedit.SlickEditPro2016',
         'com.slickedit.SlickEditPro2015',
       ]
+    case ExternalEditor.Xcode:
+      return ['com.apple.dt.Xcode']
     case ExternalEditor.Vim:
       return ['vim is a terminal program with no bundle identifier']
     default:
@@ -173,6 +179,8 @@ function getExecutableShim(
       return Path.join(installPath, 'Contents', 'MacOS', 'CodeRunner')
     case ExternalEditor.SlickEdit:
       return Path.join(installPath, 'Contents', 'MacOS', 'vs')
+    case ExternalEditor.Xcode:
+      return '/usr/bin/xed'
     case ExternalEditor.Vim:
       const vimPaths = [
         '/usr/local/bin/vim',
@@ -243,6 +251,7 @@ export async function getAvailableEditors(): Promise<
     typoraPath,
     codeRunnerPath,
     slickeditPath,
+    xcodePath,
     vimPath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
@@ -260,6 +269,7 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.Typora),
     findApplication(ExternalEditor.CodeRunner),
     findApplication(ExternalEditor.SlickEdit),
+    findApplication(ExternalEditor.Xcode),
     findApplication(ExternalEditor.Vim),
   ])
 
@@ -324,6 +334,10 @@ export async function getAvailableEditors(): Promise<
 
   if (slickeditPath) {
     results.push({ editor: ExternalEditor.SlickEdit, path: slickeditPath })
+  }
+
+  if (xcodePath) {
+    results.push({ editor: ExternalEditor.Xcode, path: xcodePath })
   }
 
   if (vimPath) {
