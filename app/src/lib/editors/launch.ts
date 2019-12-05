@@ -1,6 +1,7 @@
 import { spawn } from 'child_process'
 import { pathExists } from 'fs-extra'
 import { ExternalEditorError, FoundEditor } from './shared'
+import { launchShell, findShellOrDefault, Default } from '../shells/shared'
 
 /**
  * Open a given file or folder in the desired external editor.
@@ -23,7 +24,11 @@ export async function launchExternalEditor(
       { openPreferences: true }
     )
   }
-  if (editor.usesShell) {
+  if (editor.usesTerminal) {
+    launchShell(await findShellOrDefault(Default),
+                      `"${editorPath}"`,
+                      e => {return})
+  } else if (editor.usesShell) {
     spawn(`"${editorPath}"`, [`"${fullPath}"`], { shell: true })
   } else {
     spawn(editorPath, [fullPath])

@@ -37,6 +37,10 @@ export type FoundEditor = {
    * the editor requires a shell spawn to launch
    */
   usesShell?: boolean
+  /**
+   *  editor requires a terminal to launch
+   */
+  usesTerminal?: boolean
 }
 
 interface IErrorMetadata {
