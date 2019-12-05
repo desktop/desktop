@@ -19,6 +19,7 @@ export enum ExternalEditor {
   Typora = 'Typora',
   CodeRunner = 'CodeRunner',
   SlickEdit = 'SlickEdit',
+  Vim = 'vim',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -69,6 +70,9 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.SlickEdit) {
     return ExternalEditor.SlickEdit
   }
+  if (label === ExternalEditor.Vim) {
+    return ExternalEditor.Vim
+  }
   return null
 }
 
@@ -114,6 +118,8 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
         'com.slickedit.SlickEditPro2016',
         'com.slickedit.SlickEditPro2015',
       ]
+    case ExternalEditor.Vim:
+      return ['vim is a terminal program with no bundle identifier']
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -167,29 +173,49 @@ function getExecutableShim(
       return Path.join(installPath, 'Contents', 'MacOS', 'CodeRunner')
     case ExternalEditor.SlickEdit:
       return Path.join(installPath, 'Contents', 'MacOS', 'vs')
+    case ExternalEditor.Vim:
+      const vimPaths = [
+        '/usr/local/bin/vim',
+        '/usr/bin/vim',
+        '/usr/local/bin/vi',
+        '/bin/vi'
+      ]
+      for (const possiblePath of vimPaths) {
+        const vimPath = pathExists(possiblePath) ? possiblePath : null
+        if (vimPath) {
+          return vimPath
+        }
+      }
+      throw new Error('/bin/vi (required on POSIX systems) not found')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
 }
 
 async function findApplication(editor: ExternalEditor): Promise<string | null> {
-  const identifiers = getBundleIdentifiers(editor)
-  for (const identifier of identifiers) {
-    try {
-      const installPath = await appPath(identifier)
-      const path = getExecutableShim(editor, installPath)
-      const exists = await pathExists(path)
-      if (exists) {
-        return path
+  switch (editor) {
+    case ExternalEditor.Vim:
+      return getExecutableShim(editor, '')
+    default: {
+      const identifiers = getBundleIdentifiers(editor)
+      for (const identifier of identifiers) {
+        try {
+          const installPath = await appPath(identifier)
+          const path = getExecutableShim(editor, installPath)
+          const exists = await pathExists(path)
+          if (exists) {
+            return path
+          }
+
+          log.debug(`Command line interface for ${editor} not found at '${path}'`)
+        } catch (error) {
+          log.debug(`Unable to locate ${editor} installation`, error)
+        }
       }
 
-      log.debug(`Command line interface for ${editor} not found at '${path}'`)
-    } catch (error) {
-      log.debug(`Unable to locate ${editor} installation`, error)
+      return null
     }
   }
-
-  return null
 }
 
 /**
@@ -217,6 +243,7 @@ export async function getAvailableEditors(): Promise<
     typoraPath,
     codeRunnerPath,
     slickeditPath,
+    vimPath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.MacVim),
@@ -233,6 +260,7 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.Typora),
     findApplication(ExternalEditor.CodeRunner),
     findApplication(ExternalEditor.SlickEdit),
+    findApplication(ExternalEditor.Vim),
   ])
 
   if (atomPath) {
@@ -296,6 +324,10 @@ export async function getAvailableEditors(): Promise<
 
   if (slickeditPath) {
     results.push({ editor: ExternalEditor.SlickEdit, path: slickeditPath })
+  }
+
+  if (vimPath) {
+    results.push({ editor: ExternalEditor.Vim, path: vimPath, usesTerminal: true})
   }
 
   return results

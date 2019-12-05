@@ -11,6 +11,7 @@ export enum ExternalEditor {
   SublimeText = 'Sublime Text',
   Typora = 'Typora',
   SlickEdit = 'SlickEdit',
+  Vim = 'vim',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -40,6 +41,10 @@ export function parse(label: string): ExternalEditor | null {
 
   if (label === ExternalEditor.SlickEdit) {
     return ExternalEditor.SlickEdit
+  }
+
+  if (label === ExternalEditor.Vim) {
+    return ExternalEditor.Vim
   }
 
   return null
@@ -77,6 +82,20 @@ async function getEditorPath(editor: ExternalEditor): Promise<string | null> {
         }
       }
       return null
+    case ExternalEditor.Vim:
+      const vimPaths = [
+        '/usr/local/bin/vim',
+        '/usr/bin/vim',
+        '/usr/local/bin/vi',
+        '/bin/vi'
+      ]
+      for (const possiblePath of vimPaths) {
+        const vimPath = await getPathIfAvailable(possiblePath)
+        if (vimPath) {
+          return vimPath
+        }
+      }
+      return null
     default:
       return assertNever(editor, `Unknown editor: ${editor}`)
   }
@@ -95,6 +114,7 @@ export async function getAvailableEditors(): Promise<
     sublimePath,
     typoraPath,
     slickeditPath,
+    vimPath,
   ] = await Promise.all([
     getEditorPath(ExternalEditor.Atom),
     getEditorPath(ExternalEditor.VSCode),
@@ -103,6 +123,7 @@ export async function getAvailableEditors(): Promise<
     getEditorPath(ExternalEditor.SublimeText),
     getEditorPath(ExternalEditor.Typora),
     getEditorPath(ExternalEditor.SlickEdit),
+    getEditorPath(ExternalEditor.Vim),
   ])
 
   if (atomPath) {
@@ -131,6 +152,10 @@ export async function getAvailableEditors(): Promise<
 
   if (slickeditPath) {
     results.push({ editor: ExternalEditor.SlickEdit, path: slickeditPath })
+  }
+
+  if (vimPath) {
+    results.push({ editor: ExternalEditor.Vim, path: vimPath, usesTerminal: true})
   }
 
   return results
