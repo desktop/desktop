@@ -5,10 +5,13 @@ import {
   IDatabaseProtectedBranch,
 } from '../databases/repositories-database'
 import { Owner } from '../../models/owner'
-import { GitHubRepository } from '../../models/github-repository'
+import {
+  GitHubRepository,
+  GitHubRepositoryPermission,
+} from '../../models/github-repository'
 import { Repository } from '../../models/repository'
 import { fatalError } from '../fatal-error'
-import { IAPIRepository, IAPIBranch } from '../api'
+import { IAPIRepository, IAPIBranch, IAPIRepositoryPermissions } from '../api'
 import { BaseStore } from './base-store'
 import { enableBranchProtectionChecks } from '../feature-flag'
 
@@ -379,18 +382,26 @@ export class RepositoriesStore extends BaseStore {
 
     const login = gitHubRepository.owner.login.toLowerCase()
     const owner = await this.putOwner(endpoint, login)
-    const permissions = gitHubRepository.permissions.admin
-      ? 'admin'
-      : gitHubRepository.permissions.push
-      ? 'write'
-      : gitHubRepository.permissions.pull
-      ? 'read'
-      : null
 
     const existingRepo = await this.db.gitHubRepositories
       .where('[ownerID+name]')
       .equals([owner.id!, gitHubRepository.name])
       .first()
+
+    // If we can't resolve permissions for the current repository
+    // chances are that it's because it's the parent repository of
+    // another repository and we ended up here because the "actual"
+    // repository is trying to upsert its parent. Since parent
+    // repository hashes don't include a permissions hash and since
+    // it's possible that the user has both the fork and the parent
+    // repositories in the app we don't want to overwrite the permissions
+    // hash in the parent repository if we can help it or else we'll
+    // end up in a perpetual race condition where updating the fork
+    // will clear the permissions on the parent and updating the parent
+    // will reinstate them.
+    const permissions =
+      getPermissionsString(gitHubRepository.permissions) ||
+      (existingRepo ? existingRepo.permissions : undefined)
 
     let updatedGitHubRepo: IDatabaseGitHubRepository = {
       ownerID: owner.id!,
@@ -658,4 +669,20 @@ function getKey(dbID: number, branchName: string) {
 /** Compute the key prefix for the branch protection cache */
 function getKeyPrefix(dbID: number) {
   return `${dbID}-`
+}
+
+function getPermissionsString(
+  permissions: IAPIRepositoryPermissions | undefined
+): GitHubRepositoryPermission {
+  if (!permissions) {
+    return null
+  } else if (permissions.admin) {
+    return 'admin'
+  } else if (permissions.push) {
+    return 'write'
+  } else if (permissions.pull) {
+    return 'read'
+  } else {
+    return null
+  }
 }
