@@ -20,12 +20,14 @@ interface IAdvancedPreferencesProps {
   readonly selectedExternalEditor: ExternalEditor | null
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
+  readonly schannelCheckRevoke: boolean
   readonly onOptOutofReportingchanged: (checked: boolean) => void
   readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
   readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
   readonly onConfirmForcePushChanged: (checked: boolean) => void
   readonly onSelectedEditorChanged: (editor: ExternalEditor) => void
   readonly onSelectedShellChanged: (shell: Shell) => void
+  readonly onSchannelCheckRevokeChanged: (checked: boolean) => void
 
   readonly mergeTool: IMergeTool | null
   readonly onMergeToolNameChanged: (name: string) => void
@@ -39,6 +41,7 @@ interface IAdvancedPreferencesState {
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
+  readonly schannelCheckRevoke: boolean
 }
 
 export class Advanced extends React.Component<
@@ -55,6 +58,7 @@ export class Advanced extends React.Component<
       confirmForcePush: this.props.confirmForcePush,
       selectedExternalEditor: this.props.selectedExternalEditor,
       selectedShell: this.props.selectedShell,
+      schannelCheckRevoke: this.props.schannelCheckRevoke,
     }
   }
 
@@ -139,6 +143,15 @@ export class Advanced extends React.Component<
     const value = parseShell(event.currentTarget.value)
     this.setState({ selectedShell: value })
     this.props.onSelectedShellChanged(value)
+  }
+
+  private onSchannelCheckRevokeChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+
+    this.setState({ schannelCheckRevoke: value })
+    this.props.onSchannelCheckRevokeChanged(value)
   }
 
   private reportDesktopUsageLabel() {
@@ -281,6 +294,17 @@ export class Advanced extends React.Component<
               this.state.confirmForcePush ? CheckboxValue.On : CheckboxValue.Off
             }
             onChange={this.onConfirmForcePushChanged}
+          />
+        </Row>
+        <Row>
+          <Checkbox
+            label="Enable certificate revocation check for schannel"
+            value={
+              this.state.schannelCheckRevoke
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onSchannelCheckRevokeChanged}
           />
         </Row>
       </DialogContent>

@@ -54,6 +54,7 @@ interface IPreferencesState {
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
   readonly mergeTool: IMergeTool | null
+  readonly schannelCheckRevoke: boolean
 }
 
 /** The app-level preferences component. */
@@ -79,12 +80,15 @@ export class Preferences extends React.Component<
       availableShells: [],
       selectedShell: this.props.selectedShell,
       mergeTool: null,
+      schannelCheckRevoke: false,
     }
   }
 
   public async componentWillMount() {
     let committerName = await getGlobalConfigValue('user.name')
     let committerEmail = await getGlobalConfigValue('user.email')
+    let schannelCheckRevoke =
+      (await getGlobalConfigValue('http.schannelCheckRevoke')) !== 'false'
 
     if (!committerName || !committerEmail) {
       const account = this.props.dotComAccount || this.props.enterpriseAccount
@@ -125,6 +129,7 @@ export class Preferences extends React.Component<
       availableShells,
       availableEditors,
       mergeTool,
+      schannelCheckRevoke,
     })
   }
 
@@ -232,6 +237,8 @@ export class Preferences extends React.Component<
             mergeTool={this.state.mergeTool}
             onMergeToolCommandChanged={this.onMergeToolCommandChanged}
             onMergeToolNameChanged={this.onMergeToolNameChanged}
+            schannelCheckRevoke={this.state.schannelCheckRevoke}
+            onSchannelCheckRevokeChanged={this.onSchannelCheckRevokeChanged}
           />
         )
       }
@@ -289,6 +296,10 @@ export class Preferences extends React.Component<
     )
   }
 
+  private onSchannelCheckRevokeChanged = (value: boolean) => {
+    this.setState({ schannelCheckRevoke: value })
+  }
+
   private renderFooter() {
     const hasDisabledError = this.state.disallowedCharactersMessage != null
 
@@ -316,6 +327,10 @@ export class Preferences extends React.Component<
   private onSave = async () => {
     await setGlobalConfigValue('user.name', this.state.committerName)
     await setGlobalConfigValue('user.email', this.state.committerEmail)
+    await setGlobalConfigValue(
+      'http.schannelCheckRevoke',
+      this.state.schannelCheckRevoke.toString()
+    )
     await this.props.dispatcher.setStatsOptOut(
       this.state.optOutOfUsageTracking,
       false
