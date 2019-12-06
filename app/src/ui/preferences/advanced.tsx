@@ -11,6 +11,7 @@ interface IAdvancedPreferencesProps {
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
   readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
+  readonly schannelCheckRevoke: boolean
   readonly onOptOutofReportingchanged: (checked: boolean) => void
   readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
   readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
@@ -18,6 +19,7 @@ interface IAdvancedPreferencesProps {
   readonly onUncommittedChangesStrategyKindChanged: (
     value: UncommittedChangesStrategyKind
   ) => void
+  readonly onSchannelCheckRevokeChanged: (checked: boolean) => void
 }
 
 interface IAdvancedPreferencesState {
@@ -26,6 +28,7 @@ interface IAdvancedPreferencesState {
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
   readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
+  readonly schannelCheckRevoke: boolean
 }
 
 export class Advanced extends React.Component<
@@ -41,6 +44,7 @@ export class Advanced extends React.Component<
       confirmDiscardChanges: this.props.confirmDiscardChanges,
       confirmForcePush: this.props.confirmForcePush,
       uncommittedChangesStrategyKind: this.props.uncommittedChangesStrategyKind,
+      schannelCheckRevoke: this.props.schannelCheckRevoke,
     }
   }
 
@@ -87,6 +91,15 @@ export class Advanced extends React.Component<
 
     this.setState({ uncommittedChangesStrategyKind: value })
     this.props.onUncommittedChangesStrategyKindChanged(value)
+  }
+
+  private onSchannelCheckRevokeChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+
+    this.setState({ schannelCheckRevoke: value })
+    this.props.onSchannelCheckRevokeChanged(value)
   }
 
   private reportDesktopUsageLabel() {
@@ -189,6 +202,18 @@ export class Advanced extends React.Component<
                 : CheckboxValue.On
             }
             onChange={this.onReportingOptOutChanged}
+          />
+        </div>
+        <div className="git-advanced-section">
+          <h2>Git</h2>
+          <Checkbox
+            label="Enable certificate revocation checks"
+            value={
+              this.state.schannelCheckRevoke
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onSchannelCheckRevokeChanged}
           />
         </div>
       </DialogContent>
