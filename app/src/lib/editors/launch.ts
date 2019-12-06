@@ -25,9 +25,9 @@ export async function launchExternalEditor(
     )
   }
   if (editor.usesTerminal) {
-    launchShell(await findShellOrDefault(Default),
-                      `"${editorPath}"`,
-                      e => {return})
+    launchShell(await findShellOrDefault(Default), `"${editorPath}"`, e => {
+      return
+    })
   } else if (editor.usesShell) {
     spawn(`"${editorPath}"`, [`"${fullPath}"`], { shell: true })
   } else {

@@ -186,7 +186,7 @@ function getExecutableShim(
         '/usr/local/bin/vim',
         '/usr/bin/vim',
         '/usr/local/bin/vi',
-        '/bin/vi'
+        '/bin/vi',
       ]
       for (const possiblePath of vimPaths) {
         const vimPath = pathExists(possiblePath) ? possiblePath : null
@@ -215,7 +215,9 @@ async function findApplication(editor: ExternalEditor): Promise<string | null> {
             return path
           }
 
-          log.debug(`Command line interface for ${editor} not found at '${path}'`)
+          log.debug(
+            `Command line interface for ${editor} not found at '${path}'`
+          )
         } catch (error) {
           log.debug(`Unable to locate ${editor} installation`, error)
         }
@@ -341,7 +343,11 @@ export async function getAvailableEditors(): Promise<
   }
 
   if (vimPath) {
-    results.push({ editor: ExternalEditor.Vim, path: vimPath, usesTerminal: true})
+    results.push({
+      editor: ExternalEditor.Vim,
+      path: vimPath,
+      usesTerminal: true,
+    })
   }
 
   return results

@@ -87,7 +87,7 @@ async function getEditorPath(editor: ExternalEditor): Promise<string | null> {
         '/usr/local/bin/vim',
         '/usr/bin/vim',
         '/usr/local/bin/vi',
-        '/bin/vi'
+        '/bin/vi',
       ]
       for (const possiblePath of vimPaths) {
         const vimPath = await getPathIfAvailable(possiblePath)
@@ -155,7 +155,11 @@ export async function getAvailableEditors(): Promise<
   }
 
   if (vimPath) {
-    results.push({ editor: ExternalEditor.Vim, path: vimPath, usesTerminal: true})
+    results.push({
+      editor: ExternalEditor.Vim,
+      path: vimPath,
+      usesTerminal: true,
+    })
   }
 
   return results
