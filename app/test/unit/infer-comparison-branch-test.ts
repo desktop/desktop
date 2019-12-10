@@ -55,6 +55,7 @@ function createTestGhRepo(
         : defaultBranch
     }`,
     cloneURL,
+    'write',
     parent
   )
 }

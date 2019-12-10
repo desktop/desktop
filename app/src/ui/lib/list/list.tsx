@@ -765,6 +765,11 @@ export class List extends React.Component<IListProps, IListState> {
     }
     this.scrollToRow = -1
 
+    // Prefer scrollTop position over scrollToRow
+    if (this.props.setScrollTop !== undefined) {
+      scrollToRow = -1
+    }
+
     // The currently selected list item is focusable but if
     // there's no focused item (and there's items to switch between)
     // the list itself needs to be focusable so that you can reach

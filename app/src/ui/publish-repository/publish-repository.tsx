@@ -145,7 +145,6 @@ export class PublishRepository extends React.Component<
           <TextBox
             label="Name"
             value={this.name}
-            autoFocus={true}
             onValueChanged={this.onNameChange}
           />
         </Row>

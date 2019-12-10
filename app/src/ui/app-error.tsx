@@ -1,8 +1,11 @@
 import * as React from 'react'
 
-import { Button } from './lib/button'
-import { ButtonGroup } from './lib/button-group'
-import { Dialog, DialogContent, DialogFooter } from './dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DefaultDialogFooter,
+} from './dialog'
 import {
   dialogTransitionEnterTimeout,
   dialogTransitionLeaveTimeout,
@@ -11,6 +14,7 @@ import { GitError } from '../lib/git/core'
 import { GitError as GitErrorType } from 'dugite'
 import { Popup, PopupType } from '../models/popup'
 import { CSSTransitionGroup } from 'react-transition-group'
+import { OkCancelButtonGroup } from './dialog/ok-cancel-button-group'
 
 interface IAppErrorProps {
   /** The list of queued, app-wide, errors  */
@@ -90,24 +94,20 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     switch (gitErrorType) {
       case GitErrorType.HTTPSAuthenticationFailed: {
         return (
-          <ButtonGroup>
-            <Button type="submit" onClick={this.onCloseButtonClick}>
-              Close
-            </Button>
-            <Button onClick={this.showPreferencesDialog}>
-              {__DARWIN__ ? 'Open Preferences' : 'Open options'}
-            </Button>
-          </ButtonGroup>
+          <DialogFooter>
+            <OkCancelButtonGroup
+              okButtonText="Close"
+              onOkButtonClick={this.onCloseButtonClick}
+              cancelButtonText={
+                __DARWIN__ ? 'Open Preferences' : 'Open options'
+              }
+              onCancelButtonClick={this.showPreferencesDialog}
+            />
+          </DialogFooter>
         )
       }
       default:
-        return (
-          <ButtonGroup>
-            <Button type="submit" onClick={this.onCloseButtonClick}>
-              Close
-            </Button>
-          </ButtonGroup>
-        )
+        return <DefaultDialogFooter onButtonClick={this.onCloseButtonClick} />
     }
   }
 
@@ -145,11 +145,12 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
         key="error"
         title="Error"
         dismissable={false}
+        onSubmit={this.onDismissed}
         onDismissed={this.onDismissed}
         disabled={this.state.disabled}
       >
         <DialogContent>{this.renderErrorMessage(error)}</DialogContent>
-        <DialogFooter>{this.renderFooter(error)}</DialogFooter>
+        {this.renderFooter(error)}
       </Dialog>
     )
   }
@@ -164,13 +165,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       return this.renderGitErrorFooter(error)
     }
 
-    return (
-      <ButtonGroup>
-        <Button type="submit" onClick={this.onCloseButtonClick}>
-          Close
-        </Button>
-      </ButtonGroup>
-    )
+    return <DefaultDialogFooter onButtonClick={this.onCloseButtonClick} />
   }
 
   public render() {

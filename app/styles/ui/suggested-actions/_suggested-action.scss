@@ -1,4 +1,4 @@
-.blankslate-action {
+.suggested-action {
   border: var(--base-border);
   border-bottom: 0;
   padding: var(--spacing-double);
@@ -18,8 +18,8 @@
   }
 
   &.primary {
-    background: var(--primary-blankslate-action-background);
-    border-color: var(--primary-blankslate-action-border-color);
+    background: var(--primary-suggested-action-background);
+    border-color: var(--primary-suggested-action-border-color);
   }
 
   .text-wrapper {
@@ -40,7 +40,7 @@
     .octicon {
       height: 100%;
       width: 100%;
-      color: var(--blankslate-action-icon-color);
+      color: var(--suggested-action-icon-color);
     }
   }
 

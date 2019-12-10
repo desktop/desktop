@@ -9,6 +9,7 @@ import { BranchesContainer, PullRequestBadge } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
 import { BranchesTab } from '../../models/branches-tab'
 import { PullRequest } from '../../models/pull-request'
+import * as classNames from 'classnames'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -42,8 +43,8 @@ interface IBranchDropdownProps {
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
 
-  /** Was this component launched from the "Protected Branch" warning message? */
-  readonly handleProtectedBranchWarning?: boolean
+  /** Whether this component should show its onboarding tutorial nudge arrow */
+  readonly shouldNudge: boolean
 }
 
 /**
@@ -53,6 +54,8 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
   private renderBranchFoldout = (): JSX.Element | null => {
     const repositoryState = this.props.repositoryState
     const branchesState = repositoryState.branchesState
+    const currentBranchProtected =
+      repositoryState.changesState.currentBranchProtected
 
     const tip = repositoryState.branchesState.tip
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
@@ -69,7 +72,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         pullRequests={this.props.pullRequests}
         currentPullRequest={this.props.currentPullRequest}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
-        handleProtectedBranchWarning={this.props.handleProtectedBranchWarning}
+        currentBranchProtected={currentBranchProtected}
       />
     )
   }
@@ -147,6 +150,9 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
 
     const isOpen = this.props.isOpen
     const currentState: DropdownState = isOpen && canOpen ? 'open' : 'closed'
+    const buttonClassName = classNames('nudge-arrow', {
+      'nudge-arrow-up': this.props.shouldNudge,
+    })
 
     return (
       <ToolbarDropdown
@@ -162,6 +168,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         disabled={disabled}
         showDisclosureArrow={canOpen}
         progressValue={progressValue}
+        buttonClassName={buttonClassName}
       >
         {this.renderPullRequestInfo()}
       </ToolbarDropdown>
