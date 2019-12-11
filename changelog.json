@@ -4,6 +4,7 @@
       "[New] Warn when committing to a protected branch - #7023",
       "[New] Warn when committing to a repository you don't have write access to - #8665",
       "[Added] Adding integration for Xcode as external editor - #8255. Thanks @msztech!",
+      "[Fixed] Update embedded Git to address security vulnerabilities - #8780",
       "[Fixed] Changed wording to match git autocrlf behavior - #5741. Thanks @jmhammock!",
       "[Fixed] Don't dismiss dialogs when dragging from the dialog to the backdrop - #8544",
       "[Fixed] Fix arrow key navigation of Changes and History lists (#6845) - #6845. Thanks @JMcKiern!",
