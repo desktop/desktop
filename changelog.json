@@ -12,7 +12,7 @@
       "[Fixed] Show autocomplete suggestions on top of CodeMirror author input - #4084",
       "[Fixed] Standardize dialogs' button orders - #7186 #2463 #5883",
       "[Improved] Make no newline indicator in file diffs readable by screenreaders. - #6494. Thanks @jmhammock!",
-      "[Improved] Warn user if they're committing to a repo they don't have write permission for - #8665"
+      "[New] Warn when committing to a repository you don't have write access to - #8665"
     ],
     "2.2.4-beta4": [
       "[Fixed] Update embedded Git to address security vulnerabilities - #8780"
