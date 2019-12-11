@@ -16,6 +16,9 @@
       "[Improved] Make no newline indicator in file diffs readable by screenreaders. - #6494. Thanks @jmhammock!",
       "[Improved] Warn user if they're committing to a repo they don't have write permission for - #8665"
     ],
+    "2.2.4-beta4": [
+      "[Fixed] Update embedded Git to address security vulnerabilities - #8780"
+    ],
     "2.2.4-beta3": [
       "[Fixed] Make newly cloned repositories load pull requests correctly - #8745",
       "[Improved] Make no newline indicator in file diffs readable by screenreaders. - #6494. Thanks @jmhammock!"
