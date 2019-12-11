@@ -819,7 +819,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private clearBranchProtectionState(repository: Repository) {
-    console.warn('clear')
     this.repositoryStateCache.updateChangesState(repository, () => ({
       currentBranchProtected: false,
     }))
@@ -864,8 +863,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const pushControl = await api.fetchPushControl(owner, name, branchName)
         const currentBranchProtected =
           hasWritePermissionForRepository && !isBranchPushable(pushControl)
-
-        console.warn('set actual value', currentBranchProtected)
 
         this.repositoryStateCache.updateChangesState(repository, () => ({
           currentBranchProtected,
@@ -3091,7 +3088,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (checkoutSucceeded) {
       this.clearBranchProtectionState(repository)
     }
-    
+
     if (
       enableStashing() &&
       uncommittedChangesStrategy.kind ===
