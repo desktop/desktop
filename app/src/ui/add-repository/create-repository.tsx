@@ -162,7 +162,7 @@ export class CreateRepository extends React.Component<
 
   private showFilePicker = async () => {
     const window = remote.getCurrentWindow()
-    const directory = remote.dialog.showOpenDialog(window, {
+    const directory = remote.dialog.showOpenDialogSync(window, {
       properties: ['createDirectory', 'openDirectory'],
     })
 
