@@ -27,6 +27,7 @@ import { showUncaughtException } from './show-uncaught-exception'
 import { IMenuItem } from '../lib/menu-item'
 import { buildContextMenu } from './menu/build-context-menu'
 
+app.setAppLogsPath()
 enableSourceMaps()
 
 let mainWindow: AppWindow | null = null
