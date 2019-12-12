@@ -26,7 +26,10 @@ import {
   ImageDiffType,
 } from '../../models/diff'
 import { FetchType } from '../../models/fetch'
-import { GitHubRepository } from '../../models/github-repository'
+import {
+  GitHubRepository,
+  hasWritePermission,
+} from '../../models/github-repository'
 import { Owner } from '../../models/owner'
 import { PullRequest } from '../../models/pull-request'
 import {
@@ -847,8 +850,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const owner = gitHubRepo.owner.login
         const api = API.fromAccount(account)
 
+        const hasWritePermissionForRepository =
+          gitHubRepo === null || hasWritePermission(gitHubRepo)
+
         const pushControl = await api.fetchPushControl(owner, name, branchName)
-        const currentBranchProtected = !isBranchPushable(pushControl)
+        const currentBranchProtected =
+          hasWritePermissionForRepository && !isBranchPushable(pushControl)
 
         this.repositoryStateCache.updateChangesState(repository, () => ({
           currentBranchProtected,

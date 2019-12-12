@@ -67,7 +67,7 @@ interface IChangesSidebarProps {
    */
   readonly onOpenInExternalEditor: (fullPath: string) => void
   readonly onChangesListScrolled: (scrollTop: number) => void
-  readonly changesListScrollTop: number
+  readonly changesListScrollTop?: number
 
   /**
    * Whether we should show the onboarding tutorial nudge

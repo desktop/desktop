@@ -1,16 +1,9 @@
 import * as React from 'react'
 
-import { ButtonGroup } from '../lib/button-group'
-import { Button } from '../lib/button'
-
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { OcticonSymbol, Octicon } from '../octicons'
 import { ConfirmAbortStep } from '../../models/rebase-flow-step'
 import { Ref } from '../lib/ref'
-
-const titleString = 'Confirm abort rebase'
-const cancelButtonString = 'Cancel'
-const abortButtonString = 'Abort rebase'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IConfirmAbortDialogProps {
   readonly step: ConfirmAbortStep
@@ -91,21 +84,20 @@ export class ConfirmAbortDialog extends React.Component<
     return (
       <Dialog
         id="abort-merge-warning"
-        title={titleString}
-        dismissable={false}
+        title={__DARWIN__ ? 'Confirm Abort Rebase' : 'Confirm abort rebase'}
         onDismissed={this.onCancel}
         onSubmit={this.onSubmit}
         disabled={this.state.isAborting}
+        type="warning"
       >
-        <DialogContent className="content-wrapper">
-          <Octicon symbol={OcticonSymbol.alert} />
+        <DialogContent>
           {this.renderTextContent(targetBranch, baseBranch)}
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup>
-            <Button type="submit">{abortButtonString}</Button>
-            <Button onClick={this.onCancel}>{cancelButtonString}</Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            destructive={true}
+            okButtonText={__DARWIN__ ? 'Abort Rebase' : 'Abort rebase'}
+          />
         </DialogFooter>
       </Dialog>
     )

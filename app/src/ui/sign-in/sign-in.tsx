@@ -8,16 +8,15 @@ import {
   ITwoFactorAuthenticationState,
 } from '../../lib/stores'
 import { assertNever } from '../../lib/fatal-error'
-import { Button } from '../lib/button'
 import { LinkButton } from '../lib/link-button'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Row } from '../lib/row'
 import { TextBox } from '../lib/text-box'
-import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
 
 import { getWelcomeMessage } from '../../lib/2fa'
 import { getDotComAPIEndpoint } from '../../lib/api'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface ISignInProps {
   readonly dispatcher: Dispatcher
@@ -156,12 +155,10 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
 
     return (
       <DialogFooter>
-        <ButtonGroup>
-          <Button disabled={disableSubmit} type="submit">
-            {primaryButtonText}
-          </Button>
-          <Button onClick={this.props.onDismissed}>Cancel</Button>
-        </ButtonGroup>
+        <OkCancelButtonGroup
+          okButtonText={primaryButtonText}
+          okButtonDisabled={disableSubmit}
+        />
       </DialogFooter>
     )
   }

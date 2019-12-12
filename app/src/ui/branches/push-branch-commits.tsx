@@ -1,11 +1,10 @@
 import * as React from 'react'
 import { Dispatcher } from '../dispatcher'
 import { Branch } from '../../models/branch'
-import { ButtonGroup } from '../lib/button-group'
-import { Button } from '../lib/button'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Repository } from '../../models/repository'
 import { Ref } from '../lib/ref'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IPushBranchCommitsProps {
   readonly dispatcher: Dispatcher
@@ -71,17 +70,10 @@ export class PushBranchCommits extends React.Component<
   IPushBranchCommitsProps,
   IPushBranchCommitsState
 > {
-  private dialogButtonRef: HTMLButtonElement | null = null
   public constructor(props: IPushBranchCommitsProps) {
     super(props)
 
     this.state = { isPushingOrPublishing: false }
-  }
-
-  public componentDidMount() {
-    if (this.dialogButtonRef) {
-      this.dialogButtonRef.focus() // Focuses on the Publish Branch button when the push-branch-commits dialog opens
-    }
   }
 
   public render() {
@@ -90,8 +82,8 @@ export class PushBranchCommits extends React.Component<
         id="push-branch-commits"
         key="push-branch-commits"
         title={this.renderDialogTitle()}
-        onDismissed={this.cancel}
-        onSubmit={this.cancel}
+        onDismissed={this.props.onDismissed}
+        onSubmit={this.onSubmit}
         loading={this.state.isPushingOrPublishing}
         disabled={this.state.isPushingOrPublishing}
       >
@@ -100,10 +92,6 @@ export class PushBranchCommits extends React.Component<
         <DialogFooter>{this.renderButtonGroup()}</DialogFooter>
       </Dialog>
     )
-  }
-
-  private onDialogOpenRef = (element: HTMLButtonElement | null) => {
-    this.dialogButtonRef = element
   }
 
   private renderDialogContent() {
@@ -145,45 +133,32 @@ export class PushBranchCommits extends React.Component<
   private renderButtonGroup() {
     if (renderPublishView(this.props.unPushedCommits)) {
       return (
-        <ButtonGroup>
-          <Button
-            type="submit"
-            onClick={this.onPushOrPublishButtonClick}
-            onButtonRef={this.onDialogOpenRef}
-          >
-            {__DARWIN__ ? 'Publish Branch' : 'Publish branch'}
-          </Button>
-          <Button onClick={this.cancel}>Cancel</Button>
-        </ButtonGroup>
+        <OkCancelButtonGroup
+          okButtonText={__DARWIN__ ? 'Publish Branch' : 'Publish branch'}
+        />
       )
     }
 
     return (
-      <ButtonGroup>
-        <Button type="submit" onClick={this.onPushOrPublishButtonClick}>
-          {__DARWIN__ ? 'Push Commits' : 'Push commits'}
-        </Button>
-        <Button onClick={this.onCreateWithoutPushButtonClick}>
-          {__DARWIN__ ? 'Create Without Pushing' : 'Create without pushing'}
-        </Button>
-      </ButtonGroup>
+      <OkCancelButtonGroup
+        okButtonText={__DARWIN__ ? 'Push Commits' : 'Push commits'}
+        cancelButtonText={
+          __DARWIN__ ? 'Create Without Pushing' : 'Create without pushing'
+        }
+        onCancelButtonClick={this.onCreateWithoutPushButtonClick}
+      />
     )
   }
 
-  private cancel = () => {
-    this.props.onDismissed()
-  }
-
-  private onCreateWithoutPushButtonClick = () => {
+  private onCreateWithoutPushButtonClick = (
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    e.preventDefault()
     this.props.onConfirm(this.props.repository, this.props.branch)
     this.props.onDismissed()
   }
 
-  private onPushOrPublishButtonClick = async (
-    e: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    e.preventDefault()
-
+  private onSubmit = async () => {
     const { repository, branch } = this.props
 
     this.setState({ isPushingOrPublishing: true })
