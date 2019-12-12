@@ -309,7 +309,7 @@ ipcRenderer.on('blur', () => {
 
 ipcRenderer.on(
   'url-action',
-  (event: Electron.IpcMessageEvent, { action }: { action: URLActionType }) => {
+  (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {
     dispatcher.dispatchURLAction(action)
   }
 )

@@ -288,7 +288,7 @@ app.on('ready', () => {
 
   ipcMain.on(
     'update-preferred-app-menu-item-labels',
-    (event: Electron.IpcMessageEvent, labels: MenuLabelsEvent) => {
+    (event: Electron.IpcMainEvent, labels: MenuLabelsEvent) => {
       // The current application menu is mutable and we frequently
       // change whether particular items are enabled or not through
       // the update-menu-state IPC event. This menu that we're creating
@@ -361,7 +361,7 @@ app.on('ready', () => {
     }
   )
 
-  ipcMain.on('menu-event', (event: Electron.IpcMessageEvent, args: any[]) => {
+  ipcMain.on('menu-event', (event: Electron.IpcMainEvent, args: any[]) => {
     const { name }: { name: MenuEvent } = event as any
     if (mainWindow) {
       mainWindow.sendMenuEvent(name)
@@ -374,7 +374,7 @@ app.on('ready', () => {
    */
   ipcMain.on(
     'execute-menu-item',
-    (event: Electron.IpcMessageEvent, { id }: { id: string }) => {
+    (event: Electron.IpcMainEvent, { id }: { id: string }) => {
       const currentMenu = Menu.getApplicationMenu()
 
       if (currentMenu === null) {
@@ -393,7 +393,7 @@ app.on('ready', () => {
   ipcMain.on(
     'update-menu-state',
     (
-      event: Electron.IpcMessageEvent,
+      event: Electron.IpcMainEvent,
       items: Array<{ id: string; state: IMenuItemState }>
     ) => {
       let sendMenuChangedEvent = false
@@ -435,7 +435,7 @@ app.on('ready', () => {
 
   ipcMain.on(
     'show-contextual-menu',
-    (event: Electron.IpcMessageEvent, items: ReadonlyArray<IMenuItem>) => {
+    (event: Electron.IpcMainEvent, items: ReadonlyArray<IMenuItem>) => {
       const menu = buildContextMenu(items, ix =>
         event.sender.send('contextual-menu-action', ix)
       )
@@ -458,7 +458,7 @@ app.on('ready', () => {
   ipcMain.on(
     'show-certificate-trust-dialog',
     (
-      event: Electron.IpcMessageEvent,
+      event: Electron.IpcMainEvent,
       {
         certificate,
         message,
@@ -475,14 +475,14 @@ app.on('ready', () => {
 
   ipcMain.on(
     'log',
-    (event: Electron.IpcMessageEvent, level: LogLevel, message: string) => {
+    (event: Electron.IpcMainEvent, level: LogLevel, message: string) => {
       writeLog(level, message)
     }
   )
 
   ipcMain.on(
     'uncaught-exception',
-    (event: Electron.IpcMessageEvent, error: Error) => {
+    (event: Electron.IpcMainEvent, error: Error) => {
       handleUncaughtException(error)
     }
   )
@@ -490,7 +490,7 @@ app.on('ready', () => {
   ipcMain.on(
     'send-error-report',
     (
-      event: Electron.IpcMessageEvent,
+      event: Electron.IpcMainEvent,
       {
         error,
         extra,
@@ -510,7 +510,7 @@ app.on('ready', () => {
 
   ipcMain.on(
     'open-external',
-    async (event: Electron.IpcMessageEvent, { path }: { path: string }) => {
+    async (event: Electron.IpcMainEvent, { path }: { path: string }) => {
       const pathLowerCase = path.toLowerCase()
       if (
         pathLowerCase.startsWith('http://') ||
@@ -533,7 +533,7 @@ app.on('ready', () => {
 
   ipcMain.on(
     'show-item-in-folder',
-    (event: Electron.IpcMessageEvent, { path }: { path: string }) => {
+    (event: Electron.IpcMainEvent, { path }: { path: string }) => {
       Fs.stat(path, (err, stats) => {
         if (err) {
           log.error(`Unable to find file at '${path}'`, err)

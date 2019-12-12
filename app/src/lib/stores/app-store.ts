@@ -508,7 +508,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private wireupIpcEventHandlers(window: Electron.BrowserWindow) {
     ipcRenderer.on(
       windowStateChannelName,
-      (event: Electron.IpcMessageEvent, windowState: WindowState) => {
+      (event: Electron.IpcRendererEvent, windowState: WindowState) => {
         this.windowState = windowState
         this.emitUpdate()
       }
@@ -520,7 +520,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     ipcRenderer.on(
       'app-menu',
-      (event: Electron.IpcMessageEvent, { menu }: { menu: IMenu }) => {
+      (event: Electron.IpcRendererEvent, { menu }: { menu: IMenu }) => {
         this.setAppMenu(menu)
       }
     )
