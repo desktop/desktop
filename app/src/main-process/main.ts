@@ -2,9 +2,12 @@ import '../lib/logging/main/install'
 
 import { app, Menu, ipcMain, BrowserWindow, shell } from 'electron'
 import * as Fs from 'fs'
+import * as URL from 'url'
+
+import { MenuLabelsEvent } from '../models/menu-labels'
 
 import { AppWindow } from './app-window'
-import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
+import { buildDefaultMenu, MenuEvent, getAllMenuItems } from './menu'
 import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { parseAppURL } from '../lib/parse-app-url'
 import { handleSquirrelEvent } from './squirrel-updater'
@@ -40,19 +43,65 @@ let onDidLoadFns: Array<OnDidLoadFn> | null = []
 function handleUncaughtException(error: Error) {
   preventQuit = true
 
+  // If we haven't got a window we'll assume it's because
+  // we've just launched and haven't created it yet.
+  // It could also be because we're encountering an unhandled
+  // exception on shutdown but that's less likely and since
+  // this only affects the presentation of the crash dialog
+  // it's a safe assumption to make.
+  const isLaunchError = mainWindow === null
+
   if (mainWindow) {
     mainWindow.destroy()
     mainWindow = null
   }
 
-  const isLaunchError = !mainWindow
   showUncaughtException(isLaunchError, error)
 }
 
+/**
+ * Calculates the number of seconds the app has been running
+ */
+function getUptimeInSeconds() {
+  return (now() - launchTime) / 1000
+}
+
+function getExtraErrorContext(): Record<string, string> {
+  return {
+    uptime: getUptimeInSeconds().toFixed(3),
+    time: new Date().toString(),
+  }
+}
+
+/** Extra argument for the protocol launcher on Windows */
+const protocolLauncherArg = '--protocol-launcher'
+
+const possibleProtocols = new Set(['x-github-client'])
+if (__DEV__) {
+  possibleProtocols.add('x-github-desktop-dev-auth')
+} else {
+  possibleProtocols.add('x-github-desktop-auth')
+}
+// Also support Desktop Classic's protocols.
+if (__DARWIN__) {
+  possibleProtocols.add('github-mac')
+} else if (__WIN32__) {
+  possibleProtocols.add('github-windows')
+}
+
+app.on('window-all-closed', () => {
+  // If we don't subscribe to this event and all windows are closed, the default
+  // behavior is to quit the app. We don't want that though, we control that
+  // behavior through the mainWindow onClose event such that on macOS we only
+  // hide the main window when a user attempts to close it.
+  //
+  // If we don't subscribe to this and change the default behavior we break
+  // the crash process window which is shown after the main window is closed.
+})
+
 process.on('uncaughtException', (error: Error) => {
   error = withSourceMappedStack(error)
-
-  reportError(error)
+  reportError(error, getExtraErrorContext())
   handleUncaughtException(error)
 })
 
@@ -91,7 +140,10 @@ let isDuplicateInstance = false
 // We want to let the updated instance launch and do its work. It will then quit
 // once it's done.
 if (!handlingSquirrelEvent) {
-  isDuplicateInstance = app.makeSingleInstance((args, workingDirectory) => {
+  const gotSingleInstanceLock = app.requestSingleInstanceLock()
+  isDuplicateInstance = !gotSingleInstanceLock
+
+  app.on('second-instance', (event, args, workingDirectory) => {
     // Someone tried to run a second instance, we should focus our window.
     if (mainWindow) {
       if (mainWindow.isMinimized()) {
@@ -125,6 +177,32 @@ app.on('will-finish-launching', () => {
   })
 })
 
+if (__DARWIN__) {
+  app.on('open-file', async (event, path) => {
+    event.preventDefault()
+
+    log.info(`[main] a path to ${path} was triggered`)
+
+    Fs.stat(path, (err, stats) => {
+      if (err) {
+        log.error(`Unable to open path '${path}' in Desktop`, err)
+        return
+      }
+
+      if (stats.isFile()) {
+        log.warn(
+          `A file at ${path} was dropped onto Desktop, but it can only handle folders. Ignoring this action.`
+        )
+        return
+      }
+
+      handleAppURL(
+        `x-github-client://openLocalRepo/${encodeURIComponent(path)}`
+      )
+    })
+  })
+}
+
 /**
  * Attempt to detect and handle any protocol handler arguments passed
  * either via the command line directly to the current process or through
@@ -137,17 +215,30 @@ function handlePossibleProtocolLauncherArgs(args: ReadonlyArray<string>) {
   log.info(`Received possible protocol arguments: ${args.length}`)
 
   if (__WIN32__) {
-    // We register our protocol handler callback on Windows as
-    // [executable path] --protocol-launcher -- "%1" meaning that any
-    // url data comes after we've stopped processing arguments. We check
-    // for that exact scenario here before doing any processing. If there's
-    // more than 4 args because of a malformed url then we bail out.
-    if (
-      args.length === 4 &&
-      args[1] === '--protocol-launcher' &&
-      args[2] === '--'
-    ) {
-      handleAppURL(args[3])
+    // Desktop registers it's protocol handler callback on Windows as
+    // `[executable path] --protocol-launcher "%1"`. Note that extra command
+    // line arguments might be added by Chromium
+    // (https://electronjs.org/docs/api/app#event-second-instance).
+    // At launch Desktop checks for that exact scenario here before doing any
+    // processing. If there's more than one matching url argument because of a
+    // malformed or untrusted url then we bail out.
+
+    const matchingUrls = args.filter(arg => {
+      // sometimes `URL.parse` throws an error
+      try {
+        const url = URL.parse(arg)
+        // i think this `slice` is just removing a trailing `:`
+        return url.protocol && possibleProtocols.has(url.protocol.slice(0, -1))
+      } catch (e) {
+        log.error(`Unable to parse argument as URL: ${arg}`)
+        return false
+      }
+    })
+
+    if (args.includes(protocolLauncherArg) && matchingUrls.length === 1) {
+      handleAppURL(matchingUrls[0])
+    } else {
+      log.error(`Malformed launch arguments received: ${args}`)
     }
   } else if (args.length > 1) {
     handleAppURL(args[1])
@@ -156,14 +247,12 @@ function handlePossibleProtocolLauncherArgs(args: ReadonlyArray<string>) {
 
 /**
  * Wrapper around app.setAsDefaultProtocolClient that adds our
- * custom prefix command line switches on Windows that prevents
- * command line argument parsing after the `--`.
+ * custom prefix command line switches on Windows.
  */
 function setAsDefaultProtocolClient(protocol: string) {
   if (__WIN32__) {
     app.setAsDefaultProtocolClient(protocol, process.execPath, [
-      '--protocol-launcher',
-      '--',
+      protocolLauncherArg,
     ])
   } else {
     app.setAsDefaultProtocolClient(protocol)
@@ -184,39 +273,89 @@ app.on('ready', () => {
 
   readyTime = now() - launchTime
 
-  setAsDefaultProtocolClient('x-github-client')
-
-  if (__DEV__) {
-    setAsDefaultProtocolClient('x-github-desktop-dev-auth')
-  } else {
-    setAsDefaultProtocolClient('x-github-desktop-auth')
-  }
-
-  // Also support Desktop Classic's protocols.
-  if (__DARWIN__) {
-    setAsDefaultProtocolClient('github-mac')
-  } else if (__WIN32__) {
-    setAsDefaultProtocolClient('github-windows')
-  }
+  possibleProtocols.forEach(protocol => setAsDefaultProtocolClient(protocol))
 
   createWindow()
 
-  let menu = buildDefaultMenu()
-  Menu.setApplicationMenu(menu)
+  Menu.setApplicationMenu(
+    buildDefaultMenu({
+      selectedShell: null,
+      selectedExternalEditor: null,
+      askForConfirmationOnRepositoryRemoval: false,
+      askForConfirmationOnForcePush: false,
+    })
+  )
 
   ipcMain.on(
     'update-preferred-app-menu-item-labels',
-    (
-      event: Electron.IpcMessageEvent,
-      labels: { editor?: string; pullRequestLabel?: string; shell: string }
-    ) => {
-      menu = buildDefaultMenu(
-        labels.editor,
-        labels.shell,
-        labels.pullRequestLabel
-      )
-      Menu.setApplicationMenu(menu)
-      if (mainWindow) {
+    (event: Electron.IpcMessageEvent, labels: MenuLabelsEvent) => {
+      // The current application menu is mutable and we frequently
+      // change whether particular items are enabled or not through
+      // the update-menu-state IPC event. This menu that we're creating
+      // now will have all the items enabled so we need to merge the
+      // current state with the new in order to not get a temporary
+      // race conditions where menu items which shouldn't be enabled
+      // are.
+      const newMenu = buildDefaultMenu(labels)
+
+      const currentMenu = Menu.getApplicationMenu()
+
+      // This shouldn't happen but whenever one says that it does
+      // so here's the escape hatch when we can't merge the current
+      // menu with the new one; we just use the new one.
+      if (currentMenu === null) {
+        // https://github.com/electron/electron/issues/2717
+        Menu.setApplicationMenu(newMenu)
+
+        if (mainWindow !== null) {
+          mainWindow.sendAppMenu()
+        }
+
+        return
+      }
+
+      // It's possible that after rebuilding the menu we'll end up
+      // with the exact same structural menu as we had before so we
+      // keep track of whether anything has actually changed in order
+      // to avoid updating the global menu and telling the renderer
+      // about it.
+      let menuHasChanged = false
+
+      for (const newItem of getAllMenuItems(newMenu)) {
+        // Our menu items always have ids and Electron.MenuItem takes on whatever
+        // properties was defined on the MenuItemOptions template used to create it
+        // but doesn't surface those in the type declaration.
+        const id = (newItem as any).id
+
+        if (!id) {
+          continue
+        }
+
+        const currentItem = currentMenu.getMenuItemById(id)
+
+        // Unfortunately the type information for getMenuItemById
+        // doesn't specify if it'll return null or undefined when
+        // the item doesn't exist so we'll do a falsy check here.
+        if (!currentItem) {
+          menuHasChanged = true
+        } else {
+          if (currentItem.label !== newItem.label) {
+            menuHasChanged = true
+          }
+
+          // Copy the enabled property from the existing menu
+          // item since it'll be the most recent reflection of
+          // what the renderer wants.
+          if (currentItem.enabled !== newItem.enabled) {
+            newItem.enabled = currentItem.enabled
+            menuHasChanged = true
+          }
+        }
+      }
+
+      if (menuHasChanged && mainWindow) {
+        // https://github.com/electron/electron/issues/2717
+        Menu.setApplicationMenu(newMenu)
         mainWindow.sendAppMenu()
       }
     }
@@ -236,7 +375,13 @@ app.on('ready', () => {
   ipcMain.on(
     'execute-menu-item',
     (event: Electron.IpcMessageEvent, { id }: { id: string }) => {
-      const menuItem = findMenuItemByID(menu, id)
+      const currentMenu = Menu.getApplicationMenu()
+
+      if (currentMenu === null) {
+        return
+      }
+
+      const menuItem = currentMenu.getMenuItemById(id)
       if (menuItem) {
         const window = BrowserWindow.fromWebContents(event.sender)
         const fakeEvent = { preventDefault: () => {}, sender: event.sender }
@@ -253,9 +398,17 @@ app.on('ready', () => {
     ) => {
       let sendMenuChangedEvent = false
 
+      const currentMenu = Menu.getApplicationMenu()
+
+      if (currentMenu === null) {
+        log.debug(`unable to get current menu, bailing out...`)
+        return
+      }
+
       for (const item of items) {
         const { id, state } = item
-        const menuItem = findMenuItemByID(menu, id)
+
+        const menuItem = currentMenu.getMenuItemById(id)
 
         if (menuItem) {
           // Only send the updated app menu when the state actually changes
@@ -274,6 +427,7 @@ app.on('ready', () => {
       }
 
       if (sendMenuChangedEvent && mainWindow) {
+        Menu.setApplicationMenu(currentMenu)
         mainWindow.sendAppMenu()
       }
     }
@@ -337,15 +491,26 @@ app.on('ready', () => {
     'send-error-report',
     (
       event: Electron.IpcMessageEvent,
-      { error, extra }: { error: Error; extra: { [key: string]: string } }
+      {
+        error,
+        extra,
+        nonFatal,
+      }: { error: Error; extra: { [key: string]: string }; nonFatal?: boolean }
     ) => {
-      reportError(error, extra)
+      reportError(
+        error,
+        {
+          ...getExtraErrorContext(),
+          ...extra,
+        },
+        nonFatal
+      )
     }
   )
 
   ipcMain.on(
     'open-external',
-    (event: Electron.IpcMessageEvent, { path }: { path: string }) => {
+    async (event: Electron.IpcMessageEvent, { path }: { path: string }) => {
       const pathLowerCase = path.toLowerCase()
       if (
         pathLowerCase.startsWith('http://') ||
@@ -354,7 +519,14 @@ app.on('ready', () => {
         log.info(`opening in browser: ${path}`)
       }
 
-      const result = shell.openExternal(path)
+      let result
+      try {
+        await shell.openExternal(path)
+        result = true
+      } catch (e) {
+        log.error(`Call to openExternal failed: '${e}'`)
+        result = false
+      }
       event.sender.send('open-external-result', { result })
     }
   )
@@ -368,7 +540,7 @@ app.on('ready', () => {
           return
         }
 
-        if (stats.isDirectory()) {
+        if (!__DARWIN__ && stats.isDirectory()) {
           openDirectorySafe(path)
         } else {
           shell.showItemInFolder(path)

@@ -1,11 +1,10 @@
 import * as React from 'react'
 import { Diff } from '../diff'
 import { ChangedFileDetails } from './changed-file-details'
-import { ImageDiffType } from '../../lib/app-state'
-import { DiffSelection, IDiff } from '../../models/diff'
+import { DiffSelection, IDiff, ImageDiffType } from '../../models/diff'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 
 interface IChangesProps {
   readonly repository: Repository
@@ -13,6 +12,10 @@ interface IChangesProps {
   readonly diff: IDiff
   readonly dispatcher: Dispatcher
   readonly imageDiffType: ImageDiffType
+
+  /** Whether a commit is in progress */
+  readonly isCommitting: boolean
+  readonly hideWhitespaceInDiff: boolean
 }
 
 export class Changes extends React.Component<IChangesProps, {}> {
@@ -28,11 +31,11 @@ export class Changes extends React.Component<IChangesProps, {}> {
   public render() {
     const diff = this.props.diff
     const file = this.props.file
+    const isCommitting = this.props.isCommitting
     return (
       <div className="changed-file">
         <ChangedFileDetails
           path={file.path}
-          oldPath={file.oldPath}
           status={file.status}
           diff={diff}
           onOpenMergeTool={this.onOpenMergeTool}
@@ -43,10 +46,11 @@ export class Changes extends React.Component<IChangesProps, {}> {
             repository={this.props.repository}
             imageDiffType={this.props.imageDiffType}
             file={file}
-            readOnly={false}
+            readOnly={isCommitting}
             onIncludeChanged={this.onDiffLineIncludeChanged}
             diff={diff}
             dispatcher={this.props.dispatcher}
+            hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
           />
         </div>
       </div>

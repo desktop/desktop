@@ -1,0 +1,782 @@
+changed in both
+  base   100644 7a816a78631aa18b2d6669886d9a260c11d216ce src/vs/base/browser/browser.ts
+  our    100644 19c46188f3ba487d308c72637ce84fdba83c8908 src/vs/base/browser/browser.ts
+  their  100644 7a54a1d45d7625dc6fdba8225ce483682497d5d8 src/vs/base/browser/browser.ts
+@@ -29,11 +29,43 @@
+ 			return;
+ 		}
+ 
++<<<<<<< .our
+ 		this._zoomLevel = zoomLevel;
+ 		// See https://github.com/Microsoft/vscode/issues/26151
+ 		this._lastZoomLevelChangeTime = isTrusted ? 0 : Date.now();
+ 		this._onDidChangeZoomLevel.fire(this._zoomLevel);
+ 	}
++=======
++const globals = <IGlobalScope><any>(typeof self === 'object' ? self : global);
++
++// MAC:
++// chrome: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_2) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.100 Safari/535.2"
++// safari: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_2) AppleWebKit/534.51.22 (KHTML, like Gecko) Version/5.1.1 Safari/534.51.22"
++//
++// WINDOWS:
++// chrome: "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.102 Safari/535.2"
++// IE: "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; WOW64; Trident/5.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E; MS-RTC LM 8; InfoPath.3; Zune 4.7)"
++// Opera:	"Opera/9.80 (Windows NT 6.1; U; en) Presto/2.9.168 Version/11.52"
++// FF: "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:8.0) Gecko/20100101 Firefox/8.0"
++
++// LINUX:
++// chrome: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36"
++// firefox: "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0"
++
++const userAgent = globals.navigator ? globals.navigator.userAgent : '';
++
++// DOCUMENTED FOR FUTURE REFERENCE:
++// When running IE11 in IE10 document mode, the code below will identify the browser as being IE10,
++// which is correct because IE11 in IE10 document mode will reimplement all the bugs of IE10
++export const isIE11 = (userAgent.indexOf('Trident') >= 0 && userAgent.indexOf('MSIE') < 0);
++export const isIE10 = (userAgent.indexOf('MSIE 10') >= 0);
++export const isIE9 = (userAgent.indexOf('MSIE 9') >= 0);
++export const isIE11orEarlier = isIE11 || isIE10 || isIE9;
++export const isIE10orEarlier = isIE10 || isIE9;
++export const isIE10orLater = isIE11 || isIE10;
++export const isEdge = (userAgent.indexOf('Edge/') >= 0);
++export const isEdgeOrIE = isEdge || isIE11 || isIE10 || isIE9;
++>>>>>>> .their
+ 
+ 
+ 	// --- Zoom Factor
+added in remote
+  their  100644 3037fc23a0da9489b6306bd1549bfaba154a8935 src/vs/editor/browser/controller/input/textAreaWrapper.ts
+@@ -0,0 +1,187 @@
++/*---------------------------------------------------------------------------------------------
++ *  Copyright (c) Microsoft Corporation. All rights reserved.
++ *  Licensed under the MIT License. See License.txt in the project root for license information.
++ *--------------------------------------------------------------------------------------------*/
++'use strict';
++
++import Event, {Emitter} from 'vs/base/common/event';
++import {Disposable} from 'vs/base/common/lifecycle';
++import * as browser from 'vs/base/browser/browser';
++import * as dom from 'vs/base/browser/dom';
++import {IKeyboardEvent} from 'vs/base/browser/keyboardEvent';
++import {IClipboardEvent, ICompositionEvent, IKeyboardEventWrapper, ITextAreaWrapper} from 'vs/editor/common/controller/textAreaState';
++
++class ClipboardEventWrapper implements IClipboardEvent {
++
++	private _event:ClipboardEvent;
++
++	constructor(event:ClipboardEvent) {
++		this._event = event;
++	}
++
++	public canUseTextData(): boolean {
++		if (this._event.clipboardData) {
++			return true;
++		}
++		if ((<any>window).clipboardData) {
++			return true;
++		}
++		return false;
++	}
++
++	public setTextData(text:string): void {
++		if (this._event.clipboardData) {
++			this._event.clipboardData.setData('text/plain', text);
++			this._event.preventDefault();
++			return;
++		}
++
++		if ((<any>window).clipboardData) {
++			(<any>window).clipboardData.setData('Text', text);
++			this._event.preventDefault();
++			return;
++		}
++
++		throw new Error('ClipboardEventWrapper.setTextData: Cannot use text data!');
++	}
++
++	public getTextData(): string {
++		if (this._event.clipboardData) {
++			this._event.preventDefault();
++			return this._event.clipboardData.getData('text/plain');
++		}
++
++		if ((<any>window).clipboardData) {
++			this._event.preventDefault();
++			return (<any>window).clipboardData.getData('Text');
++		}
++
++		throw new Error('ClipboardEventWrapper.getTextData: Cannot use text data!');
++	}
++}
++
++class KeyboardEventWrapper implements IKeyboardEventWrapper {
++
++	public _actual: IKeyboardEvent;
++
++	constructor(actual:IKeyboardEvent) {
++		this._actual = actual;
++	}
++
++	public equals(keybinding:number): boolean {
++		return this._actual.equals(keybinding);
++	}
++
++	public preventDefault(): void {
++		this._actual.preventDefault();
++	}
++
++	public isDefaultPrevented(): boolean {
++		if (this._actual.browserEvent) {
++			return this._actual.browserEvent.defaultPrevented;
++		}
++		return false;
++	}
++}
++
++export class TextAreaWrapper extends Disposable implements ITextAreaWrapper {
++
++	private _textArea: HTMLTextAreaElement;
++
++	private _onKeyDown = this._register(new Emitter<IKeyboardEventWrapper>());
++	public onKeyDown: Event<IKeyboardEventWrapper> = this._onKeyDown.event;
++
++	private _onKeyUp = this._register(new Emitter<IKeyboardEventWrapper>());
++	public onKeyUp: Event<IKeyboardEventWrapper> = this._onKeyUp.event;
++
++	private _onKeyPress = this._register(new Emitter<IKeyboardEventWrapper>());
++	public onKeyPress: Event<IKeyboardEventWrapper> = this._onKeyPress.event;
++
++	private _onCompositionStart = this._register(new Emitter<ICompositionEvent>());
++	public onCompositionStart: Event<ICompositionEvent> = this._onCompositionStart.event;
++
++	private _onCompositionUpdate = this._register(new Emitter<ICompositionEvent>());
++	public onCompositionUpdate: Event<ICompositionEvent> = this._onCompositionUpdate.event;
++
++	private _onCompositionEnd = this._register(new Emitter<ICompositionEvent>());
++	public onCompositionEnd: Event<ICompositionEvent> = this._onCompositionEnd.event;
++
++	private _onInput = this._register(new Emitter<void>());
++	public onInput: Event<void> = this._onInput.event;
++
++	private _onCut = this._register(new Emitter<IClipboardEvent>());
++	public onCut: Event<IClipboardEvent> = this._onCut.event;
++
++	private _onCopy = this._register(new Emitter<IClipboardEvent>());
++	public onCopy: Event<IClipboardEvent> = this._onCopy.event;
++
++	private _onPaste = this._register(new Emitter<IClipboardEvent>());
++	public onPaste: Event<IClipboardEvent> = this._onPaste.event;
++
++	constructor(textArea: HTMLTextAreaElement) {
++		super();
++		this._textArea = textArea;
++
++		this._register(dom.addStandardDisposableListener(this._textArea, 'keydown', (e) => this._onKeyDown.fire(new KeyboardEventWrapper(e))));
++		this._register(dom.addStandardDisposableListener(this._textArea, 'keyup', (e) => this._onKeyUp.fire(new KeyboardEventWrapper(e))));
++		this._register(dom.addStandardDisposableListener(this._textArea, 'keypress', (e) => this._onKeyPress.fire(new KeyboardEventWrapper(e))));
++		this._register(dom.addDisposableListener(this._textArea, 'compositionstart', (e) => this._onCompositionStart.fire(e)));
++		this._register(dom.addDisposableListener(this._textArea, 'compositionupdate', (e) => this._onCompositionUpdate.fire(e)));
++		this._register(dom.addDisposableListener(this._textArea, 'compositionend', (e) => this._onCompositionEnd.fire(e)));
++		this._register(dom.addDisposableListener(this._textArea, 'input', (e) => this._onInput.fire()));
++		this._register(dom.addDisposableListener(this._textArea, 'cut', (e:ClipboardEvent) => this._onCut.fire(new ClipboardEventWrapper(e))));
++		this._register(dom.addDisposableListener(this._textArea, 'copy', (e:ClipboardEvent) => this._onCopy.fire(new ClipboardEventWrapper(e))));
++		this._register(dom.addDisposableListener(this._textArea, 'paste', (e:ClipboardEvent) => this._onPaste.fire(new ClipboardEventWrapper(e))));
++	}
++
++	public get actual(): HTMLTextAreaElement {
++		return this._textArea;
++	}
++
++	public getValue(): string {
++		// console.log('current value: ' + this._textArea.value);
++		return this._textArea.value;
++	}
++
++	public setValue(reason:string, value:string): void {
++		// console.log('reason: ' + reason + ', current value: ' + this._textArea.value + ' => new value: ' + value);
++		this._textArea.value = value;
++	}
++
++	public getSelectionStart(): number {
++		return this._textArea.selectionStart;
++	}
++
++	public getSelectionEnd(): number {
++		return this._textArea.selectionEnd;
++	}
++
++	public setSelectionRange(selectionStart:number, selectionEnd:number): void {
++		let activeElement = document.activeElement;
++		if (activeElement === this._textArea) {
++			this._textArea.setSelectionRange(selectionStart, selectionEnd);
++		} else {
++			this._setSelectionRangeJumpy(selectionStart, selectionEnd);
++		}
++	}
++
++	private _setSelectionRangeJumpy(selectionStart:number, selectionEnd:number): void {
++		try {
++			let scrollState = dom.saveParentsScrollTop(this._textArea);
++			this._textArea.focus();
++			this._textArea.setSelectionRange(selectionStart, selectionEnd);
++			dom.restoreParentsScrollTop(this._textArea, scrollState);
++		} catch(e) {
++			// Sometimes IE throws when setting selection (e.g. textarea is off-DOM)
++			console.log('an error has been thrown!');
++		}
++	}
++
++	public isInOverwriteMode(): boolean {
++		// In IE, pressing Insert will bring the typing into overwrite mode
++		if (browser.isIE11orEarlier && document.queryCommandValue('OverWrite')) {
++			return true;
++		}
++		return false;
++	}
++}
+removed in local
+  base   100644 06739f70f09c0f812a929a5412f9a45257466931 src/vs/editor/browser/controller/keyboardHandler.ts
+  their  100644 36665629cc17f60ad11b70d2e484565e1532ab96 src/vs/editor/browser/controller/keyboardHandler.ts
+changed in both
+  base   100644 57536aca0330ee98d7abaf8413cc16dacd64f0de src/vs/editor/browser/editorBrowser.ts
+  our    100644 d2b256b0ac954a95d910921337989333c3361cd3 src/vs/editor/browser/editorBrowser.ts
+  their  100644 7bb3119d1a783fb70cc4b30fa88a76bfd10db60c src/vs/editor/browser/editorBrowser.ts
+@@ -8,6 +8,7 @@
+ import { IKeyboardEvent } from 'vs/base/browser/keyboardEvent';
+ import { IMouseEvent } from 'vs/base/browser/mouseEvent';
+ import * as editorCommon from 'vs/editor/common/editorCommon';
++<<<<<<< .our
+ import { Position, IPosition } from 'vs/editor/common/core/position';
+ import { Selection } from 'vs/editor/common/core/selection';
+ import { Range, IRange } from 'vs/editor/common/core/range';
+@@ -19,6 +20,279 @@
+ import { ICursors, CursorConfiguration } from 'vs/editor/common/controller/cursorCommon';
+ import { IEditorWhitespace } from 'vs/editor/common/viewLayout/whitespaceComputer';
+ import { ITextModel, IIdentifiedSingleEditOperation, IModelDecoration, IModelDeltaDecoration } from 'vs/editor/common/model';
++=======
++
++export interface IDynamicViewOverlay extends IDisposable {
++	shouldCallRender2(ctx:IRenderingContext): boolean;
++	render2(lineNumber:number): string[];
++}
++
++export interface IContentWidgetData {
++	widget: IContentWidget;
++	position: IContentWidgetPosition;
++}
++
++export interface IOverlayWidgetData {
++	widget: IOverlayWidget;
++	position: IOverlayWidgetPosition;
++}
++
++export interface ICodeEditorHelper {
++	getScrollTop(): number;
++	setScrollTop(scrollTop:number): void;
++	getScrollLeft(): number;
++	setScrollLeft(scrollLeft:number): void;
++	getScrollHeight(): number;
++	getScrollWidth(): number;
++	getVerticalOffsetForPosition(lineNumber:number, column:number): number;
++	delegateVerticalScrollbarMouseDown(browserEvent:MouseEvent): void;
++	getOffsetForColumn(lineNumber:number, column:number): number;
++}
++
++export interface IKeyboardHandlerHelper {
++	viewDomNode:HTMLElement;
++	textArea:HTMLTextAreaElement;
++	visibleRangeForPositionRelativeToEditor(lineNumber:number, column:number): editorCommon.VisibleRange;
++	flushAnyAccumulatedEvents(): void;
++}
++
++export interface IPointerHandlerHelper {
++	viewDomNode:HTMLElement;
++	linesContentDomNode:HTMLElement;
++
++	focusTextArea(): void;
++	isDirty(): boolean;
++
++	getScrollTop(): number;
++	setScrollTop(scrollTop:number): void;
++	getScrollLeft(): number;
++	setScrollLeft(scrollLeft:number): void;
++
++	isAfterLines(verticalOffset:number): boolean;
++	getLineNumberAtVerticalOffset(verticalOffset: number): number;
++	getVerticalOffsetForLineNumber(lineNumber: number): number;
++	getWhitespaceAtVerticalOffset(verticalOffset:number): editorCommon.IViewWhitespaceViewportData;
++	shouldSuppressMouseDownOnViewZone(viewZoneId:number): boolean;
++
++	/**
++	 * Decode an Editor.IPosition from a rendered dom node
++	 */
++	getPositionFromDOMInfo(spanNode:HTMLElement, offset:number): editorCommon.IPosition;
++
++	visibleRangeForPosition2(lineNumber:number, column:number): editorCommon.VisibleRange;
++	getLineWidth(lineNumber:number): number;
++}
++
++export interface IView extends IDisposable {
++	domNode: HTMLElement;
++
++	getInternalEventBus(): IEventEmitter;
++
++	createOverviewRuler(cssClassName:string, minimumHeight:number, maximumHeight:number): IOverviewRuler;
++	getCodeEditorHelper(): ICodeEditorHelper;
++
++	getCenteredRangeInViewport(): editorCommon.IEditorRange;
++
++	change(callback:(changeAccessor:IViewZoneChangeAccessor) => any): boolean;
++	getWhitespaces(): editorCommon.IEditorWhitespace[];
++	renderOnce(callback:() => any): any;
++
++	render(now:boolean): void;
++
++	focus(): void;
++	isFocused(): boolean;
++
++	saveState(): editorCommon.IViewState;
++	restoreState(state:editorCommon.IViewState): void;
++
++	addContentWidget(widgetData: IContentWidgetData): void;
++	layoutContentWidget(widgetData: IContentWidgetData): void;
++	removeContentWidget(widgetData: IContentWidgetData): void;
++
++	addOverlayWidget(widgetData: IOverlayWidgetData): void;
++	layoutOverlayWidget(widgetData: IOverlayWidgetData): void;
++	removeOverlayWidget(widgetData: IOverlayWidgetData): void;
++}
++
++export interface IViewZoneData {
++	viewZoneId: number;
++	positionBefore:editorCommon.IEditorPosition;
++	positionAfter:editorCommon.IEditorPosition;
++	position: editorCommon.IEditorPosition;
++	afterLineNumber: number;
++}
++
++export interface IMouseDispatchData {
++	position: editorCommon.IEditorPosition;
++	/**
++	 * Desired mouse column (e.g. when position.column gets clamped to text length -- clicking after text on a line).
++	 */
++	mouseColumn: number;
++	startedOnLineNumbers: boolean;
++
++	inSelectionMode: boolean;
++	mouseDownCount: number;
++	altKey: boolean;
++	ctrlKey: boolean;
++	metaKey: boolean;
++	shiftKey: boolean;
++}
++
++export interface IViewController {
++	dispatchMouse(data:IMouseDispatchData);
++
++	moveTo(source:string, position:editorCommon.IEditorPosition): void;
++
++	paste(source:string, text:string, pasteOnNewLine:boolean): void;
++	type(source: string, text: string): void;
++	replacePreviousChar(source: string, text: string, replaceCharCnt:number): void;
++	cut(source:string): void;
++
++	emitKeyDown(e:IKeyboardEvent): void;
++	emitKeyUp(e:IKeyboardEvent): void;
++	emitContextMenu(e:IEditorMouseEvent): void;
++	emitMouseMove(e:IEditorMouseEvent): void;
++	emitMouseLeave(e:IEditorMouseEvent): void;
++	emitMouseUp(e:IEditorMouseEvent): void;
++	emitMouseDown(e:IEditorMouseEvent): void;
++}
++
++export var ClassNames = {
++	TEXTAREA_COVER: 'textAreaCover',
++	TEXTAREA: 'inputarea',
++	LINES_CONTENT: 'lines-content',
++	OVERFLOW_GUARD: 'overflow-guard',
++	VIEW_LINES: 'view-lines',
++	VIEW_LINE: 'view-line',
++	SCROLLABLE_ELEMENT: 'editor-scrollable',
++	CONTENT_WIDGETS: 'contentWidgets',
++	OVERFLOWING_CONTENT_WIDGETS: 'overflowingContentWidgets',
++	OVERLAY_WIDGETS: 'overlayWidgets',
++	MARGIN_VIEW_OVERLAYS: 'margin-view-overlays',
++	LINE_NUMBERS: 'line-numbers',
++	GLYPH_MARGIN: 'glyph-margin',
++	SCROLL_DECORATION: 'scroll-decoration',
++	VIEW_CURSORS_LAYER: 'cursors-layer',
++	VIEW_ZONES: 'view-zones'
++};
++
++export interface IRestrictedRenderingContext {
++	linesViewportData:editorCommon.IViewLinesViewportData;
++
++	scrollWidth:number;
++	scrollHeight:number;
++
++	visibleRange:editorCommon.IEditorRange;
++	bigNumbersDelta:number;
++
++	viewportTop:number;
++	viewportWidth:number;
++	viewportHeight:number;
++	viewportLeft:number;
++
++	getScrolledTopFromAbsoluteTop(absoluteTop:number): number;
++	getViewportVerticalOffsetForLineNumber(lineNumber:number): number;
++	lineIsVisible(lineNumber:number): boolean;
++
++	getDecorationsInViewport(): editorCommon.IModelDecoration[];
++}
++
++export interface IRenderingContext extends IRestrictedRenderingContext {
++
++	linesVisibleRangesForRange(range:editorCommon.IRange, includeNewLines:boolean): editorCommon.LineVisibleRanges[];
++
++	visibleRangeForPosition(position:editorCommon.IPosition): editorCommon.VisibleRange;
++}
++
++export interface IViewEventHandler {
++	handleEvents(events:IEmitterEvent[]): void;
++}
++
++export interface IViewportInfo {
++	visibleRange: editorCommon.IEditorRange;
++	width:number;
++	height:number;
++	deltaTop:number;
++	deltaLeft:number;
++}
++
++export interface IViewPart extends IDisposable {
++	onBeforeForcedLayout(): void;
++	onReadAfterForcedLayout(ctx:IRenderingContext): void;
++	onWriteAfterForcedLayout(): void;
++}
++
++// --- end View Event Handlers & Parts
++
++export interface IViewContext {
++
++	addEventHandler(eventHandler:IViewEventHandler): void;
++	removeEventHandler(eventHandler:IViewEventHandler): void;
++
++	configuration:editorCommon.IConfiguration;
++	model: editorCommon.IViewModel;
++	privateViewEventBus:editorCommon.IViewEventBus;
++}
++
++export interface ILayoutProvider extends IVerticalLayoutProvider, IScrollingProvider {
++
++	dispose():void;
++
++	getCenteredViewLineNumberInViewport(): number;
++
++	getCurrentViewport(): editorCommon.IViewport;
++
++	onMaxLineWidthChanged(width:number): void;
++
++	saveState(): editorCommon.IViewState;
++	restoreState(state:editorCommon.IViewState): void;
++}
++
++export interface IScrollingProvider {
++
++	getOverviewRulerInsertData(): { parent: HTMLElement; insertBefore: HTMLElement; };
++	getScrollbarContainerDomNode(): HTMLElement;
++	delegateVerticalScrollbarMouseDown(browserEvent:MouseEvent): void;
++
++	// This is for the glyphs, line numbers, etc.
++	getScrolledTopFromAbsoluteTop(top:number): number;
++
++	getScrollHeight(): number;
++	getScrollWidth(): number;
++	getScrollLeft(): number;
++	setScrollLeft(scrollLeft:number): void;
++	getScrollTop(): number;
++	setScrollTop(scrollTop:number): void;
++}
++
++export interface IVerticalLayoutProvider {
++
++	/**
++	 * Compute vertical offset (top) of line number
++	 */
++	getVerticalOffsetForLineNumber(lineNumber:number): number;
++
++	/**
++	 * Returns the height in pixels for `lineNumber`.
++	 */
++	heightInPxForLine(lineNumber:number): number;
++
++	/**
++	 * Return line number at `verticalOffset` or closest line number
++	 */
++	getLineNumberAtVerticalOffset(verticalOffset:number): number;
++
++	/**
++	 * Compute content height (including one extra scroll page if necessary)
++	 */
++	getTotalHeight(): number;
++
++	/**
++	 * Compute the lines that need to be rendered in the current viewport position.
++	 */
++	getLinesViewportData(): editorCommon.IViewLinesViewportData;
++}
++>>>>>>> .their
+ 
+ /**
+  * A view zone is a full horizontal rectangle that 'pushes' text down.
+removed in local
+  base   100644 25c26feaf80ebb6ca77f3225b25aa700a22d5d72 src/vs/editor/browser/standalone/standaloneEditor.ts
+  their  100644 8fb8261193412c04b54031c6621cb475da8866db src/vs/editor/browser/standalone/standaloneEditor.ts
+removed in local
+  base   100644 910da85c9895f978709f256c3630dd8dcea018de src/vs/editor/browser/standalone/standaloneSchemas.ts
+  their  100644 9a2e8996a754d53609071d514906ebc38a54ecea src/vs/editor/browser/standalone/standaloneSchemas.ts
+changed in both
+  base   100644 bc37d51cb347cba078cc6440f60f9d4753e4b269 src/vs/editor/browser/view/viewImpl.ts
+  our    100644 f619f1adef4f12e7f3e990d008867ec5f137fb73 src/vs/editor/browser/view/viewImpl.ts
+  their  100644 fa1bdd64e771a1533332e84a9a69e8affce7078e src/vs/editor/browser/view/viewImpl.ts
+@@ -286,6 +286,9 @@
+ 					return null;
+ 				}
+ 				return visibleRanges[0];
++			},
++			flushAnyAccumulatedEvents: () => {
++				this._flushAnyAccumulatedEvents();
+ 			}
+ 		};
+ 	}
+removed in local
+  base   100644 bc90a062ca357741e8b55c6052ad6430eacd5455 src/vs/editor/common/controller/textAreaHandler.ts
+  their  100644 3435d91ee7fddb55166da0b9d8c787c08222837f src/vs/editor/common/controller/textAreaHandler.ts
+removed in local
+  base   100644 3a404426832fa23c7db98d79ac56e41169e89d0b src/vs/editor/common/controller/textAreaState.ts
+  their  100644 29fa70f3972ff0e1f1e9fd5a413a2e59882f5ef6 src/vs/editor/common/controller/textAreaState.ts
+removed in local
+  base   100644 611a35378b3c8dd2b9950ebc9b399ec347a8828a src/vs/editor/standalone-languages/all.ts
+  their  100644 ff49458189993f9b7630e6f2c03cb8339a2a69b4 src/vs/editor/standalone-languages/all.ts
+added in both
+  our    100644 0a3be4e87a87e24c296898017f88f8172e1ca964 src/vs/editor/test/browser/controller/imeTester.ts
+  their  100644 4b5495217fde20255b253defa652488bbae8eb24 src/vs/editor/test/browser/controller/imeTester.ts
+@@ -4,6 +4,7 @@
+  *--------------------------------------------------------------------------------------------*/
+ 'use strict';
+ 
++<<<<<<< .our
+ import { TextAreaInput, ITextAreaInputHost } from 'vs/editor/browser/controller/textAreaInput';
+ import { ISimpleModel, TextAreaState, PagedScreenReaderStrategy } from 'vs/editor/browser/controller/textAreaState';
+ import { Range, IRange } from 'vs/editor/common/core/range';
+@@ -11,11 +12,21 @@
+ import { createFastDomNode } from 'vs/base/browser/fastDomNode';
+ import * as browser from 'vs/base/browser/browser';
+ import { EndOfLinePreference } from 'vs/editor/common/model';
++=======
++import {TextAreaHandler} from 'vs/editor/common/controller/textAreaHandler';
++import * as browser from 'vs/base/browser/browser';
++import {TextAreaStrategy, ISimpleModel} from 'vs/editor/common/controller/textAreaState';
++import {Range} from 'vs/editor/common/core/range';
++import * as editorCommon from 'vs/editor/common/editorCommon';
++import {TextAreaWrapper} from 'vs/editor/browser/controller/input/textAreaWrapper';
++import {Position} from 'vs/editor/common/core/position';
++>>>>>>> .their
+ 
+ // To run this test, open imeTester.html
+ 
+ class SingleLineTestModel implements ISimpleModel {
+ 
++<<<<<<< .our
+ 	private _line: string;
+ 
+ 	constructor(line: string) {
+@@ -35,23 +46,65 @@
+ 	}
+ 
+ 	getModelLineContent(lineNumber: number): string {
++=======
++	private _line:string;
++	private _eol:string;
++
++	constructor(line:string) {
++		this._line = line;
++		this._eol = '\n';
++	}
++
++	setText(text:string) {
++		this._line = text;
++	}
++
++	getLineMaxColumn(lineNumber:number): number {
++		return this._line.length + 1;
++	}
++
++	getEOL(): string {
++		return this._eol;
++	}
++
++	getValueInRange(range:editorCommon.IRange, eol:editorCommon.EndOfLinePreference): string {
++		return this._line.substring(range.startColumn - 1, range.endColumn - 1);
++	}
++
++	getModelLineContent(lineNumber:number): string {
++>>>>>>> .their
+ 		return this._line;
+ 	}
+ 
+ 	getLineCount(): number {
+ 		return 1;
+ 	}
++<<<<<<< .our
++=======
++
++	convertViewPositionToModelPosition(viewLineNumber:number, viewColumn:number): Position {
++		return new Position(viewLineNumber, viewColumn);
++	}
++>>>>>>> .their
+ }
+ 
+ class TestView {
+ 
+ 	private _model: SingleLineTestModel;
+ 
++<<<<<<< .our
+ 	constructor(model: SingleLineTestModel) {
+ 		this._model = model;
+ 	}
+ 
+ 	public paint(output: HTMLElement) {
++=======
++	constructor(model:SingleLineTestModel) {
++		this._model = model;
++	}
++
++	public paint(output:HTMLElement) {
++>>>>>>> .their
+ 		let r = '';
+ 		for (let i = 1; i <= this._model.getLineCount(); i++) {
+ 			let content = this._model.getModelLineContent(i);
+@@ -61,17 +114,25 @@
+ 	}
+ }
+ 
++<<<<<<< .our
+ function doCreateTest(description: string, inputStr: string, expectedStr: string): HTMLElement {
+ 	let cursorOffset: number = 0;
+ 	let cursorLength: number = 0;
+ 
++=======
++function doCreateTest(strategy:TextAreaStrategy, description:string, inputStr:string, expectedStr:string): HTMLElement {
++>>>>>>> .their
+ 	let container = document.createElement('div');
+ 	container.className = 'container';
+ 
+ 	let title = document.createElement('div');
+ 	title.className = 'title';
++<<<<<<< .our
+ 
+ 	title.innerHTML = description + '. Type <strong>' + inputStr + '</strong>';
++=======
++	title.innerHTML = TextAreaStrategy[strategy] + ' strategy: ' + description + '. Type <strong>' + inputStr + '</strong>';
++>>>>>>> .their
+ 	container.appendChild(title);
+ 
+ 	let startBtn = document.createElement('button');
+@@ -84,6 +145,7 @@
+ 	input.setAttribute('cols', '40');
+ 	container.appendChild(input);
+ 
++<<<<<<< .our
+ 	let model = new SingleLineTestModel('some  text');
+ 
+ 	const textAreaInputHost: ITextAreaInputHost = {
+@@ -106,6 +168,20 @@
+ 	};
+ 
+ 	let handler = new TextAreaInput(textAreaInputHost, createFastDomNode(input));
++=======
++	let textAreaWrapper = new TextAreaWrapper(input);
++
++	let model = new SingleLineTestModel('some  text');
++
++	let handler = new TextAreaHandler(browser, strategy, textAreaWrapper, model, () => {});
++
++	input.onfocus = () => {
++		handler.setHasFocus(true);
++	};
++	input.onblur = () => {
++		handler.setHasFocus(false);
++	};
++>>>>>>> .their
+ 
+ 	let output = document.createElement('pre');
+ 	output.className = 'output';
+@@ -121,6 +197,7 @@
+ 
+ 	let view = new TestView(model);
+ 
++<<<<<<< .our
+ 	let updatePosition = (off: number, len: number) => {
+ 		cursorOffset = off;
+ 		cursorLength = len;
+@@ -130,6 +207,20 @@
+ 
+ 	let updateModelAndPosition = (text: string, off: number, len: number) => {
+ 		model._setText(text);
++=======
++
++	let cursorOffset: number;
++	let cursorLength: number;
++	let updatePosition = (off:number, len:number) => {
++		cursorOffset = off;
++		cursorLength = len;
++		handler.setCursorSelections(new Range(1, 1 + cursorOffset, 1, 1 + cursorOffset + cursorLength), []);
++		handler.writePlaceholderAndSelectTextAreaSync();
++	};
++
++	let updateModelAndPosition = (text:string, off:number, len:number) => {
++		model.setText(text);
++>>>>>>> .their
+ 		updatePosition(off, len);
+ 		view.paint(output);
+ 
+@@ -156,7 +247,11 @@
+ 
+ 	view.paint(output);
+ 
++<<<<<<< .our
+ 	startBtn.onclick = function () {
++=======
++	startBtn.onclick = function() {
++>>>>>>> .their
+ 		updateModelAndPosition('some  text', 5, 0);
+ 		input.focus();
+ 	};
+@@ -172,10 +267,18 @@
+ 	{ description: 'Chinese IME 1', in: '.,', out: '。，' },
+ 	{ description: 'Chinese IME 2', in: 'ni [Space] hao [Space]', out: '你好' },
+ 	{ description: 'Chinese IME 3', in: 'hazni [Space]', out: '哈祝你' },
++<<<<<<< .our
+ 	{ description: 'Mac dead key 1', in: '`.', out: '`.' },
+ 	{ description: 'Mac hold key 1', in: 'e long press and 1', out: 'é' }
+ ];
+ 
+ TESTS.forEach((t) => {
+ 	document.body.appendChild(doCreateTest(t.description, t.in, t.out));
++=======
++];
++
++TESTS.forEach((t) => {
++	document.body.appendChild(doCreateTest(TextAreaStrategy.NVDA, t.description, t.in, t.out));
++	document.body.appendChild(doCreateTest(TextAreaStrategy.IENarrator, t.description, t.in, t.out));
++>>>>>>> .their
+ });
+removed in local
+  base   100644 11bf927d1eab8b32744594a318a9f0de943831eb src/vs/editor/test/common/mocks/mockTextAreaWrapper.ts
+  their  100644 127647989ab1f5e3514fd902d41bc85ab4f89aed src/vs/editor/test/common/mocks/mockTextAreaWrapper.ts
+removed in local
+  base   100644 041a461573681b6cf9821c91ffa938f70807891c src/vs/text.js
+  their  100644 08fef42b9f68a15c7504347ada97ba34441cc02f src/vs/text.js

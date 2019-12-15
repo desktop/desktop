@@ -52,9 +52,9 @@ export class WindowControls extends React.Component<{}, IWindowControlState> {
 
   private onWindowStateChanged = (
     event: Electron.IpcMessageEvent,
-    args: any
+    windowState: WindowState
   ) => {
-    this.setState({ windowState: args as WindowState })
+    this.setState({ windowState })
   }
 
   private onMinimize = () => {
@@ -83,7 +83,8 @@ export class WindowControls extends React.Component<{}, IWindowControlState> {
 
     return (
       <button
-        aria-label={title}
+        aria-label={name}
+        title={title}
         tabIndex={-1}
         className={className}
         onClick={onClick}

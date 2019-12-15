@@ -1,0 +1,165 @@
+changed in both
+  base   100644 7f0634707038962af26042da5fe74792a49844b9 src/vs/vscode.proposed.d.ts
+  our    100644 3de4a7af9dda9e3e523ba4b5774f1667d66b0b9b src/vs/vscode.proposed.d.ts
+  their  100644 c6741f379541de20e4a560e11eb5c47da5d41e0c src/vs/vscode.proposed.d.ts
+@@ -521,6 +521,7 @@
+ 
+ 	//#endregion
+ 
++<<<<<<< .our
+ 	//#region Joao: SCM selected provider
+ 
+ 	export interface SourceControl {
+@@ -536,6 +537,19 @@
+ 		readonly onDidChangeSelection: Event<boolean>;
+ 	}
+ 
++=======
++	//#region scm
++	export namespace scm {
++		/**
++		 * The currently active [source control](#SourceControl).
++		 */
++		export let activeSourceControl: SourceControl | undefined;
++		/**
++		 * An [event](#Event) which fires when the active [source control](#SourceControl) has changed.
++		 */
++		export const onDidChangeActiveSourceControl: Event<SourceControl>;
++	}
++>>>>>>> .their
+ 	//#endregion
+ 
+ 	//#region Comments
+changed in both
+  base   100644 6bd43da77dc2adf38cf391222b246b2485da0707 src/vs/workbench/api/electron-browser/mainThreadSCM.ts
+  our    100644 a6c6f1caa699f0897aa58c37f2ec9eb1ed252503 src/vs/workbench/api/electron-browser/mainThreadSCM.ts
+  their  100644 584505b14d73f8208ffaca520c57afe3b63c0d85 src/vs/workbench/api/electron-browser/mainThreadSCM.ts
+@@ -263,6 +263,8 @@
+ 	private _proxy: ExtHostSCMShape;
+ 	private _repositories: { [handle: number]: ISCMRepository; } = Object.create(null);
+ 	private _inputDisposables: { [handle: number]: IDisposable; } = Object.create(null);
++	private _focusDisposables: { [handle: number]: IDisposable; } = Object.create(null);
++	private _focusedRepository: ISCMRepository | undefined;
+ 	private _disposables: IDisposable[] = [];
+ 
+ 	constructor(
+@@ -284,6 +286,10 @@
+ 			.forEach(id => this._inputDisposables[id].dispose());
+ 		this._inputDisposables = Object.create(null);
+ 
++		Object.keys(this._focusDisposables)
++			.forEach(id => this._focusDisposables[id].dispose());
++		this._focusDisposables = Object.create(null);
++
+ 		this._disposables = dispose(this._disposables);
+ 	}
+ 
+@@ -292,8 +298,21 @@
+ 		const repository = this.scmService.registerSCMProvider(provider);
+ 		this._repositories[handle] = repository;
+ 
++		if (!this._focusedRepository) {
++			this._focusedRepository = repository;
++			this._proxy.$acceptActiveSourceControlChange(handle);
++		}
++
+ 		const inputDisposable = repository.input.onDidChange(value => this._proxy.$onInputBoxValueChange(handle, value));
+ 		this._inputDisposables[handle] = inputDisposable;
++
++		const focusDisposable = repository.onDidFocus(_ => this.onDidFocus(handle, repository));
++		this._focusDisposables[handle] = focusDisposable;
++	}
++
++	onDidFocus(handle: number, repository: ISCMRepository) {
++		this._focusedRepository = repository;
++		this._proxy.$acceptActiveSourceControlChange(handle);
+ 	}
+ 
+ 	$updateSourceControl(handle: number, features: SCMProviderFeatures): void {
+@@ -317,6 +336,9 @@
+ 		this._inputDisposables[handle].dispose();
+ 		delete this._inputDisposables[handle];
+ 
++		this._focusDisposables[handle].dispose();
++		delete this._focusDisposables[handle];
++
+ 		repository.dispose();
+ 		delete this._repositories[handle];
+ 	}
+changed in both
+  base   100644 50fe2efe1f6d1cb7db92dc7b8ab0f1c7217481c3 src/vs/workbench/api/node/extHost.api.impl.ts
+  our    100644 ea64898c5b15cfae4b4ab32d722f4ae4a68f831a src/vs/workbench/api/node/extHost.api.impl.ts
+  their  100644 f05ac0a73707fa6a2921857e53c69edd627c447f src/vs/workbench/api/node/extHost.api.impl.ts
+@@ -609,6 +609,12 @@
+ 			get inputBox() {
+ 				return extHostSCM.getLastInputBox(extension);
+ 			},
++			get activeSourceControl() {
++				return extHostSCM.activeSourceControl;
++			},
++			get onDidChangeActiveSourceControl() {
++				return extHostSCM.onDidChangeActiveSourceControl;
++			},
+ 			createSourceControl(id: string, label: string, rootUri?: vscode.Uri) {
+ 				return extHostSCM.createSourceControl(extension, id, label, rootUri);
+ 			}
+changed in both
+  base   100644 dfef440283760b78760f0c7329c89abab00d4696 src/vs/workbench/api/node/extHost.protocol.ts
+  our    100644 edb764542adfbf0fba64e1b93de7c309bedf0d12 src/vs/workbench/api/node/extHost.protocol.ts
+  their  100644 8b4e21ca8cc25b20ed820757830f657cab9046cc src/vs/workbench/api/node/extHost.protocol.ts
+@@ -882,6 +882,7 @@
+ export interface ExtHostSCMShape {
+ 	$provideOriginalResource(sourceControlHandle: number, uri: UriComponents): TPromise<UriComponents>;
+ 	$onInputBoxValueChange(sourceControlHandle: number, value: string): TPromise<void>;
++	$acceptActiveSourceControlChange(sourceControlHandle: number): TPromise<void>;
+ 	$executeResourceCommand(sourceControlHandle: number, groupHandle: number, handle: number): TPromise<void>;
+ 	$validateInput(sourceControlHandle: number, value: string, cursorPosition: number): TPromise<[string, number] | undefined>;
+ 	$setSelectedSourceControls(selectedSourceControlHandles: number[]): TPromise<void>;
+changed in both
+  base   100644 b008b72b086f72199402a37543f11a5b7cf69edd src/vs/workbench/api/node/extHostSCM.ts
+  our    100644 2ce26e505301c7bf67464802924edf770775ef05 src/vs/workbench/api/node/extHostSCM.ts
+  their  100644 a1ee5be3e9da62cc5b9c27ec7b5f2ca2e5760ef8 src/vs/workbench/api/node/extHostSCM.ts
+@@ -481,9 +481,12 @@
+ 	private _proxy: MainThreadSCMShape;
+ 	private _sourceControls: Map<ProviderHandle, ExtHostSourceControl> = new Map<ProviderHandle, ExtHostSourceControl>();
+ 	private _sourceControlsByExtension: Map<string, ExtHostSourceControl[]> = new Map<string, ExtHostSourceControl[]>();
+-
+-	private _onDidChangeActiveProvider = new Emitter<vscode.SourceControl>();
+-	get onDidChangeActiveProvider(): Event<vscode.SourceControl> { return this._onDidChangeActiveProvider.event; }
++	private _activeSourceControl: vscode.SourceControl | undefined;
++	get activeSourceControl(): vscode.SourceControl | undefined {
++		return this._activeSourceControl;
++	}
++	private _onDidChangeActiveSourceControl = new Emitter<vscode.SourceControl>();
++	get onDidChangeActiveSourceControl(): Event<vscode.SourceControl> { return this._onDidChangeActiveSourceControl.event; }
+ 
+ 	private _selectedSourceControlHandles = new Set<number>();
+ 
+@@ -584,7 +587,27 @@
+ 		return TPromise.as(null);
+ 	}
+ 
++<<<<<<< .our
+ 	$executeResourceCommand(sourceControlHandle: number, groupHandle: number, handle: number): TPromise<void> {
++=======
++	$acceptActiveSourceControlChange(sourceControlHandle: number): TPromise<void> {
++		this.logService.trace('ExtHostSCM#$acceptActiveSourceControlChange', sourceControlHandle);
++		const sourceControl = this._sourceControls.get(sourceControlHandle);
++
++		if (!sourceControl) {
++			return TPromise.as(null);
++		}
++
++		if (this._activeSourceControl !== sourceControl) {
++			this._activeSourceControl = sourceControl;
++			this._onDidChangeActiveSourceControl.fire(this.activeSourceControl);
++		}
++
++		return TPromise.as(null);
++	}
++
++	async $executeResourceCommand(sourceControlHandle: number, groupHandle: number, handle: number): TPromise<void> {
++>>>>>>> .their
+ 		this.logService.trace('ExtHostSCM#$executeResourceCommand', sourceControlHandle, groupHandle, handle);
+ 
+ 		const sourceControl = this._sourceControls.get(sourceControlHandle);

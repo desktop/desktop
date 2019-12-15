@@ -138,7 +138,7 @@ export async function parseTrailers(
  *                      message trailers. See the manpage for
  *                      git-interpret-trailers for more information.
  *
- * @param commitMessage A commit message with or withot existing commit
+ * @param commitMessage A commit message with or without existing commit
  *                      message trailers into which to merge the trailers
  *                      given in the trailers parameter
  *

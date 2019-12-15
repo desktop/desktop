@@ -1,0 +1,179 @@
+changed in both
+  base   100644 7ba536117deff13bd495b1c27209b0da22fdf1fb src/vs/code/electron-main/window.ts
+  our    100644 98a4328213e146b214e8da866ab92dc7f9c449a9 src/vs/code/electron-main/window.ts
+  their  100644 f9d78ca017e9d179f3344ff6fb1a90c3af7fe663 src/vs/code/electron-main/window.ts
+@@ -194,9 +194,32 @@
+ 		}
+ 
+ 		// Create the browser window.
++		this.logService.info('Opening browser window with options:', options);
+ 		this._win = new BrowserWindow(options);
++		this.logService.info('Acual browser window position [x,y]:', this._win.getPosition());
+ 		this._id = this._win.id;
+ 
++<<<<<<< .our
++=======
++		// Bug in Electron (https://github.com/electron/electron/issues/10862). On multi-monitor setups,
++		// it can happen that the position we set to the window is not the correct one on the display.
++		// To workaround, we ask the window for its position and set it again if not matching.
++		// This only applies if the window is not fullscreen or maximized and multiple monitors are used.
++		if (isWindows && !isFullscreenOrMaximized) {
++			try {
++				if (screen.getAllDisplays().length > 1) {
++					const [x, y] = this._win.getPosition();
++					if (x !== this.windowState.x || y !== this.windowState.y) {
++						this.logService.info('Resetting browser window position to window state:', this.windowState);
++						this._win.setPosition(this.windowState.x, this.windowState.y, false);
++					}
++				}
++			} catch (err) {
++				this.logService.warn(`Unexpected error fixing window position on windows with multiple windows: ${err}\n${err.stack}`);
++			}
++		}
++
++>>>>>>> .their
+ 		if (useCustomTitleStyle) {
+ 			this._win.setSheetOffset(22); // offset dialogs by the height of the custom title bar if we have any
+ 		}
+@@ -213,6 +236,7 @@
+ 			}
+ 		}
+ 
++		this.logService.info('Acual browser window position after all adjustments [x,y]:', this._win.getPosition());
+ 		this._lastFocusTime = Date.now(); // since we show directly, we need to set the last focus time too
+ 	}
+ 
+@@ -734,14 +758,17 @@
+ 
+ 	private validateWindowState(state: IWindowState): IWindowState {
+ 		if (!state) {
++			this.logService.info('validateWindowState: no state');
+ 			return null;
+ 		}
+ 
+ 		if ([state.x, state.y, state.width, state.height].some(n => typeof n !== 'number')) {
++			this.logService.info('validateWindowState: not numbers');
+ 			return null;
+ 		}
+ 
+ 		if (state.width <= 0 || state.height <= 0) {
++			this.logService.info('validateWindowState: height or width less then zero');
+ 			return null;
+ 		}
+ 
+@@ -779,9 +806,11 @@
+ 			}
+ 
+ 			if (state.mode === WindowMode.Maximized) {
++				this.logService.info('reset window state to default for single display');
+ 				return defaultWindowState(WindowMode.Maximized); // when maximized, make sure we have good values when the user restores the window
+ 			}
+ 
++			this.logService.info('recomputed window state for single display:', state);
+ 			return state;
+ 		}
+ 
+@@ -793,6 +822,7 @@
+ 				defaults.x = display.bounds.x; // carefull to use displays x/y position so that the window ends up on the correct monitor
+ 				defaults.y = display.bounds.y;
+ 
++				this.logService.info('recomputed window state for full-screen multi-display:', state);
+ 				return defaults;
+ 			}
+ 		}
+@@ -811,13 +841,15 @@
+ 				const defaults = defaultWindowState(WindowMode.Maximized); // when maximized, make sure we have good values when the user restores the window
+ 				defaults.x = state.x; // carefull to keep x/y position so that the window ends up on the correct monitor
+ 				defaults.y = state.y;
+-
++				this.logService.info('recomputed window state for maximized multi-display:', defaults);
+ 				return defaults;
+ 			}
+ 
++			this.logService.info('recomputed window state for multi-display', state);
+ 			return state;
+ 		}
+ 
++		this.logService.info('reset display state to null');
+ 		return null;
+ 	}
+ 
+changed in both
+  base   100644 ec384f0b04cdf07025ccfea2685c74d69ed5a48b src/vs/code/electron-main/windows.ts
+  our    100644 ee30f9a282b84b1fa9b3443b77acf86849589d43 src/vs/code/electron-main/windows.ts
+  their  100644 a85a87b83b645ee9102c12c590f0072d0c370bce src/vs/code/electron-main/windows.ts
+@@ -1229,7 +1229,12 @@
+ 				state.mode = WindowMode.Normal;
+ 			}
+ 
++<<<<<<< .our
+ 			// Create the window
++=======
++			this.logService.info('New window state:', state);
++
++>>>>>>> .their
+ 			window = this.instantiationService.createInstance(CodeWindow, {
+ 				state,
+ 				extensionDevelopmentPath: configuration.extensionDevelopmentPath,
+@@ -1353,6 +1358,8 @@
+ 		let displayToUse: Electron.Display;
+ 		const displays = screen.getAllDisplays();
+ 
++		this.logService.info('Displays detected:', displays);
++
+ 		// Single Display
+ 		if (displays.length === 1) {
+ 			displayToUse = displays[0];
+@@ -1365,16 +1372,19 @@
+ 			if (isMacintosh) {
+ 				const cursorPoint = screen.getCursorScreenPoint();
+ 				displayToUse = screen.getDisplayNearestPoint(cursorPoint);
++				this.logService.info('Display near cursor:', displayToUse);
+ 			}
+ 
+ 			// if we have a last active window, use that display for the new window
+ 			if (!displayToUse && lastActive) {
+ 				displayToUse = screen.getDisplayMatching(lastActive.getBounds());
++				this.logService.info('Last active display:', displayToUse);
+ 			}
+ 
+ 			// fallback to primary display or first display
+ 			if (!displayToUse) {
+ 				displayToUse = screen.getPrimaryDisplay() || displays[0];
++				this.logService.info('Fallback display:', displayToUse);
+ 			}
+ 		}
+ 
+changed in both
+  base   100644 0c5a6074797e2f8a8b0aea3d8e9ff396a74ae37e src/vs/code/node/cli.ts
+  our    100644 3ca3fd9ec9479918271b1fd5d7cd262e40dae630 src/vs/code/node/cli.ts
+  their  100644 19181883138c3da2c67b76f6da465cbcf5fcabda src/vs/code/node/cli.ts
+@@ -324,6 +324,12 @@
+ 			options['stdio'] = 'ignore';
+ 		}
+ 
++		if (args['debugMain']) {
++			const portMain = await findFreePort(9222, 10, 6000);
++			console.log(`Main Process debug port: ${portMain}`);
++			argv.push(`--inspect-brk=${portMain}`);
++		}
++
+ 		const child = spawn(process.execPath, argv.slice(2), options);
+ 
+ 		if (args.wait && waitMarkerFilePath) {
+changed in both
+  base   100644 ed297cda684335352fd5fa530fb29043ec72db12 src/vs/platform/environment/node/argv.ts
+  our    100644 7183c2471eb1043a8263fbc1a8a7863b41344622 src/vs/platform/environment/node/argv.ts
+  their  100644 ab55802e9d5ef5b21edc637f0e1f061032bf4a67 src/vs/platform/environment/node/argv.ts
+@@ -67,7 +67,11 @@
+ 		'status',
+ 		'file-write',
+ 		'file-chmod',
++<<<<<<< .our
+ 		'driver-verbose'
++=======
++		'debugMain'
++>>>>>>> .their
+ 	],
+ 	alias: {
+ 		add: 'a',

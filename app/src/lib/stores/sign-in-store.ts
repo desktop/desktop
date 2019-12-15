@@ -28,7 +28,7 @@ function getUnverifiedUserErrorMessage(login: string): string {
   return `Unable to authenticate. The account ${login} is lacking a verified email address. Please sign in to GitHub.com, confirm your email address in the Emails section under Personal settings, and try again.`
 }
 
-const EnterpriseTooOldMessage = `The GitHub Enterprise version does not support GitHub Desktop. Talk to your server's administrator about upgrading to the latest version of GitHub Enterprise.`
+const EnterpriseTooOldMessage = `The GitHub Enterprise Server version does not support GitHub Desktop. Talk to your server's administrator about upgrading to the latest version of GitHub Enterprise Server.`
 
 /**
  * An enumeration of the possible steps that the sign in
@@ -79,8 +79,8 @@ export interface ISignInState {
 
 /**
  * State interface representing the endpoint entry step.
- * This is the initial step in the Enterprise sign in flow
- * and is not present when signing in to GitHub.com
+ * This is the initial step in the Enterprise Server sign in
+ * flow and is not present when signing in to GitHub.com
  */
 export interface IEndpointEntryState extends ISignInState {
   readonly kind: SignInStep.EndpointEntry
@@ -91,7 +91,7 @@ export interface IEndpointEntryState extends ISignInState {
  * the user provides credentials and/or initiates a browser
  * OAuth sign in process. This step occurs as the first step
  * when signing in to GitHub.com and as the second step when
- * signing in to a GitHub Enterprise instance.
+ * signing in to a GitHub Enterprise Server instance.
  */
 export interface IAuthenticationState extends ISignInState {
   readonly kind: SignInStep.Authentication
@@ -100,15 +100,16 @@ export interface IAuthenticationState extends ISignInState {
    * The URL to the host which we're currently authenticating
    * against. This will be either https://api.github.com when
    * signing in against GitHub.com or a user-specified
-   * URL when signing in against a GitHub Enterprise instance.
+   * URL when signing in against a GitHub Enterprise Server
+   * instance.
    */
   readonly endpoint: string
 
   /**
    * A value indicating whether or not the endpoint supports
    * basic authentication (i.e. username and password). All
-   * GitHub Enterprise instances support OAuth (or web flow
-   * sign-in).
+   * GitHub Enterprise Server instances support OAuth (or web
+   * flow sign-in).
    */
   readonly supportsBasicAuth: boolean
 
@@ -122,8 +123,8 @@ export interface IAuthenticationState extends ISignInState {
  * State interface representing the TwoFactorAuthentication
  * step where the user provides an OTP token. This step
  * occurs after the authentication step both for GitHub.com,
- * and GitHub Enterprise when the user has enabled two factor
- * authentication on the host.
+ * and GitHub Enterprise Server when the user has enabled two
+ * factor authentication on the host.
  */
 export interface ITwoFactorAuthenticationState extends ISignInState {
   readonly kind: SignInStep.TwoFactorAuthentication
@@ -132,7 +133,8 @@ export interface ITwoFactorAuthenticationState extends ISignInState {
    * The URL to the host which we're currently authenticating
    * against. This will be either https://api.github.com when
    * signing in against GitHub.com or a user-specified
-   * URL when signing in against a GitHub Enterprise instance.
+   * URL when signing in against a GitHub Enterprise Server
+   * instance.
    */
   readonly endpoint: string
 
@@ -165,22 +167,51 @@ export interface ISuccessState {
 }
 
 /**
+ * The method used to authenticate a user.
+ */
+export enum SignInMethod {
+  /**
+   * In-app sign-in with username, password, and possibly a
+   * two-factor code.
+   */
+  Basic = 'basic',
+  /**
+   * Sign-in through a web browser with a redirect back to
+   * the application.
+   */
+  Web = 'web',
+}
+
+interface IAuthenticationEvent {
+  readonly account: Account
+  readonly method: SignInMethod
+}
+
+/**
  * A store encapsulating all logic related to signing in a user
- * to GitHub.com, or a GitHub Enterprise instance.
+ * to GitHub.com, or a GitHub Enterprise Server instance.
  */
 export class SignInStore extends TypedBaseStore<SignInState | null> {
   private state: SignInState | null = null
 
-  private emitAuthenticate(account: Account) {
-    this.emitter.emit('did-authenticate', account)
+  private emitAuthenticate(account: Account, method: SignInMethod) {
+    const event: IAuthenticationEvent = { account, method }
+    this.emitter.emit('did-authenticate', event)
   }
 
   /**
    * Registers an event handler which will be invoked whenever
    * a user has successfully completed a sign-in process.
    */
-  public onDidAuthenticate(fn: (account: Account) => void): Disposable {
-    return this.emitter.on('did-authenticate', fn)
+  public onDidAuthenticate(
+    fn: (account: Account, method: SignInMethod) => void
+  ): Disposable {
+    return this.emitter.on(
+      'did-authenticate',
+      ({ account, method }: IAuthenticationEvent) => {
+        fn(account, method)
+      }
+    )
   }
 
   /**
@@ -211,7 +242,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       }
     } else {
       throw new Error(
-        `Unable to authenticate with the GitHub Enterprise instance. Verify that the URL is correct, that your GitHub Enterprise instance is running version ${minimumSupportedEnterpriseVersion} or later, that you have an internet connection and try again.`
+        `Unable to authenticate with the GitHub Enterprise Server instance. Verify that the URL is correct, that your GitHub Enterprise Server instance is running version ${minimumSupportedEnterpriseVersion} or later, that you have an internet connection and try again.`
       )
     }
   }
@@ -296,7 +327,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
         return
       }
 
-      this.emitAuthenticate(user)
+      this.emitAuthenticate(user, SignInMethod.Basic)
       this.setState({ kind: SignInStep.Success })
     } else if (
       response.kind ===
@@ -322,11 +353,19 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
         )
         this.setState({ ...currentState, loading: false })
       } else if (response.kind === AuthorizationResponseKind.Failed) {
-        this.setState({
-          ...currentState,
-          loading: false,
-          error: new Error('Incorrect username or password.'),
-        })
+        if (username.includes('@')) {
+          this.setState({
+            ...currentState,
+            loading: false,
+            error: new Error('Incorrect email or password.'),
+          })
+        } else {
+          this.setState({
+            ...currentState,
+            loading: false,
+            error: new Error('Incorrect username or password.'),
+          })
+        }
       } else if (
         response.kind === AuthorizationResponseKind.UserRequiresVerification
       ) {
@@ -350,6 +389,13 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
           ...currentState,
           loading: false,
           error: new Error(EnterpriseTooOldMessage),
+        })
+      } else if (response.kind === AuthorizationResponseKind.WebFlowRequired) {
+        this.setState({
+          ...currentState,
+          loading: false,
+          supportsBasicAuth: false,
+          kind: SignInStep.Authentication,
         })
       } else {
         return assertNever(response, `Unsupported response: ${response}`)
@@ -396,14 +442,14 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       return
     }
 
-    this.emitAuthenticate(account)
+    this.emitAuthenticate(account, SignInMethod.Web)
     this.setState({ kind: SignInStep.Success })
   }
 
   /**
-   * Initiate a sign in flow for a GitHub Enterprise instance. This will
-   * put the store in the EndpointEntry step ready to receive the url
-   * to the enterprise instance.
+   * Initiate a sign in flow for a GitHub Enterprise Server instance.
+   * This will put the store in the EndpointEntry step ready to
+   * receive the url to the enterprise instance.
    */
   public beginEnterpriseSignIn() {
     this.setState({
@@ -445,11 +491,11 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       let error = e
       if (e.name === InvalidURLErrorName) {
         error = new Error(
-          `The GitHub Enterprise instance address doesn't appear to be a valid URL. We're expecting something like https://github.example.com.`
+          `The GitHub Enterprise Server instance address doesn't appear to be a valid URL. We're expecting something like https://github.example.com.`
         )
       } else if (e.name === InvalidProtocolErrorName) {
         error = new Error(
-          'Unsupported protocol. Only http or https is supported when authenticating with GitHub Enterprise instances.'
+          'Unsupported protocol. Only http or https is supported when authenticating with GitHub Enterprise Server instances.'
         )
       }
 
@@ -546,7 +592,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
         return
       }
 
-      this.emitAuthenticate(user)
+      this.emitAuthenticate(user, SignInMethod.Basic)
       this.setState({ kind: SignInStep.Success })
     } else {
       switch (response.kind) {
@@ -581,6 +627,16 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
           break
         case AuthorizationResponseKind.EnterpriseTooOld:
           this.emitError(new Error(EnterpriseTooOldMessage))
+          break
+        case AuthorizationResponseKind.WebFlowRequired:
+          this.setState({
+            ...currentState,
+            forgotPasswordUrl: this.getForgotPasswordURL(currentState.endpoint),
+            loading: false,
+            supportsBasicAuth: false,
+            kind: SignInStep.Authentication,
+            error: null,
+          })
           break
         default:
           assertNever(response, `Unknown response: ${response}`)

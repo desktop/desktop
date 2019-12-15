@@ -1,0 +1,7 @@
+coverage:
+  precision: 1
+  round: nearest
+  # thresholds for red to green color coding
+  range: '10...80'
+  status: off
+comment: off

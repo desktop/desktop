@@ -37,6 +37,7 @@
         "variable-declaration": "nospace"
       }
     ],
-    "variable-name": [true, "ban-keywords"]
+    "variable-name": [true, "ban-keywords"],
+    "deprecation": true
   }
 }

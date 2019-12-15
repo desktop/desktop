@@ -1,0 +1,87 @@
+changed in both
+  base   100644 3ec638c2f2292edf6ae2d953c45264d2346f8f3f build/gulpfile.extensions.js
+  our    100644 57d52b03b064192aea691d79ce06fc7cc53609da build/gulpfile.extensions.js
+  their  100644 acc7d90bfb7f2b83474bac7f277f65742d78cf23 build/gulpfile.extensions.js
+changed in both
+  base   100644 30a1563d7b9c1e437ccf5c2f6f66478d4ba6c798 build/gulpfile.vscode.js
+  our    100644 d79071e56bcfc53b3448052cc08bd7247bd7e789 build/gulpfile.vscode.js
+  their  100644 47f243676b54d21d65e242340e69766ab223c94c build/gulpfile.vscode.js
+@@ -240,7 +240,11 @@
+ 			.filter(({ name }) => builtInExtensions.every(b => b.name !== name));
+ 
+ 		const localExtensions = es.merge(...localExtensionDescriptions.map(extension => {
++<<<<<<< .our
+ 			return ext.fromLocal(extension.path, sourceMappingURLBase)
++=======
++			return ext.fromLocal(extension.path)
++>>>>>>> .their
+ 				.pipe(rename(p => p.dirname = `extensions/${extension.name}/${p.dirname}`));
+ 		}));
+ 
+changed in both
+  base   100644 2693d9f519aae8ea384188f9a1ea9421b0a857b0 build/lib/optimize.js
+  our    100644 60169cf18927277efc99c7e1a6bcb32d9aad361e build/lib/optimize.js
+  their  100644 3599086a4b43ba1ab40b0684311deb1350237876 build/lib/optimize.js
+@@ -165,10 +165,13 @@
+             addComment: true,
+             includeContent: true
+         }))
++<<<<<<< .our
+             .pipe(opts.languages && opts.languages.length ? i18n_1.processNlsFiles({
+             fileHeader: bundledFileHeader,
+             languages: opts.languages
+         }) : es.through())
++=======
++>>>>>>> .their
+             .pipe(gulp.dest(out));
+     };
+ }
+changed in both
+  base   100644 b5636ffb8ef2deb27db06717ac2e11b65a26e7c7 build/lib/optimize.ts
+  our    100644 038cf09dd21bfefcec33d2e0eaa808b3e9d1fce9 build/lib/optimize.ts
+  their  100644 7c5f15309c3c6c3b3acaa3434c5405f8666c17fc build/lib/optimize.ts
+@@ -164,10 +164,13 @@
+ 	 * (out folder name)
+ 	 */
+ 	out: string;
++<<<<<<< .our
+ 	/**
+ 	 * (out folder name)
+ 	 */
+ 	languages?: Language[];
++=======
++>>>>>>> .their
+ }
+ 
+ export function optimizeTask(opts: IOptimizeTaskOpts): () => NodeJS.ReadWriteStream {
+@@ -239,10 +242,13 @@
+ 				addComment: true,
+ 				includeContent: true
+ 			}))
++<<<<<<< .our
+ 			.pipe(opts.languages && opts.languages.length ? processNlsFiles({
+ 				fileHeader: bundledFileHeader,
+ 				languages: opts.languages
+ 			}) : es.through())
++=======
++>>>>>>> .their
+ 			.pipe(gulp.dest(out));
+ 	};
+ }
+changed in both
+  base   100644 ce9c5e893b23d548f6f595d667937c6245cab984 src/main.js
+  our    100644 711217d64e2bdc43f33652d0bed34caa052cc331 src/main.js
+  their  100644 0d33c6fef3047efffd6d0521ac3ad36428904b21 src/main.js
+@@ -269,8 +269,12 @@
+ 	let initialLocale = locale;
+ 
+ 	perf.mark('nlsGeneration:start');
++<<<<<<< .our
+ 
+ 	let defaultResult = function (locale) {
++=======
++	let defaultResult = function(locale) {
++>>>>>>> .their
+ 		perf.mark('nlsGeneration:end');
+ 		return Promise.resolve({ locale: locale, availableLanguages: {} });
+ 	};

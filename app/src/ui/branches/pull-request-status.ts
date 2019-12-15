@@ -1,5 +1,5 @@
-import { PullRequestStatus, ICommitStatus } from '../../models/pull-request'
-import { APIRefState } from '../../lib/api'
+import { ICommitStatus } from '../../models/pull-request'
+import { APIRefState, IAPIRefStatus } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 
 function formatState(state: APIRefState): string {
@@ -30,7 +30,7 @@ function formatSingleStatus(status: ICommitStatus) {
  * the number of successful statuses. Oteherwise, it will fall back
  * to the `state` value reported by the GitHub API.
  */
-export function getPRStatusSummary(prStatus: PullRequestStatus): string {
+export function getRefStatusSummary(prStatus: IAPIRefStatus): string {
   const statusCount = prStatus.statuses.length || 0
 
   if (statusCount === 0) {

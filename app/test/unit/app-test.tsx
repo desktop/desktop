@@ -1,16 +1,13 @@
-import { expect } from 'chai'
-
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as TestUtils from 'react-dom/test-utils'
 
 import { App } from '../../src/ui/app'
-import { Dispatcher } from '../../src/lib/dispatcher'
+import { Dispatcher } from '../../src/ui/dispatcher'
 import {
   AppStore,
   GitHubUserStore,
   CloningRepositoriesStore,
-  EmojiStore,
   IssuesStore,
   SignInStore,
   RepositoriesStore,
@@ -28,11 +25,17 @@ import {
 import { StatsStore } from '../../src/lib/stats'
 import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
 import { TestActivityMonitor } from '../helpers/test-activity-monitor'
+import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
+import { ApiRepositoriesStore } from '../../src/lib/stores/api-repositories-store'
+import { CommitStatusStore } from '../../src/lib/stores/commit-status-store'
 
 describe('App', () => {
-  let appStore: AppStore | null = null
-  let dispatcher: Dispatcher | null = null
-  let statsStore: StatsStore | null = null
+  let appStore: AppStore
+  let dispatcher: Dispatcher
+  let statsStore: StatsStore
+  let repositoryStateManager: RepositoryStateCache
+  let githubUserStore: GitHubUserStore
+  let issuesStore: IssuesStore
 
   beforeEach(async () => {
     const db = new TestGitHubUserDatabase()
@@ -59,30 +62,53 @@ describe('App', () => {
       repositoriesStore
     )
 
+    githubUserStore = new GitHubUserStore(db)
+    issuesStore = new IssuesStore(issuesDb)
+
+    repositoryStateManager = new RepositoryStateCache(repo =>
+      githubUserStore.getUsersForRepository(repo)
+    )
+
+    const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
+    const commitStatusStore = new CommitStatusStore(accountsStore)
+
     appStore = new AppStore(
-      new GitHubUserStore(db),
+      githubUserStore,
       new CloningRepositoriesStore(),
-      new EmojiStore(),
-      new IssuesStore(issuesDb),
+      issuesStore,
       statsStore,
       new SignInStore(),
       accountsStore,
       repositoriesStore,
-      pullRequestStore
+      pullRequestStore,
+      repositoryStateManager,
+      apiRepositoriesStore
     )
 
-    dispatcher = new InMemoryDispatcher(appStore)
+    dispatcher = new InMemoryDispatcher(
+      appStore,
+      repositoryStateManager,
+      statsStore,
+      commitStatusStore
+    )
   })
 
   it('renders', async () => {
     const app = TestUtils.renderIntoDocument(
-      <App dispatcher={dispatcher!} appStore={appStore!} startTime={0} />
+      <App
+        dispatcher={dispatcher}
+        appStore={appStore}
+        repositoryStateManager={repositoryStateManager}
+        issuesStore={issuesStore}
+        gitHubUserStore={githubUserStore}
+        startTime={0}
+      />
     ) as React.Component<any, any>
     // Give any promises a tick to resolve.
     await wait(0)
 
     const node = ReactDOM.findDOMNode(app)
-    expect(node).not.to.equal(null)
+    expect(node).not.toBeNull()
   })
 })
 

@@ -18,6 +18,9 @@
     &-conflicted {
       fill: var(--color-conflicted);
     }
+    &-resolved {
+      fill: var(--color-new);
+    }
   }
 
   .line-endings {

@@ -3,10 +3,10 @@ import * as HtmlWebpackPlugin from 'html-webpack-plugin'
 import * as CleanWebpackPlugin from 'clean-webpack-plugin'
 import * as webpack from 'webpack'
 import * as merge from 'webpack-merge'
-import { getReleaseChannel } from '../script/dist-info'
+import { getChannel } from '../script/dist-info'
 import { getReplacements } from './app-info'
 
-const channel = getReleaseChannel()
+const channel = getChannel()
 
 export const externals = ['7zip']
 if (channel === 'development') {
@@ -17,6 +17,9 @@ const outputDir = 'out'
 export const replacements = getReplacements()
 
 const commonConfig: webpack.Configuration = {
+  optimization: {
+    noEmitOnErrors: true,
+  },
   externals: externals,
   output: {
     filename: '[name].js',
@@ -53,7 +56,6 @@ const commonConfig: webpack.Configuration = {
     // This saves us a bunch of bytes by pruning locales (which we don't use)
     // from moment.
     new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
-    new webpack.NoEmitOnErrorsPlugin(),
   ],
   resolve: {
     extensions: ['.js', '.ts', '.tsx'],
@@ -85,6 +87,10 @@ export const renderer = merge({}, commonConfig, {
       {
         test: /\.(jpe?g|png|gif|ico)$/,
         use: ['file?name=[path][name].[ext]'],
+      },
+      {
+        test: /\.cmd$/,
+        loader: 'file-loader',
       },
     ],
   },
@@ -155,13 +161,13 @@ export const highlighter = merge({}, commonConfig, {
         modes: {
           enforce: true,
           name: (mod, chunks) => {
-            const builtInMode = /node_modules\/codemirror\/mode\/(\w+)\//.exec(
+            const builtInMode = /node_modules[\\\/]codemirror[\\\/]mode[\\\/](\w+)[\\\/]/i.exec(
               mod.resource
             )
             if (builtInMode) {
               return `mode/${builtInMode[1]}`
             }
-            const external = /node_modules\/codemirror-mode-(\w+)\//.exec(
+            const external = /node_modules[\\\/]codemirror-mode-(\w+)[\\\/]/i.exec(
               mod.resource
             )
             if (external) {

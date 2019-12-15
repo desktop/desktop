@@ -1,9 +1,9 @@
 import * as React from 'react'
 
-import { CompareActionKind, ICompareBranch } from '../../lib/app-state'
+import { ICompareBranch, HistoryTabMode } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
 
 interface IMergeCallToActionProps {
@@ -27,6 +27,11 @@ export class MergeCallToAction extends React.Component<
 
     return (
       <div className="merge-cta">
+        {this.renderMergeDetails(
+          this.props.formState,
+          this.props.currentBranch
+        )}
+
         <Button
           type="submit"
           disabled={count <= 0}
@@ -34,11 +39,6 @@ export class MergeCallToAction extends React.Component<
         >
           Merge into <strong>{this.props.currentBranch.name}</strong>
         </Button>
-
-        {this.renderMergeDetails(
-          this.props.formState,
-          this.props.currentBranch
-        )}
       </div>
     )
   }
@@ -50,12 +50,16 @@ export class MergeCallToAction extends React.Component<
     if (count > 0) {
       const pluralized = count === 1 ? 'commit' : 'commits'
       return (
-        <div className="merge-message">
+        <div className="merge-message merge-message-legacy">
           This will merge
           <strong>{` ${count} ${pluralized}`}</strong>
-          {` `}from{` `}
+          {` `}
+          from
+          {` `}
           <strong>{branch.name}</strong>
-          {` `}into{` `}
+          {` `}
+          into
+          {` `}
           <strong>{currentBranch.name}</strong>
         </div>
       )
@@ -64,18 +68,19 @@ export class MergeCallToAction extends React.Component<
     return null
   }
 
-  private onMergeClicked = async (event: React.MouseEvent<any>) => {
+  private onMergeClicked = async () => {
     const formState = this.props.formState
 
     this.props.dispatcher.recordCompareInitiatedMerge()
 
     await this.props.dispatcher.mergeBranch(
       this.props.repository,
-      formState.comparisonBranch.name
+      formState.comparisonBranch.name,
+      null
     )
 
     this.props.dispatcher.executeCompare(this.props.repository, {
-      kind: CompareActionKind.History,
+      kind: HistoryTabMode.History,
     })
 
     this.props.dispatcher.updateCompareForm(this.props.repository, {

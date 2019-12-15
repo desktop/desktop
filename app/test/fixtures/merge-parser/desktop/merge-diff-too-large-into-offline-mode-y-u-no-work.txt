@@ -1,0 +1,487 @@
+changed in both
+  base   100644 b7fc04813074a6cb7cb041abf9f2f656f80bc05d app/src/lib/git/diff.ts
+  our    100644 c7b70925514f334e2076ddb67f208c2f3f12672f app/src/lib/git/diff.ts
+  their  100644 f961cf2783b01412c6a7be9bdd137dfa5f669e90 app/src/lib/git/diff.ts
+@@ -18,7 +18,10 @@
+   LineEndingsChange,
+   parseLineEndingText,
+   ILargeTextDiff,
++<<<<<<< .our
+   IUnrenderableDiff,
++=======
++>>>>>>> .their
+ } from '../../models/diff'
+ 
+ import { spawnAndComplete } from './spawn'
+@@ -32,13 +35,29 @@
+  * This is a hard limit on how big a buffer can be and still be converted into
+  * a string.
+  */
++<<<<<<< .our
+ const MaxDiffBufferSize = 70e6 // 70MB in decimal
++=======
++const MaxDiffBufferSize = 268435441 //~268MB
++>>>>>>> .their
+ 
+ /**
+  * Where `MaxDiffBufferSize` is a hard limit, this is a suggested limit. Diffs
+  * bigger than this _could_ be displayed but it might cause some slowness.
+  */
++<<<<<<< .our
+ const MaxReasonableDiffSize = MaxDiffBufferSize / 16 // ~4.375MB in decimal
++=======
++const MaxReasonableDiffSize = MaxDiffBufferSize / 64 //~4MB
++
++/**
++ * Where `MaxReasonableDiffSize` is a soft limit, and `MaxDiffBufferSize`
++ * is an absolute limit, this is the MAX number of bytes to read from the
++ * buffer before _assuming_ the current buffer being read is `MaxDiffBufferSize`.
++ * This is done so that the UI isn't waiting for the entire buffer to be read.
++ */
++const MaxBytesToRead = MaxDiffBufferSize / 8 //~32MB
++>>>>>>> .their
+ 
+ /**
+  * The longest line length we should try to display. If a diff has a line longer
+@@ -115,13 +134,26 @@
+     args.push(file.oldPath)
+   }
+ 
+-  const { output } = await spawnAndComplete(
++  const { output, didReadAllBytes } = await spawnAndComplete(
+     args,
+     repository.path,
+-    'getCommitDiff'
++    'getCommitDiff',
++    undefined,
++    MaxBytesToRead
+   )
++<<<<<<< .our
+ 
+   return buildDiff(output, repository, file, commitish)
++=======
++
++  const largeDiff = buildLargeTextDiff(output, didReadAllBytes)
++  if (largeDiff != null) {
++    return largeDiff
++  }
++
++  const diffText = diffFromRawDiffOutput(output)
++  return convertDiff(repository, file, diffText, commitish)
++>>>>>>> .their
+ }
+ 
+ /**
+@@ -192,15 +224,31 @@
+     ]
+   }
+ 
+-  const { output, error } = await spawnAndComplete(
++  const { output, error, didReadAllBytes } = await spawnAndComplete(
+     args,
+     repository.path,
+     'getWorkingDirectoryDiff',
+-    successExitCodes
++    successExitCodes,
++    MaxBytesToRead
+   )
+   const lineEndingsChange = parseLineEndingsWarning(error)
+ 
++<<<<<<< .our
+   return buildDiff(output, repository, file, 'HEAD', lineEndingsChange)
++=======
++  const largeDiff = buildLargeTextDiff(
++    output,
++    didReadAllBytes,
++    lineEndingsChange
++  )
++  if (largeDiff != null) {
++    return largeDiff
++  }
++
++  const diffText = diffFromRawDiffOutput(output)
++
++  return convertDiff(repository, file, diffText, 'HEAD', lineEndingsChange)
++>>>>>>> .their
+ }
+ 
+ async function getImageDiff(
+@@ -437,3 +485,50 @@
+     contents.length
+   )
+ }
++
++/**
++ * Utility function that takes a buffer and outputs
++ * either a largeTextDiff or null
++ */
++function buildLargeTextDiff(
++  buffer: Buffer,
++  didReadAllBytes: boolean,
++  lineEndingsChange?: LineEndingsChange
++): ILargeTextDiff | null {
++  if (!didReadAllBytes || !isValidBuffer(buffer)) {
++    // we know we can't transform this process output into a diff, so let's
++    // just return a placeholder for now that we can display to the user
++    // to say we're at the limits of the runtime
++    return { kind: DiffType.LargeText, length: buffer.length }
++  }
++
++  const diffText = diffFromRawDiffOutput(buffer)
++
++  if (isBufferTooLarge(buffer)) {
++    // we don't want to render by default
++    // but we keep it as an option by
++    // passing in text and hunks
++    const largeTextDiff: ILargeTextDiff = {
++      kind: DiffType.LargeText,
++      length: buffer.length,
++      text: diffText.contents,
++      hunks: diffText.hunks,
++      lineEndingsChange,
++    }
++
++    return largeTextDiff
++  }
++
++  if (isDiffTooLarge(diffText)) {
++    const largeTextDiff: ILargeTextDiff = {
++      kind: DiffType.LargeText,
++      text: diffText.contents,
++      hunks: diffText.hunks,
++      lineEndingsChange,
++    }
++
++    return largeTextDiff
++  }
++
++  return null
++}
+changed in both
+  base   100644 d911e4235f5a1e8e056f9d98d4a6fda3d76dcaea app/src/lib/git/spawn.ts
+  our    100644 143168d54995f923711aa352fff4365067b90676 app/src/lib/git/spawn.ts
+  their  100644 79576b0f30fd4b538b4a0c98b1b7a0bb7f68373a app/src/lib/git/spawn.ts
+@@ -4,7 +4,11 @@
+ type ProcessOutput = {
+   /** The contents of stdout received from the spawned process */
+   output: Buffer
++<<<<<<< .our
+   /** The contents of stderr received from the spawned process */
++=======
++  didReadAllBytes: boolean
++>>>>>>> .their
+   error: Buffer
+   /** The exit code returned by the spawned process */
+   exitCode: number
+@@ -38,6 +42,7 @@
+         const process = GitProcess.spawn(args, path)
+         let totalStdoutLength = 0
+         let killSignalSent = false
++        let didReadAllBytes = true
+ 
+         const stdoutChunks = new Array<Buffer>()
+         process.stdout.on('data', (chunk: Buffer) => {
+@@ -53,6 +58,7 @@
+           ) {
+             process.kill()
+             killSignalSent = true
++            didReadAllBytes = false
+           }
+         })
+ 
+@@ -84,6 +90,7 @@
+           if (exitCodes.has(code) || signal) {
+             resolve({
+               output: stdout,
++              didReadAllBytes,
+               error: stderr,
+               exitCode: code,
+             })
+removed in local
+  base   100644 e4d51575a72468d893a82b6dea7589e4443974c1 app/src/models/diff.ts
+  their  100644 93622965bdfa473e1d9e61e23b2a66270ca1798a app/src/models/diff.ts
+changed in both
+  base   100644 c0d9dfc2ede51b53ffda7330d5bc301a44765f52 app/src/ui/diff/index.tsx
+  our    100644 8695c640dc0a5184c74a112f131a2e2a07ef572d app/src/ui/diff/index.tsx
+  their  100644 d025925faa5170a694e42b0fe8bedde37319fa7f app/src/ui/diff/index.tsx
+@@ -18,6 +18,11 @@
+   IDiff,
+   IImageDiff,
+   ITextDiff,
++<<<<<<< .our
++=======
++  DiffLine,
++  DiffLineType,
++>>>>>>> .their
+   ILargeTextDiff,
+ } from '../../models/diff'
+ 
+@@ -33,12 +38,43 @@
+ import { DiffLineGutter } from './diff-line-gutter'
+ import { DiffSyntaxMode } from './diff-syntax-mode'
+ 
++<<<<<<< .our
+ import { ISelectionStrategy } from './selection/selection-strategy'
+ import { TextDiff } from './text-diff'
++=======
++import { fatalError } from '../../lib/fatal-error'
++
++import { RangeSelectionSizePixels } from './edge-detection'
++import { relativeChanges } from './changed-range'
++import { getPartialBlobContents } from '../../lib/git/show'
++import { readPartialFile } from '../../lib/file-system'
++
++import { DiffSyntaxMode, IDiffSyntaxModeSpec } from './diff-syntax-mode'
++import { highlight } from '../../lib/highlighter/worker'
++import { ITokens } from '../../lib/highlighter/types'
++import { Button } from '../lib/button'
++
++/** The longest line for which we'd try to calculate a line diff. */
++const MaxIntraLineDiffStringLength = 4096
++>>>>>>> .their
++
++// image used when no diff is displayed
++const NoDiffImage = encodePathAsUrl(__dirname, 'static/ufo-alert.svg')
++
++<<<<<<< .our
++=======
++// This is a custom version of the no-newline octicon that's exactly as
++// tall as it needs to be (8px) which helps with aligning it on the line.
++const narrowNoNewlineSymbol = new OcticonSymbol(
++  16,
++  8,
++  'm 16,1 0,3 c 0,0.55 -0.45,1 -1,1 l -3,0 0,2 -3,-3 3,-3 0,2 2,0 0,-2 2,0 z M 8,4 C 8,6.2 6.2,8 4,8 1.8,8 0,6.2 0,4 0,1.8 1.8,0 4,0 6.2,0 8,1.8 8,4 Z M 1.5,5.66 5.66,1.5 C 5.18,1.19 4.61,1 4,1 2.34,1 1,2.34 1,4 1,4.61 1.19,5.17 1.5,5.66 Z M 7,4 C 7,3.39 6.81,2.83 6.5,2.34 L 2.34,6.5 C 2.82,6.81 3.39,7 4,7 5.66,7 7,5.66 7,4 Z'
++)
+ 
+ // image used when no diff is displayed
+ const NoDiffImage = encodePathAsUrl(__dirname, 'static/ufo-alert.svg')
+ 
++>>>>>>> .their
+ type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
+ 
+ /** The props for the Diff component. */
+@@ -71,6 +107,21 @@
+ interface IDiffState {
+   readonly forceShowLargeDiff: boolean
+ }
++<<<<<<< .our
++=======
++
++/** A component which renders a diff for a file. */
++export class Diff extends React.Component<IDiffProps, IDiffState> {
++  private codeMirror: Editor | null
++  private gutterWidth: number | null
++
++  /**
++   * We store the scroll position before reloading the same diff so that we can
++   * restore it when we're done. If we're not reloading the same diff, this'll
++   * be null.
++   */
++  private scrollPositionToRestore: { left: number; top: number } | null = null
++>>>>>>> .their
+ 
+ /** A component which renders a diff for a file. */
+ export class Diff extends React.Component<IDiffProps, IDiffState> {
+@@ -88,6 +139,22 @@
+ 
+   public constructor(props: IDiffProps) {
+     super(props)
++<<<<<<< .our
++=======
++
++    this.state = {
++      forceShowLargeDiff: false,
++    }
++  }
++
++  public componentWillReceiveProps(nextProps: IDiffProps) {
++    // If we're reloading the same file, we want to save the current scroll
++    // position and restore it after the diff's been updated.
++    const sameFile =
++      nextProps.file &&
++      this.props.file &&
++      nextProps.file.id === this.props.file.id
++>>>>>>> .their
+ 
+     this.state = {
+       forceShowLargeDiff: false,
+@@ -221,6 +288,65 @@
+   }
+ 
+   private renderLargeTextDiff() {
++<<<<<<< .our
++=======
++    return (
++      <div className="panel empty large-diff">
++        <img src={NoDiffImage} />
++        <p>
++          The diff is too large to be displayed by default.
++          <br />
++          You can try to show it anyway, but performance may be negatively
++          impacted.
++        </p>
++        <Button onClick={this.showLargeDiff}>Show diff</Button>
++      </div>
++    )
++  }
++
++  private renderDiffTooLarge() {
++    return (
++      <div className="panel empty large-diff">
++        <img src={NoDiffImage} />
++        <p>The diff is too large to be displayed.</p>
++      </div>
++    )
++  }
++
++  private renderLargeText(diff: ILargeTextDiff) {
++    // gauranteed to be set since this function won't be called if text or hunks are null
++    const textDiff: ITextDiff = {
++      text: diff.text!,
++      hunks: diff.hunks!,
++      kind: DiffType.Text,
++      lineEndingsChange: diff.lineEndingsChange,
++    }
++
++    return this.renderTextDiff(textDiff)
++  }
++
++  private renderText(diff: ITextDiff) {
++    if (diff.hunks.length === 0) {
++      if (this.props.file.status === AppFileStatus.New) {
++        return <div className="panel empty">The file is empty</div>
++      }
++
++      if (this.props.file.status === AppFileStatus.Renamed) {
++        return (
++          <div className="panel renamed">
++            The file was renamed but not changed
++          </div>
++        )
++      }
++
++      return <div className="panel empty">No content changes found</div>
++    }
++
++    return this.renderTextDiff(diff)
++  }
++
++  private renderBinaryFile() {
++>>>>>>> .their
+     return (
+       <div className="panel empty large-diff">
+         <img src={NoDiffImage} className="blankslate-image" />
+@@ -258,6 +384,7 @@
+     return this.renderTextDiff(textDiff)
+   }
+ 
++<<<<<<< .our
+   private renderText(diff: ITextDiff) {
+     if (diff.hunks.length === 0) {
+       if (this.props.file.status === AppFileStatus.New) {
+@@ -303,5 +430,36 @@
+ 
+   private showLargeDiff = () => {
+     this.setState({ forceShowLargeDiff: true })
++=======
++  private renderDiff(diff: IDiff): JSX.Element | null {
++    switch (diff.kind) {
++      case DiffType.Text:
++        return this.renderText(diff)
++      case DiffType.Binary:
++        return this.renderBinaryFile()
++      case DiffType.Image:
++        return this.renderImage(diff)
++      case DiffType.LargeText: {
++        const largeTextDiff = diff as ILargeTextDiff
++        if (largeTextDiff.hunks == null || largeTextDiff.text == null) {
++          return this.renderDiffTooLarge()
++        }
++
++        return this.state.forceShowLargeDiff
++          ? this.renderLargeText(largeTextDiff)
++          : this.renderLargeTextDiff()
++      }
++      default:
++        return null
++    }
++  }
++
++  public render() {
++    return this.renderDiff(this.props.diff)
++  }
++
++  private showLargeDiff = () => {
++    this.setState({ forceShowLargeDiff: !this.state.forceShowLargeDiff })
++>>>>>>> .their
+   }
+ }
+changed in both
+  base   100644 72a39e960959b860b8f3662b83a83dc4c849afcc app/styles/ui/_blank-slate.scss
+  our    100644 87ceb1fcd23a13f3f1f6a4e56881f01ae7133902 app/styles/ui/_blank-slate.scss
+  their  100644 15b5862c419ad1249d6d9b5ec20aae6a7cdb39e7 app/styles/ui/_blank-slate.scss
+@@ -97,6 +97,17 @@
+   }
+ }
+ 
++.blankslate-image {
++  max-width: 400px;
++  width: 80%;
++  flex-grow: 0.6;
++  // Background image url is set in react since we need to
++  // calculate it at runtime.
++  background-repeat: no-repeat;
++  background-position: center bottom;
++  background-size: contain;
++}
++
+ // For all views other than the dedicated blank slate
+ // view. Yes, this is confusing.
+ .ui-view:not(#blank-slate) .blankslate-image {
+changed in both
+  base   100644 1f4e8010da7360a39efa3147b01bcfb927e4a6a0 app/styles/ui/changes/_changes-view.scss
+  our    100644 94ed12c8ef668212eaa0f41d6f741a8cc444b2da app/styles/ui/changes/_changes-view.scss
+  their  100644 65c5af2ea88cf23e747e2b83a4de02734e02ec5a app/styles/ui/changes/_changes-view.scss
+@@ -59,10 +59,13 @@
+       margin: var(--spacing-double);
+       text-align: center;
+       justify-content: initial;
++<<<<<<< .our
+ 
+       .blankslate-image {
+         max-height: 150px;
+       }
++=======
++>>>>>>> .their
+     }
+   }
+ }
+changed in both
+  base   100644 867751eb28963ba7f852717ead2d03ce1abecff5 app/styles/ui/history/_history.scss
+  our    100644 58cea508b02182fa4f45daf88643d33c3b2dd020 app/styles/ui/history/_history.scss
+  their  100644 c1638efb77d0655fc644fcf702887a7577365324 app/styles/ui/history/_history.scss
+@@ -42,10 +42,15 @@
+       justify-content: center;
+       align-items: center;
+     }
++<<<<<<< .our
++=======
++
++>>>>>>> .their
+     &.large-diff {
+       margin: var(--spacing-double);
+       text-align: center;
+       justify-content: initial;
++<<<<<<< .our
+ 
+       .blankslate-image {
+         max-height: 150px;
+@@ -154,6 +159,8 @@
+ 
+     .ref-component {
+       word-break: break-word;
++=======
++>>>>>>> .their
+     }
+   }
+ }

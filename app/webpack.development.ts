@@ -13,14 +13,6 @@ const askPassConfig = merge({}, common.askPass, config)
 const cliConfig = merge({}, common.cli, config)
 const highlighterConfig = merge({}, common.highlighter, config)
 
-// TODO:
-// if we have a PORT environment variable set and running `yarn start` we also
-// need to update this script to use the same port when building because this
-// is currently hard-coded.
-
-const webpackHotModuleReloadUrl =
-  'webpack-hot-middleware/client?path=http://localhost:3000/__webpack_hmr'
-
 const getRendererEntryPoint = () => {
   const entry = common.renderer.entry as webpack.Entry
   if (entry == null) {
@@ -32,12 +24,29 @@ const getRendererEntryPoint = () => {
   return entry.renderer as string
 }
 
+const getPortOrDefault = () => {
+  const port = process.env.PORT
+  if (port != null) {
+    const result = parseInt(port)
+    if (isNaN(result)) {
+      throw new Error(`Unable to parse '${port}' into valid number`)
+    }
+    return result
+  }
+
+  return 3000
+}
+
+const port = getPortOrDefault()
+const webpackHotModuleReloadUrl = `webpack-hot-middleware/client?path=http://localhost:${port}/__webpack_hmr`
+const publicPath = `http://localhost:${port}/build/`
+
 const rendererConfig = merge({}, common.renderer, config, {
   entry: {
     renderer: [webpackHotModuleReloadUrl, getRendererEntryPoint()],
   },
   output: {
-    publicPath: 'http://localhost:3000/build/',
+    publicPath,
   },
   module: {
     rules: [

@@ -1,0 +1,383 @@
+changed in both
+  base   100644 6bf0f87445fe3ccb228374314da81208cb4d725a src/vs/vscode.proposed.d.ts
+  our    100644 3de4a7af9dda9e3e523ba4b5774f1667d66b0b9b src/vs/vscode.proposed.d.ts
+  their  100644 4271b67e616c94aa077dde2c4a65e67747610e8c src/vs/vscode.proposed.d.ts
+@@ -241,8 +241,14 @@
+ 		maxResults?: number;
+ 
+ 		/**
++<<<<<<< .our
+ 		 * Whether external files that exclude files, like .gitignore, should be respected.
+ 		 * See the vscode setting `"search.useIgnoreFiles"`.
++=======
++		 * Subscribe to events in the file or folder denoted by `uri`.
++		 * @param uri
++		 * @param options
++>>>>>>> .their
+ 		 */
+ 		useIgnoreFiles?: boolean;
+ 
+@@ -261,7 +267,14 @@
+ 
+ 	export namespace workspace {
+ 		/**
++<<<<<<< .our
+ 		 * DEPRECATED
++=======
++		 * Create a new directory. *Note* that new files are created via `write`-calls.
++		 *
++		 * @param uri The uri of the *new* folder.
++		 * @param token A cancellation token.
++>>>>>>> .their
+ 		 */
+ 		export function registerSearchProvider(): Disposable;
+ 
+@@ -713,6 +726,7 @@
+ 		write(text: string): void;
+ 
+ 		/**
++<<<<<<< .our
+ 		 * An event which fires on keystrokes in the terminal or when an extension calls
+ 		 * [Terminal.sendText](#Terminal.sendText). Keystrokes are converted into their
+ 		 * corresponding VT sequence representation.
+@@ -726,6 +740,14 @@
+ 		 * });
+ 		 * terminalRenderer.terminal.then(t => t.sendText('Hello world'));
+ 		 * ```
++=======
++		 * The id of the process executing the task.
++		 */
++		processId: number;
++
++		/**
++		 * Terminates the task execution.
++>>>>>>> .their
+ 		 */
+ 		readonly onDidAcceptInput: Event<string>;
+ 
+@@ -758,7 +780,21 @@
+ 		export function createTerminalRenderer(name: string): TerminalRenderer;
+ 	}
+ 
++<<<<<<< .our
+ 	//#endregion
++=======
++		/**
++		 * The currently active task executions or an empty array.
++		 *
++		 * @readonly
++		 */
++		export let taskExecutions: TaskExecution[];
++
++		/**
++		 * Fires when a task starts.
++		 */
++		export const onDidStartTask: Event<TaskStartEvent>;
++>>>>>>> .their
+ 
+ 	//#region Joh -> exclusive document filters
+ 
+changed in both
+  base   100644 1e052ee9e0eda70f8703b804e23d309954d8eac0 src/vs/workbench/api/electron-browser/mainThreadTask.ts
+  our    100644 a1b5243fa6c16f6ebb0cd18d9a073d52f0a691f4 src/vs/workbench/api/electron-browser/mainThreadTask.ts
+  their  100644 c4ce5ed82a79d428e1366f8a64425fbc1445776a src/vs/workbench/api/electron-browser/mainThreadTask.ts
+@@ -36,6 +36,7 @@
+ 	export function from(value: TaskExecution): TaskExecutionDTO {
+ 		return {
+ 			id: value.id,
++			processId: value.processId,
+ 			task: TaskDTO.from(value.task)
+ 		};
+ 	}
+@@ -60,7 +61,12 @@
+ 	export function from(value: TaskExecution, exitCode: number): TaskProcessEndedDTO {
+ 		return {
+ 			id: value.id,
++<<<<<<< .our
+ 			exitCode
++=======
++			processId: value.processId,
++			task: TaskDTO.to(value.task, workspace)
++>>>>>>> .their
+ 		};
+ 	}
+ }
+@@ -429,8 +435,13 @@
+ 		return TPromise.wrap<void>(undefined);
+ 	}
+ 
++<<<<<<< .our
+ 	public $fetchTasks(filter?: TaskFilterDTO): TPromise<TaskDTO[]> {
+ 		return this._taskService.tasks(TaskFilterDTO.to(filter)).then((tasks) => {
++=======
++	public $executeTaskProvider(): TPromise<TaskDTO[]> {
++		return this._taskService.tasks({ version: '2' }).then((tasks) => {
++>>>>>>> .their
+ 			let result: TaskDTO[] = [];
+ 			for (let task of tasks) {
+ 				let item = TaskDTO.from(task);
+changed in both
+  base   100644 02fe0073cfedd34c14027bb406b5db880f157f68 src/vs/workbench/api/node/extHost.api.impl.ts
+  our    100644 ea64898c5b15cfae4b4ab32d722f4ae4a68f831a src/vs/workbench/api/node/extHost.api.impl.ts
+  their  100644 654a9db3a4b4071940b049fab02ce323ea702aa8 src/vs/workbench/api/node/extHost.api.impl.ts
+@@ -584,11 +584,25 @@
+ 				// Temp for live share in Insiders
+ 				return { dispose: () => { } };
+ 			}),
++<<<<<<< .our
+ 			registerTextSearchProvider: proposedApiFunction(extension, (scheme, provider) => {
+ 				return extHostSearch.registerTextSearchProvider(scheme, provider);
+ 			}),
+ 			registerFileIndexProvider: proposedApiFunction(extension, (scheme, provider) => {
+ 				return extHostSearch.registerFileIndexProvider(scheme, provider);
++=======
++			get taskExecutions(): vscode.TaskExecution[] {
++				return extHostTask.taskExecutions;
++			},
++			onDidStartTask: (listeners, thisArgs?, disposables?) => {
++				return extHostTask.onDidStartTask(listeners, thisArgs, disposables);
++			},
++			onDidEndTask: (listeners, thisArgs?, disposables?) => {
++				return extHostTask.onDidEndTask(listeners, thisArgs, disposables);
++			},
++			registerFileSystemProvider: proposedApiFunction(extension, (scheme, provider, newProvider?) => {
++				return extHostFileSystem.registerFileSystemProvider(scheme, provider, newProvider);
++>>>>>>> .their
+ 			}),
+ 			registerDocumentCommentProvider: proposedApiFunction(extension, (provider: vscode.DocumentCommentProvider) => {
+ 				return exthostCommentProviders.registerDocumentCommentProvider(provider);
+changed in both
+  base   100644 7128c03fb41b4ebac467e7117a3ce30e6f578518 src/vs/workbench/api/node/extHostTask.ts
+  our    100644 ee825674099281f31bafe1feebca54d478f9b15b src/vs/workbench/api/node/extHostTask.ts
+  their  100644 6fb9e23f4a0cfad64a2f01761dc873240e9c0f7e src/vs/workbench/api/node/extHostTask.ts
+@@ -687,14 +687,22 @@
+ }
+ 
+ class TaskExecutionImpl implements vscode.TaskExecution {
++<<<<<<< .our
+ 
+ 	constructor(private readonly _tasks: ExtHostTask, readonly _id: string, private readonly _task: vscode.Task) {
++=======
++	constructor(readonly _id: string, private _processId: number, private readonly _task: vscode.Task, private readonly _tasks: ExtHostTask) {
++>>>>>>> .their
+ 	}
+ 
+ 	public get task(): vscode.Task {
+ 		return this._task;
+ 	}
+ 
++	get processId(): number {
++		return this._processId;
++	}
++
+ 	public terminate(): void {
+ 		this._tasks.terminateTask(this);
+ 	}
+@@ -708,11 +716,16 @@
+ 
+ namespace TaskExecutionDTO {
+ 	export function to(value: TaskExecutionDTO, tasks: ExtHostTask): vscode.TaskExecution {
++<<<<<<< .our
+ 		return new TaskExecutionImpl(tasks, value.id, TaskDTO.to(value.task, tasks.extHostWorkspace));
++=======
++		return new TaskExecutionImpl(value.id, value.processId, TaskDTO.to(value.task, tasks.extHostWorkspace), tasks);
++>>>>>>> .their
+ 	}
+ 	export function from(value: vscode.TaskExecution): TaskExecutionDTO {
+ 		return {
+ 			id: (value as TaskExecutionImpl)._id,
++			processId: value.processId,
+ 			task: undefined
+ 		};
+ 	}
+@@ -797,10 +810,27 @@
+ 		}
+ 	}
+ 
++<<<<<<< .our
+ 	public get taskExecutions(): vscode.TaskExecution[] {
+ 		let result: vscode.TaskExecution[] = [];
+ 		this._taskExecutions.forEach(value => result.push(value));
+ 		return result;
++=======
++	public $taskStarted(execution: TaskExecutionDTO): void {
++		this._onDidExecuteTask.fire({
++			execution: this.getTaskExecution(execution)
++		});
++	}
++
++	get taskExecutions(): vscode.TaskExecution[] {
++		let result: vscode.TaskExecution[] = [];
++		this._taskExecutions.forEach(value => result.push(value));
++		return result;
++	}
++
++	get onDidStartTask(): Event<vscode.TaskStartEvent> {
++		return this._onDidExecuteTask.event;
++>>>>>>> .their
+ 	}
+ 
+ 	public terminateTask(execution: vscode.TaskExecution): TPromise<void> {
+@@ -915,7 +945,11 @@
+ 		if (result) {
+ 			return result;
+ 		}
++<<<<<<< .our
+ 		result = new TaskExecutionImpl(this, execution.id, task ? task : TaskDTO.to(execution.task, this._workspaceService));
++=======
++		result = new TaskExecutionImpl(execution.id, execution.processId, task ? task : TaskDTO.to(execution.task, this._extHostWorkspace), this);
++>>>>>>> .their
+ 		this._taskExecutions.set(execution.id, result);
+ 		return result;
+ 	}
+changed in both
+  base   100644 093fff83f06147b63bc465e9e7b4a5812f7439e3 src/vs/workbench/api/shared/tasks.ts
+  our    100644 c03895bfb41ad43e666e8e08c019be189d46ecbe src/vs/workbench/api/shared/tasks.ts
+  their  100644 d8df14d81eaa9de91bcecbaf045ac88a28e87aa6 src/vs/workbench/api/shared/tasks.ts
+@@ -86,6 +86,7 @@
+ 
+ export interface TaskExecutionDTO {
+ 	id: string;
++	processId: number;
+ 	task: TaskDTO;
+ }
+ 
+changed in both
+  base   100644 53aad9582320b0117d566e4f3d05fe210e5234d1 src/vs/workbench/parts/tasks/common/taskService.ts
+  our    100644 50e7dadcfe5a399cf13cd762d2c265df25f9c063 src/vs/workbench/parts/tasks/common/taskService.ts
+  their  100644 03e6d58589867c16eff2fdbf6d0ba78c64eacacf src/vs/workbench/parts/tasks/common/taskService.ts
+@@ -34,10 +34,24 @@
+ }
+ 
+ export interface TaskFilter {
++<<<<<<< .our
+ 	version?: string;
+ 	type?: string;
+ }
+ 
++=======
++	version?: '1' | '2';
++	type?: string;
++}
++
++export interface RunResult {
++	promise: TPromise<ITaskSummary>;
++	processInfo: {
++		processId: number;
++	};
++}
++
++>>>>>>> .their
+ export interface ITaskService {
+ 	_serviceBrand: any;
+ 	onDidStateChange: Event<TaskEvent>;
+@@ -46,7 +60,7 @@
+ 	configureAction(): Action;
+ 	build(): TPromise<ITaskSummary>;
+ 	runTest(): TPromise<ITaskSummary>;
+-	run(task: Task, options?: RunOptions): TPromise<ITaskSummary>;
++	run(task: Task, options?: RunOptions): RunResult;
+ 	inTerminal(): boolean;
+ 	isActive(): TPromise<boolean>;
+ 	getActiveTasks(): TPromise<Task[]>;
+changed in both
+  base   100644 d88cca89e951e82521bab74e6f4a4aa280dd8b26 src/vs/workbench/parts/tasks/common/taskSystem.ts
+  our    100644 9ef94395b0f970a895f59a803fd410f6ff6fa897 src/vs/workbench/parts/tasks/common/taskSystem.ts
+  their  100644 5a50bb7882fd0f3bc377ac93b4360d6753881358 src/vs/workbench/parts/tasks/common/taskSystem.ts
+@@ -86,6 +86,7 @@
+ export interface ITaskExecuteResult {
+ 	kind: TaskExecuteKind;
+ 	promise: TPromise<ITaskSummary>;
++	processId: number;
+ 	started?: {
+ 		restartOnFileChanges?: string;
+ 	};
+changed in both
+  base   100644 2dc2a15bbac5927386c0ebe3e49c2301092b3c23 src/vs/workbench/parts/tasks/common/tasks.ts
+  our    100644 9a771032c99cebab4d7cc264d0bbfbd5c11067ca src/vs/workbench/parts/tasks/common/tasks.ts
+  their  100644 9a85f452a28ff762f8b76430746fed6b23724796 src/vs/workbench/parts/tasks/common/tasks.ts
+@@ -637,7 +637,11 @@
+ 		}
+ 	}
+ 
++<<<<<<< .our
+ 	export function getTaskDefinition(task: Task, useSource: boolean = false): KeyedTaskIdentifier {
++=======
++	export function getTaskDefinition(task: Task): TaskIdentifier {
++>>>>>>> .their
+ 		if (ContributedTask.is(task)) {
+ 			return task.defines;
+ 		} else if (CustomTask.is(task)) {
+@@ -662,6 +666,7 @@
+ 
+ export interface TaskExecution {
+ 	id: string;
++	processId: number;
+ 	task: Task;
+ }
+ 
+changed in both
+  base   100644 da0905a8aefd2c13d5b0b17bc2ae1c225100e83a src/vs/workbench/parts/tasks/electron-browser/task.contribution.ts
+  our    100644 f6c79e586a73787324e35cffd199df14d720e4da src/vs/workbench/parts/tasks/electron-browser/task.contribution.ts
+  their  100644 2d5655d4a0eed7d29626dac57628c3e34950b509 src/vs/workbench/parts/tasks/electron-browser/task.contribution.ts
+@@ -74,7 +74,11 @@
+ import {
+ 	Task, CustomTask, ConfiguringTask, ContributedTask, InMemoryTask, TaskEvent,
+ 	TaskEventKind, TaskSet, TaskGroup, GroupType, ExecutionEngine, JsonSchemaVersion, TaskSourceKind,
++<<<<<<< .our
+ 	TaskSorter, TaskIdentifier, KeyedTaskIdentifier, TASK_RUNNING_STATE
++=======
++	TaskIdentifier, TaskSorter
++>>>>>>> .their
+ } from 'vs/workbench/parts/tasks/common/tasks';
+ import { ITaskService, ITaskProvider, RunOptions, CustomizationProperties, TaskFilter } from 'vs/workbench/parts/tasks/common/taskService';
+ import { getTemplates as getTaskTemplates } from 'vs/workbench/parts/tasks/common/taskTemplates';
+@@ -708,10 +712,15 @@
+ 	}
+ 
+ 	public tasks(filter?: TaskFilter): TPromise<Task[]> {
++<<<<<<< .our
+ 		let range = filter && filter.version ? filter.version : undefined;
+ 		let engine = this.executionEngine;
+ 
+ 		if (range && ((semver.satisfies('0.1.0', range) && engine === ExecutionEngine.Terminal) || (semver.satisfies('2.0.0', range) && engine === ExecutionEngine.Process))) {
++=======
++		let engine = this.executionEngine;
++		if (filter && ((filter.version === '1' && engine === ExecutionEngine.Terminal) || (filter.version === '2' && engine === ExecutionEngine.Process))) {
++>>>>>>> .their
+ 			return TPromise.as<Task[]>([]);
+ 		}
+ 		return this.getGroupedTasks().then((map) => {
+@@ -721,6 +730,7 @@
+ 			let result: Task[] = [];
+ 			map.forEach((tasks) => {
+ 				for (let task of tasks) {
++<<<<<<< .our
+ 					if (ContributedTask.is(task) && task.defines.type === filter.type) {
+ 						result.push(task);
+ 					} else if (CustomTask.is(task)) {
+@@ -732,6 +742,11 @@
+ 								result.push(task);
+ 							}
+ 						}
++=======
++					let definition = Task.getTaskDefinition(task);
++					if (definition && definition.type === filter.type) {
++						result.push(task);
++>>>>>>> .their
+ 					}
+ 				}
+ 			});
+changed in both
+  base   100644 584292e76c09e692a1af44b6f3ba2b47611b9ba8 src/vs/workbench/parts/tasks/electron-browser/terminalTaskSystem.ts
+  our    100644 6b4da35a3f141112a169ecfa12aadfaea48de26e src/vs/workbench/parts/tasks/electron-browser/terminalTaskSystem.ts
+  their  100644 ce3afa2899be88b73ccedbe29fb427c3bea4b1a3 src/vs/workbench/parts/tasks/electron-browser/terminalTaskSystem.ts
+@@ -161,7 +161,7 @@
+ 				this.terminalService.setActiveInstance(terminalData.terminal);
+ 				this.terminalService.showPanel(focus);
+ 			}
+-			return { kind: TaskExecuteKind.Active, active: { same: true, background: task.isBackground }, promise: terminalData.promise };
++			return { kind: TaskExecuteKind.Active, active: { same: true, background: task.isBackground }, processId: terminalData.terminal.processId, promise: terminalData.promise };
+ 		}
+ 
+ 		try {

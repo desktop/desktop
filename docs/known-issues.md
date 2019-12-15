@@ -20,7 +20,7 @@ Please check the [open](https://github.com/desktop/desktop/labels/bug) and [clos
 
 ### 'The username or passphrase you entered is not correct' error after signing into account - [#3263](https://github.com/desktop/desktop/issues/3263)
 
-This seems to be caused by the Keychain being in an invalid state, affecting applications that try to use the keychain to store or retrieve credentials. Seems to be specific to macOS High Sierra (10.13).
+This seems to be caused by the Keychain being in an invalid state, affecting applications that try to use the keychain to store or retrieve credentials. This has been reported from macOS High Sierra 10.13 (17A365) to macOS Mojave 10.14.5 (18F132).
 
 **Workaround:**
 
@@ -66,16 +66,13 @@ GitHub Desktop by default uses the Windows Secure Channel (SChannel) APIs to val
 
 **Workaround:**
 
-To use the classic OpenSSL behavior in Git, you'll need a PEM file containing certificates that are considered trusted. The [public list](https://curl.haxx.se/docs/caextract.html) provided by the curl project can be used if you are not connecting to a GitHub Enterprise instance which has it's own distinct certificates.
+**We do not recommend setting this config value for normal Git usage**. This is intended to be an "escape hatch" for situations where the network administrator has restricted the normal usage of SChannel APIs on Windows that Git is trying to use.
 
-Once you've downloaded that PEM file somewhere, open a shell with Git and run these commands:
+Run this command in your Git shell to disable the revocation check:
 
 ```shellsession
-$ git config --global http.sslBackend "openssl"
-$ git config --global http.sslCAInfo "C:/path with spaces/to/directory/cacert.pem"
+$ git config --global http.schannelCheckRevoke false
 ```
-
-Ensure you use forward slashes for the path when setting the `sslCAInfo` value.
 
 ### Using a repository configured with Folder Redirection - [#2972](https://github.com/desktop/desktop/issues/2972)
 
@@ -101,7 +98,7 @@ Error(s) during clone:
 git clone failed: exit status 128
 ```
 
-### Enable Mandatory ASLR triggers cygheap errors - #3096
+### Enable Mandatory ASLR triggers cygheap errors - [#3096](https://github.com/desktop/desktop/issues/3096)
 
 Windows 10 Fall Creators Edition (version 1709 or later) added enhancements to the Enhanced Mitigation Experience Toolkit, one being to enable Mandatory ASLR. This setting affects the embedded Git shipped in Desktop, and produces errors that look like this:
 
@@ -124,3 +121,64 @@ Enabling Mandatory ASLR affects the MSYS2 core library, which is relied upon by 
 Electron enables hardware accelerated graphics by default, but some graphics cards have issues with hardware acceleration which means the application will launch successfully but it will be a black screen.
 
 **Workaround:** if you set the `GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION` environment variable to any value and launch Desktop again it will disable hardware acceleration on launch, so the application is usable.
+
+### Failed to open CA file after an update - [#4832](https://github.com/desktop/desktop/issues/4832)
+
+A recent upgrade to Git for Windows changed how it uses `http.sslCAInfo`.
+
+An example of this error:
+
+> fatal: unable to access 'https://github.com/\<owner>/\<repo>.git/': schannel: failed to open CA file 'C:/Users/\<account>/AppData/Local/GitHubDesktop/app-1.2.2/resources/app/git/mingw64/bin/curl-ca-bundle.crt': No such file or directory
+
+This is occuring because some users have an existing Git for Windows installation that created a special config at `C:\ProgramData\Git\config`, and this config may contain a `http.sslCAInfo` entry, which is inherited by Desktop.
+
+There's two problems with this current state:
+
+ - Desktop doesn't need custom certificates for it's Git operations - it uses SChannel by default, which uses the Windows Certificate Store to verify server certificates
+ - this `http.sslCAInfo` config value may resolve to a location or file that doesn't exist in Desktop's Git installation
+
+**Workaround:**
+
+1. Verify that you have the problem configuration by checking the output of this command:
+
+```
+> git config -l --show-origin
+```
+
+You should have an entry that looks like this:
+
+```
+file:"C:\ProgramData/Git/config" http.sslcainfo=[some value here]
+```
+
+2. Open `C:\ProgramData\Git\config` (requires elevated privileges) and remove the corresponding lines that look like this:
+
+```
+[http]
+sslCAInfo = [some value here]
+```
+
+### `ask-pass-trampoline.bat` errors - [#2623](https://github.com/desktop/desktop/issues/2623), [#4124](https://github.com/desktop/desktop/issues/4124), [#6882](https://github.com/desktop/desktop/issues/6882), [#6789](https://github.com/desktop/desktop/issues/6879)
+
+An example of the error message:
+
+```
+The system cannot find the path specified.
+error: unable to read askpass response from 'C:\Users\User\AppData\Local\GitHubDesktop\app-1.6.2\resources\app\static\ask-pass-trampoline.bat'
+fatal: could not read Username for 'https://github.com': terminal prompts disabled"
+```
+
+Known causes and workarounds:
+
+-  Modifying the `AutoRun` registry entry. To check if this entry has been modified open `Regedit.exe` and navigate to `HKEY_CURRENT_USER\Software\Microsoft\Command Processor\autorun` and `HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Command Processor\autorun` to see if there is anything set (sometimes applications will also modify this). See [#6789](https://github.com/desktop/desktop/issues/6879#issuecomment-471042891) and [#2623](https://github.com/desktop/desktop/issues/2623#issuecomment-334305916) for examples of this.
+
+- Special characters in your Windows username like a `&` or `-` can cause this error to be thrown. See [#7064](https://github.com/desktop/desktop/issues/7064) for an example of this. Try installing GitHub Desktop in a new user account to verify if this is the case.
+
+- Antivirus software can sometimes prevent GitHub Desktop from installing correctly. If you are running antivirus software that could be causing this try temporarily disabling it and reinstalling GitHub Desktop.
+
+- If none of these potential causes are present on your machine, try performing a fresh installation of GitHub Desktop to see if that gets things working again. Here are the steps you can take to do that:
+
+  1. Close GitHub Desktop
+  2. Delete the `%AppData%\GitHub Desktop\` directory
+  3. Delete the `%LocalAppData%\GitHubDesktop\` directory
+  4. Reinstall GitHub Desktop from [desktop.github.com](https://desktop.github.com)

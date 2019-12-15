@@ -12,7 +12,7 @@ const dismissGracePeriodMs = 250
 
 /**
  * The time (in milliseconds) that we should wait after focusing before we
- * re-enable click dismissal. Note that this is only used on Windows.
+ * re-enable click dismissal.
  */
 const DisableClickDismissalDelay = 500
 
@@ -31,7 +31,7 @@ interface IDialogProps {
    * By omitting this consumers may use their own custom DialogHeader
    * for when the default component doesn't cut it.
    */
-  readonly title?: string
+  readonly title?: string | JSX.Element
 
   /**
    * Whether or not the dialog should be dismissable. A dismissable dialog
@@ -47,6 +47,14 @@ interface IDialogProps {
    * Defaults to true if omitted.
    */
   readonly dismissable?: boolean
+
+  /**
+   * Option to prevent dismissal by clicking outside of the dialog.
+   * Requires `dismissal` to be true (or omitted) to have an effect.
+   *
+   * Defaults to false if omitted
+   */
+  readonly disableClickDismissalAlways?: boolean
 
   /**
    * Event triggered when the dialog is dismissed by the user in the
@@ -137,7 +145,7 @@ interface IDialogState {
  * out of the dialog without first dismissing it.
  */
 export class Dialog extends React.Component<IDialogProps, IDialogState> {
-  private dialogElement: HTMLElement | null = null
+  private dialogElement: HTMLDialogElement | null = null
   private dismissGraceTimeoutId?: number
 
   private disableClickDismissalTimeoutId: number | null = null
@@ -179,8 +187,12 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     }
 
     if (this.props.title) {
+      // createUniqueId handles static strings fine, so in the case of receiving
+      // a JSX element for the title we can just pass in a fixed value rather
+      // than trying to generate a string from an arbitrary element
+      const id = typeof this.props.title === 'string' ? this.props.title : '???'
       this.setState({
-        titleId: createUniqueId(`Dialog_${this.props.id}_${this.props.title}`),
+        titleId: createUniqueId(`Dialog_${this.props.id}_${id}`),
       })
     }
   }
@@ -190,30 +202,169 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   }
 
   public componentDidMount() {
-    // This cast to any is necessary since React doesn't know about the
-    // dialog element yet.
-    ;(this.dialogElement as any).showModal()
+    if (!this.dialogElement) {
+      return
+    }
+
+    this.dialogElement.showModal()
+
+    // Provide an event that components can subscribe to in order to perform
+    // tasks such as re-layout after the dialog is visible
+    this.dialogElement.dispatchEvent(
+      new CustomEvent('dialog-show', {
+        bubbles: true,
+        cancelable: false,
+      })
+    )
 
     this.setState({ isAppearing: true })
     this.scheduleDismissGraceTimeout()
 
+    this.focusFirstSuitableChild()
+
     window.addEventListener('focus', this.onWindowFocus)
+  }
+
+  /**
+   * Attempts to move keyboard focus to the first _suitable_ child of the
+   * dialog.
+   *
+   * The original motivation for this function is that while the order of the
+   * Ok, and Cancel buttons differ between platforms (see OkCancelButtonGroup)
+   * we don't want to accidentally put keyboard focus on the destructive
+   * button (like the Ok button in the discard changes dialog) but rather
+   * on the non-destructive action. This logic originates from the macOS
+   * human interface guidelines
+   *
+   * From https://developer.apple.com/design/human-interface-guidelines/macos/windows-and-views/dialogs/:
+   *
+   *   "Users sometimes press Return merely to dismiss a dialog, without
+   *   reading its content, so it’s crucial that a default button initiate
+   *   a harmless action. [...] when a dialog may result in a destructive
+   *   action, Cancel can be set as the default button."
+   *
+   * The same guidelines also has this to say about focus:
+   *
+   *   "Set the initial focus to the first location that accepts user input.
+   *    Doing so lets the user begin entering data immediately, without needing
+   *    to click a specific item like a text field or list."
+   *
+   * In attempting to follow the guidelines outlined above we follow a priority
+   * order in determining the first suitable child.
+   *
+   *  1. The element with the lowest positive tabIndex
+   *     This might sound counterintuitive but imagine the following pseudo
+   *     dialog this would be button D as button D would be the first button
+   *     to get focused when hitting Tab.
+   *
+   *     <dialog>
+   *      <button>A</button>
+   *      <button tabIndex=3>B</button>
+   *      <button tabIndex=2>C</button>
+   *      <button tabIndex=1>D</button>
+   *     </dialog>
+   *
+   *  2. The first element which is either implicitly keyboard focusable (like a
+   *     text input field) or explicitly focusable through tabIndex=0 (like a TabBar
+   *     tab)
+   *
+   *  3. The first submit button. We use this as a proxy for what macOS HIG calls
+   *     "default button". It's not the same thing but for our purposes it's close
+   *     enough.
+   *
+   *  4. Any remaining button
+   *
+   */
+  private focusFirstSuitableChild() {
+    const dialog = this.dialogElement
+
+    if (dialog === null) {
+      return
+    }
+
+    const selector = [
+      'input:not([type=hidden]):not(:disabled):not([tabindex="-1"])',
+      'textarea:not(:disabled):not([tabindex="-1"])',
+      'button:not(:disabled):not([tabindex="-1"])',
+      '[tabindex]:not(:disabled):not([tabindex="-1"])',
+    ].join(', ')
+
+    // The element which has the lowest explicit tab index (i.e. greater than 0)
+    let firstExplicit: { 0: number; 1: HTMLElement | null } = [Infinity, null]
+
+    // First submit button
+    let firstSubmitButton: HTMLElement | null = null
+
+    // The first button-like element (input, submit, reset etc)
+    let firstButton: HTMLElement | null = null
+
+    // The first element which is either implicitly keyboard focusable (like a
+    // text input field) or explicitly focusable through tabIndex=0 (like an
+    // anchor tag masquerading as a button)
+    let firstTabbable: HTMLElement | null = null
+
+    const excludedInputTypes = [
+      ':not([type=button])',
+      ':not([type=submit])',
+      ':not([type=reset])',
+      ':not([type=hidden])',
+      ':not([type=checkbox])',
+      ':not([type=radio])',
+    ]
+
+    const inputSelector = `input${excludedInputTypes.join('')}, textarea`
+    const buttonSelector =
+      'input[type=button], input[type=submit] input[type=reset], button'
+    const submitSelector = 'input[type=submit], button[type=submit]'
+
+    for (const candidate of dialog.querySelectorAll(selector)) {
+      if (!(candidate instanceof HTMLElement)) {
+        continue
+      }
+
+      const tabIndex = parseInt(candidate.getAttribute('tabindex') || '', 10)
+
+      if (tabIndex > 0 && tabIndex < firstExplicit[0]) {
+        firstExplicit = [tabIndex, candidate]
+      } else if (
+        firstTabbable === null &&
+        (tabIndex === 0 || candidate.matches(inputSelector))
+      ) {
+        firstTabbable = candidate
+      } else if (
+        firstSubmitButton === null &&
+        candidate.matches(submitSelector)
+      ) {
+        firstSubmitButton = candidate
+      } else if (firstButton === null && candidate.matches(buttonSelector)) {
+        firstButton = candidate
+      }
+    }
+
+    const newActive =
+      firstExplicit[1] || firstTabbable || firstSubmitButton || firstButton
+
+    if (newActive !== null) {
+      newActive.focus()
+    }
   }
 
   private onWindowFocus = () => {
     // On Windows and Linux, a click which focuses the window will also get
     // passed down into the DOM. But we don't want to dismiss the dialog based
     // on that click. See https://github.com/desktop/desktop/issues/2486.
-    if (__WIN32__ || __LINUX__) {
-      this.clearClickDismissalTimer()
+    // macOS normally automatically disables "click-through" behavior but
+    // we've intentionally turned that off so we need to apply the same
+    // behavior regardless of platform.
+    // See https://github.com/desktop/desktop/pull/3843.
+    this.clearClickDismissalTimer()
 
-      this.disableClickDismissal = true
+    this.disableClickDismissal = true
 
-      this.disableClickDismissalTimeoutId = window.setTimeout(() => {
-        this.disableClickDismissal = false
-        this.disableClickDismissalTimeoutId = null
-      }, DisableClickDismissalDelay)
-    }
+    this.disableClickDismissalTimeoutId = window.setTimeout(() => {
+      this.disableClickDismissal = false
+      this.disableClickDismissalTimeoutId = null
+    }, DisableClickDismissalDelay)
   }
 
   private clearClickDismissalTimer() {
@@ -231,6 +382,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     }
 
     window.removeEventListener('focus', this.onWindowFocus)
+    document.removeEventListener('mouseup', this.onDocumentMouseUp)
   }
 
   public componentDidUpdate() {
@@ -244,7 +396,11 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     this.onDismiss()
   }
 
-  private onDialogClick = (e: React.MouseEvent<HTMLElement>) => {
+  private onDialogMouseDown = (e: React.MouseEvent<HTMLElement>) => {
+    if (e.defaultPrevented) {
+      return
+    }
+
     if (this.isDismissable() === false) {
       return
     }
@@ -258,12 +414,6 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       return
     }
 
-    const isInTitleBar = e.clientY <= titleBarHeight
-
-    if (isInTitleBar) {
-      return
-    }
-
     // Ignore the first click right after the window's been focused. It could
     // be the click that focused the window, in which case we don't wanna
     // dismiss the dialog.
@@ -273,8 +423,36 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       return
     }
 
+    if (
+      !this.props.disableClickDismissalAlways &&
+      !this.mouseEventIsInsideDialog(e)
+    ) {
+      // The user has pressed down on their pointer device outside of the
+      // dialog (i.e. on the backdrop). Now we subscribe to the global
+      // mouse up event where we can make sure that they release the pointer
+      // device on the backdrop as well.
+      document.addEventListener('mouseup', this.onDocumentMouseUp, {
+        once: true,
+      })
+    }
+  }
+
+  private mouseEventIsInsideDialog(
+    e: React.MouseEvent<HTMLElement> | MouseEvent
+  ) {
+    // it's possible that we've been unmounted
+    if (this.dialogElement === null) {
+      return false
+    }
+
+    const isInTitleBar = e.clientY <= titleBarHeight
+
+    if (isInTitleBar) {
+      return false
+    }
+
     // Figure out if the user clicked on the backdrop or in the dialog itself.
-    const rect = e.currentTarget.getBoundingClientRect()
+    const rect = this.dialogElement.getBoundingClientRect()
 
     // http://stackoverflow.com/a/26984690/2114
     const isInDialog =
@@ -283,13 +461,27 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       rect.left <= e.clientX &&
       e.clientX <= rect.left + rect.width
 
-    if (!isInDialog) {
+    return isInDialog
+  }
+
+  /**
+   * Subscribed to from the onDialogMouseDown when the user
+   * presses down on the backdrop, ensures that we only dismiss
+   * the dialog if they release their pointer device over the
+   * backdrop as well (as opposed to over the dialog itself).
+   */
+  private onDocumentMouseUp = (e: MouseEvent) => {
+    if (
+      !e.defaultPrevented &&
+      !this.props.disableClickDismissalAlways &&
+      !this.mouseEventIsInsideDialog(e)
+    ) {
       e.preventDefault()
       this.onDismiss()
     }
   }
 
-  private onDialogRef = (e: HTMLElement | null) => {
+  private onDialogRef = (e: HTMLDialogElement | null) => {
     // We need to explicitly subscribe to and unsubscribe from the dialog
     // element as react doesn't yet understand the element and which events
     // it has.
@@ -308,7 +500,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
   private onKeyDown = (event: KeyboardEvent) => {
     const shortcutKey = __DARWIN__ ? event.metaKey : event.ctrlKey
-    if (shortcutKey && event.key === 'w') {
+    if ((shortcutKey && event.key === 'w') || event.key === 'Escape') {
       this.onDialogCancel(event)
     }
   }
@@ -360,13 +552,13 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       <dialog
         ref={this.onDialogRef}
         id={this.props.id}
-        onClick={this.onDialogClick}
+        onMouseDown={this.onDialogMouseDown}
         className={className}
         aria-labelledby={this.state.titleId}
       >
         {this.renderHeader()}
 
-        <form onSubmit={this.onSubmit}>
+        <form onSubmit={this.onSubmit} onReset={this.onDismiss}>
           <fieldset disabled={this.props.disabled}>
             {this.props.children}
           </fieldset>

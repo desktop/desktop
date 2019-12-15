@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import { getAbsoluteUrl } from '../../src/lib/http'
 import { getDotComAPIEndpoint } from '../../src/lib/api'
 
@@ -9,12 +7,22 @@ describe('getAbsoluteUrl', () => {
 
     it('handles leading slashes', () => {
       const result = getAbsoluteUrl(dotcomEndpoint, '/user/repos')
-      expect(result).to.equal('https://api.github.com/user/repos')
+      expect(result).toBe('https://api.github.com/user/repos')
     })
 
     it('handles missing leading slash', () => {
       const result = getAbsoluteUrl(dotcomEndpoint, 'user/repos')
-      expect(result).to.equal('https://api.github.com/user/repos')
+      expect(result).toBe('https://api.github.com/user/repos')
+    })
+
+    it("doesn't mangle encoded query parameters", () => {
+      const result = getAbsoluteUrl(
+        getDotComAPIEndpoint(),
+        '/issues?since=2019-05-10T16%3A00%3A00Z'
+      )
+      expect(result).toBe(
+        'https://api.github.com/issues?since=2019-05-10T16%3A00%3A00Z'
+      )
     })
   })
 
@@ -23,12 +31,12 @@ describe('getAbsoluteUrl', () => {
 
     it('handles leading slash', () => {
       const result = getAbsoluteUrl(enterpriseEndpoint, '/user/repos')
-      expect(result).to.equal(`${enterpriseEndpoint}/user/repos`)
+      expect(result).toBe(`${enterpriseEndpoint}/user/repos`)
     })
 
     it('handles missing leading slash', () => {
       const result = getAbsoluteUrl(enterpriseEndpoint, 'user/repos')
-      expect(result).to.equal(`${enterpriseEndpoint}/user/repos`)
+      expect(result).toBe(`${enterpriseEndpoint}/user/repos`)
     })
 
     it('handles next page resource which already contains prefix', () => {
@@ -36,7 +44,17 @@ describe('getAbsoluteUrl', () => {
         enterpriseEndpoint,
         '/api/v3/user/repos?page=2'
       )
-      expect(result).to.equal(`${enterpriseEndpoint}/user/repos?page=2`)
+      expect(result).toBe(`${enterpriseEndpoint}/user/repos?page=2`)
+    })
+
+    it("doesn't mangle encoded query parameters", () => {
+      const result = getAbsoluteUrl(
+        enterpriseEndpoint,
+        '/issues?since=2019-05-10T16%3A00%3A00Z'
+      )
+      expect(result).toBe(
+        `${enterpriseEndpoint}/issues?since=2019-05-10T16%3A00%3A00Z`
+      )
     })
   })
 })

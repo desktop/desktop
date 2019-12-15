@@ -2,14 +2,12 @@ import * as React from 'react'
 import { Account } from '../../models/account'
 import { PreferencesTab } from '../../models/preferences'
 import { ExternalEditor } from '../../lib/editors'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { TabBar } from '../tab-bar'
 import { Accounts } from './accounts'
 import { Advanced } from './advanced'
 import { Git } from './git'
 import { assertNever } from '../../lib/fatal-error'
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogFooter, DialogError } from '../dialog'
 import {
   getGlobalConfigValue,
@@ -20,9 +18,10 @@ import {
 import { lookupPreferredEmail } from '../../lib/email'
 import { Shell, getAvailableShells } from '../../lib/shells'
 import { getAvailableEditors } from '../../lib/editors/lookup'
-import { disallowedCharacters } from './identifier-rules'
+import { gitAuthorNameIsValid } from './identifier-rules'
 import { Appearance } from './appearance'
 import { ApplicationTheme } from '../lib/application-theme'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -33,9 +32,11 @@ interface IPreferencesProps {
   readonly initialSelectedTab?: PreferencesTab
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
-  readonly selectedExternalEditor?: ExternalEditor
+  readonly confirmForcePush: boolean
+  readonly selectedExternalEditor: ExternalEditor | null
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
+  readonly automaticallySwitchTheme: boolean
 }
 
 interface IPreferencesState {
@@ -46,8 +47,10 @@ interface IPreferencesState {
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
+  readonly confirmForcePush: boolean
+  readonly automaticallySwitchTheme: boolean
   readonly availableEditors: ReadonlyArray<ExternalEditor>
-  readonly selectedExternalEditor?: ExternalEditor
+  readonly selectedExternalEditor: ExternalEditor | null
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
   readonly mergeTool: IMergeTool | null
@@ -70,6 +73,8 @@ export class Preferences extends React.Component<
       optOutOfUsageTracking: false,
       confirmRepositoryRemoval: false,
       confirmDiscardChanges: false,
+      confirmForcePush: false,
+      automaticallySwitchTheme: false,
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
       selectedShell: this.props.selectedShell,
@@ -90,7 +95,7 @@ export class Preferences extends React.Component<
         }
 
         if (!committerEmail) {
-          const found = lookupPreferredEmail(account.emails)
+          const found = lookupPreferredEmail(account)
           if (found) {
             committerEmail = found.email
           }
@@ -116,6 +121,7 @@ export class Preferences extends React.Component<
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
+      confirmForcePush: this.props.confirmForcePush,
       availableShells,
       availableEditors,
       mergeTool,
@@ -161,20 +167,6 @@ export class Preferences extends React.Component<
     this.props.dispatcher.removeAccount(account)
   }
 
-  private disallowedCharacterErrorMessage(name: string, email: string) {
-    const disallowedNameCharacters = disallowedCharacters(name)
-    if (disallowedNameCharacters != null) {
-      return `Git name field cannot be a disallowed character "${disallowedNameCharacters}"`
-    }
-
-    const disallowedEmailCharacters = disallowedCharacters(email)
-    if (disallowedEmailCharacters != null) {
-      return `Git email field cannot be a disallowed character "${disallowedEmailCharacters}"`
-    }
-
-    return null
-  }
-
   private renderDisallowedCharactersError() {
     const message = this.state.disallowedCharactersMessage
     if (message != null) {
@@ -212,6 +204,10 @@ export class Preferences extends React.Component<
           <Appearance
             selectedTheme={this.props.selectedTheme}
             onSelectedThemeChanged={this.onSelectedThemeChanged}
+            automaticallySwitchTheme={this.props.automaticallySwitchTheme}
+            onAutomaticallySwitchThemeChanged={
+              this.onAutomaticallySwitchThemeChanged
+            }
           />
         )
       case PreferencesTab.Advanced: {
@@ -220,6 +216,7 @@ export class Preferences extends React.Component<
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             confirmRepositoryRemoval={this.state.confirmRepositoryRemoval}
             confirmDiscardChanges={this.state.confirmDiscardChanges}
+            confirmForcePush={this.state.confirmForcePush}
             availableEditors={this.state.availableEditors}
             selectedExternalEditor={this.state.selectedExternalEditor}
             onOptOutofReportingchanged={this.onOptOutofReportingChanged}
@@ -227,6 +224,7 @@ export class Preferences extends React.Component<
               this.onConfirmRepositoryRemovalChanged
             }
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
+            onConfirmForcePushChanged={this.onConfirmForcePushChanged}
             onSelectedEditorChanged={this.onSelectedEditorChanged}
             availableShells={this.state.availableShells}
             selectedShell={this.state.selectedShell}
@@ -254,22 +252,21 @@ export class Preferences extends React.Component<
     this.setState({ confirmDiscardChanges: value })
   }
 
-  private onCommitterNameChanged = (committerName: string) => {
-    const disallowedCharactersMessage = this.disallowedCharacterErrorMessage(
-      committerName,
-      this.state.committerEmail
-    )
+  private onConfirmForcePushChanged = (value: boolean) => {
+    this.setState({ confirmForcePush: value })
+  }
 
-    this.setState({ committerName, disallowedCharactersMessage })
+  private onCommitterNameChanged = (committerName: string) => {
+    this.setState({
+      committerName,
+      disallowedCharactersMessage: gitAuthorNameIsValid(committerName)
+        ? null
+        : 'Name is invalid, it consists only of disallowed characters.',
+    })
   }
 
   private onCommitterEmailChanged = (committerEmail: string) => {
-    const disallowedCharactersMessage = this.disallowedCharacterErrorMessage(
-      this.state.committerName,
-      committerEmail
-    )
-
-    this.setState({ committerEmail, disallowedCharactersMessage })
+    this.setState({ committerEmail })
   }
 
   private onSelectedEditorChanged = (editor: ExternalEditor) => {
@@ -284,6 +281,14 @@ export class Preferences extends React.Component<
     this.props.dispatcher.setSelectedTheme(theme)
   }
 
+  private onAutomaticallySwitchThemeChanged = (
+    automaticallySwitchTheme: boolean
+  ) => {
+    this.props.dispatcher.onAutomaticallySwitchThemeChanged(
+      automaticallySwitchTheme
+    )
+  }
+
   private renderFooter() {
     const hasDisabledError = this.state.disallowedCharactersMessage != null
 
@@ -296,12 +301,10 @@ export class Preferences extends React.Component<
       case PreferencesTab.Git: {
         return (
           <DialogFooter>
-            <ButtonGroup>
-              <Button type="submit" disabled={hasDisabledError}>
-                Save
-              </Button>
-              <Button onClick={this.props.onDismissed}>Cancel</Button>
-            </ButtonGroup>
+            <OkCancelButtonGroup
+              okButtonText="Save"
+              okButtonDisabled={hasDisabledError}
+            />
           </DialogFooter>
         )
       }
@@ -313,9 +316,16 @@ export class Preferences extends React.Component<
   private onSave = async () => {
     await setGlobalConfigValue('user.name', this.state.committerName)
     await setGlobalConfigValue('user.email', this.state.committerEmail)
-    await this.props.dispatcher.setStatsOptOut(this.state.optOutOfUsageTracking)
+    await this.props.dispatcher.setStatsOptOut(
+      this.state.optOutOfUsageTracking,
+      false
+    )
     await this.props.dispatcher.setConfirmRepoRemovalSetting(
       this.state.confirmRepositoryRemoval
+    )
+
+    await this.props.dispatcher.setConfirmForcePushSetting(
+      this.state.confirmForcePush
     )
 
     if (this.state.selectedExternalEditor) {

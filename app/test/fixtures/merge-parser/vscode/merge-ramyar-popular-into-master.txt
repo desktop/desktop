@@ -1,0 +1,183 @@
+merged
+  result 100644 136c7b40a1264c2a8eb6c7e637c6cafbc42bbbd5 src/vs/workbench/parts/extensions/common/extensionQuery.ts
+  our    100644 5f85a0ee0e02263ae6f108290e3cad55b8051b6b src/vs/workbench/parts/extensions/common/extensionQuery.ts
+@@ -13,7 +13,7 @@
+ 	}
+ 
+ 	static suggestions(query: string): string[] {
+-		const commands = ['installed', 'outdated', 'enabled', 'disabled', 'builtin', 'recommended', 'sort', 'category', 'tag', 'ext'];
++		const commands = ['installed', 'outdated', 'enabled', 'disabled', 'builtin', 'recommended', 'sort', 'category', 'tag', 'ext', 'popular'];
+ 		const subcommands = {
+ 			'sort': ['installs', 'rating', 'name'],
+ 			'category': ['"programming languages"', 'snippets', 'linters', 'themes', 'debuggers', 'formatters', 'keymaps', '"scm providers"', 'other', '"extension packs"', '"language packs"'],
+changed in both
+  base   100644 9900d0d5a7aaa8bc48cd9def72a17edac570482f src/vs/workbench/parts/extensions/electron-browser/extensionsActions.ts
+  our    100644 645a6674587a8dca8742c11040e726c40a9702ff src/vs/workbench/parts/extensions/electron-browser/extensionsActions.ts
+  their  100644 931fad9f43d00f41ff44b591f4f289f8539eb8d8 src/vs/workbench/parts/extensions/electron-browser/extensionsActions.ts
+@@ -1161,6 +1161,7 @@
+ 
+ 	static readonly ID = 'workbench.extensions.action.showPopularExtensions';
+ 	static LABEL = localize('showPopularExtensions', "Show Popular Extensions");
++	static readonly query = '@popular ';
+ 
+ 	constructor(
+ 		id: string,
+@@ -1174,7 +1175,7 @@
+ 		return this.viewletService.openViewlet(VIEWLET_ID, true)
+ 			.then(viewlet => viewlet as IExtensionsViewlet)
+ 			.then(viewlet => {
+-				viewlet.search('@sort:installs ');
++				viewlet.search(ShowPopularExtensionsAction.query);
+ 				viewlet.focus();
+ 			});
+ 	}
+changed in both
+  base   100644 2ba10ccbf6e08efbab2b9e3666a37e6efdd90a18 src/vs/workbench/parts/extensions/electron-browser/extensionsViewlet.ts
+  our    100644 0deb9a35143336ac44f10debedd6afdf4d47c48d src/vs/workbench/parts/extensions/electron-browser/extensionsViewlet.ts
+  their  100644 1eb5637816db4b60dea582c8c0ea0fe5acd8affa src/vs/workbench/parts/extensions/electron-browser/extensionsViewlet.ts
+@@ -29,7 +29,15 @@
+ } from 'vs/workbench/parts/extensions/electron-browser/extensionsActions';
+ import { LocalExtensionType, IExtensionManagementService, IExtensionManagementServerService, IExtensionManagementServer } from 'vs/platform/extensionManagement/common/extensionManagement';
+ import { ExtensionsInput } from 'vs/workbench/parts/extensions/common/extensionsInput';
++<<<<<<< .our
+ import { ExtensionsListView, EnabledExtensionsView, DisabledExtensionsView, RecommendedExtensionsView, WorkspaceRecommendedExtensionsView, BuiltInExtensionsView, BuiltInThemesExtensionsView, BuiltInBasicsExtensionsView, GroupByServerExtensionsView, DefaultRecommendedExtensionsView } from './extensionsViews';
++=======
++import {
++	ExtensionsListView, InstalledExtensionsView, EnabledExtensionsView, DisabledExtensionsView, RecommendedExtensionsView,
++	WorkspaceRecommendedExtensionsView, BuiltInExtensionsView, BuiltInThemesExtensionsView, BuiltInBasicsExtensionsView,
++	GroupByServerExtensionsView, DefaultRecommendedExtensionsView, DefaultRecommendedInPopularExtensionsView
++} from './extensionsViews';
++>>>>>>> .their
+ import { OpenGlobalSettingsAction } from 'vs/workbench/parts/preferences/browser/preferencesActions';
+ import { IProgressService } from 'vs/platform/progress/common/progress';
+ import { IEditorGroupsService } from 'vs/workbench/services/group/common/editorGroupsService';
+@@ -69,6 +77,7 @@
+ const RecommendedExtensionsContext = new RawContextKey<boolean>('recommendedExtensions', false);
+ const DefaultRecommendedExtensionsContext = new RawContextKey<boolean>('defaultRecommendedExtensions', false);
+ const GroupByServersContext = new RawContextKey<boolean>('groupByServersContext', false);
++const PopularExtensionsContext = new RawContextKey<boolean>('popularExtensions', false);
+ 
+ export class ExtensionsViewletViewsContribution implements IWorkbenchContribution {
+ 
+@@ -87,6 +96,8 @@
+ 		viewDescriptors.push(this.createBuiltInExtensionsListViewDescriptor());
+ 		viewDescriptors.push(this.createBuiltInBasicsExtensionsListViewDescriptor());
+ 		viewDescriptors.push(this.createBuiltInThemesExtensionsListViewDescriptor());
++		viewDescriptors.push(this.createPopularExtensionsListViewDescriptor());
++		viewDescriptors.push(this.createRecommendedInPopularExtensionsListViewDescriptor());
+ 		viewDescriptors.push(this.createDefaultRecommendedExtensionsListViewDescriptor());
+ 		viewDescriptors.push(this.createOtherRecommendedExtensionsListViewDescriptor());
+ 		viewDescriptors.push(this.createWorkspaceRecommendedExtensionsListViewDescriptor());
+@@ -106,7 +117,7 @@
+ 			name: localize('marketPlace', "Marketplace"),
+ 			container: VIEW_CONTAINER,
+ 			ctor: ExtensionsListView,
+-			when: ContextKeyExpr.and(ContextKeyExpr.has('searchExtensions'), ContextKeyExpr.not('searchInstalledExtensions'), ContextKeyExpr.not('searchBuiltInExtensions'), ContextKeyExpr.not('recommendedExtensions'), ContextKeyExpr.not('groupByServersContext')),
++			when: ContextKeyExpr.and(ContextKeyExpr.has('searchExtensions'), ContextKeyExpr.not('searchInstalledExtensions'), ContextKeyExpr.not('searchBuiltInExtensions'), ContextKeyExpr.not('recommendedExtensions'), ContextKeyExpr.not('groupByServersContext'), ContextKeyExpr.not('popularExtensions')),
+ 			weight: 100
+ 		};
+ 	}
+@@ -235,6 +246,30 @@
+ 			canToggleVisibility: true
+ 		};
+ 	}
++
++	private createPopularExtensionsListViewDescriptor(): IViewDescriptor {
++		return {
++			id: 'extensions.popularExtensionsList',
++			name: localize('popularExtensions', "Popular"),
++			container: VIEW_CONTAINER,
++			ctor: ExtensionsListView,
++			when: ContextKeyExpr.has('popularExtensions'),
++			weight: 70,
++			order: 1
++		};
++	}
++
++	private createRecommendedInPopularExtensionsListViewDescriptor(): IViewDescriptor {
++		return {
++			id: 'extensions.recommendedInPopularExtensionsList',
++			name: localize('recommendedExtensions', "Recommended"),
++			container: VIEW_CONTAINER,
++			ctor: DefaultRecommendedInPopularExtensionsView,
++			when: ContextKeyExpr.and(ContextKeyExpr.has('popularExtensions'), ContextKeyExpr.has('defaultRecommendedExtensions')),
++			weight: 30,
++			order: 2
++		};
++	}
+ }
+ 
+ export class ExtensionsViewlet extends ViewContainerViewlet implements IExtensionsViewlet {
+@@ -247,6 +282,7 @@
+ 	private groupByServersContextKey: IContextKey<boolean>;
+ 	private recommendedExtensionsContextKey: IContextKey<boolean>;
+ 	private defaultRecommendedExtensionsContextKey: IContextKey<boolean>;
++	private popularExtensionsContextKey: IContextKey<boolean>;
+ 
+ 	private searchDelayer: ThrottledDelayer<any>;
+ 	private root: HTMLElement;
+@@ -287,6 +323,7 @@
+ 		this.groupByServersContextKey = GroupByServersContext.bindTo(contextKeyService);
+ 		this.defaultRecommendedExtensionsContextKey = DefaultRecommendedExtensionsContext.bindTo(contextKeyService);
+ 		this.defaultRecommendedExtensionsContextKey.set(!this.configurationService.getValue<boolean>(ShowRecommendationsOnlyOnDemandKey));
++		this.popularExtensionsContextKey = PopularExtensionsContext.bindTo(contextKeyService);
+ 		this.disposables.push(this.viewletService.onDidViewletOpen(this.onViewletOpen, this, this.disposables));
+ 
+ 		this.extensionManagementService.getInstalled(LocalExtensionType.User).then(result => {
+@@ -335,7 +372,18 @@
+ 		this.searchBox.onShouldFocusResults(() => this.focusListView(), this, this.disposables);
+ 
+ 		this.extensionsBox = append(this.root, $('.extensions'));
++<<<<<<< .our
+ 		return super.create(this.extensionsBox);
++=======
++		return super.create(this.extensionsBox)
++			.then(() => this.extensionManagementService.getInstalled(LocalExtensionType.User))
++			.then(installed => {
++				if (installed.length === 0) {
++					this.searchBox.setValue(ShowPopularExtensionsAction.query);
++					this.searchExtensionsContextKey.set(true);
++				}
++			});
++>>>>>>> .their
+ 	}
+ 
+ 	public updateStyles(): void {
+@@ -424,10 +472,12 @@
+ 	}
+ 
+ 	private normalizedQuery(): string {
+-		return this.searchBox.getValue().replace(/@category/g, 'category').replace(/@tag:/g, 'tag:').replace(/@ext:/g, 'ext:');
++		return this.searchBox.getValue().replace(/@category/g, 'category').replace(/@tag:/g, 'tag:').replace(/@ext:/g, 'ext:').replace(/@popular/g, '@sort:installs');
+ 	}
+ 
+ 	private doSearch(): TPromise<any> {
++		this.popularExtensionsContextKey.set(this.searchBox.getValue().trim() === ShowPopularExtensionsAction.query.trim());
++
+ 		const value = this.normalizedQuery();
+ 		this.searchExtensionsContextKey.set(!!value);
+ 		this.searchBuiltInExtensionsContextKey.set(ExtensionsListView.isBuiltInExtensionsQuery(value));
+changed in both
+  base   100644 9857be0c0cbbdc9cdb8cae5fa1e94625f256916c src/vs/workbench/parts/extensions/electron-browser/extensionsViews.ts
+  our    100644 3bfb6cffba943bf68a9fa9c24fb1903c66dd3fad src/vs/workbench/parts/extensions/electron-browser/extensionsViews.ts
+  their  100644 0b9307b94ead07e23a135ceedec34f0db3bbe35c src/vs/workbench/parts/extensions/electron-browser/extensionsViews.ts
+@@ -692,7 +692,19 @@
+ 		}
+ 		return model;
+ 	}
++}
++
++export class DefaultRecommendedInPopularExtensionsView extends DefaultRecommendedExtensionsView {
++	private readonly popularExtensionsQuery = '@sort:installs';
+ 
++	async show(query: string): Promise<IPagedModel<IExtension>> {
++		if ((query && query.trim() !== this.popularExtensionsQuery)) {
++			return this.showEmptyModel();
++		}
++		const model = await super.show('');
++		this.setExpanded(model.length > 0);
++		return model;
++	}
+ }
+ 
+ export class RecommendedExtensionsView extends ExtensionsListView {

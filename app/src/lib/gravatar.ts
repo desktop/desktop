@@ -23,7 +23,7 @@ export function generateGravatarUrl(email: string, size: number = 60): string {
  * endpoint associated with an account.
  *
  * This is a workaround for a current limitation with
- * GitHub Enterprise, where avatar URLs are inaccessible
+ * GitHub Enterprise Server, where avatar URLs are inaccessible
  * in some scenarios.
  *
  * @param avatar_url The canonical avatar to use
@@ -35,7 +35,11 @@ export function getAvatarWithEnterpriseFallback(
   email: string | null,
   endpoint: string
 ): string {
-  if (endpoint === getDotComAPIEndpoint() || email === null) {
+  if (
+    endpoint === getDotComAPIEndpoint() ||
+    email === null ||
+    email.length === 0
+  ) {
     return avatar_url
   }
 

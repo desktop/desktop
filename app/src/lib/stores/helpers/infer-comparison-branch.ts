@@ -4,6 +4,7 @@ import { GitHubRepository } from '../../../models/github-repository'
 import { IRemote } from '../../../models/remote'
 import { Repository } from '../../../models/repository'
 import { ComparisonCache } from '../../comparison-cache'
+import { urlMatchesCloneURL } from '../../repository-matching'
 
 type RemotesGetter = (repository: Repository) => Promise<ReadonlyArray<IRemote>>
 
@@ -129,7 +130,7 @@ async function getDefaultBranchOfForkedGitHubRepo(
   }
 
   const remotes = await getRemotes(repository)
-  const remote = remotes.find(r => r.url === parentRepo.cloneURL)
+  const remote = remotes.find(r => urlMatchesCloneURL(r.url, parentRepo))
 
   if (remote === undefined) {
     log.warn(`Could not find remote with URL ${parentRepo.cloneURL}.`)

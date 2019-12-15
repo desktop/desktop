@@ -1,13 +1,12 @@
 import * as React from 'react'
 
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Ref } from '../lib/ref'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
@@ -20,6 +19,7 @@ interface IDeleteBranchProps {
 
 interface IDeleteBranchState {
   readonly includeRemoteBranch: boolean
+  readonly isDeleting: boolean
 }
 
 export class DeleteBranch extends React.Component<
@@ -31,6 +31,7 @@ export class DeleteBranch extends React.Component<
 
     this.state = {
       includeRemoteBranch: false,
+      isDeleting: false,
     }
   }
 
@@ -40,22 +41,21 @@ export class DeleteBranch extends React.Component<
         id="delete-branch"
         title={__DARWIN__ ? 'Delete Branch' : 'Delete branch'}
         type="warning"
+        onSubmit={this.deleteBranch}
         onDismissed={this.props.onDismissed}
+        disabled={this.state.isDeleting}
+        loading={this.state.isDeleting}
       >
         <DialogContent>
           <p>
-            Delete branch <Ref>{this.props.branch.name}</Ref>?
-            <br />
+            Delete branch <Ref>{this.props.branch.name}</Ref>?<br />
             This action cannot be undone.
           </p>
 
           {this.renderDeleteOnRemote()}
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup destructive={true}>
-            <Button type="submit">Cancel</Button>
-            <Button onClick={this.deleteBranch}>Delete</Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup destructive={true} okButtonText="Delete" />
         </DialogFooter>
       </Dialog>
     )
@@ -96,14 +96,17 @@ export class DeleteBranch extends React.Component<
   }
 
   private deleteBranch = async () => {
-    const { dispatcher, repository, branch, onDeleted } = this.props
+    const { dispatcher, repository, branch } = this.props
+
+    this.setState({ isDeleting: true })
+
     await dispatcher.deleteBranch(
       repository,
       branch,
       this.state.includeRemoteBranch
     )
-    onDeleted(repository)
+    this.props.onDeleted(repository)
 
-    return dispatcher.closePopup()
+    await dispatcher.closePopup()
   }
 }

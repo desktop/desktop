@@ -1,0 +1,21 @@
+changed in both
+  base   100644 750661e8d5873b5d99d1c1bbfff2d3aa412de1d2 vsts-gn.yml
+  our    100644 3c9985b16c0414cfd9bc6c6648d6411a969fc6ef vsts-gn.yml
+  their  100644 2abd5340dbcf22981114234cc0ed740189e62726 vsts-gn.yml
+@@ -31,9 +31,16 @@
+   - bash: |
+       cd src
+       export CHROMIUM_BUILDTOOLS_PATH=`pwd`/buildtools
++<<<<<<< .our
+       export SCCACHE_WRAPPER="`pwd`/electron/external_binaries/sccache"
+       export SCCACHE_HELPER="`pwd`/libchromiumcontent/script/sccache"
+       "$SCCACHE_HELPER" --start-server --azure_container "$(SCCACHE_AZURE_BLOB_CONTAINER)" --azure_connection "$(SCCACHE_AZURE_CONNECTION_STRING)"
++=======
++      export SCCACHE_WRAPPER="`pwd`/libchromiumcontent/tools/sccache/aad2120/mac/sccache"
++      export SCCACHE_HELPER="`pwd`/libchromiumcontent/script/sccache"
++      "$SCCACHE_HELPER" --start-server --azure_container "$(SCCACHE_AZURE_BLOB_CONTAINER)" --azure_connection "$(SCCACHE_AZURE_CONNECTION_STRING)"
++      "$SCCACHE_WRAPPER" -s
++>>>>>>> .their
+       echo "##vso[task.setvariable variable=SCCACHE_WRAPPER]$SCCACHE_WRAPPER"
+       echo "##vso[task.setvariable variable=CHROMIUM_BUILDTOOLS_PATH]`pwd`/buildtools"
+       echo "GN gen for: $GN_CONFIG"

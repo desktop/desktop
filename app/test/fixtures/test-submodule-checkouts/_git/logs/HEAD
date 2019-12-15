@@ -1,0 +1,12 @@
+0000000000000000000000000000000000000000 8f472ac8bea4f0cd26e884b88a3750ccd4aa42e4 Brendan Forster <github@brendanforster.com> 1535374675 -0300	clone: from https://github.com/shiftkey/outer-submodule-public.git
+8f472ac8bea4f0cd26e884b88a3750ccd4aa42e4 f1e52c83cf1eca3e406e1743938d93c7a58180df Brendan Forster <github@brendanforster.com> 1535374845 -0300	commit: add inner submodule
+f1e52c83cf1eca3e406e1743938d93c7a58180df f1e52c83cf1eca3e406e1743938d93c7a58180df Brendan Forster <github@brendanforster.com> 1535374888 -0300	checkout: moving from master to dev
+f1e52c83cf1eca3e406e1743938d93c7a58180df 77b992c2e15c351df3024f88b4489c4a6eee5706 Brendan Forster <github@brendanforster.com> 1535375386 -0300	commit: bump the submodule
+77b992c2e15c351df3024f88b4489c4a6eee5706 77b992c2e15c351df3024f88b4489c4a6eee5706 Brendan Forster <github@brendanforster.com> 1535376218 -0300	checkout: moving from dev to add-private-repo
+77b992c2e15c351df3024f88b4489c4a6eee5706 6bdf59a1a8375d17c6330dcf73a319f9e6c3a1e2 Brendan Forster <github@brendanforster.com> 1535376278 -0300	commit: added private submodule
+6bdf59a1a8375d17c6330dcf73a319f9e6c3a1e2 f1e52c83cf1eca3e406e1743938d93c7a58180df Brendan Forster <github@brendanforster.com> 1535376362 -0300	checkout: moving from add-private-repo to master
+f1e52c83cf1eca3e406e1743938d93c7a58180df f1e52c83cf1eca3e406e1743938d93c7a58180df Brendan Forster <github@brendanforster.com> 1535376382 -0300	checkout: moving from master to master
+f1e52c83cf1eca3e406e1743938d93c7a58180df 6bdf59a1a8375d17c6330dcf73a319f9e6c3a1e2 Brendan Forster <github@brendanforster.com> 1535376391 -0300	checkout: moving from master to add-private-repo
+6bdf59a1a8375d17c6330dcf73a319f9e6c3a1e2 f1e52c83cf1eca3e406e1743938d93c7a58180df Brendan Forster <github@brendanforster.com> 1535376395 -0300	checkout: moving from add-private-repo to master
+f1e52c83cf1eca3e406e1743938d93c7a58180df 77b992c2e15c351df3024f88b4489c4a6eee5706 Brendan Forster <github@brendanforster.com> 1535376410 -0300	checkout: moving from master to dev
+77b992c2e15c351df3024f88b4489c4a6eee5706 f1e52c83cf1eca3e406e1743938d93c7a58180df Brendan Forster <github@brendanforster.com> 1535376420 -0300	checkout: moving from dev to master

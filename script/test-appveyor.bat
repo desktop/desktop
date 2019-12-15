@@ -1,2 +1,2 @@
-npm test
+yarn test
 set APPVEYOR_TEST_RESULT=%ERRORLEVEL%

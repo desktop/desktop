@@ -1,0 +1,58 @@
+changed in both
+  base   100644 461a0bdb996fedc0a40861c61e387fe0d5fad667 app/src/lib/stores/helpers/background-fetcher.ts
+  our    100644 edadf1aea655fa18f9e3264b999dbc4583fed66b app/src/lib/stores/helpers/background-fetcher.ts
+  their  100644 8b61968bcc378722d08b01acc741c193dba0c614 app/src/lib/stores/helpers/background-fetcher.ts
+@@ -1,4 +1,4 @@
+-import { Repository } from '../../../models/repository'
++import { Repository, formatRepositoryName } from '../../../models/repository'
+ import { Account } from '../../../models/account'
+ import { GitHubRepository } from '../../../models/github-repository'
+ import { API } from '../../api'
+@@ -96,11 +96,20 @@
+       try {
+         await this.fetch(this.repository)
+       } catch (e) {
++<<<<<<< .our
+         const ghRepo = this.repository.gitHubRepository
+         const repoName =
+           ghRepo !== null ? ghRepo.fullName : this.repository.name
+ 
+         log.error(`Error performing periodic fetch for '${repoName}'`, e)
++=======
++        log.error(
++          `Error performing periodic fetch for repository '${formatRepositoryName(
++            this.repository
++          )}'`,
++          e
++        )
++>>>>>>> .their
+       }
+     }
+ 
+changed in both
+  base   100644 6a4b61f9fe2be4768d09c5ba220b92bac6e36e4a app/src/models/repository.ts
+  our    100644 4eb1a58be5e5e17b1a8714be9248b2d332f526e4 app/src/models/repository.ts
+  their  100644 782c50e60421f5fcfe22fecc91fa84fc7be86a02 app/src/models/repository.ts
+@@ -69,6 +69,7 @@
+ }
+ 
+ /**
++<<<<<<< .our
+  * Returns the owner/name alias if associated with a GitHub repository,
+  * otherwise the folder name that contains the repository
+  */
+@@ -76,4 +77,14 @@
+   const { gitHubRepository } = repository
+ 
+   return gitHubRepository !== null ? gitHubRepository.fullName : repository.name
++=======
++ * Generate a distinct name for the repository.
++ */
++export function formatRepositoryName(repository: Repository) {
++  if (repository.gitHubRepository !== null) {
++    return repository.gitHubRepository.fullName
++  }
++
++  return repository.name
++>>>>>>> .their
+ }

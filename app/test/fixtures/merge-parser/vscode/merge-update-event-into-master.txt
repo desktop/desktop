@@ -1,0 +1,96 @@
+changed in both
+  base   100644 8dacc38fcf8c37d6bd192179f9b4c2615fe301a1 src/vs/platform/extensionManagement/node/extensionManagementService.ts
+  our    100644 fca1b8fcc1eedca233bd95ef59ad6d0d3904e895 src/vs/platform/extensionManagement/node/extensionManagementService.ts
+  their  100644 6742bc215cc69428ad520eb4b234530ae0787e9c src/vs/platform/extensionManagement/node/extensionManagementService.ts
+@@ -228,6 +228,7 @@
+ 			}));
+ 	}
+ 
++<<<<<<< .our
+ 	installFromGallery(extension: IGalleryExtension): TPromise<void> {
+ 		let installingExtension = this.installingExtensions.get(extension.identifier.id);
+ 		if (!installingExtension) {
+@@ -279,6 +280,25 @@
+ 
+ 		}
+ 		return installingExtension;
++=======
++	installFromGallery(extension: IGalleryExtension): TPromise<ILocalExtension> {
++		this.onInstallExtensions([extension]);
++		return this.collectExtensionsToInstall(extension)
++			.then(
++				extensionsToInstall => {
++					if (extensionsToInstall.length > 1) {
++						this.onInstallExtensions(extensionsToInstall.slice(1));
++					}
++					return this.getInstalled(LocalExtensionType.User).then(existingExtensions => {
++						return this.downloadAndInstallExtensions(extensionsToInstall)
++							.then(
++								locals => this.onDidInstallExtensions(extensionsToInstall, locals, existingExtensions, [])
++									.then(() => locals.filter(l => areSameExtensions({ id: getGalleryExtensionIdFromLocal(l), uuid: l.identifier.uuid }, extension.identifier)[0])),
++								errors => this.onDidInstallExtensions(extensionsToInstall, [], existingExtensions, errors));
++					});
++				},
++				error => this.onDidInstallExtensions([extension], [], [], [error]));
++>>>>>>> .their
+ 	}
+ 
+ 	reinstallFromGallery(extension: ILocalExtension): TPromise<void> {
+@@ -347,6 +367,57 @@
+ 				error => TPromise.wrapError<InstallableExtension>(new ExtensionManagementError(this.joinErrors(error).message, INSTALL_ERROR_GALLERY)));
+ 	}
+ 
++<<<<<<< .our
++=======
++	private onInstallExtensions(extensions: IGalleryExtension[]): void {
++		for (const extension of extensions) {
++			this.logService.info('Installing extension:', extension.name);
++			this.installationStartTime.set(extension.identifier.id, new Date().getTime());
++			const id = getLocalExtensionIdFromGallery(extension, extension.version);
++			this._onInstallExtension.fire({ identifier: { id, uuid: extension.identifier.uuid }, gallery: extension });
++		}
++	}
++
++	private onDidInstallExtensions(extensions: IGalleryExtension[], locals: ILocalExtension[], existingExtensions: ILocalExtension[], errors: Error[]): TPromise<any> {
++		extensions.forEach((gallery, index) => {
++			const identifier = { id: getLocalExtensionIdFromGallery(gallery, gallery.version), uuid: gallery.identifier.uuid };
++			const eventName = existingExtensions.filter(x => x.identifier.id === identifier.id).length ? 'update' : 'install';
++			const local = locals[index];
++			const error = errors[index];
++			if (local) {
++				this.logService.info(`Extensions installed successfully:`, gallery.identifier.id);
++				this._onDidInstallExtension.fire({ identifier, gallery, local });
++			} else {
++				const errorCode = error && (<ExtensionManagementError>error).code ? (<ExtensionManagementError>error).code : ERROR_UNKNOWN;
++				this.logService.error(`Failed to install extension:`, gallery.identifier.id, error ? error.message : errorCode);
++				this._onDidInstallExtension.fire({ identifier, gallery, error: errorCode });
++			}
++			const startTime = this.installationStartTime.get(gallery.identifier.id);
++			this.reportTelemetry(`extensionGallery:${eventName}`, getGalleryExtensionTelemetryData(gallery), startTime ? new Date().getTime() - startTime : void 0, error);
++			this.installationStartTime.delete(gallery.identifier.id);
++		});
++		return errors.length ? TPromise.wrapError(this.joinErrors(errors)) : TPromise.as(null);
++	}
++
++	private getDependenciesToInstall(dependencies: string[]): TPromise<IGalleryExtension[]> {
++		if (dependencies.length) {
++			return this.getInstalled()
++				.then(installed => {
++					const uninstalledDeps = dependencies.filter(d => installed.every(i => getGalleryExtensionId(i.manifest.publisher, i.manifest.name) !== d));
++					if (uninstalledDeps.length) {
++						return this.galleryService.loadAllDependencies(uninstalledDeps.map(id => (<IExtensionIdentifier>{ id })))
++							.then(allDependencies => allDependencies.filter(d => {
++								const extensionId = getLocalExtensionIdFromGallery(d, d.version);
++								return installed.every(({ identifier }) => identifier.id !== extensionId);
++							}));
++					}
++					return [];
++				});
++		}
++		return TPromise.as([]);
++	}
++
++>>>>>>> .their
+ 	private installExtension(installableExtension: InstallableExtension): TPromise<ILocalExtension> {
+ 		return this.unsetUninstalledAndGetLocal(installableExtension.id)
+ 			.then(

@@ -16,10 +16,12 @@ export function formatAsLocalRef(name: string): string {
     // In some cases, Git will report this name explicitly to distingush from
     // a remote ref with the same name - this ensures we format it correctly.
     return `refs/${name}`
-  } else {
+  } else if (!name.startsWith('refs/heads/')) {
     // By default Git will drop the heads prefix unless absolutely necessary
     // - include this to ensure the ref is fully qualified.
     return `refs/heads/${name}`
+  } else {
+    return name
   }
 }
 
@@ -45,12 +47,15 @@ export async function getSymbolicRef(
     repository.path,
     'getSymbolicRef',
     {
-      successExitCodes: new Set([0, 128]),
+      //  - 1 is the exit code that Git throws in quiet mode when the ref is not a
+      //    symbolic ref
+      //  - 128 is the generic error code that Git returns when it can't find
+      //    something
+      successExitCodes: new Set([0, 1, 128]),
     }
   )
 
-  if (result.exitCode === 128) {
-    // ref was not a symbolic ref or ref does not exist
+  if (result.exitCode === 1 || result.exitCode === 128) {
     return null
   }
 

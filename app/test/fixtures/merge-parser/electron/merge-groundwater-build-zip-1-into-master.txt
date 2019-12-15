@@ -1,0 +1,369 @@
+changed in both
+  base   100644 d66102fb95300bf4c1c5728efd2382c9e8fad313 .circleci/config.yml
+  our    100644 6d44d618aabcce04c60344f2274dec5b0c2a1f68 .circleci/config.yml
+  their  100644 c1be5e74032fce0cd9f9caf64fde54198fbd229b .circleci/config.yml
+@@ -155,14 +155,24 @@
+           git clone --depth=1 https://chromium.googlesource.com/chromium/tools/depot_tools.git
+           echo 'export PATH="$PATH:'"$PWD"'/depot_tools"' >> $BASH_ENV
+           echo 'export GIT_CACHE_PATH="$HOME/.gclient-cache"' >> $BASH_ENV
++    - run:
++        name: Install Node.js 10 on MacOS
++        command: |
++          if [ "$INSTALL_MACOS_NODE" == "true" ]; then
++            echo 'Installing Node.js 10 for MacOS'
++            brew update
++            brew install node@10
++            brew install gnu-tar
++            echo 'export PATH="/usr/local/opt/gnu-tar/libexec/gnubin:$PATH"' >> $BASH_ENV
++          fi
+     - checkout:
+         path: src/electron
+     - restore_cache:
+         paths:
+           - ~/.gclient-cache
+         keys:
+-          - v1-gclient-cache-{{ arch }}-{{ checksum "src/electron/DEPS" }}
+-          - v1-gclient-cache-{{ arch }}-
++          - v3-gclient-cache-{{ arch }}-{{ checksum "src/electron/DEPS" }}
++          - v3-gclient-cache-{{ arch }}-
+     - run:
+         name: Gclient sync
+         command: |
+@@ -176,12 +186,21 @@
+     - save_cache:
+         paths:
+           - ~/.gclient-cache
+-        key: v1-gclient-cache-{{ arch }}-{{ checksum "src/electron/DEPS" }}
++        key: v3-gclient-cache-{{ arch }}-{{ checksum "src/electron/DEPS" }}
+     - run:
+         name: GN gen
+         command: |
+           cd src
++<<<<<<< .our
+           SCCACHE_PATH="$PWD/electron/external_binaries/sccache"
++=======
++          if [ "$(uname)" = "Linux" ]; then
++            SCCACHE_PATH="$PWD/libchromiumcontent/tools/sccache/aad2120/linux/sccache"
++          else
++            SCCACHE_PATH="$PWD/libchromiumcontent/tools/sccache/aad2120/mac/sccache"
++          fi
++          echo 'export SCCACHE_WRAPPER="'"$SCCACHE_PATH"'"' >> $BASH_ENV
++>>>>>>> .their
+           echo 'export CHROMIUM_BUILDTOOLS_PATH="'"$PWD"'/buildtools"' >> $BASH_ENV
+           echo 'export SCCACHE_WRAPPER="'"$SCCACHE_PATH"'"'            >> $BASH_ENV
+           source $BASH_ENV
+@@ -192,6 +211,7 @@
+           cd src
+           ninja -C out/Default electron:electron_app
+     - run:
++<<<<<<< .our
+         name: ffmpeg GN gen
+         command: |
+           if [ "$BUILD_FFMPEG" == "true" ]; then
+@@ -220,6 +240,8 @@
+             ninja -C out/native_mksnapshot v8:mksnapshot
+           fi
+     - run:
++=======
++>>>>>>> .their
+         name: Build dist.zip
+         command: |
+           cd src
+@@ -230,7 +252,9 @@
+     - run:
+         name: Setup for headless testing
+         command: |
+-          sh -e /etc/init.d/xvfb start
++          if [ "$(uname)" = "Linux" ]; then
++            sh -e /etc/init.d/xvfb start
++          fi
+     - run:
+         name: Verify ffmpeg
+         command: |
+@@ -249,7 +273,11 @@
+             ninja -C out/Default third_party/electron_node:headers
+             export npm_config_nodedir="$PWD/out/Default/gen/node_headers"
+             (cd electron/spec && npm install)
+-            python electron/script/lib/dbus_mock.py ./out/Default/electron electron/spec --ci --enable-logging
++            if [ "$(uname)" = "Darwin" ]; then
++              ./out/Default/Electron.app/Contents/MacOS/Electron electron/spec --ci --enable-logging
++            else
++              python electron/script/lib/dbus_mock.py ./out/Default/electron electron/spec --ci --enable-logging
++            fi
+           fi
+     - store_test_results:
+         path: src/junit
+@@ -257,6 +285,7 @@
+         path: src/junit
+     - store_artifacts:
+         path: src/out/Default/dist.zip
++<<<<<<< .our
+     - store_artifacts:
+         path: src/out/ffmpeg/libffmpeg.dylib
+     - store_artifacts:
+@@ -343,6 +372,8 @@
+   macos:
+     xcode: "8.3.3"
+   resource_class: large
++=======
++>>>>>>> .their
+ 
+ build-defaults: &build-defaults
+   docker:
+@@ -477,6 +508,7 @@
+       INSTALL_MACOS_NODE: true
+     macos:
+       xcode: "8.3.3"
++    resource_class: xlarge
+     <<: *build-steps
+ 
+   electron-osx-x64-release-nightly:
+@@ -497,6 +529,7 @@
+       INSTALL_MACOS_NODE: true
+     macos:
+       xcode: "8.3.3"
++    resource_class: 2xlarge
+     <<: *build-steps
+ 
+   electron-mas-x64-release-nightly:
+@@ -624,16 +657,29 @@
+     <<: *gn-linux-build-machine
+     <<: *gn-build-steps
+ 
++<<<<<<< .our
+   electron-gn-osx-release-fyi:
+     environment:
+       GN_CONFIG: //electron/build/args/release.gn
+       RUN_TESTS: true
+     <<: *gn-mac-build-machine
+     <<: *gn-mac-build-steps
++=======
++  electron-gn-osx-debug-fyi:
++    environment:
++      GN_CONFIG: //electron/build/args/debug.gn
++      INSTALL_MACOS_NODE: true
++      RUN_TESTS: false
++    macos:
++      xcode: "8.3.3"
++    resource_class: large
++    <<: *gn-build-steps
++>>>>>>> .their
+ 
+   electron-gn-osx-testing-fyi:
+     environment:
+       GN_CONFIG: //electron/build/args/testing.gn
++<<<<<<< .our
+       RUN_TESTS: true
+     <<: *gn-mac-build-machine
+     <<: *gn-mac-build-steps
+@@ -652,10 +698,30 @@
+       GN_EXTRA_ARGS: 'is_mas_build = true'
+     <<: *gn-mac-build-machine
+     <<: *gn-mac-build-steps
++=======
++      INSTALL_MACOS_NODE: true
++      RUN_TESTS: true
++    macos:
++      xcode: "8.3.3"
++    resource_class: large
++    <<: *gn-build-steps
++
++  electron-gn-mas-debug-fyi:
++    environment:
++      GN_CONFIG: //electron/build/args/debug.gn
++      INSTALL_MACOS_NODE: true
++      RUN_TESTS: false
++      GN_EXTRA_ARGS: 'is_mas_build = true'
++    macos:
++      xcode: "8.3.3"
++    resource_class: large
++    <<: *gn-build-steps
++>>>>>>> .their
+ 
+   electron-gn-mas-testing-fyi:
+     environment:
+       GN_CONFIG: //electron/build/args/testing.gn
++<<<<<<< .our
+       RUN_TESTS: true
+       GN_EXTRA_ARGS: 'is_mas_build = true'
+     <<: *gn-mac-build-machine
+@@ -668,6 +734,15 @@
+       GN_EXTRA_ARGS: 'is_mas_build = true'
+     <<: *gn-mac-build-machine
+     <<: *gn-mac-build-steps
++=======
++      INSTALL_MACOS_NODE: true
++      RUN_TESTS: true
++      GN_EXTRA_ARGS: 'is_mas_build = true'
++    macos:
++      xcode: "8.3.3"
++    resource_class: large
++    <<: *gn-build-steps
++>>>>>>> .their
+ 
+ workflows:
+   version: 2
+@@ -705,12 +780,22 @@
+       - electron-gn-linux-arm-testing-fyi
+       - electron-gn-linux-arm64-debug-fyi
+       - electron-gn-linux-arm64-testing-fyi
++<<<<<<< .our
+   build-gn-mac:
+     jobs:
+       - electron-gn-mas-debug-fyi
+       - electron-gn-mas-testing-fyi
+       - electron-gn-osx-debug-fyi
+       - electron-gn-osx-testing-fyi
++=======
++      - electron-gn-linux-x64-release-fyi
++  build-gn-mac:
++    jobs:
++      - electron-gn-osx-debug-fyi
++      - electron-gn-osx-testing-fyi
++      - electron-gn-mas-debug-fyi
++      - electron-gn-mas-testing-fyi
++>>>>>>> .their
+ 
+   nightly-release-test:
+     triggers:
+changed in both
+  base   100644 932cfd540e24e8c139d2c397a3aad1a78e2d878f BUILD.gn
+  our    100644 d00c4b1e3d3523641210ff20fda41d76c9eb546c BUILD.gn
+  their  100644 1b1e16fc11d7ac5697118fb972a1dba7f481f25d BUILD.gn
+@@ -636,10 +636,13 @@
+       data += [ "$root_out_dir/locales/$locale.pak" ]
+     }
+ 
++<<<<<<< .our
+     if (!is_mac) {
+       data += [ "$root_out_dir/resources" ]
+     }
+ 
++=======
++>>>>>>> .their
+     public_deps = [
+       "//tools/v8_context_snapshot:v8_context_snapshot",
+     ]
+@@ -685,6 +688,7 @@
+   }
+ }
+ 
++<<<<<<< .our
+ group("electron_tests") {
+   testonly = true
+ 
+@@ -762,6 +766,8 @@
+     "//content/test:content_browsertests",
+   ]
+ }
++=======
++>>>>>>> .their
+ 
+ template("dist_zip") {
+   _runtime_deps_target = "${target_name}__deps"
+@@ -779,7 +785,11 @@
+     script = "//electron/build/zip.py"
+     deps = [ ":$_runtime_deps_target" ]
+     forward_variables_from(invoker, [ "outputs" ])
++<<<<<<< .our
+     args =  rebase_path(outputs + [ _runtime_deps_file ], root_build_dir) + [target_cpu, target_os]
++=======
++    args = rebase_path(outputs + [ _runtime_deps_file ], root_build_dir)
++>>>>>>> .their
+   }
+ }
+ 
+@@ -804,13 +814,23 @@
+   args = rebase_path(outputs, root_build_dir) + [ electron_version ]
+ }
+ 
++<<<<<<< .our
+ 
+ dist_zip("electron_dist_zip") {
++=======
++dist_zip("electron_dist_zip") {
++  # Shortcut to error early if we try to package a component build
++  assert(is_component_build == false, "Cannot package a component build")
++
++>>>>>>> .their
+   data_deps = [ ":electron_app", ":licenses", ":electron_version" ]
+   outputs = [ "$root_build_dir/dist.zip" ]
+ }
+ 
++<<<<<<< .our
+ 
++=======
++>>>>>>> .their
+ group("electron") {
+   deps = [ ":electron_app" ]
+ }
+changed in both
+  base   100644 050d6fc2ad0a5ec061c4d1be67914a71e572ab6b appveyor-gn.yml
+  our    100644 282c4952dfcbdc90df13c3935cc4a8ddd82d91e7 appveyor-gn.yml
+  their  100644 afdcda0a9eac58469fdb81db1cb264a9de9bee2f appveyor-gn.yml
+@@ -31,8 +31,11 @@
+   - cd src
+   - gn gen out/Default "--args=import(\"//electron/build/args/%gn_args%.gn\")"
+   - ninja -C out/Default electron:electron_app
++<<<<<<< .our
+   - gn gen out/ffmpeg "--args=import(\"//electron/build/args/ffmpeg.gn\")"
+   - ninja -C out/ffmpeg third_party/ffmpeg
++=======
++>>>>>>> .their
+   - ninja -C out/Default electron:electron_dist_zip
+ test_script:
+   - ninja -C out/Default third_party/electron_node:headers
+added in both
+  our    100644 150656e2c2be317b78821a55e6e979ad09594c01 build/zip.py
+  their  100644 d5036dcc24e3dfa6466ed76ee26c9376931e1988 build/zip.py
+@@ -1,5 +1,6 @@
+ #!/usr/bin/env python
+ import os
++<<<<<<< .our
+ import subprocess
+ import sys
+ import zipfile
+@@ -48,6 +49,17 @@
+       for dep in dist_files:
+         if target_os == 'linux':
+             strip_binaries(target_cpu, dep)
++=======
++import sys
++import zipfile
++
++def main(argv):
++  dist_zip, runtime_deps = argv
++  with zipfile.ZipFile(dist_zip, 'w', allowZip64=True) as z:
++    with open(runtime_deps) as f:
++      for dep in f.readlines():
++        dep = dep.strip()
++>>>>>>> .their
+         if os.path.isdir(dep):
+           for root, dirs, files in os.walk(dep):
+             for file in files:
+changed in both
+  base   100644 eafed53616db1cc4babd59f3b72f3cc1e0c06f2e vsts-gn.yml
+  our    100644 3c9985b16c0414cfd9bc6c6648d6411a969fc6ef vsts-gn.yml
+  their  100644 6759b6b731f295e7d4044d587eded781a84e57e2 vsts-gn.yml
+@@ -31,13 +31,21 @@
+   - bash: |
+       cd src
+       export CHROMIUM_BUILDTOOLS_PATH=`pwd`/buildtools
++<<<<<<< .our
+       export SCCACHE_WRAPPER="`pwd`/electron/external_binaries/sccache"
++=======
++      export SCCACHE_WRAPPER="`pwd`/libchromiumcontent/tools/sccache/aad2120/mac/sccache"
++>>>>>>> .their
+       export SCCACHE_HELPER="`pwd`/libchromiumcontent/script/sccache"
+       "$SCCACHE_HELPER" --start-server --azure_container "$(SCCACHE_AZURE_BLOB_CONTAINER)" --azure_connection "$(SCCACHE_AZURE_CONNECTION_STRING)"
+       echo "##vso[task.setvariable variable=SCCACHE_WRAPPER]$SCCACHE_WRAPPER"
+       echo "##vso[task.setvariable variable=CHROMIUM_BUILDTOOLS_PATH]`pwd`/buildtools"
++<<<<<<< .our
+       echo "GN gen for: $GN_CONFIG"
+       gn gen out/Default --args='import("'$GN_CONFIG'") cc_wrapper="'"$SCCACHE_WRAPPER"'"'
++=======
++      gn gen out/Default --args='import("'$GN_CONFIG'") cc_wrapper="'"$SCCACHE_PATH"'"'
++>>>>>>> .their
+     name: GN_gen
+ 
+   - bash: |

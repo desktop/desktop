@@ -5,59 +5,25 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+  max-height: 100%;
 
   // Necessary so that the diff doesn't expand
   // beyond the width of the history
   min-width: 0;
-
-  &.expanded {
-    #commit-details {
-      display: none;
-    }
-  }
 }
 
 #commit-summary-container {
   flex-grow: 0;
 }
 
-#commit-details {
-  display: flex;
-  flex-direction: row;
-  flex: 1;
-
-  .fill-window {
-    // necessary for "no files in commit" view to
-    // look right alongside blank diff
-    border-right: var(--base-border);
-  }
-
-  .panel {
-    display: flex;
-    flex: 1;
-
-    &.empty,
-    &.renamed,
-    &.binary {
-      justify-content: center;
-      align-items: center;
-    }
-    &.large-diff {
-      margin: var(--spacing-double);
-      text-align: center;
-      justify-content: initial;
-
-      .blankslate-image {
-        max-height: 150px;
-      }
-    }
-  }
-}
-
 #compare-view {
   display: flex;
   flex-direction: column;
   flex: 1;
+
+  .filter-list .filter-field-row {
+    margin: 0;
+  }
 
   .compare-form {
     background: var(--box-alt-background-color);
@@ -72,6 +38,29 @@
     flex-direction: column;
   }
 
+  .merge-status {
+    background: var(--background-color);
+    border-width: 0 var(--spacing-half);
+    border: solid transparent;
+    box-sizing: content-box;
+    position: relative;
+    z-index: 1;
+  }
+
+  .merge-message {
+    max-height: 500px;
+    transition: max-height 750ms ease;
+
+    &-loading {
+      max-height: 40px;
+    }
+  }
+
+  // this style can be removed once we enable the merge hint for everyone
+  .merge-message-legacy {
+    margin-top: var(--spacing);
+  }
+
   .merge-cta {
     border-top: var(--base-border);
     display: flex;
@@ -79,10 +68,6 @@
     font-size: var(--font-size-sm);
     text-align: center;
     padding: var(--spacing);
-  }
-
-  .merge-message {
-    margin-top: var(--spacing);
   }
 
   .no-branches {

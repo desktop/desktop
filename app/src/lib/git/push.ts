@@ -1,3 +1,5 @@
+import { GitError as DugiteError } from 'dugite'
+
 import {
   git,
   IGitExecutionOptions,
@@ -5,13 +7,14 @@ import {
   GitError,
 } from './core'
 import { Repository } from '../../models/repository'
+import { IPushProgress } from '../../models/progress'
+import { IGitAccount } from '../../models/git-account'
 import { PushProgressParser, executionOptionsWithProgress } from '../progress'
-import { IPushProgress } from '../app-state'
-import {
-  IGitAccount,
-  envForAuthentication,
-  AuthenticationErrors,
-} from './authentication'
+import { envForAuthentication, AuthenticationErrors } from './authentication'
+
+export type PushOptions = {
+  readonly forceWithLease: boolean
+}
 
 /**
  * Push from the remote to the branch, optionally setting the upstream.
@@ -41,10 +44,13 @@ export async function push(
   remote: string,
   localBranch: string,
   remoteBranch: string | null,
+  options?: PushOptions,
   progressCallback?: (progress: IPushProgress) => void
 ): Promise<void> {
+  const networkArguments = await gitNetworkArguments(repository, account)
+
   const args = [
-    ...gitNetworkArguments,
+    ...networkArguments,
     'push',
     remote,
     remoteBranch ? `${localBranch}:${remoteBranch}` : localBranch,
@@ -52,11 +58,16 @@ export async function push(
 
   if (!remoteBranch) {
     args.push('--set-upstream')
+  } else if (options !== undefined && options.forceWithLease) {
+    args.push('--force-with-lease')
   }
+
+  const expectedErrors = new Set<DugiteError>(AuthenticationErrors)
+  expectedErrors.add(DugiteError.ProtectedBranchForcePush)
 
   let opts: IGitExecutionOptions = {
     env: envForAuthentication(account),
-    expectedErrors: AuthenticationErrors,
+    expectedErrors,
   }
 
   if (progressCallback) {

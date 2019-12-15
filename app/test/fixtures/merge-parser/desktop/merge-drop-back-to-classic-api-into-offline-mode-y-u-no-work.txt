@@ -1,0 +1,434 @@
+added in remote
+  their  100644 a309d474e0ebfbd83ab04a460c27dd2b8906c4e8 .eslintignore
+@@ -0,0 +1,3 @@
++node_modules
++app/node_modules/
++script/changelog/node_modules
+\ No newline at end of file
+merged
+  result 100644 22724fb6c88b57702fe40d191883a455f70b01a1 .prettierignore
+  our    100644 d247d9a68070ec5848c5feb83bddbfab02adbb6c .prettierignore
+@@ -1,16 +1,17 @@
+-out/
++app/static/common
++app/test/fixtures
+ dist/
++gemoji
+ node_modules/
++out/
++
+ npm-debug.log
+ yarn-error.log
+-app/node_modules/
++
+ .DS_Store
+ .awcache
+ .idea/
+ .eslintcache
+ 
+-app/static/common
+-app/test/fixtures
+-gemoji
+ *.json
+ *.md
+changed in both
+  base   100644 25df97959715b124e8108bef0b086939d7e328c9 package.json
+  our    100644 2006bfb748810f6ea8bdbd26edf7c09524a1388a package.json
+  their  100644 da16d51d663474cc2456eb1920c4d7974e7f82a3 package.json
+@@ -10,6 +10,7 @@
+     "test:unit": "ts-node script/unit-tests.ts",
+     "test:script": "mocha -t 10000 --require ts-node/register script/changelog/test/*.ts",
+     "test": "yarn test:unit && yarn test:script && yarn test:integration",
++<<<<<<< .our
+     "test:setup": "ts-node -P script/tsconfig.json script/test-setup.ts",
+     "test:review": "ts-node  -P script/tsconfig.json script/test-review.ts",
+     "postinstall": "ts-node -P script/tsconfig.json script/post-install.ts",
+@@ -19,6 +20,20 @@
+     "compile:prod": "cross-env NODE_ENV=production parallel-webpack --config app/webpack.production.ts",
+     "build:dev": "yarn compile:dev && cross-env NODE_ENV=development ts-node -P script/tsconfig.json script/build.ts",
+     "build:prod": "yarn compile:prod && cross-env NODE_ENV=production ts-node -P script/tsconfig.json script/build.ts",
++=======
++    "test:setup": "ts-node script/test-setup.ts",
++    "test:review": "ts-node script/test-review.ts",
++    "postinstall": "yarn install-app && yarn install-changelog && yarn update-submodules && yarn compile:tslint",
++    "install-app": "cd app && yarn install --force && cd ..",
++    "install-changelog": "cd script/changelog && yarn install && cd ../..",
++    "update-submodules": "git submodule update --recursive --init",
++    "start": "cross-env NODE_ENV=development node script/start",
++    "start:prod": "cross-env NODE_ENV=production node script/start",
++    "compile:dev": "cross-env NODE_ENV=development parallel-webpack --config app/webpack.development.js",
++    "compile:prod": "cross-env NODE_ENV=production parallel-webpack --config app/webpack.production.js",
++    "build:dev": "yarn compile:dev && cross-env NODE_ENV=development ts-node script/build.ts",
++    "build:prod": "yarn compile:prod && cross-env NODE_ENV=production ts-node script/build.ts",
++>>>>>>> .their
+     "package": "ts-node -P script/tsconfig.json script/package.ts",
+     "generate-octicons": "ts-node -P script/tsconfig.json script/generate-octicons.ts",
+     "clean:tslint": "rimraf tslint-rules/*.js",
+merged
+  result 100644 f723edfaa45b088c09cc8feef59b701e163fe639 script/changelog/api.ts
+  our    100644 9cd75d75226643dd9d12c9e42de23c33fdd44a8b script/changelog/api.ts
+@@ -1,60 +1,129 @@
+-import * as HTTPS from 'https'
++const octokit = require('@octokit/rest')({
++  timeout: 0,
++  requestMedia: 'application/vnd.github.v3+json',
++  headers: {
++    'User-Agent': 'what-the-changelog',
++  },
++})
+ 
+-export interface IAPIPR {
++export interface IDesktopPullRequest {
+   readonly title: string
+   readonly body: string
++  readonly collaborators: ReadonlySet<string>
++  readonly commits: ReadonlyArray<string>
+ }
+ 
+-type GraphQLResponse = {
+-  readonly data: {
+-    readonly repository: {
+-      readonly pullRequest: IAPIPR
+-    }
+-  }
++interface IAPIUser {
++  readonly login: string
+ }
+ 
+-export function fetchPR(id: number): Promise<IAPIPR | null> {
+-  return new Promise((resolve, reject) => {
+-    const options: HTTPS.RequestOptions = {
+-      host: 'api.github.com',
+-      protocol: 'https:',
+-      path: '/graphql',
+-      method: 'POST',
+-      headers: {
+-        Authorization: `bearer ${process.env.GITHUB_ACCESS_TOKEN}`,
+-        'User-Agent': 'what-the-changelog',
+-      },
+-    }
++interface IAPIPullRequest {
++  readonly title: string
++  readonly body: string
++  readonly user: IAPIUser
++}
++
++interface IAPICommit {
++  readonly sha: string
++  readonly author?: IAPIUser
++  readonly committer?: IAPIUser
++}
+ 
+-    const request = HTTPS.request(options, response => {
+-      let received = ''
+-      response.on('data', chunk => {
+-        received += chunk
+-      })
+-
+-      response.on('end', () => {
+-        try {
+-          const json: GraphQLResponse = JSON.parse(received)
+-          const pr = json.data.repository.pullRequest
+-          resolve(pr)
+-        } catch (e) {
+-          resolve(null)
+-        }
+-      })
++interface IAPITeam {
++  readonly name: string
++  readonly id: number
++}
++
++interface IAPITeamMember {
++  readonly login: string
++}
++
++// this account is assigned by GitHub as the committer for merged pull requests
++// and should be excluded from being considered an external contributor
++const webflowAccount = ['web-flow']
++
++export function initialize(token: string) {
++  octokit.authenticate({
++    type: 'token',
++    token,
++  })
++}
++
++export async function getCoreTeamMembers(): Promise<ReadonlySet<string>> {
++  try {
++    let response = await octokit.orgs.getTeams({
++      org: 'desktop',
++      per_page: 100,
+     })
++    const teams: ReadonlyArray<IAPITeam> = response.data
++    const coreTeam = teams.find(t => t.name === 'Core') || null
+ 
+-    const graphql = `
+-{
+-  repository(owner: "desktop", name: "desktop") {
+-    pullRequest(number: ${id}) {
+-      title
+-      body
++    if (coreTeam == null) {
++      console.error('Unable to find core team on API')
++      return new Set<string>()
+     }
++
++    const id = coreTeam.id
++
++    response = await octokit.orgs.getTeamMembers({
++      id,
++      role: 'all',
++      per_page: 100,
++    })
++    const members: ReadonlyArray<IAPITeamMember> = response.data
++
++    return new Set(members.map(m => m.login).concat(webflowAccount))
++  } catch (err) {
++    console.error('API lookup failed for getCoreTeamMembers', err)
++    return new Set<string>()
+   }
+ }
+-`
+-    request.write(JSON.stringify({ query: graphql }))
+ 
+-    request.end()
+-  })
++export async function fetchPR(id: number): Promise<IDesktopPullRequest | null> {
++  try {
++    const pullRequestResponse = await octokit.pullRequests.get({
++      owner: 'desktop',
++      repo: 'desktop',
++      number: id,
++    })
++    const { title, body } = pullRequestResponse.data as IAPIPullRequest
++
++    let commitsResponse = await octokit.pullRequests.getCommits({
++      owner: 'desktop',
++      repo: 'desktop',
++      number: id,
++      per_page: 100,
++    })
++
++    let data: Array<IAPICommit> = commitsResponse.data
++    while (octokit.hasNextPage(commitsResponse)) {
++      commitsResponse = await octokit.getNextPage(commitsResponse)
++      data = data.concat(commitsResponse.data)
++    }
++
++    const collaborators = new Set<string>()
++    const commits = new Array<string>()
++
++    for (const commit of data) {
++      const { sha, author, committer } = commit
++
++      commits.push(sha)
++      if (author != null && !collaborators.has(author.login)) {
++        collaborators.add(author.login)
++      }
++      if (committer != null && !collaborators.has(committer.login)) {
++        collaborators.add(committer.login)
++      }
++    }
++
++    return {
++      title: title,
++      body: body,
++      collaborators,
++      commits,
++    }
++  } catch (err) {
++    console.error('API lookup failed for fetchPR', err)
++    return null
++  }
+ }
+added in remote
+  their  100644 2b223d9eca4c82f03969d8ca5d9d8a80a270a041 script/changelog/package.json
+@@ -0,0 +1,24 @@
++{
++  "name": "changelog",
++  "repository": {
++    "type": "git",
++    "url": "https://github.com/desktop/desktop.git"
++  },
++  "description": "GitHub Desktop changelog dependencies",
++  "author": {
++    "name": "GitHub, Inc.",
++    "email": "opensource+desktop@github.com",
++    "url": "https://desktop.github.com/"
++  },
++  "license": "MIT",
++  "engines": {
++    "node": ">= 7",
++    "yarn": ">= 1.2.0"
++  },
++  "dependencies": {
++    "@octokit/rest": "^14.0.8",
++    "listify": "^1.0.0"
++  },
++  "devDependencies": {
++  }
++}
+changed in both
+  base   100644 b0a88cf77391d915e28566a1695cbf31c2ab7bbb script/changelog/parser.ts
+  our    100644 9151c4beab26fe203f7b045e0c32eb99f2da72ce script/changelog/parser.ts
+  their  100644 ff08e0ef253ffb980b0ed57114f9fefea05d7fc1 script/changelog/parser.ts
+@@ -2,10 +2,11 @@
+ import * as Fs from 'fs'
+ import { gt as greaterThan } from 'semver'
+ 
+-import { fetchPR, IAPIPR } from './api'
++import { fetchPR, IDesktopPullRequest } from './api'
++
++const listify: (values: Array<any>) => string = require('listify')
+ 
+ const PlaceholderChangeType = '???'
+-const OfficialOwner = 'desktop'
+ 
+ const ChangelogEntryRegex = /^\[(new|fixed|improved|removed|added)\]\s(.*)/i
+ 
+@@ -55,7 +56,11 @@
+   return issueRef
+ }
+ 
+-function getChangelogEntry(commit: IParsedCommit, pr: IAPIPR): string {
++function getChangelogEntry(
++  commit: IParsedCommit,
++  pr: IDesktopPullRequest,
++  externalContributors: ReadonlySet<string>
++): string {
+   let type = PlaceholderChangeType
+   const description = capitalized(pr.title)
+ 
+@@ -68,15 +73,19 @@
+   }
+ 
+   let attribution = ''
+-  if (commit.owner !== OfficialOwner) {
+-    attribution = `. Thanks @${commit.owner}!`
++
++  if (externalContributors.size > 0) {
++    const mentions = [...externalContributors].map(c => `@${c}`)
++    const combinedMentions = listify(mentions)
++    attribution = `. Thanks ${combinedMentions}!`
+   }
+ 
+   return `[${type}] ${description} -${issueRef}${attribution}`
+ }
+ 
+ export async function convertToChangelogFormat(
+-  lines: ReadonlyArray<string>
++  lines: ReadonlyArray<string>,
++  coreMembers: ReadonlySet<string>
+ ): Promise<ReadonlyArray<string>> {
+   const entries = []
+   for (const line of lines) {
+@@ -87,7 +96,13 @@
+         throw new Error(`Unable to get PR from API: ${commit.prID}`)
+       }
+ 
+-      const entry = getChangelogEntry(commit, pr)
++      const collaborators = pr.collaborators
++
++      const externalContributors = new Set(
++        [...collaborators].filter(c => !coreMembers.has(c))
++      )
++
++      const entry = getChangelogEntry(commit, pr, externalContributors)
+       entries.push(entry)
+     } catch (e) {
+       console.warn('Unable to parse line, using the full message.', e)
+merged
+  result 100644 8259a4c42f949aa6b07249546bddad9e5a341816 script/changelog/run.ts
+  our    100644 d324476ff6f0b766693c2b4c2aa8656852a3a4f8 script/changelog/run.ts
+@@ -1,4 +1,5 @@
+ import { spawn } from './spawn'
++import { getCoreTeamMembers } from './api'
+ import { getLogLines } from './git'
+ import { convertToChangelogFormat } from './parser'
+ import { sort as semverSort } from 'semver'
+@@ -47,7 +48,8 @@
+     )
+   }
+ 
++  const coreMembers = await getCoreTeamMembers()
+   const lines = await getLogLines(previousVersion)
+-  const changelogEntries = await convertToChangelogFormat(lines)
++  const changelogEntries = await convertToChangelogFormat(lines, coreMembers)
+   console.log(jsonStringify(changelogEntries))
+ }
+added in remote
+  their  100644 05d54aba4df2a44bee37177eebc9e559e391e602 script/changelog/yarn.lock
+@@ -0,0 +1,48 @@
++# THIS IS AN AUTOGENERATED FILE. DO NOT EDIT THIS FILE DIRECTLY.
++# yarn lockfile v1
++
++
++"@octokit/rest@^14.0.8":
++  version "14.0.9"
++  resolved "https://registry.yarnpkg.com/@octokit/rest/-/rest-14.0.9.tgz#d5e0a00dcb78901dd7b2ef852acfc0aea7c479ef"
++  dependencies:
++    before-after-hook "^1.1.0"
++    debug "^3.1.0"
++    is-array-buffer "^1.0.0"
++    is-stream "^1.1.0"
++    lodash "^4.17.4"
++    url-template "^2.0.8"
++
++before-after-hook@^1.1.0:
++  version "1.1.0"
++  resolved "https://registry.yarnpkg.com/before-after-hook/-/before-after-hook-1.1.0.tgz#83165e15a59460d13702cb8febd6a1807896db5a"
++
++debug@^3.1.0:
++  version "3.1.0"
++  resolved "https://registry.yarnpkg.com/debug/-/debug-3.1.0.tgz#5bb5a0672628b64149566ba16819e61518c67261"
++  dependencies:
++    ms "2.0.0"
++
++is-array-buffer@^1.0.0:
++  version "1.0.0"
++  resolved "https://registry.yarnpkg.com/is-array-buffer/-/is-array-buffer-1.0.0.tgz#f32497a0509d109423f472003f98bab6a8ea34cb"
++
++is-stream@^1.1.0:
++  version "1.1.0"
++  resolved "https://registry.yarnpkg.com/is-stream/-/is-stream-1.1.0.tgz#12d4a3dd4e68e0b79ceb8dbc84173ae80d91ca44"
++
++listify@^1.0.0:
++  version "1.0.0"
++  resolved "https://registry.yarnpkg.com/listify/-/listify-1.0.0.tgz#03ca7ba2d150d4267773f74e57558d1053d2bee3"
++
++lodash@^4.17.4:
++  version "4.17.5"
++  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.5.tgz#99a92d65c0272debe8c96b6057bc8fbfa3bed511"
++
++ms@2.0.0:
++  version "2.0.0"
++  resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
++
++url-template@^2.0.8:
++  version "2.0.8"
++  resolved "https://registry.yarnpkg.com/url-template/-/url-template-2.0.8.tgz#fc565a3cccbff7730c775f5641f9555791439f21"
+changed in both
+  base   100644 c017ace71061eb0f6db7f42290cb63cca40ab5cb script/draft-release/run.ts
+  our    100644 9c6f2a3aa1c3766de5635266d05f85bf4131e499 script/draft-release/run.ts
+  their  100644 bcb2b3c76a15cdcae1cdb7f5d26d02e9e8ce9935 script/draft-release/run.ts
+@@ -6,6 +6,7 @@
+   convertToChangelogFormat,
+   getChangelogEntriesSince,
+ } from '../changelog/parser'
++import { getCoreTeamMembers, initialize } from '../changelog/api'
+ 
+ import { Channel } from './channel'
+ import { getNextVersionNumber } from './version'
+@@ -88,7 +89,10 @@
+   if (noChangesFound) {
+     printInstructions(nextVersion, [])
+   } else {
+-    const changelogEntries = await convertToChangelogFormat(lines)
++    initialize(process.env.GITHUB_ACCESS_TOKEN)
++
++    const coreMembers = await getCoreTeamMembers()
++    const changelogEntries = await convertToChangelogFormat(lines, coreMembers)
+ 
+     console.log("Here's what you should do next:\n")
+ 

@@ -1,10 +1,10 @@
 import * as React from 'react'
-import { ButtonGroup } from '../lib/button-group'
-import { Button } from '../lib/button'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { Ref } from '../lib/ref'
 import { Repository } from '../../models/repository'
 import { TrashNameLabel } from '../lib/context-menu'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IConfirmRemoveRepositoryProps {
   /** The repository to be removed */
@@ -22,6 +22,7 @@ interface IConfirmRemoveRepositoryProps {
 
 interface IConfirmRemoveRepositoryState {
   readonly deleteRepoFromDisk: boolean
+  readonly isRemovingRepository: boolean
 }
 
 export class ConfirmRemoveRepository extends React.Component<
@@ -33,14 +34,13 @@ export class ConfirmRemoveRepository extends React.Component<
 
     this.state = {
       deleteRepoFromDisk: false,
+      isRemovingRepository: false,
     }
   }
 
-  private cancel = () => {
-    this.props.onDismissed()
-  }
+  private onSubmit = () => {
+    this.setState({ isRemovingRepository: true })
 
-  private onConfirmed = () => {
     this.props.onConfirmation(
       this.props.repository,
       this.state.deleteRepoFromDisk
@@ -50,23 +50,30 @@ export class ConfirmRemoveRepository extends React.Component<
   }
 
   public render() {
+    const isRemovingRepository = this.state.isRemovingRepository
+
     return (
       <Dialog
         id="confirm-remove-repository"
         key="remove-repository-confirmation"
         type="warning"
         title={__DARWIN__ ? 'Remove Repository' : 'Remove repository'}
-        onDismissed={this.cancel}
-        onSubmit={this.cancel}
+        dismissable={isRemovingRepository ? false : true}
+        loading={isRemovingRepository}
+        disabled={isRemovingRepository}
+        onDismissed={this.props.onDismissed}
+        onSubmit={this.onSubmit}
       >
         <DialogContent>
           <p>
-            Are you sure you want to remove the repository "{
-              this.props.repository.name
-            }"?
+            Are you sure you want to remove the repository "
+            {this.props.repository.name}
+            "?
           </p>
           <p className="description">
-            The repository will be removed from GitHub Desktop.
+            The repository will be removed from GitHub Desktop:
+            <br />
+            <Ref>{this.props.repository.path}</Ref>
           </p>
 
           <div>
@@ -82,10 +89,7 @@ export class ConfirmRemoveRepository extends React.Component<
           </div>
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup destructive={true}>
-            <Button type="submit">Cancel</Button>
-            <Button onClick={this.onConfirmed}>Remove</Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup destructive={true} okButtonText="Remove" />
         </DialogFooter>
       </Dialog>
     )

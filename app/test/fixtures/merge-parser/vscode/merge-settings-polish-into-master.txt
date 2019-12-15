@@ -1,0 +1,64 @@
+changed in both
+  base   100644 01edb6072c1a71cc4ceb46dd4ce3da0a10766a54 src/vs/workbench/parts/preferences/browser/settingsEditor2.ts
+  our    100644 17beb717b3028c0eb8b2d2aa2a0516dc700021b2 src/vs/workbench/parts/preferences/browser/settingsEditor2.ts
+  their  100644 3793973a9fd6223c55ca5ddc2cb9939db8e83a26 src/vs/workbench/parts/preferences/browser/settingsEditor2.ts
+@@ -91,8 +91,11 @@
+ 	private inSettingsEditorContextKey: IContextKey<boolean>;
+ 	private searchFocusContextKey: IContextKey<boolean>;
+ 
++<<<<<<< .our
+ 	private scheduledRefreshes: Map<string, DOM.IFocusTracker>;
+ 
++=======
++>>>>>>> .their
+ 	private tagRegex = /(^|\s)@tag:("([^"]*)"|[^"]\S*)/g;
+ 
+ 	/** Don't spam warnings */
+@@ -742,6 +745,7 @@
+ 				return '';
+ 			});
+ 		}
++<<<<<<< .our
+ 
+ 		query = query.trim();
+ 		if (query && query !== '@') {
+@@ -749,6 +753,13 @@
+ 			return TPromise.join([
+ 				this.localSearchDelayer.trigger(() => this.localFilterPreferences(query, this.searchCancelToken.token)),
+ 				this.remoteSearchThrottle.trigger(() => this.remoteSearchPreferences(query, this.searchCancelToken.token), 500)
++=======
++		query = query.trim();
++		if (query) {
++			return this.searchInProgress = TPromise.join([
++				this.localSearchDelayer.trigger(() => this.localFilterPreferences(query)),
++				this.remoteSearchThrottle.trigger(() => this.remoteSearchPreferences(query), 500)
++>>>>>>> .their
+ 			]).then(() => {
+ 				if (this.searchCancelToken) {
+ 					this.searchCancelToken.dispose();
+changed in both
+  base   100644 e1dfd2f0e4fdb90eedbcffcd091398b63d493bd4 src/vs/workbench/parts/preferences/browser/settingsTree.ts
+  our    100644 480a73351c9d0eb61722fdd061a2a00dcd5a9574 src/vs/workbench/parts/preferences/browser/settingsTree.ts
+  their  100644 7f0205c640eeb0c9cb99f2f2230a596cf3787c4b src/vs/workbench/parts/preferences/browser/settingsTree.ts
+@@ -1093,8 +1093,21 @@
+ 			}
+ 		}
+ 
++<<<<<<< .our
+ 		if (element instanceof SettingsTreeSettingElement && this.viewState.tagFilters) {
+ 			return element.matchesAllTags(this.viewState.tagFilters);
++=======
++		if (element instanceof SettingsTreeSettingElement && this.viewState.tagFilters && this.viewState.tagFilters.size) {
++			if (element.tags) {
++				let hasFilteredTag = true;
++				this.viewState.tagFilters.forEach(tag => {
++					hasFilteredTag = hasFilteredTag && element.tags.has(tag);
++				});
++				return hasFilteredTag;
++			} else {
++				return false;
++			}
++>>>>>>> .their
+ 		}
+ 
+ 		if (element instanceof SettingsTreeGroupElement) {

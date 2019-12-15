@@ -15,13 +15,15 @@ interface IAdvancedPreferencesProps {
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
+  readonly confirmForcePush: boolean
   readonly availableEditors: ReadonlyArray<ExternalEditor>
-  readonly selectedExternalEditor?: ExternalEditor
+  readonly selectedExternalEditor: ExternalEditor | null
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
   readonly onOptOutofReportingchanged: (checked: boolean) => void
   readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
   readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
+  readonly onConfirmForcePushChanged: (checked: boolean) => void
   readonly onSelectedEditorChanged: (editor: ExternalEditor) => void
   readonly onSelectedShellChanged: (shell: Shell) => void
 
@@ -32,10 +34,11 @@ interface IAdvancedPreferencesProps {
 
 interface IAdvancedPreferencesState {
   readonly optOutOfUsageTracking: boolean
-  readonly selectedExternalEditor?: ExternalEditor
+  readonly selectedExternalEditor: ExternalEditor | null
   readonly selectedShell: Shell
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
+  readonly confirmForcePush: boolean
 }
 
 export class Advanced extends React.Component<
@@ -49,6 +52,7 @@ export class Advanced extends React.Component<
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
+      confirmForcePush: this.props.confirmForcePush,
       selectedExternalEditor: this.props.selectedExternalEditor,
       selectedShell: this.props.selectedShell,
     }
@@ -101,6 +105,15 @@ export class Advanced extends React.Component<
     this.props.onConfirmDiscardChangesChanged(value)
   }
 
+  private onConfirmForcePushChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+
+    this.setState({ confirmForcePush: value })
+    this.props.onConfirmForcePushChanged(value)
+  }
+
   private onConfirmRepositoryRemovalChanged = (
     event: React.FormEvent<HTMLInputElement>
   ) => {
@@ -128,17 +141,18 @@ export class Advanced extends React.Component<
     this.props.onSelectedShellChanged(value)
   }
 
-  public reportDesktopUsageLabel() {
+  private reportDesktopUsageLabel() {
     return (
       <span>
         Help GitHub Desktop improve by submitting{' '}
-        <LinkButton uri={SamplesURL}>anonymous usage data</LinkButton>
+        <LinkButton uri={SamplesURL}>usage stats</LinkButton>
       </span>
     )
   }
 
   private renderExternalEditor() {
     const options = this.props.availableEditors
+    const selectedEditor = this.state.selectedExternalEditor
     const label = __DARWIN__ ? 'External Editor' : 'External editor'
 
     if (options.length === 0) {
@@ -161,7 +175,7 @@ export class Advanced extends React.Component<
     return (
       <Select
         label={label}
-        value={this.state.selectedExternalEditor}
+        value={selectedEditor ? selectedEditor : undefined}
         onChange={this.onSelectedEditorChanged}
       >
         {options.map(n => (
@@ -258,6 +272,15 @@ export class Advanced extends React.Component<
                 : CheckboxValue.Off
             }
             onChange={this.onConfirmDiscardChangesChanged}
+          />
+        </Row>
+        <Row>
+          <Checkbox
+            label="Show confirmation dialog before force pushing"
+            value={
+              this.state.confirmForcePush ? CheckboxValue.On : CheckboxValue.Off
+            }
+            onChange={this.onConfirmForcePushChanged}
           />
         </Row>
       </DialogContent>

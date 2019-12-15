@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import { OcticonSymbol, iconForRepository } from '../../src/ui/octicons'
 import { CloningRepository } from '../../src/models/cloning-repository'
 import { Repository } from '../../src/models/repository'
@@ -9,9 +7,7 @@ function getTestRepository(
   isPrivate: boolean,
   isFork: boolean = false
 ): GitHubRepository {
-  let gitHubRepository: GitHubRepository | null = null
-
-  gitHubRepository = {
+  return {
     dbID: 1,
     name: 'some-repo',
     owner: {
@@ -22,16 +18,15 @@ function getTestRepository(
     },
     endpoint: 'https://api.github.com',
     fullName: 'shiftkey/some-repo',
-    private: isPrivate,
+    isPrivate: isPrivate,
     fork: isFork,
     cloneURL: 'https://github.com/shiftkey/some-repo.git',
     htmlURL: 'https://github.com/shiftkey/some-repo',
     defaultBranch: 'master',
     hash: '',
     parent: null,
+    permissions: null,
   }
-
-  return gitHubRepository!
 }
 
 describe('octicon/iconForRepository', () => {
@@ -41,13 +36,13 @@ describe('octicon/iconForRepository', () => {
       'https://github.com/desktop/desktop'
     )
     const icon = iconForRepository(repository)
-    expect(icon).to.deep.equal(OcticonSymbol.desktopDownload)
+    expect(icon).toEqual(OcticonSymbol.desktopDownload)
   })
 
   it('shows computer icon for non-GitHub repository', () => {
     const repository = new Repository('C:/some/path/to/repo', 1, null, false)
     const icon = iconForRepository(repository)
-    expect(icon).to.deep.equal(OcticonSymbol.deviceDesktop)
+    expect(icon).toEqual(OcticonSymbol.deviceDesktop)
   })
 
   it('shows repo icon for public GitHub repository', () => {
@@ -59,7 +54,7 @@ describe('octicon/iconForRepository', () => {
       false
     )
     const icon = iconForRepository(repository)
-    expect(icon).to.deep.equal(OcticonSymbol.repo)
+    expect(icon).toEqual(OcticonSymbol.repo)
   })
 
   it('shows lock icon for public GitHub repository', () => {
@@ -71,7 +66,7 @@ describe('octicon/iconForRepository', () => {
       false
     )
     const icon = iconForRepository(repository)
-    expect(icon).to.deep.equal(OcticonSymbol.lock)
+    expect(icon).toEqual(OcticonSymbol.lock)
   })
 
   it('shows fork icon for forked GitHub repository', () => {
@@ -83,6 +78,6 @@ describe('octicon/iconForRepository', () => {
       false
     )
     const icon = iconForRepository(repository)
-    expect(icon).to.deep.equal(OcticonSymbol.repoForked)
+    expect(icon).toEqual(OcticonSymbol.repoForked)
   })
 })

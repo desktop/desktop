@@ -1,0 +1,349 @@
+changed in both
+  base   100644 89e5e43dfe4bc8b1cd337f476d0ad86afb5ebf7d src/vs/workbench/parts/preferences/browser/media/settingsEditor2.css
+  our    100644 4110f029469987a0e2ace30d646c3e131c94b3df src/vs/workbench/parts/preferences/browser/media/settingsEditor2.css
+  their  100644 5e81d73f11292ee23a393df4f5957193f2f151e7 src/vs/workbench/parts/preferences/browser/media/settingsEditor2.css
+@@ -208,6 +208,30 @@
+ 	cursor: default;
+ 	white-space: normal;
+ 	height: 100%;
++<<<<<<< .our
++=======
++	min-height: 75px;
++}
++
++.settings-editor > .settings-body > .settings-tree-container .monaco-tree-row .content::before {
++	content: ' ';
++	display: inline-block;
++	position: absolute;
++	width: 10px;
++	left: -14px;
++	top: 0px;
++	bottom: 0px;
++}
++
++.settings-editor > .settings-body > .settings-tree-container .monaco-tree .monaco-tree-row {
++	background-color: initial !important;
++}
++
++.settings-editor > .settings-body > .settings-tree-container .setting-item.odd:not(.focused):not(.selected):not(:hover),
++.settings-editor > .settings-body > .settings-tree-container .monaco-tree:not(:focus) .setting-item.focused.odd:not(.selected):not(:hover),
++.settings-editor > .settings-body > .settings-tree-container .monaco-tree:not(.focused) .setting-item.focused.odd:not(.selected):not(:hover) {
++	background-color: rgba(130, 130, 130, 0.04);
++>>>>>>> .their
+ }
+ 
+ .settings-editor > .settings-body > .settings-tree-container .setting-item .setting-item-title {
+@@ -344,9 +368,19 @@
+ 	background: url('check.svg') center center no-repeat;
+ }
+ 
++<<<<<<< .our
+ .vs-dark .settings-editor > .settings-body > .settings-tree-container .setting-item-bool .setting-value-checkbox.checked,
+ .hc-black .settings-editor > .settings-body > .settings-tree-container .setting-item-bool .setting-value-checkbox.checked {
+ 	background: url('check-inverse.svg') center center no-repeat;
++=======
++.settings-editor > .settings-body > .settings-tree-container .setting-item .expand-indicator {
++	visibility: hidden;
++	position: absolute;
++	bottom: -2px;
++	width: calc(100% - 190px);
++	text-align: center;
++	opacity: .5;
++>>>>>>> .their
+ }
+ 
+ .settings-editor > .settings-body > .settings-tree-container .setting-item .setting-item-value {
+changed in both
+  base   100644 5d4beef0caad0a7e305085c3049e5f2c095c2744 src/vs/workbench/parts/preferences/browser/settingsEditor2.ts
+  our    100644 17beb717b3028c0eb8b2d2aa2a0516dc700021b2 src/vs/workbench/parts/preferences/browser/settingsEditor2.ts
+  their  100644 1682efe7f34b6f9971c038d48a5670fe14e92fd7 src/vs/workbench/parts/preferences/browser/settingsEditor2.ts
+@@ -27,8 +27,8 @@
+ import { WorkbenchTree } from 'vs/platform/list/browser/listService';
+ import { ILogService } from 'vs/platform/log/common/log';
+ import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
+-import { attachButtonStyler } from 'vs/platform/theme/common/styler';
+-import { IThemeService } from 'vs/platform/theme/common/themeService';
++import { attachButtonStyler, attachStyler } from 'vs/platform/theme/common/styler';
++import { ICssStyleCollector, ITheme, IThemeService, registerThemingParticipant } from 'vs/platform/theme/common/themeService';
+ import { BaseEditor } from 'vs/workbench/browser/parts/editor/baseEditor';
+ import { EditorOptions, IEditor } from 'vs/workbench/common/editor';
+ import { SuggestEnabledInput } from 'vs/workbench/parts/codeEditor/browser/suggestEnabledInput';
+@@ -374,6 +374,7 @@
+ 		this.tocTree = this._register(this.instantiationService.createInstance(TOCTree, this.tocTreeContainer,
+ 			this.viewState,
+ 			{
++<<<<<<< .our
+ 				renderer: tocRenderer
+ 			}));
+ 
+@@ -382,6 +383,45 @@
+ 			if (this.searchResultModel) {
+ 				this.viewState.filterToCategory = element;
+ 				this.renderTree();
++=======
++				ariaLabel: localize('treeAriaLabel', "Settings"),
++				showLoading: false,
++				indentPixels: 0,
++				twistiePixels: 15,
++			});
++
++		this._register(registerThemingParticipant((theme: ITheme, collector: ICssStyleCollector) => {
++			const activeListBackground = theme.getColor('list.activeSelectionBackground');
++			if (activeListBackground) {
++				collector.addRule(`.settings-editor > .settings-body > .settings-tree-container .monaco-tree.focused .monaco-tree-row.focused .content::before { background-color: ${activeListBackground}; }`);
++			}
++
++			const inactiveListBackground = theme.getColor('list.inactiveSelectionBackground');
++			if (inactiveListBackground) {
++				collector.addRule(`.settings-editor > .settings-body > .settings-tree-container .monaco-tree .monaco-tree-row.focused .content::before { background-color: ${inactiveListBackground}; }`);
++			}
++		}));
++
++		attachStyler(this.themeService, {
++			listActiveSelectionBackground: null,
++			listActiveSelectionForeground: null,
++			listFocusAndSelectionBackground: null,
++			listFocusAndSelectionForeground: null,
++			listFocusBackground: null,
++			listFocusForeground: null,
++			listHoverForeground: null,
++			listHoverBackground: null,
++			listInactiveSelectionBackground: null,
++			listInactiveSelectionForeground: null
++		}, colors => {
++			this.settingsTree.style(colors);
++		});
++
++		this.settingsTree.onDidChangeFocus(e => {
++			this.settingsTree.setSelection([e.focus]);
++			if (this.selectedElement) {
++				this.settingsTree.refresh(this.selectedElement);
++>>>>>>> .their
+ 			}
+ 
+ 			if (element && (!e.payload || !e.payload.fromScroll)) {
+changed in both
+  base   100644 d1a7ba413df9556afb5d3fb708e726c8221467a0 src/vs/workbench/parts/preferences/browser/settingsTree.ts
+  our    100644 480a73351c9d0eb61722fdd061a2a00dcd5a9574 src/vs/workbench/parts/preferences/browser/settingsTree.ts
+  their  100644 5c7636e34358445e3c124ddb73418dbc343b749a src/vs/workbench/parts/preferences/browser/settingsTree.ts
+@@ -10,6 +10,7 @@
+ import { Button } from 'vs/base/browser/ui/button/button';
+ import { Checkbox } from 'vs/base/browser/ui/checkbox/checkbox';
+ import { InputBox } from 'vs/base/browser/ui/inputbox/inputBox';
++import { renderOcticons } from 'vs/base/browser/ui/octiconLabel/octiconLabel';
+ import { SelectBox } from 'vs/base/browser/ui/selectBox/selectBox';
+ import * as arrays from 'vs/base/common/arrays';
+ import { Color, RGBA } from 'vs/base/common/color';
+@@ -34,11 +35,18 @@
+ import { editorBackground, focusBorder, foreground, errorForeground, inputValidationErrorBackground, inputValidationErrorBorder } from 'vs/platform/theme/common/colorRegistry';
+ import { attachButtonStyler, attachInputBoxStyler, attachSelectBoxStyler, attachStyler } from 'vs/platform/theme/common/styler';
+ import { ICssStyleCollector, ITheme, IThemeService, registerThemingParticipant } from 'vs/platform/theme/common/themeService';
++<<<<<<< .our
+ import { ITOCEntry } from 'vs/workbench/parts/preferences/browser/settingsLayout';
+ import { ISettingsEditorViewState, isExcludeSetting, SettingsTreeElement, SettingsTreeGroupElement, SettingsTreeNewExtensionsElement, SettingsTreeSettingElement } from 'vs/workbench/parts/preferences/browser/settingsTreeModels';
+ import { ExcludeSettingWidget, IExcludeDataItem, settingsHeaderForeground, settingsNumberInputBackground, settingsNumberInputBorder, settingsNumberInputForeground, settingsSelectBackground, settingsSelectBorder, settingsSelectForeground, settingsTextInputBackground, settingsTextInputBorder, settingsTextInputForeground } from 'vs/workbench/parts/preferences/browser/settingsWidgets';
+ import { ISetting, ISettingsGroup } from 'vs/workbench/services/preferences/common/preferences';
+ import { alert as ariaAlert } from 'vs/base/browser/ui/aria/aria';
++=======
++import { SettingsTarget } from 'vs/workbench/parts/preferences/browser/preferencesWidgets';
++import { ISearchResult, ISetting, ISettingsGroup } from 'vs/workbench/services/preferences/common/preferences';
++import { DefaultSettingsEditorModel } from 'vs/workbench/services/preferences/common/preferencesModels';
++import { IMouseEvent } from 'vs/base/browser/mouseEvent';
++>>>>>>> .their
+ 
+ const $ = DOM.$;
+ 
+@@ -182,8 +190,45 @@
+ 		return TPromise.wrap(element && element.parent);
+ 	}
+ 
++<<<<<<< .our
+ 	shouldAutoexpand(): boolean {
+ 		return true;
++=======
++	private getRootChildren(root: DefaultSettingsEditorModel): TreeElement[] {
++		const groupItems: TreeElement[] = root.settingsGroups
++			.map((g, i) => this.getGroupElement(g, i));
++
++		groupItems.splice(1, 0, <IButtonElement>{
++			id: ALL_SETTINGS_BUTTON_ID,
++			type: TreeItemType.buttonRow,
++			parent: root
++		});
++
++		return groupItems;
++	}
++
++	private getGroupChildren(group: ISettingsGroup): ISettingElement[] {
++		const entries: ISettingElement[] = [];
++		for (const section of group.sections) {
++			for (const setting of section.settings) {
++				entries.push(this.getSettingElement(setting, group));
++			}
++		}
++
++		return entries;
++	}
++
++	getParent(tree: ITree, element: TreeElement): TPromise<any, any> {
++		if (!element) {
++			return null;
++		}
++
++		if (!(element instanceof DefaultSettingsEditorModel)) {
++			return TPromise.wrap(element.parent);
++		}
++
++		return TPromise.wrap(null);
++>>>>>>> .their
+ 	}
+ }
+ 
+@@ -613,6 +658,7 @@
+ 			otherOverridesElement
+ 		};
+ 
++<<<<<<< .our
+ 		this.addSettingElementFocusHandler(template);
+ 
+ 		// Prevent clicks from being handled by list
+@@ -624,6 +670,10 @@
+ 				e.browserEvent.stopPropagation();
+ 			}
+ 		}));
++=======
++		// Prevent clicks from being handled by list
++		toDispose.push(DOM.addDisposableListener(valueElement, 'mousedown', (e: IMouseEvent) => e.stopPropagation()));
++>>>>>>> .their
+ 
+ 		return template;
+ 	}
+@@ -777,7 +827,14 @@
+ 			return this.renderNewExtensionsElement(<SettingsTreeNewExtensionsElement>element, template);
+ 		}
+ 
++<<<<<<< .our
+ 		return this.renderSettingElement(tree, <SettingsTreeSettingElement>element, templateId, template);
++=======
++	private elementIsSelected(tree: ITree, element: TreeElement): boolean {
++		const selection = tree.getSelection();
++		const selectedElement: TreeElement = selection && selection[0];
++		return selectedElement && selectedElement.id === element.id;
++>>>>>>> .their
+ 	}
+ 
+ 	private renderGroupElement(element: SettingsTreeGroupElement, template: IGroupTitleTemplate): void {
+@@ -811,11 +868,20 @@
+ 	private renderSettingElement(tree: ITree, element: SettingsTreeSettingElement, templateId: string, template: ISettingItemTemplate | ISettingBoolItemTemplate): void {
+ 		template.context = element;
+ 
++<<<<<<< .our
+ 		const setting = element.setting;
+ 
+ 		DOM.toggleClass(template.containerElement, 'is-configured', element.isConfigured);
+ 		DOM.toggleClass(template.containerElement, 'is-expanded', true);
+ 		template.containerElement.setAttribute(SettingsRenderer.SETTING_KEY_ATTR, element.setting.key);
++=======
++		this.renderValue(element, isSelected, template);
++
++		const resetButton = new Button(template.valueElement);
++		resetButton.element.title = localize('resetButtonTitle', "Reset");
++		resetButton.element.classList.add('setting-reset-button');
++		resetButton.element.tabIndex = isSelected ? 0 : -1;
++>>>>>>> .their
+ 
+ 		const titleTooltip = setting.key;
+ 		template.categoryElement.textContent = element.displayCategory && (element.displayCategory + ': ');
+@@ -866,6 +932,7 @@
+ 		return renderedMarkdown;
+ 	}
+ 
++<<<<<<< .our
+ 	private renderValue(element: SettingsTreeSettingElement, templateId: string, template: ISettingItemTemplate | ISettingBoolItemTemplate): void {
+ 		const onChange = value => this._onDidChangeSetting.fire({ key: element.setting.key, value });
+ 		template.deprecationWarningElement.innerText = element.setting.deprecationMessage || '';
+@@ -907,9 +974,33 @@
+ 		template.checkbox.domNode.setAttribute('id', id + 'item');
+ 		template.checkbox.domNode.setAttribute('role', 'treeitem');
+ 		template.checkbox.domNode.setAttribute('aria-labelledby', id + 'item ' + id);
++=======
++	private renderValue(element: ISettingElement, isSelected: boolean, template: ISettingItemTemplate): void {
++		const onChange = value => this._onDidChangeSetting.fire({ key: element.setting.key, value });
++		template.valueElement.innerHTML = '';
++		if (element.valueType === 'string' && element.enum) {
++			this.renderEnum(element, isSelected, template, onChange);
++		} else if (element.valueType === 'boolean') {
++			this.renderBool(element, isSelected, template, onChange);
++		} else if (element.valueType === 'string') {
++			this.renderText(element, isSelected, template, onChange);
++		} else if (element.valueType === 'number') {
++			this.renderText(element, isSelected, template, value => onChange(parseInt(value)));
++		} else {
++			this.renderEditInSettingsJson(element, isSelected, template);
++		}
++	}
++
++	private renderBool(element: ISettingElement, isSelected: boolean, template: ISettingItemTemplate, onChange: (value: boolean) => void): void {
++		const checkboxElement = <HTMLInputElement>DOM.append(template.valueElement, $('input.setting-value-checkbox.setting-value-input'));
++		checkboxElement.type = 'checkbox';
++		checkboxElement.checked = element.value;
++		checkboxElement.tabIndex = isSelected ? 0 : -1;
++>>>>>>> .their
+ 
+ 	}
+ 
++<<<<<<< .our
+ 	private renderEnum(dataElement: SettingsTreeSettingElement, template: ISettingEnumItemTemplate, onChange: (value: string) => void): void {
+ 		const displayOptions = getDisplayEnumOptions(dataElement.setting);
+ 		template.selectBox.setOptions(displayOptions);
+@@ -927,6 +1018,16 @@
+ 		if (template.controlElement.firstElementChild) {
+ 			// SelectBox needs to be treeitem to read correctly within tree
+ 			template.controlElement.firstElementChild.setAttribute('role', 'treeitem');
++=======
++	private renderEnum(element: ISettingElement, isSelected: boolean, template: ISettingItemTemplate, onChange: (value: string) => void): void {
++		const idx = element.enum.indexOf(element.value);
++		const selectBox = new SelectBox(element.enum, idx, this.contextViewService);
++		template.toDispose.push(selectBox);
++		template.toDispose.push(attachSelectBoxStyler(selectBox, this.themeService));
++		selectBox.render(template.valueElement);
++		if (template.valueElement.firstElementChild) {
++			template.valueElement.firstElementChild.setAttribute('tabindex', isSelected ? '0' : '-1');
++>>>>>>> .their
+ 		}
+ 
+ 		template.enumDescriptionElement.innerHTML = '';
+@@ -950,6 +1051,7 @@
+ 		// }
+ 	}
+ 
++<<<<<<< .our
+ 	private renderText(dataElement: SettingsTreeSettingElement, template: ISettingTextItemTemplate, onChange: (value: string) => void): void {
+ 		const modifiedText = dataElement.isConfigured ? 'Modified' : '';
+ 		const label = ' ' + dataElement.displayCategory + ' ' + dataElement.displayLabel + ' ' + modifiedText;
+@@ -976,6 +1078,25 @@
+ 		renderValidations(dataElement, template, true, label);
+ 	}
+ 
++=======
++	private renderText(element: ISettingElement, isSelected: boolean, template: ISettingItemTemplate, onChange: (value: string) => void): void {
++		const inputBox = new InputBox(template.valueElement, this.contextViewService);
++		template.toDispose.push(attachInputBoxStyler(inputBox, this.themeService));
++		template.toDispose.push(inputBox);
++		inputBox.value = element.value;
++		inputBox.inputElement.tabIndex = isSelected ? 0 : -1;
++
++		template.toDispose.push(
++			inputBox.onDidChange(e => onChange(e)));
++	}
++
++	private renderEditInSettingsJson(element: ISettingElement, isSelected: boolean, template: ISettingItemTemplate): void {
++		const openSettingsButton = new Button(template.valueElement, { title: true, buttonBackground: null, buttonHoverBackground: null });
++		openSettingsButton.onDidClick(() => this._onDidOpenSettings.fire());
++		openSettingsButton.label = localize('editInSettingsJson', "Edit in settings.json");
++		openSettingsButton.element.classList.add('edit-in-settings-button');
++		openSettingsButton.element.tabIndex = isSelected ? 0 : -1;
++>>>>>>> .their
+ 
+ 	private renderNumber(dataElement: SettingsTreeSettingElement, template: ISettingTextItemTemplate, onChange: (value: number) => void): void {
+ 		const modifiedText = dataElement.isConfigured ? 'Modified' : '';

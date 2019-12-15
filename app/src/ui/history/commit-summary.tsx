@@ -10,6 +10,8 @@ import { Commit } from '../../models/commit'
 import { getAvatarUsersForCommit, IAvatarUser } from '../../models/avatar'
 import { AvatarStack } from '../lib/avatar-stack'
 import { CommitAttribution } from '../lib/commit-attribution'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import { enableHideWhitespaceInDiffOption } from '../../lib/feature-flag'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -28,6 +30,13 @@ interface ICommitSummaryProps {
   readonly isExpanded: boolean
 
   readonly onExpandChanged: (isExpanded: boolean) => void
+
+  readonly onDescriptionBottomChanged: (descriptionBottom: Number) => void
+
+  readonly hideDescriptionBorder: boolean
+
+  readonly hideWhitespaceInDiff: boolean
+  readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
 }
 
 interface ICommitSummaryState {
@@ -119,7 +128,15 @@ export class CommitSummary extends React.Component<
 > {
   private descriptionScrollViewRef: HTMLDivElement | null = null
   private readonly resizeObserver: ResizeObserver | null = null
-  private updateOverflowTimeoutId: number | null = null
+  private updateOverflowTimeoutId: NodeJS.Immediate | null = null
+  private descriptionRef: HTMLDivElement | null = null
+
+  private onHideWhitespaceInDiffChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+    this.props.onHideWhitespaceInDiffChanged(value)
+  }
 
   public constructor(props: ICommitSummaryProps) {
     super(props)
@@ -148,6 +165,12 @@ export class CommitSummary extends React.Component<
   }
 
   private onResized = () => {
+    if (this.descriptionRef) {
+      const descriptionBottom = this.descriptionRef.getBoundingClientRect()
+        .bottom
+      this.props.onDescriptionBottomChanged(descriptionBottom)
+    }
+
     if (this.props.isExpanded) {
       return
     }
@@ -169,6 +192,10 @@ export class CommitSummary extends React.Component<
     }
   }
 
+  private onDescriptionRef = (ref: HTMLDivElement | null) => {
+    this.descriptionRef = ref
+  }
+
   private renderExpander() {
     if (
       !this.state.body.length ||
@@ -179,7 +206,7 @@ export class CommitSummary extends React.Component<
 
     const expanded = this.props.isExpanded
     const onClick = expanded ? this.onCollapse : this.onExpand
-    const icon = expanded ? OcticonSymbol.unfold : OcticonSymbol.fold
+    const icon = expanded ? OcticonSymbol.fold : OcticonSymbol.unfold
 
     return (
       <a onClick={onClick} className="expander">
@@ -252,7 +279,10 @@ export class CommitSummary extends React.Component<
     }
 
     return (
-      <div className="commit-summary-description-container">
+      <div
+        className="commit-summary-description-container"
+        ref={this.onDescriptionRef}
+      >
         <div
           className="commit-summary-description-scroll-view"
           ref={this.onDescriptionScrollViewRef}
@@ -274,12 +304,13 @@ export class CommitSummary extends React.Component<
     const fileCount = this.props.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
-    const shortSHA = this.props.commit.sha.slice(0, 7)
+    const shortSHA = this.props.commit.shortSha
 
     const className = classNames({
       expanded: this.props.isExpanded,
       collapsed: !this.props.isExpanded,
       'has-expander': this.props.isExpanded || this.state.isOverflowed,
+      'hide-description-border': this.props.hideDescriptionBorder,
     })
 
     return (
@@ -311,13 +342,27 @@ export class CommitSummary extends React.Component<
               <span className="sha">{shortSHA}</span>
             </li>
 
-            <li className="commit-summary-meta-item" title={filesDescription}>
+            <li
+              className="commit-summary-meta-item commit-summary-file-name"
+              title={filesDescription}
+            >
               <span aria-hidden="true">
                 <Octicon symbol={OcticonSymbol.diff} />
               </span>
 
               {filesDescription}
             </li>
+            {enableHideWhitespaceInDiffOption() && (
+              <Checkbox
+                label="Hide Whitespace"
+                value={
+                  this.props.hideWhitespaceInDiff
+                    ? CheckboxValue.On
+                    : CheckboxValue.Off
+                }
+                onChange={this.onHideWhitespaceInDiffChanged}
+              />
+            )}
           </ul>
         </div>
 

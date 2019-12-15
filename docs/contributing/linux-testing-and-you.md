@@ -14,7 +14,7 @@ The goals for this testing process are:
 
 ## Testing Release Candidates
 
-Release Candidate installers can be found on [**@shiftkey's**](https://github.com/shiftkey) [fork](https://github.com/shiftkey/desktop), listed under the [Releases](https://github.com/shiftkey/desktop/releases) tab. The current installer formats supported are Debian, RPM and AppImage.
+Release Candidate installers can be found on [**@shiftkey's**](https://github.com/shiftkey) [fork](https://github.com/shiftkey/desktop), listed under the [Releases](https://github.com/shiftkey/desktop/releases) tab. The current installer formats supported are Debian, RPM, AppImage and Snap.
 
 [@shiftkey](https://github.com/shiftkey) aims to make new installers available soon after the main Desktop project tags and publishes a new update. To receive notifications when new installers are published, [subscribe](https://github.com/shiftkey/desktop/subscription) to [**@shiftkey's**](https://github.com/shiftkey) fork of the repository.
 
@@ -30,7 +30,7 @@ Feel free to submit other questions or suggestions to [`shiftkey/desktop`](https
 
 ## Contributing Fixes
 
-If you are interested in testing installers locally, first ensure your [development environment is setup](https://github.com/desktop/desktop/blob/master/docs/contributing/setup.md) to build and test Desktop.
+If you are interested in testing installers locally, first ensure your [development environment is setup](https://github.com/desktop/desktop/blob/development/docs/contributing/setup.md) to build and test Desktop.
 
 Once your environment is setup, you can create an installer locally by running:
 
@@ -50,16 +50,16 @@ We use `electron-packager` to generate the artifacts and `electron-builder` to g
 
 `electron-packager` details:
 
-* [API options](https://github.com/electron-userland/electron-packager/blob/master/docs/api.md#options)
-* [`dist-info.js` config file](https://github.com/desktop/desktop/blob/master/script/dist-info.js)
-* [Usage in Desktop](https://github.com/desktop/desktop/blob/master/script/build.ts#L98-L151)
+* [API options](https://github.com/electron-userland/electron-packager/blob/development/docs/api.md#options)
+* [`dist-info.js` config file](https://github.com/desktop/desktop/blob/development/script/dist-info.js)
+* [Usage in Desktop](https://github.com/desktop/desktop/blob/development/script/build.ts#L98-L151)
 
 `dist-info.js` contains the various metadata we provide to Desktop as part of packaging. This seems fairly stable, but we might need to tweak some things in here for Linux-specific changes.
 
 `electron-builder` details:
 
 * [API options](https://www.electron.build/configuration/linux)
-* [`electron-builder-linux.yml` config file](https://github.com/desktop/desktop/blob/master/script/electron-builder-linux.yml)
-* [Usage in Desktop](https://github.com/desktop/desktop/blob/master/script/package.ts#L124-L145)
+* [`electron-builder-linux.yml` config file](https://github.com/desktop/desktop/blob/development/script/electron-builder-linux.yml)
+* [Usage in Desktop](https://github.com/desktop/desktop/blob/development/script/package.ts#L124-L145)
 
 We use `electron-builder-linux.yml` to configure the installers, so please investigate the documentation if you find a problem with an installer to see if something has been overlooked and can be fixed fairly easily.

@@ -1,0 +1,149 @@
+changed in both
+  base   100644 bf50d9d44ae0c8b2d6956edb5a7fd510254ec68c src/vs/workbench/parts/extensions/common/extensions.ts
+  our    100644 f80eddc2997bb323b4ddc2fa04965332cdf133ab src/vs/workbench/parts/extensions/common/extensions.ts
+  their  100644 266966b0f0c0ced0d5f724819f2cc6aa02ed910f src/vs/workbench/parts/extensions/common/extensions.ts
+@@ -98,6 +98,7 @@
+ export const AutoCheckUpdatesConfigurationKey = 'extensions.autoCheckUpdates';
+ export const ShowRecommendationsOnlyOnDemandKey = 'extensions.showRecommendationsOnlyOnDemand';
+ export const CloseExtensionDetailsOnViewChangeKey = 'extensions.closeExtensionDetailsOnViewChange';
++export const ReceivesUpdatesConfigurationKey = 'extensions.receiveUpdates';
+ 
+ export interface IExtensionsConfiguration {
+ 	autoUpdate: boolean;
+@@ -105,4 +106,5 @@
+ 	ignoreRecommendations: boolean;
+ 	showRecommendationsOnlyOnDemand: boolean;
+ 	closeExtensionDetailsOnViewChange: boolean;
++	receiveUpdates: boolean;
+ }
+changed in both
+  base   100644 ea4c3874785354035a44794c1910f8b3068b0959 src/vs/workbench/parts/extensions/electron-browser/extensions.contribution.ts
+  our    100644 5ce89339923c3f8305329edee9c2f811f190aaa7 src/vs/workbench/parts/extensions/electron-browser/extensions.contribution.ts
+  their  100644 a5052bccb01d57aaa74d0b661627a5865817bef5 src/vs/workbench/parts/extensions/electron-browser/extensions.contribution.ts
+@@ -204,6 +204,7 @@
+ 		properties: {
+ 			'extensions.autoUpdate': {
+ 				type: 'boolean',
++<<<<<<< .our
+ 				description: localize('extensionsAutoUpdate', "When enabled, automatically installs updates for extensions. The updates are fetched from an online service."),
+ 				default: true,
+ 				scope: ConfigurationScope.APPLICATION,
+@@ -212,6 +213,9 @@
+ 			'extensions.autoCheckUpdates': {
+ 				type: 'boolean',
+ 				description: localize('extensionsCheckUpdates', "When enabled, automatically checks extensions for updates. If an extension has an update, it is marked as outdated in the Extensions view. The updates are fetched from an online service."),
++=======
++				description: localize('extensionsAutoUpdate', "Automatically update extensions. If the setting 'extensions.receiveUpdates' is set to false, then extensions will not be updated, regardless of this setting."),
++>>>>>>> .their
+ 				default: true,
+ 				scope: ConfigurationScope.APPLICATION,
+ 				tags: ['usesOnlineServices']
+@@ -231,6 +235,11 @@
+ 				type: 'boolean',
+ 				description: localize('extensionsCloseExtensionDetailsOnViewChange', "When enabled, editors with extension details will be automatically closed upon navigating away from the Extensions View."),
+ 				default: false
++			},
++			'extensions.receiveUpdates': {
++				type: 'boolean',
++				description: localize('extensionsReceiveUpdates', "Receive updates for outdated extensions, but not automatically update them. If set to false, extension auto-update feature is disabled regardless of the value for the 'extensions.autoUpdate' setting"),
++				default: true
+ 			}
+ 		}
+ 	});
+changed in both
+  base   100644 e7ccaedb3f64eec3f4d09c5a6642058c13bbfdc3 src/vs/workbench/parts/extensions/node/extensionsWorkbenchService.ts
+  our    100644 dde370485c80817a804989c810abe2f1db9c0966 src/vs/workbench/parts/extensions/node/extensionsWorkbenchService.ts
+  their  100644 0a3a9580348a97afc7f51f960065fa262cde8903 src/vs/workbench/parts/extensions/node/extensionsWorkbenchService.ts
+@@ -26,7 +26,11 @@
+ import { IWindowService } from 'vs/platform/windows/common/windows';
+ import Severity from 'vs/base/common/severity';
+ import URI from 'vs/base/common/uri';
++<<<<<<< .our
+ import { IExtension, IExtensionDependencies, ExtensionState, IExtensionsWorkbenchService, AutoUpdateConfigurationKey, AutoCheckUpdatesConfigurationKey } from 'vs/workbench/parts/extensions/common/extensions';
++=======
++import { IExtension, IExtensionDependencies, ExtensionState, IExtensionsWorkbenchService, AutoUpdateConfigurationKey, ReceivesUpdatesConfigurationKey } from 'vs/workbench/parts/extensions/common/extensions';
++>>>>>>> .their
+ import { IEditorService, SIDE_GROUP, ACTIVE_GROUP } from 'vs/workbench/services/editor/common/editorService';
+ import { IURLService, IURLHandler } from 'vs/platform/url/common/url';
+ import { ExtensionsInput } from 'vs/workbench/parts/extensions/common/extensionsInput';
+@@ -408,15 +412,20 @@
+ 		urlService.registerHandler(this);
+ 
+ 		this.configurationService.onDidChangeConfiguration(e => {
+-			if (e.affectsConfiguration(AutoUpdateConfigurationKey)) {
++			if (e.affectsConfiguration(AutoUpdateConfigurationKey) || e.affectsConfiguration(ReceivesUpdatesConfigurationKey)) {
+ 				if (this.isAutoUpdateEnabled()) {
+ 					this.checkForUpdates();
+ 				}
+ 			}
++<<<<<<< .our
+ 			if (e.affectsConfiguration(AutoCheckUpdatesConfigurationKey)) {
+ 				if (this.isAutoCheckUpdatesEnabled()) {
+ 					this.checkForUpdates();
+ 				}
++=======
++			if (e.affectsConfiguration(ReceivesUpdatesConfigurationKey)) {
++				this.eventuallySyncWithGallery(true);
++>>>>>>> .their
+ 			}
+ 		}, this, this.disposables);
+ 
+@@ -601,7 +610,11 @@
+ 	}
+ 
+ 	private isAutoUpdateEnabled(): boolean {
+-		return this.configurationService.getValue(AutoUpdateConfigurationKey);
++		return this.configurationService.getValue(AutoUpdateConfigurationKey) && this.isReceiveUpdatesEnabled();
++	}
++
++	private isReceiveUpdatesEnabled(): boolean {
++		return this.configurationService.getValue(ReceivesUpdatesConfigurationKey);
+ 	}
+ 
+ 	private isAutoCheckUpdatesEnabled(): boolean {
+@@ -609,8 +622,15 @@
+ 	}
+ 
+ 	private eventuallySyncWithGallery(immediate = false): void {
++<<<<<<< .our
+ 		const shouldSync = this.isAutoUpdateEnabled() || this.isAutoCheckUpdatesEnabled();
+ 		const loop = () => (shouldSync ? this.syncWithGallery() : TPromise.as(null)).then(() => this.eventuallySyncWithGallery());
++=======
++		if (!this.isReceiveUpdatesEnabled()) {
++			return;
++		}
++		const loop = () => this.syncWithGallery().then(() => this.eventuallySyncWithGallery());
++>>>>>>> .their
+ 		const delay = immediate ? 0 : ExtensionsWorkbenchService.SyncPeriod;
+ 
+ 		this.syncDelayer.trigger(loop, delay)
+changed in both
+  base   100644 f3f0e333ec4571e139487fd1e48baa35ba0dd6ad src/vs/workbench/parts/extensions/test/electron-browser/extensionsWorkbenchService.test.ts
+  our    100644 7da387ac880b0ed21957601ffcf9fbb9f1133d6f src/vs/workbench/parts/extensions/test/electron-browser/extensionsWorkbenchService.test.ts
+  their  100644 2a39f3d4cfe4e29d44142524305fc5e60308f0e2 src/vs/workbench/parts/extensions/test/electron-browser/extensionsWorkbenchService.test.ts
+@@ -11,7 +11,11 @@
+ import { assign } from 'vs/base/common/objects';
+ import { TPromise } from 'vs/base/common/winjs.base';
+ import { generateUuid } from 'vs/base/common/uuid';
++<<<<<<< .our
+ import { IExtensionsWorkbenchService, ExtensionState, AutoCheckUpdatesConfigurationKey, AutoUpdateConfigurationKey } from 'vs/workbench/parts/extensions/common/extensions';
++=======
++import { IExtensionsWorkbenchService, ExtensionState, ReceivesUpdatesConfigurationKey } from 'vs/workbench/parts/extensions/common/extensions';
++>>>>>>> .their
+ import { ExtensionsWorkbenchService } from 'vs/workbench/parts/extensions/node/extensionsWorkbenchService';
+ import {
+ 	IExtensionManagementService, IExtensionGalleryService, IExtensionEnablementService, IExtensionTipsService, ILocalExtension, LocalExtensionType, IGalleryExtension,
+@@ -70,8 +74,13 @@
+ 			onDidUpdateConfiguration: () => { },
+ 			onDidChangeConfiguration: () => { },
+ 			getConfiguration: () => ({}),
++<<<<<<< .our
+ 			getValue: (key) => {
+ 				return (key === AutoCheckUpdatesConfigurationKey || key === AutoUpdateConfigurationKey) ? true : undefined;
++=======
++			getValue: (a) => {
++				return a === ReceivesUpdatesConfigurationKey ? true : undefined;
++>>>>>>> .their
+ 			}
+ 		});
+ 

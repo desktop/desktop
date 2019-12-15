@@ -2,6 +2,7 @@ import * as Path from 'path'
 
 import { GitHubRepository } from './github-repository'
 import { IAheadBehind } from './branch'
+import { enableTutorial } from '../lib/feature-flag'
 
 function getBaseName(path: string): string {
   const baseName = Path.basename(path)
@@ -15,28 +16,37 @@ function getBaseName(path: string): string {
   return baseName
 }
 
+/** Base type for a directory you can run git commands successfully */
+export type WorkingTree = {
+  readonly path: string
+}
+
 /** A local repository. */
 export class Repository {
-  public readonly id: number
-  /** The working directory of this repository */
-  public readonly path: string
   public readonly name: string
-  public readonly gitHubRepository: GitHubRepository | null
+  /**
+   * The main working tree (what we commonly
+   * think of as the repository's working directory)
+   */
+  private readonly mainWorkTree: WorkingTree
 
-  /** Was the repository missing on disk last we checked? */
-  public readonly missing: boolean
-
+  /**
+   * @param path The working directory of this repository
+   * @param missing Was the repository missing on disk last we checked?
+   */
   public constructor(
     path: string,
-    id: number,
-    gitHubRepository: GitHubRepository | null,
-    missing: boolean
+    public readonly id: number,
+    public readonly gitHubRepository: GitHubRepository | null,
+    public readonly missing: boolean,
+    private readonly _isTutorialRepository?: boolean
   ) {
-    this.path = path
-    this.gitHubRepository = gitHubRepository
+    this.mainWorkTree = { path }
     this.name = (gitHubRepository && gitHubRepository.name) || getBaseName(path)
-    this.id = id
-    this.missing = missing
+  }
+
+  public get path(): string {
+    return this.mainWorkTree.path
   }
 
   /**
@@ -45,12 +55,26 @@ export class Repository {
    * Objects with the same hash are guaranteed to be structurally equal.
    */
   public get hash(): string {
-    return `${this.id}+
-      ${this.gitHubRepository && this.gitHubRepository.hash}+
-      ${this.path}+
-      ${this.missing}+
-      ${this.name}`
+    return `${this.id}+${this.gitHubRepository && this.gitHubRepository.hash}+${
+      this.path
+    }+${this.missing}+${this.name}+${this.isTutorialRepository}`
   }
+
+  /**
+   * True if the repository is a tutorial repository created as part
+   * of the onboarding flow. Tutorial repositories trigger a tutorial
+   * user experience which introduces new users to some core concepts
+   * of Git and GitHub.
+   */
+  public get isTutorialRepository() {
+    return enableTutorial() && this._isTutorialRepository === true
+  }
+}
+
+/** A worktree linked to a main working tree (aka `Repository`) */
+export type LinkedWorkTree = WorkingTree & {
+  /** The sha of the head commit in this work tree */
+  readonly head: string
 }
 
 /**
@@ -66,4 +90,14 @@ export interface ILocalRepositoryState {
    * The number of uncommitted changes currently in the repository.
    */
   readonly changedFilesCount: number
+}
+
+/**
+ * Returns the owner/name alias if associated with a GitHub repository,
+ * otherwise the folder name that contains the repository
+ */
+export function nameOf(repository: Repository) {
+  const { gitHubRepository } = repository
+
+  return gitHubRepository !== null ? gitHubRepository.fullName : repository.name
 }

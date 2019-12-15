@@ -4,6 +4,7 @@ import { testForInvalidChars } from './sanitize-branch'
 export interface IOAuthAction {
   readonly name: 'oauth'
   readonly code: string
+  readonly state: string
 }
 
 export interface IOpenRepositoryFromURLAction {
@@ -40,7 +41,7 @@ export type URLActionType =
   | IOpenRepositoryFromPathAction
   | IUnknownAction
 
-// eslint-disable-next-line typescript/interface-name-prefix
+// eslint-disable-next-line @typescript-eslint/interface-name-prefix
 interface ParsedUrlQueryWithUndefined {
   // `undefined` is added here to ensure we handle the missing querystring key
   // See https://github.com/Microsoft/TypeScript/issues/13778 for discussion about
@@ -83,8 +84,9 @@ export function parseAppURL(url: string): URLActionType {
   const actionName = hostname.toLowerCase()
   if (actionName === 'oauth') {
     const code = getQueryStringValue(query, 'code')
-    if (code != null) {
-      return { name: 'oauth', code }
+    const state = getQueryStringValue(query, 'state')
+    if (code != null && state != null) {
+      return { name: 'oauth', code, state }
     } else {
       return unknown
     }
@@ -102,11 +104,6 @@ export function parseAppURL(url: string): URLActionType {
   const parsedPath = pathName.substr(1)
 
   if (actionName === 'openrepo') {
-    const probablyAURL = parsedPath
-
-    // suffix the remote URL with `.git`, for backwards compatibility
-    const url = `${probablyAURL}.git`
-
     const pr = getQueryStringValue(query, 'pr')
     const branch = getQueryStringValue(query, 'branch')
     const filepath = getQueryStringValue(query, 'filepath')
@@ -128,7 +125,7 @@ export function parseAppURL(url: string): URLActionType {
 
     return {
       name: 'open-repository-from-url',
-      url,
+      url: parsedPath,
       branch,
       pr,
       filepath,

@@ -4,6 +4,6 @@ semi: false
 proseWrap: always
 
 overrides:
-- files: "*.scss"
-  options:
-    printWidth: 200
+  - files: '*.scss'
+    options:
+      printWidth: 200

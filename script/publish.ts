@@ -1,9 +1,9 @@
-const PUBLISH_CHANNELS = ['production', 'test', 'beta']
 import * as distInfo from './dist-info'
 import * as gitInfo from '../app/git-info'
 import * as packageInfo from '../app/package-info'
+import * as platforms from './build-platforms'
 
-if (PUBLISH_CHANNELS.indexOf(distInfo.getReleaseChannel()) < 0) {
+if (!distInfo.isPublishable()) {
   console.log('Not a publishable build. Skipping publish.')
   process.exit(0)
 }
@@ -31,22 +31,7 @@ import * as request from 'request'
 console.log('Packaging…')
 execSync('yarn package')
 
-function getSha() {
-  if (process.platform === 'darwin' && process.env.CIRCLE_SHA1 != null) {
-    return process.env.CIRCLE_SHA1
-  } else if (
-    process.platform === 'win32' &&
-    process.env.APPVEYOR_REPO_COMMIT != null
-  ) {
-    return process.env.APPVEYOR_REPO_COMMIT
-  }
-
-  throw new Error(
-    `Unable to get the SHA for the current platform. Check the vendor docs for the desired environment variables.`
-  )
-}
-
-const sha = getSha().substr(0, 8)
+const sha = platforms.getSha().substr(0, 8)
 
 function getSecret() {
   if (process.env.DEPLOYMENT_SECRET != null) {
@@ -54,7 +39,7 @@ function getSecret() {
   }
 
   throw new Error(
-    `Unable to get deployment seret environment variable. Deployment aborting...`
+    `Unable to get deployment secret environment variable. Deployment aborting...`
   )
 }
 
@@ -179,7 +164,7 @@ function updateDeploy(artifacts: ReadonlyArray<IUploadResult>, secret: string) {
   const { rendererSize, mainSize } = distInfo.getBundleSizes()
   const body = {
     context: process.platform,
-    branch_name: distInfo.getReleaseBranchName(),
+    branch_name: platforms.getReleaseBranchName(),
     artifacts,
     stats: {
       platform: process.platform,

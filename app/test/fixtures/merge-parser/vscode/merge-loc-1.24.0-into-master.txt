@@ -1,0 +1,79 @@
+changed in both
+  base   100644 f7740f6c5a50619c495336b4ecd78310a514522b extensions/typescript-language-features/src/features/updatePathsOnRename.ts
+  our    100644 44c05cd7b4a3cb2ce3e58d0e3c657b60db530ec0 extensions/typescript-language-features/src/features/updatePathsOnRename.ts
+  their  100644 f7c955c5189c7d0d3e0e61bc7cb0cc0592873474 extensions/typescript-language-features/src/features/updatePathsOnRename.ts
+@@ -49,8 +49,12 @@
+ 		oldResource: vscode.Uri,
+ 		newResource: vscode.Uri,
+ 	): Promise<void> {
++<<<<<<< .our
+ 		const targetResource = await this.getTargetResource(newResource);
+ 		if (!targetResource) {
++=======
++		if (!this.client.apiVersion.has290Features()) {
++>>>>>>> .their
+ 			return;
+ 		}
+ 
+changed in both
+  base   100644 09d8da09e7b542dd3ca1aabbc647d93df1d57cb9 src/vs/editor/contrib/find/findWidget.ts
+  our    100644 86cac532d3fcfd30096dff7b86c46b48fdf58ad8 src/vs/editor/contrib/find/findWidget.ts
+  their  100644 e430e8bc3a8b63c8dbb991632a5241b6394012ef src/vs/editor/contrib/find/findWidget.ts
+@@ -30,7 +30,10 @@
+ import { Color } from 'vs/base/common/color';
+ import { IConfigurationChangedEvent } from 'vs/editor/common/config/editorOptions';
+ import { editorFindRangeHighlight, editorFindMatch, editorFindMatchHighlight, contrastBorder, inputBackground, editorWidgetBackground, inputActiveOptionBorder, widgetShadow, inputForeground, inputBorder, inputValidationInfoBackground, inputValidationInfoBorder, inputValidationWarningBackground, inputValidationWarningBorder, inputValidationErrorBackground, inputValidationErrorBorder, errorForeground, editorWidgetBorder, editorFindMatchBorder, editorFindMatchHighlightBorder, editorFindRangeHighlightBorder, editorWidgetResizeBorder } from 'vs/platform/theme/common/colorRegistry';
++<<<<<<< .our
+ import { ContextScopedFindInput, ContextScopedHistoryInputBox } from 'vs/platform/widget/browser/contextScopedHistoryWidget';
++=======
++>>>>>>> .their
+ 
+ 
+ export interface IFindController {
+changed in both
+  base   100644 2542de4c74b4c68119531ca244d91cfa723987dc src/vs/platform/theme/common/colorRegistry.ts
+  our    100644 674f67411d4ee542ee937fac9146ef0768ec982d src/vs/platform/theme/common/colorRegistry.ts
+  their  100644 81dba81236c08514fbe7bf4ee4b06b614bb30925 src/vs/platform/theme/common/colorRegistry.ts
+changed in both
+  base   100644 e1fb74ff1cc215fc6a46c2d970aa1393f85b2198 src/vs/workbench/browser/parts/quickinput/quickInput.css
+  our    100644 690286ea03324d7f2df24ff450315cac3c7620b3 src/vs/workbench/browser/parts/quickinput/quickInput.css
+  their  100644 630d3d6ba5f7b14b12d49ed0013a3f3315c4aab4 src/vs/workbench/browser/parts/quickinput/quickInput.css
+@@ -178,6 +178,7 @@
+ 
+ .quick-input-list .monaco-highlighted-label .highlight {
+ 	font-weight: bold;
++<<<<<<< .our
+ }
+ 
+ .quick-input-list .quick-input-list-separator {
+@@ -219,3 +220,6 @@
+ .quick-input-list .monaco-list-row.focused .quick-input-list-entry-action-bar {
+ 	display: flex;
+ }
++=======
++}
++>>>>>>> .their
+changed in both
+  base   100644 26bb02d0714f539097ddcfd3a52172341fc976b1 src/vs/workbench/parts/localizations/electron-browser/localizations.contribution.ts
+  our    100644 052de75c677677d839ae5533561df1d9238d3218 src/vs/workbench/parts/localizations/electron-browser/localizations.contribution.ts
+  their  100644 dbb24061980e2564f0ae3c1b0895244301cec381 src/vs/workbench/parts/localizations/electron-browser/localizations.contribution.ts
+changed in both
+  base   100644 a84fd8ff73d8149d0d3b508741c7d5156ac6c404 src/vs/workbench/parts/outline/electron-browser/outlinePanel.ts
+  our    100644 4c9c93b5db416a94d8f3ef592cd9bb2250cc84fb src/vs/workbench/parts/outline/electron-browser/outlinePanel.ts
+  their  100644 abff8b7c8f71a4075977d5aa785f34e8e2b8e635 src/vs/workbench/parts/outline/electron-browser/outlinePanel.ts
+changed in both
+  base   100644 8106f9cf4837d1af9c2d120f313505b8d401b5ed src/vs/workbench/services/textfile/common/textFileEditorModel.ts
+  our    100644 6faef447dc315ab88c3c3c652840860db088fa46 src/vs/workbench/services/textfile/common/textFileEditorModel.ts
+  their  100644 a625dbdba080f632dc7bcb03189fe99f2b816171 src/vs/workbench/services/textfile/common/textFileEditorModel.ts
+@@ -676,7 +676,11 @@
+ 			// be disposed if we are dirty, but if we are not dirty, save() and dispose() can still be triggered
+ 			// one after the other without waiting for the save() to complete. If we are disposed(), we risk
+ 			// saving contents to disk that are stale (see https://github.com/Microsoft/vscode/issues/50942).
++<<<<<<< .our
+ 			// To fix this issue, we will not store the contents to disk when we got disposed.
++=======
++			// To fix this issue, we will not store the contents to disk when we got disposed. 
++>>>>>>> .their
+ 			if (this.disposed) {
+ 				return void 0;
+ 			}

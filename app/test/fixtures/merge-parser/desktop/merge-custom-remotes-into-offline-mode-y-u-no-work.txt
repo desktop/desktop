@@ -1,0 +1,347 @@
+changed in both
+  base   100644 69f6d89b2b8e4538175e2665b3d8ac7572f352dd app/src/lib/app-state.ts
+  our    100644 b30f0fe080d909b81d2fb683ceb8deb365fb0191 app/src/lib/app-state.ts
+  their  100644 83b4a4082aca001ae313a23682a17d734f41d307 app/src/lib/app-state.ts
+@@ -218,11 +218,15 @@
+   GenericGitAuthentication,
+   ExternalEditorFailed,
+   OpenShellFailed,
++<<<<<<< .our
+   InitializeLFS,
+   LFSAttributeMismatch,
+   UpstreamAlreadyExists,
+   DeletePullRequest,
+   MergeConflicts,
++=======
++  CustomRemote,
++>>>>>>> .their
+ }
+ 
+ export type Popup =
+@@ -288,6 +292,7 @@
+       openPreferences?: boolean
+     }
+   | { type: PopupType.OpenShellFailed; message: string }
++<<<<<<< .our
+   | { type: PopupType.InitializeLFS; repositories: ReadonlyArray<Repository> }
+   | { type: PopupType.LFSAttributeMismatch }
+   | {
+@@ -302,6 +307,9 @@
+       pullRequest: PullRequest
+     }
+   | { type: PopupType.MergeConflicts; repository: Repository }
++=======
++  | { type: PopupType.CustomRemote; repository: Repository }
++>>>>>>> .their
+ 
+ export enum FoldoutType {
+   Repository,
+removed in local
+  base   100644 23643984c62c0f40df503da96f8270bef3184342 app/src/lib/dispatcher/app-store.ts
+  their  100644 ad47b9a6f23c73297ee93eb343189855870394bf app/src/lib/dispatcher/app-store.ts
+changed in both
+  base   100644 17e3db009ef93095824e72a628647dac734e0a6a app/src/lib/dispatcher/dispatcher.ts
+  our    100644 5e56c00e713342e76f5ccba040062e322e8c90cb app/src/lib/dispatcher/dispatcher.ts
+  their  100644 649058ff79bc3b0a79a9e63d802ffa4ba85c606a app/src/lib/dispatcher/dispatcher.ts
+@@ -323,7 +323,7 @@
+   }
+ 
+   /** Publish the repository to GitHub with the given properties. */
+-  public publishRepository(
++  public publishGitHubRepository(
+     repository: Repository,
+     name: string,
+     description: string,
+@@ -331,7 +331,7 @@
+     account: Account,
+     org: IAPIUser | null
+   ): Promise<Repository> {
+-    return this.appStore._publishRepository(
++    return this.appStore._publishGitHubRepository(
+       repository,
+       name,
+       description,
+@@ -341,6 +341,11 @@
+     )
+   }
+ 
++  /** Publish the repository to a generic server */
++  public publishRepository(repository: Repository, url: string) {
++    return this.appStore._publishRepository(repository, url)
++  }
++
+   /**
+    * Post the given error. This will send the error through the standard error
+    * handler machinery.
+changed in both
+  base   100644 448ad8844bdc47187d3bc3b9e922ed3ae043d4b1 app/src/ui/app.tsx
+  our    100644 c38c806e36c237ea70f3cdeee739941530c0c7cd app/src/ui/app.tsx
+  their  100644 c4b6a050bb6c6998ad7a9e44b1437d8b88d379f8 app/src/ui/app.tsx
+@@ -73,7 +73,13 @@
+ import { InstallGit } from './install-git'
+ import { EditorError } from './editor'
+ import { About } from './about'
++<<<<<<< .our
+ import { Publish } from './publish-repository'
++=======
++import { getVersion, getName } from './lib/app-proxy'
++import { shell } from '../lib/dispatcher/app-shell'
++import { Publish, PublishCustomRemote } from './publish-repository'
++>>>>>>> .their
+ import { Acknowledgements } from './acknowledgements'
+ import { UntrustedCertificate } from './untrusted-certificate'
+ import { BlankSlateView } from './blank-slate'
+@@ -1242,6 +1248,7 @@
+             showPreferencesDialog={this.onShowAdvancedPreferences}
+           />
+         )
++<<<<<<< .our
+       case PopupType.InitializeLFS:
+         return (
+           <InitializeLFS
+@@ -1281,6 +1288,11 @@
+       case PopupType.MergeConflicts:
+         return (
+           <MergeConflictsWarning
++=======
++      case PopupType.CustomRemote:
++        return (
++          <PublishCustomRemote
++>>>>>>> .their
+             dispatcher={this.props.dispatcher}
+             repository={popup.repository}
+             onDismissed={this.onPopupDismissed}
+merged
+  result 100644 84a3e04a615cc5df1f2b5bdef5e8e279f51036c3 app/src/ui/publish-repository/index.ts
+  our    100644 f5e47702e7106f1090fd4542e41a43160aea84fc app/src/ui/publish-repository/index.ts
+@@ -1 +1,2 @@
+ export { Publish } from './publish'
++export { PublishCustomRemote } from './publish-custom-remote'
+added in remote
+  their  100644 023e9ec75b887bc1ef556b1e0fbad48ec415a173 app/src/ui/publish-repository/publish-custom-remote.tsx
+@@ -0,0 +1,128 @@
++import * as React from 'react'
++import { Dialog, DialogContent, DialogFooter, DialogError } from '../dialog'
++// import { Account } from '../../models/account'
++import { Button } from '../lib/button'
++import { ButtonGroup } from '../lib/button-group'
++import { Row } from '../lib/row'
++import { TextBox } from '../lib/text-box'
++import { Dispatcher } from '../../lib/dispatcher/dispatcher'
++import { PopupType } from '../../lib/app-state'
++import { Repository } from '../../models/repository'
++
++interface IPublishCustomRemoteProps {
++  /** The user to use for publishing. */
++  //readonly account: Account
++
++  readonly dispatcher: Dispatcher
++  readonly repository: Repository
++  readonly onDismissed: () => void
++}
++
++interface IPublishCustomRemoteState {
++  readonly disabled: boolean
++  readonly remoteURL: string
++  readonly errors?: ReadonlyArray<JSX.Element | string>
++}
++
++export class PublishCustomRemote extends React.Component<
++  IPublishCustomRemoteProps,
++  IPublishCustomRemoteState
++> {
++  public constructor(props: IPublishCustomRemoteProps) {
++    super(props)
++
++    this.state = {
++      disabled: false,
++      remoteURL: '',
++    }
++  }
++
++  public render() {
++    return (
++      <Dialog
++        id="publish-custom-remote"
++        title={
++          __DARWIN__ ? 'Publish to Custom Remote' : 'Publish to custom remote'
++        }
++        onDismissed={this.props.onDismissed}
++        onSubmit={this.onSubmit}
++        disabled={this.state.disabled}
++      >
++        {this.renderErrors()}
++        <DialogContent>
++          <Row>
++            <TextBox
++              label="Primary remote repository (origin) URL"
++              placeholder="https://github.com/example-org/repo-name.git"
++              value={this.state.remoteURL}
++              autoFocus={true}
++              onChange={this.onURLChanged}
++            />
++          </Row>
++        </DialogContent>
++        <DialogFooter>
++          <ButtonGroup>
++            <Button type="submit" onClick={this.onSubmit}>
++              {'Save & Publish'}
++            </Button>
++            <Button onClick={this.onCancel}>Cancel</Button>
++          </ButtonGroup>
++        </DialogFooter>
++      </Dialog>
++    )
++  }
++
++  private onSubmit = async () => {
++    this.setState({ disabled: true, errors: undefined })
++    const errors = new Array<JSX.Element | string>()
++
++    try {
++      this.props.dispatcher.publishRepository(
++        this.props.repository,
++        this.state.remoteURL
++      )
++    } catch (err) {
++      log.error(
++        `PublishCustomRemote: unable to set remote URL at ${this.state
++          .remoteURL}`,
++        err
++      )
++
++      errors.push(err)
++    }
++
++    if (!errors.length) {
++      this.props.onDismissed()
++    } else {
++      this.setState({ disabled: false, errors })
++    }
++  }
++
++  private onCancel = () => {
++    this.props.dispatcher.showPopup({
++      type: PopupType.RepositorySettings,
++      repository: this.props.repository,
++    })
++  }
++
++  private onURLChanged = (event: React.FormEvent<HTMLInputElement>) => {
++    this.setState({ remoteURL: event.currentTarget.value })
++  }
++
++  private renderErrors(): JSX.Element[] | null {
++    const errors = this.state.errors
++
++    if (!errors || !errors.length) {
++      return null
++    }
++
++    return errors.map((err, ix) => {
++      const key = `err-${ix}`
++      return (
++        <DialogError key={key}>
++          {err}
++        </DialogError>
++      )
++    })
++  }
++}
+changed in both
+  base   100644 e82303171a46f7e6e538ccaaaf1e3d4732c7caec app/src/ui/publish-repository/publish.tsx
+  our    100644 ffbdef89f9f0f16e966a7d27c2db06bd897c3db6 app/src/ui/publish-repository/publish.tsx
+  their  100644 ce385de07594200b72c58b9449625a769680b4cd app/src/ui/publish-repository/publish.tsx
+@@ -223,7 +223,7 @@
+     const settings = this.state.publishSettings
+ 
+     try {
+-      await this.props.dispatcher.publishRepository(
++      await this.props.dispatcher.publishGitHubRepository(
+         this.props.repository,
+         settings.name,
+         settings.description,
+merged
+  result 100644 253e05b3b6b6dadfcbd297f717943d188658a734 app/src/ui/repository-settings/no-remote.tsx
+  our    100644 a9ed19c55cd570767b8846f4db799402371f4411 app/src/ui/repository-settings/no-remote.tsx
+@@ -1,28 +1,36 @@
+ import * as React from 'react'
+-import { DialogContent } from '../dialog'
++import { DialogContent, DialogFooter } from '../dialog'
++import { Button } from '../lib/button'
+ import { LinkButton } from '../lib/link-button'
+-import { CallToAction } from '../lib/call-to-action'
++import { ButtonGroup } from '../lib/button-group'
+ 
+ const HelpURL = 'https://help.github.com/articles/about-remote-repositories/'
+ 
+ interface INoRemoteProps {
+-  /** The function to call when the users chooses to publish. */
++  /** The function to call when the users chooses to publish to github. */
+   readonly onPublish: () => void
++  readonly onUseCustomRemote: () => void
+ }
+ 
+ /** The component for when a repository has no remote. */
+ export class NoRemote extends React.Component<INoRemoteProps, {}> {
+   public render() {
+     return (
+-      <DialogContent>
+-        <CallToAction actionTitle="Publish" onAction={this.props.onPublish}>
+-          <div>
+-            Publish your repository to GitHub. Need help?{' '}
+-            <LinkButton uri={HelpURL}>Learn more</LinkButton> about remote
+-            repositories.
+-          </div>
+-        </CallToAction>
+-      </DialogContent>
++      <div>
++        <DialogContent>
++          Publish your repository to GitHub. Need help?{' '}
++          <LinkButton uri={HelpURL}>Learn more</LinkButton> about remote
++          repositories.
++        </DialogContent>
++        <DialogFooter>
++          <ButtonGroup>
++            <Button onClick={this.props.onUseCustomRemote}>
++              {__DARWIN__ ? 'Setup Custom Remote' : 'Setup custom remote'}
++            </Button>
++            <Button onClick={this.props.onPublish}>Publish to GitHub</Button>
++          </ButtonGroup>
++        </DialogFooter>
++      </div>
+     )
+   }
+ }
+changed in both
+  base   100644 b5530eb5e8f11fc058f527837d2d02b797f95242 app/src/ui/repository-settings/repository-settings.tsx
+  our    100644 df6e4cf60b4e535a69c9fc0a585902ada9e70fbb app/src/ui/repository-settings/repository-settings.tsx
+  their  100644 a65a8f8b98ef5dfdcf5c28d69f4fc5093211c1d9 app/src/ui/repository-settings/repository-settings.tsx
+@@ -134,7 +134,12 @@
+             />
+           )
+         } else {
+-          return <NoRemote onPublish={this.onPublish} />
++          return (
++            <NoRemote
++              onUseCustomRemote={this.onUseCustomRemote}
++              onPublish={this.onPublish}
++            />
++          )
+         }
+       }
+       case RepositorySettingsTab.IgnoredFiles: {
+@@ -158,6 +163,13 @@
+     })
+   }
+ 
++  private onUseCustomRemote = () => {
++    this.props.dispatcher.showPopup({
++      type: PopupType.CustomRemote,
++      repository: this.props.repository,
++    })
++  }
++
+   private onShowGitIgnoreExamples = () => {
+     this.props.dispatcher.openInBrowser('https://git-scm.com/docs/gitignore')
+   }

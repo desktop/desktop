@@ -57,12 +57,10 @@ async function getRawShellEnv(): Promise<string | null> {
       cleanup()
     }, 5000)
 
-    const options = {
+    child = ChildProcess.spawn(shell, ['-ilc', 'command env'], {
       detached: true,
       stdio: ['ignore', 'pipe', process.stderr],
-    }
-
-    child = ChildProcess.spawn(shell, ['-ilc', 'command env'], options)
+    })
 
     const buffers: Array<Buffer> = []
 
@@ -71,9 +69,13 @@ async function getRawShellEnv(): Promise<string | null> {
       error = e
     })
 
-    child.stdout.on('data', (data: Buffer) => {
-      buffers.push(data)
-    })
+    // If Node.js encounters a synchronous runtime error while spawning
+    // `stdout` will be undefined and the error will be emitted asynchronously
+    if (child.stdout) {
+      child.stdout.on('data', (data: Buffer) => {
+        buffers.push(data)
+      })
+    }
 
     child.on('close', (code: number, signal) => {
       done = true

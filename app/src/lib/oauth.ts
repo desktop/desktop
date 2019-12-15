@@ -37,21 +37,22 @@ export function askUserToOAuth(endpoint: string) {
 /**
  * Request the authenticated using, using the code given to us by the OAuth
  * callback.
+ *
+ * @returns `undefined` if there is no valid OAuth state to use, or `null` if
+ * the code cannot be used to retrieve a valid GitHub user.
  */
 export async function requestAuthenticatedUser(
-  code: string
-): Promise<Account | null> {
-  if (!oauthState) {
-    return fatalError(
-      '`askUserToOAuth` must be called before requesting an authenticated user.'
+  code: string,
+  state: string
+): Promise<Account | null | undefined> {
+  if (!oauthState || state !== oauthState.state) {
+    log.warn(
+      'requestAuthenticatedUser was not called with valid OAuth state. This is likely due to a browser reloading the callback URL. Contact GitHub Support if you believe this is an error'
     )
+    return undefined
   }
 
-  const token = await requestOAuthToken(
-    oauthState.endpoint,
-    oauthState.state,
-    code
-  )
+  const token = await requestOAuthToken(oauthState.endpoint, code)
   if (token) {
     return fetchUser(oauthState.endpoint, token)
   } else {
