@@ -303,9 +303,9 @@ export class Preferences extends React.Component<
     const index = this.state.selectedIndex
     switch (index) {
       case PreferencesTab.Accounts:
-      case PreferencesTab.Integrations:
       case PreferencesTab.Appearance:
         return null
+      case PreferencesTab.Integrations:
       case PreferencesTab.Advanced:
       case PreferencesTab.Git: {
         return (
