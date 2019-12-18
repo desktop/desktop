@@ -22,6 +22,7 @@ import { gitAuthorNameIsValid } from './identifier-rules'
 import { Appearance } from './appearance'
 import { ApplicationTheme } from '../lib/application-theme'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import { Integrations } from './integrations'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -142,6 +143,7 @@ export class Preferences extends React.Component<
           selectedIndex={this.state.selectedIndex}
         >
           <span>Accounts</span>
+          <span>Integrations</span>
           <span>Git</span>
           <span>Appearance</span>
           <span>Advanced</span>
@@ -189,6 +191,21 @@ export class Preferences extends React.Component<
             onLogout={this.onLogout}
           />
         )
+      case PreferencesTab.Integrations: {
+        return (
+          <Integrations
+            availableEditors={this.state.availableEditors}
+            selectedExternalEditor={this.state.selectedExternalEditor}
+            onSelectedEditorChanged={this.onSelectedEditorChanged}
+            availableShells={this.state.availableShells}
+            selectedShell={this.state.selectedShell}
+            onSelectedShellChanged={this.onSelectedShellChanged}
+            mergeTool={this.state.mergeTool}
+            onMergeToolCommandChanged={this.onMergeToolCommandChanged}
+            onMergeToolNameChanged={this.onMergeToolNameChanged}
+          />
+        )
+      }
       case PreferencesTab.Git: {
         return (
           <Git
@@ -217,21 +234,12 @@ export class Preferences extends React.Component<
             confirmRepositoryRemoval={this.state.confirmRepositoryRemoval}
             confirmDiscardChanges={this.state.confirmDiscardChanges}
             confirmForcePush={this.state.confirmForcePush}
-            availableEditors={this.state.availableEditors}
-            selectedExternalEditor={this.state.selectedExternalEditor}
             onOptOutofReportingchanged={this.onOptOutofReportingChanged}
             onConfirmRepositoryRemovalChanged={
               this.onConfirmRepositoryRemovalChanged
             }
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
             onConfirmForcePushChanged={this.onConfirmForcePushChanged}
-            onSelectedEditorChanged={this.onSelectedEditorChanged}
-            availableShells={this.state.availableShells}
-            selectedShell={this.state.selectedShell}
-            onSelectedShellChanged={this.onSelectedShellChanged}
-            mergeTool={this.state.mergeTool}
-            onMergeToolCommandChanged={this.onMergeToolCommandChanged}
-            onMergeToolNameChanged={this.onMergeToolNameChanged}
           />
         )
       }
@@ -295,6 +303,7 @@ export class Preferences extends React.Component<
     const index = this.state.selectedIndex
     switch (index) {
       case PreferencesTab.Accounts:
+      case PreferencesTab.Integrations:
       case PreferencesTab.Appearance:
         return null
       case PreferencesTab.Advanced:
