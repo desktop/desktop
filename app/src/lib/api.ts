@@ -795,6 +795,7 @@ export class API {
     name: string,
     branch: string
   ): Promise<IAPIPushControl> {
+    debugger
     const path = `repos/${owner}/${name}/branches/${branch}/push_control`
 
     const headers: any = {
@@ -803,6 +804,7 @@ export class API {
 
     try {
       const response = await this.request('GET', path, undefined, headers)
+      console.warn('FETCH PUSH CONTROL DATA')
       return await parsedResponse<IAPIPushControl>(response)
     } catch (err) {
       log.info(

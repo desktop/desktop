@@ -756,6 +756,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
             const prs = state.openPullRequests
             currentPullRequest = findAssociatedPullRequest(branch, prs, remote)
           }
+
+          if (
+            tip.kind === TipState.Valid &&
+            state.tip.kind === TipState.Valid &&
+            tip.branch.name !== state.tip.branch.name
+          ) {
+            console.warn(tip.branch.name, state.tip.branch.name)
+            this.refreshBranchProtectionState(repository)
+          }
         }
       }
 
@@ -3122,7 +3131,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
 
       await this._refreshRepository(repository)
-      await this.refreshBranchProtectionState(repository)
     } finally {
       this.updateCheckoutProgress(repository, null)
       this._initializeCompare(repository, {
