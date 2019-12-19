@@ -177,6 +177,7 @@ export class Integrations extends React.Component<
   public render() {
     return (
       <DialogContent>
+        <h2>Applications</h2>
         <Row>{this.renderExternalEditor()}</Row>
         <Row>{this.renderSelectedShell()}</Row>
         {this.renderMergeTool()}
