@@ -86,6 +86,24 @@ export class Advanced extends React.Component<
   public render() {
     return (
       <DialogContent>
+        <h2>If I have changes and I switch branches...</h2>
+        <Row>
+          <input type="radio" id="ask" value="ask" checked />
+          <label htmlFor="ask">Ask me where I want the changes to go</label>
+        </Row>
+        <Row>
+          <input type="radio" id="bring" value="bring" />
+          <label htmlFor="bring">
+            Always bring my changes to my new branch
+          </label>
+        </Row>
+        <Row>
+          <input type="radio" id="stash" value="stash" />
+          <label htmlFor="stash">
+            Always stash and leave my changes on the current branch
+          </label>
+        </Row>
+
         <h2>Show a confimration dialog before...</h2>
         <Row>
           <Checkbox
