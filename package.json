@@ -168,7 +168,7 @@
     "@types/xml2js": "^0.4.0",
     "electron": "6.1.6",
     "electron-builder": "20.28.4",
-    "electron-packager": "^14.0.4",
+    "electron-packager": "^14.1.1",
     "electron-winstaller": "2.5.2"
   }
 }
