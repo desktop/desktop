@@ -86,20 +86,10 @@ export class Advanced extends React.Component<
   public render() {
     return (
       <DialogContent>
+        <h2>Show a confimration dialog before...</h2>
         <Row>
           <Checkbox
-            label={this.reportDesktopUsageLabel()}
-            value={
-              this.state.optOutOfUsageTracking
-                ? CheckboxValue.Off
-                : CheckboxValue.On
-            }
-            onChange={this.onReportingOptOutChanged}
-          />
-        </Row>
-        <Row>
-          <Checkbox
-            label="Show confirmation dialog before removing repositories"
+            label="Removing repositories"
             value={
               this.state.confirmRepositoryRemoval
                 ? CheckboxValue.On
@@ -110,7 +100,7 @@ export class Advanced extends React.Component<
         </Row>
         <Row>
           <Checkbox
-            label="Show confirmation dialog before discarding changes"
+            label="Discarding changes"
             value={
               this.state.confirmDiscardChanges
                 ? CheckboxValue.On
@@ -121,11 +111,23 @@ export class Advanced extends React.Component<
         </Row>
         <Row>
           <Checkbox
-            label="Show confirmation dialog before force pushing"
+            label="Force pushing"
             value={
               this.state.confirmForcePush ? CheckboxValue.On : CheckboxValue.Off
             }
             onChange={this.onConfirmForcePushChanged}
+          />
+        </Row>
+        <h2>Usage</h2>
+        <Row>
+          <Checkbox
+            label={this.reportDesktopUsageLabel()}
+            value={
+              this.state.optOutOfUsageTracking
+                ? CheckboxValue.Off
+                : CheckboxValue.On
+            }
+            onChange={this.onReportingOptOutChanged}
           />
         </Row>
       </DialogContent>
