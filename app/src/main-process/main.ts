@@ -28,7 +28,6 @@ import { IMenuItem } from '../lib/menu-item'
 import { buildContextMenu } from './menu/build-context-menu'
 
 app.setAppLogsPath()
-app.commandLine.appendSwitch('no-sandbox')
 enableSourceMaps()
 
 let mainWindow: AppWindow | null = null
