@@ -321,7 +321,7 @@ export async function getAvailableEditors(): Promise<
   if (intellijPath) {
     results.push({ editor: ExternalEditor.IntelliJ, path: intellijPath })
   }
-  
+
   if (xcodePath) {
     results.push({ editor: ExternalEditor.Xcode, path: xcodePath })
   }
