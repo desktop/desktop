@@ -20,5 +20,9 @@
     .tab-bar {
       flex-shrink: 0;
     }
+
+    .panel {
+      max-height: 100%;
+    }
   }
 }
