@@ -16,5 +16,9 @@
     display: flex;
     flex-direction: column;
     border-right: 1px solid var(--box-border-color);
+
+    .tab-bar {
+      flex-shrink: 0;
+    }
   }
 }
