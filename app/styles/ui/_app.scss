@@ -22,7 +22,7 @@
   &-contents {
     display: flex;
     flex-direction: column;
-    flex-grow: 1;
-    max-height: 100%;
+    flex: 1 1 auto;
+    height: 100%;
   }
 }

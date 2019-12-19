@@ -4,9 +4,9 @@
 #repository {
   display: flex;
   flex-direction: row;
-  flex: 1;
+  flex: 1 1 auto;
   border-top: var(--base-border);
-  max-height: 100%;
+  height: 100%;
 
   > .focus-container {
     display: flex;
@@ -22,7 +22,8 @@
     }
 
     .panel {
-      max-height: 100%;
+      height: 100%;
+      flex: 1 1 auto;
     }
   }
 }
