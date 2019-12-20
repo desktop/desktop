@@ -40,12 +40,6 @@ export class PullRequestCoordinator {
       this.stopPullRequestUpdater()
     }
 
-    // We don't want to run the pull request updater when the app is in
-    // the background.
-    if (!this.appIsFocused) {
-      return
-    }
-
     const { gitHubRepository } = repository
 
     if (account === null || gitHubRepository === null) {

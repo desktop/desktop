@@ -1620,6 +1620,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private startPullRequestUpdater(repository: Repository) {
+    // We don't want to run the pull request updater when the app is in
+    // the background.
+    if (!this.appIsFocused) {
+      return
+    }
+
     const account = getAccountForRepository(this.accounts, repository)
     if (account !== null) {
       this.pullRequestCoordinator.startPullRequestUpdater(repository, account)
