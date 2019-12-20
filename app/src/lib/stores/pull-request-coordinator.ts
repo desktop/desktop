@@ -33,9 +33,9 @@ export class PullRequestCoordinator {
   /** Loads all pull requests against the given repository. */
   public refreshPullRequests(repository: Repository, account: Account) {}
 
-  public startPullRequestUpdater() {
   public getAllPullRequests(repository: Repository) {}
 
+  public startPullRequestUpdater(repository: Repository, account: Account) {
     if (this.currentPullRequestUpdater) {
       this.stopPullRequestUpdater()
     }
@@ -46,7 +46,6 @@ export class PullRequestCoordinator {
       return
     }
 
-    const account = getAccountForRepository(this.accounts, repository)
     const { gitHubRepository } = repository
 
     if (account === null || gitHubRepository === null) {
