@@ -762,7 +762,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
             state.tip.kind === TipState.Valid &&
             tip.branch.name !== state.tip.branch.name
           ) {
-            console.warn(tip.branch.name, state.tip.branch.name)
             this.refreshBranchProtectionState(repository)
           }
         }
