@@ -1351,6 +1351,7 @@ export class Dispatcher {
    */
   public async relocateRepository(repository: Repository): Promise<void> {
     const window = remote.getCurrentWindow()
+    // eslint-disable-next-line no-sync
     const directories = remote.dialog.showOpenDialogSync(window, {
       properties: ['openDirectory'],
     })

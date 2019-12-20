@@ -504,6 +504,7 @@ export class CloneRepository extends React.Component<
 
   private onChooseDirectory = async () => {
     const window = remote.getCurrentWindow()
+    // eslint-disable-next-line no-sync
     const directories = remote.dialog.showOpenDialogSync(window, {
       properties: ['createDirectory', 'openDirectory'],
     })

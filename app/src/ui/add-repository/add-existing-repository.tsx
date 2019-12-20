@@ -172,6 +172,7 @@ export class AddExistingRepository extends React.Component<
 
   private showFilePicker = async () => {
     const window = remote.getCurrentWindow()
+    // eslint-disable-next-line no-sync
     const directory = remote.dialog.showOpenDialogSync(window, {
       properties: ['createDirectory', 'openDirectory'],
     })
