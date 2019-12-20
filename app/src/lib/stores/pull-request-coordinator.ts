@@ -1,4 +1,3 @@
-import { GitHubRepository } from '../../models/github-repository'
 import { Account } from '../../models/account'
 import { PullRequest } from '../../models/pull-request'
 import { Emitter } from 'event-kit'
@@ -27,7 +26,7 @@ export class PullRequestCoordinator {
 
   /** Register a function to be called when the store updates. */
   public onIsLoadingPullRequests(
-    fn: (repository: GitHubRepository, isLoadingPullRequests: boolean) => void
+    fn: (repository: Repository, isLoadingPullRequests: boolean) => void
   ) {}
 
   /** Loads all pull requests against the given repository. */

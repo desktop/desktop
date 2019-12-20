@@ -558,17 +558,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitUpdate()
     })
 
-    this.pullRequestCoordinator.onPullRequestsChanged((ghRepo, pullRequests) =>
-      this.onPullRequestChanged(ghRepo, pullRequests)
+    this.pullRequestCoordinator.onPullRequestsChanged((repo, pullRequests) =>
+      this.onPullRequestChanged(repo, pullRequests)
     )
     this.pullRequestCoordinator.onIsLoadingPullRequests(
-      (ghRepo, isLoadingPullRequests) => {
-        const repository = this.findRepositoryByGitHubRepository(ghRepo)
-
-        if (!repository) {
-          return
-        }
-
+      (repository, isLoadingPullRequests) => {
         this.repositoryStateCache.updateBranchesState(repository, () => {
           return { isLoadingPullRequests }
         })
