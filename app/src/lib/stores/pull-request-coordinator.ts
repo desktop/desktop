@@ -36,8 +36,8 @@ export class PullRequestCoordinator {
   public getAllPullRequests(repository: Repository) {}
 
   public startPullRequestUpdater(repository: Repository, account: Account) {
-    if (this.currentPullRequestUpdater) {
-      this.stopPullRequestUpdater()
+    if (this.currentPullRequestUpdater !== null) {
+      this.stopPullRequestUpdater(repository)
     }
 
     const { gitHubRepository } = repository
@@ -54,7 +54,7 @@ export class PullRequestCoordinator {
     this.currentPullRequestUpdater.start()
   }
   public stopPullRequestUpdater() {
-    if (this.currentPullRequestUpdater) {
+    if (this.currentPullRequestUpdater !== null) {
       this.currentPullRequestUpdater.stop()
       this.currentPullRequestUpdater = null
     }
