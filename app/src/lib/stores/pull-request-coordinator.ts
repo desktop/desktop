@@ -34,6 +34,8 @@ export class PullRequestCoordinator {
   public refreshPullRequests(repo: GitHubRepository, account: Account) {}
 
   public startPullRequestUpdater() {
+  public getAllPullRequests(repository: Repository) {}
+
     if (this.currentPullRequestUpdater) {
       this.stopPullRequestUpdater()
     }
