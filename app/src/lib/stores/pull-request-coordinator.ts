@@ -5,13 +5,17 @@ import { Emitter } from 'event-kit'
 import { Repository } from '../../models/repository'
 import { PullRequestStore } from '.'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
+import { RepositoriesStore } from './repositories-store'
 
 /** Layer between App Store and the Pull Request Store and Pull Request Updater */
 export class PullRequestCoordinator {
   protected readonly emitter = new Emitter()
   private currentPullRequestUpdater: PullRequestUpdater | null = null
 
-  public constructor(private readonly pullRequestStore: PullRequestStore) {}
+  public constructor(
+    private readonly pullRequestStore: PullRequestStore,
+    private readonly repositoriesStore: RepositoriesStore
+  ) {}
 
   /** Register a function to be called when the store updates. */
   public onPullRequestsChanged(

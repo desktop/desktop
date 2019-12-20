@@ -7,7 +7,7 @@ import {
   GitHubUserStore,
   GitStore,
   IssuesStore,
-  PullRequestStore,
+  PullRequestCoordinator,
   RepositoriesStore,
   SignInStore,
 } from '.'
@@ -397,7 +397,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     private readonly signInStore: SignInStore,
     private readonly accountsStore: AccountsStore,
     private readonly repositoriesStore: RepositoriesStore,
-    private readonly pullRequestStore: PullRequestStore,
+    private readonly pullRequestCoordinator: PullRequestCoordinator,
     private readonly repositoryStateCache: RepositoryStateCache,
     private readonly apiRepositoriesStore: ApiRepositoriesStore
   ) {
