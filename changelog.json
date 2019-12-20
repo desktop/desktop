@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.3.0-test1": ["Testing upgrade from Electron v5 to v6"],
     "2.2.4": [
       "[New] Warn when committing to a protected branch - #7023",
       "[New] Warn when committing to a repository you don't have write access to - #8665",
