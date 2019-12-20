@@ -818,6 +818,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  private clearBranchProtectionState(repository: Repository) {
+    this.repositoryStateCache.updateChangesState(repository, () => ({
+      currentBranchProtected: false,
+    }))
+    this.emitUpdate()
+  }
+
   private async refreshBranchProtectionState(repository: Repository) {
     if (!enableBranchProtectionWarningFlow()) {
       return
@@ -3077,6 +3084,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
           }
         )
       )) !== undefined
+
+    if (checkoutSucceeded) {
+      this.clearBranchProtectionState(repository)
+    }
 
     if (
       enableStashing() &&
