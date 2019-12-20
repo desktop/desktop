@@ -194,7 +194,6 @@ import { MergeResult } from '../../models/merge'
 import { promiseWithMinimumTimeout, timeout } from '../promise'
 import { BackgroundFetcher } from './helpers/background-fetcher'
 import { inferComparisonBranch } from './helpers/infer-comparison-branch'
-import { PullRequestUpdater } from './helpers/pull-request-updater'
 import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { RepositoryStateCache } from './repository-state-cache'
 import { readEmoji } from '../read-emoji'
@@ -307,9 +306,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** The background fetcher for the currently selected repository. */
   private currentBackgroundFetcher: BackgroundFetcher | null = null
-
-  /** The pull request updater for the currently selected repository */
-  private currentPullRequestUpdater: PullRequestUpdater | null = null
 
   /** The ahead/behind updater or the currently selected repository */
   private currentAheadBehindUpdater: AheadBehindUpdater | null = null
@@ -1624,36 +1620,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private startPullRequestUpdater(repository: Repository) {
-    if (this.currentPullRequestUpdater) {
-      this.stopPullRequestUpdater()
-    }
-
-    // We don't want to run the pull request updater when the app is in
-    // the background.
-    if (!this.appIsFocused) {
-      return
-    }
-
-    const account = getAccountForRepository(this.accounts, repository)
-    const { gitHubRepository } = repository
-
-    if (account === null || gitHubRepository === null) {
-      return
-    }
-
-    this.currentPullRequestUpdater = new PullRequestUpdater(
-      gitHubRepository,
-      account,
-      this.pullRequestStore
-    )
-    this.currentPullRequestUpdater.start()
+    // call coordinator
   }
 
   private stopPullRequestUpdater() {
-    if (this.currentPullRequestUpdater) {
-      this.currentPullRequestUpdater.stop()
-      this.currentPullRequestUpdater = null
-    }
+    // call coordinator
   }
 
   private shouldBackgroundFetch(
