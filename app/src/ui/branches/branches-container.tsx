@@ -25,7 +25,6 @@ import { startTimer } from '../lib/timing'
 import {
   UncommittedChangesStrategyKind,
   UncommittedChangesStrategy,
-  askToStash,
 } from '../../models/uncommitted-changes-strategy'
 
 interface IBranchesContainerProps {
@@ -45,6 +44,8 @@ interface IBranchesContainerProps {
   readonly isLoadingPullRequests: boolean
 
   readonly currentBranchProtected: boolean
+
+  readonly selectedUncommittedChangesStrategy: UncommittedChangesStrategy
 }
 
 interface IBranchesContainerState {
@@ -252,7 +253,7 @@ export class BranchesContainer extends React.Component<
             kind: UncommittedChangesStrategyKind.MoveToNewBranch,
             transientStashEntry: null,
           }
-        : askToStash
+        : this.props.selectedUncommittedChangesStrategy
 
       this.props.dispatcher
         .checkoutBranch(repository, branch, strategy)
