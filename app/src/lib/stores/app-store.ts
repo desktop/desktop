@@ -41,6 +41,7 @@ import {
   ILocalRepositoryState,
   nameOf,
   Repository,
+  isRepositoryWithGitHubRepository,
 } from '../../models/repository'
 import {
   CommittedFileChange,
@@ -1511,13 +1512,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<Repository | null> {
     this._refreshRepository(repository)
 
-    const gitHubRepository = repository.gitHubRepository
-
-    if (gitHubRepository !== null) {
-      this._refreshIssues(gitHubRepository)
-      this.pullRequestCoordinator.getAllPullRequests(repository).then(prs => {
-        this.onPullRequestChanged(repository, prs)
-      })
+    if (isRepositoryWithGitHubRepository(repository)) {
+      this._refreshIssues(repository.gitHubRepository)
+      this.pullRequestCoordinator
+        .getAllPullRequests(repository)
+        .then(prs => {
+          this.onPullRequestChanged(repository, prs)
+        })
     }
 
     // The selected repository could have changed while we were refreshing.
@@ -1620,9 +1621,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const account = getAccountForRepository(this.accounts, repository)
-    if (account !== null) {
-      this.pullRequestCoordinator.startPullRequestUpdater(repository, account)
+    if (isRepositoryWithGitHubRepository(repository)) {
+      const account = getAccountForRepository(this.accounts, repository)
+      if (account !== null) {
+        this.pullRequestCoordinator.startPullRequestUpdater(
+          repository,
+          account
+        )
+      }
     }
   }
 
@@ -5031,14 +5037,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _refreshPullRequests(repository: Repository): Promise<void> {
-    const account = getAccountForRepository(this.accounts, repository)
-    const { gitHubRepository } = repository
-
-    if (gitHubRepository === null || account === null) {
-      return
+    if (isRepositoryWithGitHubRepository(repository)) {
+      const account = getAccountForRepository(this.accounts, repository)
+      if (account !== null) {
+        await this.pullRequestCoordinator.refreshPullRequests(
+          repository,
+          account
+        )
+      }      
     }
-
-    await this.pullRequestCoordinator.refreshPullRequests(repository, account)
   }
 
   private async onPullRequestChanged(
