@@ -77,6 +77,20 @@ export type LinkedWorkTree = WorkingTree & {
   readonly head: string
 }
 
+/** Identical to `Repository`, except it **must** have a `gitHubRepository` */
+export type RepositoryWithGitHubRepository = Repository & {
+  readonly gitHubRepository: GitHubRepository
+}
+
+export function isRepositoryWithGitHubRepository(
+  repository: Repository
+): repository is RepositoryWithGitHubRepository {
+  return (
+    repository.gitHubRepository !== null &&
+    repository.gitHubRepository !== undefined
+  )
+}
+
 /**
  * A snapshot for the local state for a given repository
  */
