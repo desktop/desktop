@@ -1,4 +1,5 @@
 import { IStashEntry } from './stash-entry'
+import { assertNever } from '../lib/fatal-error'
 
 export enum UncommittedChangesStrategyKind {
   AskForConfirmation = 'AskForConfirmation',
@@ -22,4 +23,26 @@ export const askToStash: UncommittedChangesStrategy = {
 }
 export const stashOnCurrentBranch: UncommittedChangesStrategy = {
   kind: UncommittedChangesStrategyKind.StashOnCurrentBranch,
+}
+export const moveToNewBranch: UncommittedChangesStrategy = {
+  kind: UncommittedChangesStrategyKind.MoveToNewBranch,
+  transientStashEntry: null,
+}
+
+export function getUncommittedChangesStrategy(
+  kind: UncommittedChangesStrategyKind
+) {
+  switch (kind) {
+    case UncommittedChangesStrategyKind.AskForConfirmation:
+      return askToStash
+    case UncommittedChangesStrategyKind.MoveToNewBranch:
+      return moveToNewBranch
+    case UncommittedChangesStrategyKind.StashOnCurrentBranch:
+      return stashOnCurrentBranch
+    default:
+      return assertNever(
+        kind,
+        `Unknown UncommittedChangesStrategyKind: ${kind}`
+      )
+  }
 }
