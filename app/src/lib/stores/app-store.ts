@@ -236,6 +236,7 @@ import {
   UncommittedChangesStrategy,
   UncommittedChangesStrategyKind,
   uncommittedChangesStrategyKindDefault,
+  getUncommittedChangesStrategy,
   askToStash,
 } from '../../models/uncommitted-changes-strategy'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
@@ -2963,7 +2964,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     name: string,
     startPoint: string | null,
-    uncommittedChangesStrategy: UncommittedChangesStrategy = askToStash
+    uncommittedChangesStrategy: UncommittedChangesStrategy = getUncommittedChangesStrategy(
+      this.uncommittedChangesStrategyKind
+    )
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
     const branch = await gitStore.performFailableOperation(() =>
@@ -3033,7 +3036,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _checkoutBranch(
     repository: Repository,
     branch: Branch | string,
-    uncommittedChangesStrategy: UncommittedChangesStrategy = askToStash
+    uncommittedChangesStrategy: UncommittedChangesStrategy = getUncommittedChangesStrategy(
+      this.uncommittedChangesStrategyKind
+    )
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
     const kind = 'checkout'
@@ -3153,7 +3158,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async stashToPopAfterBranchCheckout(
     repository: Repository,
     branch: Branch,
-    uncommittedChangesStrategy: UncommittedChangesStrategy = askToStash
+    uncommittedChangesStrategy: UncommittedChangesStrategy = getUncommittedChangesStrategy(
+      this.uncommittedChangesStrategyKind
+    )
   ): Promise<IStashEntry | null> {
     const {
       changesState,
