@@ -62,7 +62,15 @@ export class PullRequestCoordinator {
   }
 
   /** Loads all pull requests against the given repository. */
-  public refreshPullRequests(repository: Repository, account: Account) {}
+  public refreshPullRequests(
+    repository: RepositoryWithGitHubRepository,
+    account: Account
+  ) {
+    return this.pullRequestStore.refreshPullRequests(
+      repository.gitHubRepository,
+      account
+    )
+  }
 
   public getAllPullRequests(repository: RepositoryWithGitHubRepository) {
     return this.pullRequestStore.getAll(repository.gitHubRepository)
