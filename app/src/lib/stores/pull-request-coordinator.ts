@@ -1,6 +1,5 @@
 import { Account } from '../../models/account'
 import { PullRequest } from '../../models/pull-request'
-import { Emitter } from 'event-kit'
 import {
   RepositoryWithGitHubRepository,
   isRepositoryWithGitHubRepository,
@@ -13,7 +12,6 @@ import { GitHubRepository } from '../../models/github-repository'
 
 /** Layer between App Store and the Pull Request Store and Pull Request Updater */
 export class PullRequestCoordinator {
-  protected readonly emitter = new Emitter()
   private currentPullRequestUpdater: PullRequestUpdater | null = null
 
   public constructor(
