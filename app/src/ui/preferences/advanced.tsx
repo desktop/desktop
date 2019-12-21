@@ -4,16 +4,21 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { LinkButton } from '../lib/link-button'
 import { Row } from '../../ui/lib/row'
 import { SamplesURL } from '../../lib/stats'
+import { UncommittedChangesStrategyKind } from '../../models/uncommitted-changes-strategy'
 
 interface IAdvancedPreferencesProps {
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
+  readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
   readonly onOptOutofReportingchanged: (checked: boolean) => void
   readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
   readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
   readonly onConfirmForcePushChanged: (checked: boolean) => void
+  readonly onUncommittedChangesStrategyKindChanged: (
+    value: UncommittedChangesStrategyKind
+  ) => void
 }
 
 interface IAdvancedPreferencesState {
@@ -21,6 +26,7 @@ interface IAdvancedPreferencesState {
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
+  readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
 }
 
 export class Advanced extends React.Component<
@@ -35,6 +41,7 @@ export class Advanced extends React.Component<
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
       confirmForcePush: this.props.confirmForcePush,
+      uncommittedChangesStrategyKind: this.props.uncommittedChangesStrategyKind,
     }
   }
 
@@ -74,6 +81,15 @@ export class Advanced extends React.Component<
     this.props.onConfirmRepositoryRemovalChanged(value)
   }
 
+  private onUncommittedChangesStrategyKindChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.value as UncommittedChangesStrategyKind
+
+    this.setState({ uncommittedChangesStrategyKind: value })
+    this.props.onUncommittedChangesStrategyKindChanged(value)
+  }
+
   private reportDesktopUsageLabel() {
     return (
       <span>
@@ -88,18 +104,47 @@ export class Advanced extends React.Component<
       <DialogContent>
         <h2>If I have changes and I switch branches...</h2>
         <Row>
-          <input type="radio" id="ask" value="ask" checked />
-          <label htmlFor="ask">Ask me where I want the changes to go</label>
+          <input
+            type="radio"
+            id={UncommittedChangesStrategyKind.AskForConfirmation}
+            value={UncommittedChangesStrategyKind.AskForConfirmation}
+            checked={
+              this.state.uncommittedChangesStrategyKind ===
+              UncommittedChangesStrategyKind.AskForConfirmation
+            }
+            onChange={this.onUncommittedChangesStrategyKindChanged}
+          />
+          <label htmlFor={UncommittedChangesStrategyKind.AskForConfirmation}>
+            Ask me where I want the changes to go
+          </label>
         </Row>
         <Row>
-          <input type="radio" id="bring" value="bring" />
-          <label htmlFor="bring">
+          <input
+            type="radio"
+            id={UncommittedChangesStrategyKind.MoveToNewBranch}
+            value={UncommittedChangesStrategyKind.MoveToNewBranch}
+            checked={
+              this.state.uncommittedChangesStrategyKind ===
+              UncommittedChangesStrategyKind.MoveToNewBranch
+            }
+            onChange={this.onUncommittedChangesStrategyKindChanged}
+          />
+          <label htmlFor={UncommittedChangesStrategyKind.MoveToNewBranch}>
             Always bring my changes to my new branch
           </label>
         </Row>
         <Row>
-          <input type="radio" id="stash" value="stash" />
-          <label htmlFor="stash">
+          <input
+            type="radio"
+            id={UncommittedChangesStrategyKind.StashOnCurrentBranch}
+            value={UncommittedChangesStrategyKind.StashOnCurrentBranch}
+            checked={
+              this.state.uncommittedChangesStrategyKind ===
+              UncommittedChangesStrategyKind.StashOnCurrentBranch
+            }
+            onChange={this.onUncommittedChangesStrategyKindChanged}
+          />
+          <label htmlFor={UncommittedChangesStrategyKind.StashOnCurrentBranch}>
             Always stash and leave my changes on the current branch
           </label>
         </Row>

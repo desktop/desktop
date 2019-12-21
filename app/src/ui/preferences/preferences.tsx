@@ -23,6 +23,10 @@ import { Appearance } from './appearance'
 import { ApplicationTheme } from '../lib/application-theme'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Integrations } from './integrations'
+import {
+  UncommittedChangesStrategyKind,
+  uncommittedChangesStrategyKindDefault,
+} from '../../models/uncommitted-changes-strategy'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -34,6 +38,7 @@ interface IPreferencesProps {
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
+  readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
   readonly selectedExternalEditor: ExternalEditor | null
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
@@ -50,6 +55,7 @@ interface IPreferencesState {
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
   readonly automaticallySwitchTheme: boolean
+  readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
   readonly availableEditors: ReadonlyArray<ExternalEditor>
   readonly selectedExternalEditor: ExternalEditor | null
   readonly availableShells: ReadonlyArray<Shell>
@@ -75,6 +81,7 @@ export class Preferences extends React.Component<
       confirmRepositoryRemoval: false,
       confirmDiscardChanges: false,
       confirmForcePush: false,
+      uncommittedChangesStrategyKind: uncommittedChangesStrategyKindDefault,
       automaticallySwitchTheme: false,
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
@@ -123,6 +130,7 @@ export class Preferences extends React.Component<
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
       confirmForcePush: this.props.confirmForcePush,
+      uncommittedChangesStrategyKind: this.props.uncommittedChangesStrategyKind,
       availableShells,
       availableEditors,
       mergeTool,
@@ -234,12 +242,18 @@ export class Preferences extends React.Component<
             confirmRepositoryRemoval={this.state.confirmRepositoryRemoval}
             confirmDiscardChanges={this.state.confirmDiscardChanges}
             confirmForcePush={this.state.confirmForcePush}
+            uncommittedChangesStrategyKind={
+              this.state.uncommittedChangesStrategyKind
+            }
             onOptOutofReportingchanged={this.onOptOutofReportingChanged}
             onConfirmRepositoryRemovalChanged={
               this.onConfirmRepositoryRemovalChanged
             }
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
             onConfirmForcePushChanged={this.onConfirmForcePushChanged}
+            onUncommittedChangesStrategyKindChanged={
+              this.onUncommittedChangesStrategyKindChanged
+            }
           />
         )
       }
@@ -262,6 +276,12 @@ export class Preferences extends React.Component<
 
   private onConfirmForcePushChanged = (value: boolean) => {
     this.setState({ confirmForcePush: value })
+  }
+
+  private onUncommittedChangesStrategyKindChanged = (
+    value: UncommittedChangesStrategyKind
+  ) => {
+    this.setState({ uncommittedChangesStrategyKind: value })
   }
 
   private onCommitterNameChanged = (committerName: string) => {
@@ -345,6 +365,10 @@ export class Preferences extends React.Component<
     await this.props.dispatcher.setShell(this.state.selectedShell)
     await this.props.dispatcher.setConfirmDiscardChangesSetting(
       this.state.confirmDiscardChanges
+    )
+
+    await this.props.dispatcher.setUncommittedChangesStrategyKindSetting(
+      this.state.uncommittedChangesStrategyKind
     )
 
     const mergeTool = this.state.mergeTool

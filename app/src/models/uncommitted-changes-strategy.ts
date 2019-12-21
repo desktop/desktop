@@ -6,6 +6,9 @@ export enum UncommittedChangesStrategyKind {
   MoveToNewBranch = 'MoveToNewBranch',
 }
 
+export const uncommittedChangesStrategyKindDefault: UncommittedChangesStrategyKind =
+  UncommittedChangesStrategyKind.AskForConfirmation
+
 export type UncommittedChangesStrategy =
   | { kind: UncommittedChangesStrategyKind.AskForConfirmation }
   | { kind: UncommittedChangesStrategyKind.StashOnCurrentBranch }

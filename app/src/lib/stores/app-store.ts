@@ -235,6 +235,7 @@ import {
 import {
   UncommittedChangesStrategy,
   UncommittedChangesStrategyKind,
+  uncommittedChangesStrategyKindDefault,
   askToStash,
 } from '../../models/uncommitted-changes-strategy'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
@@ -277,6 +278,9 @@ const askForConfirmationOnForcePushDefault = true
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
 const confirmForcePushKey: string = 'confirmForcePush'
+
+const uncommittedChangesStrategyKindKey: string =
+  'uncommittedChangesStrategyKind'
 
 const externalEditorKey: string = 'externalEditor'
 
@@ -360,6 +364,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
   private hideWhitespaceInDiff: boolean = hideWhitespaceInDiffDefault
+
+  private uncommittedChangesStrategyKind: UncommittedChangesStrategyKind = uncommittedChangesStrategyKindDefault
 
   private selectedExternalEditor: ExternalEditor | null = null
 
@@ -702,6 +708,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         .askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
       askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
+      uncommittedChangesStrategyKind: this.uncommittedChangesStrategyKind,
       selectedExternalEditor: this.selectedExternalEditor,
       imageDiffType: this.imageDiffType,
       hideWhitespaceInDiff: this.hideWhitespaceInDiff,
@@ -1774,6 +1781,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       confirmForcePushKey,
       askForConfirmationOnForcePushDefault
     )
+
+    const strategy = localStorage.getItem(
+      uncommittedChangesStrategyKindKey
+    ) as UncommittedChangesStrategyKind
+    this.uncommittedChangesStrategyKind =
+      strategy || uncommittedChangesStrategyKindDefault
 
     this.updateSelectedExternalEditor(
       await this.lookupSelectedExternalEditor()
@@ -4422,6 +4435,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.emitUpdate()
 
+    return Promise.resolve()
+  }
+
+  public _setUncommittedChangesStrategyKindSetting(
+    value: UncommittedChangesStrategyKind
+  ): Promise<void> {
+    this.uncommittedChangesStrategyKind = value
+
+    localStorage.setItem(uncommittedChangesStrategyKindKey, value)
+
+    // Do we need to do this?
+    // this.updateMenuLabelsForSelectedRepository()
+
+    this.emitUpdate()
     return Promise.resolve()
   }
 
