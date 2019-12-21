@@ -43,8 +43,23 @@ export class PullRequestCoordinator {
 
   /** Register a function to be called when the store updates. */
   public onIsLoadingPullRequests(
-    fn: (repository: Repository, isLoadingPullRequests: boolean) => void
-  ) {}
+    fn: (
+      repository: RepositoryWithGitHubRepository,
+      isLoadingPullRequests: boolean
+    ) => void
+  ) {
+    return this.pullRequestStore.onIsLoadingPullRequests(
+      async (ghRepo, pullRequests) => {
+        const repository = findRepositoryForGitHubRepository(
+          ghRepo,
+          await this.repositoriesStore.getAll()
+        )
+        if (repository !== undefined) {
+          fn(repository, pullRequests)
+        }
+      }
+    )
+  }
 
   /** Loads all pull requests against the given repository. */
   public refreshPullRequests(repository: Repository, account: Account) {}
