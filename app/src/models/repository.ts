@@ -85,10 +85,7 @@ export type RepositoryWithGitHubRepository = Repository & {
 export function isRepositoryWithGitHubRepository(
   repository: Repository
 ): repository is RepositoryWithGitHubRepository {
-  return (
-    repository.gitHubRepository !== null &&
-    repository.gitHubRepository !== undefined
-  )
+  return repository.gitHubRepository instanceof GitHubRepository
 }
 
 /**
