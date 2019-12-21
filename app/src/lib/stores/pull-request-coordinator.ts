@@ -76,19 +76,16 @@ export class PullRequestCoordinator {
     return this.pullRequestStore.getAll(repository.gitHubRepository)
   }
 
-  public startPullRequestUpdater(repository: Repository, account: Account) {
+  public startPullRequestUpdater(
+    repository: RepositoryWithGitHubRepository,
+    account: Account
+  ) {
     if (this.currentPullRequestUpdater !== null) {
       this.stopPullRequestUpdater()
     }
 
-    const { gitHubRepository } = repository
-
-    if (account === null || gitHubRepository === null) {
-      return
-    }
-
     this.currentPullRequestUpdater = new PullRequestUpdater(
-      gitHubRepository,
+      repository.gitHubRepository,
       account,
       this.pullRequestStore
     )
