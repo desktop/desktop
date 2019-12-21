@@ -1,10 +1,15 @@
 import { Account } from '../../models/account'
 import { PullRequest } from '../../models/pull-request'
 import { Emitter } from 'event-kit'
-import { Repository } from '../../models/repository'
+import {
+  RepositoryWithGitHubRepository,
+  isRepositoryWithGitHubRepository,
+  Repository,
+} from '../../models/repository'
 import { PullRequestStore } from '.'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
 import { RepositoriesStore } from './repositories-store'
+import { GitHubRepository } from '../../models/github-repository'
 
 /** Layer between App Store and the Pull Request Store and Pull Request Updater */
 export class PullRequestCoordinator {
@@ -19,10 +24,22 @@ export class PullRequestCoordinator {
   /** Register a function to be called when the store updates. */
   public onPullRequestsChanged(
     fn: (
-      repository: Repository,
+      repository: RepositoryWithGitHubRepository,
       pullRequests: ReadonlyArray<PullRequest>
     ) => void
-  ) {}
+  ) {
+    return this.pullRequestStore.onPullRequestsChanged(
+      async (ghRepo, pullRequests) => {
+        const repository = findRepositoryForGitHubRepository(
+          ghRepo,
+          await this.repositoriesStore.getAll()
+        )
+        if (repository !== undefined) {
+          fn(repository, pullRequests)
+        }
+      }
+    )
+  }
 
   /** Register a function to be called when the store updates. */
   public onIsLoadingPullRequests(
@@ -58,4 +75,18 @@ export class PullRequestCoordinator {
       this.currentPullRequestUpdater = null
     }
   }
+}
+
+function findRepositoryForGitHubRepository(
+  gitHubRepository: GitHubRepository,
+  repositories: ReadonlyArray<Repository>
+) {
+  const repo = repositories.find(
+    r =>
+      r.gitHubRepository !== null &&
+      r.gitHubRepository.dbID === gitHubRepository.dbID
+  )
+  return repo !== undefined && isRepositoryWithGitHubRepository(repo)
+    ? repo
+    : undefined
 }
