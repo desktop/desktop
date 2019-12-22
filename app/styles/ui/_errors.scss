@@ -5,4 +5,6 @@
   color: var(--error-color);
   font-size: var(--font-size-sm);
   padding: var(--spacing-half);
+  cursor: text;
+  user-select: text;
 }
