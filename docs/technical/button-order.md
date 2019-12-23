@@ -4,7 +4,7 @@ Since this version of Desktop was released, it has been particularly difficult t
 
 Windows and macOS have different approaches when it comes to positioning standard action buttons (such as Ok/Cancel) in dialogs.
 
-On Windows, the default order is to put the affirmitive action on the left side of dismissal button (Ok, Cancel) whereas macOS does the exact opposite (Cancel, Ok.). See [OK-Cancel or Cancel-OK? The Trouble With Buttons](https://www.nngroup.com/articles/ok-cancel-or-cancel-ok/) for an overview of these differences.
+On Windows, the default order is to put the affirmative action on the left side of dismissal button (Ok, Cancel) whereas macOS does the exact opposite (Cancel, Ok.). See [OK-Cancel or Cancel-OK? The Trouble With Buttons](https://www.nngroup.com/articles/ok-cancel-or-cancel-ok/) for an overview of these differences.
 
 We think it's important for GitHub Desktop to adhere to these platform-specific conventions in the vast majority of cases because users often rely on muscle memory when reacting to a dialog.
 

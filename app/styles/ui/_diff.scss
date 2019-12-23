@@ -27,7 +27,8 @@
     padding: 0;
   }
 
-  &-line {
+  pre.CodeMirror-line,
+  pre.CodeMirror-line-like {
     padding: 2px 0 2px var(--spacing-half);
 
     svg.no-newline {
