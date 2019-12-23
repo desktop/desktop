@@ -99,7 +99,7 @@ export function enableWSLDetection(): boolean {
  * flag is linked to to `enableBranchProtectionChecks()`.
  */
 export function enableBranchProtectionWarningFlow(): boolean {
-  return enableBranchProtectionChecks() && enableBetaFeatures()
+  return true
 }
 
 export function enableHideWhitespaceInDiffOption(): boolean {
