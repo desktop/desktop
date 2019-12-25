@@ -1,4 +1,11 @@
 #preferences {
+  .preferences-container {
+    display: flex;
+    .tab-container {
+      border-left: 1px solid var(--box-border-color);
+    }
+  }
+
   .accounts-tab {
     .account-info {
       .avatar {

@@ -3,7 +3,7 @@ import { Account } from '../../models/account'
 import { PreferencesTab } from '../../models/preferences'
 import { ExternalEditor } from '../../lib/editors'
 import { Dispatcher } from '../dispatcher'
-import { TabBar } from '../tab-bar'
+import { TabBar, TabBarType } from '../tab-bar'
 import { Accounts } from './accounts'
 import { Advanced } from './advanced'
 import { Git } from './git'
@@ -145,19 +145,22 @@ export class Preferences extends React.Component<
         onDismissed={this.props.onDismissed}
         onSubmit={this.onSave}
       >
-        {this.renderDisallowedCharactersError()}
-        <TabBar
-          onTabClicked={this.onTabClicked}
-          selectedIndex={this.state.selectedIndex}
-        >
-          <span>Accounts</span>
-          <span>Integrations</span>
-          <span>Git</span>
-          <span>Appearance</span>
-          <span>Advanced</span>
-        </TabBar>
+        <div className="preferences-container">
+          {this.renderDisallowedCharactersError()}
+          <TabBar
+            onTabClicked={this.onTabClicked}
+            selectedIndex={this.state.selectedIndex}
+            type={TabBarType.Vertical}
+          >
+            <span>Accounts</span>
+            <span>Integrations</span>
+            <span>Git</span>
+            <span>Appearance</span>
+            <span>Advanced</span>
+          </TabBar>
 
-        {this.renderActiveTab()}
+          {this.renderActiveTab()}
+        </div>
         {this.renderFooter()}
       </Dialog>
     )
@@ -188,9 +191,10 @@ export class Preferences extends React.Component<
 
   private renderActiveTab() {
     const index = this.state.selectedIndex
+    let View
     switch (index) {
       case PreferencesTab.Accounts:
-        return (
+        View = (
           <Accounts
             dotComAccount={this.props.dotComAccount}
             enterpriseAccount={this.props.enterpriseAccount}
@@ -199,8 +203,9 @@ export class Preferences extends React.Component<
             onLogout={this.onLogout}
           />
         )
+        break
       case PreferencesTab.Integrations: {
-        return (
+        View = (
           <Integrations
             availableEditors={this.state.availableEditors}
             selectedExternalEditor={this.state.selectedExternalEditor}
@@ -213,9 +218,10 @@ export class Preferences extends React.Component<
             onMergeToolNameChanged={this.onMergeToolNameChanged}
           />
         )
+        break
       }
       case PreferencesTab.Git: {
-        return (
+        View = (
           <Git
             name={this.state.committerName}
             email={this.state.committerEmail}
@@ -223,9 +229,10 @@ export class Preferences extends React.Component<
             onEmailChanged={this.onCommitterEmailChanged}
           />
         )
+        break
       }
       case PreferencesTab.Appearance:
-        return (
+        View = (
           <Appearance
             selectedTheme={this.props.selectedTheme}
             onSelectedThemeChanged={this.onSelectedThemeChanged}
@@ -235,8 +242,9 @@ export class Preferences extends React.Component<
             }
           />
         )
+        break
       case PreferencesTab.Advanced: {
-        return (
+        View = (
           <Advanced
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             confirmRepositoryRemoval={this.state.confirmRepositoryRemoval}
@@ -256,10 +264,13 @@ export class Preferences extends React.Component<
             }
           />
         )
+        break
       }
       default:
         return assertNever(index, `Unknown tab index: ${index}`)
     }
+
+    return <div className="tab-container">{View}</div>
   }
 
   private onOptOutofReportingChanged = (value: boolean) => {

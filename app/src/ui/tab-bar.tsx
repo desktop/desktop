@@ -8,6 +8,9 @@ export enum TabBarType {
 
   /** Simpler switch appearance */
   Switch,
+
+  /** Vertical tabs */
+  Vertical,
 }
 
 interface ITabBarProps {
@@ -30,11 +33,17 @@ export class TabBar extends React.Component<ITabBarProps, {}> {
   private readonly tabRefsByIndex = new Map<number, HTMLButtonElement>()
 
   public render() {
+    const { type } = this.props
+
     return (
       <div
         className={
           'tab-bar ' +
-          (this.props.type === TabBarType.Switch ? 'switch' : 'tabs')
+          (type === TabBarType.Switch
+            ? 'switch'
+            : type === TabBarType.Vertical
+            ? 'vertical'
+            : 'tabs')
         }
         role="tablist"
       >
