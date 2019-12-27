@@ -36,13 +36,15 @@ export async function updateRef(
 export async function deleteRef(
   repository: Repository,
   ref: string,
-  reason: string
+  reason: string | undefined
 ): Promise<true | undefined> {
-  const result = await git(
-    ['update-ref', '-m', reason, '-d', ref],
-    repository.path,
-    'deleteRef'
-  )
+  const args = ['update-ref', '-d', ref]
+
+  if (reason !== undefined) {
+    args.push('-m', reason)
+  }
+
+  const result = await git(args, repository.path, 'deleteRef')
 
   if (result.exitCode === 0) {
     return true
