@@ -1,4 +1,4 @@
-import { git, gitNetworkArguments, GitError } from './core'
+import { git, gitNetworkArguments } from './core'
 import { getBranches } from './for-each-ref'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType } from '../../models/branch'
@@ -6,6 +6,7 @@ import { IGitAccount } from '../../models/git-account'
 import { envForAuthentication } from './authentication'
 import { formatAsLocalRef } from './refs'
 import { deleteRef } from './update-ref'
+import { GitError as DugiteError } from 'dugite'
 
 /**
  * Create a new branch from the given start point.
@@ -84,23 +85,20 @@ export async function deleteBranch(
       `:${branch.nameWithoutRemote}`,
     ]
 
-    const opts = { env: envForAuthentication(account) }
+    // If the user is not authenticated, the push is going to fail
+    // Let this propagate and leave it to the caller to handle
+    const result = await git(args, repository.path, 'deleteRemoteBranch', {
+      env: envForAuthentication(account),
+      expectedErrors: new Set<DugiteError>([DugiteError.BranchDeletionFailed]),
+    })
 
-    try {
-      // If the user is not authenticated, the push is going to fail
-      // Let this propagate and leave it to the caller to handle
-      await git(args, repository.path, 'deleteRemoteBranch', opts)
-    } catch (err) {
+    if (result.gitError === DugiteError.BranchDeletionFailed) {
       // It's possible that the delete failed because the ref
       // has already been deleted on the remote. If we can identify
       // that specific error we can safely remote our remote ref
       // which is what would happen if the push didn't fail.
-      if (isRemoteRefDoesntExistPushError(err, branch.nameWithoutRemote)) {
-        const ref = `refs/remotes/${remote}/${branch.nameWithoutRemote}`
-        await deleteRef(repository, ref)
-      } else {
-        throw err
-      }
+      const ref = `refs/remotes/${remote}/${branch.nameWithoutRemote}`
+      await deleteRef(repository, ref)
     }
   }
 
@@ -186,30 +184,4 @@ export async function getMergedBranches(
   }
 
   return mergedBranches
-}
-
-/**
- * Returns true if the provided `err` parameter is a Dugite GitError
- * indicating that a push failed due to the `ref` reference not
- * existing on the remote.
- */
-function isRemoteRefDoesntExistPushError(err: any, ref: string) {
-  if (!(err instanceof GitError)) {
-    return false
-  }
-
-  const { stderr } = err.result
-  if (!/^error: failed to push some refs to '.*?'$/m.test(stderr)) {
-    return false
-  }
-
-  const refRe = /^error: unable to delete '(.*?)': remote ref does not exist$/gm
-  let match: RegExpMatchArray | null
-  while ((match = refRe.exec(stderr)) !== null) {
-    if (match[1] === ref) {
-      return true
-    }
-  }
-
-  return false
 }
