@@ -107,31 +107,6 @@ export async function deleteBranch(
   return true
 }
 
-async function checkIfBranchExistsOnRemote(
-  repository: Repository,
-  branch: Branch,
-  account: IGitAccount | null,
-  remote: string
-): Promise<boolean> {
-  const networkArguments = await gitNetworkArguments(repository, account)
-
-  const args = [
-    ...networkArguments,
-    'ls-remote',
-    '--heads',
-    remote,
-    branch.nameWithoutRemote,
-  ]
-  const opts = { env: envForAuthentication(account) }
-  const result = await git(
-    args,
-    repository.path,
-    'checkRemoteBranchExistence',
-    opts
-  )
-  return result.stdout.length > 0
-}
-
 /**
  * Finds branches that have a tip equal to the given committish
  *
