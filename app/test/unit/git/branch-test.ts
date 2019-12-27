@@ -202,6 +202,7 @@ describe('git/branch', () => {
       await deleteBranch(fork, localBranch, null, true)
 
       expect(await getBranches(fork, localRef)).toBeArrayOfSize(0)
+      expect(await getBranches(fork, remoteRef)).toBeArrayOfSize(0)
       expect(await getBranches(repository, localRef)).toBeArrayOfSize(0)
     })
   })
