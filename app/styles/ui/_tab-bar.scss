@@ -148,7 +148,8 @@
     // in so far that it doesn't have an active selection state, just a selected
     // one.
     &.selected {
-      font-weight: var(--font-weight-semibold);
+      background-color: var(--tab-bar-active-color);
+      color: var(--box-selected-active-text-color);
     }
   }
 }
