@@ -13,7 +13,12 @@ import {
 } from '../../../src/models/tip'
 import { GitStore } from '../../../src/lib/stores'
 import { GitProcess } from 'dugite'
-import { getBranchesPointedAt, createBranch } from '../../../src/lib/git'
+import {
+  getBranchesPointedAt,
+  createBranch,
+  deleteBranch,
+  getBranches,
+} from '../../../src/lib/git'
 
 describe('git/branch', () => {
   describe('tip', () => {
@@ -144,6 +149,28 @@ describe('git/branch', () => {
         expect(branches).toContain('other-branch')
         expect(branches).toContain('master')
       })
+    })
+  })
+
+  describe('deleteBranch', () => {
+    let repository: Repository
+
+    beforeEach(async () => {
+      const path = await setupFixtureRepository('test-repo')
+      repository = new Repository(path, -1, null, false)
+    })
+
+    it('deletes local branches', async () => {
+      const name = 'test-branch'
+      const branch = await createBranch(repository, name, null)
+      const ref = `refs/heads/${name}`
+
+      expect(branch).not.toBeNull()
+      expect(await getBranches(repository, ref)).toBeArrayOfSize(1)
+
+      await deleteBranch(repository, branch!, null, false)
+
+      expect(await getBranches(repository, ref)).toBeArrayOfSize(0)
     })
   })
 })
