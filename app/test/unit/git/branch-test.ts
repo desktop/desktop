@@ -2,6 +2,7 @@ import { shell } from '../../helpers/test-app-shell'
 import {
   setupEmptyRepository,
   setupFixtureRepository,
+  setupLocalForkOfRepository,
 } from '../../helpers/repositories'
 
 import { Repository } from '../../../src/models/repository'
@@ -18,6 +19,8 @@ import {
   createBranch,
   deleteBranch,
   getBranches,
+  git,
+  checkoutBranch,
 } from '../../../src/lib/git'
 
 describe('git/branch', () => {
@@ -171,6 +174,35 @@ describe('git/branch', () => {
       await deleteBranch(repository, branch!, null, false)
 
       expect(await getBranches(repository, ref)).toBeArrayOfSize(0)
+    })
+
+    it('deletes remote branches', async () => {
+      const name = 'test-branch'
+      const branch = await createBranch(repository, name, null)
+      const localRef = `refs/heads/${name}`
+
+      expect(branch).not.toBeNull()
+      expect(await getBranches(repository, localRef)).toBeArrayOfSize(1)
+
+      const fork = await setupLocalForkOfRepository(repository)
+
+      const remoteRef = `refs/remotes/origin/${name}`
+      const [remoteBranch] = await getBranches(fork, remoteRef)
+      expect(remoteBranch).not.toBeUndefined()
+
+      await checkoutBranch(fork, null, remoteBranch)
+      await git(['checkout', '-'], fork.path, 'checkoutPrevious')
+
+      expect(await getBranches(fork, localRef)).toBeArrayOfSize(1)
+      expect(await getBranches(repository, localRef)).toBeArrayOfSize(1)
+
+      const [localBranch] = await getBranches(fork, localRef)
+      expect(localBranch).not.toBeUndefined()
+
+      await deleteBranch(fork, localBranch, null, true)
+
+      expect(await getBranches(fork, localRef)).toBeArrayOfSize(0)
+      expect(await getBranches(repository, localRef)).toBeArrayOfSize(0)
     })
   })
 })
