@@ -151,5 +151,10 @@
       background-color: var(--tab-bar-active-color);
       color: var(--box-selected-active-text-color);
     }
+
+    .icon {
+      vertical-align: bottom;
+      margin-right: var(--spacing-half);
+    }
   }
 }
