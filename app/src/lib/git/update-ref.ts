@@ -37,7 +37,6 @@ export async function deleteRef(
   repository: Repository,
   ref: string,
   reason: string | undefined
-): Promise<true> {
   const args = ['update-ref', '-d', ref]
 
   if (reason !== undefined) {
@@ -45,6 +44,4 @@ export async function deleteRef(
   }
 
   await git(args, repository.path, 'deleteRef')
-
-  return true
 }
