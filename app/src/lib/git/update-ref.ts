@@ -36,7 +36,8 @@ export async function updateRef(
 export async function deleteRef(
   repository: Repository,
   ref: string,
-  reason: string | undefined
+  reason?: string
+) {
   const args = ['update-ref', '-d', ref]
 
   if (reason !== undefined) {
