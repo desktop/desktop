@@ -27,6 +27,7 @@ import {
   UncommittedChangesStrategyKind,
   uncommittedChangesStrategyKindDefault,
 } from '../../models/uncommitted-changes-strategy'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -152,11 +153,26 @@ export class Preferences extends React.Component<
             selectedIndex={this.state.selectedIndex}
             type={TabBarType.Vertical}
           >
-            <span>Accounts</span>
-            <span>Integrations</span>
-            <span>Git</span>
-            <span>Appearance</span>
-            <span>Advanced</span>
+            <span>
+              <Octicon className="icon" symbol={OcticonSymbol.home} />
+              Accounts
+            </span>
+            <span>
+              <Octicon className="icon" symbol={OcticonSymbol.person} />
+              Integrations
+            </span>
+            <span>
+              <Octicon className="icon" symbol={OcticonSymbol.gitCommit} />
+              Git
+            </span>
+            <span>
+              <Octicon className="icon" symbol={OcticonSymbol.paintcan} />
+              Appearance
+            </span>
+            <span>
+              <Octicon className="icon" symbol={OcticonSymbol.settings} />
+              Advanced
+            </span>
           </TabBar>
 
           {this.renderActiveTab()}
