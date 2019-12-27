@@ -129,7 +129,7 @@
     cursor: pointer;
     border: none;
     box-shadow: none;
-    border-radius: 0;
+    border-radius: var(--border-radius);
     color: var(--text-color);
     background: var(--background-color);
     font-family: var(--font-family-sans-serif);
