@@ -92,11 +92,11 @@ export async function deleteBranch(
       expectedErrors: new Set<DugiteError>([DugiteError.BranchDeletionFailed]),
     })
 
+    // It's possible that the delete failed because the ref has already
+    // been deleted on the remote. If we can identify that specific
+    // error we can safely remote our remote ref which is what would
+    // happen if the push didn't fail.
     if (result.gitError === DugiteError.BranchDeletionFailed) {
-      // It's possible that the delete failed because the ref
-      // has already been deleted on the remote. If we can identify
-      // that specific error we can safely remote our remote ref
-      // which is what would happen if the push didn't fail.
       const ref = `refs/remotes/${remote}/${branch.nameWithoutRemote}`
       await deleteRef(repository, ref)
     }
