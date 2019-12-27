@@ -3,6 +3,7 @@
     display: flex;
     .tab-container {
       border-left: 1px solid var(--box-border-color);
+      flex: 1;
     }
   }
 
