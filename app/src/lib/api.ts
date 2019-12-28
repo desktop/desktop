@@ -14,6 +14,8 @@ import { uuid } from './uuid'
 import { getAvatarWithEnterpriseFallback } from './gravatar'
 import { getDefaultEmail } from './email'
 
+const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
+
 /**
  * Optional set of configurable settings for the fetchAll method
  */
@@ -101,7 +103,35 @@ export interface IAPIRepository {
   readonly fork: boolean
   readonly default_branch: string
   readonly pushed_at: string
-  readonly parent: IAPIRepository | null
+  readonly parent?: IAPIRepository
+
+  /**
+   * The high-level permissions that the currently authenticated
+   * user enjoys for the repository. Undefined if the API call
+   * was made without an authenticated user or if the repository
+   * isn't the primarily requested one (i.e. if this is the parent
+   * repository of the requested repository)
+   *
+   * The permissions hash will also be omitted when the repository
+   * information is embedded within another object such as a pull
+   * request (base.repo or head.repo).
+   *
+   * In other words, the only time when the permissions property
+   * will be present is when explicitly fetching the repository
+   * through the `/repos/user/name` endpoint or similar.
+   */
+  readonly permissions?: IAPIRepositoryPermissions
+}
+
+/*
+ * Information about how the user is permitted to interact with a repository.
+ */
+export interface IAPIRepositoryPermissions {
+  readonly admin: boolean
+  /* aka 'write' */
+  readonly push: boolean
+  /* aka 'read' */
+  readonly pull: boolean
 }
 
 /**
@@ -230,6 +260,42 @@ export interface IAPIRefStatus {
   readonly state: APIRefState
   readonly total_count: number
   readonly statuses: ReadonlyArray<IAPIRefStatusItem>
+}
+
+/** Protected branch information returned by the GitHub API */
+export interface IAPIPushControl {
+  /**
+   * What status checks are required before merging?
+   *
+   * Empty array if user is admin and branch is not admin-enforced
+   */
+  required_status_checks: Array<string>
+
+  /**
+   * How many reviews are required before merging?
+   *
+   * 0 if user is admin and branch is not admin-enforced
+   */
+  required_approving_review_count: number
+
+  /**
+   * Is user permitted?
+   *
+   * Always `true` for admins.
+   * `true` if `Restrict who can push` is not enabled.
+   * `true` if `Restrict who can push` is enabled and user is in list.
+   * `false` if `Restrict who can push` is enabled and user is not in list.
+   */
+  allow_actor: boolean
+
+  /**
+   * Currently unused properties
+   */
+  pattern: string | null
+  required_signatures: boolean
+  required_linear_history: boolean
+  allow_deletions: boolean
+  allow_force_pushes: boolean
 }
 
 /** Branch information returned by the GitHub API */
@@ -719,6 +785,43 @@ export class API {
     return await parsedResponse<IAPIRefStatus>(response)
   }
 
+  /**
+   * Get branch protection info to determine if a user can push to a given branch.
+   *
+   * Note: if request fails, the default returned value assumes full access for the user
+   */
+  public async fetchPushControl(
+    owner: string,
+    name: string,
+    branch: string
+  ): Promise<IAPIPushControl> {
+    const path = `repos/${owner}/${name}/branches/${branch}/push_control`
+
+    const headers: any = {
+      Accept: 'application/vnd.github.phandalin-preview',
+    }
+
+    try {
+      const response = await this.request('GET', path, undefined, headers)
+      return await parsedResponse<IAPIPushControl>(response)
+    } catch (err) {
+      log.info(
+        `[fetchPushControl] unable to check if branch is potentially pushable`,
+        err
+      )
+      return {
+        pattern: null,
+        required_signatures: false,
+        required_status_checks: [],
+        required_approving_review_count: 0,
+        required_linear_history: false,
+        allow_actor: true,
+        allow_deletions: true,
+        allow_force_pushes: true,
+      }
+    }
+  }
+
   public async fetchProtectedBranches(
     owner: string,
     name: string
@@ -1097,7 +1200,7 @@ export function getHTMLURL(endpoint: string): string {
   //  E.g., https://github.mycompany.com/api/v3 -> https://github.mycompany.com
   //
   // We need to normalize them.
-  if (endpoint === getDotComAPIEndpoint()) {
+  if (endpoint === getDotComAPIEndpoint() && !envEndpoint) {
     return 'https://github.com'
   } else {
     const parsed = URL.parse(endpoint)
@@ -1122,7 +1225,6 @@ export function getDotComAPIEndpoint(): string {
   // developing against a local version of GitHub the Website, and need to debug
   // the server-side interaction. For all other cases you should leave this
   // unset.
-  const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
   if (envEndpoint && envEndpoint.length > 0) {
     return envEndpoint
   }

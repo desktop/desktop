@@ -175,7 +175,7 @@ export interface IAppState {
   readonly askForConfirmationOnForcePush: boolean
 
   /** The external editor to use when opening repositories */
-  readonly selectedExternalEditor?: ExternalEditor
+  readonly selectedExternalEditor: ExternalEditor | null
 
   /** The current setting for whether the user has disable usage reports */
   readonly optOutOfUsageTracking: boolean
@@ -262,12 +262,6 @@ export type AppMenuFoldout = {
 
 export type BranchFoldout = {
   type: FoldoutType.Branch
-
-  /**
-   * A flag to indicate the user clicked the "switch branch" link when they
-   * saw the prompt about the current branch being protected.
-   */
-  handleProtectedBranchWarning?: boolean
 }
 
 export type Foldout =

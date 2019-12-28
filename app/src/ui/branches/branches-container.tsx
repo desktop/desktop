@@ -44,8 +44,7 @@ interface IBranchesContainerProps {
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
 
-  /** Was this component launched from the "Protected Branch" warning message? */
-  readonly handleProtectedBranchWarning?: boolean
+  readonly currentBranchProtected: boolean
 }
 
 interface IBranchesContainerState {
@@ -242,18 +241,13 @@ export class BranchesContainer extends React.Component<
   private onBranchItemClick = (branch: Branch) => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
 
-    const {
-      currentBranch,
-      repository,
-      handleProtectedBranchWarning,
-    } = this.props
+    const { currentBranch, repository, currentBranchProtected } = this.props
 
     if (currentBranch == null || currentBranch.name !== branch.name) {
       const timer = startTimer('checkout branch from list', repository)
 
-      // if the user arrived at this dialog from the Protected Branch flow
-      // we should bypass the "Switch Branch" flow and get out of the user's way
-      const strategy: UncommittedChangesStrategy = handleProtectedBranchWarning
+      // Never prompt to stash changes if someone is switching away from a protected branch
+      const strategy: UncommittedChangesStrategy = currentBranchProtected
         ? {
             kind: UncommittedChangesStrategyKind.MoveToNewBranch,
             transientStashEntry: null,
@@ -275,13 +269,13 @@ export class BranchesContainer extends React.Component<
   }
 
   private onCreateBranchWithName = (name: string) => {
-    const { repository, handleProtectedBranchWarning } = this.props
+    const { repository, currentBranchProtected } = this.props
 
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
     this.props.dispatcher.showPopup({
       type: PopupType.CreateBranch,
       repository,
-      handleProtectedBranchWarning,
+      currentBranchProtected,
       initialName: name,
     })
   }

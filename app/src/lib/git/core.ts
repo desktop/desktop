@@ -13,6 +13,7 @@ import { IGitAccount } from '../../models/git-account'
 import * as GitPerf from '../../ui/lib/git-perf'
 import { Repository } from '../../models/repository'
 import { getConfigValue, getGlobalConfigValue } from './config'
+import { isErrnoException } from '../errno-exception'
 
 /**
  * An extension of the execution options in dugite that
@@ -120,7 +121,16 @@ export async function git(
 
   const result = await GitPerf.measure(commandName, () =>
     GitProcess.exec(args, path, options)
-  )
+  ).catch(err => {
+    // If this is an exception thrown by Node.js (as opposed to
+    // dugite) let's keep the salient details but include the name of
+    // the operation.
+    if (isErrnoException(err)) {
+      throw new Error(`Failed to execute ${name}: ${err.code}`)
+    }
+
+    throw err
+  })
 
   const exitCode = result.exitCode
 

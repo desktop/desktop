@@ -217,9 +217,8 @@ export function formatPatch(
   // If we get into this state we should never have been called in the first
   // place. Someone gave us a faulty diff and/or faulty selection state.
   if (!patch.length) {
-    throw new Error(
-      `Could not generate a patch for file ${file.path}, patch empty`
-    )
+    log.debug(`formatPatch: empty path for ${file.path}`)
+    throw new Error(`Could not generate a patch, no changes`)
   }
 
   patch = formatPatchHeaderForFile(file) + patch

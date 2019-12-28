@@ -1,10 +1,9 @@
 import * as React from 'react'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { ButtonGroup } from '../lib/button-group'
-import { Button } from '../lib/button'
 import { Dispatcher } from '../dispatcher'
 import { Ref } from '../lib/ref'
 import { Repository } from '../../models/repository'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IWorkflowPushRejectedDialogProps {
   readonly rejectedPath: string
@@ -51,10 +50,7 @@ export class WorkflowPushRejectedDialog extends React.Component<
           </p>
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup>
-            <Button type="submit">Grant</Button>
-            <Button onClick={this.props.onDismissed}>Cancel</Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup okButtonText="Grant" />
         </DialogFooter>
       </Dialog>
     )
