@@ -414,6 +414,12 @@ export interface IRepositoryState {
    * null if no such operation is in flight.
    */
   readonly revertProgress: IRevertProgress | null
+  
+  /** True if repository supports Git LFS */
+  readonly isUsingLFS: boolean
+
+  /** File locks for Git LFS */
+  readonly locks: ReadonlyMap<string, string> | null
 }
 
 export interface IBranchesState {

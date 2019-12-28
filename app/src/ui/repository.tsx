@@ -194,6 +194,8 @@ export class RepositoryView extends React.Component<
         shouldNudgeToCommit={
           this.props.currentTutorialStep === TutorialStep.MakeCommit
         }
+	  isUsingLFS={this.props.state.isUsingLFS}
+        locks={this.props.state.locks}
       />
     )
   }

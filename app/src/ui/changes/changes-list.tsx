@@ -175,6 +175,9 @@ interface IChangesListProps {
    * arrow pointing at the commit summary box
    */
   readonly shouldNudgeToCommit: boolean
+
+  readonly isUsingLFS: boolean
+  readonly locks: ReadonlyMap<string, string> | null
 }
 
 interface IChangesState {
@@ -348,6 +351,80 @@ export class ChangesList extends React.Component<
     }
   }
 
+  private getIgnoreChangesMenuItem = (
+    paths: ReadonlyArray<string>
+  ): IMenuItem => {
+    // Single file
+    if (paths.length === 1) {
+      return {
+        label: __DARWIN__
+          ? 'Ignore File (Add to .gitignore)'
+          : 'Ignore file (add to .gitignore)',
+        action: () => this.props.onIgnore(paths[0]),
+        enabled: Path.basename(paths[0]) !== GitIgnoreFileName,
+      }
+    }
+
+    // Multiple files
+    return {
+      label: __DARWIN__
+        ? `Ignore ${paths.length} Selected Files (Add to .gitignore)`
+        : `Ignore ${paths.length} selected files (add to .gitignore)`,
+      action: () => {
+        // Filter out any .gitignores that happens to be selected, ignoring
+        // those doesn't make sense.
+        this.props.onIgnore(
+          paths.filter(path => Path.basename(path) !== GitIgnoreFileName)
+        )
+      },
+      // Enable this action as long as there's something selected which isn't
+      // a .gitignore file.
+      enabled: paths.some(path => Path.basename(path) !== GitIgnoreFileName),
+    }
+  }
+
+  private getIgnoreExtensionsMenuItems = (
+    extensions: Set<string>
+  ): ReadonlyArray<IMenuItem> => {
+    const items: IMenuItem[] = []
+
+    Array.from(extensions)
+      .slice(0, 5)
+      .forEach(extension => {
+        items.push({
+          label: __DARWIN__
+            ? `Ignore All ${extension} Files (Add to .gitignore)`
+            : `Ignore all ${extension} files (add to .gitignore)`,
+          action: () => this.props.onIgnore(`*${extension}`),
+        })
+      })
+
+    return items
+  }
+
+  private getLockChangesMenuItems = (
+    locks: ReadonlyMap<string, string> | null,
+    paths: ReadonlyArray<string>
+  ): ReadonlyArray<IMenuItem> => {
+    // Single
+    if (paths.length === 1) {
+      const tempOwner = locks == null ? null : locks.get( paths[0] )
+      if (tempOwner == null) {
+        return [
+          {
+            label: __DARWIN__
+            ? 'Lock File'
+            : 'Lock file',
+            action: () => console.log("?????")
+          }
+        ]
+      }
+    }
+
+    // Multiple
+    return []
+  }
+
   private getCopyPathMenuItem = (
     file: WorkingDirectoryFileChange
   ): IMenuItem => {
@@ -396,9 +473,9 @@ export class ChangesList extends React.Component<
     const { id, path, status } = file
 
     const extension = Path.extname(path)
-    const isSafeExtension = isSafeFileExtension(extension)
-
-    const { workingDirectory, selectedFileIDs } = this.props
+    const enabled = isSafeFileExtension(extension) && status.kind !== AppFileStatusKind.Deleted
+    
+    const { workingDirectory, selectedFileIDs, isUsingLFS, locks } = this.props
 
     const selectedFiles = new Array<WorkingDirectoryFileChange>()
     const paths = new Array<string>()
@@ -427,48 +504,20 @@ export class ChangesList extends React.Component<
       addItemToArray(id)
     }
 
-    const items: IMenuItem[] = [
+    let items: IMenuItem[] = [
       this.getDiscardChangesMenuItem(paths),
       { type: 'separator' },
+      this.getIgnoreChangesMenuItem(paths)
     ]
-    if (paths.length === 1) {
-      items.push({
-        label: __DARWIN__
-          ? 'Ignore File (Add to .gitignore)'
-          : 'Ignore file (add to .gitignore)',
-        action: () => this.props.onIgnore(path),
-        enabled: Path.basename(path) !== GitIgnoreFileName,
-      })
-    } else if (paths.length > 1) {
-      items.push({
-        label: __DARWIN__
-          ? `Ignore ${paths.length} Selected Files (Add to .gitignore)`
-          : `Ignore ${paths.length} selected files (add to .gitignore)`,
-        action: () => {
-          // Filter out any .gitignores that happens to be selected, ignoring
-          // those doesn't make sense.
-          this.props.onIgnore(
-            paths.filter(path => Path.basename(path) !== GitIgnoreFileName)
-          )
-        },
-        // Enable this action as long as there's something selected which isn't
-        // a .gitignore file.
-        enabled: paths.some(path => Path.basename(path) !== GitIgnoreFileName),
-      })
-    }
-    // Five menu items should be enough for everyone
-    Array.from(extensions)
-      .slice(0, 5)
-      .forEach(extension => {
-        items.push({
-          label: __DARWIN__
-            ? `Ignore All ${extension} Files (Add to .gitignore)`
-            : `Ignore all ${extension} files (add to .gitignore)`,
-          action: () => this.props.onIgnore(`*${extension}`),
-        })
-      })
 
-    const enabled = isSafeExtension && status.kind !== AppFileStatusKind.Deleted
+    items = items.concat(this.getIgnoreExtensionsMenuItems(extensions))
+    
+    // Git LFS file locks
+    if ( isUsingLFS ) {
+      items.push({ type: 'separator' })
+      items = items.concat(this.getLockChangesMenuItems(locks,paths))
+	console.log( this.props.commitAuthor )
+    }
 
     items.push(
       { type: 'separator' },
@@ -478,7 +527,7 @@ export class ChangesList extends React.Component<
       {
         label: OpenWithDefaultProgramLabel,
         action: () => this.props.onOpenItem(path),
-        enabled,
+        enabled
       }
     )
 

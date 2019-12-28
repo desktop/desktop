@@ -98,3 +98,14 @@ export async function filesNotTrackedByLFS(
 
   return filesNotTrackedByGitLFS
 }
+
+/**
+ * Query a Git repository for file locks
+ *
+ * @param repository
+ */
+export async function fileLocks(
+  repository: Repository,
+): Promise<ReadonlyMap<string, string>|null> {
+  return null
+}

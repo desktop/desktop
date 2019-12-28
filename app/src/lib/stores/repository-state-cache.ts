@@ -181,5 +181,7 @@ function getInitialRepositoryState(): IRepositoryState {
     checkoutProgress: null,
     pushPullFetchProgress: null,
     revertProgress: null,
+    isUsingLFS: false,
+    locks: null
   }
 }

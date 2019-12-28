@@ -156,6 +156,7 @@ import {
   installGlobalLFSFilters,
   installLFSHooks,
   isUsingLFS,
+  fileLocks,
 } from '../git/lfs'
 import { inferLastPushForRepository } from '../infer-last-push-for-repository'
 import { updateMenuState } from '../menu-update'
@@ -1967,6 +1968,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       updateChangedFiles(state, status, clearPartialState)
     )
 
+    // Using LFS
+    const tempIsUsingLFS = await isUsingLFS( repository )
+    const tempLocks = await fileLocks( repository )
+    this.repositoryStateCache.update(repository, () => ({
+      isUsingLFS: tempIsUsingLFS,
+	locks: tempLocks
+    }))
+    
     this.repositoryStateCache.updateChangesState(repository, state => ({
       conflictState: updateConflictState(state, status, this.statsStore),
     }))

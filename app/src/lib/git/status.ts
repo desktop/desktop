@@ -211,7 +211,7 @@ export async function getStatus(
     conflictedFilesInIndex,
     rebaseInternalState
   )
-
+  
   // Map of files keyed on their paths.
   const files = entries.reduce(
     (files, entry) => buildStatusMap(files, entry, conflictDetails),
@@ -241,7 +241,7 @@ export async function getStatus(
     exists: true,
     mergeHeadFound,
     rebaseInternalState,
-    workingDirectory,
+    workingDirectory
   }
 }
 
