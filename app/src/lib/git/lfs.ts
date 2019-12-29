@@ -1,5 +1,7 @@
-import { git } from './core'
+import { git, gitNetworkArguments, GitError } from './core'
 import { Repository } from '../../models/repository'
+import { IGitAccount } from '../../models/git-account'
+import { envForAuthentication } from './authentication'
 
 /** Install the global LFS filters. */
 export async function installGlobalLFSFilters(force: boolean): Promise<void> {
@@ -102,10 +104,40 @@ export async function filesNotTrackedByLFS(
 /**
  * Query a Git repository for file locks
  *
- * @param repository
+ * @param repository - The repository from which to push
+ *
+ * @param account - The account to use when authenticating with the remote
  */
-export async function fileLocks(
+export async function getFileLocks(
   repository: Repository,
+  account: IGitAccount | null
 ): Promise<ReadonlyMap<string, string>|null> {
-  return null
+  // Run Git command
+  const networkArguments = await gitNetworkArguments(repository, account)
+  const args = [
+    ...networkArguments,
+    'lfs',
+    'locks',
+    '--json'
+  ]
+
+  const result = await git(args, repository.path, 'getFileLocks', {env: envForAuthentication(account)})
+  if (result.gitErrorDescription) {
+    throw new GitError(result, args)
+  }
+  else if (result.stdout === "")
+  {
+    return null
+  }
+
+  // Parse
+  const tempLocks = new Map<string, string>()
+  const tempParsed = JSON.parse(result.stdout)
+  const tempLength = tempParsed.length
+  for ( let i = 0; i < tempLength; ++i )
+  {
+    tempLocks.set(tempParsed[i].path, tempParsed[i].owner.name)
+  }
+
+  return tempLocks
 }

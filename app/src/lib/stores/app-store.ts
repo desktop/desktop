@@ -156,7 +156,7 @@ import {
   installGlobalLFSFilters,
   installLFSHooks,
   isUsingLFS,
-  fileLocks,
+  getFileLocks,
 } from '../git/lfs'
 import { inferLastPushForRepository } from '../infer-last-push-for-repository'
 import { updateMenuState } from '../menu-update'
@@ -1968,13 +1968,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       updateChangedFiles(state, status, clearPartialState)
     )
 
-    // Using LFS
+    // LFS
     const tempIsUsingLFS = await isUsingLFS( repository )
-    const tempLocks = await fileLocks( repository )
     this.repositoryStateCache.update(repository, () => ({
-      isUsingLFS: tempIsUsingLFS,
-	locks: tempLocks
+      isUsingLFS: tempIsUsingLFS
     }))
+    
+    // File locks
+    await this._getFileLocks( repository )
     
     this.repositoryStateCache.updateChangesState(repository, state => ({
       conflictState: updateConflictState(state, status, this.statsStore),
@@ -4015,6 +4016,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
         }
       }
     })
+  }
+  
+  public async _getFileLocks(
+    repository: Repository
+  ): Promise<void> {
+    return this.withAuthenticatingUser(repository, (repository, account) => {
+      return this.performGetFileLocks(repository, account)
+    })
+  }
+
+  private async performGetFileLocks(
+    repository: Repository,
+    account: IGitAccount | null
+  ): Promise<void> {
+    const tempLocks = await getFileLocks(repository, account)
+    this.repositoryStateCache.update(repository, () => ({
+      locks: tempLocks
+    }))
   }
 
   public _endWelcomeFlow(): Promise<void> {

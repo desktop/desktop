@@ -74,6 +74,7 @@ interface IChangesSidebarProps {
    * arrow pointing at the commit summary box
    */
   readonly shouldNudgeToCommit: boolean
+  
   readonly isUsingLFS: boolean
   readonly locks: ReadonlyMap<string, string> | null
 }
