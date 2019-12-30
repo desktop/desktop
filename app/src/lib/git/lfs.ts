@@ -113,19 +113,18 @@ export async function getFileLocks(
   account: IGitAccount | null
 ): Promise<ReadonlyMap<string, string>|null> {
   // Run Git command
-  const networkArguments = await gitNetworkArguments(repository, account)
   const args = [
-    ...networkArguments,
     'lfs',
     'locks',
     '--json'
   ]
 
+  // THIS IS A MEMORY LEAK IF THE USER IS NOT LOGGED IN BECAUSE ENVIRONMENT VARIABLES ARE NOT PASSED IN TO LFS
   const result = await git(args, repository.path, 'getFileLocks', {env: envForAuthentication(account)})
   if (result.gitErrorDescription) {
     throw new GitError(result, args)
   }
-  else if (result.stdout === "")
+  else if (result.stdout === "[]\n") // empty json
   {
     return null
   }
@@ -140,4 +139,67 @@ export async function getFileLocks(
   }
 
   return tempLocks
+}
+
+/**
+ * Lock a file path
+ *
+ * @param repository - The repository from which to push
+ *
+ * @param account - The account to use when authenticating with the remote
+ *
+ * @param path - File path to lock
+ */
+export async function lock(
+  repository: Repository,
+  account: IGitAccount | null,
+  path: string
+): Promise<void> {
+  const networkArguments = await gitNetworkArguments(repository, account)
+  const args = [
+    ...networkArguments,
+    'lfs',
+    'lock',
+    path
+  ]
+
+  const result = await git(args, repository.path, 'lock', {env: envForAuthentication(account)})
+  if (result.gitErrorDescription) {
+    throw new GitError(result, args)
+  }
+}
+
+/**
+ * Unlocks a file path
+ *
+ * @param repository - The repository from which to push
+ *
+ * @param account - The account to use when authenticating with the remote
+ *
+ * @param path - File path to lock
+ *
+ * @param isForced - True if forced
+ */
+export async function unlock(
+  repository: Repository,
+  account: IGitAccount | null,
+  path: string,
+  isForced: boolean = false
+): Promise<void> {
+  const networkArguments = await gitNetworkArguments(repository, account)
+  const args = [
+    ...networkArguments,
+    'lfs',
+    'unlock',
+    path
+  ]
+
+  if (isForced) {
+    args.push('--force')
+  }
+
+  const result = await git(args, repository.path, 'unlock', {env: envForAuthentication(account)})
+  if (result.gitErrorDescription) {
+    throw new GitError(result, args)
+  }
 }

@@ -1968,15 +1968,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       updateChangedFiles(state, status, clearPartialState)
     )
 
-    // LFS
-    const tempIsUsingLFS = await isUsingLFS( repository )
-    this.repositoryStateCache.update(repository, () => ({
-      isUsingLFS: tempIsUsingLFS
-    }))
-    
-    // File locks
-    await this._getFileLocks( repository )
-    
     this.repositoryStateCache.updateChangesState(repository, state => ({
       conflictState: updateConflictState(state, status, this.statsStore),
     }))
@@ -1990,6 +1981,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     this.updateChangesWorkingDirectoryDiff(repository)
+    this.updateLFS(repository)
 
     return status
   }
@@ -2300,6 +2292,59 @@ export class AppStore extends TypedBaseStore<IAppState> {
       workingDirectory,
     }))
     this.emitUpdate()
+  }
+
+  /**
+   * Loads or re-loads (refreshes) the LFS state
+   */
+  private async updateLFS(
+    repository: Repository
+  ): Promise<void> {
+    // Prevent concurrency
+    const tempState = this.repositoryStateCache.get(repository)
+    if (tempState.isLFSUpdateInProgress) {
+      return
+    }
+
+    this.repositoryStateCache.update(repository, () => ({
+      isLFSUpdateInProgress: true
+    }))
+
+    // LFS capable check
+    var tempIsUpdated = false
+    const tempIsUsingLFS = await isUsingLFS(repository)
+    if (tempIsUsingLFS !== tempState.isUsingLFS) {
+      tempIsUpdated = true
+	this.repositoryStateCache.update(repository, () => ({
+        isUsingLFS: tempIsUsingLFS
+      }))
+    }
+
+    // Locks
+    if (tempIsUsingLFS) {
+      const gitStore = this.gitStoreCache.get(repository)
+      var tempLocks = await this.withAuthenticatingUser(repository, (repository, account) =>
+        gitStore.performFailableOperation(() =>
+          getFileLocks(repository, account)
+        )
+      ) || null
+
+      if (tempLocks !== tempState.locks) {
+        tempIsUpdated = true
+        this.repositoryStateCache.update(repository, () => ({
+          locks: tempLocks
+        }))
+      }
+    }
+
+    this.repositoryStateCache.update(repository, () => ({
+      isLFSUpdateInProgress: false
+    }))
+
+    // Emit change
+    if (tempIsUpdated) {
+      this.emitUpdate()
+    }
   }
 
   public _hideStashedChanges(repository: Repository) {
@@ -4016,24 +4061,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         }
       }
     })
-  }
-  
-  public async _getFileLocks(
-    repository: Repository
-  ): Promise<void> {
-    return this.withAuthenticatingUser(repository, (repository, account) => {
-      return this.performGetFileLocks(repository, account)
-    })
-  }
-
-  private async performGetFileLocks(
-    repository: Repository,
-    account: IGitAccount | null
-  ): Promise<void> {
-    const tempLocks = await getFileLocks(repository, account)
-    this.repositoryStateCache.update(repository, () => ({
-      locks: tempLocks
-    }))
   }
 
   public _endWelcomeFlow(): Promise<void> {

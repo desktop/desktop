@@ -414,7 +414,10 @@ export interface IRepositoryState {
    * null if no such operation is in flight.
    */
   readonly revertProgress: IRevertProgress | null
-  
+
+  /** Is a LFS update/lock/unlock in progress? */
+  readonly isLFSUpdateInProgress: boolean
+
   /** True if repository supports Git LFS */
   readonly isUsingLFS: boolean
 

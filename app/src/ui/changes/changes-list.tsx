@@ -516,7 +516,7 @@ export class ChangesList extends React.Component<
     if ( isUsingLFS ) {
       items.push({ type: 'separator' })
       items = items.concat(this.getLockChangesMenuItems(locks,paths))
-	console.log( this.props.commitAuthor )
+	console.log( locks )
     }
 
     items.push(
