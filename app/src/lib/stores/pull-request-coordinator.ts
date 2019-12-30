@@ -13,11 +13,17 @@ import { GitHubRepository } from '../../models/github-repository'
 /** Layer between App Store and the Pull Request Store and Pull Request Updater */
 export class PullRequestCoordinator {
   private currentPullRequestUpdater: PullRequestUpdater | null = null
+  private repositories: ReadonlyArray<Repository> = new Array<Repository>()
 
   public constructor(
     private readonly pullRequestStore: PullRequestStore,
     private readonly repositoriesStore: RepositoriesStore
-  ) {}
+  ) {
+    // register an update handler for the repositories store
+    this.repositoriesStore.onDidUpdate(async () => {
+      this.repositories = await this.repositoriesStore.getAll()
+    })
+  }
 
   /** Register a function to be called when the store updates. */
   public onPullRequestsChanged(
@@ -27,10 +33,10 @@ export class PullRequestCoordinator {
     ) => void
   ) {
     return this.pullRequestStore.onPullRequestsChanged(
-      async (ghRepo, pullRequests) => {
+      (ghRepo, pullRequests) => {
         const repository = findRepositoryForGitHubRepository(
           ghRepo,
-          await this.repositoriesStore.getAll()
+          this.repositories
         )
         if (repository !== undefined) {
           fn(repository, pullRequests)
@@ -47,10 +53,10 @@ export class PullRequestCoordinator {
     ) => void
   ) {
     return this.pullRequestStore.onIsLoadingPullRequests(
-      async (ghRepo, pullRequests) => {
+      (ghRepo, pullRequests) => {
         const repository = findRepositoryForGitHubRepository(
           ghRepo,
-          await this.repositoriesStore.getAll()
+          this.repositories
         )
         if (repository !== undefined) {
           fn(repository, pullRequests)
