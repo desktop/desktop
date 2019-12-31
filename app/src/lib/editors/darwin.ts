@@ -11,6 +11,7 @@ export enum ExternalEditor {
   VSCodium = 'VSCodium',
   SublimeText = 'Sublime Text',
   BBEdit = 'BBEdit',
+  Coda2 = 'Coda 2',
   PhpStorm = 'PhpStorm',
   RubyMine = 'RubyMine',
   TextMate = 'TextMate',
@@ -45,6 +46,9 @@ export function parse(label: string): ExternalEditor | null {
   }
   if (label === ExternalEditor.BBEdit) {
     return ExternalEditor.BBEdit
+  }
+  if (label === ExternalEditor.Coda2) {
+    return ExternalEditor.Coda2
   }
   if (label === ExternalEditor.PhpStorm) {
     return ExternalEditor.PhpStorm
@@ -97,6 +101,8 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['com.sublimetext.3']
     case ExternalEditor.BBEdit:
       return ['com.barebones.bbedit']
+    case ExternalEditor.Coda2:
+      return ['com.panic.Coda2']
     case ExternalEditor.PhpStorm:
       return ['com.jetbrains.PhpStorm']
     case ExternalEditor.RubyMine:
@@ -157,6 +163,8 @@ function getExecutableShim(
       return Path.join(installPath, 'Contents', 'SharedSupport', 'bin', 'subl')
     case ExternalEditor.BBEdit:
       return Path.join(installPath, 'Contents', 'Helpers', 'bbedit_tool')
+    case ExternalEditor.Coda2:
+      return Path.join(installPath, 'Contents', 'MacOS', 'Coda 2')
     case ExternalEditor.PhpStorm:
       return Path.join(installPath, 'Contents', 'MacOS', 'phpstorm')
     case ExternalEditor.RubyMine:
@@ -217,6 +225,7 @@ export async function getAvailableEditors(): Promise<
     codiumPath,
     sublimePath,
     bbeditPath,
+    coda2Path,
     phpStormPath,
     rubyMinePath,
     textMatePath,
@@ -234,6 +243,7 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.VSCodium),
     findApplication(ExternalEditor.SublimeText),
     findApplication(ExternalEditor.BBEdit),
+    findApplication(ExternalEditor.Coda2),
     findApplication(ExternalEditor.PhpStorm),
     findApplication(ExternalEditor.RubyMine),
     findApplication(ExternalEditor.TextMate),
@@ -274,6 +284,10 @@ export async function getAvailableEditors(): Promise<
 
   if (bbeditPath) {
     results.push({ editor: ExternalEditor.BBEdit, path: bbeditPath })
+  }
+
+  if (coda2Path) {
+    results.push({ editor: ExternalEditor.Coda2, path: coda2Path })
   }
 
   if (phpStormPath) {
