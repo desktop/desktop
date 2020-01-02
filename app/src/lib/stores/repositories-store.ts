@@ -185,7 +185,7 @@ export class RepositoriesStore extends TypedBaseStore<
       }
     )
 
-    this.emitUpdate(await this.getAll())
+    this.emitUpdatedRepositories()
   }
 
   /**
@@ -226,7 +226,7 @@ export class RepositoriesStore extends TypedBaseStore<
       }
     )
 
-    this.emitUpdate(await this.getAll())
+    this.emitUpdatedRepositories()
 
     return repository
   }
@@ -235,7 +235,7 @@ export class RepositoriesStore extends TypedBaseStore<
   public async removeRepository(repoID: number): Promise<void> {
     await this.db.repositories.delete(repoID)
 
-    this.emitUpdate(await this.getAll())
+    this.emitUpdatedRepositories()
   }
 
   /** Update the repository's `missing` flag. */
@@ -252,7 +252,7 @@ export class RepositoriesStore extends TypedBaseStore<
 
     await this.db.repositories.update(repoID, { missing })
 
-    this.emitUpdate(await this.getAll())
+    this.emitUpdatedRepositories()
 
     return new Repository(
       repository.path,
@@ -280,7 +280,7 @@ export class RepositoriesStore extends TypedBaseStore<
       path,
     })
 
-    this.emitUpdate(await this.getAll())
+    this.emitUpdatedRepositories()
 
     return new Repository(
       path,
@@ -467,7 +467,7 @@ export class RepositoriesStore extends TypedBaseStore<
       }
     )
 
-    this.emitUpdate(await this.getAll())
+    this.emitUpdatedRepositories()
 
     return new Repository(
       repository.path,
@@ -660,6 +660,14 @@ export class RepositoriesStore extends TypedBaseStore<
     }
 
     return branchProtectionsFound
+  }
+
+  /**
+   * Helper method to emit updates consistently
+   * (This is the only way we emit updates from this store.)
+   */
+  private async emitUpdatedRepositories() {
+    this.emitUpdate(await this.getAll())
   }
 }
 
