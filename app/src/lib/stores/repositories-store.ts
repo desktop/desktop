@@ -315,7 +315,7 @@ export class RepositoriesStore extends TypedBaseStore<
 
     this.lastStashCheckCache.set(repoID, date)
 
-    this.emitUpdate(await this.getAll())
+    // this update doesn't affect the list (or its items) we emit from this store, so no need to `emitUpdatedRepositories`
   }
 
   /**
@@ -538,7 +538,7 @@ export class RepositoriesStore extends TypedBaseStore<
       }
     })
 
-    this.emitUpdate(await this.getAll())
+    // this update doesn't affect the list (or its items) we emit from this store, so no need to `emitUpdatedRepositories`
   }
 
   /**
@@ -576,7 +576,7 @@ export class RepositoriesStore extends TypedBaseStore<
       lastPruneDate: date,
     })
 
-    this.emitUpdate(await this.getAll())
+    // this update doesn't affect the list (or its items) we emit from this store, so no need to `emitUpdatedRepositories`
   }
 
   public async getLastPruneDate(
