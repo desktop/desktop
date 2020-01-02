@@ -10,7 +10,13 @@ import { PullRequestUpdater } from './helpers/pull-request-updater'
 import { RepositoriesStore } from './repositories-store'
 import { GitHubRepository } from '../../models/github-repository'
 
-/** Layer between App Store and the Pull Request Store and Pull Request Updater */
+/**
+ * One stop shop for all things pull requests.
+ *
+ * Manages the association between GitHubRepositories and
+ * local Repositories. In other words, it's a layer between
+ * AppStore and the PullRequestStore + PullRequestUpdaters.
+ */
 export class PullRequestCoordinator {
   private currentPullRequestUpdater: PullRequestUpdater | null = null
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
@@ -25,7 +31,7 @@ export class PullRequestCoordinator {
     })
   }
 
-  /** Register a function to be called when the store updates. */
+  /** Register a function to be called when the PullRequestStore updates */
   public onPullRequestsChanged(
     fn: (
       repository: RepositoryWithGitHubRepository,
@@ -45,7 +51,7 @@ export class PullRequestCoordinator {
     )
   }
 
-  /** Register a function to be called when the store updates. */
+  /** Register a function to be called when PullRequestStore emits a loading event */
   public onIsLoadingPullRequests(
     fn: (
       repository: RepositoryWithGitHubRepository,
@@ -65,7 +71,7 @@ export class PullRequestCoordinator {
     )
   }
 
-  /** Loads all pull requests against the given repository. */
+  /** Loads (from remote) all pull requests for the given repository. */
   public refreshPullRequests(
     repository: RepositoryWithGitHubRepository,
     account: Account
@@ -76,10 +82,12 @@ export class PullRequestCoordinator {
     )
   }
 
+  /** Get all Pull Requests for the given Repository that are in the PullRequestStore */
   public getAllPullRequests(repository: RepositoryWithGitHubRepository) {
     return this.pullRequestStore.getAll(repository.gitHubRepository)
   }
 
+  /** Start background Pull Request updates machinery for this Repository */
   public startPullRequestUpdater(
     repository: RepositoryWithGitHubRepository,
     account: Account
@@ -95,6 +103,8 @@ export class PullRequestCoordinator {
     )
     this.currentPullRequestUpdater.start()
   }
+
+  /** Stop background Pull Request updates machinery for this Repository */
   public stopPullRequestUpdater() {
     if (this.currentPullRequestUpdater !== null) {
       this.currentPullRequestUpdater.stop()
@@ -103,6 +113,13 @@ export class PullRequestCoordinator {
   }
 }
 
+/**
+ * Helper for matching a GitHubRepository to a single Repository
+ *
+ * @param gitHubRepository
+ * @param repositories list of repositories to search for a match
+ *
+ */
 function findRepositoryForGitHubRepository(
   gitHubRepository: GitHubRepository,
   repositories: ReadonlyArray<Repository>
