@@ -162,7 +162,6 @@ import { merge } from '../merge'
 import {
   IMatchedGitHubRepository,
   matchGitHubRepository,
-  repositoryMatchesRemote,
 } from '../repository-matching'
 import {
   initializeRebaseFlowForConflictedRepository,
@@ -251,6 +250,10 @@ import {
 import { OnboardingTutorialAssessor } from './helpers/tutorial-assessor'
 import { getUntrackedFiles } from '../status'
 import { isBranchPushable } from '../helpers/push-control'
+import {
+  findAssociatedPullRequest,
+  isPullRequestAssociatedWithBranch,
+} from '../helpers/pull-request-matching'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -746,9 +749,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
           if (
             !currentPullRequest ||
             !isPullRequestAssociatedWithBranch(
-              remote,
               branch,
-              currentPullRequest
+              currentPullRequest,
+              remote
             )
           ) {
             // Either we don't have a current pull request or the current pull
@@ -5588,33 +5591,4 @@ function userIsStartingRebaseFlow(
   }
 
   return false
-}
-
-function findAssociatedPullRequest(
-  branch: Branch,
-  pullRequests: ReadonlyArray<PullRequest>,
-  remote: IRemote
-): PullRequest | null {
-  const upstream = branch.upstreamWithoutRemote
-
-  if (upstream == null) {
-    return null
-  }
-
-  return (
-    pullRequests.find(pr =>
-      isPullRequestAssociatedWithBranch(remote, branch, pr)
-    ) || null
-  )
-}
-
-function isPullRequestAssociatedWithBranch(
-  remote: IRemote,
-  branch: Branch,
-  pr: PullRequest
-) {
-  return (
-    pr.head.ref === branch.upstreamWithoutRemote &&
-    repositoryMatchesRemote(pr.head.gitHubRepository, remote)
-  )
 }
