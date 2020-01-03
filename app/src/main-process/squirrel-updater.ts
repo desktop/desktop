@@ -66,7 +66,13 @@ function getBinPath(): string {
 
 function resolveVersionedPath(binPath: string, relativePath: string): string {
   const appFolder = Path.resolve(process.execPath, '..')
-  return Path.relative(binPath, Path.join(appFolder, relativePath))
+
+  const computedPath = Path.relative(
+    binPath,
+    Path.join(appFolder, relativePath),
+  )
+
+  return Path.normalize(computedPath)
 }
 
 /**
@@ -92,11 +98,19 @@ function writeBatchScriptCLITrampoline(binPath: string): Promise<void> {
   return writeFile(trampolinePath, trampoline)
 }
 
+/** We have to make sure the versioned path in the script has the correct format
+ * even if its Windows otherwise there can be edge cases with WSL see issue:
+ * https://github.com/desktop/desktop/issues/4998
+ */
 function writeShellScriptCLITrampoline(binPath: string): Promise<void> {
-  const versionedPath = resolveVersionedPath(
+  const rawVersionedPath = resolveVersionedPath(
     binPath,
     'resources/app/static/github.sh'
   )
+
+  const versionedPath = __WIN32__
+    ? rawVersionedPath.replace(/\\/g, '/')
+    : rawVersionedPath;
 
   const trampoline = `#!/usr/bin/env bash
   DIR="$( cd "$( dirname "\$\{BASH_SOURCE[0]\}" )" && pwd )"
