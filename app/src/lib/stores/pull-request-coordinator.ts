@@ -43,12 +43,17 @@ export class PullRequestCoordinator {
   ) {
     return this.pullRequestStore.onPullRequestsChanged(
       (ghRepo, pullRequests) => {
-        const repositories = findRepositoriesForGitHubRepository(
+        const { clones, forks } = findRepositoriesForGitHubRepository(
           ghRepo,
           this.repositories
         )
-        for (const repo of repositories) {
-          fn(repo, pullRequests)
+        for (const f of forks) {
+          this.pullRequestStore
+            .getAll(f.gitHubRepository)
+            .then(forkPrs => fn(f, [...pullRequests, ...forkPrs]))
+        }
+        for (const c of clones) {
+          fn(c, pullRequests)
         }
       }
     )
@@ -63,11 +68,11 @@ export class PullRequestCoordinator {
   ) {
     return this.pullRequestStore.onIsLoadingPullRequests(
       (ghRepo, pullRequests) => {
-        const repositories = findRepositoriesForGitHubRepository(
+        const { clones, forks } = findRepositoriesForGitHubRepository(
           ghRepo,
           this.repositories
         )
-        for (const repo of repositories) {
+        for (const repo of [...clones, ...forks]) {
           fn(repo, pullRequests)
         }
       }
@@ -122,17 +127,25 @@ export class PullRequestCoordinator {
  *
  * @param gitHubRepository
  * @param repositories list of repositories to search for a match
- *
+ * @returns two lists of repositories: direct clones and forks
  */
 function findRepositoriesForGitHubRepository(
   gitHubRepository: GitHubRepository,
   repositories: ReadonlyArray<RepositoryWithGitHubRepository>
 ) {
   const { dbID } = gitHubRepository
-  return repositories.filter(
-    r =>
-      r.gitHubRepository.dbID === dbID ||
-      (r.gitHubRepository.parent !== null &&
-        r.gitHubRepository.parent.dbID === dbID)
-  )
+  const clones = new Array<RepositoryWithGitHubRepository>(),
+    forks = new Array<RepositoryWithGitHubRepository>()
+  for (const r of repositories) {
+    if (r.gitHubRepository.dbID === dbID) {
+      clones.push(r)
+    } else if (
+      r.gitHubRepository.parent !== null &&
+      r.gitHubRepository.parent.dbID === dbID
+    ) {
+      forks.push(r)
+    }
+  }
+
+  return { clones, forks }
 }
