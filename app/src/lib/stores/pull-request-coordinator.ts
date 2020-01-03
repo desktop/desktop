@@ -19,7 +19,9 @@ import { GitHubRepository } from '../../models/github-repository'
  */
 export class PullRequestCoordinator {
   private currentPullRequestUpdater: PullRequestUpdater | null = null
-  private repositories: ReadonlyArray<Repository> = new Array<Repository>()
+  private repositories: ReadonlyArray<
+    RepositoryWithGitHubRepository
+  > = new Array<RepositoryWithGitHubRepository>()
 
   public constructor(
     private readonly pullRequestStore: PullRequestStore,
@@ -27,7 +29,10 @@ export class PullRequestCoordinator {
   ) {
     // register an update handler for the repositories store
     this.repositoriesStore.onDidUpdate(async () => {
-      this.repositories = await this.repositoriesStore.getAll()
+      const allRepositories = await this.repositoriesStore.getAll()
+      this.repositories = allRepositories.filter(
+        isRepositoryWithGitHubRepository
+      )
     })
   }
 
