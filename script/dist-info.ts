@@ -143,3 +143,8 @@ export function shouldMakeDelta() {
   const channelsWithDeltas = ['production', 'beta']
   return channelsWithDeltas.indexOf(getChannel()) > -1
 }
+
+export function getIconFileName(): string {
+  const baseName = 'icon-logo'
+  return getChannel() === 'development' ? `${baseName}-yellow` : baseName
+}
