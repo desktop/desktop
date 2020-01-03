@@ -47,11 +47,11 @@ export class PullRequestCoordinator {
           ghRepo,
           this.repositories
         )
-        for (const f of forks) {
-          this.pullRequestStore
-            .getAll(f.gitHubRepository)
-            .then(forkPrs => fn(f, [...pullRequests, ...forkPrs]))
-        }
+        this.getForkPrs(forks).then(forksWithPrs => {
+          for (const [fork, prs] of forksWithPrs) {
+            fn(fork, [...prs, ...pullRequests])
+          }
+        })
         for (const c of clones) {
           fn(c, pullRequests)
         }
@@ -131,6 +131,38 @@ export class PullRequestCoordinator {
       this.currentPullRequestUpdater.stop()
       this.currentPullRequestUpdater = null
     }
+  }
+
+  /**
+   * Gets currently stored pull requests from PullRequestStore for each fork
+   *
+   * Uses a cache internally to reduce database calls in PullRequestStore.
+   *
+   * @param forks list of forks
+   * @returns map of forks to a list of prs
+   */
+  private async getForkPrs(
+    forks: ReadonlyArray<RepositoryWithGitHubRepository>
+  ): Promise<Map<RepositoryWithGitHubRepository, ReadonlyArray<PullRequest>>> {
+    const prCache = new Map<number, ReadonlyArray<PullRequest>>()
+    const forksWithPrs = new Map<
+      RepositoryWithGitHubRepository,
+      ReadonlyArray<PullRequest>
+    >()
+    for (const f of forks) {
+      const { dbID } = f.gitHubRepository
+      // this check should never be false, but we have to check for `tsc`
+      if (dbID !== null) {
+        if (!prCache.has(dbID)) {
+          prCache.set(
+            dbID,
+            await this.pullRequestStore.getAll(f.gitHubRepository)
+          )
+        }
+        forksWithPrs.set(f, prCache.get(dbID) || [])
+      }
+    }
+    return forksWithPrs
   }
 }
 
