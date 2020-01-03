@@ -28,8 +28,7 @@ export class PullRequestCoordinator {
     private readonly repositoriesStore: RepositoriesStore
   ) {
     // register an update handler for the repositories store
-    this.repositoriesStore.onDidUpdate(async () => {
-      const allRepositories = await this.repositoriesStore.getAll()
+    this.repositoriesStore.onDidUpdate(allRepositories => {
       this.repositories = allRepositories.filter(
         isRepositoryWithGitHubRepository
       )
