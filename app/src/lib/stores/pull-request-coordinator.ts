@@ -3,7 +3,6 @@ import { PullRequest } from '../../models/pull-request'
 import {
   RepositoryWithGitHubRepository,
   isRepositoryWithGitHubRepository,
-  Repository,
 } from '../../models/repository'
 import { PullRequestStore } from '.'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
@@ -44,12 +43,12 @@ export class PullRequestCoordinator {
   ) {
     return this.pullRequestStore.onPullRequestsChanged(
       (ghRepo, pullRequests) => {
-        const repository = findRepositoryForGitHubRepository(
+        const repositories = findRepositoriesForGitHubRepository(
           ghRepo,
           this.repositories
         )
-        if (repository !== undefined) {
-          fn(repository, pullRequests)
+        for (const repo of repositories) {
+          fn(repo, pullRequests)
         }
       }
     )
@@ -64,12 +63,12 @@ export class PullRequestCoordinator {
   ) {
     return this.pullRequestStore.onIsLoadingPullRequests(
       (ghRepo, pullRequests) => {
-        const repository = findRepositoryForGitHubRepository(
+        const repositories = findRepositoriesForGitHubRepository(
           ghRepo,
           this.repositories
         )
-        if (repository !== undefined) {
-          fn(repository, pullRequests)
+        for (const repo of repositories) {
+          fn(repo, pullRequests)
         }
       }
     )
@@ -118,22 +117,22 @@ export class PullRequestCoordinator {
 }
 
 /**
- * Helper for matching a GitHubRepository to a single Repository
+ * Helper for matching a GitHubRepository to its local clone
+ * and fork Repositories
  *
  * @param gitHubRepository
  * @param repositories list of repositories to search for a match
  *
  */
-function findRepositoryForGitHubRepository(
+function findRepositoriesForGitHubRepository(
   gitHubRepository: GitHubRepository,
-  repositories: ReadonlyArray<Repository>
+  repositories: ReadonlyArray<RepositoryWithGitHubRepository>
 ) {
-  const repo = repositories.find(
+  const { dbID } = gitHubRepository
+  return repositories.filter(
     r =>
-      r.gitHubRepository !== null &&
-      r.gitHubRepository.dbID === gitHubRepository.dbID
+      r.gitHubRepository.dbID === dbID ||
+      (r.gitHubRepository.parent !== null &&
+        r.gitHubRepository.parent.dbID === dbID)
   )
-  return repo !== undefined && isRepositoryWithGitHubRepository(repo)
-    ? repo
-    : undefined
 }
