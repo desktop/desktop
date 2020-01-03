@@ -556,8 +556,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
     this.accountsStore.onDidError(error => this.emitError(error))
 
-    this.repositoriesStore.onDidUpdate(async () => {
-      this.repositories = await this.repositoriesStore.getAll()
+    this.repositoriesStore.onDidUpdate(updateRepositories => {
+      this.repositories = updateRepositories
       this.updateRepositorySelectionAfterRepositoriesChanged()
       this.emitUpdate()
     })
