@@ -79,15 +79,28 @@ export class PullRequestCoordinator {
     )
   }
 
-  /** Loads (from remote) all pull requests for the given repository. */
+  /** Loads (from remote) all pull requests for the given repository and its upstreams. */
   public refreshPullRequests(
     repository: RepositoryWithGitHubRepository,
     account: Account
   ) {
-    return this.pullRequestStore.refreshPullRequests(
-      repository.gitHubRepository,
-      account
-    )
+    if (repository.gitHubRepository.parent !== null) {
+      return Promise.all([
+        this.pullRequestStore.refreshPullRequests(
+          repository.gitHubRepository,
+          account
+        ),
+        this.pullRequestStore.refreshPullRequests(
+          repository.gitHubRepository.parent,
+          account
+        ),
+      ])
+    } else {
+      return this.pullRequestStore.refreshPullRequests(
+        repository.gitHubRepository,
+        account
+      )
+    }
   }
 
   /** Get all Pull Requests for the given Repository that are in the PullRequestStore */
