@@ -156,7 +156,6 @@ import {
   installGlobalLFSFilters,
   installLFSHooks,
   isUsingLFS,
-  getFileLocks,
 } from '../git/lfs'
 import { inferLastPushForRepository } from '../infer-last-push-for-repository'
 import { updateMenuState } from '../menu-update'
@@ -2300,51 +2299,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async updateLFS(
     repository: Repository
   ): Promise<void> {
-    // Prevent concurrency
-    const tempState = this.repositoryStateCache.get(repository)
-    if (tempState.isLFSUpdateInProgress) {
-      return
-    }
-
-    this.repositoryStateCache.update(repository, () => ({
-      isLFSUpdateInProgress: true
-    }))
-
     // LFS capable check
-    var tempIsUpdated = false
+    const tempState = this.repositoryStateCache.get(repository)
     const tempIsUsingLFS = await isUsingLFS(repository)
     if (tempIsUsingLFS !== tempState.isUsingLFS) {
-      tempIsUpdated = true
 	this.repositoryStateCache.update(repository, () => ({
         isUsingLFS: tempIsUsingLFS
       }))
+
+	this.emitUpdate()
     }
 
     // Locks
-    if (tempIsUsingLFS) {
-      const gitStore = this.gitStoreCache.get(repository)
-      var tempLocks = await this.withAuthenticatingUser(repository, (repository, account) =>
-        gitStore.performFailableOperation(() =>
-          getFileLocks(repository, account)
-        )
-      ) || null
-
-      if (tempLocks !== tempState.locks) {
-        tempIsUpdated = true
-        this.repositoryStateCache.update(repository, () => ({
-          locks: tempLocks
-        }))
-      }
-    }
-
-    this.repositoryStateCache.update(repository, () => ({
-      isLFSUpdateInProgress: false
-    }))
-
-    // Emit change
-    if (tempIsUpdated) {
-      this.emitUpdate()
-    }
+    await this._getFileLocks(repository)
   }
 
   public _hideStashedChanges(repository: Repository) {
@@ -4061,6 +4028,101 @@ export class AppStore extends TypedBaseStore<IAppState> {
         }
       }
     })
+  }
+
+  public _toggleFileLocks(repository: Repository, paths: ReadonlyArray<string>, isLocked: boolean, isForced: boolean = false): Promise<void> {
+    return this.withAuthenticatingUser(repository, (repository, account) => {
+      return this.performToggleFileLocks(repository, account, paths, isLocked, isForced)
+    })
+  }
+
+  private async performToggleFileLocks(
+    repository: Repository,
+    account: IGitAccount | null,
+    paths: ReadonlyArray<string>,
+    isLocked: boolean,
+    isForced: boolean = false
+  ): Promise<void> {
+     // Prevent concurrency
+    const tempState = this.repositoryStateCache.get(repository)
+    if (tempState.isLFSUpdateInProgress || !tempState.isUsingLFS) {
+      return
+    }
+
+    // Set update in progress, store pending lock state
+    const tempPending = new Map<string, boolean>()
+    for (let i = (paths.length - 1); i >= 0; --i) {
+      tempPending.set(paths[i], isLocked)
+    }
+
+    this.repositoryStateCache.update(repository, () => ({
+      isLFSUpdateInProgress: true,
+	pendingLocks: tempPending
+    }))
+
+    this.emitUpdate()
+
+    // Toggle locks
+    const tempStore = this.gitStoreCache.get(repository)
+
+    try {
+      await tempStore.toggleFileLocks(tempState.locks, account, paths, isLocked, isForced)
+    } catch (error) {
+      this.emitError(error)
+    }
+
+    const tempLocks = await tempStore.getFileLocks(account) || null
+    
+    this.repositoryStateCache.update(repository, () => ({
+      isLFSUpdateInProgress: false,
+	locks: tempLocks,
+      pendingLocks: null
+    }))
+
+    this.emitUpdate()
+  }
+
+  /**
+   * Gets all file locks in the the repository
+   *
+   * See gitStore.getFileLocks for more details
+   *
+   */
+  public _getFileLocks(repository: Repository): Promise<void> {
+    return this.withAuthenticatingUser(repository, (repository, account) => {
+      return this.performGetFileLocks(repository, account)
+    })
+  }
+
+  /**
+   * Gets all file locks in the the repository
+   *
+   * @param remotes Optional, one or more remotes to fetch if undefined all
+   */
+  private async performGetFileLocks(
+    repository: Repository,
+    account: IGitAccount | null
+  ): Promise<void> {
+     // Prevent concurrency
+    const tempState = this.repositoryStateCache.get(repository)
+    if (tempState.isLFSUpdateInProgress || !tempState.isUsingLFS) {
+      return
+    }
+
+    this.repositoryStateCache.update(repository, () => ({
+      isLFSUpdateInProgress: true
+    }))
+
+    // Get locks
+    const tempStore = this.gitStoreCache.get(repository)
+    const tempLocks = await tempStore.getFileLocks(account) || null
+    this.repositoryStateCache.update(repository, () => ({
+      locks: tempLocks,
+      isLFSUpdateInProgress: false
+    }))
+
+    // Emit change
+    this.emitUpdate()
   }
 
   public _endWelcomeFlow(): Promise<void> {

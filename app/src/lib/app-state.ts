@@ -423,6 +423,9 @@ export interface IRepositoryState {
 
   /** File locks for Git LFS */
   readonly locks: ReadonlyMap<string, string> | null
+
+  /** Pending file locks for Git LFS */
+  readonly pendingLocks: ReadonlyMap<string, boolean> | null
 }
 
 export interface IBranchesState {

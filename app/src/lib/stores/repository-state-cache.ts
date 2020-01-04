@@ -183,6 +183,7 @@ function getInitialRepositoryState(): IRepositoryState {
     revertProgress: null,
     isLFSUpdateInProgress: false,
     isUsingLFS: false,
-    locks: null
+    locks: null,
+    pendingLocks: null
   }
 }

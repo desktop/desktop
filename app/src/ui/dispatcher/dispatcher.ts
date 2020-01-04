@@ -521,6 +521,11 @@ export class Dispatcher {
     return this.appStore._fetch(repository, fetchType)
   }
 
+  /** Toggle file lock */
+  public toggleFileLocks(repository: Repository, paths: ReadonlyArray<string>, isLocked: boolean, isForced: boolean = false): Promise<void> {
+    return this.appStore._toggleFileLocks(repository, paths, isLocked, isForced)
+  }
+
   /** Publish the repository to GitHub with the given properties. */
   public publishRepository(
     repository: Repository,

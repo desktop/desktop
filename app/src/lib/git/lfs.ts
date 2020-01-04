@@ -123,9 +123,7 @@ export async function getFileLocks(
   const result = await git(args, repository.path, 'getFileLocks', {env: envForAuthentication(account)})
   if (result.gitErrorDescription) {
     throw new GitError(result, args)
-  }
-  else if (result.stdout === "[]\n") // empty json
-  {
+  } else if (result.stdout === "[]\n") { // empty json
     return null
   }
 
@@ -133,8 +131,7 @@ export async function getFileLocks(
   const tempLocks = new Map<string, string>()
   const tempParsed = JSON.parse(result.stdout)
   const tempLength = tempParsed.length
-  for ( let i = 0; i < tempLength; ++i )
-  {
+  for ( let i = 0; i < tempLength; ++i ) {
     tempLocks.set(tempParsed[i].path, tempParsed[i].owner.name)
   }
 
@@ -142,64 +139,41 @@ export async function getFileLocks(
 }
 
 /**
- * Lock a file path
+ * Toggles file locks
  *
  * @param repository - The repository from which to push
  *
- * @param account - The account to use when authenticating with the remote
- *
- * @param path - File path to lock
- */
-export async function lock(
-  repository: Repository,
-  account: IGitAccount | null,
-  path: string
-): Promise<void> {
-  const networkArguments = await gitNetworkArguments(repository, account)
-  const args = [
-    ...networkArguments,
-    'lfs',
-    'lock',
-    path
-  ]
-
-  const result = await git(args, repository.path, 'lock', {env: envForAuthentication(account)})
-  if (result.gitErrorDescription) {
-    throw new GitError(result, args)
-  }
-}
-
-/**
- * Unlocks a file path
- *
- * @param repository - The repository from which to push
+ * @param locks - Existing locks
  *
  * @param account - The account to use when authenticating with the remote
  *
- * @param path - File path to lock
+ * @param paths - File paths to lock/unlock
+ *
+ * @param isLocked - True if locked, false if unlocked
  *
  * @param isForced - True if forced
  */
-export async function unlock(
+export async function toggleFileLocks(
   repository: Repository,
+  locks: ReadonlyMap<string, string> | null,
   account: IGitAccount | null,
-  path: string,
+  paths: ReadonlyArray<string>,
+  isLocked: boolean,
   isForced: boolean = false
 ): Promise<void> {
+  const tempEnvironment = { env: envForAuthentication(account) }
   const networkArguments = await gitNetworkArguments(repository, account)
   const args = [
     ...networkArguments,
     'lfs',
-    'unlock',
-    path
+    isLocked ? 'lock' : 'unlock',
   ]
 
   if (isForced) {
     args.push('--force')
   }
 
-  const result = await git(args, repository.path, 'unlock', {env: envForAuthentication(account)})
-  if (result.gitErrorDescription) {
-    throw new GitError(result, args)
+  for (let i = (paths.length - 1); i >= 0; --i) {
+    await git([...args,paths[i]], repository.path, 'toggleFileLocks', tempEnvironment)
   }
 }

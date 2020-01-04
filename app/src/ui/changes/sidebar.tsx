@@ -74,9 +74,11 @@ interface IChangesSidebarProps {
    * arrow pointing at the commit summary box
    */
   readonly shouldNudgeToCommit: boolean
-  
+
+  readonly isLFSUpdateInProgress: boolean
   readonly isUsingLFS: boolean
   readonly locks: ReadonlyMap<string, string> | null
+  readonly pendingLocks: ReadonlyMap<string, boolean> | null
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
@@ -128,6 +130,8 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           )
         )
       }
+	
+	console.log( this.props.accounts )
 
       this.autocompletionProviders = autocompletionProviders
     }
@@ -428,8 +432,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           isShowingStashEntry={isShowingStashEntry}
           currentBranchProtected={currentBranchProtected}
           shouldNudgeToCommit={this.props.shouldNudgeToCommit}
+          isLFSUpdateInProgress={this.props.isLFSUpdateInProgress}
           isUsingLFS={this.props.isUsingLFS}
           locks={this.props.locks}
+          pendingLocks={this.props.pendingLocks}
         />
         {this.renderUndoCommit(rebaseConflictState)}
       </div>

@@ -176,8 +176,10 @@ interface IChangesListProps {
    */
   readonly shouldNudgeToCommit: boolean
 
+  readonly isLFSUpdateInProgress: boolean
   readonly isUsingLFS: boolean
   readonly locks: ReadonlyMap<string, string> | null
+  readonly pendingLocks: ReadonlyMap<string, boolean> | null
 }
 
 interface IChangesState {
@@ -402,27 +404,84 @@ export class ChangesList extends React.Component<
     return items
   }
 
-  private getLockChangesMenuItems = (
-    locks: ReadonlyMap<string, string> | null,
+  private getFileLockMenuItems = (
     paths: ReadonlyArray<string>
   ): ReadonlyArray<IMenuItem> => {
+    console.log( this.props.commitAuthor )
+
     // Single
     if (paths.length === 1) {
-      const tempOwner = locks == null ? null : locks.get( paths[0] )
+      // Lockable
+      const tempOwner = this.props.locks == null ? null : this.props.locks.get(paths[0])
       if (tempOwner == null) {
         return [
           {
-            label: __DARWIN__
-            ? 'Lock File'
-            : 'Lock file',
-            action: () => console.log("?????")
+            label: __DARWIN__ ? 'Lock File' : 'Lock file',
+            action: () => this.props.dispatcher.toggleFileLocks(this.props.repository, paths, true),
+            enabled: !this.props.isLFSUpdateInProgress
           }
         ]
       }
+
+      // Unlockable (owned)
+      if (tempOwner === ( this.props.commitAuthor == null ? null : this.props.commitAuthor.name + " (" + this.props.commitAuthor.email + ")" ) ) {
+        return [
+          {
+            label: __DARWIN__ ? 'Unlock File' : 'Unlock file',
+            action: () => this.props.dispatcher.toggleFileLocks(this.props.repository, paths, false),
+            enabled: !this.props.isLFSUpdateInProgress
+          }
+        ]
+      }
+
+      // Force unlockable (not owned)
+      return [
+        {
+          label: __DARWIN__ ? 'Force Unlock File' : 'Force unlock file',
+          action: () => this.props.dispatcher.toggleFileLocks(this.props.repository, paths, false, true),
+          enabled: !this.props.isLFSUpdateInProgress
+        }
+      ]
     }
 
-    // Multiple
-    return []
+    // Multiple, calculate possible states of all files
+    var tempLockables: Array<string> = []
+    var tempUnlockables: Array<string> = []
+    var tempForceUnlockables: Array<string> = []
+
+    if (this.props.locks == null) {
+      tempLockables = paths as Array<string>
+    } else {
+      const tempUser = this.props.commitAuthor == null ? null : this.props.commitAuthor.name + " (" + this.props.commitAuthor.email + ")"
+      for (let i = (paths.length - 1); i >= 0; --i) {
+        let tempOwner = this.props.locks == null ? null : this.props.locks.get(paths[i])
+        if (tempOwner == null) {
+          tempLockables.push(paths[i])
+        } else if (tempOwner === tempUser) {
+          tempUnlockables.push(paths[i])
+        } else {
+          tempForceUnlockables.push(paths[i])
+        }
+      }
+    }
+
+    return [
+      {
+            label: __DARWIN__ ? `Lock ${tempLockables.length} Selected Files` : `Lock ${tempLockables.length} selected files`,
+            action: () => this.props.dispatcher.toggleFileLocks(this.props.repository, tempLockables, true),
+            enabled: !this.props.isLFSUpdateInProgress && tempLockables.length > 0
+      },
+      {
+            label: __DARWIN__ ? `Unlock ${tempUnlockables.length} Selected Files` : `Unlock ${tempUnlockables.length} selected files`,
+            action: () => this.props.dispatcher.toggleFileLocks(this.props.repository, tempUnlockables, false),
+            enabled: !this.props.isLFSUpdateInProgress && tempUnlockables.length > 0
+      },
+      {
+            label: __DARWIN__ ? `Force Unlock ${tempForceUnlockables.length} Selected Files` : `Force unlock ${tempForceUnlockables.length} selected files`,
+            action: () => this.props.dispatcher.toggleFileLocks(this.props.repository, tempForceUnlockables, false, true),
+            enabled: !this.props.isLFSUpdateInProgress && tempForceUnlockables.length > 0
+      }
+    ]
   }
 
   private getCopyPathMenuItem = (
@@ -475,7 +534,7 @@ export class ChangesList extends React.Component<
     const extension = Path.extname(path)
     const enabled = isSafeFileExtension(extension) && status.kind !== AppFileStatusKind.Deleted
     
-    const { workingDirectory, selectedFileIDs, isUsingLFS, locks } = this.props
+    const { workingDirectory, selectedFileIDs, isUsingLFS } = this.props
 
     const selectedFiles = new Array<WorkingDirectoryFileChange>()
     const paths = new Array<string>()
@@ -513,10 +572,9 @@ export class ChangesList extends React.Component<
     items = items.concat(this.getIgnoreExtensionsMenuItems(extensions))
     
     // Git LFS file locks
-    if ( isUsingLFS ) {
+    if (isUsingLFS) {
       items.push({ type: 'separator' })
-      items = items.concat(this.getLockChangesMenuItems(locks,paths))
-	console.log( locks )
+      items = items.concat(this.getFileLockMenuItems(paths))
     }
 
     items.push(
