@@ -423,9 +423,9 @@ export interface IRepositoryState {
 
   /** File locks for Git LFS */
   readonly locks: ReadonlyMap<string, string> | null
-
-  /** Pending file locks for Git LFS */
-  readonly pendingLocks: ReadonlyMap<string, boolean> | null
+  
+  /** UI-accessible, cached version of IDatabaseRepository.lastLockUser */
+  readonly lockUser: string | null
 }
 
 export interface IBranchesState {

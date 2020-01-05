@@ -179,6 +179,7 @@ export class RepositoriesStore extends TypedBaseStore<
             missing: false,
             lastStashCheckDate: null,
             isTutorialRepository: true,
+            lastLockUser: null
           },
           existingRepoId
         )
@@ -219,6 +220,7 @@ export class RepositoriesStore extends TypedBaseStore<
             gitHubRepositoryID: null,
             missing: false,
             lastStashCheckDate: null,
+            lastLockUser: null
           })
         }
 
@@ -289,6 +291,54 @@ export class RepositoriesStore extends TypedBaseStore<
       false,
       repository.isTutorialRepository
     )
+  }
+
+  /**
+   * Stores the last known LFS lock username
+   *
+   * @param repository The repository in which to update the last stash check date for
+   * @param username The lock username to store
+   */
+  public async updateLastLockUser(
+    repository: Repository,
+    username: string
+  ): Promise<void> {
+    const repoID = repository.id
+    if (repoID === 0) {
+      return fatalError(
+        '`updateLastLockUser` can only update for a repository which has been added to the database.'
+      )
+    }
+
+    await this.db.repositories.update(repoID, {
+      lastLockUser: username,
+    })
+  }
+  
+  /**
+   * Gets the last known LFS lock username
+   *
+   * @param repository The repository to get from
+   */
+  public async getLastLockUser(
+    repository: Repository
+  ): Promise<string | null> {
+    const repoID = repository.id
+    if (!repoID) {
+      return fatalError(
+        '`getLastLockUser` - can only retrieve for repositories that have been stored in the database.'
+      )
+    }
+
+    const record = await this.db.repositories.get(repoID)
+
+    if (record === undefined) {
+      return fatalError(
+        `'getLastLockUser' - unable to find repository with ID: ${repoID}`
+      )
+    }
+
+    return record.lastLockUser
   }
 
   /**

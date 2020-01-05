@@ -179,7 +179,7 @@ interface IChangesListProps {
   readonly isLFSUpdateInProgress: boolean
   readonly isUsingLFS: boolean
   readonly locks: ReadonlyMap<string, string> | null
-  readonly pendingLocks: ReadonlyMap<string, boolean> | null
+  readonly lockUser: string | null
 }
 
 interface IChangesState {
@@ -407,8 +407,6 @@ export class ChangesList extends React.Component<
   private getFileLockMenuItems = (
     paths: ReadonlyArray<string>
   ): ReadonlyArray<IMenuItem> => {
-    console.log( this.props.commitAuthor )
-
     // Single
     if (paths.length === 1) {
       // Lockable
@@ -424,7 +422,7 @@ export class ChangesList extends React.Component<
       }
 
       // Unlockable (owned)
-      if (tempOwner === ( this.props.commitAuthor == null ? null : this.props.commitAuthor.name + " (" + this.props.commitAuthor.email + ")" ) ) {
+      if (tempOwner === this.props.lockUser ) {
         return [
           {
             label: __DARWIN__ ? 'Unlock File' : 'Unlock file',
@@ -452,12 +450,11 @@ export class ChangesList extends React.Component<
     if (this.props.locks == null) {
       tempLockables = paths as Array<string>
     } else {
-      const tempUser = this.props.commitAuthor == null ? null : this.props.commitAuthor.name + " (" + this.props.commitAuthor.email + ")"
       for (let i = (paths.length - 1); i >= 0; --i) {
         let tempOwner = this.props.locks == null ? null : this.props.locks.get(paths[i])
         if (tempOwner == null) {
           tempLockables.push(paths[i])
-        } else if (tempOwner === tempUser) {
+        } else if (tempOwner === this.props.lockUser) {
           tempUnlockables.push(paths[i])
         } else {
           tempForceUnlockables.push(paths[i])

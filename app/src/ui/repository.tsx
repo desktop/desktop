@@ -197,7 +197,7 @@ export class RepositoryView extends React.Component<
         isLFSUpdateInProgress={this.props.state.isLFSUpdateInProgress}
         isUsingLFS={this.props.state.isUsingLFS}
         locks={this.props.state.locks}
-        pendingLocks={this.props.state.pendingLocks}
+        lockUser={this.props.state.lockUser}
       />
     )
   }

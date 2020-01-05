@@ -52,6 +52,9 @@ export interface IDatabaseRepository {
    * of Git and GitHub.
    */
   readonly isTutorialRepository?: boolean
+
+  /** Last known username for the end-user's file that is assigned by the server directly; used as a hack for displaying ownership in the UI */
+  readonly lastLockUser: string | null
 }
 
 /**

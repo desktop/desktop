@@ -1741,6 +1741,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.gitHubUserStore.cacheUser(user)
       }
     }
+    
+    // Fill in initial lock user values for each repository state
+    for (let i = (repositories.length - 1); i >= 0; --i ) {
+      let tempUser = await this.repositoriesStore.getLastLockUser(repositories[i])
+      this.repositoryStateCache.update(repositories[i], () => ({
+        lockUser: tempUser
+      }))
+    }
 
     this.updateRepositorySelectionAfterRepositoriesChanged()
 
@@ -4049,15 +4057,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    // Set update in progress, store pending lock state
-    const tempPending = new Map<string, boolean>()
-    for (let i = (paths.length - 1); i >= 0; --i) {
-      tempPending.set(paths[i], isLocked)
-    }
-
     this.repositoryStateCache.update(repository, () => ({
-      isLFSUpdateInProgress: true,
-	pendingLocks: tempPending
+      isLFSUpdateInProgress: true
     }))
 
     this.emitUpdate()
@@ -4071,12 +4072,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitError(error)
     }
 
+    // Get new locks from server and update last known lock username that is assigned by the server
     const tempLocks = await tempStore.getFileLocks(account) || null
+    if (isLocked) {
+      for (let i = (paths.length - 1 ); i >= 0; --i) {
+        let tempUser = tempLocks == null ? null : (tempLocks.get(paths[i]) || null)
+        if (tempUser != null) {
+          await this.repositoriesStore.updateLastLockUser(repository, tempUser)
+          
+          this.repositoryStateCache.update(repository, () => ({
+            lockUser: tempUser
+          }))
+          break
+        }
+      }
+    }
     
     this.repositoryStateCache.update(repository, () => ({
       isLFSUpdateInProgress: false,
-	locks: tempLocks,
-      pendingLocks: null
+      locks: tempLocks
     }))
 
     this.emitUpdate()
