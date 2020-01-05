@@ -69,7 +69,7 @@ function resolveVersionedPath(binPath: string, relativePath: string): string {
 
   const computedPath = Path.relative(
     binPath,
-    Path.join(appFolder, relativePath),
+    Path.join(appFolder, relativePath)
   )
 
   return Path.normalize(computedPath)
@@ -110,7 +110,7 @@ function writeShellScriptCLITrampoline(binPath: string): Promise<void> {
 
   const versionedPath = __WIN32__
     ? rawVersionedPath.replace(/\\/g, '/')
-    : rawVersionedPath;
+    : rawVersionedPath
 
   const trampoline = `#!/usr/bin/env bash
   DIR="$( cd "$( dirname "\$\{BASH_SOURCE[0]\}" )" && pwd )"
