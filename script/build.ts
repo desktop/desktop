@@ -42,6 +42,7 @@ import {
   getDistRoot,
   getExecutableName,
   isPublishable,
+  getIconFileName,
 } from './dist-info'
 import { isRunningOnFork, isCircleCI } from './build-platforms'
 
@@ -179,7 +180,7 @@ function packageApp() {
     arch: toPackageArch(process.env.TARGET_ARCH),
     asar: false, // TODO: Probably wanna enable this down the road.
     out: getDistRoot(),
-    icon: path.join(projectRoot, 'app', 'static', 'logos', 'icon-logo'),
+    icon: path.join(projectRoot, 'app', 'static', 'logos', getIconFileName()),
     dir: outRoot,
     overwrite: true,
     tmpdir: false,
