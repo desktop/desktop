@@ -107,7 +107,9 @@ export class PullRequestCoordinator {
    * Get all Pull Requests that are stored locally for the given Repository
    * (Doesn't load anything from the GitHub API.)
    */
-  public async getAllPullRequests(repository: RepositoryWithGitHubRepository) {
+  public async getAllPullRequests(
+    repository: RepositoryWithGitHubRepository
+  ): Promise<ReadonlyArray<PullRequest>> {
     if (repository.gitHubRepository.parent !== null) {
       const [prs, upstreamPrs] = await Promise.all([
         this.pullRequestStore.getAll(repository.gitHubRepository),
