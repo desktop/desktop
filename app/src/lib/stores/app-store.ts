@@ -3076,20 +3076,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
     let stashToPop: IStashEntry | null = null
     if (enableStashing()) {
       const hasChanges = changesState.workingDirectory.files.length > 0
-      if (hasChanges && uncommittedChangesStrategy.kind === askToStash.kind) {
-        this._showPopup({
-          type: PopupType.StashAndSwitchBranch,
-          branchToCheckout: foundBranch,
-          repository,
-        })
-        return repository
-      }
+      if (hasChanges) {
+        if (uncommittedChangesStrategy.kind === askToStash.kind) {
+          this._showPopup({
+            type: PopupType.StashAndSwitchBranch,
+            branchToCheckout: foundBranch,
+            repository,
+          })
+          return repository
+        }
 
-      stashToPop = await this.stashToPopAfterBranchCheckout(
-        repository,
-        foundBranch,
-        uncommittedChangesStrategy
-      )
+        stashToPop = await this.stashToPopAfterBranchCheckout(
+          repository,
+          foundBranch,
+          uncommittedChangesStrategy
+        )
+      }
     }
 
     const checkoutSucceeded =
