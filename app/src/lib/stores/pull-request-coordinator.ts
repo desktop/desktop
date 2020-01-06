@@ -19,10 +19,10 @@ import { GitHubRepository } from '../../models/github-repository'
  */
 export class PullRequestCoordinator {
   /**
-   * Currently running PullRequestUpdater (should be for
+   * Currently running PullRequestUpdaters (they should all be for
    * the "selected" repository in `AppStore`)
    */
-  private currentPullRequestUpdater: PullRequestUpdater | null = null
+  private readonly prUpdaters = new Set<PullRequestUpdater>()
   /**
    * All `Repository`s in RepositoryStore associated with `GitHubRepository`
    * This is updated whenever `RepositoryStore` emits an update
@@ -174,29 +174,51 @@ export class PullRequestCoordinator {
     }
   }
 
-  /** Start background Pull Request updates machinery for this Repository */
-  public startPullRequestUpdater(
+  /**
+   * Start background Pull Request updates machinery for this Repository
+   * (Stops and removes any current pull request updaters.)
+   */
+  public startPullRequestUpdaters(
     repository: RepositoryWithGitHubRepository,
     account: Account
   ) {
-    if (this.currentPullRequestUpdater !== null) {
-      this.stopPullRequestUpdater()
+    this.stopPullRequestUpdaters()
+
+    this.prUpdaters.add(
+      new PullRequestUpdater(
+        repository.gitHubRepository,
+        account,
+        this.pullRequestStore
+      )
+    )
+
+    // add an updater for the upstream github repo if there is one
+    if (repository.gitHubRepository.parent !== null) {
+      this.prUpdaters.add(
+        new PullRequestUpdater(
+          repository.gitHubRepository.parent,
+          account,
+          this.pullRequestStore
+        )
+      )
     }
 
-    this.currentPullRequestUpdater = new PullRequestUpdater(
-      repository.gitHubRepository,
-      account,
-      this.pullRequestStore
-    )
-    this.currentPullRequestUpdater.start()
+    for (const pru of this.prUpdaters) {
+      pru.start()
+    }
   }
 
-  /** Stop background Pull Request updates machinery for this Repository */
-  public stopPullRequestUpdater() {
-    if (this.currentPullRequestUpdater !== null) {
-      this.currentPullRequestUpdater.stop()
-      this.currentPullRequestUpdater = null
+  /**
+   * Stop background Pull Request updates machinery for this Repository
+   * Removes all current pull request updaters.
+   * (Use `startPullRequestUpdaters` to create some new ones.)
+   */
+  public stopPullRequestUpdaters() {
+    for (const pru of this.prUpdaters) {
+      pru.stop()
     }
+    // clear them out so we can start fresh again
+    this.prUpdaters.clear()
   }
 
   /**
