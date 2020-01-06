@@ -103,9 +103,20 @@ export class PullRequestCoordinator {
     }
   }
 
-  /** Get all Pull Requests for the given Repository that are in the PullRequestStore */
-  public getAllPullRequests(repository: RepositoryWithGitHubRepository) {
-    return this.pullRequestStore.getAll(repository.gitHubRepository)
+  /**
+   * Get all Pull Requests that are stored locally for the given Repository
+   * (Doesn't load anything from the GitHub API.)
+   */
+  public async getAllPullRequests(repository: RepositoryWithGitHubRepository) {
+    if (repository.gitHubRepository.parent !== null) {
+      const [prs, upstreamPrs] = await Promise.all([
+        this.pullRequestStore.getAll(repository.gitHubRepository),
+        this.pullRequestStore.getAll(repository.gitHubRepository.parent),
+      ])
+      return [...prs, ...upstreamPrs]
+    } else {
+      return await this.pullRequestStore.getAll(repository.gitHubRepository)
+    }
   }
 
   /** Start background Pull Request updates machinery for this Repository */
