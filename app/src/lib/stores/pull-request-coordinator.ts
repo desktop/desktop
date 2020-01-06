@@ -22,6 +22,9 @@ export class PullRequestCoordinator {
     RepositoryWithGitHubRepository
   > = new Array<RepositoryWithGitHubRepository>()
 
+  /** Map GitHubRepository database IDs to Pull Request Lists */
+  private readonly prCache = new Map<number, ReadonlyArray<PullRequest>>()
+
   public constructor(
     private readonly pullRequestStore: PullRequestStore,
     private readonly repositoriesStore: RepositoriesStore
@@ -43,10 +46,18 @@ export class PullRequestCoordinator {
   ) {
     return this.pullRequestStore.onPullRequestsChanged(
       (ghRepo, pullRequests) => {
+        // update cache
+        if (ghRepo.dbID !== null) {
+          this.prCache.set(ghRepo.dbID, pullRequests)
+        }
+
+        // find matching repos
         const { clones, forks } = findRepositoriesForGitHubRepository(
           ghRepo,
           this.repositories
         )
+
+        // emit updates
         this.getForkPrs(forks).then(forksWithPrs => {
           for (const [fork, prs] of forksWithPrs) {
             fn(fork, [...prs, ...pullRequests])
@@ -112,12 +123,12 @@ export class PullRequestCoordinator {
   ): Promise<ReadonlyArray<PullRequest>> {
     if (repository.gitHubRepository.parent !== null) {
       const [prs, upstreamPrs] = await Promise.all([
-        this.pullRequestStore.getAll(repository.gitHubRepository),
-        this.pullRequestStore.getAll(repository.gitHubRepository.parent),
+        this.getPullRequestsFor(repository.gitHubRepository),
+        this.getPullRequestsFor(repository.gitHubRepository.parent),
       ])
       return [...prs, ...upstreamPrs]
     } else {
-      return await this.pullRequestStore.getAll(repository.gitHubRepository)
+      return await this.getPullRequestsFor(repository.gitHubRepository)
     }
   }
 
@@ -157,25 +168,36 @@ export class PullRequestCoordinator {
   private async getForkPrs(
     forks: ReadonlyArray<RepositoryWithGitHubRepository>
   ): Promise<Map<RepositoryWithGitHubRepository, ReadonlyArray<PullRequest>>> {
-    const prCache = new Map<number, ReadonlyArray<PullRequest>>()
     const forksWithPrs = new Map<
       RepositoryWithGitHubRepository,
       ReadonlyArray<PullRequest>
     >()
     for (const f of forks) {
-      const { dbID } = f.gitHubRepository
-      // this check should never be false, but we have to check for `tsc`
-      if (dbID !== null) {
-        if (!prCache.has(dbID)) {
-          prCache.set(
-            dbID,
-            await this.pullRequestStore.getAll(f.gitHubRepository)
-          )
-        }
-        forksWithPrs.set(f, prCache.get(dbID) || [])
-      }
+      forksWithPrs.set(f, await this.getPullRequestsFor(f.gitHubRepository))
     }
     return forksWithPrs
+  }
+
+  /**
+   * Get Pull Requests stored in the databse (or cache) for a single GitHubRepository
+   *
+   * Will query PullRequestStore's database if nothing is cached for that repo.
+   */
+  private async getPullRequestsFor(
+    gitHubRepository: GitHubRepository
+  ): Promise<ReadonlyArray<PullRequest>> {
+    const { dbID } = gitHubRepository
+    // this check should never be false, but we have to check for typescript
+    if (dbID !== null) {
+      if (!this.prCache.has(dbID)) {
+        this.prCache.set(
+          dbID,
+          await this.pullRequestStore.getAll(gitHubRepository)
+        )
+      }
+      return this.prCache.get(dbID) || []
+    }
+    return []
   }
 }
 
