@@ -25,6 +25,7 @@ import { startTimer } from '../lib/timing'
 import {
   UncommittedChangesStrategyKind,
   UncommittedChangesStrategy,
+  stashOnCurrentBranch,
 } from '../../models/uncommitted-changes-strategy'
 
 interface IBranchesContainerProps {
@@ -46,6 +47,9 @@ interface IBranchesContainerProps {
   readonly currentBranchProtected: boolean
 
   readonly selectedUncommittedChangesStrategy: UncommittedChangesStrategy
+
+  /** Whether `currentBranch` has an existing stash association */
+  readonly hasAssociatedStash: boolean
 }
 
 interface IBranchesContainerState {
@@ -242,9 +246,29 @@ export class BranchesContainer extends React.Component<
   private onBranchItemClick = (branch: Branch) => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
 
-    const { currentBranch, repository, currentBranchProtected } = this.props
+    const {
+      currentBranch,
+      repository,
+      currentBranchProtected,
+      dispatcher,
+      hasAssociatedStash,
+    } = this.props
 
     if (currentBranch == null || currentBranch.name !== branch.name) {
+      if (
+        !currentBranchProtected &&
+        this.props.selectedUncommittedChangesStrategy.kind ===
+          stashOnCurrentBranch.kind &&
+        hasAssociatedStash
+      ) {
+        dispatcher.showPopup({
+          type: PopupType.ConfirmOverwriteStash,
+          repository,
+          branchToCheckout: branch,
+        })
+        return
+      }
+
       const timer = startTimer('checkout branch from list', repository)
 
       // Never prompt to stash changes if someone is switching away from a protected branch

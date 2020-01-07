@@ -2326,7 +2326,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       currentFoldout !== null && currentFoldout.type === FoldoutType.Branch
 
     const repository = selection.repository
-    const branchesState = selection.state.branchesState
+    const { branchesState, changesState } = selection.state
+    const hasAssociatedStash = changesState.stashEntry !== null
 
     return (
       <BranchDropdown
@@ -2345,6 +2346,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         selectedUncommittedChangesStrategy={getUncommittedChangesStrategy(
           this.state.uncommittedChangesStrategyKind
         )}
+        hasAssociatedStash={hasAssociatedStash}
       />
     )
   }
