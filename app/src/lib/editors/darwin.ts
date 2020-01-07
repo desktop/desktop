@@ -20,6 +20,7 @@ export enum ExternalEditor {
   CodeRunner = 'CodeRunner',
   SlickEdit = 'SlickEdit',
   Xcode = 'Xcode',
+  GoLand = 'GoLand',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -73,6 +74,9 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.Xcode) {
     return ExternalEditor.Xcode
   }
+  if (label === ExternalEditor.GoLand) {
+    return ExternalEditor.GoLand
+  }
   return null
 }
 
@@ -120,6 +124,8 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       ]
     case ExternalEditor.Xcode:
       return ['com.apple.dt.Xcode']
+    case ExternalEditor.GoLand:
+      return ['com.jetbrains.goland']
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -175,6 +181,8 @@ function getExecutableShim(
       return Path.join(installPath, 'Contents', 'MacOS', 'vs')
     case ExternalEditor.Xcode:
       return '/usr/bin/xed'
+    case ExternalEditor.GoLand:
+      return Path.join(installPath, 'Contents', 'MacOS', 'goland')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -226,6 +234,7 @@ export async function getAvailableEditors(): Promise<
     codeRunnerPath,
     slickeditPath,
     xcodePath,
+    golandPath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.MacVim),
@@ -243,6 +252,7 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.CodeRunner),
     findApplication(ExternalEditor.SlickEdit),
     findApplication(ExternalEditor.Xcode),
+    findApplication(ExternalEditor.GoLand),
   ])
 
   if (atomPath) {
@@ -310,6 +320,10 @@ export async function getAvailableEditors(): Promise<
 
   if (xcodePath) {
     results.push({ editor: ExternalEditor.Xcode, path: xcodePath })
+  }
+
+  if (golandPath) {
+    results.push({ editor: ExternalEditor.GoLand, path: golandPath })
   }
 
   return results
