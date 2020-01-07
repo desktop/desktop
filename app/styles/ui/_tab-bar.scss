@@ -135,7 +135,7 @@
     justify-content: left;
 
     padding: var(--spacing);
-    margin: var(--spacing-half) var(--spacing-double);
+    margin: var(--spacing-third) var(--spacing-double);
 
     // This makes it so that we never render a double-width item border.
     // It has the unintended consequence of making it impossible to have a tab
@@ -155,7 +155,7 @@
 
     .icon {
       vertical-align: bottom;
-      margin-right: var(--spacing-half);
+      margin-right: var(--spacing);
     }
   }
 }
