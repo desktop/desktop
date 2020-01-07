@@ -49,8 +49,7 @@ interface IBranchDropdownProps {
 
   readonly selectedUncommittedChangesStrategy: UncommittedChangesStrategy
 
-  /** Whether `currentBranch` has an existing stash association */
-  readonly hasAssociatedStash: boolean
+  readonly hasChangesAndStash: boolean
 }
 
 /**
@@ -82,7 +81,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         selectedUncommittedChangesStrategy={
           this.props.selectedUncommittedChangesStrategy
         }
-        hasAssociatedStash={this.props.hasAssociatedStash}
+        hasChangesAndStash={this.props.hasChangesAndStash}
       />
     )
   }

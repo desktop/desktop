@@ -2328,6 +2328,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const repository = selection.repository
     const { branchesState, changesState } = selection.state
     const hasAssociatedStash = changesState.stashEntry !== null
+    const hasChanges = changesState.workingDirectory.files.length > 0
 
     return (
       <BranchDropdown
@@ -2346,7 +2347,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         selectedUncommittedChangesStrategy={getUncommittedChangesStrategy(
           this.state.uncommittedChangesStrategyKind
         )}
-        hasAssociatedStash={hasAssociatedStash}
+        hasChangesAndStash={hasChanges && hasAssociatedStash}
       />
     )
   }

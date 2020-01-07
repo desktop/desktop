@@ -48,8 +48,7 @@ interface IBranchesContainerProps {
 
   readonly selectedUncommittedChangesStrategy: UncommittedChangesStrategy
 
-  /** Whether `currentBranch` has an existing stash association */
-  readonly hasAssociatedStash: boolean
+  readonly hasChangesAndStash: boolean
 }
 
 interface IBranchesContainerState {
@@ -251,7 +250,7 @@ export class BranchesContainer extends React.Component<
       repository,
       currentBranchProtected,
       dispatcher,
-      hasAssociatedStash,
+      hasChangesAndStash,
     } = this.props
 
     if (currentBranch == null || currentBranch.name !== branch.name) {
@@ -259,7 +258,7 @@ export class BranchesContainer extends React.Component<
         !currentBranchProtected &&
         this.props.selectedUncommittedChangesStrategy.kind ===
           stashOnCurrentBranch.kind &&
-        hasAssociatedStash
+        hasChangesAndStash
       ) {
         dispatcher.showPopup({
           type: PopupType.ConfirmOverwriteStash,
