@@ -51,18 +51,20 @@ export class PullRequestCoordinator {
           this.prCache.set(ghRepo.dbID, pullRequests)
         }
 
-        // find matching repos
+        // find all related repos
         const { clones, forks } = findRepositoriesForGitHubRepository(
           ghRepo,
           this.repositories
         )
 
-        // emit updates
-        this.getForkPrs(forks).then(forksWithPrs => {
-          for (const [fork, prs] of forksWithPrs) {
+        // emit updates for forks
+        for (const fork of forks) {
+          this.getPullRequestsFor(fork.gitHubRepository).then(prs =>
             fn(fork, [...prs, ...pullRequests])
-          }
-        })
+          )
+        }
+
+        // emit updates for clones
         for (const c of clones) {
           fn(c, pullRequests)
         }
@@ -155,27 +157,6 @@ export class PullRequestCoordinator {
       this.currentPullRequestUpdater.stop()
       this.currentPullRequestUpdater = null
     }
-  }
-
-  /**
-   * Gets currently stored pull requests from PullRequestStore for each fork
-   *
-   * Uses a cache internally to reduce database calls in PullRequestStore.
-   *
-   * @param forks list of forks
-   * @returns map of forks to a list of prs
-   */
-  private async getForkPrs(
-    forks: ReadonlyArray<RepositoryWithGitHubRepository>
-  ): Promise<Map<RepositoryWithGitHubRepository, ReadonlyArray<PullRequest>>> {
-    const forksWithPrs = new Map<
-      RepositoryWithGitHubRepository,
-      ReadonlyArray<PullRequest>
-    >()
-    for (const f of forks) {
-      forksWithPrs.set(f, await this.getPullRequestsFor(f.gitHubRepository))
-    }
-    return forksWithPrs
   }
 
   /**
