@@ -27,7 +27,7 @@
     background: var(--tab-bar-count-background-color);
     color: var(--tab-bar-count-color);
 
-    margin-left: var(--spacing-half);
+    margin-left: var(--spacer-2);
 
     // Perfectly round semi circle ends with real tight
     // padding on either side. Now in two flavors!
@@ -56,7 +56,7 @@
   &.filter-list .filter-field-row {
     // The rows have built-in margin to their content so
     // we only need half a spacer here
-    margin-bottom: var(--spacing-half);
+    margin-bottom: var(--spacer-2);
   }
 
   .list-item.selected:focus {
@@ -66,7 +66,7 @@
   }
 
   .pull-request-item {
-    padding: 0 var(--spacing);
+    padding: 0 var(--spacer-3);
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -74,8 +74,8 @@
     flex-grow: 1;
 
     .icon {
-      margin-left: var(--spacing-half);
-      margin-right: var(--spacing);
+      margin-left: var(--spacer-2);
+      margin-right: var(--spacer-3);
       flex-shrink: 0;
 
       // Align the icon baseline with the title text
@@ -88,7 +88,7 @@
       flex-direction: column;
       min-width: 0;
       flex-grow: 1;
-      margin-right: var(--spacing);
+      margin-right: var(--spacer-3);
 
       .title {
         @include ellipsis;
@@ -106,14 +106,14 @@
     }
 
     .ci-status {
-      margin-right: var(--spacing-half);
+      margin-right: var(--spacer-2);
     }
   }
 }
 
 .branches-list {
   &-item {
-    padding: 0 var(--spacing);
+    padding: 0 var(--spacer-3);
   }
 
   &-item {
@@ -124,7 +124,7 @@
     align-items: center;
 
     .icon {
-      margin-right: var(--spacing-half);
+      margin-right: var(--spacer-2);
       width: 16px; // Force a consistent width
       flex-shrink: 0;
     }
@@ -133,7 +133,7 @@
       flex-grow: 2;
       @include ellipsis;
       max-width: 65%;
-      margin-right: var(--spacing-half);
+      margin-right: var(--spacer-2);
 
       /* Used to highlight substring matches in filtered lists */
       mark {
@@ -145,7 +145,7 @@
     }
 
     .description {
-      margin-right: var(--spacing-half);
+      margin-right: var(--spacer-2);
       color: var(--text-secondary-color);
       font-size: var(--font-size-sm);
       flex-grow: 1;
@@ -162,14 +162,14 @@
 
   align-items: center;
   text-align: center;
-  padding: var(--spacing);
+  padding: var(--spacer-3);
 
   .title {
     font-weight: var(--font-weight-semibold);
   }
 
   .no-prs {
-    padding-bottom: var(--spacing);
+    padding-bottom: var(--spacer-3);
   }
 
   .call-to-action {

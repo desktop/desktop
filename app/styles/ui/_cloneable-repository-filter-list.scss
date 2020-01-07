@@ -4,12 +4,12 @@
     align-items: center;
     flex-direction: column;
     text-align: center;
-    margin: var(--spacing-double);
+    margin: var(--spacer-4);
     width: 100%;
 
     .octicon {
       fill: var(--text-secondary-color);
-      margin-right: var(--spacing-half);
+      margin-right: var(--spacer-2);
     }
 
     &.loading {

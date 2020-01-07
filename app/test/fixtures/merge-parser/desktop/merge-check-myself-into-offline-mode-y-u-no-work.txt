@@ -5,7 +5,7 @@ changed in both
 @@ -37,9 +37,13 @@
        // Add a little bit of space to the left of code diff
        // `padding-left` here means mouse move events are not raised
-       padding-left: var(--spacing-half);
+       padding-left: var(--spacer-2);
 +<<<<<<< .our
        padding-top: var(--diff-line-padding-y);
        padding-bottom: var(--diff-line-padding-y);
@@ -38,8 +38,8 @@ changed in both
 +    width: 7px;
 +
 +    position: absolute;
-+    left: var(--spacing-half);
-+    top: var(--spacing-half);
++    left: var(--spacer-2);
++    top: var(--spacer-2);
 +  }
  }
  

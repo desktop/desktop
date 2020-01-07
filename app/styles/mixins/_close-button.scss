@@ -10,7 +10,7 @@
     // on the right hand side of the dialog and add a -10px right hand
     // side margin to put the button where it should be (we use a double
     // margin for the header itself).
-    margin: 0 calc(var(--spacing) * -1) 0 auto;
+    margin: 0 calc(var(--spacer-3) * -1) 0 auto;
     padding: 0;
     background: transparent;
 

@@ -65,15 +65,15 @@ changed in both
    height: 100%;
 +=======
 +.popup-content {
-+  padding: var(--spacing);
++  padding: var(--spacer-3);
 +}
 +
 +.popup-actions {
-+  padding: 0 var(--spacing) var(--spacing);
++  padding: 0 var(--spacer-3) var(--spacer-3);
 +  text-align: left;
 +
 +  button {
-+    margin-right: var(--spacing);
++    margin-right: var(--spacer-3);
 +  }
 +}
 +

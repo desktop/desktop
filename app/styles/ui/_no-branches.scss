@@ -4,7 +4,7 @@
   flex-direction: column;
   align-items: center;
 
-  padding: var(--spacing);
+  padding: var(--spacer-3);
 
   .title {
     font-weight: var(--font-weight-semibold);
@@ -12,21 +12,21 @@
   }
 
   .subtitle {
-    margin-left: var(--spacing-double);
-    margin-right: var(--spacing-double);
+    margin-left: var(--spacer-4);
+    margin-right: var(--spacer-4);
 
     text-align: center;
     font-size: var(--font-size-sm);
   }
 
   .create-branch-button {
-    margin: var(--spacing-double);
+    margin: var(--spacer-4);
     align-self: stretch;
   }
 
   .protip {
-    padding-left: var(--spacing-triple);
-    padding-right: var(--spacing-triple);
+    padding-left: var(--spacer-5);
+    padding-right: var(--spacer-5);
 
     text-align: center;
     font-size: var(--font-size-sm);

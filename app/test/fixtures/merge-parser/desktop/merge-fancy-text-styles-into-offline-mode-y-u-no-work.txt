@@ -81,13 +81,13 @@ changed in both
    .fancy-octicon {
      height: var(--text-field-height);
 +<<<<<<< .our
-     padding: var(--spacing-half) 0 var(--spacing-half) 7px;
+     padding: var(--spacer-2) 0 var(--spacer-2) 7px;
      border-right: none;
      border-radius: var(--border-radius) 0 0 var(--border-radius);
      opacity: 0.5;
      transition: opacity 0.2s ease;
 +=======
-+    padding: var(--spacing-half) var(--spacing-half) var(--spacing-half) 7px;
++    padding: var(--spacer-2) var(--spacer-2) var(--spacer-2) 7px;
 +    border-right: none;
 +    border-radius: var(--border-radius) 0 0 var(--border-radius);
 +

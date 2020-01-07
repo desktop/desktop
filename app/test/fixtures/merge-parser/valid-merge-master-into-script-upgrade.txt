@@ -806,7 +806,7 @@ merged
  
  .branches-list {
    &-item {
--    padding: 0 var(--spacing);
+-    padding: 0 var(--spacer-3);
 -  }
 -
 -  &-item {
@@ -815,10 +815,10 @@ merged
      min-width: 0;
      flex-grow: 1;
      align-items: center;
-+    padding: 0 var(--spacing);
++    padding: 0 var(--spacer-3);
  
      .icon {
-       margin-right: var(--spacing-half);
+       margin-right: var(--spacer-2);
 @@ -221,6 +218,44 @@
        }
      }
@@ -840,9 +840,9 @@ merged
 +
 +      .branch-menu-wrapper {
 +        display: flex;
-+        margin: var(--spacing);
++        margin: var(--spacer-3);
 +        margin-right: 0;
-+        padding: 0 var(--spacing);
++        padding: 0 var(--spacer-3);
 +        border-radius: var(--border-radius);
 +        transition: background 0.15s;
 +
@@ -862,7 +862,7 @@ merged
 +    }
 +
      .description {
-       margin-right: var(--spacing-half);
+       margin-right: var(--spacer-2);
        color: var(--text-secondary-color);
 merged
   result 100644 ef1599638c6d327a99a8043a83e57cd9d102d41b app/test/unit/app-store-test.ts

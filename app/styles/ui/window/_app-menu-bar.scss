@@ -2,7 +2,7 @@
   display: flex;
 
   .toolbar-button > button {
-    padding: 0 var(--spacing);
+    padding: 0 var(--spacer-3);
     border: 0;
 
     .access-key.highlight {

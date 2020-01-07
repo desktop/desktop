@@ -14,7 +14,7 @@
   align-content: center;
   align-items: center;
   justify-content: space-between;
-  padding-left: var(--spacing);
+  padding-left: var(--spacer-3);
 
   // Prevents the notification banner from decreasing its height
   // when a large diff is rendered.
@@ -34,8 +34,8 @@
     flex-grow: 0;
     width: 16px;
     height: 16px;
-    margin-right: var(--spacing);
-    margin-left: var(--spacing);
+    margin-right: var(--spacer-3);
+    margin-left: var(--spacer-3);
     background: transparent;
 
     color: var(--text-secondary-color);

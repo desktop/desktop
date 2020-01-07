@@ -21,7 +21,7 @@
    * and one <div class='name'> holding the repository name.
    */
   .repository-list-item {
-    padding: 0 var(--spacing);
+    padding: 0 var(--spacer-3);
 
     // Layout the icon and repository name horizontally
     display: flex;
@@ -40,7 +40,7 @@
 
     .icon-for-repository {
       // Some room between the icon and repository name
-      margin-right: var(--spacing-half);
+      margin-right: var(--spacer-2);
 
       // Always let the octicon dictate the amount of space it needs
       flex-shrink: 0;
@@ -78,7 +78,7 @@
       min-width: 12px;
       justify-content: center;
       align-items: center;
-      margin-left: var(--spacing-half);
+      margin-left: var(--spacer-2);
 
       .octicon {
         color: var(--tab-bar-active-color);
@@ -86,7 +86,7 @@
       }
 
       &:not(.group-repositories-by-owner) {
-        margin-right: var(--spacing-half);
+        margin-right: var(--spacer-2);
       }
     }
 
@@ -118,7 +118,7 @@
   }
 
   .filter-list-group-header.group-repositories-by-owner {
-    padding-top: var(--spacing);
+    padding-top: var(--spacer-3);
   }
 
   .new-repository-button {
@@ -133,7 +133,7 @@
 
   .no-items {
     text-align: center;
-    padding: var(--spacing);
+    padding: var(--spacer-3);
     word-wrap: break-word;
 
     .blankslate-image {
@@ -147,9 +147,9 @@
     }
 
     .protip {
-      padding-top: var(--spacing-double);
-      padding-left: var(--spacing-double);
-      padding-right: var(--spacing-double);
+      padding-top: var(--spacer-4);
+      padding-left: var(--spacer-4);
+      padding-right: var(--spacer-4);
 
       text-align: center;
       font-size: var(--font-size-sm);

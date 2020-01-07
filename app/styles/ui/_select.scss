@@ -7,7 +7,7 @@
 
   label {
     @include ellipsis;
-    margin-bottom: var(--spacing-third);
+    margin-bottom: var(--spacer-1);
   }
 
   // Custom styles for select components because a) they look horrible

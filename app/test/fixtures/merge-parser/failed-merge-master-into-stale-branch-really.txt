@@ -16032,7 +16032,7 @@ merged
    align-items: center;
    justify-content: center;
    text-align: center;
-+  padding: var(--spacing);
++  padding: var(--spacer-3);
  }
 
  // Stretches an element to fill the entire window (such as an overlay)
@@ -16256,7 +16256,7 @@ merged
 
    /** Inline paths and code */
    --path-segment-background: $blue-000;
-   --path-segment-padding: var(--spacing-third);
+   --path-segment-padding: var(--spacer-1);
 
 +  /** Diverging notification banner colors */
 +  --notification-banner-background: $blue-000;
@@ -16301,7 +16301,7 @@ added in remote
 +    // on the right hand side of the dialog and add a -10px right hand
 +    // side margin to put the button where it should be (we use a double
 +    // margin for the header itself).
-+    margin: 0 calc(var(--spacing) * -1) 0 auto;
++    margin: 0 calc(var(--spacer-3) * -1) 0 auto;
 +    padding: 0;
 +    background: transparent;
 +
@@ -16680,7 +16680,7 @@ merged
 +    background: var(--tab-bar-count-background-color);
 +    color: var(--tab-bar-count-color);
 
-     margin-left: var(--spacing-half);
+     margin-left: var(--spacer-2);
 
 @@ -162,12 +162,7 @@
        }
@@ -16782,7 +16782,7 @@ merged
 -      // on the right hand side of the dialog and add a -10px right hand
 -      // side margin to put the button where it should be (we use a double
 -      // margin for the header itself).
--      margin: 0 calc(var(--spacing) * -1) 0 auto;
+-      margin: 0 calc(var(--spacer-3) * -1) 0 auto;
 -      padding: 0;
 -      background: transparent;
 -
@@ -16813,10 +16813,10 @@ merged
        // account for two double spacers at top and bottom plus the 5px
        // icon offset (margin-top) and the size of the icon itself.
 -      min-height: calc(
--        var(--spacing-double) * 2 + var(--spacing-half) +
+-        var(--spacer-4) * 2 + var(--spacer-2) +
 -          var(--dialog-icon-size)
 -      );
-+      min-height: calc(var(--spacing-double) * 2 + var(--spacing-half) + var(--dialog-icon-size));
++      min-height: calc(var(--spacer-4) * 2 + var(--spacer-2) + var(--dialog-icon-size));
 
        // We're creating an opaque 24 by 24px div with the background color
        // that we want the icon to appear in and then apply the icon path
@@ -16927,7 +16927,7 @@ merged
  // ***************************************************************************************************************************
 -#diff a {
 -  text-decoration: none;
--  margin-left: var(--spacing-half);
+-  margin-left: var(--spacer-2);
 -}
 -
 -#diff a:link {
@@ -16956,12 +16956,12 @@ merged
 +    align-items: center;
 +
 +    .image-diff-previous {
-+      margin-right: var(--spacing-half);
-+      margin-bottom: var(--spacing-half);
++      margin-right: var(--spacer-2);
++      margin-bottom: var(--spacer-2);
 +    }
 +    .image-diff-current {
-+      margin-left: var(--spacing-half);
-+      margin-bottom: var(--spacing-half);
++      margin-left: var(--spacer-2);
++      margin-bottom: var(--spacer-2);
 +    }
    }
 -  .image-diff-current {
@@ -17087,7 +17087,7 @@ added in remote
 +
 +  .fancy-octicon {
 +    height: var(--text-field-height);
-+    padding: var(--spacing-half) 0 var(--spacing-half) 7px;
++    padding: var(--spacer-2) 0 var(--spacer-2) 7px;
 +    border-right: none;
 +    border-radius: var(--border-radius) 0 0 var(--border-radius);
 +    opacity: 0.5;
@@ -17206,11 +17206,11 @@ added in remote
 +  border-color: var(--notification-banner-border-color);
 +  border-radius: var(--border-radius);
 +  display: flex;
-+  padding: var(--spacing);
++  padding: var(--spacer-3);
 +  position: relative;
 +
 +  .notification-icon {
-+    margin-right: var(--spacing-half);
++    margin-right: var(--spacer-2);
 +  }
 +
 +  &-content {
@@ -17221,10 +17221,10 @@ added in remote
 +      flex-grow: 1;
 +      font-size: var(--font-size-sm);
 +      margin: 0;
-+      padding-right: var(--spacing-double); // Extra space for the close button
++      padding-right: var(--spacer-4); // Extra space for the close button
 +
 +      & + p {
-+        margin-top: var(--spacing-half);
++        margin-top: var(--spacer-2);
 +      }
 +    }
 +  }
@@ -17239,8 +17239,8 @@ added in remote
 +  .close {
 +    position: absolute;
 +    margin: 0;
-+    top: var(--spacing);
-+    right: var(--spacing);
++    top: var(--spacer-3);
++    right: var(--spacer-3);
 +    text-align: center;
 +
 +    .octicon {
@@ -17250,7 +17250,7 @@ added in remote
 +}
 +
 +.diverge-banner {
-+  margin: var(--spacing-half);
++  margin: var(--spacer-2);
 +  overflow: hidden;
 +
 +  &-enter {
@@ -17287,13 +17287,13 @@ added in remote
 +}
 +
 +.notification-banner-content-body {
-+  margin-bottom: var(--spacing-half);
++  margin-bottom: var(--spacer-2);
 +}
 +
 +.notification-banner-content {
 +  .button-component {
-+    margin-top: var(--spacing-half);
-+    margin-right: var(--spacing-half);
++    margin-top: var(--spacer-2);
++    margin-right: var(--spacer-2);
 +  }
 +}
 merged
@@ -17454,7 +17454,7 @@ merged
   result 100644 d03e102280205b3d5932443b87f86ae495b967c8 app/styles/ui/_select.scss
   our    100644 49aaeff05480031aef8493b66d05c59ae970ecc0 app/styles/ui/_select.scss
 @@ -10,27 +10,16 @@
-     margin-bottom: var(--spacing-third);
+     margin-bottom: var(--spacer-1);
    }
 
 -  // Select boxes look absolutely horrible on Windows so we'll make them
@@ -17485,7 +17485,7 @@ merged
 -      background-image: url('data:image/gif;base64,R0lGODlhEAAKAMQAAGpzff///8PHy6arsXqCi46UnN7g4vHy8/v7+253gYuSmm12gO/w8dve4Pz8/KassniAicfLzwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAAAAAAALAAAAAAQAAoAAAUw4ACMZFk+TmGugIIEB8GSEBPcRjIvze1HM4FvKDI9hsNUyYUcxka1JjLHkzYFwmYIADs=');
 -      background-size: 8px 5px;
 -      background-repeat: no-repeat;
--      background-position: right var(--spacing-half) center;
+-      background-position: right var(--spacer-2) center;
 -    }
 +    // Don't include the default padding from textboxish, it's too much
 +    padding: 0;
@@ -17516,7 +17516,7 @@ merged
   result 100644 94ed12c8ef668212eaa0f41d6f741a8cc444b2da app/styles/ui/changes/_changes-view.scss
   our    100644 65c5af2ea88cf23e747e2b83a4de02734e02ec5a app/styles/ui/changes/_changes-view.scss
 @@ -59,6 +59,10 @@
-       margin: var(--spacing-double);
+       margin: var(--spacer-4);
        text-align: center;
        justify-content: initial;
 +
@@ -17568,7 +17568,7 @@ merged
 @@ -119,6 +115,7 @@
 
      .action-bar {
-       padding: var(--spacing-half);
+       padding: var(--spacer-2);
 +      background: var(--box-background-color);
 
        // We're not faking being a textbox any more
@@ -17624,7 +17624,7 @@ merged
   result 100644 58cea508b02182fa4f45daf88643d33c3b2dd020 app/styles/ui/history/_history.scss
   our    100644 4e36c11fb44d43f2f8a8cb661820f2143f0f513c app/styles/ui/history/_history.scss
 @@ -46,6 +46,114 @@
-       margin: var(--spacing-double);
+       margin: var(--spacer-4);
        text-align: center;
        justify-content: initial;
 +
@@ -17643,7 +17643,7 @@ merged
 +  .compare-form {
 +    background: var(--box-alt-background-color);
 +    flex: initial;
-+    padding: var(--spacing-half);
++    padding: var(--spacer-2);
 +    border-bottom: var(--base-border);
 +  }
 +
@@ -17659,16 +17659,16 @@ merged
 +    flex-direction: column;
 +    font-size: var(--font-size-sm);
 +    text-align: center;
-+    padding: var(--spacing);
++    padding: var(--spacer-3);
 +  }
 +
 +  .merge-message {
-+    margin-top: var(--spacing);
++    margin-top: var(--spacer-3);
 +  }
 +
 +  .no-branches {
 +    color: var(--text-secondary-color);
-+    margin-top: var(--spacing-double);
++    margin-top: var(--spacer-4);
 +  }
 +
 +  .branch-commit-counter {
@@ -17683,7 +17683,7 @@ merged
 +      align-items: center;
 +
 +      &:first-child {
-+        margin-right: var(--spacing-half);
++        margin-right: var(--spacer-2);
 +      }
 +    }
 +
@@ -17699,7 +17699,7 @@ merged
 +  }
 +
 +  .tab-bar {
-+    padding: var(--spacing-half);
++    padding: var(--spacer-2);
 +    border-bottom: var(--base-border);
 +    height: initial;
 +
@@ -17814,7 +17814,7 @@ merged
   our    100644 965026fe769810b727cc768025c568ede86e918b app/styles/ui/window/_toast-notification.scss
 @@ -14,8 +14,8 @@
    .toast-notification {
-     padding: var(--spacing) var(--spacing-double);
+     padding: var(--spacer-3) var(--spacer-4);
      min-width: 100px;
 -    background: rgba($gray-900, 0.6);
 -    color: $gray-000;
@@ -17828,7 +17828,7 @@ merged
   our    100644 0c6db84cbb5f535dedef4192e2e914f5ab4ce20d app/styles/ui/window/_zoom-info.scss
 @@ -14,8 +14,8 @@
    & > div {
-     padding: var(--spacing);
+     padding: var(--spacer-3);
      min-width: 100px;
 -    background: rgba($gray-900, 0.6);
 -    color: $gray-000;

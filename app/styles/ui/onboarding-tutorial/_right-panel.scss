@@ -17,9 +17,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--spacing-triple);
-    padding-left: var(--spacing-quint);
-    padding-right: var(--spacing-double);
+    padding: var(--spacer-5);
+    padding-left: var(--spacer-7);
+    padding-right: var(--spacer-4);
 
     h3 {
       margin: 0;
@@ -49,7 +49,7 @@
   }
 
   li {
-    padding: var(--spacing-double);
+    padding: var(--spacer-4);
   }
   summary {
     display: flex;
@@ -84,9 +84,9 @@
   }
 
   details .contents {
-    padding-left: var(--spacing-triple);
+    padding-left: var(--spacer-5);
     .description {
-      margin-bottom: var(--spacing);
+      margin-bottom: var(--spacer-3);
     }
     .action {
       display: flex;
@@ -95,9 +95,9 @@
       .button-component {
         display: flex;
         align-items: center;
-        margin-right: var(--spacing);
+        margin-right: var(--spacer-3);
         .octicon {
-          margin-left: var(--spacing);
+          margin-left: var(--spacer-3);
           color: var(--text-secondary-color);
           height: 14px;
           width: 14px;
@@ -114,7 +114,7 @@
     }
   }
   details[open] summary {
-    margin-bottom: var(--spacing);
+    margin-bottom: var(--spacer-3);
     .summary-text {
       opacity: 1;
     }
@@ -129,7 +129,7 @@
   .footer {
     display: flex;
     justify-content: center;
-    padding: var(--spacing-double) 0;
+    padding: var(--spacer-4) 0;
     margin-top: auto;
   }
 }
@@ -143,7 +143,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-right: var(--spacing);
+  margin-right: var(--spacer-3);
   flex-shrink: 0;
   flex-grow: 0;
 }

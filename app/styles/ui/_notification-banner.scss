@@ -10,11 +10,11 @@
   border-color: var(--notification-banner-border-color);
   border-radius: var(--border-radius);
   display: flex;
-  padding: var(--spacing);
+  padding: var(--spacer-3);
   position: relative;
 
   .notification-icon {
-    margin-right: var(--spacing-half);
+    margin-right: var(--spacer-2);
   }
 
   &-content {
@@ -25,10 +25,10 @@
       flex-grow: 1;
       font-size: var(--font-size-sm);
       margin: 0;
-      padding-right: var(--spacing-double); // Extra space for the close button
+      padding-right: var(--spacer-4); // Extra space for the close button
 
       & + p {
-        margin-top: var(--spacing-half);
+        margin-top: var(--spacer-2);
       }
     }
   }
@@ -43,8 +43,8 @@
   .close {
     position: absolute;
     margin: 0;
-    top: var(--spacing);
-    right: var(--spacing);
+    top: var(--spacer-3);
+    right: var(--spacer-3);
     text-align: center;
 
     .octicon {
@@ -54,7 +54,7 @@
 }
 
 .diverge-banner {
-  margin: var(--spacing-half);
+  margin: var(--spacer-2);
   overflow: hidden;
 
   &-enter {
@@ -91,12 +91,12 @@
 }
 
 .notification-banner-content-body {
-  margin-bottom: var(--spacing-half);
+  margin-bottom: var(--spacer-2);
 }
 
 .notification-banner-content {
   .button-component {
-    margin-top: var(--spacing-half);
-    margin-right: var(--spacing-half);
+    margin-top: var(--spacer-2);
+    margin-right: var(--spacer-2);
   }
 }

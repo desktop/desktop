@@ -3,13 +3,13 @@
   flex-direction: column;
   max-width: 400px;
   min-width: 260px;
-  margin: var(--spacing-triple) var(--spacing);
+  margin: var(--spacer-5) var(--spacer-3);
   background-color: var(--box-alt-background-color);
   z-index: var(--popup-z-index);
 }
 
 .popup-content {
-  padding: var(--spacing);
+  padding: var(--spacer-3);
 }
 
 // This is used for group lists such as the branch picker
@@ -20,7 +20,7 @@
 }
 
 .popup-actions {
-  margin-top: var(--spacing);
+  margin-top: var(--spacer-3);
 }
 
 .popup-error-output {

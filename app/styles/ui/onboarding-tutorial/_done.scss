@@ -1,5 +1,5 @@
 #tutorial-done {
-  padding: var(--spacing-quad);
+  padding: var(--spacer-6);
   flex: 1 1 700px;
   min-height: 100%;
   display: flex;
@@ -14,7 +14,7 @@
 
     .text {
       flex-grow: 1;
-      margin-right: var(--spacing-double);
+      margin-right: var(--spacer-4);
 
       h1 {
         padding: 0;
@@ -37,7 +37,7 @@
       align-self: flex-end;
     }
 
-    margin-bottom: var(--spacing-double);
+    margin-bottom: var(--spacer-4);
   }
 
   .content {

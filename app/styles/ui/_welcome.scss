@@ -22,7 +22,7 @@
     }
 
     .actions {
-      margin-top: var(--spacing-double);
+      margin-top: var(--spacer-4);
     }
   }
 
@@ -32,18 +32,18 @@
     }
 
     .sign-in-footer {
-      margin-top: var(--spacing-double);
+      margin-top: var(--spacer-4);
     }
 
     .actions {
       display: inline;
-      margin-top: var(--spacing);
+      margin-top: var(--spacer-3);
     }
   }
 
   #configure-git-user .form-component {
     div:last-child {
-      margin-top: var(--spacing);
+      margin-top: var(--spacer-3);
     }
   }
 
@@ -60,22 +60,22 @@
   }
 
   input {
-    padding: var(--spacing-half);
+    padding: var(--spacer-2);
   }
 
   button {
-    margin-right: var(--spacing);
-    padding: var(--spacing-half) var(--spacing);
+    margin-right: var(--spacer-3);
+    padding: var(--spacer-2) var(--spacer-3);
   }
 
   .form-component {
     .text-box-component {
-      margin-bottom: var(--spacing);
+      margin-bottom: var(--spacer-3);
     }
   }
 
   .actions {
-    margin-top: var(--spacing);
+    margin-top: var(--spacer-3);
   }
 
   &.exiting {
@@ -99,16 +99,16 @@
   font-size: var(--font-size-xxl);
   font-weight: var(--font-weight-light);
   line-height: 1.25;
-  margin-bottom: var(--spacing);
+  margin-bottom: var(--spacer-3);
 }
 
 .welcome-text {
-  margin: var(--spacing) 0;
+  margin: var(--spacer-3) 0;
 }
 
 .welcome-button {
   font-weight: var(--font-weight-semibold);
-  margin: var(--spacing) 0;
+  margin: var(--spacer-3) 0;
 }
 
 .sign-in-field {
@@ -124,13 +124,13 @@
 .welcome-left {
   display: flex;
   align-items: center;
-  padding: var(--spacing-quad);
+  padding: var(--spacer-6);
   position: relative;
 
   .welcome-graphic-bottom {
     position: absolute;
-    right: var(--spacing);
-    bottom: var(--spacing);
+    right: var(--spacer-3);
+    bottom: var(--spacer-3);
 
     height: auto;
     max-height: 100%;
@@ -173,7 +173,7 @@
   justify-content: center;
   align-items: center;
   display: flex;
-  padding: var(--spacing-quad);
+  padding: var(--spacer-6);
   position: relative;
   overflow: hidden;
 
@@ -185,7 +185,7 @@
 }
 
 .skip-action-container {
-  margin-top: var(--spacing-quad);
+  margin-top: var(--spacer-6);
 
   .skip-button {
     color: var(--text-secondary-color);
@@ -200,5 +200,5 @@
 
 .forgot-password-link {
   align-self: center;
-  margin-left: var(--spacing);
+  margin-left: var(--spacer-3);
 }

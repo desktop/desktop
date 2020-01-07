@@ -15,12 +15,12 @@ dialog#rebase-progress {
 
     max-width: 100%;
     width: 100%;
-    margin-bottom: var(--spacing);
+    margin-bottom: var(--spacer-3);
   }
   .details {
     display: flex;
     flex-flow: row nowrap;
-    padding: var(--spacing) 0 var(--spacing-double);
+    padding: var(--spacer-3) 0 var(--spacer-4);
 
     .green-circle {
       background-color: var(--color-new);
@@ -34,7 +34,7 @@ dialog#rebase-progress {
     }
 
     .summary {
-      padding-left: var(--spacing);
+      padding-left: var(--spacer-3);
 
       .message {
         font-weight: bold;

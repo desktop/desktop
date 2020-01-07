@@ -20,7 +20,7 @@
    * content doesn't touch the edge of the sideline or
    * window when space is scarce.
    */
-  padding: var(--spacing-double);
+  padding: var(--spacer-4);
 
   /*  Center children horizontally */
   align-items: center;
@@ -36,7 +36,7 @@
     flex-direction: row;
     align-items: center;
 
-    margin-bottom: var(--spacing);
+    margin-bottom: var(--spacer-3);
   }
 
   /* Big clone icon */
@@ -45,7 +45,7 @@
     height: 32px;
 
     /* Space between the icon and title text */
-    margin-right: var(--spacing);
+    margin-right: var(--spacer-3);
 
     /* Don't grow nor shrink */
     flex: none;
@@ -77,6 +77,6 @@
   progress {
     max-width: 100%;
     width: 100%;
-    margin-bottom: var(--spacing);
+    margin-bottom: var(--spacer-3);
   }
 }

@@ -270,11 +270,11 @@ added in both
  }
 @@ -30,21 +31,39 @@
        & + p {
-         margin-top: var(--spacing-half);
+         margin-top: var(--spacer-2);
        }
 +=======
 +.notification-banner {
-+  padding: var(--spacing-half);
++  padding: var(--spacer-2);
 +
 +  &-content {
 +    display: flex;
@@ -299,8 +299,8 @@ added in both
 +<<<<<<< .our
      position: absolute;
      margin: 0;
-     top: var(--spacing);
-     right: var(--spacing);
+     top: var(--spacer-3);
+     right: var(--spacer-3);
 +=======
 +    flex-grow: 0;
 +    margin: 0;
@@ -313,13 +313,13 @@ added in both
  
  .diverge-banner {
 +<<<<<<< .our
-   margin: var(--spacing-half);
+   margin: var(--spacer-2);
    overflow: hidden;
  
 @@ -98,5 +118,23 @@
    .button-component {
-     margin-top: var(--spacing-half);
-     margin-right: var(--spacing-half);
+     margin-top: var(--spacer-2);
+     margin-right: var(--spacer-2);
 +=======
 +  p {
 +    margin-top: 0;
@@ -331,7 +331,7 @@ added in both
 +
 +  .button-component {
 +    flex: 1;
-+    margin-right: var(--spacing-half);
++    margin-right: var(--spacer-2);
 +
 +
 +    &:last-of-type {

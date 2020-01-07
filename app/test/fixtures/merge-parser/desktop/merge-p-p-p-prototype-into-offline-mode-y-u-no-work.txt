@@ -182,17 +182,17 @@ changed in both
    display: flex;
 +=======
 +>>>>>>> .their
-   padding: var(--spacing);
+   padding: var(--spacer-3);
    position: relative;
  
 @@ -26,10 +29,13 @@
        font-size: var(--font-size-sm);
        margin: 0;
-       padding-right: var(--spacing-double); // Extra space for the close button
+       padding-right: var(--spacer-4); // Extra space for the close button
 +<<<<<<< .our
  
        & + p {
-         margin-top: var(--spacing-half);
+         margin-top: var(--spacer-2);
        }
 +=======
 +>>>>>>> .their
@@ -247,7 +247,7 @@ changed in both
 @@ -63,13 +63,13 @@
      background: var(--box-alt-background-color);
      flex: initial;
-     padding: var(--spacing-half);
+     padding: var(--spacer-2);
 -    border-bottom: var(--base-border);
    }
  

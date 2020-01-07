@@ -12,7 +12,7 @@
   left: 0;
 
   .toast-notification {
-    padding: var(--spacing) var(--spacing-double);
+    padding: var(--spacer-3) var(--spacer-4);
     min-width: 100px;
     background: var(--toast-notification-background-color);
     color: var(--toast-notification-color);
@@ -27,7 +27,7 @@
   }
 
   kbd {
-    padding: var(--spacing-half);
+    padding: var(--spacer-2);
     border-color: $gray-300;
   }
 }

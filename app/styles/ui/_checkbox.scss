@@ -8,7 +8,7 @@
 
     // Only add a right margin if there's a label attached to it
     &:not(:last-child) {
-      margin-right: var(--spacing-half);
+      margin-right: var(--spacer-2);
     }
 
     &:focus {

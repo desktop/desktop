@@ -2322,7 +2322,7 @@ added in remote
 @@ -0,0 +1,54 @@
 +#troubleshoot-ssh {
 +  .spin {
-+    margin-right: var(--spacing-half);
++    margin-right: var(--spacer-2);
 +  }
 +
 +  p.output {
