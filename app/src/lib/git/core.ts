@@ -184,23 +184,38 @@ export async function git(
   throw new GitError(gitResult, args)
 }
 
-function getDescriptionForError(error: DugiteError): string {
+export function isAuthFailureError(
+  error: DugiteError
+): error is
+  | DugiteError.SSHAuthenticationFailed
+  | DugiteError.SSHPermissionDenied
+  | DugiteError.HTTPSAuthenticationFailed {
   switch (error) {
-    case DugiteError.SSHKeyAuditUnverified:
-      return 'The SSH key is unverified.'
     case DugiteError.SSHAuthenticationFailed:
     case DugiteError.SSHPermissionDenied:
     case DugiteError.HTTPSAuthenticationFailed:
-      const menuHint = __DARWIN__
-        ? 'GitHub Desktop > Preferences.'
-        : 'File > Options.'
-      return `Authentication failed. Some common reasons include:
+      return true
+  }
+  return false
+}
+
+function getDescriptionForError(error: DugiteError): string {
+  if (isAuthFailureError(error)) {
+    const menuHint = __DARWIN__
+      ? 'GitHub Desktop > Preferences.'
+      : 'File > Options.'
+    return `Authentication failed. Some common reasons include:
 
 - You are not logged in to your account: see ${menuHint}
 - You may need to log out and log back in to refresh your token.
 - You do not have permission to access this repository.
 - The repository is archived on GitHub. Check the repository settings to confirm you are still permitted to push commits.
 - If you use SSH authentication, check that your key is added to the ssh-agent and associated with your account.`
+  }
+
+  switch (error) {
+    case DugiteError.SSHKeyAuditUnverified:
+      return 'The SSH key is unverified.'
     case DugiteError.RemoteDisconnection:
       return 'The remote disconnected. Check your Internet connection and try again.'
     case DugiteError.HostDown:
