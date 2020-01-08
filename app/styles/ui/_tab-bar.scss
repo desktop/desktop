@@ -13,15 +13,18 @@
 
   background: var(--tab-bar-background-color);
 
-  &.tabs &-item {
+  &-item {
     // Reset styles from global buttons
     border: none;
     box-shadow: none;
-    border-radius: 0;
     color: var(--text-color);
     background: var(--background-color);
     font-family: var(--font-family-sans-serif);
     font-size: var(--font-size);
+  }
+
+  &.tabs &-item {
+    border-radius: 0;
 
     // Give each item equal space
     flex: 1;
@@ -81,15 +84,8 @@
   }
 
   &.switch &-item {
-    // Reset styles from global buttons
     cursor: pointer;
-    border: none;
-    box-shadow: none;
     border-radius: 0;
-    color: var(--text-color);
-    background: var(--background-color);
-    font-family: var(--font-family-sans-serif);
-    font-size: var(--font-size);
 
     // Give each item equal space
     flex: 1;
@@ -118,15 +114,7 @@
   }
 
   &.vertical &-item {
-    // Reset styles from global buttons
-    cursor: pointer;
-    border: none;
-    box-shadow: none;
     border-radius: var(--border-radius);
-    color: var(--text-color);
-    background: var(--background-color);
-    font-family: var(--font-family-sans-serif);
-    font-size: var(--font-size);
     min-width: 150px;
 
     // Center item contest horizontally and vertically
