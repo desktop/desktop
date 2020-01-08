@@ -4342,13 +4342,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _setRemoteURL(
+  public async _setRemoteURL(
     repository: Repository,
     name: string,
     url: string
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
-    return gitStore.setRemoteURL(name, url)
+    await gitStore.setRemoteURL(name, url)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
