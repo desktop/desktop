@@ -184,6 +184,12 @@ export async function git(
   throw new GitError(gitResult, args)
 }
 
+/**
+ * Determine whether the provided `error` is an authentication failure
+ * as per our definition. Note that this is not an exhaustive list of
+ * authentication failures, only a collection of errors that we treat
+ * equally in terms of error message and presentation to the user.
+ */
 export function isAuthFailureError(
   error: DugiteError
 ): error is
