@@ -21,7 +21,7 @@
    * and one <div class='name'> holding the repository name.
    */
   .repository-list-item {
-    padding: 0 var(--spacer-3);
+    padding: 0 var(--spacer-2);
 
     // Layout the icon and repository name horizontally
     display: flex;
@@ -40,7 +40,7 @@
 
     .icon-for-repository {
       // Some room between the icon and repository name
-      margin-right: var(--spacer-2);
+      margin-right: var(--spacer-1);
 
       // Always let the octicon dictate the amount of space it needs
       flex-shrink: 0;

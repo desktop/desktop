@@ -9,7 +9,7 @@
 
   display: flex;
   background-color: var(--box-alt-background-color);
-  padding: var(--spacer-3);
+  padding: var(--spacer-2);
 
   .summary {
     display: flex;
@@ -17,7 +17,7 @@
 
     .summary-field {
       flex: 1;
-      margin-bottom: var(--spacer-3);
+      margin-bottom: var(--spacer-2);
 
       input {
         width: 100%;
@@ -107,7 +107,7 @@
     }
 
     .action-bar {
-      padding: var(--spacer-2);
+      padding: var(--spacer-1);
       background: var(--box-background-color);
       border-radius: var(--border-radius);
 
@@ -172,7 +172,7 @@
 
   .commit-button {
     max-width: 100%;
-    margin-top: var(--spacer-3);
+    margin-top: var(--spacer-2);
     display: flex;
     justify-content: center;
     align-items: center;

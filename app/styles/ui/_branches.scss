@@ -66,7 +66,7 @@
   }
 
   .pull-request-item {
-    padding: 0 var(--spacer-3);
+    padding: 0 var(--spacer-2);
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -74,8 +74,8 @@
     flex-grow: 1;
 
     .icon {
-      margin-left: var(--spacer-2);
-      margin-right: var(--spacer-3);
+      margin-left: var(--spacer-1);
+      margin-right: var(--spacer-2);
       flex-shrink: 0;
 
       // Align the icon baseline with the title text
@@ -88,7 +88,7 @@
       flex-direction: column;
       min-width: 0;
       flex-grow: 1;
-      margin-right: var(--spacer-3);
+      margin-right: var(--spacer-2);
 
       .title {
         @include ellipsis;
@@ -113,7 +113,7 @@
 
 .branches-list {
   &-item {
-    padding: 0 var(--spacer-3);
+    padding: 0 var(--spacer-2);
   }
 
   &-item {
@@ -124,7 +124,7 @@
     align-items: center;
 
     .icon {
-      margin-right: var(--spacer-2);
+      margin-right: var(--spacer-1);
       width: 16px; // Force a consistent width
       flex-shrink: 0;
     }
