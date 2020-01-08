@@ -8,8 +8,7 @@
     align-items: stretch;
     height: auto;
     flex-shrink: 0;
-    padding-top: var(--spacing);
-    padding-bottom: var(--spacing);
+    padding: var(--spacing) 0;
   }
 
   background: var(--tab-bar-background-color);
