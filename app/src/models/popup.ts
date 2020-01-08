@@ -54,6 +54,7 @@ export enum PopupType {
   ConfirmExitTutorial,
   PushRejectedDueToMissingWorkflowScope,
   SAMLReauthRequired,
+  PushRejectedDueToGitHubRepoPermissions,
 }
 
 export type Popup =
@@ -212,4 +213,8 @@ export type Popup =
       organizationName: string
       endpoint: string
       retryAction?: RetryAction
+    }
+  | {
+      type: PopupType.PushRejectedDueToGitHubRepoPermissions
+      repository: Repository
     }
