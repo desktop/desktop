@@ -5524,7 +5524,43 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this.currentBranchPruner.testPrune()
   }
 
-  public async _createFork(repository: Repository) {}
+  public async _createFork(repository: Repository) {
+    const { gitHubRepository } = repository
+    if (gitHubRepository !== null) {
+      const account = getAccountForEndpoint(
+        this.accounts,
+        gitHubRepository.endpoint
+      )
+      if (account !== null) {
+        const api = API.fromAccount(account)
+        try {
+          const apiRepo = await api.forkRepository(
+            gitHubRepository.owner.login,
+            gitHubRepository.name
+          )
+          const gitStore = this.gitStoreCache.get(repository)
+          const remoteName = gitStore.defaultRemote
+            ? gitStore.defaultRemote.name
+            : undefined
+          if (remoteName !== undefined) {
+            // update default remote
+            if (await gitStore.setRemoteURL(remoteName, apiRepo.html_url)) {
+              // update associated github repo
+              return await this.repositoriesStore.updateGitHubRepository(
+                repository,
+                gitHubRepository.endpoint,
+                apiRepo
+              )
+            }
+          }
+        } catch (e) {
+          log.error(`Fork creation through API failed (${e})`)
+          // ToDo: send non-fatal needle?
+        }
+      }
+    }
+    return repository
+  }
 }
 
 /**
