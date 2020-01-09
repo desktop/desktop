@@ -44,16 +44,21 @@ export class CreateForkDialog extends React.Component<
         type="normal"
       >
         <DialogHeader
-          title={__DARWIN__ ? 'Create Fork' : 'Create fork'}
+          title="Do you want to fork this repository?"
           dismissable={!this.state.loading}
           onDismissed={this.props.onDismissed}
           loading={this.state.loading}
         />
-        <DialogContent>Hmm, your push failed. Create a fork?</DialogContent>
+        <DialogContent>
+          Looks like you don’t have write access to this repository. Do you want
+          to fork this repository to continue?
+        </DialogContent>
         <DialogFooter>
           <OkCancelButtonGroup
             destructive={true}
-            okButtonText={__DARWIN__ ? 'Create Fork' : 'Create fork'}
+            okButtonText={
+              __DARWIN__ ? 'Fork This Repository' : 'Fork this repository'
+            }
             okButtonDisabled={this.state.loading}
             cancelButtonDisabled={this.state.loading}
           />
