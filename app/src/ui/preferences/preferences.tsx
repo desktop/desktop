@@ -388,8 +388,6 @@ export class Preferences extends React.Component<
     await this.props.dispatcher.setUncommittedChangesStrategyKindSetting(
       this.state.uncommittedChangesStrategyKind
     )
-    
-    }
 
     this.props.onDismissed()
   }
