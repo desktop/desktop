@@ -1366,12 +1366,6 @@ export class GitStore extends BaseStore {
     this.emitUpdate()
   }
 
-  public async openMergeTool(path: string): Promise<void> {
-    await this.performFailableOperation(() =>
-      openMergeTool(this.repository, path)
-    )
-  }
-
   /**
    * Update the repository's existing upstream remote to point to the parent
    * repository.
