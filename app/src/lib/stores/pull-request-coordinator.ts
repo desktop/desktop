@@ -52,7 +52,7 @@ export class PullRequestCoordinator {
         }
 
         // find all related repos
-        const { clones, forks } = findRepositoriesForGitHubRepository(
+        const { matches, forks } = findRepositoriesForGitHubRepository(
           ghRepo,
           this.repositories
         )
@@ -64,9 +64,9 @@ export class PullRequestCoordinator {
           )
         }
 
-        // emit updates for clones
-        for (const c of clones) {
-          fn(c, pullRequests)
+        // emit updates for matches
+        for (const match of matches) {
+          fn(match, pullRequests)
         }
       }
     )
@@ -81,11 +81,11 @@ export class PullRequestCoordinator {
   ) {
     return this.pullRequestStore.onIsLoadingPullRequests(
       (ghRepo, pullRequests) => {
-        const { clones, forks } = findRepositoriesForGitHubRepository(
+        const { matches, forks } = findRepositoriesForGitHubRepository(
           ghRepo,
           this.repositories
         )
-        for (const repo of [...clones, ...forks]) {
+        for (const repo of [...matches, ...forks]) {
           fn(repo, pullRequests)
         }
       }
@@ -183,23 +183,26 @@ export class PullRequestCoordinator {
 }
 
 /**
- * Helper for matching a GitHubRepository to its local clone
- * and fork Repositories
+ * Finds local repositories that depend on a GitHubRepository
+ *
+ * includes:
+ *   * matches: repos with the GitHub repo as its default remote
+ *   * forks: repos that are forks of the GitHub repo
  *
  * @param gitHubRepository
  * @param repositories list of repositories to search for a match
- * @returns two lists of repositories: direct clones and forks
+ * @returns two lists of repositories: matches and forks
  */
 function findRepositoriesForGitHubRepository(
   gitHubRepository: GitHubRepository,
   repositories: ReadonlyArray<RepositoryWithGitHubRepository>
 ) {
   const { dbID } = gitHubRepository
-  const clones = new Array<RepositoryWithGitHubRepository>(),
+  const matches = new Array<RepositoryWithGitHubRepository>(),
     forks = new Array<RepositoryWithGitHubRepository>()
   for (const r of repositories) {
     if (r.gitHubRepository.dbID === dbID) {
-      clones.push(r)
+      matches.push(r)
     } else if (
       r.gitHubRepository.parent !== null &&
       r.gitHubRepository.parent.dbID === dbID
@@ -208,5 +211,5 @@ function findRepositoriesForGitHubRepository(
     }
   }
 
-  return { clones, forks }
+  return { matches, forks }
 }
