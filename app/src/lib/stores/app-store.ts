@@ -4451,9 +4451,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     localStorage.setItem(uncommittedChangesStrategyKindKey, value)
 
-    // Do we need to do this?
-    // this.updateMenuLabelsForSelectedRepository()
-
     this.emitUpdate()
     return Promise.resolve()
   }
