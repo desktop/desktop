@@ -168,17 +168,19 @@ export class PullRequestCoordinator {
     gitHubRepository: GitHubRepository
   ): Promise<ReadonlyArray<PullRequest>> {
     const { dbID } = gitHubRepository
-    // this check should never be false, but we have to check for typescript
-    if (dbID !== null) {
-      if (!this.prCache.has(dbID)) {
-        this.prCache.set(
-          dbID,
-          await this.pullRequestStore.getAll(gitHubRepository)
-        )
-      }
-      return this.prCache.get(dbID) || []
+    // this check should never be true, but we have to check
+    // for typescript and provide a sensible fallback
+    if (dbID === null) {
+      return []
     }
-    return []
+
+    if (!this.prCache.has(dbID)) {
+      this.prCache.set(
+        dbID,
+        await this.pullRequestStore.getAll(gitHubRepository)
+      )
+    }
+    return this.prCache.get(dbID) || []
   }
 }
 
