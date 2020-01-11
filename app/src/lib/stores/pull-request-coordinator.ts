@@ -10,19 +10,36 @@ import { RepositoriesStore } from './repositories-store'
 import { GitHubRepository } from '../../models/github-repository'
 
 /**
- * One stop shop for all things pull requests.
+ * Provides a single point of access for getting pull requests
+ * associated with a local repository (assuming its connected
+ * to a repository on GitHub).
  *
- * Manages the association between GitHubRepositories and
- * local Repositories. In other words, it's a layer between
- * AppStore and the PullRequestStore + PullRequestUpdaters.
+ * Primarily a layer between AppStore and the
+ * PullRequestStore + PullRequestUpdaters.
  */
 export class PullRequestCoordinator {
+  /**
+   * Currently running PullRequestUpdater (should be for
+   * the "selected" repository in `AppStore`)
+   */
   private currentPullRequestUpdater: PullRequestUpdater | null = null
+  /**
+   * All `Repository`s in RepositoryStore associated with `GitHubRepository`
+   * This is updated whenever `RepositoryStore` emits an update
+   */
   private repositories: ReadonlyArray<
     RepositoryWithGitHubRepository
   > = new Array<RepositoryWithGitHubRepository>()
 
-  /** Map GitHubRepository database IDs to Pull Request Lists */
+  /**
+   * Contains the last set of PRs retreived by `PullRequestCoordinator`
+   * from `PullRequestStore` for a specific `GitHubRepository`.
+   * Keyed by `GitHubRepository` database ID to a list of pull requests.
+   *
+   * This is used to improve perforamnce by reducing
+   * duplicate queries to the pull request database.
+   *
+   */
   private readonly prCache = new Map<number, ReadonlyArray<PullRequest>>()
 
   public constructor(
@@ -37,7 +54,20 @@ export class PullRequestCoordinator {
     })
   }
 
-  /** Register a function to be called when the PullRequestStore updates */
+  /**
+   * Register a function to be called when the PullRequestStore updates.
+   *
+   * @param fn to be called with a `Repository` and an updated +
+   *           complete list of pull requests whenever `PullRequestStore`
+   *           emits an update for a related repo on GitHub.
+   *
+   * Related repos include:
+   *  * the corresponding GitHub repo (the `origin` remote for
+   *    the `Repository`)
+   *  * the parent GitHub repo, if the `Repository` has one (the
+   *    `upstream` remote for the `Repository`)
+   *
+   */
   public onPullRequestsChanged(
     fn: (
       repository: RepositoryWithGitHubRepository,
@@ -72,7 +102,21 @@ export class PullRequestCoordinator {
     )
   }
 
-  /** Register a function to be called when PullRequestStore emits a loading event */
+  /**
+   * Register a function to be called when PullRequestStore
+   * emits a "loading" event.
+   *
+   * @param fn to be called with a `Repository` whenever
+   *           `PullRequestStore` emits an update for a
+   *           related repo on GitHub.
+   *
+   * Related repos include:
+   *  * the corresponding GitHub repo (the `origin` remote for
+   *    the `Repository`)
+   *  * the parent GitHub repo, if the `Repository` has one (the
+   *    `upstream` remote for the `Repository`)
+   *
+   */
   public onIsLoadingPullRequests(
     fn: (
       repository: RepositoryWithGitHubRepository,
@@ -92,7 +136,10 @@ export class PullRequestCoordinator {
     )
   }
 
-  /** Loads (from remote) all pull requests for the given repository and its upstreams. */
+  /**
+   * Fetches all pull requests for the given repository.
+   * This **will** attempt to hit the GitHub API.
+   */
   public async refreshPullRequests(
     repository: RepositoryWithGitHubRepository,
     account: Account
@@ -111,7 +158,7 @@ export class PullRequestCoordinator {
 
   /**
    * Get all Pull Requests that are stored locally for the given Repository
-   * (Doesn't load anything from the GitHub API.)
+   * (Doesn't load anything new from the GitHub API.)
    */
   public async getAllPullRequests(
     repository: RepositoryWithGitHubRepository
@@ -153,9 +200,10 @@ export class PullRequestCoordinator {
   }
 
   /**
-   * Get Pull Requests stored in the databse (or cache) for a single GitHubRepository
+   * Get Pull Requests stored in the database (or
+   * `PullRequestCoordinator`'s cache) for a single `GitHubRepository`)
    *
-   * Will query PullRequestStore's database if nothing is cached for that repo.
+   * Will query `PullRequestStore`'s database if nothing is cached for that repo.
    */
   private async getPullRequestsFor(
     gitHubRepository: GitHubRepository
@@ -178,15 +226,17 @@ export class PullRequestCoordinator {
 }
 
 /**
- * Finds local repositories that depend on a GitHubRepository
+ * Finds local repositories related to a GitHubRepository
  *
- * includes:
- *   * matches: repos with the GitHub repo as its default remote
- *   * forks: repos that are forks of the GitHub repo
+ * * Related repos include:
+ *  * **matches** — the corresponding GitHub repo (the `origin` remote for
+ *    the `Repository`)
+ *  * **forks** — the parent GitHub repo, if the `Repository` has one (the
+ *    `upstream` remote for the `Repository`)
  *
  * @param gitHubRepository
  * @param repositories list of repositories to search for a match
- * @returns two lists of repositories: matches and forks
+ * @returns two lists of repositories: **matches** and **forks**
  */
 function findRepositoriesForGitHubRepository(
   gitHubRepository: GitHubRepository,
