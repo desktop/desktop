@@ -4,7 +4,6 @@ import { AppFileStatus, AppFileStatusKind } from '../../models/status'
 import { IDiff, DiffType } from '../../models/diff'
 import { Octicon, OcticonSymbol, iconForStatus } from '../octicons'
 import { Button } from '../lib/button'
-import { enableMergeTool } from '../../lib/feature-flag'
 import { mapStatus } from '../../lib/status'
 
 interface IChangedFileDetailsProps {
@@ -41,13 +40,7 @@ export class ChangedFileDetails extends React.Component<
   private renderDecorator() {
     const status = this.props.status
     const diff = this.props.diff
-    if (status.kind === AppFileStatusKind.Conflicted && enableMergeTool()) {
-      return (
-        <Button className="open-merge-tool" onClick={this.onOpenMergeTool}>
-          {__DARWIN__ ? 'Open Merge Tool' : 'Open merge tool'}
-        </Button>
-      )
-    } else if (diff.kind === DiffType.Text && diff.lineEndingsChange) {
+    if (diff.kind === DiffType.Text && diff.lineEndingsChange) {
       const message = `Warning: line endings will be changed from '${
         diff.lineEndingsChange.from
       }' to '${diff.lineEndingsChange.to}'.`
@@ -62,8 +55,3 @@ export class ChangedFileDetails extends React.Component<
       return null
     }
   }
-
-  private onOpenMergeTool = () => {
-    this.props.onOpenMergeTool(this.props.path)
-  }
-}
