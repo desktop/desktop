@@ -10,8 +10,6 @@ interface IChangedFileDetailsProps {
   readonly path: string
   readonly status: AppFileStatus
   readonly diff: IDiff
-
-  readonly onOpenMergeTool: (path: string) => void
 }
 
 /** Displays information about a file */
@@ -55,3 +53,4 @@ export class ChangedFileDetails extends React.Component<
       return null
     }
   }
+}
