@@ -1862,11 +1862,11 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       case PopupType.SAMLReauthRequired:
         return (
-          <SAMLReauthRequired
+          <SAMLReauthRequiredDialog
             onDismissed={this.onPopupDismissed}
-            rejectedPath={popup.rejectedPath}
+            organizationName={popup.organizationName}
+            endpoint={popup.endpoint}
             dispatcher={this.props.dispatcher}
-            repository={popup.repository}
           />
         )
       default:
