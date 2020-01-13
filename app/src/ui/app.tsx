@@ -1859,6 +1859,15 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
           />
         )
+      case PopupType.SAMLReauthRequired:
+        return (
+          <SAMLReauthRequired
+            onDismissed={this.onPopupDismissed}
+            rejectedPath={popup.rejectedPath}
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
