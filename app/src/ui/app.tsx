@@ -108,6 +108,7 @@ import { enableTutorial } from '../lib/feature-flag'
 import { ConfirmExitTutorial } from './tutorial'
 import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { WorkflowPushRejectedDialog } from './workflow-push-rejected/workflow-push-rejected'
+import { SAMLReauthRequiredDialog } from './saml-reauth-required/saml-reauth-required'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
