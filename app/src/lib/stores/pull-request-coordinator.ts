@@ -175,7 +175,7 @@ export class PullRequestCoordinator {
   }
 
   /**
-   * Start background Pull Request updates machinery for this Repository
+   * Start background pull request fetching machinery for this Repository
    * (Stops and removes any current pull request updaters.)
    */
   public startPullRequestUpdaters(
@@ -209,7 +209,7 @@ export class PullRequestCoordinator {
   }
 
   /**
-   * Stop background Pull Request updates machinery for this Repository
+   * Stop background background pull request fetching machinery for this Repository
    * Removes all current pull request updaters.
    * (Use `startPullRequestUpdaters` to create some new ones.)
    */
