@@ -574,6 +574,7 @@ export async function samlReauthRequired(error: Error, dispatcher: Dispatcher) {
     type: PopupType.SAMLReauthRequired,
     organizationName,
     endpoint,
+    retryAction: e.metadata.retryAction,
   })
 
   return null
