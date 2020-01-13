@@ -211,5 +211,5 @@ export type Popup =
       type: PopupType.SAMLReauthRequired
       organizationName: string
       endpoint: string
-      retryAction: RetryAction
+      retryAction?: RetryAction
     }
