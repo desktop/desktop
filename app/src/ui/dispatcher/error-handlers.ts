@@ -547,7 +547,7 @@ export async function samlReauthRequired(error: Error, dispatcher: Dispatcher) {
   }
 
   if (!isAuthFailureError(gitError.result.gitError)) {
-    return
+    return error
   }
 
   const { repository } = e.metadata
@@ -564,7 +564,7 @@ export async function samlReauthRequired(error: Error, dispatcher: Dispatcher) {
   const match = samlReauthErrorMessageRe.exec(remoteMessage)
 
   if (!match) {
-    return
+    return error
   }
 
   const organizationName = match[1]
