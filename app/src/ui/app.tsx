@@ -1866,6 +1866,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
             organizationName={popup.organizationName}
             endpoint={popup.endpoint}
+            retryAction={popup.retryAction}
             dispatcher={this.props.dispatcher}
           />
         )
