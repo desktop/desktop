@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { PathLabel } from '../lib/path-label'
-import { Octicon, iconForStatus } from '../octicons'
+import { Octicon, iconForStatus, OcticonSymbol } from '../octicons'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { mapStatus } from '../../lib/status'
 import { WorkingDirectoryFileChange } from '../../models/status'
@@ -18,6 +18,9 @@ interface IChangedFileProps {
     file: WorkingDirectoryFileChange,
     event: React.MouseEvent<HTMLDivElement>
   ) => void
+  
+  readonly lockOwner: string | null
+  readonly lockingUser: string | null
 }
 
 /** a changed file in the working directory for a given repository */
@@ -35,6 +38,25 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
     } else {
       return CheckboxValue.Mixed
     }
+  }
+  
+  private renderLock() {
+    if (this.props.lockOwner != null) {
+      var tempClass = 'lock';
+      if (this.props.lockOwner === this.props.lockingUser) {
+        tempClass += ' lock-owned'
+      }
+
+      return (
+        <Octicon
+          symbol={OcticonSymbol.lock}
+          className={tempClass}
+          title={'Locked by: ' + this.props.lockOwner }
+        />
+      )
+    }
+
+    return null
   }
 
   public render() {
@@ -70,6 +92,8 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
           status={status}
           availableWidth={availablePathWidth}
         />
+
+        {this.renderLock()}
 
         <Octicon
           symbol={iconForStatus(status)}

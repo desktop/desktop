@@ -197,7 +197,7 @@ export class RepositoryView extends React.Component<
         isLFSUpdateInProgress={this.props.state.isLFSUpdateInProgress}
         isUsingLFS={this.props.state.isUsingLFS}
         locks={this.props.state.locks}
-        lockUser={this.props.state.lockUser}
+        lockingUser={this.props.state.lockingUser}
       />
     )
   }
@@ -405,6 +405,8 @@ export class RepositoryView extends React.Component<
           isCommitting={this.props.state.isCommitting}
           imageDiffType={this.props.imageDiffType}
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+          locks={this.props.state.locks}
+          lockingUser={this.props.state.lockingUser}
         />
       )
     }

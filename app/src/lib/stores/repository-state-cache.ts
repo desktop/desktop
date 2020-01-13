@@ -184,6 +184,6 @@ function getInitialRepositoryState(): IRepositoryState {
     isLFSUpdateInProgress: false,
     isUsingLFS: false,
     locks: null,
-    lockUser: null
+    lockingUser: null
   }
 }

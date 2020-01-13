@@ -18,6 +18,9 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --color-renamed: #{$blue};
   --color-conflicted: #{$orange};
 
+  --color-lock: #{$gray-400};
+  --color-lock-owned: #{$green-400};
+
   --text-color: #{$gray-900};
   --text-secondary-color: #{$gray-500};
   --background-color: #{$white};

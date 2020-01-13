@@ -16,6 +16,8 @@ interface IChangesProps {
   /** Whether a commit is in progress */
   readonly isCommitting: boolean
   readonly hideWhitespaceInDiff: boolean
+  readonly locks: ReadonlyMap<string, string> | null
+  readonly lockingUser: string | null
 }
 
 export class Changes extends React.Component<IChangesProps, {}> {
@@ -39,6 +41,8 @@ export class Changes extends React.Component<IChangesProps, {}> {
           status={file.status}
           diff={diff}
           onOpenMergeTool={this.onOpenMergeTool}
+          lockOwner={this.props.locks == null ? null : this.props.locks.get(file.path) || null}
+          lockingUser={this.props.lockingUser}
         />
 
         <div className="diff-wrapper">

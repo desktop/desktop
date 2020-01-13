@@ -17,6 +17,7 @@
     // list item is both focused and selected.
     &.focus-within .list-item:not(.selected),
     &:not(.focus-within) .list-item {
+      @include lock-status;
       @include octicon-status;
     }
   }
@@ -44,5 +45,9 @@
     .octicon {
       vertical-align: text-bottom;
     }
+  }
+
+  .lock {
+    margin-right: var(--spacing-half)
   }
 }

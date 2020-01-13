@@ -179,7 +179,7 @@ interface IChangesListProps {
   readonly isLFSUpdateInProgress: boolean
   readonly isUsingLFS: boolean
   readonly locks: ReadonlyMap<string, string> | null
-  readonly lockUser: string | null
+  readonly lockingUser: string | null
 }
 
 interface IChangesState {
@@ -261,6 +261,8 @@ export class ChangesList extends React.Component<
     return (
       <ChangedFile
         file={file}
+        lockOwner={this.props.locks == null ? null : this.props.locks.get(file.path) || null}
+        lockingUser={this.props.lockingUser}
         include={include}
         key={file.id}
         onContextMenu={this.onItemContextMenu}
@@ -410,7 +412,7 @@ export class ChangesList extends React.Component<
     // Single
     if (paths.length === 1) {
       // Lockable
-      const tempOwner = this.props.locks == null ? null : this.props.locks.get(paths[0])
+      var tempOwner = this.props.locks == null ? null : this.props.locks.get(paths[0])
       if (tempOwner == null) {
         return [
           {
@@ -422,7 +424,7 @@ export class ChangesList extends React.Component<
       }
 
       // Unlockable (owned)
-      if (tempOwner === this.props.lockUser ) {
+      if (tempOwner === this.props.lockingUser ) {
         return [
           {
             label: __DARWIN__ ? 'Unlock File' : 'Unlock file',
@@ -433,9 +435,16 @@ export class ChangesList extends React.Component<
       }
 
       // Force unlockable (not owned)
+      if (tempOwner.length > 15) { // limit string length
+        tempOwner = tempOwner.substring(0, 15) + '...'
+      }
+
+      let tempLabel = __DARWIN__ ? 'Force Unlock File' : 'Force unlock file'
+      tempLabel += ' (locked by: ' + tempOwner + ')'
+
       return [
         {
-          label: __DARWIN__ ? 'Force Unlock File' : 'Force unlock file',
+          label: tempLabel,
           action: () => this.props.dispatcher.toggleFileLocks(this.props.repository, paths, false, true),
           enabled: !this.props.isLFSUpdateInProgress
         }
@@ -454,7 +463,7 @@ export class ChangesList extends React.Component<
         let tempOwner = this.props.locks == null ? null : this.props.locks.get(paths[i])
         if (tempOwner == null) {
           tempLockables.push(paths[i])
-        } else if (tempOwner === this.props.lockUser) {
+        } else if (tempOwner === this.props.lockingUser) {
           tempUnlockables.push(paths[i])
         } else {
           tempForceUnlockables.push(paths[i])
@@ -464,19 +473,19 @@ export class ChangesList extends React.Component<
 
     return [
       {
-            label: __DARWIN__ ? `Lock ${tempLockables.length} Selected Files` : `Lock ${tempLockables.length} selected files`,
-            action: () => this.props.dispatcher.toggleFileLocks(this.props.repository, tempLockables, true),
-            enabled: !this.props.isLFSUpdateInProgress && tempLockables.length > 0
+        label: __DARWIN__ ? `Lock ${tempLockables.length} Selected Files` : `Lock ${tempLockables.length} selected files`,
+        action: () => this.props.dispatcher.toggleFileLocks(this.props.repository, tempLockables, true),
+        enabled: !this.props.isLFSUpdateInProgress && tempLockables.length > 0
       },
       {
-            label: __DARWIN__ ? `Unlock ${tempUnlockables.length} Selected Files` : `Unlock ${tempUnlockables.length} selected files`,
-            action: () => this.props.dispatcher.toggleFileLocks(this.props.repository, tempUnlockables, false),
-            enabled: !this.props.isLFSUpdateInProgress && tempUnlockables.length > 0
+        label: __DARWIN__ ? `Unlock ${tempUnlockables.length} Selected Files` : `Unlock ${tempUnlockables.length} selected files`,
+        action: () => this.props.dispatcher.toggleFileLocks(this.props.repository, tempUnlockables, false),
+        enabled: !this.props.isLFSUpdateInProgress && tempUnlockables.length > 0
       },
       {
-            label: __DARWIN__ ? `Force Unlock ${tempForceUnlockables.length} Selected Files` : `Force unlock ${tempForceUnlockables.length} selected files`,
-            action: () => this.props.dispatcher.toggleFileLocks(this.props.repository, tempForceUnlockables, false, true),
-            enabled: !this.props.isLFSUpdateInProgress && tempForceUnlockables.length > 0
+        label: __DARWIN__ ? `Force Unlock ${tempForceUnlockables.length} Selected Files` : `Force unlock ${tempForceUnlockables.length} selected files`,
+        action: () => this.props.dispatcher.toggleFileLocks(this.props.repository, tempForceUnlockables, false, true),
+        enabled: !this.props.isLFSUpdateInProgress && tempForceUnlockables.length > 0
       }
     ]
   }
@@ -840,7 +849,7 @@ export class ChangesList extends React.Component<
           selectedRows={this.state.selectedRows}
           selectionMode="multi"
           onSelectionChanged={this.props.onFileSelectionChanged}
-          invalidationProps={this.props.workingDirectory}
+          invalidationProps={[this.props.workingDirectory,this.props.locks]}
           onRowClick={this.props.onRowClick}
           onScroll={this.onScroll}
           setScrollTop={this.props.changesListScrollTop}

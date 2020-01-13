@@ -9,6 +9,10 @@
     span {
       user-select: text;
     }
+    
+    .lock {
+      margin-right: var(--spacing-half);
+    }
 
     background: var(--box-alt-background-color);
     border-bottom: 1px solid var(--diff-border-color);
@@ -20,6 +24,7 @@
 
     padding: var(--spacing-half) var(--spacing);
 
+    @include lock-status;
     @include octicon-status;
 
     .checkbox-component {

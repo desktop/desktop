@@ -1,0 +1,8 @@
+@mixin lock-status {
+  .lock {
+    fill: var(--color-lock);
+    &-owned {
+      fill: var(--color-lock-owned);
+    }
+  }
+}

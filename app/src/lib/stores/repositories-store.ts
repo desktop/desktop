@@ -179,7 +179,7 @@ export class RepositoriesStore extends TypedBaseStore<
             missing: false,
             lastStashCheckDate: null,
             isTutorialRepository: true,
-            lastLockUser: null
+            lockingUser: null
           },
           existingRepoId
         )
@@ -220,7 +220,7 @@ export class RepositoriesStore extends TypedBaseStore<
             gitHubRepositoryID: null,
             missing: false,
             lastStashCheckDate: null,
-            lastLockUser: null
+            lockingUser: null
           })
         }
 
@@ -299,19 +299,19 @@ export class RepositoriesStore extends TypedBaseStore<
    * @param repository The repository in which to update the last stash check date for
    * @param username The lock username to store
    */
-  public async updateLastLockUser(
+  public async updateLockingUser(
     repository: Repository,
     username: string
   ): Promise<void> {
     const repoID = repository.id
     if (repoID === 0) {
       return fatalError(
-        '`updateLastLockUser` can only update for a repository which has been added to the database.'
+        '`updateLockingUser` can only update for a repository which has been added to the database.'
       )
     }
 
     await this.db.repositories.update(repoID, {
-      lastLockUser: username,
+      lockingUser: username,
     })
   }
   
@@ -320,13 +320,13 @@ export class RepositoriesStore extends TypedBaseStore<
    *
    * @param repository The repository to get from
    */
-  public async getLastLockUser(
+  public async getLockingUser(
     repository: Repository
   ): Promise<string | null> {
     const repoID = repository.id
     if (!repoID) {
       return fatalError(
-        '`getLastLockUser` - can only retrieve for repositories that have been stored in the database.'
+        '`getLockingUser` - can only retrieve for repositories that have been stored in the database.'
       )
     }
 
@@ -334,11 +334,11 @@ export class RepositoriesStore extends TypedBaseStore<
 
     if (record === undefined) {
       return fatalError(
-        `'getLastLockUser' - unable to find repository with ID: ${repoID}`
+        `'getLockingUser' - unable to find repository with ID: ${repoID}`
       )
     }
 
-    return record.lastLockUser
+    return record.lockingUser
   }
 
   /**

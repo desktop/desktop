@@ -1744,9 +1744,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     
     // Fill in initial lock user values for each repository state
     for (let i = (repositories.length - 1); i >= 0; --i ) {
-      let tempUser = await this.repositoriesStore.getLastLockUser(repositories[i])
+      let tempUser = await this.repositoriesStore.getLockingUser(repositories[i])
       this.repositoryStateCache.update(repositories[i], () => ({
-        lockUser: tempUser
+        lockingUser: tempUser
       }))
     }
 
@@ -2311,11 +2311,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const tempState = this.repositoryStateCache.get(repository)
     const tempIsUsingLFS = await isUsingLFS(repository)
     if (tempIsUsingLFS !== tempState.isUsingLFS) {
-	this.repositoryStateCache.update(repository, () => ({
+      this.repositoryStateCache.update(repository, () => ({
         isUsingLFS: tempIsUsingLFS
       }))
 
-	this.emitUpdate()
+      this.emitUpdate()
     }
 
     // Locks
@@ -4078,10 +4078,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       for (let i = (paths.length - 1 ); i >= 0; --i) {
         let tempUser = tempLocks == null ? null : (tempLocks.get(paths[i]) || null)
         if (tempUser != null) {
-          await this.repositoriesStore.updateLastLockUser(repository, tempUser)
+          await this.repositoriesStore.updateLockingUser(repository, tempUser)
           
           this.repositoryStateCache.update(repository, () => ({
-            lockUser: tempUser
+            lockingUser: tempUser
           }))
           break
         }
@@ -4126,6 +4126,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoryStateCache.update(repository, () => ({
       isLFSUpdateInProgress: true
     }))
+    
+    this.emitUpdate()
 
     // Get locks
     const tempStore = this.gitStoreCache.get(repository)

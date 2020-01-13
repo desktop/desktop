@@ -78,7 +78,7 @@ interface IChangesSidebarProps {
   readonly isLFSUpdateInProgress: boolean
   readonly isUsingLFS: boolean
   readonly locks: ReadonlyMap<string, string> | null
-  readonly lockUser: string | null
+  readonly lockingUser: string | null
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
@@ -435,7 +435,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           isLFSUpdateInProgress={this.props.isLFSUpdateInProgress}
           isUsingLFS={this.props.isUsingLFS}
           locks={this.props.locks}
-          lockUser={this.props.lockUser}
+          lockingUser={this.props.lockingUser}
         />
         {this.renderUndoCommit(rebaseConflictState)}
       </div>

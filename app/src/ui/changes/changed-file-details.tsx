@@ -13,6 +13,8 @@ interface IChangedFileDetailsProps {
   readonly diff: IDiff
 
   readonly onOpenMergeTool: (path: string) => void
+  readonly lockOwner: string | null
+  readonly lockingUser: string | null
 }
 
 /** Displays information about a file */
@@ -28,7 +30,8 @@ export class ChangedFileDetails extends React.Component<
       <div className="header">
         <PathLabel path={this.props.path} status={this.props.status} />
         {this.renderDecorator()}
-
+        {this.renderLock()}
+        
         <Octicon
           symbol={iconForStatus(status)}
           className={'status status-' + fileStatus.toLowerCase()}
@@ -36,6 +39,25 @@ export class ChangedFileDetails extends React.Component<
         />
       </div>
     )
+  }
+
+  private renderLock() {
+    if (this.props.lockOwner != null) {
+      var tempClass = 'lock';
+      if (this.props.lockOwner === this.props.lockingUser) {
+        tempClass += ' lock-owned'
+      }
+
+      return (
+        <Octicon
+          symbol={OcticonSymbol.lock}
+          className={tempClass}
+          title={'Locked by: ' + this.props.lockOwner }
+        />
+      )
+    }
+
+    return null
   }
 
   private renderDecorator() {
