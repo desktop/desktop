@@ -262,6 +262,7 @@ These editors are currently supported:
  - [WebStorm](https://www.jetbrains.com/webstorm/)
  - [Typora](https://typora.io/)
  - [SlickEdit](https://www.slickedit.com)
+ - [GoLand](https://www.jetbrains.com/go/)
 
 These are defined in an enum at the top of the file:
 

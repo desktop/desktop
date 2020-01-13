@@ -7,7 +7,7 @@ import {
   GitHubUserStore,
   GitStore,
   IssuesStore,
-  PullRequestStore,
+  PullRequestCoordinator,
   RepositoriesStore,
   SignInStore,
 } from '.'
@@ -41,6 +41,7 @@ import {
   ILocalRepositoryState,
   nameOf,
   Repository,
+  isRepositoryWithGitHubRepository,
 } from '../../models/repository'
 import {
   CommittedFileChange,
@@ -194,7 +195,6 @@ import { MergeResult } from '../../models/merge'
 import { promiseWithMinimumTimeout, timeout } from '../promise'
 import { BackgroundFetcher } from './helpers/background-fetcher'
 import { inferComparisonBranch } from './helpers/infer-comparison-branch'
-import { PullRequestUpdater } from './helpers/pull-request-updater'
 import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { RepositoryStateCache } from './repository-state-cache'
 import { readEmoji } from '../read-emoji'
@@ -308,9 +308,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** The background fetcher for the currently selected repository. */
   private currentBackgroundFetcher: BackgroundFetcher | null = null
 
-  /** The pull request updater for the currently selected repository */
-  private currentPullRequestUpdater: PullRequestUpdater | null = null
-
   /** The ahead/behind updater or the currently selected repository */
   private currentAheadBehindUpdater: AheadBehindUpdater | null = null
 
@@ -401,7 +398,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     private readonly signInStore: SignInStore,
     private readonly accountsStore: AccountsStore,
     private readonly repositoriesStore: RepositoriesStore,
-    private readonly pullRequestStore: PullRequestStore,
+    private readonly pullRequestCoordinator: PullRequestCoordinator,
     private readonly repositoryStateCache: RepositoryStateCache,
     private readonly apiRepositoriesStore: ApiRepositoriesStore
   ) {
@@ -556,23 +553,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
     this.accountsStore.onDidError(error => this.emitError(error))
 
-    this.repositoriesStore.onDidUpdate(async () => {
-      this.repositories = await this.repositoriesStore.getAll()
+    this.repositoriesStore.onDidUpdate(updateRepositories => {
+      this.repositories = updateRepositories
       this.updateRepositorySelectionAfterRepositoriesChanged()
       this.emitUpdate()
     })
 
-    this.pullRequestStore.onPullRequestsChanged((ghRepo, pullRequests) =>
-      this.onPullRequestChanged(ghRepo, pullRequests)
+    this.pullRequestCoordinator.onPullRequestsChanged((repo, pullRequests) =>
+      this.onPullRequestChanged(repo, pullRequests)
     )
-    this.pullRequestStore.onIsLoadingPullRequests(
-      (ghRepo, isLoadingPullRequests) => {
-        const repository = this.findRepositoryByGitHubRepository(ghRepo)
-
-        if (!repository) {
-          return
-        }
-
+    this.pullRequestCoordinator.onIsLoadingPullRequests(
+      (repository, isLoadingPullRequests) => {
         this.repositoryStateCache.updateBranchesState(repository, () => {
           return { isLoadingPullRequests }
         })
@@ -1521,12 +1512,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<Repository | null> {
     this._refreshRepository(repository)
 
-    const gitHubRepository = repository.gitHubRepository
-
-    if (gitHubRepository !== null) {
-      this._refreshIssues(gitHubRepository)
-      this.pullRequestStore.getAll(gitHubRepository).then(prs => {
-        this.onPullRequestChanged(gitHubRepository, prs)
+    if (isRepositoryWithGitHubRepository(repository)) {
+      this._refreshIssues(repository.gitHubRepository)
+      this.pullRequestCoordinator.getAllPullRequests(repository).then(prs => {
+        this.onPullRequestChanged(repository, prs)
       })
     }
 
@@ -1624,36 +1613,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private startPullRequestUpdater(repository: Repository) {
-    if (this.currentPullRequestUpdater) {
-      this.stopPullRequestUpdater()
-    }
-
     // We don't want to run the pull request updater when the app is in
     // the background.
-    if (!this.appIsFocused) {
-      return
+    if (this.appIsFocused && isRepositoryWithGitHubRepository(repository)) {
+      const account = getAccountForRepository(this.accounts, repository)
+      if (account !== null) {
+        return this.pullRequestCoordinator.startPullRequestUpdater(
+          repository,
+          account
+        )
+      }
     }
-
-    const account = getAccountForRepository(this.accounts, repository)
-    const { gitHubRepository } = repository
-
-    if (account === null || gitHubRepository === null) {
-      return
-    }
-
-    this.currentPullRequestUpdater = new PullRequestUpdater(
-      gitHubRepository,
-      account,
-      this.pullRequestStore
-    )
-    this.currentPullRequestUpdater.start()
+    // we always want to stop the current one, to be safe
+    this.pullRequestCoordinator.stopPullRequestUpdater()
   }
 
   private stopPullRequestUpdater() {
-    if (this.currentPullRequestUpdater) {
-      this.currentPullRequestUpdater.stop()
-      this.currentPullRequestUpdater = null
-    }
+    this.pullRequestCoordinator.stopPullRequestUpdater()
   }
 
   private shouldBackgroundFetch(
@@ -4342,13 +4318,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _setRemoteURL(
+  public async _setRemoteURL(
     repository: Repository,
     name: string,
     url: string
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
-    return gitStore.setRemoteURL(name, url)
+    await gitStore.setRemoteURL(name, url)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -5057,33 +5033,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _refreshPullRequests(repository: Repository): Promise<void> {
-    const account = getAccountForRepository(this.accounts, repository)
-    const { gitHubRepository } = repository
-
-    if (gitHubRepository === null || account === null) {
-      return
+    if (isRepositoryWithGitHubRepository(repository)) {
+      const account = getAccountForRepository(this.accounts, repository)
+      if (account !== null) {
+        await this.pullRequestCoordinator.refreshPullRequests(
+          repository,
+          account
+        )
+      }
     }
-
-    await this.pullRequestStore.refreshPullRequests(gitHubRepository, account)
-  }
-
-  private findRepositoryByGitHubRepository(gitHubRepository: GitHubRepository) {
-    return this.repositories.find(
-      r =>
-        r.gitHubRepository !== null &&
-        r.gitHubRepository.dbID === gitHubRepository.dbID
-    )
   }
 
   private async onPullRequestChanged(
-    gitHubRepository: GitHubRepository,
+    repository: Repository,
     openPullRequests: ReadonlyArray<PullRequest>
   ) {
-    const repository = this.findRepositoryByGitHubRepository(gitHubRepository)
-    if (!repository) {
-      return
-    }
-
     this.repositoryStateCache.updateBranchesState(repository, () => {
       return { openPullRequests }
     })
