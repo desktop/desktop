@@ -539,7 +539,7 @@ export class ChangesList extends React.Component<
 
     const extension = Path.extname(path)
     const enabled = isSafeFileExtension(extension) && status.kind !== AppFileStatusKind.Deleted
-    
+
     const { workingDirectory, selectedFileIDs, isUsingLFS } = this.props
 
     const selectedFiles = new Array<WorkingDirectoryFileChange>()
