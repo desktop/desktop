@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Dispatcher } from '../dispatcher'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { getDotComAPIEndpoint } from '../../lib/api'
+import { RetryAction } from '../../models/retry-actions'
 
 interface ISAMLReauthRequiredDialogProps {
   readonly dispatcher: Dispatcher
