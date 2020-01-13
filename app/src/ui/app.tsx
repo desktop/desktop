@@ -690,7 +690,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const account = this.getDotComAccount() || this.getEnterpriseAccount()
-    console.log( account )
+    console.log(account)
 
     if (account === null) {
       return

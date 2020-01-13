@@ -423,7 +423,7 @@ export interface IRepositoryState {
 
   /** File locks for Git LFS */
   readonly locks: ReadonlyMap<string, string> | null
-  
+
   /** UI-accessible, cached version of IDatabaseRepository.lockingUser */
   readonly lockingUser: string | null
 }

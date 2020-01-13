@@ -179,7 +179,7 @@ export class RepositoriesStore extends TypedBaseStore<
             missing: false,
             lastStashCheckDate: null,
             isTutorialRepository: true,
-            lockingUser: null
+            lockingUser: null,
           },
           existingRepoId
         )
@@ -220,7 +220,7 @@ export class RepositoriesStore extends TypedBaseStore<
             gitHubRepositoryID: null,
             missing: false,
             lastStashCheckDate: null,
-            lockingUser: null
+            lockingUser: null,
           })
         }
 
@@ -314,15 +314,13 @@ export class RepositoriesStore extends TypedBaseStore<
       lockingUser: username,
     })
   }
-  
+
   /**
    * Gets the last known LFS lock username
    *
    * @param repository The repository to get from
    */
-  public async getLockingUser(
-    repository: Repository
-  ): Promise<string | null> {
+  public async getLockingUser(repository: Repository): Promise<string | null> {
     const repoID = repository.id
     if (!repoID) {
       return fatalError(

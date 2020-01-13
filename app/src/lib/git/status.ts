@@ -241,7 +241,7 @@ export async function getStatus(
     exists: true,
     mergeHeadFound,
     rebaseInternalState,
-    workingDirectory
+    workingDirectory,
   }
 }
 

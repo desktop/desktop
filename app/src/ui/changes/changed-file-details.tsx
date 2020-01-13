@@ -31,7 +31,7 @@ export class ChangedFileDetails extends React.Component<
         <PathLabel path={this.props.path} status={this.props.status} />
         {this.renderDecorator()}
         {this.renderLock()}
-        
+
         <Octicon
           symbol={iconForStatus(status)}
           className={'status status-' + fileStatus.toLowerCase()}
@@ -43,7 +43,7 @@ export class ChangedFileDetails extends React.Component<
 
   private renderLock() {
     if (this.props.lockOwner != null) {
-      var tempClass = 'lock';
+      let tempClass = 'lock'
       if (this.props.lockOwner === this.props.lockingUser) {
         tempClass += ' lock-owned'
       }
@@ -52,7 +52,7 @@ export class ChangedFileDetails extends React.Component<
         <Octicon
           symbol={OcticonSymbol.lock}
           className={tempClass}
-          title={'Locked by: ' + this.props.lockOwner }
+          title={'Locked by: ' + this.props.lockOwner}
         />
       )
     }

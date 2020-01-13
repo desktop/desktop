@@ -130,8 +130,6 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           )
         )
       }
-	
-	console.log( this.props.accounts )
 
       this.autocompletionProviders = autocompletionProviders
     }

@@ -920,14 +920,12 @@ export class GitStore extends BaseStore {
    */
   public async getFileLocks(
     account: IGitAccount | null
-  ): Promise<ReadonlyMap<string, string>|null|undefined> {
-    return await this.performFailableOperation(() =>
-      {
-        return getFileLocksRepo(this.repository, account)
-      }
-    )
+  ): Promise<ReadonlyMap<string, string> | null | undefined> {
+    return await this.performFailableOperation(() => {
+      return getFileLocksRepo(this.repository, account)
+    })
   }
-  
+
   /**
    * Toggle file locks
    *
@@ -948,7 +946,14 @@ export class GitStore extends BaseStore {
     isLocked: boolean,
     isForced: boolean = false
   ): Promise<void> {
-      return toggleFileLocksRepo(this.repository, locks, account, paths, isLocked, isForced)
+    return toggleFileLocksRepo(
+      this.repository,
+      locks,
+      account,
+      paths,
+      isLocked,
+      isForced
+    )
   }
 
   public async loadStatus(): Promise<IStatusResult | null> {

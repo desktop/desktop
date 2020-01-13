@@ -1741,12 +1741,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.gitHubUserStore.cacheUser(user)
       }
     }
-    
+
     // Fill in initial lock user values for each repository state
-    for (let i = (repositories.length - 1); i >= 0; --i ) {
-      let tempUser = await this.repositoriesStore.getLockingUser(repositories[i])
+    for (let i = repositories.length - 1; i >= 0; --i) {
+      const tempUser = await this.repositoriesStore.getLockingUser(
+        repositories[i]
+      )
       this.repositoryStateCache.update(repositories[i], () => ({
-        lockingUser: tempUser
+        lockingUser: tempUser,
       }))
     }
 
@@ -2304,15 +2306,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /**
    * Loads or re-loads (refreshes) the LFS state
    */
-  private async updateLFS(
-    repository: Repository
-  ): Promise<void> {
+  private async updateLFS(repository: Repository): Promise<void> {
     // LFS capable check
     const tempState = this.repositoryStateCache.get(repository)
     const tempIsUsingLFS = await isUsingLFS(repository)
     if (tempIsUsingLFS !== tempState.isUsingLFS) {
       this.repositoryStateCache.update(repository, () => ({
-        isUsingLFS: tempIsUsingLFS
+        isUsingLFS: tempIsUsingLFS,
       }))
 
       this.emitUpdate()
@@ -4038,9 +4038,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
-  public _toggleFileLocks(repository: Repository, paths: ReadonlyArray<string>, isLocked: boolean, isForced: boolean = false): Promise<void> {
+  public _toggleFileLocks(
+    repository: Repository,
+    paths: ReadonlyArray<string>,
+    isLocked: boolean,
+    isForced: boolean = false
+  ): Promise<void> {
     return this.withAuthenticatingUser(repository, (repository, account) => {
-      return this.performToggleFileLocks(repository, account, paths, isLocked, isForced)
+      return this.performToggleFileLocks(
+        repository,
+        account,
+        paths,
+        isLocked,
+        isForced
+      )
     })
   }
 
@@ -4051,14 +4062,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     isLocked: boolean,
     isForced: boolean = false
   ): Promise<void> {
-     // Prevent concurrency
+    // Prevent concurrency
     const tempState = this.repositoryStateCache.get(repository)
     if (tempState.isLFSUpdateInProgress || !tempState.isUsingLFS) {
       return
     }
 
     this.repositoryStateCache.update(repository, () => ({
-      isLFSUpdateInProgress: true
+      isLFSUpdateInProgress: true,
     }))
 
     this.emitUpdate()
@@ -4067,30 +4078,37 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const tempStore = this.gitStoreCache.get(repository)
 
     try {
-      await tempStore.toggleFileLocks(tempState.locks, account, paths, isLocked, isForced)
+      await tempStore.toggleFileLocks(
+        tempState.locks,
+        account,
+        paths,
+        isLocked,
+        isForced
+      )
     } catch (error) {
       this.emitError(error)
     }
 
     // Get new locks from server and update last known lock username that is assigned by the server
-    const tempLocks = await tempStore.getFileLocks(account) || null
+    const tempLocks = (await tempStore.getFileLocks(account)) || null
     if (isLocked) {
-      for (let i = (paths.length - 1 ); i >= 0; --i) {
-        let tempUser = tempLocks == null ? null : (tempLocks.get(paths[i]) || null)
+      for (let i = paths.length - 1; i >= 0; --i) {
+        const tempUser =
+          tempLocks == null ? null : tempLocks.get(paths[i]) || null
         if (tempUser != null) {
           await this.repositoriesStore.updateLockingUser(repository, tempUser)
-          
+
           this.repositoryStateCache.update(repository, () => ({
-            lockingUser: tempUser
+            lockingUser: tempUser,
           }))
           break
         }
       }
     }
-    
+
     this.repositoryStateCache.update(repository, () => ({
       isLFSUpdateInProgress: false,
-      locks: tempLocks
+      locks: tempLocks,
     }))
 
     this.emitUpdate()
@@ -4117,24 +4135,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     account: IGitAccount | null
   ): Promise<void> {
-     // Prevent concurrency
+    // Prevent concurrency
     const tempState = this.repositoryStateCache.get(repository)
     if (tempState.isLFSUpdateInProgress || !tempState.isUsingLFS) {
       return
     }
 
     this.repositoryStateCache.update(repository, () => ({
-      isLFSUpdateInProgress: true
+      isLFSUpdateInProgress: true,
     }))
-    
+
     this.emitUpdate()
 
     // Get locks
     const tempStore = this.gitStoreCache.get(repository)
-    const tempLocks = await tempStore.getFileLocks(account) || null
+    const tempLocks = (await tempStore.getFileLocks(account)) || null
     this.repositoryStateCache.update(repository, () => ({
       locks: tempLocks,
-      isLFSUpdateInProgress: false
+      isLFSUpdateInProgress: false,
     }))
 
     // Emit change

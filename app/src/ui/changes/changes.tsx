@@ -41,7 +41,11 @@ export class Changes extends React.Component<IChangesProps, {}> {
           status={file.status}
           diff={diff}
           onOpenMergeTool={this.onOpenMergeTool}
-          lockOwner={this.props.locks == null ? null : this.props.locks.get(file.path) || null}
+          lockOwner={
+            this.props.locks == null
+              ? null
+              : this.props.locks.get(file.path) || null
+          }
           lockingUser={this.props.lockingUser}
         />
 

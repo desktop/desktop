@@ -111,19 +111,18 @@ export async function filesNotTrackedByLFS(
 export async function getFileLocks(
   repository: Repository,
   account: IGitAccount | null
-): Promise<ReadonlyMap<string, string>|null> {
+): Promise<ReadonlyMap<string, string> | null> {
   // Run Git command
-  const args = [
-    'lfs',
-    'locks',
-    '--json'
-  ]
+  const args = ['lfs', 'locks', '--json']
 
   // THIS IS A MEMORY LEAK IF THE USER IS NOT LOGGED IN BECAUSE ENVIRONMENT VARIABLES ARE NOT PASSED IN TO LFS
-  const result = await git(args, repository.path, 'getFileLocks', {env: envForAuthentication(account)})
+  const result = await git(args, repository.path, 'getFileLocks', {
+    env: envForAuthentication(account),
+  })
   if (result.gitErrorDescription) {
     throw new GitError(result, args)
-  } else if (result.stdout === "[]\n") { // empty json
+  } else if (result.stdout === '[]\n') {
+    // empty json
     return null
   }
 
@@ -131,7 +130,7 @@ export async function getFileLocks(
   const tempLocks = new Map<string, string>()
   const tempParsed = JSON.parse(result.stdout)
   const tempLength = tempParsed.length
-  for ( let i = 0; i < tempLength; ++i ) {
+  for (let i = 0; i < tempLength; ++i) {
     tempLocks.set(tempParsed[i].path, tempParsed[i].owner.name)
   }
 
@@ -163,17 +162,18 @@ export async function toggleFileLocks(
 ): Promise<void> {
   const tempEnvironment = { env: envForAuthentication(account) }
   const networkArguments = await gitNetworkArguments(repository, account)
-  const args = [
-    ...networkArguments,
-    'lfs',
-    isLocked ? 'lock' : 'unlock',
-  ]
+  const args = [...networkArguments, 'lfs', isLocked ? 'lock' : 'unlock']
 
   if (isForced) {
     args.push('--force')
   }
 
-  for (let i = (paths.length - 1); i >= 0; --i) {
-    await git([...args,paths[i]], repository.path, 'toggleFileLocks', tempEnvironment)
+  for (let i = paths.length - 1; i >= 0; --i) {
+    await git(
+      [...args, paths[i]],
+      repository.path,
+      'toggleFileLocks',
+      tempEnvironment
+    )
   }
 }

@@ -522,7 +522,12 @@ export class Dispatcher {
   }
 
   /** Toggle file lock */
-  public toggleFileLocks(repository: Repository, paths: ReadonlyArray<string>, isLocked: boolean, isForced: boolean = false): Promise<void> {
+  public toggleFileLocks(
+    repository: Repository,
+    paths: ReadonlyArray<string>,
+    isLocked: boolean,
+    isForced: boolean = false
+  ): Promise<void> {
     return this.appStore._toggleFileLocks(repository, paths, isLocked, isForced)
   }
 

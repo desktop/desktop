@@ -18,7 +18,7 @@ interface IChangedFileProps {
     file: WorkingDirectoryFileChange,
     event: React.MouseEvent<HTMLDivElement>
   ) => void
-  
+
   readonly lockOwner: string | null
   readonly lockingUser: string | null
 }
@@ -39,10 +39,10 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
       return CheckboxValue.Mixed
     }
   }
-  
+
   private renderLock() {
     if (this.props.lockOwner != null) {
-      var tempClass = 'lock';
+      let tempClass = 'lock'
       if (this.props.lockOwner === this.props.lockingUser) {
         tempClass += ' lock-owned'
       }
@@ -51,7 +51,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
         <Octicon
           symbol={OcticonSymbol.lock}
           className={tempClass}
-          title={'Locked by: ' + this.props.lockOwner }
+          title={'Locked by: ' + this.props.lockOwner}
         />
       )
     }
