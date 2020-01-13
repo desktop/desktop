@@ -580,6 +580,12 @@ export async function samlReauthRequired(error: Error, dispatcher: Dispatcher) {
   return null
 }
 
+/**
+ * Extract lines from Git's stderr output starting with the
+ * prefix `remote: `. Useful to extract server-specific
+ * error messages from network operations (fetch, push, pull,
+ * etc).
+ */
 function getRemoteMessage(stderr: string) {
   const needle = 'remote: '
 
