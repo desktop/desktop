@@ -9,6 +9,9 @@ interface ISAMLReauthRequiredDialogProps {
   readonly organizationName: string
   readonly endpoint: string
 
+  /** The action to retry if applicable. */
+  readonly retryAction?: RetryAction
+
   readonly onDismissed: () => void
 }
 interface ISAMLReauthRequiredDialogState {
@@ -67,6 +70,10 @@ export class SAMLReauthRequiredDialog extends React.Component<
       await this.props.dispatcher.beginEnterpriseSignIn()
     }
     await this.props.dispatcher.requestBrowserAuthentication()
+
+    if (this.props.retryAction !== undefined) {
+      this.props.dispatcher.performRetry(this.props.retryAction)
+    }
 
     this.props.onDismissed()
   }
