@@ -1618,18 +1618,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (this.appIsFocused && isRepositoryWithGitHubRepository(repository)) {
       const account = getAccountForRepository(this.accounts, repository)
       if (account !== null) {
-        return this.pullRequestCoordinator.startPullRequestUpdaters(
+        return this.pullRequestCoordinator.startPullRequestUpdater(
           repository,
           account
         )
       }
     }
-    // we always want to stop the current ones, to be safe
-    this.pullRequestCoordinator.stopPullRequestUpdaters()
+    // we always want to stop the current one, to be safe
+    this.pullRequestCoordinator.stopPullRequestUpdater()
   }
 
   private stopPullRequestUpdater() {
-    this.pullRequestCoordinator.stopPullRequestUpdaters()
+    this.pullRequestCoordinator.stopPullRequestUpdater()
   }
 
   private shouldBackgroundFetch(
