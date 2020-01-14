@@ -75,7 +75,6 @@ interface IChangesSidebarProps {
    */
   readonly shouldNudgeToCommit: boolean
 
-  readonly isLFSUpdateInProgress: boolean
   readonly isUsingLFS: boolean
   readonly locks: ReadonlyMap<string, string> | null
   readonly lockingUser: string | null
@@ -430,7 +429,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           isShowingStashEntry={isShowingStashEntry}
           currentBranchProtected={currentBranchProtected}
           shouldNudgeToCommit={this.props.shouldNudgeToCommit}
-          isLFSUpdateInProgress={this.props.isLFSUpdateInProgress}
+          isPushPullFetchInProgress={this.props.isPushPullFetchInProgress}
           isUsingLFS={this.props.isUsingLFS}
           locks={this.props.locks}
           lockingUser={this.props.lockingUser}

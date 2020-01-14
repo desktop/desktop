@@ -945,13 +945,7 @@ export class GitStore extends BaseStore {
     paths: ReadonlyArray<string>,
     isLocked: boolean
   ): Promise<void> {
-    return toggleFileLocksRepo(
-      this.repository,
-      locks,
-      account,
-      paths,
-      isLocked
-    )
+    return toggleFileLocksRepo(this.repository, locks, account, paths, isLocked)
   }
 
   public async loadStatus(): Promise<IStatusResult | null> {

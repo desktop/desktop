@@ -2307,18 +2307,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * Loads or re-loads (refreshes) the LFS state
    */
   private async updateLFS(repository: Repository): Promise<void> {
-    // LFS capable check
-    const tempState = this.repositoryStateCache.get(repository)
-    const tempIsUsingLFS = await isUsingLFS(repository)
-    if (tempIsUsingLFS !== tempState.isUsingLFS) {
-      this.repositoryStateCache.update(repository, () => ({
-        isUsingLFS: tempIsUsingLFS,
-      }))
-
-      this.emitUpdate()
-    }
-
-    // Locks
     await this._getFileLocks(repository)
   }
 
@@ -4044,12 +4032,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     isLocked: boolean
   ): Promise<void> {
     return this.withAuthenticatingUser(repository, (repository, account) => {
-      return this.performToggleFileLocks(
-        repository,
-        account,
-        paths,
-        isLocked
-      )
+      return this.performToggleFileLocks(repository, account, paths, isLocked)
     })
   }
 
@@ -4059,55 +4042,65 @@ export class AppStore extends TypedBaseStore<IAppState> {
     paths: ReadonlyArray<string>,
     isLocked: boolean
   ): Promise<void> {
-    // Prevent concurrency
+    // LFS must be enabled
     const tempState = this.repositoryStateCache.get(repository)
-    if (tempState.isLFSUpdateInProgress || !tempState.isUsingLFS) {
+    if (!tempState.isUsingLFS) {
       return
     }
 
-    this.repositoryStateCache.update(repository, () => ({
-      isLFSUpdateInProgress: true,
-    }))
-
-    this.emitUpdate()
-
     // Toggle locks
-    const tempStore = this.gitStoreCache.get(repository)
+    await this.withPushPullFetch(repository, async () => {
+      const tempStore = this.gitStoreCache.get(repository)
+      let tempTitle = __DARWIN__ ? 'Applying Locks' : 'Applying locks'
 
-    try {
-      await tempStore.toggleFileLocks(
-        tempState.locks,
-        account,
-        paths,
-        isLocked
-      )
-    } catch (error) {
-      this.emitError(error)
-    }
+      this.updatePushPullFetchProgress(repository, {
+        kind: 'generic',
+        title: tempTitle,
+        value: 0.9,
+      })
 
-    // Get new locks from server and update last known lock username that is assigned by the server
-    const tempLocks = (await tempStore.getFileLocks(account)) || null
-    if (isLocked) {
-      for (let i = paths.length - 1; i >= 0; --i) {
-        const tempUser =
-          tempLocks == null ? null : tempLocks.get(paths[i]) || null
-        if (tempUser != null) {
-          await this.repositoriesStore.updateLockingUser(repository, tempUser)
+      try {
+        await tempStore.toggleFileLocks(
+          tempState.locks,
+          account,
+          paths,
+          isLocked
+        )
+      } catch (error) {
+        this.emitError(error)
+      }
 
-          this.repositoryStateCache.update(repository, () => ({
-            lockingUser: tempUser,
-          }))
-          break
+      // Get new locks from server and update last known lock username that is assigned by the server
+      tempTitle = __DARWIN__ ? 'Getting Locks' : 'Getting locks'
+
+      this.updatePushPullFetchProgress(repository, {
+        kind: 'generic',
+        title: tempTitle,
+        value: 0.9,
+      })
+
+      const tempLocks = (await tempStore.getFileLocks(account)) || null
+      if (isLocked) {
+        for (let i = paths.length - 1; i >= 0; --i) {
+          const tempUser =
+            tempLocks == null ? null : tempLocks.get(paths[i]) || null
+          if (tempUser != null) {
+            await this.repositoriesStore.updateLockingUser(repository, tempUser)
+
+            this.repositoryStateCache.update(repository, () => ({
+              lockingUser: tempUser,
+            }))
+            break
+          }
         }
       }
-    }
 
-    this.repositoryStateCache.update(repository, () => ({
-      isLFSUpdateInProgress: false,
-      locks: tempLocks,
-    }))
+      this.repositoryStateCache.update(repository, () => ({
+        locks: tempLocks,
+      }))
 
-    this.emitUpdate()
+      this.updatePushPullFetchProgress(repository, null)
+    })
   }
 
   /**
@@ -4131,28 +4124,37 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     account: IGitAccount | null
   ): Promise<void> {
-    // Prevent concurrency
-    const tempState = this.repositoryStateCache.get(repository)
-    if (tempState.isLFSUpdateInProgress || !tempState.isUsingLFS) {
-      return
-    }
+    await this.withPushPullFetch(repository, async () => {
+      // LFS capable check
+      const tempTitle = __DARWIN__ ? 'Getting Locks' : 'Getting locks'
 
-    this.repositoryStateCache.update(repository, () => ({
-      isLFSUpdateInProgress: true,
-    }))
+      this.updatePushPullFetchProgress(repository, {
+        kind: 'generic',
+        title: tempTitle,
+        value: 0.9,
+      })
 
-    this.emitUpdate()
+      const tempState = this.repositoryStateCache.get(repository)
+      const tempIsUsingLFS = await isUsingLFS(repository)
+      if (tempIsUsingLFS !== tempState.isUsingLFS) {
+        this.repositoryStateCache.update(repository, () => ({
+          isUsingLFS: tempIsUsingLFS,
+        }))
 
-    // Get locks
-    const tempStore = this.gitStoreCache.get(repository)
-    const tempLocks = (await tempStore.getFileLocks(account)) || null
-    this.repositoryStateCache.update(repository, () => ({
-      locks: tempLocks,
-      isLFSUpdateInProgress: false,
-    }))
+        this.emitUpdate()
+      }
 
-    // Emit change
-    this.emitUpdate()
+      // Get locks
+      if (tempIsUsingLFS) {
+        const tempStore = this.gitStoreCache.get(repository)
+        const tempLocks = (await tempStore.getFileLocks(account)) || null
+        this.repositoryStateCache.update(repository, () => ({
+          locks: tempLocks,
+        }))
+      }
+
+      this.updatePushPullFetchProgress(repository, null)
+    })
   }
 
   public _endWelcomeFlow(): Promise<void> {

@@ -176,7 +176,7 @@ interface IChangesListProps {
    */
   readonly shouldNudgeToCommit: boolean
 
-  readonly isLFSUpdateInProgress: boolean
+  readonly isPushPullFetchInProgress: boolean
   readonly isUsingLFS: boolean
   readonly locks: ReadonlyMap<string, string> | null
   readonly lockingUser: string | null
@@ -428,7 +428,7 @@ export class ChangesList extends React.Component<
                 paths,
                 true
               ),
-            enabled: !this.props.isLFSUpdateInProgress,
+            enabled: !this.props.isPushPullFetchInProgress,
           },
         ]
       }
@@ -444,7 +444,7 @@ export class ChangesList extends React.Component<
                 paths,
                 false
               ),
-            enabled: !this.props.isLFSUpdateInProgress,
+            enabled: !this.props.isPushPullFetchInProgress,
           },
         ]
       }
@@ -467,7 +467,7 @@ export class ChangesList extends React.Component<
               paths,
               false
             ),
-          enabled: !this.props.isLFSUpdateInProgress,
+          enabled: !this.props.isPushPullFetchInProgress,
         },
       ]
     }
@@ -504,7 +504,8 @@ export class ChangesList extends React.Component<
             tempLockables,
             true
           ),
-        enabled: !this.props.isLFSUpdateInProgress && tempLockables.length > 0,
+        enabled:
+          !this.props.isPushPullFetchInProgress && tempLockables.length > 0,
       },
       {
         label: __DARWIN__
@@ -517,7 +518,7 @@ export class ChangesList extends React.Component<
             false
           ),
         enabled:
-          !this.props.isLFSUpdateInProgress && tempUnlockables.length > 0,
+          !this.props.isPushPullFetchInProgress && tempUnlockables.length > 0,
       },
       {
         label: __DARWIN__
@@ -530,7 +531,8 @@ export class ChangesList extends React.Component<
             false
           ),
         enabled:
-          !this.props.isLFSUpdateInProgress && tempForceUnlockables.length > 0,
+          !this.props.isPushPullFetchInProgress &&
+          tempForceUnlockables.length > 0,
       },
     ]
   }
