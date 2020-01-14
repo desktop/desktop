@@ -156,6 +156,21 @@ export class PullRequestCoordinator {
     }
   }
 
+  public getLastRefreshed(repository: RepositoryWithGitHubRepository) {
+    const ghRepos = [repository.gitHubRepository]
+    if (repository.gitHubRepository.parent !== null) {
+      ghRepos.push(repository.gitHubRepository.parent)
+    }
+    const times = new Array<number>()
+    for (const ghr of ghRepos) {
+      const lastRefreshed = this.pullRequestStore.getLastRefreshed(ghr)
+      if (lastRefreshed !== undefined) {
+        times.push(lastRefreshed)
+      }
+    }
+    return Math.max(...times)
+  }
+
   /**
    * Get all Pull Requests that are stored locally for the given Repository
    * (Doesn't load anything new from the GitHub API.)
@@ -184,9 +199,9 @@ export class PullRequestCoordinator {
     }
 
     this.currentPullRequestUpdater = new PullRequestUpdater(
-      repository.gitHubRepository,
+      repository,
       account,
-      this.pullRequestStore
+      this
     )
     this.currentPullRequestUpdater.start()
   }
