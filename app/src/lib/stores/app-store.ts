@@ -4041,16 +4041,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _toggleFileLocks(
     repository: Repository,
     paths: ReadonlyArray<string>,
-    isLocked: boolean,
-    isForced: boolean = false
+    isLocked: boolean
   ): Promise<void> {
     return this.withAuthenticatingUser(repository, (repository, account) => {
       return this.performToggleFileLocks(
         repository,
         account,
         paths,
-        isLocked,
-        isForced
+        isLocked
       )
     })
   }
@@ -4059,8 +4057,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     account: IGitAccount | null,
     paths: ReadonlyArray<string>,
-    isLocked: boolean,
-    isForced: boolean = false
+    isLocked: boolean
   ): Promise<void> {
     // Prevent concurrency
     const tempState = this.repositoryStateCache.get(repository)
@@ -4082,8 +4079,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         tempState.locks,
         account,
         paths,
-        isLocked,
-        isForced
+        isLocked
       )
     } catch (error) {
       this.emitError(error)

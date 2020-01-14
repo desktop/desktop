@@ -943,16 +943,14 @@ export class GitStore extends BaseStore {
     locks: ReadonlyMap<string, string> | null,
     account: IGitAccount | null,
     paths: ReadonlyArray<string>,
-    isLocked: boolean,
-    isForced: boolean = false
+    isLocked: boolean
   ): Promise<void> {
     return toggleFileLocksRepo(
       this.repository,
       locks,
       account,
       paths,
-      isLocked,
-      isForced
+      isLocked
     )
   }
 

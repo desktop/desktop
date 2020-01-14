@@ -149,22 +149,20 @@ export async function getFileLocks(
  * @param paths - File paths to lock/unlock
  *
  * @param isLocked - True if locked, false if unlocked
- *
- * @param isForced - True if forced
  */
 export async function toggleFileLocks(
   repository: Repository,
   locks: ReadonlyMap<string, string> | null,
   account: IGitAccount | null,
   paths: ReadonlyArray<string>,
-  isLocked: boolean,
-  isForced: boolean = false
+  isLocked: boolean
 ): Promise<void> {
   const tempEnvironment = { env: envForAuthentication(account) }
   const networkArguments = await gitNetworkArguments(repository, account)
   const args = [...networkArguments, 'lfs', isLocked ? 'lock' : 'unlock']
 
-  if (isForced) {
+  // From a usability/UI perspective, it makes no sense not to force unlocks... this also resolves weird repo errors
+  if (!isLocked) {
     args.push('--force')
   }
 

@@ -465,8 +465,7 @@ export class ChangesList extends React.Component<
             this.props.dispatcher.toggleFileLocks(
               this.props.repository,
               paths,
-              false,
-              true
+              false
             ),
           enabled: !this.props.isLFSUpdateInProgress,
         },
@@ -528,8 +527,7 @@ export class ChangesList extends React.Component<
           this.props.dispatcher.toggleFileLocks(
             this.props.repository,
             tempForceUnlockables,
-            false,
-            true
+            false
           ),
         enabled:
           !this.props.isLFSUpdateInProgress && tempForceUnlockables.length > 0,
