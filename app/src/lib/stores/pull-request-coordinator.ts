@@ -156,7 +156,19 @@ export class PullRequestCoordinator {
     }
   }
 
-  public getLastRefreshed(repository: RepositoryWithGitHubRepository) {
+  /**
+   * Get the last time a repository's pull requests were fetched
+   * from the GitHub API
+   *
+   * Since `PullRequestStore` stores these timestamps by
+   * GitHubRepository, we gather the timestamps for all
+   * **related repos** and return _the least recent one._
+   *
+   * If we can't find any timestamps stored, returns `undefined`
+   */
+  public getLastRefreshed(
+    repository: RepositoryWithGitHubRepository
+  ): number | undefined {
     const ghRepos = [repository.gitHubRepository]
     if (repository.gitHubRepository.parent !== null) {
       ghRepos.push(repository.gitHubRepository.parent)
@@ -168,7 +180,7 @@ export class PullRequestCoordinator {
         times.push(lastRefreshed)
       }
     }
-    return Math.max(...times)
+    return times.length > 0 ? Math.min(...times) : undefined
   }
 
   /**
