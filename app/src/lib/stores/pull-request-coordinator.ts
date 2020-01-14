@@ -169,18 +169,16 @@ export class PullRequestCoordinator {
   public getLastRefreshed(
     repository: RepositoryWithGitHubRepository
   ): number | undefined {
-    const ghRepos = [repository.gitHubRepository]
-    if (repository.gitHubRepository.parent !== null) {
-      ghRepos.push(repository.gitHubRepository.parent)
-    }
-    const times = new Array<number>()
-    for (const ghr of ghRepos) {
-      const lastRefreshed = this.pullRequestStore.getLastRefreshed(ghr)
-      if (lastRefreshed !== undefined) {
-        times.push(lastRefreshed)
-      }
-    }
-    return times.length > 0 ? Math.min(...times) : undefined
+    const ghr = repository.gitHubRepository
+    const lastRefresh = this.pullRequestStore.getLastRefreshed(ghr)
+
+    const parentLastRefresh = ghr.parent
+      ? this.pullRequestStore.getLastRefreshed(ghr.parent)
+      : undefined
+
+    return !lastRefresh || !parentLastRefresh
+      ? lastRefresh || parentLastRefresh
+      : Math.min(lastRefresh, parentLastRefresh)
   }
 
   /**
