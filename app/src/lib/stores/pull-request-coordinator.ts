@@ -162,7 +162,7 @@ export class PullRequestCoordinator {
    *
    * Since `PullRequestStore` stores these timestamps by
    * GitHubRepository, we gather the timestamps for all
-   * the repository and its parent and return _oldest one._
+   * the repository and its parent and return the _oldest one._
    *
    * If we can't find any timestamps stored, returns `undefined`
    */
