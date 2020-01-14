@@ -136,25 +136,59 @@ export class PullRequestCoordinator {
   /**
    * Fetches all pull requests for the given repository.
    * This **will** attempt to hit the GitHub API.
+   *
+   * This method has some specific logic for emitting loading
+   * events. Multiple clones of the same remote GitHub repo
+   * will share the same fields in the pull request database,
+   * but the larger app considers every local copy separate.
+   * The `findRepositoriesForGitHubRepository` logic ensures
+   * that we emit loading events for all those repositories.
    */
   public async refreshPullRequests(
     repository: RepositoryWithGitHubRepository,
     account: Account
   ) {
-    this.emitIsLoadingPullRequests(repository, true)
+    // get all matches for the repository to be refreshed
+    const { matches } = findRepositoriesForGitHubRepository(
+      repository.gitHubRepository,
+      this.repositories
+    )
+    // mark all matching repos for parent as now loading
+    for (const match of matches) {
+      this.emitIsLoadingPullRequests(match, true)
+    }
 
+    // mark all matching repos as now loading
     await this.pullRequestStore.refreshPullRequests(
       repository.gitHubRepository,
       account
     )
     if (repository.gitHubRepository.parent !== null) {
+      // get all matches for the parent repository
+      const { matches: parentMatches } = findRepositoriesForGitHubRepository(
+        repository.gitHubRepository.parent,
+        this.repositories
+      )
+      // mark all matching repos for parent as now loading
+      for (const parentMatch of parentMatches) {
+        this.emitIsLoadingPullRequests(parentMatch, true)
+      }
+
       await this.pullRequestStore.refreshPullRequests(
         repository.gitHubRepository.parent,
         account
       )
+
+      // mark all matching repos for parent as done loading
+      for (const parentMatch of parentMatches) {
+        this.emitIsLoadingPullRequests(parentMatch, false)
+      }
     }
 
-    this.emitIsLoadingPullRequests(repository, false)
+    // mark all matching repos as done loading
+    for (const match of matches) {
+      this.emitIsLoadingPullRequests(match, false)
+    }
   }
 
   /**
