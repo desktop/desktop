@@ -8,6 +8,7 @@ import { PullRequestStore } from '.'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
 import { RepositoriesStore } from './repositories-store'
 import { GitHubRepository } from '../../models/github-repository'
+import { Disposable, Emitter } from 'event-kit'
 
 /**
  * Provides a single point of access for getting pull requests
@@ -42,6 +43,9 @@ export class PullRequestCoordinator {
    */
   private readonly prCache = new Map<number, ReadonlyArray<PullRequest>>()
 
+  /** Used to emit pull request loading events */
+  protected readonly emitter = new Emitter()
+
   public constructor(
     private readonly pullRequestStore: PullRequestStore,
     private readonly repositoriesStore: RepositoriesStore
@@ -73,7 +77,7 @@ export class PullRequestCoordinator {
       repository: RepositoryWithGitHubRepository,
       pullRequests: ReadonlyArray<PullRequest>
     ) => void
-  ) {
+  ): Disposable {
     return this.pullRequestStore.onPullRequestsChanged(
       (ghRepo, pullRequests) => {
         // update cache
@@ -122,18 +126,11 @@ export class PullRequestCoordinator {
       repository: RepositoryWithGitHubRepository,
       isLoadingPullRequests: boolean
     ) => void
-  ) {
-    return this.pullRequestStore.onIsLoadingPullRequests(
-      (ghRepo, pullRequests) => {
-        const { matches, forks } = findRepositoriesForGitHubRepository(
-          ghRepo,
-          this.repositories
-        )
-        for (const repo of [...matches, ...forks]) {
-          fn(repo, pullRequests)
-        }
-      }
-    )
+  ): Disposable {
+    return this.emitter.on('onIsLoadingPullRequest', value => {
+      const { repository, isLoadingPullRequests } = value
+      fn(repository, isLoadingPullRequests)
+    })
   }
 
   /**
@@ -144,6 +141,8 @@ export class PullRequestCoordinator {
     repository: RepositoryWithGitHubRepository,
     account: Account
   ) {
+    this.emitIsLoadingPullRequests(repository, true)
+
     await this.pullRequestStore.refreshPullRequests(
       repository.gitHubRepository,
       account
@@ -154,6 +153,8 @@ export class PullRequestCoordinator {
         account
       )
     }
+
+    this.emitIsLoadingPullRequests(repository, false)
   }
 
   /**
@@ -197,6 +198,17 @@ export class PullRequestCoordinator {
       this.currentPullRequestUpdater.stop()
       this.currentPullRequestUpdater = null
     }
+  }
+
+  /** Emits a "pull requests are loading" event */
+  private emitIsLoadingPullRequests(
+    repository: RepositoryWithGitHubRepository,
+    isLoadingPullRequests: boolean
+  ) {
+    this.emitter.emit('onIsLoadingPullRequest', {
+      repository,
+      isLoadingPullRequests,
+    })
   }
 
   /**
