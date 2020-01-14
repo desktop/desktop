@@ -161,10 +161,11 @@ export class PullRequestCoordinator {
    * from the GitHub API
    *
    * Since `PullRequestStore` stores these timestamps by
-   * GitHubRepository, we gather the timestamps for all
-   * the repository and its parent and return the _oldest one._
+   * `GitHubRepository`, we get timestamps for this
+   * repo's `GitHubRepository` and its parent (if it has one)
+   * and return the _older one._
    *
-   * If we can't find any timestamps stored, returns `undefined`
+   * If neither timestamp is stored, returns `undefined`
    */
   public getLastRefreshed(
     repository: RepositoryWithGitHubRepository
