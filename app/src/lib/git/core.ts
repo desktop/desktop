@@ -205,7 +205,7 @@ export function isAuthFailureError(
   return false
 }
 
-function getDescriptionForError(error: DugiteError): string {
+function getDescriptionForError(error: DugiteError): string | null {
   if (isAuthFailureError(error)) {
     const menuHint = __DARWIN__
       ? 'GitHub Desktop > Preferences.'
@@ -309,6 +309,13 @@ function getDescriptionForError(error: DugiteError): string {
       return 'Unable to switch branches as there are working directory changes which would be overwritten. Please commit or stash your changes.'
     case DugiteError.UnresolvedConflicts:
       return 'There are unresolved conflicts in the working directory.'
+    case DugiteError.ConfigLockFileAlreadyExists:
+      // Added in dugite 1.88.0 (https://github.com/desktop/dugite/pull/386)
+      // in support of https://github.com/desktop/desktop/issues/8675 but we're
+      // not using it yet. Returning a null message here means the stderr will
+      // be used as the error message (or stdout if stderr is empty), i.e. the
+      // same behavior as before the ConfigLockFileAlreadyExists was added
+      return null
     default:
       return assertNever(error, `Unknown error: ${error}`)
   }
