@@ -3,7 +3,6 @@ import { PullRequest } from '../../models/pull-request'
 import {
   RepositoryWithGitHubRepository,
   isRepositoryWithGitHubRepository,
-  Repository,
 } from '../../models/repository'
 import { PullRequestStore } from '.'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
@@ -11,17 +10,37 @@ import { RepositoriesStore } from './repositories-store'
 import { GitHubRepository } from '../../models/github-repository'
 
 /**
- * One stop shop for all things pull requests.
+ * Provides a single point of access for getting pull requests
+ * associated with a local repository (assuming its connected
+ * to a repository on GitHub).
  *
- * Manages the association between GitHubRepositories and
- * local Repositories. In other words, it's a layer between
- * AppStore and the PullRequestStore + PullRequestUpdaters.
+ * Primarily a layer between AppStore and the
+ * PullRequestStore + PullRequestUpdaters.
  */
 export class PullRequestCoordinator {
+  /**
+   * Currently running PullRequestUpdater (should be for
+   * the "selected" repository in `AppStore`)
+   */
   private currentPullRequestUpdater: PullRequestUpdater | null = null
+  /**
+   * All `Repository`s in RepositoryStore associated with `GitHubRepository`
+   * This is updated whenever `RepositoryStore` emits an update
+   */
   private repositories: ReadonlyArray<
     RepositoryWithGitHubRepository
   > = new Array<RepositoryWithGitHubRepository>()
+
+  /**
+   * Contains the last set of PRs retreived by `PullRequestCoordinator`
+   * from `PullRequestStore` for a specific `GitHubRepository`.
+   * Keyed by `GitHubRepository` database ID to a list of pull requests.
+   *
+   * This is used to improve perforamnce by reducing
+   * duplicate queries to the pull request database.
+   *
+   */
+  private readonly prCache = new Map<number, ReadonlyArray<PullRequest>>()
 
   public constructor(
     private readonly pullRequestStore: PullRequestStore,
@@ -35,7 +54,20 @@ export class PullRequestCoordinator {
     })
   }
 
-  /** Register a function to be called when the PullRequestStore updates */
+  /**
+   * Register a function to be called when the PullRequestStore updates.
+   *
+   * @param fn to be called with a `Repository` and an updated +
+   *           complete list of pull requests whenever `PullRequestStore`
+   *           emits an update for a related repo on GitHub.
+   *
+   * Related repos include:
+   *  * the corresponding GitHub repo (the `origin` remote for
+   *    the `Repository`)
+   *  * the parent GitHub repo, if the `Repository` has one (the
+   *    `upstream` remote for the `Repository`)
+   *
+   */
   public onPullRequestsChanged(
     fn: (
       repository: RepositoryWithGitHubRepository,
@@ -44,18 +76,47 @@ export class PullRequestCoordinator {
   ) {
     return this.pullRequestStore.onPullRequestsChanged(
       (ghRepo, pullRequests) => {
-        const repository = findRepositoryForGitHubRepository(
+        // update cache
+        if (ghRepo.dbID !== null) {
+          this.prCache.set(ghRepo.dbID, pullRequests)
+        }
+
+        // find all related repos
+        const { matches, forks } = findRepositoriesForGitHubRepository(
           ghRepo,
           this.repositories
         )
-        if (repository !== undefined) {
-          fn(repository, pullRequests)
+
+        // emit updates for forks
+        for (const fork of forks) {
+          this.getPullRequestsFor(fork.gitHubRepository).then(prs =>
+            fn(fork, [...prs, ...pullRequests])
+          )
+        }
+
+        // emit updates for matches
+        for (const match of matches) {
+          fn(match, pullRequests)
         }
       }
     )
   }
 
-  /** Register a function to be called when PullRequestStore emits a loading event */
+  /**
+   * Register a function to be called when PullRequestStore
+   * emits a "loading" event.
+   *
+   * @param fn to be called with a `Repository` whenever
+   *           `PullRequestStore` emits an update for a
+   *           related repo on GitHub.
+   *
+   * Related repos include:
+   *  * the corresponding GitHub repo (the `origin` remote for
+   *    the `Repository`)
+   *  * the parent GitHub repo, if the `Repository` has one (the
+   *    `upstream` remote for the `Repository`)
+   *
+   */
   public onIsLoadingPullRequests(
     fn: (
       repository: RepositoryWithGitHubRepository,
@@ -64,34 +125,82 @@ export class PullRequestCoordinator {
   ) {
     return this.pullRequestStore.onIsLoadingPullRequests(
       (ghRepo, pullRequests) => {
-        const repository = findRepositoryForGitHubRepository(
+        const { matches, forks } = findRepositoriesForGitHubRepository(
           ghRepo,
           this.repositories
         )
-        if (repository !== undefined) {
-          fn(repository, pullRequests)
+        for (const repo of [...matches, ...forks]) {
+          fn(repo, pullRequests)
         }
       }
     )
   }
 
-  /** Loads (from remote) all pull requests for the given repository. */
-  public refreshPullRequests(
+  /**
+   * Fetches all pull requests for the given repository.
+   * This **will** attempt to hit the GitHub API.
+   */
+  public async refreshPullRequests(
     repository: RepositoryWithGitHubRepository,
     account: Account
   ) {
-    return this.pullRequestStore.refreshPullRequests(
+    await this.pullRequestStore.refreshPullRequests(
       repository.gitHubRepository,
       account
     )
+    if (repository.gitHubRepository.parent !== null) {
+      await this.pullRequestStore.refreshPullRequests(
+        repository.gitHubRepository.parent,
+        account
+      )
+    }
   }
 
-  /** Get all Pull Requests for the given Repository that are in the PullRequestStore */
-  public getAllPullRequests(repository: RepositoryWithGitHubRepository) {
-    return this.pullRequestStore.getAll(repository.gitHubRepository)
+  /**
+   * Get the last time a repository's pull requests were fetched
+   * from the GitHub API
+   *
+   * Since `PullRequestStore` stores these timestamps by
+   * `GitHubRepository`, we get timestamps for this
+   * repo's `GitHubRepository` and its parent (if it has one)
+   * and return the _older one._
+   *
+   * If neither timestamp is stored, returns `undefined`
+   */
+  public getLastRefreshed(
+    repository: RepositoryWithGitHubRepository
+  ): number | undefined {
+    const ghr = repository.gitHubRepository
+    const lastRefresh = this.pullRequestStore.getLastRefreshed(ghr)
+
+    const parentLastRefresh = ghr.parent
+      ? this.pullRequestStore.getLastRefreshed(ghr.parent)
+      : undefined
+
+    return !lastRefresh || !parentLastRefresh
+      ? lastRefresh || parentLastRefresh
+      : Math.min(lastRefresh, parentLastRefresh)
   }
 
-  /** Start background Pull Request updates machinery for this Repository */
+  /**
+   * Get all Pull Requests that are stored locally for the given Repository
+   * (Doesn't load anything new from the GitHub API.)
+   */
+  public async getAllPullRequests(
+    repository: RepositoryWithGitHubRepository
+  ): Promise<ReadonlyArray<PullRequest>> {
+    if (repository.gitHubRepository.parent !== null) {
+      const [prs, upstreamPrs] = await Promise.all([
+        this.getPullRequestsFor(repository.gitHubRepository),
+        this.getPullRequestsFor(repository.gitHubRepository.parent),
+      ])
+      return [...prs, ...upstreamPrs]
+    } else {
+      return await this.getPullRequestsFor(repository.gitHubRepository)
+    }
+  }
+
+  /** Start background pull request fetching machinery for this Repository */
   public startPullRequestUpdater(
     repository: RepositoryWithGitHubRepository,
     account: Account
@@ -101,39 +210,77 @@ export class PullRequestCoordinator {
     }
 
     this.currentPullRequestUpdater = new PullRequestUpdater(
-      repository.gitHubRepository,
+      repository,
       account,
-      this.pullRequestStore
+      this
     )
     this.currentPullRequestUpdater.start()
   }
 
-  /** Stop background Pull Request updates machinery for this Repository */
+  /** Stop background pull request fetching machinery for this Repository */
   public stopPullRequestUpdater() {
     if (this.currentPullRequestUpdater !== null) {
       this.currentPullRequestUpdater.stop()
       this.currentPullRequestUpdater = null
     }
   }
+
+  /**
+   * Get Pull Requests stored in the database (or
+   * `PullRequestCoordinator`'s cache) for a single `GitHubRepository`)
+   *
+   * Will query `PullRequestStore`'s database if nothing is cached for that repo.
+   */
+  private async getPullRequestsFor(
+    gitHubRepository: GitHubRepository
+  ): Promise<ReadonlyArray<PullRequest>> {
+    const { dbID } = gitHubRepository
+    // this check should never be true, but we have to check
+    // for typescript and provide a sensible fallback
+    if (dbID === null) {
+      return []
+    }
+
+    if (!this.prCache.has(dbID)) {
+      this.prCache.set(
+        dbID,
+        await this.pullRequestStore.getAll(gitHubRepository)
+      )
+    }
+    return this.prCache.get(dbID) || []
+  }
 }
 
 /**
- * Helper for matching a GitHubRepository to a single Repository
+ * Finds local repositories related to a GitHubRepository
+ *
+ * * Related repos include:
+ *  * **matches** — the corresponding GitHub repo (the `origin` remote for
+ *    the `Repository`)
+ *  * **forks** — the parent GitHub repo, if the `Repository` has one (the
+ *    `upstream` remote for the `Repository`)
  *
  * @param gitHubRepository
  * @param repositories list of repositories to search for a match
- *
+ * @returns two lists of repositories: **matches** and **forks**
  */
-function findRepositoryForGitHubRepository(
+function findRepositoriesForGitHubRepository(
   gitHubRepository: GitHubRepository,
-  repositories: ReadonlyArray<Repository>
+  repositories: ReadonlyArray<RepositoryWithGitHubRepository>
 ) {
-  const repo = repositories.find(
-    r =>
-      r.gitHubRepository !== null &&
-      r.gitHubRepository.dbID === gitHubRepository.dbID
-  )
-  return repo !== undefined && isRepositoryWithGitHubRepository(repo)
-    ? repo
-    : undefined
+  const { dbID } = gitHubRepository
+  const matches = new Array<RepositoryWithGitHubRepository>(),
+    forks = new Array<RepositoryWithGitHubRepository>()
+  for (const r of repositories) {
+    if (r.gitHubRepository.dbID === dbID) {
+      matches.push(r)
+    } else if (
+      r.gitHubRepository.parent !== null &&
+      r.gitHubRepository.parent.dbID === dbID
+    ) {
+      forks.push(r)
+    }
+  }
+
+  return { matches, forks }
 }
