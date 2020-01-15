@@ -108,6 +108,7 @@ import { enableTutorial } from '../lib/feature-flag'
 import { ConfirmExitTutorial } from './tutorial'
 import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { WorkflowPushRejectedDialog } from './workflow-push-rejected/workflow-push-rejected'
+import { SAMLReauthRequiredDialog } from './saml-reauth-required/saml-reauth-required'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1857,6 +1858,16 @@ export class App extends React.Component<IAppProps, IAppState> {
             rejectedPath={popup.rejectedPath}
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
+          />
+        )
+      case PopupType.SAMLReauthRequired:
+        return (
+          <SAMLReauthRequiredDialog
+            onDismissed={this.onPopupDismissed}
+            organizationName={popup.organizationName}
+            endpoint={popup.endpoint}
+            retryAction={popup.retryAction}
+            dispatcher={this.props.dispatcher}
           />
         )
       default:

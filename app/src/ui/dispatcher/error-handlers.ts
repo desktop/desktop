@@ -7,7 +7,7 @@ import { Dispatcher } from '.'
 import { ExternalEditorError } from '../../lib/editors/shared'
 import { ErrorWithMetadata } from '../../lib/error-with-metadata'
 import { AuthenticationErrors } from '../../lib/git/authentication'
-import { GitError } from '../../lib/git/core'
+import { GitError, isAuthFailureError } from '../../lib/git/core'
 import { ShellError } from '../../lib/shells'
 import { UpstreamAlreadyExistsError } from '../../lib/stores/upstream-already-exists-error'
 
@@ -527,4 +527,71 @@ export async function refusedWorkflowUpdate(
   })
 
   return null
+}
+
+const samlReauthErrorMessageRe = /`([^']+)' organization has enabled or enforced SAML SSO.*?you must re-authorize/s
+
+/**
+ * Attempts to detect whether an error is the result of a failed push
+ * due to insufficient OAuth permissions (missing workflow scope)
+ */
+export async function samlReauthRequired(error: Error, dispatcher: Dispatcher) {
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError || gitError.result.gitError === null) {
+    return error
+  }
+
+  if (!isAuthFailureError(gitError.result.gitError)) {
+    return error
+  }
+
+  const { repository } = e.metadata
+
+  if (!(repository instanceof Repository)) {
+    return error
+  }
+
+  if (repository.gitHubRepository === null) {
+    return error
+  }
+
+  const remoteMessage = getRemoteMessage(gitError.result.stderr)
+  const match = samlReauthErrorMessageRe.exec(remoteMessage)
+
+  if (!match) {
+    return error
+  }
+
+  const organizationName = match[1]
+  const endpoint = repository.gitHubRepository.endpoint
+
+  dispatcher.showPopup({
+    type: PopupType.SAMLReauthRequired,
+    organizationName,
+    endpoint,
+    retryAction: e.metadata.retryAction,
+  })
+
+  return null
+}
+
+/**
+ * Extract lines from Git's stderr output starting with the
+ * prefix `remote: `. Useful to extract server-specific
+ * error messages from network operations (fetch, push, pull,
+ * etc).
+ */
+function getRemoteMessage(stderr: string) {
+  const needle = 'remote: '
+
+  return stderr
+    .split(/\r?\n/)
+    .filter(x => x.startsWith(needle))
+    .map(x => x.substr(needle.length))
+    .join('\n')
 }

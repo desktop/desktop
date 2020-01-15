@@ -53,6 +53,7 @@ export enum PopupType {
   CreateTutorialRepository,
   ConfirmExitTutorial,
   PushRejectedDueToMissingWorkflowScope,
+  SAMLReauthRequired,
 }
 
 export type Popup =
@@ -205,4 +206,10 @@ export type Popup =
       type: PopupType.PushRejectedDueToMissingWorkflowScope
       rejectedPath: string
       repository: Repository
+    }
+  | {
+      type: PopupType.SAMLReauthRequired
+      organizationName: string
+      endpoint: string
+      retryAction?: RetryAction
     }
