@@ -237,6 +237,7 @@ import {
   uncommittedChangesStrategyKindDefault,
   getUncommittedChangesStrategy,
   askToStash,
+  parseStrategy,
 } from '../../models/uncommitted-changes-strategy'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
@@ -1777,9 +1778,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnForcePushDefault
     )
 
-    const strategy = localStorage.getItem(
-      uncommittedChangesStrategyKindKey
-    ) as UncommittedChangesStrategyKind
+    const strategy = parseStrategy(localStorage.getItem(uncommittedChangesStrategyKindKey))
     this.uncommittedChangesStrategyKind =
       strategy || uncommittedChangesStrategyKindDefault
 
