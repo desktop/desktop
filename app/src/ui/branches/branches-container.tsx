@@ -48,7 +48,7 @@ interface IBranchesContainerProps {
 
   readonly selectedUncommittedChangesStrategy: UncommittedChangesStrategy
 
-  readonly hasChangesAndStash: boolean
+  readonly couldOverwriteStash: boolean
 }
 
 interface IBranchesContainerState {
@@ -250,7 +250,7 @@ export class BranchesContainer extends React.Component<
       repository,
       currentBranchProtected,
       dispatcher,
-      hasChangesAndStash,
+      couldOverwriteStash,
     } = this.props
 
     if (currentBranch == null || currentBranch.name !== branch.name) {
@@ -258,7 +258,7 @@ export class BranchesContainer extends React.Component<
         !currentBranchProtected &&
         this.props.selectedUncommittedChangesStrategy.kind ===
           stashOnCurrentBranch.kind &&
-        hasChangesAndStash
+        couldOverwriteStash
       ) {
         dispatcher.showPopup({
           type: PopupType.ConfirmOverwriteStash,

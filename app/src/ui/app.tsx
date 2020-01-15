@@ -2347,7 +2347,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         selectedUncommittedChangesStrategy={getUncommittedChangesStrategy(
           this.state.uncommittedChangesStrategyKind
         )}
-        hasChangesAndStash={hasChanges && hasAssociatedStash}
+        couldOverwriteStash={hasChanges && hasAssociatedStash}
       />
     )
   }
