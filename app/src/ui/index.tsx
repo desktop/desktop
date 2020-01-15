@@ -22,6 +22,7 @@ import {
   rebaseConflictsHandler,
   localChangesOverwrittenHandler,
   refusedWorkflowUpdate,
+  samlReauthRequired,
 } from './dispatcher'
 import {
   AppStore,
@@ -280,6 +281,7 @@ dispatcher.registerErrorHandler(mergeConflictHandler)
 dispatcher.registerErrorHandler(lfsAttributeMismatchHandler)
 dispatcher.registerErrorHandler(gitAuthenticationErrorHandler)
 dispatcher.registerErrorHandler(pushNeedsPullHandler)
+dispatcher.registerErrorHandler(samlReauthRequired)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(missingRepositoryHandler)
 dispatcher.registerErrorHandler(localChangesOverwrittenHandler)
