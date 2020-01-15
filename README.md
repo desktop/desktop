@@ -14,6 +14,8 @@ uses [React](https://facebook.github.io/react/).
 
 ## Where can I get it?
 
+THIS IS A TEST OF THE EMERGENCY PR SYSTEM. DO NOT MERGE, THIS IS ONLY A TEST.
+
 Download the official installer for your operating system:
 
  - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin)
