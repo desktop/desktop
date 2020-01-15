@@ -35,7 +35,6 @@ export const moveToNewBranch: UncommittedChangesStrategy = {
  * user's preference is stored as a kind in state, which
  * must be translated into a strategy before it can be
  * used in stashing logic and methods.
- *
  */
 export function getUncommittedChangesStrategy(
   kind: UncommittedChangesStrategyKind
