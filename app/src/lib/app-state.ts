@@ -39,6 +39,7 @@ import { GitRebaseProgress } from '../models/rebase'
 import { RebaseFlowStep } from '../models/rebase-flow-step'
 import { IStashEntry } from '../models/stash-entry'
 import { TutorialStep } from '../models/tutorial-step'
+import { UncommittedChangesStrategyKind } from '../models/uncommitted-changes-strategy'
 
 export enum SelectionType {
   Repository,
@@ -173,6 +174,9 @@ export interface IAppState {
 
   /** Should the app prompt the user to confirm a force push? */
   readonly askForConfirmationOnForcePush: boolean
+
+  /** How the app should handle uncommitted changes when switching branches */
+  readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
 
   /** The external editor to use when opening repositories */
   readonly selectedExternalEditor: ExternalEditor | null

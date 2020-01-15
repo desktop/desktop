@@ -25,7 +25,7 @@ import { startTimer } from '../lib/timing'
 import {
   UncommittedChangesStrategyKind,
   UncommittedChangesStrategy,
-  askToStash,
+  stashOnCurrentBranch,
 } from '../../models/uncommitted-changes-strategy'
 import memoizeOne from 'memoize-one'
 
@@ -46,6 +46,10 @@ interface IBranchesContainerProps {
   readonly isLoadingPullRequests: boolean
 
   readonly currentBranchProtected: boolean
+
+  readonly selectedUncommittedChangesStrategy: UncommittedChangesStrategy
+
+  readonly couldOverwriteStash: boolean
 }
 
 interface IBranchesContainerState {
@@ -249,9 +253,29 @@ export class BranchesContainer extends React.Component<
   private onBranchItemClick = (branch: Branch) => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
 
-    const { currentBranch, repository, currentBranchProtected } = this.props
+    const {
+      currentBranch,
+      repository,
+      currentBranchProtected,
+      dispatcher,
+      couldOverwriteStash,
+    } = this.props
 
     if (currentBranch == null || currentBranch.name !== branch.name) {
+      if (
+        !currentBranchProtected &&
+        this.props.selectedUncommittedChangesStrategy.kind ===
+          stashOnCurrentBranch.kind &&
+        couldOverwriteStash
+      ) {
+        dispatcher.showPopup({
+          type: PopupType.ConfirmOverwriteStash,
+          repository,
+          branchToCheckout: branch,
+        })
+        return
+      }
+
       const timer = startTimer('checkout branch from list', repository)
 
       // Never prompt to stash changes if someone is switching away from a protected branch
@@ -260,7 +284,7 @@ export class BranchesContainer extends React.Component<
             kind: UncommittedChangesStrategyKind.MoveToNewBranch,
             transientStashEntry: null,
           }
-        : askToStash
+        : this.props.selectedUncommittedChangesStrategy
 
       this.props.dispatcher
         .checkoutBranch(repository, branch, strategy)
