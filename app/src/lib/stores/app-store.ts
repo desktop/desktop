@@ -1778,7 +1778,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnForcePushDefault
     )
 
-    const strategy = parseStrategy(localStorage.getItem(uncommittedChangesStrategyKindKey))
+    const strategy = parseStrategy(
+      localStorage.getItem(uncommittedChangesStrategyKindKey)
+    )
     this.uncommittedChangesStrategyKind =
       strategy || uncommittedChangesStrategyKindDefault
 
