@@ -27,7 +27,6 @@ import { startTimer } from '../lib/timing'
 import {
   UncommittedChangesStrategy,
   UncommittedChangesStrategyKind,
-  askToStash,
 } from '../../models/uncommitted-changes-strategy'
 
 interface ICreateBranchProps {
@@ -39,6 +38,7 @@ interface ICreateBranchProps {
   readonly allBranches: ReadonlyArray<Branch>
   readonly initialName: string
   readonly currentBranchProtected: boolean
+  readonly selectedUncommittedChangesStrategy: UncommittedChangesStrategy
 }
 
 interface ICreateBranchState {
@@ -303,7 +303,7 @@ export class CreateBranch extends React.Component<
             kind: UncommittedChangesStrategyKind.MoveToNewBranch,
             transientStashEntry: null,
           }
-        : askToStash
+        : this.props.selectedUncommittedChangesStrategy
 
       this.setState({ isCreatingBranch: true })
       const timer = startTimer('create branch', repository)

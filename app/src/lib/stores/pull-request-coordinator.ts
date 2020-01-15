@@ -192,6 +192,32 @@ export class PullRequestCoordinator {
   }
 
   /**
+   * Get the last time a repository's pull requests were fetched
+   * from the GitHub API
+   *
+   * Since `PullRequestStore` stores these timestamps by
+   * `GitHubRepository`, we get timestamps for this
+   * repo's `GitHubRepository` and its parent (if it has one)
+   * and return the _older one._
+   *
+   * If neither timestamp is stored, returns `undefined`
+   */
+  public getLastRefreshed(
+    repository: RepositoryWithGitHubRepository
+  ): number | undefined {
+    const ghr = repository.gitHubRepository
+    const lastRefresh = this.pullRequestStore.getLastRefreshed(ghr)
+
+    const parentLastRefresh = ghr.parent
+      ? this.pullRequestStore.getLastRefreshed(ghr.parent)
+      : undefined
+
+    return !lastRefresh || !parentLastRefresh
+      ? lastRefresh || parentLastRefresh
+      : Math.min(lastRefresh, parentLastRefresh)
+  }
+
+  /**
    * Get all Pull Requests that are stored locally for the given Repository
    * (Doesn't load anything new from the GitHub API.)
    */
@@ -209,7 +235,7 @@ export class PullRequestCoordinator {
     }
   }
 
-  /** Start background Pull Request updates machinery for this Repository */
+  /** Start background pull request fetching machinery for this Repository */
   public startPullRequestUpdater(
     repository: RepositoryWithGitHubRepository,
     account: Account
@@ -219,14 +245,14 @@ export class PullRequestCoordinator {
     }
 
     this.currentPullRequestUpdater = new PullRequestUpdater(
-      repository.gitHubRepository,
+      repository,
       account,
-      this.pullRequestStore
+      this
     )
     this.currentPullRequestUpdater.start()
   }
 
-  /** Stop background Pull Request updates machinery for this Repository */
+  /** Stop background pull request fetching machinery for this Repository */
   public stopPullRequestUpdater() {
     if (this.currentPullRequestUpdater !== null) {
       this.currentPullRequestUpdater.stop()
