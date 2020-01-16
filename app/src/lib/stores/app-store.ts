@@ -257,6 +257,7 @@ import {
   findAssociatedPullRequest,
   isPullRequestAssociatedWithBranch,
 } from '../helpers/pull-request-matching'
+import { sendNonFatalException } from '../helpers/non-fatal-exception'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -5549,10 +5550,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
               apiRepo
             )
           }
-        } catch (e) {
-          log.error(`Fork creation through API failed (${e})`)
-          // ToDo: send non-fatal needle?
         }
+      } catch (e) {
+        log.error(`Fork creation through API failed (${e})`)
+        sendNonFatalException('forkCreation', e)
       }
     }
     return repository
