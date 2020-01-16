@@ -91,38 +91,48 @@ export class CreateForkDialog extends React.Component<
         </Dialog>
       )
     }
-    return this.renderError()
-  }
-
-  private renderError() {
-    const suggestion =
-      this.props.repository.gitHubRepository.htmlURL !== null ? (
-        <>
-          You can try creating the fork manually at{' '}
-          <LinkButton>
-            {this.props.repository.gitHubRepository.htmlURL}
-          </LinkButton>
-        </>
-      ) : (
-        undefined
-      )
-    return (
-      <Dialog
-        onDismissed={this.props.onDismissed}
-        type="error"
-        title={__DARWIN__ ? 'Fork Creation Failed' : 'Fork creation failed'}
-        key={this.props.repository.name}
-      >
-        <DialogContent>
-          {`Creating a fork for ${this.props.repository.name} failed. `}
-          {suggestion}
-        </DialogContent>
-        <DialogFooter>
-          <Button tooltip="Ok" type="submit">
-            Ok
-          </Button>
-        </DialogFooter>
-      </Dialog>
+    return renderError(
+      this.props.repository,
+      this.state.error,
+      this.props.onDismissed
     )
   }
+}
+
+function renderError(
+  repository: RepositoryWithGitHubRepository,
+  error: Error,
+  onDismissed: () => void
+) {
+  const suggestion =
+    repository.gitHubRepository.htmlURL !== null ? (
+      <>
+        You can try creating the fork manually at{' '}
+        <LinkButton>{repository.gitHubRepository.htmlURL}</LinkButton>.
+      </>
+    ) : (
+      undefined
+    )
+  return (
+    <Dialog
+      onDismissed={onDismissed}
+      type="error"
+      title={__DARWIN__ ? 'Fork Creation Failed' : 'Fork creation failed'}
+      key={repository.name}
+    >
+      <DialogContent>
+        Creating your fork of <strong>{repository.name}</strong> failed.{` `}
+        {suggestion}
+        <details>
+          <summary>Error details</summary>
+          <pre className="error">{error.message}</pre>
+        </details>
+      </DialogContent>
+      <DialogFooter>
+        <Button tooltip="Ok" type="submit">
+          Ok
+        </Button>
+      </DialogFooter>
+    </Dialog>
+  )
 }
