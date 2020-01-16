@@ -5554,6 +5554,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       } catch (e) {
         log.error(`Fork creation through API failed (${e})`)
         sendNonFatalException('forkCreation', e)
+        this._showPopup({ type: PopupType.CreateForkFailed, repository })
       }
     }
     return repository

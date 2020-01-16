@@ -55,6 +55,7 @@ export enum PopupType {
   PushRejectedDueToMissingWorkflowScope,
   SAMLReauthRequired,
   PushRejectedDueToGitHubRepoPermissions,
+  CreateForkFailed,
 }
 
 export type Popup =
@@ -216,5 +217,9 @@ export type Popup =
     }
   | {
       type: PopupType.PushRejectedDueToGitHubRepoPermissions
+      repository: Repository
+    }
+  | {
+      type: PopupType.CreateForkFailed
       repository: Repository
     }
