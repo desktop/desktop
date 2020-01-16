@@ -54,7 +54,7 @@ export enum PopupType {
   ConfirmExitTutorial,
   PushRejectedDueToMissingWorkflowScope,
   SAMLReauthRequired,
-  PushRejectedDueToGitHubRepoPermissions,
+  CreateFork,
   CreateForkFailed,
 }
 
@@ -216,7 +216,7 @@ export type Popup =
       retryAction?: RetryAction
     }
   | {
-      type: PopupType.PushRejectedDueToGitHubRepoPermissions
+      type: PopupType.CreateFork
       repository: RepositoryWithGitHubRepository
       account: Account
     }

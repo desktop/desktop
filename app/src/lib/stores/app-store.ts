@@ -5533,7 +5533,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
     await this._showPopup({
-      type: PopupType.PushRejectedDueToGitHubRepoPermissions,
+      type: PopupType.CreateFork,
       repository,
       account,
     })

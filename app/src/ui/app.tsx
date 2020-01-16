@@ -1879,7 +1879,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
           />
         )
-      case PopupType.PushRejectedDueToGitHubRepoPermissions:
+      case PopupType.CreateFork:
         return (
           <CreateForkDialog
             onDismissed={this.onPopupDismissed}
