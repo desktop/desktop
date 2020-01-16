@@ -1334,8 +1334,8 @@ export class Dispatcher {
   }
 
   /**
-   * Launch a sign in dialog for authenticating a user with
-   * a GitHub Enterprise instance.
+   * Show a dialog that helps the user create a fork of
+   * their local repo.
    */
   public async showCreateForkDialog(
     repository: RepositoryWithGitHubRepository
