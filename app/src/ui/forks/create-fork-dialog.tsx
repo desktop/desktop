@@ -66,6 +66,7 @@ export class CreateForkDialog extends React.Component<
           onDismissed={this.props.onDismissed}
           onSubmit={this.onSubmit}
           type="normal"
+          key={this.props.repository.name}
         >
           <DialogHeader
             title="Do you want to fork this repository?"
@@ -110,6 +111,7 @@ export class CreateForkDialog extends React.Component<
         onDismissed={this.props.onDismissed}
         type="error"
         title={__DARWIN__ ? 'Fork Creation Failed' : 'Fork creation failed'}
+        key={this.props.repository.name}
       >
         <DialogContent>
           {`Creating a fork for ${this.props.repository.name} failed. `}
