@@ -32,6 +32,7 @@ These are general metrics about feature usage and specific feature behaviors. Th
 | `active*` | Flag indicating whether the app has been interacted with during the current reporting window. | To identify users who are actively using Desktop versus those who have it open but never interact with it. |
 | `anyConflictsLeftOnMergeConflictsDialogDismissalCount` | The number of times there were any merge conflicts present when the Merge Conflicts Dialog is dismissed. | To understand whether people dismiss the dialog after resolving conflicts for one last check or just want to back out of the guided flow entirely. |
 | `branchComparisons` | The number of times a branch is compared to an arbitrary branch. | To understand usage patterns around the compare branches feature. |
+| `changesTakenToNewBranchCount` | The number of times changes are taken to a new branch when presented with the option to stash. | To understand usage patterns around the stashing feature. |
 | `coAuthoredCommits` | The number of commits created with one or more co-authors. | To understand usage patterns of commits made in Desktop. |
 | `commits` | The number of commits made. | To understand usage patterns of commits made in Desktop. |
 | `commitsToProtectedBranch` | The number of commits made to a protected branch. | To understand whether the app could guide users depending on the repository configuration. |
@@ -49,6 +50,7 @@ These are general metrics about feature usage and specific feature behaviors. Th
 | `enterpriseCommits` | The number of times the user made a commit to a repo hosted on a GitHub Enterprise Server instance. | To understand the total percentage of commits made to GitHub Enterprise Server repos to help prioritize our work associated with enterprise use of GitHub Desktop compared to GitHub |
 | `enterprisePushCount` | The number of time the user pushed commits to a repo hosted on GitHub Enterprise Server. | To understand how often users are pushing their work to a GitHub Enterprise Server remote  |
 | `enterpriseForcePushCount` | The number of time the user pushed commits to a repo hosted on GitHub Enterprise Server with `--force-with-lease` enabled. | To understand how often users are pushing their work and rewriting history to a GitHub Enterprise Server remote |
+| `errorWhenSwitchingBranchesWithUncommmittedChanges` | The number of times the user is presented with the error message "Some of your changes would be overwritten" | To understand the potential impact of stashing in reducing the number of errors experienced when switching branches. |
 | `externalPushCount` | The number of time the user pushed commits to a repo not hosted on GitHub or GitHub Enterprise Server. | To understand how often users are pushing their work to a non-GitHub remote |
 | `externalForcePushCount` | The number of time the user pushed commits to a repo not hosted on GitHub or GitHub Enterprise Server with `--force-with-lease` enabled. | To understand how often users are pushing their work and rewriting history to a non-GitHub remote |
 | `guidedConflictedMergeCompletionCount` | The number of times a conflicted merge is completed from the Merge Conflicts Dialog. | To understand how many times people prefer to finish the merge in the guided flow after resolving conflicts. |
@@ -65,6 +67,7 @@ These are general metrics about feature usage and specific feature behaviors. Th
 | `mergeIntoCurrentBranchMenuCount` | The number of times the `Branch -> Merge Into Current Branch` menu item is used. | To understand usage patterns around the compare branches feature. |
 | `mergesInitiatedFromComparison` | The number of times a merge is initiated in the `compare` sidebar. | To understand usage patterns around the compare branches feature. |
 | `mergeSuccessAfterConflictsCount` | The number of times the user successfully completes a merge after a merge conflict. | To understand how effectively users are able to resolve conflicts and complete their merge successfully |
+| `noActionTakenOnStashCount` | The number of times the user views a stash but neither restores nor discards it. | To understand whether people might find value in just seeing the stash without acting on it |
 | `openShellCount` | The number of times the user has opened a shell from the app. | To understand if people need to use the command line because of missing features. |
 | `partialCommits` | The number of partial commits. | To understand usage patterns of commits made in Desktop. |
 | `prBranchCheckouts` | The number of times the user checks out a branch using the PR menu. | To understand usage patterns around the PR checkout menu. |
@@ -77,10 +80,17 @@ These are general metrics about feature usage and specific feature behaviors. Th
 | `rebaseSuccessAfterConflictsCount` |  The number of times a successful rebase is made in the app after the user resolved conflicts. | To understand whether users are able to complete the rebase conflicts flow. |
 | `rebaseSuccessWithoutConflictsCount` | The number of times a successful rebase is made in the app without the user needing to resolve conflicts. | To understand how frequently people are rebasing compared to merging. |
 | `rendererReadyTime` | The time (in milliseconds) it takes from when our renderer process code is first loaded until the renderer `ready` event is emitted. | To make sure new versions of Desktop are not regressing on performance. |
-| `repoWithIndicatorClicked` | The numbers of times a repo with indicators is clicked on repo list view. | To understand usage patterns around the repository indicators feature. |
-| `repoWithoutIndicatorClicked` | The numbers of times a repo without indicators is clicked on repo list view.  | To understand usage patterns around the repository indicators feature. |
+| `repoWithIndicatorClicked` | The number of times a repo with indicators is clicked on repo list view. | To understand usage patterns around the repository indicators feature. |
+| `repoWithoutIndicatorClicked` | The number of times a repo without indicators is clicked on repo list view.  | To understand usage patterns around the repository indicators feature. |
+| `stashCreatedOnCurrentBranchCount` | The number of times a stash is created when presented with the option to do so.  | To understand whether people are choosing to stash or bring changes when they switch branches. |
+| `stashDiscardCount` | The number of times a stash is discarded.  | To understand how frequently people are discarding stashes after creating them. |
+| `stashEntriesCreatedOutsideDesktop` | The number of stash entries created outside of Desktop | To understand how much of an impact Desktop has in reducing context switching. |
+| `stashNotViewedAfterCheckoutCount` | The number of times a stash is not viewed after checking out a branch where there is a stash. | To understand whether people are often just leaving a stash in place and never doing anything with it. |
+| `stashRestoreCount` | The number of times a stash is restored as changes. | To understand how often people are subsequently restoring a stash they created. |
+| `stashViewCount` | The number of times a stash is viewed. | To understand the percentage of times people are restoring or discarding compared to viewing their stash. |
+| `stashViewedAfterCheckoutCount` | The number of times a stash is viewed after checking out a branch where there is a stash.  | To ensure people know when a stash exists on a branch they just switched to. |
+| `suggestedStepViewStash` | The number of times a stash is viewed from the suggested next step.  | To understand whether we increased the discoverability by adding the stash to the suggested next step. |
 | `unattributedCommits` | The number of commits that will go unattributed to GitHub users. | To understand how frequently commits in GitHub Desktop are unattributed and how highly we should prioritize design for those instances |
 | `unguidedConflictedMergeCompletionCount` | The number of times a conflicted merge is completed from the diff/changes view. | To understand how many times people prefer to finish the merge in the changes/diff view after resolving conflicts. |
 | `updateFromDefaultBranchMenuCount` | The number of times the `Branch -> Update From Default Branch` menu item is used. | To understand usage patterns around the compare branches feature. |
-| `stashEntriesCreatedOutsideDesktop` | The number of stash entries created outside of Desktop | To understand how much of an impact Desktop has in reducing context switching. |
-| `errorWhenSwitchingBranchesWithUncommmittedChanges` | The number of times the user is presented with the error message "Some of your changes would be overwritten" | To understand the potential impact of stashing in reducing the number of errors experienced when switching branches. |
+
