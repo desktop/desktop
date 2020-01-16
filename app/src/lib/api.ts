@@ -669,7 +669,9 @@ export class API {
       return await parsedResponse<IAPIRepository>(response)
     } catch (e) {
       log.error(`forkRepository: failed with endpoint ${this.endpoint}`, e)
-      throw new Error(`Couldn't fork repository ${owner}/${name}.`)
+      throw new Error(
+        `Couldn't fork repository ${owner}/${name}. (${e.message})`
+      )
     }
   }
 
