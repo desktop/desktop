@@ -112,7 +112,7 @@ export class CreateForkDialog extends React.Component<
         title={__DARWIN__ ? 'Fork Creation Failed' : 'Fork creation failed'}
       >
         <DialogContent>
-          Creating a fork for {this.props.repository.name} failed.
+          {`Creating a fork for ${this.props.repository.name} failed. `}
           {suggestion}
         </DialogContent>
         <DialogFooter>
