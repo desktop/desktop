@@ -25,8 +25,9 @@ import { startTimer } from '../lib/timing'
 import {
   UncommittedChangesStrategyKind,
   UncommittedChangesStrategy,
-  askToStash,
+  stashOnCurrentBranch,
 } from '../../models/uncommitted-changes-strategy'
+import memoizeOne from 'memoize-one'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -45,6 +46,10 @@ interface IBranchesContainerProps {
   readonly isLoadingPullRequests: boolean
 
   readonly currentBranchProtected: boolean
+
+  readonly selectedUncommittedChangesStrategy: UncommittedChangesStrategy
+
+  readonly couldOverwriteStash: boolean
 }
 
 interface IBranchesContainerState {
@@ -59,6 +64,9 @@ export class BranchesContainer extends React.Component<
   IBranchesContainerProps,
   IBranchesContainerState
 > {
+  private readonly getPullRequests = memoizeOne(
+    getPullRequestsWithBaseRepository
+  )
   public constructor(props: IBranchesContainerProps) {
     super(props)
 
@@ -102,7 +110,10 @@ export class BranchesContainer extends React.Component<
   }
 
   private renderOpenPullRequestsBubble() {
-    const { pullRequests } = this.props
+    const pullRequests = this.getPullRequests(
+      this.props.repository,
+      this.props.pullRequests
+    )
 
     if (pullRequests.length > 0) {
       return <span className="count">{pullRequests.length}</span>
@@ -174,8 +185,6 @@ export class BranchesContainer extends React.Component<
       return null
     }
 
-    const pullRequests = this.props.pullRequests
-    const repo = this.props.repository
     const isOnDefaultBranch =
       this.props.defaultBranch &&
       this.props.currentBranch &&
@@ -184,9 +193,12 @@ export class BranchesContainer extends React.Component<
     return (
       <PullRequestList
         key="pr-list"
-        pullRequests={pullRequests}
+        pullRequests={this.getPullRequests(
+          this.props.repository,
+          this.props.pullRequests
+        )}
         selectedPullRequest={this.state.selectedPullRequest}
-        repositoryName={nameOf(repo)}
+        repositoryName={nameOf(this.props.repository)}
         isOnDefaultBranch={!!isOnDefaultBranch}
         onSelectionChanged={this.onPullRequestSelectionChanged}
         onCreateBranch={this.onCreateBranch}
@@ -241,9 +253,29 @@ export class BranchesContainer extends React.Component<
   private onBranchItemClick = (branch: Branch) => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
 
-    const { currentBranch, repository, currentBranchProtected } = this.props
+    const {
+      currentBranch,
+      repository,
+      currentBranchProtected,
+      dispatcher,
+      couldOverwriteStash,
+    } = this.props
 
     if (currentBranch == null || currentBranch.name !== branch.name) {
+      if (
+        !currentBranchProtected &&
+        this.props.selectedUncommittedChangesStrategy.kind ===
+          stashOnCurrentBranch.kind &&
+        couldOverwriteStash
+      ) {
+        dispatcher.showPopup({
+          type: PopupType.ConfirmOverwriteStash,
+          repository,
+          branchToCheckout: branch,
+        })
+        return
+      }
+
       const timer = startTimer('checkout branch from list', repository)
 
       // Never prompt to stash changes if someone is switching away from a protected branch
@@ -252,7 +284,7 @@ export class BranchesContainer extends React.Component<
             kind: UncommittedChangesStrategyKind.MoveToNewBranch,
             transientStashEntry: null,
           }
-        : askToStash
+        : this.props.selectedUncommittedChangesStrategy
 
       this.props.dispatcher
         .checkoutBranch(repository, branch, strategy)
@@ -311,4 +343,20 @@ export class BranchesContainer extends React.Component<
 
     this.onPullRequestSelectionChanged(pullRequest)
   }
+}
+
+/**
+ *  Returns which Pull Requests to display
+ *  (For now, filters out any pull requests targeting upstream)
+ */
+function getPullRequestsWithBaseRepository(
+  repository: Repository,
+  pullRequests: ReadonlyArray<PullRequest>
+) {
+  const { gitHubRepository } = repository
+  return gitHubRepository !== null
+    ? pullRequests.filter(
+        pr => pr.base.gitHubRepository.hash === gitHubRepository.hash
+      )
+    : pullRequests
 }

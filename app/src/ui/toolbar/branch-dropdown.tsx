@@ -10,6 +10,7 @@ import { assertNever } from '../../lib/fatal-error'
 import { BranchesTab } from '../../models/branches-tab'
 import { PullRequest } from '../../models/pull-request'
 import * as classNames from 'classnames'
+import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -45,6 +46,10 @@ interface IBranchDropdownProps {
 
   /** Whether this component should show its onboarding tutorial nudge arrow */
   readonly shouldNudge: boolean
+
+  readonly selectedUncommittedChangesStrategy: UncommittedChangesStrategy
+
+  readonly couldOverwriteStash: boolean
 }
 
 /**
@@ -73,6 +78,10 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         currentPullRequest={this.props.currentPullRequest}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
         currentBranchProtected={currentBranchProtected}
+        selectedUncommittedChangesStrategy={
+          this.props.selectedUncommittedChangesStrategy
+        }
+        couldOverwriteStash={this.props.couldOverwriteStash}
       />
     )
   }
