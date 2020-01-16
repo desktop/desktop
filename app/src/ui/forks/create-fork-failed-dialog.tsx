@@ -32,7 +32,7 @@ export class CreateForkFailedDialog extends React.Component<
       <Dialog
         onDismissed={this.props.onDismissed}
         type="error"
-        title="Fork creation failed"
+        title={__DARWIN__ ? 'Fork Creation Failed' : 'Fork creation failed'}
       >
         <DialogContent>
           Creating a fork for {this.props.repository.name} failed.
