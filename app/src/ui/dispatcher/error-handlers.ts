@@ -12,7 +12,10 @@ import { ShellError } from '../../lib/shells'
 import { UpstreamAlreadyExistsError } from '../../lib/stores/upstream-already-exists-error'
 
 import { PopupType } from '../../models/popup'
-import { Repository } from '../../models/repository'
+import {
+  Repository,
+  isRepositoryWithGitHubRepository,
+} from '../../models/repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { hasWritePermission } from '../../models/github-repository'
 
@@ -610,7 +613,7 @@ export async function insufficientGitHubRepoPermissions(
     return error
   }
 
-  if (repository.gitHubRepository === null) {
+  if (!isRepositoryWithGitHubRepository(repository)) {
     return error
   }
 
@@ -622,10 +625,7 @@ export async function insufficientGitHubRepoPermissions(
     return error
   }
 
-  dispatcher.showPopup({
-    type: PopupType.PushRejectedDueToGitHubRepoPermissions,
-    repository,
-  })
+  dispatcher.showCreateForkDialog(repository)
 
   return null
 }

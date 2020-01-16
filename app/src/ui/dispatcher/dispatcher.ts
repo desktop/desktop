@@ -64,7 +64,10 @@ import { GitHubRepository } from '../../models/github-repository'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { Popup, PopupType } from '../../models/popup'
 import { PullRequest } from '../../models/pull-request'
-import { Repository } from '../../models/repository'
+import {
+  Repository,
+  RepositoryWithGitHubRepository,
+} from '../../models/repository'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
   CommittedFileChange,
@@ -1331,6 +1334,16 @@ export class Dispatcher {
   }
 
   /**
+   * Launch a sign in dialog for authenticating a user with
+   * a GitHub Enterprise instance.
+   */
+  public async showCreateForkDialog(
+    repository: RepositoryWithGitHubRepository
+  ): Promise<void> {
+    await this.appStore._showCreateforkDialog(repository)
+  }
+
+  /**
    * Register a new error handler.
    *
    * Error handlers are called in order starting with the most recently
@@ -1877,8 +1890,11 @@ export class Dispatcher {
     return this.appStore._setConfirmForcePushSetting(value)
   }
 
-  public async createFork(repository: Repository) {
-    await this.appStore._createFork(repository)
+  public async convertRepositoryToFork(
+    repository: RepositoryWithGitHubRepository,
+    fork: IAPIRepository
+  ) {
+    await this.appStore._convertToFork(repository, fork)
   }
 
   /**

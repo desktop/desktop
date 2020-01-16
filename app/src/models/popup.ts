@@ -1,4 +1,4 @@
-import { Repository } from './repository'
+import { Repository, RepositoryWithGitHubRepository } from './repository'
 import { PullRequest } from './pull-request'
 import { Branch } from './branch'
 import { ReleaseSummary } from './release-notes'
@@ -217,7 +217,8 @@ export type Popup =
     }
   | {
       type: PopupType.PushRejectedDueToGitHubRepoPermissions
-      repository: Repository
+      repository: RepositoryWithGitHubRepository
+      account: Account
     }
   | {
       type: PopupType.CreateForkFailed

@@ -1885,6 +1885,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
+            account={popup.account}
           />
         )
       case PopupType.CreateForkFailed:

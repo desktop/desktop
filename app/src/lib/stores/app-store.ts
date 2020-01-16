@@ -42,6 +42,7 @@ import {
   nameOf,
   Repository,
   isRepositoryWithGitHubRepository,
+  RepositoryWithGitHubRepository,
 } from '../../models/repository'
 import {
   CommittedFileChange,
@@ -257,7 +258,6 @@ import {
   findAssociatedPullRequest,
   isPullRequestAssociatedWithBranch,
 } from '../helpers/pull-request-matching'
-import { sendNonFatalException } from '../helpers/non-fatal-exception'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -5525,36 +5525,44 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this.currentBranchPruner.testPrune()
   }
 
-  public async _createFork(repository: Repository) {
-    const { gitHubRepository } = repository
+  public async _showCreateforkDialog(
+    repository: RepositoryWithGitHubRepository
+  ) {
     const account = getAccountForRepository(this.accounts, repository)
-    if (gitHubRepository !== null && account !== null) {
-      const api = API.fromAccount(account)
-      try {
-        const apiRepo = await api.forkRepository(
-          gitHubRepository.owner.login,
-          gitHubRepository.name
+    if (account === null) {
+      return
+    }
+    await this._showPopup({
+      type: PopupType.PushRejectedDueToGitHubRepoPermissions,
+      repository,
+      account,
+    })
+  }
+
+  /**
+   * Makes a local repository point to a freshly made fork
+   *
+   * @param repository local repo
+   * @param fork fork it should point to
+   */
+  public async _convertToFork(
+    repository: RepositoryWithGitHubRepository,
+    fork: IAPIRepository
+  ): Promise<Repository> {
+    const gitStore = this.gitStoreCache.get(repository)
+    const remoteName = gitStore.defaultRemote
+      ? gitStore.defaultRemote.name
+      : undefined
+    // make sure there is a default remote (there should be)
+    if (remoteName !== undefined) {
+      // update default remote
+      if (await gitStore.setRemoteURL(remoteName, fork.html_url)) {
+        // update associated github repo
+        return await this.repositoriesStore.updateGitHubRepository(
+          repository,
+          repository.gitHubRepository.endpoint,
+          fork
         )
-        const gitStore = this.gitStoreCache.get(repository)
-        const remoteName = gitStore.defaultRemote
-          ? gitStore.defaultRemote.name
-          : undefined
-        // make sure there is a default remote
-        if (remoteName !== undefined) {
-          // update default remote
-          if (await gitStore.setRemoteURL(remoteName, apiRepo.html_url)) {
-            // update associated github repo
-            return await this.repositoriesStore.updateGitHubRepository(
-              repository,
-              gitHubRepository.endpoint,
-              apiRepo
-            )
-          }
-        }
-      } catch (e) {
-        log.error(`Fork creation through API failed (${e})`)
-        sendNonFatalException('forkCreation', e)
-        this._showPopup({ type: PopupType.CreateForkFailed, repository })
       }
     }
     return repository
