@@ -5554,7 +5554,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // make sure there is a default remote (there should be)
     if (remoteName !== undefined) {
       // update default remote
-      if (await gitStore.setRemoteURL(remoteName, fork.html_url)) {
+      if (await gitStore.setRemoteURL(remoteName, fork.clone_url)) {
         // update associated github repo
         return await this.repositoriesStore.updateGitHubRepository(
           repository,
