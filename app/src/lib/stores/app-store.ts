@@ -5556,11 +5556,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // update default remote
       if (await gitStore.setRemoteURL(remoteName, fork.clone_url)) {
         // update associated github repo
-        return await this.repositoriesStore.updateGitHubRepository(
+        const updatedRepository = await this.repositoriesStore.updateGitHubRepository(
           repository,
           repository.gitHubRepository.endpoint,
           fork
         )
+        // reload the GitStore since the Repository's hash has changed
+        // (and just to be safe)
+        const updatedGitStore = this.gitStoreCache.get(updatedRepository)
+        await updatedGitStore.addUpstreamRemoteIfNeeded()
+        await updatedGitStore.updateExistingUpstreamRemote()
+        return updatedRepository
       }
     }
     return repository
