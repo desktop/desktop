@@ -58,8 +58,7 @@ export class CreateForkDialog extends React.Component<
     } catch (e) {
       log.error(`Fork creation through API failed (${e})`)
       sendNonFatalException('forkCreation', e)
-      this.setState({ error: e })
-      this.setState({ loading: false })
+      this.setState({ error: e, loading: false })
     }
   }
 
