@@ -5540,12 +5540,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /**
-   * Makes a local repository point to a freshly made fork
-   *
-   * @param repository local repo
-   * @param fork fork it should point to
+   * Converts a local repository to use the given fork
+   * as its default remote and associated `GitHubRepository`.
    */
-  public async _convertToFork(
+  public async _convertRepositoryToFork(
     repository: RepositoryWithGitHubRepository,
     fork: IAPIRepository
   ): Promise<Repository> {

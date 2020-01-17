@@ -1890,11 +1890,15 @@ export class Dispatcher {
     return this.appStore._setConfirmForcePushSetting(value)
   }
 
+  /**
+   * Converts a local repository to use the given fork
+   * as its default remote and associated `GitHubRepository`.
+   */
   public async convertRepositoryToFork(
     repository: RepositoryWithGitHubRepository,
     fork: IAPIRepository
   ) {
-    await this.appStore._convertToFork(repository, fork)
+    await this.appStore._convertRepositoryToFork(repository, fork)
   }
 
   /**
