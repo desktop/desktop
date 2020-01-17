@@ -28,7 +28,7 @@ import {
   stashOnCurrentBranch,
 } from '../../models/uncommitted-changes-strategy'
 import memoizeOne from 'memoize-one'
-import { enableHideUpstreamPullRequestsInForks } from '../../lib/feature-flag'
+import { enableShowUpstreamPullRequestsInForks } from '../../lib/feature-flag'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -355,7 +355,7 @@ function getPullRequestsWithBaseRepository(
   pullRequests: ReadonlyArray<PullRequest>
 ) {
   const { gitHubRepository } = repository
-  return enableHideUpstreamPullRequestsInForks() && gitHubRepository !== null
+  return !enableShowUpstreamPullRequestsInForks() && gitHubRepository !== null
     ? pullRequests.filter(
         pr => pr.base.gitHubRepository.hash === gitHubRepository.hash
       )

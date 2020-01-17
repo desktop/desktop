@@ -115,9 +115,9 @@ export function enableTutorial(): boolean {
 }
 
 /*
- * Should we hide the pull requests associated with a fork that
+ * Should we show the pull requests associated with a fork that
  * point to an upstream repository?
  */
-export function enableHideUpstreamPullRequestsInForks(): boolean {
-  return true
+export function enableShowUpstreamPullRequestsInForks(): boolean {
+  return false
 }
