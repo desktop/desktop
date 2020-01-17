@@ -13,6 +13,7 @@ import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
 import { Account } from '../../models/account'
 import { API } from '../../lib/api'
 import { LinkButton } from '../lib/link-button'
+import { Errors } from '../lib/errors'
 
 interface ICreateForkDialogProps {
   readonly dispatcher: Dispatcher
@@ -129,7 +130,7 @@ function renderError(
         {suggestion}
         <details>
           <summary>Error details</summary>
-          <pre className="error">{error.message}</pre>
+          <Errors>{error.message}</Errors>
         </details>
       </DialogContent>
       <DefaultDialogFooter />
