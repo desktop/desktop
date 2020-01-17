@@ -13,7 +13,6 @@ import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
 import { Account } from '../../models/account'
 import { API } from '../../lib/api'
 import { LinkButton } from '../lib/link-button'
-import { Errors } from '../lib/errors'
 
 interface ICreateForkDialogProps {
   readonly dispatcher: Dispatcher
@@ -72,6 +71,7 @@ export class CreateForkDialog extends React.Component<
           onSubmit={this.onSubmit}
           type="normal"
           key={this.props.repository.name}
+          id="create-fork"
         >
           <DialogHeader
             title="Do you want to fork this repository?"
@@ -124,13 +124,17 @@ function renderError(
       type="error"
       title={__DARWIN__ ? 'Fork Creation Failed' : 'Fork creation failed'}
       key={repository.name}
+      id="create-fork"
     >
       <DialogContent>
-        Creating your fork of <strong>{repository.name}</strong> failed.{` `}
-        {suggestion}
+        <div>
+          Creating your fork of <strong>{repository.name}</strong> failed.
+          {` `}
+          {suggestion}
+        </div>
         <details>
           <summary>Error details</summary>
-          <Errors>{error.message}</Errors>
+          <pre className="error">{error.message}</pre>
         </details>
       </DialogContent>
       <DefaultDialogFooter />
