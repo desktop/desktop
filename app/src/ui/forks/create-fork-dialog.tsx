@@ -111,8 +111,11 @@ function renderError(
   const suggestion =
     repository.gitHubRepository.htmlURL !== null ? (
       <>
-        You can try creating the fork manually at{' '}
-        <LinkButton>{repository.gitHubRepository.htmlURL}</LinkButton>.
+        You can try{' '}
+        <LinkButton uri={repository.gitHubRepository.htmlURL}>
+          creating the fork manually on GitHub
+        </LinkButton>
+        .
       </>
     ) : (
       undefined
