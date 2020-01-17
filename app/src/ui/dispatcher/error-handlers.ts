@@ -602,8 +602,7 @@ export async function insufficientGitHubRepoPermissions(
     return error
   }
 
-  const dugiteError = gitError.result.gitError
-  if (!dugiteError) {
+  if (!isAuthFailureError(gitError.result.gitError)) {
     return error
   }
 
@@ -618,10 +617,6 @@ export async function insufficientGitHubRepoPermissions(
   }
 
   if (hasWritePermission(repository.gitHubRepository)) {
-    return error
-  }
-
-  if (!pushFailureErrorTypes.has(dugiteError)) {
     return error
   }
 
@@ -645,9 +640,3 @@ function getRemoteMessage(stderr: string) {
     .map(x => x.substr(needle.length))
     .join('\n')
 }
-
-const pushFailureErrorTypes = new Set([
-  DugiteError.SSHAuthenticationFailed,
-  DugiteError.SSHPermissionDenied,
-  DugiteError.HTTPSAuthenticationFailed,
-])
