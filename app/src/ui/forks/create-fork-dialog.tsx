@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogFooter,
   DefaultDialogFooter,
+  DialogError,
 } from '../dialog'
 import { Dispatcher } from '../dispatcher'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
@@ -62,53 +63,72 @@ export class CreateForkDialog extends React.Component<
   }
 
   public render() {
-    if (this.state.error === undefined) {
-      return (
-        <Dialog
-          title="Do you want to fork this repository?"
-          onDismissed={this.props.onDismissed}
-          onSubmit={this.onSubmit}
-          dismissable={!this.state.loading}
-          loading={this.state.loading}
-          type="normal"
-          key={this.props.repository.name}
-          id="create-fork"
-        >
-          <DialogContent>
-            Looks like you don’t have write access to this repository. Do you
-            want to fork this repository to continue?
-          </DialogContent>
-          <DialogFooter>
-            <OkCancelButtonGroup
-              destructive={true}
-              okButtonText={
-                __DARWIN__ ? 'Fork This Repository' : 'Fork this repository'
-              }
-              okButtonDisabled={this.state.loading}
-              cancelButtonDisabled={this.state.loading}
-            />
-          </DialogFooter>
-        </Dialog>
-      )
-    }
-    return renderError(
-      this.props.repository,
-      this.state.error,
-      this.props.onDismissed
+    return (
+      <Dialog
+        title="Do you want to fork this repository?"
+        onDismissed={this.props.onDismissed}
+        onSubmit={this.onSubmit}
+        dismissable={!this.state.loading}
+        loading={this.state.loading}
+        type="normal"
+        key={this.props.repository.name}
+        id="create-fork"
+      >
+        {this.state.error !== undefined ? (
+          <CreateForkDialogError
+            repository={this.props.repository}
+            error={this.state.error}
+          />
+        ) : (
+          <CreateForkDialogContent
+            repository={this.props.repository}
+            loading={this.state.loading}
+          />
+        )}
+      </Dialog>
     )
   }
 }
 
-function renderError(
-  repository: RepositoryWithGitHubRepository,
-  error: Error,
-  onDismissed: () => void
-) {
+interface ICreateForkDialogContentProps {
+  readonly repository: RepositoryWithGitHubRepository
+  readonly loading: boolean
+}
+
+/** Standard (non-error) message and buttons for `CreateForkDialog` */
+const CreateForkDialogContent: React.SFC<
+  ICreateForkDialogContentProps
+> = props => (
+  <>
+    <DialogContent>
+      Looks like you don’t have write access to this repository. Do you want to
+      fork this repository to continue?
+    </DialogContent>
+    <DialogFooter>
+      <OkCancelButtonGroup
+        destructive={true}
+        okButtonText={
+          __DARWIN__ ? 'Fork This Repository' : 'Fork this repository'
+        }
+        okButtonDisabled={props.loading}
+        cancelButtonDisabled={props.loading}
+      />
+    </DialogFooter>
+  </>
+)
+
+/** Error state message (and buttons) for `CreateForkDialog` */
+interface ICreateForkDialogErrorProps {
+  readonly repository: RepositoryWithGitHubRepository
+  readonly error: Error
+}
+
+const CreateForkDialogError: React.SFC<ICreateForkDialogErrorProps> = props => {
   const suggestion =
-    repository.gitHubRepository.htmlURL !== null ? (
+    props.repository.gitHubRepository.htmlURL !== null ? (
       <>
         You can try{' '}
-        <LinkButton uri={repository.gitHubRepository.htmlURL}>
+        <LinkButton uri={props.repository.gitHubRepository.htmlURL}>
           creating the fork manually on GitHub
         </LinkButton>
         .
@@ -117,25 +137,19 @@ function renderError(
       undefined
     )
   return (
-    <Dialog
-      onDismissed={onDismissed}
-      type="error"
-      title={__DARWIN__ ? 'Fork Creation Failed' : 'Fork creation failed'}
-      key={repository.name}
-      id="create-fork"
-    >
-      <DialogContent>
+    <>
+      <DialogError>
         <div>
-          Creating your fork of <strong>{repository.name}</strong> failed.
+          Creating your fork of <strong>{props.repository.name}</strong> failed.
           {` `}
           {suggestion}
         </div>
         <details>
           <summary>Error details</summary>
-          <pre className="error">{error.message}</pre>
+          <pre className="error">{props.error.message}</pre>
         </details>
-      </DialogContent>
+      </DialogError>
       <DefaultDialogFooter />
-    </Dialog>
+    </>
   )
 }
