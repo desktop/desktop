@@ -8,6 +8,7 @@ import { PullRequestStore } from '.'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
 import { RepositoriesStore } from './repositories-store'
 import { GitHubRepository } from '../../models/github-repository'
+import { Disposable, Emitter } from 'event-kit'
 
 /**
  * Provides a single point of access for getting pull requests
@@ -42,6 +43,9 @@ export class PullRequestCoordinator {
    */
   private readonly prCache = new Map<number, ReadonlyArray<PullRequest>>()
 
+  /** Used to emit pull request loading events */
+  protected readonly emitter = new Emitter()
+
   public constructor(
     private readonly pullRequestStore: PullRequestStore,
     private readonly repositoriesStore: RepositoriesStore
@@ -73,7 +77,7 @@ export class PullRequestCoordinator {
       repository: RepositoryWithGitHubRepository,
       pullRequests: ReadonlyArray<PullRequest>
     ) => void
-  ) {
+  ): Disposable {
     return this.pullRequestStore.onPullRequestsChanged(
       (ghRepo, pullRequests) => {
         // update cache
@@ -122,37 +126,68 @@ export class PullRequestCoordinator {
       repository: RepositoryWithGitHubRepository,
       isLoadingPullRequests: boolean
     ) => void
-  ) {
-    return this.pullRequestStore.onIsLoadingPullRequests(
-      (ghRepo, pullRequests) => {
-        const { matches, forks } = findRepositoriesForGitHubRepository(
-          ghRepo,
-          this.repositories
-        )
-        for (const repo of [...matches, ...forks]) {
-          fn(repo, pullRequests)
-        }
-      }
-    )
+  ): Disposable {
+    return this.emitter.on('onIsLoadingPullRequest', value => {
+      const { repository, isLoadingPullRequests } = value
+      fn(repository, isLoadingPullRequests)
+    })
   }
 
   /**
    * Fetches all pull requests for the given repository.
    * This **will** attempt to hit the GitHub API.
+   *
+   * This method has some specific logic for emitting loading
+   * events. Multiple clones of the same remote GitHub repo
+   * will share the same fields in the pull request database,
+   * but the larger app considers every local copy separate.
+   * The `findRepositoriesForGitHubRepository` logic ensures
+   * that we emit loading events for all those repositories.
    */
   public async refreshPullRequests(
     repository: RepositoryWithGitHubRepository,
     account: Account
   ) {
+    // get all matches for the repository to be refreshed
+    const { matches } = findRepositoriesForGitHubRepository(
+      repository.gitHubRepository,
+      this.repositories
+    )
+    // mark all matching repos for parent as now loading
+    for (const match of matches) {
+      this.emitIsLoadingPullRequests(match, true)
+    }
+
+    // mark all matching repos as now loading
     await this.pullRequestStore.refreshPullRequests(
       repository.gitHubRepository,
       account
     )
     if (repository.gitHubRepository.parent !== null) {
+      // get all matches for the parent repository
+      const { matches: parentMatches } = findRepositoriesForGitHubRepository(
+        repository.gitHubRepository.parent,
+        this.repositories
+      )
+      // mark all matching repos for parent as now loading
+      for (const parentMatch of parentMatches) {
+        this.emitIsLoadingPullRequests(parentMatch, true)
+      }
+
       await this.pullRequestStore.refreshPullRequests(
         repository.gitHubRepository.parent,
         account
       )
+
+      // mark all matching repos for parent as done loading
+      for (const parentMatch of parentMatches) {
+        this.emitIsLoadingPullRequests(parentMatch, false)
+      }
+    }
+
+    // mark all matching repos as done loading
+    for (const match of matches) {
+      this.emitIsLoadingPullRequests(match, false)
     }
   }
 
@@ -223,6 +258,17 @@ export class PullRequestCoordinator {
       this.currentPullRequestUpdater.stop()
       this.currentPullRequestUpdater = null
     }
+  }
+
+  /** Emits a "pull requests are loading" event */
+  private emitIsLoadingPullRequests(
+    repository: RepositoryWithGitHubRepository,
+    isLoadingPullRequests: boolean
+  ) {
+    this.emitter.emit('onIsLoadingPullRequest', {
+      repository,
+      isLoadingPullRequests,
+    })
   }
 
   /**
