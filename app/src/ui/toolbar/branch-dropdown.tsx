@@ -11,6 +11,7 @@ import { BranchesTab } from '../../models/branches-tab'
 import { PullRequest } from '../../models/pull-request'
 import * as classNames from 'classnames'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
+import { enableHideUpstreamPullRequestsInForks } from '../../lib/feature-flag'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -189,6 +190,13 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     const repository = this.props.repository.gitHubRepository
 
     if (pr === null || repository === null) {
+      return null
+    }
+
+    if (
+      enableHideUpstreamPullRequestsInForks() &&
+      pr.base.gitHubRepository.hash !== repository.hash
+    ) {
       return null
     }
 
