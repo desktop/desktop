@@ -598,7 +598,7 @@ export async function insufficientGitHubRepoPermissions(
   }
 
   const gitError = asGitError(e.underlyingError)
-  if (!gitError) {
+  if (!gitError || gitError.result.gitError === null) {
     return error
   }
 
