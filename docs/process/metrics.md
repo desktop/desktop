@@ -71,7 +71,7 @@ These are general metrics about feature usage and specific feature behaviors. Th
 | `openShellCount` | The number of times the user has opened a shell from the app | To understand if people need to use the command line because of missing features |
 | `partialCommits` | The number of partial commits | To understand usage patterns of commits made in Desktop |
 | `prBranchCheckouts` | The number of times the user checks out a branch using the PR menu | To understand usage patterns around the PR checkout menu |
-| `pullWithDefaultSettingCount` | The number of times a user has pulled with `pullrebase` unset or set to `false` | To understand how many users have "pull with rebase" enabled as part of their workflow |
+| `pullWithDefaultSettingCount` | The number of times a user has pulled with `pull.rebase` unset or set to `false` | To understand how many users have "pull with rebase" enabled as part of their workflow |
 | `pullWithRebaseCount` |  The number of times a user performed a pull with `pullrebase` in config set to `true` | To understand how many users have "pull with rebase" enabled as part of their workflow |
 | `rebaseAbortedAfterConflictsCount` | The number of times an aborted rebase is detected in the app | To understand whether users are exiting the rebase conflicts flow after encountering trouble |
 | `rebaseConflictsDialogDismissalCount` | The number of times the rebase conflicts dialog is dismissed | To understand how users respond when they encounter rebase conflicts |
@@ -99,4 +99,3 @@ These are general metrics about feature usage and specific feature behaviors. Th
 | `unattributedCommits` | The number of commits that will go unattributed to GitHub users | To understand how frequently commits in GitHub Desktop are unattributed and how highly we should prioritize design for those instances |
 | `unguidedConflictedMergeCompletionCount` | The number of times a conflicted merge is completed from the diff/changes view | To understand how many times people prefer to finish the merge in the changes/diff view after resolving conflicts |
 | `updateFromDefaultBranchMenuCount` | The number of times the `Branch -> Update From Default Branch` menu item is used | To understand usage patterns around the compare branches feature |
-
