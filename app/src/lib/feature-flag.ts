@@ -113,3 +113,11 @@ export function enableHideWhitespaceInDiffOption(): boolean {
 export function enableTutorial(): boolean {
   return true
 }
+
+/*
+ * Should we hide the pull requests associated with a fork that
+ * point to an upstream repository?
+ */
+export function enableHideUpstreamPullRequestsInForks(): boolean {
+  return true
+}
