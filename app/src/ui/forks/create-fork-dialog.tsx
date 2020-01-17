@@ -8,7 +8,6 @@ import {
 import { Dispatcher } from '../dispatcher'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
-import { DialogHeader } from '../dialog/header'
 import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
 import { Account } from '../../models/account'
 import { API } from '../../lib/api'
@@ -66,18 +65,15 @@ export class CreateForkDialog extends React.Component<
     if (this.state.error === undefined) {
       return (
         <Dialog
+          title="Do you want to fork this repository?"
           onDismissed={this.props.onDismissed}
           onSubmit={this.onSubmit}
+          dismissable={!this.state.loading}
+          loading={this.state.loading}
           type="normal"
           key={this.props.repository.name}
           id="create-fork"
         >
-          <DialogHeader
-            title="Do you want to fork this repository?"
-            dismissable={!this.state.loading}
-            onDismissed={this.props.onDismissed}
-            loading={this.state.loading}
-          />
           <DialogContent>
             Looks like you don’t have write access to this repository. Do you
             want to fork this repository to continue?
