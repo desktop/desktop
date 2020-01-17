@@ -1,5 +1,10 @@
 import * as React from 'react'
-import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DefaultDialogFooter,
+} from '../dialog'
 import { Dispatcher } from '../dispatcher'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
@@ -8,7 +13,6 @@ import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
 import { Account } from '../../models/account'
 import { API } from '../../lib/api'
 import { LinkButton } from '../lib/link-button'
-import { Button } from '../lib/button'
 
 interface ICreateForkDialogProps {
   readonly dispatcher: Dispatcher
@@ -128,11 +132,7 @@ function renderError(
           <pre className="error">{error.message}</pre>
         </details>
       </DialogContent>
-      <DialogFooter>
-        <Button tooltip="Ok" type="submit">
-          Ok
-        </Button>
-      </DialogFooter>
+      <DefaultDialogFooter />
     </Dialog>
   )
 }
