@@ -4,7 +4,6 @@ import {
   DialogContent,
   DialogFooter,
   DefaultDialogFooter,
-  DialogError,
 } from '../dialog'
 import { Dispatcher } from '../dispatcher'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
@@ -67,10 +66,10 @@ export class CreateForkDialog extends React.Component<
       <Dialog
         title="Do you want to fork this repository?"
         onDismissed={this.props.onDismissed}
-        onSubmit={this.onSubmit}
+        onSubmit={this.state.error ? undefined : this.onSubmit}
         dismissable={!this.state.loading}
         loading={this.state.loading}
-        type="normal"
+        type={this.state.error ? 'error' : 'normal'}
         key={this.props.repository.name}
         id="create-fork"
       >
@@ -138,7 +137,7 @@ const CreateForkDialogError: React.SFC<ICreateForkDialogErrorProps> = props => {
     )
   return (
     <>
-      <DialogError>
+      <DialogContent>
         <div>
           Creating your fork of <strong>{props.repository.name}</strong> failed.
           {` `}
@@ -148,7 +147,7 @@ const CreateForkDialogError: React.SFC<ICreateForkDialogErrorProps> = props => {
           <summary>Error details</summary>
           <pre className="error">{props.error.message}</pre>
         </details>
-      </DialogError>
+      </DialogContent>
       <DefaultDialogFooter />
     </>
   )
