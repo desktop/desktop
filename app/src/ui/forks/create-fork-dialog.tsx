@@ -76,11 +76,13 @@ export class CreateForkDialog extends React.Component<
         {this.state.error !== undefined ? (
           <CreateForkDialogError
             repository={this.props.repository}
+            account={this.props.account}
             error={this.state.error}
           />
         ) : (
           <CreateForkDialogContent
             repository={this.props.repository}
+            account={this.props.account}
             loading={this.state.loading}
           />
         )}
@@ -91,6 +93,7 @@ export class CreateForkDialog extends React.Component<
 
 interface ICreateForkDialogContentProps {
   readonly repository: RepositoryWithGitHubRepository
+  readonly account: Account
   readonly loading: boolean
 }
 
@@ -100,8 +103,13 @@ const CreateForkDialogContent: React.SFC<
 > = props => (
   <>
     <DialogContent>
-      Looks like you don’t have write access to this repository. Do you want to
-      fork this repository to continue?
+      {`It looks like you don’t have write access to `}
+      <strong>{props.repository.gitHubRepository.fullName}</strong>
+      {`. Do you want to make a fork of this repository at `}
+      <strong>
+        {`${props.account.login}/${props.repository.gitHubRepository.name}`}
+      </strong>
+      {` to continue?`}
     </DialogContent>
     <DialogFooter>
       <OkCancelButtonGroup
@@ -119,6 +127,7 @@ const CreateForkDialogContent: React.SFC<
 /** Error state message (and buttons) for `CreateForkDialog` */
 interface ICreateForkDialogErrorProps {
   readonly repository: RepositoryWithGitHubRepository
+  readonly account: Account
   readonly error: Error
 }
 
@@ -126,7 +135,7 @@ const CreateForkDialogError: React.SFC<ICreateForkDialogErrorProps> = props => {
   const suggestion =
     props.repository.gitHubRepository.htmlURL !== null ? (
       <>
-        You can try{' '}
+        {`You can try `}
         <LinkButton uri={props.repository.gitHubRepository.htmlURL}>
           creating the fork manually on GitHub
         </LinkButton>
@@ -139,8 +148,11 @@ const CreateForkDialogError: React.SFC<ICreateForkDialogErrorProps> = props => {
     <>
       <DialogContent>
         <div>
-          Creating your fork of <strong>{props.repository.name}</strong> failed.
-          {` `}
+          {`Making your fork `}
+          <strong>
+            ${props.account.login}/${props.repository.gitHubRepository.name}
+          </strong>
+          {` failed. `}
           {suggestion}
         </div>
         <details>
