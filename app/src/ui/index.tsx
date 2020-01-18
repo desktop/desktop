@@ -22,6 +22,7 @@ import {
   rebaseConflictsHandler,
   localChangesOverwrittenHandler,
   refusedWorkflowUpdate,
+  samlReauthRequired,
 } from './dispatcher'
 import {
   AppStore,
@@ -56,6 +57,7 @@ import { UiActivityMonitor } from './lib/ui-activity-monitor'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { ApiRepositoriesStore } from '../lib/stores/api-repositories-store'
 import { CommitStatusStore } from '../lib/stores/commit-status-store'
+import { PullRequestCoordinator } from '../lib/stores/pull-request-coordinator'
 
 if (__DEV__) {
   installDevGlobals()
@@ -234,6 +236,11 @@ const pullRequestStore = new PullRequestStore(
   repositoriesStore
 )
 
+const pullRequestCoordinator = new PullRequestCoordinator(
+  pullRequestStore,
+  repositoriesStore
+)
+
 const repositoryStateManager = new RepositoryStateCache(repo =>
   gitHubUserStore.getUsersForRepository(repo)
 )
@@ -250,7 +257,7 @@ const appStore = new AppStore(
   signInStore,
   accountsStore,
   repositoriesStore,
-  pullRequestStore,
+  pullRequestCoordinator,
   repositoryStateManager,
   apiRepositoriesStore
 )
@@ -274,6 +281,7 @@ dispatcher.registerErrorHandler(mergeConflictHandler)
 dispatcher.registerErrorHandler(lfsAttributeMismatchHandler)
 dispatcher.registerErrorHandler(gitAuthenticationErrorHandler)
 dispatcher.registerErrorHandler(pushNeedsPullHandler)
+dispatcher.registerErrorHandler(samlReauthRequired)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(missingRepositoryHandler)
 dispatcher.registerErrorHandler(localChangesOverwrittenHandler)

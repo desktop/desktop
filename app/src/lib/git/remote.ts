@@ -61,6 +61,7 @@ export async function setRemoteURL(
   repository: Repository,
   name: string,
   url: string
-): Promise<void> {
+): Promise<true> {
   await git(['remote', 'set-url', name, url], repository.path, 'setRemoteURL')
+  return true
 }
