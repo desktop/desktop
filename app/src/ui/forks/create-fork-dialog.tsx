@@ -150,7 +150,7 @@ const CreateForkDialogError: React.SFC<ICreateForkDialogErrorProps> = props => {
         <div>
           {`Making your fork `}
           <strong>
-            ${props.account.login}/${props.repository.gitHubRepository.name}
+            {`${props.account.login}/${props.repository.gitHubRepository.name}`}
           </strong>
           {` failed. `}
           {suggestion}
