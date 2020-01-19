@@ -113,3 +113,8 @@ export function enableHideWhitespaceInDiffOption(): boolean {
 export function enableTutorial(): boolean {
   return true
 }
+
+/** Should the LFS lock tools be enabled? */
+export function enableLFSFileLocking(): boolean {
+  return enableDevelopmentFeatures()
+}

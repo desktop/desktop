@@ -220,6 +220,7 @@ import {
   enableBranchProtectionChecks,
   enableBranchProtectionWarningFlow,
   enableHideWhitespaceInDiffOption,
+  enableLFSFileLocking,
 } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import * as moment from 'moment'
@@ -1990,7 +1991,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     this.updateChangesWorkingDirectoryDiff(repository)
-    this.updateLFS(repository)
+
+    if (enableLFSFileLocking()) {
+      this.updateLFS(repository)
+    }
 
     return status
   }
