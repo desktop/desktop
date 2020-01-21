@@ -333,7 +333,12 @@ export class Preferences extends React.Component<
     const path = this.state.existingLockFilePath
 
     if (path) {
-      await unlink(path).catch(null)
+      try {
+        await unlink(path)
+      } catch (e) {
+        this.props.dispatcher.postError(e)
+        return
+      }
     }
 
     this.onSave()
