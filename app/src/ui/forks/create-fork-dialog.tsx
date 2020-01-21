@@ -8,7 +8,6 @@ import {
 import { Dispatcher } from '../dispatcher'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
-import { DialogHeader } from '../dialog/header'
 import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
 import { Account } from '../../models/account'
 import { API } from '../../lib/api'
@@ -58,78 +57,96 @@ export class CreateForkDialog extends React.Component<
     } catch (e) {
       log.error(`Fork creation through API failed (${e})`)
       sendNonFatalException('forkCreation', e)
-      this.setState({ error: e })
-      this.setState({ loading: false })
+      this.setState({ error: e, loading: false })
     }
   }
 
   public render() {
-    if (this.state.error === undefined) {
-      return (
-        <Dialog
-          onDismissed={this.props.onDismissed}
-          onSubmit={this.onSubmit}
-          type="normal"
-          key={this.props.repository.name}
-          id="create-fork"
-        >
-          <DialogHeader
-            title="Do you want to fork this repository?"
-            dismissable={!this.state.loading}
-            onDismissed={this.props.onDismissed}
-            loading={this.state.loading}
-          />
-          <DialogContent>
-            Looks like you don’t have write access to this repository. Do you
-            want to fork this repository to continue?
-          </DialogContent>
-          <DialogFooter>
-            <OkCancelButtonGroup
-              destructive={true}
-              okButtonText={
-                __DARWIN__ ? 'Fork This Repository' : 'Fork this repository'
-              }
-              okButtonDisabled={this.state.loading}
-              cancelButtonDisabled={this.state.loading}
-            />
-          </DialogFooter>
-        </Dialog>
-      )
-    }
-    return renderError(
-      this.props.repository,
-      this.state.error,
-      this.props.onDismissed
+    return (
+      <Dialog
+        title="Do you want to fork this repository?"
+        onDismissed={this.props.onDismissed}
+        onSubmit={this.state.error ? undefined : this.onSubmit}
+        dismissable={!this.state.loading}
+        loading={this.state.loading}
+        type={this.state.error ? 'error' : 'normal'}
+        key={this.props.repository.name}
+        id="create-fork"
+      >
+        {this.state.error !== undefined
+          ? renderCreateForkDialogError(
+              this.props.repository,
+              this.props.account,
+              this.state.error
+            )
+          : renderCreateForkDialogContent(
+              this.props.repository,
+              this.props.account,
+              this.state.loading
+            )}
+      </Dialog>
     )
   }
 }
 
-function renderError(
+/** Standard (non-error) message and buttons for `CreateForkDialog` */
+function renderCreateForkDialogContent(
   repository: RepositoryWithGitHubRepository,
-  error: Error,
-  onDismissed: () => void
+  account: Account,
+  loading: boolean
+) {
+  return (
+    <>
+      <DialogContent>
+        {`It looks like you don’t have write access to `}
+        <strong>{repository.gitHubRepository.fullName}</strong>
+        {`. Do you want to make a fork of this repository at `}
+        <strong>
+          {`${account.login}/${repository.gitHubRepository.name}`}
+        </strong>
+        {` to continue?`}
+      </DialogContent>
+      <DialogFooter>
+        <OkCancelButtonGroup
+          destructive={true}
+          okButtonText={
+            __DARWIN__ ? 'Fork This Repository' : 'Fork this repository'
+          }
+          okButtonDisabled={loading}
+          cancelButtonDisabled={loading}
+        />
+      </DialogFooter>
+    </>
+  )
+}
+
+/** Error state message (and buttons) for `CreateForkDialog` */
+function renderCreateForkDialogError(
+  repository: RepositoryWithGitHubRepository,
+  account: Account,
+  error: Error
 ) {
   const suggestion =
     repository.gitHubRepository.htmlURL !== null ? (
       <>
-        You can try creating the fork manually at{' '}
-        <LinkButton>{repository.gitHubRepository.htmlURL}</LinkButton>.
+        {`You can try `}
+        <LinkButton uri={repository.gitHubRepository.htmlURL}>
+          creating the fork manually on GitHub
+        </LinkButton>
+        .
       </>
     ) : (
       undefined
     )
   return (
-    <Dialog
-      onDismissed={onDismissed}
-      type="error"
-      title={__DARWIN__ ? 'Fork Creation Failed' : 'Fork creation failed'}
-      key={repository.name}
-      id="create-fork"
-    >
+    <>
       <DialogContent>
         <div>
-          Creating your fork of <strong>{repository.name}</strong> failed.
-          {` `}
+          {`Making your fork `}
+          <strong>
+            {`${account.login}/${repository.gitHubRepository.name}`}
+          </strong>
+          {` failed. `}
           {suggestion}
         </div>
         <details>
@@ -138,6 +155,6 @@ function renderError(
         </details>
       </DialogContent>
       <DefaultDialogFooter />
-    </Dialog>
+    </>
   )
 }

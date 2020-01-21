@@ -5047,24 +5047,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _showPullRequest(repository: Repository): Promise<void> {
-    const gitHubRepository = repository.gitHubRepository
-
-    if (!gitHubRepository) {
+    // no pull requests from non github repos
+    if (repository.gitHubRepository === null) {
       return
     }
 
-    const state = this.repositoryStateCache.get(repository)
-    const currentPullRequest = state.branchesState.currentPullRequest
+    const currentPullRequest = this.repositoryStateCache.get(repository)
+      .branchesState.currentPullRequest
 
-    if (!currentPullRequest) {
+    if (currentPullRequest === null) {
+      return
+    }
+    const { htmlURL: baseRepoUrl } = currentPullRequest.base.gitHubRepository
+
+    if (baseRepoUrl === null) {
       return
     }
 
-    const baseURL = `${gitHubRepository.htmlURL}/pull/${
+    const showPrUrl = `${baseRepoUrl}/pull/${
       currentPullRequest.pullRequestNumber
     }`
 
-    await this._openInBrowser(baseURL)
+    await this._openInBrowser(showPrUrl)
   }
 
   public async _refreshPullRequests(repository: Repository): Promise<void> {
@@ -5554,13 +5558,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // make sure there is a default remote (there should be)
     if (remoteName !== undefined) {
       // update default remote
-      if (await gitStore.setRemoteURL(remoteName, fork.html_url)) {
+      if (await gitStore.setRemoteURL(remoteName, fork.clone_url)) {
         // update associated github repo
-        return await this.repositoriesStore.updateGitHubRepository(
+        const updatedRepository = await this.repositoriesStore.updateGitHubRepository(
           repository,
           repository.gitHubRepository.endpoint,
           fork
         )
+        // reload the GitStore since the Repository's hash has changed
+        // (and just to be safe)
+        const updatedGitStore = this.gitStoreCache.get(updatedRepository)
+        await updatedGitStore.addUpstreamRemoteIfNeeded()
+        await updatedGitStore.updateExistingUpstreamRemote()
+        return updatedRepository
       }
     }
     return repository

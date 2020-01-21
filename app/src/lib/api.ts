@@ -668,10 +668,13 @@ export class API {
       const response = await this.request('POST', apiPath)
       return await parsedResponse<IAPIRepository>(response)
     } catch (e) {
-      log.error(`forkRepository: failed with endpoint ${this.endpoint}`, e)
-      throw new Error(
-        `Couldn't fork repository ${owner}/${name}. (${e.message})`
+      log.error(
+        `forkRepository: failed to fork ${owner}/${name} at endpoint: ${
+          this.endpoint
+        }`,
+        e
       )
+      throw e
     }
   }
 

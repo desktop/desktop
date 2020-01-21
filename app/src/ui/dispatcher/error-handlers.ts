@@ -18,6 +18,8 @@ import {
 } from '../../models/repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { hasWritePermission } from '../../models/github-repository'
+import { enableCreateForkFlow } from '../../lib/feature-flag'
+import { RetryActionType } from '../../models/retry-actions'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -592,36 +594,40 @@ export async function insufficientGitHubRepoPermissions(
   error: Error,
   dispatcher: Dispatcher
 ) {
+  // no need to do anything here if we don't want to show
+  // the new `CreateForkDialog` UI
+  if (!enableCreateForkFlow()) {
+    return error
+  }
+
   const e = asErrorWithMetadata(error)
   if (!e) {
     return error
   }
 
   const gitError = asGitError(e.underlyingError)
-  if (!gitError) {
+  if (!gitError || gitError.result.gitError === null) {
     return error
   }
 
-  const dugiteError = gitError.result.gitError
-  if (!dugiteError) {
+  if (!isAuthFailureError(gitError.result.gitError)) {
     return error
   }
 
-  const { repository } = e.metadata
+  const { repository, retryAction } = e.metadata
 
-  if (!(repository instanceof Repository)) {
+  if (
+    !(repository instanceof Repository) ||
+    !isRepositoryWithGitHubRepository(repository)
+  ) {
     return error
   }
 
-  if (!isRepositoryWithGitHubRepository(repository)) {
+  if (retryAction === undefined || retryAction.type !== RetryActionType.Push) {
     return error
   }
 
   if (hasWritePermission(repository.gitHubRepository)) {
-    return error
-  }
-
-  if (!pushFailureErrorTypes.has(dugiteError)) {
     return error
   }
 
@@ -645,9 +651,3 @@ function getRemoteMessage(stderr: string) {
     .map(x => x.substr(needle.length))
     .join('\n')
 }
-
-const pushFailureErrorTypes = new Set([
-  DugiteError.SSHAuthenticationFailed,
-  DugiteError.SSHPermissionDenied,
-  DugiteError.HTTPSAuthenticationFailed,
-])

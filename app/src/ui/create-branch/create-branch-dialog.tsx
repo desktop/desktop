@@ -172,7 +172,7 @@ export class CreateBranch extends React.Component<
           {
             title: currentBranch.name,
             description:
-              'The currently checked out branch. Pick this if you need to build on work done in this branch.',
+              'The currently checked out branch. Pick this if you need to build on work done on this branch.',
           },
         ]
 
