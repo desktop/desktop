@@ -42,6 +42,7 @@ import {
   nameOf,
   Repository,
   isRepositoryWithGitHubRepository,
+  RepositoryWithGitHubRepository,
 } from '../../models/repository'
 import {
   CommittedFileChange,
@@ -234,7 +235,10 @@ import {
 import {
   UncommittedChangesStrategy,
   UncommittedChangesStrategyKind,
+  uncommittedChangesStrategyKindDefault,
+  getUncommittedChangesStrategy,
   askToStash,
+  parseStrategy,
 } from '../../models/uncommitted-changes-strategy'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
@@ -280,6 +284,9 @@ const askForConfirmationOnForcePushDefault = true
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
 const confirmForcePushKey: string = 'confirmForcePush'
+
+const uncommittedChangesStrategyKindKey: string =
+  'uncommittedChangesStrategyKind'
 
 const externalEditorKey: string = 'externalEditor'
 
@@ -360,6 +367,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
   private hideWhitespaceInDiff: boolean = hideWhitespaceInDiffDefault
+
+  private uncommittedChangesStrategyKind: UncommittedChangesStrategyKind = uncommittedChangesStrategyKindDefault
 
   private selectedExternalEditor: ExternalEditor | null = null
 
@@ -696,6 +705,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         .askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
       askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
+      uncommittedChangesStrategyKind: this.uncommittedChangesStrategyKind,
       selectedExternalEditor: this.selectedExternalEditor,
       imageDiffType: this.imageDiffType,
       hideWhitespaceInDiff: this.hideWhitespaceInDiff,
@@ -1768,6 +1778,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       confirmForcePushKey,
       askForConfirmationOnForcePushDefault
     )
+
+    const strategy = parseStrategy(
+      localStorage.getItem(uncommittedChangesStrategyKindKey)
+    )
+    this.uncommittedChangesStrategyKind =
+      strategy || uncommittedChangesStrategyKindDefault
 
     this.updateSelectedExternalEditor(
       await this.lookupSelectedExternalEditor()
@@ -2944,7 +2960,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     name: string,
     startPoint: string | null,
-    uncommittedChangesStrategy: UncommittedChangesStrategy = askToStash
+    uncommittedChangesStrategy: UncommittedChangesStrategy = getUncommittedChangesStrategy(
+      this.uncommittedChangesStrategyKind
+    )
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
     const branch = await gitStore.performFailableOperation(() =>
@@ -3014,7 +3032,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _checkoutBranch(
     repository: Repository,
     branch: Branch | string,
-    uncommittedChangesStrategy: UncommittedChangesStrategy = askToStash
+    uncommittedChangesStrategy: UncommittedChangesStrategy = getUncommittedChangesStrategy(
+      this.uncommittedChangesStrategyKind
+    )
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
     const kind = 'checkout'
@@ -3034,20 +3054,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
     let stashToPop: IStashEntry | null = null
     if (enableStashing()) {
       const hasChanges = changesState.workingDirectory.files.length > 0
-      if (hasChanges && uncommittedChangesStrategy.kind === askToStash.kind) {
-        this._showPopup({
-          type: PopupType.StashAndSwitchBranch,
-          branchToCheckout: foundBranch,
-          repository,
-        })
-        return repository
-      }
+      if (hasChanges) {
+        if (uncommittedChangesStrategy.kind === askToStash.kind) {
+          this._showPopup({
+            type: PopupType.StashAndSwitchBranch,
+            branchToCheckout: foundBranch,
+            repository,
+          })
+          return repository
+        }
 
-      stashToPop = await this.stashToPopAfterBranchCheckout(
-        repository,
-        foundBranch,
-        uncommittedChangesStrategy
-      )
+        stashToPop = await this.stashToPopAfterBranchCheckout(
+          repository,
+          foundBranch,
+          uncommittedChangesStrategy
+        )
+      }
     }
 
     const checkoutSucceeded =
@@ -3137,7 +3159,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async stashToPopAfterBranchCheckout(
     repository: Repository,
     branch: Branch,
-    uncommittedChangesStrategy: UncommittedChangesStrategy = askToStash
+    uncommittedChangesStrategy: UncommittedChangesStrategy = getUncommittedChangesStrategy(
+      this.uncommittedChangesStrategyKind
+    )
   ): Promise<IStashEntry | null> {
     const {
       changesState,
@@ -4422,6 +4446,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
+  public _setUncommittedChangesStrategyKindSetting(
+    value: UncommittedChangesStrategyKind
+  ): Promise<void> {
+    this.uncommittedChangesStrategyKind = value
+
+    localStorage.setItem(uncommittedChangesStrategyKindKey, value)
+
+    this.emitUpdate()
+    return Promise.resolve()
+  }
+
   public _setExternalEditor(selectedEditor: ExternalEditor) {
     const promise = this.updateSelectedExternalEditor(selectedEditor)
     localStorage.setItem(externalEditorKey, selectedEditor)
@@ -5488,6 +5523,53 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     await this.currentBranchPruner.testPrune()
+  }
+
+  public async _showCreateforkDialog(
+    repository: RepositoryWithGitHubRepository
+  ) {
+    const account = getAccountForRepository(this.accounts, repository)
+    if (account === null) {
+      return
+    }
+    await this._showPopup({
+      type: PopupType.CreateFork,
+      repository,
+      account,
+    })
+  }
+
+  /**
+   * Converts a local repository to use the given fork
+   * as its default remote and associated `GitHubRepository`.
+   */
+  public async _convertRepositoryToFork(
+    repository: RepositoryWithGitHubRepository,
+    fork: IAPIRepository
+  ): Promise<Repository> {
+    const gitStore = this.gitStoreCache.get(repository)
+    const remoteName = gitStore.defaultRemote
+      ? gitStore.defaultRemote.name
+      : undefined
+    // make sure there is a default remote (there should be)
+    if (remoteName !== undefined) {
+      // update default remote
+      if (await gitStore.setRemoteURL(remoteName, fork.clone_url)) {
+        // update associated github repo
+        const updatedRepository = await this.repositoriesStore.updateGitHubRepository(
+          repository,
+          repository.gitHubRepository.endpoint,
+          fork
+        )
+        // reload the GitStore since the Repository's hash has changed
+        // (and just to be safe)
+        const updatedGitStore = this.gitStoreCache.get(updatedRepository)
+        await updatedGitStore.addUpstreamRemoteIfNeeded()
+        await updatedGitStore.updateExistingUpstreamRemote()
+        return updatedRepository
+      }
+    }
+    return repository
   }
 }
 

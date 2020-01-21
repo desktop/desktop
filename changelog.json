@@ -1,5 +1,14 @@
 {
   "releases": {
+    "2.2.5-beta1": [
+      "[Added] Users can configure Desktop to always bring or leave changes when switching branches - #7746",
+      "[Added] Prompt users to re-authorize if required by any of their GitHub organizations - #8910",
+      "[Fixed] Recognize if the current branch of a fork has a pull request to the upstream repo - #8549",
+      "[Fixed] Remove false branch protection warning when switching branches - #8743",
+      "[Added] Support GoLand as external editor on Mac - #8802. Thanks @thinklinux!",
+      "[Fixed] Update branch protection state for checkout outside of Desktop - #8790",
+      "[Improved] Re-designed preferences dialog - #8774"
+    ],
     "2.2.4": [
       "[New] Warn when committing to a protected branch - #7023",
       "[New] Warn when committing to a repository you don't have write access to - #8665",
