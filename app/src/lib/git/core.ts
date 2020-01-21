@@ -223,6 +223,7 @@ export function parseConfigLockFilePathFromError(stderr: string) {
 
   const normalized = __WIN32__ ? match[1].replace('/', '\\') : match[1]
 
+  // https://github.com/git/git/blob/232378479/lockfile.h#L117-L119
   return `${normalized}.lock`
 }
 
