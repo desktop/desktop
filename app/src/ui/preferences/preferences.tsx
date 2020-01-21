@@ -437,7 +437,8 @@ export class Preferences extends React.Component<
       }
     } catch (e) {
       if (isConfigFileLockError(e)) {
-        const existingLockFilePath = parseConfigLockFilePathFromError(e.message)
+        const { stderr } = e.result
+        const existingLockFilePath = parseConfigLockFilePathFromError(stderr)
 
         if (existingLockFilePath !== null) {
           this.setState({
