@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Path from 'path'
 import { Account } from '../../models/account'
 import { PreferencesTab } from '../../models/preferences'
 import { ExternalEditor } from '../../lib/editors'
@@ -437,12 +438,12 @@ export class Preferences extends React.Component<
       }
     } catch (e) {
       if (isConfigFileLockError(e)) {
-        const { stderr } = e.result
-        const existingLockFilePath = parseConfigLockFilePathFromError(stderr)
+        const lockFilePath = parseConfigLockFilePathFromError(e.result.stderr)
 
-        if (existingLockFilePath !== null) {
+        if (lockFilePath !== null) {
+          const absolutePath = Path.resolve(e.result.path, lockFilePath)
           this.setState({
-            existingLockFilePath,
+            existingLockFilePath: absolutePath,
             selectedIndex: PreferencesTab.Git,
           })
           return
