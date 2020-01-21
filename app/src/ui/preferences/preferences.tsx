@@ -449,8 +449,8 @@ export class Preferences extends React.Component<
         }
       }
 
-      this.props.dispatcher.postError(e)
       this.props.onDismissed()
+      this.props.dispatcher.postError(e)
       return
     }
 
