@@ -11,6 +11,7 @@ import { getDotComAPIEndpoint } from '../api'
 import { IGitAccount } from '../../models/git-account'
 
 import * as GitPerf from '../../ui/lib/git-perf'
+import * as Path from 'path'
 import { Repository } from '../../models/repository'
 import { getConfigValue, getGlobalConfigValue } from './config'
 import { isErrnoException } from '../errno-exception'
@@ -221,8 +222,8 @@ export function isConfigFileLockError(error: Error): error is GitError {
 
 const lockFilePathRe = /^error: could not lock config file (.+?): File exists$/m
 
-export function parseConfigLockFilePathFromError(stderr: string) {
-  const match = lockFilePathRe.exec(stderr)
+export function parseConfigLockFilePathFromError(result: IGitResult) {
+  const match = lockFilePathRe.exec(result.stderr)
 
   if (match === null) {
     return null
@@ -231,7 +232,7 @@ export function parseConfigLockFilePathFromError(stderr: string) {
   const normalized = __WIN32__ ? match[1].replace('/', '\\') : match[1]
 
   // https://github.com/git/git/blob/232378479/lockfile.h#L117-L119
-  return `${normalized}.lock`
+  return Path.resolve(result.path, `${normalized}.lock`)
 }
 
 function getDescriptionForError(error: DugiteError): string | null {
