@@ -32,6 +32,9 @@ import {
   isConfigFileLockError,
   parseConfigLockFilePathFromError,
 } from '../../lib/git'
+import { Ref } from '../lib/ref'
+import { LinkButton } from '../lib/link-button'
+import { unlink } from 'fs-extra'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -251,9 +254,24 @@ export class Preferences extends React.Component<
         break
       }
       case PreferencesTab.Git: {
+        const { existingLockFilePath } = this.state
         const error =
-          this.state.existingLockFilePath !== undefined ? (
-            <DialogError>{this.state.existingLockFilePath}</DialogError>
+          existingLockFilePath !== undefined ? (
+            <DialogError className="lockfile">
+              <p>
+                Failed to update Git configuration file. A lock file already
+                exists at <Ref>{existingLockFilePath}</Ref>.
+              </p>
+              <p>
+                This can happen if another tool is currently modifying the Git
+                configuration or if a Git process has terminated earlier without
+                cleaning up the lock file. Do you want to{' '}
+                <LinkButton onClick={this.onDeleteLockFile}>
+                  delete the lock file
+                </LinkButton>{' '}
+                and try again?
+              </p>
+            </DialogError>
           ) : null
 
         View = (
@@ -309,6 +327,16 @@ export class Preferences extends React.Component<
     }
 
     return <div className="tab-container">{View}</div>
+  }
+
+  private onDeleteLockFile = async () => {
+    const path = this.state.existingLockFilePath
+
+    if (path) {
+      await unlink(path).catch(null)
+    }
+
+    this.onSave()
   }
 
   private onOptOutofReportingChanged = (value: boolean) => {
