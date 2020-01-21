@@ -330,11 +330,9 @@ export class Preferences extends React.Component<
   }
 
   private onDeleteLockFile = async () => {
-    const path = this.state.existingLockFilePath
-
-    if (path) {
+    if (this.state.existingLockFilePath) {
       try {
-        await unlink(path)
+        await unlink(this.state.existingLockFilePath)
       } catch (e) {
         // We don't care about failure to unlink due to the
         // lock file not existing any more
@@ -439,9 +437,7 @@ export class Preferences extends React.Component<
       }
     } catch (e) {
       if (isConfigFileLockError(e)) {
-        const existingLockFilePath = parseConfigLockFilePathFromError(
-          e.result.stderr
-        )
+        const existingLockFilePath = parseConfigLockFilePathFromError(e.message)
 
         if (existingLockFilePath !== null) {
           this.setState({
