@@ -73,70 +73,64 @@ export class CreateForkDialog extends React.Component<
         key={this.props.repository.name}
         id="create-fork"
       >
-        {this.state.error !== undefined ? (
-          <CreateForkDialogError
-            repository={this.props.repository}
-            account={this.props.account}
-            error={this.state.error}
-          />
-        ) : (
-          <CreateForkDialogContent
-            repository={this.props.repository}
-            account={this.props.account}
-            loading={this.state.loading}
-          />
-        )}
+        {this.state.error !== undefined
+          ? renderCreateForkDialogError(
+              this.props.repository,
+              this.props.account,
+              this.state.error
+            )
+          : renderCreateForkDialogContent(
+              this.props.repository,
+              this.props.account,
+              this.state.loading
+            )}
       </Dialog>
     )
   }
 }
 
-interface ICreateForkDialogContentProps {
-  readonly repository: RepositoryWithGitHubRepository
-  readonly account: Account
-  readonly loading: boolean
-}
-
 /** Standard (non-error) message and buttons for `CreateForkDialog` */
-const CreateForkDialogContent: React.SFC<
-  ICreateForkDialogContentProps
-> = props => (
-  <>
-    <DialogContent>
-      {`It looks like you don’t have write access to `}
-      <strong>{props.repository.gitHubRepository.fullName}</strong>
-      {`. Do you want to make a fork of this repository at `}
-      <strong>
-        {`${props.account.login}/${props.repository.gitHubRepository.name}`}
-      </strong>
-      {` to continue?`}
-    </DialogContent>
-    <DialogFooter>
-      <OkCancelButtonGroup
-        destructive={true}
-        okButtonText={
-          __DARWIN__ ? 'Fork This Repository' : 'Fork this repository'
-        }
-        okButtonDisabled={props.loading}
-        cancelButtonDisabled={props.loading}
-      />
-    </DialogFooter>
-  </>
-)
+function renderCreateForkDialogContent(
+  repository: RepositoryWithGitHubRepository,
+  account: Account,
+  loading: boolean
+) {
+  return (
+    <>
+      <DialogContent>
+        {`It looks like you don’t have write access to `}
+        <strong>{repository.gitHubRepository.fullName}</strong>
+        {`. Do you want to make a fork of this repository at `}
+        <strong>
+          {`${account.login}/${repository.gitHubRepository.name}`}
+        </strong>
+        {` to continue?`}
+      </DialogContent>
+      <DialogFooter>
+        <OkCancelButtonGroup
+          destructive={true}
+          okButtonText={
+            __DARWIN__ ? 'Fork This Repository' : 'Fork this repository'
+          }
+          okButtonDisabled={loading}
+          cancelButtonDisabled={loading}
+        />
+      </DialogFooter>
+    </>
+  )
+}
 
 /** Error state message (and buttons) for `CreateForkDialog` */
-interface ICreateForkDialogErrorProps {
-  readonly repository: RepositoryWithGitHubRepository
-  readonly account: Account
-  readonly error: Error
-}
-
-const CreateForkDialogError: React.SFC<ICreateForkDialogErrorProps> = props => {
+function renderCreateForkDialogError(
+  repository: RepositoryWithGitHubRepository,
+  account: Account,
+  error: Error
+) {
   const suggestion =
-    props.repository.gitHubRepository.htmlURL !== null ? (
+    repository.gitHubRepository.htmlURL !== null ? (
       <>
         {`You can try `}
-        <LinkButton uri={props.repository.gitHubRepository.htmlURL}>
+        <LinkButton uri={repository.gitHubRepository.htmlURL}>
           creating the fork manually on GitHub
         </LinkButton>
         .
@@ -150,14 +144,14 @@ const CreateForkDialogError: React.SFC<ICreateForkDialogErrorProps> = props => {
         <div>
           {`Making your fork `}
           <strong>
-            {`${props.account.login}/${props.repository.gitHubRepository.name}`}
+            {`${account.login}/${repository.gitHubRepository.name}`}
           </strong>
           {` failed. `}
           {suggestion}
         </div>
         <details>
           <summary>Error details</summary>
-          <pre className="error">{props.error.message}</pre>
+          <pre className="error">{error.message}</pre>
         </details>
       </DialogContent>
       <DefaultDialogFooter />
