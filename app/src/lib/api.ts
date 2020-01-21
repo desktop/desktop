@@ -658,6 +658,26 @@ export class API {
     }
   }
 
+  /** Create a new GitHub fork of this repository (owner and name) */
+  public async forkRepository(
+    owner: string,
+    name: string
+  ): Promise<IAPIRepository> {
+    try {
+      const apiPath = `/repos/${owner}/${name}/forks`
+      const response = await this.request('POST', apiPath)
+      return await parsedResponse<IAPIRepository>(response)
+    } catch (e) {
+      log.error(
+        `forkRepository: failed to fork ${owner}/${name} at endpoint: ${
+          this.endpoint
+        }`,
+        e
+      )
+      throw e
+    }
+  }
+
   /**
    * Fetch the issues with the given state that have been created or updated
    * since the given date.

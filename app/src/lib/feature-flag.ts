@@ -114,6 +114,13 @@ export function enableTutorial(): boolean {
   return true
 }
 
+/**
+ * Should we show the create fork dialog flow?
+ */
+export function enableCreateForkFlow(): boolean {
+  return enableBetaFeatures()
+}
+
 /*
  * Should we show the pull requests associated with a fork that
  * point to an upstream repository?
