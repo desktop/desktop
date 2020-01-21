@@ -50,6 +50,8 @@ interface IPreferencesState {
   readonly selectedIndex: PreferencesTab
   readonly committerName: string
   readonly committerEmail: string
+  readonly initialCommitterName: string | null
+  readonly initialCommitterEmail: string | null
   readonly disallowedCharactersMessage: string | null
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
@@ -76,6 +78,8 @@ export class Preferences extends React.Component<
       selectedIndex: this.props.initialSelectedTab || PreferencesTab.Accounts,
       committerName: '',
       committerEmail: '',
+      initialCommitterName: null,
+      initialCommitterEmail: null,
       disallowedCharactersMessage: null,
       availableEditors: [],
       optOutOfUsageTracking: false,
@@ -92,8 +96,11 @@ export class Preferences extends React.Component<
   }
 
   public async componentWillMount() {
-    let committerName = await getGlobalConfigValue('user.name')
-    let committerEmail = await getGlobalConfigValue('user.email')
+    const initialCommitterName = await getGlobalConfigValue('user.name')
+    const initialCommitterEmail = await getGlobalConfigValue('user.email')
+
+    let committerName = initialCommitterName
+    let committerEmail = initialCommitterEmail
 
     if (!committerName || !committerEmail) {
       const account = this.props.dotComAccount || this.props.enterpriseAccount
@@ -127,6 +134,8 @@ export class Preferences extends React.Component<
     this.setState({
       committerName,
       committerEmail,
+      initialCommitterName,
+      initialCommitterEmail,
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
