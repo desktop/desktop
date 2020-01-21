@@ -441,9 +441,8 @@ export class Preferences extends React.Component<
         const lockFilePath = parseConfigLockFilePathFromError(e.result)
 
         if (lockFilePath !== null) {
-          const absolutePath = Path.resolve(e.result.path, lockFilePath)
           this.setState({
-            existingLockFilePath: absolutePath,
+            existingLockFilePath: lockFilePath,
             selectedIndex: PreferencesTab.Git,
           })
           return
