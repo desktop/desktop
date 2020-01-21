@@ -379,8 +379,14 @@ export class Preferences extends React.Component<
   }
 
   private onSave = async () => {
-    await setGlobalConfigValue('user.name', this.state.committerName)
-    await setGlobalConfigValue('user.email', this.state.committerEmail)
+    if (this.state.committerName !== this.state.initialCommitterName) {
+      await setGlobalConfigValue('user.name', this.state.committerName)
+    }
+
+    if (this.state.committerEmail !== this.state.initialCommitterEmail) {
+      await setGlobalConfigValue('user.email', this.state.committerEmail)
+    }
+
     await this.props.dispatcher.setStatsOptOut(
       this.state.optOutOfUsageTracking,
       false
