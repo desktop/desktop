@@ -1,8 +1,9 @@
 import { GitError } from 'dugite'
-
 import { Repository } from '../../../src/models/repository'
 import { git, parseConfigLockFilePathFromError } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../helpers/repositories'
+import { join, resolve } from 'path'
+import { copy } from 'fs-extra'
 
 describe('git/core', () => {
   let repository: Repository
@@ -76,8 +77,29 @@ describe('git/core', () => {
 
       expect(threw).toBe(true)
     })
+  })
 
-    it('', () => {
+  describe('config lock file error handling', () => {
+    it('can parse lock file path from stderr', async () => {
+      const configFilePath = join(repository.path, '.git', 'config')
+      const configLockFilePath = `${configFilePath}.lock`
+
+      await copy(configFilePath, configLockFilePath)
+
+      const args = ['config', '--local', 'user.name', 'niik']
+      const result = await git(args, repository.path, 'test', {
+        expectedErrors: new Set([GitError.ConfigLockFileAlreadyExists]),
+      })
+
+      expect(result.exitCode).toBe(255)
+      expect(result.gitError).toBe(GitError.ConfigLockFileAlreadyExists)
+      const parsedPath = parseConfigLockFilePathFromError(result.stderr)
+      expect(parsedPath).not.toBeNull()
+      const absolutePath = resolve(result.path, parsedPath!)
+      expect(absolutePath).toBe(configLockFilePath)
+    })
+
+    it('normalizes paths', () => {
       if (__WIN32__) {
         expect(
           parseConfigLockFilePathFromError(
