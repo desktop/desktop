@@ -1,7 +1,10 @@
 import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
+import classNames = require('classnames')
 
-interface IDialogErrorProps {}
+interface IDialogErrorProps {
+  readonly className?: string
+}
 
 /**
  * A component used for displaying short error messages inline
@@ -16,8 +19,9 @@ interface IDialogErrorProps {}
  */
 export class DialogError extends React.Component<IDialogErrorProps, {}> {
   public render() {
+    const cn = classNames('dialog-error', this.props.className)
     return (
-      <div className="dialog-error">
+      <div className={cn}>
         <Octicon symbol={OcticonSymbol.stop} />
         <div>{this.props.children}</div>
       </div>
