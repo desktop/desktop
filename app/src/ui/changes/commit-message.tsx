@@ -10,7 +10,10 @@ import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
 import { Dispatcher } from '../dispatcher'
 import { IGitHubUser } from '../../lib/databases/github-user-database'
-import { Repository } from '../../models/repository'
+import {
+  Repository,
+  isRepositoryWithGitHubRepository,
+} from '../../models/repository'
 import { Button } from '../lib/button'
 import { Avatar } from '../lib/avatar'
 import { Loading } from '../lib/loading'
@@ -464,8 +467,9 @@ export class CommitMessage extends React.Component<
     if (!hasWritePermissionForRepository) {
       return (
         <PermissionsCommitWarning>
-          You do not have permission to push to{' '}
-          <strong>{repository.name}</strong>.
+          You don't have write access to <strong>{repository.name}</strong>.
+          Want to <LinkButton onClick={this.onMakeFork}>make a fork</LinkButton>
+          ?
         </PermissionsCommitWarning>
       )
     } else if (currentBranchProtected) {
@@ -485,6 +489,12 @@ export class CommitMessage extends React.Component<
     this.props.dispatcher.showFoldout({
       type: FoldoutType.Branch,
     })
+  }
+
+  private onMakeFork = () => {
+    if (isRepositoryWithGitHubRepository(this.props.repository)) {
+      this.props.dispatcher.showCreateForkDialog(this.props.repository)
+    }
   }
 
   public render() {
