@@ -1,6 +1,10 @@
 import { GitError } from 'dugite'
 import { Repository } from '../../../src/models/repository'
-import { git, parseConfigLockFilePathFromError } from '../../../src/lib/git'
+import {
+  git,
+  parseConfigLockFilePathFromError,
+  IGitResult,
+} from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../helpers/repositories'
 import { join, resolve } from 'path'
 import { copy } from 'fs-extra'
@@ -93,29 +97,46 @@ describe('git/core', () => {
 
       expect(result.exitCode).toBe(255)
       expect(result.gitError).toBe(GitError.ConfigLockFileAlreadyExists)
-      const parsedPath = parseConfigLockFilePathFromError(result.stderr)
+      const parsedPath = parseConfigLockFilePathFromError(result)
       expect(parsedPath).not.toBeNull()
       const absolutePath = resolve(result.path, parsedPath!)
       expect(absolutePath).toBe(configLockFilePath)
     })
 
     it('normalizes paths', () => {
+      function createGitResult(stderr: string): IGitResult {
+        return {
+          exitCode: 255,
+          gitError: GitError.ConfigLockFileAlreadyExists,
+          path: __WIN32__ ? 'c:\\' : '/',
+          gitErrorDescription: null,
+          stderr,
+          stdout: '',
+        }
+      }
+
       if (__WIN32__) {
         expect(
           parseConfigLockFilePathFromError(
-            'error: could not lock config file C:/Users/markus/.gitconfig: File exists'
+            createGitResult(
+              'error: could not lock config file C:/Users/markus/.gitconfig: File exists'
+            )
           )
         ).toBe('c:\\Users\\markus\\.gitconfig.lock')
 
         expect(
           parseConfigLockFilePathFromError(
-            'error: could not lock config file C:\\Users\\markus\\.gitconfig: File exists'
+            createGitResult(
+              'error: could not lock config file C:\\Users\\markus\\.gitconfig: File exists'
+            )
           )
         ).toBe('c:\\Users\\markus\\.gitconfig.lock')
       } else {
         expect(
           parseConfigLockFilePathFromError(
-            'error: could not lock config file /Users/markus/.gitconfig: File exists'
+            createGitResult(
+              'error: could not lock config file /Users/markus/.gitconfig: File exists'
+            )
           )
         ).toBe('/Users/markus/.gitconfig.lock')
       }

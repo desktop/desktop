@@ -438,7 +438,7 @@ export class Preferences extends React.Component<
       }
     } catch (e) {
       if (isConfigFileLockError(e)) {
-        const lockFilePath = parseConfigLockFilePathFromError(e.result.stderr)
+        const lockFilePath = parseConfigLockFilePathFromError(e.result)
 
         if (lockFilePath !== null) {
           const absolutePath = Path.resolve(e.result.path, lockFilePath)
