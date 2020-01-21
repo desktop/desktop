@@ -4652,7 +4652,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-
   public _setReleaseOwnedLocksOnCommitSetting(value: boolean): Promise<void> {
     this.isReleaseOwnedLocksOnCommit = value
     setBoolean(releaseOwnedLocksOnCommitKey, value)
