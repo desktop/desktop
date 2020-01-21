@@ -12,8 +12,14 @@ import { ShellError } from '../../lib/shells'
 import { UpstreamAlreadyExistsError } from '../../lib/stores/upstream-already-exists-error'
 
 import { PopupType } from '../../models/popup'
-import { Repository } from '../../models/repository'
+import {
+  Repository,
+  isRepositoryWithGitHubRepository,
+} from '../../models/repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
+import { hasWritePermission } from '../../models/github-repository'
+import { enableCreateForkFlow } from '../../lib/feature-flag'
+import { RetryActionType } from '../../models/retry-actions'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -576,6 +582,56 @@ export async function samlReauthRequired(error: Error, dispatcher: Dispatcher) {
     endpoint,
     retryAction: e.metadata.retryAction,
   })
+
+  return null
+}
+
+/**
+ * Attempts to detect whether an error is the result of a failed push
+ * due to insufficient GitHub permissions. (No `write` access.)
+ */
+export async function insufficientGitHubRepoPermissions(
+  error: Error,
+  dispatcher: Dispatcher
+) {
+  // no need to do anything here if we don't want to show
+  // the new `CreateForkDialog` UI
+  if (!enableCreateForkFlow()) {
+    return error
+  }
+
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError || gitError.result.gitError === null) {
+    return error
+  }
+
+  if (!isAuthFailureError(gitError.result.gitError)) {
+    return error
+  }
+
+  const { repository, retryAction } = e.metadata
+
+  if (
+    !(repository instanceof Repository) ||
+    !isRepositoryWithGitHubRepository(repository)
+  ) {
+    return error
+  }
+
+  if (retryAction === undefined || retryAction.type !== RetryActionType.Push) {
+    return error
+  }
+
+  if (hasWritePermission(repository.gitHubRepository)) {
+    return error
+  }
+
+  dispatcher.showCreateForkDialog(repository)
 
   return null
 }

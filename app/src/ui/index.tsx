@@ -23,6 +23,7 @@ import {
   localChangesOverwrittenHandler,
   refusedWorkflowUpdate,
   samlReauthRequired,
+  insufficientGitHubRepoPermissions,
 } from './dispatcher'
 import {
   AppStore,
@@ -279,6 +280,7 @@ dispatcher.registerErrorHandler(externalEditorErrorHandler)
 dispatcher.registerErrorHandler(openShellErrorHandler)
 dispatcher.registerErrorHandler(mergeConflictHandler)
 dispatcher.registerErrorHandler(lfsAttributeMismatchHandler)
+dispatcher.registerErrorHandler(insufficientGitHubRepoPermissions)
 dispatcher.registerErrorHandler(gitAuthenticationErrorHandler)
 dispatcher.registerErrorHandler(pushNeedsPullHandler)
 dispatcher.registerErrorHandler(samlReauthRequired)
