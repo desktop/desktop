@@ -336,8 +336,12 @@ export class Preferences extends React.Component<
       try {
         await unlink(path)
       } catch (e) {
-        this.props.dispatcher.postError(e)
-        return
+        // We don't care about failure to unlink due to the
+        // lock file not existing any more
+        if (e.code !== 'ENOENT') {
+          this.props.dispatcher.postError(e)
+          return
+        }
       }
     }
 
