@@ -1487,6 +1487,13 @@ export class Dispatcher {
   }
 
   /**
+   * Sets the user's preference for whether or not to release owned locks when commiting
+   */
+  public setReleaseOwnedLocksOnCommitSetting(value: boolean): Promise<void> {
+    return this.appStore._setReleaseOwnedLocksOnCommitSetting(value)
+  }
+
+  /**
    * Sets the user's preference for an external program to open repositories in.
    */
   public setExternalEditor(editor: ExternalEditor): Promise<void> {

@@ -174,6 +174,9 @@ export interface IAppState {
   /** Should the app prompt the user to confirm a force push? */
   readonly askForConfirmationOnForcePush: boolean
 
+  /** Should owned locks be released upon commit? */
+  readonly isReleaseOwnedLocksOnCommit: boolean
+
   /** The external editor to use when opening repositories */
   readonly selectedExternalEditor: ExternalEditor | null
 

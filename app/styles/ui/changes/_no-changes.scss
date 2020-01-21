@@ -40,6 +40,11 @@
     margin-bottom: var(--spacing-double);
   }
 
+  .toggle-release-locks {
+    margin-top: var(--spacing-half);
+    white-space: nowrap;
+  }
+
   .content {
     width: 100%;
     max-width: 600px;

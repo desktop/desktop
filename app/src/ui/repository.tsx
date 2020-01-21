@@ -47,6 +47,7 @@ interface IRepositoryViewProps {
   readonly imageDiffType: ImageDiffType
   readonly hideWhitespaceInDiff: boolean
   readonly askForConfirmationOnDiscardChanges: boolean
+  readonly isReleaseOwnedLocksOnCommit: boolean
   readonly focusCommitMessage: boolean
   readonly accounts: ReadonlyArray<Account>
 
@@ -381,6 +382,8 @@ export class RepositoryView extends React.Component<
               this.props.externalEditorLabel !== undefined
             }
             dispatcher={this.props.dispatcher}
+            isUsingLFS={this.props.state.isUsingLFS}
+            isReleaseOwnedLocksOnCommit={this.props.isReleaseOwnedLocksOnCommit}
           />
         )
       }

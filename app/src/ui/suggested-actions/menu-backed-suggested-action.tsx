@@ -36,6 +36,11 @@ interface IMenuBackedSuggestedActionProps {
   readonly buttonText: string | JSX.Element
 
   /**
+   * The text or element for underneath the action button
+   */
+  readonly subButtonText?: string | JSX.Element
+
+  /**
    * The type of action, currently supported actions are
    * normal, and primary. Primary actions are visually
    * distinct from normal actions in order to stand out
@@ -84,6 +89,7 @@ export class MenuBackedSuggestedAction extends React.Component<
         description={this.props.description}
         discoverabilityContent={this.props.discoverabilityContent}
         buttonText={this.props.buttonText}
+        subButtonText={this.props.subButtonText}
         onClick={this.onClick}
         type={this.props.type}
         disabled={this.props.disabled}

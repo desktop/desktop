@@ -111,7 +111,9 @@ export async function filesNotTrackedByLFS(
 export async function getFileLocks(
   repository: Repository,
   account: IGitAccount | null
-): Promise<ReadonlyMap<string, string> | null> {
+): Promise<ReadonlyMap<string, string>> {
+  const tempLocks = new Map<string, string>()
+
   // Run Git command
   const args = ['lfs', 'locks', '--json']
 
@@ -123,11 +125,10 @@ export async function getFileLocks(
     throw new GitError(result, args)
   } else if (result.stdout === '[]\n') {
     // empty json
-    return null
+    return tempLocks
   }
 
   // Parse
-  const tempLocks = new Map<string, string>()
   const tempParsed = JSON.parse(result.stdout)
   const tempLength = tempParsed.length
   for (let i = 0; i < tempLength; ++i) {
@@ -142,8 +143,6 @@ export async function getFileLocks(
  *
  * @param repository - The repository from which to push
  *
- * @param locks - Existing locks
- *
  * @param account - The account to use when authenticating with the remote
  *
  * @param paths - File paths to lock/unlock
@@ -152,26 +151,27 @@ export async function getFileLocks(
  */
 export async function toggleFileLocks(
   repository: Repository,
-  locks: ReadonlyMap<string, string> | null,
   account: IGitAccount | null,
   paths: ReadonlyArray<string>,
   isLocked: boolean
 ): Promise<void> {
-  const tempEnvironment = { env: envForAuthentication(account) }
-  const networkArguments = await gitNetworkArguments(repository, account)
-  const args = [...networkArguments, 'lfs', isLocked ? 'lock' : 'unlock']
+  if (paths.length > 0) {
+    const tempEnvironment = { env: envForAuthentication(account) }
+    const networkArguments = await gitNetworkArguments(repository, account)
+    const args = [...networkArguments, 'lfs', isLocked ? 'lock' : 'unlock']
 
-  // From a usability/UI perspective, it makes no sense not to force unlocks... this also resolves weird repo errors
-  if (!isLocked) {
-    args.push('--force')
-  }
+    // From a usability/UI perspective, it makes no sense not to force unlocks... this also resolves weird repo errors
+    if (!isLocked) {
+      args.push('--force')
+    }
 
-  for (let i = paths.length - 1; i >= 0; --i) {
-    await git(
-      [...args, paths[i]],
-      repository.path,
-      'toggleFileLocks',
-      tempEnvironment
-    )
+    for (let i = paths.length - 1; i >= 0; --i) {
+      await git(
+        [...args, paths[i]],
+        repository.path,
+        'toggleFileLocks',
+        tempEnvironment
+      )
+    }
   }
 }

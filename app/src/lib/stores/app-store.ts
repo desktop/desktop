@@ -278,9 +278,11 @@ const stashedFilesWidthConfigKey: string = 'stashed-files-width'
 const confirmRepoRemovalDefault: boolean = true
 const confirmDiscardChangesDefault: boolean = true
 const askForConfirmationOnForcePushDefault = true
+const releaseOwnedLocksOnCommitDefault = true
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
 const confirmForcePushKey: string = 'confirmForcePush'
+const releaseOwnedLocksOnCommitKey: string = 'releaseOwnedLocks'
 
 const externalEditorKey: string = 'externalEditor'
 
@@ -359,6 +361,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private askForConfirmationOnRepositoryRemoval: boolean = confirmRepoRemovalDefault
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
+  private isReleaseOwnedLocksOnCommit: boolean = releaseOwnedLocksOnCommitDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
   private hideWhitespaceInDiff: boolean = hideWhitespaceInDiffDefault
 
@@ -697,6 +700,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         .askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
       askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
+      isReleaseOwnedLocksOnCommit: this.isReleaseOwnedLocksOnCommit,
       selectedExternalEditor: this.selectedExternalEditor,
       imageDiffType: this.imageDiffType,
       hideWhitespaceInDiff: this.hideWhitespaceInDiff,
@@ -1780,6 +1784,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnForcePushDefault
     )
 
+    this.isReleaseOwnedLocksOnCommit = getBoolean(
+      releaseOwnedLocksOnCommitKey,
+      releaseOwnedLocksOnCommitDefault
+    )
+
     this.updateSelectedExternalEditor(
       await this.lookupSelectedExternalEditor()
     ).catch(e => log.error('Failed resolving current editor at startup', e))
@@ -2311,7 +2320,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * Loads or re-loads (refreshes) the LFS state
    */
   private async updateLFS(repository: Repository): Promise<void> {
-    await this._getFileLocks(repository)
+    await this._getLFSStatus(repository)
   }
 
   public _hideStashedChanges(repository: Repository) {
@@ -3439,6 +3448,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    // Release owned locks
+    if (this.isReleaseOwnedLocksOnCommit) {
+      await this.performReleaseOwnedFileLocks(repository, account)
+    }
+
     return this.withPushPullFetch(repository, async () => {
       const { tip } = state.branchesState
 
@@ -4030,6 +4044,51 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
+  public async performReleaseOwnedFileLocks(
+    repository: Repository,
+    account: IGitAccount | null
+  ): Promise<void> {
+    // LFS must be enabled
+    const tempState = this.repositoryStateCache.get(repository)
+    if (
+      !tempState.isUsingLFS ||
+      tempState.remote === null ||
+      tempState.locks == null ||
+      tempState.lockingUser == null
+    ) {
+      return
+    }
+
+    // Get changes compared to remote
+    const tempTip = tempState.branchesState.tip
+    if (
+      tempTip.kind === TipState.Valid &&
+      tempTip.branch.upstreamWithoutRemote !== null
+    ) {
+      const gitStore = this.gitStoreCache.get(repository)
+      const tempRemote = tempTip.branch.remote || tempState.remote.name
+      const tempChanges = await gitStore.getFileDiffs(
+        tempRemote,
+        tempTip.branch.name,
+        tempTip.branch.upstreamWithoutRemote
+      )
+
+      // Find owned files
+      if (tempChanges !== undefined && tempChanges.length > 0) {
+        const tempPaths = []
+        for (let i = tempChanges.length - 1; i >= 0; --i) {
+          const tempOwner = tempState.locks.get(tempChanges[i])
+          if (tempOwner === tempState.lockingUser) {
+            tempPaths.push(tempChanges[i])
+          }
+        }
+
+        // Unlock
+        await this.performToggleFileLocks(repository, account, tempPaths, false)
+      }
+    }
+  }
+
   public _toggleFileLocks(
     repository: Repository,
     paths: ReadonlyArray<string>,
@@ -4064,12 +4123,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
 
       try {
-        await tempStore.toggleFileLocks(
-          tempState.locks,
-          account,
-          paths,
-          isLocked
-        )
+        await tempStore.toggleFileLocks(account, paths, isLocked)
       } catch (error) {
         this.emitError(error)
       }
@@ -4113,9 +4167,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * See gitStore.getFileLocks for more details
    *
    */
-  public _getFileLocks(repository: Repository): Promise<void> {
+  public _getLFSStatus(repository: Repository): Promise<void> {
     return this.withAuthenticatingUser(repository, (repository, account) => {
-      return this.performGetFileLocks(repository, account)
+      return this.performGetLFSStatus(repository, account)
     })
   }
 
@@ -4124,7 +4178,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
    *
    * @param remotes Optional, one or more remotes to fetch if undefined all
    */
-  private async performGetFileLocks(
+  private async performGetLFSStatus(
     repository: Repository,
     account: IGitAccount | null
   ): Promise<void> {
@@ -4569,6 +4623,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     setBoolean(confirmForcePushKey, value)
 
     this.updateMenuLabelsForSelectedRepository()
+
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _setReleaseOwnedLocksOnCommitSetting(value: boolean): Promise<void> {
+    this.isReleaseOwnedLocksOnCommit = value
+    setBoolean(releaseOwnedLocksOnCommitKey, value)
 
     this.emitUpdate()
 

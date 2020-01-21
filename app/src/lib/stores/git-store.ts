@@ -64,6 +64,7 @@ import {
   getSymbolicRef,
   getConfigValue,
   removeRemote,
+  getDiffPaths,
 } from '../git'
 import {
   getFileLocks as getFileLocksRepo,
@@ -914,13 +915,28 @@ export class GitStore extends BaseStore {
   }
 
   /**
+   * Get all modified files between branches
+   *
+   * @param account - The user to use for authentication
+   */
+  public async getFileDiffs(
+    remote: string,
+    branch: string,
+    remoteBranch: string
+  ): Promise<ReadonlyArray<string> | undefined> {
+    return await this.performFailableOperation(() => {
+      return getDiffPaths(this.repository, remote, branch, remoteBranch)
+    })
+  }
+
+  /**
    * Get LFS file locks
    *
    * @param account - The user to use for authentication
    */
   public async getFileLocks(
     account: IGitAccount | null
-  ): Promise<ReadonlyMap<string, string> | null | undefined> {
+  ): Promise<ReadonlyMap<string, string> | undefined> {
     return await this.performFailableOperation(() => {
       return getFileLocksRepo(this.repository, account)
     })
@@ -940,12 +956,11 @@ export class GitStore extends BaseStore {
    * @param isForced - True if forced
    */
   public async toggleFileLocks(
-    locks: ReadonlyMap<string, string> | null,
     account: IGitAccount | null,
     paths: ReadonlyArray<string>,
     isLocked: boolean
   ): Promise<void> {
-    return toggleFileLocksRepo(this.repository, locks, account, paths, isLocked)
+    return toggleFileLocksRepo(this.repository, account, paths, isLocked)
   }
 
   public async loadStatus(): Promise<IStatusResult | null> {

@@ -28,6 +28,11 @@ interface ISuggestedActionProps {
   readonly buttonText: string | JSX.Element
 
   /**
+   * The text or element for underneath the action button
+   */
+  readonly subButtonText?: string | JSX.Element
+
+  /**
    * A callback which is invoked when the user clicks
    * or activates the action using their keyboard.
    */
@@ -85,13 +90,16 @@ export class SuggestedAction extends React.Component<ISuggestedActionProps> {
             </p>
           )}
         </div>
-        <Button
-          type={primary ? 'submit' : undefined}
-          onClick={this.props.onClick}
-          disabled={this.props.disabled}
-        >
-          {this.props.buttonText}
-        </Button>
+        <div className="button-wrapper">
+          <Button
+            type={primary ? 'submit' : undefined}
+            onClick={this.props.onClick}
+            disabled={this.props.disabled}
+          >
+            {this.props.buttonText}
+          </Button>
+          {this.props.subButtonText}
+        </div>
       </div>
     )
   }

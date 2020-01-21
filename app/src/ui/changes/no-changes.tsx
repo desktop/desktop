@@ -22,6 +22,7 @@ import { isCurrentBranchForcePush } from '../../lib/rebase'
 import { StashedChangesLoadStates } from '../../models/stash-entry'
 import { Dispatcher } from '../dispatcher'
 import { SuggestedActionGroup } from '../suggested-actions'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
@@ -66,6 +67,9 @@ interface INoChangesProps {
    * opening the repository in an external editor.
    */
   readonly isExternalEditorAvailable: boolean
+
+  readonly isUsingLFS: boolean
+  readonly isReleaseOwnedLocksOnCommit: boolean
 }
 
 /**
@@ -563,6 +567,12 @@ export class NoChanges extends React.Component<
     )
   }
 
+  private onToggleOwnedLocks = (event: React.FormEvent<HTMLInputElement>) => {
+    this.props.dispatcher.setReleaseOwnedLocksOnCommitSetting(
+      !this.props.isReleaseOwnedLocksOnCommit
+    )
+  }
+
   private renderPushBranchAction(
     tip: IValidBranch,
     remote: IRemote,
@@ -599,6 +609,23 @@ export class NoChanges extends React.Component<
 
     const buttonText = `Push ${remote.name}`
 
+    let subButtonText = undefined
+    if (this.props.isUsingLFS) {
+      subButtonText = (
+        <span className="toggle-release-locks">
+          <Checkbox
+            label="Release owned locks?"
+            value={
+              this.props.isReleaseOwnedLocksOnCommit
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onToggleOwnedLocks}
+          />
+        </span>
+      )
+    }
+
     return (
       <MenuBackedSuggestedAction
         key="push-branch-action"
@@ -607,6 +634,7 @@ export class NoChanges extends React.Component<
         description={description}
         discoverabilityContent={discoverabilityContent}
         buttonText={buttonText}
+        subButtonText={subButtonText}
         type="primary"
         disabled={!menuItem.enabled}
       />

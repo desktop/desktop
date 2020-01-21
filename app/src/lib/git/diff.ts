@@ -21,6 +21,7 @@ import {
   IUnrenderableDiff,
 } from '../../models/diff'
 
+import { git, GitError } from './core'
 import { spawnAndComplete } from './spawn'
 
 import { DiffParser } from '../diff-parser'
@@ -481,3 +482,26 @@ export async function getBinaryPaths(
 }
 
 const binaryListRegex = /-\t-\t(?:\0.+\0)?([^\0]*)/gi
+
+/**
+ * List of modified files in repository
+ * @param repository to run git operation in
+ *
+ * if you're mid-merge pass `'MERGE_HEAD'` to ref to get a diff of `HEAD` vs `MERGE_HEAD`,
+ * otherwise you should probably pass `'HEAD'` to get a diff of the working tree vs `HEAD`
+ */
+export async function getDiffPaths(
+  repository: Repository,
+  remote: string,
+  branch: string,
+  remoteBranch: string
+): Promise<ReadonlyArray<string>> {
+  const args = ['diff', '--name-only', branch, `${remote}/${remoteBranch}`]
+  const result = await git(args, repository.path, 'getDiffPaths')
+
+  if (result.gitErrorDescription) {
+    throw new GitError(result, args)
+  }
+
+  return result.stdout.split('\n')
+}
