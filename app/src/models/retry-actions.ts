@@ -9,6 +9,7 @@ export enum RetryActionType {
   Fetch,
   Clone,
   Checkout,
+  SetGlobalConfigValue,
 }
 
 /** The retriable actions and their associated data. */
@@ -27,3 +28,4 @@ export type RetryAction =
       repository: Repository
       branch: Branch | string
     }
+  | { type: RetryActionType.SetGlobalConfigValue; key: string; value: string }
