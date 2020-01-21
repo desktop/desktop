@@ -205,6 +205,27 @@ export function isAuthFailureError(
   return false
 }
 
+export function isConfigFileLockError(error: Error): error is GitError {
+  return (
+    error instanceof GitError &&
+    error.result.gitError === DugiteError.ConfigLockFileAlreadyExists
+  )
+}
+
+const lockFilePathRe = /^error: could not lock config file (.+?): File exists$/m
+
+export function parseConfigLockFilePathFromError(stderr: string) {
+  const match = lockFilePathRe.exec(stderr)
+
+  if (match === null) {
+    return null
+  }
+
+  const normalized = __WIN32__ ? match[1].replace('/', '\\') : match[1]
+
+  return `${normalized}.lock`
+}
+
 function getDescriptionForError(error: DugiteError): string | null {
   if (isAuthFailureError(error)) {
     const menuHint = __DARWIN__
