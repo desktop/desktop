@@ -28,6 +28,10 @@ import {
   uncommittedChangesStrategyKindDefault,
 } from '../../models/uncommitted-changes-strategy'
 import { Octicon, OcticonSymbol } from '../octicons'
+import {
+  isConfigFileLockError,
+  parseConfigLockFilePathFromError,
+} from '../../lib/git'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -64,6 +68,7 @@ interface IPreferencesState {
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
   readonly mergeTool: IMergeTool | null
+  readonly existingLockFilePath?: string
 }
 
 /** The app-level preferences component. */
@@ -246,13 +251,21 @@ export class Preferences extends React.Component<
         break
       }
       case PreferencesTab.Git: {
+        const error =
+          this.state.existingLockFilePath !== undefined ? (
+            <DialogError>{this.state.existingLockFilePath}</DialogError>
+          ) : null
+
         View = (
-          <Git
-            name={this.state.committerName}
-            email={this.state.committerEmail}
-            onNameChanged={this.onCommitterNameChanged}
-            onEmailChanged={this.onCommitterEmailChanged}
-          />
+          <>
+            {error}
+            <Git
+              name={this.state.committerName}
+              email={this.state.committerEmail}
+              onNameChanged={this.onCommitterNameChanged}
+              onEmailChanged={this.onCommitterEmailChanged}
+            />
+          </>
         )
         break
       }
@@ -379,12 +392,32 @@ export class Preferences extends React.Component<
   }
 
   private onSave = async () => {
-    if (this.state.committerName !== this.state.initialCommitterName) {
-      await setGlobalConfigValue('user.name', this.state.committerName)
-    }
+    try {
+      if (this.state.committerName !== this.state.initialCommitterName) {
+        await setGlobalConfigValue('user.name', this.state.committerName)
+      }
 
-    if (this.state.committerEmail !== this.state.initialCommitterEmail) {
-      await setGlobalConfigValue('user.email', this.state.committerEmail)
+      if (this.state.committerEmail !== this.state.initialCommitterEmail) {
+        await setGlobalConfigValue('user.email', this.state.committerEmail)
+      }
+    } catch (e) {
+      if (isConfigFileLockError(e)) {
+        const existingLockFilePath = parseConfigLockFilePathFromError(
+          e.result.stderr
+        )
+
+        if (existingLockFilePath !== null) {
+          this.setState({
+            existingLockFilePath,
+            selectedIndex: PreferencesTab.Git,
+          })
+          return
+        }
+      }
+
+      this.props.dispatcher.postError(e)
+      this.props.onDismissed()
+      return
     }
 
     await this.props.dispatcher.setStatsOptOut(
