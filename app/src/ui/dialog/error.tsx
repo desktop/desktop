@@ -1,6 +1,6 @@
 import * as React from 'react'
+import * as classNames from 'classnames'
 import { Octicon, OcticonSymbol } from '../octicons'
-import classNames = require('classnames')
 
 interface IDialogErrorProps {
   readonly className?: string
