@@ -19,6 +19,7 @@ import {
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { hasWritePermission } from '../../models/github-repository'
 import { enableCreateForkFlow } from '../../lib/feature-flag'
+import { RetryActionType } from '../../models/retry-actions'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -613,13 +614,16 @@ export async function insufficientGitHubRepoPermissions(
     return error
   }
 
-  const { repository } = e.metadata
+  const { repository, retryAction } = e.metadata
 
-  if (!(repository instanceof Repository)) {
+  if (
+    !(repository instanceof Repository) ||
+    !isRepositoryWithGitHubRepository(repository)
+  ) {
     return error
   }
 
-  if (!isRepositoryWithGitHubRepository(repository)) {
+  if (retryAction === undefined || retryAction.type !== RetryActionType.Push) {
     return error
   }
 
