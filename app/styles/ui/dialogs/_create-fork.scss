@@ -9,6 +9,7 @@ dialog#create-fork {
     margin-top: var(--spacing-double);
     pre {
       white-space: pre-wrap;
+      overflow-wrap: break-word;
     }
   }
 }
