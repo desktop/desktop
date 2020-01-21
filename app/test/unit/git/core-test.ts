@@ -1,7 +1,7 @@
 import { GitError } from 'dugite'
 
 import { Repository } from '../../../src/models/repository'
-import { git } from '../../../src/lib/git'
+import { git, parseConfigLockFilePathFromError } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../helpers/repositories'
 
 describe('git/core', () => {
@@ -75,6 +75,28 @@ describe('git/core', () => {
       }
 
       expect(threw).toBe(true)
+    })
+
+    it('', () => {
+      if (__WIN32__) {
+        expect(
+          parseConfigLockFilePathFromError(
+            'error: could not lock config file C:/Users/markus/.gitconfig: File exists'
+          )
+        ).toBe('c:\\Users\\markus\\.gitconfig.lock')
+
+        expect(
+          parseConfigLockFilePathFromError(
+            'error: could not lock config file C:\\Users\\markus\\.gitconfig: File exists'
+          )
+        ).toBe('c:\\Users\\markus\\.gitconfig.lock')
+      } else {
+        expect(
+          parseConfigLockFilePathFromError(
+            'error: could not lock config file /Users/markus/.gitconfig: File exists'
+          )
+        ).toBe('/Users/markus/.gitconfig.lock')
+      }
     })
   })
 })
