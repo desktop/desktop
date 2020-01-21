@@ -8,6 +8,9 @@ export enum TabBarType {
 
   /** Simpler switch appearance */
   Switch,
+
+  /** Vertical tabs */
+  Vertical,
 }
 
 interface ITabBarProps {
@@ -30,11 +33,17 @@ export class TabBar extends React.Component<ITabBarProps, {}> {
   private readonly tabRefsByIndex = new Map<number, HTMLButtonElement>()
 
   public render() {
+    const { type } = this.props
+
     return (
       <div
         className={
           'tab-bar ' +
-          (this.props.type === TabBarType.Switch ? 'switch' : 'tabs')
+          (type === TabBarType.Switch
+            ? 'switch'
+            : type === TabBarType.Vertical
+            ? 'vertical'
+            : 'tabs')
         }
         role="tablist"
       >
@@ -95,6 +104,7 @@ export class TabBar extends React.Component<ITabBarProps, {}> {
           onClick={this.onTabClicked}
           onSelectAdjacent={this.onSelectAdjacentTab}
           onButtonRef={this.onTabRef}
+          type={this.props.type}
         >
           {child}
         </TabBarItem>
@@ -115,6 +125,7 @@ interface ITabBarItemProps {
     index: number,
     button: HTMLButtonElement | null
   ) => void
+  readonly type?: TabBarType
 }
 
 class TabBarItem extends React.Component<ITabBarItemProps, {}> {
@@ -123,11 +134,14 @@ class TabBarItem extends React.Component<ITabBarItemProps, {}> {
   }
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
-    if (event.key === 'ArrowLeft') {
-      this.props.onSelectAdjacent('previous', this.props.index)
+    const { type, index } = this.props
+    const previousKey = type === TabBarType.Vertical ? 'ArrowUp' : 'ArrowLeft'
+    const nextKey = type === TabBarType.Vertical ? 'ArrowDown' : 'ArrowRight'
+    if (event.key === previousKey) {
+      this.props.onSelectAdjacent('previous', index)
       event.preventDefault()
-    } else if (event.key === 'ArrowRight') {
-      this.props.onSelectAdjacent('next', this.props.index)
+    } else if (event.key === nextKey) {
+      this.props.onSelectAdjacent('next', index)
       event.preventDefault()
     }
   }

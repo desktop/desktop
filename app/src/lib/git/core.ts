@@ -184,23 +184,44 @@ export async function git(
   throw new GitError(gitResult, args)
 }
 
-function getDescriptionForError(error: DugiteError): string {
+/**
+ * Determine whether the provided `error` is an authentication failure
+ * as per our definition. Note that this is not an exhaustive list of
+ * authentication failures, only a collection of errors that we treat
+ * equally in terms of error message and presentation to the user.
+ */
+export function isAuthFailureError(
+  error: DugiteError
+): error is
+  | DugiteError.SSHAuthenticationFailed
+  | DugiteError.SSHPermissionDenied
+  | DugiteError.HTTPSAuthenticationFailed {
   switch (error) {
-    case DugiteError.SSHKeyAuditUnverified:
-      return 'The SSH key is unverified.'
     case DugiteError.SSHAuthenticationFailed:
     case DugiteError.SSHPermissionDenied:
     case DugiteError.HTTPSAuthenticationFailed:
-      const menuHint = __DARWIN__
-        ? 'GitHub Desktop > Preferences.'
-        : 'File > Options.'
-      return `Authentication failed. Some common reasons include:
+      return true
+  }
+  return false
+}
+
+function getDescriptionForError(error: DugiteError): string | null {
+  if (isAuthFailureError(error)) {
+    const menuHint = __DARWIN__
+      ? 'GitHub Desktop > Preferences.'
+      : 'File > Options.'
+    return `Authentication failed. Some common reasons include:
 
 - You are not logged in to your account: see ${menuHint}
 - You may need to log out and log back in to refresh your token.
 - You do not have permission to access this repository.
 - The repository is archived on GitHub. Check the repository settings to confirm you are still permitted to push commits.
 - If you use SSH authentication, check that your key is added to the ssh-agent and associated with your account.`
+  }
+
+  switch (error) {
+    case DugiteError.SSHKeyAuditUnverified:
+      return 'The SSH key is unverified.'
     case DugiteError.RemoteDisconnection:
       return 'The remote disconnected. Check your Internet connection and try again.'
     case DugiteError.HostDown:
@@ -288,6 +309,13 @@ function getDescriptionForError(error: DugiteError): string {
       return 'Unable to switch branches as there are working directory changes which would be overwritten. Please commit or stash your changes.'
     case DugiteError.UnresolvedConflicts:
       return 'There are unresolved conflicts in the working directory.'
+    case DugiteError.ConfigLockFileAlreadyExists:
+      // Added in dugite 1.88.0 (https://github.com/desktop/dugite/pull/386)
+      // in support of https://github.com/desktop/desktop/issues/8675 but we're
+      // not using it yet. Returning a null message here means the stderr will
+      // be used as the error message (or stdout if stderr is empty), i.e. the
+      // same behavior as before the ConfigLockFileAlreadyExists was added
+      return null
     default:
       return assertNever(error, `Unknown error: ${error}`)
   }

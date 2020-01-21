@@ -82,7 +82,10 @@ import {
   StatusCallBack,
 } from '../../lib/stores/commit-status-store'
 import { MergeResult } from '../../models/merge'
-import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
+import {
+  UncommittedChangesStrategy,
+  UncommittedChangesStrategyKind,
+} from '../../models/uncommitted-changes-strategy'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { IStashEntry } from '../../models/stash-entry'
 
@@ -1491,6 +1494,15 @@ export class Dispatcher {
    */
   public setReleaseOwnedLocksOnCommitSetting(value: boolean): Promise<void> {
     return this.appStore._setReleaseOwnedLocksOnCommitSetting(value)
+  }
+
+  /**
+   * Sets the user's preference for handling uncommitted changes when switching branches
+   */
+  public setUncommittedChangesStrategyKindSetting(
+    value: UncommittedChangesStrategyKind
+  ): Promise<void> {
+    return this.appStore._setUncommittedChangesStrategyKindSetting(value)
   }
 
   /**
