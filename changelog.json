@@ -9,6 +9,7 @@
       "[Fixed] Update branch protection state for checkout outside of Desktop - #8790",
       "[Improved] Re-designed preferences dialog - #8774"
     ],
+    "2.2.5-test1": ["[Fixed] Sign Windows installers using SHA256 file digest"],
     "2.2.4": [
       "[New] Warn when committing to a protected branch - #7023",
       "[New] Warn when committing to a repository you don't have write access to - #8665",
