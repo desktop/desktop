@@ -1,9 +1,8 @@
 import * as React from 'react'
 import { PathLabel } from '../lib/path-label'
-import { AppFileStatus, AppFileStatusKind } from '../../models/status'
+import { AppFileStatus } from '../../models/status'
 import { IDiff, DiffType } from '../../models/diff'
 import { Octicon, OcticonSymbol, iconForStatus } from '../octicons'
-import { Button } from '../lib/button'
 import { mapStatus } from '../../lib/status'
 
 interface IChangedFileDetailsProps {
@@ -36,7 +35,6 @@ export class ChangedFileDetails extends React.Component<
   }
 
   private renderDecorator() {
-    const status = this.props.status
     const diff = this.props.diff
     if (diff.kind === DiffType.Text && diff.lineEndingsChange) {
       const message = `Warning: line endings will be changed from '${

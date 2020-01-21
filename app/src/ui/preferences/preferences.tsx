@@ -395,5 +395,4 @@ export class Preferences extends React.Component<
   private onTabClicked = (index: number) => {
     this.setState({ selectedIndex: index })
   }
-
 }

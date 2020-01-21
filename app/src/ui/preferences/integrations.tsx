@@ -5,7 +5,6 @@ import { Row } from '../../ui/lib/row'
 import { Select } from '../lib/select'
 import { ExternalEditor, parse as parseEditor } from '../../lib/editors'
 import { Shell, parse as parseShell } from '../../lib/shells'
-import { TextBox } from '../lib/text-box'
 
 interface IIntegrationsPreferencesProps {
   readonly availableEditors: ReadonlyArray<ExternalEditor>
