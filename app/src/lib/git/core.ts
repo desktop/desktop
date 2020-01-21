@@ -52,6 +52,13 @@ export interface IGitResult extends DugiteResult {
 
   /** The human-readable error description, based on `gitError`. */
   readonly gitErrorDescription: string | null
+
+  /**
+   * The path that the Git command was executed from, i.e. the
+   * process working directory (not to be confused with the Git
+   * working directory which is... super confusing, I know)
+   */
+  readonly path: string
 }
 
 function getResultMessage(result: IGitResult) {
@@ -146,7 +153,7 @@ export async function git(
   }
 
   const gitErrorDescription = gitError ? getDescriptionForError(gitError) : null
-  const gitResult = { ...result, gitError, gitErrorDescription }
+  const gitResult = { ...result, gitError, gitErrorDescription, path }
 
   let acceptableError = true
   if (gitError && opts.expectedErrors) {
