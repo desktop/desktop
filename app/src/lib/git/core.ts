@@ -213,6 +213,11 @@ export function isAuthFailureError(
   return false
 }
 
+/**
+ * Determine whether the provided `error` is an error from Git indicating
+ * that a configuration file  write failed due to a lock file already
+ * existing for that config file.
+ */
 export function isConfigFileLockError(error: Error): error is GitError {
   return (
     error instanceof GitError &&
@@ -222,6 +227,12 @@ export function isConfigFileLockError(error: Error): error is GitError {
 
 const lockFilePathRe = /^error: could not lock config file (.+?): File exists$/m
 
+/**
+ * If the `result` is associated with an config lock file error (as determined
+ * by `isConfigFileLockError`) this method will attempt to extract an absoluet
+ * path (i.e. rooted) to the configuration lock file in question from the Git
+ * output.
+ */
 export function parseConfigLockFilePathFromError(result: IGitResult) {
   const match = lockFilePathRe.exec(result.stderr)
 
