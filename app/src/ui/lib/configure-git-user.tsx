@@ -12,6 +12,11 @@ import { Form } from '../lib/form'
 import { Button } from '../lib/button'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
+import {
+  isConfigFileLockError,
+  parseConfigLockFilePathFromError,
+} from '../../lib/git'
+import { ConfigLockFileExists } from './config-lock-file-exists'
 
 interface IConfigureGitUserProps {
   /** The logged-in accounts. */
@@ -31,6 +36,7 @@ interface IConfigureGitUserState {
   readonly name: string
   readonly email: string
   readonly avatarURL: string | null
+  readonly existingLockFilePath?: string
 }
 
 /**
@@ -153,8 +159,20 @@ export class ConfigureGitUser extends React.Component<
       []
     )
     const emoji = new Map()
+
+    const error =
+      this.state.existingLockFilePath !== undefined ? (
+        <ConfigLockFileExists
+          lockFilePath={this.state.existingLockFilePath}
+          onLockFileDeleted={this.onLockFileDeleted}
+          onError={this.onLockFileDeleteError}
+        />
+      ) : null
+
     return (
       <div id="configure-git-user">
+        {error}
+
         <Form className="sign-in-form" onSubmit={this.save}>
           <TextBox
             label="Name"
@@ -191,6 +209,17 @@ export class ConfigureGitUser extends React.Component<
     )
   }
 
+  private onLockFileDeleted = () => {
+    this.setState({ existingLockFilePath: undefined })
+  }
+
+  private onLockFileDeleteError = (e: Error) => {
+    /**
+     * We can't use dialogs in the welcome flow so there's
+     * not a whole lot we can do here.
+     */
+  }
+
   private onNameChange = (name: string) => {
     this.setState({
       name,
@@ -217,12 +246,23 @@ export class ConfigureGitUser extends React.Component<
   private save = async () => {
     const { name, email, globalUserName, globalUserEmail } = this.state
 
-    if (name.length > 0 && name !== globalUserName) {
-      await setGlobalConfigValue('user.name', name)
-    }
+    try {
+      if (name.length > 0 && name !== globalUserName) {
+        await setGlobalConfigValue('user.name', name)
+      }
 
-    if (email.length > 0 && email !== globalUserEmail) {
-      await setGlobalConfigValue('user.email', email)
+      if (email.length > 0 && email !== globalUserEmail) {
+        await setGlobalConfigValue('user.email', email)
+      }
+    } catch (e) {
+      if (isConfigFileLockError(e)) {
+        const lockFilePath = parseConfigLockFilePathFromError(e.result)
+
+        if (lockFilePath !== null) {
+          this.setState({ existingLockFilePath: lockFilePath })
+          return
+        }
+      }
     }
 
     if (this.props.onSave) {
