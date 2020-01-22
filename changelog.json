@@ -3,7 +3,7 @@
     "2.3.0-beta1": [
       "[New] Prompt users to make a fork if they fail to push to a GitHub repository due to permissions  - #8548",
       "[Added] Show a commit warning if the user can't push to the repository - #8938",
-      "[Fixed] Showing pull request from a fork in browser uses the correct URL - #8928",
+      "[Fixed] Route the user to the correct URL when opening a pull request from a fork in the browser - #8928",
       "[Improved] Only show branch protection warning when changed files are present - #8795",
       "[Improved] Show an error when editing a git configuration file fails due to existing lock file - #8956"
     ],
