@@ -32,9 +32,7 @@ import {
   isConfigFileLockError,
   parseConfigLockFilePathFromError,
 } from '../../lib/git'
-import { Ref } from '../lib/ref'
-import { LinkButton } from '../lib/link-button'
-import { unlink } from 'fs-extra'
+import { ConfigLockFileExists } from '../lib/config-lock-file-exists'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -258,19 +256,11 @@ export class Preferences extends React.Component<
         const error =
           existingLockFilePath !== undefined ? (
             <DialogError className="lockfile">
-              <p>
-                Failed to update Git configuration file. A lock file already
-                exists at <Ref>{existingLockFilePath}</Ref>.
-              </p>
-              <p>
-                This can happen if another tool is currently modifying the Git
-                configuration or if a Git process has terminated earlier without
-                cleaning up the lock file. Do you want to{' '}
-                <LinkButton onClick={this.onDeleteLockFile}>
-                  delete the lock file
-                </LinkButton>{' '}
-                and try again?
-              </p>
+              <ConfigLockFileExists
+                lockFilePath={existingLockFilePath}
+                onLockFileDeleted={this.onSave}
+                onError={this.onLockFileDeleteError}
+              />
             </DialogError>
           ) : null
 
@@ -329,21 +319,8 @@ export class Preferences extends React.Component<
     return <div className="tab-container">{View}</div>
   }
 
-  private onDeleteLockFile = async () => {
-    if (this.state.existingLockFilePath) {
-      try {
-        await unlink(this.state.existingLockFilePath)
-      } catch (e) {
-        // We don't care about failure to unlink due to the
-        // lock file not existing any more
-        if (e.code !== 'ENOENT') {
-          this.props.dispatcher.postError(e)
-          return
-        }
-      }
-    }
-
-    this.onSave()
+  private onLockFileDeleteError = (e: Error) => {
+    this.props.dispatcher.postError(e)
   }
 
   private onOptOutofReportingChanged = (value: boolean) => {
