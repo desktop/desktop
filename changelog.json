@@ -1,7 +1,7 @@
 {
   "releases": {
     "2.3.0-beta1": [
-      "[Fixed] Show commit warning messages only if changed files are present - #8795",
+      "[Improved] Only show branch protection warning when changed files are present - #8795",
       "[Fixed] Sign Windows installer using SHA256 digest - #8901",
       "[Fixed] \"Do you want to fork this repository?\" Dialog - #8548",
       "[Fixed] Add create fork flow entry point to commit warning - #8938",
