@@ -5,7 +5,8 @@
       "[Fixed] Sign Windows installer using SHA256 digest - #8901",
       "[Fixed] \"Do you want to fork this repository?\" Dialog - #8548",
       "[Fixed] Add create fork flow entry point to commit warning - #8938",
-      "[Fixed] Open PR from fork in browser - #8928"
+      "[Fixed] Open PR from fork in browser - #8928",
+      "[Improved] Show an error when writing configuration file fails due to existing lock file"
     ],
     "2.2.5-beta1": [
       "[Added] Users can configure Desktop to always bring or leave changes when switching branches - #7746",
