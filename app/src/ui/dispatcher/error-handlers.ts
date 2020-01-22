@@ -476,8 +476,7 @@ export async function localChangesOverwrittenHandler(
 
   return null
 }
-
-const rejectedPathRe = /^ ! \[remote rejected\] .*? -> .*? \(refusing to allow an integration to create or update (.*?)\)$/m
+const rejectedPathRe = /^ ! \[remote rejected\] .*? -> .*? \(refusing to allow an OAuth App to create or update workflow `(.*?)` without `workflow` scope\)/m
 
 /**
  * Attempts to detect whether an error is the result of a failed push
