@@ -41,7 +41,7 @@ export class ConfigLockFileExists extends React.Component<
   }
   public render() {
     return (
-      <>
+      <div className="config-lock-file-exists-component">
         <p>
           Failed to update Git configuration file. A lock file already exists at{' '}
           <Ref>{this.props.lockFilePath}</Ref>.
@@ -55,7 +55,7 @@ export class ConfigLockFileExists extends React.Component<
           </LinkButton>{' '}
           and try again?
         </p>
-      </>
+      </div>
     )
   }
 }
