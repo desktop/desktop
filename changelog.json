@@ -1,10 +1,10 @@
 {
   "releases": {
     "2.3.0-beta1": [
-      "[Improved] Only show branch protection warning when changed files are present - #8795",
       "[New] Prompt users to make a fork if they fail to push to a GitHub repository due to permissions  - #8548",
       "[Added] Commit warning for repositories the user can't push to - #8938",
       "[Fixed] Showing pull request from a fork in browser uses the correct URL - #8928",
+      "[Improved] Only show branch protection warning when changed files are present - #8795",
       "[Improved] Show an error when editing a git configuration file fails due to existing lock file"
     ],
     "2.2.5-beta1": [
