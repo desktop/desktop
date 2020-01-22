@@ -36,6 +36,14 @@ interface IConfigureGitUserState {
   readonly name: string
   readonly email: string
   readonly avatarURL: string | null
+
+  /**
+   * If unable to save Git configuration values (name, email)
+   * due to an existing configuration lock file this property
+   * will contain the (fully qualified) path to said lock file
+   * such that an error may be presented and the user given a
+   * choice to delete the lock file.
+   */
   readonly existingLockFilePath?: string
 }
 
