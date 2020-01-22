@@ -2,7 +2,7 @@
   "releases": {
     "2.3.0-beta1": [
       "[Improved] Only show branch protection warning when changed files are present - #8795",
-      "[Fixed] \"Do you want to fork this repository?\" Dialog - #8548",
+      "[New] Prompt users to make a fork if they fail to push to a GitHub repository due to permissions  - #8548",
       "[Fixed] Add create fork flow entry point to commit warning - #8938",
       "[Fixed] Open PR from fork in browser - #8928",
       "[Improved] Show an error when writing configuration file fails due to existing lock file"
