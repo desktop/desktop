@@ -258,7 +258,7 @@ export class Preferences extends React.Component<
             <DialogError className="lockfile">
               <ConfigLockFileExists
                 lockFilePath={existingLockFilePath}
-                onLockFileDeleted={this.onSave}
+                onLockFileDeleted={this.onLockFileDeleted}
                 onError={this.onLockFileDeleteError}
               />
             </DialogError>
@@ -317,6 +317,10 @@ export class Preferences extends React.Component<
     }
 
     return <div className="tab-container">{View}</div>
+  }
+
+  private onLockFileDeleted = () => {
+    this.setState({ existingLockFilePath: undefined })
   }
 
   private onLockFileDeleteError = (e: Error) => {
