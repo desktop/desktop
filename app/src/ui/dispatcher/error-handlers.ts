@@ -517,17 +517,9 @@ export async function refusedWorkflowUpdate(
     return error
   }
 
-  const rejectedPath = match[1]
-  const pathIsLikelyWorkflowFile =
-    rejectedPath.startsWith('.github/') && rejectedPath.indexOf('workflow') >= 0
-
-  if (!pathIsLikelyWorkflowFile) {
-    return error
-  }
-
   dispatcher.showPopup({
     type: PopupType.PushRejectedDueToMissingWorkflowScope,
-    rejectedPath,
+    rejectedPath: match[1],
     repository,
   })
 
