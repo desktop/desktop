@@ -263,7 +263,7 @@ export class Preferences extends React.Component<
         const { existingLockFilePath } = this.state
         const error =
           existingLockFilePath !== undefined ? (
-            <DialogError className="lockfile">
+            <DialogError>
               <ConfigLockFileExists
                 lockFilePath={existingLockFilePath}
                 onLockFileDeleted={this.onLockFileDeleted}
