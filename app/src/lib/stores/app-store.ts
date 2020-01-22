@@ -152,7 +152,6 @@ import {
   RebaseResult,
   getRebaseSnapshot,
   IStatusResult,
-  setGlobalConfigValue,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -259,7 +258,6 @@ import {
   findAssociatedPullRequest,
   isPullRequestAssociatedWithBranch,
 } from '../helpers/pull-request-matching'
-import { ErrorWithMetadata } from '../error-with-metadata'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -5576,21 +5574,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
     return repository
-  }
-
-  public async _setGlobalConfigValue(key: string, value: string) {
-    try {
-      await setGlobalConfigValue(key, value)
-    } catch (e) {
-      const em = new ErrorWithMetadata(e, {
-        retryAction: {
-          type: RetryActionType.SetGlobalConfigValue,
-          key,
-          value,
-        },
-      })
-      this.emitError(em)
-    }
   }
 }
 

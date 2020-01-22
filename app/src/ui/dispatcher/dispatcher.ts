@@ -1664,10 +1664,6 @@ export class Dispatcher {
         await this.checkoutBranch(retryAction.repository, retryAction.branch)
         break
 
-      case RetryActionType.SetGlobalConfigValue:
-        await this.setGlobalConfigValue(retryAction.key, retryAction.value)
-        break
-
       default:
         return assertNever(retryAction, `Unknown retry action: ${retryAction}`)
     }
@@ -2246,9 +2242,5 @@ export class Dispatcher {
    */
   public recordTutorialRepoCreated() {
     return this.statsStore.recordTutorialRepoCreated()
-  }
-
-  public setGlobalConfigValue(key: string, value: string) {
-    return this.appStore._setGlobalConfigValue(key, value)
   }
 }
