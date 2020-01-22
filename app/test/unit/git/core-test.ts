@@ -122,7 +122,7 @@ describe('git/core', () => {
               'error: could not lock config file C:/Users/markus/.gitconfig: File exists'
             )
           )
-        ).toBe('c:\\Users\\markus\\.gitconfig.lock')
+        ).toBe('C:\\Users\\markus\\.gitconfig.lock')
 
         expect(
           parseConfigLockFilePathFromError(
@@ -130,7 +130,7 @@ describe('git/core', () => {
               'error: could not lock config file C:\\Users\\markus\\.gitconfig: File exists'
             )
           )
-        ).toBe('c:\\Users\\markus\\.gitconfig.lock')
+        ).toBe('C:\\Users\\markus\\.gitconfig.lock')
       } else {
         expect(
           parseConfigLockFilePathFromError(
