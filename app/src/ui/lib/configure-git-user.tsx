@@ -222,10 +222,8 @@ export class ConfigureGitUser extends React.Component<
   }
 
   private onLockFileDeleteError = (e: Error) => {
-    /**
-     * We can't use dialogs in the welcome flow so there's
-     * not a whole lot we can do here.
-     */
+    log.error('Failed to unlink config lock file', e)
+    this.setState({ existingLockFilePath: undefined })
   }
 
   private onNameChange = (name: string) => {
