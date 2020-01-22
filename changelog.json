@@ -5,7 +5,7 @@
       "[Added] Commit warning for repositories the user can't push to - #8938",
       "[Fixed] Showing pull request from a fork in browser uses the correct URL - #8928",
       "[Improved] Only show branch protection warning when changed files are present - #8795",
-      "[Improved] Show an error when editing a git configuration file fails due to existing lock file"
+      "[Improved] Show an error when editing a git configuration file fails due to existing lock file - #8956"
     ],
     "2.2.5-beta1": [
       "[Added] Users can configure Desktop to always bring or leave changes when switching branches - #7746",
