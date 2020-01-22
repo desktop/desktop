@@ -240,6 +240,10 @@ export function parseConfigLockFilePathFromError(result: IGitResult) {
     return null
   }
 
+  // Git on Windows may print the config file path using forward slashes.
+  // Luckily for us forward slashes are not allowed in Windows file or
+  // directory names so we can simply replace any instance of forward
+  // slashes with backslashes.
   const normalized = __WIN32__ ? match[1].replace('/', '\\') : match[1]
 
   // https://github.com/git/git/blob/232378479/lockfile.h#L117-L119
