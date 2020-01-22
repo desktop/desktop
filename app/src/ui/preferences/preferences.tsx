@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as Path from 'path'
 import { Account } from '../../models/account'
 import { PreferencesTab } from '../../models/preferences'
 import { ExternalEditor } from '../../lib/editors'
