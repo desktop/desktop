@@ -2,6 +2,7 @@ import * as React from 'react'
 import { encodePathAsUrl } from '../../lib/path'
 import { Ref } from '../lib/ref'
 import { LinkButton } from '../lib/link-button'
+import { PullRequest } from '../../models/pull-request'
 
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
@@ -11,6 +12,12 @@ const BlankSlateImage = encodePathAsUrl(
 interface INoPullRequestsProps {
   /** The name of the repository. */
   readonly repositoryName: string
+
+  /** The name of the GitHubRepository's parent, if it has one. */
+  readonly upstreamRepositoryName: string | null
+
+  /** The currently selected pull request */
+  readonly selectedPullRequest: PullRequest | null
 
   /** Is the default branch currently checked out? */
   readonly isOnDefaultBranch: boolean
@@ -74,6 +81,19 @@ export class NoPullRequests extends React.Component<INoPullRequestsProps, {}> {
             create a new branch
           </LinkButton>{' '}
           and get going on your next project?
+        </div>
+      )
+    } else if (
+      this.props.selectedPullRequest !== null &&
+      this.props.upstreamRepositoryName !== null
+    ) {
+      return (
+        <div className="call-to-action">
+          Would you like to{' '}
+          <LinkButton>
+            show your pull request in {this.props.upstreamRepositoryName}
+          </LinkButton>
+          ?
         </div>
       )
     } else {
