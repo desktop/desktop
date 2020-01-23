@@ -110,6 +110,8 @@ Here's what you should do next:
 7. Read this to perform the release: https://github.com/desktop/desktop/blob/development/docs/process/releasing-updates.md
 ```
 
+See our [release notes writing guide](./writing-release-notes.md) for more info on how we write and review our release notes.
+
 _Note: You should ensure the `version` in `app/package.json` is set to the new version and follows the [semver format](https://semver.org/) of `major.minor.patch`._
 
 Examples:
