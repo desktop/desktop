@@ -1,5 +1,4 @@
-dialog#create-fork,
-dialog#fork-unready {
+dialog#create-fork {
   width: 500px;
 
   a.link-button-component {
@@ -13,4 +12,8 @@ dialog#fork-unready {
       overflow-wrap: break-word;
     }
   }
+}
+
+dialog#fork-unready {
+  width: 500px;
 }
