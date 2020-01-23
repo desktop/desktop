@@ -161,6 +161,23 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     this.dialogContent = ref
   }
 
+  private scrollToBottomOfGitErrorMessage() {
+    if (!this.dialogContent) {
+      return
+    }
+
+    const e =
+      this.state.error instanceof ErrorWithMetadata
+        ? this.state.error.underlyingError
+        : this.state.error
+
+    if (e instanceof GitError) {
+      if (e.message === e.result.stderr || e.message === e.result.stdout) {
+        this.dialogContent.scrollTop = this.dialogContent.scrollHeight
+      }
+    }
+  }
+
   private onCloseButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
     this.onDismissed()
