@@ -29,12 +29,13 @@ export class ForkUnready extends React.Component<IForkUnreadyProps> {
         onSubmit={this.onSubmit}
         onDismissed={this.props.onDismissed}
         type="error"
+        id="fork-unready"
       >
         <DialogContent>
-          {`We were unable to reach ${
-            this.props.repository.gitHubRepository.fullName
-          } because fork
-          creation hasn't completed on GitHub. Please retry in just a moment.`}
+          {`We were unable to reach `}
+          <strong>{this.props.repository.gitHubRepository.fullName}</strong>
+          {` because fork creation hasn't completed on GitHub.
+          Please retry in just a moment.`}
         </DialogContent>
         {this.renderFooter()}
       </Dialog>
