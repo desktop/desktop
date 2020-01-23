@@ -98,9 +98,10 @@ export class NoPullRequests extends React.Component<INoPullRequestsProps, {}> {
       return (
         <div className="call-to-action">
           <LinkButton uri={this.props.upstreamPullRequestsUrl}>
-            View pull requests for{' '}
-            <strong>{this.props.upstreamRepositoryName}</strong> on GitHub
+            View pull requests
           </LinkButton>
+          {' for '}
+          <strong>{this.props.upstreamRepositoryName}</strong> on GitHub
         </div>
       )
     } else {
