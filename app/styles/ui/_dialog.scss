@@ -396,6 +396,12 @@ dialog {
   &#lfs-attribute-mismatch {
     width: 400px;
   }
+
+  &#workflow-push-rejected {
+    .ref-component {
+      display: inline-block;
+    }
+  }
 }
 
 .warning-helper-text {
