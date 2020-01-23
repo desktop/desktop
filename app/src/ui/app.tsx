@@ -111,6 +111,7 @@ import { WorkflowPushRejectedDialog } from './workflow-push-rejected/workflow-pu
 import { getUncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
 import { SAMLReauthRequiredDialog } from './saml-reauth-required/saml-reauth-required'
 import { CreateForkDialog } from './forks/create-fork-dialog'
+import { ForkUnready } from './forks/fork-unready'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1885,6 +1886,14 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             account={popup.account}
+          />
+        )
+      case PopupType.ForkUnready:
+        return (
+          <ForkUnready
+            onDismissed={this.onPopupDismissed}
+            dispatcher={this.props.dispatcher}
+            retryAction={popup.retryAction}
           />
         )
       default:
