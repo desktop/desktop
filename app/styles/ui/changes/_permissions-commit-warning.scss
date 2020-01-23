@@ -1,6 +1,6 @@
 @import '../../mixins';
 
-#protected-branch {
+#permissions-commit-warning {
   border-top: 1px solid var(--box-border-color);
   flex-direction: column;
   flex-shrink: 0;
@@ -21,12 +21,12 @@
     }
   }
 
-  .protected-branch-icon-container {
+  .warning-icon-container {
     height: 20px;
     position: relative;
     text-align: center;
 
-    .protected-branch-icon {
+    .warning-icon {
       color: var(--dialog-warning-color);
 
       background: var(--box-alt-background-color);

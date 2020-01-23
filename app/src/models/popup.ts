@@ -1,4 +1,4 @@
-import { Repository } from './repository'
+import { Repository, RepositoryWithGitHubRepository } from './repository'
 import { PullRequest } from './pull-request'
 import { Branch } from './branch'
 import { ReleaseSummary } from './release-notes'
@@ -53,6 +53,8 @@ export enum PopupType {
   CreateTutorialRepository,
   ConfirmExitTutorial,
   PushRejectedDueToMissingWorkflowScope,
+  SAMLReauthRequired,
+  CreateFork,
 }
 
 export type Popup =
@@ -86,12 +88,7 @@ export type Popup =
   | {
       type: PopupType.CreateBranch
       repository: Repository
-
-      /**
-       * A flag to indicate the user clicked the "switch branch" link when they
-       * saw the prompt about the current branch being protected.
-       */
-      handleProtectedBranchWarning?: boolean
+      currentBranchProtected: boolean
 
       initialName?: string
     }
@@ -210,4 +207,15 @@ export type Popup =
       type: PopupType.PushRejectedDueToMissingWorkflowScope
       rejectedPath: string
       repository: Repository
+    }
+  | {
+      type: PopupType.SAMLReauthRequired
+      organizationName: string
+      endpoint: string
+      retryAction?: RetryAction
+    }
+  | {
+      type: PopupType.CreateFork
+      repository: RepositoryWithGitHubRepository
+      account: Account
     }

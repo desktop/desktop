@@ -1,8 +1,6 @@
 // tslint:disable:button-group-order
 
 import * as React from 'react'
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
@@ -11,6 +9,7 @@ import { WorkingDirectoryFileChange } from '../../models/status'
 import { PathText } from '../lib/path-text'
 import { Monospaced } from '../lib/monospaced'
 import { DefaultCommitMessage } from '../../models/commit-message'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface ICommitConflictsWarningProps {
   readonly dispatcher: Dispatcher
@@ -63,7 +62,6 @@ export class CommitConflictsWarning extends React.Component<
     return (
       <Dialog
         id="commit-conflict-markers-warning"
-        dismissable={false}
         onDismissed={this.onCancel}
         onSubmit={this.onSubmit}
         title={'Confirm committing conflicted files'}
@@ -78,10 +76,12 @@ export class CommitConflictsWarning extends React.Component<
           <p>Are you sure you want to commit these conflicted files?</p>
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup>
-            <Button onClick={this.onCancel}>Cancel</Button>
-            <Button type="submit">Yes, commit files</Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            destructive={true}
+            okButtonText={
+              __DARWIN__ ? 'Yes, Commit Files' : 'Yes, commit files'
+            }
+          />
         </DialogFooter>
       </Dialog>
     )

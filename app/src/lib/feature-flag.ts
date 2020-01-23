@@ -99,7 +99,7 @@ export function enableWSLDetection(): boolean {
  * flag is linked to to `enableBranchProtectionChecks()`.
  */
 export function enableBranchProtectionWarningFlow(): boolean {
-  return enableBranchProtectionChecks() && enableDevelopmentFeatures()
+  return true
 }
 
 export function enableHideWhitespaceInDiffOption(): boolean {
@@ -112,4 +112,11 @@ export function enableHideWhitespaceInDiffOption(): boolean {
  */
 export function enableTutorial(): boolean {
   return true
+}
+
+/**
+ * Should we show the create fork dialog flow?
+ */
+export function enableCreateForkFlow(): boolean {
+  return enableBetaFeatures()
 }

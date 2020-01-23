@@ -1,5 +1,60 @@
 {
   "releases": {
+    "2.3.0-beta1": [
+      "[New] Prompt users to make a fork if they fail to push to a GitHub repository due to permissions  - #8548",
+      "[Added] Show a commit warning if the user can't push to the repository - #8938",
+      "[Fixed] Route the user to the correct URL when opening a pull request from a fork in the browser - #8928",
+      "[Improved] Only show branch protection warning when changed files are present - #8795",
+      "[Improved] Show an error when editing a git configuration file fails due to existing lock file - #8956"
+    ],
+    "2.2.5-beta1": [
+      "[Added] Users can configure Desktop to always bring or leave changes when switching branches - #7746",
+      "[Added] Prompt users to re-authorize if required by any of their GitHub organizations - #8910",
+      "[Fixed] Recognize if the current branch of a fork has a pull request to the upstream repo - #8549",
+      "[Fixed] Remove false branch protection warning when switching branches - #8743",
+      "[Added] Support GoLand as external editor on Mac - #8802. Thanks @thinklinux!",
+      "[Fixed] Update branch protection state for checkout outside of Desktop - #8790",
+      "[Improved] Re-designed preferences dialog - #8774"
+    ],
+    "2.2.5-test1": ["[Fixed] Sign Windows installers using SHA256 file digest"],
+    "2.2.4": [
+      "[New] Warn when committing to a protected branch - #7023",
+      "[New] Warn when committing to a repository you don't have write access to - #8665",
+      "[Added] Adding integration for Xcode as external editor - #8255. Thanks @msztech!",
+      "[Fixed] Update embedded Git to address security vulnerabilities - #8780",
+      "[Fixed] Changed wording to match git autocrlf behavior - #5741. Thanks @jmhammock!",
+      "[Fixed] Don't dismiss dialogs when dragging from the dialog to the backdrop - #8544",
+      "[Fixed] Fix arrow key navigation of Changes and History lists (#6845) - #6845. Thanks @JMcKiern!",
+      "[Fixed] Handle multibyte characters in names - #8534",
+      "[Fixed] Keep PR badge on top of progress bar - #8622",
+      "[Fixed] Prevent application crash when background process spawn fails - #8614",
+      "[Fixed] Show autocomplete suggestions on top of CodeMirror author input - #4084",
+      "[Fixed] Standardize dialogs' button orders - #7186 #2463 #5883",
+      "[Improved] Make no newline indicator in file diffs readable by screenreaders. - #6494. Thanks @jmhammock!"
+    ],
+    "2.2.4-beta4": [
+      "[Fixed] Update embedded Git to address security vulnerabilities - #8780"
+    ],
+    "2.2.4-beta3": [
+      "[Fixed] Make newly cloned repositories load pull requests correctly - #8745",
+      "[Improved] Make no newline indicator in file diffs readable by screenreaders. - #6494. Thanks @jmhammock!"
+    ],
+    "2.2.4-beta2": [
+      "[Added] Adding integration for Xcode as external editor - #8255. Thanks @msztech!",
+      "[Fixed] Changed wording to match git autocrlf behavior - #5741. Thanks @jmhammock!",
+      "[Fixed] Fix arrow key navigation of Changes and History lists (#6845) - #6845. Thanks @JMcKiern!",
+      "[Fixed] Standardize dialogs' button orders - #7186 #2463 #5883",
+      "[Fixed] Keep PR badge on top of progress bar - #8622",
+      "[Fixed] Show autocomplete suggestions on top of CodeMirror author input - #4084",
+      "[Improved] Warn user if they're committing to a repo they don't have write permission for - #8665",
+      "[Improved] Don't prompt to stash changes when switching away from protected branch - #8664"
+    ],
+    "2.2.4-beta1": [
+      "[New] Warn when committing to a protected branch - #7023",
+      "[Fixed] Prevent application crash when background process spawn fails - #8614",
+      "[Fixed] Handle multibyte characters in names - #8534",
+      "[Fixed] Don't dismiss dialogs when dragging from the dialog to the backdrop - #8544"
+    ],
     "2.2.3": [
       "[Fixed] Prevent text overflow in crash dialog - #8542",
       "[Fixed] Address warnings on macOS Catalina preventing app from opening after install - #8555",

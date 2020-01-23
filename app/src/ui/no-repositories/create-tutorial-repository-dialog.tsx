@@ -3,8 +3,6 @@ import * as URL from 'url'
 import * as Path from 'path'
 
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Account } from '../../models/account'
 import {
   getDotComAPIEndpoint,
@@ -26,6 +24,7 @@ import { Progress } from '../../models/progress'
 import { Dispatcher } from '../dispatcher'
 import { APIError } from '../../lib/http'
 import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface ICreateTutorialRepositoryDialogProps {
   /**
@@ -184,7 +183,7 @@ export class CreateTutorialRepositoryDialog extends React.Component<
 
       if (await pathExists(path)) {
         throw new Error(
-          `The path ${path} already exists. Please move it ` +
+          `The path '${path}' already exists. Please move it ` +
             'out of the way, or remove it, and then try again.'
         )
       }
@@ -243,10 +242,6 @@ export class CreateTutorialRepositoryDialog extends React.Component<
     })
   }
 
-  public onCancel = () => {
-    this.props.onDismissed()
-  }
-
   private renderProgress() {
     if (this.state.progress === undefined) {
       return null
@@ -273,7 +268,7 @@ export class CreateTutorialRepositoryDialog extends React.Component<
       <Dialog
         id="create-tutorial-repository-dialog"
         title="Start tutorial"
-        onDismissed={this.onCancel}
+        onDismissed={this.props.onDismissed}
         onSubmit={this.onSubmit}
         dismissable={!this.state.loading}
         loading={this.state.loading}
@@ -292,10 +287,7 @@ export class CreateTutorialRepositoryDialog extends React.Component<
           {this.renderProgress()}
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup>
-            <Button type="submit">Continue</Button>
-            <Button onClick={this.onCancel}>Cancel</Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup okButtonText="Continue" />
         </DialogFooter>
       </Dialog>
     )

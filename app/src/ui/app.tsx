@@ -108,6 +108,9 @@ import { enableTutorial } from '../lib/feature-flag'
 import { ConfirmExitTutorial } from './tutorial'
 import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { WorkflowPushRejectedDialog } from './workflow-push-rejected/workflow-push-rejected'
+import { getUncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
+import { SAMLReauthRequiredDialog } from './saml-reauth-required/saml-reauth-required'
+import { CreateForkDialog } from './forks/create-fork-dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1272,6 +1275,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             branch={popup.branch}
             stash={stash}
+            onDismissed={this.onPopupDismissed}
           />
         )
       case PopupType.DeleteBranch:
@@ -1325,6 +1329,9 @@ export class App extends React.Component<IAppProps, IAppState> {
               this.state.askForConfirmationOnDiscardChanges
             }
             confirmForcePush={this.state.askForConfirmationOnForcePush}
+            uncommittedChangesStrategyKind={
+              this.state.uncommittedChangesStrategyKind
+            }
             selectedExternalEditor={this.state.selectedExternalEditor}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             enterpriseAccount={this.getEnterpriseAccount()}
@@ -1421,6 +1428,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.CreateBranch: {
         const state = this.props.repositoryStateManager.get(popup.repository)
         const branchesState = state.branchesState
+        const currentBranchProtected = state.changesState.currentBranchProtected
         const repository = popup.repository
 
         if (branchesState.tip.kind === TipState.Unknown) {
@@ -1438,7 +1446,10 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
             initialName={popup.initialName || ''}
-            handleProtectedBranchWarning={popup.handleProtectedBranchWarning}
+            currentBranchProtected={currentBranchProtected}
+            selectedUncommittedChangesStrategy={getUncommittedChangesStrategy(
+              this.state.uncommittedChangesStrategyKind
+            )}
           />
         )
       }
@@ -1855,6 +1866,25 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
           />
         )
+      case PopupType.SAMLReauthRequired:
+        return (
+          <SAMLReauthRequiredDialog
+            onDismissed={this.onPopupDismissed}
+            organizationName={popup.organizationName}
+            endpoint={popup.endpoint}
+            retryAction={popup.retryAction}
+            dispatcher={this.props.dispatcher}
+          />
+        )
+      case PopupType.CreateFork:
+        return (
+          <CreateForkDialog
+            onDismissed={this.onPopupDismissed}
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            account={popup.account}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -2259,9 +2289,13 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const repository = selection.repository
 
+    const state = this.props.repositoryStateManager.get(repository)
+    const currentBranchProtected = state.changesState.currentBranchProtected
+
     return this.props.dispatcher.showPopup({
       type: PopupType.CreateBranch,
       repository,
+      currentBranchProtected,
     })
   }
 
@@ -2307,16 +2341,13 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const currentFoldout = this.state.currentFoldout
 
-    let isOpen = false
-    let handleProtectedBranchWarning: boolean | undefined
-
-    if (currentFoldout !== null && currentFoldout.type === FoldoutType.Branch) {
-      isOpen = true
-      handleProtectedBranchWarning = currentFoldout.handleProtectedBranchWarning
-    }
+    const isOpen =
+      currentFoldout !== null && currentFoldout.type === FoldoutType.Branch
 
     const repository = selection.repository
-    const branchesState = selection.state.branchesState
+    const { branchesState, changesState } = selection.state
+    const hasAssociatedStash = changesState.stashEntry !== null
+    const hasChanges = changesState.workingDirectory.files.length > 0
 
     return (
       <BranchDropdown
@@ -2329,10 +2360,13 @@ export class App extends React.Component<IAppProps, IAppState> {
         pullRequests={branchesState.openPullRequests}
         currentPullRequest={branchesState.currentPullRequest}
         isLoadingPullRequests={branchesState.isLoadingPullRequests}
-        handleProtectedBranchWarning={handleProtectedBranchWarning}
         shouldNudge={
           this.state.currentOnboardingTutorialStep === TutorialStep.CreateBranch
         }
+        selectedUncommittedChangesStrategy={getUncommittedChangesStrategy(
+          this.state.uncommittedChangesStrategyKind
+        )}
+        couldOverwriteStash={hasChanges && hasAssociatedStash}
       />
     )
   }

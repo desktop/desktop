@@ -63,9 +63,14 @@ export function spawn(
     const child = spawnInternal(command, args as string[])
     return new Promise<string>((resolve, reject) => {
       let stdout = ''
-      child.stdout.on('data', data => {
-        stdout += data
-      })
+
+      // If Node.js encounters a synchronous runtime error while spawning
+      // `stdout` will be undefined and the error will be emitted asynchronously
+      if (child.stdout) {
+        child.stdout.on('data', data => {
+          stdout += data
+        })
+      }
 
       child.on('close', code => {
         if (code === 0) {
@@ -79,10 +84,12 @@ export function spawn(
         reject(err)
       })
 
-      // This is necessary if using Powershell 2 on Windows 7 to get the events
-      // to raise.
-      // See http://stackoverflow.com/questions/9155289/calling-powershell-from-nodejs
-      child.stdin.end()
+      if (child.stdin) {
+        // This is necessary if using Powershell 2 on Windows 7 to get the events
+        // to raise.
+        // See http://stackoverflow.com/questions/9155289/calling-powershell-from-nodejs
+        child.stdin.end()
+      }
     })
   } catch (error) {
     return Promise.reject(error)

@@ -176,7 +176,7 @@ export class PullRequestList extends React.Component<
         author={pr.author}
         matches={matches}
         dispatcher={this.props.dispatcher}
-        repository={this.props.repository}
+        repository={pr.base.gitHubRepository}
       />
     )
   }
