@@ -20,6 +20,7 @@ import { getDotComAPIEndpoint } from '../../lib/api'
 import { hasWritePermission } from '../../models/github-repository'
 import { enableCreateForkFlow } from '../../lib/feature-flag'
 import { RetryActionType } from '../../models/retry-actions'
+import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -625,6 +626,37 @@ export async function insufficientGitHubRepoPermissions(
   dispatcher.showCreateForkDialog(repository)
 
   return null
+}
+
+const forkUnreadyErrorMessageRe = /fatal: remote error: access denied or repository not exported: (.+)/s
+
+/**
+ * Detects errors that result from a fork that has been created via the API,
+ * but isn't ready yet. (Forks are created asynchronously via the API.)
+ *
+ * For now this handler only logs the error and passes it on.
+ */
+export async function forkUnreadyHandler(error: Error, dispatcher: Dispatcher) {
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError) {
+    return error
+  }
+
+  const match = forkUnreadyErrorMessageRe.exec(gitError.result.stderr)
+
+  if (!match) {
+    return error
+  }
+
+  log.error(`Encountered fork unready error (${gitError.result.stderr})`)
+  sendNonFatalException('forkUnready', gitError)
+
+  return error
 }
 
 /**
