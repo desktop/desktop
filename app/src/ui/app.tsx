@@ -1893,6 +1893,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <ForkUnready
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
+            repository={popup.repository}
             retryAction={popup.retryAction}
           />
         )

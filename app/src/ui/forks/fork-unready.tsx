@@ -4,13 +4,16 @@ import {
   DialogContent,
   DialogFooter,
   OkCancelButtonGroup,
+  DefaultDialogFooter,
 } from '../dialog'
 import { Dispatcher } from '../dispatcher'
-import { RetryAction, RetryActionType } from '../../models/retry-actions'
+import { RetryAction } from '../../models/retry-actions'
+import { RepositoryWithGitHubRepository } from '../../models/repository'
 
 interface IForkUnreadyProps {
   readonly dispatcher: Dispatcher
-  readonly retryAction: RetryAction
+  readonly repository: RepositoryWithGitHubRepository
+  readonly retryAction?: RetryAction
   readonly onDismissed: () => void
 }
 
@@ -20,12 +23,6 @@ interface IForkUnreadyProps {
  */
 export class ForkUnready extends React.Component<IForkUnreadyProps> {
   public render() {
-    const repoName =
-      this.props.retryAction.type !== RetryActionType.Clone &&
-      this.props.retryAction.repository.gitHubRepository !== null
-        ? this.props.retryAction.repository.gitHubRepository.fullName
-        : 'your GitHub repository'
-
     return (
       <Dialog
         title={__DARWIN__ ? 'Fork Not Yet Available' : 'Fork not yet available'}
@@ -34,18 +31,30 @@ export class ForkUnready extends React.Component<IForkUnreadyProps> {
         type="error"
       >
         <DialogContent>
-          {`We were unable to reach ${repoName} because fork
+          {`We were unable to reach ${
+            this.props.repository.gitHubRepository.fullName
+          } because fork
           creation hasn't completed on GitHub. Please retry in just a moment.`}
         </DialogContent>
-        <DialogFooter>
-          <OkCancelButtonGroup okButtonText="Retry" />
-        </DialogFooter>
+        {this.renderFooter()}
       </Dialog>
     )
   }
 
+  private renderFooter() {
+    return this.props.retryAction !== undefined ? (
+      <DialogFooter>
+        <OkCancelButtonGroup okButtonText="Retry" />
+      </DialogFooter>
+    ) : (
+      <DefaultDialogFooter />
+    )
+  }
+
   private onSubmit = () => {
-    this.props.dispatcher.performRetry(this.props.retryAction)
+    if (this.props.retryAction !== undefined) {
+      this.props.dispatcher.performRetry(this.props.retryAction)
+    }
     this.props.onDismissed()
   }
 }

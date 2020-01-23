@@ -222,5 +222,6 @@ export type Popup =
     }
   | {
       type: PopupType.ForkUnready
-      retryAction: RetryAction
+      repository: RepositoryWithGitHubRepository
+      retryAction?: RetryAction
     }

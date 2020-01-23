@@ -630,12 +630,6 @@ export async function insufficientGitHubRepoPermissions(
 
 const forkUnreadyErrorMessageRe = /fatal: remote error: access denied or repository not exported: (.+)/s
 
-const forkUnreadyRetryTypes = new Set([
-  RetryActionType.Fetch,
-  RetryActionType.Push,
-  RetryActionType.Pull,
-])
-
 /**
  * Detects errors that result from a fork that has been created via the API,
  * but isn't ready yet. (Forks are created asynchronously via the API.)
@@ -662,19 +656,20 @@ export async function forkUnreadyHandler(error: Error, dispatcher: Dispatcher) {
   log.error(`Encountered fork unready error (${gitError.result.stderr})`)
   sendNonFatalException('forkUnready', gitError)
 
-  const { retryAction } = e.metadata
-  if (
-    retryAction === undefined ||
-    !forkUnreadyRetryTypes.has(retryAction.type)
-  ) {
-    return error
-  }
-
   if (!enableCreateForkFlow()) {
     return error
   }
 
-  dispatcher.showPopup({ type: PopupType.ForkUnready, retryAction })
+  const { repository, retryAction } = e.metadata
+
+  if (
+    !(repository instanceof Repository) ||
+    !isRepositoryWithGitHubRepository(repository)
+  ) {
+    return error
+  }
+
+  dispatcher.showPopup({ type: PopupType.ForkUnready, repository, retryAction })
 
   return null
 }
