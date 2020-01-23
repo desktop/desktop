@@ -15,6 +15,7 @@ import { GitError as GitErrorType } from 'dugite'
 import { Popup, PopupType } from '../models/popup'
 import { CSSTransitionGroup } from 'react-transition-group'
 import { OkCancelButtonGroup } from './dialog/ok-cancel-button-group'
+import { ErrorWithMetadata } from '../lib/error-with-metadata'
 
 interface IAppErrorProps {
   /** The list of queued, app-wide, errors  */
