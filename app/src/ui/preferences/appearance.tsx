@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { supportsDarkMode, isDarkModeEnabled } from '../lib/dark-theme'
+import { isDarkModeEnabled } from '../lib/dark-theme'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Row } from '../lib/row'
 import { DialogContent } from '../dialog'
@@ -75,10 +75,6 @@ export class Appearance extends React.Component<IAppearanceProps, {}> {
   }
 
   public renderAutoSwitcherOption() {
-    if (!supportsDarkMode()) {
-      return null
-    }
-
     return (
       <Row>
         <Checkbox

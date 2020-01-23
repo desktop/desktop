@@ -1,7 +1,7 @@
 import { remote } from 'electron'
 import { ApplicationTheme } from './application-theme'
 import { IDisposable, Disposable, Emitter } from 'event-kit'
-import { supportsDarkMode, isDarkModeEnabled } from './dark-theme'
+import { isDarkModeEnabled } from './dark-theme'
 
 class ThemeChangeMonitor implements IDisposable {
   private readonly emitter = new Emitter()
@@ -17,10 +17,6 @@ class ThemeChangeMonitor implements IDisposable {
   }
 
   private subscribe = () => {
-    if (!supportsDarkMode()) {
-      return
-    }
-
     this.subscriptionID = remote.systemPreferences.subscribeNotification(
       'AppleInterfaceThemeChangedNotification',
       this.onThemeNotificationFromOS
