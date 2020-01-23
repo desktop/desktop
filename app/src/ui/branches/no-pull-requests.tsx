@@ -13,8 +13,15 @@ interface INoPullRequestsProps {
   /** The name of the repository. */
   readonly repositoryName: string
 
-  /** The name of the GitHubRepository's parent, if it has one. */
+  /** The name of the GitHubRepository's parent.
+   * `null` if there is no parent.
+   */
   readonly upstreamRepositoryName: string | null
+
+  /** The URL of the GitHubRepository's parent's pull request list.
+   * `null` if there is no parent.
+   */
+  readonly upstreamPullRequestsUrl: string | null
 
   /** The currently selected pull request */
   readonly selectedPullRequest: PullRequest | null
@@ -85,12 +92,15 @@ export class NoPullRequests extends React.Component<INoPullRequestsProps, {}> {
       )
     } else if (
       this.props.selectedPullRequest !== null &&
-      this.props.upstreamRepositoryName !== null
+      this.props.upstreamRepositoryName !== null &&
+      this.props.upstreamPullRequestsUrl !== null
     ) {
       return (
         <div className="call-to-action">
-          Would you like to <LinkButton>show your pull request</LinkButton> in{' '}
-          <strong>{this.props.upstreamRepositoryName}</strong>?
+          <LinkButton uri={this.props.upstreamPullRequestsUrl}>
+            View pull requests for{' '}
+            <strong>{this.props.upstreamRepositoryName}</strong> on GitHub
+          </LinkButton>
         </div>
       )
     } else {

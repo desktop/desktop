@@ -160,6 +160,12 @@ export class PullRequestList extends React.Component<
             ? this.props.repository.parent.fullName
             : null
         }
+        upstreamPullRequestsUrl={
+          this.props.repository.parent !== null &&
+          this.props.repository.parent.htmlURL !== null
+            ? `${this.props.repository.parent.htmlURL}/pulls`
+            : null
+        }
         selectedPullRequest={this.props.selectedPullRequest}
         isOnDefaultBranch={this.props.isOnDefaultBranch}
         onCreateBranch={this.props.onCreateBranch}
