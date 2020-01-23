@@ -45,6 +45,8 @@ interface IAppErrorState {
  * in the order they were queued.
  */
 export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
+  private dialogContent: HTMLDivElement | null = null
+
   public constructor(props: IAppErrorProps) {
     super(props)
     this.state = {
@@ -147,10 +149,16 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
         onDismissed={this.onDismissed}
         disabled={this.state.disabled}
       >
-        <DialogContent>{this.renderErrorMessage(error)}</DialogContent>
+        <DialogContent onRef={this.onDialogContentRef}>
+          {this.renderErrorMessage(error)}
+        </DialogContent>
         {this.renderFooter(error)}
       </Dialog>
     )
+  }
+
+  private onDialogContentRef = (ref: HTMLDivElement | null) => {
+    this.dialogContent = ref
   }
 
   private onCloseButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
