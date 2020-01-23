@@ -11,6 +11,7 @@ import { getDotComAPIEndpoint } from '../api'
 import { IGitAccount } from '../../models/git-account'
 
 import * as GitPerf from '../../ui/lib/git-perf'
+import * as Path from 'path'
 import { Repository } from '../../models/repository'
 import { getConfigValue, getGlobalConfigValue } from './config'
 import { isErrnoException } from '../errno-exception'
@@ -52,6 +53,13 @@ export interface IGitResult extends DugiteResult {
 
   /** The human-readable error description, based on `gitError`. */
   readonly gitErrorDescription: string | null
+
+  /**
+   * The path that the Git command was executed from, i.e. the
+   * process working directory (not to be confused with the Git
+   * working directory which is... super confusing, I know)
+   */
+  readonly path: string
 }
 
 function getResultMessage(result: IGitResult) {
@@ -146,7 +154,7 @@ export async function git(
   }
 
   const gitErrorDescription = gitError ? getDescriptionForError(gitError) : null
-  const gitResult = { ...result, gitError, gitErrorDescription }
+  const gitResult = { ...result, gitError, gitErrorDescription, path }
 
   let acceptableError = true
   if (gitError && opts.expectedErrors) {
@@ -203,6 +211,43 @@ export function isAuthFailureError(
       return true
   }
   return false
+}
+
+/**
+ * Determine whether the provided `error` is an error from Git indicating
+ * that a configuration file  write failed due to a lock file already
+ * existing for that config file.
+ */
+export function isConfigFileLockError(error: Error): error is GitError {
+  return (
+    error instanceof GitError &&
+    error.result.gitError === DugiteError.ConfigLockFileAlreadyExists
+  )
+}
+
+const lockFilePathRe = /^error: could not lock config file (.+?): File exists$/m
+
+/**
+ * If the `result` is associated with an config lock file error (as determined
+ * by `isConfigFileLockError`) this method will attempt to extract an absoluet
+ * path (i.e. rooted) to the configuration lock file in question from the Git
+ * output.
+ */
+export function parseConfigLockFilePathFromError(result: IGitResult) {
+  const match = lockFilePathRe.exec(result.stderr)
+
+  if (match === null) {
+    return null
+  }
+
+  // Git on Windows may print the config file path using forward slashes.
+  // Luckily for us forward slashes are not allowed in Windows file or
+  // directory names so we can simply replace any instance of forward
+  // slashes with backslashes.
+  const normalized = __WIN32__ ? match[1].replace('/', '\\') : match[1]
+
+  // https://github.com/git/git/blob/232378479/lockfile.h#L117-L119
+  return Path.resolve(result.path, `${normalized}.lock`)
 }
 
 function getDescriptionForError(error: DugiteError): string | null {

@@ -5,6 +5,8 @@ import { Ref } from '../lib/ref'
 import { Repository } from '../../models/repository'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
+const okButtonText = __DARWIN__ ? 'Continue in Browser' : 'Continue in browser'
+
 interface IWorkflowPushRejectedDialogProps {
   readonly rejectedPath: string
   readonly repository: Repository
@@ -31,6 +33,7 @@ export class WorkflowPushRejectedDialog extends React.Component<
   public render() {
     return (
       <Dialog
+        id="workflow-push-rejected"
         title={__DARWIN__ ? 'Push Rejected' : 'Push rejected'}
         loading={this.state.loading}
         onDismissed={this.props.onDismissed}
@@ -40,7 +43,7 @@ export class WorkflowPushRejectedDialog extends React.Component<
         <DialogContent>
           <p>
             The push was rejected by the server for containing a modification to
-            a workflow file ( <Ref>{this.props.rejectedPath}</Ref>). In order to
+            the workflow file <Ref>{this.props.rejectedPath}</Ref>. In order to
             be able to push to workflow files GitHub Desktop needs to request
             additional permissions.
           </p>
@@ -50,7 +53,7 @@ export class WorkflowPushRejectedDialog extends React.Component<
           </p>
         </DialogContent>
         <DialogFooter>
-          <OkCancelButtonGroup okButtonText="Grant" />
+          <OkCancelButtonGroup okButtonText={okButtonText} />
         </DialogFooter>
       </Dialog>
     )
