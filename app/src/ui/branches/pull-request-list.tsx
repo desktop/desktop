@@ -52,6 +52,9 @@ interface IPullRequestListProps {
   /** Called when the user opts to create a pull request */
   readonly onCreatePullRequest: () => void
 
+  /** Called when the user opts to view a pull request */
+  readonly onShowPullRequest: () => void
+
   /** Called to render content after the filter. */
   readonly renderPostFilter?: () => JSX.Element | null
 
@@ -164,6 +167,7 @@ export class PullRequestList extends React.Component<
         isOnDefaultBranch={this.props.isOnDefaultBranch}
         onCreateBranch={this.props.onCreateBranch}
         onCreatePullRequest={this.props.onCreatePullRequest}
+        onShowPullRequest={this.props.onShowPullRequest}
       />
     )
   }
