@@ -198,8 +198,10 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   }
 
   private renderFooter(error: Error) {
-    if (error instanceof GitError) {
-      return this.renderGitErrorFooter(error)
+    const e = error instanceof ErrorWithMetadata ? error.underlyingError : error
+
+    if (e instanceof GitError) {
+      return this.renderGitErrorFooter(e)
     }
 
     return <DefaultDialogFooter onButtonClick={this.onCloseButtonClick} />
