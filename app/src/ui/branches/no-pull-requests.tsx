@@ -31,9 +31,6 @@ interface INoPullRequestsProps {
   /** Called when the user wants to create a pull request. */
   readonly onCreatePullRequest: () => void
 
-  /** Called when the user wants to view the current pull request. */
-  readonly onShowPullRequest: () => void
-
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
 }
@@ -92,11 +89,8 @@ export class NoPullRequests extends React.Component<INoPullRequestsProps, {}> {
     ) {
       return (
         <div className="call-to-action">
-          Would you like to{' '}
-          <LinkButton onClick={this.props.onShowPullRequest}>
-            show your pull request
-          </LinkButton>{' '}
-          in <strong>{this.props.upstreamRepositoryName}</strong>?
+          Would you like to <LinkButton>show your pull request</LinkButton> in{' '}
+          <strong>{this.props.upstreamRepositoryName}</strong>?
         </div>
       )
     } else {

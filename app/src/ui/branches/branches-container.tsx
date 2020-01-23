@@ -206,7 +206,6 @@ export class BranchesContainer extends React.Component<
         filterText={this.state.pullRequestFilterText}
         onFilterTextChanged={this.onPullRequestFilterTextChanged}
         onItemClick={this.onPullRequestClicked}
-        onShowPullRequest={this.onShowPullRequest}
         onDismiss={this.onDismiss}
         renderPostFilter={this.renderPullRequestPostFilter}
         dispatcher={this.props.dispatcher}
@@ -330,11 +329,6 @@ export class BranchesContainer extends React.Component<
   private onCreatePullRequest = () => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
     this.props.dispatcher.createPullRequest(this.props.repository)
-  }
-
-  private onShowPullRequest = () => {
-    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
-    this.props.dispatcher.showPullRequest(this.props.repository)
   }
 
   private onPullRequestClicked = (pullRequest: PullRequest) => {
