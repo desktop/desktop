@@ -124,7 +124,7 @@ export async function git(
   }
 
   const opts = { ...defaultOptions, ...options }
-  opts.env = { TERM: 'dumb', ...opts.env }
+  opts.env = { TERM: undefined, ...opts.env }
 
   const commandName = `${name}: git ${args.join(' ')}`
 
