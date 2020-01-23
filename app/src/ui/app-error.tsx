@@ -178,6 +178,19 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     }
   }
 
+  public componentDidMount() {
+    this.scrollToBottomOfGitErrorMessage()
+  }
+
+  public componentDidUpdate(
+    prevProps: IAppErrorProps,
+    prevState: IAppErrorState
+  ) {
+    if (prevState.error !== this.state.error) {
+      this.scrollToBottomOfGitErrorMessage()
+    }
+  }
+
   private onCloseButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
     this.onDismissed()
