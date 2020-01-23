@@ -58,7 +58,7 @@ but **not** this
 
 ## Tags 🛄
 
-We use four different tags to organize our release notes: [New], [Added], [Fixed], [Improved], [Removed]. Here's when to use which one.
+We use four different tags to organize our release notes: `[New]`, `[Added]`, `[Fixed]`, `[Improved]`, `[Removed]`. Here's when to use which one.
 
 These aren't hard and fast rules or categories, 🙃 so utilize with your own judgment and nuance.
 
