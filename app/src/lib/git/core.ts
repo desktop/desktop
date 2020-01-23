@@ -124,11 +124,12 @@ export async function git(
   }
 
   const opts = { ...defaultOptions, ...options }
+  opts.env = { TERM: 'dumb', ...opts.env }
 
   const commandName = `${name}: git ${args.join(' ')}`
 
   const result = await GitPerf.measure(commandName, () =>
-    GitProcess.exec(args, path, options)
+    GitProcess.exec(args, path, opts)
   ).catch(err => {
     // If this is an exception thrown by Node.js (as opposed to
     // dugite) let's keep the salient details but include the name of
