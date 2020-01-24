@@ -12,7 +12,14 @@ import { IUiActivityMonitor } from '../../ui/lib/ui-activity-monitor'
 import { Disposable } from 'event-kit'
 import { SignInMethod } from '../stores'
 import { assertNever } from '../fatal-error'
-import { getNumber, setNumber, getBoolean, setBoolean } from '../local-storage'
+import {
+  getNumber,
+  setNumber,
+  getBoolean,
+  setBoolean,
+  getNumberArray,
+  setNumberArray,
+} from '../local-storage'
 import { PushOptions } from '../git'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
@@ -40,6 +47,9 @@ const FirstNonDefaultBranchCheckoutAtKey =
 const WelcomeWizardSignInMethodKey = 'welcome-wizard-sign-in-method'
 const terminalEmulatorKey = 'shell'
 const textEditorKey: string = 'externalEditor'
+
+const RepositoriesCommittedInWithoutWriteAccessKey =
+  'repositories-committed-in-without-write-access'
 
 /** How often daily stats should be submitted (i.e., 24 hours). */
 const DailyStatsReportInterval = 1000 * 60 * 60 * 24
@@ -282,6 +292,12 @@ interface ICalculatedStats {
   readonly selectedTextEditor: string
 
   readonly eventType: 'usage'
+
+  /**
+   * _[Forks]_
+   * How many repos did the user commit in without having `write` access?
+   */
+  readonly repositoriesCommittedInWithoutWriteAccess: number
 }
 
 type DailyStats = ICalculatedStats &
@@ -433,6 +449,9 @@ export class StatsStore implements IStatsStore {
     const selectedTerminalEmulator =
       localStorage.getItem(terminalEmulatorKey) || 'none'
     const selectedTextEditor = localStorage.getItem(textEditorKey) || 'none'
+    const repositoriesCommittedInWithoutWriteAccess = getNumberArray(
+      RepositoriesCommittedInWithoutWriteAccessKey
+    ).length
 
     return {
       eventType: 'usage',
@@ -448,6 +467,7 @@ export class StatsStore implements IStatsStore {
       ...onboardingStats,
       guid: getGUID(),
       ...repositoryCounts,
+      repositoriesCommittedInWithoutWriteAccess,
     }
   }
 
@@ -1284,6 +1304,18 @@ export class StatsStore implements IStatsStore {
       commitsInRepositoryWithoutWriteAccess:
         m.commitsInRepositoryWithoutWriteAccess + 1,
     }))
+  }
+
+  public recordRepositoryCommitedInWithoutWriteAccess(
+    gitHubRepositoryDbId: number
+  ) {
+    const ids = getNumberArray(RepositoriesCommittedInWithoutWriteAccessKey)
+    if (!ids.includes(gitHubRepositoryDbId)) {
+      setNumberArray(RepositoriesCommittedInWithoutWriteAccessKey, [
+        ...ids,
+        gitHubRepositoryDbId,
+      ])
+    }
   }
 
   public recordForkCreated() {
