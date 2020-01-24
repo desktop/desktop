@@ -80,17 +80,10 @@ export class NoPullRequests extends React.Component<INoPullRequestsProps, {}> {
       )
     }
 
-    if (this.props.isOnDefaultBranch) {
-      return (
-        <div className="call-to-action">
-          Would you like to{' '}
-          <LinkButton onClick={this.props.onCreateBranch}>
-            create a new branch
-          </LinkButton>{' '}
-          and get going on your next project?
-        </div>
-      )
-    } else if (
+    // if there's a current pull request and
+    // there's an upstream github repo, we assume
+    // its an upstream pull request
+    if (
       this.props.selectedPullRequest !== null &&
       this.props.upstreamRepositoryName !== null &&
       this.props.upstreamPullRequestsUrl !== null
@@ -102,6 +95,16 @@ export class NoPullRequests extends React.Component<INoPullRequestsProps, {}> {
           </LinkButton>
           {' for '}
           <strong>{this.props.upstreamRepositoryName}</strong> on GitHub
+        </div>
+      )
+    } else if (this.props.isOnDefaultBranch) {
+      return (
+        <div className="call-to-action">
+          Would you like to{' '}
+          <LinkButton onClick={this.props.onCreateBranch}>
+            create a new branch
+          </LinkButton>{' '}
+          and get going on your next project?
         </div>
       )
     } else {
