@@ -296,6 +296,10 @@ interface ICalculatedStats {
   /**
    * _[Forks]_
    * How many repos did the user commit in without having `write` access?
+   *
+   * This is a hack in that its really a "computed daily measure" and the
+   * moment we have another one of those we should consider refactoring
+   * them into their own interface
    */
   readonly repositoriesCommittedInWithoutWriteAccess: number
 }
@@ -414,6 +418,9 @@ export class StatsStore implements IStatsStore {
     await this.db.launches.clear()
     await this.db.dailyMeasures.clear()
 
+    // This is a one-off, and the moment we have another
+    // computed daily measure we should consider refactoring
+    // them into their own interface
     localStorage.removeItem(RepositoriesCommittedInWithoutWriteAccessKey)
 
     this.enableUiActivityMonitoring()
