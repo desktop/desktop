@@ -2243,4 +2243,11 @@ export class Dispatcher {
   public recordTutorialRepoCreated() {
     return this.statsStore.recordTutorialRepoCreated()
   }
+
+  /**
+   * Fork created
+   */
+  public recordForkCreated() {
+    return this.statsStore.recordForkCreated()
+  }
 }
