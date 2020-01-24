@@ -201,7 +201,14 @@ import { RepositoryStateCache } from './repository-state-cache'
 import { readEmoji } from '../read-emoji'
 import { GitStoreCache } from './git-store-cache'
 import { GitErrorContext } from '../git-error-context'
-import { setNumber, setBoolean, getBoolean, getNumber } from '../local-storage'
+import {
+  setNumber,
+  setBoolean,
+  getBoolean,
+  getNumber,
+  getNumberArray,
+  setNumberArray,
+} from '../local-storage'
 import { ExternalEditorError } from '../editors/shared'
 import { ApiRepositoriesStore } from './api-repositories-store'
 import {
@@ -267,7 +274,6 @@ const RecentRepositoriesKey = 'recently-selected-repositories'
  *  in the repository switcher dropdown
  */
 const RecentRepositoriesLength = 3
-const RecentRepositoriesDelimiter = ','
 
 const defaultSidebarWidth: number = 250
 const sidebarWidthConfigKey: string = 'sidebar-width'
@@ -1481,7 +1487,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     previousRepositoryId: number | null,
     currentRepositoryId: number
   ) {
-    const recentRepositories = this.getStoredRecentRepositories().filter(
+    const recentRepositories = getNumberArray(RecentRepositoriesKey).filter(
       el => el !== currentRepositoryId && el !== previousRepositoryId
     )
     if (previousRepositoryId !== null) {
@@ -1491,28 +1497,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       0,
       RecentRepositoriesLength
     )
-    localStorage.setItem(
-      RecentRepositoriesKey,
-      slicedRecentRepositories.join(RecentRepositoriesDelimiter)
-    )
+    setNumberArray(RecentRepositoriesKey, slicedRecentRepositories)
     this.recentRepositories = slicedRecentRepositories
     this.emitUpdate()
-  }
-
-  private getStoredRecentRepositories() {
-    const storedIds = localStorage.getItem(RecentRepositoriesKey)
-    let storedRepositories: Array<number> = []
-    if (storedIds) {
-      try {
-        storedRepositories = storedIds
-          .split(RecentRepositoriesDelimiter)
-          .map(n => parseInt(n, 10))
-          .filter(n => !isNaN(n))
-      } catch {
-        storedRepositories = []
-      }
-    }
-    return storedRepositories
   }
 
   // finish `_selectRepository`s refresh tasks
