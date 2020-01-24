@@ -2544,6 +2544,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
             }
           }
         }
+
+        if (
+          repository.gitHubRepository !== null &&
+          !hasWritePermission(repository.gitHubRepository)
+        ) {
+          this.statsStore.recordCommitInRepositoryWithoutWriteAccess()
+        }
       }
 
       await this._refreshRepository(repository)
