@@ -414,6 +414,8 @@ export class StatsStore implements IStatsStore {
     await this.db.launches.clear()
     await this.db.dailyMeasures.clear()
 
+    localStorage.removeItem(RepositoriesCommittedInWithoutWriteAccessKey)
+
     this.enableUiActivityMonitoring()
   }
 
