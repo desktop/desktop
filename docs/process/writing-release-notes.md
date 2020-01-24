@@ -42,7 +42,7 @@ but **not**:
 
 ### Present Tense
 
-We can never remember if we're supposed to active, present, or past tense, but I think we're mostly using present.
+We attempt to use present tense unless it significantly reduces clarity.
 
 For example:
 
@@ -66,6 +66,8 @@ These aren't hard and fast rules or categories, 🙃 so utilize with your own ju
 
 [New] is usually reserved for our shiniest features. The note itself might be short and very high level and encapsulate a _lot_ of development work.
 
+A great way to check if we have all the [New] lines we need is to ensure that the lines match the "highlights" or "most important new features" of that given release.
+
 ### [Added]
 
 [Added] is basically [New] but for a smaller feature. Or its just not something that's highlighted as much as the [New] things in this release.
@@ -80,11 +82,11 @@ Good ol' [Fixed], the bread and butter of release notes. We use this to indicate
 
 Somewhere in between [Added] and [Fixed] lies [Improved]. The idea is that we've made an existing feature or part of the app better, but it wasn't necessarily broken before. Think of it like an "enhancement" release note.
 
-Does this sound like [Added]? Is that confusing? Yes.
+Does this sound like [Added]? Is that confusing? Yes. The rule of thumb is that if it's a small new end-to-end piece of functionality, it's [Added]. If it's a change to a portion of a feature, it's [Improved]
 
 ### [Removed]
 
-We rarely use this. Historically, I think it's been primarily used when we've unshipped a feature.
+This describes a feature that is no longer available in the app. We rarely use it.
 
 ## Release Channel
 
