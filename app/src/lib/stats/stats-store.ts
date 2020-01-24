@@ -123,6 +123,8 @@ const DefaultDailyMeasures: IDailyMeasures = {
   tutorialCompleted: false,
   // this is `-1` because `0` signifies "tutorial created"
   highestTutorialStepCompleted: -1,
+  commitsInRepositoryWithoutWriteAccess: 0,
+  forksCreated: 0,
 }
 
 interface IOnboardingStats {
@@ -1274,6 +1276,19 @@ export class StatsStore implements IStatsStore {
         step,
         m.highestTutorialStepCompleted
       ),
+    }))
+  }
+
+  public recordCommitInRepositoryWithoutWriteAccess() {
+    return this.updateDailyMeasures(m => ({
+      commitsInRepositoryWithoutWriteAccess:
+        m.commitsInRepositoryWithoutWriteAccess + 1,
+    }))
+  }
+
+  public recordForkCreated() {
+    return this.updateDailyMeasures(m => ({
+      forksCreated: m.forksCreated + 1,
     }))
   }
 
