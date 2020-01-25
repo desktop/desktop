@@ -1315,6 +1315,13 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  /**
+   * Record that the user made a commit in a repository they don't
+   * have `write` access to. Dedupes based on the database ID provided
+   *
+   * @param gitHubRepositoryDbId database ID for the GitHubRepository of
+   *                             the local repo this commit was made in
+   */
   public recordRepositoryCommitedInWithoutWriteAccess(
     gitHubRepositoryDbId: number
   ) {
