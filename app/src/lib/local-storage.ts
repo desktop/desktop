@@ -103,7 +103,7 @@ export function getNumberArray(key: string): ReadonlyArray<number> {
     try {
       values = numbersAsText
         .split(NumberArrayDelimiter)
-        .map(n => parseFloat(n))
+        .map(parseFloat)
         .filter(n => !isNaN(n))
     } catch {
       // clear array, just in case
