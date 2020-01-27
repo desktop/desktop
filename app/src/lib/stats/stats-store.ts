@@ -1279,7 +1279,7 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  public recordCommitInRepositoryWithoutWriteAccess() {
+  public recordCommitToRepositoryWithoutWriteAccess() {
     return this.updateDailyMeasures(m => ({
       commitsToRepositoryWithoutWriteAccess:
         m.commitsToRepositoryWithoutWriteAccess + 1,
