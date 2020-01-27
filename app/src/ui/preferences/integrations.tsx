@@ -141,7 +141,7 @@ export class Integrations extends React.Component<
       <DialogContent>
         <h2>Applications</h2>
         <Row>{this.renderExternalEditor()}</Row>
-        <Row>{this.onSelectedShellChanged()}</Row>
+        <Row>{this.renderSelectedShell()}</Row>
       </DialogContent>
     )
   }
