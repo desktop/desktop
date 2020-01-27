@@ -335,7 +335,7 @@ export interface IDailyMeasures {
    * How many commits did the user make in a repo they
    * don't have `write` access to?
    */
-  readonly commitsInRepositoryWithoutWriteAccess: number
+  readonly commitsToRepositoryWithoutWriteAccess: number
 
   /** _[Forks]_
    * How many forks did the user create from Desktop?
