@@ -476,8 +476,7 @@ export async function localChangesOverwrittenHandler(
 
   return null
 }
-
-const rejectedPathRe = /^ ! \[remote rejected\] .*? -> .*? \(refusing to allow an integration to create or update (.*?)\)$/m
+const rejectedPathRe = /^ ! \[remote rejected\] .*? -> .*? \(refusing to allow an OAuth App to create or update workflow `(.*?)` without `workflow` scope\)/m
 
 /**
  * Attempts to detect whether an error is the result of a failed push
@@ -518,17 +517,9 @@ export async function refusedWorkflowUpdate(
     return error
   }
 
-  const rejectedPath = match[1]
-  const pathIsLikelyWorkflowFile =
-    rejectedPath.startsWith('.github/') && rejectedPath.indexOf('workflow') >= 0
-
-  if (!pathIsLikelyWorkflowFile) {
-    return error
-  }
-
   dispatcher.showPopup({
     type: PopupType.PushRejectedDueToMissingWorkflowScope,
-    rejectedPath,
+    rejectedPath: match[1],
     repository,
   })
 

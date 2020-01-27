@@ -33,6 +33,7 @@ export class WorkflowPushRejectedDialog extends React.Component<
   public render() {
     return (
       <Dialog
+        id="workflow-push-rejected"
         title={__DARWIN__ ? 'Push Rejected' : 'Push rejected'}
         loading={this.state.loading}
         onDismissed={this.props.onDismissed}
@@ -42,7 +43,7 @@ export class WorkflowPushRejectedDialog extends React.Component<
         <DialogContent>
           <p>
             The push was rejected by the server for containing a modification to
-            a workflow file ( <Ref>{this.props.rejectedPath}</Ref>). In order to
+            the workflow file <Ref>{this.props.rejectedPath}</Ref>. In order to
             be able to push to workflow files GitHub Desktop needs to request
             additional permissions.
           </p>
