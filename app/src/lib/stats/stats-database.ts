@@ -329,6 +329,18 @@ export interface IDailyMeasures {
    * (`0` is tutorial created, first step is `1`)
    */
   readonly highestTutorialStepCompleted: number
+
+  /**
+   * _[Forks]_
+   * How many commits did the user make in a repo they
+   * don't have `write` access to?
+   */
+  readonly commitsToRepositoryWithoutWriteAccess: number
+
+  /** _[Forks]_
+   * How many forks did the user create from Desktop?
+   */
+  readonly forksCreated: number
 }
 
 export class StatsDatabase extends Dexie {

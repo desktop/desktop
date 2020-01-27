@@ -48,6 +48,7 @@ export class CreateForkDialog extends React.Component<
         gitHubRepository.owner.login,
         gitHubRepository.name
       )
+      this.props.dispatcher.recordForkCreated()
       await this.props.dispatcher.convertRepositoryToFork(
         this.props.repository,
         fork
