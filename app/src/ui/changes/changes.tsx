@@ -51,8 +51,4 @@ export class Changes extends React.Component<IChangesProps, {}> {
       </div>
     )
   }
-
-  private onOpenMergeTool = (path: string) => {
-    this.props.dispatcher.openMergeTool(this.props.repository, path)
-  }
 }
