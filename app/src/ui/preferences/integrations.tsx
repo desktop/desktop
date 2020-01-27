@@ -74,13 +74,13 @@ export class Integrations extends React.Component<
     }
   }
 
-  private onSelectedShellChanged = (		
-     event: React.FormEvent<HTMLSelectElement>		
-   ) => {		
-     const value = parseShell(event.currentTarget.value)		
-     this.setState({ selectedShell: value })		
-     this.props.onSelectedShellChanged(value)		
-   }
+  private onSelectedShellChanged = (
+    event: React.FormEvent<HTMLSelectElement>
+  ) => {
+    const value = parseShell(event.currentTarget.value)
+    this.setState({ selectedShell: value })
+    this.props.onSelectedShellChanged(value)
+  }
 
   private renderExternalEditor() {
     const options = this.props.availableEditors
@@ -118,23 +118,23 @@ export class Integrations extends React.Component<
       </Select>
     )
   }
-   private renderSelectedShell() {		
-     const options = this.props.availableShells		
+  private renderSelectedShell() {
+    const options = this.props.availableShells
 
-      return (		
-       <Select		
-         label="Shell"		
-         value={this.state.selectedShell}		
-         onChange={this.onSelectedShellChanged}		
-       >		
-         {options.map(n => (		
-           <option key={n} value={n}>		
-             {n}		
-           </option>		
-         ))}		
-       </Select>		
-     )		
-   }
+    return (
+      <Select
+        label="Shell"
+        value={this.state.selectedShell}
+        onChange={this.onSelectedShellChanged}
+      >
+        {options.map(n => (
+          <option key={n} value={n}>
+            {n}
+          </option>
+        ))}
+      </Select>
+    )
+  }
 
   public render() {
     return (
