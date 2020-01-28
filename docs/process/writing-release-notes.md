@@ -70,7 +70,7 @@ A great way to check if we have all the [New] lines we need is to ensure that th
 
 ### [Added]
 
-[Added] is basically [New] but for a smaller feature. Or its just not something that's highlighted as much as the [New] things in this release.
+[Added] is basically [New] but for a smaller feature. Or it's just not something that's highlighted as much as the [New] things in this release.
 
 We often use [Added] for new editor and terminal integrations.
 
