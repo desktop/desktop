@@ -14,7 +14,7 @@
       "[Fixed] Show branch protection warning after checking out protected branches outside Desktop - #8790",
       "[Improved] Only show branch protection warning when changed files are present - #8795",
       "[Improved] Show an error when editing a Git configuration file fails due to existing lock file - #8956",
-      "[Improved] Updated design and layout for GitHub Desktop preferences - #8774"
+      "[Improved] Update design and layout for GitHub Desktop preferences - #8774"
     ],
     "2.3.0-beta2": [
       "[Fixed] Remove stray characters from Git progress indicators - #8962",
