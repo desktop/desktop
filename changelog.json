@@ -12,7 +12,7 @@
       "[Fixed] Route the user to the correct URL when opening a pull request from a fork in the browser - #8928",
       "[Fixed] Recognize if the current branch of a fork has a pull request to the upstream repo - #8549",
       "[Fixed] Remove false branch protection warning when switching branches - #8743",
-      "[Fixed] Update branch protection state for checkout outside of Desktop - #8790",
+      "[Fixed] Show branch protection warning after checking out protected branches outside Desktop - #8790",
       "[Improved] Only show branch protection warning when changed files are present - #8795",
       "[Improved] Show an error when editing a git configuration file fails due to existing lock file - #8956",
       "[Improved] Re-designed preferences dialog - #8774"
