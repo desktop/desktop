@@ -78,6 +78,18 @@ We often use [Added] for new editor and terminal integrations.
 
 Good ol' [Fixed], the bread and butter of release notes. We use this to indicate that something was broken but now it's not!
 
+This should be used to describe what was done and how the behavior has improved, not what was wrong. For example:
+
+```
+[Fixed] Keep conflicting untracked files when bringing changes to another branch - #8084
+```
+
+but **not** this
+
+```
+[Fixed] Conflicting untracked files are lost when bringing changes to another branch - #8084
+```
+
 ### [Improved]
 
 Somewhere in between [Added] and [Fixed] lies [Improved]. The idea is that we've made an existing feature or part of the app better, but it wasn't necessarily broken before. Think of it like an "enhancement" release note.
