@@ -2537,6 +2537,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
           !hasWritePermission(repository.gitHubRepository)
         ) {
           this.statsStore.recordCommitToRepositoryWithoutWriteAccess()
+          if (repository.gitHubRepository.dbID !== null) {
+            this.statsStore.recordRepositoryCommitedInWithoutWriteAccess(
+              repository.gitHubRepository.dbID
+            )
+          }
         }
       }
 
