@@ -97,21 +97,10 @@ export function setNumber(key: string, value: number) {
  * @param key local storage entry to read
  */
 export function getNumberArray(key: string): ReadonlyArray<number> {
-  const numbersAsText = localStorage.getItem(key)
-  let values = new Array<number>()
-  if (numbersAsText !== null) {
-    try {
-      values = numbersAsText
-        .split(NumberArrayDelimiter)
-        .map(n => parseInt(n, 10))
-        .filter(n => !isNaN(n))
-    } catch {
-      // clear array, just in case
-      values.splice(-1)
-    }
-  }
-
-  return values
+  return (localStorage.getItem(key) || '')
+    .split(NumberArrayDelimiter)
+    .map(parseFloat)
+    .filter(n => !isNaN(n))
 }
 
 /**

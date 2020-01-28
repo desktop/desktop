@@ -133,7 +133,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   tutorialCompleted: false,
   // this is `-1` because `0` signifies "tutorial created"
   highestTutorialStepCompleted: -1,
-  commitsInRepositoryWithoutWriteAccess: 0,
+  commitsToRepositoryWithoutWriteAccess: 0,
   forksCreated: 0,
 }
 
@@ -1308,10 +1308,10 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  public recordCommitInRepositoryWithoutWriteAccess() {
+  public recordCommitToRepositoryWithoutWriteAccess() {
     return this.updateDailyMeasures(m => ({
-      commitsInRepositoryWithoutWriteAccess:
-        m.commitsInRepositoryWithoutWriteAccess + 1,
+      commitsToRepositoryWithoutWriteAccess:
+        m.commitsToRepositoryWithoutWriteAccess + 1,
     }))
   }
 

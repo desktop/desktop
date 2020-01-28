@@ -2536,7 +2536,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           repository.gitHubRepository !== null &&
           !hasWritePermission(repository.gitHubRepository)
         ) {
-          this.statsStore.recordCommitInRepositoryWithoutWriteAccess()
+          this.statsStore.recordCommitToRepositoryWithoutWriteAccess()
           if (repository.gitHubRepository.dbID !== null) {
             this.statsStore.recordRepositoryCommitedInWithoutWriteAccess(
               repository.gitHubRepository.dbID
