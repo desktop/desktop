@@ -10,6 +10,7 @@ import {
   PullRequestCoordinator,
   RepositoriesStore,
   SignInStore,
+  UpstreamRemoteName,
 } from '.'
 import { Account } from '../../models/account'
 import { AppMenu, IMenu } from '../../models/app-menu'
@@ -152,6 +153,7 @@ import {
   RebaseResult,
   getRebaseSnapshot,
   IStatusResult,
+  setRemoteURL,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -5549,21 +5551,33 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const remoteName = gitStore.defaultRemote
       ? gitStore.defaultRemote.name
       : undefined
+    const remoteUrl = gitStore.defaultRemote
+      ? gitStore.defaultRemote.url
+      : undefined
     // make sure there is a default remote (there should be)
-    if (remoteName !== undefined) {
+    if (remoteName !== undefined && remoteUrl !== undefined) {
       // update default remote
       if (await gitStore.setRemoteURL(remoteName, fork.clone_url)) {
+        const remotes = await getRemotes(repository)
+        const upstream = remotes.find(r => r.name === UpstreamRemoteName)
+        // update upstream remote if it already exists
+        if (upstream === undefined) {
+          await gitStore.performFailableOperation(() =>
+            addRemote(repository, UpstreamRemoteName, remoteUrl)
+          )
+        } else {
+          // update upstream remote if it already exists
+          await gitStore.performFailableOperation(() =>
+            setRemoteURL(repository, UpstreamRemoteName, remoteUrl)
+          )
+        }
+
         // update associated github repo
         const updatedRepository = await this.repositoriesStore.updateGitHubRepository(
           repository,
           repository.gitHubRepository.endpoint,
           fork
         )
-        // reload the GitStore since the Repository's hash has changed
-        // (and just to be safe)
-        const updatedGitStore = this.gitStoreCache.get(updatedRepository)
-        await updatedGitStore.addUpstreamRemoteIfNeeded()
-        await updatedGitStore.updateExistingUpstreamRemote()
         return updatedRepository
       }
     }
