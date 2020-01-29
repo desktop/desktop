@@ -36,13 +36,13 @@ We'll make exceptions for security vulnerability fixes, especially if they're hi
 
 We describe our work in terms of impact on our users, not technical process. How does this work change the user's workflow or experience? What does it help them do?
 
-For example, we might say:
+For example, we might say this:
 
 ```
 [Fixed] Keep PR badge on top of progress bar - #8622
 ```
 
-but **not**:
+but **not** this:
 
 ```
 [Fixed] Increase z-index of the progress bar PR badge - #8622
@@ -52,13 +52,13 @@ but **not**:
 
 We attempt to use present tense unless it significantly reduces clarity.
 
-For example:
+For example, we might say this:
 
 ```
 [Added] Add external editor integration for Xcode - #8255
 ```
 
-but **not** this
+but **not** this:
 
 ```
 [Added] Adding external editor integration for Xcode - #8255
@@ -68,13 +68,13 @@ but **not** this
 
 Although it is often tempting to use the tag prefix as the first word of the release note, we prefer to keep the release note description separate from the tag so that the description is readable by itself.
 
-For example, we might say:
+For example, we might say this:
 
 ```
 [Improved] Always fast forward recent branches after fetch - #7761
 ```
 
-but **not**:
+but **not** this:
 
 ```
 [Improved] Branch fast-forwarding after fetch - #7761
@@ -114,13 +114,13 @@ We often use [Added] for new editor and terminal integrations.
 
 Good ol' [Fixed], the bread and butter of release notes. We use this to indicate that something was broken but now it's not!
 
-This should be used to describe what was done and how the behavior has improved, not what was wrong. For example:
+This should be used to describe what was done and how the behavior has improved, not what was wrong. For example, we might say this:
 
 ```
 [Fixed] Keep conflicting untracked files when bringing changes to another branch - #8084
 ```
 
-but **not** this
+but **not** this:
 
 ```
 [Fixed] Conflicting untracked files are lost when bringing changes to another branch - #8084
