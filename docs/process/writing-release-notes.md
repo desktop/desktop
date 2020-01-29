@@ -128,6 +128,12 @@ Does this sound like [Added]? Is that confusing? Yes. The rule of thumb is that 
 
 This describes a feature that is no longer available in the app. We rarely use it.
 
+An example:
+
+```
+[Removed] Remove "Discard all changes" context menu item from Changes list - #7394
+```
+
 ## Release Channel
 
 It's worth noting we are more rigorous about our release notes for production releases than for beta releases.
