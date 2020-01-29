@@ -5556,11 +5556,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const remoteName = gitStore.defaultRemote
       ? gitStore.defaultRemote.name
       : undefined
-      const remoteUrl = gitStore.defaultRemote
+    const remoteUrl = gitStore.defaultRemote
       ? gitStore.defaultRemote.url
       : undefined
     // make sure there is a default remote (there should be)
-    if (remoteName !== undefined && remoteUrl !==undefined) {
+    if (remoteName !== undefined && remoteUrl !== undefined) {
       // update default remote
       if (await gitStore.setRemoteURL(remoteName, fork.clone_url)) {
         const remotes = await getRemotes(repository)
