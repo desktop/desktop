@@ -53,7 +53,23 @@ For example:
 but **not** this
 
 ```
-[Added] Adding integration for Xcode as external editor - #8255
+[Added] Adding external editor integration for Xcode - #8255
+```
+
+### Verbiage
+
+Although it is often tempting to use the tag prefix as the first word of the release note, we prefer to keep the release note description separate from the tag so that the description is readable by itself.
+
+For example, we might say:
+
+```
+[Improved] Always fast forward recent branches after fetch - #7761
+```
+
+but **not**:
+
+```
+[Improved] Branch fast-forwarding after fetch - #7761
 ```
 
 ## Tags 🛄
