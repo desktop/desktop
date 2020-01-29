@@ -47,7 +47,7 @@ We attempt to use present tense unless it significantly reduces clarity.
 For example:
 
 ```
-[Fixed] Fix arrow key navigation of Changes and History lists - #6845
+[Added] Add external editor integration for Xcode - #8255
 ```
 
 but **not** this
