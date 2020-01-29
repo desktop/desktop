@@ -22,7 +22,15 @@ These mostly apply to writing the release note description itself.
 
 ### User Facing
 
-We don't include release notes that don't impact the user's experience using Desktop. For example, we wouldn't include a release not about fixing our Appveyor CI config or upgrading Electron. We'll make exceptions for security vulnerability fixes, especially if they're high profile.
+We don't include release notes that don't impact the user's experience using Desktop. For example, we wouldn't include a release note about fixing our Appveyor CI config or upgrading Electron.
+
+#### Exceptions for Security Vulnerability Fixes
+
+We'll make exceptions for security vulnerability fixes, especially if they're high profile:
+
+```
+[Fixed] Updated embedded Git to 2.17.1 to address upstream security issue - #4791
+```
 
 ### User Impact
 
