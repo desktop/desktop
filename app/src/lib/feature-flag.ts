@@ -113,5 +113,5 @@ export function enableTutorial(): boolean {
  * Should we show the create fork dialog flow?
  */
 export function enableCreateForkFlow(): boolean {
-  return enableBetaFeatures()
+  return true
 }
