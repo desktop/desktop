@@ -125,7 +125,7 @@ export async function git(
 
   const opts = { ...defaultOptions, ...options }
 
-  // Explicitly unset TERM so that if Desktop was launched
+  // Explicitly set TERM to 'dumb' so that if Desktop was launched
   // from a terminal or if the system environment variables
   // have TERM set Git won't consider us as a smart terminal.
   // See https://github.com/git/git/blob/a7312d1a2/editor.c#L11-L15
