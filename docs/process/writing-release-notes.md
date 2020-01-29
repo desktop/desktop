@@ -106,7 +106,7 @@ but **not** this
 
 Somewhere in between [Added] and [Fixed] lies [Improved]. The idea is that we've made an existing feature or part of the app better, but it wasn't necessarily broken before. Think of it like an "enhancement" release note.
 
-Does this sound like [Added]? Is that confusing? Yes. The rule of thumb is that if it's a small new end-to-end piece of functionality, it's [Added]. If it's a change to a portion of a feature, it's [Improved]
+Does this sound like [Added]? Is that confusing? Yes. The rule of thumb is that if it's a small new end-to-end piece of functionality, it's [Added]. If it's a change to a portion of a feature, it's [Improved].
 
 ### [Removed]
 
