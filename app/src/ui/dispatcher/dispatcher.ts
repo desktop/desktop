@@ -2244,4 +2244,13 @@ export class Dispatcher {
   public recordTutorialRepoCreated() {
     return this.statsStore.recordTutorialRepoCreated()
   }
+
+  /**
+   * Increments the `forksCreated ` metric` indicating that the user has
+   * elected to create a fork when presented with a dialog informing
+   * them that they don't have write access to the current repository.
+   */
+  public recordForkCreated() {
+    return this.statsStore.recordForkCreated()
+  }
 }

@@ -2,6 +2,11 @@
   "releases": {
     "2.3.0-test2": ["Testing upgrade from Electron v6 to v7"],
     "2.3.0-test1": ["Testing upgrade from Electron v5 to v6"],
+    "2.3.0-beta2": [
+      "[Fixed] Remove stray characters from Git progress indicators - #8962",
+      "[Fixed] Show proper dialog when push fails due to missing workflow scope - #8958",
+      "[Added] Show link to upstream pull requests in pull request list - #8965"
+    ],
     "2.3.0-beta1": [
       "[New] Prompt users to make a fork if they fail to push to a GitHub repository due to permissions  - #8548",
       "[Added] Show a commit warning if the user can't push to the repository - #8938",
