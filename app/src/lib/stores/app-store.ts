@@ -4988,11 +4988,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.apiRepositoriesStore.loadRepositories(account)
   }
 
-  public _openMergeTool(repository: Repository, path: string): Promise<void> {
-    const gitStore = this.gitStoreCache.get(repository)
-    return gitStore.openMergeTool(path)
-  }
-
   public _changeBranchesTab(tab: BranchesTab): Promise<void> {
     this.selectedBranchesTab = tab
 
