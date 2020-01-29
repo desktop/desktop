@@ -62,6 +62,18 @@ We use five different tags to organize our release notes: `[New]`, `[Added]`, `[
 
 These aren't hard and fast rules or categories, 🙃 so utilize with your own judgment and nuance.
 
+### Sorting and Ordering of Tags
+
+We sort the release notes by tag, following this order:
+
+1. `[New]`
+2. `[Added]`
+3. `[Fixed]`
+4. `[Improved]`
+5. `[Removed]`
+
+(The order of release notes within each tag group is fairly arbitrary.)
+
 ### [New]
 
 [New] is usually reserved for our shiniest features. The note itself might be short and very high level and encapsulate a _lot_ of development work.
