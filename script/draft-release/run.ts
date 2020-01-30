@@ -12,7 +12,9 @@ import { getNextVersionNumber } from './version'
 import { execSync } from 'child_process'
 
 import { writeFileSync } from 'fs'
-const changelog = require('changelog.json')
+import { join } from 'path'
+
+const changelogPath = join(__dirname, '..', '..', 'changelog.json')
 
 const jsonStringify: (obj: any) => string = require('json-pretty')
 
@@ -95,11 +97,11 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
     console.log(`Set!`)
 
     const changelogEntries = await convertToChangelogFormat(lines)
-
-    changelog[nextVersion] = changelogEntries
+    const changelog = require(changelogPath)
+    changelog.releases[nextVersion] = changelogEntries
 
     // this might throw and that's ok (for now!)
-    writeFileSync('changelog.json', jsonStringify(changelog))
+    writeFileSync(changelogPath, jsonStringify(changelog))
 
     console.log("Here's what you should do next:\n")
 
