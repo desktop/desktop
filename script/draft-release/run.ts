@@ -19,11 +19,11 @@ async function getLatestRelease(options: {
   let releaseTags = allTags
     .split('\n')
     .filter(tag => tag.startsWith('release-'))
-    .filter(tag => tag.indexOf('-linux') === -1)
-    .filter(tag => tag.indexOf('-test') === -1)
+    .filter(tag => !tag.includes('-linux'))
+    .filter(tag => !tag.includes('-test'))
 
   if (options.excludeBetaReleases) {
-    releaseTags = releaseTags.filter(tag => tag.indexOf('-beta') === -1)
+    releaseTags = releaseTags.filter(tag => !tag.includes('-beta'))
   }
 
   const releaseVersions = releaseTags.map(tag => tag.substr(8))
@@ -67,7 +67,6 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
       `There are uncommitted changes in the working directory. Aborting...`
     )
   }
-
   if (args.length === 0) {
     throw new Error(
       `You have not specified a channel to draft this release for. Choose one of 'production' or 'beta'`
