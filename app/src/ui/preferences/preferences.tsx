@@ -12,8 +12,6 @@ import { Dialog, DialogFooter, DialogError } from '../dialog'
 import {
   getGlobalConfigValue,
   setGlobalConfigValue,
-  getMergeTool,
-  IMergeTool,
 } from '../../lib/git/config'
 import { lookupPreferredEmail } from '../../lib/email'
 import { Shell, getAvailableShells } from '../../lib/shells'
@@ -68,8 +66,6 @@ interface IPreferencesState {
   readonly selectedExternalEditor: ExternalEditor | null
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
-  readonly mergeTool: IMergeTool | null
-
   /**
    * If unable to save Git configuration values (name, email)
    * due to an existing configuration lock file this property
@@ -105,7 +101,6 @@ export class Preferences extends React.Component<
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
       selectedShell: this.props.selectedShell,
-      mergeTool: null,
     }
   }
 
@@ -136,10 +131,9 @@ export class Preferences extends React.Component<
     committerName = committerName || ''
     committerEmail = committerEmail || ''
 
-    const [editors, shells, mergeTool] = await Promise.all([
+    const [editors, shells] = await Promise.all([
       getAvailableEditors(),
       getAvailableShells(),
-      getMergeTool(),
     ])
 
     const availableEditors = editors.map(e => e.editor)
@@ -157,7 +151,6 @@ export class Preferences extends React.Component<
       uncommittedChangesStrategyKind: this.props.uncommittedChangesStrategyKind,
       availableShells,
       availableEditors,
-      mergeTool,
     })
   }
 
@@ -252,9 +245,6 @@ export class Preferences extends React.Component<
             availableShells={this.state.availableShells}
             selectedShell={this.state.selectedShell}
             onSelectedShellChanged={this.onSelectedShellChanged}
-            mergeTool={this.state.mergeTool}
-            onMergeToolCommandChanged={this.onMergeToolCommandChanged}
-            onMergeToolNameChanged={this.onMergeToolNameChanged}
           />
         )
         break
@@ -468,38 +458,10 @@ export class Preferences extends React.Component<
       this.state.uncommittedChangesStrategyKind
     )
 
-    const mergeTool = this.state.mergeTool
-    if (mergeTool && mergeTool.name) {
-      await setGlobalConfigValue('merge.tool', mergeTool.name)
-
-      if (mergeTool.command) {
-        await setGlobalConfigValue(
-          `mergetool.${mergeTool.name}.cmd`,
-          mergeTool.command
-        )
-      }
-    }
-
     this.props.onDismissed()
   }
 
   private onTabClicked = (index: number) => {
     this.setState({ selectedIndex: index })
-  }
-
-  private onMergeToolNameChanged = (name: string) => {
-    const mergeTool = {
-      name,
-      command: this.state.mergeTool && this.state.mergeTool.command,
-    }
-    this.setState({ mergeTool })
-  }
-
-  private onMergeToolCommandChanged = (command: string) => {
-    const mergeTool = {
-      name: this.state.mergeTool ? this.state.mergeTool.name : '',
-      command,
-    }
-    this.setState({ mergeTool })
   }
 }
