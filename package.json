@@ -41,8 +41,8 @@
     "rebuild-hard:dev": "yarn clean-slate && yarn build:dev",
     "rebuild-hard:prod": "yarn clean-slate && yarn build:prod",
     "changelog": "ts-node script/changelog/index.ts",
-    "draft-release": "ts-node script/draft-release/index.ts",
-    "validate-changelog": "ts-node script/validate-changelog.ts",
+    "release-notes:draft": "ts-node script/draft-release/index.ts",
+    "release-notes:format": "prettier --check --write changelog.json package.json app/package.json",
     "check-modified": "stop-build"
   },
   "author": {
