@@ -27,11 +27,6 @@ function enableBetaFeatures(): boolean {
   return enableDevelopmentFeatures() || __RELEASE_CHANNEL__ === 'beta'
 }
 
-/** Should merge tool integration be enabled? */
-export function enableMergeTool(): boolean {
-  return enableDevelopmentFeatures()
-}
-
 /** Should git pass `--recurse-submodules` when performing operations? */
 export function enableRecurseSubmodulesFlag(): boolean {
   return enableBetaFeatures()
@@ -118,5 +113,5 @@ export function enableTutorial(): boolean {
  * Should we show the create fork dialog flow?
  */
 export function enableCreateForkFlow(): boolean {
-  return enableBetaFeatures()
+  return true
 }

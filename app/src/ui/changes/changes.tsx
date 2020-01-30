@@ -34,12 +34,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
     const isCommitting = this.props.isCommitting
     return (
       <div className="changed-file">
-        <ChangedFileDetails
-          path={file.path}
-          status={file.status}
-          diff={diff}
-          onOpenMergeTool={this.onOpenMergeTool}
-        />
+        <ChangedFileDetails path={file.path} status={file.status} diff={diff} />
 
         <div className="diff-wrapper">
           <Diff
@@ -55,9 +50,5 @@ export class Changes extends React.Component<IChangesProps, {}> {
         </div>
       </div>
     )
-  }
-
-  private onOpenMergeTool = (path: string) => {
-    this.props.dispatcher.openMergeTool(this.props.repository, path)
   }
 }
