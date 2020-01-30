@@ -9,6 +9,10 @@ import {
 
 import { Channel } from './channel'
 import { getNextVersionNumber } from './version'
+import { execSync } from 'child_process'
+
+import { writeFileSync } from 'fs'
+const changelog = require('changelog.json')
 
 const jsonStringify: (obj: any) => string = require('json-pretty')
 
@@ -19,11 +23,11 @@ async function getLatestRelease(options: {
   let releaseTags = allTags
     .split('\n')
     .filter(tag => tag.startsWith('release-'))
-    .filter(tag => tag.indexOf('-linux') === -1)
-    .filter(tag => tag.indexOf('-test') === -1)
+    .filter(tag => !tag.includes('-linux'))
+    .filter(tag => !tag.includes('-test'))
 
   if (options.excludeBetaReleases) {
-    releaseTags = releaseTags.filter(tag => tag.indexOf('-beta') === -1)
+    releaseTags = releaseTags.filter(tag => !tag.includes('-beta'))
   }
 
   const releaseVersions = releaseTags.map(tag => tag.substr(8))
@@ -63,14 +67,6 @@ function printInstructions(nextVersion: string, entries: Array<string>) {
 }
 
 export async function run(args: ReadonlyArray<string>): Promise<void> {
-  try {
-    await spawn('git', ['diff-index', '--quiet', 'HEAD'])
-  } catch {
-    throw new Error(
-      `There are uncommitted changes in the working directory. Aborting...`
-    )
-  }
-
   if (args.length === 0) {
     throw new Error(
       `You have not specified a channel to draft this release for. Choose one of 'production' or 'beta'`
@@ -88,7 +84,22 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   if (noChangesFound) {
     printInstructions(nextVersion, [])
   } else {
+    console.log(
+      `Setting app version to "${nextVersion}" in app/package.json...`
+    )
+    // this can throw and that's okay!
+    execSync(`npm version ${nextVersion}`, {
+      cwd: 'app',
+      encoding: 'utf8',
+    })
+    console.log(`Set!`)
+
     const changelogEntries = await convertToChangelogFormat(lines)
+
+    changelog[nextVersion] = changelogEntries
+
+    // this might throw and that's ok (for now!)
+    writeFileSync('changelog.json', jsonStringify(changelog))
 
     console.log("Here's what you should do next:\n")
 
