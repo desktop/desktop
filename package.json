@@ -42,6 +42,7 @@
     "changelog": "ts-node script/changelog/index.ts",
     "draft-release": "ts-node script/draft-release/index.ts",
     "draft-release:format": "prettier --check --write changelog.json app/package.json",
+    "validate-changelog": "ts-node script/validate-changelog.ts",
     "check-modified": "stop-build"
   },
   "author": {
