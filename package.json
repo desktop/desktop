@@ -30,7 +30,6 @@
     "lint": "yarn prettier && yarn lint:src",
     "lint:fix": "yarn prettier --write && yarn lint:src:fix",
     "prettier": "prettier --check \"./**/*.{ts,tsx,js,json,jsx,scss,html,yaml,yml}\"",
-    "format-docs": "prettier --check --write changelog.json \"./**/*.md\"  package.json app/package.json",
     "lint:src": "yarn tslint && yarn eslint-check && yarn eslint",
     "lint:src:fix": "yarn tslint --fix && yarn eslint --fix",
     "tslint": "tslint -p .",
