@@ -13,10 +13,9 @@ import { execSync } from 'child_process'
 
 import { writeFileSync } from 'fs'
 import { join } from 'path'
+import { format } from 'prettier'
 
 const changelogPath = join(__dirname, '..', '..', 'changelog.json')
-
-const jsonStringify: (obj: any) => string = require('json-pretty')
 
 async function getLatestRelease(options: {
   excludeBetaReleases: boolean
@@ -50,21 +49,31 @@ function parseChannel(arg: string): Channel {
 
 function printInstructions(nextVersion: string, entries: Array<string>) {
   const object: any = {}
-  object[`${nextVersion}`] = entries.sort()
+  object[nextVersion] = entries.sort()
 
-  const steps = [
-    `Update the app/package.json 'version' to '${nextVersion}' (make sure this aligns with semver format of 'major.minor.patch')`,
-    `Concatenate this to the beginning of the 'releases' element in the changelog.json as a starting point:\n${jsonStringify(
-      object
-    )}\n`,
+  const baseSteps = [
     `Remove any entries of contributions that don't affect the end user`,
     'Update the release notes to have user-friendly summary lines',
     'For issues prefixed with [???], look at the PR to update the prefix to one of: [New], [Added], [Fixed], [Improved], [Removed]',
     'Sort the entries so that the prefixes are ordered in this way: [New], [Added], [Fixed], [Improved], [Removed]',
-    'Commit the changes (on development or as new branch) and push them to GitHub',
+    'Commit the changes (on a "release" branch) and push them to GitHub',
     'Read this to perform the release: https://github.com/desktop/desktop/blob/development/docs/process/releasing-updates.md',
   ]
+  if (entries.length === 0) {
+    printSteps(baseSteps)
+  } else {
+    printSteps([
+      `Concatenate this to the beginning of the 'releases' element in the changelog.json as a starting point:\n${format(
+        JSON.stringify(object),
+        { parser: 'json' }
+      )}\n`,
+      ...baseSteps,
+    ])
+  }
+}
 
+// adds a number to the beginning fo each line and prints them in sequence
+function printSteps(steps: ReadonlyArray<string>) {
   console.log(steps.map((value, index) => `${index + 1}. ${value}`).join('\n'))
 }
 
@@ -85,33 +94,66 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
 
   if (noChangesFound) {
     printInstructions(nextVersion, [])
+    return
+  }
+  console.log(`Setting app version to "${nextVersion}" in app/package.json...`)
+  // this can throw and that's okay!
+  execSync(`npm version ${nextVersion} --allow-same-version`, {
+    cwd: join(__dirname, '..', '..', 'app'),
+    encoding: 'utf8',
+  })
+  console.log(`Set!`)
+
+  const currentChangelog = require(changelogPath)
+  const newEntries = await getNewEntries(previousVersion, channel, lines)
+
+  if (currentChangelog.releases[nextVersion] === undefined) {
+    console.log('Adding draft release notes to changelog.json...')
+    const changelog = makeNewChangelog(
+      nextVersion,
+      currentChangelog,
+      newEntries
+    )
+    // this might throw and that's ok (for now!)
+    writeFileSync(
+      changelogPath,
+      format(JSON.stringify(changelog), {
+        parser: 'json',
+      })
+    )
+    printInstructions(nextVersion, [])
   } else {
     console.log(
-      `Setting app version to "${nextVersion}" in app/package.json...`
+      `Looks like there are already release notes for ${nextVersion} in changelog.json.`
     )
-    // this can throw and that's okay!
-    execSync(`npm version ${nextVersion}`, {
-      cwd: 'app',
-      encoding: 'utf8',
-    })
-    console.log(`Set!`)
 
-    const changelogEntries = await convertToChangelogFormat(lines)
-    const changelog = require(changelogPath)
-    changelog.releases[nextVersion] = changelogEntries
-
-    // this might throw and that's ok (for now!)
-    writeFileSync(changelogPath, jsonStringify(changelog))
-
-    console.log("Here's what you should do next:\n")
-
-    if (channel === 'production') {
-      const existingChangelog = getChangelogEntriesSince(previousVersion)
-      const entries = [...existingChangelog]
-      printInstructions(nextVersion, entries)
-    } else if (channel === 'beta') {
-      const entries = [...changelogEntries]
-      printInstructions(nextVersion, entries)
-    }
+    printInstructions(nextVersion, newEntries)
   }
+
+  console.log("Here's what you should do next:\n")
+}
+
+async function getNewEntries(
+  previousVersion: string,
+  channel: string,
+  lines: ReadonlyArray<string>
+) {
+  const changelogEntries = await convertToChangelogFormat(lines)
+  return channel === 'production'
+    ? [...getChangelogEntriesSince(previousVersion)]
+    : [...changelogEntries]
+}
+
+function makeNewChangelog(
+  nextVersion: string,
+  currentChangelog: any,
+  entries: ReadonlyArray<string>
+) {
+  const newChangelog: any = { releases: {} }
+  newChangelog.releases[nextVersion] = entries
+
+  for (const k of Object.keys(currentChangelog.releases)) {
+    newChangelog.releases[k] = currentChangelog.releases[k]
+  }
+  return newChangelog
 }
