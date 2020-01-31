@@ -42,7 +42,7 @@
     "rebuild-hard:prod": "yarn clean-slate && yarn build:prod",
     "changelog": "ts-node script/changelog/index.ts",
     "release-notes:draft": "ts-node script/draft-release/index.ts",
-    "release-notes:format": "prettier --check --write changelog.json package.json app/package.json",
+    "release-notes:format": "prettier --check --write changelog.json app/package.json",
     "check-modified": "stop-build"
   },
   "author": {
