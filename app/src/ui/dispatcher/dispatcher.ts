@@ -1558,6 +1558,13 @@ export class Dispatcher {
 
       const localBranch = branches.find(b => b.upstreamWithoutRemote === branch)
 
+      // N.B: This looks weird, and it is. _checkoutBranch used
+      // to behave this way (silently ignoring checkout) when given
+      // a string and not a Branch model. When rewriting _checkoutBranch
+      // to remove the support for string branch names the behavior
+      // was moved up to this method to not alter the current behavior.
+      //
+      // https://youtu.be/IjmtVKOAHPM
       if (shouldCheckoutBranch && localBranch !== undefined) {
         await this.checkoutBranch(repository, localBranch)
       }
