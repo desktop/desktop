@@ -486,7 +486,7 @@ export class Dispatcher {
   /** Check out the given branch. */
   public checkoutBranch(
     repository: Repository,
-    branch: Branch | string,
+    branch: Branch,
     uncommittedChangesStrategy?: UncommittedChangesStrategy
   ): Promise<Repository> {
     return this.appStore._checkoutBranch(
@@ -1532,10 +1532,9 @@ export class Dispatcher {
     await this.appStore._refreshRepository(repository)
 
     const state = this.repositoryStateManager.get(repository)
+    const branches = state.branchesState.allBranches
 
     if (pr == null && branch != null) {
-      const branches = state.branchesState.allBranches
-
       // I don't want to invoke Git functionality from the dispatcher, which
       // would help by using getDefaultRemote here to get the definitive ref,
       // so this falls back to finding any remote branch matching the name
@@ -1557,8 +1556,10 @@ export class Dispatcher {
         shouldCheckoutBranch = tip.branch.nameWithoutRemote !== branch
       }
 
-      if (shouldCheckoutBranch) {
-        await this.checkoutBranch(repository, branch)
+      const localBranch = branches.find(b => b.upstreamWithoutRemote === branch)
+
+      if (shouldCheckoutBranch && localBranch !== undefined) {
+        await this.checkoutBranch(repository, localBranch)
       }
     }
 
