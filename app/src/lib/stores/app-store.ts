@@ -5212,6 +5212,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
         }
       }
       const branch = this.getLocalBranch(repository, head.ref)
+
+      // N.B: This looks weird, and it is. _checkoutBranch used
+      // to behave this way (silently ignoring checkout) when given
+      // a string and not a Branch model. When rewriting _checkoutBranch
+      // to remove the support for string branch names the behavior
+      // was moved up to this method to not alter the current behavior.
+      //
+      // https://youtu.be/IjmtVKOAHPM
       if (branch !== null) {
         await this._checkoutBranch(repository, branch)
       }
