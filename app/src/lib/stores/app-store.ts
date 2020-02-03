@@ -5219,7 +5219,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
           )
         }
       }
-      await this._checkoutBranch(repository, head.ref)
+      const branch = this.getLocalBranch(repository, head.ref)
+      if (branch !== null) {
+        await this._checkoutBranch(repository, branch)
+      }
     } else {
       const cloneURL = forceUnwrap(
         "This pull request's clone URL is not populated but should be",
