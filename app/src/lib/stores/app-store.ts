@@ -5246,22 +5246,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       await this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
 
-      const gitStore = this.gitStoreCache.get(repository)
-
       const localBranchName = `pr/${pullRequest.pullRequestNumber}`
-      const doesBranchExist =
-        gitStore.allBranches.find(branch => branch.name === localBranchName) !=
-        null
+      const existingBranch = this.getLocalBranch(repository, localBranchName)
 
-      if (!doesBranchExist) {
+      if (existingBranch === null) {
         await this._createBranch(
           repository,
           localBranchName,
           `${remoteName}/${head.ref}`
         )
+      } else {
+        await this._checkoutBranch(repository, existingBranch)
       }
-
-      await this._checkoutBranch(repository, localBranchName)
     }
 
     this.statsStore.recordPRBranchCheckout()
