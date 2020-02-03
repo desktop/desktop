@@ -3089,7 +3089,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             },
             gitContext: {
               kind: 'checkout',
-              branchToCheckout: foundBranch.name,
+              branchToCheckout: foundBranch,
             },
           }
         )
@@ -5426,7 +5426,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _moveChangesToBranchAndCheckout(
     repository: Repository,
-    branchToCheckout: string
+    branchToCheckout: Branch
   ) {
     if (!enableStashing()) {
       return
@@ -5439,7 +5439,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const isStashCreated = await gitStore.performFailableOperation(() => {
       return createDesktopStashEntry(
         repository,
-        branchToCheckout,
+        branchToCheckout.name,
         getUntrackedFiles(workingDirectory)
       )
     })
@@ -5450,7 +5450,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const transientStashEntry = await getLastDesktopStashEntryForBranch(
       repository,
-      branchToCheckout
+      branchToCheckout.name
     )
     const strategy: UncommittedChangesStrategy = {
       kind: UncommittedChangesStrategyKind.MoveToNewBranch,

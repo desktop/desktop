@@ -2195,7 +2195,7 @@ export class Dispatcher {
    */
   public async moveChangesToBranchAndCheckout(
     repository: Repository,
-    branchToCheckout: string
+    branchToCheckout: Branch
   ) {
     return this.appStore._moveChangesToBranchAndCheckout(
       repository,
