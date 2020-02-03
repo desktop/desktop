@@ -12,8 +12,6 @@ import { Dialog, DialogFooter, DialogError } from '../dialog'
 import {
   getGlobalConfigValue,
   setGlobalConfigValue,
-  getMergeTool,
-  IMergeTool,
 } from '../../lib/git/config'
 import { lookupPreferredEmail } from '../../lib/email'
 import { Shell, getAvailableShells } from '../../lib/shells'
@@ -28,6 +26,11 @@ import {
   uncommittedChangesStrategyKindDefault,
 } from '../../models/uncommitted-changes-strategy'
 import { Octicon, OcticonSymbol } from '../octicons'
+import {
+  isConfigFileLockError,
+  parseConfigLockFilePathFromError,
+} from '../../lib/git'
+import { ConfigLockFileExists } from '../lib/config-lock-file-exists'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -50,6 +53,8 @@ interface IPreferencesState {
   readonly selectedIndex: PreferencesTab
   readonly committerName: string
   readonly committerEmail: string
+  readonly initialCommitterName: string | null
+  readonly initialCommitterEmail: string | null
   readonly disallowedCharactersMessage: string | null
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
@@ -61,7 +66,14 @@ interface IPreferencesState {
   readonly selectedExternalEditor: ExternalEditor | null
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
-  readonly mergeTool: IMergeTool | null
+  /**
+   * If unable to save Git configuration values (name, email)
+   * due to an existing configuration lock file this property
+   * will contain the (fully qualified) path to said lock file
+   * such that an error may be presented and the user given a
+   * choice to delete the lock file.
+   */
+  readonly existingLockFilePath?: string
 }
 
 /** The app-level preferences component. */
@@ -76,6 +88,8 @@ export class Preferences extends React.Component<
       selectedIndex: this.props.initialSelectedTab || PreferencesTab.Accounts,
       committerName: '',
       committerEmail: '',
+      initialCommitterName: null,
+      initialCommitterEmail: null,
       disallowedCharactersMessage: null,
       availableEditors: [],
       optOutOfUsageTracking: false,
@@ -87,13 +101,15 @@ export class Preferences extends React.Component<
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
       selectedShell: this.props.selectedShell,
-      mergeTool: null,
     }
   }
 
   public async componentWillMount() {
-    let committerName = await getGlobalConfigValue('user.name')
-    let committerEmail = await getGlobalConfigValue('user.email')
+    const initialCommitterName = await getGlobalConfigValue('user.name')
+    const initialCommitterEmail = await getGlobalConfigValue('user.email')
+
+    let committerName = initialCommitterName
+    let committerEmail = initialCommitterEmail
 
     if (!committerName || !committerEmail) {
       const account = this.props.dotComAccount || this.props.enterpriseAccount
@@ -115,10 +131,9 @@ export class Preferences extends React.Component<
     committerName = committerName || ''
     committerEmail = committerEmail || ''
 
-    const [editors, shells, mergeTool] = await Promise.all([
+    const [editors, shells] = await Promise.all([
       getAvailableEditors(),
       getAvailableShells(),
-      getMergeTool(),
     ])
 
     const availableEditors = editors.map(e => e.editor)
@@ -127,6 +142,8 @@ export class Preferences extends React.Component<
     this.setState({
       committerName,
       committerEmail,
+      initialCommitterName,
+      initialCommitterEmail,
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
@@ -134,7 +151,6 @@ export class Preferences extends React.Component<
       uncommittedChangesStrategyKind: this.props.uncommittedChangesStrategyKind,
       availableShells,
       availableEditors,
-      mergeTool,
     })
   }
 
@@ -229,21 +245,33 @@ export class Preferences extends React.Component<
             availableShells={this.state.availableShells}
             selectedShell={this.state.selectedShell}
             onSelectedShellChanged={this.onSelectedShellChanged}
-            mergeTool={this.state.mergeTool}
-            onMergeToolCommandChanged={this.onMergeToolCommandChanged}
-            onMergeToolNameChanged={this.onMergeToolNameChanged}
           />
         )
         break
       }
       case PreferencesTab.Git: {
+        const { existingLockFilePath } = this.state
+        const error =
+          existingLockFilePath !== undefined ? (
+            <DialogError>
+              <ConfigLockFileExists
+                lockFilePath={existingLockFilePath}
+                onLockFileDeleted={this.onLockFileDeleted}
+                onError={this.onLockFileDeleteError}
+              />
+            </DialogError>
+          ) : null
+
         View = (
-          <Git
-            name={this.state.committerName}
-            email={this.state.committerEmail}
-            onNameChanged={this.onCommitterNameChanged}
-            onEmailChanged={this.onCommitterEmailChanged}
-          />
+          <>
+            {error}
+            <Git
+              name={this.state.committerName}
+              email={this.state.committerEmail}
+              onNameChanged={this.onCommitterNameChanged}
+              onEmailChanged={this.onCommitterEmailChanged}
+            />
+          </>
         )
         break
       }
@@ -287,6 +315,14 @@ export class Preferences extends React.Component<
     }
 
     return <div className="tab-container">{View}</div>
+  }
+
+  private onLockFileDeleted = () => {
+    this.setState({ existingLockFilePath: undefined })
+  }
+
+  private onLockFileDeleteError = (e: Error) => {
+    this.props.dispatcher.postError(e)
   }
 
   private onOptOutofReportingChanged = (value: boolean) => {
@@ -370,8 +406,32 @@ export class Preferences extends React.Component<
   }
 
   private onSave = async () => {
-    await setGlobalConfigValue('user.name', this.state.committerName)
-    await setGlobalConfigValue('user.email', this.state.committerEmail)
+    try {
+      if (this.state.committerName !== this.state.initialCommitterName) {
+        await setGlobalConfigValue('user.name', this.state.committerName)
+      }
+
+      if (this.state.committerEmail !== this.state.initialCommitterEmail) {
+        await setGlobalConfigValue('user.email', this.state.committerEmail)
+      }
+    } catch (e) {
+      if (isConfigFileLockError(e)) {
+        const lockFilePath = parseConfigLockFilePathFromError(e.result)
+
+        if (lockFilePath !== null) {
+          this.setState({
+            existingLockFilePath: lockFilePath,
+            selectedIndex: PreferencesTab.Git,
+          })
+          return
+        }
+      }
+
+      this.props.onDismissed()
+      this.props.dispatcher.postError(e)
+      return
+    }
+
     await this.props.dispatcher.setStatsOptOut(
       this.state.optOutOfUsageTracking,
       false
@@ -398,38 +458,10 @@ export class Preferences extends React.Component<
       this.state.uncommittedChangesStrategyKind
     )
 
-    const mergeTool = this.state.mergeTool
-    if (mergeTool && mergeTool.name) {
-      await setGlobalConfigValue('merge.tool', mergeTool.name)
-
-      if (mergeTool.command) {
-        await setGlobalConfigValue(
-          `mergetool.${mergeTool.name}.cmd`,
-          mergeTool.command
-        )
-      }
-    }
-
     this.props.onDismissed()
   }
 
   private onTabClicked = (index: number) => {
     this.setState({ selectedIndex: index })
-  }
-
-  private onMergeToolNameChanged = (name: string) => {
-    const mergeTool = {
-      name,
-      command: this.state.mergeTool && this.state.mergeTool.command,
-    }
-    this.setState({ mergeTool })
-  }
-
-  private onMergeToolCommandChanged = (command: string) => {
-    const mergeTool = {
-      name: this.state.mergeTool ? this.state.mergeTool.name : '',
-      command,
-    }
-    this.setState({ mergeTool })
   }
 }

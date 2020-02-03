@@ -110,6 +110,7 @@ import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { WorkflowPushRejectedDialog } from './workflow-push-rejected/workflow-push-rejected'
 import { getUncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
 import { SAMLReauthRequiredDialog } from './saml-reauth-required/saml-reauth-required'
+import { CreateForkDialog } from './forks/create-fork-dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1875,6 +1876,15 @@ export class App extends React.Component<IAppProps, IAppState> {
             endpoint={popup.endpoint}
             retryAction={popup.retryAction}
             dispatcher={this.props.dispatcher}
+          />
+        )
+      case PopupType.CreateFork:
+        return (
+          <CreateForkDialog
+            onDismissed={this.onPopupDismissed}
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            account={popup.account}
           />
         )
       default:

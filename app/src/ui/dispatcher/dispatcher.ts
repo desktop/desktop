@@ -64,7 +64,10 @@ import { GitHubRepository } from '../../models/github-repository'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { Popup, PopupType } from '../../models/popup'
 import { PullRequest } from '../../models/pull-request'
-import { Repository } from '../../models/repository'
+import {
+  Repository,
+  RepositoryWithGitHubRepository,
+} from '../../models/repository'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
   CommittedFileChange,
@@ -1331,6 +1334,16 @@ export class Dispatcher {
   }
 
   /**
+   * Show a dialog that helps the user create a fork of
+   * their local repo.
+   */
+  public async showCreateForkDialog(
+    repository: RepositoryWithGitHubRepository
+  ): Promise<void> {
+    await this.appStore._showCreateforkDialog(repository)
+  }
+
+  /**
    * Register a new error handler.
    *
    * Error handlers are called in order starting with the most recently
@@ -1700,11 +1713,6 @@ export class Dispatcher {
     return this.appStore._refreshApiRepositories(account)
   }
 
-  /** Open the merge tool for the given file. */
-  public openMergeTool(repository: Repository, path: string): Promise<void> {
-    return this.appStore._openMergeTool(repository, path)
-  }
-
   /** Change the selected Branches foldout tab. */
   public changeBranchesTab(tab: BranchesTab): Promise<void> {
     return this.appStore._changeBranchesTab(tab)
@@ -1875,6 +1883,17 @@ export class Dispatcher {
 
   public setConfirmForcePushSetting(value: boolean) {
     return this.appStore._setConfirmForcePushSetting(value)
+  }
+
+  /**
+   * Converts a local repository to use the given fork
+   * as its default remote and associated `GitHubRepository`.
+   */
+  public async convertRepositoryToFork(
+    repository: RepositoryWithGitHubRepository,
+    fork: IAPIRepository
+  ) {
+    await this.appStore._convertRepositoryToFork(repository, fork)
   }
 
   /**
@@ -2218,5 +2237,14 @@ export class Dispatcher {
    */
   public recordTutorialRepoCreated() {
     return this.statsStore.recordTutorialRepoCreated()
+  }
+
+  /**
+   * Increments the `forksCreated ` metric` indicating that the user has
+   * elected to create a fork when presented with a dialog informing
+   * them that they don't have write access to the current repository.
+   */
+  public recordForkCreated() {
+    return this.statsStore.recordForkCreated()
   }
 }
