@@ -3032,21 +3032,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _checkoutBranch(
     repository: Repository,
-    branch: Branch | string,
+    branch: Branch,
     uncommittedChangesStrategy: UncommittedChangesStrategy = getUncommittedChangesStrategy(
       this.uncommittedChangesStrategyKind
     )
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
     const kind = 'checkout'
-    const foundBranch =
-      typeof branch === 'string'
-        ? this.getLocalBranch(repository, branch)
-        : branch
-
-    if (foundBranch == null) {
-      return repository
-    }
 
     const { changesState, branchesState } = this.repositoryStateCache.get(
       repository
@@ -3059,7 +3051,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         if (uncommittedChangesStrategy.kind === askToStash.kind) {
           this._showPopup({
             type: PopupType.StashAndSwitchBranch,
-            branchToCheckout: foundBranch,
+            branchToCheckout: branch,
             repository,
           })
           return repository
@@ -3067,7 +3059,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
         stashToPop = await this.stashToPopAfterBranchCheckout(
           repository,
-          foundBranch,
+          branch,
           uncommittedChangesStrategy
         )
       }
@@ -3077,7 +3069,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       (await this.withAuthenticatingUser(repository, (repository, account) =>
         gitStore.performFailableOperation(
           () =>
-            checkoutBranch(repository, account, foundBranch, progress => {
+            checkoutBranch(repository, account, branch, progress => {
               this.updateCheckoutProgress(repository, progress)
             }),
           {
@@ -3089,7 +3081,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             },
             gitContext: {
               kind: 'checkout',
-              branchToCheckout: foundBranch,
+              branchToCheckout: branch,
             },
           }
         )
@@ -3128,7 +3120,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         kind,
         title: __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository',
         value: 1,
-        targetBranch: foundBranch.name,
+        targetBranch: branch.name,
       })
 
       await this._refreshRepository(repository)
@@ -3140,7 +3132,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const { defaultBranch } = branchesState
-    if (defaultBranch !== null && foundBranch.name !== defaultBranch.name) {
+    if (defaultBranch !== null && branch.name !== defaultBranch.name) {
       this.statsStore.recordNonDefaultBranchCheckout()
     }
 
