@@ -12,6 +12,13 @@ import { getNextVersionNumber } from './version'
 
 const jsonStringify: (obj: any) => string = require('json-pretty')
 
+/**
+ * Returns the latest release tag, according to git and semver
+ * (ignores test releases)
+ *
+ * @param options there's only one option `excludeBetaReleases`,
+ *                which is a boolean
+ */
 async function getLatestRelease(options: {
   excludeBetaReleases: boolean
 }): Promise<string> {
@@ -34,6 +41,7 @@ async function getLatestRelease(options: {
   return latestTag instanceof SemVer ? latestTag.raw : latestTag
 }
 
+/** Converts a string to Channel type if possible */
 function parseChannel(arg: string): Channel {
   if (arg === 'production' || arg === 'beta' || arg === 'test') {
     return arg
@@ -42,6 +50,12 @@ function parseChannel(arg: string): Channel {
   throw new Error(`An invalid channel ${arg} has been provided`)
 }
 
+/**
+ * Prints out next steps to the console
+ *
+ * @param nextVersion version for the next release
+ * @param entries release notes for the next release
+ */
 function printInstructions(nextVersion: string, entries: Array<string>) {
   const object: any = {}
   object[`${nextVersion}`] = entries.sort()
@@ -82,6 +96,7 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   const noChangesFound = lines.every(l => l.trim().length === 0)
 
   if (noChangesFound) {
+    // print instructions with no changelog included
     printInstructions(nextVersion, [])
   } else {
     const changelogEntries = await convertToChangelogFormat(lines)
@@ -89,6 +104,7 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
     console.log("Here's what you should do next:\n")
 
     if (channel === 'production') {
+      // make sure we only include entries since the latest production release
       const existingChangelog = getChangelogEntriesSince(previousVersion)
       const entries = [...existingChangelog]
       printInstructions(nextVersion, entries)
