@@ -1713,11 +1713,6 @@ export class Dispatcher {
     return this.appStore._refreshApiRepositories(account)
   }
 
-  /** Open the merge tool for the given file. */
-  public openMergeTool(repository: Repository, path: string): Promise<void> {
-    return this.appStore._openMergeTool(repository, path)
-  }
-
   /** Change the selected Branches foldout tab. */
   public changeBranchesTab(tab: BranchesTab): Promise<void> {
     return this.appStore._changeBranchesTab(tab)
@@ -2242,5 +2237,14 @@ export class Dispatcher {
    */
   public recordTutorialRepoCreated() {
     return this.statsStore.recordTutorialRepoCreated()
+  }
+
+  /**
+   * Increments the `forksCreated ` metric` indicating that the user has
+   * elected to create a fork when presented with a dialog informing
+   * them that they don't have write access to the current repository.
+   */
+  public recordForkCreated() {
+    return this.statsStore.recordForkCreated()
   }
 }

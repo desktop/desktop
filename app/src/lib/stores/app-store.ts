@@ -10,6 +10,7 @@ import {
   PullRequestCoordinator,
   RepositoriesStore,
   SignInStore,
+  UpstreamRemoteName,
 } from '.'
 import { Account } from '../../models/account'
 import { AppMenu, IMenu } from '../../models/app-menu'
@@ -152,6 +153,7 @@ import {
   RebaseResult,
   getRebaseSnapshot,
   IStatusResult,
+  setRemoteURL,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -201,7 +203,14 @@ import { RepositoryStateCache } from './repository-state-cache'
 import { readEmoji } from '../read-emoji'
 import { GitStoreCache } from './git-store-cache'
 import { GitErrorContext } from '../git-error-context'
-import { setNumber, setBoolean, getBoolean, getNumber } from '../local-storage'
+import {
+  setNumber,
+  setBoolean,
+  getBoolean,
+  getNumber,
+  getNumberArray,
+  setNumberArray,
+} from '../local-storage'
 import { ExternalEditorError } from '../editors/shared'
 import { ApiRepositoriesStore } from './api-repositories-store'
 import {
@@ -267,7 +276,6 @@ const RecentRepositoriesKey = 'recently-selected-repositories'
  *  in the repository switcher dropdown
  */
 const RecentRepositoriesLength = 3
-const RecentRepositoriesDelimiter = ','
 
 const defaultSidebarWidth: number = 250
 const sidebarWidthConfigKey: string = 'sidebar-width'
@@ -1481,7 +1489,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     previousRepositoryId: number | null,
     currentRepositoryId: number
   ) {
-    const recentRepositories = this.getStoredRecentRepositories().filter(
+    const recentRepositories = getNumberArray(RecentRepositoriesKey).filter(
       el => el !== currentRepositoryId && el !== previousRepositoryId
     )
     if (previousRepositoryId !== null) {
@@ -1491,28 +1499,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       0,
       RecentRepositoriesLength
     )
-    localStorage.setItem(
-      RecentRepositoriesKey,
-      slicedRecentRepositories.join(RecentRepositoriesDelimiter)
-    )
+    setNumberArray(RecentRepositoriesKey, slicedRecentRepositories)
     this.recentRepositories = slicedRecentRepositories
     this.emitUpdate()
-  }
-
-  private getStoredRecentRepositories() {
-    const storedIds = localStorage.getItem(RecentRepositoriesKey)
-    let storedRepositories: Array<number> = []
-    if (storedIds) {
-      try {
-        storedRepositories = storedIds
-          .split(RecentRepositoriesDelimiter)
-          .map(n => parseInt(n, 10))
-          .filter(n => !isNaN(n))
-      } catch {
-        storedRepositories = []
-      }
-    }
-    return storedRepositories
   }
 
   // finish `_selectRepository`s refresh tasks
@@ -2542,6 +2531,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
             if (changesState.currentBranchProtected) {
               this.statsStore.recordCommitToProtectedBranch()
             }
+          }
+        }
+
+        if (
+          repository.gitHubRepository !== null &&
+          !hasWritePermission(repository.gitHubRepository)
+        ) {
+          this.statsStore.recordCommitToRepositoryWithoutWriteAccess()
+          if (repository.gitHubRepository.dbID !== null) {
+            this.statsStore.recordRepositoryCommitedInWithoutWriteAccess(
+              repository.gitHubRepository.dbID
+            )
           }
         }
       }
@@ -4987,11 +4988,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.apiRepositoriesStore.loadRepositories(account)
   }
 
-  public _openMergeTool(repository: Repository, path: string): Promise<void> {
-    const gitStore = this.gitStoreCache.get(repository)
-    return gitStore.openMergeTool(path)
-  }
-
   public _changeBranchesTab(tab: BranchesTab): Promise<void> {
     this.selectedBranchesTab = tab
 
@@ -5555,21 +5551,33 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const remoteName = gitStore.defaultRemote
       ? gitStore.defaultRemote.name
       : undefined
+    const remoteUrl = gitStore.defaultRemote
+      ? gitStore.defaultRemote.url
+      : undefined
     // make sure there is a default remote (there should be)
-    if (remoteName !== undefined) {
+    if (remoteName !== undefined && remoteUrl !== undefined) {
       // update default remote
       if (await gitStore.setRemoteURL(remoteName, fork.clone_url)) {
+        const remotes = await getRemotes(repository)
+        const upstream = remotes.find(r => r.name === UpstreamRemoteName)
+        // update upstream remote if it already exists
+        if (upstream === undefined) {
+          await gitStore.performFailableOperation(() =>
+            addRemote(repository, UpstreamRemoteName, remoteUrl)
+          )
+        } else {
+          // update upstream remote if it already exists
+          await gitStore.performFailableOperation(() =>
+            setRemoteURL(repository, UpstreamRemoteName, remoteUrl)
+          )
+        }
+
         // update associated github repo
         const updatedRepository = await this.repositoriesStore.updateGitHubRepository(
           repository,
           repository.gitHubRepository.endpoint,
           fork
         )
-        // reload the GitStore since the Repository's hash has changed
-        // (and just to be safe)
-        const updatedGitStore = this.gitStoreCache.get(updatedRepository)
-        await updatedGitStore.addUpstreamRemoteIfNeeded()
-        await updatedGitStore.updateExistingUpstreamRemote()
         return updatedRepository
       }
     }

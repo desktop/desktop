@@ -12,7 +12,14 @@ import { IUiActivityMonitor } from '../../ui/lib/ui-activity-monitor'
 import { Disposable } from 'event-kit'
 import { SignInMethod } from '../stores'
 import { assertNever } from '../fatal-error'
-import { getNumber, setNumber, getBoolean, setBoolean } from '../local-storage'
+import {
+  getNumber,
+  setNumber,
+  getBoolean,
+  setBoolean,
+  getNumberArray,
+  setNumberArray,
+} from '../local-storage'
 import { PushOptions } from '../git'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
@@ -40,6 +47,9 @@ const FirstNonDefaultBranchCheckoutAtKey =
 const WelcomeWizardSignInMethodKey = 'welcome-wizard-sign-in-method'
 const terminalEmulatorKey = 'shell'
 const textEditorKey: string = 'externalEditor'
+
+const RepositoriesCommittedInWithoutWriteAccessKey =
+  'repositories-committed-in-without-write-access'
 
 /** How often daily stats should be submitted (i.e., 24 hours). */
 const DailyStatsReportInterval = 1000 * 60 * 60 * 24
@@ -123,6 +133,8 @@ const DefaultDailyMeasures: IDailyMeasures = {
   tutorialCompleted: false,
   // this is `-1` because `0` signifies "tutorial created"
   highestTutorialStepCompleted: -1,
+  commitsToRepositoryWithoutWriteAccess: 0,
+  forksCreated: 0,
 }
 
 interface IOnboardingStats {
@@ -280,6 +292,16 @@ interface ICalculatedStats {
   readonly selectedTextEditor: string
 
   readonly eventType: 'usage'
+
+  /**
+   * _[Forks]_
+   * How many repos did the user commit in without having `write` access?
+   *
+   * This is a hack in that its really a "computed daily measure" and the
+   * moment we have another one of those we should consider refactoring
+   * them into their own interface
+   */
+  readonly repositoriesCommittedInWithoutWriteAccess: number
 }
 
 type DailyStats = ICalculatedStats &
@@ -396,6 +418,11 @@ export class StatsStore implements IStatsStore {
     await this.db.launches.clear()
     await this.db.dailyMeasures.clear()
 
+    // This is a one-off, and the moment we have another
+    // computed daily measure we should consider refactoring
+    // them into their own interface
+    localStorage.removeItem(RepositoriesCommittedInWithoutWriteAccessKey)
+
     this.enableUiActivityMonitoring()
   }
 
@@ -431,6 +458,9 @@ export class StatsStore implements IStatsStore {
     const selectedTerminalEmulator =
       localStorage.getItem(terminalEmulatorKey) || 'none'
     const selectedTextEditor = localStorage.getItem(textEditorKey) || 'none'
+    const repositoriesCommittedInWithoutWriteAccess = getNumberArray(
+      RepositoriesCommittedInWithoutWriteAccessKey
+    ).length
 
     return {
       eventType: 'usage',
@@ -446,6 +476,7 @@ export class StatsStore implements IStatsStore {
       ...onboardingStats,
       guid: getGUID(),
       ...repositoryCounts,
+      repositoriesCommittedInWithoutWriteAccess,
     }
   }
 
@@ -1274,6 +1305,38 @@ export class StatsStore implements IStatsStore {
         step,
         m.highestTutorialStepCompleted
       ),
+    }))
+  }
+
+  public recordCommitToRepositoryWithoutWriteAccess() {
+    return this.updateDailyMeasures(m => ({
+      commitsToRepositoryWithoutWriteAccess:
+        m.commitsToRepositoryWithoutWriteAccess + 1,
+    }))
+  }
+
+  /**
+   * Record that the user made a commit in a repository they don't
+   * have `write` access to. Dedupes based on the database ID provided
+   *
+   * @param gitHubRepositoryDbId database ID for the GitHubRepository of
+   *                             the local repo this commit was made in
+   */
+  public recordRepositoryCommitedInWithoutWriteAccess(
+    gitHubRepositoryDbId: number
+  ) {
+    const ids = getNumberArray(RepositoriesCommittedInWithoutWriteAccessKey)
+    if (!ids.includes(gitHubRepositoryDbId)) {
+      setNumberArray(RepositoriesCommittedInWithoutWriteAccessKey, [
+        ...ids,
+        gitHubRepositoryDbId,
+      ])
+    }
+  }
+
+  public recordForkCreated() {
+    return this.updateDailyMeasures(m => ({
+      forksCreated: m.forksCreated + 1,
     }))
   }
 

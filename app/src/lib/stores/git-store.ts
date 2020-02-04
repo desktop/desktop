@@ -49,7 +49,6 @@ import {
   resetPaths,
   revertCommit,
   unstageAllFiles,
-  openMergeTool,
   addRemote,
   listSubmodules,
   resetSubmodulePaths,
@@ -1365,12 +1364,6 @@ export class GitStore extends BaseStore {
     )
 
     this.emitUpdate()
-  }
-
-  public async openMergeTool(path: string): Promise<void> {
-    await this.performFailableOperation(() =>
-      openMergeTool(this.repository, path)
-    )
   }
 
   /**
