@@ -9,7 +9,6 @@ yarn-error.log
 .idea/
 .eslintcache
 app/coverage
-script/coverage
 app/static/common
 app/test/fixtures
 gemoji
