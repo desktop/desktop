@@ -58,7 +58,7 @@ function parseChannel(arg: string): Channel {
  */
 function printInstructions(nextVersion: string, entries: Array<string>) {
   const object: any = {}
-  object[`${nextVersion}`] = entries.sort()
+  object[nextVersion] = entries.sort()
 
   const steps = [
     `Update the app/package.json 'version' to '${nextVersion}' (make sure this aligns with semver format of 'major.minor.patch')`,
