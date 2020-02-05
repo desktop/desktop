@@ -1,4 +1,4 @@
-import { nativeTheme } from 'electron'
+import { remote } from 'electron'
 import { isMojaveOrLater } from '../../lib/get-os'
 
 export function supportsDarkMode() {
@@ -14,5 +14,5 @@ export function isDarkModeEnabled() {
     return false
   }
 
-  return nativeTheme.shouldUseDarkColors
+  return remote.nativeTheme.shouldUseDarkColors
 }
