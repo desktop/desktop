@@ -87,3 +87,33 @@ export function getNumber(
 export function setNumber(key: string, value: number) {
   localStorage.setItem(key, value.toString())
 }
+
+/**
+ * Retrieve an array of `number` values from a given local
+ * storage entry, if found. The array will be empty if the
+ * key doesn't exist or if the values cannot be converted
+ * into numbers
+ *
+ * @param key local storage entry to read
+ */
+export function getNumberArray(key: string): ReadonlyArray<number> {
+  return (localStorage.getItem(key) || '')
+    .split(NumberArrayDelimiter)
+    .map(parseFloat)
+    .filter(n => !isNaN(n))
+}
+
+/**
+ * Set the provided key in local storage to a list of numeric values, or update the
+ * existing value if a key is already defined.
+ *
+ * Stores the string representation of the number, delimited.
+ *
+ * @param key local storage entry to update
+ * @param values the numbers to set
+ */
+export function setNumberArray(key: string, values: ReadonlyArray<number>) {
+  localStorage.setItem(key, values.join(NumberArrayDelimiter))
+}
+/** Default delimiter for stringifying and parsing arrays of numbers */
+const NumberArrayDelimiter = ','

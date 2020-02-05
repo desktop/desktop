@@ -26,7 +26,7 @@ interface ICreateForkDialogState {
 }
 
 /**
- * Dialog offering to make a fork of the given repository
+ * Dialog offering to create a fork of the given repository
  */
 export class CreateForkDialog extends React.Component<
   ICreateForkDialogProps,
@@ -48,6 +48,7 @@ export class CreateForkDialog extends React.Component<
         gitHubRepository.owner.login,
         gitHubRepository.name
       )
+      this.props.dispatcher.recordForkCreated()
       await this.props.dispatcher.convertRepositoryToFork(
         this.props.repository,
         fork
@@ -100,7 +101,7 @@ function renderCreateForkDialogContent(
       <DialogContent>
         {`It looks like you don’t have write access to `}
         <strong>{repository.gitHubRepository.fullName}</strong>
-        {`. Do you want to make a fork of this repository at `}
+        {`. Do you want to create a fork of this repository at `}
         <strong>
           {`${account.login}/${repository.gitHubRepository.name}`}
         </strong>
@@ -142,7 +143,7 @@ function renderCreateForkDialogError(
     <>
       <DialogContent>
         <div>
-          {`Making your fork `}
+          {`Creating your fork `}
           <strong>
             {`${account.login}/${repository.gitHubRepository.name}`}
           </strong>

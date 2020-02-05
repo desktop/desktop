@@ -101,14 +101,12 @@ Here's what you should do next:
     "[Fixed] Line endings are hard, lets go shopping - #3514",
   ]
 }
-
-3. Remove any entries of contributions that don't affect the end user
-3. Update the release notes to have user-friendly summary lines
-4. For issues prefixed with [???], look at the PR and update the prefix to one of: [New], [Added], [Fixed], [Improved], [Removed]
-5. Sort the entries so that the prefixes are ordered: [New], [Added], [Fixed], [Improved], [Removed]
-6. Commit the changes (on development or as new branch) and push them to GitHub
-7. Read this to perform the release: https://github.com/desktop/desktop/blob/development/docs/process/releasing-updates.md
+3. Revise the release notes according to https://github.com/desktop/desktop/blob/development/docs/process/writing-release-notes.md
+4. Commit the changes (on development or as new branch) and push them to GitHub
+5. Read this to perform the release: https://github.com/desktop/desktop/blob/development/docs/process/releasing-updates.md
 ```
+
+See our [release notes writing guide](./writing-release-notes.md) for more info on how we write and review our release notes.
 
 _Note: You should ensure the `version` in `app/package.json` is set to the new version and follows the [semver format](https://semver.org/) of `major.minor.patch`._
 
