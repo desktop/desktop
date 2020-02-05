@@ -102,7 +102,7 @@ function renderCreateForkDialogContent(
         <p>
           {`It looks like you don’t have write access to `}
           <strong>{repository.gitHubRepository.fullName}</strong>
-          {`. If you should have permission, please check with a repository administrator.`}
+          {`. If you should, please check with a repository administrator.`}
         </p>
         <p>
           {` Do you want to create a fork of this repository at `}
