@@ -93,7 +93,7 @@ export async function deleteBranch(
     })
 
     // It's possible that the delete failed because the ref has already
-    // been deleted on the remote. If we can identify that specific
+    // been deleted on the remote. If we identify that specific
     // error we can safely remote our remote ref which is what would
     // happen if the push didn't fail.
     if (result.gitError === DugiteError.BranchDeletionFailed) {
