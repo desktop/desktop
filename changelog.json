@@ -1,5 +1,31 @@
 {
   "releases": {
+    "2.3.2-beta1": [],
+    "2.3.1": [
+      "[Fixed] Don't display erroneous Git error when creating a fork - #9004",
+      "[Fixed] Remove stray characters from Git progress indicators on Windows - #9003"
+    ],
+    "2.3.0": [
+      "[New] Prompt users to create a fork if they fail to push to a GitHub repository due to permissions - #8548",
+      "[Added] Show link to upstream pull requests in pull request list of a fork - #8965",
+      "[Added] Show a warning if the user doesn't have write access to push to the repository and offer to make a fork - #8938",
+      "[Added] Provide configuration in Preferences to always bring or leave changes when switching branches - #7746",
+      "[Added] Prompt users to re-authorize if required by any of their GitHub organizations - #8910",
+      "[Added] Support GoLand as external editor on Mac - #8802. Thanks @thinklinux!",
+      "[Fixed] Show proper dialog when push fails due to missing workflow scope - #8958",
+      "[Fixed] Take users to the correct page on GitHub.com when opening a pull request in browser from a fork - #8928",
+      "[Fixed] Don't suggest creating a pull request if the current branch has an open pull request targeting an upstream repo - #8549",
+      "[Fixed] Remove false branch protection warning when switching branches - #8743",
+      "[Fixed] Show branch protection warning after checking out protected branches outside Desktop - #8790",
+      "[Improved] Only show branch protection warning when changed files are present - #8795",
+      "[Improved] Show an error when editing a Git configuration file fails due to existing lock file - #8956",
+      "[Improved] Update design and layout for GitHub Desktop preferences - #8774"
+    ],
+    "2.3.0-beta2": [
+      "[Fixed] Remove stray characters from Git progress indicators - #8962",
+      "[Fixed] Show proper dialog when push fails due to missing workflow scope - #8958",
+      "[Added] Show link to upstream pull requests in pull request list - #8965"
+    ],
     "2.3.0-beta1": [
       "[New] Prompt users to make a fork if they fail to push to a GitHub repository due to permissions  - #8548",
       "[Added] Show a commit warning if the user can't push to the repository - #8938",

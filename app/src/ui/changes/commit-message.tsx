@@ -464,8 +464,8 @@ export class CommitMessage extends React.Component<
       return (
         <PermissionsCommitWarning>
           You don't have write access to <strong>{repository.name}</strong>.
-          Want to <LinkButton onClick={this.onMakeFork}>make a fork</LinkButton>
-          ?
+          Want to{' '}
+          <LinkButton onClick={this.onMakeFork}>create a fork</LinkButton>?
         </PermissionsCommitWarning>
       )
     } else if (showBranchProtected) {

@@ -51,10 +51,7 @@ function printInstructions(nextVersion: string, entries: Array<string>) {
     `Concatenate this to the beginning of the 'releases' element in the changelog.json as a starting point:\n${jsonStringify(
       object
     )}\n`,
-    `Remove any entries of contributions that don't affect the end user`,
-    'Update the release notes to have user-friendly summary lines',
-    'For issues prefixed with [???], look at the PR to update the prefix to one of: [New], [Added], [Fixed], [Improved], [Removed]',
-    'Sort the entries so that the prefixes are ordered in this way: [New], [Added], [Fixed], [Improved], [Removed]',
+    'Revise the release notes according to https://github.com/desktop/desktop/blob/development/docs/process/writing-release-notes.md',
     'Commit the changes (on development or as new branch) and push them to GitHub',
     'Read this to perform the release: https://github.com/desktop/desktop/blob/development/docs/process/releasing-updates.md',
   ]
