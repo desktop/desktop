@@ -5215,7 +5215,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       // N.B: This looks weird, and it is. _checkoutBranch used
       // to behave this way (silently ignoring checkout) when given
-      // a string and not a Branch model. When rewriting _checkoutBranch
+      // a branch name string that does not correspond to a local branch
+      // in the git store. When rewriting _checkoutBranch
       // to remove the support for string branch names the behavior
       // was moved up to this method to not alter the current behavior.
       //
