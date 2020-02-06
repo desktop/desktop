@@ -1367,13 +1367,12 @@ export class Dispatcher {
    */
   public async relocateRepository(repository: Repository): Promise<void> {
     const window = remote.getCurrentWindow()
-    // eslint-disable-next-line no-sync
-    const directories = remote.dialog.showOpenDialogSync(window, {
+    const { filePaths } = await remote.dialog.showOpenDialog(window, {
       properties: ['openDirectory'],
     })
 
-    if (directories && directories.length > 0) {
-      const newPath = directories[0]
+    if (filePaths.length > 0) {
+      const newPath = filePaths[0]
       await this.updateRepositoryPath(repository, newPath)
     }
   }

@@ -172,15 +172,14 @@ export class AddExistingRepository extends React.Component<
 
   private showFilePicker = async () => {
     const window = remote.getCurrentWindow()
-    // eslint-disable-next-line no-sync
-    const directory = remote.dialog.showOpenDialogSync(window, {
+    const { filePaths } = await remote.dialog.showOpenDialog(window, {
       properties: ['createDirectory', 'openDirectory'],
     })
-    if (directory === undefined) {
+    if (filePaths.length === 0) {
       return
     }
 
-    const path = directory[0]
+    const path = filePaths[0]
     const isRepository = await isGitRepository(path)
     const isRepositoryBare = await isBareRepository(path)
 
