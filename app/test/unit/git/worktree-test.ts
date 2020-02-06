@@ -10,7 +10,7 @@ import {
   cleanupTemporaryWorkTrees,
 } from '../../../src/lib/git/worktree'
 import { Repository, LinkedWorkTree } from '../../../src/models/repository'
-import { realpathSync } from 'fs-extra'
+import { realpathSync, mkdtemp } from 'fs-extra'
 
 describe('git/worktree', () => {
   describe('listWorktrees', () => {
@@ -18,7 +18,30 @@ describe('git/worktree', () => {
       let repository: Repository
 
       beforeEach(async () => {
-        repository = await setupEmptyRepository()
+        if (
+          process.platform === 'win32' &&
+          process.env.TF_BUILD != null &&
+          process.env.AGENT_TEMPDIRECTORY
+        ) {
+          // running test on Azure Pipelines (Windows)
+          //
+          // This is a workaround for the `TEMP` environment variable containing
+          // a shortname (VSSADM~1) version of the account name, but the NodeJS
+          // API returning the long path name (VSSAdministrator). Both are valid
+          // but will break when we try to compare them.
+          //
+          // Instead of using `TEMP` in this situation we'll use the
+          // `AGENT_TEMPDIRECTORY` environment variable which will be cleaned up
+          // after the test run
+          const repoPath = await mkdtemp(
+            Path.join(process.env.AGENT_TEMPDIRECTORY, 'desktop-empty-repo-')
+          )
+          await GitProcess.exec(['init'], repoPath)
+
+          repository = new Repository(repoPath, -1, null, false)
+        } else {
+          repository = await setupEmptyRepository()
+        }
       })
 
       it('returns one entry', async () => {
