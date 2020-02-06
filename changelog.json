@@ -1,5 +1,12 @@
 {
   "releases": {
+    "2.3.2-beta2": [
+      "[Fixed] Text in error dialogs is now selectable - #7606",
+      "[Fixed] Prevent some stash and move operations from failing silently - #9038",
+      "[Fixed] Removing branches succeeds even if branch is already deleted on remote - #8831",
+      "[Improved] Errors containing raw Git output are now formatted using fixed-width font - #8964",
+      "[Improved] Upgrade to Electron 7 - #8967"
+    ],
     "2.3.0-test2": ["Testing upgrade from Electron v6 to v7"],
     "2.3.0-test1": ["Testing upgrade from Electron v5 to v6"],
     "2.3.2-beta1": [],
