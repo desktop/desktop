@@ -73,6 +73,7 @@
     border-bottom: 1px solid var(--box-border-color);
     padding: 0 var(--spacing);
     height: 29px;
+    flex: 0 0 auto;
 
     .checkbox-component {
       align-items: center;
