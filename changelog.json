@@ -1,5 +1,7 @@
 {
   "releases": {
+    "2.3.0-test2": ["Testing upgrade from Electron v6 to v7"],
+    "2.3.0-test1": ["Testing upgrade from Electron v5 to v6"],
     "2.3.2-beta1": [],
     "2.3.1": [
       "[Fixed] Don't display erroneous Git error when creating a fork - #9004",

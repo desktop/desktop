@@ -74,7 +74,7 @@ let currentContextualMenuItems: ReadonlyArray<IMenuItem> | null = null
 export function registerContextualMenuActionDispatcher() {
   ipcRenderer.on(
     'contextual-menu-action',
-    (event: Electron.IpcMessageEvent, index: number) => {
+    (event: Electron.IpcRendererEvent, index: number) => {
       if (!currentContextualMenuItems) {
         return
       }

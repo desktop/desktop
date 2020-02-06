@@ -51,7 +51,7 @@ export class WindowControls extends React.Component<{}, IWindowControlState> {
   }
 
   private onWindowStateChanged = (
-    event: Electron.IpcMessageEvent,
+    event: Electron.IpcRendererEvent,
     windowState: WindowState
   ) => {
     this.setState({ windowState })
