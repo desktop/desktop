@@ -14,5 +14,7 @@ export function isDarkModeEnabled() {
     return false
   }
 
+  // remote is an IPC call, so if we know there's no point making this call
+  // we should avoid paying the IPC tax
   return remote.nativeTheme.shouldUseDarkColors
 }
