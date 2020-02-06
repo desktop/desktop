@@ -451,10 +451,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository.isTutorialRepository,
       this.repositoryStateCache.get(repository)
     )
-    log.info(`Current tutorial step is ${currentStep}`)
     // only emit an update if its changed
     if (currentStep !== this.currentOnboardingTutorialStep) {
       this.currentOnboardingTutorialStep = currentStep
+      log.info(`Current tutorial step is now ${currentStep}`)
       this.recordTutorialStepCompleted(currentStep)
       this.emitUpdate()
     }
