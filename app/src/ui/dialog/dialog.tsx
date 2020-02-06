@@ -49,14 +49,6 @@ interface IDialogProps {
   readonly dismissable?: boolean
 
   /**
-   * Option to prevent dismissal by clicking outside of the dialog.
-   * Requires `dismissal` to be true (or omitted) to have an effect.
-   *
-   * Defaults to false if omitted
-   */
-  readonly disableClickDismissalAlways?: boolean
-
-  /**
    * Event triggered when the dialog is dismissed by the user in the
    * ways described in the dismissable prop.
    */
