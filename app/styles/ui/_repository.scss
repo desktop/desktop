@@ -4,9 +4,9 @@
 #repository {
   display: flex;
   flex-direction: row;
-  flex: 1;
+  flex: 1 1 auto;
   border-top: var(--base-border);
-  max-height: 100%;
+  height: 100%;
 
   > .focus-container {
     display: flex;
@@ -16,5 +16,14 @@
     display: flex;
     flex-direction: column;
     border-right: 1px solid var(--box-border-color);
+
+    .tab-bar {
+      flex-shrink: 0;
+    }
+
+    .panel {
+      height: 100%;
+      flex: 1 1 auto;
+    }
   }
 }

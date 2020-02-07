@@ -317,13 +317,14 @@ dialog {
   &#app-error {
     .dialog-content {
       p {
-        -webkit-user-select: auto;
-        user-select: auto;
-        cursor: text;
+        -webkit-user-select: text;
+        user-select: text;
+        cursor: auto;
 
         // Preserve newlines and other white space in error messages
         // but make sure we wrap if necessary.
         white-space: pre-wrap;
+        overflow-wrap: break-word;
 
         &.monospace {
           font-family: var(--font-family-monospace);
