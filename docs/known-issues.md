@@ -184,3 +184,12 @@ Known causes and workarounds:
   2. Delete the `%AppData%\GitHub Desktop\` directory
   3. Delete the `%LocalAppData%\GitHubDesktop\` directory
   4. Reinstall GitHub Desktop from [desktop.github.com](https://desktop.github.com)
+  
+### Authentication errors due to modified registry entries
+
+If either the user or an application has modified the `Command Processor` registry entries it can cause GitHub Desktop to throw an `Authentication failed` error. To check if these registry entries have been modified open the Registry Editor (regedit.exe) and navigate to the following locations:
+
+`HKEY_CURRENT_USER\Software\Microsoft\Command Processor\`
+`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Command Processor\`
+
+Check to see if there is an `Autorun` value in either of those location. If there is, deleting that value should resolve the `Authentication failed` error.
