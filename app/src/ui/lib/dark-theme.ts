@@ -1,12 +1,14 @@
 import { remote } from 'electron'
-import { isMojaveOrLater } from '../../lib/get-os'
+import { isMojaveOrLater, is1809OrLater } from '../../lib/get-os'
 
 export function supportsDarkMode() {
-  if (!__DARWIN__) {
-    return false
+  if (__DARWIN__) {
+    return isMojaveOrLater()
+  } else if (__WIN32__) {
+    return is1809OrLater()
   }
 
-  return isMojaveOrLater()
+  return false
 }
 
 export function isDarkModeEnabled() {

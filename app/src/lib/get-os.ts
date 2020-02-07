@@ -33,3 +33,19 @@ export function isMojaveOrLater() {
   }
   return false
 }
+
+/** See the OS we're currently running on is at least 1809. */
+export function is1809OrLater() {
+  if (__WIN32__) {
+    const version = OS.release()
+
+    if (version === undefined) {
+      return false
+    }
+
+    const [major, minor, patch] = version.split('.')
+
+    return major === '10' && minor === '0' && patch > '17666'
+  }
+  return false
+}
