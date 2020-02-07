@@ -451,10 +451,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository.isTutorialRepository,
       this.repositoryStateCache.get(repository)
     )
-    log.info(`Current tutorial step is ${currentStep}`)
     // only emit an update if its changed
     if (currentStep !== this.currentOnboardingTutorialStep) {
       this.currentOnboardingTutorialStep = currentStep
+      log.info(`Current tutorial step is now ${currentStep}`)
       this.recordTutorialStepCompleted(currentStep)
       this.emitUpdate()
     }
@@ -525,7 +525,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private wireupIpcEventHandlers(window: Electron.BrowserWindow) {
     ipcRenderer.on(
       windowStateChannelName,
-      (event: Electron.IpcMessageEvent, windowState: WindowState) => {
+      (event: Electron.IpcRendererEvent, windowState: WindowState) => {
         this.windowState = windowState
         this.emitUpdate()
       }
@@ -537,7 +537,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     ipcRenderer.on(
       'app-menu',
-      (event: Electron.IpcMessageEvent, { menu }: { menu: IMenu }) => {
+      (event: Electron.IpcRendererEvent, { menu }: { menu: IMenu }) => {
         this.setAppMenu(menu)
       }
     )
@@ -3032,21 +3032,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _checkoutBranch(
     repository: Repository,
-    branch: Branch | string,
+    branch: Branch,
     uncommittedChangesStrategy: UncommittedChangesStrategy = getUncommittedChangesStrategy(
       this.uncommittedChangesStrategyKind
     )
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
     const kind = 'checkout'
-    const foundBranch =
-      typeof branch === 'string'
-        ? this.getLocalBranch(repository, branch)
-        : branch
-
-    if (foundBranch == null) {
-      return repository
-    }
 
     const { changesState, branchesState } = this.repositoryStateCache.get(
       repository
@@ -3059,7 +3051,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         if (uncommittedChangesStrategy.kind === askToStash.kind) {
           this._showPopup({
             type: PopupType.StashAndSwitchBranch,
-            branchToCheckout: foundBranch,
+            branchToCheckout: branch,
             repository,
           })
           return repository
@@ -3067,7 +3059,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
         stashToPop = await this.stashToPopAfterBranchCheckout(
           repository,
-          foundBranch,
+          branch,
           uncommittedChangesStrategy
         )
       }
@@ -3077,7 +3069,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       (await this.withAuthenticatingUser(repository, (repository, account) =>
         gitStore.performFailableOperation(
           () =>
-            checkoutBranch(repository, account, foundBranch, progress => {
+            checkoutBranch(repository, account, branch, progress => {
               this.updateCheckoutProgress(repository, progress)
             }),
           {
@@ -3089,7 +3081,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             },
             gitContext: {
               kind: 'checkout',
-              branchToCheckout: foundBranch.name,
+              branchToCheckout: branch,
             },
           }
         )
@@ -3128,7 +3120,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         kind,
         title: __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository',
         value: 1,
-        targetBranch: foundBranch.name,
+        targetBranch: branch.name,
       })
 
       await this._refreshRepository(repository)
@@ -3140,7 +3132,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const { defaultBranch } = branchesState
-    if (defaultBranch !== null && foundBranch.name !== defaultBranch.name) {
+    if (defaultBranch !== null && branch.name !== defaultBranch.name) {
       this.statsStore.recordNonDefaultBranchCheckout()
     }
 
@@ -5219,7 +5211,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
           )
         }
       }
-      await this._checkoutBranch(repository, head.ref)
+      const branch = this.getLocalBranch(repository, head.ref)
+
+      // N.B: This looks weird, and it is. _checkoutBranch used
+      // to behave this way (silently ignoring checkout) when given
+      // a branch name string that does not correspond to a local branch
+      // in the git store. When rewriting _checkoutBranch
+      // to remove the support for string branch names the behavior
+      // was moved up to this method to not alter the current behavior.
+      //
+      // https://youtu.be/IjmtVKOAHPM
+      if (branch !== null) {
+        await this._checkoutBranch(repository, branch)
+      }
     } else {
       const cloneURL = forceUnwrap(
         "This pull request's clone URL is not populated but should be",
@@ -5246,22 +5250,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       await this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
 
-      const gitStore = this.gitStoreCache.get(repository)
-
       const localBranchName = `pr/${pullRequest.pullRequestNumber}`
-      const doesBranchExist =
-        gitStore.allBranches.find(branch => branch.name === localBranchName) !=
-        null
+      const existingBranch = this.getLocalBranch(repository, localBranchName)
 
-      if (!doesBranchExist) {
+      if (existingBranch === null) {
         await this._createBranch(
           repository,
           localBranchName,
           `${remoteName}/${head.ref}`
         )
+      } else {
+        await this._checkoutBranch(repository, existingBranch)
       }
-
-      await this._checkoutBranch(repository, localBranchName)
     }
 
     this.statsStore.recordPRBranchCheckout()
@@ -5426,7 +5426,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _moveChangesToBranchAndCheckout(
     repository: Repository,
-    branchToCheckout: string
+    branchToCheckout: Branch
   ) {
     if (!enableStashing()) {
       return
@@ -5439,7 +5439,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const isStashCreated = await gitStore.performFailableOperation(() => {
       return createDesktopStashEntry(
         repository,
-        branchToCheckout,
+        branchToCheckout.name,
         getUntrackedFiles(workingDirectory)
       )
     })
@@ -5450,7 +5450,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const transientStashEntry = await getLastDesktopStashEntryForBranch(
       repository,
-      branchToCheckout
+      branchToCheckout.name
     )
     const strategy: UncommittedChangesStrategy = {
       kind: UncommittedChangesStrategyKind.MoveToNewBranch,
