@@ -115,3 +115,7 @@ export function enableTutorial(): boolean {
 export function enableCreateForkFlow(): boolean {
   return true
 }
+
+export function enableAutomaticGitProxyConfiguration(): boolean {
+  return enableDevelopmentFeatures()
+}
