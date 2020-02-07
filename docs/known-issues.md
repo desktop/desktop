@@ -176,6 +176,8 @@ Known causes and workarounds:
 
 - Antivirus software can sometimes prevent GitHub Desktop from installing correctly. If you are running antivirus software that could be causing this try temporarily disabling it and reinstalling GitHub Desktop.
 
+- Restrictive permissions on your Windows user account. If you are running GitHub Desktop as a non-admin user try launching the application as an administrator (right-click -> `Run as administrator`). See [#5082](https://github.com/desktop/desktop/issues/5082#issuecomment-483067198).
+
 - If none of these potential causes are present on your machine, try performing a fresh installation of GitHub Desktop to see if that gets things working again. Here are the steps you can take to do that:
 
   1. Close GitHub Desktop
