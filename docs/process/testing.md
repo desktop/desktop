@@ -374,7 +374,7 @@
   - [ ] User can select individual file(s) -- and individial lines of a file(s) -- to commit at a time
   - [ ] Forked messaging shown if user cannot write to cloned repository and there are changes
     - [ ] If user opts to fork the repository, a confirmation dialogue surfaced. Errors caught within the dialouge.
-  - [ ] Protected branches messsaging shown if branch is protected
+  - [ ] Protected branches messsaging shown if branch is protected and there are changes
   
 ### Co-authoring (Changes tab)
   - [ ] clicking co-author icon toggles co-author field; or right-click within commit area
