@@ -454,7 +454,7 @@
    - [ ] Results in chronological order, with name, id number, date, username, and CI status (if enabled)
      - [ ] Status checks run frequently in background, especially if yellow
      - [ ] If user hovers over CI status icons, tooltips show individual/group status details
- - [ ] Pull Request status can be updated independently of respective Pull Request
+ - [ ] Pull Request status in the list can be updated independently of respective Pull Request being viewed (background job)
  - [ ] Forked repository can point to upstream Pull Request; user has option to view pull requests on upstream repository
  
 ### Security
