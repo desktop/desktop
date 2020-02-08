@@ -48,7 +48,8 @@
 ### Onboarding & Tutorial
   - [ ] Onboarding shown if user is new to Desktop and has no repositories in the application
     - [ ] If user logged in during sign-up process with repository lists for GitHub.com and/or Enterprise
-    - [ ] Always show four suggested steps: Clone repository, Add existing repository, Add new repository, Tutorial
+    - [ ] Always show suggested steps: Clone repository, Add existing repository, Add new repository
+    - [ ] If logged into GitHub, show button for creating tutorial
       - [ ] Adding a repository will automically exit Onboarding
         - [ ] User can revert to Onboarding if all respositories are removed
       - [ ] Tutorial can only be started if there is no local or remote `desktop-tutorial` repository, else error surfaced
