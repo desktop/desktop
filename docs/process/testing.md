@@ -373,7 +373,8 @@
   - [ ] User can make new branch the default branch, by making the intial commit on the new branch
   - [ ] User can select individual file(s) -- and individial lines of a file(s) -- to commit at a time
   - [ ] Forked messaging shown if user cannot write to cloned repository and there are changes
-    - [ ] If user opts to fork the repository, a confirmation dialogue surfaced. Errors caught within the dialouge.
+    - [ ] If user opts to fork the repository, a confirmation dialogue surfaced. Errors caught within the dialogue.
+    - [ ] Clicking confirm results in successful fork creation
   - [ ] Protected branches messsaging shown if branch is protected and there are changes
   
 ### Co-authoring (Changes tab)
