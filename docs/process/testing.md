@@ -372,7 +372,7 @@
   - [ ] User can publish a new repository with no commits (aka unborn repository/branch)
   - [ ] User can make new branch the default branch, by making the intial commit on the new branch
   - [ ] User can select individual file(s) -- and individial lines of a file(s) -- to commit at a time
-  - [ ] Forked messsaging shown if user cannot write to cloned repository
+  - [ ] Forked messaging shown if user cannot write to cloned repository and there are changes
     - [ ] If user opts to fork the repository, a confirmation dialogue surfaced. Errors caught within the dialouge.
   - [ ] Protected branches messsaging shown if branch is protected
   
