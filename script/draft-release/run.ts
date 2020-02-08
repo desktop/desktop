@@ -112,12 +112,19 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
     return
   }
   console.log(`Setting app version to "${nextVersion}" in app/package.json...`)
-  // this can throw and that's okay!
-  execSync(`npm version ${nextVersion} --allow-same-version`, {
-    cwd: join(__dirname, '..', '..', 'app'),
-    encoding: 'utf8',
-  })
-  console.log(`Set!`)
+
+  try {
+    // this can throw
+    execSync(`npm version ${nextVersion} --allow-same-version`, {
+      cwd: join(__dirname, '..', '..', 'app'),
+      encoding: 'utf8',
+    })
+    console.log(`Set!`)
+  } catch (e) {
+    console.warn(`Setting the app version failed 😿
+    (${e.message})
+    Please manually set it to ${nextVersion} in app/package.json.`)
+  }
 
   const currentChangelog = require(changelogPath)
   const newEntries = await getNewEntries(previousVersion, channel, lines)
@@ -129,14 +136,19 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
       currentChangelog,
       newEntries
     )
-    // this might throw and that's ok (for now!)
-    writeFileSync(
-      changelogPath,
-      format(JSON.stringify(changelog), {
-        parser: 'json',
-      })
-    )
-    printInstructions(nextVersion, [])
+    try {
+      // this might throw
+      writeFileSync(
+        changelogPath,
+        format(JSON.stringify(changelog), {
+          parser: 'json',
+        })
+      )
+      printInstructions(nextVersion, [])
+    } catch (e) {
+      console.warn(`Writing the changelog failed 😿\n(${e.message})`)
+      printInstructions(nextVersion, newEntries)
+    }
   } else {
     console.log(
       `Looks like there are already release notes for ${nextVersion} in changelog.json.`
