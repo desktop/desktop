@@ -133,7 +133,7 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
     console.log('Adding draft release notes to changelog.json...')
     const changelog = makeNewChangelog(
       nextVersion,
-      currentChangelog,
+      currentChangelog.releases,
       newEntries
     )
     try {
@@ -173,14 +173,11 @@ async function getNewEntries(
 
 function makeNewChangelog(
   nextVersion: string,
-  currentChangelog: any,
+  currentChangelogEntries: any,
   entries: ReadonlyArray<string>
 ) {
-  const newChangelog: any = { releases: {} }
-  newChangelog.releases[nextVersion] = entries
+  const newChangelogEntries: any = {}
+  newChangelogEntries[nextVersion] = entries
 
-  for (const k of Object.keys(currentChangelog.releases)) {
-    newChangelog.releases[k] = currentChangelog.releases[k]
-  }
-  return newChangelog
+  return { releases: { ...newChangelogEntries, ...currentChangelogEntries } }
 }
