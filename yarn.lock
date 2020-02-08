@@ -6367,11 +6367,6 @@ json-parse-better-errors@^1.0.1:
   resolved "https://registry.yarnpkg.com/json-parse-better-errors/-/json-parse-better-errors-1.0.2.tgz#bb867cfb3450e69107c131d1c514bab3dc8bcaa9"
   integrity sha512-mrqyZKfX5EhL7hvqcV6WG1yYjnjeuYDzDhhcAAUrq8Po85NBQBJP+ZDUT75qZQ98IkUoBqdkExkukOU7Ts2wrw==
 
-json-pretty@^0.0.1:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/json-pretty/-/json-pretty-0.0.1.tgz#e0a36567490838781f712d250c04a2fb96334265"
-  integrity sha1-4KNlZ0kIOHgfcS0lDASi+5YzQmU=
-
 json-schema-traverse@^0.3.0:
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/json-schema-traverse/-/json-schema-traverse-0.3.1.tgz#349a6d44c53a51de89b40805c5d5e59b417d3340"

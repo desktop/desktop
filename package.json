@@ -89,7 +89,6 @@
     "jest-extended": "^0.11.2",
     "jest-junit": "^5.0.0",
     "jest-localstorage-mock": "^2.3.0",
-    "json-pretty": "^0.0.1",
     "klaw-sync": "^3.0.0",
     "legal-eagle": "0.16.0",
     "mini-css-extract-plugin": "^0.4.0",
