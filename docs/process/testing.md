@@ -151,6 +151,7 @@
       - [ ] Confirmation dialogue for discarding files is checked by default; user can toggle
         - [ ] Verify postive `ConfirmRepoRemoval` value in Dev Tools > Application > Local storage > file://
       - [ ] Confirmation dialogue for force pushing files is checked by default; user can toggle
+        - [ ] Verify postive `confirmForcePush` value in Dev Tools > Application > Local storage > file://
       - [ ] `Save` button saves any changes made
       - [ ] `Cancel` button does not save any changes made; modal closed
       - [ ] Shared usage data option; selection carried through from Welcome flow
