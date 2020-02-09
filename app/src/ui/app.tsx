@@ -92,6 +92,7 @@ import { isConflictedFile } from '../lib/status'
 import { PopupType, Popup } from '../models/popup'
 import { OversizedFiles } from './changes/oversized-files-warning'
 import { UsageStatsChange } from './usage-stats-change'
+<<<<<<< HEAD
 import { PushNeedsPullWarning } from './push-needs-pull'
 import { RebaseFlow, ConfirmForcePush } from './rebase'
 import {
@@ -111,6 +112,9 @@ import { WorkflowPushRejectedDialog } from './workflow-push-rejected/workflow-pu
 import { getUncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
 import { SAMLReauthRequiredDialog } from './saml-reauth-required/saml-reauth-required'
 import { CreateForkDialog } from './forks/create-fork-dialog'
+=======
+import { MergeSource } from '../models/merge'
+>>>>>>> upstream/branch-list-merging
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -335,13 +339,22 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
       case 'open-working-directory':
         return this.openCurrentRepositoryWorkingDirectory()
+<<<<<<< HEAD
       case 'update-branch':
         this.props.dispatcher.recordMenuInitiatedUpdate()
+=======
+      case 'update-branch': {
+>>>>>>> upstream/branch-list-merging
         return this.updateBranch()
       case 'compare-to-branch':
         return this.showHistory(true)
+<<<<<<< HEAD
       case 'merge-branch':
         this.props.dispatcher.recordMenuInitiatedMerge()
+=======
+      }
+      case 'merge-branch': {
+>>>>>>> upstream/branch-list-merging
         return this.mergeBranch()
       case 'rebase-branch':
         this.props.dispatcher.recordMenuInitiatedRebase()
@@ -550,7 +563,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.mergeBranch(
       selectedState.repository,
       defaultBranch.name,
-      mergeStatus
+      mergeStatus,
+      MergeSource.UpdateBranchMenuItem
     )
   }
 
@@ -563,6 +577,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup({
       type: PopupType.MergeBranch,
       repository: state.repository,
+      initiatedBy: MergeSource.MergeIntoCurrentBranchMenuItem,
     })
   }
 
@@ -1353,7 +1368,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.MergeBranch: {
-        const { repository, branch } = popup
+        const { repository, branch, initiatedBy } = popup
         const state = this.props.repositoryStateManager.get(repository)
 
         const tip = state.branchesState.tip
@@ -1377,6 +1392,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             currentBranch={currentBranch}
             initialBranch={branch}
             onDismissed={this.onPopupDismissed}
+            initiatedBy={initiatedBy}
           />
         )
       }

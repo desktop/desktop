@@ -194,8 +194,13 @@ import {
 } from '../window-state'
 import { TypedBaseStore } from './base-store'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
+<<<<<<< HEAD
 import { MergeResult } from '../../models/merge'
 import { promiseWithMinimumTimeout, timeout } from '../promise'
+=======
+import { MergeResultKind, MergeSource } from '../../models/merge'
+import { promiseWithMinimumTimeout } from '../promise'
+>>>>>>> upstream/branch-list-merging
 import { BackgroundFetcher } from './helpers/background-fetcher'
 import { inferComparisonBranch } from './helpers/infer-comparison-branch'
 import { validatedRepositoryPath } from './helpers/validated-repository-path'
@@ -4127,7 +4132,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _mergeBranch(
     repository: Repository,
     branch: string,
+<<<<<<< HEAD
     mergeStatus: MergeResult | null
+=======
+    mergeStatus: MergeResultStatus | null,
+    initiatedBy: MergeSource
+>>>>>>> upstream/branch-list-merging
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
 
@@ -4141,6 +4151,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
+    this.incrementMergeMetric(initiatedBy)
+
     const mergeSuccessful = await gitStore.merge(branch)
     const { tip } = gitStore
 
@@ -4153,6 +4165,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     return this._refreshRepository(repository)
+  }
+
+  private incrementMergeMetric(source: MergeSource) {
+    switch (source) {
+      // merge from within compare tab
+      case MergeSource.Compare:
+        this.statsStore.recordCompareInitiatedMerge()
+        break
+      // branch -> Merge into current branch
+      case MergeSource.MergeIntoCurrentBranchMenuItem:
+        this.statsStore.recordMenuInitiatedMerge()
+        break
+      // branch -> Update branch
+      case MergeSource.UpdateBranchMenuItem:
+        this.statsStore.recordMenuInitiatedUpdate()
+        break
+      // Branches dropdown -> merge button
+      case MergeSource.BranchDropDown:
+        this.statsStore.recordBranchDropdownIniatedMerge()
+        break
+      // NDDB prompt
+      case MergeSource.NewCommitsBanner:
+        this.statsStore.recordDivergingBranchBannerInitatedMerge()
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

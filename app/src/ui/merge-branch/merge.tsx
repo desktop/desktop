@@ -15,9 +15,15 @@ import {
 import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
 import { revSymmetricDifference } from '../../lib/git'
 import { IMatches } from '../../lib/fuzzy-find'
+<<<<<<< HEAD
 import { MergeResult } from '../../models/merge'
 import { ComputedAction } from '../../models/computed-action'
 import { ActionStatusIcon } from '../lib/action-status-icon'
+=======
+import { MergeResultStatus } from '../../lib/app-state'
+import { MergeResultKind, MergeSource } from '../../models/merge'
+import { MergeStatusHeader } from '../history/merge-status-header'
+>>>>>>> upstream/branch-list-merging
 import { promiseWithMinimumTimeout } from '../../lib/promise'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 
@@ -49,6 +55,8 @@ interface IMergeProps {
    * The branch to select when the merge dialog is opened
    */
   readonly initialBranch?: Branch
+
+  readonly initiatedBy: MergeSource
 
   /**
    * A function that's called when the dialog is dismissed by the user in the
@@ -335,7 +343,8 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     this.props.dispatcher.mergeBranch(
       this.props.repository,
       branch.name,
-      this.state.mergeStatus
+      this.state.mergeStatus,
+      this.props.initiatedBy
     )
     this.props.dispatcher.closePopup()
   }

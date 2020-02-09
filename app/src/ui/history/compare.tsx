@@ -30,6 +30,7 @@ import {
   DismissalReason,
 } from '../notification/new-commits-banner'
 import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
+import { MergeSource } from '../../models/merge'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -328,6 +329,7 @@ export class CompareSidebar extends React.Component<
         comparisonBranch={formState.comparisonBranch}
         commitsBehind={formState.aheadBehind.behind}
         onMerged={this.onMerge}
+        initiatedBy={MergeSource.Compare}
       />
     )
   }

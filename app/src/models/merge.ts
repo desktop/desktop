@@ -34,8 +34,21 @@ export type MergeLoading = {
   readonly kind: ComputedAction.Loading
 }
 
+<<<<<<< HEAD
 export type MergeResult =
   | MergeSuccess
   | MergeError
   | MergeUnsupported
   | MergeLoading
+=======
+export type MergeResult = IMergeSuccess | IMergeError | IMergeUnsupported
+
+export enum MergeSource {
+  BranchDropDown,
+  MergeIntoCurrentBranchMenuItem,
+  UpdateBranchMenuItem,
+  Compare,
+  DivergingBranchNotification,
+  NewCommitsBanner,
+}
+>>>>>>> upstream/branch-list-merging

@@ -144,7 +144,11 @@ if (!handlingSquirrelEvent) {
   const gotSingleInstanceLock = app.requestSingleInstanceLock()
   isDuplicateInstance = !gotSingleInstanceLock
 
+<<<<<<< HEAD
   app.on('second-instance', (event, args, workingDirectory) => {
+=======
+  app.on('second-instance', (event, argv, workingDirectory) => {
+>>>>>>> upstream/branch-list-merging
     // Someone tried to run a second instance, we should focus our window.
     if (mainWindow) {
       if (mainWindow.isMinimized()) {
@@ -158,7 +162,7 @@ if (!handlingSquirrelEvent) {
       mainWindow.focus()
     }
 
-    handlePossibleProtocolLauncherArgs(args)
+    handlePossibleProtocolLauncherArgs(argv)
   })
 
   if (isDuplicateInstance) {

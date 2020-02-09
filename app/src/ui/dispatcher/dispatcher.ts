@@ -74,6 +74,7 @@ import {
   WorkingDirectoryFileChange,
   WorkingDirectoryStatus,
 } from '../../models/status'
+<<<<<<< HEAD
 import { TipState, IValidBranch } from '../../models/tip'
 import { Banner, BannerType } from '../../models/banner'
 
@@ -91,6 +92,13 @@ import {
 } from '../../models/uncommitted-changes-strategy'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { IStashEntry } from '../../models/stash-entry'
+=======
+import { TipState } from '../../models/tip'
+import { ApplicationTheme } from '../lib/application-theme'
+import { installCLI } from '../lib/install-cli'
+import { executeMenuItem } from '../main-process-proxy'
+import { MergeSource } from '../../models/merge'
+>>>>>>> upstream/branch-list-merging
 
 /**
  * An error handler function.
@@ -799,9 +807,19 @@ export class Dispatcher {
   public mergeBranch(
     repository: Repository,
     branch: string,
+<<<<<<< HEAD
     mergeStatus: MergeResult | null
+=======
+    mergeStatus: MergeResultStatus | null,
+    initiatedBy: MergeSource
+>>>>>>> upstream/branch-list-merging
   ): Promise<void> {
-    return this.appStore._mergeBranch(repository, branch, mergeStatus)
+    return this.appStore._mergeBranch(
+      repository,
+      branch,
+      mergeStatus,
+      initiatedBy
+    )
   }
 
   /**
@@ -1922,6 +1940,7 @@ export class Dispatcher {
   }
 
   /**
+<<<<<<< HEAD
    * Increments the `mergeIntoCurrentBranchMenuCount` metric
    */
   public recordMenuInitiatedMerge() {
@@ -1950,6 +1969,8 @@ export class Dispatcher {
   }
 
   /**
+=======
+>>>>>>> upstream/branch-list-merging
    * Set the application-wide theme
    */
   public setSelectedTheme(theme: ApplicationTheme) {
@@ -1992,6 +2013,7 @@ export class Dispatcher {
     return this.statsStore.recordDivergingBranchBannerInfluencedMerge()
   }
 
+<<<<<<< HEAD
   /**
    * Increments the `divergingBranchBannerInitatedMerge` metric
    */
@@ -2006,6 +2028,8 @@ export class Dispatcher {
     return this.statsStore.recordCreatePullRequest()
   }
 
+=======
+>>>>>>> upstream/branch-list-merging
   public recordWelcomeWizardInitiated() {
     return this.statsStore.recordWelcomeWizardInitiated()
   }

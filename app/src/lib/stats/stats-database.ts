@@ -137,11 +137,16 @@ export interface IDailyMeasures {
   /** The number of times the user made a commit to a repo hosted on Github.com */
   readonly dotcomCommits: number
 
+<<<<<<< HEAD
   /** The number of times the user made a commit to a protected GitHub or GitHub Enterprise Server repository */
   readonly commitsToProtectedBranch: number
 
   /** The number of times the user made a commit to a repository with branch protections enabled */
   readonly commitsToRepositoryWithBranchProtections: number
+=======
+  /** The number of times the user initiated a merge from within the branch dropdown */
+  readonly mergesInitiatedFromBranchList: number
+>>>>>>> upstream/branch-list-merging
 
   /** The number of times the user dismissed the merge conflicts dialog */
   readonly mergeConflictsDialogDismissalCount: number

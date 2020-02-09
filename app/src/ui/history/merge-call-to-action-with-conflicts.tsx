@@ -5,9 +5,14 @@ import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
+<<<<<<< HEAD
 import { ActionStatusIcon } from '../lib/action-status-icon'
 import { MergeResult } from '../../models/merge'
 import { ComputedAction } from '../../models/computed-action'
+=======
+import { MergeStatusHeader } from './merge-status-header'
+import { MergeResultKind, MergeSource } from '../../models/merge'
+>>>>>>> upstream/branch-list-merging
 
 interface IMergeCallToActionWithConflictsProps {
   readonly repository: Repository
@@ -16,6 +21,7 @@ interface IMergeCallToActionWithConflictsProps {
   readonly currentBranch: Branch
   readonly comparisonBranch: Branch
   readonly commitsBehind: number
+  readonly initiatedBy: MergeSource
 
   /**
    * Callback to execute after a merge has been performed
@@ -159,12 +165,11 @@ export class MergeCallToActionWithConflicts extends React.Component<
   private onMergeClicked = async () => {
     const { comparisonBranch, repository, mergeStatus } = this.props
 
-    this.props.dispatcher.recordCompareInitiatedMerge()
-
     await this.props.dispatcher.mergeBranch(
       repository,
       comparisonBranch.name,
-      mergeStatus
+      mergeStatus,
+      this.props.initiatedBy
     )
 
     this.props.dispatcher.executeCompare(repository, {

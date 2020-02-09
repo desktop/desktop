@@ -89,6 +89,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   unattributedCommits: 0,
   enterpriseCommits: 0,
   dotcomCommits: 0,
+  mergesInitiatedFromBranchList: 0,
   mergeConflictsDialogDismissalCount: 0,
   anyConflictsLeftOnMergeConflictsDialogDismissalCount: 0,
   mergeConflictsDialogReopenedCount: 0,
@@ -1068,6 +1069,7 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+<<<<<<< HEAD
   /** Record when the user views a stash entry after checking out a branch */
   public recordStashViewedAfterCheckout(): Promise<void> {
     return this.updateDailyMeasures(m => ({
@@ -1216,6 +1218,12 @@ export class StatsStore implements IStatsStore {
   public recordSuggestedStepViewStash(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       suggestedStepViewStash: m.suggestedStepViewStash + 1,
+=======
+  /** Record that the user initiated a merge from the branch dropdown */
+  public async recordBranchDropdownIniatedMerge(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      mergesInitiatedFromBranchList: m.mergesInitiatedFromBranchList + 1,
+>>>>>>> upstream/branch-list-merging
     }))
   }
 

@@ -21,6 +21,7 @@ import { PullRequestList } from './pull-request-list'
 import { IBranchListItem } from './group-branches'
 import { renderDefaultBranch } from './branch-renderer'
 import { IMatches } from '../../lib/fuzzy-find'
+<<<<<<< HEAD
 import { startTimer } from '../lib/timing'
 import {
   UncommittedChangesStrategyKind,
@@ -28,6 +29,12 @@ import {
   stashOnCurrentBranch,
 } from '../../models/uncommitted-changes-strategy'
 import memoizeOne from 'memoize-one'
+=======
+import { MergeSource } from '../../models/merge'
+
+const PullRequestsLoadingCrossFadeInTimeout = 300
+const PullRequestsLoadingCrossFadeOutTimeout = 200
+>>>>>>> upstream/branch-list-merging
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -247,6 +254,7 @@ export class BranchesContainer extends React.Component<
     this.props.dispatcher.showPopup({
       type: PopupType.MergeBranch,
       repository: this.props.repository,
+      initiatedBy: MergeSource.BranchDropDown,
     })
   }
 

@@ -3461,7 +3461,11 @@ electron-chromedriver@~3.0.0:
     electron-download "^4.1.0"
     extract-zip "^1.6.5"
 
+<<<<<<< HEAD
 electron-download@^4.1.0:
+=======
+electron-download@^4.0.0, electron-download@^4.1.0:
+>>>>>>> upstream/branch-list-merging
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/electron-download/-/electron-download-4.1.0.tgz#bf932c746f2f87ffcc09d1dd472f2ff6b9187845"
   integrity sha1-v5MsdG8vh//MCdHdRy8v9rkYeEU=
@@ -3556,6 +3560,7 @@ electron-winstaller@2.5.2:
     lodash.template "^4.2.2"
     temp "^0.8.3"
 
+<<<<<<< HEAD
 electron@7.1.8:
   version "7.1.8"
   resolved "https://registry.yarnpkg.com/electron/-/electron-7.1.8.tgz#7cd50fdf42c55c9de86ab126e983d23fd89d5d99"
@@ -3563,6 +3568,15 @@ electron@7.1.8:
   dependencies:
     "@electron/get" "^1.0.1"
     "@types/node" "^12.0.12"
+=======
+electron@3.1.2:
+  version "3.1.2"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-3.1.2.tgz#e410b976c56fc2f783c3b0fb6d757e02eaeab902"
+  integrity sha512-B/mXRCN8jGBBx8dvtIgLyW+nE8i9y7K9G6wijU+cLoneqF5al9BgZA1l5xgZEiUrwTtt0cgXIWNwhStt7EDoQQ==
+  dependencies:
+    "@types/node" "^8.0.24"
+    electron-download "^4.1.0"
+>>>>>>> upstream/branch-list-merging
     extract-zip "^1.0.3"
 
 element-closest@^2.0.2:
@@ -3693,10 +3707,17 @@ es5-shim@^4.5.10:
   resolved "https://registry.yarnpkg.com/es5-shim/-/es5-shim-4.5.11.tgz#f7406770b0eee9ecb717e306b018728114e4e47d"
   integrity sha512-7NY8JWNUZGpg+Ade2/ufJ9N6uMCiII5Oyf1H89/AuJKjYqUBU7i5bSnz0rOcIjNzQkvPJ+TfP19BTDP2FJg9pg==
 
+<<<<<<< HEAD
 es6-error@^4.1.1:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/es6-error/-/es6-error-4.1.1.tgz#9e3af407459deed47e9a91f9b885a84eb05c561d"
   integrity sha512-Um/+FxMr9CISWh0bi5Zv0iOD+4cFh5qLeks1qhAopKVAJw3drgKbKySikp7wGhDL0HPeaja0P5ULZrxLkniUVg==
+=======
+es6-promise@^4.0.3:
+  version "4.2.4"
+  resolved "https://registry.yarnpkg.com/es6-promise/-/es6-promise-4.2.4.tgz#dc4221c2b16518760bd8c39a52d8f356fc00ed29"
+  integrity sha512-/NdNZVJg+uZgtm9eS3O6lrOLYmQag2DjdEXuPaHlZ6RuVqgqaVZfgYCepEIKsLqwdQArOPtC3XzRLqGGfT8KQQ==
+>>>>>>> upstream/branch-list-merging
 
 es6-shim@^0.35.3:
   version "0.35.3"
@@ -4424,6 +4445,18 @@ fs-extra@6.0.1, fs-extra@^6.0.1:
     jsonfile "^4.0.0"
     universalify "^0.1.0"
 
+<<<<<<< HEAD
+=======
+fs-extra@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-1.0.0.tgz#cd3ce5f7e7cb6145883fcae3191e9877f8587950"
+  integrity sha1-zTzl9+fLYUWIP8rjGR6Yd/hYeVA=
+  dependencies:
+    graceful-fs "^4.1.2"
+    jsonfile "^2.1.0"
+    klaw "^1.0.0"
+
+>>>>>>> upstream/branch-list-merging
 fs-extra@^2.0.0:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-2.1.2.tgz#046c70163cef9aad46b0e4a7fa467fb22d71de35"
@@ -5003,11 +5036,14 @@ home-or-tmp@^2.0.0:
     os-homedir "^1.0.0"
     os-tmpdir "^1.0.1"
 
+<<<<<<< HEAD
 hoopy@^0.1.2:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/hoopy/-/hoopy-0.1.4.tgz#609207d661100033a9a9402ad3dea677381c1b1d"
   integrity sha512-HRcs+2mr52W0K+x8RzcLzuPPmVIKMSv97RGHy0Ea9y/mpcaK+xTrjICA04KAHi4GRzxliNqNJEFYWHghy3rSfQ==
 
+=======
+>>>>>>> upstream/branch-list-merging
 hosted-git-info@^2.1.4:
   version "2.5.0"
   resolved "https://registry.yarnpkg.com/hosted-git-info/-/hosted-git-info-2.5.0.tgz#6d60e34b3abbc8313062c3b798ef8d901a07af3c"
