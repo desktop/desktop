@@ -119,6 +119,7 @@ function progressButton(progress: Progress, networkActionInProgress: boolean) {
   )
 }
 
+<<<<<<< HEAD
 function publishRepositoryButton(onClick: () => void) {
   return (
     <ToolbarButton
@@ -144,6 +145,26 @@ function unbornRepositoryButton() {
     />
   )
 }
+=======
+    const content: JSX.Element[] = []
+    if (ahead > 0) {
+      content.push(
+        <span key="ahead">
+          {ahead.toLocaleString()}
+          <Octicon symbol={OcticonSymbol.arrowSmallUp} />
+        </span>
+      )
+    }
+
+    if (behind > 0) {
+      content.push(
+        <span key="behind">
+          {behind.toLocaleString()}
+          <Octicon symbol={OcticonSymbol.arrowSmallDown} />
+        </span>
+      )
+    }
+>>>>>>> origin/big-numbers-are-hard-to-read
 
 function detachedHeadButton(rebaseInProgress: boolean) {
   const description = rebaseInProgress
