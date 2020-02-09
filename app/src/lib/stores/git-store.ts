@@ -38,6 +38,7 @@ import {
   deleteRef,
   getCommits,
   merge,
+  removeRemote,
   setRemoteURL,
   getStatus,
   IStatusResult,
@@ -1238,6 +1239,7 @@ export class GitStore extends BaseStore {
   }
 
   /** Merge the named branch into the current branch. */
+<<<<<<< HEAD
   public merge(branch: string): Promise<boolean | undefined> {
     if (this.tip.kind !== TipState.Valid) {
       throw new Error(
@@ -1246,6 +1248,30 @@ export class GitStore extends BaseStore {
         }' and the application expects the repository to be on a branch currently`
       )
     }
+=======
+  public merge(branch: string): Promise<void> {
+    return this.performFailableOperation(() => merge(this.repository, branch))
+  }
+
+  /** Remove the given remote from the given repository  */
+  public async removeRemote(name: string): Promise<void> {
+    await this.performFailableOperation(() =>
+      removeRemote(this.repository, name)
+    )
+
+    this._remote = null
+    await this.loadCurrentRemote()
+
+    this.emitUpdate()
+  }
+
+  /** Changes the URL for the remote that matches the given name  */
+  public async setRemoteURL(name: string, url: string): Promise<void> {
+    await this.performFailableOperation(() =>
+      setRemoteURL(this.repository, name, url)
+    )
+    await this.loadCurrentRemote()
+>>>>>>> origin/remove-remote-with-caution
 
     const currentBranch = this.tip.branch.name
 

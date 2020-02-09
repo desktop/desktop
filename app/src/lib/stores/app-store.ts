@@ -4371,7 +4371,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
+<<<<<<< HEAD
   public async _setRemoteURL(
+=======
+  public _removeRemote(repository: Repository, name: string): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    return gitStore.removeRemote(name)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _setRemoteURL(
+>>>>>>> origin/remove-remote-with-caution
     repository: Repository,
     name: string,
     url: string
