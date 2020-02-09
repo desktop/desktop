@@ -16,12 +16,17 @@ describe('AccountsStore', () => {
     it('contains the added user', async () => {
       const newAccountLogin = 'joan'
 <<<<<<< HEAD
+<<<<<<< HEAD
       await accountsStore.addAccount(
         new Account(newAccountLogin, '', 'deadbeef', [], '', 1, '')
 =======
       await accountsStore!.addAccount(
         new Account(newAccountLogin, '', 'deadbeef', [], '', 1, '', [])
 >>>>>>> upstream/track-scopes-for-current-token
+=======
+      await accountsStore!.addAccount(
+        new Account(newAccountLogin, '', 'deadbeef', [], '', 1, '', [])
+>>>>>>> upstream/experimental-ssh-setup
       )
 
       const users = await accountsStore.getAll()

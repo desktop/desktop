@@ -11,7 +11,11 @@ import {
   RepositoriesStore,
   AccountsStore,
   PullRequestStore,
+<<<<<<< HEAD
   PullRequestCoordinator,
+=======
+  TroubleshootingStore,
+>>>>>>> upstream/experimental-ssh-setup
 } from '../../src/lib/stores'
 import {
   TestGitHubUserDatabase,
@@ -72,6 +76,7 @@ describe('AppStore', () => {
       repositoriesStore
     )
 
+<<<<<<< HEAD
     const githubUserStore = new GitHubUserStore(db)
 
     const repositoryStateManager = new RepositoryStateCache(repo =>
@@ -82,15 +87,26 @@ describe('AppStore', () => {
 
     const appStore = new AppStore(
       githubUserStore,
+=======
+    const troubleshootingStore = new TroubleshootingStore(accountsStore)
+
+    return new AppStore(
+      new GitHubUserStore(db),
+>>>>>>> upstream/experimental-ssh-setup
       new CloningRepositoriesStore(),
       new IssuesStore(issuesDb),
       new StatsStore(statsDb, new TestActivityMonitor()),
       new SignInStore(),
       accountsStore,
       repositoriesStore,
+<<<<<<< HEAD
       pullRequestCoordinator,
       repositoryStateManager,
       apiRepositoriesStore
+=======
+      pullRequestStore,
+      troubleshootingStore
+>>>>>>> upstream/experimental-ssh-setup
     )
 
     return { appStore, repositoriesStore }

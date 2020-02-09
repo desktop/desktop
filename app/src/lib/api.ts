@@ -71,6 +71,7 @@ if (!ClientID || !ClientID.length || !ClientSecret || !ClientSecret.length) {
   )
 }
 
+<<<<<<< HEAD
 type GitHubAccountType = 'User' | 'Organization'
 
 /** The OAuth scopes we want to request from GitHub.com. */
@@ -81,6 +82,10 @@ const DotComOAuthScopes = ['repo', 'user', 'workflow']
  * Enterprise Server.
  */
 const EnterpriseOAuthScopes = ['repo', 'user']
+=======
+/** The OAuth scopes we need. */
+const Scopes = ['repo', 'user', 'write:public_key']
+>>>>>>> upstream/experimental-ssh-setup
 
 enum HttpStatusCode {
   NotModified = 304,
@@ -357,6 +362,7 @@ interface IAPIAccessToken {
 /** The partial server response when creating a new authorization on behalf of a user */
 interface IAPIAuthorization {
   readonly token: string
+  readonly scopes: ReadonlyArray<string>
 }
 
 /** The response we receive from fetching mentionables. */
@@ -368,6 +374,16 @@ interface IAPIMentionablesResponse {
 /** The response for search results. */
 interface ISearchResults<T> {
   readonly items: ReadonlyArray<T>
+}
+
+interface IAPIPublicKey {
+  id: number
+  key: string
+  url: string
+  title: string
+  verified: boolean
+  created_at: string
+  read_only: boolean
 }
 
 /**
@@ -491,6 +507,7 @@ function toGitHubIsoDateString(date: Date) {
   return date.toISOString().replace(/\.\d{3}Z$/, 'Z')
 }
 
+<<<<<<< HEAD
 interface IUserWithTokenScopes {
   /**
    * The details associated with the current user
@@ -500,6 +517,11 @@ interface IUserWithTokenScopes {
    * The list of scopes assigned to the current token
    */
   readonly scopes: ReadonlyArray<string>
+=======
+type UserWithTokenScopes = {
+  user: IAPIUser
+  scopes: ReadonlyArray<string>
+>>>>>>> upstream/experimental-ssh-setup
 }
 
 /**
@@ -551,6 +573,7 @@ export class API {
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   /** Fetch the logged in account. */
   public async fetchAccount(): Promise<IAPIFullIdentity> {
     try {
@@ -562,6 +585,12 @@ export class API {
   public async fetchAccount(): Promise<IUserWithTokenScopes> {
     try {
       const response = await this.request('GET', 'user')
+=======
+  /** Fetch the logged in account and the current scopes associated with the token. */
+  public async fetchAccount(): Promise<UserWithTokenScopes> {
+    try {
+      const response = await this.request('GET', 'user')
+>>>>>>> upstream/experimental-ssh-setup
       const user = await parsedResponse<IAPIUser>(response)
       const scopeHeader = response.headers.get('X-OAuth-Scopes')
       const scopes =
@@ -570,7 +599,10 @@ export class API {
           : scopeHeader.split(',').map(scope => scope.trim())
 
       return { user, scopes }
+<<<<<<< HEAD
 >>>>>>> upstream/track-scopes-for-current-token
+=======
+>>>>>>> upstream/experimental-ssh-setup
     } catch (e) {
       log.warn(`fetchAccount: failed with endpoint ${this.endpoint}`, e)
       throw e
@@ -1007,6 +1039,27 @@ export class API {
       return await parsedResponse<IAPIFullIdentity>(response)
     } catch (e) {
       log.warn(`fetchUser: failed with endpoint ${this.endpoint}`, e)
+      throw e
+    }
+  }
+
+  public async createPublicKey(
+    title: string,
+    key: string
+  ): Promise<IAPIPublicKey | null> {
+    try {
+      const response = await this.request('POST', `user/keys`, {
+        title,
+        key,
+      })
+
+      if (response.status === 404) {
+        return null
+      }
+
+      return await parsedResponse<IAPIPublicKey>(response)
+    } catch (e) {
+      log.warn(`createPublicKey: failed with endpoint ${this.endpoint}`, e)
       throw e
     }
   }

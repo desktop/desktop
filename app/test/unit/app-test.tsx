@@ -13,7 +13,11 @@ import {
   RepositoriesStore,
   AccountsStore,
   PullRequestStore,
+<<<<<<< HEAD
   PullRequestCoordinator,
+=======
+  TroubleshootingStore,
+>>>>>>> upstream/experimental-ssh-setup
 } from '../../src/lib/stores'
 import { InMemoryDispatcher } from '../helpers/in-memory-dispatcher'
 import {
@@ -63,6 +67,7 @@ describe('App', () => {
       repositoriesStore
     )
 
+<<<<<<< HEAD
     githubUserStore = new GitHubUserStore(db)
     issuesStore = new IssuesStore(issuesDb)
 
@@ -72,6 +77,9 @@ describe('App', () => {
 
     const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
     const commitStatusStore = new CommitStatusStore(accountsStore)
+=======
+    const troubleshootingStore = new TroubleshootingStore(accountsStore)
+>>>>>>> upstream/experimental-ssh-setup
 
     appStore = new AppStore(
       githubUserStore,
@@ -81,9 +89,14 @@ describe('App', () => {
       new SignInStore(),
       accountsStore,
       repositoriesStore,
+<<<<<<< HEAD
       pullRequestCoordinator,
       repositoryStateManager,
       apiRepositoriesStore
+=======
+      pullRequestStore,
+      troubleshootingStore
+>>>>>>> upstream/experimental-ssh-setup
     )
 
     dispatcher = new InMemoryDispatcher(

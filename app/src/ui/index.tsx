@@ -14,6 +14,7 @@ import {
   openShellErrorHandler,
   mergeConflictHandler,
   lfsAttributeMismatchHandler,
+  sshAuthenticationErrorHandler,
   defaultErrorHandler,
   missingRepositoryHandler,
   backgroundTaskHandler,
@@ -35,6 +36,7 @@ import {
   TokenStore,
   AccountsStore,
   PullRequestStore,
+  TroubleshootingStore,
 } from '../lib/stores'
 import { GitHubUserDatabase } from '../lib/databases'
 import { URLActionType } from '../lib/parse-app-url'
@@ -59,6 +61,8 @@ import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { ApiRepositoriesStore } from '../lib/stores/api-repositories-store'
 import { CommitStatusStore } from '../lib/stores/commit-status-store'
 import { PullRequestCoordinator } from '../lib/stores/pull-request-coordinator'
+
+import { enableSSHTroubleshooting } from '../lib/feature-flag'
 
 if (__DEV__) {
   installDevGlobals()
@@ -237,6 +241,7 @@ const pullRequestStore = new PullRequestStore(
   repositoriesStore
 )
 
+<<<<<<< HEAD
 const pullRequestCoordinator = new PullRequestCoordinator(
   pullRequestStore,
   repositoriesStore
@@ -249,6 +254,9 @@ const repositoryStateManager = new RepositoryStateCache(repo =>
 const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 
 const commitStatusStore = new CommitStatusStore(accountsStore)
+=======
+const troubleshootingStore = new TroubleshootingStore(accountsStore)
+>>>>>>> upstream/experimental-ssh-setup
 
 const appStore = new AppStore(
   gitHubUserStore,
@@ -258,9 +266,14 @@ const appStore = new AppStore(
   signInStore,
   accountsStore,
   repositoriesStore,
+<<<<<<< HEAD
   pullRequestCoordinator,
   repositoryStateManager,
   apiRepositoriesStore
+=======
+  pullRequestStore,
+  troubleshootingStore
+>>>>>>> upstream/experimental-ssh-setup
 )
 
 appStore.onDidUpdate(state => {
@@ -280,7 +293,13 @@ dispatcher.registerErrorHandler(externalEditorErrorHandler)
 dispatcher.registerErrorHandler(openShellErrorHandler)
 dispatcher.registerErrorHandler(mergeConflictHandler)
 dispatcher.registerErrorHandler(lfsAttributeMismatchHandler)
+<<<<<<< HEAD
 dispatcher.registerErrorHandler(insufficientGitHubRepoPermissions)
+=======
+if (enableSSHTroubleshooting()) {
+  dispatcher.registerErrorHandler(sshAuthenticationErrorHandler)
+}
+>>>>>>> upstream/experimental-ssh-setup
 dispatcher.registerErrorHandler(gitAuthenticationErrorHandler)
 dispatcher.registerErrorHandler(pushNeedsPullHandler)
 dispatcher.registerErrorHandler(samlReauthRequired)

@@ -80,6 +80,7 @@ import { CLIInstalled } from './cli-installed'
 import { GenericGitAuthentication } from './generic-git-auth'
 import { ShellError } from './shell'
 import { InitializeLFS, AttributeMismatch } from './lfs'
+import { TroubleshootSSH } from './ssh'
 import { UpstreamAlreadyExists } from './upstream-already-exists'
 import { ReleaseNotes } from './release-notes'
 import { DeletePullRequest } from './delete-branch/delete-pull-request-dialog'
@@ -1606,6 +1607,21 @@ export class App extends React.Component<IAppProps, IAppState> {
             repositories={popup.repositories}
             onDismissed={this.onPopupDismissed}
             onInitialize={this.initializeLFS}
+          />
+        )
+      case PopupType.TroubleshootSSH:
+        const state = this.props.appStore.getState()
+        if (state.troubleshootingState == null) {
+          return null
+        }
+
+        return (
+          <TroubleshootSSH
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            onDismissed={this.onPopupDismissed}
+            troubleshootingState={state.troubleshootingState}
+            signInState={state.signInState}
           />
         )
       case PopupType.LFSAttributeMismatch:

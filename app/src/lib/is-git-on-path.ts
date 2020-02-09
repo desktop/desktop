@@ -1,5 +1,4 @@
-import { spawn } from 'child_process'
-import * as Path from 'path'
+import { isExecutableOnPath } from './find-executable'
 
 export function isGitOnPath(): Promise<boolean> {
   // Modern versions of macOS ship with a Git shim that guides you through
@@ -9,6 +8,7 @@ export function isGitOnPath(): Promise<boolean> {
     return Promise.resolve(true)
   }
 
+<<<<<<< HEAD
   // adapted from http://stackoverflow.com/a/34953561/1363815
   if (__WIN32__) {
     return new Promise<boolean>((resolve, reject) => {
@@ -44,4 +44,7 @@ export function isGitOnPath(): Promise<boolean> {
   }
 
   return Promise.resolve(false)
+=======
+  return isExecutableOnPath('git')
+>>>>>>> upstream/experimental-ssh-setup
 }

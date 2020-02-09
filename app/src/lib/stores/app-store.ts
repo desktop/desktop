@@ -156,6 +156,7 @@ import {
   setRemoteURL,
 } from '../git'
 import {
+<<<<<<< HEAD
   installGlobalLFSFilters,
   installLFSHooks,
   isUsingLFS,
@@ -173,6 +174,26 @@ import {
   isCurrentBranchForcePush,
 } from '../rebase'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
+=======
+  AccountsStore,
+  RepositoriesStore,
+  RepositorySettingsStore,
+  PullRequestStore,
+  SignInStore,
+  IssuesStore,
+  GitStore,
+  ICommitMessage,
+  EmojiStore,
+  GitHubUserStore,
+  CloningRepositoriesStore,
+  TroubleshootingStore,
+} from '../stores'
+import { validatedRepositoryPath } from './helpers/validated-repository-path'
+import { IGitAccount } from '../git/authentication'
+import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
+import { RetryActionType, RetryAction } from '../retry-actions'
+import { findEditorOrDefault } from '../editors'
+>>>>>>> upstream/experimental-ssh-setup
 import {
   Default as DefaultShell,
   findShellOrDefault,
@@ -194,6 +215,7 @@ import {
 } from '../window-state'
 import { TypedBaseStore } from './base-store'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
+<<<<<<< HEAD
 <<<<<<< HEAD
 import { MergeResult } from '../../models/merge'
 import { promiseWithMinimumTimeout, timeout } from '../promise'
@@ -272,6 +294,10 @@ import {
   findAssociatedPullRequest,
   isPullRequestAssociatedWithBranch,
 } from '../helpers/pull-request-matching'
+=======
+import { enableCompareSidebar } from '../feature-flag'
+import { IValidateHostState, INoRunningAgentState } from '../../models/ssh'
+>>>>>>> upstream/experimental-ssh-setup
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -345,6 +371,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     number,
     ILocalRepositoryState
   >()
+<<<<<<< HEAD
+=======
+  public readonly gitHubUserStore: GitHubUserStore
+  private readonly cloningRepositoriesStore: CloningRepositoriesStore
+  private readonly emojiStore: EmojiStore
+  private readonly _issuesStore: IssuesStore
+  private readonly signInStore: SignInStore
+  private readonly accountsStore: AccountsStore
+  private readonly repositoriesStore: RepositoriesStore
+  private readonly statsStore: StatsStore
+  private readonly pullRequestStore: PullRequestStore
+  private readonly troubleshootingStore: TroubleshootingStore
+>>>>>>> upstream/experimental-ssh-setup
 
   /** Map from shortcut (e.g., :+1:) to on disk URL. */
   private emoji = new Map<string, string>()
@@ -413,6 +452,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private readonly tutorialAssessor: OnboardingTutorialAssessor
 
   public constructor(
+<<<<<<< HEAD
     private readonly gitHubUserStore: GitHubUserStore,
     private readonly cloningRepositoriesStore: CloningRepositoriesStore,
     private readonly issuesStore: IssuesStore,
@@ -426,6 +466,31 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ) {
     super()
 
+=======
+    gitHubUserStore: GitHubUserStore,
+    cloningRepositoriesStore: CloningRepositoriesStore,
+    emojiStore: EmojiStore,
+    issuesStore: IssuesStore,
+    statsStore: StatsStore,
+    signInStore: SignInStore,
+    accountsStore: AccountsStore,
+    repositoriesStore: RepositoriesStore,
+    pullRequestStore: PullRequestStore,
+    troubleshootingStore: TroubleshootingStore
+  ) {
+    super()
+
+    this.gitHubUserStore = gitHubUserStore
+    this.cloningRepositoriesStore = cloningRepositoriesStore
+    this.emojiStore = emojiStore
+    this._issuesStore = issuesStore
+    this.statsStore = statsStore
+    this.signInStore = signInStore
+    this.accountsStore = accountsStore
+    this.repositoriesStore = repositoriesStore
+    this.pullRequestStore = pullRequestStore
+    this.troubleshootingStore = troubleshootingStore
+>>>>>>> upstream/experimental-ssh-setup
     this.showWelcomeFlow = !hasShownWelcomeFlow()
 
     this.gitStoreCache = new GitStoreCache(
@@ -593,8 +658,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     )
 
+<<<<<<< HEAD
     this.apiRepositoriesStore.onDidUpdate(() => this.emitUpdate())
     this.apiRepositoriesStore.onDidError(error => this.emitError(error))
+=======
+    this.troubleshootingStore.onDidError(error => this.emitError(error))
+    this.troubleshootingStore.onDidUpdate(() => {
+      this.onTroubleshootingStoreDidUpdate()
+    })
+>>>>>>> upstream/experimental-ssh-setup
   }
 
   /** Load the emoji from disk. */
@@ -701,6 +773,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       appIsFocused: this.appIsFocused,
       selectedState: this.getSelectedState(),
       signInState: this.signInStore.getState(),
+      troubleshootingState: this.troubleshootingStore.getState(),
       currentPopup: this.currentPopup,
       currentFoldout: this.currentFoldout,
       errors: this.errors,
@@ -5128,7 +5201,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.updateCurrentPullRequest(repository)
     this.gitStoreCache.get(repository).pruneForkedRemotes(openPullRequests)
 
+<<<<<<< HEAD
     const selectedState = this.getSelectedState()
+=======
+  private async onTroubleshootingStoreDidUpdate() {
+    this.emitUpdate()
+  }
+
+  private findAssociatedPullRequest(
+    branch: Branch,
+    pullRequests: ReadonlyArray<PullRequest>,
+    gitHubRepository: GitHubRepository,
+    remote: IRemote
+  ): PullRequest | null {
+    const upstream = branch.upstreamWithoutRemote
+>>>>>>> upstream/experimental-ssh-setup
 
     // Update menu labels if the currently selected repository is the
     // repository for which we received an update.
@@ -5589,6 +5676,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * Converts a local repository to use the given fork
    * as its default remote and associated `GitHubRepository`.
    */
+<<<<<<< HEAD
   public async _convertRepositoryToFork(
     repository: RepositoryWithGitHubRepository,
     fork: IAPIRepository
@@ -5617,6 +5705,42 @@ export class AppStore extends TypedBaseStore<IAppState> {
             setRemoteURL(repository, UpstreamRemoteName, remoteUrl)
           )
         }
+=======
+  public _recordCompareInitiatedMerge() {
+    this.statsStore.recordCompareInitiatedMerge()
+  }
+
+  public _resetTroubleshooting() {
+    this.troubleshootingStore.reset()
+  }
+
+  public _startTroubleshooting(repository: Repository) {
+    this.troubleshootingStore.start(repository)
+  }
+
+  public _validateHost(state: IValidateHostState): Promise<void> {
+    return this.troubleshootingStore.validateHost(state)
+  }
+
+  public _launchSSHAgent(state: INoRunningAgentState): Promise<void> {
+    return this.troubleshootingStore.launchSSHAgent(state)
+  }
+
+  public _createSSHKey(
+    account: Account,
+    emailAddress: string,
+    passphrase: string,
+    outputFile: string
+  ) {
+    return this.troubleshootingStore.createSSHKey(
+      account,
+      emailAddress,
+      passphrase,
+      outputFile
+    )
+  }
+}
+>>>>>>> upstream/experimental-ssh-setup
 
         // update associated github repo
         const updatedRepository = await this.repositoriesStore.updateGitHubRepository(

@@ -47,6 +47,14 @@ import { Shell } from '../shells'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
 import { BranchesTab } from '../../models/branches-tab'
+<<<<<<< HEAD
+=======
+import { FetchType } from '../../lib/stores'
+import { PullRequest } from '../../models/pull-request'
+import { IAuthor } from '../../models/author'
+import { ITrailer } from '../git/interpret-trailers'
+import { IValidateHostState, INoRunningAgentState } from '../../models/ssh'
+>>>>>>> upstream/experimental-ssh-setup
 
 /**
  * An error handler function.
@@ -1049,5 +1057,35 @@ export class Dispatcher {
    */
   public openCreatePullRequestInBrowser(repository: Repository): Promise<void> {
     return this.appStore._openCreatePullRequestInBrowser(repository)
+  }
+
+  public resetTroubleshooting() {
+    return this.appStore._resetTroubleshooting()
+  }
+
+  public startTroubleshooting(repository: Repository) {
+    return this.appStore._startTroubleshooting(repository)
+  }
+
+  public validateHost(state: IValidateHostState) {
+    return this.appStore._validateHost(state)
+  }
+
+  public launchSSHAgent(state: INoRunningAgentState) {
+    return this.appStore._launchSSHAgent(state)
+  }
+
+  public createSSHKey(
+    account: Account,
+    emailAddress: string,
+    passphrase: string,
+    outputFile: string
+  ) {
+    return this.appStore._createSSHKey(
+      account,
+      emailAddress,
+      passphrase,
+      outputFile
+    )
   }
 }

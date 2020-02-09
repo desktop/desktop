@@ -30,13 +30,19 @@ export class Account {
     public readonly avatarURL: string,
     public readonly id: number,
 <<<<<<< HEAD
+<<<<<<< HEAD
     public readonly name: string
 =======
+=======
+>>>>>>> upstream/experimental-ssh-setup
     /** The friendly name associated with this account */
     public readonly name: string,
     /** The OAuth scopes associated with the token */
     public readonly scopes: ReadonlyArray<string>
+<<<<<<< HEAD
 >>>>>>> upstream/track-scopes-for-current-token
+=======
+>>>>>>> upstream/experimental-ssh-setup
   ) {}
 
   public withToken(token: string): Account {
@@ -51,4 +57,8 @@ export class Account {
       this.scopes
     )
   }
+}
+
+export function accountHasScope(account: Account, scope: string) {
+  return account.scopes.includes(scope)
 }

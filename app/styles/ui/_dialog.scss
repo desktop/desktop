@@ -7,12 +7,16 @@
 @import 'dialogs/push-needs-pull';
 @import 'dialogs/publish-repository';
 @import 'dialogs/repository-settings';
+<<<<<<< HEAD
 @import 'dialogs/release-notes';
 @import 'dialogs/usage-reporting';
 @import 'dialogs/stash-changes';
 @import 'dialogs/commit-conflicts-warning';
 @import 'dialogs/create-tutorial-repository';
 @import 'dialogs/create-fork';
+=======
+@import 'dialogs/ssh';
+>>>>>>> upstream/experimental-ssh-setup
 
 // The styles herein attempt to follow a flow where margins are only applied
 // to the bottom of elements (with the exception of the last child). This to

@@ -115,3 +115,8 @@ export function enableTutorial(): boolean {
 export function enableCreateForkFlow(): boolean {
   return true
 }
+
+/** Should Desktop use the new troubleshooting flow */
+export function enableSSHTroubleshooting(): boolean {
+  return enableDevelopmentFeatures()
+}

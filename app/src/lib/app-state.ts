@@ -30,6 +30,7 @@ import { WindowState } from './window-state'
 import { ExternalEditor } from './editors'
 import { Shell } from './shells'
 import { ComparisonCache } from './comparison-cache'
+import { TroubleshootingState } from '../models/ssh'
 
 import { ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
@@ -88,6 +89,8 @@ export interface IAppState {
    * showDotcomSignInDialog and showEnterpriseSignInDialog methods.
    */
   readonly signInState: SignInState | null
+
+  readonly troubleshootingState: TroubleshootingState | null
 
   /**
    * The current state of the window, ie maximized, minimized full-screen etc.
@@ -211,6 +214,7 @@ export interface IAppState {
   /** The currently selected tab for the Branches foldout. */
   readonly selectedBranchesTab: BranchesTab
 
+<<<<<<< HEAD
   /** The currently selected appearance (aka theme) */
   readonly selectedTheme: ApplicationTheme
 
@@ -233,6 +237,38 @@ export interface IAppState {
    * See the ApiRepositoriesStore for more details on loading repositories
    */
   readonly apiRepositories: ReadonlyMap<Account, IAccountRepositories>
+=======
+export enum PopupType {
+  RenameBranch = 1,
+  DeleteBranch,
+  ConfirmDiscardChanges,
+  Preferences,
+  MergeBranch,
+  RepositorySettings,
+  AddRepository,
+  CreateRepository,
+  CloneRepository,
+  CreateBranch,
+  SignIn,
+  About,
+  InstallGit,
+  PublishRepository,
+  Acknowledgements,
+  UntrustedCertificate,
+  RemoveRepository,
+  TermsAndConditions,
+  PushBranchCommits,
+  CLIInstalled,
+  GenericGitAuthentication,
+  ExternalEditorFailed,
+  OpenShellFailed,
+  InitializeLFS,
+  LFSAttributeMismatch,
+  UpstreamAlreadyExists,
+  DeletePullRequest,
+  TroubleshootSSH,
+}
+>>>>>>> upstream/experimental-ssh-setup
 
   /** Which step the user is on in the Onboarding Tutorial */
   readonly currentOnboardingTutorialStep: TutorialStep
@@ -310,7 +346,14 @@ export type Popup =
       branch: Branch
       pullRequest: PullRequest
     }
+<<<<<<< HEAD
 >>>>>>> origin/ask-to-merge-b4-delete
+=======
+  | {
+      type: PopupType.TroubleshootSSH
+      repository: Repository
+    }
+>>>>>>> upstream/experimental-ssh-setup
 
 export enum FoldoutType {
   Repository,
