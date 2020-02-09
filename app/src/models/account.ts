@@ -8,7 +8,7 @@ import { getDotComAPIEndpoint, IAPIEmail } from '../lib/api'
 export class Account {
   /** Create an account which can be used to perform unauthenticated API actions */
   public static anonymous(): Account {
-    return new Account('', getDotComAPIEndpoint(), '', [], '', -1, '')
+    return new Account('', getDotComAPIEndpoint(), '', [], '', -1, '', [])
   }
 
   /**
@@ -29,7 +29,14 @@ export class Account {
     public readonly emails: ReadonlyArray<IAPIEmail>,
     public readonly avatarURL: string,
     public readonly id: number,
+<<<<<<< HEAD
     public readonly name: string
+=======
+    /** The friendly name associated with this account */
+    public readonly name: string,
+    /** The OAuth scopes associated with the token */
+    public readonly scopes: ReadonlyArray<string>
+>>>>>>> upstream/track-scopes-for-current-token
   ) {}
 
   public withToken(token: string): Account {
@@ -40,7 +47,8 @@ export class Account {
       this.emails,
       this.avatarURL,
       this.id,
-      this.name
+      this.name,
+      this.scopes
     )
   }
 }

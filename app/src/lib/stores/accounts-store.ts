@@ -43,6 +43,7 @@ interface IAccount {
   readonly avatarURL: string
   readonly id: number
   readonly name: string
+  readonly scopes?: ReadonlyArray<string>
 }
 
 /** The store for logged in accounts. */
@@ -181,7 +182,8 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
         account.emails,
         account.avatarURL,
         account.id,
-        account.name
+        account.name,
+        account.scopes || []
       )
 
       const key = getKeyForAccount(accountWithoutToken)

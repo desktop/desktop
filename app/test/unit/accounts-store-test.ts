@@ -15,8 +15,13 @@ describe('AccountsStore', () => {
   describe('adding a new user', () => {
     it('contains the added user', async () => {
       const newAccountLogin = 'joan'
+<<<<<<< HEAD
       await accountsStore.addAccount(
         new Account(newAccountLogin, '', 'deadbeef', [], '', 1, '')
+=======
+      await accountsStore!.addAccount(
+        new Account(newAccountLogin, '', 'deadbeef', [], '', 1, '', [])
+>>>>>>> upstream/track-scopes-for-current-token
       )
 
       const users = await accountsStore.getAll()
