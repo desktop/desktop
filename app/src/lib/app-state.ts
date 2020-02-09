@@ -214,6 +214,7 @@ export interface IAppState {
   /** The currently selected appearance (aka theme) */
   readonly selectedTheme: ApplicationTheme
 
+<<<<<<< HEAD
   /** Whether we should automatically change the currently selected appearance (aka theme) */
   readonly automaticallySwitchTheme: boolean
 
@@ -236,6 +237,80 @@ export interface IAppState {
   /** Which step the user is on in the Onboarding Tutorial */
   readonly currentOnboardingTutorialStep: TutorialStep
 }
+=======
+export type Popup =
+  | { type: PopupType.RenameBranch; repository: Repository; branch: Branch }
+  | {
+      type: PopupType.DeleteBranch
+      repository: Repository
+      branch: Branch
+      existsOnRemote: boolean
+      aheadBehind: IAheadBehind | null
+    }
+  | {
+      type: PopupType.ConfirmDiscardChanges
+      repository: Repository
+      files: ReadonlyArray<WorkingDirectoryFileChange>
+    }
+  | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
+  | { type: PopupType.MergeBranch; repository: Repository }
+  | { type: PopupType.RepositorySettings; repository: Repository }
+  | { type: PopupType.AddRepository; path?: string }
+  | { type: PopupType.CreateRepository; path?: string }
+  | {
+      type: PopupType.CloneRepository
+      initialURL: string | null
+    }
+  | {
+      type: PopupType.CreateBranch
+      repository: Repository
+      initialName?: string
+    }
+  | { type: PopupType.SignIn }
+  | { type: PopupType.About }
+  | { type: PopupType.InstallGit; path: string }
+  | { type: PopupType.PublishRepository; repository: Repository }
+  | { type: PopupType.Acknowledgements }
+  | {
+      type: PopupType.UntrustedCertificate
+      certificate: Electron.Certificate
+      url: string
+    }
+  | { type: PopupType.RemoveRepository; repository: Repository }
+  | { type: PopupType.TermsAndConditions }
+  | {
+      type: PopupType.PushBranchCommits
+      repository: Repository
+      branch: Branch
+      unPushedCommits?: number
+    }
+  | { type: PopupType.CLIInstalled }
+  | {
+      type: PopupType.GenericGitAuthentication
+      hostname: string
+      retryAction: RetryAction
+    }
+  | {
+      type: PopupType.ExternalEditorFailed
+      message: string
+      suggestAtom?: boolean
+      openPreferences?: boolean
+    }
+  | { type: PopupType.OpenShellFailed; message: string }
+  | { type: PopupType.InitializeLFS; repositories: ReadonlyArray<Repository> }
+  | { type: PopupType.LFSAttributeMismatch }
+  | {
+      type: PopupType.UpstreamAlreadyExists
+      repository: Repository
+      existingRemote: IRemote
+    }
+  | {
+      type: PopupType.DeletePullRequest
+      repository: Repository
+      branch: Branch
+      pullRequest: PullRequest
+    }
+>>>>>>> origin/ask-to-merge-b4-delete
 
 export enum FoldoutType {
   Repository,
