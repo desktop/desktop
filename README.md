@@ -16,7 +16,7 @@ uses [React](https://facebook.github.io/react/).
 
 Download the official installer for your operating system:
 
- - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin)
+ - [MacOS](https://central.github.com/deployments/desktop/desktop/latest/darwin)
  - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32)
  - [Windows machine-wide install](https://central.github.com/deployments/desktop/desktop/latest/win32?format=msi)
 
