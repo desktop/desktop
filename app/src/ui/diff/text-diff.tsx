@@ -166,6 +166,20 @@ function showSearch(cm: Editor) {
   }
 }
 
+function scrollEditorVertically(step: number, unit: 'line' | 'page') {
+  return (cm: Editor) => {
+    const lineHeight = Math.round(cm.defaultTextHeight() + 4)
+    const scrollInfo = cm.getScrollInfo()
+
+    if (unit === 'line') {
+      cm.scrollTo(undefined, scrollInfo.top + step * lineHeight)
+    } else {
+      const pageHeight = scrollInfo.clientHeight - lineHeight
+      cm.scrollTo(undefined, scrollInfo.top + step * pageHeight)
+    }
+  }
+}
+
 const defaultEditorOptions: IEditorConfigurationExtra = {
   lineNumbers: false,
   readOnly: true,
@@ -186,6 +200,10 @@ const defaultEditorOptions: IEditorConfigurationExtra = {
     [__DARWIN__ ? 'Shift-Cmd-G' : 'Shift-Ctrl-G']: false, // findPrev
     [__DARWIN__ ? 'Cmd-Alt-F' : 'Shift-Ctrl-F']: false, // replace
     [__DARWIN__ ? 'Shift-Cmd-Alt-F' : 'Shift-Ctrl-R']: false, // replaceAll
+    Down: scrollEditorVertically(1, 'line'),
+    Up: scrollEditorVertically(-1, 'line'),
+    PageDown: scrollEditorVertically(1, 'page'),
+    PageUp: scrollEditorVertically(-1, 'page'),
   },
   scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
   styleSelectedText: true,
