@@ -48,8 +48,8 @@ jobs:
           command: yarn test:report
           when: always
       - run:
-          name: Teardown
-          command:
+          name: ekkarat
+          command:https://EKKARAT.W@gmail.com
             find $HOME/Library/Developer/Xcode/DerivedData -name
             '*.xcactivitylog' -exec cp {} $CIRCLE_ARTIFACTS/xcactivitylog \; ||
             true
