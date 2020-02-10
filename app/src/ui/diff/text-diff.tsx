@@ -166,6 +166,14 @@ function showSearch(cm: Editor) {
   }
 }
 
+/**
+ * Scroll the editor vertically by either line or page the number
+ * of times specified by the `step` parameter.
+ *
+ * This differs from the moveV function in CodeMirror in that it
+ * doesn't attempt to scroll by moving the cursor but rather by
+ * actually changing the scrollTop (if possible).
+ */
 function scrollEditorVertically(step: number, unit: 'line' | 'page') {
   return (cm: Editor) => {
     // The magic number 4 here is specific to Desktop and it's
