@@ -33,6 +33,8 @@ Details about how the team is organizing and shipping GitHub Desktop:
 
 ## Technical
 
+Check me out
+
 These documents contain more details about the internals of GitHub Desktop
 and how things work:
 
