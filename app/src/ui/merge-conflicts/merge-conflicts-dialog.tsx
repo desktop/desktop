@@ -203,7 +203,6 @@ export class MergeConflictsDialog extends React.Component<
         id="merge-conflicts-list"
         dismissable={true}
         onDismissed={this.onDismissed}
-        disableClickDismissalAlways={true}
         onSubmit={this.onSubmit}
         title={headerTitle}
       >

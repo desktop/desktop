@@ -486,7 +486,7 @@ export class Dispatcher {
   /** Check out the given branch. */
   public checkoutBranch(
     repository: Repository,
-    branch: Branch | string,
+    branch: Branch,
     uncommittedChangesStrategy?: UncommittedChangesStrategy
   ): Promise<Repository> {
     return this.appStore._checkoutBranch(
@@ -1367,12 +1367,12 @@ export class Dispatcher {
    */
   public async relocateRepository(repository: Repository): Promise<void> {
     const window = remote.getCurrentWindow()
-    const directories = remote.dialog.showOpenDialog(window, {
+    const { filePaths } = await remote.dialog.showOpenDialog(window, {
       properties: ['openDirectory'],
     })
 
-    if (directories && directories.length > 0) {
-      const newPath = directories[0]
+    if (filePaths.length > 0) {
+      const newPath = filePaths[0]
       await this.updateRepositoryPath(repository, newPath)
     }
   }
@@ -1532,10 +1532,9 @@ export class Dispatcher {
     await this.appStore._refreshRepository(repository)
 
     const state = this.repositoryStateManager.get(repository)
+    const branches = state.branchesState.allBranches
 
     if (pr == null && branch != null) {
-      const branches = state.branchesState.allBranches
-
       // I don't want to invoke Git functionality from the dispatcher, which
       // would help by using getDefaultRemote here to get the definitive ref,
       // so this falls back to finding any remote branch matching the name
@@ -1557,8 +1556,18 @@ export class Dispatcher {
         shouldCheckoutBranch = tip.branch.nameWithoutRemote !== branch
       }
 
-      if (shouldCheckoutBranch) {
-        await this.checkoutBranch(repository, branch)
+      const localBranch = branches.find(b => b.upstreamWithoutRemote === branch)
+
+      // N.B: This looks weird, and it is. _checkoutBranch used
+      // to behave this way (silently ignoring checkout) when given
+      // a branch name string that does not correspond to a local branch
+      // in the git store. When rewriting _checkoutBranch
+      // to remove the support for string branch names the behavior
+      // was moved up to this method to not alter the current behavior.
+      //
+      // https://youtu.be/IjmtVKOAHPM
+      if (shouldCheckoutBranch && localBranch !== undefined) {
+        await this.checkoutBranch(repository, localBranch)
       }
     }
 
@@ -2195,7 +2204,7 @@ export class Dispatcher {
    */
   public async moveChangesToBranchAndCheckout(
     repository: Repository,
-    branchToCheckout: string
+    branchToCheckout: Branch
   ) {
     return this.appStore._moveChangesToBranchAndCheckout(
       repository,

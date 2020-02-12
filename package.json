@@ -15,7 +15,7 @@
     "test:setup": "ts-node -P script/tsconfig.json script/test-setup.ts",
     "test:review": "ts-node  -P script/tsconfig.json script/test-review.ts",
     "test:report": "codecov --disable=gcov -f app/coverage/coverage-final.json",
-    "postinstall": "patch-package && ts-node -P script/tsconfig.json script/post-install.ts",
+    "postinstall": "ts-node -P script/tsconfig.json script/post-install.ts",
     "start": "cross-env NODE_ENV=development ts-node -P script/tsconfig.json script/start.ts",
     "start:prod": "cross-env NODE_ENV=production ts-node -P script/tsconfig.json script/start.ts",
     "compile:dev": "cross-env NODE_ENV=development parallel-webpack --config app/webpack.development.ts",
@@ -39,8 +39,8 @@
     "clean-slate": "rimraf out node_modules app/node_modules coverage && yarn",
     "rebuild-hard:dev": "yarn clean-slate && yarn build:dev",
     "rebuild-hard:prod": "yarn clean-slate && yarn build:prod",
-    "changelog": "ts-node script/changelog/index.ts",
     "draft-release": "ts-node script/draft-release/index.ts",
+    "draft-release:format": "prettier --check --write changelog.json app/package.json && yarn validate-changelog",
     "validate-changelog": "ts-node script/validate-changelog.ts",
     "check-modified": "stop-build"
   },
@@ -95,7 +95,6 @@
     "mini-css-extract-plugin": "^0.4.0",
     "node-sass": "^4.12.0",
     "parallel-webpack": "^2.3.0",
-    "patch-package": "^6.2.0",
     "prettier": "1.16.0",
     "request": "^2.72.0",
     "rimraf": "^2.5.2",
@@ -166,9 +165,9 @@
     "@types/webpack-merge": "^4.1.3",
     "@types/winston": "^2.2.0",
     "@types/xml2js": "^0.4.0",
-    "electron": "5.0.6",
+    "electron": "7.1.8",
     "electron-builder": "20.28.4",
-    "electron-packager": "^13.1.0",
+    "electron-packager": "^14.1.1",
     "electron-winstaller": "2.5.2"
   }
 }
