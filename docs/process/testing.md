@@ -455,7 +455,8 @@
      - [ ] Status checks run frequently in background, especially if yellow
      - [ ] If user hovers over CI status icons, tooltips show individual/group status details
  - [ ] Pull Request status in the list can be updated independently of respective Pull Request being viewed (background job)
- - [ ] Forked repository can point to upstream Pull Request; user has option to view pull requests on upstream repository
+ - [ ] Show link to upstream pull requests in pull request list of a fork if PR for current branch is in upstream repo
+ - [ ] Show link to create a pull request if there is no PR for current branch
  
 ### Security
  - [ ] `Untrusted server` warning surfaced if GitHub cannot verify the identity of `api.github.com`; user can `Cancel` or `Continue`
