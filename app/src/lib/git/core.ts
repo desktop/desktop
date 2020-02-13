@@ -367,6 +367,8 @@ function getDescriptionForError(error: DugiteError): string | null {
       // be used as the error message (or stdout if stderr is empty), i.e. the
       // same behavior as before the ConfigLockFileAlreadyExists was added
       return null
+    case DugiteError.RemoteAlreadyExists:
+      return null
     default:
       return assertNever(error, `Unknown error: ${error}`)
   }
