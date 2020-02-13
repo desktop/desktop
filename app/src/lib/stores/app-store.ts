@@ -877,8 +877,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const owner = gitHubRepo.owner.login
         const api = API.fromAccount(account)
 
-        const hasWritePermissionForRepository =
-          gitHubRepo === null || hasWritePermission(gitHubRepo)
+        const hasWritePermissionForRepository = hasWritePermission(gitHubRepo)
 
         const pushControl = await api.fetchPushControl(owner, name, branchName)
         const currentBranchProtected =
