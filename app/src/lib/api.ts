@@ -815,7 +815,9 @@ export class API {
     name: string,
     branch: string
   ): Promise<IAPIPushControl> {
-    const path = `repos/${owner}/${name}/branches/${branch}/push_control`
+    const path = `repos/${owner}/${name}/branches/${encodeURIComponent(
+      branch
+    )}/push_control`
 
     const headers: any = {
       Accept: 'application/vnd.github.phandalin-preview',

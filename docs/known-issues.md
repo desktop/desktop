@@ -176,9 +176,20 @@ Known causes and workarounds:
 
 - Antivirus software can sometimes prevent GitHub Desktop from installing correctly. If you are running antivirus software that could be causing this try temporarily disabling it and reinstalling GitHub Desktop.
 
+- Restrictive permissions on your Windows user account. If you are running GitHub Desktop as a non-admin user try launching the application as an administrator (right-click -> `Run as administrator`). See [#5082](https://github.com/desktop/desktop/issues/5082#issuecomment-483067198).
+
 - If none of these potential causes are present on your machine, try performing a fresh installation of GitHub Desktop to see if that gets things working again. Here are the steps you can take to do that:
 
   1. Close GitHub Desktop
   2. Delete the `%AppData%\GitHub Desktop\` directory
   3. Delete the `%LocalAppData%\GitHubDesktop\` directory
   4. Reinstall GitHub Desktop from [desktop.github.com](https://desktop.github.com)
+  
+### Authentication errors due to modified registry entries
+
+If either the user or an application has modified the `Command Processor` registry entries it can cause GitHub Desktop to throw an `Authentication failed` error. To check if these registry entries have been modified open the Registry Editor (regedit.exe) and navigate to the following locations:
+
+`HKEY_CURRENT_USER\Software\Microsoft\Command Processor\`
+`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Command Processor\`
+
+Check to see if there is an `Autorun` value in either of those location. If there is, deleting that value should resolve the `Authentication failed` error.
