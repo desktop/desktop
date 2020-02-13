@@ -43,5 +43,8 @@ export function isBranchPushable(pushControl: IAPIPushControl) {
   const noMergeRequirements =
     requiredStatusCheckCount === 0 && required_approving_review_count === 0
 
+  // We check for !== false so that if a future version of the API decides to
+  // remove or rename that property we'll revert to assuming that the user
+  // _does_ have access rather than assuming that they _don't_.
   return allow_actor !== false && noMergeRequirements
 }
