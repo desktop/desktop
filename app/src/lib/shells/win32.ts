@@ -406,7 +406,7 @@ export function launch(
     case Shell.WindowTerminal:
       const windowsTerminalPath = `"${foundShell.path}"`
       log.info(`launching ${shell} at path: ${windowsTerminalPath}`)
-      return spawn(windowsTerminalPath, ['-d'], { shell: true, cwd: path })
+      return spawn(windowsTerminalPath, ['-d .'], { shell: true, cwd: path })
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }
