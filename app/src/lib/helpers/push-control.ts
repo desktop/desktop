@@ -43,5 +43,5 @@ export function isBranchPushable(pushControl: IAPIPushControl) {
   const noMergeRequirements =
     requiredStatusCheckCount === 0 && required_approving_review_count === 0
 
-  return allow_actor && noMergeRequirements
+  return allow_actor !== false && noMergeRequirements
 }
