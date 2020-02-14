@@ -50,4 +50,9 @@ describe('parsePACString', () => {
     const urls = parsePACString('QUIC qhost:1;PROXY phost:2;DIRECT')
     expect(urls).toEqual(['http://phost:2'])
   })
+
+  it('skips invalid specs', () => {
+    const urls = parsePACString('PROXY;HTTPS;DIRECT')
+    expect(urls).toBeNull()
+  })
 })
