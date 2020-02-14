@@ -1,5 +1,3 @@
-import { Url } from 'url'
-
 /**
  * Parse a Proxy Auto Configuration (PAC) string into one or more cURL-
  * compatible proxy URLs.
@@ -56,6 +54,50 @@ import { Url } from 'url'
  *    any particular single port number used widely for proxies.
  *    Specify it!
  */
-export function parsePACString(pacString: string): Array<Url> | null {
+export function parsePACString(pacString: string): Array<string> | null {
+  // Happy path
+  if (pacString === 'DIRECT') {
+    return null
+  }
+
+  const specs = pacString.split(/;\s*/)
+  const urls = new Array<string>()
+
+  for (const spec of specs) {
+    // We stop at the first DIRECT.
+    if (spec.startsWith('DIRECT')) {
+      return urls.length > 0 ? urls : null
+    }
+
+    const [protocol, endpoint] = spec.trim().split(' ', 2)
+
+    if (endpoint !== undefined) {
+      const url = urlFromProtocolAndEndpoint(protocol, endpoint)
+
+      if (url !== null) {
+        urls.push(url)
+      } else {
+        log.warn(`Skipping proxy spec: ${spec}`)
+      }
+    }
+  }
+
+  return urls
+}
+
+function urlFromProtocolAndEndpoint(protocol: string, endpoint: string) {
+  switch (protocol.toLowerCase()) {
+    case 'proxy':
+    case 'http':
+      return `http://${endpoint}`
+    case 'https':
+      return `https://${endpoint}`
+    case 'socks':
+    case 'socks4':
+      return `socks4://${endpoint}`
+    case 'socks5':
+      return `socks5://${endpoint}`
+  }
+
   return null
 }
