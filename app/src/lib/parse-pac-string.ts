@@ -86,6 +86,15 @@ export function parsePACString(pacString: string): Array<string> | null {
 }
 
 function urlFromProtocolAndEndpoint(protocol: string, endpoint: string) {
+  // Note that we explicitly want to preserve the port number (if provided).
+  // If we run these through url.parse or the URL constructor they will
+  // both attempt to be smart and remove the default port. So if a PAC
+  // string specified `PROXY myproxy:80` we'll generate `http://myproxy:80`
+  // which will get turned into `http://myproxy` by URL libraries since
+  // they think 80 is redundant. In our case it's not redundant though
+  // because cURL defaults to port 1080 for all proxy protocols, see
+  //
+  // https://curl.haxx.se/libcurl/c/CURLOPT_PROXY.html
   switch (protocol.toLowerCase()) {
     case 'proxy':
     case 'http':
