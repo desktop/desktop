@@ -69,7 +69,7 @@ export function parsePACString(pacString: string): Array<string> | null {
       return urls.length > 0 ? urls : null
     }
 
-    const [protocol, endpoint] = spec.split(' ', 2)
+    const [protocol, endpoint] = spec.split(/\s+/, 2)
 
     if (endpoint !== undefined) {
       const url = urlFromProtocolAndEndpoint(protocol, endpoint)
