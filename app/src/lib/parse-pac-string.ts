@@ -48,6 +48,13 @@ import { Url } from 'url'
  *   "PROXY proxy1.foo.com:8080; PROXY proxy2.foo.com:8080; DIRECT"
  *   "SOCKS socksproxy"
  *   "DIRECT"
+ *
+ * Other notes:
+ *
+ * From https://curl.haxx.se/libcurl/c/CURLOPT_PROXY.html
+ *    When you set a host name to use, do not assume that there's
+ *    any particular single port number used widely for proxies.
+ *    Specify it!
  */
 export function parsePACString(pacString: string): Array<Url> | null {
   return null
