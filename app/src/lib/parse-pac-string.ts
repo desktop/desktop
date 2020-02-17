@@ -69,7 +69,7 @@ export function parsePACString(pacString: string): Array<string> | null {
   for (const spec of specs) {
     // No point in continuing after we get a DIRECT since we
     // have no way of implementing a fallback logic in cURL/Git
-    if (spec.startsWith('DIRECT')) {
+    if (spec.match(/^direct/i)) {
       break
     }
 
