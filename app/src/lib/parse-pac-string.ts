@@ -58,7 +58,7 @@
  *    Specify it!
  */
 export function parsePACString(pacString: string): Array<string> | null {
-  // Happy path
+  // Happy path, this will be the case for the vast majority of users
   if (pacString === 'DIRECT') {
     return null
   }
