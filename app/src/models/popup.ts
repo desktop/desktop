@@ -198,8 +198,7 @@ export type Popup =
     }
   | {
       type: PopupType.CreateTutorialRepository
-      account: Account
-    }
+    } & ICreateTutorialRepositoryPopupProps
   | {
       type: PopupType.ConfirmExitTutorial
     }
@@ -219,3 +218,7 @@ export type Popup =
       repository: RepositoryWithGitHubRepository
       account: Account
     }
+
+export interface ICreateTutorialRepositoryPopupProps {
+  account: Account
+}
