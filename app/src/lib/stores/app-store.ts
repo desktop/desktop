@@ -1,3 +1,4 @@
+import * as Path from 'path'
 import { ipcRenderer, remote } from 'electron'
 import { pathExists } from 'fs-extra'
 import { escape } from 'querystring'
@@ -59,7 +60,11 @@ import {
   IRevertProgress,
   IRebaseProgress,
 } from '../../models/progress'
-import { Popup, PopupType } from '../../models/popup'
+import {
+  Popup,
+  PopupType,
+  ICreateTutorialRepositoryPopupProps,
+} from '../../models/popup'
 import { IGitAccount } from '../../models/git-account'
 import { themeChangeMonitor } from '../../ui/lib/theme-change-monitor'
 import { getAppPath } from '../../ui/lib/app-proxy'
@@ -152,6 +157,7 @@ import {
   RebaseResult,
   getRebaseSnapshot,
   IStatusResult,
+  GitError,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -265,6 +271,9 @@ import {
   findAssociatedPullRequest,
   isPullRequestAssociatedWithBranch,
 } from '../helpers/pull-request-matching'
+import { createTutorialRepository } from './helpers/create-tutorial-repository'
+import { sendNonFatalException } from '../helpers/non-fatal-exception'
+import { getDefaultDir } from '../../ui/lib/default-dir'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -5567,6 +5576,64 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
     return repository
+  }
+
+  public async _createTutorialRepository(account: Account) {
+    try {
+      await this.statsStore.recordTutorialStarted()
+
+      const name = 'desktop-tutorial'
+      const path = Path.resolve(getDefaultDir(), name)
+
+      const apiRepository = await createTutorialRepository(
+        account,
+        path,
+        name,
+        this.setCreateTutorialProgress
+      )
+
+      await this._addTutorialRepository(path, account.endpoint, apiRepository)
+      await this.statsStore.recordTutorialRepoCreated()
+
+      this._closePopup(PopupType.CreateTutorialRepository)
+    } catch (err) {
+      this.setCreateTutorialRepositoryProps({ progress: undefined })
+      this._closePopup(PopupType.CreateTutorialRepository)
+
+      sendNonFatalException('tutorialRepoCreation', err)
+
+      if (err instanceof GitError) {
+        this.emitError(err)
+      } else {
+        this.emitError(
+          new Error(
+            `Failed creating the tutorial repository.\n\n${err.message}`
+          )
+        )
+      }
+    }
+  }
+
+  private setCreateTutorialProgress = (
+    title: string,
+    value: number,
+    description?: string
+  ) => {
+    this.setCreateTutorialRepositoryProps({
+      progress: { kind: 'generic', title, value, description },
+    })
+  }
+
+  private setCreateTutorialRepositoryProps(
+    state: Partial<ICreateTutorialRepositoryPopupProps>
+  ) {
+    if (
+      this.currentPopup &&
+      this.currentPopup.type === PopupType.CreateTutorialRepository
+    ) {
+      this.currentPopup = { ...this.currentPopup, ...state }
+      this.emitUpdate()
+    }
   }
 }
 
