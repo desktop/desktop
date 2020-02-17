@@ -17,7 +17,7 @@ import { updateStore, UpdateStatus } from './lib/update-store'
 import { RetryAction } from '../models/retry-actions'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { matchExistingRepository } from '../lib/repository-matching'
-import { getDotComAPIEndpoint, IAPIRepository } from '../lib/api'
+import { getDotComAPIEndpoint } from '../lib/api'
 import { ILaunchStats, SamplesURL } from '../lib/stats'
 import { getVersion, getName } from './lib/app-proxy'
 import { getOS } from '../lib/get-os'
@@ -1845,11 +1845,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <CreateTutorialRepositoryDialog
             key="create-tutorial-repository-dialog"
-            dispatcher={this.props.dispatcher}
             account={popup.account}
+            progress={popup.progress}
             onDismissed={this.onPopupDismissed}
-            onTutorialRepositoryCreated={this.onTutorialRepositoryCreated}
-            onError={this.onTutorialRepositoryError}
+            onCreateTutorialRepository={this.onCreateTutorialRepository}
           />
         )
       }
@@ -1905,21 +1904,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.closePopup()
   }
 
-  private onTutorialRepositoryError = (error: Error) => {
-    this.props.dispatcher.closePopup(PopupType.CreateTutorialRepository)
-    this.props.dispatcher.postError(error)
-  }
-
-  private onTutorialRepositoryCreated = (
-    path: string,
-    account: Account,
-    apiRepository: IAPIRepository
-  ) => {
-    return this.props.dispatcher.addTutorialRepository(
-      path,
-      account.endpoint,
-      apiRepository
-    )
+  private onCreateTutorialRepository = (account: Account) => {
+    this.props.dispatcher.createTutorialRepository(account)
   }
 
   private onShowRebaseConflictsBanner = (

@@ -2256,4 +2256,7 @@ export class Dispatcher {
   public recordForkCreated() {
     return this.statsStore.recordForkCreated()
   }
+  public createTutorialRepository(account: Account) {
+    return this.appStore._createTutorialRepository(account)
+  }
 }
