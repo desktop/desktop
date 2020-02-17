@@ -5587,8 +5587,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       const apiRepository = await createTutorialRepository(
         account,
-        path,
         name,
+        path,
         this.setCreateTutorialProgress
       )
 
