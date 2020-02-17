@@ -1,9 +1,8 @@
-import * as URL from 'url'
 import * as Path from 'path'
 
 import { Account } from '../../../models/account'
 import { writeFile, pathExists, ensureDir } from 'fs-extra'
-import { API, getDotComAPIEndpoint } from '../../api'
+import { API } from '../../api'
 import { APIError } from '../../http'
 import {
   executionOptionsWithProgress,
@@ -11,6 +10,7 @@ import {
 } from '../../progress'
 import { envForAuthentication } from '../../git/authentication'
 import { git } from '../../git'
+import { friendlyEndpointName } from '../../friendly-endpoint-name'
 
 const nl = __WIN32__ ? '\r\n' : '\n'
 const InititalReadmeContents =
@@ -138,17 +138,4 @@ export async function createTutorialRepository(
   progressCb('Finalizing tutorial repository', 0.9)
 
   return repo
-}
-
-/**
- * Generate a human-friendly description of the Account endpoint.
- *
- * Accounts on GitHub.com will return the string 'GitHub.com'
- * whereas GitHub Enterprise Server accounts will return the
- * hostname without the protocol and/or path.
- */
-export function friendlyEndpointName(account: Account) {
-  return account.endpoint === getDotComAPIEndpoint()
-    ? 'GitHub.com'
-    : URL.parse(account.endpoint).hostname || account.endpoint
 }
