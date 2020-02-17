@@ -2,6 +2,9 @@
  * Parse a Proxy Auto Configuration (PAC) string into one or more cURL-
  * compatible proxy URLs.
  *
+ * See https://developer.mozilla.org/en-US/docs/Web/HTTP/Proxy_servers_and_tunneling/Proxy_Auto-Configuration_(PAC)_file
+ * for a good primer on PAC files.
+ *
  * Note that this method is not intended to be a fully compliant PAC parser
  * nor is it indended to handle common PAC string mistakes (such as including
  * the protocol in the host portion of the spec). It's specifically designed
