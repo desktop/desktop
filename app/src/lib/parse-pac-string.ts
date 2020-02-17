@@ -106,16 +106,16 @@ function urlFromProtocolAndEndpoint(protocol: string, endpoint: string) {
   // but we'll suppor it nonetheless.
   //
   // SOCKS is an alias for SOCKS4
-  switch (protocol) {
-    case 'PROXY':
-    case 'HTTP':
+  switch (protocol.toLowerCase()) {
+    case 'proxy':
+    case 'http':
       return `http://${endpoint}`
-    case 'HTTPS':
+    case 'https':
       return `https://${endpoint}`
-    case 'SOCKS':
-    case 'SOCKS4':
+    case 'socks':
+    case 'socks4':
       return `socks4://${endpoint}`
-    case 'SOCKS5':
+    case 'socks5':
       return `socks5://${endpoint}`
   }
 
