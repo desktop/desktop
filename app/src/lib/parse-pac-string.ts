@@ -20,7 +20,7 @@
  * parsers.
  *
  * See the following links for a high-level step-through of the logic involed
- * in getting
+ * in getting the PAC string from Electron/Chromium
  *
  * https://github.com/electron/electron/blob/d9321f4df751/shell/browser/net/resolve_proxy_helper.cc#L77
  * https://github.com/chromium/chromium/blob/98b0e0a61e78/net/proxy_resolution/proxy_list.cc#L134-L143
