@@ -690,7 +690,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private onCreateTutorialRepository = () => {
+  private showCreateTutorialRepositoryPopup = () => {
     if (!enableTutorial()) {
       return
     }
@@ -2455,7 +2455,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           onCreate={this.showCreateRepository}
           onClone={this.showCloneRepo}
           onAdd={this.showAddLocalRepo}
-          onCreateTutorialRepository={this.onCreateTutorialRepository}
+          onCreateTutorialRepository={this.showCreateTutorialRepositoryPopup}
           onResumeTutorialRepository={this.onResumeTutorialRepository}
           tutorialPaused={this.isTutorialPaused()}
           apiRepositories={state.apiRepositories}
