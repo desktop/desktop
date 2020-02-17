@@ -9,6 +9,7 @@ import { PreferencesTab } from './preferences'
 import { ICommitContext } from './commit'
 import { IStashEntry } from './stash-entry'
 import { Account } from '../models/account'
+import { Progress } from './progress'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -221,4 +222,5 @@ export type Popup =
 
 export interface ICreateTutorialRepositoryPopupProps {
   account: Account
+  progress?: Progress
 }
