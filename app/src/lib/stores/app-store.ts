@@ -5578,6 +5578,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return repository
   }
 
+  /**
+   * Create a tutorial repository using the given account. The account
+   * determines which host (i.e. GitHub.com or a GHES instance) that
+   * the tutorial repository should be created on.
+   *
+   * @param account The account (and thereby the GitHub host) under
+   *                which the repository is to be created created
+   */
   public async _createTutorialRepository(account: Account) {
     try {
       await this.statsStore.recordTutorialStarted()
