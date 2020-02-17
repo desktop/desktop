@@ -5594,12 +5594,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       await this._addTutorialRepository(path, account.endpoint, apiRepository)
       await this.statsStore.recordTutorialRepoCreated()
-
-      this._closePopup(PopupType.CreateTutorialRepository)
     } catch (err) {
-      this.setCreateTutorialRepositoryProps({ progress: undefined })
-      this._closePopup(PopupType.CreateTutorialRepository)
-
       sendNonFatalException('tutorialRepoCreation', err)
 
       if (err instanceof GitError) {
@@ -5611,6 +5606,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
           )
         )
       }
+    } finally {
+      this.setCreateTutorialRepositoryProps({ progress: undefined })
+      this._closePopup(PopupType.CreateTutorialRepository)
     }
   }
 
