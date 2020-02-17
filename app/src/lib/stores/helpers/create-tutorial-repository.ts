@@ -1,3 +1,10 @@
+/**
+ * Generate a human-friendly description of the Account endpoint.
+ *
+ * Accounts on GitHub.com will return the string 'GitHub.com'
+ * whereas GitHub Enterprise Server accounts will return the
+ * hostname without the protocol and/or path.
+ */
 export function friendlyEndpointName(account: Account) {
   return account.endpoint === getDotComAPIEndpoint()
     ? 'GitHub.com'
