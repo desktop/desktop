@@ -25,6 +25,7 @@ import { Dispatcher } from '../dispatcher'
 import { APIError } from '../../lib/http'
 import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import { friendlyEndpointName } from '../../lib/stores/helpers/create-tutorial-repository'
 
 interface ICreateTutorialRepositoryDialogProps {
   /**
@@ -292,10 +293,4 @@ export class CreateTutorialRepositoryDialog extends React.Component<
       </Dialog>
     )
   }
-}
-
-function friendlyEndpointName(account: Account) {
-  return account.endpoint === getDotComAPIEndpoint()
-    ? 'GitHub.com'
-    : URL.parse(account.endpoint).hostname || account.endpoint
 }
