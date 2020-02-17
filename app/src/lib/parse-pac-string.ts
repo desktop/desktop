@@ -95,16 +95,16 @@ function urlFromProtocolAndEndpoint(protocol: string, endpoint: string) {
   // because cURL defaults to port 1080 for all proxy protocols, see
   //
   // https://curl.haxx.se/libcurl/c/CURLOPT_PROXY.html
-  switch (protocol.toLowerCase()) {
-    case 'proxy':
-    case 'http':
+  switch (protocol) {
+    case 'PROXY':
+    case 'HTTP':
       return `http://${endpoint}`
-    case 'https':
+    case 'HTTPS':
       return `https://${endpoint}`
-    case 'socks':
-    case 'socks4':
+    case 'SOCKS':
+    case 'SOCKS4':
       return `socks4://${endpoint}`
-    case 'socks5':
+    case 'SOCKS5':
       return `socks5://${endpoint}`
   }
 
