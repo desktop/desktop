@@ -66,7 +66,7 @@ export function parsePACString(pacString: string): Array<string> | null {
   for (const spec of specs) {
     // We stop at the first DIRECT.
     if (spec.startsWith('DIRECT')) {
-      return urls.length > 0 ? urls : null
+      break
     }
 
     const [protocol, endpoint] = spec.split(/\s+/, 2)
@@ -82,7 +82,7 @@ export function parsePACString(pacString: string): Array<string> | null {
     }
   }
 
-  return urls
+  return urls.length > 0 ? urls : null
 }
 
 function urlFromProtocolAndEndpoint(protocol: string, endpoint: string) {
