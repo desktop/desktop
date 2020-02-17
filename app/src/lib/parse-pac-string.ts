@@ -99,6 +99,13 @@ function urlFromProtocolAndEndpoint(protocol: string, endpoint: string) {
   // because cURL defaults to port 1080 for all proxy protocols, see
   //
   // https://curl.haxx.se/libcurl/c/CURLOPT_PROXY.html
+  //
+  // HTTP is an alias for PROXY (or vice versa idk). I don't believe
+  // we'll ever see an 'HTTP' protocol from Chromium based on my reading of
+  // https://github.com/chromium/chromium/blob/2ca8c5037021/net/base/proxy_server.cc#L164-L184
+  // but we'll suppor it nonetheless.
+  //
+  // SOCKS is an alias for SOCKS4
   switch (protocol) {
     case 'PROXY':
     case 'HTTP':
