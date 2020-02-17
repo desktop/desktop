@@ -7,7 +7,7 @@ import { Ref } from '../lib/ref'
 import { LinkButton } from '../lib/link-button'
 import { Progress } from '../../models/progress'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
-import { friendlyEndpointName } from '../../lib/stores/helpers/create-tutorial-repository'
+import { friendlyEndpointName } from '../../lib/friendly-endpoint-name'
 
 interface ICreateTutorialRepositoryDialogProps {
   /**
