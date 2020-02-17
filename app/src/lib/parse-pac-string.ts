@@ -64,7 +64,8 @@ export function parsePACString(pacString: string): Array<string> | null {
   const urls = new Array<string>()
 
   for (const spec of specs) {
-    // We stop at the first DIRECT.
+    // No point in continuing after we get a DIRECT since we
+    // have no way of implementing a fallback logic in cURL/Git
     if (spec.startsWith('DIRECT')) {
       break
     }
