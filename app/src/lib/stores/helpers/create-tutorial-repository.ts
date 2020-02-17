@@ -85,7 +85,7 @@ async function pushRepo(
 /**
  * Creates a repository on the remote (as specified by the Account
  * parameter), initializes an empty repository at the given path,
- * sets up the expected tutorial contents, and pushes the repository'
+ * sets up the expected tutorial contents, and pushes the repository
  * to the remote.
  *
  * @param path    The path on the local machine where the tutorial
