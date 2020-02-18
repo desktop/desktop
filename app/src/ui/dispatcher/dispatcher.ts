@@ -1556,7 +1556,7 @@ export class Dispatcher {
         shouldCheckoutBranch = tip.branch.nameWithoutRemote !== branch
       }
 
-      const localBranch = branches.find(b => b.upstreamWithoutRemote === branch)
+      const localBranch = branches.find(b => b.nameWithoutRemote === branch)
 
       // N.B: This looks weird, and it is. _checkoutBranch used
       // to behave this way (silently ignoring checkout) when given
