@@ -10,7 +10,6 @@ import {
   PullRequestCoordinator,
   RepositoriesStore,
   SignInStore,
-  UpstreamRemoteName,
 } from '.'
 import { Account } from '../../models/account'
 import { AppMenu, IMenu } from '../../models/app-menu'
@@ -153,7 +152,6 @@ import {
   RebaseResult,
   getRebaseSnapshot,
   IStatusResult,
-  setRemoteURL,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -873,16 +871,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
           return
         }
 
+        // If the user doesn't have write access to the repository
+        // it doesn't matter if the branch is protected or not and
+        // we can avoid the API call. See the `showNoWriteAccess`
+        // prop in the `CommitMessage` component where we specifically
+        // test for this scenario and show a message specifically
+        // about write access before showing a branch protection
+        // warning.
+        if (!hasWritePermission(gitHubRepo)) {
+          this.repositoryStateCache.updateChangesState(repository, () => ({
+            currentBranchProtected: false,
+          }))
+          this.emitUpdate()
+          return
+        }
+
         const name = gitHubRepo.name
         const owner = gitHubRepo.owner.login
         const api = API.fromAccount(account)
 
-        const hasWritePermissionForRepository =
-          gitHubRepo === null || hasWritePermission(gitHubRepo)
-
         const pushControl = await api.fetchPushControl(owner, name, branchName)
-        const currentBranchProtected =
-          hasWritePermissionForRepository && !isBranchPushable(pushControl)
+        const currentBranchProtected = !isBranchPushable(pushControl)
 
         this.repositoryStateCache.updateChangesState(repository, () => ({
           currentBranchProtected,
@@ -5548,30 +5557,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     fork: IAPIRepository
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
-    const remoteName = gitStore.defaultRemote
+    const defaultRemoteName = gitStore.defaultRemote
       ? gitStore.defaultRemote.name
       : undefined
     const remoteUrl = gitStore.defaultRemote
       ? gitStore.defaultRemote.url
       : undefined
     // make sure there is a default remote (there should be)
-    if (remoteName !== undefined && remoteUrl !== undefined) {
+    if (defaultRemoteName !== undefined && remoteUrl !== undefined) {
       // update default remote
-      if (await gitStore.setRemoteURL(remoteName, fork.clone_url)) {
-        const remotes = await getRemotes(repository)
-        const upstream = remotes.find(r => r.name === UpstreamRemoteName)
-        // update upstream remote if it already exists
-        if (upstream === undefined) {
-          await gitStore.performFailableOperation(() =>
-            addRemote(repository, UpstreamRemoteName, remoteUrl)
-          )
-        } else {
-          // update upstream remote if it already exists
-          await gitStore.performFailableOperation(() =>
-            setRemoteURL(repository, UpstreamRemoteName, remoteUrl)
-          )
-        }
-
+      if (await gitStore.setRemoteURL(defaultRemoteName, fork.clone_url)) {
+        await gitStore.ensureUpstreamRemoteURL(remoteUrl)
         // update associated github repo
         const updatedRepository = await this.repositoriesStore.updateGitHubRepository(
           repository,
