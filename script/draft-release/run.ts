@@ -62,24 +62,27 @@ function parseChannel(arg: string): Channel {
  * @param entries release notes for the next release
  */
 function printInstructions(nextVersion: string, entries: Array<string>) {
-  const object: any = {}
-  object[nextVersion] = entries.sort()
-
   const baseSteps = [
     'Revise the release notes according to https://github.com/desktop/desktop/blob/development/docs/process/writing-release-notes.md',
+    'Lint them with: yarn draft-release:format',
     'Commit these changes (on a "release" branch) and push them to GitHub',
     'Read this to perform the release: https://github.com/desktop/desktop/blob/development/docs/process/releasing-updates.md',
   ]
   if (entries.length === 0) {
     printSteps(baseSteps)
   } else {
-    printSteps([
+    const object: any = {}
+    object[nextVersion] = entries.sort()
+    const steps = [
       `Concatenate this to the beginning of the 'releases' element in the changelog.json as a starting point:\n${format(
         JSON.stringify(object),
-        { parser: 'json' }
+        {
+          parser: 'json',
+        }
       )}\n`,
       ...baseSteps,
-    ])
+    ]
+    printSteps(steps)
   }
 }
 
@@ -104,6 +107,7 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   const noChangesFound = lines.every(l => l.trim().length === 0)
 
   if (noChangesFound) {
+    console.warn('No new changes found to add to the changelog.')
     // print instructions with no changelog included
     printInstructions(nextVersion, [])
     return
