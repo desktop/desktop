@@ -175,6 +175,5 @@ function makeNewChangelog(
 ) {
   const newChangelogEntries: any = {}
   newChangelogEntries[nextVersion] = entries
-
   return { releases: { ...newChangelogEntries, ...currentChangelogEntries } }
 }
