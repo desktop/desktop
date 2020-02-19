@@ -8,10 +8,10 @@ import {
   executionOptionsWithProgress,
   PushProgressParser,
 } from '../../progress'
-import { envForAuthentication } from '../../git/authentication'
 import { git } from '../../git'
 import { friendlyEndpointName } from '../../friendly-endpoint-name'
 import { IRemote } from '../../../models/remote'
+import { envForRemoteOperation } from '../../git/environment'
 
 const nl = __WIN32__ ? '\r\n' : '\n'
 const InititalReadmeContents =
@@ -70,7 +70,7 @@ async function pushRepo(
 
   const pushOpts = await executionOptionsWithProgress(
     {
-      env: envForAuthentication(account),
+      env: envForRemoteOperation(account, remote.url),
     },
     new PushProgressParser(),
     progress => {
