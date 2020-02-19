@@ -40,6 +40,7 @@ import {
 import {
   matchExistingRepository,
   urlMatchesCloneURL,
+  urlsMatch,
 } from '../../lib/repository-matching'
 import { Shell } from '../../lib/shells'
 import { ILaunchStats, StatsStore } from '../../lib/stats'
@@ -1393,6 +1394,27 @@ export class Dispatcher {
     } else {
       this.commitStatusStore.stopBackgroundRefresh()
     }
+  }
+
+  private async getForkAndUpstreamRepos(url: string) {
+    const state = this.appStore.getState()
+    const repositories = state.repositories
+    const forks: Array<Repository> = []
+    const upstreams: Array<Repository> = []
+
+    await Promise.all(
+      repositories.map(async repo => {
+        if (repo instanceof Repository) {
+          const remotes = await this.appStore.getDefaultAndUpstreamRemotes(repo)
+          if (remotes.default && urlsMatch(remotes.default.url, url)) {
+            upstreams.push(repo)
+          } else if (remotes.upstream && urlsMatch(remotes.upstream.url, url)) {
+            forks.push(repo)
+          }
+        }
+      })
+    )
+    return { forks, upstreams }
   }
 
   public async dispatchURLAction(action: URLActionType): Promise<void> {
