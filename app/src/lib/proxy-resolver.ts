@@ -45,6 +45,12 @@ export class ProxyResolver {
       return undefined
     }
 
+    // We'll play it safe and say that if the user has configured
+    // the ALL_PROXY environment variable they probably know what
+    // they're doing and wouldn't want us to override it with a
+    // protocol-specific proxy. cURL supports both lower and upper
+    // case, see:
+    // https://github.com/curl/curl/blob/14916a82e/lib/url.c#L2180-L2185
     if ('ALL_PROXY' in process.env || 'all_proxy' in process.env) {
       return
     }
