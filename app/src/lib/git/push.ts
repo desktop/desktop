@@ -10,8 +10,9 @@ import { Repository } from '../../models/repository'
 import { IPushProgress } from '../../models/progress'
 import { IGitAccount } from '../../models/git-account'
 import { PushProgressParser, executionOptionsWithProgress } from '../progress'
-import { envForAuthentication, AuthenticationErrors } from './authentication'
+import { AuthenticationErrors } from './authentication'
 import { IRemote } from '../../models/remote'
+import { envForRemoteOperation } from './environment'
 
 export type PushOptions = {
   readonly forceWithLease: boolean
@@ -67,7 +68,7 @@ export async function push(
   expectedErrors.add(DugiteError.ProtectedBranchForcePush)
 
   let opts: IGitExecutionOptions = {
-    env: envForAuthentication(account),
+    env: envForRemoteOperation(account, remote.url),
     expectedErrors,
   }
 
