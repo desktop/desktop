@@ -3539,7 +3539,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             await pushRepo(
               repository,
               account,
-              remote,
+              safeRemote,
               branch.name,
               branch.upstreamWithoutRemote,
               options,
@@ -3554,7 +3554,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
             await gitStore.fetchRemotes(
               account,
-              [remote],
+              [safeRemote],
               false,
               fetchProgress => {
                 this.updatePushPullFetchProgress(repository, {
