@@ -1446,10 +1446,64 @@ export class Dispatcher {
         break
 
       case 'open-repository-from-url':
-        const { url } = action
-        const repository = await this.openOrCloneRepository(url)
+        const { url, pr } = action
+
+        /**
+         * For url+pr get source
+         *   - add method in api.ts `fetchPullRequest` that returns source url, to be passed to `openOrCloneRepository`
+         * Check repos in desktop where url is "upstream" (identify repo as fork)
+         * Check repos in desktop where url is "origin" (identify repo as upstream)
+         *
+         * If only fork, open in fork
+         * If both fork and upstream, check source of PR and open there. If source is neither, default to upstream (current behaviour)
+         * Otherwise (only upstream or neither), do default
+         */
+
+        const { forks, upstreams } = await this.getForkAndUpstreamRepos(url)
+
+        const pullRequest =
+          pr && upstreams.length > 0
+            ? await this.appStore.fetchPullRequest(upstreams[0], pr)
+            : null
+
+        let repository, fork
+        if (forks.length > 0 && upstreams.length === 0) {
+          fork = forks[0]
+          await this.selectRepository(fork)
+        } else if (forks.length > 0 && upstreams.length > 0) {
+          const sourceUrl =
+            pullRequest &&
+            pullRequest.head.repo &&
+            pullRequest.head.repo.html_url
+          const forkMatch = forks.find(fork => {
+            if (fork.gitHubRepository) {
+              return Boolean(
+                fork.gitHubRepository.htmlURL &&
+                  sourceUrl &&
+                  urlsMatch(fork.gitHubRepository.htmlURL, sourceUrl)
+              )
+            } else {
+              return false
+            }
+          })
+          if (sourceUrl && forkMatch) {
+            fork = forkMatch
+            await this.selectRepository(fork)
+          } else {
+            repository = upstreams[0]
+            await this.selectRepository(repository)
+          }
+        } else {
+          repository = await this.openOrCloneRepository(url)
+        }
+
         if (repository) {
           await this.handleCloneInDesktopOptions(repository, action)
+        } else if (fork) {
+          const branch = pullRequest && pullRequest.head.ref
+          await this.handleCloneInDesktopOptions(fork, {
+            branch,
+          } as IOpenRepositoryFromURLAction)
         } else {
           log.warn(
             `Open Repository from URL failed, did not find or clone repository: ${url} - payload: ${JSON.stringify(
