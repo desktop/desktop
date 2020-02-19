@@ -1401,44 +1401,23 @@ export class Dispatcher {
     }
   }
 
-  private async getForkAndUpstreamRepos(url: string) {
+  private async getForkRepos(url: string) {
     const state = this.appStore.getState()
     const repositories = state.repositories
+
     const forks: Array<Repository> = []
-    const upstreams: Array<Repository> = []
 
     await Promise.all(
       repositories.map(async repo => {
         if (repo instanceof Repository) {
-          const remotes = await this.appStore.getDefaultAndUpstreamRemotes(repo)
-          if (remotes.default && urlsMatch(remotes.default.url, url)) {
-            upstreams.push(repo)
-          } else if (remotes.upstream && urlsMatch(remotes.upstream.url, url)) {
+          const upstream = await this.appStore.getUpstreamRemote(repo)
+          if (upstream && urlsMatch(upstream.url, url)) {
             forks.push(repo)
           }
         }
       })
     )
-    return { forks, upstreams }
-  }
-
-  private async fetchPullRequestForRepos(
-    pr: string,
-    repositories: ReadonlyArray<Repository>
-  ): Promise<IAPIPullRequest | null> {
-    if (!pr) {
-      return null
-    }
-    for (let i = 0; i < repositories.length; i++) {
-      const pullRequest = await this.appStore.fetchPullRequest(
-        repositories[i],
-        pr
-      )
-      if (pullRequest) {
-        return pullRequest
-      }
-    }
-    return null
+    return forks
   }
 
   private async openRepositoryFromUrl(action: IOpenRepositoryFromURLAction) {
@@ -1454,21 +1433,18 @@ export class Dispatcher {
      */
 
     const { url, pr } = action
-    const { forks, upstreams } = await this.getForkAndUpstreamRepos(url)
+    const forks = await this.getForkRepos(url)
 
+
+    // open fork corresponding to PR source
     if (forks.length > 0) {
-      // fetch PR from upstream and open fork corresponding to PR source
-      let pullRequest,
-        i = 0
-      if (pr) {
-        while (!pullRequest && upstreams[i]) {
-          pullRequest = await this.appStore.fetchPullRequest(upstreams[i], pr)
-          i++
-        }
-      }
+      const pullRequest = pr
+        ? await this.appStore.fetchPullRequest(url, pr)
+        : null
 
       const sourceUrl =
         pullRequest && pullRequest.head.repo && pullRequest.head.repo.html_url
+
       const forkMatch = forks.find(fork => {
         return Boolean(
           fork.gitHubRepository &&
