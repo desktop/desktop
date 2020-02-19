@@ -1417,6 +1417,60 @@ export class Dispatcher {
     return { forks, upstreams }
   }
 
+  private async openRepositoryFromUrl(action: IOpenRepositoryFromURLAction) {
+    /**
+     * For url+pr get source
+     *   - add method in api.ts `fetchPullRequest` that returns source url, to be passed to `openOrCloneRepository`
+     * Check repos in desktop where url is "upstream" (identify repo as fork)
+     * Check repos in desktop where url is "origin" (identify repo as upstream)
+     *
+     * If only fork, open in fork
+     * If both fork and upstream, check source of PR and open there. If source is neither, default to upstream (current behaviour)
+     * Otherwise (only upstream or neither), do default
+     */
+
+    const { url, pr } = action
+    const { forks, upstreams } = await this.getForkAndUpstreamRepos(url)
+
+    if (forks.length > 0) {
+      // open the fork corresponding to the PR source
+      const pullRequest =
+        pr && upstreams.length > 0
+          ? await this.appStore.fetchPullRequest(upstreams[0], pr)
+          : null
+
+      const sourceUrl =
+        pullRequest && pullRequest.head.repo && pullRequest.head.repo.html_url
+      const forkMatch = forks.find(fork => {
+        return Boolean(
+          fork.gitHubRepository &&
+            fork.gitHubRepository.htmlURL &&
+            sourceUrl &&
+            urlsMatch(fork.gitHubRepository.htmlURL, sourceUrl)
+        )
+      })
+      if (sourceUrl && forkMatch) {
+        const branch = pullRequest && pullRequest.head.ref
+        await this.selectRepository(forkMatch)
+        if (branch) {
+          await this.checkoutLocalBranch(forkMatch, branch)
+        }
+        return
+      }
+    }
+
+    const repository = await this.openOrCloneRepository(url)
+    if (repository) {
+      await this.handleCloneInDesktopOptions(repository, action)
+    } else {
+      log.warn(
+        `Open Repository from URL failed, did not find or clone repository: ${url} - payload: ${JSON.stringify(
+          action
+        )}`
+      )
+    }
+  }
+
   public async dispatchURLAction(action: URLActionType): Promise<void> {
     switch (action.name) {
       case 'oauth':
@@ -1446,73 +1500,7 @@ export class Dispatcher {
         break
 
       case 'open-repository-from-url':
-        const { url, pr } = action
-
-        /**
-         * For url+pr get source
-         *   - add method in api.ts `fetchPullRequest` that returns source url, to be passed to `openOrCloneRepository`
-         * Check repos in desktop where url is "upstream" (identify repo as fork)
-         * Check repos in desktop where url is "origin" (identify repo as upstream)
-         *
-         * If only fork, open in fork
-         * If both fork and upstream, check source of PR and open there. If source is neither, default to upstream (current behaviour)
-         * Otherwise (only upstream or neither), do default
-         */
-
-        const { forks, upstreams } = await this.getForkAndUpstreamRepos(url)
-
-        const pullRequest =
-          pr && upstreams.length > 0
-            ? await this.appStore.fetchPullRequest(upstreams[0], pr)
-            : null
-        const branch = pullRequest && pullRequest.head.ref
-
-        if (forks.length > 0 && upstreams.length === 0) {
-          // if there are only forks and no upstreams
-          // open first fork
-          const fork = forks[0]
-          await this.selectRepository(fork)
-          await this.handleCloneInDesktopOptions(fork, {
-            branch,
-          } as IOpenRepositoryFromURLAction)
-        } else if (forks.length > 0 && upstreams.length > 0) {
-          // if there are forks AND upstreams, open the one corresponding to the PR source
-          const sourceUrl =
-            pullRequest &&
-            pullRequest.head.repo &&
-            pullRequest.head.repo.html_url
-          const forkMatch = forks.find(fork => {
-            return Boolean(
-              fork.gitHubRepository &&
-                fork.gitHubRepository.htmlURL &&
-                sourceUrl &&
-                urlsMatch(fork.gitHubRepository.htmlURL, sourceUrl)
-            )
-          })
-          if (sourceUrl && forkMatch) {
-            await this.selectRepository(forkMatch)
-            await this.handleCloneInDesktopOptions(forkMatch, {
-              branch,
-            } as IOpenRepositoryFromURLAction)
-          } else {
-            // if there is no fork with a matching source, open the first upstream
-            // (this is the current behavior)
-            const upstream = upstreams[0]
-            await this.selectRepository(upstream)
-            await this.handleCloneInDesktopOptions(upstream, action)
-          }
-        } else {
-          const repository = await this.openOrCloneRepository(url)
-          if (repository) {
-            await this.handleCloneInDesktopOptions(repository, action)
-          } else {
-            log.warn(
-              `Open Repository from URL failed, did not find or clone repository: ${url} - payload: ${JSON.stringify(
-                action
-              )}`
-            )
-          }
-        }
+        this.openRepositoryFromUrl(action)
         break
 
       case 'open-repository-from-path':
