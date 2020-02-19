@@ -1433,11 +1433,15 @@ export class Dispatcher {
     const { forks, upstreams } = await this.getForkAndUpstreamRepos(url)
 
     if (forks.length > 0) {
-      // open the fork corresponding to the PR source
-      const pullRequest =
-        pr && upstreams.length > 0
-          ? await this.appStore.fetchPullRequest(upstreams[0], pr)
-          : null
+      // fetch PR from upstream and open fork corresponding to PR source
+      let pullRequest,
+        i = 0
+      if (pr) {
+        while (!pullRequest && upstreams[i]) {
+          pullRequest = await this.appStore.fetchPullRequest(upstreams[i], pr)
+          i++
+        }
+      }
 
       const sourceUrl =
         pullRequest && pullRequest.head.repo && pullRequest.head.repo.html_url
