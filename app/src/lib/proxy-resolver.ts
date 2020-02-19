@@ -69,6 +69,8 @@ export class ProxyResolver {
     const proto = protocolMatch[1].toUpperCase() // HTTP or HTTPS
     const protoEnvKey = `${proto}_PROXY` // HTTP_PROXY or HTTPS_PROXY
 
+    // If the user has already configured a proxy in the environment
+    // for the protocol we're not gonna override it.
     if (
       protoEnvKey in process.env ||
       protoEnvKey.toLowerCase() in process.env
