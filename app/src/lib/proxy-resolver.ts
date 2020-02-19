@@ -8,7 +8,13 @@ export class ProxyResolver {
       return undefined
     }
 
-    const pacString = await remote.session.defaultSession.resolveProxy(url)
+    const pacString = await remote.session.defaultSession
+      .resolveProxy(url)
+      .catch(err => {
+        log.error(`Failed resolving proxy for '${url}'`, err)
+        return 'DIRECT'
+      })
+
     const proxies = parsePACString(pacString)
 
     if (proxies === null) {
