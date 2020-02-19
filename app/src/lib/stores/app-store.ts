@@ -5615,7 +5615,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         )
       }
     } finally {
-      this.setCreateTutorialRepositoryProps({ progress: undefined })
       this._closePopup(PopupType.CreateTutorialRepository)
     }
   }
