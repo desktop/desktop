@@ -116,10 +116,6 @@ export function enableCreateForkFlow(): boolean {
   return true
 }
 
-/**
- * Whether or not to enable support for automatically resolving the
- * system-configured proxy url and passing that to Git.
- */
 export function enableAutomaticGitProxyConfiguration(): boolean {
   return enableDevelopmentFeatures()
 }
