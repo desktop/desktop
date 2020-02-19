@@ -53,6 +53,9 @@ export class ProxyResolver {
       return
     }
 
+    // Note that HTTPS here doesn't mean that the proxy is HTTPS, only
+    // that all requests to HTTPS protocols should be proxied. The
+    // proxy protocol is defined by the url returned by `this.resolve()`
     const proto = protocolMatch[1].toUpperCase() // HTTP or HTTPS
     const protoEnvKey = `${proto}_PROXY` // HTTP_PROXY or HTTPS_PROXY
 
