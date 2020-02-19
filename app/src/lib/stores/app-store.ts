@@ -60,11 +60,7 @@ import {
   IRevertProgress,
   IRebaseProgress,
 } from '../../models/progress'
-import {
-  Popup,
-  PopupType,
-  ICreateTutorialRepositoryPopupProps,
-} from '../../models/popup'
+import { Popup, PopupType } from '../../models/popup'
 import { IGitAccount } from '../../models/git-account'
 import { themeChangeMonitor } from '../../ui/lib/theme-change-monitor'
 import { getAppPath } from '../../ui/lib/app-proxy'
