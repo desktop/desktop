@@ -1,7 +1,7 @@
 import { envForAuthentication } from './authentication'
 import { IGitAccount } from '../../models/git-account'
 import { enableAutomaticGitProxyConfiguration } from '../feature-flag'
-import { resolveGitProxy } from '../proxy-resolver'
+import { resolveGitProxy } from '../resolve-git-proxy'
 
 /**
  * Create a set of environment variables to use when invoking a Git
