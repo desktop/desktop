@@ -1594,6 +1594,33 @@ export class Dispatcher {
     return this.appStore._setShell(shell)
   }
 
+  public async checkoutLocalBranch(repository: Repository, branch: string) {
+    let shouldCheckoutBranch = true
+
+    const state = this.repositoryStateManager.get(repository)
+    const branches = state.branchesState.allBranches
+
+    const { tip } = state.branchesState
+
+    if (tip.kind === TipState.Valid) {
+      shouldCheckoutBranch = tip.branch.nameWithoutRemote !== branch
+    }
+
+    const localBranch = branches.find(b => b.nameWithoutRemote === branch)
+
+    // N.B: This looks weird, and it is. _checkoutBranch used
+    // to behave this way (silently ignoring checkout) when given
+    // a branch name string that does not correspond to a local branch
+    // in the git store. When rewriting _checkoutBranch
+    // to remove the support for string branch names the behavior
+    // was moved up to this method to not alter the current behavior.
+    //
+    // https://youtu.be/IjmtVKOAHPM
+    if (shouldCheckoutBranch && localBranch !== undefined) {
+      await this.checkoutBranch(repository, localBranch)
+    }
+  }
+
   private async handleCloneInDesktopOptions(
     repository: Repository,
     action: IOpenRepositoryFromURLAction
@@ -1627,28 +1654,7 @@ export class Dispatcher {
     }
 
     if (branch != null) {
-      let shouldCheckoutBranch = true
-
-      const { tip } = state.branchesState
-
-      if (tip.kind === TipState.Valid) {
-        shouldCheckoutBranch = tip.branch.nameWithoutRemote !== branch
-      }
-
-      const localBranch = branches.find(b => b.nameWithoutRemote === branch)
-
-      // N.B: This looks weird, and it is. _checkoutBranch used
-      // to behave this way (silently ignoring checkout) when given
-      // a branch name string that does not correspond to a local branch
-      // in the git store. When rewriting _checkoutBranch
-      // to remove the support for string branch names the behavior
-      // was moved up to this method to not alter the current behavior.
-      //
-      // https://youtu.be/IjmtVKOAHPM
-      debugger
-      if (shouldCheckoutBranch && localBranch !== undefined) {
-        await this.checkoutBranch(repository, localBranch)
-      }
+      await this.checkoutLocalBranch(repository, branch)
     }
 
     if (filepath != null) {
