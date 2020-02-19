@@ -92,6 +92,7 @@ function printInstructions(nextVersion: string, entries: Array<string>) {
  * adds a number to the beginning fo each line and prints them in sequence
  */
 function printSteps(steps: ReadonlyArray<string>) {
+  console.log("Here's what you should do next:\n")
   console.log(steps.map((value, index) => `${index + 1}. ${value}`).join('\n'))
 }
 
@@ -167,8 +168,6 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
 
     printInstructions(nextVersion, newEntries)
   }
-
-  console.log("Here's what you should do next:\n")
 }
 
 /**
