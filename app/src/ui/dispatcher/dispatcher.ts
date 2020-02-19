@@ -1619,7 +1619,6 @@ export class Dispatcher {
       // we need to refetch for a forked PR and check that out
       await this.fetchRefspec(repository, `pull/${pr}/head:${branch}`)
     }
-    debugger
 
     // ensure a fresh clone repository has it's in-memory state
     // up-to-date before performing the "Clone in Desktop" steps
