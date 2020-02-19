@@ -60,6 +60,7 @@ export class ProxyResolver {
     // case, see:
     // https://github.com/curl/curl/blob/14916a82e/lib/url.c#L2180-L2185
     if ('ALL_PROXY' in process.env || 'all_proxy' in process.env) {
+      log.info(`proxy url not resolved, ALL_PROXY already set`)
       return
     }
 
@@ -68,6 +69,7 @@ export class ProxyResolver {
     // We can only resolve and use a proxy for the protocols where cURL
     // would be involved (i.e http and https). git:// relies on ssh.
     if (protocolMatch === null) {
+      log.info(`proxy url not resolved, protocol not supported`)
       return
     }
 
@@ -83,6 +85,7 @@ export class ProxyResolver {
       protoEnvKey in process.env ||
       protoEnvKey.toLowerCase() in process.env
     ) {
+      log.info(`proxy url not resolved, ${protoEnvKey} already set`)
       return
     }
 
