@@ -133,11 +133,12 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   }
 
   const currentChangelog = require(changelogPath)
-  const newEntries = await makeNewChangelogEntries(
-    previousVersion,
-    channel,
-    lines
-  )
+  // if it's a new production release, make sure we only include
+  // entries since the latest production release
+  const newEntries =
+    channel === 'production'
+      ? [...getChangelogEntriesSince(previousVersion)]
+      : [...(await convertToChangelogFormat(lines))]
 
   if (currentChangelog.releases[nextVersion] === undefined) {
     console.log('Adding draft release notes to changelog.json...')
@@ -168,24 +169,6 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   }
 
   console.log("Here's what you should do next:\n")
-}
-
-/**
- * Formats git log lines into our changelog format,
- *
- * @param previousVersion last version released
- * @param channel the release channel ('production' or something else)
- * @param lines git log entries (from `getLogLines`)
- */
-async function makeNewChangelogEntries(
-  previousVersion: string,
-  channel: string,
-  lines: ReadonlyArray<string>
-) {
-  const changelogEntries = await convertToChangelogFormat(lines)
-  return channel === 'production'
-    ? [...getChangelogEntriesSince(previousVersion)]
-    : [...changelogEntries]
 }
 
 /**
