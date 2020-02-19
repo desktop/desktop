@@ -47,6 +47,8 @@ export class ProxyResolver {
 
     const protocolMatch = /^(https?):\/\//i.exec(url)
 
+    // We can only resolve and use a proxy for the protocols where cURL
+    // would be involved (i.e http and https). git:// relies on ssh.
     if (protocolMatch === null) {
       return
     }
