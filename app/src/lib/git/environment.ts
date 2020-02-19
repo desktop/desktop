@@ -73,7 +73,8 @@ export function envForRemoteOperation(
 }
 
 async function envForProxy(
-  remoteUrl: string
+  remoteUrl: string,
+  env: NodeJS.ProcessEnv = process.env
 ): Promise<NodeJS.ProcessEnv | undefined> {
   if (!enableAutomaticGitProxyConfiguration()) {
     return undefined
@@ -85,7 +86,7 @@ async function envForProxy(
   // protocol-specific proxy. cURL supports both lower and upper
   // case, see:
   // https://github.com/curl/curl/blob/14916a82e/lib/url.c#L2180-L2185
-  if ('ALL_PROXY' in process.env || 'all_proxy' in process.env) {
+  if ('ALL_PROXY' in env || 'all_proxy' in env) {
     log.info(`proxy url not resolved, ALL_PROXY already set`)
     return
   }
@@ -110,10 +111,7 @@ async function envForProxy(
 
   // If the user has already configured a proxy in the environment
   // for the protocol we're not gonna override it.
-  if (
-    protoEnvKey in process.env ||
-    (proto === 'https' && 'HTTPS_PROXY' in process.env)
-  ) {
+  if (protoEnvKey in env || (proto === 'https' && 'HTTPS_PROXY' in env)) {
     log.info(`proxy url not resolved, ${protoEnvKey} already set`)
     return
   }
