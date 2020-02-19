@@ -18,7 +18,10 @@ import { IGitAccount } from '../../models/git-account'
  *                  pointing to another host entirely. Used to resolve which
  *                  proxy (if any) should be used for the operation.
  */
-export function envForRemoteOperation(account: IGitAccount, remoteUrl: string) {
+export function envForRemoteOperation(
+  account: IGitAccount | null,
+  remoteUrl: string
+) {
   return {
     ...envForAuthentication(account),
   }
