@@ -23,17 +23,27 @@ export class ProxyResolver {
 
     const proxies = parsePACString(pacString)
 
-    // GitHub Desktop relies on the schannel `http.sslBackend` to be used
-    // in order to support things like self-signed certificates. Unfortunately
-    // it doesn't support https proxies so we'll exclude those here. Luckily
-    // for us https proxies are really rare.
-    //
-    // See
-    // https://github.com/jeroen/curl/issues/186#issuecomment-494560890
-    // "The Schannel backend doesn't support HTTPS proxy"
-    return proxies === null
-      ? undefined
-      : proxies.find(x => !x.startsWith('https://'))
+    if (proxies === null) {
+      return undefined
+    }
+
+    for (const proxy of proxies) {
+      // GitHub Desktop relies on the schannel `http.sslBackend` to be used
+      // in order to support things like self-signed certificates. Unfortunately
+      // it doesn't support https proxies so we'll exclude those here. Luckily
+      // for us https proxies are really rare.
+      //
+      // See
+      // https://github.com/jeroen/curl/issues/186#issuecomment-494560890
+      // "The Schannel backend doesn't support HTTPS proxy"
+      if (!proxy.startsWith('https://')) {
+        return proxy
+      } else {
+        log.info('ignoring https proxy, not supported in cURL/schannel')
+      }
+    }
+
+    return undefined
   }
 
   public async getGitEnvironmentVariables(
