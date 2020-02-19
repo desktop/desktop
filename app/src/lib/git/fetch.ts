@@ -3,7 +3,6 @@ import { Repository } from '../../models/repository'
 import { IGitAccount } from '../../models/git-account'
 import { IFetchProgress } from '../../models/progress'
 import { FetchProgressParser, executionOptionsWithProgress } from '../progress'
-import { envForAuthentication } from './authentication'
 import { enableRecurseSubmodulesFlag } from '../feature-flag'
 import { IRemote } from '../../models/remote'
 import { envForRemoteOperation } from './environment'
@@ -115,17 +114,17 @@ export async function fetch(
 export async function fetchRefspec(
   repository: Repository,
   account: IGitAccount | null,
-  remote: string,
+  remote: IRemote,
   refspec: string
 ): Promise<void> {
   const options = {
     successExitCodes: new Set([0, 128]),
-    env: envForAuthentication(account),
+    env: envForRemoteOperation(account, remote.url),
   }
 
   const networkArguments = await gitNetworkArguments(repository, account)
 
-  const args = [...networkArguments, 'fetch', remote, refspec]
+  const args = [...networkArguments, 'fetch', remote.name, refspec]
 
   await git(args, repository.path, 'fetchRefspec', options)
 }

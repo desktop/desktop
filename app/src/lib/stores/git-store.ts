@@ -903,7 +903,7 @@ export class GitStore extends BaseStore {
 
     for (const remote of remotes) {
       await this.performFailableOperation(() =>
-        fetchRefspec(this.repository, account, remote.name, refspec)
+        fetchRefspec(this.repository, account, remote, refspec)
       )
     }
   }
