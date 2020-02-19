@@ -81,6 +81,7 @@ import {
   IAPIOrganization,
   IAPIBranch,
   IAPIRepository,
+  getEndpointForRepository,
 } from '../api'
 import { shell } from '../app-shell'
 import {
@@ -1640,18 +1641,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.pullRequestCoordinator.stopPullRequestUpdater()
   }
 
-  public async fetchPullRequest(repository: Repository, pr: string) {
-    const account = getAccountForRepository(this.accounts, repository)
-    const githubRepo = repository.gitHubRepository
-    if (!account || !githubRepo) {
+  public async fetchPullRequest(repoUrl: string, pr: string) {
+    const endpoint = getEndpointForRepository(repoUrl)
+    const account = getAccountForEndpoint(this.accounts, endpoint)
+    if (!account) {
       return null
     }
+
     const api = API.fromAccount(account)
-    return await api.fetchPullRequest(
-      githubRepo.owner.login,
-      githubRepo.name,
-      pr
-    )
+    const { owner, name } = parseRemote(repoUrl)
+    return await api.fetchPullRequest(owner, name, pr)
   }
 
   private shouldBackgroundFetch(
