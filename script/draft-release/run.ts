@@ -68,6 +68,8 @@ function printInstructions(nextVersion: string, entries: Array<string>) {
     'Commit these changes (on a "release" branch) and push them to GitHub',
     'Read this to perform the release: https://github.com/desktop/desktop/blob/development/docs/process/releasing-updates.md',
   ]
+  // if an empty list, we assume the new entries have already been
+  // written to the changelog file
   if (entries.length === 0) {
     printSteps(baseSteps)
   } else {
@@ -86,7 +88,9 @@ function printInstructions(nextVersion: string, entries: Array<string>) {
   }
 }
 
-// adds a number to the beginning fo each line and prints them in sequence
+/**
+ * adds a number to the beginning fo each line and prints them in sequence
+ */
 function printSteps(steps: ReadonlyArray<string>) {
   console.log(steps.map((value, index) => `${index + 1}. ${value}`).join('\n'))
 }
@@ -116,6 +120,7 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
 
   try {
     // this can throw
+    // sets the npm version in app/
     execSync(`npm version ${nextVersion} --allow-same-version`, {
       cwd: join(__dirname, '..', '..', 'app'),
       encoding: 'utf8',
@@ -172,6 +177,11 @@ async function getNewEntries(
     : [...changelogEntries]
 }
 
+/**
+ * Returns the current changelog with new entries added.
+ * Ensures that the new entry will appear at the beginning
+ * of the object when printed.
+ */
 function makeNewChangelog(
   nextVersion: string,
   currentChangelogEntries: any,
