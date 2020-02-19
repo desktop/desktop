@@ -8,9 +8,10 @@ import { Repository } from '../../models/repository'
 import { IPullProgress } from '../../models/progress'
 import { IGitAccount } from '../../models/git-account'
 import { PullProgressParser, executionOptionsWithProgress } from '../progress'
-import { envForAuthentication, AuthenticationErrors } from './authentication'
+import { AuthenticationErrors } from './authentication'
 import { enableRecurseSubmodulesFlag } from '../feature-flag'
 import { IRemote } from '../../models/remote'
+import { envForRemoteOperation } from './environment'
 
 async function getPullArgs(
   repository: Repository,
@@ -55,7 +56,7 @@ export async function pull(
   progressCallback?: (progress: IPullProgress) => void
 ): Promise<void> {
   let opts: IGitExecutionOptions = {
-    env: envForAuthentication(account),
+    env: envForRemoteOperation(account, remote.url),
     expectedErrors: AuthenticationErrors,
   }
 
