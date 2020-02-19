@@ -3706,7 +3706,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
           await gitStore.performFailableOperation(
             () =>
-              pullRepo(repository, account, remote.name, progress => {
+              pullRepo(repository, account, remote, progress => {
                 this.updatePushPullFetchProgress(repository, {
                   ...progress,
                   value: progress.value * pullWeight,

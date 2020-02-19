@@ -13,9 +13,10 @@ import {
 } from '../../../helpers/repository-scaffolding'
 import { getTipOrError, getRefOrError } from '../../../helpers/git'
 import { setupLocalConfig } from '../../../helpers/local-config'
+import { IRemote } from '../../../../src/models/remote'
 
 const featureBranch = 'this-is-a-feature'
-const origin = 'origin'
+const origin: IRemote = { name: 'origin', url: 'file://' }
 const remoteBranch = `${origin}/${featureBranch}`
 
 describe('git/pull', () => {

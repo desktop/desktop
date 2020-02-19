@@ -10,6 +10,7 @@ import { IGitAccount } from '../../models/git-account'
 import { PullProgressParser, executionOptionsWithProgress } from '../progress'
 import { envForAuthentication, AuthenticationErrors } from './authentication'
 import { enableRecurseSubmodulesFlag } from '../feature-flag'
+import { IRemote } from '../../models/remote'
 
 async function getPullArgs(
   repository: Repository,
@@ -50,7 +51,7 @@ async function getPullArgs(
 export async function pull(
   repository: Repository,
   account: IGitAccount | null,
-  remote: string,
+  remote: IRemote,
   progressCallback?: (progress: IPullProgress) => void
 ): Promise<void> {
   let opts: IGitExecutionOptions = {
@@ -81,15 +82,26 @@ export async function pull(
 
         const value = progress.percent
 
-        progressCallback({ kind, title, description, value, remote })
+        progressCallback({
+          kind,
+          title,
+          description,
+          value,
+          remote: remote.name,
+        })
       }
     )
 
     // Initial progress
-    progressCallback({ kind, title, value: 0, remote })
+    progressCallback({ kind, title, value: 0, remote: remote.name })
   }
 
-  const args = await getPullArgs(repository, remote, account, progressCallback)
+  const args = await getPullArgs(
+    repository,
+    remote.name,
+    account,
+    progressCallback
+  )
   const result = await git(args, repository.path, 'pull', opts)
 
   if (result.gitErrorDescription) {
