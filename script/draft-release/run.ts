@@ -111,7 +111,7 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   const noChangesFound = lines.every(l => l.trim().length === 0)
 
   if (noChangesFound) {
-    console.warn('No new changes found to add to the changelog.')
+    console.warn('No new changes found to add to the changelog. Aborting.')
     // print instructions with no changelog included
     printInstructions(nextVersion, [])
     return
@@ -133,13 +133,17 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   }
 
   const currentChangelog = require(changelogPath)
-  const newEntries = await getNewEntries(previousVersion, channel, lines)
+  const newEntries = await makeNewChangelogEntries(
+    previousVersion,
+    channel,
+    lines
+  )
 
   if (currentChangelog.releases[nextVersion] === undefined) {
     console.log('Adding draft release notes to changelog.json...')
     const changelog = makeNewChangelog(
       nextVersion,
-      currentChangelog.releases,
+      currentChangelog,
       newEntries
     )
     try {
@@ -166,7 +170,14 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   console.log("Here's what you should do next:\n")
 }
 
-async function getNewEntries(
+/**
+ * Formats git log lines into our changelog format,
+ *
+ * @param previousVersion last version released
+ * @param channel the release channel ('production' or something else)
+ * @param lines git log entries (from `getLogLines`)
+ */
+async function makeNewChangelogEntries(
   previousVersion: string,
   channel: string,
   lines: ReadonlyArray<string>
@@ -184,10 +195,12 @@ async function getNewEntries(
  */
 function makeNewChangelog(
   nextVersion: string,
-  currentChangelogEntries: any,
+  currentChangelog: { releases: Object },
   entries: ReadonlyArray<string>
 ) {
   const newChangelogEntries: any = {}
   newChangelogEntries[nextVersion] = entries
-  return { releases: { ...newChangelogEntries, ...currentChangelogEntries } }
+  return {
+    releases: { ...newChangelogEntries, ...currentChangelog.releases },
+  }
 }
