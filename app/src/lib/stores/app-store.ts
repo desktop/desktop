@@ -5624,19 +5624,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     value: number,
     description?: string
   ) => {
-    this.setCreateTutorialRepositoryProps({
-      progress: { kind: 'generic', title, value, description },
-    })
-  }
-
-  private setCreateTutorialRepositoryProps(
-    state: Partial<ICreateTutorialRepositoryPopupProps>
-  ) {
     if (
       this.currentPopup !== null &&
       this.currentPopup.type === PopupType.CreateTutorialRepository
     ) {
-      this.currentPopup = { ...this.currentPopup, ...state }
+      this.currentPopup = {
+        ...this.currentPopup,
+        progress: { kind: 'generic', title, value, description },
+      }
       this.emitUpdate()
     }
   }
