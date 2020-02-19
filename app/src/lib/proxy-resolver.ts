@@ -39,7 +39,7 @@ export class ProxyResolver {
       if (!proxy.startsWith('https://')) {
         return proxy
       } else {
-        log.info('ignoring https proxy, not supported in cURL/schannel')
+        log.warn('ignoring https proxy, not supported in cURL/schannel')
       }
     }
 
