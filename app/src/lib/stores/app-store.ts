@@ -1,3 +1,4 @@
+import * as Path from 'path'
 import { ipcRenderer, remote } from 'electron'
 import { pathExists } from 'fs-extra'
 import { escape } from 'querystring'
@@ -152,6 +153,7 @@ import {
   RebaseResult,
   getRebaseSnapshot,
   IStatusResult,
+  GitError,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -265,6 +267,9 @@ import {
   findAssociatedPullRequest,
   isPullRequestAssociatedWithBranch,
 } from '../helpers/pull-request-matching'
+import { createTutorialRepository } from './helpers/create-tutorial-repository'
+import { sendNonFatalException } from '../helpers/non-fatal-exception'
+import { getDefaultDir } from '../../ui/lib/default-dir'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -5578,6 +5583,58 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
     return repository
+  }
+
+  /**
+   * Create a tutorial repository using the given account. The account
+   * determines which host (i.e. GitHub.com or a GHES instance) that
+   * the tutorial repository should be created on.
+   *
+   * @param account The account (and thereby the GitHub host) under
+   *                which the repository is to be created created
+   */
+  public async _createTutorialRepository(account: Account) {
+    try {
+      await this.statsStore.recordTutorialStarted()
+
+      const name = 'desktop-tutorial'
+      const path = Path.resolve(getDefaultDir(), name)
+
+      const apiRepository = await createTutorialRepository(
+        account,
+        name,
+        path,
+        (title, value, description) => {
+          if (
+            this.currentPopup !== null &&
+            this.currentPopup.type === PopupType.CreateTutorialRepository
+          ) {
+            this.currentPopup = {
+              ...this.currentPopup,
+              progress: { kind: 'generic', title, value, description },
+            }
+            this.emitUpdate()
+          }
+        }
+      )
+
+      await this._addTutorialRepository(path, account.endpoint, apiRepository)
+      await this.statsStore.recordTutorialRepoCreated()
+    } catch (err) {
+      sendNonFatalException('tutorialRepoCreation', err)
+
+      if (err instanceof GitError) {
+        this.emitError(err)
+      } else {
+        this.emitError(
+          new Error(
+            `Failed creating the tutorial repository.\n\n${err.message}`
+          )
+        )
+      }
+    } finally {
+      this._closePopup(PopupType.CreateTutorialRepository)
+    }
   }
 }
 
