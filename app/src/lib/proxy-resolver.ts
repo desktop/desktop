@@ -37,4 +37,35 @@ export class ProxyResolver {
     // "The Schannel backend doesn't support HTTPS proxy"
     return proxies.find(x => !x.startsWith('https://'))
   }
+
+  public async getGitEnvironmentVariables(
+    url: string
+  ): Promise<NodeJS.ProcessEnv | undefined> {
+    if (!enableAutomaticGitProxyConfiguration()) {
+      return undefined
+    }
+
+    const m = /^(https?):\/\//i.exec(url)
+
+    if (!m) {
+      return
+    }
+
+    const proto = m[1].toUpperCase() // HTTP or HTTPS
+    const protoEnvKey = `${proto}_PROXY` // HTTP_PROXY or HTTPS_PROXY
+
+    if ('ALL_PROXY' in process.env || 'all_proxy' in process.env) {
+      return
+    }
+
+    if (
+      protoEnvKey in process.env ||
+      protoEnvKey.toLowerCase() in process.env
+    ) {
+      return
+    }
+
+    const proxyUrl = await this.resolve(url)
+    return proxyUrl === undefined ? undefined : { [protoEnvKey]: proxyUrl }
+  }
 }
