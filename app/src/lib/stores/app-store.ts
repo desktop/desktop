@@ -3496,6 +3496,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
         }
 
         const safeRemote: IRemote = { name: remoteName, url: remote.url }
+
+        if (safeRemote.name !== remote.name) {
+          sendNonFatalException(
+            'remoteNameMismatch',
+            new Error('The current remote name differs from the branch remote')
+          )
+        }
+
         const gitStore = this.gitStoreCache.get(repository)
         await gitStore.performFailableOperation(
           async () => {
