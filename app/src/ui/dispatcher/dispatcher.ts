@@ -1465,51 +1465,53 @@ export class Dispatcher {
           pr && upstreams.length > 0
             ? await this.appStore.fetchPullRequest(upstreams[0], pr)
             : null
+        const branch = pullRequest && pullRequest.head.ref
 
-        let repository, fork
         if (forks.length > 0 && upstreams.length === 0) {
-          fork = forks[0]
+          // if there are only forks and no upstreams
+          // open first fork
+          const fork = forks[0]
           await this.selectRepository(fork)
+          await this.handleCloneInDesktopOptions(fork, {
+            branch,
+          } as IOpenRepositoryFromURLAction)
         } else if (forks.length > 0 && upstreams.length > 0) {
+          // if there are forks AND upstreams, open the one corresponding to the PR source
           const sourceUrl =
             pullRequest &&
             pullRequest.head.repo &&
             pullRequest.head.repo.html_url
           const forkMatch = forks.find(fork => {
-            if (fork.gitHubRepository) {
-              return Boolean(
+            return Boolean(
+              fork.gitHubRepository &&
                 fork.gitHubRepository.htmlURL &&
-                  sourceUrl &&
-                  urlsMatch(fork.gitHubRepository.htmlURL, sourceUrl)
-              )
-            } else {
-              return false
-            }
+                sourceUrl &&
+                urlsMatch(fork.gitHubRepository.htmlURL, sourceUrl)
+            )
           })
           if (sourceUrl && forkMatch) {
-            fork = forkMatch
-            await this.selectRepository(fork)
+            await this.selectRepository(forkMatch)
+            await this.handleCloneInDesktopOptions(forkMatch, {
+              branch,
+            } as IOpenRepositoryFromURLAction)
           } else {
-            repository = upstreams[0]
-            await this.selectRepository(repository)
+            // if there is no fork with a matching source, open the first upstream
+            // (this is the current behavior)
+            const upstream = upstreams[0]
+            await this.selectRepository(upstream)
+            await this.handleCloneInDesktopOptions(upstream, action)
           }
         } else {
-          repository = await this.openOrCloneRepository(url)
-        }
-
-        if (repository) {
-          await this.handleCloneInDesktopOptions(repository, action)
-        } else if (fork) {
-          const branch = pullRequest && pullRequest.head.ref
-          await this.handleCloneInDesktopOptions(fork, {
-            branch,
-          } as IOpenRepositoryFromURLAction)
-        } else {
-          log.warn(
-            `Open Repository from URL failed, did not find or clone repository: ${url} - payload: ${JSON.stringify(
-              action
-            )}`
-          )
+          const repository = await this.openOrCloneRepository(url)
+          if (repository) {
+            await this.handleCloneInDesktopOptions(repository, action)
+          } else {
+            log.warn(
+              `Open Repository from URL failed, did not find or clone repository: ${url} - payload: ${JSON.stringify(
+                action
+              )}`
+            )
+          }
         }
         break
 
@@ -1602,6 +1604,7 @@ export class Dispatcher {
       // we need to refetch for a forked PR and check that out
       await this.fetchRefspec(repository, `pull/${pr}/head:${branch}`)
     }
+    debugger
 
     // ensure a fresh clone repository has it's in-memory state
     // up-to-date before performing the "Clone in Desktop" steps
@@ -1642,6 +1645,7 @@ export class Dispatcher {
       // was moved up to this method to not alter the current behavior.
       //
       // https://youtu.be/IjmtVKOAHPM
+      debugger
       if (shouldCheckoutBranch && localBranch !== undefined) {
         await this.checkoutBranch(repository, localBranch)
       }
