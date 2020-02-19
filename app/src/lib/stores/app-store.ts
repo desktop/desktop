@@ -5593,7 +5593,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
         account,
         name,
         path,
-        this.setCreateTutorialProgress
+        (title, value, description) => {
+          if (
+            this.currentPopup !== null &&
+            this.currentPopup.type === PopupType.CreateTutorialRepository
+          ) {
+            this.currentPopup = {
+              ...this.currentPopup,
+              progress: { kind: 'generic', title, value, description },
+            }
+            this.emitUpdate()
+          }
+        }
       )
 
       await this._addTutorialRepository(path, account.endpoint, apiRepository)
@@ -5612,23 +5623,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     } finally {
       this._closePopup(PopupType.CreateTutorialRepository)
-    }
-  }
-
-  private setCreateTutorialProgress = (
-    title: string,
-    value: number,
-    description?: string
-  ) => {
-    if (
-      this.currentPopup !== null &&
-      this.currentPopup.type === PopupType.CreateTutorialRepository
-    ) {
-      this.currentPopup = {
-        ...this.currentPopup,
-        progress: { kind: 'generic', title, value, description },
-      }
-      this.emitUpdate()
     }
   }
 }
