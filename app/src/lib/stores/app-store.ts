@@ -5634,7 +5634,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     state: Partial<ICreateTutorialRepositoryPopupProps>
   ) {
     if (
-      this.currentPopup &&
+      this.currentPopup !== null &&
       this.currentPopup.type === PopupType.CreateTutorialRepository
     ) {
       this.currentPopup = { ...this.currentPopup, ...state }
