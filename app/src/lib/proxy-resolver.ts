@@ -45,6 +45,10 @@ export class ProxyResolver {
       return undefined
     }
 
+    if ('ALL_PROXY' in process.env || 'all_proxy' in process.env) {
+      return
+    }
+
     const protocolMatch = /^(https?):\/\//i.exec(url)
 
     // We can only resolve and use a proxy for the protocols where cURL
@@ -58,10 +62,6 @@ export class ProxyResolver {
     // proxy protocol is defined by the url returned by `this.resolve()`
     const proto = protocolMatch[1].toUpperCase() // HTTP or HTTPS
     const protoEnvKey = `${proto}_PROXY` // HTTP_PROXY or HTTPS_PROXY
-
-    if ('ALL_PROXY' in process.env || 'all_proxy' in process.env) {
-      return
-    }
 
     if (
       protoEnvKey in process.env ||
