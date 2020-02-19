@@ -5,6 +5,7 @@ import { IFetchProgress } from '../../models/progress'
 import { FetchProgressParser, executionOptionsWithProgress } from '../progress'
 import { envForAuthentication } from './authentication'
 import { enableRecurseSubmodulesFlag } from '../feature-flag'
+import { IRemote } from '../../models/remote'
 
 async function getFetchArgs(
   repository: Repository,
@@ -56,7 +57,7 @@ async function getFetchArgs(
 export async function fetch(
   repository: Repository,
   account: IGitAccount | null,
-  remote: string,
+  remote: IRemote,
   progressCallback?: (progress: IFetchProgress) => void
 ): Promise<void> {
   let opts: IGitExecutionOptions = {
@@ -65,7 +66,7 @@ export async function fetch(
   }
 
   if (progressCallback) {
-    const title = `Fetching ${remote}`
+    const title = `Fetching ${remote.name}`
     const kind = 'fetch'
 
     opts = await executionOptionsWithProgress(
@@ -86,15 +87,26 @@ export async function fetch(
           progress.kind === 'progress' ? progress.details.text : progress.text
         const value = progress.percent
 
-        progressCallback({ kind, title, description, value, remote })
+        progressCallback({
+          kind,
+          title,
+          description,
+          value,
+          remote: remote.name,
+        })
       }
     )
 
     // Initial progress
-    progressCallback({ kind, title, value: 0, remote })
+    progressCallback({ kind, title, value: 0, remote: remote.name })
   }
 
-  const args = await getFetchArgs(repository, remote, account, progressCallback)
+  const args = await getFetchArgs(
+    repository,
+    remote.name,
+    account,
+    progressCallback
+  )
   await git(args, repository.path, 'fetch', opts)
 }
 
