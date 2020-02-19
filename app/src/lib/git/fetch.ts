@@ -6,6 +6,7 @@ import { FetchProgressParser, executionOptionsWithProgress } from '../progress'
 import { envForAuthentication } from './authentication'
 import { enableRecurseSubmodulesFlag } from '../feature-flag'
 import { IRemote } from '../../models/remote'
+import { envForRemoteOperation } from './environment'
 
 async function getFetchArgs(
   repository: Repository,
@@ -62,7 +63,7 @@ export async function fetch(
 ): Promise<void> {
   let opts: IGitExecutionOptions = {
     successExitCodes: new Set([0]),
-    env: envForAuthentication(account),
+    env: envForRemoteOperation(account, remote.url),
   }
 
   if (progressCallback) {
