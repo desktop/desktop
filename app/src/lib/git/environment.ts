@@ -118,6 +118,10 @@ async function envForProxy(
     return
   }
 
-  const proxyUrl = await resolveGitProxy(remoteUrl)
+  const proxyUrl = await resolveGitProxy(remoteUrl).catch(err => {
+    log.error('Failed resolving Git proxy', err)
+    return undefined
+  })
+
   return proxyUrl === undefined ? undefined : { [protoEnvKey]: proxyUrl }
 }
