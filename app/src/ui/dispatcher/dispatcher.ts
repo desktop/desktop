@@ -2,7 +2,12 @@ import { remote } from 'electron'
 import { Disposable, IDisposable } from 'event-kit'
 import * as Path from 'path'
 
-import { IAPIOrganization, IAPIRefStatus, IAPIRepository } from '../../lib/api'
+import {
+  IAPIOrganization,
+  IAPIRefStatus,
+  IAPIRepository,
+  IAPIPullRequest,
+} from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
   CompareAction,
@@ -1415,6 +1420,25 @@ export class Dispatcher {
       })
     )
     return { forks, upstreams }
+  }
+
+  private async fetchPullRequestForRepos(
+    pr: string,
+    repositories: ReadonlyArray<Repository>
+  ): Promise<IAPIPullRequest | null> {
+    if (!pr) {
+      return null
+    }
+    for (let i = 0; i < repositories.length; i++) {
+      const pullRequest = await this.appStore.fetchPullRequest(
+        repositories[i],
+        pr
+      )
+      if (pullRequest) {
+        return pullRequest
+      }
+    }
+    return null
   }
 
   private async openRepositoryFromUrl(action: IOpenRepositoryFromURLAction) {
