@@ -45,13 +45,13 @@ export class ProxyResolver {
       return undefined
     }
 
-    const m = /^(https?):\/\//i.exec(url)
+    const protocolMatch = /^(https?):\/\//i.exec(url)
 
-    if (!m) {
+    if (protocolMatch === null) {
       return
     }
 
-    const proto = m[1].toUpperCase() // HTTP or HTTPS
+    const proto = protocolMatch[1].toUpperCase() // HTTP or HTTPS
     const protoEnvKey = `${proto}_PROXY` // HTTP_PROXY or HTTPS_PROXY
 
     if ('ALL_PROXY' in process.env || 'all_proxy' in process.env) {
