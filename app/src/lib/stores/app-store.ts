@@ -3495,13 +3495,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
           repository,
         }
 
+        const safeRemote: IRemote = { name: remoteName, url: remote.url }
         const gitStore = this.gitStoreCache.get(repository)
         await gitStore.performFailableOperation(
           async () => {
             await pushRepo(
               repository,
               account,
-              remoteName,
+              remote,
               branch.name,
               branch.upstreamWithoutRemote,
               options,

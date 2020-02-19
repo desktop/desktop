@@ -11,6 +11,7 @@ import { IPushProgress } from '../../models/progress'
 import { IGitAccount } from '../../models/git-account'
 import { PushProgressParser, executionOptionsWithProgress } from '../progress'
 import { envForAuthentication, AuthenticationErrors } from './authentication'
+import { IRemote } from '../../models/remote'
 
 export type PushOptions = {
   readonly forceWithLease: boolean
@@ -41,7 +42,7 @@ export type PushOptions = {
 export async function push(
   repository: Repository,
   account: IGitAccount | null,
-  remote: string,
+  remote: IRemote,
   localBranch: string,
   remoteBranch: string | null,
   options?: PushOptions,
@@ -52,7 +53,7 @@ export async function push(
   const args = [
     ...networkArguments,
     'push',
-    remote,
+    remote.name,
     remoteBranch ? `${localBranch}:${remoteBranch}` : localBranch,
   ]
 
@@ -88,7 +89,7 @@ export async function push(
           title,
           description,
           value,
-          remote,
+          remote: remote.name,
           branch: localBranch,
         })
       }
@@ -99,7 +100,7 @@ export async function push(
       kind: 'push',
       title,
       value: 0,
-      remote,
+      remote: remote.name,
       branch: localBranch,
     })
   }
