@@ -107,12 +107,12 @@ async function envForProxy(
 
   // Lower case environment variables due to
   // https://ec.haxx.se/usingcurl/usingcurl-proxies#http_proxy-in-lower-case-only
-  const protoEnvKey = `${proto}_proxy` // http_proxy or https_proxy
+  const envKey = `${proto}_proxy` // http_proxy or https_proxy
 
   // If the user has already configured a proxy in the environment
   // for the protocol we're not gonna override it.
-  if (protoEnvKey in env || (proto === 'https' && 'HTTPS_PROXY' in env)) {
-    log.info(`proxy url not resolved, ${protoEnvKey} already set`)
+  if (envKey in env || (proto === 'https' && 'HTTPS_PROXY' in env)) {
+    log.info(`proxy url not resolved, ${envKey} already set`)
     return
   }
 
@@ -121,5 +121,5 @@ async function envForProxy(
     return undefined
   })
 
-  return proxyUrl === undefined ? undefined : { [protoEnvKey]: proxyUrl }
+  return proxyUrl === undefined ? undefined : { [envKey]: proxyUrl }
 }
