@@ -1,4 +1,5 @@
 import { assertNever } from '../lib/fatal-error'
+import { MenuIDs } from './menu-ids'
 
 /** A type union of all possible types of menu items */
 export type MenuItem =
@@ -16,7 +17,7 @@ export type ExecutableMenuItem = IMenuItem | ICheckboxMenuItem | IRadioMenuItem
  * Only useful for declaring the types, not for consumption
  */
 interface IBaseMenuItem {
-  readonly id: string
+  readonly id: MenuIDs
   readonly enabled: boolean
   readonly visible: boolean
   readonly label: string
@@ -189,7 +190,7 @@ function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
   // Our menu items always have ids and Electron.MenuItem takes on whatever
   // properties was defined on the MenuItemOptions template used to create it
   // but doesn't surface those in the type declaration.
-  const id: string | undefined = (menuItem as any).id
+  const id: MenuIDs | undefined = (menuItem as any).id
   if (!id) {
     throw new Error(`menuItem must specify id: ${menuItem.label}`)
   }
