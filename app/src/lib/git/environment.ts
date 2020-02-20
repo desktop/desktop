@@ -72,9 +72,20 @@ export async function envForRemoteOperation(
   }
 }
 
-async function envForProxy(
+/**
+ * Not intended to be used directly. Exported only in order to
+ * allow for testing.
+ *
+ * @param remoteUrl The remote url to resolve a proxy for.
+ * @param env       The current environment variables, defaults
+ *                  to `process.env`
+ * @param resolve   The method to use when resolving the proxy url,
+ *                  defaults to `resolveGitProxy`
+ */
+export async function envForProxy(
   remoteUrl: string,
-  env: NodeJS.ProcessEnv = process.env
+  env: NodeJS.ProcessEnv = process.env,
+  resolve: (url: string) => Promise<string | undefined> = resolveGitProxy
 ): Promise<NodeJS.ProcessEnv | undefined> {
   if (!enableAutomaticGitProxyConfiguration()) {
     return undefined
@@ -116,7 +127,7 @@ async function envForProxy(
     return
   }
 
-  const proxyUrl = await resolveGitProxy(remoteUrl).catch(err => {
+  const proxyUrl = await resolve(remoteUrl).catch(err => {
     log.error('Failed resolving Git proxy', err)
     return undefined
   })
