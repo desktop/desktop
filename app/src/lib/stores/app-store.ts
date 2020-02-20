@@ -3357,13 +3357,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
       : null
   }
 
-  public async getUpstreamRemote(repository: Repository) {
+  public async getDefaultAndUpstreamRemotes(repository: Repository) {
     const gitStore = this.gitStoreCache.get(repository)
-    if (!gitStore.upstreamRemote) {
+    if (!gitStore.defaultRemote || !gitStore.upstreamRemote) {
       await gitStore.loadRemotes()
     }
 
-    return gitStore.upstreamRemote
+    return {
+      default: gitStore.defaultRemote,
+      upstream: gitStore.upstreamRemote,
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
