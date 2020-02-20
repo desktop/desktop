@@ -68,7 +68,7 @@ export async function push(
   expectedErrors.add(DugiteError.ProtectedBranchForcePush)
 
   let opts: IGitExecutionOptions = {
-    env: envForRemoteOperation(account, remote.url),
+    env: await envForRemoteOperation(account, remote.url),
     expectedErrors,
   }
 

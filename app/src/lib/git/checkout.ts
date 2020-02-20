@@ -67,7 +67,7 @@ export async function checkoutBranch(
   progressCallback?: ProgressCallback
 ): Promise<true> {
   let opts: IGitExecutionOptions = {
-    env: envForRemoteOperation(
+    env: await envForRemoteOperation(
       account,
       getFallbackUrlForProxyResolve(account, repository)
     ),

@@ -32,7 +32,7 @@ export async function clone(
 ): Promise<void> {
   const networkArguments = await gitNetworkArguments(null, options.account)
 
-  const env = envForRemoteOperation(options.account, url)
+  const env = await envForRemoteOperation(options.account, url)
 
   const args = [...networkArguments, 'clone', '--recursive']
 

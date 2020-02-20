@@ -56,7 +56,7 @@ export async function pull(
   progressCallback?: (progress: IPullProgress) => void
 ): Promise<void> {
   let opts: IGitExecutionOptions = {
-    env: envForRemoteOperation(account, remote.url),
+    env: await envForRemoteOperation(account, remote.url),
     expectedErrors: AuthenticationErrors,
   }
 

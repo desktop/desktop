@@ -37,7 +37,7 @@ export async function revertCommit(
 
   let opts: IGitExecutionOptions = {}
   if (progressCallback) {
-    const env = envForRemoteOperation(
+    const env = await envForRemoteOperation(
       account,
       getFallbackUrlForProxyResolve(account, repository)
     )

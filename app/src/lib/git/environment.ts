@@ -60,7 +60,7 @@ export function getFallbackUrlForProxyResolve(
  *                  pointing to another host entirely. Used to resolve which
  *                  proxy (if any) should be used for the operation.
  */
-export function envForRemoteOperation(
+export async function envForRemoteOperation(
   account: IGitAccount | null,
   remoteUrl: string
 ) {
