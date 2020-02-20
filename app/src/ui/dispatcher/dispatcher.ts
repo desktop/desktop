@@ -1432,9 +1432,51 @@ export class Dispatcher {
      * Otherwise (only upstream or neither), do default
      */
 
+    /**
+     * Open PR in Desktop Scenarios
+     * 
+     * Possible remotes: 
+     * upstream, my-fork, not-my-fork
+     *
+     * Possibe PR source -> target scenarios:
+     * upstream -> upstream : if both repos in Desktop, open upstream
+     * upstream -> upstream : if only fork in Desktop, open fork
+     * my-fork -> my-fork : open my-fork
+     * my-fork -> upstream : open my-fork / fallback to open upstream, cloning if needed
+     * not-my-fork -> upstream : open my-fork / fallback to open upstream, cloning if needed
+     * upstream -> fork : open upstream
+     * 
+     * Logic:
+     * Check source.
+     * If source is in Desktop, open it
+     * If source is not in Desktop, but fork is, open fork
+     * If source and target are fork that is not in Desktop, clone and open fork
+     * Fallback to opening upstream, cloning if needed (current behavior)
+     * 
+     * 
+     *
+     * If you only have your fork in Desktop and upstream is the PR source, open it in your fork. 
+     * If you only have your fork in Desktop and someone else's fork is the PR source, open it in your fork. 
+     * If you have both repos (upstream and your fork) in Desktop, open the PR in the right one (based on the source of the PR).
+     */
+
+    const { url, pr } = action
+    const pullRequest = pr
+      ? await this.appStore.fetchPullRequest(url, pr)
+      : null
+    const sourceUrl =
+      pullRequest && pullRequest.head.repo && pullRequest.head.repo.html_url
+
+
+
+    /** */
+
     const { url, pr } = action
     const forks = await this.getForkRepos(url)
 
+
+
+    debugger
 
     // open fork corresponding to PR source
     if (forks.length > 0) {
@@ -1453,14 +1495,15 @@ export class Dispatcher {
             urlsMatch(fork.gitHubRepository.htmlURL, sourceUrl)
         )
       })
-      if (sourceUrl && forkMatch) {
-        const branch = pullRequest && pullRequest.head.ref
-        await this.selectRepository(forkMatch)
-        if (branch) {
-          await this.checkoutLocalBranch(forkMatch, branch)
-        }
-        return
+
+      const forkToOpen = forkMatch || forks[0]
+
+      await this.selectRepository(forkToOpen)
+      const branch = pullRequest && pullRequest.head.ref
+      if (branch) {
+        await this.checkoutLocalBranch(forkToOpen, branch)
       }
+      return
     }
 
     const repository = await this.openOrCloneRepository(url)
