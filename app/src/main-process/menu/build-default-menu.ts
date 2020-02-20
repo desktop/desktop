@@ -323,6 +323,15 @@ export function buildDefaultMenu({
       },
       separator,
       {
+        id: 'create-issue-in-repository-on-github',
+        label: __DARWIN__
+          ? 'Create Issue on GitHub'
+          : 'Create &Issue on GitHub',
+        accelerator: 'CmdOrCtrl+Shift+I',
+        click: emit('create-issue-in-repository-on-github'),
+      },
+      separator,
+      {
         label: __DARWIN__ ? 'Repository Settings…' : 'Repository &settings…',
         id: 'show-repository-settings',
         click: emit('show-repository-settings'),

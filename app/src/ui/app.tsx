@@ -352,6 +352,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.viewRepositoryOnGitHub()
       case 'compare-on-github':
         return this.compareBranchOnDotcom()
+      case 'create-issue-in-repository-on-github':
+        return this.createIssueInRepositoryOnGitHub()
       case 'open-in-shell':
         return this.openCurrentRepositoryInShell()
       case 'clone-repository':
@@ -1098,6 +1100,20 @@ export class App extends React.Component<IAppProps, IAppState> {
       type: PopupType.RepositorySettings,
       repository,
     })
+  }
+
+  /**
+   * Opens a browser to the issue creation page
+   * of the current GitHub repository.
+   */
+  private createIssueInRepositoryOnGitHub() {
+    const url = this.getCurrentRepositoryGitHubURL()
+
+    if (url) {
+      // TODO: use 'issues/new/choose' for repos with issue templates
+      this.props.dispatcher.openInBrowser(`${url}/issues/new`)
+      return
+    }
   }
 
   private viewRepositoryOnGitHub() {
