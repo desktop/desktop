@@ -1650,8 +1650,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const api = API.fromAccount(account)
-    const { owner, name } = parseRemote(repoUrl)
-    return await api.fetchPullRequest(owner, name, pr)
+    const remoteUrl = parseRemote(repoUrl)
+    if (remoteUrl && remoteUrl.owner && remoteUrl.name) {
+      return await api.fetchPullRequest(remoteUrl.owner, remoteUrl.name, pr)
+    }
+    return null
   }
 
   private shouldBackgroundFetch(
