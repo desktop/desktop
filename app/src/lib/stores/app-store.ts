@@ -1650,14 +1650,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async fetchPullRequest(repoUrl: string, pr: string) {
     const endpoint = getEndpointForRepository(repoUrl)
     const account = getAccountForEndpoint(this.accounts, endpoint)
-    if (!account) {
-      return null
-    }
 
-    const api = API.fromAccount(account)
-    const remoteUrl = parseRemote(repoUrl)
-    if (remoteUrl && remoteUrl.owner && remoteUrl.name) {
-      return await api.fetchPullRequest(remoteUrl.owner, remoteUrl.name, pr)
+    if (account) {
+      const api = API.fromAccount(account)
+      const remoteUrl = parseRemote(repoUrl)
+      if (remoteUrl && remoteUrl.owner && remoteUrl.name) {
+        return await api.fetchPullRequest(remoteUrl.owner, remoteUrl.name, pr)
+      }
     }
     return null
   }
