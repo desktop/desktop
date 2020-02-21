@@ -1227,8 +1227,13 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  /**
+  /*
    * Onboarding tutorial metrics
+   */
+
+  /**
+   * Onboarding tutorial has been started, the user has
+   * clicked the button to start the onboarding tutorial.
    */
   public recordTutorialStarted() {
     return this.updateDailyMeasures(() => ({
@@ -1236,6 +1241,9 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  /**
+   * Onboarding tutorial has been successfully created
+   */
   public recordTutorialRepoCreated() {
     return this.updateDailyMeasures(() => ({
       tutorialRepoCreated: true,
