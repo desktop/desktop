@@ -61,7 +61,7 @@ export async function pull(
   }
 
   if (progressCallback) {
-    const title = `Pulling ${remote}`
+    const title = `Pulling ${remote.name}`
     const kind = 'pull'
 
     opts = await executionOptionsWithProgress(
