@@ -2,12 +2,7 @@ import { remote } from 'electron'
 import { Disposable, IDisposable } from 'event-kit'
 import * as Path from 'path'
 
-import {
-  IAPIOrganization,
-  IAPIRefStatus,
-  IAPIRepository,
-  IAPIPullRequest,
-} from '../../lib/api'
+import { IAPIOrganization, IAPIRefStatus, IAPIRepository } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
   CompareAction,
