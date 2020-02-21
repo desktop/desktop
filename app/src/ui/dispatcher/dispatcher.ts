@@ -1487,45 +1487,53 @@ export class Dispatcher {
     const sourceUrl =
       pullRequest && pullRequest.head.repo && pullRequest.head.repo.html_url
 
+    const { forks, upstreams } = await this.getForkAndUpstreamRepos(url)
 
+    // If source is in Desktop as a fork, open fork and checkout PR branch
+    const forkMatch = forks.find(fork => {
+      return Boolean(
+        fork.gitHubRepository &&
+          fork.gitHubRepository.htmlURL &&
+          sourceUrl &&
+          urlsMatch(fork.gitHubRepository.htmlURL, sourceUrl)
+      )
+    })
 
-    /** */
-
-    const { url, pr } = action
-    const forks = await this.getForkRepos(url)
-
-
-
-    debugger
-
-    // open fork corresponding to PR source
-    if (forks.length > 0) {
-      const pullRequest = pr
-        ? await this.appStore.fetchPullRequest(url, pr)
-        : null
-
-      const sourceUrl =
-        pullRequest && pullRequest.head.repo && pullRequest.head.repo.html_url
-
-      const forkMatch = forks.find(fork => {
-        return Boolean(
-          fork.gitHubRepository &&
-            fork.gitHubRepository.htmlURL &&
-            sourceUrl &&
-            urlsMatch(fork.gitHubRepository.htmlURL, sourceUrl)
-        )
-      })
-
-      const forkToOpen = forkMatch || forks[0]
-
-      await this.selectRepository(forkToOpen)
+    if (forkMatch) {
+      await this.selectRepository(forkMatch)
       const branch = pullRequest && pullRequest.head.ref
       if (branch) {
-        await this.checkoutLocalBranch(forkToOpen, branch)
+        await this.checkoutLocalBranch(forkMatch, branch)
       }
       return
     }
 
+    // If source is in Desktop as an upstream, open upstream and checkout PR branch
+    const upstreamMatch = upstreams.find(upstream => {
+      return Boolean(
+        upstream.gitHubRepository &&
+          upstream.gitHubRepository.htmlURL &&
+          sourceUrl &&
+          urlsMatch(upstream.gitHubRepository.htmlURL, sourceUrl)
+      )
+    })
+
+    if (upstreamMatch) {
+      await this.selectRepository(upstreamMatch)
+      await this.handleCloneInDesktopOptions(upstreamMatch, action)
+      return
+    }
+
+    // If you only have your fork in Desktop and upstream is the PR source, open it in your fork.
+    // If you only have your fork in Desktop and someone else 's fork is the PR source, open it in your fork.
+    if (forks.length > 0 && upstreams.length === 0) {
+      const fork = forks[0]
+      await this.selectRepository(fork)
+      await this.handleCloneInDesktopOptions(fork, action) // double check that refspec fetch works correctly
+      return
+    }
+
+    // Otherwise back to default case
     const repository = await this.openOrCloneRepository(url)
     if (repository) {
       await this.handleCloneInDesktopOptions(repository, action)
