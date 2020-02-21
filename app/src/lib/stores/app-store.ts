@@ -266,6 +266,7 @@ import {
   findAssociatedPullRequest,
   isPullRequestAssociatedWithBranch,
 } from '../helpers/pull-request-matching'
+import { parseRemote } from '../../lib/remote-parsing'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
