@@ -1463,8 +1463,9 @@ export class Dispatcher {
       return
     }
 
-    // If you only have your fork in Desktop and upstream is the PR source, open it in your fork.
-    // If you only have your fork in Desktop and someone else 's fork is the PR source, open it in your fork.
+    // If you only have your fork in Desktop, open your fork.
+    // Checkout branch based on PR source -- `handleCloneInDesktopOptions`
+    // handles cases when source is upstream or someone else's fork
     if (forks.length > 0 && upstreams.length === 0) {
       const fork = forks[0]
       await this.selectRepository(fork)
