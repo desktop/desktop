@@ -1432,29 +1432,51 @@ export class Dispatcher {
 
     /**
      * Open PR in Desktop Scenarios
-     * 
-     * Possible remotes: 
+     *
+     * Possible remotes:
      * upstream, my-fork, not-my-fork
      *
      * Possibe PR source -> target scenarios:
      * upstream -> upstream : if both repos in Desktop, open upstream
      * upstream -> upstream : if only fork in Desktop, open fork
-     * my-fork -> my-fork : open my-fork
-     * my-fork -> upstream : open my-fork / fallback to open upstream, cloning if needed
+     * my-fork -> my-fork : open my-fork, cloning if needed
+     * my-fork -> upstream : open my-fork, cloning if needed
      * not-my-fork -> upstream : open my-fork / fallback to open upstream, cloning if needed
      * upstream -> fork : open upstream
-     * 
+     *
      * Logic:
      * Check source.
      * If source is in Desktop, open it
      * If source is not in Desktop, but fork is, open fork
      * If source and target are fork that is not in Desktop, clone and open fork
      * Fallback to opening upstream, cloning if needed (current behavior)
-     * 
-     * 
      *
-     * If you only have your fork in Desktop and upstream is the PR source, open it in your fork. 
-     * If you only have your fork in Desktop and someone else's fork is the PR source, open it in your fork. 
+     *
+     * If fork exists, open fork. otherwise do default (PR1)
+     * If both exist, open source repo (is that covered by ^?)
+     *
+     * If neither exists, then what do? (PR2)
+     *
+     *
+     *
+     * If source is in Desktop:
+     * If source is in Desktop as a fork, open fork and checkout fork branch
+     * If source is in Desktop as upstream, open upstream and checkout upstream branch
+     *
+     * If neither source nor target is in Desktop, clone and open source unless there is a sibling fork
+     *
+     * If source is not in Desktop:
+     * ... and it is an upstream but fork is in Desktop, open fork (and checkout upstream branch?)
+     * ... and it is an upstream with no fork in Desktop, clone and open upstream and checkout upstream branch
+     * ... and it is a fork with upstream in Desktop, open upstream and checkout fork's branch
+     * ... and if is a fork with no upstream (no forks or upstreams in Desktop), clone and open source???
+     * ... and if is a fork with no upstream but there is another fork in Desktop, open fork and checkout branch from source PR???
+     *
+     * If source is not in Desktop, try to clone the source
+     *
+     *
+     * If you only have your fork in Desktop and upstream is the PR source, open it in your fork.
+     * If you only have your fork in Desktop and someone else's fork is the PR source, open it in your fork.
      * If you have both repos (upstream and your fork) in Desktop, open the PR in the right one (based on the source of the PR).
      */
 
