@@ -791,8 +791,6 @@ export class API {
 
   /**
    * Fetch a single pull request in the given repository
-   *
-   * TODO: consider caching?
    */
   public async fetchPullRequest(owner: string, name: string, prNumber: string) {
     try {
