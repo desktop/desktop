@@ -663,7 +663,7 @@ export async function schannelUnableToCheckRevocationForCertificate(
     errorWithMetadata === null ? error : errorWithMetadata.underlyingError
 
   const gitError = asGitError(underlyingError)
-  if (!gitError || gitError.result.gitError === null) {
+  if (gitError === null) {
     return error
   }
 
