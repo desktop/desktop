@@ -627,6 +627,37 @@ export async function insufficientGitHubRepoPermissions(
   return null
 }
 
+const fatalSchannelRevocationErrorRe = /^fatal: unable to access '(.*?)': schannel: next InitializeSecurityContext failed: .*? \((0x80092012|0x80092013)\)/m
+
+export async function schannelUnableToCheckRevocationForCertificate(
+  error: Error,
+  dispatcher: Dispatcher
+) {
+  if (!__WIN32__) {
+    return error
+  }
+
+  const errorWithMetadata = asErrorWithMetadata(error)
+  const underlyingError =
+    errorWithMetadata === null ? error : errorWithMetadata.underlyingError
+
+  const gitError = asGitError(underlyingError)
+  if (!gitError || gitError.result.gitError === null) {
+    return error
+  }
+
+  const match = fatalSchannelRevocationErrorRe.exec(gitError.message)
+
+  if (!match) {
+    return error
+  }
+
+  return dispatcher.showPopup({
+    type: PopupType.SChannelNoRevocationCheck,
+    url: match[1],
+  })
+}
+
 /**
  * Extract lines from Git's stderr output starting with the
  * prefix `remote: `. Useful to extract server-specific
