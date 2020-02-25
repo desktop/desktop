@@ -629,6 +629,12 @@ export async function insufficientGitHubRepoPermissions(
 
 const fatalSchannelRevocationErrorRe = /^fatal: unable to access '(.*?)': schannel: next InitializeSecurityContext failed: .*? \((0x80092012|0x80092013)\)/m
 
+/**
+ * Attempts to detect whether an error is the result of the
+ * Windows SSL backend's (schannel) failure to contact a
+ * certificate revocation server. This can only occur on Windows
+ * when the `http.sslBackend` is set to `schannel`.
+ */
 export async function schannelUnableToCheckRevocationForCertificate(
   error: Error,
   dispatcher: Dispatcher
