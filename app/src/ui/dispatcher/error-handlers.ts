@@ -627,6 +627,21 @@ export async function insufficientGitHubRepoPermissions(
   return null
 }
 
+// Example error message (line breaks added):
+//    fatal: unable to access 'https://github.com/desktop/desktop.git/': schannel:
+//    next InitializeSecurityContext failed: Unknown error (0x80092012) - The
+//    revocation function was unable to check revocation for the certificate.
+//
+// We can't trust anything after the `-` since that string might be localized
+//
+// 0x80092012 is CRYPT_E_NO_REVOCATION_CHECK
+// 0x80092013 is CRYPT_E_REVOCATION_OFFLINE
+//
+// See
+// https://docs.microsoft.com/en-us/windows/win32/api/wincrypt/nf-wincrypt-certverifyrevocation
+// https://github.com/curl/curl/blob/fa009cc798f/lib/vtls/schannel.c#L1069-L1070
+// https://github.com/curl/curl/blob/fa009cc798f/lib/strerror.c#L966
+// https://github.com/curl/curl/blob/fa009cc798f/lib/strerror.c#L983
 const fatalSchannelRevocationErrorRe = /^fatal: unable to access '(.*?)': schannel: next InitializeSecurityContext failed: .*? \((0x80092012|0x80092013)\)/m
 
 /**
