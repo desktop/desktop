@@ -4,6 +4,11 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { setGlobalConfigValue } from '../../lib/git'
 
 interface ISChannelNoRevocationCheckDialogProps {
+  /**
+   * The url that Git failed to access due to schannel being unable
+   * to perform a certificate revocation check, parsed from the
+   * error message.
+   */
   readonly url: string
 
   readonly onDismissed: () => void
@@ -12,6 +17,13 @@ interface ISChannelNoRevocationCheckDialogState {
   readonly loading: boolean
 }
 
+/**
+ * The dialog shown when a Git network operation fails due to the
+ * schannel https backend being unable to perform a certificate
+ * revocation check.
+ *
+ * This can only occur on Windows.
+ */
 export class SChannelNoRevocationCheckDialog extends React.Component<
   ISChannelNoRevocationCheckDialogProps,
   ISChannelNoRevocationCheckDialogState
