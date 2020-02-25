@@ -673,10 +673,12 @@ export async function schannelUnableToCheckRevocationForCertificate(
     return error
   }
 
-  return dispatcher.showPopup({
+  dispatcher.showPopup({
     type: PopupType.SChannelNoRevocationCheck,
     url: match[1],
   })
+
+  return null
 }
 
 /**
