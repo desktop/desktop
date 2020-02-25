@@ -55,9 +55,8 @@ export class SChannelNoRevocationCheckDialog extends React.Component<
             details.
           </p>
           <p>
-            A common cause for this error is This error is common when accessing
-            the Internet through a corporate proxy server or a debugging proxy
-            that performs SSL inspection.
+            This error is common when accessing the Internet through a corporate
+            proxy server or a debugging proxy that performs SSL inspection.
           </p>
           <p>
             Would you like to turn off certificate revocation checks? You can
