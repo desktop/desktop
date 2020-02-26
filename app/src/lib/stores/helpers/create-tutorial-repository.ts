@@ -8,9 +8,10 @@ import {
   executionOptionsWithProgress,
   PushProgressParser,
 } from '../../progress'
-import { envForAuthentication } from '../../git/authentication'
 import { git } from '../../git'
 import { friendlyEndpointName } from '../../friendly-endpoint-name'
+import { IRemote } from '../../../models/remote'
+import { envForRemoteOperation } from '../../git/environment'
 
 const nl = __WIN32__ ? '\r\n' : '\n'
 const InititalReadmeContents =
@@ -61,6 +62,7 @@ async function createAPIRepository(account: Account, name: string) {
 async function pushRepo(
   path: string,
   account: Account,
+  remote: IRemote,
   progressCb: (title: string, value: number, description?: string) => void
 ) {
   const pushTitle = `Pushing repository to ${friendlyEndpointName(account)}`
@@ -68,7 +70,7 @@ async function pushRepo(
 
   const pushOpts = await executionOptionsWithProgress(
     {
-      env: envForAuthentication(account),
+      env: await envForRemoteOperation(account, remote.url),
     },
     new PushProgressParser(),
     progress => {
@@ -78,7 +80,7 @@ async function pushRepo(
     }
   )
 
-  const args = ['push', '-u', 'origin', 'master']
+  const args = ['push', '-u', remote.name, 'master']
   await git(args, path, 'tutorial:push', pushOpts)
 }
 
@@ -125,13 +127,16 @@ export async function createTutorialRepository(
     path,
     'tutorial:commit'
   )
+
+  const remote: IRemote = { name: 'origin', url: repo.clone_url }
+
   await git(
-    ['remote', 'add', 'origin', repo.clone_url],
+    ['remote', 'add', remote.name, remote.url],
     path,
     'tutorial:add-remote'
   )
 
-  await pushRepo(path, account, (title, value, description) => {
+  await pushRepo(path, account, remote, (title, value, description) => {
     progressCb(title, 0.3 + value * 0.6, description)
   })
 
