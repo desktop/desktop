@@ -1110,8 +1110,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const url = this.getCurrentRepositoryGitHubURL()
 
     if (url) {
-      // TODO: use 'issues/new/choose' for repos with issue templates
-      this.props.dispatcher.openInBrowser(`${url}/issues/new`)
+      this.props.dispatcher.openInBrowser(`${url}/issues/new/choose`)
       return
     }
   }
