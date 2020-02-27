@@ -59,7 +59,7 @@ export class SChannelNoRevocationCheckDialog extends React.Component<
             proxy server or a debugging proxy that performs SSL inspection.
           </p>
           <p>
-            Would you like to turn off certificate revocation checks? You can
+            Would you like to disable certificate revocation checks? You can
             change this at any time in options.
           </p>
         </DialogContent>
