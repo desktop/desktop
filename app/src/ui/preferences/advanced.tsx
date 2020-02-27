@@ -28,7 +28,6 @@ interface IAdvancedPreferencesState {
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
   readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
-  readonly schannelCheckRevoke: boolean
 }
 
 export class Advanced extends React.Component<
@@ -44,7 +43,6 @@ export class Advanced extends React.Component<
       confirmDiscardChanges: this.props.confirmDiscardChanges,
       confirmForcePush: this.props.confirmForcePush,
       uncommittedChangesStrategyKind: this.props.uncommittedChangesStrategyKind,
-      schannelCheckRevoke: this.props.schannelCheckRevoke,
     }
   }
 
@@ -97,8 +95,6 @@ export class Advanced extends React.Component<
     event: React.FormEvent<HTMLInputElement>
   ) => {
     const value = event.currentTarget.checked
-
-    this.setState({ schannelCheckRevoke: value })
     this.props.onSchannelCheckRevokeChanged(value)
   }
 
@@ -220,9 +216,9 @@ export class Advanced extends React.Component<
         <Checkbox
           label="Enable certificate revocation checks"
           value={
-            this.state.schannelCheckRevoke
               ? CheckboxValue.On
               : CheckboxValue.Off
+            this.props.schannelCheckRevoke
           }
           onChange={this.onSchannelCheckRevokeChanged}
         />
