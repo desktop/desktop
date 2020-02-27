@@ -204,19 +204,29 @@ export class Advanced extends React.Component<
             onChange={this.onReportingOptOutChanged}
           />
         </div>
-        <div className="git-advanced-section">
-          <h2>Git</h2>
-          <Checkbox
-            label="Enable certificate revocation checks"
-            value={
-              this.state.schannelCheckRevoke
-                ? CheckboxValue.On
-                : CheckboxValue.Off
-            }
-            onChange={this.onSchannelCheckRevokeChanged}
-          />
-        </div>
+        {this.renderGitAdvancedSection()}
       </DialogContent>
+    )
+  }
+
+  private renderGitAdvancedSection() {
+    if (!__WIN32__) {
+      return
+    }
+
+    return (
+      <div className="git-advanced-section">
+        <h2>Git</h2>
+        <Checkbox
+          label="Enable certificate revocation checks"
+          value={
+            this.state.schannelCheckRevoke
+              ? CheckboxValue.On
+              : CheckboxValue.Off
+          }
+          onChange={this.onSchannelCheckRevokeChanged}
+        />
+      </div>
     )
   }
 }
