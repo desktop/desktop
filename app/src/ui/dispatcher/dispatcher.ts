@@ -1405,11 +1405,13 @@ export class Dispatcher {
 
     await Promise.all(
       repositories.map(async repo => {
-        const remotes = await this.appStore.getDefaultAndUpstreamRemotes(repo)
-        if (remotes.default && urlsMatch(remotes.default.url, url)) {
-          upstreams.push(repo)
-        } else if (remotes.upstream && urlsMatch(remotes.upstream.url, url)) {
-          forks.push(repo)
+        if (repo instanceof Repository) {
+          const remotes = await this.appStore.getDefaultAndUpstreamRemotes(repo)
+          if (remotes.default && urlsMatch(remotes.default.url, url)) {
+            upstreams.push(repo)
+          } else if (remotes.upstream && urlsMatch(remotes.upstream.url, url)) {
+            forks.push(repo)
+          }
         }
       })
     )
