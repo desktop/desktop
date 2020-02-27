@@ -115,3 +115,13 @@ export function enableTutorial(): boolean {
 export function enableCreateForkFlow(): boolean {
   return true
 }
+
+/**
+ * Whether or not we should attempt to detect the specific curl
+ * error from the WinSSL (schannel) https backend when it fails
+ * to check the revocation details of a certificate due to lacking
+ * CRL distribution points and/or an offiline revocation server.
+ */
+export function enableSchannelCheckRevokeOptOut(): boolean {
+  return enableBetaFeatures()
+}

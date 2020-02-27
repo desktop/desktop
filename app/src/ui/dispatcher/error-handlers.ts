@@ -18,7 +18,10 @@ import {
 } from '../../models/repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { hasWritePermission } from '../../models/github-repository'
-import { enableCreateForkFlow } from '../../lib/feature-flag'
+import {
+  enableCreateForkFlow,
+  enableSchannelCheckRevokeOptOut,
+} from '../../lib/feature-flag'
 import { RetryActionType } from '../../models/retry-actions'
 
 /** An error which also has a code property. */
@@ -655,6 +658,10 @@ export async function schannelUnableToCheckRevocationForCertificate(
   dispatcher: Dispatcher
 ) {
   if (!__WIN32__) {
+    return error
+  }
+
+  if (!enableSchannelCheckRevokeOptOut()) {
     return error
   }
 

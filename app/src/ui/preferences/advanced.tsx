@@ -4,6 +4,7 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { LinkButton } from '../lib/link-button'
 import { SamplesURL } from '../../lib/stats'
 import { UncommittedChangesStrategyKind } from '../../models/uncommitted-changes-strategy'
+import { enableSchannelCheckRevokeOptOut } from '../../lib/feature-flag'
 
 interface IAdvancedPreferencesProps {
   readonly optOutOfUsageTracking: boolean
@@ -207,6 +208,10 @@ export class Advanced extends React.Component<
 
   private renderGitAdvancedSection() {
     if (!__WIN32__) {
+      return
+    }
+
+    if (!enableSchannelCheckRevokeOptOut()) {
       return
     }
 
