@@ -68,6 +68,7 @@ import { PullRequest } from '../../models/pull-request'
 import {
   Repository,
   RepositoryWithGitHubRepository,
+  isRepositoryWithGitHubRepository,
 } from '../../models/repository'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
@@ -1405,7 +1406,10 @@ export class Dispatcher {
 
     await Promise.all(
       repositories.map(async repo => {
-        if (repo instanceof Repository) {
+        if (
+          repo instanceof Repository &&
+          isRepositoryWithGitHubRepository(repo)
+        ) {
           const remotes = await this.appStore.getDefaultAndUpstreamRemotes(repo)
           if (remotes.default && urlsMatch(remotes.default.url, url)) {
             upstreams.push(repo)
