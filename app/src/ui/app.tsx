@@ -1111,7 +1111,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     if (url) {
       this.props.dispatcher.openInBrowser(`${url}/issues/new/choose`)
-      return
     }
   }
 

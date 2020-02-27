@@ -330,7 +330,7 @@ export function buildDefaultMenu({
         id: 'create-issue-in-repository-on-github',
         label: __DARWIN__
           ? 'Create Issue on GitHub'
-          : 'Create &Issue on GitHub',
+          : 'Create &issue on GitHub',
         accelerator: 'CmdOrCtrl+Shift+I',
         click: emit('create-issue-in-repository-on-github'),
         visible: enableCreateGitHubIssueFromMenu(),
