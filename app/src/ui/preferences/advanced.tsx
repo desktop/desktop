@@ -95,7 +95,7 @@ export class Advanced extends React.Component<
     event: React.FormEvent<HTMLInputElement>
   ) => {
     const value = event.currentTarget.checked
-    this.props.onSchannelCheckRevokeChanged(value)
+    this.props.onSchannelCheckRevokeChanged(value === false)
   }
 
   private reportDesktopUsageLabel() {
@@ -214,11 +214,11 @@ export class Advanced extends React.Component<
       <div className="git-advanced-section">
         <h2>Git</h2>
         <Checkbox
-          label="Enable certificate revocation checks"
+          label="Disable certificate revocation checks"
           value={
-              ? CheckboxValue.On
-              : CheckboxValue.Off
             this.props.schannelCheckRevoke
+              ? CheckboxValue.Off
+              : CheckboxValue.On
           }
           onChange={this.onSchannelCheckRevokeChanged}
         />
