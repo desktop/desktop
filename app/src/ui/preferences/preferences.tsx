@@ -12,6 +12,7 @@ import { Dialog, DialogFooter, DialogError } from '../dialog'
 import {
   getGlobalConfigValue,
   setGlobalConfigValue,
+  getGlobalBooleanConfigValue,
 } from '../../lib/git/config'
 import { lookupPreferredEmail } from '../../lib/email'
 import { Shell, getAvailableShells } from '../../lib/shells'
@@ -74,8 +75,8 @@ interface IPreferencesState {
    * choice to delete the lock file.
    */
   readonly existingLockFilePath?: string
-  readonly initialSchannelCheckRevoke: boolean
-  readonly schannelCheckRevoke: boolean
+  readonly initialSchannelCheckRevoke: boolean | null
+  readonly schannelCheckRevoke: boolean | null
 }
 
 /** The app-level preferences component. */
@@ -103,8 +104,8 @@ export class Preferences extends React.Component<
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
       selectedShell: this.props.selectedShell,
-      initialSchannelCheckRevoke: true,
-      schannelCheckRevoke: true,
+      initialSchannelCheckRevoke: null,
+      schannelCheckRevoke: null,
     }
   }
 
@@ -117,8 +118,8 @@ export class Preferences extends React.Component<
     // the checkbox will not be visible unless running on Windows so we'll just
     // default to the default value for lack of anything better.
     const initialSchannelCheckRevoke = __WIN32__
-      ? (await getGlobalConfigValue('http.schannelCheckRevoke')) !== 'false'
-      : true
+      ? await getGlobalBooleanConfigValue('http.schannelCheckRevoke')
+      : null
 
     let committerName = initialCommitterName
     let committerEmail = initialCommitterEmail
@@ -438,6 +439,7 @@ export class Preferences extends React.Component<
       if (
         this.state.schannelCheckRevoke !==
           this.state.initialSchannelCheckRevoke &&
+        this.state.schannelCheckRevoke !== null &&
         __WIN32__
       ) {
         await setGlobalConfigValue(

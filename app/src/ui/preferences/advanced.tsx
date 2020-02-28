@@ -12,7 +12,7 @@ interface IAdvancedPreferencesProps {
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
   readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
-  readonly schannelCheckRevoke: boolean
+  readonly schannelCheckRevoke: boolean | null
   readonly onOptOutofReportingchanged: (checked: boolean) => void
   readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
   readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
@@ -212,6 +212,12 @@ export class Advanced extends React.Component<
     }
 
     if (!enableSchannelCheckRevokeOptOut()) {
+      return
+    }
+
+    // If the user hasn't set `http.schannelCheckRevoke` before we don't
+    // have to show them the preference.
+    if (this.props.schannelCheckRevoke === null) {
       return
     }
 
