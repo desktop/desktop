@@ -17,7 +17,17 @@ export function getGlobalConfigValue(
     HOME: string
   }
 ): Promise<string | null> {
-  return getConfigValueInPath(name, null, env)
+  return getConfigValueInPath(name, null, undefined, env)
+}
+
+export async function getGlobalBooleanConfigValue(
+  name: string,
+  env?: {
+    HOME: string
+  }
+): Promise<boolean | null> {
+  const value = await getConfigValueInPath(name, null, 'bool', env)
+  return value === null ? null : value !== 'false'
 }
 
 /** Set the local config value by name. */
@@ -41,6 +51,7 @@ export async function setGlobalConfigValue(
 async function getConfigValueInPath(
   name: string,
   path: string | null,
+  type?: 'bool' | 'int' | 'bool-or-int' | 'path' | 'expiry-date' | 'color',
   env?: {
     HOME: string
   }
@@ -48,6 +59,10 @@ async function getConfigValueInPath(
   const flags = ['config', '-z']
   if (!path) {
     flags.push('--global')
+  }
+
+  if (type !== undefined) {
+    flags.push('--type', type)
   }
 
   flags.push(name)
