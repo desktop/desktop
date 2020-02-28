@@ -20,6 +20,13 @@ export function getGlobalConfigValue(
   return getConfigValueInPath(name, null, undefined, env)
 }
 
+/**
+ * Look up a global config value by name.
+ *
+ * Treats the returned value as a boolean as per Git's
+ * own definition of a boolean configuration value (i.e.
+ * 0 -> false, "off" -> false, "yes" -> true etc)
+ */
 export async function getGlobalBooleanConfigValue(
   name: string,
   env?: {
@@ -48,6 +55,17 @@ export async function setGlobalConfigValue(
   )
 }
 
+/**
+ * Look up a global config value by name
+ *
+ * @param path The path to execute the `git` command in. If null
+ *             we'll use the global configuration (i.e. --global)
+ *             and execute the Gitt call from the same location that
+ *             GitHub Desktop is installed in.
+ * @param type Canonicalize configuration values according to the
+ *             expected type (i.e. 0 -> false, "on" -> true etc).
+ *             See `--type` documentation in `git config`
+ */
 async function getConfigValueInPath(
   name: string,
   path: string | null,
