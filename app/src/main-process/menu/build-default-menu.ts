@@ -5,7 +5,11 @@ import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
 import { ensureDir } from 'fs-extra'
 import { openDirectorySafe } from '../shell'
-import { enableRebaseDialog, enableStashing } from '../../lib/feature-flag'
+import {
+  enableRebaseDialog,
+  enableStashing,
+  enableCreateGitHubIssueFromMenu,
+} from '../../lib/feature-flag'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { DefaultEditorLabel } from '../../ui/lib/context-menu'
 
@@ -320,6 +324,16 @@ export function buildDefaultMenu({
         id: 'open-external-editor',
         accelerator: 'CmdOrCtrl+Shift+A',
         click: emit('open-external-editor'),
+      },
+      separator,
+      {
+        id: 'create-issue-in-repository-on-github',
+        label: __DARWIN__
+          ? 'Create Issue on GitHub'
+          : 'Create &issue on GitHub',
+        accelerator: 'CmdOrCtrl+Shift+I',
+        click: emit('create-issue-in-repository-on-github'),
+        visible: enableCreateGitHubIssueFromMenu(),
       },
       separator,
       {
