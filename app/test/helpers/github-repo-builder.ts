@@ -14,7 +14,10 @@ interface IGitHubRepoFixtureOptions {
   owner: string
   name: string
   parent?: GitHubRepository
+  /** defaults to 'master' */
   defaultBranch?: string
+  isPrivate?: boolean
+
   /**
    * Defaults to github.com if omitted.
    * We make an attempt at constructing a meaningful non-github.com
@@ -35,6 +38,7 @@ export function gitHubRepoFixture({
   parent,
   defaultBranch,
   endpoint,
+  isPrivate,
 }: IGitHubRepoFixtureOptions): GitHubRepository {
   return new GitHubRepository(
     name,
@@ -44,7 +48,7 @@ export function gitHubRepoFixture({
       null
     ),
     id_counter++,
-    null,
+    isPrivate !== undefined ? isPrivate : null,
     endpoint !== undefined
       ? `${endpoint}/${owner}/${name}`
       : `https://github.com/${owner}/${name}`,

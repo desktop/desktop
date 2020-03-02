@@ -4,8 +4,8 @@ import {
   EmojiMatch,
   HyperlinkMatch,
 } from '../../src/lib/text-token-parser'
-import { GitHubRepository } from '../../src/models/github-repository'
 import { Repository } from '../../src/models/repository'
+import { gitHubRepoFixture } from '../helpers/github-repo-builder'
 
 const emoji = new Map<string, string>([[':shipit:', '/some/path.png']])
 
@@ -36,32 +36,15 @@ describe('Tokenizer', () => {
 
   describe('with GitHub repository', () => {
     const host = 'https://github.com'
-    const endpoint = 'https://api.github.com'
     const login = 'shiftkey'
     const name = 'some-repo'
     const htmlURL = `${host}/${login}/${name}`
-    const cloneURL = `${host}/${login}/${name}.git`
 
-    const gitHubRepository: GitHubRepository = {
-      dbID: 1,
+    const gitHubRepository = gitHubRepoFixture({
       name,
-      owner: {
-        endpoint,
-        login,
-        hash: '',
-        id: null,
-      },
-      cloneURL,
-      endpoint: 'https://api.github.com',
-      fullName: `${login}/${name}`,
+      owner: login,
       isPrivate: false,
-      fork: false,
-      htmlURL: htmlURL,
-      defaultBranch: 'master',
-      hash: '',
-      parent: null,
-      permissions: null,
-    }
+    })
 
     const repository = new Repository(
       'some/path/to/repo',
