@@ -43,6 +43,7 @@ const repository = new Repository(
     fork: false,
     hash: '',
     permissions: null,
+    issuesEnabled: null,
   },
   true
 )
