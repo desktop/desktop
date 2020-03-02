@@ -123,3 +123,11 @@ export function enableCreateForkFlow(): boolean {
 export function enableAutomaticGitProxyConfiguration(): boolean {
   return enableDevelopmentFeatures()
 }
+
+/**
+ * Should we show the "Create Issue on GitHub" item under
+ * "Repository" in the app menu?
+ */
+export function enableCreateGitHubIssueFromMenu(): boolean {
+  return enableBetaFeatures()
+}
