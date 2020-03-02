@@ -157,7 +157,7 @@ function extractApplicationInformation(
     const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
     return { displayName, publisher, installLocation }
   }
-  
+
   ...
 }
 ```
@@ -218,7 +218,7 @@ Desktop will confirm this file exists on disk before launching - if it's
 missing or lost it won't let you launch the external editor.
 
 If the external editor utilizes a CMD.EXE shell script to launch, Desktop
-needs to know this in order to properly launch the CMD.EXE shell.  This is 
+needs to know this in order to properly launch the CMD.EXE shell.  This is
 done by setting the property `usesShell: true` in `getAvailableEditors`.
 
 ```ts
@@ -255,6 +255,7 @@ These editors are currently supported:
  - [BBEdit](http://www.barebones.com/products/bbedit/)
  - [PhpStorm](https://www.jetbrains.com/phpstorm/)
  - [RubyMine](https://www.jetbrains.com/rubymine/)
+ - [IntelliJ IDEA](https://www.jetbrains.com/idea/)
  - [TextMate](https://macromates.com)
  - [Brackets](http://brackets.io/)
      - To use Brackets the Command Line shortcut must be installed.
@@ -421,7 +422,7 @@ export async function getAvailableEditors(): Promise<
     getEditorPath(ExternalEditor.Typora),
     getEditorPath(ExternalEditor.SlickEdit),
   ])
-  
+
   ...
 
   if (codePath) {
