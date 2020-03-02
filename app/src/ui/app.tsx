@@ -17,7 +17,7 @@ import { updateStore, UpdateStatus } from './lib/update-store'
 import { RetryAction } from '../models/retry-actions'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { matchExistingRepository } from '../lib/repository-matching'
-import { getDotComAPIEndpoint, IAPIRepository } from '../lib/api'
+import { getDotComAPIEndpoint } from '../lib/api'
 import { ILaunchStats, SamplesURL } from '../lib/stats'
 import { getVersion, getName } from './lib/app-proxy'
 import { getOS } from '../lib/get-os'
@@ -352,6 +352,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.viewRepositoryOnGitHub()
       case 'compare-on-github':
         return this.compareBranchOnDotcom()
+      case 'create-issue-in-repository-on-github':
+        return this.createIssueInRepositoryOnGitHub()
       case 'open-in-shell':
         return this.openCurrentRepositoryInShell()
       case 'clone-repository':
@@ -690,7 +692,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private onCreateTutorialRepository = () => {
+  private showCreateTutorialRepositoryPopup = () => {
     if (!enableTutorial()) {
       return
     }
@@ -1098,6 +1100,18 @@ export class App extends React.Component<IAppProps, IAppState> {
       type: PopupType.RepositorySettings,
       repository,
     })
+  }
+
+  /**
+   * Opens a browser to the issue creation page
+   * of the current GitHub repository.
+   */
+  private createIssueInRepositoryOnGitHub() {
+    const url = this.getCurrentRepositoryGitHubURL()
+
+    if (url) {
+      this.props.dispatcher.openInBrowser(`${url}/issues/new/choose`)
+    }
   }
 
   private viewRepositoryOnGitHub() {
@@ -1845,11 +1859,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <CreateTutorialRepositoryDialog
             key="create-tutorial-repository-dialog"
-            dispatcher={this.props.dispatcher}
             account={popup.account}
+            progress={popup.progress}
             onDismissed={this.onPopupDismissed}
-            onTutorialRepositoryCreated={this.onTutorialRepositoryCreated}
-            onError={this.onTutorialRepositoryError}
+            onCreateTutorialRepository={this.onCreateTutorialRepository}
           />
         )
       }
@@ -1905,21 +1918,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.closePopup()
   }
 
-  private onTutorialRepositoryError = (error: Error) => {
-    this.props.dispatcher.closePopup(PopupType.CreateTutorialRepository)
-    this.props.dispatcher.postError(error)
-  }
-
-  private onTutorialRepositoryCreated = (
-    path: string,
-    account: Account,
-    apiRepository: IAPIRepository
-  ) => {
-    return this.props.dispatcher.addTutorialRepository(
-      path,
-      account.endpoint,
-      apiRepository
-    )
+  private onCreateTutorialRepository = (account: Account) => {
+    this.props.dispatcher.createTutorialRepository(account)
   }
 
   private onShowRebaseConflictsBanner = (
@@ -2455,7 +2455,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           onCreate={this.showCreateRepository}
           onClone={this.showCloneRepo}
           onAdd={this.showAddLocalRepo}
-          onCreateTutorialRepository={this.onCreateTutorialRepository}
+          onCreateTutorialRepository={this.showCreateTutorialRepositoryPopup}
           onResumeTutorialRepository={this.onResumeTutorialRepository}
           tutorialPaused={this.isTutorialPaused()}
           apiRepositories={state.apiRepositories}

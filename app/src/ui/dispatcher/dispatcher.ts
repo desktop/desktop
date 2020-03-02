@@ -1556,7 +1556,7 @@ export class Dispatcher {
         shouldCheckoutBranch = tip.branch.nameWithoutRemote !== branch
       }
 
-      const localBranch = branches.find(b => b.upstreamWithoutRemote === branch)
+      const localBranch = branches.find(b => b.nameWithoutRemote === branch)
 
       // N.B: This looks weird, and it is. _checkoutBranch used
       // to behave this way (silently ignoring checkout) when given
@@ -2236,24 +2236,23 @@ export class Dispatcher {
   }
 
   /**
-   * Onboarding tutorial has been started
-   */
-  public recordTutorialStarted() {
-    return this.statsStore.recordTutorialStarted()
-  }
-  /**
-   * Onboarding tutorial has been successfully created
-   */
-  public recordTutorialRepoCreated() {
-    return this.statsStore.recordTutorialRepoCreated()
-  }
-
-  /**
    * Increments the `forksCreated ` metric` indicating that the user has
    * elected to create a fork when presented with a dialog informing
    * them that they don't have write access to the current repository.
    */
   public recordForkCreated() {
     return this.statsStore.recordForkCreated()
+  }
+
+  /**
+   * Create a tutorial repository using the given account. The account
+   * determines which host (i.e. GitHub.com or a GHES instance) that
+   * the tutorial repository should be created on.
+   *
+   * @param account The account (and thereby the GitHub host) under
+   *                which the repository is to be created created
+   */
+  public createTutorialRepository(account: Account) {
+    return this.appStore._createTutorialRepository(account)
   }
 }

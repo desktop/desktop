@@ -27,6 +27,13 @@ export function isBranchPushable(pushControl: IAPIPushControl) {
     required_approving_review_count,
   } = pushControl
 
+  // See https://github.com/desktop/desktop/issues/9054#issuecomment-582768322
+  // We'll guard against this being undefined until we can determine the
+  // root cause and fix that.
+  const requiredStatusCheckCount = Array.isArray(required_status_checks)
+    ? required_status_checks.length
+    : 0
+
   // If user is admin and branch is not admin-enforced,
   // required status checks and reviews get zeroed out in API response (no merge requirements).
   // If user is admin and branch is admin-enforced,
@@ -34,7 +41,10 @@ export function isBranchPushable(pushControl: IAPIPushControl) {
   // If user is allowed to push based on `Restrict who can push` setting, they must still
   // respect the merge requirements, and can't push if checks or reviews are required for merging
   const noMergeRequirements =
-    required_status_checks.length === 0 && required_approving_review_count === 0
+    requiredStatusCheckCount === 0 && required_approving_review_count === 0
 
-  return allow_actor && noMergeRequirements
+  // We check for !== false so that if a future version of the API decides to
+  // remove or rename that property we'll revert to assuming that the user
+  // _does_ have access rather than assuming that they _don't_.
+  return allow_actor !== false && noMergeRequirements
 }

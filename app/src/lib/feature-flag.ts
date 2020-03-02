@@ -115,3 +115,11 @@ export function enableTutorial(): boolean {
 export function enableCreateForkFlow(): boolean {
   return true
 }
+
+/**
+ * Should we show the "Create Issue on GitHub" item under
+ * "Repository" in the app menu?
+ */
+export function enableCreateGitHubIssueFromMenu(): boolean {
+  return enableBetaFeatures()
+}

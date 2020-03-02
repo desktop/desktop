@@ -1,3 +1,4 @@
+import * as Path from 'path'
 import { ipcRenderer, remote } from 'electron'
 import { pathExists } from 'fs-extra'
 import { escape } from 'querystring'
@@ -10,7 +11,6 @@ import {
   PullRequestCoordinator,
   RepositoriesStore,
   SignInStore,
-  UpstreamRemoteName,
 } from '.'
 import { Account } from '../../models/account'
 import { AppMenu, IMenu } from '../../models/app-menu'
@@ -153,7 +153,7 @@ import {
   RebaseResult,
   getRebaseSnapshot,
   IStatusResult,
-  setRemoteURL,
+  GitError,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -267,6 +267,9 @@ import {
   findAssociatedPullRequest,
   isPullRequestAssociatedWithBranch,
 } from '../helpers/pull-request-matching'
+import { createTutorialRepository } from './helpers/create-tutorial-repository'
+import { sendNonFatalException } from '../helpers/non-fatal-exception'
+import { getDefaultDir } from '../../ui/lib/default-dir'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -873,16 +876,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
           return
         }
 
+        // If the user doesn't have write access to the repository
+        // it doesn't matter if the branch is protected or not and
+        // we can avoid the API call. See the `showNoWriteAccess`
+        // prop in the `CommitMessage` component where we specifically
+        // test for this scenario and show a message specifically
+        // about write access before showing a branch protection
+        // warning.
+        if (!hasWritePermission(gitHubRepo)) {
+          this.repositoryStateCache.updateChangesState(repository, () => ({
+            currentBranchProtected: false,
+          }))
+          this.emitUpdate()
+          return
+        }
+
         const name = gitHubRepo.name
         const owner = gitHubRepo.owner.login
         const api = API.fromAccount(account)
 
-        const hasWritePermissionForRepository =
-          gitHubRepo === null || hasWritePermission(gitHubRepo)
-
         const pushControl = await api.fetchPushControl(owner, name, branchName)
-        const currentBranchProtected =
-          hasWritePermissionForRepository && !isBranchPushable(pushControl)
+        const currentBranchProtected = !isBranchPushable(pushControl)
 
         this.repositoryStateCache.updateChangesState(repository, () => ({
           currentBranchProtected,
@@ -3481,13 +3495,51 @@ export class AppStore extends TypedBaseStore<IAppState> {
           repository,
         }
 
+        // This is most likely not necessary and is only here out of
+        // an abundance of caution. We're introducing support for
+        // automatically configuring Git proxies based on system
+        // proxy settings and therefore need to pass along the remote
+        // url to functions such as push, pull, fetch etc.
+        //
+        // Prior to this we relied primarily on the `branch.remote`
+        // property and used the `remote.name` as a fallback in case the
+        // branch object didn't have a remote name (i.e. if it's not
+        // published yet).
+        //
+        // The remote.name is derived from the current tip first and falls
+        // back to using the defaultRemote if the current tip isn't valid
+        // or if the current branch isn't published. There's however no
+        // guarantee that they'll be refreshed at the exact same time so
+        // there's a theoretical possibility that `branch.remote` and
+        // `remote.name` could be out of sync. I have no reason to suspect
+        // that's the case and if it is then we already have problems as
+        // the `fetchRemotes` call after the push already relies on the
+        // `remote` and not the `branch.remote`. All that said this is
+        // a critical path in the app and somehow breaking pushing would
+        // be near unforgivable so I'm introducing this `safeRemote`
+        // temporarily to ensure that there's no risk of us using an
+        // out of sync remote name while still providing envForRemoteOperation
+        // with an url to use when resolving proxies.
+        //
+        // I'm also adding a non fatal exception if this ever happens
+        // so that we can confidently remove this safeguard in a future
+        // release.
+        const safeRemote: IRemote = { name: remoteName, url: remote.url }
+
+        if (safeRemote.name !== remote.name) {
+          sendNonFatalException(
+            'remoteNameMismatch',
+            new Error('The current remote name differs from the branch remote')
+          )
+        }
+
         const gitStore = this.gitStoreCache.get(repository)
         await gitStore.performFailableOperation(
           async () => {
             await pushRepo(
               repository,
               account,
-              remoteName,
+              safeRemote,
               branch.name,
               branch.upstreamWithoutRemote,
               options,
@@ -3502,7 +3554,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
             await gitStore.fetchRemotes(
               account,
-              [remote],
+              [safeRemote],
               false,
               fetchProgress => {
                 this.updatePushPullFetchProgress(repository, {
@@ -3692,7 +3744,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
           await gitStore.performFailableOperation(
             () =>
-              pullRepo(repository, account, remote.name, progress => {
+              pullRepo(repository, account, remote, progress => {
                 this.updatePushPullFetchProgress(repository, {
                   ...progress,
                   value: progress.value * pullWeight,
@@ -5548,30 +5600,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     fork: IAPIRepository
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
-    const remoteName = gitStore.defaultRemote
+    const defaultRemoteName = gitStore.defaultRemote
       ? gitStore.defaultRemote.name
       : undefined
     const remoteUrl = gitStore.defaultRemote
       ? gitStore.defaultRemote.url
       : undefined
     // make sure there is a default remote (there should be)
-    if (remoteName !== undefined && remoteUrl !== undefined) {
+    if (defaultRemoteName !== undefined && remoteUrl !== undefined) {
       // update default remote
-      if (await gitStore.setRemoteURL(remoteName, fork.clone_url)) {
-        const remotes = await getRemotes(repository)
-        const upstream = remotes.find(r => r.name === UpstreamRemoteName)
-        // update upstream remote if it already exists
-        if (upstream === undefined) {
-          await gitStore.performFailableOperation(() =>
-            addRemote(repository, UpstreamRemoteName, remoteUrl)
-          )
-        } else {
-          // update upstream remote if it already exists
-          await gitStore.performFailableOperation(() =>
-            setRemoteURL(repository, UpstreamRemoteName, remoteUrl)
-          )
-        }
-
+      if (await gitStore.setRemoteURL(defaultRemoteName, fork.clone_url)) {
+        await gitStore.ensureUpstreamRemoteURL(remoteUrl)
         // update associated github repo
         const updatedRepository = await this.repositoriesStore.updateGitHubRepository(
           repository,
@@ -5582,6 +5621,58 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
     return repository
+  }
+
+  /**
+   * Create a tutorial repository using the given account. The account
+   * determines which host (i.e. GitHub.com or a GHES instance) that
+   * the tutorial repository should be created on.
+   *
+   * @param account The account (and thereby the GitHub host) under
+   *                which the repository is to be created created
+   */
+  public async _createTutorialRepository(account: Account) {
+    try {
+      await this.statsStore.recordTutorialStarted()
+
+      const name = 'desktop-tutorial'
+      const path = Path.resolve(getDefaultDir(), name)
+
+      const apiRepository = await createTutorialRepository(
+        account,
+        name,
+        path,
+        (title, value, description) => {
+          if (
+            this.currentPopup !== null &&
+            this.currentPopup.type === PopupType.CreateTutorialRepository
+          ) {
+            this.currentPopup = {
+              ...this.currentPopup,
+              progress: { kind: 'generic', title, value, description },
+            }
+            this.emitUpdate()
+          }
+        }
+      )
+
+      await this._addTutorialRepository(path, account.endpoint, apiRepository)
+      await this.statsStore.recordTutorialRepoCreated()
+    } catch (err) {
+      sendNonFatalException('tutorialRepoCreation', err)
+
+      if (err instanceof GitError) {
+        this.emitError(err)
+      } else {
+        this.emitError(
+          new Error(
+            `Failed creating the tutorial repository.\n\n${err.message}`
+          )
+        )
+      }
+    } finally {
+      this._closePopup(PopupType.CreateTutorialRepository)
+    }
   }
 }
 

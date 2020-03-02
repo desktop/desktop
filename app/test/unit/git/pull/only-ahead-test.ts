@@ -13,10 +13,11 @@ import {
 } from '../../../helpers/repository-scaffolding'
 import { getTipOrError, getRefOrError } from '../../../helpers/git'
 import { setupLocalConfig } from '../../../helpers/local-config'
+import { IRemote } from '../../../../src/models/remote'
 
 const featureBranch = 'this-is-a-feature'
-const origin = 'origin'
-const remoteBranch = `${origin}/${featureBranch}`
+const remote: IRemote = { name: 'origin', url: 'file://' }
+const remoteBranch = `${remote.name}/${featureBranch}`
 
 describe('git/pull', () => {
   describe('only ahead of tracking branch', () => {
@@ -39,7 +40,7 @@ describe('git/pull', () => {
       }
 
       await makeCommit(repository, changesForLocalRepository)
-      await fetch(repository, null, origin)
+      await fetch(repository, null, remote)
     })
 
     describe('by default', () => {
@@ -49,7 +50,7 @@ describe('git/pull', () => {
       beforeEach(async () => {
         previousTip = await getTipOrError(repository)
 
-        await pull(repository, null, origin)
+        await pull(repository, null, remote)
 
         newTip = await getTipOrError(repository)
       })
@@ -84,7 +85,7 @@ describe('git/pull', () => {
 
         previousTip = await getTipOrError(repository)
 
-        await pull(repository, null, origin)
+        await pull(repository, null, remote)
 
         newTip = await getTipOrError(repository)
       })
@@ -118,7 +119,7 @@ describe('git/pull', () => {
 
         previousTip = await getTipOrError(repository)
 
-        await pull(repository, null, origin)
+        await pull(repository, null, remote)
 
         newTip = await getTipOrError(repository)
       })
