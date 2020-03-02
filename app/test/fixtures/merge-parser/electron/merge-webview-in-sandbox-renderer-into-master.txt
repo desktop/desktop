@@ -216,13 +216,13 @@ changed in both
      machine: true
      steps:
 @@ -430,6 +603,7 @@
+       DISPLAY: ':99.0'
      resource_class: 2xlarge
  
    electron-linux-ia32:
 +<<<<<<< .our
      environment:
        TARGET_ARCH: ia32
-       DISPLAY: ':99.0'
 @@ -469,10 +643,317 @@
        NIGHTLY_BUILD: true
      <<: *build-defaults
