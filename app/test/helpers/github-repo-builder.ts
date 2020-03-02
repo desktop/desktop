@@ -4,8 +4,7 @@ import { getDotComAPIEndpoint } from '../../src/lib/api'
 
 let id_counter = 0
 
-// TODO: rename me!
-export function plainGitHubRepo({
+export function gitHubRepoFixture({
   owner,
   name,
   parent,

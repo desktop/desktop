@@ -7,7 +7,7 @@ import { PullRequest, PullRequestRef } from '../../src/models/pull-request'
 import { Repository } from '../../src/models/repository'
 import { IRemote } from '../../src/models/remote'
 import { ComparisonCache } from '../../src/lib/comparison-cache'
-import { plainGitHubRepo } from '../helpers/github-repo-builder'
+import { gitHubRepoFixture } from '../helpers/github-repo-builder'
 
 function createTestCommit(sha: string) {
   return new Commit(
@@ -35,7 +35,7 @@ function createTestGhRepo(
   defaultBranch: string | null = null,
   parent: GitHubRepository | null = null
 ) {
-  return plainGitHubRepo({
+  return gitHubRepoFixture({
     owner: owner,
     name: 'my-cool-repo',
     defaultBranch: `${

@@ -4,7 +4,7 @@ import {
 } from '../../src/ui/repositories-list/group-repositories'
 import { Repository, ILocalRepositoryState } from '../../src/models/repository'
 import { CloningRepository } from '../../src/models/cloning-repository'
-import { plainGitHubRepo } from '../helpers/github-repo-builder'
+import { gitHubRepoFixture } from '../helpers/github-repo-builder'
 
 describe('repository list grouping', () => {
   const repositories: Array<Repository | CloningRepository> = [
@@ -12,13 +12,13 @@ describe('repository list grouping', () => {
     new Repository(
       'repo2',
       2,
-      plainGitHubRepo({ owner: 'me', name: 'my-repo2' }),
+      gitHubRepoFixture({ owner: 'me', name: 'my-repo2' }),
       false
     ),
     new Repository(
       'repo3',
       3,
-      plainGitHubRepo({ owner: '', name: 'my-repo3', endpoint: '' }),
+      gitHubRepoFixture({ owner: '', name: 'my-repo3', endpoint: '' }),
       false
     ),
   ]
@@ -53,14 +53,14 @@ describe('repository list grouping', () => {
     const repoB = new Repository(
       'b',
       2,
-      plainGitHubRepo({ owner: 'me', name: 'b' }),
+      gitHubRepoFixture({ owner: 'me', name: 'b' }),
       false
     )
     const repoC = new Repository('c', 2, null, false)
     const repoD = new Repository(
       'd',
       2,
-      plainGitHubRepo({ owner: 'me', name: 'd' }),
+      gitHubRepoFixture({ owner: 'me', name: 'd' }),
       false
     )
     const repoZ = new Repository('z', 3, null, false)
@@ -91,19 +91,19 @@ describe('repository list grouping', () => {
     const repoA = new Repository(
       'repo',
       1,
-      plainGitHubRepo({ owner: 'user1', name: 'repo' }),
+      gitHubRepoFixture({ owner: 'user1', name: 'repo' }),
       false
     )
     const repoB = new Repository(
       'repo',
       2,
-      plainGitHubRepo({ owner: 'user2', name: 'repo' }),
+      gitHubRepoFixture({ owner: 'user2', name: 'repo' }),
       false
     )
     const repoC = new Repository(
       'enterprise-repo',
       3,
-      plainGitHubRepo({
+      gitHubRepoFixture({
         owner: 'business',
         name: 'enterprise-repo',
         endpoint: '',
@@ -113,7 +113,7 @@ describe('repository list grouping', () => {
     const repoD = new Repository(
       'enterprise-repo',
       3,
-      plainGitHubRepo({
+      gitHubRepoFixture({
         owner: 'silliness',
         name: 'enterprise-repo',
         endpoint: '',
