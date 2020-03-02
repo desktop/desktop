@@ -640,8 +640,8 @@ export class ChangesList extends React.Component<
         )}
         prepopulateCommitSummary={prepopulateCommitSummary}
         key={repository.id}
-        currentBranchProtected={currentBranchProtected}
-        hasWritePermissionForRepository={hasWritePermissionForRepository}
+        showBranchProtected={fileCount > 0 && currentBranchProtected}
+        showNoWriteAccess={fileCount > 0 && !hasWritePermissionForRepository}
         shouldNudge={this.props.shouldNudgeToCommit}
       />
     )

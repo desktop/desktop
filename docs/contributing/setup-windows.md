@@ -77,7 +77,7 @@ $ python --version
 If you see the output `Python 2.7.x`, you're good to go!
 
 If you see an error about being unable to find `python`, that probably means you
-don't have any Node tools installed. You can install Python 2.7 from the
+don't have Python installed. You can install Python 2.7 from the
 [Python website](https://www.python.org/downloads/windows/).
 
 **Python installation notes:**

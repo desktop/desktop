@@ -174,5 +174,8 @@
 
   .call-to-action {
     font-size: var(--font-size-sm);
+    .link-button-component {
+      display: unset;
+    }
   }
 }

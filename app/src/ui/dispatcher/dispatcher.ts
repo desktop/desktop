@@ -64,7 +64,10 @@ import { GitHubRepository } from '../../models/github-repository'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { Popup, PopupType } from '../../models/popup'
 import { PullRequest } from '../../models/pull-request'
-import { Repository } from '../../models/repository'
+import {
+  Repository,
+  RepositoryWithGitHubRepository,
+} from '../../models/repository'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
   CommittedFileChange,
@@ -82,7 +85,10 @@ import {
   StatusCallBack,
 } from '../../lib/stores/commit-status-store'
 import { MergeResult } from '../../models/merge'
-import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
+import {
+  UncommittedChangesStrategy,
+  UncommittedChangesStrategyKind,
+} from '../../models/uncommitted-changes-strategy'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { IStashEntry } from '../../models/stash-entry'
 
@@ -480,7 +486,7 @@ export class Dispatcher {
   /** Check out the given branch. */
   public checkoutBranch(
     repository: Repository,
-    branch: Branch | string,
+    branch: Branch,
     uncommittedChangesStrategy?: UncommittedChangesStrategy
   ): Promise<Repository> {
     return this.appStore._checkoutBranch(
@@ -1328,6 +1334,16 @@ export class Dispatcher {
   }
 
   /**
+   * Show a dialog that helps the user create a fork of
+   * their local repo.
+   */
+  public async showCreateForkDialog(
+    repository: RepositoryWithGitHubRepository
+  ): Promise<void> {
+    await this.appStore._showCreateforkDialog(repository)
+  }
+
+  /**
    * Register a new error handler.
    *
    * Error handlers are called in order starting with the most recently
@@ -1351,12 +1367,12 @@ export class Dispatcher {
    */
   public async relocateRepository(repository: Repository): Promise<void> {
     const window = remote.getCurrentWindow()
-    const directories = remote.dialog.showOpenDialog(window, {
+    const { filePaths } = await remote.dialog.showOpenDialog(window, {
       properties: ['openDirectory'],
     })
 
-    if (directories && directories.length > 0) {
-      const newPath = directories[0]
+    if (filePaths.length > 0) {
+      const newPath = filePaths[0]
       await this.updateRepositoryPath(repository, newPath)
     }
   }
@@ -1478,6 +1494,15 @@ export class Dispatcher {
   }
 
   /**
+   * Sets the user's preference for handling uncommitted changes when switching branches
+   */
+  public setUncommittedChangesStrategyKindSetting(
+    value: UncommittedChangesStrategyKind
+  ): Promise<void> {
+    return this.appStore._setUncommittedChangesStrategyKindSetting(value)
+  }
+
+  /**
    * Sets the user's preference for an external program to open repositories in.
    */
   public setExternalEditor(editor: ExternalEditor): Promise<void> {
@@ -1507,10 +1532,9 @@ export class Dispatcher {
     await this.appStore._refreshRepository(repository)
 
     const state = this.repositoryStateManager.get(repository)
+    const branches = state.branchesState.allBranches
 
     if (pr == null && branch != null) {
-      const branches = state.branchesState.allBranches
-
       // I don't want to invoke Git functionality from the dispatcher, which
       // would help by using getDefaultRemote here to get the definitive ref,
       // so this falls back to finding any remote branch matching the name
@@ -1532,8 +1556,18 @@ export class Dispatcher {
         shouldCheckoutBranch = tip.branch.nameWithoutRemote !== branch
       }
 
-      if (shouldCheckoutBranch) {
-        await this.checkoutBranch(repository, branch)
+      const localBranch = branches.find(b => b.nameWithoutRemote === branch)
+
+      // N.B: This looks weird, and it is. _checkoutBranch used
+      // to behave this way (silently ignoring checkout) when given
+      // a branch name string that does not correspond to a local branch
+      // in the git store. When rewriting _checkoutBranch
+      // to remove the support for string branch names the behavior
+      // was moved up to this method to not alter the current behavior.
+      //
+      // https://youtu.be/IjmtVKOAHPM
+      if (shouldCheckoutBranch && localBranch !== undefined) {
+        await this.checkoutBranch(repository, localBranch)
       }
     }
 
@@ -1686,11 +1720,6 @@ export class Dispatcher {
    */
   public refreshApiRepositories(account: Account) {
     return this.appStore._refreshApiRepositories(account)
-  }
-
-  /** Open the merge tool for the given file. */
-  public openMergeTool(repository: Repository, path: string): Promise<void> {
-    return this.appStore._openMergeTool(repository, path)
   }
 
   /** Change the selected Branches foldout tab. */
@@ -1863,6 +1892,17 @@ export class Dispatcher {
 
   public setConfirmForcePushSetting(value: boolean) {
     return this.appStore._setConfirmForcePushSetting(value)
+  }
+
+  /**
+   * Converts a local repository to use the given fork
+   * as its default remote and associated `GitHubRepository`.
+   */
+  public async convertRepositoryToFork(
+    repository: RepositoryWithGitHubRepository,
+    fork: IAPIRepository
+  ) {
+    await this.appStore._convertRepositoryToFork(repository, fork)
   }
 
   /**
@@ -2164,7 +2204,7 @@ export class Dispatcher {
    */
   public async moveChangesToBranchAndCheckout(
     repository: Repository,
-    branchToCheckout: string
+    branchToCheckout: Branch
   ) {
     return this.appStore._moveChangesToBranchAndCheckout(
       repository,
@@ -2196,15 +2236,23 @@ export class Dispatcher {
   }
 
   /**
-   * Onboarding tutorial has been started
+   * Increments the `forksCreated ` metric` indicating that the user has
+   * elected to create a fork when presented with a dialog informing
+   * them that they don't have write access to the current repository.
    */
-  public recordTutorialStarted() {
-    return this.statsStore.recordTutorialStarted()
+  public recordForkCreated() {
+    return this.statsStore.recordForkCreated()
   }
+
   /**
-   * Onboarding tutorial has been successfully created
+   * Create a tutorial repository using the given account. The account
+   * determines which host (i.e. GitHub.com or a GHES instance) that
+   * the tutorial repository should be created on.
+   *
+   * @param account The account (and thereby the GitHub host) under
+   *                which the repository is to be created created
    */
-  public recordTutorialRepoCreated() {
-    return this.statsStore.recordTutorialRepoCreated()
+  public createTutorialRepository(account: Account) {
+    return this.appStore._createTutorialRepository(account)
   }
 }
