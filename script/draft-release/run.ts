@@ -73,8 +73,7 @@ function printInstructions(nextVersion: string, entries: Array<string>) {
   if (entries.length === 0) {
     printSteps(baseSteps)
   } else {
-    const object: any = {}
-    object[nextVersion] = entries.sort()
+    const object = { [nextVersion]: entries.sort() }
     const steps = [
       `Concatenate this to the beginning of the 'releases' element in the changelog.json as a starting point:\n${format(
         JSON.stringify(object),
@@ -133,7 +132,7 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
     Please manually set it to ${nextVersion} in app/package.json.`)
   }
 
-  const currentChangelog = require(changelogPath)
+  const currentChangelog: IChangelog = require(changelogPath)
   // if it's a new production release, make sure we only include
   // entries since the latest production release
   const newEntries =
@@ -177,12 +176,16 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
  */
 function makeNewChangelog(
   nextVersion: string,
-  currentChangelog: { releases: Object },
+  currentChangelog: IChangelog,
   entries: ReadonlyArray<string>
-) {
-  const newChangelogEntries: any = {}
-  newChangelogEntries[nextVersion] = entries
+): IChangelog {
   return {
-    releases: { ...newChangelogEntries, ...currentChangelog.releases },
+    releases: { [nextVersion]: entries, ...currentChangelog.releases },
   }
+}
+
+type ChangelogReleases = { [key: string]: ReadonlyArray<string> }
+
+interface IChangelog {
+  releases: ChangelogReleases
 }
