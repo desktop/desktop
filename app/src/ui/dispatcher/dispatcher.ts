@@ -1410,10 +1410,12 @@ export class Dispatcher {
         repo instanceof Repository &&
         isRepositoryWithGitHubRepository(repo)
       ) {
-        const remotes = await this.appStore.getDefaultAndUpstreamRemotes(repo)
-        if (remotes.default && urlsMatch(remotes.default.url, url)) {
+        const defaultUrl = repo.gitHubRepository.htmlURL
+        const upstreamUrl =
+          repo.gitHubRepository.parent && repo.gitHubRepository.parent.htmlURL
+        if (defaultUrl && urlsMatch(defaultUrl, url)) {
           upstreams.push(repo)
-        } else if (remotes.upstream && urlsMatch(remotes.upstream.url, url)) {
+        } else if (upstreamUrl && urlsMatch(upstreamUrl, url)) {
           forks.push(repo)
         }
       }
