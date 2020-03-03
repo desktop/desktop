@@ -12,9 +12,6 @@ import {
   isConflictedFile,
   getResolvedFiles,
 } from '../../lib/status'
-
-import { ButtonGroup } from '../lib/button-group'
-import { Button } from '../lib/button'
 import {
   renderUnmergedFilesSummary,
   renderShellLink,
@@ -22,7 +19,12 @@ import {
 } from '../lib/conflicts/render-functions'
 import { renderUnmergedFile } from '../lib/conflicts/unmerged-file'
 
-import { DialogContent, Dialog, DialogFooter } from '../dialog'
+import {
+  DialogContent,
+  Dialog,
+  DialogFooter,
+  OkCancelButtonGroup,
+} from '../dialog'
 import { Dispatcher } from '../dispatcher'
 import { ShowConflictsStep } from '../../models/rebase-flow-step'
 
@@ -61,10 +63,6 @@ export class ShowConflictedFilesDialog extends React.Component<
     }
   }
 
-  public componentDidMount() {
-    this.props.dispatcher.resolveCurrentEditor()
-  }
-
   public componentWillUnmount() {
     const { workingDirectory, step, userHasResolvedConflicts } = this.props
     const { conflictState } = step
@@ -85,7 +83,8 @@ export class ShowConflictedFilesDialog extends React.Component<
     }
   }
 
-  private onCancel = async () => {
+  private onCancel = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
     this.setState({ isAborting: true })
 
     this.props.onAbortRebase(this.props.step)
@@ -191,28 +190,22 @@ export class ShowConflictedFilesDialog extends React.Component<
     return (
       <Dialog
         id="rebase-conflicts-list"
-        dismissable={true}
         onDismissed={this.onDismissed}
         title={headerTitle}
-        disableClickDismissalAlways={true}
         onSubmit={this.onSubmit}
       >
         <DialogContent>
           {this.renderContent(unmergedFiles, conflictedFilesCount)}
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup>
-            <Button
-              type="submit"
-              disabled={conflictedFilesCount > 0}
-              tooltip={tooltipString}
-            >
-              Continue rebase
-            </Button>
-            <Button onClick={this.onCancel} disabled={this.state.isAborting}>
-              Abort rebase
-            </Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            okButtonText={__DARWIN__ ? 'Continue Rebase' : 'Continue rebase'}
+            okButtonDisabled={conflictedFilesCount > 0}
+            okButtonTitle={tooltipString}
+            cancelButtonText={__DARWIN__ ? 'Abort Rebase' : 'Abort rebase'}
+            cancelButtonDisabled={this.state.isAborting}
+            onCancelButtonClick={this.onCancel}
+          />
         </DialogFooter>
       </Dialog>
     )

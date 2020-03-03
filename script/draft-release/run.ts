@@ -12,6 +12,13 @@ import { getNextVersionNumber } from './version'
 
 const jsonStringify: (obj: any) => string = require('json-pretty')
 
+/**
+ * Returns the latest release tag, according to git and semver
+ * (ignores test releases)
+ *
+ * @param options there's only one option `excludeBetaReleases`,
+ *                which is a boolean
+ */
 async function getLatestRelease(options: {
   excludeBetaReleases: boolean
 }): Promise<string> {
@@ -19,11 +26,11 @@ async function getLatestRelease(options: {
   let releaseTags = allTags
     .split('\n')
     .filter(tag => tag.startsWith('release-'))
-    .filter(tag => tag.indexOf('-linux') === -1)
-    .filter(tag => tag.indexOf('-test') === -1)
+    .filter(tag => !tag.includes('-linux'))
+    .filter(tag => !tag.includes('-test'))
 
   if (options.excludeBetaReleases) {
-    releaseTags = releaseTags.filter(tag => tag.indexOf('-beta') === -1)
+    releaseTags = releaseTags.filter(tag => !tag.includes('-beta'))
   }
 
   const releaseVersions = releaseTags.map(tag => tag.substr(8))
@@ -34,6 +41,7 @@ async function getLatestRelease(options: {
   return latestTag instanceof SemVer ? latestTag.raw : latestTag
 }
 
+/** Converts a string to Channel type if possible */
 function parseChannel(arg: string): Channel {
   if (arg === 'production' || arg === 'beta' || arg === 'test') {
     return arg
@@ -42,19 +50,22 @@ function parseChannel(arg: string): Channel {
   throw new Error(`An invalid channel ${arg} has been provided`)
 }
 
+/**
+ * Prints out next steps to the console
+ *
+ * @param nextVersion version for the next release
+ * @param entries release notes for the next release
+ */
 function printInstructions(nextVersion: string, entries: Array<string>) {
   const object: any = {}
-  object[`${nextVersion}`] = entries.sort()
+  object[nextVersion] = entries.sort()
 
   const steps = [
     `Update the app/package.json 'version' to '${nextVersion}' (make sure this aligns with semver format of 'major.minor.patch')`,
     `Concatenate this to the beginning of the 'releases' element in the changelog.json as a starting point:\n${jsonStringify(
       object
     )}\n`,
-    `Remove any entries of contributions that don't affect the end user`,
-    'Update the release notes to have user-friendly summary lines',
-    'For issues prefixed with [???], look at the PR to update the prefix to one of: [New], [Added], [Fixed], [Improved], [Removed]',
-    'Sort the entries so that the prefixes are ordered in this way: [New], [Added], [Fixed], [Improved], [Removed]',
+    'Revise the release notes according to https://github.com/desktop/desktop/blob/development/docs/process/writing-release-notes.md',
     'Commit the changes (on development or as new branch) and push them to GitHub',
     'Read this to perform the release: https://github.com/desktop/desktop/blob/development/docs/process/releasing-updates.md',
   ]
@@ -70,7 +81,6 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
       `There are uncommitted changes in the working directory. Aborting...`
     )
   }
-
   if (args.length === 0) {
     throw new Error(
       `You have not specified a channel to draft this release for. Choose one of 'production' or 'beta'`
@@ -86,6 +96,7 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   const noChangesFound = lines.every(l => l.trim().length === 0)
 
   if (noChangesFound) {
+    // print instructions with no changelog included
     printInstructions(nextVersion, [])
   } else {
     const changelogEntries = await convertToChangelogFormat(lines)
@@ -93,6 +104,7 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
     console.log("Here's what you should do next:\n")
 
     if (channel === 'production') {
+      // make sure we only include entries since the latest production release
       const existingChangelog = getChangelogEntriesSince(previousVersion)
       const entries = [...existingChangelog]
       printInstructions(nextVersion, entries)

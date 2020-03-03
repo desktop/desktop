@@ -6,7 +6,6 @@
     "tslint-rules/"
   ],
   "rules": {
-    "button-group-order": true,
     "class-name": true,
     "jsdoc-format": true,
     "member-ordering": [

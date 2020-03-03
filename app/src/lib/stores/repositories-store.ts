@@ -5,15 +5,20 @@ import {
   IDatabaseProtectedBranch,
 } from '../databases/repositories-database'
 import { Owner } from '../../models/owner'
-import { GitHubRepository } from '../../models/github-repository'
+import {
+  GitHubRepository,
+  GitHubRepositoryPermission,
+} from '../../models/github-repository'
 import { Repository } from '../../models/repository'
 import { fatalError } from '../fatal-error'
-import { IAPIRepository, IAPIBranch } from '../api'
-import { BaseStore } from './base-store'
+import { IAPIRepository, IAPIBranch, IAPIRepositoryPermissions } from '../api'
+import { TypedBaseStore } from './base-store'
 import { enableBranchProtectionChecks } from '../feature-flag'
 
 /** The store for local repositories. */
-export class RepositoriesStore extends BaseStore {
+export class RepositoriesStore extends TypedBaseStore<
+  ReadonlyArray<Repository>
+> {
   private db: RepositoriesDatabase
 
   // Key-repo ID, Value-date
@@ -69,7 +74,7 @@ export class RepositoriesStore extends BaseStore {
     const owner = await this.db.owners.get(dbRepo.ownerID)
 
     if (owner == null) {
-      throw new Error(`Couldn't find the owner for ${dbRepo.name}`)
+      throw new Error(`Couldn't find repository owner ${dbRepo.ownerID}`)
     }
 
     let parent: GitHubRepository | null = null
@@ -85,6 +90,7 @@ export class RepositoriesStore extends BaseStore {
       dbRepo.htmlURL,
       dbRepo.defaultBranch,
       dbRepo.cloneURL,
+      dbRepo.permissions,
       parent
     )
   }
@@ -124,7 +130,8 @@ export class RepositoriesStore extends BaseStore {
             repo.path,
             repo.id!,
             gitHubRepository,
-            repo.missing
+            repo.missing,
+            repo.isTutorialRepository
           )
           inflatedRepos.push(inflatedRepo)
         }
@@ -132,6 +139,53 @@ export class RepositoriesStore extends BaseStore {
         return inflatedRepos
       }
     )
+  }
+
+  /**
+   * Add a tutorial repository.
+   *
+   * This method differs from the `addRepository` method in that it
+   * requires that the repository has been created on the remote and
+   * set up to track it. Given that tutorial repositories are created
+   * from the no-repositories blank slate it shouldn't be possible for
+   * another repository with the same path to exist but in case that
+   * changes in the future this method will set the tutorial flag on
+   * the existing repository at the given path.
+   */
+  public async addTutorialRepository(
+    path: string,
+    endpoint: string,
+    apiRepository: IAPIRepository
+  ) {
+    await this.db.transaction(
+      'rw',
+      this.db.repositories,
+      this.db.gitHubRepositories,
+      this.db.owners,
+      async () => {
+        const gitHubRepository = await this.upsertGitHubRepository(
+          endpoint,
+          apiRepository
+        )
+
+        const existingRepo = await this.db.repositories.get({ path })
+        const existingRepoId =
+          existingRepo && existingRepo.id !== null ? existingRepo.id : undefined
+
+        return await this.db.repositories.put(
+          {
+            path,
+            gitHubRepositoryID: gitHubRepository.dbID,
+            missing: false,
+            lastStashCheckDate: null,
+            isTutorialRepository: true,
+          },
+          existingRepoId
+        )
+      }
+    )
+
+    this.emitUpdatedRepositories()
   }
 
   /**
@@ -172,7 +226,7 @@ export class RepositoriesStore extends BaseStore {
       }
     )
 
-    this.emitUpdate()
+    this.emitUpdatedRepositories()
 
     return repository
   }
@@ -181,7 +235,7 @@ export class RepositoriesStore extends BaseStore {
   public async removeRepository(repoID: number): Promise<void> {
     await this.db.repositories.delete(repoID)
 
-    this.emitUpdate()
+    this.emitUpdatedRepositories()
   }
 
   /** Update the repository's `missing` flag. */
@@ -196,28 +250,16 @@ export class RepositoriesStore extends BaseStore {
       )
     }
 
-    const gitHubRepositoryID = repository.gitHubRepository
-      ? repository.gitHubRepository.dbID
-      : null
-    const oldRecord = await this.db.repositories.get(repoID)
-    const lastStashCheckDate =
-      oldRecord !== undefined ? oldRecord.lastStashCheckDate : null
+    await this.db.repositories.update(repoID, { missing })
 
-    await this.db.repositories.put({
-      id: repository.id,
-      path: repository.path,
-      missing,
-      gitHubRepositoryID,
-      lastStashCheckDate,
-    })
-
-    this.emitUpdate()
+    this.emitUpdatedRepositories()
 
     return new Repository(
       repository.path,
       repository.id,
       repository.gitHubRepository,
-      missing
+      missing,
+      repository.isTutorialRepository
     )
   }
 
@@ -233,28 +275,19 @@ export class RepositoriesStore extends BaseStore {
       )
     }
 
-    const gitHubRepositoryID = repository.gitHubRepository
-      ? repository.gitHubRepository.dbID
-      : null
-    const oldRecord = await this.db.repositories.get(repoID)
-    const lastStashCheckDate =
-      oldRecord !== undefined ? oldRecord.lastStashCheckDate : null
-
-    await this.db.repositories.put({
-      id: repository.id,
+    await this.db.repositories.update(repoID, {
       missing: false,
       path,
-      gitHubRepositoryID,
-      lastStashCheckDate,
     })
 
-    this.emitUpdate()
+    this.emitUpdatedRepositories()
 
     return new Repository(
       path,
       repository.id,
       repository.gitHubRepository,
-      false
+      false,
+      repository.isTutorialRepository
     )
   }
 
@@ -282,7 +315,7 @@ export class RepositoriesStore extends BaseStore {
 
     this.lastStashCheckCache.set(repoID, date)
 
-    this.emitUpdate()
+    // this update doesn't affect the list (or its items) we emit from this store, so no need to `emitUpdatedRepositories`
   }
 
   /**
@@ -357,6 +390,21 @@ export class RepositoriesStore extends BaseStore {
       .equals([owner.id!, gitHubRepository.name])
       .first()
 
+    // If we can't resolve permissions for the current repository
+    // chances are that it's because it's the parent repository of
+    // another repository and we ended up here because the "actual"
+    // repository is trying to upsert its parent. Since parent
+    // repository hashes don't include a permissions hash and since
+    // it's possible that the user has both the fork and the parent
+    // repositories in the app we don't want to overwrite the permissions
+    // hash in the parent repository if we can help it or else we'll
+    // end up in a perpetual race condition where updating the fork
+    // will clear the permissions on the parent and updating the parent
+    // will reinstate them.
+    const permissions =
+      getPermissionsString(gitHubRepository.permissions) ||
+      (existingRepo ? existingRepo.permissions : undefined)
+
     let updatedGitHubRepo: IDatabaseGitHubRepository = {
       ownerID: owner.id!,
       name: gitHubRepository.name,
@@ -366,6 +414,7 @@ export class RepositoriesStore extends BaseStore {
       cloneURL: gitHubRepository.clone_url,
       parentID: parent ? parent.dbID : null,
       lastPruneDate: null,
+      permissions,
     }
     if (existingRepo) {
       updatedGitHubRepo = { ...updatedGitHubRepo, id: existingRepo.id }
@@ -380,6 +429,7 @@ export class RepositoriesStore extends BaseStore {
       updatedGitHubRepo.htmlURL,
       updatedGitHubRepo.defaultBranch,
       updatedGitHubRepo.cloneURL,
+      updatedGitHubRepo.permissions,
       parent
     )
   }
@@ -417,13 +467,14 @@ export class RepositoriesStore extends BaseStore {
       }
     )
 
-    this.emitUpdate()
+    this.emitUpdatedRepositories()
 
     return new Repository(
       repository.path,
       repository.id,
       updatedGitHubRepo,
-      repository.missing
+      repository.missing,
+      repository.isTutorialRepository
     )
   }
 
@@ -487,7 +538,7 @@ export class RepositoriesStore extends BaseStore {
       }
     })
 
-    this.emitUpdate()
+    // this update doesn't affect the list (or its items) we emit from this store, so no need to `emitUpdatedRepositories`
   }
 
   /**
@@ -525,7 +576,7 @@ export class RepositoriesStore extends BaseStore {
       lastPruneDate: date,
     })
 
-    this.emitUpdate()
+    // this update doesn't affect the list (or its items) we emit from this store, so no need to `emitUpdatedRepositories`
   }
 
   public async getLastPruneDate(
@@ -612,38 +663,11 @@ export class RepositoriesStore extends BaseStore {
   }
 
   /**
-   * Check if the given branch for the repository is protected through the
-   * GitHub API.
+   * Helper method to emit updates consistently
+   * (This is the only way we emit updates from this store.)
    */
-  public async isBranchProtectedOnRemote(
-    gitHubRepository: GitHubRepository,
-    branchName: string
-  ): Promise<boolean> {
-    if (gitHubRepository.dbID === null) {
-      return fatalError(
-        'unable to get protected branches, GitHub repository has a null dbID'
-      )
-    }
-
-    const { dbID } = gitHubRepository
-    const key = getKey(dbID, branchName)
-
-    const cachedProtectionValue = this.protectionEnabledForBranchCache.get(key)
-    if (cachedProtectionValue === true) {
-      return cachedProtectionValue
-    }
-
-    const databaseValue = await this.db.protectedBranches.get([
-      dbID,
-      branchName,
-    ])
-
-    // if no row found, this means no protection is found for the branch
-    const value = databaseValue !== undefined
-
-    this.protectionEnabledForBranchCache.set(key, value)
-
-    return value
+  private async emitUpdatedRepositories() {
+    this.emitUpdate(await this.getAll())
   }
 }
 
@@ -655,4 +679,20 @@ function getKey(dbID: number, branchName: string) {
 /** Compute the key prefix for the branch protection cache */
 function getKeyPrefix(dbID: number) {
   return `${dbID}-`
+}
+
+function getPermissionsString(
+  permissions: IAPIRepositoryPermissions | undefined
+): GitHubRepositoryPermission {
+  if (!permissions) {
+    return null
+  } else if (permissions.admin) {
+    return 'admin'
+  } else if (permissions.push) {
+    return 'write'
+  } else if (permissions.pull) {
+    return 'read'
+  } else {
+    return null
+  }
 }

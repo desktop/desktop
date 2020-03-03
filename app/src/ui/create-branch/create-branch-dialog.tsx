@@ -7,9 +7,7 @@ import { Branch, StartPoint } from '../../models/branch'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Ref } from '../lib/ref'
-import { Button } from '../lib/button'
 import { LinkButton } from '../lib/link-button'
-import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
 import { VerticalSegmentedControl } from '../lib/vertical-segmented-control'
 import {
@@ -24,11 +22,11 @@ import {
   renderBranchNameExistsOnRemoteWarning,
 } from '../lib/branch-name-warnings'
 import { getStartPoint } from '../../lib/create-branch'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { startTimer } from '../lib/timing'
 import {
   UncommittedChangesStrategy,
   UncommittedChangesStrategyKind,
-  askToStash,
 } from '../../models/uncommitted-changes-strategy'
 
 interface ICreateBranchProps {
@@ -39,9 +37,8 @@ interface ICreateBranchProps {
   readonly defaultBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
   readonly initialName: string
-
-  /** Was this component launched from the "Protected Branch" warning message? */
-  readonly handleProtectedBranchWarning?: boolean
+  readonly currentBranchProtected: boolean
+  readonly selectedUncommittedChangesStrategy: UncommittedChangesStrategy
 }
 
 interface ICreateBranchState {
@@ -175,7 +172,7 @@ export class CreateBranch extends React.Component<
           {
             title: currentBranch.name,
             description:
-              'The currently checked out branch. Pick this if you need to build on work done in this branch.',
+              'The currently checked out branch. Pick this if you need to build on work done on this branch.',
           },
         ]
 
@@ -250,12 +247,10 @@ export class CreateBranch extends React.Component<
         </DialogContent>
 
         <DialogFooter>
-          <ButtonGroup>
-            <Button type="submit" disabled={disabled}>
-              {__DARWIN__ ? 'Create Branch' : 'Create branch'}
-            </Button>
-            <Button onClick={this.props.onDismissed}>Cancel</Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            okButtonText={__DARWIN__ ? 'Create Branch' : 'Create branch'}
+            okButtonDisabled={disabled}
+          />
         </DialogFooter>
       </Dialog>
     )
@@ -286,11 +281,7 @@ export class CreateBranch extends React.Component<
 
     let startPoint: string | null = null
 
-    const {
-      defaultBranch,
-      handleProtectedBranchWarning,
-      repository,
-    } = this.props
+    const { defaultBranch, currentBranchProtected, repository } = this.props
 
     if (this.state.startPoint === StartPoint.DefaultBranch) {
       // This really shouldn't happen, we take all kinds of precautions
@@ -306,14 +297,13 @@ export class CreateBranch extends React.Component<
     }
 
     if (name.length > 0) {
-      // if the user arrived at this dialog from the Protected Branch flow
-      // we should bypass the "Switch Branch" flow and get out of the user's way
-      const strategy: UncommittedChangesStrategy = handleProtectedBranchWarning
+      // never prompt to stash changes if someone is switching away from a protected branch
+      const strategy: UncommittedChangesStrategy = currentBranchProtected
         ? {
             kind: UncommittedChangesStrategyKind.MoveToNewBranch,
             transientStashEntry: null,
           }
-        : askToStash
+        : this.props.selectedUncommittedChangesStrategy
 
       this.setState({ isCreatingBranch: true })
       const timer = startTimer('create branch', repository)

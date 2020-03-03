@@ -98,7 +98,7 @@ export class UiActivityMonitor implements IUiActivityMonitor {
     this.emit('keyboard')
   }
 
-  private onMenuEvent = (event: Electron.IpcMessageEvent) => {
+  private onMenuEvent = (event: Electron.IpcRendererEvent) => {
     this.emit('menu')
   }
 }

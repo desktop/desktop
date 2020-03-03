@@ -14,6 +14,8 @@ import { uuid } from './uuid'
 import { getAvatarWithEnterpriseFallback } from './gravatar'
 import { getDefaultEmail } from './email'
 
+const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
+
 /**
  * Optional set of configurable settings for the fetchAll method
  */
@@ -71,8 +73,14 @@ if (!ClientID || !ClientID.length || !ClientSecret || !ClientSecret.length) {
 
 type GitHubAccountType = 'User' | 'Organization'
 
-/** The OAuth scopes we need. */
-const Scopes = ['repo', 'user']
+/** The OAuth scopes we want to request from GitHub.com. */
+const DotComOAuthScopes = ['repo', 'user', 'workflow']
+
+/**
+ * The OAuth scopes we want to request from GitHub
+ * Enterprise Server.
+ */
+const EnterpriseOAuthScopes = ['repo', 'user']
 
 enum HttpStatusCode {
   NotModified = 304,
@@ -95,7 +103,35 @@ export interface IAPIRepository {
   readonly fork: boolean
   readonly default_branch: string
   readonly pushed_at: string
-  readonly parent: IAPIRepository | null
+  readonly parent?: IAPIRepository
+
+  /**
+   * The high-level permissions that the currently authenticated
+   * user enjoys for the repository. Undefined if the API call
+   * was made without an authenticated user or if the repository
+   * isn't the primarily requested one (i.e. if this is the parent
+   * repository of the requested repository)
+   *
+   * The permissions hash will also be omitted when the repository
+   * information is embedded within another object such as a pull
+   * request (base.repo or head.repo).
+   *
+   * In other words, the only time when the permissions property
+   * will be present is when explicitly fetching the repository
+   * through the `/repos/user/name` endpoint or similar.
+   */
+  readonly permissions?: IAPIRepositoryPermissions
+}
+
+/*
+ * Information about how the user is permitted to interact with a repository.
+ */
+export interface IAPIRepositoryPermissions {
+  readonly admin: boolean
+  /* aka 'write' */
+  readonly push: boolean
+  /* aka 'read' */
+  readonly pull: boolean
 }
 
 /**
@@ -224,6 +260,42 @@ export interface IAPIRefStatus {
   readonly state: APIRefState
   readonly total_count: number
   readonly statuses: ReadonlyArray<IAPIRefStatusItem>
+}
+
+/** Protected branch information returned by the GitHub API */
+export interface IAPIPushControl {
+  /**
+   * What status checks are required before merging?
+   *
+   * Empty array if user is admin and branch is not admin-enforced
+   */
+  required_status_checks: Array<string>
+
+  /**
+   * How many reviews are required before merging?
+   *
+   * 0 if user is admin and branch is not admin-enforced
+   */
+  required_approving_review_count: number
+
+  /**
+   * Is user permitted?
+   *
+   * Always `true` for admins.
+   * `true` if `Restrict who can push` is not enabled.
+   * `true` if `Restrict who can push` is enabled and user is in list.
+   * `false` if `Restrict who can push` is enabled and user is not in list.
+   */
+  allow_actor: boolean
+
+  /**
+   * Currently unused properties
+   */
+  pattern: string | null
+  required_signatures: boolean
+  required_linear_history: boolean
+  allow_deletions: boolean
+  allow_force_pushes: boolean
 }
 
 /** Branch information returned by the GitHub API */
@@ -586,6 +658,26 @@ export class API {
     }
   }
 
+  /** Create a new GitHub fork of this repository (owner and name) */
+  public async forkRepository(
+    owner: string,
+    name: string
+  ): Promise<IAPIRepository> {
+    try {
+      const apiPath = `/repos/${owner}/${name}/forks`
+      const response = await this.request('POST', apiPath)
+      return await parsedResponse<IAPIRepository>(response)
+    } catch (e) {
+      log.error(
+        `forkRepository: failed to fork ${owner}/${name} at endpoint: ${
+          this.endpoint
+        }`,
+        e
+      )
+      throw e
+    }
+  }
+
   /**
    * Fetch the issues with the given state that have been created or updated
    * since the given date.
@@ -711,6 +803,45 @@ export class API {
     const path = `repos/${owner}/${name}/commits/${ref}/status`
     const response = await this.request('GET', path)
     return await parsedResponse<IAPIRefStatus>(response)
+  }
+
+  /**
+   * Get branch protection info to determine if a user can push to a given branch.
+   *
+   * Note: if request fails, the default returned value assumes full access for the user
+   */
+  public async fetchPushControl(
+    owner: string,
+    name: string,
+    branch: string
+  ): Promise<IAPIPushControl> {
+    const path = `repos/${owner}/${name}/branches/${encodeURIComponent(
+      branch
+    )}/push_control`
+
+    const headers: any = {
+      Accept: 'application/vnd.github.phandalin-preview',
+    }
+
+    try {
+      const response = await this.request('GET', path, undefined, headers)
+      return await parsedResponse<IAPIPushControl>(response)
+    } catch (err) {
+      log.info(
+        `[fetchPushControl] unable to check if branch is potentially pushable`,
+        err
+      )
+      return {
+        pattern: null,
+        required_signatures: false,
+        required_status_checks: [],
+        required_approving_review_count: 0,
+        required_linear_history: false,
+        allow_actor: true,
+        allow_deletions: true,
+        allow_force_pushes: true,
+      }
+    }
   }
 
   public async fetchProtectedBranches(
@@ -865,6 +996,11 @@ export enum AuthorizationResponseKind {
   PersonalAccessTokenBlocked,
   Error,
   EnterpriseTooOld,
+  /**
+   * The API has indicated that the user is required to go through
+   * the web authentication flow.
+   */
+  WebFlowRequired,
 }
 
 export type AuthorizationResponse =
@@ -878,6 +1014,7 @@ export type AuthorizationResponse =
   | { kind: AuthorizationResponseKind.UserRequiresVerification }
   | { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
   | { kind: AuthorizationResponseKind.EnterpriseTooOld }
+  | { kind: AuthorizationResponseKind.WebFlowRequired }
 
 /**
  * Create an authorization with the given login, password, and one-time
@@ -901,7 +1038,7 @@ export async function createAuthorization(
     'POST',
     'authorizations',
     {
-      scopes: Scopes,
+      scopes: getOAuthScopesForEndpoint(endpoint),
       client_id: ClientID,
       client_secret: ClientSecret,
       note: note,
@@ -958,6 +1095,8 @@ export async function createAuthorization(
       ) {
         // Authorization API does not support providing personal access tokens
         return { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
+      } else if (response.status === 410) {
+        return { kind: AuthorizationResponseKind.WebFlowRequired }
       } else if (response.status === 422) {
         if (apiError.errors) {
           for (const error of apiError.errors) {
@@ -1083,7 +1222,7 @@ export function getHTMLURL(endpoint: string): string {
   //  E.g., https://github.mycompany.com/api/v3 -> https://github.mycompany.com
   //
   // We need to normalize them.
-  if (endpoint === getDotComAPIEndpoint()) {
+  if (endpoint === getDotComAPIEndpoint() && !envEndpoint) {
     return 'https://github.com'
   } else {
     const parsed = URL.parse(endpoint)
@@ -1108,7 +1247,6 @@ export function getDotComAPIEndpoint(): string {
   // developing against a local version of GitHub the Website, and need to debug
   // the server-side interaction. For all other cases you should leave this
   // unset.
-  const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
   if (envEndpoint && envEndpoint.length > 0) {
     return envEndpoint
   }
@@ -1129,7 +1267,8 @@ export function getOAuthAuthorizationURL(
   state: string
 ): string {
   const urlBase = getHTMLURL(endpoint)
-  const scope = encodeURIComponent(Scopes.join(' '))
+  const scopes = getOAuthScopesForEndpoint(endpoint)
+  const scope = encodeURIComponent(scopes.join(' '))
   return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=${scope}&state=${state}`
 }
 
@@ -1156,4 +1295,10 @@ export async function requestOAuthToken(
     log.warn(`requestOAuthToken: failed with endpoint ${endpoint}`, e)
     return null
   }
+}
+
+function getOAuthScopesForEndpoint(endpoint: string) {
+  return endpoint === getDotComAPIEndpoint()
+    ? DotComOAuthScopes
+    : EnterpriseOAuthScopes
 }

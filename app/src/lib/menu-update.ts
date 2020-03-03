@@ -247,6 +247,10 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
 
     menuStateBuilder.setEnabled('view-repository-on-github', isHostedOnGitHub)
     menuStateBuilder.setEnabled(
+      'create-issue-in-repository-on-github',
+      isHostedOnGitHub
+    )
+    menuStateBuilder.setEnabled(
       'create-pull-request',
       isHostedOnGitHub && !branchIsUnborn && !onDetachedHead
     )

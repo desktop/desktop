@@ -12,6 +12,11 @@ import { Form } from '../lib/form'
 import { Button } from '../lib/button'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
+import {
+  isConfigFileLockError,
+  parseConfigLockFilePathFromError,
+} from '../../lib/git'
+import { ConfigLockFileExists } from './config-lock-file-exists'
 
 interface IConfigureGitUserProps {
   /** The logged-in accounts. */
@@ -25,9 +30,21 @@ interface IConfigureGitUserProps {
 }
 
 interface IConfigureGitUserState {
+  readonly globalUserName: string | null
+  readonly globalUserEmail: string | null
+
   readonly name: string
   readonly email: string
   readonly avatarURL: string | null
+
+  /**
+   * If unable to save Git configuration values (name, email)
+   * due to an existing configuration lock file this property
+   * will contain the (fully qualified) path to said lock file
+   * such that an error may be presented and the user given a
+   * choice to delete the lock file.
+   */
+  readonly existingLockFilePath?: string
 }
 
 /**
@@ -39,30 +56,86 @@ export class ConfigureGitUser extends React.Component<
   IConfigureGitUserProps,
   IConfigureGitUserState
 > {
+  private readonly globalUsernamePromise = getGlobalConfigValue('user.name')
+  private readonly globalEmailPromise = getGlobalConfigValue('user.email')
+
   public constructor(props: IConfigureGitUserProps) {
     super(props)
 
-    this.state = { name: '', email: '', avatarURL: null }
+    this.state = {
+      globalUserName: null,
+      globalUserEmail: null,
+      name: '',
+      email: '',
+      avatarURL: null,
+    }
   }
 
-  public async componentWillMount() {
-    let name = await getGlobalConfigValue('user.name')
-    let email = await getGlobalConfigValue('user.email')
+  public async componentDidMount() {
+    // Capture the current accounts prop because we'll be
+    // doing a bunch of asynchronous stuff and we can't
+    // rely on this.props.account to tell us what that prop
+    // was at mount-time.
+    const accounts = this.props.accounts
 
-    const user = this.props.accounts[0]
-    if ((!name || !name.length) && user) {
-      name = user.name && user.name.length ? user.name : user.login
-    }
+    const [globalUserName, globalUserEmail] = await Promise.all([
+      this.globalUsernamePromise,
+      this.globalEmailPromise,
+    ])
 
-    if ((!email || !email.length) && user) {
-      const found = lookupPreferredEmail(user.emails)
-      if (found) {
-        email = found.email
+    this.setState(
+      prevState => ({
+        globalUserName,
+        globalUserEmail,
+        name:
+          prevState.name.length === 0 ? globalUserName || '' : prevState.name,
+        email:
+          prevState.email.length === 0
+            ? globalUserEmail || ''
+            : prevState.email,
+      }),
+      () => {
+        // Chances are low that we actually have an account at mount-time
+        // the way things are designed now but in case the app changes around
+        // us and we do get passed an account at mount time in the future we
+        // want to make sure that not only was it passed at mount time but also
+        // that it hasn't been changed since (if it has been then
+        // componentDidUpdate would be responsible for handling it).
+        if (accounts === this.props.accounts && accounts.length > 0) {
+          this.setDefaultValuesFromAccount(accounts[0])
+        }
+      }
+    )
+  }
+
+  public componentDidUpdate(prevProps: IConfigureGitUserProps) {
+    if (
+      this.props.accounts !== prevProps.accounts &&
+      this.props.accounts.length > 0
+    ) {
+      if (this.props.accounts[0] !== prevProps.accounts[0]) {
+        const account = this.props.accounts[0]
+        this.setDefaultValuesFromAccount(account)
       }
     }
+  }
 
-    const avatarURL = email ? this.avatarURLForEmail(email) : null
-    this.setState({ name: name || '', email: email || '', avatarURL })
+  private setDefaultValuesFromAccount(account: Account) {
+    if (this.state.name.length === 0) {
+      this.setState({
+        name: account.name || account.login,
+      })
+    }
+
+    if (this.state.email.length === 0) {
+      const preferredEmail = lookupPreferredEmail(account)
+      if (preferredEmail) {
+        this.setState({
+          email: preferredEmail.email,
+          avatarURL: this.avatarURLForEmail(preferredEmail.email),
+        })
+      }
+    }
   }
 
   private dateWithMinuteOffset(date: Date, minuteOffset: number): Date {
@@ -94,8 +167,20 @@ export class ConfigureGitUser extends React.Component<
       []
     )
     const emoji = new Map()
+
+    const error =
+      this.state.existingLockFilePath !== undefined ? (
+        <ConfigLockFileExists
+          lockFilePath={this.state.existingLockFilePath}
+          onLockFileDeleted={this.onLockFileDeleted}
+          onError={this.onLockFileDeleteError}
+        />
+      ) : null
+
     return (
       <div id="configure-git-user">
+        {error}
+
         <Form className="sign-in-form" onSubmit={this.save}>
           <TextBox
             label="Name"
@@ -132,6 +217,15 @@ export class ConfigureGitUser extends React.Component<
     )
   }
 
+  private onLockFileDeleted = () => {
+    this.setState({ existingLockFilePath: undefined })
+  }
+
+  private onLockFileDeleteError = (e: Error) => {
+    log.error('Failed to unlink config lock file', e)
+    this.setState({ existingLockFilePath: undefined })
+  }
+
   private onNameChange = (name: string) => {
     this.setState({
       name,
@@ -156,18 +250,29 @@ export class ConfigureGitUser extends React.Component<
   }
 
   private save = async () => {
+    const { name, email, globalUserName, globalUserEmail } = this.state
+
+    try {
+      if (name.length > 0 && name !== globalUserName) {
+        await setGlobalConfigValue('user.name', name)
+      }
+
+      if (email.length > 0 && email !== globalUserEmail) {
+        await setGlobalConfigValue('user.email', email)
+      }
+    } catch (e) {
+      if (isConfigFileLockError(e)) {
+        const lockFilePath = parseConfigLockFilePathFromError(e.result)
+
+        if (lockFilePath !== null) {
+          this.setState({ existingLockFilePath: lockFilePath })
+          return
+        }
+      }
+    }
+
     if (this.props.onSave) {
       this.props.onSave()
-    }
-
-    const name = this.state.name
-    if (name.length) {
-      await setGlobalConfigValue('user.name', name)
-    }
-
-    const email = this.state.email
-    if (email.length) {
-      await setGlobalConfigValue('user.email', email)
     }
   }
 }

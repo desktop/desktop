@@ -39,6 +39,12 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --secondary-button-focus-shadow-color: #{rgba($gray-200, 0.75)};
   --secondary-button-focus-border-color: #{$gray-300};
 
+  /**
+   * Color for icons that are placed on top of a colored backing
+   * (like a circle badge icon)
+   */
+  --badge-icon-color: #{$white};
+
   // Typography
   //
   // Font, line-height, and color for body text, headings, and more.
@@ -184,6 +190,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --spacing-double: calc(var(--spacing) * 2);
   --spacing-triple: calc(var(--spacing) * 3);
   --spacing-quad: calc(var(--spacing) * 4);
+  --spacing-quint: calc(var(--spacing) * 5);
   --spacing-half: calc(var(--spacing) / 2);
   --spacing-third: calc(var(--spacing) / 3);
 
@@ -275,9 +282,15 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * codemirror is all over the place with their z-indexes and uses at least
    * 0-6.
    */
-  --popup-z-index: 10;
+  --popup-z-index: 20;
   --popup-overlay-z-index: calc(var(--popup-z-index) - 1);
   --foldout-z-index: calc(var(--popup-z-index) - 2);
+  --nudge-arrow-z-index: calc(var(--popup-z-index) - 3);
+  /**
+   * This is 7 to make sure it appears on top code mirror
+   * but behind popups, overlays, and foldouts 
+   */
+  --side-panel-z-index: calc(var(--popup-z-index) - 4);
 
   /**
    * Toast notifications are shown temporarily for things like the zoom
@@ -302,8 +315,9 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   /**
    * Blankslate actions, see `BlankslateAction` component.
    */
-  --primary-blankslate-action-background: #{$blue-000};
-  --primary-blankslate-action-border-color: #{$blue-200};
+  --primary-suggested-action-background: #{$blue-000};
+  --primary-suggested-action-border-color: #{$blue-200};
+  --suggested-action-icon-color: #{$blue-400};
 
   /**
    * Diff view

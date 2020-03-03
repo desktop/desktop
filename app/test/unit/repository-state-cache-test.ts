@@ -11,7 +11,7 @@ import { DiffSelection, DiffSelectionType } from '../../src/models/diff'
 import { HistoryTabMode, IDisplayHistory } from '../../src/lib/app-state'
 import { IGitHubUser } from '../../src/lib/databases'
 
-function createSampleGitHubRepository() {
+function createSampleGitHubRepository(): GitHubRepository {
   return {
     dbID: 1,
     name: 'desktop',
@@ -23,13 +23,14 @@ function createSampleGitHubRepository() {
     },
     endpoint: 'https://api.github.com',
     fullName: 'shiftkey/some-repo',
-    private: false,
+    isPrivate: false,
     fork: false,
     cloneURL: 'https://github.com/desktop/desktop.git',
     htmlURL: 'https://github.com/desktop/desktop',
     defaultBranch: 'master',
     hash: '',
     parent: null,
+    permissions: 'write',
   }
 }
 

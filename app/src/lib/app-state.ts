@@ -38,6 +38,8 @@ import { Banner } from '../models/banner'
 import { GitRebaseProgress } from '../models/rebase'
 import { RebaseFlowStep } from '../models/rebase-flow-step'
 import { IStashEntry } from '../models/stash-entry'
+import { TutorialStep } from '../models/tutorial-step'
+import { UncommittedChangesStrategyKind } from '../models/uncommitted-changes-strategy'
 
 export enum SelectionType {
   Repository,
@@ -155,9 +157,6 @@ export interface IAppState {
   /** The width of the files list in the stash view */
   readonly stashedFilesWidth: number
 
-  /** Whether we should hide the toolbar (and show inverted window controls) */
-  readonly titleBarStyle: 'light' | 'dark'
-
   /**
    * Used to highlight access keys throughout the app when the
    * Alt key is pressed. Only applicable on non-macOS platforms.
@@ -176,8 +175,11 @@ export interface IAppState {
   /** Should the app prompt the user to confirm a force push? */
   readonly askForConfirmationOnForcePush: boolean
 
+  /** How the app should handle uncommitted changes when switching branches */
+  readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
+
   /** The external editor to use when opening repositories */
-  readonly selectedExternalEditor?: ExternalEditor
+  readonly selectedExternalEditor: ExternalEditor | null
 
   /** The current setting for whether the user has disable usage reports */
   readonly optOutOfUsageTracking: boolean
@@ -230,6 +232,9 @@ export interface IAppState {
    * See the ApiRepositoriesStore for more details on loading repositories
    */
   readonly apiRepositories: ReadonlyMap<Account, IAccountRepositories>
+
+  /** Which step the user is on in the Onboarding Tutorial */
+  readonly currentOnboardingTutorialStep: TutorialStep
 }
 
 export enum FoldoutType {
@@ -261,12 +266,6 @@ export type AppMenuFoldout = {
 
 export type BranchFoldout = {
   type: FoldoutType.Branch
-
-  /**
-   * A flag to indicate the user clicked the "switch branch" link when they
-   * saw the prompt about the current branch being protected.
-   */
-  handleProtectedBranchWarning?: boolean
 }
 
 export type Foldout =
