@@ -2,11 +2,11 @@ import { Repository } from '../../../models/repository'
 import { IAPIRepository } from '../../api'
 import { GitStore } from '../git-store'
 
-export const updateRemoteUrl = async (
+export async function updateRemoteUrl(
   gitStore: GitStore,
   repository: Repository,
   apiRepo: IAPIRepository
-): Promise<void> => {
+): Promise<void> {
   // I'm not sure when these early exit conditions would be met. But when they are
   // we don't have enough information to continue so exit early!
   if (!gitStore.currentRemote) {
