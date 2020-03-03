@@ -1,6 +1,7 @@
 import { Repository } from '../../../models/repository'
 import { IAPIRepository } from '../../api'
 import { GitStore } from '../git-store'
+import * as URL from 'url'
 
 export async function updateRemoteUrl(
   gitStore: GitStore,
@@ -18,12 +19,14 @@ export async function updateRemoteUrl(
 
   const remoteUrl = gitStore.currentRemote.url
   const updatedRemoteUrl = apiRepo.clone_url
-  const isProtocolHttps = remoteUrl && remoteUrl.startsWith('https://')
+  const protocolEquals =
+    URL.parse(remoteUrl).protocol === URL.parse(updatedRemoteUrl).protocol
+
   const usingDefaultRemote =
     gitStore.defaultRemote &&
     gitStore.defaultRemote.url === repository.gitHubRepository.cloneURL
 
-  if (isProtocolHttps && usingDefaultRemote && remoteUrl !== updatedRemoteUrl) {
+  if (protocolEquals && usingDefaultRemote && remoteUrl !== updatedRemoteUrl) {
     await gitStore.setRemoteURL(gitStore.currentRemote.name, updatedRemoteUrl)
   }
 }
