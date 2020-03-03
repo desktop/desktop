@@ -18,7 +18,11 @@ describe('repository list grouping', () => {
     new Repository(
       'repo3',
       3,
-      gitHubRepoFixture({ owner: '', name: 'my-repo3', endpoint: '' }),
+      gitHubRepoFixture({
+        owner: '',
+        name: 'my-repo3',
+        endpoint: 'github.big-corp.com',
+      }),
       false
     ),
   ]
