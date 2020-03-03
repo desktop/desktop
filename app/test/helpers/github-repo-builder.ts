@@ -40,6 +40,9 @@ export function gitHubRepoFixture({
   endpoint,
   isPrivate,
 }: IGitHubRepoFixtureOptions): GitHubRepository {
+  const htmlUrl = `${
+    endpoint !== undefined ? endpoint : 'https://github.com'
+  }/${owner}/${name}`
   return new GitHubRepository(
     name,
     new Owner(
@@ -49,13 +52,9 @@ export function gitHubRepoFixture({
     ),
     id_counter++,
     isPrivate !== undefined ? isPrivate : null,
-    endpoint !== undefined
-      ? `${endpoint}/${owner}/${name}`
-      : `https://github.com/${owner}/${name}`,
+    htmlUrl,
     defaultBranch || 'master',
-    endpoint !== undefined
-      ? `${endpoint}/${owner}/${name}.git`
-      : `https://github.com/${owner}/${name}.git`,
+    `${htmlUrl}.git`,
     null,
     parent
   )
