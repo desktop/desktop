@@ -1071,10 +1071,6 @@ export class GitStore extends BaseStore {
     this.emitUpdate()
   }
 
-  public remotesLoaded() {
-    return this._remotes !== null
-  }
-
   private initializeRemotes() {
     return {
       _defaultRemote: null,
