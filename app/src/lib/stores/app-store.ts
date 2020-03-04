@@ -3495,13 +3495,51 @@ export class AppStore extends TypedBaseStore<IAppState> {
           repository,
         }
 
+        // This is most likely not necessary and is only here out of
+        // an abundance of caution. We're introducing support for
+        // automatically configuring Git proxies based on system
+        // proxy settings and therefore need to pass along the remote
+        // url to functions such as push, pull, fetch etc.
+        //
+        // Prior to this we relied primarily on the `branch.remote`
+        // property and used the `remote.name` as a fallback in case the
+        // branch object didn't have a remote name (i.e. if it's not
+        // published yet).
+        //
+        // The remote.name is derived from the current tip first and falls
+        // back to using the defaultRemote if the current tip isn't valid
+        // or if the current branch isn't published. There's however no
+        // guarantee that they'll be refreshed at the exact same time so
+        // there's a theoretical possibility that `branch.remote` and
+        // `remote.name` could be out of sync. I have no reason to suspect
+        // that's the case and if it is then we already have problems as
+        // the `fetchRemotes` call after the push already relies on the
+        // `remote` and not the `branch.remote`. All that said this is
+        // a critical path in the app and somehow breaking pushing would
+        // be near unforgivable so I'm introducing this `safeRemote`
+        // temporarily to ensure that there's no risk of us using an
+        // out of sync remote name while still providing envForRemoteOperation
+        // with an url to use when resolving proxies.
+        //
+        // I'm also adding a non fatal exception if this ever happens
+        // so that we can confidently remove this safeguard in a future
+        // release.
+        const safeRemote: IRemote = { name: remoteName, url: remote.url }
+
+        if (safeRemote.name !== remote.name) {
+          sendNonFatalException(
+            'remoteNameMismatch',
+            new Error('The current remote name differs from the branch remote')
+          )
+        }
+
         const gitStore = this.gitStoreCache.get(repository)
         await gitStore.performFailableOperation(
           async () => {
             await pushRepo(
               repository,
               account,
-              remoteName,
+              safeRemote,
               branch.name,
               branch.upstreamWithoutRemote,
               options,
@@ -3516,7 +3554,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
             await gitStore.fetchRemotes(
               account,
-              [remote],
+              [safeRemote],
               false,
               fetchProgress => {
                 this.updatePushPullFetchProgress(repository, {
@@ -3706,7 +3744,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
           await gitStore.performFailableOperation(
             () =>
-              pullRepo(repository, account, remote.name, progress => {
+              pullRepo(repository, account, remote, progress => {
                 this.updatePushPullFetchProgress(repository, {
                   ...progress,
                   value: progress.value * pullWeight,

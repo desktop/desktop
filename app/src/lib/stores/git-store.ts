@@ -849,7 +849,7 @@ export class GitStore extends BaseStore {
       const remote = remotes[i]
       const startProgressValue = i * weight
 
-      await this.fetchRemote(account, remote.name, backgroundTask, progress => {
+      await this.fetchRemote(account, remote, backgroundTask, progress => {
         if (progress && progressCallback) {
           progressCallback({
             ...progress,
@@ -871,7 +871,7 @@ export class GitStore extends BaseStore {
    */
   public async fetchRemote(
     account: IGitAccount | null,
-    remote: string,
+    remote: IRemote,
     backgroundTask: boolean,
     progressCallback?: (fetchProgress: IFetchProgress) => void
   ): Promise<void> {
@@ -880,9 +880,7 @@ export class GitStore extends BaseStore {
       repository: this.repository,
     }
     await this.performFailableOperation(
-      () => {
-        return fetchRepo(this.repository, account, remote, progressCallback)
-      },
+      () => fetchRepo(this.repository, account, remote, progressCallback),
       { backgroundTask, retryAction }
     )
   }
@@ -905,7 +903,7 @@ export class GitStore extends BaseStore {
 
     for (const remote of remotes) {
       await this.performFailableOperation(() =>
-        fetchRefspec(this.repository, account, remote.name, refspec)
+        fetchRefspec(this.repository, account, remote, refspec)
       )
     }
   }
