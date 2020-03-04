@@ -123,7 +123,7 @@ export function enableCreateForkFlow(): boolean {
  * CRL distribution points and/or an offiline revocation server.
  */
 export function enableSchannelCheckRevokeOptOut(): boolean {
-    return enableDevelopmentFeatures()
+  return enableDevelopmentFeatures()
 }
 
 /**
