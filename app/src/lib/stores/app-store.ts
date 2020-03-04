@@ -82,6 +82,7 @@ import {
   IAPIOrganization,
   IAPIBranch,
   IAPIRepository,
+  getEndpointForRepository,
 } from '../api'
 import { shell } from '../app-shell'
 import {
@@ -267,6 +268,7 @@ import {
   findAssociatedPullRequest,
   isPullRequestAssociatedWithBranch,
 } from '../helpers/pull-request-matching'
+import { parseRemote } from '../../lib/remote-parsing'
 import { createTutorialRepository } from './helpers/create-tutorial-repository'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { getDefaultDir } from '../../ui/lib/default-dir'
@@ -1643,6 +1645,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private stopPullRequestUpdater() {
     this.pullRequestCoordinator.stopPullRequestUpdater()
+  }
+
+  public async fetchPullRequest(repoUrl: string, pr: string) {
+    const endpoint = getEndpointForRepository(repoUrl)
+    const account = getAccountForEndpoint(this.accounts, endpoint)
+
+    if (account) {
+      const api = API.fromAccount(account)
+      const remoteUrl = parseRemote(repoUrl)
+      if (remoteUrl && remoteUrl.owner && remoteUrl.name) {
+        return await api.fetchPullRequest(remoteUrl.owner, remoteUrl.name, pr)
+      }
+    }
+    return null
   }
 
   private shouldBackgroundFetch(
