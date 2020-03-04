@@ -125,11 +125,11 @@ export class GitStore extends BaseStore {
 
   private _aheadBehind: IAheadBehind | null = null
 
-  private _remotes: {
-    _defaultRemote: IRemote | null
-    _currentRemote: IRemote | null
-    _upstreamRemote: IRemote | null
-  } | null = null
+  private _defaultRemote: IRemote | null = null
+
+  private _currentRemote: IRemote | null = null
+
+  private _upstreamRemote: IRemote | null = null
 
   private _lastFetched: Date | null = null
 
@@ -1071,18 +1071,9 @@ export class GitStore extends BaseStore {
     this.emitUpdate()
   }
 
-  private initializeRemotes() {
-    return {
-      _defaultRemote: null,
-      _currentRemote: null,
-      _upstreamRemote: null,
-    }
-  }
-
   public async loadRemotes(): Promise<void> {
     const remotes = await getRemotes(this.repository)
-    this._remotes = this.initializeRemotes()
-    this._remotes._defaultRemote = findDefaultRemote(remotes)
+    this._defaultRemote = findDefaultRemote(remotes)
 
     const currentRemoteName =
       this.tip.kind === TipState.Valid && this.tip.branch.remote !== null
@@ -1092,19 +1083,16 @@ export class GitStore extends BaseStore {
     // Load the remote that the current branch is tracking. If the branch
     // is not tracking any remote or the remote which it's tracking has
     // been removed we'll default to the default branch.
-    this._remotes._currentRemote =
+    this._currentRemote =
       currentRemoteName !== null
-        ? remotes.find(r => r.name === currentRemoteName) ||
-          this._remotes._defaultRemote
-        : this._remotes._defaultRemote
+        ? remotes.find(r => r.name === currentRemoteName) || this._defaultRemote
+        : this._defaultRemote
 
     const parent =
       this.repository.gitHubRepository &&
       this.repository.gitHubRepository.parent
 
-    this._remotes._upstreamRemote = parent
-      ? findUpstreamRemote(parent, remotes)
-      : null
+    this._upstreamRemote = parent ? findUpstreamRemote(parent, remotes) : null
 
     this.emitUpdate()
   }
@@ -1147,10 +1135,7 @@ export class GitStore extends BaseStore {
     await this.performFailableOperation(() =>
       addRemote(this.repository, UpstreamRemoteName, url)
     )
-    if (this._remotes === null) {
-      this._remotes = this.initializeRemotes()
-    }
-    this._remotes._upstreamRemote = { name: UpstreamRemoteName, url }
+    this._upstreamRemote = { name: UpstreamRemoteName, url }
   }
 
   /**
@@ -1197,7 +1182,7 @@ export class GitStore extends BaseStore {
    * If no remotes are defined in the repository, this will be `null`.
    */
   public get defaultRemote(): IRemote | null {
-    return this._remotes && this._remotes._defaultRemote
+    return this._defaultRemote
   }
 
   /**
@@ -1207,7 +1192,7 @@ export class GitStore extends BaseStore {
    * Otherwise this will be the same value as `this.defaultRemote`.
    */
   public get currentRemote(): IRemote | null {
-    return this._remotes && this._remotes._currentRemote
+    return this._currentRemote
   }
 
   /**
@@ -1216,8 +1201,8 @@ export class GitStore extends BaseStore {
    * This will be `null` if the repository isn't a fork, or if the fork doesn't
    * have an upstream remote.
    */
-  public get upstreamRemote(): IRemote | null {
-    return this._remotes && this._remotes._upstreamRemote
+  private get upstreamRemote(): IRemote | null {
+    return this._upstreamRemote
   }
 
   /**
