@@ -170,6 +170,7 @@ describe('repository-matching', () => {
       fork: true,
       hash: 'whatever',
       permissions: null,
+      issuesEnabled: true,
     }
 
     it('returns true for exact match', () => {

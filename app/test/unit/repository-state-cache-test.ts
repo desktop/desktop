@@ -10,29 +10,7 @@ import {
 import { DiffSelection, DiffSelectionType } from '../../src/models/diff'
 import { HistoryTabMode, IDisplayHistory } from '../../src/lib/app-state'
 import { IGitHubUser } from '../../src/lib/databases'
-
-function createSampleGitHubRepository(): GitHubRepository {
-  return {
-    dbID: 1,
-    name: 'desktop',
-    owner: {
-      endpoint: 'https://api.github.com',
-      login: 'desktop',
-      hash: '',
-      id: null,
-    },
-    endpoint: 'https://api.github.com',
-    fullName: 'shiftkey/some-repo',
-    isPrivate: false,
-    fork: false,
-    cloneURL: 'https://github.com/desktop/desktop.git',
-    htmlURL: 'https://github.com/desktop/desktop',
-    defaultBranch: 'master',
-    hash: '',
-    parent: null,
-    permissions: 'write',
-  }
-}
+import { gitHubRepoFixture } from '../helpers/github-repo-builder'
 
 function createSamplePullRequest(gitHubRepository: GitHubRepository) {
   return new PullRequest(
@@ -63,7 +41,10 @@ describe('RepositoryStateCache', () => {
   })
 
   it('can update branches state for a repository', () => {
-    const gitHubRepository = createSampleGitHubRepository()
+    const gitHubRepository = gitHubRepoFixture({
+      name: 'desktop',
+      owner: 'desktop',
+    })
     const firstPullRequest = createSamplePullRequest(gitHubRepository)
 
     const cache = new RepositoryStateCache(defaultGetUsersFunc)
