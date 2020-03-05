@@ -43,7 +43,6 @@ interface IAccount {
   readonly avatarURL: string
   readonly id: number
   readonly name: string
-  readonly scopes?: ReadonlyArray<string>
 }
 
 /** The store for logged in accounts. */
@@ -88,11 +87,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       if (__DARWIN__ && isKeyChainError(e)) {
         this.emitError(
           new Error(
-            `GitHub Desktop was unable to store the account token in the keychain. 
-             Please check you have unlocked access to the 'login' keychain. Further documention can be found {' '}
-             <LinkButton onClick={this.props.onShowExamples}>
-               here.`
-             </LinkButton>
+            `GitHub Desktop was unable to store the account token in the keychain. Please check you have unlocked access to the 'login' keychain.`
           )
         )
       } else {
@@ -186,8 +181,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
         account.emails,
         account.avatarURL,
         account.id,
-        account.name,
-        account.scopes || []
+        account.name
       )
 
       const key = getKeyForAccount(accountWithoutToken)
