@@ -30,9 +30,7 @@
   }
 
   &:disabled {
-    background-color: $gray-200 !important;
-    border-color: $gray-200 !important;
-    color: $gray-500 !important;
+    opacity: 0.6;
   }
 
   .octicon {
