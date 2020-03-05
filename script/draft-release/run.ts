@@ -70,8 +70,6 @@ function printInstructions(nextVersion: string, entries: Array<string>) {
     'Read this to perform the release: https://github.com/desktop/desktop/blob/development/docs/process/releasing-updates.md',
   ]
 
-  console.log("Here's what you should do next:\n")
-
   console.log(steps.map((value, index) => `${index + 1}. ${value}`).join('\n'))
 }
 
@@ -101,24 +99,18 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
     // print instructions with no changelog included
     printInstructions(nextVersion, [])
   } else {
+    const changelogEntries = await convertToChangelogFormat(lines)
+
+    console.log("Here's what you should do next:\n")
+
     if (channel === 'production') {
       // make sure we only include entries since the latest production release
       const existingChangelog = getChangelogEntriesSince(previousVersion)
       const entries = [...existingChangelog]
       printInstructions(nextVersion, entries)
     } else if (channel === 'beta') {
-      const { entries, omitted } = await convertToChangelogFormat(lines)
-
-      if (omitted.length > 0) {
-        console.log(`Skipping these merged PRs as 'no-notes' was set:`)
-
-        omitted.forEach(o => {
-          console.log(` - #${o.id} - ${o.title}`)
-        })
-
-        console.log()
-      }
-      printInstructions(nextVersion, [...entries])
+      const entries = [...changelogEntries]
+      printInstructions(nextVersion, entries)
     }
   }
 }
