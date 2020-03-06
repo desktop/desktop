@@ -40,6 +40,7 @@ import {
 import {
   matchExistingRepository,
   urlMatchesCloneURL,
+  urlsMatch,
 } from '../../lib/repository-matching'
 import { Shell } from '../../lib/shells'
 import { ILaunchStats, StatsStore } from '../../lib/stats'
@@ -67,6 +68,7 @@ import { PullRequest } from '../../models/pull-request'
 import {
   Repository,
   RepositoryWithGitHubRepository,
+  isRepositoryWithGitHubRepository,
 } from '../../models/repository'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
@@ -1395,6 +1397,101 @@ export class Dispatcher {
     }
   }
 
+  private async getForkAndUpstreamRepos(url: string) {
+    const state = this.appStore.getState()
+    const repositories = state.repositories
+
+    const forks: Array<Repository> = []
+    const upstreams: Array<Repository> = []
+
+    for (const repo of repositories) {
+      // ensure that repo is not an instance of CloningRepository
+      if (
+        repo instanceof Repository &&
+        isRepositoryWithGitHubRepository(repo)
+      ) {
+        const defaultUrl = repo.gitHubRepository.htmlURL
+        const upstreamUrl =
+          repo.gitHubRepository.parent && repo.gitHubRepository.parent.htmlURL
+        if (defaultUrl && urlsMatch(defaultUrl, url)) {
+          upstreams.push(repo)
+        } else if (upstreamUrl && urlsMatch(upstreamUrl, url)) {
+          forks.push(repo)
+        }
+      }
+    }
+
+    return { forks, upstreams }
+  }
+
+  private async openRepositoryFromUrl(action: IOpenRepositoryFromURLAction) {
+    const { url, pr } = action
+    const pullRequest = pr
+      ? await this.appStore.fetchPullRequest(url, pr)
+      : null
+    const sourceUrl =
+      pullRequest && pullRequest.head.repo && pullRequest.head.repo.html_url
+
+    const { forks, upstreams } = await this.getForkAndUpstreamRepos(url)
+
+    // If source is in Desktop as a fork, open fork and checkout PR branch
+    const forkMatch = forks.find(fork => {
+      return Boolean(
+        fork.gitHubRepository &&
+          fork.gitHubRepository.htmlURL &&
+          sourceUrl &&
+          urlsMatch(fork.gitHubRepository.htmlURL, sourceUrl)
+      )
+    })
+
+    if (forkMatch) {
+      await this.selectRepository(forkMatch)
+      const branch = pullRequest && pullRequest.head.ref
+      if (branch) {
+        await this.checkoutLocalBranch(forkMatch, branch)
+      }
+      return
+    }
+
+    // If source is in Desktop as an upstream, open upstream and checkout PR branch
+    const upstreamMatch = upstreams.find(upstream => {
+      return Boolean(
+        upstream.gitHubRepository &&
+          upstream.gitHubRepository.htmlURL &&
+          sourceUrl &&
+          urlsMatch(upstream.gitHubRepository.htmlURL, sourceUrl)
+      )
+    })
+
+    if (upstreamMatch) {
+      await this.selectRepository(upstreamMatch)
+      await this.handleCloneInDesktopOptions(upstreamMatch, action)
+      return
+    }
+
+    // If you only have your fork in Desktop, open your fork.
+    // Checkout branch based on PR source -- `handleCloneInDesktopOptions`
+    // handles cases when source is upstream or someone else's fork
+    if (forks.length > 0 && upstreams.length === 0) {
+      const fork = forks[0]
+      await this.selectRepository(fork)
+      await this.handleCloneInDesktopOptions(fork, action) // double check that refspec fetch works correctly
+      return
+    }
+
+    // Otherwise back to default case
+    const repository = await this.openOrCloneRepository(url)
+    if (repository) {
+      await this.handleCloneInDesktopOptions(repository, action)
+    } else {
+      log.warn(
+        `Open Repository from URL failed, did not find or clone repository: ${url} - payload: ${JSON.stringify(
+          action
+        )}`
+      )
+    }
+  }
+
   public async dispatchURLAction(action: URLActionType): Promise<void> {
     switch (action.name) {
       case 'oauth':
@@ -1424,17 +1521,7 @@ export class Dispatcher {
         break
 
       case 'open-repository-from-url':
-        const { url } = action
-        const repository = await this.openOrCloneRepository(url)
-        if (repository) {
-          await this.handleCloneInDesktopOptions(repository, action)
-        } else {
-          log.warn(
-            `Open Repository from URL failed, did not find or clone repository: ${url} - payload: ${JSON.stringify(
-              action
-            )}`
-          )
-        }
+        this.openRepositoryFromUrl(action)
         break
 
       case 'open-repository-from-path':
@@ -1516,6 +1603,33 @@ export class Dispatcher {
     return this.appStore._setShell(shell)
   }
 
+  public async checkoutLocalBranch(repository: Repository, branch: string) {
+    let shouldCheckoutBranch = true
+
+    const state = this.repositoryStateManager.get(repository)
+    const branches = state.branchesState.allBranches
+
+    const { tip } = state.branchesState
+
+    if (tip.kind === TipState.Valid) {
+      shouldCheckoutBranch = tip.branch.nameWithoutRemote !== branch
+    }
+
+    const localBranch = branches.find(b => b.nameWithoutRemote === branch)
+
+    // N.B: This looks weird, and it is. _checkoutBranch used
+    // to behave this way (silently ignoring checkout) when given
+    // a branch name string that does not correspond to a local branch
+    // in the git store. When rewriting _checkoutBranch
+    // to remove the support for string branch names the behavior
+    // was moved up to this method to not alter the current behavior.
+    //
+    // https://youtu.be/IjmtVKOAHPM
+    if (shouldCheckoutBranch && localBranch !== undefined) {
+      await this.checkoutBranch(repository, localBranch)
+    }
+  }
+
   private async handleCloneInDesktopOptions(
     repository: Repository,
     action: IOpenRepositoryFromURLAction
@@ -1548,27 +1662,7 @@ export class Dispatcher {
     }
 
     if (branch != null) {
-      let shouldCheckoutBranch = true
-
-      const { tip } = state.branchesState
-
-      if (tip.kind === TipState.Valid) {
-        shouldCheckoutBranch = tip.branch.nameWithoutRemote !== branch
-      }
-
-      const localBranch = branches.find(b => b.nameWithoutRemote === branch)
-
-      // N.B: This looks weird, and it is. _checkoutBranch used
-      // to behave this way (silently ignoring checkout) when given
-      // a branch name string that does not correspond to a local branch
-      // in the git store. When rewriting _checkoutBranch
-      // to remove the support for string branch names the behavior
-      // was moved up to this method to not alter the current behavior.
-      //
-      // https://youtu.be/IjmtVKOAHPM
-      if (shouldCheckoutBranch && localBranch !== undefined) {
-        await this.checkoutBranch(repository, localBranch)
-      }
+      await this.checkoutLocalBranch(repository, branch)
     }
 
     if (filepath != null) {
