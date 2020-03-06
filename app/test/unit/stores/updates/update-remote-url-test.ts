@@ -27,7 +27,10 @@ describe('Update remote url', () => {
 
   let gitStore: GitStore
 
-  const createRepository = async (remoteUrl = apiRepository.clone_url) => {
+  const createRepository = async (
+    apiRepo: IAPIRepository,
+    remoteUrl: string | null = null
+  ) => {
     const db = new TestRepositoriesDatabase()
     await db.reset()
     const repositoriesStore = new RepositoriesStore(db)
@@ -37,9 +40,9 @@ describe('Update remote url', () => {
     const repository = await repositoriesStore.updateGitHubRepository(
       blankRepo,
       '',
-      apiRepository
+      apiRepo
     )
-    await addRemote(repository, 'origin', remoteUrl)
+    await addRemote(repository, 'origin', remoteUrl || apiRepo.clone_url)
     gitStore = new GitStore(repository, shell)
     await gitStore.loadRemotes()
 
@@ -47,7 +50,7 @@ describe('Update remote url', () => {
   }
 
   it("updates the repository's remote url when the github url changes", async () => {
-    const { repository, gitStore } = await createRepository()
+    const { repository, gitStore } = await createRepository(apiRepository)
     const originalUrl = gitStore.currentRemote!.url
     const updatedUrl = 'https://github.com/my-user/my-updated-repo'
     const updatedApiRepository = { ...apiRepository, clone_url: updatedUrl }
@@ -57,16 +60,20 @@ describe('Update remote url', () => {
   })
 
   it("doesn't update the repository's remote url when the github url is the same", async () => {
-    const { repository, gitStore } = await createRepository()
+    const { repository, gitStore } = await createRepository(apiRepository)
     const originalUrl = gitStore.currentRemote!.url
     expect(originalUrl).not.toBeEmpty()
     await updateRemoteUrl(gitStore, repository, apiRepository)
     expect(gitStore.currentRemote!.url).toBe(originalUrl)
   })
 
-  it("doesn't update the repository's remote url when the protocol is something other than https", async () => {
+  it("doesn't update repository's remote url if protocols don't match", async () => {
     const originalUrl = 'git@github.com:desktop/desktop.git'
-    const { repository, gitStore } = await createRepository(originalUrl)
+    const sshApiRepository = {
+      ...apiRepository,
+      clone_url: originalUrl,
+    }
+    const { repository, gitStore } = await createRepository(sshApiRepository)
     const updatedUrl = 'https://github.com/my-user/my-updated-repo'
     const updatedApiRepository = { ...apiRepository, clone_url: updatedUrl }
 
@@ -74,9 +81,12 @@ describe('Update remote url', () => {
     expect(gitStore.currentRemote!.url).toBe(originalUrl)
   })
 
-  it("doesn't update the repository's remote url if the github url is different than the default remote url", async () => {
+  it("doesn't update the repository's remote url if it differs from the default from the github API", async () => {
     const originalUrl = 'https://github.com/my-user/something-different'
-    const { repository, gitStore } = await createRepository(originalUrl)
+    const { repository, gitStore } = await createRepository(
+      apiRepository,
+      originalUrl
+    )
 
     const updatedUrl = 'https://github.com/my-user/my-updated-repo'
     const updatedApiRepository = { ...apiRepository, clone_url: updatedUrl }
