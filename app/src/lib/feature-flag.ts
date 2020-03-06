@@ -131,3 +131,10 @@ export function enableAutomaticGitProxyConfiguration(): boolean {
 export function enableCreateGitHubIssueFromMenu(): boolean {
   return enableBetaFeatures()
 }
+
+/**
+ * Should we update remote url if it has changed
+ */
+export function enableUpdateRemoteUrl(): boolean {
+  return enableBetaFeatures()
+}

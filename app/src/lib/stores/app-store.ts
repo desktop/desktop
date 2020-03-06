@@ -230,6 +230,7 @@ import {
   enableBranchProtectionChecks,
   enableBranchProtectionWarningFlow,
   enableHideWhitespaceInDiffOption,
+  enableUpdateRemoteUrl,
 } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import * as moment from 'moment'
@@ -3300,11 +3301,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
-    await updateRemoteUrl(
-      this.gitStoreCache.get(repository),
-      repository,
-      apiRepo
-    )
+    if (enableUpdateRemoteUrl()) {
+      await updateRemoteUrl(
+        this.gitStoreCache.get(repository),
+        repository,
+        apiRepo
+      )
+    }
 
     const endpoint = matchedGitHubRepository.endpoint
     const updatedRepository = await this.repositoriesStore.updateGitHubRepository(
