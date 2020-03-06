@@ -22,7 +22,10 @@ export async function updateRemoteUrl(
 
   const remoteUrlUnchanged =
     gitStore.defaultRemote &&
-    gitStore.defaultRemote.url === repository.gitHubRepository.cloneURL
+    urlMatchesRemote(
+      repository.gitHubRepository.cloneURL,
+      gitStore.defaultRemote
+    )
 
   if (remoteUrlUnchanged && !urlsMatch) {
     // Frankenstein the existing remote url to have the updated user/repo path
