@@ -1,7 +1,7 @@
 import { Repository } from '../../../models/repository'
 import { IAPIRepository } from '../../api'
 import { GitStore } from '../git-store'
-import * as URL from 'url'
+import { urlMatchesRemote } from '../../repository-matching'
 
 export async function updateRemoteUrl(
   gitStore: GitStore,
@@ -17,16 +17,20 @@ export async function updateRemoteUrl(
     return
   }
 
-  const remoteUrl = gitStore.defaultRemote.url
   const updatedRemoteUrl = apiRepo.clone_url
-  const protocolEquals =
-    URL.parse(remoteUrl).protocol === URL.parse(updatedRemoteUrl).protocol
+  const urlsMatch = urlMatchesRemote(updatedRemoteUrl, gitStore.defaultRemote)
 
   const remoteUrlUnchanged =
     gitStore.defaultRemote &&
     gitStore.defaultRemote.url === repository.gitHubRepository.cloneURL
 
-  if (protocolEquals && remoteUrlUnchanged && remoteUrl !== updatedRemoteUrl) {
-    await gitStore.setRemoteURL(gitStore.defaultRemote.name, updatedRemoteUrl)
+  if (remoteUrlUnchanged && !urlsMatch) {
+    // Frankenstein the existing remote url to have the updated user/repo path
+    const updatedUrl = new URL(gitStore.defaultRemote.url)
+    updatedUrl.pathname = new URL(updatedRemoteUrl).pathname
+    await gitStore.setRemoteURL(
+      gitStore.defaultRemote.name,
+      updatedUrl.toString()
+    )
   }
 }
