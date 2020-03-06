@@ -22,11 +22,11 @@ export async function updateRemoteUrl(
   const protocolEquals =
     URL.parse(remoteUrl).protocol === URL.parse(updatedRemoteUrl).protocol
 
-  const usingDefaultRemote =
+  const remoteUrlUnchanged =
     gitStore.defaultRemote &&
     gitStore.defaultRemote.url === repository.gitHubRepository.cloneURL
 
-  if (protocolEquals && usingDefaultRemote && remoteUrl !== updatedRemoteUrl) {
+  if (protocolEquals && remoteUrlUnchanged && remoteUrl !== updatedRemoteUrl) {
     await gitStore.setRemoteURL(gitStore.defaultRemote.name, updatedRemoteUrl)
   }
 }
