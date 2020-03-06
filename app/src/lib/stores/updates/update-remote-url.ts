@@ -36,6 +36,8 @@ export async function updateRemoteUrl(
     parsedUpdaedRemoteUrl.protocol !== null &&
     parsedRemoteUrl.protocol === parsedUpdaedRemoteUrl.protocol
 
+  // Check if the default remote url has been manually changed from the
+  // clone url retrieved from the GitHub API previously
   const remoteUrlUnchanged =
     gitStore.defaultRemote &&
     urlMatchesRemote(
