@@ -2,7 +2,6 @@ import { Repository } from '../../../models/repository'
 import { IAPIRepository } from '../../api'
 import { GitStore } from '../git-store'
 import { urlMatchesRemote } from '../../repository-matching'
-import { remoteRegexes } from '../../remote-parsing'
 import * as URL from 'url'
 
 export async function updateRemoteUrl(
