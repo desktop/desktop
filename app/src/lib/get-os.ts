@@ -33,7 +33,7 @@ export function isMacOsAndMojaveOrLater() {
   return false
 }
 
-/** See are are currently running Windows 10 and it is at least 1809 Preview Build 17666. */
+/** See we are currently running Windows 10 and it is at least 1809 Preview Build 17666. */
 export function isWindows10And1809Preview17666OrLater() {
   if (__WIN32__) {
     const version = OS.release()
