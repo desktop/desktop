@@ -23,6 +23,7 @@
     "classnames": "^2.2.5",
     "codemirror": "^5.49.2",
     "codemirror-mode-elixir": "^1.1.2",
+    "compare-versions": "^3.6.0",
     "deep-equal": "^1.0.1",
     "dexie": "^2.0.0",
     "double-ended-queue": "^2.1.0-0",
