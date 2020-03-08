@@ -256,29 +256,32 @@ These editors are currently supported:
  - [Atom](https://atom.io/)
  - [MacVim](https://macvim-dev.github.io/macvim/)
  - [Visual Studio Code](https://code.visualstudio.com/) - both stable and Insiders channel
+ - [Visual Studio Codium](https://vscodium.com/)
  - [Sublime Text](https://www.sublimetext.com/)
  - [BBEdit](http://www.barebones.com/products/bbedit/)
  - [PhpStorm](https://www.jetbrains.com/phpstorm/)
  - [RubyMine](https://www.jetbrains.com/rubymine/)
- - [IntelliJ IDEA](https://www.jetbrains.com/idea/)
  - [TextMate](https://macromates.com)
  - [Brackets](http://brackets.io/)
      - To use Brackets the Command Line shortcut must be installed.
        - This can be done by opening Brackets, choosing File > Install Command Line Shortcut
  - [WebStorm](https://www.jetbrains.com/webstorm/)
  - [Typora](https://typora.io/)
+ - [CodeRunner](https://coderunnerapp.com/)
  - [SlickEdit](https://www.slickedit.com)
+ - [IntelliJ IDEA](https://www.jetbrains.com/idea/)
+ - [Xcode](https://developer.apple.com/xcode/)
  - [GoLand](https://www.jetbrains.com/go/)
 
 These are defined in an enum at the top of the file:
 
 ```ts
-
 export enum ExternalEditor {
   Atom = 'Atom',
   MacVim = 'MacVim',
-  VisualStudioCode = 'Visual Studio Code',
-  VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
+  VSCode = 'Visual Studio Code',
+  VSCodeInsiders = 'Visual Studio Code (Insiders)',
+  VSCodium = 'VSCodium',
   SublimeText = 'Sublime Text',
   BBEdit = 'BBEdit',
   PhpStorm = 'PhpStorm',
@@ -287,7 +290,11 @@ export enum ExternalEditor {
   Brackets = 'Brackets',
   WebStorm = 'WebStorm',
   Typora = 'Typora',
+  CodeRunner = 'CodeRunner',
   SlickEdit = 'SlickEdit',
+  IntelliJ = 'IntelliJ',
+  Xcode = 'Xcode',
+  GoLand = 'GoLand',
 }
 ```
 
