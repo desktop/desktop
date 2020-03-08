@@ -377,6 +377,7 @@ These editors are currently supported:
 
  - [Atom](https://atom.io/)
  - [Visual Studio Code](https://code.visualstudio.com/) - both stable and Insiders channel
+ - [Visual Studio Codium](https://vscodium.com/)
  - [Sublime Text](https://www.sublimetext.com/)
  - [Typora](https://typora.io/)
  - [SlickEdit](https://www.slickedit.com)
@@ -386,8 +387,9 @@ These are defined in an enum at the top of the file:
 ```ts
 export enum ExternalEditor {
   Atom = 'Atom',
-  VisualStudioCode = 'Visual Studio Code',
-  VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
+  VSCode = 'Visual Studio Code',
+  VSCodeInsiders = 'Visual Studio Code (Insiders)',
+  VSCodium = 'VSCodium',
   SublimeText = 'Sublime Text',
   Typora = 'Typora',
   SlickEdit = 'SlickEdit',
