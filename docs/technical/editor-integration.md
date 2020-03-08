@@ -25,12 +25,14 @@ The source for the editor integration on Windows is found in
 These editors are currently supported:
 
  - [Atom](https://atom.io/) - stable, Beta and Nightly
- - [Visual Studio Code](https://code.visualstudio.com/) - both stable and Insiders channel
+ - [Visual Studio Code](https://code.visualstudio.com/)
+ - [Visual Studio Codium](https://vscodium.com/)
  - [Sublime Text](https://www.sublimetext.com/)
  - [ColdFusion Builder](https://www.adobe.com/products/coldfusion-builder.html)
  - [Typora](https://typora.io/)
  - [SlickEdit](https://www.slickedit.com)
  - [JetBrains WebStorm](https://www.jetbrains.com/webstorm/)
+ - [JetBrains Phpstorm](https://www.jetbrains.com/phpstorm/)
 
 These are defined in an enum at the top of the file:
 
@@ -39,12 +41,15 @@ export enum ExternalEditor {
   Atom = 'Atom',
   AtomBeta = 'Atom Beta',
   AtomNightly = 'Atom Nightly',
-  VisualStudioCode = 'Visual Studio Code',
-  VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
+  VSCode = 'Visual Studio Code',
+  VSCodeInsiders = 'Visual Studio Code (Insiders)',
+  VSCodium = 'Visual Studio Codium',
   SublimeText = 'Sublime Text',
   CFBuilder = 'ColdFusion Builder',
   Typora = 'Typora',
   SlickEdit = 'SlickEdit',
+  Webstorm = 'JetBrains Webstorm',
+  Phpstorm = 'JetBrains Phpstorm',
 }
 ```
 
