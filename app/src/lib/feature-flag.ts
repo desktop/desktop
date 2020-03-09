@@ -123,7 +123,7 @@ export function enableCreateForkFlow(): boolean {
  * CRL distribution points and/or an offiline revocation server.
  */
 export function enableSchannelCheckRevokeOptOut(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
 
 /**
@@ -131,7 +131,7 @@ export function enableSchannelCheckRevokeOptOut(): boolean {
  * system-configured proxy url and passing that to Git.
  */
 export function enableAutomaticGitProxyConfiguration(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
 
 /**
