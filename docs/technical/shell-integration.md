@@ -29,7 +29,7 @@ These shells are currently supported:
  - [Hyper](https://hyper.sh/)
  - Git Bash (from [Git for Windows](https://git-for-windows.github.io/))
  - [Cygwin](https://www.cygwin.com/)
- - WSL
+ - [WSL](https://docs.microsoft.com/en-us/windows/wsl/about)
  - [Windows Terminal](https://github.com/microsoft/terminal)
 
 These are defined in an enum at the top of the file:
