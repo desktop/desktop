@@ -33,6 +33,7 @@ These editors are currently supported:
  - [SlickEdit](https://www.slickedit.com)
  - [JetBrains WebStorm](https://www.jetbrains.com/webstorm/)
  - [JetBrains Phpstorm](https://www.jetbrains.com/phpstorm/)
+ - [Notepad++](https://notepad-plus-plus.org/)
 
 These are defined in an enum at the top of the file:
 
@@ -50,6 +51,7 @@ export enum ExternalEditor {
   SlickEdit = 'SlickEdit',
   Webstorm = 'JetBrains Webstorm',
   Phpstorm = 'JetBrains Phpstorm',
+  NotepadPlusPlus = 'Notepad++',
 }
 ```
 
