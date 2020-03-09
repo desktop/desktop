@@ -143,7 +143,7 @@ export function enableCreateGitHubIssueFromMenu(): boolean {
 }
 
 /**
- * Should we update remote url if it has changed
+ * Should we update remote url if it has changed?
  */
 export function enableUpdateRemoteUrl(): boolean {
   return enableBetaFeatures()
