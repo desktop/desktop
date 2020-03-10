@@ -90,9 +90,9 @@ export class RepositoriesStore extends TypedBaseStore<
       dbRepo.htmlURL,
       dbRepo.defaultBranch,
       dbRepo.cloneURL,
+      dbRepo.issuesEnabled,
       dbRepo.permissions,
-      parent,
-      dbRepo.issuesEnabled
+      parent
     )
   }
 
@@ -391,11 +391,6 @@ export class RepositoriesStore extends TypedBaseStore<
       .equals([owner.id!, gitHubRepository.name])
       .first()
 
-    const issuesEnabled =
-      gitHubRepository.has_issues !== undefined
-        ? gitHubRepository.has_issues
-        : null
-
     // If we can't resolve permissions for the current repository
     // chances are that it's because it's the parent repository of
     // another repository and we ended up here because the "actual"
@@ -421,7 +416,7 @@ export class RepositoriesStore extends TypedBaseStore<
       parentID: parent ? parent.dbID : null,
       lastPruneDate: null,
       permissions,
-      issuesEnabled,
+      issuesEnabled: gitHubRepository.has_issues,
     }
     if (existingRepo) {
       updatedGitHubRepo = { ...updatedGitHubRepo, id: existingRepo.id }
@@ -436,6 +431,7 @@ export class RepositoriesStore extends TypedBaseStore<
       updatedGitHubRepo.htmlURL,
       updatedGitHubRepo.defaultBranch,
       updatedGitHubRepo.cloneURL,
+      updatedGitHubRepo.issuesEnabled,
       updatedGitHubRepo.permissions,
       parent
     )

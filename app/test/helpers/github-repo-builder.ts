@@ -56,7 +56,7 @@ export function gitHubRepoFixture({
     defaultBranch || 'master',
     `${htmlUrl}.git`,
     null,
-    parent,
-    null
+    null,
+    parent
   )
 }

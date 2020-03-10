@@ -81,6 +81,7 @@ export async function setupRepository(
       fork: false,
       default_branch: defaultBranchName,
       pushed_at: 'string',
+      has_issues: true,
       permissions: {
         pull: true,
         push: true,
