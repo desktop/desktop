@@ -166,7 +166,8 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     selectedState !== null &&
     selectedState.repository instanceof Repository &&
     isRepositoryWithGitHubRepository(selectedState.repository) &&
-    selectedState.repository.gitHubRepository.issuesEnabled !== false
+    selectedState.repository.gitHubRepository.issuesEnabled !== false &&
+    selectedState.repository.gitHubRepository.isArchived !== true
 
   if (selectedState && selectedState.type === SelectionType.Repository) {
     repositorySelected = true
