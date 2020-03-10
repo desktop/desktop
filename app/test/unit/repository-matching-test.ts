@@ -169,8 +169,9 @@ describe('repository-matching', () => {
       endpoint: 'https://api.github.com/',
       fork: true,
       hash: 'whatever',
-      permissions: null,
       issuesEnabled: true,
+      isArchived: false,
+      permissions: null,
     }
 
     it('returns true for exact match', () => {

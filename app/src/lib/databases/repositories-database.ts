@@ -23,6 +23,7 @@ export interface IDatabaseGitHubRepository {
   readonly lastPruneDate: number | null
 
   readonly issuesEnabled?: boolean
+  readonly isArchived?: boolean
 
   readonly permissions?: 'read' | 'write' | 'admin' | null
 }

@@ -57,6 +57,7 @@ export function gitHubRepoFixture({
     `${htmlUrl}.git`,
     null,
     null,
+    null,
     parent
   )
 }

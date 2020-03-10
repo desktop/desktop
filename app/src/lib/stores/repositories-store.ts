@@ -91,6 +91,7 @@ export class RepositoriesStore extends TypedBaseStore<
       dbRepo.defaultBranch,
       dbRepo.cloneURL,
       dbRepo.issuesEnabled,
+      dbRepo.isArchived,
       dbRepo.permissions,
       parent
     )
@@ -415,8 +416,9 @@ export class RepositoriesStore extends TypedBaseStore<
       cloneURL: gitHubRepository.clone_url,
       parentID: parent ? parent.dbID : null,
       lastPruneDate: null,
-      permissions,
       issuesEnabled: gitHubRepository.has_issues,
+      isArchived: gitHubRepository.archived,
+      permissions,
     }
     if (existingRepo) {
       updatedGitHubRepo = { ...updatedGitHubRepo, id: existingRepo.id }
@@ -432,6 +434,7 @@ export class RepositoriesStore extends TypedBaseStore<
       updatedGitHubRepo.defaultBranch,
       updatedGitHubRepo.cloneURL,
       updatedGitHubRepo.issuesEnabled,
+      updatedGitHubRepo.isArchived,
       updatedGitHubRepo.permissions,
       parent
     )

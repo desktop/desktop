@@ -19,6 +19,7 @@ export class GitHubRepository {
     public readonly defaultBranch: string | null = 'master',
     public readonly cloneURL: string | null = null,
     public readonly issuesEnabled: boolean | null = null,
+    public readonly isArchived: boolean | null = null,
     /** The user's permissions for this github repository. `null` if unknown. */
     public readonly permissions: GitHubRepositoryPermission = null,
     public readonly parent: GitHubRepository | null = null
