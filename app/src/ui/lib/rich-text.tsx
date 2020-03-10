@@ -14,6 +14,12 @@ interface IRichTextProps {
   /** The raw text to inspect for things to highlight */
   readonly text: string
 
+  /**
+   * Optional string to override rich text's url
+   * (Useful for truncated text with url inside)
+   */
+  readonly url?: string
+
   /** Should URLs be rendered as clickable links. Default true. */
   readonly renderUrlsAsLinks?: boolean
 
@@ -34,6 +40,7 @@ interface IRichTextProps {
 export class RichText extends React.Component<IRichTextProps, {}> {
   public render() {
     const str = this.props.text
+    const url = this.props.url
 
     // If we've been given an empty string then return null so that we don't end
     // up introducing an extra empty <span>.
@@ -43,7 +50,7 @@ export class RichText extends React.Component<IRichTextProps, {}> {
 
     const tokenizer = new Tokenizer(this.props.emoji, this.props.repository)
 
-    const elements = tokenizer.tokenize(str).map((token, index) => {
+    const elements = tokenizer.tokenize(str, url).map((token, index) => {
       switch (token.kind) {
         case TokenType.Emoji:
           return (

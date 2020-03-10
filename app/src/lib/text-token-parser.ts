@@ -202,6 +202,7 @@ export class Tokenizer {
 
   private scanForHyperlink(
     text: string,
+    url: string,
     index: number,
     repository?: GitHubRepository
   ): LookupResult | null {
@@ -228,7 +229,7 @@ export class Tokenizer {
           const idText = issueMatch[1]
           this._results.push({
             kind: TokenType.Link,
-            url: maybeHyperlink,
+            url: url || maybeHyperlink,
             text: `#${idText}`,
           })
           return { nextIndex }
@@ -239,7 +240,7 @@ export class Tokenizer {
     // just render a hyperlink with the full URL
     this._results.push({
       kind: TokenType.Link,
-      url: maybeHyperlink,
+      url: url || maybeHyperlink,
       text: maybeHyperlink,
     })
     return { nextIndex }
@@ -260,7 +261,8 @@ export class Tokenizer {
   }
 
   private tokenizeNonGitHubRepository(
-    text: string
+    text: string,
+    url: string
   ): ReadonlyArray<TokenResult> {
     let i = 0
     while (i < text.length) {
@@ -272,7 +274,7 @@ export class Tokenizer {
 
         case 'h':
           i = this.inspectAndMove(element, i, () =>
-            this.scanForHyperlink(text, i)
+            this.scanForHyperlink(text, url, i)
           )
           break
 
@@ -289,6 +291,7 @@ export class Tokenizer {
 
   private tokenizeGitHubRepository(
     text: string,
+    url: string,
     repository: GitHubRepository
   ): ReadonlyArray<TokenResult> {
     let i = 0
@@ -313,7 +316,7 @@ export class Tokenizer {
 
         case 'h':
           i = this.inspectAndMove(element, i, () =>
-            this.scanForHyperlink(text, i, repository)
+            this.scanForHyperlink(text, url, i, repository)
           )
           break
 
@@ -332,15 +335,17 @@ export class Tokenizer {
    * Scan the string for tokens that match with entities an application
    * might be interested in.
    *
+   * It overrides hyperlink url if url param is provided.
+   *
    * @returns an array of tokens representing the scan results.
    */
-  public tokenize(text: string): ReadonlyArray<TokenResult> {
+  public tokenize(text: string, url: string = ''): ReadonlyArray<TokenResult> {
     this.reset()
 
     if (this.repository) {
-      return this.tokenizeGitHubRepository(text, this.repository)
+      return this.tokenizeGitHubRepository(text, url, this.repository)
     } else {
-      return this.tokenizeNonGitHubRepository(text)
+      return this.tokenizeNonGitHubRepository(text, url)
     }
   }
 }

@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as classNames from 'classnames'
+import * as getUrls from 'get-urls'
 
 import { FileChange } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
@@ -75,6 +76,14 @@ const maxSummaryLength = 72
  */
 function trimTrailingWhitespace(value: string) {
   return value.replace(/\s+$/, '')
+}
+
+/**
+ * Helper function that returns url part of the text.
+ */
+function getUrl(text: string): string {
+  const urls = [...getUrls(trimTrailingWhitespace(text))]
+  return urls[0]
 }
 
 /**
@@ -321,6 +330,7 @@ export class CommitSummary extends React.Component<
             emoji={this.props.emoji}
             repository={this.props.repository}
             text={this.state.summary}
+            url={getUrl(this.props.commit.summary)}
           />
 
           <ul className="commit-summary-meta">

@@ -124,6 +124,25 @@ describe('Tokenizer', () => {
       expect(mention.url).toBe(expectedUri)
     })
 
+    it('overrides hyperlink url when url param is provided', () => {
+      const expectedURL = 'https://github.com'
+      const text = `Note: we keep a "black list" of authentication methods for which we do
+not want to enable http.emptyAuth automatically. 
+
+This fixes https://github.com/shiftkey/some-repo/issues/1034
+`
+
+      const tokenizer = new Tokenizer(emoji, repository)
+      const results = tokenizer.tokenize(text, expectedURL)
+      expect(results).toHaveLength(3)
+
+      const hyperLink = results[1] as HyperlinkMatch
+
+      expect(hyperLink.kind).toBe(TokenType.Link)
+      expect(hyperLink.text).toBe('#1034')
+      expect(hyperLink.url).toBe(expectedURL)
+    })
+
     it('ignores http prefix when no text after', () => {
       const text = `fix double http:// in avatar URLs`
 
@@ -457,6 +476,27 @@ Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>`
       expect(results).toHaveLength(1)
       expect(results[0].kind).toBe(TokenType.Text)
       expect(results[0].text).toBe(text)
+    })
+
+    it('overrides hyperlink url when url param is provided', () => {
+      const expectedURL = 'https://github.com'
+      const text = `Note: we keep a "black list" of authentication methods for which we do
+not want to enable http.emptyAuth automatically. 
+
+This fixes https://github.com/shiftkey/some-repo/issues/1034
+`
+
+      const tokenizer = new Tokenizer(emoji)
+      const results = tokenizer.tokenize(text, expectedURL)
+      expect(results).toHaveLength(3)
+
+      const hyperLink = results[1] as HyperlinkMatch
+
+      expect(hyperLink.kind).toBe(TokenType.Link)
+      expect(hyperLink.text).toBe(
+        'https://github.com/shiftkey/some-repo/issues/1034'
+      )
+      expect(hyperLink.url).toBe(expectedURL)
     })
 
     it('renders plain link for full URL', () => {
