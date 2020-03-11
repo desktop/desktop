@@ -3317,10 +3317,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
-    if (enableUpdateRemoteUrl()) {
+    if (enableUpdateRemoteUrl() && repository.gitHubRepository) {
       await updateRemoteUrl(
         this.gitStoreCache.get(repository),
-        repository,
+        repository.gitHubRepository,
         apiRepo
       )
     }

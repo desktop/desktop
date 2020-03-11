@@ -1,20 +1,17 @@
-import { Repository } from '../../../models/repository'
 import { IAPIRepository } from '../../api'
 import { GitStore } from '../git-store'
 import { urlMatchesRemote } from '../../repository-matching'
 import * as URL from 'url'
+import { GitHubRepository } from '../../../models/github-repository'
 
 export async function updateRemoteUrl(
   gitStore: GitStore,
-  repository: Repository,
+  gitHubRepository: GitHubRepository,
   apiRepo: IAPIRepository
 ): Promise<void> {
   // I'm not sure when these early exit conditions would be met. But when they are
   // we don't have enough information to continue so exit early!
   if (gitStore.defaultRemote === null) {
-    return
-  }
-  if (!repository.gitHubRepository) {
     return
   }
 
@@ -40,10 +37,7 @@ export async function updateRemoteUrl(
   // clone url retrieved from the GitHub API previously
   const remoteUrlUnchanged =
     gitStore.defaultRemote &&
-    urlMatchesRemote(
-      repository.gitHubRepository.cloneURL,
-      gitStore.defaultRemote
-    )
+    urlMatchesRemote(gitHubRepository.cloneURL, gitStore.defaultRemote)
 
   if (protocolsMatch && remoteUrlUnchanged && !urlsMatch) {
     await gitStore.setRemoteURL(gitStore.defaultRemote.name, updatedRemoteUrl)
