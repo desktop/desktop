@@ -11,7 +11,7 @@ export async function updateRemoteUrl(
 ): Promise<void> {
   // I'm not sure when these early exit conditions would be met. But when they are
   // we don't have enough information to continue so exit early!
-  if (!gitStore.defaultRemote) {
+  if (gitStore.defaultRemote === null) {
     return
   }
   if (!repository.gitHubRepository) {
