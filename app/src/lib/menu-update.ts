@@ -388,21 +388,16 @@ function getRepoIssuesEnabled(state: IAppState): boolean {
   ) {
     const ghRepo = selectedState.repository.gitHubRepository
 
-    if (
-      ghRepo.parent &&
-      ghRepo.parent.issuesEnabled !== false &&
-      ghRepo.parent.isArchived !== true
-    ) {
+    if (ghRepo.parent) {
       // issues enabled on parent repo
-      return true
+      return (
+        ghRepo.parent.issuesEnabled !== false &&
+        ghRepo.parent.isArchived !== true
+      )
     }
 
-    if (ghRepo.issuesEnabled !== false && ghRepo.isArchived !== true) {
-      // issues enabled on repo
-      return true
-    }
-
-    return false
+    // issues enabled on repo
+    return ghRepo.issuesEnabled !== false && ghRepo.isArchived !== true
   }
 
   return false
