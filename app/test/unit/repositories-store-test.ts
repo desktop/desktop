@@ -49,6 +49,8 @@ describe('RepositoriesStore', () => {
       fork: false,
       default_branch: 'master',
       pushed_at: '1995-12-17T03:24:00',
+      has_issues: true,
+      archived: false,
       permissions: {
         pull: true,
         push: true,

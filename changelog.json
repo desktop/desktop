@@ -1,5 +1,15 @@
 {
   "releases": {
+    "2.3.2-beta4": [
+      "[New] Set Git proxy environment variables from system configuration automatically - #9154",
+      "[Added] Enable creating a GitHub issue from app menu - #8989",
+      "[Added] Add shell support for Windows Terminal - #7854. Thanks @AndreiMaga!",
+      "[Added] Add editor support for IntelliJ Idea on macOS - #8398. Thanks @gssbzn!",
+      "[Added] Add editor support for PhpStorm and update WebStorm - #7195. Thanks @dacoto97!",
+      "[Added] Support disabling certificate revocation checks on Windows - #3326",
+      "[Improved] Expand system dark mode detection to Windows - #9015. Thanks @say25!",
+      "[Improved] Allow \"Open in Desktop\" button from pull requests on GitHub to open in a local fork in Desktop - #9012"
+    ],
     "2.3.2-beta3": [
       "[Fixed] Checkout correct PR branch from “open this in GitHub Desktop” link on GitHub.com pull request page - #9108",
       "[Fixed] Ensure branch protection warning works when branch names contain special characters - #9086",
