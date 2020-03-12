@@ -93,6 +93,13 @@ When reading about proxies and when reading our own implementation one thing to 
 - http_proxy=https://proxy.local`
   - Really rare setup. Tells Git to use the https proxy at proxy.local when connecting to a non-encrypted http server
 
+It's further worth noting that https proxy support is so uncommon that it's not even supported in the version of Git/libcurl we use on Windows
+
+```
+C:\Users\markus\AppData\Local\GitHubDesktop\app-2.3.1\resources\app\git\cmd>git -c http.proxy=https://localhost:8888 ls-remote https://github.com/niik/RxSpy
+fatal: unable to access 'https://github.com/niik/RxSpy/': Unsupported proxy 'localhost:8888', libcurl is built without the HTTPS-proxy support.
+```
+
 ## Debugging tips
 
 In order to inspect what Electron sends back as the proxy server for a given request I've been using this command in the console.
