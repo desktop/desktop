@@ -162,12 +162,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   let rebaseInProgress = false
   let branchHasStashEntry = false
   // check that its a github repo and if so, that is has issues enabled
-  const repoIssuesEnabled =
-    selectedState !== null &&
-    selectedState.repository instanceof Repository &&
-    isRepositoryWithGitHubRepository(selectedState.repository) &&
-    selectedState.repository.gitHubRepository.issuesEnabled !== false &&
-    selectedState.repository.gitHubRepository.isArchived !== true
+  const repoIssuesEnabled = getRepoIssuesEnabled(state)
 
   if (selectedState && selectedState.type === SelectionType.Repository) {
     repositorySelected = true
@@ -382,6 +377,35 @@ function getNoRepositoriesBuilder(state: IAppState): MenuStateBuilder {
   }
 
   return menuStateBuilder
+}
+
+function getRepoIssuesEnabled(state: IAppState): boolean {
+  const selectedState = state.selectedState
+  if (
+    selectedState !== null &&
+    selectedState.repository instanceof Repository &&
+    isRepositoryWithGitHubRepository(selectedState.repository)
+  ) {
+    const ghRepo = selectedState.repository.gitHubRepository
+
+    if (
+      ghRepo.parent &&
+      ghRepo.parent.issuesEnabled !== false &&
+      ghRepo.parent.isArchived !== true
+    ) {
+      // issues enabled on parent repo
+      return true
+    }
+
+    if (ghRepo.issuesEnabled !== false && ghRepo.isArchived !== true) {
+      // issues enabled on repo
+      return true
+    }
+
+    return false
+  }
+
+  return false
 }
 
 /**
