@@ -162,7 +162,10 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   let rebaseInProgress = false
   let branchHasStashEntry = false
   // check that its a github repo and if so, that is has issues enabled
-  const repoIssuesEnabled = getRepoIssuesEnabled(state)
+  const repoIssuesEnabled =
+    selectedState !== null &&
+    selectedState.repository instanceof Repository &&
+    getRepoIssuesEnabled(selectedState.repository)
 
   if (selectedState && selectedState.type === SelectionType.Repository) {
     repositorySelected = true
@@ -379,14 +382,9 @@ function getNoRepositoriesBuilder(state: IAppState): MenuStateBuilder {
   return menuStateBuilder
 }
 
-function getRepoIssuesEnabled(state: IAppState): boolean {
-  const selectedState = state.selectedState
-  if (
-    selectedState !== null &&
-    selectedState.repository instanceof Repository &&
-    isRepositoryWithGitHubRepository(selectedState.repository)
-  ) {
-    const ghRepo = selectedState.repository.gitHubRepository
+function getRepoIssuesEnabled(repository: Repository): boolean {
+  if (isRepositoryWithGitHubRepository(repository)) {
+    const ghRepo = repository.gitHubRepository
 
     if (ghRepo.parent) {
       // issues enabled on parent repo
