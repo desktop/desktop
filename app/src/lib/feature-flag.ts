@@ -139,7 +139,6 @@ export function enableAutomaticGitProxyConfiguration(): boolean {
  * "Repository" in the app menu?
  */
 export function enableCreateGitHubIssueFromMenu(): boolean {
-  console.error(enableBetaFeatures())
   return enableBetaFeatures()
 }
 
