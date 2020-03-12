@@ -33,7 +33,7 @@
     "file-uri-to-path": "0.0.2",
     "file-url": "^2.0.2",
     "fs-admin": "^0.12.0",
-    "fs-extra": "^6.0.0",
+    "fs-extra": "^7.0.1",
     "fuzzaldrin-plus": "^0.6.0",
     "keytar": "^5.0.0",
     "mem": "^4.3.0",
@@ -64,7 +64,7 @@
   },
   "devDependencies": {
     "devtron": "^1.4.0",
-    "electron-debug": "^2.0.0",
+    "electron-debug": "^3.0.1",
     "electron-devtools-installer": "^2.2.4",
     "temp": "^0.8.3",
     "webpack-hot-middleware": "^2.10.0"
