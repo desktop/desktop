@@ -1,5 +1,9 @@
 {
   "releases": {
+    "2.3.2-beta5": [
+      "[Fixed] Create issue in upstream repository for fork - #9232",
+      "[Fixed] Update the remote url for repository name change - #8590"
+    ],
     "2.3.2-beta4": [
       "[New] Set Git proxy environment variables from system configuration automatically - #9154",
       "[Added] Enable creating a GitHub issue from app menu - #8989",
