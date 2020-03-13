@@ -147,60 +147,25 @@ export class CreateBranch extends React.Component<
     } else if (tip.kind === TipState.Valid) {
       if (
         this.props.repository.gitHubRepository !== null &&
-        this.props.repository.gitHubRepository.parent !== null
+        this.props.repository.gitHubRepository.parent !== null &&
+        this.props.repository.gitHubRepository.parent.defaultBranch !== null
       ) {
-        return this.renderUpstreamBranchContent(
+        return this.renderForkBranchContent(
           tip.branch.name,
+          this.props.repository.gitHubRepository.parent.defaultBranch,
           this.props.repository.gitHubRepository.parent
         )
       }
 
-      const currentBranch = tip.branch
-      const defaultBranchName = this.getDefaultBranchName()
+      const defaultBranch = this.state.isCreatingBranch
+        ? this.props.defaultBranch
+        : this.state.defaultBranchAtCreateStart
 
-      if (
-        defaultBranchName === null ||
-        defaultBranchName === currentBranch.name
-      ) {
-        const defaultBranchLink = (
-          <LinkButton uri="https://help.github.com/articles/setting-the-default-branch/">
-            default branch
-          </LinkButton>
-        )
-        return (
-          <p>
-            Your new branch will be based on your currently checked out branch (
-            <Ref>{currentBranch.name}</Ref>
-            ). <Ref>{currentBranch.name}</Ref> is the {defaultBranchLink} for
-            your repository.
-          </p>
-        )
-      } else {
-        const items = [
-          {
-            title: defaultBranchName,
-            description:
-              "The default branch in your repository. Pick this to start on something new that's not dependent on your current branch.",
-          },
-          {
-            title: currentBranch.name,
-            description:
-              'The currently checked out branch. Pick this if you need to build on work done on this branch.',
-          },
-        ]
-
-        const startPoint = this.state.startPoint
-        const selectedIndex = startPoint === StartPoint.DefaultBranch ? 0 : 1
-
-        return (
-          <Row>
-            <VerticalSegmentedControl
-              label="Create branch based on…"
-              items={items}
-              selectedIndex={selectedIndex}
-              onSelectionChanged={this.onBaseBranchChanged}
-            />
-          </Row>
+      // this should really always be true
+      if (defaultBranch !== null) {
+        return this.renderRegularBranchContent(
+          tip.branch.name,
+          defaultBranch.name
         )
       }
     } else {
@@ -215,7 +180,9 @@ export class CreateBranch extends React.Component<
         this.props.repository.gitHubRepository !== null &&
         this.props.repository.gitHubRepository.parent !== null
       ) {
-        this.setState({ startPoint: StartPoint.UpstreamDefaultBranch })
+        this.setState({
+          startPoint: StartPoint.UpstreamDefaultBranch,
+        })
       } else {
         this.setState({ startPoint: StartPoint.DefaultBranch })
       }
@@ -350,43 +317,25 @@ export class CreateBranch extends React.Component<
     }
   }
 
-  private getDefaultBranchName(): string | null {
-    if (this.state.isCreatingBranch && this.props.defaultBranch !== null) {
-      return this.props.defaultBranch.name
-    }
-    if (this.state.defaultBranchAtCreateStart !== null) {
-      return this.state.defaultBranchAtCreateStart.name
-    }
-    return null
-  }
-
-  private renderUpstreamBranchContent(
+  private renderRegularBranchContent(
     currentBranchName: string,
-    upstream: GitHubRepository
+    defaultBranchName: string
   ) {
-    // if we don't know the default branch name, we guess `master`
-    const defaultBranchName = upstream.defaultBranch || 'master'
-
-    // we assume here that the upstream and this
-    // fork will have the same default branch name
-    if (defaultBranchName === currentBranchName) {
-      const defaultBranchLink = (
-        <LinkButton uri="https://help.github.com/articles/setting-the-default-branch/">
-          default branch
-        </LinkButton>
-      )
+    if (defaultBranchName === null || defaultBranchName === currentBranchName) {
       return (
         <p>
-          Your new branch will be based on {upstream.fullName}'s{' '}
-          {defaultBranchLink} (<Ref>{defaultBranchName}</Ref>).
+          Your new branch will be based on your currently checked out branch (
+          <Ref>{currentBranchName}</Ref>
+          ). <Ref>{currentBranchName}</Ref> is the {defaultBranchLink} for your
+          repository.
         </p>
       )
     } else {
       const items = [
         {
-          title: `${UpstreamRemoteName}/${defaultBranchName}`,
+          title: defaultBranchName,
           description:
-            "The default branch of the upstream repository. Pick this to start on something new that's not dependent on your current branch.",
+            "The default branch in your repository. Pick this to start on something new that's not dependent on your current branch.",
         },
         {
           title: currentBranchName,
@@ -410,4 +359,55 @@ export class CreateBranch extends React.Component<
       )
     }
   }
+
+  private renderForkBranchContent(
+    currentBranchName: string,
+    upstreamDefaultBranchName: string,
+    upstream: GitHubRepository
+  ) {
+    // we assume here that the upstream and this
+    // fork will have the same default branch name
+    if (upstreamDefaultBranchName === currentBranchName) {
+      return (
+        <p>
+          Your new branch will be based on {upstream.fullName}'s{' '}
+          {defaultBranchLink} (<Ref>{upstreamDefaultBranchName}</Ref>).
+        </p>
+      )
+    } else {
+      const items = [
+        {
+          title: `${UpstreamRemoteName}/${upstreamDefaultBranchName}`,
+          description:
+            "The default branch of the upstream repository. Pick this to start on something new that's not dependent on your current branch.",
+        },
+        {
+          title: currentBranchName,
+          description:
+            'The currently checked out branch. Pick this if you need to build on work done on this branch.',
+        },
+      ]
+
+      const startPoint = this.state.startPoint
+      const selectedIndex =
+        startPoint === StartPoint.UpstreamDefaultBranch ? 0 : 1
+
+      return (
+        <Row>
+          <VerticalSegmentedControl
+            label="Create branch based on…"
+            items={items}
+            selectedIndex={selectedIndex}
+            onSelectionChanged={this.onBaseBranchChanged}
+          />
+        </Row>
+      )
+    }
+  }
 }
+
+const defaultBranchLink = (
+  <LinkButton uri="https://help.github.com/articles/setting-the-default-branch/">
+    default branch
+  </LinkButton>
+)
