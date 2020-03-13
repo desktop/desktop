@@ -1,7 +1,7 @@
 {
   "releases": {
     "2.3.2-beta5": [
-      "[Fixed] Create issue in upstream repository for fork - #9232",
+      "[Improved] Direct new issues created from a local fork to its upstream on GitHub - #9232",
       "[Fixed] Update the remote url for repository name change - #8590"
     ],
     "2.3.2-beta4": [
