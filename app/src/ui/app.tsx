@@ -1108,7 +1108,11 @@ export class App extends React.Component<IAppProps, IAppState> {
    * of the current GitHub repository.
    */
   private createIssueInRepositoryOnGitHub() {
-    const url = this.getCurrentRepositoryGitHubURL()
+    // Default to creating issue on parent repo
+    // See https://github.com/desktop/desktop/issues/9232 for rationale
+    const url =
+      this.getParentRepositoryGitHubURL() ||
+      this.getCurrentRepositoryGitHubURL()
 
     if (url) {
       this.props.dispatcher.openInBrowser(`${url}/issues/new/choose`)
@@ -1122,6 +1126,23 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.props.dispatcher.openInBrowser(url)
       return
     }
+  }
+
+  /** Returns the URL to the parent repository if hosted on GitHub */
+  private getParentRepositoryGitHubURL() {
+    const repository = this.getRepository()
+
+    if (
+      !repository ||
+      repository instanceof CloningRepository ||
+      !repository.gitHubRepository ||
+      repository.gitHubRepository.parent === null ||
+      repository.gitHubRepository.parent.htmlURL === null
+    ) {
+      return null
+    }
+
+    return repository.gitHubRepository.parent.htmlURL
   }
 
   /** Returns the URL to the current repository if hosted on GitHub */

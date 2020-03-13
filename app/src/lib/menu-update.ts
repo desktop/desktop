@@ -165,9 +165,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   const repoIssuesEnabled =
     selectedState !== null &&
     selectedState.repository instanceof Repository &&
-    isRepositoryWithGitHubRepository(selectedState.repository) &&
-    selectedState.repository.gitHubRepository.issuesEnabled !== false &&
-    selectedState.repository.gitHubRepository.isArchived !== true
+    getRepoIssuesEnabled(selectedState.repository)
 
   if (selectedState && selectedState.type === SelectionType.Repository) {
     repositorySelected = true
@@ -382,6 +380,25 @@ function getNoRepositoriesBuilder(state: IAppState): MenuStateBuilder {
   }
 
   return menuStateBuilder
+}
+
+function getRepoIssuesEnabled(repository: Repository): boolean {
+  if (isRepositoryWithGitHubRepository(repository)) {
+    const ghRepo = repository.gitHubRepository
+
+    if (ghRepo.parent) {
+      // issues enabled on parent repo
+      return (
+        ghRepo.parent.issuesEnabled !== false &&
+        ghRepo.parent.isArchived !== true
+      )
+    }
+
+    // issues enabled on repo
+    return ghRepo.issuesEnabled !== false && ghRepo.isArchived !== true
+  }
+
+  return false
 }
 
 /**
