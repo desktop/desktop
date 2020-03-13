@@ -9,7 +9,10 @@ import { Row } from '../lib/row'
 import { Ref } from '../lib/ref'
 import { LinkButton } from '../lib/link-button'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
-import { VerticalSegmentedControl } from '../lib/vertical-segmented-control'
+import {
+  VerticalSegmentedControl,
+  ISegmentedItem,
+} from '../lib/vertical-segmented-control'
 import {
   TipState,
   IUnbornRepository,
@@ -33,10 +36,12 @@ import { UpstreamRemoteName } from '../../lib/stores'
 
 interface ICreateBranchProps {
   readonly repository: Repository
+  readonly upstreamRepository: GitHubRepository | null
   readonly dispatcher: Dispatcher
   readonly onDismissed: () => void
   readonly tip: IUnbornRepository | IDetachedHead | IValidBranch
   readonly defaultBranch: Branch | null
+  readonly upstreamDefaultBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
   readonly initialName: string
   readonly currentBranchProtected: boolean
@@ -146,14 +151,13 @@ export class CreateBranch extends React.Component<
       )
     } else if (tip.kind === TipState.Valid) {
       if (
-        this.props.repository.gitHubRepository !== null &&
-        this.props.repository.gitHubRepository.parent !== null &&
-        this.props.repository.gitHubRepository.parent.defaultBranch !== null
+        this.props.upstreamRepository !== null &&
+        this.props.upstreamDefaultBranch !== null
       ) {
-        return this.renderForkBranchContent(
+        return this.renderForkBranchSelection(
           tip.branch.name,
-          this.props.repository.gitHubRepository.parent.defaultBranch,
-          this.props.repository.gitHubRepository.parent
+          this.props.upstreamDefaultBranch.name,
+          this.props.upstreamRepository.fullName
         )
       }
 
@@ -161,13 +165,10 @@ export class CreateBranch extends React.Component<
         ? this.props.defaultBranch
         : this.state.defaultBranchAtCreateStart
 
-      // this should really always be true
-      if (defaultBranch !== null) {
-        return this.renderRegularBranchContent(
-          tip.branch.name,
-          defaultBranch.name
-        )
-      }
+      return this.renderRegularBranchSelection(
+        tip.branch.name,
+        defaultBranch !== null ? defaultBranch.name : null
+      )
     } else {
       return assertNever(tip, `Unknown tip kind ${tipKind}`)
     }
@@ -177,8 +178,8 @@ export class CreateBranch extends React.Component<
     if (selection === SelectedBranch.DefaultBranch) {
       // is this a fork?
       if (
-        this.props.repository.gitHubRepository !== null &&
-        this.props.repository.gitHubRepository.parent !== null
+        this.props.upstreamRepository !== null &&
+        this.props.upstreamDefaultBranch !== null
       ) {
         this.setState({
           startPoint: StartPoint.UpstreamDefaultBranch,
@@ -269,7 +270,12 @@ export class CreateBranch extends React.Component<
 
     let startPoint: string | null = null
 
-    const { defaultBranch, currentBranchProtected, repository } = this.props
+    const {
+      defaultBranch,
+      upstreamDefaultBranch,
+      currentBranchProtected,
+      repository,
+    } = this.props
 
     if (this.state.startPoint === StartPoint.DefaultBranch) {
       // This really shouldn't happen, we take all kinds of precautions
@@ -286,14 +292,14 @@ export class CreateBranch extends React.Component<
     if (this.state.startPoint === StartPoint.UpstreamDefaultBranch) {
       // This really shouldn't happen, we take all kinds of precautions
       // to make sure the startPoint state is valid given the current props.
-      if (!defaultBranch) {
+      if (!upstreamDefaultBranch) {
         this.setState({
           currentError: new Error('Could not determine the default branch'),
         })
         return
       }
 
-      startPoint = `${UpstreamRemoteName}/${defaultBranch.name}`
+      startPoint = upstreamDefaultBranch.name
     }
 
     if (name.length > 0) {
@@ -317,9 +323,15 @@ export class CreateBranch extends React.Component<
     }
   }
 
-  private renderRegularBranchContent(
+  /**
+   * Render options for a non-fork repository
+   *
+   * Gives user the option to make a new branch from
+   * the default branch.
+   */
+  private renderRegularBranchSelection(
     currentBranchName: string,
-    defaultBranchName: string
+    defaultBranchName: string | null
   ) {
     if (defaultBranchName === null || defaultBranchName === currentBranchName) {
       return (
@@ -344,33 +356,30 @@ export class CreateBranch extends React.Component<
         },
       ]
 
-      const startPoint = this.state.startPoint
-      const selectedIndex = startPoint === StartPoint.DefaultBranch ? 0 : 1
+      const selectedIndex =
+        this.state.startPoint === StartPoint.DefaultBranch ? 0 : 1
 
-      return (
-        <Row>
-          <VerticalSegmentedControl
-            label="Create branch based on…"
-            items={items}
-            selectedIndex={selectedIndex}
-            onSelectionChanged={this.onBaseBranchChanged}
-          />
-        </Row>
-      )
+      return this.renderOptions(items, selectedIndex)
     }
   }
 
-  private renderForkBranchContent(
+  /**
+   * Render options if we're in a fork
+   *
+   * Gives user the option to make a new branch from
+   * the upstream default branch.
+   */
+  private renderForkBranchSelection(
     currentBranchName: string,
     upstreamDefaultBranchName: string,
-    upstream: GitHubRepository
+    upstreamRepositoryFullName: string
   ) {
     // we assume here that the upstream and this
     // fork will have the same default branch name
     if (upstreamDefaultBranchName === currentBranchName) {
       return (
         <p>
-          Your new branch will be based on {upstream.fullName}'s{' '}
+          Your new branch will be based on {upstreamRepositoryFullName}'s{' '}
           {defaultBranchLink} (<Ref>{upstreamDefaultBranchName}</Ref>).
         </p>
       )
@@ -388,22 +397,27 @@ export class CreateBranch extends React.Component<
         },
       ]
 
-      const startPoint = this.state.startPoint
       const selectedIndex =
-        startPoint === StartPoint.UpstreamDefaultBranch ? 0 : 1
+        this.state.startPoint === StartPoint.UpstreamDefaultBranch ? 0 : 1
 
-      return (
-        <Row>
-          <VerticalSegmentedControl
-            label="Create branch based on…"
-            items={items}
-            selectedIndex={selectedIndex}
-            onSelectionChanged={this.onBaseBranchChanged}
-          />
-        </Row>
-      )
+      return this.renderOptions(items, selectedIndex)
     }
   }
+
+  /** Shared method for rendering two choices in this component */
+  private renderOptions = (
+    items: ReadonlyArray<ISegmentedItem>,
+    selectedIndex: number
+  ) => (
+    <Row>
+      <VerticalSegmentedControl
+        label="Create branch based on…"
+        items={items}
+        selectedIndex={selectedIndex}
+        onSelectionChanged={this.onBaseBranchChanged}
+      />
+    </Row>
+  )
 }
 
 const defaultBranchLink = (

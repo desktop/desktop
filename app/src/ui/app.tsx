@@ -10,7 +10,12 @@ import {
   HistoryTabMode,
 } from '../lib/app-state'
 import { Dispatcher } from './dispatcher'
-import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
+import {
+  AppStore,
+  GitHubUserStore,
+  IssuesStore,
+  UpstreamRemoteName,
+} from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { shell } from '../lib/app-shell'
 import { updateStore, UpdateStatus } from './lib/update-store'
@@ -24,7 +29,7 @@ import { getOS } from '../lib/get-os'
 import { validatedRepositoryPath } from '../lib/stores/helpers/validated-repository-path'
 import { MenuEvent } from '../main-process/menu'
 import { Repository } from '../models/repository'
-import { Branch } from '../models/branch'
+import { Branch, BranchType } from '../models/branch'
 import { PreferencesTab } from '../models/preferences'
 import { findItemByAccessKey, itemIsSelectable } from '../models/app-menu'
 import { Account } from '../models/account'
@@ -1477,13 +1482,36 @@ export class App extends React.Component<IAppProps, IAppState> {
           return null
         }
 
+        const upstreamRepo =
+          repository.gitHubRepository !== null &&
+          repository.gitHubRepository.parent !== null
+            ? repository.gitHubRepository.parent
+            : null
+
+        const upstreamDefaultBranchName =
+          upstreamRepo !== null && upstreamRepo.defaultBranch !== null
+            ? upstreamRepo.defaultBranch
+            : null
+
+        const upstreamDefaultBranch =
+          upstreamDefaultBranchName !== null
+            ? branchesState.allBranches.find(
+                b =>
+                  b.type === BranchType.Remote &&
+                  b.name ===
+                    `${UpstreamRemoteName}/${upstreamDefaultBranchName}`
+              ) || null
+            : null
+
         return (
           <CreateBranch
             key="create-branch"
             tip={branchesState.tip}
             defaultBranch={branchesState.defaultBranch}
+            upstreamDefaultBranch={upstreamDefaultBranch}
             allBranches={branchesState.allBranches}
             repository={repository}
+            upstreamRepository={upstreamRepo}
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
             initialName={popup.initialName || ''}
