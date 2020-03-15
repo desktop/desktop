@@ -134,6 +134,10 @@ of NPM:
 $ npm config set msvs_version 2015
 ```
 
+## Troubleshooting
+
+If your local copy gets "stuck" try deleting the folder `C:\Users\[Your_User]\AppData\Roaming\GitHub Desktop-dev`.
+
 ## Back to setup
 
 Once you've installed the necessary dependencies, head back to the [setup page](https://github.com/desktop/desktop/blob/development/docs/contributing/setup.md) to finish getting set up.
