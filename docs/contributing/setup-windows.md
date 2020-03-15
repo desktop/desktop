@@ -145,14 +145,14 @@ $ npm config set msvs_version 2015
 ### Visual C++ Build Tools
 
 If you do not have an existing Visual Studio installation, there is a
-standalone [Visual C++ Build Tools](http://go.microsoft.com/fwlink/?LinkId=691126)
+standalone [Visual C++ Build Tools](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools)
 installer available.
 
 After installation open a shell and run this command to update the configuration
 of NPM:
 
 ```shellsession
-$ npm config set msvs_version 2015
+$ npm config set msvs_version 2019
 ```
 
 ## Troubleshooting
