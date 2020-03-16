@@ -165,10 +165,7 @@ export class CreateBranch extends React.Component<
         ? this.props.defaultBranch
         : this.state.defaultBranchAtCreateStart
 
-      return this.renderRegularBranchSelection(
-        tip.branch.name,
-        defaultBranch !== null ? defaultBranch.name : null
-      )
+      return this.renderRegularBranchSelection(tip.branch.name, defaultBranch)
     } else {
       return assertNever(tip, `Unknown tip kind ${tipKind}`)
     }
