@@ -19,7 +19,10 @@ interface IAppearanceProps {
 
 const themes: ReadonlyArray<ISegmentedItem> = [
   { title: 'Light', description: 'The default theme of GitHub Desktop' },
-  { title: 'Dark', description: 'GitHub Desktop is for you too, creatures of the night' }
+  {
+    title: 'Dark',
+    description: 'GitHub Desktop is for you too, creatures of the night',
+  },
 ]
 
 export class Appearance extends React.Component<IAppearanceProps, {}> {
