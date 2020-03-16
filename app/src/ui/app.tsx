@@ -113,6 +113,7 @@ import { SAMLReauthRequiredDialog } from './saml-reauth-required/saml-reauth-req
 import { CreateForkDialog } from './forks/create-fork-dialog'
 import { SChannelNoRevocationCheckDialog } from './schannel-no-revocation-check/schannel-no-revocation-check'
 import { findUpstreamRemoteBranch } from '../lib/branch'
+import { GitHubRepository } from '../models/github-repository'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1478,18 +1479,21 @@ export class App extends React.Component<IAppProps, IAppState> {
           return null
         }
 
-        const upstreamRepo =
+        // upstream github repo, if there is one
+        const upstreamGhRepo: GitHubRepository | null =
           repository.gitHubRepository !== null &&
           repository.gitHubRepository.parent !== null
             ? repository.gitHubRepository.parent
             : null
 
-        const upstreamDefaultBranchName =
-          upstreamRepo !== null && upstreamRepo.defaultBranch !== null
-            ? upstreamRepo.defaultBranch
+        // default branch name, if there is one
+        const upstreamDefaultBranchName: string | null =
+          upstreamGhRepo !== null && upstreamGhRepo.defaultBranch !== null
+            ? upstreamGhRepo.defaultBranch
             : null
 
-        const upstreamDefaultBranch =
+        // get the corresponding branch, if we have it
+        const upstreamDefaultBranch: Branch | null =
           upstreamDefaultBranchName !== null
             ? findUpstreamRemoteBranch(
                 upstreamDefaultBranchName,
@@ -1505,7 +1509,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             upstreamDefaultBranch={upstreamDefaultBranch}
             allBranches={branchesState.allBranches}
             repository={repository}
-            upstreamRepository={upstreamRepo}
+            upstreamGitHubRepository={upstreamGhRepo}
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
             initialName={popup.initialName || ''}

@@ -35,7 +35,7 @@ import { GitHubRepository } from '../../models/github-repository'
 
 interface ICreateBranchProps {
   readonly repository: Repository
-  readonly upstreamRepository: GitHubRepository | null
+  readonly upstreamGitHubRepository: GitHubRepository | null
   readonly dispatcher: Dispatcher
   readonly onDismissed: () => void
   readonly tip: IUnbornRepository | IDetachedHead | IValidBranch
@@ -82,8 +82,9 @@ interface ICreateBranchState {
   readonly defaultBranchAtCreateStart: Branch | null
 }
 
+/** Only used for the `onBaseBranchChanged` callback */
 enum SelectedBranch {
-  DefaultBranch = 0,
+  DefaultishBranch = 0,
   CurrentBranch = 1,
 }
 
@@ -104,7 +105,7 @@ export class CreateBranch extends React.Component<
       startPoint,
       isCreatingBranch: false,
       tipAtCreateStart: props.tip,
-      defaultBranchAtCreateStart: getDefaultBranch(startPoint, props),
+      defaultBranchAtCreateStart: getBranchForStartPoint(startPoint, props),
     }
   }
 
@@ -122,7 +123,7 @@ export class CreateBranch extends React.Component<
     if (!this.state.isCreatingBranch) {
       this.setState({
         tipAtCreateStart: nextProps.tip,
-        defaultBranchAtCreateStart: getDefaultBranch(
+        defaultBranchAtCreateStart: getBranchForStartPoint(
           this.state.startPoint,
           nextProps
         ),
@@ -155,18 +156,18 @@ export class CreateBranch extends React.Component<
       )
     } else if (tip.kind === TipState.Valid) {
       if (
-        this.props.upstreamRepository !== null &&
+        this.props.upstreamGitHubRepository !== null &&
         this.props.upstreamDefaultBranch !== null
       ) {
         return this.renderForkBranchSelection(
           tip.branch.name,
           this.props.upstreamDefaultBranch,
-          this.props.upstreamRepository.fullName
+          this.props.upstreamGitHubRepository.fullName
         )
       }
 
       const defaultBranch = this.state.isCreatingBranch
-        ? getDefaultBranch(this.state.startPoint, this.props)
+        ? getBranchForStartPoint(this.state.startPoint, this.props)
         : this.state.defaultBranchAtCreateStart
 
       return this.renderRegularBranchSelection(tip.branch.name, defaultBranch)
@@ -176,10 +177,10 @@ export class CreateBranch extends React.Component<
   }
 
   private onBaseBranchChanged = (selection: SelectedBranch) => {
-    if (selection === SelectedBranch.DefaultBranch) {
+    if (selection === SelectedBranch.DefaultishBranch) {
       // is this a fork?
       if (
-        this.props.upstreamRepository !== null &&
+        this.props.upstreamGitHubRepository !== null &&
         this.props.upstreamDefaultBranch !== null
       ) {
         this.setState({
@@ -423,13 +424,15 @@ export class CreateBranch extends React.Component<
   )
 }
 
+/** Reusable snippet */
 const defaultBranchLink = (
   <LinkButton uri="https://help.github.com/articles/setting-the-default-branch/">
     default branch
   </LinkButton>
 )
 
-function getDefaultBranch(
+/** Given a some branches and a start point, return the proper branch */
+function getBranchForStartPoint(
   startPoint: StartPoint,
   branchInfo: {
     readonly defaultBranch: Branch | null
