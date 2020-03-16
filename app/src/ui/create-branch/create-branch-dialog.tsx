@@ -299,7 +299,7 @@ export class CreateBranch extends React.Component<
         return
       }
 
-      startPoint = upstreamDefaultBranch.name
+      startPoint = `remotes/${upstreamDefaultBranch.name}`
     }
 
     if (name.length > 0) {
