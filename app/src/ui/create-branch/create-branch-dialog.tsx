@@ -99,10 +99,11 @@ export class CreateBranch extends React.Component<
       currentError: null,
       proposedName: props.initialName,
       sanitizedName: '',
-      startPoint: getStartPoint(props, StartPoint.DefaultBranch),
+      startPoint: getStartPoint(props, StartPoint.UpstreamDefaultBranch),
       isCreatingBranch: false,
       tipAtCreateStart: props.tip,
-      defaultBranchAtCreateStart: props.defaultBranch,
+      defaultBranchAtCreateStart:
+        props.upstreamDefaultBranch || props.defaultBranch,
     }
   }
 
