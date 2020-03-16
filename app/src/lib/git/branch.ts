@@ -29,6 +29,13 @@ export async function createBranch(
   const args =
     startPoint !== null ? ['branch', name, startPoint] : ['branch', name]
 
+  // if we're branching directly from a remote branch, we don't want to track it
+  // tracking it will make the rest of desktop think we want to push to that
+  // remote branch's upstream (which would likely be the upstream of the fork)
+  if (startPoint !== null && startPoint.startsWith('remotes/')) {
+    args.push('--no-track')
+  }
+
   await git(args, repository.path, 'createBranch')
   const branches = await getBranches(repository, `refs/heads/${name}`)
   if (branches.length > 0) {
