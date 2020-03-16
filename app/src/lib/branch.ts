@@ -9,7 +9,7 @@ import { UpstreamRemoteName } from './stores'
  * then running this on the branches from the fork outofambit/funnel
  * will find the branch `remotes/upstream/development`
  *
- * @param upstreamDefaultBranchName short name of the branch in the upstream repo
+ * @param branchName short name of the branch in the upstream repo
  * @param branches all the branches in the local repo
  */
 export function findUpstreamRemoteBranch(
