@@ -95,15 +95,16 @@ export class CreateBranch extends React.Component<
   public constructor(props: ICreateBranchProps) {
     super(props)
 
+    const startPoint = getStartPoint(props, StartPoint.UpstreamDefaultBranch)
+
     this.state = {
       currentError: null,
       proposedName: props.initialName,
       sanitizedName: '',
-      startPoint: getStartPoint(props, StartPoint.UpstreamDefaultBranch),
+      startPoint,
       isCreatingBranch: false,
       tipAtCreateStart: props.tip,
-      defaultBranchAtCreateStart:
-        props.upstreamDefaultBranch || props.defaultBranch,
+      defaultBranchAtCreateStart: getDefaultBranch(startPoint, props),
     }
   }
 
@@ -121,7 +122,10 @@ export class CreateBranch extends React.Component<
     if (!this.state.isCreatingBranch) {
       this.setState({
         tipAtCreateStart: nextProps.tip,
-        defaultBranchAtCreateStart: nextProps.defaultBranch,
+        defaultBranchAtCreateStart: getDefaultBranch(
+          this.state.startPoint,
+          nextProps
+        ),
       })
     }
   }
@@ -162,7 +166,7 @@ export class CreateBranch extends React.Component<
       }
 
       const defaultBranch = this.state.isCreatingBranch
-        ? this.props.defaultBranch
+        ? getDefaultBranch(this.state.startPoint, this.props)
         : this.state.defaultBranchAtCreateStart
 
       return this.renderRegularBranchSelection(tip.branch.name, defaultBranch)
@@ -424,3 +428,17 @@ const defaultBranchLink = (
     default branch
   </LinkButton>
 )
+
+function getDefaultBranch(
+  startPoint: StartPoint,
+  branchInfo: {
+    readonly defaultBranch: Branch | null
+    readonly upstreamDefaultBranch: Branch | null
+  }
+) {
+  return startPoint === StartPoint.UpstreamDefaultBranch
+    ? branchInfo.upstreamDefaultBranch
+    : startPoint === StartPoint.DefaultBranch
+    ? branchInfo.upstreamDefaultBranch
+    : null
+}
