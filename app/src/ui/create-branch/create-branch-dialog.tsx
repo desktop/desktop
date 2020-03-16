@@ -32,7 +32,6 @@ import {
   UncommittedChangesStrategyKind,
 } from '../../models/uncommitted-changes-strategy'
 import { GitHubRepository } from '../../models/github-repository'
-import { UpstreamRemoteName } from '../../lib/stores'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -156,7 +155,7 @@ export class CreateBranch extends React.Component<
       ) {
         return this.renderForkBranchSelection(
           tip.branch.name,
-          this.props.upstreamDefaultBranch.name,
+          this.props.upstreamDefaultBranch,
           this.props.upstreamRepository.fullName
         )
       }
@@ -331,9 +330,9 @@ export class CreateBranch extends React.Component<
    */
   private renderRegularBranchSelection(
     currentBranchName: string,
-    defaultBranchName: string | null
+    defaultBranch: Branch | null
   ) {
-    if (defaultBranchName === null || defaultBranchName === currentBranchName) {
+    if (defaultBranch === null || defaultBranch.name === currentBranchName) {
       return (
         <p>
           Your new branch will be based on your currently checked out branch (
@@ -345,7 +344,7 @@ export class CreateBranch extends React.Component<
     } else {
       const items = [
         {
-          title: defaultBranchName,
+          title: defaultBranch.name,
           description:
             "The default branch in your repository. Pick this to start on something new that's not dependent on your current branch.",
         },
@@ -371,22 +370,24 @@ export class CreateBranch extends React.Component<
    */
   private renderForkBranchSelection(
     currentBranchName: string,
-    upstreamDefaultBranchName: string,
+    upstreamDefaultBranch: Branch,
     upstreamRepositoryFullName: string
   ) {
     // we assume here that the upstream and this
     // fork will have the same default branch name
-    if (upstreamDefaultBranchName === currentBranchName) {
+    if (currentBranchName === upstreamDefaultBranch.nameWithoutRemote) {
       return (
         <p>
-          Your new branch will be based on {upstreamRepositoryFullName}'s{' '}
-          {defaultBranchLink} (<Ref>{upstreamDefaultBranchName}</Ref>).
+          Your new branch will be based on{' '}
+          <strong>{upstreamRepositoryFullName}</strong>
+          's {defaultBranchLink} (
+          <Ref>{upstreamDefaultBranch.nameWithoutRemote}</Ref>).
         </p>
       )
     } else {
       const items = [
         {
-          title: `${UpstreamRemoteName}/${upstreamDefaultBranchName}`,
+          title: upstreamDefaultBranch.name,
           description:
             "The default branch of the upstream repository. Pick this to start on something new that's not dependent on your current branch.",
         },
