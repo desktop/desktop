@@ -7,7 +7,7 @@ import { UpstreamRemoteName } from './stores'
  * For example:
  * If official/funnel has the branch `development`, then running
  * this on the branches from the fork outofambit/funnel with
- * `development` as the specified branch name will find the 
+ * `development` as the specified branch name will find the
  * branch `remotes/upstream/development`
  *
  * @param branchName short name of the branch in the upstream repo

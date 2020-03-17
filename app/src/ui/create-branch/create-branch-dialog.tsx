@@ -442,6 +442,6 @@ function getBranchForStartPoint(
   return startPoint === StartPoint.UpstreamDefaultBranch
     ? branchInfo.upstreamDefaultBranch
     : startPoint === StartPoint.DefaultBranch
-    ? branchInfo. defaultBranch
+    ? branchInfo.defaultBranch
     : null
 }
