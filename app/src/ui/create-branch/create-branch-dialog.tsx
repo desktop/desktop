@@ -167,7 +167,7 @@ export class CreateBranch extends React.Component<
       }
 
       const defaultBranch = this.state.isCreatingBranch
-        ? getBranchForStartPoint(this.state.startPoint, this.props)
+        ? this.props.defaultBranch
         : this.state.defaultBranchAtCreateStart
 
       return this.renderRegularBranchSelection(tip.branch.name, defaultBranch)
