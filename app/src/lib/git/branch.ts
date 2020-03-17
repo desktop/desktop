@@ -11,6 +11,7 @@ import {
   envForRemoteOperation,
   getFallbackUrlForProxyResolve,
 } from './environment'
+import { enableForkyCreateBranchUI } from '../feature-flag'
 
 /**
  * Create a new branch from the given start point.
@@ -32,7 +33,11 @@ export async function createBranch(
   // if we're branching directly from a remote branch, we don't want to track it
   // tracking it will make the rest of desktop think we want to push to that
   // remote branch's upstream (which would likely be the upstream of the fork)
-  if (startPoint !== null && startPoint.startsWith('remotes/')) {
+  if (
+    enableForkyCreateBranchUI() &&
+    startPoint !== null &&
+    startPoint.startsWith('remotes/')
+  ) {
     args.push('--no-track')
   }
 
