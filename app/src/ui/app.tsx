@@ -1479,28 +1479,23 @@ export class App extends React.Component<IAppProps, IAppState> {
           return null
         }
 
-        // upstream github repo, if there is one
-        const upstreamGhRepo: GitHubRepository | null =
+        let upstreamGhRepo: GitHubRepository | null = null
+        let upstreamDefaultBranch: Branch | null = null
+
+        if (
           enableForkyCreateBranchUI() &&
           repository.gitHubRepository !== null &&
           repository.gitHubRepository.parent !== null
-            ? repository.gitHubRepository.parent
-            : null
-
-        // default branch name, if there is one
-        const upstreamDefaultBranchName: string | null =
-          upstreamGhRepo !== null && upstreamGhRepo.defaultBranch !== null
-            ? upstreamGhRepo.defaultBranch
-            : null
-
-        // get the corresponding branch, if we have it
-        const upstreamDefaultBranch: Branch | null =
-          upstreamDefaultBranchName !== null
-            ? findUpstreamRemoteBranch(
-                upstreamDefaultBranchName,
+        ) {
+          upstreamGhRepo = repository.gitHubRepository.parent
+          if (upstreamGhRepo.defaultBranch !== null) {
+            upstreamDefaultBranch =
+              findUpstreamRemoteBranch(
+                upstreamGhRepo.defaultBranch,
                 branchesState.allBranches
               ) || null
-            : null
+          }
+        }
 
         return (
           <CreateBranch

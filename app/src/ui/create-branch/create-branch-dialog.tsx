@@ -431,7 +431,7 @@ const defaultBranchLink = (
   </LinkButton>
 )
 
-/** Given a some branches and a start point, return the proper branch */
+/** Given some branches and a start point, return the proper branch */
 function getBranchForStartPoint(
   startPoint: StartPoint,
   branchInfo: {
@@ -442,6 +442,6 @@ function getBranchForStartPoint(
   return startPoint === StartPoint.UpstreamDefaultBranch
     ? branchInfo.upstreamDefaultBranch
     : startPoint === StartPoint.DefaultBranch
-    ? branchInfo.upstreamDefaultBranch
+    ? branchInfo. defaultBranch
     : null
 }
