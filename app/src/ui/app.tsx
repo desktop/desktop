@@ -104,7 +104,7 @@ import { StashAndSwitchBranch } from './stash-changes/stash-and-switch-branch-di
 import { OverwriteStash } from './stash-changes/overwrite-stashed-changes-dialog'
 import { ConfirmDiscardStashDialog } from './stashing/confirm-discard-stash'
 import { CreateTutorialRepositoryDialog } from './no-repositories/create-tutorial-repository-dialog'
-import { enableTutorial } from '../lib/feature-flag'
+import { enableTutorial, enableForkyCreateBranchUI } from '../lib/feature-flag'
 import { ConfirmExitTutorial } from './tutorial'
 import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { WorkflowPushRejectedDialog } from './workflow-push-rejected/workflow-push-rejected'
@@ -112,6 +112,8 @@ import { getUncommittedChangesStrategy } from '../models/uncommitted-changes-str
 import { SAMLReauthRequiredDialog } from './saml-reauth-required/saml-reauth-required'
 import { CreateForkDialog } from './forks/create-fork-dialog'
 import { SChannelNoRevocationCheckDialog } from './schannel-no-revocation-check/schannel-no-revocation-check'
+import { findUpstreamRemoteBranch } from '../lib/branch'
+import { GitHubRepository } from '../models/github-repository'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1477,13 +1479,33 @@ export class App extends React.Component<IAppProps, IAppState> {
           return null
         }
 
+        let upstreamGhRepo: GitHubRepository | null = null
+        let upstreamDefaultBranch: Branch | null = null
+
+        if (
+          enableForkyCreateBranchUI() &&
+          repository.gitHubRepository !== null &&
+          repository.gitHubRepository.parent !== null
+        ) {
+          upstreamGhRepo = repository.gitHubRepository.parent
+          if (upstreamGhRepo.defaultBranch !== null) {
+            upstreamDefaultBranch =
+              findUpstreamRemoteBranch(
+                upstreamGhRepo.defaultBranch,
+                branchesState.allBranches
+              ) || null
+          }
+        }
+
         return (
           <CreateBranch
             key="create-branch"
             tip={branchesState.tip}
             defaultBranch={branchesState.defaultBranch}
+            upstreamDefaultBranch={upstreamDefaultBranch}
             allBranches={branchesState.allBranches}
             repository={repository}
+            upstreamGitHubRepository={upstreamGhRepo}
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
             initialName={popup.initialName || ''}

@@ -148,3 +148,10 @@ export function enableCreateGitHubIssueFromMenu(): boolean {
 export function enableUpdateRemoteUrl(): boolean {
   return enableBetaFeatures()
 }
+/**
+ * Should we show the fork-specific, "branch from the upstream
+ * default branch" version of the create branch dialog?
+ */
+export function enableForkyCreateBranchUI(): boolean {
+  return enableBetaFeatures()
+}
