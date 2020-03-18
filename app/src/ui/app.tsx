@@ -1119,7 +1119,9 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private viewRepositoryOnGitHub() {
-    const url = this.getCurrentRepositoryGitHubURL()
+    const url =
+      this.getParentRepositoryGitHubURL() ||
+      this.getCurrentRepositoryGitHubURL()
 
     if (url) {
       this.props.dispatcher.openInBrowser(url)
