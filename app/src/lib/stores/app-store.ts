@@ -1041,6 +1041,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
           tip.branch.tip.sha,
           inferredBranch.tip.sha
         )
+
+        if (
+          aheadBehindOfInferredBranch === null &&
+          this.currentAheadBehindUpdater
+        ) {
+          aheadBehindOfInferredBranch = await this.currentAheadBehindUpdater.executeAsyncTask(
+            tip.branch.tip.sha,
+            inferredBranch.tip.sha
+          )
+        }
       }
     }
 
