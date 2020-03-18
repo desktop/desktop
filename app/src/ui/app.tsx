@@ -1110,14 +1110,11 @@ export class App extends React.Component<IAppProps, IAppState> {
    * of the current GitHub repository.
    */
   private createIssueInRepositoryOnGitHub() {
-    // Default to creating issue on parent repo
-    // See https://github.com/desktop/desktop/issues/9232 for rationale
-    const url =
-      this.getParentRepositoryGitHubURL() ||
-      this.getCurrentRepositoryGitHubURL()
-
-    if (url) {
-      this.props.dispatcher.openInBrowser(`${url}/issues/new/choose`)
+    const repository = this.getRepository()
+    // this will likely never be null since we disable the
+    // issue creation menu item for non-GitHub repositories
+    if (repository instanceof Repository) {
+      this.props.dispatcher.openIssueCreationPage(repository)
     }
   }
 
