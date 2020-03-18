@@ -135,6 +135,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   highestTutorialStepCompleted: -1,
   commitsToRepositoryWithoutWriteAccess: 0,
   forksCreated: 0,
+  issuesCreated: 0,
 }
 
 interface IOnboardingStats {
@@ -1345,6 +1346,12 @@ export class StatsStore implements IStatsStore {
   public recordForkCreated() {
     return this.updateDailyMeasures(m => ({
       forksCreated: m.forksCreated + 1,
+    }))
+  }
+
+  public recordIssueCreated() {
+    return this.updateDailyMeasures(m => ({
+      issuesCreated: m.issuesCreated + 1,
     }))
   }
 
