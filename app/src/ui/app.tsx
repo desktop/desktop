@@ -1127,23 +1127,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  /** Returns the URL to the parent repository if hosted on GitHub */
-  private getParentRepositoryGitHubURL() {
-    const repository = this.getRepository()
-
-    if (
-      !repository ||
-      repository instanceof CloningRepository ||
-      !repository.gitHubRepository ||
-      repository.gitHubRepository.parent === null ||
-      repository.gitHubRepository.parent.htmlURL === null
-    ) {
-      return null
-    }
-
-    return repository.gitHubRepository.parent.htmlURL
-  }
-
   /** Returns the URL to the current repository if hosted on GitHub */
   private getCurrentRepositoryGitHubURL() {
     const repository = this.getRepository()
