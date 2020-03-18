@@ -356,7 +356,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'compare-on-github':
         return this.compareBranchOnDotcom()
       case 'create-issue-in-repository-on-github':
-        return this.createIssueInRepositoryOnGitHub()
+        return this.openIssueCreationOnGitHub()
       case 'open-in-shell':
         return this.openCurrentRepositoryInShell()
       case 'clone-repository':
@@ -1109,7 +1109,7 @@ export class App extends React.Component<IAppProps, IAppState> {
    * Opens a browser to the issue creation page
    * of the current GitHub repository.
    */
-  private createIssueInRepositoryOnGitHub() {
+  private openIssueCreationOnGitHub() {
     const repository = this.getRepository()
     // this will likely never be null since we disable the
     // issue creation menu item for non-GitHub repositories

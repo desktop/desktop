@@ -135,7 +135,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   highestTutorialStepCompleted: -1,
   commitsToRepositoryWithoutWriteAccess: 0,
   forksCreated: 0,
-  issuesCreated: 0,
+  issueCreationWebpageOpenedCount: 0,
 }
 
 interface IOnboardingStats {
@@ -1349,9 +1349,9 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  public recordIssueCreated() {
+  public recordIssueCreationWebpageOpened() {
     return this.updateDailyMeasures(m => ({
-      issuesCreated: m.issuesCreated + 1,
+      issueCreationWebpageOpenedCount: m.issueCreationWebpageOpenedCount + 1,
     }))
   }
 

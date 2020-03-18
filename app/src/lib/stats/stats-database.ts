@@ -345,7 +345,7 @@ export interface IDailyMeasures {
   /**
    * How many times has the user begun creating an issue from Desktop?
    */
-  readonly issuesCreated: number
+  readonly issueCreationWebpageOpenedCount: number
 }
 
 export class StatsDatabase extends Dexie {

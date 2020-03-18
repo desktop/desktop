@@ -2357,7 +2357,7 @@ export class Dispatcher {
     // See https://github.com/desktop/desktop/issues/9232 for rationale
     const url = getGitHubHtmlUrl(repository)
     if (url !== null) {
-      this.statsStore.recordIssueCreated()
+      this.statsStore.recordIssueCreationWebpageOpened()
       return this.appStore._openInBrowser(`${url}/issues/new/choose`)
     } else {
       return false
