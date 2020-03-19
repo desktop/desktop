@@ -106,6 +106,7 @@ import {
   IRepositoryState,
   ChangesSelectionKind,
   ChangesWorkingDirectorySelection,
+  IDivergingBranchBannerState,
 } from '../app-state'
 import { IGitHubUser } from '../databases/github-user-database'
 import {
@@ -253,7 +254,7 @@ import {
 } from '../../models/uncommitted-changes-strategy'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
-import { arrayEquals } from '../equality'
+import { arrayEquals, shallowEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
 import { updateRemoteUrl } from './updates/update-remote-url'
@@ -1086,17 +1087,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (countChanged) {
       // If the number of commits between the inferred branch and the current branch
       // has changed, show both the prompt and the nudge and reset the dismiss state.
-      this._setDivergingBranchNudgeVisibility(repository, true)
-      this._setDivergingBranchBannerVisibility(repository, true)
-      this._setDivergingBranchBannerDismissed(repository, false)
+      this._updateDivergingBranchBannerState(repository, {
+        isPromptVisible: true,
+        isNudgeVisible: true,
+        isPromptDismissed: false,
+      })
     } else if (currentCount > 0) {
       // If there's any commit between the inferred branch and the current branch
       // make the prompt visible.
-      this._setDivergingBranchBannerVisibility(repository, true)
+      this._updateDivergingBranchBannerState(repository, {
+        isPromptVisible: true,
+      })
     } else {
       // Hide both the prompt and the nudge.
-      this._setDivergingBranchBannerVisibility(repository, false)
-      this._setDivergingBranchNudgeVisibility(repository, false)
+      this._updateDivergingBranchBannerState(repository, {
+        isPromptVisible: false,
+        isNudgeVisible: false,
+      })
     }
 
     const cachedState = compareState.formState
@@ -4632,58 +4639,38 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _setDivergingBranchBannerVisibility(
+  public _updateDivergingBranchBannerState(
     repository: Repository,
-    visible: boolean
+    divergingBranchBannerState: Partial<IDivergingBranchBannerState>
   ) {
-    const state = this.repositoryStateCache.get(repository)
-    const { compareState } = state
+    const currentBannerState = this.repositoryStateCache.get(repository)
+      .compareState.divergingBranchBannerState
 
-    if (compareState.isDivergingBranchBannerVisible !== visible) {
-      this.repositoryStateCache.updateCompareState(repository, () => ({
-        isDivergingBranchBannerVisible: visible,
-      }))
-
-      if (visible) {
-        this.statsStore.recordDivergingBranchBannerDisplayed()
-      }
-
-      this.emitUpdate()
+    const newBannerState = {
+      isPromptVisible:
+        divergingBranchBannerState.isPromptVisible !== undefined
+          ? divergingBranchBannerState.isPromptVisible
+          : currentBannerState.isPromptVisible,
+      isNudgeVisible:
+        divergingBranchBannerState.isNudgeVisible !== undefined
+          ? divergingBranchBannerState.isNudgeVisible
+          : currentBannerState.isNudgeVisible,
+      isPromptDismissed:
+        divergingBranchBannerState.isPromptDismissed !== undefined
+          ? divergingBranchBannerState.isPromptDismissed
+          : currentBannerState.isPromptDismissed,
     }
-  }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public _setDivergingBranchNudgeVisibility(
-    repository: Repository,
-    visible: boolean
-  ) {
-    const state = this.repositoryStateCache.get(repository)
-    const { compareState } = state
-
-    if (compareState.isDivergingBranchNudgeVisible !== visible) {
-      this.repositoryStateCache.updateCompareState(repository, () => ({
-        isDivergingBranchNudgeVisible: visible,
-      }))
-
-      this.emitUpdate()
+    // If none of the flags changed, we can skip updating the state.
+    if (shallowEquals(currentBannerState, newBannerState)) {
+      return
     }
-  }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public _setDivergingBranchBannerDismissed(
-    repository: Repository,
-    visible: boolean
-  ) {
-    const state = this.repositoryStateCache.get(repository)
-    const { compareState } = state
+    this.repositoryStateCache.updateCompareState(repository, () => ({
+      divergingBranchBannerState: newBannerState,
+    }))
 
-    if (compareState.isDivergingBranchBannerDismissed !== visible) {
-      this.repositoryStateCache.updateCompareState(repository, () => ({
-        isDivergingBranchBannerDismissed: visible,
-      }))
-
-      this.emitUpdate()
-    }
+    this.emitUpdate()
   }
 
   public _reportStats() {

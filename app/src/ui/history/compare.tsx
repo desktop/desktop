@@ -190,10 +190,9 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderNotificationBanner() {
-    if (
-      !this.props.compareState.isDivergingBranchBannerVisible ||
-      this.props.compareState.isDivergingBranchBannerDismissed
-    ) {
+    const bannerState = this.props.compareState.divergingBranchBannerState
+
+    if (!bannerState.isPromptVisible || bannerState.isPromptDismissed) {
       return null
     }
 

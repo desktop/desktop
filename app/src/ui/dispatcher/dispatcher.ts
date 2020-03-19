@@ -696,17 +696,18 @@ export class Dispatcher {
     repository: Repository,
     isVisible: boolean
   ) {
-    return this.appStore._setDivergingBranchNudgeVisibility(
-      repository,
-      isVisible
-    )
+    return this.appStore._updateDivergingBranchBannerState(repository, {
+      isNudgeVisible: isVisible,
+    })
   }
 
   /**
    * Hide the divering branch notification banner
    */
   public dismissDivergingBranchBanner(repository: Repository) {
-    return this.appStore._setDivergingBranchBannerDismissed(repository, true)
+    return this.appStore._updateDivergingBranchBannerState(repository, {
+      isPromptDismissed: true,
+    })
   }
 
   /**
