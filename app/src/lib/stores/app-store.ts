@@ -1067,8 +1067,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       },
     }))
 
+    let currentCount = 0
+    let countChanged = false
+
     if (inferredBranch !== null) {
-      const currentCount = getBehindOrDefault(aheadBehindOfInferredBranch)
+      currentCount = getBehindOrDefault(aheadBehindOfInferredBranch)
 
       const prevInferredBranchState =
         state.compareState.inferredComparisonBranch
@@ -1077,17 +1080,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
         prevInferredBranchState.aheadBehind
       )
 
-      // We want to always show the banner if the current branch is behind
-      // the inferred branch.
-      this._setDivergingBranchBannerVisibility(repository, currentCount > 0)
+      countChanged = currentCount > 0 && previousCount !== currentCount
+    }
 
-      // we only want to show the nudge when the the number
-      // commits behind has changed since the last it was visible
-      const countChanged = currentCount > 0 && previousCount !== currentCount
-      this._setDivergingBranchNudgeVisibility(repository, countChanged)
+    if (countChanged) {
+      // If the number of commits between the inferred branch and the current branch
+      // has changed, show both the prompt and the nudge and reset the dismiss state.
+      this._setDivergingBranchNudgeVisibility(repository, true)
+      this._setDivergingBranchBannerVisibility(repository, true)
+      this._setDivergingBranchBannerDismissed(repository, false)
+    } else if (currentCount > 0) {
+      // If there's any commit between the inferred branch and the current branch
+      // make the prompt visible.
+      this._setDivergingBranchBannerVisibility(repository, true)
     } else {
-      this._setDivergingBranchNudgeVisibility(repository, false)
+      // Hide both the prompt and the nudge.
       this._setDivergingBranchBannerVisibility(repository, false)
+      this._setDivergingBranchNudgeVisibility(repository, false)
     }
 
     const cachedState = compareState.formState
