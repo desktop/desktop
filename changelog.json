@@ -1,8 +1,13 @@
 {
   "releases": {
+    "2.3.2-beta6": [
+      "[Fixed] Ensure intro page is responsive when resizing the window - #9175",
+      "[Improved] Dark Theme is out of beta - #9294",
+      "[Improved] New branches in forks are created from the default branch of the upstream repo - #7762"
+    ],
     "2.3.2-beta5": [
-      "[Improved] Direct new issues created from a local fork to its upstream on GitHub - #9232",
-      "[Fixed] Update the remote url when a repository's name changes on GitHub - #8590"
+      "[Fixed] Update the remote url when a repository's name changes on GitHub - #8590",
+      "[Improved] Direct new issues created from a local fork to its upstream on GitHub - #9232"
     ],
     "2.3.2-beta4": [
       "[New] Set Git proxy environment variables from system configuration automatically - #9154",
