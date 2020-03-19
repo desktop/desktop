@@ -643,6 +643,9 @@ export interface ICompareState {
   /** Show the diverging notification banner */
   readonly isDivergingBranchBannerVisible: boolean
 
+  /** Has the user dismissed the notification banner? */
+  readonly isDivergingBranchBannerDismissed: boolean
+
   /** Show the diverging notification nudge on the tab */
   readonly isDivergingBranchNudgeVisible: boolean
 

@@ -4660,6 +4660,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _setDivergingBranchBannerDismissed(
+    repository: Repository,
+    visible: boolean
+  ) {
+    const state = this.repositoryStateCache.get(repository)
+    const { compareState } = state
+
+    if (compareState.isDivergingBranchBannerDismissed !== visible) {
+      this.repositoryStateCache.updateCompareState(repository, () => ({
+        isDivergingBranchBannerDismissed: visible,
+      }))
+
+      this.emitUpdate()
+    }
+  }
+
   public _reportStats() {
     // ensure the user has seen and acknowledged the current usage stats setting
     if (!this.showWelcomeFlow && !hasSeenUsageStatsNote()) {

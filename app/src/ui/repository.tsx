@@ -135,7 +135,7 @@ export class RepositoryView extends React.Component<
 
         <div className="with-indicator">
           <span>History</span>
-          {this.props.state.compareState.isDivergingBranchBannerVisible ? (
+          {this.props.state.compareState.isDivergingBranchNudgeVisible ? (
             <Octicon
               className="indicator"
               symbol={OcticonSymbol.primitiveDot}

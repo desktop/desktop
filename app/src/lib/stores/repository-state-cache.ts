@@ -149,6 +149,7 @@ function getInitialRepositoryState(): IRepositoryState {
     },
     compareState: {
       isDivergingBranchBannerVisible: false,
+      isDivergingBranchBannerDismissed: false,
       isDivergingBranchNudgeVisible: false,
       formState: {
         kind: HistoryTabMode.History,
