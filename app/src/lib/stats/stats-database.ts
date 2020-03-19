@@ -341,6 +341,11 @@ export interface IDailyMeasures {
    * How many forks did the user create from Desktop?
    */
   readonly forksCreated: number
+
+  /**
+   * How many times has the user begun creating an issue from Desktop?
+   */
+  readonly issueCreationWebpageOpenedCount: number
 }
 
 export class StatsDatabase extends Dexie {

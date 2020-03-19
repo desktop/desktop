@@ -356,7 +356,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'compare-on-github':
         return this.compareBranchOnDotcom()
       case 'create-issue-in-repository-on-github':
-        return this.createIssueInRepositoryOnGitHub()
+        return this.openIssueCreationOnGitHub()
       case 'open-in-shell':
         return this.openCurrentRepositoryInShell()
       case 'clone-repository':
@@ -1109,15 +1109,12 @@ export class App extends React.Component<IAppProps, IAppState> {
    * Opens a browser to the issue creation page
    * of the current GitHub repository.
    */
-  private createIssueInRepositoryOnGitHub() {
-    // Default to creating issue on parent repo
-    // See https://github.com/desktop/desktop/issues/9232 for rationale
-    const url =
-      this.getParentRepositoryGitHubURL() ||
-      this.getCurrentRepositoryGitHubURL()
-
-    if (url) {
-      this.props.dispatcher.openInBrowser(`${url}/issues/new/choose`)
+  private openIssueCreationOnGitHub() {
+    const repository = this.getRepository()
+    // this will likely never be null since we disable the
+    // issue creation menu item for non-GitHub repositories
+    if (repository instanceof Repository) {
+      this.props.dispatcher.openIssueCreationPage(repository)
     }
   }
 
@@ -1128,23 +1125,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.props.dispatcher.openInBrowser(url)
       return
     }
-  }
-
-  /** Returns the URL to the parent repository if hosted on GitHub */
-  private getParentRepositoryGitHubURL() {
-    const repository = this.getRepository()
-
-    if (
-      !repository ||
-      repository instanceof CloningRepository ||
-      !repository.gitHubRepository ||
-      repository.gitHubRepository.parent === null ||
-      repository.gitHubRepository.parent.htmlURL === null
-    ) {
-      return null
-    }
-
-    return repository.gitHubRepository.parent.htmlURL
   }
 
   /** Returns the URL to the current repository if hosted on GitHub */
