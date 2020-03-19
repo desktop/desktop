@@ -85,6 +85,13 @@ export class CompareSidebar extends React.Component<
     }
   }
 
+  public componentDidMount() {
+    this.props.dispatcher.setDivergingBranchNudgeVisibility(
+      this.props.repository,
+      false
+    )
+  }
+
   public componentWillReceiveProps(nextProps: ICompareSidebarProps) {
     const newFormState = nextProps.compareState.formState
     const oldFormState = this.props.compareState.formState
@@ -556,10 +563,7 @@ export class CompareSidebar extends React.Component<
 
   private onNotificationBannerDismissed = (reason: DismissalReason) => {
     if (reason === DismissalReason.Close) {
-      this.props.dispatcher.setDivergingBranchBannerVisibility(
-        this.props.repository,
-        false
-      )
+      this.props.dispatcher.dismissDivergingBranchBanner(this.props.repository)
     }
     this.props.dispatcher.recordDivergingBranchBannerDismissal()
 
