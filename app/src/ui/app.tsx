@@ -23,7 +23,7 @@ import { getVersion, getName } from './lib/app-proxy'
 import { getOS } from '../lib/get-os'
 import { validatedRepositoryPath } from '../lib/stores/helpers/validated-repository-path'
 import { MenuEvent } from '../main-process/menu'
-import { Repository } from '../models/repository'
+import { Repository, getGitHubHtmlUrl } from '../models/repository'
 import { Branch } from '../models/branch'
 import { PreferencesTab } from '../models/preferences'
 import { findItemByAccessKey, itemIsSelectable } from '../models/app-menu'
@@ -1119,11 +1119,14 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private viewRepositoryOnGitHub() {
-    const url = this.getCurrentRepositoryGitHubURL()
+    const repository = this.getRepository()
 
-    if (url) {
-      this.props.dispatcher.openInBrowser(url)
-      return
+    if (repository instanceof Repository) {
+      const url = getGitHubHtmlUrl(repository)
+
+      if (url) {
+        this.props.dispatcher.openInBrowser(url)
+      }
     }
   }
 
