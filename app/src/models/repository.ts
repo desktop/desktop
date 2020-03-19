@@ -128,7 +128,7 @@ export function getGitHubHtmlUrl(repository: Repository): string | null {
   ) {
     return repository.gitHubRepository.parent.htmlURL
   }
-  if (repository.gitHubRepository.htmlURL) {
+  if (repository.gitHubRepository.htmlURL !== null) {
     return repository.gitHubRepository.htmlURL
   }
   return null
