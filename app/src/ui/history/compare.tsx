@@ -30,6 +30,7 @@ import {
   DismissalReason,
 } from '../notification/new-commits-banner'
 import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
+import { assertNever } from '../../lib/fatal-error'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -558,13 +559,15 @@ export class CompareSidebar extends React.Component<
     this.props.dispatcher.recordDivergingBranchBannerDismissal()
 
     switch (reason) {
-      case 'close':
+      case DismissalReason.Close:
         this.setState({ hasConsumedNotification: false })
         break
-      case 'compare':
-      case 'merge':
+      case DismissalReason.Compare:
+      case DismissalReason.Merge:
         this.setState({ hasConsumedNotification: true })
         break
+      default:
+        assertNever(reason, 'Unknown reason')
     }
   }
 
