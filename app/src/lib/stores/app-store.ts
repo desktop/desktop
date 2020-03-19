@@ -1042,6 +1042,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
           inferredBranch.tip.sha
         )
 
+        // In the case that the aheadBehindCache doesn't have the needed data, try to
+        // request it directly from AheadBehindUpdater. This usually happens on initial load
+        // before AheadBehindUpdater has run though all the branches.
         if (
           aheadBehindOfInferredBranch === null &&
           this.currentAheadBehindUpdater
