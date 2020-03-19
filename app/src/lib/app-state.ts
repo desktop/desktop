@@ -643,6 +643,9 @@ export interface ICompareState {
   /** Show the diverging notification banner */
   readonly isDivergingBranchBannerVisible: boolean
 
+  /** Show the diverging notification nudge on the tab */
+  readonly isDivergingBranchNudgeVisible: boolean
+
   /** The current state of the compare form, based on user input */
   readonly formState: IDisplayHistory | ICompareBranch
 
