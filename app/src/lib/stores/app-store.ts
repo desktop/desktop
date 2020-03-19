@@ -2995,11 +2995,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     startPoint: string | null,
     uncommittedChangesStrategy: UncommittedChangesStrategy = getUncommittedChangesStrategy(
       this.uncommittedChangesStrategyKind
-    )
+    ),
+    noTrackOption: boolean = false
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
     const branch = await gitStore.performFailableOperation(() =>
-      createBranch(repository, name, startPoint)
+      createBranch(repository, name, startPoint, noTrackOption)
     )
 
     if (branch == null) {

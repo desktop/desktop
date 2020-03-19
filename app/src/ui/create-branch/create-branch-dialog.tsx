@@ -271,6 +271,7 @@ export class CreateBranch extends React.Component<
     const name = this.state.sanitizedName
 
     let startPoint: string | null = null
+    let noTrack = false
 
     const {
       defaultBranch,
@@ -301,7 +302,8 @@ export class CreateBranch extends React.Component<
         return
       }
 
-      startPoint = `remotes/${upstreamDefaultBranch.name}`
+      startPoint = upstreamDefaultBranch.name
+      noTrack = true
     }
 
     if (name.length > 0) {
@@ -319,7 +321,8 @@ export class CreateBranch extends React.Component<
         repository,
         name,
         startPoint,
-        strategy
+        strategy,
+        noTrack
       )
       timer.done()
     }
