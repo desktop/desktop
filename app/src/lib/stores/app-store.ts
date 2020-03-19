@@ -1077,11 +1077,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
         prevInferredBranchState.aheadBehind
       )
 
-      // we only want to show the banner when the the number
+      // We want to always show the banner if the current branch is behind
+      // the inferred branch.
+      this._setDivergingBranchBannerVisibility(repository, currentCount > 0)
+
+      // we only want to show the nudge when the the number
       // commits behind has changed since the last it was visible
       const countChanged = currentCount > 0 && previousCount !== currentCount
-      this._setDivergingBranchBannerVisibility(repository, countChanged)
+      this._setDivergingBranchNudgeVisibility(repository, countChanged)
     } else {
+      this._setDivergingBranchNudgeVisibility(repository, false)
       this._setDivergingBranchBannerVisibility(repository, false)
     }
 
@@ -4617,6 +4622,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public _setDivergingBranchBannerVisibility(
     repository: Repository,
     visible: boolean
@@ -4632,6 +4638,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (visible) {
         this.statsStore.recordDivergingBranchBannerDisplayed()
       }
+
+      this.emitUpdate()
+    }
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _setDivergingBranchNudgeVisibility(
+    repository: Repository,
+    visible: boolean
+  ) {
+    const state = this.repositoryStateCache.get(repository)
+    const { compareState } = state
+
+    if (compareState.isDivergingBranchNudgeVisible !== visible) {
+      this.repositoryStateCache.updateCompareState(repository, () => ({
+        isDivergingBranchNudgeVisible: visible,
+      }))
 
       this.emitUpdate()
     }
