@@ -1025,16 +1025,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? cachedDefaultBranch
         : null
 
+    const aheadBehindUpdater = this.currentAheadBehindUpdater
     let inferredBranch: Branch | null = null
     let aheadBehindOfInferredBranch: IAheadBehind | null = null
-    if (tip.kind === TipState.Valid && compareState.aheadBehindCache !== null) {
+    if (
+      tip.kind === TipState.Valid &&
+      compareState.aheadBehindCache !== null &&
+      aheadBehindUpdater !== null
+    ) {
       inferredBranch = await inferComparisonBranch(
         repository,
         allBranches,
         currentPullRequest,
         tip.branch,
         getRemotes,
-        compareState.aheadBehindCache
+        aheadBehindUpdater
       )
 
       if (inferredBranch !== null) {
@@ -1046,11 +1051,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         // In the case that the aheadBehindCache doesn't have the needed data, try to
         // request it directly from AheadBehindUpdater. This usually happens on initial load
         // before AheadBehindUpdater has run though all the branches.
-        if (
-          aheadBehindOfInferredBranch === null &&
-          this.currentAheadBehindUpdater
-        ) {
-          aheadBehindOfInferredBranch = await this.currentAheadBehindUpdater.executeAsyncTask(
+        if (aheadBehindOfInferredBranch === null) {
+          aheadBehindOfInferredBranch = await aheadBehindUpdater.executeAsyncTask(
             tip.branch.tip.sha,
             inferredBranch.tip.sha
           )

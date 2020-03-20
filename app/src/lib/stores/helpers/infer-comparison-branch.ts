@@ -3,8 +3,8 @@ import { PullRequest } from '../../../models/pull-request'
 import { GitHubRepository } from '../../../models/github-repository'
 import { IRemote } from '../../../models/remote'
 import { Repository } from '../../../models/repository'
-import { ComparisonCache } from '../../comparison-cache'
 import { urlMatchesCloneURL } from '../../repository-matching'
+import { AheadBehindUpdater } from './ahead-behind-updater'
 
 type RemotesGetter = (repository: Repository) => Promise<ReadonlyArray<IRemote>>
 
@@ -22,15 +22,16 @@ type RemotesGetter = (repository: Repository) => Promise<ReadonlyArray<IRemote>>
  * @param currentPullRequest The pull request to use for finding the branch
  * @param currentBranch The branch we want the parent of
  * @param getRemotes callback used to get all remotes for the current repository
- * @param comparisonCache cache used to get the number of commits ahead/behind the current branch is from another branch
+ * @param aheadBehindUpdater module used to get the number of commits ahead/behind the current branch is from another branch
  */
+
 export async function inferComparisonBranch(
   repository: Repository,
   branches: ReadonlyArray<Branch>,
   currentPullRequest: PullRequest | null,
-  currentBranch: Branch | null,
+  currentBranch: Branch,
   getRemotes: RemotesGetter,
-  comparisonCache: ComparisonCache
+  aheadBehindUpdater: AheadBehindUpdater
 ): Promise<Branch | null> {
   if (currentPullRequest !== null) {
     return getTargetBranchOfPullRequest(branches, currentPullRequest)
@@ -44,7 +45,7 @@ export async function inferComparisonBranch(
           branches,
           currentBranch,
           getRemotes,
-          comparisonCache
+          aheadBehindUpdater
         )
       : getDefaultBranchOfGitHubRepo(branches, ghRepo)
   }
@@ -85,7 +86,7 @@ async function getDefaultBranchOfFork(
   branches: ReadonlyArray<Branch>,
   currentBranch: Branch,
   getRemotes: RemotesGetter,
-  comparisonCache: ComparisonCache
+  aheadBehindUpdater: AheadBehindUpdater
 ): Promise<Branch | null> {
   // this is guaranteed to exist since this function
   // is only called if the ghRepo is not null
@@ -95,7 +96,7 @@ async function getDefaultBranchOfFork(
     return getMasterBranch(branches)
   }
 
-  const aheadBehind = comparisonCache.get(
+  const aheadBehind = await aheadBehindUpdater.executeAsyncTask(
     currentBranch.tip.sha,
     defaultBranch.tip.sha
   )
