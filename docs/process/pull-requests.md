@@ -5,8 +5,10 @@ a consistent process for contributions from the core team and the community.
 
 ## The Review Process
 
-1. **Contributor** opens a pull request.
-1. When it's ready for review, add a comment to the pull request.
+1. **Contributor** opens a pull request. While the pull request is not ready
+   for review, it should stay in draft mode.
+1. When the pull request is ready, the **contributor** should mark it as ready
+   for review.
 1. A member of the reviewer team will give it a quick look over and
    add the `ready-for-review` label and add it to any relevant release board.
 1. A **reviewer** with bandwidth will appear.
