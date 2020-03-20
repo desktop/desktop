@@ -1037,9 +1037,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         repository,
         allBranches,
         currentPullRequest,
-        tip.branch,
-        getRemotes,
-        aheadBehindUpdater
+        getRemotes
       )
 
       if (inferredBranch !== null) {
