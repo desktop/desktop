@@ -11,7 +11,6 @@ import {
   envForRemoteOperation,
   getFallbackUrlForProxyResolve,
 } from './environment'
-import { enableForkyCreateBranchUI } from '../feature-flag'
 
 /**
  * Create a new branch from the given start point.
@@ -25,7 +24,8 @@ import { enableForkyCreateBranchUI } from '../feature-flag'
 export async function createBranch(
   repository: Repository,
   name: string,
-  startPoint: string | null
+  startPoint: string | null,
+  noTrack?: boolean
 ): Promise<Branch | null> {
   const args =
     startPoint !== null ? ['branch', name, startPoint] : ['branch', name]
@@ -33,11 +33,7 @@ export async function createBranch(
   // if we're branching directly from a remote branch, we don't want to track it
   // tracking it will make the rest of desktop think we want to push to that
   // remote branch's upstream (which would likely be the upstream of the fork)
-  if (
-    enableForkyCreateBranchUI() &&
-    startPoint !== null &&
-    startPoint.startsWith('remotes/')
-  ) {
+  if (noTrack) {
     args.push('--no-track')
   }
 
