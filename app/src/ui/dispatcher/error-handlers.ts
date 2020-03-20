@@ -23,6 +23,7 @@ import {
   enableSchannelCheckRevokeOptOut,
 } from '../../lib/feature-flag'
 import { RetryActionType } from '../../models/retry-actions'
+import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -680,6 +681,7 @@ export async function schannelUnableToCheckRevocationForCertificate(
     return error
   }
 
+  sendNonFatalException('schannelUnableToCheckRevocationForCertificate', error)
   dispatcher.showPopup({
     type: PopupType.SChannelNoRevocationCheck,
     url: match[1],
