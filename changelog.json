@@ -1,5 +1,8 @@
 {
   "releases": {
+    "2.3.2-beta7": [
+      "[Improved] Modify \"View on GitHub\" menu item to open upstream for local fork repositories - #9316"
+    ],
     "2.3.2-beta6": [
       "[Fixed] Ensure intro page is responsive when resizing the window - #9175",
       "[Improved] Dark Theme is out of beta - #9294",
