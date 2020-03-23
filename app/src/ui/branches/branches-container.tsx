@@ -346,17 +346,24 @@ export class BranchesContainer extends React.Component<
 }
 
 /**
- *  Returns which Pull Requests to display
- *  (For now, filters out any pull requests targeting upstream)
+ * Returns which Pull Requests to display
+ *
+ * If the current repository is a fork, it only shows the PRs
+ * targeting the upstream repository.
  */
 function getPullRequestsWithBaseRepository(
-  repository: Repository,
+  { gitHubRepository }: Repository,
   pullRequests: ReadonlyArray<PullRequest>
 ) {
-  const { gitHubRepository } = repository
-  return gitHubRepository !== null
-    ? pullRequests.filter(
-        pr => pr.base.gitHubRepository.hash === gitHubRepository.hash
-      )
-    : pullRequests
+  if (gitHubRepository === null) {
+    return pullRequests
+  }
+
+  const hashToMatch = gitHubRepository.parent
+    ? gitHubRepository.parent.hash
+    : gitHubRepository.hash
+
+  return pullRequests.filter(
+    pr => pr.base.gitHubRepository.hash === hashToMatch
+  )
 }
