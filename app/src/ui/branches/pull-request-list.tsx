@@ -74,6 +74,8 @@ interface IPullRequestListProps {
 
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
+
+  readonly renderListHeader?: () => JSX.Element | null
 }
 
 interface IPullRequestListState {
@@ -143,6 +145,7 @@ export class PullRequestList extends React.Component<
         onItemClick={this.onItemClick}
         onSelectionChanged={this.onSelectionChanged}
         onFilterKeyDown={this.props.onFilterKeyDown}
+        renderGroupHeader={this.props.renderListHeader}
         renderNoItems={this.renderNoItems}
         renderPostFilter={this.props.renderPostFilter}
       />
@@ -155,18 +158,6 @@ export class PullRequestList extends React.Component<
         isSearch={this.props.filterText.length > 0}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
         repositoryName={this.props.repositoryName}
-        upstreamRepositoryName={
-          this.props.repository.parent !== null
-            ? this.props.repository.parent.fullName
-            : null
-        }
-        upstreamPullRequestsUrl={
-          this.props.repository.parent !== null &&
-          this.props.repository.parent.htmlURL !== null
-            ? `${this.props.repository.parent.htmlURL}/pulls`
-            : null
-        }
-        selectedPullRequest={this.props.selectedPullRequest}
         isOnDefaultBranch={this.props.isOnDefaultBranch}
         onCreateBranch={this.props.onCreateBranch}
         onCreatePullRequest={this.props.onCreatePullRequest}

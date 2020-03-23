@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { PullRequest } from '../../models/pull-request'
-import { Repository, nameOf } from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
 import { PopupType } from '../../models/popup'
@@ -28,6 +28,7 @@ import {
   stashOnCurrentBranch,
 } from '../../models/uncommitted-changes-strategy'
 import memoizeOne from 'memoize-one'
+import { GitHubRepository } from '../../models/github-repository'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -111,7 +112,7 @@ export class BranchesContainer extends React.Component<
 
   private renderOpenPullRequestsBubble() {
     const pullRequests = this.getPullRequests(
-      this.props.repository,
+      this.getGitHubRepository(),
       this.props.pullRequests
     )
 
@@ -194,11 +195,11 @@ export class BranchesContainer extends React.Component<
       <PullRequestList
         key="pr-list"
         pullRequests={this.getPullRequests(
-          this.props.repository,
+          this.getGitHubRepository(),
           this.props.pullRequests
         )}
         selectedPullRequest={this.state.selectedPullRequest}
-        repositoryName={nameOf(this.props.repository)}
+        repositoryName={this.getRepositoryName()}
         isOnDefaultBranch={!!isOnDefaultBranch}
         onSelectionChanged={this.onPullRequestSelectionChanged}
         onCreateBranch={this.onCreateBranch}
@@ -208,10 +209,29 @@ export class BranchesContainer extends React.Component<
         onItemClick={this.onPullRequestClicked}
         onDismiss={this.onDismiss}
         renderPostFilter={this.renderPullRequestPostFilter}
+        renderListHeader={this.renderPullRequestsHeader}
         dispatcher={this.props.dispatcher}
         repository={repository}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
       />
+    )
+  }
+
+  private getRepositoryName(): string {
+    const gitHubRepository = this.getGitHubRepository()
+
+    if (gitHubRepository === null) {
+      return this.props.repository.name
+    }
+
+    return gitHubRepository.fullName
+  }
+
+  private renderPullRequestsHeader = () => {
+    return (
+      <div className="filter-list-group-header">
+        Pull requests in {this.getRepositoryName()}
+      </div>
     )
   }
 
@@ -343,6 +363,18 @@ export class BranchesContainer extends React.Component<
 
     this.onPullRequestSelectionChanged(pullRequest)
   }
+
+  private getGitHubRepository(): GitHubRepository | null {
+    const gitHubRepository = this.props.repository.gitHubRepository
+
+    if (gitHubRepository === null) {
+      return null
+    }
+
+    return gitHubRepository.parent !== null
+      ? gitHubRepository.parent
+      : gitHubRepository
+  }
 }
 
 /**
@@ -352,18 +384,12 @@ export class BranchesContainer extends React.Component<
  * targeting the upstream repository.
  */
 function getPullRequestsWithBaseRepository(
-  { gitHubRepository }: Repository,
+  gitHubRepository: GitHubRepository | null,
   pullRequests: ReadonlyArray<PullRequest>
 ) {
-  if (gitHubRepository === null) {
-    return pullRequests
-  }
-
-  const hashToMatch = gitHubRepository.parent
-    ? gitHubRepository.parent.hash
-    : gitHubRepository.hash
-
-  return pullRequests.filter(
-    pr => pr.base.gitHubRepository.hash === hashToMatch
-  )
+  return gitHubRepository !== null
+    ? pullRequests.filter(
+        pr => pr.base.gitHubRepository.hash === gitHubRepository.hash
+      )
+    : pullRequests
 }
