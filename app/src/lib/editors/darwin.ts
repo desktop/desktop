@@ -351,7 +351,10 @@ export async function getAvailableEditors(): Promise<
   }
 
   if (androidStudioPath) {
-    results.push({ editor: ExternalEditor.AndroidStudio, path: androidStudioPath })
+    results.push({
+      editor: ExternalEditor.AndroidStudio,
+      path: androidStudioPath,
+    })
   }
 
   return results
