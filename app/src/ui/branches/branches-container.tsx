@@ -1,7 +1,11 @@
 import * as React from 'react'
 
 import { PullRequest } from '../../models/pull-request'
-import { Repository } from '../../models/repository'
+import {
+  Repository,
+  isRepositoryWithGitHubRepository,
+  getNonForkGitHubRepository,
+} from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
 import { PopupType } from '../../models/popup'
@@ -27,7 +31,6 @@ import {
   UncommittedChangesStrategy,
   stashOnCurrentBranch,
 } from '../../models/uncommitted-changes-strategy'
-import memoizeOne from 'memoize-one'
 import { GitHubRepository } from '../../models/github-repository'
 
 interface IBranchesContainerProps {
@@ -65,9 +68,6 @@ export class BranchesContainer extends React.Component<
   IBranchesContainerProps,
   IBranchesContainerState
 > {
-  private readonly getPullRequests = memoizeOne(
-    getPullRequestsWithBaseRepository
-  )
   public constructor(props: IBranchesContainerProps) {
     super(props)
 
@@ -111,10 +111,7 @@ export class BranchesContainer extends React.Component<
   }
 
   private renderOpenPullRequestsBubble() {
-    const pullRequests = this.getPullRequests(
-      this.getGitHubRepository(),
-      this.props.pullRequests
-    )
+    const pullRequests = this.props.pullRequests
 
     if (pullRequests.length > 0) {
       return <span className="count">{pullRequests.length}</span>
@@ -194,10 +191,7 @@ export class BranchesContainer extends React.Component<
     return (
       <PullRequestList
         key="pr-list"
-        pullRequests={this.getPullRequests(
-          this.getGitHubRepository(),
-          this.props.pullRequests
-        )}
+        pullRequests={this.props.pullRequests}
         selectedPullRequest={this.state.selectedPullRequest}
         repositoryName={this.getRepositoryName()}
         isOnDefaultBranch={!!isOnDefaultBranch}
@@ -365,31 +359,10 @@ export class BranchesContainer extends React.Component<
   }
 
   private getGitHubRepository(): GitHubRepository | null {
-    const gitHubRepository = this.props.repository.gitHubRepository
-
-    if (gitHubRepository === null) {
+    if (!isRepositoryWithGitHubRepository(this.props.repository)) {
       return null
     }
 
-    return gitHubRepository.parent !== null
-      ? gitHubRepository.parent
-      : gitHubRepository
+    return getNonForkGitHubRepository(this.props.repository)
   }
-}
-
-/**
- * Returns which Pull Requests to display
- *
- * If the current repository is a fork, it only shows the PRs
- * targeting the upstream repository.
- */
-function getPullRequestsWithBaseRepository(
-  gitHubRepository: GitHubRepository | null,
-  pullRequests: ReadonlyArray<PullRequest>
-) {
-  return gitHubRepository !== null
-    ? pullRequests.filter(
-        pr => pr.base.gitHubRepository.hash === gitHubRepository.hash
-      )
-    : pullRequests
 }
