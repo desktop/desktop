@@ -3,6 +3,7 @@ import { PullRequest } from '../../models/pull-request'
 import {
   RepositoryWithGitHubRepository,
   isRepositoryWithGitHubRepository,
+  getNonForkGitHubRepository,
 } from '../../models/repository'
 import { PullRequestStore } from '.'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
@@ -86,28 +87,14 @@ export class PullRequestCoordinator {
         }
 
         // find all related repos
-        const { matches, forks } = findRepositoriesForGitHubRepository(
+        const matches = findRepositoriesForGitHubRepository(
           ghRepo,
           this.repositories
         )
 
-        // emit updates for forks
-        for (const fork of forks) {
-          this.getPullRequestsFor(fork.gitHubRepository).then(prs =>
-            fn(fork, [...prs, ...pullRequests])
-          )
-        }
-
         // emit updates for matches
         for (const match of matches) {
-          if (match.gitHubRepository.parent) {
-            // matches that are forks need to include the PRs from upstreams
-            this.getPullRequestsFor(match.gitHubRepository.parent).then(prs =>
-              fn(match, [...prs, ...pullRequests])
-            )
-          } else {
-            fn(match, pullRequests)
-          }
+          fn(match, pullRequests)
         }
       }
     )
@@ -155,9 +142,11 @@ export class PullRequestCoordinator {
     repository: RepositoryWithGitHubRepository,
     account: Account
   ) {
+    const gitHubRepository = getNonForkGitHubRepository(repository)
+
     // get all matches for the repository to be refreshed
-    const { matches } = findRepositoriesForGitHubRepository(
-      repository.gitHubRepository,
+    const matches = findRepositoriesForGitHubRepository(
+      gitHubRepository,
       this.repositories
     )
     // mark all matching repos for parent as now loading
@@ -166,31 +155,7 @@ export class PullRequestCoordinator {
     }
 
     // mark all matching repos as now loading
-    await this.pullRequestStore.refreshPullRequests(
-      repository.gitHubRepository,
-      account
-    )
-    if (repository.gitHubRepository.parent !== null) {
-      // get all matches for the parent repository
-      const { matches: parentMatches } = findRepositoriesForGitHubRepository(
-        repository.gitHubRepository.parent,
-        this.repositories
-      )
-      // mark all matching repos for parent as now loading
-      for (const parentMatch of parentMatches) {
-        this.emitIsLoadingPullRequests(parentMatch, true)
-      }
-
-      await this.pullRequestStore.refreshPullRequests(
-        repository.gitHubRepository.parent,
-        account
-      )
-
-      // mark all matching repos for parent as done loading
-      for (const parentMatch of parentMatches) {
-        this.emitIsLoadingPullRequests(parentMatch, false)
-      }
-    }
+    await this.pullRequestStore.refreshPullRequests(gitHubRepository, account)
 
     // mark all matching repos as done loading
     for (const match of matches) {
@@ -204,24 +169,16 @@ export class PullRequestCoordinator {
    *
    * Since `PullRequestStore` stores these timestamps by
    * `GitHubRepository`, we get timestamps for this
-   * repo's `GitHubRepository` and its parent (if it has one)
-   * and return the _older one._
+   * repo's `GitHubRepository` or its parent (if it has one).
    *
-   * If neither timestamp is stored, returns `undefined`
+   * If no timestamp is stored, returns `undefined`
    */
   public getLastRefreshed(
     repository: RepositoryWithGitHubRepository
   ): number | undefined {
-    const ghr = repository.gitHubRepository
-    const lastRefresh = this.pullRequestStore.getLastRefreshed(ghr)
+    const ghr = getNonForkGitHubRepository(repository)
 
-    const parentLastRefresh = ghr.parent
-      ? this.pullRequestStore.getLastRefreshed(ghr.parent)
-      : undefined
-
-    return !lastRefresh || !parentLastRefresh
-      ? lastRefresh || parentLastRefresh
-      : Math.min(lastRefresh, parentLastRefresh)
+    return this.pullRequestStore.getLastRefreshed(ghr)
   }
 
   /**
@@ -231,15 +188,7 @@ export class PullRequestCoordinator {
   public async getAllPullRequests(
     repository: RepositoryWithGitHubRepository
   ): Promise<ReadonlyArray<PullRequest>> {
-    if (repository.gitHubRepository.parent !== null) {
-      const [prs, upstreamPrs] = await Promise.all([
-        this.getPullRequestsFor(repository.gitHubRepository),
-        this.getPullRequestsFor(repository.gitHubRepository.parent),
-      ])
-      return [...prs, ...upstreamPrs]
-    } else {
-      return await this.getPullRequestsFor(repository.gitHubRepository)
-    }
+    return this.getPullRequestsFor(getNonForkGitHubRepository(repository))
   }
 
   /** Start background pull request fetching machinery for this Repository */
@@ -307,23 +256,21 @@ export class PullRequestCoordinator {
 /**
  * Finds local repositories related to a GitHubRepository
  *
- * * Related repos include:
- *  * **matches** — the corresponding GitHub repo (the `origin` remote for
- *    the `Repository`)
- *  * **forks** — the parent GitHub repo, if the `Repository` has one (the
+ * * Related repos include the corresponding GitHub repo (the `origin` remote for
+ *    the `Repository`) or the parent GitHub repo, if the `Repository` has one (the
  *    `upstream` remote for the `Repository`)
  *
  * @param gitHubRepository
  * @param repositories list of repositories to search for a match
- * @returns two lists of repositories: **matches** and **forks**
+ * @returns the list of repositories.
  */
 function findRepositoriesForGitHubRepository(
   gitHubRepository: GitHubRepository,
   repositories: ReadonlyArray<RepositoryWithGitHubRepository>
-) {
+): Array<RepositoryWithGitHubRepository> {
   const { dbID } = gitHubRepository
-  const matches = new Array<RepositoryWithGitHubRepository>(),
-    forks = new Array<RepositoryWithGitHubRepository>()
+  const matches = new Array<RepositoryWithGitHubRepository>()
+
   for (const r of repositories) {
     if (r.gitHubRepository.dbID === dbID) {
       matches.push(r)
@@ -331,9 +278,9 @@ function findRepositoriesForGitHubRepository(
       r.gitHubRepository.parent !== null &&
       r.gitHubRepository.parent.dbID === dbID
     ) {
-      forks.push(r)
+      matches.push(r)
     }
   }
 
-  return { matches, forks }
+  return matches
 }

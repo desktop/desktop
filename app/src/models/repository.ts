@@ -133,3 +133,13 @@ export function getGitHubHtmlUrl(repository: Repository): string | null {
   }
   return null
 }
+
+/**
+ * Returns the GitHubRepository when a non-fork repository is passed. Returns the parent
+ * GitHubRepository otherwise.
+ */
+export function getNonForkGitHubRepository(
+  repository: RepositoryWithGitHubRepository
+): GitHubRepository {
+  return repository.gitHubRepository.parent || repository.gitHubRepository
+}
