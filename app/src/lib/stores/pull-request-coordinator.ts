@@ -100,7 +100,14 @@ export class PullRequestCoordinator {
 
         // emit updates for matches
         for (const match of matches) {
-          fn(match, pullRequests)
+          if (match.gitHubRepository.parent) {
+            // matches that are forks need to include the PRs from upstreams
+            this.getPullRequestsFor(match.gitHubRepository.parent).then(prs =>
+              fn(match, [...prs, ...pullRequests])
+            )
+          } else {
+            fn(match, pullRequests)
+          }
         }
       }
     )
