@@ -1041,20 +1041,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
 
       if (inferredBranch !== null) {
-        aheadBehindOfInferredBranch = compareState.aheadBehindCache.get(
+        aheadBehindOfInferredBranch = await aheadBehindUpdater.executeAsyncTask(
           tip.branch.tip.sha,
           inferredBranch.tip.sha
         )
-
-        // In the case that the aheadBehindCache doesn't have the needed data, try to
-        // request it directly from AheadBehindUpdater. This usually happens on initial load
-        // before AheadBehindUpdater has run though all the branches.
-        if (aheadBehindOfInferredBranch === null) {
-          aheadBehindOfInferredBranch = await aheadBehindUpdater.executeAsyncTask(
-            tip.branch.tip.sha,
-            inferredBranch.tip.sha
-          )
-        }
       }
     }
 
