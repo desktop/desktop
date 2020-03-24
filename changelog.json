@@ -19,8 +19,8 @@
       "[Improved] Support automatically switching between Dark and Light Theme on Windows - #9015. Thanks @say25!",
       "[Improved] Format errors containing raw Git output with fixed-width font - #8964",
       "[Improved] Modify \"View on GitHub\" menu item to open upstream for local fork repositories - #9316",
-      "[Improved] New branches in forks are created from the default branch of the upstream repo - #7762",
-      "[Improved] Dark Theme is out of beta - #9294"
+      "[Improved] Create new branches from the default branch of the upstream repo for forks - #7762",
+      "[Improved] Graduate Dark Theme out of beta - #9294"
     ],
     "2.3.2-beta8": [
       "[Fixed] Preserve the footer within a resizable list when shrinking or expanding - #9344",
