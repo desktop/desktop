@@ -1,6 +1,6 @@
 {
   "releases": {
-    "2.4": [
+    "2.4.0": [
       "[New] Set Git proxy environment variables from system configuration automatically - #9154",
       "[Added] Enable creating a GitHub issue from app menu and keyboard shortcut - #8989",
       "[Added] Add editor support for IntelliJ Idea on macOS - #8398. Thanks @gssbzn!",
