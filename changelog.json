@@ -1,5 +1,9 @@
 {
   "releases": {
+    "2.3.2-beta8": [
+      "[Fixed] Preserve the footer within a resizable list when shrinking or expanding - #9344",
+      "[Fixed] Save the user's position within \"History\" and \"Changes\" tabs when switching - #9061"
+    ],
     "2.3.2-beta7": [
       "[Improved] Modify \"View on GitHub\" menu item to open upstream for local fork repositories - #9316"
     ],
