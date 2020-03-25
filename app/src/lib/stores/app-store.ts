@@ -1030,7 +1030,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     let aheadBehindOfInferredBranch: IAheadBehind | null = null
     if (
       tip.kind === TipState.Valid &&
-      compareState.aheadBehindCache !== null &&
       aheadBehindUpdater !== null
     ) {
       inferredBranch = await inferComparisonBranch(
