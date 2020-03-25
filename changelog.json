@@ -10,7 +10,7 @@
       "[Fixed] Ensure branch protection warning works when branch names contain special characters - #9086",
       "[Fixed] Ensure intro page is responsive when resizing the window - #9175",
       "[Fixed] Ensure local branch is also deleted when deleting a branch that no longer exists on the remote - #8831",
-      "[Fixed] Fix graphic indicating files selected in Dark Theme - #8716. Thanks @say25!",
+      "[Fixed] Restore negative space in \"Files selected\" graphic for Dark Theme - #8716. Thanks @say25!",
       "[Fixed] Support selecting text in error dialogs - #7606",
       "[Fixed] Prevent bringing changes to another branch from failing silently - #9038",
       "[Fixed] Save the user's position within \"History\" and \"Changes\" tabs when switching - #9061",
