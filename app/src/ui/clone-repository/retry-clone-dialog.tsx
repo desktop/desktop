@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { RetryAction } from '../../models/retry-actions'
 import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Ref } from '../lib/ref'
 import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
@@ -32,18 +32,16 @@ export class RetryCloneDialog extends React.Component<IRetryCloneProps> {
         title={__DARWIN__ ? 'Retry Clone' : 'Retry clone'}
         type="error"
         onDismissed={this.props.onDismissed}
+        onSubmit={this.cloneAgain}
       >
         <DialogContent>
           <p>{this.getCloneFailureExplanation()}</p>
         </DialogContent>
 
         <DialogFooter>
-          <ButtonGroup>
-            <Button type="submit" onClick={this.cloneAgain}>
-              {__DARWIN__ ? 'Retry Clone' : 'Retry clone'}
-            </Button>
-            <Button onClick={this.props.onDismissed}>Cancel</Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            okButtonText={__DARWIN__ ? 'Retry Clone' : 'Retry clone'}
+          />
         </DialogFooter>
       </Dialog>
     )
