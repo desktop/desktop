@@ -24,6 +24,8 @@ export enum StartPoint {
   CurrentBranch = 'CurrentBranch',
   DefaultBranch = 'DefaultBranch',
   Head = 'Head',
+  /** Only valid for forks */
+  UpstreamDefaultBranch = 'UpstreamDefaultBranch',
 }
 
 /**

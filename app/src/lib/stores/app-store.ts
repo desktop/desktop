@@ -231,6 +231,7 @@ import {
   enableBranchProtectionChecks,
   enableBranchProtectionWarningFlow,
   enableHideWhitespaceInDiffOption,
+  enableUpdateRemoteUrl,
 } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import * as moment from 'moment'
@@ -255,6 +256,7 @@ import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
+import { updateRemoteUrl } from './updates/update-remote-url'
 import { findBranchesForFastForward } from './helpers/find-branches-for-fast-forward'
 import {
   TutorialStep,
@@ -2993,11 +2995,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     startPoint: string | null,
     uncommittedChangesStrategy: UncommittedChangesStrategy = getUncommittedChangesStrategy(
       this.uncommittedChangesStrategyKind
-    )
+    ),
+    noTrackOption: boolean = false
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
     const branch = await gitStore.performFailableOperation(() =>
-      createBranch(repository, name, startPoint)
+      createBranch(repository, name, startPoint, noTrackOption)
     )
 
     if (branch == null) {
@@ -3231,7 +3234,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return null
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
+  /**
+   * refetches the associated GitHub remote repository, if possible
+   *
+   * if refetching fails, will return the given `repository` with
+   * the same info it was passed in with
+   *
+   * @param repository
+   * @returns repository model (hopefully with fresh `gitHubRepository` info)
+   */
   private async repositoryWithRefreshedGitHubRepository(
     repository: Repository
   ): Promise<Repository> {
@@ -3305,6 +3316,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
 
       return repository
+    }
+
+    if (enableUpdateRemoteUrl() && repository.gitHubRepository) {
+      await updateRemoteUrl(
+        this.gitStoreCache.get(repository),
+        repository.gitHubRepository,
+        apiRepo
+      )
     }
 
     const endpoint = matchedGitHubRepository.endpoint

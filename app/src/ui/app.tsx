@@ -23,7 +23,7 @@ import { getVersion, getName } from './lib/app-proxy'
 import { getOS } from '../lib/get-os'
 import { validatedRepositoryPath } from '../lib/stores/helpers/validated-repository-path'
 import { MenuEvent } from '../main-process/menu'
-import { Repository } from '../models/repository'
+import { Repository, getGitHubHtmlUrl } from '../models/repository'
 import { Branch } from '../models/branch'
 import { PreferencesTab } from '../models/preferences'
 import { findItemByAccessKey, itemIsSelectable } from '../models/app-menu'
@@ -104,7 +104,7 @@ import { StashAndSwitchBranch } from './stash-changes/stash-and-switch-branch-di
 import { OverwriteStash } from './stash-changes/overwrite-stashed-changes-dialog'
 import { ConfirmDiscardStashDialog } from './stashing/confirm-discard-stash'
 import { CreateTutorialRepositoryDialog } from './no-repositories/create-tutorial-repository-dialog'
-import { enableTutorial } from '../lib/feature-flag'
+import { enableTutorial, enableForkyCreateBranchUI } from '../lib/feature-flag'
 import { ConfirmExitTutorial } from './tutorial'
 import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { WorkflowPushRejectedDialog } from './workflow-push-rejected/workflow-push-rejected'
@@ -112,6 +112,8 @@ import { getUncommittedChangesStrategy } from '../models/uncommitted-changes-str
 import { SAMLReauthRequiredDialog } from './saml-reauth-required/saml-reauth-required'
 import { CreateForkDialog } from './forks/create-fork-dialog'
 import { SChannelNoRevocationCheckDialog } from './schannel-no-revocation-check/schannel-no-revocation-check'
+import { findUpstreamRemoteBranch } from '../lib/branch'
+import { GitHubRepository } from '../models/github-repository'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -354,7 +356,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'compare-on-github':
         return this.compareBranchOnDotcom()
       case 'create-issue-in-repository-on-github':
-        return this.createIssueInRepositoryOnGitHub()
+        return this.openIssueCreationOnGitHub()
       case 'open-in-shell':
         return this.openCurrentRepositoryInShell()
       case 'clone-repository':
@@ -1107,20 +1109,24 @@ export class App extends React.Component<IAppProps, IAppState> {
    * Opens a browser to the issue creation page
    * of the current GitHub repository.
    */
-  private createIssueInRepositoryOnGitHub() {
-    const url = this.getCurrentRepositoryGitHubURL()
-
-    if (url) {
-      this.props.dispatcher.openInBrowser(`${url}/issues/new/choose`)
+  private openIssueCreationOnGitHub() {
+    const repository = this.getRepository()
+    // this will likely never be null since we disable the
+    // issue creation menu item for non-GitHub repositories
+    if (repository instanceof Repository) {
+      this.props.dispatcher.openIssueCreationPage(repository)
     }
   }
 
   private viewRepositoryOnGitHub() {
-    const url = this.getCurrentRepositoryGitHubURL()
+    const repository = this.getRepository()
 
-    if (url) {
-      this.props.dispatcher.openInBrowser(url)
-      return
+    if (repository instanceof Repository) {
+      const url = getGitHubHtmlUrl(repository)
+
+      if (url) {
+        this.props.dispatcher.openInBrowser(url)
+      }
     }
   }
 
@@ -1456,13 +1462,33 @@ export class App extends React.Component<IAppProps, IAppState> {
           return null
         }
 
+        let upstreamGhRepo: GitHubRepository | null = null
+        let upstreamDefaultBranch: Branch | null = null
+
+        if (
+          enableForkyCreateBranchUI() &&
+          repository.gitHubRepository !== null &&
+          repository.gitHubRepository.parent !== null
+        ) {
+          upstreamGhRepo = repository.gitHubRepository.parent
+          if (upstreamGhRepo.defaultBranch !== null) {
+            upstreamDefaultBranch =
+              findUpstreamRemoteBranch(
+                upstreamGhRepo.defaultBranch,
+                branchesState.allBranches
+              ) || null
+          }
+        }
+
         return (
           <CreateBranch
             key="create-branch"
             tip={branchesState.tip}
             defaultBranch={branchesState.defaultBranch}
+            upstreamDefaultBranch={upstreamDefaultBranch}
             allBranches={branchesState.allBranches}
             repository={repository}
+            upstreamGitHubRepository={upstreamGhRepo}
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
             initialName={popup.initialName || ''}

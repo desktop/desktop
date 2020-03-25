@@ -103,6 +103,8 @@ export interface IAPIRepository {
   readonly fork: boolean
   readonly default_branch: string
   readonly pushed_at: string
+  readonly has_issues: boolean
+  readonly archived: boolean
   readonly parent?: IAPIRepository
 
   /**

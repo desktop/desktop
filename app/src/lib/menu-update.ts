@@ -1,7 +1,10 @@
 import { MenuIDs } from '../models/menu-ids'
 import { merge } from './merge'
 import { IAppState, SelectionType } from '../lib/app-state'
-import { Repository } from '../models/repository'
+import {
+  Repository,
+  isRepositoryWithGitHubRepository,
+} from '../models/repository'
 import { CloningRepository } from '../models/cloning-repository'
 import { TipState } from '../models/tip'
 import { updateMenuState as ipcUpdateMenuState } from '../ui/main-process-proxy'
@@ -158,6 +161,11 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   let branchIsUnborn = false
   let rebaseInProgress = false
   let branchHasStashEntry = false
+  // check that its a github repo and if so, that is has issues enabled
+  const repoIssuesEnabled =
+    selectedState !== null &&
+    selectedState.repository instanceof Repository &&
+    getRepoIssuesEnabled(selectedState.repository)
 
   if (selectedState && selectedState.type === SelectionType.Repository) {
     repositorySelected = true
@@ -248,7 +256,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     menuStateBuilder.setEnabled('view-repository-on-github', isHostedOnGitHub)
     menuStateBuilder.setEnabled(
       'create-issue-in-repository-on-github',
-      isHostedOnGitHub
+      repoIssuesEnabled
     )
     menuStateBuilder.setEnabled(
       'create-pull-request',
@@ -372,6 +380,25 @@ function getNoRepositoriesBuilder(state: IAppState): MenuStateBuilder {
   }
 
   return menuStateBuilder
+}
+
+function getRepoIssuesEnabled(repository: Repository): boolean {
+  if (isRepositoryWithGitHubRepository(repository)) {
+    const ghRepo = repository.gitHubRepository
+
+    if (ghRepo.parent) {
+      // issues enabled on parent repo
+      return (
+        ghRepo.parent.issuesEnabled !== false &&
+        ghRepo.parent.isArchived !== true
+      )
+    }
+
+    // issues enabled on repo
+    return ghRepo.issuesEnabled !== false && ghRepo.isArchived !== true
+  }
+
+  return false
 }
 
 /**
