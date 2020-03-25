@@ -1025,20 +1025,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? cachedDefaultBranch
         : null
 
+    const aheadBehindUpdater = this.currentAheadBehindUpdater
     let inferredBranch: Branch | null = null
     let aheadBehindOfInferredBranch: IAheadBehind | null = null
-    if (tip.kind === TipState.Valid && compareState.aheadBehindCache !== null) {
+    if (tip.kind === TipState.Valid && aheadBehindUpdater !== null) {
       inferredBranch = await inferComparisonBranch(
         repository,
         allBranches,
         currentPullRequest,
-        tip.branch,
-        getRemotes,
-        compareState.aheadBehindCache
+        getRemotes
       )
 
-      if (inferredBranch !== null && this.currentAheadBehindUpdater !== null) {
-        aheadBehindOfInferredBranch = await this.currentAheadBehindUpdater.executeAsyncTask(
+      if (inferredBranch !== null) {
+        aheadBehindOfInferredBranch = await aheadBehindUpdater.executeAsyncTask(
           tip.branch.tip.sha,
           inferredBranch.tip.sha
         )
