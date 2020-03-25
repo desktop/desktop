@@ -267,6 +267,10 @@ import { parseRemote } from '../../lib/remote-parsing'
 import { createTutorialRepository } from './helpers/create-tutorial-repository'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { getDefaultDir } from '../../ui/lib/default-dir'
+import {
+  UpstreamRemoteName,
+  findUpstreamRemote,
+} from './helpers/find-upstream-remote'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -5316,13 +5320,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const head = pullRequest.head
     const isRefInThisRepo =
       head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
+    const isRefInUpstream =
+      gitHubRepository.parent !== null &&
+      head.gitHubRepository.cloneURL === gitHubRepository.parent.cloneURL
 
-    if (isRefInThisRepo) {
+    if (isRefInThisRepo || isRefInUpstream) {
       const gitStore = this.gitStoreCache.get(repository)
       const defaultRemote = gitStore.defaultRemote
       // if we don't have a default remote here, it's probably going
       // to just crash and burn on checkout, but that's okay
-      if (defaultRemote != null) {
+      if (isRefInThisRepo && defaultRemote != null) {
         // the remote ref will be something like `origin/my-cool-branch`
         const remoteRef = `${defaultRemote.name}/${head.ref}`
 
@@ -5336,6 +5343,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
             defaultRemote,
             FetchType.UserInitiatedTask
           )
+        }
+      } else if (isRefInUpstream) {
+        // the remote ref will be something like `upstream/my-cool-branch`
+        const remoteRef = `${UpstreamRemoteName}/${head.ref}`
+
+        const remoteRefExists =
+          gitStore.allBranches.find(branch => branch.name === remoteRef) != null
+
+        // only try a fetch here if we can't find the ref
+        if (!remoteRefExists) {
+          const remotes = await getRemotes(repository)
+          const remoteUpstream = findUpstreamRemote(gitHubRepository, remotes)
+
+          if (remoteUpstream) {
+            await this._fetchRemote(
+              repository,
+              remoteUpstream,
+              FetchType.UserInitiatedTask
+            )
+          }
         }
       }
       const branch = this.getLocalBranch(repository, head.ref)
