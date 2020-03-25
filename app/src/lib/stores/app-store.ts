@@ -1028,10 +1028,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const aheadBehindUpdater = this.currentAheadBehindUpdater
     let inferredBranch: Branch | null = null
     let aheadBehindOfInferredBranch: IAheadBehind | null = null
-    if (
-      tip.kind === TipState.Valid &&
-      aheadBehindUpdater !== null
-    ) {
+    if (tip.kind === TipState.Valid && aheadBehindUpdater !== null) {
       inferredBranch = await inferComparisonBranch(
         repository,
         allBranches,
