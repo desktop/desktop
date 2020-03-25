@@ -1036,8 +1036,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         compareState.aheadBehindCache
       )
 
-      if (inferredBranch !== null) {
-        aheadBehindOfInferredBranch = compareState.aheadBehindCache.get(
+      if (inferredBranch !== null && this.currentAheadBehindUpdater !== null) {
+        aheadBehindOfInferredBranch = await this.currentAheadBehindUpdater.executeAsyncTask(
           tip.branch.tip.sha,
           inferredBranch.tip.sha
         )
