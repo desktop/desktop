@@ -101,17 +101,6 @@ export class RepositoryView extends React.Component<
     }
   }
 
-  public componentDidUpdate(prevProps: IRepositoryViewProps) {
-    // When switching repositories we want to reset the scroll positions
-    // since keeping them can cause out of bounds issues on the virtual list.
-    if (this.props.repository !== prevProps.repository) {
-      this.setState({
-        changesListScrollTop: 0,
-        compareListScrollTop: 0,
-      })
-    }
-  }
-
   private onChangesListScrolled = (scrollTop: number) => {
     this.setState({ changesListScrollTop: scrollTop })
   }
