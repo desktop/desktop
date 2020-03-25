@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { RetryAction } from '../../models/retry-actions'
-import { Button } from '../lib/button'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Ref } from '../lib/ref'
