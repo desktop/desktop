@@ -138,7 +138,9 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   const newEntries =
     channel === 'production'
       ? [...getChangelogEntriesSince(previousVersion)]
-      : [...(await convertToChangelogFormat(lines))]
+      : channel === 'beta'
+      ? [...(await convertToChangelogFormat(lines))]
+      : []
 
   if (currentChangelog.releases[nextVersion] === undefined) {
     console.log('Adding draft release notes to changelog.json...')
