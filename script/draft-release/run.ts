@@ -132,6 +132,7 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
     Please manually set it to ${nextVersion} in app/package.json.`)
   }
 
+  console.log('Determining changelog entries...')
   const currentChangelog: IChangelog = require(changelogPath)
   // if it's a new production release, make sure we only include
   // entries since the latest production release
@@ -141,6 +142,7 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
       : channel === 'beta'
       ? [...(await convertToChangelogFormat(lines))]
       : []
+  console.log('Determined!')
 
   if (currentChangelog.releases[nextVersion] === undefined) {
     console.log('Adding draft release notes to changelog.json...')
@@ -157,6 +159,7 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
           parser: 'json',
         })
       )
+      console.log('Added!')
       printInstructions(nextVersion, [])
     } catch (e) {
       console.warn(`Writing the changelog failed 😿\n(${e.message})`)
