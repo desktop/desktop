@@ -11,6 +11,7 @@ import { CommitAttribution } from '../lib/commit-attribution'
 import { IGitHubUser } from '../../lib/databases/github-user-database'
 import { AvatarStack } from '../lib/avatar-stack'
 import { IMenuItem } from '../../lib/menu-item'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
@@ -79,12 +80,25 @@ export class CommitListItem extends React.Component<
             </div>
           </div>
         </div>
+        {this.renderPushIndicator()}
       </div>
     )
   }
 
   public shouldComponentUpdate(nextProps: ICommitProps): boolean {
     return this.props.commit.sha !== nextProps.commit.sha
+  }
+
+  private renderPushIndicator() {
+    if (!this.props.isLocal) {
+      return null
+    }
+
+    return (
+      <div className="unpushed-indicator">
+        <Octicon symbol={OcticonSymbol.arrowUp} />
+      </div>
+    )
   }
 
   private onCopySHA = () => {

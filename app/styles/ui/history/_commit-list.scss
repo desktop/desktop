@@ -40,5 +40,34 @@
         @include ellipsis;
       }
     }
+
+    .unpushed-indicator {
+      height: 16px;
+      border-radius: 8px;
+      padding: 0 6px;
+
+      background: var(--list-item-badge-background-color);
+      color: var(--list-item-badge-color);
+    }
+  }
+
+  .list-item.selected {
+    .commit {
+      .unpushed-indicator {
+        background: var(--list-item-selected-badge-background-color);
+        color: var(--list-item-selected-badge-color);
+      }
+    }
+  }
+
+  .focus-within {
+    .list-item.selected {
+      .commit {
+        .unpushed-indicator {
+          background: var(--list-item-selected-active-badge-background-color);
+          color: var(--list-item-selected-active-badge-color);
+        }
+      }
+    }
   }
 }
