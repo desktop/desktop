@@ -79,6 +79,7 @@ export async function getCommits(
     '%cn <%ce> %cd',
     '%P', // parent SHAs,
     '%(trailers:unfold,only)',
+    '%D', // refs, but we filter them down to only show tags
   ].join(`%x${delimiter}`)
 
   const result = await git(
@@ -87,6 +88,7 @@ export async function getCommits(
       revisionRange,
       `--date=raw`,
       `--max-count=${limit}`,
+      `--decorate-refs="refs/tags/*"`,
       `--pretty=${prettyFormat}`,
       '-z',
       '--no-show-signature',
@@ -127,6 +129,7 @@ export async function getCommits(
 
     const parentSHAs = shaList.length ? shaList.split(' ') : []
     const trailers = parseRawUnfoldedTrailers(pieces[7], trailerSeparators)
+    const tags = pieces[8].replace(/tag: /g, '').split(', ')
 
     const author = CommitIdentity.parseIdentity(authorIdentity)
 
