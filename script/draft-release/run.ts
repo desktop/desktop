@@ -14,6 +14,7 @@ import { execSync } from 'child_process'
 import { writeFileSync } from 'fs'
 import { join } from 'path'
 import { format } from 'prettier'
+import { assertNever } from '../../app/src/lib/fatal-error'
 
 const changelogPath = join(__dirname, '..', '..', 'changelog.json')
 
@@ -107,15 +108,6 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   const previousVersion = await getLatestRelease({ excludeBetaReleases })
   const nextVersion = getNextVersionNumber(previousVersion, channel)
 
-  const lines = await getLogLines(`release-${previousVersion}`)
-  const noChangesFound = lines.every(l => l.trim().length === 0)
-
-  if (noChangesFound) {
-    console.warn('No new changes found to add to the changelog. Aborting.')
-    // print instructions with no changelog included
-    printInstructions(nextVersion, [])
-    return
-  }
   console.log(`Setting app version to "${nextVersion}" in app/package.json...`)
 
   try {
@@ -133,16 +125,39 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   }
 
   console.log('Determining changelog entries...')
+
   const currentChangelog: IChangelog = require(changelogPath)
-  // if it's a new production release, make sure we only include
-  // entries since the latest production release
-  const newEntries =
-    channel === 'production'
-      ? [...getChangelogEntriesSince(previousVersion)]
-      : channel === 'beta'
-      ? [...(await convertToChangelogFormat(lines))]
-      : []
-  console.log('Determined!')
+  const newEntries = new Array<string>()
+
+  switch (channel) {
+    case 'production': {
+      // if it's a new production release, make sure we only include
+      // entries since the latest production release
+      newEntries.push(...getChangelogEntriesSince(previousVersion))
+      break
+    }
+    case 'beta': {
+      const logLines = await getLogLines(`release-${previousVersion}`)
+      const changelogLines = await convertToChangelogFormat(logLines)
+      newEntries.push(...changelogLines)
+      break
+    }
+    case 'test': {
+      // we don't guess at release notes for test releases
+      break
+    }
+    default: {
+      assertNever(channel, 'missing channel type')
+    }
+  }
+
+  if (newEntries.length === 0 && channel !== 'test') {
+    console.warn(
+      'No new changes found to add to the changelog. 🤔 Continuing...'
+    )
+  } else {
+    console.log('Determined!')
+  }
 
   if (currentChangelog.releases[nextVersion] === undefined) {
     console.log('Adding draft release notes to changelog.json...')
