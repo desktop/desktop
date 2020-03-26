@@ -41,6 +41,10 @@
       }
     }
 
+    .unpushed-indicator-container {
+      padding-left: var(--spacing);
+    }
+
     .unpushed-indicator {
       height: 16px;
       border-radius: 8px;

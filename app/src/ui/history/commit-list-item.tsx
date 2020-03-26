@@ -95,8 +95,10 @@ export class CommitListItem extends React.Component<
     }
 
     return (
-      <div className="unpushed-indicator">
-        <Octicon symbol={OcticonSymbol.arrowUp} />
+      <div className="unpushed-indicator-container">
+        <div className="unpushed-indicator">
+          <Octicon symbol={OcticonSymbol.arrowUp} />
+        </div>
       </div>
     )
   }
