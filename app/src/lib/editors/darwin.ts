@@ -22,7 +22,7 @@ export enum ExternalEditor {
   IntelliJ = 'IntelliJ',
   Xcode = 'Xcode',
   GoLand = 'GoLand',
-  Rider = 'Rider'
+  Rider = 'Rider',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -198,7 +198,7 @@ function getExecutableShim(
     case ExternalEditor.GoLand:
       return Path.join(installPath, 'Contents', 'MacOS', 'goland')
     case ExternalEditor.Rider:
-        return Path.join(installPath, 'Contents', 'MacOS', 'rider')
+      return Path.join(installPath, 'Contents', 'MacOS', 'rider')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -252,7 +252,7 @@ export async function getAvailableEditors(): Promise<
     intellijPath,
     xcodePath,
     golandPath,
-    riderPath
+    riderPath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.MacVim),
