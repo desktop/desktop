@@ -42,6 +42,7 @@ interface ICompareSidebarProps {
   readonly currentBranch: Branch | null
   readonly selectedCommitSha: string | null
   readonly onRevertCommit: (commit: Commit) => void
+  readonly onCherryPickCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
   readonly onCompareListScrolled: (scrollTop: number) => void
   readonly compareListScrollTop?: number
@@ -264,6 +265,11 @@ export class CompareSidebar extends React.Component<
         onRevertCommit={
           ableToRevertCommit(this.props.compareState.formState)
             ? this.props.onRevertCommit
+            : undefined
+        }
+        onCherryPickCommit={
+          ableToCherryPickCommit(this.props.compareState.formState)
+            ? this.props.onCherryPickCommit
             : undefined
         }
         onCommitSelected={this.onCommitSelected}
@@ -599,5 +605,18 @@ function ableToRevertCommit(
   return (
     formState.kind === HistoryTabMode.History ||
     formState.comparisonMode === ComparisonMode.Ahead
+  )
+}
+
+// determine if the 'onCherryPickCommit' function should be exposed to the CommitList/CommitListItem.
+// 'onCherryPickCommit' is only exposed if the form state of the branch compare form is either
+// Compare Mode and Comaprison Mode with the 'Behind' list shown.
+// When not exposed, the context menu item 'Cherry-Pick this commit' is disabled.
+function ableToCherryPickCommit(
+  formState: IDisplayHistory | ICompareBranch
+): boolean {
+  return (
+    formState.kind === HistoryTabMode.Compare &&
+    formState.comparisonMode === ComparisonMode.Behind
   )
 }

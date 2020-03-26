@@ -18,6 +18,7 @@ interface ICommitProps {
   readonly emoji: Map<string, string>
   readonly isLocal: boolean
   readonly onRevertCommit?: (commit: Commit) => void
+  readonly onCherryPickCommit?: (commit: Commit) => void
   readonly onViewCommitOnGitHub?: (sha: string) => void
   readonly gitHubUsers: Map<string, IGitHubUser> | null
 }
@@ -119,6 +120,17 @@ export class CommitListItem extends React.Component<
           }
         },
         enabled: this.props.onRevertCommit !== undefined,
+      },
+      {
+        label: __DARWIN__
+          ? 'Cherry-Pick this Commit'
+          : 'Cherry-pick this commit',
+        action: () => {
+          if (this.props.onCherryPickCommit) {
+            this.props.onCherryPickCommit(this.props.commit)
+          }
+        },
+        enabled: this.props.onCherryPickCommit !== undefined,
       },
       { type: 'separator' },
       {

@@ -46,6 +46,7 @@ import {
   PushPullButton,
   BranchDropdown,
   RevertProgress,
+  CherryPickProgress,
 } from './toolbar'
 import { OcticonSymbol, iconForRepository } from './octicons'
 import {
@@ -2271,6 +2272,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     const revertProgress = state.revertProgress
     if (revertProgress) {
       return <RevertProgress progress={revertProgress} />
+    }
+    const cherryPickProgress = state.cherryPickProgress
+    if (cherryPickProgress) {
+      return <CherryPickProgress progress={cherryPickProgress} />
     }
 
     let remoteName = state.remote ? state.remote.name : null

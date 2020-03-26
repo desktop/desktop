@@ -41,6 +41,9 @@ interface ICommitListProps {
   /** Callback to fire to revert a given commit in the current repository */
   readonly onRevertCommit: ((commit: Commit) => void) | undefined
 
+  /** Callback to fire to cherry-pick a given commit into the current branch */
+  readonly onCherryPickCommit: ((commit: Commit) => void) | undefined
+
   /** Callback to fire to open a given commit on GitHub */
   readonly onViewCommitOnGitHub: (sha: string) => void
 
@@ -80,6 +83,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         gitHubUsers={this.props.gitHubUsers}
         emoji={this.props.emoji}
         onRevertCommit={this.props.onRevertCommit}
+        onCherryPickCommit={this.props.onCherryPickCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
       />
     )

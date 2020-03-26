@@ -58,6 +58,7 @@ import {
   ICheckoutProgress,
   IFetchProgress,
   IRevertProgress,
+  ICherryPickProgress,
   IRebaseProgress,
 } from '../../models/progress'
 import { Popup, PopupType } from '../../models/popup'
@@ -4991,6 +4992,36 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
 
       this.updateRevertProgress(repo, null)
+      await this._refreshRepository(repository)
+    })
+  }
+
+  private updateCherryPickProgress(
+    repository: Repository,
+    progress: ICherryPickProgress | null
+  ) {
+    this.repositoryStateCache.update(repository, () => ({
+      cherryPickProgress: progress,
+    }))
+
+    if (this.selectedRepository === repository) {
+      this.emitUpdate()
+    }
+  }
+
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public async _cherryPickCommit(
+    repository: Repository,
+    commit: Commit
+  ): Promise<void> {
+    return this.withAuthenticatingUser(repository, async (repo, account) => {
+      const gitStore = this.gitStoreCache.get(repo)
+
+      await gitStore.cherryPickCommit(repo, commit, account, progress => {
+        this.updateCherryPickProgress(repo, progress)
+      })
+
+      this.updateCherryPickProgress(repo, null)
       await this._refreshRepository(repository)
     })
   }

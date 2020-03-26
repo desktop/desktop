@@ -99,6 +99,11 @@ export interface IRevertProgress extends IProgress {
   kind: 'revert'
 }
 
+/** An object describing the progression of a cherry-pick operation. */
+export interface ICherryPickProgress extends IProgress {
+  kind: 'cherry-pick'
+}
+
 /** An object describing the progress of a rebase operation */
 export interface IRebaseProgress extends IProgress {
   readonly kind: 'rebase'
@@ -117,4 +122,5 @@ export type Progress =
   | IPullProgress
   | IPushProgress
   | IRevertProgress
+  | ICherryPickProgress
   | IRebaseProgress

@@ -15,7 +15,11 @@ import {
 import { Tip, TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
 import { IRemote, ForkedRemotePrefix } from '../../models/remote'
-import { IFetchProgress, IRevertProgress } from '../../models/progress'
+import {
+  IFetchProgress,
+  IRevertProgress,
+  ICherryPickProgress,
+} from '../../models/progress'
 import {
   ICommitMessage,
   DefaultCommitMessage,
@@ -48,6 +52,7 @@ import {
   checkoutPaths,
   resetPaths,
   revertCommit,
+  cherryPickCommit,
   unstageAllFiles,
   addRemote,
   listSubmodules,
@@ -1385,6 +1390,20 @@ export class GitStore extends BaseStore {
   ): Promise<void> {
     await this.performFailableOperation(() =>
       revertCommit(repository, commit, account, progressCallback)
+    )
+
+    this.emitUpdate()
+  }
+
+  /** Cherry-Pick the commit with the given SHA */
+  public async cherryPickCommit(
+    repository: Repository,
+    commit: Commit,
+    account: IGitAccount | null,
+    progressCallback?: (fetchProgress: ICherryPickProgress) => void
+  ): Promise<void> {
+    await this.performFailableOperation(() =>
+      cherryPickCommit(repository, commit, account, progressCallback)
     )
 
     this.emitUpdate()

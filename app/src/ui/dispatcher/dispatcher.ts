@@ -657,6 +657,14 @@ export class Dispatcher {
     return this.appStore._revertCommit(repository, commit)
   }
 
+  /** Cherry-Pick the commit with the given SHA */
+  public cherryPickCommit(
+    repository: Repository,
+    commit: Commit
+  ): Promise<void> {
+    return this.appStore._cherryPickCommit(repository, commit)
+  }
+
   /**
    * Set the width of the repository sidebar to the given
    * value. This affects the changes and history sidebar

@@ -220,6 +220,7 @@ export class RepositoryView extends React.Component<
         localCommitSHAs={this.props.state.localCommitSHAs}
         dispatcher={this.props.dispatcher}
         onRevertCommit={this.onRevertCommit}
+        onCherryPickCommit={this.onCherryPickCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         onCompareListScrolled={this.onCompareListScrolled}
         compareListScrollTop={scrollTop}
@@ -429,6 +430,10 @@ export class RepositoryView extends React.Component<
 
   private onRevertCommit = (commit: Commit) => {
     this.props.dispatcher.revertCommit(this.props.repository, commit)
+  }
+
+  private onCherryPickCommit = (commit: Commit) => {
+    this.props.dispatcher.cherryPickCommit(this.props.repository, commit)
   }
 
   private onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {

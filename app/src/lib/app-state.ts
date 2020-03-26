@@ -17,6 +17,7 @@ import { MergeResult } from '../models/merge'
 import { ICommitMessage } from '../models/commit-message'
 import {
   IRevertProgress,
+  ICherryPickProgress,
   Progress,
   ICheckoutProgress,
   ICloneProgress,
@@ -418,6 +419,14 @@ export interface IRepositoryState {
    * null if no such operation is in flight.
    */
   readonly revertProgress: IRevertProgress | null
+
+  /**
+   * If we're currently cherry-picking a commit and it involves LFS progress, this
+   * will contain the LFS progress.
+   *
+   * null if no such operation is in flight.
+   */
+  readonly cherryPickProgress: ICherryPickProgress | null
 }
 
 export interface IBranchesState {
