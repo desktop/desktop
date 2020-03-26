@@ -264,6 +264,7 @@ These editors are currently supported:
  - [Typora](https://typora.io/)
  - [SlickEdit](https://www.slickedit.com)
  - [GoLand](https://www.jetbrains.com/go/)
+ - [Rider](https://www.jetbrains.com/rider/)
 
 These are defined in an enum at the top of the file:
 

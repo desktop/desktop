@@ -22,6 +22,7 @@ export enum ExternalEditor {
   IntelliJ = 'IntelliJ',
   Xcode = 'Xcode',
   GoLand = 'GoLand',
+  Rider = 'Rider'
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -81,6 +82,9 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.GoLand) {
     return ExternalEditor.GoLand
   }
+  if (label === ExternalEditor.Rider) {
+    return ExternalEditor.Rider
+  }
   return null
 }
 
@@ -132,6 +136,8 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['com.apple.dt.Xcode']
     case ExternalEditor.GoLand:
       return ['com.jetbrains.goland']
+    case ExternalEditor.Rider:
+      return ['com.jetbrains.rider']
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -191,6 +197,8 @@ function getExecutableShim(
       return '/usr/bin/xed'
     case ExternalEditor.GoLand:
       return Path.join(installPath, 'Contents', 'MacOS', 'goland')
+    case ExternalEditor.Rider:
+        return Path.join(installPath, 'Contents', 'MacOS', 'rider')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -244,6 +252,7 @@ export async function getAvailableEditors(): Promise<
     intellijPath,
     xcodePath,
     golandPath,
+    riderPath
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.MacVim),
@@ -263,6 +272,7 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.IntelliJ),
     findApplication(ExternalEditor.Xcode),
     findApplication(ExternalEditor.GoLand),
+    findApplication(ExternalEditor.Rider),
   ])
 
   if (atomPath) {
@@ -338,6 +348,10 @@ export async function getAvailableEditors(): Promise<
 
   if (golandPath) {
     results.push({ editor: ExternalEditor.GoLand, path: golandPath })
+  }
+
+  if (riderPath) {
+    results.push({ editor: ExternalEditor.Rider, path: riderPath })
   }
 
   return results
