@@ -103,6 +103,8 @@ export interface IAPIRepository {
   readonly fork: boolean
   readonly default_branch: string
   readonly pushed_at: string
+  readonly has_issues: boolean
+  readonly archived: boolean
   readonly parent?: IAPIRepository
 
   /**
@@ -658,6 +660,26 @@ export class API {
     }
   }
 
+  /** Create a new GitHub fork of this repository (owner and name) */
+  public async forkRepository(
+    owner: string,
+    name: string
+  ): Promise<IAPIRepository> {
+    try {
+      const apiPath = `/repos/${owner}/${name}/forks`
+      const response = await this.request('POST', apiPath)
+      return await parsedResponse<IAPIRepository>(response)
+    } catch (e) {
+      log.error(
+        `forkRepository: failed to fork ${owner}/${name} at endpoint: ${
+          this.endpoint
+        }`,
+        e
+      )
+      throw e
+    }
+  }
+
   /**
    * Fetch the issues with the given state that have been created or updated
    * since the given date.
@@ -770,6 +792,20 @@ export class API {
   }
 
   /**
+   * Fetch a single pull request in the given repository
+   */
+  public async fetchPullRequest(owner: string, name: string, prNumber: string) {
+    try {
+      const path = `/repos/${owner}/${name}/pulls/${prNumber}`
+      const response = await this.request('GET', path)
+      return await parsedResponse<IAPIPullRequest>(response)
+    } catch (e) {
+      log.warn(`failed fetching PR for ${owner}/${name}/pulls/${prNumber}`, e)
+      throw e
+    }
+  }
+
+  /**
    * Get the combined status for the given ref.
    *
    * Note: Contrary to many other methods in this class this will not
@@ -795,7 +831,9 @@ export class API {
     name: string,
     branch: string
   ): Promise<IAPIPushControl> {
-    const path = `repos/${owner}/${name}/branches/${branch}/push_control`
+    const path = `repos/${owner}/${name}/branches/${encodeURIComponent(
+      branch
+    )}/push_control`
 
     const headers: any = {
       Accept: 'application/vnd.github.phandalin-preview',

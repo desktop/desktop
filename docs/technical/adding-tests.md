@@ -30,7 +30,7 @@ Unit tests are ideal for functions that don't depend on the DOM or Electron
 APIs, so if you are working on some code that will benefit from writing tests
 here is a guide to getting this working.
 
-First , check under `app/test/unit` for an existing test module related to the
+First, check under `app/test/unit` for an existing test module related to the
 area you are working in - we want to ensure each test module corresponds to a
 specific application module.
 
@@ -111,7 +111,7 @@ returns an object containing the changes that should be applied to create a new
 ```ts
 /**
  * Internal shape of the return value from this response because the compiler
- * seems to complain about attempts to create an object which satifies the
+ * seems to complain about attempts to create an object which satisfies the
  * constraints of Pick<T,K>
  */
 type ChangedFilesResult = {

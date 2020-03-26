@@ -42,6 +42,8 @@ const repository = new Repository(
     fullName: 'desktop/desktop',
     fork: false,
     hash: '',
+    issuesEnabled: null,
+    isArchived: false,
     permissions: null,
   },
   true

@@ -3,11 +3,11 @@ import { Branch, BranchType } from '../../src/models/branch'
 import { Commit } from '../../src/models/commit'
 import { CommitIdentity } from '../../src/models/commit-identity'
 import { GitHubRepository } from '../../src/models/github-repository'
-import { Owner } from '../../src/models/owner'
 import { PullRequest, PullRequestRef } from '../../src/models/pull-request'
 import { Repository } from '../../src/models/repository'
 import { IRemote } from '../../src/models/remote'
 import { ComparisonCache } from '../../src/lib/comparison-cache'
+import { gitHubRepoFixture } from '../helpers/github-repo-builder'
 
 function createTestCommit(sha: string) {
   return new Commit(
@@ -35,29 +35,16 @@ function createTestGhRepo(
   defaultBranch: string | null = null,
   parent: GitHubRepository | null = null
 ) {
-  if (owner.indexOf('/') !== -1) {
-    throw new Error(
-      'Providing a slash in the repository name is no longer supported, please update your test'
-    )
-  }
-
-  const cloneURL = `https://github.com/${owner}/my-cool-repo.git`
-
-  return new GitHubRepository(
-    name,
-    new Owner('', '', null),
-    null,
-    false,
-    '',
-    `${
+  return gitHubRepoFixture({
+    owner: owner,
+    name: 'my-cool-repo',
+    defaultBranch: `${
       defaultBranch !== null && defaultBranch.indexOf('/') !== -1
         ? defaultBranch.split('/')[1]
         : defaultBranch
     }`,
-    cloneURL,
-    'write',
-    parent
-  )
+    parent: parent || undefined,
+  })
 }
 
 function createTestPrRef(branch: Branch, ghRepo: GitHubRepository) {

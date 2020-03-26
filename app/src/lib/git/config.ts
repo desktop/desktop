@@ -17,7 +17,24 @@ export function getGlobalConfigValue(
     HOME: string
   }
 ): Promise<string | null> {
-  return getConfigValueInPath(name, null, env)
+  return getConfigValueInPath(name, null, undefined, env)
+}
+
+/**
+ * Look up a global config value by name.
+ *
+ * Treats the returned value as a boolean as per Git's
+ * own definition of a boolean configuration value (i.e.
+ * 0 -> false, "off" -> false, "yes" -> true etc)
+ */
+export async function getGlobalBooleanConfigValue(
+  name: string,
+  env?: {
+    HOME: string
+  }
+): Promise<boolean | null> {
+  const value = await getConfigValueInPath(name, null, 'bool', env)
+  return value === null ? null : value !== 'false'
 }
 
 /** Set the local config value by name. */
@@ -38,9 +55,21 @@ export async function setGlobalConfigValue(
   )
 }
 
+/**
+ * Look up a global config value by name
+ *
+ * @param path The path to execute the `git` command in. If null
+ *             we'll use the global configuration (i.e. --global)
+ *             and execute the Gitt call from the same location that
+ *             GitHub Desktop is installed in.
+ * @param type Canonicalize configuration values according to the
+ *             expected type (i.e. 0 -> false, "on" -> true etc).
+ *             See `--type` documentation in `git config`
+ */
 async function getConfigValueInPath(
   name: string,
   path: string | null,
+  type?: 'bool' | 'int' | 'bool-or-int' | 'path' | 'expiry-date' | 'color',
   env?: {
     HOME: string
   }
@@ -48,6 +77,10 @@ async function getConfigValueInPath(
   const flags = ['config', '-z']
   if (!path) {
     flags.push('--global')
+  }
+
+  if (type !== undefined) {
+    flags.push('--type', type)
   }
 
   flags.push(name)
@@ -94,23 +127,4 @@ export async function getGlobalConfigPath(env?: {
   }
 
   return normalize(path[1])
-}
-
-export interface IMergeTool {
-  /** The name of the configured merge tool. */
-  readonly name: string
-
-  /** The command to run for the merge tool. */
-  readonly command: string | null
-}
-
-/** Get the configured merge tool. */
-export async function getMergeTool(): Promise<IMergeTool | null> {
-  const name = await getGlobalConfigValue('merge.tool')
-  if (name) {
-    const command = await getGlobalConfigValue(`mergetool.${name}.cmd`)
-    return { name, command }
-  } else {
-    return null
-  }
 }

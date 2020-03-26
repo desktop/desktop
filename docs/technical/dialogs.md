@@ -21,7 +21,7 @@ are constrained to within the dialog itself.
 
 ## Footer
 
-A typical dialog footer will normally be made up of two buttons, an affirmitive/Ok
+A typical dialog footer will normally be made up of two buttons, an affirmative/Ok
 button and a dismissal/Cancel button. The ordering of these two buttons is
 platform-specific, see our [dedicated documentation about button order](button-order.md)
 for the specifics. For this reason we have a dedicated component called
@@ -45,7 +45,7 @@ necessary.
 
 The `destructive` prop controls whether a dialog is considered destructive. One
 definition of a destructive dialog is if the user chooses to answer the dialog in
-the affirmitive (`Ok`) whether the subsequent action be dangerous and/or hard to
+the affirmative (`Ok`) whether the subsequent action be dangerous and/or hard to
 recover from. Setting the `destructive` prop will make the dismissal (`Cancel`)
 button the default button (i.e. it will be the submit button). Note that setting
 the `destructive` prop does not impact which button triggers the `onSubmit` vs

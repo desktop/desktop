@@ -49,14 +49,6 @@ interface IDialogProps {
   readonly dismissable?: boolean
 
   /**
-   * Option to prevent dismissal by clicking outside of the dialog.
-   * Requires `dismissal` to be true (or omitted) to have an effect.
-   *
-   * Defaults to false if omitted
-   */
-  readonly disableClickDismissalAlways?: boolean
-
-  /**
    * Event triggered when the dialog is dismissed by the user in the
    * ways described in the dismissable prop.
    */
@@ -151,9 +143,56 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   private disableClickDismissalTimeoutId: number | null = null
   private disableClickDismissal = false
 
+  /**
+   * Resize observer used for tracking width changes and
+   * refreshing the internal codemirror instance when
+   * they occur
+   */
+  private readonly resizeObserver: ResizeObserver
+  private resizeDebounceId: number | null = null
+
   public constructor(props: IDialogProps) {
     super(props)
     this.state = { isAppearing: true }
+
+    // Observe size changes and let codemirror know
+    // when it needs to refresh.
+    this.resizeObserver = new ResizeObserver(this.scheduleResizeEvent)
+  }
+
+  private scheduleResizeEvent = () => {
+    if (this.resizeDebounceId !== null) {
+      cancelAnimationFrame(this.resizeDebounceId)
+      this.resizeDebounceId = null
+    }
+    this.resizeDebounceId = requestAnimationFrame(this.onResized)
+  }
+
+  /**
+   * Attempt to ensure that the entire dialog is always visible. Chromium
+   * takes care of positioning the dialog when we initially show it but
+   * subsequent resizes of either the dialog (such as when switching tabs
+   * in the preferences dialog) or the Window doesn't affect positioning.
+   */
+  private onResized = () => {
+    if (!this.dialogElement) {
+      return
+    }
+
+    const { offsetTop, offsetHeight } = this.dialogElement
+
+    // Not much we can do if the dialog is bigger than the window
+    if (offsetHeight > window.innerHeight - titleBarHeight) {
+      return
+    }
+
+    const padding = 10
+    const overflow = offsetTop + offsetHeight + padding - window.innerHeight
+
+    if (overflow > 0) {
+      const top = Math.max(titleBarHeight, offsetTop - overflow)
+      this.dialogElement.style.top = `${top}px`
+    }
   }
 
   private clearDismissGraceTimeout() {
@@ -223,6 +262,9 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     this.focusFirstSuitableChild()
 
     window.addEventListener('focus', this.onWindowFocus)
+
+    this.resizeObserver.observe(this.dialogElement)
+    window.addEventListener('resize', this.scheduleResizeEvent)
   }
 
   /**
@@ -383,6 +425,9 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
     window.removeEventListener('focus', this.onWindowFocus)
     document.removeEventListener('mouseup', this.onDocumentMouseUp)
+
+    this.resizeObserver.disconnect()
+    window.removeEventListener('resize', this.scheduleResizeEvent)
   }
 
   public componentDidUpdate() {
@@ -423,10 +468,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       return
     }
 
-    if (
-      !this.props.disableClickDismissalAlways &&
-      !this.mouseEventIsInsideDialog(e)
-    ) {
+    if (!this.mouseEventIsInsideDialog(e)) {
       // The user has pressed down on their pointer device outside of the
       // dialog (i.e. on the backdrop). Now we subscribe to the global
       // mouse up event where we can make sure that they release the pointer
@@ -471,11 +513,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
    * backdrop as well (as opposed to over the dialog itself).
    */
   private onDocumentMouseUp = (e: MouseEvent) => {
-    if (
-      !e.defaultPrevented &&
-      !this.props.disableClickDismissalAlways &&
-      !this.mouseEventIsInsideDialog(e)
-    ) {
+    if (!e.defaultPrevented && !this.mouseEventIsInsideDialog(e)) {
       e.preventDefault()
       this.onDismiss()
     }

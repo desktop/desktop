@@ -12,11 +12,13 @@ import {
 import { Repository } from '../../models/repository'
 import { fatalError } from '../fatal-error'
 import { IAPIRepository, IAPIBranch, IAPIRepositoryPermissions } from '../api'
-import { BaseStore } from './base-store'
+import { TypedBaseStore } from './base-store'
 import { enableBranchProtectionChecks } from '../feature-flag'
 
 /** The store for local repositories. */
-export class RepositoriesStore extends BaseStore {
+export class RepositoriesStore extends TypedBaseStore<
+  ReadonlyArray<Repository>
+> {
   private db: RepositoriesDatabase
 
   // Key-repo ID, Value-date
@@ -88,6 +90,8 @@ export class RepositoriesStore extends BaseStore {
       dbRepo.htmlURL,
       dbRepo.defaultBranch,
       dbRepo.cloneURL,
+      dbRepo.issuesEnabled,
+      dbRepo.isArchived,
       dbRepo.permissions,
       parent
     )
@@ -183,7 +187,7 @@ export class RepositoriesStore extends BaseStore {
       }
     )
 
-    this.emitUpdate()
+    this.emitUpdatedRepositories()
   }
 
   /**
@@ -224,7 +228,7 @@ export class RepositoriesStore extends BaseStore {
       }
     )
 
-    this.emitUpdate()
+    this.emitUpdatedRepositories()
 
     return repository
   }
@@ -233,7 +237,7 @@ export class RepositoriesStore extends BaseStore {
   public async removeRepository(repoID: number): Promise<void> {
     await this.db.repositories.delete(repoID)
 
-    this.emitUpdate()
+    this.emitUpdatedRepositories()
   }
 
   /** Update the repository's `missing` flag. */
@@ -250,7 +254,7 @@ export class RepositoriesStore extends BaseStore {
 
     await this.db.repositories.update(repoID, { missing })
 
-    this.emitUpdate()
+    this.emitUpdatedRepositories()
 
     return new Repository(
       repository.path,
@@ -278,7 +282,7 @@ export class RepositoriesStore extends BaseStore {
       path,
     })
 
-    this.emitUpdate()
+    this.emitUpdatedRepositories()
 
     return new Repository(
       path,
@@ -313,7 +317,7 @@ export class RepositoriesStore extends BaseStore {
 
     this.lastStashCheckCache.set(repoID, date)
 
-    this.emitUpdate()
+    // this update doesn't affect the list (or its items) we emit from this store, so no need to `emitUpdatedRepositories`
   }
 
   /**
@@ -412,6 +416,8 @@ export class RepositoriesStore extends BaseStore {
       cloneURL: gitHubRepository.clone_url,
       parentID: parent ? parent.dbID : null,
       lastPruneDate: null,
+      issuesEnabled: gitHubRepository.has_issues,
+      isArchived: gitHubRepository.archived,
       permissions,
     }
     if (existingRepo) {
@@ -427,6 +433,8 @@ export class RepositoriesStore extends BaseStore {
       updatedGitHubRepo.htmlURL,
       updatedGitHubRepo.defaultBranch,
       updatedGitHubRepo.cloneURL,
+      updatedGitHubRepo.issuesEnabled,
+      updatedGitHubRepo.isArchived,
       updatedGitHubRepo.permissions,
       parent
     )
@@ -465,7 +473,7 @@ export class RepositoriesStore extends BaseStore {
       }
     )
 
-    this.emitUpdate()
+    this.emitUpdatedRepositories()
 
     return new Repository(
       repository.path,
@@ -536,7 +544,7 @@ export class RepositoriesStore extends BaseStore {
       }
     })
 
-    this.emitUpdate()
+    // this update doesn't affect the list (or its items) we emit from this store, so no need to `emitUpdatedRepositories`
   }
 
   /**
@@ -574,7 +582,7 @@ export class RepositoriesStore extends BaseStore {
       lastPruneDate: date,
     })
 
-    this.emitUpdate()
+    // this update doesn't affect the list (or its items) we emit from this store, so no need to `emitUpdatedRepositories`
   }
 
   public async getLastPruneDate(
@@ -658,6 +666,14 @@ export class RepositoriesStore extends BaseStore {
     }
 
     return branchProtectionsFound
+  }
+
+  /**
+   * Helper method to emit updates consistently
+   * (This is the only way we emit updates from this store.)
+   */
+  private async emitUpdatedRepositories() {
+    this.emitUpdate(await this.getAll())
   }
 }
 

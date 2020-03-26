@@ -1,5 +1,3 @@
-// tslint:disable:button-group-order
-
 import * as React from 'react'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Dispatcher } from '../dispatcher'
