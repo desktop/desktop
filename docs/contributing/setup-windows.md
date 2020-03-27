@@ -127,21 +127,6 @@ configuration of NPM:
 $ npm config set msvs_version 2017
 ```
 
-### Visual Studio 2015
-
-If you have an existing installation of VS2015, run the setup program again and
-and check that you have the **Common Tools for Visual C++ 2015** feature
-enabled.
-
-<img width="475" src="https://user-images.githubusercontent.com/359239/48850346-d92bf900-ed7e-11e8-9728-e5b70654f90f.png">
-
-Once you've confirmed that is present and any updates are applied, open a shell
-and run this command to update the configuration of NPM:
-
-```shellsession
-$ npm config set msvs_version 2015
-```
-
 ### Visual C++ Build Tools
 
 If you do not have an existing Visual Studio installation, there is a
