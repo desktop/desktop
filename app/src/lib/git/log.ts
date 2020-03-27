@@ -151,7 +151,8 @@ export async function getCommits(
       author,
       committer,
       parentSHAs,
-      trailers
+      trailers,
+      tags
     )
   })
 
