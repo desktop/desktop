@@ -20,6 +20,7 @@ const stubTip = {
   authoredByCommitter: true,
   parentSHAs: [],
   trailers: [],
+  tags: null,
   isWebFlowCommitter: false,
 }
 
