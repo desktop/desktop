@@ -1,8 +1,12 @@
 import { remote } from 'electron'
 import { Disposable, IDisposable } from 'event-kit'
-import * as Path from 'path'
 
-import { IAPIOrganization, IAPIRefStatus, IAPIRepository } from '../../lib/api'
+import {
+  IAPIOrganization,
+  IAPIRefStatus,
+  IAPIRepository,
+  IAPIPullRequest,
+} from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
   CompareAction,
@@ -1458,99 +1462,93 @@ export class Dispatcher {
     }
   }
 
-  private async getForkAndUpstreamRepos(url: string) {
+  private getRepositoryFromPullRequest(pullRequest: IAPIPullRequest) {
     const state = this.appStore.getState()
     const repositories = state.repositories
+    const headUrl = pullRequest.head.repo && pullRequest.head.repo.clone_url
+    const baseUrl = pullRequest.base.repo && pullRequest.base.repo.clone_url
 
-    const forks: Array<Repository> = []
-    const upstreams: Array<Repository> = []
+    if (headUrl === null || baseUrl === null) {
+      return null
+    }
+
+    let potentialMatch: RepositoryWithGitHubRepository | null = null
 
     for (const repo of repositories) {
-      // ensure that repo is not an instance of CloningRepository
       if (
         repo instanceof Repository &&
         isRepositoryWithGitHubRepository(repo)
       ) {
-        const defaultUrl = repo.gitHubRepository.htmlURL
-        const upstreamUrl =
+        const originRepoUrl = repo.gitHubRepository.htmlURL
+        const upstreamRepoUrl =
           repo.gitHubRepository.parent && repo.gitHubRepository.parent.htmlURL
-        if (defaultUrl && urlsMatch(defaultUrl, url)) {
-          upstreams.push(repo)
-        } else if (upstreamUrl && urlsMatch(upstreamUrl, url)) {
-          forks.push(repo)
+
+        if (originRepoUrl) {
+          if (urlsMatch(originRepoUrl, headUrl)) {
+            return repo
+          }
+
+          if (urlsMatch(originRepoUrl, baseUrl)) {
+            potentialMatch = repo
+          }
+        }
+
+        if (upstreamRepoUrl) {
+          if (urlsMatch(upstreamRepoUrl, headUrl)) {
+            return repo
+          }
+          if (urlsMatch(upstreamRepoUrl, baseUrl)) {
+            potentialMatch = repo
+          }
         }
       }
     }
 
-    return { forks, upstreams }
+    return potentialMatch
   }
 
   private async openRepositoryFromUrl(action: IOpenRepositoryFromURLAction) {
-    const { url, pr } = action
+    const { url, pr, branch } = action
+
     const pullRequest = pr
       ? await this.appStore.fetchPullRequest(url, pr)
       : null
-    const sourceUrl =
-      pullRequest && pullRequest.head.repo && pullRequest.head.repo.html_url
 
-    const { forks, upstreams } = await this.getForkAndUpstreamRepos(url)
-
-    // If source is in Desktop as a fork, open fork and checkout PR branch
-    const forkMatch = forks.find(fork => {
-      return Boolean(
-        fork.gitHubRepository &&
-          fork.gitHubRepository.htmlURL &&
-          sourceUrl &&
-          urlsMatch(fork.gitHubRepository.htmlURL, sourceUrl)
-      )
-    })
-
-    if (forkMatch) {
-      await this.selectRepository(forkMatch)
-      const branch = pullRequest && pullRequest.head.ref
-      if (branch) {
-        await this.checkoutLocalBranch(forkMatch, branch)
-      }
+    if (pullRequest !== null) {
+      await this.openPullRequestFromUrl(url, pullRequest)
       return
     }
 
-    // If source is in Desktop as an upstream, open upstream and checkout PR branch
-    const upstreamMatch = upstreams.find(upstream => {
-      return Boolean(
-        upstream.gitHubRepository &&
-          upstream.gitHubRepository.htmlURL &&
-          sourceUrl &&
-          urlsMatch(upstream.gitHubRepository.htmlURL, sourceUrl)
-      )
-    })
-
-    if (upstreamMatch) {
-      await this.selectRepository(upstreamMatch)
-      await this.handleCloneInDesktopOptions(upstreamMatch, action)
-      return
-    }
-
-    // If you only have your fork in Desktop, open your fork.
-    // Checkout branch based on PR source -- `handleCloneInDesktopOptions`
-    // handles cases when source is upstream or someone else's fork
-    if (forks.length > 0 && upstreams.length === 0) {
-      const fork = forks[0]
-      await this.selectRepository(fork)
-      await this.handleCloneInDesktopOptions(fork, action) // double check that refspec fetch works correctly
-      return
-    }
-
-    // Otherwise back to default case
     const repository = await this.openOrCloneRepository(url)
-    if (repository) {
-      await this.handleCloneInDesktopOptions(repository, action)
-    } else {
-      log.warn(
-        `Open Repository from URL failed, did not find or clone repository: ${url} - payload: ${JSON.stringify(
-          action
-        )}`
-      )
+
+    if (branch !== null && repository !== null) {
+      this.checkoutLocalBranch(repository, branch)
     }
+  }
+
+  private async openPullRequestFromUrl(
+    url: string,
+    pullRequest: IAPIPullRequest
+  ) {
+    // Find the repository where the PR is created in Desktop.
+    let repository: Repository | null = await this.getRepositoryFromPullRequest(
+      pullRequest
+    )
+
+    if (repository !== null) {
+      await this.selectRepository(repository)
+    } else {
+      repository = await this.openOrCloneRepository(url)
+    }
+
+    if (repository === null) {
+      log.warn(
+        `Open Repository from URL failed, did not find or clone repository: ${url}`
+      )
+      return
+    }
+
+    this.appStore._checkoutPullRequest(repository, pullRequest)
   }
 
   public async dispatchURLAction(action: URLActionType): Promise<void> {
@@ -1688,49 +1686,6 @@ export class Dispatcher {
     // https://youtu.be/IjmtVKOAHPM
     if (shouldCheckoutBranch && localBranch !== undefined) {
       await this.checkoutBranch(repository, localBranch)
-    }
-  }
-
-  private async handleCloneInDesktopOptions(
-    repository: Repository,
-    action: IOpenRepositoryFromURLAction
-  ): Promise<void> {
-    const { filepath, pr, branch } = action
-
-    if (pr != null && branch != null) {
-      // we need to refetch for a forked PR and check that out
-      await this.fetchRefspec(repository, `pull/${pr}/head:${branch}`)
-    }
-
-    // ensure a fresh clone repository has it's in-memory state
-    // up-to-date before performing the "Clone in Desktop" steps
-    await this.appStore._refreshRepository(repository)
-
-    const state = this.repositoryStateManager.get(repository)
-    const branches = state.branchesState.allBranches
-
-    if (pr == null && branch != null) {
-      // I don't want to invoke Git functionality from the dispatcher, which
-      // would help by using getDefaultRemote here to get the definitive ref,
-      // so this falls back to finding any remote branch matching the name
-      // received from the "Clone in Desktop" action
-      const localBranch =
-        branches.find(b => b.upstreamWithoutRemote === branch) || null
-
-      if (localBranch == null) {
-        await this.fetch(repository, FetchType.BackgroundTask)
-      }
-    }
-
-    if (branch != null) {
-      await this.checkoutLocalBranch(repository, branch)
-    }
-
-    if (filepath != null) {
-      const fullPath = Path.join(repository.path, filepath)
-      // because Windows uses different path separators here
-      const normalized = Path.normalize(fullPath)
-      shell.showItemInFolder(normalized)
     }
   }
 
