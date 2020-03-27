@@ -33,6 +33,7 @@ import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conf
 
 interface ICompareSidebarProps {
   readonly repository: Repository
+  readonly isLocalRepository: boolean
   readonly compareState: ICompareState
   readonly gitHubUsers: Map<string, IGitHubUser>
   readonly emoji: Map<string, string>
@@ -254,6 +255,7 @@ export class CompareSidebar extends React.Component<
     return (
       <CommitList
         gitHubRepository={this.props.repository.gitHubRepository}
+        isLocalRepository={this.props.isLocalRepository}
         commitLookup={this.props.commitLookup}
         commitSHAs={commitSHAs}
         selectedSHA={this.props.selectedCommitSha}

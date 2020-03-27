@@ -52,6 +52,9 @@ interface ICommitListProps {
 
   /* The scrollTop of the compareList. It is stored to allow for scroll position persistence */
   readonly compareListScrollTop?: number
+
+  /* Whether the repository is local (it has no remotes) */
+  readonly isLocalRepository: boolean
 }
 
 /** A component which displays the list of commits. */
@@ -76,6 +79,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         key={commit.sha}
         gitHubRepository={this.props.gitHubRepository}
         isLocal={isLocal}
+        isLocalRepository={this.props.isLocalRepository}
         commit={commit}
         gitHubUsers={this.props.gitHubUsers}
         emoji={this.props.emoji}
