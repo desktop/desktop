@@ -163,7 +163,7 @@ export class RepositoryView extends React.Component<
 
     const scrollTop =
       this.previousSection === RepositorySectionTab.History
-        ? this.state.compareListScrollTop
+        ? this.state.changesListScrollTop
         : undefined
     this.previousSection = RepositorySectionTab.Changes
 

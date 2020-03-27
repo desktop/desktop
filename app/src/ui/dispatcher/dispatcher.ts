@@ -69,6 +69,7 @@ import {
   Repository,
   RepositoryWithGitHubRepository,
   isRepositoryWithGitHubRepository,
+  getGitHubHtmlUrl,
 } from '../../models/repository'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
@@ -475,13 +476,15 @@ export class Dispatcher {
     repository: Repository,
     name: string,
     startPoint: string | null,
-    uncommittedChangesStrategy?: UncommittedChangesStrategy
+    uncommittedChangesStrategy?: UncommittedChangesStrategy,
+    noTrackOption: boolean = false
   ): Promise<Repository> {
     return this.appStore._createBranch(
       repository,
       name,
       startPoint,
-      uncommittedChangesStrategy
+      uncommittedChangesStrategy,
+      noTrackOption
     )
   }
 
@@ -2348,5 +2351,18 @@ export class Dispatcher {
    */
   public createTutorialRepository(account: Account) {
     return this.appStore._createTutorialRepository(account)
+  }
+
+  /** Open the issue creation page for a GitHub repository in a browser */
+  public async openIssueCreationPage(repository: Repository): Promise<boolean> {
+    // Default to creating issue on parent repo
+    // See https://github.com/desktop/desktop/issues/9232 for rationale
+    const url = getGitHubHtmlUrl(repository)
+    if (url !== null) {
+      this.statsStore.recordIssueCreationWebpageOpened()
+      return this.appStore._openInBrowser(`${url}/issues/new/choose`)
+    } else {
+      return false
+    }
   }
 }

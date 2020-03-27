@@ -20,9 +20,8 @@ interface IAppearanceProps {
 const themes: ReadonlyArray<ISegmentedItem> = [
   { title: 'Light', description: 'The default theme of GitHub Desktop' },
   {
-    title: 'Dark (beta)',
-    description:
-      'A beta version of our dark theme. Still under development. Please report any issues you may find to our issue tracker.',
+    title: 'Dark',
+    description: 'GitHub Desktop is for you too, creatures of the night',
   },
 ]
 

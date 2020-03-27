@@ -33,6 +33,8 @@ const defaultBranch = {
   nameWithoutRemote: 'my-default-branch',
 }
 
+const upstreamDefaultBranch = null
+
 const someOtherBranch = {
   name: 'some-other-branch',
   upstream: null,
@@ -51,7 +53,10 @@ describe('create-branch/getStartPoint', () => {
     }
 
     const action = (startPoint: StartPoint) => {
-      return getStartPoint({ tip, defaultBranch }, startPoint)
+      return getStartPoint(
+        { tip, defaultBranch, upstreamDefaultBranch },
+        startPoint
+      )
     }
 
     it('returns current HEAD when HEAD requested', () => {
@@ -74,7 +79,10 @@ describe('create-branch/getStartPoint', () => {
     }
 
     const action = (startPoint: StartPoint) => {
-      return getStartPoint({ tip, defaultBranch }, startPoint)
+      return getStartPoint(
+        { tip, defaultBranch, upstreamDefaultBranch },
+        startPoint
+      )
     }
 
     it('returns current HEAD when HEAD requested', () => {
@@ -97,7 +105,10 @@ describe('create-branch/getStartPoint', () => {
     }
 
     const action = (startPoint: StartPoint) => {
-      return getStartPoint({ tip, defaultBranch }, startPoint)
+      return getStartPoint(
+        { tip, defaultBranch, upstreamDefaultBranch },
+        startPoint
+      )
     }
 
     it('returns current HEAD when HEAD requested', () => {
