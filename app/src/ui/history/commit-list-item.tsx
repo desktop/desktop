@@ -96,7 +96,10 @@ export class CommitListItem extends React.Component<
 
     return (
       <div className="unpushed-indicator-container">
-        <div className="unpushed-indicator">
+        <div
+          className="unpushed-indicator"
+          title="This commit hasn't been pushed to the remote repository yet"
+        >
           <Octicon symbol={OcticonSymbol.arrowUp} />
         </div>
       </div>
