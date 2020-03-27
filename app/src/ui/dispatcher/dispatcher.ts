@@ -1462,7 +1462,15 @@ export class Dispatcher {
     }
   }
 
-  private getRepositoryFromPullRequest(pullRequest: IAPIPullRequest) {
+  /**
+   * Find an existing repository that can be used for checking out
+   * the passed pull request.
+   *
+   * @param pullRequest the pull request object received from the API.
+   */
+  private getRepositoryFromPullRequest(
+    pullRequest: IAPIPullRequest
+  ): Repository | null {
     const state = this.appStore.getState()
     const repositories = state.repositories
     const headUrl = pullRequest.head.repo && pullRequest.head.repo.clone_url
@@ -1472,39 +1480,44 @@ export class Dispatcher {
       return null
     }
 
-    let potentialMatch: RepositoryWithGitHubRepository | null = null
+    for (const repository of repositories) {
+      if (this.doesRepositoryMatchUrl(repository, headUrl)) {
+        return repository
+      }
+    }
 
-    for (const repo of repositories) {
-      if (
-        repo instanceof Repository &&
-        isRepositoryWithGitHubRepository(repo)
-      ) {
-        const originRepoUrl = repo.gitHubRepository.htmlURL
-        const upstreamRepoUrl =
-          repo.gitHubRepository.parent && repo.gitHubRepository.parent.htmlURL
+    for (const repository of repositories) {
+      if (this.doesRepositoryMatchUrl(repository, baseUrl)) {
+        return repository
+      }
+    }
 
-        if (originRepoUrl) {
-          if (urlsMatch(originRepoUrl, headUrl)) {
-            return repo
-          }
+    return null
+  }
 
-          if (urlsMatch(originRepoUrl, baseUrl)) {
-            potentialMatch = repo
-          }
+  private doesRepositoryMatchUrl(
+    repo: Repository | CloningRepository,
+    url: string
+  ): repo is Repository {
+    if (repo instanceof Repository && isRepositoryWithGitHubRepository(repo)) {
+      const originRepoUrl = repo.gitHubRepository.htmlURL
+      const upstreamRepoUrl =
+        repo.gitHubRepository.parent && repo.gitHubRepository.parent.htmlURL
+
+      if (originRepoUrl) {
+        if (urlsMatch(originRepoUrl, url)) {
+          return true
         }
+      }
 
-        if (upstreamRepoUrl) {
-          if (urlsMatch(upstreamRepoUrl, headUrl)) {
-            return repo
-          }
-          if (urlsMatch(upstreamRepoUrl, baseUrl)) {
-            potentialMatch = repo
-          }
+      if (upstreamRepoUrl) {
+        if (urlsMatch(upstreamRepoUrl, url)) {
+          return true
         }
       }
     }
 
-    return potentialMatch
+    return false
   }
 
   private async openRepositoryFromUrl(action: IOpenRepositoryFromURLAction) {
