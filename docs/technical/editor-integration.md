@@ -261,19 +261,19 @@ These editors are currently supported:
  - [Visual Studio Codium](https://vscodium.com/)
  - [Sublime Text](https://www.sublimetext.com/)
  - [BBEdit](http://www.barebones.com/products/bbedit/)
- - [PhpStorm](https://www.jetbrains.com/phpstorm/)
- - [RubyMine](https://www.jetbrains.com/rubymine/)
+ - [JetBrains PhpStorm](https://www.jetbrains.com/phpstorm/)
+ - [JetBrains RubyMine](https://www.jetbrains.com/rubymine/)
  - [TextMate](https://macromates.com)
  - [Brackets](http://brackets.io/)
      - To use Brackets the Command Line shortcut must be installed.
        - This can be done by opening Brackets, choosing File > Install Command Line Shortcut
- - [WebStorm](https://www.jetbrains.com/webstorm/)
+ - [JetBrains WebStorm](https://www.jetbrains.com/webstorm/)
  - [Typora](https://typora.io/)
  - [CodeRunner](https://coderunnerapp.com/)
  - [SlickEdit](https://www.slickedit.com)
- - [IntelliJ IDEA](https://www.jetbrains.com/idea/)
+ - [JetBrains IntelliJ IDEA](https://www.jetbrains.com/idea/)
  - [Xcode](https://developer.apple.com/xcode/)
- - [GoLand](https://www.jetbrains.com/go/)
+ - [JetBrains GoLand](https://www.jetbrains.com/go/)
  - [Android Studio](https://developer.android.com/studio)
 
 These are defined in an enum at the top of the file:
