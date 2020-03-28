@@ -31,6 +31,7 @@ These editors are currently supported:
  - [Typora](https://typora.io/)
  - [SlickEdit](https://www.slickedit.com)
  - [JetBrains WebStorm](https://www.jetbrains.com/webstorm/)
+ - [JetBrains Rider](https://www.jetbrains.com/rider/)
 
 These are defined in an enum at the top of the file:
 
@@ -45,6 +46,7 @@ export enum ExternalEditor {
   CFBuilder = 'ColdFusion Builder',
   Typora = 'Typora',
   SlickEdit = 'SlickEdit',
+  Rider = 'JetBrains Rider',
 }
 ```
 
