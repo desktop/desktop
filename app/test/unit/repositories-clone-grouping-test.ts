@@ -43,8 +43,14 @@ describe('clone repository grouping', () => {
         private: true,
         fork: true,
         default_branch: '',
-        parent: null,
         pushed_at: '1995-12-17T03:24:00',
+        has_issues: true,
+        archived: false,
+        permissions: {
+          pull: true,
+          push: true,
+          admin: false,
+        },
       },
       {
         clone_url: '',
@@ -55,8 +61,14 @@ describe('clone repository grouping', () => {
         private: false,
         fork: false,
         default_branch: '',
-        parent: null,
         pushed_at: '1995-12-17T03:24:00',
+        has_issues: true,
+        archived: false,
+        permissions: {
+          pull: true,
+          push: true,
+          admin: false,
+        },
       },
       {
         clone_url: '',
@@ -67,8 +79,14 @@ describe('clone repository grouping', () => {
         private: true,
         fork: false,
         default_branch: '',
-        parent: null,
         pushed_at: '1995-12-17T03:24:00',
+        has_issues: true,
+        archived: false,
+        permissions: {
+          pull: true,
+          push: true,
+          admin: false,
+        },
       },
     ]
 

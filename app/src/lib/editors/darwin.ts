@@ -19,6 +19,10 @@ export enum ExternalEditor {
   Typora = 'Typora',
   CodeRunner = 'CodeRunner',
   SlickEdit = 'SlickEdit',
+  IntelliJ = 'IntelliJ',
+  Xcode = 'Xcode',
+  GoLand = 'GoLand',
+  AndroidStudio = 'Android Studio',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -69,6 +73,18 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.SlickEdit) {
     return ExternalEditor.SlickEdit
   }
+  if (label === ExternalEditor.IntelliJ) {
+    return ExternalEditor.IntelliJ
+  }
+  if (label === ExternalEditor.Xcode) {
+    return ExternalEditor.Xcode
+  }
+  if (label === ExternalEditor.GoLand) {
+    return ExternalEditor.GoLand
+  }
+  if (label === ExternalEditor.AndroidStudio) {
+    return ExternalEditor.AndroidStudio
+  }
   return null
 }
 
@@ -97,6 +113,8 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['com.jetbrains.PhpStorm']
     case ExternalEditor.RubyMine:
       return ['com.jetbrains.RubyMine']
+    case ExternalEditor.IntelliJ:
+      return ['com.jetbrains.intellij']
     case ExternalEditor.TextMate:
       return ['com.macromates.TextMate']
     case ExternalEditor.Brackets:
@@ -114,6 +132,12 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
         'com.slickedit.SlickEditPro2016',
         'com.slickedit.SlickEditPro2015',
       ]
+    case ExternalEditor.Xcode:
+      return ['com.apple.dt.Xcode']
+    case ExternalEditor.GoLand:
+      return ['com.jetbrains.goland']
+    case ExternalEditor.AndroidStudio:
+      return ['com.google.android.studio']
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -161,12 +185,20 @@ function getExecutableShim(
       return Path.join(installPath, 'Contents', 'MacOS', 'Brackets')
     case ExternalEditor.WebStorm:
       return Path.join(installPath, 'Contents', 'MacOS', 'WebStorm')
+    case ExternalEditor.IntelliJ:
+      return Path.join(installPath, 'Contents', 'MacOS', 'idea')
     case ExternalEditor.Typora:
       return Path.join(installPath, 'Contents', 'MacOS', 'Typora')
     case ExternalEditor.CodeRunner:
       return Path.join(installPath, 'Contents', 'MacOS', 'CodeRunner')
     case ExternalEditor.SlickEdit:
       return Path.join(installPath, 'Contents', 'MacOS', 'vs')
+    case ExternalEditor.Xcode:
+      return '/usr/bin/xed'
+    case ExternalEditor.GoLand:
+      return Path.join(installPath, 'Contents', 'MacOS', 'goland')
+    case ExternalEditor.AndroidStudio:
+      return Path.join(installPath, 'Contents', 'MacOS', 'studio')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -217,6 +249,10 @@ export async function getAvailableEditors(): Promise<
     typoraPath,
     codeRunnerPath,
     slickeditPath,
+    intellijPath,
+    xcodePath,
+    golandPath,
+    androidStudioPath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.MacVim),
@@ -233,6 +269,10 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.Typora),
     findApplication(ExternalEditor.CodeRunner),
     findApplication(ExternalEditor.SlickEdit),
+    findApplication(ExternalEditor.IntelliJ),
+    findApplication(ExternalEditor.Xcode),
+    findApplication(ExternalEditor.GoLand),
+    findApplication(ExternalEditor.AndroidStudio),
   ])
 
   if (atomPath) {
@@ -296,6 +336,25 @@ export async function getAvailableEditors(): Promise<
 
   if (slickeditPath) {
     results.push({ editor: ExternalEditor.SlickEdit, path: slickeditPath })
+  }
+
+  if (intellijPath) {
+    results.push({ editor: ExternalEditor.IntelliJ, path: intellijPath })
+  }
+
+  if (xcodePath) {
+    results.push({ editor: ExternalEditor.Xcode, path: xcodePath })
+  }
+
+  if (golandPath) {
+    results.push({ editor: ExternalEditor.GoLand, path: golandPath })
+  }
+
+  if (androidStudioPath) {
+    results.push({
+      editor: ExternalEditor.AndroidStudio,
+      path: androidStudioPath,
+    })
   }
 
   return results

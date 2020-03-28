@@ -66,6 +66,22 @@ export class AheadBehindUpdater {
     this.aheadBehindQueue.end()
   }
 
+  public async executeAsyncTask(
+    from: string,
+    to: string
+  ): Promise<IAheadBehind | null> {
+    return new Promise((resolve, reject) => {
+      if (this.comparisonCache.has(from, to)) {
+        resolve(this.comparisonCache.get(from, to))
+        return
+      }
+
+      this.executeTask(from, to, (error, result) =>
+        error !== null ? reject(error) : resolve(result)
+      )
+    })
+  }
+
   private executeTask = (
     from: string,
     to: string,

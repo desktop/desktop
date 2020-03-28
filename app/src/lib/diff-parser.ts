@@ -230,7 +230,7 @@ export class DiffParser {
   private parseHunkHeader(line: string): DiffHunkHeader {
     const m = diffHeaderRe.exec(line)
     if (!m) {
-      throw new Error(`Invalid hunk header format: '${line}'`)
+      throw new Error(`Invalid hunk header format`)
     }
 
     // If endLines are missing default to 1, see diffHeaderRe docs
@@ -312,7 +312,7 @@ export class DiffParser {
         // See https://github.com/git/git/blob/21f862b498925194f8f1ebe8203b7a7df756555b/apply.c#L1725-L1732
         if (line.length < 12) {
           throw new Error(
-            `Expected no newline at end of file marker but got ${line}`
+            `Expected "no newline at end of file" marker to be at least 12 bytes long`
           )
         }
 

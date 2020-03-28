@@ -77,6 +77,17 @@ export type LinkedWorkTree = WorkingTree & {
   readonly head: string
 }
 
+/** Identical to `Repository`, except it **must** have a `gitHubRepository` */
+export type RepositoryWithGitHubRepository = Repository & {
+  readonly gitHubRepository: GitHubRepository
+}
+
+export function isRepositoryWithGitHubRepository(
+  repository: Repository
+): repository is RepositoryWithGitHubRepository {
+  return repository.gitHubRepository instanceof GitHubRepository
+}
+
 /**
  * A snapshot for the local state for a given repository
  */
@@ -100,4 +111,25 @@ export function nameOf(repository: Repository) {
   const { gitHubRepository } = repository
 
   return gitHubRepository !== null ? gitHubRepository.fullName : repository.name
+}
+
+/**
+ * Get the GitHub html URL for a repository, if it has one.
+ * Will return the parent GitHub repository's URL if it has one.
+ * Otherwise, returns null.
+ */
+export function getGitHubHtmlUrl(repository: Repository): string | null {
+  if (repository.gitHubRepository === null) {
+    return null
+  }
+  if (
+    repository.gitHubRepository.parent !== null &&
+    repository.gitHubRepository.parent.htmlURL !== null
+  ) {
+    return repository.gitHubRepository.parent.htmlURL
+  }
+  if (repository.gitHubRepository.htmlURL !== null) {
+    return repository.gitHubRepository.htmlURL
+  }
+  return null
 }

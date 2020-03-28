@@ -6,10 +6,12 @@ import { Dispatcher } from '../dispatcher'
 import { Branch } from '../../models/branch'
 import { Repository } from '../../models/repository'
 
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
-
-import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  OkCancelButtonGroup,
+} from '../dialog'
 import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
 import { revSymmetricDifference } from '../../lib/git'
 import { IMatches } from '../../lib/fuzzy-find'
@@ -282,12 +284,17 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
         </DialogContent>
         <DialogFooter>
           {this.renderMergeInfo()}
-          <ButtonGroup>
-            <Button type="submit" disabled={disabled}>
-              Merge <strong>{selectedBranch ? selectedBranch.name : ''}</strong>{' '}
-              into <strong>{currentBranch ? currentBranch.name : ''}</strong>
-            </Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            okButtonText={
+              <>
+                Merge{' '}
+                <strong>{selectedBranch ? selectedBranch.name : ''}</strong>{' '}
+                into <strong>{currentBranch ? currentBranch.name : ''}</strong>
+              </>
+            }
+            okButtonDisabled={disabled}
+            cancelButtonVisible={false}
+          />
         </DialogFooter>
       </Dialog>
     )

@@ -1,5 +1,170 @@
 {
   "releases": {
+    "2.4.0": [
+      "[New] Set Git proxy environment variables from system configuration automatically - #9154",
+      "[Added] Enable creating a GitHub issue from app menu and keyboard shortcut - #8989",
+      "[Added] Add editor support for IntelliJ Idea on macOS - #8398. Thanks @gssbzn!",
+      "[Added] Add editor support for PhpStorm and update WebStorm - #7195. Thanks @dacoto97!",
+      "[Added] Add shell support for Windows Terminal - #7854. Thanks @AndreiMaga!",
+      "[Added] Support keyboard scrolling in diffs - #9074",
+      "[Fixed] Ensure branch protection warning works when branch names contain special characters - #9086",
+      "[Fixed] Ensure intro page is responsive when resizing the window - #9175",
+      "[Fixed] Ensure local branch is also deleted when deleting a branch that no longer exists on the remote - #8831",
+      "[Fixed] Restore negative space in \"Files selected\" graphic for Dark Theme - #8716. Thanks @say25!",
+      "[Fixed] Support selecting text in error dialogs - #7606",
+      "[Fixed] Prevent bringing changes to another branch from failing silently - #9038",
+      "[Fixed] Save the user's position within \"History\" and \"Changes\" tabs when switching - #9061",
+      "[Improved] Update the remote url when a repository's name changes on GitHub - #8590",
+      "[Improved] Allow \"Open in Desktop\" button from pull requests on GitHub to open in a local fork in Desktop - #9012",
+      "[Improved] Support automatically switching between Dark and Light Theme on Windows - #9015. Thanks @say25!",
+      "[Improved] Format errors containing raw Git output with fixed-width font - #8964",
+      "[Improved] Modify \"View on GitHub\" menu item to open upstream for local fork repositories - #9316",
+      "[Improved] Create new branches in forks from the default branch of the upstream repo - #7762",
+      "[Improved] Graduate Dark Theme out of beta - #9294"
+    ],
+    "2.3.2-beta8": [
+      "[Fixed] Preserve the footer within a resizable list when shrinking or expanding - #9344",
+      "[Fixed] Save the user's position within \"History\" and \"Changes\" tabs when switching - #9061"
+    ],
+    "2.3.2-beta7": [
+      "[Improved] Modify \"View on GitHub\" menu item to open upstream for local fork repositories - #9316"
+    ],
+    "2.3.2-beta6": [
+      "[Fixed] Ensure intro page is responsive when resizing the window - #9175",
+      "[Improved] Dark Theme is out of beta - #9294",
+      "[Improved] New branches in forks are created from the default branch of the upstream repo - #7762"
+    ],
+    "2.3.2-beta5": [
+      "[Fixed] Update the remote url when a repository's name changes on GitHub - #8590",
+      "[Improved] Direct new issues created from a local fork to its upstream on GitHub - #9232"
+    ],
+    "2.3.2-beta4": [
+      "[New] Set Git proxy environment variables from system configuration automatically - #9154",
+      "[Added] Enable creating a GitHub issue from app menu - #8989",
+      "[Added] Add shell support for Windows Terminal - #7854. Thanks @AndreiMaga!",
+      "[Added] Add editor support for IntelliJ Idea on macOS - #8398. Thanks @gssbzn!",
+      "[Added] Add editor support for PhpStorm and update WebStorm - #7195. Thanks @dacoto97!",
+      "[Added] Support disabling certificate revocation checks on Windows - #3326",
+      "[Improved] Expand system dark mode detection to Windows - #9015. Thanks @say25!",
+      "[Improved] Allow \"Open in Desktop\" button from pull requests on GitHub to open in a local fork in Desktop - #9012"
+    ],
+    "2.3.2-beta3": [
+      "[Fixed] Checkout correct PR branch from “open this in GitHub Desktop” link on GitHub.com pull request page - #9108",
+      "[Fixed] Ensure branch protection warning works when branch names contain special characters - #9086",
+      "[Fixed] Fix graphic indicating files selected in Dark Mode - #8716. Thanks @say25!",
+      "[Fixed] Support keyboard scrolling in diffs - #9074"
+    ],
+    "2.3.2-beta2": [
+      "[Fixed] Make text in error dialogs selectable - #7606",
+      "[Fixed] Prevent bringing changes to another branch from failing silently - #9038",
+      "[Fixed] Ensure local branch is also deleted when deleting a branch that no longer exists on the remote - #8831",
+      "[Improved] Format errors containing raw Git output with fixed-width font - #8964",
+      "[Improved] Upgrade to Electron 7 - #8967"
+    ],
+    "2.3.0-test2": ["Testing upgrade from Electron v6 to v7"],
+    "2.3.0-test1": ["Testing upgrade from Electron v5 to v6"],
+    "2.3.2-beta1": [],
+    "2.3.1": [
+      "[Fixed] Don't display erroneous Git error when creating a fork - #9004",
+      "[Fixed] Remove stray characters from Git progress indicators on Windows - #9003"
+    ],
+    "2.3.0": [
+      "[New] Prompt users to create a fork if they fail to push to a GitHub repository due to permissions - #8548",
+      "[Added] Show link to upstream pull requests in pull request list of a fork - #8965",
+      "[Added] Show a warning if the user doesn't have write access to push to the repository and offer to make a fork - #8938",
+      "[Added] Provide configuration in Preferences to always bring or leave changes when switching branches - #7746",
+      "[Added] Prompt users to re-authorize if required by any of their GitHub organizations - #8910",
+      "[Added] Support GoLand as external editor on Mac - #8802. Thanks @thinklinux!",
+      "[Fixed] Show proper dialog when push fails due to missing workflow scope - #8958",
+      "[Fixed] Take users to the correct page on GitHub.com when opening a pull request in browser from a fork - #8928",
+      "[Fixed] Don't suggest creating a pull request if the current branch has an open pull request targeting an upstream repo - #8549",
+      "[Fixed] Remove false branch protection warning when switching branches - #8743",
+      "[Fixed] Show branch protection warning after checking out protected branches outside Desktop - #8790",
+      "[Improved] Only show branch protection warning when changed files are present - #8795",
+      "[Improved] Show an error when editing a Git configuration file fails due to existing lock file - #8956",
+      "[Improved] Update design and layout for GitHub Desktop preferences - #8774"
+    ],
+    "2.3.0-beta2": [
+      "[Fixed] Remove stray characters from Git progress indicators - #8962",
+      "[Fixed] Show proper dialog when push fails due to missing workflow scope - #8958",
+      "[Added] Show link to upstream pull requests in pull request list - #8965"
+    ],
+    "2.3.0-beta1": [
+      "[New] Prompt users to make a fork if they fail to push to a GitHub repository due to permissions  - #8548",
+      "[Added] Show a commit warning if the user can't push to the repository - #8938",
+      "[Fixed] Route the user to the correct URL when opening a pull request from a fork in the browser - #8928",
+      "[Improved] Only show branch protection warning when changed files are present - #8795",
+      "[Improved] Show an error when editing a git configuration file fails due to existing lock file - #8956"
+    ],
+    "2.2.5-beta1": [
+      "[Added] Users can configure Desktop to always bring or leave changes when switching branches - #7746",
+      "[Added] Prompt users to re-authorize if required by any of their GitHub organizations - #8910",
+      "[Fixed] Recognize if the current branch of a fork has a pull request to the upstream repo - #8549",
+      "[Fixed] Remove false branch protection warning when switching branches - #8743",
+      "[Added] Support GoLand as external editor on Mac - #8802. Thanks @thinklinux!",
+      "[Fixed] Update branch protection state for checkout outside of Desktop - #8790",
+      "[Improved] Re-designed preferences dialog - #8774"
+    ],
+    "2.2.5-test1": ["[Fixed] Sign Windows installers using SHA256 file digest"],
+    "2.2.4": [
+      "[New] Warn when committing to a protected branch - #7023",
+      "[New] Warn when committing to a repository you don't have write access to - #8665",
+      "[Added] Adding integration for Xcode as external editor - #8255. Thanks @msztech!",
+      "[Fixed] Update embedded Git to address security vulnerabilities - #8780",
+      "[Fixed] Changed wording to match git autocrlf behavior - #5741. Thanks @jmhammock!",
+      "[Fixed] Don't dismiss dialogs when dragging from the dialog to the backdrop - #8544",
+      "[Fixed] Fix arrow key navigation of Changes and History lists (#6845) - #6845. Thanks @JMcKiern!",
+      "[Fixed] Handle multibyte characters in names - #8534",
+      "[Fixed] Keep PR badge on top of progress bar - #8622",
+      "[Fixed] Prevent application crash when background process spawn fails - #8614",
+      "[Fixed] Show autocomplete suggestions on top of CodeMirror author input - #4084",
+      "[Fixed] Standardize dialogs' button orders - #7186 #2463 #5883",
+      "[Improved] Make no newline indicator in file diffs readable by screenreaders. - #6494. Thanks @jmhammock!"
+    ],
+    "2.2.4-beta4": [
+      "[Fixed] Update embedded Git to address security vulnerabilities - #8780"
+    ],
+    "2.2.4-beta3": [
+      "[Fixed] Make newly cloned repositories load pull requests correctly - #8745",
+      "[Improved] Make no newline indicator in file diffs readable by screenreaders. - #6494. Thanks @jmhammock!"
+    ],
+    "2.2.4-beta2": [
+      "[Added] Adding integration for Xcode as external editor - #8255. Thanks @msztech!",
+      "[Fixed] Changed wording to match git autocrlf behavior - #5741. Thanks @jmhammock!",
+      "[Fixed] Fix arrow key navigation of Changes and History lists (#6845) - #6845. Thanks @JMcKiern!",
+      "[Fixed] Standardize dialogs' button orders - #7186 #2463 #5883",
+      "[Fixed] Keep PR badge on top of progress bar - #8622",
+      "[Fixed] Show autocomplete suggestions on top of CodeMirror author input - #4084",
+      "[Improved] Warn user if they're committing to a repo they don't have write permission for - #8665",
+      "[Improved] Don't prompt to stash changes when switching away from protected branch - #8664"
+    ],
+    "2.2.4-beta1": [
+      "[New] Warn when committing to a protected branch - #7023",
+      "[Fixed] Prevent application crash when background process spawn fails - #8614",
+      "[Fixed] Handle multibyte characters in names - #8534",
+      "[Fixed] Don't dismiss dialogs when dragging from the dialog to the backdrop - #8544"
+    ],
+    "2.2.3": [
+      "[Fixed] Prevent text overflow in crash dialog - #8542",
+      "[Fixed] Address warnings on macOS Catalina preventing app from opening after install - #8555",
+      "[Improved] Update to most recent gitignore templates - #8527"
+    ],
+    "2.2.3-beta1": [
+      "[Fixed] Prevent text overflow in crash dialog - #8542",
+      "[Fixed] Address warnings on macOS Catalina preventing app from opening after install - #8555",
+      "[Improved] Update to most recent gitignore templates - #8527"
+    ],
+    "2.2.3-test5": ["Testing entitlements + notarization for mac app"],
+    "2.2.3-test4": ["Testing entitlements + notarization for mac app"],
+    "2.2.3-test3": ["Testing entitlements + notarization for mac app"],
+    "2.2.3-test2": ["Testing notarization for mac app"],
+    "2.2.3-test1": ["Testing notarization for mac app"],
+    "2.2.2": [
+      "[Added] Onboarding tutorial animations help guide users to the next action - #8487",
+      "[Added] Prompt users to re-authenticate if they are unable to push changes to a workflow file - #8357",
+      "[Improved] Starting the tutorial is more prominent when getting started with GitHub Desktop - #8441",
+      "[Improved] Use a different editor if previously selected editor cannot be found - #8386"
+    ],
     "2.2.2-beta3": [
       "[Added] Helpful animations during the onboarding tutorial - #8487"
     ],

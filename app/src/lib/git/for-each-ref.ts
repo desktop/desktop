@@ -83,14 +83,14 @@ export async function getBranches(
     const author = CommitIdentity.parseIdentity(authorIdentity)
 
     if (!author) {
-      throw new Error(`Couldn't parse author identity ${authorIdentity}`)
+      throw new Error(`Couldn't parse author identity for '${shortSha}'`)
     }
 
     const committerIdentity = pieces[6]
     const committer = CommitIdentity.parseIdentity(committerIdentity)
 
     if (!committer) {
-      throw new Error(`Couldn't parse committer identity ${committerIdentity}`)
+      throw new Error(`Couldn't parse committer identity for '${shortSha}'`)
     }
 
     const parentSHAs = pieces[7].split(' ')

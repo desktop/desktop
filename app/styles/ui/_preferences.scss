@@ -1,4 +1,43 @@
 #preferences {
+  .preferences-container {
+    display: flex;
+    .tab-container {
+      border-left: var(--base-border);
+      flex: 1;
+    }
+
+    .advanced-section {
+      &:not(:last-child) {
+        margin-bottom: var(--spacing-double);
+      }
+
+      .checkbox-component:not(:last-child) {
+        margin-bottom: var(--spacing-half);
+      }
+
+      .radio-component {
+        &:not(:last-child) {
+          margin-bottom: var(--spacing-half);
+        }
+
+        input {
+          margin: 0;
+
+          // Only add a right margin if there's a label attached to it
+          &:not(:last-child) {
+            margin-right: var(--spacing-half);
+          }
+        }
+      }
+    }
+  }
+
+  .tab-bar {
+    .icon {
+      width: 16px;
+    }
+  }
+
   .accounts-tab {
     .account-info {
       .avatar {

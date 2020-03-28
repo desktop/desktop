@@ -15,6 +15,7 @@ export enum Shell {
   GitBash = 'Git Bash',
   Cygwin = 'Cygwin',
   WSL = 'WSL',
+  WindowTerminal = 'Windows Terminal',
 }
 
 export const Default = Shell.Cmd
@@ -46,6 +47,10 @@ export function parse(label: string): Shell {
 
   if (label === Shell.WSL) {
     return Shell.WSL
+  }
+
+  if (label === Shell.WindowTerminal) {
+    return Shell.WindowTerminal
   }
 
   return Default
@@ -111,6 +116,13 @@ export async function getAvailableShells(): Promise<
     }
   }
 
+  const windowsTerminal = await findWindowsTerminal()
+  if (windowsTerminal != null) {
+    shells.push({
+      shell: Shell.WindowTerminal,
+      path: windowsTerminal,
+    })
+  }
   return shells
 }
 
@@ -323,6 +335,26 @@ async function findWSL(): Promise<string | null> {
   return null
 }
 
+async function findWindowsTerminal(): Promise<string | null> {
+  // Windows Terminal has a link at
+  // C:\Users\<User>\AppData\Local\Microsoft\WindowsApps\wt.exe
+  const localAppData = process.env.LocalAppData
+  if (localAppData != null) {
+    const windowsTerminalpath = Path.join(
+      localAppData,
+      '\\Microsoft\\WindowsApps\\wt.exe'
+    )
+    if (await pathExists(windowsTerminalpath)) {
+      return windowsTerminalpath
+    } else {
+      log.debug(
+        `[Windows Terminal] wt.exe doest not exist at '${windowsTerminalpath}'`
+      )
+    }
+  }
+  return null
+}
+
 export function launch(
   foundShell: IFoundShell<Shell>,
   path: string
@@ -371,6 +403,10 @@ export function launch(
       return spawn('START', ['wsl'], { shell: true, cwd: path })
     case Shell.Cmd:
       return spawn('START', ['cmd'], { shell: true, cwd: path })
+    case Shell.WindowTerminal:
+      const windowsTerminalPath = `"${foundShell.path}"`
+      log.info(`launching ${shell} at path: ${windowsTerminalPath}`)
+      return spawn(windowsTerminalPath, ['-d .'], { shell: true, cwd: path })
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }

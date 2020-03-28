@@ -12,6 +12,7 @@
 
   .branches-list {
     width: 350px;
+    min-height: 0;
   }
 }
 
@@ -174,5 +175,8 @@
 
   .call-to-action {
     font-size: var(--font-size-sm);
+    .link-button-component {
+      display: unset;
+    }
   }
 }

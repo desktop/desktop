@@ -31,11 +31,6 @@ function enableBetaFeatures(): boolean {
   return enableDevelopmentFeatures() || __RELEASE_CHANNEL__ === 'beta'
 }
 
-/** Should merge tool integration be enabled? */
-export function enableMergeTool(): boolean {
-  return enableDevelopmentFeatures()
-}
-
 /** Should git pass `--recurse-submodules` when performing operations? */
 export function enableRecurseSubmodulesFlag(): boolean {
   return enableBetaFeatures()
@@ -103,11 +98,11 @@ export function enableWSLDetection(): boolean {
  * flag is linked to to `enableBranchProtectionChecks()`.
  */
 export function enableBranchProtectionWarningFlow(): boolean {
-  return enableBranchProtectionChecks() && enableDevelopmentFeatures()
+  return true
 }
 
 export function enableHideWhitespaceInDiffOption(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /**
@@ -115,5 +110,53 @@ export function enableHideWhitespaceInDiffOption(): boolean {
  * configuration of the tutorial repo as well as the tutorial itself.
  */
 export function enableTutorial(): boolean {
+  return true
+}
+
+/**
+ * Should we show the create fork dialog flow?
+ */
+export function enableCreateForkFlow(): boolean {
+  return true
+}
+
+/**
+ * Whether or not we should attempt to detect the specific curl
+ * error from the WinSSL (schannel) https backend when it fails
+ * to check the revocation details of a certificate due to lacking
+ * CRL distribution points and/or an offiline revocation server.
+ */
+export function enableSchannelCheckRevokeOptOut(): boolean {
+  return true
+}
+
+/**
+ * Whether or not to enable support for automatically resolving the
+ * system-configured proxy url and passing that to Git.
+ */
+export function enableAutomaticGitProxyConfiguration(): boolean {
+  return true
+}
+
+/**
+ * Should we show the "Create Issue on GitHub" item under
+ * "Repository" in the app menu?
+ */
+export function enableCreateGitHubIssueFromMenu(): boolean {
+  return true
+}
+
+/**
+ * Should we update remote url if it has changed?
+ */
+export function enableUpdateRemoteUrl(): boolean {
+  return true
+}
+
+/**
+ * Should we show the fork-specific, "branch from the upstream
+ * default branch" version of the create branch dialog?
+ */
+export function enableForkyCreateBranchUI(): boolean {
   return true
 }

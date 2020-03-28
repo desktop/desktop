@@ -11,6 +11,7 @@ import { Repository } from '../../src/models/repository'
 import { GitProcess } from 'dugite'
 import { makeCommit, switchTo } from './repository-scaffolding'
 import { writeFile } from 'fs-extra'
+import { git } from '../../src/lib/git'
 
 type KlawEntry = {
   path: string
@@ -248,4 +249,17 @@ export async function setupTwoCommitRepo(): Promise<Repository> {
   await makeCommit(repo, firstCommit)
   await makeCommit(repo, secondCommit)
   return repo
+}
+
+/**
+ * Sets up a local fork of the provided repository
+ * and configures the origin remote to point to the
+ * local "upstream" repository.
+ */
+export async function setupLocalForkOfRepository(
+  upstream: Repository
+): Promise<Repository> {
+  const path = mkdirSync('desktop-fork-repo-')
+  await git(['clone', '--local', `${upstream.path}`, path], path, 'clone')
+  return new Repository(path, -1, null, false)
 }
