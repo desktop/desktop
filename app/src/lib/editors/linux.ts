@@ -49,6 +49,11 @@ const editors: ILinuxExternalEditor[] = [
       '/opt/slickedit-pro2015/bin/vs',
     ],
   },
+  {
+    // Code editor for elementary OS
+    name: 'Code',
+    paths: ['/usr/bin/io.elementary.code'],
+  },
 ]
 
 async function getAvailablePath(paths: string[]): Promise<string | null> {
