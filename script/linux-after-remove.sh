@@ -8,6 +8,10 @@ case "$1" in
       echo "#!/bin/sh" > "${PROFILE_D_FILE}";
       . "${PROFILE_D_FILE}";
       rm "${PROFILE_D_FILE}";
+      # remove symbolic links in /usr/bin directory
+      unlink /usr/bin/github-desktop || :
+      unlink /usr/bin/github-desktop-dev || :
+      unlink /usr/bin/github || :
     ;;
 
     *)

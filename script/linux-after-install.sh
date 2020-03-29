@@ -4,13 +4,21 @@ set -e
 
 PROFILE_D_FILE="/etc/profile.d/github-desktop.sh"
 INSTALL_DIR="/opt/${productFilename}"
-SCRIPT=$"#!/bin/sh
-export PATH=\"$INSTALL_DIR:\$PATH\""
+CLI_DIR="$INSTALL_DIR/resources/app/static"
 
 case "$1" in
     configure)
-      echo "$SCRIPT" > "${PROFILE_D_FILE}";
-      . "${PROFILE_D_FILE}";
+      # add executable permissions for CLI interface
+      chmod +x "$CLI_DIR"/github || :
+      # check if this is a dev install or standard
+      if [ -f "$INSTALL_DIR/github-desktop-dev" ]; then
+	      BINARY_NAME="github-desktop-dev"
+      else
+	      BINARY_NAME="github-desktop"
+      fi
+      # create symbolic links to /usr/bin directory
+      ln -f -s "$INSTALL_DIR"/$BINARY_NAME /usr/bin || :
+      ln -f -s "$CLI_DIR"/github /usr/bin || :
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
