@@ -39,6 +39,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { IStashEntry } from '../../models/stash-entry'
 import * as classNames from 'classnames'
 import { hasWritePermission } from '../../models/github-repository'
+import { PopupType } from '../../models/popup'
 
 const RowHeight = 29
 const StashIcon = new OcticonSymbol(
@@ -103,6 +104,7 @@ interface IChangesListProps {
   readonly onCreateCommit: (context: ICommitContext) => Promise<boolean>
   readonly onDiscardChanges: (file: WorkingDirectoryFileChange) => void
   readonly askForConfirmationOnDiscardChanges: boolean
+  readonly askForConfirmationOnDiscardUnselectedChanges: boolean
   readonly focusCommitMessage: boolean
   readonly onDiscardChangesFromFiles: (
     files: ReadonlyArray<WorkingDirectoryFileChange>,
@@ -307,6 +309,41 @@ export class ChangesList extends React.Component<
     }
   }
 
+  private onDiscardUnselectedChanges = (files: ReadonlyArray<string>) => {
+    const workingDirectory = this.props.workingDirectory
+
+    if (files.length === 1) {
+      const modifiedFile = workingDirectory.files.find(f => f.path === files[0])
+
+      if (modifiedFile != null) {
+        if (this.props.askForConfirmationOnDiscardUnselectedChanges) {
+          this.props.dispatcher.showPopup({
+            type: PopupType.ConfirmDiscardUnselectedChanges,
+            repository: this.props.repository,
+            file: modifiedFile,
+          })
+        } else {
+          this.props.dispatcher.discardUnselectedChanges(
+            this.props.repository,
+            modifiedFile
+          )
+        }
+      }
+    }
+  }
+
+  private ableToDiscardUnselectedLines = (files: ReadonlyArray<string>) => {
+    if (files.length !== 1) {
+      return false
+    }
+    const modifiedFile = this.props.workingDirectory.files.find(
+      f => f.path === files[0]
+    )
+    return modifiedFile
+      ? modifiedFile.selection.getSelectionType() === DiffSelectionType.Partial
+      : false
+  }
+
   private getDiscardChangesMenuItemLabel = (files: ReadonlyArray<string>) => {
     const label =
       files.length === 1
@@ -318,6 +355,18 @@ export class ChangesList extends React.Component<
         : `Discard ${files.length} selected changes`
 
     return this.props.askForConfirmationOnDiscardChanges ? `${label}…` : label
+  }
+
+  private getDiscardUnselectedLinesMenuItemLabel = (
+    files: ReadonlyArray<string>
+  ) => {
+    const label = __DARWIN__
+      ? `Discard Unselected Lines`
+      : `Discard unselected lines`
+
+    return this.props.askForConfirmationOnDiscardUnselectedChanges
+      ? `${label}…`
+      : label
   }
 
   private onContextMenu = (event: React.MouseEvent<any>) => {
@@ -345,6 +394,16 @@ export class ChangesList extends React.Component<
     return {
       label: this.getDiscardChangesMenuItemLabel(paths),
       action: () => this.onDiscardChanges(paths),
+    }
+  }
+
+  private getDiscardUnselectedLinesMenuItem = (
+    paths: ReadonlyArray<string>
+  ): IMenuItem => {
+    return {
+      label: this.getDiscardUnselectedLinesMenuItemLabel(paths),
+      action: () => this.onDiscardUnselectedChanges(paths),
+      enabled: this.ableToDiscardUnselectedLines(paths),
     }
   }
 
@@ -429,6 +488,7 @@ export class ChangesList extends React.Component<
 
     const items: IMenuItem[] = [
       this.getDiscardChangesMenuItem(paths),
+      this.getDiscardUnselectedLinesMenuItem(paths),
       { type: 'separator' },
     ]
     if (paths.length === 1) {

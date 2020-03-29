@@ -53,7 +53,7 @@ import {
   registerContextualMenuActionDispatcher,
   sendReady,
 } from './main-process-proxy'
-import { DiscardChanges } from './discard-changes'
+import { DiscardChanges, DiscardUnselectedChanges } from './discard-changes'
 import { Welcome } from './welcome'
 import { AppMenuBar } from './app-menu'
 import { UpdateAvailable, renderBanner } from './banners'
@@ -1341,6 +1341,27 @@ export class App extends React.Component<IAppProps, IAppState> {
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
           />
         )
+      case PopupType.ConfirmDiscardUnselectedChanges:
+        const showSettingUnselected =
+          popup.showDiscardChangesSetting === undefined
+            ? true
+            : popup.showDiscardChangesSetting
+        return (
+          <DiscardUnselectedChanges
+            key="discard-unselected-changes"
+            repository={popup.repository}
+            dispatcher={this.props.dispatcher}
+            file={popup.file}
+            confirmDiscardUnselectedChanges={
+              this.state.askForConfirmationOnDiscardUnselectedChanges
+            }
+            showDiscardChangesSetting={showSettingUnselected}
+            onDismissed={this.onPopupDismissed}
+            onConfirmDiscardUnselectedChangesChanged={
+              this.onConfirmDiscardUnselectedChangesChanged
+            }
+          />
+        )
       case PopupType.Preferences:
         return (
           <Preferences
@@ -1353,6 +1374,9 @@ export class App extends React.Component<IAppProps, IAppState> {
             }
             confirmDiscardChanges={
               this.state.askForConfirmationOnDiscardChanges
+            }
+            confirmDiscardUnselectedChanges={
+              this.state.askForConfirmationOnDiscardUnselectedChanges
             }
             confirmForcePush={this.state.askForConfirmationOnForcePush}
             uncommittedChangesStrategyKind={
@@ -2100,6 +2124,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.setConfirmDiscardChangesSetting(value)
   }
 
+  private onConfirmDiscardUnselectedChangesChanged = (value: boolean) => {
+    this.props.dispatcher.setConfirmDiscardUnselectedChangesSetting(value)
+  }
+
   private renderAppError() {
     return (
       <AppError
@@ -2528,6 +2556,9 @@ export class App extends React.Component<IAppProps, IAppState> {
           focusCommitMessage={state.focusCommitMessage}
           askForConfirmationOnDiscardChanges={
             state.askForConfirmationOnDiscardChanges
+          }
+          askForConfirmationOnDiscardUnselectdChanges={
+            state.askForConfirmationOnDiscardUnselectedChanges
           }
           accounts={state.accounts}
           externalEditorLabel={externalEditorLabel}

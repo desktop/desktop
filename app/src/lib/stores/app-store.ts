@@ -274,6 +274,7 @@ import { parseRemote } from '../../lib/remote-parsing'
 import { createTutorialRepository } from './helpers/create-tutorial-repository'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { getDefaultDir } from '../../ui/lib/default-dir'
+import { discardUnselectedChanges } from '../discard-unselected'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -295,9 +296,12 @@ const stashedFilesWidthConfigKey: string = 'stashed-files-width'
 
 const confirmRepoRemovalDefault: boolean = true
 const confirmDiscardChangesDefault: boolean = true
+const confirmDiscardUnselectedChangesDefault: boolean = true
 const askForConfirmationOnForcePushDefault = true
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
+const confirmDiscardUnselectedChangesKey: string =
+  'confirmDiscardUnselectedChanges'
 const confirmForcePushKey: string = 'confirmForcePush'
 
 const uncommittedChangesStrategyKindKey: string =
@@ -379,6 +383,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private askForConfirmationOnRepositoryRemoval: boolean = confirmRepoRemovalDefault
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
+  private confirmDiscardUnselectedChanges: boolean = confirmDiscardUnselectedChangesDefault
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
   private hideWhitespaceInDiff: boolean = hideWhitespaceInDiffDefault
@@ -719,6 +724,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnRepositoryRemoval: this
         .askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
+      askForConfirmationOnDiscardUnselectedChanges: this
+        .confirmDiscardUnselectedChanges,
       askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
       uncommittedChangesStrategyKind: this.uncommittedChangesStrategyKind,
       selectedExternalEditor: this.selectedExternalEditor,
@@ -2207,6 +2214,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoryStateCache.updateChangesState(repository, state =>
       selectWorkingDirectoryFiles(state, files)
     )
+
+    this.updateMenuLabelsForSelectedRepository()
+    this.emitUpdate()
+    this.updateChangesWorkingDirectoryDiff(repository)
+  }
+
+  /**
+   * Discard unselected changes in selected file
+   */
+  public async _discardUnselectedChanges(
+    repository: Repository,
+    file: WorkingDirectoryFileChange
+  ): Promise<void> {
+    await discardUnselectedChanges(repository, file)
+    await this._changeFileIncluded(repository, file, true)
 
     this.updateMenuLabelsForSelectedRepository()
     this.emitUpdate()
@@ -4510,6 +4532,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.confirmDiscardChanges = value
 
     setBoolean(confirmDiscardChangesKey, value)
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _setConfirmDiscardUnselectedChangesSetting(
+    value: boolean
+  ): Promise<void> {
+    this.confirmDiscardUnselectedChanges = value
+
+    setBoolean(confirmDiscardUnselectedChangesKey, value)
     this.emitUpdate()
 
     return Promise.resolve()

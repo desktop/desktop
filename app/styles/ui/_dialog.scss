@@ -265,6 +265,9 @@ dialog {
         padding-left: var(--spacing-half);
       }
     }
+    .alert {
+      color: var(--dialog-error-color);
+    }
   }
 
   .dialog-footer {

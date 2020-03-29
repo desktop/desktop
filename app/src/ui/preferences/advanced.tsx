@@ -10,11 +10,13 @@ interface IAdvancedPreferencesProps {
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
+  readonly confirmDiscardUnselectedChanges: boolean
   readonly confirmForcePush: boolean
   readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
   readonly schannelCheckRevoke: boolean | null
   readonly onOptOutofReportingchanged: (checked: boolean) => void
   readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
+  readonly onConfirmDiscardUnselectedChangesChanged: (checked: boolean) => void
   readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
   readonly onConfirmForcePushChanged: (checked: boolean) => void
   readonly onUncommittedChangesStrategyKindChanged: (
@@ -27,6 +29,7 @@ interface IAdvancedPreferencesState {
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
+  readonly confirmDiscardUnselectedChanges: boolean
   readonly confirmForcePush: boolean
   readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
 }
@@ -42,6 +45,8 @@ export class Advanced extends React.Component<
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
+      confirmDiscardUnselectedChanges: this.props
+        .confirmDiscardUnselectedChanges,
       confirmForcePush: this.props.confirmForcePush,
       uncommittedChangesStrategyKind: this.props.uncommittedChangesStrategyKind,
     }
@@ -63,6 +68,15 @@ export class Advanced extends React.Component<
 
     this.setState({ confirmDiscardChanges: value })
     this.props.onConfirmDiscardChangesChanged(value)
+  }
+
+  private onConfirmDiscardUnselectedChangesChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+
+    this.setState({ confirmDiscardUnselectedChanges: value })
+    this.props.onConfirmDiscardUnselectedChangesChanged(value)
   }
 
   private onConfirmForcePushChanged = (
@@ -180,6 +194,15 @@ export class Advanced extends React.Component<
                 : CheckboxValue.Off
             }
             onChange={this.onConfirmDiscardChangesChanged}
+          />
+          <Checkbox
+            label="Discarding unselected changes"
+            value={
+              this.state.confirmDiscardUnselectedChanges
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onConfirmDiscardUnselectedChangesChanged}
           />
           <Checkbox
             label="Force pushing"

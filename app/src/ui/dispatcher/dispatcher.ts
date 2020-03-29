@@ -647,6 +647,14 @@ export class Dispatcher {
     return this.appStore._discardChanges(repository, files)
   }
 
+  /** Discard unselected changes to the given file */
+  public discardUnselectedChanges(
+    repository: Repository,
+    file: WorkingDirectoryFileChange
+  ): Promise<void> {
+    return this.appStore._discardUnselectedChanges(repository, file)
+  }
+
   /** Undo the given commit. */
   public undoCommit(repository: Repository, commit: Commit): Promise<void> {
     return this.appStore._undoCommit(repository, commit)
@@ -1581,6 +1589,15 @@ export class Dispatcher {
    */
   public setConfirmDiscardChangesSetting(value: boolean): Promise<void> {
     return this.appStore._setConfirmDiscardChangesSetting(value)
+  }
+
+  /**
+   * Sets the user's preference so that confirmation to discard unselected changes is not asked
+   */
+  public setConfirmDiscardUnselectedChangesSetting(
+    value: boolean
+  ): Promise<void> {
+    return this.appStore._setConfirmDiscardUnselectedChangesSetting(value)
   }
 
   /**

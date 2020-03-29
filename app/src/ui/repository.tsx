@@ -47,6 +47,7 @@ interface IRepositoryViewProps {
   readonly imageDiffType: ImageDiffType
   readonly hideWhitespaceInDiff: boolean
   readonly askForConfirmationOnDiscardChanges: boolean
+  readonly askForConfirmationOnDiscardUnselectdChanges: boolean
   readonly focusCommitMessage: boolean
   readonly accounts: ReadonlyArray<Account>
 
@@ -185,6 +186,9 @@ export class RepositoryView extends React.Component<
         focusCommitMessage={this.props.focusCommitMessage}
         askForConfirmationOnDiscardChanges={
           this.props.askForConfirmationOnDiscardChanges
+        }
+        askForConfirmationOnDiscardUnselectedChanges={
+          this.props.askForConfirmationOnDiscardUnselectdChanges
         }
         accounts={this.props.accounts}
         externalEditorLabel={this.props.externalEditorLabel}

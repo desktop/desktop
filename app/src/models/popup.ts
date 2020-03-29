@@ -15,6 +15,7 @@ export enum PopupType {
   RenameBranch = 1,
   DeleteBranch,
   ConfirmDiscardChanges,
+  ConfirmDiscardUnselectedChanges,
   Preferences,
   MergeBranch,
   RepositorySettings,
@@ -73,6 +74,12 @@ export type Popup =
       files: ReadonlyArray<WorkingDirectoryFileChange>
       showDiscardChangesSetting?: boolean
       discardingAllChanges?: boolean
+    }
+  | {
+      type: PopupType.ConfirmDiscardUnselectedChanges
+      repository: Repository
+      file: WorkingDirectoryFileChange
+      showDiscardChangesSetting?: boolean
     }
   | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
   | {
