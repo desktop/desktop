@@ -12,7 +12,7 @@ interface IDiscardUnselectedLinesProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly file: WorkingDirectoryFileChange
-  readonly confirmDiscardUnselectedChanges: boolean
+  readonly confirmDiscardUnselected: boolean
   /**
    * Determines whether to show the option
    * to ask for confirmation when discarding
@@ -30,7 +30,7 @@ interface IDiscardUnselectedLinesState {
    */
   readonly isDiscardingChanges: boolean
 
-  readonly confirmDiscardUnselectedChanges: boolean
+  readonly confirmDiscardUnselected: boolean
 }
 
 /** A component to confirm and then discard changes. */
@@ -43,8 +43,7 @@ export class DiscardUnselectedChanges extends React.Component<
 
     this.state = {
       isDiscardingChanges: false,
-      confirmDiscardUnselectedChanges: this.props
-        .confirmDiscardUnselectedChanges,
+      confirmDiscardUnselected: this.props.confirmDiscardUnselected,
     }
   }
 
@@ -88,7 +87,7 @@ export class DiscardUnselectedChanges extends React.Component<
         <Checkbox
           label="Do not show this message again"
           value={
-            this.state.confirmDiscardUnselectedChanges
+            this.state.confirmDiscardUnselected
               ? CheckboxValue.Off
               : CheckboxValue.On
           }
@@ -121,7 +120,7 @@ export class DiscardUnselectedChanges extends React.Component<
     )
 
     this.props.onConfirmDiscardUnselectedChangesChanged(
-      this.state.confirmDiscardUnselectedChanges
+      this.state.confirmDiscardUnselected
     )
     this.props.onDismissed()
   }
@@ -131,6 +130,6 @@ export class DiscardUnselectedChanges extends React.Component<
   ) => {
     const value = !event.currentTarget.checked
 
-    this.setState({ confirmDiscardUnselectedChanges: value })
+    this.setState({ confirmDiscardUnselected: value })
   }
 }

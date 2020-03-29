@@ -10,7 +10,7 @@ interface IAdvancedPreferencesProps {
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
-  readonly confirmDiscardUnselectedChanges: boolean
+  readonly confirmDiscardUnselected: boolean
   readonly confirmForcePush: boolean
   readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
   readonly schannelCheckRevoke: boolean | null
@@ -29,7 +29,7 @@ interface IAdvancedPreferencesState {
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
-  readonly confirmDiscardUnselectedChanges: boolean
+  readonly confirmDiscardUnselected: boolean
   readonly confirmForcePush: boolean
   readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
 }
@@ -45,8 +45,7 @@ export class Advanced extends React.Component<
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
-      confirmDiscardUnselectedChanges: this.props
-        .confirmDiscardUnselectedChanges,
+      confirmDiscardUnselected: this.props.confirmDiscardUnselected,
       confirmForcePush: this.props.confirmForcePush,
       uncommittedChangesStrategyKind: this.props.uncommittedChangesStrategyKind,
     }
@@ -75,7 +74,7 @@ export class Advanced extends React.Component<
   ) => {
     const value = event.currentTarget.checked
 
-    this.setState({ confirmDiscardUnselectedChanges: value })
+    this.setState({ confirmDiscardUnselected: value })
     this.props.onConfirmDiscardUnselectedChangesChanged(value)
   }
 
@@ -198,7 +197,7 @@ export class Advanced extends React.Component<
           <Checkbox
             label="Discarding unselected changes"
             value={
-              this.state.confirmDiscardUnselectedChanges
+              this.state.confirmDiscardUnselected
                 ? CheckboxValue.On
                 : CheckboxValue.Off
             }

@@ -1352,7 +1352,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             dispatcher={this.props.dispatcher}
             file={popup.file}
-            confirmDiscardUnselectedChanges={
+            confirmDiscardUnselected={
               this.state.askForConfirmationOnDiscardUnselectedChanges
             }
             showDiscardChangesSetting={showSettingUnselected}
@@ -1375,7 +1375,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             confirmDiscardChanges={
               this.state.askForConfirmationOnDiscardChanges
             }
-            confirmDiscardUnselectedChanges={
+            confirmDiscardUnselected={
               this.state.askForConfirmationOnDiscardUnselectedChanges
             }
             confirmForcePush={this.state.askForConfirmationOnForcePush}

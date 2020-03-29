@@ -42,7 +42,7 @@ interface IPreferencesProps {
   readonly initialSelectedTab?: PreferencesTab
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
-  readonly confirmDiscardUnselectedChanges: boolean
+  readonly confirmDiscardUnselected: boolean
   readonly confirmForcePush: boolean
   readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
   readonly selectedExternalEditor: ExternalEditor | null
@@ -61,7 +61,7 @@ interface IPreferencesState {
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
-  readonly confirmDiscardUnselectedChanges: boolean
+  readonly confirmDiscardUnselected: boolean
   readonly confirmForcePush: boolean
   readonly automaticallySwitchTheme: boolean
   readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
@@ -100,7 +100,7 @@ export class Preferences extends React.Component<
       optOutOfUsageTracking: false,
       confirmRepositoryRemoval: false,
       confirmDiscardChanges: false,
-      confirmDiscardUnselectedChanges: false,
+      confirmDiscardUnselected: false,
       confirmForcePush: false,
       uncommittedChangesStrategyKind: uncommittedChangesStrategyKindDefault,
       automaticallySwitchTheme: false,
@@ -163,8 +163,7 @@ export class Preferences extends React.Component<
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
-      confirmDiscardUnselectedChanges: this.props
-        .confirmDiscardUnselectedChanges,
+      confirmDiscardUnselected: this.props.confirmDiscardUnselected,
       confirmForcePush: this.props.confirmForcePush,
       uncommittedChangesStrategyKind: this.props.uncommittedChangesStrategyKind,
       availableShells,
@@ -313,9 +312,7 @@ export class Preferences extends React.Component<
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             confirmRepositoryRemoval={this.state.confirmRepositoryRemoval}
             confirmDiscardChanges={this.state.confirmDiscardChanges}
-            confirmDiscardUnselectedChanges={
-              this.state.confirmDiscardUnselectedChanges
-            }
+            confirmDiscardUnselected={this.state.confirmDiscardUnselected}
             confirmForcePush={this.state.confirmForcePush}
             uncommittedChangesStrategyKind={
               this.state.uncommittedChangesStrategyKind
@@ -366,7 +363,7 @@ export class Preferences extends React.Component<
   }
 
   private onConfirmDiscardUnselectedChangesChanged = (value: boolean) => {
-    this.setState({ confirmDiscardUnselectedChanges: value })
+    this.setState({ confirmDiscardUnselected: value })
   }
 
   private onConfirmForcePushChanged = (value: boolean) => {
@@ -502,7 +499,7 @@ export class Preferences extends React.Component<
       this.state.confirmDiscardChanges
     )
     await this.props.dispatcher.setConfirmDiscardUnselectedChangesSetting(
-      this.state.confirmDiscardUnselectedChanges
+      this.state.confirmDiscardUnselected
     )
 
     await this.props.dispatcher.setUncommittedChangesStrategyKindSetting(
