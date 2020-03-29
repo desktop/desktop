@@ -69,7 +69,7 @@ export class DiscardUnselectedChanges extends React.Component<
       >
         <DialogContent>
           {this.renderFileList()}
-          <p className="alert">Discarded changes cannot be restored!!!</p>
+          <p className="alert">NOTE: discarded changes cannot be restored.</p>
           {this.renderConfirmDiscardChanges()}
         </DialogContent>
 
