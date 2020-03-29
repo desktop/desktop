@@ -48,7 +48,9 @@ export class DiscardUnselectedChanges extends React.Component<
   }
 
   private getOkButtonLabel() {
-    return __DARWIN__ ? 'Discard Unselected Lines' : 'Discard unselected lines'
+    return __DARWIN__
+      ? 'Discard Unselected Changes'
+      : 'Discard unselected changes'
   }
 
   public render() {
@@ -57,7 +59,7 @@ export class DiscardUnselectedChanges extends React.Component<
     return (
       <Dialog
         id="discard-changes"
-        title={toPlatformCase('Confirm Discard Unselected Lines')}
+        title={toPlatformCase('Confirm Discard Unselected Changes')}
         onDismissed={this.props.onDismissed}
         onSubmit={this.discard}
         dismissable={isDiscardingChanges ? false : true}

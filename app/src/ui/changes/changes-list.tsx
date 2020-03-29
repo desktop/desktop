@@ -361,8 +361,8 @@ export class ChangesList extends React.Component<
     files: ReadonlyArray<string>
   ) => {
     const label = __DARWIN__
-      ? `Discard Unselected Lines`
-      : `Discard unselected lines`
+      ? `Discard Unselected Changes`
+      : `Discard unselected changes`
 
     return this.props.askForConfirmationOnDiscardUnselectedChanges
       ? `${label}…`
