@@ -1,0 +1,23 @@
+#!/bin/bash
+set -e
+
+PROFILE_D_FILE="/etc/profile.d/github-desktop.sh"
+
+case "$1" in
+    purge|remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+      echo "#!/bin/sh" > "${PROFILE_D_FILE}";
+      . "${PROFILE_D_FILE}";
+      rm "${PROFILE_D_FILE}";
+      # remove symbolic links in /usr/bin directory
+      unlink /usr/bin/github-desktop || :
+      unlink /usr/bin/github-desktop-dev || :
+      unlink /usr/bin/github || :
+    ;;
+
+    *)
+      echo "postrm called with unknown argument \`$1'" >&2
+      exit 1
+    ;;
+esac
+
+exit 0
