@@ -12,6 +12,7 @@ export enum ExternalEditor {
   SublimeText = 'Sublime Text',
   BBEdit = 'BBEdit',
   PhpStorm = 'PhpStorm',
+  PyCharm = 'PyCharm',
   RubyMine = 'RubyMine',
   TextMate = 'TextMate',
   Brackets = 'Brackets',
@@ -51,6 +52,9 @@ export function parse(label: string): ExternalEditor | null {
   }
   if (label === ExternalEditor.PhpStorm) {
     return ExternalEditor.PhpStorm
+  }
+  if (label === ExternalEditor.PyCharm) {
+    return ExternalEditor.PyCharm
   }
   if (label === ExternalEditor.RubyMine) {
     return ExternalEditor.RubyMine

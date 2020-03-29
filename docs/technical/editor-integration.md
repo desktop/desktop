@@ -254,6 +254,7 @@ These editors are currently supported:
  - [Sublime Text](https://www.sublimetext.com/)
  - [BBEdit](http://www.barebones.com/products/bbedit/)
  - [PhpStorm](https://www.jetbrains.com/phpstorm/)
+ - [PyCharm](https://www.jetbrains.com/pycharm/)
  - [RubyMine](https://www.jetbrains.com/rubymine/)
  - [IntelliJ IDEA](https://www.jetbrains.com/idea/)
  - [TextMate](https://macromates.com)
