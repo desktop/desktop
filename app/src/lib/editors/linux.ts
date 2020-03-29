@@ -11,6 +11,7 @@ export enum ExternalEditor {
   SublimeText = 'Sublime Text',
   Typora = 'Typora',
   SlickEdit = 'SlickEdit',
+  ElementaryCode = 'Code',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -40,6 +41,10 @@ export function parse(label: string): ExternalEditor | null {
 
   if (label === ExternalEditor.SlickEdit) {
     return ExternalEditor.SlickEdit
+  }
+
+  if (label === ExternalEditor.ElementaryCode) {
+    return ExternalEditor.ElementaryCode
   }
 
   return null
@@ -85,6 +90,9 @@ async function getEditorPath(editor: ExternalEditor): Promise<string | null> {
         '/opt/slickedit-pro2016/bin/vs',
         '/opt/slickedit-pro2015/bin/vs',
       ])
+    case ExternalEditor.ElementaryCode:
+      return getPathIfAvailable('/usr/bin/io.elementary.code')
+
     default:
       return assertNever(editor, `Unknown editor: ${editor}`)
   }
@@ -103,6 +111,7 @@ export async function getAvailableEditors(): Promise<
     sublimePath,
     typoraPath,
     slickeditPath,
+    elementaryCodePath,
   ] = await Promise.all([
     getEditorPath(ExternalEditor.Atom),
     getEditorPath(ExternalEditor.VSCode),
@@ -111,6 +120,7 @@ export async function getAvailableEditors(): Promise<
     getEditorPath(ExternalEditor.SublimeText),
     getEditorPath(ExternalEditor.Typora),
     getEditorPath(ExternalEditor.SlickEdit),
+    getEditorPath(ExternalEditor.ElementaryCode),
   ])
 
   if (atomPath) {
@@ -139,6 +149,13 @@ export async function getAvailableEditors(): Promise<
 
   if (slickeditPath) {
     results.push({ editor: ExternalEditor.SlickEdit, path: slickeditPath })
+  }
+
+  if (elementaryCodePath) {
+    results.push({
+      editor: ExternalEditor.ElementaryCode,
+      path: elementaryCodePath,
+    })
   }
 
   return results
