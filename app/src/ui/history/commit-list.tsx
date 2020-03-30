@@ -137,6 +137,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
           invalidationProps={{
             commits: this.props.commitSHAs,
             gitHubUsers: this.props.gitHubUsers,
+            localCommitSHAs: this.props.localCommitSHAs,
           }}
           setScrollTop={this.props.compareListScrollTop}
         />
