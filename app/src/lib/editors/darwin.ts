@@ -22,6 +22,7 @@ export enum ExternalEditor {
   IntelliJ = 'IntelliJ',
   Xcode = 'Xcode',
   GoLand = 'GoLand',
+  AndroidStudio = 'Android Studio',
   Rider = 'Rider',
 }
 
@@ -82,6 +83,9 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.GoLand) {
     return ExternalEditor.GoLand
   }
+  if (label === ExternalEditor.AndroidStudio) {
+    return ExternalEditor.AndroidStudio
+  }
   if (label === ExternalEditor.Rider) {
     return ExternalEditor.Rider
   }
@@ -136,6 +140,8 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['com.apple.dt.Xcode']
     case ExternalEditor.GoLand:
       return ['com.jetbrains.goland']
+    case ExternalEditor.AndroidStudio:
+      return ['com.google.android.studio']
     case ExternalEditor.Rider:
       return ['com.jetbrains.rider']
     default:
@@ -197,6 +203,8 @@ function getExecutableShim(
       return '/usr/bin/xed'
     case ExternalEditor.GoLand:
       return Path.join(installPath, 'Contents', 'MacOS', 'goland')
+    case ExternalEditor.AndroidStudio:
+      return Path.join(installPath, 'Contents', 'MacOS', 'studio')
     case ExternalEditor.Rider:
       return Path.join(installPath, 'Contents', 'MacOS', 'rider')
     default:
@@ -252,6 +260,7 @@ export async function getAvailableEditors(): Promise<
     intellijPath,
     xcodePath,
     golandPath,
+    androidStudioPath,
     riderPath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
@@ -272,6 +281,7 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.IntelliJ),
     findApplication(ExternalEditor.Xcode),
     findApplication(ExternalEditor.GoLand),
+    findApplication(ExternalEditor.AndroidStudio),
     findApplication(ExternalEditor.Rider),
   ])
 
@@ -348,6 +358,13 @@ export async function getAvailableEditors(): Promise<
 
   if (golandPath) {
     results.push({ editor: ExternalEditor.GoLand, path: golandPath })
+  }
+
+  if (androidStudioPath) {
+    results.push({
+      editor: ExternalEditor.AndroidStudio,
+      path: androidStudioPath,
+    })
   }
 
   if (riderPath) {
