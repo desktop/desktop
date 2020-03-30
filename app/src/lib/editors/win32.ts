@@ -25,6 +25,7 @@ export enum ExternalEditor {
   SlickEdit = 'SlickEdit',
   Webstorm = 'JetBrains Webstorm',
   Phpstorm = 'JetBrains Phpstorm',
+  NotepadPlusPlus = 'Notepad++',
   Rider = 'JetBrains Rider',
 }
 
@@ -64,6 +65,9 @@ export function parse(label: string): ExternalEditor | null {
   }
   if (label === ExternalEditor.Phpstorm) {
     return ExternalEditor.Phpstorm
+  }
+  if (label === ExternalEditor.NotepadPlusPlus) {
+    return ExternalEditor.NotepadPlusPlus
   }
   if (label === ExternalEditor.Rider) {
     return ExternalEditor.Rider
@@ -356,6 +360,21 @@ function getRegistryKeys(
             'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\PhpStorm 2020.1',
         },
       ]
+    case ExternalEditor.NotepadPlusPlus:
+      return [
+        // 64-bit version of Notepad++
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Notepad++',
+        },
+        // 32-bit version of Notepad++
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Notepad++',
+        },
+      ]
     case ExternalEditor.Rider:
       return [
         // Rider 2019.3.4
@@ -365,7 +384,6 @@ function getRegistryKeys(
             'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\JetBrains Rider 2019.3.4',
         },
       ]
-
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -406,6 +424,8 @@ function getExecutableShim(
       return Path.join(installLocation, 'bin', 'webstorm.exe')
     case ExternalEditor.Phpstorm:
       return Path.join(installLocation, 'bin', 'phpstorm.exe')
+    case ExternalEditor.NotepadPlusPlus:
+      return Path.join(installLocation)
     case ExternalEditor.Rider:
       return Path.join(installLocation, 'bin', 'rider64.exe')
     default:
@@ -467,6 +487,10 @@ function isExpectedInstallation(
     case ExternalEditor.Phpstorm:
       return (
         displayName.startsWith('PhpStorm') && publisher === 'JetBrains s.r.o.'
+      )
+    case ExternalEditor.NotepadPlusPlus:
+      return (
+        displayName.startsWith('Notepad++') && publisher === 'Notepad++ Team'
       )
     case ExternalEditor.Rider:
       return (
@@ -636,6 +660,14 @@ function extractApplicationInformation(
     return { displayName, publisher, installLocation }
   }
 
+  if (editor === ExternalEditor.NotepadPlusPlus) {
+    const displayName = getKeyOrEmpty(keys, 'DisplayName')
+    const publisher = getKeyOrEmpty(keys, 'Publisher')
+    const installLocation = getKeyOrEmpty(keys, 'DisplayIcon')
+    
+    return { displayName, publisher, installLocation }
+  }
+
   if (editor === ExternalEditor.Rider) {
     let displayName = ''
     let publisher = ''
@@ -662,7 +694,7 @@ function extractApplicationInformation(
         installLocation = item.data
       }
     }
-
+  
     return { displayName, publisher, installLocation }
   }
 
@@ -729,6 +761,7 @@ export async function getAvailableEditors(): Promise<
     slickeditPath,
     webstormPath,
     phpstormPath,
+    notepadPlusPlusPath,
     riderPath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
@@ -743,6 +776,7 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.SlickEdit),
     findApplication(ExternalEditor.Webstorm),
     findApplication(ExternalEditor.Phpstorm),
+    findApplication(ExternalEditor.NotepadPlusPlus),
     findApplication(ExternalEditor.Rider),
   ])
 
@@ -839,6 +873,13 @@ export async function getAvailableEditors(): Promise<
     })
   }
 
+  if (notepadPlusPlusPath) {
+    results.push({
+      editor: ExternalEditor.NotepadPlusPlus,
+      path: notepadPlusPlusPath,
+    })
+  }
+  
   if (riderPath) {
     results.push({
       editor: ExternalEditor.Rider,
