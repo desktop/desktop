@@ -23,6 +23,13 @@ fi
 ELECTRON="$GITHUB_PATH/$BINARY_NAME"
 CLI="$GITHUB_PATH/resources/app/cli.js"
 
-ELECTRON_RUN_AS_NODE=1 "$ELECTRON" "$CLI" "$@"
+case $1 in
+	# if help in the first variable, return contents to shell
+	*help*|*--help*)
+		ELECTRON_RUN_AS_NODE=1 "$ELECTRON" "$CLI" "$@";;
+	# any other, redirect to /dev/null to detach from controlling terminal
+	*)
+		ELECTRON_RUN_AS_NODE=1 "$ELECTRON" "$CLI" "$@" < /dev/null > /dev/null &;;
+esac
 
 exit $?
