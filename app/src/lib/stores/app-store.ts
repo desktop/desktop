@@ -2178,8 +2178,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
     this.emitUpdate()
 
-    this._hideStashedChanges(repository)
-
     if (selectedSection === RepositorySectionTab.History) {
       return this.refreshHistorySection(repository)
     } else if (selectedSection === RepositorySectionTab.Changes) {
