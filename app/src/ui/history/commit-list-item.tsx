@@ -87,7 +87,10 @@ export class CommitListItem extends React.Component<
   }
 
   public shouldComponentUpdate(nextProps: ICommitProps): boolean {
-    return this.props.commit.sha !== nextProps.commit.sha
+    return (
+      this.props.commit.sha !== nextProps.commit.sha ||
+      this.props.showUnpushedIndicator !== nextProps.showUnpushedIndicator
+    )
   }
 
   private renderPushIndicator() {
