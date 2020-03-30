@@ -664,7 +664,7 @@ function extractApplicationInformation(
     const displayName = getKeyOrEmpty(keys, 'DisplayName')
     const publisher = getKeyOrEmpty(keys, 'Publisher')
     const installLocation = getKeyOrEmpty(keys, 'DisplayIcon')
-    
+
     return { displayName, publisher, installLocation }
   }
 
@@ -694,7 +694,7 @@ function extractApplicationInformation(
         installLocation = item.data
       }
     }
-  
+
     return { displayName, publisher, installLocation }
   }
 
@@ -879,7 +879,7 @@ export async function getAvailableEditors(): Promise<
       path: notepadPlusPlusPath,
     })
   }
-  
+
   if (riderPath) {
     results.push({
       editor: ExternalEditor.Rider,
