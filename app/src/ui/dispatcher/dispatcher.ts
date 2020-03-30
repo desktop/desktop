@@ -43,7 +43,6 @@ import {
 } from '../../lib/parse-app-url'
 import {
   matchExistingRepository,
-  urlMatchesCloneURL,
   urlsMatch,
 } from '../../lib/repository-matching'
 import { Shell } from '../../lib/shells'
@@ -1707,17 +1706,9 @@ export class Dispatcher {
   private async openOrCloneRepository(url: string): Promise<Repository | null> {
     const state = this.appStore.getState()
     const repositories = state.repositories
-    const existingRepository = repositories.find(r => {
-      if (r instanceof Repository) {
-        const gitHubRepository = r.gitHubRepository
-        if (!gitHubRepository) {
-          return false
-        }
-        return urlMatchesCloneURL(url, gitHubRepository)
-      } else {
-        return false
-      }
-    })
+    const existingRepository = repositories.find(r =>
+      this.doesRepositoryMatchUrl(r, url)
+    )
 
     if (existingRepository) {
       return await this.selectRepository(existingRepository)
