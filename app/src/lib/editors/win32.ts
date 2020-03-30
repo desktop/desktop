@@ -675,7 +675,7 @@ function extractApplicationInformation(
 
     for (const item of keys) {
       // NOTE:
-      // Webstorm adds the current release number to the end of the Display Name, below checks for "PhpStorm"
+      // JetBrains Rider adds the current release number to the end of the Display Name, below checks for "JetBrains Rider"
       if (
         item.name === 'DisplayName' &&
         item.type === RegistryValueType.REG_SZ &&
