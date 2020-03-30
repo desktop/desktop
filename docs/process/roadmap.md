@@ -2,11 +2,15 @@
 
 The following are the larger areas of upcoming work the GitHub Desktop team intends to explore. This is not inclusive of everything we're working on, and it's not written in stone. We'll continue to update it as our priorities evolve.
 
-#### Users behind corporate proxies cannot clone repositories in Desktop without manual setup
+#### Add and view Tags in Desktop
 
-- Help people get set up correctly if they're behind a proxy: [#2789](https://github.com/desktop/desktop/issues/2789)
+- Allow people to add tags to commits and view tags in history: [#4829](https://github.com/desktop/desktop/issues/4829)
 
 ## Shipped in previous releases
+
+#### Users behind corporate proxies cannot clone repositories in Desktop without manual setup (2.4)
+
+- Help people get set up correctly if they're behind a proxy: [#2789](https://github.com/desktop/desktop/issues/2789)
 
 #### Creating a fork using GitHub Desktop (2.3)
 
