@@ -14,7 +14,7 @@ import { Disposable } from 'event-kit'
 import { Loading } from '../lib/loading'
 import { RelativeTime } from '../relative-time'
 import { assertNever } from '../../lib/fatal-error'
-import { ReleaseNotesUri } from '../lib/releases'
+import { ReleaseNotesUri, LinuxReleasesUri } from '../lib/releases'
 import { encodePathAsUrl } from '../../lib/path'
 
 const logoPath = __DARWIN__
@@ -97,6 +97,17 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       return null
     }
 
+    if (__LINUX__) {
+      const linuxReleaseLink = (
+        <LinkButton uri={LinuxReleasesUri}>View Releases</LinkButton>
+      )
+      return (
+        <Row>
+          <p className="no-padding">{linuxReleaseLink}</p>
+        </Row>
+      )
+    }
+
     const updateStatus = this.state.updateState.status
 
     switch (updateStatus) {
@@ -172,7 +183,12 @@ export class About extends React.Component<IAboutProps, IAboutState> {
 
   private renderUpdateDetails() {
     if (__LINUX__) {
-      return null
+      return (
+        <p>
+          Please visit the GitHub Desktop for Linux release page for
+          Linux-specific release notes and to download the latest version.
+        </p>
+      )
     }
 
     if (
