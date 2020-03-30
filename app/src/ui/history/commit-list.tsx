@@ -72,14 +72,15 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
       return null
     }
 
-    const isLocal = this.props.localCommitSHAs.indexOf(commit.sha) > -1
+    const isLocal = this.props.localCommitSHAs.includes(commit.sha)
+    const showUnpushedIndicator = isLocal && !this.props.isLocalRepository
 
     return (
       <CommitListItem
         key={commit.sha}
         gitHubRepository={this.props.gitHubRepository}
         isLocal={isLocal}
-        isLocalRepository={this.props.isLocalRepository}
+        showUnpushedIndicator={showUnpushedIndicator}
         commit={commit}
         gitHubUsers={this.props.gitHubUsers}
         emoji={this.props.emoji}

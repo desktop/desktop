@@ -21,7 +21,7 @@ interface ICommitProps {
   readonly onRevertCommit?: (commit: Commit) => void
   readonly onViewCommitOnGitHub?: (sha: string) => void
   readonly gitHubUsers: Map<string, IGitHubUser> | null
-  readonly isLocalRepository: boolean
+  readonly showUnpushedIndicator: boolean
 }
 
 interface ICommitListItemState {
@@ -91,7 +91,7 @@ export class CommitListItem extends React.Component<
   }
 
   private renderPushIndicator() {
-    if (this.props.isLocalRepository || !this.props.isLocal) {
+    if (!this.props.showUnpushedIndicator) {
       return null
     }
 
