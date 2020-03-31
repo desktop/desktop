@@ -405,7 +405,7 @@ function getExecutableShim(
     case ExternalEditor.CFBuilder:
       return Path.join(installLocation, 'CFBuilder.exe')
     case ExternalEditor.Typora:
-      return Path.join(installLocation, 'bin', 'typora.exe')
+      return Path.join(installLocation, 'typora.exe')
     case ExternalEditor.SlickEdit:
       return Path.join(installLocation, 'win', 'vs.exe')
     case ExternalEditor.Webstorm:
