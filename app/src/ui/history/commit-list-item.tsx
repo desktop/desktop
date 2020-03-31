@@ -81,7 +81,7 @@ export class CommitListItem extends React.Component<
             </div>
           </div>
         </div>
-        {this.renderPushIndicator()}
+        {this.renderUnpushedIndicator()}
       </div>
     )
   }
@@ -93,7 +93,7 @@ export class CommitListItem extends React.Component<
     )
   }
 
-  private renderPushIndicator() {
+  private renderUnpushedIndicator() {
     if (!this.props.showUnpushedIndicator) {
       return null
     }
