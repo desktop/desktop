@@ -127,10 +127,6 @@
     @include ellipsis;
   }
 
-  &-file-name {
-    flex-grow: 1;
-  }
-
   &-meta-item {
     display: flex;
     flex-direction: row;
@@ -153,4 +149,10 @@
   &-header {
     border-bottom: var(--base-border);
   }
+}
+
+.checkbox-component {
+  flex-grow: 1;
+  justify-content: flex-end;
+  flex-shrink: 0;
 }
