@@ -1,6 +1,5 @@
 import { inferComparisonBranch } from '../../src/lib/stores/helpers/infer-comparison-branch'
 import { Branch, BranchType } from '../../src/models/branch'
-import { Commit } from '../../src/models/commit'
 import { CommitIdentity } from '../../src/models/commit-identity'
 import { GitHubRepository } from '../../src/models/github-repository'
 import { PullRequest, PullRequestRef } from '../../src/models/pull-request'
@@ -9,25 +8,20 @@ import { IRemote } from '../../src/models/remote'
 import { ComparisonCache } from '../../src/lib/comparison-cache'
 import { gitHubRepoFixture } from '../helpers/github-repo-builder'
 
-function createTestCommit(sha: string) {
-  return new Commit(
-    sha,
-    sha.slice(0, 7),
-    '',
-    '',
-    new CommitIdentity('tester', 'tester@test.com', new Date()),
-    new CommitIdentity('tester', 'tester@test.com', new Date()),
-    [],
-    []
-  )
-}
-
 function createTestBranch(
   name: string,
   sha: string,
   remote: string | null = null
 ) {
-  return new Branch(name, remote, createTestCommit(sha), BranchType.Local)
+  return new Branch(
+    name,
+    remote,
+    {
+      sha,
+      author: new CommitIdentity('tester', 'tester@test.com', new Date()),
+    },
+    BranchType.Local
+  )
 }
 
 function createTestGhRepo(
