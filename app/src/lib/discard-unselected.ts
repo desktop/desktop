@@ -6,7 +6,6 @@ import * as FSE from 'fs-extra'
 
 /**
  * Discard unselected differences
- *
  * @param repository The repository containing the branches to merge
  * @param file File to discard
  */
@@ -23,14 +22,12 @@ export async function discardUnselectedChanges(
   lines.forEach(value => {
     curData.push(value)
   })
-
   const diff = await getWorkingDirectoryDiff(repository, file)
   if (diff.kind !== DiffType.Text) {
     throw new Error(`Unexpected diff result returned: '${diff.kind}'`)
   }
   let curSourceLine = 0
   const newData = Array<string>()
-
   diff.hunks.forEach((hunk, hunkIndex) => {
     for (let i = 0; i < hunk.lines.length; ++i) {
       const newLineNumber = hunk.lines[i].newLineNumber
@@ -72,7 +69,6 @@ export async function discardUnselectedChanges(
   } else {
     throw new Error('last line error')
   }
-
   let newFileText = ''
   newData.forEach(value => (newFileText += value))
   await FSE.writeFile(repository.path + '/' + file.path, newFileText)

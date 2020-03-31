@@ -2229,7 +2229,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     await discardUnselectedChanges(repository, file)
     await this._changeFileIncluded(repository, file, true)
-
     this.updateMenuLabelsForSelectedRepository()
     this.emitUpdate()
     this.updateChangesWorkingDirectoryDiff(repository)
@@ -4541,10 +4540,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     value: boolean
   ): Promise<void> {
     this.confirmDiscardUnselectedChanges = value
-
     setBoolean(confirmDiscardUnselectedChangesKey, value)
     this.emitUpdate()
-
     return Promise.resolve()
   }
 

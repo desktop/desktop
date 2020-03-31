@@ -73,7 +73,6 @@ export class Advanced extends React.Component<
     event: React.FormEvent<HTMLInputElement>
   ) => {
     const value = event.currentTarget.checked
-
     this.setState({ confirmDiscardUnselected: value })
     this.props.onConfirmDiscardUnselectedChangesChanged(value)
   }

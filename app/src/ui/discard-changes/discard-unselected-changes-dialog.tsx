@@ -1,5 +1,4 @@
 import * as React from 'react'
-
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { WorkingDirectoryFileChange } from '../../models/status'
@@ -40,7 +39,6 @@ export class DiscardUnselectedChanges extends React.Component<
 > {
   public constructor(props: IDiscardUnselectedLinesProps) {
     super(props)
-
     this.state = {
       isDiscardingChanges: false,
       confirmDiscardUnselected: this.props.confirmDiscardUnselected,
@@ -55,7 +53,6 @@ export class DiscardUnselectedChanges extends React.Component<
 
   public render() {
     const isDiscardingChanges = this.state.isDiscardingChanges
-
     return (
       <Dialog
         id="discard-changes"
@@ -115,12 +112,10 @@ export class DiscardUnselectedChanges extends React.Component<
 
   private discard = async () => {
     this.setState({ isDiscardingChanges: true })
-
     await this.props.dispatcher.discardUnselectedChanges(
       this.props.repository,
       this.props.file
     )
-
     this.props.onConfirmDiscardUnselectedChangesChanged(
       this.state.confirmDiscardUnselected
     )
@@ -131,7 +126,6 @@ export class DiscardUnselectedChanges extends React.Component<
     event: React.FormEvent<HTMLInputElement>
   ) => {
     const value = !event.currentTarget.checked
-
     this.setState({ confirmDiscardUnselected: value })
   }
 }

@@ -311,10 +311,8 @@ export class ChangesList extends React.Component<
 
   private onDiscardUnselectedChanges = (files: ReadonlyArray<string>) => {
     const workingDirectory = this.props.workingDirectory
-
     if (files.length === 1) {
       const modifiedFile = workingDirectory.files.find(f => f.path === files[0])
-
       if (modifiedFile != null) {
         if (this.props.askForConfirmationOnDiscardUnselectedChanges) {
           this.props.dispatcher.showPopup({
@@ -363,7 +361,6 @@ export class ChangesList extends React.Component<
     const label = __DARWIN__
       ? `Discard Unselected Changes`
       : `Discard unselected changes`
-
     return this.props.askForConfirmationOnDiscardUnselectedChanges
       ? `${label}…`
       : label
