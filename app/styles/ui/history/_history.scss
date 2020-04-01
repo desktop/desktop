@@ -40,6 +40,15 @@
     min-height: 0;
   }
 
+  .compare-graph {
+    flex: 1;
+    display: flex;
+
+    canvas {
+      width: 60px;
+    }
+  }
+
   .merge-status {
     background: var(--background-color);
     border-width: 0 var(--spacing-half);

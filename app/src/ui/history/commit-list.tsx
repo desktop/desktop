@@ -36,7 +36,7 @@ interface ICommitListProps {
   readonly onCommitSelected: (commit: Commit) => void
 
   /** Callback that fires when a scroll event has occurred */
-  readonly onScroll: (start: number, end: number) => void
+  readonly onScroll: (start: number, end: number, scrollTop: number) => void
 
   /** Callback to fire to revert a given commit in the current repository */
   readonly onRevertCommit: ((commit: Commit) => void) | undefined
@@ -97,7 +97,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     const numberOfRows = Math.ceil(clientHeight / RowHeight)
     const top = Math.floor(scrollTop / RowHeight)
     const bottom = top + numberOfRows
-    this.props.onScroll(top, bottom)
+    this.props.onScroll(top, bottom, scrollTop)
 
     // Pass new scroll value so the scroll position will be remembered (if the callback has been supplied).
     if (this.props.onCompareListScrolled != null) {

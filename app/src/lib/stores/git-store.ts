@@ -1425,28 +1425,50 @@ export class GitStore extends BaseStore {
     }
 
     const base = this.tip.branch
-    const aheadBehind = await getAheadBehind(
-      this.repository,
-      revSymmetricDifference(base.name, branch.name)
-    )
+    let commitsToLoad = 0
+    let revisionRange = ''
+    let ahead = 0
+    let behind = 0
+    if (comparisonMode === ComparisonMode.Graph) {
+      commitsToLoad = 100
+      revisionRange = 'HEAD'
+    } else {
+      const aheadBehind = await getAheadBehind(
+        this.repository,
+        revSymmetricDifference(base.name, branch.name)
+      )
 
-    if (aheadBehind == null) {
-      return null
+      if (aheadBehind == null) {
+        return null
+      }
+      commitsToLoad =
+        comparisonMode === ComparisonMode.Ahead
+          ? aheadBehind.ahead
+          : aheadBehind.behind
+
+      revisionRange =
+        comparisonMode === ComparisonMode.Ahead
+          ? revRange(branch.name, base.name)
+          : revRange(base.name, branch.name)
+      ahead = aheadBehind.ahead
+      behind = aheadBehind.behind
     }
 
-    const revisionRange =
-      comparisonMode === ComparisonMode.Ahead
-        ? revRange(branch.name, base.name)
-        : revRange(base.name, branch.name)
-    const commitsToLoad =
-      comparisonMode === ComparisonMode.Ahead
-        ? aheadBehind.ahead
-        : aheadBehind.behind
-    const commits = await getCommits(
+    let commits = await getCommits(
       this.repository,
       revisionRange,
       commitsToLoad
     )
+
+    // Additional load commits from branch
+    if (comparisonMode === ComparisonMode.Graph) {
+      const branchCommits = await getCommits(
+        this.repository,
+        branch.name,
+        commitsToLoad
+      )
+      commits = commits.concat(branchCommits)
+    }
 
     if (commits.length > 0) {
       this.storeCommits(commits, true)
@@ -1454,8 +1476,8 @@ export class GitStore extends BaseStore {
 
     return {
       commits,
-      ahead: aheadBehind.ahead,
-      behind: aheadBehind.behind,
+      ahead: ahead,
+      behind: behind,
     }
   }
 

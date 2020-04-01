@@ -11,6 +11,7 @@ import {
   IDisplayHistory,
 } from '../../lib/app-state'
 import { CommitList } from './commit-list'
+import { CommitGraph } from './commit-graph'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { Dispatcher } from '../dispatcher'
@@ -60,6 +61,7 @@ interface ICompareSidebarState {
    * "call to action" buttons
    */
   readonly hasConsumedNotification: boolean
+  readonly graph: CommitGraph | null
 }
 
 /** If we're within this many rows from the bottom, load the next history batch. */
@@ -81,6 +83,7 @@ export class CompareSidebar extends React.Component<
     this.state = {
       focusedBranch: null,
       hasConsumedNotification: false,
+      graph: null,
     }
   }
 
@@ -275,15 +278,34 @@ export class CompareSidebar extends React.Component<
     )
   }
 
+  private refGraph = (graph: CommitGraph) => {
+    this.setState({ graph: graph })
+  }
+
   private renderActiveTab(view: ICompareBranch) {
-    return (
-      <div className="compare-commit-list">
-        {this.renderCommitList()}
-        {view.comparisonMode === ComparisonMode.Behind
-          ? this.renderMergeCallToAction(view)
-          : null}
-      </div>
-    )
+    if (view.comparisonMode === ComparisonMode.Graph) {
+      if (this.state.focusedBranch != null) {
+        this.props.dispatcher.loadCommitsFromBranch(
+          this.props.repository,
+          this.state.focusedBranch
+        )
+      }
+      return (
+        <div className="compare-graph">
+          <CommitGraph ref={this.refGraph} />
+          <div className="compare-commit-list">{this.renderCommitList()}</div>
+        </div>
+      )
+    } else {
+      return (
+        <div className="compare-commit-list">
+          {this.renderCommitList()}
+          {view.comparisonMode === ComparisonMode.Behind
+            ? this.renderMergeCallToAction(view)
+            : null}
+        </div>
+      )
+    }
   }
 
   private renderFilterList() {
@@ -340,7 +362,11 @@ export class CompareSidebar extends React.Component<
     }
 
     const comparisonMode =
-      index === 0 ? ComparisonMode.Behind : ComparisonMode.Ahead
+      index === 0
+        ? ComparisonMode.Behind
+        : index === 1
+        ? ComparisonMode.Ahead
+        : ComparisonMode.Graph
     const branch = formState.comparisonBranch
 
     this.props.dispatcher.executeCompare(this.props.repository, {
@@ -352,13 +378,18 @@ export class CompareSidebar extends React.Component<
 
   private renderTabBar(formState: ICompareBranch) {
     const selectedTab =
-      formState.comparisonMode === ComparisonMode.Behind ? 0 : 1
+      formState.comparisonMode === ComparisonMode.Behind
+        ? 0
+        : formState.comparisonMode === ComparisonMode.Ahead
+        ? 1
+        : 2
 
     return (
       <div className="compare-content">
         <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
           <span>{`Behind (${formState.aheadBehind.behind})`}</span>
           <span>{`Ahead (${formState.aheadBehind.ahead})`}</span>
+          <span>{`Graph`}</span>
         </TabBar>
         {this.renderActiveTab(formState)}
       </div>
@@ -453,11 +484,17 @@ export class CompareSidebar extends React.Component<
     })
   }
 
-  private onScroll = (start: number, end: number) => {
+  private onScroll = (start: number, end: number, scrollTop: number) => {
     const compareState = this.props.compareState
     const formState = compareState.formState
 
     if (formState.kind === HistoryTabMode.Compare) {
+      if (formState.comparisonMode === ComparisonMode.Graph) {
+        if (this.state.graph != null) {
+          this.state.graph.draw(scrollTop)
+        }
+        //console.log(end)
+      }
       // as the app is currently comparing the current branch to some other
       // branch, everything needed should be loaded
       return

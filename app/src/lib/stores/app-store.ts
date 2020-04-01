@@ -1309,6 +1309,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _loadCommitsFromBranch(
+    repository: Repository,
+    branch: Branch
+  ): Promise<string[]> {
+    const gitStore = this.gitStoreCache.get(repository)
+    const commits = await gitStore.loadCommitBatch(branch.name)
+
+    if (commits === null) {
+      throw Error('no commits from ' + branch.name)
+    }
+
+    return commits
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadNextCommitBatch(repository: Repository): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
 
