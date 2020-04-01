@@ -42,7 +42,7 @@ body.theme-dark {
    *
    * Note: Only applies to win32 platforms
    */
-  --scroll-bar-thumb-background-color: rgba(0, 0, 0, 0.7);
+  --scroll-bar-thumb-background-color: rgba(255, 255, 255, 0.2);
 
   /**
    * Background color for custom scroll bars in their active state.
@@ -50,7 +50,7 @@ body.theme-dark {
    *
    * Note: Only applies to win32 platforms
    */
-  --scroll-bar-thumb-background-color-active: rgba(0, 0, 0, 0.8);
+  --scroll-bar-thumb-background-color-active: rgba(255, 255, 255, 0.5);
 
   // Box
   //
