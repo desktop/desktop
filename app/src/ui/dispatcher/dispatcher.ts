@@ -499,6 +499,22 @@ export class Dispatcher {
     return this.appStore._createTag(repository, name, targetCommitSha)
   }
 
+  /**
+   * Show the tag creation dialog.
+   */
+  public showCreateTagDialog(
+    repository: Repository,
+    targetCommitSha: string,
+    initialName?: string
+  ): Promise<void> {
+    return this.showPopup({
+      type: PopupType.CreateTag,
+      repository,
+      targetCommitSha,
+      initialName,
+    })
+  }
+
   /** Check out the given branch. */
   public checkoutBranch(
     repository: Repository,
