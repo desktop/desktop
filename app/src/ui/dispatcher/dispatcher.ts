@@ -488,6 +488,17 @@ export class Dispatcher {
     )
   }
 
+  /**
+   * Create a new tag on the given target commit.
+   */
+  public createTag(
+    repository: Repository,
+    name: string,
+    targetCommitSha: string
+  ): Promise<void> {
+    return this.appStore._createTag(repository, name, targetCommitSha)
+  }
+
   /** Check out the given branch. */
   public checkoutBranch(
     repository: Repository,
