@@ -13,7 +13,7 @@ describe('git/tag', () => {
 
   describe('createTag', () => {
     it('creates a tag with the given name', async () => {
-      await createTag(repository, 'my-new-tag', null)
+      await createTag(repository, 'my-new-tag', 'HEAD')
 
       const commit = await getCommit(repository, 'HEAD')
       expect(commit).not.toBeNull()
@@ -21,8 +21,8 @@ describe('git/tag', () => {
     })
 
     it('creates multiple tags', async () => {
-      await createTag(repository, 'my-new-tag', null)
-      await createTag(repository, 'another-tag', null)
+      await createTag(repository, 'my-new-tag', 'HEAD')
+      await createTag(repository, 'another-tag', 'HEAD')
 
       const commit = await getCommit(repository, 'HEAD')
       expect(commit).not.toBeNull()
@@ -42,9 +42,9 @@ describe('git/tag', () => {
     })
 
     it('fails when creating a tag with a name that already exists', async () => {
-      await createTag(repository, 'my-new-tag', null)
+      await createTag(repository, 'my-new-tag', 'HEAD')
 
-      expect(createTag(repository, 'my-new-tag', null)).rejects.toThrow(
+      expect(createTag(repository, 'my-new-tag', 'HEAD')).rejects.toThrow(
         /already exists/i
       )
     })
