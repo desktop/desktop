@@ -332,7 +332,7 @@ export function buildDefaultMenu({
           ? 'Create Issue on GitHub'
           : 'Create &issue on GitHub',
         accelerator: (() => {
-          return __DARWIN__ ? 'Cmd+Shift+I' : 'Ctrl+I'
+          return 'CmdOrCtrl+I'
         })(),
         click: emit('create-issue-in-repository-on-github'),
         visible: enableCreateGitHubIssueFromMenu(),
