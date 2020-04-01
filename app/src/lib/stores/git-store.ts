@@ -280,14 +280,6 @@ export class GitStore extends BaseStore {
     this.refreshDefaultBranch()
     this.refreshRecentBranches(recentBranchNames)
     this.checkPullWithRebase()
-
-    const commits = this._allBranches.map(b => b.tip)
-
-    for (const commit of commits) {
-      this.commitLookup.set(commit.sha, commit)
-    }
-
-    this.emitNewCommitsLoaded(commits)
     this.emitUpdate()
   }
 
