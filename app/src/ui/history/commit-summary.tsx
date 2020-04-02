@@ -374,7 +374,7 @@ export class CommitSummary extends React.Component<
     const tags = this.props.commit.tags || []
 
     if (tags.length === 0) {
-      return
+      return null
     }
 
     return (
