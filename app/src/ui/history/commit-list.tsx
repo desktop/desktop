@@ -44,6 +44,9 @@ interface ICommitListProps {
   /** Callback to fire to open a given commit on GitHub */
   readonly onViewCommitOnGitHub: (sha: string) => void
 
+  /** Callback to fire to open the dialog to create a new tag on the given commit */
+  readonly onCreateTag: (targetCommitSha: string) => void
+
   /**
    * Optional callback that fires on page scroll in order to allow passing
    * a new scrollTop value up to the parent component for storing.
@@ -84,6 +87,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         commit={commit}
         gitHubUsers={this.props.gitHubUsers}
         emoji={this.props.emoji}
+        onCreateTag={this.props.onCreateTag}
         onRevertCommit={this.props.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
       />
