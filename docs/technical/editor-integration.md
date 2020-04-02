@@ -74,7 +74,7 @@ wishes to uninstall. These entries are used by GitHub Desktop to identify
 relevant programs and where they can be located.
 
 The registry locations for each editor are listed in the `registryKeys`
-property. Some editors support multiple install locations, but are structurally 
+property. Some editors support multiple install locations, but are structurally
 the same (for example 64-bit or 32-bit application, or stable and developer
 channels).
 
@@ -115,7 +115,7 @@ is the key that Desktop needs to read the registry and find the installation for
 
 As seen in the example above, you can use the following helper functions to
 enumerate the uninstall keys:
- - `LocalMachineUninstallKey` for keys in 
+ - `LocalMachineUninstallKey` for keys in
  `HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall`
  - `Wow64LocalMachineUninstallKey` for keys in
  `HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall`
@@ -256,7 +256,7 @@ The `CFBundleIdentifier` value in the plist is what applications use to
 uniquely identify themselves, for example `com.github.GitHubClient` is the
 identifier for GitHub Desktop.
 
-To find the bundle identifier for an application, using `PhpStorm` as an example, 
+To find the bundle identifier for an application, using `PhpStorm` as an example,
 run `defaults read /Applications/PhpStorm.app/Contents/Info CFBundleIdentifier`.
 
 With this bundle identifier, GitHub Desktop can obtain the install location of
@@ -290,6 +290,7 @@ These editors are currently supported:
  - [Sublime Text](https://www.sublimetext.com/)
  - [Typora](https://typora.io/)
  - [SlickEdit](https://www.slickedit.com)
+ - [Code](https://github.com/elementary/code)
 
 These are defined in a list at the top of the file:
 
