@@ -59,3 +59,40 @@
     }
   }
 }
+
+@include linux-context {
+  // Linux scrollbars need styled, too
+  ::-webkit-scrollbar {
+    width: var(--linux-scroll-bar-size);
+    height: var(--linux-scroll-bar-size);
+    background: transparent;
+    cursor: pointer;
+
+    &-thumb {
+      background-color: var(--scroll-bar-thumb-background-color);
+      border-radius: var(--linux-scroll-bar-size);
+
+      // This little hack allows us to have a slim scroll bar
+      // with a bigger hit area. The scroll bar width/height
+      // is 10px but we're cutting off 6px using clipping so
+      // that it appears as if it's actually only 4px.
+      border-color: transparent;
+      border-style: solid;
+      border-width: 3px;
+      background-clip: padding-box;
+
+      // ...and when it's pressed we'll up the contrast
+      &:active {
+        background-color: var(--scroll-bar-thumb-background-color-active);
+      }
+
+      // When someone hovers over, or presses the bar we'll expand it to 8px
+      &:hover,
+      &:active {
+        border-width: 1px;
+        background-color: var(--scroll-bar-thumb-background-color-active);
+        cursor: pointer;
+      }
+    }
+  }
+}
