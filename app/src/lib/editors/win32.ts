@@ -26,6 +26,7 @@ export enum ExternalEditor {
   Webstorm = 'JetBrains Webstorm',
   Phpstorm = 'JetBrains Phpstorm',
   NotepadPlusPlus = 'Notepad++',
+  Rider = 'JetBrains Rider',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -67,6 +68,9 @@ export function parse(label: string): ExternalEditor | null {
   }
   if (label === ExternalEditor.NotepadPlusPlus) {
     return ExternalEditor.NotepadPlusPlus
+  }
+  if (label === ExternalEditor.Rider) {
+    return ExternalEditor.Rider
   }
 
   return null
@@ -371,7 +375,15 @@ function getRegistryKeys(
             'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Notepad++',
         },
       ]
-
+    case ExternalEditor.Rider:
+      return [
+        // Rider 2019.3.4
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\JetBrains Rider 2019.3.4',
+        },
+      ]
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -414,6 +426,8 @@ function getExecutableShim(
       return Path.join(installLocation, 'bin', 'phpstorm.exe')
     case ExternalEditor.NotepadPlusPlus:
       return Path.join(installLocation)
+    case ExternalEditor.Rider:
+      return Path.join(installLocation, 'bin', 'rider64.exe')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -477,6 +491,11 @@ function isExpectedInstallation(
     case ExternalEditor.NotepadPlusPlus:
       return (
         displayName.startsWith('Notepad++') && publisher === 'Notepad++ Team'
+      )
+    case ExternalEditor.Rider:
+      return (
+        displayName.startsWith('JetBrains Rider') &&
+        publisher === 'JetBrains s.r.o.'
       )
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
@@ -645,6 +664,37 @@ function extractApplicationInformation(
     const displayName = getKeyOrEmpty(keys, 'DisplayName')
     const publisher = getKeyOrEmpty(keys, 'Publisher')
     const installLocation = getKeyOrEmpty(keys, 'DisplayIcon')
+
+    return { displayName, publisher, installLocation }
+  }
+
+  if (editor === ExternalEditor.Rider) {
+    let displayName = ''
+    let publisher = ''
+    let installLocation = ''
+
+    for (const item of keys) {
+      // NOTE:
+      // JetBrains Rider adds the current release number to the end of the Display Name, below checks for "JetBrains Rider"
+      if (
+        item.name === 'DisplayName' &&
+        item.type === RegistryValueType.REG_SZ &&
+        item.data.startsWith('JetBrains Rider ')
+      ) {
+        displayName = 'JetBrains Rider'
+      } else if (
+        item.name === 'Publisher' &&
+        item.type === RegistryValueType.REG_SZ
+      ) {
+        publisher = item.data
+      } else if (
+        item.name === 'InstallLocation' &&
+        item.type === RegistryValueType.REG_SZ
+      ) {
+        installLocation = item.data
+      }
+    }
+
     return { displayName, publisher, installLocation }
   }
 
@@ -712,6 +762,7 @@ export async function getAvailableEditors(): Promise<
     webstormPath,
     phpstormPath,
     notepadPlusPlusPath,
+    riderPath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.AtomBeta),
@@ -726,6 +777,7 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.Webstorm),
     findApplication(ExternalEditor.Phpstorm),
     findApplication(ExternalEditor.NotepadPlusPlus),
+    findApplication(ExternalEditor.Rider),
   ])
 
   if (atomPath) {
@@ -825,6 +877,13 @@ export async function getAvailableEditors(): Promise<
     results.push({
       editor: ExternalEditor.NotepadPlusPlus,
       path: notepadPlusPlusPath,
+    })
+  }
+
+  if (riderPath) {
+    results.push({
+      editor: ExternalEditor.Rider,
+      path: riderPath,
     })
   }
 
