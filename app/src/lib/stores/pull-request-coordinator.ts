@@ -149,7 +149,7 @@ export class PullRequestCoordinator {
       gitHubRepository,
       this.repositories
     )
-    // mark all matching repos for parent as now loading
+    // mark all matching repos as now loading
     for (const match of matches) {
       this.emitIsLoadingPullRequests(match, true)
     }
