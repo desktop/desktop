@@ -76,7 +76,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * Background color for custom scroll bars.
    * The color is applied to the thumb part of the scrollbar.
    *
-   * Note: Only applies to win32 platforms
+   * Note: Only applies to win32 and linux platforms
    */
   --scroll-bar-thumb-background-color: rgba(0, 0, 0, 0.2);
 
@@ -84,7 +84,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * Background color for custom scroll bars in their active state.
    * The color is applied to the thumb part of the scrollbar.
    *
-   * Note: Only applies to win32 platforms
+   * Note: Only applies to win32 and linux platforms
    */
   --scroll-bar-thumb-background-color-active: rgba(0, 0, 0, 0.5);
 
@@ -271,8 +271,9 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --list-item-selected-active-badge-background-color: #{$white};
   --list-item-hover-background-color: #{$gray-100};
 
-  /** Win32 has custom scrol bars, see _scroll.scss */
+  /** Windows/Linux have custom scrollbars, see _scroll.scss */
   --win32-scroll-bar-size: 10px;
+  --linux-scroll-bar-size: 10px;
 
   /**
    * The z-index for popups. Nothing should be higher, but other z-indexes can

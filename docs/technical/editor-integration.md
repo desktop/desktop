@@ -388,6 +388,7 @@ These editors are currently supported:
  - [Sublime Text](https://www.sublimetext.com/)
  - [Typora](https://typora.io/)
  - [SlickEdit](https://www.slickedit.com)
+ - [Code](https://github.com/elementary/code)
 
 These are defined in an enum at the top of the file:
 
@@ -400,6 +401,7 @@ export enum ExternalEditor {
   SublimeText = 'Sublime Text',
   Typora = 'Typora',
   SlickEdit = 'SlickEdit',
+  ElementaryCode = 'Code',
 }
 ```
 
@@ -435,6 +437,7 @@ export async function getAvailableEditors(): Promise<
     sublimePath,
     typoraPath,
     slickeditPath,
+    elementaryCodePath,
   ] = await Promise.all([
     getEditorPath(ExternalEditor.Atom),
     getEditorPath(ExternalEditor.VisualStudioCode),
@@ -442,6 +445,7 @@ export async function getAvailableEditors(): Promise<
     getEditorPath(ExternalEditor.SublimeText),
     getEditorPath(ExternalEditor.Typora),
     getEditorPath(ExternalEditor.SlickEdit),
+    getEditorPath(ExternalEditor.ElementaryCode),
   ])
 
   ...
