@@ -253,6 +253,8 @@ These shells are currently supported:
  - [Konsole](https://konsole.kde.org/)
  - [XTerm](http://invisible-island.net/xterm/)
  - [Terminology](https://www.enlightenment.org/docs/apps/terminology.md)
+ - [Deepin Terminal](https://www.deepin.org/en/original/deepin-terminal/)
+ - [Elementary Terminal](https://github.com/elementary/terminal)
 
 These are defined in an enum at the top of the file:
 
@@ -266,6 +268,8 @@ export enum Shell {
   Konsole = 'Konsole',
   Xterm = 'XTerm',
   Terminology = 'Terminology',
+  Deepin = 'Deepin Terminal',
+  Elementary = 'Elementary Terminal',
 }
 ```
 
@@ -300,6 +304,8 @@ export async function getAvailableShells(): Promise<
     konsolePath,
     xtermPath,
     terminologyPath,
+    deepinPath,
+    elementaryPath,
   ] = await Promise.all([
     getShellPath(Shell.Gnome),
     getShellPath(Shell.Mate),
@@ -309,6 +315,8 @@ export async function getAvailableShells(): Promise<
     getShellPath(Shell.Konsole),
     getShellPath(Shell.Xterm),
     getShellPath(Shell.Terminology),
+    getShellPath(Shell.Deepin),
+    getShellPath(Shell.Elementary),
   ])
 
   ...
@@ -345,6 +353,10 @@ export function launch(
       return spawn(foundShell.path, ['-e', '/bin/bash'], { cwd: path })
     case Shell.Terminology:
       return spawn(foundShell.path, ['-d', path])
+    case Shell.Deepin:
+      return spawn(foundShell.path, ['-w', path])
+    case Shell.Elementary:
+      return spawn(foundShell.path, ['-w', path])
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }
