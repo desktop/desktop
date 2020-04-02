@@ -88,7 +88,7 @@ export class Commit {
     public readonly committer: CommitIdentity,
     public readonly parentSHAs: ReadonlyArray<string>,
     public readonly trailers: ReadonlyArray<ITrailer>,
-    public readonly tags: ReadonlyArray<string> | null = null
+    public readonly tags: ReadonlyArray<string>
   ) {
     this.coAuthors = extractCoAuthors(trailers)
 
