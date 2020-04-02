@@ -12,6 +12,7 @@ export enum ExternalEditor {
   SublimeText = 'Sublime Text',
   BBEdit = 'BBEdit',
   PhpStorm = 'PhpStorm',
+  PyCharm = 'PyCharm',
   RubyMine = 'RubyMine',
   TextMate = 'TextMate',
   Brackets = 'Brackets',
@@ -51,6 +52,9 @@ export function parse(label: string): ExternalEditor | null {
   }
   if (label === ExternalEditor.PhpStorm) {
     return ExternalEditor.PhpStorm
+  }
+  if (label === ExternalEditor.PyCharm) {
+    return ExternalEditor.PyCharm
   }
   if (label === ExternalEditor.RubyMine) {
     return ExternalEditor.RubyMine
@@ -111,6 +115,8 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['com.barebones.bbedit']
     case ExternalEditor.PhpStorm:
       return ['com.jetbrains.PhpStorm']
+    case ExternalEditor.PyCharm:
+      return ['com.jetbrains.PyCharm']
     case ExternalEditor.RubyMine:
       return ['com.jetbrains.RubyMine']
     case ExternalEditor.IntelliJ:
@@ -177,6 +183,8 @@ function getExecutableShim(
       return Path.join(installPath, 'Contents', 'Helpers', 'bbedit_tool')
     case ExternalEditor.PhpStorm:
       return Path.join(installPath, 'Contents', 'MacOS', 'phpstorm')
+    case ExternalEditor.PyCharm:
+      return Path.join(installPath, 'Contents', 'MacOS', 'pycharm')
     case ExternalEditor.RubyMine:
       return Path.join(installPath, 'Contents', 'MacOS', 'rubymine')
     case ExternalEditor.TextMate:
@@ -242,6 +250,7 @@ export async function getAvailableEditors(): Promise<
     sublimePath,
     bbeditPath,
     phpStormPath,
+    pyCharmPath,
     rubyMinePath,
     textMatePath,
     bracketsPath,
@@ -262,6 +271,7 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.SublimeText),
     findApplication(ExternalEditor.BBEdit),
     findApplication(ExternalEditor.PhpStorm),
+    findApplication(ExternalEditor.PyCharm),
     findApplication(ExternalEditor.RubyMine),
     findApplication(ExternalEditor.TextMate),
     findApplication(ExternalEditor.Brackets),
@@ -308,6 +318,10 @@ export async function getAvailableEditors(): Promise<
 
   if (phpStormPath) {
     results.push({ editor: ExternalEditor.PhpStorm, path: phpStormPath })
+  }
+
+  if (pyCharmPath) {
+    results.push({ editor: ExternalEditor.PyCharm, path: pyCharmPath })
   }
 
   if (rubyMinePath) {

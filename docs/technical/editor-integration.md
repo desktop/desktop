@@ -262,6 +262,7 @@ These editors are currently supported:
  - [Sublime Text](https://www.sublimetext.com/)
  - [BBEdit](http://www.barebones.com/products/bbedit/)
  - [JetBrains PhpStorm](https://www.jetbrains.com/phpstorm/)
+ - [JetBrains PyCharm](https://www.jetbrains.com/pycharm/)
  - [JetBrains RubyMine](https://www.jetbrains.com/rubymine/)
  - [TextMate](https://macromates.com)
  - [Brackets](http://brackets.io/)
