@@ -154,7 +154,6 @@ export class PullRequestCoordinator {
       this.emitIsLoadingPullRequests(match, true)
     }
 
-    // mark all matching repos as now loading
     await this.pullRequestStore.refreshPullRequests(gitHubRepository, account)
 
     // mark all matching repos as done loading
