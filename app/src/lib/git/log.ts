@@ -129,7 +129,9 @@ export async function getCommits(
 
     const parentSHAs = shaList.length ? shaList.split(' ') : []
     const trailers = parseRawUnfoldedTrailers(pieces[7], trailerSeparators)
-    const tags = getCaptures(pieces[8], /tag: ([^\s,]+)/g).map(i => i[0])
+    const tags = getCaptures(pieces[8], /tag: ([^\s,]+)/g)
+      .filter(i => i[0] !== undefined)
+      .map(i => i[0])
     const author = CommitIdentity.parseIdentity(authorIdentity)
 
     if (!author) {

@@ -77,7 +77,7 @@ export class Commit {
    * @param parentSHAS The SHAs for the parents of the commit.
    * @param trailers Parsed, unfolded trailers from the commit message body,
    *                 if any, as interpreted by `git interpret-trailers`
-   * @param tags Tags associated with this commit. `null` if unknown.
+   * @param tags Tags associated with this commit.
    */
   public constructor(
     public readonly sha: string,
