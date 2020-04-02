@@ -11,7 +11,10 @@ import { getAvatarUsersForCommit, IAvatarUser } from '../../models/avatar'
 import { AvatarStack } from '../lib/avatar-stack'
 import { CommitAttribution } from '../lib/commit-attribution'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
-import { enableHideWhitespaceInDiffOption } from '../../lib/feature-flag'
+import {
+  enableHideWhitespaceInDiffOption,
+  enableGitTagsDisplay,
+} from '../../lib/feature-flag'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -371,6 +374,10 @@ export class CommitSummary extends React.Component<
   }
 
   private renderTags() {
+    if (!enableGitTagsDisplay()) {
+      return null
+    }
+
     const tags = this.props.commit.tags || []
 
     if (tags.length === 0) {
