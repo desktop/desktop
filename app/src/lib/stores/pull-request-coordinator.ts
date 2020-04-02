@@ -266,20 +266,10 @@ export class PullRequestCoordinator {
 function findRepositoriesForGitHubRepository(
   gitHubRepository: GitHubRepository,
   repositories: ReadonlyArray<RepositoryWithGitHubRepository>
-): Array<RepositoryWithGitHubRepository> {
+): ReadonlyArray<RepositoryWithGitHubRepository> {
   const { dbID } = gitHubRepository
-  const matches = new Array<RepositoryWithGitHubRepository>()
 
-  for (const r of repositories) {
-    if (r.gitHubRepository.dbID === dbID) {
-      matches.push(r)
-    } else if (
-      r.gitHubRepository.parent !== null &&
-      r.gitHubRepository.parent.dbID === dbID
-    ) {
-      matches.push(r)
-    }
-  }
-
-  return matches
+  return repositories.filter(
+    repository => getNonForkGitHubRepository(repository).dbID === dbID
+  )
 }
