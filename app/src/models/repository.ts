@@ -119,19 +119,11 @@ export function nameOf(repository: Repository) {
  * Otherwise, returns null.
  */
 export function getGitHubHtmlUrl(repository: Repository): string | null {
-  if (repository.gitHubRepository === null) {
+  if (!isRepositoryWithGitHubRepository(repository)) {
     return null
   }
-  if (
-    repository.gitHubRepository.parent !== null &&
-    repository.gitHubRepository.parent.htmlURL !== null
-  ) {
-    return repository.gitHubRepository.parent.htmlURL
-  }
-  if (repository.gitHubRepository.htmlURL !== null) {
-    return repository.gitHubRepository.htmlURL
-  }
-  return null
+
+  return getNonForkGitHubRepository(repository).htmlURL
 }
 
 /**
