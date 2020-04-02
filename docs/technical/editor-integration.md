@@ -275,7 +275,7 @@ These editors are currently supported:
  - [Xcode](https://developer.apple.com/xcode/)
  - [JetBrains GoLand](https://www.jetbrains.com/go/)
  - [Android Studio](https://developer.android.com/studio)
- - [Rider](https://www.jetbrains.com/rider/)
+ - [JetBrains Rider](https://www.jetbrains.com/rider/)
 
 These are defined in an enum at the top of the file:
 
