@@ -3066,6 +3066,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _getAllTags(repository: Repository): Promise<ReadonlyArray<string>> {
+    const gitStore = this.gitStoreCache.get(repository)
+
+    return gitStore.getAllTags()
+  }
+
   private getLocalBranch(
     repository: Repository,
     branch: string

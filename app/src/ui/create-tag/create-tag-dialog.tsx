@@ -32,6 +32,8 @@ interface ICreateTagState {
    * shown in its place.
    */
   readonly isCreatingTag: boolean
+
+  readonly localTags: Set<string>
 }
 
 /** The Create Tag component. */
@@ -47,13 +49,26 @@ export class CreateTag extends React.Component<
       proposedName: props.initialName || '',
       sanitizedName: '',
       isCreatingTag: false,
+      localTags: new Set(),
     }
   }
 
-  public componentDidMount() {
-    if (this.state.proposedName.length) {
+  public async componentDidMount() {
+    if (this.state.proposedName.length > 0) {
       this.updateTagName(this.state.proposedName)
     }
+
+    // Get the existing tags so we can warn the user that the chosen tag already
+    // exists before submitting.
+    // Since this is just an UX improvement, we don't need to block the rendering
+    // of the dialog (or show any loader) while we get the tags.
+    const localTags = await this.props.dispatcher.getAllTags(
+      this.props.repository
+    )
+
+    this.setState({
+      localTags: new Set(localTags),
+    })
   }
 
   public render() {
@@ -125,9 +140,17 @@ export class CreateTag extends React.Component<
   }
 
   private updateTagName = (name: string) => {
+    const sanitizedName = sanitizedRefName(name)
+    const alreadyExists = this.state.localTags.has(sanitizedName)
+
+    const currentError = alreadyExists
+      ? new Error(`A tag named ${sanitizedName} already exists`)
+      : null
+
     this.setState({
       proposedName: name,
-      sanitizedName: sanitizedRefName(name),
+      sanitizedName,
+      currentError,
     })
   }
 
