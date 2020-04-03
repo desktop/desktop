@@ -379,24 +379,11 @@ export class CompareSidebar extends React.Component<
         : ComparisonMode.Graph
     const branch = formState.comparisonBranch
 
-    if (comparisonMode === ComparisonMode.Graph) {
-      if (
-        this.props.currentBranch !== null &&
-        this.state.compareBranch !== null
-      ) {
-        this.props.dispatcher.loadCommitsForGraph(
-          this.props.repository,
-          this.props.currentBranch,
-          this.state.compareBranch
-        )
-      }
-    } else {
-      this.props.dispatcher.executeCompare(this.props.repository, {
-        kind: HistoryTabMode.Compare,
-        branch,
-        comparisonMode,
-      })
-    }
+    this.props.dispatcher.executeCompare(this.props.repository, {
+      kind: HistoryTabMode.Compare,
+      branch,
+      comparisonMode,
+    })
   }
 
   private renderTabBar(formState: ICompareBranch) {

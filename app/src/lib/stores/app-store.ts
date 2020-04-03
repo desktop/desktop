@@ -1153,13 +1153,50 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitStore = this.gitStoreCache.get(repository)
 
     const comparisonBranch = action.branch
-    const compare = await gitStore.getCompareCommits(
-      comparisonBranch,
-      action.comparisonMode
-    )
+    let aheadBehind: { ahead: any; behind: any } | null = null
+    let commitSHAs: Array<string> = []
+    if (action.comparisonMode === ComparisonMode.Graph) {
+      const currentSHAs = await gitStore.loadCommitBatch('HEAD')
+      if (currentSHAs == null) {
+        return
+      }
+      const oldestCommitCurrentBranch = gitStore.commitLookup.get(
+        currentSHAs[currentSHAs.length - 1]
+      )
+      let compareSHAs: string[] | null = []
+      if (oldestCommitCurrentBranch !== undefined) {
+        compareSHAs = await gitStore.loadCommitBatch(comparisonBranch.name, [
+          '--after=' + oldestCommitCurrentBranch.committer.date,
+        ])
+        if (compareSHAs == null) {
+          return
+        }
+      }
+      commitSHAs = this.sortCommitsForGraph(gitStore, currentSHAs, compareSHAs)
+    } else {
+      const compare = await gitStore.getCompareCommits(
+        comparisonBranch,
+        action.comparisonMode
+      )
+
+      if (compare == null) {
+        return
+      }
+
+      const { ahead, behind } = compare
+      aheadBehind = { ahead, behind }
+
+      commitSHAs = compare.commits.map(commit => commit.sha)
+    }
 
     this.statsStore.recordBranchComparison()
-    const { branchesState } = this.repositoryStateCache.get(repository)
+    const { branchesState, compareState } = this.repositoryStateCache.get(
+      repository
+    )
+    if (aheadBehind === null) {
+      const compareBranch = compareState.formState as ICompareBranch
+      aheadBehind = compareBranch.aheadBehind
+    }
 
     if (
       branchesState.defaultBranch !== null &&
@@ -1167,15 +1204,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     ) {
       this.statsStore.recordDefaultBranchComparison()
     }
-
-    if (compare == null) {
-      return
-    }
-
-    const { ahead, behind } = compare
-    const aheadBehind = { ahead, behind }
-
-    const commitSHAs = compare.commits.map(commit => commit.sha)
 
     const newState: ICompareBranch = {
       kind: HistoryTabMode.Compare,
@@ -1359,52 +1387,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     return result.map(commit => commit.sha)
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _loadCommitsForGraph(
-    repository: Repository,
-    currentBranch: Branch,
-    comparisonBranch: Branch
-  ): Promise<string[] | null> {
-    const gitStore = this.gitStoreCache.get(repository)
-    const currentSHAs = await gitStore.loadCommitBatch(currentBranch.name)
-    if (currentSHAs == null) {
-      return null
-    }
-    const oldestCommitCurrentBranch = gitStore.commitLookup.get(
-      currentSHAs[currentSHAs.length - 1]
-    )
-    let compareSHAs: string[] | null = []
-    if (oldestCommitCurrentBranch !== undefined) {
-      compareSHAs = await gitStore.loadCommitBatch(comparisonBranch.name, [
-        '--after=' + oldestCommitCurrentBranch.committer.date,
-      ])
-      if (compareSHAs == null) {
-        return null
-      }
-    }
-    const commitSHAs = this.sortCommitsForGraph(
-      gitStore,
-      currentSHAs,
-      compareSHAs
-    )
-
-    const newState: ICompareBranch = {
-      kind: HistoryTabMode.Compare,
-      comparisonBranch,
-      comparisonMode: ComparisonMode.Graph,
-			aheadBehind: { ahead: 0, behind: 0 },
-    }
-    this.repositoryStateCache.updateCompareState(repository, s => ({
-      formState: newState,
-      filterText: comparisonBranch.name,
-      commitSHAs,
-    }))
-
-    this.emitUpdate()
-
-    return commitSHAs
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Commit } from '../../models/commit'
-//import { OcticonSymbol } from '../octicons'
+import { OcticonSymbol } from '../octicons'
 import { Branch } from '../../models/branch'
 import { getPersistedTheme, ApplicationTheme } from '../lib/application-theme'
 
@@ -19,11 +19,19 @@ class NodePos {
   public y: number = 0
 }
 
+enum NodeIcon {
+  NORMAL,
+  HEAD,
+  MERGE,
+  BRANCH,
+}
+
 class Node {
   public sha: string = ''
   public isLeft: boolean = true
   public parentSHAs: string[] = []
   public nodePos: NodePos = new NodePos()
+  public icon: NodeIcon = NodeIcon.NORMAL
 }
 
 class Link {
@@ -85,6 +93,9 @@ export class CommitGraph extends React.Component<
       }
       node.nodePos.x = x
       node.nodePos.y = y
+      if (node.parentSHAs.length > 1) {
+        node.icon = NodeIcon.MERGE
+      }
       node.parentSHAs.forEach(sha => {
         const parentNode = this.nodeMap.get(sha)
         if (parentNode !== undefined) {
@@ -98,6 +109,9 @@ export class CommitGraph extends React.Component<
       })
       const prevPosList = positionMap.get(node.sha)
       if (prevPosList !== undefined) {
+        if (prevPosList.length > 1) {
+          node.icon = NodeIcon.BRANCH
+        }
         prevPosList.forEach(prevNode => {
           const link = new Link()
           link.start = prevNode
@@ -116,6 +130,12 @@ export class CommitGraph extends React.Component<
       }
       beforeIsLeft = node.isLeft
     }
+    for (const node of this.nodeList) {
+      if (node.sha === this.props.currentBranch.tip.sha) {
+        node.icon = NodeIcon.HEAD
+        break
+      }
+    }
   }
 
   public render() {
@@ -131,12 +151,14 @@ export class CommitGraph extends React.Component<
     ctx: CanvasRenderingContext2D,
     prevPos: NodePos,
     curPos: NodePos,
-    top: boolean
+    top: boolean,
+    cutPrev: number = 0,
+    cutCur: number = 0
   ) {
     if (top) {
       if (curPos.y - prevPos.y > this.props.height * 1.1) {
         ctx.beginPath()
-        ctx.moveTo(curPos.x, curPos.y)
+        ctx.moveTo(curPos.x, curPos.y - cutCur)
         ctx.lineTo(curPos.x, prevPos.y + this.props.height)
         ctx.stroke()
       }
@@ -148,13 +170,13 @@ export class CommitGraph extends React.Component<
         prevPos.x,
         prevPos.y + this.props.height * 0.7,
         prevPos.x,
-        prevPos.y
+        prevPos.y + cutPrev
       )
       ctx.stroke()
     } else {
       if (curPos.y - prevPos.y > this.props.height * 1.1) {
         ctx.beginPath()
-        ctx.moveTo(prevPos.x, prevPos.y)
+        ctx.moveTo(prevPos.x, prevPos.y + cutPrev)
         ctx.lineTo(prevPos.x, curPos.y - this.props.height)
         ctx.stroke()
       }
@@ -166,7 +188,7 @@ export class CommitGraph extends React.Component<
         curPos.x,
         curPos.y - this.props.height * 0.7,
         curPos.x,
-        curPos.y
+        curPos.y - cutCur
       )
       ctx.stroke()
     }
@@ -197,21 +219,88 @@ export class CommitGraph extends React.Component<
               ctx,
               link.start.nodePos,
               link.end.nodePos,
-              link.bezierTop
+              link.bezierTop,
+              this.getCutOff(link.start.icon, true),
+              this.getCutOff(link.end.icon, false)
             )
           } else {
             ctx.beginPath()
-            ctx.moveTo(link.start.nodePos.x, link.start.nodePos.y)
-            ctx.lineTo(link.end.nodePos.x, link.end.nodePos.y)
+            ctx.moveTo(
+              link.start.nodePos.x,
+              link.start.nodePos.y + this.getCutOff(link.start.icon, true)
+            )
+            ctx.lineTo(
+              link.end.nodePos.x,
+              link.end.nodePos.y - this.getCutOff(link.end.icon, false)
+            )
             ctx.stroke()
           }
-          /*ctx.save()
-					ctx.translate(x, y)
-          const path = new Path2D(OcticonSymbol.mail.d)
-          ctx.stroke(path)
-          ctx.restore()*/
         }
 
+        for (let i = 0; i < this.nodeList.length; ++i) {
+          const node = this.nodeList[i]
+          this.setStyle(ctx, node.icon)
+          switch (node.icon) {
+            case NodeIcon.NORMAL:
+              ctx.beginPath()
+              ctx.arc(node.nodePos.x, node.nodePos.y, 4, 0, Math.PI * 2)
+              ctx.fill()
+              ctx.stroke()
+              break
+            case NodeIcon.HEAD:
+              ctx.beginPath()
+              ctx.arc(node.nodePos.x, node.nodePos.y, 5, 0, Math.PI * 2)
+              ctx.fill()
+              ctx.stroke()
+              break
+            case NodeIcon.MERGE:
+              ctx.save()
+              ctx.translate(
+                node.nodePos.x - OcticonSymbol.gitMerge.w / 2,
+                node.nodePos.y - OcticonSymbol.gitMerge.h / 2
+              )
+              const pathMerge = new Path2D(OcticonSymbol.gitMerge.d)
+              ctx.stroke(pathMerge)
+              ctx.restore()
+              break
+            case NodeIcon.BRANCH:
+              ctx.save()
+              ctx.translate(
+                node.nodePos.x - OcticonSymbol.gitBranch.w / 2,
+                node.nodePos.y - OcticonSymbol.gitBranch.h / 2
+              )
+              const pathBranch = new Path2D(OcticonSymbol.gitBranch.d)
+              ctx.stroke(pathBranch)
+              ctx.restore()
+              break
+          }
+        }
+      }
+    }
+  }
+
+  private getCutOff(icon: NodeIcon, isStart: boolean): number {
+    switch (icon) {
+      case NodeIcon.BRANCH:
+        if (isStart) {
+          return 7
+        } else {
+          return 7
+        }
+      case NodeIcon.MERGE:
+        if (isStart) {
+          return 4
+        } else {
+          return 3
+        }
+    }
+    return 0
+  }
+
+  private setStyle(ctx: CanvasRenderingContext2D, icon: NodeIcon) {
+    switch (icon) {
+      case NodeIcon.NORMAL:
+        ctx.lineWidth = 1
         if (getPersistedTheme() === ApplicationTheme.Light) {
           ctx.fillStyle = 'rgb(170,170,170)'
           ctx.strokeStyle = 'rgb(255,255,255)'
@@ -219,15 +308,26 @@ export class CommitGraph extends React.Component<
           ctx.fillStyle = '#586069'
           ctx.strokeStyle = '#24292e'
         }
-        ctx.lineWidth = 1
-        for (let i = 0; i < this.nodeList.length; ++i) {
-          const node = this.nodeList[i]
-          ctx.beginPath()
-          ctx.arc(node.nodePos.x, node.nodePos.y, 4, 0, Math.PI * 2)
-          ctx.fill()
-          ctx.stroke()
+        break
+      case NodeIcon.HEAD:
+        ctx.lineWidth = 3
+        if (getPersistedTheme() === ApplicationTheme.Light) {
+          ctx.fillStyle = 'rgb(255,255,255)'
+          ctx.strokeStyle = 'rgb(170,170,170)'
+        } else {
+          ctx.fillStyle = '#24292e'
+          ctx.strokeStyle = '#586069'
         }
-      }
+        break
+      default:
+        ctx.lineWidth = 1
+        if (getPersistedTheme() === ApplicationTheme.Light) {
+          ctx.fillStyle = 'rgb(255,255,255)'
+          ctx.strokeStyle = 'rgb(170,170,170)'
+        } else {
+          ctx.fillStyle = '#24292e'
+          ctx.strokeStyle = '#586069'
+        }
     }
   }
 }

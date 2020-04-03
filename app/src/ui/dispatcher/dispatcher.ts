@@ -1935,10 +1935,6 @@ export class Dispatcher {
     return this.appStore._updateCompareForm(repository, newState)
   }
 
-  public loadCommitsForGraph(repository: Repository, currentBranch: Branch, compareBranch: Branch) {
-    return this.appStore._loadCommitsForGraph(repository, currentBranch, compareBranch)
-  }
-
   /**
    *  update the manual resolution method for a file
    */

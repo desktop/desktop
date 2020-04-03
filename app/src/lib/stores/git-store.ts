@@ -1457,21 +1457,11 @@ export class GitStore extends BaseStore {
       behind = aheadBehind.behind
     }
 
-    let commits = await getCommits(
+    const commits = await getCommits(
       this.repository,
       revisionRange,
       commitsToLoad
     )
-
-    // Additional load commits from branch
-    if (comparisonMode === ComparisonMode.Graph) {
-      const branchCommits = await getCommits(
-        this.repository,
-        branch.name,
-        commitsToLoad
-      )
-      commits = commits.concat(branchCommits)
-    }
 
     if (commits.length > 0) {
       this.storeCommits(commits, true)
