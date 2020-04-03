@@ -81,11 +81,16 @@ export class CompareSidebar extends React.Component<
   public constructor(props: ICompareSidebarProps) {
     super(props)
 
+    let compareBranch: Branch | null = null
+    if (props.compareState.formState.kind === HistoryTabMode.Compare) {
+      const compareBranchState = props.compareState.formState as ICompareBranch
+      compareBranch = compareBranchState.comparisonBranch
+    }
     this.state = {
       focusedBranch: null,
       hasConsumedNotification: false,
       graph: null,
-      compareBranch: null,
+      compareBranch: compareBranch,
     }
   }
 
