@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
-import { sanitizedBranchName } from '../../lib/sanitize-branch'
+import { sanitizedRefName } from '../../lib/sanitize-ref-name'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
@@ -127,7 +127,7 @@ export class CreateTag extends React.Component<
   private updateTagName = (name: string) => {
     this.setState({
       proposedName: name,
-      sanitizedName: sanitizedBranchName(name),
+      sanitizedName: sanitizedRefName(name),
     })
   }
 
