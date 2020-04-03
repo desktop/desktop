@@ -17,3 +17,18 @@ export async function createTag(
 
   await git(args, repository.path, 'createTag')
 }
+
+/**
+ * Gets all the local tags.
+ *
+ * @param repository    The repository in which to get all the tags from.
+ */
+export async function getAllTags(
+  repository: Repository
+): Promise<ReadonlyArray<string>> {
+  const args = ['tag']
+
+  const tags = await git(args, repository.path, 'getAllTags')
+
+  return tags.stdout.split('\n').filter(Boolean)
+}

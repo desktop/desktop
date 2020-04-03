@@ -1,5 +1,10 @@
 import { Repository } from '../../../src/models/repository'
-import { getCommit, createTag, getCommits } from '../../../src/lib/git'
+import {
+  getCommit,
+  createTag,
+  getCommits,
+  getAllTags,
+} from '../../../src/lib/git'
 
 import { setupFixtureRepository } from '../../helpers/repositories'
 
@@ -47,6 +52,22 @@ describe('git/tag', () => {
       expect(createTag(repository, 'my-new-tag', 'HEAD')).rejects.toThrow(
         /already exists/i
       )
+    })
+  })
+
+  describe('getAllTags', () => {
+    it('returns an empty array when the repository has no tags', async () => {
+      expect(await getAllTags(repository)).toEqual([])
+    })
+
+    it('returns all the created tags', async () => {
+      await createTag(repository, 'my-new-tag', 'HEAD')
+      await createTag(repository, 'another-tag', 'HEAD')
+
+      expect(await getAllTags(repository)).toIncludeAllMembers([
+        'my-new-tag',
+        'another-tag',
+      ])
     })
   })
 })
