@@ -12,6 +12,7 @@ import { IGitHubUser } from '../../lib/databases/github-user-database'
 import { AvatarStack } from '../lib/avatar-stack'
 import { IMenuItem } from '../../lib/menu-item'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { enableGitTagsCreation } from '../../lib/feature-flag'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
@@ -150,11 +151,17 @@ export class CommitListItem extends React.Component<
         },
         enabled: this.props.onRevertCommit !== undefined,
       },
-      {
+    ]
+
+    if (enableGitTagsCreation()) {
+      items.push({
         label: 'Create Tag…',
         action: this.onCreateTag,
         enabled: !!this.props.onCreateTag,
-      },
+      })
+    }
+
+    items.push(
       { type: 'separator' },
       {
         label: 'Copy SHA',
@@ -164,8 +171,8 @@ export class CommitListItem extends React.Component<
         label: viewOnGitHubLabel,
         action: this.onViewOnGitHub,
         enabled: !this.props.isLocal && !!gitHubRepository,
-      },
-    ]
+      }
+    )
 
     showContextualMenu(items)
   }
