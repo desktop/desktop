@@ -90,7 +90,7 @@ export class CompareSidebar extends React.Component<
       focusedBranch: null,
       hasConsumedNotification: false,
       graph: null,
-      compareBranch: compareBranch,
+      compareBranch,
     }
   }
 

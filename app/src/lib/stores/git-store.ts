@@ -1469,8 +1469,8 @@ export class GitStore extends BaseStore {
 
     return {
       commits,
-      ahead: ahead,
-      behind: behind,
+      ahead,
+      behind,
     }
   }
 
