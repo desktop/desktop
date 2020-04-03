@@ -30,5 +30,5 @@ export async function getAllTags(
 
   const tags = await git(args, repository.path, 'getAllTags')
 
-  return tags.stdout.split('\n').filter(Boolean)
+  return tags.stdout.split('\n').filter(s => s !== '')
 }
