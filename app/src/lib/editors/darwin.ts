@@ -12,6 +12,7 @@ export enum ExternalEditor {
   SublimeText = 'Sublime Text',
   BBEdit = 'BBEdit',
   PhpStorm = 'PhpStorm',
+  PyCharm = 'PyCharm',
   RubyMine = 'RubyMine',
   TextMate = 'TextMate',
   Brackets = 'Brackets',
@@ -23,6 +24,7 @@ export enum ExternalEditor {
   Xcode = 'Xcode',
   GoLand = 'GoLand',
   AndroidStudio = 'Android Studio',
+  Rider = 'Rider',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -51,6 +53,9 @@ export function parse(label: string): ExternalEditor | null {
   }
   if (label === ExternalEditor.PhpStorm) {
     return ExternalEditor.PhpStorm
+  }
+  if (label === ExternalEditor.PyCharm) {
+    return ExternalEditor.PyCharm
   }
   if (label === ExternalEditor.RubyMine) {
     return ExternalEditor.RubyMine
@@ -85,6 +90,9 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.AndroidStudio) {
     return ExternalEditor.AndroidStudio
   }
+  if (label === ExternalEditor.Rider) {
+    return ExternalEditor.Rider
+  }
   return null
 }
 
@@ -111,6 +119,8 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['com.barebones.bbedit']
     case ExternalEditor.PhpStorm:
       return ['com.jetbrains.PhpStorm']
+    case ExternalEditor.PyCharm:
+      return ['com.jetbrains.PyCharm']
     case ExternalEditor.RubyMine:
       return ['com.jetbrains.RubyMine']
     case ExternalEditor.IntelliJ:
@@ -138,6 +148,8 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['com.jetbrains.goland']
     case ExternalEditor.AndroidStudio:
       return ['com.google.android.studio']
+    case ExternalEditor.Rider:
+      return ['com.jetbrains.rider']
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -177,6 +189,8 @@ function getExecutableShim(
       return Path.join(installPath, 'Contents', 'Helpers', 'bbedit_tool')
     case ExternalEditor.PhpStorm:
       return Path.join(installPath, 'Contents', 'MacOS', 'phpstorm')
+    case ExternalEditor.PyCharm:
+      return Path.join(installPath, 'Contents', 'MacOS', 'pycharm')
     case ExternalEditor.RubyMine:
       return Path.join(installPath, 'Contents', 'MacOS', 'rubymine')
     case ExternalEditor.TextMate:
@@ -199,6 +213,8 @@ function getExecutableShim(
       return Path.join(installPath, 'Contents', 'MacOS', 'goland')
     case ExternalEditor.AndroidStudio:
       return Path.join(installPath, 'Contents', 'MacOS', 'studio')
+    case ExternalEditor.Rider:
+      return Path.join(installPath, 'Contents', 'MacOS', 'rider')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -242,6 +258,7 @@ export async function getAvailableEditors(): Promise<
     sublimePath,
     bbeditPath,
     phpStormPath,
+    pyCharmPath,
     rubyMinePath,
     textMatePath,
     bracketsPath,
@@ -253,6 +270,7 @@ export async function getAvailableEditors(): Promise<
     xcodePath,
     golandPath,
     androidStudioPath,
+    riderPath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.MacVim),
@@ -262,6 +280,7 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.SublimeText),
     findApplication(ExternalEditor.BBEdit),
     findApplication(ExternalEditor.PhpStorm),
+    findApplication(ExternalEditor.PyCharm),
     findApplication(ExternalEditor.RubyMine),
     findApplication(ExternalEditor.TextMate),
     findApplication(ExternalEditor.Brackets),
@@ -273,6 +292,7 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.Xcode),
     findApplication(ExternalEditor.GoLand),
     findApplication(ExternalEditor.AndroidStudio),
+    findApplication(ExternalEditor.Rider),
   ])
 
   if (atomPath) {
@@ -308,6 +328,10 @@ export async function getAvailableEditors(): Promise<
 
   if (phpStormPath) {
     results.push({ editor: ExternalEditor.PhpStorm, path: phpStormPath })
+  }
+
+  if (pyCharmPath) {
+    results.push({ editor: ExternalEditor.PyCharm, path: pyCharmPath })
   }
 
   if (rubyMinePath) {
@@ -355,6 +379,10 @@ export async function getAvailableEditors(): Promise<
       editor: ExternalEditor.AndroidStudio,
       path: androidStudioPath,
     })
+  }
+
+  if (riderPath) {
+    results.push({ editor: ExternalEditor.Rider, path: riderPath })
   }
 
   return results

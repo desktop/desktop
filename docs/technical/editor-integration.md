@@ -33,6 +33,7 @@ These editors are currently supported:
  - [SlickEdit](https://www.slickedit.com)
  - [JetBrains WebStorm](https://www.jetbrains.com/webstorm/)
  - [JetBrains Phpstorm](https://www.jetbrains.com/phpstorm/)
+ - [JetBrains Rider](https://www.jetbrains.com/rider/)
  - [Notepad++](https://notepad-plus-plus.org/)
 
 These are defined in an enum at the top of the file:
@@ -52,6 +53,7 @@ export enum ExternalEditor {
   Webstorm = 'JetBrains Webstorm',
   Phpstorm = 'JetBrains Phpstorm',
   NotepadPlusPlus = 'Notepad++',
+  Rider = 'JetBrains Rider',
 }
 ```
 
@@ -262,6 +264,7 @@ These editors are currently supported:
  - [Sublime Text](https://www.sublimetext.com/)
  - [BBEdit](http://www.barebones.com/products/bbedit/)
  - [JetBrains PhpStorm](https://www.jetbrains.com/phpstorm/)
+ - [JetBrains PyCharm](https://www.jetbrains.com/pycharm/)
  - [JetBrains RubyMine](https://www.jetbrains.com/rubymine/)
  - [TextMate](https://macromates.com)
  - [Brackets](http://brackets.io/)
@@ -275,6 +278,7 @@ These editors are currently supported:
  - [Xcode](https://developer.apple.com/xcode/)
  - [JetBrains GoLand](https://www.jetbrains.com/go/)
  - [Android Studio](https://developer.android.com/studio)
+ - [JetBrains Rider](https://www.jetbrains.com/rider/)
 
 These are defined in an enum at the top of the file:
 
