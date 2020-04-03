@@ -24,6 +24,7 @@ export enum ExternalEditor {
   Xcode = 'Xcode',
   GoLand = 'GoLand',
   AndroidStudio = 'Android Studio',
+  Rider = 'Rider',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -89,6 +90,9 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.AndroidStudio) {
     return ExternalEditor.AndroidStudio
   }
+  if (label === ExternalEditor.Rider) {
+    return ExternalEditor.Rider
+  }
   return null
 }
 
@@ -144,6 +148,8 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['com.jetbrains.goland']
     case ExternalEditor.AndroidStudio:
       return ['com.google.android.studio']
+    case ExternalEditor.Rider:
+      return ['com.jetbrains.rider']
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -207,6 +213,8 @@ function getExecutableShim(
       return Path.join(installPath, 'Contents', 'MacOS', 'goland')
     case ExternalEditor.AndroidStudio:
       return Path.join(installPath, 'Contents', 'MacOS', 'studio')
+    case ExternalEditor.Rider:
+      return Path.join(installPath, 'Contents', 'MacOS', 'rider')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -262,6 +270,7 @@ export async function getAvailableEditors(): Promise<
     xcodePath,
     golandPath,
     androidStudioPath,
+    riderPath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.MacVim),
@@ -283,6 +292,7 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.Xcode),
     findApplication(ExternalEditor.GoLand),
     findApplication(ExternalEditor.AndroidStudio),
+    findApplication(ExternalEditor.Rider),
   ])
 
   if (atomPath) {
@@ -369,6 +379,10 @@ export async function getAvailableEditors(): Promise<
       editor: ExternalEditor.AndroidStudio,
       path: androidStudioPath,
     })
+  }
+
+  if (riderPath) {
+    results.push({ editor: ExternalEditor.Rider, path: riderPath })
   }
 
   return results
