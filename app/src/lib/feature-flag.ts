@@ -21,6 +21,10 @@ function enableDevelopmentFeatures(): boolean {
   return false
 }
 
+export function enableProgressBarOnIcon(): boolean {
+  return enableDevelopmentFeatures()
+}
+
 /** Should the app enable beta features? */
 //@ts-ignore: this will be used again in the future
 function enableBetaFeatures(): boolean {
