@@ -14,15 +14,23 @@ interface ICommitGraphProps {
 
 interface ICommitGraphState {}
 
+class NodePos {
+  public x: number = 0
+  public y: number = 0
+}
+
 class Node {
   public sha: string = ''
   public isLeft: boolean = true
   public parentSHAs: string[] = []
+  public nodePos: NodePos = new NodePos()
 }
 
-class NodePos {
-  public x: number = 0
-  public y: number = 1
+class Link {
+  public start: Node | null = null
+  public end: Node | null = null
+  public isBezier: boolean = false
+  public bezierTop: boolean = false
 }
 
 export class CommitGraph extends React.Component<
@@ -32,6 +40,7 @@ export class CommitGraph extends React.Component<
   private canvas: HTMLCanvasElement | null = null
   private nodeList: Array<Node> = []
   private nodeMap: Map<string, Node> = new Map<string, Node>()
+  private linkList: Array<Link> = []
   private apartX = 15
 
   public constructor(props: ICommitGraphProps) {
@@ -64,6 +73,49 @@ export class CommitGraph extends React.Component<
         compareCommit = this.props.commitLookup.get(commit.parentSHAs[0])
       }
     }
+
+    const positionMap = new Map<string, Node[]>()
+    let beforeIsLeft = false
+    for (let i = 0; i < this.nodeList.length; ++i) {
+      const node = this.nodeList[i]
+      let x = this.apartX
+      const y = this.props.height / 2 + i * this.props.height
+      if (!node.isLeft) {
+        x += this.apartX
+      }
+      node.nodePos.x = x
+      node.nodePos.y = y
+      node.parentSHAs.forEach(sha => {
+        const parentNode = this.nodeMap.get(sha)
+        if (parentNode !== undefined) {
+          let posList = positionMap.get(sha)
+          if (posList === undefined) {
+            posList = []
+            positionMap.set(sha, posList)
+          }
+          posList.push(node)
+        }
+      })
+      const prevPosList = positionMap.get(node.sha)
+      if (prevPosList !== undefined) {
+        prevPosList.forEach(prevNode => {
+          const link = new Link()
+          link.start = prevNode
+          link.end = node
+          const prevPos = prevNode.nodePos
+          if (prevPos.x !== x) {
+            link.isBezier = true
+            link.bezierTop =
+              (prevPos.x < x && beforeIsLeft) ||
+              (prevPos.x >= x && !beforeIsLeft)
+          } else {
+            link.isBezier = false
+          }
+          this.linkList.push(link)
+        })
+      }
+      beforeIsLeft = node.isLeft
+    }
   }
 
   public render() {
@@ -78,21 +130,20 @@ export class CommitGraph extends React.Component<
   private drawBezier(
     ctx: CanvasRenderingContext2D,
     prevPos: NodePos,
-    x: number,
-    y: number,
+    curPos: NodePos,
     top: boolean
   ) {
     if (top) {
-      if (y - prevPos.y > this.props.height * 1.1) {
+      if (curPos.y - prevPos.y > this.props.height * 1.1) {
         ctx.beginPath()
-        ctx.moveTo(x, y)
-        ctx.lineTo(x, prevPos.y + this.props.height)
+        ctx.moveTo(curPos.x, curPos.y)
+        ctx.lineTo(curPos.x, prevPos.y + this.props.height)
         ctx.stroke()
       }
       ctx.beginPath()
-      ctx.moveTo(x, prevPos.y + this.props.height)
+      ctx.moveTo(curPos.x, prevPos.y + this.props.height)
       ctx.bezierCurveTo(
-        x,
+        curPos.x,
         prevPos.y + this.props.height * 0.3,
         prevPos.x,
         prevPos.y + this.props.height * 0.7,
@@ -101,21 +152,21 @@ export class CommitGraph extends React.Component<
       )
       ctx.stroke()
     } else {
-      if (y - prevPos.y > this.props.height * 1.1) {
+      if (curPos.y - prevPos.y > this.props.height * 1.1) {
         ctx.beginPath()
         ctx.moveTo(prevPos.x, prevPos.y)
-        ctx.lineTo(prevPos.x, y - this.props.height)
+        ctx.lineTo(prevPos.x, curPos.y - this.props.height)
         ctx.stroke()
       }
       ctx.beginPath()
-      ctx.moveTo(prevPos.x, y - this.props.height)
+      ctx.moveTo(prevPos.x, curPos.y - this.props.height)
       ctx.bezierCurveTo(
         prevPos.x,
-        y - this.props.height * 0.3,
-        x,
-        y - this.props.height * 0.7,
-        x,
-        y
+        curPos.y - this.props.height * 0.3,
+        curPos.x,
+        curPos.y - this.props.height * 0.7,
+        curPos.x,
+        curPos.y
       )
       ctx.stroke()
     }
@@ -136,55 +187,24 @@ export class CommitGraph extends React.Component<
           ctx.strokeStyle = '#586069'
         }
         ctx.lineWidth = 2
-        const positionMap = new Map<string, NodePos[]>()
-        let beforeIsLeft = false
-        for (let i = 0; i < this.nodeList.length; ++i) {
-          const node = this.nodeList[i]
-          let x = this.apartX
-          const y = this.props.height / 2 + i * this.props.height
-          if (!node.isLeft) {
-            x += this.apartX
+        for (let i = 0; i < this.linkList.length; ++i) {
+          const link = this.linkList[i]
+          if (link.start == null || link.end == null) {
+            continue
           }
-          node.parentSHAs.forEach(sha => {
-            const parentNode = this.nodeMap.get(sha)
-            if (parentNode !== undefined) {
-              const nodePos = new NodePos()
-              nodePos.x = x
-              nodePos.y = y
-              let posList = positionMap.get(sha)
-              if (posList === undefined) {
-                posList = []
-                positionMap.set(sha, posList)
-              }
-              posList.push(nodePos)
-            }
-          })
-          const prevPosList = positionMap.get(node.sha)
-          if (prevPosList !== undefined) {
-            prevPosList.forEach(prevPos => {
-              if (prevPos.x !== x) {
-                if (prevPos.x < x) {
-                  if (beforeIsLeft) {
-                    this.drawBezier(ctx, prevPos, x, y, true)
-                  } else {
-                    this.drawBezier(ctx, prevPos, x, y, false)
-                  }
-                } else {
-                  if (beforeIsLeft) {
-                    this.drawBezier(ctx, prevPos, x, y, false)
-                  } else {
-                    this.drawBezier(ctx, prevPos, x, y, true)
-                  }
-                }
-              } else {
-                ctx.beginPath()
-                ctx.moveTo(prevPos.x, prevPos.y)
-                ctx.lineTo(x, y)
-                ctx.stroke()
-              }
-            })
+          if (link.isBezier) {
+            this.drawBezier(
+              ctx,
+              link.start.nodePos,
+              link.end.nodePos,
+              link.bezierTop
+            )
+          } else {
+            ctx.beginPath()
+            ctx.moveTo(link.start.nodePos.x, link.start.nodePos.y)
+            ctx.lineTo(link.end.nodePos.x, link.end.nodePos.y)
+            ctx.stroke()
           }
-          beforeIsLeft = node.isLeft
           /*ctx.save()
 					ctx.translate(x, y)
           const path = new Path2D(OcticonSymbol.mail.d)
@@ -202,13 +222,8 @@ export class CommitGraph extends React.Component<
         ctx.lineWidth = 1
         for (let i = 0; i < this.nodeList.length; ++i) {
           const node = this.nodeList[i]
-          let x = this.apartX
-          const y = this.props.height / 2 + i * this.props.height
-          if (!node.isLeft) {
-            x += this.apartX
-          }
           ctx.beginPath()
-          ctx.arc(x, y, 4, 0, Math.PI * 2)
+          ctx.arc(node.nodePos.x, node.nodePos.y, 4, 0, Math.PI * 2)
           ctx.fill()
           ctx.stroke()
         }
