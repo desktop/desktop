@@ -121,6 +121,10 @@
     list-style: none;
     margin: 0;
     padding: 0 var(--spacing) var(--spacing);
+
+    .checkbox-component {
+      margin-left: auto;
+    }
   }
 
   &-meta-item:not(.without-truncation) {
@@ -149,10 +153,4 @@
   &-header {
     border-bottom: var(--base-border);
   }
-}
-
-.checkbox-component {
-  flex-grow: 1;
-  justify-content: flex-end;
-  flex-shrink: 0;
 }
