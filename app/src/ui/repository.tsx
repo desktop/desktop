@@ -211,6 +211,7 @@ export class RepositoryView extends React.Component<
     return (
       <CompareSidebar
         repository={this.props.repository}
+        isLocalRepository={this.props.state.remote === null}
         compareState={this.props.state.compareState}
         selectedCommitSha={this.props.state.commitSelection.sha}
         currentBranch={currentBranch}
