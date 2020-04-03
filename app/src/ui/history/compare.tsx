@@ -62,6 +62,7 @@ interface ICompareSidebarState {
    */
   readonly hasConsumedNotification: boolean
   readonly graph: CommitGraph | null
+  readonly compareBranch: Branch | null
 }
 
 /** If we're within this many rows from the bottom, load the next history batch. */
@@ -84,6 +85,7 @@ export class CompareSidebar extends React.Component<
       focusedBranch: null,
       hasConsumedNotification: false,
       graph: null,
+      compareBranch: null,
     }
   }
 
@@ -284,18 +286,26 @@ export class CompareSidebar extends React.Component<
 
   private renderActiveTab(view: ICompareBranch) {
     if (view.comparisonMode === ComparisonMode.Graph) {
-      if (this.state.focusedBranch != null) {
-        this.props.dispatcher.loadCommitsFromBranch(
-          this.props.repository,
-          this.state.focusedBranch
+      if (
+        this.props.currentBranch !== null &&
+        this.state.compareBranch !== null
+      ) {
+        return (
+          <div className="compare-graph">
+            <CommitGraph
+              ref={this.refGraph}
+              commitSHAs={this.props.compareState.commitSHAs}
+              commitLookup={this.props.commitLookup}
+              currentBranch={this.props.currentBranch}
+              compareBranch={this.state.compareBranch}
+              height={50}
+            />
+            <div className="compare-commit-list">{this.renderCommitList()}</div>
+          </div>
         )
+      } else {
+        return
       }
-      return (
-        <div className="compare-graph">
-          <CommitGraph ref={this.refGraph} />
-          <div className="compare-commit-list">{this.renderCommitList()}</div>
-        </div>
-      )
     } else {
       return (
         <div className="compare-commit-list">
@@ -369,11 +379,24 @@ export class CompareSidebar extends React.Component<
         : ComparisonMode.Graph
     const branch = formState.comparisonBranch
 
-    this.props.dispatcher.executeCompare(this.props.repository, {
-      kind: HistoryTabMode.Compare,
-      branch,
-      comparisonMode,
-    })
+    if (comparisonMode === ComparisonMode.Graph) {
+      if (
+        this.props.currentBranch !== null &&
+        this.state.compareBranch !== null
+      ) {
+        this.props.dispatcher.loadCommitsForGraph(
+          this.props.repository,
+          this.props.currentBranch,
+          this.state.compareBranch
+        )
+      }
+    } else {
+      this.props.dispatcher.executeCompare(this.props.repository, {
+        kind: HistoryTabMode.Compare,
+        branch,
+        comparisonMode,
+      })
+    }
   }
 
   private renderTabBar(formState: ICompareBranch) {
@@ -552,6 +575,7 @@ export class CompareSidebar extends React.Component<
 
     this.setState({
       focusedBranch: null,
+      compareBranch: branch,
     })
 
     this.props.dispatcher.updateCompareForm(this.props.repository, {

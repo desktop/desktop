@@ -232,7 +232,10 @@ export class GitStore extends BaseStore {
   }
 
   /** Load a batch of commits from the repository, using a given commitish object as the starting point */
-  public async loadCommitBatch(commitish: string) {
+  public async loadCommitBatch(
+    commitish: string,
+    additionalArgs: ReadonlyArray<string> = []
+  ) {
     if (this.requestsInFight.has(LoadingHistoryRequestKey)) {
       return null
     }
@@ -245,7 +248,7 @@ export class GitStore extends BaseStore {
     this.requestsInFight.add(requestKey)
 
     const commits = await this.performFailableOperation(() =>
-      getCommits(this.repository, commitish, CommitBatchSize)
+      getCommits(this.repository, commitish, CommitBatchSize, additionalArgs)
     )
 
     this.requestsInFight.delete(requestKey)

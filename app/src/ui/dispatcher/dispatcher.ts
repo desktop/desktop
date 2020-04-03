@@ -1935,8 +1935,8 @@ export class Dispatcher {
     return this.appStore._updateCompareForm(repository, newState)
   }
 
-  public loadCommitsFromBranch(repository: Repository, branch: Branch) {
-    return this.appStore._loadCommitsFromBranch(repository, branch)
+  public loadCommitsForGraph(repository: Repository, currentBranch: Branch, compareBranch: Branch) {
+    return this.appStore._loadCommitsForGraph(repository, currentBranch, compareBranch)
   }
 
   /**

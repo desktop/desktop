@@ -45,7 +45,8 @@
     display: flex;
 
     canvas {
-      width: 60px;
+      border-right: var(--base-border);
+      width: 45px;
     }
   }
 

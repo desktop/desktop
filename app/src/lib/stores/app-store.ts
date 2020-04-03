@@ -1308,19 +1308,103 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _loadCommitsFromBranch(
-    repository: Repository,
-    branch: Branch
-  ): Promise<string[]> {
-    const gitStore = this.gitStoreCache.get(repository)
-    const commits = await gitStore.loadCommitBatch(branch.name)
-
-    if (commits === null) {
-      throw Error('no commits from ' + branch.name)
+  private sortCommitsForGraph(
+    gitStore: GitStore,
+    currentSHAs: string[],
+    compareSHAs: string[]
+  ): string[] {
+    const result: Commit[] = []
+    let i = 0,
+      j = 0
+    let commitCurrentBranch: Commit | undefined = undefined
+    let commitCompareBranch: Commit | undefined = undefined
+    while (i < currentSHAs.length || j < compareSHAs.length) {
+      if (commitCurrentBranch === undefined && i < currentSHAs.length) {
+        commitCurrentBranch = gitStore.commitLookup.get(currentSHAs[i++])
+      }
+      if (commitCompareBranch === undefined && j < compareSHAs.length) {
+        commitCompareBranch = gitStore.commitLookup.get(compareSHAs[j++])
+      }
+      if (
+        commitCurrentBranch === undefined &&
+        commitCompareBranch !== undefined
+      ) {
+        result.push(commitCompareBranch)
+        commitCompareBranch = undefined
+      } else if (
+        commitCurrentBranch !== undefined &&
+        commitCompareBranch === undefined
+      ) {
+        result.push(commitCurrentBranch)
+        commitCurrentBranch = undefined
+      } else if (
+        commitCurrentBranch !== undefined &&
+        commitCompareBranch !== undefined
+      ) {
+        if (commitCurrentBranch.sha === commitCompareBranch.sha) {
+          result.push(commitCurrentBranch)
+          commitCurrentBranch = undefined
+          commitCompareBranch = undefined
+        } else if (
+          commitCurrentBranch.committer.date >
+          commitCompareBranch.committer.date
+        ) {
+          result.push(commitCurrentBranch)
+          commitCurrentBranch = undefined
+        } else {
+          result.push(commitCompareBranch)
+          commitCompareBranch = undefined
+        }
+      }
     }
 
-    return commits
+    return result.map(commit => commit.sha)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _loadCommitsForGraph(
+    repository: Repository,
+    currentBranch: Branch,
+    comparisonBranch: Branch
+  ): Promise<string[] | null> {
+    const gitStore = this.gitStoreCache.get(repository)
+    const currentSHAs = await gitStore.loadCommitBatch(currentBranch.name)
+    if (currentSHAs == null) {
+      return null
+    }
+    const oldestCommitCurrentBranch = gitStore.commitLookup.get(
+      currentSHAs[currentSHAs.length - 1]
+    )
+    let compareSHAs: string[] | null = []
+    if (oldestCommitCurrentBranch !== undefined) {
+      compareSHAs = await gitStore.loadCommitBatch(comparisonBranch.name, [
+        '--after=' + oldestCommitCurrentBranch.committer.date,
+      ])
+      if (compareSHAs == null) {
+        return null
+      }
+    }
+    const commitSHAs = this.sortCommitsForGraph(
+      gitStore,
+      currentSHAs,
+      compareSHAs
+    )
+
+    const newState: ICompareBranch = {
+      kind: HistoryTabMode.Compare,
+      comparisonBranch,
+      comparisonMode: ComparisonMode.Graph,
+			aheadBehind: { ahead: 0, behind: 0 },
+    }
+    this.repositoryStateCache.updateCompareState(repository, s => ({
+      formState: newState,
+      filterText: comparisonBranch.name,
+      commitSHAs,
+    }))
+
+    this.emitUpdate()
+
+    return commitSHAs
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
