@@ -67,8 +67,8 @@ export class CommitGraph extends React.Component<
       this.backgroundColor = '#24292e'
       this.strokeColor = '#6a737d'
     }
-    let currentCommit: Commit | undefined = this.props.currentBranch.tip
-    let compareCommit: Commit | undefined = this.props.compareBranch.tip
+    let currentCommitSHA: string = this.props.currentBranch.tip.sha
+    let compareCommitSHA: string = this.props.compareBranch.tip.sha
     for (let i = 0; i < this.props.commitSHAs.length; ++i) {
       const commit = this.props.commitLookup.get(this.props.commitSHAs[i])
       if (commit === undefined) {
@@ -79,15 +79,12 @@ export class CommitGraph extends React.Component<
       commit.parentSHAs.forEach(sha => node.parentSHAs.push(sha))
       this.nodeList.push(node)
       this.nodeMap.set(commit.sha, node)
-      if (currentCommit !== undefined && commit.sha === currentCommit.sha) {
+      if (commit.sha === currentCommitSHA) {
         node.isLeft = true
-        currentCommit = this.props.commitLookup.get(commit.parentSHAs[0])
-      } else if (
-        compareCommit !== undefined &&
-        commit.sha === compareCommit.sha
-      ) {
+        currentCommitSHA = commit.parentSHAs[0]
+      } else if (commit.sha === compareCommitSHA) {
         node.isLeft = false
-        compareCommit = this.props.commitLookup.get(commit.parentSHAs[0])
+        compareCommitSHA = commit.parentSHAs[0]
       }
     }
 
