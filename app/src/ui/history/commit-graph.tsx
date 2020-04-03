@@ -41,6 +41,8 @@ class Link {
   public bezierTop: boolean = false
 }
 
+const APART_X = 15
+
 export class CommitGraph extends React.Component<
   ICommitGraphProps,
   ICommitGraphState
@@ -49,7 +51,8 @@ export class CommitGraph extends React.Component<
   private nodeList: Array<Node> = []
   private nodeMap: Map<string, Node> = new Map<string, Node>()
   private linkList: Array<Link> = []
-  private apartX = 15
+  private strokeColor: string = ''
+  private backgroundColor: string = ''
 
   public constructor(props: ICommitGraphProps) {
     super(props)
@@ -57,7 +60,13 @@ export class CommitGraph extends React.Component<
       focusedBranch: null,
       hasConsumedNotification: false,
     }
-
+    if (getPersistedTheme() === ApplicationTheme.Light) {
+      this.backgroundColor = '#FFFFFF'
+      this.strokeColor = '#959da5'
+    } else {
+      this.backgroundColor = '#24292e'
+      this.strokeColor = '#6a737d'
+    }
     let currentCommit: Commit | undefined = this.props.currentBranch.tip
     let compareCommit: Commit | undefined = this.props.compareBranch.tip
     for (let i = 0; i < this.props.commitSHAs.length; ++i) {
@@ -86,10 +95,10 @@ export class CommitGraph extends React.Component<
     let beforeIsLeft = false
     for (let i = 0; i < this.nodeList.length; ++i) {
       const node = this.nodeList[i]
-      let x = this.apartX
+      let x = APART_X
       const y = this.props.height / 2 + i * this.props.height
       if (!node.isLeft) {
-        x += this.apartX
+        x += APART_X
       }
       node.nodePos.x = x
       node.nodePos.y = y
@@ -201,13 +210,8 @@ export class CommitGraph extends React.Component<
       const ctx = this.canvas.getContext('2d')
       if (ctx != null) {
         ctx.translate(0, -scrollTop)
-        if (getPersistedTheme() === ApplicationTheme.Light) {
-          ctx.fillStyle = 'rgb(255,255,255)'
-          ctx.strokeStyle = 'rgb(170,170,170)'
-        } else {
-          ctx.fillStyle = '#24292e'
-          ctx.strokeStyle = '#586069'
-        }
+        ctx.fillStyle = this.backgroundColor
+        ctx.strokeStyle = this.strokeColor
         ctx.lineWidth = 2
         for (let i = 0; i < this.linkList.length; ++i) {
           const link = this.linkList[i]
@@ -301,33 +305,18 @@ export class CommitGraph extends React.Component<
     switch (icon) {
       case NodeIcon.NORMAL:
         ctx.lineWidth = 1
-        if (getPersistedTheme() === ApplicationTheme.Light) {
-          ctx.fillStyle = 'rgb(170,170,170)'
-          ctx.strokeStyle = 'rgb(255,255,255)'
-        } else {
-          ctx.fillStyle = '#586069'
-          ctx.strokeStyle = '#24292e'
-        }
+        ctx.fillStyle = this.strokeColor
+        ctx.strokeStyle = this.backgroundColor
         break
       case NodeIcon.HEAD:
         ctx.lineWidth = 3
-        if (getPersistedTheme() === ApplicationTheme.Light) {
-          ctx.fillStyle = 'rgb(255,255,255)'
-          ctx.strokeStyle = 'rgb(170,170,170)'
-        } else {
-          ctx.fillStyle = '#24292e'
-          ctx.strokeStyle = '#586069'
-        }
+        ctx.fillStyle = this.backgroundColor
+        ctx.strokeStyle = this.strokeColor
         break
       default:
         ctx.lineWidth = 1
-        if (getPersistedTheme() === ApplicationTheme.Light) {
-          ctx.fillStyle = 'rgb(255,255,255)'
-          ctx.strokeStyle = 'rgb(170,170,170)'
-        } else {
-          ctx.fillStyle = '#24292e'
-          ctx.strokeStyle = '#586069'
-        }
+        ctx.fillStyle = this.backgroundColor
+        ctx.strokeStyle = this.strokeColor
     }
   }
 }
