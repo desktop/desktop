@@ -32,3 +32,17 @@ export async function getAllTags(
 
   return tags.stdout.split('\n').filter(s => s !== '')
 }
+
+/**
+ * Gets tags in the history of the commit.
+ */
+export async function getTags(
+  repository: Repository,
+  commitish: string
+): Promise<ReadonlyArray<string>> {
+  const args = ['tag', '--merged', commitish]
+
+  const tags = await git(args, repository.path, 'getBranchTags')
+
+  return tags.stdout.split('\n').filter(s => s !== '')
+}
