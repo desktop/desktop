@@ -21,8 +21,9 @@ function enableDevelopmentFeatures(): boolean {
   return false
 }
 
+/** Should we show progress bars on the Windows app taskbar icon? */
 export function enableProgressBarOnIcon(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
 
 /** Should the app enable beta features? */
