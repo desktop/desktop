@@ -369,6 +369,8 @@ function getDescriptionForError(error: DugiteError): string | null {
       return null
     case DugiteError.RemoteAlreadyExists:
       return null
+    case DugiteError.TagAlreadyExists:
+      return null
     default:
       return assertNever(error, `Unknown error: ${error}`)
   }
