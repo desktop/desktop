@@ -11,7 +11,10 @@ import { getAvatarUsersForCommit, IAvatarUser } from '../../models/avatar'
 import { AvatarStack } from '../lib/avatar-stack'
 import { CommitAttribution } from '../lib/commit-attribution'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
-import { enableHideWhitespaceInDiffOption } from '../../lib/feature-flag'
+import {
+  enableHideWhitespaceInDiffOption,
+  enableGitTagsDisplay,
+} from '../../lib/feature-flag'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -342,16 +345,15 @@ export class CommitSummary extends React.Component<
               <span className="sha">{shortSHA}</span>
             </li>
 
-            <li
-              className="commit-summary-meta-item commit-summary-file-name"
-              title={filesDescription}
-            >
+            <li className="commit-summary-meta-item" title={filesDescription}>
               <span aria-hidden="true">
                 <Octicon symbol={OcticonSymbol.diff} />
               </span>
 
               {filesDescription}
             </li>
+            {this.renderTags()}
+
             {enableHideWhitespaceInDiffOption() && (
               <Checkbox
                 label="Hide Whitespace"
@@ -368,6 +370,28 @@ export class CommitSummary extends React.Component<
 
         {this.renderDescription()}
       </div>
+    )
+  }
+
+  private renderTags() {
+    if (!enableGitTagsDisplay()) {
+      return null
+    }
+
+    const tags = this.props.commit.tags || []
+
+    if (tags.length === 0) {
+      return null
+    }
+
+    return (
+      <li className="commit-summary-meta-item">
+        <span aria-label="Tags">
+          <Octicon symbol={OcticonSymbol.tag} />
+        </span>
+
+        {tags.join(', ')}
+      </li>
     )
   }
 }

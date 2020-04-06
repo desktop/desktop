@@ -160,3 +160,10 @@ export function enableUpdateRemoteUrl(): boolean {
 export function enableForkyCreateBranchUI(): boolean {
   return true
 }
+
+/**
+ * Should we show the git tag information in the app UI?
+ */
+export function enableGitTagsDisplay(): boolean {
+  return enableDevelopmentFeatures()
+}

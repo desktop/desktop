@@ -121,14 +121,14 @@
     list-style: none;
     margin: 0;
     padding: 0 var(--spacing) var(--spacing);
+
+    .checkbox-component {
+      margin-left: auto;
+    }
   }
 
   &-meta-item:not(.without-truncation) {
     @include ellipsis;
-  }
-
-  &-file-name {
-    flex-grow: 1;
   }
 
   &-meta-item {
