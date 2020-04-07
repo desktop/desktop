@@ -5,7 +5,6 @@ import { GitHubRepository } from '../../src/models/github-repository'
 import { PullRequest, PullRequestRef } from '../../src/models/pull-request'
 import { Repository } from '../../src/models/repository'
 import { IRemote } from '../../src/models/remote'
-import { ComparisonCache } from '../../src/lib/comparison-cache'
 import { gitHubRepoFixture } from '../helpers/github-repo-builder'
 
 function createTestBranch(
@@ -67,11 +66,6 @@ describe('inferComparisonBranch', () => {
     createTestBranch('upstream/base', '5', 'upstream'),
     createTestBranch('fork', '6', 'origin'),
   ]
-  const comparisonCache = new ComparisonCache()
-
-  beforeEach(() => {
-    comparisonCache.clear()
-  })
 
   it('Returns the master branch when given unhosted repo', async () => {
     const repo = createTestRepo()
@@ -79,9 +73,7 @@ describe('inferComparisonBranch', () => {
       repo,
       branches,
       null,
-      null,
-      mockGetRemotes,
-      comparisonCache
+      mockGetRemotes
     )
 
     expect(branch).not.toBeNull()
@@ -96,9 +88,7 @@ describe('inferComparisonBranch', () => {
       repo,
       branches,
       null,
-      null,
-      mockGetRemotes,
-      comparisonCache
+      mockGetRemotes
     )
 
     expect(branch).not.toBeNull()
@@ -116,41 +106,14 @@ describe('inferComparisonBranch', () => {
       repo,
       branches,
       pr,
-      null,
-      mockGetRemotes,
-      comparisonCache
+      mockGetRemotes
     )
 
     expect(branch).not.toBeNull()
     expect(branch!.upstream).toBe(branches[5].upstream)
   })
 
-  it('Returns the default branch of the fork if it is ahead of the current branch', async () => {
-    const currentBranch = branches[3]
-    const defaultBranch = branches[6]
-    const parent = createTestGhRepo('parent', 'parent')
-    const fork = createTestGhRepo('fork', 'fork', parent)
-    const repo = createTestRepo(fork)
-
-    comparisonCache.set(currentBranch.tip.sha, defaultBranch.tip.sha, {
-      ahead: 1,
-      behind: 0,
-    })
-
-    const branch = await inferComparisonBranch(
-      repo,
-      branches,
-      null,
-      currentBranch,
-      mockGetRemotes,
-      comparisonCache
-    )
-
-    expect(branch).not.toBeNull()
-    expect(branch!.name).toBe(defaultBranch.name)
-  })
-
-  it("Returns the default branch of the fork's parent branch if the fork is not ahead of the current branch", async () => {
+  it("Returns the default branch of the fork's parent branch", async () => {
     const defaultBranchOfParent = branches[5]
     const defaultBranchOfFork = branches[4]
     const parent = createTestGhRepo(
@@ -159,6 +122,7 @@ describe('inferComparisonBranch', () => {
     )
     const fork = createTestGhRepo('fork', defaultBranchOfFork.name, parent)
     const repo = createTestRepo(fork)
+
     const mockGetRemotes = (repo: Repository) => {
       const remotes: ReadonlyArray<IRemote> = [
         { name: 'origin', url: fork.cloneURL! },
@@ -168,22 +132,11 @@ describe('inferComparisonBranch', () => {
       return Promise.resolve(remotes)
     }
 
-    comparisonCache.set(
-      defaultBranchOfParent.tip.sha,
-      defaultBranchOfFork.tip.sha,
-      {
-        ahead: 0,
-        behind: 0,
-      }
-    )
-
     const branch = await inferComparisonBranch(
       repo,
       branches,
       null,
-      defaultBranchOfParent,
-      mockGetRemotes,
-      comparisonCache
+      mockGetRemotes
     )
 
     expect(branch).not.toBeNull()

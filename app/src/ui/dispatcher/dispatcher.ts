@@ -692,16 +692,24 @@ export class Dispatcher {
   }
 
   /**
-   * Set the divering branch notification banner's visibility
+   * Set the divering branch notification nudge's visibility
    */
-  public setDivergingBranchBannerVisibility(
+  public setDivergingBranchNudgeVisibility(
     repository: Repository,
     isVisible: boolean
   ) {
-    return this.appStore._setDivergingBranchBannerVisibility(
-      repository,
-      isVisible
-    )
+    return this.appStore._updateDivergingBranchBannerState(repository, {
+      isNudgeVisible: isVisible,
+    })
+  }
+
+  /**
+   * Hide the divering branch notification banner
+   */
+  public dismissDivergingBranchBanner(repository: Repository) {
+    return this.appStore._updateDivergingBranchBannerState(repository, {
+      isPromptDismissed: true,
+    })
   }
 
   /**

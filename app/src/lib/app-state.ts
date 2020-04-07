@@ -640,8 +640,8 @@ export interface ICompareBranch {
 }
 
 export interface ICompareState {
-  /** Show the diverging notification banner */
-  readonly isDivergingBranchBannerVisible: boolean
+  /** The current state of the NBBD banner */
+  readonly divergingBranchBannerState: IDivergingBranchBannerState
 
   /** The current state of the compare form, based on user input */
   readonly formState: IDisplayHistory | ICompareBranch
@@ -693,6 +693,17 @@ export interface ICompareState {
     branch: Branch | null
     aheadBehind: IAheadBehind | null
   }
+}
+
+export interface IDivergingBranchBannerState {
+  /** Show the diverging notification banner */
+  readonly isPromptVisible: boolean
+
+  /** Has the user dismissed the notification banner? */
+  readonly isPromptDismissed: boolean
+
+  /** Show the diverging notification nudge on the tab */
+  readonly isNudgeVisible: boolean
 }
 
 export interface ICompareFormUpdate {
