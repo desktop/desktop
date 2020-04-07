@@ -143,7 +143,11 @@ export class AuthenticationForm extends React.Component<
       <>
         {this.renderAuthIntroMessage()}
 
-        <Button type="submit" onClick={this.signInWithBrowser}>
+        <Button
+          type="submit"
+          className="button-with-icon"
+          onClick={this.signInWithBrowser}
+        >
           Sign in using your browser
           <Octicon symbol={OcticonSymbol.linkExternal} />
         </Button>
