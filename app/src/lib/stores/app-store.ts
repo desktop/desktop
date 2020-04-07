@@ -4632,20 +4632,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const currentBannerState = this.repositoryStateCache.get(repository)
       .compareState.divergingBranchBannerState
 
-    const newBannerState = {
-      isPromptVisible:
-        divergingBranchBannerState.isPromptVisible !== undefined
-          ? divergingBranchBannerState.isPromptVisible
-          : currentBannerState.isPromptVisible,
-      isNudgeVisible:
-        divergingBranchBannerState.isNudgeVisible !== undefined
-          ? divergingBranchBannerState.isNudgeVisible
-          : currentBannerState.isNudgeVisible,
-      isPromptDismissed:
-        divergingBranchBannerState.isPromptDismissed !== undefined
-          ? divergingBranchBannerState.isPromptDismissed
-          : currentBannerState.isPromptDismissed,
-    }
+    const newBannerState = { ...currentBannerState, ...divergingBranchBannerState }
 
     // If none of the flags changed, we can skip updating the state.
     if (shallowEquals(currentBannerState, newBannerState)) {
