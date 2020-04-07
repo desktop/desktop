@@ -24,6 +24,10 @@
     .actions {
       margin-top: var(--spacing-double);
     }
+
+    hr {
+      margin: var(--spacing-double) 0;
+    }
   }
 
   #sign-in-enterprise {
@@ -36,8 +40,18 @@
     }
 
     .actions {
-      display: inline;
-      margin-top: var(--spacing);
+      display: inline-block;
+      margin-top: var(--spacing-double);
+    }
+
+    hr {
+      margin: var(--spacing-double) 0;
+    }
+  }
+
+  .button-component {
+    .octicon {
+      margin-left: var(--spacing-half);
     }
   }
 

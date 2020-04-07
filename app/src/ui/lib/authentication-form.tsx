@@ -74,9 +74,8 @@ export class AuthenticationForm extends React.Component<
   public render() {
     return (
       <Form className="sign-in-form" onSubmit={this.signIn}>
-        {this.renderUsernamePassword()}
-
         {this.renderSignInWithBrowser()}
+        {this.renderUsernamePassword()}
       </Form>
     )
   }
@@ -88,7 +87,8 @@ export class AuthenticationForm extends React.Component<
 
     const disabled = this.props.loading
     return (
-      <div>
+      <>
+        <hr />
         <TextBox
           label="Username or email address"
           disabled={disabled}
@@ -105,8 +105,8 @@ export class AuthenticationForm extends React.Component<
 
         {this.renderError()}
 
-        {this.renderActions()}
-      </div>
+        <div className="sign-in-footer">{this.renderActions()}</div>
+      </>
     )
   }
 
@@ -139,37 +139,29 @@ export class AuthenticationForm extends React.Component<
   }
 
   private renderSignInWithBrowser() {
-    const basicAuth = this.props.supportsBasicAuth
-    const browserSignInLink = (
-      <LinkButton
-        className="welcome-link-button link-with-icon"
-        onClick={this.signInWithBrowser}
-      >
-        Sign in using your browser
-        <Octicon symbol={OcticonSymbol.linkExternal} />
-      </LinkButton>
-    )
-
-    const browserSignInButton = (
-      <Button type="submit" onClick={this.signInWithBrowser}>
-        Sign in using your browser
-      </Button>
-    )
-
     return (
-      <div>
-        {basicAuth ? <hr className="short-rule" /> : null}
-        {basicAuth ? null : this.renderEndpointRequiresWebFlow()}
+      <>
+        {this.renderAuthIntroMessage()}
 
-        <div className="sign-in-footer">
-          {basicAuth ? browserSignInLink : browserSignInButton}
-          {basicAuth ? null : this.renderActions()}
-        </div>
-      </div>
+        <Button type="submit" onClick={this.signInWithBrowser}>
+          Sign in using your browser
+          <Octicon symbol={OcticonSymbol.linkExternal} />
+        </Button>
+
+        {this.props.supportsBasicAuth ? null : this.props.additionalButtons}
+      </>
     )
   }
 
-  private renderEndpointRequiresWebFlow() {
+  private renderAuthIntroMessage() {
+    if (this.props.supportsBasicAuth) {
+      return (
+        <p>
+          To improve the security of your account, we recommend you to sign in
+          through your browser.
+        </p>
+      )
+    }
     if (this.props.endpoint === getDotComAPIEndpoint()) {
       return (
         <>
