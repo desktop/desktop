@@ -7,7 +7,7 @@
       "[Added] Add support for PyCharm as external editor on macOS - #9401. Thanks @jakubroztocil!",
       "[Added] Add support for Android Studio as external editor on macOS - #9332. Thanks @guidezpl!",
       "[Added] Add support for Notepad++ as external editor on Windows - #9235. Thanks @say25!",
-      "[Fixed] Use correct install locaition of Typora to fix Typora detect issue - #9417. Thanks @TerryChan!",
+      "[Fixed] Use correct install location of Typora to fix detection issue - #9417. Thanks @TerryChan!",
       "[Fixed] Display pull requests from upstream repository in pull request list - #6383",
       "[Fixed] Restored developer tools accelerator on Windows - #9430. Thanks @jfgordon2!",
       "[Fixed] Use upstream repository in commit messages links to GitHub - #9334",
