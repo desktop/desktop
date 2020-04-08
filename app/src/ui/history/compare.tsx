@@ -31,6 +31,7 @@ import {
 } from '../notification/new-commits-banner'
 import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
 import { assertNever } from '../../lib/fatal-error'
+import { enableNDDBBanner } from '../../lib/feature-flag'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -156,15 +157,17 @@ export class CompareSidebar extends React.Component<
 
     return (
       <div id="compare-view">
-        <CSSTransitionGroup
-          transitionName="diverge-banner"
-          transitionAppear={true}
-          transitionAppearTimeout={DivergingBannerAnimationTimeout}
-          transitionEnterTimeout={DivergingBannerAnimationTimeout}
-          transitionLeaveTimeout={DivergingBannerAnimationTimeout}
-        >
-          {this.renderNotificationBanner()}
-        </CSSTransitionGroup>
+        {enableNDDBBanner() && (
+          <CSSTransitionGroup
+            transitionName="diverge-banner"
+            transitionAppear={true}
+            transitionAppearTimeout={DivergingBannerAnimationTimeout}
+            transitionEnterTimeout={DivergingBannerAnimationTimeout}
+            transitionLeaveTimeout={DivergingBannerAnimationTimeout}
+          >
+            {this.renderNotificationBanner()}
+          </CSSTransitionGroup>
+        )}
 
         <div className="compare-form">
           <FancyTextBox
