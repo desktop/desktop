@@ -53,6 +53,10 @@
       background: var(--list-item-badge-background-color);
       color: var(--list-item-badge-color);
     }
+
+    .list-tag {
+      font-weight: bolder;
+    }
   }
 
   .list-item.selected {
