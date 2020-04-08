@@ -1,5 +1,21 @@
 {
   "releases": {
+    "2.4.1-beta1": [
+      "[Added] Indicate which commits are un-pushed in \"History\" tab - #5873",
+      "[Added] Show progress bar in taskbar during pushing and pulling changes - #8433. Thanks @ChamodyaDias!",
+      "[Added] Add support for PyCharm as external editor on macOS - #9401. Thanks @jakubroztocil!",
+      "[Added] Add support for Notepad++ - #9235. Thanks @say25!",
+      "[Added] Add support for Android Studio on macOS - #9332. Thanks @guidezpl!",
+      "[Added] Add support to Rider on Mac - #9368. Thanks @wengfatt!",
+      "[Added] Add support for JetBrains Rider on Windows - #9365. Thanks @say25!",
+      "[Fixed] Use correct install locaition of Typora to fix Typora detect issue - #9417. Thanks @TerryChan!",
+      "[Fixed] Display pull requests from upstream repository in pull request list - #6383",
+      "[Fixed] Restored developer tools accelerator on Windows - #9430. Thanks @jfgordon2!",
+      "[Fixed] Use upstream repository in commit messages links to GitHub - #9334",
+      "[Fixed] Reset scroll position of history tab when switching repositories - #9341",
+      "[Improved] Lighten scrollbars in dark theme for higher contrast - #9114. Thanks @jfgordon2!",
+      "[Improved] Notify consistently when upstream branch has new commits - #9320 #9328 #9319"
+    ],
     "2.4.0": [
       "[New] Set Git proxy environment variables from system configuration automatically - #9154",
       "[Added] Enable creating a GitHub issue from app menu and keyboard shortcut - #8989",
