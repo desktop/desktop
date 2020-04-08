@@ -11,7 +11,7 @@
       "[Fixed] Display pull requests from upstream repository in pull request list - #6383",
       "[Fixed] Restore developer tools accelerator on Windows - #9430. Thanks @jfgordon2!",
       "[Fixed] Use upstream repository in commit message links to GitHub - #9334",
-      "[Fixed] Reset scroll position of history tab when switching repositories - #9341",
+      "[Fixed] Show top of \"History\" tab commit list after switching repositories - #9341",
       "[Improved] Lighten scrollbars in dark theme for higher contrast - #9114. Thanks @jfgordon2!",
       "[Improved] Notify consistently when upstream branch has new commits - #9320 #9328 #9319"
     ],
