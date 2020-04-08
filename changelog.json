@@ -9,7 +9,7 @@
       "[Added] Add support for Notepad++ as external editor on Windows - #9235. Thanks @say25!",
       "[Fixed] Use correct install location of Typora to fix detection issue - #9417. Thanks @TerryChan!",
       "[Fixed] Display pull requests from upstream repository in pull request list - #6383",
-      "[Fixed] Restored developer tools accelerator on Windows - #9430. Thanks @jfgordon2!",
+      "[Fixed] Restore developer tools accelerator on Windows - #9430. Thanks @jfgordon2!",
       "[Fixed] Use upstream repository in commit messages links to GitHub - #9334",
       "[Fixed] Reset scroll position of history tab when switching repositories - #9341",
       "[Improved] Lighten scrollbars in dark theme for higher contrast - #9114. Thanks @jfgordon2!",
