@@ -12,7 +12,10 @@ import { IGitHubUser } from '../../lib/databases/github-user-database'
 import { AvatarStack } from '../lib/avatar-stack'
 import { IMenuItem } from '../../lib/menu-item'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { enableGitTagsCreation } from '../../lib/feature-flag'
+import {
+  enableGitTagsDisplay,
+  enableGitTagsCreation,
+} from '../../lib/feature-flag'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
@@ -63,6 +66,7 @@ export class CommitListItem extends React.Component<
     const commit = this.props.commit
     const {
       author: { date },
+      tags,
     } = commit
 
     return (
@@ -82,6 +86,7 @@ export class CommitListItem extends React.Component<
                 commit={commit}
               />
               {renderRelativeTime(date)}
+              {enableGitTagsDisplay() && renderCommitListItemTags(tags)}
             </div>
           </div>
         </div>
@@ -186,5 +191,20 @@ function renderRelativeTime(date: Date) {
       {` • `}
       <RelativeTime date={date} abbreviate={true} />
     </>
+  )
+}
+
+function renderCommitListItemTags(tags: ReadonlyArray<string>) {
+  return tags.length === 0 ? null : (
+    <span>
+      {tags.map(t => (
+        <>
+          {` • `}
+          <span key={t} className="list-tag">
+            {t}
+          </span>
+        </>
+      ))}
+    </span>
   )
 }
