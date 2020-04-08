@@ -13,6 +13,7 @@ import { PushProgressParser, executionOptionsWithProgress } from '../progress'
 import { AuthenticationErrors } from './authentication'
 import { IRemote } from '../../models/remote'
 import { envForRemoteOperation } from './environment'
+import { enableGitTagsCreation } from '../feature-flag'
 
 export type PushOptions = {
   /**
@@ -70,6 +71,10 @@ export async function push(
     args.push('--set-upstream')
   } else if (options.forceWithLease) {
     args.push('--force-with-lease')
+  }
+
+  if (enableGitTagsCreation()) {
+    args.push('--follow-tags')
   }
 
   const expectedErrors = new Set<DugiteError>(AuthenticationErrors)
