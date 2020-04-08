@@ -11,9 +11,9 @@
       "[Fixed] Display pull requests from upstream repository in pull request list - #6383",
       "[Fixed] Restore developer tools accelerator on Windows - #9430. Thanks @jfgordon2!",
       "[Fixed] Use upstream repository in commit message links to GitHub - #9334",
-      "[Fixed] Show top of \"History\" tab commit list after switching repositories - #9341",
+      "[Fixed] Reset scroll position to the top of the history tab after switching repositories - #9341",
       "[Improved] Lighten scrollbars in dark theme for higher contrast - #9114. Thanks @jfgordon2!",
-      "[Improved] Notify consistently when upstream branch has new commits - #9320 #9328 #9319"
+      "[Improved] Notify consistently when default or upstream branch has new commits that are not present on your branch - #9320 #9328 #9319"
     ],
     "2.4.0": [
       "[New] Set Git proxy environment variables from system configuration automatically - #9154",
