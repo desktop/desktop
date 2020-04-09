@@ -1,6 +1,8 @@
 import { Repository } from '../../src/models/repository'
 import { GitStoreCache } from '../../src/lib/stores/git-store-cache'
 import { shell } from '../helpers/test-app-shell'
+import { RemoteTagsStore } from '../../src/lib/stores/remote-tags-store'
+import { TestRemoteTagsDatabase } from '../helpers/databases/test-remote-tags-database'
 
 describe('GitStoreCache', () => {
   let repository: Repository
@@ -8,6 +10,7 @@ describe('GitStoreCache', () => {
   const onGitStoreUpdated = () => {}
   const onDidLoadNewCommits = () => {}
   const onDidError = () => {}
+  const remoteTagsStore = new RemoteTagsStore(new TestRemoteTagsDatabase())
 
   beforeEach(() => {
     repository = new Repository('/something/path', 1, null, false)
@@ -16,6 +19,7 @@ describe('GitStoreCache', () => {
   it('returns same instance of GitStore', () => {
     const cache = new GitStoreCache(
       shell,
+      remoteTagsStore,
       onGitStoreUpdated,
       onDidLoadNewCommits,
       onDidError
@@ -30,6 +34,7 @@ describe('GitStoreCache', () => {
   it('returns different instance of GitStore after removing', () => {
     const cache = new GitStoreCache(
       shell,
+      remoteTagsStore,
       onGitStoreUpdated,
       onDidLoadNewCommits,
       onDidError

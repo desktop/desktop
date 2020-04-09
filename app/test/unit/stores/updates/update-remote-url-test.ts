@@ -5,6 +5,8 @@ import { updateRemoteUrl } from '../../../../src/lib/stores/updates/update-remot
 import { shell } from '../../../helpers/test-app-shell'
 import { setupFixtureRepository } from '../../../helpers/repositories'
 import { addRemote } from '../../../../src/lib/git'
+import { RemoteTagsStore } from '../../../../src/lib/stores/remote-tags-store'
+import { TestRemoteTagsDatabase } from '../../../helpers/databases/test-remote-tags-database'
 
 describe('Update remote url', () => {
   const apiRepository: IAPIRepository = {
@@ -45,7 +47,9 @@ describe('Update remote url', () => {
       apiRepo
     )
     await addRemote(repository, 'origin', remoteUrl || apiRepo.clone_url)
-    gitStore = new GitStore(repository, shell)
+
+    const remoteTagsStore = new RemoteTagsStore(new TestRemoteTagsDatabase())
+    gitStore = new GitStore(repository, shell, remoteTagsStore)
     await gitStore.loadRemotes()
     const gitHubRepository = repository.gitHubRepository!
 

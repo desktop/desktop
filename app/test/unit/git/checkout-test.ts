@@ -11,8 +11,12 @@ import { GitStore } from '../../../src/lib/stores'
 import { Branch, BranchType } from '../../../src/models/branch'
 import { getStatusOrThrow } from '../../helpers/status'
 import { GitProcess } from 'dugite'
+import { RemoteTagsStore } from '../../../src/lib/stores/remote-tags-store'
+import { TestRemoteTagsDatabase } from '../../helpers/databases/test-remote-tags-database'
 
 describe('git/checkout', () => {
+  const remoteTagsStore = new RemoteTagsStore(new TestRemoteTagsDatabase())
+
   it('throws when invalid characters are used for branch name', async () => {
     const repository = await setupEmptyRepository()
 
@@ -60,7 +64,7 @@ describe('git/checkout', () => {
 
     await checkoutBranch(repository, null, branches[0])
 
-    const store = new GitStore(repository, shell)
+    const store = new GitStore(repository, shell, remoteTagsStore)
     await store.loadStatus()
     const tip = store.tip
 
@@ -95,7 +99,7 @@ describe('git/checkout', () => {
 
     await checkoutBranch(repository, null, firstRemoteBranch)
 
-    const store = new GitStore(repository, shell)
+    const store = new GitStore(repository, shell, remoteTagsStore)
     await store.loadStatus()
     const tip = store.tip
 

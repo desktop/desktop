@@ -13,6 +13,8 @@ import {
   createRepository as createPrunedRepository,
   setupRepository,
 } from '../helpers/repository-builder-branch-pruner'
+import { RemoteTagsStore } from '../../src/lib/stores/remote-tags-store'
+import { TestRemoteTagsDatabase } from '../helpers/databases/test-remote-tags-database'
 
 describe('BranchPruner', () => {
   const onGitStoreUpdated = () => {}
@@ -27,6 +29,7 @@ describe('BranchPruner', () => {
   beforeEach(async () => {
     gitStoreCache = new GitStoreCache(
       shell,
+      new RemoteTagsStore(new TestRemoteTagsDatabase()),
       onGitStoreUpdated,
       onDidLoadNewCommits,
       onDidError

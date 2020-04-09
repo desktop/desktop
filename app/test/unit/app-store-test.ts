@@ -43,6 +43,8 @@ import { ApiRepositoriesStore } from '../../src/lib/stores/api-repositories-stor
 import { getStatusOrThrow } from '../helpers/status'
 import { AppFileStatusKind } from '../../src/models/status'
 import { ManualConflictResolutionKind } from '../../src/models/manual-conflict-resolution'
+import { TestRemoteTagsDatabase } from '../helpers/databases/test-remote-tags-database'
+import { RemoteTagsStore } from '../../src/lib/stores/remote-tags-store'
 
 // enable mocked version
 jest.mock('../../src/lib/window-state')
@@ -57,6 +59,10 @@ describe('AppStore', () => {
 
     const statsDb = new TestStatsDatabase()
     await statsDb.reset()
+
+    const remoteTagsDb = new TestRemoteTagsDatabase()
+    await remoteTagsDb.reset()
+    const remoteTagsStore = new RemoteTagsStore(remoteTagsDb)
 
     const repositoriesDb = new TestRepositoriesDatabase()
     await repositoriesDb.reset()
@@ -90,7 +96,8 @@ describe('AppStore', () => {
       repositoriesStore,
       pullRequestCoordinator,
       repositoryStateManager,
-      apiRepositoriesStore
+      apiRepositoriesStore,
+      remoteTagsStore
     )
 
     return { appStore, repositoriesStore }

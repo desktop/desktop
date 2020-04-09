@@ -29,11 +29,14 @@ import { TestActivityMonitor } from '../helpers/test-activity-monitor'
 import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
 import { ApiRepositoriesStore } from '../../src/lib/stores/api-repositories-store'
 import { CommitStatusStore } from '../../src/lib/stores/commit-status-store'
+import { RemoteTagsStore } from '../../src/lib/stores/remote-tags-store'
+import { TestRemoteTagsDatabase } from '../helpers/databases/test-remote-tags-database'
 
 describe('App', () => {
   let appStore: AppStore
   let dispatcher: Dispatcher
   let statsStore: StatsStore
+  let remoteTagsStore: RemoteTagsStore
   let repositoryStateManager: RepositoryStateCache
   let githubUserStore: GitHubUserStore
   let issuesStore: IssuesStore
@@ -48,6 +51,10 @@ describe('App', () => {
     const statsDb = new TestStatsDatabase()
     await statsDb.reset()
     statsStore = new StatsStore(statsDb, new TestActivityMonitor())
+
+    const remoteTagsDb = new TestRemoteTagsDatabase()
+    await remoteTagsDb.reset()
+    remoteTagsStore = new RemoteTagsStore(remoteTagsDb)
 
     const repositoriesDb = new TestRepositoriesDatabase()
     await repositoriesDb.reset()
@@ -83,7 +90,8 @@ describe('App', () => {
       repositoriesStore,
       pullRequestCoordinator,
       repositoryStateManager,
-      apiRepositoriesStore
+      apiRepositoriesStore,
+      remoteTagsStore
     )
 
     dispatcher = new InMemoryDispatcher(

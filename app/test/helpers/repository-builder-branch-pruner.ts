@@ -6,6 +6,8 @@ import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cach
 import { Repository } from '../../src/models/repository'
 import { IAPIRepository } from '../../src/lib/api'
 import { shell } from './test-app-shell'
+import { RemoteTagsStore } from '../../src/lib/stores/remote-tags-store'
+import { RemoteTagsDatabase } from '../../src/lib/databases/remote-tags-database'
 
 export async function createRepository() {
   const repo = await setupEmptyRepository()
@@ -113,7 +115,11 @@ async function primeCaches(
   repository: Repository,
   repositoriesStateCache: RepositoryStateCache
 ) {
-  const gitStore = new GitStore(repository, shell)
+  const gitStore = new GitStore(
+    repository,
+    shell,
+    new RemoteTagsStore(new RemoteTagsDatabase('remote-tags-test'))
+  )
 
   // rather than re-create the branches and stuff as objects, these calls
   // will run the underlying Git operations and update the GitStore state
