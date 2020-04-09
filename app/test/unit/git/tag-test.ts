@@ -4,16 +4,36 @@ import {
   createTag,
   getCommits,
   getAllTags,
+  fetchRemoteTags,
+  getRemotes,
 } from '../../../src/lib/git'
 
-import { setupFixtureRepository } from '../../helpers/repositories'
+import {
+  setupFixtureRepository,
+  setupLocalForkOfRepository,
+} from '../../helpers/repositories'
+import { Account } from '../../../src/models/account'
+import { getDotComAPIEndpoint } from '../../../src/lib/api'
+import { IRemote } from '../../../src/models/remote'
+import { findDefaultRemote } from '../../../src/lib/stores/helpers/find-default-remote'
 
 describe('git/tag', () => {
   let repository: Repository
+  let account: Account
 
   beforeEach(async () => {
     const testRepoPath = await setupFixtureRepository('test-repo')
     repository = new Repository(testRepoPath, -1, null, false)
+
+    account = new Account(
+      'monalisa',
+      getDotComAPIEndpoint(),
+      '',
+      [],
+      '',
+      -1,
+      'Caps Lock'
+    )
   })
 
   describe('createTag', () => {
@@ -68,6 +88,36 @@ describe('git/tag', () => {
         'my-new-tag',
         'another-tag',
       ])
+    })
+  })
+
+  describe('fetchRemoteTags', () => {
+    let remoteRepository: Repository
+    let originRemote: IRemote
+
+    beforeEach(async () => {
+      const path = await setupFixtureRepository('test-repo-with-tags')
+      remoteRepository = new Repository(path, -1, null, false)
+      repository = await setupLocalForkOfRepository(remoteRepository)
+
+      const remotes = await getRemotes(repository)
+      originRemote = findDefaultRemote(remotes)!
+    })
+
+    it('returns the tags found in the remote repository', async () => {
+      expect(
+        await fetchRemoteTags(repository!, account, originRemote)
+      ).toIncludeAllMembers(['important', 'less-important', 'tentative'])
+    })
+
+    it("doesn't return local tags not pushed to the remote", async () => {
+      await createTag(repository, 'my-new-tag', 'HEAD')
+
+      // The new tag is part of the local tags but not on the remote yet.
+      expect(await getAllTags(repository)).toInclude('my-new-tag')
+      expect(
+        await fetchRemoteTags(repository, account, originRemote)
+      ).not.toInclude('my-new-tag')
     })
   })
 })
