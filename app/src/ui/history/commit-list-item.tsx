@@ -59,7 +59,9 @@ export class CommitListItem extends React.Component<
 
   public render() {
     const commit = this.props.commit
-    const author = commit.author
+    const {
+      author: { date },
+    } = commit
 
     return (
       <div className="commit" onContextMenu={this.onContextMenu}>
@@ -76,8 +78,8 @@ export class CommitListItem extends React.Component<
               <CommitAttribution
                 gitHubRepository={this.props.gitHubRepository}
                 commit={commit}
-              />{' '}
-              <RelativeTime date={author.date} />
+              />
+              {renderRelativeTime(date)}
             </div>
           </div>
         </div>
@@ -157,4 +159,13 @@ export class CommitListItem extends React.Component<
 
     showContextualMenu(items)
   }
+}
+
+function renderRelativeTime(date: Date) {
+  return (
+    <>
+      {` • `}
+      <RelativeTime date={date} />
+    </>
+  )
 }
