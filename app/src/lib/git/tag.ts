@@ -36,6 +36,39 @@ export async function getAllTags(
 }
 
 /**
+ * Gets all the local tags.
+ *
+ * @param repository    The repository in which to get all the tags from.
+ */
+export async function getAnnotatedTags(
+  repository: Repository
+): Promise<ReadonlyArray<string>> {
+  const format = ['%(refname:strip=2)', '%(objecttype)'].join('%00')
+  const args = ['tag', `--format=${format}`]
+
+  const { stdout } = await git(args, repository.path, 'getAnnotatedTags')
+
+  const rawTags = stdout.split('\n')
+
+  return rawTags
+    .map(tagLine => {
+      if (tagLine === '') {
+        return ''
+      }
+
+      const [name, objectType] = tagLine.split('\0')
+
+      // non-annotated tags have an objectType=commit.
+      if (objectType !== 'tag') {
+        return ''
+      }
+
+      return name
+    })
+    .filter(tag => tag !== '')
+}
+
+/**
  * Fetches all the tags from the remote repository (it does a network request).
  *
  * @param repository  - The repository from where to fetch the tags.
@@ -74,4 +107,32 @@ export async function fetchRemoteTags(
     .filter((tag): tag is string => tag !== null)
 
   return tags
+}
+
+/**
+ * Fetches all the tags from the remote repository (it does a network request).
+ *
+ * @param repository  - The repository from where to fetch the tags.
+ * @param remote      - The remote from where to fetch the tags.
+ */
+export async function isTagReachableByRemote(
+  repository: Repository,
+  tag: string,
+  remote: IRemote
+): Promise<boolean> {
+  const args = [
+    'branch',
+    '--remote',
+    '--contains',
+    tag,
+    '--format=%(refname:short)',
+  ]
+
+  const { stdout } = await git(args, repository.path, 'isTagReachableByRemote')
+
+  const branches = stdout
+    .split('\n')
+    .filter(line => line.startsWith(`${remote.name}/`))
+
+  return branches.length > 0
 }
