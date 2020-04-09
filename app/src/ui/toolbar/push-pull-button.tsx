@@ -346,7 +346,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
 
     const { ahead, behind } = aheadBehind
 
-    if (ahead === 0 && behind === 0) {
+    if (ahead === 0 && behind === 0 && !this.props.hasTagsToPush) {
       return fetchButton(remoteName, aheadBehind, lastFetched, this.fetch)
     }
 
