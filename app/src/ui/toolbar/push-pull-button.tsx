@@ -20,6 +20,9 @@ interface IPushPullButtonProps {
    */
   readonly aheadBehind: IAheadBehind | null
 
+  /* Is there any tag pending to be pushed? */
+  readonly hasTagsToPush: boolean
+
   /** The name of the remote. */
   readonly remoteName: string | null
 

@@ -351,6 +351,8 @@ export interface IRepositoryState {
   readonly compareState: ICompareState
   readonly selectedSection: RepositorySectionTab
 
+  readonly hasTagsToPush: boolean
+
   /**
    * The name and email that will be used for the author info
    * when committing barring any race where user.name/user.email is

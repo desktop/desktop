@@ -66,6 +66,8 @@ import {
   createTag,
   getAllTags,
   fetchRemoteTags,
+  getAnnotatedTags,
+  isTagReachableByRemote,
 } from '../git'
 import { GitError as DugiteError } from '../../lib/git'
 import { GitError } from 'dugite'
@@ -138,6 +140,8 @@ export class GitStore extends BaseStore {
   private _desktopStashEntries = new Map<string, IStashEntry>()
 
   private _stashEntryCount = 0
+
+  private _hasTagsToPush: boolean = false
 
   public constructor(
     private readonly repository: Repository,
@@ -264,13 +268,6 @@ export class GitStore extends BaseStore {
     return getAllTags(this.repository)
   }
 
-  public async fetchRemoteTags(account: IGitAccount | null, remote: IRemote) {
-    const tags = await fetchRemoteTags(this.repository, account, remote)
-    this.remoteTagsStore.storeTags(this.repository, remote, tags)
-
-    this._currentRemoteTags = tags
-  }
-
   public async createTag(name: string, targetCommitSha: string) {
     const foundCommit = await this.performFailableOperation(async () => {
       await createTag(this.repository, name, targetCommitSha)
@@ -307,7 +304,52 @@ export class GitStore extends BaseStore {
     this.refreshDefaultBranch()
     this.refreshRecentBranches(recentBranchNames)
     this.checkPullWithRebase()
+    this.refreshTagsToPush()
+
     this.emitUpdate()
+  }
+
+  private async refreshTagsToPush() {
+    const currentRemote = this._currentRemote
+    if (currentRemote === null) {
+      this._hasTagsToPush = false
+      return
+    }
+
+    const nonPushedTags = await this.getNotPushedTags()
+
+    if (nonPushedTags === null) {
+      this._hasTagsToPush = false
+      return
+    }
+
+    for (const tag of nonPushedTags) {
+      // As soon as we find a tag that is reachable by the remote repository,
+      // we know hat there are tags to push.
+      if (await isTagReachableByRemote(this.repository, tag, currentRemote)) {
+        this._hasTagsToPush = true
+        return
+      }
+    }
+    this._hasTagsToPush = false
+  }
+
+  private async getNotPushedTags() {
+    if (this._currentRemoteTags === null) {
+      return null
+    }
+
+    const localTags = await getAnnotatedTags(this.repository)
+    const remoteTags = new Set(this._currentRemoteTags)
+
+    return localTags.filter(tag => !remoteTags.has(tag))
+  }
+
+  private async fetchRemoteTags(account: IGitAccount | null, remote: IRemote) {
+    const tags = await fetchRemoteTags(this.repository, account, remote)
+    this.remoteTagsStore.storeTags(this.repository, remote, tags)
+
+    this._currentRemoteTags = tags
   }
 
   /**
@@ -1116,6 +1158,7 @@ export class GitStore extends BaseStore {
         this.repository,
         this._currentRemote
       )
+      await this.refreshTagsToPush()
     }
 
     const parent =
@@ -1230,6 +1273,13 @@ export class GitStore extends BaseStore {
    */
   public get currentRemoteTags(): ReadonlyArray<string> | null {
     return this._currentRemoteTags
+  }
+
+  /**
+   * Whether there are local tags that will get pushed via --follow-tags.
+   */
+  public get hasTagsToPush(): boolean {
+    return this._hasTagsToPush
   }
 
   /**
