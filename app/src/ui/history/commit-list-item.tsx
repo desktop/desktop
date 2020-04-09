@@ -165,7 +165,7 @@ function renderRelativeTime(date: Date) {
   return (
     <>
       {` • `}
-      <RelativeTime date={date} />
+      <RelativeTime date={date} abbreviate={true} />
     </>
   )
 }
