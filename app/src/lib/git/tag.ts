@@ -1,5 +1,7 @@
-import { git } from './core'
+import { git, gitNetworkArguments } from './core'
 import { Repository } from '../../models/repository'
+import { IGitAccount } from '../../models/git-account'
+import { IRemote } from '../../models/remote'
 
 /**
  * Create a new tag on the given target commit.
@@ -31,4 +33,54 @@ export async function getAllTags(
   const tags = await git(args, repository.path, 'getAllTags')
 
   return tags.stdout.split('\n').filter(s => s !== '')
+}
+
+/**
+ * Fetches the unpushed tags from the remote repository (it does a network request).
+ *
+ * @param repository  - The repository in which to check for unpushed tags
+ * @param account     - The account to use when authenticating with the remote
+ *
+ * @param remote      - The remote to check for unpushed tags
+ * @param branchName  - The branch that will be used on the push command
+ */
+export async function fetchTagsToPush(
+  repository: Repository,
+  account: IGitAccount | null,
+  remote: IRemote,
+  branchName: string
+): Promise<ReadonlyArray<string>> {
+  const networkArguments = await gitNetworkArguments(repository, account)
+  const args = [
+    ...networkArguments,
+    'push',
+    remote.name,
+    branchName,
+    '--follow-tags',
+    '--dry-run',
+    '--porcelain',
+  ]
+
+  const result = await git(args, repository.path, 'fetchUnpushedTags')
+
+  const lines = result.stdout.split('\n')
+  let currentLine = 1
+  const unpushedTags = []
+
+  while (lines[currentLine] !== 'Done') {
+    const line = lines[currentLine]
+    const parts = line.split('\t')
+
+    if (parts[0] === '*' && parts[2] === '[new tag]') {
+      const [tagName] = parts[1].split(':')
+
+      if (tagName !== undefined) {
+        unpushedTags.push(tagName.replace(/^refs\/tags\//, ''))
+      }
+    }
+
+    currentLine++
+  }
+
+  return unpushedTags
 }
