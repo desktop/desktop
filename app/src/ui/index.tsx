@@ -45,6 +45,7 @@ import {
   IssuesDatabase,
   RepositoriesDatabase,
   PullRequestDatabase,
+  RemoteTagsDatabase,
 } from '../lib/databases'
 import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { installDevGlobals } from './install-globals'
@@ -60,6 +61,7 @@ import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { ApiRepositoriesStore } from '../lib/stores/api-repositories-store'
 import { CommitStatusStore } from '../lib/stores/commit-status-store'
 import { PullRequestCoordinator } from '../lib/stores/pull-request-coordinator'
+import { RemoteTagsStore } from '../lib/stores/remote-tags-store'
 
 if (__DEV__) {
   installDevGlobals()
@@ -251,6 +253,10 @@ const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 
 const commitStatusStore = new CommitStatusStore(accountsStore)
 
+const remoteTagsStore = new RemoteTagsStore(
+  new RemoteTagsDatabase('remoteTags')
+)
+
 const appStore = new AppStore(
   gitHubUserStore,
   cloningRepositoriesStore,
@@ -261,7 +267,8 @@ const appStore = new AppStore(
   repositoriesStore,
   pullRequestCoordinator,
   repositoryStateManager,
-  apiRepositoriesStore
+  apiRepositoriesStore,
+  remoteTagsStore
 )
 
 appStore.onDidUpdate(state => {

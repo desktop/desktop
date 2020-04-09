@@ -65,6 +65,7 @@ import {
   removeRemote,
   createTag,
   getAllTags,
+  fetchRemoteTags,
 } from '../git'
 import { GitError as DugiteError } from '../../lib/git'
 import { GitError } from 'dugite'
@@ -85,6 +86,7 @@ import { enableStashing } from '../feature-flag'
 import { getStashes, getStashedFiles } from '../git/stash'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { PullRequest } from '../../models/pull-request'
+import { RemoteTagsStore } from './remote-tags-store'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -96,8 +98,6 @@ const RecentBranchesLimit = 5
 
 /** The store for a repository's git data. */
 export class GitStore extends BaseStore {
-  private readonly shell: IAppShell
-
   /** The commits keyed by their SHA. */
   public readonly commitLookup = new Map<string, Commit>()
 
@@ -106,8 +106,6 @@ export class GitStore extends BaseStore {
   private _history: ReadonlyArray<string> = new Array()
 
   private readonly requestsInFight = new Set<string>()
-
-  private readonly repository: Repository
 
   private _tip: Tip = { kind: TipState.Unknown }
 
@@ -131,6 +129,8 @@ export class GitStore extends BaseStore {
 
   private _currentRemote: IRemote | null = null
 
+  private _currentRemoteTags: ReadonlyArray<string> | null = null
+
   private _upstreamRemote: IRemote | null = null
 
   private _lastFetched: Date | null = null
@@ -139,11 +139,12 @@ export class GitStore extends BaseStore {
 
   private _stashEntryCount = 0
 
-  public constructor(repository: Repository, shell: IAppShell) {
+  public constructor(
+    private readonly repository: Repository,
+    private readonly shell: IAppShell,
+    private readonly remoteTagsStore: RemoteTagsStore
+  ) {
     super()
-
-    this.repository = repository
-    this.shell = shell
   }
 
   private emitNewCommitsLoaded(commits: ReadonlyArray<Commit>) {
@@ -261,6 +262,13 @@ export class GitStore extends BaseStore {
 
   public async getAllTags(): Promise<ReadonlyArray<string>> {
     return getAllTags(this.repository)
+  }
+
+  public async fetchRemoteTags(account: IGitAccount | null, remote: IRemote) {
+    const tags = await fetchRemoteTags(this.repository, account, remote)
+    this.remoteTagsStore.storeTags(this.repository, remote, tags)
+
+    this._currentRemoteTags = tags
   }
 
   public async createTag(name: string, targetCommitSha: string) {
@@ -891,7 +899,10 @@ export class GitStore extends BaseStore {
       repository: this.repository,
     }
     await this.performFailableOperation(
-      () => fetchRepo(this.repository, account, remote, progressCallback),
+      async () => {
+        await fetchRepo(this.repository, account, remote, progressCallback)
+        await this.fetchRemoteTags(account, remote)
+      },
       { backgroundTask, retryAction }
     )
   }
@@ -1099,6 +1110,14 @@ export class GitStore extends BaseStore {
         ? remotes.find(r => r.name === currentRemoteName) || this._defaultRemote
         : this._defaultRemote
 
+    // Get the tags for the changed remote from the store.
+    if (this._currentRemote !== null) {
+      this._currentRemoteTags = await this.remoteTagsStore.getRemoteTags(
+        this.repository,
+        this._currentRemote
+      )
+    }
+
     const parent =
       this.repository.gitHubRepository &&
       this.repository.gitHubRepository.parent
@@ -1204,6 +1223,13 @@ export class GitStore extends BaseStore {
    */
   public get currentRemote(): IRemote | null {
     return this._currentRemote
+  }
+
+  /**
+   * The tags stored in the current remote.
+   */
+  public get currentRemoteTags(): ReadonlyArray<string> | null {
+    return this._currentRemoteTags
   }
 
   /**
