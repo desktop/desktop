@@ -60,7 +60,7 @@ export async function setGlobalConfigValue(
  *
  * @param path The path to execute the `git` command in. If null
  *             we'll use the global configuration (i.e. --global)
- *             and execute the Gitt call from the same location that
+ *             and execute the Git call from the same location that
  *             GitHub Desktop is installed in.
  * @param type Canonicalize configuration values according to the
  *             expected type (i.e. 0 -> false, "on" -> true etc).
