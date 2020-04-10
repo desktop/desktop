@@ -111,6 +111,18 @@ export async function getGlobalConfigPath(env?: {
   return normalize(path[1])
 }
 
+/** Set the local config value by name. */
+export async function setConfigValue(
+  repository: Repository,
+  name: string,
+  value: string,
+  env?: {
+    HOME: string
+  }
+): Promise<void> {
+  setConfigValueInPath(name, value, repository.path, env)
+}
+
 /** Set the global config value by name. */
 export async function setGlobalConfigValue(
   name: string,
