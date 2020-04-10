@@ -37,24 +37,6 @@ export async function getGlobalBooleanConfigValue(
   return value === null ? null : value !== 'false'
 }
 
-/** Set the local config value by name. */
-export async function setGlobalConfigValue(
-  name: string,
-  value: string,
-  env?: {
-    HOME: string
-  }
-): Promise<void> {
-  const options = env ? { env } : undefined
-
-  await git(
-    ['config', '--global', '--replace-all', name, value],
-    __dirname,
-    'setGlobalConfigValue',
-    options
-  )
-}
-
 /**
  * Look up a config value by name
  *
@@ -127,4 +109,44 @@ export async function getGlobalConfigPath(env?: {
   }
 
   return normalize(path[1])
+}
+
+/** Set the global config value by name. */
+export async function setGlobalConfigValue(
+  name: string,
+  value: string,
+  env?: {
+    HOME: string
+  }
+): Promise<void> {
+  setConfigValueInPath(name, value, null, env)
+}
+
+/**
+ * Set config value by name
+ *
+ * @param path The path to execute the `git` command in. If null
+ *             we'll use the global configuration (i.e. --global)
+ *             and execute the Git call from the same location that
+ *             GitHub Desktop is installed in.
+ */
+async function setConfigValueInPath(
+  name: string,
+  value: string,
+  path: string | null,
+  env?: {
+    HOME: string
+  }
+): Promise<void> {
+  const options = env ? { env } : undefined
+
+  const flags = [
+    'config',
+    ...(!path ? ['--global'] : []),
+    '--replace-all',
+    name,
+    value,
+  ]
+
+  await git(flags, __dirname, 'setConfigValueInPath', options)
 }
