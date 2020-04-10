@@ -69,7 +69,7 @@ export async function push(
 
   if (!remoteBranch) {
     args.push('--set-upstream')
-  } else if (options.forceWithLease) {
+  } else if (options.forceWithLease === true) {
     args.push('--force-with-lease')
   }
 
