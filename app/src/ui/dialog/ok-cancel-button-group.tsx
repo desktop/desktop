@@ -75,13 +75,13 @@ interface IOkCancelButtonGroupProps {
  * See https://www.nngroup.com/articles/ok-cancel-or-cancel-ok/
  *
  * For the purposes of this component Ok and Cancel are
- * abstract concepts indicating an affirmitive answer to a
+ * abstract concepts indicating an affirmative answer to a
  * question posed by a dialog or a dismissal of the dialog.
  * The actual labels for the buttons can be customized to
  * fit the dialog contents.
  *
  * This component also takes care of selecting the appropriate
- * default button depending on whether an affirmitive answer
+ * default button depending on whether an affirmative answer
  * from the user would result in a destructive action or not.
  */
 export class OkCancelButtonGroup extends React.Component<
@@ -104,7 +104,7 @@ export class OkCancelButtonGroup extends React.Component<
     // what gets clicked if the user submits the form using the keyboard.
     //
     // The dialog component, however, will always treat a form submission
-    // as the "affirmitive"/Ok action and a form reset as the cancel action
+    // as the "affirmative"/Ok action and a form reset as the cancel action
     // so we flip the event we actually send to the dialog here.
     if (this.props.destructive === true) {
       event.preventDefault()
