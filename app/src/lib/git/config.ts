@@ -56,7 +56,7 @@ export async function setGlobalConfigValue(
 }
 
 /**
- * Look up a global config value by name
+ * Look up a config value by name
  *
  * @param path The path to execute the `git` command in. If null
  *             we'll use the global configuration (i.e. --global)
