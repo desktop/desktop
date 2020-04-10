@@ -22,7 +22,6 @@ import { getDotComAPIEndpoint } from '../../../src/lib/api'
 import { IRemote } from '../../../src/models/remote'
 import { findDefaultRemote } from '../../../src/lib/stores/helpers/find-default-remote'
 import { getStatusOrThrow } from '../../helpers/status'
-import { getBranchOrError } from '../../helpers/git'
 
 describe('git/tag', () => {
   let repository: Repository
