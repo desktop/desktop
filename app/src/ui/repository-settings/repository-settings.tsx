@@ -18,6 +18,16 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { ForkSettings } from './fork-settings'
 import { ForkContributionTarget } from '../../models/workflow-preferences'
 import { enableForkSettings } from '../../lib/feature-flag'
+import { GitConfigLocation, GitConfig } from './git-config'
+import {
+  getConfigValue,
+  getGlobalConfigValue,
+  setConfigValue,
+} from '../../lib/git/config'
+import {
+  gitAuthorNameIsValid,
+  invalidGitAuthorNameMessage,
+} from '../lib/identifier-rules'
 
 interface IRepositorySettingsProps {
   readonly dispatcher: Dispatcher
@@ -30,6 +40,7 @@ enum RepositorySettingsTab {
   Remote = 0,
   IgnoredFiles,
   ForkSettings,
+  GitConfig,
 }
 
 interface IRepositorySettingsState {
@@ -38,6 +49,14 @@ interface IRepositorySettingsState {
   readonly ignoreText: string | null
   readonly ignoreTextHasChanged: boolean
   readonly disabled: boolean
+  readonly saveDisabled: boolean
+  readonly gitConfigLocation: GitConfigLocation
+  readonly committerName: string
+  readonly committerEmail: string
+  readonly globalCommitterName: string
+  readonly globalCommitterEmail: string
+  readonly initialCommitterName: string | null
+  readonly initialCommitterEmail: string | null
   readonly errors?: ReadonlyArray<JSX.Element | string>
   readonly forkContributionTarget: ForkContributionTarget
 }
@@ -56,6 +75,14 @@ export class RepositorySettings extends React.Component<
       ignoreTextHasChanged: false,
       disabled: false,
       forkContributionTarget: getForkContributionTarget(props.repository),
+      saveDisabled: false,
+      gitConfigLocation: GitConfigLocation.Global,
+      committerName: '',
+      committerEmail: '',
+      globalCommitterName: '',
+      globalCommitterEmail: '',
+      initialCommitterName: null,
+      initialCommitterEmail: null,
     }
   }
 
@@ -70,6 +97,38 @@ export class RepositorySettings extends React.Component<
       )
       this.setState({ errors: [`Could not read root .gitignore: ${e}`] })
     }
+
+    const initialCommitterName = await getConfigValue(
+      this.props.repository,
+      'user.name'
+    )
+    const initialCommitterEmail = await getConfigValue(
+      this.props.repository,
+      'user.email'
+    )
+
+    const globalCommitterName = (await getGlobalConfigValue('user.name')) || ''
+    const globalCommitterEmail =
+      (await getGlobalConfigValue('user.email')) || ''
+
+    let gitConfigLocation =
+      initialCommitterName === globalCommitterName &&
+      initialCommitterEmail === globalCommitterEmail
+        ? GitConfigLocation.Global
+        : GitConfigLocation.Local
+
+    let committerName = initialCommitterName || ''
+    let committerEmail = initialCommitterEmail || ''
+
+    this.setState({
+      gitConfigLocation,
+      committerName,
+      committerEmail,
+      globalCommitterName,
+      globalCommitterEmail,
+      initialCommitterName,
+      initialCommitterEmail,
+    })
   }
 
   private renderErrors(): JSX.Element[] | null {
@@ -111,6 +170,7 @@ export class RepositorySettings extends React.Component<
             {showForkSettings && (
               <span>{__DARWIN__ ? 'Fork Behavior' : 'Fork behavior'}</span>
             )}
+            <span>{__DARWIN__ ? 'Git Config' : 'Git config'}</span>
           </TabBar>
 
           <div className="active-tab">{this.renderActiveTab()}</div>
@@ -129,7 +189,10 @@ export class RepositorySettings extends React.Component<
 
     return (
       <DialogFooter>
-        <OkCancelButtonGroup okButtonText="Save" />
+        <OkCancelButtonGroup
+          okButtonText="Save"
+          okButtonDisabled={this.state.saveDisabled}
+        />
       </DialogFooter>
     )
   }
@@ -174,6 +237,22 @@ export class RepositorySettings extends React.Component<
           />
         )
       }
+
+      case RepositorySettingsTab.GitConfig: {
+        return (
+          <GitConfig
+            gitConfigLocation={this.state.gitConfigLocation}
+            onGitConfigLocationChanged={this.onGitConfigLocationChanged}
+            name={this.state.committerName}
+            email={this.state.committerEmail}
+            globalName={this.state.globalCommitterName}
+            globalEmail={this.state.globalCommitterEmail}
+            onNameChanged={this.onCommitterNameChanged}
+            onEmailChanged={this.onCommitterEmailChanged}
+          />
+        )
+      }
+    }
       default:
         return assertNever(tab, `Unknown tab type: ${tab}`)
     }
@@ -238,6 +317,23 @@ export class RepositorySettings extends React.Component<
           ...this.props.repository.workflowPreferences,
           forkContributionTarget: this.state.forkContributionTarget,
         }
+    if (this.state.committerName !== this.state.initialCommitterName) {
+      await setConfigValue(
+        this.props.repository,
+        'user.name',
+        this.state.gitConfigLocation === GitConfigLocation.Global
+          ? this.state.globalCommitterName
+          : this.state.committerName
+      )
+    }
+
+    if (this.state.committerEmail !== this.state.initialCommitterEmail) {
+      await setConfigValue(
+        this.props.repository,
+        'user.email',
+        this.state.gitConfigLocation === GitConfigLocation.Global
+          ? this.state.globalCommitterEmail
+          : this.state.committerEmail
       )
     }
 
@@ -273,5 +369,25 @@ export class RepositorySettings extends React.Component<
     this.setState({
       forkContributionTarget,
     })
+
+  private onGitConfigLocationChanged = (value: GitConfigLocation) => {
+    this.setState({ gitConfigLocation: value })
+  }
+
+  private onCommitterNameChanged = (committerName: string) => {
+    const errors = new Array<JSX.Element | string>()
+
+    if (gitAuthorNameIsValid(committerName)) {
+      this.setState({ saveDisabled: false })
+    } else {
+      this.setState({ saveDisabled: true })
+      errors.push(invalidGitAuthorNameMessage)
+    }
+
+    this.setState({ committerName, errors })
+  }
+
+  private onCommitterEmailChanged = (committerEmail: string) => {
+    this.setState({ committerEmail })
   }
 }
