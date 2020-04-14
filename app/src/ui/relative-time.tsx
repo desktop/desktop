@@ -1,5 +1,9 @@
 import * as React from 'react'
 import * as moment from 'moment'
+const momentDurationFormatSetup = require('moment-duration-format')
+
+// setup moment plugin
+momentDurationFormatSetup(moment)
 
 interface IRelativeTimeProps {
   /**
@@ -7,6 +11,14 @@ interface IRelativeTimeProps {
    * the relative time elapsed
    */
   readonly date: Date
+
+  /**
+   * For relative durations, use abbreviated units
+   * ('m' instead of 'minutes', 'd' instead of 'days')
+   *
+   * Defaults to `false`
+   */
+  readonly abbreviate?: boolean
 }
 
 interface IRelativeTimeState {
@@ -28,6 +40,7 @@ const MAX_INTERVAL = 2147483647
  * An auto-updating component rendering a relative time in human readable form.
  *
  * Example: 'just now', '4 minutes ago', '3 days ago'.
+ * or if abbreviated: 'just now', '4m', '3d'.
  *
  * For timestamps that are more than 7 days in the past the absolute
  * date is rendered instead.
@@ -72,6 +85,14 @@ export class RelativeTime extends React.Component<
     const diff = then.diff(now)
     const duration = Math.abs(diff)
     const absoluteText = then.format('LLLL')
+    const relativeText =
+      this.props.abbreviate === true
+        ? moment
+            .duration(duration, 'milliseconds')
+            .format('y[y] M[m] w[w] d[d] h[h] m[m]', {
+              largest: 1,
+            })
+        : then.from(now)
 
     // Future date, let's just show as absolute and reschedule. If it's less
     // than a minute into the future we'll treat it as 'just now'.
@@ -80,11 +101,11 @@ export class RelativeTime extends React.Component<
     } else if (duration < MINUTE) {
       this.updateAndSchedule(absoluteText, 'just now', MINUTE - duration)
     } else if (duration < HOUR) {
-      this.updateAndSchedule(absoluteText, then.from(now), MINUTE)
+      this.updateAndSchedule(absoluteText, relativeText, MINUTE)
     } else if (duration < DAY) {
-      this.updateAndSchedule(absoluteText, then.from(now), HOUR)
+      this.updateAndSchedule(absoluteText, relativeText, HOUR)
     } else if (duration < 7 * DAY) {
-      this.updateAndSchedule(absoluteText, then.from(now), 6 * HOUR)
+      this.updateAndSchedule(absoluteText, relativeText, 6 * HOUR)
     } else {
       this.setState({ absoluteText, relativeText: then.format('ll') })
     }
