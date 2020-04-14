@@ -66,7 +66,6 @@ export class CommitListItem extends React.Component<
     const commit = this.props.commit
     const {
       author: { date },
-      tags,
     } = commit
 
     return (
@@ -86,11 +85,14 @@ export class CommitListItem extends React.Component<
                 commit={commit}
               />
               {renderRelativeTime(date)}
-              {enableGitTagsDisplay() && renderCommitListItemTags(tags)}
             </div>
           </div>
         </div>
-        {this.renderUnpushedIndicator()}
+        <div className="commit-indicators">
+          {enableGitTagsDisplay() &&
+            renderCommitListItemTags(this.props.commit.tags)}
+          {this.renderUnpushedIndicator()}
+        </div>
       </div>
     )
   }
@@ -108,13 +110,11 @@ export class CommitListItem extends React.Component<
     }
 
     return (
-      <div className="unpushed-indicator-container">
-        <div
-          className="unpushed-indicator"
-          title="This commit hasn't been pushed to the remote repository yet"
-        >
-          <Octicon symbol={OcticonSymbol.arrowUp} />
-        </div>
+      <div
+        className="unpushed-indicator"
+        title="This commit hasn't been pushed to the remote repository yet"
+      >
+        <Octicon symbol={OcticonSymbol.arrowUp} />
       </div>
     )
   }
@@ -195,16 +195,13 @@ function renderRelativeTime(date: Date) {
 }
 
 function renderCommitListItemTags(tags: ReadonlyArray<string>) {
-  return tags.length === 0 ? null : (
-    <span>
-      {tags.map(t => (
-        <>
-          {` • `}
-          <span key={t} className="list-tag">
-            {t}
-          </span>
-        </>
-      ))}
+  if (tags.length === 0) {
+    return null
+  }
+  const [t] = tags
+  return (
+    <span key={t} className="tag-indicator">
+      {t}
     </span>
   )
 }
