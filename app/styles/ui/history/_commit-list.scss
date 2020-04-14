@@ -41,21 +41,33 @@
       }
     }
 
-    .unpushed-indicator-container {
-      padding-left: var(--spacing);
-    }
-
-    .unpushed-indicator {
-      height: 16px;
-      border-radius: 8px;
-      padding: 0 6px;
-
-      background: var(--list-item-badge-background-color);
+    .commit-indicators {
+      display: flex;
+      flex-flow: nowrap row;
+      flex: 0 1 content;
+      justify-content: flex-end;
+      margin-left: var(--spacing);
       color: var(--list-item-badge-color);
-    }
+      height: 16px;
 
-    .list-tag {
-      font-weight: bolder;
+      .tag-indicator {
+        display: flex;
+        flex: 0 1 auto;
+        height: 100%;
+        padding: 0 var(--spacing-half);
+        border-radius: 3px;
+        background: var(--list-item-badge-background-color);
+        @include ellipsis;
+      }
+
+      .unpushed-indicator {
+        flex: 0 0 auto;
+        height: 100%;
+        border-radius: 8px;
+        padding: 0 var(--spacing-half);
+        background: var(--list-item-badge-background-color);
+        margin-left: var(--spacing-half);
+      }
     }
   }
 
