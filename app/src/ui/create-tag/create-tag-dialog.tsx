@@ -36,6 +36,8 @@ interface ICreateTagState {
   readonly localTags: Set<string>
 }
 
+const MAX_TAG_NAME_LENGTH = 245
+
 /** The Create Tag component. */
 export class CreateTag extends React.Component<
   ICreateTagProps,
@@ -139,18 +141,27 @@ export class CreateTag extends React.Component<
     }
   }
 
+  private getCurrentError(sanitizedTagName: string): Error | null {
+    if (sanitizedTagName.length > MAX_TAG_NAME_LENGTH) {
+      return new Error(
+        `The tag name cannot be longer than ${MAX_TAG_NAME_LENGTH} characters`
+      )
+    }
+
+    const alreadyExists = this.state.localTags.has(sanitizedTagName)
+    if (alreadyExists) {
+      return new Error(`A tag named ${sanitizedTagName} already exists`)
+    }
+    return null
+  }
+
   private updateTagName = (name: string) => {
     const sanitizedName = sanitizedRefName(name)
-    const alreadyExists = this.state.localTags.has(sanitizedName)
-
-    const currentError = alreadyExists
-      ? new Error(`A tag named ${sanitizedName} already exists`)
-      : null
 
     this.setState({
       proposedName: name,
       sanitizedName,
-      currentError,
+      currentError: this.getCurrentError(sanitizedName),
     })
   }
 
