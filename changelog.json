@@ -4,8 +4,7 @@
       "[Fixed] Allow user to cancel rebase flow when warned about force pushing - #9507",
       "[Fixed] Prevent autocomplete suggestions from overlapping in some cases - #9474",
       "[Fixed] Update embedded Git to address security vulnerability",
-      "[Improved] Use abbreviated time durations in commit list - #9428",
-      "[Improved] Simplify wording in commit author display - #9486"
+      "[Improved] Redesign metadata shown in commit history - #9428"
     ],
     "2.4.1": [
       "[Added] Indicate which commits have not yet been pushed to the remote in \"History\" tab - #5873",
