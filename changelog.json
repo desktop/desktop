@@ -1,7 +1,7 @@
 {
   "releases": {
     "2.4.1": [
-      "[Added] Indicate which commits are un-pushed in \"History\" tab - #5873",
+      "[Added] Indicate which commits have not yet been pushed to the remote in \"History\" tab - #5873",
       "[Added] Add support for JetBrains Rider as external editor - #9368 #9365. Thanks @wengfatt and @say25!",
       "[Added] Add support for PyCharm as external editor on macOS - #9401. Thanks @jakubroztocil!",
       "[Added] Add support for Android Studio as external editor on macOS - #9332. Thanks @guidezpl!",
