@@ -29,7 +29,7 @@ We don't include release notes that don't impact the user's experience using Des
 We'll make exceptions for security vulnerability fixes, especially if they're high profile:
 
 ```
-[Fixed] Updated embedded Git to 2.17.1 to address upstream security issue - #4791
+[Fixed] Update embedded Git to 2.17.1 to address upstream security issue - #4791
 ```
 
 ### User Impact
