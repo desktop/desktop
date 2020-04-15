@@ -26,7 +26,7 @@ We don't include release notes that don't impact the user's experience using Des
 
 #### Exceptions for Security Vulnerability Fixes
 
-We'll make exceptions for security vulnerability fixes, especially if they're high profile:
+We'll make exceptions for security vulnerability fixes, especially if they're high profile. These are typically general in nature and do not include the CVE for the vulnerability. For example:
 
 ```
 [Fixed] Update embedded Git to address security vulnerability - #4791
