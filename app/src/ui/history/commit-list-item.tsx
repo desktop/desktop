@@ -200,8 +200,13 @@ function renderCommitListItemTags(tags: ReadonlyArray<string>) {
   }
   const [t] = tags
   return (
-    <span key={t} className="tag-indicator">
-      {t}
+    <span className="tag-indicator">
+      <span className="tag-name" key={t}>
+        {t}
+      </span>
+      {tags.length > 1 && (
+        <span key={tags.length} className="tag-indicator-more" />
+      )}
     </span>
   )
 }

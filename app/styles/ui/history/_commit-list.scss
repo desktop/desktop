@@ -54,10 +54,20 @@
         display: flex;
         flex: 0 1 auto;
         height: 100%;
-        padding: 0 var(--spacing-half);
-        border-radius: 3px;
-        background: var(--list-item-badge-background-color);
-        @include ellipsis;
+
+        .tag-name {
+          padding: 0 var(--spacing-half);
+          border-radius: var(--border-radius);
+          background: var(--list-item-badge-background-color);
+          z-index: 3;
+          @include ellipsis;
+        }
+        .tag-indicator-more {
+          width: var(--spacing-half);
+          margin-left: 2px;
+          border-radius: 0 var(--border-radius) var(--border-radius) 0;
+          background: var(--list-item-badge-background-color);
+        }
       }
 
       .unpushed-indicator {
