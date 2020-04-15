@@ -51,6 +51,11 @@ export function parseRemote(url: string): IGitRemoteURL | null {
       continue
     }
 
+    // We have extra slashes in our path so we need to just take the first one
+    if ((result[3].match(/\//g) || []).length > 0) {
+      result[3] = result[3].split('/')[0]
+    }
+
     const hostname = result[1]
     const owner = result[2]
     const name = result[3]
