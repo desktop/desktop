@@ -309,7 +309,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   private onUndo = () => {
     const commit = this.props.mostRecentLocalCommit
 
-    if (commit) {
+    if (commit && commit.tags.length === 0) {
       this.props.dispatcher.undoCommit(this.props.repository, commit)
     }
   }
