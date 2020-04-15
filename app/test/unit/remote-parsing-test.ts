@@ -33,6 +33,14 @@ describe('URL remote parsing', () => {
     expect(remote!.name).toBe('repo')
   })
 
+  it('parses HTTPS URLs which are too long', () => {
+    const remote = parseRemote('https//github.com/hubot/repo/extra/path')
+    expect(remote).not.toBeNull()
+    expect(remote!.hostname).toBe('github.com')
+    expect(remote!.owner).toBe('hubot')
+    expect(remote!.name).toBe('repo')
+  })
+
   it('parses SSH URLs', () => {
     const remote = parseRemote('git@github.com:hubot/repo.git')
     expect(remote).not.toBeNull()
@@ -51,6 +59,14 @@ describe('URL remote parsing', () => {
 
   it('parses SSH URLs with a trailing slash', () => {
     const remote = parseRemote('git@github.com:hubot/repo/')
+    expect(remote).not.toBeNull()
+    expect(remote!.hostname).toBe('github.com')
+    expect(remote!.owner).toBe('hubot')
+    expect(remote!.name).toBe('repo')
+  })
+
+  it('parses SSH URLs which are too long', () => {
+    const remote = parseRemote('git@github.com:hubot/repo/extra/path')
     expect(remote).not.toBeNull()
     expect(remote!.hostname).toBe('github.com')
     expect(remote!.owner).toBe('hubot')
@@ -81,6 +97,14 @@ describe('URL remote parsing', () => {
     expect(remote!.name).toBe('repo')
   })
 
+  it('parses git URLs which are too long', () => {
+    const remote = parseRemote('git:github.com/hubot/repo/extra/path')
+    expect(remote).not.toBeNull()
+    expect(remote!.hostname).toBe('github.com')
+    expect(remote!.owner).toBe('hubot')
+    expect(remote!.name).toBe('repo')
+  })
+
   it('parses SSH URLs with the ssh prefix', () => {
     const remote = parseRemote('ssh://git@github.com/hubot/repo')
     expect(remote).not.toBeNull()
@@ -91,6 +115,14 @@ describe('URL remote parsing', () => {
 
   it('parses SSH URLs with the ssh prefix and trailing slash', () => {
     const remote = parseRemote('ssh://git@github.com/hubot/repo/')
+    expect(remote).not.toBeNull()
+    expect(remote!.hostname).toBe('github.com')
+    expect(remote!.owner).toBe('hubot')
+    expect(remote!.name).toBe('repo')
+  })
+
+  it('parses SSH URLs with the ssh prefix and which are too long', () => {
+    const remote = parseRemote('ssh://git@github.com/hubot/repo/extra/path')
     expect(remote).not.toBeNull()
     expect(remote!.hostname).toBe('github.com')
     expect(remote!.owner).toBe('hubot')
