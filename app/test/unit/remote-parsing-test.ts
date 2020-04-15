@@ -34,7 +34,7 @@ describe('URL remote parsing', () => {
   })
 
   it('parses HTTPS URLs which are too long', () => {
-    const remote = parseRemote('https//github.com/hubot/repo/extra/path')
+    const remote = parseRemote('https://github.com/hubot/repo/extra/path')
     expect(remote).not.toBeNull()
     expect(remote!.hostname).toBe('github.com')
     expect(remote!.owner).toBe('hubot')
