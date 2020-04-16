@@ -177,6 +177,14 @@ function generateChecksums() {
 }
 
 function packageLinux() {
+  const helperPath = path.join(getDistPath(), 'chrome-sandbox')
+  const exists = fs.pathExistsSync(helperPath)
+
+  if (exists) {
+    console.log('Updating file mode for chrome-sandbox…')
+    fs.chmodSync(helperPath, 0o4755)
+  }
+
   const electronBuilder = path.resolve(
     __dirname,
     '..',
