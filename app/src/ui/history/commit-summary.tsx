@@ -338,14 +338,20 @@ export class CommitSummary extends React.Component<
               />
             </li>
 
-            <li className="commit-summary-meta-item" aria-label="SHA">
+            <li
+              className="commit-summary-meta-item without-truncation"
+              aria-label="SHA"
+            >
               <span aria-hidden="true">
                 <Octicon symbol={OcticonSymbol.gitCommit} />
               </span>
               <span className="sha">{shortSHA}</span>
             </li>
 
-            <li className="commit-summary-meta-item" title={filesDescription}>
+            <li
+              className="commit-summary-meta-item without-truncation"
+              title={filesDescription}
+            >
               <span aria-hidden="true">
                 <Octicon symbol={OcticonSymbol.diff} />
               </span>
@@ -355,15 +361,20 @@ export class CommitSummary extends React.Component<
             {this.renderTags()}
 
             {enableHideWhitespaceInDiffOption() && (
-              <Checkbox
-                label="Hide Whitespace"
-                value={
-                  this.props.hideWhitespaceInDiff
-                    ? CheckboxValue.On
-                    : CheckboxValue.Off
-                }
-                onChange={this.onHideWhitespaceInDiffChanged}
-              />
+              <li
+                className="commit-summary-meta-item without-truncation"
+                title={filesDescription}
+              >
+                <Checkbox
+                  label="Hide Whitespace"
+                  value={
+                    this.props.hideWhitespaceInDiff
+                      ? CheckboxValue.On
+                      : CheckboxValue.Off
+                  }
+                  onChange={this.onHideWhitespaceInDiffChanged}
+                />
+              </li>
             )}
           </ul>
         </div>
@@ -385,12 +396,12 @@ export class CommitSummary extends React.Component<
     }
 
     return (
-      <li className="commit-summary-meta-item">
+      <li className="commit-summary-meta-item" title={tags.join('\n')}>
         <span aria-label="Tags">
           <Octicon symbol={OcticonSymbol.tag} />
         </span>
 
-        {tags.join(', ')}
+        <span className="tags">{tags.join(', ')}</span>
       </li>
     )
   }
