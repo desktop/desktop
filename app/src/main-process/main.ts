@@ -583,7 +583,6 @@ function createWindow() {
     const {
       default: installExtension,
       REACT_DEVELOPER_TOOLS,
-      REACT_PERF,
     } = require('electron-devtools-installer')
 
     require('electron-debug')({ showDevTools: true })
@@ -593,7 +592,7 @@ function createWindow() {
       electron: '>=1.2.1',
     }
 
-    const extensions = [REACT_DEVELOPER_TOOLS, REACT_PERF, ChromeLens]
+    const extensions = [REACT_DEVELOPER_TOOLS, ChromeLens]
 
     for (const extension of extensions) {
       try {
