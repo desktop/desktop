@@ -396,6 +396,6 @@ class TutorialStepInstructions extends React.Component<
   }
 }
 
-const SkipLinkButton: React.SFC<{ onClick: () => void }> = props => (
-  <LinkButton onClick={props.onClick}>Skip</LinkButton>
-)
+const SkipLinkButton: React.FunctionComponent<{
+  onClick: () => void
+}> = props => <LinkButton onClick={props.onClick}>Skip</LinkButton>
