@@ -37,12 +37,6 @@ interface ICreateTagState {
 
 const MaxTagNameLength = 245
 
-/**
- * Regular expression to check whether a tag name
- * consists only of whitespace characters.
- */
-const AllWhiteSpaceRegex = /^\s*$/
-
 /** The Create Tag component. */
 export class CreateTag extends React.Component<
   ICreateTagProps,
@@ -139,7 +133,9 @@ export class CreateTag extends React.Component<
       )
     }
 
-    if (proposedName.length > 0 && AllWhiteSpaceRegex.test(sanitizedName)) {
+    // Show an error if the sanitization logic causes the tag name to be an empty
+    // string (we only want to show this if the user has already typed something).
+    if (proposedName.length > 0 && sanitizedName.length === 0) {
       return <>Invalid tag name.</>
     }
 
