@@ -115,8 +115,7 @@ export class CreateTag extends React.Component<
   }
 
   private renderTagNameWarning() {
-    const proposedName = this.state.proposedName
-    const sanitizedName = this.state.sanitizedName
+    const { proposedName, sanitizedName } = this.state
 
     if (proposedName.length > 0 && /^\s*$/.test(sanitizedName)) {
       return (
