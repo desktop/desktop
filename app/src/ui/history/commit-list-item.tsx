@@ -157,7 +157,7 @@ export class CommitListItem extends React.Component<
       items.push({
         label: 'Create Tag…',
         action: this.onCreateTag,
-        enabled: !!this.props.onCreateTag,
+        enabled: this.props.onCreateTag !== undefined,
       })
     }
 
