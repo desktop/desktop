@@ -21,7 +21,6 @@ interface ICreateTagProps {
 }
 
 interface ICreateTagState {
-  readonly currentError: Error | null
   readonly proposedName: string
   readonly sanitizedName: string
 
@@ -38,6 +37,12 @@ interface ICreateTagState {
 
 const MaxTagNameLength = 245
 
+/**
+ * Regular expression to check whether a tag name
+ * consists only of whitespace characters.
+ */
+const AllWhiteSpaceRegex = /^\s*$/
+
 /** The Create Tag component. */
 export class CreateTag extends React.Component<
   ICreateTagProps,
@@ -46,20 +51,17 @@ export class CreateTag extends React.Component<
   public constructor(props: ICreateTagProps) {
     super(props)
 
+    const proposedName = props.initialName || ''
+
     this.state = {
-      currentError: null,
-      proposedName: props.initialName || '',
-      sanitizedName: '',
+      proposedName,
+      sanitizedName: sanitizedRefName(proposedName),
       isCreatingTag: false,
       localTags: new Set(),
     }
   }
 
   public async componentDidMount() {
-    if (this.state.proposedName.length > 0) {
-      this.updateTagName(this.state.proposedName)
-    }
-
     // Get the existing tags so we can warn the user that the chosen tag already
     // exists before submitting.
     // Since this is just an UX improvement, we don't need to block the rendering
@@ -74,11 +76,8 @@ export class CreateTag extends React.Component<
   }
 
   public render() {
-    const disabled =
-      this.state.proposedName.length <= 0 ||
-      !!this.state.currentError ||
-      /^\s*$/.test(this.state.sanitizedName)
-    const error = this.state.currentError
+    const error = this.getCurrentError()
+    const disabled = error !== null || this.state.proposedName.length === 0
 
     return (
       <Dialog
@@ -89,7 +88,7 @@ export class CreateTag extends React.Component<
         loading={this.state.isCreatingTag}
         disabled={this.state.isCreatingTag}
       >
-        {error ? <DialogError>{error.message}</DialogError> : null}
+        {error && <DialogError>{error}</DialogError>}
 
         <DialogContent>
           <Row>
@@ -117,16 +116,7 @@ export class CreateTag extends React.Component<
   private renderTagNameWarning() {
     const { proposedName, sanitizedName } = this.state
 
-    if (proposedName.length > 0 && /^\s*$/.test(sanitizedName)) {
-      return (
-        <Row className="warning-helper-text">
-          <Octicon symbol={OcticonSymbol.alert} />
-          <p>
-            <Ref>{proposedName}</Ref> is not a valid tag name.
-          </p>
-        </Row>
-      )
-    } else if (proposedName !== sanitizedName) {
+    if (proposedName !== sanitizedName) {
       return (
         <Row className="warning-helper-text">
           <Octicon symbol={OcticonSymbol.alert} />
@@ -140,27 +130,35 @@ export class CreateTag extends React.Component<
     }
   }
 
-  private getCurrentError(sanitizedTagName: string): Error | null {
-    if (sanitizedTagName.length > MaxTagNameLength) {
-      return new Error(
-        `The tag name cannot be longer than ${MaxTagNameLength} characters`
+  private getCurrentError(): JSX.Element | null {
+    const { sanitizedName, proposedName } = this.state
+
+    if (sanitizedName.length > MaxTagNameLength) {
+      return (
+        <>The tag name cannot be longer than {MaxTagNameLength} characters</>
       )
     }
 
-    const alreadyExists = this.state.localTags.has(sanitizedTagName)
-    if (alreadyExists) {
-      return new Error(`A tag named ${sanitizedTagName} already exists`)
+    if (proposedName.length > 0 && AllWhiteSpaceRegex.test(sanitizedName)) {
+      return <>Invalid tag name.</>
     }
+
+    const alreadyExists = this.state.localTags.has(sanitizedName)
+    if (alreadyExists) {
+      return (
+        <>
+          A tag named <Ref>{sanitizedName}</Ref> already exists
+        </>
+      )
+    }
+
     return null
   }
 
   private updateTagName = (name: string) => {
-    const sanitizedName = sanitizedRefName(name)
-
     this.setState({
       proposedName: name,
-      sanitizedName,
-      currentError: this.getCurrentError(sanitizedName),
+      sanitizedName: sanitizedRefName(name),
     })
   }
 
