@@ -114,8 +114,7 @@ export function nameOf(repository: Repository) {
 }
 
 /**
- * Get the GitHub html URL for a repository, if it has one.
- * Will return the parent GitHub repository's URL if it has one.
+ * Returns the GitHub html URL for a repository, if it has one.
  * Otherwise, returns null.
  */
 export function getGitHubHtmlUrl(repository: Repository): string | null {
@@ -123,7 +122,7 @@ export function getGitHubHtmlUrl(repository: Repository): string | null {
     return null
   }
 
-  return getNonForkGitHubRepository(repository).htmlURL
+  return repository.gitHubRepository.htmlURL
 }
 
 /**
