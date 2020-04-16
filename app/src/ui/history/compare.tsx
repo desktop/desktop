@@ -283,6 +283,7 @@ export class CompareSidebar extends React.Component<
         }
         onCommitSelected={this.onCommitSelected}
         onScroll={this.onScroll}
+        onCreateTag={this.onCreateTag}
         emptyListMessage={emptyListMessage}
         onCompareListScrolled={this.props.onCompareListScrolled}
         compareListScrollTop={this.props.compareListScrollTop}
@@ -588,6 +589,13 @@ export class CompareSidebar extends React.Component<
     if (this.state.hasConsumedNotification) {
       this.props.dispatcher.recordDivergingBranchBannerInfluencedMerge()
     }
+  }
+
+  private onCreateTag = (targetCommitSha: string) => {
+    this.props.dispatcher.showCreateTagDialog(
+      this.props.repository,
+      targetCommitSha
+    )
   }
 }
 

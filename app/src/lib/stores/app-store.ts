@@ -3060,6 +3060,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return repo
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _createTag(
+    repository: Repository,
+    name: string,
+    targetCommitSha: string
+  ): Promise<void> {
+    const gitStore = this.gitStoreCache.get(repository)
+
+    await gitStore.createTag(name, targetCommitSha)
+
+    this._closePopup()
+  }
+
   private updateCheckoutProgress(
     repository: Repository,
     checkoutProgress: ICheckoutProgress | null
@@ -3071,6 +3084,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (this.selectedRepository === repository) {
       this.emitUpdate()
     }
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _getAllTags(repository: Repository): Promise<ReadonlyArray<string>> {
+    const gitStore = this.gitStoreCache.get(repository)
+
+    return gitStore.getAllTags()
   }
 
   private getLocalBranch(

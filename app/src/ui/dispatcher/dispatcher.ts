@@ -488,6 +488,40 @@ export class Dispatcher {
     )
   }
 
+  /**
+   * Create a new tag on the given target commit.
+   */
+  public createTag(
+    repository: Repository,
+    name: string,
+    targetCommitSha: string
+  ): Promise<void> {
+    return this.appStore._createTag(repository, name, targetCommitSha)
+  }
+
+  /**
+   * Create a new tag on the given target commit.
+   */
+  public getAllTags(repository: Repository): Promise<ReadonlyArray<string>> {
+    return this.appStore._getAllTags(repository)
+  }
+
+  /**
+   * Show the tag creation dialog.
+   */
+  public showCreateTagDialog(
+    repository: Repository,
+    targetCommitSha: string,
+    initialName?: string
+  ): Promise<void> {
+    return this.showPopup({
+      type: PopupType.CreateTag,
+      repository,
+      targetCommitSha,
+      initialName,
+    })
+  }
+
   /** Check out the given branch. */
   public checkoutBranch(
     repository: Repository,

@@ -63,6 +63,8 @@ import {
   getSymbolicRef,
   getConfigValue,
   removeRemote,
+  createTag,
+  getAllTags,
 } from '../git'
 import { GitError as DugiteError } from '../../lib/git'
 import { GitError } from 'dugite'
@@ -255,6 +257,23 @@ export class GitStore extends BaseStore {
 
     this.storeCommits(commits, false)
     return commits.map(c => c.sha)
+  }
+
+  public async getAllTags(): Promise<ReadonlyArray<string>> {
+    return getAllTags(this.repository)
+  }
+
+  public async createTag(name: string, targetCommitSha: string) {
+    const foundCommit = await this.performFailableOperation(async () => {
+      await createTag(this.repository, name, targetCommitSha)
+
+      return getCommit(this.repository, targetCommitSha)
+    })
+
+    if (foundCommit != null) {
+      this.commitLookup.set(targetCommitSha, foundCommit)
+      this.emitNewCommitsLoaded([foundCommit])
+    }
   }
 
   /** The list of ordered SHAs. */

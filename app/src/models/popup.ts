@@ -57,6 +57,7 @@ export enum PopupType {
   SAMLReauthRequired,
   CreateFork,
   SChannelNoRevocationCheck,
+  CreateTag,
 }
 
 export type Popup =
@@ -225,4 +226,10 @@ export type Popup =
   | {
       type: PopupType.SChannelNoRevocationCheck
       url: string
+    }
+  | {
+      type: PopupType.CreateTag
+      repository: Repository
+      targetCommitSha: string
+      initialName?: string
     }

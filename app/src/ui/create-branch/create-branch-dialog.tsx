@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
-import { sanitizedBranchName } from '../../lib/sanitize-branch'
+import { sanitizedRefName } from '../../lib/sanitize-ref-name'
 import { Branch, StartPoint } from '../../models/branch'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
@@ -252,7 +252,7 @@ export class CreateBranch extends React.Component<
   }
 
   private updateBranchName(name: string) {
-    const sanitizedName = sanitizedBranchName(name)
+    const sanitizedName = sanitizedRefName(name)
     const alreadyExists =
       this.props.allBranches.findIndex(b => b.name === sanitizedName) > -1
 

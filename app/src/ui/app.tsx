@@ -114,6 +114,7 @@ import { CreateForkDialog } from './forks/create-fork-dialog'
 import { SChannelNoRevocationCheckDialog } from './schannel-no-revocation-check/schannel-no-revocation-check'
 import { findUpstreamRemoteBranch } from '../lib/branch'
 import { GitHubRepository } from '../models/github-repository'
+import { CreateTag } from './create-tag'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1937,6 +1938,18 @@ export class App extends React.Component<IAppProps, IAppState> {
             url={popup.url}
           />
         )
+      case PopupType.CreateTag: {
+        return (
+          <CreateTag
+            key="create-tag"
+            repository={popup.repository}
+            onDismissed={this.onPopupDismissed}
+            dispatcher={this.props.dispatcher}
+            targetCommitSha={popup.targetCommitSha}
+            initialName={popup.initialName}
+          />
+        )
+      }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }

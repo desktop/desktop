@@ -3,7 +3,7 @@ import * as React from 'react'
 import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
-import { sanitizedBranchName } from '../../lib/sanitize-branch'
+import { sanitizedRefName } from '../../lib/sanitize-ref-name'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
@@ -57,7 +57,7 @@ export class RenameBranch extends React.Component<
           </Row>
           {renderBranchNameWarning(
             this.state.newName,
-            sanitizedBranchName(this.state.newName)
+            sanitizedRefName(this.state.newName)
           )}
           {renderBranchHasRemoteWarning(this.props.branch)}
           {renderStashWillBeLostWarning(this.props.stash)}
@@ -78,7 +78,7 @@ export class RenameBranch extends React.Component<
   }
 
   private renameBranch = () => {
-    const name = sanitizedBranchName(this.state.newName)
+    const name = sanitizedRefName(this.state.newName)
     this.props.dispatcher.renameBranch(
       this.props.repository,
       this.props.branch,
