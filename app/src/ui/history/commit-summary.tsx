@@ -15,7 +15,6 @@ import {
   enableHideWhitespaceInDiffOption,
   enableGitTagsDisplay,
 } from '../../lib/feature-flag'
-import { caseInsensitiveCompare } from '../../lib/compare'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -396,15 +395,13 @@ export class CommitSummary extends React.Component<
       return null
     }
 
-    const sortedTags = [...tags].sort(caseInsensitiveCompare)
-
     return (
-      <li className="commit-summary-meta-item" title={sortedTags.join('\n')}>
+      <li className="commit-summary-meta-item" title={tags.join('\n')}>
         <span aria-label="Tags">
           <Octicon symbol={OcticonSymbol.tag} />
         </span>
 
-        <span className="tags">{sortedTags.join(', ')}</span>
+        <span className="tags">{tags.join(', ')}</span>
       </li>
     )
   }
