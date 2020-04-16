@@ -59,12 +59,13 @@
           padding: 0 var(--spacing-half);
           border-radius: var(--border-radius);
           background: var(--list-item-badge-background-color);
+          box-shadow: 1px 0 0 var(--background-color);
           z-index: 3;
           @include ellipsis;
         }
         .tag-indicator-more {
-          width: var(--spacing-half);
-          margin-left: 2px;
+          width: var(--spacing);
+          margin-left: -5px;
           border-radius: 0 var(--border-radius) var(--border-radius) 0;
           background: var(--list-item-badge-background-color);
         }
@@ -87,6 +88,14 @@
         background: var(--list-item-selected-badge-background-color);
         color: var(--list-item-selected-badge-color);
       }
+      .tag-name {
+        background: var(--list-item-selected-badge-background-color);
+        color: var(--list-item-selected-badge-color);          
+        box-shadow: 1px 0 0 var(--box-selected-background-color);
+      }
+      .tag-indicator-more {
+        background: var(--list-item-selected-badge-background-color);
+      }
     }
   }
 
@@ -94,6 +103,15 @@
     .list-item.selected {
       .commit {
         .unpushed-indicator {
+          background: var(--list-item-selected-active-badge-background-color);
+          color: var(--list-item-selected-active-badge-color);
+        }
+        .tag-name{
+          background: var(--list-item-selected-active-badge-background-color);
+          color: var(--list-item-selected-active-badge-color);
+          box-shadow: 1px 0 0 var(--box-selected-active-background-color);
+        }
+        .tag-indicator-more {
           background: var(--list-item-selected-active-badge-background-color);
           color: var(--list-item-selected-active-badge-color);
         }
