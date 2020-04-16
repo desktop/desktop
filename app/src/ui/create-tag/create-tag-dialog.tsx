@@ -36,7 +36,7 @@ interface ICreateTagState {
   readonly localTags: Set<string>
 }
 
-const MAX_TAG_NAME_LENGTH = 245
+const MaxTagNameLength = 245
 
 /** The Create Tag component. */
 export class CreateTag extends React.Component<
