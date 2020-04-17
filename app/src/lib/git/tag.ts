@@ -2,6 +2,7 @@ import { git, gitNetworkArguments } from './core'
 import { Repository } from '../../models/repository'
 import { IGitAccount } from '../../models/git-account'
 import { IRemote } from '../../models/remote'
+import { envForRemoteOperation } from './environment'
 
 /**
  * Create a new tag on the given target commit.
@@ -36,7 +37,7 @@ export async function getAllTags(
 }
 
 /**
- * Fetches the unpushed tags from the remote repository (it does a network request).
+ * Fetches the tags that will get pushed to the remote repository (it does a network request).
  *
  * @param repository  - The repository in which to check for unpushed tags
  * @param account     - The account to use when authenticating with the remote
@@ -51,6 +52,7 @@ export async function fetchTagsToPush(
   branchName: string
 ): Promise<ReadonlyArray<string>> {
   const networkArguments = await gitNetworkArguments(repository, account)
+
   const args = [
     ...networkArguments,
     'push',
@@ -61,7 +63,9 @@ export async function fetchTagsToPush(
     '--porcelain',
   ]
 
-  const result = await git(args, repository.path, 'fetchUnpushedTags')
+  const result = await git(args, repository.path, 'fetchTagsToPush', {
+    env: await envForRemoteOperation(account, remote.url),
+  })
 
   const lines = result.stdout.split('\n')
   let currentLine = 1
