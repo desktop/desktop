@@ -266,7 +266,11 @@ export class GitStore extends BaseStore {
     return getAllTags(this.repository)
   }
 
-  public async createTag(name: string, targetCommitSha: string) {
+  public async createTag(
+    account: IGitAccount | null,
+    name: string,
+    targetCommitSha: string
+  ) {
     const foundCommit = await this.performFailableOperation(async () => {
       await createTag(this.repository, name, targetCommitSha)
 
@@ -276,6 +280,8 @@ export class GitStore extends BaseStore {
     if (foundCommit instanceof Commit) {
       this.storeCommits([foundCommit], true)
     }
+
+    this.fetchTagsToPush(account)
   }
 
   /** The list of ordered SHAs. */
