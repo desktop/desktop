@@ -2773,6 +2773,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._initializeCompare(repository)
 
     this.updateCurrentTutorialStep(repository)
+
+    this.withAuthenticatingUser(repository, (_, account) =>
+      gitStore.fetchTagsToPush(account)
+    )
   }
 
   private async updateStashEntryCountMetric(
