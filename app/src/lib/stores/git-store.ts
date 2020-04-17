@@ -65,7 +65,6 @@ import {
   removeRemote,
   createTag,
   getAllTags,
-  fetchTagsToPush,
 } from '../git'
 import { GitError as DugiteError } from '../../lib/git'
 import { GitError } from 'dugite'
@@ -404,24 +403,16 @@ export class GitStore extends BaseStore {
     const branchName = this.tip.branch.name
 
     const tagsToPush = await this.performFailableOperation(async () => {
-      if (options.forceFetch) {
-        return fetchTagsToPush(
-          this.repository,
-          account,
-          currentRemote,
-          branchName
-        )
-      } else {
-        const localTags = await this.getAllTags()
+      const localTags = await this.getAllTags()
 
-        return fetchTagsToPushMemoized(
-          localTags,
-          this.repository,
-          account,
-          currentRemote,
-          branchName
-        )
-      }
+      return fetchTagsToPushMemoized(
+        this.repository,
+        account,
+        currentRemote,
+        branchName,
+        localTags,
+        options
+      )
     })
     this._tagsToPush = tagsToPush !== undefined ? tagsToPush : null
 

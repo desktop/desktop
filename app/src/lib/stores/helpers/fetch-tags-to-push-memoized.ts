@@ -1,7 +1,9 @@
 import memoizeOne from 'memoize-one'
 import { fetchTagsToPush } from '../../git'
+import { Repository } from '../../../models/repository'
+import { IGitAccount } from '../../../models/git-account'
+import { IRemote } from '../../../models/remote'
 
-type FetchTagsArguments = Parameters<typeof fetchTagsToPush>
 type MemoizedFetchTagsArguments = Parameters<typeof fetchTagsToMemoize>
 
 /**
@@ -17,24 +19,38 @@ type MemoizedFetchTagsArguments = Parameters<typeof fetchTagsToMemoize>
  * @param branchName  - The branch that will be used on the push command
  * @param localTags   - The current list of local tags. This is only used for memoization purposes
  */
-export const fetchTagsToPushMemoized = memoizeOne(
-  fetchTagsToMemoize,
-  (newArgs, lastArgs) =>
-    serializeArguments(newArgs as MemoizedFetchTagsArguments) ===
-    serializeArguments(lastArgs as MemoizedFetchTagsArguments)
-)
+export const fetchTagsToPushMemoized = memoizeOne(fetchTagsToMemoize, ((
+  newArgs: MemoizedFetchTagsArguments,
+  lastArgs: MemoizedFetchTagsArguments
+) => {
+  // When forceFetch is true, we consider the arguments different to
+  // force a call to the original method.
+  if (newArgs[5].forceFetch) {
+    return false
+  }
+
+  return serializeArguments(newArgs) === serializeArguments(lastArgs)
+}) as any)
 
 /**
  * Temporary function to use on the memoization to make typescript happy.
  *
- * @param _localTags - The current list of local tags. This is only used for memoization.
- * @param fetchTagsArguments - The original arguments of the fetchTagsToPush() method.
+ * @param repository  - The repository in which to check for unpushed tags
+ * @param account     - The account to use when authenticating with the remote
+ * @param remote      - The remote to check for unpushed tags
+ * @param branchName  - The branch that will be used on the push command
+ * @param _localTags  - The current list of local tags. This is only used for memoization.
+ * @param _options    - Pass {forceFetch: true} to disable the memoization.
  */
 function fetchTagsToMemoize(
+  repository: Repository,
+  account: IGitAccount | null,
+  remote: IRemote,
+  branchName: string,
   _localTags: ReadonlyArray<string>, // only used for cache invalidation.
-  ...fetchTagsArguments: FetchTagsArguments
+  _options: { forceFetch: boolean } // only used for cache invalidation.
 ) {
-  return fetchTagsToPush(...fetchTagsArguments)
+  return fetchTagsToPush(repository, account, remote, branchName)
 }
 
 /**
@@ -44,11 +60,11 @@ function fetchTagsToMemoize(
  * @param arguments  - Array with the arguments that are used for memoization.
  */
 function serializeArguments([
-  localTags,
   repository,
   account,
   remote,
   branchName,
+  localTags,
 ]: MemoizedFetchTagsArguments) {
   return JSON.stringify([
     repository.hash,
