@@ -37,7 +37,7 @@
     "fuzzaldrin-plus": "^0.6.0",
     "keytar": "^5.0.0",
     "mem": "^4.3.0",
-    "memoize-one": "^4.0.3",
+    "memoize-one": "^5.1.1",
     "moment": "^2.24.0",
     "moment-duration-format": "^2.3.2",
     "mri": "^1.1.0",
