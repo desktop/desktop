@@ -41,7 +41,6 @@ export async function getAllTags(
  *
  * @param repository  - The repository in which to check for unpushed tags
  * @param account     - The account to use when authenticating with the remote
- *
  * @param remote      - The remote to check for unpushed tags
  * @param branchName  - The branch that will be used on the push command
  */
