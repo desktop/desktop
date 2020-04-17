@@ -3743,7 +3743,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await fn()
       await this.gitStoreCache
         .get(repository)
-        .fetchTagsToPush(account)
+        .fetchTagsToPush(account, { forceFetch: true })
     } finally {
       this.repositoryStateCache.update(repository, () => ({
         isPushPullFetchInProgress: false,
