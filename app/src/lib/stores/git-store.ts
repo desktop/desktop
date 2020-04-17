@@ -919,10 +919,7 @@ export class GitStore extends BaseStore {
       repository: this.repository,
     }
     await this.performFailableOperation(
-      async () => {
-        await fetchRepo(this.repository, account, remote, progressCallback)
-        await this.fetchTagsToPush(account)
-      },
+      () => fetchRepo(this.repository, account, remote, progressCallback),
       { backgroundTask, retryAction }
     )
   }

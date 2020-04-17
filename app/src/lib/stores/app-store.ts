@@ -3073,7 +3073,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
 
-    await gitStore.createTag(name, targetCommitSha)
+    await this.withAuthenticatingUser(repository, (_, account) =>
+      gitStore.createTag(account, name, targetCommitSha)
+    )
 
     this._closePopup()
   }
@@ -3535,7 +3537,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    return this.withPushPullFetch(repository, async () => {
+    return this.withPushPullFetch(repository, account, async () => {
       const { tip } = state.branchesState
 
       if (tip.kind === TipState.Unborn) {
@@ -3723,6 +3725,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private async withPushPullFetch(
     repository: Repository,
+    account: IGitAccount | null,
     fn: () => Promise<void>
   ): Promise<void> {
     const state = this.repositoryStateCache.get(repository)
@@ -3738,6 +3741,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     try {
       await fn()
+      await this.gitStoreCache
+        .get(repository)
+        .fetchTagsToPush(account)
     } finally {
       this.repositoryStateCache.update(repository, () => ({
         isPushPullFetchInProgress: false,
@@ -3757,7 +3763,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     account: IGitAccount | null
   ): Promise<void> {
-    return this.withPushPullFetch(repository, async () => {
+    return this.withPushPullFetch(repository, account, async () => {
       const gitStore = this.gitStoreCache.get(repository)
       const remote = gitStore.currentRemote
 
@@ -4102,7 +4108,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     fetchType: FetchType,
     remotes?: IRemote[]
   ): Promise<void> {
-    await this.withPushPullFetch(repository, async () => {
+    await this.withPushPullFetch(repository, account, async () => {
       const gitStore = this.gitStoreCache.get(repository)
 
       try {
