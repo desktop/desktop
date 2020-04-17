@@ -832,6 +832,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commitLookup: gitStore.commitLookup,
       localCommitSHAs: gitStore.localCommitSHAs,
       aheadBehind: gitStore.aheadBehind,
+      tagsToPush: gitStore.tagsToPush,
       remote: gitStore.currentRemote,
       lastFetched: gitStore.lastFetched,
     }))

@@ -385,6 +385,9 @@ export interface IRepositoryState {
   /** The state of the current branch in relation to its upstream. */
   readonly aheadBehind: IAheadBehind | null
 
+  /** The tags that will get pushed if the user performs a push operation. */
+  readonly tagsToPush: ReadonlyArray<string> | null
+
   /** Is a push/pull/fetch in progress? */
   readonly isPushPullFetchInProgress: boolean
 
