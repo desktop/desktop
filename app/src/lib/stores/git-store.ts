@@ -65,6 +65,7 @@ import {
   removeRemote,
   createTag,
   getAllTags,
+  fetchTagsToPush,
 } from '../git'
 import { GitError as DugiteError } from '../../lib/git'
 import { GitError } from 'dugite'
@@ -126,6 +127,8 @@ export class GitStore extends BaseStore {
   private _coAuthors: ReadonlyArray<IAuthor> = []
 
   private _aheadBehind: IAheadBehind | null = null
+
+  private _tagsToPush: ReadonlyArray<string> | null = null
 
   private _defaultRemote: IRemote | null = null
 
@@ -280,6 +283,10 @@ export class GitStore extends BaseStore {
     return this._history
   }
 
+  public get tagsToPush(): ReadonlyArray<string> | null {
+    return this._tagsToPush
+  }
+
   /** Load all the branches. */
   public async loadBranches() {
     const [localAndRemoteBranches, recentBranchNames] = await Promise.all([
@@ -370,6 +377,28 @@ export class GitStore extends BaseStore {
         .filter(b => b.name === defaultBranchName)
         .sort((x, y) => compare(x.type, y.type))
         .shift() || null
+  }
+
+  public async fetchTagsToPush(account: IGitAccount | null) {
+    const currentRemote = this._currentRemote
+
+    if (currentRemote === null) {
+      this._tagsToPush = null
+      return
+    }
+
+    if (this.tip.kind !== TipState.Valid) {
+      this._tagsToPush = null
+      return
+    }
+    const branchName = this.tip.branch.name
+
+    const tagsToPush = await this.performFailableOperation(() =>
+      fetchTagsToPush(this.repository, account, currentRemote, branchName)
+    )
+    this._tagsToPush = tagsToPush !== undefined ? tagsToPush : null
+
+    this.emitUpdate()
   }
 
   /**
@@ -890,7 +919,10 @@ export class GitStore extends BaseStore {
       repository: this.repository,
     }
     await this.performFailableOperation(
-      () => fetchRepo(this.repository, account, remote, progressCallback),
+      async () => {
+        await fetchRepo(this.repository, account, remote, progressCallback)
+        await this.fetchTagsToPush(account)
+      },
       { backgroundTask, retryAction }
     )
   }
