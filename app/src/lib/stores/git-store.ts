@@ -119,6 +119,8 @@ export class GitStore extends BaseStore {
 
   private _localCommitSHAs: ReadonlyArray<string> = []
 
+  private _evidenceCommitSHAs: ReadonlyArray<string> = []
+
   private _commitMessage: ICommitMessage = DefaultCommitMessage
 
   private _showCoAuthoredBy: boolean = false
@@ -493,12 +495,58 @@ export class GitStore extends BaseStore {
     this.emitUpdate()
   }
 
+  /** Load a batch of evidence commits from the repository, using HEAD as commitish object as the starting point */
+  public async loadEvidenceCommits() {
+    const defaultBranchName = this._defaultBranch
+      ? this._defaultBranch.name
+      : 'master'
+
+    let commitish = `${defaultBranchName}...HEAD`
+
+    let commits = await this.performFailableOperation(() =>
+      getCommits(this.repository, commitish, CommitBatchSize, [
+        '--first-parent',
+        '--reverse',
+      ])
+    )
+    if (!commits || commits.length === 0) {
+      return
+    }
+
+    commitish = `${commits[0].sha}^`
+
+    commits = await this.performFailableOperation(() =>
+      getCommits(this.repository, commitish, 1)
+    )
+    if (!commits || commits.length === 0) {
+      return
+    }
+
+    commitish = `${commits[0].sha}..HEAD`
+
+    commits = await this.performFailableOperation(() =>
+      getCommits(this.repository, commitish, CommitBatchSize, [
+        '--first-parent',
+      ])
+    )
+    if (!commits) {
+      return
+    }
+
+    this._evidenceCommitSHAs = commits.map(c => c.sha)
+    this.emitUpdate()
+  }
+
   /**
    * The ordered array of local commit SHAs. The commits themselves can be
    * looked up in `commits`.
    */
   public get localCommitSHAs(): ReadonlyArray<string> {
     return this._localCommitSHAs
+  }
+
+  public get evidenceCommitSHAs(): ReadonlyArray<string> {
+    return this._evidenceCommitSHAs
   }
 
   /** Store the given commits. */

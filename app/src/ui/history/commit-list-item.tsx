@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as classNames from 'classnames'
 import { Commit } from '../../models/commit'
 import { GitHubRepository } from '../../models/github-repository'
 import { IAvatarUser, getAvatarUsersForCommit } from '../../models/avatar'
@@ -22,6 +23,7 @@ interface ICommitProps {
   readonly commit: Commit
   readonly emoji: Map<string, string>
   readonly isLocal: boolean
+  readonly isEvidence: boolean
   readonly onRevertCommit?: (commit: Commit) => void
   readonly onViewCommitOnGitHub?: (sha: string) => void
   readonly onCreateTag?: (targetCommitSha: string) => void
@@ -68,8 +70,12 @@ export class CommitListItem extends React.Component<
       author: { date },
     } = commit
 
+    const className = classNames('commit', {
+      evidence: this.props.isEvidence,
+    })
+
     return (
-      <div className="commit" onContextMenu={this.onContextMenu}>
+      <div className={className} onContextMenu={this.onContextMenu}>
         <div className="info">
           <RichText
             className="summary"

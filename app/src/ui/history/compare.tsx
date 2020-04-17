@@ -41,6 +41,7 @@ interface ICompareSidebarProps {
   readonly emoji: Map<string, string>
   readonly commitLookup: Map<string, Commit>
   readonly localCommitSHAs: ReadonlyArray<string>
+  readonly evidenceCommitSHAs: ReadonlyArray<string>
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch | null
   readonly selectedCommitSha: string | null
@@ -274,6 +275,7 @@ export class CompareSidebar extends React.Component<
         selectedSHA={this.props.selectedCommitSha}
         gitHubUsers={this.props.gitHubUsers}
         localCommitSHAs={this.props.localCommitSHAs}
+        evidenceCommitSHAs={this.props.evidenceCommitSHAs}
         emoji={this.props.emoji}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         onRevertCommit={

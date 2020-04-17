@@ -31,6 +31,9 @@ interface ICommitListProps {
   /** The list of known local commits for the current branch */
   readonly localCommitSHAs: ReadonlyArray<string>
 
+  /** The evidence commits loaded. */
+  readonly evidenceCommitSHAs: ReadonlyArray<string>
+
   /** The message to display inside the list when no results are displayed */
   readonly emptyListMessage: JSX.Element | string
 
@@ -94,11 +97,14 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     const isLocal = this.props.localCommitSHAs.includes(commit.sha)
     const showUnpushedIndicator = isLocal && !this.props.isLocalRepository
 
+    const isEvidence = this.props.evidenceCommitSHAs.includes(commit.sha)
+
     return (
       <CommitListItem
         key={commitListItemHash(commit)}
         gitHubRepository={this.props.gitHubRepository}
         isLocal={isLocal}
+        isEvidence={isEvidence}
         showUnpushedIndicator={showUnpushedIndicator}
         commit={commit}
         gitHubUsers={this.props.gitHubUsers}

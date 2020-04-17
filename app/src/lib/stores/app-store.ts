@@ -831,6 +831,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoryStateCache.update(repository, () => ({
       commitLookup: gitStore.commitLookup,
       localCommitSHAs: gitStore.localCommitSHAs,
+      evidenceCommitSHAs: gitStore.evidenceCommitSHAs,
       aheadBehind: gitStore.aheadBehind,
       remote: gitStore.currentRemote,
       lastFetched: gitStore.lastFetched,
@@ -1139,6 +1140,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       // load initial group of commits for current branch
       const commits = await gitStore.loadCommitBatch('HEAD')
+      await gitStore.loadEvidenceCommits()
 
       if (commits === null) {
         return

@@ -379,6 +379,9 @@ export interface IRepositoryState {
    */
   readonly localCommitSHAs: ReadonlyArray<string>
 
+  /** The evidence commits loaded. */
+  readonly evidenceCommitSHAs: ReadonlyArray<string>
+
   /** The remote currently associated with the repository, if defined in the configuration */
   readonly remote: IRemote | null
 
