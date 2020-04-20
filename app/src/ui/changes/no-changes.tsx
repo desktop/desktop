@@ -607,7 +607,7 @@ export class NoChanges extends React.Component<
     }
 
     const description = `You have ${itemsToPushDescriptions.join(
-      ' and '
+      ' with '
     )} waiting to be pushed to ${isGitHub ? 'GitHub' : 'the remote'}.`
 
     const discoverabilityContent = (
