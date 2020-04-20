@@ -15,7 +15,7 @@ export class GitLFSProgressParser {
     if (line !== '') {
       this.lastResult = {
         kind: 'context',
-        text: line.replace('remote:', ''),
+        text: line,
         percent: 0
       }
     }
