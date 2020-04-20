@@ -1,9 +1,7 @@
 import { IGitOutput } from './git'
 
-
 /** The progress parser for Git LFS. */
 export class GitLFSProgressParser {
-
   private lastResult: IGitOutput = {
     kind: 'context',
     text: 'Downloading Git LFS file…',
@@ -14,12 +12,11 @@ export class GitLFSProgressParser {
     line = line.trim()
     if (line !== '') {
       this.lastResult = {
-        kind: "context",
+        kind: 'context',
         text: line,
-        percent: 0
+        percent: 0,
       }
     }
     return this.lastResult
   }
-
 }

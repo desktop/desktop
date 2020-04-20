@@ -18,14 +18,13 @@ export async function executionOptionsWithProgress(
   parser: GitProgressParser,
   progressCallback: (progress: IGitProgress | IGitOutput) => void
 ): Promise<IGitExecutionOptions> {
-
   return merge(options, {
     processCallback: createProgressProcessCallback(
       parser,
       options.trackLFSProgress ? options.trackLFSProgress : null,
       progressCallback
     ),
-    env: options.env
+    env: options.env,
   })
 }
 
