@@ -1,9 +1,11 @@
 import * as React from 'react'
+import memoize from 'memoize-one'
 import { GitHubRepository } from '../../models/github-repository'
 import { Commit } from '../../models/commit'
 import { CommitListItem } from './commit-list-item'
 import { List } from '../lib/list'
 import { IGitHubUser } from '../../lib/databases'
+import { arrayEquals } from '../../lib/equality'
 
 const RowHeight = 50
 
@@ -62,6 +64,12 @@ interface ICommitListProps {
 
 /** A component which displays the list of commits. */
 export class CommitList extends React.Component<ICommitListProps, {}> {
+  private commitLookupHash = memoize(
+    (lookupValues: ReadonlyArray<Commit>) =>
+      lookupValues.map(commitListItemHash).join(' '),
+    arrayEquals
+  )
+
   private renderCommit = (row: number) => {
     const sha = this.props.commitSHAs[row]
     const commit = this.props.commitLookup.get(sha)
@@ -80,7 +88,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
 
     return (
       <CommitListItem
-        key={commit.sha}
+        key={commitListItemHash(commit)}
         gitHubRepository={this.props.gitHubRepository}
         isLocal={isLocal}
         showUnpushedIndicator={showUnpushedIndicator}
@@ -143,10 +151,20 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
             commits: this.props.commitSHAs,
             gitHubUsers: this.props.gitHubUsers,
             localCommitSHAs: this.props.localCommitSHAs,
+            commitLookupHash: this.commitLookupHash([
+              ...this.props.commitLookup.values(),
+            ]),
           }}
           setScrollTop={this.props.compareListScrollTop}
         />
       </div>
     )
   }
+}
+
+/**
+ * Makes a hash of the commit's data that will be shown in a CommitListItem
+ */
+function commitListItemHash(commit: Commit): string {
+  return `${commit.sha} ${commit.summary} ${commit.tags}`
 }
