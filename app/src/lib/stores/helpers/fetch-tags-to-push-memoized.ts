@@ -25,7 +25,7 @@ export const fetchTagsToPushMemoized = memoizeOne(fetchTagsToMemoize, ((
 ) => {
   // When forceFetch is true, we consider the arguments different to
   // force a call to the original method.
-  if (newArgs[5].forceFetch) {
+  if (newArgs[6].forceFetch) {
     return false
   }
 
@@ -48,6 +48,7 @@ function fetchTagsToMemoize(
   remote: IRemote,
   branchName: string,
   _localTags: ReadonlyArray<string>, // only used for cache invalidation.
+  _currentTipSha: string, // only used for cache invalidation.
   _options: { forceFetch: boolean } // only used for cache invalidation.
 ) {
   return fetchTagsToPush(repository, account, remote, branchName)
@@ -65,6 +66,7 @@ function serializeArguments([
   remote,
   branchName,
   localTags,
+  currentTipSha,
 ]: MemoizedFetchTagsArguments) {
   return JSON.stringify([
     repository.hash,
@@ -72,5 +74,6 @@ function serializeArguments([
     remote.url,
     branchName,
     localTags,
+    currentTipSha,
   ])
 }

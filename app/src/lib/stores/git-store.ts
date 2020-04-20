@@ -400,7 +400,7 @@ export class GitStore extends BaseStore {
       this._tagsToPush = null
       return
     }
-    const branchName = this.tip.branch.name
+    const currentBranch = this.tip.branch
 
     const tagsToPush = await this.performFailableOperation(async () => {
       const localTags = await this.getAllTags()
@@ -409,8 +409,9 @@ export class GitStore extends BaseStore {
         this.repository,
         account,
         currentRemote,
-        branchName,
+        currentBranch.name,
         localTags,
+        currentBranch.tip.sha,
         options
       )
     })
