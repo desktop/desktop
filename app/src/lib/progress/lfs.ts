@@ -18,7 +18,6 @@ const LFSProgressLineRe = /^(.+?)\s{1}(\d+)\/(\d+)\s{1}(\d+)\/(\d+)\s{1}(.+)$/
 
 /** The progress parser for Git LFS. */
 export class GitLFSProgressParser {
-
   private lastResult: IGitProgress | IGitOutput = {
     kind: 'context',
     text: 'Downloading Git LFS file…',
@@ -28,19 +27,19 @@ export class GitLFSProgressParser {
   private updates = new Map()
 
   private transformBytes(bytes: number): string {
-
     if (bytes === 0) {
-      return '0 Bytes';
+      return '0 Bytes'
     }
 
-    const multiples = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-    const base = Math.floor(Math.log(bytes) / Math.log(1024));
-    return parseFloat((bytes / Math.pow(1024, base)).toFixed(2)) + multiples[base];
+    const multiples = ['Bytes', 'KB', 'MB', 'GB', 'TB']
+    const base = Math.floor(Math.log(bytes) / Math.log(1024))
+    return (
+      parseFloat((bytes / Math.pow(1024, base)).toFixed(2)) + multiples[base]
+    )
   }
 
   /** Parse the progress line. */
   public parse(line: string): IGitProgress | IGitOutput {
-
     const matches = line.match(LFSProgressLineRe)
     if (!matches || matches.length !== 7) {
       return this.lastResult
@@ -73,10 +72,12 @@ export class GitLFSProgressParser {
       return this.lastResult
     }
 
-    const update = this.updates.get(current) ? this.updates.get(current) : new Map()
+    const update = this.updates.get(current)
+      ? this.updates.get(current)
+      : new Map()
 
-    update.set("downloadedBytes", downloadedBytes)
-    update.set("totalBytes", totalBytes)
+    update.set('downloadedBytes', downloadedBytes)
+    update.set('totalBytes', totalBytes)
     this.updates.set(current, update)
 
     let downloadedBytesForAllIndexes = 0
@@ -84,23 +85,26 @@ export class GitLFSProgressParser {
     let finishedFiles = 0
 
     this.updates.forEach((value, key, map) => {
-      const downloaded = value.get("downloadedBytes")
-      const total = value.get("totalBytes")
+      const downloaded = value.get('downloadedBytes')
+      const total = value.get('totalBytes')
       downloadedBytesForAllIndexes += downloaded
       totalBytesForForAllIndexes += total
       if (downloaded === total) {
         finishedFiles += 1
       }
-
     })
     const verb = this.directionToHumanFacingVerb(direction)
     const info: IGitProgressInfo = {
-      title: `${verb} "${name}" ${this.transformBytes(downloadedBytesForAllIndexes)}/${this.transformBytes(totalBytesForForAllIndexes)}…`,
+      title: `${verb} "${name}" ${this.transformBytes(
+        downloadedBytesForAllIndexes
+      )}/${this.transformBytes(totalBytesForForAllIndexes)}…`,
       value: downloadedBytesForAllIndexes,
       total: totalBytesForForAllIndexes,
       percent: 0,
       done: false,
-      text: `${verb} ${finishedFiles}/${totalFiles} ${this.transformBytes(downloadedBytesForAllIndexes)}/${this.transformBytes(totalBytesForForAllIndexes)}`,
+      text: `${verb} ${finishedFiles}/${totalFiles} ${this.transformBytes(
+        downloadedBytesForAllIndexes
+      )}/${this.transformBytes(totalBytesForForAllIndexes)}`,
     }
 
     this.lastResult = {
