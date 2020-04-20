@@ -62,19 +62,12 @@ function fetchTagsToMemoize(
  * @param arguments  - Array with the arguments that are used for memoization.
  */
 function serializeArguments([
-  repository,
-  account,
+  _repository, // the local repository doesn't alter the output of fetchTags()
+  _account, // the used account doesn't alter the output of fetchTags()
   remote,
   branchName,
   localTags,
   currentTipSha,
 ]: MemoizedFetchTagsArguments) {
-  return JSON.stringify([
-    repository.hash,
-    account ? [account.endpoint, account.login] : null,
-    remote.url,
-    branchName,
-    localTags,
-    currentTipSha,
-  ])
+  return JSON.stringify([remote.url, branchName, localTags, currentTipSha])
 }
