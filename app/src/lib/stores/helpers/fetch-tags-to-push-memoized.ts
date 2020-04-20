@@ -35,12 +35,13 @@ export const fetchTagsToPushMemoized = memoizeOne(fetchTagsToMemoize, ((
 /**
  * Temporary function to use on the memoization to make typescript happy.
  *
- * @param repository  - The repository in which to check for unpushed tags
- * @param account     - The account to use when authenticating with the remote
- * @param remote      - The remote to check for unpushed tags
- * @param branchName  - The branch that will be used on the push command
- * @param _localTags  - The current list of local tags. This is only used for memoization.
- * @param _options    - Pass {forceFetch: true} to disable the memoization.
+ * @param repository     - The repository in which to check for unpushed tags
+ * @param account        - The account to use when authenticating with the remote
+ * @param remote         - The remote to check for unpushed tags
+ * @param branchName     - The branch that will be used on the push command
+ * @param _localTags     - The current list of local tags. This is only used for memoization.
+ * @param _currentTipSha - The sha of the current HEAD commit. This is only used for memoization.
+ * @param _options       - Pass {forceFetch: true} to disable the memoization.
  */
 function fetchTagsToMemoize(
   repository: Repository,
