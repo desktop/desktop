@@ -276,6 +276,7 @@ import { parseRemote } from '../../lib/remote-parsing'
 import { createTutorialRepository } from './helpers/create-tutorial-repository'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { getDefaultDir } from '../../ui/lib/default-dir'
+import { clearTagsToPushCache } from './helpers/fetch-tags-to-push-memoized'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -3734,6 +3735,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    // Clear the cache to make sure that the tags to push information
+    // is refetched after a push/pull.
+    clearTagsToPushCache(this.gitStoreCache.get(repository).currentRemote)
+
     this.repositoryStateCache.update(repository, () => ({
       isPushPullFetchInProgress: true,
     }))
@@ -3741,9 +3746,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     try {
       await fn()
-      await this.gitStoreCache
-        .get(repository)
-        .fetchTagsToPush(account, { forceFetch: true })
     } finally {
       this.repositoryStateCache.update(repository, () => ({
         isPushPullFetchInProgress: false,

@@ -385,10 +385,7 @@ export class GitStore extends BaseStore {
         .shift() || null
   }
 
-  public async fetchTagsToPush(
-    account: IGitAccount | null,
-    options: { forceFetch: boolean } = { forceFetch: false }
-  ) {
+  public async fetchTagsToPush(account: IGitAccount | null) {
     const currentRemote = this._currentRemote
 
     if (currentRemote === null) {
@@ -411,8 +408,7 @@ export class GitStore extends BaseStore {
         currentRemote,
         currentBranch.name,
         localTags,
-        currentBranch.tip.sha,
-        options
+        currentBranch.tip.sha
       )
     })
     this._tagsToPush = tagsToPush !== undefined ? tagsToPush : null
