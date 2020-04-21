@@ -1,8 +1,9 @@
-import { git, gitNetworkArguments } from './core'
+import { git, gitNetworkArguments, GitError } from './core'
 import { Repository } from '../../models/repository'
 import { IGitAccount } from '../../models/git-account'
 import { IRemote } from '../../models/remote'
 import { envForRemoteOperation } from './environment'
+import { IGitResult } from 'dugite'
 
 /**
  * Create a new tag on the given target commit.
@@ -62,16 +63,28 @@ export async function fetchTagsToPush(
     '--porcelain',
   ]
 
-  const result = await git(args, repository.path, 'fetchTagsToPush', {
-    env: await envForRemoteOperation(account, remote.url),
-  })
+  let result: IGitResult | null = null
 
-  const lines = result.stdout.split('\n')
+  try {
+    result = await git(args, repository.path, 'fetchTagsToPush', {
+      env: await envForRemoteOperation(account, remote.url),
+      successExitCodes: new Set([0, 1]),
+    })
+  } catch (e) {
+    // Even if we receive an unexpected error code, we try to
+    // do the best effort to try to parse the stdout to find unpushed tags.
+    // If we can't even parse the stdout, we return an empty array of unpushed tags.
+    if (e instanceof GitError) {
+      result = e.result
+    }
+  }
+
+  const lines = result ? result.stdout.split('\n') : []
   let currentLine = 1
   const unpushedTags = []
 
   // the last line of this porcelain command is always 'Done'
-  while (lines[currentLine] !== 'Done') {
+  while (currentLine < lines.length && lines[currentLine] !== 'Done') {
     const line = lines[currentLine]
     const parts = line.split('\t')
 
