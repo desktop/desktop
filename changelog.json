@@ -1,5 +1,8 @@
 {
   "releases": {
+    "2.4.3-beta1": [
+      "[Fixed] Update embedded Git to address security vulnerability"
+    ],
     "2.4.2": [
       "[Fixed] Prevent autocomplete suggestions from overlapping when loading many results - #9474",
       "[Fixed] Update embedded Git to address security vulnerability",
