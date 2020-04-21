@@ -116,32 +116,3 @@ jobs:
           codeCoverageTool: 'cobertura'
           summaryFileLocation: '**/app/coverage/cobertura-coverage.xml'
         condition: always()
-
-  - job: macOS
-    pool:
-      vmImage: macOS-10.15
-    steps:
-      - task: NodeTool@0
-        inputs:
-          versionSpec: '10.x'
-      - script: |
-          yarn install --force
-        name: Install
-      - script: |
-          yarn build:prod
-        name: Build
-      - script: |
-          yarn test:setup && yarn test
-        name: Test
-      - task: PublishTestResults@2
-        displayName: 'Publish Test Results'
-        inputs:
-          testResultsFiles: '**junit*.xml'
-          testRunTitle: $(Agent.OS) Test Results
-        condition: always()
-      - task: PublishCodeCoverageResults@1
-        displayName: 'Publish code coverage results'
-        inputs:
-          codeCoverageTool: 'cobertura'
-          summaryFileLocation: '**/app/coverage/cobertura-coverage.xml'
-        condition: always()
