@@ -1,7 +1,7 @@
 {
   "releases": {
     "2.4.2": [
-      "[Fixed] Prevent autocomplete suggestions from overlapping in some cases - #9474",
+      "[Fixed] Prevent autocomplete suggestions from overlapping when loading many results - #9474",
       "[Fixed] Update embedded Git to address security vulnerability",
       "[Improved] Redesign metadata shown in commit history - #9428"
     ],
