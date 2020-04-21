@@ -563,6 +563,12 @@ app.on('web-contents-created', (event, contents) => {
     event.preventDefault()
     log.warn(`Prevented new window to: ${url}`)
   })
+  // prevent link navigation within our windows
+  // see https://www.electronjs.org/docs/tutorial/security#12-disable-or-limit-navigation
+  contents.on('will-navigate', (event, url) => {
+    event.preventDefault()
+    log.warn(`Prevented navigation to: ${url}`)
+  })
 })
 
 app.on(
