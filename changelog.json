@@ -1,6 +1,6 @@
 {
   "releases": {
-    "2.4.3-beta1": [
+    "2.4.3-beta0": [
       "[Fixed] Update embedded Git to address security vulnerability"
     ],
     "2.4.2": [
