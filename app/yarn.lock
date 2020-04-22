@@ -360,10 +360,10 @@ double-ended-queue@^2.1.0-0:
   resolved "https://registry.yarnpkg.com/double-ended-queue/-/double-ended-queue-2.1.0-0.tgz#103d3527fd31528f40188130c841efdd78264e5c"
   integrity sha1-ED01J/0xUo9AGIEwyEHv3XgmTlw=
 
-dugite@1.88.4:
-  version "1.88.4"
-  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.88.4.tgz#eba4aff129adc4b5aea09bc0f654a30f27d507fd"
-  integrity sha512-gocxK8WbvKGgKD909zCCnK02v5LwpHcuINzi83OQbKjIYTkxfWcMnVtb2l0nSJeBuk1mrxi1jaNDsWBAH8LQIA==
+dugite@1.88.5:
+  version "1.88.5"
+  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.88.5.tgz#6e11eab3f89631e48eb2d8e72b8184679b35c256"
+  integrity sha512-wYlguOXlT2bEGsi9QkBojObtDKZ54vC9yVG+KC+QwasxGzyyWK65XS8g6ODolwobetbtZPk49Ci+d0EwbpNNIg==
   dependencies:
     checksum "^0.1.1"
     got "^9.6.0"
