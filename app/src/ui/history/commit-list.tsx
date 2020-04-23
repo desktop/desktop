@@ -166,5 +166,5 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
  * Makes a hash of the commit's data that will be shown in a CommitListItem
  */
 function commitListItemHash(commit: Commit): string {
-  return `${commit.sha} ${commit.summary} ${commit.tags}`
+  return `${commit.sha} ${commit.tags}`
 }
