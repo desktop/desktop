@@ -64,11 +64,23 @@ interface ICommitListProps {
 
 /** A component which displays the list of commits. */
 export class CommitList extends React.Component<ICommitListProps, {}> {
-  private commitLookupHash = memoize(
-    (lookupValues: ReadonlyArray<Commit>) =>
-      lookupValues.map(commitListItemHash).join(' '),
-    arrayEquals
-  )
+  private commitsHash = memoize(this.makeCommitsHash, arrayEquals)
+
+  private makeCommitsHash(commits: ReadonlyArray<Commit>): string {
+    return commits.map(commitListItemHash).join(' ')
+  }
+
+  private getVisibleCommits(): ReadonlyArray<Commit> {
+    const commits = new Array<Commit>()
+    for (const sha of this.props.commitSHAs) {
+      const commitMaybe = this.props.commitLookup.get(sha)
+      // this should never be undefined, but just in case
+      if (commitMaybe !== undefined) {
+        commits.push(commitMaybe)
+      }
+    }
+    return commits
+  }
 
   private renderCommit = (row: number) => {
     const sha = this.props.commitSHAs[row]
@@ -151,9 +163,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
             commits: this.props.commitSHAs,
             gitHubUsers: this.props.gitHubUsers,
             localCommitSHAs: this.props.localCommitSHAs,
-            commitLookupHash: this.commitLookupHash([
-              ...this.props.commitLookup.values(),
-            ]),
+            commitLookupHash: this.commitsHash(this.getVisibleCommits()),
           }}
           setScrollTop={this.props.compareListScrollTop}
         />
