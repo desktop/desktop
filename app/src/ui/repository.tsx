@@ -221,6 +221,7 @@ export class RepositoryView extends React.Component<
         emoji={this.props.emoji}
         commitLookup={this.props.state.commitLookup}
         localCommitSHAs={this.props.state.localCommitSHAs}
+        localTags={this.props.state.localTags}
         dispatcher={this.props.dispatcher}
         onRevertCommit={this.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}

@@ -48,6 +48,7 @@ interface ICompareSidebarProps {
   readonly onViewCommitOnGitHub: (sha: string) => void
   readonly onCompareListScrolled: (scrollTop: number) => void
   readonly compareListScrollTop?: number
+  readonly localTags: Set<string> | null
 }
 
 interface ICompareSidebarState {
@@ -594,7 +595,8 @@ export class CompareSidebar extends React.Component<
   private onCreateTag = (targetCommitSha: string) => {
     this.props.dispatcher.showCreateTagDialog(
       this.props.repository,
-      targetCommitSha
+      targetCommitSha,
+      this.props.localTags
     )
   }
 }

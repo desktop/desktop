@@ -1947,6 +1947,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             targetCommitSha={popup.targetCommitSha}
             initialName={popup.initialName}
+            localTags={popup.localTags}
           />
         )
       }

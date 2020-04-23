@@ -421,6 +421,8 @@ export interface IRepositoryState {
    * null if no such operation is in flight.
    */
   readonly revertProgress: IRevertProgress | null
+
+  readonly localTags: Set<string> | null
 }
 
 export interface IBranchesState {

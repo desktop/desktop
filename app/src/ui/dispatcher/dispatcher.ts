@@ -500,18 +500,12 @@ export class Dispatcher {
   }
 
   /**
-   * Create a new tag on the given target commit.
-   */
-  public getAllTags(repository: Repository): Promise<ReadonlyArray<string>> {
-    return this.appStore._getAllTags(repository)
-  }
-
-  /**
    * Show the tag creation dialog.
    */
   public showCreateTagDialog(
     repository: Repository,
     targetCommitSha: string,
+    localTags: Set<string> | null,
     initialName?: string
   ): Promise<void> {
     return this.showPopup({
@@ -519,6 +513,7 @@ export class Dispatcher {
       repository,
       targetCommitSha,
       initialName,
+      localTags,
     })
   }
 

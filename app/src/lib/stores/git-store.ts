@@ -114,6 +114,8 @@ export class GitStore extends BaseStore {
 
   private _defaultBranch: Branch | null = null
 
+  private _localTags: Set<string> | null = null
+
   private _allBranches: ReadonlyArray<Branch> = []
 
   private _recentBranches: ReadonlyArray<Branch> = []
@@ -262,8 +264,10 @@ export class GitStore extends BaseStore {
     return commits.map(c => c.sha)
   }
 
-  public async getAllTags(): Promise<ReadonlyArray<string>> {
-    return getAllTags(this.repository)
+  public async loadLocalTags() {
+    this._localTags = new Set(await getAllTags(this.repository))
+
+    this.emitUpdate()
   }
 
   public async createTag(
@@ -281,6 +285,7 @@ export class GitStore extends BaseStore {
       this.storeCommits([foundCommit], true)
     }
 
+    await this.loadLocalTags()
     this.fetchTagsToPush(account)
   }
 
@@ -291,6 +296,10 @@ export class GitStore extends BaseStore {
 
   public get tagsToPush(): ReadonlyArray<string> | null {
     return this._tagsToPush
+  }
+
+  public get localTags(): Set<string> | null {
+    return this._localTags
   }
 
   /** Load all the branches. */
@@ -393,24 +402,28 @@ export class GitStore extends BaseStore {
       return
     }
 
+    const localTags = this._localTags
+    if (localTags === null) {
+      this._tagsToPush = null
+      return
+    }
+
     if (this.tip.kind !== TipState.Valid) {
       this._tagsToPush = null
       return
     }
     const currentBranch = this.tip.branch
 
-    const tagsToPush = await this.performFailableOperation(async () => {
-      const localTags = await this.getAllTags()
-
-      return fetchTagsToPushMemoized(
+    const tagsToPush = await this.performFailableOperation(() =>
+      fetchTagsToPushMemoized(
         this.repository,
         account,
         currentRemote,
         currentBranch.name,
-        localTags,
+        Array.from(localTags),
         currentBranch.tip.sha
       )
-    })
+    )
     this._tagsToPush = tagsToPush !== undefined ? tagsToPush : null
 
     this.emitUpdate()

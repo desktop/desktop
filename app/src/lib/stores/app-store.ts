@@ -832,6 +832,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoryStateCache.update(repository, () => ({
       commitLookup: gitStore.commitLookup,
       localCommitSHAs: gitStore.localCommitSHAs,
+      localTags: gitStore.localTags,
       aheadBehind: gitStore.aheadBehind,
       tagsToPush: gitStore.tagsToPush,
       remote: gitStore.currentRemote,
@@ -2775,6 +2776,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.updateCurrentTutorialStep(repository)
 
+    await gitStore.loadLocalTags()
+
     this.withAuthenticatingUser(repository, (_, account) =>
       gitStore.fetchTagsToPush(account)
     )
@@ -3092,13 +3095,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (this.selectedRepository === repository) {
       this.emitUpdate()
     }
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public _getAllTags(repository: Repository): Promise<ReadonlyArray<string>> {
-    const gitStore = this.gitStoreCache.get(repository)
-
-    return gitStore.getAllTags()
   }
 
   private getLocalBranch(
