@@ -174,5 +174,8 @@
     "electron-builder": "^22.7.0",
     "electron-packager": "^15.1.0",
     "electron-winstaller": "4.0.2"
+  },
+  "optionalDependencies": {
+    "electron-installer-debian": "3.0.0"
   }
 }
