@@ -1,13 +1,12 @@
 /* eslint-disable no-sync */
 
 import * as cp from 'child_process'
-import { chmodSync, createReadStream } from 'fs'
+import { createReadStream } from 'fs'
 import { writeFile } from 'fs/promises'
+import { pathExists, chmod } from 'fs-extra'
 import * as path from 'path'
 import * as electronInstaller from 'electron-winstaller'
 import * as crypto from 'crypto'
-
-import glob = require('glob')
 
 import { getProductName, getCompanyName } from '../app/package-info'
 import {
@@ -30,7 +29,9 @@ import { getVersion } from '../app/package-info'
 import { rename } from 'fs/promises'
 import { join } from 'path'
 import { assertNonNullable } from '../app/src/lib/fatal-error'
-import { pathExistsSync } from 'fs-extra'
+
+import { packageElectronBuilder } from './package-electron-builder'
+import { packageDebian } from './package-debian'
 
 const distPath = getDistPath()
 const productName = getProductName()
@@ -186,69 +187,46 @@ function getSha256Checksum(fullPath: string): Promise<string> {
   })
 }
 
-function generateChecksums() {
+async function generateChecksums(files: Array<string>) {
   const distRoot = getDistRoot()
 
-  const installersPath = `${distRoot}/GitHubDesktop-linux-*`
+  const checksums = new Map<string, string>()
 
-  glob(installersPath, async (error, files) => {
-    if (error != null) {
-      throw error
-    }
+  for (const f of files) {
+    const checksum = await getSha256Checksum(f)
+    checksums.set(f, checksum)
+  }
 
-    const checksums = new Map<string, string>()
+  let checksumsText = `Checksums: \n`
 
-    for (const f of files) {
-      const checksum = await getSha256Checksum(f)
-      checksums.set(f, checksum)
-    }
+  for (const [fullPath, checksum] of checksums) {
+    const fileName = path.basename(fullPath)
+    checksumsText += `${checksum} - ${fileName}\n`
+  }
 
-    let checksumsText = `Checksums: \n`
+  const checksumFile = path.join(distRoot, 'checksums.txt')
 
-    for (const [fullPath, checksum] of checksums) {
-      const fileName = path.basename(fullPath)
-      checksumsText += `${checksum} - ${fileName}\n`
-    }
-
-    const checksumFile = path.join(distRoot, 'checksums.txt')
-
-    await writeFile(checksumFile, checksumsText)
-  })
+  await writeFile(checksumFile, checksumsText)
 }
 
-function packageLinux() {
+async function packageLinux() {
   const helperPath = path.join(getDistPath(), 'chrome-sandbox')
-  const exists = pathExistsSync(helperPath)
+  const exists = await pathExists(helperPath)
 
   if (exists) {
     console.log('Updating file mode for chrome-sandbox…')
-    chmodSync(helperPath, 0o4755)
+    await chmod(helperPath, 0o4755)
   }
 
-  const electronBuilder = path.resolve(
-    __dirname,
-    '..',
-    'node_modules',
-    '.bin',
-    'electron-builder'
-  )
+  const files = await packageElectronBuilder()
+  const debianPackage = await packageDebian()
 
-  const configPath = path.resolve(__dirname, 'electron-builder-linux.yml')
+  const installers = [...files, debianPackage]
 
-  const args = [
-    'build',
-    '--prepackaged',
-    distPath,
-    '--x64',
-    '--config',
-    configPath,
-  ]
-
-  const { error } = cp.spawnSync(electronBuilder, args, { stdio: 'inherit' })
-
-  if (error != null) {
-    throw error
+  console.log(`Installers created:`)
+  for (const installer of installers) {
+    console.log(` - ${installer}`)
   }
 
-  generateChecksums()
+  generateChecksums(installers)
 }
