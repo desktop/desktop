@@ -64,11 +64,7 @@ interface ICommitListProps {
 
 /** A component which displays the list of commits. */
 export class CommitList extends React.Component<ICommitListProps, {}> {
-  private commitsHash = memoize(this.makeCommitsHash, arrayEquals)
-
-  private makeCommitsHash(commits: ReadonlyArray<Commit>): string {
-    return commits.map(commitListItemHash).join(' ')
-  }
+  private commitsHash = memoize(makeCommitsHash, arrayEquals)
 
   private getVisibleCommits(): ReadonlyArray<Commit> {
     const commits = new Array<Commit>()
@@ -177,4 +173,8 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
  */
 function commitListItemHash(commit: Commit): string {
   return `${commit.sha} ${commit.tags}`
+}
+
+function makeCommitsHash(commits: ReadonlyArray<Commit>): string {
+  return commits.map(commitListItemHash).join(' ')
 }
