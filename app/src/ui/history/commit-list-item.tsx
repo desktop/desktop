@@ -12,7 +12,10 @@ import { IGitHubUser } from '../../lib/databases/github-user-database'
 import { AvatarStack } from '../lib/avatar-stack'
 import { IMenuItem } from '../../lib/menu-item'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { enableGitTagsCreation } from '../../lib/feature-flag'
+import {
+  enableGitTagsDisplay,
+  enableGitTagsCreation,
+} from '../../lib/feature-flag'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
@@ -85,7 +88,11 @@ export class CommitListItem extends React.Component<
             </div>
           </div>
         </div>
-        {this.renderUnpushedIndicator()}
+        <div className="commit-indicators">
+          {enableGitTagsDisplay() &&
+            renderCommitListItemTags(this.props.commit.tags)}
+          {this.renderUnpushedIndicator()}
+        </div>
       </div>
     )
   }
@@ -103,13 +110,11 @@ export class CommitListItem extends React.Component<
     }
 
     return (
-      <div className="unpushed-indicator-container">
-        <div
-          className="unpushed-indicator"
-          title="This commit hasn't been pushed to the remote repository yet"
-        >
-          <Octicon symbol={OcticonSymbol.arrowUp} />
-        </div>
+      <div
+        className="unpushed-indicator"
+        title="This commit hasn't been pushed to the remote repository yet"
+      >
+        <Octicon symbol={OcticonSymbol.arrowUp} />
       </div>
     )
   }
@@ -186,5 +191,22 @@ function renderRelativeTime(date: Date) {
       {` • `}
       <RelativeTime date={date} abbreviate={true} />
     </>
+  )
+}
+
+function renderCommitListItemTags(tags: ReadonlyArray<string>) {
+  if (tags.length === 0) {
+    return null
+  }
+  const [firstTag] = tags
+  return (
+    <span className="tag-indicator">
+      <span className="tag-name" key={firstTag}>
+        {firstTag}
+      </span>
+      {tags.length > 1 && (
+        <span key={tags.length} className="tag-indicator-more" />
+      )}
+    </span>
   )
 }
