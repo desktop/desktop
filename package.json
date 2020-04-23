@@ -166,5 +166,8 @@
     "markdownlint-cli": "^0.32.2",
     "reserved-words": "^0.1.2",
     "tsconfig-paths": "^3.9.0"
+  },
+  "optionalDependencies": {
+    "electron-installer-debian": "3.0.0"
   }
 }

@@ -3,7 +3,7 @@
 set -e
 
 PROFILE_D_FILE="/etc/profile.d/github-desktop.sh"
-INSTALL_DIR="/opt/${productFilename}"
+INSTALL_DIR="/usr/lib/github-desktop"
 CLI_DIR="$INSTALL_DIR/resources/app/static"
 
 case "$1" in
