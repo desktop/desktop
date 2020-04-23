@@ -7,26 +7,9 @@ linux:
     - x-scheme-handler/x-github-client
     - x-scheme-handler/x-github-desktop-auth
   target:
-    - deb
     - rpm
     - AppImage
   maintainer: 'GitHub, Inc <opensource+desktop@github.com>'
-deb:
-  afterInstall: './script/linux-after-install.sh'
-  afterRemove: './script/linux-after-remove.sh'
-  depends:
-    # default Electron dependencies
-    - gconf2
-    - gconf-service
-    - libnotify4
-    - libappindicator1
-    - libxtst6
-    - libnss3
-    # dugite-native dependencies
-    - libcurl3 | libcurl4
-    # keytar dependencies
-    - libsecret-1-0
-    - gnome-keyring
 rpm:
   depends:
     # default Electron dependencies

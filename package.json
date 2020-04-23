@@ -176,5 +176,8 @@
     "jest-esm-transformer": "^1.0.0",
     "reserved-words": "^0.1.2",
     "tsconfig-paths": "^3.9.0"
+  },
+  "optionalDependencies": {
+    "electron-installer-debian": "3.0.0"
   }
 }
