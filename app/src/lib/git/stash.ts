@@ -254,7 +254,7 @@ export async function getStashedFiles(
  * Same thing as `getChangedFiles` but with extra handling for 128 exit code
  * (which happens if the commit's parent is not valid)
  *
- * **TODO:** merge this with `getChangedFiles` in `log.ts`
+ * **TODO:** merge this with `getChangedFilesBetweenCommits` in `log.ts`
  */
 async function getChangedFilesWithinStash(repository: Repository, sha: string) {
   // opt-in for rename detection (-M) and copies detection (-C)
@@ -281,7 +281,7 @@ async function getChangedFilesWithinStash(repository: Repository, sha: string) {
     successExitCodes: new Set([0, 128]),
   })
   if (result.exitCode === 0 && result.stdout.length > 0) {
-    return parseChangedFiles(result.stdout, sha)
+    return parseChangedFiles(result.stdout, sha, `${sha}^`)
   }
   return []
 }

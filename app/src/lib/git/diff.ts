@@ -90,25 +90,27 @@ const imageFileExtensions = new Set([
 ])
 
 /**
- * Render the difference between a file in the given commit and its parent
+ * Render the difference of a file between the two given commits
  *
- * @param commitish A commit SHA or some other identifier that ultimately dereferences
- *                  to a commit.
+ * @param repository            The repository where the commits live.
+ * @param file                  A FileChange object for the file that's being diffed.
+ * @param fromCommitish         A commit SHA or an identifier that references the first commit.
+ * @param toCommitish           A commit SHA or an identifier that references the second commit.
+ * @param hideWhitespaceInDiff  Whether to show whitespace differences.
  */
-export async function getCommitDiff(
+export async function getDiffBetweenCommits(
   repository: Repository,
   file: FileChange,
-  commitish: string,
+  fromCommitish: string,
+  toCommitish: string,
   hideWhitespaceInDiff: boolean = false
 ): Promise<IDiff> {
   const args = [
-    'log',
-    commitish,
+    'diff',
+    `${fromCommitish}..${toCommitish}`,
     ...(hideWhitespaceInDiff ? ['-w'] : []),
-    '-m',
-    '-1',
-    '--first-parent',
     '--patch-with-raw',
+    '--first-parent',
     '-z',
     '--no-color',
     '--',
@@ -125,10 +127,10 @@ export async function getCommitDiff(
   const { output } = await spawnAndComplete(
     args,
     repository.path,
-    'getCommitDiff'
+    'getDiffBetweenCommits'
   )
 
-  return buildDiff(output, repository, file, commitish)
+  return buildDiff(output, repository, file, toCommitish, fromCommitish)
 }
 
 /**
@@ -210,13 +212,14 @@ export async function getWorkingDirectoryDiff(
   )
   const lineEndingsChange = parseLineEndingsWarning(error)
 
-  return buildDiff(output, repository, file, 'HEAD', lineEndingsChange)
+  return buildDiff(output, repository, file, 'HEAD', 'HEAD^', lineEndingsChange)
 }
 
 async function getImageDiff(
   repository: Repository,
   file: FileChange,
-  commitish: string
+  commitish: string,
+  parentCommitish: string
 ): Promise<IImageDiff> {
   let current: Image | undefined = undefined
   let previous: Image | undefined = undefined
@@ -258,14 +261,14 @@ async function getImageDiff(
       file.status.kind !== AppFileStatusKind.New &&
       file.status.kind !== AppFileStatusKind.Untracked
     ) {
-      // TODO: commitish^ won't work for the first commit
+      // TODO: parentCommitish won't exist for the first commit
       //
       // If we have file.oldPath that means it's a rename so we'll
       // look for that file.
       previous = await getBlobImage(
         repository,
         getOldPathOrDefault(file),
-        `${commitish}^`
+        parentCommitish
       )
     }
   }
@@ -282,6 +285,7 @@ export async function convertDiff(
   file: FileChange,
   diff: IRawDiff,
   commitish: string,
+  parentCommitish: string,
   lineEndingsChange?: LineEndingsChange
 ): Promise<IDiff> {
   const extension = Path.extname(file.path).toLowerCase()
@@ -293,7 +297,7 @@ export async function convertDiff(
         kind: DiffType.Binary,
       }
     } else {
-      return getImageDiff(repository, file, commitish)
+      return getImageDiff(repository, file, commitish, parentCommitish)
     }
   }
 
@@ -383,6 +387,7 @@ function buildDiff(
   repository: Repository,
   file: FileChange,
   commitish: string,
+  parentCommitish: string,
   lineEndingsChange?: LineEndingsChange
 ): Promise<IDiff> {
   if (!isValidBuffer(buffer)) {
@@ -406,7 +411,14 @@ function buildDiff(
     return Promise.resolve(largeTextDiff)
   }
 
-  return convertDiff(repository, file, diff, commitish, lineEndingsChange)
+  return convertDiff(
+    repository,
+    file,
+    diff,
+    commitish,
+    parentCommitish,
+    lineEndingsChange
+  )
 }
 
 /**

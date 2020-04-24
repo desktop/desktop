@@ -25,7 +25,13 @@ async function parseDiff(diff: string): Promise<ITextDiff> {
   const fileChange = new FileChange('file.txt', {
     kind: AppFileStatusKind.Modified,
   })
-  const output = await convertDiff(repository, fileChange, rawDiff, 'HEAD')
+  const output = await convertDiff(
+    repository,
+    fileChange,
+    rawDiff,
+    'HEAD',
+    'HEAD^'
+  )
   expect(output.kind === DiffType.Text)
   return output as ITextDiff
 }

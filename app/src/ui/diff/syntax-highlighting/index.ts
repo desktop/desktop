@@ -57,7 +57,7 @@ async function getOldFileContent(
     // actually committed to get the appropriate content.
     commitish = 'HEAD'
   } else if (file instanceof CommittedFileChange) {
-    commitish = `${file.commitish}^`
+    commitish = file.commitishParent
   } else {
     return assertNever(file, 'Unknown file change type')
   }

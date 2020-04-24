@@ -132,7 +132,6 @@ import {
   getAuthorIdentity,
   getBranchAheadBehind,
   getChangedFiles,
-  getCommitDiff,
   getMergeBase,
   getRemotes,
   getWorkingDirectoryDiff,
@@ -155,6 +154,7 @@ import {
   getRebaseSnapshot,
   IStatusResult,
   GitError,
+  getDiffBetweenCommits,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -1409,22 +1409,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     const stateBeforeLoad = this.repositoryStateCache.get(repository)
-    const sha = stateBeforeLoad.commitSelection.sha
 
-    if (!sha) {
-      if (__DEV__) {
-        throw new Error(
-          "No currently selected sha yet we've been asked to switch file selection"
-        )
-      } else {
-        return
-      }
-    }
-
-    const diff = await getCommitDiff(
+    const diff = await getDiffBetweenCommits(
       repository,
       file,
-      sha,
+      file.commitish,
+      file.commitishParent,
       this.hideWhitespaceInDiff
     )
 
@@ -2473,12 +2463,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const diff = await getCommitDiff(repository, file, file.commitish)
+    const diff = await getDiffBetweenCommits(
+      repository,
+      file,
+      file.commitishParent,
+      file.commitish
+    )
 
     const stateAfterLoad = this.repositoryStateCache.get(repository)
     const changesStateAfterLoad = stateAfterLoad.changesState
 
-    // Something has changed during our async getCommitDiff, bail
+    // Something has changed during our async getDiffBetweenCommits, bail
     if (
       changesStateAfterLoad.selection.kind !== ChangesSelectionKind.Stash ||
       changesStateAfterLoad.selection.selectedStashedFile !==

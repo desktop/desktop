@@ -165,26 +165,36 @@ export async function getChangedFiles(
   repository: Repository,
   sha: string
 ): Promise<ReadonlyArray<CommittedFileChange>> {
+  return getChangedFilesBetweenTwoCommits(repository, `${sha}^`, sha)
+}
+
+/** Get the files that were changed between the two given commits. */
+export async function getChangedFilesBetweenTwoCommits(
+  repository: Repository,
+  fromCommit: string,
+  toCommit: string
+): Promise<ReadonlyArray<CommittedFileChange>> {
   // opt-in for rename detection (-M) and copies detection (-C)
   // this is equivalent to the user configuring 'diff.renames' to 'copies'
   // NOTE: order here matters - doing -M before -C means copies aren't detected
   const args = [
-    'log',
-    sha,
+    'diff',
+    `${fromCommit}..${toCommit}`,
     '-C',
     '-M',
-    '-m',
-    '-1',
     '--no-show-signature',
-    '--first-parent',
     '--name-status',
     '--format=format:',
     '-z',
     '--',
   ]
-  const result = await git(args, repository.path, 'getChangedFiles')
+  const result = await git(
+    args,
+    repository.path,
+    'getChangedFilesBetweenTwoCommits'
+  )
 
-  return parseChangedFiles(result.stdout, sha)
+  return parseChangedFiles(result.stdout, fromCommit, toCommit)
 }
 
 /**
@@ -193,10 +203,12 @@ export async function getChangedFiles(
  *
  * @param stdout raw ouput from a git `-z` and `--name-status` flags
  * @param committish commitish command was run against
+ * @param parentCommittish parent of the commitish
  */
 export function parseChangedFiles(
   stdout: string,
-  committish: string
+  committish: string,
+  parentCommittish: string
 ): ReadonlyArray<CommittedFileChange> {
   const lines = stdout.split('\0')
   // Remove the trailing empty line
@@ -218,8 +230,12 @@ export function parseChangedFiles(
 
     const path = lines[++i]
 
-    files.push(new CommittedFileChange(path, status, committish))
+    files.push(
+      new CommittedFileChange(path, status, committish, parentCommittish)
+    )
   }
+
+  console.log('vamosss', files)
 
   return files
 }
