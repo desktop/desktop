@@ -364,16 +364,36 @@ export function launch(
   switch (shell) {
     case Shell.PowerShell:
       const psCommand = `"Set-Location -LiteralPath '${path}'"`
-      return spawn('START', ['powershell', '-NoExit', '-Command', psCommand], {
-        shell: true,
-        cwd: path,
-      })
+      return spawn(
+        'START',
+        [
+          '"PowerShell"',
+          `"${foundShell.path}"`,
+          '-NoExit',
+          '-Command',
+          psCommand,
+        ],
+        {
+          shell: true,
+          cwd: path,
+        }
+      )
     case Shell.PowerShellCore:
       const psCoreCommand = `"Set-Location -LiteralPath '${path}'"`
-      return spawn('START', ['pwsh', '-NoExit', '-Command', psCoreCommand], {
-        shell: true,
-        cwd: path,
-      })
+      return spawn(
+        'START',
+        [
+          '"PowerShell Core"',
+          `"${foundShell.path}"`,
+          '-NoExit',
+          '-Command',
+          psCoreCommand,
+        ],
+        {
+          shell: true,
+          cwd: path,
+        }
+      )
     case Shell.Hyper:
       const hyperPath = `"${foundShell.path}"`
       log.info(`launching ${shell} at path: ${hyperPath}`)
@@ -400,9 +420,19 @@ export function launch(
         }
       )
     case Shell.WSL:
-      return spawn('START', ['wsl'], { shell: true, cwd: path })
+      return spawn('START', ['"WSL"', `"${foundShell.path}"`], {
+        shell: true,
+        cwd: path,
+      })
     case Shell.Cmd:
-      return spawn('START', ['cmd'], { shell: true, cwd: path })
+      return spawn(
+        'START',
+        ['"Command Prompt"', `"${foundShell.path}"`],
+        {
+          shell: true,
+          cwd: path,
+        }
+      )
     case Shell.WindowTerminal:
       const windowsTerminalPath = `"${foundShell.path}"`
       log.info(`launching ${shell} at path: ${windowsTerminalPath}`)
