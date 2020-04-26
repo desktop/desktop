@@ -587,7 +587,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const compareURL = `${htmlURL}/compare/${branchTip.branch.upstreamWithoutRemote}`
+    const compareURL = `${htmlURL}/compare/${
+      branchTip.branch.upstreamWithoutRemote
+    }`
     this.props.dispatcher.openInBrowser(compareURL)
   }
 
@@ -918,7 +920,9 @@ export class App extends React.Component<IAppProps, IAppState> {
                         .name
                     : assertNever(
                         this.state.selectedState.state.branchesState.tip,
-                        `Unknown tip state: ${this.state.selectedState.state.branchesState.tip!.kind}`
+                        `Unknown tip state: ${
+                          this.state.selectedState.state.branchesState.tip!.kind
+                        }`
                       ),
                 click: () =>
                   this.props.dispatcher.showFoldout({
@@ -927,8 +931,7 @@ export class App extends React.Component<IAppProps, IAppState> {
               }),
               new TouchBar.TouchBarButton({
                 label: 'push/pull',
-                click: () =>
-                  console.log('tbd'),
+                click: () => console.log('tbd'),
               }),
             ]
           : []),

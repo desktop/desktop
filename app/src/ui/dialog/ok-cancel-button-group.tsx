@@ -109,7 +109,8 @@ export class OkCancelButtonGroup extends React.Component<
         ? null
         : new TouchBar.TouchBarButton({
             label: String(this.props.cancelButtonText || 'Cancel'),
-            backgroundColor: this.props.destructive === true ? '#0366d6' : undefined,
+            backgroundColor:
+              this.props.destructive === true ? '#0366d6' : undefined,
             click: () => {
               if (this.props.onCancelButtonClick !== undefined) {
                 this.props.onCancelButtonClick({} as any)
@@ -192,7 +193,7 @@ export class OkCancelButtonGroup extends React.Component<
     }
   }
 
-  private getRef = (b: HTMLButtonElement | null) => this.okButton = b
+  private getRef = (b: HTMLButtonElement | null) => (this.okButton = b)
 
   private renderOkButton() {
     return (
