@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as classNames from 'classnames'
 import { Button } from '../lib/button'
 import { remote } from 'electron'
-import { addTouchBar, removeTouchBar } from '../touch-bar'
+import { addTouchBar, removeTouchBar, updateTouchBar } from '../touch-bar'
 
 interface IOkCancelButtonGroupProps {
   /**
@@ -96,7 +96,7 @@ export class OkCancelButtonGroup extends React.Component<
     this.touchBarId = addTouchBar(this.renderTouchBar())
   }
   public componentDidUpdate() {
-    removeTouchBar(this.touchBarId!, this.renderTouchBar())
+    updateTouchBar(this.touchBarId!, this.renderTouchBar())
   }
   public componentWillUnmount() {
     removeTouchBar(this.touchBarId!)
