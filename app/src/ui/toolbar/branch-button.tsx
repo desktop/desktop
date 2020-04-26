@@ -16,12 +16,12 @@ import * as React from 'react'
 import { BranchesTab } from '../../models/branches-tab'
 
 interface IBranchToolbarButtonProps {
-  currentFoldout: Foldout | null
-  currentOnboardingTutorialStep: TutorialStep
-  dispatcher: Dispatcher
-  selectedBranchesTab: BranchesTab
-  selection: PossibleSelections | null
-  uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
+  readonly currentFoldout: Foldout | null
+  readonly currentOnboardingTutorialStep: TutorialStep
+  readonly dispatcher: Dispatcher
+  readonly selectedBranchesTab: BranchesTab
+  readonly selection: PossibleSelections | null
+  readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
 }
 
 export function BranchToolbarButton({

@@ -7,12 +7,12 @@ import { CloningRepository } from '../../models/cloning-repository'
 import * as React from 'react'
 
 interface IRepositoryToolbarButtonProps {
-  currentFoldout: Foldout | null
-  dispatcher: Dispatcher
-  renderRepositoryList: () => JSX.Element
-  repositories: ReadonlyArray<Repository | CloningRepository>
-  selection: PossibleSelections | null
-  sidebarWidth: number
+  readonly currentFoldout: Foldout | null
+  readonly dispatcher: Dispatcher
+  readonly renderRepositoryList: () => JSX.Element
+  readonly repositories: ReadonlyArray<Repository | CloningRepository>
+  readonly selection: PossibleSelections | null
+  readonly sidebarWidth: number
 }
 
 export function RepositoryToolbarButton({

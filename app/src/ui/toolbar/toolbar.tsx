@@ -19,15 +19,15 @@ import { TipState } from '../../models/tip'
 import { isCurrentBranchForcePush } from '../../lib/rebase'
 
 interface IToolbarProps {
-  currentFoldout: Foldout | null
-  currentOnboardingTutorialStep: TutorialStep
-  dispatcher: Dispatcher
-  renderRepositoryList: () => JSX.Element
-  repositories: ReadonlyArray<Repository | CloningRepository>
-  selectedBranchesTab: BranchesTab
-  selection: PossibleSelections | null
-  sidebarWidth: number
-  uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
+  readonly currentFoldout: Foldout | null
+  readonly currentOnboardingTutorialStep: TutorialStep
+  readonly dispatcher: Dispatcher
+  readonly renderRepositoryList: () => JSX.Element
+  readonly repositories: ReadonlyArray<Repository | CloningRepository>
+  readonly selectedBranchesTab: BranchesTab
+  readonly selection: PossibleSelections | null
+  readonly sidebarWidth: number
+  readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
 }
 
 /** The main application toolbar component. */
