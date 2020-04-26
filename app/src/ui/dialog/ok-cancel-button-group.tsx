@@ -1,6 +1,8 @@
 import * as React from 'react'
 import * as classNames from 'classnames'
 import { Button } from '../lib/button'
+import { remote } from 'electron'
+import { addTouchBar, removeTouchBar } from '../touch-bar'
 
 interface IOkCancelButtonGroupProps {
   /**
@@ -88,6 +90,58 @@ export class OkCancelButtonGroup extends React.Component<
   IOkCancelButtonGroupProps,
   {}
 > {
+  private okButton: HTMLButtonElement | null = null
+  private touchBarId?: number
+  public componentDidMount() {
+    this.touchBarId = addTouchBar(this.renderTouchBar())
+  }
+  public componentDidUpdate() {
+    removeTouchBar(this.touchBarId!, this.renderTouchBar())
+  }
+  public componentWillUnmount() {
+    removeTouchBar(this.touchBarId!)
+  }
+
+  private renderTouchBar() {
+    const { TouchBar } = remote
+    const cancelButton =
+      this.props.cancelButtonVisible === false
+        ? null
+        : new TouchBar.TouchBarButton({
+            label: String(this.props.cancelButtonText || 'Cancel'),
+            backgroundColor: this.props.destructive === true ? '#0366d6' : undefined,
+            click: () => {
+              if (this.props.onCancelButtonClick !== undefined) {
+                this.props.onCancelButtonClick({} as any)
+              }
+
+              if (this.okButton && this.okButton.form) {
+                this.okButton.form.dispatchEvent(new Event('reset'))
+              }
+            },
+          })
+    const okButton = new TouchBar.TouchBarButton({
+      label: String(this.props.okButtonText || 'Ok'),
+      backgroundColor: this.props.destructive === true ? undefined : '#0366d6',
+      click: () => {
+        if (this.props.onOkButtonClick !== undefined) {
+          this.props.onOkButtonClick({} as any)
+        }
+
+        if (this.okButton && this.okButton.form) {
+          this.okButton.form.dispatchEvent(new Event('submit'))
+        }
+      },
+    })
+    return new TouchBar({
+      items: [
+        new TouchBar.TouchBarSpacer({ size: 'flexible' }),
+        ...(cancelButton ? [cancelButton, okButton] : [okButton]),
+        new TouchBar.TouchBarSpacer({ size: 'flexible' }),
+      ],
+    })
+  }
+
   private onOkButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     if (this.props.onOkButtonClick !== undefined) {
       this.props.onOkButtonClick(event)
@@ -138,6 +192,8 @@ export class OkCancelButtonGroup extends React.Component<
     }
   }
 
+  private getRef = (b: HTMLButtonElement | null) => this.okButton = b
+
   private renderOkButton() {
     return (
       <Button
@@ -145,6 +201,7 @@ export class OkCancelButtonGroup extends React.Component<
         disabled={this.props.okButtonDisabled}
         tooltip={this.props.okButtonTitle}
         type={this.props.destructive === true ? 'button' : 'submit'}
+        onButtonRef={this.getRef}
       >
         {this.props.okButtonText || 'Ok'}
       </Button>
