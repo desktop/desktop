@@ -39,15 +39,7 @@ import { RepositoryView } from './repository'
 import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
-import {
-  Toolbar,
-  ToolbarDropdown,
-  DropdownState,
-  PushPullButton,
-  BranchDropdown,
-  RevertProgress,
-} from './toolbar'
-import { OcticonSymbol, iconForRepository } from './octicons'
+import { Toolbar } from './toolbar'
 import {
   showCertificateTrustDialog,
   registerContextualMenuActionDispatcher,
@@ -97,7 +89,6 @@ import { RebaseFlow, ConfirmForcePush } from './rebase'
 import {
   initializeNewRebaseFlow,
   initializeRebaseFlowForConflictedRepository,
-  isCurrentBranchForcePush,
 } from '../lib/rebase'
 import { BannerType } from '../models/banner'
 import { StashAndSwitchBranch } from './stash-changes/stash-and-switch-branch-dialog'
@@ -591,9 +582,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const compareURL = `${htmlURL}/compare/${
-      branchTip.branch.upstreamWithoutRemote
-    }`
+    const compareURL = `${htmlURL}/compare/${branchTip.branch.upstreamWithoutRemote}`
     this.props.dispatcher.openInBrowser(compareURL)
   }
 
@@ -2201,14 +2190,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     shell.showItemInFolder(repository.path)
   }
 
-  private onRepositoryDropdownStateChanged = (newState: DropdownState) => {
-    if (newState === 'open') {
-      this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
-    } else {
-      this.props.dispatcher.closeFoldout(FoldoutType.Repository)
-    }
-  }
-
   private onExitTutorial = () => {
     if (
       this.state.repositories.length === 1 &&
@@ -2221,106 +2202,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       })
     } else {
       // Otherwise pop open repositories panel
-      this.onRepositoryDropdownStateChanged('open')
+      this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
     }
-  }
-
-  private renderRepositoryToolbarButton() {
-    const selection = this.state.selectedState
-
-    const repository = selection ? selection.repository : null
-
-    let icon: OcticonSymbol
-    let title: string
-    if (repository) {
-      icon = iconForRepository(repository)
-      title = repository.name
-    } else if (this.state.repositories.length > 0) {
-      icon = OcticonSymbol.repo
-      title = __DARWIN__ ? 'Select a Repository' : 'Select a repository'
-    } else {
-      icon = OcticonSymbol.repo
-      title = __DARWIN__ ? 'No Repositories' : 'No repositories'
-    }
-
-    const isOpen =
-      this.state.currentFoldout &&
-      this.state.currentFoldout.type === FoldoutType.Repository
-
-    const currentState: DropdownState = isOpen ? 'open' : 'closed'
-
-    const tooltip = repository && !isOpen ? repository.path : undefined
-
-    const foldoutStyle: React.CSSProperties = {
-      position: 'absolute',
-      marginLeft: 0,
-      width: this.state.sidebarWidth,
-      minWidth: this.state.sidebarWidth,
-      height: '100%',
-      top: 0,
-    }
-
-    return (
-      <ToolbarDropdown
-        icon={icon}
-        title={title}
-        description={__DARWIN__ ? 'Current Repository' : 'Current repository'}
-        tooltip={tooltip}
-        foldoutStyle={foldoutStyle}
-        onDropdownStateChanged={this.onRepositoryDropdownStateChanged}
-        dropdownContentRenderer={this.renderRepositoryList}
-        dropdownState={currentState}
-      />
-    )
-  }
-
-  private renderPushPullToolbarButton() {
-    const selection = this.state.selectedState
-    if (!selection || selection.type !== SelectionType.Repository) {
-      return null
-    }
-
-    const state = selection.state
-    const revertProgress = state.revertProgress
-    if (revertProgress) {
-      return <RevertProgress progress={revertProgress} />
-    }
-
-    let remoteName = state.remote ? state.remote.name : null
-    const progress = state.pushPullFetchProgress
-
-    const { conflictState } = state.changesState
-
-    const rebaseInProgress =
-      conflictState !== null && conflictState.kind === 'rebase'
-
-    const { aheadBehind, branchesState } = state
-    const { pullWithRebase, tip } = branchesState
-
-    if (tip.kind === TipState.Valid && tip.branch.remote !== null) {
-      remoteName = tip.branch.remote
-    }
-
-    const isForcePush = isCurrentBranchForcePush(branchesState, aheadBehind)
-
-    return (
-      <PushPullButton
-        dispatcher={this.props.dispatcher}
-        repository={selection.repository}
-        aheadBehind={state.aheadBehind}
-        remoteName={remoteName}
-        lastFetched={state.lastFetched}
-        networkActionInProgress={state.isPushPullFetchInProgress}
-        progress={progress}
-        tipState={tip.kind}
-        pullWithRebase={pullWithRebase}
-        rebaseInProgress={rebaseInProgress}
-        isForcePush={isForcePush}
-        shouldNudge={
-          this.state.currentOnboardingTutorialStep === TutorialStep.PushBranch
-        }
-      />
-    )
   }
 
   private showCreateBranch = () => {
@@ -2374,53 +2257,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     branch: Branch
   ) => {
     this.props.dispatcher.openCreatePullRequestInBrowser(repository, branch)
-  }
-
-  private onBranchDropdownStateChanged = (newState: DropdownState) => {
-    if (newState === 'open') {
-      this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
-    } else {
-      this.props.dispatcher.closeFoldout(FoldoutType.Branch)
-    }
-  }
-
-  private renderBranchToolbarButton(): JSX.Element | null {
-    const selection = this.state.selectedState
-
-    if (selection == null || selection.type !== SelectionType.Repository) {
-      return null
-    }
-
-    const currentFoldout = this.state.currentFoldout
-
-    const isOpen =
-      currentFoldout !== null && currentFoldout.type === FoldoutType.Branch
-
-    const repository = selection.repository
-    const { branchesState, changesState } = selection.state
-    const hasAssociatedStash = changesState.stashEntry !== null
-    const hasChanges = changesState.workingDirectory.files.length > 0
-
-    return (
-      <BranchDropdown
-        dispatcher={this.props.dispatcher}
-        isOpen={isOpen}
-        onDropDownStateChanged={this.onBranchDropdownStateChanged}
-        repository={repository}
-        repositoryState={selection.state}
-        selectedTab={this.state.selectedBranchesTab}
-        pullRequests={branchesState.openPullRequests}
-        currentPullRequest={branchesState.currentPullRequest}
-        isLoadingPullRequests={branchesState.isLoadingPullRequests}
-        shouldNudge={
-          this.state.currentOnboardingTutorialStep === TutorialStep.CreateBranch
-        }
-        selectedUncommittedChangesStrategy={getUncommittedChangesStrategy(
-          this.state.uncommittedChangesStrategyKind
-        )}
-        couldOverwriteStash={hasChanges && hasAssociatedStash}
-      />
-    )
   }
 
   // we currently only render one banner at a time
@@ -2479,16 +2315,19 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     return (
-      <Toolbar id="desktop-app-toolbar">
-        <div
-          className="sidebar-section"
-          style={{ width: this.state.sidebarWidth }}
-        >
-          {this.renderRepositoryToolbarButton()}
-        </div>
-        {this.renderBranchToolbarButton()}
-        {this.renderPushPullToolbarButton()}
-      </Toolbar>
+      <Toolbar
+        currentFoldout={this.state.currentFoldout}
+        currentOnboardingTutorialStep={this.state.currentOnboardingTutorialStep}
+        dispatcher={this.props.dispatcher}
+        renderRepositoryList={this.renderRepositoryList}
+        repositories={this.state.repositories}
+        selectedBranchesTab={this.state.selectedBranchesTab}
+        selection={this.state.selectedState}
+        sidebarWidth={this.state.sidebarWidth}
+        uncommittedChangesStrategyKind={
+          this.state.uncommittedChangesStrategyKind
+        }
+      />
     )
   }
 
