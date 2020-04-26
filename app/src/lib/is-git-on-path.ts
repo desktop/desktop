@@ -1,12 +1,13 @@
-import { spawn } from 'child_process'
+import { spawn, SpawnOptions } from 'child_process'
 import * as Path from 'path'
 
 function captureCommandOutput(
   command: string,
-  args?: string[] | undefined
+  args?: string[] | undefined,
+  options: SpawnOptions = {}
 ): Promise<boolean> {
   return new Promise<boolean>((resolve, reject) => {
-    const cp = spawn(command, args)
+    const cp = spawn(command, args, options)
 
     cp.on('error', error => {
       log.warn(`Unable to spawn ${command}`, error)
@@ -40,7 +41,7 @@ export function isGitOnPath(): Promise<boolean> {
     // is found, one per line, and return 0, or print an error and
     // return 1 if it cannot be found
     log.info(`calling captureCommandOutput(where git)`)
-    return captureCommandOutput(wherePath, ['git'])
+    return captureCommandOutput(wherePath, ['git'], { cwd: windowsRoot })
   }
 
   if (__LINUX__) {
