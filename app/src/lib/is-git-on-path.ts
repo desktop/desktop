@@ -1,6 +1,28 @@
 import { spawn } from 'child_process'
 import * as Path from 'path'
 
+function captureCommandOutput(
+  command: string,
+  args?: string[] | undefined
+): Promise<boolean> {
+  return new Promise<boolean>((resolve, reject) => {
+    const cp = spawn(command, args)
+
+    cp.on('error', error => {
+      log.warn(`Unable to spawn ${command}`, error)
+      resolve(false)
+    })
+
+    cp.on('close', function(code) {
+      if (code !== 0) {
+        resolve(false)
+      } else {
+        resolve(true)
+      }
+    })
+  })
+}
+
 export function isGitOnPath(): Promise<boolean> {
   // Modern versions of macOS ship with a Git shim that guides you through
   // the process of setting everything up. We trust this is available, so
@@ -11,36 +33,20 @@ export function isGitOnPath(): Promise<boolean> {
 
   // adapted from http://stackoverflow.com/a/34953561/1363815
   if (__WIN32__) {
-    return new Promise<boolean>((resolve, reject) => {
-      const windowsRoot = process.env.SystemRoot || 'C:\\Windows'
-      const wherePath = Path.join(windowsRoot, 'System32', 'where.exe')
+    const windowsRoot = process.env.SystemRoot || 'C:\\Windows'
+    const wherePath = Path.join(windowsRoot, 'System32', 'where.exe')
 
-      const cp = spawn(wherePath, ['git'])
-
-      cp.on('error', error => {
-        log.warn('Unable to spawn where.exe', error)
-        resolve(false)
-      })
-
-      // `where` will return 0 when the executable
-      // is found under PATH, or 1 if it cannot be found
-      cp.on('close', function(code) {
-        resolve(code === 0)
-      })
-      return
-    })
+    // `where` will list _all_ PATH components where the executable
+    // is found, one per line, and return 0, or print an error and
+    // return 1 if it cannot be found
+    log.info(`calling captureCommandOutput(where git)`)
+    return captureCommandOutput(wherePath, ['git'])
   }
 
   if (__LINUX__) {
-    return new Promise<boolean>((resolve, reject) => {
-      const process = spawn('which', ['git'])
-
-      // `which` will return 0 when the executable
-      // is found under PATH, or 1 if it cannot be found
-      process.on('close', function(code) {
-        resolve(code === 0)
-      })
-    })
+    // `which` will print the path and return 0 when the executable
+    // is found under PATH, or return 1 if it cannot be found
+    return captureCommandOutput('which', ['git'])
   }
 
   return Promise.resolve(false)
