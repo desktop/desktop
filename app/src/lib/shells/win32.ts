@@ -6,6 +6,7 @@ import { pathExists } from 'fs-extra'
 import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
 import { enableWSLDetection } from '../feature-flag'
+import { findGitOnPath } from '../is-git-on-path'
 
 export enum Shell {
   Cmd = 'Command Prompt',
@@ -59,10 +60,12 @@ export function parse(label: string): Shell {
 export async function getAvailableShells(): Promise<
   ReadonlyArray<IFoundShell<Shell>>
 > {
-  const shells = [
+  const gitPath = await findGitOnPath()
+  const shells: IFoundShell<Shell>[] = [
     {
       shell: Shell.Cmd,
       path: process.env.comspec || 'C:\\Windows\\System32\\cmd.exe',
+      extraArgs: gitPath ? ['/K', `"doskey git=^"${gitPath}^" $*"`] : [],
     },
   ]
 
@@ -427,7 +430,7 @@ export function launch(
     case Shell.Cmd:
       return spawn(
         'START',
-        ['"Command Prompt"', `"${foundShell.path}"`],
+        ['"Command Prompt"', `"${foundShell.path}"`, ...foundShell.extraArgs!],
         {
           shell: true,
           cwd: path,
