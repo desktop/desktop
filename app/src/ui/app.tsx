@@ -106,7 +106,9 @@ import { SChannelNoRevocationCheckDialog } from './schannel-no-revocation-check/
 import { findUpstreamRemoteBranch } from '../lib/branch'
 import { GitHubRepository } from '../models/github-repository'
 import { CreateTag } from './create-tag'
+import { addTouchBar, updateTouchBar, removeTouchBar } from './touch-bar'
 
+// @ts-ignore
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
 
@@ -160,6 +162,8 @@ export class App extends React.Component<IAppProps, IAppState> {
   private lastKeyPressed: string | null = null
 
   private updateIntervalHandle?: number
+
+  private touchBarId?: number
 
   /**
    * Gets a value indicating whether or not we're currently showing a
@@ -272,6 +276,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   public componentWillUnmount() {
     window.clearInterval(this.updateIntervalHandle)
+    removeTouchBar(this.touchBarId!)
   }
 
   private performDeferredLaunchActions() {
@@ -867,6 +872,68 @@ export class App extends React.Component<IAppProps, IAppState> {
       window.addEventListener('keydown', this.onWindowKeyDown)
       window.addEventListener('keyup', this.onWindowKeyUp)
     }
+
+    this.touchBarId = addTouchBar(this.buildTouchBar())
+  }
+
+  public componentWillUpdate() {
+    updateTouchBar(this.touchBarId!, this.buildTouchBar())
+  }
+
+  private buildTouchBar() {
+    const { TouchBar } = remote
+    return new TouchBar({
+      items: [
+        ...(this.state.selectedState && this.state.selectedState.repository
+          ? [
+              new TouchBar.TouchBarButton({
+                label: this.state.selectedState.repository.name,
+                click: () =>
+                  this.props.dispatcher.showFoldout({
+                    type: FoldoutType.Repository,
+                  }),
+              }),
+            ]
+          : []),
+        ...(this.state.selectedState &&
+        this.state.selectedState.type === SelectionType.Repository
+          ? [
+              new TouchBar.TouchBarButton({
+                label:
+                  this.state.selectedState.state.branchesState.tip.kind ===
+                  TipState.Unknown
+                    ? 'tbd'
+                    : this.state.selectedState.state.branchesState.tip.kind ===
+                      TipState.Unborn
+                    ? this.state.selectedState.state.branchesState.tip.ref
+                    : this.state.selectedState.state.branchesState.tip.kind ===
+                      TipState.Detached
+                    ? `On ${this.state.selectedState.state.branchesState.tip.currentSha.substr(
+                        0,
+                        7
+                      )}`
+                    : this.state.selectedState.state.branchesState.tip.kind ===
+                      TipState.Valid
+                    ? this.state.selectedState.state.branchesState.tip.branch
+                        .name
+                    : assertNever(
+                        this.state.selectedState.state.branchesState.tip,
+                        `Unknown tip state: ${this.state.selectedState.state.branchesState.tip!.kind}`
+                      ),
+                click: () =>
+                  this.props.dispatcher.showFoldout({
+                    type: FoldoutType.Branch,
+                  }),
+              }),
+              new TouchBar.TouchBarButton({
+                label: 'push/pull',
+                click: () =>
+                  console.log('tbd'),
+              }),
+            ]
+          : []),
+      ],
+    })
   }
 
   /**
