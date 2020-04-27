@@ -428,7 +428,7 @@ export class CompareSidebar extends React.Component<
       } else {
         this.props.dispatcher.executeCompare(this.props.repository, {
           kind: HistoryTabMode.Compare,
-          comparisonMode: ComparisonMode.Behind,
+          comparisonMode: ComparisonMode.Ahead,
           branch,
         })
 
@@ -529,7 +529,7 @@ export class CompareSidebar extends React.Component<
   private onBranchItemClicked = (branch: Branch) => {
     this.props.dispatcher.executeCompare(this.props.repository, {
       kind: HistoryTabMode.Compare,
-      comparisonMode: ComparisonMode.Behind,
+      comparisonMode: ComparisonMode.Ahead,
       branch,
     })
 

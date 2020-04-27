@@ -8,7 +8,7 @@ import { CommittedFileChange } from '../../models/status'
 import { Commit } from '../../models/commit'
 import { IDiff, ImageDiffType } from '../../models/diff'
 
-import { encodePathAsUrl } from '../../lib/path'
+//import { encodePathAsUrl } from '../../lib/path'
 import { IGitHubUser } from '../../lib/databases'
 import { revealInFileManager } from '../../lib/app-shell'
 
@@ -209,16 +209,11 @@ export class SelectedCommit extends React.Component<
 
   public render() {
     const commit = this.props.selectedCommit
-
-    if (commit == null) {
-      return <NoCommitSelected />
-    }
-
     const className = this.state.isExpanded ? 'expanded' : 'collapsed'
 
     return (
       <div id="history" ref={this.onHistoryRef} className={className}>
-        {this.renderCommitSummary(commit)}
+        {commit && this.renderCommitSummary(commit)}
         <div className="commit-details">
           <Resizable
             width={this.props.commitSummaryWidth}
@@ -287,16 +282,16 @@ export class SelectedCommit extends React.Component<
   }
 }
 
-function NoCommitSelected() {
-  const BlankSlateImage = encodePathAsUrl(
-    __dirname,
-    'static/empty-no-commit.svg'
-  )
+// function NoCommitSelected() {
+//   const BlankSlateImage = encodePathAsUrl(
+//     __dirname,
+//     'static/empty-no-commit.svg'
+//   )
 
-  return (
-    <div className="panel blankslate">
-      <img src={BlankSlateImage} className="blankslate-image" />
-      No commit selected
-    </div>
-  )
-}
+//   return (
+//     <div className="panel blankslate">
+//       <img src={BlankSlateImage} className="blankslate-image" />
+//       No commit selected
+//     </div>
+//   )
+// }

@@ -155,6 +155,7 @@ import {
   IStatusResult,
   GitError,
   getDiffBetweenCommits,
+  getChangedFilesBetweenTwoCommits,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -950,7 +951,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (selectedSHA == null && commitSHAs.length > 0) {
-      this._changeCommitSelection(repository, commitSHAs[0])
       this._loadChangedFilesForCurrentSelection(repository)
     }
   }
@@ -1349,14 +1349,37 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const state = this.repositoryStateCache.get(repository)
     const { commitSelection } = state
     const currentSHA = commitSelection.sha
-    if (currentSHA == null) {
-      return
-    }
-
     const gitStore = this.gitStoreCache.get(repository)
-    const changedFiles = await gitStore.performFailableOperation(() =>
-      getChangedFiles(repository, currentSHA)
-    )
+
+    const changedFiles = await gitStore.performFailableOperation(async () => {
+      if (currentSHA !== null) {
+        return getChangedFiles(repository, currentSHA)
+      }
+
+      if (
+        state.compareState.tip === null ||
+        state.compareState.inferredComparisonBranch.branch === null
+      ) {
+        return null
+      }
+
+      const mergeBaseCommit = await getMergeBase(
+        repository,
+        state.compareState.inferredComparisonBranch.branch.name,
+        state.compareState.tip
+      )
+
+      if (mergeBaseCommit === null) {
+        return
+      }
+
+      return getChangedFilesBetweenTwoCommits(
+        repository,
+        mergeBaseCommit,
+        state.compareState.tip
+      )
+    })
+
     if (!changedFiles) {
       return
     }
