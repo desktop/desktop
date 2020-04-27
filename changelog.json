@@ -1,5 +1,8 @@
 {
   "releases": {
+    "2.4.3": [
+      "[Fixed] Update embedded Git to avoid gitconfig errors on Windows - #9597"
+    ],
     "2.4.3-beta0": [
       "[Fixed] Update embedded Git to address security vulnerability"
     ],
