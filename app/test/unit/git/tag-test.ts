@@ -134,7 +134,7 @@ describe('git/tag', () => {
       ).toEqual([])
     })
 
-    it('does not return a tag created o a non-pushed branch', async () => {
+    it('does not return a tag created on a non-pushed branch', async () => {
       // Create a tag on a local branch that's not pushed to the remote.
       const branch = await createBranch(repository, 'new-branch', 'master')
 
