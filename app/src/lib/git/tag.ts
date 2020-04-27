@@ -70,6 +70,7 @@ export async function fetchTagsToPush(
   let currentLine = 1
   const unpushedTags = []
 
+  // the last line of this porcelain command is always 'Done'
   while (lines[currentLine] !== 'Done') {
     const line = lines[currentLine]
     const parts = line.split('\t')
