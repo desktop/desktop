@@ -137,6 +137,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   forksCreated: 0,
   issueCreationWebpageOpenedCount: 0,
   tagsCreatedInDesktop: 0,
+  tagsCreated: 0,
 }
 
 interface IOnboardingStats {
@@ -1359,6 +1360,12 @@ export class StatsStore implements IStatsStore {
   public recordTagCreatedInDesktop() {
     return this.updateDailyMeasures(m => ({
       tagsCreatedInDesktop: m.tagsCreatedInDesktop + 1,
+    }))
+  }
+
+  public recordTagCreated(numCreatedTags: number) {
+    return this.updateDailyMeasures(m => ({
+      tagsCreated: m.tagsCreated + numCreatedTags,
     }))
   }
 
