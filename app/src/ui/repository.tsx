@@ -225,6 +225,7 @@ export class RepositoryView extends React.Component<
     return (
       <CompareSidebar
         repository={this.props.repository}
+        repositoryState={this.props.state}
         isLocalRepository={this.props.state.remote === null}
         compareState={this.props.state.compareState}
         selectedCommitSha={this.props.state.commitSelection.sha}
@@ -335,6 +336,7 @@ export class RepositoryView extends React.Component<
     return (
       <SelectedCommit
         repository={this.props.repository}
+        repositoryState={this.props.state}
         dispatcher={this.props.dispatcher}
         selectedCommit={selectedCommit}
         changedFiles={changedFiles}

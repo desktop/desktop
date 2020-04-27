@@ -212,7 +212,7 @@ export class Dispatcher {
    */
   public changeCommitSelection(
     repository: Repository,
-    sha: string
+    sha: string | null
   ): Promise<void> {
     return this.appStore._changeCommitSelection(repository, sha)
   }

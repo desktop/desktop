@@ -157,3 +157,43 @@
     border-bottom: var(--base-border);
   }
 }
+
+.back-to-all-commits {
+  padding: var(--spacing) var(--spacing) 0;
+  display: flex;
+  align-items: center;
+
+  .link-button-component {
+    margin-left: var(--spacing-half);
+  }
+}
+
+.diff-changes-header {
+  padding: 0 var(--spacing);
+  border-bottom: var(--base-border);
+
+  .commit-summary-title {
+    display: flex;
+    align-items: center;
+    font-size: var(--font-size-md);
+
+    .octicon {
+      margin-right: var(--spacing);
+    }
+  }
+
+  .commit-summary-desription {
+    padding: 0 var(--spacing);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    .octicon {
+      margin: 0 var(--spacing-half);
+    }
+
+    .ref-component {
+      font-weight: initial;
+    }
+  }
+}

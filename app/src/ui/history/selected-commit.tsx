@@ -29,9 +29,19 @@ import { showContextualMenu } from '../main-process-proxy'
 
 import { CommitSummary } from './commit-summary'
 import { FileList } from './file-list'
+import {
+  IRepositoryState,
+  HistoryTabMode,
+  ComparisonMode,
+} from '../../lib/app-state'
+import { Ref } from '../lib/ref'
+import { TipState } from '../../models/tip'
+import { LinkButton } from '../lib/link-button'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 interface ISelectedCommitProps {
   readonly repository: Repository
+  readonly repositoryState: IRepositoryState
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, string>
   readonly selectedCommit: Commit | null
@@ -131,21 +141,103 @@ export class SelectedCommit extends React.Component<
     )
   }
 
-  private renderCommitSummary(commit: Commit) {
+  private renderCommitHeader(commit: Commit | null) {
+    if (commit === null) {
+      return this.renderBranchDiffInfo()
+    }
+
     return (
-      <CommitSummary
-        commit={commit}
-        files={this.props.changedFiles}
-        emoji={this.props.emoji}
-        repository={this.props.repository}
-        gitHubUsers={this.props.gitHubUsers}
-        onExpandChanged={this.onExpandChanged}
-        isExpanded={this.state.isExpanded}
-        onDescriptionBottomChanged={this.onDescriptionBottomChanged}
-        hideDescriptionBorder={this.state.hideDescriptionBorder}
-        hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
-        onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
-      />
+      <>
+        {this.renderBackToAllCommits()}
+        <CommitSummary
+          commit={commit}
+          files={this.props.changedFiles}
+          emoji={this.props.emoji}
+          repository={this.props.repository}
+          gitHubUsers={this.props.gitHubUsers}
+          onExpandChanged={this.onExpandChanged}
+          isExpanded={this.state.isExpanded}
+          onDescriptionBottomChanged={this.onDescriptionBottomChanged}
+          hideDescriptionBorder={this.state.hideDescriptionBorder}
+          hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+          onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
+        />
+      </>
+    )
+  }
+
+  private renderBackToAllCommits() {
+    const compareState = this.props.repositoryState.compareState
+
+    if (compareState.formState.kind === HistoryTabMode.History) {
+      return null
+    }
+
+    return (
+      <div className="back-to-all-commits">
+        <Octicon symbol={OcticonSymbol.arrowLeft} />
+
+        <LinkButton onClick={this.onClickBackButton}>
+          View all commits
+        </LinkButton>
+      </div>
+    )
+  }
+
+  private onClickBackButton = () => {
+    this.props.dispatcher.changeCommitSelection(this.props.repository, null)
+
+    this.loadChangedFilesScheduler.queue(() => {
+      this.props.dispatcher.loadChangedFilesForCurrentSelection(
+        this.props.repository
+      )
+    })
+  }
+
+  private renderBranchDiffInfo() {
+    const compareState = this.props.repositoryState.compareState
+    const tip = this.props.repositoryState.branchesState.tip
+    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+
+    const numTotalCommits = compareState.commitSHAs.length
+    const numFilesChanged = this.props.repositoryState.commitSelection
+      .changedFiles.length
+
+    if (!currentBranch) {
+      // TODO: handle this.
+      return
+    }
+
+    if (compareState.formState.kind === HistoryTabMode.History) {
+      return null
+    }
+
+    const headBranch =
+      compareState.formState.comparisonMode === ComparisonMode.Ahead
+        ? currentBranch.name
+        : compareState.formState.comparisonBranch.name
+
+    const baseBranch =
+      compareState.formState.comparisonMode === ComparisonMode.Ahead
+        ? compareState.formState.comparisonBranch.name
+        : currentBranch.name
+
+    const text = `Showing ${numFilesChanged} file${
+      numFilesChanged > 1 ? 's' : ''
+    } changed from ${numTotalCommits} commit${numTotalCommits > 1 ? 's' : ''}`
+
+    return (
+      <div className="diff-changes-header">
+        <div className="commit-summary-title">
+          <Octicon symbol={OcticonSymbol.gitBranch} />
+          Comparing changes
+        </div>
+        <div className="commit-summary-desription">
+          <Ref>{baseBranch}</Ref> <Octicon symbol={OcticonSymbol.arrowLeft} />{' '}
+          <Ref>{headBranch}</Ref>
+        </div>
+        <div className="commit-summary-description">{text}</div>
+      </div>
     )
   }
 
@@ -211,9 +303,16 @@ export class SelectedCommit extends React.Component<
     const commit = this.props.selectedCommit
     const className = this.state.isExpanded ? 'expanded' : 'collapsed'
 
+    console.log(
+      'rafeca: renderrrrrr',
+      commit && commit.sha,
+      this.props.repositoryState.compareState.mergeStatus &&
+        this.props.repositoryState.compareState.mergeStatus.kind
+    )
+
     return (
       <div id="history" ref={this.onHistoryRef} className={className}>
-        {commit && this.renderCommitSummary(commit)}
+        {this.renderCommitHeader(commit)}
         <div className="commit-details">
           <Resizable
             width={this.props.commitSummaryWidth}

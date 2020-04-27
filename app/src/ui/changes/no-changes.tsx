@@ -7,9 +7,17 @@ import { MenuIDs } from '../../models/menu-ids'
 import { IMenu, MenuItem } from '../../models/app-menu'
 import memoizeOne from 'memoize-one'
 import { getPlatformSpecificNameOrSymbolForModifier } from '../../lib/menu-item'
-import { MenuBackedSuggestedAction } from '../suggested-actions'
+import {
+  MenuBackedSuggestedAction,
+  SuggestedAction,
+} from '../suggested-actions'
 import { executeMenuItemById } from '../main-process-proxy'
-import { IRepositoryState } from '../../lib/app-state'
+import {
+  IRepositoryState,
+  RepositorySectionTab,
+  HistoryTabMode,
+  ComparisonMode,
+} from '../../lib/app-state'
 import { TipState, IValidBranch } from '../../models/tip'
 import { Ref } from '../lib/ref'
 import { IAheadBehind } from '../../models/branch'
@@ -506,6 +514,44 @@ export class NoChanges extends React.Component<
     )
   }
 
+  private renderPreviewBranch() {
+    return (
+      <SuggestedAction
+        title="Preview your branch changes"
+        description="dooo"
+        discoverabilityContent=""
+        buttonText="Preview changes"
+        onClick={this.onClickPreviewBranch}
+        type="normal"
+        disabled={false}
+      />
+    )
+  }
+
+  private onClickPreviewBranch = async () => {
+    this.props.dispatcher.changeRepositorySection(
+      this.props.repository,
+      RepositorySectionTab.History
+    )
+
+    const defaultBranch = this.props.repositoryState.branchesState.defaultBranch
+
+    if (defaultBranch === null) {
+      // TODO: handle this?
+      return
+    }
+
+    this.props.dispatcher.executeCompare(this.props.repository, {
+      kind: HistoryTabMode.Compare,
+      comparisonMode: ComparisonMode.Ahead,
+      branch: defaultBranch,
+    })
+
+    this.props.dispatcher.updateCompareForm(this.props.repository, {
+      filterText: defaultBranch.name,
+    })
+  }
+
   private onPublishBranchClicked = () =>
     this.props.dispatcher.recordSuggestedStepPublishBranch()
 
@@ -675,6 +721,7 @@ export class NoChanges extends React.Component<
         >
           {this.renderViewStashAction() || this.renderRemoteAction()}
         </SuggestedActionGroup>
+        {this.renderPreviewBranch()}
         <SuggestedActionGroup>
           {this.renderOpenInExternalEditor()}
           {this.renderShowInFileManager()}

@@ -916,11 +916,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeCommitSelection(
     repository: Repository,
-    sha: string
+    sha: string | null
   ): Promise<void> {
     const { commitSelection } = this.repositoryStateCache.get(repository)
 
-    if (commitSelection.sha === sha) {
+    if (sha && commitSelection.sha === sha) {
       return
     }
 
@@ -948,9 +948,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
         selectedSHA = null
         this.clearSelectedCommit(repository)
       }
+
+      return
     }
 
-    if (selectedSHA == null && commitSHAs.length > 0) {
+    if (
+      commitSHAs.length > 0 &&
+      state.compareState.formState.kind === HistoryTabMode.History
+    ) {
+      this._changeCommitSelection(repository, commitSHAs[0])
+      this._loadChangedFilesForCurrentSelection(repository)
+    } else {
+      // } else if (state.commitSelection.sha !== null) {
+      this._changeCommitSelection(repository, null)
       this._loadChangedFilesForCurrentSelection(repository)
     }
   }
@@ -1235,6 +1245,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.emitUpdate()
 
+    console.log('rafeca: updateCOmpareToBranch')
     this.updateOrSelectFirstCommit(repository, commitSHAs)
 
     if (this.currentMergeTreePromise != null) {
@@ -1353,31 +1364,54 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const changedFiles = await gitStore.performFailableOperation(async () => {
       if (currentSHA !== null) {
-        return getChangedFiles(repository, currentSHA)
+        const fooo = await getChangedFiles(repository, currentSHA)
+        console.log('rafeca: fooooo1 ', fooo)
+
+        return fooo
       }
 
-      if (
-        state.compareState.tip === null ||
-        state.compareState.inferredComparisonBranch.branch === null
-      ) {
+      if (state.compareState.tip === null) {
+        console.log('rafeca: faket1')
+        return null
+      }
+
+      if (state.compareState.formState.kind === HistoryTabMode.History) {
+        console.log('rafeca: faket2')
+        return null
+      }
+
+      const branchToCompare = state.compareState.formState.comparisonBranch
+
+      if (branchToCompare === null) {
+        console.log('rafeca: faket3')
         return null
       }
 
       const mergeBaseCommit = await getMergeBase(
         repository,
-        state.compareState.inferredComparisonBranch.branch.name,
+        branchToCompare.name,
         state.compareState.tip
       )
 
       if (mergeBaseCommit === null) {
+        console.log('rafeca: faket4')
         return
       }
 
-      return getChangedFilesBetweenTwoCommits(
+      const toCommit =
+        state.compareState.formState.comparisonMode === ComparisonMode.Ahead
+          ? state.compareState.tip
+          : branchToCompare.name
+
+      const foo = await getChangedFilesBetweenTwoCommits(
         repository,
         mergeBaseCommit,
-        state.compareState.tip
+        toCommit
       )
+
+      console.log('rafeca: foo', foo)
+
+      return foo
     })
 
     if (!changedFiles) {
@@ -2941,6 +2975,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await gitStore.loadLocalCommits(tip.branch)
     }
 
+    console.log('rafeca: refreshHistorySection')
     return this.updateOrSelectFirstCommit(
       repository,
       state.compareState.commitSHAs

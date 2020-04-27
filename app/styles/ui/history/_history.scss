@@ -40,6 +40,30 @@
     min-height: 0;
   }
 
+  .compare-diff-description {
+    padding: var(--spacing);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    min-height: 45px;
+    justify-items: center;
+
+    span {
+      font-weight: var(--font-weight-semibold);
+      flex-grow: 1;
+
+      .ref-component {
+        font-weight: initial;
+      }
+    }
+
+    .button-component {
+      margin-left: var(--spacing);
+      flex-shrink: 0;
+      margin: auto;
+    }
+  }
+
   .merge-status {
     background: var(--background-color);
     border-width: 0 var(--spacing-half);
