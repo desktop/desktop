@@ -1,5 +1,9 @@
 {
   "releases": {
+    "2.4.4-beta0": [
+      "[Added] Display tags in commit list - #9427",
+      "[Fixed] Update embedded Git to avoid gitconfig errors on Windows - #9597"
+    ],
     "2.4.3": [
       "[Fixed] Update embedded Git to avoid gitconfig errors on Windows - #9597"
     ],
