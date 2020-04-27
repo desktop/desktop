@@ -270,9 +270,8 @@ export class GitStore extends BaseStore {
       return getCommit(this.repository, targetCommitSha)
     })
 
-    if (foundCommit != null) {
-      this.commitLookup.set(targetCommitSha, foundCommit)
-      this.emitNewCommitsLoaded([foundCommit])
+    if (foundCommit instanceof Commit) {
+      this.storeCommits([foundCommit], true)
     }
   }
 
