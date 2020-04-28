@@ -2,8 +2,11 @@ import { fetchTagsToPush } from '../../git'
 import { Repository } from '../../../models/repository'
 import { IGitAccount } from '../../../models/git-account'
 import { IRemote } from '../../../models/remote'
+import LRUCache = require('lru-cache')
 
-const cache = new Map<string, Map<string, ReadonlyArray<string>>>()
+const cache = new Map<string, LRUCache<string, ReadonlyArray<string>>>()
+
+const MaxCacheEntriesToStorePerRepository = 25
 
 /**
  * Memoized version of the fetchTagsToPush git method.
@@ -36,7 +39,12 @@ export async function fetchTagsToPushMemoized(
     result = await fetchTagsToPush(repository, account, remote, branchName)
 
     // Store the returned result in the cache.
-    cachedTagsToPush = cachedTagsToPush || new Map()
+    cachedTagsToPush =
+      cachedTagsToPush ||
+      new LRUCache<string, ReadonlyArray<string>>({
+        max: MaxCacheEntriesToStorePerRepository,
+      })
+
     cachedTagsToPush.set(key, result)
     cache.set(remote.name, cachedTagsToPush)
   }
@@ -56,7 +64,7 @@ export function clearTagsToPushCache(remote: IRemote | null) {
 
   const remoteCache = cache.get(remote.name)
   if (remoteCache) {
-    remoteCache.clear()
+    remoteCache.reset()
   }
 }
 
