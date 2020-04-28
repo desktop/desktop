@@ -3086,6 +3086,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this.withAuthenticatingUser(repository, (_, account) =>
       gitStore.createTag(account, name, targetCommitSha)
     )
+    this.statsStore.recordTagCreatedInDesktop()
 
     this._closePopup()
   }

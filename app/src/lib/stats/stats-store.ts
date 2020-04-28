@@ -136,6 +136,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   commitsToRepositoryWithoutWriteAccess: 0,
   forksCreated: 0,
   issueCreationWebpageOpenedCount: 0,
+  tagsCreatedInDesktop: 0,
 }
 
 interface IOnboardingStats {
@@ -1352,6 +1353,12 @@ export class StatsStore implements IStatsStore {
   public recordIssueCreationWebpageOpened() {
     return this.updateDailyMeasures(m => ({
       issueCreationWebpageOpenedCount: m.issueCreationWebpageOpenedCount + 1,
+    }))
+  }
+
+  public recordTagCreatedInDesktop() {
+    return this.updateDailyMeasures(m => ({
+      tagsCreatedInDesktop: m.tagsCreatedInDesktop + 1,
     }))
   }
 
