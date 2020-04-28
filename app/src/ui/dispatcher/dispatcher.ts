@@ -328,6 +328,13 @@ export class Dispatcher {
     return this.appStore._refreshOrRecoverRepository(repository)
   }
 
+  /**
+   * Refreshes the list of local tags. This would be used, e.g., when the app gains focus.
+   */
+  public refreshTags(repository: Repository): Promise<void> {
+    return this.appStore._refreshTags(repository)
+  }
+
   /** Show the popup. This will close any current popup. */
   public showPopup(popup: Popup): Promise<void> {
     return this.appStore._showPopup(popup)
@@ -500,18 +507,12 @@ export class Dispatcher {
   }
 
   /**
-   * Create a new tag on the given target commit.
-   */
-  public getAllTags(repository: Repository): Promise<ReadonlyArray<string>> {
-    return this.appStore._getAllTags(repository)
-  }
-
-  /**
    * Show the tag creation dialog.
    */
   public showCreateTagDialog(
     repository: Repository,
     targetCommitSha: string,
+    localTags: Map<string, string> | null,
     initialName?: string
   ): Promise<void> {
     return this.showPopup({
@@ -519,6 +520,7 @@ export class Dispatcher {
       repository,
       targetCommitSha,
       initialName,
+      localTags,
     })
   }
 

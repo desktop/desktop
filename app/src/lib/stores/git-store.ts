@@ -85,6 +85,8 @@ import { enableStashing } from '../feature-flag'
 import { getStashes, getStashedFiles } from '../git/stash'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { PullRequest } from '../../models/pull-request'
+import { fetchTagsToPushMemoized } from './helpers/fetch-tags-to-push-memoized'
+import { shallowEquals } from '../equality'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -113,6 +115,8 @@ export class GitStore extends BaseStore {
 
   private _defaultBranch: Branch | null = null
 
+  private _localTags: Map<string, string> | null = null
+
   private _allBranches: ReadonlyArray<Branch> = []
 
   private _recentBranches: ReadonlyArray<Branch> = []
@@ -126,6 +130,8 @@ export class GitStore extends BaseStore {
   private _coAuthors: ReadonlyArray<IAuthor> = []
 
   private _aheadBehind: IAheadBehind | null = null
+
+  private _tagsToPush: ReadonlyArray<string> | null = null
 
   private _defaultRemote: IRemote | null = null
 
@@ -259,25 +265,86 @@ export class GitStore extends BaseStore {
     return commits.map(c => c.sha)
   }
 
-  public async getAllTags(): Promise<ReadonlyArray<string>> {
-    return getAllTags(this.repository)
+  public async refreshTags() {
+    const previousTags = this._localTags
+    this._localTags = await getAllTags(this.repository)
+
+    if (previousTags !== null) {
+      // We don't await for the emition of updates to finish
+      // to make this method return earlier.
+      this.emitUpdatesForChangedTags(previousTags, this._localTags)
+    }
   }
 
-  public async createTag(name: string, targetCommitSha: string) {
-    const foundCommit = await this.performFailableOperation(async () => {
-      await createTag(this.repository, name, targetCommitSha)
+  /**
+   * Calculates the commits that have changed based on the changes in existing tags
+   * to emit the correct updates.
+   *
+   * This is specially important when tags are created/modified/deleted from outside of Desktop.
+   */
+  private async emitUpdatesForChangedTags(
+    previousTags: Map<string, string>,
+    newTags: Map<string, string>
+  ) {
+    const commitsToUpdate = new Set<string>()
 
-      return getCommit(this.repository, targetCommitSha)
+    for (const [tagName, previousCommitSha] of previousTags) {
+      const newCommitSha = newTags.get(tagName)
+
+      if (!newCommitSha) {
+        // the tag has been deleted.
+        commitsToUpdate.add(previousCommitSha)
+      } else if (newCommitSha !== previousCommitSha) {
+        // the tag has been moved to a different commit.
+        commitsToUpdate.add(previousCommitSha)
+        commitsToUpdate.add(newCommitSha)
+      }
+    }
+
+    for (const [tagName, newCommitSha] of newTags) {
+      if (!previousTags.has(tagName)) {
+        // the tag has just been created.
+        commitsToUpdate.add(newCommitSha)
+      }
+    }
+
+    const commitsToStore = []
+    for (const commitSha of commitsToUpdate) {
+      const commit = await getCommit(this.repository, commitSha)
+
+      if (commit !== null) {
+        commitsToStore.push(commit)
+      }
+    }
+
+    this.storeCommits(commitsToStore, true)
+  }
+
+  public async createTag(
+    account: IGitAccount | null,
+    name: string,
+    targetCommitSha: string
+  ) {
+    await this.performFailableOperation(async () => {
+      await createTag(this.repository, name, targetCommitSha)
     })
 
-    if (foundCommit instanceof Commit) {
-      this.storeCommits([foundCommit], true)
-    }
+    await this.refreshTags()
+
+    this.fetchTagsToPush(account)
   }
 
   /** The list of ordered SHAs. */
   public get history(): ReadonlyArray<string> {
     return this._history
+  }
+
+  public get tagsToPush(): ReadonlyArray<string> | null {
+    return this._tagsToPush
+  }
+
+  public get localTags(): Map<string, string> | null {
+    return this._localTags
   }
 
   /** Load all the branches. */
@@ -370,6 +437,46 @@ export class GitStore extends BaseStore {
         .filter(b => b.name === defaultBranchName)
         .sort((x, y) => compare(x.type, y.type))
         .shift() || null
+  }
+
+  public async fetchTagsToPush(account: IGitAccount | null) {
+    const currentRemote = this._currentRemote
+
+    if (currentRemote === null) {
+      this._tagsToPush = null
+      return
+    }
+
+    const localTags = this._localTags
+    if (localTags === null) {
+      this._tagsToPush = null
+      return
+    }
+
+    if (this.tip.kind !== TipState.Valid) {
+      this._tagsToPush = null
+      return
+    }
+    const currentBranch = this.tip.branch
+
+    const tagsToPush = await this.performFailableOperation(() =>
+      fetchTagsToPushMemoized(
+        this.repository,
+        account,
+        currentRemote,
+        currentBranch.name,
+        localTags,
+        currentBranch.tip.sha
+      )
+    )
+
+    const previousTagsToPush = this._tagsToPush
+
+    this._tagsToPush = tagsToPush !== undefined ? tagsToPush : null
+
+    if (!shallowEquals(previousTagsToPush, this._tagsToPush)) {
+      this.emitUpdate()
+    }
   }
 
   /**

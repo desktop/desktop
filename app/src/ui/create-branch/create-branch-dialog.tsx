@@ -121,10 +121,15 @@ export class CreateBranch extends React.Component<
     })
 
     if (!this.state.isCreatingBranch) {
+      const defaultStartPoint = getStartPoint(
+        nextProps,
+        StartPoint.UpstreamDefaultBranch
+      )
+
       this.setState({
         tipAtCreateStart: nextProps.tip,
         defaultBranchAtCreateStart: getBranchForStartPoint(
-          this.state.startPoint,
+          defaultStartPoint,
           nextProps
         ),
       })
