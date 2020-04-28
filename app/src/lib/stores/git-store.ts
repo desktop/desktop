@@ -114,7 +114,7 @@ export class GitStore extends BaseStore {
 
   private _defaultBranch: Branch | null = null
 
-  private _localTags: Set<string> | null = null
+  private _localTags: Map<string, string> | null = null
 
   private _allBranches: ReadonlyArray<Branch> = []
 
@@ -265,7 +265,7 @@ export class GitStore extends BaseStore {
   }
 
   public async refreshTags() {
-    this._localTags = new Set(await getAllTags(this.repository))
+    this._localTags = await getAllTags(this.repository)
 
     this.emitUpdate()
   }
@@ -298,7 +298,7 @@ export class GitStore extends BaseStore {
     return this._tagsToPush
   }
 
-  public get localTags(): Set<string> | null {
+  public get localTags(): Map<string, string> | null {
     return this._localTags
   }
 
@@ -420,7 +420,7 @@ export class GitStore extends BaseStore {
         account,
         currentRemote,
         currentBranch.name,
-        Array.from(localTags),
+        localTags,
         currentBranch.tip.sha
       )
     )

@@ -24,7 +24,7 @@ export async function fetchTagsToPushMemoized(
   account: IGitAccount | null,
   remote: IRemote,
   branchName: string,
-  localTags: ReadonlyArray<string>,
+  localTags: Map<string, string>,
   currentTipSha: string
 ) {
   const key = serializeArguments(branchName, localTags, currentTipSha)
@@ -70,8 +70,8 @@ export function clearTagsToPushCache(remote: IRemote | null) {
  */
 function serializeArguments(
   branchName: string,
-  localTags: ReadonlyArray<string>,
+  localTags: Map<string, string>,
   currentTipSha: string
 ) {
-  return JSON.stringify([branchName, localTags, currentTipSha])
+  return JSON.stringify([branchName, Array.from(localTags), currentTipSha])
 }

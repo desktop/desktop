@@ -48,7 +48,7 @@ interface ICompareSidebarProps {
   readonly onViewCommitOnGitHub: (sha: string) => void
   readonly onCompareListScrolled: (scrollTop: number) => void
   readonly compareListScrollTop?: number
-  readonly localTags: Set<string> | null
+  readonly localTags: Map<string, string> | null
 }
 
 interface ICompareSidebarState {

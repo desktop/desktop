@@ -232,5 +232,5 @@ export type Popup =
       repository: Repository
       targetCommitSha: string
       initialName?: string
-      localTags: Set<string> | null
+      localTags: Map<string, string> | null
     }

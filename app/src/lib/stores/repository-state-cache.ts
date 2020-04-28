@@ -177,7 +177,7 @@ function getInitialRepositoryState(): IRepositoryState {
     gitHubUsers: new Map<string, IGitHubUser>(),
     commitLookup: new Map<string, Commit>(),
     localCommitSHAs: [],
-    localTags: new Set(),
+    localTags: null,
     tagsToPush: null,
     aheadBehind: null,
     remote: null,

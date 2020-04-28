@@ -422,7 +422,7 @@ export interface IRepositoryState {
    */
   readonly revertProgress: IRevertProgress | null
 
-  readonly localTags: Set<string> | null
+  readonly localTags: Map<string, string> | null
 }
 
 export interface IBranchesState {

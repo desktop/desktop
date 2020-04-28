@@ -512,7 +512,7 @@ export class Dispatcher {
   public showCreateTagDialog(
     repository: Repository,
     targetCommitSha: string,
-    localTags: Set<string> | null,
+    localTags: Map<string, string> | null,
     initialName?: string
   ): Promise<void> {
     return this.showPopup({

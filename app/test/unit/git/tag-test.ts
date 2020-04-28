@@ -83,17 +83,17 @@ describe('git/tag', () => {
 
   describe('getAllTags', () => {
     it('returns an empty array when the repository has no tags', async () => {
-      expect(await getAllTags(repository)).toEqual([])
+      expect(await getAllTags(repository)).toEqual(new Map())
     })
 
     it('returns all the created tags', async () => {
-      await createTag(repository, 'my-new-tag', 'HEAD')
-      await createTag(repository, 'another-tag', 'HEAD')
+      const commit = await getCommit(repository, 'HEAD')
+      await createTag(repository, 'my-new-tag', commit!.sha)
+      await createTag(repository, 'another-tag', commit!.sha)
 
-      expect(await getAllTags(repository)).toIncludeAllMembers([
-        'my-new-tag',
-        'another-tag',
-      ])
+      expect(await getAllTags(repository)).toEqual(
+        new Map([['my-new-tag', commit!.sha], ['another-tag', commit!.sha]])
+      )
     })
   })
 

@@ -18,7 +18,7 @@ interface ICreateTagProps {
   readonly onDismissed: () => void
   readonly targetCommitSha: string
   readonly initialName?: string
-  readonly localTags: Set<string> | null
+  readonly localTags: Map<string, string> | null
 }
 
 interface ICreateTagState {
