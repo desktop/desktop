@@ -265,9 +265,58 @@ export class GitStore extends BaseStore {
   }
 
   public async refreshTags() {
+    const previousTags = this._localTags
     this._localTags = await getAllTags(this.repository)
 
-    this.emitUpdate()
+    if (previousTags !== null) {
+      // We don't await for the emition of updates to finish
+      // to make this method return earlier.
+      this.emitUpdatesForChangedTags(previousTags, this._localTags)
+    }
+  }
+
+  /**
+   * Calculates the commits that have changed based on the changes in existing tags
+   * to emit the correct updates.
+   *
+   * This is specially important when tags are created/modified/deleted from outside of Desktop.
+   */
+  private async emitUpdatesForChangedTags(
+    previousTags: Map<string, string>,
+    newTags: Map<string, string>
+  ) {
+    const commitsToUpdate = new Set<string>()
+
+    for (const [tagName, previousCommitSha] of previousTags) {
+      const newCommitSha = newTags.get(tagName)
+
+      if (!newCommitSha) {
+        // the tag has been deleted.
+        commitsToUpdate.add(previousCommitSha)
+      } else if (newCommitSha !== previousCommitSha) {
+        // the tag has been moved to a different commit.
+        commitsToUpdate.add(previousCommitSha)
+        commitsToUpdate.add(newCommitSha)
+      }
+    }
+
+    for (const [tagName, newCommitSha] of newTags) {
+      if (!previousTags.has(tagName)) {
+        // the tag has just been created.
+        commitsToUpdate.add(newCommitSha)
+      }
+    }
+
+    const commitsToStore = []
+    for (const commitSha of commitsToUpdate) {
+      const commit = await getCommit(this.repository, commitSha)
+
+      if (commit !== null) {
+        commitsToStore.push(commit)
+      }
+    }
+
+    this.storeCommits(commitsToStore, true)
   }
 
   public async createTag(
@@ -275,17 +324,12 @@ export class GitStore extends BaseStore {
     name: string,
     targetCommitSha: string
   ) {
-    const foundCommit = await this.performFailableOperation(async () => {
+    await this.performFailableOperation(async () => {
       await createTag(this.repository, name, targetCommitSha)
-
-      return getCommit(this.repository, targetCommitSha)
     })
 
-    if (foundCommit instanceof Commit) {
-      this.storeCommits([foundCommit], true)
-    }
-
     await this.refreshTags()
+
     this.fetchTagsToPush(account)
   }
 
