@@ -647,7 +647,7 @@ export class API {
           throw new Error(
             `Unable to create repository for organization '${
               org.login
-            }'. Verify that it exists, that it's a paid organization, and that you have permission to create a repository there.`
+            }'. Verify that the repository does not already exist and that you have permission to create a repository there.`
           )
         }
         throw e
