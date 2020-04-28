@@ -83,17 +83,17 @@ describe('git/tag', () => {
 
   describe('getAllTags', () => {
     it('returns an empty array when the repository has no tags', async () => {
-      expect(await getAllTags(repository)).toEqual([])
+      expect(await getAllTags(repository)).toEqual(new Map())
     })
 
     it('returns all the created tags', async () => {
-      await createTag(repository, 'my-new-tag', 'HEAD')
-      await createTag(repository, 'another-tag', 'HEAD')
+      const commit = await getCommit(repository, 'HEAD')
+      await createTag(repository, 'my-new-tag', commit!.sha)
+      await createTag(repository, 'another-tag', commit!.sha)
 
-      expect(await getAllTags(repository)).toIncludeAllMembers([
-        'my-new-tag',
-        'another-tag',
-      ])
+      expect(await getAllTags(repository)).toEqual(
+        new Map([['my-new-tag', commit!.sha], ['another-tag', commit!.sha]])
+      )
     })
   })
 
@@ -149,6 +149,24 @@ describe('git/tag', () => {
       expect(
         await fetchTagsToPush(repository, account, originRemote, 'master')
       ).toEqual([])
+    })
+
+    it('returns unpushed tags even if it fails to push the branch', async () => {
+      // Create a new commit on the remote repository so the `git push` command
+      // that fetchUnpushedTags() does fails.
+      await FSE.writeFile(
+        path.join(remoteRepository.path, 'README.md'),
+        'Hi world\n'
+      )
+      const status = await getStatusOrThrow(remoteRepository)
+      const files = status.workingDirectory.files
+      await createCommit(remoteRepository, 'a commit', files)
+
+      await createTag(repository, 'my-new-tag', 'HEAD')
+
+      expect(
+        await fetchTagsToPush(repository, account, originRemote, 'master')
+      ).toEqual(['my-new-tag'])
     })
   })
 })
