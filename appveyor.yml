@@ -12,6 +12,7 @@ cache:
   - '%LOCALAPPDATA%\Yarn\Cache\v4'
 
 skip_tags: true
+skip_branch_with_pr: true
 
 version: '{build}'
 
