@@ -178,6 +178,8 @@ function getInitialRepositoryState(): IRepositoryState {
     commitLookup: new Map<string, Commit>(),
     localCommitSHAs: [],
     evidenceCommitSHAs: [],
+    localTags: null,
+    tagsToPush: null,
     aheadBehind: null,
     remote: null,
     isPushPullFetchInProgress: false,

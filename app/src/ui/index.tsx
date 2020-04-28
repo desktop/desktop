@@ -296,7 +296,7 @@ document.body.classList.add(`platform-${process.platform}`)
 
 dispatcher.setAppFocusState(remote.getCurrentWindow().isFocused())
 
-ipcRenderer.on('focus', () => {
+ipcRenderer.on('focus', async () => {
   const { selectedState } = appStore.getState()
 
   // Refresh the currently selected repository on focus (if
@@ -305,7 +305,8 @@ ipcRenderer.on('focus', () => {
     selectedState &&
     !(selectedState.type === SelectionType.CloningRepository)
   ) {
-    dispatcher.refreshRepository(selectedState.repository)
+    await dispatcher.refreshTags(selectedState.repository)
+    await dispatcher.refreshRepository(selectedState.repository)
   }
 
   dispatcher.setAppFocusState(true)

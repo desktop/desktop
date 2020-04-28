@@ -18,6 +18,7 @@ interface ICreateTagProps {
   readonly onDismissed: () => void
   readonly targetCommitSha: string
   readonly initialName?: string
+  readonly localTags: Map<string, string> | null
 }
 
 interface ICreateTagState {
@@ -31,8 +32,6 @@ interface ICreateTagState {
    * shown in its place.
    */
   readonly isCreatingTag: boolean
-
-  readonly localTags: Set<string>
 }
 
 const MaxTagNameLength = 245
@@ -51,22 +50,7 @@ export class CreateTag extends React.Component<
       proposedName,
       sanitizedName: sanitizedRefName(proposedName),
       isCreatingTag: false,
-      localTags: new Set(),
     }
-  }
-
-  public async componentDidMount() {
-    // Get the existing tags so we can warn the user that the chosen tag already
-    // exists before submitting.
-    // Since this is just an UX improvement, we don't need to block the rendering
-    // of the dialog (or show any loader) while we get the tags.
-    const localTags = await this.props.dispatcher.getAllTags(
-      this.props.repository
-    )
-
-    this.setState({
-      localTags: new Set(localTags),
-    })
   }
 
   public render() {
@@ -139,7 +123,8 @@ export class CreateTag extends React.Component<
       return <>Invalid tag name.</>
     }
 
-    const alreadyExists = this.state.localTags.has(sanitizedName)
+    const alreadyExists =
+      this.props.localTags && this.props.localTags.has(sanitizedName)
     if (alreadyExists) {
       return (
         <>
