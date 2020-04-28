@@ -2714,7 +2714,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _refreshTags(repository: Repository): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
 
-    return gitStore.loadLocalTags()
+    return gitStore.refreshTags()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

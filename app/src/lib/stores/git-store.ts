@@ -264,7 +264,7 @@ export class GitStore extends BaseStore {
     return commits.map(c => c.sha)
   }
 
-  public async loadLocalTags() {
+  public async refreshTags() {
     this._localTags = new Set(await getAllTags(this.repository))
 
     this.emitUpdate()
@@ -285,7 +285,7 @@ export class GitStore extends BaseStore {
       this.storeCommits([foundCommit], true)
     }
 
-    await this.loadLocalTags()
+    await this.refreshTags()
     this.fetchTagsToPush(account)
   }
 
