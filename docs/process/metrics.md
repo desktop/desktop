@@ -1,7 +1,11 @@
-# GitHub Desktop Metrics
+GitHub Desktop sends certain metrics to our analytics system, and we want you to understand what is being sent and why it's important to our ability to continue to improve the product and provide you with a better experience over time. To view the metrics we collect, please visit our [usage data page](https://desktop.github.com/usage-data/).
 
-Desktop is a free, open source product that is maintained and worked on by the small, distributed team of @desktop/core, @desktop/comrades, and the general open-source community. As a result, we do not have the resources to do continuous, detailed user studies of GitHub Desktop users and usage. In other words, we love you, we want to build the right features to help you, and yet we don't know enough about you as a whole to make informed prioritization decisions.
+Why do we need usage stats?
 
-We measure certain events in the GitHub Desktop app in order to learn more about how you are using the app. This helps us prioritize features and bugs and understand what things are most important to the largest number of people. Our understanding of these metrics is supplemented by some user research, usability testing, and feedback from the community. This document is intended to provide information about each thing we're measuring and what we're using it for.
+Our team uses metrics to prioritize our work and evaluate whether we are successful in solving real users' problems after we've released something. For example, when we released dark theme and a new guided way to merge conflicts, we wanted to understand first whether anyone was even using the new feature, and second whether it was providing value for our users.
 
-You can always see our recently released user-facing features and fixes in the [release notes](https://desktop.github.com/release-notes/) of our marketing page, and example usage data [here](https://desktop.github.com/usage-data/).
+To give a concrete example, if we release a feature that aims to improve merge conflicts, if the percentage of conflicts that are resolved successfully rises by 20%, that means our release is successful in helping people resolve conflicts more easily. Conversely, if the percentage of successfully resolved conflicts drops by 5%, we know it's time to revisit the feature and assess whether we should iterate or try a different solution. You can see an example of how we think about metrics [here](https://github.com/desktop/desktop/issues/5394).
+
+The more people who opt in to send usage stats, the more information we have to base our decision making on. And if you want us to take your use cases into consideration, we hope you'll opt in so we get a better idea of how you use the app and whether or not it's meeting your needs. If you've opted-in to submitting usage data in GitHub Desktop, GitHub Desktop will send a payload in the format below to our analytics system. We are very sensitive to the privacy of our users and we never look at the data of specific individuals, but rather only examine aggregate data and trends to inform our product decisions.
+
+You can change your opt-in setting at any time in File | Preferences.
