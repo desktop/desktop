@@ -86,6 +86,7 @@ import { getStashes, getStashedFiles } from '../git/stash'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { PullRequest } from '../../models/pull-request'
 import { fetchTagsToPushMemoized } from './helpers/fetch-tags-to-push-memoized'
+import { shallowEquals } from '../equality'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -468,9 +469,14 @@ export class GitStore extends BaseStore {
         currentBranch.tip.sha
       )
     )
+
+    const previousTagsToPush = this._tagsToPush
+
     this._tagsToPush = tagsToPush !== undefined ? tagsToPush : null
 
-    this.emitUpdate()
+    if (!shallowEquals(previousTagsToPush, this._tagsToPush)) {
+      this.emitUpdate()
+    }
   }
 
   /**
