@@ -9,6 +9,11 @@ const cache = new Map<string, LRUCache<string, ReadonlyArray<string>>>()
 const MaxCacheEntriesToStorePerRepository = 25
 
 /**
+ * How long do we want to cache errors received from git?
+ */
+const MaxAgeForCachedErrors = 5 * 60 * 1000 // 5 minutes.
+
+/**
  * Memoized version of the fetchTagsToPush git method.
  *
  * This method will return a cached result of the tags array when called multiple
@@ -36,7 +41,16 @@ export async function fetchTagsToPushMemoized(
   let result = cachedTagsToPush && cachedTagsToPush.get(key)
 
   if (result === undefined) {
-    result = await fetchTagsToPush(repository, account, remote, branchName)
+    let maxAge = undefined
+
+    try {
+      result = await fetchTagsToPush(repository, account, remote, branchName)
+    } catch (e) {
+      // If we receive an error from git, return an empty result and only
+      // cache it for a short amount of time.
+      result = []
+      maxAge = MaxAgeForCachedErrors
+    }
 
     // Store the returned result in the cache.
     cachedTagsToPush =
@@ -45,7 +59,7 @@ export async function fetchTagsToPushMemoized(
         max: MaxCacheEntriesToStorePerRepository,
       })
 
-    cachedTagsToPush.set(key, result)
+    cachedTagsToPush.set(key, result, maxAge)
     cache.set(remote.name, cachedTagsToPush)
   }
 
