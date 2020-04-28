@@ -99,8 +99,6 @@ const RecentBranchesLimit = 5
 
 /** The store for a repository's git data. */
 export class GitStore extends BaseStore {
-  private readonly shell: IAppShell
-
   /** The commits keyed by their SHA. */
   public readonly commitLookup = new Map<string, Commit>()
 
@@ -109,8 +107,6 @@ export class GitStore extends BaseStore {
   private _history: ReadonlyArray<string> = new Array()
 
   private readonly requestsInFight = new Set<string>()
-
-  private readonly repository: Repository
 
   private _tip: Tip = { kind: TipState.Unknown }
 
@@ -147,14 +143,11 @@ export class GitStore extends BaseStore {
   private _stashEntryCount = 0
 
   public constructor(
-    repository: Repository,
-    shell: IAppShell,
-    private statsStore: StatsStore
+    private readonly repository: Repository,
+    private readonly shell: IAppShell,
+    private readonly statsStore: StatsStore
   ) {
     super()
-
-    this.repository = repository
-    this.shell = shell
   }
 
   private emitNewCommitsLoaded(commits: ReadonlyArray<Commit>) {
