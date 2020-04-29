@@ -1,7 +1,7 @@
 # GitHub Desktop Metrics
 GitHub Desktop sends certain metrics to our analytics system, and we want you to understand what is being sent and why it's important to our ability to continue to improve the product and provide you with a better experience over time. To view the metrics we collect, please visit our [usage data page](https://desktop.github.com/usage-data/).
 
-# Why do we need usage stats?
+# How do we use usage stats?
 
 Our team uses metrics to prioritize our work and evaluate whether we are successful in solving real users' problems after we've released something. For example, when we released dark theme and a new guided way to merge conflicts, we wanted to understand first whether anyone was even using the new feature, and second whether it was providing value for our users.
 
