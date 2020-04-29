@@ -4,6 +4,7 @@ import { LinkButton } from '../lib/link-button'
 import { Dispatcher } from '../dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Button } from '../lib/button'
+import { Loading } from '../lib/loading'
 
 /**
  * The URL to the sign-up page on GitHub.com. Used in conjunction
@@ -15,6 +16,7 @@ export const CreateAccountURL = 'https://github.com/join?source=github-desktop'
 interface IStartProps {
   readonly advance: (step: WelcomeStep) => void
   readonly dispatcher: Dispatcher
+  readonly loadingBrowserAuth: boolean
 }
 
 /** The first step of the Welcome flow. */
@@ -40,14 +42,20 @@ export class Start extends React.Component<IStartProps, {}> {
           <Button
             type="submit"
             className="button-with-icon"
+            disabled={this.props.loadingBrowserAuth}
             onClick={this.signInWithBrowser}
           >
+            {this.props.loadingBrowserAuth && <Loading />}
             Sign in to GitHub.com
             <Octicon symbol={OcticonSymbol.linkExternal} />
           </Button>
-          <Button onClick={this.signInToEnterprise}>
-            Sign in to GitHub Enterprise Server
-          </Button>
+          {this.props.loadingBrowserAuth ? (
+            <Button onClick={this.cancelBrowserAuth}>Cancel</Button>
+          ) : (
+            <Button onClick={this.signInToEnterprise}>
+              Sign in to GitHub Enterprise Server
+            </Button>
+          )}
         </div>
 
         <div>
@@ -72,6 +80,10 @@ export class Start extends React.Component<IStartProps, {}> {
 
     this.props.advance(WelcomeStep.SignInToDotComWithBrowser)
     this.props.dispatcher.requestBrowserAuthenticationToDotcom()
+  }
+
+  private cancelBrowserAuth = () => {
+    this.props.advance(WelcomeStep.Start)
   }
 
   private signInToDotCom = () => {

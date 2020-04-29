@@ -113,6 +113,11 @@
       padding-right: var(--spacing-double);
       margin: 0 var(--spacing-double) var(--spacing) 0;
     }
+
+    .octicon.spin {
+      margin-right: var(--spacing);
+      margin-left: 0;
+    }
   }
 }
 
