@@ -96,6 +96,24 @@
       transform: translateX(100%);
     }
   }
+
+  .create-account-link {
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .basic-auth-link {
+    font-size: var(--font-size);
+  }
+
+  .welcome-main-buttons {
+    margin-top: var(--spacing-quad);
+
+    .button-component {
+      padding-left: var(--spacing-double);
+      padding-right: var(--spacing-double);
+      margin: 0 var(--spacing-double) var(--spacing) 0;
+    }
+  }
 }
 
 .welcome-title,
