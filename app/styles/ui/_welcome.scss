@@ -141,10 +141,14 @@
   width: 100%;
 }
 
-.welcome-left,
+.welcome-left {
+  flex-grow: 1;
+  width: 60%;
+}
+
 .welcome-right {
   flex-grow: 1;
-  width: 50%;
+  width: 40%;
 }
 
 .welcome-left {
