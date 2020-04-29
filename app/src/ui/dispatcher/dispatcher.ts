@@ -1349,9 +1349,7 @@ export class Dispatcher {
   }
 
   /**
-   * Initiate an OAuth sign in using the system configured browser.
-   * This method must only be called when the store is in the authentication
-   * step or an error will be thrown.
+   * Initiate an OAuth sign in using the system configured browser to GitHub.com.
    *
    * The promise returned will only resolve once the user has successfully
    * authenticated. If the user terminates the sign-in process by closing
