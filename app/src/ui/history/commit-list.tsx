@@ -60,6 +60,9 @@ interface ICommitListProps {
 
   /* Whether the repository is local (it has no remotes) */
   readonly isLocalRepository: boolean
+
+  /* Tags that haven't been pushed yet. This is used to show the unpushed indicator */
+  readonly tagsToPush: ReadonlyArray<string> | null
 }
 
 /** A component which displays the list of commits. */
@@ -91,8 +94,15 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
       return null
     }
 
+    const tagsToPushSet = new Set(this.props.tagsToPush || [])
+
     const isLocal = this.props.localCommitSHAs.includes(commit.sha)
-    const showUnpushedIndicator = isLocal && !this.props.isLocalRepository
+    const hasUnpushedTags = commit.tags.some(tagName =>
+      tagsToPushSet.has(tagName)
+    )
+
+    const showUnpushedIndicator =
+      (isLocal || hasUnpushedTags) && this.props.isLocalRepository === false
 
     return (
       <CommitListItem
@@ -160,6 +170,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
             gitHubUsers: this.props.gitHubUsers,
             localCommitSHAs: this.props.localCommitSHAs,
             commitLookupHash: this.commitsHash(this.getVisibleCommits()),
+            tagsToPush: this.props.tagsToPush,
           }}
           setScrollTop={this.props.compareListScrollTop}
         />
