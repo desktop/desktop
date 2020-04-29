@@ -88,7 +88,6 @@ export class AuthenticationForm extends React.Component<
     const disabled = this.props.loading
     return (
       <>
-        <hr />
         <TextBox
           label="Username or email address"
           disabled={disabled}
@@ -139,8 +138,13 @@ export class AuthenticationForm extends React.Component<
   }
 
   private renderSignInWithBrowser() {
+    if (this.props.endpoint === getDotComAPIEndpoint()) {
+      return
+    }
+
     return (
       <>
+        {this.props.supportsBasicAuth && <hr />}
         {this.renderAuthIntroMessage()}
 
         <Button
