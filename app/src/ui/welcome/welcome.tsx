@@ -16,6 +16,7 @@ import { UsageOptOut } from './usage-opt-out'
 /** The steps along the Welcome flow. */
 export enum WelcomeStep {
   Start = 'Start',
+  SignInToDotComWithBrowser = 'SignInToDotComWithBrowser',
   SignInToDotCom = 'SignInToDotCom',
   SignInToEnterprise = 'SignInToEnterprise',
   ConfigureGit = 'ConfigureGit',
@@ -82,6 +83,10 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
       return true
     }
 
+    if (this.state.currentStep === WelcomeStep.SignInToDotComWithBrowser) {
+      return true
+    }
+
     if (this.state.currentStep === WelcomeStep.SignInToEnterprise) {
       return true
     }
@@ -139,6 +144,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
 
     switch (step) {
       case WelcomeStep.Start:
+      case WelcomeStep.SignInToDotComWithBrowser:
         return (
           <Start
             advance={this.advanceToStep}
