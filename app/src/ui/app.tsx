@@ -115,6 +115,7 @@ import { SChannelNoRevocationCheckDialog } from './schannel-no-revocation-check/
 import { findUpstreamRemoteBranch } from '../lib/branch'
 import { GitHubRepository } from '../models/github-repository'
 import { CreateTag } from './create-tag'
+import { RetryCloneDialog } from './clone-repository/retry-clone-dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1948,6 +1949,17 @@ export class App extends React.Component<IAppProps, IAppState> {
             targetCommitSha={popup.targetCommitSha}
             initialName={popup.initialName}
             localTags={popup.localTags}
+          />
+        )
+      }
+      case PopupType.RetryClone: {
+        return (
+          <RetryCloneDialog
+            repository={popup.repository}
+            retryAction={popup.retryAction}
+            onDismissed={this.onPopupDismissed}
+            dispatcher={this.props.dispatcher}
+            errorMessage={popup.errorMessage}
           />
         )
       }

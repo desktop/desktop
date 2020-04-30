@@ -87,6 +87,7 @@ import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { PullRequest } from '../../models/pull-request'
 import { fetchTagsToPushMemoized } from './helpers/fetch-tags-to-push-memoized'
 import { shallowEquals } from '../equality'
+import { StatsStore } from '../stats'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -98,8 +99,6 @@ const RecentBranchesLimit = 5
 
 /** The store for a repository's git data. */
 export class GitStore extends BaseStore {
-  private readonly shell: IAppShell
-
   /** The commits keyed by their SHA. */
   public readonly commitLookup = new Map<string, Commit>()
 
@@ -108,8 +107,6 @@ export class GitStore extends BaseStore {
   private _history: ReadonlyArray<string> = new Array()
 
   private readonly requestsInFight = new Set<string>()
-
-  private readonly repository: Repository
 
   private _tip: Tip = { kind: TipState.Unknown }
 
@@ -147,11 +144,12 @@ export class GitStore extends BaseStore {
 
   private _stashEntryCount = 0
 
-  public constructor(repository: Repository, shell: IAppShell) {
+  public constructor(
+    private readonly repository: Repository,
+    private readonly shell: IAppShell,
+    private readonly statsStore: StatsStore
+  ) {
     super()
-
-    this.repository = repository
-    this.shell = shell
   }
 
   private emitNewCommitsLoaded(commits: ReadonlyArray<Commit>) {
@@ -289,6 +287,7 @@ export class GitStore extends BaseStore {
     newTags: Map<string, string>
   ) {
     const commitsToUpdate = new Set<string>()
+    let numCreatedTags = 0
 
     for (const [tagName, previousCommitSha] of previousTags) {
       const newCommitSha = newTags.get(tagName)
@@ -307,7 +306,12 @@ export class GitStore extends BaseStore {
       if (!previousTags.has(tagName)) {
         // the tag has just been created.
         commitsToUpdate.add(newCommitSha)
+        numCreatedTags++
       }
+    }
+
+    if (numCreatedTags > 0) {
+      this.statsStore.recordTagCreated(numCreatedTags)
     }
 
     const commitsToStore = []
