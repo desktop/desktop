@@ -16,7 +16,6 @@ import {
   enableGitTagsDisplay,
   enableGitTagsCreation,
 } from '../../lib/feature-flag'
-import { arrayEquals } from '../../lib/equality'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
@@ -36,7 +35,7 @@ interface ICommitListItemState {
 }
 
 /** A component which displays a single commit in a commit list. */
-export class CommitListItem extends React.Component<
+export class CommitListItem extends React.PureComponent<
   ICommitProps,
   ICommitListItemState
 > {
@@ -96,15 +95,6 @@ export class CommitListItem extends React.Component<
           {this.renderUnpushedIndicator()}
         </div>
       </div>
-    )
-  }
-
-  public shouldComponentUpdate(nextProps: ICommitProps): boolean {
-    return (
-      this.props.commit.sha !== nextProps.commit.sha ||
-      this.props.showUnpushedIndicator !== nextProps.showUnpushedIndicator ||
-      this.props.unpushedIndicatorTitle !== nextProps.unpushedIndicatorTitle ||
-      !arrayEquals(this.props.commit.tags, nextProps.commit.tags)
     )
   }
 
