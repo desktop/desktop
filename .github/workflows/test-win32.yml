@@ -18,8 +18,6 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 10.x
-      - name: regedit thing
-        run: regedit /s script\default-to-tls12-on-appveyor.reg
       - name: Get node modules
         run: yarn
         env:
