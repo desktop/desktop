@@ -518,7 +518,11 @@ export class NoChanges extends React.Component<
     return (
       <SuggestedAction
         title="Preview your branch changes"
-        description="dooo"
+        description={
+          <>
+            See the changes between your branch and <Ref>master</Ref>
+          </>
+        }
         discoverabilityContent=""
         buttonText="Preview changes"
         onClick={this.onClickPreviewBranch}

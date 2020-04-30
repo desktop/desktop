@@ -1241,6 +1241,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.repositoryStateCache.updateCompareState(repository, () => ({
       mergeStatus: loadingMerge,
+      tip: currentSha,
     }))
 
     this.emitUpdate()
