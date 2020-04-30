@@ -129,7 +129,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     numUnpushedTags: number
   ) {
     if (isLocalCommit) {
-      return "This commit has not been pushed to the remote repository"
+      return 'This commit has not been pushed to the remote repository'
     }
 
     if (numUnpushedTags > 0) {
