@@ -97,19 +97,23 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     const tagsToPushSet = new Set(this.props.tagsToPush || [])
 
     const isLocal = this.props.localCommitSHAs.includes(commit.sha)
-    const hasUnpushedTags = commit.tags.some(tagName =>
+    const numUnpushedTags = commit.tags.filter(tagName =>
       tagsToPushSet.has(tagName)
-    )
+    ).length
 
     const showUnpushedIndicator =
-      (isLocal || hasUnpushedTags) && this.props.isLocalRepository === false
+      (isLocal || numUnpushedTags > 0) && this.props.isLocalRepository === false
 
     return (
       <CommitListItem
-        key={commitListItemHash(commit)}
+        key={commit.sha}
         gitHubRepository={this.props.gitHubRepository}
         isLocal={isLocal}
         showUnpushedIndicator={showUnpushedIndicator}
+        unpushedIndicatorTitle={this.getUnpushedIndicatorTitle(
+          isLocal,
+          numUnpushedTags
+        )}
         commit={commit}
         gitHubUsers={this.props.gitHubUsers}
         emoji={this.props.emoji}
@@ -118,6 +122,23 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
       />
     )
+  }
+
+  private getUnpushedIndicatorTitle(
+    isLocalCommit: boolean,
+    numUnpushedTags: number
+  ) {
+    if (isLocalCommit) {
+      return "This commit hasn't been pushed to the remote repository yet"
+    }
+
+    if (numUnpushedTags > 0) {
+      return `This commit has ${numUnpushedTags} tag${
+        numUnpushedTags > 1 ? 's' : ''
+      } to push`
+    }
+
+    return undefined
   }
 
   private onSelectedRowChanged = (row: number) => {

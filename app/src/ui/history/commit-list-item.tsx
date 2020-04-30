@@ -16,6 +16,7 @@ import {
   enableGitTagsDisplay,
   enableGitTagsCreation,
 } from '../../lib/feature-flag'
+import { arrayEquals } from '../../lib/equality'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
@@ -27,6 +28,7 @@ interface ICommitProps {
   readonly onCreateTag?: (targetCommitSha: string) => void
   readonly gitHubUsers: Map<string, IGitHubUser> | null
   readonly showUnpushedIndicator: boolean
+  readonly unpushedIndicatorTitle?: string
 }
 
 interface ICommitListItemState {
@@ -100,7 +102,9 @@ export class CommitListItem extends React.Component<
   public shouldComponentUpdate(nextProps: ICommitProps): boolean {
     return (
       this.props.commit.sha !== nextProps.commit.sha ||
-      this.props.showUnpushedIndicator !== nextProps.showUnpushedIndicator
+      this.props.showUnpushedIndicator !== nextProps.showUnpushedIndicator ||
+      this.props.unpushedIndicatorTitle !== nextProps.unpushedIndicatorTitle ||
+      !arrayEquals(this.props.commit.tags, nextProps.commit.tags)
     )
   }
 
@@ -112,7 +116,7 @@ export class CommitListItem extends React.Component<
     return (
       <div
         className="unpushed-indicator"
-        title="This commit hasn't been pushed to the remote repository yet"
+        title={this.props.unpushedIndicatorTitle}
       >
         <Octicon symbol={OcticonSymbol.arrowUp} />
       </div>
