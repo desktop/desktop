@@ -36,6 +36,7 @@ import { structuralEquals } from '../../lib/equality'
 import { assertNever } from '../../lib/fatal-error'
 import { clamp } from '../../lib/clamp'
 import { uuid } from '../../lib/uuid'
+import { showContextualMenu } from '../main-process-proxy'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -469,6 +470,27 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     this.codeMirror = cmh === null ? null : cmh.getEditor()
   }
 
+  private onContextMenu = (instance: CodeMirror.Editor, event: Event) => {
+    const selectionRanges = instance.getDoc().listSelections()
+    const isTextSelected = selectionRanges != null
+
+    const action = () => {
+      if (this.onCopy !== null) {
+        this.onCopy(instance, event)
+      }
+    }
+
+    const items = [
+      {
+        label: 'Copy',
+        action,
+        enabled: this.onCopy && isTextSelected,
+      },
+    ]
+
+    showContextualMenu(items)
+  }
+
   private onCopy = (editor: Editor, event: Event) => {
     event.preventDefault()
 
@@ -867,6 +889,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
         onAfterSwapDoc={this.onAfterSwapDoc}
         onViewportChange={this.onViewportChange}
         ref={this.getAndStoreCodeMirrorInstance}
+        onContextMenu={this.onContextMenu}
         onCopy={this.onCopy}
       />
     )

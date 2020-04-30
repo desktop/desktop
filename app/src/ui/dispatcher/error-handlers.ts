@@ -188,6 +188,40 @@ export async function gitAuthenticationErrorHandler(
   return null
 }
 
+/** Handle git clone errors to give chance to retry error. */
+export async function gitCloneErrorHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const e = asErrorWithMetadata(error)
+  if (
+    !e ||
+    e.metadata.retryAction == null ||
+    e.metadata.retryAction.type !== RetryActionType.Clone
+  ) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError) {
+    return error
+  }
+
+  const repository = e.metadata.repository
+  if (!repository) {
+    return error
+  }
+
+  await dispatcher.showPopup({
+    type: PopupType.RetryClone,
+    repository: repository,
+    retryAction: e.metadata.retryAction,
+    errorMessage: e.underlyingError.message,
+  })
+
+  return null
+}
+
 export async function externalEditorErrorHandler(
   error: Error,
   dispatcher: Dispatcher
