@@ -1,0 +1,34 @@
+name: Testing Win32
+
+on:
+  push:
+    branches:
+      - development
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  test:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: Use Node.js 10.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10.x
+      - name: regedit thing
+        run: regedit /s script\default-to-tls12-on-appveyor.reg
+      - name: Get node modules
+        run: yarn
+        env:
+          CI: true
+      - name: test setup
+        run: yarn test:setup
+        env:
+          CI: true
+      - name: test
+        run: yarn test
+        env:
+          CI: true
