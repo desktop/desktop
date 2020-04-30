@@ -111,7 +111,11 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     this.setState({ otpToken })
   }
 
-  private onSignInWithBrowser = () => {
+  private onSignInWithBrowser = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    event.preventDefault()
+
     this.props.dispatcher.requestBrowserAuthentication()
   }
 
