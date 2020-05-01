@@ -1,5 +1,13 @@
 {
   "releases": {
+    "2.4.4-beta1": [
+      "[Added] Show unpushed indicator on commits that have unpushed tags - #9667",
+      "[Added] Add context menu for highlighted text in diff view - #5100. Thanks @HashimotoYT!",
+      "[Fixed] Retain default branch option in \"Create Branch\" dialog when user focuses away from Desktop - #9611",
+      "[Improved] Indicate in the Push/Pull/Fetch button when there are local unpushed tags - #9576",
+      "[Improved] Offer to retry cloning if it fails - #926. Thanks @Daniel-McCarthy!",
+      "[Improved] Update verbage in repository publish error - #9646"
+    ],
     "2.4.4-beta0": [
       "[Added] Display tags in commit list - #9427",
       "[Fixed] Update embedded Git to avoid gitconfig errors on Windows - #9597"
