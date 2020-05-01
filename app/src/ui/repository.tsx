@@ -228,6 +228,7 @@ export class RepositoryView extends React.Component<
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         onCompareListScrolled={this.onCompareListScrolled}
         compareListScrollTop={scrollTop}
+        tagsToPush={this.props.state.tagsToPush}
       />
     )
   }

@@ -176,12 +176,12 @@ export function enableNDDBBanner(): boolean {
  * Should we show the git tag information in the app UI?
  */
 export function enableGitTagsDisplay(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
 
 /**
  * Should we allow users to create git tags from the app?
  */
 export function enableGitTagsCreation(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }

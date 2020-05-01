@@ -50,6 +50,7 @@ interface ICompareSidebarProps {
   readonly onCompareListScrolled: (scrollTop: number) => void
   readonly compareListScrollTop?: number
   readonly localTags: Map<string, string> | null
+  readonly tagsToPush: ReadonlyArray<string> | null
 }
 
 interface ICompareSidebarState {
@@ -290,6 +291,7 @@ export class CompareSidebar extends React.Component<
         emptyListMessage={emptyListMessage}
         onCompareListScrolled={this.props.onCompareListScrolled}
         compareListScrollTop={this.props.compareListScrollTop}
+        tagsToPush={this.props.tagsToPush}
       />
     )
   }

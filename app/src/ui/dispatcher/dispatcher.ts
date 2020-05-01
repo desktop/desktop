@@ -1349,6 +1349,20 @@ export class Dispatcher {
   }
 
   /**
+   * Initiate an OAuth sign in using the system configured browser to GitHub.com.
+   *
+   * The promise returned will only resolve once the user has successfully
+   * authenticated. If the user terminates the sign-in process by closing
+   * their browser before the protocol handler is invoked, by denying the
+   * protocol handler to execute or by providing the wrong credentials
+   * this promise will never complete.
+   */
+  public async requestBrowserAuthenticationToDotcom(): Promise<void> {
+    await this.beginDotComSignIn()
+    return this.requestBrowserAuthentication()
+  }
+
+  /**
    * Attempt to complete the sign in flow with the given OTP token.\
    * This method must only be called when the store is in the
    * TwoFactorAuthentication step or an error will be thrown.
