@@ -147,7 +147,7 @@ export class AuthenticationForm extends React.Component<
     return (
       <>
         {this.props.supportsBasicAuth && <hr />}
-        {this.renderAuthIntroMessage()}
+        {this.props.supportsBasicAuth && this.renderEndpointRequiresWebFlow()}
 
         <Button
           type="submit"
@@ -163,15 +163,7 @@ export class AuthenticationForm extends React.Component<
     )
   }
 
-  private renderAuthIntroMessage() {
-    if (this.props.supportsBasicAuth) {
-      return (
-        <p>
-          To improve the security of your account, we recommend you to sign in
-          through your browser.
-        </p>
-      )
-    }
+  private renderEndpointRequiresWebFlow() {
     if (this.props.endpoint === getDotComAPIEndpoint()) {
       return (
         <>
