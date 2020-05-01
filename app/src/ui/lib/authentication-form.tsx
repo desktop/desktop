@@ -138,12 +138,6 @@ export class AuthenticationForm extends React.Component<
   }
 
   private renderSignInWithBrowser() {
-    // we don't render this here because the user will have already
-    // had the option to sign in via the browser earlier in the sign-in flow
-    if (this.props.endpoint === getDotComAPIEndpoint()) {
-      return
-    }
-
     return (
       <>
         {this.props.supportsBasicAuth && <hr />}
