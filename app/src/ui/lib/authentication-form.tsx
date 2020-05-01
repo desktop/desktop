@@ -143,14 +143,7 @@ export class AuthenticationForm extends React.Component<
         {this.props.supportsBasicAuth && <hr />}
         {this.props.supportsBasicAuth && this.renderEndpointRequiresWebFlow()}
 
-        <Button
-          type="submit"
-          className="button-with-icon"
-          onClick={this.signInWithBrowser}
-        >
-          Sign in using your browser
-          <Octicon symbol={OcticonSymbol.linkExternal} />
-        </Button>
+        {this.renderSignInWithBrowserButton}
 
         {this.props.supportsBasicAuth ? null : this.props.additionalButtons}
       </>
@@ -180,6 +173,19 @@ export class AuthenticationForm extends React.Component<
         </p>
       )
     }
+  }
+
+  private renderSignInWithBrowserButton() {
+    return (
+      <Button
+        type="submit"
+        className="button-with-icon"
+        onClick={this.signInWithBrowser}
+      >
+        Sign in using your browser
+        <Octicon symbol={OcticonSymbol.linkExternal} />
+      </Button>
+    )
   }
 
   private renderError() {
