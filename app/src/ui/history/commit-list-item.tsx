@@ -27,6 +27,7 @@ interface ICommitProps {
   readonly onCreateTag?: (targetCommitSha: string) => void
   readonly gitHubUsers: Map<string, IGitHubUser> | null
   readonly showUnpushedIndicator: boolean
+  readonly unpushedIndicatorTitle?: string
 }
 
 interface ICommitListItemState {
@@ -34,7 +35,7 @@ interface ICommitListItemState {
 }
 
 /** A component which displays a single commit in a commit list. */
-export class CommitListItem extends React.Component<
+export class CommitListItem extends React.PureComponent<
   ICommitProps,
   ICommitListItemState
 > {
@@ -97,13 +98,6 @@ export class CommitListItem extends React.Component<
     )
   }
 
-  public shouldComponentUpdate(nextProps: ICommitProps): boolean {
-    return (
-      this.props.commit.sha !== nextProps.commit.sha ||
-      this.props.showUnpushedIndicator !== nextProps.showUnpushedIndicator
-    )
-  }
-
   private renderUnpushedIndicator() {
     if (!this.props.showUnpushedIndicator) {
       return null
@@ -112,7 +106,7 @@ export class CommitListItem extends React.Component<
     return (
       <div
         className="unpushed-indicator"
-        title="This commit hasn't been pushed to the remote repository yet"
+        title={this.props.unpushedIndicatorTitle}
       >
         <Octicon symbol={OcticonSymbol.arrowUp} />
       </div>
