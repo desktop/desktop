@@ -92,10 +92,6 @@ export class AuthenticationForm extends React.Component<
   }
 
   private renderUsernamePassword() {
-    if (!this.props.supportsBasicAuth) {
-      return null
-    }
-
     const disabled = this.props.loading
     return (
       <>
