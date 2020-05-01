@@ -1,5 +1,9 @@
 {
   "releases": {
+    "2.4.4-beta2": [
+      "[Fixed] Enable tags feature flags for beta - #9682",
+      "[Improved] Emphasize sign in via browser option in Welcome flow - #9663"
+    ],
     "2.4.4-beta1": [
       "[Added] Show unpushed indicator on commits that have unpushed tags - #9667",
       "[Added] Add context menu for highlighted text in diff view - #5100. Thanks @HashimotoYT!",
