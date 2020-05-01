@@ -72,10 +72,21 @@ export class AuthenticationForm extends React.Component<
   }
 
   public render() {
+    const content = this.props.supportsBasicAuth ? (
+      this.renderEndpointRequiresWebFlowContent()
+    ) : this.props.endpoint === getDotComAPIEndpoint() ? (
+      this.renderUsernamePassword()
+    ) : (
+      <>
+        {this.props.endpoint !== getDotComAPIEndpoint() &&
+          this.renderSignInWithBrowser()}
+        {this.renderUsernamePassword()}
+      </>
+    )
+
     return (
       <Form className="sign-in-form" onSubmit={this.signIn}>
-        {this.renderSignInWithBrowser()}
-        {this.renderUsernamePassword()}
+        {content}
       </Form>
     )
   }
