@@ -1,0 +1,597 @@
+<head>
+<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>GOCENG</title>
+    <base href="https://aplikasi.finansialku.com/">
+    <link rel="shortcut icon" type="image/png" href="assets/images/favicon.png" />
+    <!-- <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,100,500,700,900" rel="stylesheet" type="text/css"> -->
+    <link href="assets/css/icons/icomoon/styles.css" rel="stylesheet" type="text/css">
+    <!-- <link href="assets/css/icons/fontawesome/styles.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- <link href="assets/css/bootstrap.min.css" rel="stylesheet" type="text/css"> -->
+    <link href="themes/user-v2/css/bootstrap.min.css?v=1588299796" rel="stylesheet" type="text/css">
+    <link href="themes/user-v2/css/fontawesome/all.css?v=1588299796" rel="stylesheet" type="text/css">
+    <link href="assets/css/core.min.css?load=1588299796" rel="stylesheet" type="text/css">
+    <link href="assets/css/core.css?load=1588299796" rel="stylesheet" type="text/css">
+    <link href="assets/css/components.min.css?load=1588299796" rel="stylesheet" type="text/css">
+    <link href="assets/css/colors.min.css" rel="stylesheet" type="text/css">
+    <link href="assets/css/base.css?load=1588299796" rel="stylesheet" type="text/css">
+    <link href="assets/css/extras/animate.min.css" rel="stylesheet" type="text/css">
+    <link href="assets/js/plugins/iconselect2/css/lib/control/iconselect.css?v=1588299796" rel="stylesheet" type="text/css">
+    <link href="themes/user-v2/css/plyr/plyr.css?v=1588299796" rel="stylesheet" type="text/css">
+    <link href="themes/user-v2/css/bootstrap-datepicker.standalone.min.css?v=1588299796" rel="stylesheet" type="text/css">
+    <link href="themes/user-v2/css/summernote/summernote-bs4.css?v=1588299796" type="text/css">
+    <link href="themes/user-v2/css/intl-tel-input/intlTelInput.css?v=1588299796" rel="stylesheet" type="text/css">
+    <link href="themes/user-v2/css/style.css?v=1588299796" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="themes/user-v2/js/jquery-3.4.1.min.js?v=1588299796"></script>
+    <script type="text/javascript" src="assets/js/plugins/loaders/pace.min.js"></script>
+    <!-- <script type="text/javascript" src="assets/js/core/libraries/jquery.min.js"></script>
+    <script type="text/javascript" src="assets/js/core/libraries/bootstrap.min.js"></script> -->
+    <script type="text/javascript" src="themes/user-v2/js/popper.min.js?v=1588299796"></script>
+    <script type="text/javascript" src="themes/user-v2/js/bootstrap.min.js?v=1588299796"></script>
+    <script type="text/javascript" src="themes/user-v2/js/theme.js?v=1588299796"></script>
+    <script type="text/javascript" src="themes/user-v2/js/bootstrap-datepicker.min.js?v=1588299796"></script>
+    <script type="text/javascript" src="themes/user-v2/js/plyr/plyr.min.js?v=1588299796"></script>
+    <script type="text/javascript" src="themes/user-v2/js/intl-tel-input/intlTelInput.js?v=1588299796"></script>
+    <script type="text/javascript" src="assets/js/plugins/loaders/blockui.min.js"></script>
+    <script type="text/javascript" src="themes/user-v2/js/summernote/summernote-bs4.js"></script>
+    <script type="text/javascript" src="assets/js/plugins/forms/styling/uniform.min.js"></script>
+    <script type="text/javascript" src="assets/js/plugins/uploaders/fileinput.min.js"></script>
+    <script type="text/javascript" src="assets/js/plugins/notifications/pnotify.min.js"></script>
+    <!--  -->
+
+    <script type="text/javascript" src="assets/js/plugins/forms/wizards/stepy.min.js"></script>
+    <script type="text/javascript" src="assets/js/core/libraries/jasny_bootstrap.min.js"></script>
+    <script type="text/javascript" src="assets/js/plugins/forms/validation/validate.min.js"></script>
+    <script type="text/javascript" src="assets/js/pages/mail_list_write.js?v=1588299796"></script>
+    <script type="text/javascript" src="assets/js/pages/mail_list_read.js"></script>
+    <script type="text/javascript" src="assets/js/pages/mail_list.js"></script>
+    <script type="text/javascript" src="assets/js/core/libraries/jquery_ui/datepicker.min.js"></script>
+    <script type="text/javascript" src="assets/js/core/libraries/jquery_ui/effects.min.js"></script>
+    <script type="text/javascript" src="assets/js/plugins/notifications/jgrowl.min.js"></script>
+    <script type="text/javascript" src="assets/js/plugins/ui/moment/moment.min.js"></script>
+    <script type="text/javascript" src="assets/js/plugins/pickers/daterangepicker.js?v=1588299796"></script>
+    <script type="text/javascript" src="assets/js/plugins/pickers/anytime.min.js"></script>
+    <script type="text/javascript" src="assets/js/plugins/pickers/pickadate/picker.js"></script>
+    <script type="text/javascript" src="assets/js/plugins/pagination/bootpag.min.js"></script>
+    <script type="text/javascript" src="assets/js/plugins/pagination/bs_pagination.min.js"></script>
+    <script type="text/javascript" src="assets/js/plugins/pagination/datepaginator.min.js"></script>
+
+    <script type="text/javascript" src="assets/js/plugins/pickers/pickadate/picker.date.js"></script>
+    <script type="text/javascript" src="assets/js/plugins/pickers/pickadate/picker.time.js"></script>
+    <script type="text/javascript" src="assets/js/plugins/pickers/pickadate/legacy.js"></script>
+    <script type="text/javascript" src="assets/js/pages/picker_date.js?load=1588299796"></script>
+    <script type="text/javascript" src="assets/js/plugins/tables/datatables/datatables.min.js"></script>
+    <script type="text/javascript" src="assets/js/plugins/tables/datatables/extensions/tools.min.js"></script>
+    <script type="text/javascript" src="assets/js/plugins/notifications/bootbox.min.js"></script>
+    <script type="text/javascript" src="assets/js/pages/datatables_basic.js?load=1588299796"></script>
+    <script type="text/javascript" src="assets/js/pages/datatables_extension_tools.js?load=1588299796"></script>
+    <script type="text/javascript" src="assets/js/plugins/tables/datatables/extensions/date-uk.js"></script>
+    <script type="text/javascript" src="assets/js/core/libraries/jquery_ui/interactions.min.js"></script>
+    <script type="text/javascript" src="assets/js/plugins/visualization/d3/d3.min.js?v=1588299796"></script>
+    <!-- <script type='text/javascript' src="assets/js/plugins/visualization/d3.v4.min.js?v=1588299796"></script> -->
+    <script type="text/javascript" src="assets/js/plugins/visualization/d3/d3_tooltip.js"></script>
+    <script type="text/javascript" src="assets/js/plugins/visualization/c3/c3.min.js?v=1588299796"></script>
+    <script type="text/javascript" src="assets/js/plugins/forms/selects/select2.min.js"></script>
+    <script type="text/javascript" src="assets/js/plugins/forms/wizards/steps.min.js"></script>
+    <script type="text/javascript" src="assets/js/core/app.js?v=1"></script>
+    <script type="text/javascript" src="assets/js/pages/components_notifications_pnotify.js?v=1588299796"></script>
+    <script type="text/javascript" src="assets/js/pages/login.js"></script>
+    <script type="text/javascript" src="assets/js/pages/uploader_bootstrap.js"></script>
+    <script type="text/javascript" src="assets/js/pages/form_select2.js"></script>
+    <!--<script type="text/javascript" src="assets/js/pages/dashboard.js?v=1588299796"></script>-->
+    <!--<script type="text/javascript" src="assets/js/pages/wizard_steps.js?v=1588299796"></script>-->
+    <script type="text/javascript" src="assets/js/pages/wizard_stepy.js"></script>
+    <script type="text/javascript" src="assets/js/jquery.ajaxfileupload.js"></script>
+    <script type="text/javascript" src="assets/js/jquery.autosize.input.js?v=0.1"></script>
+    <script type="text/javascript" src="assets/js/plugins/notifications/sweet_alert.min.js"></script>
+    <script type="text/javascript" src="assets/js/pages/components_modals.js"></script>
+    <script type="text/javascript" src="assets/js/pages/form_layouts.js"></script>
+    <script type="text/javascript" src="assets/js/pages/components_pagination.js"></script>
+
+    <script type="text/javascript" src="assets/js/plugins/iconselect2/lib/control/iconselect.js"></script>
+    <script type="text/javascript" src="assets/js/plugins/iconselect2/lib/iscroll.js"></script>
+
+            <script type="text/javascript" src="themes/user-v2/js/dashboard.js?v=1588299796"></script>
+    
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var inflasitahunan = 10;
+            var estimasihasilinvestasi = 12;
+            var lama_pensiun = 30;
+            $("#inflasi_tahunan").val(inflasitahunan);
+            $("#estimasi_hasil_investasi").val(estimasihasilinvestasi);
+            $("#kenaikan_biaya_pertahun").val(inflasitahunan);
+            $("#imbal_hasil_investasi").val(estimasihasilinvestasi);
+            $("#lama_pensiun").val(lama_pensiun);
+        });
+
+        function tanggalunmask(tgl) {
+            var tgl = tgl;
+            tgl = tgl.replace("Januari", "01");
+            tgl = tgl.replace("Februari", "02");
+            tgl = tgl.replace("Maret", "03");
+            tgl = tgl.replace("April", "04");
+            tgl = tgl.replace("Mei", "05");
+            tgl = tgl.replace("Juni", "06");
+            tgl = tgl.replace("Juli", "07");
+            tgl = tgl.replace("Agustus", "08");
+            tgl = tgl.replace("September", "09");
+            tgl = tgl.replace("Oktober", "10");
+            tgl = tgl.replace("November", "11");
+            tgl = tgl.replace("Desember", "12");
+            tgl = tgl.replace(",", "");
+            tgl = tgl.split(' ');
+
+            var tgl = new Date(tgl[2], tgl[1], tgl[0]);
+            var tgl_tgl = new Date(tgl.getFullYear() + 10, tgl.getMonth(), tgl.getDate());
+
+            return tgl_tgl;
+        }
+
+        function tanggal_unmask(tgl) {
+            var tgl = tgl;
+            tgl = tgl.replace("Januari", "01");
+            tgl = tgl.replace("Februari", "02");
+            tgl = tgl.replace("Maret", "03");
+            tgl = tgl.replace("April", "04");
+            tgl = tgl.replace("Mei", "05");
+            tgl = tgl.replace("Juni", "06");
+            tgl = tgl.replace("Juli", "07");
+            tgl = tgl.replace("Agustus", "08");
+            tgl = tgl.replace("September", "09");
+            tgl = tgl.replace("Oktober", "10");
+            tgl = tgl.replace("November", "11");
+            tgl = tgl.replace("Desember", "12");
+            tgl = tgl.replace(",", "");
+            tgl = tgl.split(' ');
+            tgl = tgl[2] + '-' + tgl[1] + '-' + tgl[0];
+
+            return tgl;
+        }
+
+        function daysBetween(date2, date1) {
+            //Get 1 day in milliseconds
+            var one_day = 1000 * 60 * 60 * 24;
+
+            // Convert both dates to milliseconds
+            var date1_ms = date1.getTime();
+            var date2_ms = date2.getTime();
+
+            // Calculate the difference in milliseconds
+            var difference_ms = date2_ms - date1_ms;
+
+            // Convert back to days and return
+            return Math.round(difference_ms / one_day);
+        }
+
+        function priceclean(price) {
+            var price = price;
+            price = price.replace("Rp.", "");
+            price = price.replace(".", "");
+            price = price.replace(".", "");
+            price = price.replace(".", "");
+            price = price.replace(".", "");
+            price = price.replace(".", "");
+            price = price.replace(".", "");
+            price = price.replace(".", "");
+            price = price.replace(".", "");
+            price = price.replace(".", "");
+            price = price.replace(".", "");
+            price = price.replace(".", "");
+            price = price.replace(".", "");
+            price = price.replace(".", "");
+            price = price.replace(".", "");
+            price = price.replace(".", "");
+            price = price.replace("%", "");
+            price = price.replace(",", ".");
+            price = eval(price.trim());
+            return price;
+        }
+
+        function percenclean(price) {
+            var price = price;
+            price = price.replace(",", ".");
+            price = price.replace("%", "");
+            price = eval(price.trim());
+            return price;
+        }
+
+        function numclean(price) {
+            var price = price;
+            price = price.replace("Rp", "");
+            price = price.replace(".", "");
+            price = price.replace(",", "");
+            price = price.replace("%", "");
+            price = eval(price.trim());
+            return price;
+        }
+
+        function disload(el, unblock) {
+            var block = $(el);
+            if (unblock == "unblock") {
+                $(block).unblock();
+            } else {
+                $(block).block({
+                    message: '<i class="icon-spinner4 spinner"></i>',
+                    overlayCSS: {
+                        backgroundColor: '#fff',
+                        opacity: 0.8,
+                        cursor: 'wait'
+                    },
+                    css: {
+                        border: 0,
+                        padding: 0,
+                        backgroundColor: 'transparent'
+                    }
+                });
+            }
+        }
+
+        function getRandomInt(min, max) {
+            // Create byte array and fill with 1 random number
+            var byteArray = new Uint8Array(1);
+            window.crypto.getRandomValues(byteArray);
+
+            // Convert to decimal
+            var randomNum = '0.' + byteArray[0].toString();
+
+            // Get number in range
+            randomNum = Math.floor(randomNum * (max - min + 1)) + min;
+
+            return randomNum;
+        }
+
+        function PV(rate, periods, payment, future, type) {
+            // Initialize type
+            var type = (typeof type === 'undefined') ? 0 : type;
+
+            // Evaluate rate and periods (TODO: replace with secure expression evaluator)
+            rate = eval(rate);
+            periods = eval(periods);
+
+            // Return present value
+            if (rate === 0) {
+                return -payment * periods - future;
+            } else {
+                return (((1 - Math.pow(1 + rate, periods)) / rate) * payment * (1 + rate * type) - future) / Math.pow(1 + rate, periods);
+            }
+        }
+
+        function FV(rate, nper, pmt, pv, type) {
+            var pow = Math.pow(1 + rate, nper),
+                fv;
+            if (rate) {
+                fv = (pmt * (1 + rate * type) * (1 - pow) / rate) - pv * pow;
+            } else {
+                fv = -1 * (pv + pmt * nper);
+            }
+            return fv.toFixed(2);
+        }
+
+        function PMT(rate_per_period, number_of_payments, present_value, future_value, type) {
+            if (rate_per_period != 0.0) {
+                // Interest rate exists
+                var q = Math.pow(1 + rate_per_period, number_of_payments);
+                return -(rate_per_period * (future_value + (q * present_value))) / ((-1 + q) * (1 + rate_per_period * (type)));
+
+            } else if (number_of_payments != 0.0) {
+                // No interest rate, but number of payments exists
+                return -(future_value + present_value) / number_of_payments;
+            }
+
+            return 0;
+        }
+        //js function
+                $(function() {
+            
+            function progressCounter(element, radius, border, color, end, iconClass, textTitle, textAverage) {
+                var d3Container = d3.select(element),
+                    startPercent = 0,
+                    iconSize = 32,
+                    endPercent = end,
+                    twoPi = Math.PI * 2,
+                    formatPercent = d3.format('.0%'),
+                    boxSize = radius * 2;
+                var count = Math.abs((endPercent - startPercent) / 0.01);
+                var step = endPercent < startPercent ? -0.01 : 0.01;
+                var container = d3Container.append('svg');
+                var svg = container
+                    .attr('width', boxSize)
+                    .attr('height', boxSize)
+                    .append('g')
+                    .attr('transform', 'translate(' + (boxSize / 2) + ',' + (boxSize / 2) + ')');
+                var arc = d3.svg.arc()
+                    .startAngle(0)
+                    .innerRadius(radius)
+                    .outerRadius(radius - border);
+                svg.append('path')
+                    .attr('class', 'd3-progress-background')
+                    .attr('d', arc.endAngle(twoPi))
+                    .style('fill', '#eee');
+                var foreground = svg.append('path')
+                    .attr('class', 'd3-progress-foreground')
+                    .attr('filter', 'url(#blur)')
+                    .style('fill', color)
+                    .style('stroke', color);
+                var front = svg.append('path')
+                    .attr('class', 'd3-progress-front')
+                    .style('fill', color)
+                    .style('fill-opacity', 1);
+                /*
+                var numberText = d3.select(element)
+                    .append('h2')
+                        .attr('class', 'mt-15 mb-5')
+                */
+                var numberText = d3.select(element)
+                    .append("span")
+                    .attr("class", " counter-icon")
+                    .attr('style', 'font-size:20px; top: ' + ((boxSize - iconSize) / 2) + 'px');
+                d3.select(element)
+                    .append('div')
+                    .text(textTitle);
+                d3.select(element)
+                    .append('div')
+                    .attr('class', 'text-size-small text-muted')
+                    .text(textAverage);
+
+                function updateProgress(progress) {
+                    foreground.attr('d', arc.endAngle(twoPi * progress));
+                    front.attr('d', arc.endAngle(twoPi * progress));
+                    numberText.text(formatPercent(progress));
+                }
+                var progress = startPercent;
+                (function loops() {
+                    updateProgress(progress);
+                    if (count > 0) {
+                        count--;
+                        progress += step;
+                        setTimeout(loops, 10);
+                    }
+                })();
+            }
+        });
+        //js write
+        $(document).ready(function() {
+                        $('.priceFormatPerfix').priceFormat({
+                prefix: 'Rp. ',
+                centsSeparator: '',
+                thousandsSeparator: '.',
+                centsLimit: 0,
+                limit: 15
+            });
+            $('.priceFormatPerfixCent').priceFormat({
+                prefix: 'Rp. ',
+                centsSeparator: ',',
+                thousandsSeparator: '.',
+                centsLimit: 2
+            });
+            $('.priceFormat').priceFormat({
+                prefix: '',
+                centsSeparator: '',
+                thousandsSeparator: '.',
+                centsLimit: 0
+            });
+            $('.priceCmaFormatPerfix').priceFormat({
+                prefix: 'Rp. ',
+                centsSeparator: ',',
+                thousandsSeparator: '.',
+                centsLimit: 2
+            });
+            $('.priceCmaFormat').priceFormat({
+                prefix: '',
+                centsSeparator: ',',
+                thousandsSeparator: '.',
+                centsLimit: 2
+            });
+
+            $('.unitFormat').priceFormat({
+                prefix: '',
+                centsSeparator: ',',
+                thousandsSeparator: '.',
+                centsLimit: 2
+            });
+        });
+    </script>
+    <script>
+        (function(i, s, o, g, r, a, m) {
+            i['GoogleAnalyticsObject'] = r;
+            i[r] = i[r] || function() {
+                (i[r].q = i[r].q || []).push(arguments)
+            }, i[r].l = 1 * new Date();
+            a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+            a.async = 1;
+            a.src = g;
+            m.parentNode.insertBefore(a, m)
+        })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+
+        ga('create', 'UA-83304013-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+    <!--Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-110091938-1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+        gtag('js', new Date());
+
+        gtag('config', 'UA-110091938-1');
+    </script>
+
+    <!-- start Mixpanel -->
+    <script type="text/javascript">
+        (function(e, a) {
+            if (!a.__SV) {
+                var b = window;
+                try {
+                    var c, l, i, j = b.location,
+                        g = j.hash;
+                    c = function(a, b) {
+                        return (l = a.match(RegExp(b + "=([^&]*)"))) ? l[1] : null
+                    };
+                    g && c(g, "state") && (i = JSON.parse(decodeURIComponent(c(g, "state"))), "mpeditor" === i.action && (b.sessionStorage.setItem("_mpcehash", g), history.replaceState(i.desiredHash || "", e.title, j.pathname + j.search)))
+                } catch (m) {}
+                var k, h;
+                window.mixpanel = a;
+                a._i = [];
+                a.init = function(b, c, f) {
+                    function e(b, a) {
+                        var c = a.split(".");
+                        2 == c.length && (b = b[c[0]], a = c[1]);
+                        b[a] = function() {
+                            b.push([a].concat(Array.prototype.slice.call(arguments,
+                                0)))
+                        }
+                    }
+                    var d = a;
+                    "undefined" !== typeof f ? d = a[f] = [] : f = "mixpanel";
+                    d.people = d.people || [];
+                    d.toString = function(b) {
+                        var a = "mixpanel";
+                        "mixpanel" !== f && (a += "." + f);
+                        b || (a += " (stub)");
+                        return a
+                    };
+                    d.people.toString = function() {
+                        return d.toString(1) + ".people (stub)"
+                    };
+                    k = "disable time_event track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config reset opt_in_tracking opt_out_tracking has_opted_in_tracking has_opted_out_tracking clear_opt_in_out_tracking people.set people.set_once people.unset people.increment people.append people.union people.track_charge people.clear_charges people.delete_user".split(" ");
+                    for (h = 0; h < k.length; h++) e(d, k[h]);
+                    a._i.push([b, c, f])
+                };
+                a.__SV = 1.2;
+                b = e.createElement("script");
+                b.type = "text/javascript";
+                b.async = !0;
+                b.src = "undefined" !== typeof MIXPANEL_CUSTOM_LIB_URL ? MIXPANEL_CUSTOM_LIB_URL : "file:" === e.location.protocol && "//cdn4.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//) ? "https://cdn4.mxpnl.com/libs/mixpanel-2-latest.min.js" : "//cdn4.mxpnl.com/libs/mixpanel-2-latest.min.js";
+                c = e.getElementsByTagName("script")[0];
+                c.parentNode.insertBefore(b, c)
+            }
+        })(document, window.mixpanel || []);
+        mixpanel.init("bcb81b460076a92d7ff4ddff36038c21");
+    </script>
+    <!-- end Mixpanel -->
+</head>
+    <body class="bg-white">
+            <!-- Header Section -->
+        <header class="header-section fixed-top active">
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-12 col-md-3 col-lg-3 align-self-center">
+                        <div class="responsive-nav">
+                            <a href="https://aplikasi.finansialku.com/" class="align-middle logo">
+                                <div class="logo-image">
+                                    <img src="assets/images/main-logo.png?load=1588299796" alt="">
+                                </div>
+                            </a>
+                            <div class="responsive-nav__item burger-menu nav-mobile">
+                                <img src="themes/user-v2/img/icon/ic_burger_menu.svg" alt="">
+                            </div>
+                            <div class="responsive-nav__item nav-inbox">
+                                <img src="themes/user-v2/img/icon/ic_email.svg" alt="">
+                                <!-- <span class="has-notification">9+</span> -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-9 col-lg-9">
+                        <div class="main-nav">
+                            <ul class="navbar-nav ml-auto">
+                                <li class="nav-item">
+                                    <a class="nav-link" href="https://aplikasi.finansialku.com/upgrade/pricing">
+                                        <span class="has-btn">Upgrade</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item ">
+                                    <a class="nav-link" href="https://aplikasi.finansialku.com/">
+                                        <img class="menu-icon" src="themes/user-v2/img/icon/ic_home.svg" alt="">
+                                    </a>
+                                </li>
+                                <li class="nav-item dropdown dropdown-inbox align-self-center notification-website">
+                                    <a class="nav-link dropdown-toggle dropdown-nav-header align-middle link-notification" aria-expanded="false" href="#" data-toggle="dropdown" id="dropdownInbox">
+                                        <img class="menu-icon" src="themes/user-v2/img/icon/ic_email.svg" alt="">
+                                        <!-- <span class="has-notification">9+</span> -->
+                                    </a>
+                                    <div class="dropdown-menu dropdown-inbox__wrapper" aria-labelledby="dropdownInbox">
+                                        <div class="dropdown-inbox__header">
+                                            <p class="mb-0 text-bold">Inbox</p>
+                                        </div>
+                                        <div class="dropdown-inbox__content">
+                                            <div class="dropdown-inbox__nav">
+                                                <ul class="nav nav-pills nav-notification mb-0">
+                                                    <li class="nav-item">
+                                                        <a data-tab="update" class="nav-link inbox-website active tablinks" ><span>Info</span><!--<span class="pills-notification"></span>--></a>
+                                                    </li>
+                                                    <li class="nav-item">
+                                                        <a data-tab="promo" class="nav-link update-website tablinks"><span>Update</span><!--<span class="pills-notification"></span>--></a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                            <div class="tab-content">
+                                                <div class="tab-pane tab-notif active" id="update">
+                                                    <div class="dropdown-inbox__content-item">
+                    <div class="dropdown-inbox__empty text-center">
+                                                                <img class="folder-empty" src="themes/user-v2/img/icon/ic_empty_folder.svg" alt="">
+                                                                <h6>Data Kosong</h6>
+                                                                <p>Belum ada data yang ditemukan</p>
+                                                            </div>
+                                                                                                            </div>
+                                                </div>
+                                                <div class="tab-pane tab-notif" id="promo">
+                                                    <div class="dropdown-inbox__content-item">
+                <div class="dropdown-inbox__empty text-center">
+                                                                <img class="folder-empty" src="themes/user-v2/img/icon/ic_empty_folder.svg" alt="">
+                                                                <h6>Data Kosong</h6>
+                                                                <p>Belum ada data yang ditemukan</p>
+                                                            </div>
+                                                                                                            </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="nav-item dropdown dropdown-profile align-self-center">
+                                    <a class="nav-link dropdown-toggle dropdown-nav-header align-middle" aria-expanded="false" href="#" data-toggle="dropdown" id="dropdownProfile">
+                                        <div class="photo">
+                                            <img src="assets/images/placeholder.jpg?v=1588299796" alt="">
+                                        </div>
+                                    </a>
+                                    <div class="dropdown-menu" aria-labelledby="dropdownProfile">
+                                        <div class="dropdown-profile__mega-header">
+                                            <div class="row">
+                                                <div class="col-12 align-self-center text-center">
+                                                    <div class="mega-photo">
+                                                        <a href="https://aplikasi.finansialku.com/profile">
+                                                            <img src="assets/images/placeholder.jpg?v=1588299796" alt="">
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="dropdown-profile__mega-menu">
+                                            <ul>
+                                                <li><a href="https://aplikasi.finansialku.com/profile"><img src="themes/user-v2/img/icon/navigation/ic_user.svg" alt="">Profil</a></li>
+                                                <li><a href="https://aplikasi.finansialku.com/pengaturan"><img src="themes/user-v2/img/icon/navigation/ic_settings.svg" alt="">Pengaturan</a></li>
+                                                <li><a href="https://aplikasi.finansialku.com/promo"><img src="themes/user-v2/img/icon/navigation/ic_promo_code.svg" alt="">Kode Promo</a></li>
+                                                <li><a href="https://aplikasi.finansialku.com/referral"><img src="themes/user-v2/img/icon/navigation/ic_referral_code.svg" alt="">Kode Referal</a></li>
+                                                <li><a href="https://aplikasi.finansialku.com/account_payment"><img src="themes/user-v2/img/icon/navigation/ic_invoice.svg" alt="">Invoice</a></li>
+                                                <li><a href="https://www.finansialku.com/panduan-penggunaan-aplikasi-finansialku/"><img src="themes/user-v2/img/icon/navigation/ic_help.svg" alt="">Bantuan</a></li>
+                                                <li><a href="https://aplikasi.finansialku.com/feedback"><img src="themes/user-v2/img/icon/navigation/ic_contact_us.svg" alt="">Kontak Kami</a></li>
+                                                <li><a href="https://aplikasi.finansialku.com/document/term_and_condition"><img src="themes/user-v2/img/icon/navigation/ic_tnc.svg" alt="">Syarat & Ketentuan</a></li>
+                                                <li><a href="https://aplikasi.finansialku.com/document/privacy_policy"><img src="themes/user-v2/img/icon/navigation/ic_privacy_police.svg" alt="">Kebijakan Privasi</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="nav-dropdown-separator"></div>
+                                        <div class="dropdown-profile__mega-footer">
+                                            <ul>
+                                                <li><a href="https://aplikasi.finansialku.com/user/logout"><img src="themes/user-v2/img/icon/navigation/ic_logout.svg" alt=""> Keluar</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <span class="has-btn-outline status-label-outline">
+                                        <a class="nav-link" href="https://aplikasi.finansialku.com/upgrade/pricing">
+                                            Trial Member                                        </a>
+                                    </span>
