@@ -16,9 +16,17 @@ export function getDistRoot() {
 }
 
 export function getDistPath() {
+  let arch = 'x64'
+
+  if (process.env.npm_config_arch) {
+    // If a specific npm_config_arch is set, we use that one instead of the OS arch (to support cross compilation)
+    console.log('npm_config_arch detected: ' + process.env.npm_config_arch)
+    arch = process.env.npm_config_arch
+  }
+
   return Path.join(
     getDistRoot(),
-    `${getExecutableName()}-${process.platform}-x64`
+    `${getExecutableName()}-${process.platform}-${arch}`
   )
 }
 

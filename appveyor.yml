@@ -1,10 +1,15 @@
-os: Visual Studio 2015
+os: Visual Studio 2017
 
 platform:
   - x64
 
 environment:
-  nodejs_version: '10.17.0'
+  nodejs_version: '12.16.3'
+  matrix:
+    - npm_config_arch: 'x64'
+      TARGET_ARCH: 'x64'
+    - npm_config_arch: 'arm64'
+      TARGET_ARCH: 'arm64'
 
 cache:
   - '%USERPROFILE%\.electron'
@@ -18,6 +23,8 @@ version: '{build}'
 
 install:
   - cmd: regedit /s script\default-to-tls12-on-appveyor.reg
+  - cmd: set npm_config_arch = %npm_config_arch%
+  - cmd: set TARGET_ARCH = %TARGET_ARCH%
   - ps: Install-Product node $env:nodejs_version $env:platform
   - git submodule update --init --recursive
   - yarn install --force
@@ -30,7 +37,7 @@ build_script:
 
 test_script:
   - yarn test:setup
-  - ./script/test-appveyor.bat
+  - cmd: ./script/test-appveyor.bat
 
 on_success:
   - yarn run publish

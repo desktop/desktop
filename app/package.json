@@ -27,7 +27,7 @@
     "deep-equal": "^1.0.1",
     "dexie": "^2.0.0",
     "double-ended-queue": "^2.1.0-0",
-    "dugite": "1.88.6",
+    "dugite": "1.88.7",
     "electron-window-state": "^5.0.3",
     "event-kit": "^2.0.0",
     "file-uri-to-path": "0.0.2",
