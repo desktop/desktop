@@ -1,0 +1,23 @@
+# Node.js
+# Build a general Node.js project with npm.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
+trigger:
+- windows-arm-support
+
+pool: Default
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '12.x'
+  displayName: 'Install Node.js'
+
+- script: |
+    set npm_config_arch = arm64
+    set TARGET_ARCH = arm64
+    yarn
+    yarn build:prod
+    yarn test
+  displayName: 'Install, build and test GitHub Desktop'
