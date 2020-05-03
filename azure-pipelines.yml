@@ -21,6 +21,7 @@ steps:
   - script: |
       set npm_config_arch = $(npm_config_arch)
       set TARGET_ARCH = $(TARGET_ARCH)
+      git submodule update --init --recursive
       yarn
     displayName: 'Install, build and test GitHub Desktop'
   - script: |
