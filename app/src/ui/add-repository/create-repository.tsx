@@ -535,6 +535,7 @@ export class CreateRepository extends React.Component<
               label="Name"
               placeholder="repository name"
               onValueChanged={this.onNameChanged}
+              disabled={readOnlyPath}
             />
           </Row>
 
