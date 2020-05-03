@@ -96,7 +96,7 @@ export class CreateRepository extends React.Component<
     super(props)
 
     const path = this.props.initialPath
-      ? this.props.initialPath
+      ? Path.dirname(this.props.initialPath)
       : getDefaultDir()
 
     const name = this.props.initialPath
