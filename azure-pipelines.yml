@@ -18,6 +18,10 @@ steps:
     set npm_config_arch = arm64
     set TARGET_ARCH = arm64
     yarn
-    yarn build:prod
-    yarn test
   displayName: 'Install, build and test GitHub Desktop'
+- script: |
+    yarn build:prod
+  displayName: 'Build GitHub Desktop ARM64'
+- script: |
+    yarn test
+  displayName: 'yarn test'
