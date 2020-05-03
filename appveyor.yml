@@ -11,10 +11,10 @@ environment:
     - npm_config_arch: 'arm64'
       TARGET_ARCH: 'arm64'
 
-#cache:
-#- '%USERPROFILE%\.electron'
-#- .eslintcache
-#- '%LOCALAPPDATA%\Yarn\Cache\v4'
+cache:
+  - '%USERPROFILE%\.electron'
+  - .eslintcache
+  - '%LOCALAPPDATA%\Yarn\Cache\v4'
 
 skip_tags: true
 skip_branch_with_pr: true
@@ -33,7 +33,7 @@ build_script:
   - yarn lint
   - yarn validate-changelog
   - yarn check-modified
-  #- yarn build:prod
+  - yarn build:prod
 
 test_script:
   - yarn test:setup
