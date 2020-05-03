@@ -4,24 +4,24 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 
 trigger:
-- windows-arm-support
+  - windows-arm-support
 
 pool: Default
 
 steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '12.x'
-  displayName: 'Install Node.js'
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '12.x'
+    displayName: 'Install Node.js'
 
-- script: |
-    set npm_config_arch = arm64
-    set TARGET_ARCH = arm64
-    yarn
-  displayName: 'Install, build and test GitHub Desktop'
-- script: |
-    yarn build:prod
-  displayName: 'Build GitHub Desktop ARM64'
-- script: |
-    yarn test
-  displayName: 'yarn test'
+  - script: |
+      set npm_config_arch = arm64
+      set TARGET_ARCH = arm64
+      yarn
+    displayName: 'Install, build and test GitHub Desktop'
+  - script: |
+      yarn build:prod
+    displayName: 'Build GitHub Desktop ARM64'
+  - script: |
+      yarn test
+    displayName: 'yarn test'
