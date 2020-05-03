@@ -12,9 +12,9 @@ environment:
       TARGET_ARCH: 'arm64'
 
 #cache:
-  #- '%USERPROFILE%\.electron'
-  #- .eslintcache
-  #- '%LOCALAPPDATA%\Yarn\Cache\v4'
+#- '%USERPROFILE%\.electron'
+#- .eslintcache
+#- '%LOCALAPPDATA%\Yarn\Cache\v4'
 
 skip_tags: true
 skip_branch_with_pr: true
