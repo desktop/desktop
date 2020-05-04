@@ -6,35 +6,34 @@
 trigger:
   - windows-arm-support
 
-pool: Default
+jobs:
+  - job: githubDesktopOnWindowsArm
+    pool: Default
+    timeoutInMinutes: 90
+    variables:
+      npm_config_arch: arm64
+      TARGET_ARCH: arm64
+    steps:
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '12.x'
+        displayName: 'Install Node.js'
 
-timeoutInMinutes: 90
-
-variables:
-  npm_config_arch: arm64
-  TARGET_ARCH: arm64
-
-steps:
-  - task: NodeTool@0
-    inputs:
-      versionSpec: '12.x'
-    displayName: 'Install Node.js'
-
-  - script: |
-      set npm_config_arch = $(npm_config_arch)
-      set TARGET_ARCH = $(TARGET_ARCH)
-      git submodule update --init --recursive
-      yarn
-    displayName: 'Install, build and test GitHub Desktop'
-  - script: |
-      set npm_config_arch = $(npm_config_arch)
-      set TARGET_ARCH = $(TARGET_ARCH)
-      echo "npm_config_arch set to %npm_config_arch%"
-      echo "TARGET_ARCH set to %TARGET_ARCH%"
-      yarn build:prod
-    displayName: 'Build GitHub Desktop ARM64'
-  - script: |
-      set npm_config_arch = $(npm_config_arch)
-      set TARGET_ARCH = $(TARGET_ARCH)
-      yarn test
-    displayName: 'yarn test'
+      - script: |
+          set npm_config_arch = $(npm_config_arch)
+          set TARGET_ARCH = $(TARGET_ARCH)
+          git submodule update --init --recursive
+          yarn
+        displayName: 'Install dependencies'
+      - script: |
+          set npm_config_arch = $(npm_config_arch)
+          set TARGET_ARCH = $(TARGET_ARCH)
+          echo "npm_config_arch set to %npm_config_arch%"
+          echo "TARGET_ARCH set to %TARGET_ARCH%"
+          yarn build:prod
+        displayName: 'Build GitHub Desktop ARM64'
+      - script: |
+          set npm_config_arch = $(npm_config_arch)
+          set TARGET_ARCH = $(TARGET_ARCH)
+          yarn test
+        displayName: 'yarn test'
