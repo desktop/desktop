@@ -147,7 +147,7 @@ export class AuthenticationForm extends React.Component<
   private renderSignInWithBrowser() {
     return (
       <>
-        {this.renderSignInWithBrowserButton}
+        {this.renderSignInWithBrowserButton()}
 
         {this.props.additionalButtons}
       </>
@@ -159,7 +159,7 @@ export class AuthenticationForm extends React.Component<
       <>
         {this.props.supportsBasicAuth && this.renderEndpointRequiresWebFlow()}
 
-        {this.renderSignInWithBrowserButton}
+        {this.renderSignInWithBrowserButton()}
       </>
     )
   }
