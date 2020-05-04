@@ -2,7 +2,6 @@ import { Repository } from '../../models/repository'
 import {
   WorkingDirectoryFileChange,
   isConflictedFileStatus,
-  isManualConflict,
   GitStatusEntry,
 } from '../../models/status'
 import {
@@ -29,12 +28,6 @@ export async function stageManualConflictResolution(
   // if somehow the file isn't in a conflicted state
   if (!isConflictedFileStatus(status)) {
     log.error(`tried to manually resolve unconflicted file (${file.path})`)
-    return
-  }
-  if (!isManualConflict(status)) {
-    log.error(
-      `tried to manually resolve conflicted file with markers (${file.path})`
-    )
     return
   }
 
