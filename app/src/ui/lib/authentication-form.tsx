@@ -72,17 +72,9 @@ export class AuthenticationForm extends React.Component<
   }
 
   public render() {
-    const content = this.props.supportsBasicAuth ? (
-      this.renderEndpointRequiresWebFlow()
-    ) : this.props.endpoint === getDotComAPIEndpoint() ? (
-      this.renderUsernamePassword()
-    ) : (
-      <>
-        {this.props.endpoint !== getDotComAPIEndpoint() &&
-          this.renderSignInWithBrowser()}
-        {this.renderUsernamePassword()}
-      </>
-    )
+    const content = this.props.supportsBasicAuth
+      ? this.renderEndpointRequiresWebFlow()
+      : this.renderSignInForm()
 
     return (
       <Form className="sign-in-form" onSubmit={this.signIn}>
@@ -154,10 +146,33 @@ export class AuthenticationForm extends React.Component<
     )
   }
 
+  /**
+   * Show the sign in locally form
+   *
+   * Also displays an option to sign in with browser for
+   * enterprise users (but not for dot com users since
+   * they will have already been offered this option
+   * earlier in the UI flow).
+   */
+  private renderSignInForm() {
+    return this.props.endpoint === getDotComAPIEndpoint() ? (
+      this.renderUsernamePassword()
+    ) : (
+      <>
+        {this.renderSignInWithBrowser()}
+        {this.renderUsernamePassword()}
+      </>
+    )
+  }
+
+  /**
+   * Show a message informing the user they must sign in via the web flow
+   * and a button to do so
+   */
   private renderEndpointRequiresWebFlow() {
     return (
       <>
-        {getWebSignInRequiredMessage(this.props.endpoint)}
+        {getEndpointRequiresWebFlowMessage(this.props.endpoint)}
 
         {this.renderSignInWithBrowserButton()}
       </>
@@ -206,7 +221,7 @@ export class AuthenticationForm extends React.Component<
   }
 }
 
-function getWebSignInRequiredMessage(endpoint: string): JSX.Element {
+function getEndpointRequiresWebFlowMessage(endpoint: string): JSX.Element {
   if (endpoint === getDotComAPIEndpoint()) {
     return (
       <>
