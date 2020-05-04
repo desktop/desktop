@@ -73,7 +73,7 @@ export class AuthenticationForm extends React.Component<
 
   public render() {
     const content = this.props.supportsBasicAuth ? (
-      this.renderEndpointRequiresWebFlowContent()
+      this.renderEndpointRequiresWebFlow()
     ) : this.props.endpoint === getDotComAPIEndpoint() ? (
       this.renderUsernamePassword()
     ) : (
@@ -154,39 +154,14 @@ export class AuthenticationForm extends React.Component<
     )
   }
 
-  private renderEndpointRequiresWebFlowContent() {
+  private renderEndpointRequiresWebFlow() {
     return (
       <>
-        {this.props.supportsBasicAuth && this.renderEndpointRequiresWebFlow()}
+        {getWebSignInRequiredMessage(this.props.endpoint)}
 
         {this.renderSignInWithBrowserButton()}
       </>
     )
-  }
-
-  private renderEndpointRequiresWebFlow() {
-    if (this.props.endpoint === getDotComAPIEndpoint()) {
-      return (
-        <>
-          <p>
-            To improve the security of your account, GitHub now requires you to
-            sign in through your browser.
-          </p>
-          <p>
-            Your browser will redirect you back to GitHub Desktop once you've
-            signed in. If your browser asks for your permission to launch GitHub
-            Desktop please allow it to.
-          </p>
-        </>
-      )
-    } else {
-      return (
-        <p>
-          Your GitHub Enterprise Server instance requires you to sign in with
-          your browser.
-        </p>
-      )
-    }
   }
 
   private renderSignInWithBrowserButton() {
@@ -228,5 +203,30 @@ export class AuthenticationForm extends React.Component<
 
   private signIn = () => {
     this.props.onSubmit(this.state.username, this.state.password)
+  }
+}
+
+function getWebSignInRequiredMessage(endpoint: string): JSX.Element {
+  if (endpoint === getDotComAPIEndpoint()) {
+    return (
+      <>
+        <p>
+          To improve the security of your account, GitHub now requires you to
+          sign in through your browser.
+        </p>
+        <p>
+          Your browser will redirect you back to GitHub Desktop once you've
+          signed in. If your browser asks for your permission to launch GitHub
+          Desktop please allow it to.
+        </p>
+      </>
+    )
+  } else {
+    return (
+      <p>
+        Your GitHub Enterprise Server instance requires you to sign in with your
+        browser.
+      </p>
+    )
   }
 }
