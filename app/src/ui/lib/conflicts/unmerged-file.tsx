@@ -89,7 +89,6 @@ export const renderUnmergedFile: React.FunctionComponent<{
   }
   if (
     isManualConflict(props.status) &&
-    props.manualResolution === undefined &&
     hasUnresolvedConflicts(props.status, props.manualResolution)
   ) {
     return renderManualConflictedFile({
@@ -378,14 +377,18 @@ const renderResolvedFileStatusSummary: React.FunctionComponent<{
   manualResolution?: ManualConflictResolution
   branch?: string
 }> = props => {
+  if (
+    isConflictWithMarkers(props.status) &&
+    props.status.conflictMarkerCount === 0
+  ) {
+    return <div className="file-conflicts-status">No conflicts remaining</div>
+  }
+
   const statusString = resolvedFileStatusString(
     props.status,
     props.manualResolution,
     props.branch
   )
-  if (props.manualResolution === undefined) {
-    return <div className="file-conflicts-status">{statusString}</div>
-  }
 
   return (
     <div className="file-conflicts-status">
