@@ -8,6 +8,8 @@ trigger:
 
 pool: Default
 
+timeoutInMinutes: 90
+
 variables:
   npm_config_arch: arm64
   TARGET_ARCH: arm64
