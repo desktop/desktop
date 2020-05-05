@@ -11,13 +11,11 @@ class ThemeChangeMonitor implements IDisposable {
   }
 
   public dispose() {
-    if (remote.nativeTheme) {
-      remote.nativeTheme.removeAllListeners()
-    }
+    remote.nativeTheme.removeAllListeners()
   }
 
   private subscribe = () => {
-    if (!supportsDarkMode() || !remote.nativeTheme) {
+    if (!supportsDarkMode()) {
       return
     }
 
