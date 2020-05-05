@@ -1,8 +1,8 @@
 {
   "releases": {
     "2.4.4-beta3": [
-      "[Fixed] Restore Welcome flow's 2FA confirmation screen - #9686",
-      "[Improved] Add manual resolution options for conflict files with markers - #9702"
+      "[Fixed] Restore welcome flow's 2FA confirmation screen - #9686",
+      "[Improved] Add ability to always choose the file from one branch or the other when resolving merge conflicts - #9702"
     ],
     "2.4.4-beta2": [
       "[Fixed] Display tags in commit list and show tag creation option - #9682",
