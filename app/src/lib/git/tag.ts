@@ -89,8 +89,15 @@ export async function fetchTagsToPush(
 
   const result = await git(args, repository.path, 'fetchTagsToPush', {
     env: await envForRemoteOperation(account, remote.url),
-    successExitCodes: new Set([0, 1]),
+    successExitCodes: new Set([0, 1, 128]),
   })
+
+  if (result.exitCode !== 0 && result.exitCode !== 1) {
+    // Only when the exit code of git is 0 or 1, its stdout is parseable.
+    // In other cases, we just rethrow the error so our memoization layer
+    // doesn't cache it indefinitely.
+    throw result.gitError
+  }
 
   const lines = result.stdout.split('\n')
   let currentLine = 1
