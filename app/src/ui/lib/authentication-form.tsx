@@ -72,19 +72,18 @@ export class AuthenticationForm extends React.Component<
   }
 
   public render() {
+    const content = this.props.supportsBasicAuth
+      ? this.renderSignInForm()
+      : this.renderEndpointRequiresWebFlow()
+
     return (
       <Form className="sign-in-form" onSubmit={this.signIn}>
-        {this.renderSignInWithBrowser()}
-        {this.renderUsernamePassword()}
+        {content}
       </Form>
     )
   }
 
   private renderUsernamePassword() {
-    if (!this.props.supportsBasicAuth) {
-      return null
-    }
-
     const disabled = this.props.loading
     return (
       <>
@@ -138,54 +137,59 @@ export class AuthenticationForm extends React.Component<
   }
 
   private renderSignInWithBrowser() {
-    // we don't render this here because the user will have already
-    // had the option to sign in via the browser earlier in the sign-in flow
-    if (this.props.endpoint === getDotComAPIEndpoint()) {
-      return
-    }
-
     return (
       <>
-        {this.props.supportsBasicAuth && <hr />}
-        {this.props.supportsBasicAuth && this.renderEndpointRequiresWebFlow()}
+        {this.renderSignInWithBrowserButton()}
 
-        <Button
-          type="submit"
-          className="button-with-icon"
-          onClick={this.signInWithBrowser}
-        >
-          Sign in using your browser
-          <Octicon symbol={OcticonSymbol.linkExternal} />
-        </Button>
-
-        {this.props.supportsBasicAuth ? null : this.props.additionalButtons}
+        {this.props.additionalButtons}
       </>
     )
   }
 
+  /**
+   * Show the sign in locally form
+   *
+   * Also displays an option to sign in with browser for
+   * enterprise users (but not for dot com users since
+   * they will have already been offered this option
+   * earlier in the UI flow).
+   */
+  private renderSignInForm() {
+    return this.props.endpoint === getDotComAPIEndpoint() ? (
+      this.renderUsernamePassword()
+    ) : (
+      <>
+        {this.renderSignInWithBrowser()}
+        {this.renderUsernamePassword()}
+      </>
+    )
+  }
+
+  /**
+   * Show a message informing the user they must sign in via the web flow
+   * and a button to do so
+   */
   private renderEndpointRequiresWebFlow() {
-    if (this.props.endpoint === getDotComAPIEndpoint()) {
-      return (
-        <>
-          <p>
-            To improve the security of your account, GitHub now requires you to
-            sign in through your browser.
-          </p>
-          <p>
-            Your browser will redirect you back to GitHub Desktop once you've
-            signed in. If your browser asks for your permission to launch GitHub
-            Desktop please allow it to.
-          </p>
-        </>
-      )
-    } else {
-      return (
-        <p>
-          Your GitHub Enterprise Server instance requires you to sign in with
-          your browser.
-        </p>
-      )
-    }
+    return (
+      <>
+        {getEndpointRequiresWebFlowMessage(this.props.endpoint)}
+
+        {this.renderSignInWithBrowserButton()}
+      </>
+    )
+  }
+
+  private renderSignInWithBrowserButton() {
+    return (
+      <Button
+        type="submit"
+        className="button-with-icon"
+        onClick={this.signInWithBrowser}
+      >
+        Sign in using your browser
+        <Octicon symbol={OcticonSymbol.linkExternal} />
+      </Button>
+    )
   }
 
   private renderError() {
@@ -214,5 +218,30 @@ export class AuthenticationForm extends React.Component<
 
   private signIn = () => {
     this.props.onSubmit(this.state.username, this.state.password)
+  }
+}
+
+function getEndpointRequiresWebFlowMessage(endpoint: string): JSX.Element {
+  if (endpoint === getDotComAPIEndpoint()) {
+    return (
+      <>
+        <p>
+          To improve the security of your account, GitHub now requires you to
+          sign in through your browser.
+        </p>
+        <p>
+          Your browser will redirect you back to GitHub Desktop once you've
+          signed in. If your browser asks for your permission to launch GitHub
+          Desktop please allow it to.
+        </p>
+      </>
+    )
+  } else {
+    return (
+      <p>
+        Your GitHub Enterprise Server instance requires you to sign in with your
+        browser.
+      </p>
+    )
   }
 }
