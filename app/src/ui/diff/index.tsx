@@ -64,6 +64,11 @@ interface IDiffProps {
 
   /** Hiding whitespace in diff. */
   readonly hideWhitespaceInDiff: boolean
+
+  readonly onDiscardChanges?: (
+    diff: ITextDiff,
+    diffSelection: DiffSelection
+  ) => void
 }
 
 interface IDiffState {
@@ -229,6 +234,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
         file={this.props.file}
         readOnly={this.props.readOnly}
         onIncludeChanged={this.props.onIncludeChanged}
+        onDiscardChanges={this.props.onDiscardChanges}
         diff={diff}
       />
     )

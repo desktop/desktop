@@ -7,6 +7,7 @@ import {
   DiffLineType,
   DiffSelection,
   DiffLine,
+  DiffSelectionType,
   ITextDiff,
 } from '../../models/diff'
 import {
@@ -38,6 +39,7 @@ import { assertNever } from '../../lib/fatal-error'
 import { clamp } from '../../lib/clamp'
 import { uuid } from '../../lib/uuid'
 import { showContextualMenu } from '../main-process-proxy'
+import { IMenuItem } from '../../lib/menu-item'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -136,6 +138,10 @@ interface ITextDiffProps {
   readonly readOnly: boolean
   readonly onIncludeChanged?: (diffSelection: DiffSelection) => void
   readonly diff: ITextDiff
+  readonly onDiscardChanges?: (
+    diff: ITextDiff,
+    diffSelection: DiffSelection
+  ) => void
 }
 
 const diffGutterName = 'diff-gutter'
@@ -486,7 +492,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       }
     }
 
-    const items = [
+    const items: IMenuItem[] = [
       {
         label: 'Copy',
         action,
@@ -494,7 +500,110 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       },
     ]
 
+    const discardMenuItems = this.buildDiscardMenuItems(event) || []
+    if (discardMenuItems !== null) {
+      items.push({ type: 'separator' }, ...discardMenuItems)
+    }
+
     showContextualMenu(items)
+  }
+
+  private buildDiscardMenuItems(event: Event): ReadonlyArray<IMenuItem> | null {
+    // Changes can't be discarded in readOnly mode.
+    if (this.props.readOnly) {
+      return null
+    }
+
+    // We can only infer which line was clicked when the context menu is opened
+    // via a mouse event.
+    if (!(event instanceof MouseEvent)) {
+      return null
+    }
+
+    if (this.codeMirror === null) {
+      return null
+    }
+
+    const onDiscardChanges = this.props.onDiscardChanges
+    if (!onDiscardChanges) {
+      return null
+    }
+
+    const lineNumber = this.codeMirror.lineAtHeight(event.y)
+
+    const diffLine = diffLineForIndex(this.props.diff.hunks, lineNumber)
+    if (diffLine === null || !diffLine.isIncludeableLine()) {
+      // The user right clicked on a line that can't be discarded.
+      return null
+    }
+
+    const items: IMenuItem[] = []
+
+    if (targetHasClass(event.target, 'hunk-handle')) {
+      const range = findInteractiveDiffRange(this.props.diff.hunks, lineNumber)
+
+      if (range !== null) {
+        const label = this.getDiscardLabel(range.from, range.to)
+
+        if (label !== null) {
+          items.push({
+            label,
+            action: () => {
+              const emptySelection = DiffSelection.fromInitialSelection(
+                DiffSelectionType.None
+              )
+              const selection = emptySelection.withRangeSelection(
+                range.from,
+                range.to - range.from + 1,
+                true
+              )
+
+              onDiscardChanges(this.props.diff, selection)
+            },
+          })
+        }
+      }
+    }
+
+    const label = this.getDiscardLabel(lineNumber)
+
+    if (targetHasClass(event.target, 'diff-line-number') && label !== null) {
+      items.push({
+        label,
+        action: () =>
+          onDiscardChanges(
+            this.props.diff,
+            DiffSelection.fromInitialSelection(
+              DiffSelectionType.None
+            ).withLineSelection(lineNumber, true)
+          ),
+      })
+    }
+
+    return items.length > 0 ? items : null
+  }
+
+  private getDiscardLabel(start: number, end?: number) {
+    const startDiffLine = diffLineForIndex(this.props.diff.hunks, start)
+
+    if (startDiffLine === null) {
+      return null
+    }
+
+    if (end === undefined || end === start) {
+      return `Discard Line ${startDiffLine.oldLineNumber ||
+        startDiffLine.newLineNumber}`
+    }
+
+    const endDiffLine = diffLineForIndex(this.props.diff.hunks, end)
+
+    if (endDiffLine === null) {
+      return null
+    }
+
+    return `Discard Lines ${startDiffLine.oldLineNumber ||
+      startDiffLine.newLineNumber}-${endDiffLine.oldLineNumber ||
+      endDiffLine.newLineNumber}`
   }
 
   private onCopy = (editor: Editor, event: Event) => {
