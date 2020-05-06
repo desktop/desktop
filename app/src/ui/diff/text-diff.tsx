@@ -402,6 +402,11 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   private onDocumentMouseUp = (ev: MouseEvent) => {
     ev.preventDefault()
 
+    // Discard right click events
+    if (ev.button !== 0) {
+      return
+    }
+
     if (this.selection === null || this.codeMirror === null) {
       return this.cancelSelection()
     }
@@ -774,6 +779,11 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       return
     }
 
+    // Discard right click events
+    if (ev.button !== 0) {
+      return
+    }
+
     const { file, diff, readOnly } = this.props
 
     if (!canSelect(file) || readOnly) {
@@ -795,6 +805,11 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
   private onHunkHandleMouseDown = (ev: MouseEvent) => {
     if (!this.codeMirror) {
+      return
+    }
+
+    // Discard right click events
+    if (ev.button !== 0) {
       return
     }
 
