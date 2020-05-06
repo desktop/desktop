@@ -1,5 +1,5 @@
-// set test timeout to 100s
-jest.setTimeout(100000)
+// set test timeout to 10s
+jest.setTimeout(10000)
 
 import 'jest-extended'
 import 'jest-localstorage-mock'
