@@ -5,6 +5,7 @@ import { Dispatcher } from '../dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
+import { BrowserRedirectMessage } from '../lib/authentication-form'
 
 /**
  * The URL to the sign-up page on GitHub.com. Used in conjunction
@@ -25,11 +26,15 @@ export class Start extends React.Component<IStartProps, {}> {
     return (
       <div id="start">
         <h1 className="welcome-title">Welcome to GitHub&nbsp;Desktop</h1>
-        <p className="welcome-text">
-          GitHub Desktop is a seamless way to contribute to projects on GitHub
-          and GitHub Enterprise Server. Sign in below to get started with your
-          existing projects.
-        </p>
+        {!this.props.loadingBrowserAuth ? (
+          <p className="welcome-text">
+            GitHub Desktop is a seamless way to contribute to projects on GitHub
+            and GitHub Enterprise Server. Sign in below to get started with your
+            existing projects.
+          </p>
+        ) : (
+          <p>{BrowserRedirectMessage}</p>
+        )}
 
         <p className="welcome-text">
           New to GitHub?{' '}

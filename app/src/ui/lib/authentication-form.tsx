@@ -8,6 +8,10 @@ import { TextBox } from './text-box'
 import { Errors } from './errors'
 import { getDotComAPIEndpoint } from '../../lib/api'
 
+/** Text to let the user know their browser will send them back to GH Desktop */
+export const BrowserRedirectMessage =
+  "Your browser will redirect you back to GitHub Desktop once you've signed in. If your browser asks for your permission to launch GitHub Desktop please allow it to."
+
 interface IAuthenticationFormProps {
   /**
    * The URL to the host which we're currently authenticating
@@ -225,15 +229,8 @@ function getEndpointRequiresWebFlowMessage(endpoint: string): JSX.Element {
   if (endpoint === getDotComAPIEndpoint()) {
     return (
       <>
-        <p>
-          To improve the security of your account, GitHub now requires you to
-          sign in through your browser.
-        </p>
-        <p>
-          Your browser will redirect you back to GitHub Desktop once you've
-          signed in. If your browser asks for your permission to launch GitHub
-          Desktop please allow it to.
-        </p>
+        <p>GitHub now requires you to sign in with your browser.</p>
+        <p>{BrowserRedirectMessage}</p>
       </>
     )
   } else {
