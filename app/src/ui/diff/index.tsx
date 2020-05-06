@@ -229,8 +229,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
         file={this.props.file}
         readOnly={this.props.readOnly}
         onIncludeChanged={this.props.onIncludeChanged}
-        text={diff.text}
-        hunks={diff.hunks}
+        diff={diff}
       />
     )
   }

@@ -7,6 +7,7 @@ import {
   DiffLineType,
   DiffSelection,
   DiffLine,
+  ITextDiff,
 } from '../../models/diff'
 import {
   WorkingDirectoryFileChange,
@@ -64,7 +65,8 @@ function highlightParametersEqual(
 ) {
   return (
     newProps === prevProps ||
-    (newProps.file.id === prevProps.file.id && newProps.text === prevProps.text)
+    (newProps.file.id === prevProps.file.id &&
+      newProps.diff.text === prevProps.diff.text)
   )
 }
 
@@ -133,8 +135,7 @@ interface ITextDiffProps {
   readonly file: ChangedFile
   readonly readOnly: boolean
   readonly onIncludeChanged?: (diffSelection: DiffSelection) => void
-  readonly text: string
-  readonly hunks: ReadonlyArray<DiffHunk>
+  readonly diff: ITextDiff
 }
 
 const diffGutterName = 'diff-gutter'
@@ -297,14 +298,14 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       return
     }
 
-    const { file, hunks, repository } = this.props
+    const { file, diff, repository } = this.props
 
     // Store the current props to that we can see if anything
     // changes from underneath us as we're making asynchronous
     // operations that makes our data stale or useless.
     const propsSnapshot = this.props
 
-    const lineFilters = getLineFilters(hunks)
+    const lineFilters = getLineFilters(diff.hunks)
     const tsOpt = this.codeMirror.getOption('tabSize')
     const tabSize = typeof tsOpt === 'number' ? tsOpt : 4
 
@@ -322,7 +323,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
     const spec: IDiffSyntaxModeSpec = {
       name: DiffSyntaxMode.ModeName,
-      hunks: this.props.hunks,
+      hunks: this.props.diff.hunks,
       oldTokens: tokens.oldTokens,
       newTokens: tokens.newTokens,
     }
@@ -581,7 +582,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
   private onSwapDoc = (cm: Editor, oldDoc: Doc) => {
     this.initDiffSyntaxMode()
-    this.markIntraLineChanges(cm.getDoc(), this.props.hunks)
+    this.markIntraLineChanges(cm.getDoc(), this.props.diff.hunks)
   }
 
   /**
@@ -609,7 +610,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       const lineNumber = doc.getLineNumber(line)
 
       if (lineNumber !== null) {
-        const diffLine = diffLineForIndex(this.props.hunks, lineNumber)
+        const diffLine = diffLineForIndex(this.props.diff.hunks, lineNumber)
 
         if (diffLine !== null) {
           const lineInfo = cm.lineInfo(line)
@@ -742,13 +743,13 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     }
     const lineNumber = this.codeMirror.lineAtHeight(ev.y)
 
-    const diffLine = diffLineForIndex(this.props.hunks, lineNumber)
+    const diffLine = diffLineForIndex(this.props.diff.hunks, lineNumber)
 
     if (!diffLine || !diffLine.isIncludeableLine()) {
       return
     }
 
-    const range = findInteractiveDiffRange(this.props.hunks, lineNumber)
+    const range = findInteractiveDiffRange(this.props.diff.hunks, lineNumber)
 
     if (range === null) {
       return
@@ -773,7 +774,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       return
     }
 
-    const { file, hunks, readOnly } = this.props
+    const { file, diff, readOnly } = this.props
 
     if (!canSelect(file) || readOnly) {
       return
@@ -782,7 +783,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     ev.preventDefault()
 
     const lineNumber = this.codeMirror.lineAtHeight(ev.y)
-    this.startSelection(file, hunks, lineNumber, 'range')
+    this.startSelection(file, diff.hunks, lineNumber, 'range')
   }
 
   private onHunkHandleMouseLeave = (ev: MouseEvent) => {
@@ -797,7 +798,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       return
     }
 
-    const { file, hunks, readOnly } = this.props
+    const { file, diff, readOnly } = this.props
 
     if (!canSelect(file) || readOnly) {
       return
@@ -806,7 +807,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     ev.preventDefault()
 
     const lineNumber = this.codeMirror.lineAtHeight(ev.y)
-    this.startSelection(file, hunks, lineNumber, 'hunk')
+    this.startSelection(file, diff.hunks, lineNumber, 'hunk')
   }
 
   public componentWillUnmount() {
@@ -833,7 +834,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
         // If the text has changed the gutters will be recreated
         // regardless but if it hasn't then we'll need to update
         // the viewport.
-        if (this.props.text === prevProps.text) {
+        if (this.props.diff.text === prevProps.diff.text) {
           this.updateViewport()
         }
       }
@@ -851,7 +852,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       this.codeMirror !== null &&
       this.props.file !== prevProps.file &&
       this.props.file.id === prevProps.file.id &&
-      this.props.text !== prevProps.text
+      this.props.diff.text !== prevProps.diff.text
     ) {
       return this.codeMirror.getScrollInfo()
     }
@@ -875,8 +876,8 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
   public render() {
     const doc = this.getCodeMirrorDocument(
-      this.props.text,
-      this.getNoNewlineIndicatorLines(this.props.hunks)
+      this.props.diff.text,
+      this.getNoNewlineIndicatorLines(this.props.diff.hunks)
     )
 
     return (
