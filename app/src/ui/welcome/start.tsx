@@ -27,21 +27,25 @@ export class Start extends React.Component<IStartProps, {}> {
       <div id="start">
         <h1 className="welcome-title">Welcome to GitHub&nbsp;Desktop</h1>
         {!this.props.loadingBrowserAuth ? (
-          <p className="welcome-text">
-            GitHub Desktop is a seamless way to contribute to projects on GitHub
-            and GitHub Enterprise Server. Sign in below to get started with your
-            existing projects.
-          </p>
+          <>
+            <p className="welcome-text">
+              GitHub Desktop is a seamless way to contribute to projects on
+              GitHub and GitHub Enterprise Server. Sign in below to get started
+              with your existing projects.
+            </p>
+            <p className="welcome-text">
+              New to GitHub?{' '}
+              <LinkButton
+                uri={CreateAccountURL}
+                className="create-account-link"
+              >
+                Create your free account.
+              </LinkButton>
+            </p>
+          </>
         ) : (
           <p>{BrowserRedirectMessage}</p>
         )}
-
-        <p className="welcome-text">
-          New to GitHub?{' '}
-          <LinkButton uri={CreateAccountURL} className="create-account-link">
-            Create your free account.
-          </LinkButton>
-        </p>
 
         <div className="welcome-main-buttons">
           <Button
