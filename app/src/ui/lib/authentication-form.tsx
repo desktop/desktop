@@ -177,8 +177,8 @@ export class AuthenticationForm extends React.Component<
     return (
       <>
         {getEndpointRequiresWebFlowMessage(this.props.endpoint)}
-
         {this.renderSignInWithBrowserButton()}
+        {this.props.additionalButtons}
       </>
     )
   }
