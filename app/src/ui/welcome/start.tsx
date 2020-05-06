@@ -57,12 +57,17 @@ export class Start extends React.Component<IStartProps, {}> {
             </Button>
           )}
         </div>
-
-        <div>
-          <LinkButton onClick={this.signInToDotCom} className="basic-auth-link">
-            Sign in to GitHub.com using your username and password
-          </LinkButton>
-        </div>
+        {/* don't render this link if the user is already mid-browser sign in */}
+        {!this.props.loadingBrowserAuth && (
+          <div>
+            <LinkButton
+              onClick={this.signInToDotCom}
+              className="basic-auth-link"
+            >
+              Sign in to GitHub.com using your username and password
+            </LinkButton>
+          </div>
+        )}
 
         <div className="skip-action-container">
           <LinkButton className="skip-button" onClick={this.skip}>
