@@ -22,7 +22,13 @@ interface IAuthenticationFormProps {
    */
   readonly endpoint: string
 
-  /** Does the server support basic auth? */
+  /**
+   * Does the server support basic auth?
+   * If the server responds that it doesn't, the user will be prompted to use
+   * that server's web sign in flow.
+   *
+   * ("Basic auth" is logging in via user + password entered directly in Desktop.)
+   */
   readonly supportsBasicAuth: boolean
 
   /**
@@ -38,7 +44,10 @@ interface IAuthenticationFormProps {
    */
   readonly onBrowserSignInRequested: () => void
 
-  /** An array of additional buttons to render after the "Sign In" button. */
+  /**
+   * An array of additional buttons to render after the "Sign In" button.
+   * (Usually, a 'cancel' button)
+   */
   readonly additionalButtons?: ReadonlyArray<JSX.Element>
 
   /**
