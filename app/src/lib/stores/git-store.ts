@@ -45,6 +45,7 @@ import {
   IndexStatus,
   getIndexChanges,
   checkoutIndex,
+  discardChangesFromSelection,
   checkoutPaths,
   resetPaths,
   revertCommit,
@@ -88,6 +89,7 @@ import { PullRequest } from '../../models/pull-request'
 import { fetchTagsToPushMemoized } from './helpers/fetch-tags-to-push-memoized'
 import { shallowEquals } from '../equality'
 import { StatsStore } from '../stats'
+import { DiffSelection, ITextDiff } from '../../models/diff'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -1494,6 +1496,21 @@ export class GitStore extends BaseStore {
         necessaryPathsToReset
       )
       await checkoutIndex(this.repository, necessaryPathsToCheckout)
+    })
+  }
+
+  public async discardChangesFromSelection(
+    filePath: string,
+    diff: ITextDiff,
+    selection: DiffSelection
+  ) {
+    await this.performFailableOperation(async () => {
+      await discardChangesFromSelection(
+        this.repository,
+        filePath,
+        diff,
+        selection
+      )
     })
   }
 

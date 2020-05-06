@@ -25,6 +25,7 @@ import {
   DiffSelectionType,
   DiffType,
   ImageDiffType,
+  ITextDiff,
 } from '../../models/diff'
 import { FetchType } from '../../models/fetch'
 import {
@@ -4027,6 +4028,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ) {
     const gitStore = this.gitStoreCache.get(repository)
     await gitStore.discardChanges(files)
+
+    return this._refreshRepository(repository)
+  }
+
+  public async _discardChangesFromSelection(
+    repository: Repository,
+    filePath: string,
+    diff: ITextDiff,
+    selection: DiffSelection
+  ) {
+    const gitStore = this.gitStoreCache.get(repository)
+    await gitStore.discardChangesFromSelection(filePath, diff, selection)
 
     return this._refreshRepository(repository)
   }
