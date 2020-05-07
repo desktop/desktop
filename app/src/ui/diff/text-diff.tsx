@@ -40,6 +40,7 @@ import { clamp } from '../../lib/clamp'
 import { uuid } from '../../lib/uuid'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
+import { toPlatformCase } from '../../lib/platform-case'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -621,21 +622,23 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     if (start === null || end === null) {
       // start/end should never be null, but as a safe net we display
       // a generic text in case this happened.
-      return __DARWIN__ ? 'Discard Lines' : 'Discard lines'
+      return toPlatformCase('Discard Lines')
     }
 
     if (start === end) {
       return (
-        (__DARWIN__ ? 'Discard Line' : 'Discard line') +
-        ` ${this.getLineNumberFromDiffLine(start)}`
+        toPlatformCase('Discard Line') +
+        ' ' +
+        this.getLineNumberFromDiffLine(start)
       )
     }
 
     return (
-      (__DARWIN__ ? 'Discard Lines' : 'Discard lines') +
-      ` ${this.getLineNumberFromDiffLine(
-        start
-      )}-${this.getLineNumberFromDiffLine(end)}`
+      toPlatformCase('Discard Lines') +
+      ' ' +
+      this.getLineNumberFromDiffLine(start) +
+      `-` +
+      this.getLineNumberFromDiffLine(end)
     )
   }
 
