@@ -8,6 +8,10 @@ import { TextBox } from './text-box'
 import { Errors } from './errors'
 import { getDotComAPIEndpoint } from '../../lib/api'
 
+/** Text to let the user know their browser will send them back to GH Desktop */
+export const BrowserRedirectMessage =
+  "Your browser will redirect you back to GitHub Desktop once you've signed in. If your browser asks for your permission to launch GitHub Desktop please allow it to."
+
 interface IAuthenticationFormProps {
   /**
    * The URL to the host which we're currently authenticating
@@ -18,7 +22,13 @@ interface IAuthenticationFormProps {
    */
   readonly endpoint: string
 
-  /** Does the server support basic auth? */
+  /**
+   * Does the server support basic auth?
+   * If the server responds that it doesn't, the user will be prompted to use
+   * that server's web sign in flow.
+   *
+   * ("Basic auth" is logging in via user + password entered directly in Desktop.)
+   */
   readonly supportsBasicAuth: boolean
 
   /**
@@ -34,7 +44,10 @@ interface IAuthenticationFormProps {
    */
   readonly onBrowserSignInRequested: () => void
 
-  /** An array of additional buttons to render after the "Sign In" button. */
+  /**
+   * An array of additional buttons to render after the "Sign In" button.
+   * (Usually, a 'cancel' button)
+   */
   readonly additionalButtons?: ReadonlyArray<JSX.Element>
 
   /**
@@ -173,8 +186,8 @@ export class AuthenticationForm extends React.Component<
     return (
       <>
         {getEndpointRequiresWebFlowMessage(this.props.endpoint)}
-
         {this.renderSignInWithBrowserButton()}
+        {this.props.additionalButtons}
       </>
     )
   }
@@ -225,15 +238,8 @@ function getEndpointRequiresWebFlowMessage(endpoint: string): JSX.Element {
   if (endpoint === getDotComAPIEndpoint()) {
     return (
       <>
-        <p>
-          To improve the security of your account, GitHub now requires you to
-          sign in through your browser.
-        </p>
-        <p>
-          Your browser will redirect you back to GitHub Desktop once you've
-          signed in. If your browser asks for your permission to launch GitHub
-          Desktop please allow it to.
-        </p>
+        <p>GitHub now requires you to sign in with your browser.</p>
+        <p>{BrowserRedirectMessage}</p>
       </>
     )
   } else {
