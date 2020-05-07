@@ -227,12 +227,12 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
 
   private onDiscardChanges = (file: WorkingDirectoryFileChange) => {
     if (!this.props.askForConfirmationOnDiscardChanges) {
-      this.props.dispatcher.discardChanges(this.props.repository, [file])
+      this.discardChanges([file])
     } else {
       this.props.dispatcher.showPopup({
         type: PopupType.ConfirmDiscardChanges,
-        repository: this.props.repository,
         files: [file],
+        onSubmit: () => this.discardChanges([file]),
       })
     }
   }
@@ -243,11 +243,15 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   ) => {
     this.props.dispatcher.showPopup({
       type: PopupType.ConfirmDiscardChanges,
-      repository: this.props.repository,
       showDiscardChangesSetting: false,
       discardingAllChanges: isDiscardingAllChanges,
       files,
+      onSubmit: () => this.discardChanges(files),
     })
+  }
+
+  private discardChanges(files: ReadonlyArray<WorkingDirectoryFileChange>) {
+    return this.props.dispatcher.discardChanges(this.props.repository, files)
   }
 
   private onIgnore = (pattern: string | string[]) => {

@@ -1,7 +1,5 @@
 import * as React from 'react'
 
-import { Repository } from '../../models/repository'
-import { Dispatcher } from '../dispatcher'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { PathText } from '../lib/path-text'
@@ -12,8 +10,6 @@ import { toPlatformCase } from '../../lib/platform-case'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IDiscardChangesProps {
-  readonly repository: Repository
-  readonly dispatcher: Dispatcher
   readonly files: ReadonlyArray<WorkingDirectoryFileChange>
   readonly confirmDiscardChanges: boolean
   /**
@@ -21,9 +17,10 @@ interface IDiscardChangesProps {
    * to ask for confirmation when discarding
    * changes
    */
-  readonly discardingAllChanges: boolean
   readonly showDiscardChangesSetting: boolean
+  readonly discardingAllChanges: boolean
   readonly onDismissed: () => void
+  readonly onSubmit: () => Promise<void>
   readonly onConfirmDiscardChangesChanged: (optOut: boolean) => void
 }
 
@@ -152,10 +149,7 @@ export class DiscardChanges extends React.Component<
   private discard = async () => {
     this.setState({ isDiscardingChanges: true })
 
-    await this.props.dispatcher.discardChanges(
-      this.props.repository,
-      this.props.files
-    )
+    await this.props.onSubmit()
 
     this.props.onConfirmDiscardChangesChanged(this.state.confirmDiscardChanges)
     this.props.onDismissed()

@@ -664,10 +664,14 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     this.props.dispatcher.showPopup({
       type: PopupType.ConfirmDiscardChanges,
-      repository: state.repository,
       files: workingDirectory.files,
       showDiscardChangesSetting: false,
       discardingAllChanges: true,
+      onSubmit: () =>
+        this.props.dispatcher.discardChanges(
+          state.repository,
+          workingDirectory.files
+        ),
     })
   }
 
@@ -1331,8 +1335,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <DiscardChanges
             key="discard-changes"
-            repository={popup.repository}
-            dispatcher={this.props.dispatcher}
             files={popup.files}
             confirmDiscardChanges={
               this.state.askForConfirmationOnDiscardChanges
@@ -1340,6 +1342,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             showDiscardChangesSetting={showSetting}
             discardingAllChanges={discardingAllChanges}
             onDismissed={this.onPopupDismissed}
+            onSubmit={popup.onSubmit}
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
           />
         )

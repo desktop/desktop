@@ -74,10 +74,10 @@ export type Popup =
     }
   | {
       type: PopupType.ConfirmDiscardChanges
-      repository: Repository
       files: ReadonlyArray<WorkingDirectoryFileChange>
       showDiscardChangesSetting?: boolean
       discardingAllChanges?: boolean
+      onSubmit: () => Promise<void>
     }
   | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
   | {
