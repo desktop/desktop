@@ -80,6 +80,9 @@ export class Changes extends React.Component<IChangesProps, {}> {
             diff={diff}
             dispatcher={this.props.dispatcher}
             hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+            askForConfirmationOnDiscardChanges={
+              this.props.askForConfirmationOnDiscardChanges
+            }
           />
         </div>
       </div>

@@ -154,6 +154,7 @@ interface ITextDiffProps {
     diff: ITextDiff,
     diffSelection: DiffSelection
   ) => void
+  readonly askForConfirmationOnDiscardChanges?: boolean
 }
 
 const diffGutterName = 'diff-gutter'
@@ -609,6 +610,8 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   private getDiscardLabel(rangeType: DiffRangeType, numLines: number): string {
+    const suffix = this.props.askForConfirmationOnDiscardChanges ? '…' : ''
+
     let type = ''
 
     if (rangeType === DiffRangeType.Additions) {
@@ -616,19 +619,19 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     } else if (rangeType === DiffRangeType.Deletions) {
       type = __DARWIN__ ? 'Removed' : 'removed'
     } else if (rangeType === DiffRangeType.Mixed) {
-      type = __DARWIN__ ? 'Modified' : 'modiifed'
+      type = __DARWIN__ ? 'Modified' : 'modified'
     } else {
-      assertNever(rangeType, `Invlaid range type: ${rangeType}`)
+      assertNever(rangeType, `Invalid range type: ${rangeType}`)
     }
 
     if (numLines > 1) {
       return __DARWIN__
-        ? `Discard These ${type} Lines`
-        : `Discard these ${type} lines`
+        ? `Discard These ${type} Lines${suffix}`
+        : `Discard these ${type} lines${suffix}`
     } else {
       return __DARWIN__
-        ? `Discard this ${type} Line`
-        : `Discard this ${type} line`
+        ? `Discard This ${type} Line${suffix}`
+        : `Discard this ${type} line${suffix}`
     }
   }
 

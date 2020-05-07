@@ -65,6 +65,9 @@ interface IDiffProps {
   /** Hiding whitespace in diff. */
   readonly hideWhitespaceInDiff: boolean
 
+  /** Whether we should show a confirmation dialog when the user discards changes */
+  readonly askForConfirmationOnDiscardChanges?: boolean
+
   /**
    * Called when the user wants to discard a selection of the diff.
    * Only applicable when readOnly is false.
@@ -240,6 +243,9 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
         onIncludeChanged={this.props.onIncludeChanged}
         onDiscardChanges={this.props.onDiscardChanges}
         diff={diff}
+        askForConfirmationOnDiscardChanges={
+          this.props.askForConfirmationOnDiscardChanges
+        }
       />
     )
   }
