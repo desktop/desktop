@@ -16,6 +16,7 @@ export enum ExternalEditor {
   Atom = 'Atom',
   AtomBeta = 'Atom Beta',
   AtomNightly = 'Atom Nightly',
+  VisualStudio = 'Visual Studio',
   VSCode = 'Visual Studio Code',
   VSCodeInsiders = 'Visual Studio Code (Insiders)',
   VSCodium = 'Visual Studio Codium',
@@ -38,6 +39,9 @@ export function parse(label: string): ExternalEditor | null {
   }
   if (label === ExternalEditor.AtomNightly) {
     return ExternalEditor.AtomNightly
+  }
+  if (label === ExternalEditor.VisualStudio) {
+    return ExternalEditor.VisualStudio
   }
   if (label === ExternalEditor.VSCode) {
     return ExternalEditor.VSCode
@@ -110,6 +114,15 @@ function getRegistryKeys(
           key: HKEY.HKEY_CURRENT_USER,
           subKey:
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\atom-nightly',
+        },
+      ]
+    case ExternalEditor.VisualStudio:
+      return [
+        // Microsoft Visual Studio Installer
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{6F320B93-EE3C-4826-85E0-ADF79F8D4C61}',
         },
       ]
     case ExternalEditor.VSCode:
@@ -406,6 +419,9 @@ function getExecutableShim(
       return Path.join(installLocation, 'bin', 'atom-beta.cmd') // remember, CMD must 'useShell'
     case ExternalEditor.AtomNightly:
       return Path.join(installLocation, 'bin', 'atom-nightly.cmd') // remember, CMD must 'useShell'
+    case ExternalEditor.VisualStudio:
+      const home = process.env.USERPROFILE;
+      return Path.join(home !== undefined ? home : '', '.dotnet', 'tools', 'ghvs.exe')
     case ExternalEditor.VSCode:
       return Path.join(installLocation, 'bin', 'code.cmd') // remember, CMD must 'useShell'
     case ExternalEditor.VSCodeInsiders:
@@ -452,6 +468,8 @@ function isExpectedInstallation(
       return displayName === 'Atom Beta' && publisher === 'GitHub Inc.'
     case ExternalEditor.AtomNightly:
       return displayName === 'Atom Nightly' && publisher === 'GitHub Inc.'
+    case ExternalEditor.VisualStudio:
+      return displayName === 'Microsoft Visual Studio Installer' && publisher === 'Microsoft Corporation'
     case ExternalEditor.VSCode:
       return (
         displayName.startsWith('Microsoft Visual Studio Code') &&
@@ -524,6 +542,15 @@ function extractApplicationInformation(
     editor === ExternalEditor.Atom ||
     editor === ExternalEditor.AtomBeta ||
     editor === ExternalEditor.AtomNightly
+  ) {
+    const displayName = getKeyOrEmpty(keys, 'DisplayName')
+    const publisher = getKeyOrEmpty(keys, 'Publisher')
+    const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
+    return { displayName, publisher, installLocation }
+  }
+
+  if (
+    editor === ExternalEditor.VisualStudio
   ) {
     const displayName = getKeyOrEmpty(keys, 'DisplayName')
     const publisher = getKeyOrEmpty(keys, 'Publisher')
@@ -752,6 +779,7 @@ export async function getAvailableEditors(): Promise<
     atomPath,
     atomBetaPath,
     atomNightlyPath,
+    vsPath,
     codePath,
     codeInsidersPath,
     codiumPath,
@@ -767,6 +795,7 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.AtomBeta),
     findApplication(ExternalEditor.AtomNightly),
+    findApplication(ExternalEditor.VisualStudio),
     findApplication(ExternalEditor.VSCode),
     findApplication(ExternalEditor.VSCodeInsiders),
     findApplication(ExternalEditor.VSCodium),
@@ -801,6 +830,14 @@ export async function getAvailableEditors(): Promise<
       editor: ExternalEditor.AtomNightly,
       path: atomNightlyPath,
       usesShell: true,
+    })
+  }
+
+  if (vsPath) {
+    results.push({
+      editor: ExternalEditor.VisualStudio,
+      path: vsPath,
+      usesShell: false,
     })
   }
 
