@@ -11,6 +11,7 @@ import { IStashEntry } from './stash-entry'
 import { Account } from '../models/account'
 import { Progress } from './progress'
 import { CloningRepository } from './cloning-repository'
+import { DiscardType } from '../ui/discard-changes/discard-changes-dialog'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -76,7 +77,7 @@ export type Popup =
       type: PopupType.ConfirmDiscardChanges
       files: ReadonlyArray<WorkingDirectoryFileChange>
       showDiscardChangesSetting?: boolean
-      discardingAllChanges?: boolean
+      discardType?: DiscardType
       onSubmit: () => Promise<void>
     }
   | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }

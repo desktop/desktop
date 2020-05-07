@@ -31,6 +31,7 @@ import { PopupType } from '../../models/popup'
 import { filesNotTrackedByLFS } from '../../lib/git/lfs'
 import { getLargeFilePaths } from '../../lib/large-files'
 import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
+import { DiscardType } from '../discard-changes/discard-changes-dialog'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -244,7 +245,9 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     this.props.dispatcher.showPopup({
       type: PopupType.ConfirmDiscardChanges,
       showDiscardChangesSetting: false,
-      discardingAllChanges: isDiscardingAllChanges,
+      discardType: isDiscardingAllChanges
+        ? DiscardType.AllFiles
+        : DiscardType.SomeFiles,
       files,
       onSubmit: () => this.discardChanges(files),
     })

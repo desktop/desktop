@@ -8,6 +8,14 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { TrashNameLabel } from '../lib/context-menu'
 import { toPlatformCase } from '../../lib/platform-case'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import { assertNever } from '../../lib/fatal-error'
+import { Ref } from '../lib/ref'
+
+export enum DiscardType {
+  AllFiles, // When discarding all changes from all files in the current repository.
+  SomeFiles, // When dicarding all changes from several files.
+  Selection, // When discarding the selected changes from the opened file.
+}
 
 interface IDiscardChangesProps {
   readonly files: ReadonlyArray<WorkingDirectoryFileChange>
@@ -18,7 +26,7 @@ interface IDiscardChangesProps {
    * changes
    */
   readonly showDiscardChangesSetting: boolean
-  readonly discardingAllChanges: boolean
+  readonly discardType: DiscardType
   readonly onDismissed: () => void
   readonly onSubmit: () => Promise<void>
   readonly onConfirmDiscardChangesChanged: (optOut: boolean) => void
@@ -55,24 +63,42 @@ export class DiscardChanges extends React.Component<
   }
 
   private getOkButtonLabel() {
-    if (this.props.discardingAllChanges) {
-      return __DARWIN__ ? 'Discard All Changes' : 'Discard all changes'
+    switch (this.props.discardType) {
+      case DiscardType.AllFiles:
+        return toPlatformCase('Discard All Changes')
+      case DiscardType.SomeFiles:
+      case DiscardType.Selection:
+        return toPlatformCase('Discard Changes')
+      default:
+        return assertNever(
+          this.props.discardType,
+          'Invalid discardType property'
+        )
     }
-    return __DARWIN__ ? 'Discard changes' : 'Discard changes'
+  }
+
+  private getDialogTitle() {
+    switch (this.props.discardType) {
+      case DiscardType.AllFiles:
+        return toPlatformCase('Confirm Discard All Changes')
+      case DiscardType.SomeFiles:
+      case DiscardType.Selection:
+        return toPlatformCase('Confirm Discard Changes')
+      default:
+        return assertNever(
+          this.props.discardType,
+          'Invalid discardType property'
+        )
+    }
   }
 
   public render() {
-    const discardingAllChanges = this.props.discardingAllChanges
     const isDiscardingChanges = this.state.isDiscardingChanges
 
     return (
       <Dialog
         id="discard-changes"
-        title={
-          discardingAllChanges
-            ? toPlatformCase('Confirm Discard All Changes')
-            : toPlatformCase('Confirm Discard Changes')
-        }
+        title={this.getDialogTitle()}
         onDismissed={this.props.onDismissed}
         onSubmit={this.discard}
         dismissable={isDiscardingChanges ? false : true}
@@ -82,10 +108,7 @@ export class DiscardChanges extends React.Component<
       >
         <DialogContent>
           {this.renderFileList()}
-          <p>
-            Changes can be restored by retrieving them from the {TrashNameLabel}
-            .
-          </p>
+          {this.renderAdditionalInfo()}
           {this.renderConfirmDiscardChanges()}
         </DialogContent>
 
@@ -121,6 +144,20 @@ export class DiscardChanges extends React.Component<
   }
 
   private renderFileList() {
+    if (this.props.discardType === DiscardType.Selection) {
+      const fileName =
+        this.props.files.length > 0 ? (
+          <>
+            {' '}
+            from <Ref>{this.props.files[0].path}</Ref>
+          </>
+        ) : null
+
+      return (
+        <p>Are you sure you want to discard the selected lines {fileName}?</p>
+      )
+    }
+
     if (this.props.files.length > MaxFilesToList) {
       return (
         <p>
@@ -144,6 +181,19 @@ export class DiscardChanges extends React.Component<
         </div>
       )
     }
+  }
+
+  private renderAdditionalInfo() {
+    if (this.props.discardType === DiscardType.Selection) {
+      // When discarding a selection we don't move the file to the trash.
+      return null
+    }
+
+    return (
+      <p>
+        Changes can be restored by retrieving them from the {TrashNameLabel}.
+      </p>
+    )
   }
 
   private discard = async () => {

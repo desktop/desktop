@@ -116,6 +116,7 @@ import { findUpstreamRemoteBranch } from '../lib/branch'
 import { GitHubRepository } from '../models/github-repository'
 import { CreateTag } from './create-tag'
 import { RetryCloneDialog } from './clone-repository/retry-clone-dialog'
+import { DiscardType } from './discard-changes/discard-changes-dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -666,7 +667,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       type: PopupType.ConfirmDiscardChanges,
       files: workingDirectory.files,
       showDiscardChangesSetting: false,
-      discardingAllChanges: true,
+      discardType: DiscardType.AllFiles,
       onSubmit: () =>
         this.props.dispatcher.discardChanges(
           state.repository,
@@ -1327,10 +1328,10 @@ export class App extends React.Component<IAppProps, IAppState> {
           popup.showDiscardChangesSetting === undefined
             ? true
             : popup.showDiscardChangesSetting
-        const discardingAllChanges =
-          popup.discardingAllChanges === undefined
-            ? false
-            : popup.discardingAllChanges
+        const discardType =
+          popup.discardType === undefined
+            ? DiscardType.SomeFiles
+            : popup.discardType
 
         return (
           <DiscardChanges
@@ -1340,7 +1341,7 @@ export class App extends React.Component<IAppProps, IAppState> {
               this.state.askForConfirmationOnDiscardChanges
             }
             showDiscardChangesSetting={showSetting}
-            discardingAllChanges={discardingAllChanges}
+            discardType={discardType}
             onDismissed={this.onPopupDismissed}
             onSubmit={popup.onSubmit}
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
