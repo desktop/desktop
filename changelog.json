@@ -2,7 +2,7 @@
   "releases": {
     "2.4.4-beta4": [
       "[Fixed] Add missing \"Cancel\" button in onboarding sign-in flow - #9715",
-      "[Improved] Updated copy for onboarding sign-in flow - #9715"
+      "[Improved] Update copy for onboarding sign-in flow - #9715"
     ],
     "2.4.4-beta3": [
       "[Fixed] Restore welcome flow's 2FA confirmation screen - #9686",
