@@ -10,6 +10,8 @@ import {
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
+import { PopupType } from '../../models/popup'
+import { DiscardType } from '../discard-changes/discard-changes-dialog'
 
 interface IChangesProps {
   readonly repository: Repository
@@ -21,6 +23,7 @@ interface IChangesProps {
   /** Whether a commit is in progress */
   readonly isCommitting: boolean
   readonly hideWhitespaceInDiff: boolean
+  readonly askForConfirmationOnDiscardChanges: boolean
 }
 
 export class Changes extends React.Component<IChangesProps, {}> {
@@ -37,7 +40,20 @@ export class Changes extends React.Component<IChangesProps, {}> {
     diff: ITextDiff,
     diffSelection: DiffSelection
   ) => {
-    this.props.dispatcher.discardChangesFromSelection(
+    if (!this.props.askForConfirmationOnDiscardChanges) {
+      this.discardChanges(diff, diffSelection)
+    } else {
+      this.props.dispatcher.showPopup({
+        type: PopupType.ConfirmDiscardChanges,
+        discardType: DiscardType.Selection,
+        files: [this.props.file],
+        onSubmit: () => this.discardChanges(diff, diffSelection),
+      })
+    }
+  }
+
+  private discardChanges(diff: ITextDiff, diffSelection: DiffSelection) {
+    return this.props.dispatcher.discardChangesFromSelection(
       this.props.repository,
       this.props.file.path,
       diff,

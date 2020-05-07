@@ -406,6 +406,9 @@ export class RepositoryView extends React.Component<
           isCommitting={this.props.state.isCommitting}
           imageDiffType={this.props.imageDiffType}
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+          askForConfirmationOnDiscardChanges={
+            this.props.askForConfirmationOnDiscardChanges
+          }
         />
       )
     }
