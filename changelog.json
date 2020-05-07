@@ -1,5 +1,9 @@
 {
   "releases": {
+    "2.4.4-beta4": [
+      "[Fixed] Added missing \"Cancel\" button in onboarding sign-in flow - #9715",
+      "[Improved] Updated copy for onboarding sign-in flow - #9715"
+    ],
     "2.4.4-beta3": [
       "[Fixed] Restore welcome flow's 2FA confirmation screen - #9686",
       "[Improved] Add ability to always choose the file from one branch or the other when resolving merge conflicts - #9702"
