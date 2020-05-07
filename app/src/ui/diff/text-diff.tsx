@@ -42,6 +42,12 @@ import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { toPlatformCase } from '../../lib/platform-case'
 
+enum HunkType {
+  Added = 'Added',
+  Deleted = 'Deleted',
+  Modified = 'Modified',
+}
+
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
 
@@ -535,17 +541,21 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       return null
     }
 
+    const range = findInteractiveDiffRange(this.props.diff.hunks, lineNumber)
+    if (range === null) {
+      return null
+    }
+    const hunkType = this.getHunkType(range)
+    if (hunkType === null) {
+      return null
+    }
+
     // When user opens the context menu from the hunk handle, we should
     // discard the range of changes that from that hunk.
     if (targetHasClass(event.target, 'hunk-handle')) {
-      const range = findInteractiveDiffRange(this.props.diff.hunks, lineNumber)
-      if (range === null) {
-        return null
-      }
-
       return [
         {
-          label: this.getDiscardLabel(range.from, range.to),
+          label: this.getDiscardLabel(hunkType, range.to - range.from + 1),
           action: () => this.onDiscardChanges(range.from, range.to),
         },
       ]
@@ -554,12 +564,38 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     // When user opens the context menu from a specific line, we should
     // discard only that line.
     if (targetHasClass(event.target, 'diff-line-number')) {
+      // We don't allow discarding individual lines on hunks that have both
+      // added and modified lines, since that can lead to unexpected results
+      // (e.g discarding the added line on a hunk that is a 1-line modification
+      // will leave the line deleted).
       return [
         {
-          label: this.getDiscardLabel(lineNumber),
+          label: this.getDiscardLabel(hunkType, 1),
           action: () => this.onDiscardChanges(lineNumber),
+          enabled: hunkType !== HunkType.Modified,
         },
       ]
+    }
+
+    return null
+  }
+
+  private getHunkType(range: { from: number; to: number }): HunkType | null {
+    const startDiffLine = diffLineForIndex(this.props.diff.hunks, range.from)
+    const endDiffLine = diffLineForIndex(this.props.diff.hunks, range.to)
+
+    if (startDiffLine === null || endDiffLine === null) {
+      return null
+    }
+
+    if (startDiffLine.type !== endDiffLine.type) {
+      return HunkType.Modified
+    }
+    if (startDiffLine.type === DiffLineType.Add) {
+      return HunkType.Added
+    }
+    if (startDiffLine.type === DiffLineType.Delete) {
+      return HunkType.Deleted
     }
 
     return null
@@ -577,73 +613,12 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     this.props.onDiscardChanges(this.props.diff, selection)
   }
 
-  /**
-   * Calculate the label to use for the discard changes context menu.
-   *
-   * The label can be used either to discard a single line (e.g `Discard line 23`)
-   * or to discard a range of lines (e.g `Discard lines 19-25`).
-   *
-   * To calculate the range of lines to display we check whether the range of selected
-   * lines have the same type (either added or deleted lines) and if not we try to find
-   * a range of lines that does, starting from the end line.
-   *
-   * This is to avoid displaying confusing ranges of lines to the user when trying to discard
-   * a hunk with additions and deletions (DiffLine objects for additions use the lines from the
-   * modified file while DiffLine objects for deletions use the lines from the original file).
-   *
-   * We get the range of lines using the end line since additions are always at the end of a hunk
-   * and we prefer to show a range with lines from the modified line when we have both additions
-   * and deletions.
-   */
-  private getDiscardLabel(
-    startLine: number,
-    endLine: number = startLine
-  ): string {
-    let currentLine = startLine
-    let currentDiffLine = diffLineForIndex(this.props.diff.hunks, startLine)
-    const endDiffLine = diffLineForIndex(this.props.diff.hunks, endLine)
-
-    while (
-      currentDiffLine !== null &&
-      endDiffLine !== null &&
-      currentDiffLine.type !== endDiffLine.type
-    ) {
-      currentLine++
-      currentDiffLine = diffLineForIndex(this.props.diff.hunks, currentLine)
-    }
-
-    return this.getDiscardLinesText(currentDiffLine, endDiffLine)
-  }
-
-  private getDiscardLinesText(
-    start: DiffLine | null,
-    end: DiffLine | null = start
-  ) {
-    if (start === null || end === null) {
-      // start/end should never be null, but as a safe net we display
-      // a generic text in case this happened.
-      return toPlatformCase('Discard Lines')
-    }
-
-    if (start === end) {
-      return (
-        toPlatformCase('Discard Line') +
-        ' ' +
-        this.getLineNumberFromDiffLine(start)
-      )
-    }
-
-    return (
-      toPlatformCase('Discard Lines') +
-      ' ' +
-      this.getLineNumberFromDiffLine(start) +
-      `-` +
-      this.getLineNumberFromDiffLine(end)
+  private getDiscardLabel(hunkType: HunkType, numLines: number): string {
+    return toPlatformCase(
+      `Discard ${numLines > 1 ? 'These' : 'This'} ${hunkType} ${
+        numLines > 1 ? 'Lines' : 'Line'
+      }`
     )
-  }
-
-  private getLineNumberFromDiffLine(line: DiffLine) {
-    return line.newLineNumber !== null ? line.newLineNumber : line.oldLineNumber
   }
 
   private onCopy = (editor: Editor, event: Event) => {
