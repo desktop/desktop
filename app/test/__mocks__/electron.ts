@@ -15,6 +15,11 @@ export const remote = {
   autoUpdater: {
     on: jest.fn(),
   },
+  nativeTheme: {
+    addListener: jest.fn(),
+    removeAllListeners: jest.fn(),
+    shouldUseDarkColors: jest.fn().mockImplementation(() => true),
+  },
 }
 
 export const ipcRenderer = {

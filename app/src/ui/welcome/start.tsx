@@ -5,6 +5,7 @@ import { Dispatcher } from '../dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
+import { BrowserRedirectMessage } from '../lib/authentication-form'
 
 /**
  * The URL to the sign-up page on GitHub.com. Used in conjunction
@@ -25,18 +26,26 @@ export class Start extends React.Component<IStartProps, {}> {
     return (
       <div id="start">
         <h1 className="welcome-title">Welcome to GitHub&nbsp;Desktop</h1>
-        <p className="welcome-text">
-          GitHub Desktop is a seamless way to contribute to projects on GitHub
-          and GitHub Enterprise Server. Sign in below to get started with your
-          existing projects.
-        </p>
-
-        <p className="welcome-text">
-          New to GitHub?{' '}
-          <LinkButton uri={CreateAccountURL} className="create-account-link">
-            Create your free account.
-          </LinkButton>
-        </p>
+        {!this.props.loadingBrowserAuth ? (
+          <>
+            <p className="welcome-text">
+              GitHub Desktop is a seamless way to contribute to projects on
+              GitHub and GitHub Enterprise Server. Sign in below to get started
+              with your existing projects.
+            </p>
+            <p className="welcome-text">
+              New to GitHub?{' '}
+              <LinkButton
+                uri={CreateAccountURL}
+                className="create-account-link"
+              >
+                Create your free account.
+              </LinkButton>
+            </p>
+          </>
+        ) : (
+          <p>{BrowserRedirectMessage}</p>
+        )}
 
         <div className="welcome-main-buttons">
           <Button
@@ -57,12 +66,17 @@ export class Start extends React.Component<IStartProps, {}> {
             </Button>
           )}
         </div>
-
-        <div>
-          <LinkButton onClick={this.signInToDotCom} className="basic-auth-link">
-            Sign in to GitHub.com using your username and password
-          </LinkButton>
-        </div>
+        {/* don't render this link if the user is already mid-browser sign in */}
+        {!this.props.loadingBrowserAuth && (
+          <div>
+            <LinkButton
+              onClick={this.signInToDotCom}
+              className="basic-auth-link"
+            >
+              Sign in to GitHub.com using your username and password
+            </LinkButton>
+          </div>
+        )}
 
         <div className="skip-action-container">
           <LinkButton className="skip-button" onClick={this.skip}>
