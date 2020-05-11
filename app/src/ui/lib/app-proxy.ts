@@ -35,7 +35,7 @@ export function getVersion(): string {
  */
 export function getName(): string {
   if (!name) {
-    name = getApp().getName()
+    name = getApp().name
   }
 
   return name
