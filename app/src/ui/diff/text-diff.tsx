@@ -7,7 +7,6 @@ import {
   DiffLineType,
   DiffSelection,
   DiffLine,
-  DiffSelectionType,
   ITextDiff,
 } from '../../models/diff'
 import {
@@ -519,7 +518,9 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     editor: CodeMirror.Editor,
     event: Event
   ): ReadonlyArray<IMenuItem> | null {
-    if (this.props.readOnly) {
+    const file = this.props.file
+
+    if (this.props.readOnly || !canSelect(file)) {
       // Changes can't be discarded in readOnly mode.
       return null
     }
@@ -556,7 +557,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       return [
         {
           label: this.getDiscardLabel(hunkType, range.to - range.from + 1),
-          action: () => this.onDiscardChanges(range.from, range.to),
+          action: () => this.onDiscardChanges(file, range.from, range.to),
         },
       ]
     }
@@ -571,7 +572,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       return [
         {
           label: this.getDiscardLabel(hunkType, 1),
-          action: () => this.onDiscardChanges(lineNumber),
+          action: () => this.onDiscardChanges(file, lineNumber),
           enabled: hunkType !== HunkType.Modified,
         },
       ]
@@ -601,14 +602,18 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     return null
   }
 
-  private onDiscardChanges(startLine: number, endLine: number = startLine) {
+  private onDiscardChanges(
+    file: WorkingDirectoryFileChange,
+    startLine: number,
+    endLine: number = startLine
+  ) {
     if (!this.props.onDiscardChanges) {
       return
     }
 
-    const selection = DiffSelection.fromInitialSelection(
-      DiffSelectionType.None
-    ).withRangeSelection(startLine, endLine - startLine + 1, true)
+    const selection = file.selection
+      .withSelectNone()
+      .withRangeSelection(startLine, endLine - startLine + 1, true)
 
     this.props.onDiscardChanges(this.props.diff, selection)
   }
