@@ -1,5 +1,15 @@
 {
   "releases": {
+    "2.5.0": [
+      "[New] Add, push, and view git tags in Desktop - #9424",
+      "[Added] Offer option to choose file from one branch or the other when resolving merge conflicts - #9702",
+      "[Added] Add context menu for highlighted text in diff view - #5100. Thanks @HashimotoYT!",
+      "[Fixed] Retain default branch option in \"Create Branch\" dialog when user focuses away from Desktop - #9611",
+      "[Improved] Clean up copy for onboarding sign-in flow - #9715",
+      "[Improved] Emphasize sign in via browser option in Welcome flow - #9663",
+      "[Improved] Update verbage in repository publish error - #9646",
+      "[Improved] Offer to retry cloning if it fails - #926. Thanks @Daniel-McCarthy!"
+    ],
     "2.4.4-beta4": [
       "[Fixed] Add missing \"Cancel\" button in onboarding sign-in flow - #9715",
       "[Improved] Update copy for onboarding sign-in flow - #9715"
