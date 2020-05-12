@@ -205,6 +205,8 @@ describe('discardChangesFromSelection()', () => {
   })
 })
 
+const noColor = (str: string) => str
+
 /**
  * Returns a diff-style string with the line differences between two strings.
  */
@@ -216,6 +218,11 @@ function getDifference(before: string, after: string) {
       omitAnnotationLines: true,
       contextLines: 0,
       expand: false,
+      aColor: noColor,
+      bColor: noColor,
+      changeColor: noColor,
+      commonColor: noColor,
+      patchColor: noColor,
     }
-  ).replace(/\r\n/g, '\n')
+  )
 }
