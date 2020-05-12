@@ -43,6 +43,7 @@ export class AppWindow {
         disableBlinkFeatures: 'Auxclick',
         nodeIntegration: true,
         enableRemoteModule: true,
+        spellcheck: true,
       },
       acceptFirstMouse: true,
     }
@@ -57,6 +58,9 @@ export class AppWindow {
 
     this.window = new BrowserWindow(windowOptions)
     savedWindowState.manage(this.window)
+
+    let languageCode = app.getLocale()
+    this.window.webContents.session.setSpellCheckerLanguages([languageCode])
 
     let quitting = false
     app.on('before-quit', () => {
