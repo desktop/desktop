@@ -636,7 +636,7 @@ function zoom(direction: ZoomDirection): ClickHandler {
         direction === ZoomDirection.In ? ZoomInFactors : ZoomOutFactors
 
       // So the values that we get from zoomFactor property are floating point
-      // precision numbers from chromium, that doesn't always round nicely, so
+      // precision numbers from chromium, that don't always round nicely, so
       // we'll have to do a little trick to figure out which of our supported
       // zoom factors the value is referring to.
       const currentZoom = findClosestValue(zoomFactors, rawZoom)
