@@ -247,7 +247,7 @@ export function formatPatchToDiscardChanges(
   filePath: string,
   diff: ITextDiff,
   selection: DiffSelection
-): string {
+): string | null {
   let patch = ''
 
   diff.hunks.forEach((hunk, hunkIndex) => {
@@ -321,11 +321,9 @@ export function formatPatchToDiscardChanges(
     patch += hunkBuf
   })
 
-  // If we get into this state we should never have been called in the first
-  // place. Someone gave us a faulty diff and/or faulty selection state.
-  if (!patch.length) {
-    log.debug(`formatPatch: empty path for ${filePath}`)
-    throw new Error(`Could not generate a patch, no changes`)
+  if (patch.length === 0) {
+    // The selection resulted in an empty patch.
+    return null
   }
 
   return formatPatchHeader(filePath, filePath) + patch

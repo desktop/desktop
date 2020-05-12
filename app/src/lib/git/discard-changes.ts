@@ -27,6 +27,11 @@ export async function discardChangesFromSelection(
 ) {
   const patch = formatPatchToDiscardChanges(filePath, diff, selection)
 
+  if (patch === null) {
+    // When the patch is null we don't need to apply it since it will be a noop.
+    return
+  }
+
   const args = ['apply', '--unidiff-zero', '--whitespace=nowarn', '-']
 
   await git(args, repository.path, 'discardChangesFromSelection', {
