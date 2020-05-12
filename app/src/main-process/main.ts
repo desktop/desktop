@@ -443,7 +443,12 @@ app.on('ready', () => {
       )
 
       const window = BrowserWindow.fromWebContents(event.sender)
-      menu.popup({ window })
+
+      if (window != null) {
+        menu.popup({ window })
+      } else {
+        menu.popup()
+      }
     }
   )
 
