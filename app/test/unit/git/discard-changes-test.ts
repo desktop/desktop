@@ -217,5 +217,5 @@ function getDifference(before: string, after: string) {
       contextLines: 0,
       expand: false,
     }
-  )
+  ).replace(/\r\n/g, '\n')
 }
