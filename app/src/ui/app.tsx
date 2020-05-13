@@ -727,8 +727,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         : null
 
     const isTutorialRepository =
-      selectedRepository &&
-      selectedRepository.isTutorialRepository
+      selectedRepository && selectedRepository.isTutorialRepository
 
     return isTutorialRepository ? selectedRepository : null
   }
