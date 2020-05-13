@@ -40,6 +40,7 @@ import { uuid } from '../../lib/uuid'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { toPlatformCase } from '../../lib/platform-case'
+import { enableDiscardLines } from '../../lib/feature-flag'
 
 enum HunkType {
   Added = 'Added',
@@ -518,6 +519,10 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     editor: CodeMirror.Editor,
     event: Event
   ): ReadonlyArray<IMenuItem> | null {
+    if (!enableDiscardLines()) {
+      return null
+    }
+
     const file = this.props.file
 
     if (this.props.readOnly || !canSelect(file)) {

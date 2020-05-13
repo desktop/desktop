@@ -185,3 +185,10 @@ export function enableGitTagsDisplay(): boolean {
 export function enableGitTagsCreation(): boolean {
   return true
 }
+
+/**
+ * Should we show the discard lines/hunks contet menu item?
+ */
+export function enableDiscardLines(): boolean {
+  return enableBetaFeatures()
+}
