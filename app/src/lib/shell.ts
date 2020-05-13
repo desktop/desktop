@@ -152,7 +152,7 @@ async function getEnvironmentFromShell(
  */
 function mergeEnvironmentVariables(env: IndexLookup) {
   for (const key in env) {
-    if (DenylistedNames.has(key)) {
+    if (ExcludedEnvironmentVars.has(key)) {
       continue
     }
 
