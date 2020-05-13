@@ -11,7 +11,6 @@ import {
   RevealInFileManagerLabel,
   DefaultEditorLabel,
 } from '../lib/context-menu'
-import { enableGroupRepositoriesByOwner } from '../../lib/feature-flag'
 
 interface IRepositoryListItemProps {
   readonly repository: Repositoryish
@@ -71,9 +70,7 @@ export class RepositoryListItem extends React.Component<
       prefix = `${gitHubRepo.owner.login}/`
     }
 
-    const className = enableGroupRepositoriesByOwner()
-      ? 'repository-list-item group-repositories-by-owner'
-      : 'repository-list-item'
+    const className = 'repository-list-item group-repositories-by-owner'
 
     return (
       <div
@@ -81,23 +78,6 @@ export class RepositoryListItem extends React.Component<
         className={className}
         title={repoTooltip}
       >
-        {!enableGroupRepositoriesByOwner() && (
-          <div
-            className="change-indicator-wrapper"
-            title={
-              hasChanges
-                ? 'There are uncommitted changes in this repository'
-                : ''
-            }
-          >
-            {hasChanges ? (
-              <Octicon
-                className="change-indicator"
-                symbol={OcticonSymbol.primitiveDot}
-              />
-            ) : null}
-          </div>
-        )}
         <Octicon
           className="icon-for-repository"
           symbol={iconForRepository(repository)}
@@ -113,7 +93,7 @@ export class RepositoryListItem extends React.Component<
         {repository instanceof Repository &&
           renderRepoIndicators({
             aheadBehind: this.props.aheadBehind,
-            hasChanges: enableGroupRepositoriesByOwner() && hasChanges,
+            hasChanges: hasChanges,
           })}
       </div>
     )
@@ -220,9 +200,8 @@ const renderAheadBehindIndicator = (aheadBehind: IAheadBehind) => {
 }
 
 const renderChangesIndicator = () => {
-  const classNames = enableGroupRepositoriesByOwner()
-    ? 'change-indicator-wrapper group-repositories-by-owner'
-    : 'change-indicator-wrapper'
+  const classNames = 'change-indicator-wrapper group-repositories-by-owner'
+
   return (
     <div
       className={classNames}

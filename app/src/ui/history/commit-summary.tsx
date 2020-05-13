@@ -11,10 +11,7 @@ import { getAvatarUsersForCommit, IAvatarUser } from '../../models/avatar'
 import { AvatarStack } from '../lib/avatar-stack'
 import { CommitAttribution } from '../lib/commit-attribution'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
-import {
-  enableHideWhitespaceInDiffOption,
-  enableGitTagsDisplay,
-} from '../../lib/feature-flag'
+import { enableGitTagsDisplay } from '../../lib/feature-flag'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -360,22 +357,20 @@ export class CommitSummary extends React.Component<
             </li>
             {this.renderTags()}
 
-            {enableHideWhitespaceInDiffOption() && (
-              <li
-                className="commit-summary-meta-item without-truncation"
-                title={filesDescription}
-              >
-                <Checkbox
-                  label="Hide Whitespace"
-                  value={
-                    this.props.hideWhitespaceInDiff
-                      ? CheckboxValue.On
-                      : CheckboxValue.Off
-                  }
-                  onChange={this.onHideWhitespaceInDiffChanged}
-                />
-              </li>
-            )}
+            <li
+              className="commit-summary-meta-item without-truncation"
+              title={filesDescription}
+            >
+              <Checkbox
+                label="Hide Whitespace"
+                value={
+                  this.props.hideWhitespaceInDiff
+                    ? CheckboxValue.On
+                    : CheckboxValue.Off
+                }
+                onChange={this.onHideWhitespaceInDiffChanged}
+              />
+            </li>
           </ul>
         </div>
 

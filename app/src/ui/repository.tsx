@@ -26,7 +26,7 @@ import { IMenu } from '../models/app-menu'
 import { StashDiffViewer } from './stashing'
 import { StashedChangesLoadStates } from '../models/stash-entry'
 import { TutorialPanel, TutorialWelcome, TutorialDone } from './tutorial'
-import { enableTutorial, enableNDDBBanner } from '../lib/feature-flag'
+import { enableNDDBBanner } from '../lib/feature-flag'
 import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { ExternalEditor } from '../lib/editors'
 
@@ -367,10 +367,7 @@ export class RepositoryView extends React.Component<
     }
 
     if (workingDirectory.files.length === 0) {
-      if (
-        enableTutorial() &&
-        this.props.currentTutorialStep !== TutorialStep.NotApplicable
-      ) {
+      if (this.props.currentTutorialStep !== TutorialStep.NotApplicable) {
         return this.renderTutorialPane()
       } else {
         return (
@@ -472,10 +469,7 @@ export class RepositoryView extends React.Component<
   }
 
   private maybeRenderTutorialPanel(): JSX.Element | null {
-    if (
-      enableTutorial() &&
-      isValidTutorialStep(this.props.currentTutorialStep)
-    ) {
+    if (isValidTutorialStep(this.props.currentTutorialStep)) {
       return (
         <TutorialPanel
           dispatcher={this.props.dispatcher}
