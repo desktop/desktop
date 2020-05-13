@@ -277,6 +277,7 @@ const dispatcher = new Dispatcher(
 )
 
 dispatcher.registerErrorHandler(defaultErrorHandler)
+dispatcher.registerErrorHandler(gitCloneErrorHandler)
 dispatcher.registerErrorHandler(upstreamAlreadyExistsHandler)
 dispatcher.registerErrorHandler(externalEditorErrorHandler)
 dispatcher.registerErrorHandler(openShellErrorHandler)
@@ -292,7 +293,6 @@ dispatcher.registerErrorHandler(missingRepositoryHandler)
 dispatcher.registerErrorHandler(localChangesOverwrittenHandler)
 dispatcher.registerErrorHandler(rebaseConflictsHandler)
 dispatcher.registerErrorHandler(refusedWorkflowUpdate)
-dispatcher.registerErrorHandler(gitCloneErrorHandler)
 
 document.body.classList.add(`platform-${process.platform}`)
 
