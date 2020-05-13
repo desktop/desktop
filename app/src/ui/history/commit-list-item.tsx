@@ -24,6 +24,7 @@ interface ICommitProps {
   readonly isLocal: boolean
   readonly onRevertCommit?: (commit: Commit) => void
   readonly onViewCommitOnGitHub?: (sha: string) => void
+  readonly onCopyGitHubURL?: (sha: string) => void
   readonly onCreateTag?: (targetCommitSha: string) => void
   readonly gitHubUsers: Map<string, IGitHubUser> | null
   readonly showUnpushedIndicator: boolean
@@ -123,6 +124,12 @@ export class CommitListItem extends React.PureComponent<
     }
   }
 
+  private onCopyGitHubURL = () => {
+    if (this.props.onCopyGitHubURL) {
+      this.props.onCopyGitHubURL(this.props.commit.sha)
+    }
+  }
+
   private onCreateTag = () => {
     if (this.props.onCreateTag) {
       this.props.onCreateTag(this.props.commit.sha)
@@ -167,6 +174,11 @@ export class CommitListItem extends React.PureComponent<
       {
         label: 'Copy SHA',
         action: this.onCopySHA,
+      },
+      {
+        label: 'Copy GitHub URL',
+        action: this.onCopyGitHubURL,
+        enabled: !this.props.isLocal && !!gitHubRepository,
       },
       {
         label: viewOnGitHubLabel,

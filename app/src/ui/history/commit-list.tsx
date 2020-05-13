@@ -46,6 +46,9 @@ interface ICommitListProps {
   /** Callback to fire to open a given commit on GitHub */
   readonly onViewCommitOnGitHub: (sha: string) => void
 
+  /** Callback to Copy to clipboard a given commit on GitHub */
+  readonly onCopyGitHubURL: (sha: string) => void
+
   /** Callback to fire to open the dialog to create a new tag on the given commit */
   readonly onCreateTag: (targetCommitSha: string) => void
 
@@ -120,6 +123,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         onCreateTag={this.props.onCreateTag}
         onRevertCommit={this.props.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
+        onCopyGitHubURL={this.props.onCopyGitHubURL}
       />
     )
   }

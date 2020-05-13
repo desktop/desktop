@@ -44,6 +44,7 @@ interface IRepositoryViewProps {
   readonly issuesStore: IssuesStore
   readonly gitHubUserStore: GitHubUserStore
   readonly onViewCommitOnGitHub: (SHA: string) => void
+  readonly onCopyGitHubURL: (SHA: string) => void
   readonly imageDiffType: ImageDiffType
   readonly hideWhitespaceInDiff: boolean
   readonly askForConfirmationOnDiscardChanges: boolean
@@ -225,6 +226,7 @@ export class RepositoryView extends React.Component<
         dispatcher={this.props.dispatcher}
         onRevertCommit={this.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
+        onCopyGitHubURL={this.props.onCopyGitHubURL}
         onCompareListScrolled={this.onCompareListScrolled}
         compareListScrollTop={scrollTop}
         tagsToPush={this.props.state.tagsToPush}

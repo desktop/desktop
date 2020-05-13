@@ -116,6 +116,7 @@ import { findUpstreamRemoteBranch } from '../lib/branch'
 import { GitHubRepository } from '../models/github-repository'
 import { CreateTag } from './create-tag'
 import { RetryCloneDialog } from './clone-repository/retry-clone-dialog'
+import { clipboard } from 'electron'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2550,6 +2551,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           issuesStore={this.props.issuesStore}
           gitHubUserStore={this.props.gitHubUserStore}
           onViewCommitOnGitHub={this.onViewCommitOnGitHub}
+          onCopyGitHubURL={this.onCopyGitHubURL}
           imageDiffType={state.imageDiffType}
           hideWhitespaceInDiff={state.hideWhitespaceInDiff}
           focusCommitMessage={state.focusCommitMessage}
@@ -2643,6 +2645,24 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     if (baseURL) {
       this.props.dispatcher.openInBrowser(`${baseURL}/commit/${SHA}`)
+    }
+  }
+
+  private onCopyGitHubURL = async (SHA: string) => {
+    const repository = this.getRepository()
+
+    if (
+      !repository ||
+      repository instanceof CloningRepository ||
+      !repository.gitHubRepository
+    ) {
+      return
+    }
+
+    const baseURL = repository.gitHubRepository.htmlURL
+
+    if (baseURL) {
+      clipboard.writeText(`${baseURL}/commit/${SHA}`)
     }
   }
 
