@@ -10,7 +10,7 @@ type IndexLookup = {
 /**
  * The names of any env vars that we shouldn't copy from the shell environment.
  */
-const DenylistedNames = new Set(['LOCAL_GIT_DIRECTORY'])
+const ExcludedEnvironmentVars = new Set(['LOCAL_GIT_DIRECTORY'])
 
 /**
  * Inspect whether the current process needs to be patched to get important
