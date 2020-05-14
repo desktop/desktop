@@ -116,6 +116,7 @@ import { findUpstreamRemoteBranch } from '../lib/branch'
 import { GitHubRepository } from '../models/github-repository'
 import { CreateTag } from './create-tag'
 import { RetryCloneDialog } from './clone-repository/retry-clone-dialog'
+import { DeleteTag } from './delete-tag'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1949,6 +1950,17 @@ export class App extends React.Component<IAppProps, IAppState> {
             targetCommitSha={popup.targetCommitSha}
             initialName={popup.initialName}
             localTags={popup.localTags}
+          />
+        )
+      }
+      case PopupType.DeleteTag: {
+        return (
+          <DeleteTag
+            key="delete-tag"
+            repository={popup.repository}
+            onDismissed={this.onPopupDismissed}
+            dispatcher={this.props.dispatcher}
+            tagName={popup.tagName}
           />
         )
       }
