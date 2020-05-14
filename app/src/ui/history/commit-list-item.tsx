@@ -25,9 +25,11 @@ interface ICommitProps {
   readonly onRevertCommit?: (commit: Commit) => void
   readonly onViewCommitOnGitHub?: (sha: string) => void
   readonly onCreateTag?: (targetCommitSha: string) => void
+  readonly onDeleteTag?: (tagName: string) => void
   readonly gitHubUsers: Map<string, IGitHubUser> | null
   readonly showUnpushedIndicator: boolean
   readonly unpushedIndicatorTitle?: string
+  readonly unpushedTags?: ReadonlyArray<string>
 }
 
 interface ICommitListItemState {
@@ -160,6 +162,17 @@ export class CommitListItem extends React.PureComponent<
         action: this.onCreateTag,
         enabled: this.props.onCreateTag !== undefined,
       })
+
+      const deleteTagsMenuItem = this.getDeleteTagsMenuItem()
+
+      if (deleteTagsMenuItem !== null) {
+        items.push(
+          {
+            type: 'separator',
+          },
+          deleteTagsMenuItem
+        )
+      }
     }
 
     items.push(
@@ -176,6 +189,35 @@ export class CommitListItem extends React.PureComponent<
     )
 
     showContextualMenu(items)
+  }
+
+  private getDeleteTagsMenuItem(): IMenuItem | null {
+    const { unpushedTags, onDeleteTag } = this.props
+
+    if (
+      onDeleteTag == null ||
+      unpushedTags == null ||
+      unpushedTags.length === 0
+    ) {
+      return null
+    }
+
+    if (unpushedTags.length === 1) {
+      return {
+        label: `Delete tag ${unpushedTags[0]}`,
+        action: () => onDeleteTag(unpushedTags[0]),
+      }
+    }
+
+    return {
+      label: 'Delete tag…',
+      submenu: unpushedTags.map(tagName => {
+        return {
+          label: tagName,
+          action: () => onDeleteTag(tagName),
+        }
+      }),
+    }
   }
 }
 

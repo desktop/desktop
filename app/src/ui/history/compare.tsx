@@ -286,6 +286,7 @@ export class CompareSidebar extends React.Component<
         onCommitSelected={this.onCommitSelected}
         onScroll={this.onScroll}
         onCreateTag={this.onCreateTag}
+        onDeleteTag={this.onDeleteTag}
         emptyListMessage={emptyListMessage}
         onCompareListScrolled={this.props.onCompareListScrolled}
         compareListScrollTop={this.props.compareListScrollTop}
@@ -600,6 +601,10 @@ export class CompareSidebar extends React.Component<
       targetCommitSha,
       this.props.localTags
     )
+  }
+
+  private onDeleteTag = (tagName: string) => {
+    this.props.dispatcher.deleteTag(this.props.repository, tagName)
   }
 }
 
