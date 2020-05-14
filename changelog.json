@@ -3,7 +3,7 @@
     "2.5.1-beta1": [
       "[Fixed] Center tags text vertically in History view - #9785",
       "[Fixed] Prevent Git authentication errors from prompting to retry clone instead of authentication dialog - #9777",
-      "[Improved] Avoid executing unwanted git hooks when fetching unpushed tags - #9793"
+      "[Improved] Avoid executing unwanted Git hooks when fetching unpushed tags - #9793"
     ],
     "2.5.0": [
       "[New] Add, push, and view Git tags on commit history in Desktop - #9424",
