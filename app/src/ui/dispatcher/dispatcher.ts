@@ -531,6 +531,20 @@ export class Dispatcher {
     })
   }
 
+  /**
+   * Show the confirmation dialog to delete a tag.
+   */
+  public showDeleteTagDialog(
+    repository: Repository,
+    tagName: string
+  ): Promise<void> {
+    return this.showPopup({
+      type: PopupType.DeleteTag,
+      repository,
+      tagName,
+    })
+  }
+
   /** Check out the given branch. */
   public checkoutBranch(
     repository: Repository,
