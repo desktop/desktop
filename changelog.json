@@ -1,7 +1,7 @@
 {
   "releases": {
     "2.5.1-beta1": [
-      "[Fixed] Center tags text vertically in history view - #9785",
+      "[Fixed] Center tags text vertically in History view - #9785",
       "[Fixed] Prevent Git authentication errors from prompting to retry clone instead of authentication dialog - #9777",
       "[Improved] Avoid executing unwanted git hooks when fetching unpushed tags - #9793"
     ],
