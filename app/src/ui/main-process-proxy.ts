@@ -74,16 +74,25 @@ let currentContextualMenuItems: ReadonlyArray<IMenuItem> | null = null
 export function registerContextualMenuActionDispatcher() {
   ipcRenderer.on(
     'contextual-menu-action',
-    (event: Electron.IpcRendererEvent, index: number) => {
-      if (!currentContextualMenuItems) {
-        return
-      }
-      if (index >= currentContextualMenuItems.length) {
+    (event: Electron.IpcRendererEvent, indices: number[]) => {
+      if (currentContextualMenuItems == null) {
         return
       }
 
-      const item = currentContextualMenuItems[index]
-      const action = item.action
+      let foundMenuItem: IMenuItem = {
+        submenu: currentContextualMenuItems,
+      }
+
+      // Traverse the submenus of the context menu until we find the appropiate index.
+      for (const index of indices) {
+        if (foundMenuItem == null || foundMenuItem.submenu == null) {
+          return
+        }
+
+        foundMenuItem = foundMenuItem.submenu[index]
+      }
+
+      const action = foundMenuItem.action
       if (action) {
         action()
         currentContextualMenuItems = null
