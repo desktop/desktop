@@ -1,5 +1,10 @@
 {
   "releases": {
+    "2.5.1-beta1": [
+      "[Fixed] Center tags text vertically in history view - #9785",
+      "[Fixed] Prevent git authentication errors from showing clone retry error handler instead of credentials form - #9777",
+      "[Improved] Avoid executing unwanted git hooks when fetching unpushed tags - #9793"
+    ],
     "2.5.0": [
       "[New] Add, push, and view Git tags on commit history in Desktop - #9424",
       "[Added] Offer option to choose file from one branch or the other when resolving merge conflicts - #9702",
