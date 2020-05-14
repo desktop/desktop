@@ -265,7 +265,15 @@ export class GitStore extends BaseStore {
 
   public async refreshTags() {
     const previousTags = this._localTags
-    this._localTags = await getAllTags(this.repository)
+    const newTags = await this.performFailableOperation(() =>
+      getAllTags(this.repository)
+    )
+
+    if (newTags === undefined) {
+      return
+    }
+
+    this._localTags = newTags
 
     if (previousTags !== null) {
       // We don't await for the emition of updates to finish
