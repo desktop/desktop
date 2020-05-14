@@ -65,6 +65,7 @@ import {
   removeRemote,
   createTag,
   getAllTags,
+  deleteTag,
 } from '../git'
 import { GitError as DugiteError } from '../../lib/git'
 import { GitError } from 'dugite'
@@ -331,6 +332,16 @@ export class GitStore extends BaseStore {
   ) {
     await this.performFailableOperation(async () => {
       await createTag(this.repository, name, targetCommitSha)
+    })
+
+    await this.refreshTags()
+
+    this.fetchTagsToPush(account)
+  }
+
+  public async deleteTag(account: IGitAccount | null, name: string) {
+    await this.performFailableOperation(async () => {
+      await deleteTag(this.repository, name)
     })
 
     await this.refreshTags()

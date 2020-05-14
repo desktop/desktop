@@ -12,6 +12,7 @@ import {
   createBranch,
   createCommit,
   checkoutBranch,
+  deleteTag,
 } from '../../../src/lib/git'
 import {
   setupFixtureRepository,
@@ -78,6 +79,17 @@ describe('git/tag', () => {
       expect(createTag(repository, 'my-new-tag', 'HEAD')).rejects.toThrow(
         /already exists/i
       )
+    })
+  })
+
+  describe('deleteTag', () => {
+    it('deletes a tag with the given name', async () => {
+      await createTag(repository, 'my-new-tag', 'HEAD')
+      await deleteTag(repository, 'my-new-tag')
+
+      const commit = await getCommit(repository, 'HEAD')
+      expect(commit).not.toBeNull()
+      expect(commit!.tags).toEqual([])
     })
   })
 

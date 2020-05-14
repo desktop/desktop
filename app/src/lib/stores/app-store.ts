@@ -3092,6 +3092,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._closePopup()
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _deleteTag(repository: Repository, name: string): Promise<void> {
+    const gitStore = this.gitStoreCache.get(repository)
+
+    await this.withAuthenticatingUser(repository, (_, account) =>
+      gitStore.deleteTag(account, name)
+    )
+  }
+
   private updateCheckoutProgress(
     repository: Repository,
     checkoutProgress: ICheckoutProgress | null

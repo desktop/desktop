@@ -22,6 +22,21 @@ export async function createTag(
 }
 
 /**
+ * Delete a tag.
+ *
+ * @param repository        - The repository in which to create the new tag.
+ * @param name              - The name of the tag to delete.
+ */
+export async function deleteTag(
+  repository: Repository,
+  name: string
+): Promise<void> {
+  const args = ['tag', '-d', name]
+
+  await git(args, repository.path, 'deleteTag')
+}
+
+/**
  * Gets all the local tags. Returns a Map with the tag name and the commit it points to.
  *
  * @param repository    The repository in which to get all the tags from.

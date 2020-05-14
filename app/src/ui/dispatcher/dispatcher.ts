@@ -507,6 +507,13 @@ export class Dispatcher {
   }
 
   /**
+   * Deletes the passed tag.
+   */
+  public deleteTag(repository: Repository, name: string): Promise<void> {
+    return this.appStore._deleteTag(repository, name)
+  }
+
+  /**
    * Show the tag creation dialog.
    */
   public showCreateTagDialog(
