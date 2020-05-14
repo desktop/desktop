@@ -3099,6 +3099,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this.withAuthenticatingUser(repository, (_, account) =>
       gitStore.deleteTag(account, name)
     )
+
+    this.statsStore.recordTagDeleted()
   }
 
   private updateCheckoutProgress(
