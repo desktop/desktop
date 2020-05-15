@@ -169,7 +169,7 @@ export function enableForkyCreateBranchUI(): boolean {
  * are new commits upstream.)
  */
 export function enableNDDBBanner(): boolean {
-  return enableBetaFeatures()
+  return false
 }
 
 /**
