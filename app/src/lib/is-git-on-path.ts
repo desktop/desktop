@@ -58,7 +58,7 @@ export function findGitOnPath(): Promise<string | undefined> {
   return Promise.resolve(undefined)
 }
 
-export function isGitOnPath(): Promise<boolean> {
+export async function isGitOnPath(): Promise<boolean> {
   // Modern versions of macOS ship with a Git shim that guides you through
   // the process of setting everything up. We trust this is available, so
   // don't worry about looking for it here.
