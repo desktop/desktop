@@ -187,7 +187,7 @@ export function enableGitTagsCreation(): boolean {
 }
 
 /**
- * Should we show the discard lines/hunks contet menu item?
+ * Should we show the discard lines/hunks context menu item?
  */
 export function enableDiscardLines(): boolean {
   return enableBetaFeatures()
