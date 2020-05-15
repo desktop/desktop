@@ -66,10 +66,5 @@ export async function isGitOnPath(): Promise<boolean> {
     return Promise.resolve(true)
   }
 
-  return findGitOnPath().then(
-    (path: string | undefined) =>
-      new Promise<boolean>((resolve, reject) => {
-        resolve(path !== undefined)
-      })
-  )
+  return (await findGitOnPath()) !== undefined
 }
