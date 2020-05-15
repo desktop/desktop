@@ -192,29 +192,36 @@ export class CommitListItem extends React.PureComponent<
   }
 
   private getDeleteTagsMenuItem(): IMenuItem | null {
-    const { unpushedTags, onDeleteTag } = this.props
+    const { unpushedTags, onDeleteTag, commit } = this.props
 
     if (
       onDeleteTag == null ||
       unpushedTags == null ||
-      unpushedTags.length === 0
+      commit.tags.length === 0
     ) {
       return null
     }
 
-    if (unpushedTags.length === 1) {
+    if (commit.tags.length === 1) {
+      const tagName = commit.tags[0]
+
       return {
-        label: `Delete tag ${unpushedTags[0]}`,
-        action: () => onDeleteTag(unpushedTags[0]),
+        label: `Delete tag ${tagName}`,
+        action: () => onDeleteTag(tagName),
+        enabled: unpushedTags.includes(tagName),
       }
     }
 
+    // Convert tags to a Set to avoid O(n^2)
+    const unpushedTagsSet = new Set(unpushedTags)
+
     return {
       label: 'Delete tag…',
-      submenu: unpushedTags.map(tagName => {
+      submenu: commit.tags.map(tagName => {
         return {
           label: tagName,
           action: () => onDeleteTag(tagName),
+          enabled: unpushedTagsSet.has(tagName),
         }
       }),
     }
