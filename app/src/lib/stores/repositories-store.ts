@@ -133,6 +133,7 @@ export class RepositoriesStore extends TypedBaseStore<
             repo.id!,
             gitHubRepository,
             repo.missing,
+            repo.workflowPreferences,
             repo.isTutorialRepository
           )
           inflatedRepos.push(inflatedRepo)
@@ -261,6 +262,7 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.id,
       repository.gitHubRepository,
       missing,
+      repository.workflowPreferences,
       repository.isTutorialRepository
     )
   }
@@ -289,6 +291,7 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.id,
       repository.gitHubRepository,
       false,
+      repository.workflowPreferences,
       repository.isTutorialRepository
     )
   }
@@ -480,6 +483,7 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.id,
       updatedGitHubRepo,
       repository.missing,
+      repository.workflowPreferences,
       repository.isTutorialRepository
     )
   }

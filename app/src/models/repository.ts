@@ -3,6 +3,7 @@ import * as Path from 'path'
 import { GitHubRepository } from './github-repository'
 import { IAheadBehind } from './branch'
 import { enableTutorial } from '../lib/feature-flag'
+import { WorkflowPreferences } from './workflow-preferences'
 
 function getBaseName(path: string): string {
   const baseName = Path.basename(path)
@@ -39,6 +40,7 @@ export class Repository {
     public readonly id: number,
     public readonly gitHubRepository: GitHubRepository | null,
     public readonly missing: boolean,
+    public readonly workflowPreferences?: WorkflowPreferences,
     private readonly _isTutorialRepository?: boolean
   ) {
     this.mainWorkTree = { path }
