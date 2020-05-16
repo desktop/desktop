@@ -3,7 +3,10 @@ import * as Path from 'path'
 import { GitHubRepository } from './github-repository'
 import { IAheadBehind } from './branch'
 import { enableTutorial } from '../lib/feature-flag'
-import { WorkflowPreferences } from './workflow-preferences'
+import {
+  WorkflowPreferences,
+  ForkContributionTargets,
+} from './workflow-preferences'
 
 function getBaseName(path: string): string {
   const baseName = Path.basename(path)
@@ -129,11 +132,23 @@ export function getGitHubHtmlUrl(repository: Repository): string | null {
 }
 
 /**
- * Returns the GitHubRepository when a non-fork repository is passed. Returns the parent
- * GitHubRepository otherwise.
+ * Attempts to honor the Repository's workflow preference for GitHubRepository contributions.
+ * Falls back to returning the GitHubRepository when a non-fork repository
+ * is passed, returns the parent GitHubRepository otherwise.
  */
 export function getNonForkGitHubRepository(
   repository: RepositoryWithGitHubRepository
 ): GitHubRepository {
+  if (
+    repository.workflowPreferences !== undefined &&
+    repository.workflowPreferences.forkContributionTarget !== undefined
+  ) {
+    switch (repository.workflowPreferences.forkContributionTarget) {
+      case ForkContributionTargets.Self:
+        return repository.gitHubRepository
+      case ForkContributionTargets.Parent:
+        return repository.gitHubRepository.parent || repository.gitHubRepository
+    }
+  }
   return repository.gitHubRepository.parent || repository.gitHubRepository
 }
