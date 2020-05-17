@@ -176,6 +176,7 @@
     "electron-winstaller": "4.0.2"
   },
   "optionalDependencies": {
-    "electron-installer-debian": "3.0.0"
+    "electron-installer-debian": "3.0.0",
+    "electron-installer-redhat": "3.0.0"
   }
 }
