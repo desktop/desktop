@@ -161,11 +161,14 @@
     "eslint-plugin-github": "^5.1.5",
     "markdownlint-cli": "^0.32.2",
     "node-test-github-reporter": "^1.2.0",
+    "patch-package": "^8.0.0",
+    "postinstall-postinstall": "^2.1.0",
     "reserved-words": "^0.1.2",
     "tsconfig-paths": "^3.9.0",
     "tsx": "^4.19.3"
   },
   "optionalDependencies": {
-    "electron-installer-debian": "3.2.0"
+    "electron-installer-debian": "3.2.0",
+    "electron-installer-redhat": "3.4.0"
   }
 }
