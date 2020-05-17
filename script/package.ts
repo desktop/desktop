@@ -25,6 +25,7 @@ import { existsSync, rmSync } from 'fs'
 
 import { packageElectronBuilder } from './package-electron-builder'
 import { packageDebian } from './package-debian'
+import { packageRedhat } from './package-redhat'
 
 const distPath = getDistPath()
 const productName = getProductName()
@@ -182,16 +183,21 @@ async function packageLinux() {
     console.log('Updating file mode for chrome-sandbox…')
     await chmod(helperPath, 0o4755)
   }
+  try {
+    const files = await packageElectronBuilder()
+    const debianPackage = await packageDebian()
+    const redhatPackage = await packageRedhat()
 
-  const files = await packageElectronBuilder()
-  const debianPackage = await packageDebian()
+    const installers = [...files, debianPackage, redhatPackage]
 
-  const installers = [...files, debianPackage]
+    console.log(`Installers created:`)
+    for (const installer of installers) {
+      console.log(` - ${installer}`)
+    }
 
-  console.log(`Installers created:`)
-  for (const installer of installers) {
-    console.log(` - ${installer}`)
+    generateChecksums(installers)
+  } catch (err) {
+    console.error('A problem occurred with the packaging step', err)
+    process.exit(1)
   }
-
-  generateChecksums(installers)
 }
