@@ -85,7 +85,7 @@ jobs:
           docker run -v $(Build.SourcesDirectory):/src -v
           /tmp/local/.cache:/.cache -v /tmp/local/.yarn:/.yarn -v
           /tmp/local/.node-gyp:/.node-gyp -v /tmp/local/.local:/.local -w /src
-          shiftkey/desktop:snapcraft-node-yarn sh -c "yarn run package"
+          shiftkey/desktop:packaging-node-yarn sh -c "yarn run package"
         displayName: 'Package in Container'
       - task: CopyFiles@2
         inputs:
@@ -93,7 +93,6 @@ jobs:
             dist/*.AppImage
             dist/*.deb
             dist/*.rpm
-            dist/*.snap
             dist/*.txt
           targetFolder: $(Build.ArtifactStagingDirectory)
           flattenFolders: true
