@@ -84,8 +84,6 @@ import { BaseStore } from './base-store'
 import { getStashes, getStashedFiles } from '../git/stash'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { PullRequest } from '../../models/pull-request'
-import { fetchTagsToPushMemoized } from './helpers/fetch-tags-to-push-memoized'
-import { shallowEquals } from '../equality'
 import { StatsStore } from '../stats'
 
 /** The number of commits to load from history per batch. */
@@ -127,7 +125,7 @@ export class GitStore extends BaseStore {
 
   private _aheadBehind: IAheadBehind | null = null
 
-  private _tagsToPush: ReadonlyArray<string> | null = null
+  private _tagsToPush: ReadonlyArray<string> = []
 
   private _defaultRemote: IRemote | null = null
 
@@ -147,6 +145,9 @@ export class GitStore extends BaseStore {
     private readonly statsStore: StatsStore
   ) {
     super()
+
+    const rawTags = localStorage.getItem(getTagsToPushKey(repository))
+    this._tagsToPush = rawTags ? JSON.parse(rawTags) : []
   }
 
   private emitNewCommitsLoaded(commits: ReadonlyArray<Commit>) {
@@ -331,18 +332,14 @@ export class GitStore extends BaseStore {
     this.storeCommits(commitsToStore, true)
   }
 
-  public async createTag(
-    account: IGitAccount | null,
-    name: string,
-    targetCommitSha: string
-  ) {
+  public async createTag(name: string, targetCommitSha: string) {
     await this.performFailableOperation(async () => {
       await createTag(this.repository, name, targetCommitSha)
     })
 
     await this.refreshTags()
 
-    this.fetchTagsToPush(account)
+    this.addTagToPush(name)
   }
 
   /** The list of ordered SHAs. */
@@ -450,43 +447,27 @@ export class GitStore extends BaseStore {
         .shift() || null
   }
 
-  public async fetchTagsToPush(account: IGitAccount | null) {
-    const currentRemote = this._currentRemote
+  private addTagToPush(tagName: string) {
+    this._tagsToPush = [...this._tagsToPush, tagName]
 
-    if (currentRemote === null) {
-      this._tagsToPush = null
-      return
-    }
+    this.storeTagsToPush()
+    this.emitUpdate()
+  }
 
-    const localTags = this._localTags
-    if (localTags === null) {
-      this._tagsToPush = null
-      return
-    }
+  public clearTagsToPush() {
+    this._tagsToPush = []
 
-    if (this.tip.kind !== TipState.Valid) {
-      this._tagsToPush = null
-      return
-    }
-    const currentBranch = this.tip.branch
+    this.storeTagsToPush()
+    this.emitUpdate()
+  }
 
-    const tagsToPush = await this.performFailableOperation(() =>
-      fetchTagsToPushMemoized(
-        this.repository,
-        account,
-        currentRemote,
-        currentBranch.name,
-        localTags,
-        currentBranch.tip.sha
-      )
-    )
+  private storeTagsToPush() {
+    const localStorageKey = getTagsToPushKey(this.repository)
 
-    const previousTagsToPush = this._tagsToPush
-
-    this._tagsToPush = tagsToPush !== undefined ? tagsToPush : null
-
-    if (!shallowEquals(previousTagsToPush, this._tagsToPush)) {
-      this.emitUpdate()
+    if (this._tagsToPush.length === 0) {
+      localStorage.removeItem(localStorageKey)
+    } else {
+      localStorage.setItem(localStorageKey, JSON.stringify(this._tagsToPush))
     }
   }
 
@@ -1595,4 +1576,8 @@ export class GitStore extends BaseStore {
       }
     }
   }
+}
+
+function getTagsToPushKey(repository: Repository) {
+  return `tags-to-push-${repository.hash}`
 }
