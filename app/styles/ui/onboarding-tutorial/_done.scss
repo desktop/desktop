@@ -1,0 +1,47 @@
+#tutorial-done {
+  padding: var(--spacing-quad);
+  flex: 1 1 700px;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  .header {
+    display: flex;
+    flex-direction: row;
+
+    .text {
+      flex-grow: 1;
+      margin-right: var(--spacing-double);
+
+      h1 {
+        padding: 0;
+        margin: 0;
+        font-size: var(--font-size-xl);
+        font-weight: var(--font-weight-light);
+      }
+
+      p {
+        margin: 0;
+      }
+    }
+
+    .image {
+      flex: 0;
+      height: 70px;
+      width: 73px;
+      min-width: 70px;
+      min-height: 73px;
+      align-self: flex-end;
+    }
+
+    margin-bottom: var(--spacing-double);
+  }
+
+  .content {
+    width: 100%;
+    max-width: 600px;
+  }
+}

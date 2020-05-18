@@ -42,7 +42,7 @@ function readXml(xml: string): Promise<IXML2JSNode> {
 }
 
 async function generateIconData(): Promise<ReadonlyArray<IOcticonData>> {
-  const octicons = require('octicons')
+  const octicons = require('@primer/octicons')
 
   const results = new Array<IOcticonData>()
 

@@ -10,7 +10,7 @@ interface IHighlightTextProps {
   readonly highlight: ReadonlyArray<number>
 }
 
-export const HighlightText: React.SFC<IHighlightTextProps> = ({
+export const HighlightText: React.FunctionComponent<IHighlightTextProps> = ({
   text,
   highlight,
 }) => (

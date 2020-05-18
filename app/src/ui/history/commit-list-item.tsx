@@ -11,6 +11,11 @@ import { CommitAttribution } from '../lib/commit-attribution'
 import { IGitHubUser } from '../../lib/databases/github-user-database'
 import { AvatarStack } from '../lib/avatar-stack'
 import { IMenuItem } from '../../lib/menu-item'
+import { Octicon, OcticonSymbol } from '../octicons'
+import {
+  enableGitTagsDisplay,
+  enableGitTagsCreation,
+} from '../../lib/feature-flag'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
@@ -19,7 +24,10 @@ interface ICommitProps {
   readonly isLocal: boolean
   readonly onRevertCommit?: (commit: Commit) => void
   readonly onViewCommitOnGitHub?: (sha: string) => void
+  readonly onCreateTag?: (targetCommitSha: string) => void
   readonly gitHubUsers: Map<string, IGitHubUser> | null
+  readonly showUnpushedIndicator: boolean
+  readonly unpushedIndicatorTitle?: string
 }
 
 interface ICommitListItemState {
@@ -27,7 +35,7 @@ interface ICommitListItemState {
 }
 
 /** A component which displays a single commit in a commit list. */
-export class CommitListItem extends React.Component<
+export class CommitListItem extends React.PureComponent<
   ICommitProps,
   ICommitListItemState
 > {
@@ -57,7 +65,9 @@ export class CommitListItem extends React.Component<
 
   public render() {
     const commit = this.props.commit
-    const author = commit.author
+    const {
+      author: { date },
+    } = commit
 
     return (
       <div className="commit" onContextMenu={this.onContextMenu}>
@@ -74,17 +84,33 @@ export class CommitListItem extends React.Component<
               <CommitAttribution
                 gitHubRepository={this.props.gitHubRepository}
                 commit={commit}
-              />{' '}
-              <RelativeTime date={author.date} />
+              />
+              {renderRelativeTime(date)}
             </div>
           </div>
+        </div>
+        <div className="commit-indicators">
+          {enableGitTagsDisplay() &&
+            renderCommitListItemTags(this.props.commit.tags)}
+          {this.renderUnpushedIndicator()}
         </div>
       </div>
     )
   }
 
-  public shouldComponentUpdate(nextProps: ICommitProps): boolean {
-    return this.props.commit.sha !== nextProps.commit.sha
+  private renderUnpushedIndicator() {
+    if (!this.props.showUnpushedIndicator) {
+      return null
+    }
+
+    return (
+      <div
+        className="unpushed-indicator"
+        title={this.props.unpushedIndicatorTitle}
+      >
+        <Octicon symbol={OcticonSymbol.arrowUp} />
+      </div>
+    )
   }
 
   private onCopySHA = () => {
@@ -94,6 +120,12 @@ export class CommitListItem extends React.Component<
   private onViewOnGitHub = () => {
     if (this.props.onViewCommitOnGitHub) {
       this.props.onViewCommitOnGitHub(this.props.commit.sha)
+    }
+  }
+
+  private onCreateTag = () => {
+    if (this.props.onCreateTag) {
+      this.props.onCreateTag(this.props.commit.sha)
     }
   }
 
@@ -120,6 +152,17 @@ export class CommitListItem extends React.Component<
         },
         enabled: this.props.onRevertCommit !== undefined,
       },
+    ]
+
+    if (enableGitTagsCreation()) {
+      items.push({
+        label: 'Create Tag…',
+        action: this.onCreateTag,
+        enabled: this.props.onCreateTag !== undefined,
+      })
+    }
+
+    items.push(
       { type: 'separator' },
       {
         label: 'Copy SHA',
@@ -129,9 +172,35 @@ export class CommitListItem extends React.Component<
         label: viewOnGitHubLabel,
         action: this.onViewOnGitHub,
         enabled: !this.props.isLocal && !!gitHubRepository,
-      },
-    ]
+      }
+    )
 
     showContextualMenu(items)
   }
+}
+
+function renderRelativeTime(date: Date) {
+  return (
+    <>
+      {` • `}
+      <RelativeTime date={date} abbreviate={true} />
+    </>
+  )
+}
+
+function renderCommitListItemTags(tags: ReadonlyArray<string>) {
+  if (tags.length === 0) {
+    return null
+  }
+  const [firstTag] = tags
+  return (
+    <span className="tag-indicator">
+      <span className="tag-name" key={firstTag}>
+        {firstTag}
+      </span>
+      {tags.length > 1 && (
+        <span key={tags.length} className="tag-indicator-more" />
+      )}
+    </span>
+  )
 }

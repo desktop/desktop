@@ -1,0 +1,49 @@
+#tutorial-welcome {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+  flex: 1 1 630px;
+  height: 100%;
+  padding: 0 var(--spacing-triple);
+
+  .header {
+    width: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    margin: var(--spacing-quint) 0;
+    padding-top: var(--spacing-double);
+    text-align: center;
+
+    h1 {
+      font-weight: var(--font-weight-light);
+      font-size: var(--font-size-xl);
+      line-height: 1.1;
+    }
+    p {
+      margin: var(--spacing-third) 0;
+      padding: 0;
+    }
+  }
+  .definitions {
+    display: flex;
+    justify-content: space-around;
+    padding: 0;
+    max-width: 600px;
+    flex-wrap: wrap;
+
+    li {
+      display: flex;
+      flex-flow: column nowrap;
+      flex: 0 1 160px;
+      padding: 0 var(--spacing-half) var(--spacing-double);
+
+      img {
+        align-self: center;
+      }
+      p {
+        text-align: start;
+      }
+    }
+  }
+}

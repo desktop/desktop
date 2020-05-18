@@ -4,6 +4,8 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
 
+import * as moment from 'moment'
+
 import { ipcRenderer, remote } from 'electron'
 
 import { App } from './app'
@@ -21,6 +23,11 @@ import {
   upstreamAlreadyExistsHandler,
   rebaseConflictsHandler,
   localChangesOverwrittenHandler,
+  refusedWorkflowUpdate,
+  samlReauthRequired,
+  insufficientGitHubRepoPermissions,
+  schannelUnableToCheckRevocationForCertificate,
+  gitCloneErrorHandler,
 } from './dispatcher'
 import {
   AppStore,
@@ -55,6 +62,7 @@ import { UiActivityMonitor } from './lib/ui-activity-monitor'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { ApiRepositoriesStore } from '../lib/stores/api-repositories-store'
 import { CommitStatusStore } from '../lib/stores/commit-status-store'
+import { PullRequestCoordinator } from '../lib/stores/pull-request-coordinator'
 
 if (__DEV__) {
   installDevGlobals()
@@ -80,6 +88,11 @@ process.env['LOCAL_GIT_DIRECTORY'] = Path.resolve(__dirname, 'git')
 //   Focus Ring! -- A11ycasts #16: https://youtu.be/ilj2P5-5CjI
 require('wicg-focus-ring')
 
+// setup this moment.js plugin so we can use easier
+// syntax for formatting time duration
+const momentDurationFormatSetup = require('moment-duration-format')
+momentDurationFormatSetup(moment)
+
 const startTime = performance.now()
 
 if (!process.env.TEST_ENV) {
@@ -92,7 +105,11 @@ let currentState: IAppState | null = null
 let lastUnhandledRejection: string | null = null
 let lastUnhandledRejectionTime: Date | null = null
 
-process.once('uncaughtException', (error: Error) => {
+const sendErrorWithContext = (
+  error: Error,
+  context: { [key: string]: string } = {},
+  nonFatal?: boolean
+) => {
   error = withSourceMappedStack(error)
 
   console.error('Uncaught exception', error)
@@ -105,6 +122,7 @@ process.once('uncaughtException', (error: Error) => {
     const extra: Record<string, string> = {
       osVersion: getOS(),
       guid: getGUID(),
+      ...context,
     }
 
     try {
@@ -165,11 +183,22 @@ process.once('uncaughtException', (error: Error) => {
       /* ignore */
     }
 
-    sendErrorReport(error, extra)
+    sendErrorReport(error, extra, nonFatal)
   }
+}
 
+process.once('uncaughtException', (error: Error) => {
+  sendErrorWithContext(error)
   reportUncaughtException(error)
 })
+
+// See sendNonFatalException for more information
+process.on(
+  'send-non-fatal-exception',
+  (error: Error, context?: { [key: string]: string }) => {
+    sendErrorWithContext(error, context, true)
+  }
+)
 
 /**
  * Chromium won't crash on an unhandled rejection (similar to how
@@ -217,6 +246,11 @@ const pullRequestStore = new PullRequestStore(
   repositoriesStore
 )
 
+const pullRequestCoordinator = new PullRequestCoordinator(
+  pullRequestStore,
+  repositoriesStore
+)
+
 const repositoryStateManager = new RepositoryStateCache(repo =>
   gitHubUserStore.getUsersForRepository(repo)
 )
@@ -233,7 +267,7 @@ const appStore = new AppStore(
   signInStore,
   accountsStore,
   repositoriesStore,
-  pullRequestStore,
+  pullRequestCoordinator,
   repositoryStateManager,
   apiRepositoriesStore
 )
@@ -250,23 +284,28 @@ const dispatcher = new Dispatcher(
 )
 
 dispatcher.registerErrorHandler(defaultErrorHandler)
+dispatcher.registerErrorHandler(gitCloneErrorHandler)
 dispatcher.registerErrorHandler(upstreamAlreadyExistsHandler)
 dispatcher.registerErrorHandler(externalEditorErrorHandler)
 dispatcher.registerErrorHandler(openShellErrorHandler)
 dispatcher.registerErrorHandler(mergeConflictHandler)
 dispatcher.registerErrorHandler(lfsAttributeMismatchHandler)
+dispatcher.registerErrorHandler(insufficientGitHubRepoPermissions)
+dispatcher.registerErrorHandler(schannelUnableToCheckRevocationForCertificate)
 dispatcher.registerErrorHandler(gitAuthenticationErrorHandler)
 dispatcher.registerErrorHandler(pushNeedsPullHandler)
+dispatcher.registerErrorHandler(samlReauthRequired)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(missingRepositoryHandler)
 dispatcher.registerErrorHandler(localChangesOverwrittenHandler)
 dispatcher.registerErrorHandler(rebaseConflictsHandler)
+dispatcher.registerErrorHandler(refusedWorkflowUpdate)
 
 document.body.classList.add(`platform-${process.platform}`)
 
 dispatcher.setAppFocusState(remote.getCurrentWindow().isFocused())
 
-ipcRenderer.on('focus', () => {
+ipcRenderer.on('focus', async () => {
   const { selectedState } = appStore.getState()
 
   // Refresh the currently selected repository on focus (if
@@ -275,7 +314,8 @@ ipcRenderer.on('focus', () => {
     selectedState &&
     !(selectedState.type === SelectionType.CloningRepository)
   ) {
-    dispatcher.refreshRepository(selectedState.repository)
+    await dispatcher.refreshTags(selectedState.repository)
+    await dispatcher.refreshRepository(selectedState.repository)
   }
 
   dispatcher.setAppFocusState(true)
@@ -291,7 +331,7 @@ ipcRenderer.on('blur', () => {
 
 ipcRenderer.on(
   'url-action',
-  (event: Electron.IpcMessageEvent, { action }: { action: URLActionType }) => {
+  (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {
     dispatcher.dispatchURLAction(action)
   }
 )

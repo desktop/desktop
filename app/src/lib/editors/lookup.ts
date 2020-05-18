@@ -49,7 +49,7 @@ export async function getAvailableEditors(): Promise<
  * be found (i.e. it has been removed).
  */
 export async function findEditorOrDefault(
-  name?: string
+  name: string | null
 ): Promise<IFoundEditor<ExternalEditor> | null> {
   const editors = await getAvailableEditors()
   if (editors.length === 0) {

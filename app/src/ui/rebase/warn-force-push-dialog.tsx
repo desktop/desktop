@@ -2,14 +2,11 @@ import * as React from 'react'
 
 import { Repository } from '../../models/repository'
 import { WarnForcePushStep } from '../../models/rebase-flow-step'
-
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
-
 import { Dispatcher } from '../dispatcher'
 import { DialogFooter, DialogContent, Dialog } from '../dialog'
 import { Ref } from '../lib/ref'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IWarnForcePushProps {
   readonly dispatcher: Dispatcher
@@ -47,7 +44,7 @@ export class WarnForcePushDialog extends React.Component<
         title={title}
         onDismissed={this.props.onDismissed}
         onSubmit={this.onBeginRebase}
-        disableClickDismissalAlways={true}
+        dismissable={false}
         type="warning"
       >
         <DialogContent>
@@ -74,10 +71,10 @@ export class WarnForcePushDialog extends React.Component<
           </div>
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup>
-            <Button type="submit">Begin rebase</Button>
-            <Button onClick={this.props.onDismissed}>Cancel</Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            okButtonText={__DARWIN__ ? 'Begin Rebase' : 'Begin rebase'}
+            onCancelButtonClick={this.props.onDismissed}
+          />
         </DialogFooter>
       </Dialog>
     )

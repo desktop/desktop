@@ -35,6 +35,8 @@ import memoizeOne from 'memoize-one'
 import { structuralEquals } from '../../lib/equality'
 import { assertNever } from '../../lib/fatal-error'
 import { clamp } from '../../lib/clamp'
+import { uuid } from '../../lib/uuid'
+import { showContextualMenu } from '../main-process-proxy'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -77,18 +79,26 @@ interface ISelection {
 
 function createNoNewlineIndicatorWidget() {
   const widget = document.createElement('span')
-  widget.title = 'No newline at end of file'
+  const titleId = uuid()
 
   const { w, h, d } = narrowNoNewlineSymbol
 
   const xmlns = 'http://www.w3.org/2000/svg'
   const svgElem = document.createElementNS(xmlns, 'svg')
-  svgElem.setAttribute('aria-hidden', 'true')
   svgElem.setAttribute('version', '1.1')
   svgElem.setAttribute('viewBox', `0 0 ${w} ${h}`)
+  svgElem.setAttribute('role', 'img')
+  svgElem.setAttribute('aria-labelledby', titleId)
   svgElem.classList.add('no-newline')
 
+  const titleElem = document.createElementNS(xmlns, 'title')
+  titleElem.setAttribute('id', titleId)
+  titleElem.setAttribute('lang', 'en')
+  titleElem.textContent = 'No newline at end of file'
+  svgElem.appendChild(titleElem)
+
   const pathElem = document.createElementNS(xmlns, 'path')
+  pathElem.setAttribute('role', 'presentation')
   pathElem.setAttribute('d', d)
   pathElem.textContent = 'No newline at end of file'
   svgElem.appendChild(pathElem)
@@ -157,6 +167,34 @@ function showSearch(cm: Editor) {
   }
 }
 
+/**
+ * Scroll the editor vertically by either line or page the number
+ * of times specified by the `step` parameter.
+ *
+ * This differs from the moveV function in CodeMirror in that it
+ * doesn't attempt to scroll by moving the cursor but rather by
+ * actually changing the scrollTop (if possible).
+ */
+function scrollEditorVertically(step: number, unit: 'line' | 'page') {
+  return (cm: Editor) => {
+    // The magic number 4 here is specific to Desktop and it's
+    // the extra padding we put around lines (2px below and 2px
+    // above)
+    const lineHeight = Math.round(cm.defaultTextHeight() + 4)
+    const scrollInfo = cm.getScrollInfo()
+
+    if (unit === 'line') {
+      cm.scrollTo(undefined, scrollInfo.top + step * lineHeight)
+    } else {
+      // We subtract one line from the page height to keep som
+      // continuity when scrolling. Scrolling a full page leaves
+      // the user without any anchor point
+      const pageHeight = scrollInfo.clientHeight - lineHeight
+      cm.scrollTo(undefined, scrollInfo.top + step * pageHeight)
+    }
+  }
+}
+
 const defaultEditorOptions: IEditorConfigurationExtra = {
   lineNumbers: false,
   readOnly: true,
@@ -177,6 +215,10 @@ const defaultEditorOptions: IEditorConfigurationExtra = {
     [__DARWIN__ ? 'Shift-Cmd-G' : 'Shift-Ctrl-G']: false, // findPrev
     [__DARWIN__ ? 'Cmd-Alt-F' : 'Shift-Ctrl-F']: false, // replace
     [__DARWIN__ ? 'Shift-Cmd-Alt-F' : 'Shift-Ctrl-R']: false, // replaceAll
+    Down: scrollEditorVertically(1, 'line'),
+    Up: scrollEditorVertically(-1, 'line'),
+    PageDown: scrollEditorVertically(1, 'page'),
+    PageUp: scrollEditorVertically(-1, 'page'),
   },
   scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
   styleSelectedText: true,
@@ -426,6 +468,27 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
   private getAndStoreCodeMirrorInstance = (cmh: CodeMirrorHost | null) => {
     this.codeMirror = cmh === null ? null : cmh.getEditor()
+  }
+
+  private onContextMenu = (instance: CodeMirror.Editor, event: Event) => {
+    const selectionRanges = instance.getDoc().listSelections()
+    const isTextSelected = selectionRanges != null
+
+    const action = () => {
+      if (this.onCopy !== null) {
+        this.onCopy(instance, event)
+      }
+    }
+
+    const items = [
+      {
+        label: 'Copy',
+        action,
+        enabled: this.onCopy && isTextSelected,
+      },
+    ]
+
+    showContextualMenu(items)
   }
 
   private onCopy = (editor: Editor, event: Event) => {
@@ -826,6 +889,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
         onAfterSwapDoc={this.onAfterSwapDoc}
         onViewportChange={this.onViewportChange}
         ref={this.getAndStoreCodeMirrorInstance}
+        onContextMenu={this.onContextMenu}
         onCopy={this.onCopy}
       />
     )

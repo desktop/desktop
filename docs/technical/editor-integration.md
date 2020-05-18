@@ -25,12 +25,16 @@ The source for the editor integration on Windows is found in
 These editors are currently supported:
 
  - [Atom](https://atom.io/) - stable, Beta and Nightly
- - [Visual Studio Code](https://code.visualstudio.com/) - both stable and Insiders channel
+ - [Visual Studio Code](https://code.visualstudio.com/)
+ - [Visual Studio Codium](https://vscodium.com/)
  - [Sublime Text](https://www.sublimetext.com/)
  - [ColdFusion Builder](https://www.adobe.com/products/coldfusion-builder.html)
  - [Typora](https://typora.io/)
  - [SlickEdit](https://www.slickedit.com)
  - [JetBrains WebStorm](https://www.jetbrains.com/webstorm/)
+ - [JetBrains Phpstorm](https://www.jetbrains.com/phpstorm/)
+ - [JetBrains Rider](https://www.jetbrains.com/rider/)
+ - [Notepad++](https://notepad-plus-plus.org/)
 
 These are defined in an enum at the top of the file:
 
@@ -39,12 +43,17 @@ export enum ExternalEditor {
   Atom = 'Atom',
   AtomBeta = 'Atom Beta',
   AtomNightly = 'Atom Nightly',
-  VisualStudioCode = 'Visual Studio Code',
-  VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
+  VSCode = 'Visual Studio Code',
+  VSCodeInsiders = 'Visual Studio Code (Insiders)',
+  VSCodium = 'Visual Studio Codium',
   SublimeText = 'Sublime Text',
   CFBuilder = 'ColdFusion Builder',
   Typora = 'Typora',
   SlickEdit = 'SlickEdit',
+  Webstorm = 'JetBrains Webstorm',
+  Phpstorm = 'JetBrains Phpstorm',
+  NotepadPlusPlus = 'Notepad++',
+  Rider = 'JetBrains Rider',
 }
 ```
 
@@ -157,7 +166,7 @@ function extractApplicationInformation(
     const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
     return { displayName, publisher, installLocation }
   }
-  
+
   ...
 }
 ```
@@ -218,7 +227,7 @@ Desktop will confirm this file exists on disk before launching - if it's
 missing or lost it won't let you launch the external editor.
 
 If the external editor utilizes a CMD.EXE shell script to launch, Desktop
-needs to know this in order to properly launch the CMD.EXE shell.  This is 
+needs to know this in order to properly launch the CMD.EXE shell.  This is
 done by setting the property `usesShell: true` in `getAvailableEditors`.
 
 ```ts
@@ -251,27 +260,35 @@ These editors are currently supported:
  - [Atom](https://atom.io/)
  - [MacVim](https://macvim-dev.github.io/macvim/)
  - [Visual Studio Code](https://code.visualstudio.com/) - both stable and Insiders channel
+ - [Visual Studio Codium](https://vscodium.com/)
  - [Sublime Text](https://www.sublimetext.com/)
  - [BBEdit](http://www.barebones.com/products/bbedit/)
- - [PhpStorm](https://www.jetbrains.com/phpstorm/)
- - [RubyMine](https://www.jetbrains.com/rubymine/)
+ - [JetBrains PhpStorm](https://www.jetbrains.com/phpstorm/)
+ - [JetBrains PyCharm](https://www.jetbrains.com/pycharm/)
+ - [JetBrains RubyMine](https://www.jetbrains.com/rubymine/)
  - [TextMate](https://macromates.com)
  - [Brackets](http://brackets.io/)
      - To use Brackets the Command Line shortcut must be installed.
        - This can be done by opening Brackets, choosing File > Install Command Line Shortcut
- - [WebStorm](https://www.jetbrains.com/webstorm/)
+ - [JetBrains WebStorm](https://www.jetbrains.com/webstorm/)
  - [Typora](https://typora.io/)
+ - [CodeRunner](https://coderunnerapp.com/)
  - [SlickEdit](https://www.slickedit.com)
+ - [JetBrains IntelliJ IDEA](https://www.jetbrains.com/idea/)
+ - [Xcode](https://developer.apple.com/xcode/)
+ - [JetBrains GoLand](https://www.jetbrains.com/go/)
+ - [Android Studio](https://developer.android.com/studio)
+ - [JetBrains Rider](https://www.jetbrains.com/rider/)
 
 These are defined in an enum at the top of the file:
 
 ```ts
-
 export enum ExternalEditor {
   Atom = 'Atom',
   MacVim = 'MacVim',
-  VisualStudioCode = 'Visual Studio Code',
-  VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
+  VSCode = 'Visual Studio Code',
+  VSCodeInsiders = 'Visual Studio Code (Insiders)',
+  VSCodium = 'VSCodium',
   SublimeText = 'Sublime Text',
   BBEdit = 'BBEdit',
   PhpStorm = 'PhpStorm',
@@ -280,7 +297,11 @@ export enum ExternalEditor {
   Brackets = 'Brackets',
   WebStorm = 'WebStorm',
   Typora = 'Typora',
+  CodeRunner = 'CodeRunner',
   SlickEdit = 'SlickEdit',
+  IntelliJ = 'IntelliJ',
+  Xcode = 'Xcode',
+  GoLand = 'GoLand',
 }
 ```
 
@@ -363,6 +384,7 @@ These editors are currently supported:
 
  - [Atom](https://atom.io/)
  - [Visual Studio Code](https://code.visualstudio.com/) - both stable and Insiders channel
+ - [Visual Studio Codium](https://vscodium.com/)
  - [Sublime Text](https://www.sublimetext.com/)
  - [Typora](https://typora.io/)
  - [SlickEdit](https://www.slickedit.com)
@@ -372,8 +394,9 @@ These are defined in an enum at the top of the file:
 ```ts
 export enum ExternalEditor {
   Atom = 'Atom',
-  VisualStudioCode = 'Visual Studio Code',
-  VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
+  VSCode = 'Visual Studio Code',
+  VSCodeInsiders = 'Visual Studio Code (Insiders)',
+  VSCodium = 'VSCodium',
   SublimeText = 'Sublime Text',
   Typora = 'Typora',
   SlickEdit = 'SlickEdit',
@@ -420,7 +443,7 @@ export async function getAvailableEditors(): Promise<
     getEditorPath(ExternalEditor.Typora),
     getEditorPath(ExternalEditor.SlickEdit),
   ])
-  
+
   ...
 
   if (codePath) {

@@ -67,7 +67,13 @@ interface IChangesSidebarProps {
    */
   readonly onOpenInExternalEditor: (fullPath: string) => void
   readonly onChangesListScrolled: (scrollTop: number) => void
-  readonly changesListScrollTop: number
+  readonly changesListScrollTop?: number
+
+  /**
+   * Whether we should show the onboarding tutorial nudge
+   * arrow pointing at the commit summary box
+   */
+  readonly shouldNudgeToCommit: boolean
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
@@ -303,7 +309,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   private onUndo = () => {
     const commit = this.props.mostRecentLocalCommit
 
-    if (commit) {
+    if (commit && commit.tags.length === 0) {
       this.props.dispatcher.undoCommit(this.props.repository, commit)
     }
   }
@@ -311,7 +317,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   private renderMostRecentLocalCommit() {
     const commit = this.props.mostRecentLocalCommit
     let child: JSX.Element | null = null
-    if (commit) {
+
+    // We don't allow undoing commits that have tags associated to them, since then
+    // the commit won't be completely deleted because the tag will still point to it.
+    if (commit && commit.tags.length === 0) {
       child = (
         <UndoCommit
           isPushPullFetchInProgress={this.props.isPushPullFetchInProgress}
@@ -418,6 +427,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           stashEntry={this.props.changes.stashEntry}
           isShowingStashEntry={isShowingStashEntry}
           currentBranchProtected={currentBranchProtected}
+          shouldNudgeToCommit={this.props.shouldNudgeToCommit}
         />
         {this.renderUndoCommit(rebaseConflictState)}
       </div>

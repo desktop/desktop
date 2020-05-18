@@ -45,3 +45,5 @@ and how things work:
     to reduce the friction of getting started.
  - **[Building and Packaging Desktop](technical/packaging.md)** - Outlines how
     Desktop is currently packaged for all platforms 
+ - **[Automatic Git Proxy support](technical/proxies.md)** - A pre-launch overview
+    and troubleshooting guide for the Git automatic proxy support in GitHub Desktop.

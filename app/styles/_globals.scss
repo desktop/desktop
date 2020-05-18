@@ -68,6 +68,12 @@ body {
   }
 }
 
+.selectable-text {
+  -webkit-user-select: text;
+  user-select: text;
+  cursor: auto;
+}
+
 img {
   -webkit-user-drag: none;
   user-select: none;
