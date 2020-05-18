@@ -56,7 +56,6 @@
   },
   "dependencies": {
     "@primer/octicons": "^9.1.0",
-    "@types/lru-cache": "^5.1.0",
     "@typescript-eslint/eslint-plugin": "1.10.2",
     "@typescript-eslint/parser": "1.10.2",
     "airbnb-browser-shims": "^3.0.0",
