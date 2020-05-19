@@ -593,6 +593,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
         onMouseDown={this.onDialogMouseDown}
         className={className}
         aria-labelledby={this.state.titleId}
+        tabIndex={-1}
       >
         {this.renderHeader()}
 
