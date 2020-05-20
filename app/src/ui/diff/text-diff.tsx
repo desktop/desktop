@@ -136,10 +136,21 @@ function canSelect(file: ChangedFile): file is WorkingDirectoryFileChange {
 
 interface ITextDiffProps {
   readonly repository: Repository
+  /** The file whose diff should be displayed. */
   readonly file: ChangedFile
-  readonly readOnly: boolean
-  readonly onIncludeChanged?: (diffSelection: DiffSelection) => void
+  /** The diff that should be rendered */
   readonly diff: ITextDiff
+  /** If true, no selections or discards can be done against this diff. */
+  readonly readOnly: boolean
+  /**
+   * Called when the includedness of lines or a range of lines has changed.
+   * Only applicable when readOnly is false.
+   */
+  readonly onIncludeChanged?: (diffSelection: DiffSelection) => void
+  /**
+   * Called when the user wants to discard a selection of the diff.
+   * Only applicable when readOnly is false.
+   */
   readonly onDiscardChanges?: (
     diff: ITextDiff,
     diffSelection: DiffSelection
