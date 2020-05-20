@@ -415,7 +415,8 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   private onDocumentMouseUp = (ev: MouseEvent) => {
     ev.preventDefault()
 
-    // Discard right click events
+    // We only care about the primary button here, secondary
+    // button clicks are handled by `onContextMenu`
     if (ev.button !== 0) {
       return
     }
