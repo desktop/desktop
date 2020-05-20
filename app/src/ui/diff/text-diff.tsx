@@ -40,7 +40,6 @@ import { clamp } from '../../lib/clamp'
 import { uuid } from '../../lib/uuid'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
-import { toPlatformCase } from '../../lib/platform-case'
 import { enableDiscardLines } from '../../lib/feature-flag'
 
 /** The longest line for which we'd try to calculate a line diff. */
@@ -610,11 +609,27 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   private getDiscardLabel(rangeType: DiffRangeType, numLines: number): string {
-    return toPlatformCase(
-      `Discard ${numLines > 1 ? 'These' : 'This'} ${
-        rangeType === DiffRangeType.Additions ? 'Added' : 'Removed'
-      } ${numLines > 1 ? 'Lines' : 'Line'}`
-    )
+    let type = ''
+
+    if (rangeType === DiffRangeType.Additions) {
+      type = __DARWIN__ ? 'Added' : 'added'
+    } else if (rangeType === DiffRangeType.Deletions) {
+      type = __DARWIN__ ? 'Removed' : 'removed'
+    } else if (rangeType === DiffRangeType.Mixed) {
+      type = __DARWIN__ ? 'Modified' : 'modiifed'
+    } else {
+      assertNever(rangeType, `Invlaid range type: ${rangeType}`)
+    }
+
+    if (numLines > 1) {
+      return __DARWIN__
+        ? `Discard These ${type} Lines`
+        : `Discard these ${type} lines`
+    } else {
+      return __DARWIN__
+        ? `Discard this ${type} Line`
+        : `Discard this ${type} line`
+    }
   }
 
   private onCopy = (editor: Editor, event: Event) => {
