@@ -1504,14 +1504,9 @@ export class GitStore extends BaseStore {
     diff: ITextDiff,
     selection: DiffSelection
   ) {
-    await this.performFailableOperation(async () => {
-      await discardChangesFromSelection(
-        this.repository,
-        filePath,
-        diff,
-        selection
-      )
-    })
+    await this.performFailableOperation(() =>
+      discardChangesFromSelection(this.repository, filePath, diff, selection)
+    )
   }
 
   /** Reverts the commit with the given SHA */
