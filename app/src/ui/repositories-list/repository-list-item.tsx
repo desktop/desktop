@@ -73,7 +73,7 @@ export class RepositoryListItem extends React.Component<
     return (
       <div
         onContextMenu={this.onContextMenu}
-        className="repository-list-item group-repositories-by-owner"
+        className="repository-list-item"
         title={repoTooltip}
       >
         <Octicon
@@ -198,11 +198,9 @@ const renderAheadBehindIndicator = (aheadBehind: IAheadBehind) => {
 }
 
 const renderChangesIndicator = () => {
-  const classNames = 'change-indicator-wrapper group-repositories-by-owner'
-
   return (
     <div
-      className={classNames}
+      className="change-indicator-wrapper"
       title="There are uncommitted changes in this repository"
     >
       <Octicon symbol={OcticonSymbol.primitiveDot} />
