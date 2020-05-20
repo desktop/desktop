@@ -34,10 +34,6 @@
     // name and truncate accordingly
     width: 100%;
 
-    &:not(.group-repositories-by-owner) {
-      padding-left: 0;
-    }
-
     .icon-for-repository {
       // Some room between the icon and repository name
       margin-right: var(--spacing-half);
@@ -83,10 +79,6 @@
       .octicon {
         color: var(--tab-bar-active-color);
         width: auto;
-      }
-
-      &:not(.group-repositories-by-owner) {
-        margin-right: var(--spacing-half);
       }
     }
 
