@@ -23,6 +23,7 @@ import {
   diffLineForIndex,
   findInteractiveDiffRange,
   lineNumberForDiffLine,
+  DiffRangeType,
 } from './diff-explorer'
 
 import {
@@ -41,12 +42,6 @@ import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { toPlatformCase } from '../../lib/platform-case'
 import { enableDiscardLines } from '../../lib/feature-flag'
-
-enum HunkType {
-  Added = 'Added',
-  Deleted = 'Deleted',
-  Modified = 'Modified',
-}
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -552,8 +547,8 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     if (range === null) {
       return null
     }
-    const hunkType = this.getHunkType(range)
-    if (hunkType === null) {
+
+    if (range.type === null) {
       return null
     }
 
@@ -562,7 +557,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     if (targetHasClass(event.target, 'hunk-handle')) {
       return [
         {
-          label: this.getDiscardLabel(hunkType, range.to - range.from + 1),
+          label: this.getDiscardLabel(range.type, range.to - range.from + 1),
           action: () => this.onDiscardChanges(file, range.from, range.to),
         },
       ]
@@ -577,32 +572,11 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       // will leave the line deleted).
       return [
         {
-          label: this.getDiscardLabel(hunkType, 1),
+          label: this.getDiscardLabel(range.type, 1),
           action: () => this.onDiscardChanges(file, lineNumber),
-          enabled: hunkType !== HunkType.Modified,
+          enabled: range.type !== DiffRangeType.Mixed,
         },
       ]
-    }
-
-    return null
-  }
-
-  private getHunkType(range: { from: number; to: number }): HunkType | null {
-    const startDiffLine = diffLineForIndex(this.props.diff.hunks, range.from)
-    const endDiffLine = diffLineForIndex(this.props.diff.hunks, range.to)
-
-    if (startDiffLine === null || endDiffLine === null) {
-      return null
-    }
-
-    if (startDiffLine.type !== endDiffLine.type) {
-      return HunkType.Modified
-    }
-    if (startDiffLine.type === DiffLineType.Add) {
-      return HunkType.Added
-    }
-    if (startDiffLine.type === DiffLineType.Delete) {
-      return HunkType.Deleted
     }
 
     return null
@@ -624,11 +598,11 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     this.props.onDiscardChanges(this.props.diff, selection)
   }
 
-  private getDiscardLabel(hunkType: HunkType, numLines: number): string {
+  private getDiscardLabel(rangeType: DiffRangeType, numLines: number): string {
     return toPlatformCase(
-      `Discard ${numLines > 1 ? 'These' : 'This'} ${hunkType} ${
-        numLines > 1 ? 'Lines' : 'Line'
-      }`
+      `Discard ${numLines > 1 ? 'These' : 'This'} ${
+        rangeType === DiffRangeType.Additions ? 'Added' : 'Removed'
+      } ${numLines > 1 ? 'Lines' : 'Line'}`
     )
   }
 
