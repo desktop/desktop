@@ -1,11 +1,7 @@
-export enum ForkContributionTargets {
+export enum ForkContributionTarget {
   Parent = 'parent',
   Self = 'self',
 }
-
-export type ForkContributionTarget =
-  | ForkContributionTargets.Parent
-  | ForkContributionTargets.Self
 
 /**
  * Collection of configurable settings regarding how the user may work with a repository.
