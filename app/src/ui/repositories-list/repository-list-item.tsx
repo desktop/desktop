@@ -70,12 +70,10 @@ export class RepositoryListItem extends React.Component<
       prefix = `${gitHubRepo.owner.login}/`
     }
 
-    const className = 'repository-list-item group-repositories-by-owner'
-
     return (
       <div
         onContextMenu={this.onContextMenu}
-        className={className}
+        className="repository-list-item group-repositories-by-owner"
         title={repoTooltip}
       >
         <Octicon

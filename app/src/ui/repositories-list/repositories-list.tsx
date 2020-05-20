@@ -160,10 +160,12 @@ export class RepositoriesList extends React.Component<
   private renderGroupHeader = (id: string) => {
     const identifier = id as RepositoryGroupIdentifier
     const label = this.getGroupLabel(identifier)
-    const className = 'filter-list-group-header group-repositories-by-owner'
 
     return (
-      <div key={identifier} className={className}>
+      <div
+        key={identifier}
+        className="filter-list-group-header group-repositories-by-owner"
+      >
         {label}
       </div>
     )
