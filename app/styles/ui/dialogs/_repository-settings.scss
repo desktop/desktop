@@ -1,5 +1,5 @@
 #repository-settings {
-  width: 450px;
+  width: 650px;
 
   .no-remote {
     justify-content: space-between;
@@ -9,6 +9,15 @@
       flex-grow: 0;
       min-width: 120px;
       align-self: center;
+    }
+  }
+
+  .tab-container {
+    display: flex;
+
+    .active-tab {
+      border-left: var(--base-border);
+      flex: 1;
     }
   }
 }

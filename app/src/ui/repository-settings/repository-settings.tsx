@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { TabBar } from '../tab-bar'
+import { TabBar, TabBarType } from '../tab-bar'
 import { Remote } from './remote'
 import { GitIgnore } from './git-ignore'
 import { assertNever } from '../../lib/fatal-error'
@@ -88,15 +88,18 @@ export class RepositorySettings extends React.Component<
       >
         {this.renderErrors()}
 
-        <TabBar
-          onTabClicked={this.onTabClicked}
-          selectedIndex={this.state.selectedTab}
-        >
-          <span>Remote</span>
-          <span>{__DARWIN__ ? 'Ignored Files' : 'Ignored files'}</span>
-        </TabBar>
+        <div className="tab-container">
+          <TabBar
+            onTabClicked={this.onTabClicked}
+            selectedIndex={this.state.selectedTab}
+            type={TabBarType.Vertical}
+          >
+            <span>Remote</span>
+            <span>{__DARWIN__ ? 'Ignored Files' : 'Ignored files'}</span>
+          </TabBar>
 
-        {this.renderActiveTab()}
+          <div className="active-tab">{this.renderActiveTab()}</div>
+        </div>
         {this.renderFooter()}
       </Dialog>
     )
