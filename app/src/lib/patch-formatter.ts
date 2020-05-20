@@ -273,7 +273,7 @@ export function formatPatchToDiscardChanges(
         oldCount++
         newCount++
       } else if (selection.isSelected(absoluteIndex)) {
-        // Reverse the change (if it was an added line, treat is as removed and viceversa).
+        // Reverse the change (if it was an added line, treat it as removed and vice versa).
         if (line.type === DiffLineType.Add) {
           hunkBuf += `-${line.text.substr(1)}\n`
           newCount++
