@@ -117,7 +117,7 @@ import { getUncommittedChangesStrategy } from '../models/uncommitted-changes-str
 import { SAMLReauthRequiredDialog } from './saml-reauth-required/saml-reauth-required'
 import { CreateForkDialog } from './forks/create-fork-dialog'
 import { SChannelNoRevocationCheckDialog } from './schannel-no-revocation-check/schannel-no-revocation-check'
-import { findUpstreamRemoteBranch } from '../lib/branch'
+import { findDefaultUpstreamBranch } from '../lib/branch'
 import { GitHubRepository } from '../models/github-repository'
 import { CreateTag } from './create-tag'
 import { RetryCloneDialog } from './clone-repository/retry-clone-dialog'
@@ -1477,14 +1477,9 @@ export class App extends React.Component<IAppProps, IAppState> {
           isRepositoryWithGitHubRepository(repository)
         ) {
           upstreamGhRepo = getNonForkGitHubRepository(repository)
-
-          if (upstreamGhRepo.defaultBranch !== null) {
-            upstreamDefaultBranch =
-              findUpstreamRemoteBranch(
-                upstreamGhRepo.defaultBranch,
-                branchesState.allBranches
-              ) || null
-          }
+          upstreamDefaultBranch =
+            findDefaultUpstreamBranch(repository, branchesState.allBranches) ||
+            null
         }
 
         return (
