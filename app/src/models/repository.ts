@@ -63,7 +63,9 @@ export class Repository {
   public get hash(): string {
     return `${this.id}+${this.gitHubRepository && this.gitHubRepository.hash}+${
       this.path
-    }+${this.missing}+${this.name}+${this.isTutorialRepository}`
+    }+${this.missing}+${this.name}+${this.isTutorialRepository}+${
+      this.workflowPreferences.forkContributionTarget
+    }`
   }
 
   /**

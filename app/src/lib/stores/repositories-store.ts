@@ -14,6 +14,7 @@ import { fatalError } from '../fatal-error'
 import { IAPIRepository, IAPIBranch, IAPIRepositoryPermissions } from '../api'
 import { TypedBaseStore } from './base-store'
 import { enableBranchProtectionChecks } from '../feature-flag'
+import { WorkflowPreferences } from '../../models/workflow-preferences'
 
 /** The store for local repositories. */
 export class RepositoriesStore extends TypedBaseStore<
@@ -267,6 +268,29 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.workflowPreferences,
       repository.isTutorialRepository
     )
+  }
+
+  /**
+   * Update the workflow preferences for the specified repository.
+   *
+   * @param repository            The repositosy to update.
+   * @param workflowPreferences   The object with the workflow settings to use.
+   */
+  public async updateRepositoryWorkflowPreferences(
+    repository: Repository,
+    workflowPreferences: WorkflowPreferences
+  ): Promise<void> {
+    const repoID = repository.id
+
+    if (!repoID) {
+      return fatalError(
+        '`updateRepositoryWorkflowPreferences` can only update `workflowPreferences` for a repository which has been added to the database.'
+      )
+    }
+
+    await this.db.repositories.update(repoID, { workflowPreferences })
+
+    this.emitUpdatedRepositories()
   }
 
   /** Update the repository's path. */
