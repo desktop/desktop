@@ -17,6 +17,7 @@ import { readGitIgnoreAtRoot } from '../../lib/git'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { ForkSettings } from './fork-settings'
 import { ForkContributionTarget } from '../../models/workflow-preferences'
+import { enableForkSettings } from '../../lib/feature-flag'
 
 interface IRepositorySettingsProps {
   readonly dispatcher: Dispatcher
@@ -87,6 +88,10 @@ export class RepositorySettings extends React.Component<
   }
 
   public render() {
+    const showForkSettings =
+      enableForkSettings() &&
+      isRepositoryWithForkedGitHubRepository(this.props.repository)
+
     return (
       <Dialog
         id="repository-settings"
@@ -105,7 +110,7 @@ export class RepositorySettings extends React.Component<
           >
             <span>Remote</span>
             <span>{__DARWIN__ ? 'Ignored Files' : 'Ignored files'}</span>
-            {isRepositoryWithForkedGitHubRepository(this.props.repository) && (
+            {showForkSettings && (
               <span>{__DARWIN__ ? 'Fork Behavior' : 'Fork behavior'}</span>
             )}
           </TabBar>
