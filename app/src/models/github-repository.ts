@@ -52,6 +52,10 @@ export class GitHubRepository {
   }
 }
 
+export type ForkedGitHubRepository = GitHubRepository & {
+  parent: GitHubRepository
+}
+
 /**
  * Can the user push to this GitHub repository?
  *
