@@ -97,17 +97,19 @@ export class TabBar extends React.Component<ITabBarProps, {}> {
     return children.map((child, index) => {
       const selected = index === this.props.selectedIndex
       return (
-        <TabBarItem
-          key={index}
-          selected={selected}
-          index={index}
-          onClick={this.onTabClicked}
-          onSelectAdjacent={this.onSelectAdjacentTab}
-          onButtonRef={this.onTabRef}
-          type={this.props.type}
-        >
-          {child}
-        </TabBarItem>
+        child && (
+          <TabBarItem
+            key={index}
+            selected={selected}
+            index={index}
+            onClick={this.onTabClicked}
+            onSelectAdjacent={this.onSelectAdjacentTab}
+            onButtonRef={this.onTabRef}
+            type={this.props.type}
+          >
+            {child}
+          </TabBarItem>
+        )
       )
     })
   }
