@@ -182,6 +182,7 @@ export class RepositoriesStore extends TypedBaseStore<
             missing: false,
             lastStashCheckDate: null,
             isTutorialRepository: true,
+            workflowPreferences: {},
           },
           existingRepoId
         )
@@ -222,6 +223,7 @@ export class RepositoriesStore extends TypedBaseStore<
             gitHubRepositoryID: null,
             missing: false,
             lastStashCheckDate: null,
+            workflowPreferences: {},
           })
         }
 
