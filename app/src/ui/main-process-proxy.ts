@@ -79,26 +79,34 @@ export function registerContextualMenuActionDispatcher() {
         return
       }
 
-      let foundMenuItem: IMenuItem = {
-        submenu: currentContextualMenuItems,
-      }
+      const menuItem = findSubmenuItem(currentContextualMenuItems, indices)
 
-      // Traverse the submenus of the context menu until we find the appropiate index.
-      for (const index of indices) {
-        if (foundMenuItem == null || foundMenuItem.submenu == null) {
-          return
-        }
-
-        foundMenuItem = foundMenuItem.submenu[index]
-      }
-
-      const action = foundMenuItem.action
-      if (action) {
-        action()
+      if (menuItem !== undefined && menuItem.action !== undefined) {
+        menuItem.action()
         currentContextualMenuItems = null
       }
     }
   )
+}
+
+function findSubmenuItem(
+  currentContextualMenuItems: ReadonlyArray<IMenuItem>,
+  indices: ReadonlyArray<number>
+): IMenuItem | undefined {
+  let foundMenuItem: IMenuItem | undefined = {
+    submenu: currentContextualMenuItems,
+  }
+
+  // Traverse the submenus of the context menu until we find the appropiate index.
+  for (const index of indices) {
+    if (foundMenuItem === undefined || foundMenuItem.submenu === undefined) {
+      return undefined
+    }
+
+    foundMenuItem = foundMenuItem.submenu[index]
+  }
+
+  return foundMenuItem
 }
 
 /** Show the given menu items in a contextual menu. */
