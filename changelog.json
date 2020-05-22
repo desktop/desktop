@@ -1,5 +1,20 @@
 {
   "releases": {
+    "2.5.1-beta1": [
+      "[Fixed] Center tags text vertically in History view - #9785",
+      "[Fixed] Prevent Git authentication errors from prompting to retry clone instead of authentication dialog - #9777",
+      "[Improved] Avoid executing unwanted Git hooks when fetching unpushed tags - #9793"
+    ],
+    "2.5.0": [
+      "[New] Add, push, and view Git tags on commit history in Desktop - #9424",
+      "[Added] Offer option to choose file from one branch or the other when resolving merge conflicts - #9702",
+      "[Added] Add context menu for highlighted text in diff view - #5100. Thanks @HashimotoYT!",
+      "[Fixed] Retain default branch option in \"Create Branch\" dialog when user focuses away from Desktop - #9611",
+      "[Improved] Clean up copy for onboarding sign-in flow - #9715",
+      "[Improved] Emphasize signing in to GitHub via browser due to username/password deprecation - #9663",
+      "[Improved] Improve error message when publishing a private repository fails - #9646",
+      "[Improved] Offer to retry if cloning a repository fails - #926. Thanks @Daniel-McCarthy!"
+    ],
     "2.4.4-beta4": [
       "[Fixed] Add missing \"Cancel\" button in onboarding sign-in flow - #9715",
       "[Improved] Update copy for onboarding sign-in flow - #9715"
