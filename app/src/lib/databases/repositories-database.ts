@@ -49,7 +49,7 @@ export interface IDatabaseRepository {
   /** The last time the stash entries were checked for the repository */
   readonly lastStashCheckDate: number | null
 
-  readonly workflowPreferences: WorkflowPreferences
+  readonly workflowPreferences?: WorkflowPreferences
 
   /**
    * True if the repository is a tutorial repository created as part
