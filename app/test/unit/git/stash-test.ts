@@ -55,6 +55,7 @@ describe('git/stash', () => {
       const entries = stash.desktopEntries
       expect(entries).toHaveLength(1)
       expect(entries[0].branchName).toBe('master')
+      expect(entries[0].name).toBe('refs/stash@{0}')
     })
   })
 
