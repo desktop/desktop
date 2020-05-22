@@ -75,7 +75,7 @@ export function registerContextualMenuActionDispatcher() {
   ipcRenderer.on(
     'contextual-menu-action',
     (event: Electron.IpcRendererEvent, indices: number[]) => {
-      if (currentContextualMenuItems == null) {
+      if (currentContextualMenuItems === null) {
         return
       }
 

@@ -210,8 +210,8 @@ export class CommitListItem extends React.PureComponent<
     const { unpushedTags, onDeleteTag, commit } = this.props
 
     if (
-      onDeleteTag == null ||
-      unpushedTags == null ||
+      onDeleteTag === undefined ||
+      unpushedTags === undefined ||
       commit.tags.length === 0
     ) {
       return null
