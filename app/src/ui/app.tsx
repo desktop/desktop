@@ -104,7 +104,7 @@ import { StashAndSwitchBranch } from './stash-changes/stash-and-switch-branch-di
 import { OverwriteStash } from './stash-changes/overwrite-stashed-changes-dialog'
 import { ConfirmDiscardStashDialog } from './stashing/confirm-discard-stash'
 import { CreateTutorialRepositoryDialog } from './no-repositories/create-tutorial-repository-dialog'
-import { enableTutorial, enableForkyCreateBranchUI } from '../lib/feature-flag'
+import { enableForkyCreateBranchUI } from '../lib/feature-flag'
 import { ConfirmExitTutorial } from './tutorial'
 import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { WorkflowPushRejectedDialog } from './workflow-push-rejected/workflow-push-rejected'
@@ -698,10 +698,6 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private showCreateTutorialRepositoryPopup = () => {
-    if (!enableTutorial()) {
-      return
-    }
-
     const account = this.getDotComAccount() || this.getEnterpriseAccount()
 
     if (account === null) {
@@ -731,9 +727,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         : null
 
     const isTutorialRepository =
-      enableTutorial() &&
-      selectedRepository &&
-      selectedRepository.isTutorialRepository
+      selectedRepository && selectedRepository.isTutorialRepository
 
     return isTutorialRepository ? selectedRepository : null
   }

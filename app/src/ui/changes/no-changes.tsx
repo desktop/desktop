@@ -3,10 +3,6 @@ import * as React from 'react'
 import { encodePathAsUrl } from '../../lib/path'
 import { Repository } from '../../models/repository'
 import { LinkButton } from '../lib/link-button'
-import {
-  enableNoChangesCreatePRBlankslateAction,
-  enableStashing,
-} from '../../lib/feature-flag'
 import { MenuIDs } from '../../models/menu-ids'
 import { IMenu, MenuItem } from '../../models/app-menu'
 import memoizeOne from 'memoize-one'
@@ -359,25 +355,19 @@ export class NoChanges extends React.Component<
       return this.renderPushBranchAction(tip, remote, aheadBehind, tagsToPush)
     }
 
-    if (enableNoChangesCreatePRBlankslateAction()) {
-      const isGitHub = this.props.repository.gitHubRepository !== null
-      const hasOpenPullRequest = currentPullRequest !== null
-      const isDefaultBranch =
-        defaultBranch !== null && tip.branch.name === defaultBranch.name
+    const isGitHub = this.props.repository.gitHubRepository !== null
+    const hasOpenPullRequest = currentPullRequest !== null
+    const isDefaultBranch =
+      defaultBranch !== null && tip.branch.name === defaultBranch.name
 
-      if (isGitHub && !hasOpenPullRequest && !isDefaultBranch) {
-        return this.renderCreatePullRequestAction(tip)
-      }
+    if (isGitHub && !hasOpenPullRequest && !isDefaultBranch) {
+      return this.renderCreatePullRequestAction(tip)
     }
 
     return null
   }
 
   private renderViewStashAction() {
-    if (!enableStashing()) {
-      return null
-    }
-
     const { changesState, branchesState } = this.props.repositoryState
 
     const { tip } = branchesState

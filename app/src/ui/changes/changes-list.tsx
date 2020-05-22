@@ -34,7 +34,6 @@ import { basename } from 'path'
 import { ICommitContext } from '../../models/commit'
 import { RebaseConflictState } from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
-import { enableStashing } from '../../lib/feature-flag'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { IStashEntry } from '../../models/stash-entry'
 import * as classNames from 'classnames'
@@ -662,9 +661,6 @@ export class ChangesList extends React.Component<
   }
 
   private renderStashedChanges() {
-    if (!enableStashing()) {
-      return null
-    }
     if (this.props.stashEntry === null) {
       return null
     }
