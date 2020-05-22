@@ -89,13 +89,28 @@ export class CommitListItem extends React.PureComponent<
             </div>
           </div>
         </div>
-        <div className="commit-indicators">
-          {enableGitTagsDisplay() &&
-            renderCommitListItemTags(this.props.commit.tags)}
-          {this.renderUnpushedIndicator()}
-        </div>
+        {this.renderCommitIndicators()}
       </div>
     )
+  }
+
+  private renderCommitIndicators() {
+    const tagIndicator = enableGitTagsDisplay()
+      ? renderCommitListItemTags(this.props.commit.tags)
+      : null
+
+    const unpushedIndicator = this.renderUnpushedIndicator()
+
+    if (tagIndicator || unpushedIndicator) {
+      return (
+        <div className="commit-indicators">
+          {tagIndicator}
+          {unpushedIndicator}
+        </div>
+      )
+    }
+
+    return null
   }
 
   private renderUnpushedIndicator() {

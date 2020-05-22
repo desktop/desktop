@@ -13,7 +13,6 @@ import { Repository } from '../../models/repository'
 import { fatalError } from '../fatal-error'
 import { IAPIRepository, IAPIBranch, IAPIRepositoryPermissions } from '../api'
 import { TypedBaseStore } from './base-store'
-import { enableBranchProtectionChecks } from '../feature-flag'
 
 /** The store for local repositories. */
 export class RepositoriesStore extends TypedBaseStore<
@@ -493,10 +492,6 @@ export class RepositoriesStore extends TypedBaseStore<
     gitHubRepository: GitHubRepository,
     protectedBranches: ReadonlyArray<IAPIBranch>
   ): Promise<void> {
-    if (!enableBranchProtectionChecks()) {
-      return
-    }
-
     const dbID = gitHubRepository.dbID
     if (!dbID) {
       return fatalError(

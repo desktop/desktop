@@ -2,7 +2,6 @@ import * as Path from 'path'
 
 import { GitHubRepository } from './github-repository'
 import { IAheadBehind } from './branch'
-import { enableTutorial } from '../lib/feature-flag'
 import { WorkflowPreferences } from './workflow-preferences'
 
 function getBaseName(path: string): string {
@@ -69,7 +68,7 @@ export class Repository {
    * of Git and GitHub.
    */
   public get isTutorialRepository() {
-    return enableTutorial() && this._isTutorialRepository === true
+    return this._isTutorialRepository === true
   }
 }
 
