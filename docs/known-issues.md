@@ -120,7 +120,11 @@ Enabling Mandatory ASLR affects the MSYS2 core library, which is relied upon by 
 
 Electron enables hardware accelerated graphics by default, but some graphics cards have issues with hardware acceleration which means the application will launch successfully but it will be a black screen.
 
-**Workaround:** if you set the `GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION` environment variable to any value and launch Desktop again it will disable hardware acceleration on launch, so the application is usable.
+**Workaround:** if you set the `GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION` environment variable to any value and launch Desktop again it will disable hardware acceleration on launch, so the application is usable. Here are the steps to set the environment variable in PowerShell:
+
+1. Open PowerShell
+2. Run the command `$env:GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION=1`
+3. Launch GitHub Desktop 
 
 ### Failed to open CA file after an update - [#4832](https://github.com/desktop/desktop/issues/4832)
 
