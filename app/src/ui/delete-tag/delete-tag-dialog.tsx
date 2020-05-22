@@ -59,6 +59,6 @@ export class DeleteTag extends React.Component<
     this.setState({ isDeleting: true })
 
     await dispatcher.deleteTag(repository, tagName)
-    await dispatcher.closePopup()
+    this.props.onDismissed()
   }
 }
