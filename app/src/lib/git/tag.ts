@@ -84,6 +84,7 @@ export async function fetchTagsToPush(
     branchName,
     '--follow-tags',
     '--dry-run',
+    '--no-verify',
     '--porcelain',
   ]
 
