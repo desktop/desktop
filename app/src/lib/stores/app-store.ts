@@ -3307,6 +3307,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository.id,
       skeletonGitHubRepository,
       repository.missing,
+      {},
       false
     )
 
