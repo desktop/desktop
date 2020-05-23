@@ -56,6 +56,12 @@ interface IRepositoryViewProps {
    */
   readonly isShowingModal: boolean
 
+  /**
+   * A value indicating whether or not the application is currently presenting
+   * a foldout dialog such as the file menu, or the branches dropdown
+   */
+  readonly isShowingFoldout: boolean
+
   /** The name of the currently selected external editor */
   readonly externalEditorLabel?: string
 
@@ -455,7 +461,7 @@ export class RepositoryView extends React.Component<
       return
     }
 
-    if (this.props.isShowingModal) {
+    if (this.props.isShowingModal || this.props.isShowingFoldout) {
       return
     }
 
