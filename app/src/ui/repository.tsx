@@ -49,6 +49,11 @@ interface IRepositoryViewProps {
   readonly askForConfirmationOnDiscardChanges: boolean
   readonly focusCommitMessage: boolean
   readonly accounts: ReadonlyArray<Account>
+
+  /**
+   * A value indicating whether or not the application is currently presenting
+   * a modal dialog such as the preferences, or an error dialog
+   */
   readonly isShowingModal: boolean
 
   /** The name of the currently selected external editor */
