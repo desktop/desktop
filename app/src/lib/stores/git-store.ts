@@ -470,7 +470,7 @@ export class GitStore extends BaseStore {
       tagName => tagName !== tagToDelete
     )
 
-    this.storeTagsToPush()
+    storeTagsToPush(this.repository, this._tagsToPush)
     this.emitUpdate()
   }
 
