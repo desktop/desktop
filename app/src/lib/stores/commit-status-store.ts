@@ -4,15 +4,23 @@ import QuickLRU from 'quick-lru'
 import { Account } from '../../models/account'
 import { AccountsStore } from './accounts-store'
 import { GitHubRepository } from '../../models/github-repository'
-import { API, IAPIRefStatus } from '../api'
+import { API, IAPIRefStatus, IAPIRefCheckRuns, APIRefState } from '../api'
 import { IDisposable, Disposable } from 'event-kit'
+import { createRefStatus } from './helpers/pull-request-status'
+
+export interface IRefStatus {
+  totalCount: number
+  state: APIRefState
+  statuses: IAPIRefStatus
+  checkRuns: IAPIRefCheckRuns
+}
 
 interface ICommitStatusCacheEntry {
   /**
    * The combined ref status from the API or null if
    * the status could not be retrieved.
    */
-  readonly status: IAPIRefStatus | null
+  readonly status: IRefStatus | null
 
   /**
    * The timestamp for when this cache entry was last
@@ -21,7 +29,7 @@ interface ICommitStatusCacheEntry {
   readonly fetchedAt: Date
 }
 
-export type StatusCallBack = (status: IAPIRefStatus | null) => void
+export type StatusCallBack = (status: IRefStatus | null) => void
 
 /**
  * An interface describing one or more subscriptions for
@@ -248,7 +256,11 @@ export class CommitStatusStore {
 
     try {
       const api = API.fromAccount(account)
-      const status = await api.fetchCombinedRefStatus(owner, name, ref)
+
+      const statuses = await api.fetchCombinedRefStatus(owner, name, ref)
+      const checkSuites = await api.fetchRefCheckRuns(owner, name, ref)
+
+      const status = createRefStatus(statuses, checkSuites)
 
       this.cache.set(key, { status, fetchedAt: new Date() })
       subscription.callbacks.forEach(cb => cb(status))
@@ -280,7 +292,7 @@ export class CommitStatusStore {
   public tryGetStatus(
     repository: GitHubRepository,
     ref: string
-  ): IAPIRefStatus | null {
+  ): IRefStatus | null {
     const entry = this.cache.get(getCacheKeyForRepository(repository, ref))
     return entry !== undefined ? entry.status : null
   }

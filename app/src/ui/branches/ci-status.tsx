@@ -1,12 +1,13 @@
 import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { APIRefState, IAPIRefStatus } from '../../lib/api'
+import { APIRefState } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
 import { getRefStatusSummary } from './pull-request-status'
 import { GitHubRepository } from '../../models/github-repository'
 import { IDisposable } from 'event-kit'
 import { Dispatcher } from '../dispatcher'
+import { IRefStatus } from '../../lib/stores/commit-status-store'
 
 interface ICIStatusProps {
   /** The classname for the underlying element. */
@@ -22,7 +23,7 @@ interface ICIStatusProps {
 }
 
 interface ICIStatusState {
-  readonly status: IAPIRefStatus | null
+  readonly status: IRefStatus | null
 }
 
 /** The little CI status indicator. */
@@ -83,14 +84,14 @@ export class CIStatus extends React.PureComponent<
     this.unsubscribe()
   }
 
-  private onStatus = (status: IAPIRefStatus | null) => {
+  private onStatus = (status: IRefStatus | null) => {
     this.setState({ status })
   }
 
   public render() {
     const { status } = this.state
 
-    if (status === null || status.total_count === 0) {
+    if (status === null || status.totalCount === 0) {
       return null
     }
 

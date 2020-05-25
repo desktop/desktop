@@ -245,6 +245,16 @@ export interface IAPIIssue {
 /** The combined state of a ref. */
 export type APIRefState = 'failure' | 'pending' | 'success'
 
+export type APICheckStatus = 'queued' | 'in_progress' | 'completed'
+
+export type APICheckConclusion =
+  | 'action_required'
+  | 'canceled'
+  | 'timed_out'
+  | 'failed'
+  | 'neutral'
+  | 'success'
+
 /**
  * The API response for a combined view of a commit
  * status for a given ref
@@ -262,6 +272,26 @@ export interface IAPIRefStatus {
   readonly state: APIRefState
   readonly total_count: number
   readonly statuses: ReadonlyArray<IAPIRefStatusItem>
+}
+
+export interface IAPIRefCheckRunItem {
+  readonly id: number
+  readonly url: string
+  readonly status: APICheckStatus
+  readonly conclusion: APICheckConclusion
+  readonly name: string
+  readonly pull_requests: any[]
+  readonly app: IAPIRefChecksApp
+}
+
+export interface IAPIRefChecksApp {
+  readonly name: string
+  readonly description: string
+}
+
+export interface IAPIRefCheckRuns {
+  readonly total_count: number
+  readonly check_runs: IAPIRefCheckRunItem[]
 }
 
 /** Protected branch information returned by the GitHub API */
@@ -819,6 +849,21 @@ export class API {
     const path = `repos/${owner}/${name}/commits/${ref}/status`
     const response = await this.request('GET', path)
     return await parsedResponse<IAPIRefStatus>(response)
+  }
+
+  public async fetchRefCheckRuns(
+    owner: string,
+    name: string,
+    ref: string
+  ): Promise<IAPIRefCheckRuns> {
+    const path = `repos/${owner}/${name}/commits/${ref}/check-runs`
+
+    const headers = {
+      Accept: 'application/vnd.github.antiope-preview+json',
+    }
+
+    const response = await this.request('GET', path, undefined, headers)
+    return await parsedResponse<IAPIRefCheckRuns>(response)
   }
 
   /**
