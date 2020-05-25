@@ -85,6 +85,7 @@ import { getStashes, getStashedFiles } from '../git/stash'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { PullRequest } from '../../models/pull-request'
 import { StatsStore } from '../stats'
+import { getTagsToPush, storeTagsToPush } from './helpers/tags-to-push-storage'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -146,8 +147,7 @@ export class GitStore extends BaseStore {
   ) {
     super()
 
-    const rawTags = localStorage.getItem(getTagsToPushKey(repository))
-    this._tagsToPush = rawTags ? JSON.parse(rawTags) : []
+    this._tagsToPush = getTagsToPush(repository)
   }
 
   private emitNewCommitsLoaded(commits: ReadonlyArray<Commit>) {
@@ -450,25 +450,15 @@ export class GitStore extends BaseStore {
   private addTagToPush(tagName: string) {
     this._tagsToPush = [...this._tagsToPush, tagName]
 
-    this.storeTagsToPush()
+    storeTagsToPush(this.repository, this._tagsToPush)
     this.emitUpdate()
   }
 
   public clearTagsToPush() {
     this._tagsToPush = []
 
-    this.storeTagsToPush()
+    storeTagsToPush(this.repository, this._tagsToPush)
     this.emitUpdate()
-  }
-
-  private storeTagsToPush() {
-    const localStorageKey = getTagsToPushKey(this.repository)
-
-    if (this._tagsToPush.length === 0) {
-      localStorage.removeItem(localStorageKey)
-    } else {
-      localStorage.setItem(localStorageKey, JSON.stringify(this._tagsToPush))
-    }
   }
 
   /**
@@ -1576,8 +1566,4 @@ export class GitStore extends BaseStore {
       }
     }
   }
-}
-
-function getTagsToPushKey(repository: Repository) {
-  return `tags-to-push-${repository.id}`
 }

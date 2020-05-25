@@ -115,5 +115,47 @@ export function getNumberArray(key: string): ReadonlyArray<number> {
 export function setNumberArray(key: string, values: ReadonlyArray<number>) {
   localStorage.setItem(key, values.join(NumberArrayDelimiter))
 }
+
+/**
+ * Retrieve an array of `string` values from a given local
+ * storage entry, if found. The array will be empty if the
+ * key doesn't exist or if the values cannot be converted
+ * into strings.
+ *
+ * @param key local storage entry to read
+ */
+export function getStringArray(key: string): ReadonlyArray<string> {
+  const rawData = localStorage.getItem(key) || '[]'
+
+  try {
+    const outputArray = JSON.parse(rawData)
+
+    if (!(outputArray instanceof Array)) {
+      return []
+    }
+
+    if (outputArray.some(element => typeof element !== 'string')) {
+      return []
+    }
+
+    return outputArray
+  } catch (e) {
+    return []
+  }
+}
+
+/**
+ * Set the provided key in local storage to a list of string values, or update the
+ * existing value if a key is already defined.
+ *
+ * @param key local storage entry to update
+ * @param values the strings to set
+ */
+export function setStringArray(key: string, values: ReadonlyArray<string>) {
+  const rawData = JSON.stringify(values)
+
+  localStorage.setItem(key, rawData)
+}
+
 /** Default delimiter for stringifying and parsing arrays of numbers */
 const NumberArrayDelimiter = ','
