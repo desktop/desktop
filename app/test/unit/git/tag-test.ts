@@ -124,10 +124,12 @@ describe('git/tag', () => {
       ).toEqual(['my-new-tag'])
     })
 
-    it('returns an empty array after pushing', async () => {
+    it('returns an empty array after pushing the tag', async () => {
       await createTag(repository, 'my-new-tag', 'HEAD')
 
-      await push(repository, account, originRemote, 'master', null)
+      await push(repository, account, originRemote, 'master', null, [
+        'my-new-tag',
+      ])
 
       expect(
         await fetchTagsToPush(repository, account, originRemote, 'master')
