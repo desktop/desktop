@@ -275,6 +275,15 @@ export class GitStore extends BaseStore {
 
     this._localTags = newTags
 
+    // Remove any unpushed tag that cannot be found in the list
+    // of local tags. This can happen when the user deletes an
+    // unpushed tag from outside of Desktop.
+    for (const tagToPush of this._tagsToPush) {
+      if (!this._localTags.has(tagToPush)) {
+        this.removeTagToPush(tagToPush)
+      }
+    }
+
     if (previousTags !== null) {
       // We don't await for the emition of updates to finish
       // to make this method return earlier.
