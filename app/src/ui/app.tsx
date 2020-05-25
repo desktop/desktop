@@ -2557,6 +2557,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           appMenu={state.appMenuState[0]}
           currentTutorialStep={state.currentOnboardingTutorialStep}
           onExitTutorial={this.onExitTutorial}
+          isShowingModal={this.isShowingModal}
+          isShowingFoldout={this.state.currentFoldout !== null}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
