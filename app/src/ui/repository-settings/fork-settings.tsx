@@ -48,7 +48,7 @@ export class ForkSettings extends React.Component<IGitIgnoreProps, {}> {
             }
             onChange={this.onForkContributionTargetChanged}
           />
-          <label htmlFor={RadioButtonId.Self}>To use for my own purposes</label>
+          <label htmlFor={RadioButtonId.Self}>For my own purposes</label>
         </div>
 
         {this.renderDescription()}
