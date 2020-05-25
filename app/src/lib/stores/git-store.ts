@@ -333,13 +333,15 @@ export class GitStore extends BaseStore {
   }
 
   public async createTag(name: string, targetCommitSha: string) {
-    await this.performFailableOperation(async () => {
+    const result = await this.performFailableOperation(async () => {
       await createTag(this.repository, name, targetCommitSha)
+      return true
     })
 
-    await this.refreshTags()
-
-    this.addTagToPush(name)
+    if (result !== undefined) {
+      await this.refreshTags()
+      this.addTagToPush(name)
+    }
   }
 
   /** The list of ordered SHAs. */
@@ -449,6 +451,15 @@ export class GitStore extends BaseStore {
 
   private addTagToPush(tagName: string) {
     this._tagsToPush = [...this._tagsToPush, tagName]
+
+    storeTagsToPush(this.repository, this._tagsToPush)
+    this.emitUpdate()
+  }
+
+  private removeTagToPush(tagToDelete: string) {
+    this._tagsToPush = this._tagsToPush.filter(
+      tagName => tagName !== tagToDelete
+    )
 
     storeTagsToPush(this.repository, this._tagsToPush)
     this.emitUpdate()
