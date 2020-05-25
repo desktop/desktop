@@ -5,11 +5,7 @@ import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
 import { ensureDir } from 'fs-extra'
 import { openDirectorySafe } from '../shell'
-import {
-  enableRebaseDialog,
-  enableStashing,
-  enableCreateGitHubIssueFromMenu,
-} from '../../lib/feature-flag'
+import { enableCreateGitHubIssueFromMenu } from '../../lib/feature-flag'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { DefaultEditorLabel } from '../../ui/lib/context-menu'
 
@@ -212,7 +208,6 @@ export function buildDefaultMenu({
         click: isStashedChangesVisible
           ? emit('hide-stashed-changes')
           : emit('show-stashed-changes'),
-        visible: enableStashing(),
       },
       {
         label: __DARWIN__ ? 'Toggle Full Screen' : 'Toggle &full screen',
@@ -403,7 +398,6 @@ export function buildDefaultMenu({
         id: 'rebase-branch',
         accelerator: 'CmdOrCtrl+Shift+E',
         click: emit('rebase-branch'),
-        visible: enableRebaseDialog(),
       },
       separator,
       {

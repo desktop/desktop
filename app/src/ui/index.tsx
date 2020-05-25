@@ -4,6 +4,8 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
 
+import * as moment from 'moment'
+
 import { ipcRenderer, remote } from 'electron'
 
 import { App } from './app'
@@ -85,6 +87,11 @@ process.env['LOCAL_GIT_DIRECTORY'] = Path.resolve(__dirname, 'git')
 //   https://github.com/WICG/focus-ring
 //   Focus Ring! -- A11ycasts #16: https://youtu.be/ilj2P5-5CjI
 require('wicg-focus-ring')
+
+// setup this moment.js plugin so we can use easier
+// syntax for formatting time duration
+const momentDurationFormatSetup = require('moment-duration-format')
+momentDurationFormatSetup(moment)
 
 const startTime = performance.now()
 
@@ -277,6 +284,7 @@ const dispatcher = new Dispatcher(
 )
 
 dispatcher.registerErrorHandler(defaultErrorHandler)
+dispatcher.registerErrorHandler(gitCloneErrorHandler)
 dispatcher.registerErrorHandler(upstreamAlreadyExistsHandler)
 dispatcher.registerErrorHandler(externalEditorErrorHandler)
 dispatcher.registerErrorHandler(openShellErrorHandler)
@@ -292,7 +300,6 @@ dispatcher.registerErrorHandler(missingRepositoryHandler)
 dispatcher.registerErrorHandler(localChangesOverwrittenHandler)
 dispatcher.registerErrorHandler(rebaseConflictsHandler)
 dispatcher.registerErrorHandler(refusedWorkflowUpdate)
-dispatcher.registerErrorHandler(gitCloneErrorHandler)
 
 document.body.classList.add(`platform-${process.platform}`)
 

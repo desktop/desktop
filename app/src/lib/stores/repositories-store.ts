@@ -13,7 +13,6 @@ import { Repository } from '../../models/repository'
 import { fatalError } from '../fatal-error'
 import { IAPIRepository, IAPIBranch, IAPIRepositoryPermissions } from '../api'
 import { TypedBaseStore } from './base-store'
-import { enableBranchProtectionChecks } from '../feature-flag'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 
 /** The store for local repositories. */
@@ -183,7 +182,6 @@ export class RepositoriesStore extends TypedBaseStore<
             missing: false,
             lastStashCheckDate: null,
             isTutorialRepository: true,
-            workflowPreferences: {},
           },
           existingRepoId
         )
@@ -224,7 +222,6 @@ export class RepositoriesStore extends TypedBaseStore<
             gitHubRepositoryID: null,
             missing: false,
             lastStashCheckDate: null,
-            workflowPreferences: {},
           })
         }
 
@@ -519,10 +516,6 @@ export class RepositoriesStore extends TypedBaseStore<
     gitHubRepository: GitHubRepository,
     protectedBranches: ReadonlyArray<IAPIBranch>
   ): Promise<void> {
-    if (!enableBranchProtectionChecks()) {
-      return
-    }
-
     const dbID = gitHubRepository.dbID
     if (!dbID) {
       return fatalError(
