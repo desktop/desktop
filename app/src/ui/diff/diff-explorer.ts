@@ -17,7 +17,7 @@ export enum DiffRangeType {
  * Its type represents the type of interactive (added or deleted)
  * lines that it contains, being null when it has no interactive lines.
  */
-type DiffRange = {
+interface IDiffRange {
   readonly from: number
   readonly to: number
   readonly type: DiffRangeType | null
@@ -76,7 +76,7 @@ export function lineNumberForDiffLine(
 export function findInteractiveDiffRange(
   hunks: ReadonlyArray<DiffHunk>,
   index: number
-): DiffRange | null {
+): IDiffRange | null {
   const hunk = diffHunkForIndex(hunks, index)
   if (!hunk) {
     return null
@@ -139,7 +139,7 @@ function getNextRangeType(
 
   if (currentRangeType === null) {
     // If the current range type hasn't been set yet, we set it
-    // temporarily to the current line type ()
+    // temporarily to the current line type.
     return currentLine.type === DiffLineType.Add
       ? DiffRangeType.Additions
       : DiffRangeType.Deletions
@@ -147,7 +147,7 @@ function getNextRangeType(
 
   if (currentRangeType === DiffRangeType.Mixed) {
     // If the current range type is Mixed we don't need to change it
-    // (can't go back to Additions or Deletions).
+    // (it can't go back to Additions or Deletions).
     return currentRangeType
   }
 

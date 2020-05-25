@@ -65,6 +65,10 @@ interface IDiffProps {
   /** Hiding whitespace in diff. */
   readonly hideWhitespaceInDiff: boolean
 
+  /**
+   * Called when the user wants to discard a selection of the diff.
+   * Only applicable when readOnly is false.
+   */
   readonly onDiscardChanges?: (
     diff: ITextDiff,
     diffSelection: DiffSelection
