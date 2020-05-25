@@ -1534,6 +1534,9 @@ export class Dispatcher {
     const repository = await this.openOrCloneRepository(url)
 
     if (branch !== null && repository !== null) {
+      // ensure a fresh clone repository has it's in-memory state
+      // up-to-date before performing the "Clone in Desktop" steps
+      await this.appStore._refreshRepository(repository)
       this.checkoutLocalBranch(repository, branch)
     }
   }
@@ -1562,6 +1565,9 @@ export class Dispatcher {
       return
     }
 
+    // ensure a fresh clone repository has it's in-memory state
+    // up-to-date before performing the "Clone in Desktop" steps
+    await this.appStore._refreshRepository(repository)
     this.appStore._checkoutPullRequest(repository, pullRequest)
   }
 
@@ -1689,6 +1695,8 @@ export class Dispatcher {
     }
 
     const localBranch = branches.find(b => b.nameWithoutRemote === branch)
+
+    console.log('rafeca: localbranch', localBranch, branches)
 
     // N.B: This looks weird, and it is. _checkoutBranch used
     // to behave this way (silently ignoring checkout) when given
