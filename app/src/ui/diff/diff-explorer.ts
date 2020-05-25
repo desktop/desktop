@@ -6,7 +6,7 @@ import { DiffLine, DiffHunk, DiffLineType } from '../../models/diff'
 export enum DiffRangeType {
   /** Only contains added lines. */
   Additions,
-  /** Only contains added lines. */
+  /** Only contains deleted lines. */
   Deletions,
   /** Contains both added and removed lines. */
   Mixed,
