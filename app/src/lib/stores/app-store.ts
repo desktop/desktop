@@ -4927,9 +4927,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this._removeCloningRepository(r)
     })
 
-    const repositoryIDs = localRepositories.map(r => r.id)
-    for (const id of repositoryIDs) {
-      await this.repositoriesStore.removeRepository(id)
+    for (const repository of localRepositories) {
+      await this.repositoriesStore.removeRepository(repository)
     }
 
     const allRepositories = await this.repositoriesStore.getAll()
