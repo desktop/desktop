@@ -1555,7 +1555,7 @@ export class Dispatcher {
     } else {
       repository = (await this.openOrCloneRepository(
         url
-      )) as RepositoryWithGitHubRepository
+      )) as RepositoryWithGitHubRepository | null
     }
 
     if (repository === null) {
