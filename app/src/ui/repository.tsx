@@ -50,6 +50,18 @@ interface IRepositoryViewProps {
   readonly focusCommitMessage: boolean
   readonly accounts: ReadonlyArray<Account>
 
+  /**
+   * A value indicating whether or not the application is currently presenting
+   * a modal dialog such as the preferences, or an error dialog
+   */
+  readonly isShowingModal: boolean
+
+  /**
+   * A value indicating whether or not the application is currently presenting
+   * a foldout dialog such as the file menu, or the branches dropdown
+   */
+  readonly isShowingFoldout: boolean
+
   /** The name of the currently selected external editor */
   readonly externalEditorLabel?: string
 
@@ -421,7 +433,7 @@ export class RepositoryView extends React.Component<
 
   public render() {
     return (
-      <UiView id="repository" onKeyDown={this.onKeyDown}>
+      <UiView id="repository">
         {this.renderSidebar()}
         {this.renderContent()}
         {this.maybeRenderTutorialPanel()}
@@ -433,22 +445,42 @@ export class RepositoryView extends React.Component<
     this.props.dispatcher.revertCommit(this.props.repository, commit)
   }
 
-  private onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+  public componentDidMount() {
+    window.addEventListener('keydown', this.onGlobalKeyDown)
+  }
+
+  public componentWillUnmount() {
+    window.removeEventListener('keydown', this.onGlobalKeyDown)
+  }
+
+  private onGlobalKeyDown = (event: KeyboardEvent) => {
+    if (event.defaultPrevented) {
+      return
+    }
+
+    if (this.props.isShowingModal || this.props.isShowingFoldout) {
+      return
+    }
+
     // Toggle tab selection on Ctrl+Tab. Note that we don't care
     // about the shift key here, we can get away with that as long
     // as there's only two tabs.
-    if (e.ctrlKey && e.key === 'Tab') {
-      const section =
-        this.props.state.selectedSection === RepositorySectionTab.History
-          ? RepositorySectionTab.Changes
-          : RepositorySectionTab.History
-
-      this.props.dispatcher.changeRepositorySection(
-        this.props.repository,
-        section
-      )
-      e.preventDefault()
+    if (event.ctrlKey && event.key === 'Tab') {
+      this.changeTab()
+      event.preventDefault()
     }
+  }
+
+  private changeTab() {
+    const section =
+      this.props.state.selectedSection === RepositorySectionTab.History
+        ? RepositorySectionTab.Changes
+        : RepositorySectionTab.History
+
+    this.props.dispatcher.changeRepositorySection(
+      this.props.repository,
+      section
+    )
   }
 
   private onTabClicked = (tab: Tab) => {
