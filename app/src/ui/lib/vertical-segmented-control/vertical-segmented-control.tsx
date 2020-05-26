@@ -5,7 +5,7 @@ import { SegmentedItem } from './segmented-item'
 /**
  * An item which is rendered as a choice in the segmented control.
  */
-export interface ISegmentedItem {
+export interface ISegmentedItem<T> {
   /**
    * The title for the segmented item. This should be kept short.
    */
@@ -16,9 +16,19 @@ export interface ISegmentedItem {
    * selecting this item.
    */
   readonly description?: string | JSX.Element
+
+  /**
+   * The value to use for that item. This value will be passed as
+   * the first argument of onSelectionChanged() when the item gets
+   * selected.
+   *
+   * Note that when passing multiple items with the same value, only
+   * the first one will get used and the rest will get filtered out.
+   */
+  readonly value: T
 }
 
-interface IVerticalSegmentedControlProps {
+interface IVerticalSegmentedControlProps<T> {
   /**
    * An optional label for the segmented control. Will be rendered
    * as a legend element inside a field group. Consumers are strongly
@@ -31,20 +41,21 @@ interface IVerticalSegmentedControlProps {
    * An item must have a title and may (encouraged) also have a description
    * which explains what the consequences of selecting the items are.
    */
-  readonly items: ReadonlyArray<ISegmentedItem>
+  readonly items: ReadonlyArray<ISegmentedItem<T>>
 
   /**
-   * The currently selected item, denoted by its position in the items
-   * array.
+   * The currently selected item, denoted by its value.
    */
-  readonly selectedIndex: number
+  readonly selectedValue: T
 
   /**
-   * A function that's called whenever the selected item index changes, either
+   * A function that's called whenever the selected item changes, either
    * as a result of a click using a pointer device or as a result of the user
    * hitting an up/down while the component has focus.
+   *
+   * The value argument corresponds to the value property of the selected item.
    */
-  readonly onSelectionChanged: (selectedIndex: number) => void
+  readonly onSelectionChanged: (value: T) => void
 }
 
 interface IVerticalSegmentedControlState {
@@ -60,14 +71,14 @@ interface IVerticalSegmentedControlState {
  * A component for presenting a small number of choices to the user. Equivalent
  * of a radio button group but styled as a vertically oriented segmented control.
  */
-export class VerticalSegmentedControl extends React.Component<
-  IVerticalSegmentedControlProps,
+export class VerticalSegmentedControl<T> extends React.Component<
+  IVerticalSegmentedControlProps<T>,
   IVerticalSegmentedControlState
 > {
   private listRef: HTMLUListElement | null = null
   private formRef: HTMLFormElement | null = null
 
-  public constructor(props: IVerticalSegmentedControlProps) {
+  public constructor(props: IVerticalSegmentedControlProps<T>) {
     super(props)
     this.state = {}
   }
@@ -95,15 +106,17 @@ export class VerticalSegmentedControl extends React.Component<
     }
   }
 
-  public componentWillReceiveProps(nextProps: IVerticalSegmentedControlProps) {
+  public componentWillReceiveProps(
+    nextProps: IVerticalSegmentedControlProps<T>
+  ) {
     if (this.props.label !== nextProps.label) {
       this.updateListId(nextProps.label)
     }
   }
 
-  private onItemClick = (index: number) => {
-    if (index !== this.props.selectedIndex) {
-      this.props.onSelectionChanged(index)
+  private onItemClick = (value: T) => {
+    if (value !== this.props.selectedValue) {
+      this.props.onSelectionChanged(value)
     }
   }
 
@@ -111,29 +124,36 @@ export class VerticalSegmentedControl extends React.Component<
     return `${this.state.listId}_Item_${index}`
   }
 
-  private renderItem(item: ISegmentedItem, index: number, selected: boolean) {
+  private renderItem(
+    item: ISegmentedItem<T>,
+    index: number,
+    selected: boolean
+  ) {
     return (
       <SegmentedItem
         id={this.getListItemId(index)}
         key={index}
         title={item.title}
         description={item.description}
-        index={index}
         isSelected={selected}
+        value={item.value}
         onClick={this.onItemClick}
       />
     )
   }
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLUListElement>) => {
+    const items = this.getUniqueItems()
+    const selectedIndex = this.findSelectedIndex(items)
+
     if (event.key === 'ArrowUp') {
-      if (this.props.selectedIndex > 0) {
-        this.props.onSelectionChanged(this.props.selectedIndex - 1)
+      if (selectedIndex > 0) {
+        this.props.onSelectionChanged(items[selectedIndex - 1].value)
       }
       event.preventDefault()
     } else if (event.key === 'ArrowDown') {
-      if (this.props.selectedIndex < this.props.items.length - 1) {
-        this.props.onSelectionChanged(this.props.selectedIndex + 1)
+      if (selectedIndex < items.length - 1) {
+        this.props.onSelectionChanged(items[selectedIndex + 1].value)
       }
       event.preventDefault()
     } else if (event.key === 'Enter') {
@@ -162,11 +182,13 @@ export class VerticalSegmentedControl extends React.Component<
   }
 
   public render() {
-    if (!this.props.items.length) {
+    const items = this.getUniqueItems()
+
+    if (items.length === 0) {
       return null
     }
 
-    const selectedIndex = this.props.selectedIndex
+    const selectedIndex = this.findSelectedIndex(items)
     const label = this.props.label ? (
       <legend onClick={this.onLegendClick}>{this.props.label}</legend>
     ) : (
@@ -190,11 +212,28 @@ export class VerticalSegmentedControl extends React.Component<
           role="radiogroup"
           aria-activedescendant={activeDescendant}
         >
-          {this.props.items.map((item, index) =>
+          {items.map((item, index) =>
             this.renderItem(item, index, index === selectedIndex)
           )}
         </ul>
       </fieldset>
     )
+  }
+
+  private getUniqueItems() {
+    const uniqueValues = new Set()
+
+    return this.props.items.filter(item => {
+      if (uniqueValues.has(item.value)) {
+        return false
+      }
+      uniqueValues.add(item.value)
+
+      return true
+    })
+  }
+
+  private findSelectedIndex(items: ReadonlyArray<ISegmentedItem<T>>) {
+    return items.findIndex(item => item.value === this.props.selectedValue)
   }
 }
