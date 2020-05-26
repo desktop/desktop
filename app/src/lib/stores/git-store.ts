@@ -347,10 +347,14 @@ export class GitStore extends BaseStore {
       return true
     })
 
-    if (result !== undefined) {
-      await this.refreshTags()
-      this.addTagToPush(name)
+    if (result === undefined) {
+      return
     }
+
+    await this.refreshTags()
+    this.addTagToPush(name)
+
+    this.statsStore.recordTagCreatedInDesktop()
   }
 
   /** The list of ordered SHAs. */
