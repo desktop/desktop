@@ -16,6 +16,7 @@ import { Account } from '../../models/account'
 import { API } from '../../lib/api'
 import { LinkButton } from '../lib/link-button'
 import { PopupType } from '../../models/popup'
+import { enableForkSettings } from '../../lib/feature-flag'
 
 interface ICreateForkDialogProps {
   readonly dispatcher: Dispatcher
@@ -60,7 +61,10 @@ export class CreateForkDialog extends React.Component<
       this.setState({ loading: false })
       this.props.onDismissed()
 
-      if (isRepositoryWithForkedGitHubRepository(updatedRepository)) {
+      if (
+        enableForkSettings() &&
+        isRepositoryWithForkedGitHubRepository(updatedRepository)
+      ) {
         this.props.dispatcher.showPopup({
           type: PopupType.ChooseForkSettings,
           repository: updatedRepository,
