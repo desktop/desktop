@@ -1,4 +1,8 @@
-import { Repository, RepositoryWithGitHubRepository } from './repository'
+import {
+  Repository,
+  RepositoryWithGitHubRepository,
+  RepositoryWithForkedGitHubRepository,
+} from './repository'
 import { PullRequest } from './pull-request'
 import { Branch } from './branch'
 import { ReleaseSummary } from './release-notes'
@@ -62,6 +66,7 @@ export enum PopupType {
   LocalChangesOverwritten,
   RebaseConflicts,
   RetryClone,
+  ChooseForkSettings,
 }
 
 export type Popup =
@@ -243,4 +248,8 @@ export type Popup =
       repository: Repository | CloningRepository
       retryAction: RetryAction
       errorMessage: string
+    }
+  | {
+      type: PopupType.ChooseForkSettings
+      repository: RepositoryWithForkedGitHubRepository
     }
