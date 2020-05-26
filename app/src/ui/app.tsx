@@ -1471,9 +1471,10 @@ export class App extends React.Component<IAppProps, IAppState> {
           isRepositoryWithGitHubRepository(repository)
         ) {
           upstreamGhRepo = getNonForkGitHubRepository(repository)
-          upstreamDefaultBranch =
-            findDefaultUpstreamBranch(repository, branchesState.allBranches) ||
-            null
+          upstreamDefaultBranch = findDefaultUpstreamBranch(
+            repository,
+            branchesState.allBranches
+          )
         }
 
         return (
