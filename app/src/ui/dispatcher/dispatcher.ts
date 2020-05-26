@@ -70,6 +70,7 @@ import {
   RepositoryWithGitHubRepository,
   isRepositoryWithGitHubRepository,
   getGitHubHtmlUrl,
+  isRepositoryWithForkedGitHubRepository,
 } from '../../models/repository'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
@@ -650,6 +651,13 @@ export class Dispatcher {
       const addedRepositories = await this.addRepositories([path])
       const addedRepository = addedRepositories[0]
       await this.selectRepository(addedRepository)
+
+      if (isRepositoryWithForkedGitHubRepository(addedRepository)) {
+        this.showPopup({
+          type: PopupType.ChooseForkSettings,
+          repository: addedRepository,
+        })
+      }
 
       return addedRepository
     })
