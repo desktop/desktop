@@ -2081,8 +2081,8 @@ export class Dispatcher {
   public async convertRepositoryToFork(
     repository: RepositoryWithGitHubRepository,
     fork: IAPIRepository
-  ) {
-    await this.appStore._convertRepositoryToFork(repository, fork)
+  ): Promise<Repository> {
+    return this.appStore._convertRepositoryToFork(repository, fork)
   }
 
   /**
