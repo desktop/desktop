@@ -344,13 +344,19 @@ export class GitStore extends BaseStore {
   }
 
   public async deleteTag(name: string) {
-    await this.performFailableOperation(async () => {
+    const result = await this.performFailableOperation(async () => {
       await deleteTag(this.repository, name)
+      return true
     })
 
-    await this.refreshTags()
+    if (result === undefined) {
+      return
+    }
 
+    await this.refreshTags()
     this.removeTagToPush(name)
+
+    this.statsStore.recordTagDeleted()
   }
 
   /** The list of ordered SHAs. */
