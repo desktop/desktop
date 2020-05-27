@@ -2960,12 +2960,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    if (currentPopup.type === PopupType.CloneRepository) {
-      this._completeOpenInDesktop(() => Promise.resolve(null))
-    }
-
     if (popupType !== undefined && currentPopup.type !== popupType) {
       return
+    }
+
+    if (currentPopup.type === PopupType.CloneRepository) {
+      this._completeOpenInDesktop(() => Promise.resolve(null))
     }
 
     this.currentPopup = null
