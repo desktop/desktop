@@ -438,8 +438,8 @@ app.on('ready', () => {
   ipcMain.on(
     'show-contextual-menu',
     (event: Electron.IpcMainEvent, items: ReadonlyArray<IMenuItem>) => {
-      const menu = buildContextMenu(items, ix =>
-        event.sender.send('contextual-menu-action', ix)
+      const menu = buildContextMenu(items, indices =>
+        event.sender.send('contextual-menu-action', indices)
       )
 
       const window = BrowserWindow.fromWebContents(event.sender)

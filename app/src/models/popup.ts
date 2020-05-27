@@ -59,6 +59,7 @@ export enum PopupType {
   CreateFork,
   SChannelNoRevocationCheck,
   CreateTag,
+  DeleteTag,
   LocalChangesOverwritten,
   RebaseConflicts,
   RetryClone,
@@ -243,4 +244,9 @@ export type Popup =
       repository: Repository | CloningRepository
       retryAction: RetryAction
       errorMessage: string
+    }
+  | {
+      type: PopupType.DeleteTag
+      repository: Repository
+      tagName: string
     }

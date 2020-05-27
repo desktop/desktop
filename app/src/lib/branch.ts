@@ -18,7 +18,7 @@ import {
 export function findDefaultUpstreamBranch(
   repository: RepositoryWithGitHubRepository,
   branches: ReadonlyArray<Branch>
-) {
+): Branch | null {
   const githubRepository = getNonForkGitHubRepository(repository)
 
   // This is a bit hacky... we checked if the result of calling
@@ -33,9 +33,11 @@ export function findDefaultUpstreamBranch(
     return null
   }
 
-  return branches.find(
+  const foundBranch = branches.find(
     b =>
       b.type === BranchType.Remote &&
       b.name === `${UpstreamRemoteName}/${githubRepository.defaultBranch}`
   )
+
+  return foundBranch !== undefined ? foundBranch : null
 }
