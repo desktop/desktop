@@ -65,6 +65,7 @@ import {
   removeRemote,
   createTag,
   getAllTags,
+  deleteTag,
 } from '../git'
 import { GitError as DugiteError } from '../../lib/git'
 import { GitError } from 'dugite'
@@ -342,6 +343,22 @@ export class GitStore extends BaseStore {
     this.addTagToPush(name)
   }
 
+  public async deleteTag(name: string) {
+    const result = await this.performFailableOperation(async () => {
+      await deleteTag(this.repository, name)
+      return true
+    })
+
+    if (result === undefined) {
+      return
+    }
+
+    await this.refreshTags()
+    this.removeTagToPush(name)
+
+    this.statsStore.recordTagDeleted()
+  }
+
   /** The list of ordered SHAs. */
   public get history(): ReadonlyArray<string> {
     return this._history
@@ -449,6 +466,15 @@ export class GitStore extends BaseStore {
 
   private addTagToPush(tagName: string) {
     this._tagsToPush = [...this._tagsToPush, tagName]
+
+    storeTagsToPush(this.repository, this._tagsToPush)
+    this.emitUpdate()
+  }
+
+  private removeTagToPush(tagToDelete: string) {
+    this._tagsToPush = this._tagsToPush.filter(
+      tagName => tagName !== tagToDelete
+    )
 
     storeTagsToPush(this.repository, this._tagsToPush)
     this.emitUpdate()
