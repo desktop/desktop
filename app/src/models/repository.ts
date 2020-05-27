@@ -2,7 +2,11 @@ import * as Path from 'path'
 
 import { GitHubRepository } from './github-repository'
 import { IAheadBehind } from './branch'
-import { WorkflowPreferences } from './workflow-preferences'
+import {
+  WorkflowPreferences,
+  ForkContributionTarget,
+} from './workflow-preferences'
+import { assertNever } from '../lib/fatal-error'
 
 function getBaseName(path: string): string {
   const baseName = Path.basename(path)
@@ -128,11 +132,37 @@ export function getGitHubHtmlUrl(repository: Repository): string | null {
 }
 
 /**
- * Returns the GitHubRepository when a non-fork repository is passed. Returns the parent
- * GitHubRepository otherwise.
+ * Attempts to honor the Repository's workflow preference for GitHubRepository contributions.
+ * Falls back to returning the GitHubRepository when a non-fork repository
+ * is passed, returns the parent GitHubRepository otherwise.
  */
 export function getNonForkGitHubRepository(
   repository: RepositoryWithGitHubRepository
 ): GitHubRepository {
-  return repository.gitHubRepository.parent || repository.gitHubRepository
+  if (repository.gitHubRepository.parent === null) {
+    // If the repository is not a fork, we don't have to worry about anything.
+    return repository.gitHubRepository
+  }
+
+  const forkContributionTarget = getForkContributionTarget(repository)
+
+  switch (forkContributionTarget) {
+    case ForkContributionTarget.Self:
+      return repository.gitHubRepository
+    case ForkContributionTarget.Parent:
+      return repository.gitHubRepository.parent
+  }
+
+  return assertNever(forkContributionTarget, 'Invalid fork contribution target')
+}
+
+/**
+ * Returns a non-undefined forkContributionTarget for the specified repository.
+ */
+export function getForkContributionTarget(
+  repository: Repository
+): ForkContributionTarget {
+  return repository.workflowPreferences.forkContributionTarget !== undefined
+    ? repository.workflowPreferences.forkContributionTarget
+    : ForkContributionTarget.Parent
 }

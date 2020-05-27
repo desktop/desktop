@@ -23,7 +23,12 @@ import { getVersion, getName } from './lib/app-proxy'
 import { getOS } from '../lib/get-os'
 import { validatedRepositoryPath } from '../lib/stores/helpers/validated-repository-path'
 import { MenuEvent } from '../main-process/menu'
-import { Repository, getGitHubHtmlUrl } from '../models/repository'
+import {
+  Repository,
+  getGitHubHtmlUrl,
+  getNonForkGitHubRepository,
+  isRepositoryWithGitHubRepository,
+} from '../models/repository'
 import { Branch } from '../models/branch'
 import { PreferencesTab } from '../models/preferences'
 import { findItemByAccessKey, itemIsSelectable } from '../models/app-menu'
@@ -112,7 +117,7 @@ import { getUncommittedChangesStrategy } from '../models/uncommitted-changes-str
 import { SAMLReauthRequiredDialog } from './saml-reauth-required/saml-reauth-required'
 import { CreateForkDialog } from './forks/create-fork-dialog'
 import { SChannelNoRevocationCheckDialog } from './schannel-no-revocation-check/schannel-no-revocation-check'
-import { findUpstreamRemoteBranch } from '../lib/branch'
+import { findDefaultUpstreamBranch } from '../lib/branch'
 import { GitHubRepository } from '../models/github-repository'
 import { CreateTag } from './create-tag'
 import { RetryCloneDialog } from './clone-repository/retry-clone-dialog'
@@ -1464,17 +1469,13 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         if (
           enableForkyCreateBranchUI() &&
-          repository.gitHubRepository !== null &&
-          repository.gitHubRepository.parent !== null
+          isRepositoryWithGitHubRepository(repository)
         ) {
-          upstreamGhRepo = repository.gitHubRepository.parent
-          if (upstreamGhRepo.defaultBranch !== null) {
-            upstreamDefaultBranch =
-              findUpstreamRemoteBranch(
-                upstreamGhRepo.defaultBranch,
-                branchesState.allBranches
-              ) || null
-          }
+          upstreamGhRepo = getNonForkGitHubRepository(repository)
+          upstreamDefaultBranch = findDefaultUpstreamBranch(
+            repository,
+            branchesState.allBranches
+          )
         }
 
         return (
