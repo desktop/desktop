@@ -121,6 +121,7 @@ import { findDefaultUpstreamBranch } from '../lib/branch'
 import { GitHubRepository } from '../models/github-repository'
 import { CreateTag } from './create-tag'
 import { RetryCloneDialog } from './clone-repository/retry-clone-dialog'
+import { DeleteTag } from './delete-tag'
 import { ChooseForkSettings } from './choose-fork-settings'
 
 const MinuteInMilliseconds = 1000 * 60
@@ -1472,9 +1473,10 @@ export class App extends React.Component<IAppProps, IAppState> {
           isRepositoryWithGitHubRepository(repository)
         ) {
           upstreamGhRepo = getNonForkGitHubRepository(repository)
-          upstreamDefaultBranch =
-            findDefaultUpstreamBranch(repository, branchesState.allBranches) ||
-            null
+          upstreamDefaultBranch = findDefaultUpstreamBranch(
+            repository,
+            branchesState.allBranches
+          )
         }
 
         return (
@@ -1944,6 +1946,17 @@ export class App extends React.Component<IAppProps, IAppState> {
             targetCommitSha={popup.targetCommitSha}
             initialName={popup.initialName}
             localTags={popup.localTags}
+          />
+        )
+      }
+      case PopupType.DeleteTag: {
+        return (
+          <DeleteTag
+            key="delete-tag"
+            repository={popup.repository}
+            onDismissed={this.onPopupDismissed}
+            dispatcher={this.props.dispatcher}
+            tagName={popup.tagName}
           />
         )
       }
@@ -2567,6 +2580,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           appMenu={state.appMenuState[0]}
           currentTutorialStep={state.currentOnboardingTutorialStep}
           onExitTutorial={this.onExitTutorial}
+          isShowingModal={this.isShowingModal}
+          isShowingFoldout={this.state.currentFoldout !== null}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {

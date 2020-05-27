@@ -18,6 +18,11 @@ export interface IMenuItem {
    * See https://electronjs.org/docs/api/menu-item#roles
    */
   readonly role?: Electron.MenuItemConstructorOptions['role']
+
+  /**
+   * Submenu that will appear when hovering this menu item.
+   */
+  readonly submenu?: ReadonlyArray<IMenuItem>
 }
 
 /**

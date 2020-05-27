@@ -510,6 +510,13 @@ export class Dispatcher {
   }
 
   /**
+   * Deletes the passed tag.
+   */
+  public deleteTag(repository: Repository, name: string): Promise<void> {
+    return this.appStore._deleteTag(repository, name)
+  }
+
+  /**
    * Show the tag creation dialog.
    */
   public showCreateTagDialog(
@@ -524,6 +531,20 @@ export class Dispatcher {
       targetCommitSha,
       initialName,
       localTags,
+    })
+  }
+
+  /**
+   * Show the confirmation dialog to delete a tag.
+   */
+  public showDeleteTagDialog(
+    repository: Repository,
+    tagName: string
+  ): Promise<void> {
+    return this.showPopup({
+      type: PopupType.DeleteTag,
+      repository,
+      tagName,
     })
   }
 
