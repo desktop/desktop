@@ -22,13 +22,13 @@ import {
 } from '../lib/context-menu'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 
-import { Diff } from '../diff'
 import { Dispatcher } from '../dispatcher'
 import { Resizable } from '../resizable'
 import { showContextualMenu } from '../main-process-proxy'
 
 import { CommitSummary } from './commit-summary'
 import { FileList } from './file-list'
+import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
 
 interface ISelectedCommitProps {
   readonly repository: Repository
@@ -131,7 +131,7 @@ export class SelectedCommit extends React.Component<
     }
 
     return (
-      <Diff
+      <SeamlessDiffSwitcher
         repository={this.props.repository}
         imageDiffType={this.props.selectedDiffType}
         file={file}
