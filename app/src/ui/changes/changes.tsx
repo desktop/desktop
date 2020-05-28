@@ -1,10 +1,10 @@
 import * as React from 'react'
-import { Diff } from '../diff'
 import { ChangedFileDetails } from './changed-file-details'
 import { DiffSelection, IDiff, ImageDiffType } from '../../models/diff'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
+import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
 
 interface IChangesProps {
   readonly repository: Repository
@@ -37,18 +37,16 @@ export class Changes extends React.Component<IChangesProps, {}> {
         <ChangedFileDetails path={file.path} status={file.status} diff={diff} />
 
         <div className="diff-wrapper">
-          {diff !== null ? (
-            <Diff
-              repository={this.props.repository}
-              imageDiffType={this.props.imageDiffType}
-              file={file}
-              readOnly={isCommitting}
-              onIncludeChanged={this.onDiffLineIncludeChanged}
-              diff={diff}
-              dispatcher={this.props.dispatcher}
-              hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
-            />
-          ) : null}
+          <SeamlessDiffSwitcher
+            repository={this.props.repository}
+            imageDiffType={this.props.imageDiffType}
+            file={file}
+            readOnly={isCommitting}
+            onIncludeChanged={this.onDiffLineIncludeChanged}
+            diff={diff}
+            dispatcher={this.props.dispatcher}
+            hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+          />
         </div>
       </div>
     )
