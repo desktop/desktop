@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as classNames from 'classnames'
 
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
@@ -9,6 +10,7 @@ import {
   CommittedFileChange,
 } from '../../models/status'
 import { DiffSelection, IDiff, ImageDiffType } from '../../models/diff'
+import { Loading } from '../lib/loading'
 
 type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
 
@@ -56,6 +58,7 @@ interface ISeamlessDiffSwitcherProps {
 
 interface ISeamlessDiffSwitcherState {
   readonly isLoadingDiff: boolean
+  readonly isLoadingSlow: boolean
   readonly props: ISeamlessDiffSwitcherProps
 }
 
@@ -66,6 +69,8 @@ export class SeamlessDiffSwitcher extends React.Component<
   ISeamlessDiffSwitcherProps,
   ISeamlessDiffSwitcherState
 > {
+  private slowLoadingTimeoutId: number | null = null
+
   public static getDerivedStateFromProps(
     props: ISeamlessDiffSwitcherProps,
     state: ISeamlessDiffSwitcherState
@@ -74,6 +79,8 @@ export class SeamlessDiffSwitcher extends React.Component<
     return {
       props: isLoadingDiff ? state.props : props,
       isLoadingDiff,
+      isLoadingSlow:
+        isLoadingDiff && !state.isLoadingDiff ? false : state.isLoadingSlow,
     }
   }
 
@@ -82,12 +89,59 @@ export class SeamlessDiffSwitcher extends React.Component<
 
     this.state = {
       isLoadingDiff: props.diff === null,
+      isLoadingSlow: false,
       props: props,
     }
   }
 
+  public componentDidMount() {
+    if (this.state.isLoadingDiff) {
+      this.scheduleSlowLoadingTimeout()
+    }
+  }
+
+  public componentWillUnmount() {
+    this.clearSlowLoadingTimeout()
+  }
+
+  public componentDidUpdate(
+    prevProps: ISeamlessDiffSwitcherProps,
+    prevState: ISeamlessDiffSwitcherState
+  ) {
+    // Have we transitioned from loading to not loading or vice versa?
+    if (this.state.isLoadingDiff !== prevState.isLoadingDiff) {
+      if (this.state.isLoadingDiff) {
+        // If we've just begun loading the diff, start the timer
+        this.scheduleSlowLoadingTimeout()
+      } else {
+        // If we're no longer loading the diff make sure that we're not
+        // still counting down
+        this.clearSlowLoadingTimeout()
+      }
+    }
+  }
+
+  private onSlowLoadingTimeout = () => {
+    this.setState({ isLoadingSlow: true })
+  }
+
+  private scheduleSlowLoadingTimeout() {
+    this.clearSlowLoadingTimeout()
+    this.slowLoadingTimeoutId = window.setTimeout(
+      this.onSlowLoadingTimeout,
+      150
+    )
+  }
+
+  private clearSlowLoadingTimeout() {
+    if (this.slowLoadingTimeoutId !== null) {
+      window.clearTimeout(this.slowLoadingTimeoutId)
+      this.slowLoadingTimeoutId = null
+    }
+  }
+
   public render() {
-    const { isLoadingDiff } = this.state
+    const { isLoadingDiff, isLoadingSlow } = this.state
     const {
       repository,
       imageDiffType,
@@ -100,22 +154,35 @@ export class SeamlessDiffSwitcher extends React.Component<
       onChangeImageDiffType,
     } = this.state.props
 
-    if (diff === null) {
-      return null
-    }
+    const className = classNames('seamless-diff-switcher', {
+      loading: isLoadingDiff,
+      slow: isLoadingSlow,
+      'has-diff': diff !== null,
+    })
+
+    const loadingIndicator = isLoadingDiff ? (
+      <div className="loading-indicator">
+        <Loading />
+      </div>
+    ) : null
 
     return (
-      <Diff
-        repository={repository}
-        imageDiffType={imageDiffType}
-        file={file}
-        diff={diff}
-        readOnly={readOnly}
-        hideWhitespaceInDiff={hideWhitespaceInDiff}
-        onIncludeChanged={isLoadingDiff ? noop : onIncludeChanged}
-        onOpenBinaryFile={isLoadingDiff ? noop : onOpenBinaryFile}
-        onChangeImageDiffType={isLoadingDiff ? noop : onChangeImageDiffType}
-      />
+      <div className={className}>
+        {diff !== null ? (
+          <Diff
+            repository={repository}
+            imageDiffType={imageDiffType}
+            file={file}
+            diff={diff}
+            readOnly={readOnly}
+            hideWhitespaceInDiff={hideWhitespaceInDiff}
+            onIncludeChanged={isLoadingDiff ? noop : onIncludeChanged}
+            onOpenBinaryFile={isLoadingDiff ? noop : onOpenBinaryFile}
+            onChangeImageDiffType={isLoadingDiff ? noop : onChangeImageDiffType}
+          />
+        ) : null}
+        {loadingIndicator}
+      </div>
     )
   }
 }
