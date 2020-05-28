@@ -53,7 +53,8 @@ export class GitHubRepository {
 }
 
 export type ForkedGitHubRepository = GitHubRepository & {
-  parent: GitHubRepository
+  readonly parent: GitHubRepository
+  readonly fork: true
 }
 
 /**
