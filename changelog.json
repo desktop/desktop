@@ -4,7 +4,7 @@
       "[Added] Offer ability to delete tags that haven't been pushed - #9796",
       "[Fixed] Checkout PR branch when using \"Open in GitHub Desktop\" from github.com - #9873",
       "[Fixed] Handle Enter key presses in Clone Repository Dialog - #5234 #8804. Thanks @ruggi99!",
-      "[Fixed] Use canonical stash references to avoid issues when having a branch named \"stash\" - #9844",
+      "[Fixed] Avoid errors in restoring a stash when a branch is also named \"stash\" - #9844",
       "[Fixed] Avoid performing background network operations to calculate unpushed tags - #9828",
       "[Fixed] Rework Ctrl+Tab to work without RepositoryView focus - #5911. Thanks @JMcKiern!",
       "[Improved] Make it safer to \"Open in Command Prompt\" on Windows - #9640. Thanks @dscho!",
