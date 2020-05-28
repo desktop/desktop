@@ -4,10 +4,10 @@ import { FileList } from '../history/file-list'
 import { Dispatcher } from '../dispatcher'
 import { CommittedFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
-import { Diff } from '../diff'
 import { IDiff, ImageDiffType } from '../../models/diff'
 import { Resizable } from '../resizable'
 import { StashDiffHeader } from './stash-diff-header'
+import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
 
 interface IStashDiffViewerProps {
   /** The stash in question. */
@@ -76,8 +76,8 @@ export class StashDiffViewer extends React.PureComponent<
         : new Array<CommittedFileChange>()
 
     const diffComponent =
-      selectedStashedFile !== null && stashedFileDiff !== null ? (
-        <Diff
+      selectedStashedFile !== null ? (
+        <SeamlessDiffSwitcher
           repository={repository}
           readOnly={true}
           file={selectedStashedFile}
