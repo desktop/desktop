@@ -122,6 +122,7 @@ import { GitHubRepository } from '../models/github-repository'
 import { CreateTag } from './create-tag'
 import { RetryCloneDialog } from './clone-repository/retry-clone-dialog'
 import { DeleteTag } from './delete-tag'
+import { ChooseForkSettings } from './choose-fork-settings'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1967,6 +1968,15 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
             errorMessage={popup.errorMessage}
+          />
+        )
+      }
+      case PopupType.ChooseForkSettings: {
+        return (
+          <ChooseForkSettings
+            repository={popup.repository}
+            onDismissed={this.onPopupDismissed}
+            dispatcher={this.props.dispatcher}
           />
         )
       }
