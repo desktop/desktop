@@ -29,6 +29,7 @@ import { TutorialPanel, TutorialWelcome, TutorialDone } from './tutorial'
 import { enableNDDBBanner } from '../lib/feature-flag'
 import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { ExternalEditor } from '../lib/editors'
+import { openFile } from './lib/open-file'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -315,6 +316,7 @@ export class RepositoryView extends React.Component<
           repository={this.props.repository}
           dispatcher={this.props.dispatcher}
           isWorkingTreeClean={isWorkingTreeClean}
+          onOpenBinaryFile={this.onOpenBinaryFile}
         />
       )
     }
@@ -347,6 +349,7 @@ export class RepositoryView extends React.Component<
         externalEditorLabel={this.props.externalEditorLabel}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+        onOpenBinaryFile={this.onOpenBinaryFile}
       />
     )
   }
@@ -415,9 +418,14 @@ export class RepositoryView extends React.Component<
           isCommitting={this.props.state.isCommitting}
           imageDiffType={this.props.imageDiffType}
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+          onOpenBinaryFile={this.onOpenBinaryFile}
         />
       )
     }
+  }
+
+  private onOpenBinaryFile = (fullPath: string) => {
+    openFile(fullPath, this.props.dispatcher)
   }
 
   private renderContent(): JSX.Element | null {

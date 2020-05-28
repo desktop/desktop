@@ -64,6 +64,12 @@ interface IDiffProps {
 
   /** Hiding whitespace in diff. */
   readonly hideWhitespaceInDiff: boolean
+
+  /**
+   * Called when the user requests to open a binary file in an the
+   * system-assigned application for said file type.
+   */
+  readonly onOpenBinaryFile: (fullPath: string) => void
 }
 
 interface IDiffState {
@@ -217,7 +223,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       <BinaryFile
         path={this.props.file.path}
         repository={this.props.repository}
-        dispatcher={this.props.dispatcher}
+        onOpenBinaryFile={this.props.onOpenBinaryFile}
       />
     )
   }

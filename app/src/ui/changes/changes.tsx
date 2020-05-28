@@ -16,6 +16,12 @@ interface IChangesProps {
   /** Whether a commit is in progress */
   readonly isCommitting: boolean
   readonly hideWhitespaceInDiff: boolean
+
+  /**
+   * Called when the user requests to open a binary file in an the
+   * system-assigned application for said file type.
+   */
+  readonly onOpenBinaryFile: (fullPath: string) => void
 }
 
 export class Changes extends React.Component<IChangesProps, {}> {
@@ -46,6 +52,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
             diff={diff}
             dispatcher={this.props.dispatcher}
             hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+            onOpenBinaryFile={this.props.onOpenBinaryFile}
           />
         </div>
       </div>

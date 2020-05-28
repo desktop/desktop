@@ -50,6 +50,12 @@ interface ISelectedCommitProps {
    */
   readonly onOpenInExternalEditor: (path: string) => void
   readonly hideWhitespaceInDiff: boolean
+
+  /**
+   * Called when the user requests to open a binary file in an the
+   * system-assigned application for said file type.
+   */
+  readonly onOpenBinaryFile: (fullPath: string) => void
 }
 
 interface ISelectedCommitState {
@@ -127,6 +133,7 @@ export class SelectedCommit extends React.Component<
         readOnly={true}
         dispatcher={this.props.dispatcher}
         hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+        onOpenBinaryFile={this.props.onOpenBinaryFile}
       />
     )
   }

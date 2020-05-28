@@ -40,6 +40,12 @@ interface ISeamlessDiffSwitcherProps {
 
   /** Hiding whitespace in diff. */
   readonly hideWhitespaceInDiff: boolean
+
+  /**
+   * Called when the user requests to open a binary file in an the
+   * system-assigned application for said file type.
+   */
+  readonly onOpenBinaryFile: (fullPath: string) => void
 }
 
 interface ISeamlessDiffSwitcherState {
@@ -85,6 +91,7 @@ export class SeamlessDiffSwitcher extends React.Component<
       onIncludeChanged,
       diff,
       file,
+      onOpenBinaryFile,
     } = this.state.props
 
     if (diff === null) {
@@ -101,6 +108,7 @@ export class SeamlessDiffSwitcher extends React.Component<
         dispatcher={dispatcher}
         hideWhitespaceInDiff={hideWhitespaceInDiff}
         onIncludeChanged={isLoadingDiff ? noop : onIncludeChanged}
+        onOpenBinaryFile={onOpenBinaryFile}
       />
     )
   }

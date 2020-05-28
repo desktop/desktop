@@ -27,6 +27,12 @@ interface IStashDiffViewerProps {
 
   /** Are there any uncommitted changes */
   readonly isWorkingTreeClean: boolean
+
+  /**
+   * Called when the user requests to open a binary file in an the
+   * system-assigned application for said file type.
+   */
+  readonly onOpenBinaryFile: (fullPath: string) => void
 }
 
 /**
@@ -71,6 +77,7 @@ export class StashDiffViewer extends React.PureComponent<
           dispatcher={dispatcher}
           imageDiffType={imageDiffType}
           hideWhitespaceInDiff={false}
+          onOpenBinaryFile={this.props.onOpenBinaryFile}
         />
       ) : null
 
