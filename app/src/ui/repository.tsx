@@ -317,6 +317,7 @@ export class RepositoryView extends React.Component<
           dispatcher={this.props.dispatcher}
           isWorkingTreeClean={isWorkingTreeClean}
           onOpenBinaryFile={this.onOpenBinaryFile}
+          onChangeImageDiffType={this.onChangeImageDiffType}
         />
       )
     }
@@ -350,6 +351,7 @@ export class RepositoryView extends React.Component<
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
         onOpenBinaryFile={this.onOpenBinaryFile}
+        onChangeImageDiffType={this.onChangeImageDiffType}
       />
     )
   }
@@ -419,6 +421,7 @@ export class RepositoryView extends React.Component<
           imageDiffType={this.props.imageDiffType}
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
           onOpenBinaryFile={this.onOpenBinaryFile}
+          onChangeImageDiffType={this.onChangeImageDiffType}
         />
       )
     }
@@ -426,6 +429,10 @@ export class RepositoryView extends React.Component<
 
   private onOpenBinaryFile = (fullPath: string) => {
     openFile(fullPath, this.props.dispatcher)
+  }
+
+  private onChangeImageDiffType = (imageDiffType: ImageDiffType) => {
+    this.props.dispatcher.changeImageDiffType(imageDiffType)
   }
 
   private renderContent(): JSX.Element | null {

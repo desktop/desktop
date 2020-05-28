@@ -33,6 +33,12 @@ interface IStashDiffViewerProps {
    * system-assigned application for said file type.
    */
   readonly onOpenBinaryFile: (fullPath: string) => void
+
+  /**
+   * Called when the user is viewing an image diff and requests
+   * to change the diff presentation mode.
+   */
+  readonly onChangeImageDiffType: (type: ImageDiffType) => void
 }
 
 /**
@@ -62,6 +68,7 @@ export class StashDiffViewer extends React.PureComponent<
       isWorkingTreeClean,
       fileListWidth,
       onOpenBinaryFile,
+      onChangeImageDiffType,
     } = this.props
     const files =
       stashEntry.files.kind === StashedChangesLoadStates.Loaded
@@ -75,10 +82,10 @@ export class StashDiffViewer extends React.PureComponent<
           readOnly={true}
           file={selectedStashedFile}
           diff={stashedFileDiff}
-          dispatcher={dispatcher}
           imageDiffType={imageDiffType}
           hideWhitespaceInDiff={false}
           onOpenBinaryFile={onOpenBinaryFile}
+          onChangeImageDiffType={onChangeImageDiffType}
         />
       ) : null
 

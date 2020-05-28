@@ -22,6 +22,12 @@ interface IChangesProps {
    * system-assigned application for said file type.
    */
   readonly onOpenBinaryFile: (fullPath: string) => void
+
+  /**
+   * Called when the user is viewing an image diff and requests
+   * to change the diff presentation mode.
+   */
+  readonly onChangeImageDiffType: (type: ImageDiffType) => void
 }
 
 export class Changes extends React.Component<IChangesProps, {}> {
@@ -53,6 +59,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
             dispatcher={this.props.dispatcher}
             hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
             onOpenBinaryFile={this.props.onOpenBinaryFile}
+            onChangeImageDiffType={this.props.onChangeImageDiffType}
           />
         </div>
       </div>

@@ -46,6 +46,12 @@ interface ISeamlessDiffSwitcherProps {
    * system-assigned application for said file type.
    */
   readonly onOpenBinaryFile: (fullPath: string) => void
+
+  /**
+   * Called when the user is viewing an image diff and requests
+   * to change the diff presentation mode.
+   */
+  readonly onChangeImageDiffType: (type: ImageDiffType) => void
 }
 
 interface ISeamlessDiffSwitcherState {
@@ -86,12 +92,12 @@ export class SeamlessDiffSwitcher extends React.Component<
       repository,
       imageDiffType,
       readOnly,
-      dispatcher,
       hideWhitespaceInDiff,
       onIncludeChanged,
       diff,
       file,
       onOpenBinaryFile,
+      onChangeImageDiffType,
     } = this.state.props
 
     if (diff === null) {
@@ -105,10 +111,10 @@ export class SeamlessDiffSwitcher extends React.Component<
         file={file}
         diff={diff}
         readOnly={readOnly}
-        dispatcher={dispatcher}
         hideWhitespaceInDiff={hideWhitespaceInDiff}
         onIncludeChanged={isLoadingDiff ? noop : onIncludeChanged}
-        onOpenBinaryFile={onOpenBinaryFile}
+        onOpenBinaryFile={isLoadingDiff ? noop : onOpenBinaryFile}
+        onChangeImageDiffType={isLoadingDiff ? noop : onChangeImageDiffType}
       />
     )
   }
