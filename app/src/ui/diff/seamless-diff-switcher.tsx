@@ -44,9 +44,10 @@ interface ISeamlessDiffSwitcherProps {
 
 interface ISeamlessDiffSwitcherState {
   readonly isLoadingDiff: boolean
-  readonly diff: IDiff | null
-  readonly file: ChangedFile
+  readonly props: ISeamlessDiffSwitcherProps
 }
+
+function noop() {}
 
 /** represents the default view for a file that we cannot render a diff for */
 export class SeamlessDiffSwitcher extends React.Component<
@@ -59,8 +60,7 @@ export class SeamlessDiffSwitcher extends React.Component<
   ): Partial<ISeamlessDiffSwitcherState> {
     const isLoadingDiff = props.diff === null
     return {
-      file: isLoadingDiff ? state.file : props.file,
-      diff: isLoadingDiff ? state.diff : props.diff,
+      props: isLoadingDiff ? state.props : props,
       isLoadingDiff,
     }
   }
@@ -70,15 +70,22 @@ export class SeamlessDiffSwitcher extends React.Component<
 
     this.state = {
       isLoadingDiff: props.diff === null,
-      diff: props.diff,
-      file: props.file,
+      props: props,
     }
   }
 
-  private noop = () => {}
-
   public render() {
-    const { isLoadingDiff, diff, file } = this.state
+    const { isLoadingDiff } = this.state
+    const {
+      repository,
+      imageDiffType,
+      readOnly,
+      dispatcher,
+      hideWhitespaceInDiff,
+      onIncludeChanged,
+      diff,
+      file,
+    } = this.state.props
 
     if (diff === null) {
       return null
@@ -86,16 +93,14 @@ export class SeamlessDiffSwitcher extends React.Component<
 
     return (
       <Diff
-        repository={this.props.repository}
-        imageDiffType={this.props.imageDiffType}
+        repository={repository}
+        imageDiffType={imageDiffType}
         file={file}
         diff={diff}
-        readOnly={this.props.readOnly}
-        dispatcher={this.props.dispatcher}
-        hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
-        onIncludeChanged={
-          isLoadingDiff ? this.noop : this.props.onIncludeChanged
-        }
+        readOnly={readOnly}
+        dispatcher={dispatcher}
+        hideWhitespaceInDiff={hideWhitespaceInDiff}
+        onIncludeChanged={isLoadingDiff ? noop : onIncludeChanged}
       />
     )
   }
