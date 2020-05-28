@@ -13,7 +13,6 @@ import { Loading } from '../lib/loading'
 
 type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
 
-/** The props for the Diff component. */
 interface ISeamlessDiffSwitcherProps {
   readonly repository: Repository
 
