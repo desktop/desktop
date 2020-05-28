@@ -1,7 +1,7 @@
 {
   "releases": {
     "2.5.1-beta2": [
-      "[Added] Offer option to delete tags that haven't been pushed - #9796",
+      "[Added] Offer ability to delete tags that haven't been pushed - #9796",
       "[Fixed] Checkout PR branch when using \"Open in GitHub Desktop\" from github.com - #9873",
       "[Fixed] Handle Enter key presses in Clone Repository Dialog - #5234 #8804. Thanks @ruggi99!",
       "[Fixed] Use canonical stash references to avoid issues when having a branch named \"stash\" - #9844",
