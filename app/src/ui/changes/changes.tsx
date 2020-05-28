@@ -9,7 +9,7 @@ import { Dispatcher } from '../dispatcher'
 interface IChangesProps {
   readonly repository: Repository
   readonly file: WorkingDirectoryFileChange
-  readonly diff: IDiff
+  readonly diff: IDiff | null
   readonly dispatcher: Dispatcher
   readonly imageDiffType: ImageDiffType
 
@@ -37,16 +37,18 @@ export class Changes extends React.Component<IChangesProps, {}> {
         <ChangedFileDetails path={file.path} status={file.status} diff={diff} />
 
         <div className="diff-wrapper">
-          <Diff
-            repository={this.props.repository}
-            imageDiffType={this.props.imageDiffType}
-            file={file}
-            readOnly={isCommitting}
-            onIncludeChanged={this.onDiffLineIncludeChanged}
-            diff={diff}
-            dispatcher={this.props.dispatcher}
-            hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
-          />
+          {diff !== null ? (
+            <Diff
+              repository={this.props.repository}
+              imageDiffType={this.props.imageDiffType}
+              file={file}
+              readOnly={isCommitting}
+              onIncludeChanged={this.onDiffLineIncludeChanged}
+              diff={diff}
+              dispatcher={this.props.dispatcher}
+              hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+            />
+          ) : null}
         </div>
       </div>
     )

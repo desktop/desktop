@@ -396,7 +396,7 @@ export class RepositoryView extends React.Component<
         )
       }
     } else {
-      if (selectedFileIDs.length === 0 || diff === null) {
+      if (selectedFileIDs.length === 0) {
         return null
       }
 
