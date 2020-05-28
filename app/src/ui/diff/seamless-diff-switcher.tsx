@@ -155,7 +155,7 @@ export class SeamlessDiffSwitcher extends React.Component<
 
     const className = classNames('seamless-diff-switcher', {
       loading: isLoadingDiff,
-      slow: isLoadingSlow,
+      slow: isLoadingDiff && isLoadingSlow,
       'has-diff': diff !== null,
     })
 
