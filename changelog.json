@@ -1,5 +1,16 @@
 {
   "releases": {
+    "2.5.1-beta2": [
+      "[Added] Offer option to delete tags that haven't been pushed - #9796",
+      "[Fixed] Checkout PR branch when using \"Open in GitHub Desktop\" from github.com - #9873",
+      "[Fixed] Handle Enter key presses in Clone Repository Dialog - #5234 #8804. Thanks @ruggi99!",
+      "[Fixed] Use canonical stash references to avoid issues when having a branch named \"stash\" - #9844",
+      "[Fixed] Avoid performing background network operations to calculate unpushed tags - #9828",
+      "[Fixed] Rework Ctrl+Tab to work without RepositoryView focus - #5911. Thanks @JMcKiern!",
+      "[Improved] Make it safer to \"Open in Command Prompt\" on Windows - #9640. Thanks @dscho!",
+      "[Improved] Tweak design of list scrollbars on Windows - #9786",
+      "[Unshipped] Removed NDDB prompt functionality - #9804"
+    ],
     "2.5.1-beta1": [
       "[Fixed] Center tags text vertically in History view - #9785",
       "[Fixed] Prevent Git authentication errors from prompting to retry clone instead of authentication dialog - #9777",
