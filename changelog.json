@@ -8,7 +8,7 @@
       "[Fixed] Avoid performing background network operations to calculate unpushed tags - #9828",
       "[Fixed] Rework Ctrl+Tab to switch between Changes and History anytime the app has focus - #5911. Thanks @JMcKiern!",
       "[Improved] Make it safer to \"Open in Command Prompt\" on Windows - #9640. Thanks @dscho!",
-      "[Improved] Tweak design of list scrollbars on Windows - #9786",
+      "[Improved] Update design of list scrollbars on Windows to prevent overlapping with content - #9786",
       "[Unshipped] Removed NDDB prompt functionality - #9804"
     ],
     "2.5.1-beta1": [
