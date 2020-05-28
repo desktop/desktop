@@ -1,6 +1,7 @@
 {
   "releases": {
     "2.5.1-beta2": [
+      "[New] Provide a setting to more easily work with maintained forks - #9679",
       "[Added] Offer ability to delete tags that haven't been pushed - #9796",
       "[Fixed] Checkout PR branch when using \"Open in GitHub Desktop\" from github.com - #9873",
       "[Fixed] Handle Enter key presses in Clone Repository Dialog - #5234 #8804. Thanks @ruggi99!",
