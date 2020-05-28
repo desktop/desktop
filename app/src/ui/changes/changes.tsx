@@ -54,7 +54,6 @@ export class Changes extends React.Component<IChangesProps, {}> {
           readOnly={isCommitting}
           onIncludeChanged={this.onDiffLineIncludeChanged}
           diff={diff}
-          dispatcher={this.props.dispatcher}
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
           onOpenBinaryFile={this.props.onOpenBinaryFile}
           onChangeImageDiffType={this.props.onChangeImageDiffType}

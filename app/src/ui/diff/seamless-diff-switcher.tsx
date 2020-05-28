@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as classNames from 'classnames'
 
 import { Repository } from '../../models/repository'
-import { Dispatcher } from '../dispatcher'
 
 import { Diff } from './index'
 import {
@@ -33,9 +32,6 @@ interface ISeamlessDiffSwitcherProps {
 
   /** The diff that should be rendered */
   readonly diff: IDiff | null
-
-  /** propagate errors up to the main application */
-  readonly dispatcher: Dispatcher
 
   /** The type of image diff to display. */
   readonly imageDiffType: ImageDiffType
