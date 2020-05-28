@@ -61,6 +61,7 @@ export class StashDiffViewer extends React.PureComponent<
       imageDiffType,
       isWorkingTreeClean,
       fileListWidth,
+      onOpenBinaryFile,
     } = this.props
     const files =
       stashEntry.files.kind === StashedChangesLoadStates.Loaded
@@ -77,7 +78,7 @@ export class StashDiffViewer extends React.PureComponent<
           dispatcher={dispatcher}
           imageDiffType={imageDiffType}
           hideWhitespaceInDiff={false}
-          onOpenBinaryFile={this.props.onOpenBinaryFile}
+          onOpenBinaryFile={onOpenBinaryFile}
         />
       ) : null
 
