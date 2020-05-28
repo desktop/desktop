@@ -47,21 +47,18 @@ export class Changes extends React.Component<IChangesProps, {}> {
     return (
       <div className="changed-file">
         <ChangedFileDetails path={file.path} status={file.status} diff={diff} />
-
-        <div className="diff-wrapper">
-          <SeamlessDiffSwitcher
-            repository={this.props.repository}
-            imageDiffType={this.props.imageDiffType}
-            file={file}
-            readOnly={isCommitting}
-            onIncludeChanged={this.onDiffLineIncludeChanged}
-            diff={diff}
-            dispatcher={this.props.dispatcher}
-            hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
-            onOpenBinaryFile={this.props.onOpenBinaryFile}
-            onChangeImageDiffType={this.props.onChangeImageDiffType}
-          />
-        </div>
+        <SeamlessDiffSwitcher
+          repository={this.props.repository}
+          imageDiffType={this.props.imageDiffType}
+          file={file}
+          readOnly={isCommitting}
+          onIncludeChanged={this.onDiffLineIncludeChanged}
+          diff={diff}
+          dispatcher={this.props.dispatcher}
+          hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+          onOpenBinaryFile={this.props.onOpenBinaryFile}
+          onChangeImageDiffType={this.props.onChangeImageDiffType}
+        />
       </div>
     )
   }
