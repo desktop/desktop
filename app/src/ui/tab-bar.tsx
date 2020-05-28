@@ -56,9 +56,9 @@ export class TabBar extends React.Component<ITabBarProps, {}> {
     direction: 'next' | 'previous',
     index: number
   ) => {
-    const children = this.props.children as ReadonlyArray<JSX.Element> | null
+    const children = React.Children.toArray(this.props.children)
 
-    if (!children || !children.length) {
+    if (children.length === 0) {
       return
     }
 
@@ -89,10 +89,7 @@ export class TabBar extends React.Component<ITabBarProps, {}> {
   }
 
   private renderItems() {
-    const children = this.props.children as ReadonlyArray<JSX.Element> | null
-    if (!children) {
-      return null
-    }
+    const children = React.Children.toArray(this.props.children)
 
     return children.map((child, index) => {
       const selected = index === this.props.selectedIndex

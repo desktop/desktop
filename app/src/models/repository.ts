@@ -1,6 +1,6 @@
 import * as Path from 'path'
 
-import { GitHubRepository } from './github-repository'
+import { GitHubRepository, ForkedGitHubRepository } from './github-repository'
 import { IAheadBehind } from './branch'
 import {
   WorkflowPreferences,
@@ -62,7 +62,9 @@ export class Repository {
   public get hash(): string {
     return `${this.id}+${this.gitHubRepository && this.gitHubRepository.hash}+${
       this.path
-    }+${this.missing}+${this.name}+${this.isTutorialRepository}`
+    }+${this.missing}+${this.name}+${this.isTutorialRepository}+${
+      this.workflowPreferences.forkContributionTarget
+    }`
   }
 
   /**
@@ -87,10 +89,35 @@ export type RepositoryWithGitHubRepository = Repository & {
   readonly gitHubRepository: GitHubRepository
 }
 
+export type RepositoryWithForkedGitHubRepository = Repository & {
+  readonly gitHubRepository: ForkedGitHubRepository
+}
+
+/**
+ * Returns whether the passed repository is a GitHub repository.
+ *
+ * This function narrows down the type of the passed repository to
+ * RepositoryWithGitHubRepository if it returns true.
+ */
 export function isRepositoryWithGitHubRepository(
   repository: Repository
 ): repository is RepositoryWithGitHubRepository {
   return repository.gitHubRepository instanceof GitHubRepository
+}
+
+/**
+ * Returns whether the passed repository is a GitHub fork.
+ *
+ * This function narrows down the type of the passed repository to
+ * RepositoryWithForkedGitHubRepository if it returns true.
+ */
+export function isRepositoryWithForkedGitHubRepository(
+  repository: Repository
+): repository is RepositoryWithForkedGitHubRepository {
+  return (
+    isRepositoryWithGitHubRepository(repository) &&
+    repository.gitHubRepository.parent !== null
+  )
 }
 
 /**
@@ -139,7 +166,7 @@ export function getGitHubHtmlUrl(repository: Repository): string | null {
 export function getNonForkGitHubRepository(
   repository: RepositoryWithGitHubRepository
 ): GitHubRepository {
-  if (repository.gitHubRepository.parent === null) {
+  if (!isRepositoryWithForkedGitHubRepository(repository)) {
     // If the repository is not a fork, we don't have to worry about anything.
     return repository.gitHubRepository
   }
