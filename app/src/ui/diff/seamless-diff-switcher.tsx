@@ -59,7 +59,11 @@ interface ISeamlessDiffSwitcherState {
 
 function noop() {}
 
-/** represents the default view for a file that we cannot render a diff for */
+/**
+ * A component which attempts to minimize the need for unmounting
+ * and remounting text diff components with the ultimate goal of
+ * avoiding flickering when rapidly switching between files.
+ */
 export class SeamlessDiffSwitcher extends React.Component<
   ISeamlessDiffSwitcherProps,
   ISeamlessDiffSwitcherState
