@@ -81,10 +81,11 @@ export class SeamlessDiffSwitcher extends React.Component<
     return {
       props: isLoadingDiff ? state.props : props,
       isLoadingDiff,
-      isLoadingSlow:
-        // If we've just begun loading the diff we can't say that it's slow
-        // in all other cases we don't touch the slow state
-        beganLoadingDiff || finishedLoadingDiff ? false : state.isLoadingSlow,
+      // If we've just begun loading the diff we can't say that it's slow
+      // in all other cases we leave the isLoadingSlow state as-is
+      ...(beganLoadingDiff || finishedLoadingDiff
+        ? { isLoadingSlow: false }
+        : undefined),
     }
   }
 
