@@ -620,3 +620,47 @@
     }
   }
 }
+
+.seamless-diff-switcher {
+  display: flex;
+  flex-grow: 1;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+
+  .loading-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: none;
+  }
+
+  // When loading a diff
+  &.loading {
+    // Get ready to fade out the diff if it takes too long to load it
+    transition: opacity 0.2s var(--easing-ease-out-quint);
+
+    // When there's no previous diff (i.e. first time the component mounts)
+    // we'll show the loading indicator immediately
+    &:not(.has-diff) {
+      .loading-indicator {
+        display: block;
+      }
+    }
+
+    // When there is a previous diff available we'll wait for a little bit
+    // (defined in the component tsx) until we risk the user becoming aware
+    // of our little trick and noticing that the diff hasn't changed. When
+    // we hit that threshold we show the loading indicator...
+    &.has-diff.slow {
+      .loading-indicator {
+        display: block;
+      }
+
+      // ...and fade everything else out
+      & > :not(.loading-indicator) {
+        opacity: 0.2;
+      }
+    }
+  }
+}
