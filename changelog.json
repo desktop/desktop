@@ -6,7 +6,7 @@
       "[Fixed] Handle Enter key presses in Clone Repository Dialog - #5234 #8804. Thanks @ruggi99!",
       "[Fixed] Avoid errors in restoring a stash when a branch is also named \"stash\" - #9844",
       "[Fixed] Avoid performing background network operations to calculate unpushed tags - #9828",
-      "[Fixed] Rework Ctrl+Tab to work without RepositoryView focus - #5911. Thanks @JMcKiern!",
+      "[Fixed] Rework Ctrl+Tab to switch between Changes and History anytime the app has focus - #5911. Thanks @JMcKiern!",
       "[Improved] Make it safer to \"Open in Command Prompt\" on Windows - #9640. Thanks @dscho!",
       "[Improved] Tweak design of list scrollbars on Windows - #9786",
       "[Unshipped] Removed NDDB prompt functionality - #9804"
