@@ -14,7 +14,7 @@ import {
   GraphParent,
 } from './commit-graph'
 import { ApplicationTheme } from '../lib/application-theme'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
 
 const RowHeight = 50
 
@@ -244,19 +244,21 @@ export class CommitList extends React.Component<
     }
 
     return (
-      <div className="expand-commit-graph" onClick={this.toggleCommitGraph}>
-        {this.state.expandCommitGraph ? (
-          <Octicon symbol={OcticonSymbol.chevronLeft} />
-        ) : (
-          <Octicon symbol={OcticonSymbol.chevronRight} />
-        )}
+      <div className="expand-commit-graph">
+        <Checkbox
+          label="Show Commit Graph"
+          value={
+            this.state.expandCommitGraph ? CheckboxValue.On : CheckboxValue.Off
+          }
+          onChange={this.toggleCommitGraph}
+        />
       </div>
     )
   }
 
-  private toggleCommitGraph = () => {
+  private toggleCommitGraph = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({
-      expandCommitGraph: !this.state.expandCommitGraph,
+      expandCommitGraph: event.currentTarget.checked,
     })
   }
 }
