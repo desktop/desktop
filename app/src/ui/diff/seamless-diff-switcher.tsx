@@ -63,6 +63,7 @@ interface ISeamlessDiffSwitcherState {
    * diff that should be displayed.
    */
   readonly isLoadingDiff: boolean
+
   /**
    * Whether or not the application has taken more than
    * `SlowDiffLoadingThreshold` milliseconds trying to load the
