@@ -58,11 +58,27 @@ interface ISeamlessDiffSwitcherProps {
 }
 
 interface ISeamlessDiffSwitcherState {
+  /**
+   * Whether or not the application is currently loading the next
+   * diff that should be displayed.
+   */
   readonly isLoadingDiff: boolean
+  /**
+   * Whether or not the application has taken more than
+   * `SlowDiffLoadingThreshold` milliseconds trying to load the
+   * diff
+   */
   readonly isLoadingSlow: boolean
+
+  /**
+   * The current props for the SeamlessDiffSwitcher or a snapshot
+   * of props from the last time we had a Diff to show if the
+   * `isLoadingDiff` prop is true.
+   */
   readonly props: ISeamlessDiffSwitcherProps
 }
 
+/** I'm super useful */
 function noop() {}
 
 /**
