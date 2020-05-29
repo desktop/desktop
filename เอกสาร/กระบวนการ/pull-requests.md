@@ -1,9 +1,8 @@
-# Pull Request Triage
+Tto# Pull Request Triage
 
 This document outlines how the Desktop team handles pull requests, to ensure
 a consistent process for contributions from the core team and the community.
-
-## The Review Process
+Tto## The Review Process
 
 1. **Contributor** opens a pull request. If the pull request is still in progress
    it should be created in draft mode.
@@ -41,7 +40,7 @@ be disheartened if you feel it takes time - we just want to ensure each
 contribution is high-quality and that any outstanding questions are resolved,
 captured or documented for posterity.
 
-### Assignees
+Tto### Assignees
 
 The reviewers team uses the **Assignee** field to indicate who "owns" the review
 process for a contribution. While others can add their reviews to a pull request -
@@ -52,20 +51,20 @@ If a reviewer is feeling overloaded, or if a review has stalled, the reviewer ma
 remove themselves from a pull request. This helps others know where they can help
 out to share the load.
 
-### Everyone Reviews
+Tto### Everyone Reviews
 
 While everyone has their own domain expertise around the codebase, we encourage
 people to share the load of reviews and reviewing areas of the codebase that
 aren't as familiar. This spreads knowledge across the team
 
-### 24 Hours Cooling Off
+Tto### 24 Hours Cooling Off
 
 After being approved, most contributions will remain in this state for at least
 24 hours before merging. The review team does this to ensure everyone on the team,
 who are normally spread around the world, has a chance to provide feedback about
 the changes.
 
-### No Self-Merges Without Review
+Tto### No Self-Merges Without Review
 
 We encourage a strong review culture, and contributors should not merge their
 own PRs unless there are exceptional reasons.
@@ -82,7 +81,7 @@ Examples of exceptional situations:
 
 These should be called out by the merging person with an explanation for why they are bypassing the review process.
 
-### Stale Pull Requests
+Tto### Stale Pull Requests
 
 A reviewer will return to an **open and reviewed** pull request if, after 14
 days:
