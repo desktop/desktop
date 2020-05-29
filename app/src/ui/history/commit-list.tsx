@@ -6,6 +6,12 @@ import { CommitListItem } from './commit-list-item'
 import { List } from '../lib/list'
 import { IGitHubUser } from '../../lib/databases'
 import { arrayEquals } from '../../lib/equality'
+import {
+  GraphColor,
+  GraphRow,
+  GraphLine,
+  getUniqueParents,
+} from './commit-graph'
 
 const RowHeight = 50
 
@@ -71,6 +77,7 @@ interface ICommitListProps {
 /** A component which displays the list of commits. */
 export class CommitList extends React.Component<ICommitListProps, {}> {
   private commitsHash = memoize(makeCommitsHash, arrayEquals)
+  private commitsGraphRows = memoize(getCommitGraphRows, arrayEquals)
 
   private getVisibleCommits(): ReadonlyArray<Commit> {
     const commits = new Array<Commit>()
@@ -108,6 +115,8 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
       (isLocal || unpushedTags.length > 0) &&
       this.props.isLocalRepository === false
 
+    const commitsGraphRows = this.commitsGraphRows(this.getVisibleCommits())
+
     return (
       <CommitListItem
         key={commit.sha}
@@ -126,6 +135,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         onDeleteTag={this.props.onDeleteTag}
         onRevertCommit={this.props.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
+        graphRow={commitsGraphRows.get(commit.sha) || null}
       />
     )
   }
@@ -204,6 +214,49 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
       </div>
     )
   }
+}
+
+function getCommitGraphRows(commits: ReadonlyArray<Commit>) {
+  const commitGraphRows: Map<string, GraphRow> = new Map()
+  let currentLines: Set<string> = new Set()
+
+  for (const commit of commits) {
+    const row: Array<GraphLine> = []
+    let found = false
+
+    for (const line of currentLines) {
+      if (commit.sha === line) {
+        row.push({
+          hasCommit: true,
+          color: GraphColor.Gray,
+          parents: commit.parentSHAs,
+          hasChildren: true,
+        })
+        found = true
+      } else {
+        row.push({
+          hasCommit: false,
+          color: GraphColor.Gray,
+          parents: [line],
+          hasChildren: true,
+        })
+      }
+    }
+
+    if (!found) {
+      row.push({
+        hasCommit: true,
+        color: GraphColor.Gray,
+        parents: commit.parentSHAs,
+        hasChildren: false,
+      })
+    }
+
+    commitGraphRows.set(commit.sha, row)
+    currentLines = getUniqueParents(row)
+  }
+
+  return commitGraphRows
 }
 
 /**

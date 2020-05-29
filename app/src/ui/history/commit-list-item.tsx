@@ -16,6 +16,7 @@ import {
   enableGitTagsDisplay,
   enableGitTagsCreation,
 } from '../../lib/feature-flag'
+import { GraphRow, CommitGraph } from './commit-graph'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
@@ -30,6 +31,7 @@ interface ICommitProps {
   readonly showUnpushedIndicator: boolean
   readonly unpushedIndicatorTitle?: string
   readonly unpushedTags?: ReadonlyArray<string>
+  readonly graphRow: GraphRow | null
 }
 
 interface ICommitListItemState {
@@ -73,6 +75,7 @@ export class CommitListItem extends React.PureComponent<
 
     return (
       <div className="commit" onContextMenu={this.onContextMenu}>
+        {this.props.graphRow && <CommitGraph graphRow={this.props.graphRow} />}
         <div className="info">
           <RichText
             className="summary"

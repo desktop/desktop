@@ -213,6 +213,7 @@ export class ConfigureGitUser extends React.Component<
             gitHubRepository={null}
             isLocal={false}
             showUnpushedIndicator={false}
+            graphRow={null}
           />
         </div>
       </div>
