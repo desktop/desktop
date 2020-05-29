@@ -88,7 +88,7 @@ export class ZoomInfo extends React.Component<IZoomInfoProps, IZoomInfoState> {
       return null
     }
 
-    const zoomPercent = `${(this.state.windowZoomFactor * 100).toFixed(0)} %`
+    const zoomPercent = `${(this.state.windowZoomFactor * 100).toFixed(0)}%`
 
     return (
       <div>
