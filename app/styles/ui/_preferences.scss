@@ -30,6 +30,14 @@
         }
       }
     }
+
+    .experimental-section {
+      .description {
+        font-size: var(--font-size-sm);
+        padding-left: var(--spacing-double);
+        margin: var(--spacing) 0;
+      }
+    }
   }
 
   .tab-bar {

@@ -5,7 +5,7 @@ const Disable = false
  * checks. This is backed by the GITHUB_DESKTOP_PREVIEW_FEATURES environment
  * variable, which is checked for non-development environments.
  */
-function enableDevelopmentFeatures(): boolean {
+export function enableDevelopmentFeatures(): boolean {
   if (Disable) {
     return false
   }
@@ -28,7 +28,7 @@ export function enableProgressBarOnIcon(): boolean {
 
 /** Should the app enable beta features? */
 //@ts-ignore: this will be used again in the future
-function enableBetaFeatures(): boolean {
+export function enableBetaFeatures(): boolean {
   return enableDevelopmentFeatures() || __RELEASE_CHANNEL__ === 'beta'
 }
 

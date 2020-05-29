@@ -32,6 +32,7 @@ import {
   parseConfigLockFilePathFromError,
 } from '../../lib/git'
 import { ConfigLockFileExists } from '../lib/config-lock-file-exists'
+import { Experimental } from './experimental'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -204,6 +205,10 @@ export class Preferences extends React.Component<
               <Octicon className="icon" symbol={OcticonSymbol.settings} />
               Advanced
             </span>
+            <span>
+              <Octicon className="icon" symbol={OcticonSymbol.beaker} />
+              Experimental
+            </span>
           </TabBar>
 
           {this.renderActiveTab()}
@@ -327,6 +332,10 @@ export class Preferences extends React.Component<
         )
         break
       }
+      case PreferencesTab.Experimental: {
+        View = <Experimental />
+        break
+      }
       default:
         return assertNever(index, `Unknown tab index: ${index}`)
     }
@@ -408,6 +417,7 @@ export class Preferences extends React.Component<
     switch (index) {
       case PreferencesTab.Accounts:
       case PreferencesTab.Appearance:
+      case PreferencesTab.Experimental:
         return null
       case PreferencesTab.Integrations:
       case PreferencesTab.Advanced:

@@ -4,4 +4,5 @@ export enum PreferencesTab {
   Git = 2,
   Appearance = 3,
   Advanced = 4,
+  Experimental = 5,
 }
