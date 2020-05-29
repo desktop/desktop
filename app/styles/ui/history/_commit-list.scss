@@ -3,9 +3,17 @@
 /** A React component holding history's commit list */
 #commit-list {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   flex: 1;
   min-height: 0;
+
+  .expand-commit-graph {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 1px;
+    border-right: var(--base-border);
+  }
 
   .commit {
     display: flex;

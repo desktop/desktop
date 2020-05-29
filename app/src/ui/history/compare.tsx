@@ -294,6 +294,7 @@ export class CompareSidebar extends React.Component<
         compareListScrollTop={this.props.compareListScrollTop}
         tagsToPush={this.props.tagsToPush}
         selectedTheme={this.props.selectedTheme}
+        showCommitGraph={formState.kind === HistoryTabMode.History}
       />
     )
   }

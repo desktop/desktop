@@ -14,6 +14,7 @@ import {
   GraphParent,
 } from './commit-graph'
 import { ApplicationTheme } from '../lib/application-theme'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 const RowHeight = 50
 
@@ -76,12 +77,24 @@ interface ICommitListProps {
   readonly tagsToPush: ReadonlyArray<string> | null
 
   readonly selectedTheme: ApplicationTheme
+
+  readonly showCommitGraph: boolean
+}
+
+interface ICommitListState {
+  readonly expandCommitGraph: boolean
 }
 
 /** A component which displays the list of commits. */
-export class CommitList extends React.Component<ICommitListProps, {}> {
+export class CommitList extends React.Component<
+  ICommitListProps,
+  ICommitListState
+> {
   private commitsHash = memoize(makeCommitsHash, arrayEquals)
   private commitsGraphRows = memoize(getCommitGraphRows, arrayEquals)
+  public state = {
+    expandCommitGraph: false,
+  }
 
   private getVisibleCommits(): ReadonlyArray<Commit> {
     const commits = new Array<Commit>()
@@ -119,7 +132,9 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
       (isLocal || unpushedTags.length > 0) &&
       this.props.isLocalRepository === false
 
-    const commitsGraphRows = this.commitsGraphRows(this.getVisibleCommits())
+    const commitGraph = this.state.expandCommitGraph
+      ? this.commitsGraphRows(this.getVisibleCommits()).get(commit.sha)
+      : null
 
     return (
       <CommitListItem
@@ -139,7 +154,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         onDeleteTag={this.props.onDeleteTag}
         onRevertCommit={this.props.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
-        graphRow={commitsGraphRows.get(commit.sha) || null}
+        graphRow={commitGraph || null}
         selectedTheme={this.props.selectedTheme}
       />
     )
@@ -200,6 +215,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
 
     return (
       <div id="commit-list">
+        {this.renderExpandGraph()}
         <List
           rowCount={this.props.commitSHAs.length}
           rowHeight={RowHeight}
@@ -214,11 +230,34 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
             commitLookupHash: this.commitsHash(this.getVisibleCommits()),
             tagsToPush: this.props.tagsToPush,
             selectedTheme: this.props.selectedTheme,
+            expandCommitGraph: this.state.expandCommitGraph,
           }}
           setScrollTop={this.props.compareListScrollTop}
         />
       </div>
     )
+  }
+
+  private renderExpandGraph() {
+    if (!this.props.showCommitGraph) {
+      return null
+    }
+
+    return (
+      <div className="expand-commit-graph" onClick={this.toggleCommitGraph}>
+        {this.state.expandCommitGraph ? (
+          <Octicon symbol={OcticonSymbol.chevronLeft} />
+        ) : (
+          <Octicon symbol={OcticonSymbol.chevronRight} />
+        )}
+      </div>
+    )
+  }
+
+  private toggleCommitGraph = () => {
+    this.setState({
+      expandCommitGraph: !this.state.expandCommitGraph,
+    })
   }
 }
 
