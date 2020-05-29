@@ -75,7 +75,7 @@ interface ISeamlessDiffSwitcherState {
    * of props from the last time we had a Diff to show if the
    * `isLoadingDiff` prop is true.
    */
-  readonly props: ISeamlessDiffSwitcherProps
+  readonly propSnapshot: ISeamlessDiffSwitcherProps
 }
 
 /** I'm super useful */
@@ -101,7 +101,7 @@ export class SeamlessDiffSwitcher extends React.Component<
     const finishedLoadingDiff = !isLoadingDiff && state.isLoadingDiff
 
     return {
-      props: isLoadingDiff ? state.props : props,
+      propSnapshot: isLoadingDiff ? state.propSnapshot : props,
       isLoadingDiff,
       // If we've just begun loading the diff we can't say that it's slow
       // in all other cases we leave the isLoadingSlow state as-is
@@ -117,7 +117,7 @@ export class SeamlessDiffSwitcher extends React.Component<
     this.state = {
       isLoadingDiff: props.diff === null,
       isLoadingSlow: false,
-      props: props,
+      propSnapshot: props,
     }
   }
 
@@ -179,7 +179,7 @@ export class SeamlessDiffSwitcher extends React.Component<
       file,
       onOpenBinaryFile,
       onChangeImageDiffType,
-    } = this.state.props
+    } = this.state.propSnapshot
 
     const className = classNames('seamless-diff-switcher', {
       loading: isLoadingDiff,
