@@ -1,4 +1,5 @@
 import React = require('react')
+import QuickLRU from 'quick-lru'
 
 const GraphHeight = 50
 const LineSpacing = 10
@@ -27,37 +28,107 @@ interface ICommitGraphProps {
   readonly graphRow: GraphRow
 }
 
+type DrawingSpecs = ReadonlyArray<{
+  color: GraphColor
+  x: number
+  hasTop: boolean
+  hasDot: boolean
+  bottom: ReadonlyArray<number>
+}>
+
 /** A component which displays a single commit in a commit list. */
 export class CommitGraph extends React.PureComponent<ICommitGraphProps> {
-  private canvas: React.RefObject<HTMLCanvasElement> = React.createRef()
-
   public render() {
     const numLinesBefore = this.props.graphRow.length
     const numLinesAfter = getUniqueParents(this.props.graphRow).size
-
     const numLines = Math.max(numLinesBefore, numLinesAfter)
 
+    const graphDimensions = {
+      width: numLines * LineSpacing,
+      height: GraphHeight,
+    }
+
     return (
-      <canvas
-        ref={this.canvas}
-        width={numLines * LineSpacing}
-        height={GraphHeight}
+      <img
+        src={getGraphRowImg(
+          getDrawingSpecsForRow(this.props.graphRow),
+          graphDimensions
+        )}
+        width={graphDimensions.width}
+        height={graphDimensions.height}
       />
     )
   }
-
-  public componentDidMount() {
-    if (this.canvas.current === null) {
-      return
-    }
-
-    drawGraphRowInCanvas(this.canvas.current, this.props.graphRow)
-  }
 }
 
-function drawGraphRowInCanvas(canvas: HTMLCanvasElement, graphRow: GraphRow) {
-  canvas.width = canvas.clientWidth
-  canvas.height = canvas.clientHeight
+function getDrawingSpecsForRow(graphRow: GraphRow): DrawingSpecs {
+  const parents: Array<string> = []
+
+  return graphRow.map((line, num) => {
+    const posX = num * LineSpacing + DotWidth * 2
+
+    // Print bottom part of the line.
+    const bottom = line.parents.map(parent => {
+      let parentIndex = parents.findIndex(el => el === parent)
+
+      if (parentIndex === -1) {
+        parentIndex = parents.push(parent) - 1
+      }
+      return getXPosition(parentIndex)
+    })
+
+    return {
+      color: line.color,
+      x: posX,
+      hasTop: line.hasChildren,
+      hasDot: line.hasCommit,
+      bottom,
+    }
+  })
+}
+
+const cache = new QuickLRU<string, string>({
+  maxSize: 250,
+})
+let numHits = 0
+let numMisses = 0
+
+function getGraphRowImg(
+  drawingSpecs: DrawingSpecs,
+  { width, height }: { width: number; height: number }
+): string {
+  const key = JSON.stringify(drawingSpecs)
+
+  if ((numHits + numMisses) % 20 === 0) {
+    console.log(
+      'rafeca: cache hit ratio - ',
+      (numHits / (numHits + numMisses)) * 100
+    )
+  }
+
+  const cachedImg = cache.get(key)
+  if (cachedImg !== undefined) {
+    numHits++
+    return cachedImg
+  } else {
+    numMisses++
+  }
+
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  drawGraphRowInCanvas(canvas, drawingSpecs)
+
+  const img = canvas.toDataURL()
+  cache.set(key, img)
+
+  return img
+}
+
+function drawGraphRowInCanvas(
+  canvas: HTMLCanvasElement,
+  drawingSpecs: DrawingSpecs
+) {
   const ctx = canvas.getContext('2d')
 
   if (ctx === null) {
@@ -65,42 +136,30 @@ function drawGraphRowInCanvas(canvas: HTMLCanvasElement, graphRow: GraphRow) {
   }
 
   ctx.lineWidth = LineWidth
-  const parents: Array<string> = []
 
-  for (const [num, line] of graphRow.entries()) {
-    const posX = num * LineSpacing + DotWidth * 2
-    ctx.strokeStyle = line.color
+  for (const lineSpecs of drawingSpecs) {
+    ctx.strokeStyle = lineSpecs.color
 
     // Print top part of the line.
-    if (line.hasChildren) {
-      ctx.strokeStyle = line.color
+    if (lineSpecs.hasTop) {
       ctx.beginPath()
-      ctx.moveTo(posX, 0)
-      ctx.lineTo(posX, GraphHeight / 2)
+      ctx.moveTo(lineSpecs.x, 0)
+      ctx.lineTo(lineSpecs.x, GraphHeight / 2)
       ctx.stroke()
     }
 
     // Print dot indicating commit.
-    if (line.hasCommit) {
-      ctx.strokeStyle = line.color
+    if (lineSpecs.hasDot) {
       ctx.beginPath()
-      ctx.arc(posX, GraphHeight / 2, DotWidth, 0, Math.PI * 2)
+      ctx.arc(lineSpecs.x, GraphHeight / 2, DotWidth, 0, Math.PI * 2)
       ctx.fill()
       ctx.stroke()
     }
 
     // Print bottom part of the line.
-    for (const parent of line.parents) {
-      let parentIndex = parents.findIndex(el => el === parent)
-
-      if (parentIndex === -1) {
-        parentIndex = parents.push(parent) - 1
-      }
-      const finalPositionX = getXPosition(parentIndex)
-
-      ctx.strokeStyle = line.color
+    for (const finalPositionX of lineSpecs.bottom) {
       ctx.beginPath()
-      ctx.moveTo(posX, GraphHeight / 2)
+      ctx.moveTo(lineSpecs.x, GraphHeight / 2)
       ctx.lineTo(finalPositionX, GraphHeight)
       ctx.stroke()
     }
