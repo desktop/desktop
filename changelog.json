@@ -1,5 +1,17 @@
 {
   "releases": {
+    "2.5.1-beta2": [
+      "[Added] Provide a setting to more easily work with maintained forks - #9679",
+      "[Added] Offer ability to delete tags that haven't been pushed - #9796",
+      "[Fixed] Checkout PR branch when using \"Open in GitHub Desktop\" from github.com - #9873",
+      "[Fixed] Handle Enter key presses in Clone Repository Dialog - #5234 #8804. Thanks @ruggi99!",
+      "[Fixed] Avoid errors in restoring a stash when a branch is also named \"stash\" - #9844",
+      "[Fixed] Avoid performing background network operations to calculate unpushed tags - #9828",
+      "[Fixed] Rework Ctrl+Tab to switch between Changes and History anytime the app has focus - #5911. Thanks @JMcKiern!",
+      "[Improved] Make it safer to \"Open in Command Prompt\" on Windows - #9640. Thanks @dscho!",
+      "[Improved] Update design of list scrollbars on Windows to prevent overlapping with content - #9786",
+      "[Unshipped] Remove prompt for notifying when your branch has diverged from the default branch - #9804"
+    ],
     "2.5.1-beta1": [
       "[Fixed] Center tags text vertically in History view - #9785",
       "[Fixed] Prevent Git authentication errors from prompting to retry clone instead of authentication dialog - #9777",
