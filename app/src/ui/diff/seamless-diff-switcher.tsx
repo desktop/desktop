@@ -11,6 +11,12 @@ import {
 import { DiffSelection, IDiff, ImageDiffType } from '../../models/diff'
 import { Loading } from '../lib/loading'
 
+/**
+ * The time (in milliseconds) we allow when loading a diff before
+ * treating the diff load as slow.
+ */
+const SlowDiffLoadingThreshold = 150
+
 type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
 
 interface ISeamlessDiffSwitcherProps {
@@ -134,7 +140,7 @@ export class SeamlessDiffSwitcher extends React.Component<
     this.clearSlowLoadingTimeout()
     this.slowLoadingTimeoutId = window.setTimeout(
       this.onSlowLoadingTimeout,
-      150
+      SlowDiffLoadingThreshold
     )
   }
 
