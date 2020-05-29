@@ -2582,6 +2582,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           onExitTutorial={this.onExitTutorial}
           isShowingModal={this.isShowingModal}
           isShowingFoldout={this.state.currentFoldout !== null}
+          selectedTheme={this.state.selectedTheme}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {

@@ -29,6 +29,7 @@ import { TutorialPanel, TutorialWelcome, TutorialDone } from './tutorial'
 import { enableNDDBBanner } from '../lib/feature-flag'
 import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { ExternalEditor } from '../lib/editors'
+import { ApplicationTheme } from './lib/application-theme'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -83,6 +84,8 @@ interface IRepositoryViewProps {
   readonly currentTutorialStep: TutorialStep
 
   readonly onExitTutorial: () => void
+
+  readonly selectedTheme: ApplicationTheme
 }
 
 interface IRepositoryViewState {
@@ -240,6 +243,7 @@ export class RepositoryView extends React.Component<
         onCompareListScrolled={this.onCompareListScrolled}
         compareListScrollTop={scrollTop}
         tagsToPush={this.props.state.tagsToPush}
+        selectedTheme={this.props.selectedTheme}
       />
     )
   }

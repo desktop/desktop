@@ -32,6 +32,7 @@ import {
 import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
 import { assertNever } from '../../lib/fatal-error'
 import { enableNDDBBanner } from '../../lib/feature-flag'
+import { ApplicationTheme } from '../lib/application-theme'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -50,6 +51,7 @@ interface ICompareSidebarProps {
   readonly compareListScrollTop?: number
   readonly localTags: Map<string, string> | null
   readonly tagsToPush: ReadonlyArray<string> | null
+  readonly selectedTheme: ApplicationTheme
 }
 
 interface ICompareSidebarState {
@@ -291,6 +293,7 @@ export class CompareSidebar extends React.Component<
         onCompareListScrolled={this.props.onCompareListScrolled}
         compareListScrollTop={this.props.compareListScrollTop}
         tagsToPush={this.props.tagsToPush}
+        selectedTheme={this.props.selectedTheme}
       />
     )
   }

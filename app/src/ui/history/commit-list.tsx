@@ -7,11 +7,13 @@ import { List } from '../lib/list'
 import { IGitHubUser } from '../../lib/databases'
 import { arrayEquals } from '../../lib/equality'
 import {
-  GraphColor,
   GraphRow,
   GraphLine,
   getUniqueParents,
+  getNextColor,
+  GraphParent,
 } from './commit-graph'
+import { ApplicationTheme } from '../lib/application-theme'
 
 const RowHeight = 50
 
@@ -72,6 +74,8 @@ interface ICommitListProps {
 
   /* Tags that haven't been pushed yet. This is used to show the unpushed indicator */
   readonly tagsToPush: ReadonlyArray<string> | null
+
+  readonly selectedTheme: ApplicationTheme
 }
 
 /** A component which displays the list of commits. */
@@ -136,6 +140,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         onRevertCommit={this.props.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         graphRow={commitsGraphRows.get(commit.sha) || null}
+        selectedTheme={this.props.selectedTheme}
       />
     )
   }
@@ -208,6 +213,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
             localCommitSHAs: this.props.localCommitSHAs,
             commitLookupHash: this.commitsHash(this.getVisibleCommits()),
             tagsToPush: this.props.tagsToPush,
+            selectedTheme: this.props.selectedTheme,
           }}
           setScrollTop={this.props.compareListScrollTop}
         />
@@ -218,25 +224,35 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
 
 function getCommitGraphRows(commits: ReadonlyArray<Commit>) {
   const commitGraphRows: Map<string, GraphRow> = new Map()
-  let currentLines: Set<string> = new Set()
+  let currentLines: Map<string, GraphParent> = new Map()
+  let currentColor = getNextColor(null)
 
   for (const commit of commits) {
     const row: Array<GraphLine> = []
     let found = false
 
-    for (const line of currentLines) {
-      if (commit.sha === line) {
+    for (const line of currentLines.values()) {
+      if (commit.sha === line.sha) {
         row.push({
           hasCommit: true,
-          color: GraphColor.Gray,
-          parents: commit.parentSHAs,
           hasChildren: true,
+          color: line.color,
+          parents: commit.parentSHAs.map((parentSHA, key) => {
+            if (key !== 0) {
+              currentColor = getNextColor(currentColor)
+            }
+
+            return {
+              color: key === 0 ? line.color : currentColor,
+              sha: parentSHA,
+            }
+          }),
         })
         found = true
       } else {
         row.push({
           hasCommit: false,
-          color: GraphColor.Gray,
+          color: line.color,
           parents: [line],
           hasChildren: true,
         })
@@ -244,11 +260,22 @@ function getCommitGraphRows(commits: ReadonlyArray<Commit>) {
     }
 
     if (!found) {
+      currentColor = getNextColor(currentColor)
+
       row.push({
         hasCommit: true,
-        color: GraphColor.Gray,
-        parents: commit.parentSHAs,
         hasChildren: false,
+        color: currentColor,
+        parents: commit.parentSHAs.map((parentSHA, key) => {
+          if (key !== 0) {
+            currentColor = getNextColor(currentColor)
+          }
+
+          return {
+            color: currentColor,
+            sha: parentSHA,
+          }
+        }),
       })
     }
 

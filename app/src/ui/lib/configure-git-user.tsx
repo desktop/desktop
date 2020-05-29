@@ -17,6 +17,7 @@ import {
   parseConfigLockFilePathFromError,
 } from '../../lib/git'
 import { ConfigLockFileExists } from './config-lock-file-exists'
+import { ApplicationTheme } from './application-theme'
 
 interface IConfigureGitUserProps {
   /** The logged-in accounts. */
@@ -214,6 +215,7 @@ export class ConfigureGitUser extends React.Component<
             isLocal={false}
             showUnpushedIndicator={false}
             graphRow={null}
+            selectedTheme={ApplicationTheme.Light}
           />
         </div>
       </div>

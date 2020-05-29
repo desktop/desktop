@@ -1,40 +1,54 @@
 import React = require('react')
 import QuickLRU from 'quick-lru'
+import { assertNever } from '../../lib/fatal-error'
+import { ApplicationTheme } from '../lib/application-theme'
 
-const GraphHeight = 50
-const LineSpacing = 10
-const LineWidth = 2
-const DotWidth = 2
+const GraphHeight = 50 * window.devicePixelRatio
+const LineSpacing = 10 * window.devicePixelRatio
+const LineWidth = 1 * window.devicePixelRatio
+const DotWidth = 1 * window.devicePixelRatio
 
 export enum GraphColor {
-  Red = 'red',
-  Yellow = 'yellow',
-  Green = 'green',
-  Black = 'black',
-  Blue = 'blue',
-  Gray = '#ccc',
+  Gray,
+  Green,
+  Purple,
+  Yellow,
+  Orange,
+  Red,
+  Pink,
 }
 
 export type GraphRow = ReadonlyArray<GraphLine>
 
-export type GraphLine = {
-  parents: ReadonlyArray<string>
-  hasCommit: boolean
-  hasChildren: boolean
-  color: GraphColor
+export type GraphParent = {
+  readonly color: GraphColor
+  readonly sha: string
 }
 
-interface ICommitGraphProps {
-  readonly graphRow: GraphRow
+export type GraphLine = {
+  readonly parents: ReadonlyArray<GraphParent>
+  readonly hasCommit: boolean
+  readonly hasChildren: boolean
+  readonly color: GraphColor
 }
 
 type DrawingSpecs = ReadonlyArray<{
-  color: GraphColor
-  x: number
-  hasTop: boolean
-  hasDot: boolean
-  bottom: ReadonlyArray<number>
+  readonly top: {
+    readonly color: string
+    readonly x: number
+  }
+  readonly hasTop: boolean
+  readonly hasDot: boolean
+  readonly bottom: ReadonlyArray<{
+    readonly color: string
+    readonly x: number
+  }>
 }>
+
+interface ICommitGraphProps {
+  readonly graphRow: GraphRow
+  readonly selectedTheme: ApplicationTheme
+}
 
 /** A component which displays a single commit in a commit list. */
 export class CommitGraph extends React.PureComponent<ICommitGraphProps> {
@@ -51,17 +65,19 @@ export class CommitGraph extends React.PureComponent<ICommitGraphProps> {
     return (
       <img
         src={getGraphRowImg(
-          getDrawingSpecsForRow(this.props.graphRow),
+          getDrawingSpecsForRow(this.props.graphRow, this.props.selectedTheme),
           graphDimensions
         )}
-        width={graphDimensions.width}
-        height={graphDimensions.height}
+        height="50"
       />
     )
   }
 }
 
-function getDrawingSpecsForRow(graphRow: GraphRow): DrawingSpecs {
+function getDrawingSpecsForRow(
+  graphRow: GraphRow,
+  selectedTheme: ApplicationTheme
+): DrawingSpecs {
   const parents: Array<string> = []
 
   return graphRow.map((line, num) => {
@@ -69,17 +85,22 @@ function getDrawingSpecsForRow(graphRow: GraphRow): DrawingSpecs {
 
     // Print bottom part of the line.
     const bottom = line.parents.map(parent => {
-      let parentIndex = parents.findIndex(el => el === parent)
+      let parentIndex = parents.findIndex(el => el === parent.sha)
 
       if (parentIndex === -1) {
-        parentIndex = parents.push(parent) - 1
+        parentIndex = parents.push(parent.sha) - 1
       }
-      return getXPosition(parentIndex)
+      return {
+        x: getXPosition(parentIndex),
+        color: getThemeColor(parent.color, selectedTheme),
+      }
     })
 
     return {
-      color: line.color,
-      x: posX,
+      top: {
+        color: getThemeColor(line.color, selectedTheme),
+        x: posX,
+      },
       hasTop: line.hasChildren,
       hasDot: line.hasCommit,
       bottom,
@@ -135,32 +156,33 @@ function drawGraphRowInCanvas(
     return
   }
 
-  ctx.lineWidth = LineWidth
-
   for (const lineSpecs of drawingSpecs) {
-    ctx.strokeStyle = lineSpecs.color
+    ctx.strokeStyle = lineSpecs.top.color
+    ctx.lineWidth = LineWidth
 
     // Print top part of the line.
     if (lineSpecs.hasTop) {
       ctx.beginPath()
-      ctx.moveTo(lineSpecs.x, 0)
-      ctx.lineTo(lineSpecs.x, GraphHeight / 2)
+      ctx.moveTo(lineSpecs.top.x, 0)
+      ctx.lineTo(lineSpecs.top.x, GraphHeight / 2)
+      ctx.stroke()
+    }
+
+    // Print bottom part of the line.
+    for (const bottom of lineSpecs.bottom) {
+      ctx.strokeStyle = bottom.color
+      ctx.beginPath()
+      ctx.moveTo(lineSpecs.top.x, GraphHeight / 2)
+      ctx.lineTo(bottom.x, GraphHeight)
       ctx.stroke()
     }
 
     // Print dot indicating commit.
     if (lineSpecs.hasDot) {
       ctx.beginPath()
-      ctx.arc(lineSpecs.x, GraphHeight / 2, DotWidth, 0, Math.PI * 2)
+      ctx.lineWidth = DotWidth * 2
+      ctx.arc(lineSpecs.top.x, GraphHeight / 2, DotWidth, 0, Math.PI * 2)
       ctx.fill()
-      ctx.stroke()
-    }
-
-    // Print bottom part of the line.
-    for (const finalPositionX of lineSpecs.bottom) {
-      ctx.beginPath()
-      ctx.moveTo(lineSpecs.x, GraphHeight / 2)
-      ctx.lineTo(finalPositionX, GraphHeight)
       ctx.stroke()
     }
   }
@@ -170,11 +192,53 @@ function getXPosition(index: number) {
   return index * LineSpacing + DotWidth * 2
 }
 
-export function getUniqueParents(graphRow: GraphRow): Set<string> {
+export function getUniqueParents(graphRow: GraphRow): Map<string, GraphParent> {
   return graphRow.reduce((parents, line) => {
     for (const parent of line.parents) {
-      parents.add(parent)
+      if (!parents.has(parent.sha)) {
+        parents.set(parent.sha, parent)
+      }
     }
     return parents
-  }, new Set<string>())
+  }, new Map<string, GraphParent>())
+}
+
+function getThemeColor(
+  graphColor: GraphColor,
+  selectedTheme: ApplicationTheme
+): string {
+  // Colors from https://primer.style/css/support/color-system
+  switch (graphColor) {
+    case GraphColor.Gray:
+      return selectedTheme === ApplicationTheme.Dark ? '#ccc' : '#24292e'
+    case GraphColor.Green:
+      return '#28a745'
+    case GraphColor.Purple:
+      return '#6f42c1'
+    case GraphColor.Yellow:
+      return '#ffd33d'
+    case GraphColor.Orange:
+      return '#f66a0a'
+    case GraphColor.Red:
+      return '#d73a49'
+    case GraphColor.Pink:
+      return '#ea4aaa'
+    default:
+      return assertNever(graphColor, 'graphColor not supported')
+  }
+}
+
+const ColorsOrder = [
+  GraphColor.Gray,
+  // GraphColor.Green,
+  // GraphColor.Purple,
+  // GraphColor.Orange,
+  // GraphColor.Red,
+  // GraphColor.Pink,
+]
+
+export function getNextColor(currentColor: GraphColor | null): GraphColor {
+  const index = currentColor !== null ? ColorsOrder.indexOf(currentColor) : -1
+
+  return ColorsOrder[(index + 1) % ColorsOrder.length]
 }
