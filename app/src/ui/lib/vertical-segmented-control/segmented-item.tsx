@@ -22,7 +22,7 @@ interface ISegmentedItemProps {
    * An optional description which explains the consequences of
    * selecting this item.
    */
-  readonly description?: string
+  readonly description?: string | JSX.Element
 
   /**
    * Whether or not the item is currently the active selection among the

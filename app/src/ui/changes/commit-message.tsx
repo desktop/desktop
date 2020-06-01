@@ -27,7 +27,6 @@ import { IMenuItem } from '../../lib/menu-item'
 import { ICommitContext } from '../../models/commit'
 import { startTimer } from '../lib/timing'
 import { PermissionsCommitWarning } from './permissions-commit-warning'
-import { enableBranchProtectionWarningFlow } from '../../lib/feature-flag'
 import { LinkButton } from '../lib/link-button'
 import { FoldoutType } from '../../lib/app-state'
 
@@ -454,10 +453,6 @@ export class CommitMessage extends React.Component<
   }
 
   private renderPermissionsCommitWarning = (branch: string) => {
-    if (!enableBranchProtectionWarningFlow()) {
-      return null
-    }
-
     const { showBranchProtected, showNoWriteAccess, repository } = this.props
 
     if (showNoWriteAccess) {

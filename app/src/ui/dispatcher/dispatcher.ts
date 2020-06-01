@@ -70,6 +70,7 @@ import {
   RepositoryWithGitHubRepository,
   isRepositoryWithGitHubRepository,
   getGitHubHtmlUrl,
+  isRepositoryWithForkedGitHubRepository,
 } from '../../models/repository'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
@@ -94,6 +95,8 @@ import {
 } from '../../models/uncommitted-changes-strategy'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { IStashEntry } from '../../models/stash-entry'
+import { WorkflowPreferences } from '../../models/workflow-preferences'
+import { enableForkSettings } from '../../lib/feature-flag'
 
 /**
  * An error handler function.
@@ -507,6 +510,13 @@ export class Dispatcher {
   }
 
   /**
+   * Deletes the passed tag.
+   */
+  public deleteTag(repository: Repository, name: string): Promise<void> {
+    return this.appStore._deleteTag(repository, name)
+  }
+
+  /**
    * Show the tag creation dialog.
    */
   public showCreateTagDialog(
@@ -521,6 +531,20 @@ export class Dispatcher {
       targetCommitSha,
       initialName,
       localTags,
+    })
+  }
+
+  /**
+   * Show the confirmation dialog to delete a tag.
+   */
+  public showDeleteTagDialog(
+    repository: Repository,
+    tagName: string
+  ): Promise<void> {
+    return this.showPopup({
+      type: PopupType.DeleteTag,
+      repository,
+      tagName,
     })
   }
 
@@ -649,6 +673,16 @@ export class Dispatcher {
       const addedRepositories = await this.addRepositories([path])
       const addedRepository = addedRepositories[0]
       await this.selectRepository(addedRepository)
+
+      if (
+        enableForkSettings() &&
+        isRepositoryWithForkedGitHubRepository(addedRepository)
+      ) {
+        this.showPopup({
+          type: PopupType.ChooseForkSettings,
+          repository: addedRepository,
+        })
+      }
 
       return addedRepository
     })
@@ -1455,6 +1489,22 @@ export class Dispatcher {
     }
   }
 
+  /**
+   * Change the workflow preferences for the specified repository.
+   *
+   * @param repository            The repositosy to update.
+   * @param workflowPreferences   The object with the workflow settings to use.
+   */
+  public async updateRepositoryWorkflowPreferences(
+    repository: Repository,
+    workflowPreferences: WorkflowPreferences
+  ) {
+    await this.appStore._updateRepositoryWorkflowPreferences(
+      repository,
+      workflowPreferences
+    )
+  }
+
   /** Update the repository's path. */
   private async updateRepositoryPath(
     repository: Repository,
@@ -2071,8 +2121,8 @@ export class Dispatcher {
   public async convertRepositoryToFork(
     repository: RepositoryWithGitHubRepository,
     fork: IAPIRepository
-  ) {
-    await this.appStore._convertRepositoryToFork(repository, fork)
+  ): Promise<Repository> {
+    return this.appStore._convertRepositoryToFork(repository, fork)
   }
 
   /**
