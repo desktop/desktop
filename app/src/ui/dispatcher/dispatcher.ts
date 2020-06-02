@@ -174,34 +174,20 @@ export class Dispatcher {
    * deleted on disk are removed from the app. If some failed due to files being
    * open elsewhere, an error is thrown.
    */
-  public async removeRepositories(
-    repositories: ReadonlyArray<Repository | CloningRepository>,
+  public async removeRepository(
+    repository: Repository | CloningRepository,
     moveToTrash: boolean
   ): Promise<void> {
-    let repositoriesToRemove = repositories
-    let error: Error | null = null
-
     if (moveToTrash) {
-      const trashResults = await Promise.all(
-        repositories.map(async repo => {
-          try {
-            await shell.moveItemToTrash(repo.path)
-            return true
-          } catch (err) {
-            if (!error) {
-              error = err
-            }
-            return false
-          }
-        })
-      )
-      repositoriesToRemove = repositories.filter((_, i) => trashResults[i])
+      try {
+        await shell.moveItemToTrash(repository.path)
+      } catch (err) {
+        this.postError(err)
+        return
+      }
     }
 
-    await this.appStore._removeRepositories(repositoriesToRemove)
-    if (error) {
-      throw error
-    }
+    await this.appStore._removeRepository(repository)
   }
 
   /** Update the repository's `missing` flag. */
