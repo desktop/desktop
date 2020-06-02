@@ -621,15 +621,10 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       assertNever(rangeType, `Invalid range type: ${rangeType}`)
     }
 
-    if (numLines > 1) {
-      return __DARWIN__
-        ? `Discard These ${type} Lines`
-        : `Discard these ${type} lines`
-    } else {
-      return __DARWIN__
-        ? `Discard this ${type} Line`
-        : `Discard this ${type} line`
-    }
+    const plural = numLines > 1 ? 's' : ''
+    return __DARWIN__
+      ? `Discard ${type} Line${plural}`
+      : `Discard ${type} line${plural}`
   }
 
   private onCopy = (editor: Editor, event: Event) => {
