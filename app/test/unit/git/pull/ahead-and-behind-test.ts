@@ -13,10 +13,11 @@ import {
 } from '../../../helpers/repository-scaffolding'
 import { getTipOrError, getRefOrError } from '../../../helpers/git'
 import { setupLocalConfig } from '../../../helpers/local-config'
+import { IRemote } from '../../../../src/models/remote'
 
 const featureBranch = 'this-is-a-feature'
-const origin = 'origin'
-const remoteBranch = `${origin}/${featureBranch}`
+const remote: IRemote = { name: 'origin', url: 'file://' }
+const remoteBranch = `${remote.name}/${featureBranch}`
 
 describe('git/pull', () => {
   describe('ahead and behind of tracking branch', () => {
@@ -51,7 +52,7 @@ describe('git/pull', () => {
       }
 
       await makeCommit(repository, changesForLocalRepository)
-      await fetch(repository, null, origin)
+      await fetch(repository, null, remote)
     })
 
     describe('with pull.rebase=false and pull.ff=false set in config', () => {
@@ -66,7 +67,7 @@ describe('git/pull', () => {
 
         previousTip = await getTipOrError(repository)
 
-        await pull(repository, null, origin)
+        await pull(repository, null, remote)
 
         newTip = await getTipOrError(repository)
       })
@@ -82,10 +83,7 @@ describe('git/pull', () => {
       })
 
       it('is ahead of tracking branch', async () => {
-        const range = revSymmetricDifference(
-          featureBranch,
-          `${origin}/${featureBranch}`
-        )
+        const range = revSymmetricDifference(featureBranch, remoteBranch)
 
         const aheadBehind = await getAheadBehind(repository, range)
         expect(aheadBehind).toEqual({
@@ -104,7 +102,7 @@ describe('git/pull', () => {
 
         previousTip = await getTipOrError(repository)
 
-        await pull(repository, null, origin)
+        await pull(repository, null, remote)
 
         newTip = await getTipOrError(repository)
       })
@@ -115,10 +113,7 @@ describe('git/pull', () => {
       })
 
       it('is ahead of tracking branch', async () => {
-        const range = revSymmetricDifference(
-          featureBranch,
-          `${origin}/${featureBranch}`
-        )
+        const range = revSymmetricDifference(featureBranch, remoteBranch)
 
         const aheadBehind = await getAheadBehind(repository, range)
         expect(aheadBehind).toEqual({
@@ -137,7 +132,7 @@ describe('git/pull', () => {
 
         previousTip = await getTipOrError(repository)
 
-        await pull(repository, null, origin)
+        await pull(repository, null, remote)
 
         newTip = await getTipOrError(repository)
       })
@@ -148,10 +143,7 @@ describe('git/pull', () => {
       })
 
       it('is ahead of tracking branch', async () => {
-        const range = revSymmetricDifference(
-          featureBranch,
-          `${origin}/${featureBranch}`
-        )
+        const range = revSymmetricDifference(featureBranch, remoteBranch)
 
         const aheadBehind = await getAheadBehind(repository, range)
         expect(aheadBehind).toEqual({
@@ -170,7 +162,7 @@ describe('git/pull', () => {
       })
 
       it(`throws an error as the user blocks merge commits on pull`, () => {
-        expect(pull(repository, null, origin)).rejects.toThrow()
+        expect(pull(repository, null, remote)).rejects.toThrow()
       })
     })
   })

@@ -74,22 +74,39 @@ let currentContextualMenuItems: ReadonlyArray<IMenuItem> | null = null
 export function registerContextualMenuActionDispatcher() {
   ipcRenderer.on(
     'contextual-menu-action',
-    (event: Electron.IpcMessageEvent, index: number) => {
-      if (!currentContextualMenuItems) {
-        return
-      }
-      if (index >= currentContextualMenuItems.length) {
+    (event: Electron.IpcRendererEvent, indices: number[]) => {
+      if (currentContextualMenuItems === null) {
         return
       }
 
-      const item = currentContextualMenuItems[index]
-      const action = item.action
-      if (action) {
-        action()
+      const menuItem = findSubmenuItem(currentContextualMenuItems, indices)
+
+      if (menuItem !== undefined && menuItem.action !== undefined) {
+        menuItem.action()
         currentContextualMenuItems = null
       }
     }
   )
+}
+
+function findSubmenuItem(
+  currentContextualMenuItems: ReadonlyArray<IMenuItem>,
+  indices: ReadonlyArray<number>
+): IMenuItem | undefined {
+  let foundMenuItem: IMenuItem | undefined = {
+    submenu: currentContextualMenuItems,
+  }
+
+  // Traverse the submenus of the context menu until we find the appropiate index.
+  for (const index of indices) {
+    if (foundMenuItem === undefined || foundMenuItem.submenu === undefined) {
+      return undefined
+    }
+
+    foundMenuItem = foundMenuItem.submenu[index]
+  }
+
+  return foundMenuItem
 }
 
 /** Show the given menu items in a contextual menu. */
@@ -117,10 +134,12 @@ export function reportUncaughtException(error: Error) {
 
 export function sendErrorReport(
   error: Error,
-  extra: { [key: string]: string } = {}
+  extra: { [key: string]: string } = {},
+  nonFatal?: boolean
 ) {
   ipcRenderer.send('send-error-report', {
     error: getIpcFriendlyError(error),
     extra,
+    nonFatal,
   })
 }

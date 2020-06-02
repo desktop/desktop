@@ -34,10 +34,10 @@ import { basename } from 'path'
 import { ICommitContext } from '../../models/commit'
 import { RebaseConflictState } from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
-import { enableStashing } from '../../lib/feature-flag'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { IStashEntry } from '../../models/stash-entry'
 import * as classNames from 'classnames'
+import { hasWritePermission } from '../../models/github-repository'
 
 const RowHeight = 29
 const StashIcon = new OcticonSymbol(
@@ -112,7 +112,7 @@ interface IChangesListProps {
   readonly onChangesListScrolled: (scrollTop: number) => void
 
   /* The scrollTop of the compareList. It is stored to allow for scroll position persistence */
-  readonly changesListScrollTop: number
+  readonly changesListScrollTop?: number
 
   /**
    * Called to open a file it its default application
@@ -168,6 +168,12 @@ interface IChangesListProps {
   readonly stashEntry: IStashEntry | null
 
   readonly isShowingStashEntry: boolean
+
+  /**
+   * Whether we should show the onboarding tutorial nudge
+   * arrow pointing at the commit summary box
+   */
+  readonly shouldNudgeToCommit: boolean
 }
 
 interface IChangesState {
@@ -530,9 +536,9 @@ export class ChangesList extends React.Component<
 
   private getPlaceholderMessage(
     files: ReadonlyArray<WorkingDirectoryFileChange>,
-    singleFileCommit: boolean
+    prepopulateCommitSummary: boolean
   ) {
-    if (!singleFileCommit) {
+    if (!prepopulateCommitSummary) {
       return 'Summary (required)'
     }
 
@@ -598,7 +604,19 @@ export class ChangesList extends React.Component<
     const filesSelected = workingDirectory.files.filter(
       f => f.selection.getSelectionType() !== DiffSelectionType.None
     )
-    const singleFileCommit = filesSelected.length === 1
+
+    // When a single file is selected, we use a default commit summary
+    // based on the file name and change status.
+    // However, for onboarding tutorial repositories, we don't want to do this.
+    // See https://github.com/desktop/desktop/issues/8354
+    const prepopulateCommitSummary =
+      filesSelected.length === 1 && !repository.isTutorialRepository
+
+    // if this is not a github repo, we don't want to
+    // restrict what the user can do at all
+    const hasWritePermissionForRepository =
+      this.props.repository.gitHubRepository === null ||
+      hasWritePermission(this.props.repository.gitHubRepository)
 
     return (
       <CommitMessage
@@ -617,11 +635,13 @@ export class ChangesList extends React.Component<
         coAuthors={this.props.coAuthors}
         placeholder={this.getPlaceholderMessage(
           filesSelected,
-          singleFileCommit
+          prepopulateCommitSummary
         )}
-        singleFileCommit={singleFileCommit}
+        prepopulateCommitSummary={prepopulateCommitSummary}
         key={repository.id}
-        currentBranchProtected={currentBranchProtected}
+        showBranchProtected={fileCount > 0 && currentBranchProtected}
+        showNoWriteAccess={fileCount > 0 && !hasWritePermissionForRepository}
+        shouldNudge={this.props.shouldNudgeToCommit}
       />
     )
   }
@@ -641,9 +661,6 @@ export class ChangesList extends React.Component<
   }
 
   private renderStashedChanges() {
-    if (!enableStashing()) {
-      return null
-    }
     if (this.props.stashEntry === null) {
       return null
     }

@@ -5,8 +5,6 @@ import { encodePathAsUrl } from '../../lib/path'
 import { ReleaseNote, ReleaseSummary } from '../../models/release-notes'
 
 import { updateStore } from '../lib/update-store'
-import { ButtonGroup } from '../lib/button-group'
-import { Button } from '../lib/button'
 import { LinkButton } from '../lib/link-button'
 
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
@@ -16,6 +14,7 @@ import { Repository } from '../../models/repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import { ReleaseNotesUri } from '../lib/releases'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 // HACK: This is needed because the `Rich`Text` component
 // needs to know what repo to link issues against.
@@ -34,7 +33,7 @@ const repository = new Repository(
       endpoint: getDotComAPIEndpoint(),
       hash: '',
     },
-    private: false,
+    isPrivate: false,
     parent: null,
     htmlURL: 'https://github.com/desktop/desktop',
     defaultBranch: 'master',
@@ -43,6 +42,9 @@ const repository = new Repository(
     fullName: 'desktop/desktop',
     fork: false,
     hash: '',
+    issuesEnabled: null,
+    isArchived: false,
+    permissions: null,
   },
   true
 )
@@ -154,6 +156,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
       <Dialog
         id="release-notes"
         onDismissed={this.props.onDismissed}
+        onSubmit={this.updateNow}
         title={dialogHeader}
       >
         <DialogContent>{contents}</DialogContent>
@@ -161,12 +164,13 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
           <LinkButton onClick={this.showAllReleaseNotes}>
             View all release notes
           </LinkButton>
-          <ButtonGroup destructive={true}>
-            <Button type="submit">Close</Button>
-            <Button onClick={this.updateNow}>
-              {__DARWIN__ ? 'Install and Restart' : 'Install and restart'}
-            </Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            destructive={true}
+            okButtonText={
+              __DARWIN__ ? 'Install and Restart' : 'Install and restart'
+            }
+            cancelButtonText="Close"
+          />
         </DialogFooter>
       </Dialog>
     )

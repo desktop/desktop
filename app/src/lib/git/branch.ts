@@ -3,8 +3,14 @@ import { getBranches } from './for-each-ref'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType } from '../../models/branch'
 import { IGitAccount } from '../../models/git-account'
-import { envForAuthentication } from './authentication'
 import { formatAsLocalRef } from './refs'
+import { deleteRef } from './update-ref'
+import { GitError as DugiteError } from 'dugite'
+import { getRemoteURL } from './remote'
+import {
+  envForRemoteOperation,
+  getFallbackUrlForProxyResolve,
+} from './environment'
 
 /**
  * Create a new branch from the given start point.
@@ -18,20 +24,25 @@ import { formatAsLocalRef } from './refs'
 export async function createBranch(
   repository: Repository,
   name: string,
-  startPoint: string | null
+  startPoint: string | null,
+  noTrack?: boolean
 ): Promise<Branch | null> {
   const args =
     startPoint !== null ? ['branch', name, startPoint] : ['branch', name]
 
-  try {
-    await git(args, repository.path, 'createBranch')
-    const branches = await getBranches(repository, `refs/heads/${name}`)
-    if (branches.length > 0) {
-      return branches[0]
-    }
-  } catch (err) {
-    log.error('createBranch failed', err)
+  // if we're branching directly from a remote branch, we don't want to track it
+  // tracking it will make the rest of desktop think we want to push to that
+  // remote branch's upstream (which would likely be the upstream of the fork)
+  if (noTrack) {
+    args.push('--no-track')
   }
+
+  await git(args, repository.path, 'createBranch')
+  const branches = await getBranches(repository, `refs/heads/${name}`)
+  if (branches.length > 0) {
+    return branches[0]
+  }
+
   return null
 }
 
@@ -74,62 +85,44 @@ export async function deleteBranch(
     await deleteLocalBranch(repository, branch.name)
   }
 
-  const remote = branch.remote
+  const remoteName = branch.remote
 
-  if (!includeRemote || !remote) {
-    return true
-  }
-
-  const branchExistsOnRemote = await checkIfBranchExistsOnRemote(
-    repository,
-    branch,
-    account,
-    remote
-  )
-
-  if (branchExistsOnRemote) {
+  if (includeRemote && remoteName) {
     const networkArguments = await gitNetworkArguments(repository, account)
+    const remoteUrl =
+      (await getRemoteURL(repository, remoteName).catch(err => {
+        // If we can't get the URL then it's very unlikely Git will be able to
+        // either and the push will fail. The URL is only used to resolve the
+        // proxy though so it's not critical.
+        log.error(`Could not resolve remote url for remote ${remoteName}`, err)
+        return null
+      })) || getFallbackUrlForProxyResolve(account, repository)
 
     const args = [
       ...networkArguments,
       'push',
-      remote,
+      remoteName,
       `:${branch.nameWithoutRemote}`,
     ]
 
-    const opts = { env: envForAuthentication(account) }
-
     // If the user is not authenticated, the push is going to fail
     // Let this propagate and leave it to the caller to handle
-    await git(args, repository.path, 'deleteRemoteBranch', opts)
+    const result = await git(args, repository.path, 'deleteRemoteBranch', {
+      env: await envForRemoteOperation(account, remoteUrl),
+      expectedErrors: new Set<DugiteError>([DugiteError.BranchDeletionFailed]),
+    })
+
+    // It's possible that the delete failed because the ref has already
+    // been deleted on the remote. If we identify that specific
+    // error we can safely remote our remote ref which is what would
+    // happen if the push didn't fail.
+    if (result.gitError === DugiteError.BranchDeletionFailed) {
+      const ref = `refs/remotes/${remoteName}/${branch.nameWithoutRemote}`
+      await deleteRef(repository, ref)
+    }
   }
 
   return true
-}
-
-async function checkIfBranchExistsOnRemote(
-  repository: Repository,
-  branch: Branch,
-  account: IGitAccount | null,
-  remote: string
-): Promise<boolean> {
-  const networkArguments = await gitNetworkArguments(repository, account)
-
-  const args = [
-    ...networkArguments,
-    'ls-remote',
-    '--heads',
-    remote,
-    branch.nameWithoutRemote,
-  ]
-  const opts = { env: envForAuthentication(account) }
-  const result = await git(
-    args,
-    repository.path,
-    'checkRemoteBranchExistence',
-    opts
-  )
-  return result.stdout.length > 0
 }
 
 /**

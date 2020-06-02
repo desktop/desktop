@@ -11,7 +11,7 @@ import { getAvatarUsersForCommit, IAvatarUser } from '../../models/avatar'
 import { AvatarStack } from '../lib/avatar-stack'
 import { CommitAttribution } from '../lib/commit-attribution'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
-import { enableHideWhitespaceInDiffOption } from '../../lib/feature-flag'
+import { enableGitTagsDisplay } from '../../lib/feature-flag'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -335,7 +335,10 @@ export class CommitSummary extends React.Component<
               />
             </li>
 
-            <li className="commit-summary-meta-item" aria-label="SHA">
+            <li
+              className="commit-summary-meta-item without-truncation"
+              aria-label="SHA"
+            >
               <span aria-hidden="true">
                 <Octicon symbol={OcticonSymbol.gitCommit} />
               </span>
@@ -343,7 +346,7 @@ export class CommitSummary extends React.Component<
             </li>
 
             <li
-              className="commit-summary-meta-item commit-summary-file-name"
+              className="commit-summary-meta-item without-truncation"
               title={filesDescription}
             >
               <span aria-hidden="true">
@@ -352,7 +355,12 @@ export class CommitSummary extends React.Component<
 
               {filesDescription}
             </li>
-            {enableHideWhitespaceInDiffOption() && (
+            {this.renderTags()}
+
+            <li
+              className="commit-summary-meta-item without-truncation"
+              title={filesDescription}
+            >
               <Checkbox
                 label="Hide Whitespace"
                 value={
@@ -362,12 +370,34 @@ export class CommitSummary extends React.Component<
                 }
                 onChange={this.onHideWhitespaceInDiffChanged}
               />
-            )}
+            </li>
           </ul>
         </div>
 
         {this.renderDescription()}
       </div>
+    )
+  }
+
+  private renderTags() {
+    if (!enableGitTagsDisplay()) {
+      return null
+    }
+
+    const tags = this.props.commit.tags || []
+
+    if (tags.length === 0) {
+      return null
+    }
+
+    return (
+      <li className="commit-summary-meta-item" title={tags.join('\n')}>
+        <span aria-label="Tags">
+          <Octicon symbol={OcticonSymbol.tag} />
+        </span>
+
+        <span className="tags">{tags.join(', ')}</span>
+      </li>
     )
   }
 }

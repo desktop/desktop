@@ -3,10 +3,10 @@ import * as HtmlWebpackPlugin from 'html-webpack-plugin'
 import * as CleanWebpackPlugin from 'clean-webpack-plugin'
 import * as webpack from 'webpack'
 import * as merge from 'webpack-merge'
-import { getReleaseChannel } from '../script/dist-info'
+import { getChannel } from '../script/dist-info'
 import { getReplacements } from './app-info'
 
-const channel = getReleaseChannel()
+const channel = getChannel()
 
 export const externals = ['7zip']
 if (channel === 'development') {

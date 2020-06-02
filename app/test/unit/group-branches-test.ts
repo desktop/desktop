@@ -1,28 +1,26 @@
 import { groupBranches } from '../../src/ui/branches'
 import { Branch, BranchType } from '../../src/models/branch'
-import { Commit } from '../../src/models/commit'
 import { CommitIdentity } from '../../src/models/commit-identity'
 
 describe('Branches grouping', () => {
   const author = new CommitIdentity('Hubot', 'hubot@github.com', new Date())
 
-  const commit = new Commit(
-    '300acef',
-    '300acef',
-    'summary',
-    'body',
+  const branchTip = {
+    sha: '300acef',
     author,
-    author,
-    [],
-    []
-  )
+  }
 
-  const currentBranch = new Branch('master', null, commit, BranchType.Local)
-  const defaultBranch = new Branch('master', null, commit, BranchType.Local)
+  const currentBranch = new Branch('master', null, branchTip, BranchType.Local)
+  const defaultBranch = new Branch('master', null, branchTip, BranchType.Local)
   const recentBranches = [
-    new Branch('some-recent-branch', null, commit, BranchType.Local),
+    new Branch('some-recent-branch', null, branchTip, BranchType.Local),
   ]
-  const otherBranch = new Branch('other-branch', null, commit, BranchType.Local)
+  const otherBranch = new Branch(
+    'other-branch',
+    null,
+    branchTip,
+    BranchType.Local
+  )
 
   const allBranches = [currentBranch, ...recentBranches, otherBranch]
 

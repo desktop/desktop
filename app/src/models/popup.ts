@@ -1,4 +1,8 @@
-import { Repository } from './repository'
+import {
+  Repository,
+  RepositoryWithGitHubRepository,
+  RepositoryWithForkedGitHubRepository,
+} from './repository'
 import { PullRequest } from './pull-request'
 import { Branch } from './branch'
 import { ReleaseSummary } from './release-notes'
@@ -9,6 +13,8 @@ import { PreferencesTab } from './preferences'
 import { ICommitContext } from './commit'
 import { IStashEntry } from './stash-entry'
 import { Account } from '../models/account'
+import { Progress } from './progress'
+import { CloningRepository } from './cloning-repository'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -51,6 +57,17 @@ export enum PopupType {
   ConfirmOverwriteStash,
   ConfirmDiscardStash,
   CreateTutorialRepository,
+  ConfirmExitTutorial,
+  PushRejectedDueToMissingWorkflowScope,
+  SAMLReauthRequired,
+  CreateFork,
+  SChannelNoRevocationCheck,
+  CreateTag,
+  DeleteTag,
+  LocalChangesOverwritten,
+  RebaseConflicts,
+  RetryClone,
+  ChooseForkSettings,
 }
 
 export type Popup =
@@ -84,12 +101,7 @@ export type Popup =
   | {
       type: PopupType.CreateBranch
       repository: Repository
-
-      /**
-       * A flag to indicate the user clicked the "switch branch" link when they
-       * saw the prompt about the current branch being protected.
-       */
-      handleProtectedBranchWarning?: boolean
+      currentBranchProtected: boolean
 
       initialName?: string
     }
@@ -200,4 +212,50 @@ export type Popup =
   | {
       type: PopupType.CreateTutorialRepository
       account: Account
+      progress?: Progress
+    }
+  | {
+      type: PopupType.ConfirmExitTutorial
+    }
+  | {
+      type: PopupType.PushRejectedDueToMissingWorkflowScope
+      rejectedPath: string
+      repository: Repository
+    }
+  | {
+      type: PopupType.SAMLReauthRequired
+      organizationName: string
+      endpoint: string
+      retryAction?: RetryAction
+    }
+  | {
+      type: PopupType.CreateFork
+      repository: RepositoryWithGitHubRepository
+      account: Account
+    }
+  | {
+      type: PopupType.SChannelNoRevocationCheck
+      url: string
+    }
+  | {
+      type: PopupType.CreateTag
+      repository: Repository
+      targetCommitSha: string
+      initialName?: string
+      localTags: Map<string, string> | null
+    }
+  | {
+      type: PopupType.RetryClone
+      repository: Repository | CloningRepository
+      retryAction: RetryAction
+      errorMessage: string
+    }
+  | {
+      type: PopupType.DeleteTag
+      repository: Repository
+      tagName: string
+    }
+  | {
+      type: PopupType.ChooseForkSettings
+      repository: RepositoryWithForkedGitHubRepository
     }

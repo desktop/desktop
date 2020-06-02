@@ -10,7 +10,10 @@ import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
 import { Dispatcher } from '../dispatcher'
 import { IGitHubUser } from '../../lib/databases/github-user-database'
-import { Repository } from '../../models/repository'
+import {
+  Repository,
+  isRepositoryWithGitHubRepository,
+} from '../../models/repository'
 import { Button } from '../lib/button'
 import { Avatar } from '../lib/avatar'
 import { Loading } from '../lib/loading'
@@ -23,8 +26,9 @@ import { IAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
 import { ICommitContext } from '../../models/commit'
 import { startTimer } from '../lib/timing'
-import { ProtectedBranchWarning } from './protected-branch-warning'
-import { enableBranchProtectionWarningFlow } from '../../lib/feature-flag'
+import { PermissionsCommitWarning } from './permissions-commit-warning'
+import { LinkButton } from '../lib/link-button'
+import { FoldoutType } from '../../lib/app-state'
 
 const addAuthorIcon = new OcticonSymbol(
   12,
@@ -48,8 +52,9 @@ interface ICommitMessageProps {
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
   readonly isCommitting: boolean
   readonly placeholder: string
-  readonly singleFileCommit: boolean
-  readonly currentBranchProtected: boolean
+  readonly prepopulateCommitSummary: boolean
+  readonly showBranchProtected: boolean
+  readonly showNoWriteAccess: boolean
 
   /**
    * Whether or not to show a field for adding co-authors to
@@ -65,6 +70,9 @@ interface ICommitMessageProps {
    * the user has chosen to do so.
    */
   readonly coAuthors: ReadonlyArray<IAuthor>
+
+  /** Whether this component should show its onboarding tutorial nudge arrow */
+  readonly shouldNudge: boolean
 }
 
 interface ICommitMessageState {
@@ -211,7 +219,7 @@ export class CommitMessage extends React.Component<
     const trailers = this.getCoAuthorTrailers()
 
     const summaryOrPlaceholder =
-      this.props.singleFileCommit && !this.state.summary
+      this.props.prepopulateCommitSummary && !this.state.summary
         ? this.props.placeholder
         : summary
 
@@ -233,7 +241,7 @@ export class CommitMessage extends React.Component<
   private canCommit(): boolean {
     return (
       (this.props.anyFilesSelected && this.state.summary.length > 0) ||
-      this.props.singleFileCommit
+      this.props.prepopulateCommitSummary
     )
   }
 
@@ -444,20 +452,40 @@ export class CommitMessage extends React.Component<
     return <div className={className}>{this.renderCoAuthorToggleButton()}</div>
   }
 
-  private renderProtectedBranchWarning = (branch: string) => {
-    if (!enableBranchProtectionWarningFlow()) {
+  private renderPermissionsCommitWarning = (branch: string) => {
+    const { showBranchProtected, showNoWriteAccess, repository } = this.props
+
+    if (showNoWriteAccess) {
+      return (
+        <PermissionsCommitWarning>
+          You don't have write access to <strong>{repository.name}</strong>.
+          Want to{' '}
+          <LinkButton onClick={this.onMakeFork}>create a fork</LinkButton>?
+        </PermissionsCommitWarning>
+      )
+    } else if (showBranchProtected) {
+      return (
+        <PermissionsCommitWarning>
+          <strong>{branch}</strong> is a protected branch. Want to{' '}
+          <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>
+          ?
+        </PermissionsCommitWarning>
+      )
+    } else {
       return null
     }
+  }
 
-    const { currentBranchProtected, dispatcher } = this.props
+  private onSwitchBranch = () => {
+    this.props.dispatcher.showFoldout({
+      type: FoldoutType.Branch,
+    })
+  }
 
-    if (!currentBranchProtected) {
-      return null
+  private onMakeFork = () => {
+    if (isRepositoryWithGitHubRepository(this.props.repository)) {
+      this.props.dispatcher.showCreateForkDialog(this.props.repository)
     }
-
-    return (
-      <ProtectedBranchWarning currentBranch={branch} dispatcher={dispatcher} />
-    )
   }
 
   public render() {
@@ -477,6 +505,10 @@ export class CommitMessage extends React.Component<
       'with-overflow': this.state.descriptionObscured,
     })
 
+    const summaryInputClassName = classNames('summary-field', 'nudge-arrow', {
+      'nudge-arrow-left': this.props.shouldNudge,
+    })
+
     return (
       <div
         id="commit-message"
@@ -491,7 +523,7 @@ export class CommitMessage extends React.Component<
 
           <AutocompletingInput
             isRequired={true}
-            className="summary-field"
+            className={summaryInputClassName}
             placeholder={this.props.placeholder}
             value={this.state.summary}
             onValueChanged={this.onSummaryChanged}
@@ -522,7 +554,7 @@ export class CommitMessage extends React.Component<
 
         {this.renderCoAuthorInput()}
 
-        {this.renderProtectedBranchWarning(branchName)}
+        {this.renderPermissionsCommitWarning(branchName)}
 
         <Button
           type="submit"

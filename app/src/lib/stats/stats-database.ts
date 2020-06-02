@@ -268,6 +268,99 @@ export interface IDailyMeasures {
    * the suggested next steps view
    */
   readonly suggestedStepViewStash: number
+
+  /**
+   *  _[Onboarding tutorial]_
+   *  Has the user clicked the button to start the onboarding tutorial?
+   */
+  readonly tutorialStarted: boolean
+
+  /**
+   * _[Onboarding tutorial]_
+   * Has the user successfully created a tutorial repo?
+   */
+  readonly tutorialRepoCreated: boolean
+
+  /**
+   * _[Onboarding tutorial]_
+   * Has the user installed an editor, skipped this step, or have an editor already installed?
+   */
+  readonly tutorialEditorInstalled: boolean
+
+  /**
+   * _[Onboarding tutorial]_
+   * Has the user successfully completed the create a branch step?
+   */
+  readonly tutorialBranchCreated: boolean
+
+  /**
+   * _[Onboarding tutorial]_
+   * Has the user completed the edit a file step?
+   */
+  readonly tutorialFileEdited: boolean
+
+  /**
+   * _[Onboarding tutorial]_
+   * Has the user completed the commit a file change step?
+   */
+  readonly tutorialCommitCreated: boolean
+
+  /**
+   * _[Onboarding tutorial]_
+   * Has the user completed the push a branch step?
+   */
+  readonly tutorialBranchPushed: boolean
+
+  /**
+   * _[Onboarding tutorial]_
+   * Has the user compeleted the create a PR step?
+   */
+  readonly tutorialPrCreated: boolean
+
+  /**
+   * _[Onboarding tutorial]_
+   * Has the user completed all tutorial steps?
+   */
+  readonly tutorialCompleted: boolean
+
+  /**
+   * _[Onboarding tutorial]_
+   * What's the highest tutorial step completed by user?
+   * (`0` is tutorial created, first step is `1`)
+   */
+  readonly highestTutorialStepCompleted: number
+
+  /**
+   * _[Forks]_
+   * How many commits did the user make in a repo they
+   * don't have `write` access to?
+   */
+  readonly commitsToRepositoryWithoutWriteAccess: number
+
+  /** _[Forks]_
+   * How many forks did the user create from Desktop?
+   */
+  readonly forksCreated: number
+
+  /**
+   * How many times has the user begun creating an issue from Desktop?
+   */
+  readonly issueCreationWebpageOpenedCount: number
+
+  /**
+   * How many tags have been created from the Desktop UI?
+   */
+  readonly tagsCreatedInDesktop: number
+
+  /**
+   * How many tags have been created in total.
+   */
+  readonly tagsCreated: number
+
+  /**
+   * How many tags have been deleted.
+   */
+  readonly tagsDeleted: number
 }
 
 export class StatsDatabase extends Dexie {
