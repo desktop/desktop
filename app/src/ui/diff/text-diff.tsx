@@ -616,9 +616,9 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     } else if (rangeType === DiffRangeType.Deletions) {
       type = __DARWIN__ ? 'Removed' : 'removed'
     } else if (rangeType === DiffRangeType.Mixed) {
-      type = __DARWIN__ ? 'Modified' : 'modiifed'
+      type = __DARWIN__ ? 'Modified' : 'modified'
     } else {
-      assertNever(rangeType, `Invlaid range type: ${rangeType}`)
+      assertNever(rangeType, `Invalid range type: ${rangeType}`)
     }
 
     if (numLines > 1) {
