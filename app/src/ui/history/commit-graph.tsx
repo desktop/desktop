@@ -230,11 +230,11 @@ function getThemeColor(
 
 const ColorsOrder = [
   GraphColor.Gray,
-  // GraphColor.Green,
-  // GraphColor.Purple,
-  // GraphColor.Orange,
-  // GraphColor.Red,
-  // GraphColor.Pink,
+  GraphColor.Green,
+  GraphColor.Orange,
+  GraphColor.Purple,
+  GraphColor.Red,
+  GraphColor.Pink,
 ]
 
 export function getNextColor(currentColor: GraphColor | null): GraphColor {

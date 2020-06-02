@@ -1165,9 +1165,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitStore = this.gitStoreCache.get(repository)
 
     const comparisonBranch = action.branch
-    const compare = await gitStore.getCompareCommits(
+    const compareAhead = await gitStore.getCompareCommits(
       comparisonBranch,
-      action.comparisonMode
+      ComparisonMode.Ahead
+    )
+    const compareBehind = await gitStore.getCompareCommits(
+      comparisonBranch,
+      ComparisonMode.Behind
     )
 
     this.statsStore.recordBranchComparison()
@@ -1180,14 +1184,32 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.statsStore.recordDefaultBranchComparison()
     }
 
-    if (compare == null) {
+    if (compareAhead == null || compareBehind === null) {
       return
     }
 
-    const { ahead, behind } = compare
+    const commits: Array<Commit> = []
+    let keyBehind = 0
+
+    for (const commit of compareAhead.commits) {
+      while (
+        keyBehind < compareBehind.commits.length &&
+        commit.committer.date.getUTCDate() >
+          compareBehind.commits[keyBehind].committer.date.getUTCDate()
+      ) {
+        commits.push(compareBehind.commits[keyBehind])
+        keyBehind++
+      }
+      commits.push(commit)
+    }
+    for (let i = keyBehind; i < compareBehind.commits.length; i++) {
+      commits.push(compareBehind.commits[i])
+    }
+
+    const { ahead, behind } = compareBehind
     const aheadBehind = { ahead, behind }
 
-    const commitSHAs = compare.commits.map(commit => commit.sha)
+    const commitSHAs = commits.map(commit => commit.sha)
 
     const newState: ICompareBranch = {
       kind: HistoryTabMode.Compare,

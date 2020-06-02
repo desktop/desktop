@@ -18,7 +18,7 @@ import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { BranchList } from '../branches'
 import { TextBox } from '../lib/text-box'
 import { IBranchListItem } from '../branches/group-branches'
-import { TabBar } from '../tab-bar'
+// import { TabBar } from '../tab-bar'
 import { CompareBranchListItem } from './compare-branch-list-item'
 import { FancyTextBox } from '../lib/fancy-text-box'
 import { OcticonSymbol } from '../octicons'
@@ -294,7 +294,7 @@ export class CompareSidebar extends React.Component<
         compareListScrollTop={this.props.compareListScrollTop}
         tagsToPush={this.props.tagsToPush}
         selectedTheme={this.props.selectedTheme}
-        showCommitGraph={formState.kind === HistoryTabMode.History}
+        showCommitGraph={true || formState.kind === HistoryTabMode.History}
       />
     )
   }
@@ -356,34 +356,34 @@ export class CompareSidebar extends React.Component<
     )
   }
 
-  private onTabClicked = (index: number) => {
-    const formState = this.props.compareState.formState
+  // private onTabClicked = (index: number) => {
+  //   const formState = this.props.compareState.formState
 
-    if (formState.kind === HistoryTabMode.History) {
-      return
-    }
+  //   if (formState.kind === HistoryTabMode.History) {
+  //     return
+  //   }
 
-    const comparisonMode =
-      index === 0 ? ComparisonMode.Behind : ComparisonMode.Ahead
-    const branch = formState.comparisonBranch
+  //   const comparisonMode =
+  //     index === 0 ? ComparisonMode.Behind : ComparisonMode.Ahead
+  //   const branch = formState.comparisonBranch
 
-    this.props.dispatcher.executeCompare(this.props.repository, {
-      kind: HistoryTabMode.Compare,
-      branch,
-      comparisonMode,
-    })
-  }
+  //   this.props.dispatcher.executeCompare(this.props.repository, {
+  //     kind: HistoryTabMode.Compare,
+  //     branch,
+  //     comparisonMode,
+  //   })
+  // }
 
   private renderTabBar(formState: ICompareBranch) {
-    const selectedTab =
-      formState.comparisonMode === ComparisonMode.Behind ? 0 : 1
+    // const selectedTab =
+    //   formState.comparisonMode === ComparisonMode.Behind ? 0 : 1
 
     return (
       <div className="compare-content">
-        <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
+        {/* <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
           <span>{`Behind (${formState.aheadBehind.behind})`}</span>
           <span>{`Ahead (${formState.aheadBehind.ahead})`}</span>
-        </TabBar>
+        </TabBar> */}
         {this.renderActiveTab(formState)}
       </div>
     )

@@ -93,7 +93,7 @@ export class CommitList extends React.Component<
   private commitsHash = memoize(makeCommitsHash, arrayEquals)
   private commitsGraphRows = memoize(getCommitGraphRows, arrayEquals)
   public state = {
-    expandCommitGraph: false,
+    expandCommitGraph: true,
   }
 
   private getVisibleCommits(): ReadonlyArray<Commit> {
@@ -239,7 +239,8 @@ export class CommitList extends React.Component<
   }
 
   private renderExpandGraph() {
-    if (!this.props.showCommitGraph) {
+    const truu = true
+    if (!this.props.showCommitGraph || truu) {
       return null
     }
 
@@ -279,12 +280,12 @@ function getCommitGraphRows(commits: ReadonlyArray<Commit>) {
           hasChildren: true,
           color: line.color,
           parents: commit.parentSHAs.map((parentSHA, key) => {
-            if (key !== 0) {
-              currentColor = getNextColor(currentColor)
-            }
+            // if (key !== 0) {
+            //   currentColor = getNextColor(currentColor)
+            // }
 
             return {
-              color: key === 0 ? line.color : currentColor,
+              color: line.color,
               sha: parentSHA,
             }
           }),
@@ -308,9 +309,9 @@ function getCommitGraphRows(commits: ReadonlyArray<Commit>) {
         hasChildren: false,
         color: currentColor,
         parents: commit.parentSHAs.map((parentSHA, key) => {
-          if (key !== 0) {
-            currentColor = getNextColor(currentColor)
-          }
+          // if (key !== 0) {
+          //   currentColor = getNextColor(currentColor)
+          // }
 
           return {
             color: currentColor,
