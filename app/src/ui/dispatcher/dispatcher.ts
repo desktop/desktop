@@ -178,16 +178,7 @@ export class Dispatcher {
     repository: Repository | CloningRepository,
     moveToTrash: boolean
   ): Promise<void> {
-    if (moveToTrash) {
-      try {
-        await shell.moveItemToTrash(repository.path)
-      } catch (err) {
-        this.postError(err)
-        return
-      }
-    }
-
-    await this.appStore._removeRepository(repository)
+    return this.appStore._removeRepository(repository, moveToTrash)
   }
 
   /** Update the repository's `missing` flag. */

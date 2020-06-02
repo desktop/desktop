@@ -4931,12 +4931,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _removeRepository(
-    repository: Repository | CloningRepository
+    repository: Repository | CloningRepository,
+    moveToTrash: boolean
   ): Promise<void> {
-    if (repository instanceof CloningRepository) {
-      this._removeCloningRepository(repository)
-    } else {
-      await this.repositoriesStore.removeRepository(repository)
+    try {
+      if (moveToTrash) {
+        await shell.moveItemToTrash(repository.path)
+      }
+
+      if (repository instanceof CloningRepository) {
+        this._removeCloningRepository(repository)
+      } else {
+        await this.repositoriesStore.removeRepository(repository)
+      }
+    } catch (err) {
+      this.emitError(err)
+      return
     }
 
     const allRepositories = await this.repositoriesStore.getAll()
