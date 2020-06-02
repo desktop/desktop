@@ -216,15 +216,17 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     return (
       <DialogContent>
         <Row className="sign-in-with-browser">
-          <Button
-            className="button-with-icon"
-            type="submit"
-            onClick={this.onSignInWithBrowser}
-            disabled={disableSubmit}
-          >
-            Sign in using your browser
-            <Octicon symbol={OcticonSymbol.linkExternal} />
-          </Button>
+          <form>
+            <Button
+              className="button-with-icon"
+              type="submit"
+              onClick={this.onSignInWithBrowser}
+              disabled={disableSubmit}
+            >
+              Sign in using your browser
+              <Octicon symbol={OcticonSymbol.linkExternal} />
+            </Button>
+          </form>
         </Row>
 
         <div className="horizontal-rule">
