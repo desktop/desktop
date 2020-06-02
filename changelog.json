@@ -11,7 +11,7 @@
       "[Fixed] Center tags text vertically in History view - #9785",
       "[Fixed] Prevent Git authentication errors from prompting to retry clone instead of presenting authentication dialog - #9777",
       "[Improved] Make it safer to \"Open in Command Prompt\" on Windows - #9640. Thanks @dscho!",
-      "[Improved] Update design of list scrollbars on Windows to prevent overlapping with content - #9786"
+      "[Improved] Prevent list scrollbars on Windows from overlapping with content - #9786"
     ],
     "2.5.1-beta2": [
       "[Added] Provide a setting to more easily work with maintained forks - #9679",
