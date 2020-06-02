@@ -2,7 +2,7 @@
   "releases": {
     "2.5.1": [
       "[Added] Provide a setting to more easily work with maintained forks - #9679",
-      "[Added] Offer ability to delete tags that have not been pushed - #9796",
+      "[Added] Support deleting tags that have not been pushed - #9796",
       "[Fixed] Checkout correct PR branch when using \"Open in GitHub Desktop\" from github.com - #9873",
       "[Fixed] Support pressing \"Enter\" key to submit in Clone Repository dialog - #5234 #8804. Thanks @ruggi99!",
       "[Fixed] Avoid errors in restoring a stash when a branch is also named \"stash\" - #9844",
