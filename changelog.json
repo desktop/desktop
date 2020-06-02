@@ -9,7 +9,7 @@
       "[Fixed] Avoid background network operations to calculate unpushed tags - #9793 #9828",
       "[Fixed] Rework Ctrl+Tab to switch between Changes and History anytime the app has focus - #5911. Thanks @JMcKiern!",
       "[Fixed] Center tags text vertically in History view - #9785",
-      "[Fixed] Prevent Git authentication errors from prompting to retry clone instead of authentication dialog - #9777",
+      "[Fixed] Prevent Git authentication errors from prompting to retry clone instead of presenting authentication dialog - #9777",
       "[Improved] Make it safer to \"Open in Command Prompt\" on Windows - #9640. Thanks @dscho!",
       "[Improved] Update design of list scrollbars on Windows to prevent overlapping with content - #9786"
     ],
