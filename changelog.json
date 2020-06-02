@@ -6,7 +6,7 @@
       "[Fixed] Checkout correct PR branch when using \"Open in GitHub Desktop\" from github.com - #9873",
       "[Fixed] Support pressing \"Enter\" key to submit in Clone Repository dialog - #5234 #8804. Thanks @ruggi99!",
       "[Fixed] Avoid errors in restoring a stash when a branch is also named \"stash\" - #9844",
-      "[Fixed] Avoid background network operations and calling git hooks to calculate unpushed tags - #9793 #9828",
+      "[Fixed] Avoid background network operations to calculate unpushed tags - #9793 #9828",
       "[Fixed] Rework Ctrl+Tab to switch between Changes and History anytime the app has focus - #5911. Thanks @JMcKiern!",
       "[Fixed] Center tags text vertically in History view - #9785",
       "[Fixed] Prevent Git authentication errors from prompting to retry clone instead of authentication dialog - #9777",
