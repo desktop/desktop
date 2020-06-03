@@ -35,14 +35,20 @@ export function wrapRichTextCommitMessage(
   let remainder = maxSummaryLength
 
   for (const token of tokens) {
+    // An emoji token like ":white_square_button: would still only take
+    // up a little bit more space than a regular character when rendered
+    // as an image, we take that into consideration here with an approximation
+    // that an emoji is twice as wide as a normal character.
+    const charCount = token.kind === TokenType.Emoji ? 2 : token.text.length
+
     if (remainder <= 0) {
       // There's no room left in the summary, everything needs to
       // go into the overflow
       overflow.push(token)
-    } else if (remainder >= token.text.length) {
+    } else if (remainder >= charCount) {
       // The token fits without us having to think about wrapping!
       summary.push(token)
-      remainder -= token.text.length
+      remainder -= charCount
     } else {
       // There's not enough room to include the token in its entirety,
       // we've got to make a decision between hard wrapping or pushing
@@ -60,10 +66,7 @@ export function wrapRichTextCommitMessage(
           text: token.text.substr(remainder),
         })
       } else if (token.kind === TokenType.Emoji) {
-        // There's room for improvement here, we look at the length of
-        // token.text which could be something like ":white_square_button:"
-        // which would still only take up a little bit more space than a
-        // regular character when rendered as an image.
+        // Can't hard-wrap inside an emoji
         overflow.push(token)
       } else if (token.kind === TokenType.Link) {
         // Hard wrapping an issue link is confusing so we treat them
