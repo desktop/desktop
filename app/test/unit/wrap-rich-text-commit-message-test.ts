@@ -76,6 +76,22 @@ describe('wrapRichTextCommitMessage', () => {
     expect(body[3].text).toBe(bodyText)
   })
 
+  it('handles summaries which are exactly 72 chars after link shortening', async () => {
+    const summaryText =
+      'This issue summary should be exactly 72 chars including the issue no: https://github.com/niik/commit-summary-wrap-tests/issues/1'
+    const { summary, body } = wrap(summaryText)
+
+    expect(summary.length).toBe(2)
+    expect(body.length).toBe(0)
+
+    expect(summary[0].kind).toBe(TokenType.Text)
+    expect(summary[0].text).toBe(
+      'This issue summary should be exactly 72 chars including the issue no: '
+    )
+    expect(summary[1].kind).toBe(TokenType.Link)
+    expect(summary[1].text).toBe('#1')
+  })
+
   it('takes issue link shortening into consideration', async () => {
     const summaryText =
       'This issue link should be shortened to well under 72 characters: https://github.com/niik/commit-summary-wrap-tests/issues/1'
