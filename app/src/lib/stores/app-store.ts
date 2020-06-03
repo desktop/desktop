@@ -1538,7 +1538,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     previouslySelectedRepository: Repository | CloningRepository | null
   ): Promise<Repository | null> {
-    await this._refreshTags(repository)
     this._refreshRepository(repository)
 
     if (isRepositoryWithGitHubRepository(repository)) {
@@ -2692,13 +2691,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _refreshTags(repository: Repository): Promise<void> {
-    const gitStore = this.gitStoreCache.get(repository)
-
-    return gitStore.refreshTags()
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _refreshRepository(repository: Repository): Promise<void> {
     if (repository.missing) {
       return
@@ -2749,6 +2741,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.refreshAuthor(repository),
       refreshSectionPromise,
     ])
+
+    await gitStore.refreshTags()
 
     // this promise is fire-and-forget, so no need to await it
     this.updateStashEntryCountMetric(
@@ -3848,7 +3842,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
           // any new branch will immediately report as protected
           await this.refreshBranchProtectionState(repository)
 
-          await this._refreshTags(repository)
           await this._refreshRepository(repository)
 
           this.updatePushPullFetchProgress(repository, {
@@ -4041,7 +4034,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const gitStore = this.gitStoreCache.get(repository)
         await gitStore.fetchRefspec(account, refspec)
 
-        await this._refreshTags(repository)
         return this._refreshRepository(repository)
       }
     )
@@ -4130,7 +4122,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         // any new branch will immediately report as protected
         await this.refreshBranchProtectionState(repository)
 
-        await this._refreshTags(repository)
         await this._refreshRepository(repository)
 
         this.updatePushPullFetchProgress(repository, {

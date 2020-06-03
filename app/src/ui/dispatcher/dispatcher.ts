@@ -331,13 +331,6 @@ export class Dispatcher {
     return this.appStore._refreshOrRecoverRepository(repository)
   }
 
-  /**
-   * Refreshes the list of local tags. This would be used, e.g., when the app gains focus.
-   */
-  public refreshTags(repository: Repository): Promise<void> {
-    return this.appStore._refreshTags(repository)
-  }
-
   /** Show the popup. This will close any current popup. */
   public showPopup(popup: Popup): Promise<void> {
     return this.appStore._showPopup(popup)
