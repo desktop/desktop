@@ -26,7 +26,7 @@ export function wrapRichTextCommitMessage(
   bodyText: string,
   tokenizer: Tokenizer,
   maxSummaryLength = MaxSummaryLength
-) {
+): { summary: ReadonlyArray<TokenResult>; body: ReadonlyArray<TokenResult> } {
   const tokens = tokenizer.tokenize(summaryText.trimRight())
 
   const summary = new Array<TokenResult>()
