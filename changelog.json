@@ -1,5 +1,8 @@
 {
   "releases": {
+    "2.5.2": [
+      "[Fixed] Enable setting to more easily work with maintained forks"
+    ],
     "2.5.1": [
       "[Added] Provide a setting to more easily work with maintained forks - #9679",
       "[Added] Support deleting tags that have not been pushed - #9796",
