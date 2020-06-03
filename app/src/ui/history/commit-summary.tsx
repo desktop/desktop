@@ -12,6 +12,8 @@ import { AvatarStack } from '../lib/avatar-stack'
 import { CommitAttribution } from '../lib/commit-attribution'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { enableGitTagsDisplay } from '../../lib/feature-flag'
+import { Tokenizer, TokenType } from '../../lib/text-token-parser'
+import { assertNever } from '../../lib/fatal-error'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -90,20 +92,59 @@ function trimTrailingWhitespace(value: string) {
  * @param props        The current commit summary prop object.
  */
 function createState(isOverflowed: boolean, props: ICommitSummaryProps) {
-  let summary = trimTrailingWhitespace(props.commit.summary)
+  const tokenizer = new Tokenizer(props.emoji, props.repository)
+  const tokens = tokenizer.tokenize(
+    trimTrailingWhitespace(props.commit.summary)
+  )
+
+  let summary = ''
+  let overflow = ''
+  let remainder = maxSummaryLength
+
+  for (const token of tokens) {
+    if (remainder <= 0) {
+      overflow = overflow + token.text
+    } else if (remainder >= token.text.length) {
+      summary = summary + token.text
+      remainder -= token.text.length
+    } else {
+      if (token.kind === TokenType.Text) {
+        summary = summary + token.text.substr(0, remainder)
+        overflow = overflow + token.text.substr(remainder)
+      } else if (token.kind === TokenType.Emoji) {
+        overflow = overflow + token.text
+      } else if (token.kind === TokenType.Link) {
+        summary = summary + token.text
+      } else {
+        return assertNever(token, `Unknown token type`)
+      }
+
+      remainder = 0
+    }
+  }
+
   let body = trimTrailingWhitespace(props.commit.body)
 
-  if (summary.length > maxSummaryLength) {
-    // Truncate at least 3 characters off the end to avoid just an ellipsis
-    // followed by 1-2 characters in the body. This matches dotcom behavior.
-    const truncationMargin = 3
-    const truncateLength = maxSummaryLength - truncationMargin
-    const remainder = summary.substr(truncateLength)
-
-    // Don't join the the body with newlines if it's empty
-    body = body.length > 0 ? `…${remainder}\n\n${body}` : `…${remainder}`
-    summary = `${summary.substr(0, truncateLength)}…`
+  if (overflow.length > 0) {
+    summary = summary + '…'
+    if (body.length > 0) {
+      body = `…${overflow}\n\n${body}`
+    } else {
+      body = `…${overflow}`
+    }
   }
+
+  // if (summary.length > maxSummaryLength) {
+  //   // Truncate at least 3 characters off the end to avoid just an ellipsis
+  //   // followed by 1-2 characters in the body. This matches dotcom behavior.
+  //   const truncationMargin = 3
+  //   const truncateLength = maxSummaryLength - truncationMargin
+  //   const remainder = summary.substr(truncateLength)
+
+  //   // Don't join the the body with newlines if it's empty
+  //   body = body.length > 0 ? `…${remainder}\n\n${body}` : `…${remainder}`
+  //   summary = `${summary.substr(0, truncateLength)}…`
+  // }
 
   const avatarUsers = getAvatarUsersForCommit(
     props.repository.gitHubRepository,
