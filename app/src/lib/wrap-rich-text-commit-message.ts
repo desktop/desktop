@@ -3,6 +3,24 @@ import { assertNever } from './fatal-error'
 
 const MaxSummaryLength = 72
 
+/**
+ * A method used to wrap long commit summaries and put any overflow
+ * into the commit body while taking rich text into consideration.
+ *
+ * See https://github.com/desktop/desktop/issues/9185 for a description
+ * of the problem and https://github.com/desktop/desktop/pull/2575 for
+ * the initial naive implementation.
+ *
+ * @param summaryText The commit message summary text (i.e. the first line)
+ * @param bodyText    The commit message body text
+ * @param tokenizer   The tokenizer to use when converting the raw text to
+ *                    rich text tokens
+ * @param maxSummaryLength  The maximum width of the commit summary (defaults
+ *                          to 72), note that this does not include any ellipsis
+ *                          that may be appended when wrapping. In other words
+ *                          it's possible that the commit summary ends up being
+ *                          maxSummaryLength + 1 long when rendered.
+ */
 export function wrapRichTextCommitMessage(
   summaryText: string,
   bodyText: string,
