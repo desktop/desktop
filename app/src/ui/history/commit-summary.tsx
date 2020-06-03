@@ -147,7 +147,7 @@ function createState(
         text: '\n\n',
       })
     } else {
-      body.unshift({ kind: TokenType.Text, text: `…${overflow}` })
+      body.unshift({ kind: TokenType.Text, text: `…` }, ...overflow)
     }
   }
   const avatarUsers = getAvatarUsersForCommit(
