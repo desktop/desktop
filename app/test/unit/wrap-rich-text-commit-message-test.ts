@@ -21,8 +21,8 @@ describe('wrapRichTextCommitMessage', () => {
   const tokenizer = new Tokenizer(emojis, repo)
 
   /** helper */
-  function wrap(summary: string, body?: string) {
-    return wrapRichTextCommitMessage(summary, '', tokenizer)
+  function wrap(summary: string, body: string = '') {
+    return wrapRichTextCommitMessage(summary, body, tokenizer)
   }
 
   it("doesn't wrap at exactly 72 chars", async () => {
