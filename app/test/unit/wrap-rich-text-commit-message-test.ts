@@ -94,4 +94,16 @@ describe('wrapRichTextCommitMessage', () => {
       'https://github.com/niik/commit-summary-wrap-tests/issues/1'
     )
   })
+
+  it('handles multiple links', async () => {
+    const summaryText =
+      'Multiple links are fine https://github.com/niik/commit-summary-wrap-tests/issues/1 https://github.com/niik/commit-summary-wrap-tests/issues/2 https://github.com/niik/commit-summary-wrap-tests/issues/3 https://github.com/niik/commit-summary-wrap-tests/issues/4'
+    const { summary, body } = wrap(summaryText, '')
+
+    expect(summary.length).toBe(8)
+    expect(body.length).toBe(0)
+
+    const flattened = summary.map(x => x.text).join('')
+    expect(flattened).toBe('Multiple links are fine #1 #2 #3 #4')
+  })
 })
