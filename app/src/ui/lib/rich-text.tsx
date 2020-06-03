@@ -4,6 +4,7 @@ import { LinkButton } from './link-button'
 import { Repository } from '../../models/repository'
 import { Tokenizer, TokenType } from '../../lib/text-token-parser'
 import { assertNever } from '../../lib/fatal-error'
+import memoizeOne from 'memoize-one'
 
 interface IRichTextProps {
   readonly className?: string
@@ -26,52 +27,63 @@ interface IRichTextProps {
   readonly repository?: Repository
 }
 
+function tokenize(
+  emoji: Map<string, string>,
+  repository: Repository | undefined,
+  renderUrlsAsLinks: boolean | undefined,
+  text: string
+) {
+  const tokenizer = new Tokenizer(emoji, repository)
+
+  return tokenizer.tokenize(text).map((token, index) => {
+    switch (token.kind) {
+      case TokenType.Emoji:
+        return (
+          <img
+            key={index}
+            alt={token.text}
+            className="emoji"
+            src={token.path}
+          />
+        )
+      case TokenType.Link:
+        if (renderUrlsAsLinks !== false) {
+          return (
+            <LinkButton key={index} uri={token.url} title={token.url}>
+              {token.text}
+            </LinkButton>
+          )
+        } else {
+          return <span key={index}>{token.text}</span>
+        }
+      case TokenType.Text:
+        return <span key={index}>{token.text}</span>
+      default:
+        return assertNever(token, `Unknown token type: ${token}`)
+    }
+  })
+}
+
 /**
  * A component which replaces any emoji shortcuts (e.g., :+1:) in its child text
  * with the appropriate image tag, and also highlights username and issue mentions
  * with hyperlink tags if it has a repository to read.
  */
 export class RichText extends React.Component<IRichTextProps, {}> {
+  private getElements = memoizeOne(tokenize)
+
   public render() {
-    const str = this.props.text
+    const { emoji, repository, renderUrlsAsLinks, text } = this.props
 
     // If we've been given an empty string then return null so that we don't end
     // up introducing an extra empty <span>.
-    if (!str.length) {
+    if (text.length === 0) {
       return null
     }
 
-    const tokenizer = new Tokenizer(this.props.emoji, this.props.repository)
-
-    const elements = tokenizer.tokenize(str).map((token, index) => {
-      switch (token.kind) {
-        case TokenType.Emoji:
-          return (
-            <img
-              key={index}
-              alt={token.text}
-              className="emoji"
-              src={token.path}
-            />
-          )
-        case TokenType.Link:
-          if (this.props.renderUrlsAsLinks !== false) {
-            return (
-              <LinkButton key={index} uri={token.url} children={token.text} />
-            )
-          } else {
-            return <span key={index}>{token.text}</span>
-          }
-        case TokenType.Text:
-          return <span key={index}>{token.text}</span>
-        default:
-          return assertNever(token, 'Unknown token type: ${r.kind}')
-      }
-    })
-
     return (
-      <div className={this.props.className} title={str}>
-        {elements}
+      <div className={this.props.className} title={text}>
+        {this.getElements(emoji, repository, renderUrlsAsLinks, text)}
       </div>
     )
   }
