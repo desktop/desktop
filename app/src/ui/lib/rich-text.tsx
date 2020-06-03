@@ -12,7 +12,12 @@ interface IRichTextProps {
   /** A lookup of emoji characters to map to image resources */
   readonly emoji: Map<string, string>
 
-  /** The raw text to inspect for things to highlight */
+  /**
+   * The raw text to inspect for things to highlight or an array
+   * of tokens already compiled by the `Tokenizer` class in
+   * `text-token-parser.ts`. If a string is provided the component
+   * will call upon the Tokenizer to product a list of tokens.
+   */
   readonly text: string | ReadonlyArray<TokenResult>
 
   /** Should URLs be rendered as clickable links. Default true. */
