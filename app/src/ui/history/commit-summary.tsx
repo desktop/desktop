@@ -124,11 +124,25 @@ function createState(
       } else if (token.kind === TokenType.Emoji) {
         overflow.push(token)
       } else if (token.kind === TokenType.Link) {
-        summary.push({
-          kind: TokenType.Link,
-          url: token.text,
-          text: token.text.substr(0, remainder),
-        })
+        // Hard wrapping an issue link is confusing so we treat them
+        // as atomic. For all other links (@mentions or https://...)
+        // We want at least the first couple of characters of the link
+        // text showing otherwise we'll end up with weird links like "h"
+        // or "@"
+        if (!token.text.startsWith('#') && remainder > 5) {
+          summary.push({
+            kind: TokenType.Link,
+            url: token.text,
+            text: token.text.substr(0, remainder),
+          })
+          overflow.push({
+            kind: TokenType.Link,
+            url: token.text,
+            text: token.text.substr(remainder),
+          })
+        } else {
+          overflow.push(token)
+        }
       } else {
         return assertNever(token, `Unknown token type`)
       }
