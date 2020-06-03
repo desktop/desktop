@@ -122,4 +122,36 @@ describe('wrapRichTextCommitMessage', () => {
     const flattened = summary.map(x => x.text).join('')
     expect(flattened).toBe('Multiple links are fine #1 #2 #3 #4')
   })
+
+  it('wraps links properly', async () => {
+    const summaryText =
+      'Link should be truncated but open our release notes https://desktop.github.com/release-notes/'
+    const { summary, body } = wrap(summaryText, '')
+
+    expect(summary.length).toBe(3)
+    expect(body.length).toBe(2)
+
+    expect(summary[0].kind).toBe(TokenType.Text)
+    expect(summary[0].text).toBe(
+      'Link should be truncated but open our release notes '
+    )
+
+    expect(summary[1].kind).toBe(TokenType.Link)
+    expect(summary[1].text).toBe('https://desktop.gith')
+    expect((summary[1] as HyperlinkMatch).url).toBe(
+      'https://desktop.github.com/release-notes/'
+    )
+
+    expect(summary[2].kind).toBe(TokenType.Text)
+    expect(summary[2].text).toBe('…')
+
+    expect(body[0].kind).toBe(TokenType.Text)
+    expect(body[0].text).toBe('…')
+
+    expect(body[1].kind).toBe(TokenType.Link)
+    expect(body[1].text).toBe('ub.com/release-notes/')
+    expect((body[1] as HyperlinkMatch).url).toBe(
+      'https://desktop.github.com/release-notes/'
+    )
+  })
 })
