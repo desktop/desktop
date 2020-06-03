@@ -319,7 +319,7 @@ export class CommitSummary extends React.Component<
   }
 
   private renderDescription() {
-    if (!this.state.body) {
+    if (this.state.body.length === 0) {
       return null
     }
 
