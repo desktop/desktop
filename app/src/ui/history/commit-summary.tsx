@@ -142,7 +142,10 @@ function createState(
   if (overflow.length > 0) {
     summary.push({ kind: TokenType.Text, text: '…' })
     if (body.length > 0) {
-      body.unshift({ kind: TokenType.Text, text: `…${overflow}\n\n` })
+      body.unshift({ kind: TokenType.Text, text: `…` }, ...overflow, {
+        kind: TokenType.Text,
+        text: '\n\n',
+      })
     } else {
       body.unshift({ kind: TokenType.Text, text: `…${overflow}` })
     }
