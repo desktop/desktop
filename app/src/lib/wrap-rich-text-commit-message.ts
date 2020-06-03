@@ -11,6 +11,9 @@ const MaxSummaryLength = 72
  * of the problem and https://github.com/desktop/desktop/pull/2575 for
  * the initial naive implementation.
  *
+ * Note that this method doesn't wrap multibyte chars like unicode emojis
+ * correctly (i.e. it could end up splitting a multibyte char).
+ *
  * @param summaryText The commit message summary text (i.e. the first line)
  * @param bodyText    The commit message body text
  * @param tokenizer   The tokenizer to use when converting the raw text to
