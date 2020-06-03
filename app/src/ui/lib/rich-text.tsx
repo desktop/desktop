@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import { LinkButton } from './link-button'
 import { Repository } from '../../models/repository'
-import { Tokenizer, TokenType } from '../../lib/text-token-parser'
+import { Tokenizer, TokenType, TokenResult } from '../../lib/text-token-parser'
 import { assertNever } from '../../lib/fatal-error'
 import memoizeOne from 'memoize-one'
 
@@ -13,7 +13,7 @@ interface IRichTextProps {
   readonly emoji: Map<string, string>
 
   /** The raw text to inspect for things to highlight */
-  readonly text: string
+  readonly text: string | ReadonlyArray<TokenResult>
 
   /** Should URLs be rendered as clickable links. Default true. */
   readonly renderUrlsAsLinks?: boolean
@@ -27,15 +27,16 @@ interface IRichTextProps {
   readonly repository?: Repository
 }
 
-function tokenize(
+function getElements(
   emoji: Map<string, string>,
   repository: Repository | undefined,
   renderUrlsAsLinks: boolean | undefined,
-  text: string
+  text: string | ReadonlyArray<TokenResult>
 ) {
   const tokenizer = new Tokenizer(emoji, repository)
+  const tokens = typeof text === 'string' ? tokenizer.tokenize(text) : text
 
-  return tokenizer.tokenize(text).map((token, index) => {
+  return tokens.map((token, index) => {
     switch (token.kind) {
       case TokenType.Emoji:
         return (
@@ -70,7 +71,10 @@ function tokenize(
  * with hyperlink tags if it has a repository to read.
  */
 export class RichText extends React.Component<IRichTextProps, {}> {
-  private getElements = memoizeOne(tokenize)
+  private getElements = memoizeOne(getElements)
+  private getTitle = memoizeOne((text: string | ReadonlyArray<TokenResult>) =>
+    typeof text === 'string' ? text : text.map(x => x.text).join('')
+  )
 
   public render() {
     const { emoji, repository, renderUrlsAsLinks, text } = this.props
@@ -82,7 +86,7 @@ export class RichText extends React.Component<IRichTextProps, {}> {
     }
 
     return (
-      <div className={this.props.className} title={text}>
+      <div className={this.props.className} title={this.getTitle(text)}>
         {this.getElements(emoji, repository, renderUrlsAsLinks, text)}
       </div>
     )
