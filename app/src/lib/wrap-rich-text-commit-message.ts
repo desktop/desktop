@@ -91,21 +91,15 @@ export function wrapRichTextCommitMessage(
     }
   }
 
-  const body = tokenizer.tokenize(bodyText.trimRight())
+  let body = tokenizer.tokenize(bodyText.trimRight())
 
   if (overflow.length > 0) {
     const ellipsis = text('…')
     summary.push(ellipsis)
     if (body.length > 0) {
-      return {
-        summary,
-        body: [ellipsis, ...overflow, text('\n\n'), ...body],
-      }
+      body = [ellipsis, ...overflow, text('\n\n'), ...body]
     } else {
-      return {
-        summary,
-        body: [ellipsis, ...overflow],
-      }
+      body = [ellipsis, ...overflow]
     }
   }
 
