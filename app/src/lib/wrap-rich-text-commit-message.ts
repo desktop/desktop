@@ -94,18 +94,20 @@ export function wrapRichTextCommitMessage(
   let body = tokenizer.tokenize(bodyText.trimRight())
 
   if (overflow.length > 0) {
-    const ellipsis = text('…')
-    summary.push(ellipsis)
+    summary.push(ellipsis())
     if (body.length > 0) {
-      body = [ellipsis, ...overflow, text('\n\n'), ...body]
+      body = [ellipsis(), ...overflow, text('\n\n'), ...body]
     } else {
-      body = [ellipsis, ...overflow]
+      body = [ellipsis(), ...overflow]
     }
   }
 
   return { summary, body }
 }
 
+function ellipsis() {
+  return text('…')
+}
 function text(text: string): PlainText {
   return { kind: TokenType.Text, text }
 }
