@@ -104,12 +104,23 @@ export function wrapRichTextCommitMessage(
   if (overflow.length > 0) {
     summary.push({ kind: TokenType.Text, text: '…' })
     if (body.length > 0) {
-      body.unshift({ kind: TokenType.Text, text: `…` }, ...overflow, {
-        kind: TokenType.Text,
-        text: '\n\n',
-      })
+      return {
+        summary,
+        body: [
+          { kind: TokenType.Text, text: `…` },
+          ...overflow,
+          {
+            kind: TokenType.Text,
+            text: '\n\n',
+          },
+          ...body,
+        ],
+      }
     } else {
-      body.unshift({ kind: TokenType.Text, text: `…` }, ...overflow)
+      return {
+        summary,
+        body: [{ kind: TokenType.Text, text: `…` }, ...overflow],
+      }
     }
   }
 

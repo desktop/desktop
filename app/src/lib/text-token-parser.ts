@@ -263,7 +263,9 @@ export class Tokenizer {
     }
   }
 
-  private tokenizeNonGitHubRepository(text: string): TokenResult[] {
+  private tokenizeNonGitHubRepository(
+    text: string
+  ): ReadonlyArray<TokenResult> {
     let i = 0
     while (i < text.length) {
       const element = text[i]
@@ -292,7 +294,7 @@ export class Tokenizer {
   private tokenizeGitHubRepository(
     text: string,
     repository: GitHubRepository
-  ): TokenResult[] {
+  ): ReadonlyArray<TokenResult> {
     let i = 0
     while (i < text.length) {
       const element = text[i]
@@ -336,7 +338,7 @@ export class Tokenizer {
    *
    * @returns an array of tokens representing the scan results.
    */
-  public tokenize(text: string): TokenResult[] {
+  public tokenize(text: string): ReadonlyArray<TokenResult> {
     this.reset()
 
     if (this.repository) {
