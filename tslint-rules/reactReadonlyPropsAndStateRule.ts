@@ -46,7 +46,7 @@ class ReactReadonlyPropsAndStateWalker extends Lint.RuleWalker {
       if (propertySignature.type) {
         const typeString = propertySignature.type.getFullText()
 
-        if (/^Array<.*>$/.test(typeString) || typeString.endsWith('[]')) {
+        if (/^\s*Array<.*>$/.test(typeString) || typeString.endsWith('[]')) {
           this.addFailure(
             this.createFailure(
               propertySignature.type.getStart(),
