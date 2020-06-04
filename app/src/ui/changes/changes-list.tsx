@@ -95,7 +95,7 @@ interface IChangesListProps {
   readonly repository: Repository
   readonly workingDirectory: WorkingDirectoryStatus
   readonly rebaseConflictState: RebaseConflictState | null
-  readonly selectedFileIDs: string[]
+  readonly selectedFileIDs: ReadonlyArray<string>
   readonly onFileSelectionChanged: (rows: ReadonlyArray<number>) => void
   readonly onIncludeChanged: (path: string, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
