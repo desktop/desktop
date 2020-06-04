@@ -1,4 +1,10 @@
-import { Tokenizer, TokenType, TokenResult } from './text-token-parser'
+import {
+  Tokenizer,
+  TokenType,
+  TokenResult,
+  PlainText,
+  HyperlinkMatch,
+} from './text-token-parser'
 import { assertNever } from './fatal-error'
 
 const MaxSummaryLength = 72
@@ -60,14 +66,8 @@ export function wrapRichTextCommitMessage(
         // We always hard-wrap text, it'd be nice if we could attempt
         // to break at word boundaries in the future but that's too
         // complex for now.
-        summary.push({
-          kind: TokenType.Text,
-          text: token.text.substr(0, remainder),
-        })
-        overflow.push({
-          kind: TokenType.Text,
-          text: token.text.substr(remainder),
-        })
+        summary.push(text(token.text.substr(0, remainder)))
+        overflow.push(text(token.text.substr(remainder)))
       } else if (token.kind === TokenType.Emoji) {
         // Can't hard-wrap inside an emoji
         overflow.push(token)
@@ -78,16 +78,8 @@ export function wrapRichTextCommitMessage(
         // text showing otherwise we'll end up with weird links like "h"
         // or "@"
         if (!token.text.startsWith('#') && remainder > 5) {
-          summary.push({
-            kind: TokenType.Link,
-            url: token.text,
-            text: token.text.substr(0, remainder),
-          })
-          overflow.push({
-            kind: TokenType.Link,
-            url: token.text,
-            text: token.text.substr(remainder),
-          })
+          summary.push(link(token.text.substr(0, remainder), token.text))
+          overflow.push(link(token.text.substr(remainder), token.text))
         } else {
           overflow.push(token)
         }
@@ -102,27 +94,27 @@ export function wrapRichTextCommitMessage(
   const body = tokenizer.tokenize(bodyText.trimRight())
 
   if (overflow.length > 0) {
-    summary.push({ kind: TokenType.Text, text: '…' })
+    const ellipsis = text('…')
+    summary.push(ellipsis)
     if (body.length > 0) {
       return {
         summary,
-        body: [
-          { kind: TokenType.Text, text: `…` },
-          ...overflow,
-          {
-            kind: TokenType.Text,
-            text: '\n\n',
-          },
-          ...body,
-        ],
+        body: [ellipsis, ...overflow, text('\n\n'), ...body],
       }
     } else {
       return {
         summary,
-        body: [{ kind: TokenType.Text, text: `…` }, ...overflow],
+        body: [ellipsis, ...overflow],
       }
     }
   }
 
   return { summary, body }
+}
+
+function text(text: string): PlainText {
+  return { kind: TokenType.Text, text }
+}
+function link(text: string, url: string): HyperlinkMatch {
+  return { kind: TokenType.Link, text, url }
 }
