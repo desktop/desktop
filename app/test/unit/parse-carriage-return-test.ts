@@ -74,4 +74,9 @@ describe('parseCarriageReturn', () => {
 
     expect(parseCarriageReturn(cloneOutput)).toBe(expected)
   })
+
+  it("has no problems with strings that don't contain carriage returns", () => {
+    expect(parseCarriageReturn('foo')).toBe('foo')
+    expect(parseCarriageReturn('foo\nbar')).toBe('foo\nbar')
+  })
 })
