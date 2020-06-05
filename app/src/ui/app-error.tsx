@@ -18,6 +18,7 @@ import { OkCancelButtonGroup } from './dialog/ok-cancel-button-group'
 import { ErrorWithMetadata } from '../lib/error-with-metadata'
 import { RetryActionType, RetryAction } from '../models/retry-actions'
 import { Ref } from './lib/ref'
+import memoizeOne from 'memoize-one'
 
 interface IAppErrorProps {
   /** The list of queued, app-wide, errors  */
@@ -50,6 +51,7 @@ interface IAppErrorState {
  */
 export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   private dialogContent: HTMLDivElement | null = null
+  private formatGitErrorMessage = memoizeOne(carriageReturnFormatter)
 
   public constructor(props: IAppErrorProps) {
     super(props)
@@ -181,7 +183,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
 
     const className = monospace ? 'monospace' : undefined
 
-    return <p className={className}>{e.message}</p>
+    return <p className={className}>{this.formatGitErrorMessage(e.message)}</p>
   }
 
   private get isCloneError() {
@@ -327,4 +329,43 @@ function isErrorWithMetaData(error: Error): error is ErrorWithMetadata {
 
 function isGitError(error: Error): error is GitError {
   return error instanceof GitError
+}
+
+function carriageReturnFormatter(text: string) {
+  const lines = new Array<string>('')
+  const crOrLf = /[\r\n]/gm
+
+  let lineIx = 0
+  let columnIx = 0
+  let p = 0
+
+  function merge(s: string) {
+    const line = lines[lineIx]
+    const before = line.substring(0, columnIx)
+    const after = line.substring(columnIx + s.length)
+    columnIx += s.length
+    lines[lineIx] = `${before}${s}${after}`
+  }
+
+  let m
+
+  while ((m = crOrLf.exec(text)) !== null) {
+    if (m.index > p) {
+      merge(text.substring(p, m.index))
+    }
+
+    if (m[0] === '\r') {
+      columnIx = 0
+    } else if (m[0] === '\n') {
+      lines[++lineIx] = ''
+    }
+
+    p = m.index + 1
+  }
+
+  if (p < text.length) {
+    merge(text.substring(p))
+  }
+
+  return lines.join('\n')
 }
