@@ -9,9 +9,8 @@ export function parseCarriageReturn(text: string) {
   const crOrLf = /[\r\n]/gm
 
   let columnIx = 0
-  let p = 0
 
-  function merge(s: string) {
+  function overwrite(s: string) {
     const line = lines[lines.length - 1]
     const before = line.substring(0, columnIx)
     const after = line.substring(columnIx + s.length)
@@ -19,24 +18,25 @@ export function parseCarriageReturn(text: string) {
     lines[lines.length - 1] = `${before}${s}${after}`
   }
 
-  let m
+  let match
+  let pos = 0
 
-  while ((m = crOrLf.exec(text)) !== null) {
-    if (m.index > p) {
-      merge(text.substring(p, m.index))
+  while ((match = crOrLf.exec(text)) !== null) {
+    if (match.index > pos) {
+      overwrite(text.substring(pos, match.index))
     }
 
-    if (m[0] === '\r') {
+    if (match[0] === '\r') {
       columnIx = 0
-    } else if (m[0] === '\n') {
+    } else if (match[0] === '\n') {
       lines.push('')
     }
 
-    p = m.index + 1
+    pos = match.index + 1
   }
 
-  if (p < text.length) {
-    merge(text.substring(p))
+  if (pos < text.length) {
+    overwrite(text.substring(pos))
   }
 
   return lines.join('\n')
