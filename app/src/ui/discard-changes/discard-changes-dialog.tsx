@@ -64,10 +64,10 @@ export class DiscardChanges extends React.Component<
   private getOkButtonLabel() {
     switch (this.props.discardType) {
       case DiscardType.AllFiles:
-        return toPlatformCase('Discard All Changes')
+        return __DARWIN__ ? 'Discard All Changes' : 'Discard all changes'
       case DiscardType.SomeFiles:
       case DiscardType.Selection:
-        return toPlatformCase('Discard Changes')
+        return __DARWIN__ ? 'Discard Changes' : 'Discard changes'
       default:
         return assertNever(
           this.props.discardType,
@@ -79,25 +79,20 @@ export class DiscardChanges extends React.Component<
   private getDialogTitle() {
     switch (this.props.discardType) {
       case DiscardType.AllFiles:
-        return toPlatformCase('Confirm Discard All Changes')
+        return __DARWIN__
+          ? 'Confirm Discard All Changes'
+          : 'Confirm Discard all changes'
       case DiscardType.SomeFiles:
       case DiscardType.Selection:
-        return toPlatformCase('Confirm Discard Changes')
+        return __DARWIN__
+          ? 'Confirm Discard changes'
+          : 'Confirm Discard changes'
       default:
         return assertNever(
           this.props.discardType,
           'Invalid discardType property'
         )
     }
-  }
-
-  private getDialogTitle() {
-    if (this.props.discardingAllChanges) {
-      return __DARWIN__
-        ? 'Confirm Discard All Changes'
-        : 'Confirm Discard all changes'
-    }
-    return __DARWIN__ ? 'Confirm Discard changes' : 'Confirm Discard changes'
   }
 
   public render() {
