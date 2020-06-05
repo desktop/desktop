@@ -6,37 +6,25 @@ export function parseCarriageReturn(text: string) {
   }
 
   const lines = new Array<string>('')
-  const crOrLf = /[\r\n]/gm
+  const crLfOrEnd = /(.*?)([\r\n$])/gm
 
   let columnIx = 0
-
-  function overwrite(s: string) {
-    const line = lines[lines.length - 1]
-    const before = line.substring(0, columnIx)
-    const after = line.substring(columnIx + s.length)
-    columnIx += s.length
-    lines[lines.length - 1] = `${before}${s}${after}`
-  }
-
   let match
-  let pos = 0
 
-  while ((match = crOrLf.exec(text)) !== null) {
-    if (match.index > pos) {
-      overwrite(text.substring(pos, match.index))
+  while ((match = crLfOrEnd.exec(text)) !== null) {
+    if (match[1].length > 0) {
+      const line = lines[lines.length - 1]
+      const before = line.substring(0, columnIx)
+      const after = line.substring(columnIx + match[1].length)
+      columnIx += match[1].length
+      lines[lines.length - 1] = `${before}${match[1]}${after}`
     }
 
-    if (match[0] === '\r') {
+    if (match[2] === '\r') {
       columnIx = 0
-    } else if (match[0] === '\n') {
+    } else if (match[2] === '\n') {
       lines.push('')
     }
-
-    pos = match.index + 1
-  }
-
-  if (pos < text.length) {
-    overwrite(text.substring(pos))
   }
 
   return lines.join('\n')
