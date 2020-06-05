@@ -1,5 +1,6 @@
 export function parseCarriageReturn(text: string) {
-  // Happy path,
+  // Happy path, there are no carriage returns in
+  // the text, making this method a noop.
   if (text.indexOf('\r') < 0) {
     return text
   }
