@@ -36,6 +36,10 @@ interface IChangesProps {
    */
   readonly onChangeImageDiffType: (type: ImageDiffType) => void
 
+  /**
+   * Whether we should show a confirmation dialog when the user
+   * discards changes
+   */
   readonly askForConfirmationOnDiscardChanges: boolean
 }
 
