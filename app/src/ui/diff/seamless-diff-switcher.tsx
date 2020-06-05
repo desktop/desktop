@@ -8,7 +8,12 @@ import {
   WorkingDirectoryFileChange,
   CommittedFileChange,
 } from '../../models/status'
-import { DiffSelection, IDiff, ImageDiffType } from '../../models/diff'
+import {
+  DiffSelection,
+  IDiff,
+  ImageDiffType,
+  ITextDiff,
+} from '../../models/diff'
 import { Loading } from '../lib/loading'
 
 /**
@@ -55,6 +60,15 @@ interface ISeamlessDiffSwitcherProps {
    * to change the diff presentation mode.
    */
   readonly onChangeImageDiffType: (type: ImageDiffType) => void
+
+  /*
+   * Called when the user wants to discard a selection of the diff.
+   * Only applicable when readOnly is false.
+   */
+  readonly onDiscardChanges?: (
+    diff: ITextDiff,
+    diffSelection: DiffSelection
+  ) => void
 }
 
 interface ISeamlessDiffSwitcherState {
@@ -174,6 +188,7 @@ export class SeamlessDiffSwitcher extends React.Component<
       readOnly,
       hideWhitespaceInDiff,
       onIncludeChanged,
+      onDiscardChanges,
       diff,
       file,
       onOpenBinaryFile,
@@ -203,6 +218,7 @@ export class SeamlessDiffSwitcher extends React.Component<
             readOnly={readOnly}
             hideWhitespaceInDiff={hideWhitespaceInDiff}
             onIncludeChanged={isLoadingDiff ? noop : onIncludeChanged}
+            onDiscardChanges={isLoadingDiff ? noop : onDiscardChanges}
             onOpenBinaryFile={isLoadingDiff ? noop : onOpenBinaryFile}
             onChangeImageDiffType={isLoadingDiff ? noop : onChangeImageDiffType}
           />
