@@ -79,4 +79,9 @@ describe('parseCarriageReturn', () => {
     expect(parseCarriageReturn('foo')).toBe('foo')
     expect(parseCarriageReturn('foo\nbar')).toBe('foo\nbar')
   })
+
+  it('handles terminating carriage returns', () => {
+    expect(parseCarriageReturn('foo\r')).toBe('foo')
+    expect(parseCarriageReturn('foo\nbar\r')).toBe('foo\nbar')
+  })
 })
