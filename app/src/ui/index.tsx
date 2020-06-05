@@ -27,7 +27,6 @@ import {
   samlReauthRequired,
   insufficientGitHubRepoPermissions,
   schannelUnableToCheckRevocationForCertificate,
-  gitCloneErrorHandler,
 } from './dispatcher'
 import {
   AppStore,
@@ -284,7 +283,6 @@ const dispatcher = new Dispatcher(
 )
 
 dispatcher.registerErrorHandler(defaultErrorHandler)
-dispatcher.registerErrorHandler(gitCloneErrorHandler)
 dispatcher.registerErrorHandler(upstreamAlreadyExistsHandler)
 dispatcher.registerErrorHandler(externalEditorErrorHandler)
 dispatcher.registerErrorHandler(openShellErrorHandler)
