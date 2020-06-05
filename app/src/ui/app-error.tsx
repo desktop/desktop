@@ -16,6 +16,8 @@ import { Popup, PopupType } from '../models/popup'
 import { CSSTransitionGroup } from 'react-transition-group'
 import { OkCancelButtonGroup } from './dialog/ok-cancel-button-group'
 import { ErrorWithMetadata } from '../lib/error-with-metadata'
+import { RetryActionType, RetryAction } from '../models/retry-actions'
+import { Ref } from './lib/ref'
 
 interface IAppErrorProps {
   /** The list of queued, app-wide, errors  */
@@ -27,6 +29,7 @@ interface IAppErrorProps {
    */
   readonly onClearError: (error: Error) => void
   readonly onShowPopup: (popupType: Popup) => void | undefined
+  readonly onRetryAction: (retryAction: RetryAction) => void
 }
 
 interface IAppErrorState {
@@ -91,6 +94,51 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     }, dialogTransitionLeaveTimeout)
   }
 
+  private renderErrorWithMetaDataFooter(error: ErrorWithMetadata) {
+    const { retryAction } = error.metadata
+    if (retryAction !== undefined) {
+      if (retryAction.type === RetryActionType.Clone) {
+        return this.renderRetryAction(retryAction)
+      }
+    }
+
+    if (isGitError(error.underlyingError)) {
+      return this.renderGitErrorFooter(error.underlyingError)
+    }
+
+    return this.renderDefaultFooter()
+  }
+
+  private renderRetryAction(retryAction: RetryAction) {
+    let retryTitle = 'Retry'
+
+    if (this.isCloneError) {
+      retryTitle = __DARWIN__ ? 'Retry Clone' : 'Retry clone'
+    }
+
+    return (
+      <DialogFooter>
+        <OkCancelButtonGroup
+          okButtonText={retryTitle}
+          onOkButtonClick={this.onRetryAction}
+          onCancelButtonClick={this.onCloseButtonClick}
+        />
+      </DialogFooter>
+    )
+  }
+
+  private onRetryAction = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    this.onDismissed()
+
+    if (this.state.error && isErrorWithMetaData(this.state.error)) {
+      const { retryAction } = this.state.error.metadata
+      if (retryAction !== undefined) {
+        this.props.onRetryAction(retryAction)
+      }
+    }
+  }
+
   private renderGitErrorFooter(error: GitError) {
     const gitErrorType = error.result.gitError
 
@@ -110,8 +158,12 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
         )
       }
       default:
-        return <DefaultDialogFooter onButtonClick={this.onCloseButtonClick} />
+        return this.renderDefaultFooter()
     }
+  }
+
+  private renderDefaultFooter() {
+    return <DefaultDialogFooter onButtonClick={this.onCloseButtonClick} />
   }
 
   private renderErrorMessage(error: Error) {
@@ -132,6 +184,28 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     return <p className={className}>{e.message}</p>
   }
 
+  private get isCloneError() {
+    const e = this.state.error
+    if (e !== null && isErrorWithMetaData(e)) {
+      if (
+        e.metadata.retryAction !== undefined &&
+        e.metadata.retryAction.type === RetryActionType.Clone
+      ) {
+        return true
+      }
+    }
+
+    return false
+  }
+
+  private getTitle() {
+    if (this.isCloneError) {
+      return `Clone failed`
+    }
+
+    return 'Error'
+  }
+
   private renderDialog() {
     const error = this.state.error
 
@@ -144,7 +218,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
         id="app-error"
         type="error"
         key="error"
-        title="Error"
+        title={this.getTitle()}
         dismissable={false}
         onSubmit={this.onDismissed}
         onDismissed={this.onDismissed}
@@ -152,10 +226,27 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       >
         <DialogContent onRef={this.onDialogContentRef}>
           {this.renderErrorMessage(error)}
+          {this.renderContentAfterErrorMessage(error)}
         </DialogContent>
         {this.renderFooter(error)}
       </Dialog>
     )
+  }
+
+  private renderContentAfterErrorMessage(error: Error) {
+    if (isErrorWithMetaData(error)) {
+      const { retryAction } = error.metadata
+
+      if (retryAction && retryAction.type === RetryActionType.Clone) {
+        return (
+          <p>
+            Would you like to retry cloning <Ref>{retryAction.name}</Ref>?
+          </p>
+        )
+      }
+    }
+
+    return undefined
   }
 
   private onDialogContentRef = (ref: HTMLDivElement | null) => {
@@ -163,16 +254,13 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   }
 
   private scrollToBottomOfGitErrorMessage() {
-    if (!this.dialogContent) {
+    if (!this.dialogContent || !this.state.error) {
       return
     }
 
-    const e =
-      this.state.error instanceof ErrorWithMetadata
-        ? this.state.error.underlyingError
-        : this.state.error
+    const e = getUnderlyingError(this.state.error)
 
-    if (e instanceof GitError) {
+    if (isGitError(e)) {
       if (e.message === e.result.stderr || e.message === e.result.stdout) {
         this.dialogContent.scrollTop = this.dialogContent.scrollHeight
       }
@@ -198,9 +286,17 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   }
 
   private renderFooter(error: Error) {
-    const e = error instanceof ErrorWithMetadata ? error.underlyingError : error
+    if (isErrorWithMetaData(error)) {
+      const metaDataFooter = this.renderErrorWithMetaDataFooter(error)
 
-    if (e instanceof GitError) {
+      if (metaDataFooter) {
+        return metaDataFooter
+      }
+    }
+
+    const e = getUnderlyingError(error)
+
+    if (isGitError(e)) {
       return this.renderGitErrorFooter(e)
     }
 
