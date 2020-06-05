@@ -45,6 +45,7 @@ import {
   IndexStatus,
   getIndexChanges,
   checkoutIndex,
+  discardChangesFromSelection,
   checkoutPaths,
   resetPaths,
   revertCommit,
@@ -87,6 +88,7 @@ import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { PullRequest } from '../../models/pull-request'
 import { StatsStore } from '../stats'
 import { getTagsToPush, storeTagsToPush } from './helpers/tags-to-push-storage'
+import { DiffSelection, ITextDiff } from '../../models/diff'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -1506,6 +1508,16 @@ export class GitStore extends BaseStore {
       )
       await checkoutIndex(this.repository, necessaryPathsToCheckout)
     })
+  }
+
+  public async discardChangesFromSelection(
+    filePath: string,
+    diff: ITextDiff,
+    selection: DiffSelection
+  ) {
+    await this.performFailableOperation(() =>
+      discardChangesFromSelection(this.repository, filePath, diff, selection)
+    )
   }
 
   /** Reverts the commit with the given SHA */

@@ -368,8 +368,8 @@ describe('Tokenizer', () => {
     })
 
     it('converts full URL to issue shorthand', () => {
-      const text = `Note: we keep a "black list" of authentication methods for which we do
-not want to enable http.emptyAuth automatically. A white list would be
+      const text = `Note: we keep a "denylist" of authentication methods for which we do
+not want to enable http.emptyAuth automatically. An allowlist would be
 nicer, but less robust, as we want to support linking to several cURL
 versions and the list of authentication methods (as well as their names)
 changed over time.
@@ -380,8 +380,8 @@ This fixes https://github.com/shiftkey/some-repo/issues/1034
 
 Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>`
 
-      const expectedBefore = `Note: we keep a "black list" of authentication methods for which we do
-not want to enable http.emptyAuth automatically. A white list would be
+      const expectedBefore = `Note: we keep a "denylist" of authentication methods for which we do
+not want to enable http.emptyAuth automatically. An allowlist would be
 nicer, but less robust, as we want to support linking to several cURL
 versions and the list of authentication methods (as well as their names)
 changed over time.
@@ -460,8 +460,8 @@ Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>`
     })
 
     it('renders plain link for full URL', () => {
-      const text = `Note: we keep a "black list" of authentication methods for which we do
-not want to enable http.emptyAuth automatically. A white list would be
+      const text = `Note: we keep a "denylist" of authentication methods for which we do
+not want to enable http.emptyAuth automatically. An allowlist would be
 nicer, but less robust, as we want to support linking to several cURL
 versions and the list of authentication methods (as well as their names)
 changed over time.

@@ -59,7 +59,7 @@ import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Commit, ICommitContext, CommitOneLine } from '../../models/commit'
 import { ICommitMessage } from '../../models/commit-message'
-import { DiffSelection, ImageDiffType } from '../../models/diff'
+import { DiffSelection, ImageDiffType, ITextDiff } from '../../models/diff'
 import { FetchType } from '../../models/fetch'
 import { GitHubRepository } from '../../models/github-repository'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
@@ -329,13 +329,6 @@ export class Dispatcher {
    */
   public refreshRepository(repository: Repository): Promise<void> {
     return this.appStore._refreshOrRecoverRepository(repository)
-  }
-
-  /**
-   * Refreshes the list of local tags. This would be used, e.g., when the app gains focus.
-   */
-  public refreshTags(repository: Repository): Promise<void> {
-    return this.appStore._refreshTags(repository)
   }
 
   /** Show the popup. This will close any current popup. */
@@ -715,6 +708,21 @@ export class Dispatcher {
     files: ReadonlyArray<WorkingDirectoryFileChange>
   ): Promise<void> {
     return this.appStore._discardChanges(repository, files)
+  }
+
+  /** Discard the changes from the given diff selection. */
+  public discardChangesFromSelection(
+    repository: Repository,
+    filePath: string,
+    diff: ITextDiff,
+    selection: DiffSelection
+  ): Promise<void> {
+    return this.appStore._discardChangesFromSelection(
+      repository,
+      filePath,
+      diff,
+      selection
+    )
   }
 
   /** Undo the given commit. */
