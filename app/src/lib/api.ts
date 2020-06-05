@@ -534,7 +534,16 @@ export class API {
     IAPIRepository
   > | null> {
     try {
-      return await this.fetchAll<IAPIRepository>('user/repos')
+      const repositories = await this.fetchAll<IAPIRepository>('user/repos')
+      // "But wait, repositories can't have a null owner" you say.
+      // Ordinarily you'd be correct but turns out there's super
+      // rare circumstances where a user has been deleted but the
+      // repository hasn't. Such cases are usually addressed swiftly
+      // but in some cases like GitHub Enterprise Server instances
+      // they can linger for longer than we'd like so we'll make
+      // sure to exclude any such dangling repository, chances are
+      // they won't be cloneable anyway.
+      return repositories.filter(x => x.owner !== null)
     } catch (error) {
       log.warn(`fetchRepositories: ${error}`)
       return null

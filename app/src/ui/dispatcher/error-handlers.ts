@@ -188,7 +188,10 @@ export async function gitAuthenticationErrorHandler(
   return null
 }
 
-/** Handle git clone errors to give chance to retry error. */
+/**
+ * Handle git clone errors to give chance to retry error.
+ * Doesn't handle auth errors.
+ */
 export async function gitCloneErrorHandler(
   error: Error,
   dispatcher: Dispatcher
@@ -204,6 +207,12 @@ export async function gitCloneErrorHandler(
 
   const gitError = asGitError(e.underlyingError)
   if (!gitError) {
+    return error
+  }
+
+  const dugiteError = gitError.result.gitError
+  // don't catch this if this its an auth error
+  if (dugiteError !== null && AuthenticationErrors.has(dugiteError)) {
     return error
   }
 

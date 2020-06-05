@@ -94,7 +94,7 @@ can be obtained in several ways:
 ### Visual Studio 2019
 
 If you have an existing installation of VS2019, run the **Visual Studio
-Installer** and check that you have the **Desktop development with C++**
+Installer** (Tools > Get Tools and Features...) and check that you have the **Desktop development with C++**
 workload included.
 
 <img width="1265" src="https://user-images.githubusercontent.com/7467062/76693187-0fa21d00-662f-11ea-91ba-38326263d4b6.png">
@@ -115,7 +115,7 @@ $ npm config set msbuild_path "C:\\Program Files (x86)\\Microsoft Visual Studio\
 ### Visual Studio 2017
 
 If you have an existing installation of VS2017, run the **Visual Studio
-Installer** and check that you have the **Desktop development with C++**
+Installer** (Tools > Get Tools and Features...) and check that you have the **Desktop development with C++**
 workload included.
 
 <img width="1265" src="https://user-images.githubusercontent.com/359239/48849855-a2091800-ed7d-11e8-950b-93465eba7cd1.png">

@@ -15,7 +15,7 @@ export interface ISegmentedItem {
    * An optional description which explains the consequences of
    * selecting this item.
    */
-  readonly description?: string
+  readonly description?: string | JSX.Element
 }
 
 interface IVerticalSegmentedControlProps {

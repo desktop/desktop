@@ -25,9 +25,11 @@ interface ICommitProps {
   readonly onRevertCommit?: (commit: Commit) => void
   readonly onViewCommitOnGitHub?: (sha: string) => void
   readonly onCreateTag?: (targetCommitSha: string) => void
+  readonly onDeleteTag?: (tagName: string) => void
   readonly gitHubUsers: Map<string, IGitHubUser> | null
   readonly showUnpushedIndicator: boolean
   readonly unpushedIndicatorTitle?: string
+  readonly unpushedTags?: ReadonlyArray<string>
 }
 
 interface ICommitListItemState {
@@ -89,13 +91,28 @@ export class CommitListItem extends React.PureComponent<
             </div>
           </div>
         </div>
-        <div className="commit-indicators">
-          {enableGitTagsDisplay() &&
-            renderCommitListItemTags(this.props.commit.tags)}
-          {this.renderUnpushedIndicator()}
-        </div>
+        {this.renderCommitIndicators()}
       </div>
     )
+  }
+
+  private renderCommitIndicators() {
+    const tagIndicator = enableGitTagsDisplay()
+      ? renderCommitListItemTags(this.props.commit.tags)
+      : null
+
+    const unpushedIndicator = this.renderUnpushedIndicator()
+
+    if (tagIndicator || unpushedIndicator) {
+      return (
+        <div className="commit-indicators">
+          {tagIndicator}
+          {unpushedIndicator}
+        </div>
+      )
+    }
+
+    return null
   }
 
   private renderUnpushedIndicator() {
@@ -160,6 +177,17 @@ export class CommitListItem extends React.PureComponent<
         action: this.onCreateTag,
         enabled: this.props.onCreateTag !== undefined,
       })
+
+      const deleteTagsMenuItem = this.getDeleteTagsMenuItem()
+
+      if (deleteTagsMenuItem !== null) {
+        items.push(
+          {
+            type: 'separator',
+          },
+          deleteTagsMenuItem
+        )
+      }
     }
 
     items.push(
@@ -176,6 +204,42 @@ export class CommitListItem extends React.PureComponent<
     )
 
     showContextualMenu(items)
+  }
+
+  private getDeleteTagsMenuItem(): IMenuItem | null {
+    const { unpushedTags, onDeleteTag, commit } = this.props
+
+    if (
+      onDeleteTag === undefined ||
+      unpushedTags === undefined ||
+      commit.tags.length === 0
+    ) {
+      return null
+    }
+
+    if (commit.tags.length === 1) {
+      const tagName = commit.tags[0]
+
+      return {
+        label: `Delete tag ${tagName}`,
+        action: () => onDeleteTag(tagName),
+        enabled: unpushedTags.includes(tagName),
+      }
+    }
+
+    // Convert tags to a Set to avoid O(n^2)
+    const unpushedTagsSet = new Set(unpushedTags)
+
+    return {
+      label: 'Delete tag…',
+      submenu: commit.tags.map(tagName => {
+        return {
+          label: tagName,
+          action: () => onDeleteTag(tagName),
+          enabled: unpushedTagsSet.has(tagName),
+        }
+      }),
+    }
   }
 }
 

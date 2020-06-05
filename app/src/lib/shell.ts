@@ -10,7 +10,7 @@ type IndexLookup = {
 /**
  * The names of any env vars that we shouldn't copy from the shell environment.
  */
-const BlacklistedNames = new Set(['LOCAL_GIT_DIRECTORY'])
+const ExcludedEnvironmentVars = new Set(['LOCAL_GIT_DIRECTORY'])
 
 /**
  * Inspect whether the current process needs to be patched to get important
@@ -152,7 +152,7 @@ async function getEnvironmentFromShell(
  */
 function mergeEnvironmentVariables(env: IndexLookup) {
   for (const key in env) {
-    if (BlacklistedNames.has(key)) {
+    if (ExcludedEnvironmentVars.has(key)) {
       continue
     }
 

@@ -142,7 +142,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
 
       if (checkoutProgress.value > 0) {
         const friendlyProgress = Math.round(checkoutProgress.value * 100)
-        description = `${description} (${friendlyProgress} %)`
+        description = `${description} (${friendlyProgress}%)`
       }
 
       progressValue = checkoutProgress.value

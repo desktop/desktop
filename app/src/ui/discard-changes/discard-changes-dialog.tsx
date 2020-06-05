@@ -6,7 +6,6 @@ import { PathText } from '../lib/path-text'
 import { Monospaced } from '../lib/monospaced'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { TrashNameLabel } from '../lib/context-menu'
-import { toPlatformCase } from '../../lib/platform-case'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { assertNever } from '../../lib/fatal-error'
 import { Ref } from '../lib/ref'
@@ -90,6 +89,15 @@ export class DiscardChanges extends React.Component<
           'Invalid discardType property'
         )
     }
+  }
+
+  private getDialogTitle() {
+    if (this.props.discardingAllChanges) {
+      return __DARWIN__
+        ? 'Confirm Discard All Changes'
+        : 'Confirm Discard all changes'
+    }
+    return __DARWIN__ ? 'Confirm Discard changes' : 'Confirm Discard changes'
   }
 
   public render() {

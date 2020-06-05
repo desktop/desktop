@@ -1,4 +1,8 @@
-import { Repository, RepositoryWithGitHubRepository } from './repository'
+import {
+  Repository,
+  RepositoryWithGitHubRepository,
+  RepositoryWithForkedGitHubRepository,
+} from './repository'
 import { PullRequest } from './pull-request'
 import { Branch } from './branch'
 import { ReleaseSummary } from './release-notes'
@@ -60,9 +64,11 @@ export enum PopupType {
   CreateFork,
   SChannelNoRevocationCheck,
   CreateTag,
+  DeleteTag,
   LocalChangesOverwritten,
   RebaseConflicts,
   RetryClone,
+  ChooseForkSettings,
 }
 
 export type Popup =
@@ -244,4 +250,13 @@ export type Popup =
       repository: Repository | CloningRepository
       retryAction: RetryAction
       errorMessage: string
+    }
+  | {
+      type: PopupType.DeleteTag
+      repository: Repository
+      tagName: string
+    }
+  | {
+      type: PopupType.ChooseForkSettings
+      repository: RepositoryWithForkedGitHubRepository
     }

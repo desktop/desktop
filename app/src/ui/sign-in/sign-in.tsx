@@ -111,11 +111,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     this.setState({ otpToken })
   }
 
-  private onSignInWithBrowser = (
-    event: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    event.preventDefault()
-
+  private onSignInWithBrowser = () => {
     this.props.dispatcher.requestBrowserAuthentication()
   }
 
@@ -217,8 +213,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
       <DialogContent>
         <Row className="sign-in-with-browser">
           <Button
-            className="button-with-icon"
-            type="submit"
+            className="button-with-icon button-component-primary"
             onClick={this.onSignInWithBrowser}
             disabled={disableSubmit}
           >
