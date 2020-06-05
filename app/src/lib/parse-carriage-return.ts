@@ -8,16 +8,15 @@ export function parseCarriageReturn(text: string) {
   const lines = new Array<string>('')
   const crOrLf = /[\r\n]/gm
 
-  let lineIx = 0
   let columnIx = 0
   let p = 0
 
   function merge(s: string) {
-    const line = lines[lineIx]
+    const line = lines[lines.length - 1]
     const before = line.substring(0, columnIx)
     const after = line.substring(columnIx + s.length)
     columnIx += s.length
-    lines[lineIx] = `${before}${s}${after}`
+    lines[lines.length - 1] = `${before}${s}${after}`
   }
 
   let m
@@ -30,7 +29,7 @@ export function parseCarriageReturn(text: string) {
     if (m[0] === '\r') {
       columnIx = 0
     } else if (m[0] === '\n') {
-      lines[++lineIx] = ''
+      lines.push('')
     }
 
     p = m.index + 1
