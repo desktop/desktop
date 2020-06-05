@@ -98,7 +98,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     const { retryAction } = error.metadata
     if (retryAction !== undefined) {
       if (retryAction.type === RetryActionType.Clone) {
-        return this.renderRetryAction(retryAction)
+        return this.renderRetryCloneFooter(retryAction)
       }
     }
 
@@ -109,7 +109,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     return this.renderDefaultFooter()
   }
 
-  private renderRetryAction(retryAction: RetryAction) {
+  private renderRetryCloneFooter(retryAction: RetryAction) {
     let retryTitle = 'Retry'
 
     if (this.isCloneError) {
