@@ -1,7 +1,12 @@
 import * as React from 'react'
 import { Diff } from '../diff'
 import { ChangedFileDetails } from './changed-file-details'
-import { DiffSelection, IDiff, ImageDiffType } from '../../models/diff'
+import {
+  DiffSelection,
+  IDiff,
+  ImageDiffType,
+  ITextDiff,
+} from '../../models/diff'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
@@ -28,6 +33,18 @@ export class Changes extends React.Component<IChangesProps, {}> {
     )
   }
 
+  private onDiscardChanges = (
+    diff: ITextDiff,
+    diffSelection: DiffSelection
+  ) => {
+    this.props.dispatcher.discardChangesFromSelection(
+      this.props.repository,
+      this.props.file.path,
+      diff,
+      diffSelection
+    )
+  }
+
   public render() {
     const diff = this.props.diff
     const file = this.props.file
@@ -43,6 +60,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
             file={file}
             readOnly={isCommitting}
             onIncludeChanged={this.onDiffLineIncludeChanged}
+            onDiscardChanges={this.onDiscardChanges}
             diff={diff}
             dispatcher={this.props.dispatcher}
             hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
