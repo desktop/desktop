@@ -3,8 +3,6 @@ import * as React from 'react'
 import { assertNever } from '../../lib/fatal-error'
 import { encodePathAsUrl } from '../../lib/path'
 
-import { Dispatcher } from '../dispatcher'
-
 import { Repository } from '../../models/repository'
 import {
   CommittedFileChange,
@@ -56,9 +54,6 @@ interface IDiffProps {
   /** The diff that should be rendered */
   readonly diff: IDiff
 
-  /** propagate errors up to the main application */
-  readonly dispatcher: Dispatcher
-
   /** The type of image diff to display. */
   readonly imageDiffType: ImageDiffType
 
@@ -66,6 +61,18 @@ interface IDiffProps {
   readonly hideWhitespaceInDiff: boolean
 
   /**
+   * Called when the user requests to open a binary file in an the
+   * system-assigned application for said file type.
+   */
+  readonly onOpenBinaryFile: (fullPath: string) => void
+
+  /**
+   * Called when the user is viewing an image diff and requests
+   * to change the diff presentation mode.
+   */
+  readonly onChangeImageDiffType: (type: ImageDiffType) => void
+
+  /*
    * Called when the user wants to discard a selection of the diff.
    * Only applicable when readOnly is false.
    */
@@ -111,15 +118,11 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     }
   }
 
-  private onChangeImageDiffType = (type: ImageDiffType) => {
-    this.props.dispatcher.changeImageDiffType(type)
-  }
-
   private renderImage(imageDiff: IImageDiff) {
     if (imageDiff.current && imageDiff.previous) {
       return (
         <ModifiedImageDiff
-          onChangeDiffType={this.onChangeImageDiffType}
+          onChangeDiffType={this.props.onChangeImageDiffType}
           diffType={this.props.imageDiffType}
           current={imageDiff.current}
           previous={imageDiff.previous}
@@ -226,7 +229,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       <BinaryFile
         path={this.props.file.path}
         repository={this.props.repository}
-        dispatcher={this.props.dispatcher}
+        onOpenBinaryFile={this.props.onOpenBinaryFile}
       />
     )
   }

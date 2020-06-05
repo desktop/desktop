@@ -311,6 +311,23 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   /** Whether a particular range should be highlighted due to hover */
   private hunkHighlightRange: ISelection | null = null
 
+  /**
+   * When CodeMirror swaps documents it will usually lead to the
+   * viewportChange event being emitted but there are several scenarios
+   * where that doesn't happen (where the viewport happens to be the same
+   * after swapping). We set this field to false whenever we get notified
+   * that a document is about to get swapped out (`onSwapDoc`), and we set it
+   * to true on each call to `onViewportChanged` allowing us to check in
+   * the post-swap event (`onAfterSwapDoc`) whether the document swap
+   * triggered a viewport change event or not.
+   *
+   * This is important because we rely on the viewportChange event to
+   * know when to update our gutters and by leveraging this field we
+   * can ensure that we always repaint gutter on each document swap and
+   * that we only do so once per document swap.
+   */
+  private swappedDocumentHasUpdatedViewport = true
+
   private async initDiffSyntaxMode() {
     if (!this.codeMirror) {
       return
@@ -716,6 +733,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   private onSwapDoc = (cm: Editor, oldDoc: Doc) => {
+    this.swappedDocumentHasUpdatedViewport = false
     this.initDiffSyntaxMode()
     this.markIntraLineChanges(cm.getDoc(), this.props.diff.hunks)
   }
@@ -728,11 +746,13 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
    * is concerned, meaning that we don't get a chance to update our gutters.
    *
    * By subscribing to the event that happens immediately after the document
-   * swap has been completed we can check for this relatively rare condition
-   * and explicitly update the viewport (and thereby the gutters).
+   * swap has been completed we can check for this condition and others that
+   * cause the onViewportChange event to not be emitted while swapping documents,
+   * (see `swappedDocumentHasUpdatedViewport`) and explicitly update the viewport
+   * (and thereby the gutters).
    */
   private onAfterSwapDoc = (cm: Editor, oldDoc: Doc, newDoc: Doc) => {
-    if (oldDoc.lineCount() === newDoc.lineCount()) {
+    if (!this.swappedDocumentHasUpdatedViewport) {
       this.updateViewport()
     }
   }
@@ -740,6 +760,8 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   private onViewportChange = (cm: Editor, from: number, to: number) => {
     const doc = cm.getDoc()
     const batchedOps = new Array<Function>()
+
+    this.swappedDocumentHasUpdatedViewport = true
 
     doc.eachLine(from, to, line => {
       const lineNumber = doc.getLineNumber(line)
