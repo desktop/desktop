@@ -2,6 +2,8 @@ import { parseCarriageReturn } from '../../src/lib/parse-carriage-return'
 
 describe('parseCarriageReturn', () => {
   it('parses git clone output correctly', () => {
+    // The actual, raw, output of a `git clone` call which fails due to a
+    // duplicate ref clash (refspec tomfoolery)
     const cloneOutput =
       "Cloning into '/Users/markus/Documents/GitHub/delete-branch-test'...\n" +
       'remote: Enumerating objects: 8, done.        \n' +
