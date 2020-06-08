@@ -94,18 +94,6 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     }, dialogTransitionLeaveTimeout)
   }
 
-  private renderErrorWithMetaDataFooter(error: ErrorWithMetadata) {
-    if (isCloneError(error)) {
-      return this.renderRetryCloneFooter()
-    }
-
-    if (isGitError(error.underlyingError)) {
-      return this.renderGitErrorFooter(error.underlyingError)
-    }
-
-    return this.renderDefaultFooter()
-  }
-
   private renderRetryCloneFooter() {
     return (
       <DialogFooter>
@@ -130,27 +118,17 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     }
   }
 
-  private renderGitErrorFooter(error: GitError) {
-    const gitErrorType = error.result.gitError
-
-    switch (gitErrorType) {
-      case GitErrorType.HTTPSAuthenticationFailed: {
-        return (
-          <DialogFooter>
-            <OkCancelButtonGroup
-              okButtonText="Close"
-              onOkButtonClick={this.onCloseButtonClick}
-              cancelButtonText={
-                __DARWIN__ ? 'Open Preferences' : 'Open options'
-              }
-              onCancelButtonClick={this.showPreferencesDialog}
-            />
-          </DialogFooter>
-        )
-      }
-      default:
-        return this.renderDefaultFooter()
-    }
+  private renderOpenPreferencesFooter() {
+    return (
+      <DialogFooter>
+        <OkCancelButtonGroup
+          okButtonText="Close"
+          onOkButtonClick={this.onCloseButtonClick}
+          cancelButtonText={__DARWIN__ ? 'Open Preferences' : 'Open options'}
+          onCancelButtonClick={this.showPreferencesDialog}
+        />
+      </DialogFooter>
+    )
   }
 
   private renderDefaultFooter() {
@@ -265,21 +243,20 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   }
 
   private renderFooter(error: Error) {
-    if (isErrorWithMetaData(error)) {
-      const metaDataFooter = this.renderErrorWithMetaDataFooter(error)
+    if (isCloneError(error)) {
+      return this.renderRetryCloneFooter()
+    }
 
-      if (metaDataFooter) {
-        return metaDataFooter
+    const underlyingError = getUnderlyingError(error)
+
+    if (isGitError(underlyingError)) {
+      const { gitError } = underlyingError.result
+      if (gitError === GitErrorType.HTTPSAuthenticationFailed) {
+        return this.renderOpenPreferencesFooter()
       }
     }
 
-    const e = getUnderlyingError(error)
-
-    if (isGitError(e)) {
-      return this.renderGitErrorFooter(e)
-    }
-
-    return <DefaultDialogFooter onButtonClick={this.onCloseButtonClick} />
+    return this.renderDefaultFooter()
   }
 
   public render() {
