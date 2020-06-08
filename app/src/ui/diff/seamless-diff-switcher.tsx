@@ -49,6 +49,9 @@ interface ISeamlessDiffSwitcherProps {
   /** Hiding whitespace in diff. */
   readonly hideWhitespaceInDiff: boolean
 
+  /** Whether we should show a confirmation dialog when the user discards changes */
+  readonly askForConfirmationOnDiscardChanges?: boolean
+
   /**
    * Called when the user requests to open a binary file in an the
    * system-assigned application for said file type.
@@ -217,6 +220,9 @@ export class SeamlessDiffSwitcher extends React.Component<
             diff={diff}
             readOnly={readOnly}
             hideWhitespaceInDiff={hideWhitespaceInDiff}
+            askForConfirmationOnDiscardChanges={
+              this.props.askForConfirmationOnDiscardChanges
+            }
             onIncludeChanged={isLoadingDiff ? noop : onIncludeChanged}
             onDiscardChanges={isLoadingDiff ? noop : onDiscardChanges}
             onOpenBinaryFile={isLoadingDiff ? noop : onOpenBinaryFile}

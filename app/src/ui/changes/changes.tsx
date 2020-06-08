@@ -10,6 +10,7 @@ import { WorkingDirectoryFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
+import { PopupType } from '../../models/popup'
 
 interface IChangesProps {
   readonly repository: Repository
@@ -33,6 +34,12 @@ interface IChangesProps {
    * to change the diff presentation mode.
    */
   readonly onChangeImageDiffType: (type: ImageDiffType) => void
+
+  /**
+   * Whether we should show a confirmation dialog when the user
+   * discards changes
+   */
+  readonly askForConfirmationOnDiscardChanges: boolean
 }
 
 export class Changes extends React.Component<IChangesProps, {}> {
@@ -49,12 +56,22 @@ export class Changes extends React.Component<IChangesProps, {}> {
     diff: ITextDiff,
     diffSelection: DiffSelection
   ) => {
-    this.props.dispatcher.discardChangesFromSelection(
-      this.props.repository,
-      this.props.file.path,
-      diff,
-      diffSelection
-    )
+    if (this.props.askForConfirmationOnDiscardChanges) {
+      this.props.dispatcher.showPopup({
+        type: PopupType.ConfirmDiscardSelection,
+        repository: this.props.repository,
+        file: this.props.file,
+        diff,
+        selection: diffSelection,
+      })
+    } else {
+      this.props.dispatcher.discardChangesFromSelection(
+        this.props.repository,
+        this.props.file.path,
+        diff,
+        diffSelection
+      )
+    }
   }
 
   public render() {
@@ -73,6 +90,9 @@ export class Changes extends React.Component<IChangesProps, {}> {
           onDiscardChanges={this.onDiscardChanges}
           diff={diff}
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+          askForConfirmationOnDiscardChanges={
+            this.props.askForConfirmationOnDiscardChanges
+          }
           onOpenBinaryFile={this.props.onOpenBinaryFile}
           onChangeImageDiffType={this.props.onChangeImageDiffType}
         />

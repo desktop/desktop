@@ -154,6 +154,11 @@ interface ITextDiffProps {
     diff: ITextDiff,
     diffSelection: DiffSelection
   ) => void
+  /**
+   * Whether we'll show a confirmation dialog when the user
+   * discards changes.
+   */
+  readonly askForConfirmationOnDiscardChanges?: boolean
 }
 
 const diffGutterName = 'diff-gutter'
@@ -626,6 +631,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   private getDiscardLabel(rangeType: DiffRangeType, numLines: number): string {
+    const suffix = this.props.askForConfirmationOnDiscardChanges ? '…' : ''
     let type = ''
 
     if (rangeType === DiffRangeType.Additions) {
@@ -640,8 +646,8 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
     const plural = numLines > 1 ? 's' : ''
     return __DARWIN__
-      ? `Discard ${type} Line${plural}`
-      : `Discard ${type} line${plural}`
+      ? `Discard ${type} Line${plural}${suffix}`
+      : `Discard ${type} line${plural}${suffix}`
   }
 
   private onCopy = (editor: Editor, event: Event) => {

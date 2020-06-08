@@ -15,6 +15,7 @@ import { IStashEntry } from './stash-entry'
 import { Account } from '../models/account'
 import { Progress } from './progress'
 import { CloningRepository } from './cloning-repository'
+import { ITextDiff, DiffSelection } from './diff'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -68,6 +69,7 @@ export enum PopupType {
   RebaseConflicts,
   RetryClone,
   ChooseForkSettings,
+  ConfirmDiscardSelection,
 }
 
 export type Popup =
@@ -84,6 +86,13 @@ export type Popup =
       files: ReadonlyArray<WorkingDirectoryFileChange>
       showDiscardChangesSetting?: boolean
       discardingAllChanges?: boolean
+    }
+  | {
+      type: PopupType.ConfirmDiscardSelection
+      repository: Repository
+      file: WorkingDirectoryFileChange
+      diff: ITextDiff
+      selection: DiffSelection
     }
   | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
   | {

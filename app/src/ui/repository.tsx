@@ -422,6 +422,9 @@ export class RepositoryView extends React.Component<
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
           onOpenBinaryFile={this.onOpenBinaryFile}
           onChangeImageDiffType={this.onChangeImageDiffType}
+          askForConfirmationOnDiscardChanges={
+            this.props.askForConfirmationOnDiscardChanges
+          }
         />
       )
     }
