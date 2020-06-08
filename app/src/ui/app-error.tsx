@@ -10,7 +10,7 @@ import {
   dialogTransitionEnterTimeout,
   dialogTransitionLeaveTimeout,
 } from './app'
-import { GitError } from '../lib/git/core'
+import { GitError, isAuthFailureError } from '../lib/git/core'
 import { GitError as GitErrorType } from 'dugite'
 import { Popup, PopupType } from '../models/popup'
 import { CSSTransitionGroup } from 'react-transition-group'
@@ -251,7 +251,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
 
     if (isGitError(underlyingError)) {
       const { gitError } = underlyingError.result
-      if (gitError === GitErrorType.HTTPSAuthenticationFailed) {
+      if (gitError !== null && isAuthFailureError(gitError)) {
         return this.renderOpenPreferencesFooter()
       }
     }
