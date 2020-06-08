@@ -4,7 +4,7 @@ import { ForkContributionTarget } from '../../models/workflow-preferences'
 import { RepositoryWithForkedGitHubRepository } from '../../models/repository'
 import { ForkSettingsDescription } from './fork-contribution-target-description'
 
-interface IGitIgnoreProps {
+interface IForkSettingsProps {
   readonly forkContributionTarget: ForkContributionTarget
   readonly repository: RepositoryWithForkedGitHubRepository
   readonly onForkContributionTargetChanged: (
@@ -18,7 +18,7 @@ enum RadioButtonId {
 }
 
 /** A view for creating or modifying the repository's gitignore file */
-export class ForkSettings extends React.Component<IGitIgnoreProps, {}> {
+export class ForkSettings extends React.Component<IForkSettingsProps, {}> {
   public render() {
     return (
       <DialogContent>
