@@ -95,11 +95,8 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   }
 
   private renderErrorWithMetaDataFooter(error: ErrorWithMetadata) {
-    const { retryAction } = error.metadata
-    if (retryAction !== undefined) {
-      if (retryAction.type === RetryActionType.Clone) {
-        return this.renderRetryCloneFooter(retryAction)
-      }
+    if (isCloneError(error)) {
+      return this.renderRetryCloneFooter()
     }
 
     if (isGitError(error.underlyingError)) {
@@ -178,22 +175,8 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     return <p className={className}>{e.message}</p>
   }
 
-  private get isCloneError() {
-    const e = this.state.error
-    if (e !== null && isErrorWithMetaData(e)) {
-      if (
-        e.metadata.retryAction !== undefined &&
-        e.metadata.retryAction.type === RetryActionType.Clone
-      ) {
-        return true
-      }
-    }
-
-    return false
-  }
-
-  private getTitle() {
-    if (this.isCloneError) {
+  private getTitle(error: Error) {
+    if (isErrorWithMetaData(error) && isCloneError(error)) {
       return `Clone failed`
     }
 
@@ -323,4 +306,9 @@ function isErrorWithMetaData(error: Error): error is ErrorWithMetadata {
 
 function isGitError(error: Error): error is GitError {
   return error instanceof GitError
+}
+
+function isCloneError(error: ErrorWithMetadata) {
+  const { retryAction } = error.metadata
+  return retryAction !== undefined && retryAction.type === RetryActionType.Clone
 }
