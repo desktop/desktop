@@ -93,18 +93,6 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     }, dialogTransitionLeaveTimeout)
   }
 
-  private renderRetryCloneFooter() {
-    return (
-      <DialogFooter>
-        <OkCancelButtonGroup
-          okButtonText={__DARWIN__ ? 'Retry Clone' : 'Retry clone'}
-          onOkButtonClick={this.onRetryAction}
-          onCancelButtonClick={this.onCloseButtonClick}
-        />
-      </DialogFooter>
-    )
-  }
-
   private onRetryAction = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
     this.onDismissed()
@@ -117,23 +105,6 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
         this.props.onRetryAction(retryAction)
       }
     }
-  }
-
-  private renderOpenPreferencesFooter() {
-    return (
-      <DialogFooter>
-        <OkCancelButtonGroup
-          okButtonText="Close"
-          onOkButtonClick={this.onCloseButtonClick}
-          cancelButtonText={__DARWIN__ ? 'Open Preferences' : 'Open options'}
-          onCancelButtonClick={this.showPreferencesDialog}
-        />
-      </DialogFooter>
-    )
-  }
-
-  private renderDefaultFooter() {
-    return <DefaultDialogFooter onButtonClick={this.onCloseButtonClick} />
   }
 
   private renderErrorMessage(error: Error) {
@@ -212,7 +183,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   }
 
   private scrollToBottomOfGitErrorMessage() {
-    if (!this.dialogContent || !this.state.error) {
+    if (this.dialogContent === null || this.state.error === null) {
       return
     }
 
@@ -258,6 +229,35 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     }
 
     return this.renderDefaultFooter()
+  }
+
+  private renderRetryCloneFooter() {
+    return (
+      <DialogFooter>
+        <OkCancelButtonGroup
+          okButtonText={__DARWIN__ ? 'Retry Clone' : 'Retry clone'}
+          onOkButtonClick={this.onRetryAction}
+          onCancelButtonClick={this.onCloseButtonClick}
+        />
+      </DialogFooter>
+    )
+  }
+
+  private renderOpenPreferencesFooter() {
+    return (
+      <DialogFooter>
+        <OkCancelButtonGroup
+          okButtonText="Close"
+          onOkButtonClick={this.onCloseButtonClick}
+          cancelButtonText={__DARWIN__ ? 'Open Preferences' : 'Open options'}
+          onCancelButtonClick={this.showPreferencesDialog}
+        />
+      </DialogFooter>
+    )
+  }
+
+  private renderDefaultFooter() {
+    return <DefaultDialogFooter onButtonClick={this.onCloseButtonClick} />
   }
 
   public render() {
