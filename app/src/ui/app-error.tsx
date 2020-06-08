@@ -154,7 +154,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
 
   private getTitle(error: Error) {
     if (isErrorWithMetaData(error) && isCloneError(error)) {
-      return `Clone failed`
+      return 'Clone failed'
     }
 
     return 'Error'
