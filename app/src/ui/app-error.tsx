@@ -71,7 +71,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   private onDismissed = () => {
     const currentError = this.state.error
 
-    if (currentError) {
+    if (currentError !== null) {
       this.setState({ error: null, disabled: true })
 
       // Give some time for the dialog to nicely transition
