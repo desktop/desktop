@@ -60,7 +60,7 @@ export class DiscardSelection extends React.Component<
   }
 
   private getOkButtonLabel() {
-    return __DARWIN__ ? 'Discard changes' : 'Discard changes'
+    return __DARWIN__ ? 'Discard Changes' : 'Discard changes'
   }
 
   public render() {
@@ -70,7 +70,7 @@ export class DiscardSelection extends React.Component<
       <Dialog
         id="discard-changes"
         title={
-          __DARWIN__ ? 'Confirm Discard changes' : 'Confirm Discard changes'
+          __DARWIN__ ? 'Confirm Discard changes' : 'Confirm discard changes'
         }
         onDismissed={this.props.onDismissed}
         onSubmit={this.discard}
