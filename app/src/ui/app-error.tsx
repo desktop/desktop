@@ -308,7 +308,10 @@ function isGitError(error: Error): error is GitError {
   return error instanceof GitError
 }
 
-function isCloneError(error: ErrorWithMetadata) {
+function isCloneError(error: Error) {
+  if (!isErrorWithMetaData(error)) {
+    return false
+  }
   const { retryAction } = error.metadata
   return retryAction !== undefined && retryAction.type === RetryActionType.Clone
 }
