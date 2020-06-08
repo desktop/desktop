@@ -1320,7 +1320,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDeleted={this.onBranchDeleted}
           />
         )
-      case PopupType.ConfirmDiscardChanges: {
+      case PopupType.ConfirmDiscardChanges:
         const showSetting =
           popup.showDiscardChangesSetting === undefined
             ? true
@@ -1345,32 +1345,18 @@ export class App extends React.Component<IAppProps, IAppState> {
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
           />
         )
-      }
-      case PopupType.ConfirmDiscardSelection: {
-        const showSetting =
-          popup.showDiscardChangesSetting === undefined
-            ? true
-            : popup.showDiscardChangesSetting
-
+      case PopupType.ConfirmDiscardSelection:
         return (
           <DiscardSelection
             key="discard-selection"
             repository={popup.repository}
             dispatcher={this.props.dispatcher}
             file={popup.file}
-            confirmDiscardSelection={
-              this.state.askForConfirmationOnDiscardChanges
-            }
             diff={popup.diff}
             selection={popup.selection}
-            showDiscardSelectionSetting={showSetting}
             onDismissed={this.onPopupDismissed}
-            onConfirmDiscardSelectionChanged={
-              this.onConfirmDiscardChangesChanged
-            }
           />
         )
-      }
       case PopupType.Preferences:
         return (
           <Preferences

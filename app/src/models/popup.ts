@@ -90,7 +90,6 @@ export type Popup =
   | {
       type: PopupType.ConfirmDiscardSelection
       repository: Repository
-      showDiscardChangesSetting?: boolean
       file: WorkingDirectoryFileChange
       diff: ITextDiff
       selection: DiffSelection

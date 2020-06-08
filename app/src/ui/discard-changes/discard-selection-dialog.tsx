@@ -13,13 +13,23 @@ import { ITextDiff, DiffSelection } from '../../models/diff'
 interface IDiscardSelectionProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
+  /**
+   * The file where the selection of changes to discard should be applied.
+   */
   readonly file: WorkingDirectoryFileChange
+  /**
+   * The current diff with the local changes for that file.
+   */
   readonly diff: ITextDiff
+  /**
+   * The selection (based on the passed diff) of changes to discard.
+   */
   readonly selection: DiffSelection
-  readonly confirmDiscardSelection: boolean
-  readonly showDiscardSelectionSetting: boolean
+  /**
+   * Function called when the user either dismisses the dialog or
+   * the discard operation finishes.
+   */
   readonly onDismissed: () => void
-  readonly onConfirmDiscardSelectionChanged: (optOut: boolean) => void
 }
 
 interface IDiscardSelectionState {
@@ -28,11 +38,14 @@ interface IDiscardSelectionState {
    * changes. This is used to display a loading state
    */
   readonly isDiscardingSelection: boolean
-
+  /**
+   * Whether or not the "do not show this message again" checkbox
+   * is checked.
+   */
   readonly confirmDiscardSelection: boolean
 }
 
-/** A component to confirm and then discard changes. */
+/** A component to confirm and then discard changes from a selection. */
 export class DiscardSelection extends React.Component<
   IDiscardSelectionProps,
   IDiscardSelectionState
@@ -42,7 +55,7 @@ export class DiscardSelection extends React.Component<
 
     this.state = {
       isDiscardingSelection: false,
-      confirmDiscardSelection: this.props.confirmDiscardSelection,
+      confirmDiscardSelection: false,
     }
   }
 
@@ -74,7 +87,15 @@ export class DiscardSelection extends React.Component<
             </Monospaced>
           </p>
 
-          {this.renderConfirmDiscardSelection()}
+          <Checkbox
+            label="Do not show this message again"
+            value={
+              this.state.confirmDiscardSelection
+                ? CheckboxValue.Off
+                : CheckboxValue.On
+            }
+            onChange={this.onConfirmDiscardSelectionChanged}
+          />
         </DialogContent>
 
         <DialogFooter>
@@ -87,27 +108,6 @@ export class DiscardSelection extends React.Component<
     )
   }
 
-  private renderConfirmDiscardSelection() {
-    if (this.props.showDiscardSelectionSetting) {
-      return (
-        <Checkbox
-          label="Do not show this message again"
-          value={
-            this.state.confirmDiscardSelection
-              ? CheckboxValue.Off
-              : CheckboxValue.On
-          }
-          onChange={this.onConfirmDiscardSelectionChanged}
-        />
-      )
-    } else {
-      // since we ignore the users option to not show
-      // confirmation, we don't want to show a checkbox
-      // that will have no effect
-      return null
-    }
-  }
-
   private discard = async () => {
     this.setState({ isDiscardingSelection: true })
 
@@ -117,8 +117,7 @@ export class DiscardSelection extends React.Component<
       this.props.diff,
       this.props.selection
     )
-
-    this.props.onConfirmDiscardSelectionChanged(
+    this.props.dispatcher.setConfirmDiscardChangesSetting(
       this.state.confirmDiscardSelection
     )
     this.props.onDismissed()
