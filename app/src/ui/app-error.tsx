@@ -109,17 +109,11 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     return this.renderDefaultFooter()
   }
 
-  private renderRetryCloneFooter(retryAction: RetryAction) {
-    let retryTitle = 'Retry'
-
-    if (this.isCloneError) {
-      retryTitle = __DARWIN__ ? 'Retry Clone' : 'Retry clone'
-    }
-
+  private renderRetryCloneFooter() {
     return (
       <DialogFooter>
         <OkCancelButtonGroup
-          okButtonText={retryTitle}
+          okButtonText={__DARWIN__ ? 'Retry Clone' : 'Retry clone'}
           onOkButtonClick={this.onRetryAction}
           onCancelButtonClick={this.onCloseButtonClick}
         />
