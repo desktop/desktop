@@ -57,7 +57,12 @@ export class Changes extends React.Component<IChangesProps, {}> {
     diffSelection: DiffSelection
   ) => {
     if (!this.props.askForConfirmationOnDiscardChanges) {
-      this.discardChanges(diff, diffSelection)
+      this.props.dispatcher.discardChangesFromSelection(
+        this.props.repository,
+        this.props.file.path,
+        diff,
+        diffSelection
+      )
     } else {
       this.props.dispatcher.showPopup({
         type: PopupType.ConfirmDiscardSelection,
@@ -67,15 +72,6 @@ export class Changes extends React.Component<IChangesProps, {}> {
         selection: diffSelection,
       })
     }
-  }
-
-  private discardChanges(diff: ITextDiff, diffSelection: DiffSelection) {
-    return this.props.dispatcher.discardChangesFromSelection(
-      this.props.repository,
-      this.props.file.path,
-      diff,
-      diffSelection
-    )
   }
 
   public render() {
