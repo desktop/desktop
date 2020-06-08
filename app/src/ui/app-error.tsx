@@ -109,8 +109,10 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     event.preventDefault()
     this.onDismissed()
 
-    if (this.state.error && isErrorWithMetaData(this.state.error)) {
-      const { retryAction } = this.state.error.metadata
+    const { error } = this.state
+
+    if (error !== null && isErrorWithMetaData(error)) {
+      const { retryAction } = error.metadata
       if (retryAction !== undefined) {
         this.props.onRetryAction(retryAction)
       }
