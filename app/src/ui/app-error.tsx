@@ -11,7 +11,6 @@ import {
   dialogTransitionLeaveTimeout,
 } from './app'
 import { GitError, isAuthFailureError } from '../lib/git/core'
-import { GitError as GitErrorType } from 'dugite'
 import { Popup, PopupType } from '../models/popup'
 import { CSSTransitionGroup } from 'react-transition-group'
 import { OkCancelButtonGroup } from './dialog/ok-cancel-button-group'
