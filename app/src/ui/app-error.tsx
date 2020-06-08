@@ -234,16 +234,18 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   }
 
   private renderContentAfterErrorMessage(error: Error) {
-    if (isErrorWithMetaData(error)) {
-      const { retryAction } = error.metadata
+    if (!isErrorWithMetaData(error)) {
+      return undefined
+    }
 
-      if (retryAction && retryAction.type === RetryActionType.Clone) {
-        return (
-          <p>
-            Would you like to retry cloning <Ref>{retryAction.name}</Ref>?
-          </p>
-        )
-      }
+    const { retryAction } = error.metadata
+
+    if (retryAction && retryAction.type === RetryActionType.Clone) {
+      return (
+        <p>
+          Would you like to retry cloning <Ref>{retryAction.name}</Ref>?
+        </p>
+      )
     }
 
     return undefined
