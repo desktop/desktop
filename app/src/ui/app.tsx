@@ -123,7 +123,7 @@ import { CreateTag } from './create-tag'
 import { RetryCloneDialog } from './clone-repository/retry-clone-dialog'
 import { DeleteTag } from './delete-tag'
 import { ChooseForkSettings } from './choose-fork-settings'
-import { DiscardType } from './discard-changes/discard-changes-dialog'
+import { DiscardSelection } from './discard-changes/discard-selection-dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -672,14 +672,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     this.props.dispatcher.showPopup({
       type: PopupType.ConfirmDiscardChanges,
+      repository: state.repository,
       files: workingDirectory.files,
       showDiscardChangesSetting: false,
-      discardType: DiscardType.AllFiles,
-      onSubmit: () =>
-        this.props.dispatcher.discardChanges(
-          state.repository,
-          workingDirectory.files
-        ),
+      discardingAllChanges: true,
     })
   }
 
@@ -1324,30 +1320,57 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDeleted={this.onBranchDeleted}
           />
         )
-      case PopupType.ConfirmDiscardChanges:
+      case PopupType.ConfirmDiscardChanges: {
         const showSetting =
           popup.showDiscardChangesSetting === undefined
             ? true
             : popup.showDiscardChangesSetting
-        const discardType =
-          popup.discardType === undefined
-            ? DiscardType.SomeFiles
-            : popup.discardType
+        const discardingAllChanges =
+          popup.discardingAllChanges === undefined
+            ? false
+            : popup.discardingAllChanges
 
         return (
           <DiscardChanges
             key="discard-changes"
+            repository={popup.repository}
+            dispatcher={this.props.dispatcher}
             files={popup.files}
             confirmDiscardChanges={
               this.state.askForConfirmationOnDiscardChanges
             }
             showDiscardChangesSetting={showSetting}
-            discardType={discardType}
+            discardingAllChanges={discardingAllChanges}
             onDismissed={this.onPopupDismissed}
-            onSubmit={popup.onSubmit}
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
           />
         )
+      }
+      case PopupType.ConfirmDiscardSelection: {
+        const showSetting =
+          popup.showDiscardChangesSetting === undefined
+            ? true
+            : popup.showDiscardChangesSetting
+
+        return (
+          <DiscardSelection
+            key="discard-selection"
+            repository={popup.repository}
+            dispatcher={this.props.dispatcher}
+            file={popup.file}
+            confirmDiscardSelection={
+              this.state.askForConfirmationOnDiscardChanges
+            }
+            diff={popup.diff}
+            selection={popup.selection}
+            showDiscardSelectionSetting={showSetting}
+            onDismissed={this.onPopupDismissed}
+            onConfirmDiscardSelectionChanged={
+              this.onConfirmDiscardChangesChanged
+            }
+          />
+        )
+      }
       case PopupType.Preferences:
         return (
           <Preferences

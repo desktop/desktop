@@ -11,7 +11,6 @@ import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
 import { PopupType } from '../../models/popup'
-import { DiscardType } from '../discard-changes/discard-changes-dialog'
 
 interface IChangesProps {
   readonly repository: Repository
@@ -61,10 +60,11 @@ export class Changes extends React.Component<IChangesProps, {}> {
       this.discardChanges(diff, diffSelection)
     } else {
       this.props.dispatcher.showPopup({
-        type: PopupType.ConfirmDiscardChanges,
-        discardType: DiscardType.Selection,
-        files: [this.props.file],
-        onSubmit: () => this.discardChanges(diff, diffSelection),
+        type: PopupType.ConfirmDiscardSelection,
+        repository: this.props.repository,
+        file: this.props.file,
+        diff,
+        selection: diffSelection,
       })
     }
   }

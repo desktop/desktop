@@ -50,7 +50,7 @@ interface ISeamlessDiffSwitcherProps {
   readonly hideWhitespaceInDiff: boolean
 
   /** Whether we should show a confirmation dialog when the user discards changes */
-  askForConfirmationOnDiscardChanges?: boolean
+  readonly askForConfirmationOnDiscardChanges?: boolean
 
   /**
    * Called when the user requests to open a binary file in an the
