@@ -60,16 +60,16 @@ export class DiscardChanges extends React.Component<
     if (this.props.discardingAllChanges) {
       return __DARWIN__ ? 'Discard All Changes' : 'Discard all changes'
     }
-    return __DARWIN__ ? 'Discard changes' : 'Discard changes'
+    return __DARWIN__ ? 'Discard Changes' : 'Discard changes'
   }
 
   private getDialogTitle() {
     if (this.props.discardingAllChanges) {
       return __DARWIN__
         ? 'Confirm Discard All Changes'
-        : 'Confirm Discard all changes'
+        : 'Confirm discard all changes'
     }
-    return __DARWIN__ ? 'Confirm Discard changes' : 'Confirm Discard changes'
+    return __DARWIN__ ? 'Confirm Discard Changes' : 'Confirm discard changes'
   }
 
   public render() {

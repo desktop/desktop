@@ -7,6 +7,7 @@ import {
   DiffLineType,
   DiffSelection,
   DiffLine,
+  ITextDiff,
 } from '../../models/diff'
 import {
   WorkingDirectoryFileChange,
@@ -22,6 +23,7 @@ import {
   diffLineForIndex,
   findInteractiveDiffRange,
   lineNumberForDiffLine,
+  DiffRangeType,
 } from './diff-explorer'
 
 import {
@@ -37,6 +39,8 @@ import { assertNever } from '../../lib/fatal-error'
 import { clamp } from '../../lib/clamp'
 import { uuid } from '../../lib/uuid'
 import { showContextualMenu } from '../main-process-proxy'
+import { IMenuItem } from '../../lib/menu-item'
+import { enableDiscardLines } from '../../lib/feature-flag'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -64,7 +68,8 @@ function highlightParametersEqual(
 ) {
   return (
     newProps === prevProps ||
-    (newProps.file.id === prevProps.file.id && newProps.text === prevProps.text)
+    (newProps.file.id === prevProps.file.id &&
+      newProps.diff.text === prevProps.diff.text)
   )
 }
 
@@ -130,11 +135,30 @@ function canSelect(file: ChangedFile): file is WorkingDirectoryFileChange {
 
 interface ITextDiffProps {
   readonly repository: Repository
+  /** The file whose diff should be displayed. */
   readonly file: ChangedFile
+  /** The diff that should be rendered */
+  readonly diff: ITextDiff
+  /** If true, no selections or discards can be done against this diff. */
   readonly readOnly: boolean
+  /**
+   * Called when the includedness of lines or a range of lines has changed.
+   * Only applicable when readOnly is false.
+   */
   readonly onIncludeChanged?: (diffSelection: DiffSelection) => void
-  readonly text: string
-  readonly hunks: ReadonlyArray<DiffHunk>
+  /**
+   * Called when the user wants to discard a selection of the diff.
+   * Only applicable when readOnly is false.
+   */
+  readonly onDiscardChanges?: (
+    diff: ITextDiff,
+    diffSelection: DiffSelection
+  ) => void
+  /**
+   * Whether we'll show a confirmation dialog when the user
+   * discards changes.
+   */
+  readonly askForConfirmationOnDiscardChanges?: boolean
 }
 
 const diffGutterName = 'diff-gutter'
@@ -292,19 +316,36 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   /** Whether a particular range should be highlighted due to hover */
   private hunkHighlightRange: ISelection | null = null
 
+  /**
+   * When CodeMirror swaps documents it will usually lead to the
+   * viewportChange event being emitted but there are several scenarios
+   * where that doesn't happen (where the viewport happens to be the same
+   * after swapping). We set this field to false whenever we get notified
+   * that a document is about to get swapped out (`onSwapDoc`), and we set it
+   * to true on each call to `onViewportChanged` allowing us to check in
+   * the post-swap event (`onAfterSwapDoc`) whether the document swap
+   * triggered a viewport change event or not.
+   *
+   * This is important because we rely on the viewportChange event to
+   * know when to update our gutters and by leveraging this field we
+   * can ensure that we always repaint gutter on each document swap and
+   * that we only do so once per document swap.
+   */
+  private swappedDocumentHasUpdatedViewport = true
+
   private async initDiffSyntaxMode() {
     if (!this.codeMirror) {
       return
     }
 
-    const { file, hunks, repository } = this.props
+    const { file, diff, repository } = this.props
 
     // Store the current props to that we can see if anything
     // changes from underneath us as we're making asynchronous
     // operations that makes our data stale or useless.
     const propsSnapshot = this.props
 
-    const lineFilters = getLineFilters(hunks)
+    const lineFilters = getLineFilters(diff.hunks)
     const tsOpt = this.codeMirror.getOption('tabSize')
     const tabSize = typeof tsOpt === 'number' ? tsOpt : 4
 
@@ -322,7 +363,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
     const spec: IDiffSyntaxModeSpec = {
       name: DiffSyntaxMode.ModeName,
-      hunks: this.props.hunks,
+      hunks: this.props.diff.hunks,
       oldTokens: tokens.oldTokens,
       newTokens: tokens.newTokens,
     }
@@ -400,6 +441,12 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
   private onDocumentMouseUp = (ev: MouseEvent) => {
     ev.preventDefault()
+
+    // We only care about the primary button here, secondary
+    // button clicks are handled by `onContextMenu`
+    if (ev.button !== 0) {
+      return
+    }
 
     if (this.selection === null || this.codeMirror === null) {
       return this.cancelSelection()
@@ -480,7 +527,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       }
     }
 
-    const items = [
+    const items: IMenuItem[] = [
       {
         label: 'Copy',
         action,
@@ -488,7 +535,119 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       },
     ]
 
+    const discardMenuItems = this.buildDiscardMenuItems(instance, event)
+    if (discardMenuItems !== null) {
+      items.push({ type: 'separator' }, ...discardMenuItems)
+    }
+
     showContextualMenu(items)
+  }
+
+  private buildDiscardMenuItems(
+    editor: CodeMirror.Editor,
+    event: Event
+  ): ReadonlyArray<IMenuItem> | null {
+    if (!enableDiscardLines()) {
+      return null
+    }
+
+    const file = this.props.file
+
+    if (this.props.readOnly || !canSelect(file)) {
+      // Changes can't be discarded in readOnly mode.
+      return null
+    }
+
+    if (!(event instanceof MouseEvent)) {
+      // We can only infer which line was clicked when the context menu is opened
+      // via a mouse event.
+      return null
+    }
+
+    if (!this.props.onDiscardChanges) {
+      return null
+    }
+
+    const lineNumber = editor.lineAtHeight(event.y)
+    const diffLine = diffLineForIndex(this.props.diff.hunks, lineNumber)
+    if (diffLine === null || !diffLine.isIncludeableLine()) {
+      // Do not show the discard options for lines that are not additions/deletions.
+      return null
+    }
+
+    const range = findInteractiveDiffRange(this.props.diff.hunks, lineNumber)
+    if (range === null) {
+      return null
+    }
+
+    if (range.type === null) {
+      return null
+    }
+
+    // When user opens the context menu from the hunk handle, we should
+    // discard the range of changes that from that hunk.
+    if (targetHasClass(event.target, 'hunk-handle')) {
+      return [
+        {
+          label: this.getDiscardLabel(range.type, range.to - range.from + 1),
+          action: () => this.onDiscardChanges(file, range.from, range.to),
+        },
+      ]
+    }
+
+    // When user opens the context menu from a specific line, we should
+    // discard only that line.
+    if (targetHasClass(event.target, 'diff-line-number')) {
+      // We don't allow discarding individual lines on hunks that have both
+      // added and modified lines, since that can lead to unexpected results
+      // (e.g discarding the added line on a hunk that is a 1-line modification
+      // will leave the line deleted).
+      return [
+        {
+          label: this.getDiscardLabel(range.type, 1),
+          action: () => this.onDiscardChanges(file, lineNumber),
+          enabled: range.type !== DiffRangeType.Mixed,
+        },
+      ]
+    }
+
+    return null
+  }
+
+  private onDiscardChanges(
+    file: WorkingDirectoryFileChange,
+    startLine: number,
+    endLine: number = startLine
+  ) {
+    if (!this.props.onDiscardChanges) {
+      return
+    }
+
+    const selection = file.selection
+      .withSelectNone()
+      .withRangeSelection(startLine, endLine - startLine + 1, true)
+
+    this.props.onDiscardChanges(this.props.diff, selection)
+  }
+
+  private getDiscardLabel(rangeType: DiffRangeType, numLines: number): string {
+    const suffix = this.props.askForConfirmationOnDiscardChanges ? '…' : ''
+    let type = ''
+
+    if (rangeType === DiffRangeType.Additions) {
+      type = __DARWIN__ ? 'Added' : 'added'
+    } else if (rangeType === DiffRangeType.Deletions) {
+      type = __DARWIN__ ? 'Removed' : 'removed'
+    } else if (rangeType === DiffRangeType.Mixed) {
+      type = __DARWIN__ ? 'Modified' : 'modified'
+    } else {
+      assertNever(rangeType, `Invalid range type: ${rangeType}`)
+    }
+
+    const plural = numLines > 1 ? 's' : ''
+    return __DARWIN__
+      ? `Discard ${type} Line${plural}${suffix}`
+      : `Discard ${type} line${plural}${suffix}`
   }
 
   private onCopy = (editor: Editor, event: Event) => {
@@ -580,8 +739,9 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
   }
 
   private onSwapDoc = (cm: Editor, oldDoc: Doc) => {
+    this.swappedDocumentHasUpdatedViewport = false
     this.initDiffSyntaxMode()
-    this.markIntraLineChanges(cm.getDoc(), this.props.hunks)
+    this.markIntraLineChanges(cm.getDoc(), this.props.diff.hunks)
   }
 
   /**
@@ -592,11 +752,13 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
    * is concerned, meaning that we don't get a chance to update our gutters.
    *
    * By subscribing to the event that happens immediately after the document
-   * swap has been completed we can check for this relatively rare condition
-   * and explicitly update the viewport (and thereby the gutters).
+   * swap has been completed we can check for this condition and others that
+   * cause the onViewportChange event to not be emitted while swapping documents,
+   * (see `swappedDocumentHasUpdatedViewport`) and explicitly update the viewport
+   * (and thereby the gutters).
    */
   private onAfterSwapDoc = (cm: Editor, oldDoc: Doc, newDoc: Doc) => {
-    if (oldDoc.lineCount() === newDoc.lineCount()) {
+    if (!this.swappedDocumentHasUpdatedViewport) {
       this.updateViewport()
     }
   }
@@ -605,11 +767,13 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     const doc = cm.getDoc()
     const batchedOps = new Array<Function>()
 
+    this.swappedDocumentHasUpdatedViewport = true
+
     doc.eachLine(from, to, line => {
       const lineNumber = doc.getLineNumber(line)
 
       if (lineNumber !== null) {
-        const diffLine = diffLineForIndex(this.props.hunks, lineNumber)
+        const diffLine = diffLineForIndex(this.props.diff.hunks, lineNumber)
 
         if (diffLine !== null) {
           const lineInfo = cm.lineInfo(line)
@@ -742,13 +906,13 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     }
     const lineNumber = this.codeMirror.lineAtHeight(ev.y)
 
-    const diffLine = diffLineForIndex(this.props.hunks, lineNumber)
+    const diffLine = diffLineForIndex(this.props.diff.hunks, lineNumber)
 
     if (!diffLine || !diffLine.isIncludeableLine()) {
       return
     }
 
-    const range = findInteractiveDiffRange(this.props.hunks, lineNumber)
+    const range = findInteractiveDiffRange(this.props.diff.hunks, lineNumber)
 
     if (range === null) {
       return
@@ -773,7 +937,13 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       return
     }
 
-    const { file, hunks, readOnly } = this.props
+    // We only care about the primary button here, secondary
+    // button clicks are handled by `onContextMenu`
+    if (ev.button !== 0) {
+      return
+    }
+
+    const { file, diff, readOnly } = this.props
 
     if (!canSelect(file) || readOnly) {
       return
@@ -782,7 +952,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     ev.preventDefault()
 
     const lineNumber = this.codeMirror.lineAtHeight(ev.y)
-    this.startSelection(file, hunks, lineNumber, 'range')
+    this.startSelection(file, diff.hunks, lineNumber, 'range')
   }
 
   private onHunkHandleMouseLeave = (ev: MouseEvent) => {
@@ -797,7 +967,13 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       return
     }
 
-    const { file, hunks, readOnly } = this.props
+    // We only care about the primary button here, secondary
+    // button clicks are handled by `onContextMenu`
+    if (ev.button !== 0) {
+      return
+    }
+
+    const { file, diff, readOnly } = this.props
 
     if (!canSelect(file) || readOnly) {
       return
@@ -806,7 +982,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
     ev.preventDefault()
 
     const lineNumber = this.codeMirror.lineAtHeight(ev.y)
-    this.startSelection(file, hunks, lineNumber, 'hunk')
+    this.startSelection(file, diff.hunks, lineNumber, 'hunk')
   }
 
   public componentWillUnmount() {
@@ -833,7 +1009,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
         // If the text has changed the gutters will be recreated
         // regardless but if it hasn't then we'll need to update
         // the viewport.
-        if (this.props.text === prevProps.text) {
+        if (this.props.diff.text === prevProps.diff.text) {
           this.updateViewport()
         }
       }
@@ -851,7 +1027,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
       this.codeMirror !== null &&
       this.props.file !== prevProps.file &&
       this.props.file.id === prevProps.file.id &&
-      this.props.text !== prevProps.text
+      this.props.diff.text !== prevProps.diff.text
     ) {
       return this.codeMirror.getScrollInfo()
     }
@@ -875,8 +1051,8 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
 
   public render() {
     const doc = this.getCodeMirrorDocument(
-      this.props.text,
-      this.getNoNewlineIndicatorLines(this.props.hunks)
+      this.props.diff.text,
+      this.getNoNewlineIndicatorLines(this.props.diff.hunks)
     )
 
     return (
