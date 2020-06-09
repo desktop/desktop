@@ -8,7 +8,7 @@
  * 'Downloading: 1%  \r'
  * 'Downloading: 2%  \r'
  *
- * ...to the terminal he user is gonna perceieve it as if the 1 just
+ * ...to the terminal the user is gonna perceive it as if the 1 just
  * magically changes to a two.
  *
  * The carriage return character for all of you kids out there
