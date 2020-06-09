@@ -24,8 +24,8 @@ export function parseCarriageReturn(text: string) {
     return text
   }
 
+  const crLfOrEnd = /(.*)([\r\n]|$)/gm
   const lines = new Array<string>('')
-  const crLfOrEnd = /(.*?)([\r\n]|$)/gm
 
   let col = 0
   let match
