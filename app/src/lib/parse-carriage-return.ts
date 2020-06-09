@@ -24,6 +24,12 @@ export function parseCarriageReturn(text: string) {
     return text
   }
 
+  // In JavaScript `.` will never match a newline character since
+  // there's no Regex modifier to allow that which is why the
+  // first group doesn't have to be lazy. The second group matches
+  // the next following \r or \n character or the end of the string.
+  // Matching the end of the string lets us avoid dealing with
+  // leftover characters outside of the matching loop.
   const crLfOrEnd = /(.*)([\r\n]|$)/gm
   const lines = new Array<string>('')
 
