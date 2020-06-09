@@ -87,5 +87,6 @@ describe('parseCarriageReturn', () => {
 
   it('handles strings terminating without newline or CR', () => {
     expect(parseCarriageReturn('foo\rbar')).toBe('bar')
+    expect(parseCarriageReturn('foo\r\r\r\r\rbar')).toBe('bar')
   })
 })
