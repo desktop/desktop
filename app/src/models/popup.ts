@@ -14,7 +14,6 @@ import { ICommitContext } from './commit'
 import { IStashEntry } from './stash-entry'
 import { Account } from '../models/account'
 import { Progress } from './progress'
-import { CloningRepository } from './cloning-repository'
 import { ITextDiff, DiffSelection } from './diff'
 
 export enum PopupType {
@@ -67,7 +66,6 @@ export enum PopupType {
   DeleteTag,
   LocalChangesOverwritten,
   RebaseConflicts,
-  RetryClone,
   ChooseForkSettings,
   ConfirmDiscardSelection,
 }
@@ -252,12 +250,6 @@ export type Popup =
       targetCommitSha: string
       initialName?: string
       localTags: Map<string, string> | null
-    }
-  | {
-      type: PopupType.RetryClone
-      repository: Repository | CloningRepository
-      retryAction: RetryAction
-      errorMessage: string
     }
   | {
       type: PopupType.DeleteTag
