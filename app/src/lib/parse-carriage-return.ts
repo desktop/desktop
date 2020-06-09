@@ -31,6 +31,14 @@ export function parseCarriageReturn(text: string) {
   let match
 
   while ((match = crLfOrEnd.exec(text)) !== null) {
+    // If we match the $ (end of string) we'll get a zero
+    // with match, this is a known problem in JS so we'll
+    // need to bump the regexp cursor to ensure it fails to
+    // match on the next round
+    if (match.index === crLfOrEnd.lastIndex) {
+      crLfOrEnd.lastIndex++
+    }
+
     if (match[1].length > 0) {
       const line = lines[lines.length - 1]
       const before = line.substring(0, col)
