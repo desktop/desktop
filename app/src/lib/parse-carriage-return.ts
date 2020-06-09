@@ -24,13 +24,14 @@ export function parseCarriageReturn(text: string) {
     return text
   }
 
-  // `.` will never match a newline character unless we set
-  // the dotAll flag (/s) which is why the first group doesn't
-  // have to be lazy. The second group matches the next following
-  // \r or \n character or the end of the string. Matching the
-  // end of the string lets us avoid dealing with leftover
-  // characters outside of the matching loop.
-  const crLfOrEnd = /(.*)([\r\n]|$)/gm
+  // JavaScript `.` includes unicode line and paragraph break
+  // characters which is why we use [\s\S] instead of '.'. The
+  // first group matches lazily (as few times as possible) and
+  // tthe second group matches the next following \r or \n
+  // character or the end of the string. Matching the end of the
+  // string lets us avoid dealing with leftover characters outside
+  // of the matching loop.
+  const crLfOrEnd = /([\s\S]*?)([\r\n]|$)/g
   const lines = new Array<string>('')
 
   let col = 0

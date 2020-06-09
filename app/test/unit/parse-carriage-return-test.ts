@@ -89,4 +89,13 @@ describe('parseCarriageReturn', () => {
     expect(parseCarriageReturn('foo\rbar')).toBe('bar')
     expect(parseCarriageReturn('foo\r\r\r\r\rbar')).toBe('bar')
   })
+
+  it('treats unicode line separator and paragraph separator as flow text', () => {
+    // https://www.regular-expressions.info/dot.html
+    // [...] JavaScript adds the Unicode line separator \u2028 and paragraph
+    // separator \u2029 on top of that
+    expect(parseCarriageReturn('foo\rfoo\u2028bar\u2029foo')).toBe(
+      'foo\u2028bar\u2029foo'
+    )
+  })
 })
