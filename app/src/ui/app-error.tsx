@@ -111,7 +111,6 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   }
 
   private renderErrorMessage(error: Error) {
-    let monospace = false
     const e = error instanceof ErrorWithMetadata ? error.underlyingError : error
 
     if (e instanceof GitError) {
@@ -119,13 +118,12 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       // If the error message is the same as stderr or stdout then we know
       // it's output from git and we'll display it in fixed-width font
       if (e.message === e.result.stderr || e.message === e.result.stdout) {
-        monospace = true
+        const formattedMessage = this.formatGitErrorMessage(e.message)
+        return <p className="monospace">{formattedMessage}</p>
       }
     }
 
-    const className = monospace ? 'monospace' : undefined
-
-    return <p className={className}>{this.formatGitErrorMessage(e.message)}</p>
+    return <p>{e.message}</p>
   }
 
   private getTitle(error: Error) {
