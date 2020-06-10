@@ -27,10 +27,23 @@
   }
 
   .compare-form {
+    position: relative;
     background: var(--box-alt-background-color);
     flex: initial;
     padding: var(--spacing-half);
     border-bottom: var(--base-border);
+
+    .clear-filter {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      margin: var(--spacing-half);
+      padding: var(--spacing-half);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
   }
 
   .compare-commit-list {

@@ -21,7 +21,7 @@ import { IBranchListItem } from '../branches/group-branches'
 import { TabBar } from '../tab-bar'
 import { CompareBranchListItem } from './compare-branch-list-item'
 import { FancyTextBox } from '../lib/fancy-text-box'
-import { OcticonSymbol } from '../octicons'
+import { OcticonSymbol, Octicon } from '../octicons'
 import { SelectionSource } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
@@ -174,7 +174,6 @@ export class CompareSidebar extends React.Component<
         <div className="compare-form">
           <FancyTextBox
             symbol={OcticonSymbol.gitBranch}
-            type="search"
             placeholder={placeholderText}
             onFocus={this.onTextBoxFocused}
             value={filterText}
@@ -182,8 +181,12 @@ export class CompareSidebar extends React.Component<
             onRef={this.onTextBoxRef}
             onValueChanged={this.onBranchFilterTextChanged}
             onKeyDown={this.onBranchFilterKeyDown}
-            onSearchCleared={this.handleEscape}
           />
+          {filterText.length > 0 && (
+            <a className="clear-filter" onClick={this.handleEscape}>
+              <Octicon symbol={OcticonSymbol.x} />
+            </a>
+          )}
         </div>
 
         {showBranchList ? this.renderFilterList() : this.renderCommits()}
@@ -455,9 +458,6 @@ export class CompareSidebar extends React.Component<
 
   private handleEscape = () => {
     this.clearFilterState()
-    if (this.textbox) {
-      this.textbox.blur()
-    }
   }
 
   private onCommitSelected = (commit: Commit) => {
