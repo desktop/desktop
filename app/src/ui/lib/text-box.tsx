@@ -84,11 +84,6 @@ export interface ITextBoxProps {
    * Callback used when the component loses focus.
    */
   readonly onBlur?: () => void
-
-  /**
-   * Callback used when the user has cleared the search text.
-   */
-  readonly onSearchCleared?: () => void
 }
 
 interface ITextBoxState {
@@ -165,35 +160,6 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
         this.props.onValueChanged(value)
       }
     })
-  }
-
-  private onSearchTextCleared = () => {
-    if (this.props.onSearchCleared != null) {
-      this.props.onSearchCleared()
-    }
-  }
-
-  /**
-   * The search event here is a Chrome and Safari specific event that is
-   * only reported for input[type=search] elements.
-   *
-   * Source: http://help.dottoro.com/ljdvxmhr.php
-   *
-   * TODO: can we hook into the warning API of React to report on incorrect usage
-   * when you set a `onSearchCleared` callback prop but don't use a `type=search`
-   * input - because this won't set an event handler.
-   *
-   */
-  private onInputRef = (element: HTMLInputElement | null) => {
-    if (this.inputElement != null && this.props.type === 'search') {
-      this.inputElement.removeEventListener('search', this.onSearchTextCleared)
-    }
-
-    this.inputElement = element
-
-    if (this.inputElement != null && this.props.type === 'search') {
-      this.inputElement.addEventListener('search', this.onSearchTextCleared)
-    }
   }
 
   private renderLabelLink() {
@@ -274,7 +240,6 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
 
         <input
           id={inputId}
-          ref={this.onInputRef}
           onFocus={this.onFocus}
           onBlur={this.onBlur}
           autoFocus={this.props.autoFocus}
