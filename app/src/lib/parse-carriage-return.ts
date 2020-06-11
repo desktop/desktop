@@ -37,10 +37,9 @@ export function parseCarriageReturn(text: string) {
   let match
 
   while ((match = crLfOrEnd.exec(text)) !== null) {
-    // If we match the $ (end of string) we'll get a zero
-    // width match, this is a known problem in JS so we'll
-    // need to bump the regexp cursor to ensure it fails to
-    // match on the next round
+    // If we match the $ (end of string) we'll get a zero width
+    // match, so we'll need to bump the regexp cursor to ensure
+    // it fails to match on the next round
     if (match.index === crLfOrEnd.lastIndex) {
       crLfOrEnd.lastIndex++
     }
