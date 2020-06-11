@@ -47,8 +47,16 @@ export function parseCarriageReturn(text: string) {
 
     if (match[1].length > 0) {
       const line = lines[lines.length - 1]
-      const remainder = line.substring(match[1].length)
-      lines[lines.length - 1] = `${match[1]}${remainder}`
+
+      if (line.length <= match[1].length) {
+        // Happy path, the new line is equal to or longer
+        // than the previous, we can just use the new one
+        // without creating any new strings.
+        lines[lines.length - 1] = match[1]
+      } else {
+        const remainder = line.substring(match[1].length)
+        lines[lines.length - 1] = `${match[1]}${remainder}`
+      }
     }
 
     if (match[2] === '\n') {
