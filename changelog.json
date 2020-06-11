@@ -1,7 +1,7 @@
 {
   "releases": {
     "2.5.3-beta1": [
-      "[Added] Discard individual selection of lines from file - #9728",
+      "[Added] Discard selection of lines from a file - #9728",
       "[Fixed] Display more readable messages for errors when cloning a repository - #9944",
       "[Fixed] Make Ctrl/Cmd+W shortcut work in all dialogs - #9826. Thanks @ruggi99!",
       "[Fixed] Token-aware text wrapping of commit summaries - #9185",
