@@ -62,4 +62,26 @@ describe('promiseWithMinimumTimeout', () => {
 
     expect(result).toBe(42)
   })
+
+  it('handles actions returning null', async () => {
+    const resolveMock = jest.fn().mockImplementation(resolve => resolve(null))
+
+    const slowPromise = new Promise<number>(resolve => {
+      window.setTimeout(() => resolveMock(resolve), 1000)
+    })
+
+    const promise = promiseWithMinimumTimeout(() => slowPromise, 500)
+
+    // timeout completes
+    jest.advanceTimersByTime(500)
+    expect(resolveMock.mock.calls).toHaveLength(0)
+
+    // promise completes
+    jest.advanceTimersByTime(500)
+    expect(resolveMock.mock.calls).toHaveLength(1)
+
+    const result = await promise
+
+    expect(result).toBe(null)
+  })
 })
