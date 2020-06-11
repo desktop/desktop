@@ -34,7 +34,6 @@ export function parseCarriageReturn(text: string) {
   const crLfOrEnd = /([\s\S]*?)([\r\n]|$)/g
   const lines = new Array<string>('')
 
-  let col = 0
   let match
 
   while ((match = crLfOrEnd.exec(text)) !== null) {
@@ -48,15 +47,11 @@ export function parseCarriageReturn(text: string) {
 
     if (match[1].length > 0) {
       const line = lines[lines.length - 1]
-      const before = line.substring(0, col)
-      const after = line.substring(col + match[1].length)
-      col += match[1].length
-      lines[lines.length - 1] = `${before}${match[1]}${after}`
+      const remainder = line.substring(match[1].length)
+      lines[lines.length - 1] = `${match[1]}${remainder}`
     }
 
-    if (match[2] === '\r') {
-      col = 0
-    } else if (match[2] === '\n') {
+    if (match[2] === '\n') {
       lines.push('')
     }
   }
