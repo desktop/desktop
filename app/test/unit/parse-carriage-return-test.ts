@@ -98,4 +98,10 @@ describe('parseCarriageReturn', () => {
       'foo\u2028bar\u2029foo'
     )
   })
+
+  it('handles remaining characters from previous lines', () => {
+    expect(parseCarriageReturn('foobar\rfooba\rfoob\rfoo\r\fo\rF\r')).toBe(
+      'Foobar'
+    )
+  })
 })
