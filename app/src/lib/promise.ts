@@ -46,9 +46,5 @@ export function promiseWithMinimumTimeout<T>(
  * @param timeout the time to wait before resolving the promise (in milliseconds)
  */
 export async function timeout(timeout: number): Promise<void> {
-  return new Promise((resolve, reject) => {
-    window.setTimeout(() => {
-      resolve()
-    }, timeout)
-  })
+  return new Promise(resolve => window.setTimeout(resolve, timeout))
 }
