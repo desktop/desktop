@@ -5,7 +5,6 @@
  * This is ideal for scenarios where a promises may complete quickly, but the
  * caller wants to introduce a minimum latency so that any dependent UI is
  *
- *
  * @param action the promise work to track
  * @param timeoutMs the minimum time to wait before resolving the promise (in milliseconds)
  */
