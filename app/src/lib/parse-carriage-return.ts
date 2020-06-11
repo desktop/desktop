@@ -27,7 +27,7 @@ export function parseCarriageReturn(text: string) {
   // JavaScript `.` includes unicode line and paragraph break
   // characters which is why we use [\s\S] instead of '.'. The
   // first group matches lazily (as few times as possible) and
-  // tthe second group matches the next following \r or \n
+  // the second group matches the next following \r or \n
   // character or the end of the string. Matching the end of the
   // string lets us avoid dealing with leftover characters outside
   // of the matching loop.
