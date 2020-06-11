@@ -104,4 +104,8 @@ describe('parseCarriageReturn', () => {
       'Foobar'
     )
   })
+
+  it("handles Windows' new lines", () => {
+    expect(parseCarriageReturn('A\r\nB\r\nC\r\nD\r\n')).toBe('A\nB\nC\nD\n')
+  })
 })
