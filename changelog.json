@@ -8,7 +8,7 @@
       "[Fixed] Prevent crash when an opened repository doesn't have an owner on GitHub - #9895",
       "[Fixed] Sign in correctly when pressing \"Enter\" on the username/password authentication form - #9899",
       "[Fixed] Maintain selected files when navigating back to the Changes tab - #7710. Thanks @TerryChan!",
-      "[Fixed] Maintain selected files when discarding a stash - #9921",
+      "[Fixed] Maintain selected files when deleting a stash - #9921",
       "[Improved] Remove flicker when switching between files in the changes tab - #9929",
       "[Improved] Remove space between the number and the percent sign when showing the progress of a clone operation - #9893"
     ],
