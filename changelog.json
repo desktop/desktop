@@ -4,7 +4,7 @@
       "[Added] Discard selection of lines from a file - #9728",
       "[Fixed] Display more readable messages for errors when cloning a repository - #9944",
       "[Fixed] Make Ctrl/Cmd+W shortcut work in all dialogs - #9826. Thanks @ruggi99!",
-      "[Fixed] Token-aware text wrapping of commit summaries - #9185",
+      "[Fixed] Fix links when text wrapping is required in commit summaries - #9185",
       "[Fixed] Prevent crash when an opened repository doesn't have an owner on GitHub - #9895",
       "[Fixed] Log in using the entered user/password when pressing \"Enter\" on the user/password authentication form - #9899",
       "[Fixed] Maintain selected files when navigating back to the Changes tab - #7710. Thanks @TerryChan!",
