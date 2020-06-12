@@ -536,17 +536,34 @@ app.on('ready', () => {
   ipcMain.on(
     'show-item-in-folder',
     (event: Electron.IpcMainEvent, { path }: { path: string }) => {
+      Fs.stat(path, err => {
+        if (err) {
+          log.error(`Unable to find file at '${path}'`, err)
+          return
+        }
+        shell.showItemInFolder(path)
+      })
+    }
+  )
+
+  ipcMain.on(
+    'show-folder-contents',
+    (event: Electron.IpcMainEvent, { path }: { path: string }) => {
       Fs.stat(path, (err, stats) => {
         if (err) {
           log.error(`Unable to find file at '${path}'`, err)
           return
         }
 
-        if (stats.isDirectory()) {
-          openDirectorySafe(path)
-        } else {
-          shell.showItemInFolder(path)
+        if (!stats.isDirectory()) {
+          log.error(
+            `Trying to get the folder contents of a non-folder at '${path}'`,
+            err
+          )
+          return
         }
+
+        openDirectorySafe(path)
       })
     }
   )
