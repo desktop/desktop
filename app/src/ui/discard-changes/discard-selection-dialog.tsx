@@ -55,7 +55,7 @@ export class DiscardSelection extends React.Component<
 
     this.state = {
       isDiscardingSelection: false,
-      confirmDiscardSelection: false,
+      confirmDiscardSelection: true,
     }
   }
 
