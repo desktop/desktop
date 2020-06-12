@@ -50,13 +50,9 @@ export class DiscardSelection extends React.Component<
   IDiscardSelectionProps,
   IDiscardSelectionState
 > {
-  public constructor(props: IDiscardSelectionProps) {
-    super(props)
-
-    this.state = {
-      isDiscardingSelection: false,
-      confirmDiscardSelection: true,
-    }
+  public state: IDiscardSelectionState = {
+    isDiscardingSelection: false,
+    confirmDiscardSelection: true,
   }
 
   private getOkButtonLabel() {
