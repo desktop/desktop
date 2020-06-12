@@ -26,6 +26,7 @@ import { now } from './now'
 import { showUncaughtException } from './show-uncaught-exception'
 import { IMenuItem } from '../lib/menu-item'
 import { buildContextMenu } from './menu/build-context-menu'
+import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 
 app.setAppLogsPath()
 enableSourceMaps()
@@ -437,8 +438,8 @@ app.on('ready', () => {
   ipcMain.on(
     'show-contextual-menu',
     (event: Electron.IpcMainEvent, items: ReadonlyArray<IMenuItem>) => {
-      const menu = buildContextMenu(items, ix =>
-        event.sender.send('contextual-menu-action', ix)
+      const menu = buildContextMenu(items, indices =>
+        event.sender.send('contextual-menu-action', indices)
       )
 
       const window = BrowserWindow.fromWebContents(event.sender)
@@ -561,7 +562,17 @@ app.on('web-contents-created', (event, contents) => {
   contents.on('new-window', (event, url) => {
     // Prevent links or window.open from opening new windows
     event.preventDefault()
-    log.warn(`Prevented new window to: ${url}`)
+    const errMsg = `Prevented new window to: ${url}`
+    log.warn(errMsg)
+    sendNonFatalException('newWindowPrevented', Error(errMsg))
+  })
+  // prevent link navigation within our windows
+  // see https://www.electronjs.org/docs/tutorial/security#12-disable-or-limit-navigation
+  contents.on('will-navigate', (event, url) => {
+    event.preventDefault()
+    const errMsg = `Prevented navigation to: ${url}`
+    log.warn(errMsg)
+    sendNonFatalException('willNavigatePrevented', Error(errMsg))
   })
 })
 

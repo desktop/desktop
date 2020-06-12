@@ -73,6 +73,7 @@ export class WarnForcePushDialog extends React.Component<
         <DialogFooter>
           <OkCancelButtonGroup
             okButtonText={__DARWIN__ ? 'Begin Rebase' : 'Begin rebase'}
+            onCancelButtonClick={this.props.onDismissed}
           />
         </DialogFooter>
       </Dialog>

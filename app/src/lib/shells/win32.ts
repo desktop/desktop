@@ -6,6 +6,7 @@ import { pathExists } from 'fs-extra'
 import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
 import { enableWSLDetection } from '../feature-flag'
+import { findGitOnPath } from '../is-git-on-path'
 
 export enum Shell {
   Cmd = 'Command Prompt',
@@ -59,10 +60,12 @@ export function parse(label: string): Shell {
 export async function getAvailableShells(): Promise<
   ReadonlyArray<IFoundShell<Shell>>
 > {
-  const shells = [
+  const gitPath = await findGitOnPath()
+  const shells: IFoundShell<Shell>[] = [
     {
       shell: Shell.Cmd,
       path: process.env.comspec || 'C:\\Windows\\System32\\cmd.exe',
+      extraArgs: gitPath ? ['/K', `"doskey git=^"${gitPath}^" $*"`] : [],
     },
   ]
 
@@ -364,16 +367,36 @@ export function launch(
   switch (shell) {
     case Shell.PowerShell:
       const psCommand = `"Set-Location -LiteralPath '${path}'"`
-      return spawn('START', ['powershell', '-NoExit', '-Command', psCommand], {
-        shell: true,
-        cwd: path,
-      })
+      return spawn(
+        'START',
+        [
+          '"PowerShell"',
+          `"${foundShell.path}"`,
+          '-NoExit',
+          '-Command',
+          psCommand,
+        ],
+        {
+          shell: true,
+          cwd: path,
+        }
+      )
     case Shell.PowerShellCore:
       const psCoreCommand = `"Set-Location -LiteralPath '${path}'"`
-      return spawn('START', ['pwsh', '-NoExit', '-Command', psCoreCommand], {
-        shell: true,
-        cwd: path,
-      })
+      return spawn(
+        'START',
+        [
+          '"PowerShell Core"',
+          `"${foundShell.path}"`,
+          '-NoExit',
+          '-Command',
+          psCoreCommand,
+        ],
+        {
+          shell: true,
+          cwd: path,
+        }
+      )
     case Shell.Hyper:
       const hyperPath = `"${foundShell.path}"`
       log.info(`launching ${shell} at path: ${hyperPath}`)
@@ -400,9 +423,19 @@ export function launch(
         }
       )
     case Shell.WSL:
-      return spawn('START', ['wsl'], { shell: true, cwd: path })
+      return spawn('START', ['"WSL"', `"${foundShell.path}"`], {
+        shell: true,
+        cwd: path,
+      })
     case Shell.Cmd:
-      return spawn('START', ['cmd'], { shell: true, cwd: path })
+      return spawn(
+        'START',
+        ['"Command Prompt"', `"${foundShell.path}"`, ...foundShell.extraArgs!],
+        {
+          shell: true,
+          cwd: path,
+        }
+      )
     case Shell.WindowTerminal:
       const windowsTerminalPath = `"${foundShell.path}"`
       log.info(`launching ${shell} at path: ${windowsTerminalPath}`)

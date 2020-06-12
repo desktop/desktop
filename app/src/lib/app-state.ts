@@ -385,6 +385,9 @@ export interface IRepositoryState {
   /** The state of the current branch in relation to its upstream. */
   readonly aheadBehind: IAheadBehind | null
 
+  /** The tags that will get pushed if the user performs a push operation. */
+  readonly tagsToPush: ReadonlyArray<string> | null
+
   /** Is a push/pull/fetch in progress? */
   readonly isPushPullFetchInProgress: boolean
 
@@ -418,6 +421,8 @@ export interface IRepositoryState {
    * null if no such operation is in flight.
    */
   readonly revertProgress: IRevertProgress | null
+
+  readonly localTags: Map<string, string> | null
 }
 
 export interface IBranchesState {
@@ -530,7 +535,7 @@ export type ChangesWorkingDirectorySelection = {
    * The ID of the selected files. The files themselves can be looked up in
    * the `workingDirectory` property in `IChangesState`.
    */
-  readonly selectedFileIDs: string[]
+  readonly selectedFileIDs: ReadonlyArray<string>
   readonly diff: IDiff | null
 }
 
@@ -640,8 +645,8 @@ export interface ICompareBranch {
 }
 
 export interface ICompareState {
-  /** Show the diverging notification banner */
-  readonly isDivergingBranchBannerVisible: boolean
+  /** The current state of the NBBD banner */
+  readonly divergingBranchBannerState: IDivergingBranchBannerState
 
   /** The current state of the compare form, based on user input */
   readonly formState: IDisplayHistory | ICompareBranch
@@ -693,6 +698,17 @@ export interface ICompareState {
     branch: Branch | null
     aheadBehind: IAheadBehind | null
   }
+}
+
+export interface IDivergingBranchBannerState {
+  /** Show the diverging notification banner */
+  readonly isPromptVisible: boolean
+
+  /** Has the user dismissed the notification banner? */
+  readonly isPromptDismissed: boolean
+
+  /** Show the diverging notification nudge on the tab */
+  readonly isNudgeVisible: boolean
 }
 
 export interface ICompareFormUpdate {

@@ -25,6 +25,7 @@ import {
   DiffSelectionType,
   DiffType,
   ImageDiffType,
+  ITextDiff,
 } from '../../models/diff'
 import { FetchType } from '../../models/fetch'
 import {
@@ -80,7 +81,6 @@ import {
   getAccountForEndpoint,
   getDotComAPIEndpoint,
   IAPIOrganization,
-  IAPIBranch,
   IAPIRepository,
   getEndpointForRepository,
 } from '../api'
@@ -106,6 +106,7 @@ import {
   IRepositoryState,
   ChangesSelectionKind,
   ChangesWorkingDirectorySelection,
+  IDivergingBranchBannerState,
 } from '../app-state'
 import { IGitHubUser } from '../databases/github-user-database'
 import {
@@ -224,15 +225,7 @@ import {
   ManualConflictResolutionKind,
 } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import {
-  enableBranchPruning,
-  enableGroupRepositoriesByOwner,
-  enableStashing,
-  enableBranchProtectionChecks,
-  enableBranchProtectionWarningFlow,
-  enableHideWhitespaceInDiffOption,
-  enableUpdateRemoteUrl,
-} from '../feature-flag'
+import { enableUpdateRemoteUrl } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import * as moment from 'moment'
 import { isDarkModeEnabled } from '../../ui/lib/dark-theme'
@@ -253,7 +246,7 @@ import {
 } from '../../models/uncommitted-changes-strategy'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
-import { arrayEquals } from '../equality'
+import { arrayEquals, shallowEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
 import { updateRemoteUrl } from './updates/update-remote-url'
@@ -275,6 +268,7 @@ import { parseRemote } from '../../lib/remote-parsing'
 import { createTutorialRepository } from './helpers/create-tutorial-repository'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { getDefaultDir } from '../../ui/lib/default-dir'
+import { WorkflowPreferences } from '../../models/workflow-preferences'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -433,6 +427,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.gitStoreCache = new GitStoreCache(
       shell,
+      this.statsStore,
       (repo, store) => this.onGitStoreUpdated(repo, store),
       (repo, commits) => this.loadAndCacheUsers(repo, this.accounts, commits),
       error => this.emitError(error)
@@ -441,7 +436,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const window = remote.getCurrentWindow()
     this.windowState = getWindowState(window)
 
-    this.onWindowZoomFactorChanged(window.webContents.getZoomFactor())
+    this.onWindowZoomFactorChanged(window.webContents.zoomFactor)
 
     this.wireupIpcEventHandlers(window)
     this.wireupStoreEventHandlers()
@@ -830,7 +825,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoryStateCache.update(repository, () => ({
       commitLookup: gitStore.commitLookup,
       localCommitSHAs: gitStore.localCommitSHAs,
+      localTags: gitStore.localTags,
       aheadBehind: gitStore.aheadBehind,
+      tagsToPush: gitStore.tagsToPush,
       remote: gitStore.currentRemote,
       lastFetched: gitStore.lastFetched,
     }))
@@ -854,10 +851,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async refreshBranchProtectionState(repository: Repository) {
-    if (!enableBranchProtectionWarningFlow()) {
-      return
-    }
-
     const gitStore = this.gitStoreCache.get(repository)
 
     if (
@@ -1025,20 +1018,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? cachedDefaultBranch
         : null
 
+    const aheadBehindUpdater = this.currentAheadBehindUpdater
     let inferredBranch: Branch | null = null
     let aheadBehindOfInferredBranch: IAheadBehind | null = null
-    if (tip.kind === TipState.Valid && compareState.aheadBehindCache !== null) {
+    if (tip.kind === TipState.Valid && aheadBehindUpdater !== null) {
       inferredBranch = await inferComparisonBranch(
         repository,
         allBranches,
         currentPullRequest,
-        tip.branch,
-        getRemotes,
-        compareState.aheadBehindCache
+        getRemotes
       )
 
-      if (inferredBranch !== null && this.currentAheadBehindUpdater !== null) {
-        aheadBehindOfInferredBranch = await this.currentAheadBehindUpdater.executeAsyncTask(
+      if (inferredBranch !== null) {
+        aheadBehindOfInferredBranch = await aheadBehindUpdater.executeAsyncTask(
           tip.branch.tip.sha,
           inferredBranch.tip.sha
         )
@@ -1055,8 +1047,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       },
     }))
 
+    let currentCount = 0
+    let countChanged = false
+
     if (inferredBranch !== null) {
-      const currentCount = getBehindOrDefault(aheadBehindOfInferredBranch)
+      currentCount = getBehindOrDefault(aheadBehindOfInferredBranch)
 
       const prevInferredBranchState =
         state.compareState.inferredComparisonBranch
@@ -1065,12 +1060,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
         prevInferredBranchState.aheadBehind
       )
 
-      // we only want to show the banner when the the number
-      // commits behind has changed since the last it was visible
-      const countChanged = currentCount > 0 && previousCount !== currentCount
-      this._setDivergingBranchBannerVisibility(repository, countChanged)
+      countChanged = currentCount > 0 && previousCount !== currentCount
+    }
+
+    if (countChanged) {
+      // If the number of commits between the inferred branch and the current branch
+      // has changed, show both the prompt and the nudge and reset the dismiss state.
+      this._updateDivergingBranchBannerState(repository, {
+        isPromptVisible: true,
+        isNudgeVisible: true,
+        isPromptDismissed: false,
+      })
+    } else if (currentCount > 0) {
+      // If there's any commit between the inferred branch and the current branch
+      // make the prompt visible.
+      this._updateDivergingBranchBannerState(repository, {
+        isPromptVisible: true,
+      })
     } else {
-      this._setDivergingBranchBannerVisibility(repository, false)
+      // Hide both the prompt and the nudge.
+      this._updateDivergingBranchBannerState(repository, {
+        isPromptVisible: false,
+        isNudgeVisible: false,
+      })
     }
 
     const cachedState = compareState.formState
@@ -1414,7 +1426,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository,
       file,
       sha,
-      enableHideWhitespaceInDiffOption() ? this.hideWhitespaceInDiff : false
+      this.hideWhitespaceInDiff
     )
 
     const stateAfterLoad = this.repositoryStateCache.get(repository)
@@ -1478,9 +1490,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const previousRepositoryId = previouslySelectedRepository
       ? previouslySelectedRepository.id
       : null
-    if (enableGroupRepositoriesByOwner()) {
-      this.updateRecentRepositories(previousRepositoryId, repository.id)
-    }
+
+    this.updateRecentRepositories(previousRepositoryId, repository.id)
 
     // if repository might be marked missing, try checking if it has been restored
     const refreshedRepository = await this.recoverMissingRepository(repository)
@@ -1582,17 +1593,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    if (enableBranchPruning()) {
-      const pruner = new BranchPruner(
-        repository,
-        this.gitStoreCache,
-        this.repositoriesStore,
-        this.repositoryStateCache,
-        repository => this._refreshRepository(repository)
-      )
-      this.currentBranchPruner = pruner
-      this.currentBranchPruner.start()
-    }
+    const pruner = new BranchPruner(
+      repository,
+      this.gitStoreCache,
+      this.repositoriesStore,
+      this.repositoryStateCache,
+      repository => this._refreshRepository(repository)
+    )
+    this.currentBranchPruner = pruner
+    this.currentBranchPruner.start()
   }
 
   public async _refreshIssues(repository: GitHubRepository) {
@@ -2179,8 +2188,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
     this.emitUpdate()
 
-    this._hideStashedChanges(repository)
-
     if (selectedSection === RepositorySectionTab.History) {
       return this.refreshHistorySection(repository)
     } else if (selectedSection === RepositorySectionTab.Changes) {
@@ -2331,6 +2338,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public _hideStashedChanges(repository: Repository) {
+    const { changesState } = this.repositoryStateCache.get(repository)
+
+    // makes this safe to call even when the stash ui is not visible
+    if (changesState.selection.kind !== ChangesSelectionKind.Stash) {
+      return
+    }
+
     this.repositoryStateCache.updateChangesState(repository, state => {
       const files = state.workingDirectory.files
       const selectedFileIds = files
@@ -2544,26 +2558,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
           }
         }
 
-        if (enableBranchProtectionChecks()) {
-          const branchProtectionsFound = await this.repositoriesStore.hasBranchProtectionsConfigured(
-            repository.gitHubRepository
-          )
+        const branchProtectionsFound = await this.repositoriesStore.hasBranchProtectionsConfigured(
+          repository.gitHubRepository
+        )
 
-          if (branchProtectionsFound) {
-            this.statsStore.recordCommitToRepositoryWithBranchProtections()
-          }
+        if (branchProtectionsFound) {
+          this.statsStore.recordCommitToRepositoryWithBranchProtections()
+        }
 
-          const branchName = findRemoteBranchName(
-            gitStore.tip,
-            gitStore.currentRemote,
-            repository.gitHubRepository
-          )
+        const branchName = findRemoteBranchName(
+          gitStore.tip,
+          gitStore.currentRemote,
+          repository.gitHubRepository
+        )
 
-          if (branchName !== null) {
-            const { changesState } = this.repositoryStateCache.get(repository)
-            if (changesState.currentBranchProtected) {
-              this.statsStore.recordCommitToProtectedBranch()
-            }
+        if (branchName !== null) {
+          const { changesState } = this.repositoryStateCache.get(repository)
+          if (changesState.currentBranchProtected) {
+            this.statsStore.recordCommitToProtectedBranch()
           }
         }
 
@@ -2737,6 +2749,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.refreshAuthor(repository),
       refreshSectionPromise,
     ])
+
+    await gitStore.refreshTags()
 
     // this promise is fire-and-forget, so no need to await it
     this.updateStashEntryCountMetric(
@@ -2947,12 +2961,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    if (currentPopup.type === PopupType.CloneRepository) {
-      this._completeOpenInDesktop(() => Promise.resolve(null))
-    }
-
     if (popupType !== undefined && currentPopup.type !== popupType) {
       return
+    }
+
+    if (currentPopup.type === PopupType.CloneRepository) {
+      this._completeOpenInDesktop(() => Promise.resolve(null))
     }
 
     this.currentPopup = null
@@ -3016,7 +3030,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const hasChanges = changesState.workingDirectory.files.length > 0
 
     if (
-      enableStashing() &&
       hasChanges &&
       currentBranch !== null &&
       uncommittedChangesStrategy.kind ===
@@ -3038,6 +3051,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
     this._closePopup()
     return repo
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _createTag(
+    repository: Repository,
+    name: string,
+    targetCommitSha: string
+  ): Promise<void> {
+    const gitStore = this.gitStoreCache.get(repository)
+
+    await gitStore.createTag(name, targetCommitSha)
+
+    this._closePopup()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _deleteTag(repository: Repository, name: string): Promise<void> {
+    const gitStore = this.gitStoreCache.get(repository)
+
+    await gitStore.deleteTag(name)
   }
 
   private updateCheckoutProgress(
@@ -3079,24 +3112,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     let stashToPop: IStashEntry | null = null
-    if (enableStashing()) {
-      const hasChanges = changesState.workingDirectory.files.length > 0
-      if (hasChanges) {
-        if (uncommittedChangesStrategy.kind === askToStash.kind) {
-          this._showPopup({
-            type: PopupType.StashAndSwitchBranch,
-            branchToCheckout: branch,
-            repository,
-          })
-          return repository
-        }
 
-        stashToPop = await this.stashToPopAfterBranchCheckout(
+    const hasChanges = changesState.workingDirectory.files.length > 0
+    if (hasChanges) {
+      if (uncommittedChangesStrategy.kind === askToStash.kind) {
+        this._showPopup({
+          type: PopupType.StashAndSwitchBranch,
+          branchToCheckout: branch,
           repository,
-          branch,
-          uncommittedChangesStrategy
-        )
+        })
+        return repository
       }
+
+      stashToPop = await this.stashToPopAfterBranchCheckout(
+        repository,
+        branch,
+        uncommittedChangesStrategy
+      )
     }
 
     const checkoutSucceeded =
@@ -3126,7 +3158,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (
-      enableStashing() &&
       uncommittedChangesStrategy.kind ===
         UncommittedChangesStrategyKind.MoveToNewBranch &&
       checkoutSucceeded
@@ -3276,6 +3307,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository.id,
       skeletonGitHubRepository,
       repository.missing,
+      {},
       false
     )
 
@@ -3360,9 +3392,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const api = API.fromAccount(account)
 
-    const branches = enableBranchProtectionChecks()
-      ? await api.fetchProtectedBranches(owner.login, name)
-      : new Array<IAPIBranch>()
+    const branches = await api.fetchProtectedBranches(owner.login, name)
 
     await this.repositoriesStore.updateBranchProtections(
       repository.gitHubRepository,
@@ -3457,7 +3487,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (pushPullFetchProgress !== null) {
         remote.getCurrentWindow().setProgressBar(pushPullFetchProgress.value)
       } else {
-        remote.getCurrentWindow().setProgressBar(0)
+        remote.getCurrentWindow().setProgressBar(-1)
       }
     }
     if (this.selectedRepository === repository) {
@@ -3490,7 +3520,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    return this.withPushPullFetch(repository, async () => {
+    return this.withPushPullFetch(repository, account, async () => {
       const { tip } = state.branchesState
 
       if (tip.kind === TipState.Unborn) {
@@ -3584,6 +3614,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
               safeRemote,
               branch.name,
               branch.upstreamWithoutRemote,
+              gitStore.tagsToPush,
               options,
               progress => {
                 this.updatePushPullFetchProgress(repository, {
@@ -3593,6 +3624,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
                 })
               }
             )
+            gitStore.clearTagsToPush()
 
             await gitStore.fetchRemotes(
               account,
@@ -3678,6 +3710,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private async withPushPullFetch(
     repository: Repository,
+    account: IGitAccount | null,
     fn: () => Promise<void>
   ): Promise<void> {
     const state = this.repositoryStateCache.get(repository)
@@ -3712,7 +3745,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     account: IGitAccount | null
   ): Promise<void> {
-    return this.withPushPullFetch(repository, async () => {
+    return this.withPushPullFetch(repository, account, async () => {
       const gitStore = this.gitStoreCache.get(repository)
       const remote = gitStore.currentRemote
 
@@ -3973,6 +4006,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this._refreshRepository(repository)
   }
 
+  public async _discardChangesFromSelection(
+    repository: Repository,
+    filePath: string,
+    diff: ITextDiff,
+    selection: DiffSelection
+  ) {
+    const gitStore = this.gitStoreCache.get(repository)
+    await gitStore.discardChangesFromSelection(filePath, diff, selection)
+
+    return this._refreshRepository(repository)
+  }
+
   public async _undoCommit(
     repository: Repository,
     commit: Commit
@@ -4057,7 +4102,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     fetchType: FetchType,
     remotes?: IRemote[]
   ): Promise<void> {
-    await this.withPushPullFetch(repository, async () => {
+    await this.withPushPullFetch(repository, account, async () => {
       const gitStore = this.gitStoreCache.get(repository)
 
       try {
@@ -4612,24 +4657,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public _setDivergingBranchBannerVisibility(
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _updateDivergingBranchBannerState(
     repository: Repository,
-    visible: boolean
+    divergingBranchBannerState: Partial<IDivergingBranchBannerState>
   ) {
-    const state = this.repositoryStateCache.get(repository)
-    const { compareState } = state
+    const currentBannerState = this.repositoryStateCache.get(repository)
+      .compareState.divergingBranchBannerState
 
-    if (compareState.isDivergingBranchBannerVisible !== visible) {
-      this.repositoryStateCache.updateCompareState(repository, () => ({
-        isDivergingBranchBannerVisible: visible,
-      }))
-
-      if (visible) {
-        this.statsStore.recordDivergingBranchBannerDisplayed()
-      }
-
-      this.emitUpdate()
+    const newBannerState = {
+      ...currentBannerState,
+      ...divergingBranchBannerState,
     }
+
+    // If none of the flags changed, we can skip updating the state.
+    if (shallowEquals(currentBannerState, newBannerState)) {
+      return
+    }
+
+    this.repositoryStateCache.updateCompareState(repository, () => ({
+      divergingBranchBannerState: newBannerState,
+    }))
+
+    this.emitUpdate()
   }
 
   public _reportStats() {
@@ -4802,6 +4852,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.repositoriesStore.updateRepositoryMissing(repository, missing)
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _updateRepositoryWorkflowPreferences(
+    repository: Repository,
+    workflowPreferences: WorkflowPreferences
+  ): Promise<void> {
+    await this.repositoriesStore.updateRepositoryWorkflowPreferences(
+      repository,
+      workflowPreferences
+    )
+  }
+
   /**
    * Add a tutorial repository.
    *
@@ -4893,9 +4954,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this._removeCloningRepository(r)
     })
 
-    const repositoryIDs = localRepositories.map(r => r.id)
-    for (const id of repositoryIDs) {
-      await this.repositoriesStore.removeRepository(id)
+    for (const repository of localRepositories) {
+      await this.repositoriesStore.removeRepository(repository)
     }
 
     const allRepositories = await this.repositoriesStore.getAll()
@@ -5488,10 +5548,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     branchName: string
   ) {
-    if (!enableStashing()) {
-      return
-    }
-
     const previousStashEntry = await getLastDesktopStashEntryForBranch(
       repository,
       branchName
@@ -5522,10 +5578,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     branchToCheckout: Branch
   ) {
-    if (!enableStashing()) {
-      return
-    }
-
     const {
       changesState: { workingDirectory },
     } = this.repositoryStateCache.get(repository)
@@ -5555,9 +5607,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _popStashEntry(repository: Repository, stashEntry: IStashEntry) {
-    if (!enableStashing()) {
-      return
-    }
     const gitStore = this.gitStoreCache.get(repository)
     await gitStore.performFailableOperation(() => {
       return popStashEntry(repository, stashEntry.stashSha)
@@ -5577,9 +5626,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     stashEntry: IStashEntry
   ) {
-    if (!enableStashing()) {
-      return
-    }
     const gitStore = this.gitStoreCache.get(repository)
     await gitStore.performFailableOperation(() => {
       return dropDesktopStashEntry(repository, stashEntry.stashSha)

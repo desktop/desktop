@@ -59,7 +59,7 @@ import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Commit, ICommitContext, CommitOneLine } from '../../models/commit'
 import { ICommitMessage } from '../../models/commit-message'
-import { DiffSelection, ImageDiffType } from '../../models/diff'
+import { DiffSelection, ImageDiffType, ITextDiff } from '../../models/diff'
 import { FetchType } from '../../models/fetch'
 import { GitHubRepository } from '../../models/github-repository'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
@@ -70,6 +70,7 @@ import {
   RepositoryWithGitHubRepository,
   isRepositoryWithGitHubRepository,
   getGitHubHtmlUrl,
+  isRepositoryWithForkedGitHubRepository,
 } from '../../models/repository'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
@@ -94,6 +95,8 @@ import {
 } from '../../models/uncommitted-changes-strategy'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { IStashEntry } from '../../models/stash-entry'
+import { WorkflowPreferences } from '../../models/workflow-preferences'
+import { enableForkSettings } from '../../lib/feature-flag'
 
 /**
  * An error handler function.
@@ -488,6 +491,56 @@ export class Dispatcher {
     )
   }
 
+  /**
+   * Create a new tag on the given target commit.
+   */
+  public createTag(
+    repository: Repository,
+    name: string,
+    targetCommitSha: string
+  ): Promise<void> {
+    return this.appStore._createTag(repository, name, targetCommitSha)
+  }
+
+  /**
+   * Deletes the passed tag.
+   */
+  public deleteTag(repository: Repository, name: string): Promise<void> {
+    return this.appStore._deleteTag(repository, name)
+  }
+
+  /**
+   * Show the tag creation dialog.
+   */
+  public showCreateTagDialog(
+    repository: Repository,
+    targetCommitSha: string,
+    localTags: Map<string, string> | null,
+    initialName?: string
+  ): Promise<void> {
+    return this.showPopup({
+      type: PopupType.CreateTag,
+      repository,
+      targetCommitSha,
+      initialName,
+      localTags,
+    })
+  }
+
+  /**
+   * Show the confirmation dialog to delete a tag.
+   */
+  public showDeleteTagDialog(
+    repository: Repository,
+    tagName: string
+  ): Promise<void> {
+    return this.showPopup({
+      type: PopupType.DeleteTag,
+      repository,
+      tagName,
+    })
+  }
+
   /** Check out the given branch. */
   public checkoutBranch(
     repository: Repository,
@@ -614,6 +667,16 @@ export class Dispatcher {
       const addedRepository = addedRepositories[0]
       await this.selectRepository(addedRepository)
 
+      if (
+        enableForkSettings() &&
+        isRepositoryWithForkedGitHubRepository(addedRepository)
+      ) {
+        this.showPopup({
+          type: PopupType.ChooseForkSettings,
+          repository: addedRepository,
+        })
+      }
+
       return addedRepository
     })
   }
@@ -645,6 +708,21 @@ export class Dispatcher {
     files: ReadonlyArray<WorkingDirectoryFileChange>
   ): Promise<void> {
     return this.appStore._discardChanges(repository, files)
+  }
+
+  /** Discard the changes from the given diff selection. */
+  public discardChangesFromSelection(
+    repository: Repository,
+    filePath: string,
+    diff: ITextDiff,
+    selection: DiffSelection
+  ): Promise<void> {
+    return this.appStore._discardChangesFromSelection(
+      repository,
+      filePath,
+      diff,
+      selection
+    )
   }
 
   /** Undo the given commit. */
@@ -692,16 +770,24 @@ export class Dispatcher {
   }
 
   /**
-   * Set the divering branch notification banner's visibility
+   * Set the divering branch notification nudge's visibility
    */
-  public setDivergingBranchBannerVisibility(
+  public setDivergingBranchNudgeVisibility(
     repository: Repository,
     isVisible: boolean
   ) {
-    return this.appStore._setDivergingBranchBannerVisibility(
-      repository,
-      isVisible
-    )
+    return this.appStore._updateDivergingBranchBannerState(repository, {
+      isNudgeVisible: isVisible,
+    })
+  }
+
+  /**
+   * Hide the divering branch notification banner
+   */
+  public dismissDivergingBranchBanner(repository: Repository) {
+    return this.appStore._updateDivergingBranchBannerState(repository, {
+      isPromptDismissed: true,
+    })
   }
 
   /**
@@ -1305,6 +1391,20 @@ export class Dispatcher {
   }
 
   /**
+   * Initiate an OAuth sign in using the system configured browser to GitHub.com.
+   *
+   * The promise returned will only resolve once the user has successfully
+   * authenticated. If the user terminates the sign-in process by closing
+   * their browser before the protocol handler is invoked, by denying the
+   * protocol handler to execute or by providing the wrong credentials
+   * this promise will never complete.
+   */
+  public async requestBrowserAuthenticationToDotcom(): Promise<void> {
+    await this.beginDotComSignIn()
+    return this.requestBrowserAuthentication()
+  }
+
+  /**
    * Attempt to complete the sign in flow with the given OTP token.\
    * This method must only be called when the store is in the
    * TwoFactorAuthentication step or an error will be thrown.
@@ -1380,6 +1480,22 @@ export class Dispatcher {
       const newPath = filePaths[0]
       await this.updateRepositoryPath(repository, newPath)
     }
+  }
+
+  /**
+   * Change the workflow preferences for the specified repository.
+   *
+   * @param repository            The repositosy to update.
+   * @param workflowPreferences   The object with the workflow settings to use.
+   */
+  public async updateRepositoryWorkflowPreferences(
+    repository: Repository,
+    workflowPreferences: WorkflowPreferences
+  ) {
+    await this.appStore._updateRepositoryWorkflowPreferences(
+      repository,
+      workflowPreferences
+    )
   }
 
   /** Update the repository's path. */
@@ -1998,8 +2114,8 @@ export class Dispatcher {
   public async convertRepositoryToFork(
     repository: RepositoryWithGitHubRepository,
     fork: IAPIRepository
-  ) {
-    await this.appStore._convertRepositoryToFork(repository, fork)
+  ): Promise<Repository> {
+    return this.appStore._convertRepositoryToFork(repository, fork)
   }
 
   /**

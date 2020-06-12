@@ -1,5 +1,5 @@
 import * as URL from 'url'
-import { testForInvalidChars } from './sanitize-branch'
+import { testForInvalidChars } from './sanitize-ref-name'
 
 export interface IOAuthAction {
   readonly name: 'oauth'

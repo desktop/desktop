@@ -1,4 +1,27 @@
-import { DiffLine, DiffHunk } from '../../models/diff'
+import { DiffLine, DiffHunk, DiffLineType } from '../../models/diff'
+
+/**
+ * Indicate the type of changes that are included in the current range.
+ */
+export enum DiffRangeType {
+  /** Only contains added lines. */
+  Additions,
+  /** Only contains deleted lines. */
+  Deletions,
+  /** Contains both added and removed lines. */
+  Mixed,
+}
+
+/**
+ * Helper object that represents a range of lines in a diff.
+ * Its type represents the type of interactive (added or deleted)
+ * lines that it contains, being null when it has no interactive lines.
+ */
+interface IDiffRange {
+  readonly from: number
+  readonly to: number
+  readonly type: DiffRangeType | null
+}
 
 /**
  * Locate the diff hunk for the given (absolute) line number in the diff.
@@ -53,7 +76,7 @@ export function lineNumberForDiffLine(
 export function findInteractiveDiffRange(
   hunks: ReadonlyArray<DiffHunk>,
   index: number
-): { from: number; to: number } | null {
+): IDiffRange | null {
   const hunk = diffHunkForIndex(hunks, index)
   if (!hunk) {
     return null
@@ -61,7 +84,12 @@ export function findInteractiveDiffRange(
 
   const relativeIndex = index - hunk.unifiedDiffStart
 
+  let rangeType: DiffRangeType | null = getNextRangeType(
+    null,
+    hunk.lines[relativeIndex]
+  )
   let contextLineBeforeIndex: number | null = null
+
   for (let i = relativeIndex - 1; i >= 0; i--) {
     const line = hunk.lines[i]
     if (!line.isIncludeableLine()) {
@@ -69,6 +97,8 @@ export function findInteractiveDiffRange(
       contextLineBeforeIndex = hunk.unifiedDiffStart + startIndex
       break
     }
+
+    rangeType = getNextRangeType(rangeType, line)
   }
 
   const from =
@@ -85,10 +115,52 @@ export function findInteractiveDiffRange(
       contextLineAfterIndex = hunk.unifiedDiffStart + endIndex
       break
     }
+
+    rangeType = getNextRangeType(rangeType, line)
   }
 
   const to =
     contextLineAfterIndex !== null ? contextLineAfterIndex : hunk.unifiedDiffEnd
 
-  return { from, to }
+  return { from, to, type: rangeType }
+}
+
+function getNextRangeType(
+  currentRangeType: DiffRangeType | null,
+  currentLine: DiffLine
+): DiffRangeType | null {
+  if (
+    currentLine.type !== DiffLineType.Add &&
+    currentLine.type !== DiffLineType.Delete
+  ) {
+    // If the current line is not interactive, ignore it.
+    return currentRangeType
+  }
+
+  if (currentRangeType === null) {
+    // If the current range type hasn't been set yet, we set it
+    // temporarily to the current line type.
+    return currentLine.type === DiffLineType.Add
+      ? DiffRangeType.Additions
+      : DiffRangeType.Deletions
+  }
+
+  if (currentRangeType === DiffRangeType.Mixed) {
+    // If the current range type is Mixed we don't need to change it
+    // (it can't go back to Additions or Deletions).
+    return currentRangeType
+  }
+
+  if (
+    (currentLine.type === DiffLineType.Add &&
+      currentRangeType !== DiffRangeType.Additions) ||
+    (currentLine.type === DiffLineType.Delete &&
+      currentRangeType !== DiffRangeType.Deletions)
+  ) {
+    // If the current line has a different type than the current range type,
+    // we automatically set the range type to mixed.
+    return DiffRangeType.Mixed
+  }
+
+  return currentRangeType
 }

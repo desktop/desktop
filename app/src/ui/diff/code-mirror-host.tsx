@@ -60,6 +60,11 @@ interface ICodeMirrorHostProps {
   readonly onAfterSwapDoc?: (cm: Editor, oldDoc: Doc, newDoc: Doc) => void
 
   /**
+   * Called when user want to open context menu.
+   */
+  readonly onContextMenu?: (cm: Editor, event: Event) => void
+
+  /**
    * Called when content has been copied. The default behavior may be prevented
    * by calling `preventDefault` on the event.
    */
@@ -158,6 +163,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
     this.codeMirror.on('viewportChange', this.onViewportChange)
     this.codeMirror.on('beforeSelectionChange', this.beforeSelectionChanged)
     this.codeMirror.on('copy', this.onCopy)
+    this.codeMirror.on('contextmenu', this.onContextMenu)
     this.codeMirror.on('swapDoc', this.onSwapDoc as any)
 
     CodeMirrorHost.updateDoc(this.codeMirror, this.props.value)
@@ -167,6 +173,12 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
   private onSwapDoc = (cm: Editor, oldDoc: Doc) => {
     if (this.props.onSwapDoc) {
       this.props.onSwapDoc(cm, oldDoc)
+    }
+  }
+
+  private onContextMenu = (instance: Editor, event: Event) => {
+    if (this.props.onContextMenu) {
+      this.props.onContextMenu(instance, event)
     }
   }
 

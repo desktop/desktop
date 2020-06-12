@@ -121,14 +121,11 @@
     list-style: none;
     margin: 0;
     padding: 0 var(--spacing) var(--spacing);
-
-    .checkbox-component {
-      margin-left: auto;
-    }
   }
 
   &-meta-item:not(.without-truncation) {
-    @include ellipsis;
+    flex-shrink: 1;
+    min-width: 0;
   }
 
   &-meta-item {
@@ -137,6 +134,7 @@
     min-width: 0;
     margin-right: var(--spacing);
     font-size: var(--font-size-sm);
+    flex-shrink: 0;
 
     .avatar,
     .octicon {
@@ -147,6 +145,11 @@
 
     .sha {
       user-select: text;
+    }
+
+    .tags {
+      @include ellipsis;
+      flex-shrink: 1;
     }
   }
 

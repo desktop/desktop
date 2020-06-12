@@ -360,10 +360,10 @@ double-ended-queue@^2.1.0-0:
   resolved "https://registry.yarnpkg.com/double-ended-queue/-/double-ended-queue-2.1.0-0.tgz#103d3527fd31528f40188130c841efdd78264e5c"
   integrity sha1-ED01J/0xUo9AGIEwyEHv3XgmTlw=
 
-dugite@1.88.3:
-  version "1.88.3"
-  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.88.3.tgz#b9ec01abc7f14dd71b17259113d425172e1eca71"
-  integrity sha512-h1tnvy0TpqhR1FBCVYcDKOEl1Vk1R9sIuSqWeoq+Vddf3vlZRp8SFUqLXB63dOxJ1D155KlK2JNIY63+h00riA==
+dugite@1.88.6:
+  version "1.88.6"
+  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.88.6.tgz#604488dc54337c164d8d41ffbcea6e62dbdbb558"
+  integrity sha512-8IgoN4glPsFsHXt2ZFqm0yUxnMriCrdq2282e5dPKL37Z3AsxKBrrDf8K7f3bD4NzzvYccqMnOJXDK5MlHVmiQ==
   dependencies:
     checksum "^0.1.1"
     got "^9.6.0"
@@ -873,6 +873,11 @@ mkdirp@0.5.1, mkdirp@^0.5.0, mkdirp@^0.5.1:
   integrity sha1-MAV0OOrGz3+MR2fzhkjWaX11yQM=
   dependencies:
     minimist "0.0.8"
+
+moment-duration-format@^2.3.2:
+  version "2.3.2"
+  resolved "https://registry.yarnpkg.com/moment-duration-format/-/moment-duration-format-2.3.2.tgz#5fa2b19b941b8d277122ff3f87a12895ec0d6212"
+  integrity sha512-cBMXjSW+fjOb4tyaVHuaVE/A5TqkukDWiOfxxAjY+PEqmmBQlLwn+8OzwPiG3brouXKY5Un4pBjAeB6UToXHaQ==
 
 moment@^2.24.0:
   version "2.24.0"
