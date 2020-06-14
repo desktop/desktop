@@ -92,15 +92,16 @@ function writeBatchScriptCLITrampoline(binPath: string): Promise<void> {
   return writeFile(trampolinePath, trampoline)
 }
 
-/** We have to make sure the versioned path in the script has the correct format
- * even if its Windows otherwise there can be edge cases with WSL see issue:
- * https://github.com/desktop/desktop/issues/4998
- */
 function writeShellScriptCLITrampoline(binPath: string): Promise<void> {
+  // The path we get from `resolveVersionedPath` is a Win32 relative
+  // path (something like `..\app-2.5.0\resources\app\static\github.sh`).
+  // We need to make sure it's a POSIX path in order for WSL to be able
+  // to resolve it. See https://github.com/desktop/desktop/issues/4998
   const versionedPath = resolveVersionedPath(
     binPath,
     'resources/app/static/github.sh'
   ).replace(/\\/g, '/')
+
   const trampoline = `#!/usr/bin/env bash
   DIR="$( cd "$( dirname "\$\{BASH_SOURCE[0]\}" )" && pwd )"
   sh "$DIR/${versionedPath}" "$@"`
