@@ -66,13 +66,7 @@ function getBinPath(): string {
 
 function resolveVersionedPath(binPath: string, relativePath: string): string {
   const appFolder = Path.resolve(process.execPath, '..')
-
-  const computedPath = Path.relative(
-    binPath,
-    Path.join(appFolder, relativePath)
-  )
-
-  return Path.normalize(computedPath)
+  return Path.relative(binPath, Path.join(appFolder, relativePath))
 }
 
 /**
@@ -103,15 +97,10 @@ function writeBatchScriptCLITrampoline(binPath: string): Promise<void> {
  * https://github.com/desktop/desktop/issues/4998
  */
 function writeShellScriptCLITrampoline(binPath: string): Promise<void> {
-  const rawVersionedPath = resolveVersionedPath(
+  const versionedPath = resolveVersionedPath(
     binPath,
     'resources/app/static/github.sh'
-  )
-
-  const versionedPath = __WIN32__
-    ? rawVersionedPath.replace(/\\/g, '/')
-    : rawVersionedPath
-
+  ).replace(/\\/g, '/')
   const trampoline = `#!/usr/bin/env bash
   DIR="$( cd "$( dirname "\$\{BASH_SOURCE[0]\}" )" && pwd )"
   sh "$DIR/${versionedPath}" "$@"`
