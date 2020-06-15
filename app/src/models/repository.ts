@@ -6,7 +6,6 @@ import {
   WorkflowPreferences,
   ForkContributionTarget,
 } from './workflow-preferences'
-import { assertNever } from '../lib/fatal-error'
 
 function getBaseName(path: string): string {
   const baseName = Path.basename(path)
@@ -184,8 +183,6 @@ export function getNonForkGitHubRepository(
     case ForkContributionTarget.Parent:
       return repository.gitHubRepository.parent
   }
-
-  return assertNever(forkContributionTarget, 'Invalid fork contribution target')
 }
 
 /**

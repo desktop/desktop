@@ -29,7 +29,6 @@ function startApp() {
       "Couldn't launch the app. You probably need to build it first. Run `yarn build:dev`."
     )
     process.exit(1)
-    return
   }
 
   runningApp.on('close', () => {
@@ -63,7 +62,6 @@ if (process.env.NODE_ENV === 'production') {
     if (err) {
       console.log(err)
       process.exit(1)
-      return
     }
 
     console.log(`Server running at http://localhost:${port}`)

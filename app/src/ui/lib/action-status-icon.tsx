@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as classNames from 'classnames'
 import { ComputedAction } from '../../models/computed-action'
-import { assertNever } from '../../lib/fatal-error'
 
 import { Octicon, OcticonSymbol } from '../octicons'
 
@@ -62,6 +61,4 @@ function getSymbolForState(status: ComputedAction): OcticonSymbol {
     case ComputedAction.Clean:
       return OcticonSymbol.check
   }
-
-  return assertNever(status, `Unknown state: ${JSON.stringify(status)}`)
 }

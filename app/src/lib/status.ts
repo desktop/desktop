@@ -43,8 +43,6 @@ export function mapStatus(status: AppFileStatus): string {
     case AppFileStatusKind.Copied:
       return 'Copied'
   }
-
-  return assertNever(status, `Unknown file status ${status}`)
 }
 
 /** Typechecker helper to identify conflicted files */

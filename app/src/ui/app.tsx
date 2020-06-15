@@ -397,8 +397,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'find-text':
         return this.findText()
     }
-
-    return assertNever(name, `Unknown menu event name: ${name}`)
   }
 
   /**

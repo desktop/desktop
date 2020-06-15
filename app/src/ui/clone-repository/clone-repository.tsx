@@ -314,8 +314,6 @@ export class CloneRepository extends React.Component<
         }
       }
     }
-
-    return assertNever(tab, `Unknown tab: ${tab}`)
   }
 
   private getAccountForTab(tab: CloneRepositoryTab): Account | null {

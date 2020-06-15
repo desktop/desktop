@@ -4,7 +4,6 @@ import {
   isConflictWithMarkers,
 } from '../../models/status'
 import { OcticonSymbol } from './octicons.generated'
-import { assertNever } from '../../lib/fatal-error'
 
 /**
  * Converts a given `AppFileStatusKind` value to an Octicon symbol
@@ -32,6 +31,4 @@ export function iconForStatus(status: AppFileStatus): OcticonSymbol {
     case AppFileStatusKind.Copied:
       return OcticonSymbol.diffAdded
   }
-
-  return assertNever(status, `Unknown file status ${status}`)
 }

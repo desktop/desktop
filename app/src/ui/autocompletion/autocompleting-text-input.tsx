@@ -457,7 +457,6 @@ export abstract class AutocompletingTextInput<
         fatalError(
           `The regex (${regex}) returned from ${provider} isn't global, but it should be!`
         )
-        continue
       }
 
       let result: RegExpExecArray | null = null
