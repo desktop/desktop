@@ -10272,10 +10272,10 @@ typescript-tslint-plugin@^0.0.6:
     minimatch "^3.0.4"
     vscode-languageserver "^5.1.0"
 
-typescript@^3.4.3:
-  version "3.4.3"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.4.3.tgz#0eb320e4ace9b10eadf5bc6103286b0f8b7c224f"
-  integrity sha512-FFgHdPt4T/duxx6Ndf7hwgMZZjZpB+U0nMNGVCYPq0rEzWKjEDobm4J6yb3CS7naZ0yURFqdw9Gwc7UOh/P9oQ==
+typescript@^3.9.5:
+  version "3.9.5"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.9.5.tgz#586f0dba300cde8be52dd1ac4f7e1009c1b13f36"
+  integrity sha512-hSAifV3k+i6lEoCJ2k6R2Z/rp/H3+8sdmcn5NrS3/3kE7+RyZXm9aqvxWqjEXHAd8b0pShatpcdMTvEdvAJltQ==
 
 typeson-registry@^1.0.0-alpha.20:
   version "1.0.0-alpha.21"
