@@ -326,6 +326,7 @@ dialog {
         // but make sure we wrap if necessary.
         white-space: pre-wrap;
         overflow-wrap: break-word;
+        overflow-x: hidden;
 
         &.monospace {
           font-family: var(--font-family-monospace);
@@ -334,7 +335,6 @@ dialog {
 
       max-height: 400px;
       overflow-y: auto;
-      overflow-x: hidden;
     }
   }
 
