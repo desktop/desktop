@@ -48,6 +48,8 @@ interface ICompareSidebarProps {
   readonly onViewCommitOnGitHub: (sha: string) => void
   readonly onCompareListScrolled: (scrollTop: number) => void
   readonly compareListScrollTop?: number
+  readonly localTags: Map<string, string> | null
+  readonly tagsToPush: ReadonlyArray<string> | null
 }
 
 interface ICompareSidebarState {
@@ -283,9 +285,12 @@ export class CompareSidebar extends React.Component<
         }
         onCommitSelected={this.onCommitSelected}
         onScroll={this.onScroll}
+        onCreateTag={this.onCreateTag}
+        onDeleteTag={this.onDeleteTag}
         emptyListMessage={emptyListMessage}
         onCompareListScrolled={this.props.onCompareListScrolled}
         compareListScrollTop={this.props.compareListScrollTop}
+        tagsToPush={this.props.tagsToPush}
       />
     )
   }
@@ -542,14 +547,6 @@ export class CompareSidebar extends React.Component<
     branch: Branch | null,
     source: SelectionSource
   ) => {
-    if (source.kind === 'mouseclick' && branch != null) {
-      this.props.dispatcher.executeCompare(this.props.repository, {
-        kind: HistoryTabMode.Compare,
-        comparisonMode: ComparisonMode.Behind,
-        branch,
-      })
-    }
-
     this.setState({
       focusedBranch: branch,
     })
@@ -588,6 +585,18 @@ export class CompareSidebar extends React.Component<
     if (this.state.hasConsumedNotification) {
       this.props.dispatcher.recordDivergingBranchBannerInfluencedMerge()
     }
+  }
+
+  private onCreateTag = (targetCommitSha: string) => {
+    this.props.dispatcher.showCreateTagDialog(
+      this.props.repository,
+      targetCommitSha,
+      this.props.localTags
+    )
+  }
+
+  private onDeleteTag = (tagName: string) => {
+    this.props.dispatcher.showDeleteTagDialog(this.props.repository, tagName)
   }
 }
 

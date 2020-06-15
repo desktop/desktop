@@ -309,7 +309,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   private onUndo = () => {
     const commit = this.props.mostRecentLocalCommit
 
-    if (commit) {
+    if (commit && commit.tags.length === 0) {
       this.props.dispatcher.undoCommit(this.props.repository, commit)
     }
   }
@@ -317,7 +317,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   private renderMostRecentLocalCommit() {
     const commit = this.props.mostRecentLocalCommit
     let child: JSX.Element | null = null
-    if (commit) {
+
+    // We don't allow undoing commits that have tags associated to them, since then
+    // the commit won't be completely deleted because the tag will still point to it.
+    if (commit && commit.tags.length === 0) {
       child = (
         <UndoCommit
           isPushPullFetchInProgress={this.props.isPushPullFetchInProgress}

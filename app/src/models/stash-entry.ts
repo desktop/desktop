@@ -1,7 +1,7 @@
 import { CommittedFileChange } from './status'
 
 export interface IStashEntry {
-  /** The name of the entry i.e., `stash@{0}` */
+  /** The fully qualified name of the entry i.e., `refs/stash@{0}` */
   readonly name: string
 
   /** The name of the branch at the time the entry was created. */
