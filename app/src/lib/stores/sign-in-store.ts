@@ -190,6 +190,14 @@ interface IAuthenticationEvent {
 
 /** The maximum time to wait for a `/meta` API call in milliseconds */
 const ServerMetaDataTimeout = 2000
+// https://developer.github.com/changes/2020-02-14-deprecating-oauth-auth-endpoint/
+const DotComAuthorizationAPIRemovalDate = new Date(
+  '2020-11-13T16:00:00.000Z'
+).valueOf()
+
+function isBeforeDotComAuthorizationAPIRemoval() {
+  return Date.now() < DotComAuthorizationAPIRemovalDate
+}
 
 /**
  * A store encapsulating all logic related to signing in a user
@@ -262,8 +270,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
     }
 
     if (endpoint === getDotComAPIEndpoint()) {
-      // todo dynamic
-      return true
+      return isBeforeDotComAuthorizationAPIRemoval()
     } else {
       throw new Error(
         `Unable to authenticate with the GitHub Enterprise Server instance. Verify that the URL is correct, that your GitHub Enterprise Server instance is running version ${minimumSupportedEnterpriseVersion} or later, that you have an internet connection and try again.`
@@ -287,17 +294,33 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
    * Initiate a sign in flow for github.com. This will put the store
    * in the Authentication step ready to receive user credentials.
    */
-  public beginDotComSignIn() {
+  public async beginDotComSignIn() {
     const endpoint = getDotComAPIEndpoint()
+
+    let supportsBasicAuth = this.endpointSupportBasicAuth.get(endpoint)
+
+    if (supportsBasicAuth === undefined) {
+      supportsBasicAuth = isBeforeDotComAuthorizationAPIRemoval()
+    }
 
     this.setState({
       kind: SignInStep.Authentication,
       endpoint,
-      supportsBasicAuth: true,
+      supportsBasicAuth,
       error: null,
       loading: false,
       forgotPasswordUrl: this.getForgotPasswordURL(endpoint),
     })
+
+    supportsBasicAuth = await this.endpointSupportsBasicAuth(endpoint)
+
+    if (
+      this.state !== null &&
+      this.state.kind === SignInStep.Authentication &&
+      this.state.endpoint === endpoint
+    ) {
+      this.setState({ ...this.state, supportsBasicAuth })
+    }
   }
 
   /**
