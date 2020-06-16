@@ -23,7 +23,7 @@ import { AuthenticationMode } from '../../lib/2fa'
 
 import { minimumSupportedEnterpriseVersion } from '../../lib/enterprise'
 import { TypedBaseStore } from './base-store'
-import { sleep } from '../promise'
+import { timeout } from '../promise'
 
 function getUnverifiedUserErrorMessage(login: string): string {
   return `Unable to authenticate. The account ${login} is lacking a verified email address. Please sign in to GitHub.com, confirm your email address in the Emails section under Personal settings, and try again.`
@@ -242,31 +242,33 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
   }
 
   private async endpointSupportsBasicAuth(endpoint: string): Promise<boolean> {
-    return await Promise.race([
-      fetchMetadata(endpoint),
-      sleep(ServerMetaDataTimeout).then(() => {
-        const cached = this.endpointSupportBasicAuth.get(endpoint)
-        return cached === undefined
-          ? null
-          : { verifiable_password_authentication: cached }
-      }),
-    ]).then(response => {
-      if (response !== null) {
-        const vpa = response.verifiable_password_authentication === false
-        this.endpointSupportBasicAuth.set(endpoint, vpa)
+    const cached = this.endpointSupportBasicAuth.get(endpoint)
+    const fallbackValue =
+      cached === undefined
+        ? null
+        : { verifiable_password_authentication: cached }
 
-        return vpa
-      } else {
-        if (endpoint === getDotComAPIEndpoint()) {
-          // todo dynamic
-          return true
-        } else {
-          throw new Error(
-            `Unable to authenticate with the GitHub Enterprise Server instance. Verify that the URL is correct, that your GitHub Enterprise Server instance is running version ${minimumSupportedEnterpriseVersion} or later, that you have an internet connection and try again.`
-          )
-        }
-      }
-    })
+    const response = await timeout(
+      fetchMetadata(endpoint),
+      ServerMetaDataTimeout,
+      fallbackValue
+    )
+
+    if (response !== null) {
+      const supportsBasicAuth =
+        response.verifiable_password_authentication === false
+      this.endpointSupportBasicAuth.set(endpoint, supportsBasicAuth)
+      return supportsBasicAuth
+    }
+
+    if (endpoint === getDotComAPIEndpoint()) {
+      // todo dynamic
+      return true
+    } else {
+      throw new Error(
+        `Unable to authenticate with the GitHub Enterprise Server instance. Verify that the URL is correct, that your GitHub Enterprise Server instance is running version ${minimumSupportedEnterpriseVersion} or later, that you have an internet connection and try again.`
+      )
+    }
   }
 
   private getForgotPasswordURL(endpoint: string): string {
