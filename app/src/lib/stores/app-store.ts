@@ -4709,9 +4709,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
+  public _onDotComSupportsBasicAuthUpdated(fn: (dotComSupportsBasicAuth: boolean) => void) {
+    return this.signInStore.onDotComSupportsBasicAuthUpdated(fn)
+  }
+
+  public _tryGetDotComSupportsBasicAuth(): boolean {
+    return this.signInStore.tryGetDotComSupportsBasicAuth()
+  }
+
   public _beginDotComSignIn(): Promise<void> {
-    this.signInStore.beginDotComSignIn()
-    return Promise.resolve()
+    return this.signInStore.beginDotComSignIn()
   }
 
   public _beginEnterpriseSignIn(): Promise<void> {

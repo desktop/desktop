@@ -1322,6 +1322,16 @@ export class Dispatcher {
     return this.appStore._resetSignInState()
   }
 
+  public onDotComSupportsBasicAuthUpdated(
+    fn: (dotComSupportsBasicAuth: boolean) => void
+  ) {
+    return this.appStore._onDotComSupportsBasicAuthUpdated(fn)
+  }
+
+  public tryGetDotComSupportsBasicAuth(): boolean {
+    return this.appStore._tryGetDotComSupportsBasicAuth()
+  }
+
   /**
    * Initiate a sign in flow for github.com. This will put the store
    * in the Authentication step ready to receive user credentials.
