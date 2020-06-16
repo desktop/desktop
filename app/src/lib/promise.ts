@@ -12,7 +12,7 @@ export function promiseWithMinimumTimeout<T>(
   action: () => Promise<T>,
   timeoutMs: number
 ): Promise<T> {
-  return Promise.all([action(), timeout(timeoutMs)]).then(x => x[0])
+  return Promise.all([action(), sleep(timeoutMs)]).then(x => x[0])
 }
 
 /**
@@ -22,6 +22,6 @@ export function promiseWithMinimumTimeout<T>(
  *
  * @param timeout the time to wait before resolving the promise (in milliseconds)
  */
-export async function timeout(timeout: number): Promise<void> {
+export async function sleep(timeout: number): Promise<void> {
   return new Promise(resolve => window.setTimeout(resolve, timeout))
 }

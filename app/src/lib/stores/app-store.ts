@@ -197,7 +197,7 @@ import {
 import { TypedBaseStore } from './base-store'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import { MergeResult } from '../../models/merge'
-import { promiseWithMinimumTimeout, timeout } from '../promise'
+import { promiseWithMinimumTimeout, sleep } from '../promise'
 import { BackgroundFetcher } from './helpers/background-fetcher'
 import { inferComparisonBranch } from './helpers/infer-comparison-branch'
 import { validatedRepositoryPath } from './helpers/validated-repository-path'
@@ -4359,7 +4359,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // this timeout is intended to defer the action from running immediately
       // after the progress UI is shown, to better show that rebase is
       // progressing rather than suddenly appearing and disappearing again
-      await timeout(500)
+      await sleep(500)
       await step.rebaseAction()
     }
   }
