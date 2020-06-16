@@ -335,29 +335,34 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
    * Initiate a sign in flow for github.com. This will put the store
    * in the Authentication step ready to receive user credentials.
    */
-  public async beginDotComSignIn() {
+  public beginDotComSignIn() {
     const endpoint = getDotComAPIEndpoint()
-
-    let supportsBasicAuth = this.tryGetDotComSupportsBasicAuth()
 
     this.setState({
       kind: SignInStep.Authentication,
       endpoint,
-      supportsBasicAuth,
+      supportsBasicAuth: this.tryGetDotComSupportsBasicAuth(),
       error: null,
       loading: false,
       forgotPasswordUrl: this.getForgotPasswordURL(endpoint),
     })
 
-    supportsBasicAuth = await this.endpointSupportsBasicAuth(endpoint)
-
-    if (
-      this.state !== null &&
-      this.state.kind === SignInStep.Authentication &&
-      this.state.endpoint === endpoint
-    ) {
-      this.setState({ ...this.state, supportsBasicAuth })
-    }
+    this.endpointSupportsBasicAuth(endpoint)
+      .then(supportsBasicAuth => {
+        if (
+          this.state !== null &&
+          this.state.kind === SignInStep.Authentication &&
+          this.state.endpoint === endpoint
+        ) {
+          this.setState({ ...this.state, supportsBasicAuth })
+        }
+      })
+      .catch(err =>
+        log.error(
+          'Failed resolving whether GitHub.com supports password authentication',
+          err
+        )
+      )
   }
 
   /**
