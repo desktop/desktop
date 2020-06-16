@@ -26,6 +26,15 @@ export async function sleep(timeout: number): Promise<void> {
   return new Promise(resolve => window.setTimeout(resolve, timeout))
 }
 
+/**
+ * Helper function which lets callers define a maximum time to wait for
+ * a promise to complete after which a default value is returned instead.
+ *
+ * @param promise The promise to wait on
+ * @param timeout The maximum time to wait in milliseconds
+ * @param fallbackValue The default value to return should the promise
+ *                      not complete within `timeout` milliseconds.
+ */
 export async function timeout<T>(
   promise: Promise<T>,
   timeout: number,
