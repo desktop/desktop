@@ -300,11 +300,18 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       const supportsBasicAuth =
         response.verifiable_password_authentication === true
       this.endpointSupportBasicAuth.set(endpoint, supportsBasicAuth)
+
+      if (endpoint === getDotComAPIEndpoint()) {
+        this.emitDotComSupportsBasicAuthUpdated(supportsBasicAuth)
+      }
+
       return supportsBasicAuth
     }
 
     if (endpoint === getDotComAPIEndpoint()) {
-      return isBeforeDotComAuthorizationAPIRemoval()
+      const supportsBasicAuth = isBeforeDotComAuthorizationAPIRemoval()
+      this.emitDotComSupportsBasicAuthUpdated(supportsBasicAuth)
+      return supportsBasicAuth
     } else {
       throw new Error(
         `Unable to authenticate with the GitHub Enterprise Server instance. Verify that the URL is correct, that your GitHub Enterprise Server instance is running version ${minimumSupportedEnterpriseVersion} or later, that you have an internet connection and try again.`
@@ -331,11 +338,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
   public async beginDotComSignIn() {
     const endpoint = getDotComAPIEndpoint()
 
-    let supportsBasicAuth = this.endpointSupportBasicAuth.get(endpoint)
-
-    if (supportsBasicAuth === undefined) {
-      supportsBasicAuth = isBeforeDotComAuthorizationAPIRemoval()
-    }
+    let supportsBasicAuth = this.tryGetDotComSupportsBasicAuth()
 
     this.setState({
       kind: SignInStep.Authentication,
