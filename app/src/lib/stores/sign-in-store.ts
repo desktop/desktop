@@ -371,6 +371,8 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       forgotPasswordUrl: this.getForgotPasswordURL(endpoint),
     })
 
+    // Asynchronously refresh our knowledge about whether GitHub.com
+    // support username and password authentication or not.
     this.endpointSupportsBasicAuth(endpoint)
       .then(supportsBasicAuth => {
         if (
