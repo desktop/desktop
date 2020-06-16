@@ -4718,7 +4718,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public _beginDotComSignIn(): Promise<void> {
-    return this.signInStore.beginDotComSignIn()
+    this.signInStore.beginDotComSignIn()
+    return Promise.resolve()
   }
 
   public _beginEnterpriseSignIn(): Promise<void> {
