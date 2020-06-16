@@ -264,7 +264,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
 
     if (response !== null) {
       const supportsBasicAuth =
-        response.verifiable_password_authentication === false
+        response.verifiable_password_authentication === true
       this.endpointSupportBasicAuth.set(endpoint, supportsBasicAuth)
       return supportsBasicAuth
     }
