@@ -45,7 +45,7 @@ export async function timeout<T>(
     timeoutId = window.setTimeout(() => resolve(fallbackValue), timeout)
   })
 
-  Promise.race([promise, timeoutPromise]).finally(() => {
+  return Promise.race([promise, timeoutPromise]).finally(() => {
     if (timeoutId !== null) {
       window.clearTimeout(timeoutId)
     }
