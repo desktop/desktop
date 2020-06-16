@@ -23,7 +23,7 @@ import { AuthenticationMode } from '../../lib/2fa'
 
 import { minimumSupportedEnterpriseVersion } from '../../lib/enterprise'
 import { TypedBaseStore } from './base-store'
-import { timeout } from '../promise'
+import { sleep } from '../promise'
 
 function getUnverifiedUserErrorMessage(login: string): string {
   return `Unable to authenticate. The account ${login} is lacking a verified email address. Please sign in to GitHub.com, confirm your email address in the Emails section under Personal settings, and try again.`
@@ -244,7 +244,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
   private async endpointSupportsBasicAuth(endpoint: string): Promise<boolean> {
     return await Promise.race([
       fetchMetadata(endpoint),
-      timeout(ServerMetaDataTimeout).then(() => {
+      sleep(ServerMetaDataTimeout).then(() => {
         const cached = this.endpointSupportBasicAuth.get(endpoint)
         return cached === undefined
           ? null
