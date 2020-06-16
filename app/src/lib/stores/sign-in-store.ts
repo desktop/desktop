@@ -255,6 +255,17 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       }
     )
   }
+
+  public tryGetDotComSupportsBasicAuth(): boolean {
+    const supportsBasicAuth = this.endpointSupportBasicAuth.get(
+      getDotComAPIEndpoint()
+    )
+
+    return supportsBasicAuth === undefined
+      ? isBeforeDotComAuthorizationAPIRemoval()
+      : supportsBasicAuth
+  }
+
   /**
    * Returns the current state of the sign in store or null if
    * no sign in process is in flight.
