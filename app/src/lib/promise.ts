@@ -25,3 +25,20 @@ export function promiseWithMinimumTimeout<T>(
 export async function sleep(timeout: number): Promise<void> {
   return new Promise(resolve => window.setTimeout(resolve, timeout))
 }
+
+export async function timeout<T>(
+  promise: Promise<T>,
+  timeout: number,
+  fallbackValue: T
+) {
+  let timeoutId: number | null = null
+  const timeoutPromise = new Promise(resolve => {
+    timeoutId = window.setTimeout(() => resolve(fallbackValue), timeout)
+  })
+
+  Promise.race([promise, timeoutPromise]).finally(() => {
+    if (timeoutId !== null) {
+      window.clearTimeout(timeoutId)
+    }
+  })
+}
