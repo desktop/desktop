@@ -4722,6 +4722,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.signInStore.onDotComSupportsBasicAuthUpdated(fn)
   }
 
+  /**
+   * Attempt to _synchronously_ retrieve whether GitHub.com supports
+   * username and password authentication. If the SignInStore has
+   * previously checked the API to determine the actual status that
+   * cached value is returned. If not we attempt to calculate the
+   * most probably state based on the current date and the deprecation
+   * timeline.
+   */
   public _tryGetDotComSupportsBasicAuth(): boolean {
     return this.signInStore.tryGetDotComSupportsBasicAuth()
   }
