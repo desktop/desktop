@@ -12,7 +12,7 @@ export function promiseWithMinimumTimeout<T>(
   action: () => Promise<T>,
   timeoutMs: number
 ): Promise<T> {
-  return Promise.all([action(), timeout(timeoutMs)]).then(x => x[0])
+  return Promise.all([action(), sleep(timeoutMs)]).then(x => x[0])
 }
 
 /**
@@ -22,6 +22,32 @@ export function promiseWithMinimumTimeout<T>(
  *
  * @param timeout the time to wait before resolving the promise (in milliseconds)
  */
-export async function timeout(timeout: number): Promise<void> {
+export async function sleep(timeout: number): Promise<void> {
   return new Promise(resolve => window.setTimeout(resolve, timeout))
+}
+
+/**
+ * Helper function which lets callers define a maximum time to wait for
+ * a promise to complete after which a default value is returned instead.
+ *
+ * @param promise The promise to wait on
+ * @param timeout The maximum time to wait in milliseconds
+ * @param fallbackValue The default value to return should the promise
+ *                      not complete within `timeout` milliseconds.
+ */
+export async function timeout<T>(
+  promise: Promise<T>,
+  timeout: number,
+  fallbackValue: T
+): Promise<T> {
+  let timeoutId: number | null = null
+  const timeoutPromise = new Promise<T>(resolve => {
+    timeoutId = window.setTimeout(() => resolve(fallbackValue), timeout)
+  })
+
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    if (timeoutId !== null) {
+      window.clearTimeout(timeoutId)
+    }
+  })
 }
