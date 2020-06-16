@@ -1,5 +1,5 @@
-# [GitHub Desktop](https://desktop.github.com)
-
+# [../](https://github.com/desktop/desktop/blob/testing-123)
+## [GitHub Desktop](https://desktop.github.com/desktop.svg?style=flat-square&label=GitHub+Desktop)
 [![Travis](https://img.shields.io/travis/desktop/desktop.svg?style=flat-square&label=Travis+CI)](https://travis-ci.org/desktop/desktop)
 [![CircleCI](https://img.shields.io/circleci/project/github/desktop/desktop.svg?style=flat-square&label=CircleCI)](https://circleci.com/gh/desktop/desktop)
 [![AppVeyor Build Status](https://img.shields.io/appveyor/ci/github-windows/desktop/development.svg?style=flat-square&label=AppVeyor&logo=appveyor)](https://ci.appveyor.com/project/github-windows/desktop/branch/development)
@@ -11,7 +11,7 @@ GitHub Desktop is an open source [Electron](https://electron.atom.io)-based
 GitHub app. It is written in [TypeScript](http://www.typescriptlang.org) and
 uses [React](https://facebook.github.io/react/).
 
-![GitHub Desktop screenshot - Windows](https://cloud.githubusercontent.com/assets/359239/26094502/a1f56d02-3a5d-11e7-8799-23c7ba5e5106.png)
+[GitHub Desktop screenshot - Windows](https://cloud.githubusercontent.com/assets/359239/26094502/a1f56d02-3a5d-11e7-8799-23c7ba5e5106.png)
 
 ## Where can I get it?
 
@@ -83,7 +83,7 @@ information about GitHub Desktop.
 
 ## License
 
-**[MIT](LICENSE)**
+**[](LICENSE)**
 
 The MIT license grant is not for GitHub's trademarks, which include the logo
 designs. GitHub reserves all trademark and copyright rights in and to all
