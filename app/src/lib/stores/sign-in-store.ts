@@ -188,6 +188,10 @@ interface IAuthenticationEvent {
   readonly method: SignInMethod
 }
 
+interface IDotComSupportsBasicAuthEvent {
+  readonly dotComSupportsBasicAuth: boolean
+}
+
 /** The maximum time to wait for a `/meta` API call in milliseconds */
 const ServerMetaDataTimeout = 2000
 // https://developer.github.com/changes/2020-02-14-deprecating-oauth-auth-endpoint/
@@ -232,6 +236,25 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
     )
   }
 
+  private emitDotComSupportsBasicAuthUpdated(dotComSupportsBasicAuth: boolean) {
+    const event: IDotComSupportsBasicAuthEvent = { dotComSupportsBasicAuth }
+    this.emitter.emit('dotComSupportsBasicAuthUpdated', event)
+  }
+
+  public onDotComSupportsBasicAuthUpdated(
+    fn: (dotComSupportsBasicAuth: boolean) => void
+  ): Disposable {
+    if (!this.endpointSupportBasicAuth.has(getDotComAPIEndpoint())) {
+      this.endpointSupportsBasicAuth(getDotComAPIEndpoint()).catch(err => {})
+    }
+
+    return this.emitter.on(
+      'dotComSupportsBasicAuthUpdated',
+      ({ dotComSupportsBasicAuth }: IDotComSupportsBasicAuthEvent) => {
+        fn(dotComSupportsBasicAuth)
+      }
+    )
+  }
   /**
    * Returns the current state of the sign in store or null if
    * no sign in process is in flight.
