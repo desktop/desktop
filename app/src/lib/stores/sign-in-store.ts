@@ -194,6 +194,7 @@ interface IDotComSupportsBasicAuthEvent {
 
 /** The maximum time to wait for a `/meta` API call in milliseconds */
 const ServerMetaDataTimeout = 2000
+
 /**
  * GitHub.com is planning on shutting down the ability to authenticate
  * with username and password on the 13th of November 2020.
