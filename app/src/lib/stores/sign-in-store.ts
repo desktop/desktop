@@ -194,11 +194,19 @@ interface IDotComSupportsBasicAuthEvent {
 
 /** The maximum time to wait for a `/meta` API call in milliseconds */
 const ServerMetaDataTimeout = 2000
-// https://developer.github.com/changes/2020-02-14-deprecating-oauth-auth-endpoint/
-const DotComAuthorizationAPIRemovalDate = new Date(
-  '2020-11-13T16:00:00.000Z'
-).valueOf()
+/**
+ * GitHub.com is planning on shutting down the ability to authenticate
+ * with username and password on the 13th of November 2020.
+ *
+ * See https://developer.github.com/changes/2020-02-14-deprecating-oauth-auth-endpoint/
+ */
+const DotComAuthorizationAPIRemovalDate = Date.parse('2020-11-13T16:00:00.000Z')
 
+/**
+ * Whether or not the current date and time is before the planned deadline
+ * for the removal of username and password authentication on GitHub.com,
+ * see DotComAuthorizationAPIRemovalDate
+ */
 function isBeforeDotComAuthorizationAPIRemoval() {
   return Date.now() < DotComAuthorizationAPIRemovalDate
 }
