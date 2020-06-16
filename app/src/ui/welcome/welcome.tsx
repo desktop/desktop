@@ -42,6 +42,10 @@ interface IWelcomeState {
    */
   readonly exiting: boolean
 
+  /**
+   * Whether or not GitHub.com supports authenticating with username
+   * and password or if we have to enforce the web flow
+   */
   readonly dotComSupportsBasicAuth: boolean
 }
 
