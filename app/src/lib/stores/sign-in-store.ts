@@ -241,6 +241,13 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
     this.emitter.emit('dotComSupportsBasicAuthUpdated', event)
   }
 
+  /**
+   * Subscribe to an event which is emitted whenever the sign in store re-evaluates
+   * whether or not GitHub.com supports username and password authentication.
+   *
+   * Note that this event may fire without the state having changed as it's
+   * fired when refreshed and not when changed.
+   */
   public onDotComSupportsBasicAuthUpdated(
     fn: (dotComSupportsBasicAuth: boolean) => void
   ): Disposable {

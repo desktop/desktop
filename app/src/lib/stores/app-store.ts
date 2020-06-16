@@ -4709,6 +4709,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
+  /**
+   * Subscribe to an event which is emitted whenever the sign in store re-evaluates
+   * whether or not GitHub.com supports username and password authentication.
+   *
+   * Note that this event may fire without the state having changed as it's
+   * fired when refreshed and not when changed.
+   */
   public _onDotComSupportsBasicAuthUpdated(
     fn: (dotComSupportsBasicAuth: boolean) => void
   ) {
