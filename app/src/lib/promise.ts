@@ -39,9 +39,9 @@ export async function timeout<T>(
   promise: Promise<T>,
   timeout: number,
   fallbackValue: T
-) {
+): Promise<T> {
   let timeoutId: number | null = null
-  const timeoutPromise = new Promise(resolve => {
+  const timeoutPromise = new Promise<T>(resolve => {
     timeoutId = window.setTimeout(() => resolve(fallbackValue), timeout)
   })
 
