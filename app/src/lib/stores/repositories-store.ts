@@ -385,7 +385,6 @@ export class RepositoriesStore extends TypedBaseStore<
   }
 
   private async putOwner(endpoint: string, login: string): Promise<Owner> {
-    login = login.toLowerCase()
 
     const existingOwner = await this.db.owners
       .where('[endpoint+login]')
@@ -412,7 +411,7 @@ export class RepositoriesStore extends TypedBaseStore<
       parent = await this.putGitHubRepository(endpoint, gitHubRepository.parent)
     }
 
-    const login = gitHubRepository.owner.login.toLowerCase()
+    const login = gitHubRepository.owner.login
     const owner = await this.putOwner(endpoint, login)
 
     const existingRepo = await this.db.gitHubRepositories
