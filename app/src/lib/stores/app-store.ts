@@ -3221,30 +3221,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.uncommittedChangesStrategyKind
     )
   ): Promise<IStashEntry | null> {
-    const {
-      changesState,
-      branchesState: { tip },
-    } = this.repositoryStateCache.get(repository)
-    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
-
     if (
-      currentBranch !== null &&
       uncommittedChangesStrategy.kind ===
-        UncommittedChangesStrategyKind.StashOnCurrentBranch
+      UncommittedChangesStrategyKind.StashOnCurrentBranch
     ) {
-      await this._createStashAndDropPreviousEntry(
-        repository,
-        currentBranch.name
-      )
-      this.statsStore.recordStashCreatedOnCurrentBranch()
+      await this._createStashForCurrentBranch(repository)
     } else if (
       uncommittedChangesStrategy.kind ===
       UncommittedChangesStrategyKind.MoveToNewBranch
     ) {
+      const { changesState } = this.repositoryStateCache.get(repository)
       const hasDeletedFiles = changesState.workingDirectory.files.some(
         file => file.status.kind === AppFileStatusKind.Deleted
       )
       const { transientStashEntry } = uncommittedChangesStrategy
+
       if (hasDeletedFiles && !transientStashEntry) {
         const gitStore = this.gitStoreCache.get(repository)
         const stashCreated = await gitStore.performFailableOperation(() => {
@@ -3264,6 +3255,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     return null
+  }
+
+  /**
+   * Creates a stash associated to the current checked out branch.
+   *
+   * @param repository
+   */
+  public async _createStashForCurrentBranch(repository: Repository) {
+    const tip = this.repositoryStateCache.get(repository).branchesState.tip
+    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+
+    if (currentBranch !== null) {
+      await this._createStashAndDropPreviousEntry(
+        repository,
+        currentBranch.name
+      )
+      this.statsStore.recordStashCreatedOnCurrentBranch()
+    }
   }
 
   /**
