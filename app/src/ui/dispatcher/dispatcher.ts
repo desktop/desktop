@@ -2330,8 +2330,8 @@ export class Dispatcher {
    * override any stash that already exists for the current branch.
    *
    * @param repository
-   * @param showConfirmationDialog  Whether to show a confirmation
-   *                                dialog if an existing stash exists.
+   * @param showConfirmationDialog  Whether to show a confirmation dialog if an
+   *                                existing stash exists (defaults to true).
    */
   public createStashForCurrentBranch(
     repository: Repository,
