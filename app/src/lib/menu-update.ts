@@ -155,6 +155,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   let onBranch = false
   let onDetachedHead = false
   let hasChangedFiles = false
+  let hasConflicts = false
   let hasDefaultBranch = false
   let hasPublishedBranch = false
   let networkActionInProgress = false
@@ -203,6 +204,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     const { conflictState, workingDirectory } = selectedState.state.changesState
 
     rebaseInProgress = conflictState !== null && conflictState.kind === 'rebase'
+    hasConflicts = changesState.conflictState !== null
     hasChangedFiles = workingDirectory.files.length > 0
   }
 
@@ -283,7 +285,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
 
     menuStateBuilder.setEnabled(
       'stash-all-changes',
-      hasChangedFiles && onBranch && !rebaseInProgress
+      hasChangedFiles && onBranch && !rebaseInProgress && !hasConflicts
     )
 
     menuStateBuilder.setEnabled('compare-to-branch', !onDetachedHead)

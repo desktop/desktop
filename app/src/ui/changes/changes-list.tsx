@@ -32,7 +32,7 @@ import { arrayEquals } from '../../lib/equality'
 import { clipboard } from 'electron'
 import { basename } from 'path'
 import { ICommitContext } from '../../models/commit'
-import { RebaseConflictState } from '../../lib/app-state'
+import { RebaseConflictState, ConflictState } from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { IStashEntry } from '../../models/stash-entry'
@@ -94,6 +94,11 @@ function getIncludeAllValue(
 interface IChangesListProps {
   readonly repository: Repository
   readonly workingDirectory: WorkingDirectoryStatus
+  /**
+   * An object containing the conflicts in the working directory.
+   * When null it means that there are no conflicts.
+   */
+  readonly conflictState: ConflictState | null
   readonly rebaseConflictState: RebaseConflictState | null
   readonly selectedFileIDs: ReadonlyArray<string>
   readonly onFileSelectionChanged: (rows: ReadonlyArray<number>) => void
@@ -345,7 +350,10 @@ export class ChangesList extends React.Component<
       {
         label: __DARWIN__ ? 'Stash All Changes…' : 'Stash all changes…',
         action: this.onStashChanges,
-        enabled: hasLocalChanges && this.props.branch !== null,
+        enabled:
+          hasLocalChanges &&
+          this.props.branch !== null &&
+          this.props.conflictState === null,
       },
     ]
 
