@@ -15,7 +15,7 @@ interface IOverwriteStashProps {
 }
 
 interface IOverwriteStashState {
-  readonly isCheckingOutBranch: boolean
+  readonly isLoading: boolean
 }
 
 /**
@@ -29,7 +29,7 @@ export class OverwriteStash extends React.Component<
     super(props)
 
     this.state = {
-      isCheckingOutBranch: false,
+      isLoading: false,
     }
   }
 
@@ -41,8 +41,8 @@ export class OverwriteStash extends React.Component<
         id="overwrite-stash"
         type="warning"
         title={title}
-        loading={this.state.isCheckingOutBranch}
-        disabled={this.state.isCheckingOutBranch}
+        loading={this.state.isLoading}
+        disabled={this.state.isLoading}
         onSubmit={this.onSubmit}
         onDismissed={this.props.onDismissed}
       >
@@ -63,7 +63,7 @@ export class OverwriteStash extends React.Component<
     const { dispatcher, repository, branchToCheckout, onDismissed } = this.props
 
     this.setState({
-      isCheckingOutBranch: true,
+      isLoading: true,
     })
 
     try {
@@ -78,7 +78,7 @@ export class OverwriteStash extends React.Component<
       }
     } finally {
       this.setState({
-        isCheckingOutBranch: false,
+        isLoading: false,
       })
     }
 
