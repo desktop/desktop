@@ -368,6 +368,12 @@ export function buildDefaultMenu({
         accelerator: 'CmdOrCtrl+Shift+Backspace',
         click: emit('discard-all-changes'),
       },
+      {
+        label: __DARWIN__ ? 'Stash All Changes…' : '&Stash all changes…',
+        id: 'stash-all-changes',
+        accelerator: 'CmdOrCtrl+Shift+S',
+        click: emit('stash-all-changes'),
+      },
       separator,
       {
         label: __DARWIN__

@@ -104,6 +104,7 @@ const allMenuIds: ReadonlyArray<MenuIDs> = [
   'rename-branch',
   'delete-branch',
   'discard-all-changes',
+  'stash-all-changes',
   'preferences',
   'update-branch',
   'compare-to-branch',
@@ -280,6 +281,11 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
       repositoryActive && hasChangedFiles && !rebaseInProgress
     )
 
+    menuStateBuilder.setEnabled(
+      'stash-all-changes',
+      hasChangedFiles && onBranch && !rebaseInProgress
+    )
+
     menuStateBuilder.setEnabled('compare-to-branch', !onDetachedHead)
     menuStateBuilder.setEnabled('toggle-stashed-changes', branchHasStashEntry)
 
@@ -311,6 +317,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     menuStateBuilder.disable('rename-branch')
     menuStateBuilder.disable('delete-branch')
     menuStateBuilder.disable('discard-all-changes')
+    menuStateBuilder.disable('stash-all-changes')
     menuStateBuilder.disable('update-branch')
     menuStateBuilder.disable('merge-branch')
     menuStateBuilder.disable('rebase-branch')
