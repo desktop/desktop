@@ -3225,7 +3225,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       uncommittedChangesStrategy.kind ===
       UncommittedChangesStrategyKind.StashOnCurrentBranch
     ) {
-      await this._createStashForCurrentBranch(repository)
+      await this._createStashForCurrentBranch(repository, false)
     } else if (
       uncommittedChangesStrategy.kind ===
       UncommittedChangesStrategyKind.MoveToNewBranch
@@ -3261,10 +3261,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * Creates a stash associated to the current checked out branch.
    *
    * @param repository
+   * @param showConfirmationDialog  Whether to show a confirmation
+   *                                dialog if an existing stash exists.
    */
-  public async _createStashForCurrentBranch(repository: Repository) {
-    const tip = this.repositoryStateCache.get(repository).branchesState.tip
+  public async _createStashForCurrentBranch(
+    repository: Repository,
+    showConfirmationDialog: boolean
+  ) {
+    const repositoryState = this.repositoryStateCache.get(repository)
+    const tip = repositoryState.branchesState.tip
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+    const hasExistingStash = repositoryState.changesState.stashEntry !== null
+
+    if (currentBranch === null) {
+      return
+    }
 
     if (currentBranch !== null) {
       await this._createStashAndDropPreviousEntry(
@@ -3273,6 +3284,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
       this.statsStore.recordStashCreatedOnCurrentBranch()
     }
+
+    await this._createStashAndDropPreviousEntry(repository, currentBranch.name)
+    this.statsStore.recordStashCreatedOnCurrentBranch()
+
+    await this._refreshRepository(repository)
   }
 
   /**

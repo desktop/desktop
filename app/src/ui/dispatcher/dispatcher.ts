@@ -2325,6 +2325,24 @@ export class Dispatcher {
     return this.commitStatusStore.subscribe(repository, ref, callback)
   }
 
+  /**
+   * Creates a stash for the current branch. Note that this will
+   * override any stash that already exists for the current branch.
+   *
+   * @param repository
+   * @param showConfirmationDialog  Whether to show a confirmation
+   *                                dialog if an existing stash exists.
+   */
+  public createStashForCurrentBranch(
+    repository: Repository,
+    showConfirmationDialog: boolean = true
+  ) {
+    return this.appStore._createStashForCurrentBranch(
+      repository,
+      showConfirmationDialog
+    )
+  }
+
   /** Drops the given stash in the given repository */
   public dropStash(repository: Repository, stashEntry: IStashEntry) {
     return this.appStore._dropStashEntry(repository, stashEntry)
