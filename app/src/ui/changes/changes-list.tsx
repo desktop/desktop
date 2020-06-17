@@ -119,6 +119,9 @@ interface IChangesListProps {
    * @param path The path of the file relative to the root of the repository
    */
   readonly onOpenItem: (path: string) => void
+  /**
+   * The currently checked out branch (null if no branch is checked out).
+   */
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
   readonly gitHubUser: IGitHubUser | null
@@ -272,6 +275,10 @@ export class ChangesList extends React.Component<
     )
   }
 
+  private onStashChanges = () => {
+    this.props.dispatcher.createStashForCurrentBranch(this.props.repository)
+  }
+
   private onDiscardChanges = (files: ReadonlyArray<string>) => {
     const workingDirectory = this.props.workingDirectory
 
@@ -327,11 +334,18 @@ export class ChangesList extends React.Component<
       return
     }
 
+    const hasLocalChanges = this.props.workingDirectory.files.length > 0
+
     const items: IMenuItem[] = [
       {
         label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
         action: this.onDiscardAllChanges,
-        enabled: this.props.workingDirectory.files.length > 0,
+        enabled: hasLocalChanges,
+      },
+      {
+        label: __DARWIN__ ? 'Stash All Changes…' : 'Stash all changes…',
+        action: this.onStashChanges,
+        enabled: hasLocalChanges && this.props.branch !== null,
       },
     ]
 
