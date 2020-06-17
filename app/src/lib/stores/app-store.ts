@@ -3221,21 +3221,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.uncommittedChangesStrategyKind
     )
   ): Promise<IStashEntry | null> {
+    const {
+      changesState,
+      branchesState: { tip },
+    } = this.repositoryStateCache.get(repository)
+    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+
     if (
+      currentBranch !== null &&
       uncommittedChangesStrategy.kind ===
-      UncommittedChangesStrategyKind.StashOnCurrentBranch
+        UncommittedChangesStrategyKind.StashOnCurrentBranch
     ) {
-      await this._createStashForCurrentBranch(repository, false)
+      await this._createStashAndDropPreviousEntry(
+        repository,
+        currentBranch.name
+      )
+      this.statsStore.recordStashCreatedOnCurrentBranch()
     } else if (
       uncommittedChangesStrategy.kind ===
       UncommittedChangesStrategyKind.MoveToNewBranch
     ) {
-      const { changesState } = this.repositoryStateCache.get(repository)
       const hasDeletedFiles = changesState.workingDirectory.files.some(
         file => file.status.kind === AppFileStatusKind.Deleted
       )
       const { transientStashEntry } = uncommittedChangesStrategy
-
       if (hasDeletedFiles && !transientStashEntry) {
         const gitStore = this.gitStoreCache.get(repository)
         const stashCreated = await gitStore.performFailableOperation(() => {
