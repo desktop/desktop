@@ -10,7 +10,7 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 interface IOverwriteStashProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
-  readonly branchToCheckout: Branch
+  readonly branchToCheckout: Branch | null
   readonly onDismissed: () => void
 }
 
@@ -67,11 +67,15 @@ export class OverwriteStash extends React.Component<
     })
 
     try {
-      await dispatcher.checkoutBranch(
-        repository,
-        branchToCheckout,
-        stashOnCurrentBranch
-      )
+      if (branchToCheckout !== null) {
+        await dispatcher.checkoutBranch(
+          repository,
+          branchToCheckout,
+          stashOnCurrentBranch
+        )
+      } else {
+        await dispatcher.createStashForCurrentBranch(repository, false)
+      }
     } finally {
       this.setState({
         isCheckingOutBranch: false,

@@ -3277,12 +3277,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    if (currentBranch !== null) {
-      await this._createStashAndDropPreviousEntry(
+    if (showConfirmationDialog && hasExistingStash) {
+      return this._showPopup({
+        type: PopupType.ConfirmOverwriteStash,
+        branchToCheckout: null,
         repository,
-        currentBranch.name
-      )
-      this.statsStore.recordStashCreatedOnCurrentBranch()
+      })
     }
 
     await this._createStashAndDropPreviousEntry(repository, currentBranch.name)
