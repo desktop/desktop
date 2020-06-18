@@ -49,4 +49,6 @@ export type MenuLabelsEvent = {
    * Specify whether a stashed change is accessible in the current branch.
    */
   readonly isStashedChangesVisible?: boolean
+
+  readonly askForConfirmationWhenStashingAllChanges?: boolean
 }
