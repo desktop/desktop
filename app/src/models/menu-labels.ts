@@ -50,5 +50,10 @@ export type MenuLabelsEvent = {
    */
   readonly isStashedChangesVisible?: boolean
 
+  /**
+   * Whether or not attempting to stash working directory changes will result
+   * in a confirmation dialog asking the user whether they want to override
+   * their existing stash or not.
+   */
   readonly askForConfirmationWhenStashingAllChanges?: boolean
 }
