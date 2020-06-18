@@ -386,7 +386,7 @@ export class List extends React.Component<IListProps, IListState> {
         this.props.selectionMode !== 'single'
       ) {
         this.addSelection('down', event)
-      } else if (event.ctrlKey) {
+      } else if (__DARWIN__ && event.metaKey) {
         this.scrollRowToVisible(this.props.rowCount - 1)
       } else {
         this.moveSelection('down', event)
@@ -399,7 +399,7 @@ export class List extends React.Component<IListProps, IListState> {
         this.props.selectionMode !== 'single'
       ) {
         this.addSelection('up', event)
-      } else if (event.ctrlKey) {
+      } else if (__DARWIN__ && event.metaKey) {
         this.scrollRowToVisible(0)
       } else {
         this.moveSelection('up', event)
