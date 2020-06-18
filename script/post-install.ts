@@ -58,6 +58,6 @@ findYarnVersion(path => {
   result = spawnSync('node', [path, 'compile:script'], options)
 
   if (result.status !== 0) {
-    process.exit(result.status || undefined)
+    process.exit(result.status || 1)
   }
 })
