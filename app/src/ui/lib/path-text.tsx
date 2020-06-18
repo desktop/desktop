@@ -227,7 +227,6 @@ function createState(path: string, length?: number): IPathTextState {
     availableWidth: undefined,
     fullTextWidth: undefined,
     ...createPathDisplayState(normalizedPath, length),
-    normalizedPath,
   }
 }
 
