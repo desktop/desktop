@@ -9,6 +9,7 @@ import { CloningRepository } from '../models/cloning-repository'
 import { TipState } from '../models/tip'
 import { updateMenuState as ipcUpdateMenuState } from '../ui/main-process-proxy'
 import { AppMenu, MenuItem } from '../models/app-menu'
+import { hasConflictedFiles } from './status'
 
 export interface IMenuItemState {
   readonly enabled?: boolean
@@ -204,7 +205,9 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     const { conflictState, workingDirectory } = selectedState.state.changesState
 
     rebaseInProgress = conflictState !== null && conflictState.kind === 'rebase'
-    hasConflicts = changesState.conflictState !== null
+    hasConflicts =
+      changesState.conflictState !== null ||
+      hasConflictedFiles(workingDirectory)
     hasChangedFiles = workingDirectory.files.length > 0
   }
 
