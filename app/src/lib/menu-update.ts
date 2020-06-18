@@ -204,7 +204,11 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     const { conflictState, workingDirectory } = selectedState.state.changesState
 
     rebaseInProgress = conflictState !== null && conflictState.kind === 'rebase'
-    hasConflicts = changesState.conflictState !== null
+    hasConflicts =
+      changesState.conflictState !== null ||
+      workingDirectory.files.some(
+        x => x.status.kind === AppFileStatusKind.Conflicted
+      )
     hasChangedFiles = workingDirectory.files.length > 0
   }
 
