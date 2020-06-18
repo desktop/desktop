@@ -13,6 +13,7 @@ import {
   RepositoriesStore,
   AccountsStore,
   PullRequestStore,
+  PullRequestCoordinator,
 } from '../../src/lib/stores'
 import { InMemoryDispatcher } from '../helpers/in-memory-dispatcher'
 import {
@@ -57,8 +58,8 @@ describe('App', () => {
       new AsyncInMemoryStore()
     )
 
-    const pullRequestStore = new PullRequestStore(
-      new TestPullRequestDatabase(),
+    const pullRequestCoordinator = new PullRequestCoordinator(
+      new PullRequestStore(new TestPullRequestDatabase(), repositoriesStore),
       repositoriesStore
     )
 
@@ -80,7 +81,7 @@ describe('App', () => {
       new SignInStore(),
       accountsStore,
       repositoriesStore,
-      pullRequestStore,
+      pullRequestCoordinator,
       repositoryStateManager,
       apiRepositoriesStore
     )
@@ -94,7 +95,7 @@ describe('App', () => {
   })
 
   it('renders', async () => {
-    const app = TestUtils.renderIntoDocument(
+    const app = (TestUtils.renderIntoDocument(
       <App
         dispatcher={dispatcher}
         appStore={appStore}
@@ -103,7 +104,7 @@ describe('App', () => {
         gitHubUserStore={githubUserStore}
         startTime={0}
       />
-    ) as React.Component<any, any>
+    ) as unknown) as React.Component<any, any>
     // Give any promises a tick to resolve.
     await wait(0)
 

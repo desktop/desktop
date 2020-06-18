@@ -148,7 +148,11 @@ function getInitialRepositoryState(): IRepositoryState {
       rebasedBranches: new Map<string, string>(),
     },
     compareState: {
-      isDivergingBranchBannerVisible: false,
+      divergingBranchBannerState: {
+        isPromptVisible: false,
+        isPromptDismissed: false,
+        isNudgeVisible: false,
+      },
       formState: {
         kind: HistoryTabMode.History,
       },
@@ -173,6 +177,8 @@ function getInitialRepositoryState(): IRepositoryState {
     gitHubUsers: new Map<string, IGitHubUser>(),
     commitLookup: new Map<string, Commit>(),
     localCommitSHAs: [],
+    localTags: null,
+    tagsToPush: null,
     aheadBehind: null,
     remote: null,
     isPushPullFetchInProgress: false,

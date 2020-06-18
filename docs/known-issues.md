@@ -76,7 +76,7 @@ $ git config --global http.schannelCheckRevoke false
 
 ### Using a repository configured with Folder Redirection - [#2972](https://github.com/desktop/desktop/issues/2972)
 
-[Folder Redirection](https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2008-R2-and-2008/cc753996(v%3dws.11)) is an feature of Windows for administrators to ensure files and folders are managed on a network server, instead.
+[Folder Redirection](https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2008-R2-and-2008/cc753996(v%3dws.11)) is a feature of Windows for administrators to ensure files and folders are managed on a network server, instead.
 
 **Not supported** as Git is not able to resolve the working directory correctly:
 
@@ -114,13 +114,17 @@ are unable to find another cygwin DLL.
 
 Enabling Mandatory ASLR affects the MSYS2 core library, which is relied upon by Git for Windows to emulate process forking.
 
-**Not supported:** this is an upstream limitation of MSYS2, and it is recommend that you either disable Mandatory ASLR or whitelist all executables under `<Git>\usr\bin` which depend on MSYS2.
+**Not supported:** this is an upstream limitation of MSYS2, and it is recommend that you either disable Mandatory ASLR or explicitly allow all executables under `<Git>\usr\bin` which depend on MSYS2.
 
 ### I get a black screen when launching Desktop
 
 Electron enables hardware accelerated graphics by default, but some graphics cards have issues with hardware acceleration which means the application will launch successfully but it will be a black screen.
 
-**Workaround:** if you set the `GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION` environment variable to any value and launch Desktop again it will disable hardware acceleration on launch, so the application is usable.
+**Workaround:** if you set the `GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION` environment variable to any value and launch Desktop again it will disable hardware acceleration on launch, so the application is usable. Here are the steps to set the environment variable in PowerShell:
+
+1. Open PowerShell
+2. Run the command `$env:GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION=1`
+3. Launch GitHub Desktop 
 
 ### Failed to open CA file after an update - [#4832](https://github.com/desktop/desktop/issues/4832)
 
@@ -130,11 +134,11 @@ An example of this error:
 
 > fatal: unable to access 'https://github.com/\<owner>/\<repo>.git/': schannel: failed to open CA file 'C:/Users/\<account>/AppData/Local/GitHubDesktop/app-1.2.2/resources/app/git/mingw64/bin/curl-ca-bundle.crt': No such file or directory
 
-This is occuring because some users have an existing Git for Windows installation that created a special config at `C:\ProgramData\Git\config`, and this config may contain a `http.sslCAInfo` entry, which is inherited by Desktop.
+This is occurring because some users have an existing Git for Windows installation that created a special config at `C:\ProgramData\Git\config`, and this config may contain an `http.sslCAInfo` entry, which is inherited by Desktop.
 
 There's two problems with this current state:
 
- - Desktop doesn't need custom certificates for it's Git operations - it uses SChannel by default, which uses the Windows Certificate Store to verify server certificates
+ - Desktop doesn't need custom certificates for its Git operations - it uses SChannel by default, which uses the Windows Certificate Store to verify server certificates
  - this `http.sslCAInfo` config value may resolve to a location or file that doesn't exist in Desktop's Git installation
 
 **Workaround:**
@@ -170,11 +174,13 @@ fatal: could not read Username for 'https://github.com': terminal prompts disabl
 
 Known causes and workarounds:
 
--  Modifying the `AutoRun` registry entry. To check if this entry has been modified open `Regedit.exe` and navigate to `HKEY_CURRENT_USER\Software\Microsoft\Command Processor\autorun` to see if there is anything set (sometimes applications will also modify this). See [#6789](https://github.com/desktop/desktop/issues/6879#issuecomment-471042891) and [#2623](https://github.com/desktop/desktop/issues/2623#issuecomment-334305916) for examples of this.
+-  Modifying the `AutoRun` registry entry. To check if this entry has been modified open `Regedit.exe` and navigate to `HKEY_CURRENT_USER\Software\Microsoft\Command Processor\autorun` and `HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Command Processor\autorun` to see if there is anything set (sometimes applications will also modify this). See [#6789](https://github.com/desktop/desktop/issues/6879#issuecomment-471042891) and [#2623](https://github.com/desktop/desktop/issues/2623#issuecomment-334305916) for examples of this.
 
 - Special characters in your Windows username like a `&` or `-` can cause this error to be thrown. See [#7064](https://github.com/desktop/desktop/issues/7064) for an example of this. Try installing GitHub Desktop in a new user account to verify if this is the case.
 
 - Antivirus software can sometimes prevent GitHub Desktop from installing correctly. If you are running antivirus software that could be causing this try temporarily disabling it and reinstalling GitHub Desktop.
+
+- Restrictive permissions on your Windows user account. If you are running GitHub Desktop as a non-admin user try launching the application as an administrator (right-click -> `Run as administrator`). See [#5082](https://github.com/desktop/desktop/issues/5082#issuecomment-483067198).
 
 - If none of these potential causes are present on your machine, try performing a fresh installation of GitHub Desktop to see if that gets things working again. Here are the steps you can take to do that:
 
@@ -182,3 +188,12 @@ Known causes and workarounds:
   2. Delete the `%AppData%\GitHub Desktop\` directory
   3. Delete the `%LocalAppData%\GitHubDesktop\` directory
   4. Reinstall GitHub Desktop from [desktop.github.com](https://desktop.github.com)
+  
+### Authentication errors due to modified registry entries
+
+If either the user or an application has modified the `Command Processor` registry entries it can cause GitHub Desktop to throw an `Authentication failed` error. To check if these registry entries have been modified open the Registry Editor (regedit.exe) and navigate to the following locations:
+
+`HKEY_CURRENT_USER\Software\Microsoft\Command Processor\`
+`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Command Processor\`
+
+Check to see if there is an `Autorun` value in either of those location. If there is, deleting that value should resolve the `Authentication failed` error.

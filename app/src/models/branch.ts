@@ -1,5 +1,6 @@
 import { Commit } from './commit'
 import { removeRemotePrefix } from '../lib/remove-remote-prefix'
+import { CommitIdentity } from './commit-identity'
 
 // NOTE: The values here matter as they are used to sort
 // local and remote branches, Local should come before Remote
@@ -19,11 +20,19 @@ export interface ICompareResult extends IAheadBehind {
   readonly commits: ReadonlyArray<Commit>
 }
 
+/** Basic data about the latest commit on the branch. */
+export interface IBranchTip {
+  readonly sha: string
+  readonly author: CommitIdentity
+}
+
 /** Default rules for where to create a branch from */
 export enum StartPoint {
   CurrentBranch = 'CurrentBranch',
   DefaultBranch = 'DefaultBranch',
   Head = 'Head',
+  /** Only valid for forks */
+  UpstreamDefaultBranch = 'UpstreamDefaultBranch',
 }
 
 /**
@@ -55,13 +64,13 @@ export class Branch {
    *
    * @param name The short name of the branch. E.g., `master`.
    * @param upstream The remote-prefixed upstream name. E.g., `origin/master`.
-   * @param tip The commit associated with this branch
+   * @param tip Basic information (sha and author) of the latest commit on the branch.
    * @param type The type of branch, e.g., local or remote.
    */
   public constructor(
     public readonly name: string,
     public readonly upstream: string | null,
-    public readonly tip: Commit,
+    public readonly tip: IBranchTip,
     public readonly type: BranchType
   ) {}
 

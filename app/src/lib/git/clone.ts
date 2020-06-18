@@ -2,7 +2,7 @@ import { git, IGitExecutionOptions, gitNetworkArguments } from './core'
 import { ICloneProgress } from '../../models/progress'
 import { CloneOptions } from '../../models/clone-options'
 import { CloneProgressParser, executionOptionsWithProgress } from '../progress'
-import { envForAuthentication } from './authentication'
+import { envForRemoteOperation } from './environment'
 
 /**
  * Clones a repository from a given url into to the specified path.
@@ -32,7 +32,7 @@ export async function clone(
 ): Promise<void> {
   const networkArguments = await gitNetworkArguments(null, options.account)
 
-  const env = envForAuthentication(options.account)
+  const env = await envForRemoteOperation(options.account, url)
 
   const args = [...networkArguments, 'clone', '--recursive']
 

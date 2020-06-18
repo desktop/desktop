@@ -12,6 +12,7 @@ export type MenuEvent =
   | 'rename-branch'
   | 'delete-branch'
   | 'discard-all-changes'
+  | 'stash-all-changes'
   | 'show-preferences'
   | 'choose-repository'
   | 'open-working-directory'
@@ -36,3 +37,4 @@ export type MenuEvent =
   | 'hide-stashed-changes'
   | 'test-prune-branches'
   | 'find-text'
+  | 'create-issue-in-repository-on-github'

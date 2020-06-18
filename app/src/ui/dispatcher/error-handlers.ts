@@ -7,13 +7,23 @@ import { Dispatcher } from '.'
 import { ExternalEditorError } from '../../lib/editors/shared'
 import { ErrorWithMetadata } from '../../lib/error-with-metadata'
 import { AuthenticationErrors } from '../../lib/git/authentication'
-import { GitError } from '../../lib/git/core'
+import { GitError, isAuthFailureError } from '../../lib/git/core'
 import { ShellError } from '../../lib/shells'
 import { UpstreamAlreadyExistsError } from '../../lib/stores/upstream-already-exists-error'
 
 import { PopupType } from '../../models/popup'
-import { Repository } from '../../models/repository'
+import {
+  Repository,
+  isRepositoryWithGitHubRepository,
+} from '../../models/repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
+import { hasWritePermission } from '../../models/github-repository'
+import {
+  enableCreateForkFlow,
+  enableSchannelCheckRevokeOptOut,
+} from '../../lib/feature-flag'
+import { RetryActionType } from '../../models/retry-actions'
+import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -470,8 +480,7 @@ export async function localChangesOverwrittenHandler(
 
   return null
 }
-
-const rejectedPathRe = /^ ! \[remote rejected\] .*? -> .*? \(refusing to allow an integration to create or update (.*?)\)$/m
+const rejectedPathRe = /^ ! \[remote rejected\] .*? -> .*? \(refusing to allow an OAuth App to create or update workflow `(.*?)` without `workflow` scope\)/m
 
 /**
  * Attempts to detect whether an error is the result of a failed push
@@ -512,19 +521,187 @@ export async function refusedWorkflowUpdate(
     return error
   }
 
-  const rejectedPath = match[1]
-  const pathIsLikelyWorkflowFile =
-    rejectedPath.startsWith('.github/') && rejectedPath.indexOf('workflow') >= 0
-
-  if (!pathIsLikelyWorkflowFile) {
-    return error
-  }
-
   dispatcher.showPopup({
     type: PopupType.PushRejectedDueToMissingWorkflowScope,
-    rejectedPath,
+    rejectedPath: match[1],
     repository,
   })
 
   return null
+}
+
+const samlReauthErrorMessageRe = /`([^']+)' organization has enabled or enforced SAML SSO.*?you must re-authorize/s
+
+/**
+ * Attempts to detect whether an error is the result of a failed push
+ * due to insufficient OAuth permissions (missing workflow scope)
+ */
+export async function samlReauthRequired(error: Error, dispatcher: Dispatcher) {
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError || gitError.result.gitError === null) {
+    return error
+  }
+
+  if (!isAuthFailureError(gitError.result.gitError)) {
+    return error
+  }
+
+  const { repository } = e.metadata
+
+  if (!(repository instanceof Repository)) {
+    return error
+  }
+
+  if (repository.gitHubRepository === null) {
+    return error
+  }
+
+  const remoteMessage = getRemoteMessage(gitError.result.stderr)
+  const match = samlReauthErrorMessageRe.exec(remoteMessage)
+
+  if (!match) {
+    return error
+  }
+
+  const organizationName = match[1]
+  const endpoint = repository.gitHubRepository.endpoint
+
+  dispatcher.showPopup({
+    type: PopupType.SAMLReauthRequired,
+    organizationName,
+    endpoint,
+    retryAction: e.metadata.retryAction,
+  })
+
+  return null
+}
+
+/**
+ * Attempts to detect whether an error is the result of a failed push
+ * due to insufficient GitHub permissions. (No `write` access.)
+ */
+export async function insufficientGitHubRepoPermissions(
+  error: Error,
+  dispatcher: Dispatcher
+) {
+  // no need to do anything here if we don't want to show
+  // the new `CreateForkDialog` UI
+  if (!enableCreateForkFlow()) {
+    return error
+  }
+
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError || gitError.result.gitError === null) {
+    return error
+  }
+
+  if (!isAuthFailureError(gitError.result.gitError)) {
+    return error
+  }
+
+  const { repository, retryAction } = e.metadata
+
+  if (
+    !(repository instanceof Repository) ||
+    !isRepositoryWithGitHubRepository(repository)
+  ) {
+    return error
+  }
+
+  if (retryAction === undefined || retryAction.type !== RetryActionType.Push) {
+    return error
+  }
+
+  if (hasWritePermission(repository.gitHubRepository)) {
+    return error
+  }
+
+  dispatcher.showCreateForkDialog(repository)
+
+  return null
+}
+
+// Example error message (line breaks added):
+//    fatal: unable to access 'https://github.com/desktop/desktop.git/': schannel:
+//    next InitializeSecurityContext failed: Unknown error (0x80092012) - The
+//    revocation function was unable to check revocation for the certificate.
+//
+// We can't trust anything after the `-` since that string might be localized
+//
+// 0x80092012 is CRYPT_E_NO_REVOCATION_CHECK
+// 0x80092013 is CRYPT_E_REVOCATION_OFFLINE
+//
+// See
+// https://docs.microsoft.com/en-us/windows/win32/api/wincrypt/nf-wincrypt-certverifyrevocation
+// https://github.com/curl/curl/blob/fa009cc798f/lib/vtls/schannel.c#L1069-L1070
+// https://github.com/curl/curl/blob/fa009cc798f/lib/strerror.c#L966
+// https://github.com/curl/curl/blob/fa009cc798f/lib/strerror.c#L983
+const fatalSchannelRevocationErrorRe = /^fatal: unable to access '(.*?)': schannel: next InitializeSecurityContext failed: .*? \((0x80092012|0x80092013)\)/m
+
+/**
+ * Attempts to detect whether an error is the result of the
+ * Windows SSL backend's (schannel) failure to contact a
+ * certificate revocation server. This can only occur on Windows
+ * when the `http.sslBackend` is set to `schannel`.
+ */
+export async function schannelUnableToCheckRevocationForCertificate(
+  error: Error,
+  dispatcher: Dispatcher
+) {
+  if (!__WIN32__) {
+    return error
+  }
+
+  if (!enableSchannelCheckRevokeOptOut()) {
+    return error
+  }
+
+  const errorWithMetadata = asErrorWithMetadata(error)
+  const underlyingError =
+    errorWithMetadata === null ? error : errorWithMetadata.underlyingError
+
+  const gitError = asGitError(underlyingError)
+  if (gitError === null) {
+    return error
+  }
+
+  const match = fatalSchannelRevocationErrorRe.exec(gitError.message)
+
+  if (!match) {
+    return error
+  }
+
+  sendNonFatalException('schannelUnableToCheckRevocationForCertificate', error)
+  dispatcher.showPopup({
+    type: PopupType.SChannelNoRevocationCheck,
+    url: match[1],
+  })
+
+  return null
+}
+
+/**
+ * Extract lines from Git's stderr output starting with the
+ * prefix `remote: `. Useful to extract server-specific
+ * error messages from network operations (fetch, push, pull,
+ * etc).
+ */
+function getRemoteMessage(stderr: string) {
+  const needle = 'remote: '
+
+  return stderr
+    .split(/\r?\n/)
+    .filter(x => x.startsWith(needle))
+    .map(x => x.substr(needle.length))
+    .join('\n')
 }

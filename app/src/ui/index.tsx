@@ -4,6 +4,8 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
 
+import * as moment from 'moment'
+
 import { ipcRenderer, remote } from 'electron'
 
 import { App } from './app'
@@ -22,6 +24,9 @@ import {
   rebaseConflictsHandler,
   localChangesOverwrittenHandler,
   refusedWorkflowUpdate,
+  samlReauthRequired,
+  insufficientGitHubRepoPermissions,
+  schannelUnableToCheckRevocationForCertificate,
 } from './dispatcher'
 import {
   AppStore,
@@ -56,6 +61,7 @@ import { UiActivityMonitor } from './lib/ui-activity-monitor'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { ApiRepositoriesStore } from '../lib/stores/api-repositories-store'
 import { CommitStatusStore } from '../lib/stores/commit-status-store'
+import { PullRequestCoordinator } from '../lib/stores/pull-request-coordinator'
 
 if (__DEV__) {
   installDevGlobals()
@@ -80,6 +86,11 @@ process.env['LOCAL_GIT_DIRECTORY'] = Path.resolve(__dirname, 'git')
 //   https://github.com/WICG/focus-ring
 //   Focus Ring! -- A11ycasts #16: https://youtu.be/ilj2P5-5CjI
 require('wicg-focus-ring')
+
+// setup this moment.js plugin so we can use easier
+// syntax for formatting time duration
+const momentDurationFormatSetup = require('moment-duration-format')
+momentDurationFormatSetup(moment)
 
 const startTime = performance.now()
 
@@ -234,6 +245,11 @@ const pullRequestStore = new PullRequestStore(
   repositoriesStore
 )
 
+const pullRequestCoordinator = new PullRequestCoordinator(
+  pullRequestStore,
+  repositoriesStore
+)
+
 const repositoryStateManager = new RepositoryStateCache(repo =>
   gitHubUserStore.getUsersForRepository(repo)
 )
@@ -250,7 +266,7 @@ const appStore = new AppStore(
   signInStore,
   accountsStore,
   repositoriesStore,
-  pullRequestStore,
+  pullRequestCoordinator,
   repositoryStateManager,
   apiRepositoriesStore
 )
@@ -272,8 +288,11 @@ dispatcher.registerErrorHandler(externalEditorErrorHandler)
 dispatcher.registerErrorHandler(openShellErrorHandler)
 dispatcher.registerErrorHandler(mergeConflictHandler)
 dispatcher.registerErrorHandler(lfsAttributeMismatchHandler)
+dispatcher.registerErrorHandler(insufficientGitHubRepoPermissions)
+dispatcher.registerErrorHandler(schannelUnableToCheckRevocationForCertificate)
 dispatcher.registerErrorHandler(gitAuthenticationErrorHandler)
 dispatcher.registerErrorHandler(pushNeedsPullHandler)
+dispatcher.registerErrorHandler(samlReauthRequired)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(missingRepositoryHandler)
 dispatcher.registerErrorHandler(localChangesOverwrittenHandler)
@@ -309,7 +328,7 @@ ipcRenderer.on('blur', () => {
 
 ipcRenderer.on(
   'url-action',
-  (event: Electron.IpcMessageEvent, { action }: { action: URLActionType }) => {
+  (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {
     dispatcher.dispatchURLAction(action)
   }
 )

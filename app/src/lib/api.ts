@@ -103,8 +103,26 @@ export interface IAPIRepository {
   readonly fork: boolean
   readonly default_branch: string
   readonly pushed_at: string
-  readonly parent: IAPIRepository | null
-  readonly permissions: IAPIRepositoryPermissions
+  readonly has_issues: boolean
+  readonly archived: boolean
+  readonly parent?: IAPIRepository
+
+  /**
+   * The high-level permissions that the currently authenticated
+   * user enjoys for the repository. Undefined if the API call
+   * was made without an authenticated user or if the repository
+   * isn't the primarily requested one (i.e. if this is the parent
+   * repository of the requested repository)
+   *
+   * The permissions hash will also be omitted when the repository
+   * information is embedded within another object such as a pull
+   * request (base.repo or head.repo).
+   *
+   * In other words, the only time when the permissions property
+   * will be present is when explicitly fetching the repository
+   * through the `/repos/user/name` endpoint or similar.
+   */
+  readonly permissions?: IAPIRepositoryPermissions
 }
 
 /*
@@ -516,7 +534,16 @@ export class API {
     IAPIRepository
   > | null> {
     try {
-      return await this.fetchAll<IAPIRepository>('user/repos')
+      const repositories = await this.fetchAll<IAPIRepository>('user/repos')
+      // "But wait, repositories can't have a null owner" you say.
+      // Ordinarily you'd be correct but turns out there's super
+      // rare circumstances where a user has been deleted but the
+      // repository hasn't. Such cases are usually addressed swiftly
+      // but in some cases like GitHub Enterprise Server instances
+      // they can linger for longer than we'd like so we'll make
+      // sure to exclude any such dangling repository, chances are
+      // they won't be cloneable anyway.
+      return repositories.filter(x => x.owner !== null)
     } catch (error) {
       log.warn(`fetchRepositories: ${error}`)
       return null
@@ -629,7 +656,7 @@ export class API {
           throw new Error(
             `Unable to create repository for organization '${
               org.login
-            }'. Verify that it exists, that it's a paid organization, and that you have permission to create a repository there.`
+            }'. Verify that the repository does not already exist and that you have permission to create a repository there.`
           )
         }
         throw e
@@ -639,6 +666,26 @@ export class API {
       throw new Error(
         `Unable to publish repository. Please check if you have an internet connection and try again.`
       )
+    }
+  }
+
+  /** Create a new GitHub fork of this repository (owner and name) */
+  public async forkRepository(
+    owner: string,
+    name: string
+  ): Promise<IAPIRepository> {
+    try {
+      const apiPath = `/repos/${owner}/${name}/forks`
+      const response = await this.request('POST', apiPath)
+      return await parsedResponse<IAPIRepository>(response)
+    } catch (e) {
+      log.error(
+        `forkRepository: failed to fork ${owner}/${name} at endpoint: ${
+          this.endpoint
+        }`,
+        e
+      )
+      throw e
     }
   }
 
@@ -754,6 +801,20 @@ export class API {
   }
 
   /**
+   * Fetch a single pull request in the given repository
+   */
+  public async fetchPullRequest(owner: string, name: string, prNumber: string) {
+    try {
+      const path = `/repos/${owner}/${name}/pulls/${prNumber}`
+      const response = await this.request('GET', path)
+      return await parsedResponse<IAPIPullRequest>(response)
+    } catch (e) {
+      log.warn(`failed fetching PR for ${owner}/${name}/pulls/${prNumber}`, e)
+      throw e
+    }
+  }
+
+  /**
    * Get the combined status for the given ref.
    *
    * Note: Contrary to many other methods in this class this will not
@@ -779,7 +840,9 @@ export class API {
     name: string,
     branch: string
   ): Promise<IAPIPushControl> {
-    const path = `repos/${owner}/${name}/branches/${branch}/push_control`
+    const path = `repos/${owner}/${name}/branches/${encodeURIComponent(
+      branch
+    )}/push_control`
 
     const headers: any = {
       Accept: 'application/vnd.github.phandalin-preview',

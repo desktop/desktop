@@ -5,7 +5,7 @@ import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
 import { ensureDir } from 'fs-extra'
 import { openDirectorySafe } from '../shell'
-import { enableRebaseDialog, enableStashing } from '../../lib/feature-flag'
+import { enableCreateGitHubIssueFromMenu } from '../../lib/feature-flag'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { DefaultEditorLabel } from '../../ui/lib/context-menu'
 
@@ -88,7 +88,7 @@ export function buildDefaultMenu({
         },
         separator,
         { role: 'hide' },
-        { role: 'hideothers' },
+        { role: 'hideOthers' },
         { role: 'unhide' },
         separator,
         { role: 'quit' },
@@ -208,7 +208,6 @@ export function buildDefaultMenu({
         click: isStashedChangesVisible
           ? emit('hide-stashed-changes')
           : emit('show-stashed-changes'),
-        visible: enableStashing(),
       },
       {
         label: __DARWIN__ ? 'Toggle Full Screen' : 'Toggle &full screen',
@@ -323,6 +322,16 @@ export function buildDefaultMenu({
       },
       separator,
       {
+        id: 'create-issue-in-repository-on-github',
+        label: __DARWIN__
+          ? 'Create Issue on GitHub'
+          : 'Create &issue on GitHub',
+        accelerator: 'CmdOrCtrl+I',
+        click: emit('create-issue-in-repository-on-github'),
+        visible: enableCreateGitHubIssueFromMenu(),
+      },
+      separator,
+      {
         label: __DARWIN__ ? 'Repository Settings…' : 'Repository &settings…',
         id: 'show-repository-settings',
         click: emit('show-repository-settings'),
@@ -359,6 +368,12 @@ export function buildDefaultMenu({
         accelerator: 'CmdOrCtrl+Shift+Backspace',
         click: emit('discard-all-changes'),
       },
+      {
+        label: __DARWIN__ ? 'Stash All Changes…' : '&Stash all changes…',
+        id: 'stash-all-changes',
+        accelerator: 'CmdOrCtrl+Shift+S',
+        click: emit('stash-all-changes'),
+      },
       separator,
       {
         label: __DARWIN__
@@ -389,7 +404,6 @@ export function buildDefaultMenu({
         id: 'rebase-branch',
         accelerator: 'CmdOrCtrl+Shift+E',
         click: emit('rebase-branch'),
-        visible: enableRebaseDialog(),
       },
       separator,
       {
@@ -614,15 +628,15 @@ function zoom(direction: ZoomDirection): ClickHandler {
     const { webContents } = window
 
     if (direction === ZoomDirection.Reset) {
-      webContents.setZoomFactor(1)
+      webContents.zoomFactor = 1
       webContents.send('zoom-factor-changed', 1)
     } else {
-      const rawZoom = webContents.getZoomFactor()
+      const rawZoom = webContents.zoomFactor
       const zoomFactors =
         direction === ZoomDirection.In ? ZoomInFactors : ZoomOutFactors
 
-      // So the values that we get from getZoomFactor are floating point
-      // precision numbers from chromium that don't always round nicely so
+      // So the values that we get from zoomFactor property are floating point
+      // precision numbers from chromium, that don't always round nicely, so
       // we'll have to do a little trick to figure out which of our supported
       // zoom factors the value is referring to.
       const currentZoom = findClosestValue(zoomFactors, rawZoom)
@@ -636,7 +650,7 @@ function zoom(direction: ZoomDirection): ClickHandler {
       // factor we've got.
       const newZoom = nextZoomLevel === undefined ? currentZoom : nextZoomLevel
 
-      webContents.setZoomFactor(newZoom)
+      webContents.zoomFactor = newZoom
       webContents.send('zoom-factor-changed', newZoom)
     }
   }

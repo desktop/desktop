@@ -4,10 +4,10 @@ import { FileList } from '../history/file-list'
 import { Dispatcher } from '../dispatcher'
 import { CommittedFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
-import { Diff } from '../diff'
 import { IDiff, ImageDiffType } from '../../models/diff'
 import { Resizable } from '../resizable'
 import { StashDiffHeader } from './stash-diff-header'
+import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
 
 interface IStashDiffViewerProps {
   /** The stash in question. */
@@ -27,6 +27,18 @@ interface IStashDiffViewerProps {
 
   /** Are there any uncommitted changes */
   readonly isWorkingTreeClean: boolean
+
+  /**
+   * Called when the user requests to open a binary file in an the
+   * system-assigned application for said file type.
+   */
+  readonly onOpenBinaryFile: (fullPath: string) => void
+
+  /**
+   * Called when the user is viewing an image diff and requests
+   * to change the diff presentation mode.
+   */
+  readonly onChangeImageDiffType: (type: ImageDiffType) => void
 }
 
 /**
@@ -55,6 +67,8 @@ export class StashDiffViewer extends React.PureComponent<
       imageDiffType,
       isWorkingTreeClean,
       fileListWidth,
+      onOpenBinaryFile,
+      onChangeImageDiffType,
     } = this.props
     const files =
       stashEntry.files.kind === StashedChangesLoadStates.Loaded
@@ -62,15 +76,16 @@ export class StashDiffViewer extends React.PureComponent<
         : new Array<CommittedFileChange>()
 
     const diffComponent =
-      selectedStashedFile !== null && stashedFileDiff !== null ? (
-        <Diff
+      selectedStashedFile !== null ? (
+        <SeamlessDiffSwitcher
           repository={repository}
           readOnly={true}
           file={selectedStashedFile}
           diff={stashedFileDiff}
-          dispatcher={dispatcher}
           imageDiffType={imageDiffType}
           hideWhitespaceInDiff={false}
+          onOpenBinaryFile={onOpenBinaryFile}
+          onChangeImageDiffType={onChangeImageDiffType}
         />
       ) : null
 

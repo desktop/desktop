@@ -18,6 +18,7 @@ export type RetryAction =
   | { type: RetryActionType.Fetch; repository: Repository }
   | {
       type: RetryActionType.Clone
+      name: string
       url: string
       path: string
       options: CloneOptions
@@ -25,5 +26,5 @@ export type RetryAction =
   | {
       type: RetryActionType.Checkout
       repository: Repository
-      branch: Branch | string
+      branch: Branch
     }

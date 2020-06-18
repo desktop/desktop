@@ -10,7 +10,10 @@ import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
 import { Dispatcher } from '../dispatcher'
 import { IGitHubUser } from '../../lib/databases/github-user-database'
-import { Repository } from '../../models/repository'
+import {
+  Repository,
+  isRepositoryWithGitHubRepository,
+} from '../../models/repository'
 import { Button } from '../lib/button'
 import { Avatar } from '../lib/avatar'
 import { Loading } from '../lib/loading'
@@ -24,7 +27,6 @@ import { IMenuItem } from '../../lib/menu-item'
 import { ICommitContext } from '../../models/commit'
 import { startTimer } from '../lib/timing'
 import { PermissionsCommitWarning } from './permissions-commit-warning'
-import { enableBranchProtectionWarningFlow } from '../../lib/feature-flag'
 import { LinkButton } from '../lib/link-button'
 import { FoldoutType } from '../../lib/app-state'
 
@@ -51,8 +53,8 @@ interface ICommitMessageProps {
   readonly isCommitting: boolean
   readonly placeholder: string
   readonly prepopulateCommitSummary: boolean
-  readonly currentBranchProtected: boolean
-  readonly hasWritePermissionForRepository: boolean
+  readonly showBranchProtected: boolean
+  readonly showNoWriteAccess: boolean
 
   /**
    * Whether or not to show a field for adding co-authors to
@@ -451,24 +453,17 @@ export class CommitMessage extends React.Component<
   }
 
   private renderPermissionsCommitWarning = (branch: string) => {
-    if (!enableBranchProtectionWarningFlow()) {
-      return null
-    }
+    const { showBranchProtected, showNoWriteAccess, repository } = this.props
 
-    const {
-      currentBranchProtected,
-      hasWritePermissionForRepository,
-      repository,
-    } = this.props
-
-    if (!hasWritePermissionForRepository) {
+    if (showNoWriteAccess) {
       return (
         <PermissionsCommitWarning>
-          You do not have permission to push to{' '}
-          <strong>{repository.name}</strong>.
+          You don't have write access to <strong>{repository.name}</strong>.
+          Want to{' '}
+          <LinkButton onClick={this.onMakeFork}>create a fork</LinkButton>?
         </PermissionsCommitWarning>
       )
-    } else if (currentBranchProtected) {
+    } else if (showBranchProtected) {
       return (
         <PermissionsCommitWarning>
           <strong>{branch}</strong> is a protected branch. Want to{' '}
@@ -485,6 +480,12 @@ export class CommitMessage extends React.Component<
     this.props.dispatcher.showFoldout({
       type: FoldoutType.Branch,
     })
+  }
+
+  private onMakeFork = () => {
+    if (isRepositoryWithGitHubRepository(this.props.repository)) {
+      this.props.dispatcher.showCreateForkDialog(this.props.repository)
+    }
   }
 
   public render() {
