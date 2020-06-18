@@ -396,6 +396,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
           workingDirectory={workingDirectory}
+          conflictState={conflictState}
           rebaseConflictState={rebaseConflictState}
           selectedFileIDs={selectedFileIDs}
           onFileSelectionChanged={this.onFileSelectionChanged}

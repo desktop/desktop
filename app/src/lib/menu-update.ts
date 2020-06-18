@@ -104,6 +104,7 @@ const allMenuIds: ReadonlyArray<MenuIDs> = [
   'rename-branch',
   'delete-branch',
   'discard-all-changes',
+  'stash-all-changes',
   'preferences',
   'update-branch',
   'compare-to-branch',
@@ -154,6 +155,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   let onBranch = false
   let onDetachedHead = false
   let hasChangedFiles = false
+  let hasConflicts = false
   let hasDefaultBranch = false
   let hasPublishedBranch = false
   let networkActionInProgress = false
@@ -202,6 +204,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     const { conflictState, workingDirectory } = selectedState.state.changesState
 
     rebaseInProgress = conflictState !== null && conflictState.kind === 'rebase'
+    hasConflicts = changesState.conflictState !== null
     hasChangedFiles = workingDirectory.files.length > 0
   }
 
@@ -280,6 +283,11 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
       repositoryActive && hasChangedFiles && !rebaseInProgress
     )
 
+    menuStateBuilder.setEnabled(
+      'stash-all-changes',
+      hasChangedFiles && onBranch && !rebaseInProgress && !hasConflicts
+    )
+
     menuStateBuilder.setEnabled('compare-to-branch', !onDetachedHead)
     menuStateBuilder.setEnabled('toggle-stashed-changes', branchHasStashEntry)
 
@@ -311,6 +319,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     menuStateBuilder.disable('rename-branch')
     menuStateBuilder.disable('delete-branch')
     menuStateBuilder.disable('discard-all-changes')
+    menuStateBuilder.disable('stash-all-changes')
     menuStateBuilder.disable('update-branch')
     menuStateBuilder.disable('merge-branch')
     menuStateBuilder.disable('rebase-branch')

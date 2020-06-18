@@ -343,6 +343,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.deleteBranch()
       case 'discard-all-changes':
         return this.discardAllChanges()
+      case 'stash-all-changes':
+        return this.stashAllChanges()
       case 'show-preferences':
         return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
       case 'open-working-directory':
@@ -676,6 +678,14 @@ export class App extends React.Component<IAppProps, IAppState> {
       showDiscardChangesSetting: false,
       discardingAllChanges: true,
     })
+  }
+
+  private stashAllChanges() {
+    const repository = this.getRepository()
+
+    if (repository !== null && repository instanceof Repository) {
+      this.props.dispatcher.createStashForCurrentBranch(repository)
+    }
   }
 
   private showAddLocalRepo = () => {
