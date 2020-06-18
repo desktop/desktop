@@ -1,5 +1,13 @@
 {
   "releases": {
+    "2.5.3-beta2": [
+      "[Added] Stash changes without switching branches - #10032",
+      "[Fixed] Support launching Desktop from WSL on Windows - #4998. Thanks @shawnfunke!",
+      "[Fixed] Set initial value of checkbox to not show again the Discard line confirmation dialog to false - #9989",
+      "[Fixed] Select correct Branch to Compare when two branches have similar names - #9977",
+      "[Improved] Add detection to disable username and password authentication when GitHub.com deprecates it - #9231",
+      "[Improved] Remove redundant progress text from Git error messages - #9945"
+    ],
     "2.5.3-beta1": [
       "[Added] Discard selection of lines from a file - #9728",
       "[Fixed] Display more readable messages for errors when cloning a repository - #9944",
