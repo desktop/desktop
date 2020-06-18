@@ -3,7 +3,7 @@ version: 2
 defaults: &defaults
   working_directory: ~/desktop/desktop
   macos:
-    xcode: '10.0.0'
+    xcode: '10.2.1'
 
 jobs:
   build:
