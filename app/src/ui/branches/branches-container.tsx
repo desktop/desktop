@@ -11,6 +11,7 @@ import { PopupType } from '../../models/popup'
 
 import { Dispatcher } from '../dispatcher'
 import { FoldoutType } from '../../lib/app-state'
+import { assertNever } from '../../lib/fatal-error'
 
 import { TabBar } from '../tab-bar'
 
@@ -166,6 +167,8 @@ export class BranchesContainer extends React.Component<
       case BranchesTab.PullRequests: {
         return this.renderPullRequests()
       }
+      default:
+        return assertNever(tab, `Unknown Branches tab: ${tab}`)
     }
   }
 

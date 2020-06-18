@@ -313,6 +313,8 @@ export class CloneRepository extends React.Component<
           )
         }
       }
+      default:
+        return assertNever(tab, `Unknown tab: ${tab}`)
     }
   }
 

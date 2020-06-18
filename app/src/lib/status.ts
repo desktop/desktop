@@ -42,6 +42,8 @@ export function mapStatus(status: AppFileStatus): string {
       return 'Conflicted'
     case AppFileStatusKind.Copied:
       return 'Copied'
+    default:
+      return assertNever(status, `Unknown file status ${status}`)
   }
 }
 

@@ -2,6 +2,7 @@ import * as React from 'react'
 import { TabBar, TabBarType } from '../tab-bar'
 import { Remote } from './remote'
 import { GitIgnore } from './git-ignore'
+import { assertNever } from '../../lib/fatal-error'
 import { IRemote } from '../../models/remote'
 import { Dispatcher } from '../dispatcher'
 import { PopupType } from '../../models/popup'
@@ -175,6 +176,8 @@ export class RepositorySettings extends React.Component<
           />
         )
       }
+      default:
+        return assertNever(tab, `Unknown tab type: ${tab}`)
     }
   }
 
