@@ -4,7 +4,7 @@
       "[Added] Stash changes without switching branches - #10032",
       "[Fixed] Support launching Desktop from WSL on Windows - #4998. Thanks @shawnfunke!",
       "[Fixed] Set initial value of opt out checkbox in Discard line confirmation dialog to false - #9989",
-      "[Fixed] Select correct Branch to Compare when two branches have similar names - #9977",
+      "[Fixed] Select correct branch to compare when two branches have similar names - #9977",
       "[Improved] Add detection to disable username and password authentication when GitHub.com deprecates it - #9231",
       "[Improved] Remove redundant progress text from Git error messages - #9945"
     ],
