@@ -340,6 +340,11 @@ export class ChangesList extends React.Component<
     }
 
     const hasLocalChanges = this.props.workingDirectory.files.length > 0
+    const hasConflicts =
+      this.props.conflictState !== null ||
+      this.props.workingDirectory.files.some(
+        x => x.status.kind === AppFileStatusKind.Conflicted
+      )
 
     const items: IMenuItem[] = [
       {
@@ -350,10 +355,7 @@ export class ChangesList extends React.Component<
       {
         label: __DARWIN__ ? 'Stash All Changes…' : 'Stash all changes…',
         action: this.onStashChanges,
-        enabled:
-          hasLocalChanges &&
-          this.props.branch !== null &&
-          this.props.conflictState === null,
+        enabled: hasLocalChanges && this.props.branch !== null && !hasConflicts,
       },
     ]
 
