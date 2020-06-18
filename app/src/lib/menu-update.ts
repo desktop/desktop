@@ -9,6 +9,7 @@ import { CloningRepository } from '../models/cloning-repository'
 import { TipState } from '../models/tip'
 import { updateMenuState as ipcUpdateMenuState } from '../ui/main-process-proxy'
 import { AppMenu, MenuItem } from '../models/app-menu'
+import { AppFileStatusKind } from '../models/status'
 
 export interface IMenuItemState {
   readonly enabled?: boolean
