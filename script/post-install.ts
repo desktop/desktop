@@ -36,7 +36,7 @@ findYarnVersion(path => {
   )
 
   if (result.status !== 0) {
-    process.exit(result.status || undefined)
+    process.exit(result.status || 1)
   }
 
   result = spawnSync(
