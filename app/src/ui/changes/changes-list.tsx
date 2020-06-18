@@ -67,7 +67,7 @@ function getIncludeAllValue(
     // untracked files will be skipped by the rebase, so we need to ensure that
     // the "Include All" checkbox matches this state
     const onlyUntrackedFilesFound = workingDirectory.files.every(
-      (f) => f.status.kind === AppFileStatusKind.Untracked
+      f => f.status.kind === AppFileStatusKind.Untracked
     )
 
     if (onlyUntrackedFilesFound) {
@@ -75,7 +75,7 @@ function getIncludeAllValue(
     }
 
     const onlyTrackedFilesFound = workingDirectory.files.every(
-      (f) => f.status.kind !== AppFileStatusKind.Untracked
+      f => f.status.kind !== AppFileStatusKind.Untracked
     )
 
     // show "Mixed" if we have a mixture of tracked and untracked changes
@@ -289,9 +289,7 @@ export class ChangesList extends React.Component<
     const workingDirectory = this.props.workingDirectory
 
     if (files.length === 1) {
-      const modifiedFile = workingDirectory.files.find(
-        (f) => f.path === files[0]
-      )
+      const modifiedFile = workingDirectory.files.find(f => f.path === files[0])
 
       if (modifiedFile != null) {
         this.props.onDiscardChanges(modifiedFile)
@@ -299,8 +297,8 @@ export class ChangesList extends React.Component<
     } else {
       const modifiedFiles = new Array<WorkingDirectoryFileChange>()
 
-      files.forEach((file) => {
-        const modifiedFile = workingDirectory.files.find((f) => f.path === file)
+      files.forEach(file => {
+        const modifiedFile = workingDirectory.files.find(f => f.path === file)
 
         if (modifiedFile != null) {
           modifiedFiles.push(modifiedFile)
@@ -480,20 +478,18 @@ export class ChangesList extends React.Component<
           // Filter out any .gitignores that happens to be selected, ignoring
           // those doesn't make sense.
           this.props.onIgnore(
-            paths.filter((path) => Path.basename(path) !== GitIgnoreFileName)
+            paths.filter(path => Path.basename(path) !== GitIgnoreFileName)
           )
         },
         // Enable this action as long as there's something selected which isn't
         // a .gitignore file.
-        enabled: paths.some(
-          (path) => Path.basename(path) !== GitIgnoreFileName
-        ),
+        enabled: paths.some(path => Path.basename(path) !== GitIgnoreFileName),
       })
     }
     // Five menu items should be enough for everyone
     Array.from(extensions)
       .slice(0, 5)
-      .forEach((extension) => {
+      .forEach(extension => {
         items.push({
           label: __DARWIN__
             ? `Ignore All ${extension} Files (Add to .gitignore)`
@@ -611,7 +607,7 @@ export class ChangesList extends React.Component<
 
     if (rebaseConflictState !== null) {
       const hasUntrackedChanges = workingDirectory.files.some(
-        (f) => f.status.kind === AppFileStatusKind.Untracked
+        f => f.status.kind === AppFileStatusKind.Untracked
       )
 
       return (
@@ -637,7 +633,7 @@ export class ChangesList extends React.Component<
       fileCount > 0 && includeAllValue !== CheckboxValue.Off
 
     const filesSelected = workingDirectory.files.filter(
-      (f) => f.selection.getSelectionType() !== DiffSelectionType.None
+      f => f.selection.getSelectionType() !== DiffSelectionType.None
     )
 
     // When a single file is selected, we use a default commit summary
