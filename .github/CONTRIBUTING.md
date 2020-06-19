@@ -119,7 +119,7 @@ Some additional advice:
 * **Include screenshots and animated GIFs** if relevant to help you demonstrate
   the steps or point out the part of GitHub Desktop which the suggestion is
   related to. You can use [this tool](http://www.cockos.com/licecap/) to record
-  GIFs on macOS and Windows
+  GIFs on macOS and Windowsapp/styles/ui/_diff.scss
 * **List some other applications where this enhancement exists, if applicable**
 
 ### Help Wanted
