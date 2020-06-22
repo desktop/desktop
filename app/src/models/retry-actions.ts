@@ -9,6 +9,7 @@ export enum RetryActionType {
   Fetch,
   Clone,
   Checkout,
+  Merge,
 }
 
 /** The retriable actions and their associated data. */
@@ -27,4 +28,10 @@ export type RetryAction =
       type: RetryActionType.Checkout
       repository: Repository
       branch: Branch
+    }
+  | {
+      type: RetryActionType.Merge
+      repository: Repository
+      currentBranch: string
+      theirBranch: string
     }

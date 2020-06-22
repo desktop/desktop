@@ -1413,6 +1413,12 @@ export class GitStore extends BaseStore {
         currentBranch,
         theirBranch: branch,
       },
+      retryAction: {
+        type: RetryActionType.Merge,
+        currentBranch,
+        theirBranch: branch,
+        repository: this.repository,
+      },
     })
   }
 
