@@ -124,6 +124,7 @@ import { DeleteTag } from './delete-tag'
 import { ChooseForkSettings } from './choose-fork-settings'
 import { DiscardSelection } from './discard-changes/discard-selection-dialog'
 import { LocalChangesOverwrittenDialog } from './local-changes-overwritten/local-changes-overwritten-dialog'
+import memoizeOne from 'memoize-one'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -186,6 +187,15 @@ export class App extends React.Component<IAppProps, IAppState> {
   private get isShowingModal() {
     return this.state.currentPopup !== null || this.state.errors.length > 0
   }
+
+  /**
+   * Returns a memoized instance of onPopupDismissed() bound to the
+   * passed popupType, so it can be used in render() without creating
+   * multiple instances when the component gets re-rendered.
+   */
+  private getOnPopupDismissedFn = memoizeOne((popupType: PopupType) => {
+    return () => this.onPopupDismissed(popupType)
+  })
 
   public constructor(props: IAppProps) {
     super(props)
@@ -1269,7 +1279,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private onPopupDismissed = () => this.props.dispatcher.closePopup()
+  private onPopupDismissed = (popupType?: PopupType) => {
+    return this.props.dispatcher.closePopup()
+  }
 
   private onSignInDialogDismissed = () => {
     this.props.dispatcher.resetSignInState()
@@ -1300,6 +1312,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (!popup) {
       return null
     }
+
+    const onDismissed = this.getOnPopupDismissedFn(popup.type)
 
     switch (popup.type) {
       case PopupType.RenameBranch:
@@ -2007,7 +2021,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             hasExistingStash={existingStash !== null}
             retryAction={popup.retryAction}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onDismissed}
           />
         )
       default:
