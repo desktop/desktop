@@ -733,10 +733,14 @@ export async function localChangesOverwrittenHandler(
     return error
   }
 
+  if (e.metadata.retryAction === undefined) {
+    return error
+  }
+
   dispatcher.showPopup({
     type: PopupType.LocalChangesOverwritten,
     repository,
-    retryAction: e.metadata.retryAction || null,
+    retryAction: e.metadata.retryAction,
   })
 
   return null

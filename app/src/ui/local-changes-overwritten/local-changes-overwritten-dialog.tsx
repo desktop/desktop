@@ -14,7 +14,7 @@ interface ILocalChangesOverwrittenDialogProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly hasExistingStash: boolean
-  readonly retryAction: RetryAction | null
+  readonly retryAction: RetryAction
   readonly onDismissed: () => void
 }
 interface ILocalChangesOverwrittenDialogState {
@@ -67,24 +67,16 @@ export class LocalChangesOverwrittenDialog extends React.Component<
     return (
       <DialogFooter>
         <OkCancelButtonGroup
-          okButtonText={this.getStashLabel()}
+          okButtonText={
+            __DARWIN__
+              ? 'Stash Changes and Continue'
+              : 'Stash changes and continue'
+          }
           okButtonTitle="This will create a stash with your current changes. You can recover them by restoring the stash afterwards."
           cancelButtonText="Close"
         />
       </DialogFooter>
     )
-  }
-
-  private getStashLabel() {
-    console.log('rafeca: ', this.props.retryAction)
-
-    if (this.props.retryAction !== null) {
-      return __DARWIN__
-        ? 'Stash Changes and Continue'
-        : 'Stash changes and continue'
-    }
-
-    return __DARWIN__ ? 'Stash Changes' : 'Stash changes'
   }
 
   private onSubmit = async () => {
@@ -98,16 +90,11 @@ export class LocalChangesOverwrittenDialog extends React.Component<
 
     this.setState({ loading: true })
 
-    if (!this.props.hasExistingStash) {
-      await this.props.dispatcher.createStashForCurrentBranch(
-        this.props.repository,
-        true
-      )
-    }
-
-    if (this.props.retryAction !== null) {
-      await this.props.dispatcher.performRetry(this.props.retryAction)
-    }
+    await this.props.dispatcher.createStashForCurrentBranch(
+      this.props.repository,
+      true
+    )
+    await this.props.dispatcher.performRetry(this.props.retryAction)
 
     this.props.onDismissed()
   }
