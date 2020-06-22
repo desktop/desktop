@@ -434,7 +434,7 @@ export async function rebaseConflictsHandler(
  * Handler for when we attempt to checkout a branch and there are some files that would
  * be overwritten.
  */
-export async function localChangesOverwrittenHandler(
+export async function localChangesOverwrittenOnCheckoutHandler(
   error: Error,
   dispatcher: Dispatcher
 ): Promise<Error | null> {
@@ -688,6 +688,55 @@ export async function schannelUnableToCheckRevocationForCertificate(
   dispatcher.showPopup({
     type: PopupType.SChannelNoRevocationCheck,
     url: match[1],
+  })
+
+  return null
+}
+
+/**
+ * Handler for when we attempt to checkout a branch and there are some files that would
+ * be overwritten.
+ */
+export async function localChangesOverwrittenHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const e = asErrorWithMetadata(error)
+  if (e === null) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (gitError === null) {
+    return error
+  }
+
+  const dugiteError = gitError.result.gitError
+  if (dugiteError === null) {
+    return error
+  }
+
+  if (
+    dugiteError !== DugiteError.LocalChangesOverwritten &&
+    dugiteError !== DugiteError.MergeWithLocalChanges &&
+    dugiteError !== DugiteError.RebaseWithLocalChanges
+  ) {
+    return error
+  }
+
+  const { repository } = e.metadata
+  if (repository == null) {
+    return error
+  }
+
+  if (!(repository instanceof Repository)) {
+    return error
+  }
+
+  dispatcher.showPopup({
+    type: PopupType.LocalChangesOverwritten,
+    repository,
+    retryAction: e.metadata.retryAction || null,
   })
 
   return null
