@@ -260,3 +260,8 @@ export type Popup =
       type: PopupType.ChooseForkSettings
       repository: RepositoryWithForkedGitHubRepository
     }
+  | {
+      type: PopupType.LocalChangesOverwritten
+      repository: Repository
+      retryAction: RetryAction | null
+    }
