@@ -13,8 +13,17 @@ import { Dispatcher } from '../dispatcher'
 interface ILocalChangesOverwrittenDialogProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
+  /**
+   * Whether there's already a stash entry for the local branch.
+   */
   readonly hasExistingStash: boolean
+  /**
+   * The action that should get executed if the user selects "Stash and Continue".
+   */
   readonly retryAction: RetryAction
+  /**
+   * Callback to use when the dialog gets closed.
+   */
   readonly onDismissed: () => void
 }
 interface ILocalChangesOverwrittenDialogState {

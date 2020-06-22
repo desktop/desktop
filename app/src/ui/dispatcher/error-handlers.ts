@@ -694,8 +694,8 @@ export async function schannelUnableToCheckRevocationForCertificate(
 }
 
 /**
- * Handler for when we attempt to checkout a branch and there are some files that would
- * be overwritten.
+ * Handler for when an action the user attempts cannot be done because there are local
+ * changes that would get overwritten.
  */
 export async function localChangesOverwrittenHandler(
   error: Error,
