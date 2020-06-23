@@ -25,6 +25,9 @@ export interface IMenuItem {
   readonly submenu?: ReadonlyArray<this>
 }
 
+/**
+ * A menu item data structure that can be serialized and sent via IPC.
+ */
 export interface ISerializableMenuItem extends IMenuItem {
   readonly action: undefined
 }
