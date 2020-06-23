@@ -118,7 +118,7 @@ function addErrorTracing(
   cp: ChildProcess,
   onError: (error: Error) => void
 ) {
-  if (cp.stderr) {
+  if (cp.stderr !== null) {
     cp.stderr.on('data', chunk => {
       const text = chunk instanceof Buffer ? chunk.toString() : chunk
       log.debug(`[${shell}] stderr: '${text}'`)
