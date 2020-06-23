@@ -130,5 +130,5 @@ export function enableForkSettings(): boolean {
  * Should we show the discard lines/hunks context menu item?
  */
 export function enableDiscardLines(): boolean {
-  return enableBetaFeatures()
+  return true
 }
