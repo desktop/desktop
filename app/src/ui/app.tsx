@@ -1313,8 +1313,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    const onDismissed = this.getOnPopupDismissedFn(popup.type)
-
     switch (popup.type) {
       case PopupType.RenameBranch:
         const stash =
@@ -2021,7 +2019,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             hasExistingStash={existingStash !== null}
             retryAction={popup.retryAction}
-            onDismissed={onDismissed}
+            onDismissed={this.getOnPopupDismissedFn(popup.type)}
           />
         )
       default:
