@@ -59,36 +59,6 @@ export function getAppMenu() {
   ipcRenderer.send('get-app-menu')
 }
 
-/**
- * There's currently no way for us to know when a contextual menu is closed (see
- * https://github.com/electron/electron/issues/9441). So we'll store the latest
- * contextual menu items we presented and assume any actions we receive are
- * coming from it.
- */
-let currentContextualMenuItems: ReadonlyArray<IMenuItem> | null = null
-
-/**
- * Register a global handler for dispatching contextual menu actions. This
- * should be called only once, around app load time.
- */
-export function registerContextualMenuActionDispatcher() {
-  ipcRenderer.on(
-    'contextual-menu-action',
-    (event: Electron.IpcRendererEvent, indices: number[]) => {
-      if (currentContextualMenuItems === null) {
-        return
-      }
-
-      const menuItem = findSubmenuItem(currentContextualMenuItems, indices)
-
-      if (menuItem !== undefined && menuItem.action !== undefined) {
-        menuItem.action()
-        currentContextualMenuItems = null
-      }
-    }
-  )
-}
-
 function findSubmenuItem(
   currentContextualMenuItems: ReadonlyArray<IMenuItem>,
   indices: ReadonlyArray<number>
@@ -110,9 +80,19 @@ function findSubmenuItem(
 }
 
 /** Show the given menu items in a contextual menu. */
-export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
-  currentContextualMenuItems = items
-  ipcRenderer.send('show-contextual-menu', items)
+export async function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
+  const indices: ReadonlyArray<number> | null = await ipcRenderer.invoke(
+    'show-contextual-menu',
+    items
+  )
+
+  if (indices !== null) {
+    const menuItem = findSubmenuItem(items, indices)
+
+    if (menuItem !== undefined && menuItem.action !== undefined) {
+      menuItem.action()
+    }
+  }
 }
 
 /** Update the menu item labels with the user's preferred apps. */

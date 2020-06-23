@@ -435,15 +435,25 @@ app.on('ready', () => {
     }
   )
 
-  ipcMain.on(
+  /**
+   * Handle the action to show a contextual menu.
+   *
+   * It responds an array of indices that maps to the path to reach
+   * the menu (or submenu) item that was clicked or null if the menu
+   * was closed without clicking on any item.
+   */
+  ipcMain.handle(
     'show-contextual-menu',
-    (event: Electron.IpcMainEvent, items: ReadonlyArray<IMenuItem>) => {
-      const menu = buildContextMenu(items, indices =>
-        event.sender.send('contextual-menu-action', indices)
-      )
+    (
+      event: Electron.IpcMainInvokeEvent,
+      items: ReadonlyArray<IMenuItem>
+    ): Promise<ReadonlyArray<number> | null> => {
+      return new Promise(resolve => {
+        const menu = buildContextMenu(items, indices => resolve(indices))
 
-      const window = BrowserWindow.fromWebContents(event.sender)
-      menu.popup({ window })
+        const window = BrowserWindow.fromWebContents(event.sender)
+        menu.popup({ window, callback: () => resolve(null) })
+      })
     }
   )
 
