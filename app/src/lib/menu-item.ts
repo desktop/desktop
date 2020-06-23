@@ -22,7 +22,11 @@ export interface IMenuItem {
   /**
    * Submenu that will appear when hovering this menu item.
    */
-  readonly submenu?: ReadonlyArray<IMenuItem>
+  readonly submenu?: ReadonlyArray<this>
+}
+
+export interface ISerializableMenuItem extends IMenuItem {
+  readonly action: undefined
 }
 
 /**

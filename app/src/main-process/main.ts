@@ -24,7 +24,7 @@ import {
 } from '../lib/source-map-support'
 import { now } from './now'
 import { showUncaughtException } from './show-uncaught-exception'
-import { IMenuItem } from '../lib/menu-item'
+import { ISerializableMenuItem } from '../lib/menu-item'
 import { buildContextMenu } from './menu/build-context-menu'
 import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 
@@ -446,7 +446,7 @@ app.on('ready', () => {
     'show-contextual-menu',
     (
       event: Electron.IpcMainInvokeEvent,
-      items: ReadonlyArray<IMenuItem>
+      items: ReadonlyArray<ISerializableMenuItem>
     ): Promise<ReadonlyArray<number> | null> => {
       return new Promise(resolve => {
         const menu = buildContextMenu(items, indices => resolve(indices))

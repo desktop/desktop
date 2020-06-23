@@ -2,7 +2,7 @@ import { ipcRenderer } from 'electron'
 import { ExecutableMenuItem } from '../models/app-menu'
 import { MenuIDs } from '../models/menu-ids'
 import { IMenuItemState } from '../lib/menu-update'
-import { IMenuItem } from '../lib/menu-item'
+import { IMenuItem, ISerializableMenuItem } from '../lib/menu-item'
 import { MenuLabelsEvent } from '../models/menu-labels'
 
 /** Set the menu item's enabledness. */
@@ -83,7 +83,7 @@ function findSubmenuItem(
 export async function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
   const indices: ReadonlyArray<number> | null = await ipcRenderer.invoke(
     'show-contextual-menu',
-    items
+    serializeMenuItems(items)
   )
 
   if (indices !== null) {
@@ -93,6 +93,20 @@ export async function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
       menuItem.action()
     }
   }
+}
+
+/**
+ * Remove the menu items properties that can't be serializable in
+ * order to pass them via IPC.
+ */
+function serializeMenuItems(
+  items: ReadonlyArray<IMenuItem>
+): ReadonlyArray<ISerializableMenuItem> {
+  return items.map(item => ({
+    ...item,
+    action: undefined,
+    submenu: item.submenu ? serializeMenuItems(item.submenu) : undefined,
+  }))
 }
 
 /** Update the menu item labels with the user's preferred apps. */
