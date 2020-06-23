@@ -123,5 +123,12 @@ export function enableGitTagsCreation(): boolean {
  * main repository when opening a fork?
  */
 export function enableForkSettings(): boolean {
-  return enableBetaFeatures()
+  return true
+}
+
+/**
+ * Should we show the discard lines/hunks context menu item?
+ */
+export function enableDiscardLines(): boolean {
+  return true
 }

@@ -120,9 +120,9 @@ import { SChannelNoRevocationCheckDialog } from './schannel-no-revocation-check/
 import { findDefaultUpstreamBranch } from '../lib/branch'
 import { GitHubRepository } from '../models/github-repository'
 import { CreateTag } from './create-tag'
-import { RetryCloneDialog } from './clone-repository/retry-clone-dialog'
 import { DeleteTag } from './delete-tag'
 import { ChooseForkSettings } from './choose-fork-settings'
+import { DiscardSelection } from './discard-changes/discard-selection-dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -343,6 +343,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.deleteBranch()
       case 'discard-all-changes':
         return this.discardAllChanges()
+      case 'stash-all-changes':
+        return this.stashAllChanges()
       case 'show-preferences':
         return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
       case 'open-working-directory':
@@ -676,6 +678,14 @@ export class App extends React.Component<IAppProps, IAppState> {
       showDiscardChangesSetting: false,
       discardingAllChanges: true,
     })
+  }
+
+  private stashAllChanges() {
+    const repository = this.getRepository()
+
+    if (repository !== null && repository instanceof Repository) {
+      this.props.dispatcher.createStashForCurrentBranch(repository)
+    }
   }
 
   private showAddLocalRepo = () => {
@@ -1344,6 +1354,18 @@ export class App extends React.Component<IAppProps, IAppState> {
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
           />
         )
+      case PopupType.ConfirmDiscardSelection:
+        return (
+          <DiscardSelection
+            key="discard-selection"
+            repository={popup.repository}
+            dispatcher={this.props.dispatcher}
+            file={popup.file}
+            diff={popup.diff}
+            selection={popup.selection}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
       case PopupType.Preferences:
         return (
           <Preferences
@@ -1960,17 +1982,6 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
-      case PopupType.RetryClone: {
-        return (
-          <RetryCloneDialog
-            repository={popup.repository}
-            retryAction={popup.retryAction}
-            onDismissed={this.onPopupDismissed}
-            dispatcher={this.props.dispatcher}
-            errorMessage={popup.errorMessage}
-          />
-        )
-      }
       case PopupType.ChooseForkSettings: {
         return (
           <ChooseForkSettings
@@ -2149,8 +2160,13 @@ export class App extends React.Component<IAppProps, IAppState> {
         errors={this.state.errors}
         onClearError={this.clearError}
         onShowPopup={this.showPopup}
+        onRetryAction={this.onRetryAction}
       />
     )
+  }
+
+  private onRetryAction = (retryAction: RetryAction) => {
+    this.props.dispatcher.performRetry(retryAction)
   }
 
   private showPopup = (popup: Popup) => {
