@@ -1,10 +1,10 @@
-import { spawn, SpawnOptionsWithoutStdio } from 'child_process'
+import { spawn, SpawnOptions } from 'child_process'
 import * as Path from 'path'
 
 function captureCommandOutput(
   command: string,
-  args: string[],
-  options: SpawnOptionsWithoutStdio = {}
+  args?: string[] | undefined,
+  options: SpawnOptions = {}
 ): Promise<string | undefined> {
   return new Promise<string | undefined>((resolve, reject) => {
     const cp = spawn(command, args, options)
