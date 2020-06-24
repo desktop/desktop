@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - development
+      - linux
   pull_request:
   schedule:
     - cron: '0 19 * * 0'
