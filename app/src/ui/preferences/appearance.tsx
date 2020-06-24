@@ -20,12 +20,12 @@ const themes: ReadonlyArray<ISegmentedItem<ApplicationTheme>> = [
   {
     title: 'Light',
     description: 'The default theme of GitHub Desktop',
-    value: ApplicationTheme.Light,
+    key: ApplicationTheme.Light,
   },
   {
     title: 'Dark',
     description: 'GitHub Desktop is for you too, creatures of the night',
-    value: ApplicationTheme.Dark,
+    key: ApplicationTheme.Dark,
   },
 ]
 
@@ -63,7 +63,7 @@ export class Appearance extends React.Component<IAppearanceProps, {}> {
       <Row>
         <VerticalSegmentedControl
           items={themes}
-          selectedValue={this.props.selectedTheme}
+          selectedKey={this.props.selectedTheme}
           onSelectionChanged={this.onSelectedThemeChanged}
         />
       </Row>

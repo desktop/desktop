@@ -2,10 +2,12 @@ import * as React from 'react'
 import { createUniqueId, releaseUniqueId } from '../id-pool'
 import { SegmentedItem } from './segmented-item'
 
+type Key = string | number
+
 /**
  * An item which is rendered as a choice in the segmented control.
  */
-export interface ISegmentedItem<T> {
+export interface ISegmentedItem<T extends Key> {
   /**
    * The title for the segmented item. This should be kept short.
    */
@@ -18,17 +20,17 @@ export interface ISegmentedItem<T> {
   readonly description?: string | JSX.Element
 
   /**
-   * The value to use for that item. This value will be passed as
+   * The key to use for that item. This key will be passed as
    * the first argument of onSelectionChanged() when the item gets
    * selected.
    *
-   * Note that when passing multiple items with the same value, only
-   * the first one will get used and the rest will get filtered out.
+   * Note that keys should be unique so there can't be two items on
+   * the same <VerticalSegmentedControl /> component with the same key.
    */
-  readonly value: T
+  readonly key: T
 }
 
-interface IVerticalSegmentedControlProps<T> {
+interface IVerticalSegmentedControlProps<T extends Key> {
   /**
    * An optional label for the segmented control. Will be rendered
    * as a legend element inside a field group. Consumers are strongly
@@ -44,18 +46,18 @@ interface IVerticalSegmentedControlProps<T> {
   readonly items: ReadonlyArray<ISegmentedItem<T>>
 
   /**
-   * The currently selected item, denoted by its value.
+   * The currently selected item, denoted by its key.
    */
-  readonly selectedValue: T
+  readonly selectedKey: T
 
   /**
    * A function that's called whenever the selected item changes, either
    * as a result of a click using a pointer device or as a result of the user
    * hitting an up/down while the component has focus.
    *
-   * The value argument corresponds to the value property of the selected item.
+   * The key argument corresponds to the key property of the selected item.
    */
-  readonly onSelectionChanged: (value: T) => void
+  readonly onSelectionChanged: (key: T) => void
 }
 
 interface IVerticalSegmentedControlState {
@@ -71,7 +73,7 @@ interface IVerticalSegmentedControlState {
  * A component for presenting a small number of choices to the user. Equivalent
  * of a radio button group but styled as a vertically oriented segmented control.
  */
-export class VerticalSegmentedControl<T> extends React.Component<
+export class VerticalSegmentedControl<T extends Key> extends React.Component<
   IVerticalSegmentedControlProps<T>,
   IVerticalSegmentedControlState
 > {
@@ -114,29 +116,25 @@ export class VerticalSegmentedControl<T> extends React.Component<
     }
   }
 
-  private onItemClick = (value: T) => {
-    if (value !== this.props.selectedValue) {
-      this.props.onSelectionChanged(value)
+  private onItemClick = (key: T) => {
+    if (key !== this.props.selectedKey) {
+      this.props.onSelectionChanged(key)
     }
   }
 
-  private getListItemId(index: number) {
-    return `${this.state.listId}_Item_${index}`
+  private getListItemId(key: T) {
+    return `${this.state.listId}_Item_${key}`
   }
 
-  private renderItem(
-    item: ISegmentedItem<T>,
-    index: number,
-    selected: boolean
-  ) {
+  private renderItem(item: ISegmentedItem<T>) {
     return (
       <SegmentedItem
-        id={this.getListItemId(index)}
-        key={index}
+        id={this.getListItemId(item.key)}
+        key={item.key}
         title={item.title}
         description={item.description}
-        isSelected={selected}
-        value={item.value}
+        isSelected={item.key === this.props.selectedKey}
+        value={item.key}
         onClick={this.onItemClick}
       />
     )
@@ -147,12 +145,12 @@ export class VerticalSegmentedControl<T> extends React.Component<
 
     if (event.key === 'ArrowUp') {
       if (selectedIndex > 0) {
-        this.props.onSelectionChanged(this.props.items[selectedIndex - 1].value)
+        this.props.onSelectionChanged(this.props.items[selectedIndex - 1].key)
       }
       event.preventDefault()
     } else if (event.key === 'ArrowDown') {
       if (selectedIndex < this.props.items.length - 1) {
-        this.props.onSelectionChanged(this.props.items[selectedIndex + 1].value)
+        this.props.onSelectionChanged(this.props.items[selectedIndex + 1].key)
       }
       event.preventDefault()
     } else if (event.key === 'Enter') {
@@ -185,14 +183,13 @@ export class VerticalSegmentedControl<T> extends React.Component<
       return null
     }
 
-    const selectedIndex = this.findSelectedIndex(this.props.items)
     const label = this.props.label ? (
       <legend onClick={this.onLegendClick}>{this.props.label}</legend>
     ) : (
       undefined
     )
 
-    const activeDescendant = this.getListItemId(selectedIndex)
+    const activeDescendant = this.getListItemId(this.props.selectedKey)
 
     // Using a fieldset with a legend seems to be the way to go here since
     // we can't use a label to point to a list (https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Form_labelable).
@@ -209,15 +206,13 @@ export class VerticalSegmentedControl<T> extends React.Component<
           role="radiogroup"
           aria-activedescendant={activeDescendant}
         >
-          {this.props.items.map((item, index) =>
-            this.renderItem(item, index, index === selectedIndex)
-          )}
+          {this.props.items.map(item => this.renderItem(item))}
         </ul>
       </fieldset>
     )
   }
 
   private findSelectedIndex(items: ReadonlyArray<ISegmentedItem<T>>) {
-    return items.findIndex(item => item.value === this.props.selectedValue)
+    return items.findIndex(item => item.key === this.props.selectedKey)
   }
 }

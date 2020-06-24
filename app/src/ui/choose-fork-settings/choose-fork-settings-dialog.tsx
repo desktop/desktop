@@ -58,7 +58,7 @@ export class ChooseForkSettings extends React.Component<
             repository
           </>
         ),
-        value: ForkContributionTarget.Parent,
+        key: ForkContributionTarget.Parent,
       },
       {
         title: 'For my own purposes',
@@ -69,7 +69,7 @@ export class ChooseForkSettings extends React.Component<
             repository
           </>
         ),
-        value: ForkContributionTarget.Self,
+        key: ForkContributionTarget.Self,
       },
     ]
 
@@ -85,7 +85,7 @@ export class ChooseForkSettings extends React.Component<
             <VerticalSegmentedControl
               label="You have changes on this branch. What would you like to do with them?"
               items={items}
-              selectedValue={this.state.forkContributionTarget}
+              selectedKey={this.state.forkContributionTarget}
               onSelectionChanged={this.onSelectionChanged}
             />
           </Row>

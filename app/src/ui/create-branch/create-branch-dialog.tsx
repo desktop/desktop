@@ -338,13 +338,13 @@ export class CreateBranch extends React.Component<
           title: defaultBranch.name,
           description:
             "The default branch in your repository. Pick this to start on something new that's not dependent on your current branch.",
-          value: StartPoint.DefaultBranch,
+          key: StartPoint.DefaultBranch,
         },
         {
           title: currentBranchName,
           description:
             'The currently checked out branch. Pick this if you need to build on work done on this branch.',
-          value: StartPoint.CurrentBranch,
+          key: StartPoint.CurrentBranch,
         },
       ]
 
@@ -385,13 +385,13 @@ export class CreateBranch extends React.Component<
           title: upstreamDefaultBranch.name,
           description:
             "The default branch of the upstream repository. Pick this to start on something new that's not dependent on your current branch.",
-          value: StartPoint.UpstreamDefaultBranch,
+          key: StartPoint.UpstreamDefaultBranch,
         },
         {
           title: currentBranchName,
           description:
             'The currently checked out branch. Pick this if you need to build on work done on this branch.',
-          value: StartPoint.CurrentBranch,
+          key: StartPoint.CurrentBranch,
         },
       ]
 
@@ -413,7 +413,7 @@ export class CreateBranch extends React.Component<
       <VerticalSegmentedControl
         label="Create branch based on…"
         items={items}
-        selectedValue={selectedValue}
+        selectedKey={selectedValue}
         onSelectionChanged={this.onBaseBranchChanged}
       />
     </Row>
