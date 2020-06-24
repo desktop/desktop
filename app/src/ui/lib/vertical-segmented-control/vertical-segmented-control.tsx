@@ -122,14 +122,14 @@ export class VerticalSegmentedControl<T extends Key> extends React.Component<
     }
   }
 
-  private getListItemId(key: T) {
-    return `${this.state.listId}_Item_${key}`
+  private getListItemId(index: number) {
+    return `${this.state.listId}_Item_${index}`
   }
 
-  private renderItem(item: ISegmentedItem<T>) {
+  private renderItem(item: ISegmentedItem<T>, index: number) {
     return (
       <SegmentedItem
-        id={this.getListItemId(item.key)}
+        id={this.getListItemId(index)}
         key={item.key}
         title={item.title}
         description={item.description}
@@ -189,7 +189,8 @@ export class VerticalSegmentedControl<T extends Key> extends React.Component<
       undefined
     )
 
-    const activeDescendant = this.getListItemId(this.props.selectedKey)
+    const selectedIndex = this.findSelectedIndex(this.props.items)
+    const activeDescendant = this.getListItemId(selectedIndex)
 
     // Using a fieldset with a legend seems to be the way to go here since
     // we can't use a label to point to a list (https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Form_labelable).
@@ -206,7 +207,7 @@ export class VerticalSegmentedControl<T extends Key> extends React.Component<
           role="radiogroup"
           aria-activedescendant={activeDescendant}
         >
-          {this.props.items.map(item => this.renderItem(item))}
+          {this.props.items.map((item, index) => this.renderItem(item, index))}
         </ul>
       </fieldset>
     )
