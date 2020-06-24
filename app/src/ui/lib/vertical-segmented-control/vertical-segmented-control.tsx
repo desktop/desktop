@@ -143,17 +143,16 @@ export class VerticalSegmentedControl<T> extends React.Component<
   }
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLUListElement>) => {
-    const items = this.getUniqueItems()
-    const selectedIndex = this.findSelectedIndex(items)
+    const selectedIndex = this.findSelectedIndex(this.props.items)
 
     if (event.key === 'ArrowUp') {
       if (selectedIndex > 0) {
-        this.props.onSelectionChanged(items[selectedIndex - 1].value)
+        this.props.onSelectionChanged(this.props.items[selectedIndex - 1].value)
       }
       event.preventDefault()
     } else if (event.key === 'ArrowDown') {
-      if (selectedIndex < items.length - 1) {
-        this.props.onSelectionChanged(items[selectedIndex + 1].value)
+      if (selectedIndex < this.props.items.length - 1) {
+        this.props.onSelectionChanged(this.props.items[selectedIndex + 1].value)
       }
       event.preventDefault()
     } else if (event.key === 'Enter') {
@@ -182,13 +181,11 @@ export class VerticalSegmentedControl<T> extends React.Component<
   }
 
   public render() {
-    const items = this.getUniqueItems()
-
-    if (items.length === 0) {
+    if (this.props.items.length === 0) {
       return null
     }
 
-    const selectedIndex = this.findSelectedIndex(items)
+    const selectedIndex = this.findSelectedIndex(this.props.items)
     const label = this.props.label ? (
       <legend onClick={this.onLegendClick}>{this.props.label}</legend>
     ) : (
@@ -212,25 +209,12 @@ export class VerticalSegmentedControl<T> extends React.Component<
           role="radiogroup"
           aria-activedescendant={activeDescendant}
         >
-          {items.map((item, index) =>
+          {this.props.items.map((item, index) =>
             this.renderItem(item, index, index === selectedIndex)
           )}
         </ul>
       </fieldset>
     )
-  }
-
-  private getUniqueItems() {
-    const uniqueValues = new Set()
-
-    return this.props.items.filter(item => {
-      if (uniqueValues.has(item.value)) {
-        return false
-      }
-      uniqueValues.add(item.value)
-
-      return true
-    })
   }
 
   private findSelectedIndex(items: ReadonlyArray<ISegmentedItem<T>>) {
