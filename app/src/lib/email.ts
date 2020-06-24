@@ -76,3 +76,31 @@ function getStealthEmailHostForEndpoint(endpoint: string) {
     ? `users.noreply.${url.hostname}`
     : 'users.noreply.github.com'
 }
+
+export function getAttributableEmailAddressesFor(
+  account: Account
+): ReadonlyArray<string> {
+  const unique = new Set<string>()
+  const emails = new Array<string>()
+
+  for (const email of account.emails) {
+    const normalized = email.email.toLowerCase()
+    if (!unique.has(normalized)) {
+      unique.add(normalized)
+      emails.push(email.email)
+    }
+  }
+  const stealthEmailHost = getStealthEmailHostForEndpoint(account.endpoint)
+  const legacyStealthEmail = `${account.login}@${stealthEmailHost}`
+  const stealthEmail = `${account.id}+${account.login}@${stealthEmailHost}`
+
+  if (!unique.has(legacyStealthEmail.toLowerCase())) {
+    emails.push(legacyStealthEmail)
+  }
+
+  if (!unique.has(stealthEmail.toLowerCase())) {
+    emails.push(stealthEmail)
+  }
+
+  return emails
+}
