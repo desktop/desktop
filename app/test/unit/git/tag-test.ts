@@ -104,7 +104,10 @@ describe('git/tag', () => {
       await createTag(repository, 'another-tag', commit!.sha)
 
       expect(await getAllTags(repository)).toEqual(
-        new Map([['my-new-tag', commit!.sha], ['another-tag', commit!.sha]])
+        new Map([
+          ['my-new-tag', commit!.sha],
+          ['another-tag', commit!.sha],
+        ])
       )
     })
   })

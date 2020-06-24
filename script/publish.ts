@@ -57,7 +57,7 @@ if (process.platform === 'darwin') {
 
 uploadPromise!
   .then(artifacts => {
-    const names = artifacts.map(function(item, index) {
+    const names = artifacts.map(function (item, index) {
       return item.name
     })
     console.log(`Uploaded artifacts: ${names}`)

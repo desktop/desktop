@@ -148,7 +148,8 @@ export class AppMenu extends React.Component<IAppMenuProps, {}> {
       const sourceIsAccessKey =
         this.props.enableAccessKeyNavigation &&
         source.kind === 'keyboard' &&
-        (source.event.key !== 'Enter' && source.event.key !== ' ')
+        source.event.key !== 'Enter' &&
+        source.event.key !== ' '
 
       this.props.dispatcher.setAppMenuState(menu =>
         menu.withOpenedMenu(item, sourceIsAccessKey)

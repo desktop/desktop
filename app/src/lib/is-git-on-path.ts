@@ -22,7 +22,7 @@ function captureCommandOutput(
       total += chunk.length
     })
 
-    cp.on('close', function(code) {
+    cp.on('close', function (code) {
       if (code !== 0) {
         resolve(undefined)
       } else {
