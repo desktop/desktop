@@ -27,7 +27,6 @@ import {
   samlReauthRequired,
   insufficientGitHubRepoPermissions,
   schannelUnableToCheckRevocationForCertificate,
-  gitCloneErrorHandler,
 } from './dispatcher'
 import {
   AppStore,
@@ -284,7 +283,6 @@ const dispatcher = new Dispatcher(
 )
 
 dispatcher.registerErrorHandler(defaultErrorHandler)
-dispatcher.registerErrorHandler(gitCloneErrorHandler)
 dispatcher.registerErrorHandler(upstreamAlreadyExistsHandler)
 dispatcher.registerErrorHandler(externalEditorErrorHandler)
 dispatcher.registerErrorHandler(openShellErrorHandler)
@@ -305,7 +303,7 @@ document.body.classList.add(`platform-${process.platform}`)
 
 dispatcher.setAppFocusState(remote.getCurrentWindow().isFocused())
 
-ipcRenderer.on('focus', async () => {
+ipcRenderer.on('focus', () => {
   const { selectedState } = appStore.getState()
 
   // Refresh the currently selected repository on focus (if
@@ -314,8 +312,7 @@ ipcRenderer.on('focus', async () => {
     selectedState &&
     !(selectedState.type === SelectionType.CloningRepository)
   ) {
-    await dispatcher.refreshTags(selectedState.repository)
-    await dispatcher.refreshRepository(selectedState.repository)
+    dispatcher.refreshRepository(selectedState.repository)
   }
 
   dispatcher.setAppFocusState(true)

@@ -5,37 +5,14 @@
  * This is ideal for scenarios where a promises may complete quickly, but the
  * caller wants to introduce a minimum latency so that any dependent UI is
  *
- *
  * @param action the promise work to track
- * @param timeout the minimum time to wait before resolving the promise (in milliseconds)
+ * @param timeoutMs the minimum time to wait before resolving the promise (in milliseconds)
  */
 export function promiseWithMinimumTimeout<T>(
   action: () => Promise<T>,
-  timeout: number
+  timeoutMs: number
 ): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    let timeoutExpired = false
-    let result: T | null = null
-
-    const resolveIfBothDone = () => {
-      if (result != null && timeoutExpired) {
-        resolve(result)
-        result = null
-      }
-    }
-
-    window.setTimeout(() => {
-      timeoutExpired = true
-      resolveIfBothDone()
-    }, timeout)
-
-    action()
-      .then(r => {
-        result = r
-        resolveIfBothDone()
-      })
-      .catch(reject)
-  })
+  return Promise.all([action(), sleep(timeoutMs)]).then(x => x[0])
 }
 
 /**
@@ -45,10 +22,32 @@ export function promiseWithMinimumTimeout<T>(
  *
  * @param timeout the time to wait before resolving the promise (in milliseconds)
  */
-export async function timeout(timeout: number): Promise<void> {
-  return new Promise((resolve, reject) => {
-    window.setTimeout(() => {
-      resolve()
-    }, timeout)
+export async function sleep(timeout: number): Promise<void> {
+  return new Promise(resolve => window.setTimeout(resolve, timeout))
+}
+
+/**
+ * Helper function which lets callers define a maximum time to wait for
+ * a promise to complete after which a default value is returned instead.
+ *
+ * @param promise The promise to wait on
+ * @param timeout The maximum time to wait in milliseconds
+ * @param fallbackValue The default value to return should the promise
+ *                      not complete within `timeout` milliseconds.
+ */
+export async function timeout<T>(
+  promise: Promise<T>,
+  timeout: number,
+  fallbackValue: T
+): Promise<T> {
+  let timeoutId: number | null = null
+  const timeoutPromise = new Promise<T>(resolve => {
+    timeoutId = window.setTimeout(() => resolve(fallbackValue), timeout)
+  })
+
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    if (timeoutId !== null) {
+      window.clearTimeout(timeoutId)
+    }
   })
 }

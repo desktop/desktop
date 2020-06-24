@@ -14,6 +14,7 @@ import { fatalError } from '../fatal-error'
 import { IAPIRepository, IAPIBranch, IAPIRepositoryPermissions } from '../api'
 import { TypedBaseStore } from './base-store'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
+import { clearTagsToPush } from './helpers/tags-to-push-storage'
 
 /** The store for local repositories. */
 export class RepositoriesStore extends TypedBaseStore<
@@ -234,9 +235,10 @@ export class RepositoriesStore extends TypedBaseStore<
     return repository
   }
 
-  /** Remove the repository with the given ID. */
-  public async removeRepository(repoID: number): Promise<void> {
-    await this.db.repositories.delete(repoID)
+  /** Remove the given repository. */
+  public async removeRepository(repository: Repository): Promise<void> {
+    await this.db.repositories.delete(repository.id)
+    clearTagsToPush(repository)
 
     this.emitUpdatedRepositories()
   }

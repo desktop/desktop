@@ -52,8 +52,15 @@ export class GitHubRepository {
   }
 }
 
+/**
+ * Identical to `GitHubRepository`, except it **must** have a `parent`
+ * (i.e it's a fork).
+ *
+ * See `isRepositoryWithForkedGitHubRepository`
+ */
 export type ForkedGitHubRepository = GitHubRepository & {
-  parent: GitHubRepository
+  readonly parent: GitHubRepository
+  readonly fork: true
 }
 
 /**

@@ -42,7 +42,7 @@ type StashResult = {
 export async function getStashes(repository: Repository): Promise<StashResult> {
   const delimiter = '1F'
   const delimiterString = String.fromCharCode(parseInt(delimiter, 16))
-  const format = ['%gd', '%H', '%gs'].join(`%x${delimiter}`)
+  const format = ['%gD', '%H', '%gs'].join(`%x${delimiter}`)
 
   const result = await git(
     ['log', '-g', '-z', `--pretty=${format}`, 'refs/stash'],

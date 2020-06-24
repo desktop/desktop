@@ -12,6 +12,7 @@ import { SignInEnterprise } from './sign-in-enterprise'
 import { ConfigureGit } from './configure-git'
 import { UiView } from '../ui-view'
 import { UsageOptOut } from './usage-opt-out'
+import { Disposable } from 'event-kit'
 
 /** The steps along the Welcome flow. */
 export enum WelcomeStep {
@@ -40,6 +41,12 @@ interface IWelcomeState {
    * time to run to completion.
    */
   readonly exiting: boolean
+
+  /**
+   * Whether or not GitHub.com supports authenticating with username
+   * and password or if we have to enforce the web flow
+   */
+  readonly dotComSupportsBasicAuth: boolean
 }
 
 // Note that we're reusing the welcome illustrations in the crash process, any
@@ -59,10 +66,16 @@ export const WelcomeLeftBottomImageUri = encodePathAsUrl(
 
 /** The Welcome flow. */
 export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
+  private dotComSupportsBasicAuthSubscription: Disposable | null = null
+
   public constructor(props: IWelcomeProps) {
     super(props)
 
-    this.state = { currentStep: WelcomeStep.Start, exiting: false }
+    this.state = {
+      currentStep: WelcomeStep.Start,
+      exiting: false,
+      dotComSupportsBasicAuth: props.dispatcher.tryGetDotComSupportsBasicAuth(),
+    }
   }
 
   public componentWillReceiveProps(nextProps: IWelcomeProps) {
@@ -71,6 +84,22 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
 
   public componentDidMount() {
     this.props.dispatcher.recordWelcomeWizardInitiated()
+    this.dotComSupportsBasicAuthSubscription = this.props.dispatcher.onDotComSupportsBasicAuthUpdated(
+      this.onDotComSupportsBasicAuthUpdated
+    )
+  }
+
+  public componentWillUnmount() {
+    if (this.dotComSupportsBasicAuthSubscription !== null) {
+      this.dotComSupportsBasicAuthSubscription.dispose()
+      this.dotComSupportsBasicAuthSubscription = null
+    }
+  }
+
+  private onDotComSupportsBasicAuthUpdated = (
+    dotComSupportsBasicAuth: boolean
+  ) => {
+    this.setState({ dotComSupportsBasicAuth })
   }
 
   /**
@@ -156,6 +185,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
             advance={this.advanceToStep}
             dispatcher={this.props.dispatcher}
             loadingBrowserAuth={loadingBrowserAuth}
+            dotComSupportsBasicAuth={this.state.dotComSupportsBasicAuth}
           />
         )
 

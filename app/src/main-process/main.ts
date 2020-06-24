@@ -438,8 +438,8 @@ app.on('ready', () => {
   ipcMain.on(
     'show-contextual-menu',
     (event: Electron.IpcMainEvent, items: ReadonlyArray<IMenuItem>) => {
-      const menu = buildContextMenu(items, ix =>
-        event.sender.send('contextual-menu-action', ix)
+      const menu = buildContextMenu(items, indices =>
+        event.sender.send('contextual-menu-action', indices)
       )
 
       const window = BrowserWindow.fromWebContents(event.sender)
@@ -594,7 +594,6 @@ function createWindow() {
     const {
       default: installExtension,
       REACT_DEVELOPER_TOOLS,
-      REACT_PERF,
     } = require('electron-devtools-installer')
 
     require('electron-debug')({ showDevTools: true })
@@ -604,7 +603,7 @@ function createWindow() {
       electron: '>=1.2.1',
     }
 
-    const extensions = [REACT_DEVELOPER_TOOLS, REACT_PERF, ChromeLens]
+    const extensions = [REACT_DEVELOPER_TOOLS, ChromeLens]
 
     for (const extension of extensions) {
       try {

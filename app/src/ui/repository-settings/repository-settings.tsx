@@ -233,6 +233,7 @@ export class RepositorySettings extends React.Component<
       }
     }
 
+    // only update this if it will be different from what we have stored
     if (
       this.state.forkContributionTarget !==
       this.props.repository.workflowPreferences.forkContributionTarget

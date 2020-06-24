@@ -13,7 +13,6 @@ import { PushProgressParser, executionOptionsWithProgress } from '../progress'
 import { AuthenticationErrors } from './authentication'
 import { IRemote } from '../../models/remote'
 import { envForRemoteOperation } from './environment'
-import { enableGitTagsCreation } from '../feature-flag'
 
 export type PushOptions = {
   /**
@@ -38,6 +37,8 @@ export type PushOptions = {
  *
  * @param remoteBranch - The remote branch to push to
  *
+ * @param tagsToPush - The tags to push along with the branch.
+ *
  * @param options - Optional customizations for the push execution.
  *                  see PushOptions for more information.
  *
@@ -53,6 +54,7 @@ export async function push(
   remote: IRemote,
   localBranch: string,
   remoteBranch: string | null,
+  tagsToPush: ReadonlyArray<string> | null,
   options: PushOptions = {
     forceWithLease: false,
   },
@@ -67,14 +69,13 @@ export async function push(
     remoteBranch ? `${localBranch}:${remoteBranch}` : localBranch,
   ]
 
+  if (tagsToPush !== null) {
+    args.push(...tagsToPush)
+  }
   if (!remoteBranch) {
     args.push('--set-upstream')
   } else if (options.forceWithLease === true) {
     args.push('--force-with-lease')
-  }
-
-  if (enableGitTagsCreation()) {
-    args.push('--follow-tags')
   }
 
   const expectedErrors = new Set<DugiteError>(AuthenticationErrors)
