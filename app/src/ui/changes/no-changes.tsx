@@ -21,7 +21,7 @@ import { SuggestedActionGroup } from '../suggested-actions'
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
-    return text.replace('&', '')
+    return text.replace('&', 'TEST')
   }
 
   return text
