@@ -371,6 +371,9 @@ function getDescriptionForError(error: DugiteError): string | null {
       return null
     case DugiteError.TagAlreadyExists:
       return 'A tag with that name already exists'
+    case DugiteError.MergeWithLocalChanges:
+    case DugiteError.RebaseWithLocalChanges:
+      return null
     default:
       return assertNever(error, `Unknown error: ${error}`)
   }
