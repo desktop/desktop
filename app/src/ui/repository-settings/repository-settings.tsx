@@ -176,9 +176,9 @@ export class RepositorySettings extends React.Component<
           />
         )
       }
+      default:
+        return assertNever(tab, `Unknown tab type: ${tab}`)
     }
-
-    return assertNever(tab, `Unknown tab type: ${tab}`)
   }
 
   private onPublish = () => {

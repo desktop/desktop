@@ -963,8 +963,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
           repository.name
         }`
       )
-
-      return
     }
 
     const updater = new AheadBehindUpdater(repository, aheadBehindCache => {
@@ -1589,8 +1587,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
           repository.name
         }`
       )
-
-      return
     }
 
     const pruner = new BranchPruner(
@@ -1722,7 +1718,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
           repository.name
         } while another background fetcher is still active!`
       )
-      return
     }
 
     const account = getAccountForRepository(this.accounts, repository)

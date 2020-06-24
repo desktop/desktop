@@ -183,9 +183,12 @@ export function getNonForkGitHubRepository(
       return repository.gitHubRepository
     case ForkContributionTarget.Parent:
       return repository.gitHubRepository.parent
+    default:
+      return assertNever(
+        forkContributionTarget,
+        'Invalid fork contribution target'
+      )
   }
-
-  return assertNever(forkContributionTarget, 'Invalid fork contribution target')
 }
 
 /**

@@ -58,9 +58,9 @@ function formatPatchHeaderForFile(file: WorkingDirectoryFileChange) {
     // that work needs to be done waaaaaaaay before we get to this point.
     case AppFileStatusKind.Conflicted:
       return formatPatchHeader(file.path, file.path)
+    default:
+      return assertNever(file.status, `Unknown file status ${file.status}`)
   }
-
-  return assertNever(file.status, `Unknown file status ${file.status}`)
 }
 
 /**
