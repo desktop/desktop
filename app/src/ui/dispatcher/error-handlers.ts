@@ -399,7 +399,10 @@ export async function rebaseConflictsHandler(
     return error
   }
 
-  if (dugiteError !== DugiteError.RebaseConflicts) {
+  if (
+    dugiteError !== DugiteError.RebaseConflicts &&
+    dugiteError !== DugiteError.MergeConflicts
+  ) {
     return error
   }
 
@@ -416,7 +419,7 @@ export async function rebaseConflictsHandler(
     return error
   }
 
-  if (!(gitContext.kind === 'merge' || gitContext.kind === 'pull')) {
+  if (gitContext.kind !== 'merge' && gitContext.kind !== 'pull') {
     return error
   }
 

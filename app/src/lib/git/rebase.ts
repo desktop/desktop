@@ -361,7 +361,10 @@ export async function rebase(
   progressCallback?: (progress: IRebaseProgress) => void
 ): Promise<RebaseResult> {
   const baseOptions: IGitExecutionOptions = {
-    expectedErrors: new Set([GitError.RebaseConflicts]),
+    expectedErrors: new Set([
+      GitError.RebaseConflicts,
+      GitError.MergeConflicts,
+    ]),
   }
 
   let options = baseOptions
@@ -406,7 +409,10 @@ function parseRebaseResult(result: IGitResult): RebaseResult {
     return RebaseResult.CompletedWithoutError
   }
 
-  if (result.gitError === GitError.RebaseConflicts) {
+  if (
+    result.gitError === GitError.RebaseConflicts ||
+    result.gitError === GitError.MergeConflicts
+  ) {
     return RebaseResult.ConflictsEncountered
   }
 
@@ -471,6 +477,7 @@ export async function continueRebase(
   const baseOptions: IGitExecutionOptions = {
     expectedErrors: new Set([
       GitError.RebaseConflicts,
+      GitError.MergeConflicts,
       GitError.UnresolvedConflicts,
     ]),
   }
