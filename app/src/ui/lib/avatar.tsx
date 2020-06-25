@@ -21,7 +21,7 @@ interface IAvatarState {
   readonly candidates: ReadonlyArray<string>
 }
 
-const dotComAvatarEndpoint = `https://avatars.githubusercontent.com`
+const avatarEndpoint = `https://avatars.githubusercontent.com`
 
 /**
  * This is the person octicon from octicons v5 (which we're using at time of writing).
@@ -51,15 +51,13 @@ function* getAvatarUrlCandidates(
   if (stealthEmailMatch) {
     const [, userId, login] = stealthEmailMatch
     if (userId !== undefined) {
-      yield `${dotComAvatarEndpoint}/u/${userId}?s=${size}`
+      yield `${avatarEndpoint}/u/${userId}?s=${size}`
     } else {
-      yield `${dotComAvatarEndpoint}/${login}?s=${size}`
+      yield `${avatarEndpoint}/${login}?s=${size}`
     }
   }
 
-  yield `${dotComAvatarEndpoint}/u/e?email=${encodeURIComponent(
-    email
-  )}&s=${size}`
+  yield `${avatarEndpoint}/u/e?email=${encodeURIComponent(email)}&s=${size}`
 
   // The /u/e endpoint above falls back to gravatar (proxied)
   // so we don't technically have to add gravatar to the fallback
