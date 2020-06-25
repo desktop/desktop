@@ -45,6 +45,7 @@ import {
   Repository,
   isRepositoryWithGitHubRepository,
   RepositoryWithGitHubRepository,
+  getNonForkGitHubRepository,
 } from '../../models/repository'
 import {
   CommittedFileChange,
@@ -1622,12 +1623,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private refreshMentionables(repository: Repository) {
+    if (!isRepositoryWithGitHubRepository(repository)) {
+      return
+    }
+
     const account = getAccountForRepository(this.accounts, repository)
     if (!account) {
       return
     }
 
-    const gitHubRepository = repository.gitHubRepository
+    const gitHubRepository = getNonForkGitHubRepository(repository)
     if (!gitHubRepository) {
       return
     }
