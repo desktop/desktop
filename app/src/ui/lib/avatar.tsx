@@ -51,9 +51,9 @@ function* getAvatarUrlCandidates(
   if (stealthEmailMatch) {
     const [, userId, login] = stealthEmailMatch
     if (userId !== undefined) {
-      yield `${avatarEndpoint}/u/${userId}?s=${size}`
+      yield `${avatarEndpoint}/u/${encodeURIComponent(userId)}?s=${size}`
     } else {
-      yield `${avatarEndpoint}/${login}?s=${size}`
+      yield `${avatarEndpoint}/${encodeURIComponent(login)}?s=${size}`
     }
   }
 
