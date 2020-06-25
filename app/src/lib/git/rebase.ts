@@ -480,6 +480,9 @@ export async function continueRebase(
       GitError.MergeConflicts,
       GitError.UnresolvedConflicts,
     ]),
+    env: {
+      GIT_EDITOR: ':',
+    },
   }
 
   let options = baseOptions
