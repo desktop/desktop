@@ -189,7 +189,6 @@ export class RepositoryView extends React.Component<
         changes={this.props.state.changesState}
         branch={branch ? branch.name : null}
         commitAuthor={this.props.state.commitAuthor}
-        gitHubUsers={this.props.state.gitHubUsers}
         emoji={this.props.emoji}
         mostRecentLocalCommit={mostRecentLocalCommit}
         issuesStore={this.props.issuesStore}

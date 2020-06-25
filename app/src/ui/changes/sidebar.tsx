@@ -11,7 +11,6 @@ import {
 } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
-import { IGitHubUser } from '../../lib/databases'
 import { IssuesStore, GitHubUserStore } from '../../lib/stores'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Commit, ICommitContext } from '../../models/commit'
@@ -46,7 +45,6 @@ interface IChangesSidebarProps {
   readonly dispatcher: Dispatcher
   readonly commitAuthor: CommitIdentity | null
   readonly branch: string | null
-  readonly gitHubUsers: Map<string, IGitHubUser>
   readonly emoji: Map<string, string>
   readonly mostRecentLocalCommit: Commit | null
   readonly issuesStore: IssuesStore
@@ -365,17 +363,6 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
       selection,
       currentBranchProtected,
     } = this.props.changes
-
-    // TODO: I think user will expect the avatar to match that which
-    // they have configured in GitHub.com as well as GHE so when we add
-    // support for GHE we should revisit this and try to update the logic
-    // to look up based on email _and_ host.
-    const email = this.props.commitAuthor ? this.props.commitAuthor.email : null
-    let user: IGitHubUser | null = null
-    if (email) {
-      user = this.props.gitHubUsers.get(email.toLowerCase()) || null
-    }
-
     let rebaseConflictState: RebaseConflictState | null = null
     if (conflictState !== null) {
       rebaseConflictState = isRebaseConflictState(conflictState)
@@ -412,7 +399,6 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           onRowClick={this.onChangedItemClick}
           commitAuthor={this.props.commitAuthor}
           branch={this.props.branch}
-          gitHubUser={user}
           commitMessage={commitMessage}
           focusCommitMessage={this.props.focusCommitMessage}
           autocompletionProviders={this.autocompletionProviders!}
