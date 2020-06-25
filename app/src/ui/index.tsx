@@ -250,9 +250,7 @@ const pullRequestCoordinator = new PullRequestCoordinator(
   repositoriesStore
 )
 
-const repositoryStateManager = new RepositoryStateCache(repo =>
-  gitHubUserStore.getUsersForRepository(repo)
-)
+const repositoryStateManager = new RepositoryStateCache()
 
 const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 

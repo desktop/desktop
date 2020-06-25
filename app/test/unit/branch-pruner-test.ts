@@ -8,7 +8,6 @@ import { setupFixtureRepository } from '../helpers/repositories'
 import { shell } from '../helpers/test-app-shell'
 import { TestRepositoriesDatabase } from '../helpers/databases'
 import { GitProcess } from 'dugite'
-import { IGitHubUser } from '../../src/lib/databases'
 import {
   createRepository as createPrunedRepository,
   setupRepository,
@@ -41,9 +40,7 @@ describe('BranchPruner', () => {
     const repositoriesDb = new TestRepositoriesDatabase()
     await repositoriesDb.reset()
     repositoriesStore = new RepositoriesStore(repositoriesDb)
-    repositoriesStateCache = new RepositoryStateCache(
-      () => new Map<string, IGitHubUser>()
-    )
+    repositoriesStateCache = new RepositoryStateCache()
     onPruneCompleted = jest.fn(() => (_: Repository) => {
       return Promise.resolve()
     })

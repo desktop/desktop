@@ -74,9 +74,7 @@ describe('AppStore', () => {
 
     const githubUserStore = new GitHubUserStore(db)
 
-    const repositoryStateManager = new RepositoryStateCache(repo =>
-      githubUserStore.getUsersForRepository(repo)
-    )
+    const repositoryStateManager = new RepositoryStateCache()
 
     const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 
