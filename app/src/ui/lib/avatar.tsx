@@ -21,7 +21,7 @@ interface IAvatarState {
   readonly candidates: ReadonlyArray<string>
 }
 
-const avatarEndpoint = `https://avatars.githubusercontent.com`
+const avatarEndpoint = 'https://avatars.githubusercontent.com'
 
 /**
  * This is the person octicon from octicons v5 (which we're using at time of writing).
