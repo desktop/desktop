@@ -13,7 +13,7 @@ export interface IAvatarUser {
   readonly email: string
 
   /** The user's avatar URL. */
-  readonly avatarURL: string
+  readonly avatarURL?: string
 
   /** The user's name. */
   readonly name: string
