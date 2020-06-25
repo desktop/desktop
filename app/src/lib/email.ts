@@ -19,16 +19,21 @@ import { Account } from '../models/account'
 export function lookupPreferredEmail(account: Account): IAPIEmail | null {
   const emails = account.emails
 
+  const stealthSuffix = `@${getStealthEmailHostForEndpoint(account.endpoint)}`
+
   if (emails.length === 0) {
-    return null
+    return {
+      email: `${account.login}+${account.id}${stealthSuffix}`,
+      primary: true,
+      verified: true,
+      visibility: 'public',
+    }
   }
 
   const primary = emails.find(e => e.primary)
   if (primary && isEmailPublic(primary)) {
     return primary
   }
-
-  const stealthSuffix = `@${getStealthEmailHostForEndpoint(account.endpoint)}`
 
   const noReply = emails.find(e =>
     e.email.toLowerCase().endsWith(stealthSuffix)
