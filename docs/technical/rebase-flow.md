@@ -141,9 +141,9 @@ in `.git/rebase-merge/` in numeric order of which they will be applied, e.g.
 
 **TODO**: can we confirm whether `9999` is the upper limit here for the rebase?
 
- - `.git/rebase-merge/next` - this contains a number representing the current
+ - `.git/rebase-merge/msgnum` - this contains a number representing the current
    patch being applied as part of the rebase.
- - `.git/rebase-merge/last` - this number contains the total number of patches
+ - `.git/rebase-merge/end` - this number contains the total number of patches
    that will be applied as part of this rebase
  - `.git/rebase-merge/orig-head` - the original commit ID of the target branch
  - `.git/rebase-merge/onto` - the commit ID of the base branch, which is used as

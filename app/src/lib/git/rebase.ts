@@ -161,7 +161,7 @@ export async function getRebaseSnapshot(
   try {
     // this contains the patch number that was recently applied to the repository
     const nextText = await FSE.readFile(
-      Path.join(repository.path, '.git', 'rebase-merge', 'next'),
+      Path.join(repository.path, '.git', 'rebase-merge', 'msgnum'),
       'utf8'
     )
 
@@ -169,14 +169,14 @@ export async function getRebaseSnapshot(
 
     if (isNaN(next)) {
       log.warn(
-        `[getCurrentProgress] found '${nextText}' in .git/rebase-merge/next which could not be parsed to a valid number`
+        `[getCurrentProgress] found '${nextText}' in .git/rebase-merge/msgnum which could not be parsed to a valid number`
       )
       next = -1
     }
 
     // this contains the total number of patches to be applied to the repository
     const lastText = await FSE.readFile(
-      Path.join(repository.path, '.git', 'rebase-merge', 'last'),
+      Path.join(repository.path, '.git', 'rebase-merge', 'end'),
       'utf8'
     )
 
