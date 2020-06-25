@@ -1546,6 +1546,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const ghRepo = getNonForkGitHubRepository(repository)
 
       this._refreshIssues(ghRepo)
+      this.refreshMentionables(ghRepo)
 
       this.pullRequestCoordinator.getAllPullRequests(repository).then(prs => {
         this.onPullRequestChanged(repository, prs)
@@ -1569,7 +1570,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.startPullRequestUpdater(repository)
 
     this.startAheadBehindUpdater(repository)
-    this.refreshMentionables(repository)
     this.startBackgroundPruner(repository)
 
     this.addUpstreamRemoteIfNeeded(repository)
@@ -1627,22 +1627,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  private refreshMentionables(repository: Repository) {
-    if (!isRepositoryWithGitHubRepository(repository)) {
-      return
-    }
-
-    const account = getAccountForRepository(this.accounts, repository)
+  private refreshMentionables(repository: GitHubRepository) {
+    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
     if (!account) {
       return
     }
 
-    const gitHubRepository = getNonForkGitHubRepository(repository)
-    if (!gitHubRepository) {
-      return
-    }
-
-    this.gitHubUserStore.updateMentionables(gitHubRepository, account)
+    this.gitHubUserStore.updateMentionables(repository, account)
   }
 
   private startPullRequestUpdater(repository: Repository) {
