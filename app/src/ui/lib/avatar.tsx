@@ -1,7 +1,8 @@
 import * as React from 'react'
 import { encodePathAsUrl } from '../../lib/path'
 import { IAvatarUser } from '../../models/avatar'
-import { fetchAvatarUrl } from './avatar-in-memory-cache'
+import { shallowEquals } from '../../lib/equality'
+import { generateGravatarUrl } from '../../lib/gravatar'
 
 const DefaultAvatarURL = encodePathAsUrl(__dirname, 'static/default-avatar.png')
 
@@ -18,69 +19,70 @@ interface IAvatarProps {
 }
 
 interface IAvatarState {
-  readonly dataUrl?: string
+  readonly user?: IAvatarUser
+  readonly candidates: ReadonlyArray<string>
+}
+
+const dotComAvatarEndpoint = `https://avatars.githubusercontent.com`
+
+function* getAvatarUrlCandidates(
+  user: IAvatarUser | undefined,
+  size = 60
+): Iterable<string> {
+  if (user === undefined) {
+    yield DefaultAvatarURL
+    return
+  }
+
+  const { email } = user
+
+  const stealthEmailMatch = /(?:(\d+)\+)?(.+?)@users\.noreply\.github\.com/i.exec(
+    email
+  )
+
+  if (stealthEmailMatch) {
+    const [, userId, login] = stealthEmailMatch
+    if (userId !== undefined) {
+      yield `${dotComAvatarEndpoint}/u/${userId}?s=${size}`
+    } else {
+      yield `${dotComAvatarEndpoint}/${login}?s=${size}`
+    }
+  }
+
+  yield `${dotComAvatarEndpoint}/u/e?email=${encodeURIComponent(
+    email
+  )}&s=${size}`
+
+  // The /u/e endpoint above falls back to gravatar (proxied)
+  // so we don't technically have to add gravatar to the fallback
+  // but on the off chance that the avatars host is having issues
+  // we'll add our own fallback.
+  yield generateGravatarUrl(email, size)
+
+  yield DefaultAvatarURL
 }
 
 /** A component for displaying a user avatar. */
 export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
-  private cancelFetchingAvatar = false
+  public static getDerivedStateFromProps(
+    props: IAvatarProps,
+    state: IAvatarState
+  ): Partial<IAvatarState> | null {
+    const { user } = props
+    if (!shallowEquals(user, state.user)) {
+      const candidates = [...getAvatarUrlCandidates(user)]
+      return { user, candidates }
+    }
+    return null
+  }
 
   public constructor(props: IAvatarProps) {
     super(props)
 
-    this.state = { dataUrl: DefaultAvatarURL }
-  }
-
-  public shouldComponentUpdate(
-    nextProps: IAvatarProps,
-    nextState: IAvatarState
-  ) {
-    if (nextState.dataUrl !== this.state.dataUrl) {
-      return true
+    this.state = {
+      user: props.user,
+      candidates: [...getAvatarUrlCandidates(props.user)],
     }
-
-    if (nextProps.user && this.props.user) {
-      if (
-        nextProps.user.avatarURL !== this.props.user.avatarURL ||
-        nextProps.user.email !== this.props.user.email ||
-        nextProps.user.name !== this.props.user.name ||
-        nextProps.title !== this.props.title
-      ) {
-        return true
-      }
-    }
-
-    if (!nextProps.user && !this.props.user) {
-      return nextProps.title !== this.props.title
-    }
-
-    return false
-  }
-
-  public async componentWillMount() {
-    const dataUrl = await fetchAvatarUrl(DefaultAvatarURL, this.props.user)
-
-    // https://reactjs.org/blog/2015/12/16/ismounted-antipattern.html
-    // We're basically doing isMounted here. Let's look at better ways
-    // in the future
-    if (!this.cancelFetchingAvatar) {
-      this.setState({ dataUrl })
-    }
-  }
-
-  public async componentWillReceiveProps(nextProps: IAvatarProps) {
-    const dataUrl = await fetchAvatarUrl(DefaultAvatarURL, nextProps.user)
-
-    // https://reactjs.org/blog/2015/12/16/ismounted-antipattern.html
-    // We're basically doing isMounted here. Let's look at better ways
-    // in the future
-    if (!this.cancelFetchingAvatar) {
-      this.setState({ dataUrl })
-    }
-  }
-
-  public componentWillUnmount() {
-    this.cancelFetchingAvatar = true
   }
 
   private getTitle(): string | undefined {
@@ -105,19 +107,31 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     return 'Unknown user'
   }
 
+  private onImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    if (this.state.candidates.length === 0) {
+      return
+    }
+
+    console.warn(`Failed to load avatar from: ${e.currentTarget.src}`)
+    this.setState({ candidates: this.state.candidates.slice(1) })
+  }
+
   public render() {
     const title = this.getTitle()
     const ariaLabel = this.props.user
       ? `Avatar for ${this.props.user.name || this.props.user.email}`
       : `Avatar for unknown user`
 
+    const src = this.state.candidates[0] || DefaultAvatarURL
+
     const img = (
       <img
         className="avatar"
         title={title}
-        src={this.state.dataUrl}
+        src={src}
         alt={title}
         aria-label={ariaLabel}
+        onError={this.onImageError}
       />
     )
 
