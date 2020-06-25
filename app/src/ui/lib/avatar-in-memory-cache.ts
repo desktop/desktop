@@ -52,7 +52,7 @@ async function fetchAndCache(requestUrl: string): Promise<string | null> {
  * @param avatarURL The GitHub avatar URL to lookup first
  * @param email The email address to translate into a Gravatar URL as a fallback
  */
-export async function lookupAvatar(
+async function lookupAvatar(
   avatarURL: string,
   email: string
 ): Promise<string | null> {
