@@ -1541,7 +1541,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._refreshRepository(repository)
 
     if (isRepositoryWithGitHubRepository(repository)) {
-      this._refreshIssues(repository.gitHubRepository)
+      // Load issues from the upstream or fork depending
+      // on workflow preferences.
+      const ghRepo = getNonForkGitHubRepository(repository)
+
+      this._refreshIssues(ghRepo)
+
       this.pullRequestCoordinator.getAllPullRequests(repository).then(prs => {
         this.onPullRequestChanged(repository, prs)
       })
