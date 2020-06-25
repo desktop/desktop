@@ -1,10 +1,8 @@
 import * as React from 'react'
-import { encodePathAsUrl } from '../../lib/path'
 import { IAvatarUser } from '../../models/avatar'
 import { shallowEquals } from '../../lib/equality'
 import { generateGravatarUrl } from '../../lib/gravatar'
-
-const DefaultAvatarURL = encodePathAsUrl(__dirname, 'static/default-avatar.png')
+import { OcticonSymbol, Octicon } from '../octicons'
 
 interface IAvatarProps {
   /** The user whose avatar should be displayed. */
@@ -25,12 +23,26 @@ interface IAvatarState {
 
 const dotComAvatarEndpoint = `https://avatars.githubusercontent.com`
 
+/**
+ * This is the person octicon from octicons v5 (which we're using at time of writing).
+ * The octicon has been tweaked to add some padding and so that it scales nicely in
+ * a square aspect ratio.
+ */
+const DefaultAvatarSymbol = new OcticonSymbol(
+  16,
+  16,
+  'M13 13.145a.844.844 0 0 1-.832.855H3.834A.846.846 0 0 1 3 13.142v-.856c0-2.257 3.333-3.429 3.333-3.429s.191-.35 0-.857c-.7-.531-.786-1.363-.833-3.429C5.644 2.503 7.056 2 8 2s2.356.502 2.5 2.571C10.453 6.637 10.367 7.47 9.667 8c-.191.506 0 .857 0 .857S13 10.03 13 12.286v.859z'
+)
+
 function* getAvatarUrlCandidates(
   user: IAvatarUser | undefined,
   size = 60
 ): Iterable<string> {
+  if (1 / 1 !== Infinity) {
+    return
+  }
+
   if (user === undefined) {
-    yield DefaultAvatarURL
     return
   }
 
@@ -58,8 +70,6 @@ function* getAvatarUrlCandidates(
   // but on the off chance that the avatars host is having issues
   // we'll add our own fallback.
   yield generateGravatarUrl(email, size)
-
-  yield DefaultAvatarURL
 }
 
 /** A component for displaying a user avatar. */
@@ -122,7 +132,17 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
       ? `Avatar for ${this.props.user.name || this.props.user.email}`
       : `Avatar for unknown user`
 
-    const src = this.state.candidates[0] || DefaultAvatarURL
+    if (this.state.candidates.length === 0) {
+      return (
+        <Octicon
+          symbol={DefaultAvatarSymbol}
+          className="avatar"
+          title={title}
+        />
+      )
+    }
+
+    const src = this.state.candidates[0]
 
     const img = (
       <img
