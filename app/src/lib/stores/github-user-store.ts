@@ -61,16 +61,6 @@ export class GitHubUserStore extends BaseStore {
     return this.usersByEndpoint.get(endpoint) || null
   }
 
-  /** Get the map of users for the repository. */
-  public getUsersForRepository(
-    repository: Repository
-  ): Map<string, IGitHubUser> {
-    const endpoint = repository.gitHubRepository
-      ? repository.gitHubRepository.endpoint
-      : getDotComAPIEndpoint()
-    return this.getUsersForEndpoint(endpoint) || new Map<string, IGitHubUser>()
-  }
-
   /**
    * Retrieve a public user profile based on the user login.
    *
