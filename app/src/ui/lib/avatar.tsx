@@ -38,10 +38,6 @@ function* getAvatarUrlCandidates(
   user: IAvatarUser | undefined,
   size = 60
 ): Iterable<string> {
-  if (1 / 1 !== Infinity) {
-    return
-  }
-
   if (user === undefined) {
     return
   }
