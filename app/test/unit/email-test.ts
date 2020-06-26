@@ -1,10 +1,14 @@
-import { lookupPreferredEmail } from '../../src/lib/email'
+import {
+  lookupPreferredEmail,
+  getAttributableEmailsFor,
+} from '../../src/lib/email'
 import {
   IAPIEmail,
   getDotComAPIEndpoint,
   getEnterpriseAPIURL,
 } from '../../src/lib/api'
 import { Account } from '../../src/models/account'
+import { assert } from 'console'
 
 describe('emails', () => {
   describe('lookupPreferredEmail', () => {
@@ -211,6 +215,64 @@ describe('emails', () => {
       )
 
       expect(lookupPreferredEmail(account)).toBe('shiftkey@example.com')
+    })
+  })
+
+  describe('getAttributableEmailsFor', () => {
+    it('returns all email addresses on the account as well as legacy and modern stealth emails', () => {
+      const emails: IAPIEmail[] = [
+        {
+          email: 'personal@gmail.com',
+          primary: true,
+          verified: true,
+          visibility: 'public',
+        },
+        {
+          email: 'company@github.com',
+          primary: false,
+          verified: true,
+          visibility: null,
+        },
+        {
+          email: 'niik@users.noreply.github.com',
+          primary: false,
+          verified: true,
+          visibility: null,
+        },
+      ]
+
+      const endpoint = getDotComAPIEndpoint()
+      const account = new Account('niik', endpoint, '', emails, '', 123, '')
+      const attributable = getAttributableEmailsFor(account)
+
+      expect(attributable).toEqual([
+        'personal@gmail.com',
+        'company@github.com',
+        'niik@users.noreply.github.com',
+        '123+niik@users.noreply.github.com',
+      ])
+    })
+
+    it('returns stealth emails when account has no emails', () => {
+      const endpoint = getDotComAPIEndpoint()
+      const account = new Account('niik', endpoint, '', [], '', 123, '')
+      const attributable = getAttributableEmailsFor(account)
+
+      expect(attributable).toEqual([
+        'niik@users.noreply.github.com',
+        '123+niik@users.noreply.github.com',
+      ])
+    })
+
+    it('returns stealth emails for GitHub Enterprise Server', () => {
+      const endpoint = `https://github.example.com/api/v3`
+      const account = new Account('niik', endpoint, '', [], '', 123, '')
+      const attributable = getAttributableEmailsFor(account)
+
+      expect(attributable).toEqual([
+        'niik@users.noreply.github.example.com',
+        '123+niik@users.noreply.github.example.com',
+      ])
     })
   })
 })
