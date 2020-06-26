@@ -77,7 +77,7 @@ function getStealthEmailHostForEndpoint(endpoint: string) {
 
 function getLegacyStealthEmailFor(account: Account) {
   const stealthEmailHost = getStealthEmailHostForEndpoint(account.endpoint)
-  return `${account.id}+${account.login}@${stealthEmailHost}`
+  return `${account.login}@${stealthEmailHost}`
 }
 
 function getStealthEmailFor(account: Account) {
