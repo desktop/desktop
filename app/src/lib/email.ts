@@ -85,6 +85,19 @@ function getStealthEmailFor(account: Account) {
   return `${account.id}+${account.login}@${stealthEmailHost}`
 }
 
+/**
+ * Produces a list of all email addresses that when used as the author email
+ * in a commit we'll know will end up getting attributted to the given
+ * account when pushed to GitHub.com or GitHub Enterprise Server.
+ *
+ * The list of email addresses consists of all the email addresses we get
+ * from the API (since this is for the currently signed in user we get
+ * public as well as private email addresses here) as well as the legacy
+ * and modern format of the anonymous email addresses, for example:
+ *
+ *  desktop@users.noreply.github.com
+ *  13171334+desktop@users.noreply.github.com
+ */
 export function getAttributableEmailsFor(
   account: Account
 ): ReadonlyArray<string> {
