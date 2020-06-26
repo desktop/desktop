@@ -48,6 +48,7 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
       name: account.name,
       email: email,
       avatarURL: account.avatarURL,
+      endpoint: account.endpoint,
     }
 
     return (

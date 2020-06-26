@@ -27,7 +27,7 @@ import { startTimer } from '../lib/timing'
 import { PermissionsCommitWarning } from './permissions-commit-warning'
 import { LinkButton } from '../lib/link-button'
 import { FoldoutType } from '../../lib/app-state'
-import { IAvatarUser } from '../../models/avatar'
+import { IAvatarUser, getAvatarUserFromAuthor } from '../../models/avatar'
 
 const addAuthorIcon = new OcticonSymbol(
   12,
@@ -256,16 +256,14 @@ export class CommitMessage extends React.Component<
   }
 
   private renderAvatar() {
-    const commitAuthor = this.props.commitAuthor
+    const { commitAuthor, repository } = this.props
+    const { gitHubRepository } = repository
     const avatarTitle = commitAuthor
       ? `Committing as ${commitAuthor.name} <${commitAuthor.email}>`
       : undefined
     const avatarUser: IAvatarUser | undefined =
       commitAuthor !== null
-        ? {
-            email: commitAuthor.email,
-            name: commitAuthor.name,
-          }
+        ? getAvatarUserFromAuthor(commitAuthor, gitHubRepository)
         : undefined
 
     return <Avatar user={avatarUser} title={avatarTitle} />
