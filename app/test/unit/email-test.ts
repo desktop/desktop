@@ -8,7 +8,6 @@ import {
   getEnterpriseAPIURL,
 } from '../../src/lib/api'
 import { Account } from '../../src/models/account'
-import { assert } from 'console'
 
 describe('emails', () => {
   describe('lookupPreferredEmail', () => {
