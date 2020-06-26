@@ -2,6 +2,7 @@ import * as URL from 'url'
 
 import { IAPIEmail, getDotComAPIEndpoint } from './api'
 import { Account } from '../models/account'
+import { format } from 'path'
 
 /**
  * Lookup a suitable email address to display in the application, based on the
@@ -19,10 +20,8 @@ import { Account } from '../models/account'
 export function lookupPreferredEmail(account: Account): string {
   const emails = account.emails
 
-  const stealthSuffix = `@${getStealthEmailHostForEndpoint(account.endpoint)}`
-
   if (emails.length === 0) {
-    return `${account.id}+${account.login}${stealthSuffix}`
+    return formatStealthEmailAddress(account)
   }
 
   const primary = emails.find(e => e.primary)
@@ -30,6 +29,7 @@ export function lookupPreferredEmail(account: Account): string {
     return primary.email
   }
 
+  const stealthSuffix = `@${getStealthEmailHostForEndpoint(account.endpoint)}`
   const noReply = emails.find(e =>
     e.email.toLowerCase().endsWith(stealthSuffix)
   )
