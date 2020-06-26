@@ -88,27 +88,11 @@ function getStealthEmailFor(account: Account) {
 export function getAttributableEmailsFor(
   account: Account
 ): ReadonlyArray<string> {
-  const unique = new Set<string>()
-  const emails = new Array<string>()
+  const uniqueEmails = new Set<string>([
+    ...account.emails.map(x => x.email),
+    getLegacyStealthEmailFor(account),
+    getStealthEmailFor(account),
+  ])
 
-  for (const email of account.emails) {
-    const normalized = email.email.toLowerCase()
-    if (!unique.has(normalized)) {
-      unique.add(normalized)
-      emails.push(email.email)
-    }
-  }
-  const legacyStealthEmail = getLegacyStealthEmailFor(account)
-
-  if (!unique.has(legacyStealthEmail.toLowerCase())) {
-    emails.push(legacyStealthEmail)
-  }
-
-  const stealthEmail = getStealthEmailFor(account)
-
-  if (!unique.has(stealthEmail.toLowerCase())) {
-    emails.push(stealthEmail)
-  }
-
-  return emails
+  return [...uniqueEmails]
 }
