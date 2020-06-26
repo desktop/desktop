@@ -7,18 +7,36 @@ import {
 import { Account } from '../../src/models/account'
 
 describe('emails', () => {
-  it('returns null for empty list', () => {
+  it('returns a stealth email address for empty list', () => {
     const account = new Account(
       'shiftkey',
       getDotComAPIEndpoint(),
       '',
       [],
       '',
-      -1,
+      1234,
       'Caps Lock'
     )
 
-    expect(lookupPreferredEmail(account)).toBeNull()
+    expect(lookupPreferredEmail(account)).toBe(
+      '1234+shiftkey@users.noreply.github.com'
+    )
+  })
+
+  it('returns a stealth email address for empty list from GHES', () => {
+    const account = new Account(
+      'shiftkey',
+      'https://github.example.com/api/v3',
+      '',
+      [],
+      '',
+      1234,
+      'Caps Lock'
+    )
+
+    expect(lookupPreferredEmail(account)).toBe(
+      '1234+shiftkey@users.noreply.github.example.com'
+    )
   })
 
   it('returns the primary if it has public visibility', () => {
@@ -53,9 +71,7 @@ describe('emails', () => {
       'Caps Lock'
     )
 
-    const result = lookupPreferredEmail(account)
-    expect(result).not.toBeNull()
-    expect(result!.email).toBe('my-primary-email@example.com')
+    expect(lookupPreferredEmail(account)).toBe('my-primary-email@example.com')
   })
 
   it('returns the primary if it has null visibility', () => {
@@ -90,9 +106,7 @@ describe('emails', () => {
       'Caps Lock'
     )
 
-    const result = lookupPreferredEmail(account)
-    expect(result).not.toBeNull()
-    expect(result!.email).toBe('my-primary-email@example.com')
+    expect(lookupPreferredEmail(account)).toBe('my-primary-email@example.com')
   })
 
   it('returns the noreply if there is no public address', () => {
@@ -127,9 +141,9 @@ describe('emails', () => {
       'Caps Lock'
     )
 
-    const result = lookupPreferredEmail(account)
-    expect(result).not.toBeNull()
-    expect(result!.email).toBe('shiftkey@users.noreply.github.com')
+    expect(lookupPreferredEmail(account)).toBe(
+      'shiftkey@users.noreply.github.com'
+    )
   })
 
   it('returns the noreply if there is no public address for GitHub Enterprise Server as well', () => {
@@ -164,9 +178,9 @@ describe('emails', () => {
       'Caps Lock'
     )
 
-    const result = lookupPreferredEmail(account)
-    expect(result).not.toBeNull()
-    expect(result!.email).toBe('shiftkey@users.noreply.github.example.com')
+    expect(lookupPreferredEmail(account)).toBe(
+      'shiftkey@users.noreply.github.example.com'
+    )
   })
 
   it('uses first email if nothing special found', () => {
@@ -195,8 +209,6 @@ describe('emails', () => {
       'Caps Lock'
     )
 
-    const result = lookupPreferredEmail(account)
-    expect(result).not.toBeNull()
-    expect(result!.email).toBe('shiftkey@example.com')
+    expect(lookupPreferredEmail(account)).toBe('shiftkey@example.com')
   })
 })
