@@ -56,21 +56,6 @@ function isEmailPublic(email: IAPIEmail): boolean {
 }
 
 /**
- * Get the default email address belonging to a user
- *
- * @param emails Array of email details returned from GitHub API
- * @returns the email address from the first element in the array, or an empty
- *          string if the array is empty
- */
-export function getDefaultEmail(emails: ReadonlyArray<IAPIEmail>): string {
-  if (emails.length === 0) {
-    return ''
-  }
-
-  return emails[0].email || ''
-}
-
-/**
  * Returns the stealth email host name for a given endpoint. The stealth
  * email host is hardcoded to the subdomain users.noreply under the
  * endpoint host.
