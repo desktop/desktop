@@ -11,7 +11,6 @@ import {
   GitHubUserDatabase,
   IGitHubUser,
 } from '../databases/github-user-database'
-import { getAvatarWithEnterpriseFallback } from '../gravatar'
 
 import { fatalError } from '../fatal-error'
 import { compare } from '../compare'
@@ -93,14 +92,8 @@ export class GitHubUserStore extends BaseStore {
       return null
     }
 
-    const avatarURL = getAvatarWithEnterpriseFallback(
-      apiUser.avatar_url,
-      apiUser.email,
-      account.endpoint
-    )
-
     const user: IGitHubUser = {
-      avatarURL,
+      avatarURL: apiUser.avatar_url,
       email: apiUser.email || '',
       endpoint: account.endpoint,
       name: apiUser.name || apiUser.login,
@@ -151,11 +144,7 @@ export class GitHubUserStore extends BaseStore {
         ...m,
         email,
         endpoint: account.endpoint,
-        avatarURL: getAvatarWithEnterpriseFallback(
-          m.avatar_url,
-          email,
-          account.endpoint
-        ),
+        avatarURL: m.avatar_url,
       }
     })
 
@@ -261,15 +250,9 @@ export class GitHubUserStore extends BaseStore {
     if (apiCommit) {
       const { author } = apiCommit
       if (isValidAuthor(author)) {
-        const avatarURL = getAvatarWithEnterpriseFallback(
-          author.avatar_url,
-          email,
-          account.endpoint
-        )
-
         return {
           email,
-          avatarURL,
+          avatarURL: author.avatar_url,
           login: author.login,
           endpoint: account.endpoint,
           name: author.login,
@@ -279,15 +262,10 @@ export class GitHubUserStore extends BaseStore {
 
     const matchingUser = await api.searchForUserWithEmail(email)
     if (matchingUser) {
-      const avatarURL = getAvatarWithEnterpriseFallback(
-        matchingUser.avatar_url,
-        email,
-        account.endpoint
-      )
       return {
         email,
         login: matchingUser.login,
-        avatarURL,
+        avatarURL: matchingUser.avatar_url,
         endpoint: account.endpoint,
         name: matchingUser.login,
       }

@@ -11,8 +11,6 @@ import {
 } from './http'
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
-import { getAvatarWithEnterpriseFallback } from './gravatar'
-import { getDefaultEmail } from './email'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
 
@@ -1155,18 +1153,13 @@ export async function fetchUser(
   try {
     const user = await api.fetchAccount()
     const emails = await api.fetchEmails()
-    const defaultEmail = getDefaultEmail(emails)
-    const avatarURL = getAvatarWithEnterpriseFallback(
-      user.avatar_url,
-      defaultEmail,
-      endpoint
-    )
+
     return new Account(
       user.login,
       endpoint,
       token,
       emails,
-      avatarURL,
+      user.avatar_url,
       user.id,
       user.name || user.login
     )

@@ -3,6 +3,7 @@ import { IAvatarUser } from '../../models/avatar'
 import { shallowEquals } from '../../lib/equality'
 import { generateGravatarUrl } from '../../lib/gravatar'
 import { OcticonSymbol, Octicon } from '../octicons'
+import { getDotComAPIEndpoint } from '../../lib/api'
 
 interface IAvatarProps {
   /** The user whose avatar should be displayed. */
@@ -44,6 +45,15 @@ function* getAvatarUrlCandidates(
 
   const { email } = user
 
+  // Are we dealing with a repository hosted on GitHub Enterprise Server?
+  // if so we're unable to get to the avatar by requesting the avatarURL
+  // due to the private mode (see https://github.com/desktop/desktop/issues/821).
+  // So we have no choice but to fall back to gravatar for now.
+  if (user.endpoint !== null && user.endpoint !== getDotComAPIEndpoint()) {
+    yield generateGravatarUrl(email, size)
+    return
+  }
+
   const stealthEmailMatch = /(?:(\d+)\+)?(.+?)@users\.noreply\.github\.com/i.exec(
     email
   )
@@ -57,13 +67,9 @@ function* getAvatarUrlCandidates(
     }
   }
 
-  yield `${avatarEndpoint}/u/e?email=${encodeURIComponent(email)}&s=${size}`
-
   // The /u/e endpoint above falls back to gravatar (proxied)
-  // so we don't technically have to add gravatar to the fallback
-  // but on the off chance that the avatars host is having issues
-  // we'll add our own fallback.
-  yield generateGravatarUrl(email, size)
+  // so we don't have to add gravatar to the fallback.
+  yield `${avatarEndpoint}/u/e?email=${encodeURIComponent(email)}&s=${size}`
 }
 
 /** A component for displaying a user avatar. */
