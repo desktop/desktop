@@ -9,10 +9,10 @@ import { Account } from '../models/account'
  *
  *  - the primary email if it's publicly visible
  *  - the first public email
- *  - an '@users.noreply.github.com' email address
- *  - the first email address
- *
- * Otherwise just return null
+ *  - an anonymous (i.e. '@users.noreply.github.com') email address
+ *  - the first email address returned from the API
+ *  - an automatically generated stealth email based on the user's
+ *    login, id, and endpoint.
  *
  * @param emails array of email addresses associated with an account
  */
