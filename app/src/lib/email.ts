@@ -22,7 +22,7 @@ export function lookupPreferredEmail(account: Account): string {
   const stealthSuffix = `@${getStealthEmailHostForEndpoint(account.endpoint)}`
 
   if (emails.length === 0) {
-    return `${account.login}+${account.id}${stealthSuffix}`
+    return `${account.id}+${account.login}${stealthSuffix}`
   }
 
   const primary = emails.find(e => e.primary)
