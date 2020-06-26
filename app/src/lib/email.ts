@@ -20,7 +20,7 @@ export function lookupPreferredEmail(account: Account): string {
   const emails = account.emails
 
   if (emails.length === 0) {
-    return formatStealthEmailAddress(account)
+    return getStealthEmailFor(account)
   }
 
   const primary = emails.find(e => e.primary)
@@ -75,17 +75,17 @@ function getStealthEmailHostForEndpoint(endpoint: string) {
     : 'users.noreply.github.com'
 }
 
-function formatLegacyStealthEmailAddress(account: Account) {
+function getLegacyStealthEmailFor(account: Account) {
   const stealthEmailHost = getStealthEmailHostForEndpoint(account.endpoint)
   return `${account.id}+${account.login}@${stealthEmailHost}`
 }
 
-function formatStealthEmailAddress(account: Account) {
+function getStealthEmailFor(account: Account) {
   const stealthEmailHost = getStealthEmailHostForEndpoint(account.endpoint)
   return `${account.id}+${account.login}@${stealthEmailHost}`
 }
 
-export function getAttributableEmailAddressesFor(
+export function getAttributableEmailsFor(
   account: Account
 ): ReadonlyArray<string> {
   const unique = new Set<string>()
@@ -98,13 +98,13 @@ export function getAttributableEmailAddressesFor(
       emails.push(email.email)
     }
   }
-  const legacyStealthEmail = formatLegacyStealthEmailAddress(account)
+  const legacyStealthEmail = getLegacyStealthEmailFor(account)
 
   if (!unique.has(legacyStealthEmail.toLowerCase())) {
     emails.push(legacyStealthEmail)
   }
 
-  const stealthEmail = formatStealthEmailAddress(account)
+  const stealthEmail = getStealthEmailFor(account)
 
   if (!unique.has(stealthEmail.toLowerCase())) {
     emails.push(stealthEmail)

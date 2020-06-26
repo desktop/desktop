@@ -269,7 +269,7 @@ import { createTutorialRepository } from './helpers/create-tutorial-repository'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { getDefaultDir } from '../../ui/lib/default-dir'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
-import { getAttributableEmailAddressesFor } from '../email'
+import { getAttributableEmailsFor } from '../email'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -2549,7 +2549,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           const { commitAuthor } = state
           if (commitAuthor !== null) {
             const commitEmail = commitAuthor.email.toLowerCase()
-            const attributableEmails = getAttributableEmailAddressesFor(account)
+            const attributableEmails = getAttributableEmailsFor(account)
             const commitEmailMatchesAccount = attributableEmails.some(
               email => email.toLowerCase() === commitEmail
             )
