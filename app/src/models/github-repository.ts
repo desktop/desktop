@@ -47,8 +47,9 @@ export class GitHubRepository {
   public get hash(): string {
     return `${this.dbID}+${this.defaultBranch}+${this.isPrivate}+${
       this.cloneURL
-    }+${this.name}+${this.htmlURL}+${this.owner.hash}+${this.parent &&
-      this.parent.hash}`
+    }+${this.name}+${this.htmlURL}+${this.owner.hash}+${
+      this.parent && this.parent.hash
+    }`
   }
 }
 

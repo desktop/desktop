@@ -45,9 +45,7 @@ export class SegmentedItem extends React.Component<ISegmentedItemProps, {}> {
   public render() {
     const description = this.props.description ? (
       <p>{this.props.description}</p>
-    ) : (
-      undefined
-    )
+    ) : undefined
 
     const isSelected = this.props.isSelected
     const className = isSelected ? 'selected' : undefined

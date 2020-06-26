@@ -4,7 +4,11 @@ jest.useFakeTimers()
 
 describe('timeout', () => {
   it('falls back to the fallback value if promise takes too long', async () => {
-    const promise = timeout(sleep(1000).then(() => 'foo'), 500, 'bar')
+    const promise = timeout(
+      sleep(1000).then(() => 'foo'),
+      500,
+      'bar'
+    )
     jest.advanceTimersByTime(500)
     expect(await promise).toBe('bar')
   })

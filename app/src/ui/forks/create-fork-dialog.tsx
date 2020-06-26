@@ -156,9 +156,7 @@ function renderCreateForkDialogError(
         </LinkButton>
         .
       </>
-    ) : (
-      undefined
-    )
+    ) : undefined
   return (
     <>
       <DialogContent>
