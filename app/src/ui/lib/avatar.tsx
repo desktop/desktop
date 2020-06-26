@@ -54,6 +54,18 @@ function* getAvatarUrlCandidates(
     return
   }
 
+  // Are we dealing with a GitHub.com stealth/anonymous email address in
+  // either legacy format:
+  //  niik@users.noreply.github.com
+  //
+  // or the current format
+  //  634063+niik@users.noreply.github.com
+  //
+  // If so we unfortunately can't rely on the GitHub avatar endpoint to
+  // deliver a match based solely on that email address but luckily for us
+  // the avatar service supports looking up a user based either on user id
+  // of login, user id being the better option as it's not affected by
+  // account renames.
   const stealthEmailMatch = /(?:(\d+)\+)?(.+?)@users\.noreply\.github\.com/i.exec(
     email
   )
