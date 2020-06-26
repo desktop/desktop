@@ -74,7 +74,7 @@ function menuPaneClassNameFromId(id: string) {
     // Get rid of the leading @. for auto-generated ids
     .replace(/^@\./, '')
     // No accelerator key modifier necessary
-    .replace(/&/m, '')
+    .replace(/&/g, '')
     // Get rid of stuff that's not safe for css class names
     .replace(/[^a-z0-9_]+/gi, '-')
     // Get rid of redundant underscores
