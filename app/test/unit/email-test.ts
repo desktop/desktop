@@ -274,5 +274,31 @@ describe('emails', () => {
         '123+niik@users.noreply.github.example.com',
       ])
     })
+
+    it('returns unique emails', () => {
+      const emails: IAPIEmail[] = [
+        {
+          email: 'niik@users.noreply.github.com',
+          primary: false,
+          verified: true,
+          visibility: null,
+        },
+        {
+          email: '123+niik@users.noreply.github.com',
+          primary: false,
+          verified: true,
+          visibility: null,
+        },
+      ]
+
+      const endpoint = getDotComAPIEndpoint()
+      const account = new Account('niik', endpoint, '', emails, '', 123, '')
+      const attributable = getAttributableEmailsFor(account)
+
+      expect(attributable).toEqual([
+        'niik@users.noreply.github.com',
+        '123+niik@users.noreply.github.com',
+      ])
+    })
   })
 })
