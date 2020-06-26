@@ -71,10 +71,19 @@ export function getDefaultEmail(emails: ReadonlyArray<IAPIEmail>): string {
  * endpoint host.
  */
 function getStealthEmailHostForEndpoint(endpoint: string) {
-  const url = URL.parse(endpoint)
   return getDotComAPIEndpoint() !== endpoint
-    ? `users.noreply.${url.hostname}`
+    ? `users.noreply.${URL.parse(endpoint).hostname}`
     : 'users.noreply.github.com'
+}
+
+function formatLegacyStealthEmailAddress(account: Account) {
+  const stealthEmailHost = getStealthEmailHostForEndpoint(account.endpoint)
+  return `${account.id}+${account.login}@${stealthEmailHost}`
+}
+
+function formatStealthEmailAddress(account: Account) {
+  const stealthEmailHost = getStealthEmailHostForEndpoint(account.endpoint)
+  return `${account.id}+${account.login}@${stealthEmailHost}`
 }
 
 export function getAttributableEmailAddressesFor(
@@ -90,13 +99,13 @@ export function getAttributableEmailAddressesFor(
       emails.push(email.email)
     }
   }
-  const stealthEmailHost = getStealthEmailHostForEndpoint(account.endpoint)
-  const legacyStealthEmail = `${account.login}@${stealthEmailHost}`
-  const stealthEmail = `${account.id}+${account.login}@${stealthEmailHost}`
+  const legacyStealthEmail = formatLegacyStealthEmailAddress(account)
 
   if (!unique.has(legacyStealthEmail.toLowerCase())) {
     emails.push(legacyStealthEmail)
   }
+
+  const stealthEmail = formatStealthEmailAddress(account)
 
   if (!unique.has(stealthEmail.toLowerCase())) {
     emails.push(stealthEmail)
