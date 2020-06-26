@@ -128,8 +128,7 @@ export class ConfigureGitUser extends React.Component<
     }
 
     if (this.state.email.length === 0) {
-      const preferredEmail = lookupPreferredEmail(account)
-      this.setState({ email: preferredEmail.email })
+      this.setState({ email: lookupPreferredEmail(account) })
     }
   }
 
