@@ -131,8 +131,8 @@ export class ConfigureGitUser extends React.Component<
       const preferredEmail = lookupPreferredEmail(account)
       if (preferredEmail) {
         this.setState({
-          email: preferredEmail.email,
-          avatarURL: this.avatarURLForEmail(preferredEmail.email),
+          email: preferredEmail,
+          avatarURL: this.avatarURLForEmail(preferredEmail),
         })
       }
     }

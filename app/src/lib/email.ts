@@ -16,23 +16,18 @@ import { Account } from '../models/account'
  *
  * @param emails array of email addresses associated with an account
  */
-export function lookupPreferredEmail(account: Account): IAPIEmail {
+export function lookupPreferredEmail(account: Account): string {
   const emails = account.emails
 
   const stealthSuffix = `@${getStealthEmailHostForEndpoint(account.endpoint)}`
 
   if (emails.length === 0) {
-    return {
-      email: `${account.login}+${account.id}${stealthSuffix}`,
-      primary: true,
-      verified: true,
-      visibility: 'public',
-    }
+    return `${account.login}+${account.id}${stealthSuffix}`
   }
 
   const primary = emails.find(e => e.primary)
   if (primary && isEmailPublic(primary)) {
-    return primary
+    return primary.email
   }
 
   const noReply = emails.find(e =>
@@ -40,10 +35,10 @@ export function lookupPreferredEmail(account: Account): IAPIEmail {
   )
 
   if (noReply) {
-    return noReply
+    return noReply.email
   }
 
-  return emails[0]
+  return emails[0].email
 }
 
 /**
