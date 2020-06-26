@@ -2,7 +2,6 @@ import * as URL from 'url'
 
 import { IAPIEmail, getDotComAPIEndpoint } from './api'
 import { Account } from '../models/account'
-import { format } from 'path'
 
 /**
  * Lookup a suitable email address to display in the application, based on the
