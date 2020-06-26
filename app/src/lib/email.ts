@@ -16,7 +16,7 @@ import { Account } from '../models/account'
  *
  * @param emails array of email addresses associated with an account
  */
-export function lookupPreferredEmail(account: Account): IAPIEmail | null {
+export function lookupPreferredEmail(account: Account): IAPIEmail {
   const emails = account.emails
 
   const stealthSuffix = `@${getStealthEmailHostForEndpoint(account.endpoint)}`
