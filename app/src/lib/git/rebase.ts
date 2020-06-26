@@ -21,7 +21,12 @@ import { CommitOneLine } from '../../models/commit'
 import { merge } from '../merge'
 import { formatRebaseValue } from '../rebase'
 
-import { git, IGitResult, IGitExecutionOptions } from './core'
+import {
+  git,
+  IGitResult,
+  IGitExecutionOptions,
+  gitRebaseArguments,
+} from './core'
 import { stageManualConflictResolution } from './stage'
 import { stageFiles } from './update-index'
 import { getStatus } from './status'
@@ -390,7 +395,7 @@ export async function rebase(
   }
 
   const result = await git(
-    ['rebase', baseBranch.name, targetBranch.name],
+    [...gitRebaseArguments(), 'rebase', baseBranch.name, targetBranch.name],
     repository.path,
     'rebase',
     options

@@ -437,6 +437,22 @@ export async function gitNetworkArguments(
 }
 
 /**
+ * Returns the arguments to use on any git operation that can end up
+ * triggering a rebase.
+ */
+export function gitRebaseArguments() {
+  return [
+    // Explicitly set the rebase backend to merge.
+    // We need to force this option to be sure that Desktop
+    // uses the merge backend even if the user has the apply backend
+    // configured, since this is the only one supported.
+    // This can go away once git deprecates the apply backend.
+    '-c',
+    'rebase.backend=merge',
+  ]
+}
+
+/**
  * Returns the SHA of the passed in IGitResult
  * @param result
  */
