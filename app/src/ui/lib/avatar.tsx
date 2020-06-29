@@ -42,7 +42,7 @@ const DefaultAvatarSymbol = new OcticonSymbol(
  * Yields two capture groups, the first being an optional capture of the
  * user id and the second being the mandatory login.
  */
-const StealthEmailRegexp = /(?:(\d+)\+)?(.+?)@users\.noreply\.github\.com/i
+const StealthEmailRegexp = /^(?:(\d+)\+)?(.+?)@users\.noreply\.github\.com$/i
 
 function* getAvatarUrlCandidates(
   user: IAvatarUser | undefined,
