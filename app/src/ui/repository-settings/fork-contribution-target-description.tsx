@@ -32,6 +32,10 @@ export function ForkSettingsDescription(props: IForkSettingsDescription) {
         New branches will be based on{' '}
         <strong>{targetRepository.fullName}</strong>'s default branch.
       </li>
+      <li>
+        Autocompletion of user and issues will be based on{' '}
+        <strong>{targetRepository.fullName}</strong>.
+      </li>
     </ul>
   )
 }

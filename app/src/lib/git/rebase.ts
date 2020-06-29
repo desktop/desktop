@@ -300,9 +300,7 @@ class GitRebaseParser {
 
     return {
       kind: 'rebase',
-      title: `Rebasing commit ${this.rebasedCommitCount} of ${
-        this.totalCommitCount
-      } commits`,
+      title: `Rebasing commit ${this.rebasedCommitCount} of ${this.totalCommitCount} commits`,
       value,
       rebasedCommitCount: this.rebasedCommitCount,
       totalCommitCount: this.totalCommitCount,
