@@ -35,6 +35,15 @@ const DefaultAvatarSymbol = new OcticonSymbol(
   'M13 13.145a.844.844 0 0 1-.832.855H3.834A.846.846 0 0 1 3 13.142v-.856c0-2.257 3.333-3.429 3.333-3.429s.191-.35 0-.857c-.7-.531-.786-1.363-.833-3.429C5.644 2.503 7.056 2 8 2s2.356.502 2.5 2.571C10.453 6.637 10.367 7.47 9.667 8c-.191.506 0 .857 0 .857S13 10.03 13 12.286v.859z'
 )
 
+/**
+ * A regular expression meant to match both the legacy format GitHub.com
+ * stealth email address and the modern format (login@ vs id+login@).
+ *
+ * Yields two capture groups, the first being an optional capture of the
+ * user id and the second being the mandatory login.
+ */
+const StealthEmailRegexp = /(?:(\d+)\+)?(.+?)@users\.noreply\.github\.com/i
+
 function* getAvatarUrlCandidates(
   user: IAvatarUser | undefined,
   size = 60
@@ -45,11 +54,15 @@ function* getAvatarUrlCandidates(
 
   const { email } = user
 
-  // Are we dealing with a repository hosted on GitHub Enterprise Server?
-  // if so we're unable to get to the avatar by requesting the avatarURL
-  // due to the private mode (see https://github.com/desktop/desktop/issues/821).
-  // So we have no choice but to fall back to gravatar for now.
-  if (user.endpoint !== null && user.endpoint !== getDotComAPIEndpoint()) {
+  if (user.endpoint === getDotComAPIEndpoint()) {
+    if (user.avatarURL !== undefined) {
+      yield user.avatarURL
+    }
+  } else if (user.endpoint !== null) {
+    // We're dealing with a repository hosted on GitHub Enterprise Server
+    // so we're unable to get to the avatar by requesting the avatarURL due
+    // to the private mode (see https://github.com/desktop/desktop/issues/821).
+    // So we have no choice but to fall back to gravatar for now.
     yield generateGravatarUrl(email, size)
     return
   }
@@ -66,9 +79,7 @@ function* getAvatarUrlCandidates(
   // the avatar service supports looking up a user based either on user id
   // of login, user id being the better option as it's not affected by
   // account renames.
-  const stealthEmailMatch = /(?:(\d+)\+)?(.+?)@users\.noreply\.github\.com/i.exec(
-    email
-  )
+  const stealthEmailMatch = StealthEmailRegexp.exec(email)
 
   if (stealthEmailMatch) {
     const [, userId, login] = stealthEmailMatch
