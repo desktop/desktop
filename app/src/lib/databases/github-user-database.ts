@@ -31,7 +31,6 @@ interface IDBMentionableUser extends IMentionableUser {
 }
 
 export class GitHubUserDatabase extends BaseDatabase {
-  public users!: Dexie.Table<IGitHubUser, number>
   public mentionables!: Dexie.Table<IDBMentionableUser, number>
 
   public constructor(name: string, schemaVersion?: number) {
@@ -47,9 +46,11 @@ export class GitHubUserDatabase extends BaseDatabase {
     })
 
     // Remove the mentionables table in order to recreate it in
-    // version 4 using a new primary key.
+    // version 4 using a new primary key. Also remove the obsolete
+    // users table
     this.conditionalVersion(3, {
       mentionables: null,
+      users: null,
     })
 
     this.conditionalVersion(4, {
