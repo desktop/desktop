@@ -15,11 +15,7 @@ import {
 import { fatalError } from '../fatal-error'
 import { compare } from '../compare'
 import { BaseStore } from './base-store'
-import {
-  lookupPreferredEmail,
-  getStealthEmailForUser,
-  getLegacyStealthEmailForUser,
-} from '../email'
+import { getStealthEmailForUser, getLegacyStealthEmailForUser } from '../email'
 
 function isValidAuthor(
   author: IAPIIdentity | {} | null
