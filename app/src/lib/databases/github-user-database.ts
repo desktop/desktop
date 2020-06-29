@@ -19,19 +19,17 @@ export interface IGitHubUser {
   readonly name: string | null
 }
 
-export interface IMentionableAssociation {
-  /**
-   * The internal (to desktop) database id for this association
-   *  or undefined if not yet inserted into the database.
-   */
-  readonly id?: number
-  readonly userID: number
-  readonly repositoryID: number
+export interface IMentionableUser {
+  readonly gitHubRepositoryID: number
+  readonly login: string
+  readonly name: string
+  readonly email: string
+  readonly avatarURL: string
 }
 
 export class GitHubUserDatabase extends BaseDatabase {
   public users!: Dexie.Table<IGitHubUser, number>
-  public mentionables!: Dexie.Table<IMentionableAssociation, number>
+  public mentionables!: Dexie.Table<IMentionableUser, number>
 
   public constructor(name: string, schemaVersion?: number) {
     super(name, schemaVersion)
@@ -43,6 +41,39 @@ export class GitHubUserDatabase extends BaseDatabase {
     this.conditionalVersion(2, {
       users: '++id, [endpoint+email], [endpoint+login]',
       mentionables: '++id, repositoryID, &[userID+repositoryID]',
+    })
+
+    // Remove the mentionables table in order to recreate it in
+    // version 4 using a new primary key.
+    this.conditionalVersion(3, {
+      mentionables: null,
+    })
+
+    this.conditionalVersion(4, {
+      mentionables: '&[gitHubRepositoryID+login], gitHubRepositoryID',
+    })
+  }
+
+  public updateMentionablesForRepository(
+    gitHubRepositoryID: number,
+    mentionables: IMentionableUser[]
+  ) {
+    return this.transaction('rw', this.mentionables, async () => {
+      await this.mentionables
+        .where('gitHubRepositoryID')
+        .equals(gitHubRepositoryID)
+        .delete()
+
+      await this.mentionables.bulkAdd(mentionables)
+    })
+  }
+
+  public getAllMentionablesForRepository(gitHubRepositoryID: number) {
+    return this.transaction('rw', this.mentionables, async () => {
+      return await this.mentionables
+        .where('gitHubRepositoryID')
+        .equals(gitHubRepositoryID)
+        .toArray()
     })
   }
 }

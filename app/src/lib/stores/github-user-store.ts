@@ -10,6 +10,7 @@ import {
 import {
   GitHubUserDatabase,
   IGitHubUser,
+  IMentionableUser,
 } from '../databases/github-user-database'
 
 import { fatalError } from '../fatal-error'
@@ -143,38 +144,22 @@ export class GitHubUserStore extends BaseStore {
       this.mentionablesEtags.set(repositoryID, response.etag)
     }
 
-    const gitHubUsers: ReadonlyArray<IGitHubUser> = response.users.map(m => {
+    const mentionables = response.users.map<IMentionableUser>(m => {
       const email =
         m.email !== null && m.email.length > 0
           ? m.email
           : getLegacyStealthEmailForUser(m.login, account.endpoint)
 
       return {
-        ...m,
+        gitHubRepositoryID: repositoryID,
+        name: m.name,
+        login: m.login,
         email,
-        endpoint: account.endpoint,
         avatarURL: m.avatar_url,
       }
     })
 
-    const cachedUsers = new Array<IGitHubUser>()
-    for (const user of gitHubUsers) {
-      // We don't overwrite email addresses since we might not get one from this
-      // endpoint, but we could already have one from looking up a commit
-      // specifically.
-      const cachedUser = await this.cacheUser(user, false)
-      if (cachedUser) {
-        cachedUsers.push(cachedUser)
-      }
-    }
-
-    for (const user of cachedUsers) {
-      await this.storeMentionable(user, repository)
-    }
-
-    await this.pruneRemovedMentionables(cachedUsers, repository)
-
-    this.emitUpdate()
+    this.database.updateMentionablesForRepository(repositoryID, mentionables)
   }
 
   /** Not to be called externally. See `Dispatcher`. */
@@ -328,125 +313,17 @@ export class GitHubUserStore extends BaseStore {
     return addedUser || null
   }
 
-  /**
-   * Store a mentionable association between the user and repository.
-   *
-   * Note that both the user and the repository *must* have already been cached
-   * before calling this method. Otherwise it will throw.
-   */
-  private async storeMentionable(
-    user: IGitHubUser,
-    repository: GitHubRepository
-  ) {
-    const userID = user.id
-    if (!userID) {
-      fatalError(
-        `Cannot store a mentionable association for a user that hasn't been cached yet.`
-      )
-    }
-
-    const repositoryID = repository.dbID
-    if (!repositoryID) {
-      fatalError(
-        `Cannot store a mentionable association for a repository that hasn't been cached yet.`
-      )
-    }
-
-    await this.database.transaction(
-      'rw',
-      this.database.mentionables,
-      async () => {
-        const existing = await this.database.mentionables
-          .where('[userID+repositoryID]')
-          .equals([userID, repositoryID])
-          .limit(1)
-          .first()
-        if (existing) {
-          return
-        }
-
-        await this.database.mentionables.put({ userID, repositoryID })
-      }
-    )
-  }
-
-  /**
-   * Prune the mentionable associations by removing any association that isn't in
-   * the given array of users.
-   */
-  private async pruneRemovedMentionables(
-    users: ReadonlyArray<IGitHubUser>,
-    repository: GitHubRepository
-  ) {
-    const repositoryID = repository.dbID
-    if (!repositoryID) {
-      fatalError(
-        `Cannot prune removed mentionables for a repository that hasn't been cached yet.`
-      )
-    }
-
-    const userIDs = new Set<number>()
-    for (const user of users) {
-      const userID = user.id
-      if (!userID) {
-        fatalError(
-          `Cannot prune removed mentionables with a user that hasn't been cached yet: ${user}`
-        )
-      }
-
-      userIDs.add(userID)
-    }
-
-    await this.database.transaction(
-      'rw',
-      this.database.mentionables,
-      async () => {
-        const associations = await this.database.mentionables
-          .where('repositoryID')
-          .equals(repositoryID)
-          .toArray()
-
-        for (const association of associations) {
-          if (!userIDs.has(association.userID)) {
-            await this.database.mentionables.delete(association.id!)
-          }
-        }
-      }
-    )
-  }
-
   /** Get the mentionable users in the repository. */
   public async getMentionableUsers(
     repository: GitHubRepository
-  ): Promise<ReadonlyArray<IGitHubUser>> {
+  ): Promise<ReadonlyArray<IMentionableUser>> {
     const repositoryID = repository.dbID
     if (!repositoryID) {
       return fatalError(
         `Cannot get mentionables for a repository that hasn't been cached yet.`
       )
     }
-
-    const users = new Array<IGitHubUser>()
-    await this.database.transaction(
-      'r',
-      this.database.mentionables,
-      this.database.users,
-      async () => {
-        const associations = await this.database.mentionables
-          .where('repositoryID')
-          .equals(repositoryID)
-          .toArray()
-
-        for (const association of associations) {
-          const user = await this.database.users.get(association.userID)
-          if (user) {
-            users.push(user)
-          }
-        }
-      }
-    )
-
-    return users
+    return this.database.getAllMentionablesForRepository(repositoryID)
   }
 
   /**
@@ -466,7 +343,7 @@ export class GitHubUserStore extends BaseStore {
     repository: GitHubRepository,
     text: string,
     maxHits: number = 100
-  ): Promise<ReadonlyArray<IGitHubUser>> {
+  ): Promise<ReadonlyArray<IMentionableUser>> {
     const users = await this.getMentionableUsers(repository)
 
     const hits = []
