@@ -20,7 +20,7 @@ export function lookupPreferredEmail(account: Account): string {
   const emails = account.emails
 
   if (emails.length === 0) {
-    return getStealthEmailFor(account)
+    return getStealthEmailForUser(account.id, account.login, account.endpoint)
   }
 
   const primary = emails.find(e => e.primary)
@@ -60,14 +60,39 @@ function getStealthEmailHostForEndpoint(endpoint: string) {
     : 'users.noreply.github.com'
 }
 
-function getLegacyStealthEmailFor(account: Account) {
-  const stealthEmailHost = getStealthEmailHostForEndpoint(account.endpoint)
-  return `${account.login}@${stealthEmailHost}`
+/**
+ * Generate a legacy stealth email address for the user
+ * on the given server.
+ *
+ * Ex: desktop@users.noreply.github.com
+ *
+ * @param login    The user handle or "login"
+ * @param endpoint The API endpoint that this login belongs to,
+ *                 either GitHub.com or a GitHub Enterprise Server
+ *                 instance
+ */
+function getLegacyStealthEmailForUser(login: string, endpoint: string) {
+  const stealthEmailHost = getStealthEmailHostForEndpoint(endpoint)
+  return `${login}@${stealthEmailHost}`
 }
 
-function getStealthEmailFor(account: Account) {
-  const stealthEmailHost = getStealthEmailHostForEndpoint(account.endpoint)
-  return `${account.id}+${account.login}@${stealthEmailHost}`
+/**
+ * Generate a stealth email address for the user on the given
+ * server.
+ *
+ * Ex: 123456+desktop@users.noreply.github.com
+ *
+ * @param id       The numeric user id as returned by the endpoint
+ *                 API. See getLegacyStealthEmailFor if no user id
+ *                 is available.
+ * @param login    The user handle or "login"
+ * @param endpoint The API endpoint that this login belongs to,
+ *                 either GitHub.com or a GitHub Enterprise Server
+ *                 instance
+ */
+function getStealthEmailForUser(id: number, login: string, endpoint: string) {
+  const stealthEmailHost = getStealthEmailHostForEndpoint(endpoint)
+  return `${id}+${login}@${stealthEmailHost}`
 }
 
 /**
@@ -86,10 +111,11 @@ function getStealthEmailFor(account: Account) {
 export function getAttributableEmailsFor(
   account: Account
 ): ReadonlyArray<string> {
+  const { id, login, endpoint } = account
   const uniqueEmails = new Set<string>([
     ...account.emails.map(x => x.email),
-    getLegacyStealthEmailFor(account),
-    getStealthEmailFor(account),
+    getLegacyStealthEmailForUser(login, endpoint),
+    getStealthEmailForUser(id, login, endpoint),
   ])
 
   return [...uniqueEmails]
