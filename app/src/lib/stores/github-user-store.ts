@@ -118,10 +118,7 @@ export class GitHubUserStore extends BaseStore {
       repository.name,
       etag
     )
-    if (!response) {
-      return
-    }
-    if (!response.users) {
+    if (response === null || !Array.isArray(response.users)) {
       return
     }
 
