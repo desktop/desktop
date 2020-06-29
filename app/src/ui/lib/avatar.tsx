@@ -55,8 +55,22 @@ function* getAvatarUrlCandidates(
   const { email, endpoint, avatarURL } = user
 
   if (endpoint === getDotComAPIEndpoint()) {
+    // The avatar urls returned by the API doesn't come
+    // with a size parameter, they default to the biggest
+    // size we need on GitHub.com which is usually much bigger
+    // than what desktop needs so we'll set a size explicitly.
     if (avatarURL !== undefined) {
-      yield avatarURL
+      try {
+        const url = new URL(avatarURL)
+        url.searchParams.set('s', `${size}`)
+
+        yield url.toString()
+      } catch (e) {
+        // This should never happen since URL#constructor
+        // only throws for invalid URLs which we can expect
+        // the API to not give us
+        yield avatarURL
+      }
     }
   } else if (endpoint !== null) {
     // We're dealing with a repository hosted on GitHub Enterprise Server
