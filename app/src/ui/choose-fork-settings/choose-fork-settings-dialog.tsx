@@ -46,11 +46,6 @@ export class ChooseForkSettings extends React.Component<
   }
 
   public render() {
-    const selectedItem =
-      this.state.forkContributionTarget === ForkContributionTarget.Parent
-        ? 0
-        : 1
-
     const items = [
       {
         title: 'To contribute to the parent project',
@@ -63,6 +58,7 @@ export class ChooseForkSettings extends React.Component<
             repository
           </>
         ),
+        key: ForkContributionTarget.Parent,
       },
       {
         title: 'For my own purposes',
@@ -73,6 +69,7 @@ export class ChooseForkSettings extends React.Component<
             repository
           </>
         ),
+        key: ForkContributionTarget.Self,
       },
     ]
 
@@ -88,7 +85,7 @@ export class ChooseForkSettings extends React.Component<
             <VerticalSegmentedControl
               label="You have changes on this branch. What would you like to do with them?"
               items={items}
-              selectedIndex={selectedItem}
+              selectedKey={this.state.forkContributionTarget}
               onSelectionChanged={this.onSelectionChanged}
             />
           </Row>
@@ -107,14 +104,9 @@ export class ChooseForkSettings extends React.Component<
     )
   }
 
-  private onSelectionChanged = (selectionIndex: number) => {
-    const forkContributionTarget =
-      selectionIndex === 0
-        ? ForkContributionTarget.Parent
-        : ForkContributionTarget.Self
-
+  private onSelectionChanged = (value: ForkContributionTarget) => {
     this.setState({
-      forkContributionTarget,
+      forkContributionTarget: value,
     })
   }
 
