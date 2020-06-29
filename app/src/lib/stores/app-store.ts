@@ -45,6 +45,7 @@ import {
   Repository,
   isRepositoryWithGitHubRepository,
   RepositoryWithGitHubRepository,
+  getNonForkGitHubRepository,
 } from '../../models/repository'
 import {
   CommittedFileChange,
@@ -1536,7 +1537,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._refreshRepository(repository)
 
     if (isRepositoryWithGitHubRepository(repository)) {
-      this._refreshIssues(repository.gitHubRepository)
+      // Load issues from the upstream or fork depending
+      // on workflow preferences.
+      const ghRepo = getNonForkGitHubRepository(repository)
+
+      this._refreshIssues(ghRepo)
+      this.refreshMentionables(ghRepo)
+
       this.pullRequestCoordinator.getAllPullRequests(repository).then(prs => {
         this.onPullRequestChanged(repository, prs)
       })
@@ -1559,7 +1566,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.startPullRequestUpdater(repository)
 
     this.startAheadBehindUpdater(repository)
-    this.refreshMentionables(repository)
     this.startBackgroundPruner(repository)
 
     this.addUpstreamRemoteIfNeeded(repository)
@@ -1615,18 +1621,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  private refreshMentionables(repository: Repository) {
-    const account = getAccountForRepository(this.accounts, repository)
+  private refreshMentionables(repository: GitHubRepository) {
+    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
     if (!account) {
       return
     }
 
-    const gitHubRepository = repository.gitHubRepository
-    if (!gitHubRepository) {
-      return
-    }
-
-    this.gitHubUserStore.updateMentionables(gitHubRepository, account)
+    this.gitHubUserStore.updateMentionables(repository, account)
   }
 
   private startPullRequestUpdater(repository: Repository) {

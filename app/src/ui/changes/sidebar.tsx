@@ -9,7 +9,11 @@ import {
   isRebaseConflictState,
   ChangesSelectionKind,
 } from '../../lib/app-state'
-import { Repository } from '../../models/repository'
+import {
+  Repository,
+  getNonForkGitHubRepository,
+  isRepositoryWithGitHubRepository,
+} from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { IGitHubUser } from '../../lib/databases'
 import { IssuesStore, GitHubUserStore } from '../../lib/stores'
@@ -103,8 +107,12 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
       ]
 
       // Issues autocompletion is only available for GitHub repositories.
-      const gitHubRepository = props.repository.gitHubRepository
-      if (gitHubRepository) {
+      const { repository } = props
+      const gitHubRepository = isRepositoryWithGitHubRepository(repository)
+        ? getNonForkGitHubRepository(repository)
+        : null
+
+      if (gitHubRepository !== null) {
         autocompletionProviders.push(
           new IssuesAutocompletionProvider(
             props.issuesStore,
