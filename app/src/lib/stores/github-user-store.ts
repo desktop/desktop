@@ -15,7 +15,11 @@ import {
 import { fatalError } from '../fatal-error'
 import { compare } from '../compare'
 import { BaseStore } from './base-store'
-import { lookupPreferredEmail, getStealthEmailForUser } from '../email'
+import {
+  lookupPreferredEmail,
+  getStealthEmailForUser,
+  getLegacyStealthEmailForUser,
+} from '../email'
 
 function isValidAuthor(
   author: IAPIIdentity | {} | null
@@ -144,7 +148,10 @@ export class GitHubUserStore extends BaseStore {
     }
 
     const gitHubUsers: ReadonlyArray<IGitHubUser> = response.users.map(m => {
-      const email = m.email || ''
+      const email =
+        m.email !== null && m.email.length > 0
+          ? m.email
+          : getLegacyStealthEmailForUser(m.login, account.endpoint)
 
       return {
         ...m,
