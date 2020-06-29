@@ -15,6 +15,12 @@ interface IAvatarProps {
    * skipped completely if title is null
    */
   readonly title?: string | null
+
+  /**
+   * The what dimensions of avatar the component should
+   * attempt to request, defaults to 60px.
+   */
+  readonly size?: number
 }
 
 interface IAvatarState {
@@ -115,9 +121,9 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     props: IAvatarProps,
     state: IAvatarState
   ): Partial<IAvatarState> | null {
-    const { user } = props
+    const { user, size } = props
     if (!shallowEquals(user, state.user)) {
-      const candidates = [...getAvatarUrlCandidates(user)]
+      const candidates = [...getAvatarUrlCandidates(user, size)]
       return { user, candidates }
     }
     return null
@@ -126,9 +132,10 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
   public constructor(props: IAvatarProps) {
     super(props)
 
+    const { user, size } = props
     this.state = {
-      user: props.user,
-      candidates: [...getAvatarUrlCandidates(props.user)],
+      user,
+      candidates: [...getAvatarUrlCandidates(user, size)],
     }
   }
 
