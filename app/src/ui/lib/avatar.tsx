@@ -18,7 +18,7 @@ interface IAvatarProps {
 
   /**
    * The what dimensions of avatar the component should
-   * attempt to request, defaults to 60px.
+   * attempt to request, defaults to 64px.
    */
   readonly size?: number
 }
@@ -52,7 +52,7 @@ const StealthEmailRegexp = /^(?:(\d+)\+)?(.+?)@users\.noreply\.github\.com$/i
 
 function* getAvatarUrlCandidates(
   user: IAvatarUser | undefined,
-  size = 60
+  size = 64
 ): Iterable<string> {
   if (user === undefined) {
     return
