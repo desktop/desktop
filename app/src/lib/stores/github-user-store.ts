@@ -1,15 +1,8 @@
-import { Repository } from '../../models/repository'
 import { Account } from '../../models/account'
 import { GitHubRepository } from '../../models/github-repository'
-import {
-  API,
-  getAccountForEndpoint,
-  getDotComAPIEndpoint,
-  IAPIIdentity,
-} from '../api'
+import { API } from '../api'
 import {
   GitHubUserDatabase,
-  IGitHubUser,
   IMentionableUser,
 } from '../databases/github-user-database'
 
@@ -18,31 +11,12 @@ import { compare } from '../compare'
 import { BaseStore } from './base-store'
 import { getStealthEmailForUser, getLegacyStealthEmailForUser } from '../email'
 
-function isValidAuthor(
-  author: IAPIIdentity | {} | null
-): author is IAPIIdentity {
-  return (
-    author !== null &&
-    typeof author === 'object' &&
-    'avatar_url' in author &&
-    'login' in author
-  )
-}
-
 /**
  * The store for GitHub users. This is used to match commit authors to GitHub
  * users and avatars.
  */
 export class GitHubUserStore extends BaseStore {
-  private readonly requestsInFlight = new Set<string>()
-
-  /** The outer map is keyed by the endpoint, the inner map is keyed by email. */
-  private readonly usersByEndpoint = new Map<string, Map<string, IGitHubUser>>()
-
   private readonly database: GitHubUserDatabase
-
-  /** The requests which have failed. We shouldn't keep trying them. */
-  private readonly failedRequests = new Set<string>()
 
   /**
    * The etag for the last mentionables request. Keyed by the GitHub repository
@@ -56,19 +30,9 @@ export class GitHubUserStore extends BaseStore {
     this.database = database
   }
 
-  private getUsersForEndpoint(
-    endpoint: string
-  ): Map<string, IGitHubUser> | null {
-    return this.usersByEndpoint.get(endpoint) || null
-  }
-
   /**
-   * Retrieve a public user profile based on the user login.
-   *
-   * If the user is already cached no additional API requests
-   * will be made. If the user isn't in the cache but found in
-   * the API it will be persisted to the database and the
-   * intermediate cache.
+   * Retrieve a public user profile from the API based on the
+   * user login.
    *
    * @param account The account to use when querying the API
    *                for information about the user
@@ -141,157 +105,6 @@ export class GitHubUserStore extends BaseStore {
     this.database.updateMentionablesForRepository(repositoryID, mentionables)
   }
 
-  /** Not to be called externally. See `Dispatcher`. */
-  public async _loadAndCacheUser(
-    accounts: ReadonlyArray<Account>,
-    repository: Repository,
-    sha: string,
-    email: string
-  ) {
-    const endpoint = repository.gitHubRepository
-      ? repository.gitHubRepository.endpoint
-      : getDotComAPIEndpoint()
-    const key = `${endpoint}+${email.toLowerCase()}`
-    if (this.requestsInFlight.has(key)) {
-      return
-    }
-    if (this.failedRequests.has(key)) {
-      return
-    }
-
-    const gitHubRepository = repository.gitHubRepository
-    if (!gitHubRepository) {
-      return
-    }
-
-    const account = getAccountForEndpoint(accounts, gitHubRepository.endpoint)
-    if (!account) {
-      return
-    }
-
-    this.requestsInFlight.add(key)
-
-    let gitUser: IGitHubUser | null = null
-    // We don't have email addresses for all the users in our database, e.g., if
-    // the user has no public email. In that case, the email field is an empty
-    // string. So searching with an empty email is gonna give us results, but
-    // not results that are meaningful.
-    if (email.length > 0) {
-      gitUser =
-        (await this.database.users
-          .where('[endpoint+email]')
-          .equals([account.endpoint, email.toLowerCase()])
-          .limit(1)
-          .first()) || null
-    }
-
-    // TODO: Invalidate the stored user in the db after ... some reasonable time
-    // period.
-    if (!gitUser) {
-      gitUser = await this.findUserWithAPI(
-        account,
-        gitHubRepository,
-        sha,
-        email
-      )
-    }
-
-    this.requestsInFlight.delete(key)
-
-    if (gitUser) {
-      await this.cacheUser(gitUser)
-      this.emitUpdate()
-    } else {
-      this.failedRequests.add(key)
-    }
-  }
-
-  private async findUserWithAPI(
-    account: Account,
-    repository: GitHubRepository,
-    sha: string,
-    email: string
-  ): Promise<IGitHubUser | null> {
-    const api = API.fromAccount(account)
-
-    const apiCommit = await api.fetchCommit(
-      repository.owner.login,
-      repository.name,
-      sha
-    )
-
-    if (apiCommit) {
-      const { author } = apiCommit
-      if (isValidAuthor(author)) {
-        return {
-          email,
-          avatarURL: author.avatar_url,
-          login: author.login,
-          endpoint: account.endpoint,
-          name: author.login,
-        }
-      }
-    }
-
-    const matchingUser = await api.searchForUserWithEmail(email)
-    if (matchingUser) {
-      return {
-        email,
-        login: matchingUser.login,
-        avatarURL: matchingUser.avatar_url,
-        endpoint: account.endpoint,
-        name: matchingUser.login,
-      }
-    }
-
-    return null
-  }
-
-  /** Store the user in the cache. */
-  public async cacheUser(
-    user: IGitHubUser,
-    overwriteEmail: boolean = true
-  ): Promise<IGitHubUser | null> {
-    user = userWithLowerCase(user)
-
-    let userMap = this.getUsersForEndpoint(user.endpoint)
-    if (!userMap) {
-      userMap = new Map<string, IGitHubUser>()
-      this.usersByEndpoint.set(user.endpoint, userMap)
-    }
-
-    // We still store unknown emails as empty strings,
-    // inserting that into cache would just create a
-    // race condition of whoever gets added last
-    if (user.email.length > 0) {
-      userMap.set(user.email, user)
-    }
-
-    const addedUser = await this.database.transaction(
-      'rw',
-      this.database.users,
-      async () => {
-        const existing = await this.database.users
-          .where('[endpoint+login]')
-          .equals([user.endpoint, user.login])
-          .toArray()
-        const match = existing.find(e => e.email === user.email)
-        if (match) {
-          if (overwriteEmail) {
-            user = { ...user, id: match.id }
-          } else {
-            user = { ...user, id: match.id, email: match.email }
-          }
-        }
-
-        const id = await this.database.users.put(user)
-        return this.database.users.get(id)
-      }
-    )
-
-    return addedUser || null
-  }
-
   /** Get the mentionable users in the repository. */
   public async getMentionableUsers(
     repository: GitHubRepository
@@ -351,16 +164,5 @@ export class GitHubUserStore extends BaseStore {
         (x, y) => compare(x.ix, y.ix) || compare(x.user.login, y.user.login)
       )
       .map(h => h.user)
-  }
-}
-
-/**
- * Returns a copy of the user instance with relevant properties lower cased.
- */
-function userWithLowerCase(user: IGitHubUser): IGitHubUser {
-  return {
-    ...user,
-    email: user.email.toLowerCase(),
-    login: user.login.toLowerCase(),
   }
 }
