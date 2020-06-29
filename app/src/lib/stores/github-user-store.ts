@@ -15,6 +15,7 @@ import {
 import { fatalError } from '../fatal-error'
 import { compare } from '../compare'
 import { BaseStore } from './base-store'
+import { lookupPreferredEmail, getStealthEmailForUser } from '../email'
 
 function isValidAuthor(
   author: IAPIIdentity | {} | null
@@ -92,9 +93,14 @@ export class GitHubUserStore extends BaseStore {
       return null
     }
 
+    const email =
+      apiUser.email !== null && apiUser.email.length > 0
+        ? apiUser.email
+        : getStealthEmailForUser(apiUser.id, login, account.endpoint)
+
     const user: IGitHubUser = {
       avatarURL: apiUser.avatar_url,
-      email: apiUser.email || '',
+      email,
       endpoint: account.endpoint,
       name: apiUser.name || apiUser.login,
       login: apiUser.login,

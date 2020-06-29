@@ -11,6 +11,7 @@ import { OcticonSymbol } from '../octicons'
 import { IAuthor } from '../../models/author'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
+import { getLegacyStealthEmailForUser } from '../../lib/email'
 
 interface IAuthorInputProps {
   /**
@@ -273,17 +274,9 @@ function renderUserAutocompleteItem(elem: HTMLElement, self: any, data: any) {
  * address.
  */
 function getEmailAddressForUser(user: IUserHit) {
-  if (user.email && user.email.length > 0) {
-    return user.email
-  }
-
-  const url = URL.parse(user.endpoint)
-  const host =
-    url.hostname && getDotComAPIEndpoint() !== user.endpoint
-      ? url.hostname
-      : 'github.com'
-
-  return `${user.username}@users.noreply.${host}`
+  return user.email && user.email.length > 0
+    ? user.email
+    : getLegacyStealthEmailForUser(user.username, user.endpoint)
 }
 
 function getDisplayTextForAuthor(author: IAuthor) {

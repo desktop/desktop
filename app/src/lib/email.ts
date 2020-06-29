@@ -71,7 +71,7 @@ function getStealthEmailHostForEndpoint(endpoint: string) {
  *                 either GitHub.com or a GitHub Enterprise Server
  *                 instance
  */
-function getLegacyStealthEmailForUser(login: string, endpoint: string) {
+export function getLegacyStealthEmailForUser(login: string, endpoint: string) {
   const stealthEmailHost = getStealthEmailHostForEndpoint(endpoint)
   return `${login}@${stealthEmailHost}`
 }
@@ -90,7 +90,11 @@ function getLegacyStealthEmailForUser(login: string, endpoint: string) {
  *                 either GitHub.com or a GitHub Enterprise Server
  *                 instance
  */
-function getStealthEmailForUser(id: number, login: string, endpoint: string) {
+export function getStealthEmailForUser(
+  id: number,
+  login: string,
+  endpoint: string
+) {
   const stealthEmailHost = getStealthEmailHostForEndpoint(endpoint)
   return `${id}+${login}@${stealthEmailHost}`
 }
