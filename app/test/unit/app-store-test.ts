@@ -122,9 +122,7 @@ describe('AppStore', () => {
           return selectedState.state
         default:
           throw new Error(
-            `Got selected state of type ${
-              selectedState.type
-            } which is not supported.`
+            `Got selected state of type ${selectedState.type} which is not supported.`
           )
       }
     }

@@ -160,9 +160,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, {}> {
           className="progress"
           style={{ transform: `scaleX(${progressValue})` }}
         />
-      ) : (
-        undefined
-      )
+      ) : undefined
 
     return (
       <div
