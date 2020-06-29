@@ -20,16 +20,19 @@ export interface IGitHubUser {
 }
 
 export interface IMentionableUser {
-  readonly gitHubRepositoryID: number
   readonly login: string
   readonly name: string
   readonly email: string
   readonly avatarURL: string
 }
 
+interface IDBMentionableUser extends IMentionableUser {
+  readonly gitHubRepositoryID: number
+}
+
 export class GitHubUserDatabase extends BaseDatabase {
   public users!: Dexie.Table<IGitHubUser, number>
-  public mentionables!: Dexie.Table<IMentionableUser, number>
+  public mentionables!: Dexie.Table<IDBMentionableUser, number>
 
   public constructor(name: string, schemaVersion?: number) {
     super(name, schemaVersion)
@@ -56,7 +59,7 @@ export class GitHubUserDatabase extends BaseDatabase {
 
   public updateMentionablesForRepository(
     gitHubRepositoryID: number,
-    mentionables: IMentionableUser[]
+    mentionables: ReadonlyArray<IMentionableUser>
   ) {
     return this.transaction('rw', this.mentionables, async () => {
       await this.mentionables
@@ -64,16 +67,26 @@ export class GitHubUserDatabase extends BaseDatabase {
         .equals(gitHubRepositoryID)
         .delete()
 
-      await this.mentionables.bulkAdd(mentionables)
+      await this.mentionables.bulkAdd(
+        mentionables.map(x => ({ ...x, gitHubRepositoryID }))
+      )
     })
   }
 
-  public getAllMentionablesForRepository(gitHubRepositoryID: number) {
+  public getAllMentionablesForRepository(
+    gitHubRepositoryID: number
+  ): Promise<ReadonlyArray<IMentionableUser>> {
     return this.transaction('rw', this.mentionables, async () => {
-      return await this.mentionables
+      const mentionables = await this.mentionables
         .where('gitHubRepositoryID')
         .equals(gitHubRepositoryID)
         .toArray()
+
+      return mentionables.map(mentionable => {
+        // Exclude the githubRepositoryID prop
+        const { login, email, avatarURL, name } = mentionable
+        return { login, email, avatarURL, name }
+      })
     })
   }
 }

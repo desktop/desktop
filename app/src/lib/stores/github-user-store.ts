@@ -77,16 +77,7 @@ export class GitHubUserStore extends BaseStore {
   public async getByLogin(
     account: Account,
     login: string
-  ): Promise<IGitHubUser | null> {
-    const existing = await this.database.users
-      .where('[endpoint+login]')
-      .equals([account.endpoint, login])
-      .first()
-
-    if (existing) {
-      return existing
-    }
-
+  ): Promise<IMentionableUser | null> {
     const api = API.fromAccount(account)
     const apiUser = await api.fetchUser(login).catch(e => null)
 
@@ -99,18 +90,12 @@ export class GitHubUserStore extends BaseStore {
         ? apiUser.email
         : getStealthEmailForUser(apiUser.id, login, account.endpoint)
 
-    const user: IGitHubUser = {
+    return {
       avatarURL: apiUser.avatar_url,
       email,
-      endpoint: account.endpoint,
       name: apiUser.name || apiUser.login,
       login: apiUser.login,
     }
-
-    // We don't overwrite email addresses since we might not get one from this
-    // endpoint, but we could already have one from looking up a commit
-    // specifically.
-    return await this.cacheUser(user, false)
   }
 
   /** Update the mentionable users for the repository. */
@@ -144,20 +129,17 @@ export class GitHubUserStore extends BaseStore {
       this.mentionablesEtags.set(repositoryID, response.etag)
     }
 
-    const mentionables = response.users.map<IMentionableUser>(m => {
-      const email =
-        m.email !== null && m.email.length > 0
-          ? m.email
-          : getLegacyStealthEmailForUser(m.login, account.endpoint)
+    const mentionables: ReadonlyArray<IMentionableUser> = response.users.map(
+      user => {
+        const email =
+          user.email !== null && user.email.length > 0
+            ? user.email
+            : getLegacyStealthEmailForUser(user.login, account.endpoint)
 
-      return {
-        gitHubRepositoryID: repositoryID,
-        name: m.name,
-        login: m.login,
-        email,
-        avatarURL: m.avatar_url,
+        const { name, login, avatar_url: avatarURL } = user
+        return { name, login, email, avatarURL }
       }
-    })
+    )
 
     this.database.updateMentionablesForRepository(repositoryID, mentionables)
   }
