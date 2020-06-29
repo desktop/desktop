@@ -10,7 +10,7 @@ export interface IAvatarUser {
   readonly email: string
 
   /** The user's avatar URL. */
-  readonly avatarURL?: string
+  readonly avatarURL: string | undefined
 
   /** The user's name. */
   readonly name: string
@@ -33,6 +33,7 @@ export function getAvatarUserFromAuthor(
     email: author.email,
     name: author.name,
     endpoint: gitHubRepository === null ? null : gitHubRepository.endpoint,
+    avatarURL: undefined,
   }
 }
 
