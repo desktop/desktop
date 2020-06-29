@@ -52,13 +52,13 @@ function* getAvatarUrlCandidates(
     return
   }
 
-  const { email } = user
+  const { email, endpoint, avatarURL } = user
 
-  if (user.endpoint === getDotComAPIEndpoint()) {
-    if (user.avatarURL !== undefined) {
-      yield user.avatarURL
+  if (endpoint === getDotComAPIEndpoint()) {
+    if (avatarURL !== undefined) {
+      yield avatarURL
     }
-  } else if (user.endpoint !== null) {
+  } else if (endpoint !== null) {
     // We're dealing with a repository hosted on GitHub Enterprise Server
     // so we're unable to get to the avatar by requesting the avatarURL due
     // to the private mode (see https://github.com/desktop/desktop/issues/821).
