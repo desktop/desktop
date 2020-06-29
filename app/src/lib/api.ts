@@ -365,11 +365,6 @@ interface IAPIMentionablesResponse {
   readonly users: ReadonlyArray<IAPIMentionableUser>
 }
 
-/** The response for search results. */
-interface ISearchResults<T> {
-  readonly items: ReadonlyArray<T>
-}
-
 /**
  * Parses the Link header from GitHub and returns the 'next' path
  * if one is present.
@@ -570,55 +565,6 @@ export class API {
     } catch (e) {
       log.warn(`fetchEmails: failed with endpoint ${this.endpoint}`, e)
       return []
-    }
-  }
-
-  /** Fetch a commit from the repository. */
-  public async fetchCommit(
-    owner: string,
-    name: string,
-    sha: string
-  ): Promise<IAPICommit | null> {
-    try {
-      const path = `repos/${owner}/${name}/commits/${sha}`
-      const response = await this.request('GET', path)
-      if (response.status === HttpStatusCode.NotFound) {
-        log.warn(`fetchCommit: '${path}' returned a 404`)
-        return null
-      }
-      return await parsedResponse<IAPICommit>(response)
-    } catch (e) {
-      log.warn(`fetchCommit: returned an error '${owner}/${name}@${sha}'`, e)
-      return null
-    }
-  }
-
-  /** Search for a user with the given public email. */
-  public async searchForUserWithEmail(
-    email: string
-  ): Promise<IAPIIdentity | null> {
-    if (email.length === 0) {
-      return null
-    }
-
-    try {
-      const params = { q: `${email} in:email type:user` }
-      const url = urlWithQueryString('search/users', params)
-      const response = await this.request('GET', url)
-      const result = await parsedResponse<ISearchResults<IAPIIdentity>>(
-        response
-      )
-      const items = result.items
-      if (items.length) {
-        // The results are sorted by score, best to worst. So the first result
-        // is our best match.
-        return items[0]
-      } else {
-        return null
-      }
-    } catch (e) {
-      log.warn(`searchForUserWithEmail: not found '${email}'`, e)
-      return null
     }
   }
 
