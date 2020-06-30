@@ -196,16 +196,27 @@ interface IAPIFullIdentity {
 
 /** The users we get from the mentionables endpoint. */
 export interface IAPIMentionableUser {
+  /**
+   * A url to an avatar image chosen by the user
+   */
   readonly avatar_url: string
 
   /**
-   * Note that this may be an empty string *or* null in the case where the user
-   * has no public email address.
+   * The user's attributable email address or null if the
+   * user doesn't have an email address that they can be
+   * attributed by
    */
   readonly email: string | null
 
+  /**
+   * The username or "handle" of the user
+   */
   readonly login: string
 
+  /**
+   * The real name (or at least the name that the user
+   * has configured to be shown) for this user.
+   */
   readonly name: string
 }
 
