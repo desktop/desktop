@@ -150,7 +150,7 @@ export class GitHubUserDatabase extends BaseDatabase {
    * Set the lastUpdated property for the cache entry to
    * now and update the ETag
    */
-  private touchMentionableCacheEntry(
+  public touchMentionableCacheEntry(
     gitHubRepositoryID: number,
     eTag: string | undefined
   ) {

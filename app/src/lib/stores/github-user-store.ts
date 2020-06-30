@@ -71,6 +71,10 @@ export class GitHubUserStore extends BaseStore {
     )
 
     if (response === null) {
+      await this.database.touchMentionableCacheEntry(
+        repository.dbID,
+        cacheEntry?.eTag
+      )
       return
     }
 
