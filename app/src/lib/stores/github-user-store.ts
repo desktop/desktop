@@ -10,6 +10,9 @@ import { compare } from '../compare'
 import { BaseStore } from './base-store'
 import { getStealthEmailForUser, getLegacyStealthEmailForUser } from '../email'
 
+/** Don't fetch mentionables more often than every 10 minutes */
+const MaxFetchFrequency = 10 * 60 * 1000
+
 /**
  * The store for GitHub users. This is used to match commit authors to GitHub
  * users and avatars.
@@ -63,6 +66,13 @@ export class GitHubUserStore extends BaseStore {
     const cacheEntry = await this.database.getMentionableCacheEntry(
       repository.dbID
     )
+
+    if (
+      cacheEntry !== undefined &&
+      Date.now() - cacheEntry.lastUpdated < MaxFetchFrequency
+    ) {
+      return
+    }
 
     const response = await api.fetchMentionables(
       repository.owner.login,
