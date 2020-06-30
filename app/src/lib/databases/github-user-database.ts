@@ -86,6 +86,11 @@ export class GitHubUserDatabase extends BaseDatabase {
     })
   }
 
+  /**
+   * Persist all the mentionable users provided for the given
+   * gitHubRepositoryID and update the lastUpdated property and
+   * ETag for the mentionable cache entry.
+   */
   public updateMentionablesForRepository(
     gitHubRepositoryID: number,
     mentionables: ReadonlyArray<IMentionableUser>,
@@ -109,6 +114,10 @@ export class GitHubUserDatabase extends BaseDatabase {
     )
   }
 
+  /**
+   * Retrieve all persisted mentionable users for the provided
+   * `gitHubRepositoryID`
+   */
   public getAllMentionablesForRepository(
     gitHubRepositoryID: number
   ): Promise<ReadonlyArray<IMentionableUser>> {
@@ -126,10 +135,21 @@ export class GitHubUserDatabase extends BaseDatabase {
     })
   }
 
+  /**
+   * Get the cache entry (or undefined if no cache entry has
+   * been written yet) for the `gitHubRepositoryID`. The
+   * cache entry contains information on when the repository
+   * mentionables was last refreshed as well as the ETag of
+   * the previous request.
+   */
   public getMentionableCacheEntry(gitHubRepositoryID: number) {
     return this.mentionableCache.get(gitHubRepositoryID)
   }
 
+  /**
+   * Set the lastUpdated property for the cache entry to
+   * now and update the ETag
+   */
   private touchMentionableCacheEntry(
     gitHubRepositoryID: number,
     eTag: string | undefined
