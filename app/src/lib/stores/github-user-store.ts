@@ -82,7 +82,7 @@ export class GitHubUserStore extends BaseStore {
       return { name, login, email, avatarURL }
     })
 
-    this.database.updateMentionablesForRepository(
+    await this.database.updateMentionablesForRepository(
       repository.dbID,
       mentionables,
       response.etag
