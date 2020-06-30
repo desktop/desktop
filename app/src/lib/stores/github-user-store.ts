@@ -1,6 +1,6 @@
 import { Account } from '../../models/account'
 import { GitHubRepository } from '../../models/github-repository'
-import { API, IAPIMentionableUser } from '../api'
+import { API } from '../api'
 import {
   GitHubUserDatabase,
   IMentionableUser,
