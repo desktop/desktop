@@ -4,7 +4,7 @@ import { IAutocompletionProvider } from './index'
 import { GitHubUserStore } from '../../lib/stores'
 import { GitHubRepository } from '../../models/github-repository'
 import { Account } from '../../models/account'
-import { IMentionableUser, IGitHubUser } from '../../lib/databases/index'
+import { IMentionableUser } from '../../lib/databases/index'
 
 /** An autocompletion hit for a user. */
 export interface IUserHit {
@@ -29,7 +29,7 @@ export interface IUserHit {
 
 function userToHit(
   repository: GitHubRepository,
-  user: IMentionableUser | IGitHubUser
+  user: IMentionableUser
 ): IUserHit {
   return {
     username: user.login,
