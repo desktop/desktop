@@ -59,7 +59,7 @@ export class GitHubUserStore extends BaseStore {
     repository: GitHubRepository,
     account: Account
   ): Promise<void> {
-    assertPersisted(repository, 'updateMentionables')
+    assertPersisted(repository, this.updateMentionables.name)
 
     const api = API.fromAccount(account)
 
@@ -107,7 +107,7 @@ export class GitHubUserStore extends BaseStore {
   public async getMentionableUsers(
     repository: GitHubRepository
   ): Promise<ReadonlyArray<IMentionableUser>> {
-    assertPersisted(repository, 'getMentionableUsers')
+    assertPersisted(repository, this.getMentionableUsers.name)
     return this.database.getAllMentionablesForRepository(repository.dbID)
   }
 
