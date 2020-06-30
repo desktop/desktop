@@ -79,17 +79,13 @@ export class GitHubUserStore extends BaseStore {
       return
     }
 
-    const mentionables: ReadonlyArray<IMentionableUser> = response.users.map(
-      (user: IAPIMentionableUser) => {
-        const email =
-          user.email !== null && user.email.length > 0
-            ? user.email
-            : getLegacyStealthEmailForUser(user.login, account.endpoint)
+    const { endpoint } = account
 
-        const { name, login, avatar_url: avatarURL } = user
-        return { name, login, email, avatarURL }
-      }
-    )
+    const mentionables = response.users.map(u => {
+      const { name, login, avatar_url: avatarURL } = u
+      const email = u.email || getLegacyStealthEmailForUser(login, endpoint)
+      return { name, login, email, avatarURL }
+    })
 
     this.database.updateMentionablesForRepository(
       repositoryID,
