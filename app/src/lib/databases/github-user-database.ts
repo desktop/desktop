@@ -30,8 +30,15 @@ interface IDBMentionableUser extends IMentionableUser {
   readonly gitHubRepositoryID: number
 }
 
+export interface IMentionableCacheEntry {
+  readonly gitHubRepositoryID: number
+  readonly lastUpdated: number
+  readonly eTag: string | undefined
+}
+
 export class GitHubUserDatabase extends BaseDatabase {
   public mentionables!: Dexie.Table<IDBMentionableUser, number>
+  public mentionableCache!: Dexie.Table<IMentionableCacheEntry, number>
 
   public constructor(name: string, schemaVersion?: number) {
     super(name, schemaVersion)
@@ -56,22 +63,33 @@ export class GitHubUserDatabase extends BaseDatabase {
     this.conditionalVersion(4, {
       mentionables: '&[gitHubRepositoryID+login], gitHubRepositoryID',
     })
+
+    this.conditionalVersion(5, {
+      mentionableCache: 'gitHubRepositoryID',
+    })
   }
 
   public updateMentionablesForRepository(
     gitHubRepositoryID: number,
-    mentionables: ReadonlyArray<IMentionableUser>
+    mentionables: ReadonlyArray<IMentionableUser>,
+    eTag: string | undefined
   ) {
-    return this.transaction('rw', this.mentionables, async () => {
-      await this.mentionables
-        .where('gitHubRepositoryID')
-        .equals(gitHubRepositoryID)
-        .delete()
+    return this.transaction(
+      'rw',
+      this.mentionables,
+      this.mentionableCache,
+      async () => {
+        await this.mentionables
+          .where('gitHubRepositoryID')
+          .equals(gitHubRepositoryID)
+          .delete()
 
-      await this.mentionables.bulkAdd(
-        mentionables.map(x => ({ ...x, gitHubRepositoryID }))
-      )
-    })
+        await this.touchMentionableCacheEntry(gitHubRepositoryID, eTag)
+        await this.mentionables.bulkAdd(
+          mentionables.map(x => ({ ...x, gitHubRepositoryID }))
+        )
+      }
+    )
   }
 
   public getAllMentionablesForRepository(
@@ -89,5 +107,19 @@ export class GitHubUserDatabase extends BaseDatabase {
         return { login, email, avatarURL, name }
       })
     })
+  }
+
+  public getMentionableCacheEntry(gitHubRepositoryID: number) {
+    return this.mentionableCache.get(gitHubRepositoryID)
+  }
+
+  private touchMentionableCacheEntry(
+    gitHubRepositoryID: number,
+    eTag: string | undefined
+  ) {
+    const lastUpdated = Date.now()
+    const entry = { gitHubRepositoryID, lastUpdated, eTag }
+
+    return this.mentionableCache.put(entry)
   }
 }
