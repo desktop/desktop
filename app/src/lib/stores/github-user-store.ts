@@ -1,6 +1,6 @@
 import { Account } from '../../models/account'
 import { GitHubRepository } from '../../models/github-repository'
-import { API } from '../api'
+import { API, IAPIMentionableUser } from '../api'
 import {
   GitHubUserDatabase,
   IMentionableUser,
@@ -16,18 +16,8 @@ import { getStealthEmailForUser, getLegacyStealthEmailForUser } from '../email'
  * users and avatars.
  */
 export class GitHubUserStore extends BaseStore {
-  private readonly database: GitHubUserDatabase
-
-  /**
-   * The etag for the last mentionables request. Keyed by the GitHub repository
-   * `dbID`.
-   */
-  private readonly mentionablesEtags = new Map<number, string>()
-
-  public constructor(database: GitHubUserDatabase) {
+  public constructor(private readonly database: GitHubUserDatabase) {
     super()
-
-    this.database = database
   }
 
   /**
@@ -75,24 +65,22 @@ export class GitHubUserStore extends BaseStore {
         `Cannot update mentionables for a repository that hasn't been cached yet.`
       )
     }
-    const etag = this.mentionablesEtags.get(repositoryID) || null
+    const cacheEntry = await this.database.getMentionableCacheEntry(
+      repositoryID
+    )
 
     const response = await api.fetchMentionables(
       repository.owner.login,
       repository.name,
-      etag
+      cacheEntry?.eTag
     )
 
     if (response === null) {
       return
     }
 
-    if (response.etag) {
-      this.mentionablesEtags.set(repositoryID, response.etag)
-    }
-
     const mentionables: ReadonlyArray<IMentionableUser> = response.users.map(
-      user => {
+      (user: IAPIMentionableUser) => {
         const email =
           user.email !== null && user.email.length > 0
             ? user.email
@@ -103,7 +91,11 @@ export class GitHubUserStore extends BaseStore {
       }
     )
 
-    this.database.updateMentionablesForRepository(repositoryID, mentionables)
+    this.database.updateMentionablesForRepository(
+      repositoryID,
+      mentionables,
+      response.etag
+    )
   }
 
   /** Get the mentionable users in the repository. */

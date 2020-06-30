@@ -361,7 +361,7 @@ interface IAPIAuthorization {
 
 /** The response we receive from fetching mentionables. */
 interface IAPIMentionablesResponse {
-  readonly etag: string | null
+  readonly etag: string | undefined
   readonly users: ReadonlyArray<IAPIMentionableUser>
 }
 
@@ -896,14 +896,14 @@ export class API {
   public async fetchMentionables(
     owner: string,
     name: string,
-    etag: string | null
+    etag: string | undefined
   ): Promise<IAPIMentionablesResponse | null> {
     // NB: this custom `Accept` is required for the `mentionables` endpoint.
     const headers: any = {
       Accept: 'application/vnd.github.jerry-maguire-preview',
     }
 
-    if (etag) {
+    if (etag !== undefined) {
       headers['If-None-Match'] = etag
     }
 
@@ -922,7 +922,7 @@ export class API {
       const users = await parsedResponse<ReadonlyArray<IAPIMentionableUser>>(
         response
       )
-      const etag = response.headers.get('etag')
+      const etag = response.headers.get('etag') || undefined
       return { users, etag }
     } catch (e) {
       log.warn(`fetchMentionables: failed for ${owner}/${name}`, e)
