@@ -17,16 +17,13 @@ function isStringRegistryValue(rv: RegistryValue): rv is RegistryStringEntry {
 
 /** Get the path segments in the user's `Path`. */
 export function getPathSegments(): ReadonlyArray<string> {
-  const HKCU = HKEY.HKEY_CURRENT_USER
-  const value = enumerateValues(HKCU, 'Environment\\Path').find(
-    isStringRegistryValue
-  )
-
-  if (value === undefined) {
-    throw new Error('Could not find PATH environment variable')
+  for (const value of enumerateValues(HKEY.HKEY_CURRENT_USER, 'Environment')) {
+    if (value.name === 'Path' && isStringRegistryValue(value)) {
+      return value.data.split(';').filter(x => x.length > 0)
+    }
   }
 
-  return value.data.split(';').filter(x => x.length > 0)
+  throw new Error('Could not find PATH environment variable')
 }
 
 /** Set the user's `Path`. */
