@@ -32,9 +32,24 @@ interface IDBMentionableUser extends IMentionableUser {
   readonly gitHubRepositoryID: number
 }
 
+/**
+ * An object containing information about when a specific
+ * repository's mentionable users was last fetched and
+ * the ETag of that request.
+ */
 export interface IMentionableCacheEntry {
   readonly gitHubRepositoryID: number
+  /**
+   * The time (in milliseconds since the epoc) that
+   * the mentionable users was last updated for this
+   * repository
+   */
   readonly lastUpdated: number
+
+  /**
+   * The ETag returned by the server the last time
+   * we issued a request to get the mentionable users
+   */
   readonly eTag: string | undefined
 }
 
