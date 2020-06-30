@@ -50,6 +50,10 @@ const DefaultAvatarSymbol = new OcticonSymbol(
  */
 const StealthEmailRegexp = /^(?:(\d+)\+)?(.+?)@users\.noreply\.github\.com$/i
 
+/**
+ * Produces an ordered iterable of avatar urls to attempt to load for the
+ * given user.
+ */
 function* getAvatarUrlCandidates(
   user: IAvatarUser | undefined,
   size = 64
