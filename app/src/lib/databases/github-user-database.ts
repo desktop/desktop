@@ -2,9 +2,29 @@ import Dexie from 'dexie'
 import { BaseDatabase } from './base-database'
 
 export interface IMentionableUser {
+  /**
+   * The username or "handle" of the user.
+   */
   readonly login: string
+
+  /**
+   * The real name (or at least the name that the user
+   * has configured to be shown) for this user.
+   */
   readonly name: string
+
+  /**
+   * The user's attributable email address. If the
+   * user doesn't have a public profile email address
+   * this will instead contain an automatically generated
+   * stealth email address based on the account endpoint
+   * and login.
+   */
   readonly email: string
+
+  /**
+   * A url to an avatar image chosen by the user
+   */
   readonly avatarURL: string
 }
 
