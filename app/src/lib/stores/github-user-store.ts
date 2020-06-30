@@ -6,7 +6,6 @@ import {
   IMentionableUser,
 } from '../databases/github-user-database'
 
-import { fatalError } from '../fatal-error'
 import { compare } from '../compare'
 import { BaseStore } from './base-store'
 import { getStealthEmailForUser, getLegacyStealthEmailForUser } from '../email'
@@ -57,16 +56,12 @@ export class GitHubUserStore extends BaseStore {
     repository: GitHubRepository,
     account: Account
   ): Promise<void> {
+    assertPersisted(repository, 'updateMentionables')
+
     const api = API.fromAccount(account)
 
-    const repositoryID = repository.dbID
-    if (!repositoryID) {
-      return fatalError(
-        `Cannot update mentionables for a repository that hasn't been cached yet.`
-      )
-    }
     const cacheEntry = await this.database.getMentionableCacheEntry(
-      repositoryID
+      repository.dbID
     )
 
     const response = await api.fetchMentionables(
@@ -88,7 +83,7 @@ export class GitHubUserStore extends BaseStore {
     })
 
     this.database.updateMentionablesForRepository(
-      repositoryID,
+      repository.dbID,
       mentionables,
       response.etag
     )
@@ -98,13 +93,8 @@ export class GitHubUserStore extends BaseStore {
   public async getMentionableUsers(
     repository: GitHubRepository
   ): Promise<ReadonlyArray<IMentionableUser>> {
-    const repositoryID = repository.dbID
-    if (!repositoryID) {
-      return fatalError(
-        `Cannot get mentionables for a repository that hasn't been cached yet.`
-      )
-    }
-    return this.database.getAllMentionablesForRepository(repositoryID)
+    assertPersisted(repository, 'getMentionableUsers')
+    return this.database.getAllMentionablesForRepository(repository.dbID)
   }
 
   /**
@@ -153,5 +143,16 @@ export class GitHubUserStore extends BaseStore {
         (x, y) => compare(x.ix, y.ix) || compare(x.user.login, y.user.login)
       )
       .map(h => h.user)
+  }
+}
+
+function assertPersisted(
+  repo: GitHubRepository,
+  methodName: string
+): asserts repo is GitHubRepository & { dbID: number } {
+  if (repo.dbID === null) {
+    throw new Error(
+      `${methodName} requires a GitHubRepository instance that's been inserted into the database`
+    )
   }
 }
