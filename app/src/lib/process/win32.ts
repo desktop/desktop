@@ -9,7 +9,10 @@ import {
 } from 'registry-js'
 
 function isStringRegistryValue(rv: RegistryValue): rv is RegistryStringEntry {
-  return rv.type === RegistryValueType.REG_SZ
+  return (
+    rv.type === RegistryValueType.REG_SZ ||
+    rv.type === RegistryValueType.REG_EXPAND_SZ
+  )
 }
 
 /** Get the path segments in the user's `Path`. */
