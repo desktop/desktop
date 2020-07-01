@@ -210,4 +210,25 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
       </span>
     )
   }
+
+  public componentDidMount() {
+    window.addEventListener('online', this.onInternetConnected)
+  }
+
+  public componentWillUnmount() {
+    window.removeEventListener('online', this.onInternetConnected)
+  }
+
+  private onInternetConnected = () => {
+    // If we've been offline and therefore failed to load an avatar
+    // we'll automatically retry when the user becomes connected again.
+    if (this.state.candidates.length === 0) {
+      const { user, size } = this.props
+      const candidates = [...getAvatarUrlCandidates(user, size)]
+
+      if (candidates.length > 0) {
+        this.setState({ candidates })
+      }
+    }
+  }
 }
