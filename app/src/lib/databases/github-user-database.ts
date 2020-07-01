@@ -29,6 +29,11 @@ export interface IMentionableUser {
 }
 
 interface IDBMentionableUser extends IMentionableUser {
+  /**
+   * The id corresponding to the dbID property of the
+   * `GitHubRepository` instance that this user is associated
+   * with
+   */
   readonly gitHubRepositoryID: number
 }
 
