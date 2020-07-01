@@ -51,8 +51,11 @@ export class RepositoryIndicatorUpdater {
       const lastRefreshText = isFinite(timeSinceLastRefresh)
         ? `${(timeSinceLastRefresh / 1000).toFixed(3)}s ago`
         : 'never'
+      const timeoutText = `${(timeout / 1000).toFixed(3)}s`
 
-      this.debug(`Last refresh: ${lastRefreshText}, scheduling in ${timeout}ms`)
+      this.debug(
+        `Last refresh: ${lastRefreshText}, scheduling in ${timeoutText}`
+      )
 
       this.refreshTimeoutId = window.setTimeout(
         () => this.refreshAllRepositories(),
@@ -107,7 +110,7 @@ export class RepositoryIndicatorUpdater {
       const totalTimeSeconds = (totalTime / 1000).toFixed(1)
 
       this.info(
-        `${RepositoryIndicatorUpdater.name}: Refreshing sidebar indicators for ${done.size} repositories took ${activeTimeSeconds}s of which ${pausedTimeSeconds}s paused, total ${totalTimeSeconds}`
+        `${RepositoryIndicatorUpdater.name}: Refreshing sidebar indicators for ${done.size} repositories took ${activeTimeSeconds}s of which ${pausedTimeSeconds}s paused, total ${totalTimeSeconds}s`
       )
     }
 
