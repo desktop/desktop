@@ -708,9 +708,8 @@ export class ChangesList extends React.Component<
     const selectedChangeCount = this.props.workingDirectory.files.filter(
       file => file.selection.getSelectionType() !== DiffSelectionType.None
     ).length
-    const selectedChangesPlural =
-      selectedChangeCount === 1 ? 'change' : 'changes'
-    const selectedChangesDescription = `${selectedChangeCount} selected ${selectedChangesPlural}`
+    const selectedFilesPlural = selectedChangeCount === 1 ? 'file' : 'files'
+    const selectedChangesDescription = `${selectedChangeCount} changed ${selectedFilesPlural} selected`
 
     const includeAllValue = getIncludeAllValue(
       this.props.workingDirectory,
