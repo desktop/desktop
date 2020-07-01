@@ -46,7 +46,7 @@ export async function inferLastPushForRepository(
     }
   }
 
-  if (repository.gitHubRepository !== null) {
+  if (lastPushDate === null && repository.gitHubRepository !== null) {
     const { owner, name } = repository.gitHubRepository
     const repo = await api.fetchRepository(owner.login, name)
 
