@@ -160,7 +160,7 @@ export class GitHubUserStore extends BaseStore {
     console.timeEnd('getMentionableUsers')
 
     const hits = []
-    const needle = text.toLowerCase()
+    const needle = query.toLowerCase()
 
     // Simple substring comparison on login and real name
     for (let i = 0; i < users.length && hits.length < maxHits; i++) {
