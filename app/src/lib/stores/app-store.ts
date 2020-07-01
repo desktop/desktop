@@ -2870,6 +2870,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       aheadBehind: gitStore.aheadBehind,
       changedFilesCount: status.workingDirectory.files.length,
     })
+
+    this.emitUpdate()
   }
 
   /**
