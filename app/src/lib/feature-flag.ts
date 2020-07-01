@@ -125,3 +125,10 @@ export function enableGitTagsCreation(): boolean {
 export function enableForkSettings(): boolean {
   return true
 }
+
+/**
+ * Should we show the discard lines/hunks context menu item?
+ */
+export function enableDiscardLines(): boolean {
+  return true
+}

@@ -105,9 +105,7 @@ function packageWindows() {
 
   if (isAppveyor()) {
     const certificatePath = path.join(__dirname, 'windows-certificate.pfx')
-    options.signWithParams = `/f ${certificatePath} /p ${
-      process.env.WINDOWS_CERT_PASSWORD
-    } /tr http://timestamp.digicert.com /td sha256 /fd sha256`
+    options.signWithParams = `/f ${certificatePath} /p ${process.env.WINDOWS_CERT_PASSWORD} /tr http://timestamp.digicert.com /td sha256 /fd sha256`
   }
 
   electronInstaller

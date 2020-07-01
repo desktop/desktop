@@ -167,9 +167,9 @@ export class BranchesContainer extends React.Component<
       case BranchesTab.PullRequests: {
         return this.renderPullRequests()
       }
+      default:
+        return assertNever(tab, `Unknown Branches tab: ${tab}`)
     }
-
-    return assertNever(tab, `Unknown Branches tab: ${tab}`)
   }
 
   private renderPullRequests() {

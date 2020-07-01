@@ -21,7 +21,12 @@ import { SuggestedActionGroup } from '../suggested-actions'
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
-    return text.replace('&', '')
+    // Ampersand has a special meaning on Windows where it denotes
+    // the access key (usually rendered as an underline on the following)
+    // character. A literal ampersand is escaped by putting another ampersand
+    // in front of it (&&). Here we strip single ampersands and unescape
+    // double ampersands. Example: "&Push && Pull" becomes "Push & Pull".
+    return text.replace(/&?&/g, m => (m.length > 1 ? '&' : ''))
   }
 
   return text

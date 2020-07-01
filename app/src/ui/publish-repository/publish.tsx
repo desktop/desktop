@@ -284,7 +284,6 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
     const account = this.getAccountForTab(tab)
     if (!account) {
       fatalError(`Tried to publish with no user. That seems impossible!`)
-      return
     }
 
     const settings = currentTabState.settings

@@ -547,14 +547,6 @@ export class CompareSidebar extends React.Component<
     branch: Branch | null,
     source: SelectionSource
   ) => {
-    if (source.kind === 'mouseclick' && branch != null) {
-      this.props.dispatcher.executeCompare(this.props.repository, {
-        kind: HistoryTabMode.Compare,
-        comparisonMode: ComparisonMode.Behind,
-        branch,
-      })
-    }
-
     this.setState({
       focusedBranch: branch,
     })

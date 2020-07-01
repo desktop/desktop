@@ -27,7 +27,6 @@ import {
   samlReauthRequired,
   insufficientGitHubRepoPermissions,
   schannelUnableToCheckRevocationForCertificate,
-  gitCloneErrorHandler,
 } from './dispatcher'
 import {
   AppStore,
@@ -139,9 +138,7 @@ const sendErrorWithContext = (
           extra.selectedState = `${currentState.selectedState.type}`
 
           if (currentState.selectedState.type === SelectionType.Repository) {
-            extra.selectedRepositorySection = `${
-              currentState.selectedState.state.selectedSection
-            }`
+            extra.selectedRepositorySection = `${currentState.selectedState.state.selectedSection}`
           }
         }
 
@@ -174,9 +171,7 @@ const sendErrorWithContext = (
         extra.accounts = `${currentState.accounts.length}`
 
         if (__DARWIN__) {
-          extra.automaticallySwitchTheme = `${
-            currentState.automaticallySwitchTheme
-          }`
+          extra.automaticallySwitchTheme = `${currentState.automaticallySwitchTheme}`
         }
       }
     } catch (err) {
@@ -284,7 +279,6 @@ const dispatcher = new Dispatcher(
 )
 
 dispatcher.registerErrorHandler(defaultErrorHandler)
-dispatcher.registerErrorHandler(gitCloneErrorHandler)
 dispatcher.registerErrorHandler(upstreamAlreadyExistsHandler)
 dispatcher.registerErrorHandler(externalEditorErrorHandler)
 dispatcher.registerErrorHandler(openShellErrorHandler)

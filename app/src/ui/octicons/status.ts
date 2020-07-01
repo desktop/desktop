@@ -31,7 +31,7 @@ export function iconForStatus(status: AppFileStatus): OcticonSymbol {
       return OcticonSymbol.alert
     case AppFileStatusKind.Copied:
       return OcticonSymbol.diffAdded
+    default:
+      return assertNever(status, `Unknown file status ${status}`)
   }
-
-  return assertNever(status, `Unknown file status ${status}`)
 }
