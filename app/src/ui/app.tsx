@@ -137,16 +137,6 @@ const UpdateCheckInterval = 4 * HourInMilliseconds
  */
 const SendStatsInterval = 4 * HourInMilliseconds
 
-/**
- * Wait 2 minutes before refreshing repository indicators
- */
-const InitialRepositoryIndicatorTimeout = 2 * MinuteInMilliseconds
-
-/**
- * Refresh repository indicators every 15 minutes.
- */
-const UpdateRepositoryIndicatorInterval = 15 * MinuteInMilliseconds
-
 interface IAppProps {
   readonly dispatcher: Dispatcher
   readonly repositoryStateManager: RepositoryStateCache
@@ -206,14 +196,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         },
         { timeout: ReadyDelay }
       )
-
-      window.setTimeout(async () => {
-        await this.props.appStore.refreshAllSidebarIndicators()
-
-        this.updateIntervalHandle = window.setInterval(() => {
-          this.props.appStore.refreshAllSidebarIndicators()
-        }, UpdateRepositoryIndicatorInterval)
-      }, InitialRepositoryIndicatorTimeout)
     })
 
     this.state = props.appStore.getState()

@@ -270,6 +270,7 @@ import { createTutorialRepository } from './helpers/create-tutorial-repository'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { getDefaultDir } from '../../ui/lib/default-dir'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
+import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updater'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -314,6 +315,11 @@ const shellKey = 'shell'
 // switching between apps does not result in excessive fetching in the app
 const BackgroundFetchMinimumInterval = 30 * 60 * 1000
 
+/**
+ * Wait 2 minutes before refreshing repository indicators
+ */
+const InitialRepositoryIndicatorTimeout = 2 * 60 * 1000
+
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
 
@@ -330,6 +336,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private currentAheadBehindUpdater: AheadBehindUpdater | null = null
 
   private currentBranchPruner: BranchPruner | null = null
+  private readonly repositoryIndicatorUpdater = new RepositoryIndicatorUpdater(
+    () => this.repositories.slice(),
+    r => this.refreshIndicatorForRepository(r)
+  )
 
   private showWelcomeFlow = false
   private focusCommitMessage = false
@@ -444,6 +454,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     getAppMenu()
     this.tutorialAssessor = new OnboardingTutorialAssessor(
       this.getResolvedExternalEditor
+    )
+
+    window.setTimeout(
+      () => this.repositoryIndicatorUpdater.start(),
+      InitialRepositoryIndicatorTimeout
     )
   }
 
@@ -2806,32 +2821,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       changedFilesCount: status.workingDirectory.files.length,
     })
   }
-
-  /**
-   * Refresh sidebar indicators for the set of repositories tracked in the app.
-   */
-  public async refreshAllSidebarIndicators() {
-    const startTime = performance && performance.now ? performance.now() : null
-
-    // keep a reference to the current set of repositories to avoid the array
-    // changing while this is running
-    const repositories = new Array<Repository>(...this.repositories)
-
-    for (const repo of repositories) {
-      await this.refreshIndicatorForRepository(repo)
-    }
-
-    if (startTime && repositories.length > 1) {
-      const delta = performance.now() - startTime
-      const timeInSeconds = (delta / 1000).toFixed(3)
-      log.info(
-        `Background fetch for ${repositories.length} repositories took ${timeInSeconds}sec`
-      )
-    }
-
-    this.emitUpdate()
-  }
-
   /**
    * Refresh indicator in repository list for a specific repository
    */
