@@ -118,22 +118,25 @@ export class GitHubUserDatabase extends BaseDatabase {
    * Retrieve all persisted mentionable users for the provided
    * `gitHubRepositoryID`
    */
-  public getAllMentionablesForRepository(
+  public async getAllMentionablesForRepository(
     gitHubRepositoryID: number
   ): Promise<ReadonlyArray<IMentionableUser>> {
-    return this.transaction('rw', this.mentionables, async () => {
-      const mentionables = await this.mentionables
-        .where('gitHubRepositoryID')
-        .equals(gitHubRepositoryID)
-        .toArray()
+    const mentionables = await this.mentionables
+      .where('gitHubRepositoryID')
+      .equals(gitHubRepositoryID)
+      .toArray()
 
-      return mentionables.map(mentionable => {
-        // Exclude the githubRepositoryID prop
-        const { login, email, avatarURL, name } = mentionable
-        return { login, email, avatarURL, name }
-      })
+    return mentionables.map(mentionable => {
+      // Exclude the githubRepositoryID prop
+      const { login, email, avatarURL, name } = mentionable
+      return { login, email, avatarURL, name }
     })
   }
+
+  public filterMentionableUsers(
+    gitHubRepositoryID: number,
+    predicate: (user: IDBMentionableUser) => boolean
+  ) {}
 
   /**
    * Get the cache entry (or undefined if no cache entry has
