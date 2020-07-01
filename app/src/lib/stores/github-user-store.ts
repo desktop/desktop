@@ -145,7 +145,6 @@ export class GitHubUserStore extends BaseStore {
     maxHits: number = 5
   ): Promise<ReadonlyArray<IMentionableUser>> {
     assertPersisted(repository, this.getMentionableUsers.name)
-    console.time('getMentionableUsers')
 
     const cache = this.queryCache
     let users
@@ -156,8 +155,6 @@ export class GitHubUserStore extends BaseStore {
       users = await this.getMentionableUsers(repository)
       this.setQueryCache(repository, users)
     }
-
-    console.timeEnd('getMentionableUsers')
 
     const hits = []
     const needle = query.toLowerCase()
