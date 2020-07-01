@@ -126,11 +126,7 @@ export class GitHubUserDatabase extends BaseDatabase {
       .equals(gitHubRepositoryID)
       .toArray()
 
-    return mentionables.map(mentionable => {
-      // Exclude the githubRepositoryID prop
-      const { login, email, avatarURL, name } = mentionable
-      return { login, email, avatarURL, name }
-    })
+    return mentionables.map(toMentionableUser)
   }
 
   public filterMentionableUsers(
@@ -162,4 +158,10 @@ export class GitHubUserDatabase extends BaseDatabase {
 
     return this.mentionableCache.put(entry)
   }
+}
+
+function toMentionableUser(mentionable: IDBMentionableUser): IMentionableUser {
+  // Exclude the githubRepositoryID prop
+  const { login, email, avatarURL, name } = mentionable
+  return { login, email, avatarURL, name }
 }
