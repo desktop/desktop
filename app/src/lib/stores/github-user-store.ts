@@ -13,11 +13,19 @@ import { getStealthEmailForUser, getLegacyStealthEmailForUser } from '../email'
 /** Don't fetch mentionables more often than every 10 minutes */
 const MaxFetchFrequency = 10 * 60 * 1000
 
+interface IQueryCache {
+  readonly repository: GitHubRepository
+  readonly users: ReadonlyArray<IMentionableUser>
+}
+
 /**
  * The store for GitHub users. This is used to match commit authors to GitHub
  * users and avatars.
  */
 export class GitHubUserStore extends BaseStore {
+  private queryCache: IQueryCache | null = null
+  private pruneQueryCacheTimeoutId: number | null = null
+
   public constructor(private readonly database: GitHubUserDatabase) {
     super()
   }
@@ -101,6 +109,13 @@ export class GitHubUserStore extends BaseStore {
       mentionables,
       response.etag
     )
+
+    if (
+      this.queryCache !== null &&
+      this.queryCache.repository.dbID === repository.dbID
+    ) {
+      this.queryCache = null
+    }
   }
 
   /** Get the mentionable users in the repository. */
@@ -126,10 +141,23 @@ export class GitHubUserStore extends BaseStore {
    */
   public async getMentionableUsersMatching(
     repository: GitHubRepository,
-    text: string,
     maxHits: number = 100
+    query: string,
   ): Promise<ReadonlyArray<IMentionableUser>> {
-    const users = await this.getMentionableUsers(repository)
+    assertPersisted(repository, this.getMentionableUsers.name)
+    console.time('getMentionableUsers')
+
+    const cache = this.queryCache
+    let users
+
+    if (cache !== null && cache.repository.dbID === repository.dbID) {
+      users = cache.users
+    } else {
+      users = await this.getMentionableUsers(repository)
+      this.setQueryCache(repository, users)
+    }
+
+    console.timeEnd('getMentionableUsers')
 
     const hits = []
     const needle = text.toLowerCase()
@@ -157,6 +185,26 @@ export class GitHubUserStore extends BaseStore {
         (x, y) => compare(x.ix, y.ix) || compare(x.user.login, y.user.login)
       )
       .map(h => h.user)
+  }
+
+  private setQueryCache(
+    repository: GitHubRepository,
+    users: ReadonlyArray<IMentionableUser>
+  ) {
+    this.clearCachePruneTimeout()
+    this.queryCache = { repository, users }
+    // Clear mentionables cache after one minute
+    this.pruneQueryCacheTimeoutId = window.setTimeout(() => {
+      this.pruneQueryCacheTimeoutId = null
+      this.queryCache = null
+    }, 60 * 1000)
+  }
+
+  private clearCachePruneTimeout() {
+    if (this.pruneQueryCacheTimeoutId !== null) {
+      clearTimeout(this.pruneQueryCacheTimeoutId)
+      this.pruneQueryCacheTimeoutId = null
+    }
   }
 }
 
