@@ -138,11 +138,6 @@ export class GitHubUserDatabase extends BaseDatabase {
     })
   }
 
-  public filterMentionableUsers(
-    gitHubRepositoryID: number,
-    predicate: (user: IDBMentionableUser) => boolean
-  ) {}
-
   /**
    * Get the cache entry (or undefined if no cache entry has
    * been written yet) for the `gitHubRepositoryID`. The
