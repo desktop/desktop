@@ -166,12 +166,9 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
   }
 
   private onImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    if (this.state.candidates.length === 0) {
-      return
+    if (this.state.candidates.length > 0) {
+      this.setState({ candidates: this.state.candidates.slice(1) })
     }
-
-    console.warn(`Failed to load avatar from: ${e.currentTarget.src}`)
-    this.setState({ candidates: this.state.candidates.slice(1) })
   }
 
   public render() {
