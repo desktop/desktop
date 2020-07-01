@@ -207,9 +207,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         { timeout: ReadyDelay }
       )
 
-      const initialTimeout = window.setTimeout(async () => {
-        window.clearTimeout(initialTimeout)
-
+      window.setTimeout(async () => {
         await this.props.appStore.refreshAllSidebarIndicators()
 
         this.updateIntervalHandle = window.setInterval(() => {
