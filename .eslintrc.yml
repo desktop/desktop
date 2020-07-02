@@ -67,16 +67,19 @@ rules:
 
   # JSDoc
   jsdoc/check-alignment: error
-  jsdoc/check-param-names: error
   jsdoc/check-tag-names: error
   jsdoc/check-types: error
   jsdoc/implements-on-classes: error
   jsdoc/newline-after-description: error
   jsdoc/no-undefined-types: error
-  jsdoc/require-jsdoc:
-    - error
-    - publicOnly: true
   jsdoc/valid-types: error
+
+  # Would love to enable these at some point but
+  # they cause way to many issues now.
+  #jsdoc/check-param-names: error
+  #jsdoc/require-jsdoc:
+  #  - error
+  #  - publicOnly: true
 
   ###########
   # BUILTIN #
