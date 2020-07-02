@@ -24,10 +24,18 @@ rules:
   # PLUGINS #
   ###########
   # TYPESCRIPT
-  '@typescript-eslint/interface-name-prefix':
+  '@typescript-eslint/naming-convention':
     - error
-    - always
-  '@typescript-eslint/no-angle-bracket-type-assertion': error
+    - selector: interface
+      format:
+        - PascalCase
+      custom:
+        regex: '^I[A-Z]'
+        match: true
+  '@typescript-eslint/consistent-type-assertions':
+    - error
+    - assertionStyle: 'as'
+  '@typescript-eslint/no-unused-expressions': error
   '@typescript-eslint/explicit-member-accessibility': error
   '@typescript-eslint/no-unused-vars':
     - error
@@ -63,7 +71,6 @@ rules:
     - builtinGlobals: true
   no-eval: error
   no-sync: error
-  no-unused-expressions: error
   no-var: error
   prefer-const: error
   eqeqeq:

@@ -556,10 +556,7 @@ export class RepositoriesStore extends TypedBaseStore<
         this.protectionEnabledForBranchCache.set(key, true)
       }
 
-      await this.db.protectedBranches
-        .where('repoId')
-        .equals(dbID)
-        .delete()
+      await this.db.protectedBranches.where('repoId').equals(dbID).delete()
 
       const protectionsFound = branchRecords.length > 0
       this.branchProtectionSettingsFoundCache.set(dbID, protectionsFound)

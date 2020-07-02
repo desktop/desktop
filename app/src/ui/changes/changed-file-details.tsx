@@ -42,9 +42,7 @@ export class ChangedFileDetails extends React.Component<
     }
 
     if (diff.kind === DiffType.Text && diff.lineEndingsChange) {
-      const message = `Warning: line endings will be changed from '${
-        diff.lineEndingsChange.from
-      }' to '${diff.lineEndingsChange.to}'.`
+      const message = `Warning: line endings will be changed from '${diff.lineEndingsChange.from}' to '${diff.lineEndingsChange.to}'.`
       return (
         <Octicon
           symbol={OcticonSymbol.alert}

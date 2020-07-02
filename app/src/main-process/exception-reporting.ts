@@ -57,9 +57,7 @@ export async function reportError(
           resolve()
         } else {
           reject(
-            `Got ${response.statusCode} - ${
-              response.statusMessage
-            } from central`
+            `Got ${response.statusCode} - ${response.statusMessage} from central`
           )
         }
       })
