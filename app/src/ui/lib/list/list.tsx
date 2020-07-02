@@ -546,28 +546,29 @@ export class List extends React.Component<IListProps, IListState> {
     )
 
     if (newRow != null) {
-      if (this.props.onSelectionChanged) {
-        this.props.onSelectionChanged([newRow], { kind: 'keyboard', event })
-      }
-
-      if (this.props.onSelectedRowChanged) {
-        const rowCount = this.props.rowCount
-
-        if (newRow < 0 || newRow >= rowCount) {
-          log.debug(
-            `[List.moveSelection] unable to onSelectedRowChanged for row '${newRow}' as it is outside the bounds of the array [0, ${rowCount}]`
-          )
-          return
-        }
-
-        this.props.onSelectedRowChanged(newRow, {
-          kind: 'keyboard',
-          event,
-        })
-      }
-
-      this.scrollRowToVisible(newRow)
+      this.moveSelectionTo(newRow, { kind: 'keyboard', event })
     }
+  }
+
+  private moveSelectionTo(row: number, source: SelectionSource) {
+    if (this.props.onSelectionChanged) {
+      this.props.onSelectionChanged([row], source)
+    }
+
+    if (this.props.onSelectedRowChanged) {
+      const rowCount = this.props.rowCount
+
+      if (row < 0 || row >= rowCount) {
+        log.debug(
+          `[List.moveSelection] unable to onSelectedRowChanged for row '${row}' as it is outside the bounds of the array [0, ${rowCount}]`
+        )
+        return
+      }
+
+      this.props.onSelectedRowChanged(row, source)
+    }
+
+    this.scrollRowToVisible(row)
   }
 
   private scrollRowToVisible(row: number) {
