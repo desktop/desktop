@@ -382,15 +382,26 @@ export class List extends React.Component<IListProps, IListState> {
 
     const source: SelectionSource = { kind: 'keyboard', event }
 
-    if (event.key === 'ArrowDown') {
+    // Home is Cmd+ArowUp on macOS, end is Cmd+ArrowDown, see
+    // https://github.com/desktop/desktop/pull/8644#issuecomment-645965884
+    const isHomeKey = __DARWIN__
+      ? event.metaKey && event.key === 'ArrowUp'
+      : event.key === 'Home'
+    const isEndKey = __DARWIN__
+      ? event.metaKey && event.key === 'ArrowUp'
+      : event.key === 'Home'
+
+    if (isHomeKey) {
+      this.moveSelectionToFirstSelectableRow(source)
+    } else if (isEndKey) {
+      this.moveSelectionToLastSelectableRow(source)
+    } else if (event.key === 'ArrowDown') {
       if (
         event.shiftKey &&
         this.props.selectionMode &&
         this.props.selectionMode !== 'single'
       ) {
         this.addSelection('down', event)
-      } else if (__DARWIN__ && event.metaKey) {
-        this.moveSelectionToLastSelectableRow(source)
       } else {
         this.moveSelection('down', event)
       }
@@ -402,8 +413,6 @@ export class List extends React.Component<IListProps, IListState> {
         this.props.selectionMode !== 'single'
       ) {
         this.addSelection('up', event)
-      } else if (__DARWIN__ && event.metaKey) {
-        this.moveSelectionToFirstSelectableRow(source)
       } else {
         this.moveSelection('up', event)
       }
@@ -415,10 +424,6 @@ export class List extends React.Component<IListProps, IListState> {
       // on Windows. Clicking on the menu item still emits the
       // 'select-all' custom DOM event.
       this.onSelectAll(event)
-    } else if (event.key === 'Home') {
-      this.moveSelectionToFirstSelectableRow(source)
-    } else if (event.key === 'End') {
-      this.moveSelectionToLastSelectableRow(source)
     }
   }
 
