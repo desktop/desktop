@@ -401,9 +401,9 @@ export class List extends React.Component<IListProps, IListState> {
         this.props.selectionMode &&
         this.props.selectionMode !== 'single'
       ) {
-        this.addSelection('down', event)
+        this.addSelection('down', source)
       } else {
-        this.moveSelection('down', event)
+        this.moveSelection('down', source)
       }
       event.preventDefault()
     } else if (event.key === 'ArrowUp') {
@@ -412,9 +412,9 @@ export class List extends React.Component<IListProps, IListState> {
         this.props.selectionMode &&
         this.props.selectionMode !== 'single'
       ) {
-        this.addSelection('up', event)
+        this.addSelection('up', source)
       } else {
-        this.moveSelection('up', event)
+        this.moveSelection('up', source)
       }
       event.preventDefault()
     } else if (!__DARWIN__ && event.key === 'a' && event.ctrlKey) {
@@ -498,12 +498,9 @@ export class List extends React.Component<IListProps, IListState> {
     return this.props.canSelectRow ? this.props.canSelectRow(rowIndex) : true
   }
 
-  private addSelection(
-    direction: SelectionDirection,
-    event: React.KeyboardEvent<any>
-  ) {
+  private addSelection(direction: SelectionDirection, source: SelectionSource) {
     if (this.props.selectedRows.length === 0) {
-      return this.moveSelection(direction, event)
+      return this.moveSelection(direction, source)
     }
 
     const lastSelection = this.props.selectedRows[
@@ -521,17 +518,14 @@ export class List extends React.Component<IListProps, IListState> {
     if (newRow != null) {
       if (this.props.onSelectionChanged) {
         const newSelection = createSelectionBetween(selectionOrigin, newRow)
-        this.props.onSelectionChanged(newSelection, { kind: 'keyboard', event })
+        this.props.onSelectionChanged(newSelection, source)
       }
 
       if (
         this.props.selectionMode === 'range' &&
         this.props.onSelectedRangeChanged
       ) {
-        this.props.onSelectedRangeChanged(selectionOrigin, newRow, {
-          kind: 'keyboard',
-          event,
-        })
+        this.props.onSelectedRangeChanged(selectionOrigin, newRow, source)
       }
 
       this.scrollRowToVisible(newRow)
@@ -540,7 +534,7 @@ export class List extends React.Component<IListProps, IListState> {
 
   private moveSelection(
     direction: SelectionDirection,
-    event: React.KeyboardEvent<any>
+    source: SelectionSource
   ) {
     const lastSelection =
       this.props.selectedRows.length > 0
@@ -554,7 +548,7 @@ export class List extends React.Component<IListProps, IListState> {
     )
 
     if (newRow != null) {
-      this.moveSelectionTo(newRow, { kind: 'keyboard', event })
+      this.moveSelectionTo(newRow, source)
     }
   }
 
