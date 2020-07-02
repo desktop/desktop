@@ -72,6 +72,7 @@ rules:
   react/no-string-refs: error
   react/jsx-uses-vars: error
   react/jsx-uses-react: error
+  react/no-unused-state: error
 
   # JSDoc
   jsdoc/check-alignment: error
