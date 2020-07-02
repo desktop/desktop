@@ -78,6 +78,7 @@
     "eslint-plugin-json": "^1.4.0",
     "eslint-plugin-prettier": "^3.1.0",
     "eslint-plugin-react": "^7.13.0",
+    "eslint-plugin-jsdoc": "^28.6.1",
     "express": "^4.15.0",
     "fake-indexeddb": "^2.0.4",
     "file-loader": "^2.0.0",
@@ -170,6 +171,5 @@
     "electron-builder": "22.4.0",
     "electron-packager": "^14.2.1",
     "electron-winstaller": "4.0.0",
-    "eslint-plugin-jsdoc": "^28.6.1"
   }
 }
