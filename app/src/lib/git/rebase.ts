@@ -305,9 +305,7 @@ class GitRebaseParser {
 
     return {
       kind: 'rebase',
-      title: `Rebasing commit ${this.rebasedCommitCount} of ${
-        this.totalCommitCount
-      } commits`,
+      title: `Rebasing commit ${this.rebasedCommitCount} of ${this.totalCommitCount} commits`,
       value,
       rebasedCommitCount: this.rebasedCommitCount,
       totalCommitCount: this.totalCommitCount,
@@ -366,10 +364,7 @@ export async function rebase(
   progressCallback?: (progress: IRebaseProgress) => void
 ): Promise<RebaseResult> {
   const baseOptions: IGitExecutionOptions = {
-    expectedErrors: new Set([
-      GitError.RebaseConflicts,
-      GitError.MergeConflicts,
-    ]),
+    expectedErrors: new Set([GitError.RebaseConflicts]),
   }
 
   let options = baseOptions
@@ -414,10 +409,7 @@ function parseRebaseResult(result: IGitResult): RebaseResult {
     return RebaseResult.CompletedWithoutError
   }
 
-  if (
-    result.gitError === GitError.RebaseConflicts ||
-    result.gitError === GitError.MergeConflicts
-  ) {
+  if (result.gitError === GitError.RebaseConflicts) {
     return RebaseResult.ConflictsEncountered
   }
 
@@ -482,7 +474,6 @@ export async function continueRebase(
   const baseOptions: IGitExecutionOptions = {
     expectedErrors: new Set([
       GitError.RebaseConflicts,
-      GitError.MergeConflicts,
       GitError.UnresolvedConflicts,
     ]),
     env: {

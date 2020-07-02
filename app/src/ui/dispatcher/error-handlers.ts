@@ -399,10 +399,7 @@ export async function rebaseConflictsHandler(
     return error
   }
 
-  if (
-    dugiteError !== DugiteError.RebaseConflicts &&
-    dugiteError !== DugiteError.MergeConflicts
-  ) {
+  if (dugiteError !== DugiteError.RebaseConflicts) {
     return error
   }
 

@@ -1,17 +1,17 @@
 import * as React from 'react'
 
-interface ISegmentedItemProps {
+interface ISegmentedItemProps<T> {
   /**
    * An id for the item, used to assist in accessibility
    */
   readonly id: string
 
   /**
-   * The index of the item among the other choices in the segmented
+   * The value of the item among the other choices in the segmented
    * control. This is passed along to the onClick handler to differentiate
    * between clicked items.
    */
-  readonly index: number
+  readonly value: T
 
   /**
    * The title for the segmented item. This should be kept short.
@@ -34,20 +34,21 @@ interface ISegmentedItemProps {
    * A function that's called when a user clicks on the item using
    * a pointer device.
    */
-  readonly onClick: (index: number) => void
+  readonly onClick: (value: T) => void
 }
 
-export class SegmentedItem extends React.Component<ISegmentedItemProps, {}> {
+export class SegmentedItem<T> extends React.Component<
+  ISegmentedItemProps<T>,
+  {}
+> {
   private onClick = () => {
-    this.props.onClick(this.props.index)
+    this.props.onClick(this.props.value)
   }
 
   public render() {
     const description = this.props.description ? (
       <p>{this.props.description}</p>
-    ) : (
-      undefined
-    )
+    ) : undefined
 
     const isSelected = this.props.isSelected
     const className = isSelected ? 'selected' : undefined

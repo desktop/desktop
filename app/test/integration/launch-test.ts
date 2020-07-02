@@ -5,10 +5,10 @@
 import { Application } from 'spectron'
 import * as path from 'path'
 
-describe('App', function(this: any) {
+describe('App', function (this: any) {
   let app: Application
 
-  beforeEach(function() {
+  beforeEach(function () {
     let appPath = path.join(
       __dirname,
       '..',
@@ -31,7 +31,7 @@ describe('App', function(this: any) {
     return app.start()
   })
 
-  afterEach(function() {
+  afterEach(function () {
     if (app && app.isRunning()) {
       return app.stop()
     }
