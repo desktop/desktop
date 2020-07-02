@@ -105,7 +105,7 @@ export class GitStore extends BaseStore {
 
   public pullWithRebase?: boolean
 
-  private _history: ReadonlyArray<string> = new Array()
+  private _history: ReadonlyArray<string> = []
 
   private readonly requestsInFight = new Set<string>()
 
