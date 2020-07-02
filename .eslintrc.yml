@@ -144,6 +144,12 @@ overrides:
       strict:
         - error
         - never
+  - files: 'app/test/**/*'
+    rules:
+      '@typescript-eslint/no-non-null-assertion': off
+  - files: 'script/**/*'
+    rules:
+      '@typescript-eslint/no-non-null-assertion': off
 
 parserOptions:
   sourceType: module
