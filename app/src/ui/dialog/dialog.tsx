@@ -535,11 +535,11 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   }
 
   private onKeyDown = (event: React.KeyboardEvent) => {
+    if (event.defaultPrevented) {
+      return
+    }
     const shortcutKey = __DARWIN__ ? event.metaKey : event.ctrlKey
     if ((shortcutKey && event.key === 'w') || event.key === 'Escape') {
-      if (event.defaultPrevented) {
-        return
-      }
       this.onDialogCancel(event)
     }
   }
