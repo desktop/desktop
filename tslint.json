@@ -1,6 +1,6 @@
 {
   "extends": ["tslint-config-prettier"],
-  "rulesDirectory": ["tslint-rules/"],
+  "rulesDirectory": ["tslint-rules/", "node_modules/tslint-microsoft-contrib/"],
   "rules": {
     "react-no-unbound-dispatcher-props": true,
     "react-proper-lifecycle-methods": true,
