@@ -10195,13 +10195,6 @@ tslint-microsoft-contrib@^5.2.1:
   dependencies:
     tsutils "^2.27.2 <2.29.0"
 
-tslint-react@^3.6.0:
-  version "3.6.0"
-  resolved "https://registry.yarnpkg.com/tslint-react/-/tslint-react-3.6.0.tgz#7f462c95c4a0afaae82507f06517ff02942196a1"
-  integrity sha512-AIv1QcsSnj7e9pFir6cJ6vIncTqxfqeFF3Lzh8SuuBljueYzEAtByuB6zMaD27BL0xhMEqsZ9s5eHuCONydjBw==
-  dependencies:
-    tsutils "^2.13.1"
-
 tslint@^5.11.0:
   version "5.11.0"
   resolved "https://registry.yarnpkg.com/tslint/-/tslint-5.11.0.tgz#98f30c02eae3cde7006201e4c33cb08b48581eed"
@@ -10219,13 +10212,6 @@ tslint@^5.11.0:
     semver "^5.3.0"
     tslib "^1.8.0"
     tsutils "^2.27.2"
-
-tsutils@^2.13.1:
-  version "2.25.1"
-  resolved "https://registry.yarnpkg.com/tsutils/-/tsutils-2.25.1.tgz#24a46342ab8b174a3fbde632e60dcd11b64982f9"
-  integrity sha512-xHiTER5XIRYlWbylk4vpGZSYo8FUTVn32bAxxM1rJopXs2DYG7lWp40LqNvM3iMNpXa50wmnC9bFXsPTV6xAiQ==
-  dependencies:
-    tslib "^1.8.1"
 
 tsutils@^2.27.2:
   version "2.29.0"
