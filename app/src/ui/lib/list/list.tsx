@@ -11,6 +11,7 @@ import {
   IMouseClickSource,
   IKeyboardSource,
   ISelectAllSource,
+  findLastSelectableRow,
 } from './selection'
 import { createUniqueId, releaseUniqueId } from '../../lib/id-pool'
 import { range } from '../../../lib/range'
@@ -379,6 +380,8 @@ export class List extends React.Component<IListProps, IListState> {
       return
     }
 
+    const source: SelectionSource = { kind: 'keyboard', event }
+
     if (event.key === 'ArrowDown') {
       if (
         event.shiftKey &&
@@ -387,7 +390,7 @@ export class List extends React.Component<IListProps, IListState> {
       ) {
         this.addSelection('down', event)
       } else if (__DARWIN__ && event.metaKey) {
-        this.scrollRowToVisible(this.props.rowCount - 1)
+        this.moveSelectionToLastSelectableRow(source)
       } else {
         this.moveSelection('down', event)
       }
@@ -400,7 +403,7 @@ export class List extends React.Component<IListProps, IListState> {
       ) {
         this.addSelection('up', event)
       } else if (__DARWIN__ && event.metaKey) {
-        this.scrollRowToVisible(0)
+        this.moveSelectionToFirstSelectableRow(source)
       } else {
         this.moveSelection('up', event)
       }
@@ -413,9 +416,9 @@ export class List extends React.Component<IListProps, IListState> {
       // 'select-all' custom DOM event.
       this.onSelectAll(event)
     } else if (event.key === 'Home') {
-      this.scrollRowToVisible(0)
+      this.moveSelectionToFirstSelectableRow(source)
     } else if (event.key === 'End') {
-      this.scrollRowToVisible(this.props.rowCount - 1)
+      this.moveSelectionToLastSelectableRow(source)
     }
   }
 
@@ -547,6 +550,26 @@ export class List extends React.Component<IListProps, IListState> {
 
     if (newRow != null) {
       this.moveSelectionTo(newRow, { kind: 'keyboard', event })
+    }
+  }
+
+  private moveSelectionToFirstSelectableRow(source: SelectionSource) {
+    const { canSelectRow, props } = this
+    const { rowCount } = props
+    const row = findLastSelectableRow('up', rowCount, canSelectRow)
+
+    if (row !== null) {
+      this.moveSelectionTo(row, source)
+    }
+  }
+
+  private moveSelectionToLastSelectableRow(source: SelectionSource) {
+    const { canSelectRow, props } = this
+    const { rowCount } = props
+    const row = findLastSelectableRow('down', rowCount, canSelectRow)
+
+    if (row !== null) {
+      this.moveSelectionTo(row, source)
     }
   }
 
