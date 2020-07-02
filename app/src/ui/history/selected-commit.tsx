@@ -46,6 +46,7 @@ interface ISelectedCommitProps {
 
   /**
    * Called to open a file using the user's configured applications
+   *
    * @param path The path of the file relative to the root of the repository
    */
   readonly onOpenInExternalEditor: (path: string) => void
@@ -213,6 +214,7 @@ export class SelectedCommit extends React.Component<
 
   /**
    * Open file with default application.
+   *
    * @param path The path of the file relative to the root of the repository
    */
   private onOpenItem = (path: string) => {

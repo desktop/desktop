@@ -264,6 +264,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
 
   /**
    * Open file with default application.
+   *
    * @param path The path of the file relative to the root of the repository
    */
   private onOpenItem = (path: string) => {
