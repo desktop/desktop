@@ -20,10 +20,10 @@ import { assertNever } from '../lib/fatal-error'
 // in which case s defaults to 1
 const diffHeaderRe = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/
 
-const DiffPrefixAdd: '+' = '+'
-const DiffPrefixDelete: '-' = '-'
-const DiffPrefixContext: ' ' = ' '
-const DiffPrefixNoNewline: '\\' = '\\'
+const DiffPrefixAdd = '+' as const
+const DiffPrefixDelete = '-' as const
+const DiffPrefixContext = ' ' as const
+const DiffPrefixNoNewline = '\\' as const
 
 type DiffLinePrefix =
   | typeof DiffPrefixAdd
