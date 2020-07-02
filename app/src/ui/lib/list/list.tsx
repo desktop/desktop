@@ -388,8 +388,8 @@ export class List extends React.Component<IListProps, IListState> {
       ? event.metaKey && event.key === 'ArrowUp'
       : event.key === 'Home'
     const isEndKey = __DARWIN__
-      ? event.metaKey && event.key === 'ArrowUp'
-      : event.key === 'Home'
+      ? event.metaKey && event.key === 'ArrowDown'
+      : event.key === 'End'
 
     if (isHomeKey) {
       this.moveSelectionToFirstSelectableRow(source)
