@@ -108,6 +108,12 @@ export abstract class AutocompletingTextInput<
   /** The identifier for each autocompletion request. */
   private autocompletionRequestID = 0
 
+  /**
+   * To be implemented by subclasses. It must return the element tag name which
+   * should correspond to the ElementType over which it is parameterized.
+   */
+  protected abstract getElementTagName(): 'textarea' | 'input'
+
   public constructor(props: IAutocompletingTextInputProps<ElementType>) {
     super(props)
 
@@ -253,12 +259,6 @@ export abstract class AutocompletingTextInput<
 
     this.insertCompletion(item, 'mouseclick')
   }
-
-  /**
-   * To be implemented by subclasses. It must return the element tag name which
-   * should correspond to the ElementType over which it is parameterized.
-   */
-  protected abstract getElementTagName(): 'textarea' | 'input'
 
   private onContextMenu = (event: React.MouseEvent<any>) => {
     if (this.props.onContextMenu) {

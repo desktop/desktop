@@ -97,6 +97,15 @@ function cancelActiveSelection(cm: CodeMirror.Editor) {
  * A component hosting a CodeMirror instance
  */
 export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
+  private static updateDoc(cm: Editor, value: string | Doc) {
+    if (typeof value === 'string') {
+      cm.setValue(value)
+    } else {
+      cancelActiveSelection(cm)
+      cm.swapDoc(value)
+    }
+  }
+
   private wrapper: HTMLDivElement | null = null
   private codeMirror: Editor | null = null
 
@@ -108,15 +117,6 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
   private readonly resizeObserver: ResizeObserver
   private resizeDebounceId: number | null = null
   private lastKnownWidth: number | null = null
-
-  private static updateDoc(cm: Editor, value: string | Doc) {
-    if (typeof value === 'string') {
-      cm.setValue(value)
-    } else {
-      cancelActiveSelection(cm)
-      cm.swapDoc(value)
-    }
-  }
 
   public constructor(props: ICodeMirrorHostProps) {
     super(props)

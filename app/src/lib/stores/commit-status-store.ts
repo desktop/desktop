@@ -151,13 +151,13 @@ export class CommitStatusStore {
    */
   private readonly limit = pLimit(MaxConcurrentFetches)
 
-  private onAccountsUpdated = (accounts: ReadonlyArray<Account>) => {
-    this.accounts = accounts
-  }
-
   public constructor(accountsStore: AccountsStore) {
     accountsStore.getAll().then(this.onAccountsUpdated)
     accountsStore.onDidUpdate(this.onAccountsUpdated)
+  }
+
+  private readonly onAccountsUpdated = (accounts: ReadonlyArray<Account>) => {
+    this.accounts = accounts
   }
 
   /**

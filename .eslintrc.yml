@@ -49,8 +49,15 @@ rules:
     - functions: false
       variables: false
       typedefs: false
-  # this rule now works but generates a lot of issues with the codebase
-  # '@typescript-eslint/member-ordering': error
+  '@typescript-eslint/member-ordering':
+    - error
+    - default:
+        - static-field
+        - static-method
+        - field
+        - abstract-method
+        - constructor
+        - method
 
   # Babel
   babel/no-invalid-this: error
