@@ -140,3 +140,20 @@ export function findNextSelectableRow(
 
   return null
 }
+
+export function findLastSelectableRow(
+  direction: SelectionDirection,
+  rowCount: number,
+  canSelectRow: (row: number) => boolean
+) {
+  let i = direction === 'up' ? 0 : rowCount - 1
+  const delta = direction === 'up' ? 1 : -1
+
+  for (; i >= 0 && i < rowCount; i += delta) {
+    if (canSelectRow(i)) {
+      return i
+    }
+  }
+
+  return null
+}
