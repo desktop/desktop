@@ -169,6 +169,7 @@
     "electron": "7.1.8",
     "electron-builder": "22.4.0",
     "electron-packager": "^14.2.1",
-    "electron-winstaller": "4.0.0"
+    "electron-winstaller": "4.0.0",
+    "eslint-plugin-jsdoc": "^28.6.1"
   }
 }
