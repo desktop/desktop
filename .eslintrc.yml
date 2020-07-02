@@ -78,6 +78,7 @@ rules:
         - constructor
         - method
   '@typescript-eslint/no-extraneous-class': error
+  '@typescript-eslint/no-empty-interface': error
 
   # Babel
   babel/no-invalid-this: error
