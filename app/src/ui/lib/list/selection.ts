@@ -141,6 +141,11 @@ export function findNextSelectableRow(
   return null
 }
 
+/**
+ * Find the last selectable row in either direction, used
+ * for moving to the first or last selectable row in a list,
+ * i.e. Home/End key navigation.
+ */
 export function findLastSelectableRow(
   direction: SelectionDirection,
   rowCount: number,
