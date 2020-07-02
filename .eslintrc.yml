@@ -58,6 +58,7 @@ rules:
         - abstract-method
         - constructor
         - method
+  '@typescript-eslint/no-extraneous-class': error
 
   # Babel
   babel/no-invalid-this: error
