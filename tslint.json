@@ -2,7 +2,6 @@
   "extends": ["tslint-config-prettier"],
   "rulesDirectory": ["tslint-rules/"],
   "rules": {
-    "jsdoc-format": true,
     "react-no-unbound-dispatcher-props": true,
     "react-proper-lifecycle-methods": true,
     "react-readonly-props-and-state": true
