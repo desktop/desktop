@@ -1,4 +1,4 @@
-import { IMenuItem } from '../../lib/menu-item'
+import { ISerializableMenuItem } from '../../lib/menu-item'
 import { Menu, MenuItem } from 'electron'
 
 /**
@@ -47,14 +47,14 @@ function getEditMenuItems(): ReadonlyArray<MenuItem> {
  *                 created edit menu items are clicked.
  */
 export function buildContextMenu(
-  template: ReadonlyArray<IMenuItem>,
+  template: ReadonlyArray<ISerializableMenuItem>,
   onClick: (indices: ReadonlyArray<number>) => void
 ): Menu {
   return buildRecursiveContextMenu(template, onClick)
 }
 
 function buildRecursiveContextMenu(
-  menuItems: ReadonlyArray<IMenuItem>,
+  menuItems: ReadonlyArray<ISerializableMenuItem>,
   actionFn: (indices: ReadonlyArray<number>) => void,
   currentIndices: ReadonlyArray<number> = []
 ): Menu {
