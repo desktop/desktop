@@ -38,6 +38,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { IStashEntry } from '../../models/stash-entry'
 import * as classNames from 'classnames'
 import { hasWritePermission } from '../../models/github-repository'
+import { hasConflictedFiles } from '../../lib/status'
 
 const RowHeight = 29
 const StashIcon = new OcticonSymbol(
@@ -340,6 +341,17 @@ export class ChangesList extends React.Component<
     }
 
     const hasLocalChanges = this.props.workingDirectory.files.length > 0
+    const hasStash = this.props.stashEntry !== null
+    const hasConflicts =
+      this.props.conflictState !== null ||
+      hasConflictedFiles(this.props.workingDirectory)
+
+    const stashAllChangesLabel = __DARWIN__
+      ? 'Stash All Changes'
+      : 'Stash all changes'
+    const confirmStashAllChangesLabel = __DARWIN__
+      ? 'Stash All Changes…'
+      : 'Stash all changes…'
 
     const items: IMenuItem[] = [
       {
@@ -348,12 +360,9 @@ export class ChangesList extends React.Component<
         enabled: hasLocalChanges,
       },
       {
-        label: __DARWIN__ ? 'Stash All Changes…' : 'Stash all changes…',
+        label: hasStash ? confirmStashAllChangesLabel : stashAllChangesLabel,
         action: this.onStashChanges,
-        enabled:
-          hasLocalChanges &&
-          this.props.branch !== null &&
-          this.props.conflictState === null,
+        enabled: hasLocalChanges && this.props.branch !== null && !hasConflicts,
       },
     ]
 

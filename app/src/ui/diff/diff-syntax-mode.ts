@@ -172,7 +172,7 @@ export class DiffSyntaxMode {
   }
 }
 
-CodeMirror.defineMode(DiffSyntaxMode.ModeName, function(
+CodeMirror.defineMode(DiffSyntaxMode.ModeName, function (
   config: CodeMirror.EditorConfiguration,
   modeOptions?: IDiffSyntaxModeOptions
 ) {

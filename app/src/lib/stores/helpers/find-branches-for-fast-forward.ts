@@ -31,9 +31,7 @@ export function findBranchesForFastForward(
     return allEligibleBranches
   }
   log.info(
-    `skipping fast-forward for all branches as there are ${
-      allEligibleBranches.length
-    } eligible branches (Threshold is ${FastForwardBranchesThreshold} eligible branches).`
+    `skipping fast-forward for all branches as there are ${allEligibleBranches.length} eligible branches (Threshold is ${FastForwardBranchesThreshold} eligible branches).`
   )
 
   // we don't have to worry about this being a duplicate, because recent branches
