@@ -17,6 +17,7 @@ import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
 import { getWelcomeMessage } from '../../lib/2fa'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import { Button } from '../lib/button'
 
 interface ISignInProps {
   readonly dispatcher: Dispatcher
@@ -210,6 +211,21 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
 
     return (
       <DialogContent>
+        <Row className="sign-in-with-browser">
+          <Button
+            className="button-with-icon button-component-primary"
+            onClick={this.onSignInWithBrowser}
+            disabled={disableSubmit}
+          >
+            Sign in using your browser
+            <Octicon symbol={OcticonSymbol.linkExternal} />
+          </Button>
+        </Row>
+
+        <div className="horizontal-rule">
+          <span className="horizontal-rule-content">or</span>
+        </div>
+
         <Row>
           <TextBox
             label="Username or email address"
@@ -231,21 +247,6 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             uri={state.forgotPasswordUrl}
           >
             Forgot password?
-          </LinkButton>
-        </Row>
-
-        <div className="horizontal-rule">
-          <span className="horizontal-rule-content">or</span>
-        </div>
-
-        <Row className="sign-in-with-browser">
-          <LinkButton
-            className="link-with-icon"
-            onClick={this.onSignInWithBrowser}
-            disabled={disableSubmit}
-          >
-            Sign in using your browser
-            <Octicon symbol={OcticonSymbol.linkExternal} />
           </LinkButton>
         </Row>
       </DialogContent>

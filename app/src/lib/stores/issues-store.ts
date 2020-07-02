@@ -84,7 +84,6 @@ export class IssuesStore {
       fatalError(
         `Cannot store issues for a repository that hasn't been inserted into the database!`
       )
-      return
     }
 
     const issuesToDelete = issues.filter(i => i.state === 'closed')
@@ -147,7 +146,6 @@ export class IssuesStore {
       fatalError(
         "Cannot get issues for a repository that hasn't been inserted into the database!"
       )
-      return []
     }
 
     if (!text.length) {

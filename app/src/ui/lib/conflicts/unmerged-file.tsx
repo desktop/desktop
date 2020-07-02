@@ -83,9 +83,14 @@ export const renderUnmergedFile: React.FunctionComponent<{
         props.openFileInExternalEditor(join(props.repository.path, props.path)),
       repository: props.repository,
       dispatcher: props.dispatcher,
+      ourBranch: props.ourBranch,
+      theirBranch: props.theirBranch,
     })
   }
-  if (isManualConflict(props.status) && props.manualResolution === undefined) {
+  if (
+    isManualConflict(props.status) &&
+    hasUnresolvedConflicts(props.status, props.manualResolution)
+  ) {
     return renderManualConflictedFile({
       path: props.path,
       status: props.status,
@@ -197,6 +202,8 @@ const renderConflictedFileWithConflictMarkers: React.FunctionComponent<{
   readonly onOpenEditorClick: () => void
   readonly repository: Repository
   readonly dispatcher: Dispatcher
+  readonly ourBranch?: string
+  readonly theirBranch?: string
 }> = props => {
   const humanReadableConflicts = calculateConflicts(
     props.status.conflictMarkerCount
@@ -210,8 +217,11 @@ const renderConflictedFileWithConflictMarkers: React.FunctionComponent<{
   const tooltip = editorButtonTooltip(props.resolvedExternalEditor)
   const onDropdownClick = makeMarkerConflictDropdownClickHandler(
     props.path,
-    props.repository.path,
-    props.dispatcher
+    props.repository,
+    props.dispatcher,
+    props.status,
+    props.ourBranch,
+    props.theirBranch
   )
 
   const content = (
@@ -251,30 +261,16 @@ const makeManualConflictDropdownClickHandler = (
   theirBranch?: string
 ) => {
   return () => {
-    const items: IMenuItem[] = [
-      {
-        label: getLabelForManualResolutionOption(status.entry.us, ourBranch),
-        action: () =>
-          dispatcher.updateManualConflictResolution(
-            repository,
-            relativeFilePath,
-            ManualConflictResolutionKind.ours
-          ),
-      },
-      {
-        label: getLabelForManualResolutionOption(
-          status.entry.them,
-          theirBranch
-        ),
-        action: () =>
-          dispatcher.updateManualConflictResolution(
-            repository,
-            relativeFilePath,
-            ManualConflictResolutionKind.theirs
-          ),
-      },
-    ]
-    showContextualMenu(items)
+    showContextualMenu(
+      getManualResolutionMenuItems(
+        relativeFilePath,
+        repository,
+        dispatcher,
+        status,
+        ourBranch,
+        theirBranch
+      )
+    )
   }
 }
 
@@ -295,11 +291,14 @@ const makeUndoManualResolutionClickHandler = (
 /** makes a click handling function for marker conflict actions */
 const makeMarkerConflictDropdownClickHandler = (
   relativeFilePath: string,
-  repositoryFilePath: string,
-  dispatcher: Dispatcher
+  repository: Repository,
+  dispatcher: Dispatcher,
+  status: ConflictsWithMarkers,
+  ourBranch?: string,
+  theirBranch?: string
 ) => {
   return () => {
-    const absoluteFilePath = join(repositoryFilePath, relativeFilePath)
+    const absoluteFilePath = join(repository.path, relativeFilePath)
     const items: IMenuItem[] = [
       {
         label: OpenWithDefaultProgramLabel,
@@ -309,9 +308,51 @@ const makeMarkerConflictDropdownClickHandler = (
         label: RevealInFileManagerLabel,
         action: () => shell.showItemInFolder(absoluteFilePath),
       },
+      {
+        type: 'separator',
+      },
+      ...getManualResolutionMenuItems(
+        relativeFilePath,
+        repository,
+        dispatcher,
+        status,
+        ourBranch,
+        theirBranch
+      ),
     ]
     showContextualMenu(items)
   }
+}
+
+function getManualResolutionMenuItems(
+  relativeFilePath: string,
+  repository: Repository,
+  dispatcher: Dispatcher,
+  status: ConflictedFileStatus,
+  ourBranch?: string,
+  theirBranch?: string
+): ReadonlyArray<IMenuItem> {
+  return [
+    {
+      label: getLabelForManualResolutionOption(status.entry.us, ourBranch),
+      action: () =>
+        dispatcher.updateManualConflictResolution(
+          repository,
+          relativeFilePath,
+          ManualConflictResolutionKind.ours
+        ),
+    },
+
+    {
+      label: getLabelForManualResolutionOption(status.entry.them, theirBranch),
+      action: () =>
+        dispatcher.updateManualConflictResolution(
+          repository,
+          relativeFilePath,
+          ManualConflictResolutionKind.theirs
+        ),
+    },
+  ]
 }
 
 function resolvedFileStatusString(
@@ -336,14 +377,18 @@ const renderResolvedFileStatusSummary: React.FunctionComponent<{
   manualResolution?: ManualConflictResolution
   branch?: string
 }> = props => {
+  if (
+    isConflictWithMarkers(props.status) &&
+    props.status.conflictMarkerCount === 0
+  ) {
+    return <div className="file-conflicts-status">No conflicts remaining</div>
+  }
+
   const statusString = resolvedFileStatusString(
     props.status,
     props.manualResolution,
     props.branch
   )
-  if (props.manualResolution === undefined) {
-    return <div className="file-conflicts-status">{statusString}</div>
-  }
 
   return (
     <div className="file-conflicts-status">

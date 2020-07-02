@@ -2,8 +2,8 @@ import { Repository } from '../../models/repository'
 import {
   WorkingDirectoryFileChange,
   isConflictedFileStatus,
-  isManualConflict,
   GitStatusEntry,
+  isConflictWithMarkers,
 } from '../../models/status'
 import {
   ManualConflictResolution,
@@ -31,10 +31,11 @@ export async function stageManualConflictResolution(
     log.error(`tried to manually resolve unconflicted file (${file.path})`)
     return
   }
-  if (!isManualConflict(status)) {
-    log.error(
-      `tried to manually resolve conflicted file with markers (${file.path})`
-    )
+
+  if (isConflictWithMarkers(status) && status.conflictMarkerCount === 0) {
+    // If somehow the user used the Desktop UI to solve the conflict via ours/theirs
+    // but afterwards resolved manually the conflicts via an editor, used the manually
+    // resolved file.
     return
   }
 

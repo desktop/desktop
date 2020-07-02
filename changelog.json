@@ -1,5 +1,105 @@
 {
   "releases": {
+    "2.5.3": [
+      "[Added] Stash changes without switching branches - #10032",
+      "[Added] Discard selection of lines from a file - #9728",
+      "[Fixed] Display more readable messages for errors when cloning a repository - #9944",
+      "[Fixed] Support launching Desktop from WSL on Windows - #4998. Thanks @shawnfunke!",
+      "[Fixed] Select correct branch to compare when two branches have similar names - #9977",
+      "[Fixed] Make Ctrl/Cmd+W shortcut work in all dialogs - #9826. Thanks @ruggi99!",
+      "[Fixed] Fix links when text wrapping is required in commit summaries - #9185",
+      "[Fixed] Prevent crash when an opened repository doesn't have an owner on GitHub - #9895",
+      "[Fixed] Sign in correctly when pressing \"Enter\" on the username/password authentication form - #9899",
+      "[Fixed] Maintain selected files when navigating back to the Changes tab - #7710. Thanks @TerryChan!",
+      "[Fixed] Maintain selected files when deleting a stash - #9921",
+      "[Improved] Remove redundant progress text from Git error messages - #9945",
+      "[Improved] Remove flicker when switching between files in the changes tab - #9929",
+      "[Improved] Remove space between the number and the percent sign when showing the progress of a clone operation - #9893",
+      "[Improved] Automatically disable username and password authentication when the API no longer supports it - #9231"
+    ],
+    "2.5.3-beta2": [
+      "[Added] Stash changes without switching branches - #10032",
+      "[Fixed] Support launching Desktop from WSL on Windows - #4998. Thanks @shawnfunke!",
+      "[Fixed] Set initial value of opt out checkbox in Discard line confirmation dialog to false - #9989",
+      "[Fixed] Select correct branch to compare when two branches have similar names - #9977",
+      "[Improved] Add detection to disable username and password authentication when the API is no longer available - #9231",
+      "[Improved] Remove redundant progress text from Git error messages - #9945"
+    ],
+    "2.5.3-beta1": [
+      "[Added] Discard selection of lines from a file - #9728",
+      "[Fixed] Display more readable messages for errors when cloning a repository - #9944",
+      "[Fixed] Make Ctrl/Cmd+W shortcut work in all dialogs - #9826. Thanks @ruggi99!",
+      "[Fixed] Fix links when text wrapping is required in commit summaries - #9185",
+      "[Fixed] Prevent crash when an opened repository doesn't have an owner on GitHub - #9895",
+      "[Fixed] Sign in correctly when pressing \"Enter\" on the username/password authentication form - #9899",
+      "[Fixed] Maintain selected files when navigating back to the Changes tab - #7710. Thanks @TerryChan!",
+      "[Fixed] Maintain selected files when deleting a stash - #9921",
+      "[Improved] Remove flicker when switching between files in the changes tab - #9929",
+      "[Improved] Remove space between the number and the percent sign when showing the progress of a clone operation - #9893"
+    ],
+    "2.5.2": [
+      "[Fixed] Enable setting to more easily work with maintained forks"
+    ],
+    "2.5.1": [
+      "[Added] Provide a setting to more easily work with maintained forks - #9679",
+      "[Added] Support deleting tags that have not been pushed - #9796",
+      "[Fixed] Checkout correct PR branch when using \"Open in GitHub Desktop\" from github.com - #9873",
+      "[Fixed] Support pressing \"Enter\" key to submit in Clone Repository dialog - #5234 #8804. Thanks @ruggi99!",
+      "[Fixed] Avoid errors in restoring a stash when a branch is also named \"stash\" - #9844",
+      "[Fixed] Avoid background network operations to calculate unpushed tags - #9793 #9828",
+      "[Fixed] Rework Ctrl+Tab to switch between Changes and History anytime the app has focus - #5911. Thanks @JMcKiern!",
+      "[Fixed] Center tags text vertically in History view - #9785",
+      "[Fixed] Prevent Git authentication errors from prompting to retry clone instead of presenting authentication dialog - #9777",
+      "[Improved] Make it safer to \"Open in Command Prompt\" on Windows - #9640. Thanks @dscho!",
+      "[Improved] Prevent list scrollbars on Windows from overlapping with content - #9786"
+    ],
+    "2.5.1-beta2": [
+      "[Added] Provide a setting to more easily work with maintained forks - #9679",
+      "[Added] Offer ability to delete tags that haven't been pushed - #9796",
+      "[Fixed] Checkout PR branch when using \"Open in GitHub Desktop\" from github.com - #9873",
+      "[Fixed] Handle Enter key presses in Clone Repository Dialog - #5234 #8804. Thanks @ruggi99!",
+      "[Fixed] Avoid errors in restoring a stash when a branch is also named \"stash\" - #9844",
+      "[Fixed] Avoid performing background network operations to calculate unpushed tags - #9828",
+      "[Fixed] Rework Ctrl+Tab to switch between Changes and History anytime the app has focus - #5911. Thanks @JMcKiern!",
+      "[Improved] Make it safer to \"Open in Command Prompt\" on Windows - #9640. Thanks @dscho!",
+      "[Improved] Update design of list scrollbars on Windows to prevent overlapping with content - #9786",
+      "[Unshipped] Remove prompt for notifying when your branch has diverged from the default branch - #9804"
+    ],
+    "2.5.1-beta1": [
+      "[Fixed] Center tags text vertically in History view - #9785",
+      "[Fixed] Prevent Git authentication errors from prompting to retry clone instead of authentication dialog - #9777",
+      "[Improved] Avoid executing unwanted Git hooks when fetching unpushed tags - #9793"
+    ],
+    "2.5.0": [
+      "[New] Add, push, and view Git tags on commit history in Desktop - #9424",
+      "[Added] Offer option to choose file from one branch or the other when resolving merge conflicts - #9702",
+      "[Added] Add context menu for highlighted text in diff view - #5100. Thanks @HashimotoYT!",
+      "[Fixed] Retain default branch option in \"Create Branch\" dialog when user focuses away from Desktop - #9611",
+      "[Improved] Clean up copy for onboarding sign-in flow - #9715",
+      "[Improved] Emphasize signing in to GitHub via browser due to username/password deprecation - #9663",
+      "[Improved] Improve error message when publishing a private repository fails - #9646",
+      "[Improved] Offer to retry if cloning a repository fails - #926. Thanks @Daniel-McCarthy!"
+    ],
+    "2.4.4-beta4": [
+      "[Fixed] Add missing \"Cancel\" button in onboarding sign-in flow - #9715",
+      "[Improved] Update copy for onboarding sign-in flow - #9715"
+    ],
+    "2.4.4-beta3": [
+      "[Fixed] Restore welcome flow's 2FA confirmation screen - #9686",
+      "[Improved] Add ability to always choose the file from one branch or the other when resolving merge conflicts - #9702"
+    ],
+    "2.4.4-beta2": [
+      "[Fixed] Display tags in commit list and show tag creation option - #9682",
+      "[Improved] Emphasize sign in via browser option in Welcome flow - #9663"
+    ],
+    "2.4.4-beta1": [
+      "[Added] Show unpushed indicator on commits that have unpushed tags - #9667",
+      "[Added] Add context menu for highlighted text in diff view - #5100. Thanks @HashimotoYT!",
+      "[Fixed] Retain default branch option in \"Create Branch\" dialog when user focuses away from Desktop - #9611",
+      "[Improved] Indicate in the Push/Pull/Fetch button when there are local unpushed tags - #9576",
+      "[Improved] Offer to retry cloning if it fails - #926. Thanks @Daniel-McCarthy!",
+      "[Improved] Update verbage in repository publish error - #9646"
+    ],
     "2.4.4-beta0": [
       "[Added] Display tags in commit list - #9427",
       "[Fixed] Update embedded Git to avoid gitconfig errors on Windows - #9597"

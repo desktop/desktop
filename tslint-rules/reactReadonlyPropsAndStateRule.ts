@@ -42,6 +42,20 @@ class ReactReadonlyPropsAndStateWalker extends Lint.RuleWalker {
 
         this.addFailure(this.createFailure(start, width, error))
       }
+
+      if (propertySignature.type) {
+        const typeString = propertySignature.type.getFullText()
+
+        if (/^\s*Array<.*>$/.test(typeString) || typeString.endsWith('[]')) {
+          this.addFailure(
+            this.createFailure(
+              propertySignature.type.getStart(),
+              propertySignature.type.getWidth(),
+              'Prop and State arrays should be read only (ReadOnlyArray)'
+            )
+          )
+        }
+      }
     })
   }
 
