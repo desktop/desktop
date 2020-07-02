@@ -32,6 +32,9 @@ rules:
       custom:
         regex: '^I[A-Z]'
         match: true
+    - selector: class
+      format:
+        - PascalCase
   '@typescript-eslint/consistent-type-assertions':
     - error
     - assertionStyle: 'as'
