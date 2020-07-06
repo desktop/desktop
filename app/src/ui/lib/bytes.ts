@@ -13,10 +13,6 @@ const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']
  *
  *    23 GiB
  *   -43 B
- * It's also possible to force sign in order to get the
- * plus sign in case of positive numbers like:
- *   +23 GiB
- *   -43 B
  *
  * @param bytes       - The number of bytes to reformat into human
  *                      readable form
