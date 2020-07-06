@@ -170,7 +170,7 @@ function showSearch(cm: Editor) {
   // focus there instead of opening another dialog since CodeMirror
   // doesn't auto-close dialogs when opening a new one.
   const existingSearchField = wrapper.querySelector(
-    ':scope.dialog-opened .CodeMirror-dialog .CodeMirror-search-field'
+    ':scope > .CodeMirror-dialog .CodeMirror-search-field'
   )
 
   if (existingSearchField !== null) {
