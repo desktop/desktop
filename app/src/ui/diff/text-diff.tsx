@@ -189,7 +189,6 @@ function showSearch(cm: Editor) {
   }
 
   dialog.classList.add('CodeMirror-search-dialog')
-  const searchLabel = dialog.querySelector('.CodeMirror-search-label')
   const searchField = dialog.querySelector('.CodeMirror-search-field')
 
   if (searchField instanceof HTMLInputElement) {
