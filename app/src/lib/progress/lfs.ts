@@ -81,9 +81,9 @@ export class GitLFSProgressParser {
 
     const verb = this.directionToHumanFacingVerb(direction)
     const info: IGitProgressInfo = {
-      title: `${verb} "${name}" ${transferProgress}…`,
       value: downloadedBytesForAllIndexes,
       total: totalBytesForForAllIndexes,
+      title: `${verb} "${fileName}"`,
       percent: 0,
       done: false,
       text: `${verb} ${name} (${finishedFiles} out of an estimated ${estimatedTotalFiles} completed, ${transferProgress})`,
