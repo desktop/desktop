@@ -41,7 +41,6 @@ export class GitLFSProgressParser {
     }
 
     const direction = matches[1]
-    // const current = parseInt(matches[2], 10)
     const totalFiles = parseInt(matches[3], 10)
     const downloadedBytes = parseInt(matches[4], 10)
     const totalBytes = parseInt(matches[5], 10)
@@ -58,12 +57,7 @@ export class GitLFSProgressParser {
       return this.lastResult
     }
 
-    if (
-      // isNaN(current) ||
-      isNaN(totalFiles) ||
-      isNaN(downloadedBytes) ||
-      isNaN(totalBytes)
-    ) {
+    if (isNaN(totalFiles) || isNaN(downloadedBytes) || isNaN(totalBytes)) {
       return this.lastResult
     }
 
