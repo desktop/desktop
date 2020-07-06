@@ -7,8 +7,9 @@ import {
 } from '../dialog'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Repository } from '../../models/repository'
-import { RetryAction } from '../../models/retry-actions'
+import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import { Dispatcher } from '../dispatcher'
+import { assertNever } from '../../lib/fatal-error'
 
 interface ILocalChangesOverwrittenDialogProps {
   readonly repository: Repository
@@ -51,8 +52,8 @@ export class LocalChangesOverwrittenDialog extends React.Component<
       >
         <DialogContent>
           <p>
-            Unable to perform this action when changes are present on your
-            branch.
+            Unable to {this.getRetryActionName()} when changes are present on
+            your branch.
           </p>
           {this.renderStashText()}
         </DialogContent>
@@ -107,5 +108,32 @@ export class LocalChangesOverwrittenDialog extends React.Component<
     await this.props.dispatcher.performRetry(this.props.retryAction)
 
     this.props.onDismissed()
+  }
+
+  /**
+   * Returns a user-friendly string to describe the current retryAction.
+   */
+  private getRetryActionName() {
+    switch (this.props.retryAction.type) {
+      case RetryActionType.Checkout:
+        return 'checkout'
+      case RetryActionType.Pull:
+        return 'pull'
+      case RetryActionType.Merge:
+        return 'merge'
+      case RetryActionType.Rebase:
+        return 'rebase'
+      case RetryActionType.Clone:
+        return 'clone'
+      case RetryActionType.Fetch:
+        return 'fetch'
+      case RetryActionType.Push:
+        return 'push'
+      default:
+        assertNever(
+          this.props.retryAction,
+          `Unknown retryAction: ${this.props.retryAction}`
+        )
+    }
   }
 }
