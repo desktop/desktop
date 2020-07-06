@@ -10,12 +10,12 @@ export const enum Sign {
 
 /**
  * Display bytes in human readable format like:
- *    23GB
- *   -43B
+ *    23 GiB
+ *   -43 B
  * It's also possible to force sign in order to get the
  * plus sign in case of positive numbers like:
- *   +23GB
- *   -43B
+ *   +23 GiB
+ *   -43 B
  */
 export const formatBytes = (
   bytes: number,
