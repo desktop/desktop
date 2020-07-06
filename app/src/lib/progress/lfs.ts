@@ -17,6 +17,12 @@ export async function createLFSProgressFile(): Promise<string> {
 // `<direction> <current>/<total files> <downloaded>/<total> <name>`
 const LFSProgressLineRe = /^(.+?)\s{1}(\d+)\/(\d+)\s{1}(\d+)\/(\d+)\s{1}(.+)$/
 
+interface IFileProgress {
+  readonly transferred: number
+  readonly total: number
+  readonly done: boolean
+}
+
 /** The progress parser for Git LFS. */
 export class GitLFSProgressParser {
   private lastResult: IGitProgress | IGitOutput = {
@@ -25,7 +31,7 @@ export class GitLFSProgressParser {
     percent: 0,
   }
 
-  private updates = new Map()
+  private updates = new Map<string, IFileProgress>()
 
   /** Parse the progress line. */
   public parse(line: string): IGitProgress | IGitOutput {
@@ -35,7 +41,7 @@ export class GitLFSProgressParser {
     }
 
     const direction = matches[1]
-    const current = parseInt(matches[2], 10)
+    // const current = parseInt(matches[2], 10)
     const totalFiles = parseInt(matches[3], 10)
     const downloadedBytes = parseInt(matches[4], 10)
     const totalBytes = parseInt(matches[5], 10)
@@ -43,8 +49,8 @@ export class GitLFSProgressParser {
 
     if (
       !direction ||
-      !current ||
-      !totalFiles ||
+      // !current ||
+      // !totalFiles ||
       !downloadedBytes ||
       !totalBytes ||
       !name
@@ -53,7 +59,7 @@ export class GitLFSProgressParser {
     }
 
     if (
-      isNaN(current) ||
+      // isNaN(current) ||
       isNaN(totalFiles) ||
       isNaN(downloadedBytes) ||
       isNaN(totalBytes)
@@ -61,27 +67,27 @@ export class GitLFSProgressParser {
       return this.lastResult
     }
 
-    const update = this.updates.get(current)
-      ? this.updates.get(current)
-      : new Map()
-
-    update.set('downloadedBytes', downloadedBytes)
-    update.set('totalBytes', totalBytes)
-    this.updates.set(current, update)
+    this.updates.set(name, {
+      transferred: downloadedBytes,
+      total: totalBytes,
+      done: downloadedBytes === totalBytes,
+    })
 
     let downloadedBytesForAllIndexes = 0
     let totalBytesForForAllIndexes = 0
     let finishedFiles = 0
 
-    this.updates.forEach((value, key, map) => {
-      const downloaded = value.get('downloadedBytes')
-      const total = value.get('totalBytes')
-      downloadedBytesForAllIndexes += downloaded
+    // When uploading LFS files the estimate is accurate but not
+    // when downloading so we'll whichever is biggest of the estimate
+    // and the actual number of files we've seen
+    const estimatedTotalFiles = Math.max(totalFiles, this.updates.size)
+
+    for (const { transferred, total, done } of this.updates.values()) {
+      downloadedBytesForAllIndexes += transferred
       totalBytesForForAllIndexes += total
-      if (downloaded === total) {
-        finishedFiles += 1
-      }
-    })
+      finishedFiles += done ? 1 : 0
+    }
+
     const transferProgress = `${formatBytes(
       downloadedBytesForAllIndexes
     )} / ${formatBytes(totalBytesForForAllIndexes)}`
