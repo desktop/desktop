@@ -5,7 +5,6 @@ import { Dispatcher } from '../dispatcher'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { PathText } from '../lib/path-text'
-import { Monospaced } from '../lib/monospaced'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { ITextDiff, DiffSelection } from '../../models/diff'
@@ -82,9 +81,7 @@ export class DiscardSelection extends React.Component<
         <DialogContent>
           <p>
             Are you sure you want to discard the selected changes to
-            <Monospaced>
-              <PathText path={this.props.file.path} />
-            </Monospaced>
+            <PathText path={this.props.file.path} />
           </p>
 
           <Checkbox
