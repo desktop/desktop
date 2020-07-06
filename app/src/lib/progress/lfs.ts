@@ -69,10 +69,10 @@ export class GitLFSProgressParser {
     // and the actual number of files we've seen
     const estimatedTotalFiles = Math.max(totalFiles, this.files.size)
 
-    for (const { transferred, total, done } of this.files.values()) {
-      downloadedBytesForAllIndexes += transferred
-      totalBytesForForAllIndexes += total
-      finishedFiles += done ? 1 : 0
+    for (const file of this.files.values()) {
+      downloadedBytesForAllIndexes += file.transferred
+      totalBytesForForAllIndexes += file.total
+      finishedFiles += file.done ? 1 : 0
     }
 
     const transferProgress = `${formatBytes(
