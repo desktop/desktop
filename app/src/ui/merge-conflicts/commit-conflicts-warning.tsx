@@ -5,7 +5,6 @@ import { Repository } from '../../models/repository'
 import { ICommitContext } from '../../models/commit'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { PathText } from '../lib/path-text'
-import { Monospaced } from '../lib/monospaced'
 import { DefaultCommitMessage } from '../../models/commit-message'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
@@ -47,11 +46,13 @@ export class CommitConflictsWarning extends React.Component<
   private renderFiles(files: ReadonlyArray<WorkingDirectoryFileChange>) {
     return (
       <div className="conflicted-files-text">
-        {files.map(f => (
-          <Monospaced key={f.path}>
-            <PathText path={f.path} />
-          </Monospaced>
-        ))}
+        <ul>
+          {files.map(f => (
+            <li key={f.path}>
+              <PathText path={f.path} />
+            </li>
+          ))}
+        </ul>
       </div>
     )
   }
