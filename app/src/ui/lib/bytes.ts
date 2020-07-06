@@ -19,7 +19,7 @@ export const enum Sign {
  */
 export function formatBytes(
   bytes: number,
-  signType: Sign = Sign.Normal,
+  signType = Sign.Normal,
   decimals = 0
 ) {
   if (!Number.isFinite(bytes)) {
