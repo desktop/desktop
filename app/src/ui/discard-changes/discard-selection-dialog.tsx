@@ -79,10 +79,13 @@ export class DiscardSelection extends React.Component<
         type="warning"
       >
         <DialogContent>
-          <p>
-            Are you sure you want to discard the selected changes to
-            <PathText path={this.props.file.path} />
-          </p>
+          <p>Are you sure you want to discard the selected changes to</p>
+
+          <ul>
+            <li>
+              <PathText path={this.props.file.path} />
+            </li>
+          </ul>
 
           <Checkbox
             label="Do not show this message again"
