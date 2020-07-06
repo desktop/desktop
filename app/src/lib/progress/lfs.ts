@@ -1,6 +1,7 @@
 import * as FSE from 'fs-extra'
 import { getTempFilePath } from '../file-system'
 import { IGitProgress, IGitProgressInfo, IGitOutput } from './git'
+import { formatBytes } from '../../ui/lib/bytes'
 
 /** Create the Git LFS progress reporting file and return the path. */
 export async function createLFSProgressFile(): Promise<string> {
@@ -25,18 +26,6 @@ export class GitLFSProgressParser {
   }
 
   private updates = new Map()
-
-  private transformBytes(bytes: number): string {
-    if (bytes === 0) {
-      return '0 Bytes'
-    }
-
-    const multiples = ['Bytes', 'KB', 'MB', 'GB', 'TB']
-    const base = Math.floor(Math.log(bytes) / Math.log(1024))
-    return (
-      parseFloat((bytes / Math.pow(1024, base)).toFixed(2)) + multiples[base]
-    )
-  }
 
   /** Parse the progress line. */
   public parse(line: string): IGitProgress | IGitOutput {
@@ -95,16 +84,16 @@ export class GitLFSProgressParser {
     })
     const verb = this.directionToHumanFacingVerb(direction)
     const info: IGitProgressInfo = {
-      title: `${verb} "${name}" ${this.transformBytes(
+      title: `${verb} "${name}" ${formatBytes(
         downloadedBytesForAllIndexes
-      )}/${this.transformBytes(totalBytesForForAllIndexes)}…`,
+      )}/${formatBytes(totalBytesForForAllIndexes)}…`,
       value: downloadedBytesForAllIndexes,
       total: totalBytesForForAllIndexes,
       percent: 0,
       done: false,
-      text: `${verb} ${finishedFiles}/${totalFiles} ${this.transformBytes(
+      text: `${verb} ${finishedFiles}/${totalFiles} ${formatBytes(
         downloadedBytesForAllIndexes
-      )}/${this.transformBytes(totalBytesForForAllIndexes)}`,
+      )}/${formatBytes(totalBytesForForAllIndexes)}`,
     }
 
     this.lastResult = {
