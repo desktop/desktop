@@ -99,7 +99,7 @@ export class GitLFSProgressParser {
       total: totalBytesForForAllIndexes,
       percent: 0,
       done: false,
-      text: `${verb} ${finishedFiles}/${totalFiles} ${transferProgress}`,
+      text: `${verb} ${name} (${finishedFiles} out of an estimated ${estimatedTotalFiles} completed, ${transferProgress})`,
     }
 
     this.lastResult = {
