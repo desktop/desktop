@@ -25,7 +25,7 @@ export const formatBytes = (
   if (!Number.isFinite(bytes)) {
     return 'Unknown'
   }
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
+  const sizes = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB']
   const sizeIndex = Math.floor(Math.log(Math.abs(bytes)) / Math.log(1024))
   const sign = signType === Sign.Forced && bytes > 0 ? '+' : ''
   const value = round(bytes / Math.pow(1024, sizeIndex), decimals)
