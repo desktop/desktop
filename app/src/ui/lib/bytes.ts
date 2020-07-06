@@ -17,11 +17,11 @@ export const enum Sign {
  *   +23 GiB
  *   -43 B
  */
-export const formatBytes = (
+export function formatBytes(
   bytes: number,
   signType: Sign = Sign.Normal,
   decimals = 0
-) => {
+) {
   if (!Number.isFinite(bytes)) {
     return 'Unknown'
   }
