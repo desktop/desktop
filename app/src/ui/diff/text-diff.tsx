@@ -198,7 +198,7 @@ function showSearch(cm: Editor) {
   ) {
     searchLabel.style.display = 'none'
     searchField.placeholder = 'Search'
-    searchField.style.width = null!
+    delete searchField.style.width
   }
 }
 
