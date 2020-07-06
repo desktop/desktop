@@ -1910,6 +1910,13 @@ export class Dispatcher {
           null
         )
 
+      case RetryActionType.Rebase:
+        return this.rebase(
+          retryAction.repository,
+          retryAction.baseBranch,
+          retryAction.targetBranch
+        )
+
       default:
         return assertNever(retryAction, `Unknown retry action: ${retryAction}`)
     }
