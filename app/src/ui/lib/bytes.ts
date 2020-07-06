@@ -22,15 +22,12 @@ const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']
  *                      readable form
  * @param decimals    - The number of decimals to round the result
  *                      to, defaults to zero
- * @param includeSign - Whether to include the `+` sign for positive
- *                      results
  */
-export function formatBytes(bytes: number, decimals = 0, includeSign = false) {
+export function formatBytes(bytes: number, decimals = 0) {
   if (!Number.isFinite(bytes)) {
     return `${bytes}`
   }
-  const sizeIndex = Math.floor(Math.log(Math.abs(bytes)) / Math.log(1024))
-  const sign = includeSign && bytes > 0 ? '+' : ''
-  const value = round(bytes / Math.pow(1024, sizeIndex), decimals)
-  return `${sign}${value} ${units[sizeIndex]}`
+  const unitIx = Math.floor(Math.log(Math.abs(bytes)) / Math.log(1024))
+  const value = round(bytes / Math.pow(1024, unitIx), decimals)
+  return `${value} ${units[unitIx]}`
 }

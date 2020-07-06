@@ -26,6 +26,7 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
       this.props.current.bytes
     )
     const diffBytes = this.props.current.bytes - this.props.previous.bytes
+    const diffBytesSign = diffBytes >= 0 ? '+' : '-'
 
     return (
       <div className="image-diff-container" ref={this.props.onContainerRef}>
@@ -69,7 +70,7 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
             })}
           >
             {diffBytes !== 0
-              ? `${formatBytes(diffBytes, 0, true)} (${diffPercent})`
+              ? `${diffBytesSign}${formatBytes(diffBytes)} (${diffPercent})`
               : 'No size difference'}
           </span>
         </div>
