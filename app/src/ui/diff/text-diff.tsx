@@ -184,7 +184,7 @@ function showSearch(cm: Editor) {
 
   const dialog = wrapper.querySelector('.CodeMirror-dialog')
 
-  if (!dialog) {
+  if (dialog === null) {
     return
   }
 
