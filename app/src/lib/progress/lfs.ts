@@ -82,18 +82,18 @@ export class GitLFSProgressParser {
         finishedFiles += 1
       }
     })
+    const transferProgress = `${formatBytes(
+      downloadedBytesForAllIndexes
+    )} / ${formatBytes(totalBytesForForAllIndexes)}`
+
     const verb = this.directionToHumanFacingVerb(direction)
     const info: IGitProgressInfo = {
-      title: `${verb} "${name}" ${formatBytes(
-        downloadedBytesForAllIndexes
-      )}/${formatBytes(totalBytesForForAllIndexes)}…`,
+      title: `${verb} "${name}" ${transferProgress}…`,
       value: downloadedBytesForAllIndexes,
       total: totalBytesForForAllIndexes,
       percent: 0,
       done: false,
-      text: `${verb} ${finishedFiles}/${totalFiles} ${formatBytes(
-        downloadedBytesForAllIndexes
-      )}/${formatBytes(totalBytesForForAllIndexes)}`,
+      text: `${verb} ${finishedFiles}/${totalFiles} ${transferProgress}`,
     }
 
     this.lastResult = {
