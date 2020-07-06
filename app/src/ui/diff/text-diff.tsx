@@ -164,12 +164,27 @@ interface ITextDiffProps {
 const diffGutterName = 'diff-gutter'
 
 function showSearch(cm: Editor) {
-  cm.execCommand('findPersistent')
   const wrapper = cm.getWrapperElement()
 
   if (!wrapper) {
     return
   }
+
+  // Is there already a dialog open? If so we'll attempt to move
+  // focus there instead of opening another dialog since CodeMirror
+  // doesn't auto-close dialogs when opening a new one.
+  const existingSearchField = wrapper.querySelector(
+    ':scope.dialog-opened .CodeMirror-dialog .CodeMirror-search-field'
+  )
+
+  if (existingSearchField !== null) {
+    if (existingSearchField instanceof HTMLElement) {
+      existingSearchField.focus()
+    }
+    return
+  }
+
+  cm.execCommand('findPersistent')
 
   const dialog = wrapper.querySelector('.CodeMirror-dialog')
 
