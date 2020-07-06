@@ -192,11 +192,7 @@ function showSearch(cm: Editor) {
   const searchLabel = dialog.querySelector('.CodeMirror-search-label')
   const searchField = dialog.querySelector('.CodeMirror-search-field')
 
-  if (
-    searchLabel instanceof HTMLElement &&
-    searchField instanceof HTMLInputElement
-  ) {
-    searchLabel.style.display = 'none'
+  if (searchField instanceof HTMLInputElement) {
     searchField.placeholder = 'Search'
     delete searchField.style.width
   }
