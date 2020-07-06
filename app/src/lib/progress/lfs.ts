@@ -85,9 +85,10 @@ export class GitLFSProgressParser {
       finishedFiles += file.done ? 1 : 0
     }
 
-    const transferProgress = `${
-      (formatBytes(totalTransferred), 2)
-    } / ${formatBytes(totalEstimated, 2)}`
+    const transferProgress = `${formatBytes(
+      totalTransferred,
+      1
+    )} / ${formatBytes(totalEstimated, 1)}`
 
     const verb = this.directionToHumanFacingVerb(direction)
     const info: IGitProgressInfo = {
