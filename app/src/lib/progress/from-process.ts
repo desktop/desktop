@@ -61,11 +61,10 @@ function createProgressProcessCallback(
       const disposable = tailByLine(lfsProgressPath, line => {
         const progress = lfsParser.parse(line)
 
-        if (!lfsProgressActive && progress.kind === 'progress') {
+        if (progress.kind === 'progress') {
           lfsProgressActive = true
+          progressCallback(progress)
         }
-
-        progressCallback(progress)
       })
 
       process.on('close', () => {

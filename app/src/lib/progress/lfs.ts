@@ -19,18 +19,12 @@ const LFSProgressLineRe = /^(.+?)\s{1}(\d+)\/(\d+)\s{1}(\d+)\/(\d+)\s{1}(.+)$/
 
 interface IFileProgress {
   readonly transferred: number
-  readonly total: number
+  readonly size: number
   readonly done: boolean
 }
 
 /** The progress parser for Git LFS. */
 export class GitLFSProgressParser {
-  private lastResult: IGitProgress | IGitOutput = {
-    kind: 'context',
-    text: 'Downloading Git LFS file…',
-    percent: 0,
-  }
-
   /**
    * A map keyed on the name of each file that LFS has reported
    * progress on with the last seen progress as the value.
@@ -41,61 +35,63 @@ export class GitLFSProgressParser {
   public parse(line: string): IGitProgress | IGitOutput {
     const matches = line.match(LFSProgressLineRe)
     if (!matches || matches.length !== 7) {
-      return this.lastResult
+      return { kind: 'context', percent: 0, text: line }
     }
 
     const direction = matches[1]
-    const totalFiles = parseInt(matches[3], 10)
-    const downloadedBytes = parseInt(matches[4], 10)
-    const totalBytes = parseInt(matches[5], 10)
-    const name = matches[6]
+    const estimatedFileCount = parseInt(matches[3], 10)
+    const fileTransferred = parseInt(matches[4], 10)
+    const fileSize = parseInt(matches[5], 10)
+    const fileName = matches[6]
 
-    if (isNaN(totalFiles) || isNaN(downloadedBytes) || isNaN(totalBytes)) {
-      return this.lastResult
+    if (
+      isNaN(estimatedFileCount) ||
+      isNaN(fileTransferred) ||
+      isNaN(fileSize)
+    ) {
+      return { kind: 'context', percent: 0, text: line }
     }
 
-    this.files.set(name, {
-      transferred: downloadedBytes,
-      total: totalBytes,
-      done: downloadedBytes === totalBytes,
+    this.files.set(fileName, {
+      transferred: fileTransferred,
+      size: fileSize,
+      done: fileTransferred === fileSize,
     })
 
-    let downloadedBytesForAllIndexes = 0
-    let totalBytesForForAllIndexes = 0
+    let totalTransferred = 0
+    let totalEstimated = 0
     let finishedFiles = 0
 
     // When uploading LFS files the estimate is accurate but not
     // when downloading so we'll whichever is biggest of the estimate
     // and the actual number of files we've seen
-    const estimatedTotalFiles = Math.max(totalFiles, this.files.size)
+    const fileCount = Math.max(estimatedFileCount, this.files.size)
 
     for (const file of this.files.values()) {
-      downloadedBytesForAllIndexes += file.transferred
-      totalBytesForForAllIndexes += file.total
+      totalTransferred += file.transferred
+      totalEstimated += file.size
       finishedFiles += file.done ? 1 : 0
     }
 
-    const transferProgress = `${formatBytes(
-      downloadedBytesForAllIndexes
-    )} / ${formatBytes(totalBytesForForAllIndexes)}`
+    const transferProgress = `${formatBytes(totalTransferred)} / ${formatBytes(
+      totalEstimated
+    )}`
 
     const verb = this.directionToHumanFacingVerb(direction)
     const info: IGitProgressInfo = {
-      value: downloadedBytesForAllIndexes,
-      total: totalBytesForForAllIndexes,
       title: `${verb} "${fileName}"`,
+      value: totalTransferred,
+      total: totalEstimated,
       percent: 0,
       done: false,
-      text: `${verb} ${name} (${finishedFiles} out of an estimated ${estimatedTotalFiles} completed, ${transferProgress})`,
+      text: `${verb} ${fileName} (${finishedFiles} out of an estimated ${fileCount} completed, ${transferProgress})`,
     }
 
-    this.lastResult = {
+    return {
       kind: 'progress',
       percent: 0,
       details: info,
     }
-
-    return this.lastResult
   }
 
   private directionToHumanFacingVerb(direction: string): string {
