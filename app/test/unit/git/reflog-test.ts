@@ -78,9 +78,7 @@ describe('git/reflog', () => {
 
       const branches = await getBranchCheckouts(
         repository,
-        moment()
-          .add(1, 'day')
-          .toDate()
+        moment().add(1, 'day').toDate()
       )
       expect(branches.size).toBe(0)
     })
@@ -92,9 +90,7 @@ describe('git/reflog', () => {
 
       const branches = await getBranchCheckouts(
         repository,
-        moment()
-          .subtract(1, 'hour')
-          .toDate()
+        moment().subtract(1, 'hour').toDate()
       )
       expect(branches.size).toBe(2)
     })
@@ -108,9 +104,7 @@ describe('git/reflog', () => {
 
       const branches = await getBranchCheckouts(
         repository,
-        moment()
-          .subtract(1, 'hour')
-          .toDate()
+        moment().subtract(1, 'hour').toDate()
       )
       expect(branches.size).toBe(0)
     })

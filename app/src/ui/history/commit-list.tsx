@@ -1,9 +1,11 @@
 import * as React from 'react'
+import memoize from 'memoize-one'
 import { GitHubRepository } from '../../models/github-repository'
 import { Commit } from '../../models/commit'
 import { CommitListItem } from './commit-list-item'
 import { List } from '../lib/list'
 import { IGitHubUser } from '../../lib/databases'
+import { arrayEquals } from '../../lib/equality'
 
 const RowHeight = 50
 
@@ -47,6 +49,9 @@ interface ICommitListProps {
   /** Callback to fire to open the dialog to create a new tag on the given commit */
   readonly onCreateTag: (targetCommitSha: string) => void
 
+  /** Callback to fire to delete an unpushed tag */
+  readonly onDeleteTag: (tagName: string) => void
+
   /**
    * Optional callback that fires on page scroll in order to allow passing
    * a new scrollTop value up to the parent component for storing.
@@ -58,10 +63,27 @@ interface ICommitListProps {
 
   /* Whether the repository is local (it has no remotes) */
   readonly isLocalRepository: boolean
+
+  /* Tags that haven't been pushed yet. This is used to show the unpushed indicator */
+  readonly tagsToPush: ReadonlyArray<string> | null
 }
 
 /** A component which displays the list of commits. */
 export class CommitList extends React.Component<ICommitListProps, {}> {
+  private commitsHash = memoize(makeCommitsHash, arrayEquals)
+
+  private getVisibleCommits(): ReadonlyArray<Commit> {
+    const commits = new Array<Commit>()
+    for (const sha of this.props.commitSHAs) {
+      const commitMaybe = this.props.commitLookup.get(sha)
+      // this should never be undefined, but just in case
+      if (commitMaybe !== undefined) {
+        commits.push(commitMaybe)
+      }
+    }
+    return commits
+  }
+
   private renderCommit = (row: number) => {
     const sha = this.props.commitSHAs[row]
     const commit = this.props.commitLookup.get(sha)
@@ -75,8 +97,16 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
       return null
     }
 
+    const tagsToPushSet = new Set(this.props.tagsToPush || [])
+
     const isLocal = this.props.localCommitSHAs.includes(commit.sha)
-    const showUnpushedIndicator = isLocal && !this.props.isLocalRepository
+    const unpushedTags = commit.tags.filter(tagName =>
+      tagsToPushSet.has(tagName)
+    )
+
+    const showUnpushedIndicator =
+      (isLocal || unpushedTags.length > 0) &&
+      this.props.isLocalRepository === false
 
     return (
       <CommitListItem
@@ -84,14 +114,37 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         gitHubRepository={this.props.gitHubRepository}
         isLocal={isLocal}
         showUnpushedIndicator={showUnpushedIndicator}
+        unpushedIndicatorTitle={this.getUnpushedIndicatorTitle(
+          isLocal,
+          unpushedTags.length
+        )}
+        unpushedTags={unpushedTags}
         commit={commit}
         gitHubUsers={this.props.gitHubUsers}
         emoji={this.props.emoji}
         onCreateTag={this.props.onCreateTag}
+        onDeleteTag={this.props.onDeleteTag}
         onRevertCommit={this.props.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
       />
     )
+  }
+
+  private getUnpushedIndicatorTitle(
+    isLocalCommit: boolean,
+    numUnpushedTags: number
+  ) {
+    if (isLocalCommit) {
+      return 'This commit has not been pushed to the remote repository'
+    }
+
+    if (numUnpushedTags > 0) {
+      return `This commit has ${numUnpushedTags} tag${
+        numUnpushedTags > 1 ? 's' : ''
+      } to push`
+    }
+
+    return undefined
   }
 
   private onSelectedRowChanged = (row: number) => {
@@ -143,10 +196,23 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
             commits: this.props.commitSHAs,
             gitHubUsers: this.props.gitHubUsers,
             localCommitSHAs: this.props.localCommitSHAs,
+            commitLookupHash: this.commitsHash(this.getVisibleCommits()),
+            tagsToPush: this.props.tagsToPush,
           }}
           setScrollTop={this.props.compareListScrollTop}
         />
       </div>
     )
   }
+}
+
+/**
+ * Makes a hash of the commit's data that will be shown in a CommitListItem
+ */
+function commitListItemHash(commit: Commit): string {
+  return `${commit.sha} ${commit.tags}`
+}
+
+function makeCommitsHash(commits: ReadonlyArray<Commit>): string {
+  return commits.map(commitListItemHash).join(' ')
 }

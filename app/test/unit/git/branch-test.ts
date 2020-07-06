@@ -22,13 +22,24 @@ import {
   git,
   checkoutBranch,
 } from '../../../src/lib/git'
+import { StatsStore, StatsDatabase } from '../../../src/lib/stats'
+import { UiActivityMonitor } from '../../../src/ui/lib/ui-activity-monitor'
 
 describe('git/branch', () => {
+  let statsStore: StatsStore
+
+  beforeEach(() => {
+    statsStore = new StatsStore(
+      new StatsDatabase('test-StatsDatabase'),
+      new UiActivityMonitor()
+    )
+  })
+
   describe('tip', () => {
     it('returns unborn for new repository', async () => {
       const repository = await setupEmptyRepository()
 
-      const store = new GitStore(repository, shell)
+      const store = new GitStore(repository, shell, statsStore)
       await store.loadStatus()
       const tip = store.tip
 
@@ -42,7 +53,7 @@ describe('git/branch', () => {
 
       await GitProcess.exec(['checkout', '-b', 'not-master'], repository.path)
 
-      const store = new GitStore(repository, shell)
+      const store = new GitStore(repository, shell, statsStore)
       await store.loadStatus()
       const tip = store.tip
 
@@ -55,7 +66,7 @@ describe('git/branch', () => {
       const path = await setupFixtureRepository('detached-head')
       const repository = new Repository(path, -1, null, false)
 
-      const store = new GitStore(repository, shell)
+      const store = new GitStore(repository, shell, statsStore)
       await store.loadStatus()
       const tip = store.tip
 
@@ -70,7 +81,7 @@ describe('git/branch', () => {
       const path = await setupFixtureRepository('repo-with-many-refs')
       const repository = new Repository(path, -1, null, false)
 
-      const store = new GitStore(repository, shell)
+      const store = new GitStore(repository, shell, statsStore)
       await store.loadStatus()
       const tip = store.tip
 
@@ -87,7 +98,7 @@ describe('git/branch', () => {
       const path = await setupFixtureRepository('repo-with-multiple-remotes')
       const repository = new Repository(path, -1, null, false)
 
-      const store = new GitStore(repository, shell)
+      const store = new GitStore(repository, shell, statsStore)
       await store.loadStatus()
       const tip = store.tip
 
@@ -102,7 +113,7 @@ describe('git/branch', () => {
       const path = await setupFixtureRepository('repo-with-multiple-remotes')
       const repository = new Repository(path, -1, null, false)
 
-      const store = new GitStore(repository, shell)
+      const store = new GitStore(repository, shell, statsStore)
       await store.loadStatus()
       const tip = store.tip
 

@@ -10,10 +10,7 @@ import { getDotComAPIEndpoint } from './api'
  */
 export function generateGravatarUrl(email: string, size: number = 60): string {
   const input = email.trim().toLowerCase()
-  const hash = crypto
-    .createHash('md5')
-    .update(input)
-    .digest('hex')
+  const hash = crypto.createHash('md5').update(input).digest('hex')
 
   return `https://www.gravatar.com/avatar/${hash}?s=${size}`
 }

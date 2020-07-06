@@ -42,7 +42,7 @@ type StashResult = {
 export async function getStashes(repository: Repository): Promise<StashResult> {
   const delimiter = '1F'
   const delimiterString = String.fromCharCode(parseInt(delimiter, 16))
-  const format = ['%gd', '%H', '%gs'].join(`%x${delimiter}`)
+  const format = ['%gD', '%H', '%gs'].join(`%x${delimiter}`)
 
   const result = await git(
     ['log', '-g', '-z', `--pretty=${format}`, 'refs/stash'],
@@ -149,9 +149,7 @@ export async function createDesktopStashEntry(
     // a valid stash was created and this should not interfere with the checkout
 
     log.info(
-      `[createDesktopStashEntry] a stash was created successfully but exit code ${
-        result.exitCode
-      } reported. stderr: ${result.stderr}`
+      `[createDesktopStashEntry] a stash was created successfully but exit code ${result.exitCode} reported. stderr: ${result.stderr}`
     )
   }
 
@@ -214,9 +212,7 @@ export async function popStashEntry(
       }
 
       log.info(
-        `[popStashEntry] a stash was popped successfully but exit code ${
-          result.exitCode
-        } reported.`
+        `[popStashEntry] a stash was popped successfully but exit code ${result.exitCode} reported.`
       )
       // bye bye
       await dropDesktopStashEntry(repository, stashSha)

@@ -82,12 +82,6 @@ interface ICreateBranchState {
   readonly defaultBranchAtCreateStart: Branch | null
 }
 
-/** Only used for the `onBaseBranchChanged` callback */
-enum SelectedBranch {
-  DefaultishBranch = 0,
-  CurrentBranch = 1,
-}
-
 /** The Create Branch component. */
 export class CreateBranch extends React.Component<
   ICreateBranchProps,
@@ -121,10 +115,15 @@ export class CreateBranch extends React.Component<
     })
 
     if (!this.state.isCreatingBranch) {
+      const defaultStartPoint = getStartPoint(
+        nextProps,
+        StartPoint.UpstreamDefaultBranch
+      )
+
       this.setState({
         tipAtCreateStart: nextProps.tip,
         defaultBranchAtCreateStart: getBranchForStartPoint(
-          this.state.startPoint,
+          defaultStartPoint,
           nextProps
         ),
       })
@@ -176,24 +175,10 @@ export class CreateBranch extends React.Component<
     }
   }
 
-  private onBaseBranchChanged = (selection: SelectedBranch) => {
-    if (selection === SelectedBranch.DefaultishBranch) {
-      // is this a fork?
-      if (
-        this.props.upstreamGitHubRepository !== null &&
-        this.props.upstreamDefaultBranch !== null
-      ) {
-        this.setState({
-          startPoint: StartPoint.UpstreamDefaultBranch,
-        })
-      } else {
-        this.setState({ startPoint: StartPoint.DefaultBranch })
-      }
-    } else if (selection === SelectedBranch.CurrentBranch) {
-      this.setState({ startPoint: StartPoint.CurrentBranch })
-    } else {
-      throw new Error(`Unknown branch selection: ${selection}`)
-    }
+  private onBaseBranchChanged = (startPoint: StartPoint) => {
+    this.setState({
+      startPoint,
+    })
   }
 
   public render() {
@@ -353,18 +338,22 @@ export class CreateBranch extends React.Component<
           title: defaultBranch.name,
           description:
             "The default branch in your repository. Pick this to start on something new that's not dependent on your current branch.",
+          key: StartPoint.DefaultBranch,
         },
         {
           title: currentBranchName,
           description:
             'The currently checked out branch. Pick this if you need to build on work done on this branch.',
+          key: StartPoint.CurrentBranch,
         },
       ]
 
-      const selectedIndex =
-        this.state.startPoint === StartPoint.DefaultBranch ? 0 : 1
+      const selectedValue =
+        this.state.startPoint === StartPoint.DefaultBranch
+          ? this.state.startPoint
+          : StartPoint.CurrentBranch
 
-      return this.renderOptions(items, selectedIndex)
+      return this.renderOptions(items, selectedValue)
     }
   }
 
@@ -396,31 +385,35 @@ export class CreateBranch extends React.Component<
           title: upstreamDefaultBranch.name,
           description:
             "The default branch of the upstream repository. Pick this to start on something new that's not dependent on your current branch.",
+          key: StartPoint.UpstreamDefaultBranch,
         },
         {
           title: currentBranchName,
           description:
             'The currently checked out branch. Pick this if you need to build on work done on this branch.',
+          key: StartPoint.CurrentBranch,
         },
       ]
 
-      const selectedIndex =
-        this.state.startPoint === StartPoint.UpstreamDefaultBranch ? 0 : 1
+      const selectedValue =
+        this.state.startPoint === StartPoint.UpstreamDefaultBranch
+          ? this.state.startPoint
+          : StartPoint.CurrentBranch
 
-      return this.renderOptions(items, selectedIndex)
+      return this.renderOptions(items, selectedValue)
     }
   }
 
   /** Shared method for rendering two choices in this component */
   private renderOptions = (
-    items: ReadonlyArray<ISegmentedItem>,
-    selectedIndex: number
+    items: ReadonlyArray<ISegmentedItem<StartPoint>>,
+    selectedValue: StartPoint
   ) => (
     <Row>
       <VerticalSegmentedControl
         label="Create branch based on…"
         items={items}
-        selectedIndex={selectedIndex}
+        selectedKey={selectedValue}
         onSelectionChanged={this.onBaseBranchChanged}
       />
     </Row>

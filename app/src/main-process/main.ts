@@ -24,8 +24,9 @@ import {
 } from '../lib/source-map-support'
 import { now } from './now'
 import { showUncaughtException } from './show-uncaught-exception'
-import { IMenuItem } from '../lib/menu-item'
+import { ISerializableMenuItem } from '../lib/menu-item'
 import { buildContextMenu } from './menu/build-context-menu'
+import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 
 app.setAppLogsPath()
 enableSourceMaps()
@@ -434,15 +435,25 @@ app.on('ready', () => {
     }
   )
 
-  ipcMain.on(
+  /**
+   * Handle the action to show a contextual menu.
+   *
+   * It responds an array of indices that maps to the path to reach
+   * the menu (or submenu) item that was clicked or null if the menu
+   * was closed without clicking on any item.
+   */
+  ipcMain.handle(
     'show-contextual-menu',
-    (event: Electron.IpcMainEvent, items: ReadonlyArray<IMenuItem>) => {
-      const menu = buildContextMenu(items, ix =>
-        event.sender.send('contextual-menu-action', ix)
-      )
+    (
+      event: Electron.IpcMainInvokeEvent,
+      items: ReadonlyArray<ISerializableMenuItem>
+    ): Promise<ReadonlyArray<number> | null> => {
+      return new Promise(resolve => {
+        const menu = buildContextMenu(items, indices => resolve(indices))
 
-      const window = BrowserWindow.fromWebContents(event.sender)
-      menu.popup({ window })
+        const window = BrowserWindow.fromWebContents(event.sender)
+        menu.popup({ window, callback: () => resolve(null) })
+      })
     }
   )
 
@@ -561,7 +572,17 @@ app.on('web-contents-created', (event, contents) => {
   contents.on('new-window', (event, url) => {
     // Prevent links or window.open from opening new windows
     event.preventDefault()
-    log.warn(`Prevented new window to: ${url}`)
+    const errMsg = `Prevented new window to: ${url}`
+    log.warn(errMsg)
+    sendNonFatalException('newWindowPrevented', Error(errMsg))
+  })
+  // prevent link navigation within our windows
+  // see https://www.electronjs.org/docs/tutorial/security#12-disable-or-limit-navigation
+  contents.on('will-navigate', (event, url) => {
+    event.preventDefault()
+    const errMsg = `Prevented navigation to: ${url}`
+    log.warn(errMsg)
+    sendNonFatalException('willNavigatePrevented', Error(errMsg))
   })
 })
 
@@ -583,7 +604,6 @@ function createWindow() {
     const {
       default: installExtension,
       REACT_DEVELOPER_TOOLS,
-      REACT_PERF,
     } = require('electron-devtools-installer')
 
     require('electron-debug')({ showDevTools: true })
@@ -593,7 +613,7 @@ function createWindow() {
       electron: '>=1.2.1',
     }
 
-    const extensions = [REACT_DEVELOPER_TOOLS, REACT_PERF, ChromeLens]
+    const extensions = [REACT_DEVELOPER_TOOLS, ChromeLens]
 
     for (const extension of extensions) {
       try {

@@ -12,7 +12,10 @@ import { IGitHubUser } from '../../lib/databases/github-user-database'
 import { AvatarStack } from '../lib/avatar-stack'
 import { IMenuItem } from '../../lib/menu-item'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { enableGitTagsCreation } from '../../lib/feature-flag'
+import {
+  enableGitTagsDisplay,
+  enableGitTagsCreation,
+} from '../../lib/feature-flag'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
@@ -22,8 +25,11 @@ interface ICommitProps {
   readonly onRevertCommit?: (commit: Commit) => void
   readonly onViewCommitOnGitHub?: (sha: string) => void
   readonly onCreateTag?: (targetCommitSha: string) => void
+  readonly onDeleteTag?: (tagName: string) => void
   readonly gitHubUsers: Map<string, IGitHubUser> | null
   readonly showUnpushedIndicator: boolean
+  readonly unpushedIndicatorTitle?: string
+  readonly unpushedTags?: ReadonlyArray<string>
 }
 
 interface ICommitListItemState {
@@ -31,7 +37,7 @@ interface ICommitListItemState {
 }
 
 /** A component which displays a single commit in a commit list. */
-export class CommitListItem extends React.Component<
+export class CommitListItem extends React.PureComponent<
   ICommitProps,
   ICommitListItemState
 > {
@@ -85,16 +91,28 @@ export class CommitListItem extends React.Component<
             </div>
           </div>
         </div>
-        {this.renderUnpushedIndicator()}
+        {this.renderCommitIndicators()}
       </div>
     )
   }
 
-  public shouldComponentUpdate(nextProps: ICommitProps): boolean {
-    return (
-      this.props.commit.sha !== nextProps.commit.sha ||
-      this.props.showUnpushedIndicator !== nextProps.showUnpushedIndicator
-    )
+  private renderCommitIndicators() {
+    const tagIndicator = enableGitTagsDisplay()
+      ? renderCommitListItemTags(this.props.commit.tags)
+      : null
+
+    const unpushedIndicator = this.renderUnpushedIndicator()
+
+    if (tagIndicator || unpushedIndicator) {
+      return (
+        <div className="commit-indicators">
+          {tagIndicator}
+          {unpushedIndicator}
+        </div>
+      )
+    }
+
+    return null
   }
 
   private renderUnpushedIndicator() {
@@ -103,13 +121,11 @@ export class CommitListItem extends React.Component<
     }
 
     return (
-      <div className="unpushed-indicator-container">
-        <div
-          className="unpushed-indicator"
-          title="This commit hasn't been pushed to the remote repository yet"
-        >
-          <Octicon symbol={OcticonSymbol.arrowUp} />
-        </div>
+      <div
+        className="unpushed-indicator"
+        title={this.props.unpushedIndicatorTitle}
+      >
+        <Octicon symbol={OcticonSymbol.arrowUp} />
       </div>
     )
   }
@@ -161,6 +177,17 @@ export class CommitListItem extends React.Component<
         action: this.onCreateTag,
         enabled: this.props.onCreateTag !== undefined,
       })
+
+      const deleteTagsMenuItem = this.getDeleteTagsMenuItem()
+
+      if (deleteTagsMenuItem !== null) {
+        items.push(
+          {
+            type: 'separator',
+          },
+          deleteTagsMenuItem
+        )
+      }
     }
 
     items.push(
@@ -178,6 +205,42 @@ export class CommitListItem extends React.Component<
 
     showContextualMenu(items)
   }
+
+  private getDeleteTagsMenuItem(): IMenuItem | null {
+    const { unpushedTags, onDeleteTag, commit } = this.props
+
+    if (
+      onDeleteTag === undefined ||
+      unpushedTags === undefined ||
+      commit.tags.length === 0
+    ) {
+      return null
+    }
+
+    if (commit.tags.length === 1) {
+      const tagName = commit.tags[0]
+
+      return {
+        label: `Delete tag ${tagName}`,
+        action: () => onDeleteTag(tagName),
+        enabled: unpushedTags.includes(tagName),
+      }
+    }
+
+    // Convert tags to a Set to avoid O(n^2)
+    const unpushedTagsSet = new Set(unpushedTags)
+
+    return {
+      label: 'Delete tag…',
+      submenu: commit.tags.map(tagName => {
+        return {
+          label: tagName,
+          action: () => onDeleteTag(tagName),
+          enabled: unpushedTagsSet.has(tagName),
+        }
+      }),
+    }
+  }
 }
 
 function renderRelativeTime(date: Date) {
@@ -186,5 +249,22 @@ function renderRelativeTime(date: Date) {
       {` • `}
       <RelativeTime date={date} abbreviate={true} />
     </>
+  )
+}
+
+function renderCommitListItemTags(tags: ReadonlyArray<string>) {
+  if (tags.length === 0) {
+    return null
+  }
+  const [firstTag] = tags
+  return (
+    <span className="tag-indicator">
+      <span className="tag-name" key={firstTag}>
+        {firstTag}
+      </span>
+      {tags.length > 1 && (
+        <span key={tags.length} className="tag-indicator-more" />
+      )}
+    </span>
   )
 }

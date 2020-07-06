@@ -64,7 +64,7 @@
     box-sizing: content-box;
     margin-right: -11px;
     background-color: inherit;
-    box-shadow: 1px 0 0 $white;
+    box-shadow: 1px 0 0 var(--background-color);
     border-radius: 2px;
     transition: margin 0.1s ease-in-out;
 

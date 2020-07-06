@@ -4,21 +4,15 @@ platform:
   - x64
 
 environment:
-  nodejs_version: '10.17.0'
+  nodejs_version: '12.8.1'
 
 cache:
   - '%USERPROFILE%\.electron'
   - .eslintcache
   - '%LOCALAPPDATA%\Yarn\Cache\v4'
 
-branches:
-  only:
-    - development
-    - /releases\/.+/
-    - /^__release-.*/
-    - /epic\/.*/
-
 skip_tags: true
+skip_branch_with_pr: true
 
 version: '{build}'
 

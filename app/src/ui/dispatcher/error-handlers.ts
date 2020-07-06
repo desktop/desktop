@@ -416,7 +416,7 @@ export async function rebaseConflictsHandler(
     return error
   }
 
-  if (!(gitContext.kind === 'merge' || gitContext.kind === 'pull')) {
+  if (gitContext.kind !== 'merge' && gitContext.kind !== 'pull') {
     return error
   }
 

@@ -4,6 +4,8 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
 
+import * as moment from 'moment'
+
 import { ipcRenderer, remote } from 'electron'
 
 import { App } from './app'
@@ -85,6 +87,11 @@ process.env['LOCAL_GIT_DIRECTORY'] = Path.resolve(__dirname, 'git')
 //   Focus Ring! -- A11ycasts #16: https://youtu.be/ilj2P5-5CjI
 require('wicg-focus-ring')
 
+// setup this moment.js plugin so we can use easier
+// syntax for formatting time duration
+const momentDurationFormatSetup = require('moment-duration-format')
+momentDurationFormatSetup(moment)
+
 const startTime = performance.now()
 
 if (!process.env.TEST_ENV) {
@@ -131,9 +138,7 @@ const sendErrorWithContext = (
           extra.selectedState = `${currentState.selectedState.type}`
 
           if (currentState.selectedState.type === SelectionType.Repository) {
-            extra.selectedRepositorySection = `${
-              currentState.selectedState.state.selectedSection
-            }`
+            extra.selectedRepositorySection = `${currentState.selectedState.state.selectedSection}`
           }
         }
 
@@ -166,9 +171,7 @@ const sendErrorWithContext = (
         extra.accounts = `${currentState.accounts.length}`
 
         if (__DARWIN__) {
-          extra.automaticallySwitchTheme = `${
-            currentState.automaticallySwitchTheme
-          }`
+          extra.automaticallySwitchTheme = `${currentState.automaticallySwitchTheme}`
         }
       }
     } catch (err) {

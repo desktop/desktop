@@ -119,7 +119,7 @@ function getSymbolForState(state: APIRefState): OcticonSymbol {
       return OcticonSymbol.x
     case 'success':
       return OcticonSymbol.check
+    default:
+      return assertNever(state, `Unknown state: ${state}`)
   }
-
-  return assertNever(state, `Unknown state: ${state}`)
 }

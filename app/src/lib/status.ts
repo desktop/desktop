@@ -42,9 +42,9 @@ export function mapStatus(status: AppFileStatus): string {
       return 'Conflicted'
     case AppFileStatusKind.Copied:
       return 'Copied'
+    default:
+      return assertNever(status, `Unknown file status ${status}`)
   }
-
-  return assertNever(status, `Unknown file status ${status}`)
 }
 
 /** Typechecker helper to identify conflicted files */
@@ -72,13 +72,18 @@ export function hasUnresolvedConflicts(
   status: ConflictedFileStatus,
   manualResolution?: ManualConflictResolution
 ) {
+  // if there's a manual resolution, the file does not have unresolved conflicts
+  if (manualResolution !== undefined) {
+    return false
+  }
+
   if (isConflictWithMarkers(status)) {
     // text file may have conflict markers present
     return status.conflictMarkerCount > 0
   }
 
-  // binary file doesn't contain markers, so we check the manual resolution
-  return manualResolution === undefined
+  // binary file doesn't contain markers
+  return true
 }
 
 /** the possible git status entries for a manually conflicted file status

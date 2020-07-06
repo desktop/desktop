@@ -56,19 +56,24 @@ interface IPushPullButtonProps {
 
   /** Whether this component should show its onboarding tutorial nudge arrow */
   readonly shouldNudge: boolean
+
+  /**
+   * The number of tags that would get pushed if the user performed a push.
+   */
+  readonly numTagsToPush: number
 }
 
-function renderAheadBehind(aheadBehind: IAheadBehind) {
+function renderAheadBehind(aheadBehind: IAheadBehind, numTagsToPush: number) {
   const { ahead, behind } = aheadBehind
-  if (ahead === 0 && behind === 0) {
+  if (ahead === 0 && behind === 0 && numTagsToPush === 0) {
     return null
   }
 
   const content = new Array<JSX.Element>()
-  if (ahead > 0) {
+  if (ahead > 0 || numTagsToPush > 0) {
     content.push(
       <span key="ahead">
-        {ahead}
+        {ahead + numTagsToPush}
         <Octicon symbol={OcticonSymbol.arrowSmallUp} />
       </span>
     )
@@ -189,6 +194,7 @@ function publishBranchButton(
 function fetchButton(
   remoteName: string,
   aheadBehind: IAheadBehind,
+  numTagsToPush: number,
   lastFetched: Date | null,
   onClick: () => void
 ) {
@@ -201,7 +207,7 @@ function fetchButton(
       icon={OcticonSymbol.sync}
       onClick={onClick}
     >
-      {renderAheadBehind(aheadBehind)}
+      {renderAheadBehind(aheadBehind, numTagsToPush)}
     </ToolbarButton>
   )
 }
@@ -209,6 +215,7 @@ function fetchButton(
 function pullButton(
   remoteName: string,
   aheadBehind: IAheadBehind,
+  numTagsToPush: number,
   lastFetched: Date | null,
   pullWithRebase: boolean,
   onClick: () => void
@@ -225,7 +232,7 @@ function pullButton(
       icon={OcticonSymbol.arrowDown}
       onClick={onClick}
     >
-      {renderAheadBehind(aheadBehind)}
+      {renderAheadBehind(aheadBehind, numTagsToPush)}
     </ToolbarButton>
   )
 }
@@ -233,6 +240,7 @@ function pullButton(
 function pushButton(
   remoteName: string,
   aheadBehind: IAheadBehind,
+  numTagsToPush: number,
   lastFetched: Date | null,
   onClick: () => void
 ) {
@@ -244,7 +252,7 @@ function pushButton(
       icon={OcticonSymbol.arrowUp}
       onClick={onClick}
     >
-      {renderAheadBehind(aheadBehind)}
+      {renderAheadBehind(aheadBehind, numTagsToPush)}
     </ToolbarButton>
   )
 }
@@ -262,6 +270,7 @@ const forcePushIcon = new OcticonSymbol(
 function forcePushButton(
   remoteName: string,
   aheadBehind: IAheadBehind,
+  numTagsToPush: number,
   lastFetched: Date | null,
   onClick: () => void
 ) {
@@ -273,7 +282,7 @@ function forcePushButton(
       icon={forcePushIcon}
       onClick={onClick}
     >
-      {renderAheadBehind(aheadBehind)}
+      {renderAheadBehind(aheadBehind, numTagsToPush)}
     </ToolbarButton>
   )
 }
@@ -307,6 +316,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
       progress,
       networkActionInProgress,
       aheadBehind,
+      numTagsToPush,
       remoteName,
       repository,
       tipState,
@@ -343,14 +353,21 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
 
     const { ahead, behind } = aheadBehind
 
-    if (ahead === 0 && behind === 0) {
-      return fetchButton(remoteName, aheadBehind, lastFetched, this.fetch)
+    if (ahead === 0 && behind === 0 && numTagsToPush === 0) {
+      return fetchButton(
+        remoteName,
+        aheadBehind,
+        numTagsToPush,
+        lastFetched,
+        this.fetch
+      )
     }
 
     if (isForcePush) {
       return forcePushButton(
         remoteName,
         aheadBehind,
+        numTagsToPush,
         lastFetched,
         this.forcePushWithLease
       )
@@ -360,12 +377,19 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
       return pullButton(
         remoteName,
         aheadBehind,
+        numTagsToPush,
         lastFetched,
         pullWithRebase || false,
         this.pull
       )
     }
 
-    return pushButton(remoteName, aheadBehind, lastFetched, this.push)
+    return pushButton(
+      remoteName,
+      aheadBehind,
+      numTagsToPush,
+      lastFetched,
+      this.push
+    )
   }
 }
