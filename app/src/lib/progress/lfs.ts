@@ -31,6 +31,10 @@ export class GitLFSProgressParser {
     percent: 0,
   }
 
+  /**
+   * A map keyed on the name of each file that LFS has reported
+   * progress on with the last seen progress as the value.
+   */
   private readonly files = new Map<string, IFileProgress>()
 
   /** Parse the progress line. */
