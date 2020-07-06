@@ -31,7 +31,7 @@ export class GitLFSProgressParser {
     percent: 0,
   }
 
-  private updates = new Map<string, IFileProgress>()
+  private readonly files = new Map<string, IFileProgress>()
 
   /** Parse the progress line. */
   public parse(line: string): IGitProgress | IGitOutput {
@@ -50,7 +50,7 @@ export class GitLFSProgressParser {
       return this.lastResult
     }
 
-    this.updates.set(name, {
+    this.files.set(name, {
       transferred: downloadedBytes,
       total: totalBytes,
       done: downloadedBytes === totalBytes,
@@ -63,9 +63,9 @@ export class GitLFSProgressParser {
     // When uploading LFS files the estimate is accurate but not
     // when downloading so we'll whichever is biggest of the estimate
     // and the actual number of files we've seen
-    const estimatedTotalFiles = Math.max(totalFiles, this.updates.size)
+    const estimatedTotalFiles = Math.max(totalFiles, this.files.size)
 
-    for (const { transferred, total, done } of this.updates.values()) {
+    for (const { transferred, total, done } of this.files.values()) {
       downloadedBytesForAllIndexes += transferred
       totalBytesForForAllIndexes += total
       finishedFiles += done ? 1 : 0
