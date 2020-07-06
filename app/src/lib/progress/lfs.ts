@@ -18,8 +18,20 @@ export async function createLFSProgressFile(): Promise<string> {
 const LFSProgressLineRe = /^(.+?)\s{1}(\d+)\/(\d+)\s{1}(\d+)\/(\d+)\s{1}(.+)$/
 
 interface IFileProgress {
+  /**
+   * The number of bytes that have been transferred
+   * for this file
+   */
   readonly transferred: number
+
+  /**
+   * The total size of the file in bytes
+   */
   readonly size: number
+
+  /**
+   * Whether this file has been transferred fully
+   */
   readonly done: boolean
 }
 
