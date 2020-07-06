@@ -27,7 +27,7 @@ interface ILocalChangesOverwrittenDialogProps {
   readonly onDismissed: () => void
 }
 interface ILocalChangesOverwrittenDialogState {
-  readonly loading: boolean
+  readonly stashingAndRetrying: boolean
 }
 
 export class LocalChangesOverwrittenDialog extends React.Component<
@@ -36,14 +36,15 @@ export class LocalChangesOverwrittenDialog extends React.Component<
 > {
   public constructor(props: ILocalChangesOverwrittenDialogProps) {
     super(props)
-    this.state = { loading: false }
+    this.state = { stashingAndRetrying: false }
   }
 
   public render() {
     return (
       <Dialog
         title="Error"
-        loading={this.state.loading}
+        loading={this.state.stashingAndRetrying}
+        disabled={this.state.stashingAndRetrying}
         onDismissed={this.props.onDismissed}
         onSubmit={this.onSubmit}
         type="error"
@@ -61,7 +62,7 @@ export class LocalChangesOverwrittenDialog extends React.Component<
   }
 
   private renderStashText() {
-    if (this.props.hasExistingStash) {
+    if (this.props.hasExistingStash && !this.state.stashingAndRetrying) {
       return null
     }
 
@@ -69,7 +70,7 @@ export class LocalChangesOverwrittenDialog extends React.Component<
   }
 
   private renderFooter() {
-    if (this.props.hasExistingStash) {
+    if (this.props.hasExistingStash && !this.state.stashingAndRetrying) {
       return <DefaultDialogFooter />
     }
 
@@ -97,7 +98,7 @@ export class LocalChangesOverwrittenDialog extends React.Component<
       return
     }
 
-    this.setState({ loading: true })
+    this.setState({ stashingAndRetrying: true })
 
     await this.props.dispatcher.createStashForCurrentBranch(
       this.props.repository,
