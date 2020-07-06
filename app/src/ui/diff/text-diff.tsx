@@ -194,7 +194,7 @@ function showSearch(cm: Editor) {
 
   if (searchField instanceof HTMLInputElement) {
     searchField.placeholder = 'Search'
-    delete searchField.style.width
+    searchField.style.removeProperty('width')
   }
 }
 
