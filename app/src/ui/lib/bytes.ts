@@ -28,6 +28,6 @@ export const formatBytes = (
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
   const sizeIndex = Math.floor(Math.log(Math.abs(bytes)) / Math.log(1024))
   const sign = signType === Sign.Forced && bytes > 0 ? '+' : ''
-  return `${sign}${value}${sizes[sizeIndex]}`
   const value = round(bytes / Math.pow(1024, sizeIndex), decimals)
+  return `${sign}${value} ${sizes[sizeIndex]}`
 }
