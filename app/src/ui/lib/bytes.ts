@@ -13,7 +13,7 @@ const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']
  */
 export function formatBytes(bytes: number, decimals = 0, includeSign = false) {
   if (!Number.isFinite(bytes)) {
-    return 'Unknown'
+    return `${bytes}`
   }
   const sizeIndex = Math.floor(Math.log(Math.abs(bytes)) / Math.log(1024))
   const sign = includeSign && bytes > 0 ? '+' : ''
