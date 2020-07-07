@@ -79,7 +79,7 @@ export class DiscardSelection extends React.Component<
         type="warning"
       >
         <DialogContent>
-          <p>Are you sure you want to discard the selected changes to</p>
+          <p>Are you sure you want to discard the selected changes to:</p>
 
           <ul>
             <li>
