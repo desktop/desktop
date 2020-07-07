@@ -2293,7 +2293,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const selectableLines = new Set<number>()
-    if (diff.kind === DiffType.Text) {
+    if (diff.kind === DiffType.Text || diff.kind === DiffType.LargeText) {
       // The diff might have changed dramatically since last we loaded it.
       // Ideally we would be more clever about validating that any partial
       // selection state is still valid by ensuring that selected lines still

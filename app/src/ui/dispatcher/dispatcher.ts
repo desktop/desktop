@@ -168,7 +168,7 @@ export class Dispatcher {
   }
 
   /** Remove the repositories represented by the given IDs from local storage. */
-  public removeRepositories(
+  public async removeRepositories(
     repositories: ReadonlyArray<Repository | CloningRepository>,
     moveToTrash: boolean
   ): Promise<void> {
