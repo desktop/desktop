@@ -8,7 +8,6 @@ import { Account } from '../models/account'
  * following rules:
  *
  *  - the primary email if it's publicly visible
- *  - the first public email
  *  - an anonymous (i.e. '@users.noreply.github.com') email address
  *  - the first email address returned from the API
  *  - an automatically generated stealth email based on the user's
