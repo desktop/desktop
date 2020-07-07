@@ -1058,7 +1058,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     repository: Repository,
     deleteRepoFromDisk: boolean
   ) => {
-    this.props.dispatcher.removeRepositories([repository], deleteRepoFromDisk)
+    return this.props.dispatcher.removeRepositories(
+      [repository],
+      deleteRepoFromDisk
+    )
   }
 
   private getRepository(): Repository | CloningRepository | null {
