@@ -14,7 +14,7 @@ import getFileMetadata from 'file-metadata'
  * NOTE: This method will always return false when not running on macOS.
  */
 export async function isApplicationBundle(path: string): Promise<boolean> {
-  if (!__DARWIN__) {
+  if (process.platform !== 'darwin') {
     return false
   }
 
