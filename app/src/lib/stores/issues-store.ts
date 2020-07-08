@@ -3,6 +3,7 @@ import { API, IAPIIssue } from '../api'
 import { Account } from '../../models/account'
 import { GitHubRepository } from '../../models/github-repository'
 import { compare, compareDescending } from '../compare'
+import { DefaultMaxHits } from '../../ui/autocompletion/common'
 
 /** An autocompletion hit for an issue. */
 export interface IIssueHit {
@@ -161,7 +162,7 @@ export class IssuesStore {
   public async getIssuesMatching(
     repository: GitHubRepository,
     text: string,
-    maxHits = 25
+    maxHits = DefaultMaxHits
   ): Promise<ReadonlyArray<IIssueHit>> {
     assertPersisted(repository, this.getIssuesMatching.name)
 

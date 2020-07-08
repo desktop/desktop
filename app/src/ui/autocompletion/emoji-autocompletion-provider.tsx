@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { IAutocompletionProvider } from './index'
 import { compare } from '../../lib/compare'
+import { DefaultMaxHits } from './common'
 
 /**
  * Interface describing a autocomplete match for the given search
@@ -41,7 +42,7 @@ export class EmojiAutocompletionProvider
 
   public async getAutocompletionItems(
     text: string,
-    maxHits = 25
+    maxHits = DefaultMaxHits
   ): Promise<ReadonlyArray<IEmojiHit>> {
     // This is the happy path to avoid sorting and matching
     // when the user types a ':'. We want to open the popup

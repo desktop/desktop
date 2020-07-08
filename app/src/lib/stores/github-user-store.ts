@@ -9,6 +9,7 @@ import {
 import { compare } from '../compare'
 import { BaseStore } from './base-store'
 import { getStealthEmailForUser, getLegacyStealthEmailForUser } from '../email'
+import { DefaultMaxHits } from '../../ui/autocompletion/common'
 
 /** Don't fetch mentionables more often than every 10 minutes */
 const MaxFetchFrequency = 10 * 60 * 1000
@@ -146,7 +147,7 @@ export class GitHubUserStore extends BaseStore {
   public async getMentionableUsersMatching(
     repository: GitHubRepository,
     query: string,
-    maxHits: number = 25
+    maxHits: number = DefaultMaxHits
   ): Promise<ReadonlyArray<IMentionableUser>> {
     assertPersisted(repository, this.getMentionableUsersMatching.name)
 
