@@ -29,7 +29,7 @@ export class EmojiAutocompletionProvider
   implements IAutocompletionProvider<IEmojiHit> {
   public readonly kind = 'emoji'
 
-  private emoji: Map<string, string>
+  private readonly emoji: Map<string, string>
 
   public constructor(emoji: Map<string, string>) {
     this.emoji = emoji
