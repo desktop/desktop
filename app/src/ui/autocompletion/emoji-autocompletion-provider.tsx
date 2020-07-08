@@ -42,10 +42,10 @@ export class EmojiAutocompletionProvider
   public async getAutocompletionItems(
     text: string
   ): Promise<ReadonlyArray<IEmojiHit>> {
-    // Empty strings is falsy, this is the happy path to avoid
-    // sorting and matching when the user types a ':'. We want
-    // to open the popup with suggestions as fast as possible.
-    if (!text) {
+    // This is the happy path to avoid sorting and matching
+    // when the user types a ':'. We want to open the popup
+    // with suggestions as fast as possible.
+    if (text.length === 0) {
       return Array.from(this.emoji.keys()).map<IEmojiHit>(emoji => {
         return { emoji: emoji, matchStart: 0, matchLength: 0 }
       })
