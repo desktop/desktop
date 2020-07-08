@@ -142,7 +142,7 @@ export class GitHubUserStore extends BaseStore {
   public async getMentionableUsersMatching(
     repository: GitHubRepository,
     query: string,
-    maxHits: number = 5
+    maxHits: number = 100
   ): Promise<ReadonlyArray<IMentionableUser>> {
     assertPersisted(repository, this.getMentionableUsersMatching.name)
 
