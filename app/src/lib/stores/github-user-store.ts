@@ -154,14 +154,13 @@ export class GitHubUserStore extends BaseStore {
     assertPersisted(repository, this.getMentionableUsersMatching.name)
 
     const cache = this.queryCache
-    let users
 
-    if (cache !== null && cache.repository.dbID === repository.dbID) {
-      users = cache.users
-    } else {
-      users = await this.getMentionableUsers(repository)
-      this.setQueryCache(repository, users)
-    }
+    const users =
+      cache?.repository.dbID === repository.dbID
+        ? cache.users
+        : await this.getMentionableUsers(repository)
+
+    this.setQueryCache(repository, users)
 
     const hits = []
     const needle = query.toLowerCase()
