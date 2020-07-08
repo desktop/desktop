@@ -161,7 +161,7 @@ export class IssuesStore {
   public async getIssuesMatching(
     repository: GitHubRepository,
     text: string,
-    maxHits = 5
+    maxHits = 25
   ): Promise<ReadonlyArray<IIssueHit>> {
     assertPersisted(repository, this.getIssuesMatching.name)
 
