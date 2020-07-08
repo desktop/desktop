@@ -17,6 +17,8 @@ import { OkCancelButtonGroup } from './dialog/ok-cancel-button-group'
 import { ErrorWithMetadata } from '../lib/error-with-metadata'
 import { RetryActionType, RetryAction } from '../models/retry-actions'
 import { Ref } from './lib/ref'
+import memoizeOne from 'memoize-one'
+import { parseCarriageReturn } from '../lib/parse-carriage-return'
 
 interface IAppErrorProps {
   /** The list of queued, app-wide, errors  */
@@ -49,6 +51,7 @@ interface IAppErrorState {
  */
 export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   private dialogContent: HTMLDivElement | null = null
+  private formatGitErrorMessage = memoizeOne(parseCarriageReturn)
 
   public constructor(props: IAppErrorProps) {
     super(props)
@@ -108,7 +111,6 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   }
 
   private renderErrorMessage(error: Error) {
-    let monospace = false
     const e = error instanceof ErrorWithMetadata ? error.underlyingError : error
 
     if (e instanceof GitError) {
@@ -116,13 +118,12 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       // If the error message is the same as stderr or stdout then we know
       // it's output from git and we'll display it in fixed-width font
       if (e.message === e.result.stderr || e.message === e.result.stdout) {
-        monospace = true
+        const formattedMessage = this.formatGitErrorMessage(e.message)
+        return <p className="monospace">{formattedMessage}</p>
       }
     }
 
-    const className = monospace ? 'monospace' : undefined
-
-    return <p className={className}>{e.message}</p>
+    return <p>{e.message}</p>
   }
 
   private getTitle(error: Error) {

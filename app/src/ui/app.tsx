@@ -53,11 +53,7 @@ import {
   RevertProgress,
 } from './toolbar'
 import { OcticonSymbol, iconForRepository } from './octicons'
-import {
-  showCertificateTrustDialog,
-  registerContextualMenuActionDispatcher,
-  sendReady,
-} from './main-process-proxy'
+import { showCertificateTrustDialog, sendReady } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { Welcome } from './welcome'
 import { AppMenuBar } from './app-menu'
@@ -188,8 +184,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   public constructor(props: IAppProps) {
     super(props)
-
-    registerContextualMenuActionDispatcher()
 
     props.dispatcher.loadInitialState().then(() => {
       this.loading = false
@@ -343,6 +337,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.deleteBranch()
       case 'discard-all-changes':
         return this.discardAllChanges()
+      case 'stash-all-changes':
+        return this.stashAllChanges()
       case 'show-preferences':
         return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
       case 'open-working-directory':
@@ -394,9 +390,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.testPruneBranches()
       case 'find-text':
         return this.findText()
+      default:
+        return assertNever(name, `Unknown menu event name: ${name}`)
     }
-
-    return assertNever(name, `Unknown menu event name: ${name}`)
   }
 
   /**
@@ -599,9 +595,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const compareURL = `${htmlURL}/compare/${
-      branchTip.branch.upstreamWithoutRemote
-    }`
+    const compareURL = `${htmlURL}/compare/${branchTip.branch.upstreamWithoutRemote}`
     this.props.dispatcher.openInBrowser(compareURL)
   }
 
@@ -676,6 +670,14 @@ export class App extends React.Component<IAppProps, IAppState> {
       showDiscardChangesSetting: false,
       discardingAllChanges: true,
     })
+  }
+
+  private stashAllChanges() {
+    const repository = this.getRepository()
+
+    if (repository !== null && repository instanceof Repository) {
+      this.props.dispatcher.createStashForCurrentBranch(repository)
+    }
   }
 
   private showAddLocalRepo = () => {
@@ -1056,7 +1058,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     repository: Repository,
     deleteRepoFromDisk: boolean
   ) => {
-    this.props.dispatcher.removeRepositories([repository], deleteRepoFromDisk)
+    return this.props.dispatcher.removeRepositories(
+      [repository],
+      deleteRepoFromDisk
+    )
   }
 
   private getRepository(): Repository | CloningRepository | null {

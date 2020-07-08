@@ -32,12 +32,13 @@ import { arrayEquals } from '../../lib/equality'
 import { clipboard } from 'electron'
 import { basename } from 'path'
 import { ICommitContext } from '../../models/commit'
-import { RebaseConflictState } from '../../lib/app-state'
+import { RebaseConflictState, ConflictState } from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { IStashEntry } from '../../models/stash-entry'
 import * as classNames from 'classnames'
 import { hasWritePermission } from '../../models/github-repository'
+import { hasConflictedFiles } from '../../lib/status'
 
 const RowHeight = 29
 const StashIcon = new OcticonSymbol(
@@ -94,6 +95,11 @@ function getIncludeAllValue(
 interface IChangesListProps {
   readonly repository: Repository
   readonly workingDirectory: WorkingDirectoryStatus
+  /**
+   * An object containing the conflicts in the working directory.
+   * When null it means that there are no conflicts.
+   */
+  readonly conflictState: ConflictState | null
   readonly rebaseConflictState: RebaseConflictState | null
   readonly selectedFileIDs: ReadonlyArray<string>
   readonly onFileSelectionChanged: (rows: ReadonlyArray<number>) => void
@@ -119,6 +125,9 @@ interface IChangesListProps {
    * @param path The path of the file relative to the root of the repository
    */
   readonly onOpenItem: (path: string) => void
+  /**
+   * The currently checked out branch (null if no branch is checked out).
+   */
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
   readonly gitHubUser: IGitHubUser | null
@@ -272,6 +281,10 @@ export class ChangesList extends React.Component<
     )
   }
 
+  private onStashChanges = () => {
+    this.props.dispatcher.createStashForCurrentBranch(this.props.repository)
+  }
+
   private onDiscardChanges = (files: ReadonlyArray<string>) => {
     const workingDirectory = this.props.workingDirectory
 
@@ -327,11 +340,29 @@ export class ChangesList extends React.Component<
       return
     }
 
+    const hasLocalChanges = this.props.workingDirectory.files.length > 0
+    const hasStash = this.props.stashEntry !== null
+    const hasConflicts =
+      this.props.conflictState !== null ||
+      hasConflictedFiles(this.props.workingDirectory)
+
+    const stashAllChangesLabel = __DARWIN__
+      ? 'Stash All Changes'
+      : 'Stash all changes'
+    const confirmStashAllChangesLabel = __DARWIN__
+      ? 'Stash All Changes…'
+      : 'Stash all changes…'
+
     const items: IMenuItem[] = [
       {
         label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
         action: this.onDiscardAllChanges,
-        enabled: this.props.workingDirectory.files.length > 0,
+        enabled: hasLocalChanges,
+      },
+      {
+        label: hasStash ? confirmStashAllChangesLabel : stashAllChangesLabel,
+        action: this.onStashChanges,
+        enabled: hasLocalChanges && this.props.branch !== null && !hasConflicts,
       },
     ]
 
@@ -704,6 +735,13 @@ export class ChangesList extends React.Component<
     const fileCount = this.props.workingDirectory.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
+
+    const selectedChangeCount = this.props.workingDirectory.files.filter(
+      file => file.selection.getSelectionType() !== DiffSelectionType.None
+    ).length
+    const selectedFilesPlural = selectedChangeCount === 1 ? 'file' : 'files'
+    const selectedChangesDescription = `${selectedChangeCount} changed ${selectedFilesPlural} selected`
+
     const includeAllValue = getIncludeAllValue(
       this.props.workingDirectory,
       this.props.rebaseConflictState
@@ -716,7 +754,11 @@ export class ChangesList extends React.Component<
 
     return (
       <div className="changes-list-container file-list">
-        <div className="header" onContextMenu={this.onContextMenu}>
+        <div
+          className="header"
+          onContextMenu={this.onContextMenu}
+          title={selectedChangesDescription}
+        >
           <Checkbox
             label={filesDescription}
             value={includeAllValue}

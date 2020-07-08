@@ -178,18 +178,14 @@ export async function getStatus(
 
   if (result.exitCode === 128) {
     log.debug(
-      `'git status' returned 128 for '${
-        repository.path
-      }' and is likely missing its .git directory`
+      `'git status' returned 128 for '${repository.path}' and is likely missing its .git directory`
     )
     return null
   }
 
   if (result.output.length > MaxStatusBufferSize) {
     log.error(
-      `'git status' emitted ${
-        result.output.length
-      } bytes, which is beyond the supported threshold of ${MaxStatusBufferSize} bytes`
+      `'git status' emitted ${result.output.length} bytes, which is beyond the supported threshold of ${MaxStatusBufferSize} bytes`
     )
     return null
   }

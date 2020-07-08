@@ -209,7 +209,7 @@ export type Popup =
   | {
       type: PopupType.ConfirmOverwriteStash
       repository: Repository
-      branchToCheckout: Branch
+      branchToCheckout: Branch | null
     }
   | {
       type: PopupType.ConfirmDiscardStash

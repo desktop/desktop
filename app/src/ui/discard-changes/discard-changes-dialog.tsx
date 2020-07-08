@@ -5,7 +5,6 @@ import { Dispatcher } from '../dispatcher'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { PathText } from '../lib/path-text'
-import { Monospaced } from '../lib/monospaced'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { TrashNameLabel } from '../lib/context-menu'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
@@ -141,9 +140,7 @@ export class DiscardChanges extends React.Component<
           <ul>
             {this.props.files.map(p => (
               <li key={p.id}>
-                <Monospaced>
-                  <PathText path={p.path} />
-                </Monospaced>
+                <PathText path={p.path} />
               </li>
             ))}
           </ul>

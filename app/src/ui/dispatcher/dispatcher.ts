@@ -168,7 +168,7 @@ export class Dispatcher {
   }
 
   /** Remove the repositories represented by the given IDs from local storage. */
-  public removeRepositories(
+  public async removeRepositories(
     repositories: ReadonlyArray<Repository | CloningRepository>,
     moveToTrash: boolean
   ): Promise<void> {
@@ -1017,9 +1017,7 @@ export class Dispatcher {
     const afterSha = getTipSha(tip)
 
     log.info(
-      `[rebase] completed rebase - got ${result} and on tip ${afterSha} - kind ${
-        tip.kind
-      }`
+      `[rebase] completed rebase - got ${result} and on tip ${afterSha} - kind ${tip.kind}`
     )
 
     if (result === RebaseResult.ConflictsEncountered) {
@@ -1048,9 +1046,7 @@ export class Dispatcher {
     } else if (result === RebaseResult.CompletedWithoutError) {
       if (tip.kind !== TipState.Valid) {
         log.warn(
-          `[rebase] tip after completing rebase is ${
-            tip.kind
-          } but this should be a valid tip if the rebase completed without error`
+          `[rebase] tip after completing rebase is ${tip.kind} but this should be a valid tip if the rebase completed without error`
         )
         return
       }
@@ -1114,9 +1110,7 @@ export class Dispatcher {
     const afterSha = getTipSha(tip)
 
     log.info(
-      `[continueRebase] completed rebase - got ${result} and on tip ${afterSha} - kind ${
-        tip.kind
-      }`
+      `[continueRebase] completed rebase - got ${result} and on tip ${afterSha} - kind ${tip.kind}`
     )
 
     if (result === RebaseResult.ConflictsEncountered) {
@@ -1146,9 +1140,7 @@ export class Dispatcher {
     } else if (result === RebaseResult.CompletedWithoutError) {
       if (tip.kind !== TipState.Valid) {
         log.warn(
-          `[continueRebase] tip after completing rebase is ${
-            tip.kind
-          } but this should be a valid tip if the rebase completed without error`
+          `[continueRebase] tip after completing rebase is ${tip.kind} but this should be a valid tip if the rebase completed without error`
         )
         return
       }
@@ -1320,6 +1312,31 @@ export class Dispatcher {
    */
   public resetSignInState(): Promise<void> {
     return this.appStore._resetSignInState()
+  }
+
+  /**
+   * Subscribe to an event which is emitted whenever the sign in store re-evaluates
+   * whether or not GitHub.com supports username and password authentication.
+   *
+   * Note that this event may fire without the state having changed as it's
+   * fired when refreshed and not when changed.
+   */
+  public onDotComSupportsBasicAuthUpdated(
+    fn: (dotComSupportsBasicAuth: boolean) => void
+  ) {
+    return this.appStore._onDotComSupportsBasicAuthUpdated(fn)
+  }
+
+  /**
+   * Attempt to _synchronously_ retrieve whether GitHub.com supports
+   * username and password authentication. If the SignInStore has
+   * previously checked the API to determine the actual status that
+   * cached value is returned. If not we attempt to calculate the
+   * most probably state based on the current date and the deprecation
+   * timeline.
+   */
+  public tryGetDotComSupportsBasicAuth(): boolean {
+    return this.appStore._tryGetDotComSupportsBasicAuth()
   }
 
   /**
@@ -2328,6 +2345,24 @@ export class Dispatcher {
     callback: StatusCallBack
   ): IDisposable {
     return this.commitStatusStore.subscribe(repository, ref, callback)
+  }
+
+  /**
+   * Creates a stash for the current branch. Note that this will
+   * override any stash that already exists for the current branch.
+   *
+   * @param repository
+   * @param showConfirmationDialog  Whether to show a confirmation dialog if an
+   *                                existing stash exists (defaults to true).
+   */
+  public createStashForCurrentBranch(
+    repository: Repository,
+    showConfirmationDialog: boolean = true
+  ) {
+    return this.appStore._createStashForCurrentBranch(
+      repository,
+      showConfirmationDialog
+    )
   }
 
   /** Drops the given stash in the given repository */

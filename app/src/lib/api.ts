@@ -208,7 +208,11 @@ export interface IAPIMentionableUser {
 
   readonly login: string
 
-  readonly name: string
+  /**
+   * The user's real name or null if the user hasn't provided
+   * a real name for their public profile.
+   */
+  readonly name: string | null
 }
 
 /**
@@ -654,9 +658,7 @@ export class API {
       if (e instanceof APIError) {
         if (org !== null) {
           throw new Error(
-            `Unable to create repository for organization '${
-              org.login
-            }'. Verify that the repository does not already exist and that you have permission to create a repository there.`
+            `Unable to create repository for organization '${org.login}'. Verify that the repository does not already exist and that you have permission to create a repository there.`
           )
         }
         throw e
@@ -680,9 +682,7 @@ export class API {
       return await parsedResponse<IAPIRepository>(response)
     } catch (e) {
       log.error(
-        `forkRepository: failed to fork ${owner}/${name} at endpoint: ${
-          this.endpoint
-        }`,
+        `forkRepository: failed to fork ${owner}/${name} at endpoint: ${this.endpoint}`,
         e
       )
       throw e
