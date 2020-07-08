@@ -144,7 +144,7 @@ export class GitHubUserStore extends BaseStore {
     query: string,
     maxHits: number = 5
   ): Promise<ReadonlyArray<IMentionableUser>> {
-    assertPersisted(repository, this.getMentionableUsers.name)
+    assertPersisted(repository, this.getMentionableUsersMatching.name)
 
     const cache = this.queryCache
     let users
