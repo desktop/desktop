@@ -121,6 +121,7 @@ export class GitHubUserStore extends BaseStore {
       this.queryCache.repository.dbID === repository.dbID
     ) {
       this.queryCache = null
+      this.clearCachePruneTimeout()
     }
   }
 
