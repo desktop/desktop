@@ -6,6 +6,14 @@ import { fatalError } from '../fatal-error'
 
 /** The hard limit on the number of issue results we'd ever return. */
 const IssueResultsHardLimit = 100
+/** An autocompletion hit for an issue. */
+export interface IIssueHit {
+  /** The title of the issue. */
+  readonly title: string
+
+  /** The issue's number. */
+  readonly number: number
+}
 
 /** The store for GitHub issues. */
 export class IssuesStore {
@@ -140,7 +148,7 @@ export class IssuesStore {
   public async getIssuesMatching(
     repository: GitHubRepository,
     text: string
-  ): Promise<ReadonlyArray<IIssue>> {
+  ): Promise<ReadonlyArray<IIssueHit>> {
     assertPersisted(repository, this.getIssuesMatching.name)
 
     if (!text.length) {
