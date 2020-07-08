@@ -3,7 +3,7 @@ import { ImageContainer } from './image-container'
 import { ICommonImageDiffProperties } from './modified-image-diff'
 import { ISize } from './sizing'
 import { formatBytes, Sign } from '../../lib/bytes'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 
 interface ITwoUpProps extends ICommonImageDiffProperties {
   readonly previousImageSize: ISize | null

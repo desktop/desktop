@@ -7,7 +7,7 @@ import {
 } from '../lib/list'
 import { IAutocompletionProvider } from './index'
 import { fatalError } from '../../lib/fatal-error'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 
 interface IRange {
   readonly start: number

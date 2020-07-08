@@ -3,6 +3,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "target": "es2017",
+    "esModuleInterop": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     "noImplicitReturns": true,

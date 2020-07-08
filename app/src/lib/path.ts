@@ -1,5 +1,5 @@
 import * as Path from 'path'
-import fileUrl = require('file-url')
+import fileUrl from 'file-url'
 
 /**
  * Resolve and encode the path information into a URL.

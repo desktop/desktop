@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { CSSTransitionGroup } from 'react-transition-group'
+import CSSTransitionGroup from 'react-transition-group/CSSTransitionGroup'
 
 import { IGitHubUser } from '../../lib/databases'
 import { Commit } from '../../models/commit'
