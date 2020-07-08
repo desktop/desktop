@@ -164,8 +164,7 @@ export class GitHubUserStore extends BaseStore {
     const needle = query.toLowerCase()
 
     // Simple substring comparison on login and real name
-    for (let i = 0; i < users.length && hits.length < maxHits; i++) {
-      const user = users[i]
+    for (const user of users) {
       const ix = `${user.login} ${user.name}`
         .trim()
         .toLowerCase()
@@ -185,6 +184,7 @@ export class GitHubUserStore extends BaseStore {
       .sort(
         (x, y) => compare(x.ix, y.ix) || compare(x.user.login, y.user.login)
       )
+      .slice(0, maxHits)
       .map(h => h.user)
   }
 
