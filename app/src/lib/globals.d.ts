@@ -228,5 +228,6 @@ declare class ResizeObserver {
 
 declare module 'file-metadata' {
   // eslint-disable-next-line no-restricted-syntax
-  export default function fileMetadata(path: string): Promise<plist.PlistObject>
+  function fileMetadata(path: string): Promise<plist.PlistObject>
+  export = fileMetadata
 }
