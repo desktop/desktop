@@ -54,6 +54,14 @@ function _resolveWithin(
   const normalizedRoot = normalize(rootPath)
   const normalizedRelative = normalize(join(...pathSegments))
 
+  // Null bytes has no place in paths.
+  if (
+    normalizedRoot.indexOf('\0') !== -1 ||
+    normalizedRelative.indexOf('\0') !== -1
+  ) {
+    return null
+  }
+
   // Resolve to an absolute path. Note that this will not contain
   // any directory traversal segments.
   const resolved = resolve(normalizedRoot, normalizedRelative)
@@ -62,10 +70,6 @@ function _resolveWithin(
     return null
   }
 
-  // Null bytes has no place in paths.
-  if (resolved.indexOf('\0') !== -1) {
-    return null
-  }
 
   return resolved
 }
