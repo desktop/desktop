@@ -3,9 +3,8 @@ import { API, IAPIIssue } from '../api'
 import { Account } from '../../models/account'
 import { GitHubRepository } from '../../models/github-repository'
 import { fatalError } from '../fatal-error'
+import { compare, compareDescending } from '../compare'
 
-/** The hard limit on the number of issue results we'd ever return. */
-const IssueResultsHardLimit = 100
 /** An autocompletion hit for an issue. */
 export interface IIssueHit {
   /** The title of the issue. */
@@ -144,44 +143,49 @@ export class IssuesStore {
     })
   }
 
+  private async getAllIssueHitsFor(repository: GitHubRepository) {
+    assertPersisted(repository, this.getAllIssueHitsFor.name)
+
+    const hits = await this.db.getIssuesForRepository(repository.dbID)
+    return hits.map(i => ({ number: i.number, title: i.title }))
+  }
+
   /** Get issues whose title or number matches the text. */
   public async getIssuesMatching(
     repository: GitHubRepository,
-    text: string
+    text: string,
+    maxHits = 5
   ): Promise<ReadonlyArray<IIssueHit>> {
     assertPersisted(repository, this.getIssuesMatching.name)
 
+    const issues = await this.getAllIssueHitsFor(repository)
+
     if (!text.length) {
-      const issues = await this.db.issues
-        .where('gitHubRepositoryID')
-        .limit(IssueResultsHardLimit)
-        .equals(repository.dbID)
-        .reverse()
-        .sortBy('number')
       return issues
+        .sort((x, y) => compareDescending(x.number, y.number))
+        .slice(0, maxHits)
     }
 
-    const MaxScore = 1
-    const score = (i: IIssue) => {
-      if (i.number.toString().startsWith(text)) {
-        return MaxScore
-      }
+    const hits = []
+    const needle = text.toLowerCase()
 
-      if (i.title.toLowerCase().includes(text.toLowerCase())) {
-        return MaxScore - 0.1
-      }
+    for (const issue of issues) {
+      const ix = `${issue.number} ${issue.title}`
+        .trim()
+        .toLowerCase()
+        .indexOf(needle)
 
-      return 0
+      if (ix >= 0) {
+        hits.push({ hit: { number: issue.number, title: issue.title }, ix })
+      }
     }
 
-    const issuesCollection = await this.db.issues
-      .where('gitHubRepositoryID')
-      .equals(repository.dbID)
-      .filter(i => score(i) > 0)
-
-    const issues = await issuesCollection.limit(IssueResultsHardLimit).toArray()
-
-    return issues.sort((a, b) => score(b) - score(a))
+    // Sort hits primarily based on how early in the text the match
+    // was found and then secondarily using alphabetic order.
+    return hits
+      .sort((x, y) => compare(x.ix, y.ix) || compare(x.hit.title, y.hit.title))
+      .slice(0, maxHits)
+      .map(h => h.hit)
   }
 }
 
