@@ -1,5 +1,6 @@
 import * as Path from 'path'
 import fileUrl = require('file-url')
+import { realpath } from 'fs-extra'
 
 /**
  * Resolve and encode the path information into a URL.
@@ -34,7 +35,7 @@ export function encodePathAsUrl(...pathSegments: string[]): string {
  *                     be overriden by providing either Path.win32 or
  *                     Path.posix
  */
-function _resolveWithin(
+async function _resolveWithin(
   rootPath: string,
   pathSegments: string[],
   options: {
@@ -66,12 +67,10 @@ function _resolveWithin(
   // any directory traversal segments.
   const resolved = resolve(normalizedRoot, normalizedRelative)
 
-  if (!resolved.startsWith(normalizedRoot)) {
-    return null
-  }
+  const realRoot = await realpath(normalizedRoot)
+  const realResolved = await realpath(resolved)
 
-
-  return resolved
+  return realResolved.startsWith(realRoot) ? resolved : null
 }
 
 /**
@@ -98,7 +97,7 @@ function _resolveWithin(
 export function resolveWithin(
   rootPath: string,
   ...pathSegments: string[]
-): string | null {
+): Promise<string | null> {
   return _resolveWithin(rootPath, pathSegments)
 }
 
@@ -125,7 +124,7 @@ export function resolveWithin(
 export function resolveWithinPosix(
   rootPath: string,
   ...pathSegments: string[]
-): string | null {
+): Promise<string | null> {
   return _resolveWithin(rootPath, pathSegments, Path.posix)
 }
 
@@ -152,7 +151,7 @@ export function resolveWithinPosix(
 export function resolveWithinWin32(
   rootPath: string,
   ...pathSegments: string[]
-): string | null {
+): Promise<string | null> {
   return _resolveWithin(rootPath, pathSegments, Path.win32)
 }
 
