@@ -1,4 +1,5 @@
-import { encodePathAsUrl, win32, posix } from '../../src/lib/path'
+import { encodePathAsUrl, resolveWithin } from '../../src/lib/path'
+import { resolve, basename, join } from 'path'
 
 describe('path', () => {
   describe('encodePathAsUrl', () => {
@@ -28,34 +29,27 @@ describe('path', () => {
     }
   })
 
-  describe('resolveWithin', () => {
-    it('fails for paths outside of the root', () => {
-      expect(posix.resolveWithin('/foo/bar', '../')).toBeNull()
-      expect(win32.resolveWithin('c:\\foo\\bar', '..\\')).toBeNull()
+  describe('resolveWithin', async () => {
+    const root = process.cwd()
 
-      expect(posix.resolveWithin('/foo/bar', 'baz/../../bla')).toBeNull()
-      expect(win32.resolveWithin('c:\\foo\\bar', 'baz\\..\\..\\bla')).toBeNull()
+    it('fails for paths outside of the root', async () => {
+      expect(await resolveWithin(root, join('..'))).toBeNull()
+      expect(await resolveWithin(root, join('..', '..'))).toBeNull()
     })
 
-    it('succeeds for paths that traverse out, and then back into, the root', () => {
-      expect(posix.resolveWithin('/foo/bar', '../bar')).toEqual('/foo/bar')
-      expect(win32.resolveWithin('c:\\foo\\bar', '..\\bar')).toEqual(
-        'c:\\foo\\bar'
+    it('succeeds for paths that traverse out, and then back into, the root', async () => {
+      expect(await resolveWithin(root, join('..', basename(root)))).toEqual(
+        root
       )
     })
 
-    it('fails for paths containing null bytes', () => {
-      expect(posix.resolveWithin('/foo/bar', 'foo\0bar')).toBeNull()
-      expect(win32.resolveWithin('c:\\foo\\bar', 'foo\0bar')).toBeNull()
+    it('fails for paths containing null bytes', async () => {
+      expect(await resolveWithin(root, 'foo\0bar')).toBeNull()
     })
 
-    it('succeeds for absolute relative paths as long as they stay within the root', () => {
-      expect(posix.resolveWithin('/foo/bar', '/foo/bar/baz')).toEqual(
-        '/foo/bar/baz'
-      )
-      expect(win32.resolveWithin('c:\\foo\\bar', '\\foo\\bar\\baz')).toEqual(
-        'c:\\foo\\bar\\baz'
-      )
+    it('succeeds for absolute relative paths as long as they stay within the root', async () => {
+      const parent = resolve(root, '..')
+      expect(await resolveWithin(parent, root)).toEqual(root)
     })
   })
 })

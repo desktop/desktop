@@ -1802,7 +1802,7 @@ export class Dispatcher {
     }
 
     if (filepath != null) {
-      const resolved = resolveWithin(repository.path, filepath)
+      const resolved = await resolveWithin(repository.path, filepath)
 
       if (resolved !== null) {
         shell.showItemInFolder(resolved)
