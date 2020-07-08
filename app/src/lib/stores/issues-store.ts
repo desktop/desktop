@@ -13,9 +13,22 @@ export interface IIssueHit {
   readonly number: number
 }
 
+/**
+ * The max time (in milliseconds) that we'll keep a mentionable query
+ * cache around before pruning it.
+ */
+const QueryCacheTimeout = 60 * 1000
+
+interface IQueryCache {
+  readonly repository: GitHubRepository
+  readonly issues: ReadonlyArray<IIssueHit>
+}
+
 /** The store for GitHub issues. */
 export class IssuesStore {
   private db: IssuesDatabase
+  private queryCache: IQueryCache | null = null
+  private pruneQueryCacheTimeoutId: number | null = null
 
   /** Initialize the store with the given database. */
   public constructor(db: IssuesDatabase) {
@@ -130,6 +143,11 @@ export class IssuesStore {
         }
       }
     })
+
+    if (this.queryCache?.repository.dbID === repository.dbID) {
+      this.queryCache = null
+      this.clearCachePruneTimeout()
+    }
   }
 
   private async getAllIssueHitsFor(repository: GitHubRepository) {
@@ -147,10 +165,16 @@ export class IssuesStore {
   ): Promise<ReadonlyArray<IIssueHit>> {
     assertPersisted(repository, this.getIssuesMatching.name)
 
-    const issues = await this.getAllIssueHitsFor(repository)
+    const issues =
+      this.queryCache?.repository.dbID === repository.dbID
+        ? this.queryCache?.issues
+        : await this.getAllIssueHitsFor(repository)
+
+    this.setQueryCache(repository, issues)
 
     if (!text.length) {
       return issues
+        .slice()
         .sort((x, y) => compareDescending(x.number, y.number))
         .slice(0, maxHits)
     }
@@ -175,6 +199,25 @@ export class IssuesStore {
       .sort((x, y) => compare(x.ix, y.ix) || compare(x.hit.title, y.hit.title))
       .slice(0, maxHits)
       .map(h => h.hit)
+  }
+
+  private setQueryCache(
+    repository: GitHubRepository,
+    issues: ReadonlyArray<IIssueHit>
+  ) {
+    this.clearCachePruneTimeout()
+    this.queryCache = { repository, issues }
+    this.pruneQueryCacheTimeoutId = window.setTimeout(() => {
+      this.pruneQueryCacheTimeoutId = null
+      this.queryCache = null
+    }, QueryCacheTimeout)
+  }
+
+  private clearCachePruneTimeout() {
+    if (this.pruneQueryCacheTimeoutId !== null) {
+      clearTimeout(this.pruneQueryCacheTimeoutId)
+      this.pruneQueryCacheTimeoutId = null
+    }
   }
 }
 
