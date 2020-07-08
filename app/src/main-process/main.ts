@@ -28,10 +28,7 @@ import { ISerializableMenuItem } from '../lib/menu-item'
 import { buildContextMenu } from './menu/build-context-menu'
 import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 import { stat } from 'fs-extra'
-import {
-  appearsToBeApplicationBundle,
-  isApplicationBundle,
-} from '../lib/is-application-bundle'
+import { isApplicationBundle } from '../lib/is-application-bundle'
 
 app.setAppLogsPath()
 enableSourceMaps()
