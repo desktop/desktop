@@ -27,6 +27,7 @@ import { showUncaughtException } from './show-uncaught-exception'
 import { ISerializableMenuItem } from '../lib/menu-item'
 import { buildContextMenu } from './menu/build-context-menu'
 import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
+import { stat } from 'fs-extra'
 
 app.setAppLogsPath()
 enableSourceMaps()
@@ -558,23 +559,21 @@ app.on('ready', () => {
 
   ipcMain.on(
     'show-folder-contents',
-    (event: Electron.IpcMainEvent, { path }: { path: string }) => {
-      Fs.stat(path, (err, stats) => {
-        if (err) {
-          log.error(`Unable to find file at '${path}'`, err)
-          return
-        }
+    async (event: Electron.IpcMainEvent, { path }: { path: string }) => {
+      try {
+        const stats = await stat(path)
 
         if (!stats.isDirectory()) {
           log.error(
-            `Trying to get the folder contents of a non-folder at '${path}'`,
-            err
+            `Trying to get the folder contents of a non-folder at '${path}'`
           )
           return
         }
 
         UNSAFE_openDirectory(path)
-      })
+      } catch (err) {
+        log.error(`Unable to find file at '${path}'`, err)
+      }
     }
   )
 })
