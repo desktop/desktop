@@ -153,11 +153,9 @@ export class GitHubUserStore extends BaseStore {
   ): Promise<ReadonlyArray<IMentionableUser>> {
     assertPersisted(repository, this.getMentionableUsersMatching.name)
 
-    const cache = this.queryCache
-
     const users =
-      cache?.repository.dbID === repository.dbID
-        ? cache.users
+      this.queryCache?.repository.dbID === repository.dbID
+        ? this.queryCache.users
         : await this.getMentionableUsers(repository)
 
     this.setQueryCache(repository, users)
