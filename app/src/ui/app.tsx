@@ -119,6 +119,7 @@ import { CreateTag } from './create-tag'
 import { DeleteTag } from './delete-tag'
 import { ChooseForkSettings } from './choose-fork-settings'
 import { DiscardSelection } from './discard-changes/discard-selection-dialog'
+import { LocalChangesOverwrittenDialog } from './local-changes-overwritten/local-changes-overwritten-dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -180,6 +181,15 @@ export class App extends React.Component<IAppProps, IAppState> {
    */
   private get isShowingModal() {
     return this.state.currentPopup !== null || this.state.errors.length > 0
+  }
+
+  /**
+   * Returns a memoized instance of onPopupDismissed() bound to the
+   * passed popupType, so it can be used in render() without creating
+   * multiple instances when the component gets re-rendered.
+   */
+  private getOnPopupDismissedFn = (popupType: PopupType) => {
+    return () => this.onPopupDismissed(popupType)
   }
 
   public constructor(props: IAppProps) {
@@ -1263,7 +1273,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private onPopupDismissed = () => this.props.dispatcher.closePopup()
+  private onPopupDismissed = (popupType?: PopupType) => {
+    return this.props.dispatcher.closePopup(popupType)
+  }
 
   private onSignInDialogDismissed = () => {
     this.props.dispatcher.resetSignInState()
@@ -1986,6 +1998,24 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.LocalChangesOverwritten:
+        const selectedState = this.state.selectedState
+
+        const existingStash =
+          selectedState !== null &&
+          selectedState.type === SelectionType.Repository
+            ? selectedState.state.changesState.stashEntry
+            : null
+
+        return (
+          <LocalChangesOverwrittenDialog
+            repository={popup.repository}
+            dispatcher={this.props.dispatcher}
+            hasExistingStash={existingStash !== null}
+            retryAction={popup.retryAction}
+            onDismissed={this.getOnPopupDismissedFn(popup.type)}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }

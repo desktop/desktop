@@ -1903,6 +1903,20 @@ export class Dispatcher {
         await this.checkoutBranch(retryAction.repository, retryAction.branch)
         break
 
+      case RetryActionType.Merge:
+        return this.mergeBranch(
+          retryAction.repository,
+          retryAction.theirBranch,
+          null
+        )
+
+      case RetryActionType.Rebase:
+        return this.rebase(
+          retryAction.repository,
+          retryAction.baseBranch,
+          retryAction.targetBranch
+        )
+
       default:
         return assertNever(retryAction, `Unknown retry action: ${retryAction}`)
     }
