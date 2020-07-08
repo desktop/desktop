@@ -141,18 +141,13 @@ export class IssuesStore {
     repository: GitHubRepository,
     text: string
   ): Promise<ReadonlyArray<IIssue>> {
-    const gitHubRepositoryID = repository.dbID
-    if (!gitHubRepositoryID) {
-      fatalError(
-        "Cannot get issues for a repository that hasn't been inserted into the database!"
-      )
-    }
+    assertPersisted(repository, this.getIssuesMatching.name)
 
     if (!text.length) {
       const issues = await this.db.issues
         .where('gitHubRepositoryID')
-        .equals(gitHubRepositoryID)
         .limit(IssueResultsHardLimit)
+        .equals(repository.dbID)
         .reverse()
         .sortBy('number')
       return issues
@@ -173,11 +168,22 @@ export class IssuesStore {
 
     const issuesCollection = await this.db.issues
       .where('gitHubRepositoryID')
-      .equals(gitHubRepositoryID)
+      .equals(repository.dbID)
       .filter(i => score(i) > 0)
 
     const issues = await issuesCollection.limit(IssueResultsHardLimit).toArray()
 
     return issues.sort((a, b) => score(b) - score(a))
+  }
+}
+
+function assertPersisted(
+  repo: GitHubRepository,
+  methodName: string
+): asserts repo is GitHubRepository & { dbID: number } {
+  if (repo.dbID === null) {
+    throw new Error(
+      `${methodName} requires a GitHubRepository instance that's been inserted into the database`
+    )
   }
 }
