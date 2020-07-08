@@ -74,7 +74,7 @@ export class GitHubUserStore extends BaseStore {
     repository: GitHubRepository,
     account: Account
   ): Promise<void> {
-    assertPersisted(repository, this.updateMentionables.name)
+    assertPersisted(repository)
 
     const api = API.fromAccount(account)
 
@@ -127,7 +127,7 @@ export class GitHubUserStore extends BaseStore {
   public async getMentionableUsers(
     repository: GitHubRepository
   ): Promise<ReadonlyArray<IMentionableUser>> {
-    assertPersisted(repository, this.getMentionableUsers.name)
+    assertPersisted(repository)
     return this.database.getAllMentionablesForRepository(repository.dbID)
   }
 
@@ -149,7 +149,7 @@ export class GitHubUserStore extends BaseStore {
     query: string,
     maxHits: number = DefaultMaxHits
   ): Promise<ReadonlyArray<IMentionableUser>> {
-    assertPersisted(repository, this.getMentionableUsersMatching.name)
+    assertPersisted(repository)
 
     const users =
       this.queryCache?.repository.dbID === repository.dbID
@@ -207,12 +207,11 @@ export class GitHubUserStore extends BaseStore {
 }
 
 function assertPersisted(
-  repo: GitHubRepository,
-  methodName: string
+  repo: GitHubRepository
 ): asserts repo is GitHubRepository & { dbID: number } {
   if (repo.dbID === null) {
     throw new Error(
-      `${methodName} requires a GitHubRepository instance that's been inserted into the database`
+      `Need a GitHubRepository that's been inserted into the database`
     )
   }
 }
