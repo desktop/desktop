@@ -13,6 +13,12 @@ import { getStealthEmailForUser, getLegacyStealthEmailForUser } from '../email'
 /** Don't fetch mentionables more often than every 10 minutes */
 const MaxFetchFrequency = 10 * 60 * 1000
 
+/**
+ * The max time (in milliseconds) that we'll keep a mentionable query
+ * cache around before pruning it.
+ */
+const QueryCacheTimeout = 60 * 1000
+
 interface IQueryCache {
   readonly repository: GitHubRepository
   readonly users: ReadonlyArray<IMentionableUser>
@@ -190,11 +196,10 @@ export class GitHubUserStore extends BaseStore {
   ) {
     this.clearCachePruneTimeout()
     this.queryCache = { repository, users }
-    // Clear mentionables cache after one minute
     this.pruneQueryCacheTimeoutId = window.setTimeout(() => {
       this.pruneQueryCacheTimeoutId = null
       this.queryCache = null
-    }, 60 * 1000)
+    }, QueryCacheTimeout)
   }
 
   private clearCachePruneTimeout() {
