@@ -8,37 +8,35 @@ import { Account } from '../models/account'
  * following rules:
  *
  *  - the primary email if it's publicly visible
- *  - the first public email
- *  - an '@users.noreply.github.com' email address
- *  - the first email address
- *
- * Otherwise just return null
+ *  - an anonymous (i.e. '@users.noreply.github.com') email address
+ *  - the first email address returned from the API
+ *  - an automatically generated stealth email based on the user's
+ *    login, id, and endpoint.
  *
  * @param emails array of email addresses associated with an account
  */
-export function lookupPreferredEmail(account: Account): IAPIEmail | null {
+export function lookupPreferredEmail(account: Account): string {
   const emails = account.emails
 
   if (emails.length === 0) {
-    return null
+    return getStealthEmailFor(account)
   }
 
   const primary = emails.find(e => e.primary)
   if (primary && isEmailPublic(primary)) {
-    return primary
+    return primary.email
   }
 
   const stealthSuffix = `@${getStealthEmailHostForEndpoint(account.endpoint)}`
-
   const noReply = emails.find(e =>
     e.email.toLowerCase().endsWith(stealthSuffix)
   )
 
   if (noReply) {
-    return noReply
+    return noReply.email
   }
 
-  return emails[0]
+  return emails[0].email
 }
 
 /**
@@ -71,8 +69,42 @@ export function getDefaultEmail(emails: ReadonlyArray<IAPIEmail>): string {
  * endpoint host.
  */
 function getStealthEmailHostForEndpoint(endpoint: string) {
-  const url = URL.parse(endpoint)
   return getDotComAPIEndpoint() !== endpoint
-    ? `users.noreply.${url.hostname}`
+    ? `users.noreply.${URL.parse(endpoint).hostname}`
     : 'users.noreply.github.com'
+}
+
+function getLegacyStealthEmailFor(account: Account) {
+  const stealthEmailHost = getStealthEmailHostForEndpoint(account.endpoint)
+  return `${account.login}@${stealthEmailHost}`
+}
+
+function getStealthEmailFor(account: Account) {
+  const stealthEmailHost = getStealthEmailHostForEndpoint(account.endpoint)
+  return `${account.id}+${account.login}@${stealthEmailHost}`
+}
+
+/**
+ * Produces a list of all email addresses that when used as the author email
+ * in a commit we'll know will end up getting attributted to the given
+ * account when pushed to GitHub.com or GitHub Enterprise Server.
+ *
+ * The list of email addresses consists of all the email addresses we get
+ * from the API (since this is for the currently signed in user we get
+ * public as well as private email addresses here) as well as the legacy
+ * and modern format of the anonymous email addresses, for example:
+ *
+ *  desktop@users.noreply.github.com
+ *  13171334+desktop@users.noreply.github.com
+ */
+export function getAttributableEmailsFor(
+  account: Account
+): ReadonlyArray<string> {
+  const uniqueEmails = new Set<string>([
+    ...account.emails.map(x => x.email),
+    getLegacyStealthEmailFor(account),
+    getStealthEmailFor(account),
+  ])
+
+  return [...uniqueEmails]
 }

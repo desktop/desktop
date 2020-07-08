@@ -49,6 +49,9 @@ interface ICommitListProps {
   /** Callback to fire to open the dialog to create a new tag on the given commit */
   readonly onCreateTag: (targetCommitSha: string) => void
 
+  /** Callback to fire to delete an unpushed tag */
+  readonly onDeleteTag: (tagName: string) => void
+
   /**
    * Optional callback that fires on page scroll in order to allow passing
    * a new scrollTop value up to the parent component for storing.
@@ -97,12 +100,13 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     const tagsToPushSet = new Set(this.props.tagsToPush || [])
 
     const isLocal = this.props.localCommitSHAs.includes(commit.sha)
-    const numUnpushedTags = commit.tags.filter(tagName =>
+    const unpushedTags = commit.tags.filter(tagName =>
       tagsToPushSet.has(tagName)
-    ).length
+    )
 
     const showUnpushedIndicator =
-      (isLocal || numUnpushedTags > 0) && this.props.isLocalRepository === false
+      (isLocal || unpushedTags.length > 0) &&
+      this.props.isLocalRepository === false
 
     return (
       <CommitListItem
@@ -112,12 +116,14 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         showUnpushedIndicator={showUnpushedIndicator}
         unpushedIndicatorTitle={this.getUnpushedIndicatorTitle(
           isLocal,
-          numUnpushedTags
+          unpushedTags.length
         )}
+        unpushedTags={unpushedTags}
         commit={commit}
         gitHubUsers={this.props.gitHubUsers}
         emoji={this.props.emoji}
         onCreateTag={this.props.onCreateTag}
+        onDeleteTag={this.props.onDeleteTag}
         onRevertCommit={this.props.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
       />

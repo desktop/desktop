@@ -188,49 +188,6 @@ export async function gitAuthenticationErrorHandler(
   return null
 }
 
-/**
- * Handle git clone errors to give chance to retry error.
- * Doesn't handle auth errors.
- */
-export async function gitCloneErrorHandler(
-  error: Error,
-  dispatcher: Dispatcher
-): Promise<Error | null> {
-  const e = asErrorWithMetadata(error)
-  if (
-    !e ||
-    e.metadata.retryAction == null ||
-    e.metadata.retryAction.type !== RetryActionType.Clone
-  ) {
-    return error
-  }
-
-  const gitError = asGitError(e.underlyingError)
-  if (!gitError) {
-    return error
-  }
-
-  const dugiteError = gitError.result.gitError
-  // don't catch this if this its an auth error
-  if (dugiteError !== null && AuthenticationErrors.has(dugiteError)) {
-    return error
-  }
-
-  const repository = e.metadata.repository
-  if (!repository) {
-    return error
-  }
-
-  await dispatcher.showPopup({
-    type: PopupType.RetryClone,
-    repository: repository,
-    retryAction: e.metadata.retryAction,
-    errorMessage: e.underlyingError.message,
-  })
-
-  return null
-}
-
 export async function externalEditorErrorHandler(
   error: Error,
   dispatcher: Dispatcher
@@ -459,7 +416,7 @@ export async function rebaseConflictsHandler(
     return error
   }
 
-  if (!(gitContext.kind === 'merge' || gitContext.kind === 'pull')) {
+  if (gitContext.kind !== 'merge' && gitContext.kind !== 'pull') {
     return error
   }
 
@@ -474,7 +431,7 @@ export async function rebaseConflictsHandler(
  * Handler for when we attempt to checkout a branch and there are some files that would
  * be overwritten.
  */
-export async function localChangesOverwrittenHandler(
+export async function localChangesOverwrittenOnCheckoutHandler(
   error: Error,
   dispatcher: Dispatcher
 ): Promise<Error | null> {
@@ -728,6 +685,56 @@ export async function schannelUnableToCheckRevocationForCertificate(
   dispatcher.showPopup({
     type: PopupType.SChannelNoRevocationCheck,
     url: match[1],
+  })
+
+  return null
+}
+
+/**
+ * Handler for when an action the user attempts cannot be done because there are local
+ * changes that would get overwritten.
+ */
+export async function localChangesOverwrittenHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const e = asErrorWithMetadata(error)
+  if (e === null) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (gitError === null) {
+    return error
+  }
+
+  const dugiteError = gitError.result.gitError
+  if (dugiteError === null) {
+    return error
+  }
+
+  if (
+    dugiteError !== DugiteError.LocalChangesOverwritten &&
+    dugiteError !== DugiteError.MergeWithLocalChanges &&
+    dugiteError !== DugiteError.RebaseWithLocalChanges
+  ) {
+    return error
+  }
+
+  const { repository } = e.metadata
+
+  if (!(repository instanceof Repository)) {
+    return error
+  }
+
+  if (e.metadata.retryAction === undefined) {
+    return error
+  }
+
+  dispatcher.showPopup({
+    type: PopupType.LocalChangesOverwritten,
+    repository,
+    retryAction: e.metadata.retryAction,
   })
 
   return null

@@ -45,6 +45,7 @@ import {
   IndexStatus,
   getIndexChanges,
   checkoutIndex,
+  discardChangesFromSelection,
   checkoutPaths,
   resetPaths,
   revertCommit,
@@ -65,6 +66,7 @@ import {
   removeRemote,
   createTag,
   getAllTags,
+  deleteTag,
 } from '../git'
 import { GitError as DugiteError } from '../../lib/git'
 import { GitError } from 'dugite'
@@ -86,6 +88,7 @@ import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { PullRequest } from '../../models/pull-request'
 import { StatsStore } from '../stats'
 import { getTagsToPush, storeTagsToPush } from './helpers/tags-to-push-storage'
+import { DiffSelection, ITextDiff } from '../../models/diff'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -275,6 +278,15 @@ export class GitStore extends BaseStore {
 
     this._localTags = newTags
 
+    // Remove any unpushed tag that cannot be found in the list
+    // of local tags. This can happen when the user deletes an
+    // unpushed tag from outside of Desktop.
+    for (const tagToPush of this._tagsToPush) {
+      if (!this._localTags.has(tagToPush)) {
+        this.removeTagToPush(tagToPush)
+      }
+    }
+
     if (previousTags !== null) {
       // We don't await for the emition of updates to finish
       // to make this method return earlier.
@@ -333,13 +345,35 @@ export class GitStore extends BaseStore {
   }
 
   public async createTag(name: string, targetCommitSha: string) {
-    await this.performFailableOperation(async () => {
+    const result = await this.performFailableOperation(async () => {
       await createTag(this.repository, name, targetCommitSha)
+      return true
     })
 
-    await this.refreshTags()
+    if (result === undefined) {
+      return
+    }
 
+    await this.refreshTags()
     this.addTagToPush(name)
+
+    this.statsStore.recordTagCreatedInDesktop()
+  }
+
+  public async deleteTag(name: string) {
+    const result = await this.performFailableOperation(async () => {
+      await deleteTag(this.repository, name)
+      return true
+    })
+
+    if (result === undefined) {
+      return
+    }
+
+    await this.refreshTags()
+    this.removeTagToPush(name)
+
+    this.statsStore.recordTagDeleted()
   }
 
   /** The list of ordered SHAs. */
@@ -449,6 +483,15 @@ export class GitStore extends BaseStore {
 
   private addTagToPush(tagName: string) {
     this._tagsToPush = [...this._tagsToPush, tagName]
+
+    storeTagsToPush(this.repository, this._tagsToPush)
+    this.emitUpdate()
+  }
+
+  private removeTagToPush(tagToDelete: string) {
+    this._tagsToPush = this._tagsToPush.filter(
+      tagName => tagName !== tagToDelete
+    )
 
     storeTagsToPush(this.repository, this._tagsToPush)
     this.emitUpdate()
@@ -1356,9 +1399,7 @@ export class GitStore extends BaseStore {
   public merge(branch: string): Promise<boolean | undefined> {
     if (this.tip.kind !== TipState.Valid) {
       throw new Error(
-        `unable to merge as tip state is '${
-          this.tip.kind
-        }' and the application expects the repository to be on a branch currently`
+        `unable to merge as tip state is '${this.tip.kind}' and the application expects the repository to be on a branch currently`
       )
     }
 
@@ -1369,6 +1410,12 @@ export class GitStore extends BaseStore {
         kind: 'merge',
         currentBranch,
         theirBranch: branch,
+      },
+      retryAction: {
+        type: RetryActionType.Merge,
+        currentBranch,
+        theirBranch: branch,
+        repository: this.repository,
       },
     })
   }
@@ -1465,6 +1512,16 @@ export class GitStore extends BaseStore {
       )
       await checkoutIndex(this.repository, necessaryPathsToCheckout)
     })
+  }
+
+  public async discardChangesFromSelection(
+    filePath: string,
+    diff: ITextDiff,
+    selection: DiffSelection
+  ) {
+    await this.performFailableOperation(() =>
+      discardChangesFromSelection(this.repository, filePath, diff, selection)
+    )
   }
 
   /** Reverts the commit with the given SHA */

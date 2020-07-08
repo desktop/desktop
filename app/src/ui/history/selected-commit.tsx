@@ -22,13 +22,13 @@ import {
 } from '../lib/context-menu'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 
-import { Diff } from '../diff'
 import { Dispatcher } from '../dispatcher'
 import { Resizable } from '../resizable'
 import { showContextualMenu } from '../main-process-proxy'
 
 import { CommitSummary } from './commit-summary'
 import { FileList } from './file-list'
+import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
 
 interface ISelectedCommitProps {
   readonly repository: Repository
@@ -50,6 +50,18 @@ interface ISelectedCommitProps {
    */
   readonly onOpenInExternalEditor: (path: string) => void
   readonly hideWhitespaceInDiff: boolean
+
+  /**
+   * Called when the user requests to open a binary file in an the
+   * system-assigned application for said file type.
+   */
+  readonly onOpenBinaryFile: (fullPath: string) => void
+
+  /**
+   * Called when the user is viewing an image diff and requests
+   * to change the diff presentation mode.
+   */
+  readonly onChangeImageDiffType: (type: ImageDiffType) => void
 }
 
 interface ISelectedCommitState {
@@ -106,7 +118,7 @@ export class SelectedCommit extends React.Component<
     const file = this.props.selectedFile
     const diff = this.props.currentDiff
 
-    if (file == null || diff == null) {
+    if (file == null) {
       // don't show both 'empty' messages
       const message =
         this.props.changedFiles.length === 0 ? '' : 'No file selected'
@@ -119,14 +131,15 @@ export class SelectedCommit extends React.Component<
     }
 
     return (
-      <Diff
+      <SeamlessDiffSwitcher
         repository={this.props.repository}
         imageDiffType={this.props.selectedDiffType}
         file={file}
         diff={diff}
         readOnly={true}
-        dispatcher={this.props.dispatcher}
         hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+        onOpenBinaryFile={this.props.onOpenBinaryFile}
+        onChangeImageDiffType={this.props.onChangeImageDiffType}
       />
     )
   }

@@ -23,7 +23,12 @@ import { getVersion, getName } from './lib/app-proxy'
 import { getOS } from '../lib/get-os'
 import { validatedRepositoryPath } from '../lib/stores/helpers/validated-repository-path'
 import { MenuEvent } from '../main-process/menu'
-import { Repository, getGitHubHtmlUrl } from '../models/repository'
+import {
+  Repository,
+  getGitHubHtmlUrl,
+  getNonForkGitHubRepository,
+  isRepositoryWithGitHubRepository,
+} from '../models/repository'
 import { Branch } from '../models/branch'
 import { PreferencesTab } from '../models/preferences'
 import { findItemByAccessKey, itemIsSelectable } from '../models/app-menu'
@@ -48,11 +53,7 @@ import {
   RevertProgress,
 } from './toolbar'
 import { OcticonSymbol, iconForRepository } from './octicons'
-import {
-  showCertificateTrustDialog,
-  registerContextualMenuActionDispatcher,
-  sendReady,
-} from './main-process-proxy'
+import { showCertificateTrustDialog, sendReady } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { Welcome } from './welcome'
 import { AppMenuBar } from './app-menu'
@@ -112,10 +113,13 @@ import { getUncommittedChangesStrategy } from '../models/uncommitted-changes-str
 import { SAMLReauthRequiredDialog } from './saml-reauth-required/saml-reauth-required'
 import { CreateForkDialog } from './forks/create-fork-dialog'
 import { SChannelNoRevocationCheckDialog } from './schannel-no-revocation-check/schannel-no-revocation-check'
-import { findUpstreamRemoteBranch } from '../lib/branch'
+import { findDefaultUpstreamBranch } from '../lib/branch'
 import { GitHubRepository } from '../models/github-repository'
 import { CreateTag } from './create-tag'
-import { RetryCloneDialog } from './clone-repository/retry-clone-dialog'
+import { DeleteTag } from './delete-tag'
+import { ChooseForkSettings } from './choose-fork-settings'
+import { DiscardSelection } from './discard-changes/discard-selection-dialog'
+import { LocalChangesOverwrittenDialog } from './local-changes-overwritten/local-changes-overwritten-dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -179,10 +183,17 @@ export class App extends React.Component<IAppProps, IAppState> {
     return this.state.currentPopup !== null || this.state.errors.length > 0
   }
 
+  /**
+   * Returns a memoized instance of onPopupDismissed() bound to the
+   * passed popupType, so it can be used in render() without creating
+   * multiple instances when the component gets re-rendered.
+   */
+  private getOnPopupDismissedFn = (popupType: PopupType) => {
+    return () => this.onPopupDismissed(popupType)
+  }
+
   public constructor(props: IAppProps) {
     super(props)
-
-    registerContextualMenuActionDispatcher()
 
     props.dispatcher.loadInitialState().then(() => {
       this.loading = false
@@ -336,6 +347,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.deleteBranch()
       case 'discard-all-changes':
         return this.discardAllChanges()
+      case 'stash-all-changes':
+        return this.stashAllChanges()
       case 'show-preferences':
         return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
       case 'open-working-directory':
@@ -387,9 +400,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.testPruneBranches()
       case 'find-text':
         return this.findText()
+      default:
+        return assertNever(name, `Unknown menu event name: ${name}`)
     }
-
-    return assertNever(name, `Unknown menu event name: ${name}`)
   }
 
   /**
@@ -592,9 +605,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const compareURL = `${htmlURL}/compare/${
-      branchTip.branch.upstreamWithoutRemote
-    }`
+    const compareURL = `${htmlURL}/compare/${branchTip.branch.upstreamWithoutRemote}`
     this.props.dispatcher.openInBrowser(compareURL)
   }
 
@@ -669,6 +680,14 @@ export class App extends React.Component<IAppProps, IAppState> {
       showDiscardChangesSetting: false,
       discardingAllChanges: true,
     })
+  }
+
+  private stashAllChanges() {
+    const repository = this.getRepository()
+
+    if (repository !== null && repository instanceof Repository) {
+      this.props.dispatcher.createStashForCurrentBranch(repository)
+    }
   }
 
   private showAddLocalRepo = () => {
@@ -1049,7 +1068,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     repository: Repository,
     deleteRepoFromDisk: boolean
   ) => {
-    this.props.dispatcher.removeRepositories([repository], deleteRepoFromDisk)
+    return this.props.dispatcher.removeRepositories(
+      [repository],
+      deleteRepoFromDisk
+    )
   }
 
   private getRepository(): Repository | CloningRepository | null {
@@ -1251,7 +1273,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private onPopupDismissed = () => this.props.dispatcher.closePopup()
+  private onPopupDismissed = (popupType?: PopupType) => {
+    return this.props.dispatcher.closePopup(popupType)
+  }
 
   private onSignInDialogDismissed = () => {
     this.props.dispatcher.resetSignInState()
@@ -1337,6 +1361,18 @@ export class App extends React.Component<IAppProps, IAppState> {
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
           />
         )
+      case PopupType.ConfirmDiscardSelection:
+        return (
+          <DiscardSelection
+            key="discard-selection"
+            repository={popup.repository}
+            dispatcher={this.props.dispatcher}
+            file={popup.file}
+            diff={popup.diff}
+            selection={popup.selection}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
       case PopupType.Preferences:
         return (
           <Preferences
@@ -1397,7 +1433,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         return (
           <RepositorySettings
-            key="repository-settings"
+            key={`repository-settings-${repository.hash}`}
             remote={state.remote}
             dispatcher={this.props.dispatcher}
             repository={repository}
@@ -1463,17 +1499,13 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         if (
           enableForkyCreateBranchUI() &&
-          repository.gitHubRepository !== null &&
-          repository.gitHubRepository.parent !== null
+          isRepositoryWithGitHubRepository(repository)
         ) {
-          upstreamGhRepo = repository.gitHubRepository.parent
-          if (upstreamGhRepo.defaultBranch !== null) {
-            upstreamDefaultBranch =
-              findUpstreamRemoteBranch(
-                upstreamGhRepo.defaultBranch,
-                branchesState.allBranches
-              ) || null
-          }
+          upstreamGhRepo = getNonForkGitHubRepository(repository)
+          upstreamDefaultBranch = findDefaultUpstreamBranch(
+            repository,
+            branchesState.allBranches
+          )
         }
 
         return (
@@ -1946,17 +1978,44 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
-      case PopupType.RetryClone: {
+      case PopupType.DeleteTag: {
         return (
-          <RetryCloneDialog
+          <DeleteTag
+            key="delete-tag"
             repository={popup.repository}
-            retryAction={popup.retryAction}
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
-            errorMessage={popup.errorMessage}
+            tagName={popup.tagName}
           />
         )
       }
+      case PopupType.ChooseForkSettings: {
+        return (
+          <ChooseForkSettings
+            repository={popup.repository}
+            onDismissed={this.onPopupDismissed}
+            dispatcher={this.props.dispatcher}
+          />
+        )
+      }
+      case PopupType.LocalChangesOverwritten:
+        const selectedState = this.state.selectedState
+
+        const existingStash =
+          selectedState !== null &&
+          selectedState.type === SelectionType.Repository
+            ? selectedState.state.changesState.stashEntry
+            : null
+
+        return (
+          <LocalChangesOverwrittenDialog
+            repository={popup.repository}
+            dispatcher={this.props.dispatcher}
+            hasExistingStash={existingStash !== null}
+            retryAction={popup.retryAction}
+            onDismissed={this.getOnPopupDismissedFn(popup.type)}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -2126,8 +2185,13 @@ export class App extends React.Component<IAppProps, IAppState> {
         errors={this.state.errors}
         onClearError={this.clearError}
         onShowPopup={this.showPopup}
+        onRetryAction={this.onRetryAction}
       />
     )
+  }
+
+  private onRetryAction = (retryAction: RetryAction) => {
+    this.props.dispatcher.performRetry(retryAction)
   }
 
   private showPopup = (popup: Popup) => {
