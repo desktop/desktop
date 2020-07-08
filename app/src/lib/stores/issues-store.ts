@@ -2,7 +2,6 @@ import { IssuesDatabase, IIssue } from '../databases/issues-database'
 import { API, IAPIIssue } from '../api'
 import { Account } from '../../models/account'
 import { GitHubRepository } from '../../models/github-repository'
-import { fatalError } from '../fatal-error'
 import { compare, compareDescending } from '../compare'
 
 /** An autocompletion hit for an issue. */
@@ -31,18 +30,13 @@ export class IssuesStore {
   private async getLatestUpdatedAt(
     repository: GitHubRepository
   ): Promise<Date | null> {
-    const gitHubRepositoryID = repository.dbID
-    if (!gitHubRepositoryID) {
-      return fatalError(
-        "Cannot get issues for a repository that hasn't been inserted into the database!"
-      )
-    }
+    assertPersisted(repository, this.getLatestUpdatedAt.name)
 
     const db = this.db
 
     const latestUpdatedIssue = await db.issues
       .where('[gitHubRepositoryID+updated_at]')
-      .between([gitHubRepositoryID], [gitHubRepositoryID + 1], true, false)
+      .between([repository.dbID], [repository.dbID + 1], true, false)
       .last()
 
     if (!latestUpdatedIssue || !latestUpdatedIssue.updated_at) {
@@ -86,19 +80,14 @@ export class IssuesStore {
     issues: ReadonlyArray<IAPIIssue>,
     repository: GitHubRepository
   ): Promise<void> {
-    const gitHubRepositoryID = repository.dbID
-    if (!gitHubRepositoryID) {
-      fatalError(
-        `Cannot store issues for a repository that hasn't been inserted into the database!`
-      )
-    }
+    assertPersisted(repository, this.storeIssues.name)
 
     const issuesToDelete = issues.filter(i => i.state === 'closed')
     const issuesToUpsert = issues
       .filter(i => i.state === 'open')
       .map<IIssue>(i => {
         return {
-          gitHubRepositoryID,
+          gitHubRepositoryID: repository.dbID,
           number: i.number,
           title: i.title,
           updated_at: i.updated_at,
@@ -121,7 +110,7 @@ export class IssuesStore {
     await this.db.transaction('rw', this.db.issues, async () => {
       for (const issue of issuesToDelete) {
         const existing = await findIssueInRepositoryByNumber(
-          gitHubRepositoryID,
+          repository.dbID,
           issue.number
         )
         if (existing) {
@@ -131,7 +120,7 @@ export class IssuesStore {
 
       for (const issue of issuesToUpsert) {
         const existing = await findIssueInRepositoryByNumber(
-          gitHubRepositoryID,
+          repository.dbID,
           issue.number
         )
         if (existing) {
