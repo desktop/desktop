@@ -62,6 +62,10 @@ export function isRunningOnFork() {
     return true
   }
 
+  if (isGitHubActions() && process.env.GITHUB_HEAD_REF !== undefined) {
+    return true
+  }
+
   return false
 }
 
