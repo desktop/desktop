@@ -54,12 +54,14 @@ const StealthEmailRegexp = /^(?:(\d+)\+)?(.+?)@users\.noreply\.github\.com$/i
  * Produces an ordered iterable of avatar urls to attempt to load for the
  * given user.
  */
-function* getAvatarUrlCandidates(
+function getAvatarUrlCandidates(
   user: IAvatarUser | undefined,
   size = 64
-): Iterable<string> {
+): ReadonlyArray<string> {
+  const candidates = new Array<string>()
+
   if (user === undefined) {
-    return
+    return candidates
   }
 
   const { email, endpoint, avatarURL } = user
@@ -74,12 +76,12 @@ function* getAvatarUrlCandidates(
         const url = new URL(avatarURL)
         url.searchParams.set('s', `${size}`)
 
-        yield url.toString()
+        candidates.push(url.toString())
       } catch (e) {
         // This should never happen since URL#constructor
         // only throws for invalid URLs which we can expect
         // the API to not give us
-        yield avatarURL
+        candidates.push(avatarURL)
       }
     }
   } else if (endpoint !== null) {
@@ -87,8 +89,8 @@ function* getAvatarUrlCandidates(
     // so we're unable to get to the avatar by requesting the avatarURL due
     // to the private mode (see https://github.com/desktop/desktop/issues/821).
     // So we have no choice but to fall back to gravatar for now.
-    yield generateGravatarUrl(email, size)
-    return
+    candidates.push(generateGravatarUrl(email, size))
+    return candidates
   }
 
   // Are we dealing with a GitHub.com stealth/anonymous email address in
@@ -108,15 +110,20 @@ function* getAvatarUrlCandidates(
   if (stealthEmailMatch) {
     const [, userId, login] = stealthEmailMatch
     if (userId !== undefined) {
-      yield `${avatarEndpoint}/u/${encodeURIComponent(userId)}?s=${size}`
+      const userIdParam = encodeURIComponent(userId)
+      candidates.push(`${avatarEndpoint}/u/${userIdParam}?s=${size}`)
     } else {
-      yield `${avatarEndpoint}/${encodeURIComponent(login)}?s=${size}`
+      const loginParam = encodeURIComponent(login)
+      candidates.push(`${avatarEndpoint}/${loginParam}?s=${size}`)
     }
   }
 
   // The /u/e endpoint above falls back to gravatar (proxied)
   // so we don't have to add gravatar to the fallback.
-  yield `${avatarEndpoint}/u/e?email=${encodeURIComponent(email)}&s=${size}`
+  const emailParam = encodeURIComponent(email)
+  candidates.push(`${avatarEndpoint}/u/e?email=${emailParam}&s=${size}`)
+
+  return candidates
 }
 
 /** A component for displaying a user avatar. */
@@ -127,7 +134,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
   ): Partial<IAvatarState> | null {
     const { user, size } = props
     if (!shallowEquals(user, state.user)) {
-      const candidates = [...getAvatarUrlCandidates(user, size)]
+      const candidates = getAvatarUrlCandidates(user, size)
       return { user, candidates }
     }
     return null
@@ -139,7 +146,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     const { user, size } = props
     this.state = {
       user,
-      candidates: [...getAvatarUrlCandidates(user, size)],
+      candidates: getAvatarUrlCandidates(user, size),
     }
   }
 
@@ -166,12 +173,9 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
   }
 
   private onImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    if (this.state.candidates.length === 0) {
-      return
+    if (this.state.candidates.length > 0) {
+      this.setState({ candidates: this.state.candidates.slice(1) })
     }
-
-    console.warn(`Failed to load avatar from: ${e.currentTarget.src}`)
-    this.setState({ candidates: this.state.candidates.slice(1) })
   }
 
   public render() {
@@ -212,5 +216,26 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
         {img}
       </span>
     )
+  }
+
+  public componentDidMount() {
+    window.addEventListener('online', this.onInternetConnected)
+  }
+
+  public componentWillUnmount() {
+    window.removeEventListener('online', this.onInternetConnected)
+  }
+
+  private onInternetConnected = () => {
+    // If we've been offline and therefore failed to load an avatar
+    // we'll automatically retry when the user becomes connected again.
+    if (this.state.candidates.length === 0) {
+      const { user, size } = this.props
+      const candidates = getAvatarUrlCandidates(user, size)
+
+      if (candidates.length > 0) {
+        this.setState({ candidates })
+      }
+    }
   }
 }

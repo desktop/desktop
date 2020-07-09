@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { LinkButton } from '../lib/link-button'
-import { Monospaced } from '../lib/monospaced'
 import { PathText } from '../lib/path-text'
 import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
@@ -64,13 +63,13 @@ export class OversizedFiles extends React.Component<IOversizedFilesProps> {
   private renderFileList() {
     return (
       <div className="files-list">
-        {this.props.oversizedFiles.map(fileName => (
-          <ul key={fileName}>
-            <Monospaced>
+        <ul>
+          {this.props.oversizedFiles.map(fileName => (
+            <li key={fileName}>
               <PathText path={fileName} />
-            </Monospaced>
-          </ul>
-        ))}
+            </li>
+          ))}
+        </ul>
       </div>
     )
   }

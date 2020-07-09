@@ -214,10 +214,11 @@ export interface IAPIMentionableUser {
   readonly login: string
 
   /**
-   * The real name (or at least the name that the user
-   * has configured to be shown) for this user.
+   * The user's real name (or at least the name that the user
+   * has configured to be shown) or null if the user hasn't provided
+   * a real name for their public profile.
    */
-  readonly name: string
+  readonly name: string | null
 }
 
 /**

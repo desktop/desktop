@@ -732,6 +732,13 @@ export class ChangesList extends React.Component<
     const fileCount = this.props.workingDirectory.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
+
+    const selectedChangeCount = this.props.workingDirectory.files.filter(
+      file => file.selection.getSelectionType() !== DiffSelectionType.None
+    ).length
+    const selectedFilesPlural = selectedChangeCount === 1 ? 'file' : 'files'
+    const selectedChangesDescription = `${selectedChangeCount} changed ${selectedFilesPlural} selected`
+
     const includeAllValue = getIncludeAllValue(
       this.props.workingDirectory,
       this.props.rebaseConflictState
@@ -744,7 +751,11 @@ export class ChangesList extends React.Component<
 
     return (
       <div className="changes-list-container file-list">
-        <div className="header" onContextMenu={this.onContextMenu}>
+        <div
+          className="header"
+          onContextMenu={this.onContextMenu}
+          title={selectedChangesDescription}
+        >
           <Checkbox
             label={filesDescription}
             value={includeAllValue}
