@@ -36,6 +36,8 @@ jobs:
       - name: Install and build dependencies
         run: yarn
       - name: test setup
+      - name: Build production app
+        run: yarn build:prod
         run: yarn test:setup
       - name: test
         run: yarn test
