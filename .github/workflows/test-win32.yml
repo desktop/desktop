@@ -35,10 +35,15 @@ jobs:
 
       - name: Install and build dependencies
         run: yarn
-      - name: test setup
+      - name: Pre-build checks (Linting)
+        run: |
+          yarn lint
+          yarn validate-changelog
+          yarn check-modified
       - name: Build production app
         run: yarn build:prod
+      - name: Prepare testing environment
         run: yarn test:setup
-      - name: test
+      - name: Run tests
         run: yarn test
         timeout-minutes: 5
