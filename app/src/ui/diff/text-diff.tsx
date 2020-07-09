@@ -229,6 +229,8 @@ const defaultEditorOptions: IEditorConfigurationExtra = {
   // Make sure CodeMirror doesn't capture Tab (and Shift-Tab) and thus destroy tab navigation
   extraKeys: {
     Tab: false,
+    Home: 'goDocStart',
+    End: 'goDocEnd',
     'Shift-Tab': false,
     // Steal the default key binding so that we can launch our
     // custom search UI.
