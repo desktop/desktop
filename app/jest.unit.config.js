@@ -1,10 +1,7 @@
 module.exports = {
   roots: ['<rootDir>/src/', '<rootDir>/test/'],
-  transform: {
-    '^.+\\.tsx?$': 'ts-jest',
-  },
   testMatch: ['**/unit/**/*-test.ts{,x}'],
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  moduleFileExtensions: ['js', 'json', 'jsx', 'node', 'ts', 'tsx'],
   setupFiles: ['<rootDir>/test/globals.ts', '<rootDir>/test/unit-test-env.ts'],
   setupTestFrameworkScriptFile: '<rootDir>/test/setup-test-framework.ts',
   collectCoverageFrom: [
@@ -12,12 +9,10 @@ module.exports = {
     '!**/node_modules/**',
     '!**/vendor/**',
     '!**/*.d.*',
-    // not focused on testing these areas currently
     '!src/ask-pass/**/*',
     '!src/cli/**/*',
     '!src/crash/**/*',
     '!src/highlighter/**/*',
-    // ignore index files
     '!**/index.ts',
   ],
   reporters: [
@@ -29,11 +24,13 @@ module.exports = {
         outputName: 'junit-unit-tests.xml',
       },
     ],
+    '<rootDir>../script/jest-actions-reporter.js',
   ],
   coverageReporters: ['text-summary', 'json', 'html', 'cobertura'],
   globals: {
     'ts-jest': {
-      useBabelrc: true,
+      babelConfig: true,
     },
   },
+  preset: 'ts-jest',
 }

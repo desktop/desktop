@@ -18,6 +18,10 @@ describe('path', () => {
       })
     }
 
+    it('fails, hard', () => {
+      expect(false).toBe(true)
+    })
+
     if (__DARWIN__ || __LINUX__) {
       it('encodes spaces and hashes', () => {
         const dirName =
