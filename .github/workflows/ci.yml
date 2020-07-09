@@ -10,6 +10,7 @@ on:
 
 jobs:
   build:
+    name: ${{ runner.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
