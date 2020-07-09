@@ -8,9 +8,6 @@ on:
     branches:
       - '*'
 
-env:
-  CI: true
-
 jobs:
   test:
     runs-on: windows-latest
