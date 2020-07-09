@@ -15,17 +15,7 @@ module.exports = {
     '!src/highlighter/**/*',
     '!**/index.ts',
   ],
-  reporters: [
-    'default',
-    [
-      'jest-junit',
-      {
-        outputDirectory: '.',
-        outputName: 'junit-unit-tests.xml',
-      },
-    ],
-    '<rootDir>../script/jest-actions-reporter.js',
-  ],
+  reporters: ['default', '<rootDir>../script/jest-actions-reporter.js'],
   coverageReporters: ['text-summary', 'json', 'html', 'cobertura'],
   globals: {
     'ts-jest': {
