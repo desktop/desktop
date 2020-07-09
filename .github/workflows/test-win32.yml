@@ -16,10 +16,10 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
-      - name: Use Node.js 10.x
+      - name: Use Node.js 12.8.1
         uses: actions/setup-node@v1
         with:
-          node-version: 10.x
+          node-version: 12.8.1
       - name: Get node modules
         run: yarn
       - name: test setup
