@@ -59,9 +59,9 @@ jobs:
       - name: Prepare testing environment
         run: yarn test:setup
       - name: Run unit tests
-        run: |
-          yarn test:unit:cov
-          yarn test:script:cov
+        run: yarn test:unit:cov
+      - name: Run script tests
+        run: yarn test:script:cov
       - name: Run integration tests
         run: yarn test:integration
         timeout-minutes: 5
