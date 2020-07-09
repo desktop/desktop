@@ -44,7 +44,7 @@ import {
   isPublishable,
   getIconFileName,
 } from './dist-info'
-import { isRunningOnFork, isCircleCI } from './build-platforms'
+import { isRunningOnFork, isCircleCI, isGitHubActions } from './build-platforms'
 
 import { updateLicenseDump } from './licenses/update-license-dump'
 import { verifyInjectedSassVariables } from './validate-sass/validate-all'
@@ -76,7 +76,11 @@ generateLicenseMetadata(outRoot)
 
 moveAnalysisFiles()
 
-if (isCircleCI() && !isRunningOnFork()) {
+if (
+  (isCircleCI() || isGitHubActions()) &&
+  process.platform === 'darwin' &&
+  !isRunningOnFork()
+) {
   console.log('Setting up keychain…')
   cp.execSync(path.join(__dirname, 'setup-macos-keychain'))
 }
@@ -163,7 +167,8 @@ function packageApp() {
     : undefined
   if (
     isPublishableBuild &&
-    isCircleCI() &&
+    (isCircleCI() || isGitHubActions()) &&
+    process.platform === 'darwin' &&
     notarizationCredentials === undefined
   ) {
     // we can't publish a mac build without these
