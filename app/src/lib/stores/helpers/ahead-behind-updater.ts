@@ -1,7 +1,7 @@
 const queue: (config: QueueConfig) => Queue = require('queue')
 import { revSymmetricDifference } from '../../../lib/git'
 
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
+// eslint-disable-next-line @typescript-eslint/naming-convention
 interface QueueConfig {
   // Max number of jobs the queue should process concurrently, defaults to Infinity.
   readonly concurrency: number
@@ -10,7 +10,7 @@ interface QueueConfig {
   readonly autostart: boolean
 }
 
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
+// eslint-disable-next-line @typescript-eslint/naming-convention
 interface Queue extends NodeJS.EventEmitter {
   readonly length: number
 
@@ -152,9 +152,7 @@ export class AheadBehindUpdater {
     const newRefsToCompare = new Set<string>(filterBranchesNotInCache(branches))
 
     log.debug(
-      `[AheadBehindUpdater] - found ${
-        newRefsToCompare.size
-      } comparisons to perform`
+      `[AheadBehindUpdater] - found ${newRefsToCompare.size} comparisons to perform`
     )
 
     for (const sha of newRefsToCompare) {

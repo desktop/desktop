@@ -26,9 +26,10 @@ import { IMenu } from '../models/app-menu'
 import { StashDiffViewer } from './stashing'
 import { StashedChangesLoadStates } from '../models/stash-entry'
 import { TutorialPanel, TutorialWelcome, TutorialDone } from './tutorial'
-import { enableTutorial, enableNDDBBanner } from '../lib/feature-flag'
+import { enableNDDBBanner } from '../lib/feature-flag'
 import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { ExternalEditor } from '../lib/editors'
+import { openFile } from './lib/open-file'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -49,6 +50,18 @@ interface IRepositoryViewProps {
   readonly askForConfirmationOnDiscardChanges: boolean
   readonly focusCommitMessage: boolean
   readonly accounts: ReadonlyArray<Account>
+
+  /**
+   * A value indicating whether or not the application is currently presenting
+   * a modal dialog such as the preferences, or an error dialog
+   */
+  readonly isShowingModal: boolean
+
+  /**
+   * A value indicating whether or not the application is currently presenting
+   * a foldout dialog such as the file menu, or the branches dropdown
+   */
+  readonly isShowingFoldout: boolean
 
   /** The name of the currently selected external editor */
   readonly externalEditorLabel?: string
@@ -176,7 +189,6 @@ export class RepositoryView extends React.Component<
         changes={this.props.state.changesState}
         branch={branch ? branch.name : null}
         commitAuthor={this.props.state.commitAuthor}
-        gitHubUsers={this.props.state.gitHubUsers}
         emoji={this.props.emoji}
         mostRecentLocalCommit={mostRecentLocalCommit}
         issuesStore={this.props.issuesStore}
@@ -217,7 +229,6 @@ export class RepositoryView extends React.Component<
         compareState={this.props.state.compareState}
         selectedCommitSha={this.props.state.commitSelection.sha}
         currentBranch={currentBranch}
-        gitHubUsers={this.props.state.gitHubUsers}
         emoji={this.props.emoji}
         commitLookup={this.props.state.commitLookup}
         localCommitSHAs={this.props.state.localCommitSHAs}
@@ -303,6 +314,8 @@ export class RepositoryView extends React.Component<
           repository={this.props.repository}
           dispatcher={this.props.dispatcher}
           isWorkingTreeClean={isWorkingTreeClean}
+          onOpenBinaryFile={this.onOpenBinaryFile}
+          onChangeImageDiffType={this.onChangeImageDiffType}
         />
       )
     }
@@ -330,11 +343,12 @@ export class RepositoryView extends React.Component<
         currentDiff={diff}
         emoji={this.props.emoji}
         commitSummaryWidth={this.props.commitSummaryWidth}
-        gitHubUsers={this.props.state.gitHubUsers}
         selectedDiffType={this.props.imageDiffType}
         externalEditorLabel={this.props.externalEditorLabel}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+        onOpenBinaryFile={this.onOpenBinaryFile}
+        onChangeImageDiffType={this.onChangeImageDiffType}
       />
     )
   }
@@ -367,10 +381,7 @@ export class RepositoryView extends React.Component<
     }
 
     if (workingDirectory.files.length === 0) {
-      if (
-        enableTutorial() &&
-        this.props.currentTutorialStep !== TutorialStep.NotApplicable
-      ) {
+      if (this.props.currentTutorialStep !== TutorialStep.NotApplicable) {
         return this.renderTutorialPane()
       } else {
         return (
@@ -387,7 +398,7 @@ export class RepositoryView extends React.Component<
         )
       }
     } else {
-      if (selectedFileIDs.length === 0 || diff === null) {
+      if (selectedFileIDs.length === 0) {
         return null
       }
 
@@ -406,9 +417,22 @@ export class RepositoryView extends React.Component<
           isCommitting={this.props.state.isCommitting}
           imageDiffType={this.props.imageDiffType}
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+          onOpenBinaryFile={this.onOpenBinaryFile}
+          onChangeImageDiffType={this.onChangeImageDiffType}
+          askForConfirmationOnDiscardChanges={
+            this.props.askForConfirmationOnDiscardChanges
+          }
         />
       )
     }
+  }
+
+  private onOpenBinaryFile = (fullPath: string) => {
+    openFile(fullPath, this.props.dispatcher)
+  }
+
+  private onChangeImageDiffType = (imageDiffType: ImageDiffType) => {
+    this.props.dispatcher.changeImageDiffType(imageDiffType)
   }
 
   private renderContent(): JSX.Element | null {
@@ -424,7 +448,7 @@ export class RepositoryView extends React.Component<
 
   public render() {
     return (
-      <UiView id="repository" onKeyDown={this.onKeyDown}>
+      <UiView id="repository">
         {this.renderSidebar()}
         {this.renderContent()}
         {this.maybeRenderTutorialPanel()}
@@ -436,22 +460,42 @@ export class RepositoryView extends React.Component<
     this.props.dispatcher.revertCommit(this.props.repository, commit)
   }
 
-  private onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+  public componentDidMount() {
+    window.addEventListener('keydown', this.onGlobalKeyDown)
+  }
+
+  public componentWillUnmount() {
+    window.removeEventListener('keydown', this.onGlobalKeyDown)
+  }
+
+  private onGlobalKeyDown = (event: KeyboardEvent) => {
+    if (event.defaultPrevented) {
+      return
+    }
+
+    if (this.props.isShowingModal || this.props.isShowingFoldout) {
+      return
+    }
+
     // Toggle tab selection on Ctrl+Tab. Note that we don't care
     // about the shift key here, we can get away with that as long
     // as there's only two tabs.
-    if (e.ctrlKey && e.key === 'Tab') {
-      const section =
-        this.props.state.selectedSection === RepositorySectionTab.History
-          ? RepositorySectionTab.Changes
-          : RepositorySectionTab.History
-
-      this.props.dispatcher.changeRepositorySection(
-        this.props.repository,
-        section
-      )
-      e.preventDefault()
+    if (event.ctrlKey && event.key === 'Tab') {
+      this.changeTab()
+      event.preventDefault()
     }
+  }
+
+  private changeTab() {
+    const section =
+      this.props.state.selectedSection === RepositorySectionTab.History
+        ? RepositorySectionTab.Changes
+        : RepositorySectionTab.History
+
+    this.props.dispatcher.changeRepositorySection(
+      this.props.repository,
+      section
+    )
   }
 
   private onTabClicked = (tab: Tab) => {
@@ -472,10 +516,7 @@ export class RepositoryView extends React.Component<
   }
 
   private maybeRenderTutorialPanel(): JSX.Element | null {
-    if (
-      enableTutorial() &&
-      isValidTutorialStep(this.props.currentTutorialStep)
-    ) {
+    if (isValidTutorialStep(this.props.currentTutorialStep)) {
       return (
         <TutorialPanel
           dispatcher={this.props.dispatcher}

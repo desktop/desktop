@@ -1,9 +1,5 @@
 import * as React from 'react'
 import * as moment from 'moment'
-const momentDurationFormatSetup = require('moment-duration-format')
-
-// setup moment plugin
-momentDurationFormatSetup(moment)
 
 interface IRelativeTimeProps {
   /**

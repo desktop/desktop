@@ -1,0 +1,14 @@
+#fork-settings {
+  width: 480px;
+
+  .fork-settings-description {
+    margin-top: var(--spacing);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary-color);
+
+    li {
+      padding: 0;
+      margin-bottom: 0;
+    }
+  }
+}

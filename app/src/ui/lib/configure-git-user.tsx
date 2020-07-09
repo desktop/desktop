@@ -128,13 +128,7 @@ export class ConfigureGitUser extends React.Component<
     }
 
     if (this.state.email.length === 0) {
-      const preferredEmail = lookupPreferredEmail(account)
-      if (preferredEmail) {
-        this.setState({
-          email: preferredEmail.email,
-          avatarURL: this.avatarURLForEmail(preferredEmail.email),
-        })
-      }
+      this.setState({ email: lookupPreferredEmail(account) })
     }
   }
 
@@ -209,7 +203,6 @@ export class ConfigureGitUser extends React.Component<
           <CommitListItem
             commit={dummyCommit}
             emoji={emoji}
-            gitHubUsers={null}
             gitHubRepository={null}
             isLocal={false}
             showUnpushedIndicator={false}
@@ -229,26 +222,11 @@ export class ConfigureGitUser extends React.Component<
   }
 
   private onNameChange = (name: string) => {
-    this.setState({
-      name,
-    })
+    this.setState({ name })
   }
 
   private onEmailChange = (email: string) => {
-    const avatarURL = this.avatarURLForEmail(email)
-
-    this.setState({
-      name: this.state.name,
-      email,
-      avatarURL,
-    })
-  }
-
-  private avatarURLForEmail(email: string): string | null {
-    const matchingAccount = this.props.accounts.find(
-      a => a.emails.findIndex(e => e.email === email) > -1
-    )
-    return matchingAccount ? matchingAccount.avatarURL : null
+    this.setState({ email })
   }
 
   private save = async () => {

@@ -16,7 +16,9 @@
 
     border-bottom: var(--base-border);
 
-    padding: 0 var(--spacing);
+    // We need to give a bit more padding to the right to make place for the scrollbar
+    padding-right: calc(var(--spacing) + var(--spacing-half));
+    padding-left: var(--spacing);
 
     .info {
       display: flex;
@@ -50,6 +52,7 @@
       margin-left: var(--spacing);
       color: var(--list-item-badge-color);
       height: 16px;
+      line-height: 16px;
       max-width: 50%;
 
       .tag-indicator {

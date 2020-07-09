@@ -3,10 +3,6 @@ import * as React from 'react'
 import { encodePathAsUrl } from '../../lib/path'
 import { Repository } from '../../models/repository'
 import { LinkButton } from '../lib/link-button'
-import {
-  enableNoChangesCreatePRBlankslateAction,
-  enableStashing,
-} from '../../lib/feature-flag'
 import { MenuIDs } from '../../models/menu-ids'
 import { IMenu, MenuItem } from '../../models/app-menu'
 import memoizeOne from 'memoize-one'
@@ -25,7 +21,12 @@ import { SuggestedActionGroup } from '../suggested-actions'
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
-    return text.replace('&', '')
+    // Ampersand has a special meaning on Windows where it denotes
+    // the access key (usually rendered as an underline on the following)
+    // character. A literal ampersand is escaped by putting another ampersand
+    // in front of it (&&). Here we strip single ampersands and unescape
+    // double ampersands. Example: "&Push && Pull" becomes "Push & Pull".
+    return text.replace(/&?&/g, m => (m.length > 1 ? '&' : ''))
   }
 
   return text
@@ -359,25 +360,19 @@ export class NoChanges extends React.Component<
       return this.renderPushBranchAction(tip, remote, aheadBehind, tagsToPush)
     }
 
-    if (enableNoChangesCreatePRBlankslateAction()) {
-      const isGitHub = this.props.repository.gitHubRepository !== null
-      const hasOpenPullRequest = currentPullRequest !== null
-      const isDefaultBranch =
-        defaultBranch !== null && tip.branch.name === defaultBranch.name
+    const isGitHub = this.props.repository.gitHubRepository !== null
+    const hasOpenPullRequest = currentPullRequest !== null
+    const isDefaultBranch =
+      defaultBranch !== null && tip.branch.name === defaultBranch.name
 
-      if (isGitHub && !hasOpenPullRequest && !isDefaultBranch) {
-        return this.renderCreatePullRequestAction(tip)
-      }
+    if (isGitHub && !hasOpenPullRequest && !isDefaultBranch) {
+      return this.renderCreatePullRequestAction(tip)
     }
 
     return null
   }
 
   private renderViewStashAction() {
-    if (!enableStashing()) {
-      return null
-    }
-
     const { changesState, branchesState } = this.props.repositoryState
 
     const { tip } = branchesState
