@@ -11,7 +11,7 @@ export const shell: IAppShell = {
   },
   beep: () => {},
   showItemInFolder: (path: string) => {},
-  UNSAFE_showFolderContents: (path: string) => {},
+  showFolderContents: (path: string) => {},
   openExternal: (path: string) => {
     return Promise.resolve(true)
   },

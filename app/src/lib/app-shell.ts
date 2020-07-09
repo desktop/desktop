@@ -31,7 +31,7 @@ export interface IAppShell {
    *
    * @param path - The path of the folder to open
    */
-  readonly UNSAFE_showFolderContents: (path: string) => void
+  readonly showFolderContents: (path: string) => void
 }
 
 export const shell: IAppShell = {
@@ -52,7 +52,7 @@ export const shell: IAppShell = {
   showItemInFolder: path => {
     ipcRenderer.send('show-item-in-folder', { path })
   },
-  UNSAFE_showFolderContents: path => {
+  showFolderContents: path => {
     ipcRenderer.send('show-folder-contents', { path })
   },
   openItem: electronShell.openItem,

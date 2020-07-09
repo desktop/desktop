@@ -2239,7 +2239,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    shell.UNSAFE_showFolderContents(repository.path)
+    shell.showFolderContents(repository.path)
   }
 
   private onRepositoryDropdownStateChanged = (newState: DropdownState) => {
