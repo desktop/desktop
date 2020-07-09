@@ -14,10 +14,24 @@ import { getStealthEmailForUser, getLegacyStealthEmailForUser } from '../email'
 const MaxFetchFrequency = 10 * 60 * 1000
 
 /**
+ * The max time (in milliseconds) that we'll keep a mentionable query
+ * cache around before pruning it.
+ */
+const QueryCacheTimeout = 60 * 1000
+
+interface IQueryCache {
+  readonly repository: GitHubRepository
+  readonly users: ReadonlyArray<IMentionableUser>
+}
+
+/**
  * The store for GitHub users. This is used to match commit authors to GitHub
  * users and avatars.
  */
 export class GitHubUserStore extends BaseStore {
+  private queryCache: IQueryCache | null = null
+  private pruneQueryCacheTimeoutId: number | null = null
+
   public constructor(private readonly database: GitHubUserDatabase) {
     super()
   }
@@ -59,7 +73,7 @@ export class GitHubUserStore extends BaseStore {
     repository: GitHubRepository,
     account: Account
   ): Promise<void> {
-    assertPersisted(repository, this.updateMentionables.name)
+    assertPersisted(repository)
 
     const api = API.fromAccount(account)
 
@@ -101,13 +115,21 @@ export class GitHubUserStore extends BaseStore {
       mentionables,
       response.etag
     )
+
+    if (
+      this.queryCache !== null &&
+      this.queryCache.repository.dbID === repository.dbID
+    ) {
+      this.queryCache = null
+      this.clearCachePruneTimeout()
+    }
   }
 
   /** Get the mentionable users in the repository. */
   public async getMentionableUsers(
     repository: GitHubRepository
   ): Promise<ReadonlyArray<IMentionableUser>> {
-    assertPersisted(repository, this.getMentionableUsers.name)
+    assertPersisted(repository)
     return this.database.getAllMentionablesForRepository(repository.dbID)
   }
 
@@ -126,13 +148,20 @@ export class GitHubUserStore extends BaseStore {
    */
   public async getMentionableUsersMatching(
     repository: GitHubRepository,
-    text: string,
+    query: string,
     maxHits: number = 100
   ): Promise<ReadonlyArray<IMentionableUser>> {
-    const users = await this.getMentionableUsers(repository)
+    assertPersisted(repository)
+
+    const users =
+      this.queryCache?.repository.dbID === repository.dbID
+        ? this.queryCache.users
+        : await this.getMentionableUsers(repository)
+
+    this.setQueryCache(repository, users)
 
     const hits = []
-    const needle = text.toLowerCase()
+    const needle = query.toLowerCase()
 
     // Simple substring comparison on login and real name
     for (let i = 0; i < users.length && hits.length < maxHits; i++) {
@@ -158,15 +187,33 @@ export class GitHubUserStore extends BaseStore {
       )
       .map(h => h.user)
   }
+
+  private setQueryCache(
+    repository: GitHubRepository,
+    users: ReadonlyArray<IMentionableUser>
+  ) {
+    this.clearCachePruneTimeout()
+    this.queryCache = { repository, users }
+    this.pruneQueryCacheTimeoutId = window.setTimeout(() => {
+      this.pruneQueryCacheTimeoutId = null
+      this.queryCache = null
+    }, QueryCacheTimeout)
+  }
+
+  private clearCachePruneTimeout() {
+    if (this.pruneQueryCacheTimeoutId !== null) {
+      clearTimeout(this.pruneQueryCacheTimeoutId)
+      this.pruneQueryCacheTimeoutId = null
+    }
+  }
 }
 
 function assertPersisted(
-  repo: GitHubRepository,
-  methodName: string
+  repo: GitHubRepository
 ): asserts repo is GitHubRepository & { dbID: number } {
   if (repo.dbID === null) {
     throw new Error(
-      `${methodName} requires a GitHubRepository instance that's been inserted into the database`
+      `Need a GitHubRepository that's been inserted into the database`
     )
   }
 }
