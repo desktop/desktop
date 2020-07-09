@@ -17,7 +17,6 @@ import { UiActivityMonitor } from '../../src/ui/lib/ui-activity-monitor'
 
 describe('BranchPruner', () => {
   const onGitStoreUpdated = () => {}
-  const onDidLoadNewCommits = () => {}
   const onDidError = () => {}
 
   let gitStoreCache: GitStoreCache
@@ -33,7 +32,6 @@ describe('BranchPruner', () => {
         new UiActivityMonitor()
       ),
       onGitStoreUpdated,
-      onDidLoadNewCommits,
       onDidError
     )
 

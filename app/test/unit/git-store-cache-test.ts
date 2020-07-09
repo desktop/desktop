@@ -9,7 +9,6 @@ describe('GitStoreCache', () => {
   let statsStore: StatsStore
 
   const onGitStoreUpdated = () => {}
-  const onDidLoadNewCommits = () => {}
   const onDidError = () => {}
 
   beforeEach(() => {
@@ -25,7 +24,6 @@ describe('GitStoreCache', () => {
       shell,
       statsStore,
       onGitStoreUpdated,
-      onDidLoadNewCommits,
       onDidError
     )
 
@@ -40,7 +38,6 @@ describe('GitStoreCache', () => {
       shell,
       statsStore,
       onGitStoreUpdated,
-      onDidLoadNewCommits,
       onDidError
     )
 
