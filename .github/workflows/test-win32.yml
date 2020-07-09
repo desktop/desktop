@@ -8,6 +8,9 @@ on:
     branches:
       - '*'
 
+env:
+  CI: true
+
 jobs:
   test:
     runs-on: windows-latest
@@ -22,13 +25,7 @@ jobs:
           node-version: 10.x
       - name: Get node modules
         run: yarn
-        env:
-          CI: true
       - name: test setup
         run: yarn test:setup
-        env:
-          CI: true
       - name: test
         run: yarn test
-        env:
-          CI: true
