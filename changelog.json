@@ -1,5 +1,12 @@
 {
   "releases": {
+    "2.5.4-beta1": [
+      "[Fixed] Dialog now clears filters on esc and closes on double esc - #6369. Thanks @AndreiMaga!",
+      "[Fixed] Fix BBEdit integration - #9050. Thanks @grumpybozo!",
+      "[Fixed] Hide horizontal scroll when showing app errors - #10005",
+      "[Improved] Display the selected changes count in the changes list header tooltip - #9936. Thanks @haykam821!",
+      "[Improved] Autocompletion of users and issues from a fork - #10084"
+    ],
     "2.5.3": [
       "[Added] Stash changes without switching branches - #10032",
       "[Added] Discard selection of lines from a file - #9728",

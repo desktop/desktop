@@ -9,7 +9,6 @@ import { Commit } from '../../models/commit'
 import { IDiff, ImageDiffType } from '../../models/diff'
 
 import { encodePathAsUrl } from '../../lib/path'
-import { IGitHubUser } from '../../lib/databases'
 import { revealInFileManager } from '../../lib/app-shell'
 
 import { openFile } from '../lib/open-file'
@@ -39,7 +38,6 @@ interface ISelectedCommitProps {
   readonly selectedFile: CommittedFileChange | null
   readonly currentDiff: IDiff | null
   readonly commitSummaryWidth: number
-  readonly gitHubUsers: Map<string, IGitHubUser>
   readonly selectedDiffType: ImageDiffType
   /** The name of the currently selected external editor */
   readonly externalEditorLabel?: string
@@ -152,7 +150,6 @@ export class SelectedCommit extends React.Component<
         files={this.props.changedFiles}
         emoji={this.props.emoji}
         repository={this.props.repository}
-        gitHubUsers={this.props.gitHubUsers}
         onExpandChanged={this.onExpandChanged}
         isExpanded={this.state.isExpanded}
         onDescriptionBottomChanged={this.onDescriptionBottomChanged}

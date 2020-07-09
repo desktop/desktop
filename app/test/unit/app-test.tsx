@@ -66,9 +66,7 @@ describe('App', () => {
     githubUserStore = new GitHubUserStore(db)
     issuesStore = new IssuesStore(issuesDb)
 
-    repositoryStateManager = new RepositoryStateCache(repo =>
-      githubUserStore.getUsersForRepository(repo)
-    )
+    repositoryStateManager = new RepositoryStateCache()
 
     const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
     const commitStatusStore = new CommitStatusStore(accountsStore)

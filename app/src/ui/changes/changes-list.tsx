@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Path from 'path'
 
-import { IGitHubUser } from '../../lib/databases'
 import { Dispatcher } from '../dispatcher'
 import { IMenuItem } from '../../lib/menu-item'
 import { revealInFileManager } from '../../lib/app-shell'
@@ -131,7 +130,6 @@ interface IChangesListProps {
    */
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
-  readonly gitHubUser: IGitHubUser | null
   readonly dispatcher: Dispatcher
   readonly availableWidth: number
   readonly isCommitting: boolean
@@ -654,7 +652,6 @@ export class ChangesList extends React.Component<
       <CommitMessage
         onCreateCommit={this.props.onCreateCommit}
         branch={this.props.branch}
-        gitHubUser={this.props.gitHubUser}
         commitAuthor={this.props.commitAuthor}
         anyFilesSelected={anyFilesSelected}
         repository={repository}
