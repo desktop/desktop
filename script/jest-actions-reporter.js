@@ -22,9 +22,11 @@ class JestActionsReporter {
         }
 
         const path = relative(repoRoot, testFilePath)
-        const { line, column } = location
 
         for (const msg of failureMessages) {
+          const { line, column } =
+            tryGetFailureLocation(msg, testFilePath) || location
+
           const escapedMessage = `${msg}`.replace(/\r?\n/g, '%0A')
           process.stdout.write(
             `::error file=${path},line=${line},col=${column}::${escapedMessage}\n`
@@ -33,6 +35,33 @@ class JestActionsReporter {
       }
     }
   }
+}
+
+function tryGetFailureLocation(message, testPath) {
+  for (const line of message.split(/\r?\n/g)) {
+    if (!/^\s+at\s/.test(line)) {
+      continue
+    }
+
+    const ix = line.indexOf(testPath)
+
+    if (ix < 0) {
+      continue
+    }
+
+    const locationRe = /:(\d+):(\d+)/
+    const remainder = line.substr(ix + testPath.length)
+    const match = locationRe.exec(remainder)
+
+    if (match) {
+      return {
+        line: parseInt(match[1], 10),
+        column: parseInt(match[2], 10),
+      }
+    }
+  }
+
+  return undefined
 }
 
 module.exports = JestActionsReporter
