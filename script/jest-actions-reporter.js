@@ -8,7 +8,7 @@ class JestActionsReporter {
   }
 
   onRunComplete(contexts, results) {
-    if (process.env.GITHUB_ACTIONS === 'true') {
+    if (process.env.GITHUB_ACTIONS !== 'true') {
       return
     }
 
