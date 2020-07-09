@@ -54,6 +54,10 @@ jobs:
           S3_BUCKET: github-desktop
       - name: Prepare testing environment
         run: yarn test:setup
-      - name: Run tests
-        run: yarn test
-        timeout-minutes: 15
+      - name: Run unit tests
+        run: |
+          yarn test:unit:cov
+          yarn test:script:cov
+      - name: Run integration tests
+        run: yarn test:integration
+        timeout-minutes: 5
