@@ -9,9 +9,10 @@ export interface IMentionableUser {
 
   /**
    * The real name (or at least the name that the user
-   * has configured to be shown) for this user.
+   * has configured to be shown) or null if the user hasn't
+   * specified a name.
    */
-  readonly name: string
+  readonly name: string | null
 
   /**
    * The user's attributable email address. If the
