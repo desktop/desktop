@@ -46,4 +46,4 @@ jobs:
         run: yarn test:setup
       - name: Run tests
         run: yarn test
-        timeout-minutes: 5
+        timeout-minutes: 15
