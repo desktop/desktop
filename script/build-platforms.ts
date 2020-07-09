@@ -22,6 +22,10 @@ export function getSha() {
     return pullRequestCommitId
   }
 
+  const gitHubSha = process.env.GITHUB_SHA
+  if (isGitHubActions() && gitHubSha !== undefined) {
+  }
+
   throw new Error(
     `Unable to get the SHA for the current platform. Check the documentation for the expected environment variables.`
   )
@@ -78,6 +82,10 @@ export function isAzurePipelines() {
     process.env.SYSTEM_TEAMFOUNDATIONCOLLECTIONURI ===
     'https://github.visualstudio.com/'
   )
+}
+
+export function isGitHubActions() {
+  return process.env.GITHUB_ACTIONS === 'true'
 }
 
 export function getReleaseBranchName(): string {
