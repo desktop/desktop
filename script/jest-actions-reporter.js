@@ -29,9 +29,6 @@ class JestActionsReporter {
           process.stdout.write(
             `::error file=${path},line=${line},col=${column}::${escapedMessage}\n`
           )
-          process.stderr.write(
-            `SAMPLE file=${path},line=${line},col=${column}::${escapedMessage}\n`
-          )
         }
       }
     }
