@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 12.8.1
-      - name: Get node modules
+      - name: Install and build dependencies
         run: yarn
       - name: test setup
         run: yarn test:setup
