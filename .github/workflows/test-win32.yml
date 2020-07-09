@@ -46,6 +46,12 @@ jobs:
           DESKTOP_OAUTH_CLIENT_ID: ${{ secrets.DESKTOP_OAUTH_CLIENT_ID }}
           DESKTOP_OAUTH_CLIENT_SECRET:
             ${{ secrets.DESKTOP_OAUTH_CLIENT_SECRET }}
+      - name: Publish production app
+        run: yarn run publish
+        env:
+          DESKTOPBOT_TOKEN: ${{ secrets.DESKTOPBOT_TOKEN }}
+          WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+          S3_BUCKET: github-desktop
       - name: Prepare testing environment
         run: yarn test:setup
       - name: Run tests
