@@ -75,7 +75,7 @@ export class GitLFSProgressParser {
     let finishedFiles = 0
 
     // When uploading LFS files the estimate is accurate but not
-    // when downloading so we'll whichever is biggest of the estimate
+    // when downloading so we'll choose whichever is biggest of the estimate
     // and the actual number of files we've seen
     const fileCount = Math.max(estimatedFileCount, this.files.size)
 
