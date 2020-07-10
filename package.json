@@ -18,8 +18,8 @@
     "postinstall": "ts-node -P script/tsconfig.json script/post-install.ts",
     "start": "cross-env NODE_ENV=development ts-node -P script/tsconfig.json script/start.ts",
     "start:prod": "cross-env NODE_ENV=production ts-node -P script/tsconfig.json script/start.ts",
-    "compile:dev": "cross-env NODE_ENV=development parallel-webpack --config app/webpack.development.ts",
-    "compile:prod": "cross-env NODE_ENV=production NODE_OPTIONS='--max_old_space_size=4096' parallel-webpack --config app/webpack.production.ts",
+    "compile:dev": "cross-env NODE_ENV=development TS_NODE_PROJECT=script/tsconfig.json parallel-webpack --config app/webpack.development.ts",
+    "compile:prod": "cross-env NODE_ENV=production TS_NODE_PROJECT=script/tsconfig.json NODE_OPTIONS='--max_old_space_size=4096' parallel-webpack --config app/webpack.production.ts",
     "build:dev": "yarn compile:dev && cross-env NODE_ENV=development ts-node -P script/tsconfig.json script/build.ts",
     "build:prod": "yarn compile:prod && cross-env NODE_ENV=production ts-node -P script/tsconfig.json script/build.ts",
     "package": "ts-node -P script/tsconfig.json script/package.ts",
@@ -171,6 +171,7 @@
     "electron": "7.1.8",
     "electron-builder": "22.4.0",
     "electron-packager": "^14.2.1",
-    "electron-winstaller": "4.0.0"
+    "electron-winstaller": "4.0.0",
+    "tsconfig-paths": "^3.9.0"
   }
 }
