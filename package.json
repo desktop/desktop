@@ -125,6 +125,7 @@
     "@types/classnames": "^2.2.2",
     "@types/clean-webpack-plugin": "^0.1.2",
     "@types/codemirror": "0.0.76",
+    "@types/deep-equal": "^1.0.1",
     "@types/double-ended-queue": "^2.1.0",
     "@types/electron-packager": "^13.0.0",
     "@types/electron-winstaller": "^2.6.0",
