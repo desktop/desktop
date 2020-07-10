@@ -39,9 +39,9 @@
     "clean-slate": "rimraf out node_modules app/node_modules coverage && yarn",
     "rebuild-hard:dev": "yarn clean-slate && yarn build:dev",
     "rebuild-hard:prod": "yarn clean-slate && yarn build:prod",
-    "draft-release": "ts-node script/draft-release/index.ts",
+    "draft-release": "ts-node -P script/tsconfig.json script/draft-release/index.ts",
     "draft-release:format": "prettier --check --write changelog.json app/package.json && yarn validate-changelog",
-    "validate-changelog": "ts-node script/validate-changelog.ts",
+    "validate-changelog": "ts-node -P script/tsconfig.json script/validate-changelog.ts",
     "check-modified": "stop-build"
   },
   "author": {
