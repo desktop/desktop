@@ -4,7 +4,6 @@ import { GitHubRepository } from '../../models/github-repository'
 import { Commit } from '../../models/commit'
 import { CommitListItem } from './commit-list-item'
 import { List } from '../lib/list'
-import { IGitHubUser } from '../../lib/databases'
 import { arrayEquals } from '../../lib/equality'
 
 const RowHeight = 50
@@ -21,9 +20,6 @@ interface ICommitListProps {
 
   /** The SHA of the selected commit */
   readonly selectedSHA: string | null
-
-  /** The lookup for GitHub users related to this repository */
-  readonly gitHubUsers: Map<string, IGitHubUser>
 
   /** The emoji lookup to render images inline */
   readonly emoji: Map<string, string>
@@ -120,7 +116,6 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         )}
         unpushedTags={unpushedTags}
         commit={commit}
-        gitHubUsers={this.props.gitHubUsers}
         emoji={this.props.emoji}
         onCreateTag={this.props.onCreateTag}
         onDeleteTag={this.props.onDeleteTag}
@@ -194,7 +189,6 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
           onScroll={this.onScroll}
           invalidationProps={{
             commits: this.props.commitSHAs,
-            gitHubUsers: this.props.gitHubUsers,
             localCommitSHAs: this.props.localCommitSHAs,
             commitLookupHash: this.commitsHash(this.getVisibleCommits()),
             tagsToPush: this.props.tagsToPush,

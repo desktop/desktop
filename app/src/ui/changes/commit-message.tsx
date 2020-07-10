@@ -9,7 +9,6 @@ import {
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
 import { Dispatcher } from '../dispatcher'
-import { IGitHubUser } from '../../lib/databases/github-user-database'
 import {
   Repository,
   isRepositoryWithGitHubRepository,
@@ -17,7 +16,6 @@ import {
 import { Button } from '../lib/button'
 import { Avatar } from '../lib/avatar'
 import { Loading } from '../lib/loading'
-import { generateGravatarUrl } from '../../lib/gravatar'
 import { AuthorInput } from '../lib/author-input'
 import { FocusContainer } from '../lib/focus-container'
 import { showContextualMenu } from '../main-process-proxy'
@@ -29,6 +27,7 @@ import { startTimer } from '../lib/timing'
 import { PermissionsCommitWarning } from './permissions-commit-warning'
 import { LinkButton } from '../lib/link-button'
 import { FoldoutType } from '../../lib/app-state'
+import { IAvatarUser, getAvatarUserFromAuthor } from '../../models/avatar'
 
 const addAuthorIcon = new OcticonSymbol(
   12,
@@ -43,7 +42,6 @@ interface ICommitMessageProps {
   readonly onCreateCommit: (context: ICommitContext) => Promise<boolean>
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
-  readonly gitHubUser: IGitHubUser | null
   readonly anyFilesSelected: boolean
   readonly focusCommitMessage: boolean
   readonly commitMessage: ICommitMessage | null
@@ -258,23 +256,15 @@ export class CommitMessage extends React.Component<
   }
 
   private renderAvatar() {
-    const commitAuthor = this.props.commitAuthor
+    const { commitAuthor, repository } = this.props
+    const { gitHubRepository } = repository
     const avatarTitle = commitAuthor
       ? `Committing as ${commitAuthor.name} <${commitAuthor.email}>`
       : undefined
-    let avatarUser = undefined
-
-    if (commitAuthor) {
-      const avatarURL = this.props.gitHubUser
-        ? this.props.gitHubUser.avatarURL
-        : generateGravatarUrl(commitAuthor.email)
-
-      avatarUser = {
-        email: commitAuthor.email,
-        name: commitAuthor.name,
-        avatarURL,
-      }
-    }
+    const avatarUser: IAvatarUser | undefined =
+      commitAuthor !== null
+        ? getAvatarUserFromAuthor(commitAuthor, gitHubRepository)
+        : undefined
 
     return <Avatar user={avatarUser} title={avatarTitle} />
   }
