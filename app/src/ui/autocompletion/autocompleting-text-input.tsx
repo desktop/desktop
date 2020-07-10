@@ -14,7 +14,7 @@ interface IRange {
   readonly length: number
 }
 
-import getCaretCoordinates = require('textarea-caret')
+import getCaretCoordinates from 'textarea-caret'
 import { showContextualMenu } from '../main-process-proxy'
 
 interface IAutocompletingTextInputProps<ElementType> {
