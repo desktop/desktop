@@ -5,7 +5,7 @@ import hotMiddleware from 'webpack-hot-middleware'
 
 import { forceUnwrap as u } from '../app/src/lib/fatal-error'
 
-import configs = require('../app/webpack.development')
+import configs from '../app/webpack.development'
 
 import { run } from './run'
 

@@ -65,7 +65,8 @@ const crashConfig = merge({}, common.crash, config, {
   ],
 })
 
-export = [
+// eslint-disable-next-line no-restricted-syntax
+export default [
   mainConfig,
   rendererConfig,
   askPassConfig,
