@@ -65,7 +65,6 @@
     "aws-sdk": "^2.23.0",
     "babel-core": "^6.26.3",
     "babel-jest": "^23.4.2",
-    "babel-minify-webpack-plugin": "^0.3.1",
     "babel-plugin-syntax-dynamic-import": "^6.18.0",
     "chalk": "^2.2.0",
     "clean-webpack-plugin": "^0.1.19",
