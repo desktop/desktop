@@ -1,4 +1,5 @@
 import * as Url from 'url'
+import * as Path from 'path'
 import { shell } from 'electron'
 
 /**
@@ -27,6 +28,15 @@ export function UNSAFE_openDirectory(path: string) {
       .openExternal(directoryURL)
       .catch(err => log.error(`Failed to open directory (${path})`, err))
   } else {
-    shell.openItem(path)
+    // Add a trailing slash to the directory path.
+    //
+    // In Windows, if there's a file and a directory with the
+    // same name (e.g `C:\MyFolder\foo` and `C:\MyFolder\foo.exe`),
+    // when executing shell.openItem(`C:\MyFolder\foo`) then the EXE file
+    // will get opened.
+    // We can avoid this by adding a final backslash at the end of the path.
+    const pathname = path[path.length - 1] !== Path.sep ? path + Path.sep : path
+
+    shell.openItem(pathname)
   }
 }
