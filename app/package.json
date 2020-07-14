@@ -17,7 +17,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "app-path": "^2.2.0",
+    "app-path": "^3.2.0",
     "byline": "^5.0.0",
     "chalk": "^2.3.0",
     "classnames": "^2.2.5",
