@@ -152,6 +152,7 @@
     "@types/react-virtualized": "^9.7.12",
     "@types/request": "^2.0.9",
     "@types/semver": "^5.5.0",
+    "@types/source-map-support": "^0.5.2",
     "@types/strip-ansi": "^3.0.0",
     "@types/temp": "^0.8.29",
     "@types/textarea-caret": "^3.0.0",
