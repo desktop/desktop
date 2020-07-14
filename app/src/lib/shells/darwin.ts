@@ -1,8 +1,7 @@
 import { spawn, ChildProcess } from 'child_process'
 import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
-
-const appPath: (bundleId: string) => Promise<string> = require('app-path')
+import appPath from 'app-path'
 
 export enum Shell {
   Terminal = 'Terminal',
