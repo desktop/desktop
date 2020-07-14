@@ -1,26 +1,5 @@
-const queue: (config: QueueConfig) => Queue = require('queue')
+import queue from 'queue'
 import { revSymmetricDifference } from '../../../lib/git'
-
-// eslint-disable-next-line @typescript-eslint/naming-convention
-interface QueueConfig {
-  // Max number of jobs the queue should process concurrently, defaults to Infinity.
-  readonly concurrency: number
-  // Ensures the queue is always running if jobs are available.
-  // Useful in situations where you are using a queue only for concurrency control.
-  readonly autostart: boolean
-}
-
-// eslint-disable-next-line @typescript-eslint/naming-convention
-interface Queue extends NodeJS.EventEmitter {
-  readonly length: number
-
-  start(): void
-  end(): void
-  push<T>(
-    func: (callback: (error: Error | null, result: T) => void) => void
-  ): void
-}
-
 import { Repository } from '../../../models/repository'
 import { getAheadBehind } from '../../../lib/git'
 import { Branch, IAheadBehind } from '../../../models/branch'
@@ -85,7 +64,7 @@ export class AheadBehindUpdater {
   private executeTask = (
     from: string,
     to: string,
-    callback: (error: Error | null, result: IAheadBehind | null) => void
+    callback?: (error?: Error, result?: IAheadBehind) => void
   ) => {
     if (this.comparisonCache.has(from, to)) {
       return
@@ -100,7 +79,9 @@ export class AheadBehindUpdater {
           `[AheadBehindUpdater] unable to cache '${range}' as no result returned`
         )
       }
-      callback(null, result)
+      if (callback) {
+        callback(undefined, result || undefined)
+      }
     })
   }
 
@@ -156,7 +137,7 @@ export class AheadBehindUpdater {
     )
 
     for (const sha of newRefsToCompare) {
-      this.aheadBehindQueue.push<IAheadBehind | null>(callback =>
+      this.aheadBehindQueue.push(callback =>
         requestIdleCallback(() => {
           this.executeTask(from, sha, callback)
         })

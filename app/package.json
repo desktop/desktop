@@ -43,7 +43,7 @@
     "mri": "^1.1.0",
     "p-limit": "^2.2.0",
     "primer-support": "^4.0.0",
-    "queue": "^4.4.2",
+    "queue": "^5.0.0",
     "quick-lru": "^3.0.0",
     "react": "^16.8.4",
     "react-addons-shallow-compare": "^15.6.2",
