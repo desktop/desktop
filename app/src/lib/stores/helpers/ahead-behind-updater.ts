@@ -19,7 +19,7 @@ export class AheadBehindUpdater {
   ) {}
 
   public start() {
-    this.aheadBehindQueue.on('success', (result: IAheadBehind | null) => {
+    this.aheadBehindQueue.on('success', (result?: IAheadBehind) => {
       if (result != null) {
         this.onCacheUpdate(this.comparisonCache)
       }
@@ -56,7 +56,7 @@ export class AheadBehindUpdater {
       }
 
       this.executeTask(from, to, (error, result) =>
-        error !== null ? reject(error) : resolve(result)
+        error !== null ? reject(error) : resolve(result || null)
       )
     })
   }
