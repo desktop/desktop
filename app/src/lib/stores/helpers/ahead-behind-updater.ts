@@ -19,7 +19,7 @@ export class AheadBehindUpdater {
   ) {}
 
   public start() {
-    this.aheadBehindQueue.on('success', (result?: IAheadBehind) => {
+    this.aheadBehindQueue.on('success', (result: IAheadBehind | null) => {
       if (result != null) {
         this.onCacheUpdate(this.comparisonCache)
       }
@@ -49,40 +49,33 @@ export class AheadBehindUpdater {
     from: string,
     to: string
   ): Promise<IAheadBehind | null> {
-    return new Promise((resolve, reject) => {
-      if (this.comparisonCache.has(from, to)) {
-        resolve(this.comparisonCache.get(from, to))
-        return
-      }
+    if (this.comparisonCache.has(from, to)) {
+      return this.comparisonCache.get(from, to)
+    }
 
-      this.executeTask(from, to, (error, result) =>
-        error !== null ? reject(error) : resolve(result || null)
-      )
-    })
+    return this.executeTask(from, to)
   }
 
-  private executeTask = (
+  private executeTask = async (
     from: string,
-    to: string,
-    callback?: (error?: Error, result?: IAheadBehind) => void
-  ) => {
+    to: string
+  ): Promise<IAheadBehind | null> => {
     if (this.comparisonCache.has(from, to)) {
-      return
+      return null
     }
 
     const range = revSymmetricDifference(from, to)
-    getAheadBehind(this.repository, range).then(result => {
-      if (result != null) {
-        this.comparisonCache.set(from, to, result)
-      } else {
-        log.debug(
-          `[AheadBehindUpdater] unable to cache '${range}' as no result returned`
-        )
-      }
-      if (callback) {
-        callback(undefined, result || undefined)
-      }
-    })
+    const result = await getAheadBehind(this.repository, range)
+
+    if (result !== null) {
+      this.comparisonCache.set(from, to, result)
+    } else {
+      log.debug(
+        `[AheadBehindUpdater] unable to cache '${range}' as no result returned`
+      )
+    }
+
+    return result
   }
 
   public insert(from: string, to: string, value: IAheadBehind) {
@@ -137,10 +130,13 @@ export class AheadBehindUpdater {
     )
 
     for (const sha of newRefsToCompare) {
-      this.aheadBehindQueue.push(callback =>
-        requestIdleCallback(() => {
-          this.executeTask(from, sha, callback)
-        })
+      this.aheadBehindQueue.push(
+        () =>
+          new Promise<IAheadBehind | null>((resolve, reject) => {
+            requestIdleCallback(() => {
+              this.executeTask(from, sha).then(resolve, reject)
+            })
+          })
       )
     }
   }
