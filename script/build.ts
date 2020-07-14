@@ -10,13 +10,8 @@ import packager, {
   ElectronOsXSignOptions,
   Options,
 } from 'electron-packager'
-
+import frontMatter from 'front-matter'
 import { externals } from '../app/webpack.common'
-
-interface IFrontMatterResult<T> {
-  readonly attributes: T
-  readonly body: string
-}
 
 interface IChooseALicense {
   readonly title: string
@@ -31,10 +26,6 @@ export interface ILicense {
   readonly body: string
   readonly hidden: boolean
 }
-
-const frontMatter: <T>(
-  path: string
-) => IFrontMatterResult<T> = require('front-matter')
 
 import {
   getBundleID,
