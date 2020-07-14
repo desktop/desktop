@@ -659,11 +659,9 @@
   integrity sha512-z+eSNnP/qpGe6KROv7nq9COUIPP8loXDr7uw84NqGqYCNKJKrsCLVnLtZxmpbq3UYDxMxCrmz99FMThzYJjRaw==
 
 "@types/uuid@^3.4.0":
-  version "3.4.3"
-  resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-3.4.3.tgz#121ace265f5569ce40f4f6d0ff78a338c732a754"
-  integrity sha512-5fRLCYhLtDb3hMWqQyH10qtF+Ud2JnNCXTCZ+9ktNdCcgslcuXkDTkFcJNk++MT29yDntDnlF1+jD+uVGumsbw==
-  dependencies:
-    "@types/node" "*"
+  version "3.4.9"
+  resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-3.4.9.tgz#fcf01997bbc9f7c09ae5f91383af076d466594e1"
+  integrity sha512-XDwyIlt/47l2kWLTzw/mtrpLdB+GPSskR2n/PIcPn+VYhVO77rGhRncIR5GPU0KRzXuqkDO+J5qqrG0Y8P6jzQ==
 
 "@types/webdriverio@^4.13.0":
   version "4.13.0"
