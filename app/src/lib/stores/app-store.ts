@@ -314,6 +314,8 @@ const shellKey = 'shell'
 // switching between apps does not result in excessive fetching in the app
 const BackgroundFetchMinimumInterval = 30 * 60 * 1000
 
+const MaxInvalidFoldersToDisplay = 3
+
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
 
@@ -4941,11 +4943,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (invalidPaths.length > 0) {
       let errorMessage = `The following paths aren't git repositories:\n\n${invalidPaths
-        .slice(0, 5)
+        .slice(0, MaxInvalidFoldersToDisplay)
         .map(path => `- ${path}`)
         .join('\n')}${
-        invalidPaths.length > 5
-          ? `\n\n(and ${invalidPaths.length - 5} more)`
+        invalidPaths.length > MaxInvalidFoldersToDisplay
+          ? `\n\n(and ${invalidPaths.length - MaxInvalidFoldersToDisplay} more)`
           : ''
       }`
 
