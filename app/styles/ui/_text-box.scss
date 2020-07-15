@@ -24,6 +24,10 @@
     margin-bottom: var(--spacing-third);
   }
 
+  :invalid{
+    border-color: $red-500;
+  }
+  
   input {
     @include textboxish;
     @include textboxish-disabled;
