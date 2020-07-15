@@ -24,6 +24,7 @@ export class Git extends React.Component<IGitProps, {}> {
         </Row>
         <Row>
           <TextBox
+            type="email"
             label="Email"
             value={this.props.email}
             onValueChanged={this.props.onEmailChanged}
