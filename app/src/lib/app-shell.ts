@@ -7,7 +7,7 @@ export interface IAppShell {
   readonly moveItemToTrash: (path: string) => boolean
   readonly beep: () => void
   readonly openExternal: (path: string) => Promise<boolean>
-  readonly openItem: (path: string) => boolean
+  readonly openPath: (path: string) => Promise<string>
   readonly showItemInFolder: (path: string) => void
 }
 
@@ -29,7 +29,7 @@ export const shell: IAppShell = {
   showItemInFolder: path => {
     ipcRenderer.send('show-item-in-folder', { path })
   },
-  openItem: electronShell.openItem,
+  openPath: electronShell.openPath,
 }
 
 /**
