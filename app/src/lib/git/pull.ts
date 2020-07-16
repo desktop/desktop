@@ -3,6 +3,7 @@ import {
   GitError,
   IGitExecutionOptions,
   gitNetworkArguments,
+  gitRebaseArguments,
 } from './core'
 import { Repository } from '../../models/repository'
 import { IPullProgress } from '../../models/progress'
@@ -21,7 +22,7 @@ async function getPullArgs(
 ) {
   const networkArguments = await gitNetworkArguments(repository, account)
 
-  const args = [...networkArguments, 'pull']
+  const args = [...networkArguments, ...gitRebaseArguments(), 'pull']
 
   if (enableRecurseSubmodulesFlag()) {
     args.push('--recurse-submodules')

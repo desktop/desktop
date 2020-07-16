@@ -316,9 +316,7 @@ export class PullRequestStore {
       // this pull request.
       if (pr.head.repo == null) {
         log.debug(
-          `Unable to store pull request #${pr.number} for repository ${
-            repository.fullName
-          } as it has no head repository associated with it`
+          `Unable to store pull request #${pr.number} for repository ${repository.fullName} as it has no head repository associated with it`
         )
         prsToDelete.push(getPullRequestKey(baseGitHubRepo, pr.number))
         continue

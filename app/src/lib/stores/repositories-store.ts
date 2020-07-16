@@ -13,7 +13,8 @@ import { Repository } from '../../models/repository'
 import { fatalError } from '../fatal-error'
 import { IAPIRepository, IAPIBranch, IAPIRepositoryPermissions } from '../api'
 import { TypedBaseStore } from './base-store'
-import { enableBranchProtectionChecks } from '../feature-flag'
+import { WorkflowPreferences } from '../../models/workflow-preferences'
+import { clearTagsToPush } from './helpers/tags-to-push-storage'
 
 /** The store for local repositories. */
 export class RepositoriesStore extends TypedBaseStore<
@@ -133,6 +134,7 @@ export class RepositoriesStore extends TypedBaseStore<
             repo.id!,
             gitHubRepository,
             repo.missing,
+            repo.workflowPreferences,
             repo.isTutorialRepository
           )
           inflatedRepos.push(inflatedRepo)
@@ -233,9 +235,10 @@ export class RepositoriesStore extends TypedBaseStore<
     return repository
   }
 
-  /** Remove the repository with the given ID. */
-  public async removeRepository(repoID: number): Promise<void> {
-    await this.db.repositories.delete(repoID)
+  /** Remove the given repository. */
+  public async removeRepository(repository: Repository): Promise<void> {
+    await this.db.repositories.delete(repository.id)
+    clearTagsToPush(repository)
 
     this.emitUpdatedRepositories()
   }
@@ -261,8 +264,32 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.id,
       repository.gitHubRepository,
       missing,
+      repository.workflowPreferences,
       repository.isTutorialRepository
     )
+  }
+
+  /**
+   * Update the workflow preferences for the specified repository.
+   *
+   * @param repository            The repositosy to update.
+   * @param workflowPreferences   The object with the workflow settings to use.
+   */
+  public async updateRepositoryWorkflowPreferences(
+    repository: Repository,
+    workflowPreferences: WorkflowPreferences
+  ): Promise<void> {
+    const repoID = repository.id
+
+    if (!repoID) {
+      return fatalError(
+        '`updateRepositoryWorkflowPreferences` can only update `workflowPreferences` for a repository which has been added to the database.'
+      )
+    }
+
+    await this.db.repositories.update(repoID, { workflowPreferences })
+
+    this.emitUpdatedRepositories()
   }
 
   /** Update the repository's path. */
@@ -289,6 +316,7 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.id,
       repository.gitHubRepository,
       false,
+      repository.workflowPreferences,
       repository.isTutorialRepository
     )
   }
@@ -480,6 +508,7 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.id,
       updatedGitHubRepo,
       repository.missing,
+      repository.workflowPreferences,
       repository.isTutorialRepository
     )
   }
@@ -489,10 +518,6 @@ export class RepositoriesStore extends TypedBaseStore<
     gitHubRepository: GitHubRepository,
     protectedBranches: ReadonlyArray<IAPIBranch>
   ): Promise<void> {
-    if (!enableBranchProtectionChecks()) {
-      return
-    }
-
     const dbID = gitHubRepository.dbID
     if (!dbID) {
       return fatalError(
@@ -531,10 +556,7 @@ export class RepositoriesStore extends TypedBaseStore<
         this.protectionEnabledForBranchCache.set(key, true)
       }
 
-      await this.db.protectedBranches
-        .where('repoId')
-        .equals(dbID)
-        .delete()
+      await this.db.protectedBranches.where('repoId').equals(dbID).delete()
 
       const protectionsFound = branchRecords.length > 0
       this.branchProtectionSettingsFoundCache.set(dbID, protectionsFound)

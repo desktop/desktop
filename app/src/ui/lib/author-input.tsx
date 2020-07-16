@@ -1,16 +1,15 @@
 import * as React from 'react'
 import * as CodeMirror from 'codemirror'
-import * as URL from 'url'
 import * as classNames from 'classnames'
 import { UserAutocompletionProvider, IUserHit } from '../autocompletion'
 import { Editor, Doc, Position } from 'codemirror'
-import { getDotComAPIEndpoint } from '../../lib/api'
 import { compare } from '../../lib/compare'
 import { arrayEquals } from '../../lib/equality'
 import { OcticonSymbol } from '../octicons'
 import { IAuthor } from '../../models/author'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
+import { getLegacyStealthEmailForUser } from '../../lib/email'
 
 interface IAuthorInputProps {
   /**
@@ -205,7 +204,7 @@ function orderByPosition(x: ActualTextMarker, y: ActualTextMarker) {
 
 // The types for CodeMirror.TextMarker is all wrong, this is what it
 // actually looks like
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
+// eslint-disable-next-line @typescript-eslint/naming-convention
 interface ActualTextMarker extends CodeMirror.TextMarkerOptions {
   /** Remove the mark. */
   clear(): void
@@ -273,17 +272,9 @@ function renderUserAutocompleteItem(elem: HTMLElement, self: any, data: any) {
  * address.
  */
 function getEmailAddressForUser(user: IUserHit) {
-  if (user.email && user.email.length > 0) {
-    return user.email
-  }
-
-  const url = URL.parse(user.endpoint)
-  const host =
-    url.hostname && getDotComAPIEndpoint() !== user.endpoint
-      ? url.hostname
-      : 'github.com'
-
-  return `${user.username}@users.noreply.${host}`
+  return user.email && user.email.length > 0
+    ? user.email
+    : getLegacyStealthEmailForUser(user.username, user.endpoint)
 }
 
 function getDisplayTextForAuthor(author: IAuthor) {

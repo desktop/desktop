@@ -139,9 +139,7 @@ function packageApp() {
       return platform
     }
     throw new Error(
-      `Unable to convert to platform for electron-packager: '${
-        process.platform
-      }`
+      `Unable to convert to platform for electron-packager: '${process.platform}`
     )
   }
 

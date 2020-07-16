@@ -55,6 +55,17 @@
   display: flex;
   background: inherit;
 
+  // When the Avatar component fails to load an avatar
+  // image it renders a fallback SVG instead. The symbol is
+  // a generic silhouette of a person and we want to color
+  // that according to the current theme. This is set in
+  // avatar.scss already but duplicated here to override
+  // the specificity of the .avatar background:inherit below.
+  svg.avatar {
+    fill: var(--text-secondary-color);
+    background: var(--box-alt-background-color);
+  }
+
   .avatar {
     position: relative;
     z-index: 2;

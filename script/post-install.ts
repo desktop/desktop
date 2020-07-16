@@ -36,7 +36,7 @@ findYarnVersion(path => {
   )
 
   if (result.status !== 0) {
-    process.exit(result.status)
+    process.exit(result.status || 1)
   }
 
   result = spawnSync(
@@ -46,18 +46,18 @@ findYarnVersion(path => {
   )
 
   if (result.status !== 0) {
-    process.exit(result.status)
+    process.exit(result.status || 1)
   }
 
   result = spawnSync('node', [path, 'compile:tslint'], options)
 
   if (result.status !== 0) {
-    process.exit(result.status)
+    process.exit(result.status || 1)
   }
 
   result = spawnSync('node', [path, 'compile:script'], options)
 
   if (result.status !== 0) {
-    process.exit(result.status)
+    process.exit(result.status || 1)
   }
 })

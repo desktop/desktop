@@ -6,12 +6,17 @@ import {
   DefaultDialogFooter,
 } from '../dialog'
 import { Dispatcher } from '../dispatcher'
-import { RepositoryWithGitHubRepository } from '../../models/repository'
+import {
+  RepositoryWithGitHubRepository,
+  isRepositoryWithForkedGitHubRepository,
+} from '../../models/repository'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
 import { Account } from '../../models/account'
 import { API } from '../../lib/api'
 import { LinkButton } from '../lib/link-button'
+import { PopupType } from '../../models/popup'
+import { enableForkSettings } from '../../lib/feature-flag'
 
 interface ICreateForkDialogProps {
   readonly dispatcher: Dispatcher
@@ -49,12 +54,22 @@ export class CreateForkDialog extends React.Component<
         gitHubRepository.name
       )
       this.props.dispatcher.recordForkCreated()
-      await this.props.dispatcher.convertRepositoryToFork(
+      const updatedRepository = await this.props.dispatcher.convertRepositoryToFork(
         this.props.repository,
         fork
       )
       this.setState({ loading: false })
       this.props.onDismissed()
+
+      if (
+        enableForkSettings() &&
+        isRepositoryWithForkedGitHubRepository(updatedRepository)
+      ) {
+        this.props.dispatcher.showPopup({
+          type: PopupType.ChooseForkSettings,
+          repository: updatedRepository,
+        })
+      }
     } catch (e) {
       log.error(`Fork creation through API failed (${e})`)
       sendNonFatalException('forkCreation', e)
@@ -141,9 +156,7 @@ function renderCreateForkDialogError(
         </LinkButton>
         .
       </>
-    ) : (
-      undefined
-    )
+    ) : undefined
   return (
     <>
       <DialogContent>
