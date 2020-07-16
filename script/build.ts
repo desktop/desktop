@@ -330,18 +330,6 @@ function copyDependencies() {
     cp.execSync('yarn install', { cwd: outRoot, env: process.env })
   }
 
-  if (isDevelopmentBuild) {
-    console.log(
-      '  Installing 7zip (dependency for electron-devtools-installer)'
-    )
-
-    const sevenZipSource = path.resolve(projectRoot, 'app/node_modules/7zip')
-    const sevenZipDestination = path.resolve(outRoot, 'node_modules/7zip')
-
-    fs.mkdirpSync(sevenZipDestination)
-    fs.copySync(sevenZipSource, sevenZipDestination)
-  }
-
   console.log('  Copying git environment…')
   const gitDir = path.resolve(outRoot, 'git')
   fs.removeSync(gitDir)
