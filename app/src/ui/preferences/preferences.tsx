@@ -194,7 +194,7 @@ export class Preferences extends React.Component<
               Git
             </span>
             <span>
-              <Octicon className="icon" symbol={OcticonSymbol.paintcan} />
+              <Octicon className="icon" symbol={OcticonSymbol.paintbrush} />
               Appearance
             </span>
             <span>

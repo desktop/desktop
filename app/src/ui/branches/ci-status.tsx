@@ -114,7 +114,7 @@ export class CIStatus extends React.PureComponent<
 function getSymbolForState(state: APIRefState): OcticonSymbol {
   switch (state) {
     case 'pending':
-      return OcticonSymbol.primitiveDot
+      return OcticonSymbol.dotFill
     case 'failure':
       return OcticonSymbol.x
     case 'success':

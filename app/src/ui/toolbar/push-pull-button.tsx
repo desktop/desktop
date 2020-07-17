@@ -74,7 +74,7 @@ function renderAheadBehind(aheadBehind: IAheadBehind, numTagsToPush: number) {
     content.push(
       <span key="ahead">
         {ahead + numTagsToPush}
-        <Octicon symbol={OcticonSymbol.arrowSmallUp} />
+        <Octicon symbol={OcticonSymbol.arrowUp} />
       </span>
     )
   }
@@ -83,7 +83,7 @@ function renderAheadBehind(aheadBehind: IAheadBehind, numTagsToPush: number) {
     content.push(
       <span key="behind">
         {behind}
-        <Octicon symbol={OcticonSymbol.arrowSmallDown} />
+        <Octicon symbol={OcticonSymbol.arrowDown} />
       </span>
     )
   }
@@ -131,7 +131,7 @@ function publishRepositoryButton(onClick: () => void) {
       title="Publish repository"
       description="Publish this repository to GitHub"
       className="push-pull-button"
-      icon={OcticonSymbol.cloudUpload}
+      icon={OcticonSymbol.upload}
       style={ToolbarButtonStyle.Subtitle}
       onClick={onClick}
     />
@@ -144,7 +144,7 @@ function unbornRepositoryButton() {
       {...defaultProps}
       title="Publish branch"
       description="Cannot publish unborn HEAD"
-      icon={OcticonSymbol.cloudUpload}
+      icon={OcticonSymbol.upload}
       disabled={true}
     />
   )
@@ -160,7 +160,7 @@ function detachedHeadButton(rebaseInProgress: boolean) {
       {...defaultProps}
       title="Publish branch"
       description={description}
-      icon={OcticonSymbol.cloudUpload}
+      icon={OcticonSymbol.upload}
       disabled={true}
     />
   )
@@ -184,7 +184,7 @@ function publishBranchButton(
       {...defaultProps}
       title="Publish branch"
       description={description}
-      icon={OcticonSymbol.cloudUpload}
+      icon={OcticonSymbol.upload}
       onClick={onClick}
       className={className}
     />

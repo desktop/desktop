@@ -52,7 +52,7 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
     if (item.type === 'checkbox' && item.checked) {
       return <Octicon className="icon" symbol={OcticonSymbol.check} />
     } else if (item.type === 'radio' && item.checked) {
-      return <Octicon className="icon" symbol={OcticonSymbol.primitiveDot} />
+      return <Octicon className="icon" symbol={OcticonSymbol.dotFill} />
     }
 
     return null
