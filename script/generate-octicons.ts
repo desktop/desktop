@@ -49,7 +49,16 @@ async function generateIconData(): Promise<ReadonlyArray<IOcticonData>> {
   for (const name of Object.keys(octicons).sort()) {
     const octicon = octicons[name]
 
-    const viewBox = octicon.options.viewBox
+    if (octicon.heights.length === 0) {
+      throw new Error(`Unexpected empty sizes array for ${octicon.symbol}`)
+    }
+
+    // Try to get the 16px version of the SVG data if it exists,
+    // if it doesn't just fallback to the version that is defined.
+    const octiconData =
+      octicon.heights['16'] ?? octicon.heights[Object.keys(octicon.heights)[0]]
+
+    const viewBox = octiconData.options.viewBox
     const viewBoxMatch = viewBoxRe.exec(viewBox)
 
     if (!viewBoxMatch) {
@@ -60,7 +69,7 @@ async function generateIconData(): Promise<ReadonlyArray<IOcticonData>> {
 
     const [, width, height] = viewBoxMatch
 
-    const result = await readXml(octicon.path)
+    const result = await readXml(octiconData.path)
     const pathData = result.path.$.d
     const jsFriendlyName = toCamelCase(octicon.symbol)
 
