@@ -32,11 +32,12 @@ export class FancyTextBox extends React.Component<
       { disabled: this.props.disabled },
       { focused: this.state.isFocused }
     )
-    const octiconCSS = classNames('fancy-octicon')
 
     return (
       <div className={componentCSS}>
-        <Octicon className={octiconCSS} symbol={this.props.symbol} />
+        <div className="fancy-octicon-container">
+          <Octicon className="fancy-octicon" symbol={this.props.symbol} />
+        </div>
         <TextBox
           value={this.props.value}
           onFocus={this.onFocus}
