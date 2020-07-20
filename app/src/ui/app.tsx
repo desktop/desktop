@@ -1274,7 +1274,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private onPopupDismissed = (popupType?: PopupType) => {
+  private onPopupDismissed = (popupType: PopupType) => {
     return this.props.dispatcher.closePopup(popupType)
   }
 
