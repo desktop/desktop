@@ -337,7 +337,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
       branch.name,
       this.state.mergeStatus
     )
-    this.props.dispatcher.closePopup()
+    this.props.onDismissed()
   }
 
   /**
