@@ -2019,11 +2019,11 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onExitTutorialToHomeScreen = () => {
     const tutorialRepository = this.getSelectedTutorialRepository()
     if (!tutorialRepository) {
-      return
+      return false
     }
 
     this.props.dispatcher.pauseTutorial(tutorialRepository)
-    this.props.dispatcher.closePopup()
+    return true
   }
 
   private onCreateTutorialRepository = (account: Account) => {
