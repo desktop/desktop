@@ -95,6 +95,8 @@ export class GenericGitAuthentication extends React.Component<
   }
 
   private save = () => {
+    this.props.onDismiss()
+
     this.props.onSave(
       this.props.hostname,
       this.state.username,

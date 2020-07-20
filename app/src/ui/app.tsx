@@ -2123,8 +2123,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     password: string,
     retryAction: RetryAction
   ) => {
-    this.onPopupDismissed()
-
     await this.props.dispatcher.saveGenericGitCredentials(
       hostname,
       username,
