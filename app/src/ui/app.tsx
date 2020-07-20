@@ -1767,7 +1767,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           <UsageStatsChange
             key="usage-stats-change"
             onOpenUsageDataUrl={this.openUsageDataUrl}
-            onDismissed={this.onUsageReportingDismissed}
+            onSetStatsOptOut={this.onSetStatsOptOut}
+            onDismissed={onPopupDismissedFn}
           />
         )
       case PopupType.CommitConflictsWarning:
@@ -2071,10 +2072,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.endRebaseFlow(repository)
   }
 
-  private onUsageReportingDismissed = (optOut: boolean) => {
+  private onSetStatsOptOut = (optOut: boolean) => {
     this.props.appStore.setStatsOptOut(optOut, true)
     this.props.appStore.markUsageStatsNoteSeen()
-    this.onPopupDismissed()
     this.props.appStore._reportStats()
   }
 
