@@ -120,6 +120,7 @@ import { DeleteTag } from './delete-tag'
 import { ChooseForkSettings } from './choose-fork-settings'
 import { DiscardSelection } from './discard-changes/discard-selection-dialog'
 import { LocalChangesOverwrittenDialog } from './local-changes-overwritten/local-changes-overwritten-dialog'
+import memoizeOne from 'memoize-one'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -188,9 +189,9 @@ export class App extends React.Component<IAppProps, IAppState> {
    * passed popupType, so it can be used in render() without creating
    * multiple instances when the component gets re-rendered.
    */
-  private getOnPopupDismissedFn = (popupType: PopupType) => {
+  private getOnPopupDismissedFn = memoizeOne((popupType: PopupType) => {
     return () => this.onPopupDismissed(popupType)
-  }
+  })
 
   public constructor(props: IAppProps) {
     super(props)
