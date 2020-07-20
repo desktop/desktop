@@ -1825,6 +1825,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             openFileInExternalEditor={this.openFileInExternalEditor}
             dispatcher={this.props.dispatcher}
             onFlowEnded={this.onRebaseFlowEnded}
+            onDismissed={onPopupDismissedFn}
             workingDirectory={workingDirectory}
             progress={progress}
             step={step}
@@ -2067,7 +2068,6 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onRebaseFlowEnded = (repository: Repository) => {
-    this.props.dispatcher.closePopup()
     this.props.dispatcher.endRebaseFlow(repository)
   }
 
