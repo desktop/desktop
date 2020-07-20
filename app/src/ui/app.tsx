@@ -1308,6 +1308,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
+    const onPopupDismissedFn = this.getOnPopupDismissedFn(popup.type)
+
     switch (popup.type) {
       case PopupType.RenameBranch:
         const stash =
@@ -1322,7 +1324,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             branch={popup.branch}
             stash={stash}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
           />
         )
       case PopupType.DeleteBranch:
@@ -1333,7 +1335,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             branch={popup.branch}
             existsOnRemote={popup.existsOnRemote}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             onDeleted={this.onBranchDeleted}
           />
         )
@@ -1358,7 +1360,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             }
             showDiscardChangesSetting={showSetting}
             discardingAllChanges={discardingAllChanges}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
           />
         )
@@ -1371,7 +1373,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             file={popup.file}
             diff={popup.diff}
             selection={popup.selection}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
           />
         )
       case PopupType.Preferences:
@@ -1394,7 +1396,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             selectedExternalEditor={this.state.selectedExternalEditor}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             enterpriseAccount={this.getEnterpriseAccount()}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             selectedShell={this.state.selectedShell}
             selectedTheme={this.state.selectedTheme}
             automaticallySwitchTheme={this.state.automaticallySwitchTheme}
@@ -1424,7 +1426,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             recentBranches={state.branchesState.recentBranches}
             currentBranch={currentBranch}
             initialBranch={branch}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
           />
         )
       }
@@ -1438,7 +1440,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             remote={state.remote}
             dispatcher={this.props.dispatcher}
             repository={repository}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
           />
         )
       }
@@ -1455,7 +1457,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <AddExistingRepository
             key="add-existing-repository"
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}
             path={popup.path}
           />
@@ -1464,7 +1466,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <CreateRepository
             key="create-repository"
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}
             initialPath={popup.path}
           />
@@ -1476,7 +1478,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dotComAccount={this.getDotComAccount()}
             enterpriseAccount={this.getEnterpriseAccount()}
             initialURL={popup.initialURL}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}
             selectedTab={this.state.selectedCloneRepositoryTab}
             onTabSelected={this.onCloneRepositoriesTabSelected}
@@ -1518,7 +1520,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             allBranches={branchesState.allBranches}
             repository={repository}
             upstreamGitHubRepository={upstreamGhRepo}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}
             initialName={popup.initialName || ''}
             currentBranchProtected={currentBranchProtected}
@@ -1532,7 +1534,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <InstallGit
             key="install-git"
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             onOpenShell={this.onOpenShellIgnoreWarning}
             path={popup.path}
           />
@@ -1543,7 +1545,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <About
             key="about"
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             applicationName={getName()}
             applicationVersion={version}
             onCheckForUpdates={this.onCheckForUpdates}
@@ -1558,7 +1560,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             accounts={this.state.accounts}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
           />
         )
       case PopupType.UntrustedCertificate:
@@ -1567,7 +1569,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="untrusted-certificate"
             certificate={popup.certificate}
             url={popup.url}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             onContinue={this.onContinueWithUntrustedCertificate}
           />
         )
@@ -1575,7 +1577,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <Acknowledgements
             key="acknowledgements"
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             applicationVersion={getVersion()}
           />
         )
@@ -1585,14 +1587,14 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="confirm-remove-repository"
             repository={popup.repository}
             onConfirmation={this.onConfirmRepoRemoval}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
           />
         )
       case PopupType.TermsAndConditions:
         return (
           <TermsAndConditions
             key="terms-and-conditions"
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
           />
         )
       case PopupType.PushBranchCommits:
@@ -1604,22 +1606,19 @@ export class App extends React.Component<IAppProps, IAppState> {
             branch={popup.branch}
             unPushedCommits={popup.unPushedCommits}
             onConfirm={this.openCreatePullRequestInBrowser}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
           />
         )
       case PopupType.CLIInstalled:
         return (
-          <CLIInstalled
-            key="cli-installed"
-            onDismissed={this.onPopupDismissed}
-          />
+          <CLIInstalled key="cli-installed" onDismissed={onPopupDismissedFn} />
         )
       case PopupType.GenericGitAuthentication:
         return (
           <GenericGitAuthentication
             key="generic-git-authentication"
             hostname={popup.hostname}
-            onDismiss={this.onPopupDismissed}
+            onDismiss={onPopupDismissedFn}
             onSave={this.onSaveCredentials}
             retryAction={popup.retryAction}
           />
@@ -1632,7 +1631,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <EditorError
             key="editor-error"
             message={popup.message}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             showPreferencesDialog={this.onShowAdvancedPreferences}
             viewPreferences={openPreferences}
             suggestAtom={suggestAtom}
@@ -1643,7 +1642,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <ShellError
             key="shell-error"
             message={popup.message}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             showPreferencesDialog={this.onShowAdvancedPreferences}
           />
         )
@@ -1652,7 +1651,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <InitializeLFS
             key="initialize-lfs"
             repositories={popup.repositories}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             onInitialize={this.initializeLFS}
           />
         )
@@ -1660,7 +1659,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <AttributeMismatch
             key="lsf-attribute-mismatch"
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             onUpdateExistingFilters={this.updateExistingLFSFilters}
           />
         )
@@ -1670,7 +1669,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="upstream-already-exists"
             repository={popup.repository}
             existingRemote={popup.existingRemote}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             onUpdate={this.onUpdateExistingUpstreamRemote}
             onIgnore={this.onIgnoreExistingUpstreamRemote}
           />
@@ -1681,7 +1680,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="release-notes"
             emoji={this.state.emoji}
             newRelease={popup.newRelease}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
           />
         )
       case PopupType.DeletePullRequest:
@@ -1691,7 +1690,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             branch={popup.branch}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             pullRequest={popup.pullRequest}
           />
         )
@@ -1719,7 +1718,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             workingDirectory={workingDirectory}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             openFileInExternalEditor={this.openFileInExternalEditor}
             resolvedExternalEditor={this.state.resolvedExternalEditor}
             openRepositoryInShell={this.openInShell}
@@ -1734,7 +1733,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <OversizedFiles
             key="oversized-files"
             oversizedFiles={popup.oversizedFiles}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}
             context={popup.context}
             repository={popup.repository}
@@ -1762,7 +1761,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="abort-merge-warning"
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             ourBranch={popup.ourBranch}
             theirBranch={popup.theirBranch}
           />
@@ -1784,7 +1783,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             files={popup.files}
             repository={popup.repository}
             context={popup.context}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
           />
         )
       case PopupType.PushNeedsPull:
@@ -1793,7 +1792,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="push-needs-pull"
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
           />
         )
       case PopupType.RebaseFlow: {
@@ -1855,7 +1854,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             upstreamBranch={popup.upstreamBranch}
             askForConfirmationOnForcePush={askForConfirmationOnForcePush}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
           />
         )
       }
@@ -1882,7 +1881,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             currentBranch={currentBranch}
             branchToCheckout={branchToCheckout}
             hasAssociatedStash={hasAssociatedStash}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
           />
         )
       }
@@ -1894,7 +1893,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             repository={repository}
             branchToCheckout={branchToCheckout}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
           />
         )
       }
@@ -1907,7 +1906,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             repository={repository}
             stash={stash}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
           />
         )
       }
@@ -1917,7 +1916,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="create-tutorial-repository-dialog"
             account={popup.account}
             progress={popup.progress}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             onCreateTutorialRepository={this.onCreateTutorialRepository}
           />
         )
@@ -1926,7 +1925,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <ConfirmExitTutorial
             key="confirm-exit-tutorial"
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             onContinue={this.onExitTutorialToHomeScreen}
           />
         )
@@ -1934,7 +1933,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.PushRejectedDueToMissingWorkflowScope:
         return (
           <WorkflowPushRejectedDialog
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             rejectedPath={popup.rejectedPath}
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
@@ -1943,7 +1942,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.SAMLReauthRequired:
         return (
           <SAMLReauthRequiredDialog
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             organizationName={popup.organizationName}
             endpoint={popup.endpoint}
             retryAction={popup.retryAction}
@@ -1953,7 +1952,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.CreateFork:
         return (
           <CreateForkDialog
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             account={popup.account}
@@ -1962,7 +1961,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.SChannelNoRevocationCheck:
         return (
           <SChannelNoRevocationCheckDialog
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             url={popup.url}
           />
         )
@@ -1971,7 +1970,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <CreateTag
             key="create-tag"
             repository={popup.repository}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}
             targetCommitSha={popup.targetCommitSha}
             initialName={popup.initialName}
@@ -1984,7 +1983,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <DeleteTag
             key="delete-tag"
             repository={popup.repository}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}
             tagName={popup.tagName}
           />
@@ -1994,7 +1993,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <ChooseForkSettings
             repository={popup.repository}
-            onDismissed={this.onPopupDismissed}
+            onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}
           />
         )
@@ -2014,7 +2013,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             hasExistingStash={existingStash !== null}
             retryAction={popup.retryAction}
-            onDismissed={this.getOnPopupDismissedFn(popup.type)}
+            onDismissed={onPopupDismissedFn}
           />
         )
       default:
