@@ -1487,7 +1487,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         const repository = popup.repository
 
         if (branchesState.tip.kind === TipState.Unknown) {
-          this.props.dispatcher.closePopup()
+          onPopupDismissedFn()
           return null
         }
 
