@@ -2092,7 +2092,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private updateExistingLFSFilters = () => {
     this.props.dispatcher.installGlobalLFSFilters(true)
-    this.onPopupDismissed()
   }
 
   private initializeLFS = (repositories: ReadonlyArray<Repository>) => {
