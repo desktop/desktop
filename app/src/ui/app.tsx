@@ -1278,11 +1278,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     return this.props.dispatcher.closePopup(popupType)
   }
 
-  private onSignInDialogDismissed = () => {
-    this.props.dispatcher.resetSignInState()
-    this.onPopupDismissed()
-  }
-
   private onContinueWithUntrustedCertificate = (
     certificate: Electron.Certificate
   ) => {
@@ -1450,7 +1445,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="sign-in"
             signInState={this.state.signInState}
             dispatcher={this.props.dispatcher}
-            onDismissed={this.onSignInDialogDismissed}
+            onDismissed={onPopupDismissedFn}
           />
         )
       case PopupType.AddRepository:
