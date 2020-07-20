@@ -134,6 +134,7 @@ These shells are currently supported:
  - [iTerm2](https://www.iterm2.com/)
  - [PowerShell Core](https://github.com/powershell/powershell/)
  - [Kitty](https://sw.kovidgoyal.net/kitty/)
+ - [Alacritty](https://github.com/alacritty/alacritty)
 
 These are defined in an enum at the top of the file:
 
@@ -195,7 +196,18 @@ export async function getAvailableShells(): Promise<
 }
 ```
 
-### Step 2: Launch the shell
+### Step 2: Parse the shell
+
+The `parse()` function is used to parse shell names. You should add a new entry here for your
+shell.
+
+```ts
+if (label === Shell.Hyper) {
+  return Shell.Hyper
+}
+```
+
+### Step 3: Launch the shell
 
 The launch step will use the `open` command in macOS to launch a given bundle
 at the path requested by the user. You may not need to make changes here,
