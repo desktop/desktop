@@ -31,6 +31,7 @@ These shells are currently supported:
  - [Cygwin](https://www.cygwin.com/)
  - [WSL](https://docs.microsoft.com/en-us/windows/wsl/about) (beta)
  - [Windows Terminal](https://github.com/microsoft/terminal)
+ - [Alacritty](https://github.com/alacritty/alacritty)
 
 These are defined in an enum at the top of the file:
 
@@ -44,6 +45,7 @@ export enum Shell {
   Cygwin = 'Cygwin',
   WSL = 'WSL',
   WindowTerminal = 'Windows Terminal',
+  Alacritty = 'Alacritty',
 }
 ```
 
@@ -107,7 +109,18 @@ This approximately reads as:
  - if it is, check the installation path exists
  - return the path to `git-bash.exe` within that directory
 
-### Step 2: Launch the shell
+### Step 2: Parse the shell
+
+The `parse()` function is used to parse shell names. You should add a new entry here for your
+shell.
+
+```ts
+if (label === Shell.GitBash) {
+  return Shell.GitBash
+}
+```
+
+### Step 3: Launch the shell
 
 The `launch()` function defines the arguments to pass to the shell, and each
 shell may require it's own set of command arguments. You will need to make
