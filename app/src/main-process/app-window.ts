@@ -44,6 +44,7 @@ export class AppWindow {
         // Enable, among other things, the ResizeObserver
         experimentalFeatures: true,
         nodeIntegration: true,
+        enableRemoteModule: true,
       },
       acceptFirstMouse: true,
     }
