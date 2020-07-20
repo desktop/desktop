@@ -45,7 +45,11 @@ describe('App', function (this: any) {
     )
 
     const count = await app.client.getWindowCount()
-    expect(count).toBe(1)
+    // When running tests against development versions of Desktop
+    // (which usually happens locally when developing), the number
+    // of windows will be greater than 1, since the devtools are
+    // considered a window.
+    expect(count).toBeGreaterThan(0)
 
     const window = app.browserWindow
     expect(window.isVisible()).resolves.toBe(true)
