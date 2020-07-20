@@ -488,13 +488,13 @@ file-url@^2.0.2:
   resolved "https://registry.yarnpkg.com/file-url/-/file-url-2.0.2.tgz#e951784d79095127d3713029ab063f40818ca2ae"
   integrity sha1-6VF4TXkJUSfTcTApqwY/QIGMoq4=
 
-fs-admin@^0.12.0:
-  version "0.12.0"
-  resolved "https://registry.yarnpkg.com/fs-admin/-/fs-admin-0.12.0.tgz#12bbff267f1039b7189d3715e9bb1a6333fbef12"
-  integrity sha512-rxGx07gnPqniQDLVIw7P8Rme5eK1WpTx8WhFN2zgqVJsK1cY4BRUXqE09u8uI6SHqkqkwKCl/G/7XD6ZNb/MrA==
+fs-admin@^0.15.0:
+  version "0.15.0"
+  resolved "https://registry.yarnpkg.com/fs-admin/-/fs-admin-0.15.0.tgz#ffa7daab2f1184ca81df73e7db8365ee1747410c"
+  integrity sha512-2czA7rZNnu/RSVwxZUSX4fF48PRj8gJ7fKMKpY+G3ESiEzHMPCHvNQaC02PhU+PAyzBUiqfiMHJisnj4LONwLA==
   dependencies:
     nan "^2.13.2"
-    prebuild-install "5.3.3"
+    prebuild-install "5.3.5"
 
 fs-constants@^1.0.0:
   version "1.0.0"
@@ -1055,15 +1055,15 @@ path-key@^1.0.0:
   resolved "https://registry.yarnpkg.com/path-key/-/path-key-1.0.0.tgz#5d53d578019646c0d68800db4e146e6bdc2ac7af"
   integrity sha1-XVPVeAGWRsDWiADbThRua9wqx68=
 
-prebuild-install@5.3.3:
-  version "5.3.3"
-  resolved "https://registry.yarnpkg.com/prebuild-install/-/prebuild-install-5.3.3.tgz#ef4052baac60d465f5ba6bf003c9c1de79b9da8e"
-  integrity sha512-GV+nsUXuPW2p8Zy7SarF/2W/oiK8bFQgJcncoJ0d7kRpekEA0ftChjfEaF9/Y+QJEc/wFR7RAEa8lYByuUIe2g==
+prebuild-install@5.3.4:
+  version "5.3.4"
+  resolved "https://registry.yarnpkg.com/prebuild-install/-/prebuild-install-5.3.4.tgz#6982d10084269d364c1856550b7d090ea31fa293"
+  integrity sha512-AkKN+pf4fSEihjapLEEj8n85YIw/tN6BQqkhzbDc0RvEZGdkpJBGMUYx66AAMcPG2KzmPQS7Cm16an4HVBRRMA==
   dependencies:
     detect-libc "^1.0.3"
     expand-template "^2.0.3"
     github-from-package "0.0.0"
-    minimist "^1.2.0"
+    minimist "^1.2.3"
     mkdirp "^0.5.1"
     napi-build-utils "^1.0.1"
     node-abi "^2.7.0"
@@ -1076,10 +1076,10 @@ prebuild-install@5.3.3:
     tunnel-agent "^0.6.0"
     which-pm-runs "^1.0.0"
 
-prebuild-install@5.3.4:
-  version "5.3.4"
-  resolved "https://registry.yarnpkg.com/prebuild-install/-/prebuild-install-5.3.4.tgz#6982d10084269d364c1856550b7d090ea31fa293"
-  integrity sha512-AkKN+pf4fSEihjapLEEj8n85YIw/tN6BQqkhzbDc0RvEZGdkpJBGMUYx66AAMcPG2KzmPQS7Cm16an4HVBRRMA==
+prebuild-install@5.3.5:
+  version "5.3.5"
+  resolved "https://registry.yarnpkg.com/prebuild-install/-/prebuild-install-5.3.5.tgz#e7e71e425298785ea9d22d4f958dbaccf8bb0e1b"
+  integrity sha512-YmMO7dph9CYKi5IR/BzjOJlRzpxGGVo1EsLSUZ0mt/Mq0HWZIHOKHHcHdT69yG54C9m6i45GpItwRHpk0Py7Uw==
   dependencies:
     detect-libc "^1.0.3"
     expand-template "^2.0.3"

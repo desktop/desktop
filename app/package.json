@@ -32,7 +32,7 @@
     "event-kit": "^2.0.0",
     "file-uri-to-path": "0.0.2",
     "file-url": "^2.0.2",
-    "fs-admin": "^0.12.0",
+    "fs-admin": "^0.15.0",
     "fs-extra": "^7.0.1",
     "fuzzaldrin-plus": "^0.6.0",
     "keytar": "^6.0.1",
