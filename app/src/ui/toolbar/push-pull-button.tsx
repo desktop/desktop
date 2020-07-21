@@ -261,11 +261,11 @@ function pushButton(
  * This represents the "double arrow" icon used to show a force-push, and is a
  * less complicated icon than the generated Octicon from the `octicons` package.
  */
-const forcePushIcon = new OcticonSymbol(
-  10,
-  16,
-  'M3 11H0l5-6 5 6H7v4H3v-4zM5 1l5 6H8.33L5 3 1.662 7H0l5-6z'
-)
+const forcePushIcon = {
+  w: 10,
+  h: 16,
+  d: 'M3 11H0l5-6 5 6H7v4H3v-4zM5 1l5 6H8.33L5 3 1.662 7H0l5-6z',
+}
 
 function forcePushButton(
   remoteName: string,
