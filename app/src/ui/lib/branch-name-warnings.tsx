@@ -2,7 +2,8 @@ import * as React from 'react'
 import { Branch, BranchType } from '../../models/branch'
 
 import { Row } from './row'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Ref } from './ref'
 import { IStashEntry } from '../../models/stash-entry'
 

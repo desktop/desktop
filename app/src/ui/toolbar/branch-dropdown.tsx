@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Dispatcher } from '../dispatcher'
-import { OcticonSymbol } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Repository } from '../../models/repository'
 import { TipState } from '../../models/tip'
 import { ToolbarDropdown, DropdownState } from './dropdown'

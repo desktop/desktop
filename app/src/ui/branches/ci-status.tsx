@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbol, OcticonSymbolType } from '../octicons'
+import { Octicon, OcticonSymbolType } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { APIRefState, IAPIRefStatus } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 import classNames from 'classnames'

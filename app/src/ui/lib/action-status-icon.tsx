@@ -3,7 +3,8 @@ import classNames from 'classnames'
 import { ComputedAction } from '../../models/computed-action'
 import { assertNever } from '../../lib/fatal-error'
 
-import { Octicon, OcticonSymbol, OcticonSymbolType } from '../octicons'
+import { Octicon, OcticonSymbolType } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 
 interface IActionStatusIconProps {
   /** The status to display to the user */

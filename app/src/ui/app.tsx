@@ -52,7 +52,8 @@ import {
   BranchDropdown,
   RevertProgress,
 } from './toolbar'
-import { OcticonSymbol, iconForRepository, OcticonSymbolType } from './octicons'
+import { iconForRepository, OcticonSymbolType } from './octicons'
+import * as OcticonSymbol from './octicons/octicons.generated'
 import { showCertificateTrustDialog, sendReady } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { Welcome } from './welcome'

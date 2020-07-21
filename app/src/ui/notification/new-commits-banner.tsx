@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Ref } from '../lib/ref'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Branch } from '../../models/branch'
 import { Button } from '../lib/button'
 import { Dispatcher } from '../dispatcher'

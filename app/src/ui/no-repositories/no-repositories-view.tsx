@@ -1,7 +1,8 @@
 import * as React from 'react'
 import { UiView } from '../ui-view'
 import { Button } from '../lib/button'
-import { Octicon, OcticonSymbol, OcticonSymbolType } from '../octicons'
+import { Octicon, OcticonSymbolType } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import {
   WelcomeLeftTopImageUri,
   WelcomeLeftBottomImageUri,

@@ -2,7 +2,8 @@ import * as React from 'react'
 
 import { CloningRepository } from '../models/cloning-repository'
 import { ICloneProgress } from '../models/progress'
-import { Octicon, OcticonSymbol } from './octicons'
+import { Octicon } from './octicons'
+import * as OcticonSymbol from './octicons/octicons.generated'
 import { UiView } from './ui-view'
 
 interface ICloningRepositoryProps {

@@ -16,7 +16,8 @@ import {
   getNonForkGitHubRepository,
 } from '../../models/repository'
 import { Button } from '../lib/button'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { FoldoutType } from '../../lib/app-state'
 import { startTimer } from '../lib/timing'
 

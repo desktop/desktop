@@ -3,7 +3,8 @@ import {
   AppFileStatus,
   isConflictWithMarkers,
 } from '../../models/status'
-import { OcticonSymbol, OcticonSymbolType } from '../octicons'
+import * as OcticonSymbol from './octicons.generated'
+import { OcticonSymbolType } from '../octicons'
 import { assertNever } from '../../lib/fatal-error'
 
 /**
