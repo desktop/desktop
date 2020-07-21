@@ -151,6 +151,7 @@
     "@types/react-transition-group": "1.1.1",
     "@types/react-virtualized": "^9.7.12",
     "@types/request": "^2.0.9",
+    "@types/reserved-words": "^0.1.0",
     "@types/semver": "^5.5.0",
     "@types/strip-ansi": "^3.0.0",
     "@types/temp": "^0.8.29",
@@ -171,6 +172,7 @@
     "electron-builder": "22.4.0",
     "electron-packager": "^14.2.1",
     "electron-winstaller": "4.0.0",
+    "reserved-words": "^0.1.2",
     "tsconfig-paths": "^3.9.0"
   }
 }
