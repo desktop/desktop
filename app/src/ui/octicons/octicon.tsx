@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { OcticonSymbol } from './octicons.generated'
+import { OcticonSymbolType } from './octicons.generated'
 import classNames from 'classnames'
 import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
 
@@ -9,7 +9,7 @@ interface IOcticonProps {
    * type. Supports custom paths as well as those provided
    * through the static properties of the OcticonSymbol class.
    */
-  readonly symbol: OcticonSymbol
+  readonly symbol: OcticonSymbolType
 
   /**
    * An optional classname that will be appended to the default

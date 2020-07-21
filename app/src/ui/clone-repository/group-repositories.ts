@@ -1,7 +1,7 @@
 import { IAPIRepository } from '../../lib/api'
 import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
 import { caseInsensitiveCompare } from '../../lib/compare'
-import { OcticonSymbol } from '../octicons'
+import { OcticonSymbol, OcticonSymbolType } from '../octicons'
 
 /** The identifier for the "Your Repositories" grouping. */
 export const YourRepositoriesIdentifier = 'your-repositories'
@@ -17,13 +17,13 @@ export interface IClonableRepositoryListItem extends IFilterListItem {
   readonly name: string
 
   /** The icon for the repo. */
-  readonly icon: OcticonSymbol
+  readonly icon: OcticonSymbolType
 
   /** The clone URL. */
   readonly url: string
 }
 
-function getIcon(gitHubRepo: IAPIRepository): OcticonSymbol {
+function getIcon(gitHubRepo: IAPIRepository): OcticonSymbolType {
   if (gitHubRepo.private) {
     return OcticonSymbol.lock
   }

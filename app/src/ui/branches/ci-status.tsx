@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon, OcticonSymbol, OcticonSymbolType } from '../octicons'
 import { APIRefState, IAPIRefStatus } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 import classNames from 'classnames'
@@ -111,7 +111,7 @@ export class CIStatus extends React.PureComponent<
   }
 }
 
-function getSymbolForState(state: APIRefState): OcticonSymbol {
+function getSymbolForState(state: APIRefState): OcticonSymbolType {
   switch (state) {
     case 'pending':
       return OcticonSymbol.primitiveDot

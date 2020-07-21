@@ -3,7 +3,7 @@ import classNames from 'classnames'
 import { ComputedAction } from '../../models/computed-action'
 import { assertNever } from '../../lib/fatal-error'
 
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon, OcticonSymbol, OcticonSymbolType } from '../octicons'
 
 interface IActionStatusIconProps {
   /** The status to display to the user */
@@ -51,7 +51,7 @@ export class ActionStatusIcon extends React.Component<IActionStatusIconProps> {
   }
 }
 
-function getSymbolForState(status: ComputedAction): OcticonSymbol {
+function getSymbolForState(status: ComputedAction): OcticonSymbolType {
   switch (status) {
     case ComputedAction.Loading:
       return OcticonSymbol.primitiveDot
