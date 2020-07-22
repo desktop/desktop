@@ -93,6 +93,11 @@ export function isGitHubActions() {
 }
 
 export function getReleaseBranchName(): string {
+  // GitHub Actions
+  if (process.env.GITHUB_REF !== undefined) {
+    return process.env.GITHUB_REF.replace(/^refs\/heads\//, '')
+  }
+
   return (
     process.env.CIRCLE_BRANCH || // macOS
     process.env.APPVEYOR_REPO_BRANCH || // Windows
