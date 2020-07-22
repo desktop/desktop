@@ -24,6 +24,7 @@ export function getSha() {
 
   const gitHubSha = process.env.GITHUB_SHA
   if (isGitHubActions() && gitHubSha !== undefined) {
+    return gitHubSha
   }
 
   throw new Error(
