@@ -8,7 +8,6 @@ import { getDotComAPIEndpoint } from '../../lib/api'
 import { clipboard } from 'electron'
 import { showContextualMenu } from '../main-process-proxy'
 import { CommitAttribution } from '../lib/commit-attribution'
-import { IGitHubUser } from '../../lib/databases/github-user-database'
 import { AvatarStack } from '../lib/avatar-stack'
 import { IMenuItem } from '../../lib/menu-item'
 import { Octicon, OcticonSymbol } from '../octicons'
@@ -26,7 +25,6 @@ interface ICommitProps {
   readonly onViewCommitOnGitHub?: (sha: string) => void
   readonly onCreateTag?: (targetCommitSha: string) => void
   readonly onDeleteTag?: (tagName: string) => void
-  readonly gitHubUsers: Map<string, IGitHubUser> | null
   readonly showUnpushedIndicator: boolean
   readonly unpushedIndicatorTitle?: string
   readonly unpushedTags?: ReadonlyArray<string>
@@ -47,7 +45,6 @@ export class CommitListItem extends React.PureComponent<
     this.state = {
       avatarUsers: getAvatarUsersForCommit(
         props.gitHubRepository,
-        props.gitHubUsers,
         props.commit
       ),
     }
@@ -58,7 +55,6 @@ export class CommitListItem extends React.PureComponent<
       this.setState({
         avatarUsers: getAvatarUsersForCommit(
           nextProps.gitHubRepository,
-          nextProps.gitHubUsers,
           nextProps.commit
         ),
       })
