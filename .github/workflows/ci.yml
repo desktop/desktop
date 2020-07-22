@@ -57,6 +57,12 @@ jobs:
         env:
           DESKTOPBOT_TOKEN: ${{ secrets.DESKTOPBOT_TOKEN }}
           WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          DEPLOYMENT_SECRET: ${{ secrets.DEPLOYMENT_SECRET }}
+          S3_KEY: ${{ secrets.S3_KEY }}
+          S3_SECRET: ${{ secrets.S3_SECRET }}
           S3_BUCKET: github-desktop
       - name: Prepare testing environment
         run: yarn test:setup
