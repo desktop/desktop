@@ -109,7 +109,6 @@ import {
   ChangesWorkingDirectorySelection,
   IDivergingBranchBannerState,
 } from '../app-state'
-import { IGitHubUser } from '../databases/github-user-database'
 import {
   ExternalEditor,
   findEditorOrDefault,
@@ -431,7 +430,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       shell,
       this.statsStore,
       (repo, store) => this.onGitStoreUpdated(repo, store),
-      (repo, commits) => this.loadAndCacheUsers(repo, this.accounts, commits),
       error => this.emitError(error)
     )
 
@@ -1751,26 +1749,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.accounts = accounts
     this.repositories = repositories
-
-    // doing this that the current user can be found by any of their email addresses
-    for (const account of accounts) {
-      const userAssociations: ReadonlyArray<IGitHubUser> = account.emails.map(
-        email =>
-          // NB: We're not using object spread here because `account` has more
-          // keys than we want.
-          ({
-            endpoint: account.endpoint,
-            email: email.email,
-            login: account.login,
-            avatarURL: account.avatarURL,
-            name: account.name,
-          })
-      )
-
-      for (const user of userAssociations) {
-        this.gitHubUserStore.cacheUser(user)
-      }
-    }
 
     this.updateRepositorySelectionAfterRepositoriesChanged()
 
@@ -4416,8 +4394,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const gitStore = this.gitStoreCache.get(repository)
-    const result = await gitStore.performFailableOperation(() =>
-      rebase(repository, baseBranch, targetBranch, progressCallback)
+    const result = await gitStore.performFailableOperation(
+      () => rebase(repository, baseBranch, targetBranch, progressCallback),
+      {
+        retryAction: {
+          type: RetryActionType.Rebase,
+          repository,
+          baseBranch,
+          targetBranch,
+        },
+      }
     )
 
     return result || RebaseResult.Error
@@ -4856,17 +4842,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       `[AppStore] adding account ${account.login} (${account.name}) to store`
     )
     const storedAccount = await this.accountsStore.addAccount(account)
-    const selectedState = this.getState().selectedState
-
-    if (selectedState && selectedState.type === SelectionType.Repository) {
-      // ensuring we have the latest set of accounts here, rather than waiting
-      // and doing stuff when the account store emits an update and we refresh
-      // the accounts field
-      const accounts = await this.accountsStore.getAll()
-      const repoState = selectedState.state
-      const commits = repoState.commitLookup.values()
-      this.loadAndCacheUsers(selectedState.repository, accounts, commits)
-    }
 
     // If we're in the welcome flow and a user signs in we want to trigger
     // a refresh of the repositories available for cloning straight away
@@ -4874,21 +4849,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // get to the blankslate.
     if (this.showWelcomeFlow && storedAccount !== null) {
       this.apiRepositoriesStore.loadRepositories(storedAccount)
-    }
-  }
-
-  private loadAndCacheUsers(
-    repository: Repository,
-    accounts: ReadonlyArray<Account>,
-    commits: Iterable<Commit>
-  ) {
-    for (const commit of commits) {
-      this.gitHubUserStore._loadAndCacheUser(
-        accounts,
-        repository,
-        commit.sha,
-        commit.author.email
-      )
     }
   }
 

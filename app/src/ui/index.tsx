@@ -22,6 +22,7 @@ import {
   pushNeedsPullHandler,
   upstreamAlreadyExistsHandler,
   rebaseConflictsHandler,
+  localChangesOverwrittenOnCheckoutHandler,
   localChangesOverwrittenHandler,
   refusedWorkflowUpdate,
   samlReauthRequired,
@@ -246,9 +247,7 @@ const pullRequestCoordinator = new PullRequestCoordinator(
   repositoriesStore
 )
 
-const repositoryStateManager = new RepositoryStateCache(repo =>
-  gitHubUserStore.getUsersForRepository(repo)
-)
+const repositoryStateManager = new RepositoryStateCache()
 
 const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 
@@ -292,6 +291,7 @@ dispatcher.registerErrorHandler(samlReauthRequired)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(missingRepositoryHandler)
 dispatcher.registerErrorHandler(localChangesOverwrittenHandler)
+dispatcher.registerErrorHandler(localChangesOverwrittenOnCheckoutHandler)
 dispatcher.registerErrorHandler(rebaseConflictsHandler)
 dispatcher.registerErrorHandler(refusedWorkflowUpdate)
 

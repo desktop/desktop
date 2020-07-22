@@ -189,7 +189,6 @@ export class RepositoryView extends React.Component<
         changes={this.props.state.changesState}
         branch={branch ? branch.name : null}
         commitAuthor={this.props.state.commitAuthor}
-        gitHubUsers={this.props.state.gitHubUsers}
         emoji={this.props.emoji}
         mostRecentLocalCommit={mostRecentLocalCommit}
         issuesStore={this.props.issuesStore}
@@ -230,7 +229,6 @@ export class RepositoryView extends React.Component<
         compareState={this.props.state.compareState}
         selectedCommitSha={this.props.state.commitSelection.sha}
         currentBranch={currentBranch}
-        gitHubUsers={this.props.state.gitHubUsers}
         emoji={this.props.emoji}
         commitLookup={this.props.state.commitLookup}
         localCommitSHAs={this.props.state.localCommitSHAs}
@@ -345,7 +343,6 @@ export class RepositoryView extends React.Component<
         currentDiff={diff}
         emoji={this.props.emoji}
         commitSummaryWidth={this.props.commitSummaryWidth}
-        gitHubUsers={this.props.state.gitHubUsers}
         selectedDiffType={this.props.imageDiffType}
         externalEditorLabel={this.props.externalEditorLabel}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}

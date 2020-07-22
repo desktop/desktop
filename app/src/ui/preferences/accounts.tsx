@@ -45,6 +45,7 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
       name: account.name,
       email: lookupPreferredEmail(account),
       avatarURL: account.avatarURL,
+      endpoint: account.endpoint,
     }
 
     return (
