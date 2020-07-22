@@ -23,7 +23,7 @@ export function getSha() {
   }
 
   const gitHubSha = process.env.GITHUB_SHA
-  if (isGitHubActions() && gitHubSha !== undefined) {
+  if (isGitHubActions() && gitHubSha !== undefined && gitHubSha.length > 0) {
     return gitHubSha
   }
 
@@ -63,7 +63,11 @@ export function isRunningOnFork() {
     return true
   }
 
-  if (isGitHubActions() && process.env.GITHUB_HEAD_REF !== undefined) {
+  if (
+    isGitHubActions() &&
+    process.env.GITHUB_HEAD_REF !== undefined &&
+    process.env.GITHUB_HEAD_REF.length > 0
+  ) {
     return true
   }
 
