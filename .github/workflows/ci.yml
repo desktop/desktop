@@ -59,6 +59,14 @@ jobs:
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           DESKTOPBOT_TOKEN: ${{ secrets.DESKTOPBOT_TOKEN }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      - name: Prepare testing environment
+        run: yarn test:setup
+      - name: Run unit tests
+        run: yarn test:unit:cov
+      - name: Run script tests
+        run: yarn test:script:cov
+      - name: Run integration tests
+        run: yarn test:integration
       - name: Publish production app
         run: yarn run publish
         env:
@@ -69,12 +77,4 @@ jobs:
           S3_KEY: ${{ secrets.S3_KEY }}
           S3_SECRET: ${{ secrets.S3_SECRET }}
           S3_BUCKET: github-desktop
-      - name: Prepare testing environment
-        run: yarn test:setup
-      - name: Run unit tests
-        run: yarn test:unit:cov
-      - name: Run script tests
-        run: yarn test:script:cov
-      - name: Run integration tests
-        run: yarn test:integration
         timeout-minutes: 5
