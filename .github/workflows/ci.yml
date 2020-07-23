@@ -23,6 +23,7 @@ jobs:
         run: |
           git config --global --add core.symlinks false
           fsutil behavior set disable8dot3 1
+          echo %temp%
         if: ${{ matrix.os == 'windows-2019' }}
       - uses: actions/checkout@v2
         with:
