@@ -11,6 +11,21 @@ import {
 } from '../../../src/lib/git/worktree'
 import { Repository, LinkedWorkTree } from '../../../src/models/repository'
 import { realpathSync } from 'fs-extra'
+import { spawn } from '../../../src/lib/process/win32'
+
+async function getWin32ShortPath(pathName: string) {
+  return await spawn('cmd.exe', [`/c for %A in ("${pathName}") do @echo %~sA`])
+}
+
+function getNormalizedPath(pathName: string) {
+  const realPath = realpathSync(pathName)
+
+  if (process.platform !== 'win32') {
+    return realPath
+  }
+
+  return getWin32ShortPath(realPath)
+}
 
 describe('git/worktree', () => {
   describe('listWorktrees', () => {
@@ -32,9 +47,11 @@ describe('git/worktree', () => {
         const first = result[0]
         expect(first.head).toBe('0000000000000000000000000000000000000000')
 
-        // we use realpathSync here because git and windows/macOS report different
+        // we need to normalize the paths because git and windows/macOS report different
         // paths even though they are the same folder
-        expect(realpathSync(first.path)).toBe(realpathSync(path))
+        expect(await getNormalizedPath(first.path)).toBe(
+          await getNormalizedPath(path)
+        )
       })
     })
 
