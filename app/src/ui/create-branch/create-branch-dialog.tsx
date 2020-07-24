@@ -2,9 +2,7 @@ import * as React from 'react'
 
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
-import { sanitizedRefName } from '../../lib/sanitize-ref-name'
 import { Branch, StartPoint } from '../../models/branch'
-import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Ref } from '../lib/ref'
 import { LinkButton } from '../lib/link-button'
@@ -20,10 +18,7 @@ import {
   IValidBranch,
 } from '../../models/tip'
 import { assertNever } from '../../lib/fatal-error'
-import {
-  renderBranchNameWarning,
-  renderBranchNameExistsOnRemoteWarning,
-} from '../lib/branch-name-warnings'
+import { renderBranchNameExistsOnRemoteWarning } from '../lib/branch-name-warnings'
 import { getStartPoint } from '../../lib/create-branch'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { startTimer } from '../lib/timing'
@@ -32,6 +27,7 @@ import {
   UncommittedChangesStrategyKind,
 } from '../../models/uncommitted-changes-strategy'
 import { GitHubRepository } from '../../models/github-repository'
+import { RefNameTextBox } from '../lib/ref-name-text-box'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -49,7 +45,6 @@ interface ICreateBranchProps {
 
 interface ICreateBranchState {
   readonly currentError: Error | null
-  readonly proposedName: string
   readonly sanitizedName: string
   readonly startPoint: StartPoint
 
@@ -94,18 +89,11 @@ export class CreateBranch extends React.Component<
 
     this.state = {
       currentError: null,
-      proposedName: props.initialName,
-      sanitizedName: '',
+      sanitizedName: props.initialName,
       startPoint,
       isCreatingBranch: false,
       tipAtCreateStart: props.tip,
       defaultBranchAtCreateStart: getBranchForStartPoint(startPoint, props),
-    }
-  }
-
-  public componentDidMount() {
-    if (this.state.proposedName.length) {
-      this.updateBranchName(this.state.proposedName)
     }
   }
 
@@ -183,7 +171,7 @@ export class CreateBranch extends React.Component<
 
   public render() {
     const disabled =
-      this.state.proposedName.length <= 0 ||
+      this.state.sanitizedName.length <= 0 ||
       !!this.state.currentError ||
       /^\s*$/.test(this.state.sanitizedName)
     const error = this.state.currentError
@@ -200,19 +188,12 @@ export class CreateBranch extends React.Component<
         {error ? <DialogError>{error.message}</DialogError> : null}
 
         <DialogContent>
-          <Row>
-            <TextBox
-              label="Name"
-              value={this.state.proposedName}
-              autoFocus={true}
-              onValueChanged={this.onBranchNameChange}
-            />
-          </Row>
-
-          {renderBranchNameWarning(
-            this.state.proposedName,
-            this.state.sanitizedName
-          )}
+          <RefNameTextBox
+            label="Name"
+            initialValue={this.props.initialName}
+            autoFocus={true}
+            onValueChange={this.onBranchNameChange}
+          />
 
           {renderBranchNameExistsOnRemoteWarning(
             this.state.sanitizedName,
@@ -236,8 +217,7 @@ export class CreateBranch extends React.Component<
     this.updateBranchName(name)
   }
 
-  private updateBranchName(name: string) {
-    const sanitizedName = sanitizedRefName(name)
+  private updateBranchName(sanitizedName: string) {
     const alreadyExists =
       this.props.allBranches.findIndex(b => b.name === sanitizedName) > -1
 
@@ -246,7 +226,6 @@ export class CreateBranch extends React.Component<
       : null
 
     this.setState({
-      proposedName: name,
       sanitizedName,
       currentError,
     })
