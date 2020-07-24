@@ -45,7 +45,7 @@ interface ICreateBranchProps {
 
 interface ICreateBranchState {
   readonly currentError: Error | null
-  readonly sanitizedName: string
+  readonly branchName: string
   readonly startPoint: StartPoint
 
   /**
@@ -89,7 +89,7 @@ export class CreateBranch extends React.Component<
 
     this.state = {
       currentError: null,
-      sanitizedName: props.initialName,
+      branchName: props.initialName,
       startPoint,
       isCreatingBranch: false,
       tipAtCreateStart: props.tip,
@@ -171,9 +171,9 @@ export class CreateBranch extends React.Component<
 
   public render() {
     const disabled =
-      this.state.sanitizedName.length <= 0 ||
+      this.state.branchName.length <= 0 ||
       !!this.state.currentError ||
-      /^\s*$/.test(this.state.sanitizedName)
+      /^\s*$/.test(this.state.branchName)
     const error = this.state.currentError
 
     return (
@@ -196,7 +196,7 @@ export class CreateBranch extends React.Component<
           />
 
           {renderBranchNameExistsOnRemoteWarning(
-            this.state.sanitizedName,
+            this.state.branchName,
             this.props.allBranches
           )}
 
@@ -217,22 +217,22 @@ export class CreateBranch extends React.Component<
     this.updateBranchName(name)
   }
 
-  private updateBranchName(sanitizedName: string) {
+  private updateBranchName(branchName: string) {
     const alreadyExists =
-      this.props.allBranches.findIndex(b => b.name === sanitizedName) > -1
+      this.props.allBranches.findIndex(b => b.name === branchName) > -1
 
     const currentError = alreadyExists
-      ? new Error(`A branch named ${sanitizedName} already exists`)
+      ? new Error(`A branch named ${branchName} already exists`)
       : null
 
     this.setState({
-      sanitizedName,
+      branchName,
       currentError,
     })
   }
 
   private createBranch = async () => {
-    const name = this.state.sanitizedName
+    const name = this.state.branchName
 
     let startPoint: string | null = null
     let noTrack = false
