@@ -22,6 +22,20 @@ interface IGitProps {
 const OtherNameForDefaultBranch = ''
 
 export class Git extends React.Component<IGitProps> {
+  private defaultBranchInputRef = React.createRef<RefNameTextBox>()
+
+  public componentDidUpdate(prevProps: IGitProps) {
+    // Focus the text input that allows the user to enter a custom
+    // branch name when the user has selected "Other...".
+    if (
+      this.props.defaultBranch !== prevProps.defaultBranch &&
+      this.props.defaultBranch === OtherNameForDefaultBranch &&
+      this.defaultBranchInputRef.current !== null
+    ) {
+      this.defaultBranchInputRef.current.focus()
+    }
+  }
+
   public render() {
     const defaultBranchIsOther = !SuggestedBranchNames.includes(
       this.props.defaultBranch
@@ -72,6 +86,7 @@ export class Git extends React.Component<IGitProps> {
             initialValue={this.props.defaultBranch}
             renderWarningMessage={this.renderWarningMessage}
             onValueChange={this.props.onDefaultBranchChanged}
+            ref={this.defaultBranchInputRef}
           />
         )}
         <p className="git-settings-description">
