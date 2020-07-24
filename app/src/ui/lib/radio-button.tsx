@@ -4,6 +4,9 @@ import { createUniqueId, releaseUniqueId } from './id-pool'
 interface IRadioButtonProps<T> {
   /**
    * Called when the user selects this radio button.
+   *
+   * The function will be called with the value of the RadioButton
+   * and the original event that triggered the change.
    */
   readonly onSelected: (
     value: T,
