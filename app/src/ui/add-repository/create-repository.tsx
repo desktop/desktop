@@ -244,6 +244,9 @@ export class CreateRepository extends React.Component<
     const defaultBranch = await getDefaultBranch()
 
     try {
+      // Manually checkout to the configured default branch.
+      // TODO (git@2.28): Remove this code when upgrading to git v2.28
+      // since this will be natively implemented.
       await createAndCheckoutBranch(repository, defaultBranch)
     } catch (e) {
       // When we cannot checkout the default branch just log the error,
