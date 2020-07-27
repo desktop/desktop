@@ -47,7 +47,7 @@ const options: RedhatOptions = {
     'libX11-xcb',
     'alsa-lib',
     // dugite-native dependencies
-    'libcurl',
+    '(libcurl or libcurl4)',
     // keytar dependencies
     'libsecret',
     'gnome-keyring',
