@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
 
-import * as moment from 'moment'
+import moment from 'moment'
 
 import { ipcRenderer, remote } from 'electron'
 

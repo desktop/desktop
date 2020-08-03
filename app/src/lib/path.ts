@@ -1,5 +1,5 @@
 import * as Path from 'path'
-import fileUrl = require('file-url')
+import fileUrl from 'file-url'
 import { realpath } from 'fs-extra'
 
 /**

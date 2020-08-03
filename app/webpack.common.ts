@@ -1,8 +1,8 @@
 import * as path from 'path'
-import * as HtmlWebpackPlugin from 'html-webpack-plugin'
-import * as CleanWebpackPlugin from 'clean-webpack-plugin'
-import * as webpack from 'webpack'
-import * as merge from 'webpack-merge'
+import HtmlWebpackPlugin from 'html-webpack-plugin'
+import CleanWebpackPlugin from 'clean-webpack-plugin'
+import webpack from 'webpack'
+import merge from 'webpack-merge'
 import { getChannel } from '../script/dist-info'
 import { getReplacements } from './app-info'
 

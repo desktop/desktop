@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import * as ReactCSSTransitionReplace from 'react-css-transition-replace'
+import ReactCSSTransitionReplace from 'react-css-transition-replace'
 
 interface ISuggestedActionGroup {
   /**
