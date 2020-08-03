@@ -28,7 +28,7 @@ interface IRefNameProps {
    *
    * A sanitized value for the ref name is passed.
    */
-  readonly onValueChange: (sanitizedValue: string) => void
+  readonly onValueChange?: (sanitizedValue: string) => void
 
   /**
    * Called when the user-entered ref name is not valid.
@@ -41,6 +41,13 @@ interface IRefNameProps {
     sanitizedValue: string,
     proposedValue: string
   ) => JSX.Element | string
+
+  /**
+   * Callback used when the component loses focus.
+   *
+   * A sanitized value for the ref name is passed.
+   */
+  readonly onBlur?: (sanitizedValue: string) => void
 }
 
 interface IRefNameState {
@@ -66,7 +73,10 @@ export class RefNameTextBox extends React.Component<
   }
 
   public componentDidMount() {
-    if (this.state.sanitizedValue !== this.props.initialValue) {
+    if (
+      this.state.sanitizedValue !== this.props.initialValue &&
+      this.props.onValueChange !== undefined
+    ) {
       this.props.onValueChange(this.state.sanitizedValue)
     }
   }
@@ -80,6 +90,7 @@ export class RefNameTextBox extends React.Component<
           autoFocus={this.props.autoFocus}
           ref={this.textBoxRef}
           onValueChanged={this.onValueChange}
+          onBlur={this.onBlur}
         />
 
         {this.renderRefValueWarning()}
@@ -111,7 +122,26 @@ export class RefNameTextBox extends React.Component<
       return
     }
 
+    if (this.props.onValueChange === undefined) {
+      return
+    }
+
     this.props.onValueChange(sanitizedValue)
+  }
+
+  private onBlur = (proposedValue: string) => {
+    if (this.props.onBlur !== undefined) {
+      // It's possible (although rare) that we receive the onBlur
+      // event before the sanitized value has been committed to the
+      // state so we need to check fot that condition and sanitize
+      // the value ourselves if that's the case.
+      const sanitizedValue =
+        proposedValue === this.state.proposedValue
+          ? this.state.sanitizedValue
+          : sanitizedRefName(proposedValue)
+
+      this.props.onBlur(sanitizedRefName(sanitizedValue))
+    }
   }
 
   private renderRefValueWarning() {
