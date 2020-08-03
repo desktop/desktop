@@ -2269,7 +2269,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    shell.showItemInFolder(repository.path)
+    shell.showFolderContents(repository.path)
   }
 
   private onRepositoryDropdownStateChanged = (newState: DropdownState) => {
