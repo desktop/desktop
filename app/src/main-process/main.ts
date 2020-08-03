@@ -450,12 +450,12 @@ app.on('ready', () => {
     ): Promise<ReadonlyArray<number> | null> => {
       return new Promise(resolve => {
         const menu = buildContextMenu(items, indices => resolve(indices))
-        const window = BrowserWindow.fromWebContents(event.sender)
+        const window = BrowserWindow.fromWebContents(event.sender) || undefined
 
         if (window != null) {
           menu.popup({ window, callback: () => resolve(null) })
         } else {
-          menu.popup()
+          menu.popup({ window, callback: () => resolve(null) })
         }
       })
     }
