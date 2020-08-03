@@ -7,14 +7,6 @@
   border: var(--base-border);
   border-radius: var(--border-radius);
 
-  .fancy-octicon-container {
-    flex-grow: 0;
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-
   .fancy-octicon {
     height: var(--text-field-height);
     padding: var(--spacing-half) 0 var(--spacing-half) 7px;

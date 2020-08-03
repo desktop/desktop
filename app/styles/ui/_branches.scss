@@ -106,11 +106,7 @@
       }
     }
 
-    .ci-status-container {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-
+    .ci-status {
       margin-right: var(--spacing-half);
     }
   }

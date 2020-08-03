@@ -47,13 +47,11 @@ export class FileList extends React.Component<IFileListProps> {
           availableWidth={availablePathWidth}
         />
 
-        <div className="status">
-          <Octicon
-            symbol={iconForStatus(status)}
-            className={'status status-' + fileStatus.toLowerCase()}
-            title={fileStatus}
-          />
-        </div>
+        <Octicon
+          symbol={iconForStatus(status)}
+          className={'status status-' + fileStatus.toLowerCase()}
+          title={fileStatus}
+        />
       </div>
     )
   }

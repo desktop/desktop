@@ -71,13 +71,11 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
           availableWidth={availablePathWidth}
         />
 
-        <div className="status">
-          <Octicon
-            symbol={iconForStatus(status)}
-            className={'status status-' + fileStatus.toLowerCase()}
-            title={fileStatus}
-          />
-        </div>
+        <Octicon
+          symbol={iconForStatus(status)}
+          className={'status status-' + fileStatus.toLowerCase()}
+          title={fileStatus}
+        />
       </div>
     )
   }
