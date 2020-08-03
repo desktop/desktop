@@ -385,7 +385,7 @@ app.on('ready', () => {
 
       const menuItem = currentMenu.getMenuItemById(id)
       if (menuItem) {
-        const window = BrowserWindow.fromWebContents(event.sender)
+        const window = BrowserWindow.fromWebContents(event.sender) || undefined
         const fakeEvent = { preventDefault: () => {}, sender: event.sender }
         menuItem.click(fakeEvent, window, event.sender)
       }
