@@ -30,7 +30,7 @@ export function UNSAFE_openDirectory(path: string) {
   } else {
     // Add a trailing slash to the directory path.
     //
-    // In Windows, if there's a file and a directory with the
+    // On Windows, if there's a file and a directory with the
     // same name (e.g `C:\MyFolder\foo` and `C:\MyFolder\foo.exe`),
     // when executing shell.openItem(`C:\MyFolder\foo`) then the EXE file
     // will get opened.
