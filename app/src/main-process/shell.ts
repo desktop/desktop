@@ -8,9 +8,14 @@ import { shell } from 'electron'
  * window, which may confuse users. As a workaround, we will fallback to using
  * shell.openExternal for macOS until it can be fixed upstream.
  *
+ * CAUTION: This method should never be used to open user-provided or derived
+ * paths. It's sole use is to open _directories_ that we know to be safe, no
+ * verification is performed to ensure that the provided path isn't actually
+ * an executable.
+ *
  * @param path directory to open
  */
-export function openDirectorySafe(path: string) {
+export function UNSAFE_openDirectory(path: string) {
   if (__DARWIN__) {
     const directoryURL = Url.format({
       pathname: path,
