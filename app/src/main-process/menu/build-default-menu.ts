@@ -4,7 +4,7 @@ import { MenuEvent } from './menu-event'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
 import { ensureDir } from 'fs-extra'
-import { openDirectorySafe } from '../shell'
+import { UNSAFE_openDirectory } from '../shell'
 import { enableCreateGitHubIssueFromMenu } from '../../lib/feature-flag'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { DefaultEditorLabel } from '../../ui/lib/context-menu'
@@ -495,7 +495,7 @@ export function buildDefaultMenu({
       const logPath = getLogDirectoryPath()
       ensureDir(logPath)
         .then(() => {
-          openDirectorySafe(logPath)
+          UNSAFE_openDirectory(logPath)
         })
         .catch(err => {
           log.error('Failed opening logs directory', err)
