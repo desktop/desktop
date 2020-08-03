@@ -83,7 +83,7 @@ export interface ITextBoxProps {
   /**
    * Callback used when the component loses focus.
    */
-  readonly onBlur?: () => void
+  readonly onBlur?: (value: string) => void
 
   /**
    * Callback used when the user has cleared the search text.
@@ -252,7 +252,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
       value === ''
     ) {
       if (this.props.onBlur) {
-        this.props.onBlur()
+        this.props.onBlur(value)
         if (this.inputElement !== null) {
           this.inputElement.blur()
         }
@@ -299,7 +299,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
 
   private onBlur = (event: React.FocusEvent<HTMLInputElement>) => {
     if (this.props.onBlur !== undefined) {
-      this.props.onBlur()
+      this.props.onBlur(event.target.value)
     }
   }
 }

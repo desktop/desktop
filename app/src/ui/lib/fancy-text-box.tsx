@@ -63,9 +63,9 @@ export class FancyTextBox extends React.Component<
     this.setState({ isFocused: true })
   }
 
-  private onBlur = () => {
+  private onBlur = (value: string) => {
     if (this.props.onBlur !== undefined) {
-      this.props.onBlur()
+      this.props.onBlur(value)
     }
 
     this.setState({ isFocused: false })
