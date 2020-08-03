@@ -452,11 +452,7 @@ app.on('ready', () => {
         const menu = buildContextMenu(items, indices => resolve(indices))
         const window = BrowserWindow.fromWebContents(event.sender) || undefined
 
-        if (window != null) {
-          menu.popup({ window, callback: () => resolve(null) })
-        } else {
-          menu.popup({ window, callback: () => resolve(null) })
-        }
+        menu.popup({ window, callback: () => resolve(null) })
       })
     }
   )
