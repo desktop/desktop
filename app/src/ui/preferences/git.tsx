@@ -85,7 +85,7 @@ export class Git extends React.Component<IGitProps> {
           <RefNameTextBox
             initialValue={this.props.defaultBranch}
             renderWarningMessage={this.renderWarningMessage}
-            onValueChange={this.props.onDefaultBranchChanged}
+            onBlur={this.props.onDefaultBranchChanged}
             ref={this.defaultBranchInputRef}
           />
         )}
