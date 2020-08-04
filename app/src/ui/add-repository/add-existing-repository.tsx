@@ -165,7 +165,7 @@ export class AddExistingRepository extends React.Component<
   }
 
   private onPathChanged = async (path: string) => {
-    const isRepository = await isGitRepository(path)
+    const isRepository = await isGitRepository(this.resolvedPath(path))
 
     this.setState({ path, isRepository })
   }
