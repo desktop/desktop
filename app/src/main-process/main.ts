@@ -387,7 +387,7 @@ app.on('ready', () => {
 
       const menuItem = currentMenu.getMenuItemById(id)
       if (menuItem) {
-        const window = BrowserWindow.fromWebContents(event.sender)
+        const window = BrowserWindow.fromWebContents(event.sender) || undefined
         const fakeEvent = { preventDefault: () => {}, sender: event.sender }
         menuItem.click(fakeEvent, window, event.sender)
       }
@@ -452,8 +452,8 @@ app.on('ready', () => {
     ): Promise<ReadonlyArray<number> | null> => {
       return new Promise(resolve => {
         const menu = buildContextMenu(items, indices => resolve(indices))
+        const window = BrowserWindow.fromWebContents(event.sender) || undefined
 
-        const window = BrowserWindow.fromWebContents(event.sender)
         menu.popup({ window, callback: () => resolve(null) })
       })
     }
