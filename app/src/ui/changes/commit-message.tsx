@@ -490,8 +490,6 @@ export class CommitMessage extends React.Component<
   }
 
   public render() {
-    const branchName = this.props.branch ? this.props.branch : 'master'
-
     const isSummaryWhiteSpace = this.state.summary.match(/^\s+$/g)
     const buttonEnabled =
       this.canCommit() && !this.props.isCommitting && !isSummaryWhiteSpace
@@ -509,6 +507,19 @@ export class CommitMessage extends React.Component<
     const summaryInputClassName = classNames('summary-field', 'nudge-arrow', {
       'nudge-arrow-left': this.props.shouldNudge,
     })
+
+    const branchName = this.props.branch
+    const commitVerb = loading ? 'Committing' : 'Commit'
+    const commitTitle =
+      branchName !== null ? `${commitVerb} to ${branchName}` : commitVerb
+    const commitButtonContents =
+      branchName !== null ? (
+        <>
+          {commitVerb} to <strong>{branchName}</strong>
+        </>
+      ) : (
+        commitVerb
+      )
 
     return (
       <div
@@ -564,9 +575,7 @@ export class CommitMessage extends React.Component<
           disabled={!buttonEnabled}
         >
           {loading}
-          <span title={`Commit to ${branchName}`}>
-            {loading ? 'Committing' : 'Commit'} to <strong>{branchName}</strong>
-          </span>
+          <span title={commitTitle}>{commitButtonContents}</span>
         </Button>
       </div>
     )
