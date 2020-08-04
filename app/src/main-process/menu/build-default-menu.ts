@@ -245,7 +245,7 @@ export function buildDefaultMenu({
         // chorded shortcuts, but this menu item is not a user-facing feature
         // so we are going to keep this one around.
         accelerator: 'CmdOrCtrl+Alt+R',
-        click(item: any, focusedWindow: Electron.BrowserWindow) {
+        click(item: any, focusedWindow: Electron.BrowserWindow | undefined) {
           if (focusedWindow) {
             focusedWindow.reload()
           }
@@ -260,7 +260,7 @@ export function buildDefaultMenu({
         accelerator: (() => {
           return __DARWIN__ ? 'Alt+Command+I' : 'Ctrl+Shift+I'
         })(),
-        click(item: any, focusedWindow: Electron.BrowserWindow) {
+        click(item: any, focusedWindow: Electron.BrowserWindow | undefined) {
           if (focusedWindow) {
             focusedWindow.webContents.toggleDevTools()
           }
@@ -590,7 +590,7 @@ function getStashedChangesLabel(isStashedChangesVisible: boolean): string {
 
 type ClickHandler = (
   menuItem: Electron.MenuItem,
-  browserWindow: Electron.BrowserWindow,
+  browserWindow: Electron.BrowserWindow | undefined,
   event: Electron.Event
 ) => void
 
