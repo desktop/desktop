@@ -35,7 +35,7 @@ export function UNSAFE_openDirectory(path: string) {
     // when executing shell.openItem(`C:\MyFolder\foo`) then the EXE file
     // will get opened.
     // We can avoid this by adding a final backslash at the end of the path.
-    const pathname = path[path.length - 1] !== Path.sep ? path + Path.sep : path
+    const pathname = __WIN32__ && !path.endsWith('\\') ? `${path}\\` : path
 
     shell.openItem(pathname)
   }
