@@ -12,7 +12,7 @@ import {
 } from './app'
 import { GitError, isAuthFailureError } from '../lib/git/core'
 import { Popup, PopupType } from '../models/popup'
-import CSSTransitionGroup from 'react-transition-group/CSSTransitionGroup'
+import { TransitionGroup, CSSTransition } from 'react-transition-group'
 import { OkCancelButtonGroup } from './dialog/ok-cancel-button-group'
 import { ErrorWithMetadata } from '../lib/error-with-metadata'
 import { RetryActionType, RetryAction } from '../models/retry-actions'
@@ -262,15 +262,22 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   }
 
   public render() {
+    const dialogContent = this.renderDialog()
+
     return (
-      <CSSTransitionGroup
-        transitionName="modal"
-        component="div"
-        transitionEnterTimeout={dialogTransitionEnterTimeout}
-        transitionLeaveTimeout={dialogTransitionLeaveTimeout}
-      >
-        {this.renderDialog()}
-      </CSSTransitionGroup>
+      <TransitionGroup>
+        {dialogContent && (
+          <CSSTransition
+            classNames="modal"
+            timeout={{
+              enter: dialogTransitionEnterTimeout,
+              exit: dialogTransitionLeaveTimeout,
+            }}
+          >
+            {dialogContent}
+          </CSSTransition>
+        )}
+      </TransitionGroup>
     )
   }
 }

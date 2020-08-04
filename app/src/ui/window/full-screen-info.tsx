@@ -1,5 +1,5 @@
 import * as React from 'react'
-import CSSTransitionGroup from 'react-transition-group/CSSTransitionGroup'
+import { TransitionGroup, CSSTransition } from 'react-transition-group'
 import { WindowState } from '../../lib/window-state'
 
 interface IFullScreenInfoProps {
@@ -93,9 +93,20 @@ export class FullScreenInfo extends React.Component<
     const kbdShortcut = __DARWIN__ ? '⌃⌘F' : 'F11'
 
     return (
-      <div key="notification" className="toast-notification">
-        Press <kbd>{kbdShortcut}</kbd> to exit fullscreen
-      </div>
+      <CSSTransition
+        classNames="toast-animation"
+        appear={true}
+        enter={false}
+        exit={true}
+        timeout={{
+          appear: transitionAppearDuration,
+          exit: transitionLeaveDuration,
+        }}
+      >
+        <div key="notification" className="toast-notification">
+          Press <kbd>{kbdShortcut}</kbd> to exit fullscreen
+        </div>
+      </CSSTransition>
     )
   }
 
@@ -105,18 +116,9 @@ export class FullScreenInfo extends React.Component<
     }
 
     return (
-      <CSSTransitionGroup
-        className="toast-notification-container"
-        transitionName="toast-animation"
-        component="div"
-        transitionAppear={true}
-        transitionEnter={false}
-        transitionLeave={true}
-        transitionAppearTimeout={transitionAppearDuration}
-        transitionLeaveTimeout={transitionLeaveDuration}
-      >
+      <TransitionGroup className="toast-notification-container">
         {this.renderFullScreenNotification()}
-      </CSSTransitionGroup>
+      </TransitionGroup>
     )
   }
 }
