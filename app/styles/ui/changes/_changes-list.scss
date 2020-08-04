@@ -115,11 +115,11 @@
   transition: max-height var(--undo-animation-duration) ease-in;
 }
 
-.undo-leave {
+.undo-exit {
   max-height: 200px;
 }
 
-.undo-leave.undo-leave-active {
+.undo-exit.undo-exit-active {
   max-height: 0;
 
   transition: max-height var(--undo-animation-duration) ease-out;
