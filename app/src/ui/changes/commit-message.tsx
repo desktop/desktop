@@ -442,8 +442,19 @@ export class CommitMessage extends React.Component<
     return <div className={className}>{this.renderCoAuthorToggleButton()}</div>
   }
 
-  private renderPermissionsCommitWarning = (branch: string) => {
-    const { showBranchProtected, showNoWriteAccess, repository } = this.props
+  private renderPermissionsCommitWarning() {
+    const {
+      showBranchProtected,
+      showNoWriteAccess,
+      repository,
+      branch,
+    } = this.props
+
+    if (branch === null) {
+      // If the branch is null that means we haven't loaded the tip yet or
+      // we're on a detached head.
+      return null
+    }
 
     if (showNoWriteAccess) {
       return (
@@ -544,7 +555,7 @@ export class CommitMessage extends React.Component<
 
         {this.renderCoAuthorInput()}
 
-        {this.renderPermissionsCommitWarning(branchName)}
+        {this.renderPermissionsCommitWarning()}
 
         <Button
           type="submit"
