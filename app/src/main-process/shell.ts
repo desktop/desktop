@@ -27,6 +27,15 @@ export function UNSAFE_openDirectory(path: string) {
       .openExternal(directoryURL)
       .catch(err => log.error(`Failed to open directory (${path})`, err))
   } else {
-    shell.openItem(path)
+    // Add a trailing slash to the directory path.
+    //
+    // On Windows, if there's a file and a directory with the
+    // same name (e.g `C:\MyFolder\foo` and `C:\MyFolder\foo.exe`),
+    // when executing shell.openItem(`C:\MyFolder\foo`) then the EXE file
+    // will get opened.
+    // We can avoid this by adding a final backslash at the end of the path.
+    const pathname = __WIN32__ && !path.endsWith('\\') ? `${path}\\` : path
+
+    shell.openItem(pathname)
   }
 }
