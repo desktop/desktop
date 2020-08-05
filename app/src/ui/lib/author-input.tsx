@@ -1,8 +1,13 @@
 import * as React from 'react'
-import * as CodeMirror from 'codemirror'
-import * as classNames from 'classnames'
+import CodeMirror, {
+  Editor,
+  EditorConfiguration,
+  Doc,
+  Position,
+  TextMarkerOptions,
+} from 'codemirror'
+import classNames from 'classnames'
 import { UserAutocompletionProvider, IUserHit } from '../autocompletion'
-import { Editor, Doc, Position } from 'codemirror'
 import { compare } from '../../lib/compare'
 import { arrayEquals } from '../../lib/equality'
 import { OcticonSymbol } from '../octicons'
@@ -176,7 +181,7 @@ function scanUntil(
 function appendTextMarker(
   cm: Editor,
   text: string,
-  options: CodeMirror.TextMarkerOptions
+  options: TextMarkerOptions
 ): ActualTextMarker {
   const doc = cm.getDoc()
   const from = doc.posFromIndex(Infinity)
@@ -205,7 +210,7 @@ function orderByPosition(x: ActualTextMarker, y: ActualTextMarker) {
 // The types for CodeMirror.TextMarker is all wrong, this is what it
 // actually looks like
 // eslint-disable-next-line @typescript-eslint/naming-convention
-interface ActualTextMarker extends CodeMirror.TextMarkerOptions {
+interface ActualTextMarker extends TextMarkerOptions {
   /** Remove the mark. */
   clear(): void
 
@@ -687,7 +692,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
   }
 
   private initializeCodeMirror(host: HTMLDivElement) {
-    const CodeMirrorOptions: CodeMirror.EditorConfiguration & {
+    const CodeMirrorOptions: EditorConfiguration & {
       hintOptions: any
     } = {
       mode: null,

@@ -1,11 +1,11 @@
-import * as express from 'express'
-import * as webpack from 'webpack'
-import * as devMiddleware from 'webpack-dev-middleware'
-import * as hotMiddleware from 'webpack-hot-middleware'
+import express from 'express'
+import webpack from 'webpack'
+import devMiddleware from 'webpack-dev-middleware'
+import hotMiddleware from 'webpack-hot-middleware'
 
 import { forceUnwrap as u } from '../app/src/lib/fatal-error'
 
-import configs = require('../app/webpack.development')
+import configs from '../app/webpack.development'
 
 import { run } from './run'
 

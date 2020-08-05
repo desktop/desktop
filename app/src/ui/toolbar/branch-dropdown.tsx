@@ -9,7 +9,7 @@ import { BranchesContainer, PullRequestBadge } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
 import { BranchesTab } from '../../models/branches-tab'
 import { PullRequest } from '../../models/pull-request'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 
 interface IBranchDropdownProps {

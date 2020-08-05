@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ipcRenderer, remote } from 'electron'
-import { CSSTransitionGroup } from 'react-transition-group'
+import CSSTransitionGroup from 'react-transition-group/CSSTransitionGroup'
 
 import {
   IAppState,
@@ -2269,7 +2269,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    shell.showItemInFolder(repository.path)
+    shell.showFolderContents(repository.path)
   }
 
   private onRepositoryDropdownStateChanged = (newState: DropdownState) => {

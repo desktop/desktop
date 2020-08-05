@@ -225,3 +225,9 @@ declare class ResizeObserver {
   public disconnect(): void
   public observe(e: HTMLElement): void
 }
+
+declare module 'file-metadata' {
+  // eslint-disable-next-line no-restricted-syntax
+  function fileMetadata(path: string): Promise<plist.PlistObject>
+  export = fileMetadata
+}
