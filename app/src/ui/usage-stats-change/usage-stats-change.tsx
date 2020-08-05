@@ -5,7 +5,8 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IUsageStatsChangeProps {
-  readonly onDismissed: (optOut: boolean) => void
+  readonly onSetStatsOptOut: (optOut: boolean) => void
+  readonly onDismissed: () => void
   readonly onOpenUsageDataUrl: () => void
 }
 
@@ -98,7 +99,8 @@ export class UsageStatsChange extends React.Component<
   }
 
   private onDismissed = () => {
-    this.props.onDismissed(this.state.optOutOfUsageTracking)
+    this.props.onSetStatsOptOut(this.state.optOutOfUsageTracking)
+    this.props.onDismissed()
   }
 
   private viewMoreInfo = (e: React.MouseEvent<HTMLButtonElement>) => {

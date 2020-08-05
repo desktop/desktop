@@ -1,7 +1,7 @@
 import { ChildProcess } from 'child_process'
 import * as Fs from 'fs'
 import * as Path from 'path'
-import * as byline from 'byline'
+import byline from 'byline'
 
 import { GitProgressParser, IGitProgress, IGitOutput } from './git'
 import { IGitExecutionOptions } from '../git/core'

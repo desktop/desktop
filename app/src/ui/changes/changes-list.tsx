@@ -35,7 +35,7 @@ import { RebaseConflictState, ConflictState } from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { IStashEntry } from '../../models/stash-entry'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 import { hasWritePermission } from '../../models/github-repository'
 import { hasConflictedFiles } from '../../lib/status'
 

@@ -8,7 +8,7 @@ import {
   getBranchCheckouts,
 } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../helpers/repositories'
-import * as moment from 'moment'
+import moment from 'moment'
 import { GitProcess } from 'dugite'
 
 async function createAndCheckout(

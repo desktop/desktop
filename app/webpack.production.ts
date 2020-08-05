@@ -1,8 +1,8 @@
 import * as common from './webpack.common'
 
 import * as webpack from 'webpack'
-import * as merge from 'webpack-merge'
-import * as MiniCssExtractPlugin from 'mini-css-extract-plugin'
+import merge from 'webpack-merge'
+import MiniCssExtractPlugin from 'mini-css-extract-plugin'
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer'
 const MinifyPlugin = require('babel-minify-webpack-plugin')
 
@@ -65,7 +65,8 @@ const crashConfig = merge({}, common.crash, config, {
   ],
 })
 
-export = [
+// eslint-disable-next-line no-restricted-syntax
+export default [
   mainConfig,
   rendererConfig,
   askPassConfig,

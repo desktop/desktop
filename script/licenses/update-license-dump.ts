@@ -4,7 +4,7 @@ import { promisify } from 'util'
 
 import { licenseOverrides } from './license-overrides'
 
-import * as _legalEagle from 'legal-eagle'
+import _legalEagle from 'legal-eagle'
 const legalEagle = promisify(_legalEagle)
 
 import { getVersion } from '../../app/package-info'
