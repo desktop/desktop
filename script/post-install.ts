@@ -3,7 +3,7 @@
 import * as Path from 'path'
 import { spawnSync, SpawnSyncOptions } from 'child_process'
 
-import * as glob from 'glob'
+import glob from 'glob'
 
 const root = Path.dirname(__dirname)
 

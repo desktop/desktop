@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
 
-import * as moment from 'moment'
+import moment from 'moment'
 
 import { ipcRenderer, remote } from 'electron'
 
@@ -22,6 +22,7 @@ import {
   pushNeedsPullHandler,
   upstreamAlreadyExistsHandler,
   rebaseConflictsHandler,
+  localChangesOverwrittenOnCheckoutHandler,
   localChangesOverwrittenHandler,
   refusedWorkflowUpdate,
   samlReauthRequired,
@@ -246,9 +247,7 @@ const pullRequestCoordinator = new PullRequestCoordinator(
   repositoriesStore
 )
 
-const repositoryStateManager = new RepositoryStateCache(repo =>
-  gitHubUserStore.getUsersForRepository(repo)
-)
+const repositoryStateManager = new RepositoryStateCache()
 
 const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 
@@ -292,6 +291,7 @@ dispatcher.registerErrorHandler(samlReauthRequired)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(missingRepositoryHandler)
 dispatcher.registerErrorHandler(localChangesOverwrittenHandler)
+dispatcher.registerErrorHandler(localChangesOverwrittenOnCheckoutHandler)
 dispatcher.registerErrorHandler(rebaseConflictsHandler)
 dispatcher.registerErrorHandler(refusedWorkflowUpdate)
 

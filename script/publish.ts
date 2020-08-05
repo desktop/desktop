@@ -26,7 +26,7 @@ import * as Fs from 'fs'
 import { execSync } from 'child_process'
 import * as AWS from 'aws-sdk'
 import * as Crypto from 'crypto'
-import * as request from 'request'
+import request from 'request'
 
 console.log('Packaging…')
 execSync('yarn package')

@@ -31,15 +31,4 @@
       margin-bottom: 0;
     }
   }
-
-  .radio-component {
-    &:not(:last-child) {
-      margin-bottom: var(--spacing-half);
-    }
-
-    input {
-      margin: 0;
-      margin-right: var(--spacing-half);
-    }
-  }
 }

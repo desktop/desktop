@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { OcticonSymbol } from './octicons.generated'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
 
 interface IOcticonProps {
