@@ -4,7 +4,7 @@ import { MenuEvent } from './menu-event'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
 import { ensureDir } from 'fs-extra'
-import { openDirectorySafe } from '../shell'
+import { UNSAFE_openDirectory } from '../shell'
 import { enableCreateGitHubIssueFromMenu } from '../../lib/feature-flag'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { DefaultEditorLabel } from '../../ui/lib/context-menu'
@@ -245,7 +245,7 @@ export function buildDefaultMenu({
         // chorded shortcuts, but this menu item is not a user-facing feature
         // so we are going to keep this one around.
         accelerator: 'CmdOrCtrl+Alt+R',
-        click(item: any, focusedWindow: Electron.BrowserWindow) {
+        click(item: any, focusedWindow: Electron.BrowserWindow | undefined) {
           if (focusedWindow) {
             focusedWindow.reload()
           }
@@ -260,7 +260,7 @@ export function buildDefaultMenu({
         accelerator: (() => {
           return __DARWIN__ ? 'Alt+Command+I' : 'Ctrl+Shift+I'
         })(),
-        click(item: any, focusedWindow: Electron.BrowserWindow) {
+        click(item: any, focusedWindow: Electron.BrowserWindow | undefined) {
           if (focusedWindow) {
             focusedWindow.webContents.toggleDevTools()
           }
@@ -495,7 +495,7 @@ export function buildDefaultMenu({
       const logPath = getLogDirectoryPath()
       ensureDir(logPath)
         .then(() => {
-          openDirectorySafe(logPath)
+          UNSAFE_openDirectory(logPath)
         })
         .catch(err => {
           log.error('Failed opening logs directory', err)
@@ -590,7 +590,7 @@ function getStashedChangesLabel(isStashedChangesVisible: boolean): string {
 
 type ClickHandler = (
   menuItem: Electron.MenuItem,
-  browserWindow: Electron.BrowserWindow,
+  browserWindow: Electron.BrowserWindow | undefined,
   event: Electron.Event
 ) => void
 
