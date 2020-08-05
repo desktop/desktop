@@ -450,12 +450,6 @@ export class CommitMessage extends React.Component<
       branch,
     } = this.props
 
-    if (branch === null) {
-      // If the branch is null that means we haven't loaded the tip yet or
-      // we're on a detached head.
-      return null
-    }
-
     if (showNoWriteAccess) {
       return (
         <PermissionsCommitWarning>
@@ -465,6 +459,14 @@ export class CommitMessage extends React.Component<
         </PermissionsCommitWarning>
       )
     } else if (showBranchProtected) {
+      if (branch === null) {
+        // If the branch is null that means we haven't loaded the tip yet or
+        // we're on a detached head. We shouldn't ever end up here with
+        // showBranchProtected being true without a branch but who knows
+        // what fun and exiting edge cases the future might hold
+        return null
+      }
+
       return (
         <PermissionsCommitWarning>
           <strong>{branch}</strong> is a protected branch. Want to{' '}
