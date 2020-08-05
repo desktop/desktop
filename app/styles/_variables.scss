@@ -62,6 +62,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --font-weight-light: 300;
 
   // Pixel value used to responsively scale all typography. Applied to the `<html>` element.
+  // When adding a new font-size variable, please update the fix-emoji-spacing.ts file.
   --font-size: 12px;
   --font-size-sm: 11px;
   --font-size-md: 14px;
