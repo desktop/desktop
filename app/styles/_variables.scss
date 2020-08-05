@@ -48,8 +48,9 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   // Typography
   //
   // Font, line-height, and color for body text, headings, and more.
-  --font-family-sans-serif: system-ui, sans-serif;
-  --font-family-monospace: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+  $emoji_fallback_fonts: 'Apple Color Emoji', 'Segoe UI', 'Segoe UI Emoji', 'Segoe UI Symbol';
+  --font-family-sans-serif: system-ui, sans-serif, #{$emoji_fallback_fonts};
+  --font-family-monospace: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace, #{$emoji_fallback_fonts};
 
   /**
    * Font weight to use for semibold text
