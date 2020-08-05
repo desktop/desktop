@@ -70,7 +70,7 @@
     "babel-plugin-syntax-dynamic-import": "^6.18.0",
     "chalk": "^2.2.0",
     "clean-webpack-plugin": "^0.1.19",
-    "codecov": "^3.6.5",
+    "codecov": "^3.7.1",
     "cross-env": "^5.0.5",
     "css-loader": "^2.1.0",
     "eslint": "^5.16.0",
