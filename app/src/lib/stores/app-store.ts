@@ -4942,17 +4942,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (invalidPaths.length > 0) {
-      let errorMessage = `The following paths aren't git repositories:\n\n${invalidPaths
-        .slice(0, MaxInvalidFoldersToDisplay)
-        .map(path => `- ${path}`)
-        .join('\n')}${
-        invalidPaths.length > MaxInvalidFoldersToDisplay
-          ? `\n\n(and ${invalidPaths.length - MaxInvalidFoldersToDisplay} more)`
-          : ''
-      }`
+      let errorMessage
 
       if (invalidPaths.length === 1) {
-        errorMessage = `${invalidPaths} isn't a git repository.`
+        errorMessage = `${invalidPaths} isn't a Git repository.`
+      } else {
+        errorMessage = `The following paths aren't Git repositories:\n\n${invalidPaths
+          .slice(0, MaxInvalidFoldersToDisplay)
+          .map(path => `- ${path}`)
+          .join('\n')}${
+          invalidPaths.length > MaxInvalidFoldersToDisplay
+            ? `\n\n(and ${
+                invalidPaths.length - MaxInvalidFoldersToDisplay
+              } more)`
+            : ''
+        }`
       }
 
       this.emitError(new Error(errorMessage))
