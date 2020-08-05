@@ -14,7 +14,7 @@ import { LinkButton } from '../lib/link-button'
 import { PopupType } from '../../models/popup'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
-import untildify = require('untildify')
+import untildify from 'untildify'
 
 interface IAddExistingRepositoryProps {
   readonly dispatcher: Dispatcher

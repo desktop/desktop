@@ -69,6 +69,7 @@ interface IRebaseFlowProps {
   readonly openFileInExternalEditor: (path: string) => void
   readonly resolvedExternalEditor: string | null
   readonly openRepositoryInShell: (repository: Repository) => void
+  readonly onDismissed: () => void
 }
 
 /** A component for initiating and performing a rebase of the current branch. */
@@ -144,6 +145,7 @@ export class RebaseFlow extends React.Component<IRebaseFlowProps> {
   }
 
   private onFlowEnded = () => {
+    this.props.onDismissed()
     this.props.onFlowEnded(this.props.repository)
   }
 

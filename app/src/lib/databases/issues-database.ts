@@ -28,6 +28,13 @@ export class IssuesDatabase extends BaseDatabase {
       clearIssues
     )
   }
+
+  public getIssuesForRepository(gitHubRepositoryID: number) {
+    return this.issues
+      .where('gitHubRepositoryID')
+      .equals(gitHubRepositoryID)
+      .toArray()
+  }
 }
 
 function clearIssues(transaction: Dexie.Transaction) {

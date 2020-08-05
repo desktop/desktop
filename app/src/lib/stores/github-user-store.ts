@@ -9,6 +9,7 @@ import {
 import { compare } from '../compare'
 import { BaseStore } from './base-store'
 import { getStealthEmailForUser, getLegacyStealthEmailForUser } from '../email'
+import { DefaultMaxHits } from '../../ui/autocompletion/common'
 
 /** Don't fetch mentionables more often than every 10 minutes */
 const MaxFetchFrequency = 10 * 60 * 1000
@@ -116,10 +117,7 @@ export class GitHubUserStore extends BaseStore {
       response.etag
     )
 
-    if (
-      this.queryCache !== null &&
-      this.queryCache.repository.dbID === repository.dbID
-    ) {
+    if (this.queryCache?.repository.dbID === repository.dbID) {
       this.queryCache = null
       this.clearCachePruneTimeout()
     }
@@ -152,7 +150,7 @@ export class GitHubUserStore extends BaseStore {
   public async getMentionableUsersMatching(
     repository: GitHubRepository,
     query: string,
-    maxHits: number = 100
+    maxHits: number = DefaultMaxHits
   ): Promise<ReadonlyArray<IMentionableUser>> {
     assertPersisted(repository)
 
@@ -167,8 +165,7 @@ export class GitHubUserStore extends BaseStore {
     const needle = query.toLowerCase()
 
     // Simple substring comparison on login and real name
-    for (let i = 0; i < users.length && hits.length < maxHits; i++) {
-      const user = users[i]
+    for (const user of users) {
       const ix = `${user.login} ${user.name}`
         .trim()
         .toLowerCase()
@@ -188,6 +185,7 @@ export class GitHubUserStore extends BaseStore {
       .sort(
         (x, y) => compare(x.ix, y.ix) || compare(x.user.login, y.user.login)
       )
+      .slice(0, maxHits)
       .map(h => h.user)
   }
 

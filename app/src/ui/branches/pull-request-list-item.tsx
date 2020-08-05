@@ -1,6 +1,6 @@
 import * as React from 'react'
-import * as moment from 'moment'
-import * as classNames from 'classnames'
+import moment from 'moment'
+import classNames from 'classnames'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { CIStatus } from './ci-status'
 import { HighlightText } from '../lib/highlight-text'
