@@ -36,4 +36,4 @@ document.body.appendChild(container)
 container.offsetHeight
 
 // Browser has rendered the emojis, now we can remove them.
-//document.body.removeChild(container)
+document.body.removeChild(container)
