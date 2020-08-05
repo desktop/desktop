@@ -4942,24 +4942,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (invalidPaths.length > 0) {
-      let errorMessage
-
-      if (invalidPaths.length === 1) {
-        errorMessage = `${invalidPaths} isn't a Git repository.`
-      } else {
-        errorMessage = `The following paths aren't Git repositories:\n\n${invalidPaths
-          .slice(0, MaxInvalidFoldersToDisplay)
-          .map(path => `- ${path}`)
-          .join('\n')}${
-          invalidPaths.length > MaxInvalidFoldersToDisplay
-            ? `\n\n(and ${
-                invalidPaths.length - MaxInvalidFoldersToDisplay
-              } more)`
-            : ''
-        }`
-      }
-
-      this.emitError(new Error(errorMessage))
+      this.emitError(new Error(this.getInvalidRepoPathsMessage(invalidPaths)))
     }
 
     if (lfsRepositories.length > 0) {
@@ -5015,6 +4998,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
       await this._selectRepository(updatedRepository)
     }
+  }
+
+  private getInvalidRepoPathsMessage(
+    invalidPaths: ReadonlyArray<string>
+  ): string {
+    if (invalidPaths.length === 1) {
+      return `${invalidPaths} isn't a Git repository.`
+    }
+
+    return `The following paths aren't Git repositories:\n\n${invalidPaths
+      .slice(0, MaxInvalidFoldersToDisplay)
+      .map(path => `- ${path}`)
+      .join('\n')}${
+      invalidPaths.length > MaxInvalidFoldersToDisplay
+        ? `\n\n(and ${invalidPaths.length - MaxInvalidFoldersToDisplay} more)`
+        : ''
+    }`
   }
 
   private async withAuthenticatingUser<T>(
