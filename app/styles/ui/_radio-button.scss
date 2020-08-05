@@ -1,0 +1,10 @@
+.radio-button-component {
+  & + .radio-button-component {
+    margin-top: var(--spacing-half);
+  }
+
+  label {
+    margin: 0;
+    margin-left: var(--spacing-half);
+  }
+}

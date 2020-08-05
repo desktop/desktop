@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 import { createUniqueId, releaseUniqueId } from './id-pool'
 import { LinkButton } from './link-button'
 import { showContextualMenu } from '../main-process-proxy'

@@ -72,6 +72,7 @@
     padding: var(--spacing-half) var(--spacing);
     box-shadow: var(--base-box-shadow);
 
+    .CodeMirror-search-label,
     .CodeMirror-search-hint {
       display: none;
     }
