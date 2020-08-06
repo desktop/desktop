@@ -87,7 +87,6 @@ interface IRepositoryViewProps {
 }
 
 interface IRepositoryViewState {
-  readonly sidebarHasFocusWithin: boolean
   readonly changesListScrollTop: number
   readonly compareListScrollTop: number
 }
@@ -108,7 +107,6 @@ export class RepositoryView extends React.Component<
     super(props)
 
     this.state = {
-      sidebarHasFocusWithin: false,
       changesListScrollTop: 0,
       compareListScrollTop: 0,
     }
@@ -288,9 +286,6 @@ export class RepositoryView extends React.Component<
   }
 
   private onSidebarFocusWithinChanged = (sidebarHasFocusWithin: boolean) => {
-    // this lets us know that focus is somewhere within the sidebar
-    this.setState({ sidebarHasFocusWithin })
-
     if (
       sidebarHasFocusWithin === false &&
       this.props.state.selectedSection === RepositorySectionTab.History

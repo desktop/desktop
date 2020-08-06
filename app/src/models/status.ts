@@ -289,8 +289,6 @@ export class CommittedFileChange extends FileChange {
 
 /** the state of the working directory for a repository */
 export class WorkingDirectoryStatus {
-  private readonly fileIxById = new Map<string, number>()
-
   /** Create a new status with the given files. */
   public static fromFiles(
     files: ReadonlyArray<WorkingDirectoryFileChange>
@@ -298,6 +296,7 @@ export class WorkingDirectoryStatus {
     return new WorkingDirectoryStatus(files, getIncludeAllState(files))
   }
 
+  private readonly fileIxById = new Map<string, number>()
   /**
    * @param files The list of changes in the repository's working directory.
    * @param includeAll Update the include checkbox state of the form.

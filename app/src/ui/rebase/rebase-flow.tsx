@@ -74,14 +74,6 @@ interface IRebaseFlowProps {
 
 /** A component for initiating and performing a rebase of the current branch. */
 export class RebaseFlow extends React.Component<IRebaseFlowProps> {
-  public constructor(props: IRebaseFlowProps) {
-    super(props)
-
-    this.state = {
-      userHasResolvedConflicts: false,
-    }
-  }
-
   private moveToShowConflictedFileState = (step: ConfirmAbortStep) => {
     const { conflictState } = step
     this.props.dispatcher.setRebaseFlowStep(this.props.repository, {

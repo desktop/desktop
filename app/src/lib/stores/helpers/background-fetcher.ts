@@ -151,7 +151,7 @@ let _skewInterval: number | null = null
  */
 function skewInterval(): number {
   if (_skewInterval !== null) {
-    return _skewInterval!
+    return _skewInterval
   }
 
   // We don't need cryptographically secure random numbers for
