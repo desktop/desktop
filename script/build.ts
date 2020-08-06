@@ -279,7 +279,6 @@ function moveAnalysisFiles() {
 }
 
 function copyDependencies() {
-  // eslint-disable-next-line import/no-dynamic-require
   const originalPackage: Package = require(path.join(
     projectRoot,
     'app',
