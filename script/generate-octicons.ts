@@ -108,7 +108,7 @@ generateIconData().then(result => {
   out.write('export class OcticonSymbol {\n')
 
   out.write(
-    "\n  public constructor(public w: number, public h: number, public d: string, public fillRule?: React.SVGAttributes<SVGElement>['fillRule']) { }\n\n"
+    "\n  public constructor(public w: number, public h: number, public d: string, public fr?: React.SVGAttributes<SVGElement>['fillRule']) { }\n\n"
   )
 
   result.forEach(function (symbol) {

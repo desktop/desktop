@@ -8,7 +8,7 @@ export class OcticonSymbol {
     public w: number,
     public h: number,
     public d: string,
-    public fillRule?: React.SVGAttributes<SVGElement>['fillRule']
+    public fr?: React.SVGAttributes<SVGElement>['fillRule']
   ) {}
 
   public static get alert() {
