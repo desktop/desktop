@@ -22,7 +22,7 @@ const fontSizes = [
 
 for (const fontSize of fontSizes) {
   const span = document.createElement('span')
-  span.style.setProperty('fontSize', `var(${fontSize}`)
+  span.style.setProperty('font-size', `var(${fontSize}`)
   span.style.setProperty('font-family', 'Arial', 'important')
   span.textContent = '🤦🏿‍♀️'
   container.appendChild(span)
