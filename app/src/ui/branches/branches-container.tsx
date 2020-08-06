@@ -305,8 +305,6 @@ export class BranchesContainer extends React.Component<
   private onPullRequestSelectionChanged = (
     selectedPullRequest: PullRequest | null
   ) => {
-    // Temporarily removed
-    // see https://github.com/desktop/desktop/commit/4305612427
-    // see https://github.com/desktop/desktop/pull/9737#discussion_r452796467
+    this.setState({ selectedPullRequest })
   }
 }
