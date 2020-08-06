@@ -5,10 +5,8 @@
 // https://bugs.chromium.org/p/chromium/issues/detail?id=1113293
 
 const container = document.createElement('div')
-container.setAttribute(
-  'style',
-  'visibility: hidden; font-family: Arial !important;'
-)
+container.style.setProperty('visibility', 'hidden')
+container.style.setProperty('position', 'absolute')
 
 // Keep this array synced with the font size variables
 // in _variables.scss
