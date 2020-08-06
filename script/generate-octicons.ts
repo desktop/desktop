@@ -16,6 +16,7 @@ interface IXML2JSNode {
   path: {
     $: {
       d: string
+      'fill-rule'?: string
     }
   }
 }
@@ -25,6 +26,7 @@ interface IOcticonData {
   readonly pathData: string
   readonly width: string
   readonly height: string
+  readonly fillRule?: string
 }
 
 const viewBoxRe = /0 0 (\d+) (\d+)/
@@ -71,9 +73,16 @@ async function generateIconData(): Promise<ReadonlyArray<IOcticonData>> {
 
     const result = await readXml(octiconData.path)
     const pathData = result.path.$.d
+    const fillRule = result.path.$['fill-rule']
     const jsFriendlyName = toCamelCase(octicon.symbol)
 
-    results.push({ jsFriendlyName, width, height, pathData })
+    results.push({
+      jsFriendlyName,
+      width,
+      height,
+      pathData,
+      fillRule,
+    })
   }
 
   return results
@@ -99,13 +108,15 @@ generateIconData().then(result => {
   out.write('export class OcticonSymbol {\n')
 
   out.write(
-    '\n  public constructor(public w: number, public h: number, public d: string) { }\n\n'
+    "\n  public constructor(public w: number, public h: number, public d: string, public fillRule?: React.SVGAttributes<SVGElement>['fillRule']) { }\n\n"
   )
 
   result.forEach(function (symbol) {
-    const { jsFriendlyName, pathData, width, height } = symbol
+    const { jsFriendlyName, pathData, width, height, fillRule } = symbol
     out.write(
-      `  public static get ${jsFriendlyName}() { return new OcticonSymbol(${width}, ${height}, '${pathData}') }\n`
+      `  public static get ${jsFriendlyName}() { return new OcticonSymbol(${width}, ${height}, '${pathData}', ${
+        fillRule ? `'${fillRule}'` : 'undefined'
+      } ) }\n`
     )
   })
 
