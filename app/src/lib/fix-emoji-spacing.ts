@@ -31,8 +31,7 @@ for (const fontSize of fontSizes) {
 document.body.appendChild(container)
 
 // Read the dimensions of the element to force the browser to do a layout.
-// eslint-disable-next-line @typescript-eslint/no-unused-expressions
-container.offsetHeight
+container.offsetHeight.toString()
 
 // Browser has rendered the emojis, now we can remove them.
 document.body.removeChild(container)
