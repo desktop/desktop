@@ -119,7 +119,7 @@ export class RefNameTextBox extends React.Component<
           ? this.state.sanitizedValue
           : sanitizedRefName(proposedValue)
 
-      this.props.onBlur(sanitizedRefName(sanitizedValue))
+      this.props.onBlur(sanitizedRefName(proposedValue))
     }
   }
 
