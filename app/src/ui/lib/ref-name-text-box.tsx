@@ -112,7 +112,7 @@ export class RefNameTextBox extends React.Component<
     if (this.props.onBlur !== undefined) {
       // It's possible (although rare) that we receive the onBlur
       // event before the sanitized value has been committed to the
-      // state so we need to check fot that condition and sanitize
+      // state so we need to check for that condition and sanitize
       // the value ourselves if that's the case.
       const sanitizedValue =
         proposedValue === this.state.proposedValue
