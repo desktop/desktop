@@ -813,6 +813,12 @@ export class API {
     return await parsedResponse<IAPIRefStatus>(response)
   }
 
+  /**
+   * Get any check run results for the given ref.
+   *
+   * Note: Contrary to many other methods in this class this will not
+   * suppress or log errors, callers must ensure that they handle errors.
+   */
   public async fetchRefCheckRuns(
     owner: string,
     name: string,
