@@ -50,9 +50,13 @@ async function installCLI(): Promise<void> {
   await ensureDir(binPath)
   await writeBatchScriptCLITrampoline(binPath)
   await writeShellScriptCLITrampoline(binPath)
-  const paths = await getPathSegments()
-  if (paths.indexOf(binPath) < 0) {
-    await setPathSegments([...paths, binPath])
+  try {
+    const paths = getPathSegments()
+    if (paths.indexOf(binPath) < 0) {
+      await setPathSegments([...paths, binPath])
+    }
+  } catch (e) {
+    log.error('Failed inserting bin path into PATH environment variable', e)
   }
 }
 
@@ -93,10 +97,14 @@ function writeBatchScriptCLITrampoline(binPath: string): Promise<void> {
 }
 
 function writeShellScriptCLITrampoline(binPath: string): Promise<void> {
+  // The path we get from `resolveVersionedPath` is a Win32 relative
+  // path (something like `..\app-2.5.0\resources\app\static\github.sh`).
+  // We need to make sure it's a POSIX path in order for WSL to be able
+  // to resolve it. See https://github.com/desktop/desktop/issues/4998
   const versionedPath = resolveVersionedPath(
     binPath,
     'resources/app/static/github.sh'
-  )
+  ).replace(/\\/g, '/')
 
   const trampoline = `#!/usr/bin/env bash
   DIR="$( cd "$( dirname "\$\{BASH_SOURCE[0]\}" )" && pwd )"
@@ -127,10 +135,14 @@ function createShortcut(locations: ShortcutLocations): Promise<void> {
 async function handleUninstall(): Promise<void> {
   await removeShortcut()
 
-  const paths = await getPathSegments()
-  const binPath = getBinPath()
-  const pathsWithoutBinPath = paths.filter(p => p !== binPath)
-  return setPathSegments(pathsWithoutBinPath)
+  try {
+    const paths = getPathSegments()
+    const binPath = getBinPath()
+    const pathsWithoutBinPath = paths.filter(p => p !== binPath)
+    return setPathSegments(pathsWithoutBinPath)
+  } catch (e) {
+    log.error('Failed removing bin path from PATH environment variable', e)
+  }
 }
 
 function removeShortcut(): Promise<void> {

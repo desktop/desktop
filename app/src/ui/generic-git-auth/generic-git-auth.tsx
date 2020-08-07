@@ -3,9 +3,9 @@ import * as React from 'react'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { Monospaced } from '../lib/monospaced'
 import { RetryAction } from '../../models/retry-actions'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import { Ref } from '../lib/ref'
 
 interface IGenericGitAuthenticationProps {
   /** The hostname with which the user tried to authenticate. */
@@ -53,9 +53,8 @@ export class GenericGitAuthentication extends React.Component<
       >
         <DialogContent>
           <p>
-            We were unable to authenticate with{' '}
-            <Monospaced>{this.props.hostname}</Monospaced>. Please enter your
-            username and password to try again.
+            We were unable to authenticate with <Ref>{this.props.hostname}</Ref>
+            . Please enter your username and password to try again.
           </p>
 
           <Row>
@@ -96,6 +95,8 @@ export class GenericGitAuthentication extends React.Component<
   }
 
   private save = () => {
+    this.props.onDismiss()
+
     this.props.onSave(
       this.props.hostname,
       this.state.username,

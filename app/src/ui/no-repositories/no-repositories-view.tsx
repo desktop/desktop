@@ -13,7 +13,6 @@ import { CloneableRepositoryFilterList } from '../clone-repository/cloneable-rep
 import { IAPIRepository } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 import { ClickSource } from '../lib/list'
-import { enableTutorial } from '../../lib/feature-flag'
 
 interface INoRepositoriesProps {
   /** A function to call when the user chooses to create a repository. */
@@ -357,10 +356,6 @@ export class NoRepositoriesView extends React.Component<
   }
 
   private renderTutorialRepositoryButton() {
-    if (!enableTutorial()) {
-      return null
-    }
-
     // No tutorial if you're not signed in.
     if (
       this.props.dotComAccount === null &&

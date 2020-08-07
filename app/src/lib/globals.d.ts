@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/interface-name-prefix */
+/* eslint-disable @typescript-eslint/naming-convention */
 /** Is the app running in dev mode? */
 declare const __DEV__: boolean
 
@@ -172,6 +172,7 @@ declare const log: IDesktopLogger
 
 declare namespace NodeJS {
   interface Process extends EventEmitter {
+    once(event: 'exit', listener: Function): this
     once(event: 'uncaughtException', listener: (error: Error) => void): this
     on(event: 'uncaughtException', listener: (error: Error) => void): this
     on(
@@ -184,7 +185,6 @@ declare namespace NodeJS {
       context?: { [key: string]: string }
     ): this
     removeListener(event: 'exit', listener: Function): this
-    once(event: 'exit', listener: Function): this
   }
 }
 
@@ -224,4 +224,10 @@ declare class ResizeObserver {
 
   public disconnect(): void
   public observe(e: HTMLElement): void
+}
+
+declare module 'file-metadata' {
+  // eslint-disable-next-line no-restricted-syntax
+  function fileMetadata(path: string): Promise<plist.PlistObject>
+  export = fileMetadata
 }

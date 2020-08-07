@@ -426,6 +426,7 @@ function getBranchForResolution(
  * Calculates the number of merge conclicts in a file from the number of markers
  * divides by three and rounds up since each conflict is indicated by three separate markers
  * (`<<<<<`, `>>>>>`, and `=====`)
+ *
  * @param conflictMarkers number of conflict markers in a file
  */
 function calculateConflicts(conflictMarkers: number) {

@@ -1,4 +1,4 @@
-import React = require('react')
+import * as React from 'react'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
@@ -10,12 +10,12 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 interface IOverwriteStashProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
-  readonly branchToCheckout: Branch
+  readonly branchToCheckout: Branch | null
   readonly onDismissed: () => void
 }
 
 interface IOverwriteStashState {
-  readonly isCheckingOutBranch: boolean
+  readonly isLoading: boolean
 }
 
 /**
@@ -29,7 +29,7 @@ export class OverwriteStash extends React.Component<
     super(props)
 
     this.state = {
-      isCheckingOutBranch: false,
+      isLoading: false,
     }
   }
 
@@ -41,8 +41,8 @@ export class OverwriteStash extends React.Component<
         id="overwrite-stash"
         type="warning"
         title={title}
-        loading={this.state.isCheckingOutBranch}
-        disabled={this.state.isCheckingOutBranch}
+        loading={this.state.isLoading}
+        disabled={this.state.isLoading}
         onSubmit={this.onSubmit}
         onDismissed={this.props.onDismissed}
       >
@@ -63,18 +63,22 @@ export class OverwriteStash extends React.Component<
     const { dispatcher, repository, branchToCheckout, onDismissed } = this.props
 
     this.setState({
-      isCheckingOutBranch: true,
+      isLoading: true,
     })
 
     try {
-      await dispatcher.checkoutBranch(
-        repository,
-        branchToCheckout,
-        stashOnCurrentBranch
-      )
+      if (branchToCheckout !== null) {
+        await dispatcher.checkoutBranch(
+          repository,
+          branchToCheckout,
+          stashOnCurrentBranch
+        )
+      } else {
+        await dispatcher.createStashForCurrentBranch(repository, false)
+      }
     } finally {
       this.setState({
-        isCheckingOutBranch: false,
+        isLoading: false,
       })
     }
 

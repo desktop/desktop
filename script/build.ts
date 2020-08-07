@@ -4,7 +4,12 @@
 import * as path from 'path'
 import * as cp from 'child_process'
 import * as fs from 'fs-extra'
-import * as packager from 'electron-packager'
+import packager, {
+  arch,
+  ElectronNotarizeOptions,
+  ElectronOsXSignOptions,
+  Options,
+} from 'electron-packager'
 
 import { externals } from '../app/webpack.common'
 
@@ -126,7 +131,7 @@ interface IPackageAdditionalOptions {
     readonly name: string
     readonly schemes: ReadonlyArray<string>
   }>
-  readonly osxSign: packager.ElectronOsXSignOptions & {
+  readonly osxSign: ElectronOsXSignOptions & {
     readonly hardenedRuntime?: boolean
   }
 }
@@ -139,13 +144,11 @@ function packageApp() {
       return platform
     }
     throw new Error(
-      `Unable to convert to platform for electron-packager: '${
-        process.platform
-      }`
+      `Unable to convert to platform for electron-packager: '${process.platform}`
     )
   }
 
-  const toPackageArch = (targetArch: string | undefined): packager.arch => {
+  const toPackageArch = (targetArch: string | undefined): arch => {
     if (targetArch === undefined) {
       return 'x64'
     }
@@ -174,7 +177,7 @@ function packageApp() {
     )
   }
 
-  const options: packager.Options & IPackageAdditionalOptions = {
+  const options: Options & IPackageAdditionalOptions = {
     name: getExecutableName(),
     platform: toPackagePlatform(process.platform),
     arch: toPackageArch(process.env.TARGET_ARCH),
@@ -276,7 +279,6 @@ function moveAnalysisFiles() {
 }
 
 function copyDependencies() {
-  // eslint-disable-next-line import/no-dynamic-require
   const originalPackage: Package = require(path.join(
     projectRoot,
     'app',
@@ -330,18 +332,6 @@ function copyDependencies() {
   ) {
     console.log('  Installing dependencies via yarn…')
     cp.execSync('yarn install', { cwd: outRoot, env: process.env })
-  }
-
-  if (isDevelopmentBuild) {
-    console.log(
-      '  Installing 7zip (dependency for electron-devtools-installer)'
-    )
-
-    const sevenZipSource = path.resolve(projectRoot, 'app/node_modules/7zip')
-    const sevenZipDestination = path.resolve(outRoot, 'node_modules/7zip')
-
-    fs.mkdirpSync(sevenZipDestination)
-    fs.copySync(sevenZipSource, sevenZipDestination)
   }
 
   console.log('  Copying git environment…')
@@ -444,9 +434,7 @@ ${licenseText}`
   fs.removeSync(chooseALicense)
 }
 
-function getNotarizationCredentials():
-  | packager.ElectronNotarizeOptions
-  | undefined {
+function getNotarizationCredentials(): ElectronNotarizeOptions | undefined {
   const appleId = process.env.APPLE_ID
   const appleIdPassword = process.env.APPLE_ID_PASSWORD
   if (appleId === undefined || appleIdPassword === undefined) {

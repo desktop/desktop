@@ -13,6 +13,7 @@
 @import 'dialogs/commit-conflicts-warning';
 @import 'dialogs/create-tutorial-repository';
 @import 'dialogs/create-fork';
+@import 'dialogs/fork-settings';
 
 // The styles herein attempt to follow a flow where margins are only applied
 // to the bottom of elements (with the exception of the last child). This to
@@ -325,6 +326,7 @@ dialog {
         // but make sure we wrap if necessary.
         white-space: pre-wrap;
         overflow-wrap: break-word;
+        overflow-x: hidden;
 
         &.monospace {
           font-family: var(--font-family-monospace);

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 
 /** The tab bar type. */
 export enum TabBarType {
@@ -56,9 +56,9 @@ export class TabBar extends React.Component<ITabBarProps, {}> {
     direction: 'next' | 'previous',
     index: number
   ) => {
-    const children = this.props.children as ReadonlyArray<JSX.Element> | null
+    const children = React.Children.toArray(this.props.children)
 
-    if (!children || !children.length) {
+    if (children.length === 0) {
       return
     }
 
@@ -89,10 +89,7 @@ export class TabBar extends React.Component<ITabBarProps, {}> {
   }
 
   private renderItems() {
-    const children = this.props.children as ReadonlyArray<JSX.Element> | null
-    if (!children) {
-      return null
-    }
+    const children = React.Children.toArray(this.props.children)
 
     return children.map((child, index) => {
       const selected = index === this.props.selectedIndex
@@ -160,7 +157,7 @@ class TabBarItem extends React.Component<ITabBarItemProps, {}> {
         onClick={this.onClick}
         role="tab"
         aria-selected={selected}
-        tabIndex={selected ? 0 : -1}
+        tabIndex={selected ? undefined : -1}
         onKeyDown={this.onKeyDown}
         type="button"
       >

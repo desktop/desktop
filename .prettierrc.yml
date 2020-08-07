@@ -2,6 +2,8 @@ singleQuote: true
 trailingComma: es5
 semi: false
 proseWrap: always
+endOfLine: auto
+arrowParens: avoid
 
 overrides:
   - files: '*.scss'

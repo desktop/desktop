@@ -11,8 +11,6 @@ import {
 } from './http'
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
-import { getAvatarWithEnterpriseFallback } from './gravatar'
-import { getDefaultEmail } from './email'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
 
@@ -198,17 +196,29 @@ interface IAPIFullIdentity {
 
 /** The users we get from the mentionables endpoint. */
 export interface IAPIMentionableUser {
+  /**
+   * A url to an avatar image chosen by the user
+   */
   readonly avatar_url: string
 
   /**
-   * Note that this may be an empty string *or* null in the case where the user
-   * has no public email address.
+   * The user's attributable email address or null if the
+   * user doesn't have an email address that they can be
+   * attributed by
    */
   readonly email: string | null
 
+  /**
+   * The username or "handle" of the user
+   */
   readonly login: string
 
-  readonly name: string
+  /**
+   * The user's real name (or at least the name that the user
+   * has configured to be shown) or null if the user hasn't provided
+   * a real name for their public profile.
+   */
+  readonly name: string | null
 }
 
 /**
@@ -393,13 +403,8 @@ interface IAPIAuthorization {
 
 /** The response we receive from fetching mentionables. */
 interface IAPIMentionablesResponse {
-  readonly etag: string | null
+  readonly etag: string | undefined
   readonly users: ReadonlyArray<IAPIMentionableUser>
-}
-
-/** The response for search results. */
-interface ISearchResults<T> {
-  readonly items: ReadonlyArray<T>
 }
 
 /**
@@ -527,13 +532,13 @@ function toGitHubIsoDateString(date: Date) {
  * An object for making authenticated requests to the GitHub API
  */
 export class API {
-  private endpoint: string
-  private token: string
-
   /** Create a new API client from the given account. */
   public static fromAccount(account: Account): API {
     return new API(account.endpoint, account.token)
   }
+
+  private endpoint: string
+  private token: string
 
   /** Create a new API client for the endpoint, authenticated with the token. */
   public constructor(endpoint: string, token: string) {
@@ -564,7 +569,16 @@ export class API {
     IAPIRepository
   > | null> {
     try {
-      return await this.fetchAll<IAPIRepository>('user/repos')
+      const repositories = await this.fetchAll<IAPIRepository>('user/repos')
+      // "But wait, repositories can't have a null owner" you say.
+      // Ordinarily you'd be correct but turns out there's super
+      // rare circumstances where a user has been deleted but the
+      // repository hasn't. Such cases are usually addressed swiftly
+      // but in some cases like GitHub Enterprise Server instances
+      // they can linger for longer than we'd like so we'll make
+      // sure to exclude any such dangling repository, chances are
+      // they won't be cloneable anyway.
+      return repositories.filter(x => x.owner !== null)
     } catch (error) {
       log.warn(`fetchRepositories: ${error}`)
       return null
@@ -593,55 +607,6 @@ export class API {
     } catch (e) {
       log.warn(`fetchEmails: failed with endpoint ${this.endpoint}`, e)
       return []
-    }
-  }
-
-  /** Fetch a commit from the repository. */
-  public async fetchCommit(
-    owner: string,
-    name: string,
-    sha: string
-  ): Promise<IAPICommit | null> {
-    try {
-      const path = `repos/${owner}/${name}/commits/${sha}`
-      const response = await this.request('GET', path)
-      if (response.status === HttpStatusCode.NotFound) {
-        log.warn(`fetchCommit: '${path}' returned a 404`)
-        return null
-      }
-      return await parsedResponse<IAPICommit>(response)
-    } catch (e) {
-      log.warn(`fetchCommit: returned an error '${owner}/${name}@${sha}'`, e)
-      return null
-    }
-  }
-
-  /** Search for a user with the given public email. */
-  public async searchForUserWithEmail(
-    email: string
-  ): Promise<IAPIIdentity | null> {
-    if (email.length === 0) {
-      return null
-    }
-
-    try {
-      const params = { q: `${email} in:email type:user` }
-      const url = urlWithQueryString('search/users', params)
-      const response = await this.request('GET', url)
-      const result = await parsedResponse<ISearchResults<IAPIIdentity>>(
-        response
-      )
-      const items = result.items
-      if (items.length) {
-        // The results are sorted by score, best to worst. So the first result
-        // is our best match.
-        return items[0]
-      } else {
-        return null
-      }
-    } catch (e) {
-      log.warn(`searchForUserWithEmail: not found '${email}'`, e)
-      return null
     }
   }
 
@@ -675,9 +640,7 @@ export class API {
       if (e instanceof APIError) {
         if (org !== null) {
           throw new Error(
-            `Unable to create repository for organization '${
-              org.login
-            }'. Verify that the repository does not already exist and that you have permission to create a repository there.`
+            `Unable to create repository for organization '${org.login}'. Verify that the repository does not already exist and that you have permission to create a repository there.`
           )
         }
         throw e
@@ -701,9 +664,7 @@ export class API {
       return await parsedResponse<IAPIRepository>(response)
     } catch (e) {
       log.error(
-        `forkRepository: failed to fork ${owner}/${name} at endpoint: ${
-          this.endpoint
-        }`,
+        `forkRepository: failed to fork ${owner}/${name} at endpoint: ${this.endpoint}`,
         e
       )
       throw e
@@ -992,14 +953,14 @@ export class API {
   public async fetchMentionables(
     owner: string,
     name: string,
-    etag: string | null
+    etag: string | undefined
   ): Promise<IAPIMentionablesResponse | null> {
     // NB: this custom `Accept` is required for the `mentionables` endpoint.
     const headers: any = {
       Accept: 'application/vnd.github.jerry-maguire-preview',
     }
 
-    if (etag) {
+    if (etag !== undefined) {
       headers['If-None-Match'] = etag
     }
 
@@ -1018,7 +979,7 @@ export class API {
       const users = await parsedResponse<ReadonlyArray<IAPIMentionableUser>>(
         response
       )
-      const etag = response.headers.get('etag')
+      const etag = response.headers.get('etag') || undefined
       return { users, etag }
     } catch (e) {
       log.warn(`fetchMentionables: failed for ${owner}/${name}`, e)
@@ -1191,18 +1152,13 @@ export async function fetchUser(
   try {
     const user = await api.fetchAccount()
     const emails = await api.fetchEmails()
-    const defaultEmail = getDefaultEmail(emails)
-    const avatarURL = getAvatarWithEnterpriseFallback(
-      user.avatar_url,
-      defaultEmail,
-      endpoint
-    )
+
     return new Account(
       user.login,
       endpoint,
       token,
       emails,
-      avatarURL,
+      user.avatar_url,
       user.id,
       user.name || user.login
     )
