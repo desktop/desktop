@@ -19,11 +19,6 @@ interface IRefNameProps {
   readonly label?: string | JSX.Element
 
   /**
-   * Whether to autofocus the input component.
-   */
-  readonly autoFocus?: boolean
-
-  /**
    * Called when the user changes the ref name.
    *
    * A sanitized value for the ref name is passed.

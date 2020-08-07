@@ -191,7 +191,6 @@ export class CreateBranch extends React.Component<
           <RefNameTextBox
             label="Name"
             initialValue={this.props.initialName}
-            autoFocus={true}
             onValueChange={this.onBranchNameChange}
           />
 
