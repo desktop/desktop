@@ -92,12 +92,11 @@ export class RefNameTextBox extends React.Component<
 
   private onValueChange = (proposedValue: string) => {
     const sanitizedValue = sanitizedRefName(proposedValue)
+    const previousSanitizedValue = this.state.sanitizedValue
 
     this.setState({ proposedValue, sanitizedValue })
 
-    // If the sanitized value didn't change we don't need to
-    // call the onValue change prop.
-    if (sanitizedValue === this.state.sanitizedValue) {
+    if (sanitizedValue === previousSanitizedValue) {
       return
     }
 
