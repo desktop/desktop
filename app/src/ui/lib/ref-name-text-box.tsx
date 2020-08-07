@@ -60,7 +60,7 @@ export class RefNameTextBox extends React.Component<
     const proposedValue = props.initialValue || ''
 
     this.state = {
-      proposedValue: proposedValue,
+      proposedValue,
       sanitizedValue: sanitizedRefName(proposedValue),
     }
   }
