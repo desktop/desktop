@@ -4,7 +4,7 @@
       "[Added] Suggest to stash changes when trying to do an operation that requires a clean working directory - #10053",
       "[Fixed] Pull request list is now keyboard accessible - #10334",
       "[Fixed] Correct branch name in commit button when on an unborn branch - #10318",
-      "[Fixed] Fix \"Show in Explorer\" in Windows when there are other files with the same name as the project folder. - #10195",
+      "[Fixed] Fix \"Show in Explorer\" in Windows when there are other files with the same name as the project folder - #10195",
       "[Fixed] Open the repository folder when clicking on \"Show in Finder\" in macOS - #9987",
       "[Fixed] Don't expand paths in the PATH environment variable during installation - #10100",
       "[Fixed] Prevent multiple search inputs from appearing in diffs - #9563",
