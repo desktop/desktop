@@ -82,6 +82,8 @@ export interface ITextBoxProps {
 
   /**
    * Callback used when the component loses focus.
+   *
+   * The function is called with the current text value of the text input.
    */
   readonly onBlur?: (value: string) => void
 
