@@ -807,7 +807,8 @@ export class API {
     name: string,
     ref: string
   ): Promise<IAPIRefStatus> {
-    const path = `repos/${owner}/${name}/commits/${ref}/status`
+    const safeRef = encodeURIComponent(ref)
+    const path = `repos/${owner}/${name}/commits/${safeRef}/status`
     const response = await this.request('GET', path)
     return await parsedResponse<IAPIRefStatus>(response)
   }
@@ -817,7 +818,8 @@ export class API {
     name: string,
     ref: string
   ): Promise<IAPIRefCheckRuns> {
-    const path = `repos/${owner}/${name}/commits/${ref}/check-runs`
+    const safeRef = encodeURIComponent(ref)
+    const path = `repos/${owner}/${name}/commits/${safeRef}/check-runs`
 
     const headers = {
       Accept: 'application/vnd.github.antiope-preview+json',
