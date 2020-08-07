@@ -80,7 +80,6 @@ export class RefNameTextBox extends React.Component<
         <TextBox
           label={this.props.label}
           value={this.state.proposedValue}
-          autoFocus={this.props.autoFocus}
           onValueChanged={this.onValueChange}
           onBlur={this.onBlur}
         />
