@@ -125,9 +125,7 @@ export class RefNameTextBox extends React.Component<
     }
 
     const renderWarningMessage =
-      this.props.renderWarningMessage !== undefined
-        ? this.props.renderWarningMessage
-        : this.defaultRenderWarningMessage
+      this.props.renderWarningMessage ?? this.defaultRenderWarningMessage
 
     return (
       <div className="warning-helper-text">
