@@ -41,9 +41,8 @@ export class AppWindow {
         // Disable auxclick event
         // See https://developers.google.com/web/updates/2016/10/auxclick
         disableBlinkFeatures: 'Auxclick',
-        // Enable, among other things, the ResizeObserver
-        experimentalFeatures: true,
         nodeIntegration: true,
+        enableRemoteModule: true,
       },
       acceptFirstMouse: true,
     }

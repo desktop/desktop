@@ -15,7 +15,7 @@ export interface IAppShell {
    * @param path - The path of the file to open
    */
 
-  readonly openItem: (path: string) => boolean
+  readonly openPath: (path: string) => Promise<string>
   /**
    * Reveals the specified file on the operating system
    * default file explorer. If a folder is passed, it will
@@ -55,7 +55,7 @@ export const shell: IAppShell = {
   showFolderContents: path => {
     ipcRenderer.send('show-folder-contents', { path })
   },
-  openItem: electronShell.openItem,
+  openPath: electronShell.openPath,
 }
 
 /**

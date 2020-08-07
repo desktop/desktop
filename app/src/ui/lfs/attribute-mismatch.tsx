@@ -51,7 +51,7 @@ export class AttributeMismatch extends React.Component<
   private showGlobalGitConfig = () => {
     const path = this.state.globalGitConfigPath
     if (path) {
-      shell.openItem(path)
+      shell.openPath(path)
     }
   }
 

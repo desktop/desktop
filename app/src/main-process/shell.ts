@@ -36,6 +36,10 @@ export function UNSAFE_openDirectory(path: string) {
     // We can avoid this by adding a final backslash at the end of the path.
     const pathname = __WIN32__ && !path.endsWith('\\') ? `${path}\\` : path
 
-    shell.openItem(pathname)
+    shell.openPath(pathname).then(err => {
+      if (err !== '') {
+        log.error(`Failed to open directory (${path}): ${err}`)
+      }
+    })
   }
 }

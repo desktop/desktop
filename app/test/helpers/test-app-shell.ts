@@ -15,5 +15,5 @@ export const shell: IAppShell = {
   openExternal: (path: string) => {
     return Promise.resolve(true)
   },
-  openItem: (path: string) => true,
+  openPath: (path: string) => Promise.resolve(''),
 }
