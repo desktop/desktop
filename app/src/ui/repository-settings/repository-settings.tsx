@@ -323,7 +323,7 @@ export class RepositorySettings extends React.Component<
       )
     }
 
-    var gitLocationChanged =
+    const gitLocationChanged =
       this.state.gitConfigLocation !== this.state.initialGitConfigLocation
 
     if (
