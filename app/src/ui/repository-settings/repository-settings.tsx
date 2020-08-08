@@ -252,7 +252,7 @@ export class RepositorySettings extends React.Component<
           />
         )
       }
-    }
+
       default:
         return assertNever(tab, `Unknown tab type: ${tab}`)
     }
@@ -317,6 +317,9 @@ export class RepositorySettings extends React.Component<
           ...this.props.repository.workflowPreferences,
           forkContributionTarget: this.state.forkContributionTarget,
         }
+        )
+      }
+
     if (this.state.committerName !== this.state.initialCommitterName) {
       await setConfigValue(
         this.props.repository,
@@ -369,6 +372,7 @@ export class RepositorySettings extends React.Component<
     this.setState({
       forkContributionTarget,
     })
+  }
 
   private onGitConfigLocationChanged = (value: GitConfigLocation) => {
     this.setState({ gitConfigLocation: value })
