@@ -55,6 +55,7 @@ interface IRepositorySettingsState {
   readonly committerEmail: string
   readonly globalCommitterName: string
   readonly globalCommitterEmail: string
+  readonly initialGitConfigLocation: GitConfigLocation
   readonly initialCommitterName: string | null
   readonly initialCommitterEmail: string | null
   readonly errors?: ReadonlyArray<JSX.Element | string>
@@ -82,6 +83,7 @@ export class RepositorySettings extends React.Component<
       globalCommitterName: '',
       globalCommitterEmail: '',
       initialCommitterName: null,
+      initialGitConfigLocation: GitConfigLocation.Global,
       initialCommitterEmail: null,
     }
   }
@@ -126,6 +128,7 @@ export class RepositorySettings extends React.Component<
       committerEmail,
       globalCommitterName,
       globalCommitterEmail,
+      initialGitConfigLocation: gitConfigLocation,
       initialCommitterName,
       initialCommitterEmail,
     })
@@ -317,10 +320,16 @@ export class RepositorySettings extends React.Component<
           ...this.props.repository.workflowPreferences,
           forkContributionTarget: this.state.forkContributionTarget,
         }
-        )
-      }
+      )
+    }
 
-    if (this.state.committerName !== this.state.initialCommitterName) {
+    var gitLocationChanged =
+      this.state.gitConfigLocation !== this.state.initialGitConfigLocation
+
+    if (
+      gitLocationChanged ||
+      this.state.committerName !== this.state.initialCommitterName
+    ) {
       await setConfigValue(
         this.props.repository,
         'user.name',
@@ -330,7 +339,10 @@ export class RepositorySettings extends React.Component<
       )
     }
 
-    if (this.state.committerEmail !== this.state.initialCommitterEmail) {
+    if (
+      gitLocationChanged ||
+      this.state.committerEmail !== this.state.initialCommitterEmail
+    ) {
       await setConfigValue(
         this.props.repository,
         'user.email',
