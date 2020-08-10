@@ -294,6 +294,11 @@ export interface IAPIRefCheckRunItem {
   readonly name: string
   readonly pull_requests: any[]
   readonly app: IAPIRefChecksApp
+  readonly output: IAPIRefCheckRunItemOutput
+}
+
+export interface IAPIRefCheckRunItemOutput {
+  readonly title: string | null
 }
 
 export interface IAPIRefChecksApp {
