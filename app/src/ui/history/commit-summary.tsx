@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 
 import { FileChange } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
@@ -117,13 +117,6 @@ export class CommitSummary extends React.Component<
   private updateOverflowTimeoutId: NodeJS.Immediate | null = null
   private descriptionRef: HTMLDivElement | null = null
 
-  private onHideWhitespaceInDiffChanged = (
-    event: React.FormEvent<HTMLInputElement>
-  ) => {
-    const value = event.currentTarget.checked
-    this.props.onHideWhitespaceInDiffChanged(value)
-  }
-
   public constructor(props: ICommitSummaryProps) {
     super(props)
 
@@ -148,6 +141,13 @@ export class CommitSummary extends React.Component<
         }
       })
     }
+  }
+
+  private onHideWhitespaceInDiffChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+    this.props.onHideWhitespaceInDiffChanged(value)
   }
 
   private onResized = () => {

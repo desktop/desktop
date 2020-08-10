@@ -41,7 +41,7 @@ export class RadioButton<T extends string> extends React.Component<
     super(props)
 
     this.state = {
-      inputId: createUniqueId(`TextBox_${this.props.value}`),
+      inputId: createUniqueId(`RadioButton_${this.props.value}`),
     }
   }
 

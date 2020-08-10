@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 import { createUniqueId, releaseUniqueId } from './id-pool'
 import { LinkButton } from './link-button'
 import { showContextualMenu } from '../main-process-proxy'
@@ -82,6 +82,8 @@ export interface ITextBoxProps {
 
   /**
    * Callback used when the component loses focus.
+   *
+   * The function is called with the current text value of the text input.
    */
   readonly onBlur?: (value: string) => void
 

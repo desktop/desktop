@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { TextBox, ITextBoxProps } from './text-box'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 
 interface IFancyTextBoxProps extends ITextBoxProps {
   /** Icon to render */

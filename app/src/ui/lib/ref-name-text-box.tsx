@@ -19,11 +19,6 @@ interface IRefNameProps {
   readonly label?: string | JSX.Element
 
   /**
-   * Whether to autofocus the input component.
-   */
-  readonly autoFocus?: boolean
-
-  /**
    * Called when the user changes the ref name.
    *
    * A sanitized value for the ref name is passed.
@@ -67,7 +62,7 @@ export class RefNameTextBox extends React.Component<
     const proposedValue = props.initialValue || ''
 
     this.state = {
-      proposedValue: proposedValue,
+      proposedValue,
       sanitizedValue: sanitizedRefName(proposedValue),
     }
   }
@@ -87,7 +82,6 @@ export class RefNameTextBox extends React.Component<
         <TextBox
           label={this.props.label}
           value={this.state.proposedValue}
-          autoFocus={this.props.autoFocus}
           ref={this.textBoxRef}
           onValueChanged={this.onValueChange}
           onBlur={this.onBlur}
@@ -110,15 +104,11 @@ export class RefNameTextBox extends React.Component<
 
   private onValueChange = (proposedValue: string) => {
     const sanitizedValue = sanitizedRefName(proposedValue)
+    const previousSanitizedValue = this.state.sanitizedValue
 
-    this.setState({
-      proposedValue,
-      sanitizedValue,
-    })
+    this.setState({ proposedValue, sanitizedValue })
 
-    // If the sanitized value didn't change we don't need to
-    // call the onValue change prop.
-    if (sanitizedValue === this.state.sanitizedValue) {
+    if (sanitizedValue === previousSanitizedValue) {
       return
     }
 
@@ -133,14 +123,9 @@ export class RefNameTextBox extends React.Component<
     if (this.props.onBlur !== undefined) {
       // It's possible (although rare) that we receive the onBlur
       // event before the sanitized value has been committed to the
-      // state so we need to check fot that condition and sanitize
-      // the value ourselves if that's the case.
-      const sanitizedValue =
-        proposedValue === this.state.proposedValue
-          ? this.state.sanitizedValue
-          : sanitizedRefName(proposedValue)
-
-      this.props.onBlur(sanitizedRefName(sanitizedValue))
+      // state so we need to use the value received from the onBlur
+      // event instead of the one stored in state.
+      this.props.onBlur(sanitizedRefName(proposedValue))
     }
   }
 
@@ -152,9 +137,7 @@ export class RefNameTextBox extends React.Component<
     }
 
     const renderWarningMessage =
-      this.props.renderWarningMessage !== undefined
-        ? this.props.renderWarningMessage
-        : this.defaultRenderWarningMessage
+      this.props.renderWarningMessage ?? this.defaultRenderWarningMessage
 
     return (
       <div className="warning-helper-text">

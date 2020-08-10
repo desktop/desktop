@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
 
-import * as moment from 'moment'
+import moment from 'moment'
 
 import { ipcRenderer, remote } from 'electron'
 
@@ -99,6 +99,13 @@ if (!process.env.TEST_ENV) {
   /* This is the magic trigger for webpack to go compile
    * our sass into css and inject it into the DOM. */
   require('../../styles/desktop.scss')
+}
+
+// TODO (electron): Remove this once
+// https://bugs.chromium.org/p/chromium/issues/detail?id=1113293
+// gets fixed and propagated to electron.
+if (__DARWIN__) {
+  require('../lib/fix-emoji-spacing')
 }
 
 let currentState: IAppState | null = null
