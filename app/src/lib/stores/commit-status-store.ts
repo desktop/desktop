@@ -4,15 +4,27 @@ import QuickLRU from 'quick-lru'
 import { Account } from '../../models/account'
 import { AccountsStore } from './accounts-store'
 import { GitHubRepository } from '../../models/github-repository'
-import { API, IAPIRefStatus, IAPIRefCheckRuns, APIRefState } from '../api'
+import {
+  API,
+  IAPIRefStatusItem,
+  APIRefState,
+  IAPIRefCheckRunItem,
+  APICheckStatus,
+  APICheckConclusion,
+} from '../api'
 import { IDisposable, Disposable } from 'event-kit'
-import { createRefStatus } from './helpers/pull-request-status'
 
-export interface IRefStatus {
-  totalCount: number
-  state: APIRefState
-  statuses: IAPIRefStatus
-  checkRuns: IAPIRefCheckRuns
+export type RefCheckState = 'failure' | 'pending' | 'success'
+
+export interface IRefCheck {
+  readonly name: string
+  readonly description: string
+  readonly state: RefCheckState
+}
+
+export interface ICombinedRefStatus {
+  readonly state: RefCheckState
+  readonly checks: ReadonlyArray<IRefCheck>
 }
 
 interface ICommitStatusCacheEntry {
@@ -20,7 +32,7 @@ interface ICommitStatusCacheEntry {
    * The combined ref status from the API or null if
    * the status could not be retrieved.
    */
-  readonly status: IRefStatus | null
+  readonly status: ICombinedRefStatus | null
 
   /**
    * The timestamp for when this cache entry was last
@@ -29,7 +41,7 @@ interface ICommitStatusCacheEntry {
   readonly fetchedAt: Date
 }
 
-export type StatusCallBack = (status: IRefStatus | null) => void
+export type StatusCallBack = (status: ICombinedRefStatus | null) => void
 
 /**
  * An interface describing one or more subscriptions for
@@ -254,17 +266,21 @@ export class CommitStatusStore {
       return
     }
 
-    try {
-      const api = API.fromAccount(account)
+    const api = API.fromAccount(account)
 
-      const statuses = await api.fetchCombinedRefStatus(owner, name, ref)
-      const checkSuites = await api.fetchRefCheckRuns(owner, name, ref)
+    const statuses = await api.fetchCombinedRefStatus(owner, name, ref)
+    const checkRuns = await api.fetchRefCheckRuns(owner, name, ref)
+    const checks = new Array<IRefCheck>()
 
-      const status = createRefStatus(statuses, checkSuites)
+    if (statuses !== null) {
+      checks.push(...statuses.statuses.map(apiStatusToRefStatus))
+    }
 
-      this.cache.set(key, { status, fetchedAt: new Date() })
-      subscription.callbacks.forEach(cb => cb(status))
-    } catch (err) {
+    if (checkRuns !== null) {
+      checks.push(...checkRuns.check_runs.map(apiCheckRunToRefStatus))
+    }
+
+    if (checks.length === 0) {
       // Okay, so we failed retrieving the status for one reason or another.
       // That's a bummer, but we still need to put something in the cache
       // or else we'll consider this subscription eligible for refresh
@@ -273,12 +289,23 @@ export class CommitStatusStore {
       // notifying subscribers we ensure they keep their current status
       // if they have one and that we attempt to fetch it again on the same
       // schedule as the others.
-      log.debug(`Failed fetching status for ref ${ref} (${owner}/${name})`, err)
-
       const existingEntry = this.cache.get(key)
-      const status = existingEntry === undefined ? null : existingEntry.status
+      const status = existingEntry?.status ?? null
 
       this.cache.set(key, { status, fetchedAt: new Date() })
+    } else {
+      let state: RefCheckState = 'success'
+
+      if (checks.some(x => x.state === 'failure')) {
+        state = 'failure'
+      } else if (checks.some(x => x.state === 'pending')) {
+        state = 'pending'
+      }
+
+      const status: ICombinedRefStatus = { state, checks }
+
+      this.cache.set(key, { status, fetchedAt: new Date() })
+      subscription.callbacks.forEach(cb => cb(status))
     }
   }
 
@@ -292,7 +319,7 @@ export class CommitStatusStore {
   public tryGetStatus(
     repository: GitHubRepository,
     ref: string
-  ): IRefStatus | null {
+  ): ICombinedRefStatus | null {
     const entry = this.cache.get(getCacheKeyForRepository(repository, ref))
     return entry !== undefined ? entry.status : null
   }
@@ -345,4 +372,56 @@ export class CommitStatusStore {
       }
     })
   }
+}
+
+function apiStatusToRefStatus(apiStatus: IAPIRefStatusItem): IRefCheck {
+  return {
+    name: apiStatus.context,
+    description: apiStatus.description,
+    state: apiStatusStateToRefCheckState(apiStatus.state),
+  }
+}
+
+function apiStatusStateToRefCheckState(state: APIRefState): RefCheckState {
+  switch (state) {
+    case 'failure':
+      return 'failure'
+    case 'pending':
+      return 'pending'
+    case 'success':
+      return 'success'
+  }
+}
+
+function apiCheckRunToRefStatus(checkRun: IAPIRefCheckRunItem): IRefCheck {
+  return {
+    name: checkRun.name,
+    description:
+      checkRun?.output.title ?? checkRun.conclusion ?? checkRun.status,
+    state: checkRunToRefCheckState(checkRun.status, checkRun.conclusion),
+  }
+}
+
+function checkRunToRefCheckState(
+  status: APICheckStatus,
+  conclusion: APICheckConclusion | null
+): RefCheckState {
+  if (status === 'completed') {
+    switch (conclusion) {
+      case 'action_required':
+      case 'cancelled':
+      case 'failure':
+      case 'timed_out':
+      case 'stale':
+      case 'timed_out':
+        return 'failure'
+      case 'skipped':
+        // TODO: This isn't exactly right
+        return 'pending'
+      case 'success':
+        return 'success'
+    }
+  }
+
+  return 'pending'
 }
