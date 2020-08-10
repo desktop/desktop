@@ -259,9 +259,9 @@ export type APICheckStatus = 'queued' | 'in_progress' | 'completed'
 
 export type APICheckConclusion =
   | 'action_required'
-  | 'canceled'
+  | 'cancelled'
   | 'timed_out'
-  | 'failed'
+  | 'failure'
   | 'neutral'
   | 'success'
   | 'skipped'
