@@ -138,6 +138,9 @@ export class GitHubUserStore extends BaseStore {
    * they matched. Search strings start with username and are followed
    * by real name. Only the first substring hit is considered
    *
+   * @param repository The GitHubRepository for which to look up
+   *                   mentionables.
+   *
    * @param text    A string to use when looking for a matching
    *                user. A user is considered a hit if this text
    *                matches any subtext of the username or real name

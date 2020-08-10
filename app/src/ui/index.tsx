@@ -102,6 +102,13 @@ if (!process.env.TEST_ENV) {
   require('../../styles/desktop.scss')
 }
 
+// TODO (electron): Remove this once
+// https://bugs.chromium.org/p/chromium/issues/detail?id=1113293
+// gets fixed and propagated to electron.
+if (__DARWIN__) {
+  require('../lib/fix-emoji-spacing')
+}
+
 let currentState: IAppState | null = null
 let lastUnhandledRejection: string | null = null
 let lastUnhandledRejectionTime: Date | null = null

@@ -3,3 +3,5 @@
 # might be included when linting
 app/coverage
 script/coverage
+node_modules
+app/node_modules
