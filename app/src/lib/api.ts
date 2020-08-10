@@ -264,6 +264,8 @@ export type APICheckConclusion =
   | 'failed'
   | 'neutral'
   | 'success'
+  | 'skipped'
+  | 'stale'
 
 /**
  * The API response for a combined view of a commit
