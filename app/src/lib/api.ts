@@ -798,41 +798,52 @@ export class API {
 
   /**
    * Get the combined status for the given ref.
-   *
-   * Note: Contrary to many other methods in this class this will not
-   * suppress or log errors, callers must ensure that they handle errors.
    */
   public async fetchCombinedRefStatus(
     owner: string,
     name: string,
     ref: string
-  ): Promise<IAPIRefStatus> {
+  ): Promise<IAPIRefStatus | null> {
     const safeRef = encodeURIComponent(ref)
     const path = `repos/${owner}/${name}/commits/${safeRef}/status`
     const response = await this.request('GET', path)
-    return await parsedResponse<IAPIRefStatus>(response)
+
+    try {
+      return await parsedResponse<IAPIRefStatus>(response)
+    } catch (err) {
+      log.debug(
+        `Failed fetching check runs for ref ${ref} (${owner}/${name})`,
+        err
+      )
+      return null
+    }
   }
 
   /**
    * Get any check run results for the given ref.
-   *
-   * Note: Contrary to many other methods in this class this will not
-   * suppress or log errors, callers must ensure that they handle errors.
    */
   public async fetchRefCheckRuns(
     owner: string,
     name: string,
     ref: string
-  ): Promise<IAPIRefCheckRuns> {
+  ): Promise<IAPIRefCheckRuns | null> {
     const safeRef = encodeURIComponent(ref)
     const path = `repos/${owner}/${name}/commits/${safeRef}/check-runs`
-
     const headers = {
       Accept: 'application/vnd.github.antiope-preview+json',
     }
 
     const response = await this.request('GET', path, undefined, headers)
-    return await parsedResponse<IAPIRefCheckRuns>(response)
+
+    try {
+      return await parsedResponse<IAPIRefCheckRuns>(response)
+    } catch (err) {
+      log.debug(
+        `Failed fetching check runs for ref ${ref} (${owner}/${name})`,
+        err
+      )
+      return null
+    }
   }
 
   /**
