@@ -268,8 +268,11 @@ export class CommitStatusStore {
 
     const api = API.fromAccount(account)
 
-    const statuses = await api.fetchCombinedRefStatus(owner, name, ref)
-    const checkRuns = await api.fetchRefCheckRuns(owner, name, ref)
+    const [statuses, checkRuns] = await Promise.all([
+      api.fetchCombinedRefStatus(owner, name, ref),
+      api.fetchRefCheckRuns(owner, name, ref),
+    ])
+
     const checks = new Array<IRefCheck>()
 
     if (statuses !== null) {
