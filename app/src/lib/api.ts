@@ -288,7 +288,7 @@ export interface IAPIRefCheckRunItem {
   readonly id: number
   readonly url: string
   readonly status: APICheckStatus
-  readonly conclusion: APICheckConclusion
+  readonly conclusion: APICheckConclusion | null
   readonly name: string
   readonly pull_requests: any[]
   readonly app: IAPIRefChecksApp
