@@ -15,13 +15,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
-    matrix:
-      os: [macos-10.15, windows-2019]
-      include:
-        - os: macos-10.15
-          friendlyName: macOS
-        - os: windows-2019
-          friendlyName: Windows
+      matrix:
+        os: [macos-10.15, windows-2019]
+        include:
+          - os: macos-10.15
+            friendlyName: macOS
+          - os: windows-2019
+            friendlyName: Windows
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v2
