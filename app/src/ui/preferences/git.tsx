@@ -6,6 +6,7 @@ import { SuggestedBranchNames } from '../../lib/helpers/default-branch'
 import { RefNameTextBox } from '../lib/ref-name-text-box'
 import { Ref } from '../lib/ref'
 import { RadioButton } from '../lib/radio-button'
+import { enableDefaultBranchSetting } from '../../lib/feature-flag'
 
 interface IGitProps {
   readonly name: string
@@ -37,10 +38,6 @@ export class Git extends React.Component<IGitProps> {
   }
 
   public render() {
-    const defaultBranchIsOther = !SuggestedBranchNames.includes(
-      this.props.defaultBranch
-    )
-
     return (
       <DialogContent>
         <Row>
@@ -58,6 +55,41 @@ export class Git extends React.Component<IGitProps> {
           />
         </Row>
 
+        {this.renderDefaultBranchSetting()}
+      </DialogContent>
+    )
+  }
+
+  private renderWarningMessage = (
+    sanitizedBranchName: string,
+    proposedBranchName: string
+  ) => {
+    if (sanitizedBranchName === '') {
+      return (
+        <>
+          <Ref>{proposedBranchName}</Ref> is an invalid branch name.
+        </>
+      )
+    }
+
+    return (
+      <>
+        Will be saved as <Ref>{sanitizedBranchName}</Ref>.
+      </>
+    )
+  }
+
+  private renderDefaultBranchSetting() {
+    if (!enableDefaultBranchSetting()) {
+      return null
+    }
+
+    const defaultBranchIsOther = !SuggestedBranchNames.includes(
+      this.props.defaultBranch
+    )
+
+    return (
+      <>
         <p className="default-branch-title">
           Default branch on new repositories
         </p>
@@ -89,28 +121,10 @@ export class Git extends React.Component<IGitProps> {
             ref={this.defaultBranchInputRef}
           />
         )}
+
         <p className="git-settings-description">
           These preferences will edit your global Git config.
         </p>
-      </DialogContent>
-    )
-  }
-
-  private renderWarningMessage = (
-    sanitizedBranchName: string,
-    proposedBranchName: string
-  ) => {
-    if (sanitizedBranchName === '') {
-      return (
-        <>
-          <Ref>{proposedBranchName}</Ref> is an invalid branch name.
-        </>
-      )
-    }
-
-    return (
-      <>
-        Will be saved as <Ref>{sanitizedBranchName}</Ref>.
       </>
     )
   }

@@ -133,3 +133,10 @@ export function enableForkSettings(): boolean {
 export function enableDiscardLines(): boolean {
   return true
 }
+
+/**
+ * Should we allow to change the default branch when creating new repositories?
+ */
+export function enableDefaultBranchSetting(): boolean {
+  return enableDevelopmentFeatures()
+}
