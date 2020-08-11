@@ -443,8 +443,13 @@ export class CommitMessage extends React.Component<
     return <div className={className}>{this.renderCoAuthorToggleButton()}</div>
   }
 
-  private renderPermissionsCommitWarning = (branch: string) => {
-    const { showBranchProtected, showNoWriteAccess, repository } = this.props
+  private renderPermissionsCommitWarning() {
+    const {
+      showBranchProtected,
+      showNoWriteAccess,
+      repository,
+      branch,
+    } = this.props
 
     if (showNoWriteAccess) {
       return (
@@ -455,6 +460,14 @@ export class CommitMessage extends React.Component<
         </PermissionsCommitWarning>
       )
     } else if (showBranchProtected) {
+      if (branch === null) {
+        // If the branch is null that means we haven't loaded the tip yet or
+        // we're on a detached head. We shouldn't ever end up here with
+        // showBranchProtected being true without a branch but who knows
+        // what fun and exiting edge cases the future might hold
+        return null
+      }
+
       return (
         <PermissionsCommitWarning>
           <strong>{branch}</strong> is a protected branch. Want to{' '}
@@ -480,8 +493,6 @@ export class CommitMessage extends React.Component<
   }
 
   public render() {
-    const branchName = this.props.branch ? this.props.branch : 'master'
-
     const isSummaryWhiteSpace = this.state.summary.match(/^\s+$/g)
     const buttonEnabled =
       this.canCommit() && !this.props.isCommitting && !isSummaryWhiteSpace
@@ -499,6 +510,19 @@ export class CommitMessage extends React.Component<
     const summaryInputClassName = classNames('summary-field', 'nudge-arrow', {
       'nudge-arrow-left': this.props.shouldNudge,
     })
+
+    const branchName = this.props.branch
+    const commitVerb = loading ? 'Committing' : 'Commit'
+    const commitTitle =
+      branchName !== null ? `${commitVerb} to ${branchName}` : commitVerb
+    const commitButtonContents =
+      branchName !== null ? (
+        <>
+          {commitVerb} to <strong>{branchName}</strong>
+        </>
+      ) : (
+        commitVerb
+      )
 
     return (
       <div
@@ -545,7 +569,7 @@ export class CommitMessage extends React.Component<
 
         {this.renderCoAuthorInput()}
 
-        {this.renderPermissionsCommitWarning(branchName)}
+        {this.renderPermissionsCommitWarning()}
 
         <Button
           type="submit"
@@ -554,9 +578,7 @@ export class CommitMessage extends React.Component<
           disabled={!buttonEnabled}
         >
           {loading}
-          <span title={`Commit to ${branchName}`}>
-            {loading ? 'Committing' : 'Commit'} to <strong>{branchName}</strong>
-          </span>
+          <span title={commitTitle}>{commitButtonContents}</span>
         </Button>
       </div>
     )

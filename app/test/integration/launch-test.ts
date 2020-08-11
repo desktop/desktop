@@ -39,10 +39,17 @@ describe('App', function (this: any) {
   })
 
   it('opens a window on launch', async () => {
-    await app.client.waitUntil(() => app.browserWindow.isVisible(), 5000)
+    await app.client.waitUntil(
+      () => Promise.resolve(app.browserWindow.isVisible()),
+      { timeout: 5000 }
+    )
 
     const count = await app.client.getWindowCount()
-    expect(count).toBe(1)
+    // When running tests against development versions of Desktop
+    // (which usually happens locally when developing), the number
+    // of windows will be greater than 1, since the devtools are
+    // considered a window.
+    expect(count).toBeGreaterThan(0)
 
     const window = app.browserWindow
     expect(window.isVisible()).resolves.toBe(true)

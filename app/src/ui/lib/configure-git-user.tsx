@@ -35,7 +35,6 @@ interface IConfigureGitUserState {
 
   readonly name: string
   readonly email: string
-  readonly avatarURL: string | null
 
   /**
    * If unable to save Git configuration values (name, email)
@@ -67,7 +66,6 @@ export class ConfigureGitUser extends React.Component<
       globalUserEmail: null,
       name: '',
       email: '',
-      avatarURL: null,
     }
   }
 

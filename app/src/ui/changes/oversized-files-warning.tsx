@@ -75,7 +75,7 @@ export class OversizedFiles extends React.Component<IOversizedFilesProps> {
   }
 
   private onSubmit = async () => {
-    this.props.dispatcher.closePopup()
+    this.props.onDismissed()
 
     await this.props.dispatcher.commitIncludedChanges(
       this.props.repository,

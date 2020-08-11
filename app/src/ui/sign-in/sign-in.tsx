@@ -57,7 +57,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         nextProps.signInState &&
         nextProps.signInState.kind === SignInStep.Success
       ) {
-        this.props.onDismissed()
+        this.onDismissed()
       }
     }
   }
@@ -89,7 +89,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         this.props.dispatcher.setSignInOTP(this.state.otpToken)
         break
       case SignInStep.Success:
-        this.props.onDismissed()
+        this.onDismissed()
         break
       default:
         assertNever(state, `Unknown sign in step ${stepKind}`)
@@ -322,7 +322,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         id="sign-in"
         title={title}
         disabled={disabled}
-        onDismissed={this.props.onDismissed}
+        onDismissed={this.onDismissed}
         onSubmit={this.onSubmit}
         loading={state.loading}
       >
@@ -331,5 +331,10 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         {this.renderFooter()}
       </Dialog>
     )
+  }
+
+  private onDismissed = () => {
+    this.props.dispatcher.resetSignInState()
+    this.props.onDismissed()
   }
 }

@@ -118,13 +118,6 @@ export class CommitSummary extends React.Component<
   private updateOverflowTimeoutId: NodeJS.Immediate | null = null
   private descriptionRef: HTMLDivElement | null = null
 
-  private onHideWhitespaceInDiffChanged = (
-    event: React.FormEvent<HTMLInputElement>
-  ) => {
-    const value = event.currentTarget.checked
-    this.props.onHideWhitespaceInDiffChanged(value)
-  }
-
   public constructor(props: ICommitSummaryProps) {
     super(props)
 
@@ -149,6 +142,13 @@ export class CommitSummary extends React.Component<
         }
       })
     }
+  }
+
+  private onHideWhitespaceInDiffChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+    this.props.onHideWhitespaceInDiffChanged(value)
   }
 
   private onResized = () => {

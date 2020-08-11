@@ -15,9 +15,9 @@ export interface IUiActivityMonitor {
    * to the event handler will be a value indicating the
    * kind of action detected (mouse/pointer, keyboard etc).
    *
-   * @return A disposable object which, when disposed will
-   *         terminate the subscription and prevent any
-   *         further calls to the handler.
+   * @returns A disposable object which, when disposed will
+   *          terminate the subscription and prevent any
+   *          further calls to the handler.
    */
   onActivity(handler: (kind: UiActivityKind) => void): Disposable
 }
@@ -40,9 +40,9 @@ export class UiActivityMonitor implements IUiActivityMonitor {
    * to the event handler will be a value indicating the
    * kind of action detected (mouse/pointer, keyboard etc).
    *
-   * @return A disposable object which, when disposed will
-   *         terminate the subscription and prevent any
-   *         further calls to the handler.
+   * @returns A disposable object which, when disposed will
+   *          terminate the subscription and prevent any
+   *          further calls to the handler.
    */
   public onActivity(handler: (kind: UiActivityKind) => void): Disposable {
     const emitterDisposable = this.emitter.on('activity', handler)
