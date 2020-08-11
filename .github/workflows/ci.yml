@@ -19,9 +19,6 @@ jobs:
         os: [macos-10.15, windows-2019]
     timeout-minutes: 30
     steps:
-      - name: Disable git symlink support in Windows
-        run: git config --global --add core.symlinks false
-        if: ${{ matrix.os == 'windows-2019' }}
       - uses: actions/checkout@v2
         with:
           submodules: recursive
