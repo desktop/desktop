@@ -11,6 +11,7 @@ on:
 
 jobs:
   build:
+    name: build (${{ runner.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
