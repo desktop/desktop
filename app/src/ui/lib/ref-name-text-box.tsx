@@ -2,7 +2,8 @@ import * as React from 'react'
 
 import { sanitizedRefName } from '../../lib/sanitize-ref-name'
 import { TextBox } from './text-box'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Ref } from './ref'
 
 interface IRefNameProps {
