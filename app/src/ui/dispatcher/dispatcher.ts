@@ -1,6 +1,5 @@
 import { remote } from 'electron'
 import { Disposable, IDisposable } from 'event-kit'
-import * as Path from 'path'
 
 import { IAPIOrganization, IAPIRefStatus, IAPIRepository } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
@@ -97,6 +96,7 @@ import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { IStashEntry } from '../../models/stash-entry'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { enableForkSettings } from '../../lib/feature-flag'
+import { resolveWithin } from '../../lib/path'
 
 /**
  * An error handler function.
@@ -168,7 +168,7 @@ export class Dispatcher {
   }
 
   /** Remove the repositories represented by the given IDs from local storage. */
-  public removeRepositories(
+  public async removeRepositories(
     repositories: ReadonlyArray<Repository | CloningRepository>,
     moveToTrash: boolean
   ): Promise<void> {
@@ -1802,10 +1802,15 @@ export class Dispatcher {
     }
 
     if (filepath != null) {
-      const fullPath = Path.join(repository.path, filepath)
-      // because Windows uses different path separators here
-      const normalized = Path.normalize(fullPath)
-      shell.showItemInFolder(normalized)
+      const resolved = await resolveWithin(repository.path, filepath)
+
+      if (resolved !== null) {
+        shell.showItemInFolder(resolved)
+      } else {
+        log.error(
+          `Prevented attempt to open path outside of the repository root: ${filepath}`
+        )
+      }
     }
   }
 
@@ -1902,6 +1907,20 @@ export class Dispatcher {
       case RetryActionType.Checkout:
         await this.checkoutBranch(retryAction.repository, retryAction.branch)
         break
+
+      case RetryActionType.Merge:
+        return this.mergeBranch(
+          retryAction.repository,
+          retryAction.theirBranch,
+          null
+        )
+
+      case RetryActionType.Rebase:
+        return this.rebase(
+          retryAction.repository,
+          retryAction.baseBranch,
+          retryAction.targetBranch
+        )
 
       default:
         return assertNever(retryAction, `Unknown retry action: ${retryAction}`)

@@ -48,8 +48,9 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   // Typography
   //
   // Font, line-height, and color for body text, headings, and more.
-  --font-family-sans-serif: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', Arial, sans-serif;
-  --font-family-monospace: Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  $emoji_fallback_fonts: 'Apple Color Emoji', 'Segoe UI', 'Segoe UI Emoji', 'Segoe UI Symbol';
+  --font-family-sans-serif: system-ui, sans-serif, #{$emoji_fallback_fonts};
+  --font-family-monospace: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace, #{$emoji_fallback_fonts};
 
   /**
    * Font weight to use for semibold text
@@ -62,6 +63,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --font-weight-light: 300;
 
   // Pixel value used to responsively scale all typography. Applied to the `<html>` element.
+  // When adding a new font-size variable, please update the fix-emoji-spacing.ts file.
   --font-size: 12px;
   --font-size-sm: 11px;
   --font-size-md: 14px;

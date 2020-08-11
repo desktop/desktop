@@ -109,7 +109,6 @@ import {
   ChangesWorkingDirectorySelection,
   IDivergingBranchBannerState,
 } from '../app-state'
-import { IGitHubUser } from '../databases/github-user-database'
 import {
   ExternalEditor,
   findEditorOrDefault,
@@ -228,7 +227,7 @@ import {
 import { BranchPruner } from './helpers/branch-pruner'
 import { enableUpdateRemoteUrl } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
-import * as moment from 'moment'
+import moment from 'moment'
 import { isDarkModeEnabled } from '../../ui/lib/dark-theme'
 import { ComputedAction } from '../../models/computed-action'
 import {
@@ -271,6 +270,7 @@ import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { getDefaultDir } from '../../ui/lib/default-dir'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updater'
+import { getAttributableEmailsFor } from '../email'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -319,6 +319,8 @@ const BackgroundFetchMinimumInterval = 30 * 60 * 1000
  * Wait 2 minutes before refreshing repository indicators
  */
 const InitialRepositoryIndicatorTimeout = 2 * 60 * 1000
+
+const MaxInvalidFoldersToDisplay = 3
 
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
@@ -440,7 +442,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       shell,
       this.statsStore,
       (repo, store) => this.onGitStoreUpdated(repo, store),
-      (repo, commits) => this.loadAndCacheUsers(repo, this.accounts, commits),
       error => this.emitError(error)
     )
 
@@ -1766,26 +1767,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.accounts = accounts
     this.repositories = repositories
 
-    // doing this that the current user can be found by any of their email addresses
-    for (const account of accounts) {
-      const userAssociations: ReadonlyArray<IGitHubUser> = account.emails.map(
-        email =>
-          // NB: We're not using object spread here because `account` has more
-          // keys than we want.
-          ({
-            endpoint: account.endpoint,
-            email: email.email,
-            login: account.login,
-            avatarURL: account.avatarURL,
-            name: account.name,
-          })
-      )
-
-      for (const user of userAssociations) {
-        this.gitHubUserStore.cacheUser(user)
-      }
-    }
-
     this.updateRepositorySelectionAfterRepositoriesChanged()
 
     this.sidebarWidth = getNumber(sidebarWidthConfigKey, defaultSidebarWidth)
@@ -2307,7 +2288,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const selectableLines = new Set<number>()
-    if (diff.kind === DiffType.Text) {
+    if (diff.kind === DiffType.Text || diff.kind === DiffType.LargeText) {
       // The diff might have changed dramatically since last we loaded it.
       // Ideally we would be more clever about validating that any partial
       // selection state is still valid by ensuring that selected lines still
@@ -2555,9 +2536,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
           const { commitAuthor } = state
           if (commitAuthor !== null) {
-            const commitEmailMatchesAccount = account.emails.some(
-              email =>
-                email.email.toLowerCase() === commitAuthor.email.toLowerCase()
+            const commitEmail = commitAuthor.email.toLowerCase()
+            const attributableEmails = getAttributableEmailsFor(account)
+            const commitEmailMatchesAccount = attributableEmails.some(
+              email => email.toLowerCase() === commitEmail
             )
             if (!commitEmailMatchesAccount) {
               this.statsStore.recordUnattributedCommit()
@@ -4413,8 +4395,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const gitStore = this.gitStoreCache.get(repository)
-    const result = await gitStore.performFailableOperation(() =>
-      rebase(repository, baseBranch, targetBranch, progressCallback)
+    const result = await gitStore.performFailableOperation(
+      () => rebase(repository, baseBranch, targetBranch, progressCallback),
+      {
+        retryAction: {
+          type: RetryActionType.Rebase,
+          repository,
+          baseBranch,
+          targetBranch,
+        },
+      }
     )
 
     return result || RebaseResult.Error
@@ -4855,17 +4845,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       `[AppStore] adding account ${account.login} (${account.name}) to store`
     )
     const storedAccount = await this.accountsStore.addAccount(account)
-    const selectedState = this.getState().selectedState
-
-    if (selectedState && selectedState.type === SelectionType.Repository) {
-      // ensuring we have the latest set of accounts here, rather than waiting
-      // and doing stuff when the account store emits an update and we refresh
-      // the accounts field
-      const accounts = await this.accountsStore.getAll()
-      const repoState = selectedState.state
-      const commits = repoState.commitLookup.values()
-      this.loadAndCacheUsers(selectedState.repository, accounts, commits)
-    }
 
     // If we're in the welcome flow and a user signs in we want to trigger
     // a refresh of the repositories available for cloning straight away
@@ -4873,21 +4852,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // get to the blankslate.
     if (this.showWelcomeFlow && storedAccount !== null) {
       this.apiRepositoriesStore.loadRepositories(storedAccount)
-    }
-  }
-
-  private loadAndCacheUsers(
-    repository: Repository,
-    accounts: ReadonlyArray<Account>,
-    commits: Iterable<Commit>
-  ) {
-    for (const commit of commits) {
-      this.gitHubUserStore._loadAndCacheUser(
-        accounts,
-        repository,
-        commit.sha,
-        commit.author.email
-      )
     }
   }
 
@@ -4948,6 +4912,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<ReadonlyArray<Repository>> {
     const addedRepositories = new Array<Repository>()
     const lfsRepositories = new Array<Repository>()
+    const invalidPaths: Array<string> = []
+
     for (const path of paths) {
       const validatedPath = await validatedRepositoryPath(path)
       if (validatedPath) {
@@ -4972,9 +4938,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
           lfsRepositories.push(refreshedRepo)
         }
       } else {
-        const error = new Error(`${path} isn't a git repository.`)
-        this.emitError(error)
+        invalidPaths.push(path)
       }
+    }
+
+    if (invalidPaths.length > 0) {
+      this.emitError(new Error(this.getInvalidRepoPathsMessage(invalidPaths)))
     }
 
     if (lfsRepositories.length > 0) {
@@ -5030,6 +4999,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
       await this._selectRepository(updatedRepository)
     }
+  }
+
+  private getInvalidRepoPathsMessage(
+    invalidPaths: ReadonlyArray<string>
+  ): string {
+    if (invalidPaths.length === 1) {
+      return `${invalidPaths} isn't a Git repository.`
+    }
+
+    return `The following paths aren't Git repositories:\n\n${invalidPaths
+      .slice(0, MaxInvalidFoldersToDisplay)
+      .map(path => `- ${path}`)
+      .join('\n')}${
+      invalidPaths.length > MaxInvalidFoldersToDisplay
+        ? `\n\n(and ${invalidPaths.length - MaxInvalidFoldersToDisplay} more)`
+        : ''
+    }`
   }
 
   private async withAuthenticatingUser<T>(

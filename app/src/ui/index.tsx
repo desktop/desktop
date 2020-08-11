@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
 
-import * as moment from 'moment'
+import moment from 'moment'
 
 import { ipcRenderer, remote } from 'electron'
 
@@ -22,6 +22,7 @@ import {
   pushNeedsPullHandler,
   upstreamAlreadyExistsHandler,
   rebaseConflictsHandler,
+  localChangesOverwrittenOnCheckoutHandler,
   localChangesOverwrittenHandler,
   refusedWorkflowUpdate,
   samlReauthRequired,
@@ -98,6 +99,13 @@ if (!process.env.TEST_ENV) {
   /* This is the magic trigger for webpack to go compile
    * our sass into css and inject it into the DOM. */
   require('../../styles/desktop.scss')
+}
+
+// TODO (electron): Remove this once
+// https://bugs.chromium.org/p/chromium/issues/detail?id=1113293
+// gets fixed and propagated to electron.
+if (__DARWIN__) {
+  require('../lib/fix-emoji-spacing')
 }
 
 let currentState: IAppState | null = null
@@ -246,9 +254,7 @@ const pullRequestCoordinator = new PullRequestCoordinator(
   repositoriesStore
 )
 
-const repositoryStateManager = new RepositoryStateCache(repo =>
-  gitHubUserStore.getUsersForRepository(repo)
-)
+const repositoryStateManager = new RepositoryStateCache()
 
 const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 
@@ -292,6 +298,7 @@ dispatcher.registerErrorHandler(samlReauthRequired)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(missingRepositoryHandler)
 dispatcher.registerErrorHandler(localChangesOverwrittenHandler)
+dispatcher.registerErrorHandler(localChangesOverwrittenOnCheckoutHandler)
 dispatcher.registerErrorHandler(rebaseConflictsHandler)
 dispatcher.registerErrorHandler(refusedWorkflowUpdate)
 

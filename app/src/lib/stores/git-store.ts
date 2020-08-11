@@ -1,6 +1,5 @@
 import * as Fs from 'fs'
 import * as Path from 'path'
-import { Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
 import {
   WorkingDirectoryFileChange,
@@ -105,7 +104,7 @@ export class GitStore extends BaseStore {
 
   public pullWithRebase?: boolean
 
-  private _history: ReadonlyArray<string> = new Array()
+  private _history: ReadonlyArray<string> = []
 
   private readonly requestsInFight = new Set<string>()
 
@@ -153,17 +152,6 @@ export class GitStore extends BaseStore {
     this._tagsToPush = getTagsToPush(repository)
   }
 
-  private emitNewCommitsLoaded(commits: ReadonlyArray<Commit>) {
-    this.emitter.emit('did-load-new-commits', commits)
-  }
-
-  /** Register a function to be called when the store loads new commits. */
-  public onDidLoadNewCommits(
-    fn: (commits: ReadonlyArray<Commit>) => void
-  ): Disposable {
-    return this.emitter.on('did-load-new-commits', fn)
-  }
-
   /**
    * Reconcile the local history view with the repository state
    * after a pull has completed, to include merged remote commits.
@@ -204,7 +192,7 @@ export class GitStore extends BaseStore {
       this._history = [...commits.map(c => c.sha), ...remainingHistory]
     }
 
-    this.storeCommits(commits, true)
+    this.storeCommits(commits)
     this.requestsInFight.delete(LoadingHistoryRequestKey)
     this.emitUpdate()
   }
@@ -235,7 +223,7 @@ export class GitStore extends BaseStore {
     }
 
     this._history = this._history.concat(commits.map(c => c.sha))
-    this.storeCommits(commits, true)
+    this.storeCommits(commits)
     this.requestsInFight.delete(requestKey)
     this.emitUpdate()
   }
@@ -262,7 +250,7 @@ export class GitStore extends BaseStore {
       return null
     }
 
-    this.storeCommits(commits, false)
+    this.storeCommits(commits)
     return commits.map(c => c.sha)
   }
 
@@ -341,7 +329,7 @@ export class GitStore extends BaseStore {
       }
     }
 
-    this.storeCommits(commitsToStore, true)
+    this.storeCommits(commitsToStore)
   }
 
   public async createTag(name: string, targetCommitSha: string) {
@@ -634,16 +622,9 @@ export class GitStore extends BaseStore {
   }
 
   /** Store the given commits. */
-  private storeCommits(
-    commits: ReadonlyArray<Commit>,
-    emitUpdate: boolean = false
-  ) {
+  private storeCommits(commits: ReadonlyArray<Commit>) {
     for (const commit of commits) {
       this.commitLookup.set(commit.sha, commit)
-    }
-
-    if (emitUpdate) {
-      this.emitNewCommitsLoaded(commits)
     }
   }
 
@@ -1411,6 +1392,12 @@ export class GitStore extends BaseStore {
         currentBranch,
         theirBranch: branch,
       },
+      retryAction: {
+        type: RetryActionType.Merge,
+        currentBranch,
+        theirBranch: branch,
+        repository: this.repository,
+      },
     })
   }
 
@@ -1591,7 +1578,7 @@ export class GitStore extends BaseStore {
     )
 
     if (commits.length > 0) {
-      this.storeCommits(commits, true)
+      this.storeCommits(commits)
     }
 
     return {
