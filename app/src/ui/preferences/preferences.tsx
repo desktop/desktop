@@ -61,7 +61,6 @@ interface IPreferencesState {
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
-  readonly automaticallySwitchTheme: boolean
   readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
   readonly availableEditors: ReadonlyArray<ExternalEditor>
   readonly selectedExternalEditor: ExternalEditor | null
@@ -100,7 +99,6 @@ export class Preferences extends React.Component<
       confirmDiscardChanges: false,
       confirmForcePush: false,
       uncommittedChangesStrategyKind: uncommittedChangesStrategyKindDefault,
-      automaticallySwitchTheme: false,
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
       selectedShell: this.props.selectedShell,
