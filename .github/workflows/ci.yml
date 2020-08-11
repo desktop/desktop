@@ -11,12 +11,17 @@ on:
 
 jobs:
   build:
-    name: build (${{ runner.os }})
+    name: build (${{ matrix.friendlyName }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
-      matrix:
-        os: [macos-10.15, windows-2019]
+    matrix:
+      os: [macos-10.15, windows-2019]
+      include:
+        - os: macos-10.15
+          friendlyName: macOS
+        - os: windows-2019
+          friendlyName: Windows
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v2
