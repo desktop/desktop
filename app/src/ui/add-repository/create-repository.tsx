@@ -29,7 +29,10 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { LinkButton } from '../lib/link-button'
 import { PopupType } from '../../models/popup'
 import { Ref } from '../lib/ref'
-import { enableReadmeOverwriteWarning } from '../../lib/feature-flag'
+import {
+  enableReadmeOverwriteWarning,
+  enableDefaultBranchSetting,
+} from '../../lib/feature-flag'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { getDefaultBranch } from '../../lib/helpers/default-branch'
 
@@ -241,21 +244,24 @@ export class CreateRepository extends React.Component<
     }
 
     const repository = repositories[0]
-    const defaultBranch = await getDefaultBranch()
 
-    try {
-      // Manually checkout to the configured default branch.
-      // TODO (git@2.28): Remove this code when upgrading to git v2.28
-      // since this will be natively implemented.
-      await createAndCheckoutBranch(repository, defaultBranch)
-    } catch (e) {
-      // When we cannot checkout the default branch just log the error,
-      // since we don't want to stop the repository creation (since we're
-      // in the middle of the creation process).
-      log.error(
-        `createRepository: unable to create default branch "${defaultBranch}"`,
-        e
-      )
+    if (enableDefaultBranchSetting()) {
+      const defaultBranch = await getDefaultBranch()
+
+      try {
+        // Manually checkout to the configured default branch.
+        // TODO (git@2.28): Remove this code when upgrading to git v2.28
+        // since this will be natively implemented.
+        await createAndCheckoutBranch(repository, defaultBranch)
+      } catch (e) {
+        // When we cannot checkout the default branch just log the error,
+        // since we don't want to stop the repository creation (since we're
+        // in the middle of the creation process).
+        log.error(
+          `createRepository: unable to create default branch "${defaultBranch}"`,
+          e
+        )
+      }
     }
 
     if (this.state.createWithReadme) {
