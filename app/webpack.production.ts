@@ -4,14 +4,10 @@ import * as webpack from 'webpack'
 import merge from 'webpack-merge'
 import MiniCssExtractPlugin from 'mini-css-extract-plugin'
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer'
-const MinifyPlugin = require('babel-minify-webpack-plugin')
 
 const config: webpack.Configuration = {
   mode: 'production',
   devtool: 'source-map',
-  optimization: {
-    minimizer: [new MinifyPlugin()],
-  },
 }
 
 const mainConfig = merge({}, common.main, config)

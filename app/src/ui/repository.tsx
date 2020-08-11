@@ -87,7 +87,6 @@ interface IRepositoryViewProps {
 }
 
 interface IRepositoryViewState {
-  readonly sidebarHasFocusWithin: boolean
   readonly changesListScrollTop: number
   readonly compareListScrollTop: number
 }
@@ -108,7 +107,6 @@ export class RepositoryView extends React.Component<
     super(props)
 
     this.state = {
-      sidebarHasFocusWithin: false,
       changesListScrollTop: 0,
       compareListScrollTop: 0,
     }
@@ -163,7 +161,14 @@ export class RepositoryView extends React.Component<
 
   private renderChangesSidebar(): JSX.Element {
     const tip = this.props.state.branchesState.tip
-    const branch = tip.kind === TipState.Valid ? tip.branch : null
+
+    let branchName: string | null = null
+
+    if (tip.kind === TipState.Valid) {
+      branchName = tip.branch.name
+    } else if (tip.kind === TipState.Unborn) {
+      branchName = tip.ref
+    }
 
     const localCommitSHAs = this.props.state.localCommitSHAs
     const mostRecentLocalCommitSHA =
@@ -187,7 +192,7 @@ export class RepositoryView extends React.Component<
         repository={this.props.repository}
         dispatcher={this.props.dispatcher}
         changes={this.props.state.changesState}
-        branch={branch ? branch.name : null}
+        branch={branchName}
         commitAuthor={this.props.state.commitAuthor}
         emoji={this.props.emoji}
         mostRecentLocalCommit={mostRecentLocalCommit}
@@ -281,9 +286,6 @@ export class RepositoryView extends React.Component<
   }
 
   private onSidebarFocusWithinChanged = (sidebarHasFocusWithin: boolean) => {
-    // this lets us know that focus is somewhere within the sidebar
-    this.setState({ sidebarHasFocusWithin })
-
     if (
       sidebarHasFocusWithin === false &&
       this.props.state.selectedSection === RepositorySectionTab.History

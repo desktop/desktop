@@ -1,19 +1,7 @@
 {
   "extends": ["tslint-config-prettier"],
-  "rulesDirectory": [
-    "node_modules/tslint-react/rules",
-    "node_modules/tslint-microsoft-contrib/",
-    "tslint-rules/"
-  ],
+  "rulesDirectory": ["tslint-rules/", "node_modules/tslint-microsoft-contrib/"],
   "rules": {
-    "class-name": true,
-    "jsdoc-format": true,
-    "member-ordering": [
-      true,
-      "static-before-instance",
-      "variables-before-functions"
-    ],
-    "no-unnecessary-class": true,
     "promise-must-complete": true,
     "react-no-unbound-dispatcher-props": true,
     "react-proper-lifecycle-methods": true,
@@ -25,18 +13,6 @@
         "state-interface-regex": "State$"
       }
     ],
-    "react-this-binding-issue": true,
-    "typedef-whitespace": [
-      true,
-      {
-        "call-signature": "nospace",
-        "index-signature": "nospace",
-        "parameter": "nospace",
-        "property-declaration": "nospace",
-        "variable-declaration": "nospace"
-      }
-    ],
-    "variable-name": [true, "ban-keywords"],
-    "deprecation": true
+    "react-this-binding-issue": true
   }
 }

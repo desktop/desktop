@@ -1,4 +1,4 @@
-import getFileMetadata = require('file-metadata')
+import getFileMetadata from 'file-metadata'
 
 /**
  * Attempts to determine if the provided path is an application bundle or not.

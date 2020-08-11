@@ -14,6 +14,8 @@ import { LinkButton } from '../ui/lib/link-button'
 import { getVersion } from '../ui/lib/app-proxy'
 import { getOS } from '../lib/get-os'
 
+// This is a weird one, let's leave it as a placeholder
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface ICrashAppProps {}
 
 interface ICrashAppState {
