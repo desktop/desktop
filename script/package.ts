@@ -15,7 +15,7 @@ import {
   getUpdatesURL,
   getIconFileName,
 } from './dist-info'
-import { isAppveyor } from './build-platforms'
+import { isAppveyor, isGitHubActions } from './build-platforms'
 
 const distPath = getDistPath()
 const productName = getProductName()
@@ -52,7 +52,7 @@ function packageWindows() {
     'cleanup-windows-certificate.ps1'
   )
 
-  if (isAppveyor()) {
+  if (isAppveyor() || isGitHubActions()) {
     cp.execSync(`powershell ${setupCertificatePath}`)
   }
 
@@ -103,7 +103,7 @@ function packageWindows() {
     options.remoteReleases = getUpdatesURL()
   }
 
-  if (isAppveyor()) {
+  if (isAppveyor() || isGitHubActions()) {
     const certificatePath = path.join(__dirname, 'windows-certificate.pfx')
     options.signWithParams = `/f ${certificatePath} /p ${process.env.WINDOWS_CERT_PASSWORD} /tr http://timestamp.digicert.com /td sha256 /fd sha256`
   }
