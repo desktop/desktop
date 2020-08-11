@@ -6,8 +6,6 @@ on:
       - development
       - __release-*
   pull_request:
-    branches:
-      - '*'
 
 jobs:
   build:
