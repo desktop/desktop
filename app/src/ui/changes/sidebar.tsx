@@ -27,7 +27,7 @@ import {
 } from '../autocompletion'
 import { ClickSource } from '../lib/list'
 import { WorkingDirectoryFileChange } from '../../models/status'
-import { CSSTransitionGroup } from 'react-transition-group'
+import CSSTransitionGroup from 'react-transition-group/CSSTransitionGroup'
 import { openFile } from '../lib/open-file'
 import { Account } from '../../models/account'
 import { PopupType } from '../../models/popup'
@@ -262,6 +262,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
 
   /**
    * Open file with default application.
+   *
    * @param path The path of the file relative to the root of the repository
    */
   private onOpenItem = (path: string) => {

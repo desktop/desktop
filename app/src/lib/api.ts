@@ -502,13 +502,13 @@ function toGitHubIsoDateString(date: Date) {
  * An object for making authenticated requests to the GitHub API
  */
 export class API {
-  private endpoint: string
-  private token: string
-
   /** Create a new API client from the given account. */
   public static fromAccount(account: Account): API {
     return new API(account.endpoint, account.token)
   }
+
+  private endpoint: string
+  private token: string
 
   /** Create a new API client for the endpoint, authenticated with the token. */
   public constructor(endpoint: string, token: string) {

@@ -35,7 +35,7 @@ import { RebaseConflictState, ConflictState } from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { IStashEntry } from '../../models/stash-entry'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 import { hasWritePermission } from '../../models/github-repository'
 import { hasConflictedFiles } from '../../lib/status'
 
@@ -121,6 +121,7 @@ interface IChangesListProps {
 
   /**
    * Called to open a file it its default application
+   *
    * @param path The path of the file relative to the root of the repository
    */
   readonly onOpenItem: (path: string) => void

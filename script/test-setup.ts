@@ -5,9 +5,13 @@ import * as cp from 'child_process'
 import { getLogFiles } from './review-logs'
 import { getProductName } from '../app/package-info'
 import { getDistPath } from './dist-info'
-import { isCircleCI, isRunningOnFork } from './build-platforms'
+import { isCircleCI, isRunningOnFork, isGitHubActions } from './build-platforms'
 
-if (isCircleCI() && !isRunningOnFork()) {
+if (
+  (isCircleCI() || isGitHubActions()) &&
+  process.platform === 'darwin' &&
+  !isRunningOnFork()
+) {
   const archive = `${getDistPath()}/${getProductName()}.app`
   try {
     console.log('validating signature of Desktop app')

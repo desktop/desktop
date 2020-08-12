@@ -9,7 +9,7 @@ interface ICloneArgs extends mriArgv {
   readonly branch?: string
 }
 
-const command: ICommandModule = {
+export const command: ICommandModule = {
   command: 'clone <url|slug>',
   description: 'Clone a repository',
   args: [
@@ -44,4 +44,3 @@ const command: ICommandModule = {
     openDesktop(url)
   },
 }
-export = command

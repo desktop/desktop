@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 
 import { Repository } from '../../models/repository'
 
@@ -108,8 +108,6 @@ export class SeamlessDiffSwitcher extends React.Component<
   ISeamlessDiffSwitcherProps,
   ISeamlessDiffSwitcherState
 > {
-  private slowLoadingTimeoutId: number | null = null
-
   public static getDerivedStateFromProps(
     props: ISeamlessDiffSwitcherProps,
     state: ISeamlessDiffSwitcherState
@@ -126,6 +124,8 @@ export class SeamlessDiffSwitcher extends React.Component<
       ...(beganOrFinishedLoadingDiff ? { isLoadingSlow: false } : undefined),
     }
   }
+
+  private slowLoadingTimeoutId: number | null = null
 
   public constructor(props: ISeamlessDiffSwitcherProps) {
     super(props)
