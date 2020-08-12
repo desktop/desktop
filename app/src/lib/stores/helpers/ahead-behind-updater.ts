@@ -61,7 +61,7 @@ export class AheadBehindUpdater {
     to: string
   ): Promise<IAheadBehind | null> => {
     if (this.comparisonCache.has(from, to)) {
-      return null
+      return this.comparisonCache.get(from, to)
     }
 
     const range = revSymmetricDifference(from, to)
