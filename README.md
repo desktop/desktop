@@ -1,4 +1,4 @@
-# [GitHub Desktop](https://desktop.github.com) [![CI Build Status](https://github.com/desktop/desktop/workflows/CI/badge.svg)](https://github.com/desktop/desktop/actions?query=workflow%3ACI+branch%3Adevelopment)
+# [GitHub Desktop](https://desktop.github.com)
 
 GitHub Desktop is an open source [Electron](https://electron.atom.io)-based
 GitHub app. It is written in [TypeScript](http://www.typescriptlang.org) and
