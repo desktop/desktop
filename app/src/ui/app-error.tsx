@@ -6,10 +6,7 @@ import {
   DialogFooter,
   DefaultDialogFooter,
 } from './dialog'
-import {
-  dialogTransitionEnterTimeout,
-  dialogTransitionLeaveTimeout,
-} from './app'
+import { dialogTransitionTimeout } from './app'
 import { GitError, isAuthFailureError } from '../lib/git/core'
 import { Popup, PopupType } from '../models/popup'
 import { TransitionGroup, CSSTransition } from 'react-transition-group'
@@ -82,7 +79,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       // with the next error in the queue.
       window.setTimeout(() => {
         this.props.onClearError(currentError)
-      }, dialogTransitionLeaveTimeout)
+      }, dialogTransitionTimeout.exit)
     }
   }
 
@@ -93,7 +90,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     //being open at the same time.
     window.setTimeout(() => {
       this.props.onShowPopup({ type: PopupType.Preferences })
-    }, dialogTransitionLeaveTimeout)
+    }, dialogTransitionTimeout.exit)
   }
 
   private onRetryAction = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -267,13 +264,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     return (
       <TransitionGroup>
         {dialogContent && (
-          <CSSTransition
-            classNames="modal"
-            timeout={{
-              enter: dialogTransitionEnterTimeout,
-              exit: dialogTransitionLeaveTimeout,
-            }}
-          >
+          <CSSTransition classNames="modal" timeout={dialogTransitionTimeout}>
             {dialogContent}
           </CSSTransition>
         )}

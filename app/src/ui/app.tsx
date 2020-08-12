@@ -154,8 +154,10 @@ interface IAppProps {
   readonly startTime: number
 }
 
-export const dialogTransitionEnterTimeout = 250
-export const dialogTransitionLeaveTimeout = 100
+export const dialogTransitionTimeout = {
+  enter: 250,
+  exit: 100,
+}
 
 /**
  * The time to delay (in ms) from when we've loaded the initial state to showing
@@ -2147,13 +2149,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     return (
       <TransitionGroup>
         {popupContent && (
-          <CSSTransition
-            classNames="modal"
-            timeout={{
-              enter: dialogTransitionEnterTimeout,
-              exit: dialogTransitionLeaveTimeout,
-            }}
-          >
+          <CSSTransition classNames="modal" timeout={dialogTransitionTimeout}>
             {popupContent}
           </CSSTransition>
         )}
