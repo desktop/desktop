@@ -5,7 +5,7 @@ import { getLogDirectoryPath } from '../lib/logging/get-log-path'
 import { LogLevel } from '../lib/logging/log-level'
 import { ensureDir } from 'fs-extra'
 
-require('winston-daily-rotate-file')
+import 'winston-daily-rotate-file'
 
 /**
  * The maximum number of log files we should have on disk before pruning old
