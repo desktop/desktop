@@ -53,17 +53,6 @@ export class AheadBehindUpdater {
       return this.comparisonCache.get(from, to)
     }
 
-    return this.executeTask(from, to)
-  }
-
-  private executeTask = async (
-    from: string,
-    to: string
-  ): Promise<IAheadBehind | null> => {
-    if (this.comparisonCache.has(from, to)) {
-      return this.comparisonCache.get(from, to)
-    }
-
     const range = revSymmetricDifference(from, to)
     const result = await getAheadBehind(this.repository, range)
 
@@ -134,7 +123,7 @@ export class AheadBehindUpdater {
         () =>
           new Promise<IAheadBehind | null>((resolve, reject) => {
             requestIdleCallback(() => {
-              this.executeTask(from, sha).then(resolve, reject)
+              this.executeAsyncTask(from, sha).then(resolve, reject)
             })
           })
       )
