@@ -489,6 +489,13 @@
   dependencies:
     "@types/node" "*"
 
+"@types/klaw-sync@^6.0.0":
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/@types/klaw-sync/-/klaw-sync-6.0.0.tgz#ff0b36601efaaa109d513c4ced109311fd06ba36"
+  integrity sha512-Ibfb2jgpjYUxnl7RSVvUzOrv/vhkTVKEfPwQf9ZlDDsSyWVDp/2JtTBxO4eRrKBYtxc3cZQabdR38i8R0o1uww==
+  dependencies:
+    "@types/node" "*"
+
 "@types/legal-eagle@^0.15.0":
   version "0.15.0"
   resolved "https://registry.yarnpkg.com/@types/legal-eagle/-/legal-eagle-0.15.0.tgz#3a3cf08edca425ffaf9518304c4f1efddea36e42"
@@ -656,6 +663,14 @@
     "@types/express-serve-static-core" "*"
     "@types/mime" "*"
 
+"@types/source-map-support@^0.5.2":
+  version "0.5.2"
+  resolved "https://registry.yarnpkg.com/@types/source-map-support/-/source-map-support-0.5.2.tgz#35e7446d470e63ec3fff4d7eceee0bc40efad239"
+  integrity sha512-krvWmwQ2Pzr+Yp8tKjhKC9UguRNg1ev9mNdlVVpVJvU9iynulYZsx3ydf1SPzNNxzhmbWAOAIw5hMWhAMDc2NA==
+  dependencies:
+    "@types/node" "*"
+    source-map "^0.6.0"
+
 "@types/source-map@*":
   version "0.5.1"
   resolved "https://registry.yarnpkg.com/@types/source-map/-/source-map-0.5.1.tgz#7e74db5d06ab373a712356eebfaea2fad0ea2367"
@@ -717,12 +732,15 @@
   resolved "https://registry.yarnpkg.com/@types/untildify/-/untildify-3.0.0.tgz#cd3e6624e46ccf292d3823fb48fa90dda0deaec0"
   integrity sha512-FTktI3Y1h+gP9GTjTvXBP5v8xpH4RU6uS9POoBcGy4XkS2Np6LNtnP1eiNNth4S7P+qw2c/rugkwBasSHFzJEg==
 
+"@types/username@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@types/username/-/username-3.0.0.tgz#a0e2db87e8f81e6bcb7375e0ed78ecfb779974b1"
+  integrity sha512-z+eSNnP/qpGe6KROv7nq9COUIPP8loXDr7uw84NqGqYCNKJKrsCLVnLtZxmpbq3UYDxMxCrmz99FMThzYJjRaw==
+
 "@types/uuid@^3.4.0":
-  version "3.4.3"
-  resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-3.4.3.tgz#121ace265f5569ce40f4f6d0ff78a338c732a754"
-  integrity sha512-5fRLCYhLtDb3hMWqQyH10qtF+Ud2JnNCXTCZ+9ktNdCcgslcuXkDTkFcJNk++MT29yDntDnlF1+jD+uVGumsbw==
-  dependencies:
-    "@types/node" "*"
+  version "3.4.9"
+  resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-3.4.9.tgz#fcf01997bbc9f7c09ae5f91383af076d466594e1"
+  integrity sha512-XDwyIlt/47l2kWLTzw/mtrpLdB+GPSskR2n/PIcPn+VYhVO77rGhRncIR5GPU0KRzXuqkDO+J5qqrG0Y8P6jzQ==
 
 "@types/webpack-bundle-analyzer@^2.9.2":
   version "2.9.2"
