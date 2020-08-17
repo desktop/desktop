@@ -1,5 +1,8 @@
 {
   "releases": {
+    "2.5.4-beta3": [
+      "[Added] Add Alacritty shell support - #10243. Thanks @halitogunc!"
+    ],
     "2.5.4-beta2": [
       "[Added] Suggest to stash changes when trying to do an operation that requires a clean working directory - #10053",
       "[Fixed] Pull request list is now keyboard accessible - #10334",

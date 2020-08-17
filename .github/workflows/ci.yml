@@ -14,21 +14,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        node: [12.14.1]
         os: [macos-10.15, windows-2019]
         include:
           - os: macos-10.15
             friendlyName: macOS
           - os: windows-2019
             friendlyName: Windows
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
-      - name: Use Node.js 12.8.1
+      - name: Use Node.js ${{ matrix.node }}
         uses: actions/setup-node@v1
         with:
-          node-version: 12.8.1
+          node-version: ${{ matrix.node }}
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
@@ -78,4 +79,4 @@ jobs:
           S3_KEY: ${{ secrets.S3_KEY }}
           S3_SECRET: ${{ secrets.S3_SECRET }}
           S3_BUCKET: github-desktop
-        timeout-minutes: 5
+        timeout-minutes: 10
