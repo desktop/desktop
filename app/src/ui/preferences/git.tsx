@@ -89,27 +89,25 @@ export class Git extends React.Component<IGitProps> {
     )
 
     return (
-      <>
+      <div className="default-branch-component">
         <h2>Default branch for new repositories</h2>
 
-        <div className="default-branch-component">
-          {SuggestedBranchNames.map((branchName: string) => (
-            <RadioButton
-              key={branchName}
-              checked={this.props.defaultBranch === branchName}
-              value={branchName}
-              label={branchName}
-              onSelected={this.onDefaultBranchChanged}
-            />
-          ))}
+        {SuggestedBranchNames.map((branchName: string) => (
           <RadioButton
-            key={OtherNameForDefaultBranch}
-            checked={defaultBranchIsOther}
-            value={OtherNameForDefaultBranch}
-            label="Other…"
+            key={branchName}
+            checked={this.props.defaultBranch === branchName}
+            value={branchName}
+            label={branchName}
             onSelected={this.onDefaultBranchChanged}
           />
-        </div>
+        ))}
+        <RadioButton
+          key={OtherNameForDefaultBranch}
+          checked={defaultBranchIsOther}
+          value={OtherNameForDefaultBranch}
+          label="Other…"
+          onSelected={this.onDefaultBranchChanged}
+        />
 
         {defaultBranchIsOther && (
           <RefNameTextBox
@@ -123,7 +121,7 @@ export class Git extends React.Component<IGitProps> {
         <p className="git-settings-description">
           These preferences will edit your global Git config.
         </p>
-      </>
+      </div>
     )
   }
 

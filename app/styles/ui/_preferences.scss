@@ -61,7 +61,11 @@
   }
 
   .default-branch-component {
-    margin-bottom: var(--spacing);
+    margin-top: var(--spacing-double);
+
+    .ref-name-text-box {
+      margin-top: var(--spacing);
+    }
   }
 
   .git-settings-description {
