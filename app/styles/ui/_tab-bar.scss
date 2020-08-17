@@ -142,10 +142,10 @@
       .icon {
         color: #{$gray-500};
       }
-    }
 
-    &:hover {
-      background: var(--tab-bar-hover-background-color);
+      &:hover {
+        background: var(--tab-bar-hover-background-color);
+      }
     }
 
     .icon {
