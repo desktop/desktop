@@ -290,7 +290,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --nudge-arrow-z-index: calc(var(--popup-z-index) - 3);
   /**
    * This is 7 to make sure it appears on top code mirror
-   * but behind popups, overlays, and foldouts 
+   * but behind popups, overlays, and foldouts
    */
   --side-panel-z-index: calc(var(--popup-z-index) - 4);
 
