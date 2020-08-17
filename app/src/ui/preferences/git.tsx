@@ -90,9 +90,7 @@ export class Git extends React.Component<IGitProps> {
 
     return (
       <>
-        <h2>
-          Default branch for new repositories
-        </h2>
+        <h2>Default branch for new repositories</h2>
 
         <div className="default-branch-component">
           {SuggestedBranchNames.map((branchName: string) => (
