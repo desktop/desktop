@@ -92,6 +92,12 @@ enableSourceMaps()
 // see https://github.com/desktop/dugite/pull/85
 process.env['LOCAL_GIT_DIRECTORY'] = Path.resolve(__dirname, 'git')
 
+// Ensure that dugite infers the GIT_EXEC_PATH
+// based on the LOCAL_GIT_DIRECTORY env variable
+// instead of just blindly trusting what's set in
+// the current environment. See https://git.io/JJ7KF
+delete process.env.GIT_EXEC_PATH
+
 momentDurationFormatSetup(moment)
 
 const startTime = performance.now()
