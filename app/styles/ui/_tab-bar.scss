@@ -144,6 +144,10 @@
       }
     }
 
+    &:hover {
+      background: var(--tab-bar-hover-background-color);
+    }
+
     .icon {
       vertical-align: bottom;
       margin-right: var(--spacing);
