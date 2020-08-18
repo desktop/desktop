@@ -106,8 +106,10 @@
       }
     }
 
-    .ci-status {
+    .ci-status-container {
       margin-right: var(--spacing-half);
+      min-width: 16px;
+      text-align: center;
     }
   }
 
