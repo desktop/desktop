@@ -26,22 +26,6 @@ export interface ICombinedRefCheck {
   readonly checks: ReadonlyArray<IRefCheck>
 }
 
-const FailureConclusions: ReadonlyArray<APICheckConclusion> = [
-  'failure',
-  'action_required',
-]
-const IncompleteConclusions: ReadonlyArray<APICheckConclusion> = [
-  'timed_out',
-  'stale',
-  'cancelled',
-]
-
-const SuccessConclusions: ReadonlyArray<APICheckConclusion> = [
-  'success',
-  'neutral',
-  'skipped',
-]
-
 interface ICommitStatusCacheEntry {
   /**
    * The combined ref status from the API or null if
@@ -434,30 +418,46 @@ function apiCheckRunToRefStatus(checkRun: IAPIRefCheckRun): IRefCheck {
   }
 }
 
+/**
+ * Whether the check is either incomplete or has failed
+ */
 export function isIncompleteOrFailure(check: IRefCheck) {
-  return isFailure(check) || isIncomplete(check)
+  return isIncomplete(check) || isFailure(check)
 }
 
+/**
+ * Whether the check is incomplete (timed out, stale or cancelled)
+ */
 export function isIncomplete(check: IRefCheck) {
-  return (
-    check.status === 'completed' &&
-    check.conclusion !== null &&
-    IncompleteConclusions.includes(check.conclusion)
-  )
+  switch (check.conclusion) {
+    case 'timed_out':
+    case 'stale':
+    case 'cancelled':
+      return check.status === 'completed'
+  }
+
+  return false
 }
 
+/** Whether the check has failed (failure or requires action) */
 export function isFailure(check: IRefCheck) {
-  return (
-    check.status === 'completed' &&
-    check.conclusion !== null &&
-    FailureConclusions.includes(check.conclusion)
-  )
+  switch (check.conclusion) {
+    case 'failure':
+    case 'action_required':
+      return check.status === 'completed'
+  }
+
+  return false
 }
 
+/** Whether the check can be considered successful (success, neutral or skipped) */
 export function isSuccess(check: IRefCheck) {
-  return (
-    check.status === 'completed' &&
-    check.conclusion !== null &&
-    SuccessConclusions.includes(check.conclusion)
-  )
+  switch (check.conclusion) {
+    case 'success':
+    case 'neutral':
+    case 'skipped':
+      return check.status === 'completed'
+  }
+
+  return false
 }
