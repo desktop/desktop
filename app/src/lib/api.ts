@@ -293,19 +293,12 @@ export interface IAPIRefCheckRunItem {
   readonly status: APICheckStatus
   readonly conclusion: APICheckConclusion | null
   readonly name: string
-  readonly pull_requests: any[]
-  readonly app: IAPIRefChecksApp
   readonly output: IAPIRefCheckRunItemOutput
 }
 
 // NB. Only partially mapped
 export interface IAPIRefCheckRunItemOutput {
   readonly title: string | null
-}
-
-export interface IAPIRefChecksApp {
-  readonly name: string
-  readonly description: string
 }
 
 export interface IAPIRefCheckRuns {
