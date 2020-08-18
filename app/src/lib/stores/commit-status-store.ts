@@ -7,32 +7,47 @@ import { GitHubRepository } from '../../models/github-repository'
 import {
   API,
   IAPIRefStatusItem,
-  APIRefState,
   IAPIRefCheckRunItem,
   APICheckStatus,
   APICheckConclusion,
 } from '../api'
 import { IDisposable, Disposable } from 'event-kit'
 
-export type RefCheckState = 'failure' | 'pending' | 'success'
-
 export interface IRefCheck {
   readonly name: string
   readonly description: string
-  readonly state: RefCheckState
+  readonly state: APICheckStatus
+  readonly conclusion: APICheckConclusion | null
 }
 
-export interface ICombinedRefStatus {
-  readonly state: RefCheckState
+export interface ICombinedRefCheck {
+  readonly state: APICheckStatus
+  readonly conclusion: APICheckConclusion | null
   readonly checks: ReadonlyArray<IRefCheck>
 }
+
+const FailureConclusions: ReadonlyArray<APICheckConclusion> = [
+  'failure',
+  'action_required',
+]
+const IncompleteConclusions: ReadonlyArray<APICheckConclusion> = [
+  'timed_out',
+  'stale',
+  'cancelled',
+]
+
+const SuccessConclusions: ReadonlyArray<APICheckConclusion> = [
+  'success',
+  'neutral',
+  'skipped',
+]
 
 interface ICommitStatusCacheEntry {
   /**
    * The combined ref status from the API or null if
    * the status could not be retrieved.
    */
-  readonly status: ICombinedRefStatus | null
+  readonly status: ICombinedRefCheck | null
 
   /**
    * The timestamp for when this cache entry was last
@@ -41,7 +56,7 @@ interface ICommitStatusCacheEntry {
   readonly fetchedAt: Date
 }
 
-export type StatusCallBack = (status: ICombinedRefStatus | null) => void
+export type StatusCallBack = (status: ICombinedRefCheck | null) => void
 
 /**
  * An interface describing one or more subscriptions for
@@ -275,15 +290,7 @@ export class CommitStatusStore {
 
     const checks = new Array<IRefCheck>()
 
-    if (statuses !== null) {
-      checks.push(...statuses.statuses.map(apiStatusToRefStatus))
-    }
-
-    if (checkRuns !== null) {
-      checks.push(...checkRuns.check_runs.map(apiCheckRunToRefStatus))
-    }
-
-    if (checks.length === 0) {
+    if (statuses === null && checkRuns === null) {
       // Okay, so we failed retrieving the status for one reason or another.
       // That's a bummer, but we still need to put something in the cache
       // or else we'll consider this subscription eligible for refresh
@@ -296,20 +303,42 @@ export class CommitStatusStore {
       const status = existingEntry?.status ?? null
 
       this.cache.set(key, { status, fetchedAt: new Date() })
-    } else {
-      let state: RefCheckState = 'success'
-
-      if (checks.some(x => x.state === 'failure')) {
-        state = 'failure'
-      } else if (checks.some(x => x.state === 'pending')) {
-        state = 'pending'
-      }
-
-      const status: ICombinedRefStatus = { state, checks }
-
-      this.cache.set(key, { status, fetchedAt: new Date() })
-      subscription.callbacks.forEach(cb => cb(status))
+      return
     }
+
+    if (statuses !== null) {
+      checks.push(...statuses.statuses.map(apiStatusToRefCheck))
+    }
+
+    if (checkRuns !== null) {
+      checks.push(...checkRuns.check_runs.map(apiCheckRunToRefStatus))
+    }
+
+    if (checks.length === 0) {
+      // This case is distinct from when we fail to call the API in
+      // that this means there are no checks or statuses so we should
+      // clear whatever info we've got for this ref.
+      this.cache.set(key, { status: null, fetchedAt: new Date() })
+      return
+    }
+
+    let state: APICheckStatus
+    let conclusion: APICheckConclusion | null = null
+
+    if (checks.some(isPendingOrFailure)) {
+      state = 'completed'
+      conclusion = 'failure'
+    } else if (checks.every(isSuccess)) {
+      state = 'completed'
+      conclusion = 'success'
+    } else {
+      state = 'in_progress'
+    }
+
+    const status: ICombinedRefCheck = { state, conclusion, checks }
+
+    this.cache.set(key, { status, fetchedAt: new Date() })
+    subscription.callbacks.forEach(cb => cb(status))
   }
 
   /**
@@ -322,7 +351,7 @@ export class CommitStatusStore {
   public tryGetStatus(
     repository: GitHubRepository,
     ref: string
-  ): ICombinedRefStatus | null {
+  ): ICombinedRefCheck | null {
     const entry = this.cache.get(getCacheKeyForRepository(repository, ref))
     return entry !== undefined ? entry.status : null
   }
@@ -377,23 +406,25 @@ export class CommitStatusStore {
   }
 }
 
-function apiStatusToRefStatus(apiStatus: IAPIRefStatusItem): IRefCheck {
+function apiStatusToRefCheck(apiStatus: IAPIRefStatusItem): IRefCheck {
+  let state: APICheckStatus
+  let conclusion: APICheckConclusion | null = null
+
+  if (apiStatus.state === 'success') {
+    state = 'completed'
+    conclusion = 'success'
+  } else if (apiStatus.state === 'pending') {
+    state = 'in_progress'
+  } else {
+    state = 'completed'
+    conclusion = 'failure'
+  }
+
   return {
     name: apiStatus.context,
     description: apiStatus.description,
-    state: apiStatusStateToRefCheckState(apiStatus.state),
-  }
-}
-
-function apiStatusStateToRefCheckState(state: APIRefState): RefCheckState {
-  switch (state) {
-    case 'error':
-    case 'failure':
-      return 'failure'
-    case 'pending':
-      return 'pending'
-    case 'success':
-      return 'success'
+    state,
+    conclusion,
   }
 }
 
@@ -402,30 +433,35 @@ function apiCheckRunToRefStatus(checkRun: IAPIRefCheckRunItem): IRefCheck {
     name: checkRun.name,
     description:
       checkRun?.output.title ?? checkRun.conclusion ?? checkRun.status,
-    state: checkRunToRefCheckState(checkRun.status, checkRun.conclusion),
+    state: checkRun.status,
+    conclusion: checkRun.conclusion,
   }
 }
 
-function checkRunToRefCheckState(
-  status: APICheckStatus,
-  conclusion: APICheckConclusion | null
-): RefCheckState {
-  if (status === 'completed') {
-    switch (conclusion) {
-      case 'action_required':
-      case 'cancelled':
-      case 'failure':
-      case 'timed_out':
-      case 'stale':
-      case 'timed_out':
-        return 'failure'
-      case 'skipped':
-        // TODO: This isn't exactly right
-        return 'pending'
-      case 'success':
-        return 'success'
-    }
-  }
+export function isPendingOrFailure(check: IRefCheck) {
+  return isFailure(check) || isIncomplete(check)
+}
 
-  return 'pending'
+export function isIncomplete(check: IRefCheck) {
+  return (
+    check.state === 'completed' &&
+    check.conclusion !== null &&
+    IncompleteConclusions.includes(check.conclusion)
+  )
+}
+
+export function isFailure(check: IRefCheck) {
+  return (
+    check.state === 'completed' &&
+    check.conclusion !== null &&
+    FailureConclusions.includes(check.conclusion)
+  )
+}
+
+export function isSuccess(check: IRefCheck) {
+  return (
+    check.state === 'completed' &&
+    check.conclusion !== null &&
+    SuccessConclusions.includes(check.conclusion)
+  )
 }
