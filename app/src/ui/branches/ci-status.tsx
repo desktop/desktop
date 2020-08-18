@@ -1,13 +1,15 @@
 import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { APIRefState } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 import classNames from 'classnames'
 import { getRefStatusSummary } from './pull-request-status'
 import { GitHubRepository } from '../../models/github-repository'
 import { IDisposable } from 'event-kit'
 import { Dispatcher } from '../dispatcher'
-import { IRefStatus } from '../../lib/stores/commit-status-store'
+import {
+  ICombinedRefStatus,
+  RefCheckState,
+} from '../../lib/stores/commit-status-store'
 
 interface ICIStatusProps {
   /** The classname for the underlying element. */
@@ -23,7 +25,7 @@ interface ICIStatusProps {
 }
 
 interface ICIStatusState {
-  readonly status: IRefStatus | null
+  readonly status: ICombinedRefStatus | null
 }
 
 /** The little CI status indicator. */
@@ -84,14 +86,14 @@ export class CIStatus extends React.PureComponent<
     this.unsubscribe()
   }
 
-  private onStatus = (status: IRefStatus | null) => {
+  private onStatus = (status: ICombinedRefStatus | null) => {
     this.setState({ status })
   }
 
   public render() {
     const { status } = this.state
 
-    if (status === null || status.totalCount === 0) {
+    if (status === null || status.checks.length === 0) {
       return null
     }
 
@@ -112,7 +114,7 @@ export class CIStatus extends React.PureComponent<
   }
 }
 
-function getSymbolForState(state: APIRefState): OcticonSymbol {
+function getSymbolForState(state: RefCheckState): OcticonSymbol {
   switch (state) {
     case 'pending':
       return OcticonSymbol.primitiveDot

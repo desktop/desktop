@@ -86,7 +86,7 @@ import { executeMenuItem } from '../main-process-proxy'
 import {
   CommitStatusStore,
   StatusCallBack,
-  IRefStatus,
+  ICombinedRefStatus,
 } from '../../lib/stores/commit-status-store'
 import { MergeResult } from '../../models/merge'
 import {
@@ -2341,7 +2341,7 @@ export class Dispatcher {
   public tryGetCommitStatus(
     repository: GitHubRepository,
     ref: string
-  ): IRefStatus | null {
+  ): ICombinedRefStatus | null {
     return this.commitStatusStore.tryGetStatus(repository, ref)
   }
 
