@@ -16,12 +16,12 @@ import { IDisposable, Disposable } from 'event-kit'
 export interface IRefCheck {
   readonly name: string
   readonly description: string
-  readonly state: APICheckStatus
+  readonly status: APICheckStatus
   readonly conclusion: APICheckConclusion | null
 }
 
 export interface ICombinedRefCheck {
-  readonly state: APICheckStatus
+  readonly status: APICheckStatus
   readonly conclusion: APICheckConclusion | null
   readonly checks: ReadonlyArray<IRefCheck>
 }
@@ -47,7 +47,7 @@ interface ICommitStatusCacheEntry {
    * The combined ref status from the API or null if
    * the status could not be retrieved.
    */
-  readonly status: ICombinedRefCheck | null
+  readonly check: ICombinedRefCheck | null
 
   /**
    * The timestamp for when this cache entry was last
@@ -102,10 +102,6 @@ function getCacheKeyForRepository(repository: GitHubRepository, ref: string) {
 /**
  * Creates a cache key for a particular ref in a specific repository.
  *
- * Remarks: The cache key is currently the same as the canonical API status
- *          URI but that has no bearing on the functionality, it does, however
- *          help with debugging.
- *
  * @param endpoint The repository endpoint (for example https://api.github.com for
  *                 GitHub.com and https://github.corporation.local/api for GHE)
  * @param owner    The repository owner's login (i.e niik for niik/desktop)
@@ -119,7 +115,7 @@ function getCacheKey(
   name: string,
   ref: string
 ) {
-  return `${endpoint}/repos/${owner}/${name}/commits/${ref}/status`
+  return `${endpoint}/repos/${owner}/${name}/commits/${ref}`
 }
 
 /**
@@ -300,9 +296,9 @@ export class CommitStatusStore {
       // if they have one and that we attempt to fetch it again on the same
       // schedule as the others.
       const existingEntry = this.cache.get(key)
-      const status = existingEntry?.status ?? null
+      const check = existingEntry?.check ?? null
 
-      this.cache.set(key, { status, fetchedAt: new Date() })
+      this.cache.set(key, { check, fetchedAt: new Date() })
       return
     }
 
@@ -318,27 +314,27 @@ export class CommitStatusStore {
       // This case is distinct from when we fail to call the API in
       // that this means there are no checks or statuses so we should
       // clear whatever info we've got for this ref.
-      this.cache.set(key, { status: null, fetchedAt: new Date() })
+      this.cache.set(key, { check: null, fetchedAt: new Date() })
       return
     }
 
-    let state: APICheckStatus
+    let status: APICheckStatus
     let conclusion: APICheckConclusion | null = null
 
     if (checks.some(isPendingOrFailure)) {
-      state = 'completed'
+      status = 'completed'
       conclusion = 'failure'
     } else if (checks.every(isSuccess)) {
-      state = 'completed'
+      status = 'completed'
       conclusion = 'success'
     } else {
-      state = 'in_progress'
+      status = 'in_progress'
     }
 
-    const status: ICombinedRefCheck = { state, conclusion, checks }
+    const check: ICombinedRefCheck = { status, conclusion, checks }
 
-    this.cache.set(key, { status, fetchedAt: new Date() })
-    subscription.callbacks.forEach(cb => cb(status))
+    this.cache.set(key, { check, fetchedAt: new Date() })
+    subscription.callbacks.forEach(cb => cb(check))
   }
 
   /**
@@ -353,7 +349,7 @@ export class CommitStatusStore {
     ref: string
   ): ICombinedRefCheck | null {
     const entry = this.cache.get(getCacheKeyForRepository(repository, ref))
-    return entry !== undefined ? entry.status : null
+    return entry?.check ?? null
   }
 
   private getOrCreateSubscription(repository: GitHubRepository, ref: string) {
@@ -423,7 +419,7 @@ function apiStatusToRefCheck(apiStatus: IAPIRefStatusItem): IRefCheck {
   return {
     name: apiStatus.context,
     description: apiStatus.description,
-    state,
+    status: state,
     conclusion,
   }
 }
@@ -433,7 +429,7 @@ function apiCheckRunToRefStatus(checkRun: IAPIRefCheckRun): IRefCheck {
     name: checkRun.name,
     description:
       checkRun?.output.title ?? checkRun.conclusion ?? checkRun.status,
-    state: checkRun.status,
+    status: checkRun.status,
     conclusion: checkRun.conclusion,
   }
 }
@@ -444,7 +440,7 @@ export function isPendingOrFailure(check: IRefCheck) {
 
 export function isIncomplete(check: IRefCheck) {
   return (
-    check.state === 'completed' &&
+    check.status === 'completed' &&
     check.conclusion !== null &&
     IncompleteConclusions.includes(check.conclusion)
   )
@@ -452,7 +448,7 @@ export function isIncomplete(check: IRefCheck) {
 
 export function isFailure(check: IRefCheck) {
   return (
-    check.state === 'completed' &&
+    check.status === 'completed' &&
     check.conclusion !== null &&
     FailureConclusions.includes(check.conclusion)
   )
@@ -460,7 +456,7 @@ export function isFailure(check: IRefCheck) {
 
 export function isSuccess(check: IRefCheck) {
   return (
-    check.state === 'completed' &&
+    check.status === 'completed' &&
     check.conclusion !== null &&
     SuccessConclusions.includes(check.conclusion)
   )
