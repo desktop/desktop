@@ -270,6 +270,7 @@ import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { getDefaultDir } from '../../ui/lib/default-dir'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { getAttributableEmailsFor } from '../email'
+import { TrashNameLabel } from '../../ui/lib/context-menu'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -4961,7 +4962,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     try {
       if (moveToTrash) {
-        await shell.moveItemToTrash(repository.path)
+        const deleted = shell.moveItemToTrash(repository.path)
+
+        if (!deleted) {
+          this.emitError(
+            new Error(
+              `Failed moving repository directory to ${TrashNameLabel}.\n\nA common reason for this is if a file or directory is open in another program.`
+            )
+          )
+          return
+        }
       }
 
       if (repository instanceof CloningRepository) {
