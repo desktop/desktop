@@ -9,8 +9,8 @@ import * as fs from 'fs'
 import * as Path from 'path'
 import * as cp from 'child_process'
 
-import xml2js = require('xml2js')
-import toCamelCase = require('to-camel-case')
+import xml2js from 'xml2js'
+import toCamelCase from 'to-camel-case'
 
 interface IXML2JSNode {
   path: {

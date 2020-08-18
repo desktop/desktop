@@ -26,15 +26,10 @@ describe('git/worktree', () => {
         expect(result).toHaveLength(1)
       })
 
-      it('contains the head and path of the main repository', async () => {
-        const { path } = repository
+      it('contains the head of the main repository', async () => {
         const result = await listWorkTrees(repository)
         const first = result[0]
         expect(first.head).toBe('0000000000000000000000000000000000000000')
-
-        // we use realpathSync here because git and windows/macOS report different
-        // paths even though they are the same folder
-        expect(realpathSync(first.path)).toBe(realpathSync(path))
       })
     })
 

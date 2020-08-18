@@ -11,6 +11,7 @@ import {
 } from './http'
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
+import username from 'username'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
 
@@ -57,8 +58,6 @@ interface IFetchAllOptions<T> {
    */
   suppressErrors?: boolean
 }
-
-const username: () => Promise<string> = require('username')
 
 const ClientID = process.env.TEST_ENV ? '' : __OAUTH_CLIENT_ID__
 const ClientSecret = process.env.TEST_ENV ? '' : __OAUTH_SECRET__
