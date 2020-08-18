@@ -291,7 +291,7 @@ export class CommitStatusStore {
     }
 
     if (checkRuns !== null) {
-      checks.push(...checkRuns.check_runs.map(apiCheckRunToRefStatus))
+      checks.push(...checkRuns.check_runs.map(apiCheckRunToRefCheck))
     }
 
     if (checks.length === 0) {
@@ -386,6 +386,9 @@ export class CommitStatusStore {
   }
 }
 
+/**
+ * Convert a legacy API commit status to a fake check run
+ */
 function apiStatusToRefCheck(apiStatus: IAPIRefStatusItem): IRefCheck {
   let state: APICheckStatus
   let conclusion: APICheckConclusion | null = null
@@ -408,7 +411,10 @@ function apiStatusToRefCheck(apiStatus: IAPIRefStatusItem): IRefCheck {
   }
 }
 
-function apiCheckRunToRefStatus(checkRun: IAPIRefCheckRun): IRefCheck {
+/**
+ * Convert an API check run object to a RefCheck model
+ */
+function apiCheckRunToRefCheck(checkRun: IAPIRefCheckRun): IRefCheck {
   return {
     name: checkRun.name,
     description:
