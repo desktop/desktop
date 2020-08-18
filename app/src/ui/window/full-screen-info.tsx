@@ -11,8 +11,7 @@ interface IFullScreenInfoState {
   readonly renderTransitionGroup: boolean
 }
 
-const transitionAppearDuration = 100
-const transitionLeaveDuration = 250
+const toastTransitionTimeout = { appear: 100, exit: 250 }
 const holdDuration = 3000
 
 /**
@@ -60,7 +59,9 @@ export class FullScreenInfo extends React.Component<
 
       this.transitionGroupDisappearTimeoutId = window.setTimeout(
         this.onTransitionGroupDisappearTimeout,
-        transitionAppearDuration + holdDuration + transitionLeaveDuration
+        toastTransitionTimeout.appear +
+          holdDuration +
+          toastTransitionTimeout.exit
       )
 
       this.setState({
@@ -98,10 +99,7 @@ export class FullScreenInfo extends React.Component<
         appear={true}
         enter={false}
         exit={true}
-        timeout={{
-          appear: transitionAppearDuration,
-          exit: transitionLeaveDuration,
-        }}
+        timeout={toastTransitionTimeout}
       >
         <div key="notification" className="toast-notification">
           Press <kbd>{kbdShortcut}</kbd> to exit fullscreen

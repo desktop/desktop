@@ -159,6 +159,8 @@ export const dialogTransitionTimeout = {
   exit: 100,
 }
 
+export const bannerTransitionTimeout = { enter: 500, exit: 400 }
+
 /**
  * The time to delay (in ms) from when we've loaded the initial state to showing
  * the window. This is try to give Chromium enough time to flush our latest DOM
@@ -2510,10 +2512,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     return (
       <TransitionGroup>
         {banner && (
-          <CSSTransition
-            classNames="banner"
-            timeout={{ enter: 500, exit: 400 }}
-          >
+          <CSSTransition classNames="banner" timeout={bannerTransitionTimeout}>
             {banner}
           </CSSTransition>
         )}
