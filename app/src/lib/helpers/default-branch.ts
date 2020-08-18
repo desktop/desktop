@@ -1,6 +1,7 @@
 import { getGlobalConfigValue, setGlobalConfigValue } from '../git'
+import { enableDefaultBranchSetting } from '../feature-flag'
 
-const DefaultBranchInGit = 'master'
+export const DefaultBranchInGit = 'master'
 
 const DefaultBranchSettingName = 'init.defaultBranch'
 
@@ -13,10 +14,19 @@ export const SuggestedBranchNames: ReadonlyArray<string> = ['master', 'main']
 /**
  * Returns the configured default branch when creating new repositories
  */
+async function getConfiguredDefaultBranch(): Promise<string | null> {
+  if (!enableDefaultBranchSetting()) {
+    return null
+  }
+
+  return getGlobalConfigValue(DefaultBranchSettingName)
+}
+
+/**
+ * Returns the configured default branch when creating new repositories
+ */
 export async function getDefaultBranch(): Promise<string> {
-  return (
-    (await getGlobalConfigValue(DefaultBranchSettingName)) ?? DefaultBranchInGit
-  )
+  return (await getConfiguredDefaultBranch()) ?? DefaultBranchInGit
 }
 
 /**

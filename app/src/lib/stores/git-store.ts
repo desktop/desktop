@@ -89,7 +89,6 @@ import { StatsStore } from '../stats'
 import { getTagsToPush, storeTagsToPush } from './helpers/tags-to-push-storage'
 import { DiffSelection, ITextDiff } from '../../models/diff'
 import { getDefaultBranch } from '../helpers/default-branch'
-import { enableDefaultBranchSetting } from '../feature-flag'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -526,9 +525,7 @@ export class GitStore extends BaseStore {
       }
     }
 
-    // If the default branch setting is enabled it's more accurate to fallback
-    // to the configured default branch.
-    return enableDefaultBranchSetting() ? getDefaultBranch() : 'master'
+    return getDefaultBranch()
   }
 
   private refreshRecentBranches(
