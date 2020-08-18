@@ -138,7 +138,7 @@ function entryIsEligibleForRefresh(entry: ICommitStatusCacheEntry) {
  * application is focused.
  */
 const BackgroundRefreshInterval = 3 * 60 * 1000
-const MaxConcurrentFetches = 5
+const MaxConcurrentFetches = 6
 
 export class CommitStatusStore {
   /** The list of signed-in accounts, kept in sync with the accounts store */
