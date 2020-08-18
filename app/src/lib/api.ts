@@ -254,8 +254,10 @@ export interface IAPIIssue {
 /** The combined state of a ref. */
 export type APIRefState = 'failure' | 'pending' | 'success' | 'error'
 
+/** The overall status of a check run */
 export type APICheckStatus = 'queued' | 'in_progress' | 'completed'
 
+/** The conclusion of a completed check run */
 export type APICheckConclusion =
   | 'action_required'
   | 'cancelled'
@@ -296,6 +298,7 @@ export interface IAPIRefCheckRunItem {
   readonly output: IAPIRefCheckRunItemOutput
 }
 
+// NB. Only partially mapped
 export interface IAPIRefCheckRunItemOutput {
   readonly title: string | null
 }
