@@ -7,7 +7,7 @@ import { GitHubRepository } from '../../models/github-repository'
 import {
   API,
   IAPIRefStatusItem,
-  IAPIRefCheckRunItem,
+  IAPIRefCheckRun,
   APICheckStatus,
   APICheckConclusion,
 } from '../api'
@@ -428,7 +428,7 @@ function apiStatusToRefCheck(apiStatus: IAPIRefStatusItem): IRefCheck {
   }
 }
 
-function apiCheckRunToRefStatus(checkRun: IAPIRefCheckRunItem): IRefCheck {
+function apiCheckRunToRefStatus(checkRun: IAPIRefCheckRun): IRefCheck {
   return {
     name: checkRun.name,
     description:

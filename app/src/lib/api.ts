@@ -287,23 +287,23 @@ export interface IAPIRefStatus {
   readonly statuses: ReadonlyArray<IAPIRefStatusItem>
 }
 
-export interface IAPIRefCheckRunItem {
+export interface IAPIRefCheckRun {
   readonly id: number
   readonly url: string
   readonly status: APICheckStatus
   readonly conclusion: APICheckConclusion | null
   readonly name: string
-  readonly output: IAPIRefCheckRunItemOutput
+  readonly output: IAPIRefCheckRunOutput
 }
 
 // NB. Only partially mapped
-export interface IAPIRefCheckRunItemOutput {
+export interface IAPIRefCheckRunOutput {
   readonly title: string | null
 }
 
 export interface IAPIRefCheckRuns {
   readonly total_count: number
-  readonly check_runs: IAPIRefCheckRunItem[]
+  readonly check_runs: IAPIRefCheckRun[]
 }
 
 /** Protected branch information returned by the GitHub API */
