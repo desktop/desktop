@@ -448,11 +448,13 @@ export function isIncompleteOrFailure(check: IRefCheck) {
  * Whether the check is incomplete (timed out, stale or cancelled)
  */
 export function isIncomplete(check: IRefCheck) {
-  switch (check.conclusion) {
-    case 'timed_out':
-    case 'stale':
-    case 'cancelled':
-      return check.status === 'completed'
+  if (check.status === 'completed') {
+    switch (check.conclusion) {
+      case 'timed_out':
+      case 'stale':
+      case 'cancelled':
+        return true
+    }
   }
 
   return false
@@ -460,10 +462,12 @@ export function isIncomplete(check: IRefCheck) {
 
 /** Whether the check has failed (failure or requires action) */
 export function isFailure(check: IRefCheck) {
-  switch (check.conclusion) {
-    case 'failure':
-    case 'action_required':
-      return check.status === 'completed'
+  if (check.status === 'completed') {
+    switch (check.conclusion) {
+      case 'failure':
+      case 'action_required':
+        return true
+    }
   }
 
   return false
@@ -471,11 +475,13 @@ export function isFailure(check: IRefCheck) {
 
 /** Whether the check can be considered successful (success, neutral or skipped) */
 export function isSuccess(check: IRefCheck) {
-  switch (check.conclusion) {
-    case 'success':
-    case 'neutral':
-    case 'skipped':
-      return check.status === 'completed'
+  if (check.status === 'completed') {
+    switch (check.conclusion) {
+      case 'success':
+      case 'neutral':
+      case 'skipped':
+        return true
+    }
   }
 
   return false
