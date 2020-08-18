@@ -13,6 +13,15 @@ import {
 } from '../api'
 import { IDisposable, Disposable } from 'event-kit'
 
+/**
+ * A Desktop-specific model closely related to a GitHub API Check Run.
+ *
+ * The RefCheck object abstracts the difference between the legacy
+ * Commit Status objects and the modern Check Runs and unifies them
+ * under one common interface. Since all commit statuses can be
+ * represented as Check Runs but not all Check Runs can be represented
+ * as statuses the model closely aligns with Check Runs.
+ */
 export interface IRefCheck {
   readonly name: string
   readonly description: string
@@ -20,6 +29,10 @@ export interface IRefCheck {
   readonly conclusion: APICheckConclusion | null
 }
 
+/**
+ * A combined view of all legacy commit statuses as well as
+ * check runs for a particular Git reference.
+ */
 export interface ICombinedRefCheck {
   readonly status: APICheckStatus
   readonly conclusion: APICheckConclusion | null
