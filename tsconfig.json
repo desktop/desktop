@@ -1,8 +1,10 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "esnext",
     "moduleResolution": "node",
     "target": "es2017",
+    "esModuleInterop": true,
+    "importHelpers": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     "noImplicitReturns": true,
@@ -12,7 +14,8 @@
     "jsx": "react",
     "strict": true,
     "noEmit": true,
-    "outDir": "./out"
+    "outDir": "./out",
+    "lib": ["ES2017", "DOM", "DOM.Iterable", "ES2018.Promise"]
   },
   "plugins": [
     {

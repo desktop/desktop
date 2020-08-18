@@ -9,8 +9,8 @@ import * as fs from 'fs'
 import * as Path from 'path'
 import * as cp from 'child_process'
 
-import xml2js = require('xml2js')
-import toCamelCase = require('to-camel-case')
+import xml2js from 'xml2js'
+import toCamelCase from 'to-camel-case'
 
 interface IXML2JSNode {
   path: {
@@ -31,7 +31,7 @@ const viewBoxRe = /0 0 (\d+) (\d+)/
 
 function readXml(xml: string): Promise<IXML2JSNode> {
   return new Promise((resolve, reject) => {
-    xml2js.parseString(xml, function(err, result: IXML2JSNode) {
+    xml2js.parseString(xml, function (err, result: IXML2JSNode) {
       if (err) {
         reject(err)
       } else {
@@ -93,7 +93,7 @@ generateIconData().then(result => {
     '\n  public constructor(public w: number, public h: number, public d: string) { }\n\n'
   )
 
-  result.forEach(function(symbol) {
+  result.forEach(function (symbol) {
     const { jsFriendlyName, pathData, width, height } = symbol
     out.write(
       `  public static get ${jsFriendlyName}() { return new OcticonSymbol(${width}, ${height}, '${pathData}') }\n`

@@ -1,5 +1,83 @@
 {
   "releases": {
+    "2.5.4-beta3": [
+      "[Added] Add Alacritty shell support - #10243. Thanks @halitogunc!"
+    ],
+    "2.5.4-beta2": [
+      "[Added] Suggest to stash changes when trying to do an operation that requires a clean working directory - #10053",
+      "[Fixed] Pull request list is now keyboard accessible - #10334",
+      "[Fixed] Correct branch name in commit button when on an unborn branch - #10318",
+      "[Fixed] Fix \"Show in Explorer\" in Windows when there are other files with the same name as the project folder - #10195",
+      "[Fixed] Open the repository folder when clicking on \"Show in Finder\" in macOS - #9987",
+      "[Fixed] Don't expand paths in the PATH environment variable during installation - #10100",
+      "[Fixed] Prevent multiple search inputs from appearing in diffs - #9563",
+      "[Fixed] Unable to toggle lines for partial commit of very large text files - #10154",
+      "[Improved] Surface progress estimation when cloning LFS repositories - #3171. Thanks @AndreiMaga!",
+      "[Improved] Performance and accuracy improvement when autocompleting issues and users - #10168",
+      "[Improved] Show only one error dialog when dragging multiple invalid folders to Desktop - #10211",
+      "[Improved] On Windows the Home and End keys can now be used to navigate lists - #6295. Thanks @AndreiMaga!",
+      "[Improved] Show progress spinner while waiting for a removed repository to get moved to trash (Windows) - #10133"
+    ],
+    "2.5.4-beta1": [
+      "[Fixed] Dialog now clears filters on esc and closes on double esc - #6369. Thanks @AndreiMaga!",
+      "[Fixed] Fix BBEdit integration - #9050. Thanks @grumpybozo!",
+      "[Fixed] Hide horizontal scroll when showing app errors - #10005",
+      "[Improved] Display the selected changes count in the changes list header tooltip - #9936. Thanks @haykam821!",
+      "[Improved] Autocompletion of users and issues from a fork - #10084"
+    ],
+    "2.5.3": [
+      "[Added] Stash changes without switching branches - #10032",
+      "[Added] Discard selection of lines from a file - #9728",
+      "[Fixed] Display more readable messages for errors when cloning a repository - #9944",
+      "[Fixed] Support launching Desktop from WSL on Windows - #4998. Thanks @shawnfunke!",
+      "[Fixed] Select correct branch to compare when two branches have similar names - #9977",
+      "[Fixed] Make Ctrl/Cmd+W shortcut work in all dialogs - #9826. Thanks @ruggi99!",
+      "[Fixed] Fix links when text wrapping is required in commit summaries - #9185",
+      "[Fixed] Prevent crash when an opened repository doesn't have an owner on GitHub - #9895",
+      "[Fixed] Sign in correctly when pressing \"Enter\" on the username/password authentication form - #9899",
+      "[Fixed] Maintain selected files when navigating back to the Changes tab - #7710. Thanks @TerryChan!",
+      "[Fixed] Maintain selected files when deleting a stash - #9921",
+      "[Improved] Remove redundant progress text from Git error messages - #9945",
+      "[Improved] Remove flicker when switching between files in the changes tab - #9929",
+      "[Improved] Remove space between the number and the percent sign when showing the progress of a clone operation - #9893",
+      "[Improved] Automatically disable username and password authentication when the API no longer supports it - #9231"
+    ],
+    "2.5.3-beta2": [
+      "[Added] Stash changes without switching branches - #10032",
+      "[Fixed] Support launching Desktop from WSL on Windows - #4998. Thanks @shawnfunke!",
+      "[Fixed] Set initial value of opt out checkbox in Discard line confirmation dialog to false - #9989",
+      "[Fixed] Select correct branch to compare when two branches have similar names - #9977",
+      "[Improved] Add detection to disable username and password authentication when the API is no longer available - #9231",
+      "[Improved] Remove redundant progress text from Git error messages - #9945"
+    ],
+    "2.5.3-beta1": [
+      "[Added] Discard selection of lines from a file - #9728",
+      "[Fixed] Display more readable messages for errors when cloning a repository - #9944",
+      "[Fixed] Make Ctrl/Cmd+W shortcut work in all dialogs - #9826. Thanks @ruggi99!",
+      "[Fixed] Fix links when text wrapping is required in commit summaries - #9185",
+      "[Fixed] Prevent crash when an opened repository doesn't have an owner on GitHub - #9895",
+      "[Fixed] Sign in correctly when pressing \"Enter\" on the username/password authentication form - #9899",
+      "[Fixed] Maintain selected files when navigating back to the Changes tab - #7710. Thanks @TerryChan!",
+      "[Fixed] Maintain selected files when deleting a stash - #9921",
+      "[Improved] Remove flicker when switching between files in the changes tab - #9929",
+      "[Improved] Remove space between the number and the percent sign when showing the progress of a clone operation - #9893"
+    ],
+    "2.5.2": [
+      "[Fixed] Enable setting to more easily work with maintained forks"
+    ],
+    "2.5.1": [
+      "[Added] Provide a setting to more easily work with maintained forks - #9679",
+      "[Added] Support deleting tags that have not been pushed - #9796",
+      "[Fixed] Checkout correct PR branch when using \"Open in GitHub Desktop\" from github.com - #9873",
+      "[Fixed] Support pressing \"Enter\" key to submit in Clone Repository dialog - #5234 #8804. Thanks @ruggi99!",
+      "[Fixed] Avoid errors in restoring a stash when a branch is also named \"stash\" - #9844",
+      "[Fixed] Avoid background network operations to calculate unpushed tags - #9793 #9828",
+      "[Fixed] Rework Ctrl+Tab to switch between Changes and History anytime the app has focus - #5911. Thanks @JMcKiern!",
+      "[Fixed] Center tags text vertically in History view - #9785",
+      "[Fixed] Prevent Git authentication errors from prompting to retry clone instead of presenting authentication dialog - #9777",
+      "[Improved] Make it safer to \"Open in Command Prompt\" on Windows - #9640. Thanks @dscho!",
+      "[Improved] Prevent list scrollbars on Windows from overlapping with content - #9786"
+    ],
     "2.5.1-beta2": [
       "[Added] Provide a setting to more easily work with maintained forks - #9679",
       "[Added] Offer ability to delete tags that haven't been pushed - #9796",

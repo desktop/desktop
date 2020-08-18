@@ -23,7 +23,6 @@ import {
 } from '../models/progress'
 import { Popup } from '../models/popup'
 
-import { IGitHubUser } from './databases/github-user-database'
 import { SignInState } from './stores/sign-in-store'
 
 import { WindowState } from './window-state'
@@ -363,13 +362,6 @@ export interface IRepositoryState {
 
   readonly rebaseState: IRebaseState
 
-  /**
-   * Mapping from lowercased email addresses to the associated GitHub user. Note
-   * that an email address may not have an associated GitHub user, or the user
-   * may still be loading.
-   */
-  readonly gitHubUsers: Map<string, IGitHubUser>
-
   /** The commits loaded, keyed by their full SHA. */
   readonly commitLookup: Map<string, Commit>
 
@@ -535,7 +527,7 @@ export type ChangesWorkingDirectorySelection = {
    * The ID of the selected files. The files themselves can be looked up in
    * the `workingDirectory` property in `IChangesState`.
    */
-  readonly selectedFileIDs: string[]
+  readonly selectedFileIDs: ReadonlyArray<string>
   readonly diff: IDiff | null
 }
 

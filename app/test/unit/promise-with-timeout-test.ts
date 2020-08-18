@@ -62,4 +62,10 @@ describe('promiseWithMinimumTimeout', () => {
 
     expect(result).toBe(42)
   })
+
+  it('handles actions returning null', async () => {
+    const promise = promiseWithMinimumTimeout(() => Promise.resolve(null), 500)
+    jest.advanceTimersByTime(500)
+    expect(await promise).toBe(null)
+  })
 })

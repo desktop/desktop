@@ -1,7 +1,6 @@
 import * as React from 'react'
-import { CSSTransitionGroup } from 'react-transition-group'
+import CSSTransitionGroup from 'react-transition-group/CSSTransitionGroup'
 
-import { IGitHubUser } from '../../lib/databases'
 import { Commit } from '../../models/commit'
 import {
   HistoryTabMode,
@@ -37,7 +36,6 @@ interface ICompareSidebarProps {
   readonly repository: Repository
   readonly isLocalRepository: boolean
   readonly compareState: ICompareState
-  readonly gitHubUsers: Map<string, IGitHubUser>
   readonly emoji: Map<string, string>
   readonly commitLookup: Map<string, Commit>
   readonly localCommitSHAs: ReadonlyArray<string>
@@ -274,7 +272,6 @@ export class CompareSidebar extends React.Component<
         commitLookup={this.props.commitLookup}
         commitSHAs={commitSHAs}
         selectedSHA={this.props.selectedCommitSha}
-        gitHubUsers={this.props.gitHubUsers}
         localCommitSHAs={this.props.localCommitSHAs}
         emoji={this.props.emoji}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
@@ -547,14 +544,6 @@ export class CompareSidebar extends React.Component<
     branch: Branch | null,
     source: SelectionSource
   ) => {
-    if (source.kind === 'mouseclick' && branch != null) {
-      this.props.dispatcher.executeCompare(this.props.repository, {
-        kind: HistoryTabMode.Compare,
-        comparisonMode: ComparisonMode.Behind,
-        branch,
-      })
-    }
-
     this.setState({
       focusedBranch: branch,
     })

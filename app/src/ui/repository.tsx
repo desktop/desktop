@@ -29,6 +29,7 @@ import { TutorialPanel, TutorialWelcome, TutorialDone } from './tutorial'
 import { enableNDDBBanner } from '../lib/feature-flag'
 import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { ExternalEditor } from '../lib/editors'
+import { openFile } from './lib/open-file'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -86,7 +87,6 @@ interface IRepositoryViewProps {
 }
 
 interface IRepositoryViewState {
-  readonly sidebarHasFocusWithin: boolean
   readonly changesListScrollTop: number
   readonly compareListScrollTop: number
 }
@@ -107,7 +107,6 @@ export class RepositoryView extends React.Component<
     super(props)
 
     this.state = {
-      sidebarHasFocusWithin: false,
       changesListScrollTop: 0,
       compareListScrollTop: 0,
     }
@@ -162,7 +161,14 @@ export class RepositoryView extends React.Component<
 
   private renderChangesSidebar(): JSX.Element {
     const tip = this.props.state.branchesState.tip
-    const branch = tip.kind === TipState.Valid ? tip.branch : null
+
+    let branchName: string | null = null
+
+    if (tip.kind === TipState.Valid) {
+      branchName = tip.branch.name
+    } else if (tip.kind === TipState.Unborn) {
+      branchName = tip.ref
+    }
 
     const localCommitSHAs = this.props.state.localCommitSHAs
     const mostRecentLocalCommitSHA =
@@ -186,9 +192,8 @@ export class RepositoryView extends React.Component<
         repository={this.props.repository}
         dispatcher={this.props.dispatcher}
         changes={this.props.state.changesState}
-        branch={branch ? branch.name : null}
+        branch={branchName}
         commitAuthor={this.props.state.commitAuthor}
-        gitHubUsers={this.props.state.gitHubUsers}
         emoji={this.props.emoji}
         mostRecentLocalCommit={mostRecentLocalCommit}
         issuesStore={this.props.issuesStore}
@@ -229,7 +234,6 @@ export class RepositoryView extends React.Component<
         compareState={this.props.state.compareState}
         selectedCommitSha={this.props.state.commitSelection.sha}
         currentBranch={currentBranch}
-        gitHubUsers={this.props.state.gitHubUsers}
         emoji={this.props.emoji}
         commitLookup={this.props.state.commitLookup}
         localCommitSHAs={this.props.state.localCommitSHAs}
@@ -282,9 +286,6 @@ export class RepositoryView extends React.Component<
   }
 
   private onSidebarFocusWithinChanged = (sidebarHasFocusWithin: boolean) => {
-    // this lets us know that focus is somewhere within the sidebar
-    this.setState({ sidebarHasFocusWithin })
-
     if (
       sidebarHasFocusWithin === false &&
       this.props.state.selectedSection === RepositorySectionTab.History
@@ -315,6 +316,8 @@ export class RepositoryView extends React.Component<
           repository={this.props.repository}
           dispatcher={this.props.dispatcher}
           isWorkingTreeClean={isWorkingTreeClean}
+          onOpenBinaryFile={this.onOpenBinaryFile}
+          onChangeImageDiffType={this.onChangeImageDiffType}
         />
       )
     }
@@ -342,11 +345,12 @@ export class RepositoryView extends React.Component<
         currentDiff={diff}
         emoji={this.props.emoji}
         commitSummaryWidth={this.props.commitSummaryWidth}
-        gitHubUsers={this.props.state.gitHubUsers}
         selectedDiffType={this.props.imageDiffType}
         externalEditorLabel={this.props.externalEditorLabel}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+        onOpenBinaryFile={this.onOpenBinaryFile}
+        onChangeImageDiffType={this.onChangeImageDiffType}
       />
     )
   }
@@ -396,7 +400,7 @@ export class RepositoryView extends React.Component<
         )
       }
     } else {
-      if (selectedFileIDs.length === 0 || diff === null) {
+      if (selectedFileIDs.length === 0) {
         return null
       }
 
@@ -415,9 +419,22 @@ export class RepositoryView extends React.Component<
           isCommitting={this.props.state.isCommitting}
           imageDiffType={this.props.imageDiffType}
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+          onOpenBinaryFile={this.onOpenBinaryFile}
+          onChangeImageDiffType={this.onChangeImageDiffType}
+          askForConfirmationOnDiscardChanges={
+            this.props.askForConfirmationOnDiscardChanges
+          }
         />
       )
     }
+  }
+
+  private onOpenBinaryFile = (fullPath: string) => {
+    openFile(fullPath, this.props.dispatcher)
+  }
+
+  private onChangeImageDiffType = (imageDiffType: ImageDiffType) => {
+    this.props.dispatcher.changeImageDiffType(imageDiffType)
   }
 
   private renderContent(): JSX.Element | null {

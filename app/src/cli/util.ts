@@ -1,4 +1,4 @@
-import stripAnsi = require('strip-ansi')
+import stripAnsi from 'strip-ansi'
 
 export type TypeName =
   | 'string'

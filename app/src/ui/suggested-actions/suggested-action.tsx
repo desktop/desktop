@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 import { Button } from '../lib/button'
 
 interface ISuggestedActionProps {
@@ -66,9 +66,7 @@ export class SuggestedAction extends React.Component<ISuggestedActionProps> {
     const primary = this.props.type === 'primary'
     const cn = classNames('suggested-action', { primary })
     const description =
-      this.props.description === undefined ? (
-        undefined
-      ) : (
+      this.props.description === undefined ? undefined : (
         <p className="description">{this.props.description}</p>
       )
     return (

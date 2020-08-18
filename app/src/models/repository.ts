@@ -89,6 +89,11 @@ export type RepositoryWithGitHubRepository = Repository & {
   readonly gitHubRepository: GitHubRepository
 }
 
+/**
+ * Identical to `Repository`, except it **must** have a `gitHubRepository`
+ * which in turn must have a parent. In other words this is a GitHub (.com
+ * or Enterprise Server) fork.
+ */
 export type RepositoryWithForkedGitHubRepository = Repository & {
   readonly gitHubRepository: ForkedGitHubRepository
 }
@@ -178,9 +183,12 @@ export function getNonForkGitHubRepository(
       return repository.gitHubRepository
     case ForkContributionTarget.Parent:
       return repository.gitHubRepository.parent
+    default:
+      return assertNever(
+        forkContributionTarget,
+        'Invalid fork contribution target'
+      )
   }
-
-  return assertNever(forkContributionTarget, 'Invalid fork contribution target')
 }
 
 /**

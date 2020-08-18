@@ -72,6 +72,7 @@
     padding: var(--spacing-half) var(--spacing);
     box-shadow: var(--base-box-shadow);
 
+    .CodeMirror-search-label,
     .CodeMirror-search-hint {
       display: none;
     }
@@ -617,6 +618,61 @@
   .cm-m-javascript {
     &.cm-type {
       color: var(--syntax-variable-color);
+    }
+  }
+}
+
+.seamless-diff-switcher {
+  display: flex;
+  flex-grow: 1;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+
+  .loading-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: none;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  // When loading a diff
+  &.loading {
+    // Get ready to fade out the diff if it takes too long to load it
+    & > * {
+      transition: opacity 100ms ease-in;
+    }
+
+    .loading-indicator {
+      display: block;
+    }
+
+    // When there's no previous diff (i.e. first time the component mounts)
+    // we'll show the loading indicator immediately
+    &:not(.has-diff) {
+      .loading-indicator {
+        display: block;
+        opacity: 1;
+      }
+    }
+
+    // When there is a previous diff available we'll wait for a little bit
+    // (defined in the component tsx) until we risk the user becoming aware
+    // of our little trick and noticing that the diff hasn't changed. When
+    // we hit that threshold we...
+    &.has-diff.slow {
+      // ...fade in the loading indicator...
+      & > .loading-indicator {
+        display: block;
+        opacity: 1;
+      }
+
+      // ...and fade everything else out
+      & > :not(.loading-indicator) {
+        opacity: 0.2;
+      }
     }
   }
 }
