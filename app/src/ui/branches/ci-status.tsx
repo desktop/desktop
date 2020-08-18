@@ -136,11 +136,13 @@ function getSymbolForCheck(check: ICombinedRefCheck): OcticonSymbol {
 function getClassNameForCheck(check: ICombinedRefCheck): string {
   switch (check.conclusion) {
     case 'timed_out':
+      return 'timed-out'
+    case 'action_required':
+      return 'action-required'
     case 'failure':
     case 'neutral':
     case 'success':
     case 'cancelled':
-    case 'action_required':
     case 'skipped':
     case 'stale':
       return check.conclusion
