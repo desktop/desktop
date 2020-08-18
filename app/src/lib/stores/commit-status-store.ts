@@ -321,7 +321,7 @@ export class CommitStatusStore {
     let status: APICheckStatus
     let conclusion: APICheckConclusion | null = null
 
-    if (checks.some(isPendingOrFailure)) {
+    if (checks.some(isIncompleteOrFailure)) {
       status = 'completed'
       conclusion = 'failure'
     } else if (checks.every(isSuccess)) {
@@ -434,7 +434,7 @@ function apiCheckRunToRefStatus(checkRun: IAPIRefCheckRun): IRefCheck {
   }
 }
 
-export function isPendingOrFailure(check: IRefCheck) {
+export function isIncompleteOrFailure(check: IRefCheck) {
   return isFailure(check) || isIncomplete(check)
 }
 
