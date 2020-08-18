@@ -387,6 +387,7 @@ function apiStatusToRefStatus(apiStatus: IAPIRefStatusItem): IRefCheck {
 
 function apiStatusStateToRefCheckState(state: APIRefState): RefCheckState {
   switch (state) {
+    case 'error':
     case 'failure':
       return 'failure'
     case 'pending':

@@ -252,7 +252,7 @@ export interface IAPIIssue {
 }
 
 /** The combined state of a ref. */
-export type APIRefState = 'failure' | 'pending' | 'success'
+export type APIRefState = 'failure' | 'pending' | 'success' | 'error'
 
 export type APICheckStatus = 'queued' | 'in_progress' | 'completed'
 
