@@ -51,7 +51,6 @@ export class BackgroundFetcher {
   public start(withInitialSkew: boolean) {
     if (this.stopped) {
       fatalError('Cannot start a background fetcher that has been stopped.')
-      return
     }
 
     const gitHubRepository = this.repository.gitHubRepository
@@ -152,7 +151,7 @@ let _skewInterval: number | null = null
  */
 function skewInterval(): number {
   if (_skewInterval !== null) {
-    return _skewInterval!
+    return _skewInterval
   }
 
   // We don't need cryptographically secure random numbers for

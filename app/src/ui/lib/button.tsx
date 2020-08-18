@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 
 export interface IButtonProps {
   /**
@@ -23,7 +23,7 @@ export interface IButtonProps {
   readonly disabled?: boolean
 
   /** Whether the button is a submit. */
-  readonly type?: 'submit'
+  readonly type?: 'submit' | 'reset' | 'button'
 
   /** CSS class names */
   readonly className?: string
@@ -143,7 +143,7 @@ export class Button extends React.Component<IButtonProps, {}> {
       this.props.onClick(event)
     }
 
-    if (this.props.type !== 'submit') {
+    if (this.props.type === undefined) {
       event.preventDefault()
     }
   }

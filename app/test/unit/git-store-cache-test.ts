@@ -1,23 +1,29 @@
 import { Repository } from '../../src/models/repository'
 import { GitStoreCache } from '../../src/lib/stores/git-store-cache'
 import { shell } from '../helpers/test-app-shell'
+import { StatsStore, StatsDatabase } from '../../src/lib/stats'
+import { UiActivityMonitor } from '../../src/ui/lib/ui-activity-monitor'
 
 describe('GitStoreCache', () => {
   let repository: Repository
+  let statsStore: StatsStore
 
   const onGitStoreUpdated = () => {}
-  const onDidLoadNewCommits = () => {}
   const onDidError = () => {}
 
   beforeEach(() => {
     repository = new Repository('/something/path', 1, null, false)
+    statsStore = new StatsStore(
+      new StatsDatabase('test-StatsDatabase'),
+      new UiActivityMonitor()
+    )
   })
 
   it('returns same instance of GitStore', () => {
     const cache = new GitStoreCache(
       shell,
+      statsStore,
       onGitStoreUpdated,
-      onDidLoadNewCommits,
       onDidError
     )
 
@@ -30,8 +36,8 @@ describe('GitStoreCache', () => {
   it('returns different instance of GitStore after removing', () => {
     const cache = new GitStoreCache(
       shell,
+      statsStore,
       onGitStoreUpdated,
-      onDidLoadNewCommits,
       onDidError
     )
 

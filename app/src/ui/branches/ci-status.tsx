@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { APIRefState, IAPIRefStatus } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 import { getRefStatusSummary } from './pull-request-status'
 import { GitHubRepository } from '../../models/github-repository'
 import { IDisposable } from 'event-kit'
@@ -119,7 +119,7 @@ function getSymbolForState(state: APIRefState): OcticonSymbol {
       return OcticonSymbol.x
     case 'success':
       return OcticonSymbol.check
+    default:
+      return assertNever(state, `Unknown state: ${state}`)
   }
-
-  return assertNever(state, `Unknown state: ${state}`)
 }

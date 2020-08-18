@@ -28,6 +28,10 @@ These shells are currently supported:
  - [PowerShell Core](https://github.com/powershell/powershell/)
  - [Hyper](https://hyper.sh/)
  - Git Bash (from [Git for Windows](https://git-for-windows.github.io/))
+ - [Cygwin](https://www.cygwin.com/)
+ - [WSL](https://docs.microsoft.com/en-us/windows/wsl/about) (beta)
+ - [Windows Terminal](https://github.com/microsoft/terminal)
+ - [Alacritty](https://github.com/alacritty/alacritty)
 
 These are defined in an enum at the top of the file:
 
@@ -38,6 +42,10 @@ export enum Shell {
   PowerShellCore = 'PowerShell Core',
   Hyper = 'Hyper',
   GitBash = 'Git Bash',
+  Cygwin = 'Cygwin',
+  WSL = 'WSL',
+  WindowTerminal = 'Windows Terminal',
+  Alacritty = 'Alacritty',
 }
 ```
 
@@ -101,7 +109,18 @@ This approximately reads as:
  - if it is, check the installation path exists
  - return the path to `git-bash.exe` within that directory
 
-### Step 2: Launch the shell
+### Step 2: Parse the shell
+
+The `parse()` function is used to parse shell names. You should add a new entry here for your
+shell.
+
+```ts
+if (label === Shell.GitBash) {
+  return Shell.GitBash
+}
+```
+
+### Step 3: Launch the shell
 
 The `launch()` function defines the arguments to pass to the shell, and each
 shell may require it's own set of command arguments. You will need to make
@@ -128,6 +147,7 @@ These shells are currently supported:
  - [iTerm2](https://www.iterm2.com/)
  - [PowerShell Core](https://github.com/powershell/powershell/)
  - [Kitty](https://sw.kovidgoyal.net/kitty/)
+ - [Alacritty](https://github.com/alacritty/alacritty)
 
 These are defined in an enum at the top of the file:
 
@@ -189,7 +209,18 @@ export async function getAvailableShells(): Promise<
 }
 ```
 
-### Step 2: Launch the shell
+### Step 2: Parse the shell
+
+The `parse()` function is used to parse shell names. You should add a new entry here for your
+shell.
+
+```ts
+if (label === Shell.Hyper) {
+  return Shell.Hyper
+}
+```
+
+### Step 3: Launch the shell
 
 The launch step will use the `open` command in macOS to launch a given bundle
 at the path requested by the user. You may not need to make changes here,

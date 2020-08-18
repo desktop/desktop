@@ -1,4 +1,28 @@
 #preferences {
+  .preferences-container {
+    display: flex;
+    .tab-container {
+      border-left: var(--base-border);
+      flex: 1;
+    }
+
+    .advanced-section {
+      &:not(:last-child) {
+        margin-bottom: var(--spacing-double);
+      }
+
+      .checkbox-component:not(:last-child) {
+        margin-bottom: var(--spacing-half);
+      }
+    }
+  }
+
+  .tab-bar {
+    .icon {
+      width: 16px;
+    }
+  }
+
   .accounts-tab {
     .account-info {
       .avatar {

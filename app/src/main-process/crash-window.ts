@@ -36,14 +36,8 @@ export class CrashWindow {
         // Disable auxclick event
         // See https://developers.google.com/web/updates/2016/10/auxclick
         disableBlinkFeatures: 'Auxclick',
-        // Explicitly disable experimental features for the crash process
-        // since, theoretically it might be these features that caused the
-        // the crash in the first place. As of writing we don't use any
-        // components that relies on experimental features in the crash
-        // process but our components which relies on ResizeObserver should
-        // be able to degrade gracefully.
-        experimentalFeatures: false,
         nodeIntegration: true,
+        spellcheck: false,
       },
     }
 
@@ -95,7 +89,7 @@ export class CrashWindow {
       }
     })
 
-    ipcMain.on('crash-ready', (event: Electron.IpcMessageEvent) => {
+    ipcMain.on('crash-ready', (event: Electron.IpcMainEvent) => {
       log.debug(`Crash process is ready`)
 
       this.hasSentReadyEvent = true
@@ -104,7 +98,7 @@ export class CrashWindow {
       this.maybeEmitDidLoad()
     })
 
-    ipcMain.on('crash-quit', (event: Electron.IpcMessageEvent) => {
+    ipcMain.on('crash-quit', (event: Electron.IpcMainEvent) => {
       log.debug('Got quit signal from crash process')
       this.window.close()
     })

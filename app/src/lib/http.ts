@@ -30,6 +30,9 @@ export class APIError extends Error {
   /** The error as sent from the API, if one could be parsed. */
   public readonly apiError: IAPIError | null
 
+  /** The HTTP response code that the error was delivered with */
+  public readonly responseStatus: number
+
   public constructor(response: Response, apiError: IAPIError | null) {
     let message
     if (apiError && apiError.message) {
@@ -41,13 +44,12 @@ export class APIError extends Error {
         message = `${message} (${additionalMessages})`
       }
     } else {
-      message = `API error ${response.url}: ${response.statusText} (${
-        response.status
-      })`
+      message = `API error ${response.url}: ${response.statusText} (${response.status})`
     }
 
     super(message)
 
+    this.responseStatus = response.status
     this.apiError = apiError
   }
 }
@@ -66,9 +68,7 @@ async function deserialize<T>(response: Response): Promise<T> {
     const contentLength = response.headers.get('Content-Length') || '(missing)'
     const requestId = response.headers.get('X-GitHub-Request-Id') || '(missing)'
     log.warn(
-      `deserialize: invalid JSON found at '${response.url}' - status: ${
-        response.status
-      }, length: '${contentLength}' id: '${requestId}'`,
+      `deserialize: invalid JSON found at '${response.url}' - status: ${response.status}, length: '${contentLength}' id: '${requestId}'`,
       e
     )
     throw e

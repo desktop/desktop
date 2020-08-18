@@ -1,18 +1,13 @@
 import * as React from 'react'
-import * as ReactCSSTransitionReplace from 'react-css-transition-replace'
 
 import { encodePathAsUrl } from '../../lib/path'
 import { Repository } from '../../models/repository'
 import { LinkButton } from '../lib/link-button'
-import {
-  enableNoChangesCreatePRBlankslateAction,
-  enableStashing,
-} from '../../lib/feature-flag'
 import { MenuIDs } from '../../models/menu-ids'
 import { IMenu, MenuItem } from '../../models/app-menu'
 import memoizeOne from 'memoize-one'
 import { getPlatformSpecificNameOrSymbolForModifier } from '../../lib/menu-item'
-import { MenuBackedBlankslateAction } from './menu-backed-blankslate-action'
+import { MenuBackedSuggestedAction } from '../suggested-actions'
 import { executeMenuItemById } from '../main-process-proxy'
 import { IRepositoryState } from '../../lib/app-state'
 import { TipState, IValidBranch } from '../../models/tip'
@@ -22,10 +17,16 @@ import { IRemote } from '../../models/remote'
 import { isCurrentBranchForcePush } from '../../lib/rebase'
 import { StashedChangesLoadStates } from '../../models/stash-entry'
 import { Dispatcher } from '../dispatcher'
+import { SuggestedActionGroup } from '../suggested-actions'
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
-    return text.replace('&', '')
+    // Ampersand has a special meaning on Windows where it denotes
+    // the access key (usually rendered as an underline on the following)
+    // character. A literal ampersand is escaped by putting another ampersand
+    // in front of it (&&). Here we strip single ampersands and unescape
+    // double ampersands. Example: "&Push && Pull" becomes "Push & Pull".
+    return text.replace(/&?&/g, m => (m.length > 1 ? '&' : ''))
   }
 
   return text
@@ -228,7 +229,7 @@ export class NoChanges extends React.Component<
     }
 
     return (
-      <MenuBackedBlankslateAction
+      <MenuBackedSuggestedAction
         title={title}
         description={description}
         discoverabilityContent={this.renderDiscoverabilityElements(menuItem)}
@@ -319,7 +320,12 @@ export class NoChanges extends React.Component<
     this.props.dispatcher.recordSuggestedStepOpenInExternalEditor()
 
   private renderRemoteAction() {
-    const { remote, aheadBehind, branchesState } = this.props.repositoryState
+    const {
+      remote,
+      aheadBehind,
+      branchesState,
+      tagsToPush,
+    } = this.props.repositoryState
     const { tip, defaultBranch, currentPullRequest } = branchesState
 
     if (tip.kind !== TipState.Valid) {
@@ -347,29 +353,26 @@ export class NoChanges extends React.Component<
       return this.renderPullBranchAction(tip, remote, aheadBehind)
     }
 
-    if (aheadBehind.ahead > 0) {
-      return this.renderPushBranchAction(tip, remote, aheadBehind)
+    if (
+      aheadBehind.ahead > 0 ||
+      (tagsToPush !== null && tagsToPush.length > 0)
+    ) {
+      return this.renderPushBranchAction(tip, remote, aheadBehind, tagsToPush)
     }
 
-    if (enableNoChangesCreatePRBlankslateAction()) {
-      const isGitHub = this.props.repository.gitHubRepository !== null
-      const hasOpenPullRequest = currentPullRequest !== null
-      const isDefaultBranch =
-        defaultBranch !== null && tip.branch.name === defaultBranch.name
+    const isGitHub = this.props.repository.gitHubRepository !== null
+    const hasOpenPullRequest = currentPullRequest !== null
+    const isDefaultBranch =
+      defaultBranch !== null && tip.branch.name === defaultBranch.name
 
-      if (isGitHub && !hasOpenPullRequest && !isDefaultBranch) {
-        return this.renderCreatePullRequestAction(tip)
-      }
+    if (isGitHub && !hasOpenPullRequest && !isDefaultBranch) {
+      return this.renderCreatePullRequestAction(tip)
     }
 
     return null
   }
 
   private renderViewStashAction() {
-    if (!enableStashing()) {
-      return null
-    }
-
     const { changesState, branchesState } = this.props.repositoryState
 
     const { tip } = branchesState
@@ -407,7 +410,7 @@ export class NoChanges extends React.Component<
     }
 
     return (
-      <MenuBackedBlankslateAction
+      <MenuBackedSuggestedAction
         key="view-stash-action"
         title="View your stashed changes"
         menuItemId={itemId}
@@ -445,7 +448,7 @@ export class NoChanges extends React.Component<
     )
 
     return (
-      <MenuBackedBlankslateAction
+      <MenuBackedSuggestedAction
         key="publish-repository-action"
         title="Publish your repository to GitHub"
         description="This repository is currently only available on your local machine. By publishing it on GitHub you can share it, and collaborate with others."
@@ -494,7 +497,7 @@ export class NoChanges extends React.Component<
     )
 
     return (
-      <MenuBackedBlankslateAction
+      <MenuBackedSuggestedAction
         key="publish-branch-action"
         title="Publish your branch"
         menuItemId={itemId}
@@ -550,7 +553,7 @@ export class NoChanges extends React.Component<
     const buttonText = `Pull ${remote.name}`
 
     return (
-      <MenuBackedBlankslateAction
+      <MenuBackedSuggestedAction
         key="pull-branch-action"
         title={title}
         menuItemId={itemId}
@@ -566,7 +569,8 @@ export class NoChanges extends React.Component<
   private renderPushBranchAction(
     tip: IValidBranch,
     remote: IRemote,
-    aheadBehind: IAheadBehind
+    aheadBehind: IAheadBehind,
+    tagsToPush: ReadonlyArray<string> | null
   ) {
     const itemId: MenuIDs = 'push'
     const menuItem = this.getMenuItemInfo(itemId)
@@ -578,13 +582,28 @@ export class NoChanges extends React.Component<
 
     const isGitHub = this.props.repository.gitHubRepository !== null
 
-    const description = (
-      <>
-        You have{' '}
-        {aheadBehind.ahead === 1 ? 'one local commit' : 'local commits'} waiting
-        to be pushed to {isGitHub ? 'GitHub' : 'the remote'}.
-      </>
-    )
+    const itemsToPushTypes = []
+    const itemsToPushDescriptions = []
+
+    if (aheadBehind.ahead > 0) {
+      itemsToPushTypes.push('commits')
+      itemsToPushDescriptions.push(
+        aheadBehind.ahead === 1
+          ? '1 local commit'
+          : `${aheadBehind.ahead} local commits`
+      )
+    }
+
+    if (tagsToPush !== null && tagsToPush.length > 0) {
+      itemsToPushTypes.push('tags')
+      itemsToPushDescriptions.push(
+        tagsToPush.length === 1 ? '1 tag' : `${tagsToPush.length} tags`
+      )
+    }
+
+    const description = `You have ${itemsToPushDescriptions.join(
+      ' and '
+    )} waiting to be pushed to ${isGitHub ? 'GitHub' : 'the remote'}.`
 
     const discoverabilityContent = (
       <>
@@ -593,14 +612,14 @@ export class NoChanges extends React.Component<
       </>
     )
 
-    const title = `Push ${aheadBehind.ahead} ${
-      aheadBehind.ahead === 1 ? 'commit' : 'commits'
-    } to the ${remote.name} remote`
+    const title = `Push ${itemsToPushTypes.join(' and ')} to the ${
+      remote.name
+    } remote`
 
     const buttonText = `Push ${remote.name}`
 
     return (
-      <MenuBackedBlankslateAction
+      <MenuBackedSuggestedAction
         key="push-branch-action"
         title={title}
         menuItemId={itemId}
@@ -634,7 +653,7 @@ export class NoChanges extends React.Component<
     const buttonText = `Create Pull Request`
 
     return (
-      <MenuBackedBlankslateAction
+      <MenuBackedSuggestedAction
         key="create-pr-action"
         title={title}
         menuItemId={itemId}
@@ -654,24 +673,18 @@ export class NoChanges extends React.Component<
   private renderActions() {
     return (
       <>
-        <ReactCSSTransitionReplace
-          transitionAppear={false}
-          transitionEnter={this.state.enableTransitions}
-          transitionLeave={this.state.enableTransitions}
-          overflowHidden={false}
-          transitionName="action"
-          component="div"
-          className="actions primary"
-          transitionEnterTimeout={750}
-          transitionLeaveTimeout={500}
+        <SuggestedActionGroup
+          type="primary"
+          transitions={'replace'}
+          enableTransitions={this.state.enableTransitions}
         >
           {this.renderViewStashAction() || this.renderRemoteAction()}
-        </ReactCSSTransitionReplace>
-        <div className="actions">
+        </SuggestedActionGroup>
+        <SuggestedActionGroup>
           {this.renderOpenInExternalEditor()}
           {this.renderShowInFileManager()}
           {this.renderViewOnGitHub()}
-        </div>
+        </SuggestedActionGroup>
       </>
     )
   }

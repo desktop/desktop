@@ -5,10 +5,12 @@ a consistent process for contributions from the core team and the community.
 
 ## The Review Process
 
-1. **Contributor** opens pull request.
-1. When it's ready for review, add a comment to the pull request.
+1. **Contributor** opens a pull request. If the pull request is still in progress
+   it should be created in draft mode.
+1. When a pull request in progress is ready, the **contributor** should mark it
+   as ready for review.
 1. A member of the reviewer team will give it a quick look over and
-   add the `ready-for-review` label and add to [PR Priority Project board](https://github.com/desktop/desktop/projects/21) and any relevant release board.
+   add the `ready-for-review` label and add it to any relevant release board.
 1. A **reviewer** with bandwidth will appear.
 1. **Reviewer** assigns the PR to themselves.
 1. **Reviewer** leaves line comments with suggestions or questions.

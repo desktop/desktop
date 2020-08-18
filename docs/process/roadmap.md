@@ -2,24 +2,28 @@
 
 The following are the larger areas of upcoming work the GitHub Desktop team intends to explore. This is not inclusive of everything we're working on, and it's not written in stone. We'll continue to update it as our priorities evolve.
 
-#### New user tutorial to get started more easily doing a full workflow in GitHub Desktop
+#### Add and view Tags in Desktop
 
-- Tutorial entry point: [#8148](https://github.com/desktop/desktop/issues/8148)
-- GitHub workflow tutorial using GitHub Desktop: [#8149](https://github.com/desktop/desktop/issues/8149)
+- Allow people to add tags to commits and view tags in history: [#4829](https://github.com/desktop/desktop/issues/4829)
 
-#### Branch protection on your desktop
+## Shipped in previous releases
 
-- Help prevent people from making commits to branches they aren't able to push to: [#7023](https://github.com/desktop/desktop/issues/7023)
-
-#### Rebase conflict detection
-
-- Warn users if there will be conflicts prior to starting a rebase: [#6960](https://github.com/desktop/desktop/issues/6960)
-
-#### Users behind corporate proxies cannot clone repositories in Desktop without manual setup
+#### Users behind corporate proxies cannot clone repositories in Desktop without manual setup (2.4)
 
 - Help people get set up correctly if they're behind a proxy: [#2789](https://github.com/desktop/desktop/issues/2789)
 
-## Shipped in previous releases
+#### Creating a fork using GitHub Desktop (2.3)
+
+- Helps provide a pathway to create a fork when people are trying to contribute to a repository they don't have write access to: [#8548](https://github.com/desktop/desktop/issues/8548)
+
+#### Branch protection on your desktop (2.2.4)
+
+- Help prevent people from making commits to branches they aren't able to push to: [#7023](https://github.com/desktop/desktop/issues/7023)
+
+#### New user tutorial to get started more easily doing a full workflow in GitHub Desktop (2.2)
+
+- Tutorial entry point: [#8148](https://github.com/desktop/desktop/issues/8148)
+- GitHub workflow tutorial using GitHub Desktop: [#8149](https://github.com/desktop/desktop/issues/8149)
 
 #### Branch list grows with merged & deleted branches making it difficult to find those you care about (2.1)
 

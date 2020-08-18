@@ -22,6 +22,11 @@ export function getSha() {
     return pullRequestCommitId
   }
 
+  const gitHubSha = process.env.GITHUB_SHA
+  if (isGitHubActions() && gitHubSha !== undefined && gitHubSha.length > 0) {
+    return gitHubSha
+  }
+
   throw new Error(
     `Unable to get the SHA for the current platform. Check the documentation for the expected environment variables.`
   )
@@ -58,6 +63,14 @@ export function isRunningOnFork() {
     return true
   }
 
+  if (
+    isGitHubActions() &&
+    process.env.GITHUB_HEAD_REF !== undefined &&
+    process.env.GITHUB_HEAD_REF.length > 0
+  ) {
+    return true
+  }
+
   return false
 }
 
@@ -80,7 +93,16 @@ export function isAzurePipelines() {
   )
 }
 
+export function isGitHubActions() {
+  return process.env.GITHUB_ACTIONS === 'true'
+}
+
 export function getReleaseBranchName(): string {
+  // GitHub Actions
+  if (process.env.GITHUB_REF !== undefined) {
+    return process.env.GITHUB_REF.replace(/^refs\/heads\//, '')
+  }
+
   return (
     process.env.CIRCLE_BRANCH || // macOS
     process.env.APPVEYOR_REPO_BRANCH || // Windows

@@ -8,7 +8,7 @@ describe('git/log', () => {
   let repository: Repository
 
   beforeEach(async () => {
-    const testRepoPath = await setupFixtureRepository('test-repo')
+    const testRepoPath = await setupFixtureRepository('test-repo-with-tags')
     repository = new Repository(testRepoPath, -1, null, false)
   })
 
@@ -44,6 +44,18 @@ describe('git/log', () => {
       expect(commits).toHaveLength(1)
       expect(commits[0].sha).toBe('415e4987158c49c383ce7114e0ef00ebf4b070c1')
       expect(commits[0].shortSha).toBe('415e498')
+    })
+
+    it('parses tags', async () => {
+      const commits = await getCommits(repository, 'HEAD', 100)
+      expect(commits).toBeArrayOfSize(5)
+
+      expect(commits[0].tags).toIncludeSameMembers(['important'])
+      expect(commits[1].tags).toIncludeSameMembers([
+        'tentative',
+        'less-important',
+      ])
+      expect(commits[2].tags).toBeArrayOfSize(0)
     })
   })
 

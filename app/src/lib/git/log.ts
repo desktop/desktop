@@ -13,6 +13,7 @@ import {
   getTrailerSeparatorCharacters,
   parseRawUnfoldedTrailers,
 } from './interpret-trailers'
+import { getCaptures } from '../helpers/regex'
 
 /**
  * Map the raw status text from Git to an app-friendly value
@@ -79,6 +80,7 @@ export async function getCommits(
     '%cn <%ce> %cd',
     '%P', // parent SHAs,
     '%(trailers:unfold,only)',
+    '%D', // refs
   ].join(`%x${delimiter}`)
 
   const result = await git(
@@ -127,17 +129,19 @@ export async function getCommits(
 
     const parentSHAs = shaList.length ? shaList.split(' ') : []
     const trailers = parseRawUnfoldedTrailers(pieces[7], trailerSeparators)
-
+    const tags = getCaptures(pieces[8], /tag: ([^\s,]+)/g)
+      .filter(i => i[0] !== undefined)
+      .map(i => i[0])
     const author = CommitIdentity.parseIdentity(authorIdentity)
 
     if (!author) {
-      throw new Error(`Couldn't parse author identity ${authorIdentity}`)
+      throw new Error(`Couldn't parse author identity for '${shortSha}'`)
     }
 
     const committer = CommitIdentity.parseIdentity(committerIdentity)
 
     if (!committer) {
-      throw new Error(`Couldn't parse committer identity ${committerIdentity}`)
+      throw new Error(`Couldn't parse committer identity for '${shortSha}'`)
     }
 
     return new Commit(
@@ -148,7 +152,8 @@ export async function getCommits(
       author,
       committer,
       parentSHAs,
-      trailers
+      trailers,
+      tags
     )
   })
 

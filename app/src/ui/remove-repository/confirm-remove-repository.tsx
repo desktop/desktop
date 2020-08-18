@@ -1,11 +1,10 @@
 import * as React from 'react'
-import { ButtonGroup } from '../lib/button-group'
-import { Button } from '../lib/button'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Ref } from '../lib/ref'
 import { Repository } from '../../models/repository'
 import { TrashNameLabel } from '../lib/context-menu'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IConfirmRemoveRepositoryProps {
   /** The repository to be removed */
@@ -15,7 +14,7 @@ interface IConfirmRemoveRepositoryProps {
   readonly onConfirmation: (
     repo: Repository,
     deleteRepoFromDisk: boolean
-  ) => void
+  ) => Promise<void>
 
   /** The action to execute when the user cancels */
   readonly onDismissed: () => void
@@ -39,14 +38,10 @@ export class ConfirmRemoveRepository extends React.Component<
     }
   }
 
-  private cancel = () => {
-    this.props.onDismissed()
-  }
-
-  private onConfirmed = () => {
+  private onSubmit = async () => {
     this.setState({ isRemovingRepository: true })
 
-    this.props.onConfirmation(
+    await this.props.onConfirmation(
       this.props.repository,
       this.state.deleteRepoFromDisk
     )
@@ -65,8 +60,9 @@ export class ConfirmRemoveRepository extends React.Component<
         title={__DARWIN__ ? 'Remove Repository' : 'Remove repository'}
         dismissable={isRemovingRepository ? false : true}
         loading={isRemovingRepository}
-        onDismissed={this.cancel}
-        onSubmit={this.cancel}
+        disabled={isRemovingRepository}
+        onDismissed={this.props.onDismissed}
+        onSubmit={this.onSubmit}
       >
         <DialogContent>
           <p>
@@ -93,14 +89,7 @@ export class ConfirmRemoveRepository extends React.Component<
           </div>
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup destructive={true}>
-            <Button disabled={isRemovingRepository} type="submit">
-              Cancel
-            </Button>
-            <Button onClick={this.onConfirmed} disabled={isRemovingRepository}>
-              Remove
-            </Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup destructive={true} okButtonText="Remove" />
         </DialogFooter>
       </Dialog>
     )

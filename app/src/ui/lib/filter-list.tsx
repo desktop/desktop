@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as classnames from 'classnames'
+import classnames from 'classnames'
 
 import {
   List,
@@ -145,6 +145,9 @@ interface IFilterListProps<T extends IFilterListItem> {
    * Callback to fire when the items in the filter list are updated
    */
   readonly onFilterListResultsChanged?: (resultCount: number) => void
+
+  /** Placeholder text for text box. Default is "Filter". */
+  readonly placeholderText?: string
 }
 
 interface IFilterListState<T extends IFilterListItem> {
@@ -241,7 +244,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
         ref={this.onTextBoxRef}
         type="search"
         autoFocus={true}
-        placeholder="Filter"
+        placeholder={this.props.placeholderText || 'Filter'}
         className="filter-list-filter-field"
         onValueChanged={this.onFilterValueChanged}
         onKeyDown={this.onKeyDown}

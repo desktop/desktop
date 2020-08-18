@@ -16,7 +16,7 @@ import { fatalError } from '../lib/fatal-error'
 import { IMenuItemState } from '../lib/menu-update'
 import { LogLevel } from '../lib/logging/log-level'
 import { log as writeLog } from './log'
-import { openDirectorySafe } from './shell'
+import { UNSAFE_openDirectory } from './shell'
 import { reportError } from './exception-reporting'
 import {
   enableSourceMaps,
@@ -24,8 +24,25 @@ import {
 } from '../lib/source-map-support'
 import { now } from './now'
 import { showUncaughtException } from './show-uncaught-exception'
-import { IMenuItem } from '../lib/menu-item'
+import { ISerializableMenuItem } from '../lib/menu-item'
 import { buildContextMenu } from './menu/build-context-menu'
+import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
+import { stat } from 'fs-extra'
+import { isApplicationBundle } from '../lib/is-application-bundle'
+
+app.setAppLogsPath()
+
+/**
+ * While testing Electron 9 on Windows we were seeing fairly
+ * consistent hangs that seem similar to the following issues
+ *
+ * https://github.com/electron/electron/issues/24173
+ * https://github.com/electron/electron/issues/23910
+ * https://github.com/electron/electron/issues/24338
+ *
+ * TODO: Try removing when upgrading to Electron vNext
+ */
+app.allowRendererProcessReuse = false
 
 enableSourceMaps()
 
@@ -88,6 +105,16 @@ if (__DARWIN__) {
 } else if (__WIN32__) {
   possibleProtocols.add('github-windows')
 }
+
+app.on('window-all-closed', () => {
+  // If we don't subscribe to this event and all windows are closed, the default
+  // behavior is to quit the app. We don't want that though, we control that
+  // behavior through the mainWindow onClose event such that on macOS we only
+  // hide the main window when a user attempts to close it.
+  //
+  // If we don't subscribe to this and change the default behavior we break
+  // the crash process window which is shown after the main window is closed.
+})
 
 process.on('uncaughtException', (error: Error) => {
   error = withSourceMappedStack(error)
@@ -214,9 +241,15 @@ function handlePossibleProtocolLauncherArgs(args: ReadonlyArray<string>) {
     // malformed or untrusted url then we bail out.
 
     const matchingUrls = args.filter(arg => {
-      const url = URL.parse(arg)
-      // i think this `slice` is just removing a trailing `:`
-      return url.protocol && possibleProtocols.has(url.protocol.slice(0, -1))
+      // sometimes `URL.parse` throws an error
+      try {
+        const url = URL.parse(arg)
+        // i think this `slice` is just removing a trailing `:`
+        return url.protocol && possibleProtocols.has(url.protocol.slice(0, -1))
+      } catch (e) {
+        log.error(`Unable to parse argument as URL: ${arg}`)
+        return false
+      }
     })
 
     if (args.includes(protocolLauncherArg) && matchingUrls.length === 1) {
@@ -272,7 +305,7 @@ app.on('ready', () => {
 
   ipcMain.on(
     'update-preferred-app-menu-item-labels',
-    (event: Electron.IpcMessageEvent, labels: MenuLabelsEvent) => {
+    (event: Electron.IpcMainEvent, labels: MenuLabelsEvent) => {
       // The current application menu is mutable and we frequently
       // change whether particular items are enabled or not through
       // the update-menu-state IPC event. This menu that we're creating
@@ -345,7 +378,7 @@ app.on('ready', () => {
     }
   )
 
-  ipcMain.on('menu-event', (event: Electron.IpcMessageEvent, args: any[]) => {
+  ipcMain.on('menu-event', (event: Electron.IpcMainEvent, args: any[]) => {
     const { name }: { name: MenuEvent } = event as any
     if (mainWindow) {
       mainWindow.sendMenuEvent(name)
@@ -358,7 +391,7 @@ app.on('ready', () => {
    */
   ipcMain.on(
     'execute-menu-item',
-    (event: Electron.IpcMessageEvent, { id }: { id: string }) => {
+    (event: Electron.IpcMainEvent, { id }: { id: string }) => {
       const currentMenu = Menu.getApplicationMenu()
 
       if (currentMenu === null) {
@@ -367,7 +400,7 @@ app.on('ready', () => {
 
       const menuItem = currentMenu.getMenuItemById(id)
       if (menuItem) {
-        const window = BrowserWindow.fromWebContents(event.sender)
+        const window = BrowserWindow.fromWebContents(event.sender) || undefined
         const fakeEvent = { preventDefault: () => {}, sender: event.sender }
         menuItem.click(fakeEvent, window, event.sender)
       }
@@ -377,7 +410,7 @@ app.on('ready', () => {
   ipcMain.on(
     'update-menu-state',
     (
-      event: Electron.IpcMessageEvent,
+      event: Electron.IpcMainEvent,
       items: Array<{ id: string; state: IMenuItemState }>
     ) => {
       let sendMenuChangedEvent = false
@@ -417,15 +450,25 @@ app.on('ready', () => {
     }
   )
 
-  ipcMain.on(
+  /**
+   * Handle the action to show a contextual menu.
+   *
+   * It responds an array of indices that maps to the path to reach
+   * the menu (or submenu) item that was clicked or null if the menu
+   * was closed without clicking on any item.
+   */
+  ipcMain.handle(
     'show-contextual-menu',
-    (event: Electron.IpcMessageEvent, items: ReadonlyArray<IMenuItem>) => {
-      const menu = buildContextMenu(items, ix =>
-        event.sender.send('contextual-menu-action', ix)
-      )
+    (
+      event: Electron.IpcMainInvokeEvent,
+      items: ReadonlyArray<ISerializableMenuItem>
+    ): Promise<ReadonlyArray<number> | null> => {
+      return new Promise(resolve => {
+        const menu = buildContextMenu(items, indices => resolve(indices))
+        const window = BrowserWindow.fromWebContents(event.sender) || undefined
 
-      const window = BrowserWindow.fromWebContents(event.sender)
-      menu.popup({ window })
+        menu.popup({ window, callback: () => resolve(null) })
+      })
     }
   )
 
@@ -442,7 +485,7 @@ app.on('ready', () => {
   ipcMain.on(
     'show-certificate-trust-dialog',
     (
-      event: Electron.IpcMessageEvent,
+      event: Electron.IpcMainEvent,
       {
         certificate,
         message,
@@ -459,14 +502,14 @@ app.on('ready', () => {
 
   ipcMain.on(
     'log',
-    (event: Electron.IpcMessageEvent, level: LogLevel, message: string) => {
+    (event: Electron.IpcMainEvent, level: LogLevel, message: string) => {
       writeLog(level, message)
     }
   )
 
   ipcMain.on(
     'uncaught-exception',
-    (event: Electron.IpcMessageEvent, error: Error) => {
+    (event: Electron.IpcMainEvent, error: Error) => {
       handleUncaughtException(error)
     }
   )
@@ -474,19 +517,27 @@ app.on('ready', () => {
   ipcMain.on(
     'send-error-report',
     (
-      event: Electron.IpcMessageEvent,
-      { error, extra }: { error: Error; extra: { [key: string]: string } }
+      event: Electron.IpcMainEvent,
+      {
+        error,
+        extra,
+        nonFatal,
+      }: { error: Error; extra: { [key: string]: string }; nonFatal?: boolean }
     ) => {
-      reportError(error, {
-        ...getExtraErrorContext(),
-        ...extra,
-      })
+      reportError(
+        error,
+        {
+          ...getExtraErrorContext(),
+          ...extra,
+        },
+        nonFatal
+      )
     }
   )
 
   ipcMain.on(
     'open-external',
-    async (event: Electron.IpcMessageEvent, { path }: { path: string }) => {
+    async (event: Electron.IpcMainEvent, { path }: { path: string }) => {
       const pathLowerCase = path.toLowerCase()
       if (
         pathLowerCase.startsWith('http://') ||
@@ -509,19 +560,65 @@ app.on('ready', () => {
 
   ipcMain.on(
     'show-item-in-folder',
-    (event: Electron.IpcMessageEvent, { path }: { path: string }) => {
-      Fs.stat(path, (err, stats) => {
+    (event: Electron.IpcMainEvent, { path }: { path: string }) => {
+      Fs.stat(path, err => {
         if (err) {
           log.error(`Unable to find file at '${path}'`, err)
           return
         }
-
-        if (!__DARWIN__ && stats.isDirectory()) {
-          openDirectorySafe(path)
-        } else {
-          shell.showItemInFolder(path)
-        }
+        shell.showItemInFolder(path)
       })
+    }
+  )
+
+  ipcMain.on(
+    'show-folder-contents',
+    async (event: Electron.IpcMainEvent, { path }: { path: string }) => {
+      const stats = await stat(path).catch(err => {
+        log.error(`Unable to retrieve file information for ${path}`, err)
+        return null
+      })
+
+      if (!stats) {
+        return
+      }
+
+      if (!stats.isDirectory()) {
+        log.error(
+          `Trying to get the folder contents of a non-folder at '${path}'`
+        )
+        shell.showItemInFolder(path)
+        return
+      }
+
+      // On Windows and Linux we can count on a directory being just a
+      // directory.
+      if (!__DARWIN__) {
+        UNSAFE_openDirectory(path)
+        return
+      }
+
+      // On macOS a directory might also be an app bundle and if it is
+      // and we attempt to open it we're gonna execute that app which
+      // it far from ideal so we'll look up the metadata for the path
+      // and attempt to determine whether it's an app bundle or not.
+      //
+      // If we fail loading the metadata we'll assume it's an app bundle
+      // out of an abundance of caution.
+      const isBundle = await isApplicationBundle(path).catch(err => {
+        log.error(`Failed to load metadata for path '${path}'`, err)
+        return true
+      })
+
+      if (isBundle) {
+        log.info(
+          `Preventing direct open of path '${path}' as it appears to be an application bundle`
+        )
+
+        shell.showItemInFolder(path)
+      } else {
+        UNSAFE_openDirectory(path)
+      }
     }
   )
 })
@@ -536,7 +633,17 @@ app.on('web-contents-created', (event, contents) => {
   contents.on('new-window', (event, url) => {
     // Prevent links or window.open from opening new windows
     event.preventDefault()
-    log.warn(`Prevented new window to: ${url}`)
+    const errMsg = `Prevented new window to: ${url}`
+    log.warn(errMsg)
+    sendNonFatalException('newWindowPrevented', Error(errMsg))
+  })
+  // prevent link navigation within our windows
+  // see https://www.electronjs.org/docs/tutorial/security#12-disable-or-limit-navigation
+  contents.on('will-navigate', (event, url) => {
+    event.preventDefault()
+    const errMsg = `Prevented navigation to: ${url}`
+    log.warn(errMsg)
+    sendNonFatalException('willNavigatePrevented', Error(errMsg))
   })
 })
 
@@ -558,7 +665,6 @@ function createWindow() {
     const {
       default: installExtension,
       REACT_DEVELOPER_TOOLS,
-      REACT_PERF,
     } = require('electron-devtools-installer')
 
     require('electron-debug')({ showDevTools: true })
@@ -568,7 +674,7 @@ function createWindow() {
       electron: '>=1.2.1',
     }
 
-    const extensions = [REACT_DEVELOPER_TOOLS, REACT_PERF, ChromeLens]
+    const extensions = [REACT_DEVELOPER_TOOLS, ChromeLens]
 
     for (const extension of extensions) {
       try {

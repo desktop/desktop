@@ -12,6 +12,8 @@
 @import 'dialogs/stash-changes';
 @import 'dialogs/commit-conflicts-warning';
 @import 'dialogs/create-tutorial-repository';
+@import 'dialogs/create-fork';
+@import 'dialogs/fork-settings';
 
 // The styles herein attempt to follow a flow where margins are only applied
 // to the bottom of elements (with the exception of the last child). This to
@@ -316,13 +318,15 @@ dialog {
   &#app-error {
     .dialog-content {
       p {
-        -webkit-user-select: auto;
-        user-select: auto;
-        cursor: text;
+        -webkit-user-select: text;
+        user-select: text;
+        cursor: auto;
 
         // Preserve newlines and other white space in error messages
         // but make sure we wrap if necessary.
         white-space: pre-wrap;
+        overflow-wrap: break-word;
+        overflow-x: hidden;
 
         &.monospace {
           font-family: var(--font-family-monospace);
@@ -335,7 +339,7 @@ dialog {
   }
 
   &#preferences {
-    width: 450px;
+    width: 600px;
   }
   &#about {
     width: 450px;
@@ -355,6 +359,9 @@ dialog {
   &#generic-git-auth {
     width: 450px;
   }
+  &#create-tag {
+    width: 400px;
+  }
 
   &#confirm-remove-repository {
     width: 450px;
@@ -371,6 +378,10 @@ dialog {
     .sign-in-with-browser {
       display: block;
       text-align: center;
+
+      .button-component {
+        width: 100%;
+      }
     }
 
     .forgot-password-row,
@@ -394,6 +405,12 @@ dialog {
 
   &#lfs-attribute-mismatch {
     width: 400px;
+  }
+
+  &#workflow-push-rejected {
+    .ref-component {
+      display: inline-block;
+    }
   }
 }
 

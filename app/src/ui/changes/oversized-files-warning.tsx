@@ -1,14 +1,12 @@
 import * as React from 'react'
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { LinkButton } from '../lib/link-button'
-import { Monospaced } from '../lib/monospaced'
 import { PathText } from '../lib/path-text'
 import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { ICommitContext } from '../../models/commit'
 import { DefaultCommitMessage } from '../../models/commit-message'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 const GitLFSWebsiteURL =
   'https://help.github.com/articles/versioning-large-files/'
@@ -23,21 +21,8 @@ interface IOversizedFilesProps {
 
 /** A dialog to display a list of files that are too large to commit. */
 export class OversizedFiles extends React.Component<IOversizedFilesProps> {
-  private closeButton: Button | null = null
-
   public constructor(props: IOversizedFilesProps) {
     super(props)
-  }
-
-  private onCloseButtonRef = (button: Button | null) => {
-    this.closeButton = button
-  }
-
-  public componentDidMount() {
-    // Since focus is given to the Git LFS link by default, we will instead set focus onto the cancel button.
-    if (this.closeButton != null) {
-      this.closeButton.focus()
-    }
   }
 
   public render() {
@@ -45,6 +30,7 @@ export class OversizedFiles extends React.Component<IOversizedFilesProps> {
       <Dialog
         id="oversized-files"
         title={__DARWIN__ ? 'Files Too Large' : 'Files too large'}
+        onSubmit={this.onSubmit}
         onDismissed={this.props.onDismissed}
         type="warning"
       >
@@ -65,14 +51,10 @@ export class OversizedFiles extends React.Component<IOversizedFilesProps> {
         </DialogContent>
 
         <DialogFooter>
-          <ButtonGroup destructive={true}>
-            <Button type="submit" ref={this.onCloseButtonRef}>
-              Cancel
-            </Button>
-            <Button onClick={this.commitAnyway}>
-              {__DARWIN__ ? 'Commit Anyway' : 'Commit anyway'}
-            </Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            destructive={true}
+            okButtonText={__DARWIN__ ? 'Commit Anyway' : 'Commit anyway'}
+          />
         </DialogFooter>
       </Dialog>
     )
@@ -81,19 +63,19 @@ export class OversizedFiles extends React.Component<IOversizedFilesProps> {
   private renderFileList() {
     return (
       <div className="files-list">
-        {this.props.oversizedFiles.map(fileName => (
-          <ul key={fileName}>
-            <Monospaced>
+        <ul>
+          {this.props.oversizedFiles.map(fileName => (
+            <li key={fileName}>
               <PathText path={fileName} />
-            </Monospaced>
-          </ul>
-        ))}
+            </li>
+          ))}
+        </ul>
       </div>
     )
   }
 
-  private commitAnyway = async () => {
-    this.props.dispatcher.closePopup()
+  private onSubmit = async () => {
+    this.props.onDismissed()
 
     await this.props.dispatcher.commitIncludedChanges(
       this.props.repository,

@@ -8,7 +8,6 @@ import {
   ISegmentedItem,
 } from '../lib/vertical-segmented-control'
 import { ApplicationTheme } from '../lib/application-theme'
-import { fatalError } from '../../lib/fatal-error'
 
 interface IAppearanceProps {
   readonly selectedTheme: ApplicationTheme
@@ -17,24 +16,22 @@ interface IAppearanceProps {
   readonly onAutomaticallySwitchThemeChanged: (checked: boolean) => void
 }
 
-const themes: ReadonlyArray<ISegmentedItem> = [
-  { title: 'Light', description: 'The default theme of GitHub Desktop' },
+const themes: ReadonlyArray<ISegmentedItem<ApplicationTheme>> = [
   {
-    title: 'Dark (beta)',
-    description:
-      'A beta version of our dark theme. Still under development. Please report any issues you may find to our issue tracker.',
+    title: 'Light',
+    description: 'The default theme of GitHub Desktop',
+    key: ApplicationTheme.Light,
+  },
+  {
+    title: 'Dark',
+    description: 'GitHub Desktop is for you too, creatures of the night',
+    key: ApplicationTheme.Dark,
   },
 ]
 
 export class Appearance extends React.Component<IAppearanceProps, {}> {
-  private onSelectedThemeChanged = (index: number) => {
-    if (index === 0) {
-      this.props.onSelectedThemeChanged(ApplicationTheme.Light)
-    } else if (index === 1) {
-      this.props.onSelectedThemeChanged(ApplicationTheme.Dark)
-    } else {
-      fatalError(`Unknown theme index ${index}`)
-    }
+  private onSelectedThemeChanged = (value: ApplicationTheme) => {
+    this.props.onSelectedThemeChanged(value)
     this.props.onAutomaticallySwitchThemeChanged(false)
   }
 
@@ -44,7 +41,9 @@ export class Appearance extends React.Component<IAppearanceProps, {}> {
     const value = event.currentTarget.checked
 
     if (value) {
-      this.onSelectedThemeChanged(isDarkModeEnabled() ? 1 : 0)
+      this.onSelectedThemeChanged(
+        isDarkModeEnabled() ? ApplicationTheme.Dark : ApplicationTheme.Light
+      )
     }
 
     this.props.onAutomaticallySwitchThemeChanged(value)
@@ -60,14 +59,11 @@ export class Appearance extends React.Component<IAppearanceProps, {}> {
   }
 
   public renderThemeOptions() {
-    const selectedIndex =
-      this.props.selectedTheme === ApplicationTheme.Dark ? 1 : 0
-
     return (
       <Row>
         <VerticalSegmentedControl
           items={themes}
-          selectedIndex={selectedIndex}
+          selectedKey={this.props.selectedTheme}
           onSelectionChanged={this.onSelectedThemeChanged}
         />
       </Row>

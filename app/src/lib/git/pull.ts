@@ -3,13 +3,16 @@ import {
   GitError,
   IGitExecutionOptions,
   gitNetworkArguments,
+  gitRebaseArguments,
 } from './core'
 import { Repository } from '../../models/repository'
 import { IPullProgress } from '../../models/progress'
 import { IGitAccount } from '../../models/git-account'
 import { PullProgressParser, executionOptionsWithProgress } from '../progress'
-import { envForAuthentication, AuthenticationErrors } from './authentication'
+import { AuthenticationErrors } from './authentication'
 import { enableRecurseSubmodulesFlag } from '../feature-flag'
+import { IRemote } from '../../models/remote'
+import { envForRemoteOperation } from './environment'
 
 async function getPullArgs(
   repository: Repository,
@@ -19,7 +22,7 @@ async function getPullArgs(
 ) {
   const networkArguments = await gitNetworkArguments(repository, account)
 
-  const args = [...networkArguments, 'pull']
+  const args = [...networkArguments, ...gitRebaseArguments(), 'pull']
 
   if (enableRecurseSubmodulesFlag()) {
     args.push('--recurse-submodules')
@@ -50,16 +53,16 @@ async function getPullArgs(
 export async function pull(
   repository: Repository,
   account: IGitAccount | null,
-  remote: string,
+  remote: IRemote,
   progressCallback?: (progress: IPullProgress) => void
 ): Promise<void> {
   let opts: IGitExecutionOptions = {
-    env: envForAuthentication(account),
+    env: await envForRemoteOperation(account, remote.url),
     expectedErrors: AuthenticationErrors,
   }
 
   if (progressCallback) {
-    const title = `Pulling ${remote}`
+    const title = `Pulling ${remote.name}`
     const kind = 'pull'
 
     opts = await executionOptionsWithProgress(
@@ -81,15 +84,26 @@ export async function pull(
 
         const value = progress.percent
 
-        progressCallback({ kind, title, description, value, remote })
+        progressCallback({
+          kind,
+          title,
+          description,
+          value,
+          remote: remote.name,
+        })
       }
     )
 
     // Initial progress
-    progressCallback({ kind, title, value: 0, remote })
+    progressCallback({ kind, title, value: 0, remote: remote.name })
   }
 
-  const args = await getPullArgs(repository, remote, account, progressCallback)
+  const args = await getPullArgs(
+    repository,
+    remote.name,
+    account,
+    progressCallback
+  )
   const result = await git(args, repository.path, 'pull', opts)
 
   if (result.gitErrorDescription) {

@@ -7,6 +7,9 @@ fieldset.vertical-segmented-control {
   padding: 0;
   min-width: 0;
 
+  // Make the component use the whole width of its container.
+  width: 100%;
+
   legend {
     margin-bottom: var(--spacing-third);
     padding: 0 0 5px 0;

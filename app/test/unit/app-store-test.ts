@@ -11,6 +11,7 @@ import {
   RepositoriesStore,
   AccountsStore,
   PullRequestStore,
+  PullRequestCoordinator,
 } from '../../src/lib/stores'
 import {
   TestGitHubUserDatabase,
@@ -66,16 +67,14 @@ describe('AppStore', () => {
       new AsyncInMemoryStore()
     )
 
-    const pullRequestStore = new PullRequestStore(
-      new TestPullRequestDatabase(),
+    const pullRequestCoordinator = new PullRequestCoordinator(
+      new PullRequestStore(new TestPullRequestDatabase(), repositoriesStore),
       repositoriesStore
     )
 
     const githubUserStore = new GitHubUserStore(db)
 
-    const repositoryStateManager = new RepositoryStateCache(repo =>
-      githubUserStore.getUsersForRepository(repo)
-    )
+    const repositoryStateManager = new RepositoryStateCache()
 
     const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 
@@ -87,7 +86,7 @@ describe('AppStore', () => {
       new SignInStore(),
       accountsStore,
       repositoriesStore,
-      pullRequestStore,
+      pullRequestCoordinator,
       repositoryStateManager,
       apiRepositoriesStore
     )
@@ -123,9 +122,7 @@ describe('AppStore', () => {
           return selectedState.state
         default:
           throw new Error(
-            `Got selected state of type ${
-              selectedState.type
-            } which is not supported.`
+            `Got selected state of type ${selectedState.type} which is not supported.`
           )
       }
     }

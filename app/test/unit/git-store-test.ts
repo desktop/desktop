@@ -20,13 +20,24 @@ import {
   cloneLocalRepository,
 } from '../helpers/repository-scaffolding'
 import { BranchType } from '../../src/models/branch'
+import { StatsStore, StatsDatabase } from '../../src/lib/stats'
+import { UiActivityMonitor } from '../../src/ui/lib/ui-activity-monitor'
 
 describe('GitStore', () => {
+  let statsStore: StatsStore
+
+  beforeEach(() => {
+    statsStore = new StatsStore(
+      new StatsDatabase('test-StatsDatabase'),
+      new UiActivityMonitor()
+    )
+  })
+
   describe('loadCommitBatch', () => {
     it('includes HEAD when loading commits', async () => {
       const path = await setupFixtureRepository('repository-with-105-commits')
       const repo = new Repository(path, -1, null, false)
-      const gitStore = new GitStore(repo, shell)
+      const gitStore = new GitStore(repo, shell, statsStore)
 
       const commits = await gitStore.loadCommitBatch('HEAD')
 
@@ -38,7 +49,7 @@ describe('GitStore', () => {
 
   it('can discard changes from a repository', async () => {
     const repo = await setupEmptyRepository()
-    const gitStore = new GitStore(repo, shell)
+    const gitStore = new GitStore(repo, shell, statsStore)
 
     const readmeFile = 'README.md'
     const readmeFilePath = Path.join(repo.path, readmeFile)
@@ -76,7 +87,7 @@ describe('GitStore', () => {
 
   it('can discard a renamed file', async () => {
     const repo = await setupEmptyRepository()
-    const gitStore = new GitStore(repo, shell)
+    const gitStore = new GitStore(repo, shell, statsStore)
 
     const file = 'README.md'
     const renamedFile = 'NEW-README.md'
@@ -124,7 +135,7 @@ describe('GitStore', () => {
     })
 
     it('reports the repository is unborn', async () => {
-      const gitStore = new GitStore(repository, shell)
+      const gitStore = new GitStore(repository, shell, statsStore)
 
       await gitStore.loadStatus()
       expect(gitStore.tip.kind).toEqual(TipState.Valid)
@@ -136,7 +147,7 @@ describe('GitStore', () => {
     })
 
     it('pre-fills the commit message', async () => {
-      const gitStore = new GitStore(repository, shell)
+      const gitStore = new GitStore(repository, shell, statsStore)
 
       await gitStore.undoCommit(firstCommit!)
 
@@ -146,7 +157,7 @@ describe('GitStore', () => {
     })
 
     it('clears the undo commit dialog', async () => {
-      const gitStore = new GitStore(repository, shell)
+      const gitStore = new GitStore(repository, shell, statsStore)
 
       await gitStore.loadStatus()
 
@@ -166,7 +177,7 @@ describe('GitStore', () => {
     })
 
     it('has no staged files', async () => {
-      const gitStore = new GitStore(repository, shell)
+      const gitStore = new GitStore(repository, shell, statsStore)
 
       await gitStore.loadStatus()
 
@@ -197,7 +208,7 @@ describe('GitStore', () => {
     it('can discard modified change cleanly', async () => {
       const path = await setupFixtureRepository('repository-with-HEAD-file')
       const repo = new Repository(path, 1, null, false)
-      const gitStore = new GitStore(repo, shell)
+      const gitStore = new GitStore(repo, shell, statsStore)
 
       const file = 'README.md'
       const filePath = Path.join(repo.path, file)
@@ -271,7 +282,7 @@ describe('GitStore', () => {
     })
 
     it('will merge a local and remote branch when tracking branch set', async () => {
-      const gitStore = new GitStore(repository, shell)
+      const gitStore = new GitStore(repository, shell, statsStore)
       await gitStore.loadBranches()
 
       expect(gitStore.allBranches).toHaveLength(2)
@@ -289,7 +300,7 @@ describe('GitStore', () => {
       // checkout the other branch after cloning
       await GitProcess.exec(['checkout', 'some-other-branch'], repository.path)
 
-      const gitStore = new GitStore(repository, shell)
+      const gitStore = new GitStore(repository, shell, statsStore)
       await gitStore.loadBranches()
 
       const currentBranchBefore = gitStore.allBranches.find(

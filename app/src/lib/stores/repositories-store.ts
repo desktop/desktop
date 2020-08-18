@@ -5,15 +5,21 @@ import {
   IDatabaseProtectedBranch,
 } from '../databases/repositories-database'
 import { Owner } from '../../models/owner'
-import { GitHubRepository } from '../../models/github-repository'
+import {
+  GitHubRepository,
+  GitHubRepositoryPermission,
+} from '../../models/github-repository'
 import { Repository } from '../../models/repository'
 import { fatalError } from '../fatal-error'
-import { IAPIRepository, IAPIBranch } from '../api'
-import { BaseStore } from './base-store'
-import { enableBranchProtectionChecks } from '../feature-flag'
+import { IAPIRepository, IAPIBranch, IAPIRepositoryPermissions } from '../api'
+import { TypedBaseStore } from './base-store'
+import { WorkflowPreferences } from '../../models/workflow-preferences'
+import { clearTagsToPush } from './helpers/tags-to-push-storage'
 
 /** The store for local repositories. */
-export class RepositoriesStore extends BaseStore {
+export class RepositoriesStore extends TypedBaseStore<
+  ReadonlyArray<Repository>
+> {
   private db: RepositoriesDatabase
 
   // Key-repo ID, Value-date
@@ -69,7 +75,7 @@ export class RepositoriesStore extends BaseStore {
     const owner = await this.db.owners.get(dbRepo.ownerID)
 
     if (owner == null) {
-      throw new Error(`Couldn't find the owner for ${dbRepo.name}`)
+      throw new Error(`Couldn't find repository owner ${dbRepo.ownerID}`)
     }
 
     let parent: GitHubRepository | null = null
@@ -85,6 +91,9 @@ export class RepositoriesStore extends BaseStore {
       dbRepo.htmlURL,
       dbRepo.defaultBranch,
       dbRepo.cloneURL,
+      dbRepo.issuesEnabled,
+      dbRepo.isArchived,
+      dbRepo.permissions,
       parent
     )
   }
@@ -125,6 +134,7 @@ export class RepositoriesStore extends BaseStore {
             repo.id!,
             gitHubRepository,
             repo.missing,
+            repo.workflowPreferences,
             repo.isTutorialRepository
           )
           inflatedRepos.push(inflatedRepo)
@@ -179,7 +189,7 @@ export class RepositoriesStore extends BaseStore {
       }
     )
 
-    this.emitUpdate()
+    this.emitUpdatedRepositories()
   }
 
   /**
@@ -220,16 +230,17 @@ export class RepositoriesStore extends BaseStore {
       }
     )
 
-    this.emitUpdate()
+    this.emitUpdatedRepositories()
 
     return repository
   }
 
-  /** Remove the repository with the given ID. */
-  public async removeRepository(repoID: number): Promise<void> {
-    await this.db.repositories.delete(repoID)
+  /** Remove the given repository. */
+  public async removeRepository(repository: Repository): Promise<void> {
+    await this.db.repositories.delete(repository.id)
+    clearTagsToPush(repository)
 
-    this.emitUpdate()
+    this.emitUpdatedRepositories()
   }
 
   /** Update the repository's `missing` flag. */
@@ -246,15 +257,39 @@ export class RepositoriesStore extends BaseStore {
 
     await this.db.repositories.update(repoID, { missing })
 
-    this.emitUpdate()
+    this.emitUpdatedRepositories()
 
     return new Repository(
       repository.path,
       repository.id,
       repository.gitHubRepository,
       missing,
+      repository.workflowPreferences,
       repository.isTutorialRepository
     )
+  }
+
+  /**
+   * Update the workflow preferences for the specified repository.
+   *
+   * @param repository            The repositosy to update.
+   * @param workflowPreferences   The object with the workflow settings to use.
+   */
+  public async updateRepositoryWorkflowPreferences(
+    repository: Repository,
+    workflowPreferences: WorkflowPreferences
+  ): Promise<void> {
+    const repoID = repository.id
+
+    if (!repoID) {
+      return fatalError(
+        '`updateRepositoryWorkflowPreferences` can only update `workflowPreferences` for a repository which has been added to the database.'
+      )
+    }
+
+    await this.db.repositories.update(repoID, { workflowPreferences })
+
+    this.emitUpdatedRepositories()
   }
 
   /** Update the repository's path. */
@@ -274,13 +309,14 @@ export class RepositoriesStore extends BaseStore {
       path,
     })
 
-    this.emitUpdate()
+    this.emitUpdatedRepositories()
 
     return new Repository(
       path,
       repository.id,
       repository.gitHubRepository,
       false,
+      repository.workflowPreferences,
       repository.isTutorialRepository
     )
   }
@@ -309,7 +345,7 @@ export class RepositoriesStore extends BaseStore {
 
     this.lastStashCheckCache.set(repoID, date)
 
-    this.emitUpdate()
+    // this update doesn't affect the list (or its items) we emit from this store, so no need to `emitUpdatedRepositories`
   }
 
   /**
@@ -384,6 +420,21 @@ export class RepositoriesStore extends BaseStore {
       .equals([owner.id!, gitHubRepository.name])
       .first()
 
+    // If we can't resolve permissions for the current repository
+    // chances are that it's because it's the parent repository of
+    // another repository and we ended up here because the "actual"
+    // repository is trying to upsert its parent. Since parent
+    // repository hashes don't include a permissions hash and since
+    // it's possible that the user has both the fork and the parent
+    // repositories in the app we don't want to overwrite the permissions
+    // hash in the parent repository if we can help it or else we'll
+    // end up in a perpetual race condition where updating the fork
+    // will clear the permissions on the parent and updating the parent
+    // will reinstate them.
+    const permissions =
+      getPermissionsString(gitHubRepository.permissions) ||
+      (existingRepo ? existingRepo.permissions : undefined)
+
     let updatedGitHubRepo: IDatabaseGitHubRepository = {
       ownerID: owner.id!,
       name: gitHubRepository.name,
@@ -393,6 +444,9 @@ export class RepositoriesStore extends BaseStore {
       cloneURL: gitHubRepository.clone_url,
       parentID: parent ? parent.dbID : null,
       lastPruneDate: null,
+      issuesEnabled: gitHubRepository.has_issues,
+      isArchived: gitHubRepository.archived,
+      permissions,
     }
     if (existingRepo) {
       updatedGitHubRepo = { ...updatedGitHubRepo, id: existingRepo.id }
@@ -407,6 +461,9 @@ export class RepositoriesStore extends BaseStore {
       updatedGitHubRepo.htmlURL,
       updatedGitHubRepo.defaultBranch,
       updatedGitHubRepo.cloneURL,
+      updatedGitHubRepo.issuesEnabled,
+      updatedGitHubRepo.isArchived,
+      updatedGitHubRepo.permissions,
       parent
     )
   }
@@ -444,13 +501,14 @@ export class RepositoriesStore extends BaseStore {
       }
     )
 
-    this.emitUpdate()
+    this.emitUpdatedRepositories()
 
     return new Repository(
       repository.path,
       repository.id,
       updatedGitHubRepo,
       repository.missing,
+      repository.workflowPreferences,
       repository.isTutorialRepository
     )
   }
@@ -460,10 +518,6 @@ export class RepositoriesStore extends BaseStore {
     gitHubRepository: GitHubRepository,
     protectedBranches: ReadonlyArray<IAPIBranch>
   ): Promise<void> {
-    if (!enableBranchProtectionChecks()) {
-      return
-    }
-
     const dbID = gitHubRepository.dbID
     if (!dbID) {
       return fatalError(
@@ -502,10 +556,7 @@ export class RepositoriesStore extends BaseStore {
         this.protectionEnabledForBranchCache.set(key, true)
       }
 
-      await this.db.protectedBranches
-        .where('repoId')
-        .equals(dbID)
-        .delete()
+      await this.db.protectedBranches.where('repoId').equals(dbID).delete()
 
       const protectionsFound = branchRecords.length > 0
       this.branchProtectionSettingsFoundCache.set(dbID, protectionsFound)
@@ -515,7 +566,7 @@ export class RepositoriesStore extends BaseStore {
       }
     })
 
-    this.emitUpdate()
+    // this update doesn't affect the list (or its items) we emit from this store, so no need to `emitUpdatedRepositories`
   }
 
   /**
@@ -553,7 +604,7 @@ export class RepositoriesStore extends BaseStore {
       lastPruneDate: date,
     })
 
-    this.emitUpdate()
+    // this update doesn't affect the list (or its items) we emit from this store, so no need to `emitUpdatedRepositories`
   }
 
   public async getLastPruneDate(
@@ -640,38 +691,11 @@ export class RepositoriesStore extends BaseStore {
   }
 
   /**
-   * Check if the given branch for the repository is protected through the
-   * GitHub API.
+   * Helper method to emit updates consistently
+   * (This is the only way we emit updates from this store.)
    */
-  public async isBranchProtectedOnRemote(
-    gitHubRepository: GitHubRepository,
-    branchName: string
-  ): Promise<boolean> {
-    if (gitHubRepository.dbID === null) {
-      return fatalError(
-        'unable to get protected branches, GitHub repository has a null dbID'
-      )
-    }
-
-    const { dbID } = gitHubRepository
-    const key = getKey(dbID, branchName)
-
-    const cachedProtectionValue = this.protectionEnabledForBranchCache.get(key)
-    if (cachedProtectionValue === true) {
-      return cachedProtectionValue
-    }
-
-    const databaseValue = await this.db.protectedBranches.get([
-      dbID,
-      branchName,
-    ])
-
-    // if no row found, this means no protection is found for the branch
-    const value = databaseValue !== undefined
-
-    this.protectionEnabledForBranchCache.set(key, value)
-
-    return value
+  private async emitUpdatedRepositories() {
+    this.emitUpdate(await this.getAll())
   }
 }
 
@@ -683,4 +707,20 @@ function getKey(dbID: number, branchName: string) {
 /** Compute the key prefix for the branch protection cache */
 function getKeyPrefix(dbID: number) {
   return `${dbID}-`
+}
+
+function getPermissionsString(
+  permissions: IAPIRepositoryPermissions | undefined
+): GitHubRepositoryPermission {
+  if (!permissions) {
+    return null
+  } else if (permissions.admin) {
+    return 'admin'
+  } else if (permissions.push) {
+    return 'write'
+  } else if (permissions.pull) {
+    return 'read'
+  } else {
+    return null
+  }
 }

@@ -13,6 +13,16 @@
   flex-direction: row;
   height: var(--height);
 
+  // This is necessary for our absolutely positioned progress bar to work.
+  // We position the toolbar button container relatively so that we can
+  // position the progress bar absolutely in relation to the container.
+  // We then explicitly position all child elements of the container
+  // relatively in order for the progress bar not to position itself
+  // above all the other content.
+  //
+  // See toolbar/_button.scss
+  position: relative;
+
   align-items: center;
 
   border-radius: var(--border-radius);

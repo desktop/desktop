@@ -6,7 +6,7 @@ import { GitProcess } from 'dugite'
 import { setupEmptyRepository } from '../../helpers/repositories'
 import {
   listWorkTrees,
-  findOrCreateTemporaryWorkTree,
+  createTemporaryWorkTree,
   cleanupTemporaryWorkTrees,
 } from '../../../src/lib/git/worktree'
 import { Repository, LinkedWorkTree } from '../../../src/models/repository'
@@ -26,17 +26,10 @@ describe('git/worktree', () => {
         expect(result).toHaveLength(1)
       })
 
-      // skipping due to differences on windows CI providers
-      // (this test passes on Appveyor but not Azure)
-      it.skip('contains the head and path of the main repository', async () => {
-        const { path } = repository
+      it('contains the head of the main repository', async () => {
         const result = await listWorkTrees(repository)
         const first = result[0]
         expect(first.head).toBe('0000000000000000000000000000000000000000')
-
-        // we use realpathSync here because git and windows/macOS report different
-        // paths even though they are the same folder
-        expect(realpathSync(first.path)).toBe(realpathSync(path))
       })
     })
 
@@ -106,7 +99,7 @@ describe('git/worktree', () => {
     })
   })
 
-  describe('findOrCreateTemporaryWorkTree', () => {
+  describe('createTemporaryWorkTree', () => {
     let repository: Repository
     let currentHeadSha: string
 
@@ -133,7 +126,7 @@ describe('git/worktree', () => {
     })
 
     it('creates worktree at temporary path', async () => {
-      const workTree = await findOrCreateTemporaryWorkTree(repository, 'HEAD')
+      const workTree = await createTemporaryWorkTree(repository, 'HEAD')
       const tmpDir = Os.tmpdir()
 
       expect(workTree.head).toBe(currentHeadSha)
@@ -142,17 +135,19 @@ describe('git/worktree', () => {
       expect(realpathSync(workTree.path)).toStartWith(realpathSync(tmpDir))
     })
 
-    it('subsequent calls return the same result', async () => {
-      const firstWorkTree = await findOrCreateTemporaryWorkTree(
-        repository,
-        'HEAD'
-      )
-      const secondWorkTree = await findOrCreateTemporaryWorkTree(
-        repository,
-        'HEAD'
-      )
+    it('subsequent calls return different results', async () => {
+      const firstWorkTree = await createTemporaryWorkTree(repository, 'HEAD')
+      const secondWorkTree = await createTemporaryWorkTree(repository, 'HEAD')
 
-      expect(firstWorkTree).toEqual(secondWorkTree)
+      expect(firstWorkTree).not.toEqual(secondWorkTree)
+    })
+
+    it('concurrent calls return different results', async () => {
+      const [firstWorkTree, secondWorkTree] = await Promise.all([
+        createTemporaryWorkTree(repository, 'HEAD'),
+        createTemporaryWorkTree(repository, 'HEAD'),
+      ])
+      expect(firstWorkTree).not.toEqual(secondWorkTree)
     })
   })
 
@@ -176,7 +171,7 @@ describe('git/worktree', () => {
         repository.path
       )
 
-      internalWorkTree = await findOrCreateTemporaryWorkTree(repository, 'HEAD')
+      internalWorkTree = await createTemporaryWorkTree(repository, 'HEAD')
 
       const workTreePrefix = Path.join(Os.tmpdir(), 'some-other-worktree-path')
 

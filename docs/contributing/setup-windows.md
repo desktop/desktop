@@ -19,10 +19,10 @@ $ node -v
 If you see an error about being unable to find `node`, that probably means you don't have any Node tools installed.
 You can download Node from the [Node.js website](https://nodejs.org/), install the package, and restart your shell.
 
-If you see the output `v10.x.y` or later, you're good to go.
+If you see the output `v12.x.y` or later, you're good to go.
 
 **Node.js installation notes:**
- - make sure you allow the Node.js installer to add `node` to the PATH.
+ - make sure you allow the Node.js installer to add `node` to the `PATH`.
 
 ### I need to use different versions of Node.js in different projects!
 
@@ -32,7 +32,7 @@ We currently support `nvm`.
 
 1. Install `nvm` using the instructions [here](https://github.com/coreybutler/nvm-windows).
 
-2. Within the Desktop source directory, install version of Node.js it requires:
+2. Within the Desktop source directory, install the version of Node.js it requires:
 
 ```shellsession
 $ nvm install
@@ -77,7 +77,7 @@ $ python --version
 If you see the output `Python 2.7.x`, you're good to go!
 
 If you see an error about being unable to find `python`, that probably means you
-don't have any Node tools installed. You can install Python 2.7 from the
+don't have Python installed. You can install Python 2.7 from the
 [Python website](https://www.python.org/downloads/windows/).
 
 **Python installation notes:**
@@ -89,50 +89,60 @@ don't have any Node tools installed. You can install Python 2.7 from the
 ## Visual C++ Build Tools
 
 To build native Node modules, you will need a recent version of Visual C++ which
-can be obtained in several ways
+can be obtained in several ways:
+
+### Visual Studio 2019
+
+If you have an existing installation of VS2019, run the **Visual Studio
+Installer** (Tools > Get Tools and Features...) and check that you have the **Desktop development with C++**
+workload included.
+
+<img width="1265" src="https://user-images.githubusercontent.com/7467062/76693187-0fa21d00-662f-11ea-91ba-38326263d4b6.png">
+
+Once you've confirmed that, open a shell and run this command to update the
+configuration of NPM:
+
+```shellsession
+$ npm config set msvs_version 2019
+```
+
+```shellsession
+$ npm config set msbuild_path "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\[VERSION]\\MSBuild\\Current\\Bin\\MSBuild.exe"
+```
+
+*Note:* VERSION will be Community, Professional or Enterprise depending on your install.
 
 ### Visual Studio 2017
 
 If you have an existing installation of VS2017, run the **Visual Studio
-Installer** and check that you have the **Desktop development with C++**
+Installer** (Tools > Get Tools and Features...) and check that you have the **Desktop development with C++**
 workload included.
 
 <img width="1265" src="https://user-images.githubusercontent.com/359239/48849855-a2091800-ed7d-11e8-950b-93465eba7cd1.png">
 
 Once you've confirmed that, open a shell and run this command to update the
-configuration of NPM::
+configuration of NPM:
 
 ```shellsession
 $ npm config set msvs_version 2017
 ```
 
-### Visual Studio 2015
-
-If you have an existing installation of VS2015, run the setup program again and
-and check that you have the **Common Tools for Visual C++ 2015** feature
-enabled.
-
-<img width="475" src="https://user-images.githubusercontent.com/359239/48850346-d92bf900-ed7e-11e8-9728-e5b70654f90f.png">
-
-Once you've confirmed that is present and any updates are applied, open a shell
-and run this command to update the configuration of NPM:
-
-```shellsession
-$ npm config set msvs_version 2015
-```
-
 ### Visual C++ Build Tools
 
 If you do not have an existing Visual Studio installation, there is a
-standalone [Visual C++ Build Tools](http://go.microsoft.com/fwlink/?LinkId=691126)
+standalone [Visual C++ Build Tools](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools)
 installer available.
 
 After installation open a shell and run this command to update the configuration
 of NPM:
 
 ```shellsession
-$ npm config set msvs_version 2015
+$ npm config set msvs_version 2019
 ```
+
+## Troubleshooting
+
+If your local copy gets "stuck" try deleting the folder `C:\Users\[Your_User]\AppData\Roaming\GitHub Desktop-dev`.
 
 ## Back to setup
 

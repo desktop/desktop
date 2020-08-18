@@ -2,10 +2,9 @@ import * as React from 'react'
 import { IStashEntry } from '../../models/stash-entry'
 import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { PopupType } from '../../models/popup'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IStashDiffHeaderProps {
   readonly stashEntry: IStashEntry
@@ -36,31 +35,20 @@ export class StashDiffHeader extends React.Component<
 
   public render() {
     const { isWorkingTreeClean } = this.props
+    const { isRestoring } = this.state
 
-    // we pass `false` to `ButtonGroup` below because it assumes
-    // the "submit" button performs the destructive action.
-    // In this case the destructive action is performed by the
-    // non-submit button so we _lie_ to the props to get
-    // the correct button ordering
     return (
       <div className="header">
         <h3>Stashed changes</h3>
         <div className="row">
-          <ButtonGroup destructive={false}>
-            <Button
-              disabled={!isWorkingTreeClean || this.state.isRestoring}
-              onClick={this.onRestoreClick}
-              type="submit"
-            >
-              Restore
-            </Button>
-            <Button
-              disabled={this.state.isRestoring}
-              onClick={this.onDiscardClick}
-            >
-              Discard
-            </Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            okButtonText="Restore"
+            okButtonDisabled={isRestoring || !isWorkingTreeClean}
+            onOkButtonClick={this.onRestoreClick}
+            cancelButtonText="Discard"
+            cancelButtonDisabled={isRestoring}
+            onCancelButtonClick={this.onDiscardClick}
+          />
           {this.renderExplanatoryText()}
         </div>
       </div>

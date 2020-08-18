@@ -9,12 +9,14 @@
   flex-grow: 1;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 
   .stashed-changes-button {
     @include ellipsis;
     min-height: 29px;
 
     display: flex;
+    align-items: center;
     flex-grow: 1;
     padding: 0 var(--spacing);
     width: 100%;
@@ -73,6 +75,7 @@
     border-bottom: 1px solid var(--box-border-color);
     padding: 0 var(--spacing);
     height: 29px;
+    flex: 0 0 auto;
 
     .checkbox-component {
       align-items: center;

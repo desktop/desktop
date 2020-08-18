@@ -78,19 +78,9 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   public async addAccount(account: Account): Promise<Account | null> {
     await this.loadingPromise
 
-    let updated = account
     try {
-      updated = await updatedAccount(account)
-    } catch (e) {
-      log.warn(`Failed to fetch user ${account.login}`, e)
-    }
-
-    try {
-      await this.secureStore.setItem(
-        getKeyForAccount(updated),
-        updated.login,
-        updated.token
-      )
+      const key = getKeyForAccount(account)
+      await this.secureStore.setItem(key, account.login, account.token)
     } catch (e) {
       log.error(`Error adding account '${account.login}'`, e)
 
@@ -106,10 +96,16 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       return null
     }
 
-    this.accounts = [...this.accounts, updated]
+    const accountsByEndpoint = this.accounts.reduce(
+      (map, x) => map.set(x.endpoint, x),
+      new Map<string, Account>()
+    )
+    accountsByEndpoint.set(account.endpoint, account)
+
+    this.accounts = [...accountsByEndpoint.values()]
 
     this.save()
-    return updated
+    return account
   }
 
   /** Refresh all accounts by fetching their latest info from the API. */
@@ -159,7 +155,9 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       return
     }
 
-    this.accounts = this.accounts.filter(a => a.id !== account.id)
+    this.accounts = this.accounts.filter(
+      a => !(a.endpoint === account.endpoint && a.id === account.id)
+    )
 
     this.save()
   }

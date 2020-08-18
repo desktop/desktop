@@ -5,6 +5,7 @@ plugins:
   - babel
   - react
   - json
+  - jsdoc
 
 settings:
   react:
@@ -13,6 +14,8 @@ settings:
 extends:
   - prettier
   - prettier/react
+  - plugin:@typescript-eslint/recommended
+  - prettier/@typescript-eslint
 
 rules:
   ##########
@@ -24,10 +27,38 @@ rules:
   # PLUGINS #
   ###########
   # TYPESCRIPT
-  '@typescript-eslint/interface-name-prefix':
+  '@typescript-eslint/naming-convention':
     - error
-    - always
-  '@typescript-eslint/no-angle-bracket-type-assertion': error
+    - selector: interface
+      format:
+        - PascalCase
+      custom:
+        regex: '^I[A-Z]'
+        match: true
+    - selector: class
+      format:
+        - PascalCase
+    - selector: variableLike
+      format: null
+      custom:
+        # Based on https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar we
+        # should probably be using the following expression here (newlines added for readability)
+        #
+        #   ^(break|case|catch|class|const|continue|debugger|default|delete|do|else|export|
+        #   extends|finally|for|function|if|import|in|instanceof|new|return|super|switch|this|
+        #   throw|try|typeof|var|void|while|with|yield|enum|implements|interface|let|package|
+        #   private|protected|public|static|await|abstract|boolean|byte|char|double|final|float|
+        #   goto|int|long|native|short|synchronized|throws|transient|volatile|null|true|false)$
+        #
+        # But that'll cause a bunch of errors, for now  we'll stick with replicating what the
+        # variable-name ban-keywords rule did for us in tslint
+        # see https://palantir.github.io/tslint/rules/variable-name/
+        regex: '^(any|Number|number|String|string|Boolean|boolean|Undefined|undefined)$'
+        match: false
+  '@typescript-eslint/consistent-type-assertions':
+    - error
+    - assertionStyle: 'as'
+  '@typescript-eslint/no-unused-expressions': error
   '@typescript-eslint/explicit-member-accessibility': error
   '@typescript-eslint/no-unused-vars':
     - error
@@ -37,8 +68,34 @@ rules:
     - functions: false
       variables: false
       typedefs: false
-  # this rule now works but generates a lot of issues with the codebase
-  # '@typescript-eslint/member-ordering': error
+  '@typescript-eslint/member-ordering':
+    - error
+    - default:
+        - static-field
+        - static-method
+        - field
+        - abstract-method
+        - constructor
+        - method
+  '@typescript-eslint/no-extraneous-class': error
+  '@typescript-eslint/no-empty-interface': error
+  # Would love to be able to turn this on eventually
+  '@typescript-eslint/no-non-null-assertion': off
+
+  # This rule does a lot of good but right now it catches way
+  # too many cases, we're gonna want to pay down this debt
+  # incrementally if we want to enable it.
+  '@typescript-eslint/ban-types': off
+
+  # It'd be nice to be able to turn this on eventually
+  '@typescript-eslint/no-var-requires': off
+
+  # Don't particularly care about these
+  '@typescript-eslint/triple-slash-reference': off
+  '@typescript-eslint/explicit-module-boundary-types': off
+  '@typescript-eslint/no-explicit-any': off
+  '@typescript-eslint/no-inferrable-types': off
+  '@typescript-eslint/no-empty-function': off
 
   # Babel
   babel/no-invalid-this: error
@@ -52,6 +109,23 @@ rules:
   react/no-string-refs: error
   react/jsx-uses-vars: error
   react/jsx-uses-react: error
+  react/no-unused-state: error
+
+  # JSDoc
+  jsdoc/check-alignment: error
+  jsdoc/check-tag-names: error
+  jsdoc/check-types: error
+  jsdoc/implements-on-classes: error
+  jsdoc/newline-after-description: error
+  jsdoc/no-undefined-types: error
+  jsdoc/valid-types: error
+
+  # Would love to enable these at some point but
+  # they cause way to many issues now.
+  #jsdoc/check-param-names: error
+  #jsdoc/require-jsdoc:
+  #  - error
+  #  - publicOnly: true
 
   ###########
   # BUILTIN #
@@ -63,7 +137,6 @@ rules:
     - builtinGlobals: true
   no-eval: error
   no-sync: error
-  no-unused-expressions: error
   no-var: error
   prefer-const: error
   eqeqeq:
@@ -89,6 +162,12 @@ overrides:
       strict:
         - error
         - never
+  - files: 'app/test/**/*'
+    rules:
+      '@typescript-eslint/no-non-null-assertion': off
+  - files: 'script/**/*'
+    rules:
+      '@typescript-eslint/no-non-null-assertion': off
 
 parserOptions:
   sourceType: module

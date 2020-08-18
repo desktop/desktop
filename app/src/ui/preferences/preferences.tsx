@@ -3,26 +3,35 @@ import { Account } from '../../models/account'
 import { PreferencesTab } from '../../models/preferences'
 import { ExternalEditor } from '../../lib/editors'
 import { Dispatcher } from '../dispatcher'
-import { TabBar } from '../tab-bar'
+import { TabBar, TabBarType } from '../tab-bar'
 import { Accounts } from './accounts'
 import { Advanced } from './advanced'
 import { Git } from './git'
 import { assertNever } from '../../lib/fatal-error'
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogFooter, DialogError } from '../dialog'
 import {
   getGlobalConfigValue,
   setGlobalConfigValue,
-  getMergeTool,
-  IMergeTool,
+  getGlobalBooleanConfigValue,
 } from '../../lib/git/config'
 import { lookupPreferredEmail } from '../../lib/email'
 import { Shell, getAvailableShells } from '../../lib/shells'
 import { getAvailableEditors } from '../../lib/editors/lookup'
-import { disallowedCharacters } from './identifier-rules'
+import { gitAuthorNameIsValid } from './identifier-rules'
 import { Appearance } from './appearance'
 import { ApplicationTheme } from '../lib/application-theme'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import { Integrations } from './integrations'
+import {
+  UncommittedChangesStrategyKind,
+  uncommittedChangesStrategyKindDefault,
+} from '../../models/uncommitted-changes-strategy'
+import { Octicon, OcticonSymbol } from '../octicons'
+import {
+  isConfigFileLockError,
+  parseConfigLockFilePathFromError,
+} from '../../lib/git'
+import { ConfigLockFileExists } from '../lib/config-lock-file-exists'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -34,7 +43,8 @@ interface IPreferencesProps {
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
-  readonly selectedExternalEditor?: ExternalEditor
+  readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
+  readonly selectedExternalEditor: ExternalEditor | null
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
   readonly automaticallySwitchTheme: boolean
@@ -44,17 +54,28 @@ interface IPreferencesState {
   readonly selectedIndex: PreferencesTab
   readonly committerName: string
   readonly committerEmail: string
+  readonly initialCommitterName: string | null
+  readonly initialCommitterEmail: string | null
   readonly disallowedCharactersMessage: string | null
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
-  readonly automaticallySwitchTheme: boolean
+  readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
   readonly availableEditors: ReadonlyArray<ExternalEditor>
-  readonly selectedExternalEditor?: ExternalEditor
+  readonly selectedExternalEditor: ExternalEditor | null
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
-  readonly mergeTool: IMergeTool | null
+  /**
+   * If unable to save Git configuration values (name, email)
+   * due to an existing configuration lock file this property
+   * will contain the (fully qualified) path to said lock file
+   * such that an error may be presented and the user given a
+   * choice to delete the lock file.
+   */
+  readonly existingLockFilePath?: string
+  readonly initialSchannelCheckRevoke: boolean | null
+  readonly schannelCheckRevoke: boolean | null
 }
 
 /** The app-level preferences component. */
@@ -69,23 +90,37 @@ export class Preferences extends React.Component<
       selectedIndex: this.props.initialSelectedTab || PreferencesTab.Accounts,
       committerName: '',
       committerEmail: '',
+      initialCommitterName: null,
+      initialCommitterEmail: null,
       disallowedCharactersMessage: null,
       availableEditors: [],
       optOutOfUsageTracking: false,
       confirmRepositoryRemoval: false,
       confirmDiscardChanges: false,
       confirmForcePush: false,
-      automaticallySwitchTheme: false,
+      uncommittedChangesStrategyKind: uncommittedChangesStrategyKindDefault,
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
       selectedShell: this.props.selectedShell,
-      mergeTool: null,
+      initialSchannelCheckRevoke: null,
+      schannelCheckRevoke: null,
     }
   }
 
   public async componentWillMount() {
-    let committerName = await getGlobalConfigValue('user.name')
-    let committerEmail = await getGlobalConfigValue('user.email')
+    const initialCommitterName = await getGlobalConfigValue('user.name')
+    const initialCommitterEmail = await getGlobalConfigValue('user.email')
+
+    // There's no point in us reading http.schannelCheckRevoke on macOS, it's
+    // just a wasted Git process since the option only affects Windows. Besides,
+    // the checkbox will not be visible unless running on Windows so we'll just
+    // default to the default value for lack of anything better.
+    const initialSchannelCheckRevoke = __WIN32__
+      ? await getGlobalBooleanConfigValue('http.schannelCheckRevoke')
+      : null
+
+    let committerName = initialCommitterName
+    let committerEmail = initialCommitterEmail
 
     if (!committerName || !committerEmail) {
       const account = this.props.dotComAccount || this.props.enterpriseAccount
@@ -96,10 +131,7 @@ export class Preferences extends React.Component<
         }
 
         if (!committerEmail) {
-          const found = lookupPreferredEmail(account.emails)
-          if (found) {
-            committerEmail = found.email
-          }
+          committerEmail = lookupPreferredEmail(account)
         }
       }
     }
@@ -107,10 +139,9 @@ export class Preferences extends React.Component<
     committerName = committerName || ''
     committerEmail = committerEmail || ''
 
-    const [editors, shells, mergeTool] = await Promise.all([
+    const [editors, shells] = await Promise.all([
       getAvailableEditors(),
       getAvailableShells(),
-      getMergeTool(),
     ])
 
     const availableEditors = editors.map(e => e.editor)
@@ -119,13 +150,17 @@ export class Preferences extends React.Component<
     this.setState({
       committerName,
       committerEmail,
+      initialCommitterName,
+      initialCommitterEmail,
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
       confirmForcePush: this.props.confirmForcePush,
+      uncommittedChangesStrategyKind: this.props.uncommittedChangesStrategyKind,
       availableShells,
       availableEditors,
-      mergeTool,
+      initialSchannelCheckRevoke,
+      schannelCheckRevoke: initialSchannelCheckRevoke,
     })
   }
 
@@ -137,18 +172,37 @@ export class Preferences extends React.Component<
         onDismissed={this.props.onDismissed}
         onSubmit={this.onSave}
       >
-        {this.renderDisallowedCharactersError()}
-        <TabBar
-          onTabClicked={this.onTabClicked}
-          selectedIndex={this.state.selectedIndex}
-        >
-          <span>Accounts</span>
-          <span>Git</span>
-          <span>Appearance</span>
-          <span>Advanced</span>
-        </TabBar>
+        <div className="preferences-container">
+          {this.renderDisallowedCharactersError()}
+          <TabBar
+            onTabClicked={this.onTabClicked}
+            selectedIndex={this.state.selectedIndex}
+            type={TabBarType.Vertical}
+          >
+            <span>
+              <Octicon className="icon" symbol={OcticonSymbol.home} />
+              Accounts
+            </span>
+            <span>
+              <Octicon className="icon" symbol={OcticonSymbol.person} />
+              Integrations
+            </span>
+            <span>
+              <Octicon className="icon" symbol={OcticonSymbol.gitCommit} />
+              Git
+            </span>
+            <span>
+              <Octicon className="icon" symbol={OcticonSymbol.paintcan} />
+              Appearance
+            </span>
+            <span>
+              <Octicon className="icon" symbol={OcticonSymbol.settings} />
+              Advanced
+            </span>
+          </TabBar>
 
-        {this.renderActiveTab()}
+          {this.renderActiveTab()}
+        </div>
         {this.renderFooter()}
       </Dialog>
     )
@@ -168,20 +222,6 @@ export class Preferences extends React.Component<
     this.props.dispatcher.removeAccount(account)
   }
 
-  private disallowedCharacterErrorMessage(name: string, email: string) {
-    const disallowedNameCharacters = disallowedCharacters(name)
-    if (disallowedNameCharacters != null) {
-      return `Git name field cannot be a disallowed character "${disallowedNameCharacters}"`
-    }
-
-    const disallowedEmailCharacters = disallowedCharacters(email)
-    if (disallowedEmailCharacters != null) {
-      return `Git email field cannot be a disallowed character "${disallowedEmailCharacters}"`
-    }
-
-    return null
-  }
-
   private renderDisallowedCharactersError() {
     const message = this.state.disallowedCharactersMessage
     if (message != null) {
@@ -193,9 +233,10 @@ export class Preferences extends React.Component<
 
   private renderActiveTab() {
     const index = this.state.selectedIndex
+    let View
     switch (index) {
       case PreferencesTab.Accounts:
-        return (
+        View = (
           <Accounts
             dotComAccount={this.props.dotComAccount}
             enterpriseAccount={this.props.enterpriseAccount}
@@ -204,18 +245,48 @@ export class Preferences extends React.Component<
             onLogout={this.onLogout}
           />
         )
-      case PreferencesTab.Git: {
-        return (
-          <Git
-            name={this.state.committerName}
-            email={this.state.committerEmail}
-            onNameChanged={this.onCommitterNameChanged}
-            onEmailChanged={this.onCommitterEmailChanged}
+        break
+      case PreferencesTab.Integrations: {
+        View = (
+          <Integrations
+            availableEditors={this.state.availableEditors}
+            selectedExternalEditor={this.state.selectedExternalEditor}
+            onSelectedEditorChanged={this.onSelectedEditorChanged}
+            availableShells={this.state.availableShells}
+            selectedShell={this.state.selectedShell}
+            onSelectedShellChanged={this.onSelectedShellChanged}
           />
         )
+        break
+      }
+      case PreferencesTab.Git: {
+        const { existingLockFilePath } = this.state
+        const error =
+          existingLockFilePath !== undefined ? (
+            <DialogError>
+              <ConfigLockFileExists
+                lockFilePath={existingLockFilePath}
+                onLockFileDeleted={this.onLockFileDeleted}
+                onError={this.onLockFileDeleteError}
+              />
+            </DialogError>
+          ) : null
+
+        View = (
+          <>
+            {error}
+            <Git
+              name={this.state.committerName}
+              email={this.state.committerEmail}
+              onNameChanged={this.onCommitterNameChanged}
+              onEmailChanged={this.onCommitterEmailChanged}
+            />
+          </>
+        )
+        break
       }
       case PreferencesTab.Appearance:
-        return (
+        View = (
           <Appearance
             selectedTheme={this.props.selectedTheme}
             onSelectedThemeChanged={this.onSelectedThemeChanged}
@@ -225,34 +296,45 @@ export class Preferences extends React.Component<
             }
           />
         )
+        break
       case PreferencesTab.Advanced: {
-        return (
+        View = (
           <Advanced
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             confirmRepositoryRemoval={this.state.confirmRepositoryRemoval}
             confirmDiscardChanges={this.state.confirmDiscardChanges}
             confirmForcePush={this.state.confirmForcePush}
-            availableEditors={this.state.availableEditors}
-            selectedExternalEditor={this.state.selectedExternalEditor}
+            uncommittedChangesStrategyKind={
+              this.state.uncommittedChangesStrategyKind
+            }
             onOptOutofReportingchanged={this.onOptOutofReportingChanged}
             onConfirmRepositoryRemovalChanged={
               this.onConfirmRepositoryRemovalChanged
             }
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
             onConfirmForcePushChanged={this.onConfirmForcePushChanged}
-            onSelectedEditorChanged={this.onSelectedEditorChanged}
-            availableShells={this.state.availableShells}
-            selectedShell={this.state.selectedShell}
-            onSelectedShellChanged={this.onSelectedShellChanged}
-            mergeTool={this.state.mergeTool}
-            onMergeToolCommandChanged={this.onMergeToolCommandChanged}
-            onMergeToolNameChanged={this.onMergeToolNameChanged}
+            onUncommittedChangesStrategyKindChanged={
+              this.onUncommittedChangesStrategyKindChanged
+            }
+            schannelCheckRevoke={this.state.schannelCheckRevoke}
+            onSchannelCheckRevokeChanged={this.onSchannelCheckRevokeChanged}
           />
         )
+        break
       }
       default:
         return assertNever(index, `Unknown tab index: ${index}`)
     }
+
+    return <div className="tab-container">{View}</div>
+  }
+
+  private onLockFileDeleted = () => {
+    this.setState({ existingLockFilePath: undefined })
+  }
+
+  private onLockFileDeleteError = (e: Error) => {
+    this.props.dispatcher.postError(e)
   }
 
   private onOptOutofReportingChanged = (value: boolean) => {
@@ -271,22 +353,23 @@ export class Preferences extends React.Component<
     this.setState({ confirmForcePush: value })
   }
 
-  private onCommitterNameChanged = (committerName: string) => {
-    const disallowedCharactersMessage = this.disallowedCharacterErrorMessage(
-      committerName,
-      this.state.committerEmail
-    )
+  private onUncommittedChangesStrategyKindChanged = (
+    value: UncommittedChangesStrategyKind
+  ) => {
+    this.setState({ uncommittedChangesStrategyKind: value })
+  }
 
-    this.setState({ committerName, disallowedCharactersMessage })
+  private onCommitterNameChanged = (committerName: string) => {
+    this.setState({
+      committerName,
+      disallowedCharactersMessage: gitAuthorNameIsValid(committerName)
+        ? null
+        : 'Name is invalid, it consists only of disallowed characters.',
+    })
   }
 
   private onCommitterEmailChanged = (committerEmail: string) => {
-    const disallowedCharactersMessage = this.disallowedCharacterErrorMessage(
-      this.state.committerName,
-      committerEmail
-    )
-
-    this.setState({ committerEmail, disallowedCharactersMessage })
+    this.setState({ committerEmail })
   }
 
   private onSelectedEditorChanged = (editor: ExternalEditor) => {
@@ -309,6 +392,10 @@ export class Preferences extends React.Component<
     )
   }
 
+  private onSchannelCheckRevokeChanged = (value: boolean) => {
+    this.setState({ schannelCheckRevoke: value })
+  }
+
   private renderFooter() {
     const hasDisabledError = this.state.disallowedCharactersMessage != null
 
@@ -317,16 +404,15 @@ export class Preferences extends React.Component<
       case PreferencesTab.Accounts:
       case PreferencesTab.Appearance:
         return null
+      case PreferencesTab.Integrations:
       case PreferencesTab.Advanced:
       case PreferencesTab.Git: {
         return (
           <DialogFooter>
-            <ButtonGroup>
-              <Button type="submit" disabled={hasDisabledError}>
-                Save
-              </Button>
-              <Button onClick={this.props.onDismissed}>Cancel</Button>
-            </ButtonGroup>
+            <OkCancelButtonGroup
+              okButtonText="Save"
+              okButtonDisabled={hasDisabledError}
+            />
           </DialogFooter>
         )
       }
@@ -336,8 +422,44 @@ export class Preferences extends React.Component<
   }
 
   private onSave = async () => {
-    await setGlobalConfigValue('user.name', this.state.committerName)
-    await setGlobalConfigValue('user.email', this.state.committerEmail)
+    try {
+      if (this.state.committerName !== this.state.initialCommitterName) {
+        await setGlobalConfigValue('user.name', this.state.committerName)
+      }
+
+      if (this.state.committerEmail !== this.state.initialCommitterEmail) {
+        await setGlobalConfigValue('user.email', this.state.committerEmail)
+      }
+
+      if (
+        this.state.schannelCheckRevoke !==
+          this.state.initialSchannelCheckRevoke &&
+        this.state.schannelCheckRevoke !== null &&
+        __WIN32__
+      ) {
+        await setGlobalConfigValue(
+          'http.schannelCheckRevoke',
+          this.state.schannelCheckRevoke.toString()
+        )
+      }
+    } catch (e) {
+      if (isConfigFileLockError(e)) {
+        const lockFilePath = parseConfigLockFilePathFromError(e.result)
+
+        if (lockFilePath !== null) {
+          this.setState({
+            existingLockFilePath: lockFilePath,
+            selectedIndex: PreferencesTab.Git,
+          })
+          return
+        }
+      }
+
+      this.props.onDismissed()
+      this.props.dispatcher.postError(e)
+      return
+    }
+
     await this.props.dispatcher.setStatsOptOut(
       this.state.optOutOfUsageTracking,
       false
@@ -360,38 +482,14 @@ export class Preferences extends React.Component<
       this.state.confirmDiscardChanges
     )
 
-    const mergeTool = this.state.mergeTool
-    if (mergeTool && mergeTool.name) {
-      await setGlobalConfigValue('merge.tool', mergeTool.name)
-
-      if (mergeTool.command) {
-        await setGlobalConfigValue(
-          `mergetool.${mergeTool.name}.cmd`,
-          mergeTool.command
-        )
-      }
-    }
+    await this.props.dispatcher.setUncommittedChangesStrategyKindSetting(
+      this.state.uncommittedChangesStrategyKind
+    )
 
     this.props.onDismissed()
   }
 
   private onTabClicked = (index: number) => {
     this.setState({ selectedIndex: index })
-  }
-
-  private onMergeToolNameChanged = (name: string) => {
-    const mergeTool = {
-      name,
-      command: this.state.mergeTool && this.state.mergeTool.command,
-    }
-    this.setState({ mergeTool })
-  }
-
-  private onMergeToolCommandChanged = (command: string) => {
-    const mergeTool = {
-      name: this.state.mergeTool ? this.state.mergeTool.name : '',
-      command,
-    }
-    this.setState({ mergeTool })
   }
 }

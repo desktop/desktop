@@ -73,10 +73,11 @@ export class Commit {
    * @param author Information about the author of this commit.
    *               Includes name, email and date.
    * @param committer Information about the committer of this commit.
-   *                 Includes name, email and date.
+   *                  Includes name, email and date.
    * @param parentSHAS The SHAs for the parents of the commit.
    * @param trailers Parsed, unfolded trailers from the commit message body,
    *                 if any, as interpreted by `git interpret-trailers`
+   * @param tags Tags associated with this commit.
    */
   public constructor(
     public readonly sha: string,
@@ -86,7 +87,8 @@ export class Commit {
     public readonly author: CommitIdentity,
     public readonly committer: CommitIdentity,
     public readonly parentSHAs: ReadonlyArray<string>,
-    public readonly trailers: ReadonlyArray<ITrailer>
+    public readonly trailers: ReadonlyArray<ITrailer>,
+    public readonly tags: ReadonlyArray<string>
   ) {
     this.coAuthors = extractCoAuthors(trailers)
 
