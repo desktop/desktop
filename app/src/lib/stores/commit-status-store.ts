@@ -345,8 +345,8 @@ export class CommitStatusStore {
     repository: GitHubRepository,
     ref: string
   ): ICombinedRefCheck | null {
-    const entry = this.cache.get(getCacheKeyForRepository(repository, ref))
-    return entry?.check ?? null
+    const key = getCacheKeyForRepository(repository, ref)
+    return this.cache.get(key)?.check ?? null
   }
 
   private getOrCreateSubscription(repository: GitHubRepository, ref: string) {
