@@ -425,6 +425,13 @@ function createCombinedCheckFromChecks(
     return null
   }
 
+  if (checks.length === 1) {
+    // If we've got exactly one check then we can mirror its status
+    // and conclusion 1-1 without having to create an aggregate status
+    const { status, conclusion } = checks[0]
+    return { status, conclusion, checks }
+  }
+
   if (checks.some(isIncompleteOrFailure)) {
     return { status: 'completed', conclusion: 'failure', checks }
   } else if (checks.every(isSuccess)) {
