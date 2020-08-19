@@ -307,29 +307,7 @@ export class CommitStatusStore {
       checks.push(...checkRuns.check_runs.map(apiCheckRunToRefCheck))
     }
 
-    if (checks.length === 0) {
-      // This case is distinct from when we fail to call the API in
-      // that this means there are no checks or statuses so we should
-      // clear whatever info we've got for this ref.
-      this.cache.set(key, { check: null, fetchedAt: new Date() })
-      return
-    }
-
-    let status: APICheckStatus
-    let conclusion: APICheckConclusion | null = null
-
-    if (checks.some(isIncompleteOrFailure)) {
-      status = 'completed'
-      conclusion = 'failure'
-    } else if (checks.every(isSuccess)) {
-      status = 'completed'
-      conclusion = 'success'
-    } else {
-      status = 'in_progress'
-    }
-
-    const check: ICombinedRefCheck = { status, conclusion, checks }
-
+    const check = createCombinedCheckFromChecks(checks)
     this.cache.set(key, { check, fetchedAt: new Date() })
     subscription.callbacks.forEach(cb => cb(check))
   }
@@ -434,6 +412,25 @@ function apiCheckRunToRefCheck(checkRun: IAPIRefCheckRun): IRefCheck {
       checkRun?.output.title ?? checkRun.conclusion ?? checkRun.status,
     status: checkRun.status,
     conclusion: checkRun.conclusion,
+  }
+}
+
+function createCombinedCheckFromChecks(
+  checks: ReadonlyArray<IRefCheck>
+): ICombinedRefCheck | null {
+  if (checks.length === 0) {
+    // This case is distinct from when we fail to call the API in
+    // that this means there are no checks or statuses so we should
+    // clear whatever info we've got for this ref.
+    return null
+  }
+
+  if (checks.some(isIncompleteOrFailure)) {
+    return { status: 'completed', conclusion: 'failure', checks }
+  } else if (checks.every(isSuccess)) {
+    return { status: 'completed', conclusion: 'success', checks }
+  } else {
+    return { status: 'in_progress', conclusion: null, checks }
   }
 }
 
