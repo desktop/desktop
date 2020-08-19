@@ -449,7 +449,13 @@ export function isIncompleteOrFailure(check: IRefCheck) {
 }
 
 /**
- * Whether the check is incomplete (timed out, stale or cancelled)
+ * Whether the check is incomplete (timed out, stale or cancelled).
+ *
+ * The terminology here is confusing and deserves explanation. An
+ * incomplete check is a check run that has been started and who's
+ * state is 'completed' but it never got to produce a conclusion
+ * because it was either cancelled, it timed out, or GitHub marked
+ * it as stale.
  */
 export function isIncomplete(check: IRefCheck) {
   if (check.status === 'completed') {
