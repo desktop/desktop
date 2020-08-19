@@ -304,7 +304,10 @@ export class CommitStatusStore {
     }
 
     if (checkRuns !== null) {
-      checks.push(...checkRuns.check_runs.map(apiCheckRunToRefCheck))
+      const latestCheckRunsByName = getLatestCheckRunsByName(
+        checkRuns.check_runs
+      )
+      checks.push(...latestCheckRunsByName.map(apiCheckRunToRefCheck))
     }
 
     const check = createCombinedCheckFromChecks(checks)
@@ -495,4 +498,31 @@ export function isSuccess(check: IRefCheck) {
   }
 
   return false
+}
+
+/**
+ * In some cases there may be multiple check runs reported for a
+ * reference. In that case GitHub.com will pick only the latest
+ * run for each check name to present in the PR merge footer and
+ * only the latest run counts towards the mergeability of a PR.
+ *
+ * We use the check suite id as a proxy for determining what's
+ * the "latest" of two check runs with the same name.
+ */
+function getLatestCheckRunsByName(
+  checkRuns: ReadonlyArray<IAPIRefCheckRun>
+): ReadonlyArray<IAPIRefCheckRun> {
+  const latestCheckRunsByName = new Map<string, IAPIRefCheckRun>()
+
+  for (const checkRun of checkRuns) {
+    const current = latestCheckRunsByName.get(checkRun.name)
+    if (
+      current === undefined ||
+      current.check_suite.id < checkRun.check_suite.id
+    ) {
+      latestCheckRunsByName.set(checkRun.name, checkRun)
+    }
+  }
+
+  return [...latestCheckRunsByName.values()]
 }

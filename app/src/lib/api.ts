@@ -294,11 +294,16 @@ export interface IAPIRefCheckRun {
   readonly conclusion: APICheckConclusion | null
   readonly name: string
   readonly output: IAPIRefCheckRunOutput
+  readonly check_suite: IAPIRefCheckRunCheckSuite
 }
 
 // NB. Only partially mapped
 export interface IAPIRefCheckRunOutput {
   readonly title: string | null
+}
+
+export interface IAPIRefCheckRunCheckSuite {
+  readonly id: number
 }
 
 export interface IAPIRefCheckRuns {
