@@ -72,6 +72,8 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
   {
     install: () => import('codemirror/mode/htmlembedded/htmlembedded'),
     mappings: {
+      '.aspx': 'application/x-aspx',
+      '.cshtml': 'application/x-aspx',
       '.jsp': 'application/x-jsp',
     },
   },
@@ -114,6 +116,8 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.vbproj': 'text/xml',
       '.svg': 'text/xml',
       '.resx': 'text/xml',
+      '.props': 'text/xml',
+      '.targets': 'text/xml',
     },
   },
   {
