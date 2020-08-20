@@ -1,7 +1,7 @@
 import { remote } from 'electron'
 import { Disposable, IDisposable } from 'event-kit'
 
-import { IAPIOrganization, IAPIRefStatus, IAPIRepository } from '../../lib/api'
+import { IAPIOrganization, IAPIRepository } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
   CompareAction,
@@ -86,6 +86,7 @@ import { executeMenuItem } from '../main-process-proxy'
 import {
   CommitStatusStore,
   StatusCallBack,
+  ICombinedRefCheck,
 } from '../../lib/stores/commit-status-store'
 import { MergeResult } from '../../models/merge'
 import {
@@ -2340,7 +2341,7 @@ export class Dispatcher {
   public tryGetCommitStatus(
     repository: GitHubRepository,
     ref: string
-  ): IAPIRefStatus | null {
+  ): ICombinedRefCheck | null {
     return this.commitStatusStore.tryGetStatus(repository, ref)
   }
 
