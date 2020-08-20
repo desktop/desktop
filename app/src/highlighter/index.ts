@@ -527,7 +527,7 @@ function getInnerModeName(
  * @param stream       The StringStream for the current line
  * @param state        The current mode state (if any)
  * @param addModeClass Whether or not to append the current (inner) mode name
- *                     as an extra CSS clas to the token, indicating the mode
+ *                     as an extra CSS class to the token, indicating the mode
  *                     that produced it, prefixed with "cm-m-". For example,
  *                     tokens from the XML mode will get the cm-m-xml class.
  */
