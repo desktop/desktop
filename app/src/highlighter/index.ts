@@ -121,6 +121,13 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     },
   },
   {
+    install: () => import('codemirror/mode/diff/diff'),
+    mappings: {
+      '.diff': 'text/x-diff',
+      '.patch': 'text/x-diff',
+    },
+  },
+  {
     install: () => import('codemirror/mode/clike/clike'),
     mappings: {
       '.m': 'text/x-objectivec',
