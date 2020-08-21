@@ -1647,7 +1647,18 @@ export class Dispatcher {
     // ensure a fresh clone repository has it's in-memory state
     // up-to-date before performing the "Clone in Desktop" steps
     await this.appStore._refreshRepository(repository)
-    this.appStore._checkoutPullRequest(repository, pullRequest)
+
+    if (pullRequest.head.repo === null) {
+      return
+    }
+
+    this.appStore._checkoutPullRequest(
+      repository,
+      pullRequest.number,
+      pullRequest.user.login,
+      pullRequest.head.repo.clone_url,
+      pullRequest.head.ref
+    )
   }
 
   public async dispatchURLAction(action: URLActionType): Promise<void> {
@@ -1999,7 +2010,17 @@ export class Dispatcher {
     repository: RepositoryWithGitHubRepository,
     pullRequest: PullRequest
   ): Promise<void> {
-    return this.appStore._checkoutPullRequest(repository, pullRequest)
+    if (pullRequest.head.gitHubRepository.cloneURL === null) {
+      return
+    }
+
+    return this.appStore._checkoutPullRequest(
+      repository,
+      pullRequest.pullRequestNumber,
+      pullRequest.author,
+      pullRequest.head.gitHubRepository.cloneURL,
+      pullRequest.head.ref
+    )
   }
 
   /**

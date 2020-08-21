@@ -84,7 +84,6 @@ import {
   IAPIOrganization,
   IAPIRepository,
   getEndpointForRepository,
-  IAPIPullRequest,
 } from '../api'
 import { shell } from '../app-shell'
 import {
@@ -5364,43 +5363,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public async _checkoutPullRequest(
     repository: RepositoryWithGitHubRepository,
-    pullRequest: IAPIPullRequest | PullRequest
+    prNumber: number,
+    ownerLogin: string,
+    headCloneUrl: string,
+    headRefName: string
   ): Promise<void> {
-    let prNumber: number | null = null
-    let ownerLogin: string | null = null
-    let head: {
-      cloneURL: string
-      ref: string
-    } | null = null
-
-    if (pullRequest instanceof PullRequest) {
-      if (pullRequest.head.gitHubRepository.cloneURL === null) {
-        return
-      }
-
-      prNumber = pullRequest.pullRequestNumber
-      ownerLogin = pullRequest.author
-      head = {
-        cloneURL: pullRequest.head.gitHubRepository.cloneURL,
-        ref: pullRequest.head.ref,
-      }
-    } else {
-      if (pullRequest.head.repo === null) {
-        return
-      }
-
-      prNumber = pullRequest.number
-      ownerLogin = pullRequest.user.login
-      head = {
-        cloneURL: pullRequest.head.repo.clone_url,
-        ref: pullRequest.head.ref,
-      }
-    }
-
     const branch = await this._getPullRequestHeadBranchInRepo(
       repository,
-      head.cloneURL,
-      head.ref
+      headCloneUrl,
+      headRefName
     )
 
     // N.B: This looks weird, and it is. _checkoutBranch used
@@ -5418,11 +5389,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const remotes = await getRemotes(repository)
       const remote =
         remotes.find(r => r.name === remoteName) ||
-        (await addRemote(repository, remoteName, head.cloneURL))
+        (await addRemote(repository, remoteName, headCloneUrl))
 
-      if (remote.url !== head.cloneURL) {
+      if (remote.url !== headCloneUrl) {
         const error = new Error(
-          `Expected PR remote ${remoteName} url to be ${head.cloneURL} got ${remote.url}.`
+          `Expected PR remote ${remoteName} url to be ${headCloneUrl} got ${remote.url}.`
         )
 
         log.error(error.message)
@@ -5438,7 +5409,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         await this._createBranch(
           repository,
           localBranchName,
-          `${remoteName}/${head.ref}`
+          `${remoteName}/${headRefName}`
         )
       } else {
         await this._checkoutBranch(repository, existingBranch)
