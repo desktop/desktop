@@ -8,7 +8,7 @@ import { ILaunchStats } from '../lib/stats'
 import { menuFromElectronMenu } from '../models/app-menu'
 import { now } from './now'
 import * as path from 'path'
-import * as windowStateKeeper from 'electron-window-state'
+import windowStateKeeper from 'electron-window-state'
 
 export class AppWindow {
   private window: Electron.BrowserWindow
@@ -41,9 +41,9 @@ export class AppWindow {
         // Disable auxclick event
         // See https://developers.google.com/web/updates/2016/10/auxclick
         disableBlinkFeatures: 'Auxclick',
-        // Enable, among other things, the ResizeObserver
-        experimentalFeatures: true,
         nodeIntegration: true,
+        enableRemoteModule: true,
+        spellcheck: false,
       },
       acceptFirstMouse: true,
     }

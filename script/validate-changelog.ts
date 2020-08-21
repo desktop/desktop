@@ -3,14 +3,14 @@
 import * as Path from 'path'
 import * as Fs from 'fs'
 
-import * as Ajv from 'ajv'
+import Ajv, { ErrorObject } from 'ajv'
 
 function handleError(error: string) {
   console.error(error)
   process.exit(-1)
 }
 
-function formatErrors(errors: Ajv.ErrorObject[]): string {
+function formatErrors(errors: ErrorObject[]): string {
   return errors
     .map(error => {
       const { dataPath, message } = error

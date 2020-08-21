@@ -3,7 +3,6 @@ import { Disposable, IDisposable } from 'event-kit'
 
 import {
   IAPIOrganization,
-  IAPIRefStatus,
   IAPIRepository,
   IAPIPullRequest,
 } from '../../lib/api'
@@ -90,6 +89,7 @@ import { executeMenuItem } from '../main-process-proxy'
 import {
   CommitStatusStore,
   StatusCallBack,
+  ICombinedRefCheck,
 } from '../../lib/stores/commit-status-store'
 import { MergeResult } from '../../models/merge'
 import {
@@ -100,6 +100,7 @@ import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { IStashEntry } from '../../models/stash-entry'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { enableForkSettings } from '../../lib/feature-flag'
+import { resolveWithin } from '../../lib/path'
 
 /**
  * An error handler function.
@@ -1785,7 +1786,7 @@ export class Dispatcher {
       await this.checkoutBranch(repository, localBranch)
     }
   }
-
+  
   private async openOrCloneRepository(url: string): Promise<Repository | null> {
     const state = this.appStore.getState()
     const repositories = state.repositories
@@ -2304,7 +2305,7 @@ export class Dispatcher {
   public tryGetCommitStatus(
     repository: GitHubRepository,
     ref: string
-  ): IAPIRefStatus | null {
+  ): ICombinedRefCheck | null {
     return this.commitStatusStore.tryGetStatus(repository, ref)
   }
 

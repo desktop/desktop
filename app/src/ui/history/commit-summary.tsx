@@ -1,10 +1,9 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 
 import { FileChange } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { RichText } from '../lib/rich-text'
-import { IGitHubUser } from '../../lib/databases'
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
 import { getAvatarUsersForCommit, IAvatarUser } from '../../models/avatar'
@@ -20,7 +19,6 @@ interface ICommitSummaryProps {
   readonly commit: Commit
   readonly files: ReadonlyArray<FileChange>
   readonly emoji: Map<string, string>
-  readonly gitHubUsers: Map<string, IGitHubUser> | null
 
   /**
    * Whether or not the commit body container should
@@ -96,7 +94,6 @@ function createState(
 
   const avatarUsers = getAvatarUsersForCommit(
     props.repository.gitHubRepository,
-    props.gitHubUsers,
     props.commit
   )
 
@@ -119,13 +116,6 @@ export class CommitSummary extends React.Component<
   private readonly resizeObserver: ResizeObserver | null = null
   private updateOverflowTimeoutId: NodeJS.Immediate | null = null
   private descriptionRef: HTMLDivElement | null = null
-
-  private onHideWhitespaceInDiffChanged = (
-    event: React.FormEvent<HTMLInputElement>
-  ) => {
-    const value = event.currentTarget.checked
-    this.props.onHideWhitespaceInDiffChanged(value)
-  }
 
   public constructor(props: ICommitSummaryProps) {
     super(props)
@@ -151,6 +141,13 @@ export class CommitSummary extends React.Component<
         }
       })
     }
+  }
+
+  private onHideWhitespaceInDiffChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+    this.props.onHideWhitespaceInDiffChanged(value)
   }
 
   private onResized = () => {

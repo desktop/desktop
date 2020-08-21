@@ -1,7 +1,7 @@
 import { ChildProcess } from 'child_process'
 import * as Fs from 'fs'
 import * as Path from 'path'
-import * as byline from 'byline'
+import byline from 'byline'
 
 import { GitProgressParser, IGitProgress, IGitOutput } from './git'
 import { IGitExecutionOptions } from '../git/core'
@@ -54,11 +54,17 @@ function createProgressProcessCallback(
   progressCallback: (progress: IGitProgress | IGitOutput) => void
 ): (process: ChildProcess) => void {
   return process => {
+    let lfsProgressActive = false
+
     if (lfsProgressPath) {
       const lfsParser = new GitLFSProgressParser()
       const disposable = tailByLine(lfsProgressPath, line => {
         const progress = lfsParser.parse(line)
-        progressCallback(progress)
+
+        if (progress.kind === 'progress') {
+          lfsProgressActive = true
+          progressCallback(progress)
+        }
       })
 
       process.on('close', () => {
@@ -81,7 +87,33 @@ function createProgressProcessCallback(
     // `stderr` will be undefined and the error will be emitted asynchronously
     if (process.stderr) {
       byline(process.stderr).on('data', (line: string) => {
-        progressCallback(parser.parse(line))
+        const progress = parser.parse(line)
+
+        if (lfsProgressActive) {
+          // While we're sending LFS progress we don't want to mix
+          // any non-progress events in with the output or we'll get
+          // flickering between the indeterminate LFS progress and
+          // the regular progress.
+          if (progress.kind === 'context') {
+            return
+          }
+
+          const { title, done } = progress.details
+
+          // The 'Filtering content' title happens while the LFS
+          // filter is running and when it's done we know that the
+          // filter is done but until then we don't want to display
+          // it for the same reason that we don't want to display
+          // the context above.
+          if (title === 'Filtering content') {
+            if (done) {
+              lfsProgressActive = false
+            }
+            return
+          }
+        }
+
+        progressCallback(progress)
       })
     }
   }

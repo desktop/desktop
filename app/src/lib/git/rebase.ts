@@ -2,7 +2,7 @@ import * as Path from 'path'
 import { ChildProcess } from 'child_process'
 import * as FSE from 'fs-extra'
 import { GitError } from 'dugite'
-import * as byline from 'byline'
+import byline from 'byline'
 
 import { Repository } from '../../models/repository'
 import {

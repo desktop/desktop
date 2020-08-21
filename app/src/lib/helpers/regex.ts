@@ -1,7 +1,9 @@
 /**
- * get all regex captures within a body of text
+ * Get all regex captures within a body of text
+ *
  * @param text string to search
  * @param re regex to search with. must have global option and one capture
+ *
  * @returns arrays of strings captured by supplied regex
  */
 export function getCaptures(
@@ -17,7 +19,8 @@ export function getCaptures(
 }
 
 /**
- * get all regex matches within a body of text
+ * Get all regex matches within a body of text
+ *
  * @param text string to search
  * @param re regex to search with. must have global option
  * @returns set of strings captured by supplied regex

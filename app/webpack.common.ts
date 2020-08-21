@@ -1,8 +1,8 @@
 import * as path from 'path'
-import * as HtmlWebpackPlugin from 'html-webpack-plugin'
-import * as CleanWebpackPlugin from 'clean-webpack-plugin'
-import * as webpack from 'webpack'
-import * as merge from 'webpack-merge'
+import HtmlWebpackPlugin from 'html-webpack-plugin'
+import CleanWebpackPlugin from 'clean-webpack-plugin'
+import webpack from 'webpack'
+import merge from 'webpack-merge'
 import { getChannel } from '../script/dist-info'
 import { getReplacements } from './app-info'
 
@@ -59,7 +59,6 @@ const commonConfig: webpack.Configuration = {
   ],
   resolve: {
     extensions: ['.js', '.ts', '.tsx'],
-    modules: [path.resolve(__dirname, 'node_modules/')],
   },
   node: {
     __dirname: false,
@@ -67,17 +66,41 @@ const commonConfig: webpack.Configuration = {
   },
 }
 
-export const main = merge({}, commonConfig, {
-  entry: { main: path.resolve(__dirname, 'src/main-process/main') },
-  target: 'electron-main',
-  plugins: [
-    new webpack.DefinePlugin(
-      Object.assign({}, replacements, {
-        __PROCESS_KIND__: JSON.stringify('main'),
-      })
-    ),
-  ],
-})
+// Hack: The file-metadata plugin has substantial dependencies
+// (plist, DOMParser, etc) and it's only applicable on macOS.
+//
+// Therefore, when compiling on other platforms, we replace it
+// with a tiny shim instead.
+const shimFileMetadata = {
+  resolve: {
+    alias: {
+      'file-metadata': path.resolve(
+        __dirname,
+        'src',
+        'lib',
+        'helpers',
+        'file-metadata.js'
+      ),
+    },
+  },
+}
+
+export const main = merge(
+  {},
+  commonConfig,
+  {
+    entry: { main: path.resolve(__dirname, 'src/main-process/main') },
+    target: 'electron-main',
+    plugins: [
+      new webpack.DefinePlugin(
+        Object.assign({}, replacements, {
+          __PROCESS_KIND__: JSON.stringify('main'),
+        })
+      ),
+    ],
+  },
+  process.platform !== 'darwin' ? shimFileMetadata : {}
+)
 
 export const renderer = merge({}, commonConfig, {
   entry: { renderer: path.resolve(__dirname, 'src/ui/index') },

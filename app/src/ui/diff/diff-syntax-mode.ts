@@ -3,7 +3,7 @@ import * as CodeMirror from 'codemirror'
 import { diffLineForIndex } from './diff-explorer'
 import { ITokens } from '../../lib/highlighter/types'
 
-require('codemirror/mode/javascript/javascript')
+import 'codemirror/mode/javascript/javascript'
 
 export interface IDiffSyntaxModeOptions {
   /**

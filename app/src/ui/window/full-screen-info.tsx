@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { CSSTransitionGroup } from 'react-transition-group'
+import { TransitionGroup, CSSTransition } from 'react-transition-group'
 import { WindowState } from '../../lib/window-state'
 
 interface IFullScreenInfoProps {
@@ -11,8 +11,7 @@ interface IFullScreenInfoState {
   readonly renderTransitionGroup: boolean
 }
 
-const transitionAppearDuration = 100
-const transitionLeaveDuration = 250
+const toastTransitionTimeout = { appear: 100, exit: 250 }
 const holdDuration = 3000
 
 /**
@@ -60,7 +59,9 @@ export class FullScreenInfo extends React.Component<
 
       this.transitionGroupDisappearTimeoutId = window.setTimeout(
         this.onTransitionGroupDisappearTimeout,
-        transitionAppearDuration + holdDuration + transitionLeaveDuration
+        toastTransitionTimeout.appear +
+          holdDuration +
+          toastTransitionTimeout.exit
       )
 
       this.setState({
@@ -93,9 +94,17 @@ export class FullScreenInfo extends React.Component<
     const kbdShortcut = __DARWIN__ ? '⌃⌘F' : 'F11'
 
     return (
-      <div key="notification" className="toast-notification">
-        Press <kbd>{kbdShortcut}</kbd> to exit fullscreen
-      </div>
+      <CSSTransition
+        classNames="toast-animation"
+        appear={true}
+        enter={false}
+        exit={true}
+        timeout={toastTransitionTimeout}
+      >
+        <div key="notification" className="toast-notification">
+          Press <kbd>{kbdShortcut}</kbd> to exit fullscreen
+        </div>
+      </CSSTransition>
     )
   }
 
@@ -105,18 +114,9 @@ export class FullScreenInfo extends React.Component<
     }
 
     return (
-      <CSSTransitionGroup
-        className="toast-notification-container"
-        transitionName="toast-animation"
-        component="div"
-        transitionAppear={true}
-        transitionEnter={false}
-        transitionLeave={true}
-        transitionAppearTimeout={transitionAppearDuration}
-        transitionLeaveTimeout={transitionLeaveDuration}
-      >
+      <TransitionGroup className="toast-notification-container">
         {this.renderFullScreenNotification()}
-      </CSSTransitionGroup>
+      </TransitionGroup>
     )
   }
 }

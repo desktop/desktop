@@ -27,6 +27,7 @@ export function enableProgressBarOnIcon(): boolean {
 }
 
 /** Should the app enable beta features? */
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore: this will be used again in the future
 function enableBetaFeatures(): boolean {
   return enableDevelopmentFeatures() || __RELEASE_CHANNEL__ === 'beta'
@@ -131,4 +132,11 @@ export function enableForkSettings(): boolean {
  */
 export function enableDiscardLines(): boolean {
   return true
+}
+
+/**
+ * Should we allow to change the default branch when creating new repositories?
+ */
+export function enableDefaultBranchSetting(): boolean {
+  return enableBetaFeatures()
 }

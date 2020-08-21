@@ -14,21 +14,6 @@
       .checkbox-component:not(:last-child) {
         margin-bottom: var(--spacing-half);
       }
-
-      .radio-component {
-        &:not(:last-child) {
-          margin-bottom: var(--spacing-half);
-        }
-
-        input {
-          margin: 0;
-
-          // Only add a right margin if there's a label attached to it
-          &:not(:last-child) {
-            margin-right: var(--spacing-half);
-          }
-        }
-      }
     }
   }
 
@@ -73,6 +58,20 @@
     span {
       color: var(--text-secondary-color);
     }
+  }
+
+  .default-branch-component {
+    margin-top: var(--spacing-double);
+
+    .ref-name-text-box {
+      margin-top: var(--spacing);
+    }
+  }
+
+  .git-settings-description {
+    margin-top: var(--spacing-double);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary-color);
   }
 }
 
