@@ -1621,21 +1621,25 @@ export class Dispatcher {
     pullRequest: IAPIPullRequest
   ) {
     // Find the repository where the PR is created in Desktop.
-    let repository: RepositoryWithGitHubRepository | null = await this.getRepositoryFromPullRequest(
+    let repository: Repository | null = await this.getRepositoryFromPullRequest(
       pullRequest
     )
 
     if (repository !== null) {
       await this.selectRepository(repository)
     } else {
-      repository = (await this.openOrCloneRepository(
-        url
-      )) as RepositoryWithGitHubRepository | null
+      repository = await this.openOrCloneRepository(url)
     }
 
     if (repository === null) {
       log.warn(
         `Open Repository from URL failed, did not find or clone repository: ${url}`
+      )
+      return
+    }
+    if (!isRepositoryWithGitHubRepository(repository)) {
+      log.warn(
+        `Received a non-GitHub repository when opening repository from URL: ${url}`
       )
       return
     }
