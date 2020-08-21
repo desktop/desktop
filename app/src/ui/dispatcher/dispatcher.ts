@@ -100,6 +100,7 @@ import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { IStashEntry } from '../../models/stash-entry'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { enableForkSettings } from '../../lib/feature-flag'
+import { resolveWithin } from '../../lib/path'
 
 /**
  * An error handler function.
@@ -1595,7 +1596,7 @@ export class Dispatcher {
   }
 
   private async openRepositoryFromUrl(action: IOpenRepositoryFromURLAction) {
-    const { url, pr, branch } = action
+    const { url, pr, branch, filepath } = action
 
     const pullRequest = pr
       ? await this.appStore.fetchPullRequest(url, pr)
@@ -1608,11 +1609,27 @@ export class Dispatcher {
 
     const repository = await this.openOrCloneRepository(url)
 
-    if (branch !== null && repository !== null) {
+    if (repository === null) {
+      return
+    }
+
+    if (branch !== null) {
       // ensure a fresh clone repository has it's in-memory state
       // up-to-date before performing the "Clone in Desktop" steps
       await this.appStore._refreshRepository(repository)
-      this.checkoutLocalBranch(repository, branch)
+      await this.checkoutLocalBranch(repository, branch)
+    }
+
+    if (filepath != null) {
+      const resolved = await resolveWithin(repository.path, filepath)
+
+      if (resolved !== null) {
+        shell.showItemInFolder(resolved)
+      } else {
+        log.error(
+          `Prevented attempt to open path outside of the repository root: ${filepath}`
+        )
+      }
     }
   }
 
