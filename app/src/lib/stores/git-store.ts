@@ -465,7 +465,12 @@ export class GitStore extends BaseStore {
     // priority to local branches by sorting them before remotes
     this._defaultBranch =
       this._allBranches
-        .filter(b => b.name === defaultBranchName)
+        .filter(
+          b =>
+            (b.name === defaultBranchName &&
+              b.upstreamWithoutRemote === null) ||
+            b.upstreamWithoutRemote === defaultBranchName
+        )
         .sort((x, y) => compare(x.type, y.type))
         .shift() || null
   }
