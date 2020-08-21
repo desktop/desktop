@@ -309,6 +309,12 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --focus-color: #{$blue};
 
   /**
+   * An alternative focus color to use when the background color of
+   * the focused element is the same as the regular focus color.
+   */
+  --alt-focus-color: #{$blue-800};
+
+  /**
    * Variables for form elements
    */
   --text-field-height: 25px;
