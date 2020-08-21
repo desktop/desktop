@@ -10,6 +10,9 @@
       "[Fixed] Prevent multiple search inputs from appearing in diffs - #9563",
       "[Fixed] Unable to toggle lines for partial commit of very large text files - #10154",
       "[Fixed] Fix BBEdit integration - #9050. Thanks @grumpybozo!",
+      "[Fixed] Fix VoiceOver navigation to re-enter application content in macOS - #10303",
+      "[Fixed] Repositories with filenames that contain backslashes in Windows can now be cloned - #9904",
+      "[Fixed] Valid gitignore files are now created for new Clojure, Fortran and Kotlin repositories in Windows - #10417",
       "[Improved] Enable discarding submodule working directory changes - #8218",
       "[Improved] Surface progress estimation when cloning LFS repositories - #3171. Thanks @AndreiMaga!",
       "[Improved] Performance and accuracy improvement when autocompleting issues and users - #10168",
@@ -17,7 +20,7 @@
       "[Improved] Pull request list is now keyboard accessible - #10334",
       "[Improved] On Windows the Home and End keys can now be used to navigate lists - #6295. Thanks @AndreiMaga!",
       "[Improved] Show progress spinner while waiting for a removed repository to get moved to trash (Windows) - #10133",
-      "[Improved] Dialogs now clears filter text boxes on Escape and closes on double Escape - #6369. Thanks @AndreiMaga!",
+      "[Improved] Dialogs now clear filter text boxes on Escape and closes on double Escape - #6369. Thanks @AndreiMaga!",
       "[Improved] Display the selected changes count in the changes list header tooltip - #9936. Thanks @haykam821!",
       "[Improved] Autocompletion of users and issues from a fork - #10084"
     ],
