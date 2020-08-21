@@ -1,5 +1,26 @@
 {
   "releases": {
+    "2.5.4": [
+      "[Added] Add Alacritty shell support - #10243. Thanks @halitogunc!",
+      "[Added] Suggest to stash changes when trying to do an operation that requires a clean working directory - #10053",
+      "[Fixed] Correct branch name in commit button when on an unborn branch - #10318",
+      "[Fixed] Fix \"Show in Explorer\" in Windows when there are other files with the same name as the project folder - #10195",
+      "[Fixed] Open the repository folder when clicking on \"Show in Finder\" in macOS - #9987",
+      "[Fixed] Don't expand paths in the PATH environment variable during installation - #10100",
+      "[Fixed] Prevent multiple search inputs from appearing in diffs - #9563",
+      "[Fixed] Unable to toggle lines for partial commit of very large text files - #10154",
+      "[Fixed] Fix BBEdit integration - #9050. Thanks @grumpybozo!",
+      "[Improved] Enable discarding submodule working directory changes - #8218",
+      "[Improved] Surface progress estimation when cloning LFS repositories - #3171. Thanks @AndreiMaga!",
+      "[Improved] Performance and accuracy improvement when autocompleting issues and users - #10168",
+      "[Improved] Show only one error dialog when dragging multiple invalid folders to Desktop - #10211",
+      "[Improved] Pull request list is now keyboard accessible - #10334",
+      "[Improved] On Windows the Home and End keys can now be used to navigate lists - #6295. Thanks @AndreiMaga!",
+      "[Improved] Show progress spinner while waiting for a removed repository to get moved to trash (Windows) - #10133",
+      "[Improved] Dialogs now clears filter text boxes on Escape and closes on double Escape - #6369. Thanks @AndreiMaga!",
+      "[Improved] Display the selected changes count in the changes list header tooltip - #9936. Thanks @haykam821!",
+      "[Improved] Autocompletion of users and issues from a fork - #10084"
+    ],
     "2.5.4-beta4": [
       "[Added] Support for specifying the default branch for new repositories - #10262",
       "[Improved] Enable discarding submodule working directory changes - #8218",
