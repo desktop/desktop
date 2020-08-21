@@ -1,5 +1,15 @@
 {
   "releases": {
+    "2.5.4-beta4": [
+      "[Added] Support for specifying the default branch for new repositories - #10262",
+      "[Improved] Enable discarding submodule working directory changes - #8218",
+      "[Improved] Fix label alignment in radio-button component styles - #10397",
+      "[Improved] Custom icon in list filter text boxes - #10394",
+      "[Removed] Disable spellchecking for the time being - #10398"
+    ],
+    "2.5.4-beta3": [
+      "[Added] Add Alacritty shell support - #10243. Thanks @halitogunc!"
+    ],
     "2.5.4-beta2": [
       "[Added] Suggest to stash changes when trying to do an operation that requires a clean working directory - #10053",
       "[Fixed] Pull request list is now keyboard accessible - #10334",

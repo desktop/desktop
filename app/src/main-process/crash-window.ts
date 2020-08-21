@@ -37,6 +37,7 @@ export class CrashWindow {
         // See https://developers.google.com/web/updates/2016/10/auxclick
         disableBlinkFeatures: 'Auxclick',
         nodeIntegration: true,
+        spellcheck: false,
       },
     }
 

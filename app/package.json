@@ -3,7 +3,7 @@
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "2.5.4-beta2",
+  "version": "2.5.4-beta4",
   "main": "./main.js",
   "repository": {
     "type": "git",
@@ -49,7 +49,7 @@
     "react": "^16.8.4",
     "react-css-transition-replace": "^3.0.3",
     "react-dom": "^16.8.4",
-    "react-transition-group": "^1.2.0",
+    "react-transition-group": "^4.4.1",
     "react-virtualized": "^9.20.0",
     "registry-js": "^1.4.0",
     "source-map-support": "^0.4.15",

@@ -72,6 +72,8 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
   {
     install: () => import('codemirror/mode/htmlembedded/htmlembedded'),
     mappings: {
+      '.aspx': 'application/x-aspx',
+      '.cshtml': 'application/x-aspx',
       '.jsp': 'application/x-jsp',
     },
   },
@@ -114,6 +116,15 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.vbproj': 'text/xml',
       '.svg': 'text/xml',
       '.resx': 'text/xml',
+      '.props': 'text/xml',
+      '.targets': 'text/xml',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/diff/diff'),
+    mappings: {
+      '.diff': 'text/x-diff',
+      '.patch': 'text/x-diff',
     },
   },
   {
@@ -527,7 +538,7 @@ function getInnerModeName(
  * @param stream       The StringStream for the current line
  * @param state        The current mode state (if any)
  * @param addModeClass Whether or not to append the current (inner) mode name
- *                     as an extra CSS clas to the token, indicating the mode
+ *                     as an extra CSS class to the token, indicating the mode
  *                     that produced it, prefixed with "cm-m-". For example,
  *                     tokens from the XML mode will get the cm-m-xml class.
  */
