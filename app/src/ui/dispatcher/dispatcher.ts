@@ -1771,8 +1771,6 @@ export class Dispatcher {
 
     const localBranch = branches.find(b => b.nameWithoutRemote === branch)
 
-    console.log('rafeca: localbranch', localBranch, branches)
-
     // N.B: This looks weird, and it is. _checkoutBranch used
     // to behave this way (silently ignoring checkout) when given
     // a branch name string that does not correspond to a local branch
