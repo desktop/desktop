@@ -88,6 +88,7 @@ import { PullRequest } from '../../models/pull-request'
 import { StatsStore } from '../stats'
 import { getTagsToPush, storeTagsToPush } from './helpers/tags-to-push-storage'
 import { DiffSelection, ITextDiff } from '../../models/diff'
+import { getDefaultBranch } from '../helpers/default-branch'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -524,7 +525,7 @@ export class GitStore extends BaseStore {
       }
     }
 
-    return 'master'
+    return getDefaultBranch()
   }
 
   private refreshRecentBranches(
