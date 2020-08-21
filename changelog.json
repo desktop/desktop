@@ -11,7 +11,7 @@
       "[Fixed] Unable to toggle lines for partial commit of very large text files - #10154",
       "[Fixed] Fix BBEdit integration - #9050. Thanks @grumpybozo!",
       "[Fixed] Fix VoiceOver navigation to re-enter application content in macOS - #10303",
-      "[Fixed] Repositories with filenames that contain backslashes in Windows can now be cloned - #9904",
+      "[Fixed] Repositories with historical commits containing filenames with backslashes can now be cloned on Windows - #9904",
       "[Fixed] Valid gitignore files are now created for new Clojure, Fortran and Kotlin repositories in Windows - #10417",
       "[Improved] Enable discarding submodule working directory changes - #8218",
       "[Improved] Surface progress estimation when cloning LFS repositories - #3171. Thanks @AndreiMaga!",
