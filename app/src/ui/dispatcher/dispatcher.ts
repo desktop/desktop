@@ -1547,10 +1547,10 @@ export class Dispatcher {
   ): RepositoryWithGitHubRepository | null {
     const state = this.appStore.getState()
     const repositories = state.repositories
-    const headUrl = pullRequest.head.repo && pullRequest.head.repo.clone_url
-    const baseUrl = pullRequest.base.repo && pullRequest.base.repo.clone_url
+    const headUrl = pullRequest.head.repo?.clone_url
+    const baseUrl = pullRequest.base.repo?.clone_url
 
-    if (headUrl === null || baseUrl === null) {
+    if (headUrl === undefined || baseUrl === undefined) {
       return null
     }
 
