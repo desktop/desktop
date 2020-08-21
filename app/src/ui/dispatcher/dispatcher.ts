@@ -1598,29 +1598,21 @@ export class Dispatcher {
   private async openRepositoryFromUrl(action: IOpenRepositoryFromURLAction) {
     const { url, pr, branch, filepath } = action
 
-    const pullRequest = pr
-      ? await this.appStore.fetchPullRequest(url, pr)
-      : null
+    let repository: Repository | null
 
-    if (pullRequest !== null) {
-      await this.openPullRequestFromUrl(url, pullRequest)
-      return
+    if (pr !== null) {
+      repository = await this.openPullRequestFromUrl(url, pr)
+    } else if (branch !== null) {
+      repository = await this.openBranchNameFromUrl(url, branch)
+    } else {
+      repository = await this.openOrCloneRepository(url)
     }
-
-    const repository = await this.openOrCloneRepository(url)
 
     if (repository === null) {
       return
     }
 
-    if (branch !== null) {
-      // ensure a fresh clone repository has it's in-memory state
-      // up-to-date before performing the "Clone in Desktop" steps
-      await this.appStore._refreshRepository(repository)
-      await this.checkoutLocalBranch(repository, branch)
-    }
-
-    if (filepath != null) {
+    if (filepath !== null) {
       const resolved = await resolveWithin(repository.path, filepath)
 
       if (resolved !== null) {
@@ -1633,10 +1625,35 @@ export class Dispatcher {
     }
   }
 
+  private async openBranchNameFromUrl(
+    url: string,
+    branchName: string
+  ): Promise<Repository | null> {
+    const repository = await this.openOrCloneRepository(url)
+
+    if (repository === null) {
+      return null
+    }
+
+    // ensure a fresh clone repository has it's in-memory state
+    // up-to-date before performing the "Clone in Desktop" steps
+    await this.appStore._refreshRepository(repository)
+
+    await this.checkoutLocalBranch(repository, branchName)
+
+    return repository
+  }
+
   private async openPullRequestFromUrl(
     url: string,
-    pullRequest: IAPIPullRequest
-  ) {
+    pr: string
+  ): Promise<RepositoryWithGitHubRepository | null> {
+    const pullRequest = await this.appStore.fetchPullRequest(url, pr)
+
+    if (pullRequest === null) {
+      return null
+    }
+
     // Find the repository where the PR is created in Desktop.
     let repository: Repository | null = await this.getRepositoryFromPullRequest(
       pullRequest
@@ -1652,13 +1669,13 @@ export class Dispatcher {
       log.warn(
         `Open Repository from URL failed, did not find or clone repository: ${url}`
       )
-      return
+      return null
     }
     if (!isRepositoryWithGitHubRepository(repository)) {
       log.warn(
         `Received a non-GitHub repository when opening repository from URL: ${url}`
       )
-      return
+      return null
     }
 
     // ensure a fresh clone repository has it's in-memory state
@@ -1666,16 +1683,18 @@ export class Dispatcher {
     await this.appStore._refreshRepository(repository)
 
     if (pullRequest.head.repo === null) {
-      return
+      return null
     }
 
-    this.appStore._checkoutPullRequest(
+    await this.appStore._checkoutPullRequest(
       repository,
       pullRequest.number,
       pullRequest.user.login,
       pullRequest.head.repo.clone_url,
       pullRequest.head.ref
     )
+
+    return repository
   }
 
   public async dispatchURLAction(action: URLActionType): Promise<void> {
