@@ -192,6 +192,8 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     if (tip.kind === TipState.Valid) {
       if (defaultBranch !== null) {
         onNonDefaultBranch = tip.branch.name !== defaultBranch.name
+      } else {
+        onNonDefaultBranch = true
       }
 
       hasPublishedBranch = !!tip.branch.upstream
