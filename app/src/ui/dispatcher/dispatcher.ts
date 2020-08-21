@@ -1541,6 +1541,15 @@ export class Dispatcher {
    * Find an existing repository that can be used for checking out
    * the passed pull request.
    *
+   * This method will try to find an opened repository that matches the
+   * HEAD repository of the PR first and if not found it will try to
+   * find an opened repository that matches the BASE repository of the PR.
+   * Matching in this context means that either the origin remote or the
+   * upstream remote url are equal to the PR ref repository URL.
+   *
+   * With this logic we try to select the best suited repository to open
+   * a PR when triggering a "Open PR from Desktop" action from a browser.
+   *
    * @param pullRequest the pull request object received from the API.
    */
   private getRepositoryFromPullRequest(
