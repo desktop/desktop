@@ -32,48 +32,6 @@ export function getSha() {
   )
 }
 
-export function isRunningOnFork() {
-  if (isCircleCI() && process.env.CIRCLE_PR_USERNAME != null) {
-    return true
-  }
-
-  if (
-    isAppveyor() &&
-    process.env.APPVEYOR_PULL_REQUEST_NUMBER != null &&
-    process.env.APPVEYOR_PULL_REQUEST_HEAD_REPO_NAME !== 'desktop/desktop'
-  ) {
-    return true
-  }
-
-  if (
-    isTravis() &&
-    process.env.TRAVIS_PULL_REQUEST_SLUG != null &&
-    // empty string denotes a `push` build
-    process.env.TRAVIS_PULL_REQUEST_SLUG !== '' &&
-    process.env.TRAVIS_PULL_REQUEST_SLUG !== 'desktop/desktop'
-  ) {
-    return true
-  }
-
-  if (
-    isAzurePipelines() &&
-    process.env.SYSTEM_PULLREQUEST_ISFORK != null &&
-    process.env.SYSTEM_PULLREQUEST_ISFORK === 'True'
-  ) {
-    return true
-  }
-
-  if (
-    isGitHubActions() &&
-    process.env.GITHUB_HEAD_REF !== undefined &&
-    process.env.GITHUB_HEAD_REF.length > 0
-  ) {
-    return true
-  }
-
-  return false
-}
-
 export function isTravis() {
   return process.platform === 'linux' && process.env.TRAVIS === 'true'
 }
