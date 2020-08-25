@@ -4,13 +4,13 @@ import * as fs from 'fs'
 import * as cp from 'child_process'
 import { getLogFiles } from './review-logs'
 import { getProductName } from '../app/package-info'
-import { getDistPath } from './dist-info'
-import { isCircleCI, isRunningOnFork, isGitHubActions } from './build-platforms'
+import { getDistPath, isPublishable } from './dist-info'
+import { isCircleCI, isGitHubActions } from './build-platforms'
 
 if (
   (isCircleCI() || isGitHubActions()) &&
   process.platform === 'darwin' &&
-  !isRunningOnFork()
+  isPublishable()
 ) {
   const archive = `${getDistPath()}/${getProductName()}.app`
   try {

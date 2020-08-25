@@ -40,7 +40,7 @@ import {
   isPublishable,
   getIconFileName,
 } from './dist-info'
-import { isRunningOnFork, isCircleCI, isGitHubActions } from './build-platforms'
+import { isCircleCI, isGitHubActions } from './build-platforms'
 
 import { updateLicenseDump } from './licenses/update-license-dump'
 import { verifyInjectedSassVariables } from './validate-sass/validate-all'
@@ -75,7 +75,7 @@ moveAnalysisFiles()
 if (
   (isCircleCI() || isGitHubActions()) &&
   process.platform === 'darwin' &&
-  !isRunningOnFork()
+  isPublishable()
 ) {
   console.log('Setting up keychain…')
   cp.execSync(path.join(__dirname, 'setup-macos-keychain'))
