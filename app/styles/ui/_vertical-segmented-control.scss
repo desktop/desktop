@@ -76,5 +76,17 @@ fieldset.vertical-segmented-control {
         color: var(--text-secondary-color);
       }
     }
+
+    // When the element is focused we rely on the border-radius that gets applied
+    // to outlined elements, so we should remove our custom border-radius to avoid
+    // small gaps appearing in the background caused by our border-radius being
+    // bigger than the one used for outlined elements.
+    &:focus {
+      border-radius: 0;
+
+      li {
+        border-radius: 0;
+      }
+    }
   }
 }
