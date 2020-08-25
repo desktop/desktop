@@ -21,7 +21,7 @@ jobs:
             friendlyName: macOS
           - os: windows-2019
             friendlyName: Windows
-    timeout-minutes: 40
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v2
         with:
