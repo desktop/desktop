@@ -20,12 +20,12 @@
 // allow easy layout using generalized components and elements such as <Row>
 // and <p>.
 dialog {
-  // These are custom version of the alert and stop octicons that have been
-  // scaled and adjusted to render crisply at 24px.
+  // These are the 24px versions of the alert and stop octicons
+  // from oction v10.0.0
   //
   // Related: https://css-tricks.com/probably-dont-base64-svg/
-  --dialog-icon-alert: url('data:image/svg+xml;utf8,<svg height="24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="m 12,1.5 c -0.5,0 -1.5,0 -2,1 L 5,11 0.33203125,19.234375 C -0.5,21 0.5,23 2.4902344,23 L 12,23 21.509766,23 C 23.5,23 24.5,21 23.667969,19.234375 L 19,11 14,2.5 c -0.5,-1 -1.5,-1 -2,-1 z m -1,5.5 2,0 0,8 -2,0 z m 0,10 2,0 0,2 -2,0 z" /></svg>');
-  --dialog-icon-stop: url('data:image/svg+xml;utf8,<svg height="24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="m 16,2 -9,0 -6,6 0,9 6,6 9,0 6,-6 0,-9 z m 4.5,14.25 -5.25,5.25 -7.5,0 -5.25,-5.25 0,-7.5 5.25,-5.25 7.5,0 5.25,5.25 z M 10,6 l 3,0 0,8 -3,0 z m 0,10 3,0 0,3 -3,0 z" /></svg>');
+  --dialog-icon-alert: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M13 17.5a1 1 0 11-2 0 1 1 0 012 0zm-.25-8.25a.75.75 0 00-1.5 0v4.5a.75.75 0 001.5 0v-4.5z"></path><path fill-rule="evenodd" d="M9.836 3.244c.963-1.665 3.365-1.665 4.328 0l8.967 15.504c.963 1.667-.24 3.752-2.165 3.752H3.034c-1.926 0-3.128-2.085-2.165-3.752L9.836 3.244zm3.03.751a1 1 0 00-1.732 0L2.168 19.499A1 1 0 003.034 21h17.932a1 1 0 00.866-1.5L12.866 3.994z"></path></svg>');
+  --dialog-icon-stop: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M12 7a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0112 7zm0 10a1 1 0 100-2 1 1 0 000 2z"></path><path fill-rule="evenodd" d="M7.328 1.47a.75.75 0 01.53-.22h8.284a.75.75 0 01.53.22l5.858 5.858c.141.14.22.33.22.53v8.284a.75.75 0 01-.22.53l-5.858 5.858a.75.75 0 01-.53.22H7.858a.75.75 0 01-.53-.22L1.47 16.672a.75.75 0 01-.22-.53V7.858a.75.75 0 01.22-.53L7.328 1.47zm.84 1.28L2.75 8.169v7.662l5.419 5.419h7.662l5.419-5.418V8.168L15.832 2.75H8.168z"></path></svg>');
   --dialog-icon-size: 24px;
 
   border: var(--base-border);

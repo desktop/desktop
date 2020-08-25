@@ -71,7 +71,7 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
         viewBox={viewBox}
       >
         {titleElem}
-        <path d={symbol.d} />
+        <path fillRule={symbol.fr} d={symbol.d} />
       </svg>
     )
   }
