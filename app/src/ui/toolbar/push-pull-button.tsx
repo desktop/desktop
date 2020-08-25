@@ -7,7 +7,7 @@ import { TipState } from '../../models/tip'
 import { FetchType } from '../../models/fetch'
 
 import { Dispatcher } from '../dispatcher'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon, OcticonSymbol, syncClockwise } from '../octicons'
 import { RelativeTime } from '../relative-time'
 
 import { ToolbarButton, ToolbarButtonStyle } from './button'
@@ -116,7 +116,7 @@ function progressButton(progress: Progress, networkActionInProgress: boolean) {
       title={progress.title}
       description={progress.description || 'Hang on…'}
       progressValue={progress.value}
-      icon={OcticonSymbol.sync}
+      icon={syncClockwise}
       iconClassName={networkActionInProgress ? 'spin' : ''}
       tooltip={progress.description}
       disabled={true}
@@ -204,7 +204,7 @@ function fetchButton(
       {...defaultProps}
       title={title}
       description={renderLastFetched(lastFetched)}
-      icon={OcticonSymbol.sync}
+      icon={syncClockwise}
       onClick={onClick}
     >
       {renderAheadBehind(aheadBehind, numTagsToPush)}
