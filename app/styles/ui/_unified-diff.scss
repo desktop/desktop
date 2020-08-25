@@ -7,7 +7,10 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  border-bottom: 1px solid black;
+  border-bottom: 1px solid var(--diff-border-color);
+  font-family: var(--font-family-monospace);
+  font-size: var(--font-size-sm);
+  color: var(--diff-text-color);
 
   .row {
     display: flex;
@@ -15,21 +18,23 @@
     line-height: 20px;
 
     .gutter {
-      width: 40px;
+      width: 60px;
       flex-shrink: 0;
-      border-right: 1px solid black;
-      text-align: center;
+      border-right: 1px solid var(--diff-border-color);
+      text-align: right;
+      background: var(--diff-gutter-background-color);
+      box-sizing: border-box;
+      padding: 0 var(--spacing-half);
     }
 
     .content {
       padding-left: 12px;
-      font-family: var(--font-family-monospace);
-      white-space: pre;
+      white-space: pre-wrap;
       overflow-y: auto;
     }
 
     .before {
-      border-right: 1px solid black;
+      border-right: 1px solid var(--diff-border-color);
     }
 
     .before,
@@ -40,15 +45,49 @@
     }
 
     &.hunk-info {
-      background-color: var(--diff-hunk-background-color);
+      background-color: var(--diff-hunk-gutter-background-color);
+      color: var(--diff-hunk-text-color);
+
+      .gutter {
+        background-color: var(--diff-hunk-gutter-background-color);
+        border-color: var(--diff-hunk-gutter-background-color);
+      }
     }
 
-    &.added .after {
-      background-color: var(--diff-add-background-color);
+    &.context {
+      .content {
+        background: var(--background-color);
+      }
     }
 
-    &.deleted .before {
-      background-color: var(--diff-delete-background-color);
+    &.added {
+      color: var(--diff-add-text-color);
+
+      .after {
+        background-color: var(--diff-add-background-color);
+
+        .gutter {
+          background: var(--diff-add-gutter-background-color);
+          border-color: var(--diff-add-border-color);
+        }
+      }
+
+      .before.hidden {
+        visibility: hidden;
+      }
+    }
+
+    &.deleted {
+      color: var(--diff-delete-text-color);
+
+      .before {
+        background-color: var(--diff-delete-background-color);
+
+        .gutter {
+          background: var(--diff-delete-gutter-background-color);
+          border-color: var(--diff-delete-border-color);
+        }
+      }
     }
   }
 }

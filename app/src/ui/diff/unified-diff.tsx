@@ -7,6 +7,7 @@ import {
   WorkingDirectoryFileChange,
   CommittedFileChange,
 } from '../../models/status'
+import classNames from 'classnames'
 
 type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
 
@@ -49,6 +50,7 @@ export class UnifiedDiff extends React.Component<IUnifiedDiffProps> {
 
   private renderHunks() {
     let numPreviousDeleteLines = 0
+    let numLinesToIgnoreBefore = 0
 
     return (
       <>
@@ -96,6 +98,11 @@ export class UnifiedDiff extends React.Component<IUnifiedDiffProps> {
 
               case DiffLineType.Add:
                 const marginTop = numPreviousDeleteLines * 20
+                if (numPreviousDeleteLines > 0) {
+                  numLinesToIgnoreBefore = numPreviousDeleteLines
+                } else {
+                  numLinesToIgnoreBefore--
+                }
                 numPreviousDeleteLines = 0
 
                 return (
@@ -106,7 +113,11 @@ export class UnifiedDiff extends React.Component<IUnifiedDiffProps> {
                       minHeight: `${marginTop}px`,
                     }}
                   >
-                    <div className="before">
+                    <div
+                      className={classNames('before', {
+                        hidden: numLinesToIgnoreBefore > 0,
+                      })}
+                    >
                       <div className="gutter">{line.oldLineNumber}</div>
                       <div className="content"></div>
                     </div>
