@@ -1,5 +1,10 @@
 {
   "releases": {
+    "2.5.5-beta1": [
+      "[Added] Show status of GitHub Action runs for pull requests - #9819. Thanks @Raul6469!",
+      "[Added] Add AspNet and Diff/Patch Syntax Highlights - #10410. Thanks @say25!",
+      "[Improved] Updated icons and border radiuses to align with GitHub.com - #10396, #10224"
+    ],
     "2.5.4": [
       "[Added] Suggest to stash changes when trying to do an operation that requires a clean working directory - #10053",
       "[Added] Autocomplete users and issues from upstream repository when working in a fork - #10084",
