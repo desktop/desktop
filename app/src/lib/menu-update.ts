@@ -164,6 +164,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   let branchIsUnborn = false
   let rebaseInProgress = false
   let branchHasStashEntry = false
+
   // check that its a github repo and if so, that is has issues enabled
   const repoIssuesEnabled =
     selectedState !== null &&
@@ -241,6 +242,8 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     for (const id of repositoryScopedIDs) {
       menuStateBuilder.enable(id)
     }
+
+    console.log('rafeca: ', onNonDefaultBranch, hasPublishedBranch)
 
     menuStateBuilder.setEnabled(
       'rename-branch',

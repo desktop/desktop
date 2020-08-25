@@ -1,0 +1,54 @@
+.unified-diff-container {
+  width: 100%;
+  overflow: auto;
+}
+
+.unified-diff {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border-bottom: 1px solid black;
+
+  .row {
+    display: flex;
+    flex-direction: row;
+    line-height: 20px;
+
+    .gutter {
+      width: 40px;
+      flex-shrink: 0;
+      border-right: 1px solid black;
+      text-align: center;
+    }
+
+    .content {
+      padding-left: 12px;
+      font-family: var(--font-family-monospace);
+      white-space: pre;
+      overflow-y: auto;
+    }
+
+    .before {
+      border-right: 1px solid black;
+    }
+
+    .before,
+    .after {
+      width: 50%;
+      display: flex;
+      flex-direction: row;
+    }
+
+    &.hunk-info {
+      background-color: var(--diff-hunk-background-color);
+    }
+
+    &.added .after {
+      background-color: var(--diff-add-background-color);
+    }
+
+    &.deleted .before {
+      background-color: var(--diff-delete-background-color);
+    }
+  }
+}

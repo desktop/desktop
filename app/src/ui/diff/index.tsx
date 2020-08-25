@@ -28,6 +28,7 @@ import {
 } from './image-diffs'
 import { BinaryFile } from './binary-file'
 import { TextDiff } from './text-diff'
+import { UnifiedDiff } from './unified-diff'
 
 // image used when no diff is displayed
 const NoDiffImage = encodePathAsUrl(__dirname, 'static/ufo-alert.svg')
@@ -238,6 +239,24 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   private renderTextDiff(diff: ITextDiff) {
+    const sideBySideDiff = true
+
+    if (sideBySideDiff) {
+      return (
+        <UnifiedDiff
+          repository={this.props.repository}
+          file={this.props.file}
+          readOnly={this.props.readOnly}
+          onIncludeChanged={this.props.onIncludeChanged}
+          onDiscardChanges={this.props.onDiscardChanges}
+          diff={diff}
+          askForConfirmationOnDiscardChanges={
+            this.props.askForConfirmationOnDiscardChanges
+          }
+        />
+      )
+    }
+
     return (
       <TextDiff
         repository={this.props.repository}
