@@ -197,6 +197,10 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --spacing-third: calc(var(--spacing) / 3);
 
   --border-radius: 6px;
+  // When we use the regular border radius (6px) the outline
+  // leaves a tiny gap in the corners so we drop down to a
+  // similar value than Chrome's default outline border radius.
+  --outlined-border-radius: 3px;
   --base-border: 1px solid var(--box-border-color);
 
   --shadow-color: rgba(71, 83, 95, 0.19);

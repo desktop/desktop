@@ -116,10 +116,7 @@
     min-width: 150px;
 
     &:focus {
-      // When we use the regular border radius (6px) the outline
-      // leaves a tiny gap in the corners so we drop down to an
-      // odd number which fixes the issue for us.
-      border-radius: calc(var(--border-radius) - 1px);
+      border-radius: var(--outlined-border-radius);
       outline-color: var(--alt-focus-color);
     }
 
