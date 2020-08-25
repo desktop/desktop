@@ -244,7 +244,9 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
 
     menuStateBuilder.setEnabled(
       'rename-branch',
-      !branchIsUnborn && !onDetachedHead
+      (onNonDefaultBranch || !hasPublishedBranch) &&
+        !branchIsUnborn &&
+        !onDetachedHead
     )
     menuStateBuilder.setEnabled(
       'delete-branch',
