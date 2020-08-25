@@ -1,5 +1,9 @@
 import { OcticonSymbol } from './octicons.generated'
 
+/**
+ * An horizontally flipped (i.e `scaleX(-1)`) but otherwise unmodified version of
+ * the `sync` octicon.
+ */
 export const syncClockwise = new OcticonSymbol(
   16,
   16,
