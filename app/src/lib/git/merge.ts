@@ -11,8 +11,16 @@ import { parseMergeTreeResult } from '../merge-tree-parser'
 import { spawnAndComplete } from './spawn'
 
 export enum MergeResult {
+  /** The merge completed successfully */
   Success,
+  /**
+   * The merge was a noop since the current branch
+   * was already up to date with the target branch.
+   */
   AlreadyUpToDate,
+  /**
+   * The merge failed, likely due to conflicts.
+   */
   Conflicted,
 }
 
