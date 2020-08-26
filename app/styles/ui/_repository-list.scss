@@ -34,7 +34,7 @@
     // name and truncate accordingly
     width: 100%;
 
-    .octicon {
+    .icon-for-repository {
       // Some room between the icon and repository name
       margin-right: var(--spacing-half);
 
@@ -62,15 +62,25 @@
       }
     }
 
-    .change-indicator {
-      color: var(--tab-bar-active-color);
-      margin-right: 0;
-      width: auto;
+    .repo-indicators {
+      margin-left: auto;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-right: var(--spacing-half);
     }
 
     .change-indicator-wrapper {
       display: flex;
       min-width: 12px;
+      justify-content: center;
+      align-items: center;
+      margin-left: var(--spacing-half);
+
+      .octicon {
+        color: var(--tab-bar-active-color);
+        width: auto;
+      }
     }
 
     .ahead-behind {
@@ -100,13 +110,15 @@
     }
   }
 
+  .filter-list-group-header {
+    padding-top: var(--spacing);
+  }
+
   .new-repository-button {
     flex-shrink: 0;
 
     .octicon {
       margin-left: 5px;
-      width: 9px;
-      height: 13px;
     }
   }
 

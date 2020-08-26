@@ -233,12 +233,11 @@ function performEffectsForRebaseStateChange(
   ) {
     const previousTip = prevConflictState.originalBranchTip
 
-    if (
+    const previousTipChanged =
       previousTip !== currentTip &&
       currentBranch === prevConflictState.targetBranch
-    ) {
-      statsStore.recordRebaseSuccessAfterConflicts()
-    } else {
+
+    if (!previousTipChanged) {
       statsStore.recordRebaseAbortedAfterConflicts()
     }
   }

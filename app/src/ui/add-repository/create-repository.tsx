@@ -10,10 +10,10 @@ import {
   getStatus,
   getAuthorIdentity,
   isGitRepository,
+  createAndCheckoutBranch,
 } from '../../lib/git'
 import { sanitizedRepositoryName } from './sanitized-repository-name'
 import { TextBox } from '../lib/text-box'
-import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
 import { Row } from '../lib/row'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
@@ -30,6 +30,11 @@ import { LinkButton } from '../lib/link-button'
 import { PopupType } from '../../models/popup'
 import { Ref } from '../lib/ref'
 import { enableReadmeOverwriteWarning } from '../../lib/feature-flag'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import {
+  getDefaultBranch,
+  DefaultBranchInGit,
+} from '../../lib/helpers/default-branch'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -120,6 +125,8 @@ export class CreateRepository extends React.Component<
   }
 
   public async componentDidMount() {
+    window.addEventListener('focus', this.onWindowFocus)
+
     const gitIgnoreNames = await getGitIgnoreNames()
     this.setState({ gitIgnoreNames })
 
@@ -129,9 +136,7 @@ export class CreateRepository extends React.Component<
     const isRepository = await isGitRepository(this.state.path)
     this.setState({ isRepository })
 
-    await this.updateReadMeExists(this.state.path, this.state.name)
-
-    window.addEventListener('focus', this.onWindowFocus)
+    this.updateReadMeExists(this.state.path, this.state.name)
   }
 
   public componentWillUnmount() {
@@ -139,18 +144,21 @@ export class CreateRepository extends React.Component<
   }
 
   private onPathChanged = async (path: string) => {
-    const isRepository = await isGitRepository(path)
-    await this.updateReadMeExists(path, this.state.name)
+    this.setState({ path, isValidPath: null })
 
-    this.setState({ isRepository, path, isValidPath: null })
+    const isRepository = await isGitRepository(path)
+
+    // Only update isRepository if the path is still the
+    // same one we were using to check whether it looked
+    // like a repository.
+    this.setState(state => (state.path === path ? { isRepository } : null))
+
+    this.updateReadMeExists(path, this.state.name)
   }
 
-  private onNameChanged = async (name: string) => {
-    if (enableReadmeOverwriteWarning()) {
-      await this.updateReadMeExists(this.state.path, name)
-    }
-
+  private onNameChanged = (name: string) => {
     this.setState({ name })
+    this.updateReadMeExists(this.state.path, name)
   }
 
   private onDescriptionChanged = (description: string) => {
@@ -158,24 +166,31 @@ export class CreateRepository extends React.Component<
   }
 
   private showFilePicker = async () => {
-    const directory: string[] | null = remote.dialog.showOpenDialog({
+    const window = remote.getCurrentWindow()
+    const { filePaths } = await remote.dialog.showOpenDialog(window, {
       properties: ['createDirectory', 'openDirectory'],
     })
 
-    if (!directory) {
+    if (filePaths.length === 0) {
       return
     }
 
-    const path = directory[0]
+    const path = filePaths[0]
     const isRepository = await isGitRepository(path)
 
     this.setState({ isRepository, path })
   }
 
   private async updateReadMeExists(path: string, name: string) {
+    if (!enableReadmeOverwriteWarning()) {
+      return
+    }
+
     const fullPath = Path.join(path, sanitizedRepositoryName(name), 'README.md')
     const readMeExists = await FSE.pathExists(fullPath)
-    this.setState({ readMeExists })
+
+    // Only update readMeExists if the path is still the same
+    this.setState(state => (state.path === path ? { readMeExists } : null))
   }
 
   private resolveRepositoryRoot = async (): Promise<string> => {
@@ -230,9 +245,32 @@ export class CreateRepository extends React.Component<
 
     const repository = repositories[0]
 
+    const defaultBranch = await getDefaultBranch()
+
+    if (defaultBranch !== DefaultBranchInGit) {
+      try {
+        // Manually checkout to the configured default branch.
+        // TODO (git@2.28): Remove this code when upgrading to git v2.28
+        // since this will be natively implemented.
+        await createAndCheckoutBranch(repository, defaultBranch)
+      } catch (e) {
+        // When we cannot checkout the default branch just log the error,
+        // since we don't want to stop the repository creation (since we're
+        // in the middle of the creation process).
+        log.error(
+          `createRepository: unable to create default branch "${defaultBranch}"`,
+          e
+        )
+      }
+    }
+
     if (this.state.createWithReadme) {
       try {
-        await writeDefaultReadme(fullPath, this.state.name)
+        await writeDefaultReadme(
+          fullPath,
+          this.state.name,
+          this.state.description
+        )
       } catch (e) {
         log.error(`createRepository: unable to write README at ${fullPath}`, e)
         this.props.dispatcher.postError(e)
@@ -521,7 +559,6 @@ export class CreateRepository extends React.Component<
               label="Name"
               placeholder="repository name"
               onValueChanged={this.onNameChanged}
-              autoFocus={true}
             />
           </Row>
 
@@ -568,23 +605,20 @@ export class CreateRepository extends React.Component<
         </DialogContent>
 
         <DialogFooter>
-          <ButtonGroup>
-            <Button type="submit" disabled={disabled}>
-              {__DARWIN__ ? 'Create Repository' : 'Create repository'}
-            </Button>
-
-            <Button onClick={this.props.onDismissed}>Cancel</Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            okButtonText={
+              __DARWIN__ ? 'Create Repository' : 'Create repository'
+            }
+            okButtonDisabled={disabled}
+          />
         </DialogFooter>
       </Dialog>
     )
   }
 
-  private onWindowFocus = async () => {
+  private onWindowFocus = () => {
     // Verify whether or not a README.md file exists at the chosen directory
     // in case one has been added or removed and the warning can be displayed.
-    if (enableReadmeOverwriteWarning()) {
-      await this.updateReadMeExists(this.state.path, this.state.name)
-    }
+    this.updateReadMeExists(this.state.path, this.state.name)
   }
 }

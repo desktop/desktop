@@ -5,16 +5,16 @@ import { AppFileStatusKind } from '../../../src/models/status'
 import { setupLocalConfig } from '../../helpers/local-config'
 
 describe('git/log', () => {
-  let repository: Repository | null = null
+  let repository: Repository
 
   beforeEach(async () => {
-    const testRepoPath = await setupFixtureRepository('test-repo')
+    const testRepoPath = await setupFixtureRepository('test-repo-with-tags')
     repository = new Repository(testRepoPath, -1, null, false)
   })
 
   describe('getCommits', () => {
     it('loads history', async () => {
-      const commits = await getCommits(repository!, 'HEAD', 100)
+      const commits = await getCommits(repository, 'HEAD', 100)
       expect(commits).toHaveLength(5)
 
       const firstCommit = commits[commits.length - 1]
@@ -45,12 +45,24 @@ describe('git/log', () => {
       expect(commits[0].sha).toBe('415e4987158c49c383ce7114e0ef00ebf4b070c1')
       expect(commits[0].shortSha).toBe('415e498')
     })
+
+    it('parses tags', async () => {
+      const commits = await getCommits(repository, 'HEAD', 100)
+      expect(commits).toBeArrayOfSize(5)
+
+      expect(commits[0].tags).toIncludeSameMembers(['important'])
+      expect(commits[1].tags).toIncludeSameMembers([
+        'tentative',
+        'less-important',
+      ])
+      expect(commits[2].tags).toBeArrayOfSize(0)
+    })
   })
 
   describe('getChangedFiles', () => {
     it('loads the files changed in the commit', async () => {
       const files = await getChangedFiles(
-        repository!,
+        repository,
         '7cd6640e5b6ca8dbfd0b33d0281ebe702127079c'
       )
       expect(files).toHaveLength(1)
@@ -109,7 +121,7 @@ describe('git/log', () => {
     })
 
     it('handles commit when HEAD exists on disk', async () => {
-      const files = await getChangedFiles(repository!, 'HEAD')
+      const files = await getChangedFiles(repository, 'HEAD')
       expect(files).toHaveLength(1)
       expect(files[0].path).toBe('README.md')
       expect(files[0].status.kind).toBe(AppFileStatusKind.Modified)

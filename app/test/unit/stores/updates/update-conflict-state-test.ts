@@ -7,14 +7,19 @@ import {
   ManualConflictResolution,
   ManualConflictResolutionKind,
 } from '../../../../src/models/manual-conflict-resolution'
+import { IStatsStore } from '../../../../src/lib/stats'
 
 describe('updateConflictState', () => {
-  const statsStore = {
-    recordMergeAbortedAfterConflicts: jest.fn(),
-    recordMergeSuccessAfterConflicts: jest.fn(),
-    recordRebaseAbortedAfterConflicts: jest.fn(),
-    recordRebaseSuccessAfterConflicts: jest.fn(),
-  }
+  let statsStore: IStatsStore
+  beforeEach(() => {
+    statsStore = {
+      recordMergeAbortedAfterConflicts: jest.fn(),
+      recordMergeSuccessAfterConflicts: jest.fn(),
+      recordRebaseAbortedAfterConflicts: jest.fn(),
+      recordRebaseSuccessAfterConflicts: jest.fn(),
+    }
+  })
+
   const manualResolutions = new Map<string, ManualConflictResolution>([
     ['foo', ManualConflictResolutionKind.theirs],
   ])
@@ -282,7 +287,7 @@ describe('updateConflictState', () => {
       expect(statsStore.recordRebaseAbortedAfterConflicts).toHaveBeenCalled()
     })
 
-    it('increments success counter when conflict resolved and tip has changed', () => {
+    it('does not increment aborted counter when conflict resolved and tip has changed', () => {
       const prevState = createState({
         conflictState: {
           kind: 'rebase',
@@ -301,7 +306,9 @@ describe('updateConflictState', () => {
 
       updateConflictState(prevState, status, statsStore)
 
-      expect(statsStore.recordRebaseSuccessAfterConflicts).toHaveBeenCalled()
+      expect(
+        statsStore.recordRebaseAbortedAfterConflicts
+      ).not.toHaveBeenCalled()
     })
   })
 })

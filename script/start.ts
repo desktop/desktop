@@ -1,11 +1,11 @@
-import * as express from 'express'
-import * as webpack from 'webpack'
-import * as devMiddleware from 'webpack-dev-middleware'
-import * as hotMiddleware from 'webpack-hot-middleware'
+import express from 'express'
+import webpack from 'webpack'
+import devMiddleware from 'webpack-dev-middleware'
+import hotMiddleware from 'webpack-hot-middleware'
 
 import { forceUnwrap as u } from '../app/src/lib/fatal-error'
 
-import configs = require('../app/webpack.development')
+import configs from '../app/webpack.development'
 
 import { run } from './run'
 
@@ -29,7 +29,6 @@ function startApp() {
       "Couldn't launch the app. You probably need to build it first. Run `yarn build:dev`."
     )
     process.exit(1)
-    return
   }
 
   runningApp.on('close', () => {
@@ -63,7 +62,6 @@ if (process.env.NODE_ENV === 'production') {
     if (err) {
       console.log(err)
       process.exit(1)
-      return
     }
 
     console.log(`Server running at http://localhost:${port}`)

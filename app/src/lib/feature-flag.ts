@@ -21,15 +21,16 @@ function enableDevelopmentFeatures(): boolean {
   return false
 }
 
+/** Should we show progress bars on the Windows app taskbar icon? */
+export function enableProgressBarOnIcon(): boolean {
+  return enableBetaFeatures()
+}
+
 /** Should the app enable beta features? */
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore: this will be used again in the future
 function enableBetaFeatures(): boolean {
   return enableDevelopmentFeatures() || __RELEASE_CHANNEL__ === 'beta'
-}
-
-/** Should merge tool integration be enabled? */
-export function enableMergeTool(): boolean {
-  return enableDevelopmentFeatures()
 }
 
 /** Should git pass `--recurse-submodules` when performing operations? */
@@ -37,59 +38,105 @@ export function enableRecurseSubmodulesFlag(): boolean {
   return enableBetaFeatures()
 }
 
-/** Should the app set protocol.version=2 for any fetch/push/pull/clone operation? */
-export function enableGitProtocolVersionTwo(): boolean {
-  return true
-}
-
 export function enableReadmeOverwriteWarning(): boolean {
   return enableBetaFeatures()
 }
 
-/** Shoult the app automatically prune branches that are no longer actively being used */
-export function enableBranchPruning(): boolean {
+/** Should the app detect Windows Subsystem for Linux as a valid shell? */
+export function enableWSLDetection(): boolean {
   return enableBetaFeatures()
 }
 
 /**
- * Whether or not to activate the "Create PR" blankslate action.
+ * Should we show the create fork dialog flow?
+ */
+export function enableCreateForkFlow(): boolean {
+  return true
+}
+
+/**
+ * Whether or not we should attempt to detect the specific curl
+ * error from the WinSSL (schannel) https backend when it fails
+ * to check the revocation details of a certificate due to lacking
+ * CRL distribution points and/or an offiline revocation server.
+ */
+export function enableSchannelCheckRevokeOptOut(): boolean {
+  return true
+}
+
+/**
+ * Whether or not to enable support for automatically resolving the
+ * system-configured proxy url and passing that to Git.
+ */
+export function enableAutomaticGitProxyConfiguration(): boolean {
+  return true
+}
+
+/**
+ * Should we show the "Create Issue on GitHub" item under
+ * "Repository" in the app menu?
+ */
+export function enableCreateGitHubIssueFromMenu(): boolean {
+  return true
+}
+
+/**
+ * Should we update remote url if it has changed?
+ */
+export function enableUpdateRemoteUrl(): boolean {
+  return true
+}
+
+/**
+ * Should we show the fork-specific, "branch from the upstream
+ * default branch" version of the create branch dialog?
+ */
+export function enableForkyCreateBranchUI(): boolean {
+  return true
+}
+
+/**
+ * Should we show the NDDB banner?
  *
- * The state of the feature as of writing this is that the underlying
- * data source required to power this feature is not reliable enough
- * and needs looking at so we aren't ready to move this to production
- * just yet.
+ * (It's a notification in the history sidebar that there
+ * are new commits upstream.)
  */
-export function enableNoChangesCreatePRBlankslateAction(): boolean {
-  return true
+export function enableNDDBBanner(): boolean {
+  return false
 }
 
-/** Should the app detect and handle rebase conflicts when `pull.rebase` is set? */
-export function enablePullWithRebase(): boolean {
+/**
+ * Should we show the git tag information in the app UI?
+ */
+export function enableGitTagsDisplay(): boolean {
   return true
 }
 
 /**
- *  Enables a new UI for the repository picker that supports
- *  grouping and filtering (GitHub) repositories by owner/organization.
+ * Should we allow users to create git tags from the app?
  */
-export function enableGroupRepositoriesByOwner(): boolean {
-  return enableBetaFeatures()
-}
-
-/** Should the app show the "rebase current branch" dialog? */
-export function enableRebaseDialog(): boolean {
+export function enableGitTagsCreation(): boolean {
   return true
 }
 
-/** Should the app show the "stash changes" dialog? */
-export function enableStashing(): boolean {
-  return enableBetaFeatures()
+/**
+ * Should we show the dialogs to allow users customize which is the
+ * main repository when opening a fork?
+ */
+export function enableForkSettings(): boolean {
+  return true
 }
 
 /**
- * Should the app warn the user when they are committing that they are using a
- * protected branch?
+ * Should we show the discard lines/hunks context menu item?
  */
-export function enableBranchProtectionWarning(): boolean {
-  return enableDevelopmentFeatures()
+export function enableDiscardLines(): boolean {
+  return true
+}
+
+/**
+ * Should we allow to change the default branch when creating new repositories?
+ */
+export function enableDefaultBranchSetting(): boolean {
+  return enableBetaFeatures()
 }

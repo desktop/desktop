@@ -3,6 +3,7 @@ export type MenuIDs =
   | 'rename-branch'
   | 'delete-branch'
   | 'discard-all-changes'
+  | 'stash-all-changes'
   | 'preferences'
   | 'update-branch'
   | 'merge-branch'
@@ -31,3 +32,4 @@ export type MenuIDs =
   | 'create-pull-request'
   | 'compare-to-branch'
   | 'toggle-stashed-changes'
+  | 'create-issue-in-repository-on-github'

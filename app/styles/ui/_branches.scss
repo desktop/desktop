@@ -12,6 +12,7 @@
 
   .branches-list {
     width: 350px;
+    min-height: 0;
   }
 }
 
@@ -105,9 +106,16 @@
       }
     }
 
-    .ci-status {
+    .ci-status-container {
       margin-right: var(--spacing-half);
+      min-width: 16px;
+      text-align: center;
+      flex-shrink: 0;
     }
+  }
+
+  .filter-list-group-header {
+    @include ellipsis;
   }
 }
 
@@ -174,5 +182,8 @@
 
   .call-to-action {
     font-size: var(--font-size-sm);
+    .link-button-component {
+      display: unset;
+    }
   }
 }

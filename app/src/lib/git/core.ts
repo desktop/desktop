@@ -7,13 +7,14 @@ import {
 
 import { assertNever } from '../fatal-error'
 import { getDotComAPIEndpoint } from '../api'
-import { enableGitProtocolVersionTwo } from '../feature-flag'
 
 import { IGitAccount } from '../../models/git-account'
 
 import * as GitPerf from '../../ui/lib/git-perf'
+import * as Path from 'path'
 import { Repository } from '../../models/repository'
 import { getConfigValue, getGlobalConfigValue } from './config'
+import { isErrnoException } from '../errno-exception'
 
 /**
  * An extension of the execution options in dugite that
@@ -52,6 +53,13 @@ export interface IGitResult extends DugiteResult {
 
   /** The human-readable error description, based on `gitError`. */
   readonly gitErrorDescription: string | null
+
+  /**
+   * The path that the Git command was executed from, i.e. the
+   * process working directory (not to be confused with the Git
+   * working directory which is... super confusing, I know)
+   */
+  readonly path: string
 }
 
 function getResultMessage(result: IGitResult) {
@@ -117,11 +125,26 @@ export async function git(
 
   const opts = { ...defaultOptions, ...options }
 
+  // Explicitly set TERM to 'dumb' so that if Desktop was launched
+  // from a terminal or if the system environment variables
+  // have TERM set Git won't consider us as a smart terminal.
+  // See https://github.com/git/git/blob/a7312d1a2/editor.c#L11-L15
+  opts.env = { TERM: 'dumb', ...opts.env }
+
   const commandName = `${name}: git ${args.join(' ')}`
 
   const result = await GitPerf.measure(commandName, () =>
-    GitProcess.exec(args, path, options)
-  )
+    GitProcess.exec(args, path, opts)
+  ).catch(err => {
+    // If this is an exception thrown by Node.js (as opposed to
+    // dugite) let's keep the salient details but include the name of
+    // the operation.
+    if (isErrnoException(err)) {
+      throw new Error(`Failed to execute ${name}: ${err.code}`)
+    }
+
+    throw err
+  })
 
   const exitCode = result.exitCode
 
@@ -137,7 +160,7 @@ export async function git(
   }
 
   const gitErrorDescription = gitError ? getDescriptionForError(gitError) : null
-  const gitResult = { ...result, gitError, gitErrorDescription }
+  const gitResult = { ...result, gitError, gitErrorDescription, path }
 
   let acceptableError = true
   if (gitError && opts.expectedErrors) {
@@ -175,16 +198,81 @@ export async function git(
   throw new GitError(gitResult, args)
 }
 
-function getDescriptionForError(error: DugiteError): string {
+/**
+ * Determine whether the provided `error` is an authentication failure
+ * as per our definition. Note that this is not an exhaustive list of
+ * authentication failures, only a collection of errors that we treat
+ * equally in terms of error message and presentation to the user.
+ */
+export function isAuthFailureError(
+  error: DugiteError
+): error is
+  | DugiteError.SSHAuthenticationFailed
+  | DugiteError.SSHPermissionDenied
+  | DugiteError.HTTPSAuthenticationFailed {
   switch (error) {
-    case DugiteError.SSHKeyAuditUnverified:
-      return 'The SSH key is unverified.'
     case DugiteError.SSHAuthenticationFailed:
     case DugiteError.SSHPermissionDenied:
     case DugiteError.HTTPSAuthenticationFailed:
-      return `Authentication failed. You may not have permission to access the repository or the repository may have been archived. Open ${
-        __DARWIN__ ? 'preferences' : 'options'
-      } and verify that you're signed in with an account that has permission to access this repository.`
+      return true
+  }
+  return false
+}
+
+/**
+ * Determine whether the provided `error` is an error from Git indicating
+ * that a configuration file  write failed due to a lock file already
+ * existing for that config file.
+ */
+export function isConfigFileLockError(error: Error): error is GitError {
+  return (
+    error instanceof GitError &&
+    error.result.gitError === DugiteError.ConfigLockFileAlreadyExists
+  )
+}
+
+const lockFilePathRe = /^error: could not lock config file (.+?): File exists$/m
+
+/**
+ * If the `result` is associated with an config lock file error (as determined
+ * by `isConfigFileLockError`) this method will attempt to extract an absoluet
+ * path (i.e. rooted) to the configuration lock file in question from the Git
+ * output.
+ */
+export function parseConfigLockFilePathFromError(result: IGitResult) {
+  const match = lockFilePathRe.exec(result.stderr)
+
+  if (match === null) {
+    return null
+  }
+
+  // Git on Windows may print the config file path using forward slashes.
+  // Luckily for us forward slashes are not allowed in Windows file or
+  // directory names so we can simply replace any instance of forward
+  // slashes with backslashes.
+  const normalized = __WIN32__ ? match[1].replace('/', '\\') : match[1]
+
+  // https://github.com/git/git/blob/232378479/lockfile.h#L117-L119
+  return Path.resolve(result.path, `${normalized}.lock`)
+}
+
+function getDescriptionForError(error: DugiteError): string | null {
+  if (isAuthFailureError(error)) {
+    const menuHint = __DARWIN__
+      ? 'GitHub Desktop > Preferences.'
+      : 'File > Options.'
+    return `Authentication failed. Some common reasons include:
+
+- You are not logged in to your account: see ${menuHint}
+- You may need to log out and log back in to refresh your token.
+- You do not have permission to access this repository.
+- The repository is archived on GitHub. Check the repository settings to confirm you are still permitted to push commits.
+- If you use SSH authentication, check that your key is added to the ssh-agent and associated with your account.`
+  }
+
+  switch (error) {
+    case DugiteError.SSHKeyAuditUnverified:
+      return 'The SSH key is unverified.'
     case DugiteError.RemoteDisconnection:
       return 'The remote disconnected. Check your Internet connection and try again.'
     case DugiteError.HostDown:
@@ -272,6 +360,20 @@ function getDescriptionForError(error: DugiteError): string {
       return 'Unable to switch branches as there are working directory changes which would be overwritten. Please commit or stash your changes.'
     case DugiteError.UnresolvedConflicts:
       return 'There are unresolved conflicts in the working directory.'
+    case DugiteError.ConfigLockFileAlreadyExists:
+      // Added in dugite 1.88.0 (https://github.com/desktop/dugite/pull/386)
+      // in support of https://github.com/desktop/desktop/issues/8675 but we're
+      // not using it yet. Returning a null message here means the stderr will
+      // be used as the error message (or stdout if stderr is empty), i.e. the
+      // same behavior as before the ConfigLockFileAlreadyExists was added
+      return null
+    case DugiteError.RemoteAlreadyExists:
+      return null
+    case DugiteError.TagAlreadyExists:
+      return 'A tag with that name already exists'
+    case DugiteError.MergeWithLocalChanges:
+    case DugiteError.RebaseWithLocalChanges:
+      return null
     default:
       return assertNever(error, `Unknown error: ${error}`)
   }
@@ -308,10 +410,6 @@ export async function gitNetworkArguments(
     'credential.helper=',
   ]
 
-  if (!enableGitProtocolVersionTwo()) {
-    return baseArgs
-  }
-
   if (account === null) {
     return baseArgs
   }
@@ -339,8 +437,23 @@ export async function gitNetworkArguments(
 }
 
 /**
+ * Returns the arguments to use on any git operation that can end up
+ * triggering a rebase.
+ */
+export function gitRebaseArguments() {
+  return [
+    // Explicitly set the rebase backend to merge.
+    // We need to force this option to be sure that Desktop
+    // uses the merge backend even if the user has the apply backend
+    // configured, since this is the only one supported.
+    // This can go away once git deprecates the apply backend.
+    '-c',
+    'rebase.backend=merge',
+  ]
+}
+
+/**
  * Returns the SHA of the passed in IGitResult
- * @param result
  */
 export function parseCommitSHA(result: IGitResult): string {
   return result.stdout.split(']')[0].split(' ')[1]

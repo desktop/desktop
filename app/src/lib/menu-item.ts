@@ -17,7 +17,19 @@ export interface IMenuItem {
    * When specified the click property will be ignored.
    * See https://electronjs.org/docs/api/menu-item#roles
    */
-  readonly role?: string
+  readonly role?: Electron.MenuItemConstructorOptions['role']
+
+  /**
+   * Submenu that will appear when hovering this menu item.
+   */
+  readonly submenu?: ReadonlyArray<this>
+}
+
+/**
+ * A menu item data structure that can be serialized and sent via IPC.
+ */
+export interface ISerializableMenuItem extends IMenuItem {
+  readonly action: undefined
 }
 
 /**

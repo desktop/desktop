@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { shell } from '../../lib/app-shell'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 
 interface ILinkButtonProps {
   /** A URI to open on click. */

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Path from 'path'
 
-import { IGitHubUser } from '../../lib/databases'
 import { Dispatcher } from '../dispatcher'
 import { IMenuItem } from '../../lib/menu-item'
 import { revealInFileManager } from '../../lib/app-shell'
@@ -32,22 +31,27 @@ import { arrayEquals } from '../../lib/equality'
 import { clipboard } from 'electron'
 import { basename } from 'path'
 import { ICommitContext } from '../../models/commit'
-import { RebaseConflictState } from '../../lib/app-state'
+import { RebaseConflictState, ConflictState } from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
-import { enablePullWithRebase, enableStashing } from '../../lib/feature-flag'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { IStashEntry } from '../../models/stash-entry'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
+import { hasWritePermission } from '../../models/github-repository'
+import { hasConflictedFiles } from '../../lib/status'
 
 const RowHeight = 29
 const StashIcon = new OcticonSymbol(
   16,
   16,
-  'M3.002 15H15V4c.51 0 1 .525 1 .996V15c0 .471-.49 1-1 1H4.002c-.51 ' +
-    '0-1-.529-1-1zm-2-2H13V2c.51 0 1 .525 1 .996V13c0 .471-.49 1-1 ' +
-    '1H2.002c-.51 0-1-.529-1-1zm10.14-13A.86.86 0 0 1 12 .857v10.286a.86.86 ' +
-    '0 0 1-.857.857H.857A.86.86 0 0 1 0 11.143V.857A.86.86 0 0 1 .857 0h10.286zM11 ' +
-    '11V1H1v10h10zM3 6c0-1.66 1.34-3 3-3s3 1.34 3 3-1.34 3-3 3-3-1.34-3-3z'
+  'M10.5 1.286h-9a.214.214 0 0 0-.214.214v9a.214.214 0 0 0 .214.214h9a.214.214 0 0 0 ' +
+    '.214-.214v-9a.214.214 0 0 0-.214-.214zM1.5 0h9A1.5 1.5 0 0 1 12 1.5v9a1.5 1.5 0 0 1-1.5 ' +
+    '1.5h-9A1.5 1.5 0 0 1 0 10.5v-9A1.5 1.5 0 0 1 1.5 0zm5.712 7.212a1.714 1.714 0 1 ' +
+    '1-2.424-2.424 1.714 1.714 0 0 1 2.424 2.424zM2.015 12.71c.102.729.728 1.29 1.485 ' +
+    '1.29h9a1.5 1.5 0 0 0 1.5-1.5v-9a1.5 1.5 0 0 0-1.29-1.485v1.442a.216.216 0 0 1 ' +
+    '.004.043v9a.214.214 0 0 1-.214.214h-9a.216.216 0 0 1-.043-.004H2.015zm2 2c.102.729.728 ' +
+    '1.29 1.485 1.29h9a1.5 1.5 0 0 0 1.5-1.5v-9a1.5 1.5 0 0 0-1.29-1.485v1.442a.216.216 0 0 1 ' +
+    '.004.043v9a.214.214 0 0 1-.214.214h-9a.216.216 0 0 1-.043-.004H4.015z',
+  'evenodd'
 )
 
 const GitIgnoreFileName = '.gitignore'
@@ -94,8 +98,13 @@ function getIncludeAllValue(
 interface IChangesListProps {
   readonly repository: Repository
   readonly workingDirectory: WorkingDirectoryStatus
+  /**
+   * An object containing the conflicts in the working directory.
+   * When null it means that there are no conflicts.
+   */
+  readonly conflictState: ConflictState | null
   readonly rebaseConflictState: RebaseConflictState | null
-  readonly selectedFileIDs: string[]
+  readonly selectedFileIDs: ReadonlyArray<string>
   readonly onFileSelectionChanged: (rows: ReadonlyArray<number>) => void
   readonly onIncludeChanged: (path: string, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
@@ -112,19 +121,23 @@ interface IChangesListProps {
   readonly onChangesListScrolled: (scrollTop: number) => void
 
   /* The scrollTop of the compareList. It is stored to allow for scroll position persistence */
-  readonly changesListScrollTop: number
+  readonly changesListScrollTop?: number
 
   /**
    * Called to open a file it its default application
+   *
    * @param path The path of the file relative to the root of the repository
    */
   readonly onOpenItem: (path: string) => void
+  /**
+   * The currently checked out branch (null if no branch is checked out).
+   */
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
-  readonly gitHubUser: IGitHubUser | null
   readonly dispatcher: Dispatcher
   readonly availableWidth: number
   readonly isCommitting: boolean
+  readonly currentBranchProtected: boolean
 
   /**
    * Click event handler passed directly to the onRowClick prop of List, see
@@ -167,6 +180,12 @@ interface IChangesListProps {
   readonly stashEntry: IStashEntry | null
 
   readonly isShowingStashEntry: boolean
+
+  /**
+   * Whether we should show the onboarding tutorial nudge
+   * arrow pointing at the commit summary box
+   */
+  readonly shouldNudgeToCommit: boolean
 }
 
 interface IChangesState {
@@ -258,6 +277,17 @@ export class ChangesList extends React.Component<
     )
   }
 
+  private onDiscardAllChanges = () => {
+    this.props.onDiscardChangesFromFiles(
+      this.props.workingDirectory.files,
+      true
+    )
+  }
+
+  private onStashChanges = () => {
+    this.props.dispatcher.createStashForCurrentBranch(this.props.repository)
+  }
+
   private onDiscardChanges = (files: ReadonlyArray<string>) => {
     const workingDirectory = this.props.workingDirectory
 
@@ -303,6 +333,43 @@ export class ChangesList extends React.Component<
         : `Discard ${files.length} selected changes`
 
     return this.props.askForConfirmationOnDiscardChanges ? `${label}…` : label
+  }
+
+  private onContextMenu = (event: React.MouseEvent<any>) => {
+    event.preventDefault()
+
+    // need to preserve the working directory state while dealing with conflicts
+    if (this.props.rebaseConflictState !== null || this.props.isCommitting) {
+      return
+    }
+
+    const hasLocalChanges = this.props.workingDirectory.files.length > 0
+    const hasStash = this.props.stashEntry !== null
+    const hasConflicts =
+      this.props.conflictState !== null ||
+      hasConflictedFiles(this.props.workingDirectory)
+
+    const stashAllChangesLabel = __DARWIN__
+      ? 'Stash All Changes'
+      : 'Stash all changes'
+    const confirmStashAllChangesLabel = __DARWIN__
+      ? 'Stash All Changes…'
+      : 'Stash all changes…'
+
+    const items: IMenuItem[] = [
+      {
+        label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
+        action: this.onDiscardAllChanges,
+        enabled: hasLocalChanges,
+      },
+      {
+        label: hasStash ? confirmStashAllChangesLabel : stashAllChangesLabel,
+        action: this.onStashChanges,
+        enabled: hasLocalChanges && this.props.branch !== null && !hasConflicts,
+      },
+    ]
+
+    showContextualMenu(items)
   }
 
   private getDiscardChangesMenuItem = (
@@ -487,6 +554,10 @@ export class ChangesList extends React.Component<
     file: WorkingDirectoryFileChange,
     event: React.MouseEvent<HTMLDivElement>
   ) => {
+    if (this.props.isCommitting) {
+      return
+    }
+
     event.preventDefault()
 
     const items =
@@ -499,9 +570,9 @@ export class ChangesList extends React.Component<
 
   private getPlaceholderMessage(
     files: ReadonlyArray<WorkingDirectoryFileChange>,
-    singleFileCommit: boolean
+    prepopulateCommitSummary: boolean
   ) {
-    if (!singleFileCommit) {
+    if (!prepopulateCommitSummary) {
       return 'Summary (required)'
     }
 
@@ -534,9 +605,10 @@ export class ChangesList extends React.Component<
       repository,
       dispatcher,
       isCommitting,
+      currentBranchProtected,
     } = this.props
 
-    if (rebaseConflictState !== null && enablePullWithRebase()) {
+    if (rebaseConflictState !== null) {
       const hasUntrackedChanges = workingDirectory.files.some(
         f => f.status.kind === AppFileStatusKind.Untracked
       )
@@ -566,13 +638,24 @@ export class ChangesList extends React.Component<
     const filesSelected = workingDirectory.files.filter(
       f => f.selection.getSelectionType() !== DiffSelectionType.None
     )
-    const singleFileCommit = filesSelected.length === 1
+
+    // When a single file is selected, we use a default commit summary
+    // based on the file name and change status.
+    // However, for onboarding tutorial repositories, we don't want to do this.
+    // See https://github.com/desktop/desktop/issues/8354
+    const prepopulateCommitSummary =
+      filesSelected.length === 1 && !repository.isTutorialRepository
+
+    // if this is not a github repo, we don't want to
+    // restrict what the user can do at all
+    const hasWritePermissionForRepository =
+      this.props.repository.gitHubRepository === null ||
+      hasWritePermission(this.props.repository.gitHubRepository)
 
     return (
       <CommitMessage
         onCreateCommit={this.props.onCreateCommit}
         branch={this.props.branch}
-        gitHubUser={this.props.gitHubUser}
         commitAuthor={this.props.commitAuthor}
         anyFilesSelected={anyFilesSelected}
         repository={repository}
@@ -585,26 +668,32 @@ export class ChangesList extends React.Component<
         coAuthors={this.props.coAuthors}
         placeholder={this.getPlaceholderMessage(
           filesSelected,
-          singleFileCommit
+          prepopulateCommitSummary
         )}
-        singleFileCommit={singleFileCommit}
+        prepopulateCommitSummary={prepopulateCommitSummary}
         key={repository.id}
+        showBranchProtected={fileCount > 0 && currentBranchProtected}
+        showNoWriteAccess={fileCount > 0 && !hasWritePermissionForRepository}
+        shouldNudge={this.props.shouldNudgeToCommit}
       />
     )
   }
 
   private onStashEntryClicked = () => {
-    if (this.props.isShowingStashEntry) {
-      this.props.dispatcher.selectWorkingDirectoryFiles(this.props.repository)
+    const { isShowingStashEntry, dispatcher, repository } = this.props
+
+    if (isShowingStashEntry) {
+      dispatcher.selectWorkingDirectoryFiles(repository)
+
+      // If the button is clicked, that implies the stash was not restored or discarded
+      dispatcher.recordNoActionTakenOnStash()
     } else {
-      this.props.dispatcher.selectStashedFile(this.props.repository)
+      dispatcher.selectStashedFile(repository)
+      dispatcher.recordStashView()
     }
   }
 
   private renderStashedChanges() {
-    if (!enableStashing()) {
-      return null
-    }
     if (this.props.stashEntry === null) {
       return null
     }
@@ -628,10 +717,33 @@ export class ChangesList extends React.Component<
     )
   }
 
+  private onRowKeyDown = (
+    _row: number,
+    event: React.KeyboardEvent<HTMLDivElement>
+  ) => {
+    // The commit is already in-flight but this check prevents the
+    // user from changing selection.
+    if (
+      this.props.isCommitting &&
+      (event.key === 'Enter' || event.key === ' ')
+    ) {
+      event.preventDefault()
+    }
+
+    return
+  }
+
   public render() {
     const fileCount = this.props.workingDirectory.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
+
+    const selectedChangeCount = this.props.workingDirectory.files.filter(
+      file => file.selection.getSelectionType() !== DiffSelectionType.None
+    ).length
+    const selectedFilesPlural = selectedChangeCount === 1 ? 'file' : 'files'
+    const selectedChangesDescription = `${selectedChangeCount} changed ${selectedFilesPlural} selected`
+
     const includeAllValue = getIncludeAllValue(
       this.props.workingDirectory,
       this.props.rebaseConflictState
@@ -644,7 +756,11 @@ export class ChangesList extends React.Component<
 
     return (
       <div className="changes-list-container file-list">
-        <div className="header">
+        <div
+          className="header"
+          onContextMenu={this.onContextMenu}
+          title={selectedChangesDescription}
+        >
           <Checkbox
             label={filesDescription}
             value={includeAllValue}
@@ -664,6 +780,7 @@ export class ChangesList extends React.Component<
           onRowClick={this.props.onRowClick}
           onScroll={this.onScroll}
           setScrollTop={this.props.changesListScrollTop}
+          onRowKeyDown={this.onRowKeyDown}
         />
         {this.renderStashedChanges()}
         {this.renderCommitMessageForm()}

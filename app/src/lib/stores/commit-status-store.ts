@@ -4,15 +4,47 @@ import QuickLRU from 'quick-lru'
 import { Account } from '../../models/account'
 import { AccountsStore } from './accounts-store'
 import { GitHubRepository } from '../../models/github-repository'
-import { API, IAPIRefStatus } from '../api'
+import {
+  API,
+  IAPIRefStatusItem,
+  IAPIRefCheckRun,
+  APICheckStatus,
+  APICheckConclusion,
+} from '../api'
 import { IDisposable, Disposable } from 'event-kit'
+
+/**
+ * A Desktop-specific model closely related to a GitHub API Check Run.
+ *
+ * The RefCheck object abstracts the difference between the legacy
+ * Commit Status objects and the modern Check Runs and unifies them
+ * under one common interface. Since all commit statuses can be
+ * represented as Check Runs but not all Check Runs can be represented
+ * as statuses the model closely aligns with Check Runs.
+ */
+export interface IRefCheck {
+  readonly name: string
+  readonly description: string
+  readonly status: APICheckStatus
+  readonly conclusion: APICheckConclusion | null
+}
+
+/**
+ * A combined view of all legacy commit statuses as well as
+ * check runs for a particular Git reference.
+ */
+export interface ICombinedRefCheck {
+  readonly status: APICheckStatus
+  readonly conclusion: APICheckConclusion | null
+  readonly checks: ReadonlyArray<IRefCheck>
+}
 
 interface ICommitStatusCacheEntry {
   /**
    * The combined ref status from the API or null if
    * the status could not be retrieved.
    */
-  readonly status: IAPIRefStatus | null
+  readonly check: ICombinedRefCheck | null
 
   /**
    * The timestamp for when this cache entry was last
@@ -21,7 +53,7 @@ interface ICommitStatusCacheEntry {
   readonly fetchedAt: Date
 }
 
-export type StatusCallBack = (status: IAPIRefStatus | null) => void
+export type StatusCallBack = (status: ICombinedRefCheck | null) => void
 
 /**
  * An interface describing one or more subscriptions for
@@ -67,10 +99,6 @@ function getCacheKeyForRepository(repository: GitHubRepository, ref: string) {
 /**
  * Creates a cache key for a particular ref in a specific repository.
  *
- * Remarks: The cache key is currently the same as the canonical API status
- *          URI but that has no bearing on the functionality, it does, however
- *          help with debugging.
- *
  * @param endpoint The repository endpoint (for example https://api.github.com for
  *                 GitHub.com and https://github.corporation.local/api for GHE)
  * @param owner    The repository owner's login (i.e niik for niik/desktop)
@@ -84,7 +112,7 @@ function getCacheKey(
   name: string,
   ref: string
 ) {
-  return `${endpoint}/repos/${owner}/${name}/commits/${ref}/status`
+  return `${endpoint}/repos/${owner}/${name}/commits/${ref}`
 }
 
 /**
@@ -110,7 +138,7 @@ function entryIsEligibleForRefresh(entry: ICommitStatusCacheEntry) {
  * application is focused.
  */
 const BackgroundRefreshInterval = 3 * 60 * 1000
-const MaxConcurrentFetches = 5
+const MaxConcurrentFetches = 6
 
 export class CommitStatusStore {
   /** The list of signed-in accounts, kept in sync with the accounts store */
@@ -151,13 +179,13 @@ export class CommitStatusStore {
    */
   private readonly limit = pLimit(MaxConcurrentFetches)
 
-  private onAccountsUpdated = (accounts: ReadonlyArray<Account>) => {
-    this.accounts = accounts
-  }
-
   public constructor(accountsStore: AccountsStore) {
     accountsStore.getAll().then(this.onAccountsUpdated)
     accountsStore.onDidUpdate(this.onAccountsUpdated)
+  }
+
+  private readonly onAccountsUpdated = (accounts: ReadonlyArray<Account>) => {
+    this.accounts = accounts
   }
 
   /**
@@ -246,13 +274,16 @@ export class CommitStatusStore {
       return
     }
 
-    try {
-      const api = API.fromAccount(account)
-      const status = await api.fetchCombinedRefStatus(owner, name, ref)
+    const api = API.fromAccount(account)
 
-      this.cache.set(key, { status, fetchedAt: new Date() })
-      subscription.callbacks.forEach(cb => cb(status))
-    } catch (err) {
+    const [statuses, checkRuns] = await Promise.all([
+      api.fetchCombinedRefStatus(owner, name, ref),
+      api.fetchRefCheckRuns(owner, name, ref),
+    ])
+
+    const checks = new Array<IRefCheck>()
+
+    if (statuses === null && checkRuns === null) {
       // Okay, so we failed retrieving the status for one reason or another.
       // That's a bummer, but we still need to put something in the cache
       // or else we'll consider this subscription eligible for refresh
@@ -261,13 +292,27 @@ export class CommitStatusStore {
       // notifying subscribers we ensure they keep their current status
       // if they have one and that we attempt to fetch it again on the same
       // schedule as the others.
-      log.debug(`Failed fetching status for ref ${ref} (${owner}/${name})`, err)
-
       const existingEntry = this.cache.get(key)
-      const status = existingEntry === undefined ? null : existingEntry.status
+      const check = existingEntry?.check ?? null
 
-      this.cache.set(key, { status, fetchedAt: new Date() })
+      this.cache.set(key, { check, fetchedAt: new Date() })
+      return
     }
+
+    if (statuses !== null) {
+      checks.push(...statuses.statuses.map(apiStatusToRefCheck))
+    }
+
+    if (checkRuns !== null) {
+      const latestCheckRunsByName = getLatestCheckRunsByName(
+        checkRuns.check_runs
+      )
+      checks.push(...latestCheckRunsByName.map(apiCheckRunToRefCheck))
+    }
+
+    const check = createCombinedCheckFromChecks(checks)
+    this.cache.set(key, { check, fetchedAt: new Date() })
+    subscription.callbacks.forEach(cb => cb(check))
   }
 
   /**
@@ -280,9 +325,9 @@ export class CommitStatusStore {
   public tryGetStatus(
     repository: GitHubRepository,
     ref: string
-  ): IAPIRefStatus | null {
-    const entry = this.cache.get(getCacheKeyForRepository(repository, ref))
-    return entry !== undefined ? entry.status : null
+  ): ICombinedRefCheck | null {
+    const key = getCacheKeyForRepository(repository, ref)
+    return this.cache.get(key)?.check ?? null
   }
 
   private getOrCreateSubscription(repository: GitHubRepository, ref: string) {
@@ -333,4 +378,151 @@ export class CommitStatusStore {
       }
     })
   }
+}
+
+/**
+ * Convert a legacy API commit status to a fake check run
+ */
+function apiStatusToRefCheck(apiStatus: IAPIRefStatusItem): IRefCheck {
+  let state: APICheckStatus
+  let conclusion: APICheckConclusion | null = null
+
+  if (apiStatus.state === 'success') {
+    state = 'completed'
+    conclusion = 'success'
+  } else if (apiStatus.state === 'pending') {
+    state = 'in_progress'
+  } else {
+    state = 'completed'
+    conclusion = 'failure'
+  }
+
+  return {
+    name: apiStatus.context,
+    description: apiStatus.description,
+    status: state,
+    conclusion,
+  }
+}
+
+/**
+ * Convert an API check run object to a RefCheck model
+ */
+function apiCheckRunToRefCheck(checkRun: IAPIRefCheckRun): IRefCheck {
+  return {
+    name: checkRun.name,
+    description:
+      checkRun?.output.title ?? checkRun.conclusion ?? checkRun.status,
+    status: checkRun.status,
+    conclusion: checkRun.conclusion,
+  }
+}
+
+function createCombinedCheckFromChecks(
+  checks: ReadonlyArray<IRefCheck>
+): ICombinedRefCheck | null {
+  if (checks.length === 0) {
+    // This case is distinct from when we fail to call the API in
+    // that this means there are no checks or statuses so we should
+    // clear whatever info we've got for this ref.
+    return null
+  }
+
+  if (checks.length === 1) {
+    // If we've got exactly one check then we can mirror its status
+    // and conclusion 1-1 without having to create an aggregate status
+    const { status, conclusion } = checks[0]
+    return { status, conclusion, checks }
+  }
+
+  if (checks.some(isIncompleteOrFailure)) {
+    return { status: 'completed', conclusion: 'failure', checks }
+  } else if (checks.every(isSuccess)) {
+    return { status: 'completed', conclusion: 'success', checks }
+  } else {
+    return { status: 'in_progress', conclusion: null, checks }
+  }
+}
+
+/**
+ * Whether the check is either incomplete or has failed
+ */
+export function isIncompleteOrFailure(check: IRefCheck) {
+  return isIncomplete(check) || isFailure(check)
+}
+
+/**
+ * Whether the check is incomplete (timed out, stale or cancelled).
+ *
+ * The terminology here is confusing and deserves explanation. An
+ * incomplete check is a check run that has been started and who's
+ * state is 'completed' but it never got to produce a conclusion
+ * because it was either cancelled, it timed out, or GitHub marked
+ * it as stale.
+ */
+export function isIncomplete(check: IRefCheck) {
+  if (check.status === 'completed') {
+    switch (check.conclusion) {
+      case 'timed_out':
+      case 'stale':
+      case 'cancelled':
+        return true
+    }
+  }
+
+  return false
+}
+
+/** Whether the check has failed (failure or requires action) */
+export function isFailure(check: IRefCheck) {
+  if (check.status === 'completed') {
+    switch (check.conclusion) {
+      case 'failure':
+      case 'action_required':
+        return true
+    }
+  }
+
+  return false
+}
+
+/** Whether the check can be considered successful (success, neutral or skipped) */
+export function isSuccess(check: IRefCheck) {
+  if (check.status === 'completed') {
+    switch (check.conclusion) {
+      case 'success':
+      case 'neutral':
+      case 'skipped':
+        return true
+    }
+  }
+
+  return false
+}
+
+/**
+ * In some cases there may be multiple check runs reported for a
+ * reference. In that case GitHub.com will pick only the latest
+ * run for each check name to present in the PR merge footer and
+ * only the latest run counts towards the mergeability of a PR.
+ *
+ * We use the check suite id as a proxy for determining what's
+ * the "latest" of two check runs with the same name.
+ */
+function getLatestCheckRunsByName(
+  checkRuns: ReadonlyArray<IAPIRefCheckRun>
+): ReadonlyArray<IAPIRefCheckRun> {
+  const latestCheckRunsByName = new Map<string, IAPIRefCheckRun>()
+
+  for (const checkRun of checkRuns) {
+    const current = latestCheckRunsByName.get(checkRun.name)
+    if (
+      current === undefined ||
+      current.check_suite.id < checkRun.check_suite.id
+    ) {
+      latestCheckRunsByName.set(checkRun.name, checkRun)
+    }
+  }
+
+  return [...latestCheckRunsByName.values()]
 }

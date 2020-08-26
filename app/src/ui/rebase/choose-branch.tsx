@@ -9,11 +9,14 @@ import { IMatches } from '../../lib/fuzzy-find'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 import { getCommitsInRange, getMergeBase } from '../../lib/git'
 
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { ActionStatusIcon } from '../lib/action-status-icon'
 
-import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  OkCancelButtonGroup,
+} from '../dialog'
 import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
 import { Dispatcher } from '../dispatcher'
 import { promiseWithMinimumTimeout } from '../../lib/promise'
@@ -87,14 +90,17 @@ export class ChooseBranchDialog extends React.Component<
       initialBranch
     )
 
-    if (selectedBranch !== null) {
-      this.onBranchChanged(selectedBranch)
-    }
-
     this.state = {
       selectedBranch,
       rebasePreview: null,
       filterText: '',
+    }
+  }
+
+  public componentDidMount() {
+    const { selectedBranch } = this.state
+    if (selectedBranch !== null) {
+      this.onBranchChanged(selectedBranch)
     }
   }
 
@@ -140,6 +146,17 @@ export class ChooseBranchDialog extends React.Component<
     // any further state updates (this function is re-entrant if the user is
     // using the keyboard to quickly switch branches)
     if (this.computingRebaseForBranch !== baseBranch.name) {
+      return
+    }
+
+    // if we are unable to find any commits to rebase, indicate that we're
+    // unable to proceed with the rebase
+    if (commits === null) {
+      this.setState({
+        rebasePreview: {
+          kind: ComputedAction.Invalid,
+        },
+      })
       return
     }
 
@@ -231,11 +248,12 @@ export class ChooseBranchDialog extends React.Component<
         </DialogContent>
         <DialogFooter>
           {this.renderRebaseStatus()}
-          <ButtonGroup>
-            <Button type="submit" disabled={disabled} tooltip={tooltip}>
-              Start rebase
-            </Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            okButtonText="Start rebase"
+            okButtonDisabled={disabled}
+            okButtonTitle={tooltip}
+            cancelButtonVisible={false}
+          />
         </DialogFooter>
       </Dialog>
     )
@@ -290,6 +308,10 @@ export class ChooseBranchDialog extends React.Component<
       )
     }
 
+    if (rebaseStatus.kind === ComputedAction.Invalid) {
+      return this.renderInvalidRebaseMessage()
+    }
+
     // TODO: other scenarios to display some context about
 
     return null
@@ -297,6 +319,10 @@ export class ChooseBranchDialog extends React.Component<
 
   private renderLoadingRebaseMessage() {
     return <>Checking for ability to rebase automatically...</>
+  }
+
+  private renderInvalidRebaseMessage() {
+    return <>Unable to start rebase. Check you have chosen a valid branch.</>
   }
 
   private renderCleanRebaseMessage(

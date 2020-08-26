@@ -1,12 +1,12 @@
 import * as React from 'react'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { ButtonGroup } from '../lib/button-group'
-import { Button } from '../lib/button'
 import { Row } from '../lib/row'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IUsageStatsChangeProps {
-  readonly onDismissed: (optOut: boolean) => void
+  readonly onSetStatsOptOut: (optOut: boolean) => void
+  readonly onDismissed: () => void
   readonly onOpenUsageDataUrl: () => void
 }
 
@@ -60,8 +60,8 @@ export class UsageStatsChange extends React.Component<
               <li>
                 <span>
                   <strong>
-                    If you are only signed into a GitHub Enterprise account, or
-                    only using Desktop with non-GitHub remotes
+                    If you are only signed into a GitHub Enterprise Server
+                    account, or only using Desktop with non-GitHub remotes
                   </strong>
                   , nothing is going to change.
                 </span>
@@ -81,13 +81,11 @@ export class UsageStatsChange extends React.Component<
           </Row>
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup>
-            <Button type="submit">Continue</Button>
-            <Button onClick={this.viewMoreInfo}>
-              {' '}
-              {__DARWIN__ ? 'More Info' : 'More info'}
-            </Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            okButtonText="Continue"
+            cancelButtonText={__DARWIN__ ? 'More Info' : 'More info'}
+            onCancelButtonClick={this.viewMoreInfo}
+          />
         </DialogFooter>
       </Dialog>
     )
@@ -101,10 +99,12 @@ export class UsageStatsChange extends React.Component<
   }
 
   private onDismissed = () => {
-    this.props.onDismissed(this.state.optOutOfUsageTracking)
+    this.props.onSetStatsOptOut(this.state.optOutOfUsageTracking)
+    this.props.onDismissed()
   }
 
-  private viewMoreInfo = () => {
+  private viewMoreInfo = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
     this.props.onOpenUsageDataUrl()
   }
 }

@@ -171,15 +171,16 @@ export class ApiRepositoriesStore extends BaseStore {
    * the provided account has explicit permissions to access.
    */
   public async loadRepositories(account: Account) {
-    const existingRepositories = this.accountState.get(account)
+    const existingAccount = resolveAccount(account, this.accountState)
+    const existingRepositories = this.accountState.get(existingAccount)
 
     if (existingRepositories !== undefined && existingRepositories.loading) {
       return
     }
 
-    this.updateAccount(account, { loading: true })
+    this.updateAccount(existingAccount, { loading: true })
 
-    const api = API.fromAccount(account)
+    const api = API.fromAccount(existingAccount)
     const repositories = await api.fetchRepositories()
 
     if (repositories === null) {

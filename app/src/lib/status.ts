@@ -6,6 +6,7 @@ import {
   isConflictWithMarkers,
   GitStatusEntry,
   isConflictedFileStatus,
+  WorkingDirectoryFileChange,
 } from '../models/status'
 import { assertNever } from './fatal-error'
 import {
@@ -41,9 +42,9 @@ export function mapStatus(status: AppFileStatus): string {
       return 'Conflicted'
     case AppFileStatusKind.Copied:
       return 'Copied'
+    default:
+      return assertNever(status, `Unknown file status ${status}`)
   }
-
-  return assertNever(status, `Unknown file status ${status}`)
 }
 
 /** Typechecker helper to identify conflicted files */
@@ -71,13 +72,18 @@ export function hasUnresolvedConflicts(
   status: ConflictedFileStatus,
   manualResolution?: ManualConflictResolution
 ) {
+  // if there's a manual resolution, the file does not have unresolved conflicts
+  if (manualResolution !== undefined) {
+    return false
+  }
+
   if (isConflictWithMarkers(status)) {
     // text file may have conflict markers present
     return status.conflictMarkerCount > 0
   }
 
-  // binary file doesn't contain markers, so we check the manual resolution
-  return manualResolution === undefined
+  // binary file doesn't contain markers
+  return true
 }
 
 /** the possible git status entries for a manually conflicted file status
@@ -133,6 +139,15 @@ export function getLabelForManualResolutionOption(
 /** Filter working directory changes for conflicted or resolved files  */
 export function getUnmergedFiles(status: WorkingDirectoryStatus) {
   return status.files.filter(f => isConflictedFile(f.status))
+}
+
+/** Filter working directory changes for untracked files  */
+export function getUntrackedFiles(
+  workingDirectoryStatus: WorkingDirectoryStatus
+): ReadonlyArray<WorkingDirectoryFileChange> {
+  return workingDirectoryStatus.files.filter(
+    file => file.status.kind === AppFileStatusKind.Untracked
+  )
 }
 
 /** Filter working directory changes for resolved files  */

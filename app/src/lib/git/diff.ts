@@ -98,11 +98,13 @@ const imageFileExtensions = new Set([
 export async function getCommitDiff(
   repository: Repository,
   file: FileChange,
-  commitish: string
+  commitish: string,
+  hideWhitespaceInDiff: boolean = false
 ): Promise<IDiff> {
   const args = [
     'log',
     commitish,
+    ...(hideWhitespaceInDiff ? ['-w'] : []),
     '-m',
     '-1',
     '--first-parent',
@@ -453,7 +455,8 @@ export async function getWorkingDirectoryImage(
 }
 
 /**
- * list the modified binary files' paths in the given repository
+ * List the modified binary files' paths in the given repository
+ *
  * @param repository to run git operation in
  * @param ref ref (sha, branch, etc) to compare the working index against
  *

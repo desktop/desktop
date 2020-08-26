@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { IRevertProgress } from '../../models/progress'
 import { ToolbarButton, ToolbarButtonStyle } from './button'
-import { OcticonSymbol } from '../octicons'
+import { syncClockwise } from '../octicons'
 
 interface IRevertProgressProps {
   /** Progress information associated with the current operation */
@@ -19,7 +19,7 @@ export class RevertProgress extends React.Component<IRevertProgressProps, {}> {
         description={title}
         progressValue={progress.value}
         className="revert-progress"
-        icon={OcticonSymbol.sync}
+        icon={syncClockwise}
         iconClassName="spin"
         style={ToolbarButtonStyle.Subtitle}
         disabled={true}

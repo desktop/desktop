@@ -163,8 +163,12 @@ export function urlMatchesCloneURL(
     return false
   }
 
-  const firstIdentifier = parseRepositoryIdentifier(gitHubRepository.cloneURL)
-  const secondIdentifier = parseRepositoryIdentifier(url)
+  return urlsMatch(gitHubRepository.cloneURL, url)
+}
+
+export function urlsMatch(url1: string, url2: string) {
+  const firstIdentifier = parseRepositoryIdentifier(url1)
+  const secondIdentifier = parseRepositoryIdentifier(url2)
 
   return (
     firstIdentifier !== null &&

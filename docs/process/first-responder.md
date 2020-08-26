@@ -1,6 +1,6 @@
 # First Responder Rotation
 
-We have a first responder rotation. The goals of the rotation are:
+We have a first responder rotation, aka FRR. The goals of the rotation are:
 
 1. Ensure community issues and PRs are answered in a timely manner.
 1. Ensure support load is shared across the whole team.

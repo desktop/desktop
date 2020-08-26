@@ -20,7 +20,6 @@ import { IMenuItem } from '../../lib/menu-item'
 import { PopupType } from '../../models/popup'
 import { encodePathAsUrl } from '../../lib/path'
 import memoizeOne from 'memoize-one'
-import { enableGroupRepositoriesByOwner } from '../../lib/feature-flag'
 
 const BlankSlateImage = encodePathAsUrl(__dirname, 'static/empty-no-repo.svg')
 
@@ -161,6 +160,7 @@ export class RepositoriesList extends React.Component<
   private renderGroupHeader = (id: string) => {
     const identifier = id as RepositoryGroupIdentifier
     const label = this.getGroupLabel(identifier)
+
     return (
       <div key={identifier} className="filter-list-group-header">
         {label}
@@ -190,7 +190,6 @@ export class RepositoriesList extends React.Component<
     )
 
     const groups =
-      enableGroupRepositoriesByOwner() &&
       this.props.repositories.length > recentRepositoriesThreshold
         ? [
             makeRecentRepositoriesGroup(

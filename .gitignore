@@ -13,3 +13,4 @@ app/node_modules/
 *.iml
 .envrc
 junit*.xml
+*.swp

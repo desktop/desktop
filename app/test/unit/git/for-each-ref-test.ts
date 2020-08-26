@@ -8,7 +8,7 @@ import { getBranches } from '../../../src/lib/git/for-each-ref'
 import { BranchType } from '../../../src/models/branch'
 
 describe('git/for-each-ref', () => {
-  let repository: Repository | null = null
+  let repository: Repository
 
   beforeEach(async () => {
     const testRepoPath = await setupFixtureRepository('repo-with-many-refs')
@@ -17,7 +17,7 @@ describe('git/for-each-ref', () => {
 
   describe('getBranches', () => {
     it('fetches branches using for-each-ref', async () => {
-      const branches = (await getBranches(repository!)).filter(
+      const branches = (await getBranches(repository)).filter(
         b => b.type === BranchType.Local
       )
 
@@ -29,10 +29,7 @@ describe('git/for-each-ref', () => {
       expect(commitWithBody.tip.sha).toBe(
         'dfa96676b65e1c0ed43ca25492252a5e384c8efd'
       )
-      expect(commitWithBody.tip.shortSha).toBe('dfa9667')
-      expect(commitWithBody.tip.summary).toBe('this is a commit title')
-      expect(commitWithBody.tip.body).toContain('lucky last')
-      expect(commitWithBody.tip.parentSHAs).toHaveLength(1)
+      expect(commitWithBody.tip.author.name).toBe('Brendan Forster')
 
       const commitNoBody = branches[1]
       expect(commitNoBody.name).toBe('commit-with-no-body')
@@ -40,18 +37,13 @@ describe('git/for-each-ref', () => {
       expect(commitNoBody.tip.sha).toBe(
         '49ec1e05f39eef8d1ab6200331a028fb3dd96828'
       )
-      expect(commitNoBody.tip.shortSha).toBe('49ec1e0')
-      expect(commitNoBody.tip.summary).toBe('this is a commit title')
-      expect(commitNoBody.tip.body).toHaveLength(0)
-      expect(commitNoBody.tip.parentSHAs).toHaveLength(1)
+      expect(commitNoBody.tip.author.name).toBe('Brendan Forster')
 
       const master = branches[2]
       expect(master.name).toBe('master')
       expect(master.upstream).toBeNull()
       expect(master.tip.sha).toBe('b9ccfc3307240b86447bca2bd6c51a4bb4ade493')
-      expect(master.tip.shortSha).toBe('b9ccfc3')
-      expect(master.tip.summary).toBe('stubbed a README')
-      expect(master.tip.parentSHAs).toHaveLength(1)
+      expect(master.tip.author.name).toBe('Brendan Forster')
     })
 
     it('should return empty list for empty repo', async () => {

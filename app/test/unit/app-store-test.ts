@@ -11,6 +11,7 @@ import {
   RepositoriesStore,
   AccountsStore,
   PullRequestStore,
+  PullRequestCoordinator,
 } from '../../src/lib/stores'
 import {
   TestGitHubUserDatabase,
@@ -66,16 +67,14 @@ describe('AppStore', () => {
       new AsyncInMemoryStore()
     )
 
-    const pullRequestStore = new PullRequestStore(
-      new TestPullRequestDatabase(),
+    const pullRequestCoordinator = new PullRequestCoordinator(
+      new PullRequestStore(new TestPullRequestDatabase(), repositoriesStore),
       repositoriesStore
     )
 
     const githubUserStore = new GitHubUserStore(db)
 
-    const repositoryStateManager = new RepositoryStateCache(repo =>
-      githubUserStore.getUsersForRepository(repo)
-    )
+    const repositoryStateManager = new RepositoryStateCache()
 
     const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 
@@ -87,7 +86,7 @@ describe('AppStore', () => {
       new SignInStore(),
       accountsStore,
       repositoriesStore,
-      pullRequestStore,
+      pullRequestCoordinator,
       repositoryStateManager,
       apiRepositoriesStore
     )
@@ -123,28 +122,26 @@ describe('AppStore', () => {
           return selectedState.state
         default:
           throw new Error(
-            `Got selected state of type ${
-              selectedState.type
-            } which is not supported.`
+            `Got selected state of type ${selectedState.type} which is not supported.`
           )
       }
     }
 
-    let repo: Repository | null = null
+    let repository: Repository
     let firstCommit: Commit | null = null
 
     beforeEach(async () => {
-      repo = await setupEmptyRepository()
+      repository = await setupEmptyRepository()
 
       const file = 'README.md'
-      const filePath = Path.join(repo.path, file)
+      const filePath = Path.join(repository.path, file)
 
       await FSE.writeFile(filePath, 'SOME WORDS GO HERE\n')
 
-      await GitProcess.exec(['add', file], repo.path)
-      await GitProcess.exec(['commit', '-m', 'added file'], repo.path)
+      await GitProcess.exec(['add', file], repository.path)
+      await GitProcess.exec(['commit', '-m', 'added file'], repository.path)
 
-      firstCommit = await getCommit(repo, 'master')
+      firstCommit = await getCommit(repository, 'master')
       expect(firstCommit).not.toBeNull()
       expect(firstCommit!.parentSHAs).toHaveLength(0)
     })
@@ -159,8 +156,6 @@ describe('AppStore', () => {
     // I've opened https://github.com/desktop/desktop/issues/5543
     // to ensure this isn't forgotten.
     it.skip('clears the undo commit dialog', async () => {
-      const repository = repo!
-
       const { appStore } = await createAppStore()
 
       // select the repository and show the changes view

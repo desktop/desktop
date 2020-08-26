@@ -1,20 +1,12 @@
-/* eslint-disable no-sync */
-
 import * as Path from 'path'
 import * as FSE from 'fs-extra'
-
 import { mkdirSync } from './temp'
-
-const klawSync = require('klaw-sync')
-
+import klawSync, { Item } from 'klaw-sync'
 import { Repository } from '../../src/models/repository'
 import { GitProcess } from 'dugite'
 import { makeCommit, switchTo } from './repository-scaffolding'
 import { writeFile } from 'fs-extra'
-
-type KlawEntry = {
-  path: string
-}
+import { git } from '../../src/lib/git'
 
 /**
  * Set up the named fixture repository to be used in a test.
@@ -38,12 +30,12 @@ export async function setupFixtureRepository(
     Path.join(testRepoPath, '.git')
   )
 
-  const ignoreHiddenFiles = function(item: KlawEntry) {
+  const ignoreHiddenFiles = function (item: Item) {
     const basename = Path.basename(item.path)
     return basename === '.' || basename[0] !== '.'
   }
 
-  const entries: ReadonlyArray<KlawEntry> = klawSync(testRepoPath)
+  const entries = klawSync(testRepoPath)
   const visiblePaths = entries.filter(ignoreHiddenFiles)
   const submodules = visiblePaths.filter(
     entry => Path.basename(entry.path) === '_git'
@@ -183,16 +175,12 @@ export async function setupConflictedRepoWithMultipleFiles(): Promise<
   Repository
 > {
   const repo = await setupEmptyRepository()
-  const filePaths = [
-    Path.join(repo.path, 'foo'),
-    Path.join(repo.path, 'bar'),
-    Path.join(repo.path, 'baz'),
-    Path.join(repo.path, 'cat'),
-    Path.join(repo.path, 'dog'),
-  ]
 
   const firstCommit = {
-    entries: [{ path: 'foo', contents: 'b0' }, { path: 'bar', contents: 'b0' }],
+    entries: [
+      { path: 'foo', contents: 'b0' },
+      { path: 'bar', contents: 'b0' },
+    ],
   }
 
   await makeCommit(repo, firstCommit)
@@ -225,9 +213,47 @@ export async function setupConflictedRepoWithMultipleFiles(): Promise<
 
   await makeCommit(repo, thirdCommit)
 
-  await FSE.writeFile(filePaths[4], 'touch')
+  await FSE.writeFile(Path.join(repo.path, 'dog'), 'touch')
 
   await GitProcess.exec(['merge', 'master'], repo.path)
 
   return repo
+}
+/**
+ * Setup a repo with a single commit
+ *
+ * files are `great-file` and `good-file`, which are both added in the one commit
+ */
+export async function setupTwoCommitRepo(): Promise<Repository> {
+  const repo = await setupEmptyRepository()
+
+  const firstCommit = {
+    entries: [
+      { path: 'good-file', contents: 'wishes it was great' },
+      { path: 'great-file', contents: 'wishes it was good' },
+    ],
+  }
+  const secondCommit = {
+    entries: [
+      { path: 'good-file', contents: 'is great' },
+      { path: 'great-file', contents: 'is good' },
+    ],
+  }
+
+  await makeCommit(repo, firstCommit)
+  await makeCommit(repo, secondCommit)
+  return repo
+}
+
+/**
+ * Sets up a local fork of the provided repository
+ * and configures the origin remote to point to the
+ * local "upstream" repository.
+ */
+export async function setupLocalForkOfRepository(
+  upstream: Repository
+): Promise<Repository> {
+  const path = mkdirSync('desktop-fork-repo-')
+  await git(['clone', '--local', `${upstream.path}`, path], path, 'clone')
+  return new Repository(path, -1, null, false)
 }

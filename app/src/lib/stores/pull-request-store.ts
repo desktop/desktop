@@ -9,7 +9,7 @@ import {
 import { GitHubRepository } from '../../models/github-repository'
 import { Account } from '../../models/account'
 import { API, IAPIPullRequest, MaxResultsError } from '../api'
-import { fatalError, forceUnwrap } from '../fatal-error'
+import { fatalError } from '../fatal-error'
 import { RepositoriesStore } from './repositories-store'
 import { PullRequest, PullRequestRef } from '../../models/pull-request'
 import { structuralEquals } from '../equality'
@@ -47,29 +47,18 @@ export class PullRequestStore {
     })
   }
 
-  private emitIsLoadingPullRequests(
-    repository: GitHubRepository,
-    isLoadingPullRequests: boolean
-  ) {
-    this.emitter.emit('onIsLoadingPullRequest', {
-      repository,
-      isLoadingPullRequests,
-    })
-  }
-
-  /** Register a function to be called when the store updates. */
-  public onIsLoadingPullRequests(
-    fn: (repository: GitHubRepository, isLoadingPullRequests: boolean) => void
-  ): Disposable {
-    return this.emitter.on('onIsLoadingPullRequest', value => {
-      const { repository, isLoadingPullRequests } = value
-      fn(repository, isLoadingPullRequests)
-    })
-  }
-
   /** Loads all pull requests against the given repository. */
   public refreshPullRequests(repo: GitHubRepository, account: Account) {
-    const dbId = forceUnwrap("Can't refresh PRs, no dbId", repo.dbID)
+    const dbId = repo.dbID
+
+    if (dbId === null) {
+      // This can happen when the `repositoryWithRefreshedGitHubRepository`
+      // method in AppStore fails to retrieve API information about the current
+      // repository either due to the user being signed out or the API failing
+      // to provide a response. There's nothing for us to do when that happens
+      // so instead of crashing we'll bail here.
+      return Promise.resolve()
+    }
 
     const currentOp = this.currentRefreshOperations.get(dbId)
 
@@ -78,7 +67,6 @@ export class PullRequestStore {
     }
 
     this.lastRefreshForRepository.set(dbId, Date.now())
-    this.emitIsLoadingPullRequests(repo, true)
 
     const promise = this.fetchAndStorePullRequests(repo, account)
       .catch(err => {
@@ -86,7 +74,6 @@ export class PullRequestStore {
       })
       .then(() => {
         this.currentRefreshOperations.delete(dbId)
-        this.emitIsLoadingPullRequests(repo, false)
       })
 
     this.currentRefreshOperations.set(dbId, promise)
@@ -182,8 +169,13 @@ export class PullRequestStore {
 
   /** Gets all stored pull requests for the given repository. */
   public async getAll(repository: GitHubRepository) {
-    if (repository.dbID == null) {
-      return fatalError("Can't fetch PRs for repository, no dbId")
+    if (repository.dbID === null) {
+      // This can happen when the `repositoryWithRefreshedGitHubRepository`
+      // method in AppStore fails to retrieve API information about the current
+      // repository either due to the user being signed out or the API failing
+      // to provide a response. There's nothing for us to do when that happens
+      // so instead of crashing we'll bail here.
+      return []
     }
 
     const records = await this.db.getAllPullRequestsInRepository(repository)
@@ -324,9 +316,7 @@ export class PullRequestStore {
       // this pull request.
       if (pr.head.repo == null) {
         log.debug(
-          `Unable to store pull request #${pr.number} for repository ${
-            repository.fullName
-          } as it has no head repository associated with it`
+          `Unable to store pull request #${pr.number} for repository ${repository.fullName} as it has no head repository associated with it`
         )
         prsToDelete.push(getPullRequestKey(baseGitHubRepo, pr.number))
         continue

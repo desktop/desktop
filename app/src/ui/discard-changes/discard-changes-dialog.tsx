@@ -3,14 +3,11 @@ import * as React from 'react'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { WorkingDirectoryFileChange } from '../../models/status'
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { PathText } from '../lib/path-text'
-import { Monospaced } from '../lib/monospaced'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { TrashNameLabel } from '../lib/context-menu'
-import { toPlatformCase } from '../../lib/platform-case'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IDiscardChangesProps {
   readonly repository: Repository
@@ -58,21 +55,34 @@ export class DiscardChanges extends React.Component<
     }
   }
 
+  private getOkButtonLabel() {
+    if (this.props.discardingAllChanges) {
+      return __DARWIN__ ? 'Discard All Changes' : 'Discard all changes'
+    }
+    return __DARWIN__ ? 'Discard Changes' : 'Discard changes'
+  }
+
+  private getDialogTitle() {
+    if (this.props.discardingAllChanges) {
+      return __DARWIN__
+        ? 'Confirm Discard All Changes'
+        : 'Confirm discard all changes'
+    }
+    return __DARWIN__ ? 'Confirm Discard Changes' : 'Confirm discard changes'
+  }
+
   public render() {
-    const discardingAllChanges = this.props.discardingAllChanges
     const isDiscardingChanges = this.state.isDiscardingChanges
 
     return (
       <Dialog
         id="discard-changes"
-        title={
-          discardingAllChanges
-            ? toPlatformCase('Confirm Discard All Changes')
-            : toPlatformCase('Confirm Discard Changes')
-        }
+        title={this.getDialogTitle()}
         onDismissed={this.props.onDismissed}
+        onSubmit={this.discard}
         dismissable={isDiscardingChanges ? false : true}
         loading={isDiscardingChanges}
+        disabled={isDiscardingChanges}
         type="warning"
       >
         <DialogContent>
@@ -85,16 +95,10 @@ export class DiscardChanges extends React.Component<
         </DialogContent>
 
         <DialogFooter>
-          <ButtonGroup destructive={true}>
-            <Button disabled={isDiscardingChanges} type="submit">
-              Cancel
-            </Button>
-            <Button onClick={this.discard} disabled={isDiscardingChanges}>
-              {discardingAllChanges
-                ? toPlatformCase('Discard All Changes')
-                : toPlatformCase('Discard Changes')}
-            </Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            destructive={true}
+            okButtonText={this.getOkButtonLabel()}
+          />
         </DialogFooter>
       </Dialog>
     )
@@ -136,9 +140,7 @@ export class DiscardChanges extends React.Component<
           <ul>
             {this.props.files.map(p => (
               <li key={p.id}>
-                <Monospaced>
-                  <PathText path={p.path} />
-                </Monospaced>
+                <PathText path={p.path} />
               </li>
             ))}
           </ul>

@@ -1,11 +1,15 @@
 import { MenuIDs } from '../models/menu-ids'
 import { merge } from './merge'
 import { IAppState, SelectionType } from '../lib/app-state'
-import { Repository } from '../models/repository'
+import {
+  Repository,
+  isRepositoryWithGitHubRepository,
+} from '../models/repository'
 import { CloningRepository } from '../models/cloning-repository'
 import { TipState } from '../models/tip'
 import { updateMenuState as ipcUpdateMenuState } from '../ui/main-process-proxy'
 import { AppMenu, MenuItem } from '../models/app-menu'
+import { hasConflictedFiles } from './status'
 
 export interface IMenuItemState {
   readonly enabled?: boolean
@@ -101,6 +105,7 @@ const allMenuIds: ReadonlyArray<MenuIDs> = [
   'rename-branch',
   'delete-branch',
   'discard-all-changes',
+  'stash-all-changes',
   'preferences',
   'update-branch',
   'compare-to-branch',
@@ -151,6 +156,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   let onBranch = false
   let onDetachedHead = false
   let hasChangedFiles = false
+  let hasConflicts = false
   let hasDefaultBranch = false
   let hasPublishedBranch = false
   let networkActionInProgress = false
@@ -158,6 +164,11 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   let branchIsUnborn = false
   let rebaseInProgress = false
   let branchHasStashEntry = false
+  // check that its a github repo and if so, that is has issues enabled
+  const repoIssuesEnabled =
+    selectedState !== null &&
+    selectedState.repository instanceof Repository &&
+    getRepoIssuesEnabled(selectedState.repository)
 
   if (selectedState && selectedState.type === SelectionType.Repository) {
     repositorySelected = true
@@ -194,6 +205,9 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     const { conflictState, workingDirectory } = selectedState.state.changesState
 
     rebaseInProgress = conflictState !== null && conflictState.kind === 'rebase'
+    hasConflicts =
+      changesState.conflictState !== null ||
+      hasConflictedFiles(workingDirectory)
     hasChangedFiles = workingDirectory.files.length > 0
   }
 
@@ -247,6 +261,10 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
 
     menuStateBuilder.setEnabled('view-repository-on-github', isHostedOnGitHub)
     menuStateBuilder.setEnabled(
+      'create-issue-in-repository-on-github',
+      repoIssuesEnabled
+    )
+    menuStateBuilder.setEnabled(
       'create-pull-request',
       isHostedOnGitHub && !branchIsUnborn && !onDetachedHead
     )
@@ -266,6 +284,11 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     menuStateBuilder.setEnabled(
       'discard-all-changes',
       repositoryActive && hasChangedFiles && !rebaseInProgress
+    )
+
+    menuStateBuilder.setEnabled(
+      'stash-all-changes',
+      hasChangedFiles && onBranch && !rebaseInProgress && !hasConflicts
     )
 
     menuStateBuilder.setEnabled('compare-to-branch', !onDetachedHead)
@@ -299,6 +322,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     menuStateBuilder.disable('rename-branch')
     menuStateBuilder.disable('delete-branch')
     menuStateBuilder.disable('discard-all-changes')
+    menuStateBuilder.disable('stash-all-changes')
     menuStateBuilder.disable('update-branch')
     menuStateBuilder.disable('merge-branch')
     menuStateBuilder.disable('rebase-branch')
@@ -368,6 +392,25 @@ function getNoRepositoriesBuilder(state: IAppState): MenuStateBuilder {
   }
 
   return menuStateBuilder
+}
+
+function getRepoIssuesEnabled(repository: Repository): boolean {
+  if (isRepositoryWithGitHubRepository(repository)) {
+    const ghRepo = repository.gitHubRepository
+
+    if (ghRepo.parent) {
+      // issues enabled on parent repo
+      return (
+        ghRepo.parent.issuesEnabled !== false &&
+        ghRepo.parent.isArchived !== true
+      )
+    }
+
+    // issues enabled on repo
+    return ghRepo.issuesEnabled !== false && ghRepo.isArchived !== true
+  }
+
+  return false
 }
 
 /**

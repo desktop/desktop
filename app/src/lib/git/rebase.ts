@@ -2,7 +2,7 @@ import * as Path from 'path'
 import { ChildProcess } from 'child_process'
 import * as FSE from 'fs-extra'
 import { GitError } from 'dugite'
-import * as byline from 'byline'
+import byline from 'byline'
 
 import { Repository } from '../../models/repository'
 import {
@@ -21,13 +21,48 @@ import { CommitOneLine } from '../../models/commit'
 import { merge } from '../merge'
 import { formatRebaseValue } from '../rebase'
 
-import { git, IGitResult, IGitExecutionOptions } from './core'
+import {
+  git,
+  IGitResult,
+  IGitExecutionOptions,
+  gitRebaseArguments,
+} from './core'
 import { stageManualConflictResolution } from './stage'
 import { stageFiles } from './update-index'
 import { getStatus } from './status'
 import { getCommitsInRange } from './rev-list'
 import { Branch } from '../../models/branch'
-import { enablePullWithRebase } from '../feature-flag'
+
+/** The app-specific results from attempting to rebase a repository */
+export enum RebaseResult {
+  /**
+   * Git completed the rebase without reporting any errors, and the caller can
+   * signal success to the user.
+   */
+  CompletedWithoutError = 'CompletedWithoutError',
+  /**
+   * The rebase encountered conflicts while attempting to rebase, and these
+   * need to be resolved by the user before the rebase can continue.
+   */
+  ConflictsEncountered = 'ConflictsEncountered',
+  /**
+   * The rebase was not able to continue as tracked files were not staged in
+   * the index.
+   */
+  OutstandingFilesNotStaged = 'OutstandingFilesNotStaged',
+  /**
+   * The rebase was not attempted because it could not check the status of the
+   * repository. The caller needs to confirm the repository is in a usable
+   * state.
+   */
+  Aborted = 'Aborted',
+  /**
+   * An unexpected error as part of the rebase flow was caught and handled.
+   *
+   * Check the logs to find the relevant Git details.
+   */
+  Error = 'Error',
+}
 
 /**
  * Check the `.git/REBASE_HEAD` file exists in a repository to confirm
@@ -49,10 +84,6 @@ function isRebaseHeadSet(repository: Repository) {
 export async function getRebaseInternalState(
   repository: Repository
 ): Promise<RebaseInternalState | null> {
-  if (!enablePullWithRebase()) {
-    return null
-  }
-
   const isRebase = await isRebaseHeadSet(repository)
 
   if (!isRebase) {
@@ -65,14 +96,14 @@ export async function getRebaseInternalState(
 
   try {
     originalBranchTip = await FSE.readFile(
-      Path.join(repository.path, '.git', 'rebase-apply', 'orig-head'),
+      Path.join(repository.path, '.git', 'rebase-merge', 'orig-head'),
       'utf8'
     )
 
     originalBranchTip = originalBranchTip.trim()
 
     targetBranch = await FSE.readFile(
-      Path.join(repository.path, '.git', 'rebase-apply', 'head-name'),
+      Path.join(repository.path, '.git', 'rebase-merge', 'head-name'),
       'utf8'
     )
 
@@ -81,7 +112,7 @@ export async function getRebaseInternalState(
     }
 
     baseBranchTip = await FSE.readFile(
-      Path.join(repository.path, '.git', 'rebase-apply', 'onto'),
+      Path.join(repository.path, '.git', 'rebase-merge', 'onto'),
       'utf8'
     )
 
@@ -102,7 +133,7 @@ export async function getRebaseInternalState(
 }
 
 /**
- * Inspect the `.git/rebase-apply` folder and convert the current rebase state
+ * Inspect the `.git/rebase-merge` folder and convert the current rebase state
  * into data that can be provided to the rebase flow to update the application
  * state.
  *
@@ -128,14 +159,14 @@ export async function getRebaseSnapshot(
   let originalBranchTip: string | null = null
   let baseBranchTip: string | null = null
 
-  // if the repository is in the middle of a rebase `.git/rebase-apply` will
+  // if the repository is in the middle of a rebase `.git/rebase-merge` will
   // contain all the patches of commits that are being rebased into
   // auto-incrementing files, e.g. `0001`, `0002`, `0003`, etc ...
 
   try {
     // this contains the patch number that was recently applied to the repository
     const nextText = await FSE.readFile(
-      Path.join(repository.path, '.git', 'rebase-apply', 'next'),
+      Path.join(repository.path, '.git', 'rebase-merge', 'msgnum'),
       'utf8'
     )
 
@@ -143,14 +174,14 @@ export async function getRebaseSnapshot(
 
     if (isNaN(next)) {
       log.warn(
-        `[getCurrentProgress] found '${nextText}' in .git/rebase-apply/next which could not be parsed to a valid number`
+        `[getCurrentProgress] found '${nextText}' in .git/rebase-merge/msgnum which could not be parsed to a valid number`
       )
       next = -1
     }
 
     // this contains the total number of patches to be applied to the repository
     const lastText = await FSE.readFile(
-      Path.join(repository.path, '.git', 'rebase-apply', 'last'),
+      Path.join(repository.path, '.git', 'rebase-merge', 'end'),
       'utf8'
     )
 
@@ -158,20 +189,20 @@ export async function getRebaseSnapshot(
 
     if (isNaN(last)) {
       log.warn(
-        `[getCurrentProgress] found '${lastText}' in .git/rebase-apply/last which could not be parsed to a valid number`
+        `[getCurrentProgress] found '${lastText}' in .git/rebase-merge/last which could not be parsed to a valid number`
       )
       last = -1
     }
 
     originalBranchTip = await FSE.readFile(
-      Path.join(repository.path, '.git', 'rebase-apply', 'orig-head'),
+      Path.join(repository.path, '.git', 'rebase-merge', 'orig-head'),
       'utf8'
     )
 
     originalBranchTip = originalBranchTip.trim()
 
     baseBranchTip = await FSE.readFile(
-      Path.join(repository.path, '.git', 'rebase-apply', 'onto'),
+      Path.join(repository.path, '.git', 'rebase-merge', 'onto'),
       'utf8'
     )
 
@@ -193,7 +224,7 @@ export async function getRebaseSnapshot(
       originalBranchTip
     )
 
-    if (commits.length === 0) {
+    if (commits === null || commits.length === 0) {
       return null
     }
 
@@ -274,9 +305,7 @@ class GitRebaseParser {
 
     return {
       kind: 'rebase',
-      title: `Rebasing commit ${this.rebasedCommitCount} of ${
-        this.totalCommitCount
-      } commits`,
+      title: `Rebasing commit ${this.rebasedCommitCount} of ${this.totalCommitCount} commits`,
       value,
       rebasedCommitCount: this.rebasedCommitCount,
       totalCommitCount: this.totalCommitCount,
@@ -297,6 +326,11 @@ function configureOptionsForRebase(
 
   return merge(options, {
     processCallback: (process: ChildProcess) => {
+      // If Node.js encounters a synchronous runtime error while spawning
+      // `stdout` will be undefined and the error will be emitted asynchronously
+      if (!process.stdout) {
+        return
+      }
       const parser = new GitRebaseParser(rebasedCommitCount, totalCommitCount)
 
       // rebase emits progress messages on `stdout`, not `stderr`
@@ -342,6 +376,10 @@ export async function rebase(
       targetBranch.tip.sha
     )
 
+    if (commits === null) {
+      return RebaseResult.Error
+    }
+
     const totalCommitCount = commits.length
 
     options = configureOptionsForRebase(baseOptions, {
@@ -352,7 +390,7 @@ export async function rebase(
   }
 
   const result = await git(
-    ['rebase', baseBranch.name, targetBranch.name],
+    [...gitRebaseArguments(), 'rebase', baseBranch.name, targetBranch.name],
     repository.path,
     'rebase',
     options
@@ -364,37 +402,6 @@ export async function rebase(
 /** Abandon the current rebase operation */
 export async function abortRebase(repository: Repository) {
   await git(['rebase', '--abort'], repository.path, 'abortRebase')
-}
-
-/** The app-specific results from attempting to rebase a repository */
-export enum RebaseResult {
-  /**
-   * Git completed the rebase without reporting any errors, and the caller can
-   * signal success to the user.
-   */
-  CompletedWithoutError = 'CompletedWithoutError',
-  /**
-   * The rebase encountered conflicts while attempting to rebase, and these
-   * need to be resolved by the user before the rebase can continue.
-   */
-  ConflictsEncountered = 'ConflictsEncountered',
-  /**
-   * The rebase was not able to continue as tracked files were not staged in
-   * the index.
-   */
-  OutstandingFilesNotStaged = 'OutstandingFilesNotStaged',
-  /**
-   * The rebase was not attempted because it could not check the status of the
-   * repository. The caller needs to confirm the repository is in a usable
-   * state.
-   */
-  Aborted = 'Aborted',
-  /**
-   * An unexpected error as part of the rebase flow was caught and handled.
-   *
-   * Check the logs to find the relevant Git details.
-   */
-  Error = 'Error',
 }
 
 function parseRebaseResult(result: IGitResult): RebaseResult {
@@ -469,6 +476,9 @@ export async function continueRebase(
       GitError.RebaseConflicts,
       GitError.UnresolvedConflicts,
     ]),
+    env: {
+      GIT_EDITOR: ':',
+    },
   }
 
   let options = baseOptions

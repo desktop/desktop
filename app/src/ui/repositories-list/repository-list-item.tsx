@@ -7,11 +7,10 @@ import { IMenuItem } from '../../lib/menu-item'
 import { HighlightText } from '../lib/highlight-text'
 import { IMatches } from '../../lib/fuzzy-find'
 import { IAheadBehind } from '../../models/branch'
-import { RevealInFileManagerLabel } from '../lib/context-menu'
-
-const defaultEditorLabel = __DARWIN__
-  ? 'Open in External Editor'
-  : 'Open in external editor'
+import {
+  RevealInFileManagerLabel,
+  DefaultEditorLabel,
+} from '../lib/context-menu'
 
 interface IRepositoryListItemProps {
   readonly repository: Repositoryish
@@ -61,35 +60,7 @@ export class RepositoryListItem extends React.Component<
     const gitHubRepo =
       repository instanceof Repository ? repository.gitHubRepository : null
     const hasChanges = this.props.changedFilesCount > 0
-    const renderAheadBehindIndicator = () => {
-      if (
-        !(repository instanceof Repository) ||
-        this.props.aheadBehind === null
-      ) {
-        return null
-      }
-      const { ahead, behind } = this.props.aheadBehind
-      if (ahead === 0 && behind === 0) {
-        return null
-      }
-      const commitGrammar = (commitNum: number) =>
-        `${commitNum} commit${commitNum > 1 ? 's' : ''}` // english is hard
-      const aheadBehindTooltip =
-        'The currently checked out branch is' +
-        (behind ? ` ${commitGrammar(behind)} behind ` : '') +
-        (behind && ahead ? 'and' : '') +
-        (ahead ? ` ${commitGrammar(ahead)} ahead of ` : '') +
-        'its tracked branch.'
 
-      return (
-        <div className="ahead-behind" title={aheadBehindTooltip}>
-          {ahead > 0 ? <Octicon symbol={OcticonSymbol.arrowSmallUp} /> : null}
-          {behind > 0 ? (
-            <Octicon symbol={OcticonSymbol.arrowSmallDown} />
-          ) : null}
-        </div>
-      )
-    }
     const repoTooltip = gitHubRepo
       ? gitHubRepo.fullName + '\n' + gitHubRepo.htmlURL + '\n' + path
       : path
@@ -100,22 +71,16 @@ export class RepositoryListItem extends React.Component<
     }
 
     return (
-      <div onContextMenu={this.onContextMenu} className="repository-list-item">
-        <div
-          className="change-indicator-wrapper"
-          title={
-            hasChanges ? 'There are uncommitted changes in this repository' : ''
-          }
-        >
-          {hasChanges ? (
-            <Octicon
-              className="change-indicator"
-              symbol={OcticonSymbol.primitiveDot}
-            />
-          ) : null}
-        </div>
-        <Octicon symbol={iconForRepository(repository)} />
-        <div className="name" title={repoTooltip}>
+      <div
+        onContextMenu={this.onContextMenu}
+        className="repository-list-item"
+        title={repoTooltip}
+      >
+        <Octicon
+          className="icon-for-repository"
+          symbol={iconForRepository(repository)}
+        />
+        <div className="name">
           {prefix ? <span className="prefix">{prefix}</span> : null}
           <HighlightText
             text={repository.name}
@@ -123,7 +88,11 @@ export class RepositoryListItem extends React.Component<
           />
         </div>
 
-        {renderAheadBehindIndicator()}
+        {repository instanceof Repository &&
+          renderRepoIndicators({
+            aheadBehind: this.props.aheadBehind,
+            hasChanges: hasChanges,
+          })}
       </div>
     )
   }
@@ -149,7 +118,7 @@ export class RepositoryListItem extends React.Component<
     const missing = repository instanceof Repository && repository.missing
     const openInExternalEditor = this.props.externalEditorLabel
       ? `Open in ${this.props.externalEditorLabel}`
-      : defaultEditorLabel
+      : DefaultEditorLabel
 
     const items: ReadonlyArray<IMenuItem> = [
       {
@@ -194,3 +163,50 @@ export class RepositoryListItem extends React.Component<
     this.props.onOpenInExternalEditor(this.props.repository)
   }
 }
+
+const renderRepoIndicators: React.FunctionComponent<{
+  aheadBehind: IAheadBehind | null
+  hasChanges: boolean
+}> = props => {
+  return (
+    <div className="repo-indicators">
+      {props.aheadBehind && renderAheadBehindIndicator(props.aheadBehind)}
+      {props.hasChanges && renderChangesIndicator()}
+    </div>
+  )
+}
+
+const renderAheadBehindIndicator = (aheadBehind: IAheadBehind) => {
+  const { ahead, behind } = aheadBehind
+  if (ahead === 0 && behind === 0) {
+    return null
+  }
+
+  const aheadBehindTooltip =
+    'The currently checked out branch is' +
+    (behind ? ` ${commitGrammar(behind)} behind ` : '') +
+    (behind && ahead ? 'and' : '') +
+    (ahead ? ` ${commitGrammar(ahead)} ahead of ` : '') +
+    'its tracked branch.'
+
+  return (
+    <div className="ahead-behind" title={aheadBehindTooltip}>
+      {ahead > 0 && <Octicon symbol={OcticonSymbol.arrowUp} />}
+      {behind > 0 && <Octicon symbol={OcticonSymbol.arrowDown} />}
+    </div>
+  )
+}
+
+const renderChangesIndicator = () => {
+  return (
+    <div
+      className="change-indicator-wrapper"
+      title="There are uncommitted changes in this repository"
+    >
+      <Octicon symbol={OcticonSymbol.dotFill} />
+    </div>
+  )
+}
+
+const commitGrammar = (commitNum: number) =>
+  `${commitNum} commit${commitNum > 1 ? 's' : ''}` // english is hard

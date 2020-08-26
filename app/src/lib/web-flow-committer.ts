@@ -4,11 +4,11 @@ import { getDotComAPIEndpoint } from './api'
 
 /**
  * Best-effort attempt to figure out if this commit was committed using
- * the web flow on GitHub.com or GitHub Enterprise. Web flow
+ * the web flow on GitHub.com or GitHub Enterprise Server. Web flow
  * commits (such as PR merges) will have a special GitHub committer
  * with a noreply email address.
  *
- * For GitHub.com we can be spot on but for GitHub Enterprise it's
+ * For GitHub.com we can be spot on but for GitHub Enterprise Server it's
  * possible we could fail if they've set up a custom smtp host
  * that doesn't correspond to the hostname.
  */

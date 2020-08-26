@@ -7,9 +7,8 @@ import { Branch } from '../../models/branch'
 import { PullRequest } from '../../models/pull-request'
 
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { LinkButton } from '../lib/link-button'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
@@ -27,22 +26,21 @@ export class DeletePullRequest extends React.Component<IDeleteBranchProps, {}> {
         title={__DARWIN__ ? 'Delete Branch' : 'Delete branch'}
         type="warning"
         onDismissed={this.props.onDismissed}
+        onSubmit={this.deleteBranch}
       >
         <DialogContent>
-          <p>This branch has an open pull request associated with it.</p>
+          <p>This branch may have an open pull request associated with it.</p>
           <p>
             If{' '}
             <LinkButton onClick={this.openPullRequest}>
               #{this.props.pullRequest.pullRequestNumber}
             </LinkButton>{' '}
-            has been merged, you can also remove the remote branch on GitHub.
+            has been merged, you can also go to GitHub to delete the remote
+            branch.
           </p>
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup destructive={true}>
-            <Button type="submit">Cancel</Button>
-            <Button onClick={this.deleteBranch}>Delete</Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup destructive={true} okButtonText="Delete" />
         </DialogFooter>
       </Dialog>
     )
@@ -59,6 +57,6 @@ export class DeletePullRequest extends React.Component<IDeleteBranchProps, {}> {
       false
     )
 
-    return this.props.dispatcher.closePopup()
+    return this.props.onDismissed()
   }
 }
