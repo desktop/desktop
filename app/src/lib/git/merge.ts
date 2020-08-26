@@ -21,7 +21,7 @@ export enum MergeResult {
   /**
    * The merge failed, likely due to conflicts.
    */
-  Conflicted,
+  Failed,
 }
 
 /** Merge the named branch into the current branch. */
@@ -39,7 +39,7 @@ export async function merge(
   )
 
   if (exitCode !== 0) {
-    return MergeResult.Conflicted
+    return MergeResult.Failed
   }
 
   return stdout === noopMergeMessage
