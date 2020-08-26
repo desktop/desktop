@@ -7,7 +7,7 @@ import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { MergeTreeResult } from '../../models/merge'
 import { ComputedAction } from '../../models/computed-action'
-import { parseMergeResult } from '../merge-tree-parser'
+import { parseMergeTreeResult } from '../merge-tree-parser'
 import { spawnAndComplete } from './spawn'
 
 /** Merge the named branch into the current branch. */
@@ -98,7 +98,7 @@ export async function mergeTree(
     return { kind: ComputedAction.Clean, entries: [] }
   }
 
-  return parseMergeResult(output)
+  return parseMergeTreeResult(output)
 }
 
 /**

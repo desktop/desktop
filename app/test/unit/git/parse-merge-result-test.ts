@@ -2,7 +2,7 @@ import * as Path from 'path'
 import * as FSE from 'fs-extra'
 import * as glob from 'glob'
 
-import { parseMergeResult } from '../../../src/lib/merge-tree-parser'
+import { parseMergeTreeResult } from '../../../src/lib/merge-tree-parser'
 
 import { MergeTreeSuccess, MergeTreeError } from '../../../src/models/merge'
 import { ComputedAction } from '../../../src/models/computed-action'
@@ -42,7 +42,7 @@ describe('parseMergeResult', () => {
     const filePath = Path.resolve(relativePath)
     const input = await FSE.readFile(filePath, { encoding: 'utf8' })
 
-    const result = parseMergeResult(input)
+    const result = parseMergeTreeResult(input)
     expect(result.kind).toBe(ComputedAction.Clean)
 
     const mergeResult = result as MergeTreeSuccess
@@ -60,7 +60,7 @@ describe('parseMergeResult', () => {
     const filePath = Path.resolve(relativePath)
     const input = await FSE.readFile(filePath, { encoding: 'utf8' })
 
-    const result = parseMergeResult(input)
+    const result = parseMergeTreeResult(input)
     expect(result.kind).toBe(ComputedAction.Conflicts)
 
     const mergeResult = result as MergeTreeError
@@ -76,7 +76,7 @@ describe('parseMergeResult', () => {
       it(`can parse conflicts from merging ${theirs} into ${ours}`, async () => {
         const input = await FSE.readFile(f, { encoding: 'utf8' })
 
-        const result = parseMergeResult(input)
+        const result = parseMergeTreeResult(input)
         expect(result.kind).toBe(ComputedAction.Conflicts)
 
         const mergeResult = result as MergeTreeError
@@ -94,7 +94,7 @@ describe('parseMergeResult', () => {
       it(`can parse conflicts from merging ${theirs} into ${ours}`, async () => {
         const input = await FSE.readFile(f, { encoding: 'utf8' })
 
-        const result = parseMergeResult(input)
+        const result = parseMergeTreeResult(input)
         expect(result.kind).toBe(ComputedAction.Conflicts)
 
         const mergeResult = result as MergeTreeError
@@ -112,7 +112,7 @@ describe('parseMergeResult', () => {
       it(`can parse conflicts from merging ${theirs} into ${ours}`, async () => {
         const input = await FSE.readFile(f, { encoding: 'utf8' })
 
-        const result = parseMergeResult(input)
+        const result = parseMergeTreeResult(input)
         expect(result.kind).toBe(ComputedAction.Conflicts)
 
         const mergeResult = result as MergeTreeError
