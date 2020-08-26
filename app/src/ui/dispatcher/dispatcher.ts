@@ -658,9 +658,9 @@ export class Dispatcher {
     return this.appStore._completeOpenInDesktop(async () => {
       const { promise, repository } = this.appStore._clone(url, path, options)
       await this.selectRepository(repository)
-      try {
-        await promise
-      } catch (err) {
+      const success = await promise
+      // TODO: this exit condition is not great, bob
+      if (!success) {
         return null
       }
 
