@@ -156,6 +156,7 @@ import {
   getRebaseSnapshot,
   IStatusResult,
   GitError,
+  MergeResult,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -4284,12 +4285,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    const mergeSuccessful = await gitStore.merge(branch)
+    const mergeResult = await gitStore.merge(branch)
     const { tip } = gitStore
 
-    if (mergeSuccessful && tip.kind === TipState.Valid) {
+    if (mergeResult === MergeResult.Success && tip.kind === TipState.Valid) {
       this._setBanner({
         type: BannerType.SuccessfulMerge,
+        ourBranch: tip.branch.name,
+        theirBranch: branch,
+      })
+    } else if (
+      mergeResult === MergeResult.AlreadyUpToDate &&
+      tip.kind === TipState.Valid
+    ) {
+      this._setBanner({
+        type: BannerType.BranchAlreadyUpToDate,
         ourBranch: tip.branch.name,
         theirBranch: branch,
       })

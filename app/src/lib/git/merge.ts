@@ -10,11 +10,17 @@ import { ComputedAction } from '../../models/computed-action'
 import { parseMergeTreeResult } from '../merge-tree-parser'
 import { spawnAndComplete } from './spawn'
 
+export enum MergeResult {
+  Success,
+  AlreadyUpToDate,
+  Conflicted,
+}
+
 /** Merge the named branch into the current branch. */
 export async function merge(
   repository: Repository,
   branch: string
-): Promise<boolean> {
+): Promise<MergeResult> {
   const { exitCode, stdout } = await git(
     ['merge', branch],
     repository.path,
@@ -24,11 +30,13 @@ export async function merge(
     }
   )
 
-  if (exitCode === 0 && stdout !== noopMergeMessage) {
-    return true
-  } else {
-    return false
+  if (exitCode !== 0) {
+    return MergeResult.Conflicted
   }
+
+  return stdout === noopMergeMessage
+    ? MergeResult.AlreadyUpToDate
+    : MergeResult.Success
 }
 
 const noopMergeMessage = 'Already up to date.\n'
