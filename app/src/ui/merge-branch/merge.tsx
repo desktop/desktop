@@ -15,7 +15,7 @@ import {
 import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
 import { revSymmetricDifference } from '../../lib/git'
 import { IMatches } from '../../lib/fuzzy-find'
-import { MergeResult } from '../../models/merge'
+import { MergeTreeResult } from '../../models/merge'
 import { ComputedAction } from '../../models/computed-action'
 import { ActionStatusIcon } from '../lib/action-status-icon'
 import { promiseWithMinimumTimeout } from '../../lib/promise'
@@ -62,7 +62,7 @@ interface IMergeState {
   readonly selectedBranch: Branch | null
 
   /** The merge result of comparing the selected branch to the current branch */
-  readonly mergeStatus: MergeResult | null
+  readonly mergeStatus: MergeTreeResult | null
 
   /**
    * The number of commits that would be brought in by the merge.
@@ -145,7 +145,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   }
 
   private renderMergeStatusMessage(
-    mergeStatus: MergeResult,
+    mergeStatus: MergeTreeResult,
     branch: Branch,
     currentBranch: Branch,
     commitCount: number

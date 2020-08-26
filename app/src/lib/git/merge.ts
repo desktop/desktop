@@ -5,7 +5,7 @@ import { git } from './core'
 import { GitError } from 'dugite'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
-import { MergeResult } from '../../models/merge'
+import { MergeTreeResult } from '../../models/merge'
 import { ComputedAction } from '../../models/computed-action'
 import { parseMergeResult } from '../merge-tree-parser'
 import { spawnAndComplete } from './spawn'
@@ -74,7 +74,7 @@ export async function mergeTree(
   repository: Repository,
   ours: Branch,
   theirs: Branch
-): Promise<MergeResult | null> {
+): Promise<MergeTreeResult | null> {
   const mergeBase = await getMergeBase(repository, ours.tip.sha, theirs.tip.sha)
 
   if (mergeBase === null) {
