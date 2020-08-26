@@ -588,7 +588,8 @@ export class CloneRepository extends React.Component<
   private async resolveCloneURL(): Promise<string | null> {
     const tabState = this.getSelectedTabState()
     const identifier = tabState.lastParsedIdentifier
-    let url = tabState.url
+    const url = tabState.url
+
     const accounts: Array<Account> = []
     if (this.props.dotComAccount) {
       accounts.push(this.props.dotComAccount)
@@ -601,19 +602,15 @@ export class CloneRepository extends React.Component<
     const account = await findAccountForRemoteURL(url, accounts)
     if (identifier && account) {
       const api = API.fromAccount(account)
-      const repo = await api.fetchRepository(identifier.owner, identifier.name)
-      if (repo) {
-        // respect the user's preference if they pasted an SSH URL into the
-        // Clone Generic Repository tab
-        const parsedUrl = parseRemote(url)
-        if (parsedUrl && parsedUrl.protocol === 'ssh') {
-          url = repo.ssh_url
-        } else {
-          url = repo.clone_url
-        }
-      } else {
-        return null
-      }
+      const protocol = parseRemote(url)?.protocol
+      const cloneUrl = await api
+        .fetchRepositoryCloneUrl(identifier.owner, identifier.name, protocol)
+        .catch(err => {
+          log.error(`Failed to look up canonical clone url for '${url}'`, err)
+          return url
+        })
+
+      return cloneUrl
     }
 
     return url

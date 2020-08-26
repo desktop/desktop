@@ -571,6 +571,21 @@ export class API {
     }
   }
 
+  public async fetchRepositoryCloneUrl(
+    owner: string,
+    name: string,
+    protocol: 'ssh' | 'https' | undefined
+  ): Promise<string | null> {
+    const response = await this.request('GET', `repos/${owner}/${name}`)
+
+    if (response.status === HttpStatusCode.NotFound) {
+      return null
+    }
+
+    const repo = await parsedResponse<IAPIRepository>(response)
+    return protocol === 'ssh' ? repo.ssh_url : repo.clone_url
+  }
+
   /** Fetch all repos a user has access to. */
   public async fetchRepositories(): Promise<ReadonlyArray<
     IAPIRepository
