@@ -2,7 +2,13 @@
 
 import * as React from 'react'
 import { Repository } from '../../models/repository'
-import { ITextDiff, DiffSelection, DiffLineType } from '../../models/diff'
+import {
+  ITextDiff,
+  DiffSelection,
+  DiffLineType,
+  DiffHunk,
+  DiffLine,
+} from '../../models/diff'
 import {
   WorkingDirectoryFileChange,
   CommittedFileChange,
@@ -15,8 +21,11 @@ import {
 import { getTokensForDiffLine } from './diff-syntax-mode'
 import { ITokens, ILineTokens, IToken } from '../../lib/highlighter/types'
 import { DiffMatchPatch, Diff } from 'diff-match-patch-typescript'
+import { assertNever } from '../../lib/fatal-error'
 
 type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
+
+const MaxLineLengthToCalculateDiff = 240
 
 interface IUnifiedDiffProps {
   readonly repository: Repository
@@ -64,147 +73,204 @@ export class UnifiedDiff extends React.Component<
   public render() {
     return (
       <div className="unified-diff-container">
-        <div className="unified-diff cm-s-default">{this.renderHunks()}</div>
+        <div className="unified-diff cm-s-default">
+          {this.props.diff.hunks.map(hunk => this.renderHunk(hunk))}
+        </div>
       </div>
     )
   }
 
-  private renderHunks() {
-    return (
-      <>
-        {this.props.diff.hunks.map(hunk => {
-          const addedLines = hunk.lines.filter(
-            line => line.type === DiffLineType.Add
-          )
-          let numDeletedLine = 0
-          let numModifiedLines = 0
-
-          return hunk.lines.map(line => {
-            const tokens =
-              getTokensForDiffLine(
-                line,
-                this.state.oldTokens,
-                this.state.newTokens
-              ) || []
-
-            switch (line.type) {
-              case DiffLineType.Context:
-                const highlightedContent = syntaxHighlightLine(
-                  lineToDiff(line.content),
-                  tokens,
-                  true
-                )
-
-                return (
-                  <div className="row context">
-                    <div className="before">
-                      <div className="gutter">{line.oldLineNumber}</div>
-                      <div className="content">{highlightedContent}</div>
-                    </div>
-                    <div className="after">
-                      <div className="gutter">{line.newLineNumber}</div>
-                      <div className="content">{highlightedContent}</div>
-                    </div>
-                  </div>
-                )
-
-              case DiffLineType.Hunk:
-                return (
-                  <div className="row hunk-info">
-                    <div className="gutter"></div>
-                    <div className="content">{line.content}</div>
-                  </div>
-                )
-
-              case DiffLineType.Delete:
-                if (numDeletedLine++ >= addedLines.length) {
-                  return (
-                    <div className="row deleted">
-                      <div className="before">
-                        <div className="gutter">{line.oldLineNumber}</div>
-                        <div className="content">
-                          {syntaxHighlightLine(
-                            lineToDiff(line.content),
-                            tokens,
-                            true
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="after">
-                        <div className="gutter">{line.newLineNumber}</div>
-                        <div className="content"></div>
-                      </div>
-                    </div>
-                  )
-                } else {
-                  numModifiedLines++
-
-                  const dmp = new DiffMatchPatch()
-                  const diff = dmp.diff_main(
-                    line.content,
-                    addedLines[numDeletedLine - 1].content
-                  )
-                  dmp.diff_cleanupSemanticLossless(diff)
-                  dmp.diff_cleanupEfficiency(diff)
-                  dmp.diff_cleanupMerge(diff)
-
-                  return (
-                    <div className="row modified">
-                      <div className="before">
-                        <div className="gutter">{line.oldLineNumber}</div>
-                        <div className="content">
-                          {syntaxHighlightLine(diff, tokens, true)}
-                        </div>
-                      </div>
-
-                      <div className="after">
-                        <div className="gutter">
-                          {addedLines[numDeletedLine - 1].newLineNumber}
-                        </div>
-                        <div className="content">
-                          {syntaxHighlightLine(
-                            diff,
-                            getTokensForDiffLine(
-                              addedLines[numDeletedLine - 1],
-                              this.state.oldTokens,
-                              this.state.newTokens
-                            ) || [],
-                            false
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )
-                }
-              case DiffLineType.Add:
-                if (numModifiedLines-- > 0) {
-                  return null
-                }
-
-                return (
-                  <div className="row added">
-                    <div className="before">
-                      <div className="gutter">{line.oldLineNumber}</div>
-                      <div className="content"></div>
-                    </div>
-                    <div className="after">
-                      <div className="gutter">{line.newLineNumber}</div>
-                      <div className="content">
-                        {syntaxHighlightLine(
-                          lineToDiff(line.content),
-                          tokens,
-                          false
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )
-            }
-          })
-        })}
-      </>
+  private renderAddedDeletedLines(
+    addedDeletedLines: ReadonlyArray<DiffLine>
+  ): ReadonlyArray<JSX.Element> {
+    const addedLines = addedDeletedLines.filter(
+      line => line.type === DiffLineType.Add
     )
+    const deletedLines = addedDeletedLines.filter(
+      line => line.type === DiffLineType.Delete
+    )
+    const shouldDisplayDiff = addedLines.length === deletedLines.length
+
+    const output: Array<JSX.Element> = []
+
+    for (
+      let numLine = 0;
+      numLine < addedLines.length || numLine < deletedLines.length;
+      numLine++
+    ) {
+      if (numLine >= deletedLines.length) {
+        const line = addedLines[numLine]
+        const tokens =
+          getTokensForDiffLine(
+            line,
+            this.state.oldTokens,
+            this.state.newTokens
+          ) || []
+
+        output.push(
+          <div className="row added">
+            <div className="before">
+              <div className="gutter">{line.oldLineNumber}</div>
+              <div className="content"></div>
+            </div>
+            <div className="after">
+              <div className="gutter">{line.newLineNumber}</div>
+              <div className="content">
+                {syntaxHighlightLine(lineToDiff(line.content), tokens, false)}
+              </div>
+            </div>
+          </div>
+        )
+      } else if (numLine >= addedLines.length) {
+        const line = deletedLines[numLine]
+        const tokens =
+          getTokensForDiffLine(
+            line,
+            this.state.oldTokens,
+            this.state.newTokens
+          ) || []
+
+        output.push(
+          <div className="row deleted">
+            <div className="before">
+              <div className="gutter">{line.oldLineNumber}</div>
+              <div className="content">
+                {syntaxHighlightLine(lineToDiff(line.content), tokens, true)}
+              </div>
+            </div>
+
+            <div className="after">
+              <div className="gutter">{line.newLineNumber}</div>
+              <div className="content"></div>
+            </div>
+          </div>
+        )
+      } else {
+        const lineBefore = deletedLines[numLine]
+        const tokensBefore =
+          getTokensForDiffLine(
+            lineBefore,
+            this.state.oldTokens,
+            this.state.newTokens
+          ) || []
+        const lineAfter = addedLines[numLine]
+        const tokensAfter =
+          getTokensForDiffLine(
+            lineAfter,
+            this.state.oldTokens,
+            this.state.newTokens
+          ) || []
+
+        let diffBefore
+        let diffAfter
+
+        if (
+          shouldDisplayDiff &&
+          lineBefore.content.length < MaxLineLengthToCalculateDiff &&
+          lineAfter.content.length < MaxLineLengthToCalculateDiff
+        ) {
+          const dmp = new DiffMatchPatch()
+          const diff = (diffAfter = dmp.diff_main(
+            lineBefore.content,
+            lineAfter.content
+          ))
+
+          dmp.diff_cleanupSemanticLossless(diff)
+          dmp.diff_cleanupEfficiency(diff)
+          dmp.diff_cleanupMerge(diff)
+
+          diffBefore = diffAfter = diff
+        } else {
+          diffBefore = lineToDiff(lineBefore.content)
+          diffAfter = lineToDiff(lineAfter.content)
+        }
+
+        output.push(
+          <div className="row modified">
+            <div className="before">
+              <div className="gutter">{lineBefore.oldLineNumber}</div>
+              <div className="content">
+                {syntaxHighlightLine(diffBefore, tokensBefore, true)}
+              </div>
+            </div>
+
+            <div className="after">
+              <div className="gutter">{lineAfter.newLineNumber}</div>
+              <div className="content">
+                {syntaxHighlightLine(diffAfter, tokensAfter, false)}
+              </div>
+            </div>
+          </div>
+        )
+      }
+    }
+
+    return output
+  }
+
+  private renderHunk(hunk: DiffHunk) {
+    const rows: Array<JSX.Element> = []
+    let addedDeletedLines: Array<DiffLine> = []
+
+    for (const line of hunk.lines) {
+      if (line.type === DiffLineType.Delete || line.type === DiffLineType.Add) {
+        addedDeletedLines.push(line)
+        continue
+      }
+
+      if (addedDeletedLines.length > 0) {
+        rows.push(...this.renderAddedDeletedLines(addedDeletedLines))
+
+        addedDeletedLines = []
+      }
+
+      if (line.type === DiffLineType.Hunk) {
+        rows.push(
+          <div className="row hunk-info">
+            <div className="gutter"></div>
+            <div className="content">{line.content}</div>
+          </div>
+        )
+        continue
+      }
+
+      if (line.type === DiffLineType.Context) {
+        const tokens =
+          getTokensForDiffLine(
+            line,
+            this.state.oldTokens,
+            this.state.newTokens
+          ) || []
+
+        const highlightedContent = syntaxHighlightLine(
+          lineToDiff(line.content),
+          tokens,
+          true
+        )
+
+        rows.push(
+          <div className="row context">
+            <div className="before">
+              <div className="gutter">{line.oldLineNumber}</div>
+              <div className="content">{highlightedContent}</div>
+            </div>
+            <div className="after">
+              <div className="gutter">{line.newLineNumber}</div>
+              <div className="content">{highlightedContent}</div>
+            </div>
+          </div>
+        )
+        continue
+      }
+
+      assertNever(line.type, `Invalid line type: ${line.type}`)
+    }
+
+    if (addedDeletedLines.length > 0) {
+      rows.push(...this.renderAddedDeletedLines(addedDeletedLines))
+    }
+
+    return rows
   }
 
   public componentDidMount() {

@@ -243,8 +243,6 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
       menuStateBuilder.enable(id)
     }
 
-    console.log('rafeca: ', onNonDefaultBranch, hasPublishedBranch)
-
     menuStateBuilder.setEnabled(
       'rename-branch',
       (onNonDefaultBranch || !hasPublishedBranch) &&
