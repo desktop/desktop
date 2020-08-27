@@ -52,7 +52,9 @@ export class PullRequestListItem extends React.Component<
     }
 
     const timeAgo = moment(this.props.created).fromNow()
-    return `#${this.props.number} opened ${timeAgo} by ${this.props.author}`
+    const subtitle = `#${this.props.number} opened ${timeAgo} by ${this.props.author}`
+
+    return this.props.draft ? `${subtitle} • Draft` : subtitle
   }
 
   public render() {
