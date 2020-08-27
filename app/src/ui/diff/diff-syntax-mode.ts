@@ -51,7 +51,7 @@ function skipLine(stream: CodeMirror.StringStream, state: IState) {
  * important because for context lines we might only have tokens in
  * one version and we need to be resilient about that.
  */
-function getTokensForDiffLine(
+export function getTokensForDiffLine(
   diffLine: DiffLine,
   oldTokens: ITokens | undefined,
   newTokens: ITokens | undefined
