@@ -602,6 +602,8 @@ export class CloneRepository extends React.Component<
     const account = await findAccountForRemoteURL(url, accounts)
     if (identifier && account) {
       const api = API.fromAccount(account)
+      // Lets us respect the user's preference if they pasted an SSH
+      // URL into the generic repository tab.
       const protocol = parseRemote(url)?.protocol
       const cloneUrl = await api
         .fetchRepositoryCloneUrl(identifier.owner, identifier.name, protocol)
