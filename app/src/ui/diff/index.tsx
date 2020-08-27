@@ -61,6 +61,8 @@ interface IDiffProps {
   /** Hiding whitespace in diff. */
   readonly hideWhitespaceInDiff: boolean
 
+  readonly showSideBySideDiff: boolean
+
   /** Whether we should show a confirmation dialog when the user discards changes */
   readonly askForConfirmationOnDiscardChanges?: boolean
 
@@ -239,20 +241,12 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   private renderTextDiff(diff: ITextDiff) {
-    const sideBySideDiff = true
-
-    if (sideBySideDiff) {
+    if (this.props.showSideBySideDiff) {
       return (
         <SideBySideDiff
           repository={this.props.repository}
           file={this.props.file}
-          readOnly={this.props.readOnly}
-          onIncludeChanged={this.props.onIncludeChanged}
-          onDiscardChanges={this.props.onDiscardChanges}
           diff={diff}
-          askForConfirmationOnDiscardChanges={
-            this.props.askForConfirmationOnDiscardChanges
-          }
         />
       )
     }

@@ -47,6 +47,7 @@ interface IRepositoryViewProps {
   readonly onViewCommitOnGitHub: (SHA: string) => void
   readonly imageDiffType: ImageDiffType
   readonly hideWhitespaceInDiff: boolean
+  readonly showSideBySideDiff: boolean
   readonly askForConfirmationOnDiscardChanges: boolean
   readonly focusCommitMessage: boolean
   readonly accounts: ReadonlyArray<Account>
@@ -313,6 +314,7 @@ export class RepositoryView extends React.Component<
           repository={this.props.repository}
           dispatcher={this.props.dispatcher}
           isWorkingTreeClean={isWorkingTreeClean}
+          showSideBySideDiff={this.props.showSideBySideDiff}
           onOpenBinaryFile={this.onOpenBinaryFile}
           onChangeImageDiffType={this.onChangeImageDiffType}
         />
@@ -346,6 +348,7 @@ export class RepositoryView extends React.Component<
         externalEditorLabel={this.props.externalEditorLabel}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+        showSideBySideDiff={this.props.showSideBySideDiff}
         onOpenBinaryFile={this.onOpenBinaryFile}
         onChangeImageDiffType={this.onChangeImageDiffType}
       />

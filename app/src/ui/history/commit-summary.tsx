@@ -36,7 +36,9 @@ interface ICommitSummaryProps {
   readonly hideDescriptionBorder: boolean
 
   readonly hideWhitespaceInDiff: boolean
+  readonly showSideBySideDiff: boolean
   readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
+  readonly onShowSideBySideDiffChanged: (checked: boolean) => void
 }
 
 interface ICommitSummaryState {
@@ -148,6 +150,13 @@ export class CommitSummary extends React.Component<
   ) => {
     const value = event.currentTarget.checked
     this.props.onHideWhitespaceInDiffChanged(value)
+  }
+
+  private onShowSideBySideDiffChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+    this.props.onShowSideBySideDiffChanged(value)
   }
 
   private onResized = () => {
@@ -345,7 +354,7 @@ export class CommitSummary extends React.Component<
 
             <li
               className="commit-summary-meta-item without-truncation"
-              title={filesDescription}
+              title="Hide Whitespace"
             >
               <Checkbox
                 label="Hide Whitespace"
@@ -355,6 +364,21 @@ export class CommitSummary extends React.Component<
                     : CheckboxValue.Off
                 }
                 onChange={this.onHideWhitespaceInDiffChanged}
+              />
+            </li>
+
+            <li
+              className="commit-summary-meta-item without-truncation"
+              title="Show Split diff"
+            >
+              <Checkbox
+                label="Show Split diff"
+                value={
+                  this.props.showSideBySideDiff
+                    ? CheckboxValue.On
+                    : CheckboxValue.Off
+                }
+                onChange={this.onShowSideBySideDiffChanged}
               />
             </li>
           </ul>

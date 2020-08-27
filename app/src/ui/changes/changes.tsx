@@ -90,6 +90,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
           onDiscardChanges={this.onDiscardChanges}
           diff={diff}
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+          showSideBySideDiff={false}
           askForConfirmationOnDiscardChanges={
             this.props.askForConfirmationOnDiscardChanges
           }

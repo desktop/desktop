@@ -49,6 +49,7 @@ interface ISelectedCommitProps {
    */
   readonly onOpenInExternalEditor: (path: string) => void
   readonly hideWhitespaceInDiff: boolean
+  readonly showSideBySideDiff: boolean
 
   /**
    * Called when the user requests to open a binary file in an the
@@ -137,6 +138,7 @@ export class SelectedCommit extends React.Component<
         diff={diff}
         readOnly={true}
         hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+        showSideBySideDiff={this.props.showSideBySideDiff}
         onOpenBinaryFile={this.props.onOpenBinaryFile}
         onChangeImageDiffType={this.props.onChangeImageDiffType}
       />
@@ -155,7 +157,9 @@ export class SelectedCommit extends React.Component<
         onDescriptionBottomChanged={this.onDescriptionBottomChanged}
         hideDescriptionBorder={this.state.hideDescriptionBorder}
         hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+        showSideBySideDiff={this.props.showSideBySideDiff}
         onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
+        onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
       />
     )
   }
@@ -179,6 +183,10 @@ export class SelectedCommit extends React.Component<
       this.props.repository,
       this.props.selectedFile as CommittedFileChange
     )
+  }
+
+  private onShowSideBySideDiffChanged = (showSideBySideDiff: boolean) => {
+    this.props.dispatcher.onShowSideBySideDiffChanged(showSideBySideDiff)
   }
 
   private onCommitSummaryReset = () => {

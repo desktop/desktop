@@ -25,6 +25,8 @@ interface IStashDiffViewerProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
 
+  readonly showSideBySideDiff: boolean
+
   /** Are there any uncommitted changes */
   readonly isWorkingTreeClean: boolean
 
@@ -84,6 +86,7 @@ export class StashDiffViewer extends React.PureComponent<
           diff={stashedFileDiff}
           imageDiffType={imageDiffType}
           hideWhitespaceInDiff={false}
+          showSideBySideDiff={this.props.showSideBySideDiff}
           onOpenBinaryFile={onOpenBinaryFile}
           onChangeImageDiffType={onChangeImageDiffType}
         />

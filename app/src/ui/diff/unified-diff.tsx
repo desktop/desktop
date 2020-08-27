@@ -1,14 +1,6 @@
-// tslint:disable: react-unused-props-and-state
-
 import * as React from 'react'
 import { Repository } from '../../models/repository'
-import {
-  ITextDiff,
-  DiffSelection,
-  DiffLineType,
-  DiffHunk,
-  DiffLine,
-} from '../../models/diff'
+import { ITextDiff, DiffLineType, DiffHunk, DiffLine } from '../../models/diff'
 import {
   WorkingDirectoryFileChange,
   CommittedFileChange,
@@ -33,26 +25,6 @@ interface ISideBySideDiffProps {
   readonly file: ChangedFile
   /** The diff that should be rendered */
   readonly diff: ITextDiff
-  /** If true, no selections or discards can be done against this diff. */
-  readonly readOnly: boolean
-  /**
-   * Called when the includedness of lines or a range of lines has changed.
-   * Only applicable when readOnly is false.
-   */
-  readonly onIncludeChanged?: (diffSelection: DiffSelection) => void
-  /**
-   * Called when the user wants to discard a selection of the diff.
-   * Only applicable when readOnly is false.
-   */
-  readonly onDiscardChanges?: (
-    diff: ITextDiff,
-    diffSelection: DiffSelection
-  ) => void
-  /**
-   * Whether we'll show a confirmation dialog when the user
-   * discards changes.
-   */
-  readonly askForConfirmationOnDiscardChanges?: boolean
 }
 
 interface ISideBySideDiffState {
@@ -94,7 +66,9 @@ export class SideBySideDiff extends React.Component<
     const rows: Array<JSX.Element> = []
     let addedDeletedLines: Array<DiffLine> = []
 
-    for (const [lineNumber, line] of hunk.lines.entries()) {
+    for (const [num, line] of hunk.lines.entries()) {
+      const lineNumber = hunk.unifiedDiffStart + num
+
       if (line.type === DiffLineType.Delete || line.type === DiffLineType.Add) {
         addedDeletedLines.push(line)
         continue
