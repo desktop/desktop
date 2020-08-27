@@ -116,7 +116,7 @@ import {
   launchExternalEditor,
   parse,
 } from '../editors'
-import { assertNever, fatalError, forceUnwrap } from '../fatal-error'
+import { assertNever, fatalError } from '../fatal-error'
 
 import { formatCommitMessage } from '../format-commit-message'
 import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
@@ -268,7 +268,6 @@ import { parseRemote } from '../../lib/remote-parsing'
 import { createTutorialRepository } from './helpers/create-tutorial-repository'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { getDefaultDir } from '../../ui/lib/default-dir'
-import { findUpstreamRemote } from './helpers/find-upstream-remote'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updater'
 import { getAttributableEmailsFor } from '../email'
@@ -5494,38 +5493,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
     headCloneURL: string,
     headRefName: string
   ): Promise<Branch | null> {
-    const gitHubRepository = repository.gitHubRepository
-    const isRefInThisRepo = headCloneURL === gitHubRepository.cloneURL
-    const isRefInUpstream =
-      gitHubRepository.parent !== null &&
-      headCloneURL === gitHubRepository.parent.cloneURL
-
+    const { cloneURL, parent } = repository.gitHubRepository
     const gitStore = this.gitStoreCache.get(repository)
 
-    // If we don't have a default remote here, it's probably going
-    // to just crash and burn on checkout, but that's okay
-    if (isRefInThisRepo) {
-      const defaultRemote = forceUnwrap(
-        `Unexpected state: repository without a default remote`,
-        gitStore.defaultRemote
-      )
+    let remote = null
 
-      return this.findPullRequestHeadInRemote(
-        repository,
-        defaultRemote,
-        headRefName
-      )
+    // Determine whether the ref is in the current repository or the parent
+    if (headCloneURL === cloneURL) {
+      remote = gitStore.defaultRemote
+    } else if (headCloneURL === parent?.cloneURL) {
+      remote = gitStore.upstreamRemote
     }
 
-    if (isRefInUpstream) {
-      // Fetch the remote and try finding the branch again
-      const remotes = await getRemotes(repository)
-      const remoteUpstream = forceUnwrap(
-        'Cannot add the upstream repository as a remote of the current repository',
-        findUpstreamRemote(forceUnwrap('', gitHubRepository.parent), remotes)
-      )
-
-      this.findPullRequestHeadInRemote(repository, remoteUpstream, headRefName)
+    // If we don't have a remote here, it's probably going
+    // to just crash and burn on checkout, but that's okay
+    if (remote !== null) {
+      return this.findPullRequestHeadInRemote(repository, remote, headRefName)
     }
 
     return null
