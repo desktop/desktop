@@ -1328,7 +1328,7 @@ export class GitStore extends BaseStore {
    * This will be `null` if the repository isn't a fork, or if the fork doesn't
    * have an upstream remote.
    */
-  private get upstreamRemote(): IRemote | null {
+  public get upstreamRemote(): IRemote | null {
     return this._upstreamRemote
   }
 
