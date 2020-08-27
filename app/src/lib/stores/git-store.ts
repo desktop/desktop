@@ -1259,10 +1259,10 @@ export class GitStore extends BaseStore {
       parent.cloneURL
     )
 
-    await this.performFailableOperation(() =>
-      addRemote(this.repository, UpstreamRemoteName, url)
-    )
-    this._upstreamRemote = { name: UpstreamRemoteName, url }
+    this._upstreamRemote =
+      (await this.performFailableOperation(() =>
+        addRemote(this.repository, UpstreamRemoteName, url)
+      )) ?? null
   }
 
   /**
