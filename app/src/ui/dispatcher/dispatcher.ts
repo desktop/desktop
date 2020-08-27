@@ -88,7 +88,7 @@ import {
   StatusCallBack,
   ICombinedRefCheck,
 } from '../../lib/stores/commit-status-store'
-import { MergeResult } from '../../models/merge'
+import { MergeTreeResult } from '../../models/merge'
 import {
   UncommittedChangesStrategy,
   UncommittedChangesStrategyKind,
@@ -891,7 +891,7 @@ export class Dispatcher {
   public mergeBranch(
     repository: Repository,
     branch: string,
-    mergeStatus: MergeResult | null
+    mergeStatus: MergeTreeResult | null
   ): Promise<void> {
     return this.appStore._mergeBranch(repository, branch, mergeStatus)
   }
