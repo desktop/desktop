@@ -84,6 +84,13 @@
       margin-top: 2px;
     }
 
+    &.open .icon {
+      color: var(--pr-open-icon-color);
+    }
+    &.draft .icon {
+      color: var(--pr-draft-icon-color);
+    }
+
     .info {
       display: flex;
       flex-direction: column;
