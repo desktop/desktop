@@ -572,6 +572,14 @@ export class API {
     }
   }
 
+  /**
+   * Fetch the canonical clone URL for a repository, respecting the protocol
+   * preference if provided.
+   *
+   * @param owner    The repository owner (nodejs in https://github.com/nodejs/node)
+   * @param name     The repository name (node in https://github.com/nodejs/node)
+   * @param protocol The preferred Git protocol (https or ssh)
+   */
   public async fetchRepositoryCloneUrl(
     owner: string,
     name: string,
