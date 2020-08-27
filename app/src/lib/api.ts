@@ -385,6 +385,7 @@ export interface IAPIPullRequest {
   readonly head: IAPIPullRequestRef
   readonly base: IAPIPullRequestRef
   readonly state: 'open' | 'closed'
+  readonly draft?: boolean
 }
 
 /** The metadata about a GitHub server. */
