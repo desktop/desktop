@@ -1,4 +1,4 @@
-import { IMergeEntry, MergeResult } from '../models/merge'
+import { IMergeTreeEntry, MergeTreeResult } from '../models/merge'
 import { ComputedAction } from '../models/computed-action'
 
 interface IBlobSource {
@@ -9,10 +9,10 @@ interface IBlobSource {
 }
 
 function updateCurrentMergeEntry(
-  entry: IMergeEntry | undefined,
+  entry: IMergeTreeEntry | undefined,
   context: string,
   blobSource: IBlobSource
-): IMergeEntry {
+): IMergeTreeEntry {
   const currentMergeEntry = entry || {
     context,
     diff: '',
@@ -92,13 +92,13 @@ const blobEntryRe = /^\s{2}(result|our|their|base)\s+(\d{6})\s([0-9a-f]{40})\s(.
  * @param text the stdout from a `git merge-tree` command
  *
  */
-export function parseMergeResult(text: string): MergeResult {
-  const entries = new Array<IMergeEntry>()
+export function parseMergeTreeResult(text: string): MergeTreeResult {
+  const entries = new Array<IMergeTreeEntry>()
 
   const lines = text.split('\n')
 
   let mergeEntryHeader: string | undefined
-  let currentMergeEntry: IMergeEntry | undefined
+  let currentMergeEntry: IMergeTreeEntry | undefined
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
