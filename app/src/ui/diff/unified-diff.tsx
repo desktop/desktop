@@ -254,8 +254,11 @@ export class SideBySideDiff extends React.Component<
           dmp.diff_cleanupEfficiency(diff)
           dmp.diff_cleanupMerge(diff)
 
-          diffTokensBefore = convertDiffToTokens(diff, true)
-          diffTokensAfter = convertDiffToTokens(diff, false)
+          diffTokensBefore = convertDiffToTokens(
+            diff,
+            DiffOperation.DIFF_DELETE
+          )
+          diffTokensAfter = convertDiffToTokens(diff, DiffOperation.DIFF_INSERT)
         }
 
         output.push(
@@ -337,28 +340,29 @@ function highlightParametersEqual(
   )
 }
 
-function convertDiffToTokens(diff: Diff[], useBefore: boolean): ILineTokens {
+function convertDiffToTokens(
+  diff: Diff[],
+  diffOperation: DiffOperation
+): ILineTokens {
   const output: ILineTokens = []
 
   let startIndex = 0
   for (const [type, content] of diff) {
-    if (
-      (useBefore && type === DiffOperation.DIFF_INSERT) ||
-      (!useBefore && type === DiffOperation.DIFF_DELETE)
-    ) {
+    if (type === DiffOperation.DIFF_EQUAL) {
+      startIndex += content.length
       continue
     }
 
-    let tokenName
-    if (type === DiffOperation.DIFF_DELETE) {
-      tokenName = 'cm-diff-delete-inner'
-    } else if (type === DiffOperation.DIFF_INSERT) {
-      tokenName = 'cm-diff-add-inner'
+    if (type !== diffOperation) {
+      continue
     }
 
-    if (tokenName !== undefined) {
-      output[startIndex] = { token: tokenName, length: content.length }
-    }
+    const tokenName =
+      diffOperation === DiffOperation.DIFF_DELETE
+        ? 'cm-diff-delete-inner'
+        : 'cm-diff-add-inner'
+
+    output[startIndex] = { token: tokenName, length: content.length }
 
     startIndex += content.length
   }
