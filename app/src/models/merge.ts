@@ -6,7 +6,7 @@ interface IBlobResult {
   readonly path: string
 }
 
-export interface IMergeEntry {
+export interface IMergeTreeEntry {
   readonly context: string
   readonly base?: IBlobResult
   readonly result?: IBlobResult
@@ -16,26 +16,26 @@ export interface IMergeEntry {
   readonly hasConflicts?: boolean
 }
 
-export type MergeSuccess = {
+export type MergeTreeSuccess = {
   readonly kind: ComputedAction.Clean
-  readonly entries: ReadonlyArray<IMergeEntry>
+  readonly entries: ReadonlyArray<IMergeTreeEntry>
 }
 
-export type MergeError = {
+export type MergeTreeError = {
   readonly kind: ComputedAction.Conflicts
   readonly conflictedFiles: number
 }
 
-export type MergeUnsupported = {
+export type MergeTreeUnsupported = {
   readonly kind: ComputedAction.Invalid
 }
 
-export type MergeLoading = {
+export type MergeTreeLoading = {
   readonly kind: ComputedAction.Loading
 }
 
-export type MergeResult =
-  | MergeSuccess
-  | MergeError
-  | MergeUnsupported
-  | MergeLoading
+export type MergeTreeResult =
+  | MergeTreeSuccess
+  | MergeTreeError
+  | MergeTreeUnsupported
+  | MergeTreeLoading

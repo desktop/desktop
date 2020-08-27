@@ -21,7 +21,7 @@ jobs:
             friendlyName: macOS
           - os: windows-2019
             friendlyName: Windows
-    timeout-minutes: 40
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v2
         with:
@@ -79,4 +79,3 @@ jobs:
           S3_KEY: ${{ secrets.S3_KEY }}
           S3_SECRET: ${{ secrets.S3_SECRET }}
           S3_BUCKET: github-desktop
-        timeout-minutes: 10

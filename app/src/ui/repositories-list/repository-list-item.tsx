@@ -191,8 +191,8 @@ const renderAheadBehindIndicator = (aheadBehind: IAheadBehind) => {
 
   return (
     <div className="ahead-behind" title={aheadBehindTooltip}>
-      {ahead > 0 && <Octicon symbol={OcticonSymbol.arrowSmallUp} />}
-      {behind > 0 && <Octicon symbol={OcticonSymbol.arrowSmallDown} />}
+      {ahead > 0 && <Octicon symbol={OcticonSymbol.arrowUp} />}
+      {behind > 0 && <Octicon symbol={OcticonSymbol.arrowDown} />}
     </div>
   )
 }
@@ -203,7 +203,7 @@ const renderChangesIndicator = () => {
       className="change-indicator-wrapper"
       title="There are uncommitted changes in this repository"
     >
-      <Octicon symbol={OcticonSymbol.primitiveDot} />
+      <Octicon symbol={OcticonSymbol.dotFill} />
     </div>
   )
 }

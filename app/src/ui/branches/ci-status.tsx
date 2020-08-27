@@ -116,7 +116,7 @@ function getSymbolForCheck(check: ICombinedRefCheck): OcticonSymbol {
     case 'failure':
       return OcticonSymbol.x
     case 'neutral':
-      return OcticonSymbol.primitiveSquare
+      return OcticonSymbol.squareFill
     case 'success':
       return OcticonSymbol.check
     case 'cancelled':
@@ -130,7 +130,7 @@ function getSymbolForCheck(check: ICombinedRefCheck): OcticonSymbol {
   }
 
   // Pending
-  return OcticonSymbol.primitiveDot
+  return OcticonSymbol.dotFill
 }
 
 function getClassNameForCheck(check: ICombinedRefCheck): string {

@@ -55,7 +55,7 @@
     "yarn": ">= 1.9"
   },
   "dependencies": {
-    "@primer/octicons": "^9.1.0",
+    "@primer/octicons": "^10.0.0",
     "@types/plist": "^3.0.2",
     "@typescript-eslint/eslint-plugin": "^3.5.0",
     "@typescript-eslint/parser": "^3.5.0",
