@@ -576,6 +576,15 @@ export class API {
    * Fetch the canonical clone URL for a repository, respecting the protocol
    * preference if provided.
    *
+   * Returns null if the request returned a 404 (NotFound). NotFound doesn't
+   * necessarily mean that the repository doesn't exist, it could exist and
+   * the current user just doesn't have the permissions to see it. GitHub.com
+   * doesn't differentiate between not found and permission denied for private
+   * repositories as that would leak the existence of a private repository.
+   *
+   * Note that unlike `fetchRepository` this method will throw for all errors
+   * except 404 NotFound responses.
+   *
    * @param owner    The repository owner (nodejs in https://github.com/nodejs/node)
    * @param name     The repository name (node in https://github.com/nodejs/node)
    * @param protocol The preferred Git protocol (https or ssh)
