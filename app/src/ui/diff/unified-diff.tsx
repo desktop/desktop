@@ -32,7 +32,7 @@ type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
 
 const MaxLineLengthToCalculateDiff = 240
 
-interface IUnifiedDiffProps {
+interface ISideBySideDiffProps {
   readonly repository: Repository
   /** The file whose diff should be displayed. */
   readonly file: ChangedFile
@@ -60,16 +60,16 @@ interface IUnifiedDiffProps {
   readonly askForConfirmationOnDiscardChanges?: boolean
 }
 
-interface IUnifiedDiffState {
+interface ISideBySideDiffState {
   readonly oldTokens?: ITokens
   readonly newTokens?: ITokens
 }
 
-export class UnifiedDiff extends React.Component<
-  IUnifiedDiffProps,
-  IUnifiedDiffState
+export class SideBySideDiff extends React.Component<
+  ISideBySideDiffProps,
+  ISideBySideDiffState
 > {
-  public constructor(props: IUnifiedDiffProps) {
+  public constructor(props: ISideBySideDiffProps) {
     super(props)
 
     this.state = {}
@@ -79,7 +79,7 @@ export class UnifiedDiff extends React.Component<
     this.initDiffSyntaxMode()
   }
 
-  public componentDidUpdate(prevProps: IUnifiedDiffProps) {
+  public componentDidUpdate(prevProps: ISideBySideDiffProps) {
     if (!highlightParametersEqual(this.props, prevProps)) {
       this.initDiffSyntaxMode()
     }
@@ -87,8 +87,8 @@ export class UnifiedDiff extends React.Component<
 
   public render() {
     return (
-      <div className="unified-diff-container">
-        <div className="unified-diff cm-s-default">
+      <div className="sidebyside-diff-container">
+        <div className="sidebyside-diff cm-s-default">
           {this.props.diff.hunks.map(hunk => this.renderHunk(hunk))}
         </div>
       </div>
@@ -327,8 +327,8 @@ export class UnifiedDiff extends React.Component<
  * and thus rendering the in-flight highlighting data useless.
  */
 function highlightParametersEqual(
-  newProps: IUnifiedDiffProps,
-  prevProps: IUnifiedDiffProps
+  newProps: ISideBySideDiffProps,
+  prevProps: ISideBySideDiffProps
 ) {
   return (
     newProps === prevProps ||
