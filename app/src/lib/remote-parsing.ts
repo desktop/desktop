@@ -1,7 +1,7 @@
-type Protocol = 'ssh' | 'https'
+export type GitProtocol = 'ssh' | 'https'
 
 interface IGitRemoteURL {
-  readonly protocol: Protocol
+  readonly protocol: GitProtocol
 
   /** The hostname of the remote. */
   readonly hostname: string
@@ -24,7 +24,7 @@ interface IGitRemoteURL {
 // https://github.com/octocat/Hello-World.git/
 // git@github.com:octocat/Hello-World.git
 // git:github.com/octocat/Hello-World.git
-const remoteRegexes: ReadonlyArray<{ protocol: Protocol; regex: RegExp }> = [
+const remoteRegexes: ReadonlyArray<{ protocol: GitProtocol; regex: RegExp }> = [
   {
     protocol: 'https',
     regex: new RegExp('^https?://(?:.+@)?(.+)/(.+)/(.+?)(?:/|.git/?)?$'),

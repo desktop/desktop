@@ -12,6 +12,7 @@ import {
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
 import username from 'username'
+import { GitProtocol } from './remote-parsing'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
 
@@ -574,7 +575,7 @@ export class API {
   public async fetchRepositoryCloneUrl(
     owner: string,
     name: string,
-    protocol: 'ssh' | 'https' | undefined
+    protocol: GitProtocol | undefined
   ): Promise<string | null> {
     const response = await this.request('GET', `repos/${owner}/${name}`)
 
