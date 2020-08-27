@@ -2,9 +2,11 @@ import * as React from 'react'
 
 import {
   Diff,
-  DiffOperation,
-  DiffMatchPatch,
-} from 'diff-match-patch-typescript'
+  DIFF_EQUAL,
+  DIFF_DELETE,
+  DIFF_INSERT,
+  diff_match_patch,
+} from 'diff-match-patch'
 import { ILineTokens } from '../../../lib/highlighter/types'
 import classNames from 'classnames'
 
@@ -30,28 +32,24 @@ export function getDiffTokens(
   lineBefore: string,
   lineAfter: string
 ): { before: ILineTokens; after: ILineTokens } {
-  const dmp = new DiffMatchPatch()
+  const dmp = new diff_match_patch()
   const diff = dmp.diff_main(lineBefore, lineAfter)
 
-  dmp.diff_cleanupSemanticLossless(diff)
-  dmp.diff_cleanupEfficiency(diff)
   dmp.diff_cleanupMerge(diff)
+  dmp.diff_cleanupSemanticLossless(diff)
 
   return {
-    before: convertDiffToTokens(diff, DiffOperation.DIFF_DELETE),
-    after: convertDiffToTokens(diff, DiffOperation.DIFF_INSERT),
+    before: convertDiffToTokens(diff, DIFF_DELETE),
+    after: convertDiffToTokens(diff, DIFF_INSERT),
   }
 }
 
-function convertDiffToTokens(
-  diff: Diff[],
-  diffOperation: DiffOperation
-): ILineTokens {
+function convertDiffToTokens(diff: Diff[], diffOperation: number): ILineTokens {
   const output: ILineTokens = []
 
   let startIndex = 0
   for (const [type, content] of diff) {
-    if (type === DiffOperation.DIFF_EQUAL) {
+    if (type === DIFF_EQUAL) {
       startIndex += content.length
       continue
     }
@@ -61,9 +59,7 @@ function convertDiffToTokens(
     }
 
     const tokenName =
-      diffOperation === DiffOperation.DIFF_DELETE
-        ? 'diff-delete-inner'
-        : 'diff-add-inner'
+      diffOperation === DIFF_DELETE ? 'diff-delete-inner' : 'diff-add-inner'
 
     output[startIndex] = { token: tokenName, length: content.length }
 

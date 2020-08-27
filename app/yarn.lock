@@ -325,10 +325,10 @@ dexie@^2.0.0:
   resolved "https://registry.yarnpkg.com/dexie/-/dexie-2.0.4.tgz#6027a5e05879424e8f9979d8c14e7420f27e3a11"
   integrity sha512-aQ/s1U2wHxwBKRrt2Z/mwFNHMQWhESerFsMYzE+5P5OsIe5o1kgpFMWkzKTtkvkyyEni6mWr/T4HUJuY9xIHLA==
 
-diff-match-patch-typescript@^1.0.7:
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/diff-match-patch-typescript/-/diff-match-patch-typescript-1.0.7.tgz#a3dff73c806484450b7133a857d242ff409e8ce0"
-  integrity sha512-eOZn23mNiW1MqfLgPKFKeTj/+78ug7gDJSWLyeGxsp4GxWliAzokXQxs+3YwvgHH7EnSfqrFPu4tfSbBeUB5cg==
+diff-match-patch@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/diff-match-patch/-/diff-match-patch-1.0.5.tgz#abb584d5f10cd1196dfc55aa03701592ae3f7b37"
+  integrity sha512-IayShXAgj/QMXgB0IWmKx+rOPuGMhqm5w6jvFxmVenXKIzRqTAAsbBPT3kWQeGANj3jGgvcvv4yK6SxqYmikgw==
 
 dom-classlist@^1.0.1:
   version "1.0.1"
