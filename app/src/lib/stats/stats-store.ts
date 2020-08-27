@@ -21,7 +21,6 @@ import {
   setNumberArray,
 } from '../local-storage'
 import { PushOptions } from '../git'
-import { IGitAccount } from '../../models/git-account'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -820,10 +819,13 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  public async recordPush(account: IGitAccount | null, options?: PushOptions) {
-    if (account === null) {
+  public async recordPush(
+    githubAccount: Account | null,
+    options?: PushOptions
+  ) {
+    if (githubAccount === null) {
       await this.recordPushToGenericRemote(options)
-    } else if (account.endpoint === getDotComAPIEndpoint()) {
+    } else if (githubAccount.endpoint === getDotComAPIEndpoint()) {
       await this.recordPushToGitHub(options)
     } else {
       await this.recordPushToGitHubEnterprise(options)
