@@ -19,9 +19,14 @@ import {
   highlightContents,
 } from './syntax-highlighting'
 import { getTokensForDiffLine } from './diff-syntax-mode'
-import { ITokens, ILineTokens, IToken } from '../../lib/highlighter/types'
-import { DiffMatchPatch, Diff } from 'diff-match-patch-typescript'
+import { ITokens, ILineTokens } from '../../lib/highlighter/types'
+import {
+  DiffMatchPatch,
+  Diff,
+  DiffOperation,
+} from 'diff-match-patch-typescript'
 import { assertNever } from '../../lib/fatal-error'
+import classNames from 'classnames'
 
 type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
 
@@ -122,13 +127,9 @@ export class UnifiedDiff extends React.Component<
             line,
             this.state.oldTokens,
             this.state.newTokens
-          ) || []
+          ) ?? undefined
 
-        const highlightedContent = syntaxHighlightLine(
-          lineToDiff(line.content),
-          tokens,
-          true
-        )
+        const highlightedContent = syntaxHighlightLine(line.content, tokens)
 
         rows.push(
           <div className="row context">
@@ -180,7 +181,7 @@ export class UnifiedDiff extends React.Component<
             line,
             this.state.oldTokens,
             this.state.newTokens
-          ) || []
+          ) ?? undefined
 
         output.push(
           <div className="row added">
@@ -191,7 +192,7 @@ export class UnifiedDiff extends React.Component<
             <div className="after">
               <div className="gutter">{line.newLineNumber}</div>
               <div className="content">
-                {syntaxHighlightLine(lineToDiff(line.content), tokens, false)}
+                {syntaxHighlightLine(line.content, tokens)}
               </div>
             </div>
           </div>
@@ -211,7 +212,7 @@ export class UnifiedDiff extends React.Component<
             <div className="before">
               <div className="gutter">{line.oldLineNumber}</div>
               <div className="content">
-                {syntaxHighlightLine(lineToDiff(line.content), tokens, true)}
+                {syntaxHighlightLine(line.content, tokens)}
               </div>
             </div>
 
@@ -238,8 +239,8 @@ export class UnifiedDiff extends React.Component<
             this.state.newTokens
           ) || []
 
-        let diffBefore
-        let diffAfter
+        let diffTokensBefore
+        let diffTokensAfter
 
         if (
           shouldDisplayDiff &&
@@ -247,19 +248,14 @@ export class UnifiedDiff extends React.Component<
           lineAfter.content.length < MaxLineLengthToCalculateDiff
         ) {
           const dmp = new DiffMatchPatch()
-          const diff = (diffAfter = dmp.diff_main(
-            lineBefore.content,
-            lineAfter.content
-          ))
+          const diff = dmp.diff_main(lineBefore.content, lineAfter.content)
 
           dmp.diff_cleanupSemanticLossless(diff)
           dmp.diff_cleanupEfficiency(diff)
           dmp.diff_cleanupMerge(diff)
 
-          diffBefore = diffAfter = diff
-        } else {
-          diffBefore = lineToDiff(lineBefore.content)
-          diffAfter = lineToDiff(lineAfter.content)
+          diffTokensBefore = convertDiffToTokens(diff, true)
+          diffTokensAfter = convertDiffToTokens(diff, false)
         }
 
         output.push(
@@ -267,14 +263,22 @@ export class UnifiedDiff extends React.Component<
             <div className="before">
               <div className="gutter">{lineBefore.oldLineNumber}</div>
               <div className="content">
-                {syntaxHighlightLine(diffBefore, tokensBefore, true)}
+                {syntaxHighlightLine(
+                  lineBefore.content,
+                  tokensBefore,
+                  diffTokensBefore
+                )}
               </div>
             </div>
 
             <div className="after">
               <div className="gutter">{lineAfter.newLineNumber}</div>
               <div className="content">
-                {syntaxHighlightLine(diffAfter, tokensAfter, false)}
+                {syntaxHighlightLine(
+                  lineAfter.content,
+                  tokensAfter,
+                  diffTokensAfter
+                )}
               </div>
             </div>
           </div>
@@ -333,94 +337,102 @@ function highlightParametersEqual(
   )
 }
 
-function syntaxHighlightLine(
-  diff: Diff[],
-  tokens: ILineTokens | null,
-  useBefore: boolean
-): JSX.Element | string {
-  if (tokens === null) {
-    return diffToLine(diff, useBefore)
-  }
+function convertDiffToTokens(diff: Diff[], useBefore: boolean): ILineTokens {
+  const output: ILineTokens = []
 
-  const elements = []
-  let numChar = 0
-
-  for (const diffEntry of diff) {
+  let startIndex = 0
+  for (const [type, content] of diff) {
     if (
-      (useBefore && diffEntry[0] === 1) ||
-      (!useBefore && diffEntry[0] === -1)
+      (useBefore && type === DiffOperation.DIFF_INSERT) ||
+      (!useBefore && type === DiffOperation.DIFF_DELETE)
     ) {
       continue
     }
 
-    let className = ''
-    if (useBefore && diffEntry[0] === -1) {
-      className = 'cm-diff-delete-inner'
-    } else if (!useBefore && diffEntry[0] === 1) {
-      className = 'cm-diff-add-inner'
+    let tokenName
+    if (type === DiffOperation.DIFF_DELETE) {
+      tokenName = 'cm-diff-delete-inner'
+    } else if (type === DiffOperation.DIFF_INSERT) {
+      tokenName = 'cm-diff-add-inner'
     }
 
-    let i = 0
-    let currentToken: IToken | null = null
-
-    while (i < diffEntry[1].length) {
-      const char = diffEntry[1][i]
-
-      const token: IToken | undefined =
-        tokens[numChar + i] || currentToken || undefined
-
-      if (token !== undefined) {
-        const text = diffEntry[1].slice(i, i + token.length)
-
-        if (i + token.length > diffEntry[1].length) {
-          currentToken = token
-        } else {
-          currentToken = null
-        }
-
-        elements.push(
-          <span
-            key={numChar + i}
-            className={
-              token.token
-                .split(' ')
-                .map(className => `cm-${className}`)
-                .join(' ') +
-              ' ' +
-              className
-            }
-          >
-            {text}
-          </span>
-        )
-        i += Math.min(token.length, diffEntry[1].length)
-      } else {
-        if (className !== '') {
-          elements.push(
-            <span key={numChar + i} className={className}>
-              {char}
-            </span>
-          )
-        } else {
-          elements.push(char)
-        }
-        i++
-      }
+    if (tokenName !== undefined) {
+      output[startIndex] = { token: tokenName, length: content.length }
     }
 
-    numChar += diffEntry[1].length
+    startIndex += content.length
   }
 
-  return <>{elements}</>
+  return output
 }
 
-function lineToDiff(line: string): Diff[] {
-  return [[0, line]]
-}
+function syntaxHighlightLine(
+  line: string,
+  syntaxTokens?: ILineTokens,
+  diffTokens?: ILineTokens
+): JSX.Element | string {
+  const elements = []
+  let currentElement: {
+    content: string
+    tokens: Array<{ name: string; endPosition: number }>
+  } = {
+    content: '',
+    tokens: [],
+  }
 
-function diffToLine(diff: Diff[], useBefore: boolean) {
-  return diff
-    .filter(el => el[0] === 0 || (useBefore ? el[0] === -1 : el[0] === 1))
-    .map(el => el[1])
-    .join('')
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i]
+
+    const tokensToRemove = currentElement.tokens.filter(
+      token => token.endPosition === i
+    )
+
+    const tokensToAdd = []
+    if (syntaxTokens !== undefined && syntaxTokens[i] !== undefined) {
+      tokensToAdd.push({
+        name: syntaxTokens[i].token
+          .split(' ')
+          .map(name => `cm-${name}`)
+          .join(' '),
+        endPosition: i + syntaxTokens[i].length,
+      })
+    }
+    if (diffTokens !== undefined && diffTokens[i] !== undefined) {
+      tokensToAdd.push({
+        name: diffTokens[i].token,
+        endPosition: i + diffTokens[i].length,
+      })
+    }
+
+    if (tokensToRemove.length === 0 && tokensToAdd.length === 0) {
+      currentElement.content += char
+    } else {
+      elements.push({
+        classNames: currentElement.tokens.map(token => token.name),
+        content: currentElement.content,
+      })
+      currentElement = {
+        content: char,
+        tokens: [
+          ...currentElement.tokens.filter(token => token.endPosition !== i),
+          ...tokensToAdd,
+        ],
+      }
+    }
+  }
+
+  elements.push({
+    classNames: currentElement.tokens.map(token => token.name),
+    content: currentElement.content,
+  })
+
+  return (
+    <>
+      {elements.map((element, i) => (
+        <span key={i} className={classNames(element.classNames)}>
+          {element.content}
+        </span>
+      ))}
+    </>
+  )
 }
