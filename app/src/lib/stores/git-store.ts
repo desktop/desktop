@@ -66,6 +66,7 @@ import {
   createTag,
   getAllTags,
   deleteTag,
+  MergeResult,
 } from '../git'
 import { GitError as DugiteError } from '../../lib/git'
 import { GitError } from 'dugite'
@@ -1378,7 +1379,7 @@ export class GitStore extends BaseStore {
   }
 
   /** Merge the named branch into the current branch. */
-  public merge(branch: string): Promise<boolean | undefined> {
+  public merge(branch: string): Promise<MergeResult | undefined> {
     if (this.tip.kind !== TipState.Valid) {
       throw new Error(
         `unable to merge as tip state is '${this.tip.kind}' and the application expects the repository to be on a branch currently`
