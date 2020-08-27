@@ -38,6 +38,11 @@ export interface IPullRequest {
 
   /** The login of the author. */
   readonly author: string
+
+  /**
+   * The draft state of the PR or undefined if state is unknown
+   */
+  readonly draft: boolean
 }
 
 /**
@@ -106,6 +111,11 @@ export class PullRequestDatabase extends BaseDatabase {
     this.conditionalVersion(7, {
       pullRequests: '[base.repoId+number]',
       pullRequestsLastUpdated: 'repoId',
+    })
+
+    this.conditionalVersion(8, {}, async tx => {
+      tx.table('pullRequests').clear()
+      tx.table('pullRequestsLastUpdated').clear()
     })
   }
 
