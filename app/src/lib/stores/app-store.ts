@@ -268,10 +268,7 @@ import { parseRemote } from '../../lib/remote-parsing'
 import { createTutorialRepository } from './helpers/create-tutorial-repository'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { getDefaultDir } from '../../ui/lib/default-dir'
-import {
-  UpstreamRemoteName,
-  findUpstreamRemote,
-} from './helpers/find-upstream-remote'
+import { findUpstreamRemote } from './helpers/find-upstream-remote'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updater'
 import { getAttributableEmailsFor } from '../email'
@@ -5505,6 +5502,42 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const gitStore = this.gitStoreCache.get(repository)
 
+    // If we don't have a default remote here, it's probably going
+    // to just crash and burn on checkout, but that's okay
+    if (isRefInThisRepo) {
+      const defaultRemote = forceUnwrap(
+        `Unexpected state: repository without a default remote`,
+        gitStore.defaultRemote
+      )
+
+      return this.findPullRequestHeadInRemote(
+        repository,
+        defaultRemote,
+        headRefName
+      )
+    }
+
+    if (isRefInUpstream) {
+      // Fetch the remote and try finding the branch again
+      const remotes = await getRemotes(repository)
+      const remoteUpstream = forceUnwrap(
+        'Cannot add the upstream repository as a remote of the current repository',
+        findUpstreamRemote(forceUnwrap('', gitHubRepository.parent), remotes)
+      )
+
+      this.findPullRequestHeadInRemote(repository, remoteUpstream, headRefName)
+    }
+
+    return null
+  }
+
+  private async findPullRequestHeadInRemote(
+    repository: Repository,
+    remote: IRemote,
+    headRefName: string
+  ) {
+    const gitStore = this.gitStoreCache.get(repository)
+
     // Find a remote branch matching the given name or a local branch
     // whose upstream tracking branch matches the given name (i.e someon
     // has already checked out the remote branch)
@@ -5515,59 +5548,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
           : branch.name === name
       ) ?? null
 
-    // If we don't have a default remote here, it's probably going
-    // to just crash and burn on checkout, but that's okay
-    if (isRefInThisRepo) {
-      const defaultRemote = forceUnwrap(
-        `Unexpected state: repository without a default remote`,
-        gitStore.defaultRemote
-      )
+    const remoteRef = `${remote.name}/${headRefName}`
+    const branch = findBranch(remoteRef)
 
-      // The remote ref will be something like `origin/my-cool-branch`
-      const remoteRef = `${defaultRemote.name}/${headRefName}`
-      const originBranch = findBranch(remoteRef)
-
-      if (originBranch !== null) {
-        return originBranch
-      }
-
-      // Fetch the remote and try finding the branch again
-      if (originBranch === null) {
-        await this._fetchRemote(
-          repository,
-          defaultRemote,
-          FetchType.UserInitiatedTask
-        )
-      }
-
-      return findBranch(remoteRef)
+    if (branch !== null) {
+      return branch
     }
 
-    if (isRefInUpstream) {
-      // the remote ref will be something like `upstream/my-cool-branch`
-      const remoteRef = `${UpstreamRemoteName}/${headRefName}`
-      const branch = findBranch(remoteRef)
-
-      if (branch !== null) {
-        return branch
-      }
-
-      // Fetch the remote and try finding the branch again
-      const remotes = await getRemotes(repository)
-      const remoteUpstream = forceUnwrap(
-        'Cannot add the upstream repository as a remote of the current repository',
-        findUpstreamRemote(forceUnwrap('', gitHubRepository.parent), remotes)
-      )
-      await this._fetchRemote(
-        repository,
-        remoteUpstream,
-        FetchType.UserInitiatedTask
-      )
-
-      return findBranch(remoteRef)
+    // Fetch the remote and try finding the branch again
+    if (branch === null) {
+      await this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
     }
 
-    return null
+    return findBranch(remoteRef)
   }
 
   /**
