@@ -20,8 +20,7 @@ import classNames from 'classnames'
  *
  * syntaxHighlightLine(
  *   lineBefore,
- *   undefined,
- *   getDiffTokens(lineBefore, lineAfter).before
+ *   [getDiffTokens(lineBefore, lineAfter).before]
  * )
  *
  * @param lineBefore    The first version of the line to compare.
@@ -63,8 +62,8 @@ function convertDiffToTokens(
 
     const tokenName =
       diffOperation === DiffOperation.DIFF_DELETE
-        ? 'cm-diff-delete-inner'
-        : 'cm-diff-add-inner'
+        ? 'diff-delete-inner'
+        : 'diff-add-inner'
 
     output[startIndex] = { token: tokenName, length: content.length }
 
@@ -79,13 +78,11 @@ function convertDiffToTokens(
  * the syntaxTokens and diffTokens.
  *
  * @param line          The line to syntax highlight.
- * @param syntaxTokens  The ILineTokens object that corresponds to highlight syntax.
- * @param diffTokens    The ILineTokens object that's used to highlight differences.
+ * @param tokensArray   An array of ILineTokens objects that is used for syntax highlighting.
  */
 export function syntaxHighlightLine(
   line: string,
-  syntaxTokens?: ILineTokens,
-  diffTokens?: ILineTokens
+  tokensArray: ReadonlyArray<ILineTokens>
 ): JSX.Element {
   const elements = []
   let currentElement: {
@@ -104,20 +101,17 @@ export function syntaxHighlightLine(
     )
 
     const tokensToAdd = []
-    if (syntaxTokens !== undefined && syntaxTokens[i] !== undefined) {
-      tokensToAdd.push({
-        name: syntaxTokens[i].token
-          .split(' ')
-          .map(name => `cm-${name}`)
-          .join(' '),
-        endPosition: i + syntaxTokens[i].length,
-      })
-    }
-    if (diffTokens !== undefined && diffTokens[i] !== undefined) {
-      tokensToAdd.push({
-        name: diffTokens[i].token,
-        endPosition: i + diffTokens[i].length,
-      })
+
+    for (const tokens of tokensArray) {
+      if (tokens[i] !== undefined) {
+        tokensToAdd.push({
+          name: tokens[i].token
+            .split(' ')
+            .map(name => `cm-${name}`)
+            .join(' '),
+          endPosition: i + tokens[i].length,
+        })
+      }
     }
 
     if (tokensToRemove.length === 0 && tokensToAdd.length === 0) {

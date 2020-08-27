@@ -117,14 +117,16 @@ export class SideBySideDiff extends React.Component<
       }
 
       if (line.type === DiffLineType.Context) {
-        const tokens =
-          getTokensForDiffLine(
-            line,
-            this.state.oldTokens,
-            this.state.newTokens
-          ) ?? undefined
+        const tokens = getTokensForDiffLine(
+          line,
+          this.state.oldTokens,
+          this.state.newTokens
+        )
 
-        const highlightedContent = syntaxHighlightLine(line.content, tokens)
+        const highlightedContent = syntaxHighlightLine(
+          line.content,
+          tokens !== null ? [tokens] : []
+        )
 
         rows.push(
           <div className="row context">
@@ -171,12 +173,11 @@ export class SideBySideDiff extends React.Component<
       if (numLine >= deletedLines.length) {
         // Added line
         const line = addedLines[numLine]
-        const tokens =
-          getTokensForDiffLine(
-            line,
-            this.state.oldTokens,
-            this.state.newTokens
-          ) ?? undefined
+        const tokens = getTokensForDiffLine(
+          line,
+          this.state.oldTokens,
+          this.state.newTokens
+        )
 
         output.push(
           <div className="row added">
@@ -187,7 +188,10 @@ export class SideBySideDiff extends React.Component<
             <div className="after">
               <div className="gutter">{line.newLineNumber}</div>
               <div className="content">
-                {syntaxHighlightLine(line.content, tokens)}
+                {syntaxHighlightLine(
+                  line.content,
+                  tokens !== null ? [tokens] : []
+                )}
               </div>
             </div>
           </div>
@@ -195,19 +199,21 @@ export class SideBySideDiff extends React.Component<
       } else if (numLine >= addedLines.length) {
         // Deleted line
         const line = deletedLines[numLine]
-        const tokens =
-          getTokensForDiffLine(
-            line,
-            this.state.oldTokens,
-            this.state.newTokens
-          ) ?? undefined
+        const tokens = getTokensForDiffLine(
+          line,
+          this.state.oldTokens,
+          this.state.newTokens
+        )
 
         output.push(
           <div className="row deleted">
             <div className="before">
               <div className="gutter">{line.oldLineNumber}</div>
               <div className="content">
-                {syntaxHighlightLine(line.content, tokens)}
+                {syntaxHighlightLine(
+                  line.content,
+                  tokens !== null ? [tokens] : []
+                )}
               </div>
             </div>
 
@@ -220,49 +226,48 @@ export class SideBySideDiff extends React.Component<
       } else {
         // Modified line
         const lineBefore = deletedLines[numLine]
-        const tokensBefore =
-          getTokensForDiffLine(
-            lineBefore,
-            this.state.oldTokens,
-            this.state.newTokens
-          ) ?? undefined
+        const syntaxTokensBefore = getTokensForDiffLine(
+          lineBefore,
+          this.state.oldTokens,
+          this.state.newTokens
+        )
         const lineAfter = addedLines[numLine]
+        const syntaxTokensAfter = getTokensForDiffLine(
+          lineAfter,
+          this.state.oldTokens,
+          this.state.newTokens
+        )
+        const tokensBefore =
+          syntaxTokensBefore !== null ? [syntaxTokensBefore] : []
         const tokensAfter =
-          getTokensForDiffLine(
-            lineAfter,
-            this.state.oldTokens,
-            this.state.newTokens
-          ) ?? undefined
+          syntaxTokensAfter !== null ? [syntaxTokensAfter] : []
 
-        const shouldDisplayDiff =
+        if (
           shouldDisplayDiffInChunk &&
           lineBefore.content.length < MaxLineLengthToCalculateDiff &&
           lineAfter.content.length < MaxLineLengthToCalculateDiff
-        const diffTokens = shouldDisplayDiff
-          ? getDiffTokens(lineBefore.content, lineAfter.content)
-          : undefined
+        ) {
+          const { before, after } = getDiffTokens(
+            lineBefore.content,
+            lineAfter.content
+          )
+          tokensBefore.push(before)
+          tokensAfter.push(after)
+        }
 
         output.push(
           <div className="row modified">
             <div className="before">
               <div className="gutter">{lineBefore.oldLineNumber}</div>
               <div className="content">
-                {syntaxHighlightLine(
-                  lineBefore.content,
-                  tokensBefore,
-                  diffTokens?.before
-                )}
+                {syntaxHighlightLine(lineBefore.content, tokensBefore)}
               </div>
             </div>
 
             <div className="after">
               <div className="gutter">{lineAfter.newLineNumber}</div>
               <div className="content">
-                {syntaxHighlightLine(
-                  lineAfter.content,
-                  tokensAfter,
-                  diffTokens?.after
-                )}
+                {syntaxHighlightLine(lineAfter.content, tokensAfter)}
               </div>
             </div>
           </div>
