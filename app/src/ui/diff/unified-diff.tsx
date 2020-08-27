@@ -185,7 +185,7 @@ export class UnifiedDiff extends React.Component<
         output.push(
           <div className="row added">
             <div className="before">
-              <div className="gutter">{line.oldLineNumber}</div>
+              <div className="gutter"></div>
               <div className="content"></div>
             </div>
             <div className="after">
@@ -216,7 +216,7 @@ export class UnifiedDiff extends React.Component<
             </div>
 
             <div className="after">
-              <div className="gutter">{line.newLineNumber}</div>
+              <div className="gutter"></div>
               <div className="content"></div>
             </div>
           </div>
@@ -355,9 +355,9 @@ function syntaxHighlightLine(
 
     let className = ''
     if (useBefore && diffEntry[0] === -1) {
-      className = 'char-deleted'
+      className = 'cm-diff-delete-inner'
     } else if (!useBefore && diffEntry[0] === 1) {
-      className = 'char-added'
+      className = 'cm-diff-add-inner'
     }
 
     let i = 0

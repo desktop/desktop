@@ -53,7 +53,7 @@
       color: var(--diff-hunk-text-color);
 
       .gutter {
-        background: var(--diff-hunk-gutter-background-color);
+        background-color: var(--diff-hunk-background-color);
       }
     }
 
@@ -82,7 +82,7 @@
         background-color: var(--diff-empty-row-background-color);
 
         .gutter {
-          background-color: var(--diff-empty-row-background-color);
+          background-color: var(--diff-empty-row-gutter-background-color);
         }
       }
     }
@@ -100,10 +100,10 @@
       }
 
       .after {
-        background-color: var(--box-alt-background-color);
+        background-color: var(--diff-empty-row-background-color);
 
         .gutter {
-          background-color: var(--box-alt-background-color);
+          background-color: var(--diff-empty-row-gutter-background-color);
         }
       }
     }
@@ -127,14 +127,6 @@
           background: var(--diff-add-gutter-background-color);
           border-color: var(--diff-add-border-color);
         }
-      }
-
-      .char-deleted {
-        background-color: var(--diff-delete-inner-background-color);
-      }
-
-      .char-added {
-        background-color: var(--diff-add-inner-background-color);
       }
     }
   }
