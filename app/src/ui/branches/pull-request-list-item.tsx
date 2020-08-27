@@ -21,6 +21,9 @@ export interface IPullRequestListItemProps {
   /** The author login. */
   readonly author: string
 
+  /** Whether or not the PR is in draft mode. */
+  readonly draft: boolean
+
   /**
    * Whether or not this list item is a skeleton item
    * put in place while the pull request information is
@@ -58,6 +61,7 @@ export class PullRequestListItem extends React.Component<
     const matches = this.props.matches
     const className = classNames('pull-request-item', {
       loading: this.props.loading === true,
+      draft: this.props.draft,
     })
 
     return (
