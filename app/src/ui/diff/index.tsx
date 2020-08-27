@@ -28,7 +28,7 @@ import {
 } from './image-diffs'
 import { BinaryFile } from './binary-file'
 import { TextDiff } from './text-diff'
-import { SideBySideDiff } from './unified-diff'
+import { SideBySideDiff } from './side-by-side-diff'
 
 // image used when no diff is displayed
 const NoDiffImage = encodePathAsUrl(__dirname, 'static/ufo-alert.svg')

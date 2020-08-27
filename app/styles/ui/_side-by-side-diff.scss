@@ -1,9 +1,17 @@
-.sidebyside-diff-container {
+.side-by-side-diff-container {
   width: 100%;
   overflow: auto;
+
+  &.selecting-before .after,
+  &.selecting-after .before {
+    span,
+    div {
+      user-select: none;
+    }
+  }
 }
 
-.sidebyside-diff {
+.side-by-side-diff {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -56,6 +64,11 @@
     &.hunk-info {
       background-color: var(--diff-hunk-background-color);
       color: var(--diff-hunk-text-color);
+
+      div,
+      span {
+        user-select: none;
+      }
 
       .gutter {
         background-color: var(--diff-hunk-background-color);

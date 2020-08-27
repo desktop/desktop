@@ -30,6 +30,7 @@ interface ISideBySideDiffProps {
 interface ISideBySideDiffState {
   readonly oldTokens?: ITokens
   readonly newTokens?: ITokens
+  readonly selectingRow?: 'before' | 'after'
 }
 
 export class SideBySideDiff extends React.Component<
@@ -54,12 +55,36 @@ export class SideBySideDiff extends React.Component<
 
   public render() {
     return (
-      <div className="sidebyside-diff-container">
-        <div className="sidebyside-diff cm-s-default">
+      <div
+        className={
+          'side-by-side-diff-container ' +
+          (this.state.selectingRow
+            ? `selecting-${this.state.selectingRow}`
+            : '')
+        }
+        onMouseDown={this.onMouseDown}
+      >
+        <div className="side-by-side-diff cm-s-default">
           {this.props.diff.hunks.map(hunk => this.renderHunk(hunk))}
         </div>
       </div>
     )
+  }
+
+  private onMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLDivElement
+
+    const clickedRow = target.closest('.before') || target.closest('.after')
+
+    if (clickedRow === null) {
+      return
+    }
+
+    if (clickedRow.classList.contains('before')) {
+      this.setState({ selectingRow: 'before' })
+    } else if (clickedRow.classList.contains('after')) {
+      this.setState({ selectingRow: 'after' })
+    }
   }
 
   private renderHunk(hunk: DiffHunk) {
