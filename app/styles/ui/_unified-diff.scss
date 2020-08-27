@@ -12,6 +12,12 @@
   font-size: var(--font-size-sm);
   color: var(--diff-text-color);
 
+  span,
+  div {
+    user-select: text;
+    cursor: auto;
+  }
+
   .row {
     display: flex;
     flex-direction: row;
@@ -27,14 +33,13 @@
       text-overflow: ellipsis;
       overflow: hidden;
       direction: rtl;
+      user-select: none;
     }
 
     .content {
       padding-left: 12px;
       white-space: pre-wrap;
       overflow-y: auto;
-      cursor: text;
-      user-select: text;
     }
 
     .before {
