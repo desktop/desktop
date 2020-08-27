@@ -385,6 +385,8 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --diff-delete-hover-gutter-color: #{$red-300};
   --diff-delete-hover-text-color: var(--text-color);
 
+  --diff-empty-row-background-color: #{lighten($gray-100, 1%)};
+
   // Syntax highlighting text colors
   --syntax-variable-color: #6f42c1;
   --syntax-alt-variable-color: #24292e;

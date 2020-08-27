@@ -18,13 +18,15 @@
     line-height: 20px;
 
     .gutter {
-      width: 60px;
+      width: 55px;
       flex-shrink: 0;
-      border-right: 1px solid var(--diff-border-color);
       text-align: right;
       background: var(--diff-gutter-background-color);
       box-sizing: border-box;
-      padding: 0 var(--spacing-half);
+      padding: 0 var(--spacing);
+      text-overflow: ellipsis;
+      overflow: hidden;
+      direction: rtl;
     }
 
     .content {
@@ -47,18 +49,21 @@
     }
 
     &.hunk-info {
-      background-color: var(--diff-hunk-gutter-background-color);
+      background-color: var(--diff-hunk-background-color);
       color: var(--diff-hunk-text-color);
 
       .gutter {
-        background-color: var(--diff-hunk-gutter-background-color);
-        border-color: var(--diff-hunk-gutter-background-color);
+        background: var(--diff-hunk-gutter-background-color);
       }
     }
 
     &.context {
       .content {
         background: var(--background-color);
+      }
+
+      .gutter {
+        color: var(--diff-line-number-color);
       }
     }
 
@@ -70,7 +75,14 @@
 
         .gutter {
           background: var(--diff-add-gutter-background-color);
-          border-color: var(--diff-add-border-color);
+        }
+      }
+
+      .before {
+        background-color: var(--diff-empty-row-background-color);
+
+        .gutter {
+          background-color: var(--diff-empty-row-background-color);
         }
       }
     }
@@ -84,6 +96,14 @@
         .gutter {
           background: var(--diff-delete-gutter-background-color);
           border-color: var(--diff-delete-border-color);
+        }
+      }
+
+      .after {
+        background-color: var(--box-alt-background-color);
+
+        .gutter {
+          background-color: var(--box-alt-background-color);
         }
       }
     }
@@ -110,11 +130,11 @@
       }
 
       .char-deleted {
-        background-color: var(--diff-delete-inner-background-color) !important;
+        background-color: var(--diff-delete-inner-background-color);
       }
 
       .char-added {
-        background-color: var(--diff-add-inner-background-color) !important;
+        background-color: var(--diff-add-inner-background-color);
       }
     }
   }
