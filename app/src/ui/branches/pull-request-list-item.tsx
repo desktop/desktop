@@ -61,6 +61,7 @@ export class PullRequestListItem extends React.Component<
     const matches = this.props.matches
     const className = classNames('pull-request-item', {
       loading: this.props.loading === true,
+      open: !this.props.draft,
       draft: this.props.draft,
     })
 
