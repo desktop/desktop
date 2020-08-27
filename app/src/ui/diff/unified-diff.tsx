@@ -94,21 +94,26 @@ export class SideBySideDiff extends React.Component<
     const rows: Array<JSX.Element> = []
     let addedDeletedLines: Array<DiffLine> = []
 
-    for (const line of hunk.lines) {
+    for (const [lineNumber, line] of hunk.lines.entries()) {
       if (line.type === DiffLineType.Delete || line.type === DiffLineType.Add) {
         addedDeletedLines.push(line)
         continue
       }
 
       if (addedDeletedLines.length > 0) {
-        rows.push(...this.renderAddedDeletedLines(addedDeletedLines))
+        rows.push(
+          ...this.renderAddedDeletedLines(
+            addedDeletedLines,
+            lineNumber - addedDeletedLines.length
+          )
+        )
 
         addedDeletedLines = []
       }
 
       if (line.type === DiffLineType.Hunk) {
         rows.push(
-          <div className="row hunk-info">
+          <div className="row hunk-info" key={lineNumber}>
             <div className="gutter"></div>
             <div className="content">{line.content}</div>
           </div>
@@ -129,7 +134,7 @@ export class SideBySideDiff extends React.Component<
         )
 
         rows.push(
-          <div className="row context">
+          <div className="row context" key={lineNumber}>
             <div className="before">
               <div className="gutter">{line.oldLineNumber}</div>
               <div className="content">{highlightedContent}</div>
@@ -147,14 +152,17 @@ export class SideBySideDiff extends React.Component<
     }
 
     if (addedDeletedLines.length > 0) {
-      rows.push(...this.renderAddedDeletedLines(addedDeletedLines))
+      rows.push(
+        ...this.renderAddedDeletedLines(addedDeletedLines, hunk.lines.length)
+      )
     }
 
     return rows
   }
 
   private renderAddedDeletedLines(
-    addedDeletedLines: ReadonlyArray<DiffLine>
+    addedDeletedLines: ReadonlyArray<DiffLine>,
+    offsetLine: number
   ): ReadonlyArray<JSX.Element> {
     const addedLines = addedDeletedLines.filter(
       line => line.type === DiffLineType.Add
@@ -180,7 +188,7 @@ export class SideBySideDiff extends React.Component<
         )
 
         output.push(
-          <div className="row added">
+          <div className="row added" key={offsetLine + numLine}>
             <div className="before">
               <div className="gutter"></div>
               <div className="content"></div>
@@ -206,7 +214,7 @@ export class SideBySideDiff extends React.Component<
         )
 
         output.push(
-          <div className="row deleted">
+          <div className="row deleted" key={offsetLine + numLine}>
             <div className="before">
               <div className="gutter">{line.oldLineNumber}</div>
               <div className="content">
@@ -256,7 +264,7 @@ export class SideBySideDiff extends React.Component<
         }
 
         output.push(
-          <div className="row modified">
+          <div className="row modified" key={offsetLine + numLine}>
             <div className="before">
               <div className="gutter">{lineBefore.oldLineNumber}</div>
               <div className="content">
