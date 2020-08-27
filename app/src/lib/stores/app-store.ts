@@ -5455,36 +5455,38 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // https://youtu.be/IjmtVKOAHPM
     if (branch !== null) {
       await this._checkoutBranch(repository, branch)
+      this.statsStore.recordPRBranchCheckout()
+      return
+    }
+
+    const remoteName = forkPullRequestRemoteName(ownerLogin)
+    const remotes = await getRemotes(repository)
+    const remote =
+      remotes.find(r => r.name === remoteName) ||
+      (await addRemote(repository, remoteName, headCloneUrl))
+
+    if (remote.url !== headCloneUrl) {
+      const error = new Error(
+        `Expected PR remote ${remoteName} url to be ${headCloneUrl} got ${remote.url}.`
+      )
+
+      log.error(error.message)
+      return this.emitError(error)
+    }
+
+    await this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
+
+    const localBranchName = `pr/${prNumber}`
+    const existingBranch = this.getLocalBranch(repository, localBranchName)
+
+    if (existingBranch === null) {
+      await this._createBranch(
+        repository,
+        localBranchName,
+        `${remoteName}/${headRefName}`
+      )
     } else {
-      const remoteName = forkPullRequestRemoteName(ownerLogin)
-      const remotes = await getRemotes(repository)
-      const remote =
-        remotes.find(r => r.name === remoteName) ||
-        (await addRemote(repository, remoteName, headCloneUrl))
-
-      if (remote.url !== headCloneUrl) {
-        const error = new Error(
-          `Expected PR remote ${remoteName} url to be ${headCloneUrl} got ${remote.url}.`
-        )
-
-        log.error(error.message)
-        return this.emitError(error)
-      }
-
-      await this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
-
-      const localBranchName = `pr/${prNumber}`
-      const existingBranch = this.getLocalBranch(repository, localBranchName)
-
-      if (existingBranch === null) {
-        await this._createBranch(
-          repository,
-          localBranchName,
-          `${remoteName}/${headRefName}`
-        )
-      } else {
-        await this._checkoutBranch(repository, existingBranch)
-      }
+      await this._checkoutBranch(repository, existingBranch)
     }
 
     this.statsStore.recordPRBranchCheckout()
