@@ -19,14 +19,9 @@ import {
   highlightContents,
 } from './syntax-highlighting'
 import { getTokensForDiffLine } from './diff-syntax-mode'
-import { ITokens, ILineTokens } from '../../lib/highlighter/types'
-import {
-  DiffMatchPatch,
-  Diff,
-  DiffOperation,
-} from 'diff-match-patch-typescript'
+import { ITokens } from '../../lib/highlighter/types'
 import { assertNever } from '../../lib/fatal-error'
-import classNames from 'classnames'
+import { getDiffTokens, syntaxHighlightLine } from './syntax-highlighting/utils'
 
 type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
 
@@ -165,7 +160,7 @@ export class SideBySideDiff extends React.Component<
     const deletedLines = addedDeletedLines.filter(
       line => line.type === DiffLineType.Delete
     )
-    const shouldDisplayDiff = addedLines.length === deletedLines.length
+    const shouldDisplayDiffInChunk = addedLines.length === deletedLines.length
     const output: Array<JSX.Element> = []
 
     for (
@@ -205,7 +200,7 @@ export class SideBySideDiff extends React.Component<
             line,
             this.state.oldTokens,
             this.state.newTokens
-          ) || []
+          ) ?? undefined
 
         output.push(
           <div className="row deleted">
@@ -230,36 +225,22 @@ export class SideBySideDiff extends React.Component<
             lineBefore,
             this.state.oldTokens,
             this.state.newTokens
-          ) || []
+          ) ?? undefined
         const lineAfter = addedLines[numLine]
         const tokensAfter =
           getTokensForDiffLine(
             lineAfter,
             this.state.oldTokens,
             this.state.newTokens
-          ) || []
+          ) ?? undefined
 
-        let diffTokensBefore
-        let diffTokensAfter
-
-        if (
-          shouldDisplayDiff &&
+        const shouldDisplayDiff =
+          shouldDisplayDiffInChunk &&
           lineBefore.content.length < MaxLineLengthToCalculateDiff &&
           lineAfter.content.length < MaxLineLengthToCalculateDiff
-        ) {
-          const dmp = new DiffMatchPatch()
-          const diff = dmp.diff_main(lineBefore.content, lineAfter.content)
-
-          dmp.diff_cleanupSemanticLossless(diff)
-          dmp.diff_cleanupEfficiency(diff)
-          dmp.diff_cleanupMerge(diff)
-
-          diffTokensBefore = convertDiffToTokens(
-            diff,
-            DiffOperation.DIFF_DELETE
-          )
-          diffTokensAfter = convertDiffToTokens(diff, DiffOperation.DIFF_INSERT)
-        }
+        const diffTokens = shouldDisplayDiff
+          ? getDiffTokens(lineBefore.content, lineAfter.content)
+          : undefined
 
         output.push(
           <div className="row modified">
@@ -269,7 +250,7 @@ export class SideBySideDiff extends React.Component<
                 {syntaxHighlightLine(
                   lineBefore.content,
                   tokensBefore,
-                  diffTokensBefore
+                  diffTokens?.before
                 )}
               </div>
             </div>
@@ -280,7 +261,7 @@ export class SideBySideDiff extends React.Component<
                 {syntaxHighlightLine(
                   lineAfter.content,
                   tokensAfter,
-                  diffTokensAfter
+                  diffTokens?.after
                 )}
               </div>
             </div>
@@ -337,106 +318,5 @@ function highlightParametersEqual(
     newProps === prevProps ||
     (newProps.file.id === prevProps.file.id &&
       newProps.diff.text === prevProps.diff.text)
-  )
-}
-
-function convertDiffToTokens(
-  diff: Diff[],
-  diffOperation: DiffOperation
-): ILineTokens {
-  const output: ILineTokens = []
-
-  let startIndex = 0
-  for (const [type, content] of diff) {
-    if (type === DiffOperation.DIFF_EQUAL) {
-      startIndex += content.length
-      continue
-    }
-
-    if (type !== diffOperation) {
-      continue
-    }
-
-    const tokenName =
-      diffOperation === DiffOperation.DIFF_DELETE
-        ? 'cm-diff-delete-inner'
-        : 'cm-diff-add-inner'
-
-    output[startIndex] = { token: tokenName, length: content.length }
-
-    startIndex += content.length
-  }
-
-  return output
-}
-
-function syntaxHighlightLine(
-  line: string,
-  syntaxTokens?: ILineTokens,
-  diffTokens?: ILineTokens
-): JSX.Element | string {
-  const elements = []
-  let currentElement: {
-    content: string
-    tokens: Array<{ name: string; endPosition: number }>
-  } = {
-    content: '',
-    tokens: [],
-  }
-
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i]
-
-    const tokensToRemove = currentElement.tokens.filter(
-      token => token.endPosition === i
-    )
-
-    const tokensToAdd = []
-    if (syntaxTokens !== undefined && syntaxTokens[i] !== undefined) {
-      tokensToAdd.push({
-        name: syntaxTokens[i].token
-          .split(' ')
-          .map(name => `cm-${name}`)
-          .join(' '),
-        endPosition: i + syntaxTokens[i].length,
-      })
-    }
-    if (diffTokens !== undefined && diffTokens[i] !== undefined) {
-      tokensToAdd.push({
-        name: diffTokens[i].token,
-        endPosition: i + diffTokens[i].length,
-      })
-    }
-
-    if (tokensToRemove.length === 0 && tokensToAdd.length === 0) {
-      currentElement.content += char
-    } else {
-      elements.push({
-        classNames: currentElement.tokens.map(token => token.name),
-        content: currentElement.content,
-      })
-      currentElement = {
-        content: char,
-        tokens: [
-          ...currentElement.tokens.filter(token => token.endPosition !== i),
-          ...tokensToAdd,
-        ],
-      }
-    }
-  }
-
-  elements.push({
-    classNames: currentElement.tokens.map(token => token.name),
-    content: currentElement.content,
-  })
-
-  return (
-    <>
-      {elements.map((element, i) => (
-        <span key={i} className={classNames(element.classNames)}>
-          {element.content}
-        </span>
-      ))}
-    </>
   )
 }
