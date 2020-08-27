@@ -70,6 +70,16 @@ export class UnifiedDiff extends React.Component<
     this.state = {}
   }
 
+  public componentDidMount() {
+    this.initDiffSyntaxMode()
+  }
+
+  public componentDidUpdate(prevProps: IUnifiedDiffProps) {
+    if (!highlightParametersEqual(this.props, prevProps)) {
+      this.initDiffSyntaxMode()
+    }
+  }
+
   public render() {
     return (
       <div className="unified-diff-container">
@@ -78,134 +88,6 @@ export class UnifiedDiff extends React.Component<
         </div>
       </div>
     )
-  }
-
-  private renderAddedDeletedLines(
-    addedDeletedLines: ReadonlyArray<DiffLine>
-  ): ReadonlyArray<JSX.Element> {
-    const addedLines = addedDeletedLines.filter(
-      line => line.type === DiffLineType.Add
-    )
-    const deletedLines = addedDeletedLines.filter(
-      line => line.type === DiffLineType.Delete
-    )
-    const shouldDisplayDiff = addedLines.length === deletedLines.length
-
-    const output: Array<JSX.Element> = []
-
-    for (
-      let numLine = 0;
-      numLine < addedLines.length || numLine < deletedLines.length;
-      numLine++
-    ) {
-      if (numLine >= deletedLines.length) {
-        const line = addedLines[numLine]
-        const tokens =
-          getTokensForDiffLine(
-            line,
-            this.state.oldTokens,
-            this.state.newTokens
-          ) || []
-
-        output.push(
-          <div className="row added">
-            <div className="before">
-              <div className="gutter">{line.oldLineNumber}</div>
-              <div className="content"></div>
-            </div>
-            <div className="after">
-              <div className="gutter">{line.newLineNumber}</div>
-              <div className="content">
-                {syntaxHighlightLine(lineToDiff(line.content), tokens, false)}
-              </div>
-            </div>
-          </div>
-        )
-      } else if (numLine >= addedLines.length) {
-        const line = deletedLines[numLine]
-        const tokens =
-          getTokensForDiffLine(
-            line,
-            this.state.oldTokens,
-            this.state.newTokens
-          ) || []
-
-        output.push(
-          <div className="row deleted">
-            <div className="before">
-              <div className="gutter">{line.oldLineNumber}</div>
-              <div className="content">
-                {syntaxHighlightLine(lineToDiff(line.content), tokens, true)}
-              </div>
-            </div>
-
-            <div className="after">
-              <div className="gutter">{line.newLineNumber}</div>
-              <div className="content"></div>
-            </div>
-          </div>
-        )
-      } else {
-        const lineBefore = deletedLines[numLine]
-        const tokensBefore =
-          getTokensForDiffLine(
-            lineBefore,
-            this.state.oldTokens,
-            this.state.newTokens
-          ) || []
-        const lineAfter = addedLines[numLine]
-        const tokensAfter =
-          getTokensForDiffLine(
-            lineAfter,
-            this.state.oldTokens,
-            this.state.newTokens
-          ) || []
-
-        let diffBefore
-        let diffAfter
-
-        if (
-          shouldDisplayDiff &&
-          lineBefore.content.length < MaxLineLengthToCalculateDiff &&
-          lineAfter.content.length < MaxLineLengthToCalculateDiff
-        ) {
-          const dmp = new DiffMatchPatch()
-          const diff = (diffAfter = dmp.diff_main(
-            lineBefore.content,
-            lineAfter.content
-          ))
-
-          dmp.diff_cleanupSemanticLossless(diff)
-          dmp.diff_cleanupEfficiency(diff)
-          dmp.diff_cleanupMerge(diff)
-
-          diffBefore = diffAfter = diff
-        } else {
-          diffBefore = lineToDiff(lineBefore.content)
-          diffAfter = lineToDiff(lineAfter.content)
-        }
-
-        output.push(
-          <div className="row modified">
-            <div className="before">
-              <div className="gutter">{lineBefore.oldLineNumber}</div>
-              <div className="content">
-                {syntaxHighlightLine(diffBefore, tokensBefore, true)}
-              </div>
-            </div>
-
-            <div className="after">
-              <div className="gutter">{lineAfter.newLineNumber}</div>
-              <div className="content">
-                {syntaxHighlightLine(diffAfter, tokensAfter, false)}
-              </div>
-            </div>
-          </div>
-        )
-      }
-    }
-
-    return output
   }
 
   private renderHunk(hunk: DiffHunk) {
@@ -273,14 +155,134 @@ export class UnifiedDiff extends React.Component<
     return rows
   }
 
-  public componentDidMount() {
-    this.initDiffSyntaxMode()
-  }
+  private renderAddedDeletedLines(
+    addedDeletedLines: ReadonlyArray<DiffLine>
+  ): ReadonlyArray<JSX.Element> {
+    const addedLines = addedDeletedLines.filter(
+      line => line.type === DiffLineType.Add
+    )
+    const deletedLines = addedDeletedLines.filter(
+      line => line.type === DiffLineType.Delete
+    )
+    const shouldDisplayDiff = addedLines.length === deletedLines.length
+    const output: Array<JSX.Element> = []
 
-  public componentDidUpdate(prevProps: IUnifiedDiffProps) {
-    if (!highlightParametersEqual(this.props, prevProps)) {
-      this.initDiffSyntaxMode()
+    for (
+      let numLine = 0;
+      numLine < addedLines.length || numLine < deletedLines.length;
+      numLine++
+    ) {
+      if (numLine >= deletedLines.length) {
+        // Added line
+        const line = addedLines[numLine]
+        const tokens =
+          getTokensForDiffLine(
+            line,
+            this.state.oldTokens,
+            this.state.newTokens
+          ) || []
+
+        output.push(
+          <div className="row added">
+            <div className="before">
+              <div className="gutter">{line.oldLineNumber}</div>
+              <div className="content"></div>
+            </div>
+            <div className="after">
+              <div className="gutter">{line.newLineNumber}</div>
+              <div className="content">
+                {syntaxHighlightLine(lineToDiff(line.content), tokens, false)}
+              </div>
+            </div>
+          </div>
+        )
+      } else if (numLine >= addedLines.length) {
+        // Deleted line
+        const line = deletedLines[numLine]
+        const tokens =
+          getTokensForDiffLine(
+            line,
+            this.state.oldTokens,
+            this.state.newTokens
+          ) || []
+
+        output.push(
+          <div className="row deleted">
+            <div className="before">
+              <div className="gutter">{line.oldLineNumber}</div>
+              <div className="content">
+                {syntaxHighlightLine(lineToDiff(line.content), tokens, true)}
+              </div>
+            </div>
+
+            <div className="after">
+              <div className="gutter">{line.newLineNumber}</div>
+              <div className="content"></div>
+            </div>
+          </div>
+        )
+      } else {
+        // Modified line
+        const lineBefore = deletedLines[numLine]
+        const tokensBefore =
+          getTokensForDiffLine(
+            lineBefore,
+            this.state.oldTokens,
+            this.state.newTokens
+          ) || []
+        const lineAfter = addedLines[numLine]
+        const tokensAfter =
+          getTokensForDiffLine(
+            lineAfter,
+            this.state.oldTokens,
+            this.state.newTokens
+          ) || []
+
+        let diffBefore
+        let diffAfter
+
+        if (
+          shouldDisplayDiff &&
+          lineBefore.content.length < MaxLineLengthToCalculateDiff &&
+          lineAfter.content.length < MaxLineLengthToCalculateDiff
+        ) {
+          const dmp = new DiffMatchPatch()
+          const diff = (diffAfter = dmp.diff_main(
+            lineBefore.content,
+            lineAfter.content
+          ))
+
+          dmp.diff_cleanupSemanticLossless(diff)
+          dmp.diff_cleanupEfficiency(diff)
+          dmp.diff_cleanupMerge(diff)
+
+          diffBefore = diffAfter = diff
+        } else {
+          diffBefore = lineToDiff(lineBefore.content)
+          diffAfter = lineToDiff(lineAfter.content)
+        }
+
+        output.push(
+          <div className="row modified">
+            <div className="before">
+              <div className="gutter">{lineBefore.oldLineNumber}</div>
+              <div className="content">
+                {syntaxHighlightLine(diffBefore, tokensBefore, true)}
+              </div>
+            </div>
+
+            <div className="after">
+              <div className="gutter">{lineAfter.newLineNumber}</div>
+              <div className="content">
+                {syntaxHighlightLine(diffAfter, tokensAfter, false)}
+              </div>
+            </div>
+          </div>
+        )
+      }
     }
+
+    return output
   }
 
   private async initDiffSyntaxMode() {
