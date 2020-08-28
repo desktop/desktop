@@ -77,22 +77,25 @@ export function syntaxHighlightLine(
 
     for (const tokens of tokensArray) {
       if (tokens[i] !== undefined && tokens[i].length > 0) {
-        const name = tokens[i].token
-          .split(' ')
-          .map(name => `cm-${name}`)
-          .join(' ')
+        // ILineTokens can contain multiple tokens separated by spaces.
+        // We split them to avoid creating unneeded HTML elements when
+        // these tokens do not maintain the same order.
+        const tokenNames = tokens[i].token.split(' ')
+
         const position = i + tokens[i].length
 
-        const existingTokenPosition = newTokens.get(name)
+        for (const name of tokenNames) {
+          const existingTokenPosition = newTokens.get(name)
 
-        // While it's rare, it's theoretically possible that the same
-        // token exists for the same start position with different end
-        // positions. If this happens, we choose the longest one.
-        if (
-          existingTokenPosition === undefined ||
-          position > existingTokenPosition
-        ) {
-          newTokens.set(name, position)
+          // While it's rare, it's theoretically possible that the same
+          // token exists for the same start position with different end
+          // positions. If this happens, we choose the longest one.
+          if (
+            existingTokenPosition === undefined ||
+            position > existingTokenPosition
+          ) {
+            newTokens.set(name, position)
+          }
         }
       }
     }
@@ -101,7 +104,7 @@ export function syntaxHighlightLine(
       currentElement.content += char
     } else {
       elements.push({
-        classNames: [...currentElement.tokens.keys()],
+        classNames: [...currentElement.tokens.keys()].map(name => `cm-${name}`),
         content: currentElement.content,
       })
 
