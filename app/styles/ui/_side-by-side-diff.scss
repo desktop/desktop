@@ -45,9 +45,10 @@
     }
 
     .content {
-      padding-left: 12px;
+      padding-left: var(--spacing);
       white-space: pre-wrap;
       overflow-y: auto;
+      flex-grow: 1;
     }
 
     .before {
