@@ -22,6 +22,12 @@ import { ITokens } from '../../lib/highlighter/types'
 import { assertNever } from '../../lib/fatal-error'
 import { getDiffTokens, syntaxHighlightLine } from './syntax-highlighting/utils'
 import classNames from 'classnames'
+import {
+  List,
+  AutoSizer,
+  CellMeasurerCache,
+  CellMeasurer,
+} from 'react-virtualized'
 
 type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
 
@@ -54,6 +60,11 @@ interface ISelection {
   readonly isSelected: boolean
 }
 
+const cache = new CellMeasurerCache({
+  defaultHeight: 20,
+  fixedWidth: true,
+})
+
 export class SideBySideDiff extends React.Component<
   ISideBySideDiffProps,
   ISideBySideDiffState
@@ -75,6 +86,14 @@ export class SideBySideDiff extends React.Component<
   }
 
   public render() {
+    const rows: JSX.Element[] = []
+
+    for (const hunk of this.props.diff.hunks) {
+      rows.push(...this.renderHunk(hunk))
+    }
+
+    console.log('rafeca: rows', rows.length)
+
     return (
       <div
         className={classNames([
@@ -88,7 +107,35 @@ export class SideBySideDiff extends React.Component<
         onMouseDown={this.onMouseDown}
       >
         <div className="side-by-side-diff cm-s-default">
-          {this.props.diff.hunks.map(hunk => this.renderHunk(hunk))}
+          <AutoSizer onResize={() => cache.clearAll()}>
+            {({ height, width }) => (
+              <List
+                deferredMeasurementCache={cache}
+                width={width}
+                height={height}
+                rowCount={rows.length}
+                // tslint:disable-next-line: react-this-binding-issue
+                rowHeight={index => cache.rowHeight(index) || 20}
+                // tslint:disable-next-line: react-this-binding-issue
+                rowRenderer={({ index, parent, style, key }) => {
+                  return (
+                    <CellMeasurer
+                      cache={cache}
+                      columnIndex={0}
+                      key={key}
+                      overscanRowCount={10}
+                      parent={parent}
+                      rowIndex={index}
+                    >
+                      <div key={key} style={style}>
+                        {rows[index]}
+                      </div>
+                    </CellMeasurer>
+                  )
+                }}
+              />
+            )}
+          </AutoSizer>
         </div>
       </div>
     )

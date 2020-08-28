@@ -1,6 +1,7 @@
 .side-by-side-diff-container {
   width: 100%;
   overflow: auto;
+  flex-grow: 1;
 
   &.selecting-before .after,
   &.selecting-after .before {
@@ -18,6 +19,8 @@
 .side-by-side-diff {
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
+  height: 100%;
   width: 100%;
   border-bottom: 1px solid var(--diff-border-color);
   font-family: var(--font-family-monospace);
