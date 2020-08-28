@@ -7,6 +7,8 @@ import {
   WorkingDirectoryFileChange,
   CommittedFileChange,
 } from '../../models/status'
+import classNames from 'classnames'
+import { ISelection, isInTemporarySelection } from './side-by-side-diff'
 
 const MaxLineLengthToCalculateDiff = 240
 
@@ -85,8 +87,14 @@ interface ISideBySideDiffRowProps {
   /** The file whose diff should be displayed. */
   readonly file: ChangedFile
 
-  readonly onStartSelection?: (from: number, isSelected: boolean) => void
+  readonly hunkHighlightRange?: ISelection
+
+  readonly onStartSelection?: (from: number, select: boolean) => void
   readonly onUpdateSelection?: (lineNumber: number) => void
+
+  readonly onMouseEnterHunk?: (lineNumber: number) => void
+  readonly onMouseLeaveHunk?: (lineNumber: number) => void
+  readonly onClickHunk?: (lineNumber: number, select: boolean) => void
 }
 
 export class SideBySideDiffRow extends React.Component<
@@ -138,12 +146,40 @@ export class SideBySideDiffRow extends React.Component<
           this.props.afterTokens
         )
 
+        console.log(
+          'rafeca: hunkhilghtign',
+          isInTemporarySelection(
+            this.props.hunkHighlightRange,
+            this.props.row.diffLineNumber
+          )
+        )
+
         return (
-          <div className="row added" onMouseEnter={this.onMouseEnterGutter}>
+          <div
+            className={classNames([
+              'row',
+              'added',
+              {
+                'highlighted-hunk': isInTemporarySelection(
+                  this.props.hunkHighlightRange,
+                  this.props.row.diffLineNumber
+                ),
+              },
+            ])}
+            onMouseEnter={this.onMouseEnterGutter}
+          >
             <div className="before">
               <div className="gutter"></div>
               <div className="content"></div>
             </div>
+            {canSelect(this.props.file) && (
+              <div
+                className="hunk-handle"
+                onMouseEnter={this.onMouseEnterHunk}
+                onMouseLeave={this.onMouseLeaveHunk}
+                onClick={this.onClickHunk}
+              ></div>
+            )}
             <div className="after">
               {this.renderGutter(
                 this.props.row.diffLineNumber,
@@ -168,7 +204,19 @@ export class SideBySideDiffRow extends React.Component<
         )
 
         return (
-          <div className="row deleted" onMouseEnter={this.onMouseEnterGutter}>
+          <div
+            className={classNames([
+              'row',
+              'deleted',
+              {
+                'highlighted-hunk': isInTemporarySelection(
+                  this.props.hunkHighlightRange,
+                  this.props.row.diffLineNumber
+                ),
+              },
+            ])}
+            onMouseEnter={this.onMouseEnterGutter}
+          >
             <div className="before">
               {this.renderGutter(
                 this.props.row.diffLineNumber,
@@ -182,6 +230,14 @@ export class SideBySideDiffRow extends React.Component<
                 )}
               </div>
             </div>
+            {canSelect(this.props.file) && (
+              <div
+                className="hunk-handle"
+                onMouseEnter={this.onMouseEnterHunk}
+                onMouseLeave={this.onMouseLeaveHunk}
+                onClick={this.onClickHunk}
+              ></div>
+            )}
             <div className="after">
               <div className="gutter"></div>
               <div className="content"></div>
@@ -219,7 +275,18 @@ export class SideBySideDiffRow extends React.Component<
         }
 
         return (
-          <div className="row modified">
+          <div
+            className={classNames([
+              'row',
+              'modified',
+              {
+                'highlighted-hunk': isInTemporarySelection(
+                  this.props.hunkHighlightRange,
+                  this.props.row.before.diffLineNumber
+                ),
+              },
+            ])}
+          >
             <div className="before" onMouseEnter={this.onMouseEnterGutter}>
               {this.renderGutter(
                 this.props.row.before.diffLineNumber,
@@ -233,7 +300,14 @@ export class SideBySideDiffRow extends React.Component<
                 )}
               </div>
             </div>
-
+            {canSelect(this.props.file) && (
+              <div
+                className="hunk-handle"
+                onMouseEnter={this.onMouseEnterHunk}
+                onMouseLeave={this.onMouseLeaveHunk}
+                onClick={this.onClickHunk}
+              ></div>
+            )}
             <div className="after" onMouseEnter={this.onMouseEnterGutter}>
               {this.renderGutter(
                 this.props.row.after.diffLineNumber,
@@ -326,6 +400,7 @@ export class SideBySideDiffRow extends React.Component<
 
     return null
   }
+
   private getIsSelected(evt: React.MouseEvent) {
     if (
       this.props.row.type === DiffRowType.Added ||
@@ -345,6 +420,33 @@ export class SideBySideDiffRow extends React.Component<
     }
 
     return null
+  }
+
+  private onMouseEnterHunk = (evt: React.MouseEvent) => {
+    const lineNumber = this.getDiffLineNumber(evt)
+
+    if (this.props.onMouseEnterHunk && lineNumber !== null) {
+      this.props.onMouseEnterHunk(lineNumber)
+    }
+  }
+
+  private onMouseLeaveHunk = (evt: React.MouseEvent) => {
+    const lineNumber = this.getDiffLineNumber(evt)
+
+    if (this.props.onMouseLeaveHunk && lineNumber !== null) {
+      this.props.onMouseLeaveHunk(lineNumber)
+    }
+  }
+
+  private onClickHunk = (evt: React.MouseEvent) => {
+    const lineNumber = this.getDiffLineNumber(evt)
+    const isSelected = this.getIsSelected(evt)
+
+    console.log('rafeca: sidebyside', lineNumber, isSelected)
+
+    if (this.props.onClickHunk && lineNumber !== null && isSelected !== null) {
+      this.props.onClickHunk(lineNumber, !isSelected)
+    }
   }
 }
 

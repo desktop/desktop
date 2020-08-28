@@ -40,6 +40,26 @@
       }
     }
   }
+
+  .added.highlighted-hunk .after .gutter {
+    background: var(--diff-add-hover-background-color) !important;
+    border-color: var(--diff-add-hover-border-color) !important;
+    color: var(--diff-add-hover-text-color) !important;
+  }
+
+  .deleted.highlighted-hunk .before .gutter {
+    background: var(--diff-delete-hover-background-color) !important;
+    border-color: var(--diff-delete-hover-border-color) !important;
+    color: var(--diff-delete-hover-text-color) !important;
+  }
+
+  .row.highlighted-hunk {
+    .gutter.line-selected {
+      background: var(--diff-hover-background-color) !important;
+      border-color: var(--diff-hover-border-color) !important;
+      color: var(--diff-hover-text-color) !important;
+    }
+  }
 }
 
 .side-by-side-diff {
@@ -86,8 +106,9 @@
       position: absolute;
       height: 100%;
       width: 20px;
-      right: -8px;
+      left: calc(50% - 10px);
       top: 0;
+      cursor: pointer;
     }
 
     .content {

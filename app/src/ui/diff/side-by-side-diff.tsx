@@ -32,6 +32,7 @@ import {
   SideBySideDiffRow,
 } from './side-by-side-diff-row'
 import memoize from 'memoize-one'
+import { findInteractiveDiffRange } from './diff-explorer'
 
 type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
 
@@ -54,9 +55,12 @@ interface ISideBySideDiffState {
   readonly afterTokens?: ITokens
   readonly selectingRow?: 'before' | 'after'
   readonly selection?: ISelection
+
+  /** Whether a particular range should be highlighted due to hover */
+  readonly hunkHighlightRange?: ISelection
 }
 
-interface ISelection {
+export interface ISelection {
   readonly from: number
   readonly to: number
   readonly isSelected: boolean
@@ -111,6 +115,7 @@ export class SideBySideDiff extends React.Component<
                 beforeTokens={this.state.beforeTokens}
                 afterTokens={this.state.afterTokens}
                 temporarySelection={this.state.selection}
+                hunkHighlightRange={this.state.hunkHighlightRange}
                 file={this.props.file}
                 rowCount={
                   getDiffRows(
@@ -156,8 +161,12 @@ export class SideBySideDiff extends React.Component<
             beforeTokens={this.state.beforeTokens}
             afterTokens={this.state.afterTokens}
             file={this.props.file}
+            hunkHighlightRange={this.state.hunkHighlightRange}
             onStartSelection={this.onStartSelection}
             onUpdateSelection={this.onUpdateSelection}
+            onMouseEnterHunk={this.onMouseEnterHunk}
+            onMouseLeaveHunk={this.onMouseLeaveHunk}
+            onClickHunk={this.onClickHunk}
           />
         </div>
       </CellMeasurer>
@@ -217,12 +226,12 @@ export class SideBySideDiff extends React.Component<
     })
   }
 
-  private onStartSelection = (lineNumber: number, isSelected: boolean) => {
+  private onStartSelection = (lineNumber: number, select: boolean) => {
     this.setState({
       selection: {
         from: lineNumber,
         to: lineNumber,
-        isSelected,
+        isSelected: select,
       },
     })
 
@@ -269,6 +278,45 @@ export class SideBySideDiff extends React.Component<
         to: lineNumber,
       },
     })
+  }
+
+  private onMouseEnterHunk = (lineNumber: number) => {
+    const range = findInteractiveDiffRange(this.props.diff.hunks, lineNumber)
+
+    if (range === null) {
+      return
+    }
+
+    console.log('rafeca: onmouseenter', range)
+
+    const { from, to } = range
+    this.setState({ hunkHighlightRange: { from, to, isSelected: false } })
+  }
+
+  private onMouseLeaveHunk = (lineNumber: number) => {
+    this.setState({ hunkHighlightRange: undefined })
+  }
+
+  private onClickHunk = (lineNumber: number, select: boolean) => {
+    if (!canSelect(this.props.file)) {
+      return
+    }
+
+    const range = findInteractiveDiffRange(this.props.diff.hunks, lineNumber)
+
+    if (range === null) {
+      return
+    }
+
+    const { from, to } = range
+
+    if (this.props.onIncludeChanged === undefined) {
+      return
+    }
+
+    this.props.onIncludeChanged(
+      this.props.file.selection.withRangeSelection(from, to - from + 1, select)
+    )
   }
 }
 
@@ -505,14 +553,24 @@ function isInSelection(
     return isInStoredSelection
   }
 
-  const isInTemporalSelection =
-    diffLineNumber >=
-      Math.min(temporarySelection.from, temporarySelection.to) &&
-    diffLineNumber <= Math.max(temporarySelection.from, temporarySelection.to)
+  const isInTemporary = isInTemporarySelection(
+    temporarySelection,
+    diffLineNumber
+  )
 
   if (temporarySelection.isSelected) {
-    return isInStoredSelection || isInTemporalSelection
+    return isInStoredSelection || isInTemporary
   } else {
-    return isInStoredSelection && !isInTemporalSelection
+    return isInStoredSelection && !isInTemporary
   }
+}
+
+export function isInTemporarySelection(
+  s: ISelection | undefined,
+  ix: number
+): s is ISelection {
+  if (s === undefined) {
+    return false
+  }
+  return ix >= Math.min(s.from, s.to) && ix <= Math.max(s.to, s.from)
 }
