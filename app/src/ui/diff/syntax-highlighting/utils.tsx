@@ -1,14 +1,8 @@
 import * as React from 'react'
 
-import {
-  Diff,
-  DIFF_EQUAL,
-  DIFF_DELETE,
-  DIFF_INSERT,
-  diff_match_patch,
-} from 'diff-match-patch'
 import { ILineTokens } from '../../../lib/highlighter/types'
 import classNames from 'classnames'
+import { relativeChanges } from '../changed-range'
 
 /**
  * Returns an object with two ILineTokens objects that can be used to highlight
@@ -32,41 +26,22 @@ export function getDiffTokens(
   lineBefore: string,
   lineAfter: string
 ): { before: ILineTokens; after: ILineTokens } {
-  const dmp = new diff_match_patch()
-  const diff = dmp.diff_main(lineBefore, lineAfter)
-
-  dmp.diff_cleanupMerge(diff)
-  dmp.diff_cleanupSemanticLossless(diff)
+  const changeRanges = relativeChanges(lineBefore, lineAfter)
 
   return {
-    before: convertDiffToTokens(diff, DIFF_DELETE),
-    after: convertDiffToTokens(diff, DIFF_INSERT),
+    before: {
+      [changeRanges.stringARange.location]: {
+        token: 'diff-delete-inner',
+        length: changeRanges.stringARange.length,
+      },
+    },
+    after: {
+      [changeRanges.stringBRange.location]: {
+        token: 'diff-add-inner',
+        length: changeRanges.stringBRange.length,
+      },
+    },
   }
-}
-
-function convertDiffToTokens(diff: Diff[], diffOperation: number): ILineTokens {
-  const output: ILineTokens = []
-
-  let startIndex = 0
-  for (const [type, content] of diff) {
-    if (type === DIFF_EQUAL) {
-      startIndex += content.length
-      continue
-    }
-
-    if (type !== diffOperation) {
-      continue
-    }
-
-    const tokenName =
-      diffOperation === DIFF_DELETE ? 'diff-delete-inner' : 'diff-add-inner'
-
-    output[startIndex] = { token: tokenName, length: content.length }
-
-    startIndex += content.length
-  }
-
-  return output
 }
 
 /**
@@ -93,13 +68,13 @@ export function syntaxHighlightLine(
     const char = line[i]
 
     const tokensToRemove = currentElement.tokens.filter(
-      token => token.endPosition === i
+      token => token.endPosition <= i
     )
 
     const tokensToAdd = []
 
     for (const tokens of tokensArray) {
-      if (tokens[i] !== undefined) {
+      if (tokens[i] !== undefined && tokens[i].length > 0) {
         tokensToAdd.push({
           name: tokens[i].token
             .split(' ')
@@ -117,10 +92,11 @@ export function syntaxHighlightLine(
         classNames: currentElement.tokens.map(token => token.name),
         content: currentElement.content,
       })
+
       currentElement = {
         content: char,
         tokens: [
-          ...currentElement.tokens.filter(token => token.endPosition !== i),
+          ...currentElement.tokens.filter(token => token.endPosition > i),
           ...tokensToAdd,
         ],
       }

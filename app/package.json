@@ -26,7 +26,6 @@
     "compare-versions": "^3.6.0",
     "deep-equal": "^1.0.1",
     "dexie": "^2.0.0",
-    "diff-match-patch": "^1.0.5",
     "double-ended-queue": "^2.1.0-0",
     "dugite": "1.91.3",
     "electron-window-state": "^5.0.3",
