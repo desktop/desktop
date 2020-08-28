@@ -369,10 +369,10 @@ export class CommitSummary extends React.Component<
 
             <li
               className="commit-summary-meta-item without-truncation"
-              title="Show Split diff"
+              title="Split View"
             >
               <Checkbox
-                label="Show Split diff"
+                label="Split View"
                 value={
                   this.props.showSideBySideDiff
                     ? CheckboxValue.On
