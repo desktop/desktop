@@ -110,11 +110,16 @@ export function syntaxHighlightLine(
 
   return (
     <>
-      {elements.map((element, i) => (
-        <span key={i} className={classNames(element.classNames)}>
-          {element.content}
-        </span>
-      ))}
+      {elements.map((element, i) => {
+        if (element.classNames.length === 0) {
+          return element.content
+        }
+        return (
+          <span key={i} className={classNames(element.classNames)}>
+            {element.content}
+          </span>
+        )
+      })}
     </>
   )
 }
