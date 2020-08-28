@@ -57,12 +57,9 @@ export function syntaxHighlightLine(
   tokensArray: ReadonlyArray<ILineTokens>
 ): JSX.Element {
   const elements = []
-  let currentElement: {
-    content: string
-    tokens: Map<string, number>
-  } = {
+  let currentElement = {
     content: '',
-    tokens: new Map(),
+    tokens: new Map<string, number>(),
   }
 
   for (let i = 0; i < line.length; i++) {
@@ -81,7 +78,6 @@ export function syntaxHighlightLine(
         // We split them to avoid creating unneeded HTML elements when
         // these tokens do not maintain the same order.
         const tokenNames = tokens[i].token.split(' ')
-
         const position = i + tokens[i].length
 
         for (const name of tokenNames) {
@@ -104,7 +100,7 @@ export function syntaxHighlightLine(
       currentElement.content += char
     } else {
       elements.push({
-        classNames: [...currentElement.tokens.keys()].map(name => `cm-${name}`),
+        tokens: currentElement.tokens,
         content: currentElement.content,
       })
 
@@ -115,19 +111,25 @@ export function syntaxHighlightLine(
     }
   }
 
+  // Add the remaining current element to the list of elements.
   elements.push({
-    classNames: [...currentElement.tokens.keys()],
+    tokens: currentElement.tokens,
     content: currentElement.content,
   })
 
   return (
     <>
       {elements.map((element, i) => {
-        if (element.classNames.length === 0) {
+        if (element.tokens.size === 0) {
           return element.content
         }
         return (
-          <span key={i} className={classNames(element.classNames)}>
+          <span
+            key={i}
+            className={classNames(
+              [...element.tokens.keys()].map(name => `cm-${name}`)
+            )}
+          >
             {element.content}
           </span>
         )
