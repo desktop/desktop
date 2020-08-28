@@ -1681,12 +1681,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return null
   }
 
-  private shouldBackgroundFetch(
+  private async shouldBackgroundFetch(
     repository: Repository,
     lastPush: Date | null
-  ): boolean {
+  ): Promise<boolean> {
     const gitStore = this.gitStoreCache.get(repository)
-    const lastFetched = gitStore.lastFetched
+    const lastFetched = await gitStore.updateLastFetched()
 
     if (lastFetched === null) {
       return true
@@ -2834,7 +2834,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository
     )
 
-    if (this.shouldBackgroundFetch(repository, lastPush)) {
+    if (await this.shouldBackgroundFetch(repository, lastPush)) {
       await this._fetch(repository, FetchType.BackgroundTask)
     }
 

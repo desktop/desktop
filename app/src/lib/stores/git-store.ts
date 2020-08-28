@@ -1378,6 +1378,7 @@ export class GitStore extends BaseStore {
     }
 
     this.emitUpdate()
+    return this._lastFetched
   }
 
   /** Merge the named branch into the current branch. */

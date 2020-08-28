@@ -52,6 +52,5 @@ export async function inferLastPushForRepository(
     }
   }
 
-  await gitStore.updateLastFetched()
   return null
 }
