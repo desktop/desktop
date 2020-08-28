@@ -1,4 +1,3 @@
-import * as Fs from 'fs'
 import * as Path from 'path'
 import { Repository } from '../../models/repository'
 import {
@@ -90,6 +89,7 @@ import { StatsStore } from '../stats'
 import { getTagsToPush, storeTagsToPush } from './helpers/tags-to-push-storage'
 import { DiffSelection, ITextDiff } from '../../models/diff'
 import { getDefaultBranch } from '../helpers/default-branch'
+import { stat } from 'fs-extra'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -1363,24 +1363,21 @@ export class GitStore extends BaseStore {
   }
 
   /** Update the last fetched date. */
-  public updateLastFetched(): Promise<void> {
-    const path = Path.join(this.repository.path, '.git', 'FETCH_HEAD')
-    return new Promise<void>((resolve, reject) => {
-      Fs.stat(path, (err, stats) => {
-        if (err) {
-          // An error most likely means the repository's never been published.
-          this._lastFetched = null
-        } else if (stats.size > 0) {
-          // If the file's empty then it _probably_ means the fetch failed and we
-          // shouldn't update the last fetched date.
-          this._lastFetched = stats.mtime
-        }
+  public async updateLastFetched() {
+    const fetchHeadPath = Path.join(this.repository.path, '.git', 'FETCH_HEAD')
+    const fstat = await stat(fetchHeadPath).catch(() => null)
 
-        resolve()
+    if (fstat === null) {
+      this._lastFetched = null
+    } else {
+      // If the file's empty then it _probably_ means the fetch failed and we
+      // shouldn't update the last fetched date.
+      if (fstat.size > 0) {
+        this._lastFetched = fstat.mtime
+      }
+    }
 
-        this.emitUpdate()
-      })
-    })
+    this.emitUpdate()
   }
 
   /** Merge the named branch into the current branch. */
