@@ -247,6 +247,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
           repository={this.props.repository}
           file={this.props.file}
           diff={diff}
+          onIncludeChanged={this.props.onIncludeChanged}
         />
       )
     }

@@ -9,6 +9,10 @@
       user-select: none;
     }
   }
+
+  &.editable .row .before {
+    flex-direction: row-reverse;
+  }
 }
 
 .side-by-side-diff {
@@ -42,6 +46,10 @@
       overflow: hidden;
       direction: rtl;
       user-select: none;
+
+      &.selectable {
+        cursor: pointer;
+      }
     }
 
     .content {
@@ -94,6 +102,11 @@
 
         .gutter {
           background: var(--diff-add-gutter-background-color);
+
+          &.line-selected {
+            background: var(--diff-selected-background-color);
+            color: var(--diff-selected-text-color);
+          }
         }
       }
 
@@ -115,6 +128,11 @@
         .gutter {
           background: var(--diff-delete-gutter-background-color);
           border-color: var(--diff-delete-border-color);
+
+          &.line-selected {
+            background: var(--diff-selected-background-color);
+            color: var(--diff-selected-text-color);
+          }
         }
       }
 
@@ -135,6 +153,11 @@
         .gutter {
           background: var(--diff-delete-gutter-background-color);
           border-color: var(--diff-delete-border-color);
+
+          &.line-selected {
+            background: var(--diff-selected-background-color);
+            color: var(--diff-selected-text-color);
+          }
         }
       }
 
@@ -145,6 +168,11 @@
         .gutter {
           background: var(--diff-add-gutter-background-color);
           border-color: var(--diff-add-border-color);
+
+          &.line-selected {
+            background: var(--diff-selected-background-color);
+            color: var(--diff-selected-text-color);
+          }
         }
       }
     }

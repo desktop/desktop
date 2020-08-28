@@ -1,6 +1,13 @@
+/* eslint-disable react/jsx-no-bind */
 import * as React from 'react'
 import { Repository } from '../../models/repository'
-import { ITextDiff, DiffLineType, DiffHunk, DiffLine } from '../../models/diff'
+import {
+  ITextDiff,
+  DiffLineType,
+  DiffHunk,
+  DiffLine,
+  DiffSelection,
+} from '../../models/diff'
 import {
   WorkingDirectoryFileChange,
   CommittedFileChange,
@@ -14,6 +21,7 @@ import { getTokensForDiffLine } from './diff-syntax-mode'
 import { ITokens } from '../../lib/highlighter/types'
 import { assertNever } from '../../lib/fatal-error'
 import { getDiffTokens, syntaxHighlightLine } from './syntax-highlighting/utils'
+import classNames from 'classnames'
 
 type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
 
@@ -25,12 +33,25 @@ interface ISideBySideDiffProps {
   readonly file: ChangedFile
   /** The diff that should be rendered */
   readonly diff: ITextDiff
+
+  /**
+   * Called when the includedness of lines or a range of lines has changed.
+   * Only applicable when readOnly is false.
+   */
+  readonly onIncludeChanged?: (diffSelection: DiffSelection) => void
 }
 
 interface ISideBySideDiffState {
   readonly oldTokens?: ITokens
   readonly newTokens?: ITokens
   readonly selectingRow?: 'before' | 'after'
+  readonly selection?: ISelection
+}
+
+interface ISelection {
+  readonly from: number
+  readonly to: number
+  readonly isSelected: boolean
 }
 
 export class SideBySideDiff extends React.Component<
@@ -56,12 +77,14 @@ export class SideBySideDiff extends React.Component<
   public render() {
     return (
       <div
-        className={
-          'side-by-side-diff-container ' +
-          (this.state.selectingRow
-            ? `selecting-${this.state.selectingRow}`
-            : '')
-        }
+        className={classNames([
+          {
+            'side-by-side-diff-container': true,
+            [`selecting-${this.state.selectingRow}`]:
+              this.state.selectingRow !== undefined,
+            editable: canSelect(this.props.file),
+          },
+        ])}
         onMouseDown={this.onMouseDown}
       >
         <div className="side-by-side-diff cm-s-default">
@@ -91,8 +114,10 @@ export class SideBySideDiff extends React.Component<
     const rows: Array<JSX.Element> = []
     let addedDeletedLines: Array<DiffLine> = []
 
+    let lineNumber = 0
+
     for (const [num, line] of hunk.lines.entries()) {
-      const lineNumber = hunk.unifiedDiffStart + num
+      lineNumber = hunk.unifiedDiffStart + num
 
       if (line.type === DiffLineType.Delete || line.type === DiffLineType.Add) {
         addedDeletedLines.push(line)
@@ -152,7 +177,10 @@ export class SideBySideDiff extends React.Component<
 
     if (addedDeletedLines.length > 0) {
       rows.push(
-        ...this.renderAddedDeletedLines(addedDeletedLines, hunk.lines.length)
+        ...this.renderAddedDeletedLines(
+          addedDeletedLines,
+          lineNumber - addedDeletedLines.length + 1
+        )
       )
     }
 
@@ -193,7 +221,10 @@ export class SideBySideDiff extends React.Component<
               <div className="content"></div>
             </div>
             <div className="after">
-              <div className="gutter">{line.newLineNumber}</div>
+              {this.renderGutter(
+                offsetLine + numLine + deletedLines.length,
+                line.newLineNumber
+              )}
               <div className="content">
                 {syntaxHighlightLine(
                   line.content,
@@ -215,7 +246,7 @@ export class SideBySideDiff extends React.Component<
         output.push(
           <div className="row deleted" key={offsetLine + numLine}>
             <div className="before">
-              <div className="gutter">{line.oldLineNumber}</div>
+              {this.renderGutter(offsetLine + numLine, line.oldLineNumber)}
               <div className="content">
                 {syntaxHighlightLine(
                   line.content,
@@ -265,14 +296,20 @@ export class SideBySideDiff extends React.Component<
         output.push(
           <div className="row modified" key={offsetLine + numLine}>
             <div className="before">
-              <div className="gutter">{lineBefore.oldLineNumber}</div>
+              {this.renderGutter(
+                offsetLine + numLine,
+                lineBefore.oldLineNumber
+              )}
               <div className="content">
                 {syntaxHighlightLine(lineBefore.content, tokensBefore)}
               </div>
             </div>
 
             <div className="after">
-              <div className="gutter">{lineAfter.newLineNumber}</div>
+              {this.renderGutter(
+                offsetLine + numLine + deletedLines.length,
+                lineAfter.newLineNumber
+              )}
               <div className="content">
                 {syntaxHighlightLine(lineAfter.content, tokensAfter)}
               </div>
@@ -313,6 +350,115 @@ export class SideBySideDiff extends React.Component<
       newTokens: tokens.newTokens,
     })
   }
+
+  private renderGutter(diffLineNumber: number, lineNumber?: number | null) {
+    if (!canSelect(this.props.file)) {
+      return <div className="gutter">{lineNumber}</div>
+    }
+
+    const isSelected = this.isInSelection(diffLineNumber)
+
+    return (
+      <div
+        className={`${diffLineNumber} gutter selectable ${
+          isSelected ? 'line-selected ' : ''
+        }`}
+        // tslint:disable-next-line: react-this-binding-issue
+        onMouseDown={evt => this.onMouseDownGutter(evt, diffLineNumber)}
+        // tslint:disable-next-line: react-this-binding-issue
+        onMouseUp={evt => this.onMouseUpGutter(evt, diffLineNumber)}
+        // tslint:disable-next-line: react-this-binding-issue
+        onMouseEnter={evt => this.onMouseEnterGutter(evt, diffLineNumber)}
+      >
+        {lineNumber}
+      </div>
+    )
+  }
+
+  private isInSelection(lineNumber: number) {
+    if (!canSelect(this.props.file)) {
+      return false
+    }
+
+    const isInStoredSelection = this.props.file.selection.isSelected(lineNumber)
+
+    if (this.state.selection === undefined) {
+      return isInStoredSelection
+    }
+
+    const isInTemporalSelection =
+      lineNumber >=
+        Math.min(this.state.selection.from, this.state.selection.to) &&
+      lineNumber <= Math.max(this.state.selection.from, this.state.selection.to)
+
+    if (this.state.selection.isSelected) {
+      return isInStoredSelection || isInTemporalSelection
+    } else {
+      return isInStoredSelection && !isInTemporalSelection
+    }
+  }
+
+  private onMouseDownGutter = (evt: React.MouseEvent, lineNumber: number) => {
+    if (!canSelect(this.props.file)) {
+      return
+    }
+
+    const isSelected = this.props.file.selection.isSelected(lineNumber)
+
+    this.setState({
+      selection: {
+        from: lineNumber,
+        to: lineNumber,
+        isSelected: !isSelected,
+      },
+    })
+  }
+
+  private onMouseUpGutter = (evt: React.MouseEvent, lineNumber: number) => {
+    if (!canSelect(this.props.file)) {
+      return
+    }
+
+    if (this.state.selection === undefined) {
+      return
+    }
+
+    if (this.props.onIncludeChanged === undefined) {
+      return
+    }
+
+    const from = Math.min(this.state.selection.from, lineNumber)
+    const to = Math.max(this.state.selection.from, lineNumber)
+
+    this.props.onIncludeChanged(
+      this.props.file.selection.withRangeSelection(
+        from,
+        to - from + 1,
+        this.state.selection.isSelected
+      )
+    )
+
+    this.setState({
+      selection: undefined,
+    })
+  }
+
+  private onMouseEnterGutter = (evt: React.MouseEvent, lineNumber: number) => {
+    if (!canSelect(this.props.file)) {
+      return
+    }
+
+    if (this.state.selection === undefined) {
+      return
+    }
+
+    this.setState({
+      selection: {
+        ...this.state.selection,
+        to: lineNumber,
+      },
+    })
+  }
 }
 
 /**
@@ -331,4 +477,9 @@ function highlightParametersEqual(
     (newProps.file.id === prevProps.file.id &&
       newProps.diff.text === prevProps.diff.text)
   )
+}
+
+/** Utility function for checking whether a file supports selection */
+function canSelect(file: ChangedFile): file is WorkingDirectoryFileChange {
+  return file instanceof WorkingDirectoryFileChange
 }

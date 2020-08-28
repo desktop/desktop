@@ -40,6 +40,8 @@ interface IChangesProps {
    * discards changes
    */
   readonly askForConfirmationOnDiscardChanges: boolean
+
+  readonly showSideBySideDiff: boolean
 }
 
 export class Changes extends React.Component<IChangesProps, {}> {
@@ -90,7 +92,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
           onDiscardChanges={this.onDiscardChanges}
           diff={diff}
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
-          showSideBySideDiff={false}
+          showSideBySideDiff={this.props.showSideBySideDiff}
           askForConfirmationOnDiscardChanges={
             this.props.askForConfirmationOnDiscardChanges
           }
