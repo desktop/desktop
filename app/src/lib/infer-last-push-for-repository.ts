@@ -27,35 +27,31 @@ export async function inferLastPushForRepository(
   }
 
   await gitStore.loadRemotes()
+  const { currentRemote } = gitStore
 
   const api = API.fromAccount(account)
-  let lastPushDate: Date | null = null
-  if (gitStore.currentRemote !== null) {
-    const matchedRepository = matchGitHubRepository(
-      accounts,
-      gitStore.currentRemote.url
-    )
+  if (currentRemote !== null) {
+    const matchedRepository = matchGitHubRepository(accounts, currentRemote.url)
 
     if (matchedRepository !== null) {
       const { owner, name } = matchedRepository
       const repo = await api.fetchRepository(owner, name)
 
       if (repo !== null) {
-        lastPushDate = new Date(repo.pushed_at)
+        return new Date(repo.pushed_at)
       }
     }
   }
 
-  if (lastPushDate === null && repository.gitHubRepository !== null) {
+  if (repository.gitHubRepository !== null) {
     const { owner, name } = repository.gitHubRepository
     const repo = await api.fetchRepository(owner.login, name)
 
     if (repo !== null) {
-      lastPushDate = new Date(repo.pushed_at)
+      return new Date(repo.pushed_at)
     }
   }
 
   await gitStore.updateLastFetched()
-
-  return lastPushDate
+  return null
 }
