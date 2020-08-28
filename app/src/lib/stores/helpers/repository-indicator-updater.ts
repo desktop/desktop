@@ -146,8 +146,9 @@ export class RepositoryIndicatorUpdater {
       // tslint:disable-next-line:promise-must-complete
       this.pausePromise = new Promise<void>(resolve => {
         this.resolvePausePromise = resolve
-        this.paused = true
       })
+
+      this.paused = true
     }
   }
 
