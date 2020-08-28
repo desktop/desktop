@@ -340,7 +340,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private currentBranchPruner: BranchPruner | null = null
   private readonly repositoryIndicatorUpdater = new RepositoryIndicatorUpdater(
-    () => this.repositories.slice(),
+    () => [...this.repositories],
     r => this.refreshIndicatorForRepository(r)
   )
 
