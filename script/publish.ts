@@ -29,7 +29,7 @@ import * as Crypto from 'crypto'
 import request from 'request'
 
 console.log('Packaging…')
-execSync('yarn package')
+execSync('yarn package', { stdio: 'inherit' })
 
 const sha = platforms.getSha().substr(0, 8)
 

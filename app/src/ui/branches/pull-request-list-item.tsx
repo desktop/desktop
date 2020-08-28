@@ -79,11 +79,13 @@ export class PullRequestListItem extends React.Component<
   private renderPullRequestStatus() {
     const ref = `refs/pull/${this.props.number}/head`
     return (
-      <CIStatus
-        dispatcher={this.props.dispatcher}
-        repository={this.props.repository}
-        commitRef={ref}
-      />
+      <div className="ci-status-container">
+        <CIStatus
+          dispatcher={this.props.dispatcher}
+          repository={this.props.repository}
+          commitRef={ref}
+        />
+      </div>
     )
   }
 }

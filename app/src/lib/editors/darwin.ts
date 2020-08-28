@@ -2,6 +2,7 @@ import * as Path from 'path'
 import { pathExists } from 'fs-extra'
 import { IFoundEditor } from './found-editor'
 import { assertNever } from '../fatal-error'
+import appPath from 'app-path'
 
 export enum ExternalEditor {
   Atom = 'Atom',
@@ -95,11 +96,6 @@ export function parse(label: string): ExternalEditor | null {
   }
   return null
 }
-
-/**
- * appPath will raise an error if it cannot find the program.
- */
-const appPath: (bundleId: string) => Promise<string> = require('app-path')
 
 function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
   switch (editor) {

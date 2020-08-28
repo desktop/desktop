@@ -11,6 +11,7 @@ import {
 } from './http'
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
+import username from 'username'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
 
@@ -57,8 +58,6 @@ interface IFetchAllOptions<T> {
    */
   suppressErrors?: boolean
 }
-
-const username: () => Promise<string> = require('username')
 
 const ClientID = process.env.TEST_ENV ? '' : __OAUTH_CLIENT_ID__
 const ClientSecret = process.env.TEST_ENV ? '' : __OAUTH_SECRET__
@@ -253,7 +252,21 @@ export interface IAPIIssue {
 }
 
 /** The combined state of a ref. */
-export type APIRefState = 'failure' | 'pending' | 'success'
+export type APIRefState = 'failure' | 'pending' | 'success' | 'error'
+
+/** The overall status of a check run */
+export type APICheckStatus = 'queued' | 'in_progress' | 'completed'
+
+/** The conclusion of a completed check run */
+export type APICheckConclusion =
+  | 'action_required'
+  | 'cancelled'
+  | 'timed_out'
+  | 'failure'
+  | 'neutral'
+  | 'success'
+  | 'skipped'
+  | 'stale'
 
 /**
  * The API response for a combined view of a commit
@@ -272,6 +285,30 @@ export interface IAPIRefStatus {
   readonly state: APIRefState
   readonly total_count: number
   readonly statuses: ReadonlyArray<IAPIRefStatusItem>
+}
+
+export interface IAPIRefCheckRun {
+  readonly id: number
+  readonly url: string
+  readonly status: APICheckStatus
+  readonly conclusion: APICheckConclusion | null
+  readonly name: string
+  readonly output: IAPIRefCheckRunOutput
+  readonly check_suite: IAPIRefCheckRunCheckSuite
+}
+
+// NB. Only partially mapped
+export interface IAPIRefCheckRunOutput {
+  readonly title: string | null
+}
+
+export interface IAPIRefCheckRunCheckSuite {
+  readonly id: number
+}
+
+export interface IAPIRefCheckRuns {
+  readonly total_count: number
+  readonly check_runs: IAPIRefCheckRun[]
 }
 
 /** Protected branch information returned by the GitHub API */
@@ -768,18 +805,52 @@ export class API {
 
   /**
    * Get the combined status for the given ref.
-   *
-   * Note: Contrary to many other methods in this class this will not
-   * suppress or log errors, callers must ensure that they handle errors.
    */
   public async fetchCombinedRefStatus(
     owner: string,
     name: string,
     ref: string
-  ): Promise<IAPIRefStatus> {
-    const path = `repos/${owner}/${name}/commits/${ref}/status`
+  ): Promise<IAPIRefStatus | null> {
+    const safeRef = encodeURIComponent(ref)
+    const path = `repos/${owner}/${name}/commits/${safeRef}/status?per_page=100`
     const response = await this.request('GET', path)
-    return await parsedResponse<IAPIRefStatus>(response)
+
+    try {
+      return await parsedResponse<IAPIRefStatus>(response)
+    } catch (err) {
+      log.debug(
+        `Failed fetching check runs for ref ${ref} (${owner}/${name})`,
+        err
+      )
+      return null
+    }
+  }
+
+  /**
+   * Get any check run results for the given ref.
+   */
+  public async fetchRefCheckRuns(
+    owner: string,
+    name: string,
+    ref: string
+  ): Promise<IAPIRefCheckRuns | null> {
+    const safeRef = encodeURIComponent(ref)
+    const path = `repos/${owner}/${name}/commits/${safeRef}/check-runs?per_page=100`
+    const headers = {
+      Accept: 'application/vnd.github.antiope-preview+json',
+    }
+
+    const response = await this.request('GET', path, undefined, headers)
+
+    try {
+      return await parsedResponse<IAPIRefCheckRuns>(response)
+    } catch (err) {
+      log.debug(
+        `Failed fetching check runs for ref ${ref} (${owner}/${name})`,
+        err
+      )
+      return null
+    }
   }
 
   /**

@@ -27,7 +27,7 @@ import {
 } from '../autocompletion'
 import { ClickSource } from '../lib/list'
 import { WorkingDirectoryFileChange } from '../../models/status'
-import CSSTransitionGroup from 'react-transition-group/CSSTransitionGroup'
+import { TransitionGroup, CSSTransition } from 'react-transition-group'
 import { openFile } from '../lib/open-file'
 import { Account } from '../../models/account'
 import { PopupType } from '../../models/popup'
@@ -329,27 +329,23 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     // the commit won't be completely deleted because the tag will still point to it.
     if (commit && commit.tags.length === 0) {
       child = (
-        <UndoCommit
-          isPushPullFetchInProgress={this.props.isPushPullFetchInProgress}
-          commit={commit}
-          onUndo={this.onUndo}
-          emoji={this.props.emoji}
-          isCommitting={this.props.isCommitting}
-        />
+        <CSSTransition
+          classNames="undo"
+          appear={true}
+          timeout={UndoCommitAnimationTimeout}
+        >
+          <UndoCommit
+            isPushPullFetchInProgress={this.props.isPushPullFetchInProgress}
+            commit={commit}
+            onUndo={this.onUndo}
+            emoji={this.props.emoji}
+            isCommitting={this.props.isCommitting}
+          />
+        </CSSTransition>
       )
     }
 
-    return (
-      <CSSTransitionGroup
-        transitionName="undo"
-        transitionAppear={true}
-        transitionAppearTimeout={UndoCommitAnimationTimeout}
-        transitionEnterTimeout={UndoCommitAnimationTimeout}
-        transitionLeaveTimeout={UndoCommitAnimationTimeout}
-      >
-        {child}
-      </CSSTransitionGroup>
-    )
+    return <TransitionGroup>{child}</TransitionGroup>
   }
 
   private renderUndoCommit = (

@@ -10,13 +10,8 @@ import packager, {
   ElectronOsXSignOptions,
   Options,
 } from 'electron-packager'
-
+import frontMatter from 'front-matter'
 import { externals } from '../app/webpack.common'
-
-interface IFrontMatterResult<T> {
-  readonly attributes: T
-  readonly body: string
-}
 
 interface IChooseALicense {
   readonly title: string
@@ -32,10 +27,6 @@ export interface ILicense {
   readonly hidden: boolean
 }
 
-const frontMatter: <T>(
-  path: string
-) => IFrontMatterResult<T> = require('front-matter')
-
 import {
   getBundleID,
   getCompanyName,
@@ -49,7 +40,7 @@ import {
   isPublishable,
   getIconFileName,
 } from './dist-info'
-import { isRunningOnFork, isCircleCI, isGitHubActions } from './build-platforms'
+import { isCircleCI, isGitHubActions } from './build-platforms'
 
 import { updateLicenseDump } from './licenses/update-license-dump'
 import { verifyInjectedSassVariables } from './validate-sass/validate-all'
@@ -81,11 +72,7 @@ generateLicenseMetadata(outRoot)
 
 moveAnalysisFiles()
 
-if (
-  (isCircleCI() || isGitHubActions()) &&
-  process.platform === 'darwin' &&
-  !isRunningOnFork()
-) {
+if (isGitHubActions() && process.platform === 'darwin' && isPublishableBuild) {
   console.log('Setting up keychain…')
   cp.execSync(path.join(__dirname, 'setup-macos-keychain'))
 }

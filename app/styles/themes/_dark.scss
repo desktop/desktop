@@ -222,6 +222,12 @@ body.theme-dark {
   --focus-color: #{$blue};
 
   /**
+   * An alternative focus color to use when the background color of
+   * the focused element is the same as the regular focus color.
+   */
+  --alt-focus-color: #{$blue-800};
+
+  /**
    * Variables for form elements
    */
   --text-field-focus-shadow-color: #{rgba($blue, 0.25)};
