@@ -3,6 +3,7 @@ import * as React from 'react'
 import { ILineTokens } from '../../../lib/highlighter/types'
 import classNames from 'classnames'
 import { relativeChanges } from '../changed-range'
+import { mapKeysEqual } from '../../../lib/equality'
 
 /**
  * Returns an object with two ILineTokens objects that can be used to highlight
@@ -58,53 +59,61 @@ export function syntaxHighlightLine(
   const elements = []
   let currentElement: {
     content: string
-    tokens: Array<{ name: string; endPosition: number }>
+    tokens: Map<string, number>
   } = {
     content: '',
-    tokens: [],
+    tokens: new Map(),
   }
 
   for (let i = 0; i < line.length; i++) {
     const char = line[i]
+    const newTokens = new Map<string, number>()
 
-    const tokensToRemove = currentElement.tokens.filter(
-      token => token.endPosition <= i
-    )
-
-    const tokensToAdd = []
-
-    for (const tokens of tokensArray) {
-      if (tokens[i] !== undefined && tokens[i].length > 0) {
-        tokensToAdd.push({
-          name: tokens[i].token
-            .split(' ')
-            .map(name => `cm-${name}`)
-            .join(' '),
-          endPosition: i + tokens[i].length,
-        })
+    for (const [token, endPosition] of currentElement.tokens) {
+      if (endPosition > i) {
+        newTokens.set(token, endPosition)
       }
     }
 
-    if (tokensToRemove.length === 0 && tokensToAdd.length === 0) {
+    for (const tokens of tokensArray) {
+      if (tokens[i] !== undefined && tokens[i].length > 0) {
+        const name = tokens[i].token
+          .split(' ')
+          .map(name => `cm-${name}`)
+          .join(' ')
+        const position = i + tokens[i].length
+
+        const existingTokenPosition = newTokens.get(name)
+
+        // While it's rare, it's theoretically possible that the same
+        // token exists for the same start position with different end
+        // positions. If this happens, we choose the longest one.
+        if (
+          existingTokenPosition === undefined ||
+          position > existingTokenPosition
+        ) {
+          newTokens.set(name, position)
+        }
+      }
+    }
+
+    if (mapKeysEqual(currentElement.tokens, newTokens)) {
       currentElement.content += char
     } else {
       elements.push({
-        classNames: currentElement.tokens.map(token => token.name),
+        classNames: [...currentElement.tokens.keys()],
         content: currentElement.content,
       })
 
       currentElement = {
         content: char,
-        tokens: [
-          ...currentElement.tokens.filter(token => token.endPosition > i),
-          ...tokensToAdd,
-        ],
+        tokens: newTokens,
       }
     }
   }
 
   elements.push({
-    classNames: currentElement.tokens.map(token => token.name),
+    classNames: [...currentElement.tokens.keys()],
     content: currentElement.content,
   })
 
