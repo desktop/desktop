@@ -33,7 +33,7 @@ export class RepositoryIndicatorUpdater {
 
   public start() {
     if (!this.running) {
-      this.debug('Starting')
+      log.debug('[RepositoryIndicatorUpdater] Starting')
 
       this.running = true
       this.scheduleRefresh()
@@ -53,8 +53,8 @@ export class RepositoryIndicatorUpdater {
         : 'never'
       const timeoutText = `${(timeout / 1000).toFixed(3)}s`
 
-      this.debug(
-        `Last refresh: ${lastRefreshText}, scheduling in ${timeoutText}`
+      log.debug(
+        `[RepositoryIndicatorUpdater] Last refresh: ${lastRefreshText}, scheduling in ${timeoutText}`
       )
 
       this.refreshTimeoutId = window.setTimeout(
@@ -68,9 +68,11 @@ export class RepositoryIndicatorUpdater {
     // We're only ever called by the setTimout so it's safe for us to clear
     // this without calling clearTimeout
     this.refreshTimeoutId = null
-    this.debug('Running refreshAllRepositories')
+    log.debug('[RepositoryIndicatorUpdater] Running refreshAllRepositories')
     if (this.paused) {
-      this.debug('Paused before starting refreshAllRepositories')
+      log.debug(
+        '[RepositoryIndicatorUpdater] Paused before starting refreshAllRepositories'
+      )
       await this.pausePromise
 
       if (!this.running) {
@@ -92,11 +94,15 @@ export class RepositoryIndicatorUpdater {
       await this.refreshRepositoryIndicators(repository)
 
       if (this.paused) {
-        this.debug(`Pausing after ${done.size} repositories`)
+        log.debug(
+          `[RepositoryIndicatorUpdater] Pausing after ${done.size} repositories`
+        )
         const pauseTimeStart = Date.now()
         await this.pausePromise
         pausedTime += Date.now() - pauseTimeStart
-        this.debug(`Resuming after ${pausedTime / 1000}s`)
+        log.debug(
+          `[RepositoryIndicatorUpdater] Resuming after ${pausedTime / 1000}s`
+        )
       }
 
       done.add(repository.id)
@@ -109,8 +115,8 @@ export class RepositoryIndicatorUpdater {
       const pausedTimeSeconds = (pausedTime / 1000).toFixed(1)
       const totalTimeSeconds = (totalTime / 1000).toFixed(1)
 
-      this.info(
-        `${RepositoryIndicatorUpdater.name}: Refreshing sidebar indicators for ${done.size} repositories took ${activeTimeSeconds}s of which ${pausedTimeSeconds}s paused, total ${totalTimeSeconds}s`
+      log.info(
+        `[RepositoryIndicatorUpdater]: Refreshing sidebar indicators for ${done.size} repositories took ${activeTimeSeconds}s of which ${pausedTimeSeconds}s paused, total ${totalTimeSeconds}s`
       )
     }
 
@@ -126,7 +132,7 @@ export class RepositoryIndicatorUpdater {
 
   public stop() {
     if (this.running) {
-      this.debug('Stopping')
+      log.debug('[RepositoryIndicatorUpdater] Stopping')
       this.running = false
       this.clearRefreshTimeout()
     }
@@ -134,7 +140,7 @@ export class RepositoryIndicatorUpdater {
 
   public pause() {
     if (this.paused === false) {
-      this.debug('Pausing')
+      log.debug('[RepositoryIndicatorUpdater] Pausing')
 
       // Disable the lint warning since we're storing the `resolve`
       // tslint:disable-next-line:promise-must-complete
@@ -147,7 +153,7 @@ export class RepositoryIndicatorUpdater {
 
   public resume() {
     if (this.paused) {
-      this.debug('Resuming')
+      log.debug('[RepositoryIndicatorUpdater] Resuming')
 
       this.pausePromise = Promise.resolve()
       if (this.resolvePausePromise !== null) {
@@ -157,13 +163,5 @@ export class RepositoryIndicatorUpdater {
 
       this.paused = false
     }
-  }
-
-  private debug(message: string) {
-    log.debug(`${RepositoryIndicatorUpdater.name}: ${message}`)
-  }
-
-  private info(message: string) {
-    log.info(`${RepositoryIndicatorUpdater.name}: ${message}`)
   }
 }
