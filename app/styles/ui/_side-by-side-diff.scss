@@ -12,80 +12,152 @@
   }
 
   &.editable {
-    .added .after {
-      .gutter:hover {
-        background: var(--diff-add-hover-background-color);
-        border-color: var(--diff-add-hover-border-color);
-        color: var(--diff-add-hover-text-color);
-      }
-    }
-
-    .deleted .before {
-      .gutter:hover {
-        background: var(--diff-delete-hover-background-color);
-        border-color: var(--diff-delete-hover-border-color);
-        color: var(--diff-delete-hover-text-color);
-      }
-    }
-
     .row {
       .before {
         flex-direction: row-reverse;
-      }
-
-      .gutter.line-selected:hover {
-        background: var(--diff-hover-background-color) !important;
-        border-color: var(--diff-hover-border-color) !important;
-        color: var(--diff-hover-text-color) !important;
+        //border-right: 4px solid var(--diff-border-color);
       }
     }
   }
 
-  .added,
-  .modified {
-    &.highlighted-hunk {
-      .after .gutter {
-        background: var(--diff-add-hover-background-color) !important;
-        border-color: var(--diff-add-hover-border-color) !important;
-        color: var(--diff-add-hover-text-color) !important;
-      }
-    }
+  .side-by-side-diff {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    height: 100%;
+    width: 100%;
+    border-bottom: 1px solid var(--diff-border-color);
+    font-family: var(--font-family-monospace);
+    font-size: var(--font-size-sm);
+    color: var(--diff-text-color);
+    background: var(--background-color);
   }
-  .deleted,
-  .modified {
-    &.highlighted-hunk {
-      .before .gutter {
-        background: var(--diff-delete-hover-background-color) !important;
-        border-color: var(--diff-delete-hover-border-color) !important;
-        color: var(--diff-delete-hover-text-color) !important;
-      }
-    }
-  }
-
-  .row.highlighted-hunk {
-    .gutter.line-selected {
-      background: var(--diff-hover-background-color) !important;
-      border-color: var(--diff-hover-border-color) !important;
-      color: var(--diff-hover-text-color) !important;
-    }
-  }
-}
-
-.side-by-side-diff {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-  height: 100%;
-  width: 100%;
-  border-bottom: 1px solid var(--diff-border-color);
-  font-family: var(--font-family-monospace);
-  font-size: var(--font-size-sm);
-  color: var(--diff-text-color);
 
   span,
   div {
     user-select: text;
     cursor: auto;
+  }
+
+  .before .gutter {
+    border-right: 2px solid transparent;
+  }
+
+  .after .gutter {
+    border-left: 2px solid transparent;
+  }
+
+  .added,
+  .modified {
+    .after .gutter {
+      border-color: var(--diff-add-border-color);
+
+      &:hover {
+        border-color: var(--diff-add-hover-border-color);
+      }
+    }
+  }
+
+  .deleted,
+  .modified {
+    .before .gutter {
+      border-color: var(--diff-delete-border-color);
+
+      &:hover {
+        border-color: var(--diff-delete-hover-border-color);
+      }
+    }
+  }
+
+  .gutter {
+    width: 55px;
+    flex-shrink: 0;
+    text-align: right;
+    background: var(--diff-gutter-background-color);
+    color: var(--diff-line-number-color);
+    box-sizing: border-box;
+    padding: 0 var(--spacing);
+    text-overflow: ellipsis;
+    overflow: hidden;
+    user-select: none;
+    // Workaround to show the ellipsis at the beginning of
+    // the line number when it's too long.
+    direction: rtl;
+
+    &.selectable {
+      cursor: pointer;
+
+      &.line-selected {
+        background: var(--diff-selected-background-color);
+        color: var(--diff-selected-text-color);
+        border-color: var(--diff-selected-border-color);
+
+        &:hover {
+          background: var(--diff-hover-background-color);
+          border-color: var(--diff-hover-border-color);
+          color: var(--diff-hover-text-color);
+        }
+      }
+    }
+  }
+
+  .hunk-handle {
+    position: absolute;
+    height: 100%;
+    width: 20px;
+    left: calc(50% - 10px);
+    top: 0;
+    cursor: pointer;
+  }
+
+  .content {
+    padding-left: var(--spacing);
+    white-space: pre-wrap;
+    overflow-y: auto;
+    flex-grow: 1;
+
+    .octicon {
+      height: 8px;
+      fill: var(--error-color);
+      display: inline-block;
+      margin-left: 3px;
+      margin-bottom: -1px;
+    }
+  }
+
+  .before,
+  .after {
+    width: 50%;
+    display: flex;
+    flex-direction: row;
+  }
+
+  .before {
+    color: var(--diff-delete-text-color);
+    background: var(--diff-delete-background-color);
+
+    .gutter {
+      background: var(--diff-delete-gutter-background-color);
+    }
+
+    .selectable:hover {
+      background: var(--diff-delete-hover-background-color);
+      color: var(--diff-delete-hover-text-color);
+    }
+  }
+
+  .after {
+    color: var(--diff-add-text-color);
+    background: var(--diff-add-background-color);
+
+    .gutter {
+      background: var(--diff-add-gutter-background-color);
+    }
+
+    .selectable:hover {
+      background: var(--diff-add-hover-background-color);
+      color: var(--diff-add-hover-text-color);
+    }
   }
 
   .row {
@@ -94,60 +166,8 @@
     line-height: 20px;
     position: relative;
 
-    .gutter {
-      width: 55px;
-      flex-shrink: 0;
-      text-align: right;
-      background: var(--diff-gutter-background-color);
-      box-sizing: border-box;
-      padding: 0 var(--spacing);
-      text-overflow: ellipsis;
-      overflow: hidden;
-      direction: rtl;
-      user-select: none;
-
-      &.selectable {
-        cursor: pointer;
-      }
-    }
-
-    .hunk-handle {
-      position: absolute;
-      height: 100%;
-      width: 20px;
-      left: calc(50% - 10px);
-      top: 0;
-      cursor: pointer;
-    }
-
-    .content {
-      padding-left: var(--spacing);
-      white-space: pre-wrap;
-      overflow-y: auto;
-      flex-grow: 1;
-
-      .octicon {
-        height: 8px;
-        fill: var(--error-color);
-        display: inline-block;
-        margin-left: 3px;
-        margin-bottom: -1px;
-      }
-    }
-
-    .before {
-      border-right: 4px solid var(--diff-border-color);
-    }
-
-    .before,
-    .after {
-      width: 50%;
-      display: flex;
-      flex-direction: row;
-    }
-
     &.hunk-info {
-      background-color: var(--diff-hunk-background-color);
+      background: var(--diff-hunk-background-color);
       color: var(--diff-hunk-text-color);
 
       div,
@@ -156,100 +176,52 @@
       }
 
       .gutter {
-        background-color: var(--diff-hunk-background-color);
+        background: var(--diff-hunk-background-color);
       }
     }
 
-    &.context {
-      .content {
-        background: var(--background-color);
-      }
+    &.added .before,
+    &.deleted .after {
+      background: var(--diff-empty-row-background-color);
 
       .gutter {
-        color: var(--diff-line-number-color);
+        background: var(--diff-empty-row-gutter-background-color);
       }
     }
 
-    &.added {
-      color: var(--diff-add-text-color);
+    &.context .before,
+    &.context .after {
+      background: var(--diff-background-color);
+      color: var(--diff-text-color);
 
-      .after {
-        background-color: var(--diff-add-background-color);
-
-        .gutter {
-          background: var(--diff-add-gutter-background-color);
-
-          &.line-selected {
-            background: var(--diff-selected-background-color);
-            color: var(--diff-selected-text-color);
-          }
-        }
-      }
-
-      .before {
-        background-color: var(--diff-empty-row-background-color);
-
-        .gutter {
-          background-color: var(--diff-empty-row-gutter-background-color);
-        }
+      .gutter {
+        background: var(--diff-gutter-background-color);
       }
     }
 
-    &.deleted {
-      color: var(--diff-delete-text-color);
-
-      .before {
-        background-color: var(--diff-delete-background-color);
-
-        .gutter {
-          background: var(--diff-delete-gutter-background-color);
-          border-color: var(--diff-delete-border-color);
-
-          &.line-selected {
-            background: var(--diff-selected-background-color);
-            color: var(--diff-selected-text-color);
-          }
+    &.highlighted-hunk {
+      &.added,
+      &.modified {
+        .after .gutter {
+          background: var(--diff-add-hover-background-color);
+          border-color: var(--diff-add-hover-border-color);
+          color: var(--diff-add-hover-text-color);
         }
       }
 
-      .after {
-        background-color: var(--diff-empty-row-background-color);
-
-        .gutter {
-          background-color: var(--diff-empty-row-gutter-background-color);
-        }
-      }
-    }
-
-    &.modified {
-      .before {
-        color: var(--diff-delete-text-color);
-        background-color: var(--diff-delete-background-color);
-
-        .gutter {
-          background: var(--diff-delete-gutter-background-color);
-          border-color: var(--diff-delete-border-color);
-
-          &.line-selected {
-            background: var(--diff-selected-background-color);
-            color: var(--diff-selected-text-color);
-          }
+      &.deleted,
+      &.modified {
+        .before .gutter {
+          background: var(--diff-delete-hover-background-color);
+          border-color: var(--diff-delete-hover-border-color);
+          color: var(--diff-delete-hover-text-color);
         }
       }
 
-      .after {
-        color: var(--diff-add-text-color);
-        background-color: var(--diff-add-background-color);
-
-        .gutter {
-          background: var(--diff-add-gutter-background-color);
-          border-color: var(--diff-add-border-color);
-
-          &.line-selected {
-            background: var(--diff-selected-background-color);
-            color: var(--diff-selected-text-color);
-          }
-        }
+      &.row .gutter.line-selected {
+        background: var(--diff-hover-background-color);
+        border-color: var(--diff-hover-border-color);
+        color: var(--diff-hover-text-color);
       }
     }
   }

@@ -216,8 +216,8 @@ export class SideBySideDiffRow extends React.Component<
       <div
         className={classNames([
           'gutter',
-          'selectable',
           {
+            selectable: isSelected !== undefined,
             'line-selected': isSelected === true,
           },
         ])}
