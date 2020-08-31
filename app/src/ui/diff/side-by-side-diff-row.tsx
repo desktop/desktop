@@ -352,13 +352,13 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private onMouseEnterHunk = () => {
-    if (this.props.row.hunkStartLine !== undefined) {
+    if ('hunkStartLine' in this.props.row) {
       this.props.onMouseEnterHunk(this.props.row.hunkStartLine)
     }
   }
 
   private onMouseLeaveHunk = () => {
-    if (this.props.row.hunkStartLine !== undefined) {
+    if ('hunkStartLine' in this.props.row) {
       this.props.onMouseLeaveHunk(this.props.row.hunkStartLine)
     }
   }
@@ -375,7 +375,7 @@ export class SideBySideDiffRow extends React.Component<
       return
     }
 
-    if (this.props.row.hunkStartLine !== undefined) {
+    if ('hunkStartLine' in this.props.row) {
       this.props.onClickHunk(this.props.row.hunkStartLine, !data.isSelected)
     }
   }
@@ -390,7 +390,7 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private onContextMenuHunk = () => {
-    if (this.props.row.hunkStartLine !== undefined) {
+    if ('hunkStartLine' in this.props.row) {
       this.props.onContextMenuHunk(this.props.row.hunkStartLine)
     }
   }

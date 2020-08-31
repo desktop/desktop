@@ -211,6 +211,9 @@ export class SideBySideDiff extends React.Component<
       return null
     }
 
+    const isHunkHovered =
+      'hunkStartLine' in row && this.state.hoveredHunk === row.hunkStartLine
+
     return (
       <CellMeasurer
         cache={listRowsHeightCache}
@@ -226,7 +229,7 @@ export class SideBySideDiff extends React.Component<
             beforeTokens={this.state.beforeTokens}
             afterTokens={this.state.afterTokens}
             isDiffSelectable={canSelect(this.props.file)}
-            isHunkHovered={this.state.hoveredHunk === row.hunkStartLine}
+            isHunkHovered={isHunkHovered}
             onStartSelection={this.onStartSelection}
             onUpdateSelection={this.onUpdateSelection}
             onMouseEnterHunk={this.onMouseEnterHunk}

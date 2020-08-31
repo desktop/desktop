@@ -9,54 +9,147 @@ import {
   CommittedFileChange,
 } from '../../models/status'
 
+/**
+ * DiffRowType defines the different types of
+ * rows that a diff visualization can have.
+ *
+ * It contains similar values than DiffLineType
+ * with the addition of `Modified`, which
+ * corresponds to a line that has both deleted and
+ * added content.
+ */
 export enum DiffRowType {
+  Context = 'Context',
+  Hunk = 'Hunk',
   Added = 'Added',
   Deleted = 'Deleted',
   Modified = 'Modified',
-  Context = 'Context',
-  Hunk = 'Hunk',
 }
 
 export interface IDiffRowData {
+  /**
+   * The actual contents of the diff line.
+   */
   readonly content: string
+  /**
+   * The line number on the source file.
+   */
   readonly lineNumber: number
+  /**
+   * The line number on the diff.
+   * This is used for discarding lines
+   * and for partial committing lines.
+   */
   readonly diffLineNumber: number
+  /**
+   * Flag to display that this diff line lacks a new line.
+   * This is used to display when a newline is
+   * added or removed to the last line of a file.
+   */
   readonly noNewLineIndicator: boolean
+  /**
+   * Whether the diff line has been selected for partial committing.
+   */
   readonly isSelected: boolean
 }
 
+/**
+ * IDiffRowAdded represents a row that displays an added line.
+ */
 interface IDiffRowAdded {
   readonly type: DiffRowType.Added
+  /**
+   * The data object contains information about that added line in the diff.
+   */
   readonly data: IDiffRowData
+  /**
+   * The start line of the hunk where this line belongs in the diff.
+   *
+   * In this context, a hunk is not exactly equivalent to a diff hunk, but
+   * instead marks a group of consecutive added/deleted lines (see hoveredHunk
+   * comment in the `<SideBySide />` component).
+   */
   readonly hunkStartLine: number
 }
 
+/**
+ * IDiffRowDeleted represents a row that displays a deleted line.
+ */
 interface IDiffRowDeleted {
   readonly type: DiffRowType.Deleted
+  /**
+   * The data object contains information about that deleted line in the diff.
+   */
   readonly data: IDiffRowData
+  /**
+   * The start line of the hunk where this line belongs in the diff.
+   *
+   * In this context, a hunk is not exactly equivalent to a diff hunk, but
+   * instead marks a group of consecutive added/deleted lines (see hoveredHunk
+   * comment in the `<SideBySide />` component).
+   */
   readonly hunkStartLine: number
 }
 
+/**
+ * IDiffRowModified represents a row that displays both a deleted line inline
+ * with an added line.
+ */
 interface IDiffRowModified {
   readonly type: DiffRowType.Modified
+  /**
+   * The beforeData object contains information about the deleted line in the diff.
+   */
   readonly beforeData: IDiffRowData
+  /**
+   * The beforeData object contains information about the added line in the diff.
+   */
   readonly afterData: IDiffRowData
+  /**
+   * Flag to indicate whether we can highlight the differences between the
+   * deleted and the added line as part of syntax highlighting.
+   */
   readonly displayDiffTokens: boolean
+  /**
+   * The start line of the hunk where this line belongs in the diff.
+   *
+   * In this context, a hunk is not exactly equivalent to a diff hunk, but
+   * instead marks a group of consecutive added/deleted lines (see hoveredHunk
+   * comment in the `<SideBySide />` component).
+   */
   readonly hunkStartLine: number
 }
 
+/**
+ * IDiffRowContext represents a row that contains non-modified
+ * contextual lines around additions/deletions in a diff.
+ */
 interface IDiffRowContext {
   readonly type: DiffRowType.Context
+  /**
+   * The actual contents of the contextual line.
+   */
   readonly content: string
+  /**
+   * The line number of this row in the previous state source file.
+   */
   readonly beforeLineNumber: number
+  /**
+   * The line number of this row in the next state source file.
+   */
   readonly afterLineNumber: number
-  readonly hunkStartLine?: undefined
 }
 
+/**
+ * IDiffRowContext represents a row that contains the header
+ * of a diff hunk.
+ */
 interface IDiffRowHunk {
   readonly type: DiffRowType.Hunk
+  /**
+   * The actual contents of the line.
+   */
   readonly content: string
-  readonly hunkStartLine?: undefined
 }
 
 export type DiffRow =
