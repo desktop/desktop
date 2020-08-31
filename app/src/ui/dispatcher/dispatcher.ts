@@ -1560,6 +1560,9 @@ export class Dispatcher {
     const headUrl = pullRequest.head.repo?.clone_url
     const baseUrl = pullRequest.base.repo?.clone_url
 
+    // This likely means that the base repository has been deleted
+    // and we don't support checking out from refs/pulls/NNN/head
+    // yet so we'll bail for now.
     if (headUrl === undefined || baseUrl === undefined) {
       return null
     }
@@ -1585,19 +1588,15 @@ export class Dispatcher {
   ): repo is RepositoryWithGitHubRepository {
     if (repo instanceof Repository && isRepositoryWithGitHubRepository(repo)) {
       const originRepoUrl = repo.gitHubRepository.htmlURL
-      const upstreamRepoUrl =
-        repo.gitHubRepository.parent && repo.gitHubRepository.parent.htmlURL
+      const upstreamRepoUrl = repo.gitHubRepository.parent?.htmlURL ?? null
 
-      if (originRepoUrl) {
-        if (urlsMatch(originRepoUrl, url)) {
-          return true
-        }
+      if (originRepoUrl !== null && urlsMatch(originRepoUrl, url)) {
+        return true
       }
 
-      if (upstreamRepoUrl) {
-        if (urlsMatch(upstreamRepoUrl, url)) {
-          return true
-        }
+      if (upstreamRepoUrl !== null && urlsMatch(upstreamRepoUrl, url)) {
+        return true
+      }
       }
     }
 
@@ -1664,7 +1663,7 @@ export class Dispatcher {
     }
 
     // Find the repository where the PR is created in Desktop.
-    let repository: Repository | null = await this.getRepositoryFromPullRequest(
+    let repository: Repository | null = this.getRepositoryFromPullRequest(
       pullRequest
     )
 
