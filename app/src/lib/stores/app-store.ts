@@ -118,7 +118,6 @@ import {
 } from '../editors'
 import { assertNever, fatalError, forceUnwrap } from '../fatal-error'
 
-import { findAccountForRemoteURL } from '../find-account'
 import { formatCommitMessage } from '../format-commit-message'
 import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
 import { getAccountForRepository } from '../get-account-for-repository'
@@ -156,6 +155,7 @@ import {
   getRebaseSnapshot,
   IStatusResult,
   GitError,
+  MergeResult,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -3465,18 +3465,33 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     return this.withAuthenticatingUser(repository, async (r, account) => {
       const { branchesState } = this.repositoryStateCache.get(r)
-      const { defaultBranch } = branchesState
+      let branchToCheckout = branchesState.defaultBranch
 
-      if (defaultBranch == null) {
+      // If the default branch is null, use the most recent branch excluding the branch
+      // the branch to delete as the branch to checkout.
+      if (branchToCheckout === null) {
+        let i = 0
+
+        while (i < branchesState.recentBranches.length) {
+          if (branchesState.recentBranches[i].name !== branch.name) {
+            branchToCheckout = branchesState.recentBranches[i]
+            break
+          }
+          i++
+        }
+      }
+
+      if (branchToCheckout === null) {
         throw new Error(
-          `A default branch cannot be found for this repository, so the app is unable to identify which branch to switch to before removing the current branch.`
+          `It's not possible to delete the only existing branch in a repository.`
         )
       }
 
+      const nonNullBranchToCheckout = branchToCheckout
       const gitStore = this.gitStoreCache.get(r)
 
       await gitStore.performFailableOperation(() =>
-        checkoutBranch(r, account, defaultBranch)
+        checkoutBranch(r, account, nonNullBranchToCheckout)
       )
       await gitStore.performFailableOperation(() =>
         deleteBranch(r, branch, account, includeRemote)
@@ -3681,13 +3696,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
         this.updateMenuLabelsForSelectedRepository()
 
-        const { accounts } = this.getState()
-        const githubAccount = await findAccountForRemoteURL(
-          remote.url,
-          accounts
+        // Note that we're using `getAccountForRepository` here instead
+        // of the `account` instance we've got and that's because recordPush
+        // needs to be able to differentiate between a GHES account and a
+        // generic account and it can't do that only based on the endpoint.
+        this.statsStore.recordPush(
+          getAccountForRepository(this.accounts, repository),
+          options
         )
-
-        this.statsStore.recordPush(githubAccount, options)
       }
     })
   }
@@ -4288,12 +4304,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    const mergeSuccessful = await gitStore.merge(branch)
+    const mergeResult = await gitStore.merge(branch)
     const { tip } = gitStore
 
-    if (mergeSuccessful && tip.kind === TipState.Valid) {
+    if (mergeResult === MergeResult.Success && tip.kind === TipState.Valid) {
       this._setBanner({
         type: BannerType.SuccessfulMerge,
+        ourBranch: tip.branch.name,
+        theirBranch: branch,
+      })
+    } else if (
+      mergeResult === MergeResult.AlreadyUpToDate &&
+      tip.kind === TipState.Valid
+    ) {
+      this._setBanner({
+        type: BannerType.BranchAlreadyUpToDate,
         ourBranch: tip.branch.name,
         theirBranch: branch,
       })
