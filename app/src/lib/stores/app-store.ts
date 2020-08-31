@@ -118,7 +118,6 @@ import {
 } from '../editors'
 import { assertNever, fatalError, forceUnwrap } from '../fatal-error'
 
-import { findAccountForRemoteURL } from '../find-account'
 import { formatCommitMessage } from '../format-commit-message'
 import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
 import { getAccountForRepository } from '../get-account-for-repository'
@@ -3693,13 +3692,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
         this.updateMenuLabelsForSelectedRepository()
 
-        const { accounts } = this.getState()
-        const githubAccount = await findAccountForRemoteURL(
-          remote.url,
-          accounts
+        // Note that we're using `getAccountForRepository` here instead
+        // of the `account` instance we've got and that's because recordPush
+        // needs to be able to differentiate between a GHES account and a
+        // generic account and it can't do that only based on the endpoint.
+        this.statsStore.recordPush(
+          getAccountForRepository(this.accounts, repository),
+          options
         )
-
-        this.statsStore.recordPush(githubAccount, options)
       }
     })
   }
