@@ -1597,7 +1597,6 @@ export class Dispatcher {
       if (upstreamRepoUrl !== null && urlsMatch(upstreamRepoUrl, url)) {
         return true
       }
-      }
     }
 
     return false
