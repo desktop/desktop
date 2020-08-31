@@ -303,12 +303,38 @@ export class SideBySideDiffRow extends React.Component<
     )
   }
 
+  /**
+   * Returns the data object for the current row if the current row is
+   * added, deleted or modified, null otherwise.
+   *
+   * On modified rows it normally returns the data corresponding to the
+   * previous state. In this situation an optional targetElement param can
+   * be passed which will be used to infer either the previous or the next
+   * state data (based on which column the target element belongs).
+   *
+   * @param targetElement Optional element to pass to infer which data to use
+   *                      on modified rows.
+   */
+  private getDiffData(targetElement?: Element): IDiffRowData | null {
+    const row = this.props.row
+
+    if (row.type === DiffRowType.Added || row.type === DiffRowType.Deleted) {
+      return row.data
+    }
+
+    if (row.type !== DiffRowType.Modified) {
+      return null
+    }
+
+    return targetElement?.closest('.after') ? row.afterData : row.beforeData
+  }
+
   private onMouseDownLineNumber = (evt: React.MouseEvent) => {
     if (evt.buttons === 2) {
       return
     }
 
-    const data = getDiffData(this.props.row, evt.currentTarget)
+    const data = this.getDiffData(evt.currentTarget)
     if (data === null) {
       return
     }
@@ -317,7 +343,7 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private onMouseEnterLineNumber = (evt: React.MouseEvent) => {
-    const data = getDiffData(this.props.row, evt.currentTarget)
+    const data = this.getDiffData(evt.currentTarget)
     if (data === null) {
       return
     }
@@ -338,7 +364,13 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private onClickHunk = () => {
-    const data = getDiffData(this.props.row)
+    // Since the hunk handler lies between the previous and the next columns,
+    // when clicking on it on modified lines we cannot know if we should
+    // use the state of the previous or the next line to know whether we should
+    // select or unselect the hunk.
+    // To workaround this, we're relying on the logic of `getDiffData()` to have
+    // a consistent behaviour (which will use the previous column state in this case).
+    const data = this.getDiffData()
     if (data === null) {
       return
     }
@@ -349,7 +381,7 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private onContextMenuLineNumber = (evt: React.MouseEvent) => {
-    const data = getDiffData(this.props.row, evt.currentTarget)
+    const data = this.getDiffData(evt.currentTarget)
     if (data === null) {
       return
     }
@@ -362,16 +394,4 @@ export class SideBySideDiffRow extends React.Component<
       this.props.onContextMenuHunk(this.props.row.hunkStartLine)
     }
   }
-}
-
-function getDiffData(row: DiffRow, targetElement?: Element) {
-  if (row.type === DiffRowType.Added || row.type === DiffRowType.Deleted) {
-    return row.data
-  }
-
-  if (row.type !== DiffRowType.Modified) {
-    return null
-  }
-
-  return targetElement?.closest('.after') ? row.afterData : row.beforeData
 }

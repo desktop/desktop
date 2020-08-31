@@ -291,6 +291,8 @@ export class SideBySideDiff extends React.Component<
    * not being selected.
    */
   private onMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
+    // We need to use the event target since the current target will
+    // always point to the container.
     const target = event.target as HTMLDivElement
 
     const isSelectingBeforeText = target.closest('.before')
