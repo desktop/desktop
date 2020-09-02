@@ -41,6 +41,7 @@ import { uuid } from '../../lib/uuid'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { enableDiscardLines } from '../../lib/feature-flag'
+import { canSelect } from './diff-helpers'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -126,11 +127,6 @@ function inSelection(s: ISelection | null, ix: number): s is ISelection {
 /** Utility function for checking whether an event target has a given CSS class */
 function targetHasClass(target: EventTarget | null, token: string) {
   return target instanceof HTMLElement && target.classList.contains(token)
-}
-
-/** Utility function for checking whether a file supports selection */
-function canSelect(file: ChangedFile): file is WorkingDirectoryFileChange {
-  return file instanceof WorkingDirectoryFileChange
 }
 
 interface ITextDiffProps {

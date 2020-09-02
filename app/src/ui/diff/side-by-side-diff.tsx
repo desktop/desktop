@@ -8,10 +8,6 @@ import {
   DiffSelection,
 } from '../../models/diff'
 import {
-  WorkingDirectoryFileChange,
-  CommittedFileChange,
-} from '../../models/status'
-import {
   getLineFilters,
   getFileContents,
   highlightContents,
@@ -30,16 +26,20 @@ import {
   CellMeasurer,
   ListRowProps,
 } from 'react-virtualized'
-import {
-  DiffRow,
-  DiffRowType,
-  SideBySideDiffRow,
-  IDiffRowData,
-} from './side-by-side-diff-row'
+import { SideBySideDiffRow } from './side-by-side-diff-row'
 import memoize from 'memoize-one'
 import { findInteractiveDiffRange } from './diff-explorer'
+import {
+  ChangedFile,
+  DiffRow,
+  DiffRowType,
+  IDiffRowData,
+  isInTemporarySelection,
+  canSelect,
+  ISelection,
+} from './diff-helpers'
 
-type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
+const DefaultRowHeight = 20
 
 interface ISideBySideDiffProps {
   readonly repository: Repository
@@ -65,14 +65,8 @@ interface ISideBySideDiffState {
   readonly hunkHighlightRange?: ISelection
 }
 
-export interface ISelection {
-  readonly from: number
-  readonly to: number
-  readonly isSelected: boolean
-}
-
 const cache = new CellMeasurerCache({
-  defaultHeight: 20,
+  defaultHeight: DefaultRowHeight,
   fixedWidth: true,
 })
 
@@ -179,7 +173,7 @@ export class SideBySideDiff extends React.Component<
   }
 
   private getRowHeight = (row: { index: number }) => {
-    return cache.rowHeight(row) ?? 20
+    return cache.rowHeight(row) ?? DefaultRowHeight
   }
 
   private clearCache = () => {
@@ -189,15 +183,12 @@ export class SideBySideDiff extends React.Component<
   private onMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
     const target = event.target as HTMLDivElement
 
-    const clickedRow = target.closest('.before') || target.closest('.after')
+    const isSelectingBeforeText = target.closest('.before')
+    const isSelectingAfterText = target.closest('.after')
 
-    if (clickedRow === null) {
-      return
-    }
-
-    if (clickedRow.classList.contains('before')) {
+    if (isSelectingBeforeText !== null) {
       this.setState({ selectingRow: 'before' })
-    } else if (clickedRow.classList.contains('after')) {
+    } else if (isSelectingAfterText !== null) {
       this.setState({ selectingRow: 'after' })
     }
   }
@@ -287,7 +278,6 @@ export class SideBySideDiff extends React.Component<
 
   private onMouseEnterHunk = (lineNumber: number) => {
     const range = findInteractiveDiffRange(this.props.diff.hunks, lineNumber)
-
     if (range === null) {
       return
     }
@@ -296,7 +286,7 @@ export class SideBySideDiff extends React.Component<
     this.setState({ hunkHighlightRange: { from, to, isSelected: false } })
   }
 
-  private onMouseLeaveHunk = (lineNumber: number) => {
+  private onMouseLeaveHunk = () => {
     this.setState({ hunkHighlightRange: undefined })
   }
 
@@ -306,7 +296,6 @@ export class SideBySideDiff extends React.Component<
     }
 
     const range = findInteractiveDiffRange(this.props.diff.hunks, lineNumber)
-
     if (range === null) {
       return
     }
@@ -339,11 +328,6 @@ function highlightParametersEqual(
     (newProps.file.id === prevProps.file.id &&
       newProps.diff.text === prevProps.diff.text)
   )
-}
-
-/** Utility function for checking whether a file supports selection */
-function canSelect(file: ChangedFile): file is WorkingDirectoryFileChange {
-  return file instanceof WorkingDirectoryFileChange
 }
 
 const getDiffRows = memoize(function (
@@ -524,14 +508,4 @@ function isInSelection(
   } else {
     return isInStoredSelection && !isInTemporary
   }
-}
-
-export function isInTemporarySelection(
-  s: ISelection | undefined,
-  ix: number
-): s is ISelection {
-  if (s === undefined) {
-    return false
-  }
-  return ix >= Math.min(s.from, s.to) && ix <= Math.max(s.to, s.from)
 }

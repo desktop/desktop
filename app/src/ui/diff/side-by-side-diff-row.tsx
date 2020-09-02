@@ -1,69 +1,21 @@
 import * as React from 'react'
 
 import { getTokens } from './diff-syntax-mode'
-import { syntaxHighlightLine, getDiffTokens } from './syntax-highlighting/utils'
-import { ITokens, ILineTokens } from '../../lib/highlighter/types'
 import {
-  WorkingDirectoryFileChange,
-  CommittedFileChange,
-} from '../../models/status'
+  canSelect,
+  getDiffData,
+  getDiffTokens,
+  isInTemporarySelection,
+  syntaxHighlightLine,
+  ChangedFile,
+  DiffRow,
+  DiffRowType,
+  ISelection,
+} from './diff-helpers'
+import { ITokens, ILineTokens } from '../../lib/highlighter/types'
 import classNames from 'classnames'
-import { ISelection, isInTemporarySelection } from './side-by-side-diff'
 
 const MaxLineLengthToCalculateDiff = 240
-
-export enum DiffRowType {
-  Added = 'Added',
-  Deleted = 'Deleted',
-  Modified = 'Modified',
-  Context = 'Context',
-  Hunk = 'Hunk',
-}
-
-export interface IDiffRowData {
-  readonly content: string
-  readonly lineNumber: number
-  readonly diffLineNumber: number
-  readonly isSelected: boolean
-}
-
-interface IDiffRowAdded {
-  readonly type: DiffRowType.Added
-  readonly data: IDiffRowData
-}
-
-interface IDiffRowDeleted {
-  readonly type: DiffRowType.Deleted
-  readonly data: IDiffRowData
-}
-
-interface IDiffRowModified {
-  readonly type: DiffRowType.Modified
-  readonly beforeData: IDiffRowData
-  readonly afterData: IDiffRowData
-  readonly displayDiffTokens: boolean
-}
-
-interface IDiffRowContext {
-  readonly type: DiffRowType.Context
-  readonly content: string
-  readonly beforeLineNumber: number
-  readonly afterLineNumber: number
-}
-
-interface IDiffRowHunk {
-  readonly type: DiffRowType.Hunk
-  readonly content: string
-}
-
-export type DiffRow =
-  | IDiffRowAdded
-  | IDiffRowDeleted
-  | IDiffRowModified
-  | IDiffRowContext
-  | IDiffRowHunk
-
-type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
 
 interface ISideBySideDiffRowProps {
   readonly row: DiffRow
@@ -318,21 +270,4 @@ export class SideBySideDiffRow extends React.Component<
 
     this.props.onClickHunk(data.diffLineNumber, !data.isSelected)
   }
-}
-
-function getDiffData(row: DiffRow, targetElement?: Element) {
-  if (row.type === DiffRowType.Added || row.type === DiffRowType.Deleted) {
-    return row.data
-  }
-
-  if (row.type !== DiffRowType.Modified) {
-    return null
-  }
-
-  return targetElement?.closest('.after') ? row.afterData : row.beforeData
-}
-
-/** Utility function for checking whether a file supports selection */
-function canSelect(file: ChangedFile): file is WorkingDirectoryFileChange {
-  return file instanceof WorkingDirectoryFileChange
 }

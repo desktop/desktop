@@ -1,9 +1,72 @@
 import * as React from 'react'
 
-import { ILineTokens } from '../../../lib/highlighter/types'
+import { ILineTokens } from '../../lib/highlighter/types'
 import classNames from 'classnames'
-import { relativeChanges } from '../changed-range'
-import { mapKeysEqual } from '../../../lib/equality'
+import { relativeChanges } from './changed-range'
+import { mapKeysEqual } from '../../lib/equality'
+import {
+  WorkingDirectoryFileChange,
+  CommittedFileChange,
+} from '../../models/status'
+
+export interface ISelection {
+  readonly from: number
+  readonly to: number
+  readonly isSelected: boolean
+}
+
+export enum DiffRowType {
+  Added = 'Added',
+  Deleted = 'Deleted',
+  Modified = 'Modified',
+  Context = 'Context',
+  Hunk = 'Hunk',
+}
+
+export interface IDiffRowData {
+  readonly content: string
+  readonly lineNumber: number
+  readonly diffLineNumber: number
+  readonly isSelected: boolean
+}
+
+interface IDiffRowAdded {
+  readonly type: DiffRowType.Added
+  readonly data: IDiffRowData
+}
+
+interface IDiffRowDeleted {
+  readonly type: DiffRowType.Deleted
+  readonly data: IDiffRowData
+}
+
+interface IDiffRowModified {
+  readonly type: DiffRowType.Modified
+  readonly beforeData: IDiffRowData
+  readonly afterData: IDiffRowData
+  readonly displayDiffTokens: boolean
+}
+
+interface IDiffRowContext {
+  readonly type: DiffRowType.Context
+  readonly content: string
+  readonly beforeLineNumber: number
+  readonly afterLineNumber: number
+}
+
+interface IDiffRowHunk {
+  readonly type: DiffRowType.Hunk
+  readonly content: string
+}
+
+export type DiffRow =
+  | IDiffRowAdded
+  | IDiffRowDeleted
+  | IDiffRowModified
+  | IDiffRowContext
+  | IDiffRowHunk
+
+export type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
 
 /**
  * Returns an object with two ILineTokens objects that can be used to highlight
@@ -136,4 +199,33 @@ export function syntaxHighlightLine(
       })}
     </>
   )
+}
+
+export function getDiffData(row: DiffRow, targetElement?: Element) {
+  if (row.type === DiffRowType.Added || row.type === DiffRowType.Deleted) {
+    return row.data
+  }
+
+  if (row.type !== DiffRowType.Modified) {
+    return null
+  }
+
+  return targetElement?.closest('.after') ? row.afterData : row.beforeData
+}
+
+/** Utility function for checking whether a file supports selection */
+export function canSelect(
+  file: ChangedFile
+): file is WorkingDirectoryFileChange {
+  return file instanceof WorkingDirectoryFileChange
+}
+
+export function isInTemporarySelection(
+  s: ISelection | undefined,
+  ix: number
+): s is ISelection {
+  if (s === undefined) {
+    return false
+  }
+  return ix >= Math.min(s.from, s.to) && ix <= Math.max(s.to, s.from)
 }
