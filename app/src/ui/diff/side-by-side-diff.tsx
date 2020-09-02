@@ -79,7 +79,7 @@ interface ISideBySideDiffState {
   readonly selection?: ISelection
 
   /** Whether a particular range should be highlighted due to hover */
-  readonly hoveredHunkId?: number
+  readonly hoveredHunk?: number
 }
 
 const cache = new CellMeasurerCache({
@@ -140,7 +140,7 @@ export class SideBySideDiff extends React.Component<
                 beforeTokens={this.state.beforeTokens}
                 afterTokens={this.state.afterTokens}
                 temporarySelection={this.state.selection}
-                hoveredHunkId={this.state.hoveredHunkId}
+                hoveredHunk={this.state.hoveredHunk}
                 fileId={this.props.file.id}
                 fileSelection={
                   canSelect(this.props.file) && this.props.file.selection
@@ -180,7 +180,7 @@ export class SideBySideDiff extends React.Component<
             beforeTokens={this.state.beforeTokens}
             afterTokens={this.state.afterTokens}
             file={this.props.file}
-            isHunkHovered={this.state.hoveredHunkId === row.hunkStartLine}
+            isHunkHovered={this.state.hoveredHunk === row.hunkStartLine}
             onStartSelection={this.onStartSelection}
             onUpdateSelection={this.onUpdateSelection}
             onMouseEnterHunk={this.onMouseEnterHunk}
@@ -298,24 +298,24 @@ export class SideBySideDiff extends React.Component<
     })
   }
 
-  private onMouseEnterHunk = (hunkId: number) => {
+  private onMouseEnterHunk = (hunkStartLine: number) => {
     if (this.state.selection !== undefined) {
       return
     }
 
-    this.setState({ hoveredHunkId: hunkId })
+    this.setState({ hoveredHunk: hunkStartLine })
   }
 
   private onMouseLeaveHunk = () => {
-    this.setState({ hoveredHunkId: undefined })
+    this.setState({ hoveredHunk: undefined })
   }
 
-  private onClickHunk = (hunkId: number, select: boolean) => {
+  private onClickHunk = (hunkStartLine: number, select: boolean) => {
     if (!canSelect(this.props.file)) {
       return
     }
 
-    const range = findInteractiveDiffRange(this.props.diff.hunks, hunkId)
+    const range = findInteractiveDiffRange(this.props.diff.hunks, hunkStartLine)
     if (range === null) {
       return
     }
@@ -350,7 +350,7 @@ export class SideBySideDiff extends React.Component<
     ])
   }
 
-  private onContextMenuHunk = (hunkId: number) => {
+  private onContextMenuHunk = (hunkStartLine: number) => {
     const file = this.props.file
 
     if (!canSelect(file)) {
@@ -361,7 +361,7 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    const range = findInteractiveDiffRange(this.props.diff.hunks, hunkId)
+    const range = findInteractiveDiffRange(this.props.diff.hunks, hunkStartLine)
 
     if (range === null) {
       return
