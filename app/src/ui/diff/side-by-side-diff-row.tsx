@@ -101,17 +101,19 @@ export class SideBySideDiffRow extends React.Component<
   ISideBySideDiffRowProps
 > {
   public render() {
-    switch (this.props.row.type) {
+    const row = this.props.row
+
+    switch (row.type) {
       case DiffRowType.Hunk:
         return (
           <div className="row hunk-info">
             <div className="gutter"></div>
-            <div className="content">{this.props.row.content}</div>
+            <div className="content">{row.content}</div>
           </div>
         )
       case DiffRowType.Context:
         const tokens = getTokensForDiffLine(
-          this.props.row.diffLine,
+          row.diffLine,
           this.props.beforeTokens,
           this.props.afterTokens
         )
@@ -119,19 +121,19 @@ export class SideBySideDiffRow extends React.Component<
         return (
           <div className="row context">
             <div className="before">
-              <div className="gutter">{this.props.row.beforeLineNumber}</div>
+              <div className="gutter">{row.beforeLineNumber}</div>
               <div className="content">
                 {syntaxHighlightLine(
-                  this.props.row.content,
+                  row.content,
                   tokens !== null ? [tokens] : []
                 )}
               </div>
             </div>
             <div className="after">
-              <div className="gutter">{this.props.row.afterLineNumber}</div>
+              <div className="gutter">{row.afterLineNumber}</div>
               <div className="content">
                 {syntaxHighlightLine(
-                  this.props.row.content,
+                  row.content,
                   tokens !== null ? [tokens] : []
                 )}
               </div>
@@ -141,7 +143,7 @@ export class SideBySideDiffRow extends React.Component<
 
       case DiffRowType.Added: {
         const tokens = getTokensForDiffLine(
-          this.props.row.diffLine,
+          row.diffLine,
           this.props.beforeTokens,
           this.props.afterTokens
         )
@@ -150,7 +152,7 @@ export class SideBySideDiffRow extends React.Component<
           'rafeca: hunkhilghtign',
           isInTemporarySelection(
             this.props.hunkHighlightRange,
-            this.props.row.diffLineNumber
+            row.diffLineNumber
           )
         )
 
@@ -162,7 +164,7 @@ export class SideBySideDiffRow extends React.Component<
               {
                 'highlighted-hunk': isInTemporarySelection(
                   this.props.hunkHighlightRange,
-                  this.props.row.diffLineNumber
+                  row.diffLineNumber
                 ),
               },
             ])}
@@ -181,14 +183,10 @@ export class SideBySideDiffRow extends React.Component<
               ></div>
             )}
             <div className="after">
-              {this.renderGutter(
-                this.props.row.diffLineNumber,
-                this.props.row.lineNumber,
-                this.props.row.isSelected
-              )}
+              {this.renderGutter(row.lineNumber, row.isSelected)}
               <div className="content">
                 {syntaxHighlightLine(
-                  this.props.row.content,
+                  row.content,
                   tokens !== null ? [tokens] : []
                 )}
               </div>
@@ -198,7 +196,7 @@ export class SideBySideDiffRow extends React.Component<
       }
       case DiffRowType.Deleted: {
         const tokens = getTokensForDiffLine(
-          this.props.row.diffLine,
+          row.diffLine,
           this.props.beforeTokens,
           this.props.afterTokens
         )
@@ -211,21 +209,17 @@ export class SideBySideDiffRow extends React.Component<
               {
                 'highlighted-hunk': isInTemporarySelection(
                   this.props.hunkHighlightRange,
-                  this.props.row.diffLineNumber
+                  row.diffLineNumber
                 ),
               },
             ])}
             onMouseEnter={this.onMouseEnterGutter}
           >
             <div className="before">
-              {this.renderGutter(
-                this.props.row.diffLineNumber,
-                this.props.row.lineNumber,
-                this.props.row.isSelected
-              )}
+              {this.renderGutter(row.lineNumber, row.isSelected)}
               <div className="content">
                 {syntaxHighlightLine(
-                  this.props.row.content,
+                  row.content,
                   tokens !== null ? [tokens] : []
                 )}
               </div>
@@ -247,12 +241,12 @@ export class SideBySideDiffRow extends React.Component<
       }
       case DiffRowType.Modified: {
         const syntaxTokensBefore = getTokensForDiffLine(
-          this.props.row.before.diffLine,
+          row.before.diffLine,
           this.props.beforeTokens,
           this.props.afterTokens
         )
         const syntaxTokensAfter = getTokensForDiffLine(
-          this.props.row.after.diffLine,
+          row.after.diffLine,
           this.props.beforeTokens,
           this.props.afterTokens
         )
@@ -262,13 +256,13 @@ export class SideBySideDiffRow extends React.Component<
           syntaxTokensAfter !== null ? [syntaxTokensAfter] : []
 
         if (
-          this.props.row.displayDiffTokens &&
-          this.props.row.before.content.length < MaxLineLengthToCalculateDiff &&
-          this.props.row.after.content.length < MaxLineLengthToCalculateDiff
+          row.displayDiffTokens &&
+          row.before.content.length < MaxLineLengthToCalculateDiff &&
+          row.after.content.length < MaxLineLengthToCalculateDiff
         ) {
           const { before, after } = getDiffTokens(
-            this.props.row.before.content,
-            this.props.row.after.content
+            row.before.content,
+            row.after.content
           )
           tokensBefore.push(before)
           tokensAfter.push(after)
@@ -282,22 +276,15 @@ export class SideBySideDiffRow extends React.Component<
               {
                 'highlighted-hunk': isInTemporarySelection(
                   this.props.hunkHighlightRange,
-                  this.props.row.before.diffLineNumber
+                  row.before.diffLineNumber
                 ),
               },
             ])}
           >
             <div className="before" onMouseEnter={this.onMouseEnterGutter}>
-              {this.renderGutter(
-                this.props.row.before.diffLineNumber,
-                this.props.row.before.lineNumber,
-                this.props.row.before.isSelected
-              )}
+              {this.renderGutter(row.before.lineNumber, row.before.isSelected)}
               <div className="content">
-                {syntaxHighlightLine(
-                  this.props.row.before.content,
-                  tokensBefore
-                )}
+                {syntaxHighlightLine(row.before.content, tokensBefore)}
               </div>
             </div>
             {canSelect(this.props.file) && (
@@ -309,13 +296,9 @@ export class SideBySideDiffRow extends React.Component<
               ></div>
             )}
             <div className="after" onMouseEnter={this.onMouseEnterGutter}>
-              {this.renderGutter(
-                this.props.row.after.diffLineNumber,
-                this.props.row.after.lineNumber,
-                this.props.row.after.isSelected
-              )}
+              {this.renderGutter(row.after.lineNumber, row.after.isSelected)}
               <div className="content">
-                {syntaxHighlightLine(this.props.row.after.content, tokensAfter)}
+                {syntaxHighlightLine(row.after.content, tokensAfter)}
               </div>
             </div>
           </div>
@@ -324,11 +307,7 @@ export class SideBySideDiffRow extends React.Component<
     }
   }
 
-  private renderGutter(
-    diffLineNumber: number,
-    lineNumber: number,
-    isSelected: boolean
-  ) {
+  private renderGutter(lineNumber: number, isSelected: boolean) {
     if (!canSelect(this.props.file)) {
       return <div className="gutter">{lineNumber}</div>
     }
