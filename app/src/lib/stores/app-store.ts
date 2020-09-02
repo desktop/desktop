@@ -268,6 +268,10 @@ import { parseRemote } from '../../lib/remote-parsing'
 import { createTutorialRepository } from './helpers/create-tutorial-repository'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { getDefaultDir } from '../../ui/lib/default-dir'
+import {
+  UpstreamRemoteName,
+  findUpstreamRemote,
+} from './helpers/find-upstream-remote'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { getAttributableEmailsFor } from '../email'
 
@@ -5383,67 +5387,38 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _checkoutPullRequest(
-    repository: Repository,
-    pullRequest: PullRequest
+    repository: RepositoryWithGitHubRepository,
+    prNumber: number,
+    ownerLogin: string,
+    headCloneUrl: string,
+    headRefName: string
   ): Promise<void> {
-    const gitHubRepository = forceUnwrap(
-      `Cannot checkout a PR if the repository doesn't have a GitHub repository`,
-      repository.gitHubRepository
+    const branch = await this._getPullRequestHeadBranchInRepo(
+      repository,
+      headCloneUrl,
+      headRefName
     )
-    const head = pullRequest.head
-    const isRefInThisRepo =
-      head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
 
-    if (isRefInThisRepo) {
-      const gitStore = this.gitStoreCache.get(repository)
-      const defaultRemote = gitStore.defaultRemote
-      // if we don't have a default remote here, it's probably going
-      // to just crash and burn on checkout, but that's okay
-      if (defaultRemote != null) {
-        // the remote ref will be something like `origin/my-cool-branch`
-        const remoteRef = `${defaultRemote.name}/${head.ref}`
-
-        const remoteRefExists =
-          gitStore.allBranches.find(branch => branch.name === remoteRef) != null
-
-        // only try a fetch here if we can't find the ref
-        if (!remoteRefExists) {
-          await this._fetchRemote(
-            repository,
-            defaultRemote,
-            FetchType.UserInitiatedTask
-          )
-        }
-      }
-      const branch = this.getLocalBranch(repository, head.ref)
-
-      // N.B: This looks weird, and it is. _checkoutBranch used
-      // to behave this way (silently ignoring checkout) when given
-      // a branch name string that does not correspond to a local branch
-      // in the git store. When rewriting _checkoutBranch
-      // to remove the support for string branch names the behavior
-      // was moved up to this method to not alter the current behavior.
-      //
-      // https://youtu.be/IjmtVKOAHPM
-      if (branch !== null) {
-        await this._checkoutBranch(repository, branch)
-      }
+    // N.B: This looks weird, and it is. _checkoutBranch used
+    // to behave this way (silently ignoring checkout) when given
+    // a branch name string that does not correspond to a local branch
+    // in the git store. When rewriting _checkoutBranch
+    // to remove the support for string branch names the behavior
+    // was moved up to this method to not alter the current behavior.
+    //
+    // https://youtu.be/IjmtVKOAHPM
+    if (branch !== null) {
+      await this._checkoutBranch(repository, branch)
     } else {
-      const cloneURL = forceUnwrap(
-        "This pull request's clone URL is not populated but should be",
-        head.gitHubRepository.cloneURL
-      )
-      const remoteName = forkPullRequestRemoteName(
-        head.gitHubRepository.owner.login
-      )
+      const remoteName = forkPullRequestRemoteName(ownerLogin)
       const remotes = await getRemotes(repository)
       const remote =
         remotes.find(r => r.name === remoteName) ||
-        (await addRemote(repository, remoteName, cloneURL))
+        (await addRemote(repository, remoteName, headCloneUrl))
 
-      if (remote.url !== cloneURL) {
+      if (remote.url !== headCloneUrl) {
         const error = new Error(
-          `Expected PR remote ${remoteName} url to be ${cloneURL} got ${remote.url}.`
+          `Expected PR remote ${remoteName} url to be ${headCloneUrl} got ${remote.url}.`
         )
 
         log.error(error.message)
@@ -5452,14 +5427,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       await this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
 
-      const localBranchName = `pr/${pullRequest.pullRequestNumber}`
+      const localBranchName = `pr/${prNumber}`
       const existingBranch = this.getLocalBranch(repository, localBranchName)
 
       if (existingBranch === null) {
         await this._createBranch(
           repository,
           localBranchName,
-          `${remoteName}/${head.ref}`
+          `${remoteName}/${headRefName}`
         )
       } else {
         await this._checkoutBranch(repository, existingBranch)
@@ -5467,6 +5442,77 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this.statsStore.recordPRBranchCheckout()
+  }
+
+  private async _getPullRequestHeadBranchInRepo(
+    repository: RepositoryWithGitHubRepository,
+    headCloneURL: string,
+    headRefName: string
+  ): Promise<Branch | null> {
+    const gitHubRepository = repository.gitHubRepository
+    const isRefInThisRepo = headCloneURL === gitHubRepository.cloneURL
+    const isRefInUpstream =
+      gitHubRepository.parent !== null &&
+      headCloneURL === gitHubRepository.parent.cloneURL
+
+    const gitStore = this.gitStoreCache.get(repository)
+
+    const findBranch = (name: string) =>
+      gitStore.allBranches.find(branch => branch.name === name) || null
+
+    // If we don't have a default remote here, it's probably going
+    // to just crash and burn on checkout, but that's okay
+    if (isRefInThisRepo) {
+      const defaultRemote = forceUnwrap(
+        `Unexpected state: repository without a default remote`,
+        gitStore.defaultRemote
+      )
+
+      // The remote ref will be something like `origin/my-cool-branch`
+      const remoteRef = `${defaultRemote.name}/${headRefName}`
+      const originBranch = findBranch(remoteRef)
+
+      if (originBranch !== null) {
+        return originBranch
+      }
+
+      // Fetch the remote and try finding the branch again
+      if (originBranch === null) {
+        await this._fetchRemote(
+          repository,
+          defaultRemote,
+          FetchType.UserInitiatedTask
+        )
+      }
+
+      return findBranch(remoteRef)
+    }
+
+    if (isRefInUpstream) {
+      // the remote ref will be something like `upstream/my-cool-branch`
+      const remoteRef = `${UpstreamRemoteName}/${headRefName}`
+      const branch = findBranch(remoteRef)
+
+      if (branch !== null) {
+        return branch
+      }
+
+      // Fetch the remote and try finding the branch again
+      const remotes = await getRemotes(repository)
+      const remoteUpstream = forceUnwrap(
+        'Cannot add the upstream repository as a remote of the current repository',
+        findUpstreamRemote(forceUnwrap('', gitHubRepository.parent), remotes)
+      )
+      await this._fetchRemote(
+        repository,
+        remoteUpstream,
+        FetchType.UserInitiatedTask
+      )
+
+      return findBranch(remoteRef)
+    }
+
+    return null
   }
 
   /**
