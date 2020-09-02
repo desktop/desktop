@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import { getTokens } from './diff-syntax-mode'
 import { syntaxHighlightLine, getDiffTokens } from './syntax-highlighting/utils'
-import { ITokens } from '../../lib/highlighter/types'
+import { ITokens, ILineTokens } from '../../lib/highlighter/types'
 import {
   WorkingDirectoryFileChange,
   CommittedFileChange,
@@ -93,8 +93,8 @@ export class SideBySideDiffRow extends React.Component<
       case DiffRowType.Hunk:
         return (
           <div className="row hunk-info">
-            <div className="gutter"></div>
-            <div className="content">{row.content}</div>
+            {this.renderGutter()}
+            {this.renderContent(row.content)}
           </div>
         )
       case DiffRowType.Context:
@@ -107,30 +107,17 @@ export class SideBySideDiffRow extends React.Component<
         // previous lines. That's currently not possible because an
         // optimization done in getLineFilters() that avoids calculating
         // the syntax highlighting of the after state of context lines.
-        const afterTokens = getTokens(
-          row.beforeLineNumber,
-          this.props.beforeTokens
-        )
+        const afterTokens = beforeTokens
 
         return (
           <div className="row context">
             <div className="before">
-              <div className="gutter">{row.beforeLineNumber}</div>
-              <div className="content">
-                {syntaxHighlightLine(
-                  row.content,
-                  beforeTokens !== null ? [beforeTokens] : []
-                )}
-              </div>
+              {this.renderGutter(row.beforeLineNumber)}
+              {this.renderContent(row.content, beforeTokens)}
             </div>
             <div className="after">
-              <div className="gutter">{row.afterLineNumber}</div>
-              <div className="content">
-                {syntaxHighlightLine(
-                  row.content,
-                  afterTokens !== null ? [afterTokens] : []
-                )}
-              </div>
+              {this.renderGutter(row.afterLineNumber)}
+              {this.renderContent(row.content, afterTokens)}
             </div>
           </div>
         )
@@ -140,38 +127,17 @@ export class SideBySideDiffRow extends React.Component<
 
         return (
           <div
-            className={classNames([
-              'row',
-              'added',
-              {
-                'highlighted-hunk': isInTemporarySelection(
-                  this.props.hunkHighlightRange,
-                  row.data.diffLineNumber
-                ),
-              },
-            ])}
+            className={this.getRowClassNames('added')}
             onMouseEnter={this.onMouseEnterGutter}
           >
             <div className="before">
-              <div className="gutter"></div>
-              <div className="content"></div>
+              {this.renderGutter()}
+              {this.renderContent('')}
             </div>
-            {canSelect(this.props.file) && (
-              <div
-                className="hunk-handle"
-                onMouseEnter={this.onMouseEnterHunk}
-                onMouseLeave={this.onMouseLeaveHunk}
-                onClick={this.onClickHunk}
-              ></div>
-            )}
+            {this.renderHunkHandle()}
             <div className="after">
               {this.renderGutter(row.data.lineNumber, row.data.isSelected)}
-              <div className="content">
-                {syntaxHighlightLine(
-                  row.data.content,
-                  tokens !== null ? [tokens] : []
-                )}
-              </div>
+              {this.renderContent(row.data.content, tokens)}
             </div>
           </div>
         )
@@ -181,55 +147,24 @@ export class SideBySideDiffRow extends React.Component<
 
         return (
           <div
-            className={classNames([
-              'row',
-              'deleted',
-              {
-                'highlighted-hunk': isInTemporarySelection(
-                  this.props.hunkHighlightRange,
-                  row.data.diffLineNumber
-                ),
-              },
-            ])}
+            className={this.getRowClassNames('deleted')}
             onMouseEnter={this.onMouseEnterGutter}
           >
             <div className="before">
               {this.renderGutter(row.data.lineNumber, row.data.isSelected)}
-              <div className="content">
-                {syntaxHighlightLine(
-                  row.data.content,
-                  tokens !== null ? [tokens] : []
-                )}
-              </div>
+              {this.renderContent(row.data.content, tokens)}
             </div>
-            {canSelect(this.props.file) && (
-              <div
-                className="hunk-handle"
-                onMouseEnter={this.onMouseEnterHunk}
-                onMouseLeave={this.onMouseLeaveHunk}
-                onClick={this.onClickHunk}
-              ></div>
-            )}
+            {this.renderHunkHandle()}
             <div className="after">
-              <div className="gutter"></div>
-              <div className="content"></div>
+              {this.renderGutter()}
+              {this.renderContent('')}
             </div>
           </div>
         )
       }
       case DiffRowType.Modified: {
-        const syntaxTokensBefore = getTokens(
-          row.beforeData.lineNumber,
-          this.props.beforeTokens
-        )
-        const syntaxTokensAfter = getTokens(
-          row.afterData.lineNumber,
-          this.props.afterTokens
-        )
-        const tokensBefore =
-          syntaxTokensBefore !== null ? [syntaxTokensBefore] : []
-        const tokensAfter =
-          syntaxTokensAfter !== null ? [syntaxTokensAfter] : []
+        let diffTokensBefore: ILineTokens | null = null
+        let diffTokensAfter: ILineTokens | null = null
 
         if (
           row.displayDiffTokens &&
@@ -240,48 +175,34 @@ export class SideBySideDiffRow extends React.Component<
             row.beforeData.content,
             row.afterData.content
           )
-          tokensBefore.push(before)
-          tokensAfter.push(after)
+          diffTokensBefore = before
+          diffTokensAfter = after
         }
 
         return (
-          <div
-            className={classNames([
-              'row',
-              'modified',
-              {
-                'highlighted-hunk': isInTemporarySelection(
-                  this.props.hunkHighlightRange,
-                  row.beforeData.diffLineNumber
-                ),
-              },
-            ])}
-          >
+          <div className={this.getRowClassNames('modified')}>
             <div className="before" onMouseEnter={this.onMouseEnterGutter}>
               {this.renderGutter(
                 row.beforeData.lineNumber,
                 row.beforeData.isSelected
               )}
-              <div className="content">
-                {syntaxHighlightLine(row.beforeData.content, tokensBefore)}
-              </div>
+              {this.renderContent(
+                row.beforeData.content,
+                getTokens(row.beforeData.lineNumber, this.props.beforeTokens),
+                diffTokensBefore
+              )}
             </div>
-            {canSelect(this.props.file) && (
-              <div
-                className="hunk-handle"
-                onMouseEnter={this.onMouseEnterHunk}
-                onMouseLeave={this.onMouseLeaveHunk}
-                onClick={this.onClickHunk}
-              ></div>
-            )}
+            {this.renderHunkHandle()}
             <div className="after" onMouseEnter={this.onMouseEnterGutter}>
               {this.renderGutter(
                 row.afterData.lineNumber,
                 row.afterData.isSelected
               )}
-              <div className="content">
-                {syntaxHighlightLine(row.afterData.content, tokensAfter)}
-              </div>
+              {this.renderContent(
+                row.afterData.content,
+                getTokens(row.afterData.lineNumber, this.props.afterTokens),
+                diffTokensAfter
+              )}
             </div>
           </div>
         )
@@ -289,19 +210,65 @@ export class SideBySideDiffRow extends React.Component<
     }
   }
 
-  private renderGutter(lineNumber: number, isSelected: boolean) {
+  private renderContent(
+    lineContent: string,
+    ...tokensArray: ReadonlyArray<ILineTokens | null>
+  ) {
+    return (
+      <div className="content">
+        {syntaxHighlightLine(lineContent, ...tokensArray)}
+      </div>
+    )
+  }
+
+  private renderHunkHandle() {
+    if (!canSelect(this.props.file)) {
+      return null
+    }
+
+    return (
+      <div
+        className="hunk-handle"
+        onMouseEnter={this.onMouseEnterHunk}
+        onMouseLeave={this.onMouseLeaveHunk}
+        onClick={this.onClickHunk}
+      ></div>
+    )
+  }
+
+  private renderGutter(lineNumber?: number, isSelected?: boolean) {
     if (!canSelect(this.props.file)) {
       return <div className="gutter">{lineNumber}</div>
     }
 
     return (
       <div
-        className={`gutter selectable ${isSelected ? 'line-selected ' : ''}`}
+        className={classNames([
+          'gutter',
+          'selectable',
+          {
+            'line-selected': isSelected === true,
+          },
+        ])}
         onMouseDown={this.onMouseDownGutter}
       >
         {lineNumber}
       </div>
     )
+  }
+
+  private getRowClassNames(className: string) {
+    const diffLineNumber = this.getDiffLineNumber()
+
+    return classNames([
+      'row',
+      className,
+      {
+        'highlighted-hunk':
+          diffLineNumber !== null &&
+          isInTemporarySelection(this.props.hunkHighlightRange, diffLineNumber),
+      },
+    ])
   }
 
   private onMouseDownGutter = (evt: React.MouseEvent) => {
@@ -341,7 +308,7 @@ export class SideBySideDiffRow extends React.Component<
     this.props.onUpdateSelection(diffLineNumber)
   }
 
-  private getDiffLineNumber(evt: React.MouseEvent | MouseEvent) {
+  private getDiffLineNumber(evt?: React.MouseEvent) {
     if (
       this.props.row.type === DiffRowType.Added ||
       this.props.row.type === DiffRowType.Deleted
@@ -349,17 +316,17 @@ export class SideBySideDiffRow extends React.Component<
       return this.props.row.data.diffLineNumber
     }
 
-    if (this.props.row.type === DiffRowType.Modified) {
-      const target = evt.target as HTMLElement
-
-      if (target.closest('.before')) {
-        return this.props.row.beforeData.diffLineNumber
-      }
-
-      return this.props.row.afterData.diffLineNumber
+    if (this.props.row.type !== DiffRowType.Modified) {
+      return null
     }
 
-    return null
+    const target = evt?.target as HTMLElement | undefined
+
+    if (target === undefined || target.closest('.before')) {
+      return this.props.row.beforeData.diffLineNumber
+    }
+
+    return this.props.row.afterData.diffLineNumber
   }
 
   private getIsSelected(evt: React.MouseEvent) {

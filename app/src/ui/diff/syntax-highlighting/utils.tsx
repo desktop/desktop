@@ -17,7 +17,7 @@ import { mapKeysEqual } from '../../../lib/equality'
  *
  * syntaxHighlightLine(
  *   lineBefore,
- *   [getDiffTokens(lineBefore, lineAfter).before]
+ *   getDiffTokens(lineBefore, lineAfter).before
  * )
  *
  * @param lineBefore    The first version of the line to compare.
@@ -54,7 +54,7 @@ export function getDiffTokens(
  */
 export function syntaxHighlightLine(
   line: string,
-  tokensArray: ReadonlyArray<ILineTokens>
+  ...tokensArray: ReadonlyArray<ILineTokens | null>
 ): JSX.Element {
   const elements = []
   let currentElement = {
@@ -73,7 +73,7 @@ export function syntaxHighlightLine(
     }
 
     for (const tokens of tokensArray) {
-      if (tokens[i] !== undefined && tokens[i].length > 0) {
+      if (tokens !== null && tokens[i] !== undefined && tokens[i].length > 0) {
         // ILineTokens can contain multiple tokens separated by spaces.
         // We split them to avoid creating unneeded HTML elements when
         // these tokens do not maintain the same order.
