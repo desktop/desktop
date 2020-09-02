@@ -598,7 +598,7 @@ export class CloneRepository extends React.Component<
     }
 
     const account = await findAccountForRemoteURL(url, accounts)
-    if (lastParsedIdentifier && account) {
+    if (lastParsedIdentifier !== null && account !== null) {
       const api = API.fromAccount(account)
       const { owner, name } = lastParsedIdentifier
       // Respect the user's preference if they provided an SSH URL
