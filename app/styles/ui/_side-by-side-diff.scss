@@ -41,16 +41,25 @@
     }
   }
 
-  .added.highlighted-hunk .after .gutter {
-    background: var(--diff-add-hover-background-color) !important;
-    border-color: var(--diff-add-hover-border-color) !important;
-    color: var(--diff-add-hover-text-color) !important;
+  .added,
+  .modified {
+    &.highlighted-hunk {
+      .after .gutter {
+        background: var(--diff-add-hover-background-color) !important;
+        border-color: var(--diff-add-hover-border-color) !important;
+        color: var(--diff-add-hover-text-color) !important;
+      }
+    }
   }
-
-  .deleted.highlighted-hunk .before .gutter {
-    background: var(--diff-delete-hover-background-color) !important;
-    border-color: var(--diff-delete-hover-border-color) !important;
-    color: var(--diff-delete-hover-text-color) !important;
+  .deleted,
+  .modified {
+    &.highlighted-hunk {
+      .before .gutter {
+        background: var(--diff-delete-hover-background-color) !important;
+        border-color: var(--diff-delete-hover-border-color) !important;
+        color: var(--diff-delete-hover-text-color) !important;
+      }
+    }
   }
 
   .row.highlighted-hunk {
@@ -119,7 +128,7 @@
     }
 
     .before {
-      border-right: 1px solid var(--diff-border-color);
+      border-right: 4px solid var(--diff-border-color);
     }
 
     .before,
