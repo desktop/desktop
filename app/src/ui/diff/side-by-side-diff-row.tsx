@@ -34,9 +34,9 @@ interface ISideBySideDiffRowProps {
 
   readonly onMouseEnterHunk: (lineNumber: number) => void
   readonly onMouseLeaveHunk: (lineNumber: number) => void
-  readonly onClickHunk: (lineNumber: number, select: boolean) => void
   readonly onContextMenuLine: (lineNumber: number) => void
-  readonly onContextMenuHunk: (lineNumber: number) => void
+  readonly onClickHunk: (hunkStartLine: number, select: boolean) => void
+  readonly onContextMenuHunk: (hunkStartLine: number) => void
 }
 
 export class SideBySideDiffRow extends React.Component<
@@ -82,10 +82,7 @@ export class SideBySideDiffRow extends React.Component<
         const tokens = getTokens(row.data.lineNumber, this.props.afterTokens)
 
         return (
-          <div
-            className={this.getRowClassNames('added')}
-            onMouseEnter={this.onMouseEnterGutter}
-          >
+          <div className="row added" onMouseEnter={this.onMouseEnterGutter}>
             <div className="before">
               {this.renderGutter()}
               {this.renderContentFromString('')}
@@ -102,10 +99,7 @@ export class SideBySideDiffRow extends React.Component<
         const tokens = getTokens(row.data.lineNumber, this.props.beforeTokens)
 
         return (
-          <div
-            className={this.getRowClassNames('deleted')}
-            onMouseEnter={this.onMouseEnterGutter}
-          >
+          <div className="row deleted" onMouseEnter={this.onMouseEnterGutter}>
             <div className="before">
               {this.renderGutter(row.data.lineNumber, row.data.isSelected)}
               {this.renderContent(row.data, tokens)}
@@ -136,7 +130,7 @@ export class SideBySideDiffRow extends React.Component<
         }
 
         return (
-          <div className={this.getRowClassNames('modified')}>
+          <div className="row modified">
             <div className="before" onMouseEnter={this.onMouseEnterGutter}>
               {this.renderGutter(
                 row.beforeData.lineNumber,
@@ -236,6 +230,7 @@ export class SideBySideDiffRow extends React.Component<
           {
             selectable: isSelected !== undefined,
             'line-selected': isSelected === true,
+            hover: this.props.isHunkHovered,
           },
         ])}
         onMouseDown={this.onMouseDownGutter}
@@ -244,16 +239,6 @@ export class SideBySideDiffRow extends React.Component<
         {lineNumber}
       </div>
     )
-  }
-
-  private getRowClassNames(className: string) {
-    return classNames([
-      'row',
-      className,
-      {
-        'highlighted-hunk': this.props.isHunkHovered,
-      },
-    ])
   }
 
   private onMouseDownGutter = (evt: React.MouseEvent) => {

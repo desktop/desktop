@@ -51,7 +51,8 @@
     .after .gutter {
       border-color: var(--diff-add-border-color);
 
-      &:hover {
+      &:hover,
+      &.hover {
         border-color: var(--diff-add-hover-border-color);
       }
     }
@@ -62,7 +63,8 @@
     .before .gutter {
       border-color: var(--diff-delete-border-color);
 
-      &:hover {
+      &:hover,
+      &.hover {
         border-color: var(--diff-delete-hover-border-color);
       }
     }
@@ -91,7 +93,8 @@
         color: var(--diff-selected-text-color);
         border-color: var(--diff-selected-border-color);
 
-        &:hover {
+        &:hover,
+        &.hover {
           background: var(--diff-hover-background-color);
           border-color: var(--diff-hover-border-color);
           color: var(--diff-hover-text-color);
@@ -139,7 +142,8 @@
       background: var(--diff-delete-gutter-background-color);
     }
 
-    .selectable:hover {
+    .selectable:hover,
+    .selectable.hover {
       background: var(--diff-delete-hover-background-color);
       color: var(--diff-delete-hover-text-color);
     }
@@ -153,7 +157,8 @@
       background: var(--diff-add-gutter-background-color);
     }
 
-    .selectable:hover {
+    .selectable:hover,
+    .selectable.hover {
       background: var(--diff-add-hover-background-color);
       color: var(--diff-add-hover-text-color);
     }
@@ -195,32 +200,6 @@
 
       .gutter {
         background: var(--diff-gutter-background-color);
-      }
-    }
-
-    &.highlighted-hunk {
-      &.added,
-      &.modified {
-        .after .gutter {
-          background: var(--diff-add-hover-background-color);
-          border-color: var(--diff-add-hover-border-color);
-          color: var(--diff-add-hover-text-color);
-        }
-      }
-
-      &.deleted,
-      &.modified {
-        .before .gutter {
-          background: var(--diff-delete-hover-background-color);
-          border-color: var(--diff-delete-hover-border-color);
-          color: var(--diff-delete-hover-text-color);
-        }
-      }
-
-      &.row .gutter.line-selected {
-        background: var(--diff-hover-background-color);
-        border-color: var(--diff-hover-border-color);
-        color: var(--diff-hover-text-color);
       }
     }
   }
