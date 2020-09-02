@@ -343,10 +343,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private currentBranchPruner: BranchPruner | null = null
 
-  private readonly repositoryIndicatorUpdater = new RepositoryIndicatorUpdater(
-    this.getRepositoriesForIndicatorRefresh,
-    this.refreshIndicatorForRepository
-  )
+  private readonly repositoryIndicatorUpdater: RepositoryIndicatorUpdater
 
   private showWelcomeFlow = false
   private focusCommitMessage = false
@@ -460,6 +457,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     getAppMenu()
     this.tutorialAssessor = new OnboardingTutorialAssessor(
       this.getResolvedExternalEditor
+    )
+
+    this.repositoryIndicatorUpdater = new RepositoryIndicatorUpdater(
+      this.getRepositoriesForIndicatorRefresh,
+      this.refreshIndicatorForRepository
     )
 
     window.setTimeout(
