@@ -17,7 +17,11 @@ import {
   highlightContents,
 } from './syntax-highlighting'
 import { ITokens } from '../../lib/highlighter/types'
-import { assertNever, assertNonNullable } from '../../lib/fatal-error'
+import {
+  assertNever,
+  assertNonNullable,
+  forceUnwrap,
+} from '../../lib/fatal-error'
 import classNames from 'classnames'
 import {
   List,
@@ -362,26 +366,16 @@ function getDiffRowsFromHunk(
   temporarySelection?: ISelection
 ): DiffRow[] {
   const rows: DiffRow[] = []
-  let modifiedLines: DiffLine[] = []
-  let lineNumber = 0
+  let modifiedLines: { line: DiffLine; lineNumber: number }[] = []
 
   for (const [num, line] of hunk.lines.entries()) {
-    lineNumber = hunk.unifiedDiffStart + num
-
     if (line.type === DiffLineType.Delete || line.type === DiffLineType.Add) {
-      modifiedLines.push(line)
+      modifiedLines.push({ line, lineNumber: hunk.unifiedDiffStart + num })
       continue
     }
 
     if (modifiedLines.length > 0) {
-      rows.push(
-        ...getModifiedRows(
-          modifiedLines,
-          lineNumber - modifiedLines.length,
-          file,
-          temporarySelection
-        )
-      )
+      rows.push(...getModifiedRows(modifiedLines, file, temporarySelection))
 
       modifiedLines = []
     }
@@ -417,30 +411,22 @@ function getDiffRowsFromHunk(
   }
 
   if (modifiedLines.length > 0) {
-    rows.push(
-      ...getModifiedRows(
-        modifiedLines,
-        lineNumber - modifiedLines.length + 1,
-        file,
-        temporarySelection
-      )
-    )
+    rows.push(...getModifiedRows(modifiedLines, file, temporarySelection))
   }
 
   return rows
 }
 
 function getModifiedRows(
-  addedDeletedLines: ReadonlyArray<DiffLine>,
-  offsetLineInDiff: number,
+  addedDeletedLines: ReadonlyArray<{ line: DiffLine; lineNumber: number }>,
   file: ChangedFile,
   temporarySelection?: ISelection
 ): ReadonlyArray<DiffRow> {
   const addedLines = addedDeletedLines.filter(
-    line => line.type === DiffLineType.Add
+    ({ line }) => line.type === DiffLineType.Add
   )
   const deletedLines = addedDeletedLines.filter(
-    line => line.type === DiffLineType.Delete
+    ({ line }) => line.type === DiffLineType.Delete
   )
   const shouldDisplayDiffInChunk = addedLines.length === deletedLines.length
   const output: Array<DiffRow> = []
@@ -450,24 +436,24 @@ function getModifiedRows(
     numLine < addedLines.length || numLine < deletedLines.length;
     numLine++
   ) {
-    if (numLine >= deletedLines.length) {
-      // Added line
+    if (numLine >= addedLines.length) {
+      // Deleted line
       output.push({
-        type: DiffRowType.Added,
-        data: getAfterDataFromLine(
-          addedLines[numLine],
-          offsetLineInDiff + numLine + deletedLines.length,
+        type: DiffRowType.Deleted,
+        data: getDataFromLine(
+          deletedLines[numLine],
+          'oldLineNumber',
           file,
           temporarySelection
         ),
       })
-    } else if (numLine >= addedLines.length) {
-      // Deleted line
+    } else if (numLine >= deletedLines.length) {
+      // Added line
       output.push({
-        type: DiffRowType.Deleted,
-        data: getBeforeDataFromLine(
+        type: DiffRowType.Added,
+        data: getDataFromLine(
           deletedLines[numLine],
-          offsetLineInDiff + numLine,
+          'newLineNumber',
           file,
           temporarySelection
         ),
@@ -476,15 +462,15 @@ function getModifiedRows(
       // Modified line
       output.push({
         type: DiffRowType.Modified,
-        beforeData: getBeforeDataFromLine(
+        beforeData: getDataFromLine(
           deletedLines[numLine],
-          offsetLineInDiff + numLine,
+          'oldLineNumber',
           file,
           temporarySelection
         ),
-        afterData: getAfterDataFromLine(
+        afterData: getDataFromLine(
           addedLines[numLine],
-          offsetLineInDiff + numLine + deletedLines.length,
+          'newLineNumber',
           file,
           temporarySelection
         ),
@@ -496,41 +482,20 @@ function getModifiedRows(
   return output
 }
 
-function getBeforeDataFromLine(
-  line: DiffLine,
-  diffLineNumber: number,
+function getDataFromLine(
+  { line, lineNumber }: { line: DiffLine; lineNumber: number },
+  lineToUse: 'oldLineNumber' | 'newLineNumber',
   file: ChangedFile,
   temporarySelection?: ISelection
 ): IDiffRowData {
-  assertNonNullable(
-    line.oldLineNumber,
-    `Expecting oldLineNumber value for ${line}`
-  )
-
   return {
     content: line.content,
-    lineNumber: line.oldLineNumber,
-    diffLineNumber,
-    isSelected: isInSelection(diffLineNumber, file, temporarySelection),
-  }
-}
-
-function getAfterDataFromLine(
-  line: DiffLine,
-  diffLineNumber: number,
-  file: ChangedFile,
-  temporarySelection?: ISelection
-): IDiffRowData {
-  assertNonNullable(
-    line.newLineNumber,
-    `Expecting newLineNumber value for ${line}`
-  )
-
-  return {
-    content: line.content,
-    lineNumber: line.newLineNumber,
-    diffLineNumber,
-    isSelected: isInSelection(diffLineNumber, file, temporarySelection),
+    lineNumber: forceUnwrap(
+      `Expecting ${lineToUse} value for ${line}`,
+      line[lineToUse]
+    ),
+    diffLineNumber: lineNumber,
+    isSelected: isInSelection(lineNumber, file, temporarySelection),
   }
 }
 
