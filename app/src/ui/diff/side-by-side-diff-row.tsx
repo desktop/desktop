@@ -2,11 +2,9 @@ import * as React from 'react'
 
 import { getTokens } from './diff-syntax-mode'
 import {
-  canSelect,
   getDiffData,
   getDiffTokens,
   syntaxHighlightLine,
-  ChangedFile,
   DiffRow,
   DiffRowType,
   IDiffRowData,
@@ -20,22 +18,80 @@ import { shallowEquals, structuralEquals } from '../../lib/equality'
 const MaxLineLengthToCalculateDiff = 240
 
 interface ISideBySideDiffRowProps {
+  /**
+   * The row data. This contains most of the information used to render the row.
+   */
   readonly row: DiffRow
+
+  /**
+   * Syntax highlight tokens for the previous state of the diff.
+   */
   readonly beforeTokens?: ITokens
+
+  /**
+   * Syntax highlight tokens for the previous next of the diff.
+   */
   readonly afterTokens?: ITokens
 
-  /** The file whose diff should be displayed. */
-  readonly file: ChangedFile
+  /**
+   * Whether the diff is selectable or read-only.
+   */
+  readonly isDiffSelectable: boolean
 
+  /**
+   * Whether the row belongs to a hunk that is hovered.
+   */
   readonly isHunkHovered: boolean
 
-  readonly onStartSelection: (from: number, select: boolean) => void
-  readonly onUpdateSelection: (lineNumber: number) => void
+  /**
+   * Called when a line selection is started. Called with the
+   * diff line number and a flag to indicate if the user is
+   * selecting or unselecting lines.
+   * (only relevant when isDiffSelectable is true)
+   */
+  readonly onStartSelection: (diffLineNumber: number, select: boolean) => void
 
-  readonly onMouseEnterHunk: (lineNumber: number) => void
-  readonly onMouseLeaveHunk: (lineNumber: number) => void
-  readonly onContextMenuLine: (lineNumber: number) => void
+  /**
+   * Called when a line selection is updated. Called with the
+   * currently hovered diff line number.
+   * (only relevant when isDiffSelectable is true)
+   */
+  readonly onUpdateSelection: (diffLineNumber: number) => void
+
+  /**
+   * Called when the user hovers the hunk handle. Called with the start
+   * line of the hunk.
+   * (only relevant when isDiffSelectable is true)
+   */
+  readonly onMouseEnterHunk: (hunkStartLine: number) => void
+
+  /**
+   * Called when the user unhovers the hunk handle. Called with the start
+   * line of the hunk.
+   * (only relevant when isDiffSelectable is true)
+   */
+  readonly onMouseLeaveHunk: (hunkStartLine: number) => void
+
+  /**
+   * Called when the user clicks on the hunk handle. Called with the start
+   * line of the hunk and a flag indicating whether to select or unselect
+   * the hunk.
+   * (only relevant when isDiffSelectable is true)
+   */
   readonly onClickHunk: (hunkStartLine: number, select: boolean) => void
+
+  /**
+   * Called when the user right-licks a line number. Called with the
+   * clicked diff line number.
+   * (only relevant when isDiffSelectable is true)
+   */
+  readonly onContextMenuLine: (diffLineNumber: number) => void
+
+  /**
+   * Called when the user right-licks a hunk handle. Called with the start
+   * line of the hunk.
+   * (only relevant when isDiffSelectable is true)
+   */
   readonly onContextMenuHunk: (hunkStartLine: number) => void
 }
 
@@ -161,12 +217,8 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   public shouldComponentUpdate(nextProps: ISideBySideDiffRowProps) {
-    const { file: prevFile, row: prevRow, ...restPrevProps } = this.props
-    const { file: nextFile, row: nextRow, ...restNextProps } = nextProps
-
-    if (prevFile.id !== nextFile.id) {
-      return true
-    }
+    const { row: prevRow, ...restPrevProps } = this.props
+    const { row: nextRow, ...restNextProps } = nextProps
 
     if (!structuralEquals(prevRow, nextRow)) {
       return true
@@ -203,7 +255,7 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private renderHunkHandle() {
-    if (!canSelect(this.props.file)) {
+    if (!this.props.isDiffSelectable) {
       return null
     }
 
@@ -219,7 +271,7 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private renderGutter(lineNumber?: number, isSelected?: boolean) {
-    if (!canSelect(this.props.file)) {
+    if (!this.props.isDiffSelectable) {
       return <div className="gutter">{lineNumber}</div>
     }
 

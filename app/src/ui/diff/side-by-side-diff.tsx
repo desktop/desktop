@@ -39,14 +39,15 @@ import {
   ISelection,
 } from './diff-helpers'
 import { showContextualMenu } from '../main-process-proxy'
-import { WorkingDirectoryFileChange } from '../../models/status'
 
 const DefaultRowHeight = 20
 
 interface ISideBySideDiffProps {
   readonly repository: Repository
+
   /** The file whose diff should be displayed. */
   readonly file: ChangedFile
+
   /** The diff that should be rendered */
   readonly diff: ITextDiff
 
@@ -73,16 +74,57 @@ interface ISideBySideDiffProps {
 }
 
 interface ISideBySideDiffState {
+  /**
+   * The list of syntax highlighting tokens corresponding to
+   * the previous contents of the file.
+   */
   readonly beforeTokens?: ITokens
+  /**
+   * The list of syntax highlighting tokens corresponding to
+   * the next contents of the file.
+   */
   readonly afterTokens?: ITokens
-  readonly selectingRow?: 'before' | 'after'
-  readonly selection?: ISelection
 
-  /** Whether a particular range should be highlighted due to hover */
+  /**
+   * Indicates whether the user is doing a text selection and in which
+   * column is doing it. This allows us to limit text selection to that
+   * specific column via CSS.
+   */
+  readonly selectingTextInRow?: 'before' | 'after'
+
+  /**
+   * The current diff gutter selection. This is used while
+   * dragging the mouse over different lines to know where the user started
+   * dragging and whether the selection is to add or remove lines from the
+   * selection.
+   **/
+  readonly temporarySelection?: ISelection
+
+  /**
+   * Indicates the hunk that the user is currently hovering via the gutter.
+   *
+   * In this context, a hunk is not exactly equivalent to a diff hunk, but
+   * instead marks a group of consecutive added/deleted lines.
+   *
+   * As an example, the following diff will contain a single diff hunk
+   * (marked by the line starting with @@) but in this context we'll have two
+   * hunks:
+   *
+   *   @@ -1,4 +1,4 @@
+   *   line 1
+   *   -line 2
+   *   +line 2a
+   *   line 3
+   *   -line 4
+   *   +line 4a
+   *
+   * This differenciation makes selecting multiple lines by clicking on the
+   * gutter more user friendly, since only consecutive modified lines get selected.
+   */
   readonly hoveredHunk?: number
 }
 
-const cache = new CellMeasurerCache({
+const listRowsHeightCache = new CellMeasurerCache({
   defaultHeight: DefaultRowHeight,
   fixedWidth: true,
 })
@@ -113,38 +155,38 @@ export class SideBySideDiff extends React.Component<
         className={classNames([
           {
             'side-by-side-diff-container': true,
-            [`selecting-${this.state.selectingRow}`]:
-              this.state.selectingRow !== undefined,
+            [`selecting-${this.state.selectingTextInRow}`]:
+              this.state.selectingTextInRow !== undefined,
             editable: canSelect(this.props.file),
           },
         ])}
         onMouseDown={this.onMouseDown}
       >
         <div className="side-by-side-diff cm-s-default">
-          <AutoSizer onResize={this.clearCache}>
+          <AutoSizer onResize={this.clearListRowsHeightCache}>
             {({ height, width }) => (
               <List
-                deferredMeasurementCache={cache}
+                deferredMeasurementCache={listRowsHeightCache}
                 width={width}
                 height={height}
                 rowCount={
                   getDiffRows(
                     this.props.diff,
-                    this.props.file,
-                    this.state.selection
+                    this.getSelection(),
+                    this.state.temporarySelection
                   ).length
                 }
                 rowHeight={this.getRowHeight}
                 rowRenderer={this.renderRow}
-                // Passing them to force re-renders when tokens change.
+                // The following properties are passed to the list
+                // to make sure that it gets re-rendered when any of
+                // them change.
                 beforeTokens={this.state.beforeTokens}
                 afterTokens={this.state.afterTokens}
-                temporarySelection={this.state.selection}
+                temporarySelection={this.state.temporarySelection}
                 hoveredHunk={this.state.hoveredHunk}
-                fileId={this.props.file.id}
-                fileSelection={
-                  canSelect(this.props.file) && this.props.file.selection
-                }
+                isSelectable={canSelect(this.props.file)}
+                fileSelection={this.getSelection()}
               />
             )}
           </AutoSizer>
@@ -156,8 +198,8 @@ export class SideBySideDiff extends React.Component<
   private renderRow = ({ index, parent, style, key }: ListRowProps) => {
     const rows = getDiffRows(
       this.props.diff,
-      this.props.file,
-      this.state.selection
+      this.getSelection(),
+      this.state.temporarySelection
     )
     const row = rows[index]
 
@@ -167,7 +209,7 @@ export class SideBySideDiff extends React.Component<
 
     return (
       <CellMeasurer
-        cache={cache}
+        cache={listRowsHeightCache}
         columnIndex={0}
         key={key}
         overscanRowCount={10}
@@ -179,7 +221,7 @@ export class SideBySideDiff extends React.Component<
             row={row}
             beforeTokens={this.state.beforeTokens}
             afterTokens={this.state.afterTokens}
-            file={this.props.file}
+            isDiffSelectable={canSelect(this.props.file)}
             isHunkHovered={this.state.hoveredHunk === row.hunkStartLine}
             onStartSelection={this.onStartSelection}
             onUpdateSelection={this.onUpdateSelection}
@@ -195,24 +237,11 @@ export class SideBySideDiff extends React.Component<
   }
 
   private getRowHeight = (row: { index: number }) => {
-    return cache.rowHeight(row) ?? DefaultRowHeight
+    return listRowsHeightCache.rowHeight(row) ?? DefaultRowHeight
   }
 
-  private clearCache = () => {
-    cache.clearAll()
-  }
-
-  private onMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
-    const target = event.target as HTMLDivElement
-
-    const isSelectingBeforeText = target.closest('.before')
-    const isSelectingAfterText = target.closest('.after')
-
-    if (isSelectingBeforeText !== null) {
-      this.setState({ selectingRow: 'before' })
-    } else if (isSelectingAfterText !== null) {
-      this.setState({ selectingRow: 'after' })
-    }
+  private clearListRowsHeightCache = () => {
+    listRowsHeightCache.clearAll()
   }
 
   private async initDiffSyntaxMode() {
@@ -244,9 +273,35 @@ export class SideBySideDiff extends React.Component<
     })
   }
 
+  private getSelection(): DiffSelection | undefined {
+    return canSelect(this.props.file) ? this.props.file.selection : undefined
+  }
+
+  /**
+   * This handler is used to limit text selection to a single column.
+   * To do so, we store the last column where the user clicked and use
+   * that information to add a CSS class on the container div
+   * (e.g `selecting-before`).
+   *
+   * Then, via CSS we can disable text selection on the column that is
+   * not being selected.
+   */
+  private onMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLDivElement
+
+    const isSelectingBeforeText = target.closest('.before')
+    const isSelectingAfterText = target.closest('.after')
+
+    if (isSelectingBeforeText !== null) {
+      this.setState({ selectingTextInRow: 'before' })
+    } else if (isSelectingAfterText !== null) {
+      this.setState({ selectingTextInRow: 'after' })
+    }
+  }
+
   private onStartSelection = (lineNumber: number, select: boolean) => {
     this.setState({
-      selection: {
+      temporarySelection: {
         from: lineNumber,
         to: lineNumber,
         isSelected: select,
@@ -256,12 +311,26 @@ export class SideBySideDiff extends React.Component<
     document.addEventListener('mouseup', this.onEndSelection, { once: true })
   }
 
-  private onEndSelection = () => {
-    if (!canSelect(this.props.file)) {
+  private onUpdateSelection = (lineNumber: number) => {
+    if (this.state.temporarySelection === undefined) {
       return
     }
 
-    if (this.state.selection === undefined) {
+    this.setState({
+      temporarySelection: {
+        ...this.state.temporarySelection,
+        to: lineNumber,
+      },
+    })
+  }
+
+  private onEndSelection = () => {
+    const selection = this.getSelection()
+    if (selection === undefined) {
+      return
+    }
+
+    if (this.state.temporarySelection === undefined) {
       return
     }
 
@@ -269,37 +338,30 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    const from = Math.min(this.state.selection.from, this.state.selection.to)
-    const to = Math.max(this.state.selection.from, this.state.selection.to)
+    const from = Math.min(
+      this.state.temporarySelection.from,
+      this.state.temporarySelection.to
+    )
+    const to = Math.max(
+      this.state.temporarySelection.from,
+      this.state.temporarySelection.to
+    )
 
     this.props.onIncludeChanged(
-      this.props.file.selection.withRangeSelection(
+      selection.withRangeSelection(
         from,
         to - from + 1,
-        this.state.selection.isSelected
+        this.state.temporarySelection.isSelected
       )
     )
 
     this.setState({
-      selection: undefined,
-    })
-  }
-
-  private onUpdateSelection = (lineNumber: number) => {
-    if (this.state.selection === undefined) {
-      return
-    }
-
-    this.setState({
-      selection: {
-        ...this.state.selection,
-        to: lineNumber,
-      },
+      temporarySelection: undefined,
     })
   }
 
   private onMouseEnterHunk = (hunkStartLine: number) => {
-    if (this.state.selection !== undefined) {
+    if (this.state.temporarySelection !== undefined) {
       return
     }
 
@@ -311,7 +373,8 @@ export class SideBySideDiff extends React.Component<
   }
 
   private onClickHunk = (hunkStartLine: number, select: boolean) => {
-    if (!canSelect(this.props.file)) {
+    const selection = this.getSelection()
+    if (selection === undefined) {
       return
     }
 
@@ -327,14 +390,17 @@ export class SideBySideDiff extends React.Component<
     }
 
     this.props.onIncludeChanged(
-      this.props.file.selection.withRangeSelection(from, to - from + 1, select)
+      selection.withRangeSelection(from, to - from + 1, select)
     )
   }
 
-  private onContextMenuLine = (lineNumber: number) => {
-    const file = this.props.file
-
-    if (!canSelect(file)) {
+  /**
+   * Handler to show a context menu when the user right-clicks on a line number.
+   *
+   * @param diffLineNumber the line number the diff where the user clicked
+   */
+  private onContextMenuLine = (diffLineNumber: number) => {
+    if (!canSelect(this.props.file)) {
       return
     }
 
@@ -345,15 +411,18 @@ export class SideBySideDiff extends React.Component<
     showContextualMenu([
       {
         label: 'Discard line',
-        action: () => this.onDiscardChanges(file, lineNumber),
+        action: () => this.onDiscardChanges(diffLineNumber),
       },
     ])
   }
 
+  /**
+   * Handler to show a context menu when the user right-clicks on the gutter hunk handler.
+   *
+   * @param hunkStartLine The start line of the hunk where the user clicked.
+   */
   private onContextMenuHunk = (hunkStartLine: number) => {
-    const file = this.props.file
-
-    if (!canSelect(file)) {
+    if (!canSelect(this.props.file)) {
       return
     }
 
@@ -362,7 +431,6 @@ export class SideBySideDiff extends React.Component<
     }
 
     const range = findInteractiveDiffRange(this.props.diff.hunks, hunkStartLine)
-
     if (range === null) {
       return
     }
@@ -370,25 +438,26 @@ export class SideBySideDiff extends React.Component<
     showContextualMenu([
       {
         label: 'Discard lines',
-        action: () => this.onDiscardChanges(file, range.from, range.to),
+        action: () => this.onDiscardChanges(range.from, range.to),
       },
     ])
   }
 
-  private onDiscardChanges(
-    file: WorkingDirectoryFileChange,
-    startLine: number,
-    endLine: number = startLine
-  ) {
+  private onDiscardChanges(startLine: number, endLine: number = startLine) {
+    const selection = this.getSelection()
+    if (selection === undefined) {
+      return
+    }
+
     if (this.props.onDiscardChanges === undefined) {
       return
     }
 
-    const selection = file.selection
+    const newSelection = selection
       .withSelectNone()
       .withRangeSelection(startLine, endLine - startLine + 1, true)
 
-    this.props.onDiscardChanges(this.props.diff, selection)
+    this.props.onDiscardChanges(this.props.diff, newSelection)
   }
 }
 
@@ -410,42 +479,86 @@ function highlightParametersEqual(
   )
 }
 
+/**
+ * Memoized function to calculate the actual rows to display side by side
+ * as a diff.
+ *
+ * @param diff                The diff to use to calculate the rows.
+ * @param selection           The currently active selection
+ *                            (undefined when displaying non-selectable diffs).
+ * @param temporarySelection  The in-progress selection that's happening while
+ *                            the user drags their mouse to modify the active
+ *                            selection.
+ */
 const getDiffRows = memoize(function (
   diff: ITextDiff,
-  file: ChangedFile,
+  selection?: DiffSelection,
   temporarySelection?: ISelection
 ): DiffRow[] {
-  const rows: DiffRow[] = []
+  const outputRows: DiffRow[] = []
 
   for (const hunk of diff.hunks) {
-    rows.push(...getDiffRowsFromHunk(hunk, file, temporarySelection))
+    const rows = getDiffRowsFromHunk(hunk, selection, temporarySelection)
+
+    for (const row of rows) {
+      outputRows.push(row)
+    }
   }
 
-  return rows
+  return outputRows
 })
 
+/**
+ * Returns an array of rows with the needed data to render a side-by-side diff
+ * with them.
+ *
+ * In some situations it will merge a deleted an added row into a single
+ * modified row, in order to display them side by side (This happens when there
+ * are consecutive added and deleted rows).
+ *
+ * @param hunk                  The hunk to use to extract the rows data
+ * @param selection           The currently active selection
+ *                            (undefined when displaying non-selectable diffs).
+ * @param temporarySelection  The in-progress selection that's happening while
+ *                            the user drags their mouse to modify the active
+ *                            selection.
+ */
 function getDiffRowsFromHunk(
   hunk: DiffHunk,
-  file: ChangedFile,
+  selection?: DiffSelection,
   temporarySelection?: ISelection
 ): DiffRow[] {
   const rows: DiffRow[] = []
+
+  /**
+   * Array containing multiple consecutive added/deleted lines. This
+   * is used to be able to merge them into modified rows.
+   */
   let modifiedLines: {
     line: DiffLine
-    lineNumber: number
+    diffLineNumber: number
   }[] = []
 
   for (const [num, line] of hunk.lines.entries()) {
     if (line.type === DiffLineType.Delete || line.type === DiffLineType.Add) {
       modifiedLines.push({
         line,
-        lineNumber: hunk.unifiedDiffStart + num,
+        diffLineNumber: hunk.unifiedDiffStart + num,
       })
       continue
     }
 
     if (modifiedLines.length > 0) {
-      rows.push(...getModifiedRows(modifiedLines, file, temporarySelection))
+      // If the current line is not added/deleted and we have any added/deleted
+      // line stored, we need to process them.
+      const modifiedRows = getModifiedRows(
+        modifiedLines,
+        selection,
+        temporarySelection
+      )
+      for (const row of modifiedRows) {
+        rows.push(row)
+      }
 
       modifiedLines = []
     }
@@ -480,8 +593,16 @@ function getDiffRowsFromHunk(
     assertNever(line.type, `Invalid line type: ${line.type}`)
   }
 
+  // Do one more pass to process the remaining list of modified lines.
   if (modifiedLines.length > 0) {
-    rows.push(...getModifiedRows(modifiedLines, file, temporarySelection))
+    const modifiedRows = getModifiedRows(
+      modifiedLines,
+      selection,
+      temporarySelection
+    )
+    for (const row of modifiedRows) {
+      rows.push(row)
+    }
   }
 
   return rows
@@ -490,15 +611,15 @@ function getDiffRowsFromHunk(
 function getModifiedRows(
   addedDeletedLines: ReadonlyArray<{
     line: DiffLine
-    lineNumber: number
+    diffLineNumber: number
   }>,
-  file: ChangedFile,
+  selection?: DiffSelection,
   temporarySelection?: ISelection
 ): ReadonlyArray<DiffRow> {
   if (addedDeletedLines.length === 0) {
     return []
   }
-  const hunkStartLine = addedDeletedLines[0].lineNumber
+  const hunkStartLine = addedDeletedLines[0].diffLineNumber
 
   const addedLines = addedDeletedLines.filter(
     ({ line }) => line.type === DiffLineType.Add
@@ -506,7 +627,11 @@ function getModifiedRows(
   const deletedLines = addedDeletedLines.filter(
     ({ line }) => line.type === DiffLineType.Delete
   )
+
+  // To match the behavior of github.com, we only highlight differences between
+  // lines on hunks that have the same number of added and deleted lines.
   const shouldDisplayDiffInChunk = addedLines.length === deletedLines.length
+
   const output: Array<DiffRow> = []
 
   for (
@@ -521,13 +646,13 @@ function getModifiedRows(
         beforeData: getDataFromLine(
           deletedLines[numLine],
           'oldLineNumber',
-          file,
+          selection,
           temporarySelection
         ),
         afterData: getDataFromLine(
           addedLines[numLine],
           'newLineNumber',
-          file,
+          selection,
           temporarySelection
         ),
         hunkStartLine,
@@ -540,7 +665,7 @@ function getModifiedRows(
         data: getDataFromLine(
           deletedLines[numLine],
           'oldLineNumber',
-          file,
+          selection,
           temporarySelection
         ),
         hunkStartLine,
@@ -552,7 +677,7 @@ function getModifiedRows(
         data: getDataFromLine(
           addedLines[numLine],
           'newLineNumber',
-          file,
+          selection,
           temporarySelection
         ),
         hunkStartLine,
@@ -564,9 +689,9 @@ function getModifiedRows(
 }
 
 function getDataFromLine(
-  { line, lineNumber }: { line: DiffLine; lineNumber: number },
+  { line, diffLineNumber }: { line: DiffLine; diffLineNumber: number },
   lineToUse: 'oldLineNumber' | 'newLineNumber',
-  file: ChangedFile,
+  selection?: DiffSelection,
   temporarySelection?: ISelection
 ): IDiffRowData {
   return {
@@ -575,22 +700,18 @@ function getDataFromLine(
       `Expecting ${lineToUse} value for ${line}`,
       line[lineToUse]
     ),
-    diffLineNumber: lineNumber,
-    isSelected: isInSelection(lineNumber, file, temporarySelection),
+    diffLineNumber,
+    isSelected: isInSelection(diffLineNumber, selection, temporarySelection),
     noNewLineIndicator: line.noTrailingNewLine,
   }
 }
 
 function isInSelection(
   diffLineNumber: number,
-  file: ChangedFile,
+  selection?: DiffSelection,
   temporarySelection?: ISelection
 ) {
-  if (!canSelect(file)) {
-    return false
-  }
-
-  const isInStoredSelection = file.selection.isSelected(diffLineNumber)
+  const isInStoredSelection = selection?.isSelected(diffLineNumber) || false
 
   if (temporarySelection === undefined) {
     return isInStoredSelection
