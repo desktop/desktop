@@ -114,13 +114,13 @@ interface ISideBySideDiffState {
    * (marked by the line starting with @@) but in this context we'll have two
    * hunks:
    *
-   *   @@ -1,4 +1,4 @@
-   *   line 1
-   *   -line 2
-   *   +line 2a
-   *   line 3
-   *   -line 4
-   *   +line 4a
+   * |  @@ -1,4 +1,4 @@
+   * |  line 1
+   * |  -line 2
+   * |  +line 2a
+   * |  line 3
+   * |  -line 4
+   * |  +line 4a
    *
    * This differenciation makes selecting multiple lines by clicking on the
    * gutter more user friendly, since only consecutive modified lines get selected.
