@@ -287,8 +287,6 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    console.log('rafeca: onmouseenter', range)
-
     const { from, to } = range
     this.setState({ hunkHighlightRange: { from, to, isSelected: false } })
   }
