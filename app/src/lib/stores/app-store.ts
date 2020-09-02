@@ -344,7 +344,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private currentBranchPruner: BranchPruner | null = null
   private readonly repositoryIndicatorUpdater = new RepositoryIndicatorUpdater(
     () => [...this.repositories],
-    r => this.refreshIndicatorForRepository(r)
+    this.refreshIndicatorForRepository
   )
 
   private showWelcomeFlow = false
@@ -2810,7 +2810,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /**
    * Refresh indicator in repository list for a specific repository
    */
-  private async refreshIndicatorForRepository(repository: Repository) {
+  private refreshIndicatorForRepository = async (repository: Repository) => {
     const lookup = this.localRepositoryStateLookup
 
     if (repository.missing) {
