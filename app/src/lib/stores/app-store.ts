@@ -342,8 +342,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private currentAheadBehindUpdater: AheadBehindUpdater | null = null
 
   private currentBranchPruner: BranchPruner | null = null
+
   private readonly repositoryIndicatorUpdater = new RepositoryIndicatorUpdater(
-    () => [...this.repositories],
+    this.getRepositoriesForIndicatorRefresh,
     this.refreshIndicatorForRepository
   )
 
@@ -2847,6 +2848,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.emitUpdate()
+  }
+
+  private getRepositoriesForIndicatorRefresh = () => {
+    // Note that this method should never leak the actual repositories
+    // instance since that's a mutable array. We should always return
+    // a copy.
+    return [...this.repositories]
   }
 
   /**
