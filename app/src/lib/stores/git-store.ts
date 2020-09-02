@@ -1365,16 +1365,18 @@ export class GitStore extends BaseStore {
   /** Update the last fetched date. */
   public async updateLastFetched() {
     const fetchHeadPath = Path.join(this.repository.path, '.git', 'FETCH_HEAD')
-    const fstat = await stat(fetchHeadPath).catch(() => null)
 
-    if (fstat === null) {
-      this._lastFetched = null
-    } else {
+    try {
+      const fstat = await stat(fetchHeadPath)
+
       // If the file's empty then it _probably_ means the fetch failed and we
       // shouldn't update the last fetched date.
       if (fstat.size > 0) {
         this._lastFetched = fstat.mtime
       }
+    } catch {
+      // An error most likely means the repository's never been published.
+      this._lastFetched = null
     }
 
     this.emitUpdate()
