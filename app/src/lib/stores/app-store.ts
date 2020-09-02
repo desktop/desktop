@@ -2851,10 +2851,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private getRepositoriesForIndicatorRefresh = () => {
+    // The currently selected repository will get refreshed by both the
+    // BackgroundFetcher and the refreshRepository call from the
+    // focus event. No point in having the RepositoryIndicatorUpdater do
+    // it as well.
+    //
     // Note that this method should never leak the actual repositories
     // instance since that's a mutable array. We should always return
     // a copy.
-    return [...this.repositories]
+    return this.repositories.filter(x => x !== this.selectedRepository)
   }
 
   /**
