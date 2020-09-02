@@ -465,9 +465,9 @@ function getModifiedRows(
         content: line.content,
         lineNumber: line.newLineNumber,
         diffLine: line,
-        diffLineNumber: offsetLineInDiff + numLine,
+        diffLineNumber: offsetLineInDiff + numLine + deletedLines.length,
         isSelected: isInSelection(
-          offsetLineInDiff + numLine,
+          offsetLineInDiff + numLine + deletedLines.length,
           file,
           temporarySelection
         ),
