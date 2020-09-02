@@ -34,13 +34,17 @@ import {
   DiffRow,
   DiffRowType,
   IDiffRowData,
-  isInTemporarySelection,
   canSelect,
-  ISelection,
 } from './diff-helpers'
 import { showContextualMenu } from '../main-process-proxy'
 
 const DefaultRowHeight = 20
+
+export interface ISelection {
+  readonly from: number
+  readonly to: number
+  readonly isSelected: boolean
+}
 
 interface ISideBySideDiffProps {
   readonly repository: Repository
@@ -93,7 +97,7 @@ interface ISideBySideDiffState {
   readonly selectingTextInRow?: 'before' | 'after'
 
   /**
-   * The current diff gutter selection. This is used while
+   * The current diff selection. This is used while
    * dragging the mouse over different lines to know where the user started
    * dragging and whether the selection is to add or remove lines from the
    * selection.
@@ -718,8 +722,8 @@ function isInSelection(
   }
 
   const isInTemporary = isInTemporarySelection(
-    temporarySelection,
-    diffLineNumber
+    diffLineNumber,
+    temporarySelection
   )
 
   if (temporarySelection.isSelected) {
@@ -727,4 +731,17 @@ function isInSelection(
   } else {
     return isInStoredSelection && !isInTemporary
   }
+}
+
+export function isInTemporarySelection(
+  lineNumber: number,
+  selection?: ISelection
+): selection is ISelection {
+  if (selection === undefined) {
+    return false
+  }
+  return (
+    lineNumber >= Math.min(selection.from, selection.to) &&
+    lineNumber <= Math.max(selection.to, selection.from)
+  )
 }

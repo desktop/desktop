@@ -2,7 +2,6 @@ import * as React from 'react'
 
 import { getTokens } from './diff-syntax-mode'
 import {
-  getDiffData,
   getDiffTokens,
   syntaxHighlightLine,
   DiffRow,
@@ -105,7 +104,7 @@ export class SideBySideDiffRow extends React.Component<
       case DiffRowType.Hunk:
         return (
           <div className="row hunk-info">
-            {this.renderGutter()}
+            {this.renderLineNumber()}
             {this.renderContentFromString(row.content)}
           </div>
         )
@@ -124,11 +123,11 @@ export class SideBySideDiffRow extends React.Component<
         return (
           <div className="row context">
             <div className="before">
-              {this.renderGutter(row.beforeLineNumber)}
+              {this.renderLineNumber(row.beforeLineNumber)}
               {this.renderContentFromString(row.content, beforeTokens)}
             </div>
             <div className="after">
-              {this.renderGutter(row.afterLineNumber)}
+              {this.renderLineNumber(row.afterLineNumber)}
               {this.renderContentFromString(row.content, afterTokens)}
             </div>
           </div>
@@ -138,14 +137,14 @@ export class SideBySideDiffRow extends React.Component<
         const tokens = getTokens(row.data.lineNumber, this.props.afterTokens)
 
         return (
-          <div className="row added" onMouseEnter={this.onMouseEnterGutter}>
+          <div className="row added" onMouseEnter={this.onMouseEnterLineNumber}>
             <div className="before">
-              {this.renderGutter()}
+              {this.renderLineNumber()}
               {this.renderContentFromString('')}
             </div>
             {this.renderHunkHandle()}
             <div className="after">
-              {this.renderGutter(row.data.lineNumber, row.data.isSelected)}
+              {this.renderLineNumber(row.data.lineNumber, row.data.isSelected)}
               {this.renderContent(row.data, tokens)}
             </div>
           </div>
@@ -155,14 +154,17 @@ export class SideBySideDiffRow extends React.Component<
         const tokens = getTokens(row.data.lineNumber, this.props.beforeTokens)
 
         return (
-          <div className="row deleted" onMouseEnter={this.onMouseEnterGutter}>
+          <div
+            className="row deleted"
+            onMouseEnter={this.onMouseEnterLineNumber}
+          >
             <div className="before">
-              {this.renderGutter(row.data.lineNumber, row.data.isSelected)}
+              {this.renderLineNumber(row.data.lineNumber, row.data.isSelected)}
               {this.renderContent(row.data, tokens)}
             </div>
             {this.renderHunkHandle()}
             <div className="after">
-              {this.renderGutter()}
+              {this.renderLineNumber()}
               {this.renderContentFromString('')}
             </div>
           </div>
@@ -187,8 +189,8 @@ export class SideBySideDiffRow extends React.Component<
 
         return (
           <div className="row modified">
-            <div className="before" onMouseEnter={this.onMouseEnterGutter}>
-              {this.renderGutter(
+            <div className="before" onMouseEnter={this.onMouseEnterLineNumber}>
+              {this.renderLineNumber(
                 row.beforeData.lineNumber,
                 row.beforeData.isSelected
               )}
@@ -199,8 +201,8 @@ export class SideBySideDiffRow extends React.Component<
               )}
             </div>
             {this.renderHunkHandle()}
-            <div className="after" onMouseEnter={this.onMouseEnterGutter}>
-              {this.renderGutter(
+            <div className="after" onMouseEnter={this.onMouseEnterLineNumber}>
+              {this.renderLineNumber(
                 row.afterData.lineNumber,
                 row.afterData.isSelected
               )}
@@ -270,30 +272,38 @@ export class SideBySideDiffRow extends React.Component<
     )
   }
 
-  private renderGutter(lineNumber?: number, isSelected?: boolean) {
-    if (!this.props.isDiffSelectable) {
-      return <div className="gutter">{lineNumber}</div>
+  /**
+   * Renders the line number box.
+   *
+   * @param lineNumber  Line number to display.
+   * @param isSelected  Whether the line has been selected.
+   *                    If undefined is passed, the line is treated
+   *                    as non-selectable.
+   */
+  private renderLineNumber(lineNumber?: number, isSelected?: boolean) {
+    if (isSelected === undefined) {
+      return <div className="line-number">{lineNumber}</div>
     }
 
     return (
       <div
         className={classNames([
-          'gutter',
+          'line-number',
+          'selectable',
           {
-            selectable: isSelected !== undefined,
-            'line-selected': isSelected === true,
+            'line-selected': isSelected,
             hover: this.props.isHunkHovered,
           },
         ])}
-        onMouseDown={this.onMouseDownGutter}
-        onContextMenu={this.onContextMenuGutter}
+        onMouseDown={this.onMouseDownLineNumber}
+        onContextMenu={this.onContextMenuLineNumber}
       >
         {lineNumber}
       </div>
     )
   }
 
-  private onMouseDownGutter = (evt: React.MouseEvent) => {
+  private onMouseDownLineNumber = (evt: React.MouseEvent) => {
     if (evt.buttons === 2) {
       return
     }
@@ -306,7 +316,7 @@ export class SideBySideDiffRow extends React.Component<
     this.props.onStartSelection(data.diffLineNumber, !data.isSelected)
   }
 
-  private onMouseEnterGutter = (evt: React.MouseEvent) => {
+  private onMouseEnterLineNumber = (evt: React.MouseEvent) => {
     const data = getDiffData(this.props.row, evt.currentTarget)
     if (data === null) {
       return
@@ -338,7 +348,7 @@ export class SideBySideDiffRow extends React.Component<
     }
   }
 
-  private onContextMenuGutter = (evt: React.MouseEvent) => {
+  private onContextMenuLineNumber = (evt: React.MouseEvent) => {
     const data = getDiffData(this.props.row, evt.currentTarget)
     if (data === null) {
       return
@@ -352,4 +362,16 @@ export class SideBySideDiffRow extends React.Component<
       this.props.onContextMenuHunk(this.props.row.hunkStartLine)
     }
   }
+}
+
+function getDiffData(row: DiffRow, targetElement?: Element) {
+  if (row.type === DiffRowType.Added || row.type === DiffRowType.Deleted) {
+    return row.data
+  }
+
+  if (row.type !== DiffRowType.Modified) {
+    return null
+  }
+
+  return targetElement?.closest('.after') ? row.afterData : row.beforeData
 }

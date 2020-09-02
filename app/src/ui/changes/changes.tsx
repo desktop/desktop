@@ -41,6 +41,9 @@ interface IChangesProps {
    */
   readonly askForConfirmationOnDiscardChanges: boolean
 
+  /**
+   * Whether we should display side by side diffs.
+   */
   readonly showSideBySideDiff: boolean
 }
 

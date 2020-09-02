@@ -25,6 +25,7 @@ interface IStashDiffViewerProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
 
+  /** Whether we should display side by side diffs. */
   readonly showSideBySideDiff: boolean
 
   /** Are there any uncommitted changes */

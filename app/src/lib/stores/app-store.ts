@@ -314,7 +314,7 @@ const hideWhitespaceInDiffDefault = false
 const hideWhitespaceInDiffKey = 'hide-whitespace-in-diff'
 
 const showSideBySideDiffDefault = false
-const showSideBySideDiffKey = 'show-sidebyside-diff'
+const showSideBySideDiffKey = 'show-side-by-side-diff'
 
 const shellKey = 'shell'
 

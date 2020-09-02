@@ -61,6 +61,7 @@ interface IDiffProps {
   /** Hiding whitespace in diff. */
   readonly hideWhitespaceInDiff: boolean
 
+  /** Whether we should display side by side diffs. */
   readonly showSideBySideDiff: boolean
 
   /** Whether we should show a confirmation dialog when the user discards changes */

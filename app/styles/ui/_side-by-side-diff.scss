@@ -18,11 +18,11 @@
       }
     }
 
-    .before .gutter {
+    .before .line-number {
       border-right: 2px solid transparent;
     }
 
-    .after .gutter {
+    .after .line-number {
       border-left: 2px solid transparent;
     }
   }
@@ -48,7 +48,7 @@
 
   .added,
   .modified {
-    .after .gutter {
+    .after .line-number {
       border-color: var(--diff-add-border-color);
 
       &:hover,
@@ -60,7 +60,7 @@
 
   .deleted,
   .modified {
-    .before .gutter {
+    .before .line-number {
       border-color: var(--diff-delete-border-color);
 
       &:hover,
@@ -70,7 +70,7 @@
     }
   }
 
-  .gutter {
+  .line-number {
     width: 55px;
     flex-shrink: 0;
     text-align: right;
@@ -138,7 +138,7 @@
     color: var(--diff-delete-text-color);
     background: var(--diff-delete-background-color);
 
-    .gutter {
+    .line-number {
       background: var(--diff-delete-gutter-background-color);
     }
 
@@ -153,7 +153,7 @@
     color: var(--diff-add-text-color);
     background: var(--diff-add-background-color);
 
-    .gutter {
+    .line-number {
       background: var(--diff-add-gutter-background-color);
     }
 
@@ -179,7 +179,7 @@
         user-select: none;
       }
 
-      .gutter {
+      .line-number {
         background: var(--diff-hunk-background-color);
       }
     }
@@ -188,7 +188,7 @@
     &.deleted .after {
       background: var(--diff-empty-row-background-color);
 
-      .gutter {
+      .line-number {
         background: var(--diff-empty-row-gutter-background-color);
       }
     }
@@ -198,7 +198,7 @@
       background: var(--diff-background-color);
       color: var(--diff-text-color);
 
-      .gutter {
+      .line-number {
         background: var(--diff-gutter-background-color);
       }
     }

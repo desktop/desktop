@@ -36,8 +36,12 @@ interface ICommitSummaryProps {
   readonly hideDescriptionBorder: boolean
 
   readonly hideWhitespaceInDiff: boolean
+
+  /** Whether we should display side by side diffs. */
   readonly showSideBySideDiff: boolean
   readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
+
+  /** Called when the user changes the side by side diffs setting. */
   readonly onShowSideBySideDiffChanged: (checked: boolean) => void
 }
 

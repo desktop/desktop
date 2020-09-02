@@ -9,12 +9,6 @@ import {
   CommittedFileChange,
 } from '../../models/status'
 
-export interface ISelection {
-  readonly from: number
-  readonly to: number
-  readonly isSelected: boolean
-}
-
 export enum DiffRowType {
   Added = 'Added',
   Deleted = 'Deleted',
@@ -165,6 +159,11 @@ export function syntaxHighlightLine(
       }
     }
 
+    // If the calculated tokens for the character
+    // are the same as the ones for the current element,
+    // we can just append the character on that element contents.
+    // Otherwise, we need to create a new element with the tokens
+    // and "archive" the current element.
     if (mapKeysEqual(currentElement.tokens, newTokens)) {
       currentElement.content += char
     } else {
@@ -190,6 +189,8 @@ export function syntaxHighlightLine(
     <>
       {elements.map((element, i) => {
         if (element.tokens.size === 0) {
+          // If the element does not contain any token
+          // we can skip creating a span.
           return element.content
         }
         return (
@@ -207,31 +208,9 @@ export function syntaxHighlightLine(
   )
 }
 
-export function getDiffData(row: DiffRow, targetElement?: Element) {
-  if (row.type === DiffRowType.Added || row.type === DiffRowType.Deleted) {
-    return row.data
-  }
-
-  if (row.type !== DiffRowType.Modified) {
-    return null
-  }
-
-  return targetElement?.closest('.after') ? row.afterData : row.beforeData
-}
-
 /** Utility function for checking whether a file supports selection */
 export function canSelect(
   file: ChangedFile
 ): file is WorkingDirectoryFileChange {
   return file instanceof WorkingDirectoryFileChange
-}
-
-export function isInTemporarySelection(
-  s: ISelection | undefined,
-  ix: number
-): s is ISelection {
-  if (s === undefined) {
-    return false
-  }
-  return ix >= Math.min(s.from, s.to) && ix <= Math.max(s.to, s.from)
 }

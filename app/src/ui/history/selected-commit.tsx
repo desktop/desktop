@@ -49,6 +49,8 @@ interface ISelectedCommitProps {
    */
   readonly onOpenInExternalEditor: (path: string) => void
   readonly hideWhitespaceInDiff: boolean
+
+  /** Whether we should display side by side diffs. */
   readonly showSideBySideDiff: boolean
 
   /**
