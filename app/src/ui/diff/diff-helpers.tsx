@@ -27,6 +27,7 @@ export interface IDiffRowData {
   readonly content: string
   readonly lineNumber: number
   readonly diffLineNumber: number
+  readonly noNewLineIndicator: boolean
   readonly isSelected: boolean
 }
 

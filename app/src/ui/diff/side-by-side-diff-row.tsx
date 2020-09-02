@@ -11,9 +11,12 @@ import {
   DiffRow,
   DiffRowType,
   ISelection,
+  IDiffRowData,
 } from './diff-helpers'
 import { ITokens, ILineTokens } from '../../lib/highlighter/types'
 import classNames from 'classnames'
+import { Octicon } from '../octicons'
+import { narrowNoNewlineSymbol } from './text-diff'
 
 const MaxLineLengthToCalculateDiff = 240
 
@@ -46,7 +49,7 @@ export class SideBySideDiffRow extends React.Component<
         return (
           <div className="row hunk-info">
             {this.renderGutter()}
-            {this.renderContent(row.content)}
+            {this.renderContentFromString(row.content)}
           </div>
         )
       case DiffRowType.Context:
@@ -65,11 +68,11 @@ export class SideBySideDiffRow extends React.Component<
           <div className="row context">
             <div className="before">
               {this.renderGutter(row.beforeLineNumber)}
-              {this.renderContent(row.content, beforeTokens)}
+              {this.renderContentFromString(row.content, beforeTokens)}
             </div>
             <div className="after">
               {this.renderGutter(row.afterLineNumber)}
-              {this.renderContent(row.content, afterTokens)}
+              {this.renderContentFromString(row.content, afterTokens)}
             </div>
           </div>
         )
@@ -84,12 +87,12 @@ export class SideBySideDiffRow extends React.Component<
           >
             <div className="before">
               {this.renderGutter()}
-              {this.renderContent('')}
+              {this.renderContentFromString('')}
             </div>
             {this.renderHunkHandle()}
             <div className="after">
               {this.renderGutter(row.data.lineNumber, row.data.isSelected)}
-              {this.renderContent(row.data.content, tokens)}
+              {this.renderContent(row.data, tokens)}
             </div>
           </div>
         )
@@ -104,12 +107,12 @@ export class SideBySideDiffRow extends React.Component<
           >
             <div className="before">
               {this.renderGutter(row.data.lineNumber, row.data.isSelected)}
-              {this.renderContent(row.data.content, tokens)}
+              {this.renderContent(row.data, tokens)}
             </div>
             {this.renderHunkHandle()}
             <div className="after">
               {this.renderGutter()}
-              {this.renderContent('')}
+              {this.renderContentFromString('')}
             </div>
           </div>
         )
@@ -139,7 +142,7 @@ export class SideBySideDiffRow extends React.Component<
                 row.beforeData.isSelected
               )}
               {this.renderContent(
-                row.beforeData.content,
+                row.beforeData,
                 getTokens(row.beforeData.lineNumber, this.props.beforeTokens),
                 diffTokensBefore
               )}
@@ -151,7 +154,7 @@ export class SideBySideDiffRow extends React.Component<
                 row.afterData.isSelected
               )}
               {this.renderContent(
-                row.afterData.content,
+                row.afterData,
                 getTokens(row.afterData.lineNumber, this.props.afterTokens),
                 diffTokensAfter
               )}
@@ -162,13 +165,29 @@ export class SideBySideDiffRow extends React.Component<
     }
   }
 
+  private renderContentFromString(
+    line: string,
+    ...tokensArray: ReadonlyArray<ILineTokens | null>
+  ) {
+    return this.renderContent(
+      { content: line, noNewLineIndicator: false },
+      ...tokensArray
+    )
+  }
+
   private renderContent(
-    lineContent: string,
+    data: Pick<IDiffRowData, 'content' | 'noNewLineIndicator'>,
     ...tokensArray: ReadonlyArray<ILineTokens | null>
   ) {
     return (
       <div className="content">
-        {syntaxHighlightLine(lineContent, ...tokensArray)}
+        {syntaxHighlightLine(data.content, ...tokensArray)}
+        {data.noNewLineIndicator && (
+          <Octicon
+            symbol={narrowNoNewlineSymbol}
+            title="No newline at end of file"
+          />
+        )}
       </div>
     )
   }

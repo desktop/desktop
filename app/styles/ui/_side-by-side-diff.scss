@@ -125,6 +125,14 @@
       white-space: pre-wrap;
       overflow-y: auto;
       flex-grow: 1;
+
+      .octicon {
+        height: 8px;
+        fill: var(--error-color);
+        display: inline-block;
+        margin-left: 3px;
+        margin-bottom: -1px;
+      }
     }
 
     .before {

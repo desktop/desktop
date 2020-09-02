@@ -480,6 +480,7 @@ function getDataFromLine(
     ),
     diffLineNumber: lineNumber,
     isSelected: isInSelection(lineNumber, file, temporarySelection),
+    noNewLineIndicator: line.noTrailingNewLine,
   }
 }
 
