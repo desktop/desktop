@@ -156,7 +156,6 @@ export class RepositoryIndicatorUpdater {
     if (this.paused) {
       log.debug('[RepositoryIndicatorUpdater] Resuming')
 
-      this.pausePromise = Promise.resolve()
       if (this.resolvePausePromise !== null) {
         this.resolvePausePromise()
         this.resolvePausePromise = null
