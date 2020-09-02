@@ -38,6 +38,8 @@ import {
   canSelect,
   ISelection,
 } from './diff-helpers'
+import { showContextualMenu } from '../main-process-proxy'
+import { WorkingDirectoryFileChange } from '../../models/status'
 
 const DefaultRowHeight = 20
 
@@ -53,6 +55,21 @@ interface ISideBySideDiffProps {
    * Only applicable when readOnly is false.
    */
   readonly onIncludeChanged?: (diffSelection: DiffSelection) => void
+
+  /**
+   * Called when the user wants to discard a selection of the diff.
+   * Only applicable when readOnly is false.
+   */
+  readonly onDiscardChanges?: (
+    diff: ITextDiff,
+    diffSelection: DiffSelection
+  ) => void
+
+  /**
+   * Whether we'll show a confirmation dialog when the user
+   * discards changes.
+   */
+  readonly askForConfirmationOnDiscardChanges?: boolean
 }
 
 interface ISideBySideDiffState {
@@ -166,6 +183,8 @@ export class SideBySideDiff extends React.Component<
             onMouseEnterHunk={this.onMouseEnterHunk}
             onMouseLeaveHunk={this.onMouseLeaveHunk}
             onClickHunk={this.onClickHunk}
+            onContextMenuLine={this.onContextMenuLine}
+            onContextMenuHunk={this.onContextMenuHunk}
           />
         </div>
       </CellMeasurer>
@@ -313,6 +332,66 @@ export class SideBySideDiff extends React.Component<
     this.props.onIncludeChanged(
       this.props.file.selection.withRangeSelection(from, to - from + 1, select)
     )
+  }
+
+  private onContextMenuLine = (lineNumber: number) => {
+    const file = this.props.file
+
+    if (!canSelect(file)) {
+      return
+    }
+
+    if (this.props.onDiscardChanges === undefined) {
+      return
+    }
+
+    showContextualMenu([
+      {
+        label: 'Discard line',
+        action: () => this.onDiscardChanges(file, lineNumber),
+      },
+    ])
+  }
+
+  private onContextMenuHunk = (lineNumber: number) => {
+    const file = this.props.file
+
+    if (!canSelect(file)) {
+      return
+    }
+
+    if (this.props.onDiscardChanges === undefined) {
+      return
+    }
+
+    const range = findInteractiveDiffRange(this.props.diff.hunks, lineNumber)
+
+    if (range === null) {
+      return
+    }
+
+    showContextualMenu([
+      {
+        label: 'Discard lines',
+        action: () => this.onDiscardChanges(file, range.from, range.to),
+      },
+    ])
+  }
+
+  private onDiscardChanges(
+    file: WorkingDirectoryFileChange,
+    startLine: number,
+    endLine: number = startLine
+  ) {
+    if (this.props.onDiscardChanges === undefined) {
+      return
+    }
+
+    const selection = file.selection
+      .withSelectNone()
+      .withRangeSelection(startLine, endLine - startLine + 1, true)
+
+    this.props.onDiscardChanges(this.props.diff, selection)
   }
 }
 

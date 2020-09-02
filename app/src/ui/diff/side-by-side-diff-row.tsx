@@ -36,6 +36,8 @@ interface ISideBySideDiffRowProps {
   readonly onMouseEnterHunk: (lineNumber: number) => void
   readonly onMouseLeaveHunk: (lineNumber: number) => void
   readonly onClickHunk: (lineNumber: number, select: boolean) => void
+  readonly onContextMenuLine: (lineNumber: number) => void
+  readonly onContextMenuHunk: (lineNumber: number) => void
 }
 
 export class SideBySideDiffRow extends React.Component<
@@ -203,6 +205,7 @@ export class SideBySideDiffRow extends React.Component<
         onMouseEnter={this.onMouseEnterHunk}
         onMouseLeave={this.onMouseLeaveHunk}
         onClick={this.onClickHunk}
+        onContextMenu={this.onContextMenuHunk}
       ></div>
     )
   }
@@ -222,6 +225,7 @@ export class SideBySideDiffRow extends React.Component<
           },
         ])}
         onMouseDown={this.onMouseDownGutter}
+        onContextMenu={this.onContextMenuGutter}
       >
         {lineNumber}
       </div>
@@ -246,6 +250,10 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private onMouseDownGutter = (evt: React.MouseEvent) => {
+    if (evt.buttons === 2) {
+      return
+    }
+
     const data = getDiffData(this.props.row, evt.currentTarget)
     if (data === null) {
       return
@@ -288,5 +296,23 @@ export class SideBySideDiffRow extends React.Component<
     }
 
     this.props.onClickHunk(data.diffLineNumber, !data.isSelected)
+  }
+
+  private onContextMenuGutter = (evt: React.MouseEvent) => {
+    const data = getDiffData(this.props.row, evt.currentTarget)
+    if (data === null) {
+      return
+    }
+
+    this.props.onContextMenuLine(data.diffLineNumber)
+  }
+
+  private onContextMenuHunk = () => {
+    const data = getDiffData(this.props.row)
+    if (data === null) {
+      return
+    }
+
+    this.props.onContextMenuHunk(data.diffLineNumber)
   }
 }

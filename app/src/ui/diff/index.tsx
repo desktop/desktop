@@ -248,6 +248,10 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
           file={this.props.file}
           diff={diff}
           onIncludeChanged={this.props.onIncludeChanged}
+          onDiscardChanges={this.props.onDiscardChanges}
+          askForConfirmationOnDiscardChanges={
+            this.props.askForConfirmationOnDiscardChanges
+          }
         />
       )
     }
