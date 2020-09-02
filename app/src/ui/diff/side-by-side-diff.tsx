@@ -643,55 +643,60 @@ function getModifiedRows(
 
   const output: Array<DiffRow> = []
 
-  for (
-    let numLine = 0;
-    numLine < addedLines.length || numLine < deletedLines.length;
-    numLine++
-  ) {
-    if (numLine < addedLines.length && numLine < deletedLines.length) {
-      // Modified line
-      output.push({
-        type: DiffRowType.Modified,
-        beforeData: getDataFromLine(
-          deletedLines[numLine],
-          'oldLineNumber',
-          selection,
-          temporarySelection
-        ),
-        afterData: getDataFromLine(
-          addedLines[numLine],
-          'newLineNumber',
-          selection,
-          temporarySelection
-        ),
-        hunkStartLine,
-        displayDiffTokens: shouldDisplayDiffInChunk,
-      })
-    } else if (numLine < deletedLines.length) {
-      // Deleted line
-      output.push({
-        type: DiffRowType.Deleted,
-        data: getDataFromLine(
-          deletedLines[numLine],
-          'oldLineNumber',
-          selection,
-          temporarySelection
-        ),
-        hunkStartLine,
-      })
-    } else if (numLine < addedLines.length) {
-      // Added line
-      output.push({
-        type: DiffRowType.Added,
-        data: getDataFromLine(
-          addedLines[numLine],
-          'newLineNumber',
-          selection,
-          temporarySelection
-        ),
-        hunkStartLine,
-      })
-    }
+  while (addedLines.length > 0 && deletedLines.length > 0) {
+    const addedLine = forceUnwrap('Unexpected null line', addedLines.shift())
+    const deletedLine = forceUnwrap(
+      'Unexpected null line',
+      deletedLines.shift()
+    )
+
+    // Modified lines
+    output.push({
+      type: DiffRowType.Modified,
+      beforeData: getDataFromLine(
+        deletedLine,
+        'oldLineNumber',
+        selection,
+        temporarySelection
+      ),
+      afterData: getDataFromLine(
+        addedLine,
+        'newLineNumber',
+        selection,
+        temporarySelection
+      ),
+      hunkStartLine,
+      displayDiffTokens: shouldDisplayDiffInChunk,
+    })
+  }
+  while (deletedLines.length > 0) {
+    const line = forceUnwrap('Unexpected null line', deletedLines.shift())
+
+    output.push({
+      type: DiffRowType.Deleted,
+      data: getDataFromLine(
+        line,
+        'oldLineNumber',
+        selection,
+        temporarySelection
+      ),
+      hunkStartLine,
+    })
+  }
+  while (addedLines.length > 0) {
+    const line = forceUnwrap('Unexpected null line', addedLines.shift())
+
+    // Added line
+    output.push({
+      type: DiffRowType.Added,
+      data: getDataFromLine(
+        line,
+        'newLineNumber',
+        selection,
+        temporarySelection
+      ),
+      hunkStartLine,
+    })
   }
 
   return output
