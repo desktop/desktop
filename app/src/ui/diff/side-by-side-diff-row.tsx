@@ -1,8 +1,8 @@
 import * as React from 'react'
-import { getTokensForDiffLine } from './diff-syntax-mode'
+
+import { getTokens } from './diff-syntax-mode'
 import { syntaxHighlightLine, getDiffTokens } from './syntax-highlighting/utils'
 import { ITokens } from '../../lib/highlighter/types'
-import { DiffLine } from '../../models/diff'
 import {
   WorkingDirectoryFileChange,
   CommittedFileChange,
@@ -20,40 +20,27 @@ export enum DiffRowType {
   Hunk = 'Hunk',
 }
 
-interface IDiffRowAdded {
-  readonly type: DiffRowType.Added
+interface IDiffRowData {
   readonly content: string
   readonly lineNumber: number
-  readonly diffLine: DiffLine
   readonly diffLineNumber: number
   readonly isSelected: boolean
+}
+
+interface IDiffRowAdded {
+  readonly type: DiffRowType.Added
+  readonly data: IDiffRowData
 }
 
 interface IDiffRowDeleted {
   readonly type: DiffRowType.Deleted
-  readonly content: string
-  readonly lineNumber: number
-  readonly diffLine: DiffLine
-  readonly diffLineNumber: number
-  readonly isSelected: boolean
+  readonly data: IDiffRowData
 }
 
 interface IDiffRowModified {
   readonly type: DiffRowType.Modified
-  readonly before: {
-    readonly content: string
-    readonly lineNumber: number
-    readonly diffLine: DiffLine
-    readonly diffLineNumber: number
-    readonly isSelected: boolean
-  }
-  readonly after: {
-    readonly content: string
-    readonly lineNumber: number
-    readonly diffLine: DiffLine
-    readonly diffLineNumber: number
-    readonly isSelected: boolean
-  }
+  readonly beforeData: IDiffRowData
+  readonly afterData: IDiffRowData
   readonly displayDiffTokens: boolean
 }
 
@@ -62,7 +49,6 @@ interface IDiffRowContext {
   readonly content: string
   readonly beforeLineNumber: number
   readonly afterLineNumber: number
-  readonly diffLine: DiffLine
 }
 
 interface IDiffRowHunk {
@@ -112,10 +98,18 @@ export class SideBySideDiffRow extends React.Component<
           </div>
         )
       case DiffRowType.Context:
-        const tokens = getTokensForDiffLine(
-          row.diffLine,
-          this.props.beforeTokens,
-          this.props.afterTokens
+        const beforeTokens = getTokens(
+          row.beforeLineNumber,
+          this.props.beforeTokens
+        )
+        // TODO: It would be more resiliant to use here afterLineNumber
+        // and afterTokens, since the syntax highlighting depends on
+        // previous lines. That's currently not possible because an
+        // optimization done in getLineFilters() that avoids calculating
+        // the syntax highlighting of the after state of context lines.
+        const afterTokens = getTokens(
+          row.beforeLineNumber,
+          this.props.beforeTokens
         )
 
         return (
@@ -125,7 +119,7 @@ export class SideBySideDiffRow extends React.Component<
               <div className="content">
                 {syntaxHighlightLine(
                   row.content,
-                  tokens !== null ? [tokens] : []
+                  beforeTokens !== null ? [beforeTokens] : []
                 )}
               </div>
             </div>
@@ -134,7 +128,7 @@ export class SideBySideDiffRow extends React.Component<
               <div className="content">
                 {syntaxHighlightLine(
                   row.content,
-                  tokens !== null ? [tokens] : []
+                  afterTokens !== null ? [afterTokens] : []
                 )}
               </div>
             </div>
@@ -142,19 +136,7 @@ export class SideBySideDiffRow extends React.Component<
         )
 
       case DiffRowType.Added: {
-        const tokens = getTokensForDiffLine(
-          row.diffLine,
-          this.props.beforeTokens,
-          this.props.afterTokens
-        )
-
-        console.log(
-          'rafeca: hunkhilghtign',
-          isInTemporarySelection(
-            this.props.hunkHighlightRange,
-            row.diffLineNumber
-          )
-        )
+        const tokens = getTokens(row.data.lineNumber, this.props.afterTokens)
 
         return (
           <div
@@ -164,7 +146,7 @@ export class SideBySideDiffRow extends React.Component<
               {
                 'highlighted-hunk': isInTemporarySelection(
                   this.props.hunkHighlightRange,
-                  row.diffLineNumber
+                  row.data.diffLineNumber
                 ),
               },
             ])}
@@ -183,10 +165,10 @@ export class SideBySideDiffRow extends React.Component<
               ></div>
             )}
             <div className="after">
-              {this.renderGutter(row.lineNumber, row.isSelected)}
+              {this.renderGutter(row.data.lineNumber, row.data.isSelected)}
               <div className="content">
                 {syntaxHighlightLine(
-                  row.content,
+                  row.data.content,
                   tokens !== null ? [tokens] : []
                 )}
               </div>
@@ -195,11 +177,7 @@ export class SideBySideDiffRow extends React.Component<
         )
       }
       case DiffRowType.Deleted: {
-        const tokens = getTokensForDiffLine(
-          row.diffLine,
-          this.props.beforeTokens,
-          this.props.afterTokens
-        )
+        const tokens = getTokens(row.data.lineNumber, this.props.beforeTokens)
 
         return (
           <div
@@ -209,17 +187,17 @@ export class SideBySideDiffRow extends React.Component<
               {
                 'highlighted-hunk': isInTemporarySelection(
                   this.props.hunkHighlightRange,
-                  row.diffLineNumber
+                  row.data.diffLineNumber
                 ),
               },
             ])}
             onMouseEnter={this.onMouseEnterGutter}
           >
             <div className="before">
-              {this.renderGutter(row.lineNumber, row.isSelected)}
+              {this.renderGutter(row.data.lineNumber, row.data.isSelected)}
               <div className="content">
                 {syntaxHighlightLine(
-                  row.content,
+                  row.data.content,
                   tokens !== null ? [tokens] : []
                 )}
               </div>
@@ -240,14 +218,12 @@ export class SideBySideDiffRow extends React.Component<
         )
       }
       case DiffRowType.Modified: {
-        const syntaxTokensBefore = getTokensForDiffLine(
-          row.before.diffLine,
-          this.props.beforeTokens,
-          this.props.afterTokens
+        const syntaxTokensBefore = getTokens(
+          row.beforeData.lineNumber,
+          this.props.beforeTokens
         )
-        const syntaxTokensAfter = getTokensForDiffLine(
-          row.after.diffLine,
-          this.props.beforeTokens,
+        const syntaxTokensAfter = getTokens(
+          row.afterData.lineNumber,
           this.props.afterTokens
         )
         const tokensBefore =
@@ -257,12 +233,12 @@ export class SideBySideDiffRow extends React.Component<
 
         if (
           row.displayDiffTokens &&
-          row.before.content.length < MaxLineLengthToCalculateDiff &&
-          row.after.content.length < MaxLineLengthToCalculateDiff
+          row.beforeData.content.length < MaxLineLengthToCalculateDiff &&
+          row.afterData.content.length < MaxLineLengthToCalculateDiff
         ) {
           const { before, after } = getDiffTokens(
-            row.before.content,
-            row.after.content
+            row.beforeData.content,
+            row.afterData.content
           )
           tokensBefore.push(before)
           tokensAfter.push(after)
@@ -276,15 +252,18 @@ export class SideBySideDiffRow extends React.Component<
               {
                 'highlighted-hunk': isInTemporarySelection(
                   this.props.hunkHighlightRange,
-                  row.before.diffLineNumber
+                  row.beforeData.diffLineNumber
                 ),
               },
             ])}
           >
             <div className="before" onMouseEnter={this.onMouseEnterGutter}>
-              {this.renderGutter(row.before.lineNumber, row.before.isSelected)}
+              {this.renderGutter(
+                row.beforeData.lineNumber,
+                row.beforeData.isSelected
+              )}
               <div className="content">
-                {syntaxHighlightLine(row.before.content, tokensBefore)}
+                {syntaxHighlightLine(row.beforeData.content, tokensBefore)}
               </div>
             </div>
             {canSelect(this.props.file) && (
@@ -296,9 +275,12 @@ export class SideBySideDiffRow extends React.Component<
               ></div>
             )}
             <div className="after" onMouseEnter={this.onMouseEnterGutter}>
-              {this.renderGutter(row.after.lineNumber, row.after.isSelected)}
+              {this.renderGutter(
+                row.afterData.lineNumber,
+                row.afterData.isSelected
+              )}
               <div className="content">
-                {syntaxHighlightLine(row.after.content, tokensAfter)}
+                {syntaxHighlightLine(row.afterData.content, tokensAfter)}
               </div>
             </div>
           </div>
@@ -364,17 +346,17 @@ export class SideBySideDiffRow extends React.Component<
       this.props.row.type === DiffRowType.Added ||
       this.props.row.type === DiffRowType.Deleted
     ) {
-      return this.props.row.diffLineNumber
+      return this.props.row.data.diffLineNumber
     }
 
     if (this.props.row.type === DiffRowType.Modified) {
       const target = evt.target as HTMLElement
 
       if (target.closest('.before')) {
-        return this.props.row.before.diffLineNumber
+        return this.props.row.beforeData.diffLineNumber
       }
 
-      return this.props.row.after.diffLineNumber
+      return this.props.row.afterData.diffLineNumber
     }
 
     return null
@@ -385,17 +367,17 @@ export class SideBySideDiffRow extends React.Component<
       this.props.row.type === DiffRowType.Added ||
       this.props.row.type === DiffRowType.Deleted
     ) {
-      return this.props.row.isSelected
+      return this.props.row.data.isSelected
     }
 
     if (this.props.row.type === DiffRowType.Modified) {
       const target = evt.target as HTMLElement
 
       if (target.closest('.before')) {
-        return this.props.row.before.isSelected
+        return this.props.row.beforeData.isSelected
       }
 
-      return this.props.row.after.isSelected
+      return this.props.row.afterData.isSelected
     }
 
     return null
@@ -420,8 +402,6 @@ export class SideBySideDiffRow extends React.Component<
   private onClickHunk = (evt: React.MouseEvent) => {
     const lineNumber = this.getDiffLineNumber(evt)
     const isSelected = this.getIsSelected(evt)
-
-    console.log('rafeca: sidebyside', lineNumber, isSelected)
 
     if (this.props.onClickHunk && lineNumber !== null && isSelected !== null) {
       this.props.onClickHunk(lineNumber, !isSelected)

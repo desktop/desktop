@@ -410,7 +410,6 @@ function getDiffRowsFromHunk(
         content: line.content,
         beforeLineNumber: line.oldLineNumber,
         afterLineNumber: line.newLineNumber,
-        diffLine: line,
       })
       continue
     }
@@ -462,15 +461,16 @@ function getModifiedRows(
 
       output.push({
         type: DiffRowType.Added,
-        content: line.content,
-        lineNumber: line.newLineNumber,
-        diffLine: line,
-        diffLineNumber: offsetLineInDiff + numLine + deletedLines.length,
-        isSelected: isInSelection(
-          offsetLineInDiff + numLine + deletedLines.length,
-          file,
-          temporarySelection
-        ),
+        data: {
+          content: line.content,
+          lineNumber: line.newLineNumber,
+          diffLineNumber: offsetLineInDiff + numLine + deletedLines.length,
+          isSelected: isInSelection(
+            offsetLineInDiff + numLine + deletedLines.length,
+            file,
+            temporarySelection
+          ),
+        },
       })
     } else if (numLine >= addedLines.length) {
       // Deleted line
@@ -482,15 +482,16 @@ function getModifiedRows(
 
       output.push({
         type: DiffRowType.Deleted,
-        content: line.content,
-        lineNumber: line.oldLineNumber,
-        diffLine: line,
-        diffLineNumber: offsetLineInDiff + numLine,
-        isSelected: isInSelection(
-          offsetLineInDiff + numLine,
-          file,
-          temporarySelection
-        ),
+        data: {
+          content: line.content,
+          lineNumber: line.oldLineNumber,
+          diffLineNumber: offsetLineInDiff + numLine,
+          isSelected: isInSelection(
+            offsetLineInDiff + numLine,
+            file,
+            temporarySelection
+          ),
+        },
       })
     } else {
       // Modified line
@@ -508,10 +509,9 @@ function getModifiedRows(
 
       output.push({
         type: DiffRowType.Modified,
-        before: {
+        beforeData: {
           content: lineBefore.content,
           lineNumber: lineBefore.oldLineNumber,
-          diffLine: lineBefore,
           diffLineNumber: offsetLineInDiff + numLine,
           isSelected: isInSelection(
             offsetLineInDiff + numLine,
@@ -519,10 +519,9 @@ function getModifiedRows(
             temporarySelection
           ),
         },
-        after: {
+        afterData: {
           content: lineAfter.content,
           lineNumber: lineAfter.newLineNumber,
-          diffLine: lineAfter,
           diffLineNumber: offsetLineInDiff + numLine + deletedLines.length,
           isSelected: isInSelection(
             offsetLineInDiff + numLine + deletedLines.length,
