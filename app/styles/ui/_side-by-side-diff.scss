@@ -15,8 +15,15 @@
     .row {
       .before {
         flex-direction: row-reverse;
-        //border-right: 4px solid var(--diff-border-color);
       }
+    }
+
+    .before .gutter {
+      border-right: 2px solid transparent;
+    }
+
+    .after .gutter {
+      border-left: 2px solid transparent;
     }
   }
 
@@ -37,14 +44,6 @@
   div {
     user-select: text;
     cursor: auto;
-  }
-
-  .before .gutter {
-    border-right: 2px solid transparent;
-  }
-
-  .after .gutter {
-    border-left: 2px solid transparent;
   }
 
   .added,

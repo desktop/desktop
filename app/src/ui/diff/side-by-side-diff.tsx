@@ -79,7 +79,7 @@ interface ISideBySideDiffState {
   readonly selection?: ISelection
 
   /** Whether a particular range should be highlighted due to hover */
-  readonly hunkHighlightRange?: ISelection
+  readonly hoveredHunkId?: number
 }
 
 const cache = new CellMeasurerCache({
@@ -127,21 +127,24 @@ export class SideBySideDiff extends React.Component<
                 deferredMeasurementCache={cache}
                 width={width}
                 height={height}
-                // Passing them to force re-renders when tokens change.
-                beforeTokens={this.state.beforeTokens}
-                afterTokens={this.state.afterTokens}
-                temporarySelection={this.state.selection}
-                hunkHighlightRange={this.state.hunkHighlightRange}
-                file={this.props.file}
                 rowCount={
                   getDiffRows(
-                    this.props.diff.hunks,
+                    this.props.diff,
                     this.props.file,
                     this.state.selection
                   ).length
                 }
                 rowHeight={this.getRowHeight}
                 rowRenderer={this.renderRow}
+                // Passing them to force re-renders when tokens change.
+                beforeTokens={this.state.beforeTokens}
+                afterTokens={this.state.afterTokens}
+                temporarySelection={this.state.selection}
+                hoveredHunkId={this.state.hoveredHunkId}
+                fileId={this.props.file.id}
+                fileSelection={
+                  canSelect(this.props.file) && this.props.file.selection
+                }
               />
             )}
           </AutoSizer>
@@ -152,7 +155,7 @@ export class SideBySideDiff extends React.Component<
 
   private renderRow = ({ index, parent, style, key }: ListRowProps) => {
     const rows = getDiffRows(
-      this.props.diff.hunks,
+      this.props.diff,
       this.props.file,
       this.state.selection
     )
@@ -177,7 +180,7 @@ export class SideBySideDiff extends React.Component<
             beforeTokens={this.state.beforeTokens}
             afterTokens={this.state.afterTokens}
             file={this.props.file}
-            hunkHighlightRange={this.state.hunkHighlightRange}
+            isHunkHovered={this.state.hoveredHunkId === row.hunkStartLine}
             onStartSelection={this.onStartSelection}
             onUpdateSelection={this.onUpdateSelection}
             onMouseEnterHunk={this.onMouseEnterHunk}
@@ -295,30 +298,24 @@ export class SideBySideDiff extends React.Component<
     })
   }
 
-  private onMouseEnterHunk = (lineNumber: number) => {
+  private onMouseEnterHunk = (hunkId: number) => {
     if (this.state.selection !== undefined) {
       return
     }
 
-    const range = findInteractiveDiffRange(this.props.diff.hunks, lineNumber)
-    if (range === null) {
-      return
-    }
-
-    const { from, to } = range
-    this.setState({ hunkHighlightRange: { from, to, isSelected: false } })
+    this.setState({ hoveredHunkId: hunkId })
   }
 
   private onMouseLeaveHunk = () => {
-    this.setState({ hunkHighlightRange: undefined })
+    this.setState({ hoveredHunkId: undefined })
   }
 
-  private onClickHunk = (lineNumber: number, select: boolean) => {
+  private onClickHunk = (hunkId: number, select: boolean) => {
     if (!canSelect(this.props.file)) {
       return
     }
 
-    const range = findInteractiveDiffRange(this.props.diff.hunks, lineNumber)
+    const range = findInteractiveDiffRange(this.props.diff.hunks, hunkId)
     if (range === null) {
       return
     }
@@ -353,7 +350,7 @@ export class SideBySideDiff extends React.Component<
     ])
   }
 
-  private onContextMenuHunk = (lineNumber: number) => {
+  private onContextMenuHunk = (hunkId: number) => {
     const file = this.props.file
 
     if (!canSelect(file)) {
@@ -364,7 +361,7 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    const range = findInteractiveDiffRange(this.props.diff.hunks, lineNumber)
+    const range = findInteractiveDiffRange(this.props.diff.hunks, hunkId)
 
     if (range === null) {
       return
@@ -414,13 +411,13 @@ function highlightParametersEqual(
 }
 
 const getDiffRows = memoize(function (
-  hunks: ReadonlyArray<DiffHunk>,
+  diff: ITextDiff,
   file: ChangedFile,
   temporarySelection?: ISelection
 ): DiffRow[] {
   const rows: DiffRow[] = []
 
-  for (const hunk of hunks) {
+  for (const hunk of diff.hunks) {
     rows.push(...getDiffRowsFromHunk(hunk, file, temporarySelection))
   }
 
@@ -433,11 +430,17 @@ function getDiffRowsFromHunk(
   temporarySelection?: ISelection
 ): DiffRow[] {
   const rows: DiffRow[] = []
-  let modifiedLines: { line: DiffLine; lineNumber: number }[] = []
+  let modifiedLines: {
+    line: DiffLine
+    lineNumber: number
+  }[] = []
 
   for (const [num, line] of hunk.lines.entries()) {
     if (line.type === DiffLineType.Delete || line.type === DiffLineType.Add) {
-      modifiedLines.push({ line, lineNumber: hunk.unifiedDiffStart + num })
+      modifiedLines.push({
+        line,
+        lineNumber: hunk.unifiedDiffStart + num,
+      })
       continue
     }
 
@@ -485,10 +488,18 @@ function getDiffRowsFromHunk(
 }
 
 function getModifiedRows(
-  addedDeletedLines: ReadonlyArray<{ line: DiffLine; lineNumber: number }>,
+  addedDeletedLines: ReadonlyArray<{
+    line: DiffLine
+    lineNumber: number
+  }>,
   file: ChangedFile,
   temporarySelection?: ISelection
 ): ReadonlyArray<DiffRow> {
+  if (addedDeletedLines.length === 0) {
+    return []
+  }
+  const hunkStartLine = addedDeletedLines[0].lineNumber
+
   const addedLines = addedDeletedLines.filter(
     ({ line }) => line.type === DiffLineType.Add
   )
@@ -519,6 +530,7 @@ function getModifiedRows(
           file,
           temporarySelection
         ),
+        hunkStartLine,
         displayDiffTokens: shouldDisplayDiffInChunk,
       })
     } else if (numLine < deletedLines.length) {
@@ -531,6 +543,7 @@ function getModifiedRows(
           file,
           temporarySelection
         ),
+        hunkStartLine,
       })
     } else if (numLine < addedLines.length) {
       // Added line
@@ -542,6 +555,7 @@ function getModifiedRows(
           file,
           temporarySelection
         ),
+        hunkStartLine,
       })
     }
   }

@@ -5,18 +5,17 @@ import {
   canSelect,
   getDiffData,
   getDiffTokens,
-  isInTemporarySelection,
   syntaxHighlightLine,
   ChangedFile,
   DiffRow,
   DiffRowType,
-  ISelection,
   IDiffRowData,
 } from './diff-helpers'
 import { ITokens, ILineTokens } from '../../lib/highlighter/types'
 import classNames from 'classnames'
 import { Octicon } from '../octicons'
 import { narrowNoNewlineSymbol } from './text-diff'
+import { shallowEquals, structuralEquals } from '../../lib/equality'
 
 const MaxLineLengthToCalculateDiff = 240
 
@@ -28,7 +27,7 @@ interface ISideBySideDiffRowProps {
   /** The file whose diff should be displayed. */
   readonly file: ChangedFile
 
-  readonly hunkHighlightRange?: ISelection
+  readonly isHunkHovered: boolean
 
   readonly onStartSelection: (from: number, select: boolean) => void
   readonly onUpdateSelection: (lineNumber: number) => void
@@ -167,6 +166,21 @@ export class SideBySideDiffRow extends React.Component<
     }
   }
 
+  public shouldComponentUpdate(nextProps: ISideBySideDiffRowProps) {
+    const { file: prevFile, row: prevRow, ...restPrevProps } = this.props
+    const { file: nextFile, row: nextRow, ...restNextProps } = nextProps
+
+    if (prevFile.id !== nextFile.id) {
+      return true
+    }
+
+    if (!structuralEquals(prevRow, nextRow)) {
+      return true
+    }
+
+    return !shallowEquals(restPrevProps, restNextProps)
+  }
+
   private renderContentFromString(
     line: string,
     ...tokensArray: ReadonlyArray<ILineTokens | null>
@@ -233,18 +247,11 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private getRowClassNames(className: string) {
-    const data = getDiffData(this.props.row)
-
     return classNames([
       'row',
       className,
       {
-        'highlighted-hunk':
-          data !== null &&
-          isInTemporarySelection(
-            this.props.hunkHighlightRange,
-            data.diffLineNumber
-          ),
+        'highlighted-hunk': this.props.isHunkHovered,
       },
     ])
   }
@@ -272,21 +279,15 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private onMouseEnterHunk = () => {
-    const data = getDiffData(this.props.row)
-    if (data === null) {
-      return
+    if (this.props.row.hunkStartLine !== undefined) {
+      this.props.onMouseEnterHunk(this.props.row.hunkStartLine)
     }
-
-    this.props.onMouseEnterHunk(data.diffLineNumber)
   }
 
   private onMouseLeaveHunk = () => {
-    const data = getDiffData(this.props.row)
-    if (data === null) {
-      return
+    if (this.props.row.hunkStartLine !== undefined) {
+      this.props.onMouseLeaveHunk(this.props.row.hunkStartLine)
     }
-
-    this.props.onMouseLeaveHunk(data.diffLineNumber)
   }
 
   private onClickHunk = () => {
@@ -295,7 +296,9 @@ export class SideBySideDiffRow extends React.Component<
       return
     }
 
-    this.props.onClickHunk(data.diffLineNumber, !data.isSelected)
+    if (this.props.row.hunkStartLine !== undefined) {
+      this.props.onClickHunk(this.props.row.hunkStartLine, !data.isSelected)
+    }
   }
 
   private onContextMenuGutter = (evt: React.MouseEvent) => {
@@ -308,11 +311,8 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private onContextMenuHunk = () => {
-    const data = getDiffData(this.props.row)
-    if (data === null) {
-      return
+    if (this.props.row.hunkStartLine !== undefined) {
+      this.props.onContextMenuHunk(this.props.row.hunkStartLine)
     }
-
-    this.props.onContextMenuHunk(data.diffLineNumber)
   }
 }

@@ -34,11 +34,13 @@ export interface IDiffRowData {
 interface IDiffRowAdded {
   readonly type: DiffRowType.Added
   readonly data: IDiffRowData
+  readonly hunkStartLine: number
 }
 
 interface IDiffRowDeleted {
   readonly type: DiffRowType.Deleted
   readonly data: IDiffRowData
+  readonly hunkStartLine: number
 }
 
 interface IDiffRowModified {
@@ -46,6 +48,7 @@ interface IDiffRowModified {
   readonly beforeData: IDiffRowData
   readonly afterData: IDiffRowData
   readonly displayDiffTokens: boolean
+  readonly hunkStartLine: number
 }
 
 interface IDiffRowContext {
@@ -53,11 +56,13 @@ interface IDiffRowContext {
   readonly content: string
   readonly beforeLineNumber: number
   readonly afterLineNumber: number
+  readonly hunkStartLine?: undefined
 }
 
 interface IDiffRowHunk {
   readonly type: DiffRowType.Hunk
   readonly content: string
+  readonly hunkStartLine?: undefined
 }
 
 export type DiffRow =
