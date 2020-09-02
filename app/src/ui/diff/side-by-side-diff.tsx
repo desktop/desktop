@@ -277,6 +277,10 @@ export class SideBySideDiff extends React.Component<
   }
 
   private onMouseEnterHunk = (lineNumber: number) => {
+    if (this.state.selection !== undefined) {
+      return
+    }
+
     const range = findInteractiveDiffRange(this.props.diff.hunks, lineNumber)
     if (range === null) {
       return
