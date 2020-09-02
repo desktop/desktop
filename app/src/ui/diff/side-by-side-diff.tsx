@@ -436,29 +436,7 @@ function getModifiedRows(
     numLine < addedLines.length || numLine < deletedLines.length;
     numLine++
   ) {
-    if (numLine >= addedLines.length) {
-      // Deleted line
-      output.push({
-        type: DiffRowType.Deleted,
-        data: getDataFromLine(
-          deletedLines[numLine],
-          'oldLineNumber',
-          file,
-          temporarySelection
-        ),
-      })
-    } else if (numLine >= deletedLines.length) {
-      // Added line
-      output.push({
-        type: DiffRowType.Added,
-        data: getDataFromLine(
-          deletedLines[numLine],
-          'newLineNumber',
-          file,
-          temporarySelection
-        ),
-      })
-    } else {
+    if (numLine < addedLines.length && numLine < deletedLines.length) {
       // Modified line
       output.push({
         type: DiffRowType.Modified,
@@ -475,6 +453,28 @@ function getModifiedRows(
           temporarySelection
         ),
         displayDiffTokens: shouldDisplayDiffInChunk,
+      })
+    } else if (numLine < deletedLines.length) {
+      // Deleted line
+      output.push({
+        type: DiffRowType.Deleted,
+        data: getDataFromLine(
+          deletedLines[numLine],
+          'oldLineNumber',
+          file,
+          temporarySelection
+        ),
+      })
+    } else if (numLine < addedLines.length) {
+      // Added line
+      output.push({
+        type: DiffRowType.Added,
+        data: getDataFromLine(
+          addedLines[numLine],
+          'newLineNumber',
+          file,
+          temporarySelection
+        ),
       })
     }
   }

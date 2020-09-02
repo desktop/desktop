@@ -75,12 +75,12 @@ interface ISideBySideDiffRowProps {
 
   readonly hunkHighlightRange?: ISelection
 
-  readonly onStartSelection?: (from: number, select: boolean) => void
-  readonly onUpdateSelection?: (lineNumber: number) => void
+  readonly onStartSelection: (from: number, select: boolean) => void
+  readonly onUpdateSelection: (lineNumber: number) => void
 
-  readonly onMouseEnterHunk?: (lineNumber: number) => void
-  readonly onMouseLeaveHunk?: (lineNumber: number) => void
-  readonly onClickHunk?: (lineNumber: number, select: boolean) => void
+  readonly onMouseEnterHunk: (lineNumber: number) => void
+  readonly onMouseLeaveHunk: (lineNumber: number) => void
+  readonly onClickHunk: (lineNumber: number, select: boolean) => void
 }
 
 export class SideBySideDiffRow extends React.Component<
@@ -258,122 +258,78 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private getRowClassNames(className: string) {
-    const diffLineNumber = this.getDiffLineNumber()
+    const data = getDiffData(this.props.row)
 
     return classNames([
       'row',
       className,
       {
         'highlighted-hunk':
-          diffLineNumber !== null &&
-          isInTemporarySelection(this.props.hunkHighlightRange, diffLineNumber),
+          data !== null &&
+          isInTemporarySelection(
+            this.props.hunkHighlightRange,
+            data.diffLineNumber
+          ),
       },
     ])
   }
 
   private onMouseDownGutter = (evt: React.MouseEvent) => {
-    if (!canSelect(this.props.file)) {
+    const data = getDiffData(this.props.row, evt.currentTarget)
+    if (data === null) {
       return
     }
 
-    if (this.props.onStartSelection === undefined) {
-      return
-    }
-
-    const diffLineNumber = this.getDiffLineNumber(evt)
-    const isSelected = this.getIsSelected(evt)
-
-    if (diffLineNumber === null || isSelected === null) {
-      return
-    }
-
-    this.props.onStartSelection(diffLineNumber, !isSelected)
+    this.props.onStartSelection(data.diffLineNumber, !data.isSelected)
   }
 
   private onMouseEnterGutter = (evt: React.MouseEvent) => {
-    if (!canSelect(this.props.file)) {
+    const data = getDiffData(this.props.row, evt.currentTarget)
+    if (data === null) {
       return
     }
 
-    if (this.props.onUpdateSelection === undefined) {
-      return
-    }
-
-    const diffLineNumber = this.getDiffLineNumber(evt)
-
-    if (diffLineNumber === null) {
-      return
-    }
-
-    this.props.onUpdateSelection(diffLineNumber)
+    this.props.onUpdateSelection(data.diffLineNumber)
   }
 
-  private getDiffLineNumber(evt?: React.MouseEvent) {
-    if (
-      this.props.row.type === DiffRowType.Added ||
-      this.props.row.type === DiffRowType.Deleted
-    ) {
-      return this.props.row.data.diffLineNumber
+  private onMouseEnterHunk = () => {
+    const data = getDiffData(this.props.row)
+    if (data === null) {
+      return
     }
 
-    if (this.props.row.type !== DiffRowType.Modified) {
-      return null
-    }
-
-    const target = evt?.target as HTMLElement | undefined
-
-    if (target === undefined || target.closest('.before')) {
-      return this.props.row.beforeData.diffLineNumber
-    }
-
-    return this.props.row.afterData.diffLineNumber
+    this.props.onMouseEnterHunk(data.diffLineNumber)
   }
 
-  private getIsSelected(evt: React.MouseEvent) {
-    if (
-      this.props.row.type === DiffRowType.Added ||
-      this.props.row.type === DiffRowType.Deleted
-    ) {
-      return this.props.row.data.isSelected
+  private onMouseLeaveHunk = () => {
+    const data = getDiffData(this.props.row)
+    if (data === null) {
+      return
     }
 
-    if (this.props.row.type === DiffRowType.Modified) {
-      const target = evt.target as HTMLElement
+    this.props.onMouseLeaveHunk(data.diffLineNumber)
+  }
 
-      if (target.closest('.before')) {
-        return this.props.row.beforeData.isSelected
-      }
-
-      return this.props.row.afterData.isSelected
+  private onClickHunk = () => {
+    const data = getDiffData(this.props.row)
+    if (data === null) {
+      return
     }
 
+    this.props.onClickHunk(data.diffLineNumber, !data.isSelected)
+  }
+}
+
+function getDiffData(row: DiffRow, targetElement?: Element) {
+  if (row.type === DiffRowType.Added || row.type === DiffRowType.Deleted) {
+    return row.data
+  }
+
+  if (row.type !== DiffRowType.Modified) {
     return null
   }
 
-  private onMouseEnterHunk = (evt: React.MouseEvent) => {
-    const lineNumber = this.getDiffLineNumber(evt)
-
-    if (this.props.onMouseEnterHunk && lineNumber !== null) {
-      this.props.onMouseEnterHunk(lineNumber)
-    }
-  }
-
-  private onMouseLeaveHunk = (evt: React.MouseEvent) => {
-    const lineNumber = this.getDiffLineNumber(evt)
-
-    if (this.props.onMouseLeaveHunk && lineNumber !== null) {
-      this.props.onMouseLeaveHunk(lineNumber)
-    }
-  }
-
-  private onClickHunk = (evt: React.MouseEvent) => {
-    const lineNumber = this.getDiffLineNumber(evt)
-    const isSelected = this.getIsSelected(evt)
-
-    if (this.props.onClickHunk && lineNumber !== null && isSelected !== null) {
-      this.props.onClickHunk(lineNumber, !isSelected)
-    }
-  }
+  return targetElement?.closest('.after') ? row.afterData : row.beforeData
 }
 
 /** Utility function for checking whether a file supports selection */
