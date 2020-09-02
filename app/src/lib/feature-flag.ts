@@ -125,6 +125,13 @@ export function enableDiscardLines(): boolean {
 }
 
 /**
+ * Should we show the checkbox to enable side by side diffs?
+ */
+export function enableSideBySideDiffs(): boolean {
+  return enableDevelopmentFeatures()
+}
+
+/**
  * Should we allow to change the default branch when creating new repositories?
  */
 export function enableDefaultBranchSetting(): boolean {

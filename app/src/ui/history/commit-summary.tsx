@@ -10,7 +10,10 @@ import { getAvatarUsersForCommit, IAvatarUser } from '../../models/avatar'
 import { AvatarStack } from '../lib/avatar-stack'
 import { CommitAttribution } from '../lib/commit-attribution'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
-import { enableGitTagsDisplay } from '../../lib/feature-flag'
+import {
+  enableGitTagsDisplay,
+  enableSideBySideDiffs,
+} from '../../lib/feature-flag'
 import { Tokenizer, TokenResult } from '../../lib/text-token-parser'
 import { wrapRichTextCommitMessage } from '../../lib/wrap-rich-text-commit-message'
 
@@ -371,20 +374,22 @@ export class CommitSummary extends React.Component<
               />
             </li>
 
-            <li
-              className="commit-summary-meta-item without-truncation"
-              title="Split View"
-            >
-              <Checkbox
-                label="Split View"
-                value={
-                  this.props.showSideBySideDiff
-                    ? CheckboxValue.On
-                    : CheckboxValue.Off
-                }
-                onChange={this.onShowSideBySideDiffChanged}
-              />
-            </li>
+            {enableSideBySideDiffs && (
+              <li
+                className="commit-summary-meta-item without-truncation"
+                title="Split View"
+              >
+                <Checkbox
+                  label="Split View"
+                  value={
+                    this.props.showSideBySideDiff
+                      ? CheckboxValue.On
+                      : CheckboxValue.Off
+                  }
+                  onChange={this.onShowSideBySideDiffChanged}
+                />
+              </li>
+            )}
           </ul>
         </div>
 
