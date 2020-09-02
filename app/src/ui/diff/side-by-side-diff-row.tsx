@@ -20,7 +20,7 @@ export enum DiffRowType {
   Hunk = 'Hunk',
 }
 
-interface IDiffRowData {
+export interface IDiffRowData {
   readonly content: string
   readonly lineNumber: number
   readonly diffLineNumber: number

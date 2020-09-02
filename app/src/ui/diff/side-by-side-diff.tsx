@@ -30,6 +30,7 @@ import {
   DiffRow,
   DiffRowType,
   SideBySideDiffRow,
+  IDiffRowData,
 } from './side-by-side-diff-row'
 import memoize from 'memoize-one'
 import { findInteractiveDiffRange } from './diff-explorer'
@@ -451,88 +452,86 @@ function getModifiedRows(
   ) {
     if (numLine >= deletedLines.length) {
       // Added line
-      const line = addedLines[numLine]
-      assertNonNullable(
-        line.newLineNumber,
-        `Expecting newLineNumber value for ${line}`
-      )
-
       output.push({
         type: DiffRowType.Added,
-        data: {
-          content: line.content,
-          lineNumber: line.newLineNumber,
-          diffLineNumber: offsetLineInDiff + numLine + deletedLines.length,
-          isSelected: isInSelection(
-            offsetLineInDiff + numLine + deletedLines.length,
-            file,
-            temporarySelection
-          ),
-        },
+        data: getAfterDataFromLine(
+          addedLines[numLine],
+          offsetLineInDiff + numLine + deletedLines.length,
+          file,
+          temporarySelection
+        ),
       })
     } else if (numLine >= addedLines.length) {
       // Deleted line
-      const line = deletedLines[numLine]
-      assertNonNullable(
-        line.oldLineNumber,
-        `Expecting oldLineNumber value for ${line}`
-      )
-
       output.push({
         type: DiffRowType.Deleted,
-        data: {
-          content: line.content,
-          lineNumber: line.oldLineNumber,
-          diffLineNumber: offsetLineInDiff + numLine,
-          isSelected: isInSelection(
-            offsetLineInDiff + numLine,
-            file,
-            temporarySelection
-          ),
-        },
+        data: getBeforeDataFromLine(
+          deletedLines[numLine],
+          offsetLineInDiff + numLine,
+          file,
+          temporarySelection
+        ),
       })
     } else {
       // Modified line
-      const lineBefore = deletedLines[numLine]
-      const lineAfter = addedLines[numLine]
-
-      assertNonNullable(
-        lineBefore.oldLineNumber,
-        `Expecting oldLineNumber value for ${lineBefore}`
-      )
-      assertNonNullable(
-        lineAfter.newLineNumber,
-        `Expecting oldLineNumber value for ${lineAfter}`
-      )
-
       output.push({
         type: DiffRowType.Modified,
-        beforeData: {
-          content: lineBefore.content,
-          lineNumber: lineBefore.oldLineNumber,
-          diffLineNumber: offsetLineInDiff + numLine,
-          isSelected: isInSelection(
-            offsetLineInDiff + numLine,
-            file,
-            temporarySelection
-          ),
-        },
-        afterData: {
-          content: lineAfter.content,
-          lineNumber: lineAfter.newLineNumber,
-          diffLineNumber: offsetLineInDiff + numLine + deletedLines.length,
-          isSelected: isInSelection(
-            offsetLineInDiff + numLine + deletedLines.length,
-            file,
-            temporarySelection
-          ),
-        },
+        beforeData: getBeforeDataFromLine(
+          deletedLines[numLine],
+          offsetLineInDiff + numLine,
+          file,
+          temporarySelection
+        ),
+        afterData: getAfterDataFromLine(
+          addedLines[numLine],
+          offsetLineInDiff + numLine + deletedLines.length,
+          file,
+          temporarySelection
+        ),
         displayDiffTokens: shouldDisplayDiffInChunk,
       })
     }
   }
 
   return output
+}
+
+function getBeforeDataFromLine(
+  line: DiffLine,
+  diffLineNumber: number,
+  file: ChangedFile,
+  temporarySelection?: ISelection
+): IDiffRowData {
+  assertNonNullable(
+    line.oldLineNumber,
+    `Expecting oldLineNumber value for ${line}`
+  )
+
+  return {
+    content: line.content,
+    lineNumber: line.oldLineNumber,
+    diffLineNumber,
+    isSelected: isInSelection(diffLineNumber, file, temporarySelection),
+  }
+}
+
+function getAfterDataFromLine(
+  line: DiffLine,
+  diffLineNumber: number,
+  file: ChangedFile,
+  temporarySelection?: ISelection
+): IDiffRowData {
+  assertNonNullable(
+    line.newLineNumber,
+    `Expecting newLineNumber value for ${line}`
+  )
+
+  return {
+    content: line.content,
+    lineNumber: line.newLineNumber,
+    diffLineNumber,
+    isSelected: isInSelection(diffLineNumber, file, temporarySelection),
+  }
 }
 
 function isInSelection(
