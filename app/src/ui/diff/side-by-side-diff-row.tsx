@@ -281,7 +281,7 @@ export class SideBySideDiffRow extends React.Component<
    *                    as non-selectable.
    */
   private renderLineNumber(lineNumber?: number, isSelected?: boolean) {
-    if (isSelected === undefined) {
+    if (!this.props.isDiffSelectable || isSelected === undefined) {
       return <div className="line-number">{lineNumber}</div>
     }
 
