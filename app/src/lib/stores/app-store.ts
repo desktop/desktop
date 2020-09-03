@@ -273,6 +273,7 @@ import {
   findUpstreamRemote,
 } from './helpers/find-upstream-remote'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
+import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updater'
 import { getAttributableEmailsFor } from '../email'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -318,6 +319,11 @@ const shellKey = 'shell'
 // switching between apps does not result in excessive fetching in the app
 const BackgroundFetchMinimumInterval = 30 * 60 * 1000
 
+/**
+ * Wait 2 minutes before refreshing repository indicators
+ */
+const InitialRepositoryIndicatorTimeout = 2 * 60 * 1000
+
 const MaxInvalidFoldersToDisplay = 3
 
 export class AppStore extends TypedBaseStore<IAppState> {
@@ -336,6 +342,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private currentAheadBehindUpdater: AheadBehindUpdater | null = null
 
   private currentBranchPruner: BranchPruner | null = null
+
+  private readonly repositoryIndicatorUpdater: RepositoryIndicatorUpdater
 
   private showWelcomeFlow = false
   private focusCommitMessage = false
@@ -439,16 +447,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
       error => this.emitError(error)
     )
 
-    const window = remote.getCurrentWindow()
-    this.windowState = getWindowState(window)
+    const browserWindow = remote.getCurrentWindow()
+    this.windowState = getWindowState(browserWindow)
 
-    this.onWindowZoomFactorChanged(window.webContents.zoomFactor)
+    this.onWindowZoomFactorChanged(browserWindow.webContents.zoomFactor)
 
-    this.wireupIpcEventHandlers(window)
+    this.wireupIpcEventHandlers(browserWindow)
     this.wireupStoreEventHandlers()
     getAppMenu()
     this.tutorialAssessor = new OnboardingTutorialAssessor(
       this.getResolvedExternalEditor
+    )
+
+    this.repositoryIndicatorUpdater = new RepositoryIndicatorUpdater(
+      this.getRepositoriesForIndicatorRefresh,
+      this.refreshIndicatorForRepository
+    )
+
+    window.setTimeout(
+      () => this.repositoryIndicatorUpdater.start(),
+      InitialRepositoryIndicatorTimeout
     )
   }
 
@@ -1669,12 +1687,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return null
   }
 
-  private shouldBackgroundFetch(
+  private async shouldBackgroundFetch(
     repository: Repository,
     lastPush: Date | null
-  ): boolean {
+  ): Promise<boolean> {
     const gitStore = this.gitStoreCache.get(repository)
-    const lastFetched = gitStore.lastFetched
+    const lastFetched = await gitStore.updateLastFetched()
 
     if (lastFetched === null) {
       return true
@@ -2792,36 +2810,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       changedFilesCount: status.workingDirectory.files.length,
     })
   }
-
-  /**
-   * Refresh sidebar indicators for the set of repositories tracked in the app.
-   */
-  public async refreshAllSidebarIndicators() {
-    const startTime = performance && performance.now ? performance.now() : null
-
-    // keep a reference to the current set of repositories to avoid the array
-    // changing while this is running
-    const repositories = new Array<Repository>(...this.repositories)
-
-    for (const repo of repositories) {
-      await this.refreshIndicatorForRepository(repo)
-    }
-
-    if (startTime && repositories.length > 1) {
-      const delta = performance.now() - startTime
-      const timeInSeconds = (delta / 1000).toFixed(3)
-      log.info(
-        `Background fetch for ${repositories.length} repositories took ${timeInSeconds}sec`
-      )
-    }
-
-    this.emitUpdate()
-  }
-
   /**
    * Refresh indicator in repository list for a specific repository
    */
-  private async refreshIndicatorForRepository(repository: Repository) {
+  private refreshIndicatorForRepository = async (repository: Repository) => {
     const lookup = this.localRepositoryStateLookup
 
     if (repository.missing) {
@@ -2848,7 +2840,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository
     )
 
-    if (this.shouldBackgroundFetch(repository, lastPush)) {
+    if (await this.shouldBackgroundFetch(repository, lastPush)) {
       await this._fetch(repository, FetchType.BackgroundTask)
     }
 
@@ -2856,6 +2848,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
       aheadBehind: gitStore.aheadBehind,
       changedFilesCount: status.workingDirectory.files.length,
     })
+
+    this.emitUpdate()
+  }
+
+  private getRepositoriesForIndicatorRefresh = () => {
+    // The currently selected repository will get refreshed by both the
+    // BackgroundFetcher and the refreshRepository call from the
+    // focus event. No point in having the RepositoryIndicatorUpdater do
+    // it as well.
+    //
+    // Note that this method should never leak the actual repositories
+    // instance since that's a mutable array. We should always return
+    // a copy.
+    return this.repositories.filter(x => x !== this.selectedRepository)
   }
 
   /**
@@ -2953,6 +2959,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _showFoldout(foldout: Foldout): Promise<void> {
     this.currentFoldout = foldout
     this.emitUpdate()
+
+    // If the user is opening the repository list and we haven't yet
+    // started to refresh the repository indicators let's do so.
+    if (foldout.type === FoldoutType.Repository) {
+      // N.B: RepositoryIndicatorUpdater.prototype.start is
+      // indempotent.
+      this.repositoryIndicatorUpdater.start()
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -4811,6 +4825,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (this.appIsFocused) {
+      this.repositoryIndicatorUpdater.resume()
       if (this.selectedRepository instanceof Repository) {
         this.startPullRequestUpdater(this.selectedRepository)
         // if we're in the tutorial and we don't have an editor yet, check for one!
@@ -4819,6 +4834,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         }
       }
     } else {
+      this.repositoryIndicatorUpdater.pause()
       this.stopPullRequestUpdater()
     }
   }
