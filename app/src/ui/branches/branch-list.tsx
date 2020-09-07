@@ -19,7 +19,7 @@ import {
   BranchGroupIdentifier,
 } from './group-branches'
 import { NoBranches } from './no-branches'
-import { SelectionDirection } from '../lib/list'
+import { SelectionDirection, ClickSource } from '../lib/list'
 
 const RowHeight = 30
 
@@ -58,7 +58,7 @@ interface IBranchListProps {
   ) => void
 
   /** Called when an item is clicked. */
-  readonly onItemClick?: (item: Branch) => void
+  readonly onItemClick?: (item: Branch, source: ClickSource) => void
 
   /**
    * This function will be called when the selection changes as a result of a
