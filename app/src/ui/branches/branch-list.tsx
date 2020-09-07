@@ -252,9 +252,9 @@ export class BranchList extends React.Component<
     ) : null
   }
 
-  private onItemClick = (item: IBranchListItem) => {
+  private onItemClick = (item: IBranchListItem, source: ClickSource) => {
     if (this.props.onItemClick) {
-      this.props.onItemClick(item.branch)
+      this.props.onItemClick(item.branch, source)
     }
   }
 
