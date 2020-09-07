@@ -199,13 +199,8 @@ export class ChooseBranchDialog extends React.Component<
     source.event.preventDefault()
 
     const { selectedBranch } = this.state
-    const { currentBranch } = this.props
 
-    if (selectedBranch === null || selectedBranch.name !== branch.name) {
-      this.setState({ selectedBranch: branch }, async () => {
-        await this.updateRebaseStatus(branch, currentBranch)
-      })
-    } else {
+    if (selectedBranch !== null && selectedBranch.name === branch.name) {
       this.startRebase()
     }
   }

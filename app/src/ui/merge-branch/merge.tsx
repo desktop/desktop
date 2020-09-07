@@ -110,12 +110,9 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     }
 
     source.event.preventDefault()
+    const { selectedBranch } = this.state
 
-    if (this.state.selectedBranch !== branch) {
-      this.setState({ selectedBranch: branch }, async () => {
-        await this.updateMergeStatus(branch)
-      })
-    } else {
+    if (selectedBranch !== null && selectedBranch.name === branch.name) {
       this.merge()
     }
   }
