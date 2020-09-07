@@ -129,6 +129,10 @@ export class CompareSidebar extends React.Component<
   public componentDidUpdate(prevProps: ICompareSidebarProps) {
     const { showBranchList } = this.props.compareState
 
+    if (showBranchList === prevProps.compareState.showBranchList) {
+      return
+    }
+
     if (this.textbox !== null) {
       if (showBranchList) {
         this.textbox.focus()
