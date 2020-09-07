@@ -258,7 +258,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   public render() {
     const selectedBranch = this.state.selectedBranch
     const currentBranch = this.props.currentBranch
-    const disabled = this.canMergeSelectedBranch()
+    const disabled = !this.canMergeSelectedBranch()
 
     // the amount of characters to allow before we truncate was chosen arbitrarily
     const currentBranchName = truncateWithEllipsis(
