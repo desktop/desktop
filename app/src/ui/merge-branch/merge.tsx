@@ -335,6 +335,10 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   }
 
   private merge = () => {
+    if (!this.canMergeSelectedBranch()) {
+      return
+    }
+
     const branch = this.state.selectedBranch
     if (!branch) {
       return
