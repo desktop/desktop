@@ -264,7 +264,12 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
       this.state.mergeStatus === null ||
       this.state.mergeStatus.kind !== ComputedAction.Invalid
 
-    return !selectedBranchIsCurrentBranch && isBehind && canMergeBranch
+    return (
+      selectedBranch !== null &&
+      !selectedBranchIsCurrentBranch &&
+      isBehind &&
+      canMergeBranch
+    )
   }
 
   public render() {

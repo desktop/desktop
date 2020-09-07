@@ -225,6 +225,7 @@ export class ChooseBranchDialog extends React.Component<
 
   private canRebaseSelectedBranch() {
     return (
+      this.state.selectedBranch !== null &&
       !this.selectedBranchIsCurrentBranch() &&
       this.selectedBranchIsAheadOfCurrentBranch()
     )
