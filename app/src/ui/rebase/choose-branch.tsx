@@ -216,8 +216,10 @@ export class ChooseBranchDialog extends React.Component<
   }
 
   public render() {
+    const { selectedBranch } = this.state
     const { currentBranch } = this.props
 
+    const tooltip = this.selectedBranchIsCurrentBranch()
       ? 'You are not able to rebase this branch onto itself'
       : !this.selectedBranchIsAheadOfCurrentBranch()
       ? 'There are no commits on the current branch to rebase'
