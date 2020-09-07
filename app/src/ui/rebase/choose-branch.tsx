@@ -20,6 +20,7 @@ import {
 import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
 import { Dispatcher } from '../dispatcher'
 import { promiseWithMinimumTimeout } from '../../lib/promise'
+import { ClickSource } from '../lib/list'
 
 interface IChooseBranchDialogProps {
   readonly dispatcher: Dispatcher
@@ -190,6 +191,25 @@ export class ChooseBranchDialog extends React.Component<
     return renderDefaultBranch(item, matches, this.props.currentBranch)
   }
 
+  private onItemClick = (branch: Branch, source: ClickSource) => {
+    if (source.kind !== 'keyboard' || source.event.key !== 'Enter') {
+      return
+    }
+
+    source.event.preventDefault()
+
+    const { selectedBranch } = this.state
+    const { currentBranch } = this.props
+
+    if (selectedBranch === null || selectedBranch.name !== branch.name) {
+      this.setState({ selectedBranch: branch }, async () => {
+        await this.updateRebaseStatus(branch, currentBranch)
+      })
+    } else {
+      this.startRebase()
+    }
+  }
+
   private selectedBranchIsCurrentBranch() {
     const currentBranch = this.props.currentBranch
     const { selectedBranch } = this.state
@@ -264,6 +284,7 @@ export class ChooseBranchDialog extends React.Component<
           {this.renderRebaseStatus()}
           <OkCancelButtonGroup
             okButtonText="Start rebase"
+            okButtonDisabled={!this.canRebaseSelectedBranch()}
             okButtonTitle={tooltip}
             cancelButtonVisible={false}
           />
