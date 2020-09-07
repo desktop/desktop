@@ -375,6 +375,10 @@ export class ChooseBranchDialog extends React.Component<
       return
     }
 
+    if (!this.canRebaseSelectedBranch()) {
+      return
+    }
+
     this.props.dispatcher.startRebase(
       repository,
       selectedBranch,
