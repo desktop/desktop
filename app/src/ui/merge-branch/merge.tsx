@@ -234,23 +234,31 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     return renderDefaultBranch(item, matches, this.props.currentBranch)
   }
 
-  public render() {
+  private canMergeSelectedBranch() {
     const selectedBranch = this.state.selectedBranch
     const currentBranch = this.props.currentBranch
 
-    const selectedBranchIsNotCurrentBranch =
-      selectedBranch === null ||
-      currentBranch === null ||
-      currentBranch.name === selectedBranch.name
+    const selectedBranchIsCurrentBranch =
+      selectedBranch !== null &&
+      currentBranch !== null &&
+      selectedBranch.name === currentBranch.name
 
-    const invalidBranchState =
-      selectedBranchIsNotCurrentBranch || this.state.commitCount === 0
+    const validBranchState =
+      selectedBranchIsCurrentBranch &&
+      this.state.commitCount !== undefined &&
+      this.state.commitCount > 0
 
-    const cannotMergeBranch =
-      this.state.mergeStatus != null &&
-      this.state.mergeStatus.kind === ComputedAction.Invalid
+    const canMergeBranch =
+      this.state.mergeStatus === null ||
+      this.state.mergeStatus.kind !== ComputedAction.Invalid
 
-    const disabled = invalidBranchState || cannotMergeBranch
+    return validBranchState && canMergeBranch
+  }
+
+  public render() {
+    const selectedBranch = this.state.selectedBranch
+    const currentBranch = this.props.currentBranch
+    const disabled = this.canMergeSelectedBranch()
 
     // the amount of characters to allow before we truncate was chosen arbitrarily
     const currentBranchName = truncateWithEllipsis(
