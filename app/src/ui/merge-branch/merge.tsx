@@ -20,6 +20,7 @@ import { ComputedAction } from '../../models/computed-action'
 import { ActionStatusIcon } from '../lib/action-status-icon'
 import { promiseWithMinimumTimeout } from '../../lib/promise'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
+import { ClickSource } from '../lib/list'
 
 interface IMergeProps {
   readonly dispatcher: Dispatcher
@@ -101,6 +102,22 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
 
   private onFilterTextChanged = (filterText: string) => {
     this.setState({ filterText })
+  }
+
+  private onItemClick = (branch: Branch, source: ClickSource) => {
+    if (source.kind !== 'keyboard' || source.event.key !== 'Enter') {
+      return
+    }
+
+    source.event.preventDefault()
+
+    if (this.state.selectedBranch !== branch) {
+      this.setState({ selectedBranch: branch }, async () => {
+        await this.updateMergeStatus(branch)
+      })
+    } else {
+      this.merge()
+    }
   }
 
   private onSelectionChanged = async (selectedBranch: Branch | null) => {
@@ -288,6 +305,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
             onSelectionChanged={this.onSelectionChanged}
             canCreateNewBranch={false}
             renderBranch={this.renderBranch}
+            onItemClick={this.onItemClick}
           />
         </DialogContent>
         <DialogFooter>
