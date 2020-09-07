@@ -190,25 +190,36 @@ export class ChooseBranchDialog extends React.Component<
     return renderDefaultBranch(item, matches, this.props.currentBranch)
   }
 
+  private selectedBranchIsCurrentBranch() {
+    const currentBranch = this.props.currentBranch
+    const { selectedBranch } = this.state
+    return (
+      selectedBranch !== null &&
+      currentBranch !== null &&
+      selectedBranch.name === currentBranch.name
+    )
+  }
+
+  private selectedBranchIsAheadOfCurrentBranch() {
+    const { rebasePreview } = this.state
+
+    return rebasePreview !== null && rebasePreview.kind === ComputedAction.Clean
+      ? rebasePreview.commits.length > 0
+      : false
+  }
+
+  private canRebaseSelectedBranch() {
+    return (
+      !this.selectedBranchIsCurrentBranch() &&
+      this.selectedBranchIsAheadOfCurrentBranch()
+    )
+  }
+
   public render() {
-    const { selectedBranch, rebasePreview } = this.state
     const { currentBranch } = this.props
 
-    const selectedBranchIsNotCurrentBranch =
-      selectedBranch === null ||
-      currentBranch === null ||
-      currentBranch.name === selectedBranch.name
-
-    const noCommitsToRebase =
-      rebasePreview !== null && rebasePreview.kind === ComputedAction.Clean
-        ? rebasePreview.commits.length === 0
-        : true
-
-    const disabled = selectedBranchIsNotCurrentBranch || noCommitsToRebase
-
-    const tooltip = selectedBranchIsNotCurrentBranch
       ? 'You are not able to rebase this branch onto itself'
-      : noCommitsToRebase
+      : !this.selectedBranchIsAheadOfCurrentBranch()
       ? 'There are no commits on the current branch to rebase'
       : undefined
 
@@ -244,13 +255,13 @@ export class ChooseBranchDialog extends React.Component<
             onSelectionChanged={this.onSelectionChanged}
             canCreateNewBranch={false}
             renderBranch={this.renderBranch}
+            onItemClick={this.onItemClick}
           />
         </DialogContent>
         <DialogFooter>
           {this.renderRebaseStatus()}
           <OkCancelButtonGroup
             okButtonText="Start rebase"
-            okButtonDisabled={disabled}
             okButtonTitle={tooltip}
             cancelButtonVisible={false}
           />
