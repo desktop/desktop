@@ -1,5 +1,9 @@
 {
   "releases": {
+    "2.5.5": [
+      "[Fixed] Don't update submodules when discarding files - #10469",
+      "[Fixed] Clicking on a branch in the compare branch list resets focus to the filter text box - #10485"
+    ],
     "2.5.4": [
       "[Added] Suggest to stash changes when trying to do an operation that requires a clean working directory - #10053",
       "[Added] Autocomplete users and issues from upstream repository when working in a fork - #10084",
