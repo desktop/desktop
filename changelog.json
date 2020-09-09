@@ -1,5 +1,9 @@
 {
   "releases": {
+    "2.5.5": [
+      "[Fixed] Don't update submodules when discarding files - #10469",
+      "[Fixed] Clicking on a branch in the compare branch list resets focus to the filter text box - #10485"
+    ],
     "2.5.5-beta1": [
       "[Added] Show status of GitHub Action runs for pull requests - #9819. Thanks @Raul6469!",
       "[Added] Add AspNet and Diff/Patch Syntax Highlights - #10410. Thanks @say25!",
