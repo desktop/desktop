@@ -264,4 +264,5 @@ export type Popup =
       type: PopupType.LocalChangesOverwritten
       repository: Repository
       retryAction: RetryAction
+      files: Array<string>
     }

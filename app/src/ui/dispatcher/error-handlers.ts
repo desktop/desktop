@@ -731,10 +731,32 @@ export async function localChangesOverwrittenHandler(
     return error
   }
 
+  const files = new Array<string>()
+  const { stderr } = gitError.result
+  let inFilesList = false
+
+  for (const line of stderr.split('\n')) {
+    if (!inFilesList) {
+      if (
+        line.startsWith('error:') &&
+        line.includes('files would be overwritten') &&
+        line.endsWith(':')
+      ) {
+        inFilesList = true
+      }
+    } else {
+      if (!line.startsWith('\t')) {
+        break
+      }
+      files.push(line.trimLeft())
+    }
+  }
+
   dispatcher.showPopup({
     type: PopupType.LocalChangesOverwritten,
     repository,
     retryAction: e.metadata.retryAction,
+    files,
   })
 
   return null
