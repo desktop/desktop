@@ -28,7 +28,7 @@ interface ILocalChangesOverwrittenDialogProps {
    */
   readonly onDismissed: () => void
 
-  readonly files: Array<string>
+  readonly files: ReadonlyArray<string>
 }
 interface ILocalChangesOverwrittenDialogState {
   readonly stashingAndRetrying: boolean
