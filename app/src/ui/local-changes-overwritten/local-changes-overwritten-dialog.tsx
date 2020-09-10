@@ -28,6 +28,10 @@ interface ILocalChangesOverwrittenDialogProps {
    */
   readonly onDismissed: () => void
 
+  /**
+   * The files that prevented the operation from completing, i.e. the files
+   * that would be overwritten.
+   */
   readonly files: ReadonlyArray<string>
 }
 interface ILocalChangesOverwrittenDialogState {
