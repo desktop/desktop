@@ -24,6 +24,7 @@ import {
 } from '../../lib/feature-flag'
 import { RetryActionType } from '../../models/retry-actions'
 import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
+import { parseFilesToBeOverwritten } from '../lib/parse-files-to-be-overwritten'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -731,26 +732,7 @@ export async function localChangesOverwrittenHandler(
     return error
   }
 
-  const files = new Array<string>()
-  const { stderr } = gitError.result
-  let inFilesList = false
-
-  for (const line of stderr.split('\n')) {
-    if (!inFilesList) {
-      if (
-        line.startsWith('error:') &&
-        line.includes('files would be overwritten') &&
-        line.endsWith(':')
-      ) {
-        inFilesList = true
-      }
-    } else {
-      if (!line.startsWith('\t')) {
-        break
-      }
-      files.push(line.trimLeft())
-    }
-  }
+  const files = parseFilesToBeOverwritten(gitError)
 
   dispatcher.showPopup({
     type: PopupType.LocalChangesOverwritten,
