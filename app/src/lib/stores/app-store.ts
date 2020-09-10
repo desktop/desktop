@@ -72,6 +72,8 @@ import {
   setPersistedTheme,
   getAutoSwitchPersistedTheme,
   setAutoSwitchPersistedTheme,
+  getDisplayFullscreenInfoToast,
+  setDisplayFullscreenInfoToast,
 } from '../../ui/lib/application-theme'
 import {
   getAppMenu,
@@ -417,6 +419,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.Light
   private automaticallySwitchTheme = false
+  private displayFullscreenInfoToast = true
 
   private hasUserViewedStash = false
 
@@ -751,6 +754,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedBranchesTab: this.selectedBranchesTab,
       selectedTheme: this.selectedTheme,
       automaticallySwitchTheme: this.automaticallySwitchTheme,
+      displayFullscreenInfoToast: this.displayFullscreenInfoToast,
       apiRepositories: this.apiRepositoriesStore.getState(),
       optOutOfUsageTracking: this.statsStore.getOptOut(),
       currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
@@ -1841,6 +1845,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.emitUpdate()
       }
     })
+
+    this.displayFullscreenInfoToast = getDisplayFullscreenInfoToast()
 
     this.emitUpdateNow()
 
@@ -5574,6 +5580,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setAutomaticallySwitchTheme(automaticallySwitchTheme: boolean) {
     setAutoSwitchPersistedTheme(automaticallySwitchTheme)
     this.automaticallySwitchTheme = automaticallySwitchTheme
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  /**
+   * Set the application-wide full screen prompt display
+   */
+  public _setDisplayFullscreenInfoToast(displaysFullscreenToast: boolean) {
+    setDisplayFullscreenInfoToast(displaysFullscreenToast)
+    this.displayFullscreenInfoToast = displaysFullscreenToast
     this.emitUpdate()
 
     return Promise.resolve()

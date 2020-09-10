@@ -74,3 +74,23 @@ export function getAutoSwitchPersistedTheme(): boolean {
 export function setAutoSwitchPersistedTheme(autoSwitchTheme: boolean) {
   setBoolean(automaticallySwitchApplicationThemeKey, autoSwitchTheme)
 }
+
+// The key under which the decision to display a full screen popover is persisted
+// in localStorage.
+const displayFullscreenInfoToastKey = 'displaysFullscreenInfoToast'
+
+/**
+ * Load the whether or not the user wishes to show the fullscreen info popover from the persistent
+ * store (localStorage). If no preference is stored the default
+ * value (true) will be returned.
+ */
+export function getDisplayFullscreenInfoToast(): boolean {
+  return getBoolean(displayFullscreenInfoToastKey, true)
+}
+
+/**
+ * Store whether or not the user wishes to show the fullscreen info popover in the persistent store (localStorage).
+ */
+export function setDisplayFullscreenInfoToast(displayFullscreenToast: boolean) {
+  setBoolean(displayFullscreenInfoToastKey, displayFullscreenToast)
+}

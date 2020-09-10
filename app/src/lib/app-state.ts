@@ -216,6 +216,9 @@ export interface IAppState {
   /** Whether we should automatically change the currently selected appearance (aka theme) */
   readonly automaticallySwitchTheme: boolean
 
+  /** Whether we should display a toast notification when the user enters fullscreen */
+  readonly displayFullscreenInfoToast: boolean
+
   /**
    * A map keyed on a user account (GitHub.com or GitHub Enterprise)
    * containing an object with repositories that the authenticated

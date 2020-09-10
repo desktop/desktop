@@ -14,6 +14,8 @@ interface IAppearanceProps {
   readonly onSelectedThemeChanged: (theme: ApplicationTheme) => void
   readonly automaticallySwitchTheme: boolean
   readonly onAutomaticallySwitchThemeChanged: (checked: boolean) => void
+  readonly displayFullscreenInfoToast: boolean
+  readonly onDisplayFullscreenInfoToastChanged: (checked: boolean) => void
 }
 
 const themes: ReadonlyArray<ISegmentedItem<ApplicationTheme>> = [
@@ -49,11 +51,20 @@ export class Appearance extends React.Component<IAppearanceProps, {}> {
     this.props.onAutomaticallySwitchThemeChanged(value)
   }
 
+  private onDisplayFullscreenInfoToastChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+
+    this.props.onDisplayFullscreenInfoToastChanged(value)
+  }
+
   public render() {
     return (
       <DialogContent>
         {this.renderThemeOptions()}
         {this.renderAutoSwitcherOption()}
+        {this.renderShowFullscreenInfoToastOption()}
       </DialogContent>
     )
   }
@@ -85,6 +96,22 @@ export class Appearance extends React.Component<IAppearanceProps, {}> {
               : CheckboxValue.Off
           }
           onChange={this.onAutomaticallySwitchThemeChanged}
+        />
+      </Row>
+    )
+  }
+
+  public renderShowFullscreenInfoToastOption() {
+    return (
+      <Row>
+        <Checkbox
+          label="Display exit shortcut when entering fullscreen."
+          value={
+            this.props.displayFullscreenInfoToast
+              ? CheckboxValue.On
+              : CheckboxValue.Off
+          }
+          onChange={this.onDisplayFullscreenInfoToastChanged}
         />
       </Row>
     )

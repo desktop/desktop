@@ -2243,6 +2243,13 @@ export class Dispatcher {
   }
 
   /**
+   * Set the displays fullscreen info popover toggle
+   */
+  public onDisplayFullscreenInfoToastChanged(displays: boolean) {
+    return this.appStore._setDisplayFullscreenInfoToast(displays)
+  }
+
+  /**
    * Increments either the `repoWithIndicatorClicked` or
    * the `repoWithoutIndicatorClicked` metric
    */

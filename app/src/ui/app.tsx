@@ -1378,6 +1378,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             selectedShell={this.state.selectedShell}
             selectedTheme={this.state.selectedTheme}
             automaticallySwitchTheme={this.state.automaticallySwitchTheme}
+            displaysFullscreenInfoToast={this.state.displayFullscreenInfoToast}
           />
         )
       case PopupType.MergeBranch: {
@@ -2144,7 +2145,12 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderFullScreenInfo() {
-    return <FullScreenInfo windowState={this.state.windowState} />
+    return (
+      <FullScreenInfo
+        windowState={this.state.windowState}
+        displaysFullScreenInfo={this.state.displayFullscreenInfoToast}
+      />
+    )
   }
 
   private clearError = (error: Error) => this.props.dispatcher.clearError(error)

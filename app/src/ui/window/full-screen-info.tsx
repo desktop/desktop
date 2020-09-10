@@ -4,6 +4,7 @@ import { WindowState } from '../../lib/window-state'
 
 interface IFullScreenInfoProps {
   readonly windowState: WindowState
+  readonly displaysFullScreenInfo: boolean
 }
 
 interface IFullScreenInfoState {
@@ -87,7 +88,7 @@ export class FullScreenInfo extends React.Component<
   }
 
   private renderFullScreenNotification() {
-    if (!this.state.renderInfo) {
+    if (!this.state.renderInfo || !this.props.displaysFullScreenInfo) {
       return null
     }
 

@@ -52,6 +52,7 @@ interface IPreferencesProps {
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
   readonly automaticallySwitchTheme: boolean
+  readonly displaysFullscreenInfoToast: boolean
 }
 
 interface IPreferencesState {
@@ -307,6 +308,10 @@ export class Preferences extends React.Component<
             onAutomaticallySwitchThemeChanged={
               this.onAutomaticallySwitchThemeChanged
             }
+            displayFullscreenInfoToast={this.props.displaysFullscreenInfoToast}
+            onDisplayFullscreenInfoToastChanged={
+              this.onDisplayFullscreenInfoToastChanged
+            }
           />
         )
         break
@@ -406,6 +411,14 @@ export class Preferences extends React.Component<
   ) => {
     this.props.dispatcher.onAutomaticallySwitchThemeChanged(
       automaticallySwitchTheme
+    )
+  }
+
+  private onDisplayFullscreenInfoToastChanged = (
+    displaysFullscreenInfoToast: boolean
+  ) => {
+    this.props.dispatcher.onDisplayFullscreenInfoToastChanged(
+      displaysFullscreenInfoToast
     )
   }
 
