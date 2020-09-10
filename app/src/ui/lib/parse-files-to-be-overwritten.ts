@@ -1,30 +1,25 @@
-import { GitError } from '../../lib/git'
-import { GitError as DugiteError } from 'dugite'
-
-export function parseFilesToBeOverwritten(error: GitError) {
-  const dugiteError = error.result.gitError
+export function parseFilesToBeOverwritten(errorMessage: string) {
   const files = new Array<string>()
+  const lines = errorMessage.split('\n')
 
-  if (
-    dugiteError !== DugiteError.LocalChangesOverwritten &&
-    dugiteError !== DugiteError.MergeWithLocalChanges &&
-    dugiteError !== DugiteError.RebaseWithLocalChanges
-  ) {
-    return files
-  }
+  let inFilesList = false
 
-  const { stderr } = error.result
-  const lines = stderr.split('\n')
-
-  const start = lines.findIndex(
-    l =>
-      l.startsWith('error:') &&
-      l.includes('files would be overwritten') &&
-      l.endsWith(':')
-  )
-
-  for (let i = start; i < lines.length && lines[i].startsWith('\t'); i++) {
-    files.push(lines[i].trimLeft())
+  for (const line of lines) {
+    if (inFilesList) {
+      if (!line.startsWith('\t')) {
+        break
+      } else {
+        files.push(line.trimLeft())
+      }
+    } else {
+      if (
+        line.startsWith('error:') &&
+        line.includes('files would be overwritten') &&
+        line.endsWith(':')
+      ) {
+        inFilesList = true
+      }
+    }
   }
 
   return files

@@ -732,7 +732,7 @@ export async function localChangesOverwrittenHandler(
     return error
   }
 
-  const files = parseFilesToBeOverwritten(gitError)
+  const files = parseFilesToBeOverwritten(gitError.result.stderr)
 
   dispatcher.showPopup({
     type: PopupType.LocalChangesOverwritten,
