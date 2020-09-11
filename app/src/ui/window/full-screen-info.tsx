@@ -9,6 +9,12 @@ interface IFullScreenInfoProps {
 interface IFullScreenInfoState {
   readonly renderInfo: boolean
   readonly renderTransitionGroup: boolean
+  /**
+   * The last seen window state which isn't 'hidden'. I.e. the
+   * "real" window state regardless of whether the app is in
+   * the background or not.
+   */
+  readonly computedWindowState: Exclude<WindowState, 'hidden'>
 }
 
 const toastTransitionTimeout = { appear: 100, exit: 250 }
@@ -24,6 +30,24 @@ export class FullScreenInfo extends React.Component<
   IFullScreenInfoProps,
   IFullScreenInfoState
 > {
+  public static getDerivedStateFromProps(
+    props: IFullScreenInfoProps,
+    state: IFullScreenInfoState
+  ): Partial<IFullScreenInfoState> | null {
+    // We don't care about transitions to 'hidden', we only
+    // care about when we transition from a 'real' window state
+    // to 'full-screen'. See https://github.com/desktop/desktop/issues/7916
+    if (props.windowState === 'hidden') {
+      return null
+    }
+
+    if (state.computedWindowState !== props.windowState) {
+      return { computedWindowState: props.windowState }
+    }
+
+    return null
+  }
+
   private infoDisappearTimeoutId: number | null = null
   private transitionGroupDisappearTimeoutId: number | null = null
 
@@ -33,12 +57,17 @@ export class FullScreenInfo extends React.Component<
     this.state = {
       renderInfo: false,
       renderTransitionGroup: false,
+      computedWindowState:
+        props.windowState === 'hidden' ? 'normal' : props.windowState,
     }
   }
 
-  public componentWillReceiveProps(nextProps: IFullScreenInfoProps) {
+  public componentDidUpdate(
+    prevProps: IFullScreenInfoProps,
+    prevState: IFullScreenInfoState
+  ) {
     // If the window state hasn't change we don't have to do anything
-    if (nextProps.windowState === this.props.windowState) {
+    if (prevState.computedWindowState === this.state.computedWindowState) {
       return
     }
 
@@ -51,7 +80,7 @@ export class FullScreenInfo extends React.Component<
       window.clearTimeout(this.transitionGroupDisappearTimeoutId)
     }
 
-    if (nextProps.windowState === 'full-screen') {
+    if (this.state.computedWindowState === 'full-screen') {
       this.infoDisappearTimeoutId = window.setTimeout(
         this.onInfoDisappearTimeout,
         holdDuration
