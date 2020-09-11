@@ -14,7 +14,7 @@ interface IFullScreenInfoState {
    * "real" window state regardless of whether the app is in
    * the background or not.
    */
-  readonly computedWindowState: Exclude<WindowState, 'hidden'>
+  readonly windowState?: Exclude<WindowState, 'hidden'>
 }
 
 const toastTransitionTimeout = { appear: 100, exit: 250 }
@@ -41,11 +41,13 @@ export class FullScreenInfo extends React.Component<
       return null
     }
 
-    if (state.computedWindowState !== props.windowState) {
+    if (state.windowState !== props.windowState) {
+      const fullScreen = props.windowState === 'full-screen'
+
       return {
-        computedWindowState: props.windowState,
-        renderInfo: props.windowState === 'full-screen',
-        renderTransitionGroup: props.windowState === 'full-screen',
+        windowState: props.windowState,
+        renderInfo: fullScreen,
+        renderTransitionGroup: fullScreen,
       }
     }
 
@@ -61,8 +63,6 @@ export class FullScreenInfo extends React.Component<
     this.state = {
       renderInfo: false,
       renderTransitionGroup: false,
-      computedWindowState:
-        props.windowState === 'hidden' ? 'normal' : props.windowState,
     }
   }
 
