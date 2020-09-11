@@ -42,7 +42,11 @@ export class FullScreenInfo extends React.Component<
     }
 
     if (state.computedWindowState !== props.windowState) {
-      return { computedWindowState: props.windowState }
+      return {
+        computedWindowState: props.windowState,
+        renderInfo: props.windowState === 'full-screen',
+        renderTransitionGroup: props.windowState === 'full-screen',
+      }
     }
 
     return null
@@ -66,44 +70,28 @@ export class FullScreenInfo extends React.Component<
     prevProps: IFullScreenInfoProps,
     prevState: IFullScreenInfoState
   ) {
-    // If the window state hasn't change we don't have to do anything
-    if (prevState.computedWindowState === this.state.computedWindowState) {
-      return
+    if (prevState.renderInfo !== this.state.renderInfo) {
+      if (this.state.renderInfo) {
+        this.infoDisappearTimeoutId = window.setTimeout(
+          this.onInfoDisappearTimeout,
+          holdDuration
+        )
+      } else if (this.infoDisappearTimeoutId !== null) {
+        window.clearTimeout(this.infoDisappearTimeoutId)
+      }
     }
 
-    // Clean up any stray timeout
-    if (this.infoDisappearTimeoutId !== null) {
-      window.clearTimeout(this.infoDisappearTimeoutId)
-    }
-
-    if (this.transitionGroupDisappearTimeoutId !== null) {
-      window.clearTimeout(this.transitionGroupDisappearTimeoutId)
-    }
-
-    if (this.state.computedWindowState === 'full-screen') {
-      this.infoDisappearTimeoutId = window.setTimeout(
-        this.onInfoDisappearTimeout,
-        holdDuration
-      )
-
-      this.transitionGroupDisappearTimeoutId = window.setTimeout(
-        this.onTransitionGroupDisappearTimeout,
-        toastTransitionTimeout.appear +
-          holdDuration +
-          toastTransitionTimeout.exit
-      )
-
-      this.setState({
-        renderTransitionGroup: true,
-        renderInfo: true,
-      })
-    } else if (this.state.renderInfo || this.state.renderTransitionGroup) {
-      // We're no longer in full-screen, let's get rid of the notification
-      // immediately without any transitions.
-      this.setState({
-        renderTransitionGroup: false,
-        renderInfo: false,
-      })
+    if (prevState.renderTransitionGroup !== this.state.renderTransitionGroup) {
+      if (this.state.renderTransitionGroup) {
+        this.transitionGroupDisappearTimeoutId = window.setTimeout(
+          this.onTransitionGroupDisappearTimeout,
+          toastTransitionTimeout.appear +
+            holdDuration +
+            toastTransitionTimeout.exit
+        )
+      } else if (this.transitionGroupDisappearTimeoutId !== null) {
+        window.clearTimeout(this.transitionGroupDisappearTimeoutId)
+      }
     }
   }
 
