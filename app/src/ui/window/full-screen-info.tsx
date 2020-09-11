@@ -78,8 +78,8 @@ export class FullScreenInfo extends React.Component<
           this.onInfoDisappearTimeout,
           holdDuration
         )
-      } else if (this.infoDisappearTimeoutId !== null) {
-        window.clearTimeout(this.infoDisappearTimeoutId)
+      } else {
+        this.clearInfoDisappearTimeout()
       }
     }
 
@@ -91,9 +91,28 @@ export class FullScreenInfo extends React.Component<
             holdDuration +
             toastTransitionTimeout.exit
         )
-      } else if (this.transitionGroupDisappearTimeoutId !== null) {
-        window.clearTimeout(this.transitionGroupDisappearTimeoutId)
+      } else {
+        this.clearTransitionGroupDisappearTimeout()
       }
+    }
+  }
+
+  public componentWillUnmount() {
+    this.clearInfoDisappearTimeout()
+    this.clearTransitionGroupDisappearTimeout()
+  }
+
+  private clearInfoDisappearTimeout() {
+    if (this.infoDisappearTimeoutId !== null) {
+      window.clearTimeout(this.infoDisappearTimeoutId)
+      this.infoDisappearTimeoutId = null
+    }
+  }
+
+  private clearTransitionGroupDisappearTimeout() {
+    if (this.transitionGroupDisappearTimeoutId !== null) {
+      window.clearTimeout(this.transitionGroupDisappearTimeoutId)
+      this.transitionGroupDisappearTimeoutId = null
     }
   }
 
