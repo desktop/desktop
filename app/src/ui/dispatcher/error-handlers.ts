@@ -631,65 +631,6 @@ export async function insufficientGitHubRepoPermissions(
   return null
 }
 
-// Example error message (line breaks added):
-//    fatal: unable to access 'https://github.com/desktop/desktop.git/': schannel:
-//    next InitializeSecurityContext failed: Unknown error (0x80092012) - The
-//    revocation function was unable to check revocation for the certificate.
-//
-// We can't trust anything after the `-` since that string might be localized
-//
-// 0x80092012 is CRYPT_E_NO_REVOCATION_CHECK
-// 0x80092013 is CRYPT_E_REVOCATION_OFFLINE
-//
-// See
-// https://docs.microsoft.com/en-us/windows/win32/api/wincrypt/nf-wincrypt-certverifyrevocation
-// https://github.com/curl/curl/blob/fa009cc798f/lib/vtls/schannel.c#L1069-L1070
-// https://github.com/curl/curl/blob/fa009cc798f/lib/strerror.c#L966
-// https://github.com/curl/curl/blob/fa009cc798f/lib/strerror.c#L983
-const fatalSchannelRevocationErrorRe = /^fatal: unable to access '(.*?)': schannel: next InitializeSecurityContext failed: .*? \((0x80092012|0x80092013)\)/m
-
-/**
- * Attempts to detect whether an error is the result of the
- * Windows SSL backend's (schannel) failure to contact a
- * certificate revocation server. This can only occur on Windows
- * when the `http.sslBackend` is set to `schannel`.
- */
-export async function schannelUnableToCheckRevocationForCertificate(
-  error: Error,
-  dispatcher: Dispatcher
-) {
-  if (!__WIN32__) {
-    return error
-  }
-
-  if (!enableSchannelCheckRevokeOptOut()) {
-    return error
-  }
-
-  const errorWithMetadata = asErrorWithMetadata(error)
-  const underlyingError =
-    errorWithMetadata === null ? error : errorWithMetadata.underlyingError
-
-  const gitError = asGitError(underlyingError)
-  if (gitError === null) {
-    return error
-  }
-
-  const match = fatalSchannelRevocationErrorRe.exec(gitError.message)
-
-  if (!match) {
-    return error
-  }
-
-  sendNonFatalException('schannelUnableToCheckRevocationForCertificate', error)
-  dispatcher.showPopup({
-    type: PopupType.SChannelNoRevocationCheck,
-    url: match[1],
-  })
-
-  return null
-}
-
 /**
  * Handler for when an action the user attempts cannot be done because there are local
  * changes that would get overwritten.
