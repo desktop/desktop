@@ -35,6 +35,7 @@ import {
   setDefaultBranch,
   getDefaultBranch,
 } from '../../lib/helpers/default-branch'
+import { Prompts } from './prompts'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -192,6 +193,10 @@ export class Preferences extends React.Component<
               Appearance
             </span>
             <span>
+              <Octicon className="icon" symbol={OcticonSymbol.question} />
+              Prompts
+            </span>
+            <span>
               <Octicon className="icon" symbol={OcticonSymbol.settings} />
               Advanced
             </span>
@@ -295,22 +300,29 @@ export class Preferences extends React.Component<
           />
         )
         break
-      case PreferencesTab.Advanced: {
+      case PreferencesTab.Prompts: {
         View = (
-          <Advanced
-            optOutOfUsageTracking={this.state.optOutOfUsageTracking}
+          <Prompts
             confirmRepositoryRemoval={this.state.confirmRepositoryRemoval}
             confirmDiscardChanges={this.state.confirmDiscardChanges}
             confirmForcePush={this.state.confirmForcePush}
-            uncommittedChangesStrategyKind={
-              this.state.uncommittedChangesStrategyKind
-            }
-            onOptOutofReportingchanged={this.onOptOutofReportingChanged}
             onConfirmRepositoryRemovalChanged={
               this.onConfirmRepositoryRemovalChanged
             }
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
             onConfirmForcePushChanged={this.onConfirmForcePushChanged}
+          />
+        )
+        break
+      }
+      case PreferencesTab.Advanced: {
+        View = (
+          <Advanced
+            optOutOfUsageTracking={this.state.optOutOfUsageTracking}
+            uncommittedChangesStrategyKind={
+              this.state.uncommittedChangesStrategyKind
+            }
+            onOptOutofReportingchanged={this.onOptOutofReportingChanged}
             onUncommittedChangesStrategyKindChanged={
               this.onUncommittedChangesStrategyKindChanged
             }
@@ -402,6 +414,7 @@ export class Preferences extends React.Component<
         return null
       case PreferencesTab.Integrations:
       case PreferencesTab.Advanced:
+      case PreferencesTab.Prompts:
       case PreferencesTab.Git: {
         return (
           <DialogFooter>
