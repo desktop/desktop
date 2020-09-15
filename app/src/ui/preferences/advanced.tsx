@@ -4,7 +4,6 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { LinkButton } from '../lib/link-button'
 import { SamplesURL } from '../../lib/stats'
 import { UncommittedChangesStrategyKind } from '../../models/uncommitted-changes-strategy'
-import { enableSchannelCheckRevokeOptOut } from '../../lib/feature-flag'
 import { RadioButton } from '../lib/radio-button'
 
 interface IAdvancedPreferencesProps {
@@ -13,7 +12,6 @@ interface IAdvancedPreferencesProps {
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
   readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
-  readonly schannelCheckRevoke: boolean | null
   readonly onOptOutofReportingchanged: (checked: boolean) => void
   readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
   readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
@@ -21,7 +19,6 @@ interface IAdvancedPreferencesProps {
   readonly onUncommittedChangesStrategyKindChanged: (
     value: UncommittedChangesStrategyKind
   ) => void
-  readonly onSchannelCheckRevokeChanged: (checked: boolean) => void
 }
 
 interface IAdvancedPreferencesState {
@@ -89,13 +86,6 @@ export class Advanced extends React.Component<
   ) => {
     this.setState({ uncommittedChangesStrategyKind: value })
     this.props.onUncommittedChangesStrategyKindChanged(value)
-  }
-
-  private onSchannelCheckRevokeChanged = (
-    event: React.FormEvent<HTMLInputElement>
-  ) => {
-    const value = event.currentTarget.checked
-    this.props.onSchannelCheckRevokeChanged(value === false)
   }
 
   private reportDesktopUsageLabel() {
@@ -183,39 +173,7 @@ export class Advanced extends React.Component<
             onChange={this.onReportingOptOutChanged}
           />
         </div>
-        {this.renderGitAdvancedSection()}
       </DialogContent>
-    )
-  }
-
-  private renderGitAdvancedSection() {
-    if (!__WIN32__) {
-      return
-    }
-
-    if (!enableSchannelCheckRevokeOptOut()) {
-      return
-    }
-
-    // If the user hasn't set `http.schannelCheckRevoke` before we don't
-    // have to show them the preference.
-    if (this.props.schannelCheckRevoke === null) {
-      return
-    }
-
-    return (
-      <div className="git-advanced-section">
-        <h2>Git</h2>
-        <Checkbox
-          label="Disable certificate revocation checks"
-          value={
-            this.props.schannelCheckRevoke
-              ? CheckboxValue.Off
-              : CheckboxValue.On
-          }
-          onChange={this.onSchannelCheckRevokeChanged}
-        />
-      </div>
     )
   }
 }
