@@ -18,12 +18,8 @@ import {
 } from '../../models/repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { hasWritePermission } from '../../models/github-repository'
-import {
-  enableCreateForkFlow,
-  enableSchannelCheckRevokeOptOut,
-} from '../../lib/feature-flag'
+import { enableCreateForkFlow } from '../../lib/feature-flag'
 import { RetryActionType } from '../../models/retry-actions'
-import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
