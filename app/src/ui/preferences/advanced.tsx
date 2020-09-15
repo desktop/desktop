@@ -95,6 +95,22 @@ export class Advanced extends React.Component<
           />
         </div>
         <div className="advanced-section">
+          <h2>Background updates</h2>
+          <Checkbox
+            label="Periodically refresh status of all repositories"
+            value={CheckboxValue.Off}
+          />
+          <Checkbox
+            label="Periodically fetch all repositories"
+            value={CheckboxValue.Off}
+          />
+          <p className="git-settings-description">
+            Background updates allows Desktop to highlight repositories that
+            have uncommitted changes or are out of sync with their remote in the
+            repository list. May adversely affect performance.
+          </p>
+        </div>
+        <div className="advanced-section">
           <h2>Usage</h2>
           <Checkbox
             label={this.reportDesktopUsageLabel()}
