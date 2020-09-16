@@ -771,6 +771,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       apiRepositories: this.apiRepositoriesStore.getState(),
       optOutOfUsageTracking: this.statsStore.getOptOut(),
       currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
+      repositoryIndicatorsEnabled: this.repositoryIndicatorsEnabled,
     }
   }
 
@@ -2922,6 +2923,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     } else {
       this.repositoryIndicatorUpdater.stop()
     }
+
+    this.emitUpdate()
   }
 
   /**

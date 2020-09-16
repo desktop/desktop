@@ -234,6 +234,8 @@ export interface IAppState {
 
   /** Which step the user is on in the Onboarding Tutorial */
   readonly currentOnboardingTutorialStep: TutorialStep
+
+  readonly repositoryIndicatorsEnabled: boolean
 }
 
 export enum FoldoutType {
