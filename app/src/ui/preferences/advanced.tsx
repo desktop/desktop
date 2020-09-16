@@ -97,11 +97,7 @@ export class Advanced extends React.Component<
         <div className="advanced-section">
           <h2>Background updates</h2>
           <Checkbox
-            label="Periodically refresh status of all repositories"
-            value={CheckboxValue.Off}
-          />
-          <Checkbox
-            label="Periodically fetch all repositories"
+            label="Periodically fetch and refresh status of all repositories"
             value={CheckboxValue.Off}
           />
           <p className="git-settings-description">
