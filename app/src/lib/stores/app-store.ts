@@ -2917,6 +2917,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     setBoolean(repositoryIndicatorsEnabledKey, repositoryIndicatorsEnabled)
     this.repositoryIndicatorsEnabled = repositoryIndicatorsEnabled
+    if (repositoryIndicatorsEnabled) {
+      this.repositoryIndicatorUpdater.start()
+    } else {
+      this.repositoryIndicatorUpdater.stop()
+    }
+  }
 
   /**
    * Refresh all the data for the Changes section.
