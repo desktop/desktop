@@ -74,6 +74,7 @@ export class UntrustedCertificate extends React.Component<
   }
 
   private onContinue = () => {
+    this.props.onDismissed()
     this.props.onContinue(this.props.certificate)
   }
 }

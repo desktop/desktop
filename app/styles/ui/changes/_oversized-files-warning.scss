@@ -5,7 +5,19 @@
     .files-list {
       max-height: 175px;
       overflow-y: auto;
-      -webkit-margin-after: 1em;
+      font-family: var(--font-family-monospace);
+      margin-bottom: var(--spacing);
+
+      ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+
+        li {
+          padding-left: 0;
+          margin-bottom: 0;
+        }
+      }
     }
 
     .recommendation {

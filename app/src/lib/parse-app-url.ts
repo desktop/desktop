@@ -41,7 +41,7 @@ export type URLActionType =
   | IOpenRepositoryFromPathAction
   | IUnknownAction
 
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
+// eslint-disable-next-line @typescript-eslint/naming-convention
 interface ParsedUrlQueryWithUndefined {
   // `undefined` is added here to ensure we handle the missing querystring key
   // See https://github.com/Microsoft/TypeScript/issues/13778 for discussion about

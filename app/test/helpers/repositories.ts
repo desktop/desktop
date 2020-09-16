@@ -1,21 +1,12 @@
-/* eslint-disable no-sync */
-
 import * as Path from 'path'
 import * as FSE from 'fs-extra'
-
 import { mkdirSync } from './temp'
-
-const klawSync = require('klaw-sync')
-
+import klawSync, { Item } from 'klaw-sync'
 import { Repository } from '../../src/models/repository'
 import { GitProcess } from 'dugite'
 import { makeCommit, switchTo } from './repository-scaffolding'
 import { writeFile } from 'fs-extra'
 import { git } from '../../src/lib/git'
-
-type KlawEntry = {
-  path: string
-}
 
 /**
  * Set up the named fixture repository to be used in a test.
@@ -39,12 +30,12 @@ export async function setupFixtureRepository(
     Path.join(testRepoPath, '.git')
   )
 
-  const ignoreHiddenFiles = function(item: KlawEntry) {
+  const ignoreHiddenFiles = function (item: Item) {
     const basename = Path.basename(item.path)
     return basename === '.' || basename[0] !== '.'
   }
 
-  const entries: ReadonlyArray<KlawEntry> = klawSync(testRepoPath)
+  const entries = klawSync(testRepoPath)
   const visiblePaths = entries.filter(ignoreHiddenFiles)
   const submodules = visiblePaths.filter(
     entry => Path.basename(entry.path) === '_git'
@@ -186,7 +177,10 @@ export async function setupConflictedRepoWithMultipleFiles(): Promise<
   const repo = await setupEmptyRepository()
 
   const firstCommit = {
-    entries: [{ path: 'foo', contents: 'b0' }, { path: 'bar', contents: 'b0' }],
+    entries: [
+      { path: 'foo', contents: 'b0' },
+      { path: 'bar', contents: 'b0' },
+    ],
   }
 
   await makeCommit(repo, firstCommit)

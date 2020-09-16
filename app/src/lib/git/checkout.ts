@@ -120,3 +120,20 @@ export async function checkoutPaths(
     'checkoutPaths'
   )
 }
+
+/**
+ * Create and checkout the given branch.
+ *
+ * @param repository The repository.
+ * @param branchName The branch to create and checkout.
+ */
+export async function createAndCheckoutBranch(
+  repository: Repository,
+  branchName: string
+): Promise<void> {
+  await git(
+    ['checkout', '-b', branchName],
+    repository.path,
+    'createAndCheckoutBranch'
+  )
+}

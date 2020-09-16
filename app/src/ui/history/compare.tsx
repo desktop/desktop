@@ -1,7 +1,6 @@
 import * as React from 'react'
-import { CSSTransitionGroup } from 'react-transition-group'
+import { TransitionGroup, CSSTransition } from 'react-transition-group'
 
-import { IGitHubUser } from '../../lib/databases'
 import { Commit } from '../../models/commit'
 import {
   HistoryTabMode,
@@ -33,11 +32,12 @@ import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conf
 import { assertNever } from '../../lib/fatal-error'
 import { enableNDDBBanner } from '../../lib/feature-flag'
 
+const DivergingBannerAnimationTimeout = 300
+
 interface ICompareSidebarProps {
   readonly repository: Repository
   readonly isLocalRepository: boolean
   readonly compareState: ICompareState
-  readonly gitHubUsers: Map<string, IGitHubUser>
   readonly emoji: Map<string, string>
   readonly commitLookup: Map<string, Commit>
   readonly localCommitSHAs: ReadonlyArray<string>
@@ -49,6 +49,7 @@ interface ICompareSidebarProps {
   readonly onCompareListScrolled: (scrollTop: number) => void
   readonly compareListScrollTop?: number
   readonly localTags: Map<string, string> | null
+  readonly tagsToPush: ReadonlyArray<string> | null
 }
 
 interface ICompareSidebarState {
@@ -128,6 +129,10 @@ export class CompareSidebar extends React.Component<
   public componentDidUpdate(prevProps: ICompareSidebarProps) {
     const { showBranchList } = this.props.compareState
 
+    if (showBranchList === prevProps.compareState.showBranchList) {
+      return
+    }
+
     if (this.textbox !== null) {
       if (showBranchList) {
         this.textbox.focus()
@@ -154,20 +159,11 @@ export class CompareSidebar extends React.Component<
   public render() {
     const { allBranches, filterText, showBranchList } = this.props.compareState
     const placeholderText = getPlaceholderText(this.props.compareState)
-    const DivergingBannerAnimationTimeout = 300
 
     return (
       <div id="compare-view">
         {enableNDDBBanner() && (
-          <CSSTransitionGroup
-            transitionName="diverge-banner"
-            transitionAppear={true}
-            transitionAppearTimeout={DivergingBannerAnimationTimeout}
-            transitionEnterTimeout={DivergingBannerAnimationTimeout}
-            transitionLeaveTimeout={DivergingBannerAnimationTimeout}
-          >
-            {this.renderNotificationBanner()}
-          </CSSTransitionGroup>
+          <TransitionGroup>{this.renderNotificationBanner()}</TransitionGroup>
         )}
 
         <div className="compare-form">
@@ -206,15 +202,23 @@ export class CompareSidebar extends React.Component<
     return inferredComparisonBranch.branch !== null &&
       inferredComparisonBranch.aheadBehind !== null &&
       inferredComparisonBranch.aheadBehind.behind > 0 ? (
-      <div className="diverge-banner-wrapper">
-        <NewCommitsBanner
-          dispatcher={this.props.dispatcher}
-          repository={this.props.repository}
-          commitsBehindBaseBranch={inferredComparisonBranch.aheadBehind.behind}
-          baseBranch={inferredComparisonBranch.branch}
-          onDismiss={this.onNotificationBannerDismissed}
-        />
-      </div>
+      <CSSTransition
+        classNames="diverge-banner"
+        appear={true}
+        timeout={DivergingBannerAnimationTimeout}
+      >
+        <div className="diverge-banner-wrapper">
+          <NewCommitsBanner
+            dispatcher={this.props.dispatcher}
+            repository={this.props.repository}
+            commitsBehindBaseBranch={
+              inferredComparisonBranch.aheadBehind.behind
+            }
+            baseBranch={inferredComparisonBranch.branch}
+            onDismiss={this.onNotificationBannerDismissed}
+          />
+        </div>
+      </CSSTransition>
     ) : null
   }
 
@@ -273,7 +277,6 @@ export class CompareSidebar extends React.Component<
         commitLookup={this.props.commitLookup}
         commitSHAs={commitSHAs}
         selectedSHA={this.props.selectedCommitSha}
-        gitHubUsers={this.props.gitHubUsers}
         localCommitSHAs={this.props.localCommitSHAs}
         emoji={this.props.emoji}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
@@ -285,9 +288,11 @@ export class CompareSidebar extends React.Component<
         onCommitSelected={this.onCommitSelected}
         onScroll={this.onScroll}
         onCreateTag={this.onCreateTag}
+        onDeleteTag={this.onDeleteTag}
         emptyListMessage={emptyListMessage}
         onCompareListScrolled={this.props.onCompareListScrolled}
         compareListScrollTop={this.props.compareListScrollTop}
+        tagsToPush={this.props.tagsToPush}
       />
     )
   }
@@ -544,14 +549,6 @@ export class CompareSidebar extends React.Component<
     branch: Branch | null,
     source: SelectionSource
   ) => {
-    if (source.kind === 'mouseclick' && branch != null) {
-      this.props.dispatcher.executeCompare(this.props.repository, {
-        kind: HistoryTabMode.Compare,
-        comparisonMode: ComparisonMode.Behind,
-        branch,
-      })
-    }
-
     this.setState({
       focusedBranch: branch,
     })
@@ -598,6 +595,10 @@ export class CompareSidebar extends React.Component<
       targetCommitSha,
       this.props.localTags
     )
+  }
+
+  private onDeleteTag = (tagName: string) => {
+    this.props.dispatcher.showDeleteTagDialog(this.props.repository, tagName)
   }
 }
 

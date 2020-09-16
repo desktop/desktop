@@ -13,7 +13,7 @@ import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
 import { IAuthor } from '../models/author'
-import { MergeResult } from '../models/merge'
+import { MergeTreeResult } from '../models/merge'
 import { ICommitMessage } from '../models/commit-message'
 import {
   IRevertProgress,
@@ -23,7 +23,6 @@ import {
 } from '../models/progress'
 import { Popup } from '../models/popup'
 
-import { IGitHubUser } from './databases/github-user-database'
 import { SignInState } from './stores/sign-in-store'
 
 import { WindowState } from './window-state'
@@ -363,13 +362,6 @@ export interface IRepositoryState {
 
   readonly rebaseState: IRebaseState
 
-  /**
-   * Mapping from lowercased email addresses to the associated GitHub user. Note
-   * that an email address may not have an associated GitHub user, or the user
-   * may still be loading.
-   */
-  readonly gitHubUsers: Map<string, IGitHubUser>
-
   /** The commits loaded, keyed by their full SHA. */
   readonly commitLookup: Map<string, Commit>
 
@@ -535,7 +527,7 @@ export type ChangesWorkingDirectorySelection = {
    * The ID of the selected files. The files themselves can be looked up in
    * the `workingDirectory` property in `IChangesState`.
    */
-  readonly selectedFileIDs: string[]
+  readonly selectedFileIDs: ReadonlyArray<string>
   readonly diff: IDiff | null
 }
 
@@ -652,7 +644,7 @@ export interface ICompareState {
   readonly formState: IDisplayHistory | ICompareBranch
 
   /** The result of merging the compare branch into the current branch, if a branch selected */
-  readonly mergeStatus: MergeResult | null
+  readonly mergeStatus: MergeTreeResult | null
 
   /** Whether the branch list should be expanded or hidden */
   readonly showBranchList: boolean

@@ -3,14 +3,14 @@
 import * as Path from 'path'
 import * as Fs from 'fs'
 
-import * as Ajv from 'ajv'
+import Ajv, { ErrorObject } from 'ajv'
 
 function handleError(error: string) {
   console.error(error)
   process.exit(-1)
 }
 
-function formatErrors(errors: Ajv.ErrorObject[]): string {
+function formatErrors(errors: ErrorObject[]): string {
   return errors
     .map(error => {
       const { dataPath, message } = error
@@ -20,9 +20,7 @@ function formatErrors(errors: Ajv.ErrorObject[]): string {
       let additionalPropertyText = ''
 
       if (additionalProperty != null) {
-        additionalPropertyText = `, found: '${
-          additionalProperties.additionalProperty
-        }'`
+        additionalPropertyText = `, found: '${additionalProperties.additionalProperty}'`
       }
 
       // dataPath starts with a leading "."," which is a bit confusing

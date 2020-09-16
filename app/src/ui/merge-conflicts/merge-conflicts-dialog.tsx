@@ -39,17 +39,29 @@ interface IMergeConflictsDialogProps {
   readonly manualResolutions: Map<string, ManualConflictResolution>
 }
 
+interface IMergeConflictsDialogState {
+  readonly isCommitting: boolean
+}
+
 /**
  * Modal to tell the user their merge encountered conflicts
  */
 export class MergeConflictsDialog extends React.Component<
   IMergeConflictsDialogProps,
-  {}
+  IMergeConflictsDialogState
 > {
+  public constructor(props: IMergeConflictsDialogProps) {
+    super(props)
+    this.state = {
+      isCommitting: false,
+    }
+  }
+
   /**
    *  commits the merge displays the repository changes tab and dismisses the modal
    */
   private onSubmit = async () => {
+    this.setState({ isCommitting: true })
     await this.props.dispatcher.finishConflictedMerge(
       this.props.repository,
       this.props.workingDirectory,
@@ -59,11 +71,11 @@ export class MergeConflictsDialog extends React.Component<
         theirBranch: this.props.theirBranch,
       }
     )
-    this.props.dispatcher.setCommitMessage(
+    await this.props.dispatcher.setCommitMessage(
       this.props.repository,
       DefaultCommitMessage
     )
-    this.props.dispatcher.changeRepositorySection(
+    await this.props.dispatcher.changeRepositorySection(
       this.props.repository,
       RepositorySectionTab.Changes
     )
@@ -201,10 +213,12 @@ export class MergeConflictsDialog extends React.Component<
     return (
       <Dialog
         id="merge-conflicts-list"
-        dismissable={true}
+        dismissable={!this.state.isCommitting}
         onDismissed={this.onDismissed}
         onSubmit={this.onSubmit}
         title={headerTitle}
+        loading={this.state.isCommitting}
+        disabled={this.state.isCommitting}
       >
         <DialogContent>
           {this.renderContent(unmergedFiles, conflictedFilesCount)}

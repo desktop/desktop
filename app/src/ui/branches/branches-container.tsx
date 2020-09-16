@@ -55,8 +55,14 @@ interface IBranchesContainerProps {
 }
 
 interface IBranchesContainerState {
-  readonly selectedBranch: Branch | null
+  /**
+   * A copy of the last seen currentPullRequest property
+   * from props. Used in order to be able to detect when
+   * the selected PR in props changes in getDerivedStateFromProps
+   */
+  readonly currentPullRequest: PullRequest | null
   readonly selectedPullRequest: PullRequest | null
+  readonly selectedBranch: Branch | null
   readonly branchFilterText: string
 }
 
@@ -65,12 +71,27 @@ export class BranchesContainer extends React.Component<
   IBranchesContainerProps,
   IBranchesContainerState
 > {
+  public static getDerivedStateFromProps(
+    props: IBranchesContainerProps,
+    state: IBranchesContainerProps
+  ): Partial<IBranchesContainerState> | null {
+    if (state.currentPullRequest !== props.currentPullRequest) {
+      return {
+        currentPullRequest: props.currentPullRequest,
+        selectedPullRequest: props.currentPullRequest,
+      }
+    }
+
+    return null
+  }
+
   public constructor(props: IBranchesContainerProps) {
     super(props)
 
     this.state = {
       selectedBranch: props.currentBranch,
       selectedPullRequest: props.currentPullRequest,
+      currentPullRequest: props.currentPullRequest,
       branchFilterText: '',
     }
   }
@@ -167,9 +188,9 @@ export class BranchesContainer extends React.Component<
       case BranchesTab.PullRequests: {
         return this.renderPullRequests()
       }
+      default:
+        return assertNever(tab, `Unknown Branches tab: ${tab}`)
     }
-
-    return assertNever(tab, `Unknown Branches tab: ${tab}`)
   }
 
   private renderPullRequests() {
@@ -187,7 +208,7 @@ export class BranchesContainer extends React.Component<
       <PullRequestList
         key="pr-list"
         pullRequests={this.props.pullRequests}
-        selectedPullRequest={this.props.currentPullRequest}
+        selectedPullRequest={this.state.selectedPullRequest}
         isOnDefaultBranch={!!isOnDefaultBranch}
         onSelectionChanged={this.onPullRequestSelectionChanged}
         onCreateBranch={this.onCreateBranch}

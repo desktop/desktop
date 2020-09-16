@@ -3,7 +3,7 @@ import * as CodeMirror from 'codemirror'
 import { diffLineForIndex } from './diff-explorer'
 import { ITokens } from '../../lib/highlighter/types'
 
-require('codemirror/mode/javascript/javascript')
+import 'codemirror/mode/javascript/javascript'
 
 export interface IDiffSyntaxModeOptions {
   /**
@@ -172,7 +172,7 @@ export class DiffSyntaxMode {
   }
 }
 
-CodeMirror.defineMode(DiffSyntaxMode.ModeName, function(
+CodeMirror.defineMode(DiffSyntaxMode.ModeName, function (
   config: CodeMirror.EditorConfiguration,
   modeOptions?: IDiffSyntaxModeOptions
 ) {

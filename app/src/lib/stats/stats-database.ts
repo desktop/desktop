@@ -351,6 +351,16 @@ export interface IDailyMeasures {
    * How many tags have been created from the Desktop UI?
    */
   readonly tagsCreatedInDesktop: number
+
+  /**
+   * How many tags have been created in total.
+   */
+  readonly tagsCreated: number
+
+  /**
+   * How many tags have been deleted.
+   */
+  readonly tagsDeleted: number
 }
 
 export class StatsDatabase extends Dexie {

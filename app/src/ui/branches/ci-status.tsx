@@ -1,12 +1,13 @@
 import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { APIRefState, IAPIRefStatus } from '../../lib/api'
-import { assertNever } from '../../lib/fatal-error'
-import * as classNames from 'classnames'
-import { getRefStatusSummary } from './pull-request-status'
+import classNames from 'classnames'
 import { GitHubRepository } from '../../models/github-repository'
 import { IDisposable } from 'event-kit'
 import { Dispatcher } from '../dispatcher'
+import {
+  ICombinedRefCheck,
+  isSuccess,
+} from '../../lib/stores/commit-status-store'
 
 interface ICIStatusProps {
   /** The classname for the underlying element. */
@@ -22,7 +23,7 @@ interface ICIStatusProps {
 }
 
 interface ICIStatusState {
-  readonly status: IAPIRefStatus | null
+  readonly check: ICombinedRefCheck | null
 }
 
 /** The little CI status indicator. */
@@ -35,7 +36,7 @@ export class CIStatus extends React.PureComponent<
   public constructor(props: ICIStatusProps) {
     super(props)
     this.state = {
-      status: props.dispatcher.tryGetCommitStatus(
+      check: props.dispatcher.tryGetCommitStatus(
         this.props.repository,
         this.props.commitRef
       ),
@@ -66,7 +67,7 @@ export class CIStatus extends React.PureComponent<
       this.props.commitRef !== prevProps.commitRef
     ) {
       this.setState({
-        status: this.props.dispatcher.tryGetCommitStatus(
+        check: this.props.dispatcher.tryGetCommitStatus(
           this.props.repository,
           this.props.commitRef
         ),
@@ -83,43 +84,87 @@ export class CIStatus extends React.PureComponent<
     this.unsubscribe()
   }
 
-  private onStatus = (status: IAPIRefStatus | null) => {
-    this.setState({ status })
+  private onStatus = (check: ICombinedRefCheck | null) => {
+    this.setState({ check })
   }
 
   public render() {
-    const { status } = this.state
+    const { check } = this.state
 
-    if (status === null || status.total_count === 0) {
+    if (check === null || check.checks.length === 0) {
       return null
     }
-
-    const title = getRefStatusSummary(status)
-    const state = status.state
 
     return (
       <Octicon
         className={classNames(
           'ci-status',
-          `ci-status-${state}`,
+          `ci-status-${getClassNameForCheck(check)}`,
           this.props.className
         )}
-        symbol={getSymbolForState(state)}
-        title={title}
+        symbol={getSymbolForCheck(check)}
+        title={getRefCheckSummary(check)}
       />
     )
   }
 }
 
-function getSymbolForState(state: APIRefState): OcticonSymbol {
-  switch (state) {
-    case 'pending':
-      return OcticonSymbol.primitiveDot
+function getSymbolForCheck(check: ICombinedRefCheck): OcticonSymbol {
+  switch (check.conclusion) {
+    case 'timed_out':
+      return OcticonSymbol.x
     case 'failure':
       return OcticonSymbol.x
+    case 'neutral':
+      return OcticonSymbol.squareFill
     case 'success':
       return OcticonSymbol.check
+    case 'cancelled':
+      return OcticonSymbol.stop
+    case 'action_required':
+      return OcticonSymbol.alert
+    case 'skipped':
+      return OcticonSymbol.skip
+    case 'stale':
+      return OcticonSymbol.issueReopened
   }
 
-  return assertNever(state, `Unknown state: ${state}`)
+  // Pending
+  return OcticonSymbol.dotFill
+}
+
+function getClassNameForCheck(check: ICombinedRefCheck): string {
+  switch (check.conclusion) {
+    case 'timed_out':
+      return 'timed-out'
+    case 'action_required':
+      return 'action-required'
+    case 'failure':
+    case 'neutral':
+    case 'success':
+    case 'cancelled':
+    case 'skipped':
+    case 'stale':
+      return check.conclusion
+  }
+
+  // Pending
+  return 'pending'
+}
+
+/**
+ * Convert the combined check to an app-friendly string.
+ */
+export function getRefCheckSummary(check: ICombinedRefCheck): string {
+  if (check.checks.length === 1) {
+    const { name, description } = check.checks[0]
+    return `${name}: ${description}`
+  }
+
+  const successCount = check.checks.reduce(
+    (acc, cur) => acc + (isSuccess(cur) ? 1 : 0),
+    0
+  )
+
+  return `${successCount}/${check.checks.length} checks OK`
 }

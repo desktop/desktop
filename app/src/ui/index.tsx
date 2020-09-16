@@ -4,6 +4,8 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
 
+import * as moment from 'moment'
+
 import { ipcRenderer, remote } from 'electron'
 
 import { App } from './app'
@@ -20,6 +22,7 @@ import {
   pushNeedsPullHandler,
   upstreamAlreadyExistsHandler,
   rebaseConflictsHandler,
+  localChangesOverwrittenOnCheckoutHandler,
   localChangesOverwrittenHandler,
   refusedWorkflowUpdate,
   samlReauthRequired,
@@ -61,6 +64,20 @@ import { ApiRepositoriesStore } from '../lib/stores/api-repositories-store'
 import { CommitStatusStore } from '../lib/stores/commit-status-store'
 import { PullRequestCoordinator } from '../lib/stores/pull-request-coordinator'
 
+// We're using a polyfill for the upcoming CSS4 `:focus-ring` pseudo-selector.
+// This allows us to not have to override default accessibility driven focus
+// styles for buttons in the case when a user clicks on a button. This also
+// gives better visiblity to individuals who navigate with the keyboard.
+//
+// See:
+//   https://github.com/WICG/focus-ring
+//   Focus Ring! -- A11ycasts #16: https://youtu.be/ilj2P5-5CjI
+import 'wicg-focus-ring'
+
+// setup this moment.js plugin so we can use easier
+// syntax for formatting time duration
+import momentDurationFormatSetup from 'moment-duration-format'
+
 if (__DEV__) {
   installDevGlobals()
 }
@@ -75,15 +92,13 @@ enableSourceMaps()
 // see https://github.com/desktop/dugite/pull/85
 process.env['LOCAL_GIT_DIRECTORY'] = Path.resolve(__dirname, 'git')
 
-// We're using a polyfill for the upcoming CSS4 `:focus-ring` pseudo-selector.
-// This allows us to not have to override default accessibility driven focus
-// styles for buttons in the case when a user clicks on a button. This also
-// gives better visiblity to individuals who navigate with the keyboard.
-//
-// See:
-//   https://github.com/WICG/focus-ring
-//   Focus Ring! -- A11ycasts #16: https://youtu.be/ilj2P5-5CjI
-require('wicg-focus-ring')
+// Ensure that dugite infers the GIT_EXEC_PATH
+// based on the LOCAL_GIT_DIRECTORY env variable
+// instead of just blindly trusting what's set in
+// the current environment. See https://git.io/JJ7KF
+delete process.env.GIT_EXEC_PATH
+
+momentDurationFormatSetup(moment)
 
 const startTime = performance.now()
 
@@ -91,6 +106,13 @@ if (!process.env.TEST_ENV) {
   /* This is the magic trigger for webpack to go compile
    * our sass into css and inject it into the DOM. */
   require('../../styles/desktop.scss')
+}
+
+// TODO (electron): Remove this once
+// https://bugs.chromium.org/p/chromium/issues/detail?id=1113293
+// gets fixed and propagated to electron.
+if (__DARWIN__) {
+  require('../lib/fix-emoji-spacing')
 }
 
 let currentState: IAppState | null = null
@@ -131,9 +153,7 @@ const sendErrorWithContext = (
           extra.selectedState = `${currentState.selectedState.type}`
 
           if (currentState.selectedState.type === SelectionType.Repository) {
-            extra.selectedRepositorySection = `${
-              currentState.selectedState.state.selectedSection
-            }`
+            extra.selectedRepositorySection = `${currentState.selectedState.state.selectedSection}`
           }
         }
 
@@ -166,9 +186,7 @@ const sendErrorWithContext = (
         extra.accounts = `${currentState.accounts.length}`
 
         if (__DARWIN__) {
-          extra.automaticallySwitchTheme = `${
-            currentState.automaticallySwitchTheme
-          }`
+          extra.automaticallySwitchTheme = `${currentState.automaticallySwitchTheme}`
         }
       }
     } catch (err) {
@@ -243,9 +261,7 @@ const pullRequestCoordinator = new PullRequestCoordinator(
   repositoriesStore
 )
 
-const repositoryStateManager = new RepositoryStateCache(repo =>
-  gitHubUserStore.getUsersForRepository(repo)
-)
+const repositoryStateManager = new RepositoryStateCache()
 
 const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 
@@ -289,6 +305,7 @@ dispatcher.registerErrorHandler(samlReauthRequired)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(missingRepositoryHandler)
 dispatcher.registerErrorHandler(localChangesOverwrittenHandler)
+dispatcher.registerErrorHandler(localChangesOverwrittenOnCheckoutHandler)
 dispatcher.registerErrorHandler(rebaseConflictsHandler)
 dispatcher.registerErrorHandler(refusedWorkflowUpdate)
 
@@ -296,7 +313,7 @@ document.body.classList.add(`platform-${process.platform}`)
 
 dispatcher.setAppFocusState(remote.getCurrentWindow().isFocused())
 
-ipcRenderer.on('focus', async () => {
+ipcRenderer.on('focus', () => {
   const { selectedState } = appStore.getState()
 
   // Refresh the currently selected repository on focus (if
@@ -305,8 +322,7 @@ ipcRenderer.on('focus', async () => {
     selectedState &&
     !(selectedState.type === SelectionType.CloningRepository)
   ) {
-    await dispatcher.refreshTags(selectedState.repository)
-    await dispatcher.refreshRepository(selectedState.repository)
+    dispatcher.refreshRepository(selectedState.repository)
   }
 
   dispatcher.setAppFocusState(true)

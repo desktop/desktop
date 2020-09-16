@@ -213,7 +213,8 @@ export class PullRequestStore {
           record.number,
           new PullRequestRef(record.head.ref, record.head.sha, headRepository),
           new PullRequestRef(record.base.ref, record.base.sha, baseRepository),
-          record.author
+          record.author,
+          record.draft ?? false
         )
       )
     }
@@ -316,9 +317,7 @@ export class PullRequestStore {
       // this pull request.
       if (pr.head.repo == null) {
         log.debug(
-          `Unable to store pull request #${pr.number} for repository ${
-            repository.fullName
-          } as it has no head repository associated with it`
+          `Unable to store pull request #${pr.number} for repository ${repository.fullName} as it has no head repository associated with it`
         )
         prsToDelete.push(getPullRequestKey(baseGitHubRepo, pr.number))
         continue
@@ -346,6 +345,7 @@ export class PullRequestStore {
           repoId: baseGitHubRepo.dbID,
         },
         author: pr.user.login,
+        draft: pr.draft ?? false,
       })
     }
 

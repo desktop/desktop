@@ -115,6 +115,11 @@
     border-radius: var(--border-radius);
     min-width: 150px;
 
+    &:focus {
+      border-radius: var(--outlined-border-radius);
+      outline-color: var(--alt-focus-color);
+    }
+
     // Center item contest horizontally and vertically
     display: flex;
     justify-content: left;
@@ -141,6 +146,10 @@
     &:not(.selected) {
       .icon {
         color: #{$gray-500};
+      }
+
+      &:hover {
+        background: var(--tab-bar-hover-background-color);
       }
     }
 

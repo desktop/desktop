@@ -66,9 +66,7 @@ describe('App', () => {
     githubUserStore = new GitHubUserStore(db)
     issuesStore = new IssuesStore(issuesDb)
 
-    repositoryStateManager = new RepositoryStateCache(repo =>
-      githubUserStore.getUsersForRepository(repo)
-    )
+    repositoryStateManager = new RepositoryStateCache()
 
     const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
     const commitStatusStore = new CommitStatusStore(accountsStore)
@@ -95,7 +93,7 @@ describe('App', () => {
   })
 
   it('renders', async () => {
-    const app = TestUtils.renderIntoDocument(
+    const app = (TestUtils.renderIntoDocument(
       <App
         dispatcher={dispatcher}
         appStore={appStore}
@@ -104,7 +102,7 @@ describe('App', () => {
         gitHubUserStore={githubUserStore}
         startTime={0}
       />
-    ) as React.Component<any, any>
+    ) as unknown) as React.Component<any, any>
     // Give any promises a tick to resolve.
     await wait(0)
 

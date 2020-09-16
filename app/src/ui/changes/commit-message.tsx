@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 import {
   AutocompletingTextArea,
   AutocompletingInput,
@@ -9,7 +9,6 @@ import {
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
 import { Dispatcher } from '../dispatcher'
-import { IGitHubUser } from '../../lib/databases/github-user-database'
 import {
   Repository,
   isRepositoryWithGitHubRepository,
@@ -17,7 +16,6 @@ import {
 import { Button } from '../lib/button'
 import { Avatar } from '../lib/avatar'
 import { Loading } from '../lib/loading'
-import { generateGravatarUrl } from '../../lib/gravatar'
 import { AuthorInput } from '../lib/author-input'
 import { FocusContainer } from '../lib/focus-container'
 import { showContextualMenu } from '../main-process-proxy'
@@ -27,24 +25,25 @@ import { IMenuItem } from '../../lib/menu-item'
 import { ICommitContext } from '../../models/commit'
 import { startTimer } from '../lib/timing'
 import { PermissionsCommitWarning } from './permissions-commit-warning'
-import { enableBranchProtectionWarningFlow } from '../../lib/feature-flag'
 import { LinkButton } from '../lib/link-button'
 import { FoldoutType } from '../../lib/app-state'
+import { IAvatarUser, getAvatarUserFromAuthor } from '../../models/avatar'
 
 const addAuthorIcon = new OcticonSymbol(
-  12,
-  7,
-  'M9.875 2.125H12v1.75H9.875V6h-1.75V3.875H6v-1.75h2.125V0h1.75v2.125zM6 ' +
-    '6.5a.5.5 0 0 1-.5.5h-5a.5.5 0 0 1-.5-.5V6c0-1.316 2-2 2-2s.114-.204 ' +
-    '0-.5c-.42-.31-.472-.795-.5-2C1.587.293 2.434 0 3 0s1.413.293 1.5 1.5c-.028 ' +
-    '1.205-.08 1.69-.5 2-.114.295 0 .5 0 .5s2 .684 2 2v.5z'
+  18,
+  13,
+  'M14 6V4.25a.75.75 0 0 1 1.5 0V6h1.75a.75.75 0 1 1 0 1.5H15.5v1.75a.75.75 0 0 ' +
+    '1-1.5 0V7.5h-1.75a.75.75 0 1 1 0-1.5H14zM8.5 4a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 ' +
+    '0zm.063 3.064a3.995 3.995 0 0 0 1.2-4.429A3.996 3.996 0 0 0 8.298.725a4.01 4.01 0 0 ' +
+    '0-6.064 1.91 3.987 3.987 0 0 0 1.2 4.43A5.988 5.988 0 0 0 0 12.2a.748.748 0 0 0 ' +
+    '.716.766.751.751 0 0 0 .784-.697 4.49 4.49 0 0 1 1.39-3.04 4.51 4.51 0 0 1 6.218 ' +
+    '0 4.49 4.49 0 0 1 1.39 3.04.748.748 0 0 0 .786.73.75.75 0 0 0 .714-.8 5.989 5.989 0 0 0-3.435-5.136z'
 )
 
 interface ICommitMessageProps {
   readonly onCreateCommit: (context: ICommitContext) => Promise<boolean>
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
-  readonly gitHubUser: IGitHubUser | null
   readonly anyFilesSelected: boolean
   readonly focusCommitMessage: boolean
   readonly commitMessage: ICommitMessage | null
@@ -259,23 +258,15 @@ export class CommitMessage extends React.Component<
   }
 
   private renderAvatar() {
-    const commitAuthor = this.props.commitAuthor
+    const { commitAuthor, repository } = this.props
+    const { gitHubRepository } = repository
     const avatarTitle = commitAuthor
       ? `Committing as ${commitAuthor.name} <${commitAuthor.email}>`
       : undefined
-    let avatarUser = undefined
-
-    if (commitAuthor) {
-      const avatarURL = this.props.gitHubUser
-        ? this.props.gitHubUser.avatarURL
-        : generateGravatarUrl(commitAuthor.email)
-
-      avatarUser = {
-        email: commitAuthor.email,
-        name: commitAuthor.name,
-        avatarURL,
-      }
-    }
+    const avatarUser: IAvatarUser | undefined =
+      commitAuthor !== null
+        ? getAvatarUserFromAuthor(commitAuthor, gitHubRepository)
+        : undefined
 
     return <Avatar user={avatarUser} title={avatarTitle} />
   }
@@ -453,12 +444,13 @@ export class CommitMessage extends React.Component<
     return <div className={className}>{this.renderCoAuthorToggleButton()}</div>
   }
 
-  private renderPermissionsCommitWarning = (branch: string) => {
-    if (!enableBranchProtectionWarningFlow()) {
-      return null
-    }
-
-    const { showBranchProtected, showNoWriteAccess, repository } = this.props
+  private renderPermissionsCommitWarning() {
+    const {
+      showBranchProtected,
+      showNoWriteAccess,
+      repository,
+      branch,
+    } = this.props
 
     if (showNoWriteAccess) {
       return (
@@ -469,6 +461,14 @@ export class CommitMessage extends React.Component<
         </PermissionsCommitWarning>
       )
     } else if (showBranchProtected) {
+      if (branch === null) {
+        // If the branch is null that means we haven't loaded the tip yet or
+        // we're on a detached head. We shouldn't ever end up here with
+        // showBranchProtected being true without a branch but who knows
+        // what fun and exiting edge cases the future might hold
+        return null
+      }
+
       return (
         <PermissionsCommitWarning>
           <strong>{branch}</strong> is a protected branch. Want to{' '}
@@ -494,8 +494,6 @@ export class CommitMessage extends React.Component<
   }
 
   public render() {
-    const branchName = this.props.branch ? this.props.branch : 'master'
-
     const isSummaryWhiteSpace = this.state.summary.match(/^\s+$/g)
     const buttonEnabled =
       this.canCommit() && !this.props.isCommitting && !isSummaryWhiteSpace
@@ -513,6 +511,19 @@ export class CommitMessage extends React.Component<
     const summaryInputClassName = classNames('summary-field', 'nudge-arrow', {
       'nudge-arrow-left': this.props.shouldNudge,
     })
+
+    const branchName = this.props.branch
+    const commitVerb = loading ? 'Committing' : 'Commit'
+    const commitTitle =
+      branchName !== null ? `${commitVerb} to ${branchName}` : commitVerb
+    const commitButtonContents =
+      branchName !== null ? (
+        <>
+          {commitVerb} to <strong>{branchName}</strong>
+        </>
+      ) : (
+        commitVerb
+      )
 
     return (
       <div
@@ -559,7 +570,7 @@ export class CommitMessage extends React.Component<
 
         {this.renderCoAuthorInput()}
 
-        {this.renderPermissionsCommitWarning(branchName)}
+        {this.renderPermissionsCommitWarning()}
 
         <Button
           type="submit"
@@ -568,9 +579,7 @@ export class CommitMessage extends React.Component<
           disabled={!buttonEnabled}
         >
           {loading}
-          <span title={`Commit to ${branchName}`}>
-            {loading ? 'Committing' : 'Commit'} to <strong>{branchName}</strong>
-          </span>
+          <span title={commitTitle}>{commitButtonContents}</span>
         </Button>
       </div>
     )

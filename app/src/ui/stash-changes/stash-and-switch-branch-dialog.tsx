@@ -103,10 +103,12 @@ export class StashAndSwitchBranch extends React.Component<
         title: `Leave my changes on ${this.state.currentBranchName}`,
         description:
           'Your in-progress work will be stashed on this branch for you to return to later',
+        key: StashAction.StashOnCurrentBranch,
       },
       {
         title: `Bring my changes to ${branchToCheckout.name}`,
         description: 'Your in-progress work will follow you to the new branch',
+        key: StashAction.MoveToNewBranch,
       },
     ]
 
@@ -115,7 +117,7 @@ export class StashAndSwitchBranch extends React.Component<
         <VerticalSegmentedControl
           label="You have changes on this branch. What would you like to do with them?"
           items={items}
-          selectedIndex={this.state.selectedStashAction}
+          selectedKey={this.state.selectedStashAction}
           onSelectionChanged={this.onSelectionChanged}
         />
       </Row>

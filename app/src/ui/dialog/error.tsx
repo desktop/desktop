@@ -1,8 +1,6 @@
 import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 
-interface IDialogErrorProps {}
-
 /**
  * A component used for displaying short error messages inline
  * in a dialog. These error messages (there can be more than one)
@@ -14,7 +12,7 @@ interface IDialogErrorProps {}
  *
  * Provide `children` to display content inside the error dialog.
  */
-export class DialogError extends React.Component<IDialogErrorProps, {}> {
+export class DialogError extends React.Component {
   public render() {
     return (
       <div className="dialog-error">

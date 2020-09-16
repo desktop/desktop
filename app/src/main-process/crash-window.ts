@@ -36,14 +36,8 @@ export class CrashWindow {
         // Disable auxclick event
         // See https://developers.google.com/web/updates/2016/10/auxclick
         disableBlinkFeatures: 'Auxclick',
-        // Explicitly disable experimental features for the crash process
-        // since, theoretically it might be these features that caused the
-        // the crash in the first place. As of writing we don't use any
-        // components that relies on experimental features in the crash
-        // process but our components which relies on ResizeObserver should
-        // be able to degrade gracefully.
-        experimentalFeatures: false,
         nodeIntegration: true,
+        spellcheck: false,
       },
     }
 

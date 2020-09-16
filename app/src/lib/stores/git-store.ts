@@ -1,6 +1,4 @@
-import * as Fs from 'fs'
 import * as Path from 'path'
-import { Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
 import {
   WorkingDirectoryFileChange,
@@ -45,6 +43,7 @@ import {
   IndexStatus,
   getIndexChanges,
   checkoutIndex,
+  discardChangesFromSelection,
   checkoutPaths,
   resetPaths,
   revertCommit,
@@ -65,6 +64,8 @@ import {
   removeRemote,
   createTag,
   getAllTags,
+  deleteTag,
+  MergeResult,
 } from '../git'
 import { GitError as DugiteError } from '../../lib/git'
 import { GitError } from 'dugite'
@@ -81,12 +82,14 @@ import { formatCommitMessage } from '../format-commit-message'
 import { GitAuthor } from '../../models/git-author'
 import { IGitAccount } from '../../models/git-account'
 import { BaseStore } from './base-store'
-import { enableStashing } from '../feature-flag'
 import { getStashes, getStashedFiles } from '../git/stash'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { PullRequest } from '../../models/pull-request'
-import { fetchTagsToPushMemoized } from './helpers/fetch-tags-to-push-memoized'
-import { shallowEquals } from '../equality'
+import { StatsStore } from '../stats'
+import { getTagsToPush, storeTagsToPush } from './helpers/tags-to-push-storage'
+import { DiffSelection, ITextDiff } from '../../models/diff'
+import { getDefaultBranch } from '../helpers/default-branch'
+import { stat } from 'fs-extra'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -98,18 +101,14 @@ const RecentBranchesLimit = 5
 
 /** The store for a repository's git data. */
 export class GitStore extends BaseStore {
-  private readonly shell: IAppShell
-
   /** The commits keyed by their SHA. */
   public readonly commitLookup = new Map<string, Commit>()
 
   public pullWithRebase?: boolean
 
-  private _history: ReadonlyArray<string> = new Array()
+  private _history: ReadonlyArray<string> = []
 
   private readonly requestsInFight = new Set<string>()
-
-  private readonly repository: Repository
 
   private _tip: Tip = { kind: TipState.Unknown }
 
@@ -131,7 +130,7 @@ export class GitStore extends BaseStore {
 
   private _aheadBehind: IAheadBehind | null = null
 
-  private _tagsToPush: ReadonlyArray<string> | null = null
+  private _tagsToPush: ReadonlyArray<string> = []
 
   private _defaultRemote: IRemote | null = null
 
@@ -145,22 +144,14 @@ export class GitStore extends BaseStore {
 
   private _stashEntryCount = 0
 
-  public constructor(repository: Repository, shell: IAppShell) {
+  public constructor(
+    private readonly repository: Repository,
+    private readonly shell: IAppShell,
+    private readonly statsStore: StatsStore
+  ) {
     super()
 
-    this.repository = repository
-    this.shell = shell
-  }
-
-  private emitNewCommitsLoaded(commits: ReadonlyArray<Commit>) {
-    this.emitter.emit('did-load-new-commits', commits)
-  }
-
-  /** Register a function to be called when the store loads new commits. */
-  public onDidLoadNewCommits(
-    fn: (commits: ReadonlyArray<Commit>) => void
-  ): Disposable {
-    return this.emitter.on('did-load-new-commits', fn)
+    this._tagsToPush = getTagsToPush(repository)
   }
 
   /**
@@ -203,7 +194,7 @@ export class GitStore extends BaseStore {
       this._history = [...commits.map(c => c.sha), ...remainingHistory]
     }
 
-    this.storeCommits(commits, true)
+    this.storeCommits(commits)
     this.requestsInFight.delete(LoadingHistoryRequestKey)
     this.emitUpdate()
   }
@@ -234,7 +225,7 @@ export class GitStore extends BaseStore {
     }
 
     this._history = this._history.concat(commits.map(c => c.sha))
-    this.storeCommits(commits, true)
+    this.storeCommits(commits)
     this.requestsInFight.delete(requestKey)
     this.emitUpdate()
   }
@@ -261,13 +252,30 @@ export class GitStore extends BaseStore {
       return null
     }
 
-    this.storeCommits(commits, false)
+    this.storeCommits(commits)
     return commits.map(c => c.sha)
   }
 
   public async refreshTags() {
     const previousTags = this._localTags
-    this._localTags = await getAllTags(this.repository)
+    const newTags = await this.performFailableOperation(() =>
+      getAllTags(this.repository)
+    )
+
+    if (newTags === undefined) {
+      return
+    }
+
+    this._localTags = newTags
+
+    // Remove any unpushed tag that cannot be found in the list
+    // of local tags. This can happen when the user deletes an
+    // unpushed tag from outside of Desktop.
+    for (const tagToPush of this._tagsToPush) {
+      if (!this._localTags.has(tagToPush)) {
+        this.removeTagToPush(tagToPush)
+      }
+    }
 
     if (previousTags !== null) {
       // We don't await for the emition of updates to finish
@@ -287,6 +295,7 @@ export class GitStore extends BaseStore {
     newTags: Map<string, string>
   ) {
     const commitsToUpdate = new Set<string>()
+    let numCreatedTags = 0
 
     for (const [tagName, previousCommitSha] of previousTags) {
       const newCommitSha = newTags.get(tagName)
@@ -305,7 +314,12 @@ export class GitStore extends BaseStore {
       if (!previousTags.has(tagName)) {
         // the tag has just been created.
         commitsToUpdate.add(newCommitSha)
+        numCreatedTags++
       }
+    }
+
+    if (numCreatedTags > 0) {
+      this.statsStore.recordTagCreated(numCreatedTags)
     }
 
     const commitsToStore = []
@@ -317,21 +331,39 @@ export class GitStore extends BaseStore {
       }
     }
 
-    this.storeCommits(commitsToStore, true)
+    this.storeCommits(commitsToStore)
   }
 
-  public async createTag(
-    account: IGitAccount | null,
-    name: string,
-    targetCommitSha: string
-  ) {
-    await this.performFailableOperation(async () => {
+  public async createTag(name: string, targetCommitSha: string) {
+    const result = await this.performFailableOperation(async () => {
       await createTag(this.repository, name, targetCommitSha)
+      return true
     })
 
-    await this.refreshTags()
+    if (result === undefined) {
+      return
+    }
 
-    this.fetchTagsToPush(account)
+    await this.refreshTags()
+    this.addTagToPush(name)
+
+    this.statsStore.recordTagCreatedInDesktop()
+  }
+
+  public async deleteTag(name: string) {
+    const result = await this.performFailableOperation(async () => {
+      await deleteTag(this.repository, name)
+      return true
+    })
+
+    if (result === undefined) {
+      return
+    }
+
+    await this.refreshTags()
+    this.removeTagToPush(name)
+
+    this.statsStore.recordTagDeleted()
   }
 
   /** The list of ordered SHAs. */
@@ -434,49 +466,37 @@ export class GitStore extends BaseStore {
     // priority to local branches by sorting them before remotes
     this._defaultBranch =
       this._allBranches
-        .filter(b => b.name === defaultBranchName)
+        .filter(
+          b =>
+            (b.name === defaultBranchName &&
+              b.upstreamWithoutRemote === null) ||
+            b.upstreamWithoutRemote === defaultBranchName
+        )
         .sort((x, y) => compare(x.type, y.type))
         .shift() || null
   }
 
-  public async fetchTagsToPush(account: IGitAccount | null) {
-    const currentRemote = this._currentRemote
+  private addTagToPush(tagName: string) {
+    this._tagsToPush = [...this._tagsToPush, tagName]
 
-    if (currentRemote === null) {
-      this._tagsToPush = null
-      return
-    }
+    storeTagsToPush(this.repository, this._tagsToPush)
+    this.emitUpdate()
+  }
 
-    const localTags = this._localTags
-    if (localTags === null) {
-      this._tagsToPush = null
-      return
-    }
-
-    if (this.tip.kind !== TipState.Valid) {
-      this._tagsToPush = null
-      return
-    }
-    const currentBranch = this.tip.branch
-
-    const tagsToPush = await this.performFailableOperation(() =>
-      fetchTagsToPushMemoized(
-        this.repository,
-        account,
-        currentRemote,
-        currentBranch.name,
-        localTags,
-        currentBranch.tip.sha
-      )
+  private removeTagToPush(tagToDelete: string) {
+    this._tagsToPush = this._tagsToPush.filter(
+      tagName => tagName !== tagToDelete
     )
 
-    const previousTagsToPush = this._tagsToPush
+    storeTagsToPush(this.repository, this._tagsToPush)
+    this.emitUpdate()
+  }
 
-    this._tagsToPush = tagsToPush !== undefined ? tagsToPush : null
+  public clearTagsToPush() {
+    this._tagsToPush = []
 
-    if (!shallowEquals(previousTagsToPush, this._tagsToPush)) {
-      this.emitUpdate()
-    }
+    storeTagsToPush(this.repository, this._tagsToPush)
+    this.emitUpdate()
   }
 
   /**
@@ -511,7 +531,7 @@ export class GitStore extends BaseStore {
       }
     }
 
-    return 'master'
+    return getDefaultBranch()
   }
 
   private refreshRecentBranches(
@@ -609,16 +629,9 @@ export class GitStore extends BaseStore {
   }
 
   /** Store the given commits. */
-  private storeCommits(
-    commits: ReadonlyArray<Commit>,
-    emitUpdate: boolean = false
-  ) {
+  private storeCommits(commits: ReadonlyArray<Commit>) {
     for (const commit of commits) {
       this.commitLookup.set(commit.sha, commit)
-    }
-
-    if (emitUpdate) {
-      this.emitNewCommitsLoaded(commits)
     }
   }
 
@@ -1091,10 +1104,6 @@ export class GitStore extends BaseStore {
    * Refreshes the list of GitHub Desktop created stash entries for the repository
    */
   public async loadStashEntries(): Promise<void> {
-    if (!enableStashing()) {
-      return
-    }
-
     const map = new Map<string, IStashEntry>()
     const stash = await getStashes(this.repository)
 
@@ -1146,10 +1155,6 @@ export class GitStore extends BaseStore {
    * Updates the latest stash entry with a list of files that it changes
    */
   private async loadFilesForCurrentStashEntry() {
-    if (!enableStashing()) {
-      return
-    }
-
     const stashEntry = this.currentBranchStashEntry
 
     if (
@@ -1358,33 +1363,31 @@ export class GitStore extends BaseStore {
   }
 
   /** Update the last fetched date. */
-  public updateLastFetched(): Promise<void> {
-    const path = Path.join(this.repository.path, '.git', 'FETCH_HEAD')
-    return new Promise<void>((resolve, reject) => {
-      Fs.stat(path, (err, stats) => {
-        if (err) {
-          // An error most likely means the repository's never been published.
-          this._lastFetched = null
-        } else if (stats.size > 0) {
-          // If the file's empty then it _probably_ means the fetch failed and we
-          // shouldn't update the last fetched date.
-          this._lastFetched = stats.mtime
-        }
+  public async updateLastFetched() {
+    const fetchHeadPath = Path.join(this.repository.path, '.git', 'FETCH_HEAD')
 
-        resolve()
+    try {
+      const fstat = await stat(fetchHeadPath)
 
-        this.emitUpdate()
-      })
-    })
+      // If the file's empty then it _probably_ means the fetch failed and we
+      // shouldn't update the last fetched date.
+      if (fstat.size > 0) {
+        this._lastFetched = fstat.mtime
+      }
+    } catch {
+      // An error most likely means the repository's never been published.
+      this._lastFetched = null
+    }
+
+    this.emitUpdate()
+    return this._lastFetched
   }
 
   /** Merge the named branch into the current branch. */
-  public merge(branch: string): Promise<boolean | undefined> {
+  public merge(branch: string): Promise<MergeResult | undefined> {
     if (this.tip.kind !== TipState.Valid) {
       throw new Error(
-        `unable to merge as tip state is '${
-          this.tip.kind
-        }' and the application expects the repository to be on a branch currently`
+        `unable to merge as tip state is '${this.tip.kind}' and the application expects the repository to be on a branch currently`
       )
     }
 
@@ -1395,6 +1398,12 @@ export class GitStore extends BaseStore {
         kind: 'merge',
         currentBranch,
         theirBranch: branch,
+      },
+      retryAction: {
+        type: RetryActionType.Merge,
+        currentBranch,
+        theirBranch: branch,
+        repository: this.repository,
       },
     })
   }
@@ -1482,7 +1491,10 @@ export class GitStore extends BaseStore {
     // 3. Checkout all the files that we've discarded that existed in the previous
     //    commit from the index.
     await this.performFailableOperation(async () => {
-      await resetSubmodulePaths(this.repository, submodulePaths)
+      if (submodulePaths.length > 0) {
+        await resetSubmodulePaths(this.repository, submodulePaths)
+      }
+
       await resetPaths(
         this.repository,
         GitResetMode.Mixed,
@@ -1491,6 +1503,16 @@ export class GitStore extends BaseStore {
       )
       await checkoutIndex(this.repository, necessaryPathsToCheckout)
     })
+  }
+
+  public async discardChangesFromSelection(
+    filePath: string,
+    diff: ITextDiff,
+    selection: DiffSelection
+  ) {
+    await this.performFailableOperation(() =>
+      discardChangesFromSelection(this.repository, filePath, diff, selection)
+    )
   }
 
   /** Reverts the commit with the given SHA */
@@ -1566,7 +1588,7 @@ export class GitStore extends BaseStore {
     )
 
     if (commits.length > 0) {
-      this.storeCommits(commits, true)
+      this.storeCommits(commits)
     }
 
     return {

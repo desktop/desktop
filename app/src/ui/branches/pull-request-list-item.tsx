@@ -1,6 +1,6 @@
 import * as React from 'react'
-import * as moment from 'moment'
-import * as classNames from 'classnames'
+import moment from 'moment'
+import classNames from 'classnames'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { CIStatus } from './ci-status'
 import { HighlightText } from '../lib/highlight-text'
@@ -20,6 +20,9 @@ export interface IPullRequestListItemProps {
 
   /** The author login. */
   readonly author: string
+
+  /** Whether or not the PR is in draft mode. */
+  readonly draft: boolean
 
   /**
    * Whether or not this list item is a skeleton item
@@ -49,7 +52,9 @@ export class PullRequestListItem extends React.Component<
     }
 
     const timeAgo = moment(this.props.created).fromNow()
-    return `#${this.props.number} opened ${timeAgo} by ${this.props.author}`
+    const subtitle = `#${this.props.number} opened ${timeAgo} by ${this.props.author}`
+
+    return this.props.draft ? `${subtitle} • Draft` : subtitle
   }
 
   public render() {
@@ -58,6 +63,8 @@ export class PullRequestListItem extends React.Component<
     const matches = this.props.matches
     const className = classNames('pull-request-item', {
       loading: this.props.loading === true,
+      open: !this.props.draft,
+      draft: this.props.draft,
     })
 
     return (
@@ -79,11 +86,13 @@ export class PullRequestListItem extends React.Component<
   private renderPullRequestStatus() {
     const ref = `refs/pull/${this.props.number}/head`
     return (
-      <CIStatus
-        dispatcher={this.props.dispatcher}
-        repository={this.props.repository}
-        commitRef={ref}
-      />
+      <div className="ci-status-container">
+        <CIStatus
+          dispatcher={this.props.dispatcher}
+          repository={this.props.repository}
+          commitRef={ref}
+        />
+      </div>
     )
   }
 }

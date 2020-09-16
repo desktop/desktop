@@ -6,6 +6,7 @@ import { pathExists } from 'fs-extra'
 import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
 import { enableWSLDetection } from '../feature-flag'
+import { findGitOnPath } from '../is-git-on-path'
 
 export enum Shell {
   Cmd = 'Command Prompt',
@@ -16,6 +17,7 @@ export enum Shell {
   Cygwin = 'Cygwin',
   WSL = 'WSL',
   WindowTerminal = 'Windows Terminal',
+  Alacritty = 'Alacritty',
 }
 
 export const Default = Shell.Cmd
@@ -53,16 +55,22 @@ export function parse(label: string): Shell {
     return Shell.WindowTerminal
   }
 
+  if (label === Shell.Alacritty) {
+    return Shell.Alacritty
+  }
+
   return Default
 }
 
 export async function getAvailableShells(): Promise<
   ReadonlyArray<IFoundShell<Shell>>
 > {
-  const shells = [
+  const gitPath = await findGitOnPath()
+  const shells: IFoundShell<Shell>[] = [
     {
       shell: Shell.Cmd,
       path: process.env.comspec || 'C:\\Windows\\System32\\cmd.exe',
+      extraArgs: gitPath ? ['/K', `"doskey git=^"${gitPath}^" $*"`] : [],
     },
   ]
 
@@ -114,6 +122,14 @@ export async function getAvailableShells(): Promise<
         path: wslPath,
       })
     }
+  }
+
+  const alacrittyPath = await findAlacritty()
+  if (alacrittyPath != null) {
+    shells.push({
+      shell: Shell.Alacritty,
+      path: alacrittyPath,
+    })
   }
 
   const windowsTerminal = await findWindowsTerminal()
@@ -335,6 +351,31 @@ async function findWSL(): Promise<string | null> {
   return null
 }
 
+async function findAlacritty(): Promise<string | null> {
+  const registryPath = enumerateValues(
+    HKEY.HKEY_CLASSES_ROOT,
+    'Directory\\Background\\shell\\Open Alacritty here'
+  )
+
+  if (registryPath.length === 0) {
+    return null
+  }
+
+  const alacritty = registryPath.find(e => e.name === 'Icon')
+  if (alacritty && alacritty.type === RegistryValueType.REG_SZ) {
+    const path = alacritty.data
+    if (await pathExists(path)) {
+      return path
+    } else {
+      log.debug(
+        `[Alacritty] registry entry found but does not exist at '${path}'`
+      )
+    }
+  }
+
+  return null
+}
+
 async function findWindowsTerminal(): Promise<string | null> {
   // Windows Terminal has a link at
   // C:\Users\<User>\AppData\Local\Microsoft\WindowsApps\wt.exe
@@ -364,20 +405,47 @@ export function launch(
   switch (shell) {
     case Shell.PowerShell:
       const psCommand = `"Set-Location -LiteralPath '${path}'"`
-      return spawn('START', ['powershell', '-NoExit', '-Command', psCommand], {
-        shell: true,
-        cwd: path,
-      })
+      return spawn(
+        'START',
+        [
+          '"PowerShell"',
+          `"${foundShell.path}"`,
+          '-NoExit',
+          '-Command',
+          psCommand,
+        ],
+        {
+          shell: true,
+          cwd: path,
+        }
+      )
     case Shell.PowerShellCore:
       const psCoreCommand = `"Set-Location -LiteralPath '${path}'"`
-      return spawn('START', ['pwsh', '-NoExit', '-Command', psCoreCommand], {
-        shell: true,
-        cwd: path,
-      })
+      return spawn(
+        'START',
+        [
+          '"PowerShell Core"',
+          `"${foundShell.path}"`,
+          '-NoExit',
+          '-Command',
+          psCoreCommand,
+        ],
+        {
+          shell: true,
+          cwd: path,
+        }
+      )
     case Shell.Hyper:
       const hyperPath = `"${foundShell.path}"`
       log.info(`launching ${shell} at path: ${hyperPath}`)
       return spawn(hyperPath, [`"${path}"`], {
+        shell: true,
+        cwd: path,
+      })
+    case Shell.Alacritty:
+      const alacrittyPath = `"${foundShell.path}"`
+      log.info(`launching ${shell} at path: ${alacrittyPath}`)
+      return spawn(alacrittyPath, [`--working-directory "${path}"`], {
         shell: true,
         cwd: path,
       })
@@ -400,9 +468,19 @@ export function launch(
         }
       )
     case Shell.WSL:
-      return spawn('START', ['wsl'], { shell: true, cwd: path })
+      return spawn('START', ['"WSL"', `"${foundShell.path}"`], {
+        shell: true,
+        cwd: path,
+      })
     case Shell.Cmd:
-      return spawn('START', ['cmd'], { shell: true, cwd: path })
+      return spawn(
+        'START',
+        ['"Command Prompt"', `"${foundShell.path}"`, ...foundShell.extraArgs!],
+        {
+          shell: true,
+          cwd: path,
+        }
+      )
     case Shell.WindowTerminal:
       const windowsTerminalPath = `"${foundShell.path}"`
       log.info(`launching ${shell} at path: ${windowsTerminalPath}`)

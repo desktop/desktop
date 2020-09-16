@@ -1,27 +1,24 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 
 import { FileChange } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { RichText } from '../lib/rich-text'
-import { IGitHubUser } from '../../lib/databases'
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
 import { getAvatarUsersForCommit, IAvatarUser } from '../../models/avatar'
 import { AvatarStack } from '../lib/avatar-stack'
 import { CommitAttribution } from '../lib/commit-attribution'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
-import {
-  enableHideWhitespaceInDiffOption,
-  enableGitTagsDisplay,
-} from '../../lib/feature-flag'
+import { enableGitTagsDisplay } from '../../lib/feature-flag'
+import { Tokenizer, TokenResult } from '../../lib/text-token-parser'
+import { wrapRichTextCommitMessage } from '../../lib/wrap-rich-text-commit-message'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
   readonly commit: Commit
   readonly files: ReadonlyArray<FileChange>
   readonly emoji: Map<string, string>
-  readonly gitHubUsers: Map<string, IGitHubUser> | null
 
   /**
    * Whether or not the commit body container should
@@ -48,7 +45,7 @@ interface ICommitSummaryState {
    * Note that this may differ from the body property in the commit object
    * passed through props, see the createState method for more details.
    */
-  readonly summary: string
+  readonly summary: ReadonlyArray<TokenResult>
 
   /**
    * The commit message body, i.e. anything after the first line of text in the
@@ -56,7 +53,7 @@ interface ICommitSummaryState {
    * commit object passed through props, see the createState method for more
    * details.
    */
-  readonly body: string
+  readonly body: ReadonlyArray<TokenResult>
 
   /**
    * Whether or not the commit body text overflows its container. Used in
@@ -71,15 +68,6 @@ interface ICommitSummaryState {
   readonly avatarUsers: ReadonlyArray<IAvatarUser>
 }
 
-const maxSummaryLength = 72
-
-/**
- * Removes whitespace characters from the end of the string
- */
-function trimTrailingWhitespace(value: string) {
-  return value.replace(/\s+$/, '')
-}
-
 /**
  * Creates the state object for the CommitSummary component.
  *
@@ -92,25 +80,20 @@ function trimTrailingWhitespace(value: string) {
  *
  * @param props        The current commit summary prop object.
  */
-function createState(isOverflowed: boolean, props: ICommitSummaryProps) {
-  let summary = trimTrailingWhitespace(props.commit.summary)
-  let body = trimTrailingWhitespace(props.commit.body)
+function createState(
+  isOverflowed: boolean,
+  props: ICommitSummaryProps
+): ICommitSummaryState {
+  const tokenizer = new Tokenizer(props.emoji, props.repository)
 
-  if (summary.length > maxSummaryLength) {
-    // Truncate at least 3 characters off the end to avoid just an ellipsis
-    // followed by 1-2 characters in the body. This matches dotcom behavior.
-    const truncationMargin = 3
-    const truncateLength = maxSummaryLength - truncationMargin
-    const remainder = summary.substr(truncateLength)
-
-    // Don't join the the body with newlines if it's empty
-    body = body.length > 0 ? `…${remainder}\n\n${body}` : `…${remainder}`
-    summary = `${summary.substr(0, truncateLength)}…`
-  }
+  const { summary, body } = wrapRichTextCommitMessage(
+    props.commit.summary,
+    props.commit.body,
+    tokenizer
+  )
 
   const avatarUsers = getAvatarUsersForCommit(
     props.repository.gitHubRepository,
-    props.gitHubUsers,
     props.commit
   )
 
@@ -133,13 +116,6 @@ export class CommitSummary extends React.Component<
   private readonly resizeObserver: ResizeObserver | null = null
   private updateOverflowTimeoutId: NodeJS.Immediate | null = null
   private descriptionRef: HTMLDivElement | null = null
-
-  private onHideWhitespaceInDiffChanged = (
-    event: React.FormEvent<HTMLInputElement>
-  ) => {
-    const value = event.currentTarget.checked
-    this.props.onHideWhitespaceInDiffChanged(value)
-  }
 
   public constructor(props: ICommitSummaryProps) {
     super(props)
@@ -165,6 +141,13 @@ export class CommitSummary extends React.Component<
         }
       })
     }
+  }
+
+  private onHideWhitespaceInDiffChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+    this.props.onHideWhitespaceInDiffChanged(value)
   }
 
   private onResized = () => {
@@ -277,7 +260,7 @@ export class CommitSummary extends React.Component<
   }
 
   private renderDescription() {
-    if (!this.state.body) {
+    if (this.state.body.length === 0) {
       return null
     }
 
@@ -360,22 +343,20 @@ export class CommitSummary extends React.Component<
             </li>
             {this.renderTags()}
 
-            {enableHideWhitespaceInDiffOption() && (
-              <li
-                className="commit-summary-meta-item without-truncation"
-                title={filesDescription}
-              >
-                <Checkbox
-                  label="Hide Whitespace"
-                  value={
-                    this.props.hideWhitespaceInDiff
-                      ? CheckboxValue.On
-                      : CheckboxValue.Off
-                  }
-                  onChange={this.onHideWhitespaceInDiffChanged}
-                />
-              </li>
-            )}
+            <li
+              className="commit-summary-meta-item without-truncation"
+              title={filesDescription}
+            >
+              <Checkbox
+                label="Hide Whitespace"
+                value={
+                  this.props.hideWhitespaceInDiff
+                    ? CheckboxValue.On
+                    : CheckboxValue.Off
+                }
+                onChange={this.onHideWhitespaceInDiffChanged}
+              />
+            </li>
           </ul>
         </div>
 
