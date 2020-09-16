@@ -2841,7 +2841,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     if (await this.shouldBackgroundFetch(repository, lastPush)) {
-      await this._fetch(repository, FetchType.BackgroundTask)
+      await this.withAuthenticatingUser(repository, (repository, account) => {
+        const isBackgroundTask = true
+
+        return this.withPushPullFetch(repository, account, () =>
+          gitStore.fetch(account, isBackgroundTask, p =>
+            this.updatePushPullFetchProgress(repository, p)
+          )
+        )
+      })
     }
 
     lookup.set(repository.id, {
