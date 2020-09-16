@@ -2889,8 +2889,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const gitStore = this.gitStoreCache.get(repo)
 
       await this.withPushPullFetch(repo, () =>
-        gitStore.fetch(account, isBackgroundTask, p =>
-          this.updatePushPullFetchProgress(repo, p)
+        gitStore.fetch(account, isBackgroundTask, progress =>
+          this.updatePushPullFetchProgress(repo, progress)
         )
       )
 
