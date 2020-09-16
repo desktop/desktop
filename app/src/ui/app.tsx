@@ -1994,6 +1994,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             hasExistingStash={existingStash !== null}
             retryAction={popup.retryAction}
             onDismissed={onPopupDismissedFn}
+            files={popup.files}
           />
         )
       default:
