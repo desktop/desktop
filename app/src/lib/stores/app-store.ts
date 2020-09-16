@@ -2893,6 +2893,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
+  public _setRepositoryIndicatorsEnabled(
+    repositoryIndicatorsEnabled: boolean
+  ) {}
+
   /**
    * Refresh all the data for the Changes section.
    *

@@ -9,10 +9,12 @@ import { RadioButton } from '../lib/radio-button'
 interface IAdvancedPreferencesProps {
   readonly optOutOfUsageTracking: boolean
   readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
+  readonly repositoryIndicatorsEnabled: boolean
   readonly onOptOutofReportingchanged: (checked: boolean) => void
   readonly onUncommittedChangesStrategyKindChanged: (
     value: UncommittedChangesStrategyKind
   ) => void
+  readonly onRepositoryIndicatorsEnabledChanged: (enabled: boolean) => void
 }
 
 interface IAdvancedPreferencesState {
@@ -47,6 +49,12 @@ export class Advanced extends React.Component<
   ) => {
     this.setState({ uncommittedChangesStrategyKind: value })
     this.props.onUncommittedChangesStrategyKindChanged(value)
+  }
+
+  private onRepositoryIndicatorsEnabledChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.props.onRepositoryIndicatorsEnabledChanged(event.currentTarget.checked)
   }
 
   private reportDesktopUsageLabel() {
@@ -98,7 +106,12 @@ export class Advanced extends React.Component<
           <h2>Background updates</h2>
           <Checkbox
             label="Periodically fetch and refresh status of all repositories"
-            value={CheckboxValue.Off}
+            value={
+              this.props.repositoryIndicatorsEnabled
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onRepositoryIndicatorsEnabledChanged}
           />
           <p className="git-settings-description">
             Background updates allows Desktop to highlight repositories that

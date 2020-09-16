@@ -52,6 +52,7 @@ interface IPreferencesProps {
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
   readonly automaticallySwitchTheme: boolean
+  readonly repositoryIndicatorsEnabled: boolean
 }
 
 interface IPreferencesState {
@@ -80,6 +81,7 @@ interface IPreferencesState {
    * choice to delete the lock file.
    */
   readonly existingLockFilePath?: string
+  readonly repositoryIndicatorsEnabled: boolean
 }
 
 /** The app-level preferences component. */
@@ -108,6 +110,7 @@ export class Preferences extends React.Component<
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
       selectedShell: this.props.selectedShell,
+      repositoryIndicatorsEnabled: this.props.repositoryIndicatorsEnabled,
     }
   }
 
@@ -319,12 +322,16 @@ export class Preferences extends React.Component<
         View = (
           <Advanced
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
+            repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
             uncommittedChangesStrategyKind={
               this.state.uncommittedChangesStrategyKind
             }
             onOptOutofReportingchanged={this.onOptOutofReportingChanged}
             onUncommittedChangesStrategyKindChanged={
               this.onUncommittedChangesStrategyKindChanged
+            }
+            onRepositoryIndicatorsEnabledChanged={
+              this.onRepositoryIndicatorsEnabledChanged
             }
           />
         )
@@ -335,6 +342,12 @@ export class Preferences extends React.Component<
     }
 
     return <div className="tab-container">{View}</div>
+  }
+
+  private onRepositoryIndicatorsEnabledChanged = (
+    repositoryIndicatorsEnabled: boolean
+  ) => {
+    this.setState({ repositoryIndicatorsEnabled })
   }
 
   private onLockFileDeleted = () => {
@@ -452,6 +465,15 @@ export class Preferences extends React.Component<
         this.state.defaultBranch !== this.state.initialDefaultBranch
       ) {
         await setDefaultBranch(this.state.defaultBranch)
+      }
+
+      if (
+        this.props.repositoryIndicatorsEnabled !==
+        this.state.repositoryIndicatorsEnabled
+      ) {
+        this.props.dispatcher.setRepositoryIndicatorsEnabled(
+          this.state.repositoryIndicatorsEnabled
+        )
       }
     } catch (e) {
       if (isConfigFileLockError(e)) {
