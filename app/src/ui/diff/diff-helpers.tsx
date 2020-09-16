@@ -259,6 +259,7 @@ export function syntaxHighlightLine(
     // and "archive" the current element.
     if (mapKeysEqual(currentElement.tokens, newTokens)) {
       currentElement.content += char
+      currentElement.tokens = newTokens
     } else {
       elements.push({
         tokens: currentElement.tokens,
