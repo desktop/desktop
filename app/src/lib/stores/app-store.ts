@@ -2887,6 +2887,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           this.updatePushPullFetchProgress(repo, progress)
         )
       )
+      this.updatePushPullFetchProgress(repo, null)
 
       return gitStore.aheadBehind
     })
