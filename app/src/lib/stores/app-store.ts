@@ -2851,19 +2851,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    await this.withAuthenticatingUser(repository, (repository, account) => {
-      const isBackgroundTask = true
+    const aheadBehind = await this.fetchForRepositoryIndicator(repository)
 
-      return this.withPushPullFetch(repository, account, () =>
-        gitStore.fetch(account, isBackgroundTask, p =>
-          this.updatePushPullFetchProgress(repository, p)
-        )
-      )
-    })
-
+    const existing = lookup.get(repository.id)
     lookup.set(repository.id, {
-      aheadBehind: gitStore.aheadBehind,
-      changedFilesCount: lookup.get(repository.id)?.changedFilesCount ?? 0,
+      aheadBehind: aheadBehind,
+      changedFilesCount: existing?.changedFilesCount ?? 0,
     })
     this.emitUpdate()
   }
@@ -2878,6 +2871,31 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // instance since that's a mutable array. We should always return
     // a copy.
     return this.repositories.filter(x => x !== this.selectedRepository)
+  }
+
+  /**
+   * A slimmed down version of performFetch which is only used when fetching
+   * the repository in order to compute the repository indicator status.
+   *
+   * As opposed to `performFetch` this method will not perform a full refresh
+   * of the repository after fetching, nor will it refresh issues, branch
+   * protection information etc. It's intention is to only do the bare minimum
+   * amount of work required to calculate an up-to-date ahead/behind status
+   * of the current branch to its upstream tracking branch.
+   */
+  private fetchForRepositoryIndicator(repo: Repository) {
+    return this.withAuthenticatingUser(repo, async (repo, account) => {
+      const isBackgroundTask = true
+      const gitStore = this.gitStoreCache.get(repo)
+
+      await this.withPushPullFetch(repo, account, () =>
+        gitStore.fetch(account, isBackgroundTask, p =>
+          this.updatePushPullFetchProgress(repo, p)
+        )
+      )
+
+      return gitStore.aheadBehind
+    })
   }
 
   /**
