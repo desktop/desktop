@@ -2842,7 +2842,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const shouldFetch = await this.shouldBackgroundFetch(repository, lastPush)
 
     lookup.set(repository.id, {
-      aheadBehind: lookup.get(repository.id)?.aheadBehind ?? null,
+      aheadBehind: gitStore.aheadBehind,
       changedFilesCount: status.workingDirectory.files.length,
     })
     this.emitUpdate()
