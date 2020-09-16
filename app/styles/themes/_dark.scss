@@ -273,7 +273,7 @@ body.theme-dark {
   --diff-hunk-background-color: #{darken($gray-900, 3%)};
   --diff-hunk-border-color: #{lighten($gray-900, 3%)};
   --diff-hunk-gutter-color: #{lighten($gray-900, 3%)};
-  --diff-hunk-gutter-background-color: #{darken($gray-900, 0%)};
+  --diff-hunk-gutter-background-color: #{darken($gray-900, 6%)};
   --diff-hunk-text-color: var(--text-secondary-color);
 
   --diff-hover-background-color: #{$blue-500};
