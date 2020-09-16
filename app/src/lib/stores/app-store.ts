@@ -2842,20 +2842,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
       gitStore,
       repository
     )
-    const shouldFetch = await this.shouldBackgroundFetch(repository, lastPush)
 
-    if (!shouldFetch) {
-      return
+    if (await this.shouldBackgroundFetch(repository, lastPush)) {
+      const aheadBehind = await this.fetchForRepositoryIndicator(repository)
+
+      const existing = lookup.get(repository.id)
+      lookup.set(repository.id, {
+        aheadBehind: aheadBehind,
+        changedFilesCount: existing?.changedFilesCount ?? 0,
+      })
+      this.emitUpdate()
     }
-
-    const aheadBehind = await this.fetchForRepositoryIndicator(repository)
-
-    const existing = lookup.get(repository.id)
-    lookup.set(repository.id, {
-      aheadBehind: aheadBehind,
-      changedFilesCount: existing?.changedFilesCount ?? 0,
-    })
-    this.emitUpdate()
   }
 
   private getRepositoriesForIndicatorRefresh = () => {
