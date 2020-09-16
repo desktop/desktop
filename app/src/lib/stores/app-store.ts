@@ -2839,24 +2839,32 @@ export class AppStore extends TypedBaseStore<IAppState> {
       gitStore,
       repository
     )
+    const shouldFetch = await this.shouldBackgroundFetch(repository, lastPush)
 
-    if (await this.shouldBackgroundFetch(repository, lastPush)) {
-      await this.withAuthenticatingUser(repository, (repository, account) => {
-        const isBackgroundTask = true
+    lookup.set(repository.id, {
+      aheadBehind: lookup.get(repository.id)?.aheadBehind ?? null,
+      changedFilesCount: status.workingDirectory.files.length,
+    })
+    this.emitUpdate()
 
-        return this.withPushPullFetch(repository, account, () =>
-          gitStore.fetch(account, isBackgroundTask, p =>
-            this.updatePushPullFetchProgress(repository, p)
-          )
-        )
-      })
+    if (!shouldFetch) {
+      return
     }
+
+    await this.withAuthenticatingUser(repository, (repository, account) => {
+      const isBackgroundTask = true
+
+      return this.withPushPullFetch(repository, account, () =>
+        gitStore.fetch(account, isBackgroundTask, p =>
+          this.updatePushPullFetchProgress(repository, p)
+        )
+      )
+    })
 
     lookup.set(repository.id, {
       aheadBehind: gitStore.aheadBehind,
-      changedFilesCount: status.workingDirectory.files.length,
+      changedFilesCount: lookup.get(repository.id)?.changedFilesCount ?? 0,
     })
-
     this.emitUpdate()
   }
 
