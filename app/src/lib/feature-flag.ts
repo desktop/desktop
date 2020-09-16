@@ -138,5 +138,5 @@ export function enableDiscardLines(): boolean {
  * Should we allow to change the default branch when creating new repositories?
  */
 export function enableDefaultBranchSetting(): boolean {
-  return enableBetaFeatures()
+  return true
 }
