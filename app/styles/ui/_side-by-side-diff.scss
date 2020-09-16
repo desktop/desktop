@@ -117,6 +117,7 @@
     white-space: pre-wrap;
     overflow-y: auto;
     flex-grow: 1;
+    word-break: break-all;
 
     .octicon {
       height: 8px;
