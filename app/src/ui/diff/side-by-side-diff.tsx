@@ -150,6 +150,7 @@ export class SideBySideDiff extends React.Component<
   public componentDidUpdate(prevProps: ISideBySideDiffProps) {
     if (!highlightParametersEqual(this.props, prevProps)) {
       this.initDiffSyntaxMode()
+      this.clearListRowsHeightCache()
     }
   }
 
