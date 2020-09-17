@@ -10,6 +10,8 @@ import { getStatusOrThrow } from '../../../helpers/status'
 import { GitRebaseSnapshot } from '../../../../src/models/rebase'
 import { setupEmptyDirectory } from '../../../helpers/repositories'
 import { getBranchOrError } from '../../../helpers/git'
+import { IRebaseProgress } from '../../../../src/models/progress'
+import { Repository } from '../../../../src/models/repository'
 
 const baseBranchName = 'base-branch'
 const featureBranchName = 'this-is-a-feature'
@@ -26,12 +28,14 @@ describe('git/rebase', () => {
   })
 
   describe('can parse progress', () => {
+    let repository: Repository | null
     let result: RebaseResult
     let snapshot: GitRebaseSnapshot | null
     let status: IStatusResult
+    let progress = new Array<IRebaseProgress>()
 
     beforeEach(async () => {
-      const repository = await createShortRebaseTest(
+      repository = await createShortRebaseTest(
         baseBranchName,
         featureBranchName
       )
@@ -43,7 +47,10 @@ describe('git/rebase', () => {
 
       const baseBranch = await getBranchOrError(repository, baseBranchName)
 
-      result = await rebase(repository, baseBranch, featureBranch)
+      progress = new Array<IRebaseProgress>()
+      result = await rebase(repository, baseBranch, featureBranch, p =>
+        progress.push(p)
+      )
 
       snapshot = await getRebaseSnapshot(repository)
 
@@ -52,6 +59,19 @@ describe('git/rebase', () => {
 
     it('returns a value indicating conflicts were encountered', () => {
       expect(result).toBe(RebaseResult.ConflictsEncountered)
+    })
+
+    it('reported step-by-step progress before encountering conflicts', () => {
+      expect(progress).toEqual([
+        {
+          currentCommitSummary: 'Feature Branch!',
+          kind: 'rebase',
+          rebasedCommitCount: 1,
+          title: 'Rebasing commit 1 of 1 commits',
+          totalCommitCount: 1,
+          value: 1,
+        },
+      ])
     })
 
     it('status detects REBASE_HEAD', () => {
@@ -72,15 +92,14 @@ describe('git/rebase', () => {
   })
 
   describe('can parse progress for long rebase', () => {
+    let repository: Repository | null
     let result: RebaseResult
     let snapshot: GitRebaseSnapshot | null
     let status: IStatusResult
+    let progress = new Array<IRebaseProgress>()
 
     beforeEach(async () => {
-      const repository = await createLongRebaseTest(
-        baseBranchName,
-        featureBranchName
-      )
+      repository = await createLongRebaseTest(baseBranchName, featureBranchName)
 
       const featureBranch = await getBranchOrError(
         repository,
@@ -89,7 +108,10 @@ describe('git/rebase', () => {
 
       const baseBranch = await getBranchOrError(repository, baseBranchName)
 
-      result = await rebase(repository, baseBranch, featureBranch)
+      progress = new Array<IRebaseProgress>()
+      result = await rebase(repository, baseBranch, featureBranch, p =>
+        progress.push(p)
+      )
 
       snapshot = await getRebaseSnapshot(repository)
 
@@ -98,6 +120,19 @@ describe('git/rebase', () => {
 
     it('returns a value indicating conflicts were encountered', () => {
       expect(result).toBe(RebaseResult.ConflictsEncountered)
+    })
+
+    it('reported step-by-step progress before encountering conflicts', () => {
+      expect(progress).toEqual([
+        {
+          currentCommitSummary: 'Feature Branch First Commit!',
+          kind: 'rebase',
+          rebasedCommitCount: 1,
+          title: 'Rebasing commit 1 of 10 commits',
+          totalCommitCount: 10,
+          value: 0.1,
+        },
+      ])
     })
 
     it('status detects REBASE_HEAD', () => {
