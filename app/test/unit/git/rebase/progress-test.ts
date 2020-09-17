@@ -25,8 +25,7 @@ const featureBranchName = 'this-is-a-feature'
 describe('git/rebase', () => {
   describe('skips a normal repository', () => {
     it('returns null for rebase progress', async () => {
-      const repository = await setupEmptyDirectory()
-
+      const repository = setupEmptyDirectory()
       const progress = await getRebaseSnapshot(repository)
 
       expect(progress).toEqual(null)
