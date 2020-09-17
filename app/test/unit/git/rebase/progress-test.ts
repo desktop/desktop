@@ -1,4 +1,9 @@
-import { IStatusResult } from '../../../../src/lib/git'
+import {
+  IStatusResult,
+  continueRebase,
+  git,
+  getStatus,
+} from '../../../../src/lib/git'
 import {
   rebase,
   RebaseResult,
@@ -11,6 +16,8 @@ import { GitRebaseSnapshot } from '../../../../src/models/rebase'
 import { setupEmptyDirectory } from '../../../helpers/repositories'
 import { getBranchOrError } from '../../../helpers/git'
 import { IRebaseProgress } from '../../../../src/models/progress'
+import { isConflictedFile } from '../../../../src/lib/status'
+import { ManualConflictResolutionKind } from '../../../../src/models/manual-conflict-resolution'
 import { Repository } from '../../../../src/models/repository'
 
 const baseBranchName = 'base-branch'
@@ -135,6 +142,25 @@ describe('git/rebase', () => {
       ])
     })
 
+    it('reports progress after resolving conflicts', async () => {
+      const strategy = ManualConflictResolutionKind.theirs
+      const progressCb = (p: IRebaseProgress) => progress.push(p)
+
+      while (result === RebaseResult.ConflictsEncountered) {
+        result = await resolveAndContinue(repository!, strategy, progressCb)
+      }
+
+      expect(progress.length).toEqual(10)
+      expect(progress[9]).toEqual({
+        currentCommitSummary: 'Feature Branch Tenth Commit!',
+        kind: 'rebase',
+        rebasedCommitCount: 10,
+        title: 'Rebasing commit 10 of 10 commits',
+        totalCommitCount: 10,
+        value: 1,
+      })
+    })
+
     it('status detects REBASE_HEAD', () => {
       expect(snapshot).not.toEqual(null)
       const s = snapshot!
@@ -154,3 +180,21 @@ describe('git/rebase', () => {
     })
   })
 })
+
+async function resolveAndContinue(
+  repository: Repository,
+  strategy: ManualConflictResolutionKind,
+  progressCb: (progress: IRebaseProgress) => void
+) {
+  const status = await getStatus(repository)
+  const files = status?.workingDirectory.files ?? []
+  const resolutions = new Map<string, ManualConflictResolutionKind>()
+
+  for (const file of files) {
+    if (isConflictedFile(file.status)) {
+      resolutions.set(file.path, strategy)
+    }
+  }
+
+  return continueRebase(repository, files, resolutions, progressCb)
+}
