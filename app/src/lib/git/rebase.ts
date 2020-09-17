@@ -276,7 +276,7 @@ async function readRebaseHead(repository: Repository): Promise<string | null> {
 const rebaseApplyingRe = /^Applying: (.*)/
 
 /**
- * A parser to read and emit rebase progress from Git `stdout`
+ * A parser to read and emit rebase progress from Git `stderr`
  */
 class GitRebaseParser {
   public constructor(
@@ -327,14 +327,13 @@ function configureOptionsForRebase(
   return merge(options, {
     processCallback: (process: ChildProcess) => {
       // If Node.js encounters a synchronous runtime error while spawning
-      // `stdout` will be undefined and the error will be emitted asynchronously
-      if (!process.stdout) {
+      // `stderr` will be undefined and the error will be emitted asynchronously
+      if (process.stderr === null) {
         return
       }
       const parser = new GitRebaseParser(rebasedCommitCount, totalCommitCount)
 
-      // rebase emits progress messages on `stdout`, not `stderr`
-      byline(process.stdout).on('data', (line: string) => {
+      byline(process.stderr).on('data', (line: string) => {
         const progress = parser.parse(line)
 
         if (progress != null) {
