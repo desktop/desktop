@@ -65,7 +65,6 @@ export enum PopupType {
   CreateTag,
   DeleteTag,
   LocalChangesOverwritten,
-  RebaseConflicts,
   ChooseForkSettings,
   ConfirmDiscardSelection,
 }
