@@ -1,6 +1,6 @@
 .side-by-side-diff-container {
   width: 100%;
-  overflow: auto;
+  overflow: hidden;
   flex-grow: 1;
 
   &.selecting-before .after,
