@@ -1,7 +1,6 @@
 import {
   IStatusResult,
   continueRebase,
-  git,
   getStatus,
 } from '../../../../src/lib/git'
 import {
