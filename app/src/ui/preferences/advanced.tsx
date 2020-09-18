@@ -114,9 +114,9 @@ export class Advanced extends React.Component<
             onChange={this.onRepositoryIndicatorsEnabledChanged}
           />
           <p className="git-settings-description">
-            Background updates allows Desktop to highlight repositories that
-            have uncommitted changes or are out of sync with their remote in the
-            repository list. May adversely affect performance.
+            This allows the display of up-to-date status indicators in the
+            repository list. Disabling this may improve performance with many
+            repositories.
           </p>
         </div>
         <div className="advanced-section">
