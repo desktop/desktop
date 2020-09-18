@@ -114,9 +114,8 @@ export class Advanced extends React.Component<
             onChange={this.onRepositoryIndicatorsEnabledChanged}
           />
           <p className="git-settings-description">
-            This allows the display of up-to-date status indicators in the
-            repository list. Disabling this may improve performance with many
-            repositories.
+            Allows the display of up-to-date status indicators in the repository
+            list. Disabling this may improve performance with many repositories.
           </p>
         </div>
         <div className="advanced-section">
