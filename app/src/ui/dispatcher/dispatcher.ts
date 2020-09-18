@@ -2565,4 +2565,8 @@ export class Dispatcher {
       return false
     }
   }
+
+  public setRepositoryIndicatorsEnabled(repositoryIndicatorsEnabled: boolean) {
+    this.appStore._setRepositoryIndicatorsEnabled(repositoryIndicatorsEnabled)
+  }
 }

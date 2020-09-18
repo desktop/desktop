@@ -315,6 +315,8 @@ const hideWhitespaceInDiffKey = 'hide-whitespace-in-diff'
 
 const shellKey = 'shell'
 
+const repositoryIndicatorsEnabledKey = 'enable-repository-indicators'
+
 // background fetching should occur hourly when Desktop is active, but this
 // lower interval ensures user interactions like switching repositories and
 // switching between apps does not result in excessive fetching in the app
@@ -421,6 +423,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private hasUserViewedStash = false
 
+  private repositoryIndicatorsEnabled: boolean
+
   /** Which step the user needs to complete next in the onboarding tutorial */
   private currentOnboardingTutorialStep = TutorialStep.NotApplicable
   private readonly tutorialAssessor: OnboardingTutorialAssessor
@@ -460,15 +464,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.getResolvedExternalEditor
     )
 
+    // We're considering flipping the default value and have new users
+    // start off with repository indicators disabled. As such we'll start
+    // persisting the current default to localstorage right away so we
+    // can change the default in the future without affecting current
+    // users.
+    if (getBoolean(repositoryIndicatorsEnabledKey) === undefined) {
+      setBoolean(repositoryIndicatorsEnabledKey, true)
+    }
+
+    this.repositoryIndicatorsEnabled =
+      getBoolean(repositoryIndicatorsEnabledKey) ?? true
+
     this.repositoryIndicatorUpdater = new RepositoryIndicatorUpdater(
       this.getRepositoriesForIndicatorRefresh,
       this.refreshIndicatorForRepository
     )
 
-    window.setTimeout(
-      () => this.repositoryIndicatorUpdater.start(),
-      InitialRepositoryIndicatorTimeout
-    )
+    window.setTimeout(() => {
+      if (this.repositoryIndicatorsEnabled) {
+        this.repositoryIndicatorUpdater.start()
+      }
+    }, InitialRepositoryIndicatorTimeout)
   }
 
   /** Figure out what step of the tutorial the user needs to do next */
@@ -755,6 +772,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       apiRepositories: this.apiRepositoriesStore.getState(),
       optOutOfUsageTracking: this.statsStore.getOptOut(),
       currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
+      repositoryIndicatorsEnabled: this.repositoryIndicatorsEnabled,
     }
   }
 
@@ -2894,6 +2912,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       return gitStore.aheadBehind
     })
+  }
+
+  public _setRepositoryIndicatorsEnabled(repositoryIndicatorsEnabled: boolean) {
+    if (this.repositoryIndicatorsEnabled === repositoryIndicatorsEnabled) {
+      return
+    }
+
+    setBoolean(repositoryIndicatorsEnabledKey, repositoryIndicatorsEnabled)
+    this.repositoryIndicatorsEnabled = repositoryIndicatorsEnabled
+    if (repositoryIndicatorsEnabled) {
+      this.repositoryIndicatorUpdater.start()
+    } else {
+      this.repositoryIndicatorUpdater.stop()
+    }
+
+    this.emitUpdate()
   }
 
   /**
