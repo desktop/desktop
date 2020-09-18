@@ -24,8 +24,8 @@
     margin-bottom: var(--spacing-third);
   }
 
-  :invalid{
-    border-color: $red-500;
+  :invalid {
+    border-color: var(--error-color);
   }
   
   input {
