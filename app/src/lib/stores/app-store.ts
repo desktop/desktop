@@ -15,7 +15,7 @@ import {
 import { Account } from '../../models/account'
 import { AppMenu, IMenu } from '../../models/app-menu'
 import { IAuthor } from '../../models/author'
-import { Branch, IAheadBehind } from '../../models/branch'
+import { Branch, IAheadBehind, BranchType } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloningRepository } from '../../models/cloning-repository'
@@ -5503,8 +5503,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const gitStore = this.gitStoreCache.get(repository)
 
+    // Find a remote branch matching the given name or a local branch
+    // whose upstream tracking branch matches the given name (i.e someon
+    // has already checked out the remote branch)
     const findBranch = (name: string) =>
-      gitStore.allBranches.find(branch => branch.name === name) || null
+      gitStore.allBranches.find(branch =>
+        branch.type === BranchType.Local
+          ? branch.upstream === name
+          : branch.name === name
+      ) ?? null
 
     // If we don't have a default remote here, it's probably going
     // to just crash and burn on checkout, but that's okay
