@@ -1034,7 +1034,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     if (repository instanceof CloningRepository || repository.missing) {
-      this.props.dispatcher.removeRepositories([repository], false)
+      this.props.dispatcher.removeRepository(repository, false)
       return
     }
 
@@ -1044,18 +1044,15 @@ export class App extends React.Component<IAppProps, IAppState> {
         repository,
       })
     } else {
-      this.props.dispatcher.removeRepositories([repository], false)
+      this.props.dispatcher.removeRepository(repository, false)
     }
   }
 
-  private onConfirmRepoRemoval = (
+  private onConfirmRepoRemoval = async (
     repository: Repository,
     deleteRepoFromDisk: boolean
   ) => {
-    return this.props.dispatcher.removeRepositories(
-      [repository],
-      deleteRepoFromDisk
-    )
+    await this.props.dispatcher.removeRepository(repository, deleteRepoFromDisk)
   }
 
   private getRepository(): Repository | CloningRepository | null {
