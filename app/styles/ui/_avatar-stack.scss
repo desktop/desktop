@@ -76,7 +76,7 @@
     margin-right: -11px;
     background-color: inherit;
     box-shadow: 1px 0 0 var(--background-color);
-    border-radius: 2px;
+    border-radius: 50%;
     transition: margin 0.1s ease-in-out;
 
     &:first-child {
@@ -90,7 +90,7 @@
 
     // stylelint-disable selector-max-type
     img {
-      border-radius: 2px;
+      border-radius: 50%;
     }
     // stylelint-enable selector-max-type
 
@@ -128,7 +128,7 @@
     display: block;
     height: 20px;
     content: '';
-    border-radius: 2px;
+    border-radius: 50%;
     outline: 1px solid $white;
   }
 

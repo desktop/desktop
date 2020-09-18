@@ -4,7 +4,7 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { LinkButton } from '../lib/link-button'
 import { SamplesURL } from '../../lib/stats'
 import { UncommittedChangesStrategyKind } from '../../models/uncommitted-changes-strategy'
-import { enableSchannelCheckRevokeOptOut } from '../../lib/feature-flag'
+import { RadioButton } from '../lib/radio-button'
 
 interface IAdvancedPreferencesProps {
   readonly optOutOfUsageTracking: boolean
@@ -12,7 +12,6 @@ interface IAdvancedPreferencesProps {
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
   readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
-  readonly schannelCheckRevoke: boolean | null
   readonly onOptOutofReportingchanged: (checked: boolean) => void
   readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
   readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
@@ -20,7 +19,6 @@ interface IAdvancedPreferencesProps {
   readonly onUncommittedChangesStrategyKindChanged: (
     value: UncommittedChangesStrategyKind
   ) => void
-  readonly onSchannelCheckRevokeChanged: (checked: boolean) => void
 }
 
 interface IAdvancedPreferencesState {
@@ -84,19 +82,10 @@ export class Advanced extends React.Component<
   }
 
   private onUncommittedChangesStrategyKindChanged = (
-    event: React.FormEvent<HTMLInputElement>
+    value: UncommittedChangesStrategyKind
   ) => {
-    const value = event.currentTarget.value as UncommittedChangesStrategyKind
-
     this.setState({ uncommittedChangesStrategyKind: value })
     this.props.onUncommittedChangesStrategyKindChanged(value)
-  }
-
-  private onSchannelCheckRevokeChanged = (
-    event: React.FormEvent<HTMLInputElement>
-  ) => {
-    const value = event.currentTarget.checked
-    this.props.onSchannelCheckRevokeChanged(value === false)
   }
 
   private reportDesktopUsageLabel() {
@@ -113,53 +102,36 @@ export class Advanced extends React.Component<
       <DialogContent>
         <div className="advanced-section">
           <h2>If I have changes and I switch branches...</h2>
-          <div className="radio-component">
-            <input
-              type="radio"
-              id={UncommittedChangesStrategyKind.AskForConfirmation}
-              value={UncommittedChangesStrategyKind.AskForConfirmation}
-              checked={
-                this.state.uncommittedChangesStrategyKind ===
-                UncommittedChangesStrategyKind.AskForConfirmation
-              }
-              onChange={this.onUncommittedChangesStrategyKindChanged}
-            />
-            <label htmlFor={UncommittedChangesStrategyKind.AskForConfirmation}>
-              Ask me where I want the changes to go
-            </label>
-          </div>
-          <div className="radio-component">
-            <input
-              type="radio"
-              id={UncommittedChangesStrategyKind.MoveToNewBranch}
-              value={UncommittedChangesStrategyKind.MoveToNewBranch}
-              checked={
-                this.state.uncommittedChangesStrategyKind ===
-                UncommittedChangesStrategyKind.MoveToNewBranch
-              }
-              onChange={this.onUncommittedChangesStrategyKindChanged}
-            />
-            <label htmlFor={UncommittedChangesStrategyKind.MoveToNewBranch}>
-              Always bring my changes to my new branch
-            </label>
-          </div>
-          <div className="radio-component">
-            <input
-              type="radio"
-              id={UncommittedChangesStrategyKind.StashOnCurrentBranch}
-              value={UncommittedChangesStrategyKind.StashOnCurrentBranch}
-              checked={
-                this.state.uncommittedChangesStrategyKind ===
-                UncommittedChangesStrategyKind.StashOnCurrentBranch
-              }
-              onChange={this.onUncommittedChangesStrategyKindChanged}
-            />
-            <label
-              htmlFor={UncommittedChangesStrategyKind.StashOnCurrentBranch}
-            >
-              Always stash and leave my changes on the current branch
-            </label>
-          </div>
+
+          <RadioButton
+            value={UncommittedChangesStrategyKind.AskForConfirmation}
+            checked={
+              this.state.uncommittedChangesStrategyKind ===
+              UncommittedChangesStrategyKind.AskForConfirmation
+            }
+            label="Ask me where I want the changes to go"
+            onSelected={this.onUncommittedChangesStrategyKindChanged}
+          />
+
+          <RadioButton
+            value={UncommittedChangesStrategyKind.MoveToNewBranch}
+            checked={
+              this.state.uncommittedChangesStrategyKind ===
+              UncommittedChangesStrategyKind.MoveToNewBranch
+            }
+            label="Always bring my changes to my new branch"
+            onSelected={this.onUncommittedChangesStrategyKindChanged}
+          />
+
+          <RadioButton
+            value={UncommittedChangesStrategyKind.StashOnCurrentBranch}
+            checked={
+              this.state.uncommittedChangesStrategyKind ===
+              UncommittedChangesStrategyKind.StashOnCurrentBranch
+            }
+            label="Always stash and leave my changes on the current branch"
+            onSelected={this.onUncommittedChangesStrategyKindChanged}
+          />
         </div>
         <div className="advanced-section">
           <h2>Show a confirmation dialog before...</h2>
@@ -201,39 +173,7 @@ export class Advanced extends React.Component<
             onChange={this.onReportingOptOutChanged}
           />
         </div>
-        {this.renderGitAdvancedSection()}
       </DialogContent>
-    )
-  }
-
-  private renderGitAdvancedSection() {
-    if (!__WIN32__) {
-      return
-    }
-
-    if (!enableSchannelCheckRevokeOptOut()) {
-      return
-    }
-
-    // If the user hasn't set `http.schannelCheckRevoke` before we don't
-    // have to show them the preference.
-    if (this.props.schannelCheckRevoke === null) {
-      return
-    }
-
-    return (
-      <div className="git-advanced-section">
-        <h2>Git</h2>
-        <Checkbox
-          label="Disable certificate revocation checks"
-          value={
-            this.props.schannelCheckRevoke
-              ? CheckboxValue.Off
-              : CheckboxValue.On
-          }
-          onChange={this.onSchannelCheckRevokeChanged}
-        />
-      </div>
     )
   }
 }

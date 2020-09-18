@@ -10,6 +10,7 @@ import { Repository } from '../../models/repository'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import { Dispatcher } from '../dispatcher'
 import { assertNever } from '../../lib/fatal-error'
+import { PathText } from '../lib/path-text'
 
 interface ILocalChangesOverwrittenDialogProps {
   readonly repository: Repository
@@ -26,6 +27,12 @@ interface ILocalChangesOverwrittenDialogProps {
    * Callback to use when the dialog gets closed.
    */
   readonly onDismissed: () => void
+
+  /**
+   * The files that prevented the operation from completing, i.e. the files
+   * that would be overwritten.
+   */
+  readonly files: ReadonlyArray<string>
 }
 interface ILocalChangesOverwrittenDialogState {
   readonly stashingAndRetrying: boolean
@@ -41,9 +48,15 @@ export class LocalChangesOverwrittenDialog extends React.Component<
   }
 
   public render() {
+    const overwrittenText =
+      this.props.files.length > 0
+        ? ' The following files would be overwritten:'
+        : null
+
     return (
       <Dialog
         title="Error"
+        id="local-changes-overwritten"
         loading={this.state.stashingAndRetrying}
         disabled={this.state.stashingAndRetrying}
         onDismissed={this.props.onDismissed}
@@ -53,12 +66,32 @@ export class LocalChangesOverwrittenDialog extends React.Component<
         <DialogContent>
           <p>
             Unable to {this.getRetryActionName()} when changes are present on
-            your branch.
+            your branch.{overwrittenText}
           </p>
+          {this.renderFiles()}
           {this.renderStashText()}
         </DialogContent>
         {this.renderFooter()}
       </Dialog>
+    )
+  }
+
+  private renderFiles() {
+    const { files } = this.props
+    if (files.length === 0) {
+      return null
+    }
+
+    return (
+      <div className="files-list">
+        <ul>
+          {files.map(fileName => (
+            <li key={fileName}>
+              <PathText path={fileName} />
+            </li>
+          ))}
+        </ul>
+      </div>
     )
   }
 

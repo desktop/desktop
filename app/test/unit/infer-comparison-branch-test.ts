@@ -45,7 +45,7 @@ function createTestPrRef(branch: Branch, ghRepo: GitHubRepository) {
 }
 
 function createTestPr(head: PullRequestRef, base: PullRequestRef) {
-  return new PullRequest(new Date(), '', 1, head, base, '')
+  return new PullRequest(new Date(), '', 1, head, base, '', false)
 }
 
 function createTestRepo(ghRepo: GitHubRepository | null = null) {

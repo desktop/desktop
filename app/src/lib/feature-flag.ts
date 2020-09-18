@@ -27,6 +27,7 @@ export function enableProgressBarOnIcon(): boolean {
 }
 
 /** Should the app enable beta features? */
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore: this will be used again in the future
 function enableBetaFeatures(): boolean {
   return enableDevelopmentFeatures() || __RELEASE_CHANNEL__ === 'beta'
@@ -50,16 +51,6 @@ export function enableWSLDetection(): boolean {
  * Should we show the create fork dialog flow?
  */
 export function enableCreateForkFlow(): boolean {
-  return true
-}
-
-/**
- * Whether or not we should attempt to detect the specific curl
- * error from the WinSSL (schannel) https backend when it fails
- * to check the revocation details of a certificate due to lacking
- * CRL distribution points and/or an offiline revocation server.
- */
-export function enableSchannelCheckRevokeOptOut(): boolean {
   return true
 }
 
@@ -130,5 +121,12 @@ export function enableForkSettings(): boolean {
  * Should we show the discard lines/hunks context menu item?
  */
 export function enableDiscardLines(): boolean {
+  return true
+}
+
+/**
+ * Should we allow to change the default branch when creating new repositories?
+ */
+export function enableDefaultBranchSetting(): boolean {
   return true
 }

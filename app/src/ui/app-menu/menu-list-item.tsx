@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 
 import { Octicon, OcticonSymbol } from '../octicons'
 import { MenuItem } from '../../models/app-menu'
@@ -52,7 +52,7 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
     if (item.type === 'checkbox' && item.checked) {
       return <Octicon className="icon" symbol={OcticonSymbol.check} />
     } else if (item.type === 'radio' && item.checked) {
-      return <Octicon className="icon" symbol={OcticonSymbol.primitiveDot} />
+      return <Octicon className="icon" symbol={OcticonSymbol.dotFill} />
     }
 
     return null

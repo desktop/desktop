@@ -92,11 +92,8 @@
       margin-left: var(--spacing-half);
     }
 
-    // We're using arrowSmallUp and arrowSmallDown which are
-    // both exactly 6px wide. Let's use that so that spacing
-    // gets easier to reason about.
     .octicon {
-      width: 6px;
+      width: 10px;
       margin-left: var(--spacing-third);
     }
   }

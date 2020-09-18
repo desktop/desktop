@@ -1,4 +1,4 @@
-import * as Deque from 'double-ended-queue'
+import Deque from 'double-ended-queue'
 
 import {
   FileEntry,

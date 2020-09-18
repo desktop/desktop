@@ -20,6 +20,7 @@ import {
 import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
 import { Dispatcher } from '../dispatcher'
 import { promiseWithMinimumTimeout } from '../../lib/promise'
+import { ClickSource } from '../lib/list'
 
 interface IChooseBranchDialogProps {
   readonly dispatcher: Dispatcher
@@ -190,25 +191,53 @@ export class ChooseBranchDialog extends React.Component<
     return renderDefaultBranch(item, matches, this.props.currentBranch)
   }
 
+  private onItemClick = (branch: Branch, source: ClickSource) => {
+    if (source.kind !== 'keyboard' || source.event.key !== 'Enter') {
+      return
+    }
+
+    source.event.preventDefault()
+
+    const { selectedBranch } = this.state
+
+    if (selectedBranch !== null && selectedBranch.name === branch.name) {
+      this.startRebase()
+    }
+  }
+
+  private selectedBranchIsCurrentBranch() {
+    const currentBranch = this.props.currentBranch
+    const { selectedBranch } = this.state
+    return (
+      selectedBranch !== null &&
+      currentBranch !== null &&
+      selectedBranch.name === currentBranch.name
+    )
+  }
+
+  private selectedBranchIsAheadOfCurrentBranch() {
+    const { rebasePreview } = this.state
+
+    return rebasePreview !== null && rebasePreview.kind === ComputedAction.Clean
+      ? rebasePreview.commits.length > 0
+      : false
+  }
+
+  private canRebaseSelectedBranch() {
+    return (
+      this.state.selectedBranch !== null &&
+      !this.selectedBranchIsCurrentBranch() &&
+      this.selectedBranchIsAheadOfCurrentBranch()
+    )
+  }
+
   public render() {
-    const { selectedBranch, rebasePreview } = this.state
+    const { selectedBranch } = this.state
     const { currentBranch } = this.props
 
-    const selectedBranchIsNotCurrentBranch =
-      selectedBranch === null ||
-      currentBranch === null ||
-      currentBranch.name === selectedBranch.name
-
-    const noCommitsToRebase =
-      rebasePreview !== null && rebasePreview.kind === ComputedAction.Clean
-        ? rebasePreview.commits.length === 0
-        : true
-
-    const disabled = selectedBranchIsNotCurrentBranch || noCommitsToRebase
-
-    const tooltip = selectedBranchIsNotCurrentBranch
+    const tooltip = this.selectedBranchIsCurrentBranch()
       ? 'You are not able to rebase this branch onto itself'
-      : noCommitsToRebase
+      : !this.selectedBranchIsAheadOfCurrentBranch()
       ? 'There are no commits on the current branch to rebase'
       : undefined
 
@@ -244,13 +273,14 @@ export class ChooseBranchDialog extends React.Component<
             onSelectionChanged={this.onSelectionChanged}
             canCreateNewBranch={false}
             renderBranch={this.renderBranch}
+            onItemClick={this.onItemClick}
           />
         </DialogContent>
         <DialogFooter>
           {this.renderRebaseStatus()}
           <OkCancelButtonGroup
             okButtonText="Start rebase"
-            okButtonDisabled={disabled}
+            okButtonDisabled={!this.canRebaseSelectedBranch()}
             okButtonTitle={tooltip}
             cancelButtonVisible={false}
           />
@@ -359,6 +389,10 @@ export class ChooseBranchDialog extends React.Component<
     }
 
     if (rebasePreview === null || rebasePreview.kind !== ComputedAction.Clean) {
+      return
+    }
+
+    if (!this.canRebaseSelectedBranch()) {
       return
     }
 

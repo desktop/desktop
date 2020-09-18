@@ -52,6 +52,7 @@ export class InitializeLFS extends React.Component<IInitializeLFSProps, {}> {
 
   private onInitialize = () => {
     this.props.onInitialize(this.props.repositories)
+    this.props.onDismissed()
   }
 
   private renderRepositories() {

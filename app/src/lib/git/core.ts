@@ -454,7 +454,6 @@ export function gitRebaseArguments() {
 
 /**
  * Returns the SHA of the passed in IGitResult
- * @param result
  */
 export function parseCommitSHA(result: IGitResult): string {
   return result.stdout.split(']')[0].split(' ')[1]
