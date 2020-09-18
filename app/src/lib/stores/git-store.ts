@@ -1,4 +1,3 @@
-import * as Fs from 'fs'
 import * as Path from 'path'
 import { Repository } from '../../models/repository'
 import {
@@ -66,6 +65,7 @@ import {
   createTag,
   getAllTags,
   deleteTag,
+  MergeResult,
 } from '../git'
 import { GitError as DugiteError } from '../../lib/git'
 import { GitError } from 'dugite'
@@ -88,6 +88,8 @@ import { PullRequest } from '../../models/pull-request'
 import { StatsStore } from '../stats'
 import { getTagsToPush, storeTagsToPush } from './helpers/tags-to-push-storage'
 import { DiffSelection, ITextDiff } from '../../models/diff'
+import { getDefaultBranch } from '../helpers/default-branch'
+import { stat } from 'fs-extra'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -464,7 +466,12 @@ export class GitStore extends BaseStore {
     // priority to local branches by sorting them before remotes
     this._defaultBranch =
       this._allBranches
-        .filter(b => b.name === defaultBranchName)
+        .filter(
+          b =>
+            (b.name === defaultBranchName &&
+              b.upstreamWithoutRemote === null) ||
+            b.upstreamWithoutRemote === defaultBranchName
+        )
         .sort((x, y) => compare(x.type, y.type))
         .shift() || null
   }
@@ -524,7 +531,7 @@ export class GitStore extends BaseStore {
       }
     }
 
-    return 'master'
+    return getDefaultBranch()
   }
 
   private refreshRecentBranches(
@@ -942,9 +949,14 @@ export class GitStore extends BaseStore {
           currentBranch.upstream
         )
         this._aheadBehind = await getAheadBehind(this.repository, range)
-        this.emitUpdate()
+      } else {
+        this._aheadBehind = null
       }
+    } else {
+      this._aheadBehind = null
     }
+
+    this.emitUpdate()
   }
 
   /**
@@ -1356,28 +1368,28 @@ export class GitStore extends BaseStore {
   }
 
   /** Update the last fetched date. */
-  public updateLastFetched(): Promise<void> {
-    const path = Path.join(this.repository.path, '.git', 'FETCH_HEAD')
-    return new Promise<void>((resolve, reject) => {
-      Fs.stat(path, (err, stats) => {
-        if (err) {
-          // An error most likely means the repository's never been published.
-          this._lastFetched = null
-        } else if (stats.size > 0) {
-          // If the file's empty then it _probably_ means the fetch failed and we
-          // shouldn't update the last fetched date.
-          this._lastFetched = stats.mtime
-        }
+  public async updateLastFetched() {
+    const fetchHeadPath = Path.join(this.repository.path, '.git', 'FETCH_HEAD')
 
-        resolve()
+    try {
+      const fstat = await stat(fetchHeadPath)
 
-        this.emitUpdate()
-      })
-    })
+      // If the file's empty then it _probably_ means the fetch failed and we
+      // shouldn't update the last fetched date.
+      if (fstat.size > 0) {
+        this._lastFetched = fstat.mtime
+      }
+    } catch {
+      // An error most likely means the repository's never been published.
+      this._lastFetched = null
+    }
+
+    this.emitUpdate()
+    return this._lastFetched
   }
 
   /** Merge the named branch into the current branch. */
-  public merge(branch: string): Promise<boolean | undefined> {
+  public merge(branch: string): Promise<MergeResult | undefined> {
     if (this.tip.kind !== TipState.Valid) {
       throw new Error(
         `unable to merge as tip state is '${this.tip.kind}' and the application expects the repository to be on a branch currently`
@@ -1484,7 +1496,10 @@ export class GitStore extends BaseStore {
     // 3. Checkout all the files that we've discarded that existed in the previous
     //    commit from the index.
     await this.performFailableOperation(async () => {
-      await resetSubmodulePaths(this.repository, submodulePaths)
+      if (submodulePaths.length > 0) {
+        await resetSubmodulePaths(this.repository, submodulePaths)
+      }
+
       await resetPaths(
         this.repository,
         GitResetMode.Mixed,

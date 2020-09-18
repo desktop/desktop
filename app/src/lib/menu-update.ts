@@ -192,6 +192,8 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     if (tip.kind === TipState.Valid) {
       if (defaultBranch !== null) {
         onNonDefaultBranch = tip.branch.name !== defaultBranch.name
+      } else {
+        onNonDefaultBranch = true
       }
 
       hasPublishedBranch = !!tip.branch.upstream
@@ -242,7 +244,9 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
 
     menuStateBuilder.setEnabled(
       'rename-branch',
-      onNonDefaultBranch && !branchIsUnborn && !onDetachedHead
+      (onNonDefaultBranch || !hasPublishedBranch) &&
+        !branchIsUnborn &&
+        !onDetachedHead
     )
     menuStateBuilder.setEnabled(
       'delete-branch',

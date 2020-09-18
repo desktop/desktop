@@ -118,7 +118,6 @@ import {
 } from '../editors'
 import { assertNever, fatalError, forceUnwrap } from '../fatal-error'
 
-import { findAccountForRemoteURL } from '../find-account'
 import { formatCommitMessage } from '../format-commit-message'
 import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
 import { getAccountForRepository } from '../get-account-for-repository'
@@ -156,6 +155,7 @@ import {
   getRebaseSnapshot,
   IStatusResult,
   GitError,
+  MergeResult,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -196,7 +196,7 @@ import {
 } from '../window-state'
 import { TypedBaseStore } from './base-store'
 import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
-import { MergeResult } from '../../models/merge'
+import { MergeTreeResult } from '../../models/merge'
 import { promiseWithMinimumTimeout, sleep } from '../promise'
 import { BackgroundFetcher } from './helpers/background-fetcher'
 import { inferComparisonBranch } from './helpers/infer-comparison-branch'
@@ -268,7 +268,12 @@ import { parseRemote } from '../../lib/remote-parsing'
 import { createTutorialRepository } from './helpers/create-tutorial-repository'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { getDefaultDir } from '../../ui/lib/default-dir'
+import {
+  UpstreamRemoteName,
+  findUpstreamRemote,
+} from './helpers/find-upstream-remote'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
+import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updater'
 import { getAttributableEmailsFor } from '../email'
 import { TrashNameLabel } from '../../ui/lib/context-menu'
 
@@ -315,6 +320,11 @@ const shellKey = 'shell'
 // switching between apps does not result in excessive fetching in the app
 const BackgroundFetchMinimumInterval = 30 * 60 * 1000
 
+/**
+ * Wait 2 minutes before refreshing repository indicators
+ */
+const InitialRepositoryIndicatorTimeout = 2 * 60 * 1000
+
 const MaxInvalidFoldersToDisplay = 3
 
 export class AppStore extends TypedBaseStore<IAppState> {
@@ -333,6 +343,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private currentAheadBehindUpdater: AheadBehindUpdater | null = null
 
   private currentBranchPruner: BranchPruner | null = null
+
+  private readonly repositoryIndicatorUpdater: RepositoryIndicatorUpdater
 
   private showWelcomeFlow = false
   private focusCommitMessage = false
@@ -436,16 +448,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
       error => this.emitError(error)
     )
 
-    const window = remote.getCurrentWindow()
-    this.windowState = getWindowState(window)
+    const browserWindow = remote.getCurrentWindow()
+    this.windowState = getWindowState(browserWindow)
 
-    this.onWindowZoomFactorChanged(window.webContents.zoomFactor)
+    this.onWindowZoomFactorChanged(browserWindow.webContents.zoomFactor)
 
-    this.wireupIpcEventHandlers(window)
+    this.wireupIpcEventHandlers(browserWindow)
     this.wireupStoreEventHandlers()
     getAppMenu()
     this.tutorialAssessor = new OnboardingTutorialAssessor(
       this.getResolvedExternalEditor
+    )
+
+    this.repositoryIndicatorUpdater = new RepositoryIndicatorUpdater(
+      this.getRepositoriesForIndicatorRefresh,
+      this.refreshIndicatorForRepository
+    )
+
+    window.setTimeout(
+      () => this.repositoryIndicatorUpdater.start(),
+      InitialRepositoryIndicatorTimeout
     )
   }
 
@@ -1225,7 +1247,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.currentAheadBehindUpdater.insert(from, to, aheadBehind)
     }
 
-    const loadingMerge: MergeResult = {
+    const loadingMerge: MergeTreeResult = {
       kind: ComputedAction.Loading,
     }
 
@@ -1666,12 +1688,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return null
   }
 
-  private shouldBackgroundFetch(
+  private async shouldBackgroundFetch(
     repository: Repository,
     lastPush: Date | null
-  ): boolean {
+  ): Promise<boolean> {
     const gitStore = this.gitStoreCache.get(repository)
-    const lastFetched = gitStore.lastFetched
+    const lastFetched = await gitStore.updateLastFetched()
 
     if (lastFetched === null) {
       return true
@@ -2789,36 +2811,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       changedFilesCount: status.workingDirectory.files.length,
     })
   }
-
-  /**
-   * Refresh sidebar indicators for the set of repositories tracked in the app.
-   */
-  public async refreshAllSidebarIndicators() {
-    const startTime = performance && performance.now ? performance.now() : null
-
-    // keep a reference to the current set of repositories to avoid the array
-    // changing while this is running
-    const repositories = new Array<Repository>(...this.repositories)
-
-    for (const repo of repositories) {
-      await this.refreshIndicatorForRepository(repo)
-    }
-
-    if (startTime && repositories.length > 1) {
-      const delta = performance.now() - startTime
-      const timeInSeconds = (delta / 1000).toFixed(3)
-      log.info(
-        `Background fetch for ${repositories.length} repositories took ${timeInSeconds}sec`
-      )
-    }
-
-    this.emitUpdate()
-  }
-
   /**
    * Refresh indicator in repository list for a specific repository
    */
-  private async refreshIndicatorForRepository(repository: Repository) {
+  private refreshIndicatorForRepository = async (repository: Repository) => {
     const lookup = this.localRepositoryStateLookup
 
     if (repository.missing) {
@@ -2839,19 +2835,64 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    this.updateSidebarIndicator(repository, status)
+    this.emitUpdate()
+
     const lastPush = await inferLastPushForRepository(
       this.accounts,
       gitStore,
       repository
     )
 
-    if (this.shouldBackgroundFetch(repository, lastPush)) {
-      await this._fetch(repository, FetchType.BackgroundTask)
-    }
+    if (await this.shouldBackgroundFetch(repository, lastPush)) {
+      const aheadBehind = await this.fetchForRepositoryIndicator(repository)
 
-    lookup.set(repository.id, {
-      aheadBehind: gitStore.aheadBehind,
-      changedFilesCount: status.workingDirectory.files.length,
+      const existing = lookup.get(repository.id)
+      lookup.set(repository.id, {
+        aheadBehind: aheadBehind,
+        // We don't need to update changedFilesCount here since it was already
+        // set when calling `updateSidebarIndicator()` with the status object.
+        changedFilesCount: existing?.changedFilesCount ?? 0,
+      })
+      this.emitUpdate()
+    }
+  }
+
+  private getRepositoriesForIndicatorRefresh = () => {
+    // The currently selected repository will get refreshed by both the
+    // BackgroundFetcher and the refreshRepository call from the
+    // focus event. No point in having the RepositoryIndicatorUpdater do
+    // it as well.
+    //
+    // Note that this method should never leak the actual repositories
+    // instance since that's a mutable array. We should always return
+    // a copy.
+    return this.repositories.filter(x => x !== this.selectedRepository)
+  }
+
+  /**
+   * A slimmed down version of performFetch which is only used when fetching
+   * the repository in order to compute the repository indicator status.
+   *
+   * As opposed to `performFetch` this method will not perform a full refresh
+   * of the repository after fetching, nor will it refresh issues, branch
+   * protection information etc. It's intention is to only do the bare minimum
+   * amount of work required to calculate an up-to-date ahead/behind status
+   * of the current branch to its upstream tracking branch.
+   */
+  private fetchForRepositoryIndicator(repo: Repository) {
+    return this.withAuthenticatingUser(repo, async (repo, account) => {
+      const isBackgroundTask = true
+      const gitStore = this.gitStoreCache.get(repo)
+
+      await this.withPushPullFetch(repo, () =>
+        gitStore.fetch(account, isBackgroundTask, progress =>
+          this.updatePushPullFetchProgress(repo, progress)
+        )
+      )
+      this.updatePushPullFetchProgress(repo, null)
+
+      return gitStore.aheadBehind
     })
   }
 
@@ -2950,6 +2991,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _showFoldout(foldout: Foldout): Promise<void> {
     this.currentFoldout = foldout
     this.emitUpdate()
+
+    // If the user is opening the repository list and we haven't yet
+    // started to refresh the repository indicators let's do so.
+    if (foldout.type === FoldoutType.Repository) {
+      // N.B: RepositoryIndicatorUpdater.prototype.start is
+      // indempotent.
+      this.repositoryIndicatorUpdater.start()
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -3462,18 +3511,33 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     return this.withAuthenticatingUser(repository, async (r, account) => {
       const { branchesState } = this.repositoryStateCache.get(r)
-      const { defaultBranch } = branchesState
+      let branchToCheckout = branchesState.defaultBranch
 
-      if (defaultBranch == null) {
+      // If the default branch is null, use the most recent branch excluding the branch
+      // the branch to delete as the branch to checkout.
+      if (branchToCheckout === null) {
+        let i = 0
+
+        while (i < branchesState.recentBranches.length) {
+          if (branchesState.recentBranches[i].name !== branch.name) {
+            branchToCheckout = branchesState.recentBranches[i]
+            break
+          }
+          i++
+        }
+      }
+
+      if (branchToCheckout === null) {
         throw new Error(
-          `A default branch cannot be found for this repository, so the app is unable to identify which branch to switch to before removing the current branch.`
+          `It's not possible to delete the only existing branch in a repository.`
         )
       }
 
+      const nonNullBranchToCheckout = branchToCheckout
       const gitStore = this.gitStoreCache.get(r)
 
       await gitStore.performFailableOperation(() =>
-        checkoutBranch(r, account, defaultBranch)
+        checkoutBranch(r, account, nonNullBranchToCheckout)
       )
       await gitStore.performFailableOperation(() =>
         deleteBranch(r, branch, account, includeRemote)
@@ -3527,7 +3591,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    return this.withPushPullFetch(repository, account, async () => {
+    return this.withPushPullFetch(repository, async () => {
       const { tip } = state.branchesState
 
       if (tip.kind === TipState.Unborn) {
@@ -3678,13 +3742,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
         this.updateMenuLabelsForSelectedRepository()
 
-        const { accounts } = this.getState()
-        const githubAccount = await findAccountForRemoteURL(
-          remote.url,
-          accounts
+        // Note that we're using `getAccountForRepository` here instead
+        // of the `account` instance we've got and that's because recordPush
+        // needs to be able to differentiate between a GHES account and a
+        // generic account and it can't do that only based on the endpoint.
+        this.statsStore.recordPush(
+          getAccountForRepository(this.accounts, repository),
+          options
         )
-
-        this.statsStore.recordPush(githubAccount, options)
       }
     })
   }
@@ -3717,7 +3782,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private async withPushPullFetch(
     repository: Repository,
-    account: IGitAccount | null,
     fn: () => Promise<void>
   ): Promise<void> {
     const state = this.repositoryStateCache.get(repository)
@@ -3752,7 +3816,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     account: IGitAccount | null
   ): Promise<void> {
-    return this.withPushPullFetch(repository, account, async () => {
+    return this.withPushPullFetch(repository, async () => {
       const gitStore = this.gitStoreCache.get(repository)
       const remote = gitStore.currentRemote
 
@@ -4107,7 +4171,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     fetchType: FetchType,
     remotes?: IRemote[]
   ): Promise<void> {
-    await this.withPushPullFetch(repository, account, async () => {
+    await this.withPushPullFetch(repository, async () => {
       const gitStore = this.gitStoreCache.get(repository)
 
       try {
@@ -4271,7 +4335,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _mergeBranch(
     repository: Repository,
     branch: string,
-    mergeStatus: MergeResult | null
+    mergeStatus: MergeTreeResult | null
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
 
@@ -4285,12 +4349,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    const mergeSuccessful = await gitStore.merge(branch)
+    const mergeResult = await gitStore.merge(branch)
     const { tip } = gitStore
 
-    if (mergeSuccessful && tip.kind === TipState.Valid) {
+    if (mergeResult === MergeResult.Success && tip.kind === TipState.Valid) {
       this._setBanner({
         type: BannerType.SuccessfulMerge,
+        ourBranch: tip.branch.name,
+        theirBranch: branch,
+      })
+    } else if (
+      mergeResult === MergeResult.AlreadyUpToDate &&
+      tip.kind === TipState.Valid
+    ) {
+      this._setBanner({
+        type: BannerType.BranchAlreadyUpToDate,
         ourBranch: tip.branch.name,
         theirBranch: branch,
       })
@@ -4783,6 +4856,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (this.appIsFocused) {
+      this.repositoryIndicatorUpdater.resume()
       if (this.selectedRepository instanceof Repository) {
         this.startPullRequestUpdater(this.selectedRepository)
         // if we're in the tutorial and we don't have an editor yet, check for one!
@@ -4791,6 +4865,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         }
       }
     } else {
+      this.repositoryIndicatorUpdater.pause()
       this.stopPullRequestUpdater()
     }
   }
@@ -5370,67 +5445,38 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _checkoutPullRequest(
-    repository: Repository,
-    pullRequest: PullRequest
+    repository: RepositoryWithGitHubRepository,
+    prNumber: number,
+    ownerLogin: string,
+    headCloneUrl: string,
+    headRefName: string
   ): Promise<void> {
-    const gitHubRepository = forceUnwrap(
-      `Cannot checkout a PR if the repository doesn't have a GitHub repository`,
-      repository.gitHubRepository
+    const branch = await this._getPullRequestHeadBranchInRepo(
+      repository,
+      headCloneUrl,
+      headRefName
     )
-    const head = pullRequest.head
-    const isRefInThisRepo =
-      head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
 
-    if (isRefInThisRepo) {
-      const gitStore = this.gitStoreCache.get(repository)
-      const defaultRemote = gitStore.defaultRemote
-      // if we don't have a default remote here, it's probably going
-      // to just crash and burn on checkout, but that's okay
-      if (defaultRemote != null) {
-        // the remote ref will be something like `origin/my-cool-branch`
-        const remoteRef = `${defaultRemote.name}/${head.ref}`
-
-        const remoteRefExists =
-          gitStore.allBranches.find(branch => branch.name === remoteRef) != null
-
-        // only try a fetch here if we can't find the ref
-        if (!remoteRefExists) {
-          await this._fetchRemote(
-            repository,
-            defaultRemote,
-            FetchType.UserInitiatedTask
-          )
-        }
-      }
-      const branch = this.getLocalBranch(repository, head.ref)
-
-      // N.B: This looks weird, and it is. _checkoutBranch used
-      // to behave this way (silently ignoring checkout) when given
-      // a branch name string that does not correspond to a local branch
-      // in the git store. When rewriting _checkoutBranch
-      // to remove the support for string branch names the behavior
-      // was moved up to this method to not alter the current behavior.
-      //
-      // https://youtu.be/IjmtVKOAHPM
-      if (branch !== null) {
-        await this._checkoutBranch(repository, branch)
-      }
+    // N.B: This looks weird, and it is. _checkoutBranch used
+    // to behave this way (silently ignoring checkout) when given
+    // a branch name string that does not correspond to a local branch
+    // in the git store. When rewriting _checkoutBranch
+    // to remove the support for string branch names the behavior
+    // was moved up to this method to not alter the current behavior.
+    //
+    // https://youtu.be/IjmtVKOAHPM
+    if (branch !== null) {
+      await this._checkoutBranch(repository, branch)
     } else {
-      const cloneURL = forceUnwrap(
-        "This pull request's clone URL is not populated but should be",
-        head.gitHubRepository.cloneURL
-      )
-      const remoteName = forkPullRequestRemoteName(
-        head.gitHubRepository.owner.login
-      )
+      const remoteName = forkPullRequestRemoteName(ownerLogin)
       const remotes = await getRemotes(repository)
       const remote =
         remotes.find(r => r.name === remoteName) ||
-        (await addRemote(repository, remoteName, cloneURL))
+        (await addRemote(repository, remoteName, headCloneUrl))
 
-      if (remote.url !== cloneURL) {
+      if (remote.url !== headCloneUrl) {
         const error = new Error(
-          `Expected PR remote ${remoteName} url to be ${cloneURL} got ${remote.url}.`
+          `Expected PR remote ${remoteName} url to be ${headCloneUrl} got ${remote.url}.`
         )
 
         log.error(error.message)
@@ -5439,14 +5485,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       await this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
 
-      const localBranchName = `pr/${pullRequest.pullRequestNumber}`
+      const localBranchName = `pr/${prNumber}`
       const existingBranch = this.getLocalBranch(repository, localBranchName)
 
       if (existingBranch === null) {
         await this._createBranch(
           repository,
           localBranchName,
-          `${remoteName}/${head.ref}`
+          `${remoteName}/${headRefName}`
         )
       } else {
         await this._checkoutBranch(repository, existingBranch)
@@ -5454,6 +5500,77 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this.statsStore.recordPRBranchCheckout()
+  }
+
+  private async _getPullRequestHeadBranchInRepo(
+    repository: RepositoryWithGitHubRepository,
+    headCloneURL: string,
+    headRefName: string
+  ): Promise<Branch | null> {
+    const gitHubRepository = repository.gitHubRepository
+    const isRefInThisRepo = headCloneURL === gitHubRepository.cloneURL
+    const isRefInUpstream =
+      gitHubRepository.parent !== null &&
+      headCloneURL === gitHubRepository.parent.cloneURL
+
+    const gitStore = this.gitStoreCache.get(repository)
+
+    const findBranch = (name: string) =>
+      gitStore.allBranches.find(branch => branch.name === name) || null
+
+    // If we don't have a default remote here, it's probably going
+    // to just crash and burn on checkout, but that's okay
+    if (isRefInThisRepo) {
+      const defaultRemote = forceUnwrap(
+        `Unexpected state: repository without a default remote`,
+        gitStore.defaultRemote
+      )
+
+      // The remote ref will be something like `origin/my-cool-branch`
+      const remoteRef = `${defaultRemote.name}/${headRefName}`
+      const originBranch = findBranch(remoteRef)
+
+      if (originBranch !== null) {
+        return originBranch
+      }
+
+      // Fetch the remote and try finding the branch again
+      if (originBranch === null) {
+        await this._fetchRemote(
+          repository,
+          defaultRemote,
+          FetchType.UserInitiatedTask
+        )
+      }
+
+      return findBranch(remoteRef)
+    }
+
+    if (isRefInUpstream) {
+      // the remote ref will be something like `upstream/my-cool-branch`
+      const remoteRef = `${UpstreamRemoteName}/${headRefName}`
+      const branch = findBranch(remoteRef)
+
+      if (branch !== null) {
+        return branch
+      }
+
+      // Fetch the remote and try finding the branch again
+      const remotes = await getRemotes(repository)
+      const remoteUpstream = forceUnwrap(
+        'Cannot add the upstream repository as a remote of the current repository',
+        findUpstreamRemote(forceUnwrap('', gitHubRepository.parent), remotes)
+      )
+      await this._fetchRemote(
+        repository,
+        remoteUpstream,
+        FetchType.UserInitiatedTask
+      )
+
+      return findBranch(remoteRef)
+    }
+
+    return null
   }
 
   /**

@@ -5,6 +5,7 @@ export enum BannerType {
   MergeConflictsFound = 'MergeConflictsFound',
   SuccessfulRebase = 'SuccessfulRebase',
   RebaseConflictsFound = 'RebaseConflictsFound',
+  BranchAlreadyUpToDate = 'BranchAlreadyUpToDate',
 }
 
 export type Banner =
@@ -35,4 +36,11 @@ export type Banner =
       readonly targetBranch: string
       /** callback to run when user clicks on link in banner text */
       readonly onOpenDialog: () => void
+    }
+  | {
+      readonly type: BannerType.BranchAlreadyUpToDate
+      /** name of the branch that was merged into */
+      readonly ourBranch: string
+      /** name of the branch we merged into `ourBranch` */
+      readonly theirBranch?: string
     }

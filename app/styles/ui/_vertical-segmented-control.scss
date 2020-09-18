@@ -20,12 +20,6 @@ fieldset.vertical-segmented-control {
     list-style: none;
     padding: 0;
     margin: 0;
-    border-radius: var(--border-radius);
-
-    // Trick to make the border radius apply to the first
-    // and last elements in the control even when they have
-    // an opaque background.
-    overflow: hidden;
 
     li {
       padding: var(--spacing);
@@ -35,8 +29,15 @@ fieldset.vertical-segmented-control {
       border-top: var(--base-border);
       border-bottom: none;
 
+      &:first-child {
+        border-top-left-radius: var(--border-radius);
+        border-top-right-radius: var(--border-radius);
+      }
+
       &:last-child {
         border-bottom: var(--base-border);
+        border-bottom-left-radius: var(--border-radius);
+        border-bottom-right-radius: var(--border-radius);
       }
 
       &.selected {
@@ -73,6 +74,18 @@ fieldset.vertical-segmented-control {
 
       p {
         color: var(--text-secondary-color);
+      }
+    }
+
+    &:focus li {
+      &:first-child {
+        border-top-left-radius: var(--outlined-border-radius);
+        border-top-right-radius: var(--outlined-border-radius);
+      }
+
+      &:last-child {
+        border-bottom-left-radius: var(--outlined-border-radius);
+        border-bottom-right-radius: var(--outlined-border-radius);
       }
     }
   }

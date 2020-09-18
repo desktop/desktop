@@ -1,5 +1,54 @@
 {
   "releases": {
+    "2.5.6-beta1": [
+      "[Fixed] Don't update submodules when discarding files - #10469",
+      "[Fixed] Clicking on a branch in the compare branch list resets focus to the filter text box - #10485",
+      "[Fixed] Use UNIX line endings in WSL GitHub helper script - #10461",
+      "[Fixed] Differentiate between draft and regular PRs - #7170",
+      "[Improved] Allow renaming the default branch - #10415",
+      "[Improved] Show loading indicator when committing a merge - #10458",
+      "[Improved] Show confirmation that branch is already up to date when merging from default branch - #9095"
+    ],
+    "2.5.5": [
+      "[Fixed] Don't update submodules when discarding files - #10469",
+      "[Fixed] Clicking on a branch in the compare branch list resets focus to the filter text box - #10485"
+    ],
+    "2.5.5-beta1": [
+      "[Added] Show status of GitHub Action runs for pull requests - #9819. Thanks @Raul6469!",
+      "[Added] Add AspNet and Diff/Patch Syntax Highlights - #10410. Thanks @say25!",
+      "[Improved] Updated icons and border radiuses to align with GitHub.com - #10396, #10224"
+    ],
+    "2.5.4": [
+      "[Added] Suggest to stash changes when trying to do an operation that requires a clean working directory - #10053",
+      "[Added] Autocomplete users and issues from upstream repository when working in a fork - #10084",
+      "[Added] Add Alacritty shell support - #10243. Thanks @halitogunc!",
+      "[Fixed] Correct branch name in commit button when on an unborn branch - #10318",
+      "[Fixed] Fix \"Show in Explorer\" in Windows when there are other files with the same name as the project folder - #10195",
+      "[Fixed] Open the repository folder when clicking on \"Show in Finder\" in macOS - #9987",
+      "[Fixed] Don't expand paths in the PATH environment variable during installation - #10100",
+      "[Fixed] Prevent multiple search inputs from appearing in diffs - #9563",
+      "[Fixed] Unable to toggle lines for partial commit of very large text files - #10154",
+      "[Fixed] Fix BBEdit integration - #9050. Thanks @grumpybozo!",
+      "[Fixed] Fix VoiceOver navigation to re-enter application content in macOS - #10303",
+      "[Fixed] Repositories with historical commits containing filenames with backslashes can now be cloned on Windows - #9904",
+      "[Fixed] Valid gitignore files are now created for new Clojure, Fortran and Kotlin repositories in Windows - #10417",
+      "[Improved] Enable discarding submodule working directory changes - #8218",
+      "[Improved] Surface progress estimation when cloning LFS repositories - #3171. Thanks @AndreiMaga!",
+      "[Improved] Performance and accuracy improvement when autocompleting issues and users - #10168",
+      "[Improved] Show only one error dialog when dragging multiple invalid folders to Desktop - #10211",
+      "[Improved] Pull request list is now keyboard accessible - #10334",
+      "[Improved] On Windows the Home and End keys can now be used to navigate lists - #6295. Thanks @AndreiMaga!",
+      "[Improved] Show progress spinner while waiting for a removed repository to get moved to trash (Windows) - #10133",
+      "[Improved] Dialogs now clear filter text boxes on Escape and closes on double Escape - #6369. Thanks @AndreiMaga!",
+      "[Improved] Display the selected changes count in the changes list header tooltip - #9936. Thanks @haykam821!"
+    ],
+    "2.5.4-beta4": [
+      "[Added] Support for specifying the default branch for new repositories - #10262",
+      "[Improved] Enable discarding submodule working directory changes - #8218",
+      "[Improved] Fix label alignment in radio-button component styles - #10397",
+      "[Improved] Custom icon in list filter text boxes - #10394",
+      "[Removed] Disable spellchecking for the time being - #10398"
+    ],
     "2.5.4-beta3": [
       "[Added] Add Alacritty shell support - #10243. Thanks @halitogunc!"
     ],

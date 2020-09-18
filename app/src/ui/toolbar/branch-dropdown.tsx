@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Dispatcher } from '../dispatcher'
-import { OcticonSymbol } from '../octicons'
+import { OcticonSymbol, syncClockwise } from '../octicons'
 import { Repository } from '../../models/repository'
 import { TipState } from '../../models/tip'
 import { ToolbarDropdown, DropdownState } from './dropdown'
@@ -146,7 +146,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       }
 
       progressValue = checkoutProgress.value
-      icon = OcticonSymbol.sync
+      icon = syncClockwise
       iconClassName = 'spin'
       canOpen = false
     } else if (conflictState !== null && isRebaseConflictState(conflictState)) {
