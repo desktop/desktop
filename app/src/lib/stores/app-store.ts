@@ -2867,6 +2867,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const existing = lookup.get(repository.id)
       lookup.set(repository.id, {
         aheadBehind: aheadBehind,
+        // We don't need to update changedFilesCount here since it was already
+        // set when calling `updateSidebarIndicator()` with the status object.
         changedFilesCount: existing?.changedFilesCount ?? 0,
       })
       this.emitUpdate()

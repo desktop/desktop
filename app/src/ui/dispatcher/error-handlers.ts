@@ -20,6 +20,7 @@ import { getDotComAPIEndpoint } from '../../lib/api'
 import { hasWritePermission } from '../../models/github-repository'
 import { enableCreateForkFlow } from '../../lib/feature-flag'
 import { RetryActionType } from '../../models/retry-actions'
+import { parseFilesToBeOverwritten } from '../lib/parse-files-to-be-overwritten'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -668,10 +669,13 @@ export async function localChangesOverwrittenHandler(
     return error
   }
 
+  const files = parseFilesToBeOverwritten(gitError.result.stderr)
+
   dispatcher.showPopup({
     type: PopupType.LocalChangesOverwritten,
     repository,
     retryAction: e.metadata.retryAction,
+    files,
   })
 
   return null
