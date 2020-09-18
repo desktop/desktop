@@ -5504,7 +5504,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitStore = this.gitStoreCache.get(repository)
 
     // Find a remote branch matching the given name or a local branch
-    // whose upstream tracking branch matches the given name (i.e someon
+    // whose upstream tracking branch matches the given name (i.e someone
     // has already checked out the remote branch)
     const findBranch = (name: string) =>
       gitStore.allBranches.find(branch =>
