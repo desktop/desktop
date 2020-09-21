@@ -140,8 +140,6 @@ export class RepositoryIndicatorUpdater {
 
   public pause() {
     if (this.paused === false) {
-      log.debug('[RepositoryIndicatorUpdater] Pausing')
-
       // Disable the lint warning since we're storing the `resolve`
       // tslint:disable-next-line:promise-must-complete
       this.pausePromise = new Promise<void>(resolve => {
@@ -154,8 +152,6 @@ export class RepositoryIndicatorUpdater {
 
   public resume() {
     if (this.paused) {
-      log.debug('[RepositoryIndicatorUpdater] Resuming')
-
       if (this.resolvePausePromise !== null) {
         this.resolvePausePromise()
         this.resolvePausePromise = null

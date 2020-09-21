@@ -3,5 +3,6 @@ export enum PreferencesTab {
   Integrations = 1,
   Git = 2,
   Appearance = 3,
-  Advanced = 4,
+  Prompts = 4,
+  Advanced = 5,
 }
