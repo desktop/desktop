@@ -242,9 +242,9 @@ const defaultEditorOptions: IEditorConfigurationExtra = {
     // custom search UI.
     [__DARWIN__ ? 'Cmd-F' : 'Ctrl-F']: showSearch,
     // Disable all other search-related shortcuts so that they
-    // don't interfer with global app shortcuts.
     [__DARWIN__ ? 'Cmd-G' : 'Ctrl-G']: false, // findNext
     [__DARWIN__ ? 'Shift-Cmd-G' : 'Shift-Ctrl-G']: false, // findPrev
+    // don't interfere with global app shortcuts.
     [__DARWIN__ ? 'Cmd-Alt-F' : 'Shift-Ctrl-F']: false, // replace
     [__DARWIN__ ? 'Shift-Cmd-Alt-F' : 'Shift-Ctrl-R']: false, // replaceAll
     Down: scrollEditorVertically(1, 'line'),
@@ -756,7 +756,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
    * When we swap in a new document that happens to have the exact same number
    * of lines as the previous document and where neither of those document
    * needs scrolling (i.e the document doesn't extend beyond the visible area
-   * of the editor) we techincally never update the viewport as far as CodeMirror
+   * of the editor) we technically never update the viewport as far as CodeMirror
    * is concerned, meaning that we don't get a chance to update our gutters.
    *
    * By subscribing to the event that happens immediately after the document
