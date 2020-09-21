@@ -27,7 +27,7 @@
   :invalid {
     border-color: var(--error-color);
   }
-  
+
   input {
     @include textboxish;
     @include textboxish-disabled;
