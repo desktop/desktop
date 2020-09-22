@@ -242,9 +242,9 @@ const defaultEditorOptions: IEditorConfigurationExtra = {
     // custom search UI.
     [__DARWIN__ ? 'Cmd-F' : 'Ctrl-F']: showSearch,
     // Disable all other search-related shortcuts so that they
+    // don't interfere with global app shortcuts.
     [__DARWIN__ ? 'Cmd-G' : 'Ctrl-G']: false, // findNext
     [__DARWIN__ ? 'Shift-Cmd-G' : 'Shift-Ctrl-G']: false, // findPrev
-    // don't interfere with global app shortcuts.
     [__DARWIN__ ? 'Cmd-Alt-F' : 'Shift-Ctrl-F']: false, // replace
     [__DARWIN__ ? 'Shift-Cmd-Alt-F' : 'Shift-Ctrl-R']: false, // replaceAll
     Down: scrollEditorVertically(1, 'line'),
