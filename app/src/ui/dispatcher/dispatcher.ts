@@ -404,10 +404,10 @@ export class Dispatcher {
   ): Promise<void> {
     const { askForConfirmationOnForcePush } = this.appStore.getState()
 
-    const hasOverridenForcePushCheck =
+    const hasOverriddenForcePushCheck =
       options !== undefined && options.continueWithForcePush
 
-    if (askForConfirmationOnForcePush && !hasOverridenForcePushCheck) {
+    if (askForConfirmationOnForcePush && !hasOverriddenForcePushCheck) {
       const showWarning = await this.warnAboutRemoteCommits(
         repository,
         baseBranch,
@@ -774,7 +774,7 @@ export class Dispatcher {
   }
 
   /**
-   * Set the divering branch notification nudge's visibility
+   * Set the diverging branch notification nudge's visibility
    */
   public setDivergingBranchNudgeVisibility(
     repository: Repository,
@@ -786,7 +786,7 @@ export class Dispatcher {
   }
 
   /**
-   * Hide the divering branch notification banner
+   * Hide the diverging branch notification banner
    */
   public dismissDivergingBranchBanner(repository: Repository) {
     return this.appStore._updateDivergingBranchBannerState(repository, {
@@ -1082,7 +1082,7 @@ export class Dispatcher {
   }
 
   /**
-   * Continue with the rebase after the user has resovled all conflicts with
+   * Continue with the rebase after the user has resolved all conflicts with
    * tracked files in the working directory.
    */
   public async continueRebase(
@@ -1466,7 +1466,7 @@ export class Dispatcher {
   public async showCreateForkDialog(
     repository: RepositoryWithGitHubRepository
   ): Promise<void> {
-    await this.appStore._showCreateforkDialog(repository)
+    await this.appStore._showCreateForkDialog(repository)
   }
 
   /**
