@@ -5551,8 +5551,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       remote = gitStore.upstreamRemote
     }
 
-    // If we don't have a remote here, it's probably going
-    // to just crash and burn on checkout, but that's okay
     if (remote !== null) {
       return this.findPullRequestHeadInRemote(repository, remote, headRefName)
     }
