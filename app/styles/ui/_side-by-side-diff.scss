@@ -33,11 +33,14 @@
     flex-grow: 1;
     height: 100%;
     width: 100%;
-    border-bottom: 1px solid var(--diff-border-color);
     font-family: var(--font-family-monospace);
     font-size: var(--font-size-sm);
     color: var(--diff-text-color);
     background: var(--background-color);
+  }
+
+  .ReactVirtualized__Grid__innerScrollContainer {
+    border-bottom: 1px solid var(--diff-border-color);
   }
 
   span,
