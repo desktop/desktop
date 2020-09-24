@@ -851,7 +851,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (state.selection.kind === ChangesSelectionKind.Stash) {
         if (state.stashEntry !== null) {
           if (stashEntry === null) {
-            // We're showing a stash now and the stash entry has just dissapeared
+            // We're showing a stash now and the stash entry has just disappeared
             // so we need to switch back over to the working directory.
             selectWorkingDirectory = true
           } else if (state.stashEntry.stashSha !== stashEntry.stashSha) {
@@ -1499,7 +1499,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<Repository | null> {
     const previouslySelectedRepository = this.selectedRepository
 
-    // do this quick check to see if we have a tutorial respository
+    // do this quick check to see if we have a tutorial repository
     // cause if its not we can quickly hide the tutorial pane
     // in the first `emitUpdate` below
     const previouslyInTutorial =
@@ -3272,7 +3272,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return repository
   }
 
-  // Depending on the UncommittedChangesStrategy and the state of the uncomitted
+  // Depending on the UncommittedChangesStrategy and the state of the uncommitted
   // changes there could be a stash to pop after checking out a branch. This method
   // handles retrieving or creating the stash so it can be popped after the checkout
   // is complete.
@@ -5003,7 +5003,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * set up to track it. Given that tutorial repositories are created
    * from the no-repositories blank slate it shouldn't be possible for
    * another repository with the same path to exist in the repositories
-   * table but in case that hanges in the future this method will set
+   * table but in case that hangs in the future this method will set
    * the tutorial flag on the existing repository at the given path.
    */
   public async _addTutorialRepository(
@@ -5681,7 +5681,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (this.resolvedExternalEditor !== resolvedExternalEditor) {
       this.resolvedExternalEditor = resolvedExternalEditor
 
-      // Make sure we let the tutorial assesor know that we have a new editor
+      // Make sure we let the tutorial assessor know that we have a new editor
       // in case it's stuck waiting for one to be selected.
       if (this.currentOnboardingTutorialStep === TutorialStep.PickEditor) {
         if (this.selectedRepository instanceof Repository) {
@@ -5865,7 +5865,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this.currentBranchPruner.testPrune()
   }
 
-  public async _showCreateforkDialog(
+  public async _showCreateForkDialog(
     repository: RepositoryWithGitHubRepository
   ) {
     const account = getAccountForRepository(this.accounts, repository)

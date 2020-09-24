@@ -1,5 +1,18 @@
 {
   "releases": {
+    "2.5.6-beta2": [
+      "[New] Newly created repositories use 'main' as the default branch name - #10527",
+      "[New] Users can configure the default branch name in Preferences/Options - #10527",
+      "[Added] Periodic background fetch and status updates can now be disabled in the Advanced section of Preferences/Options - #10593",
+      "[Fixed] Update rebase progress parser to parse output from the merge rebase backend - #10590",
+      "[Fixed] Checking out a PR attempts to locate an existing branch tracking the PR base branch - #10598",
+      "[Fixed] Only show full screen toast notification when making the app window full-screen. Thanks @Sam-Spencer - #7916",
+      "[Fixed] Ensure application window doesn't overlap second monitor - #10267",
+      "[Improved] Show which files are blocking a merge-like operation - #10441",
+      "[Improved] After failing to move a repository to Trash, show error and keep the repository listed in Desktop - #8333",
+      "[Improved] Allow using Enter key to confirm in rebase and merge dialogs - #10511",
+      "[Removed] Remove setting to disable all certificate validation in favor of new best-effort approach - #10581"
+    ],
     "2.5.6-beta1": [
       "[Fixed] Don't update submodules when discarding files - #10469",
       "[Fixed] Clicking on a branch in the compare branch list resets focus to the filter text box - #10485",

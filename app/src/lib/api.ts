@@ -12,6 +12,7 @@ import {
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
 import username from 'username'
+import { GitProtocol } from './remote-parsing'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
 
@@ -570,6 +571,38 @@ export class API {
       log.warn(`fetchRepository: an error occurred for '${owner}/${name}'`, e)
       return null
     }
+  }
+
+  /**
+   * Fetch the canonical clone URL for a repository, respecting the protocol
+   * preference if provided.
+   *
+   * Returns null if the request returned a 404 (NotFound). NotFound doesn't
+   * necessarily mean that the repository doesn't exist, it could exist and
+   * the current user just doesn't have the permissions to see it. GitHub.com
+   * doesn't differentiate between not found and permission denied for private
+   * repositories as that would leak the existence of a private repository.
+   *
+   * Note that unlike `fetchRepository` this method will throw for all errors
+   * except 404 NotFound responses.
+   *
+   * @param owner    The repository owner (nodejs in https://github.com/nodejs/node)
+   * @param name     The repository name (node in https://github.com/nodejs/node)
+   * @param protocol The preferred Git protocol (https or ssh)
+   */
+  public async fetchRepositoryCloneUrl(
+    owner: string,
+    name: string,
+    protocol: GitProtocol | undefined
+  ): Promise<string | null> {
+    const response = await this.request('GET', `repos/${owner}/${name}`)
+
+    if (response.status === HttpStatusCode.NotFound) {
+      return null
+    }
+
+    const repo = await parsedResponse<IAPIRepository>(response)
+    return protocol === 'ssh' ? repo.ssh_url : repo.clone_url
   }
 
   /** Fetch all repos a user has access to. */
