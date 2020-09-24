@@ -142,6 +142,7 @@
   .diff-line-number {
     width: 50%;
     padding: 0 var(--spacing-half);
+    font-size: var(--font-size-sm);
   }
 
   &.diff-add,
