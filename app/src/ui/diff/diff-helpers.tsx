@@ -31,27 +31,34 @@ export interface IDiffRowData {
    * The actual contents of the diff line.
    */
   readonly content: string
+
   /**
    * The line number on the source file.
    */
   readonly lineNumber: number
+
   /**
    * The line number on the diff.
    * This is used for discarding lines
    * and for partial committing lines.
    */
   readonly diffLineNumber: number
+
   /**
    * Flag to display that this diff line lacks a new line.
    * This is used to display when a newline is
    * added or removed to the last line of a file.
    */
   readonly noNewLineIndicator: boolean
+
   /**
    * Whether the diff line has been selected for partial committing.
    */
   readonly isSelected: boolean
 
+  /**
+   * Array of tokens to do syntax highlighting on the diff line.
+   */
   readonly tokens: ReadonlyArray<ILineTokens>
 }
 
@@ -60,10 +67,12 @@ export interface IDiffRowData {
  */
 interface IDiffRowAdded {
   readonly type: DiffRowType.Added
+
   /**
    * The data object contains information about that added line in the diff.
    */
   readonly data: IDiffRowData
+
   /**
    * The start line of the hunk where this line belongs in the diff.
    *
@@ -79,10 +88,12 @@ interface IDiffRowAdded {
  */
 interface IDiffRowDeleted {
   readonly type: DiffRowType.Deleted
+
   /**
    * The data object contains information about that deleted line in the diff.
    */
   readonly data: IDiffRowData
+
   /**
    * The start line of the hunk where this line belongs in the diff.
    *
@@ -99,14 +110,17 @@ interface IDiffRowDeleted {
  */
 interface IDiffRowModified {
   readonly type: DiffRowType.Modified
+
   /**
    * The beforeData object contains information about the deleted line in the diff.
    */
   readonly beforeData: IDiffRowData
+
   /**
    * The beforeData object contains information about the added line in the diff.
    */
   readonly afterData: IDiffRowData
+
   /**
    * The start line of the hunk where this line belongs in the diff.
    *
@@ -123,24 +137,31 @@ interface IDiffRowModified {
  */
 interface IDiffRowContext {
   readonly type: DiffRowType.Context
+
   /**
    * The actual contents of the contextual line.
    */
   readonly content: string
+
   /**
    * The line number of this row in the previous state source file.
    */
   readonly beforeLineNumber: number
+
   /**
    * The line number of this row in the next state source file.
    */
   readonly afterLineNumber: number
 
-  // TODO: It would be more resiliant to use here afterLineNumber
-  // and afterTokens, since the syntax highlighting depends on
-  // previous lines. That's currently not possible because an
-  // optimization done in getLineFilters() that avoids calculating
-  // the syntax highlighting of the after state of context lines.
+  /**
+   * Tokens to use to syntax highlight the contents of the line.
+   *
+   * TODO: It would be more resiliant to have separate tokens for the
+   * before version and the after one, since the syntax highlighting
+   * depends on previous lines. That's currently not possible because an
+   * optimization done in getLineFilters() that avoids calculating
+   * the syntax highlighting of the after state of context lines.
+   */
   readonly tokens: ReadonlyArray<ILineTokens>
 }
 
