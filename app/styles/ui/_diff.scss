@@ -146,6 +146,15 @@
     font-size: var(--font-size-sm);
     color: var(--diff-line-number-color);
     text-align: right;
+
+    // We want the line numbers to be aligned towards the top
+    // of the cell in case the diff line is wrapped but we also
+    // want the line number to align vertically centered with the
+    // diff line text on non-wrapped lines so we set the line height
+    // to the same height as a diff line. Note that this needs to
+    // be adjusted if the line height of a diff row changes due to
+    // font size changes or other.
+    line-height: 22px;
   }
 
   &.diff-add,
