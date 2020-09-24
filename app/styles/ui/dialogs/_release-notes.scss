@@ -42,13 +42,13 @@
       }
 
       .version {
-        font-size: 14px;
+        font-size: var(--font-size-md);
         font-weight: var(--font-weight-semibold);
         margin-bottom: 0;
       }
 
       .date {
-        font-size: 11px;
+        font-size: var(--font-size-sm);
         color: var(--text-secondary-color);
       }
     }
@@ -92,7 +92,7 @@
       .section {
         margin: var(--spacing-double) 0;
         .header {
-          font-size: 12px;
+          font-size: var(--font-size);
           font-weight: var(--font-weight-semibold);
         }
       }
