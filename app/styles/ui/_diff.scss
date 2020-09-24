@@ -140,9 +140,12 @@
   }
 
   .diff-line-number {
+    display: inline-block;
     width: 50%;
     padding: 0 var(--spacing-half);
     font-size: var(--font-size-sm);
+    color: var(--diff-line-number-color);
+    text-align: right;
   }
 
   &.diff-add,
@@ -155,12 +158,6 @@
   &.read-only .after {
     border-right-width: 1px;
   }
-}
-
-.diff-line-number {
-  display: inline-block;
-  color: var(--diff-line-number-color);
-  text-align: right;
 }
 
 .CodeMirror-linebackground {
