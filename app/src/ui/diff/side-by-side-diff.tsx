@@ -12,7 +12,7 @@ import {
   getFileContents,
   highlightContents,
 } from './syntax-highlighting'
-import { ITokens } from '../../lib/highlighter/types'
+import { ITokens, ILineTokens } from '../../lib/highlighter/types'
 import {
   assertNever,
   assertNonNullable,
@@ -35,10 +35,13 @@ import {
   DiffRowType,
   IDiffRowData,
   canSelect,
+  getDiffTokens,
 } from './diff-helpers'
 import { showContextualMenu } from '../main-process-proxy'
+import { getTokens } from './diff-syntax-mode'
 
 const DefaultRowHeight = 20
+const MaxLineLengthToCalculateDiff = 240
 
 export interface ISelection {
   readonly from: number
@@ -178,7 +181,9 @@ export class SideBySideDiff extends React.Component<
                   getDiffRows(
                     this.props.diff,
                     this.getSelection(),
-                    this.state.temporarySelection
+                    this.state.temporarySelection,
+                    this.state.beforeTokens,
+                    this.state.afterTokens
                   ).length
                 }
                 rowHeight={this.getRowHeight}
@@ -204,7 +209,9 @@ export class SideBySideDiff extends React.Component<
     const rows = getDiffRows(
       this.props.diff,
       this.getSelection(),
-      this.state.temporarySelection
+      this.state.temporarySelection,
+      this.state.beforeTokens,
+      this.state.afterTokens
     )
     const row = rows[index]
 
@@ -227,8 +234,6 @@ export class SideBySideDiff extends React.Component<
         <div key={key} style={style}>
           <SideBySideDiffRow
             row={row}
-            beforeTokens={this.state.beforeTokens}
-            afterTokens={this.state.afterTokens}
             isDiffSelectable={canSelect(this.props.file)}
             isHunkHovered={isHunkHovered}
             onStartSelection={this.onStartSelection}
@@ -503,12 +508,20 @@ function highlightParametersEqual(
 const getDiffRows = memoize(function (
   diff: ITextDiff,
   selection?: DiffSelection,
-  temporarySelection?: ISelection
+  temporarySelection?: ISelection,
+  beforeTokens?: ITokens,
+  afterTokens?: ITokens
 ): DiffRow[] {
   const outputRows: DiffRow[] = []
 
   for (const hunk of diff.hunks) {
-    const rows = getDiffRowsFromHunk(hunk, selection, temporarySelection)
+    const rows = getDiffRowsFromHunk(
+      hunk,
+      selection,
+      temporarySelection,
+      beforeTokens,
+      afterTokens
+    )
 
     for (const row of rows) {
       outputRows.push(row)
@@ -526,7 +539,7 @@ const getDiffRows = memoize(function (
  * modified row, in order to display them side by side (This happens when there
  * are consecutive added and deleted rows).
  *
- * @param hunk                  The hunk to use to extract the rows data
+ * @param hunk                The hunk to use to extract the rows data
  * @param selection           The currently active selection
  *                            (undefined when displaying non-selectable diffs).
  * @param temporarySelection  The in-progress selection that's happening while
@@ -536,7 +549,9 @@ const getDiffRows = memoize(function (
 function getDiffRowsFromHunk(
   hunk: DiffHunk,
   selection?: DiffSelection,
-  temporarySelection?: ISelection
+  temporarySelection?: ISelection,
+  beforeTokens?: ITokens,
+  afterTokens?: ITokens
 ): DiffRow[] {
   const rows: DiffRow[] = []
 
@@ -564,7 +579,9 @@ function getDiffRowsFromHunk(
       const modifiedRows = getModifiedRows(
         modifiedLines,
         selection,
-        temporarySelection
+        temporarySelection,
+        beforeTokens,
+        afterTokens
       )
       for (const row of modifiedRows) {
         rows.push(row)
@@ -591,11 +608,14 @@ function getDiffRowsFromHunk(
         `Expecting newLineNumber value for ${line}`
       )
 
+      const tokens = getTokens(line.newLineNumber, afterTokens)
+
       rows.push({
         type: DiffRowType.Context,
         content: line.content,
         beforeLineNumber: line.oldLineNumber,
         afterLineNumber: line.newLineNumber,
+        tokens: tokens ? [tokens] : [],
       })
       continue
     }
@@ -624,7 +644,9 @@ function getModifiedRows(
     diffLineNumber: number
   }>,
   selection?: DiffSelection,
-  temporarySelection?: ISelection
+  temporarySelection?: ISelection,
+  beforeTokens?: ITokens,
+  afterTokens?: ITokens
 ): ReadonlyArray<DiffRow> {
   if (addedDeletedLines.length === 0) {
     return []
@@ -644,6 +666,28 @@ function getModifiedRows(
 
   const output: Array<DiffRow> = []
 
+  const diffTokensBefore: Array<ILineTokens | undefined> = []
+  const diffTokensAfter: Array<ILineTokens | undefined> = []
+
+  if (shouldDisplayDiffInChunk) {
+    for (let i = 0; i < deletedLines.length; i++) {
+      const addedLine = addedLines[i]
+      const deletedLine = deletedLines[i]
+
+      if (
+        addedLine.line.content.length < MaxLineLengthToCalculateDiff &&
+        deletedLine.line.content.length < MaxLineLengthToCalculateDiff
+      ) {
+        const { before, after } = getDiffTokens(
+          deletedLine.line.content,
+          addedLine.line.content
+        )
+        diffTokensBefore[i] = before
+        diffTokensAfter[i] = after
+      }
+    }
+  }
+
   while (addedLines.length > 0 && deletedLines.length > 0) {
     const addedLine = forceUnwrap('Unexpected null line', addedLines.shift())
     const deletedLine = forceUnwrap(
@@ -658,18 +702,22 @@ function getModifiedRows(
         deletedLine,
         'oldLineNumber',
         selection,
-        temporarySelection
+        temporarySelection,
+        beforeTokens,
+        diffTokensBefore.shift()
       ),
       afterData: getDataFromLine(
         addedLine,
         'newLineNumber',
         selection,
-        temporarySelection
+        temporarySelection,
+        afterTokens,
+        diffTokensAfter.shift()
       ),
       hunkStartLine,
-      displayDiffTokens: shouldDisplayDiffInChunk,
     })
   }
+
   while (deletedLines.length > 0) {
     const line = forceUnwrap('Unexpected null line', deletedLines.shift())
 
@@ -679,7 +727,9 @@ function getModifiedRows(
         line,
         'oldLineNumber',
         selection,
-        temporarySelection
+        temporarySelection,
+        beforeTokens,
+        diffTokensBefore.shift()
       ),
       hunkStartLine,
     })
@@ -694,7 +744,9 @@ function getModifiedRows(
         line,
         'newLineNumber',
         selection,
-        temporarySelection
+        temporarySelection,
+        afterTokens,
+        diffTokensAfter.shift()
       ),
       hunkStartLine,
     })
@@ -707,17 +759,32 @@ function getDataFromLine(
   { line, diffLineNumber }: { line: DiffLine; diffLineNumber: number },
   lineToUse: 'oldLineNumber' | 'newLineNumber',
   selection?: DiffSelection,
-  temporarySelection?: ISelection
+  temporarySelection?: ISelection,
+  syntaxTokens?: ITokens,
+  diffTokens?: ILineTokens
 ): IDiffRowData {
+  const lineNumber = forceUnwrap(
+    `Expecting ${lineToUse} value for ${line}`,
+    line[lineToUse]
+  )
+
+  const tokens = []
+
+  const lineTokens = getTokens(lineNumber, syntaxTokens)
+  if (lineTokens !== null) {
+    tokens.push(lineTokens)
+  }
+  if (diffTokens !== undefined) {
+    tokens.push(diffTokens)
+  }
+
   return {
     content: line.content,
-    lineNumber: forceUnwrap(
-      `Expecting ${lineToUse} value for ${line}`,
-      line[lineToUse]
-    ),
+    lineNumber,
     diffLineNumber,
     isSelected: isInSelection(diffLineNumber, selection, temporarySelection),
     noNewLineIndicator: line.noTrailingNewLine,
+    tokens,
   }
 }
 

@@ -1,36 +1,22 @@
 import * as React from 'react'
 
-import { getTokens } from './diff-syntax-mode'
 import {
-  getDiffTokens,
   syntaxHighlightLine,
   DiffRow,
   DiffRowType,
   IDiffRowData,
 } from './diff-helpers'
-import { ITokens, ILineTokens } from '../../lib/highlighter/types'
+import { ILineTokens } from '../../lib/highlighter/types'
 import classNames from 'classnames'
 import { Octicon } from '../octicons'
 import { narrowNoNewlineSymbol } from './text-diff'
 import { shallowEquals, structuralEquals } from '../../lib/equality'
-
-const MaxLineLengthToCalculateDiff = 240
 
 interface ISideBySideDiffRowProps {
   /**
    * The row data. This contains most of the information used to render the row.
    */
   readonly row: DiffRow
-
-  /**
-   * Syntax highlight tokens for the previous state of the diff.
-   */
-  readonly beforeTokens?: ITokens
-
-  /**
-   * Syntax highlight tokens for the previous next of the diff.
-   */
-  readonly afterTokens?: ITokens
 
   /**
    * Whether the diff is selectable or read-only.
@@ -109,33 +95,20 @@ export class SideBySideDiffRow extends React.Component<
           </div>
         )
       case DiffRowType.Context:
-        const beforeTokens = getTokens(
-          row.beforeLineNumber,
-          this.props.beforeTokens
-        )
-        // TODO: It would be more resiliant to use here afterLineNumber
-        // and afterTokens, since the syntax highlighting depends on
-        // previous lines. That's currently not possible because an
-        // optimization done in getLineFilters() that avoids calculating
-        // the syntax highlighting of the after state of context lines.
-        const afterTokens = beforeTokens
-
         return (
           <div className="row context">
             <div className="before">
               {this.renderLineNumber(row.beforeLineNumber)}
-              {this.renderContentFromString(row.content, beforeTokens)}
+              {this.renderContentFromString(row.content, row.tokens)}
             </div>
             <div className="after">
               {this.renderLineNumber(row.afterLineNumber)}
-              {this.renderContentFromString(row.content, afterTokens)}
+              {this.renderContentFromString(row.content, row.tokens)}
             </div>
           </div>
         )
 
       case DiffRowType.Added: {
-        const tokens = getTokens(row.data.lineNumber, this.props.afterTokens)
-
         return (
           <div className="row added" onMouseEnter={this.onMouseEnterLineNumber}>
             <div className="before">
@@ -145,14 +118,12 @@ export class SideBySideDiffRow extends React.Component<
             {this.renderHunkHandle()}
             <div className="after">
               {this.renderLineNumber(row.data.lineNumber, row.data.isSelected)}
-              {this.renderContent(row.data, tokens)}
+              {this.renderContent(row.data)}
             </div>
           </div>
         )
       }
       case DiffRowType.Deleted: {
-        const tokens = getTokens(row.data.lineNumber, this.props.beforeTokens)
-
         return (
           <div
             className="row deleted"
@@ -160,7 +131,7 @@ export class SideBySideDiffRow extends React.Component<
           >
             <div className="before">
               {this.renderLineNumber(row.data.lineNumber, row.data.isSelected)}
-              {this.renderContent(row.data, tokens)}
+              {this.renderContent(row.data)}
             </div>
             {this.renderHunkHandle()}
             <div className="after">
@@ -171,22 +142,6 @@ export class SideBySideDiffRow extends React.Component<
         )
       }
       case DiffRowType.Modified: {
-        let diffTokensBefore: ILineTokens | null = null
-        let diffTokensAfter: ILineTokens | null = null
-
-        if (
-          row.displayDiffTokens &&
-          row.beforeData.content.length < MaxLineLengthToCalculateDiff &&
-          row.afterData.content.length < MaxLineLengthToCalculateDiff
-        ) {
-          const { before, after } = getDiffTokens(
-            row.beforeData.content,
-            row.afterData.content
-          )
-          diffTokensBefore = before
-          diffTokensAfter = after
-        }
-
         return (
           <div className="row modified">
             <div className="before" onMouseEnter={this.onMouseEnterLineNumber}>
@@ -194,11 +149,7 @@ export class SideBySideDiffRow extends React.Component<
                 row.beforeData.lineNumber,
                 row.beforeData.isSelected
               )}
-              {this.renderContent(
-                row.beforeData,
-                getTokens(row.beforeData.lineNumber, this.props.beforeTokens),
-                diffTokensBefore
-              )}
+              {this.renderContent(row.beforeData)}
             </div>
             {this.renderHunkHandle()}
             <div className="after" onMouseEnter={this.onMouseEnterLineNumber}>
@@ -206,11 +157,7 @@ export class SideBySideDiffRow extends React.Component<
                 row.afterData.lineNumber,
                 row.afterData.isSelected
               )}
-              {this.renderContent(
-                row.afterData,
-                getTokens(row.afterData.lineNumber, this.props.afterTokens),
-                diffTokensAfter
-              )}
+              {this.renderContent(row.afterData)}
             </div>
           </div>
         )
@@ -231,21 +178,21 @@ export class SideBySideDiffRow extends React.Component<
 
   private renderContentFromString(
     line: string,
-    ...tokensArray: ReadonlyArray<ILineTokens | null>
+    tokensArray: ReadonlyArray<ILineTokens> = []
   ) {
-    return this.renderContent(
-      { content: line, noNewLineIndicator: false },
-      ...tokensArray
-    )
+    return this.renderContent({
+      content: line,
+      noNewLineIndicator: false,
+      tokens: tokensArray,
+    })
   }
 
   private renderContent(
-    data: Pick<IDiffRowData, 'content' | 'noNewLineIndicator'>,
-    ...tokensArray: ReadonlyArray<ILineTokens | null>
+    data: Pick<IDiffRowData, 'content' | 'noNewLineIndicator' | 'tokens'>
   ) {
     return (
       <div className="content">
-        {syntaxHighlightLine(data.content, ...tokensArray)}
+        {syntaxHighlightLine(data.content, data.tokens)}
         {data.noNewLineIndicator && (
           <Octicon
             symbol={narrowNoNewlineSymbol}

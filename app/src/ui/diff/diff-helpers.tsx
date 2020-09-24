@@ -51,6 +51,8 @@ export interface IDiffRowData {
    * Whether the diff line has been selected for partial committing.
    */
   readonly isSelected: boolean
+
+  readonly tokens: ReadonlyArray<ILineTokens>
 }
 
 /**
@@ -106,11 +108,6 @@ interface IDiffRowModified {
    */
   readonly afterData: IDiffRowData
   /**
-   * Flag to indicate whether we can highlight the differences between the
-   * deleted and the added line as part of syntax highlighting.
-   */
-  readonly displayDiffTokens: boolean
-  /**
    * The start line of the hunk where this line belongs in the diff.
    *
    * In this context, a hunk is not exactly equivalent to a diff hunk, but
@@ -138,6 +135,13 @@ interface IDiffRowContext {
    * The line number of this row in the next state source file.
    */
   readonly afterLineNumber: number
+
+  // TODO: It would be more resiliant to use here afterLineNumber
+  // and afterTokens, since the syntax highlighting depends on
+  // previous lines. That's currently not possible because an
+  // optimization done in getLineFilters() that avoids calculating
+  // the syntax highlighting of the after state of context lines.
+  readonly tokens: ReadonlyArray<ILineTokens>
 }
 
 /**
@@ -210,7 +214,7 @@ export function getDiffTokens(
  */
 export function syntaxHighlightLine(
   line: string,
-  ...tokensArray: ReadonlyArray<ILineTokens | null>
+  tokensArray: ReadonlyArray<ILineTokens>
 ): JSX.Element {
   const elements = []
   let currentElement = {
@@ -229,7 +233,7 @@ export function syntaxHighlightLine(
     }
 
     for (const tokens of tokensArray) {
-      if (tokens !== null && tokens[i] !== undefined && tokens[i].length > 0) {
+      if (tokens[i] !== undefined && tokens[i].length > 0) {
         // ILineTokens can contain multiple tokens separated by spaces.
         // We split them to avoid creating unneeded HTML elements when
         // these tokens do not maintain the same order.
