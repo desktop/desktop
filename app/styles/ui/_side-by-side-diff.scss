@@ -15,6 +15,7 @@
     .row {
       .before {
         flex-direction: row-reverse;
+        border-right: none;
       }
     }
 
@@ -141,6 +142,7 @@
   .before {
     color: var(--diff-delete-text-color);
     background: var(--diff-delete-background-color);
+    border-right: 1px solid var(--diff-border-color);
 
     .line-number {
       background: var(--diff-delete-gutter-background-color);
