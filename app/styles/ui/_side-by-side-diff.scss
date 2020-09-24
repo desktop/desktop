@@ -109,6 +109,11 @@
       user-select: text;
     }
 
+    &:before {
+      content: ' ';
+      padding-right: var(--spacing);
+    }
+
     .octicon {
       height: 8px;
       fill: var(--error-color);
@@ -189,6 +194,20 @@
       .line-number {
         background: var(--diff-empty-row-gutter-background-color);
         border-color: transparent;
+      }
+    }
+
+    &.added,
+    &.modified {
+      .after .content:before {
+        content: '+';
+      }
+    }
+
+    &.deleted,
+    &.modified {
+      .before .content:before {
+        content: '-';
       }
     }
 
