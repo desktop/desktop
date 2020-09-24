@@ -504,13 +504,17 @@ function highlightParametersEqual(
  * @param temporarySelection  The in-progress selection that's happening while
  *                            the user drags their mouse to modify the active
  *                            selection.
+ * @param beforeTokens        Syntax highlighting tokens for the previous
+ *                            version of the file.
+ * @param afterTokens         Syntax highlighting tokens for the next version
+ *                            of the file.
  */
 const getDiffRows = memoize(function (
   diff: ITextDiff,
-  selection?: DiffSelection,
-  temporarySelection?: ISelection,
-  beforeTokens?: ITokens,
-  afterTokens?: ITokens
+  selection: DiffSelection | undefined,
+  temporarySelection: ISelection | undefined,
+  beforeTokens: ITokens | undefined,
+  afterTokens: ITokens | undefined
 ): DiffRow[] {
   const outputRows: DiffRow[] = []
 
@@ -545,13 +549,17 @@ const getDiffRows = memoize(function (
  * @param temporarySelection  The in-progress selection that's happening while
  *                            the user drags their mouse to modify the active
  *                            selection.
+ * @param beforeTokens        Syntax highlighting tokens for the previous
+ *                            version of the file.
+ * @param afterTokens         Syntax highlighting tokens for the next version
+ *                            of the file.
  */
 function getDiffRowsFromHunk(
   hunk: DiffHunk,
-  selection?: DiffSelection,
-  temporarySelection?: ISelection,
-  beforeTokens?: ITokens,
-  afterTokens?: ITokens
+  selection: DiffSelection | undefined,
+  temporarySelection: ISelection | undefined,
+  beforeTokens: ITokens | undefined,
+  afterTokens: ITokens | undefined
 ): DiffRow[] {
   const rows: DiffRow[] = []
 
@@ -608,7 +616,14 @@ function getDiffRowsFromHunk(
         `Expecting newLineNumber value for ${line}`
       )
 
-      const tokens = getTokens(line.newLineNumber, afterTokens)
+      let tokens = getTokens(line.oldLineNumber, beforeTokens)
+
+      // Because getLineFilters() sometimes only calculates syntax highlighting
+      // in one version of the file (depending in whether the diff has only additions
+      // or deletions) we need to check both the before and after tokens.
+      if (tokens === null) {
+        tokens = getTokens(line.newLineNumber, afterTokens)
+      }
 
       rows.push({
         type: DiffRowType.Context,
@@ -628,7 +643,9 @@ function getDiffRowsFromHunk(
     const modifiedRows = getModifiedRows(
       modifiedLines,
       selection,
-      temporarySelection
+      temporarySelection,
+      beforeTokens,
+      afterTokens
     )
     for (const row of modifiedRows) {
       rows.push(row)
@@ -643,10 +660,10 @@ function getModifiedRows(
     line: DiffLine
     diffLineNumber: number
   }>,
-  selection?: DiffSelection,
-  temporarySelection?: ISelection,
-  beforeTokens?: ITokens,
-  afterTokens?: ITokens
+  selection: DiffSelection | undefined,
+  temporarySelection: ISelection | undefined,
+  beforeTokens: ITokens | undefined,
+  afterTokens: ITokens | undefined
 ): ReadonlyArray<DiffRow> {
   if (addedDeletedLines.length === 0) {
     return []
@@ -660,14 +677,14 @@ function getModifiedRows(
     ({ line }) => line.type === DiffLineType.Delete
   )
 
-  // To match the behavior of github.com, we only highlight differences between
-  // lines on hunks that have the same number of added and deleted lines.
-  const shouldDisplayDiffInChunk = addedLines.length === deletedLines.length
-
   const output: Array<DiffRow> = []
 
   const diffTokensBefore: Array<ILineTokens | undefined> = []
   const diffTokensAfter: Array<ILineTokens | undefined> = []
+
+  // To match the behavior of github.com, we only highlight differences between
+  // lines on hunks that have the same number of added and deleted lines.
+  const shouldDisplayDiffInChunk = addedLines.length === deletedLines.length
 
   if (shouldDisplayDiffInChunk) {
     for (let i = 0; i < deletedLines.length; i++) {
@@ -758,10 +775,10 @@ function getModifiedRows(
 function getDataFromLine(
   { line, diffLineNumber }: { line: DiffLine; diffLineNumber: number },
   lineToUse: 'oldLineNumber' | 'newLineNumber',
-  selection?: DiffSelection,
-  temporarySelection?: ISelection,
-  syntaxTokens?: ITokens,
-  diffTokens?: ILineTokens
+  selection: DiffSelection | undefined,
+  temporarySelection: ISelection | undefined,
+  syntaxTokens: ITokens | undefined,
+  diffTokens: ILineTokens | undefined
 ): IDiffRowData {
   const lineNumber = forceUnwrap(
     `Expecting ${lineToUse} value for ${line}`,
@@ -790,8 +807,8 @@ function getDataFromLine(
 
 function isInSelection(
   diffLineNumber: number,
-  selection?: DiffSelection,
-  temporarySelection?: ISelection
+  selection: DiffSelection | undefined,
+  temporarySelection: ISelection | undefined
 ) {
   const isInStoredSelection = selection?.isSelected(diffLineNumber) || false
 
@@ -813,7 +830,7 @@ function isInSelection(
 
 export function isInTemporarySelection(
   lineNumber: number,
-  selection?: ISelection
+  selection: ISelection | undefined
 ): selection is ISelection {
   if (selection === undefined) {
     return false
