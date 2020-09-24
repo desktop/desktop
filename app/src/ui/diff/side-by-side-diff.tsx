@@ -78,6 +78,11 @@ interface ISideBySideDiffProps {
    * discards changes.
    */
   readonly askForConfirmationOnDiscardChanges?: boolean
+
+  /**
+   * Whether we'll show the diff in a side-by-side layour.
+   */
+  readonly showSideBySideDiff: boolean
 }
 
 interface ISideBySideDiffState {
@@ -163,7 +168,9 @@ export class SideBySideDiff extends React.Component<
         className={classNames([
           {
             'side-by-side-diff-container': true,
+            'unified-diff': !this.props.showSideBySideDiff,
             [`selecting-${this.state.selectingTextInRow}`]:
+              this.props.showSideBySideDiff &&
               this.state.selectingTextInRow !== undefined,
             editable: canSelect(this.props.file),
           },
@@ -180,6 +187,7 @@ export class SideBySideDiff extends React.Component<
                 rowCount={
                   getDiffRows(
                     this.props.diff,
+                    this.props.showSideBySideDiff,
                     this.getSelection(),
                     this.state.temporarySelection,
                     this.state.beforeTokens,
@@ -191,6 +199,7 @@ export class SideBySideDiff extends React.Component<
                 // The following properties are passed to the list
                 // to make sure that it gets re-rendered when any of
                 // them change.
+                showSideBySideDiff={this.props.showSideBySideDiff}
                 beforeTokens={this.state.beforeTokens}
                 afterTokens={this.state.afterTokens}
                 temporarySelection={this.state.temporarySelection}
@@ -208,6 +217,7 @@ export class SideBySideDiff extends React.Component<
   private renderRow = ({ index, parent, style, key }: ListRowProps) => {
     const rows = getDiffRows(
       this.props.diff,
+      this.props.showSideBySideDiff,
       this.getSelection(),
       this.state.temporarySelection,
       this.state.beforeTokens,
@@ -236,6 +246,7 @@ export class SideBySideDiff extends React.Component<
             row={row}
             isDiffSelectable={canSelect(this.props.file)}
             isHunkHovered={isHunkHovered}
+            showSideBySideDiff={this.props.showSideBySideDiff}
             onStartSelection={this.onStartSelection}
             onUpdateSelection={this.onUpdateSelection}
             onMouseEnterHunk={this.onMouseEnterHunk}
@@ -301,6 +312,10 @@ export class SideBySideDiff extends React.Component<
    * not being selected.
    */
   private onMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!this.props.showSideBySideDiff) {
+      return
+    }
+
     // We need to use the event target since the current target will
     // always point to the container.
     const target = event.target as HTMLDivElement
@@ -535,7 +550,8 @@ function highlightParametersEqual(
   return (
     newProps === prevProps ||
     (newProps.file.id === prevProps.file.id &&
-      newProps.diff.text === prevProps.diff.text)
+      newProps.diff.text === prevProps.diff.text &&
+      newProps.showSideBySideDiff === prevProps.showSideBySideDiff)
   )
 }
 
@@ -544,6 +560,7 @@ function highlightParametersEqual(
  * as a diff.
  *
  * @param diff                The diff to use to calculate the rows.
+ * @param showSideBySideDiff  Whether or not show the diff in side by side mode.
  * @param selection           The currently active selection
  *                            (undefined when displaying non-selectable diffs).
  * @param temporarySelection  The in-progress selection that's happening while
@@ -556,6 +573,7 @@ function highlightParametersEqual(
  */
 const getDiffRows = memoize(function (
   diff: ITextDiff,
+  showSideBySideDiff: boolean,
   selection: DiffSelection | undefined,
   temporarySelection: ISelection | undefined,
   beforeTokens: ITokens | undefined,
@@ -566,6 +584,7 @@ const getDiffRows = memoize(function (
   for (const hunk of diff.hunks) {
     const rows = getDiffRowsFromHunk(
       hunk,
+      showSideBySideDiff,
       selection,
       temporarySelection,
       beforeTokens,
@@ -589,6 +608,7 @@ const getDiffRows = memoize(function (
  * are consecutive added and deleted rows).
  *
  * @param hunk                The hunk to use to extract the rows data
+ * @param showSideBySideDiff  Whether or not show the diff in side by side mode.
  * @param selection           The currently active selection
  *                            (undefined when displaying non-selectable diffs).
  * @param temporarySelection  The in-progress selection that's happening while
@@ -601,6 +621,7 @@ const getDiffRows = memoize(function (
  */
 function getDiffRowsFromHunk(
   hunk: DiffHunk,
+  showSideBySideDiff: boolean,
   selection: DiffSelection | undefined,
   temporarySelection: ISelection | undefined,
   beforeTokens: ITokens | undefined,
@@ -631,6 +652,7 @@ function getDiffRowsFromHunk(
       // line stored, we need to process them.
       const modifiedRows = getModifiedRows(
         modifiedLines,
+        showSideBySideDiff,
         selection,
         temporarySelection,
         beforeTokens,
@@ -687,6 +709,7 @@ function getDiffRowsFromHunk(
   if (modifiedLines.length > 0) {
     const modifiedRows = getModifiedRows(
       modifiedLines,
+      showSideBySideDiff,
       selection,
       temporarySelection,
       beforeTokens,
@@ -705,6 +728,7 @@ function getModifiedRows(
     line: DiffLine
     diffLineNumber: number
   }>,
+  showSideBySideDiff: boolean,
   selection: DiffSelection | undefined,
   temporarySelection: ISelection | undefined,
   beforeTokens: ITokens | undefined,
@@ -750,7 +774,11 @@ function getModifiedRows(
     }
   }
 
-  while (addedLines.length > 0 && deletedLines.length > 0) {
+  while (
+    showSideBySideDiff &&
+    addedLines.length > 0 &&
+    deletedLines.length > 0
+  ) {
     const addedLine = forceUnwrap('Unexpected null line', addedLines.shift())
     const deletedLine = forceUnwrap(
       'Unexpected null line',

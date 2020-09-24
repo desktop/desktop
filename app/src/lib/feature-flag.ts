@@ -127,7 +127,7 @@ export function enableDiscardLines(): boolean {
 /**
  * Should we show the checkbox to enable side by side diffs?
  */
-export function enableSideBySideDiffs(): boolean {
+export function enableExperimentalDiffViewer(): boolean {
   return enableDevelopmentFeatures()
 }
 

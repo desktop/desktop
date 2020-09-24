@@ -29,6 +29,11 @@ interface ISideBySideDiffRowProps {
   readonly isHunkHovered: boolean
 
   /**
+   * Whether to display the rows side by side.
+   */
+  readonly showSideBySideDiff: boolean
+
+  /**
    * Called when a line selection is started. Called with the
    * diff line number and a flag to indicate if the user is
    * selecting or unselecting lines.
@@ -100,6 +105,20 @@ export class SideBySideDiffRow extends React.Component<
           </div>
         )
       case DiffRowType.Context:
+        if (!this.props.showSideBySideDiff) {
+          return (
+            <div className="row context">
+              <div className="before">
+                {this.renderLineNumbers([
+                  row.beforeLineNumber,
+                  row.afterLineNumber,
+                ])}
+                {this.renderContentFromString(row.content, row.tokens)}
+              </div>
+            </div>
+          )
+        }
+
         return (
           <div className="row context">
             <div className="before">
@@ -114,6 +133,25 @@ export class SideBySideDiffRow extends React.Component<
         )
 
       case DiffRowType.Added: {
+        if (!this.props.showSideBySideDiff) {
+          return (
+            <div
+              className="row added"
+              onMouseEnter={this.onMouseEnterLineNumber}
+            >
+              <div className="after">
+                {this.renderLineNumbers(
+                  [undefined, row.data.lineNumber],
+                  row.data.isSelected
+                )}
+
+                {this.renderHunkHandle()}
+                {this.renderContent(row.data)}
+              </div>
+            </div>
+          )
+        }
+
         return (
           <div className="row added" onMouseEnter={this.onMouseEnterLineNumber}>
             <div className="before">
@@ -129,6 +167,24 @@ export class SideBySideDiffRow extends React.Component<
         )
       }
       case DiffRowType.Deleted: {
+        if (!this.props.showSideBySideDiff) {
+          return (
+            <div
+              className="row deleted"
+              onMouseEnter={this.onMouseEnterLineNumber}
+            >
+              <div className="before">
+                {this.renderLineNumbers(
+                  [row.data.lineNumber, undefined],
+                  row.data.isSelected
+                )}
+                {this.renderHunkHandle()}
+                {this.renderContent(row.data)}
+              </div>
+            </div>
+          )
+        }
+
         return (
           <div
             className="row deleted"
@@ -227,14 +283,23 @@ export class SideBySideDiffRow extends React.Component<
   /**
    * Renders the line number box.
    *
-   * @param lineNumber  Line number to display.
+   * @param lineNumbers Array with line numbers to display.
    * @param isSelected  Whether the line has been selected.
    *                    If undefined is passed, the line is treated
    *                    as non-selectable.
    */
-  private renderLineNumber(lineNumber?: number, isSelected?: boolean) {
+  private renderLineNumbers(
+    lineNumbers: Array<number | undefined>,
+    isSelected?: boolean
+  ) {
     if (!this.props.isDiffSelectable || isSelected === undefined) {
-      return <div className="line-number">{lineNumber}</div>
+      return (
+        <div className="line-number">
+          {lineNumbers.map((lineNumber, index) => (
+            <span key={index}>{lineNumber}</span>
+          ))}
+        </div>
+      )
     }
 
     return (
@@ -250,9 +315,23 @@ export class SideBySideDiffRow extends React.Component<
         onMouseDown={this.onMouseDownLineNumber}
         onContextMenu={this.onContextMenuLineNumber}
       >
-        {lineNumber}
+        {lineNumbers.map((lineNumber, index) => (
+          <span key={index}>{lineNumber}</span>
+        ))}
       </div>
     )
+  }
+
+  /**
+   * Renders the line number box.
+   *
+   * @param lineNumber  Line number to display.
+   * @param isSelected  Whether the line has been selected.
+   *                    If undefined is passed, the line is treated
+   *                    as non-selectable.
+   */
+  private renderLineNumber(lineNumber?: number, isSelected?: boolean) {
+    return this.renderLineNumbers([lineNumber], isSelected)
   }
 
   /**

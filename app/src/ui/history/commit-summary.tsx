@@ -12,7 +12,7 @@ import { CommitAttribution } from '../lib/commit-attribution'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import {
   enableGitTagsDisplay,
-  enableSideBySideDiffs,
+  enableExperimentalDiffViewer,
 } from '../../lib/feature-flag'
 import { Tokenizer, TokenResult } from '../../lib/text-token-parser'
 import { wrapRichTextCommitMessage } from '../../lib/wrap-rich-text-commit-message'
@@ -374,7 +374,7 @@ export class CommitSummary extends React.Component<
               />
             </li>
 
-            {enableSideBySideDiffs && (
+            {enableExperimentalDiffViewer && (
               <li
                 className="commit-summary-meta-item without-truncation"
                 title="Split View"

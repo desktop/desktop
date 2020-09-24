@@ -1,4 +1,6 @@
 .side-by-side-diff-container {
+  --width-line-number: 55px;
+
   width: 100%;
   overflow: hidden;
   flex-grow: 1;
@@ -21,11 +23,13 @@
     }
 
     .before .line-number {
-      border-right: 2px solid transparent;
+      border-right-width: 2px;
+      border-right-style: solid;
     }
 
     .after .line-number {
-      border-left: 2px solid transparent;
+      border-left-width: 2px;
+      border-left-style: solid;
     }
   }
 
@@ -45,47 +49,28 @@
     border-bottom: 1px solid var(--diff-border-color);
   }
 
-  .added,
-  .modified {
-    .after .line-number {
-      border-color: var(--diff-add-border-color);
-
-      &:hover,
-      &.hover {
-        border-color: var(--diff-add-hover-border-color);
-      }
-    }
-  }
-
-  .deleted,
-  .modified {
-    .before .line-number {
-      border-color: var(--diff-delete-border-color);
-
-      &:hover,
-      &.hover {
-        border-color: var(--diff-delete-hover-border-color);
-      }
-    }
-  }
-
-  .line-number {
-    width: 55px;
+  .row .line-number {
+    width: var(--width-line-number);
     flex-shrink: 0;
-    text-align: right;
     background: var(--diff-gutter-background-color);
     color: var(--diff-line-number-color);
-    box-sizing: border-box;
-    padding: 0 var(--spacing);
-    text-overflow: ellipsis;
-    overflow: hidden;
-    user-select: none;
-    // Workaround to show the ellipsis at the beginning of
-    // the line number when it's too long.
-    direction: rtl;
+    display: flex;
+
+    span {
+      flex: 1;
+      user-select: none;
+      padding: 0 var(--spacing-half);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      // Workaround to show the ellipsis at the beginning of
+      // the line number when it's too long.
+      direction: rtl;
+    }
 
     &.selectable {
-      cursor: pointer;
+      span {
+        cursor: pointer;
+      }
 
       &.line-selected {
         background: var(--diff-selected-background-color);
@@ -95,8 +80,8 @@
         &:hover,
         &.hover {
           background: var(--diff-hover-background-color);
-          border-color: var(--diff-hover-border-color);
           color: var(--diff-hover-text-color);
+          border-color: var(--diff-hover-border-color);
         }
       }
     }
@@ -147,12 +132,14 @@
 
     .line-number {
       background: var(--diff-delete-gutter-background-color);
+      border-color: var(--diff-delete-border-color);
     }
 
     .selectable:hover,
     .selectable.hover {
       background: var(--diff-delete-hover-background-color);
       color: var(--diff-delete-hover-text-color);
+      border-color: var(--diff-delete-hover-border-color);
     }
   }
 
@@ -162,12 +149,14 @@
 
     .line-number {
       background: var(--diff-add-gutter-background-color);
+      border-color: var(--diff-add-border-color);
     }
 
     .selectable:hover,
     .selectable.hover {
       background: var(--diff-add-hover-background-color);
       color: var(--diff-add-hover-text-color);
+      border-color: var(--diff-add-hover-border-color);
     }
   }
 
@@ -189,6 +178,7 @@
 
       .line-number {
         background: var(--diff-hunk-background-color);
+        border-color: var(--diff-border-color);
       }
     }
 
@@ -198,6 +188,7 @@
 
       .line-number {
         background: var(--diff-empty-row-gutter-background-color);
+        border-color: transparent;
       }
     }
 
@@ -208,7 +199,49 @@
 
       .line-number {
         background: var(--diff-gutter-background-color);
+        border-color: var(--diff-border-color);
       }
+    }
+  }
+
+  &.unified-diff {
+    .row {
+      .before,
+      .after {
+        width: 100%;
+        border: none;
+        flex-direction: row;
+      }
+
+      .hunk-handle {
+        left: 100px;
+      }
+
+      &.hunk-info .line-number {
+        background: var(--diff-hunk-gutter-background-color);
+        border-color: var(--diff-hunk-border-color);
+      }
+
+      .line-number {
+        width: calc(var(--width-line-number) * 2);
+        border-left: none;
+        border-right-width: 1px;
+        border-right-style: solid;
+
+        span:first-child {
+          border-right-width: 1px;
+          border-right-style: solid;
+          border-color: inherit;
+        }
+
+        span:last-child {
+          border: none;
+        }
+      }
+    }
+
+    &.editable .row .line-number {
+      border-right-width: 4px;
     }
   }
 }
