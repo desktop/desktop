@@ -2,6 +2,7 @@
   width: 100%;
   overflow: hidden;
   flex-grow: 1;
+  user-select: contain;
 
   &.selecting-before .after,
   &.selecting-after .before {
@@ -42,12 +43,6 @@
 
   .ReactVirtualized__Grid__innerScrollContainer {
     border-bottom: 1px solid var(--diff-border-color);
-  }
-
-  span,
-  div {
-    user-select: text;
-    cursor: auto;
   }
 
   .added,
@@ -122,6 +117,12 @@
     overflow-y: auto;
     flex-grow: 1;
     word-break: break-all;
+
+    &,
+    * {
+      cursor: text;
+      user-select: text;
+    }
 
     .octicon {
       height: 8px;
