@@ -184,6 +184,7 @@
       div,
       span {
         user-select: none;
+        cursor: default;
       }
 
       .line-number {
