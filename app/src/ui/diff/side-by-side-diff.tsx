@@ -243,6 +243,7 @@ export class SideBySideDiff extends React.Component<
             onClickHunk={this.onClickHunk}
             onContextMenuLine={this.onContextMenuLine}
             onContextMenuHunk={this.onContextMenuHunk}
+            onContextMenuText={this.onContextMenuText}
           />
         </div>
       </CellMeasurer>
@@ -407,6 +408,22 @@ export class SideBySideDiff extends React.Component<
     this.props.onIncludeChanged(
       selection.withRangeSelection(from, to - from + 1, select)
     )
+  }
+
+  /**
+   * Handler to show a context menu when the user right-clicks on the diff text.
+   */
+  private onContextMenuText = () => {
+    const selectionLength = window.getSelection()?.toString().length ?? 0
+
+    showContextualMenu([
+      {
+        label: 'Copy',
+        // When using role="copy", the enabled attribute is not taken into account.
+        role: selectionLength > 0 ? 'copy' : undefined,
+        enabled: selectionLength > 0,
+      },
+    ])
   }
 
   /**

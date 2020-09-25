@@ -66,18 +66,23 @@ interface ISideBySideDiffRowProps {
   readonly onClickHunk: (hunkStartLine: number, select: boolean) => void
 
   /**
-   * Called when the user right-licks a line number. Called with the
+   * Called when the user right-clicks a line number. Called with the
    * clicked diff line number.
    * (only relevant when isDiffSelectable is true)
    */
   readonly onContextMenuLine: (diffLineNumber: number) => void
 
   /**
-   * Called when the user right-licks a hunk handle. Called with the start
+   * Called when the user right-clicks a hunk handle. Called with the start
    * line of the hunk.
    * (only relevant when isDiffSelectable is true)
    */
   readonly onContextMenuHunk: (hunkStartLine: number) => void
+
+  /**
+   * Called when the user right-clicks text on the diff.
+   */
+  readonly onContextMenuText: () => void
 }
 
 export class SideBySideDiffRow extends React.Component<
@@ -191,7 +196,7 @@ export class SideBySideDiffRow extends React.Component<
     data: Pick<IDiffRowData, 'content' | 'noNewLineIndicator' | 'tokens'>
   ) {
     return (
-      <div className="content">
+      <div className="content" onContextMenu={this.props.onContextMenuText}>
         {syntaxHighlightLine(data.content, data.tokens)}
         {data.noNewLineIndicator && (
           <Octicon
