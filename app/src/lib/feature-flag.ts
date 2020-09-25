@@ -126,9 +126,18 @@ export function enableDiscardLines(): boolean {
 
 /**
  * Should we show the checkbox to enable side by side diffs?
+ *
+ * Note: side by side diffs will use the new diff viewer.
+ */
+export function enableSideBySideDiffs(): boolean {
+  return enableDevelopmentFeatures()
+}
+
+/**
+ * Should we use the new diff viewer for unified diffs?
  */
 export function enableExperimentalDiffViewer(): boolean {
-  return enableDevelopmentFeatures()
+  return false
 }
 
 /**
