@@ -394,6 +394,6 @@ export async function getAvailableEditors(): Promise<
   if (novaPath) {
     results.push({ editor: ExternalEditor.Nova, path: novaPath })
   }
-  
+
   return results
 }
