@@ -1,5 +1,11 @@
 {
   "releases": {
+    "2.5.6-beta3": [
+      "[Improved] Email address validation in welcome flow and preferences dialog - #10214. Thanks @Pragya007!",
+      "[Imrproved] Show helpful error when attempting to clone non-existent or inaccessible GitHub repositories - #5661. Thanks @kanishk98!",
+      "[Fixed] Full screen notification is removed after a few seconds when starting the app in full screen",
+      "[Fixed] Align resolve button text and size icon appropriately - #10646"
+    ],
     "2.5.6-beta2": [
       "[New] Newly created repositories use 'main' as the default branch name - #10527",
       "[New] Users can configure the default branch name in Preferences/Options - #10527",
