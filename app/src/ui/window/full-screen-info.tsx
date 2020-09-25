@@ -74,10 +74,7 @@ export class FullScreenInfo extends React.Component<
   ) {
     if (prevState.renderInfo !== this.state.renderInfo) {
       if (this.state.renderInfo) {
-        this.infoDisappearTimeoutId = window.setTimeout(
-          this.onInfoDisappearTimeout,
-          holdDuration
-        )
+        this.scheduleInfoDisappear()
       } else {
         this.clearInfoDisappearTimeout()
       }
@@ -85,12 +82,7 @@ export class FullScreenInfo extends React.Component<
 
     if (prevState.renderTransitionGroup !== this.state.renderTransitionGroup) {
       if (this.state.renderTransitionGroup) {
-        this.transitionGroupDisappearTimeoutId = window.setTimeout(
-          this.onTransitionGroupDisappearTimeout,
-          toastTransitionTimeout.appear +
-            holdDuration +
-            toastTransitionTimeout.exit
-        )
+        this.scheduleTransitionGroupDisappear()
       } else {
         this.clearTransitionGroupDisappearTimeout()
       }
@@ -102,11 +94,25 @@ export class FullScreenInfo extends React.Component<
     this.clearTransitionGroupDisappearTimeout()
   }
 
+  private scheduleInfoDisappear() {
+    this.infoDisappearTimeoutId = window.setTimeout(
+      this.onInfoDisappearTimeout,
+      holdDuration
+    )
+  }
+
   private clearInfoDisappearTimeout() {
     if (this.infoDisappearTimeoutId !== null) {
       window.clearTimeout(this.infoDisappearTimeoutId)
       this.infoDisappearTimeoutId = null
     }
+  }
+
+  private scheduleTransitionGroupDisappear() {
+    this.transitionGroupDisappearTimeoutId = window.setTimeout(
+      this.onTransitionGroupDisappearTimeout,
+      toastTransitionTimeout.appear + holdDuration + toastTransitionTimeout.exit
+    )
   }
 
   private clearTransitionGroupDisappearTimeout() {
