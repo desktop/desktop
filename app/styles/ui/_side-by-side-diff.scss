@@ -55,6 +55,7 @@
     background: var(--diff-gutter-background-color);
     color: var(--diff-line-number-color);
     display: flex;
+    box-sizing: content-box;
 
     span {
       flex: 1;
@@ -187,13 +188,30 @@
       }
     }
 
+    &.deleted .before {
+      width: calc(50% + 4px);
+
+      .line-number {
+        border-right-width: 4px;
+      }
+    }
+
+    &.added .after {
+      width: calc(50% + 4px);
+
+      .line-number {
+        border-left-width: 4px;
+      }
+    }
+
     &.added .before,
     &.deleted .after {
       background: var(--diff-empty-row-background-color);
 
       .line-number {
         background: var(--diff-empty-row-gutter-background-color);
-        border-color: transparent;
+        border-right-width: 0;
+        border-left-width: 0;
       }
     }
 
