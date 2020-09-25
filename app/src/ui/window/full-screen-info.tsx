@@ -68,6 +68,16 @@ export class FullScreenInfo extends React.Component<
     }
   }
 
+  public componentDidMount() {
+    if (this.state.renderInfo) {
+      this.scheduleInfoDisappear()
+    }
+
+    if (this.state.renderTransitionGroup) {
+      this.scheduleTransitionGroupDisappear()
+    }
+  }
+
   public componentDidUpdate(
     prevProps: IFullScreenInfoProps,
     prevState: IFullScreenInfoState
