@@ -28,7 +28,7 @@ import {
 } from 'react-virtualized'
 import { SideBySideDiffRow } from './side-by-side-diff-row'
 import memoize from 'memoize-one'
-import { findInteractiveDiffRange } from './diff-explorer'
+import { findInteractiveDiffRange, DiffRangeType } from './diff-explorer'
 import {
   ChangedFile,
   DiffRow,
@@ -440,9 +440,17 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
+    const range = findInteractiveDiffRange(
+      this.props.diff.hunks,
+      diffLineNumber
+    )
+    if (range?.type == null) {
+      return
+    }
+
     showContextualMenu([
       {
-        label: 'Discard line',
+        label: this.getDiscardLabel(range.type, 1),
         action: () => this.onDiscardChanges(diffLineNumber),
       },
     ])
@@ -463,16 +471,36 @@ export class SideBySideDiff extends React.Component<
     }
 
     const range = findInteractiveDiffRange(this.props.diff.hunks, hunkStartLine)
-    if (range === null) {
+    if (range?.type == null) {
       return
     }
 
     showContextualMenu([
       {
-        label: 'Discard lines',
+        label: this.getDiscardLabel(range.type, range.to - range.from + 1),
         action: () => this.onDiscardChanges(range.from, range.to),
       },
     ])
+  }
+
+  private getDiscardLabel(rangeType: DiffRangeType, numLines: number): string {
+    const suffix = this.props.askForConfirmationOnDiscardChanges ? '…' : ''
+    let type = ''
+
+    if (rangeType === DiffRangeType.Additions) {
+      type = __DARWIN__ ? 'Added' : 'added'
+    } else if (rangeType === DiffRangeType.Deletions) {
+      type = __DARWIN__ ? 'Removed' : 'removed'
+    } else if (rangeType === DiffRangeType.Mixed) {
+      type = __DARWIN__ ? 'Modified' : 'modified'
+    } else {
+      assertNever(rangeType, `Invalid range type: ${rangeType}`)
+    }
+
+    const plural = numLines > 1 ? 's' : ''
+    return __DARWIN__
+      ? `Discard ${type} Line${plural}${suffix}`
+      : `Discard ${type} line${plural}${suffix}`
   }
 
   private onDiscardChanges(startLine: number, endLine: number = startLine) {
