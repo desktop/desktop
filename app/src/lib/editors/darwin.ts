@@ -218,7 +218,7 @@ function getExecutableShim(
     case ExternalEditor.Rider:
       return Path.join(installPath, 'Contents', 'MacOS', 'rider')
     case ExternalEditor.Nova:
-      return Path.join(installPath, 'Contents', 'MacOS', 'Nova')
+      return Path.join(installPath, 'Contents', 'SharedSupport', 'nova')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
