@@ -85,7 +85,13 @@ export class Changes extends React.Component<IChangesProps, {}> {
     const isCommitting = this.props.isCommitting
     return (
       <div className="changed-file">
-        <ChangedFileDetails path={file.path} status={file.status} diff={diff} />
+        <ChangedFileDetails
+          path={file.path}
+          status={file.status}
+          diff={diff}
+          showSideBySideDiff={this.props.showSideBySideDiff}
+          onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
+        />
         <SeamlessDiffSwitcher
           repository={this.props.repository}
           imageDiffType={this.props.imageDiffType}
@@ -104,5 +110,9 @@ export class Changes extends React.Component<IChangesProps, {}> {
         />
       </div>
     )
+  }
+
+  private onShowSideBySideDiffChanged = (showSideBySideDiff: boolean) => {
+    this.props.dispatcher.onShowSideBySideDiffChanged(showSideBySideDiff)
   }
 }
