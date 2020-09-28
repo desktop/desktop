@@ -28,7 +28,6 @@
       flex-shrink: 0;
       width: var(--text-field-height);
       height: var(--text-field-height);
-      border: var(--base-border);
       margin-right: var(--spacing-half);
     }
   }
@@ -137,7 +136,7 @@
       display: block;
 
       height: 16px;
-      width: 16px;
+      width: 18px;
       cursor: pointer;
 
       &:after {
@@ -163,8 +162,8 @@
       }
 
       svg {
-        height: 7px;
-        width: 12px;
+        height: 13px;
+        width: 18px;
         pointer-events: none;
       }
     }

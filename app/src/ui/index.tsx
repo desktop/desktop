@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
 
-import moment from 'moment'
+import * as moment from 'moment'
 
 import { ipcRenderer, remote } from 'electron'
 
@@ -27,7 +27,6 @@ import {
   refusedWorkflowUpdate,
   samlReauthRequired,
   insufficientGitHubRepoPermissions,
-  schannelUnableToCheckRevocationForCertificate,
 } from './dispatcher'
 import {
   AppStore,
@@ -64,6 +63,20 @@ import { ApiRepositoriesStore } from '../lib/stores/api-repositories-store'
 import { CommitStatusStore } from '../lib/stores/commit-status-store'
 import { PullRequestCoordinator } from '../lib/stores/pull-request-coordinator'
 
+// We're using a polyfill for the upcoming CSS4 `:focus-ring` pseudo-selector.
+// This allows us to not have to override default accessibility driven focus
+// styles for buttons in the case when a user clicks on a button. This also
+// gives better visiblity to individuals who navigate with the keyboard.
+//
+// See:
+//   https://github.com/WICG/focus-ring
+//   Focus Ring! -- A11ycasts #16: https://youtu.be/ilj2P5-5CjI
+import 'wicg-focus-ring'
+
+// setup this moment.js plugin so we can use easier
+// syntax for formatting time duration
+import momentDurationFormatSetup from 'moment-duration-format'
+
 if (__DEV__) {
   installDevGlobals()
 }
@@ -78,19 +91,12 @@ enableSourceMaps()
 // see https://github.com/desktop/dugite/pull/85
 process.env['LOCAL_GIT_DIRECTORY'] = Path.resolve(__dirname, 'git')
 
-// We're using a polyfill for the upcoming CSS4 `:focus-ring` pseudo-selector.
-// This allows us to not have to override default accessibility driven focus
-// styles for buttons in the case when a user clicks on a button. This also
-// gives better visiblity to individuals who navigate with the keyboard.
-//
-// See:
-//   https://github.com/WICG/focus-ring
-//   Focus Ring! -- A11ycasts #16: https://youtu.be/ilj2P5-5CjI
-require('wicg-focus-ring')
+// Ensure that dugite infers the GIT_EXEC_PATH
+// based on the LOCAL_GIT_DIRECTORY env variable
+// instead of just blindly trusting what's set in
+// the current environment. See https://git.io/JJ7KF
+delete process.env.GIT_EXEC_PATH
 
-// setup this moment.js plugin so we can use easier
-// syntax for formatting time duration
-const momentDurationFormatSetup = require('moment-duration-format')
 momentDurationFormatSetup(moment)
 
 const startTime = performance.now()
@@ -291,7 +297,6 @@ dispatcher.registerErrorHandler(openShellErrorHandler)
 dispatcher.registerErrorHandler(mergeConflictHandler)
 dispatcher.registerErrorHandler(lfsAttributeMismatchHandler)
 dispatcher.registerErrorHandler(insufficientGitHubRepoPermissions)
-dispatcher.registerErrorHandler(schannelUnableToCheckRevocationForCertificate)
 dispatcher.registerErrorHandler(gitAuthenticationErrorHandler)
 dispatcher.registerErrorHandler(pushNeedsPullHandler)
 dispatcher.registerErrorHandler(samlReauthRequired)

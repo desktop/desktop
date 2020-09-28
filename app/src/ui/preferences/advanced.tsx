@@ -4,31 +4,21 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { LinkButton } from '../lib/link-button'
 import { SamplesURL } from '../../lib/stats'
 import { UncommittedChangesStrategyKind } from '../../models/uncommitted-changes-strategy'
-import { enableSchannelCheckRevokeOptOut } from '../../lib/feature-flag'
 import { RadioButton } from '../lib/radio-button'
 
 interface IAdvancedPreferencesProps {
   readonly optOutOfUsageTracking: boolean
-  readonly confirmRepositoryRemoval: boolean
-  readonly confirmDiscardChanges: boolean
-  readonly confirmForcePush: boolean
   readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
-  readonly schannelCheckRevoke: boolean | null
+  readonly repositoryIndicatorsEnabled: boolean
   readonly onOptOutofReportingchanged: (checked: boolean) => void
-  readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
-  readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
-  readonly onConfirmForcePushChanged: (checked: boolean) => void
   readonly onUncommittedChangesStrategyKindChanged: (
     value: UncommittedChangesStrategyKind
   ) => void
-  readonly onSchannelCheckRevokeChanged: (checked: boolean) => void
+  readonly onRepositoryIndicatorsEnabledChanged: (enabled: boolean) => void
 }
 
 interface IAdvancedPreferencesState {
   readonly optOutOfUsageTracking: boolean
-  readonly confirmRepositoryRemoval: boolean
-  readonly confirmDiscardChanges: boolean
-  readonly confirmForcePush: boolean
   readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
 }
 
@@ -41,9 +31,6 @@ export class Advanced extends React.Component<
 
     this.state = {
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
-      confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
-      confirmDiscardChanges: this.props.confirmDiscardChanges,
-      confirmForcePush: this.props.confirmForcePush,
       uncommittedChangesStrategyKind: this.props.uncommittedChangesStrategyKind,
     }
   }
@@ -57,33 +44,6 @@ export class Advanced extends React.Component<
     this.props.onOptOutofReportingchanged(value)
   }
 
-  private onConfirmDiscardChangesChanged = (
-    event: React.FormEvent<HTMLInputElement>
-  ) => {
-    const value = event.currentTarget.checked
-
-    this.setState({ confirmDiscardChanges: value })
-    this.props.onConfirmDiscardChangesChanged(value)
-  }
-
-  private onConfirmForcePushChanged = (
-    event: React.FormEvent<HTMLInputElement>
-  ) => {
-    const value = event.currentTarget.checked
-
-    this.setState({ confirmForcePush: value })
-    this.props.onConfirmForcePushChanged(value)
-  }
-
-  private onConfirmRepositoryRemovalChanged = (
-    event: React.FormEvent<HTMLInputElement>
-  ) => {
-    const value = event.currentTarget.checked
-
-    this.setState({ confirmRepositoryRemoval: value })
-    this.props.onConfirmRepositoryRemovalChanged(value)
-  }
-
   private onUncommittedChangesStrategyKindChanged = (
     value: UncommittedChangesStrategyKind
   ) => {
@@ -91,11 +51,10 @@ export class Advanced extends React.Component<
     this.props.onUncommittedChangesStrategyKindChanged(value)
   }
 
-  private onSchannelCheckRevokeChanged = (
+  private onRepositoryIndicatorsEnabledChanged = (
     event: React.FormEvent<HTMLInputElement>
   ) => {
-    const value = event.currentTarget.checked
-    this.props.onSchannelCheckRevokeChanged(value === false)
+    this.props.onRepositoryIndicatorsEnabledChanged(event.currentTarget.checked)
   }
 
   private reportDesktopUsageLabel() {
@@ -144,32 +103,20 @@ export class Advanced extends React.Component<
           />
         </div>
         <div className="advanced-section">
-          <h2>Show a confirmation dialog before...</h2>
+          <h2>Background updates</h2>
           <Checkbox
-            label="Removing repositories"
+            label="Periodically fetch and refresh status of all repositories"
             value={
-              this.state.confirmRepositoryRemoval
+              this.props.repositoryIndicatorsEnabled
                 ? CheckboxValue.On
                 : CheckboxValue.Off
             }
-            onChange={this.onConfirmRepositoryRemovalChanged}
+            onChange={this.onRepositoryIndicatorsEnabledChanged}
           />
-          <Checkbox
-            label="Discarding changes"
-            value={
-              this.state.confirmDiscardChanges
-                ? CheckboxValue.On
-                : CheckboxValue.Off
-            }
-            onChange={this.onConfirmDiscardChangesChanged}
-          />
-          <Checkbox
-            label="Force pushing"
-            value={
-              this.state.confirmForcePush ? CheckboxValue.On : CheckboxValue.Off
-            }
-            onChange={this.onConfirmForcePushChanged}
-          />
+          <p className="git-settings-description">
+            Allows the display of up-to-date status indicators in the repository
+            list. Disabling this may improve performance with many repositories.
+          </p>
         </div>
         <div className="advanced-section">
           <h2>Usage</h2>
@@ -183,39 +130,7 @@ export class Advanced extends React.Component<
             onChange={this.onReportingOptOutChanged}
           />
         </div>
-        {this.renderGitAdvancedSection()}
       </DialogContent>
-    )
-  }
-
-  private renderGitAdvancedSection() {
-    if (!__WIN32__) {
-      return
-    }
-
-    if (!enableSchannelCheckRevokeOptOut()) {
-      return
-    }
-
-    // If the user hasn't set `http.schannelCheckRevoke` before we don't
-    // have to show them the preference.
-    if (this.props.schannelCheckRevoke === null) {
-      return
-    }
-
-    return (
-      <div className="git-advanced-section">
-        <h2>Git</h2>
-        <Checkbox
-          label="Disable certificate revocation checks"
-          value={
-            this.props.schannelCheckRevoke
-              ? CheckboxValue.Off
-              : CheckboxValue.On
-          }
-          onChange={this.onSchannelCheckRevokeChanged}
-        />
-      </div>
     )
   }
 }

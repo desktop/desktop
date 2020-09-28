@@ -36,10 +36,10 @@ function packageOSX() {
   const dest = getOSXZipPath()
   fs.removeSync(dest)
 
+  console.log('Packaging for macOS…')
   cp.execSync(
     `ditto -ck --keepParent "${distPath}/${productName}.app" "${dest}"`
   )
-  console.log(`Zipped to ${dest}`)
 }
 
 function packageWindows() {
@@ -53,7 +53,8 @@ function packageWindows() {
   )
 
   if (isAppveyor() || isGitHubActions()) {
-    cp.execSync(`powershell ${setupCertificatePath}`)
+    console.log('Installing signing certificate…')
+    cp.execSync(`powershell ${setupCertificatePath}`, { stdio: 'inherit' })
   }
 
   const iconSource = path.join(
@@ -108,6 +109,7 @@ function packageWindows() {
     options.signWithParams = `/f ${certificatePath} /p ${process.env.WINDOWS_CERT_PASSWORD} /tr http://timestamp.digicert.com /td sha256 /fd sha256`
   }
 
+  console.log('Packaging for Windows…')
   electronInstaller
     .createWindowsInstaller(options)
     .then(() => {
@@ -141,5 +143,6 @@ function packageLinux() {
     configPath,
   ]
 
+  console.log('Packaging for Linux…')
   cp.spawnSync(electronBuilder, args, { stdio: 'inherit' })
 }

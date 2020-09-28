@@ -55,6 +55,8 @@ export class RefNameTextBox extends React.Component<
   IRefNameProps,
   IRefNameState
 > {
+  private textBoxRef = React.createRef<TextBox>()
+
   public constructor(props: IRefNameProps) {
     super(props)
 
@@ -81,6 +83,7 @@ export class RefNameTextBox extends React.Component<
         <TextBox
           label={this.props.label}
           value={this.state.proposedValue}
+          ref={this.textBoxRef}
           onValueChanged={this.onValueChange}
           onBlur={this.onBlur}
         />
@@ -88,6 +91,16 @@ export class RefNameTextBox extends React.Component<
         {this.renderRefValueWarning()}
       </div>
     )
+  }
+
+  /**
+   * Programmatically moves keyboard focus to the inner text input element if it can be focused
+   * (i.e. if it's not disabled explicitly or implicitly through for example a fieldset).
+   */
+  public focus() {
+    if (this.textBoxRef.current !== null) {
+      this.textBoxRef.current.focus()
+    }
   }
 
   private onValueChange = (proposedValue: string) => {

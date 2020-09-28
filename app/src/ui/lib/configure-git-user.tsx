@@ -183,6 +183,7 @@ export class ConfigureGitUser extends React.Component<
           />
 
           <TextBox
+            type="email"
             label="Email"
             placeholder="your-email@example.com"
             value={this.state.email}

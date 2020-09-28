@@ -42,7 +42,7 @@ export interface ITextBoxProps {
   readonly onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void
 
   /** The type of the input. Defaults to `text`. */
-  readonly type?: 'text' | 'search' | 'password'
+  readonly type?: 'text' | 'search' | 'password' | 'email'
 
   /**
    * An optional text for a link label element. A link label is, for the purposes
