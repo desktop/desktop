@@ -1,8 +1,11 @@
 import { remote } from 'electron'
 import { Disposable, IDisposable } from 'event-kit'
-import * as Path from 'path'
 
-import { IAPIOrganization, IAPIRefStatus } from '../../lib/api'
+import {
+  IAPIOrganization,
+  IAPIRepository,
+  IAPIPullRequest,
+} from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
   CompareAction,
@@ -39,7 +42,7 @@ import {
 } from '../../lib/parse-app-url'
 import {
   matchExistingRepository,
-  urlMatchesCloneURL,
+  urlsMatch,
 } from '../../lib/repository-matching'
 import { Shell } from '../../lib/shells'
 import { ILaunchStats, StatsStore } from '../../lib/stats'
@@ -58,13 +61,19 @@ import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Commit, ICommitContext, CommitOneLine } from '../../models/commit'
 import { ICommitMessage } from '../../models/commit-message'
-import { DiffSelection, ImageDiffType } from '../../models/diff'
+import { DiffSelection, ImageDiffType, ITextDiff } from '../../models/diff'
 import { FetchType } from '../../models/fetch'
 import { GitHubRepository } from '../../models/github-repository'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { Popup, PopupType } from '../../models/popup'
 import { PullRequest } from '../../models/pull-request'
-import { Repository } from '../../models/repository'
+import {
+  Repository,
+  RepositoryWithGitHubRepository,
+  isRepositoryWithGitHubRepository,
+  getGitHubHtmlUrl,
+  isRepositoryWithForkedGitHubRepository,
+} from '../../models/repository'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
   CommittedFileChange,
@@ -80,11 +89,18 @@ import { executeMenuItem } from '../main-process-proxy'
 import {
   CommitStatusStore,
   StatusCallBack,
+  ICombinedRefCheck,
 } from '../../lib/stores/commit-status-store'
-import { MergeResult } from '../../models/merge'
-import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
+import { MergeTreeResult } from '../../models/merge'
+import {
+  UncommittedChangesStrategy,
+  UncommittedChangesStrategyKind,
+} from '../../models/uncommitted-changes-strategy'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { IStashEntry } from '../../models/stash-entry'
+import { WorkflowPreferences } from '../../models/workflow-preferences'
+import { enableForkSettings } from '../../lib/feature-flag'
+import { resolveWithin } from '../../lib/path'
 
 /**
  * An error handler function.
@@ -126,18 +142,47 @@ export class Dispatcher {
     return this.appStore._addRepositories(paths)
   }
 
-  /** Remove the repositories represented by the given IDs from local storage. */
-  public removeRepositories(
-    repositories: ReadonlyArray<Repository | CloningRepository>,
+  /**
+   * Add a tutorial repository.
+   *
+   * This method differs from the `addRepositories` method in that it
+   * requires that the repository has been created on the remote and
+   * set up to track it. Given that tutorial repositories are created
+   * from the no-repositories blank slate it shouldn't be possible for
+   * another repository with the same path to exist but in case that
+   * changes in the future this method will set the tutorial flag on
+   * the existing repository at the given path.
+   */
+  public addTutorialRepository(
+    path: string,
+    endpoint: string,
+    apiRepository: IAPIRepository
+  ) {
+    return this.appStore._addTutorialRepository(path, endpoint, apiRepository)
+  }
+
+  /** Resume an already started onboarding tutorial */
+  public resumeTutorial(repository: Repository) {
+    return this.appStore._resumeTutorial(repository)
+  }
+
+  /** Suspend the onboarding tutorial and go to the no repositories blank slate view */
+  public pauseTutorial(repository: Repository) {
+    return this.appStore._pauseTutorial(repository)
+  }
+
+  /**
+   * Remove the repositories represented by the given IDs from local storage.
+   *
+   * When `moveToTrash` is enabled, only the repositories that were successfully
+   * deleted on disk are removed from the app. If some failed due to files being
+   * open elsewhere, an error is thrown.
+   */
+  public async removeRepository(
+    repository: Repository | CloningRepository,
     moveToTrash: boolean
   ): Promise<void> {
-    if (moveToTrash) {
-      repositories.forEach(repository => {
-        shell.moveItemToTrash(repository.path)
-      })
-    }
-
-    return this.appStore._removeRepositories(repositories)
+    return this.appStore._removeRepository(repository, moveToTrash)
   }
 
   /** Update the repository's `missing` flag. */
@@ -359,10 +404,10 @@ export class Dispatcher {
   ): Promise<void> {
     const { askForConfirmationOnForcePush } = this.appStore.getState()
 
-    const hasOverridenForcePushCheck =
+    const hasOverriddenForcePushCheck =
       options !== undefined && options.continueWithForcePush
 
-    if (askForConfirmationOnForcePush && !hasOverridenForcePushCheck) {
+    if (askForConfirmationOnForcePush && !hasOverriddenForcePushCheck) {
       const showWarning = await this.warnAboutRemoteCommits(
         repository,
         baseBranch,
@@ -438,20 +483,72 @@ export class Dispatcher {
     repository: Repository,
     name: string,
     startPoint: string | null,
-    uncommittedChangesStrategy?: UncommittedChangesStrategy
+    uncommittedChangesStrategy?: UncommittedChangesStrategy,
+    noTrackOption: boolean = false
   ): Promise<Repository> {
     return this.appStore._createBranch(
       repository,
       name,
       startPoint,
-      uncommittedChangesStrategy
+      uncommittedChangesStrategy,
+      noTrackOption
     )
+  }
+
+  /**
+   * Create a new tag on the given target commit.
+   */
+  public createTag(
+    repository: Repository,
+    name: string,
+    targetCommitSha: string
+  ): Promise<void> {
+    return this.appStore._createTag(repository, name, targetCommitSha)
+  }
+
+  /**
+   * Deletes the passed tag.
+   */
+  public deleteTag(repository: Repository, name: string): Promise<void> {
+    return this.appStore._deleteTag(repository, name)
+  }
+
+  /**
+   * Show the tag creation dialog.
+   */
+  public showCreateTagDialog(
+    repository: Repository,
+    targetCommitSha: string,
+    localTags: Map<string, string> | null,
+    initialName?: string
+  ): Promise<void> {
+    return this.showPopup({
+      type: PopupType.CreateTag,
+      repository,
+      targetCommitSha,
+      initialName,
+      localTags,
+    })
+  }
+
+  /**
+   * Show the confirmation dialog to delete a tag.
+   */
+  public showDeleteTagDialog(
+    repository: Repository,
+    tagName: string
+  ): Promise<void> {
+    return this.showPopup({
+      type: PopupType.DeleteTag,
+      repository,
+      tagName,
+    })
   }
 
   /** Check out the given branch. */
   public checkoutBranch(
     repository: Repository,
-    branch: Branch | string,
+    branch: Branch,
     uncommittedChangesStrategy?: UncommittedChangesStrategy
   ): Promise<Repository> {
     return this.appStore._checkoutBranch(
@@ -574,6 +671,16 @@ export class Dispatcher {
       const addedRepository = addedRepositories[0]
       await this.selectRepository(addedRepository)
 
+      if (
+        enableForkSettings() &&
+        isRepositoryWithForkedGitHubRepository(addedRepository)
+      ) {
+        this.showPopup({
+          type: PopupType.ChooseForkSettings,
+          repository: addedRepository,
+        })
+      }
+
       return addedRepository
     })
   }
@@ -605,6 +712,21 @@ export class Dispatcher {
     files: ReadonlyArray<WorkingDirectoryFileChange>
   ): Promise<void> {
     return this.appStore._discardChanges(repository, files)
+  }
+
+  /** Discard the changes from the given diff selection. */
+  public discardChangesFromSelection(
+    repository: Repository,
+    filePath: string,
+    diff: ITextDiff,
+    selection: DiffSelection
+  ): Promise<void> {
+    return this.appStore._discardChangesFromSelection(
+      repository,
+      filePath,
+      diff,
+      selection
+    )
   }
 
   /** Undo the given commit. */
@@ -652,16 +774,24 @@ export class Dispatcher {
   }
 
   /**
-   * Set the divering branch notification banner's visibility
+   * Set the diverging branch notification nudge's visibility
    */
-  public setDivergingBranchBannerVisibility(
+  public setDivergingBranchNudgeVisibility(
     repository: Repository,
     isVisible: boolean
   ) {
-    return this.appStore._setDivergingBranchBannerVisibility(
-      repository,
-      isVisible
-    )
+    return this.appStore._updateDivergingBranchBannerState(repository, {
+      isNudgeVisible: isVisible,
+    })
+  }
+
+  /**
+   * Hide the diverging branch notification banner
+   */
+  public dismissDivergingBranchBanner(repository: Repository) {
+    return this.appStore._updateDivergingBranchBannerState(repository, {
+      isPromptDismissed: true,
+    })
   }
 
   /**
@@ -717,11 +847,6 @@ export class Dispatcher {
     return this.appStore._setCommitMessage(repository, message)
   }
 
-  /** Add the account to the app. */
-  public addAccount(account: Account): Promise<void> {
-    return this.appStore._addAccount(account)
-  }
-
   /** Remove the given account from the app. */
   public removeAccount(account: Account): Promise<void> {
     return this.appStore._removeAccount(account)
@@ -769,7 +894,7 @@ export class Dispatcher {
   public mergeBranch(
     repository: Repository,
     branch: string,
-    mergeStatus: MergeResult | null
+    mergeStatus: MergeTreeResult | null
   ): Promise<void> {
     return this.appStore._mergeBranch(repository, branch, mergeStatus)
   }
@@ -896,9 +1021,7 @@ export class Dispatcher {
     const afterSha = getTipSha(tip)
 
     log.info(
-      `[rebase] completed rebase - got ${result} and on tip ${afterSha} - kind ${
-        tip.kind
-      }`
+      `[rebase] completed rebase - got ${result} and on tip ${afterSha} - kind ${tip.kind}`
     )
 
     if (result === RebaseResult.ConflictsEncountered) {
@@ -927,9 +1050,7 @@ export class Dispatcher {
     } else if (result === RebaseResult.CompletedWithoutError) {
       if (tip.kind !== TipState.Valid) {
         log.warn(
-          `[rebase] tip after completing rebase is ${
-            tip.kind
-          } but this should be a valid tip if the rebase completed without error`
+          `[rebase] tip after completing rebase is ${tip.kind} but this should be a valid tip if the rebase completed without error`
         )
         return
       }
@@ -961,7 +1082,7 @@ export class Dispatcher {
   }
 
   /**
-   * Continue with the rebase after the user has resovled all conflicts with
+   * Continue with the rebase after the user has resolved all conflicts with
    * tracked files in the working directory.
    */
   public async continueRebase(
@@ -993,9 +1114,7 @@ export class Dispatcher {
     const afterSha = getTipSha(tip)
 
     log.info(
-      `[continueRebase] completed rebase - got ${result} and on tip ${afterSha} - kind ${
-        tip.kind
-      }`
+      `[continueRebase] completed rebase - got ${result} and on tip ${afterSha} - kind ${tip.kind}`
     )
 
     if (result === RebaseResult.ConflictsEncountered) {
@@ -1025,9 +1144,7 @@ export class Dispatcher {
     } else if (result === RebaseResult.CompletedWithoutError) {
       if (tip.kind !== TipState.Valid) {
         log.warn(
-          `[continueRebase] tip after completing rebase is ${
-            tip.kind
-          } but this should be a valid tip if the rebase completed without error`
+          `[continueRebase] tip after completing rebase is ${tip.kind} but this should be a valid tip if the rebase completed without error`
         )
         return
       }
@@ -1202,6 +1319,31 @@ export class Dispatcher {
   }
 
   /**
+   * Subscribe to an event which is emitted whenever the sign in store re-evaluates
+   * whether or not GitHub.com supports username and password authentication.
+   *
+   * Note that this event may fire without the state having changed as it's
+   * fired when refreshed and not when changed.
+   */
+  public onDotComSupportsBasicAuthUpdated(
+    fn: (dotComSupportsBasicAuth: boolean) => void
+  ) {
+    return this.appStore._onDotComSupportsBasicAuthUpdated(fn)
+  }
+
+  /**
+   * Attempt to _synchronously_ retrieve whether GitHub.com supports
+   * username and password authentication. If the SignInStore has
+   * previously checked the API to determine the actual status that
+   * cached value is returned. If not we attempt to calculate the
+   * most probably state based on the current date and the deprecation
+   * timeline.
+   */
+  public tryGetDotComSupportsBasicAuth(): boolean {
+    return this.appStore._tryGetDotComSupportsBasicAuth()
+  }
+
+  /**
    * Initiate a sign in flow for github.com. This will put the store
    * in the Authentication step ready to receive user credentials.
    */
@@ -1270,6 +1412,20 @@ export class Dispatcher {
   }
 
   /**
+   * Initiate an OAuth sign in using the system configured browser to GitHub.com.
+   *
+   * The promise returned will only resolve once the user has successfully
+   * authenticated. If the user terminates the sign-in process by closing
+   * their browser before the protocol handler is invoked, by denying the
+   * protocol handler to execute or by providing the wrong credentials
+   * this promise will never complete.
+   */
+  public async requestBrowserAuthenticationToDotcom(): Promise<void> {
+    await this.beginDotComSignIn()
+    return this.requestBrowserAuthentication()
+  }
+
+  /**
    * Attempt to complete the sign in flow with the given OTP token.\
    * This method must only be called when the store is in the
    * TwoFactorAuthentication step or an error will be thrown.
@@ -1304,6 +1460,16 @@ export class Dispatcher {
   }
 
   /**
+   * Show a dialog that helps the user create a fork of
+   * their local repo.
+   */
+  public async showCreateForkDialog(
+    repository: RepositoryWithGitHubRepository
+  ): Promise<void> {
+    await this.appStore._showCreateForkDialog(repository)
+  }
+
+  /**
    * Register a new error handler.
    *
    * Error handlers are called in order starting with the most recently
@@ -1327,14 +1493,30 @@ export class Dispatcher {
    */
   public async relocateRepository(repository: Repository): Promise<void> {
     const window = remote.getCurrentWindow()
-    const directories = remote.dialog.showOpenDialog(window, {
+    const { filePaths } = await remote.dialog.showOpenDialog(window, {
       properties: ['openDirectory'],
     })
 
-    if (directories && directories.length > 0) {
-      const newPath = directories[0]
+    if (filePaths.length > 0) {
+      const newPath = filePaths[0]
       await this.updateRepositoryPath(repository, newPath)
     }
+  }
+
+  /**
+   * Change the workflow preferences for the specified repository.
+   *
+   * @param repository            The repositosy to update.
+   * @param workflowPreferences   The object with the workflow settings to use.
+   */
+  public async updateRepositoryWorkflowPreferences(
+    repository: Repository,
+    workflowPreferences: WorkflowPreferences
+  ) {
+    await this.appStore._updateRepositoryWorkflowPreferences(
+      repository,
+      workflowPreferences
+    )
   }
 
   /** Update the repository's path. */
@@ -1353,6 +1535,173 @@ export class Dispatcher {
     } else {
       this.commitStatusStore.stopBackgroundRefresh()
     }
+  }
+
+  /**
+   * Find an existing repository that can be used for checking out
+   * the passed pull request.
+   *
+   * This method will try to find an opened repository that matches the
+   * HEAD repository of the PR first and if not found it will try to
+   * find an opened repository that matches the BASE repository of the PR.
+   * Matching in this context means that either the origin remote or the
+   * upstream remote url are equal to the PR ref repository URL.
+   *
+   * With this logic we try to select the best suited repository to open
+   * a PR when triggering a "Open PR from Desktop" action from a browser.
+   *
+   * @param pullRequest the pull request object received from the API.
+   */
+  private getRepositoryFromPullRequest(
+    pullRequest: IAPIPullRequest
+  ): RepositoryWithGitHubRepository | null {
+    const state = this.appStore.getState()
+    const repositories = state.repositories
+    const headUrl = pullRequest.head.repo?.clone_url
+    const baseUrl = pullRequest.base.repo?.clone_url
+
+    // This likely means that the base repository has been deleted
+    // and we don't support checking out from refs/pulls/NNN/head
+    // yet so we'll bail for now.
+    if (headUrl === undefined || baseUrl === undefined) {
+      return null
+    }
+
+    for (const repository of repositories) {
+      if (this.doesRepositoryMatchUrl(repository, headUrl)) {
+        return repository
+      }
+    }
+
+    for (const repository of repositories) {
+      if (this.doesRepositoryMatchUrl(repository, baseUrl)) {
+        return repository
+      }
+    }
+
+    return null
+  }
+
+  private doesRepositoryMatchUrl(
+    repo: Repository | CloningRepository,
+    url: string
+  ): repo is RepositoryWithGitHubRepository {
+    if (repo instanceof Repository && isRepositoryWithGitHubRepository(repo)) {
+      const originRepoUrl = repo.gitHubRepository.htmlURL
+      const upstreamRepoUrl = repo.gitHubRepository.parent?.htmlURL ?? null
+
+      if (originRepoUrl !== null && urlsMatch(originRepoUrl, url)) {
+        return true
+      }
+
+      if (upstreamRepoUrl !== null && urlsMatch(upstreamRepoUrl, url)) {
+        return true
+      }
+    }
+
+    return false
+  }
+
+  private async openRepositoryFromUrl(action: IOpenRepositoryFromURLAction) {
+    const { url, pr, branch, filepath } = action
+
+    let repository: Repository | null
+
+    if (pr !== null) {
+      repository = await this.openPullRequestFromUrl(url, pr)
+    } else if (branch !== null) {
+      repository = await this.openBranchNameFromUrl(url, branch)
+    } else {
+      repository = await this.openOrCloneRepository(url)
+    }
+
+    if (repository === null) {
+      return
+    }
+
+    if (filepath !== null) {
+      const resolved = await resolveWithin(repository.path, filepath)
+
+      if (resolved !== null) {
+        shell.showItemInFolder(resolved)
+      } else {
+        log.error(
+          `Prevented attempt to open path outside of the repository root: ${filepath}`
+        )
+      }
+    }
+  }
+
+  private async openBranchNameFromUrl(
+    url: string,
+    branchName: string
+  ): Promise<Repository | null> {
+    const repository = await this.openOrCloneRepository(url)
+
+    if (repository === null) {
+      return null
+    }
+
+    // ensure a fresh clone repository has it's in-memory state
+    // up-to-date before performing the "Clone in Desktop" steps
+    await this.appStore._refreshRepository(repository)
+
+    await this.checkoutLocalBranch(repository, branchName)
+
+    return repository
+  }
+
+  private async openPullRequestFromUrl(
+    url: string,
+    pr: string
+  ): Promise<RepositoryWithGitHubRepository | null> {
+    const pullRequest = await this.appStore.fetchPullRequest(url, pr)
+
+    if (pullRequest === null) {
+      return null
+    }
+
+    // Find the repository where the PR is created in Desktop.
+    let repository: Repository | null = this.getRepositoryFromPullRequest(
+      pullRequest
+    )
+
+    if (repository !== null) {
+      await this.selectRepository(repository)
+    } else {
+      repository = await this.openOrCloneRepository(url)
+    }
+
+    if (repository === null) {
+      log.warn(
+        `Open Repository from URL failed, did not find or clone repository: ${url}`
+      )
+      return null
+    }
+    if (!isRepositoryWithGitHubRepository(repository)) {
+      log.warn(
+        `Received a non-GitHub repository when opening repository from URL: ${url}`
+      )
+      return null
+    }
+
+    // ensure a fresh clone repository has it's in-memory state
+    // up-to-date before performing the "Clone in Desktop" steps
+    await this.appStore._refreshRepository(repository)
+
+    if (pullRequest.head.repo === null) {
+      return null
+    }
+
+    await this.appStore._checkoutPullRequest(
+      repository,
+      pullRequest.number,
+      pullRequest.user.login,
+      pullRequest.head.repo.clone_url,
+      pullRequest.head.ref
+    )
+
+    return repository
   }
 
   public async dispatchURLAction(action: URLActionType): Promise<void> {
@@ -1384,17 +1733,7 @@ export class Dispatcher {
         break
 
       case 'open-repository-from-url':
-        const { url } = action
-        const repository = await this.openOrCloneRepository(url)
-        if (repository) {
-          await this.handleCloneInDesktopOptions(repository, action)
-        } else {
-          log.warn(
-            `Open Repository from URL failed, did not find or clone repository: ${url} - payload: ${JSON.stringify(
-              action
-            )}`
-          )
-        }
+        this.openRepositoryFromUrl(action)
         break
 
       case 'open-repository-from-path':
@@ -1454,6 +1793,15 @@ export class Dispatcher {
   }
 
   /**
+   * Sets the user's preference for handling uncommitted changes when switching branches
+   */
+  public setUncommittedChangesStrategyKindSetting(
+    value: UncommittedChangesStrategyKind
+  ): Promise<void> {
+    return this.appStore._setUncommittedChangesStrategyKindSetting(value)
+  }
+
+  /**
    * Sets the user's preference for an external program to open repositories in.
    */
   public setExternalEditor(editor: ExternalEditor): Promise<void> {
@@ -1467,74 +1815,39 @@ export class Dispatcher {
     return this.appStore._setShell(shell)
   }
 
-  private async handleCloneInDesktopOptions(
-    repository: Repository,
-    action: IOpenRepositoryFromURLAction
-  ): Promise<void> {
-    const { filepath, pr, branch } = action
-
-    if (pr != null && branch != null) {
-      // we need to refetch for a forked PR and check that out
-      await this.fetchRefspec(repository, `pull/${pr}/head:${branch}`)
-    }
-
-    // ensure a fresh clone repository has it's in-memory state
-    // up-to-date before performing the "Clone in Desktop" steps
-    await this.appStore._refreshRepository(repository)
+  public async checkoutLocalBranch(repository: Repository, branch: string) {
+    let shouldCheckoutBranch = true
 
     const state = this.repositoryStateManager.get(repository)
+    const branches = state.branchesState.allBranches
 
-    if (pr == null && branch != null) {
-      const branches = state.branchesState.allBranches
+    const { tip } = state.branchesState
 
-      // I don't want to invoke Git functionality from the dispatcher, which
-      // would help by using getDefaultRemote here to get the definitive ref,
-      // so this falls back to finding any remote branch matching the name
-      // received from the "Clone in Desktop" action
-      const localBranch =
-        branches.find(b => b.upstreamWithoutRemote === branch) || null
-
-      if (localBranch == null) {
-        await this.fetch(repository, FetchType.BackgroundTask)
-      }
+    if (tip.kind === TipState.Valid) {
+      shouldCheckoutBranch = tip.branch.nameWithoutRemote !== branch
     }
 
-    if (branch != null) {
-      let shouldCheckoutBranch = true
+    const localBranch = branches.find(b => b.nameWithoutRemote === branch)
 
-      const { tip } = state.branchesState
-
-      if (tip.kind === TipState.Valid) {
-        shouldCheckoutBranch = tip.branch.nameWithoutRemote !== branch
-      }
-
-      if (shouldCheckoutBranch) {
-        await this.checkoutBranch(repository, branch)
-      }
-    }
-
-    if (filepath != null) {
-      const fullPath = Path.join(repository.path, filepath)
-      // because Windows uses different path separators here
-      const normalized = Path.normalize(fullPath)
-      shell.showItemInFolder(normalized)
+    // N.B: This looks weird, and it is. _checkoutBranch used
+    // to behave this way (silently ignoring checkout) when given
+    // a branch name string that does not correspond to a local branch
+    // in the git store. When rewriting _checkoutBranch
+    // to remove the support for string branch names the behavior
+    // was moved up to this method to not alter the current behavior.
+    //
+    // https://youtu.be/IjmtVKOAHPM
+    if (shouldCheckoutBranch && localBranch !== undefined) {
+      await this.checkoutBranch(repository, localBranch)
     }
   }
 
   private async openOrCloneRepository(url: string): Promise<Repository | null> {
     const state = this.appStore.getState()
     const repositories = state.repositories
-    const existingRepository = repositories.find(r => {
-      if (r instanceof Repository) {
-        const gitHubRepository = r.gitHubRepository
-        if (!gitHubRepository) {
-          return false
-        }
-        return urlMatchesCloneURL(url, gitHubRepository)
-      } else {
-        return false
-      }
-    })
+    const existingRepository = repositories.find(r =>
+      this.doesRepositoryMatchUrl(r, url)
+    )
 
     if (existingRepository) {
       return await this.selectRepository(existingRepository)
@@ -1615,6 +1928,20 @@ export class Dispatcher {
         await this.checkoutBranch(retryAction.repository, retryAction.branch)
         break
 
+      case RetryActionType.Merge:
+        return this.mergeBranch(
+          retryAction.repository,
+          retryAction.theirBranch,
+          null
+        )
+
+      case RetryActionType.Rebase:
+        return this.rebase(
+          retryAction.repository,
+          retryAction.baseBranch,
+          retryAction.targetBranch
+        )
+
       default:
         return assertNever(retryAction, `Unknown retry action: ${retryAction}`)
     }
@@ -1664,14 +1991,16 @@ export class Dispatcher {
     return this.appStore._refreshApiRepositories(account)
   }
 
-  /** Open the merge tool for the given file. */
-  public openMergeTool(repository: Repository, path: string): Promise<void> {
-    return this.appStore._openMergeTool(repository, path)
-  }
-
   /** Change the selected Branches foldout tab. */
   public changeBranchesTab(tab: BranchesTab): Promise<void> {
     return this.appStore._changeBranchesTab(tab)
+  }
+
+  /**
+   * Open the Explore page at the GitHub instance of this repository
+   */
+  public showGitHubExplore(repository: Repository): Promise<void> {
+    return this.appStore._showGitHubExplore(repository)
   }
 
   /**
@@ -1721,10 +2050,20 @@ export class Dispatcher {
 
   /** Checks out a PR whose ref exists locally or in a forked repo. */
   public async checkoutPullRequest(
-    repository: Repository,
+    repository: RepositoryWithGitHubRepository,
     pullRequest: PullRequest
   ): Promise<void> {
-    return this.appStore._checkoutPullRequest(repository, pullRequest)
+    if (pullRequest.head.gitHubRepository.cloneURL === null) {
+      return
+    }
+
+    return this.appStore._checkoutPullRequest(
+      repository,
+      pullRequest.pullRequestNumber,
+      pullRequest.author,
+      pullRequest.head.gitHubRepository.cloneURL,
+      pullRequest.head.ref
+    )
   }
 
   /**
@@ -1776,10 +2115,6 @@ export class Dispatcher {
     newState: Pick<ICompareFormUpdate, K>
   ) {
     return this.appStore._updateCompareForm(repository, newState)
-  }
-
-  public resolveCurrentEditor() {
-    return this.appStore._resolveCurrentEditor()
   }
 
   /**
@@ -1836,6 +2171,17 @@ export class Dispatcher {
 
   public setConfirmForcePushSetting(value: boolean) {
     return this.appStore._setConfirmForcePushSetting(value)
+  }
+
+  /**
+   * Converts a local repository to use the given fork
+   * as its default remote and associated `GitHubRepository`.
+   */
+  public async convertRepositoryToFork(
+    repository: RepositoryWithGitHubRepository,
+    fork: IAPIRepository
+  ): Promise<Repository> {
+    return this.appStore._convertRepositoryToFork(repository, fork)
   }
 
   /**
@@ -2024,7 +2370,7 @@ export class Dispatcher {
   public tryGetCommitStatus(
     repository: GitHubRepository,
     ref: string
-  ): IAPIRefStatus | null {
+  ): ICombinedRefCheck | null {
     return this.commitStatusStore.tryGetStatus(repository, ref)
   }
 
@@ -2043,6 +2389,24 @@ export class Dispatcher {
     callback: StatusCallBack
   ): IDisposable {
     return this.commitStatusStore.subscribe(repository, ref, callback)
+  }
+
+  /**
+   * Creates a stash for the current branch. Note that this will
+   * override any stash that already exists for the current branch.
+   *
+   * @param repository
+   * @param showConfirmationDialog  Whether to show a confirmation dialog if an
+   *                                existing stash exists (defaults to true).
+   */
+  public createStashForCurrentBranch(
+    repository: Repository,
+    showConfirmationDialog: boolean = true
+  ) {
+    return this.appStore._createStashForCurrentBranch(
+      repository,
+      showConfirmationDialog
+    )
   }
 
   /** Drops the given stash in the given repository */
@@ -2137,7 +2501,7 @@ export class Dispatcher {
    */
   public async moveChangesToBranchAndCheckout(
     repository: Repository,
-    branchToCheckout: string
+    branchToCheckout: Branch
   ) {
     return this.appStore._moveChangesToBranchAndCheckout(
       repository,
@@ -2153,5 +2517,56 @@ export class Dispatcher {
   /** Record when the user views the stash entry */
   public recordStashView(): Promise<void> {
     return this.statsStore.recordStashView()
+  }
+
+  /** Call when the user opts to skip the pick editor step of the onboarding tutorial */
+  public skipPickEditorTutorialStep(repository: Repository) {
+    return this.appStore._skipPickEditorTutorialStep(repository)
+  }
+
+  /**
+   * Call when the user has either created a pull request or opts to
+   * skip the create pull request step of the onboarding tutorial
+   */
+  public markPullRequestTutorialStepAsComplete(repository: Repository) {
+    return this.appStore._markPullRequestTutorialStepAsComplete(repository)
+  }
+
+  /**
+   * Increments the `forksCreated ` metric` indicating that the user has
+   * elected to create a fork when presented with a dialog informing
+   * them that they don't have write access to the current repository.
+   */
+  public recordForkCreated() {
+    return this.statsStore.recordForkCreated()
+  }
+
+  /**
+   * Create a tutorial repository using the given account. The account
+   * determines which host (i.e. GitHub.com or a GHES instance) that
+   * the tutorial repository should be created on.
+   *
+   * @param account The account (and thereby the GitHub host) under
+   *                which the repository is to be created created
+   */
+  public createTutorialRepository(account: Account) {
+    return this.appStore._createTutorialRepository(account)
+  }
+
+  /** Open the issue creation page for a GitHub repository in a browser */
+  public async openIssueCreationPage(repository: Repository): Promise<boolean> {
+    // Default to creating issue on parent repo
+    // See https://github.com/desktop/desktop/issues/9232 for rationale
+    const url = getGitHubHtmlUrl(repository)
+    if (url !== null) {
+      this.statsStore.recordIssueCreationWebpageOpened()
+      return this.appStore._openInBrowser(`${url}/issues/new/choose`)
+    } else {
+      return false
+    }
+  }
+
+  public setRepositoryIndicatorsEnabled(repositoryIndicatorsEnabled: boolean) {
+    this.appStore._setRepositoryIndicatorsEnabled(repositoryIndicatorsEnabled)
   }
 }

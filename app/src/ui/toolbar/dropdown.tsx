@@ -3,7 +3,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { assertNever } from '../../lib/fatal-error'
 import { ToolbarButton, ToolbarButtonStyle } from './button'
 import { rectEquals } from '../lib/rect'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 
 export type DropdownState = 'open' | 'closed'
 
@@ -125,6 +125,9 @@ export interface IToolbarDropdownProps {
 
   readonly role?: string
   readonly buttonRole?: string
+
+  /** Classes to be appended to `ToolbarButton` component */
+  readonly buttonClassName?: string
 }
 
 interface IToolbarDropdownState {
@@ -319,6 +322,7 @@ export class ToolbarDropdown extends React.Component<
       >
         {this.renderDropdownContents()}
         <ToolbarButton
+          className={this.props.buttonClassName}
           ref={this.onRef}
           icon={this.props.icon}
           title={this.props.title}

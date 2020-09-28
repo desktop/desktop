@@ -7,6 +7,7 @@ import {
   getGlobalConfigPath,
   getGlobalConfigValue,
   setGlobalConfigValue,
+  getGlobalBooleanConfigValue,
 } from '../../../src/lib/git'
 
 import { mkdirSync } from '../../helpers/temp'
@@ -63,6 +64,58 @@ describe('git/config', () => {
         await setGlobalConfigValue(key, 'the correct value', env)
         const value = await getGlobalConfigValue(key, env)
         expect(value).toBe('the correct value')
+      })
+    })
+
+    describe('getGlobalBooleanConfigValue', () => {
+      const key = 'foo.bar'
+
+      it('treats "false" as false', async () => {
+        await setGlobalConfigValue(key, 'false', env)
+        const value = await getGlobalBooleanConfigValue(key, env)
+        expect(value).toBeFalse()
+      })
+
+      it('treats "off" as false', async () => {
+        await setGlobalConfigValue(key, 'off', env)
+        const value = await getGlobalBooleanConfigValue(key, env)
+        expect(value).toBeFalse()
+      })
+
+      it('treats "no" as false', async () => {
+        await setGlobalConfigValue(key, 'no', env)
+        const value = await getGlobalBooleanConfigValue(key, env)
+        expect(value).toBeFalse()
+      })
+
+      it('treats "0" as false', async () => {
+        await setGlobalConfigValue(key, '0', env)
+        const value = await getGlobalBooleanConfigValue(key, env)
+        expect(value).toBeFalse()
+      })
+
+      it('treats "true" as true', async () => {
+        await setGlobalConfigValue(key, 'true', env)
+        const value = await getGlobalBooleanConfigValue(key, env)
+        expect(value).toBeTrue()
+      })
+
+      it('treats "yes" as true', async () => {
+        await setGlobalConfigValue(key, 'yes', env)
+        const value = await getGlobalBooleanConfigValue(key, env)
+        expect(value).toBeTrue()
+      })
+
+      it('treats "on" as true', async () => {
+        await setGlobalConfigValue(key, 'on', env)
+        const value = await getGlobalBooleanConfigValue(key, env)
+        expect(value).toBeTrue()
+      })
+
+      it('treats "1" as true', async () => {
+        await setGlobalConfigValue(key, '1', env)
+        const value = await getGlobalBooleanConfigValue(key, env)
+        expect(value).toBeTrue()
       })
     })
   })

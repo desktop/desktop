@@ -2,7 +2,7 @@ import * as Path from 'path'
 import { ChildProcess } from 'child_process'
 import * as FSE from 'fs-extra'
 import { GitError } from 'dugite'
-import * as byline from 'byline'
+import byline from 'byline'
 
 import { Repository } from '../../models/repository'
 import {
@@ -21,7 +21,12 @@ import { CommitOneLine } from '../../models/commit'
 import { merge } from '../merge'
 import { formatRebaseValue } from '../rebase'
 
-import { git, IGitResult, IGitExecutionOptions } from './core'
+import {
+  git,
+  IGitResult,
+  IGitExecutionOptions,
+  gitRebaseArguments,
+} from './core'
 import { stageManualConflictResolution } from './stage'
 import { stageFiles } from './update-index'
 import { getStatus } from './status'
@@ -91,14 +96,14 @@ export async function getRebaseInternalState(
 
   try {
     originalBranchTip = await FSE.readFile(
-      Path.join(repository.path, '.git', 'rebase-apply', 'orig-head'),
+      Path.join(repository.path, '.git', 'rebase-merge', 'orig-head'),
       'utf8'
     )
 
     originalBranchTip = originalBranchTip.trim()
 
     targetBranch = await FSE.readFile(
-      Path.join(repository.path, '.git', 'rebase-apply', 'head-name'),
+      Path.join(repository.path, '.git', 'rebase-merge', 'head-name'),
       'utf8'
     )
 
@@ -107,7 +112,7 @@ export async function getRebaseInternalState(
     }
 
     baseBranchTip = await FSE.readFile(
-      Path.join(repository.path, '.git', 'rebase-apply', 'onto'),
+      Path.join(repository.path, '.git', 'rebase-merge', 'onto'),
       'utf8'
     )
 
@@ -128,7 +133,7 @@ export async function getRebaseInternalState(
 }
 
 /**
- * Inspect the `.git/rebase-apply` folder and convert the current rebase state
+ * Inspect the `.git/rebase-merge` folder and convert the current rebase state
  * into data that can be provided to the rebase flow to update the application
  * state.
  *
@@ -154,14 +159,14 @@ export async function getRebaseSnapshot(
   let originalBranchTip: string | null = null
   let baseBranchTip: string | null = null
 
-  // if the repository is in the middle of a rebase `.git/rebase-apply` will
+  // if the repository is in the middle of a rebase `.git/rebase-merge` will
   // contain all the patches of commits that are being rebased into
   // auto-incrementing files, e.g. `0001`, `0002`, `0003`, etc ...
 
   try {
     // this contains the patch number that was recently applied to the repository
     const nextText = await FSE.readFile(
-      Path.join(repository.path, '.git', 'rebase-apply', 'next'),
+      Path.join(repository.path, '.git', 'rebase-merge', 'msgnum'),
       'utf8'
     )
 
@@ -169,14 +174,14 @@ export async function getRebaseSnapshot(
 
     if (isNaN(next)) {
       log.warn(
-        `[getCurrentProgress] found '${nextText}' in .git/rebase-apply/next which could not be parsed to a valid number`
+        `[getCurrentProgress] found '${nextText}' in .git/rebase-merge/msgnum which could not be parsed to a valid number`
       )
       next = -1
     }
 
     // this contains the total number of patches to be applied to the repository
     const lastText = await FSE.readFile(
-      Path.join(repository.path, '.git', 'rebase-apply', 'last'),
+      Path.join(repository.path, '.git', 'rebase-merge', 'end'),
       'utf8'
     )
 
@@ -184,20 +189,20 @@ export async function getRebaseSnapshot(
 
     if (isNaN(last)) {
       log.warn(
-        `[getCurrentProgress] found '${lastText}' in .git/rebase-apply/last which could not be parsed to a valid number`
+        `[getCurrentProgress] found '${lastText}' in .git/rebase-merge/last which could not be parsed to a valid number`
       )
       last = -1
     }
 
     originalBranchTip = await FSE.readFile(
-      Path.join(repository.path, '.git', 'rebase-apply', 'orig-head'),
+      Path.join(repository.path, '.git', 'rebase-merge', 'orig-head'),
       'utf8'
     )
 
     originalBranchTip = originalBranchTip.trim()
 
     baseBranchTip = await FSE.readFile(
-      Path.join(repository.path, '.git', 'rebase-apply', 'onto'),
+      Path.join(repository.path, '.git', 'rebase-merge', 'onto'),
       'utf8'
     )
 
@@ -268,44 +273,41 @@ async function readRebaseHead(repository: Repository): Promise<string | null> {
 }
 
 /** Regex for identifying when rebase applied each commit onto the base branch */
-const rebaseApplyingRe = /^Applying: (.*)/
+const rebasingRe = /^Rebasing \((\d+)\/(\d+)\)$/
 
 /**
- * A parser to read and emit rebase progress from Git `stdout`
+ * A parser to read and emit rebase progress from Git `stderr`
  */
 class GitRebaseParser {
-  public constructor(
-    private rebasedCommitCount: number,
-    private readonly totalCommitCount: number
-  ) {}
+  public constructor(private readonly commits: ReadonlyArray<CommitOneLine>) {}
 
   public parse(line: string): IRebaseProgress | null {
-    const match = rebaseApplyingRe.exec(line)
-    if (match === null || match.length !== 2) {
+    const match = rebasingRe.exec(line)
+    if (match === null || match.length !== 3) {
       // Git will sometimes emit other output (for example, when it tries to
       // resolve conflicts) and this does not match the expected output
       return null
     }
 
-    const currentCommitSummary = match[1]
-    this.rebasedCommitCount++
+    const rebasedCommitCount = parseInt(match[1], 10)
+    const totalCommitCount = parseInt(match[2], 10)
 
-    const progress = this.rebasedCommitCount / this.totalCommitCount
-    const value = formatRebaseValue(progress)
-
-    // TODO: dig into why we sometimes get an extra progress event reported
-    if (this.rebasedCommitCount > this.totalCommitCount) {
-      this.rebasedCommitCount = this.totalCommitCount
+    if (isNaN(rebasedCommitCount) || isNaN(totalCommitCount)) {
+      return null
     }
+
+    const currentCommitSummary =
+      this.commits[rebasedCommitCount - 1]?.summary ?? ''
+
+    const progress = rebasedCommitCount / totalCommitCount
+    const value = formatRebaseValue(progress)
 
     return {
       kind: 'rebase',
-      title: `Rebasing commit ${this.rebasedCommitCount} of ${
-        this.totalCommitCount
-      } commits`,
+      title: `Rebasing commit ${rebasedCommitCount} of ${totalCommitCount} commits`,
       value,
-      rebasedCommitCount: this.rebasedCommitCount,
-      totalCommitCount: this.totalCommitCount,
+      rebasedCommitCount: rebasedCommitCount,
+      totalCommitCount: totalCommitCount,
       currentCommitSummary,
     }
   }
@@ -319,14 +321,18 @@ function configureOptionsForRebase(
     return options
   }
 
-  const { rebasedCommitCount, totalCommitCount, progressCallback } = progress
+  const { commits, progressCallback } = progress
 
   return merge(options, {
     processCallback: (process: ChildProcess) => {
-      const parser = new GitRebaseParser(rebasedCommitCount, totalCommitCount)
+      // If Node.js encounters a synchronous runtime error while spawning
+      // `stderr` will be undefined and the error will be emitted asynchronously
+      if (process.stderr === null) {
+        return
+      }
+      const parser = new GitRebaseParser(commits)
 
-      // rebase emits progress messages on `stdout`, not `stderr`
-      byline(process.stdout).on('data', (line: string) => {
+      byline(process.stderr).on('data', (line: string) => {
         const progress = parser.parse(line)
 
         if (progress != null) {
@@ -372,17 +378,14 @@ export async function rebase(
       return RebaseResult.Error
     }
 
-    const totalCommitCount = commits.length
-
     options = configureOptionsForRebase(baseOptions, {
-      rebasedCommitCount: 0,
-      totalCommitCount,
+      commits,
       progressCallback,
     })
   }
 
   const result = await git(
-    ['rebase', baseBranch.name, targetBranch.name],
+    [...gitRebaseArguments(), 'rebase', baseBranch.name, targetBranch.name],
     repository.path,
     'rebase',
     options
@@ -468,6 +471,9 @@ export async function continueRebase(
       GitError.RebaseConflicts,
       GitError.UnresolvedConflicts,
     ]),
+    env: {
+      GIT_EDITOR: ':',
+    },
   }
 
   let options = baseOptions
@@ -482,12 +488,8 @@ export async function continueRebase(
       return RebaseResult.Aborted
     }
 
-    const { progress } = snapshot
-    const { rebasedCommitCount, totalCommitCount } = progress
-
     options = configureOptionsForRebase(baseOptions, {
-      rebasedCommitCount,
-      totalCommitCount,
+      commits: snapshot.commits,
       progressCallback,
     })
   }

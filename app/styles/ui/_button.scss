@@ -36,9 +36,14 @@
   .octicon {
     vertical-align: middle;
   }
+
+  &.button-with-icon .octicon {
+    margin-left: var(--spacing);
+  }
 }
 
-.button-component[type='submit'] {
+.button-component[type='submit'],
+.button-component-primary {
   background-color: var(--button-background);
   color: var(--button-text-color);
   border: 1px solid var(--button-background);

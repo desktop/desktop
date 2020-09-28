@@ -66,7 +66,7 @@ to declaratively get the repository into a state for testing. This approach is
 ideal for situations when:
 
  - a baseline repository can differ slightly between tests, and it's easier to
-   programatically apply the changes than create multiple test fixtures
+   programmatically apply the changes than create multiple test fixtures
  - the workflows being developed may change over time, and the tests themselves
    should be flexible (and be easy to identify how they evolve)
 

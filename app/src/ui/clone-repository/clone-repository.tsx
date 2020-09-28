@@ -1,10 +1,8 @@
 import * as Path from 'path'
 import * as React from 'react'
+
 import { remote } from 'electron'
 import { readdir } from 'fs-extra'
-
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Dispatcher } from '../dispatcher'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Account } from '../../models/account'
@@ -20,12 +18,12 @@ import { TabBar } from '../tab-bar'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloneGenericRepository } from './clone-generic-repository'
 import { CloneGithubRepository } from './clone-github-repository'
-
 import { assertNever } from '../../lib/fatal-error'
 import { CallToAction } from '../lib/call-to-action'
 import { IAccountRepositories } from '../../lib/stores/api-repositories-store'
 import { merge } from '../../lib/merge'
 import { ClickSource } from '../lib/list'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -255,12 +253,7 @@ export class CloneRepository extends React.Component<
 
     return (
       <DialogFooter>
-        <ButtonGroup>
-          <Button disabled={disabled} type="submit">
-            Clone
-          </Button>
-          <Button onClick={this.props.onDismissed}>Cancel</Button>
-        </ButtonGroup>
+        <OkCancelButtonGroup okButtonText="Clone" okButtonDisabled={disabled} />
       </DialogFooter>
     )
   }
@@ -320,9 +313,9 @@ export class CloneRepository extends React.Component<
           )
         }
       }
+      default:
+        return assertNever(tab, `Unknown tab: ${tab}`)
     }
-
-    return assertNever(tab, `Unknown tab: ${tab}`)
   }
 
   private getAccountForTab(tab: CloneRepositoryTab): Account | null {
@@ -511,19 +504,19 @@ export class CloneRepository extends React.Component<
 
   private onChooseDirectory = async () => {
     const window = remote.getCurrentWindow()
-    const directories = remote.dialog.showOpenDialog(window, {
+    const { filePaths } = await remote.dialog.showOpenDialog(window, {
       properties: ['createDirectory', 'openDirectory'],
     })
 
-    if (!directories) {
+    if (filePaths.length === 0) {
       return
     }
 
     const tabState = this.getSelectedTabState()
     const lastParsedIdentifier = tabState.lastParsedIdentifier
     const directory = lastParsedIdentifier
-      ? Path.join(directories[0], lastParsedIdentifier.name)
-      : directories[0]
+      ? Path.join(filePaths[0], lastParsedIdentifier.name)
+      : filePaths[0]
 
     this.setSelectedTabState(
       { path: directory, error: null },
@@ -593,10 +586,9 @@ export class CloneRepository extends React.Component<
    * the repository alias to the clone URL.
    */
   private async resolveCloneURL(): Promise<string | null> {
-    const tabState = this.getSelectedTabState()
-    const identifier = tabState.lastParsedIdentifier
-    let url = tabState.url
-    const accounts: Array<Account> = []
+    const { url, lastParsedIdentifier } = this.getSelectedTabState()
+
+    const accounts = new Array<Account>()
     if (this.props.dotComAccount) {
       accounts.push(this.props.dotComAccount)
     }
@@ -606,19 +598,20 @@ export class CloneRepository extends React.Component<
     }
 
     const account = await findAccountForRemoteURL(url, accounts)
-    if (identifier && account) {
+    if (lastParsedIdentifier !== null && account !== null) {
       const api = API.fromAccount(account)
-      const repo = await api.fetchRepository(identifier.owner, identifier.name)
-      if (repo) {
-        // respect the user's preference if they pasted an SSH URL into the
-        // Clone Generic Repository tab
-        const parsedUrl = parseRemote(url)
-        if (parsedUrl && parsedUrl.protocol === 'ssh') {
-          url = repo.ssh_url
-        } else {
-          url = repo.clone_url
-        }
-      }
+      const { owner, name } = lastParsedIdentifier
+      // Respect the user's preference if they provided an SSH URL
+      const protocol = parseRemote(url)?.protocol
+
+      const cloneUrl = await api
+        .fetchRepositoryCloneUrl(owner, name, protocol)
+        .catch(err => {
+          log.error(`Failed to look up canonical clone url for '${url}'`, err)
+          return url
+        })
+
+      return cloneUrl
     }
 
     return url

@@ -5,6 +5,7 @@ import {
 } from '../../src/lib/repository-matching'
 import { Account } from '../../src/models/account'
 import { GitHubRepository } from '../../src/models/github-repository'
+import { gitHubRepoFixture } from '../helpers/github-repo-builder'
 
 describe('repository-matching', () => {
   describe('matchGitHubRepository', () => {
@@ -144,25 +145,11 @@ describe('repository-matching', () => {
   })
 
   describe('cloneUrlMatches', () => {
-    const repository: GitHubRepository = {
-      dbID: 1,
+    const repository = gitHubRepoFixture({
       name: 'desktop',
-      fullName: 'shiftkey/desktop',
-      cloneURL: 'https://github.com/shiftkey/desktop.git',
-      owner: {
-        login: 'shiftkey',
-        id: 1234,
-        endpoint: 'https://api.github.com/',
-        hash: 'whatever',
-      },
-      private: false,
-      htmlURL: 'https://github.com/shiftkey/desktop',
-      defaultBranch: 'master',
-      parent: null,
-      endpoint: 'https://api.github.com/',
-      fork: true,
-      hash: 'whatever',
-    }
+      owner: 'shiftkey',
+      isPrivate: false,
+    })
 
     const repositoryWithoutCloneURL: GitHubRepository = {
       dbID: 1,
@@ -175,13 +162,16 @@ describe('repository-matching', () => {
         endpoint: 'https://api.github.com/',
         hash: 'whatever',
       },
-      private: false,
+      isPrivate: false,
       htmlURL: 'https://github.com/shiftkey/desktop',
       defaultBranch: 'master',
       parent: null,
       endpoint: 'https://api.github.com/',
       fork: true,
       hash: 'whatever',
+      issuesEnabled: true,
+      isArchived: false,
+      permissions: null,
     }
 
     it('returns true for exact match', () => {

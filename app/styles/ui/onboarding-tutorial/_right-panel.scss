@@ -1,0 +1,149 @@
+.tutorial-panel-component {
+  display: flex;
+  flex-flow: column nowrap;
+  flex: 1 1 350px;
+  min-width: 274px;
+  max-width: 350px;
+  height: 100%;
+  background-color: var(--background-color);
+  box-shadow: var(--base-box-shadow);
+
+  // we need this to be high so the panel's box shadow
+  // appears on top of the codemirror buffer
+  z-index: var(--side-panel-z-index);
+  overflow-y: scroll;
+
+  .titleArea {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-triple);
+    padding-left: var(--spacing-quint);
+    padding-right: var(--spacing-double);
+
+    h3 {
+      margin: 0;
+      font-weight: var(--font-weight-light);
+      font-size: var(--font-size-lg);
+    }
+    svg {
+      height: 46px;
+      width: 46px;
+    }
+  }
+
+  ol,
+  li,
+  summary {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  li,
+  .titleArea {
+    border-bottom: var(--base-border);
+  }
+
+  li {
+    padding: var(--spacing-double);
+  }
+  summary {
+    display: flex;
+    align-items: center;
+    font-weight: var(--font-weight-semibold);
+
+    .summary-text {
+      opacity: 0.5;
+    }
+    .hang-right {
+      margin-left: auto;
+    }
+    .green-circle {
+      @extend %circle;
+      background-color: $green;
+      border-color: $green;
+      color: var(--badge-icon-color);
+    }
+    .blue-circle {
+      @extend %circle;
+      background-color: $blue;
+      border-color: $blue;
+      color: var(--badge-icon-color);
+    }
+    .empty-circle {
+      @extend %circle;
+      background-color: transparent;
+      border-color: var(--text-color);
+      opacity: 0.5;
+      color: var(--text-color);
+    }
+  }
+
+  details .contents {
+    padding-left: var(--spacing-triple);
+    .description {
+      margin-bottom: var(--spacing);
+    }
+    .action {
+      display: flex;
+      align-items: center;
+
+      .button-component {
+        display: flex;
+        align-items: center;
+        margin-right: var(--spacing);
+        .octicon {
+          margin-left: var(--spacing);
+          color: var(--text-secondary-color);
+          height: 14px;
+          width: 14px;
+        }
+      }
+
+      kbd {
+        // get these to align properly in a flex box
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-secondary-color);
+      }
+    }
+  }
+  details[open] summary {
+    margin-bottom: var(--spacing);
+    .summary-text {
+      opacity: 1;
+    }
+    // we only want to do this if its an (chevron) octicon
+    .hang-right .octicon {
+      transform: rotate(180deg);
+    }
+    .empty-circle {
+      opacity: 1;
+    }
+  }
+  .footer {
+    display: flex;
+    justify-content: center;
+    padding: var(--spacing-double) 0;
+    margin-top: auto;
+  }
+}
+
+%circle {
+  border-radius: 50%;
+  border-style: solid;
+  border-width: 1px;
+  height: 18px;
+  width: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: var(--spacing);
+  flex-shrink: 0;
+  flex-grow: 0;
+}

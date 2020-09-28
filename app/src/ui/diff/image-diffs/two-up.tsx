@@ -2,8 +2,8 @@ import * as React from 'react'
 import { ImageContainer } from './image-container'
 import { ICommonImageDiffProperties } from './modified-image-diff'
 import { ISize } from './sizing'
-import { formatBytes, Sign } from '../../lib/bytes'
-import * as classNames from 'classnames'
+import { formatBytes } from '../../lib/bytes'
+import classNames from 'classnames'
 
 interface ITwoUpProps extends ICommonImageDiffProperties {
   readonly previousImageSize: ISize | null
@@ -26,6 +26,7 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
       this.props.current.bytes
     )
     const diffBytes = this.props.current.bytes - this.props.previous.bytes
+    const diffBytesSign = diffBytes >= 0 ? '+' : '-'
 
     return (
       <div className="image-diff-container" ref={this.props.onContainerRef}>
@@ -69,7 +70,7 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
             })}
           >
             {diffBytes !== 0
-              ? `${formatBytes(diffBytes, Sign.Forced)} (${diffPercent})`
+              ? `${diffBytesSign}${formatBytes(diffBytes)} (${diffPercent})`
               : 'No size difference'}
           </span>
         </div>

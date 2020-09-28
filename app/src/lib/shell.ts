@@ -10,7 +10,7 @@ type IndexLookup = {
 /**
  * The names of any env vars that we shouldn't copy from the shell environment.
  */
-const BlacklistedNames = new Set(['LOCAL_GIT_DIRECTORY'])
+const ExcludedEnvironmentVars = new Set(['LOCAL_GIT_DIRECTORY'])
 
 /**
  * Inspect whether the current process needs to be patched to get important
@@ -69,9 +69,13 @@ async function getRawShellEnv(): Promise<string | null> {
       error = e
     })
 
-    child.stdout.on('data', (data: Buffer) => {
-      buffers.push(data)
-    })
+    // If Node.js encounters a synchronous runtime error while spawning
+    // `stdout` will be undefined and the error will be emitted asynchronously
+    if (child.stdout) {
+      child.stdout.on('data', (data: Buffer) => {
+        buffers.push(data)
+      })
+    }
 
     child.on('close', (code: number, signal) => {
       done = true
@@ -148,7 +152,7 @@ async function getEnvironmentFromShell(
  */
 function mergeEnvironmentVariables(env: IndexLookup) {
   for (const key in env) {
-    if (BlacklistedNames.has(key)) {
+    if (ExcludedEnvironmentVars.has(key)) {
       continue
     }
 

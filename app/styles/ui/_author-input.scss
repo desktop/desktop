@@ -23,10 +23,10 @@
     }
 
     .handle {
-      border-radius: 3px;
+      border-radius: var(--border-radius);
       border: 1px solid var(--co-author-tag-border-color);
       background: var(--co-author-tag-background-color);
-      padding: 1px 1px;
+      padding: 1px 2px;
       margin: 0px 2px;
 
       &.progress {

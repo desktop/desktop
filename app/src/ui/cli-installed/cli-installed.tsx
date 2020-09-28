@@ -1,7 +1,5 @@
 import * as React from 'react'
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
-import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { Dialog, DialogContent, DefaultDialogFooter } from '../dialog'
 import { InstalledCLIPath } from '../lib/install-cli'
 
 interface ICLIInstalledProps {
@@ -28,11 +26,7 @@ export class CLIInstalled extends React.Component<ICLIInstalledProps, {}> {
             <strong>{InstalledCLIPath}</strong>.
           </div>
         </DialogContent>
-        <DialogFooter>
-          <ButtonGroup>
-            <Button type="submit">OK</Button>
-          </ButtonGroup>
-        </DialogFooter>
+        <DefaultDialogFooter buttonText="Ok" />
       </Dialog>
     )
   }

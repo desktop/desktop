@@ -4,14 +4,14 @@
 import * as path from 'path'
 import * as cp from 'child_process'
 import * as fs from 'fs-extra'
-import * as packager from 'electron-packager'
-
+import packager, {
+  arch,
+  ElectronNotarizeOptions,
+  ElectronOsXSignOptions,
+  Options,
+} from 'electron-packager'
+import frontMatter from 'front-matter'
 import { externals } from '../app/webpack.common'
-
-interface IFrontMatterResult<T> {
-  readonly attributes: T
-  readonly body: string
-}
 
 interface IChooseALicense {
   readonly title: string
@@ -27,28 +27,33 @@ export interface ILicense {
   readonly hidden: boolean
 }
 
-const frontMatter: <T>(
-  path: string
-) => IFrontMatterResult<T> = require('front-matter')
-
 import {
   getBundleID,
   getCompanyName,
   getProductName,
 } from '../app/package-info'
 
-import { getReleaseChannel, getDistRoot, getExecutableName } from './dist-info'
-import { isRunningOnFork, isCircleCI } from './build-platforms'
+import {
+  getChannel,
+  getDistRoot,
+  getExecutableName,
+  isPublishable,
+  getIconFileName,
+} from './dist-info'
+import { isCircleCI, isGitHubActions } from './build-platforms'
 
 import { updateLicenseDump } from './licenses/update-license-dump'
 import { verifyInjectedSassVariables } from './validate-sass/validate-all'
 
 const projectRoot = path.join(__dirname, '..')
+const entitlementsPath = `${projectRoot}/script/entitlements.plist`
+const extendInfoPath = `${projectRoot}/script/info.plist`
 const outRoot = path.join(projectRoot, 'out')
 
-const isPublishableBuild = getReleaseChannel() !== 'development'
+const isPublishableBuild = isPublishable()
+const isDevelopmentBuild = getChannel() === 'development'
 
-console.log(`Building for ${getReleaseChannel()}…`)
+console.log(`Building for ${getChannel()}…`)
 
 console.log('Removing old distribution…')
 fs.removeSync(getDistRoot())
@@ -67,7 +72,7 @@ generateLicenseMetadata(outRoot)
 
 moveAnalysisFiles()
 
-if (isCircleCI() && !isRunningOnFork()) {
+if (isGitHubActions() && process.platform === 'darwin' && isPublishableBuild) {
   console.log('Setting up keychain…')
   cp.execSync(path.join(__dirname, 'setup-macos-keychain'))
 }
@@ -78,7 +83,7 @@ verifyInjectedSassVariables(outRoot)
       'Error verifying the Sass variables in the rendered app. This is fatal for a published build.'
     )
 
-    if (isPublishableBuild) {
+    if (!isDevelopmentBuild) {
       process.exit(1)
     }
   })
@@ -90,7 +95,7 @@ verifyInjectedSassVariables(outRoot)
       )
       console.error(err)
 
-      if (isPublishableBuild) {
+      if (!isDevelopmentBuild) {
         process.exit(1)
       }
     })
@@ -117,6 +122,9 @@ interface IPackageAdditionalOptions {
     readonly name: string
     readonly schemes: ReadonlyArray<string>
   }>
+  readonly osxSign: ElectronOsXSignOptions & {
+    readonly hardenedRuntime?: boolean
+  }
 }
 
 function packageApp() {
@@ -127,13 +135,11 @@ function packageApp() {
       return platform
     }
     throw new Error(
-      `Unable to convert to platform for electron-packager: '${
-        process.platform
-      }`
+      `Unable to convert to platform for electron-packager: '${process.platform}`
     )
   }
 
-  const toPackageArch = (targetArch: string | undefined): packager.arch => {
+  const toPackageArch = (targetArch: string | undefined): arch => {
     if (targetArch === undefined) {
       return 'x64'
     }
@@ -147,13 +153,29 @@ function packageApp() {
     )
   }
 
-  const options: packager.Options & IPackageAdditionalOptions = {
+  // get notarization deets, unless we're not going to publish this
+  const notarizationCredentials = isPublishableBuild
+    ? getNotarizationCredentials()
+    : undefined
+  if (
+    isPublishableBuild &&
+    (isCircleCI() || isGitHubActions()) &&
+    process.platform === 'darwin' &&
+    notarizationCredentials === undefined
+  ) {
+    // we can't publish a mac build without these
+    throw new Error(
+      'Unable to retreive appleId and/or appleIdPassword to notarize macOS build'
+    )
+  }
+
+  const options: Options & IPackageAdditionalOptions = {
     name: getExecutableName(),
     platform: toPackagePlatform(process.platform),
     arch: toPackageArch(process.env.TARGET_ARCH),
     asar: false, // TODO: Probably wanna enable this down the road.
     out: getDistRoot(),
-    icon: path.join(projectRoot, 'app', 'static', 'logos', 'icon-logo'),
+    icon: path.join(projectRoot, 'app', 'static', 'logos', getIconFileName()),
     dir: outRoot,
     overwrite: true,
     tmpdir: false,
@@ -171,12 +193,18 @@ function packageApp() {
     appBundleId: getBundleID(),
     appCategoryType: 'public.app-category.developer-tools',
     darwinDarkModeSupport: true,
-    osxSign: true,
+    osxSign: {
+      hardenedRuntime: true,
+      entitlements: entitlementsPath,
+      'entitlements-inherit': entitlementsPath,
+      type: isPublishableBuild ? 'distribution' : 'development',
+    },
+    osxNotarize: notarizationCredentials,
     protocols: [
       {
         name: getBundleID(),
         schemes: [
-          isPublishableBuild
+          !isDevelopmentBuild
             ? 'x-github-desktop-auth'
             : 'x-github-desktop-dev-auth',
           'x-github-client',
@@ -184,7 +212,7 @@ function packageApp() {
         ],
       },
     ],
-    extendInfo: `${projectRoot}/script/info.plist`,
+    extendInfo: extendInfoPath,
 
     // Windows
     win32metadata: {
@@ -243,7 +271,6 @@ function moveAnalysisFiles() {
 }
 
 function copyDependencies() {
-  // eslint-disable-next-line import/no-dynamic-require
   const originalPackage: Package = require(path.join(
     projectRoot,
     'app',
@@ -263,7 +290,7 @@ function copyDependencies() {
   const oldDevDependencies = originalPackage.devDependencies
   const newDevDependencies: PackageLookup = {}
 
-  if (!isPublishableBuild) {
+  if (isDevelopmentBuild) {
     for (const name of Object.keys(oldDevDependencies)) {
       const spec = oldDevDependencies[name]
       if (externals.indexOf(name) !== -1) {
@@ -280,7 +307,7 @@ function copyDependencies() {
     devDependencies: newDevDependencies,
   })
 
-  if (isPublishableBuild) {
+  if (!isDevelopmentBuild) {
     delete updatedPackage.devDependencies
   }
 
@@ -297,18 +324,6 @@ function copyDependencies() {
   ) {
     console.log('  Installing dependencies via yarn…')
     cp.execSync('yarn install', { cwd: outRoot, env: process.env })
-  }
-
-  if (!isPublishableBuild) {
-    console.log(
-      '  Installing 7zip (dependency for electron-devtools-installer)'
-    )
-
-    const sevenZipSource = path.resolve(projectRoot, 'app/node_modules/7zip')
-    const sevenZipDestination = path.resolve(outRoot, 'node_modules/7zip')
-
-    fs.mkdirpSync(sevenZipDestination)
-    fs.copySync(sevenZipSource, sevenZipDestination)
   }
 
   console.log('  Copying git environment…')
@@ -409,4 +424,16 @@ ${licenseText}`
 
   // sweep up the choosealicense directory as the important bits have been bundled in the app
   fs.removeSync(chooseALicense)
+}
+
+function getNotarizationCredentials(): ElectronNotarizeOptions | undefined {
+  const appleId = process.env.APPLE_ID
+  const appleIdPassword = process.env.APPLE_ID_PASSWORD
+  if (appleId === undefined || appleIdPassword === undefined) {
+    return undefined
+  }
+  return {
+    appleId,
+    appleIdPassword,
+  }
 }

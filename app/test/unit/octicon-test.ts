@@ -1,32 +1,7 @@
 import { OcticonSymbol, iconForRepository } from '../../src/ui/octicons'
 import { CloningRepository } from '../../src/models/cloning-repository'
 import { Repository } from '../../src/models/repository'
-import { GitHubRepository } from '../../src/models/github-repository'
-
-function getTestRepository(
-  isPrivate: boolean,
-  isFork: boolean = false
-): GitHubRepository {
-  return {
-    dbID: 1,
-    name: 'some-repo',
-    owner: {
-      endpoint: 'https://api.github.com',
-      login: 'shiftkey',
-      hash: '',
-      id: null,
-    },
-    endpoint: 'https://api.github.com',
-    fullName: 'shiftkey/some-repo',
-    private: isPrivate,
-    fork: isFork,
-    cloneURL: 'https://github.com/shiftkey/some-repo.git',
-    htmlURL: 'https://github.com/shiftkey/some-repo',
-    defaultBranch: 'master',
-    hash: '',
-    parent: null,
-  }
-}
+import { gitHubRepoFixture } from '../helpers/github-repo-builder'
 
 describe('octicon/iconForRepository', () => {
   it('shows download icon for cloning repository', () => {
@@ -45,7 +20,11 @@ describe('octicon/iconForRepository', () => {
   })
 
   it('shows repo icon for public GitHub repository', () => {
-    const gitHubRepository = getTestRepository(false)
+    const gitHubRepository = gitHubRepoFixture({
+      owner: 'me',
+      name: 'my-repo',
+      isPrivate: false,
+    })
     const repository = new Repository(
       'C:/some/path/to/repo',
       1,
@@ -56,8 +35,12 @@ describe('octicon/iconForRepository', () => {
     expect(icon).toEqual(OcticonSymbol.repo)
   })
 
-  it('shows lock icon for public GitHub repository', () => {
-    const gitHubRepository = getTestRepository(true)
+  it('shows lock icon for private GitHub repository', () => {
+    const gitHubRepository = gitHubRepoFixture({
+      owner: 'me',
+      name: 'my-repo',
+      isPrivate: true,
+    })
     const repository = new Repository(
       'C:/some/path/to/repo',
       1,
@@ -69,7 +52,12 @@ describe('octicon/iconForRepository', () => {
   })
 
   it('shows fork icon for forked GitHub repository', () => {
-    const gitHubRepository = getTestRepository(false, true)
+    const gitHubRepository = gitHubRepoFixture({
+      owner: 'me',
+      name: 'my-repo',
+      isPrivate: false,
+      parent: gitHubRepoFixture({ owner: 'you', name: 'my-repo' }),
+    })
     const repository = new Repository(
       'C:/some/path/to/repo',
       1,

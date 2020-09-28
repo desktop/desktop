@@ -9,29 +9,7 @@ import {
 } from '../../src/models/status'
 import { DiffSelection, DiffSelectionType } from '../../src/models/diff'
 import { HistoryTabMode, IDisplayHistory } from '../../src/lib/app-state'
-import { IGitHubUser } from '../../src/lib/databases'
-
-function createSampleGitHubRepository() {
-  return {
-    dbID: 1,
-    name: 'desktop',
-    owner: {
-      endpoint: 'https://api.github.com',
-      login: 'desktop',
-      hash: '',
-      id: null,
-    },
-    endpoint: 'https://api.github.com',
-    fullName: 'shiftkey/some-repo',
-    private: false,
-    fork: false,
-    cloneURL: 'https://github.com/desktop/desktop.git',
-    htmlURL: 'https://github.com/desktop/desktop',
-    defaultBranch: 'master',
-    hash: '',
-    parent: null,
-  }
-}
+import { gitHubRepoFixture } from '../helpers/github-repo-builder'
 
 function createSamplePullRequest(gitHubRepository: GitHubRepository) {
   return new PullRequest(
@@ -48,24 +26,26 @@ function createSamplePullRequest(gitHubRepository: GitHubRepository) {
       sha: 'deadbeef',
       gitHubRepository,
     },
-    'shiftkey'
+    'shiftkey',
+    false
   )
 }
 
 describe('RepositoryStateCache', () => {
   let repository: Repository
-  const defaultGetUsersFunc = (repo: Repository) =>
-    new Map<string, IGitHubUser>()
 
   beforeEach(() => {
     repository = new Repository('/something/path', 1, null, false)
   })
 
   it('can update branches state for a repository', () => {
-    const gitHubRepository = createSampleGitHubRepository()
+    const gitHubRepository = gitHubRepoFixture({
+      name: 'desktop',
+      owner: 'desktop',
+    })
     const firstPullRequest = createSamplePullRequest(gitHubRepository)
 
-    const cache = new RepositoryStateCache(defaultGetUsersFunc)
+    const cache = new RepositoryStateCache()
 
     cache.updateBranchesState(repository, () => {
       return {
@@ -90,7 +70,7 @@ describe('RepositoryStateCache', () => {
 
     const summary = 'Hello world!'
 
-    const cache = new RepositoryStateCache(defaultGetUsersFunc)
+    const cache = new RepositoryStateCache()
 
     cache.updateChangesState(repository, () => {
       return {
@@ -113,7 +93,7 @@ describe('RepositoryStateCache', () => {
   it('can update compare state for a repository', () => {
     const filterText = 'my-cool-branch'
 
-    const cache = new RepositoryStateCache(defaultGetUsersFunc)
+    const cache = new RepositoryStateCache()
 
     cache.updateCompareState(repository, () => {
       const newState: IDisplayHistory = {

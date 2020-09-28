@@ -10,7 +10,7 @@ import {
 import memoizeOne from 'memoize-one'
 import { Button } from '../lib/button'
 import { IMatches } from '../../lib/fuzzy-find'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon, syncClockwise } from '../octicons'
 import { HighlightText } from '../lib/highlight-text'
 import { ClickSource } from '../lib/list'
 import { LinkButton } from '../lib/link-button'
@@ -176,6 +176,7 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
         renderNoItems={this.renderNoItems}
         renderPostFilter={this.renderPostFilter}
         onItemClick={this.props.onItemClicked ? this.onItemClick : undefined}
+        placeholderText="Filter your repositories"
       />
     )
   }
@@ -241,7 +242,7 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
         tooltip="Refresh the list of repositories"
       >
         <Octicon
-          symbol={OcticonSymbol.sync}
+          symbol={syncClockwise}
           className={this.props.loading ? 'spin' : undefined}
         />
       </Button>
@@ -250,9 +251,15 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
 
   private renderNoItems = () => {
     const { loading, repositories } = this.props
+    const endpointName =
+      this.props.account.endpoint === getDotComAPIEndpoint()
+        ? 'GitHub.com'
+        : getHTMLURL(this.props.account.endpoint)
 
     if (loading && (repositories === null || repositories.length === 0)) {
-      return <div className="no-items loading">Loading repositories…</div>
+      return (
+        <div className="no-items loading">{`Loading repositories from ${endpointName}…`}</div>
+      )
     }
 
     if (this.props.filterText.length !== 0) {
@@ -266,18 +273,13 @@ export class CloneableRepositoryFilterList extends React.PureComponent<
       )
     }
 
-    const endpointName =
-      this.props.account.endpoint === getDotComAPIEndpoint()
-        ? 'GitHub.com'
-        : getHTMLURL(this.props.account.endpoint)
-
     return (
       <div className="no-items empty-repository-list">
         <div>
-          Couldn't find any repositories for the account{' '}
+          Looks like there are no repositories for{' '}
           <Ref>{this.props.account.login}</Ref> on {endpointName}.{' '}
           <LinkButton onClick={this.refreshRepositories}>
-            Refresh the list
+            Refresh this list
           </LinkButton>{' '}
           if you've created a repository recently.
         </div>

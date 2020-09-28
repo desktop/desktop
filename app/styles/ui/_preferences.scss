@@ -1,12 +1,38 @@
 #preferences {
+  .preferences-container {
+    display: flex;
+    .tab-container {
+      border-left: var(--base-border);
+      flex: 1;
+    }
+
+    .advanced-section {
+      &:not(:last-child) {
+        margin-bottom: var(--spacing);
+      }
+
+      .checkbox-component:not(:last-child) {
+        margin-bottom: var(--spacing-half);
+      }
+
+      .git-settings-description {
+        margin-top: var(--spacing);
+      }
+    }
+  }
+
+  .tab-bar {
+    .icon {
+      width: 16px;
+    }
+  }
+
   .accounts-tab {
     .account-info {
       .avatar {
         // 32px for the image + 2 on each side for the base border.
         width: 34px;
         height: 34px;
-
-        border: var(--base-border);
 
         align-self: center;
       }
@@ -34,6 +60,20 @@
     span {
       color: var(--text-secondary-color);
     }
+  }
+
+  .default-branch-component {
+    margin-top: var(--spacing-double);
+
+    .ref-name-text-box {
+      margin-top: var(--spacing);
+    }
+  }
+
+  .git-settings-description {
+    margin-top: var(--spacing-double);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary-color);
   }
 }
 

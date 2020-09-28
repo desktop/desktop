@@ -19,7 +19,7 @@ import {
   BranchGroupIdentifier,
 } from './group-branches'
 import { NoBranches } from './no-branches'
-import { SelectionDirection } from '../lib/list'
+import { SelectionDirection, ClickSource } from '../lib/list'
 
 const RowHeight = 30
 
@@ -58,7 +58,7 @@ interface IBranchListProps {
   ) => void
 
   /** Called when an item is clicked. */
-  readonly onItemClick?: (item: Branch) => void
+  readonly onItemClick?: (item: Branch, source: ClickSource) => void
 
   /**
    * This function will be called when the selection changes as a result of a
@@ -252,9 +252,9 @@ export class BranchList extends React.Component<
     ) : null
   }
 
-  private onItemClick = (item: IBranchListItem) => {
+  private onItemClick = (item: IBranchListItem, source: ClickSource) => {
     if (this.props.onItemClick) {
-      this.props.onItemClick(item.branch)
+      this.props.onItemClick(item.branch, source)
     }
   }
 

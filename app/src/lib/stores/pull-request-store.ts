@@ -47,26 +47,6 @@ export class PullRequestStore {
     })
   }
 
-  private emitIsLoadingPullRequests(
-    repository: GitHubRepository,
-    isLoadingPullRequests: boolean
-  ) {
-    this.emitter.emit('onIsLoadingPullRequest', {
-      repository,
-      isLoadingPullRequests,
-    })
-  }
-
-  /** Register a function to be called when the store updates. */
-  public onIsLoadingPullRequests(
-    fn: (repository: GitHubRepository, isLoadingPullRequests: boolean) => void
-  ): Disposable {
-    return this.emitter.on('onIsLoadingPullRequest', value => {
-      const { repository, isLoadingPullRequests } = value
-      fn(repository, isLoadingPullRequests)
-    })
-  }
-
   /** Loads all pull requests against the given repository. */
   public refreshPullRequests(repo: GitHubRepository, account: Account) {
     const dbId = repo.dbID
@@ -87,7 +67,6 @@ export class PullRequestStore {
     }
 
     this.lastRefreshForRepository.set(dbId, Date.now())
-    this.emitIsLoadingPullRequests(repo, true)
 
     const promise = this.fetchAndStorePullRequests(repo, account)
       .catch(err => {
@@ -95,7 +74,6 @@ export class PullRequestStore {
       })
       .then(() => {
         this.currentRefreshOperations.delete(dbId)
-        this.emitIsLoadingPullRequests(repo, false)
       })
 
     this.currentRefreshOperations.set(dbId, promise)
@@ -235,7 +213,8 @@ export class PullRequestStore {
           record.number,
           new PullRequestRef(record.head.ref, record.head.sha, headRepository),
           new PullRequestRef(record.base.ref, record.base.sha, baseRepository),
-          record.author
+          record.author,
+          record.draft ?? false
         )
       )
     }
@@ -338,9 +317,7 @@ export class PullRequestStore {
       // this pull request.
       if (pr.head.repo == null) {
         log.debug(
-          `Unable to store pull request #${pr.number} for repository ${
-            repository.fullName
-          } as it has no head repository associated with it`
+          `Unable to store pull request #${pr.number} for repository ${repository.fullName} as it has no head repository associated with it`
         )
         prsToDelete.push(getPullRequestKey(baseGitHubRepo, pr.number))
         continue
@@ -368,6 +345,7 @@ export class PullRequestStore {
           repoId: baseGitHubRepo.dbID,
         },
         author: pr.user.login,
+        draft: pr.draft ?? false,
       })
     }
 

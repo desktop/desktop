@@ -1,6 +1,4 @@
 import * as React from 'react'
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Dispatcher } from '../dispatcher'
 import { PopupType } from '../../models/popup'
@@ -25,6 +23,7 @@ import {
 } from '../lib/conflicts'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BannerType } from '../../models/banner'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -40,24 +39,29 @@ interface IMergeConflictsDialogProps {
   readonly manualResolutions: Map<string, ManualConflictResolution>
 }
 
-const submitButtonString = 'Commit merge'
-const cancelButtonString = 'Abort merge'
+interface IMergeConflictsDialogState {
+  readonly isCommitting: boolean
+}
 
 /**
  * Modal to tell the user their merge encountered conflicts
  */
 export class MergeConflictsDialog extends React.Component<
   IMergeConflictsDialogProps,
-  {}
+  IMergeConflictsDialogState
 > {
-  public async componentDidMount() {
-    this.props.dispatcher.resolveCurrentEditor()
+  public constructor(props: IMergeConflictsDialogProps) {
+    super(props)
+    this.state = {
+      isCommitting: false,
+    }
   }
 
   /**
    *  commits the merge displays the repository changes tab and dismisses the modal
    */
   private onSubmit = async () => {
+    this.setState({ isCommitting: true })
     await this.props.dispatcher.finishConflictedMerge(
       this.props.repository,
       this.props.workingDirectory,
@@ -67,11 +71,11 @@ export class MergeConflictsDialog extends React.Component<
         theirBranch: this.props.theirBranch,
       }
     )
-    this.props.dispatcher.setCommitMessage(
+    await this.props.dispatcher.setCommitMessage(
       this.props.repository,
       DefaultCommitMessage
     )
-    this.props.dispatcher.changeRepositorySection(
+    await this.props.dispatcher.changeRepositorySection(
       this.props.repository,
       RepositorySectionTab.Changes
     )
@@ -82,7 +86,9 @@ export class MergeConflictsDialog extends React.Component<
   /**
    *  dismisses the modal and shows the abort merge warning modal
    */
-  private onCancel = async () => {
+  private onCancel = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+
     const anyResolvedFiles =
       getResolvedFiles(
         this.props.workingDirectory,
@@ -207,26 +213,24 @@ export class MergeConflictsDialog extends React.Component<
     return (
       <Dialog
         id="merge-conflicts-list"
-        dismissable={true}
+        dismissable={!this.state.isCommitting}
         onDismissed={this.onDismissed}
-        disableClickDismissalAlways={true}
         onSubmit={this.onSubmit}
         title={headerTitle}
+        loading={this.state.isCommitting}
+        disabled={this.state.isCommitting}
       >
         <DialogContent>
           {this.renderContent(unmergedFiles, conflictedFilesCount)}
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup>
-            <Button
-              type="submit"
-              disabled={conflictedFilesCount > 0}
-              tooltip={tooltipString}
-            >
-              {submitButtonString}
-            </Button>
-            <Button onClick={this.onCancel}>{cancelButtonString}</Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            okButtonText={__DARWIN__ ? 'Commit Merge' : 'Commit merge'}
+            okButtonDisabled={conflictedFilesCount > 0}
+            okButtonTitle={tooltipString}
+            cancelButtonText={__DARWIN__ ? 'Abort Merge' : 'Abort merge'}
+            onCancelButtonClick={this.onCancel}
+          />
         </DialogFooter>
       </Dialog>
     )

@@ -1,14 +1,11 @@
 import * as React from 'react'
 
 import { Repository } from '../../models/repository'
-
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
-
 import { Dispatcher } from '../dispatcher'
 import { DialogFooter, DialogContent, Dialog } from '../dialog'
 import { Ref } from '../lib/ref'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IConfirmForcePushProps {
   readonly dispatcher: Dispatcher
@@ -65,10 +62,7 @@ export class ConfirmForcePush extends React.Component<
           </div>
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup>
-            <Button type="submit">I'm sure</Button>
-            <Button onClick={this.props.onDismissed}>Cancel</Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup destructive={true} okButtonText="I'm sure" />
         </DialogFooter>
       </Dialog>
     )

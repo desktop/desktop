@@ -1,6 +1,6 @@
-import { PullRequestStore } from '../pull-request-store'
 import { Account } from '../../../models/account'
-import { GitHubRepository } from '../../../models/github-repository'
+import { RepositoryWithGitHubRepository } from '../../../models/repository'
+import { PullRequestCoordinator } from '../pull-request-coordinator'
 
 /** Check for new or updated pull requests every 30 minutes */
 const PullRequestInterval = 30 * 60 * 1000
@@ -25,9 +25,9 @@ export class PullRequestUpdater {
   private running = false
 
   public constructor(
-    private readonly repository: GitHubRepository,
+    private readonly repository: RepositoryWithGitHubRepository,
     private readonly account: Account,
-    private readonly store: PullRequestStore
+    private readonly coordinator: PullRequestCoordinator
   ) {}
 
   /** Starts the updater */
@@ -39,7 +39,7 @@ export class PullRequestUpdater {
   }
 
   private getTimeSinceLastRefresh() {
-    const lastRefreshed = this.store.getLastRefreshed(this.repository)
+    const lastRefreshed = this.coordinator.getLastRefreshed(this.repository)
     const timeSince =
       lastRefreshed === undefined ? Infinity : Date.now() - lastRefreshed
     return timeSince
@@ -62,7 +62,7 @@ export class PullRequestUpdater {
       this.scheduleTick()
     }
 
-    this.store
+    this.coordinator
       .refreshPullRequests(this.repository, this.account)
       .catch(() => {})
       .then(() => this.scheduleTick())

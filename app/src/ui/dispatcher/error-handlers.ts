@@ -7,12 +7,20 @@ import { Dispatcher } from '.'
 import { ExternalEditorError } from '../../lib/editors/shared'
 import { ErrorWithMetadata } from '../../lib/error-with-metadata'
 import { AuthenticationErrors } from '../../lib/git/authentication'
-import { GitError } from '../../lib/git/core'
+import { GitError, isAuthFailureError } from '../../lib/git/core'
 import { ShellError } from '../../lib/shells'
 import { UpstreamAlreadyExistsError } from '../../lib/stores/upstream-already-exists-error'
 
 import { PopupType } from '../../models/popup'
-import { Repository } from '../../models/repository'
+import {
+  Repository,
+  isRepositoryWithGitHubRepository,
+} from '../../models/repository'
+import { getDotComAPIEndpoint } from '../../lib/api'
+import { hasWritePermission } from '../../models/github-repository'
+import { enableCreateForkFlow } from '../../lib/feature-flag'
+import { RetryActionType } from '../../models/retry-actions'
+import { parseFilesToBeOverwritten } from '../lib/parse-files-to-be-overwritten'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -20,16 +28,23 @@ interface IErrorWithCode extends Error {
 }
 
 /**
+ * A type-guard method which determines whether the given object is an
+ * Error instance with a `code` string property. This type of error
+ * is commonly returned by NodeJS process- and file system libraries
+ * as well as Dugite.
+ *
+ * See https://nodejs.org/api/util.html#util_util_getsystemerrorname_err
+ */
+function isErrorWithCode(error: any): error is IErrorWithCode {
+  return error instanceof Error && typeof (error as any).code === 'string'
+}
+
+/**
  * Cast the error to an error containing a code if it has a code. Otherwise
  * return null.
  */
 function asErrorWithCode(error: Error): IErrorWithCode | null {
-  const e = error as any
-  if (e.code) {
-    return e
-  } else {
-    return null
-  }
+  return isErrorWithCode(error) ? error : null
 }
 
 /**
@@ -398,7 +413,7 @@ export async function rebaseConflictsHandler(
     return error
   }
 
-  if (!(gitContext.kind === 'merge' || gitContext.kind === 'pull')) {
+  if (gitContext.kind !== 'merge' && gitContext.kind !== 'pull') {
     return error
   }
 
@@ -413,7 +428,7 @@ export async function rebaseConflictsHandler(
  * Handler for when we attempt to checkout a branch and there are some files that would
  * be overwritten.
  */
-export async function localChangesOverwrittenHandler(
+export async function localChangesOverwrittenOnCheckoutHandler(
   error: Error,
   dispatcher: Dispatcher
 ): Promise<Error | null> {
@@ -461,4 +476,223 @@ export async function localChangesOverwrittenHandler(
   await dispatcher.moveChangesToBranchAndCheckout(repository, branchToCheckout)
 
   return null
+}
+const rejectedPathRe = /^ ! \[remote rejected\] .*? -> .*? \(refusing to allow an OAuth App to create or update workflow `(.*?)` without `workflow` scope\)/m
+
+/**
+ * Attempts to detect whether an error is the result of a failed push
+ * due to insufficient OAuth permissions (missing workflow scope)
+ */
+export async function refusedWorkflowUpdate(
+  error: Error,
+  dispatcher: Dispatcher
+) {
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError) {
+    return error
+  }
+
+  const { repository } = e.metadata
+
+  if (!(repository instanceof Repository)) {
+    return error
+  }
+
+  if (repository.gitHubRepository === null) {
+    return error
+  }
+
+  // DotCom only for now.
+  if (repository.gitHubRepository.endpoint !== getDotComAPIEndpoint()) {
+    return error
+  }
+
+  const match = rejectedPathRe.exec(error.message)
+
+  if (!match) {
+    return error
+  }
+
+  dispatcher.showPopup({
+    type: PopupType.PushRejectedDueToMissingWorkflowScope,
+    rejectedPath: match[1],
+    repository,
+  })
+
+  return null
+}
+
+const samlReauthErrorMessageRe = /`([^']+)' organization has enabled or enforced SAML SSO.*?you must re-authorize/s
+
+/**
+ * Attempts to detect whether an error is the result of a failed push
+ * due to insufficient OAuth permissions (missing workflow scope)
+ */
+export async function samlReauthRequired(error: Error, dispatcher: Dispatcher) {
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError || gitError.result.gitError === null) {
+    return error
+  }
+
+  if (!isAuthFailureError(gitError.result.gitError)) {
+    return error
+  }
+
+  const { repository } = e.metadata
+
+  if (!(repository instanceof Repository)) {
+    return error
+  }
+
+  if (repository.gitHubRepository === null) {
+    return error
+  }
+
+  const remoteMessage = getRemoteMessage(gitError.result.stderr)
+  const match = samlReauthErrorMessageRe.exec(remoteMessage)
+
+  if (!match) {
+    return error
+  }
+
+  const organizationName = match[1]
+  const endpoint = repository.gitHubRepository.endpoint
+
+  dispatcher.showPopup({
+    type: PopupType.SAMLReauthRequired,
+    organizationName,
+    endpoint,
+    retryAction: e.metadata.retryAction,
+  })
+
+  return null
+}
+
+/**
+ * Attempts to detect whether an error is the result of a failed push
+ * due to insufficient GitHub permissions. (No `write` access.)
+ */
+export async function insufficientGitHubRepoPermissions(
+  error: Error,
+  dispatcher: Dispatcher
+) {
+  // no need to do anything here if we don't want to show
+  // the new `CreateForkDialog` UI
+  if (!enableCreateForkFlow()) {
+    return error
+  }
+
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError || gitError.result.gitError === null) {
+    return error
+  }
+
+  if (!isAuthFailureError(gitError.result.gitError)) {
+    return error
+  }
+
+  const { repository, retryAction } = e.metadata
+
+  if (
+    !(repository instanceof Repository) ||
+    !isRepositoryWithGitHubRepository(repository)
+  ) {
+    return error
+  }
+
+  if (retryAction === undefined || retryAction.type !== RetryActionType.Push) {
+    return error
+  }
+
+  if (hasWritePermission(repository.gitHubRepository)) {
+    return error
+  }
+
+  dispatcher.showCreateForkDialog(repository)
+
+  return null
+}
+
+/**
+ * Handler for when an action the user attempts cannot be done because there are local
+ * changes that would get overwritten.
+ */
+export async function localChangesOverwrittenHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const e = asErrorWithMetadata(error)
+  if (e === null) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (gitError === null) {
+    return error
+  }
+
+  const dugiteError = gitError.result.gitError
+  if (dugiteError === null) {
+    return error
+  }
+
+  if (
+    dugiteError !== DugiteError.LocalChangesOverwritten &&
+    dugiteError !== DugiteError.MergeWithLocalChanges &&
+    dugiteError !== DugiteError.RebaseWithLocalChanges
+  ) {
+    return error
+  }
+
+  const { repository } = e.metadata
+
+  if (!(repository instanceof Repository)) {
+    return error
+  }
+
+  if (e.metadata.retryAction === undefined) {
+    return error
+  }
+
+  const files = parseFilesToBeOverwritten(gitError.result.stderr)
+
+  dispatcher.showPopup({
+    type: PopupType.LocalChangesOverwritten,
+    repository,
+    retryAction: e.metadata.retryAction,
+    files,
+  })
+
+  return null
+}
+
+/**
+ * Extract lines from Git's stderr output starting with the
+ * prefix `remote: `. Useful to extract server-specific
+ * error messages from network operations (fetch, push, pull,
+ * etc).
+ */
+function getRemoteMessage(stderr: string) {
+  const needle = 'remote: '
+
+  return stderr
+    .split(/\r?\n/)
+    .filter(x => x.startsWith(needle))
+    .map(x => x.substr(needle.length))
+    .join('\n')
 }

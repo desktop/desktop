@@ -38,6 +38,11 @@ export interface IPullRequest {
 
   /** The login of the author. */
   readonly author: string
+
+  /**
+   * The draft state of the PR or undefined if state is unknown
+   */
+  readonly draft: boolean
 }
 
 /**
@@ -106,6 +111,20 @@ export class PullRequestDatabase extends BaseDatabase {
     this.conditionalVersion(7, {
       pullRequests: '[base.repoId+number]',
       pullRequestsLastUpdated: 'repoId',
+    })
+
+    this.conditionalVersion(8, {}, async tx => {
+      /**
+       * We're introducing the `draft` property on PRs in version 8 in order
+       * to be able to differentiate between draft and regular PRs. While
+       * we could just make the draft property optional and infer a missing
+       * value to be false that will mean all PRs will be treated as non-draft
+       * and unless the draft PRs get updated at some point in the future we'll
+       * never pick up on it so we'll clear the db to seed it with fresh data
+       * from the API.
+       */
+      tx.table('pullRequests').clear()
+      tx.table('pullRequestsLastUpdated').clear()
     })
   }
 

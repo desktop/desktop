@@ -45,12 +45,16 @@
       - [ ] Clicking `Finish`, results in user being signed-in successfully
     - [ ] `Cancel` returns to initial Configure Git page
     
-### Onboarding
+### Onboarding & Tutorial
   - [ ] Onboarding shown if user is new to Desktop and has no repositories in the application
     - [ ] If user logged in during sign-up process with repository lists for GitHub.com and/or Enterprise
-    - [ ] Always show three suggested steps: Clone repository, Add existing repository, Add new repository
+    - [ ] Always show suggested steps: Clone repository, Add existing repository, Add new repository
+    - [ ] If logged into GitHub, show button for creating tutorial
       - [ ] Adding a repository will automically exit Onboarding
         - [ ] User can revert to Onboarding if all respositories are removed
+      - [ ] Tutorial can only be started if there is no local or remote `desktop-tutorial` repository, else error surfaced
+        - [ ] Repository is created as first step, with green checkmarks for each completed step. 
+	  - [ ] User can click `Exit Tutorial` anytime to return to Onboarding page
       
 ### Repositories landing page; default no repositories 
   - [ ] Create New Repository (Mac: `⌘N`; Windows: `Ctrl+N`)
@@ -106,7 +110,7 @@
   - [ ] Double-clicking local desktop icon opens the application (Mac OS only)
   - [ ] Double clicking top nav bar toggles full-screen / last used screen-size (Mac OS only); Exit by (Mac: `^⌘f11`; Windows: `Alt`)
   - [ ] Clicking Desktop icon in dock/taskbar opens the application
-  - [ ] Changing desktop icon name while app is open results in package error; closed app name change is successful
+  - [ ] Changing desktop icon name while app is open results in package error; if app is closed then name change successful
 
 ### GitHub Desktop menu top-level
   - [ ] About GitHub Desktop
@@ -129,6 +133,9 @@
       - [ ] Enterprise handle, avatar, `sign out` button, if user signed in
       - [ ] User can sign out of either account
       - [ ] User can be signed-in to both Enterprise and GitHub.com at same time  
+    - [ ] Integrations
+      - [ ] External Editor options shown in dropdown; else show "Install Atom?" link
+      - [ ] Shell options shown in dropdown
     - [ ] Git
       - [ ] Username and email are displayed if `.gitconfig` configured for Welcome flow
       - [ ] `Save` button saves any changes made
@@ -138,17 +145,18 @@
       - [ ] Dark theme is optional 
       - [ ] For Mac, users can opt to match system preference theme with checkbox
     - [ ] Advanced
-      - [ ] External Editor options shown in dropdown; else show "Install Atom?" link
-      - [ ] Shell options shown in dropdown
+      - [ ] Stashing options include "Ask me..", "Alsways bring my changes...", and "Always stash...". "Ask Me" is default.
+      - [ ] Confirmation dialogue for removing repositories is checked by default; user can toggle
+        - [ ] Verify postive `ConfirmDiscardChanges` value in Dev Tools > Application > Local storage > file://
+      - [ ] Confirmation dialogue for discarding files is checked by default; user can toggle
+        - [ ] Verify postive `ConfirmRepoRemoval` value in Dev Tools > Application > Local storage > file://
+      - [ ] Confirmation dialogue for force pushing files is checked by default; user can toggle
+        - [ ] Verify postive `confirmForcePush` value in Dev Tools > Application > Local storage > file://
+      - [ ] `Save` button saves any changes made
+      - [ ] `Cancel` button does not save any changes made; modal closed
       - [ ] Shared usage data option; selection carried through from Welcome flow
         - [ ] `anonymous usage data` link opens https://desktop.github.com/usage-data/
         - [ ] Verify postive `stats-opt-out` value in Dev Tools > Application > Local storage > file://
-      - [ ] Confirmation dialogue for removing repositories is checked by default; user can toggle
-          - [ ] Verify postive `ConfirmDiscardChanges` value in Dev Tools > Application > Local storage > file://
-      - [ ] Confirmation dialogue for discarding files is checked by default; user can toggle
-          - [ ] Verify postive `ConfirmRepoRemoval` value in Dev Tools > Application > Local storage > file://
-      - [ ] `Save` button saves any changes made
-      - [ ] `Cancel` button does not save any changes made; modal closed
   - [ ] Install command line tool installs tool at `/usr/local/bin/github` (Mac only as Windows done automagically; Helper may require password, else error message)
     - [ ] If already installed, user sees: "The command line tool has been installed at /usr/local/bin/github"
     - [ ] Clicking `OK` closes modal
@@ -312,7 +320,7 @@
 	- [ ] User can open in finder, preferred editor, or OS default program  
   - [ ] Panes can be resized horizontally, and contents resize to take the full width
     - [ ] Quitting Desktop and relaunching remembers pane sizes
-  - [ ] Uncommitted files are optionally stashed if user attempts to switch branches
+  - [ ] Uncommitted files are optionally stashed if user attempts to switch branches; depends on Preferences.
     - [ ] Modal asks user to stash on current branch or bring changes to new branch; `Cancel` or `Switch Branch` buttons
       - [ ] If stashed then changes shown under Stashed Changes section below Changes tab when returning to the original branch
         - [ ] Stashed changes section show all stashed files and diffs; user can discard or restore to Changes
@@ -364,6 +372,10 @@
   - [ ] User can publish a new repository with no commits (aka unborn repository/branch)
   - [ ] User can make new branch the default branch, by making the intial commit on the new branch
   - [ ] User can select individual file(s) -- and individial lines of a file(s) -- to commit at a time
+  - [ ] Forked messaging shown if user cannot write to cloned repository and there are changes
+    - [ ] If user opts to fork the repository, a confirmation dialogue surfaced. Errors caught within the dialogue.
+    - [ ] Clicking confirm results in successful fork creation
+  - [ ] Protected branches messsaging shown if branch is protected and there are changes
   
 ### Co-authoring (Changes tab)
   - [ ] clicking co-author icon toggles co-author field; or right-click within commit area
@@ -442,7 +454,9 @@
    - [ ] Results in chronological order, with name, id number, date, username, and CI status (if enabled)
      - [ ] Status checks run frequently in background, especially if yellow
      - [ ] If user hovers over CI status icons, tooltips show individual/group status details
- - [ ] PR status can be updated independently of respective PR
+ - [ ] Pull Request status in the list can be updated independently of respective Pull Request being viewed (background job)
+ - [ ] Show link to upstream pull requests in pull request list of a fork if PR for current branch is in upstream repo
+ - [ ] Show link to create a pull request if there is no PR for current branch
  
 ### Security
  - [ ] `Untrusted server` warning surfaced if GitHub cannot verify the identity of `api.github.com`; user can `Cancel` or `Continue`

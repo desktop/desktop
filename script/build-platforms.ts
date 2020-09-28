@@ -22,43 +22,14 @@ export function getSha() {
     return pullRequestCommitId
   }
 
+  const gitHubSha = process.env.GITHUB_SHA
+  if (isGitHubActions() && gitHubSha !== undefined && gitHubSha.length > 0) {
+    return gitHubSha
+  }
+
   throw new Error(
     `Unable to get the SHA for the current platform. Check the documentation for the expected environment variables.`
   )
-}
-
-export function isRunningOnFork() {
-  if (isCircleCI() && process.env.CIRCLE_PR_USERNAME != null) {
-    return true
-  }
-
-  if (
-    isAppveyor() &&
-    process.env.APPVEYOR_PULL_REQUEST_NUMBER != null &&
-    process.env.APPVEYOR_PULL_REQUEST_HEAD_REPO_NAME !== 'desktop/desktop'
-  ) {
-    return true
-  }
-
-  if (
-    isTravis() &&
-    process.env.TRAVIS_PULL_REQUEST_SLUG != null &&
-    // empty string denotes a `push` build
-    process.env.TRAVIS_PULL_REQUEST_SLUG !== '' &&
-    process.env.TRAVIS_PULL_REQUEST_SLUG !== 'desktop/desktop'
-  ) {
-    return true
-  }
-
-  if (
-    isAzurePipelines() &&
-    process.env.SYSTEM_PULLREQUEST_ISFORK != null &&
-    process.env.SYSTEM_PULLREQUEST_ISFORK === 'True'
-  ) {
-    return true
-  }
-
-  return false
 }
 
 export function isTravis() {
@@ -80,7 +51,16 @@ export function isAzurePipelines() {
   )
 }
 
+export function isGitHubActions() {
+  return process.env.GITHUB_ACTIONS === 'true'
+}
+
 export function getReleaseBranchName(): string {
+  // GitHub Actions
+  if (process.env.GITHUB_REF !== undefined) {
+    return process.env.GITHUB_REF.replace(/^refs\/heads\//, '')
+  }
+
   return (
     process.env.CIRCLE_BRANCH || // macOS
     process.env.APPVEYOR_REPO_BRANCH || // Windows

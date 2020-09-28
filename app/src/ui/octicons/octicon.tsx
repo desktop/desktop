@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { OcticonSymbol } from './octicons.generated'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
 
 interface IOcticonProps {
@@ -71,7 +71,7 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
         viewBox={viewBox}
       >
         {titleElem}
-        <path d={symbol.d} />
+        <path fillRule={symbol.fr} d={symbol.d} />
       </svg>
     )
   }

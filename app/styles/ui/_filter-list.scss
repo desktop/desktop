@@ -19,6 +19,9 @@
   &-container {
     display: flex;
     flex: 1;
+    // The filter-list-container div should be scrollable if its contents
+    // are larger than the available space.
+    min-height: 0;
   }
 }
 

@@ -5,7 +5,7 @@ import {
   getWindowState,
   windowStateChannelName,
 } from '../../lib/window-state'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 
 // These paths are all drawn to a 10x10 view box and replicate the symbols
 // seen on Windows 10 window controls.
@@ -51,7 +51,7 @@ export class WindowControls extends React.Component<{}, IWindowControlState> {
   }
 
   private onWindowStateChanged = (
-    event: Electron.IpcMessageEvent,
+    event: Electron.IpcRendererEvent,
     windowState: WindowState
   ) => {
     this.setState({ windowState })

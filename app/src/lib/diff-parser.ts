@@ -20,10 +20,10 @@ import { assertNever } from '../lib/fatal-error'
 // in which case s defaults to 1
 const diffHeaderRe = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/
 
-const DiffPrefixAdd: '+' = '+'
-const DiffPrefixDelete: '-' = '-'
-const DiffPrefixContext: ' ' = ' '
-const DiffPrefixNoNewline: '\\' = '\\'
+const DiffPrefixAdd = '+' as const
+const DiffPrefixDelete = '-' as const
+const DiffPrefixContext = ' ' as const
+const DiffPrefixNoNewline = '\\' as const
 
 type DiffLinePrefix =
   | typeof DiffPrefixAdd
@@ -221,16 +221,16 @@ export class DiffParser {
    * We currently only extract the line number information and
    * ignore any hunk headings.
    *
-   * Example hunk header:
+   * Example hunk header (text within ``):
    *
-   * @@ -84,10 +82,8 @@ export function parseRawDiff(lines: ReadonlyArray<string>): Diff {
+   * `@@ -84,10 +82,8 @@ export function parseRawDiff(lines: ReadonlyArray<string>): Diff {`
    *
    * Where everything after the last @@ is what's known as the hunk, or section, heading
    */
   private parseHunkHeader(line: string): DiffHunkHeader {
     const m = diffHeaderRe.exec(line)
     if (!m) {
-      throw new Error(`Invalid hunk header format: '${line}'`)
+      throw new Error(`Invalid hunk header format`)
     }
 
     // If endLines are missing default to 1, see diffHeaderRe docs
@@ -312,7 +312,7 @@ export class DiffParser {
         // See https://github.com/git/git/blob/21f862b498925194f8f1ebe8203b7a7df756555b/apply.c#L1725-L1732
         if (line.length < 12) {
           throw new Error(
-            `Expected no newline at end of file marker but got ${line}`
+            `Expected "no newline at end of file" marker to be at least 12 bytes long`
           )
         }
 

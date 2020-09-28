@@ -1,4 +1,4 @@
-import * as Deque from 'double-ended-queue'
+import Deque from 'double-ended-queue'
 
 import {
   FileEntry,
@@ -101,7 +101,8 @@ function parseChangedEntry(field: string): IStatusEntry {
   const match = changedEntryRe.exec(field)
 
   if (!match) {
-    throw new Error(`Failed to parse status line for changed entry: ${field}`)
+    log.debug(`parseChangedEntry parse error: ${field}`)
+    throw new Error(`Failed to parse status line for changed entry`)
   }
 
   return {
@@ -121,9 +122,8 @@ function parsedRenamedOrCopiedEntry(
   const match = renamedOrCopiedEntryRe.exec(field)
 
   if (!match) {
-    throw new Error(
-      `Failed to parse status line for renamed or copied entry: ${field}`
-    )
+    log.debug(`parsedRenamedOrCopiedEntry parse error: ${field}`)
+    throw new Error(`Failed to parse status line for renamed or copied entry`)
   }
 
   if (!oldPath) {
@@ -147,7 +147,8 @@ function parseUnmergedEntry(field: string): IStatusEntry {
   const match = unmergedEntryRe.exec(field)
 
   if (!match) {
-    throw new Error(`Failed to parse status line for unmerged entry: ${field}`)
+    log.debug(`parseUnmergedEntry parse error: ${field}`)
+    throw new Error(`Failed to parse status line for unmerged entry`)
   }
 
   return {

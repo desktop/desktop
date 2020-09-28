@@ -67,7 +67,7 @@ to see if the problem has already been reported. If it does exist, add a
 :thumbsup: to the issue to indicate this is also an issue for you, and add a
 comment to the existing issue if there is extra information you can contribute.
 
-#### How Do I Submit A (Good) Bug Report?
+#### How Do I Submit A Bug Report?
 
 Bugs are tracked as [GitHub issues](https://guides.github.com/features/issues/).
 
@@ -102,7 +102,7 @@ to see if the enhancement has already been suggested. If it has, add a
 :thumbsup: to indicate your interest in it, or comment if there is additional
 information you would like to add.
 
-#### How Do I Submit A (Good) Enhancement Suggestion?
+#### How Do I Submit An Enhancement Suggestion?
 
 Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com/features/issues/).
 
@@ -150,4 +150,4 @@ These documents are useful resources for contributors  to learn more about the p
  - [Release Planning](https://github.com/desktop/desktop/blob/development/docs/process/release-planning.md)
  - [Issue Triage](https://github.com/desktop/desktop/blob/development/docs/process/issue-triage.md)
  - [Issue and Pull Request Labels](https://github.com/desktop/desktop/blob/development/docs/process/labels.md)
- - [Pull Request Triage](https://github.com/desktop/desktop/blob/development/docs/process/pull-request-triage.md)
+ - [Pull Requests](https://github.com/desktop/desktop/blob/development/docs/process/pull-requests.md)

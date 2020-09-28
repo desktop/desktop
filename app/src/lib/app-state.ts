@@ -13,7 +13,7 @@ import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
 import { IAuthor } from '../models/author'
-import { MergeResult } from '../models/merge'
+import { MergeTreeResult } from '../models/merge'
 import { ICommitMessage } from '../models/commit-message'
 import {
   IRevertProgress,
@@ -23,7 +23,6 @@ import {
 } from '../models/progress'
 import { Popup } from '../models/popup'
 
-import { IGitHubUser } from './databases/github-user-database'
 import { SignInState } from './stores/sign-in-store'
 
 import { WindowState } from './window-state'
@@ -38,6 +37,8 @@ import { Banner } from '../models/banner'
 import { GitRebaseProgress } from '../models/rebase'
 import { RebaseFlowStep } from '../models/rebase-flow-step'
 import { IStashEntry } from '../models/stash-entry'
+import { TutorialStep } from '../models/tutorial-step'
+import { UncommittedChangesStrategyKind } from '../models/uncommitted-changes-strategy'
 
 export enum SelectionType {
   Repository,
@@ -155,9 +156,6 @@ export interface IAppState {
   /** The width of the files list in the stash view */
   readonly stashedFilesWidth: number
 
-  /** Whether we should hide the toolbar (and show inverted window controls) */
-  readonly titleBarStyle: 'light' | 'dark'
-
   /**
    * Used to highlight access keys throughout the app when the
    * Alt key is pressed. Only applicable on non-macOS platforms.
@@ -176,8 +174,11 @@ export interface IAppState {
   /** Should the app prompt the user to confirm a force push? */
   readonly askForConfirmationOnForcePush: boolean
 
+  /** How the app should handle uncommitted changes when switching branches */
+  readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
+
   /** The external editor to use when opening repositories */
-  readonly selectedExternalEditor?: ExternalEditor
+  readonly selectedExternalEditor: ExternalEditor | null
 
   /** The current setting for whether the user has disable usage reports */
   readonly optOutOfUsageTracking: boolean
@@ -230,6 +231,18 @@ export interface IAppState {
    * See the ApiRepositoriesStore for more details on loading repositories
    */
   readonly apiRepositories: ReadonlyMap<Account, IAccountRepositories>
+
+  /** Which step the user is on in the Onboarding Tutorial */
+  readonly currentOnboardingTutorialStep: TutorialStep
+
+  /**
+   * Whether or not the app should update the repository indicators (the
+   * blue dot and the ahead/behind arrows in the repository list used to
+   * indicate that the repository has uncommitted changes or is out of sync
+   * with its remote) in the background. See `RepositoryIndicatorUpdater`
+   * for more information
+   */
+  readonly repositoryIndicatorsEnabled: boolean
 }
 
 export enum FoldoutType {
@@ -261,12 +274,6 @@ export type AppMenuFoldout = {
 
 export type BranchFoldout = {
   type: FoldoutType.Branch
-
-  /**
-   * A flag to indicate the user clicked the "switch branch" link when they
-   * saw the prompt about the current branch being protected.
-   */
-  handleProtectedBranchWarning?: boolean
 }
 
 export type Foldout =
@@ -364,13 +371,6 @@ export interface IRepositoryState {
 
   readonly rebaseState: IRebaseState
 
-  /**
-   * Mapping from lowercased email addresses to the associated GitHub user. Note
-   * that an email address may not have an associated GitHub user, or the user
-   * may still be loading.
-   */
-  readonly gitHubUsers: Map<string, IGitHubUser>
-
   /** The commits loaded, keyed by their full SHA. */
   readonly commitLookup: Map<string, Commit>
 
@@ -385,6 +385,9 @@ export interface IRepositoryState {
 
   /** The state of the current branch in relation to its upstream. */
   readonly aheadBehind: IAheadBehind | null
+
+  /** The tags that will get pushed if the user performs a push operation. */
+  readonly tagsToPush: ReadonlyArray<string> | null
 
   /** Is a push/pull/fetch in progress? */
   readonly isPushPullFetchInProgress: boolean
@@ -419,6 +422,8 @@ export interface IRepositoryState {
    * null if no such operation is in flight.
    */
   readonly revertProgress: IRevertProgress | null
+
+  readonly localTags: Map<string, string> | null
 }
 
 export interface IBranchesState {
@@ -531,7 +536,7 @@ export type ChangesWorkingDirectorySelection = {
    * The ID of the selected files. The files themselves can be looked up in
    * the `workingDirectory` property in `IChangesState`.
    */
-  readonly selectedFileIDs: string[]
+  readonly selectedFileIDs: ReadonlyArray<string>
   readonly diff: IDiff | null
 }
 
@@ -641,14 +646,14 @@ export interface ICompareBranch {
 }
 
 export interface ICompareState {
-  /** Show the diverging notification banner */
-  readonly isDivergingBranchBannerVisible: boolean
+  /** The current state of the NBBD banner */
+  readonly divergingBranchBannerState: IDivergingBranchBannerState
 
   /** The current state of the compare form, based on user input */
   readonly formState: IDisplayHistory | ICompareBranch
 
   /** The result of merging the compare branch into the current branch, if a branch selected */
-  readonly mergeStatus: MergeResult | null
+  readonly mergeStatus: MergeTreeResult | null
 
   /** Whether the branch list should be expanded or hidden */
   readonly showBranchList: boolean
@@ -694,6 +699,17 @@ export interface ICompareState {
     branch: Branch | null
     aheadBehind: IAheadBehind | null
   }
+}
+
+export interface IDivergingBranchBannerState {
+  /** Show the diverging notification banner */
+  readonly isPromptVisible: boolean
+
+  /** Has the user dismissed the notification banner? */
+  readonly isPromptDismissed: boolean
+
+  /** Show the diverging notification nudge on the tab */
+  readonly isNudgeVisible: boolean
 }
 
 export interface ICompareFormUpdate {
