@@ -1,5 +1,29 @@
 {
   "releases": {
+    "2.5.6": [
+      "[New] Newly created repositories use 'main' as the default branch name - #10527",
+      "[New] Users can configure the default branch name in Preferences/Options - #10527",
+      "[New] Show status of GitHub Action runs for pull requests - #9819. Thanks @Raul6469!",
+      "[New] Differentiate between draft and regular Pull Requests - #7170",
+      "[Added] Periodic background fetch and status updates can now be disabled in the Advanced section of Preferences/Options - #10593",
+      "[Added] Syntax highlighting for ASP.Net and unified diff / patch - #10410. Thanks @say25!",
+      "[Improved] Allow renaming the default branch - #10415",
+      "[Improved] Show which files are blocking a merge-like operation - #10441",
+      "[Improved] Updated icons and border radiuses to align with GitHub.com - #10396, #10224",
+      "[Improved] Show loading indicator when committing a merge - #10458",
+      "[Improved] Show confirmation that branch is already up to date when merging from default branch - #9095",
+      "[Improved] Enter key now initiates action in rebase and merge dialogs - #10511",
+      "[Improved] After failing to move a repository to Trash, show error and keep the repository listed in Desktop - #8333",
+      "[Improved] Email address validation in welcome flow and preferences dialog - #10214. Thanks @Pragya007!",
+      "[Improved] Show helpful error when attempting to clone non-existent or inaccessible GitHub repositories - #5661. Thanks @kanishk98!",
+      "[Fixed] Don't update submodules when discarding files - #10469",
+      "[Fixed] Full screen notification is removed after a few seconds when starting the app in full screen",
+      "[Fixed] Update rebase progress parser to parse output from the merge rebase backend - #10590",
+      "[Fixed] Only show full screen toast notification when making the app window full-screen. Thanks @Sam-Spencer - #7916",
+      "[Fixed] Ensure application window doesn't overlap second monitor - #10267",
+      "[Fixed] Use UNIX line endings in WSL GitHub helper script - #10461",
+      "[Removed] Remove setting to disable all certificate validation in favor of new best-effort approach - #10581"
+    ],
     "2.5.6-beta3": [
       "[Improved] Email address validation in welcome flow and preferences dialog - #10214. Thanks @Pragya007!",
       "[Improved] Show helpful error when attempting to clone non-existent or inaccessible GitHub repositories - #5661. Thanks @kanishk98!",
