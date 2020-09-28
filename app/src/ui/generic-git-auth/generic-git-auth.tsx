@@ -44,7 +44,7 @@ export class GenericGitAuthentication extends React.Component<
   }
 
   public render() {
-    const disabled = !this.state.password.length && !this.state.username.length
+    const disabled = !this.state.password.length || !this.state.username.length
     return (
       <Dialog
         id="generic-git-auth"

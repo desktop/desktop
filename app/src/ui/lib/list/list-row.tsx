@@ -37,6 +37,16 @@ interface IListRowProps {
 
   /** callback to fire when the row receives a keyboard event */
   readonly onRowKeyDown: (index: number, e: React.KeyboardEvent<any>) => void
+
+  /**
+   * Whether or not this list row is going to be selectable either through
+   * keyboard navigation, pointer clicks, or both. This is used to determine
+   * whether or not to present a hover state for the list row.
+   */
+  readonly selectable: boolean
+
+  /** a custom css class to apply to the row */
+  readonly className?: string
 }
 
 export class ListRow extends React.Component<IListRowProps, {}> {
@@ -58,7 +68,12 @@ export class ListRow extends React.Component<IListRowProps, {}> {
 
   public render() {
     const selected = this.props.selected
-    const className = classNames('list-item', { selected })
+    const className = classNames(
+      'list-item',
+      { selected },
+      { 'not-selectable': this.props.selectable === false },
+      this.props.className
+    )
     const role = this.props.ariaMode === 'menu' ? 'menuitem' : 'option'
 
     // react-virtualized gives us an explicit pixel width for rows, but that

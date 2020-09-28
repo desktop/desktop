@@ -39,4 +39,8 @@
 
 #external-editor-error {
   width: 450px;
+
+  p {
+    word-wrap: break-word;
+  }
 }

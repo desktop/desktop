@@ -1,6 +1,7 @@
 @import '../../mixins';
 
-dialog#merge-conflicts-list {
+dialog#merge-conflicts-list,
+dialog#rebase-conflicts-list {
   width: 500px;
 
   .summary {
@@ -29,7 +30,7 @@ dialog#merge-conflicts-list {
   ul {
     list-style: none;
     padding: 0;
-    max-height: 200px;
+    max-height: 285px;
     overflow-y: auto;
 
     li {
@@ -38,7 +39,7 @@ dialog#merge-conflicts-list {
     }
 
     li:last-of-type {
-      margin-bottom: calc(var(--spacing) * 5);
+      margin-bottom: calc(var(--spacing) * 2);
     }
 
     li.unmerged-file-status-resolved,
@@ -63,29 +64,61 @@ dialog#merge-conflicts-list {
         }
       }
 
-      button:last-child,
+      .action-buttons {
+        margin-left: auto;
+        flex-shrink: 0;
+        flex: 0 1 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .resolve-arrow-menu {
+          .octicon {
+            margin-left: var(--spacing-half);
+            width: 10px;
+            height: 14px;
+          }
+        }
+      }
+
       .green-circle:last-child {
         margin-left: auto;
+        margin-top: var(--spacing);
         flex-shrink: 0;
         flex: 0 1 auto;
       }
     }
 
     .unmerged-file-status-resolved .file-conflicts-status {
-      color: $green;
+      color: var(--color-new);
     }
-    .unmerged-file-status-conflicts .file-conflicts-status {
-      color: $orange;
+
+    .unmerged-file-status-conflicts {
+      .file-conflicts-status {
+        color: var(--color-conflicted);
+      }
+
+      .command-line-hint {
+        color: var(--text-secondary-color);
+      }
     }
   }
 
-  .cli-link {
-    a {
-      color: $blue;
+  .all-conflicts-resolved {
+    display: flex;
+    flex-flow: row nowrap;
+    padding: var(--spacing) 0 var(--spacing-double);
 
-      &:hover {
-        text-decoration: underline;
-      }
+    .message {
+      padding-left: var(--spacing);
+      padding-top: var(--spacing-third);
+    }
+  }
+
+  .arrow-menu {
+    .octicon {
+      width: 10px;
+      height: 14px;
     }
   }
 }

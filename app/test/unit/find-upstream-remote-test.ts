@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import {
   findUpstreamRemote,
   UpstreamRemoteName,
@@ -26,9 +24,9 @@ describe('findUpstreamRemote', () => {
       },
     ]
     const upstream = findUpstreamRemote(parent, remotes)
-    expect(upstream).not.to.equal(null)
-    expect(upstream!.name).to.equal(UpstreamRemoteName)
-    expect(upstream!.url).to.equal(
+    expect(upstream).not.toBeNull()
+    expect(upstream!.name).toBe(UpstreamRemoteName)
+    expect(upstream!.url).toBe(
       'https://github.com/Somsubhra/github-release-stats.git'
     )
   })

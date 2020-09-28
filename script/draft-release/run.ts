@@ -55,8 +55,8 @@ function printInstructions(nextVersion: string, entries: Array<string>) {
     'Update the release notes to have user-friendly summary lines',
     'For issues prefixed with [???], look at the PR to update the prefix to one of: [New], [Added], [Fixed], [Improved], [Removed]',
     'Sort the entries so that the prefixes are ordered in this way: [New], [Added], [Fixed], [Improved], [Removed]',
-    'Commit the changes (on master or as new branch) and push them to GitHub',
-    'Read this to perform the release: https://github.com/desktop/desktop/blob/master/docs/process/releasing-updates.md',
+    'Commit the changes (on development or as new branch) and push them to GitHub',
+    'Read this to perform the release: https://github.com/desktop/desktop/blob/development/docs/process/releasing-updates.md',
   ]
 
   console.log(steps.map((value, index) => `${index + 1}. ${value}`).join('\n'))

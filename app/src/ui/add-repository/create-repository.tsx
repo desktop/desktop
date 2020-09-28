@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Path from 'path'
 import * as FSE from 'fs-extra'
 
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import {
   initGitRepository,
   createCommit,
@@ -28,6 +28,8 @@ import { Dialog, DialogContent, DialogFooter, DialogError } from '../dialog'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { LinkButton } from '../lib/link-button'
 import { PopupType } from '../../models/popup'
+import { Ref } from '../lib/ref'
+import { enableReadmeOverwriteWarning } from '../../lib/feature-flag'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -76,6 +78,13 @@ interface ICreateRepositoryState {
 
   /** The license to include in the repository. */
   readonly license: string
+
+  /**
+   * Whether or not a README.md file already exists in the
+   * directory that may be overwritten by initializing with
+   * a new README.md.
+   */
+  readonly readMeExists: boolean
 }
 
 /** The Create New Repository component. */
@@ -106,10 +115,13 @@ export class CreateRepository extends React.Component<
       license: NoLicenseValue.name,
       isValidPath: null,
       isRepository: false,
+      readMeExists: false,
     }
   }
 
   public async componentDidMount() {
+    window.addEventListener('focus', this.onWindowFocus)
+
     const gitIgnoreNames = await getGitIgnoreNames()
     this.setState({ gitIgnoreNames })
 
@@ -118,16 +130,30 @@ export class CreateRepository extends React.Component<
 
     const isRepository = await isGitRepository(this.state.path)
     this.setState({ isRepository })
+
+    this.updateReadMeExists(this.state.path, this.state.name)
+  }
+
+  public componentWillUnmount() {
+    window.removeEventListener('focus', this.onWindowFocus)
   }
 
   private onPathChanged = async (path: string) => {
+    this.setState({ path, isValidPath: null })
+
     const isRepository = await isGitRepository(path)
 
-    this.setState({ isRepository, path, isValidPath: null })
+    // Only update isRepository if the path is still the
+    // same one we were using to check whether it looked
+    // like a repository.
+    this.setState(state => (state.path === path ? { isRepository } : null))
+
+    this.updateReadMeExists(path, this.state.name)
   }
 
   private onNameChanged = (name: string) => {
     this.setState({ name })
+    this.updateReadMeExists(this.state.path, name)
   }
 
   private onDescriptionChanged = (description: string) => {
@@ -135,11 +161,12 @@ export class CreateRepository extends React.Component<
   }
 
   private showFilePicker = async () => {
-    const directory: string[] | null = remote.dialog.showOpenDialog({
+    const window = remote.getCurrentWindow()
+    const directory = remote.dialog.showOpenDialog(window, {
       properties: ['createDirectory', 'openDirectory'],
     })
 
-    if (!directory) {
+    if (directory === undefined) {
       return
     }
 
@@ -147,6 +174,18 @@ export class CreateRepository extends React.Component<
     const isRepository = await isGitRepository(path)
 
     this.setState({ isRepository, path })
+  }
+
+  private async updateReadMeExists(path: string, name: string) {
+    if (!enableReadmeOverwriteWarning()) {
+      return
+    }
+
+    const fullPath = Path.join(path, sanitizedRepositoryName(name), 'README.md')
+    const readMeExists = await FSE.pathExists(fullPath)
+
+    // Only update readMeExists if the path is still the same
+    this.setState(state => (state.path === path ? { readMeExists } : null))
   }
 
   private resolveRepositoryRoot = async (): Promise<string> => {
@@ -203,7 +242,11 @@ export class CreateRepository extends React.Component<
 
     if (this.state.createWithReadme) {
       try {
-        await writeDefaultReadme(fullPath, this.state.name)
+        await writeDefaultReadme(
+          fullPath,
+          this.state.name,
+          this.state.description
+        )
       } catch (e) {
         log.error(`createRepository: unable to write README at ${fullPath}`, e)
         this.props.dispatcher.postError(e)
@@ -434,6 +477,29 @@ export class CreateRepository extends React.Component<
     )
   }
 
+  private renderReadmeOverwriteWarning() {
+    if (!enableReadmeOverwriteWarning()) {
+      return null
+    }
+
+    if (
+      this.state.createWithReadme === false ||
+      this.state.readMeExists === false
+    ) {
+      return null
+    }
+
+    return (
+      <Row className="warning-helper-text">
+        <Octicon symbol={OcticonSymbol.alert} />
+        <p>
+          This directory contains a <Ref>README.md</Ref> file already. Checking
+          this box will result in the existing file being overwritten.
+        </p>
+      </Row>
+    )
+  }
+
   private onAddRepositoryClicked = () => {
     return this.props.dispatcher.showPopup({
       type: PopupType.AddRepository,
@@ -509,6 +575,7 @@ export class CreateRepository extends React.Component<
               onChange={this.onCreateWithReadmeChange}
             />
           </Row>
+          {this.renderReadmeOverwriteWarning()}
 
           {this.renderGitIgnores()}
           {this.renderLicenses()}
@@ -525,5 +592,11 @@ export class CreateRepository extends React.Component<
         </DialogFooter>
       </Dialog>
     )
+  }
+
+  private onWindowFocus = () => {
+    // Verify whether or not a README.md file exists at the chosen directory
+    // in case one has been added or removed and the warning can be displayed.
+    this.updateReadMeExists(this.state.path, this.state.name)
   }
 }

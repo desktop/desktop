@@ -5,6 +5,7 @@ import { GitAuthor } from './git-author'
 import { generateGravatarUrl } from '../lib/gravatar'
 import { getDotComAPIEndpoint } from '../lib/api'
 import { GitHubRepository } from './github-repository'
+import { isWebFlowCommitter } from '../lib/web-flow-committer'
 
 /** The minimum properties we need in order to display a user's avatar. */
 export interface IAvatarUser {
@@ -61,7 +62,7 @@ function getAvatarUserFromAuthor(
  *
  * Avatars are returned ordered, starting with the author, followed
  * by all co-authors and finally the committer (if different from
- * author).
+ * author and any co-author).
  *
  * @param gitHubRepository
  * @param gitHubUsers
@@ -83,10 +84,18 @@ export function getAvatarUsersForCommit(
     )
   )
 
-  const isWebFlowCommitter =
-    gitHubRepository !== null && commit.isWebFlowCommitter(gitHubRepository)
+  const coAuthoredByCommitter = commit.coAuthors.some(
+    x => x.name === commit.committer.name && x.email === commit.committer.email
+  )
 
-  if (!commit.authoredByCommitter && !isWebFlowCommitter) {
+  const webFlowCommitter =
+    gitHubRepository !== null && isWebFlowCommitter(commit, gitHubRepository)
+
+  if (
+    !commit.authoredByCommitter &&
+    !webFlowCommitter &&
+    !coAuthoredByCommitter
+  ) {
     avatarUsers.push(
       getAvatarUserFromAuthor(gitHubRepository, gitHubUsers, commit.committer)
     )

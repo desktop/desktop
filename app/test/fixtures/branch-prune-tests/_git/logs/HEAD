@@ -1,0 +1,69 @@
+0000000000000000000000000000000000000000 49ef26636f6c82b2b6832e87916a90905721184b William Shepherd <iamwillshepherd@github.com> 1547157392 -0600	clone: from https://github.com/iAmWillShepherd/branch-prune-test-repo.git
+49ef26636f6c82b2b6832e87916a90905721184b 49ef26636f6c82b2b6832e87916a90905721184b William Shepherd <iamwillshepherd@github.com> 1547157408 -0600	checkout: moving from master to b1
+49ef26636f6c82b2b6832e87916a90905721184b f3a2e9eb6d448ddc241106db8cf3edd8e6bea6a2 William Shepherd <iamwillshepherd@github.com> 1547157425 -0600	commit: ...
+f3a2e9eb6d448ddc241106db8cf3edd8e6bea6a2 49ef26636f6c82b2b6832e87916a90905721184b William Shepherd <iamwillshepherd@github.com> 1547157443 -0600	checkout: moving from b1 to master
+49ef26636f6c82b2b6832e87916a90905721184b 49ef26636f6c82b2b6832e87916a90905721184b William Shepherd <iamwillshepherd@github.com> 1547157683 -0600	checkout: moving from master to not-deleted-branch-1
+49ef26636f6c82b2b6832e87916a90905721184b c0e1760c209f98eb4773b4c87e130e63cba13659 William Shepherd <iamwillshepherd@github.com> 1547157689 -0600	commit: ...
+c0e1760c209f98eb4773b4c87e130e63cba13659 49ef26636f6c82b2b6832e87916a90905721184b William Shepherd <iamwillshepherd@github.com> 1547157836 -0600	checkout: moving from not-deleted-branch-1 to master
+49ef26636f6c82b2b6832e87916a90905721184b 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547157837 -0600	pull: Fast-forward
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547157859 -0600	checkout: moving from master to not-merged-branch-1
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 a494a6a21e72e42f3d92cd0be72266b8aafd190c William Shepherd <iamwillshepherd@github.com> 1547157904 -0600	commit: ...
+a494a6a21e72e42f3d92cd0be72266b8aafd190c 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547829757 -0600	checkout: moving from not-merged-branch-1 to master
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547829883 -0600	checkout: moving from master to gh-pages
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547829893 -0600	checkout: moving from gh-pages to dev
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547829903 -0600	checkout: moving from dev to development
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547829912 -0600	checkout: moving from development to develop
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547829939 -0600	checkout: moving from develop to trunk
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547829949 -0600	checkout: moving from trunk to devel
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547829953 -0600	checkout: moving from devel to release
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547829962 -0600	checkout: moving from release to devel
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547829970 -0600	checkout: moving from devel to release
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547829972 -0600	checkout: moving from release to devel
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547829974 -0600	checkout: moving from devel to trunk
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547829984 -0600	checkout: moving from trunk to devel
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547829986 -0600	checkout: moving from devel to release
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547829987 -0600	checkout: moving from release to trunk
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547829989 -0600	checkout: moving from trunk to development
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547829997 -0600	checkout: moving from development to dev
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547830007 -0600	checkout: moving from dev to gh-pages
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 f3a2e9eb6d448ddc241106db8cf3edd8e6bea6a2 William Shepherd <iamwillshepherd@github.com> 1547830044 -0600	checkout: moving from gh-pages to deleted-branch-1
+f3a2e9eb6d448ddc241106db8cf3edd8e6bea6a2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547830055 -0600	checkout: moving from deleted-branch-1 to gh-pages
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547830056 -0600	checkout: moving from gh-pages to master
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547830060 -0600	checkout: moving from master to release
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547830114 -0600	checkout: moving from release to master
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547830268 -0600	checkout: moving from master to release
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 5c439cfaa6d581236b1198f38ca7dd7e2423f713 William Shepherd <iamwillshepherd@github.com> 1547830327 -0600	commit: q
+5c439cfaa6d581236b1198f38ca7dd7e2423f713 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547830330 -0600	checkout: moving from release to gh-pages
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 82756b9c5acf937a3cf0db135d35b96498da1ec8 William Shepherd <iamwillshepherd@github.com> 1547830338 -0600	commit: q
+82756b9c5acf937a3cf0db135d35b96498da1ec8 5c439cfaa6d581236b1198f38ca7dd7e2423f713 William Shepherd <iamwillshepherd@github.com> 1547830343 -0600	checkout: moving from gh-pages to release
+5c439cfaa6d581236b1198f38ca7dd7e2423f713 f3a2e9eb6d448ddc241106db8cf3edd8e6bea6a2 William Shepherd <iamwillshepherd@github.com> 1547830351 -0600	checkout: moving from release to deleted-branch-1
+f3a2e9eb6d448ddc241106db8cf3edd8e6bea6a2 5c439cfaa6d581236b1198f38ca7dd7e2423f713 William Shepherd <iamwillshepherd@github.com> 1547830355 -0600	checkout: moving from deleted-branch-1 to release
+5c439cfaa6d581236b1198f38ca7dd7e2423f713 f3a2e9eb6d448ddc241106db8cf3edd8e6bea6a2 William Shepherd <iamwillshepherd@github.com> 1547830361 -0600	checkout: moving from release to deleted-branch-1
+f3a2e9eb6d448ddc241106db8cf3edd8e6bea6a2 82756b9c5acf937a3cf0db135d35b96498da1ec8 William Shepherd <iamwillshepherd@github.com> 1547830364 -0600	checkout: moving from deleted-branch-1 to gh-pages
+82756b9c5acf937a3cf0db135d35b96498da1ec8 5c439cfaa6d581236b1198f38ca7dd7e2423f713 William Shepherd <iamwillshepherd@github.com> 1547830368 -0600	checkout: moving from gh-pages to release
+5c439cfaa6d581236b1198f38ca7dd7e2423f713 82756b9c5acf937a3cf0db135d35b96498da1ec8 William Shepherd <iamwillshepherd@github.com> 1547830415 -0600	checkout: moving from release to gh-pages
+82756b9c5acf937a3cf0db135d35b96498da1ec8 f3a2e9eb6d448ddc241106db8cf3edd8e6bea6a2 William Shepherd <iamwillshepherd@github.com> 1547830419 -0600	checkout: moving from gh-pages to deleted-branch-1
+f3a2e9eb6d448ddc241106db8cf3edd8e6bea6a2 82756b9c5acf937a3cf0db135d35b96498da1ec8 William Shepherd <iamwillshepherd@github.com> 1547830422 -0600	checkout: moving from deleted-branch-1 to gh-pages
+82756b9c5acf937a3cf0db135d35b96498da1ec8 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547830425 -0600	checkout: moving from gh-pages to dev
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547830429 -0600	checkout: moving from dev to development
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547830432 -0600	checkout: moving from development to dev
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547830433 -0600	checkout: moving from dev to development
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547830435 -0600	checkout: moving from development to dev
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547830436 -0600	checkout: moving from dev to development
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 82756b9c5acf937a3cf0db135d35b96498da1ec8 William Shepherd <iamwillshepherd@github.com> 1547830438 -0600	checkout: moving from development to gh-pages
+82756b9c5acf937a3cf0db135d35b96498da1ec8 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547830445 -0600	checkout: moving from gh-pages to devel
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 fa4c97d6b76925b8282a2c87cf7fb9e1ddea55cb William Shepherd <iamwillshepherd@github.com> 1547830457 -0600	commit: q
+fa4c97d6b76925b8282a2c87cf7fb9e1ddea55cb 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547830511 -0600	checkout: moving from devel to develop
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 c1d99827e9b481d55e1f1b3c8fa519f2dd87fcd5 William Shepherd <iamwillshepherd@github.com> 1547830522 -0600	commit: q
+c1d99827e9b481d55e1f1b3c8fa519f2dd87fcd5 5c439cfaa6d581236b1198f38ca7dd7e2423f713 William Shepherd <iamwillshepherd@github.com> 1547830552 -0600	checkout: moving from develop to release
+5c439cfaa6d581236b1198f38ca7dd7e2423f713 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547830556 -0600	checkout: moving from release to trunk
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 70dd2ae1ddef610c8cd18c22be2b019e267cf676 William Shepherd <iamwillshepherd@github.com> 1547830564 -0600	commit: q
+70dd2ae1ddef610c8cd18c22be2b019e267cf676 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547830569 -0600	checkout: moving from trunk to development
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 fa4720a13d312f99300e2904b368cdaf345fd007 William Shepherd <iamwillshepherd@github.com> 1547830577 -0600	commit: q
+fa4720a13d312f99300e2904b368cdaf345fd007 c1d99827e9b481d55e1f1b3c8fa519f2dd87fcd5 William Shepherd <iamwillshepherd@github.com> 1547830783 -0600	checkout: moving from development to develop
+c1d99827e9b481d55e1f1b3c8fa519f2dd87fcd5 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547830844 -0600	checkout: moving from develop to dev
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 7da421d4e98dae03f46660170a310323b15f32d5 William Shepherd <iamwillshepherd@github.com> 1547830853 -0600	commit: q
+7da421d4e98dae03f46660170a310323b15f32d5 82756b9c5acf937a3cf0db135d35b96498da1ec8 William Shepherd <iamwillshepherd@github.com> 1547830891 -0600	checkout: moving from dev to gh-pages
+82756b9c5acf937a3cf0db135d35b96498da1ec8 5c439cfaa6d581236b1198f38ca7dd7e2423f713 William Shepherd <iamwillshepherd@github.com> 1547831087 -0600	checkout: moving from gh-pages to release
+5c439cfaa6d581236b1198f38ca7dd7e2423f713 566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 William Shepherd <iamwillshepherd@github.com> 1547832005 -0600	checkout: moving from release to master
+566d6d82b6a4dbc1cd9dcb19bdc80edf6760a8b2 457e6a00d44f6201a8c2e608f921e1ab62e0e8c2 William Shepherd <iamwillshepherd@github.com> 1547832012 -0600	pull --no-rebase --progress origin: Fast-forward

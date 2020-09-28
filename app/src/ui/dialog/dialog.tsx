@@ -12,7 +12,7 @@ const dismissGracePeriodMs = 250
 
 /**
  * The time (in milliseconds) that we should wait after focusing before we
- * re-enable click dismissal. Note that this is only used on Windows.
+ * re-enable click dismissal.
  */
 const DisableClickDismissalDelay = 500
 
@@ -31,7 +31,7 @@ interface IDialogProps {
    * By omitting this consumers may use their own custom DialogHeader
    * for when the default component doesn't cut it.
    */
-  readonly title?: string
+  readonly title?: string | JSX.Element
 
   /**
    * Whether or not the dialog should be dismissable. A dismissable dialog
@@ -47,6 +47,14 @@ interface IDialogProps {
    * Defaults to true if omitted.
    */
   readonly dismissable?: boolean
+
+  /**
+   * Option to prevent dismissal by clicking outside of the dialog.
+   * Requires `dismissal` to be true (or omitted) to have an effect.
+   *
+   * Defaults to false if omitted
+   */
+  readonly disableClickDismissalAlways?: boolean
 
   /**
    * Event triggered when the dialog is dismissed by the user in the
@@ -179,8 +187,12 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     }
 
     if (this.props.title) {
+      // createUniqueId handles static strings fine, so in the case of receiving
+      // a JSX element for the title we can just pass in a fixed value rather
+      // than trying to generate a string from an arbitrary element
+      const id = typeof this.props.title === 'string' ? this.props.title : '???'
       this.setState({
-        titleId: createUniqueId(`Dialog_${this.props.id}_${this.props.title}`),
+        titleId: createUniqueId(`Dialog_${this.props.id}_${id}`),
       })
     }
   }
@@ -204,16 +216,18 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     // On Windows and Linux, a click which focuses the window will also get
     // passed down into the DOM. But we don't want to dismiss the dialog based
     // on that click. See https://github.com/desktop/desktop/issues/2486.
-    if (__WIN32__ || __LINUX__) {
-      this.clearClickDismissalTimer()
+    // macOS normally automatically disables "click-through" behavior but
+    // we've intentionally turned that off so we need to apply the same
+    // behavior regardless of platform.
+    // See https://github.com/desktop/desktop/pull/3843.
+    this.clearClickDismissalTimer()
 
-      this.disableClickDismissal = true
+    this.disableClickDismissal = true
 
-      this.disableClickDismissalTimeoutId = window.setTimeout(() => {
-        this.disableClickDismissal = false
-        this.disableClickDismissalTimeoutId = null
-      }, DisableClickDismissalDelay)
-    }
+    this.disableClickDismissalTimeoutId = window.setTimeout(() => {
+      this.disableClickDismissal = false
+      this.disableClickDismissalTimeoutId = null
+    }, DisableClickDismissalDelay)
   }
 
   private clearClickDismissalTimer() {
@@ -283,7 +297,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       rect.left <= e.clientX &&
       e.clientX <= rect.left + rect.width
 
-    if (!isInDialog) {
+    if (!this.props.disableClickDismissalAlways && !isInDialog) {
       e.preventDefault()
       this.onDismiss()
     }
@@ -308,7 +322,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
   private onKeyDown = (event: KeyboardEvent) => {
     const shortcutKey = __DARWIN__ ? event.metaKey : event.ctrlKey
-    if (shortcutKey && event.key === 'w') {
+    if ((shortcutKey && event.key === 'w') || event.key === 'Escape') {
       this.onDialogCancel(event)
     }
   }

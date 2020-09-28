@@ -1,6 +1,10 @@
 import * as Deque from 'double-ended-queue'
 
-import { FileEntry, GitStatusEntry } from '../models/status'
+import {
+  FileEntry,
+  GitStatusEntry,
+  UnmergedEntrySummary,
+} from '../models/status'
 
 type StatusItem = IStatusHeader | IStatusEntry
 
@@ -297,6 +301,7 @@ export function mapStatus(status: string): FileEntry {
   if (status === 'DD') {
     return {
       kind: 'conflicted',
+      action: UnmergedEntrySummary.BothDeleted,
       us: GitStatusEntry.Deleted,
       them: GitStatusEntry.Deleted,
     }
@@ -305,15 +310,17 @@ export function mapStatus(status: string): FileEntry {
   if (status === 'AU') {
     return {
       kind: 'conflicted',
+      action: UnmergedEntrySummary.AddedByUs,
       us: GitStatusEntry.Added,
-      them: GitStatusEntry.Modified,
+      them: GitStatusEntry.UpdatedButUnmerged,
     }
   }
 
   if (status === 'UD') {
     return {
       kind: 'conflicted',
-      us: GitStatusEntry.Modified,
+      action: UnmergedEntrySummary.DeletedByThem,
+      us: GitStatusEntry.UpdatedButUnmerged,
       them: GitStatusEntry.Deleted,
     }
   }
@@ -321,7 +328,8 @@ export function mapStatus(status: string): FileEntry {
   if (status === 'UA') {
     return {
       kind: 'conflicted',
-      us: GitStatusEntry.Modified,
+      action: UnmergedEntrySummary.AddedByThem,
+      us: GitStatusEntry.UpdatedButUnmerged,
       them: GitStatusEntry.Added,
     }
   }
@@ -329,14 +337,16 @@ export function mapStatus(status: string): FileEntry {
   if (status === 'DU') {
     return {
       kind: 'conflicted',
+      action: UnmergedEntrySummary.DeletedByUs,
       us: GitStatusEntry.Deleted,
-      them: GitStatusEntry.Modified,
+      them: GitStatusEntry.UpdatedButUnmerged,
     }
   }
 
   if (status === 'AA') {
     return {
       kind: 'conflicted',
+      action: UnmergedEntrySummary.BothAdded,
       us: GitStatusEntry.Added,
       them: GitStatusEntry.Added,
     }
@@ -345,8 +355,9 @@ export function mapStatus(status: string): FileEntry {
   if (status === 'UU') {
     return {
       kind: 'conflicted',
-      us: GitStatusEntry.Modified,
-      them: GitStatusEntry.Modified,
+      action: UnmergedEntrySummary.BothModified,
+      us: GitStatusEntry.UpdatedButUnmerged,
+      them: GitStatusEntry.UpdatedButUnmerged,
     }
   }
 

@@ -63,7 +63,12 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, {}> {
     // I don't know and we may want to revisit it at some point but for
     // now an anchor will have to do.
     return (
-      <a className="close" onClick={this.onCloseButtonClick}>
+      <a
+        className="close"
+        onClick={this.onCloseButtonClick}
+        aria-label="close"
+        role="button"
+      >
         <Octicon symbol={OcticonSymbol.x} />
       </a>
     )

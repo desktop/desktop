@@ -77,6 +77,17 @@
   .actions {
     margin-top: var(--spacing);
   }
+
+  &.exiting {
+    .welcome-left {
+      transition: transform 250ms ease-in-out;
+      transform: translateX(-100%);
+    }
+    .welcome-right {
+      transition: transform 250ms ease-in-out;
+      transform: translateX(100%);
+    }
+  }
 }
 
 .welcome-title,

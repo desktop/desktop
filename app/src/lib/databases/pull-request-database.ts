@@ -1,13 +1,14 @@
 import Dexie from 'dexie'
-import { APIRefState, IAPIRefStatusItem } from '../api'
 import { BaseDatabase } from './base-database'
+import { GitHubRepository } from '../../models/github-repository'
+import { fatalError, forceUnwrap } from '../fatal-error'
 
 export interface IPullRequestRef {
   /**
    * The database ID of the GitHub repository in which this ref lives. It could
    * be null if the repository was deleted on the site after the PR was opened.
    */
-  readonly repoId: number | null
+  readonly repoId: number
 
   /** The name of the ref. */
   readonly ref: string
@@ -17,12 +18,6 @@ export interface IPullRequestRef {
 }
 
 export interface IPullRequest {
-  /**
-   * The database ID. This will be undefined if the pull request hasn't been
-   * inserted into the DB.
-   */
-  readonly id?: number
-
   /** The GitHub PR number. */
   readonly number: number
 
@@ -31,6 +26,9 @@ export interface IPullRequest {
 
   /** The string formatted date on which the PR was created. */
   readonly createdAt: string
+
+  /** The string formatted date on which the PR was created. */
+  readonly updatedAt: string
 
   /** The ref from which the pull request's changes are coming. */
   readonly head: IPullRequestRef
@@ -42,36 +40,38 @@ export interface IPullRequest {
   readonly author: string
 }
 
-export interface IPullRequestStatus {
+/**
+ * Interface describing a record in the
+ * pullRequestsLastUpdated table.
+ */
+interface IPullRequestsLastUpdated {
   /**
-   * The database ID. This will be undefined if the status hasn't been inserted
-   * into the DB.
+   * The primary key. Corresponds to the
+   * dbId property for the associated `GitHubRepository`
+   * instance.
    */
-  readonly id?: number
-
-  /** The ID of the pull request in the database. */
-  readonly pullRequestId: number
-
-  /** The status' state. */
-  readonly state: APIRefState
-
-  /** The number of statuses represented in this combined status. */
-  readonly totalCount: number
-
-  /** The SHA for which this status applies. */
-  readonly sha: string
+  readonly repoId: number
 
   /**
-   * The list of statuses for this specific ref or undefined
-   * if the database object was created prior to status support
-   * being added in #3588
+   * The maximum value of the updated_at field on a
+   * pull request that we've seen in milliseconds since
+   * the epoch.
    */
-  readonly statuses?: ReadonlyArray<IAPIRefStatusItem>
+  readonly lastUpdated: number
 }
 
+/**
+ * Pull Requests are keyed on the ID of the GitHubRepository
+ * that they belong to _and_ the PR number.
+ *
+ * Index 0 contains the GitHubRepository dbID and index 1
+ * contains the PR number.
+ */
+export type PullRequestKey = [number, number]
+
 export class PullRequestDatabase extends BaseDatabase {
-  public pullRequests!: Dexie.Table<IPullRequest, number>
-  public pullRequestStatus!: Dexie.Table<IPullRequestStatus, number>
+  public pullRequests!: Dexie.Table<IPullRequest, PullRequestKey>
+  public pullRequestsLastUpdated!: Dexie.Table<IPullRequestsLastUpdated, number>
 
   public constructor(name: string, schemaVersion?: number) {
     super(name, schemaVersion)
@@ -88,25 +88,173 @@ export class PullRequestDatabase extends BaseDatabase {
       pullRequestStatus: 'id++, &[sha+pullRequestId], pullRequestId',
     })
 
-    // we need to run the upgrade function to ensure we add
-    // a status field to all previous records
-    this.conditionalVersion(4, {}, this.addStatusesField)
-  }
+    // Version 4 added status fields to the pullRequestStatus table
+    // which we've removed in version 5 so it makes no sense keeping
+    // that upgrade path available and that's why it appears as if
+    // we've got a no-change version.
+    this.conditionalVersion(4, {})
 
-  private addStatusesField = async (transaction: Dexie.Transaction) => {
-    const table = this.pullRequestStatus
+    // Remove the pullRequestStatus table
+    this.conditionalVersion(5, { pullRequestStatus: null })
 
-    await table.toCollection().modify(async prStatus => {
-      if (prStatus.statuses == null) {
-        const newPrStatus = { statuses: [], ...prStatus }
+    // Delete pullRequestsTable in order to recreate it again
+    // in version 7 with a new primary key
+    this.conditionalVersion(6, { pullRequests: null })
 
-        await table
-          .where('[sha+pullRequestId]')
-          .equals([prStatus.sha, prStatus.pullRequestId])
-          .delete()
-
-        await table.add(newPrStatus)
-      }
+    // new primary key and a new table dedicated to keeping track
+    // of the most recently updated PR we've seen.
+    this.conditionalVersion(7, {
+      pullRequests: '[base.repoId+number]',
+      pullRequestsLastUpdated: 'repoId',
     })
   }
+
+  /**
+   * Removes all the pull requests associated with the given repository
+   * from the database. Also clears the last updated date for that repository
+   * if it exists.
+   */
+  public async deleteAllPullRequestsInRepository(repository: GitHubRepository) {
+    const dbId = forceUnwrap(
+      "Can't delete PRs for repository, no dbId",
+      repository.dbID
+    )
+
+    await this.transaction(
+      'rw',
+      this.pullRequests,
+      this.pullRequestsLastUpdated,
+      async () => {
+        await this.clearLastUpdated(repository)
+        await this.pullRequests
+          .where('[base.repoId+number]')
+          .between([dbId], [dbId + 1])
+          .delete()
+      }
+    )
+  }
+
+  /**
+   * Removes all the given pull requests from the database.
+   */
+  public async deletePullRequests(keys: PullRequestKey[]) {
+    // I believe this to be a bug in Dexie's type declarations.
+    // It definitely supports passing an array of keys but the
+    // type thinks that if it's an array it should be an array
+    // of void which I believe to be a mistake. Therefore we
+    // type it as any and hand it off to Dexie.
+    await this.pullRequests.bulkDelete(keys as any)
+  }
+
+  /**
+   * Inserts the given pull requests, overwriting any existing records
+   * in the process.
+   */
+  public async putPullRequests(prs: IPullRequest[]) {
+    await this.pullRequests.bulkPut(prs)
+  }
+
+  /**
+   * Retrieve all PRs for the given repository.
+   *
+   * Note: This method will throw if the GitHubRepository hasn't
+   * yet been inserted into the database (i.e the dbID field is null).
+   */
+  public getAllPullRequestsInRepository(repository: GitHubRepository) {
+    if (repository.dbID === null) {
+      return fatalError("Can't retrieve PRs for repository, no dbId")
+    }
+
+    return this.pullRequests
+      .where('[base.repoId+number]')
+      .between([repository.dbID], [repository.dbID + 1])
+      .toArray()
+  }
+
+  /**
+   * Get a single pull requests for a particular repository
+   */
+  public getPullRequest(repository: GitHubRepository, prNumber: number) {
+    if (repository.dbID === null) {
+      return fatalError("Can't retrieve PRs for repository with a null dbID")
+    }
+
+    return this.pullRequests.get([repository.dbID, prNumber])
+  }
+
+  /**
+   * Gets a value indicating the most recently updated PR
+   * that we've seen for a particular repository.
+   *
+   * Note:
+   * This value might differ from max(updated_at) in the pullRequests
+   * table since the most recently updated PR we saw might have
+   * been closed and we only store open PRs in the pullRequests
+   * table.
+   */
+  public async getLastUpdated(repository: GitHubRepository) {
+    if (repository.dbID === null) {
+      return fatalError("Can't retrieve PRs for repository with a null dbID")
+    }
+
+    const row = await this.pullRequestsLastUpdated.get(repository.dbID)
+
+    return row ? new Date(row.lastUpdated) : null
+  }
+
+  /**
+   * Clears the stored date for the most recently updated PR seen for
+   * a given repository.
+   */
+  public async clearLastUpdated(repository: GitHubRepository) {
+    if (repository.dbID === null) {
+      throw new Error(
+        "Can't clear last updated PR for repository with a null dbID"
+      )
+    }
+
+    await this.pullRequestsLastUpdated.delete(repository.dbID)
+  }
+
+  /**
+   * Set a value indicating the most recently updated PR
+   * that we've seen for a particular repository.
+   *
+   * Note:
+   * This value might differ from max(updated_at) in the pullRequests
+   * table since the most recently updated PR we saw might have
+   * been closed and we only store open PRs in the pullRequests
+   * table.
+   */
+  public async setLastUpdated(repository: GitHubRepository, lastUpdated: Date) {
+    if (repository.dbID === null) {
+      throw new Error("Can't set last updated for PR with a null dbID")
+    }
+
+    await this.pullRequestsLastUpdated.put({
+      repoId: repository.dbID,
+      lastUpdated: lastUpdated.getTime(),
+    })
+  }
+}
+
+/**
+ * Create a pull request key from a GitHub repository and a PR number.
+ *
+ * This method is mainly a helper function to ensure we don't
+ * accidentally swap the order of the repository id and the pr number
+ * if we were to create the key array manually.
+ *
+ * @param repository The GitHub repository to which this PR belongs
+ * @param prNumber   The PR number as returned from the GitHub API
+ */
+export function getPullRequestKey(
+  repository: GitHubRepository,
+  prNumber: number
+) {
+  const dbId = forceUnwrap(
+    `Can get key for PR, repository not inserted in database.`,
+    repository.dbID
+  )
+  return [dbId, prNumber] as PullRequestKey
 }

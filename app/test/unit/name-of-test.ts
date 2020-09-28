@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import { Repository, nameOf } from '../../src/models/repository'
 import { GitHubRepository } from '../../src/models/github-repository'
 import { Owner } from '../../src/models/owner'
@@ -12,7 +10,7 @@ describe('nameOf', () => {
 
     const name = nameOf(repo)
 
-    expect(name).to.equal('path')
+    expect(name).toBe('path')
   })
 
   it('Returns the name of the repo', () => {
@@ -25,6 +23,6 @@ describe('nameOf', () => {
 
     const name = nameOf(repo)
 
-    expect(name).to.equal('desktop/name')
+    expect(name).toBe('desktop/name')
   })
 })

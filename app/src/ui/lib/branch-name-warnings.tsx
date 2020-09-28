@@ -4,6 +4,7 @@ import { Branch, BranchType } from '../../models/branch'
 import { Row } from './row'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Ref } from './ref'
+import { IStashEntry } from '../../models/stash-entry'
 
 export function renderBranchNameWarning(
   proposedName: string,
@@ -65,6 +66,21 @@ export function renderBranchNameExistsOnRemoteWarning(
       <Octicon symbol={OcticonSymbol.alert} />
       <p>
         A branch named <Ref>{sanitizedName}</Ref> already exists on the remote.
+      </p>
+    </Row>
+  )
+}
+
+export function renderStashWillBeLostWarning(stash: IStashEntry | null) {
+  if (stash === null) {
+    return null
+  }
+  return (
+    <Row className="warning-helper-text">
+      <Octicon symbol={OcticonSymbol.alert} />
+      <p>
+        Your current stashed changes on this branch will no longer be visible in
+        GitHub Desktop if the branch is renamed.
       </p>
     </Row>
   )

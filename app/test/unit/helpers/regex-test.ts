@@ -24,4 +24,10 @@ describe('getCaptures()', () => {
       expect(subject()).toEqual([])
     })
   })
+
+  it('will error when a non-global regex is provided', () => {
+    const regex = /(.+):matching:(.+)/
+    bodyOfText = `capture me!:matching:capture me too!\nalso capture me!:matching:also capture me too!\n`
+    expect(() => getCaptures(bodyOfText, regex)).toThrow()
+  })
 })

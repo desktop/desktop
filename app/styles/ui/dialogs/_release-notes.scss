@@ -10,10 +10,16 @@
 
   .dialog-header {
     height: 100px;
+    position: relative;
 
     .release-notes-header {
       display: flex;
-      flex: 1;
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      padding: 0 var(--spacing-double);
     }
 
     .release-note-graphic-left {
@@ -25,8 +31,15 @@
     }
 
     .title {
-      text-align: center;
+      display: flex;
+      flex-direction: column;
       flex-grow: 1;
+      justify-content: center;
+      text-align: center;
+
+      p {
+        margin: 0;
+      }
 
       .version {
         font-size: 14px;
@@ -41,6 +54,11 @@
     }
   }
 
+  .dialog-footer {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
   ul {
     list-style: none;
     padding-left: 0;
@@ -48,6 +66,11 @@
     li {
       padding-left: 0;
     }
+  }
+
+  a.close {
+    align-self: flex-start;
+    z-index: 1;
   }
 
   .container {

@@ -46,7 +46,7 @@ async function generateIconData(): Promise<ReadonlyArray<IOcticonData>> {
 
   const results = new Array<IOcticonData>()
 
-  for (const name of Object.keys(octicons)) {
+  for (const name of Object.keys(octicons).sort()) {
     const octicon = octicons[name]
 
     const viewBox = octicon.options.viewBox

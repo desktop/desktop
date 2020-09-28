@@ -32,37 +32,76 @@ export function enableMergeTool(): boolean {
   return enableDevelopmentFeatures()
 }
 
-/** Should the Notification of Diverging From Default Branch (NDDB) feature be enabled? */
-export function enableNotificationOfBranchUpdates(): boolean {
-  return true
-}
-
-/** Should the repository list display info indicators? */
-export function enableRepoInfoIndicators(): boolean {
-  return true
-}
-
-/** Should the app try and detect conflicts before the user stumbles into them? */
-export function enableMergeConflictDetection(): boolean {
-  return true
-}
-
-/** Should the app display the new release notes dialog? */
-export function enableInAppReleaseNotes(): boolean {
-  return true
-}
-
-/** Should `git status` use --no-optional-locks to assist with concurrent usage */
-export function enableStatusWithoutOptionalLocks(): boolean {
-  return true
-}
-
 /** Should git pass `--recurse-submodules` when performing operations? */
 export function enableRecurseSubmodulesFlag(): boolean {
   return enableBetaFeatures()
 }
 
-/** Should the app use the MergeConflictsDialog component and flow? */
-export function enableMergeConflictsDialog(): boolean {
+export function enableReadmeOverwriteWarning(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should the app automatically prune branches that are no longer actively being used */
+export function enableBranchPruning(): boolean {
+  return true
+}
+
+/**
+ * Whether or not to activate the "Create PR" blankslate action.
+ *
+ * The state of the feature as of writing this is that the underlying
+ * data source required to power this feature is not reliable enough
+ * and needs looking at so we aren't ready to move this to production
+ * just yet.
+ */
+export function enableNoChangesCreatePRBlankslateAction(): boolean {
+  return true
+}
+
+/**
+ *  Enables a new UI for the repository picker that supports
+ *  grouping and filtering (GitHub) repositories by owner/organization.
+ */
+export function enableGroupRepositoriesByOwner(): boolean {
+  return true
+}
+
+/** Should the app show the "rebase current branch" dialog? */
+export function enableRebaseDialog(): boolean {
+  return true
+}
+
+/** Should the app show the "stash changes" dialog? */
+export function enableStashing(): boolean {
+  return true
+}
+
+/**
+ * Should the application query for branch protection information and store this
+ * to help the maintainers understand how broadly branch protections are
+ * encountered?
+ */
+export function enableBranchProtectionChecks(): boolean {
+  return true
+}
+
+/** Should the app detect Windows Subsystem for Linux as a valid shell? */
+export function enableWSLDetection(): boolean {
+  return enableBetaFeatures()
+}
+
+/**
+ * Should the application warn the user when they are about to commit to a
+ * protected branch, and encourage them into a flow to move their changes to
+ * a new branch?
+ *
+ * As this builds upon existing branch protection features in the codebase, this
+ * flag is linked to to `enableBranchProtectionChecks()`.
+ */
+export function enableBranchProtectionWarningFlow(): boolean {
+  return enableBranchProtectionChecks() && enableDevelopmentFeatures()
+}
+
+export function enableHideWhitespaceInDiffOption(): boolean {
   return enableBetaFeatures()
 }

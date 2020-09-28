@@ -1,31 +1,43 @@
 import * as React from 'react'
-import { join } from 'path'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { PopupType } from '../../models/popup'
 import { RepositorySectionTab } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
-  AppFileStatus,
 } from '../../models/status'
-import { Octicon, OcticonSymbol } from '../octicons'
-import { PathText } from '../lib/path-text'
-import { DialogHeader } from '../dialog/header'
+import {
+  isConflictedFile,
+  getResolvedFiles,
+  getConflictedFiles,
+  getUnmergedFiles,
+} from '../../lib/status'
+import { DefaultCommitMessage } from '../../models/commit-message'
+import {
+  renderUnmergedFile,
+  renderUnmergedFilesSummary,
+  renderShellLink,
+  renderAllResolved,
+} from '../lib/conflicts'
+import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
+import { BannerType } from '../../models/banner'
 
 interface IMergeConflictsDialogProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
-  readonly status: WorkingDirectoryStatus
+  readonly workingDirectory: WorkingDirectoryStatus
   readonly onDismissed: () => void
   readonly openFileInExternalEditor: (path: string) => void
-  readonly externalEditorName?: string
+  readonly resolvedExternalEditor: string | null
   readonly openRepositoryInShell: (repository: Repository) => void
-  readonly currentBranch: string
-  readonly theirBranch: string
+  readonly ourBranch: string
+  /* `undefined` when we didn't know the branch at the beginning of this flow */
+  readonly theirBranch?: string
+  readonly manualResolutions: Map<string, ManualConflictResolution>
 }
 
 const submitButtonString = 'Commit merge'
@@ -38,28 +50,44 @@ export class MergeConflictsDialog extends React.Component<
   IMergeConflictsDialogProps,
   {}
 > {
+  public async componentDidMount() {
+    this.props.dispatcher.resolveCurrentEditor()
+  }
+
   /**
    *  commits the merge displays the repository changes tab and dismisses the modal
    */
   private onSubmit = async () => {
-    await this.props.dispatcher.createMergeCommit(
+    await this.props.dispatcher.finishConflictedMerge(
       this.props.repository,
-      this.props.status.files
+      this.props.workingDirectory,
+      {
+        type: BannerType.SuccessfulMerge,
+        ourBranch: this.props.ourBranch,
+        theirBranch: this.props.theirBranch,
+      }
+    )
+    this.props.dispatcher.setCommitMessage(
+      this.props.repository,
+      DefaultCommitMessage
     )
     this.props.dispatcher.changeRepositorySection(
       this.props.repository,
       RepositorySectionTab.Changes
     )
     this.props.onDismissed()
+    this.props.dispatcher.recordGuidedConflictedMergeCompletion()
   }
 
   /**
    *  dismisses the modal and shows the abort merge warning modal
    */
   private onCancel = async () => {
-    const anyResolvedFiles = this.getUnmergedFiles().some(
-      f => f.status === AppFileStatus.Resolved
-    )
+    const anyResolvedFiles =
+      getResolvedFiles(
+        this.props.workingDirectory,
+        this.props.manualResolutions
+      ).length > 0
     if (!anyResolvedFiles) {
       await this.props.dispatcher.abortMerge(this.props.repository)
       this.props.onDismissed()
@@ -68,173 +96,125 @@ export class MergeConflictsDialog extends React.Component<
       this.props.dispatcher.showPopup({
         type: PopupType.AbortMerge,
         repository: this.props.repository,
-        currentBranch: this.props.currentBranch,
+        ourBranch: this.props.ourBranch,
         theirBranch: this.props.theirBranch,
       })
     }
   }
 
-  /**
-   * Calculates the number of merge conclicts in a file from the number of markers
-   * divides by three and rounds up since each conflict is indicated by three separate markers
-   * (`<<<<<`, `>>>>>`, and `=====`)
-   * @param conflictMarkers number of conflict markers in a file
-   */
-  private calculateConflicts(conflictMarkers: number) {
-    return Math.ceil(conflictMarkers / 3)
+  private onDismissed = async () => {
+    this.props.onDismissed()
+    this.props.dispatcher.setBanner({
+      type: BannerType.MergeConflictsFound,
+      ourBranch: this.props.ourBranch,
+      popup: {
+        type: PopupType.MergeConflicts,
+        ourBranch: this.props.ourBranch,
+        theirBranch: this.props.theirBranch,
+        repository: this.props.repository,
+      },
+    })
+    this.props.dispatcher.recordMergeConflictsDialogDismissal()
+    const anyConflictedFiles =
+      getConflictedFiles(
+        this.props.workingDirectory,
+        this.props.manualResolutions
+      ).length > 0
+    if (anyConflictedFiles) {
+      this.props.dispatcher.recordAnyConflictsLeftOnMergeConflictsDialogDismissal()
+    }
   }
 
-  private renderHeaderTitle(
-    currentBranchName: string,
-    comparisonBranchName: string
-  ) {
+  private renderHeaderTitle(ourBranch: string, theirBranch?: string) {
+    if (theirBranch !== undefined) {
+      return (
+        <span>
+          {`Resolve conflicts before merging `}
+          <strong>{theirBranch}</strong>
+          {` into `}
+          <strong>{ourBranch}</strong>
+        </span>
+      )
+    }
     return (
       <span>
-        {`Resolve conflicts before merging `}
-        <strong>{comparisonBranchName}</strong>
-        {` into `}
-        <strong>{currentBranchName}</strong>
+        {`Resolve conflicts before merging into `}
+        <strong>{ourBranch}</strong>
       </span>
     )
-  }
-
-  private editorButtonString(editorName: string | undefined) {
-    const defaultEditorString = 'editor'
-    return `Open in ${editorName || defaultEditorString}`
   }
 
   private openThisRepositoryInShell = () =>
     this.props.openRepositoryInShell(this.props.repository)
 
-  private renderShellLink(openThisRepositoryInShell: () => void): JSX.Element {
-    return (
-      <div className="cli-link">
-        You can also{' '}
-        <a onClick={openThisRepositoryInShell}>open the command line</a> to
-        resolve
-      </div>
-    )
-  }
-
-  private renderResolvedFile(path: string): JSX.Element {
-    return (
-      <li className="unmerged-file-status-resolved">
-        <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
-        <div className="column-left">
-          <PathText path={path} availableWidth={200} />
-          <div className="file-conflicts-status">No conflicts remaining</div>
-        </div>
-        <div className="green-circle">
-          <Octicon symbol={OcticonSymbol.check} />
-        </div>
-      </li>
-    )
-  }
-
-  private renderConflictedFile(
-    path: string,
-    conflicts: number,
-    editorName: string | undefined,
-    onOpenEditorClick: () => void
-  ): JSX.Element {
-    const humanReadableConflicts = this.calculateConflicts(conflicts)
-    const message =
-      humanReadableConflicts === 1
-        ? `1 conflict`
-        : `${humanReadableConflicts} conflicts`
-    return (
-      <li className="unmerged-file-status-conflicts">
-        <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
-        <div className="column-left">
-          <PathText path={path} availableWidth={200} />
-          <div className="file-conflicts-status">{message}</div>
-        </div>
-        <Button onClick={onOpenEditorClick}>
-          {this.editorButtonString(editorName)}
-        </Button>
-      </li>
-    )
-  }
-
-  private renderUnmergedFile(
-    file: WorkingDirectoryFileChange,
-    editorName: string | undefined,
-    repositoryPath: string
-  ): JSX.Element | null {
-    switch (file.status) {
-      case AppFileStatus.Resolved:
-        return this.renderResolvedFile(file.path)
-      case AppFileStatus.Conflicted:
-        return this.renderConflictedFile(
-          file.path,
-          file.conflictMarkers,
-          editorName,
-          () =>
-            this.props.openFileInExternalEditor(join(repositoryPath, file.path))
-        )
-      default:
-        return null
-    }
-  }
-
   private renderUnmergedFiles(
-    files: Array<WorkingDirectoryFileChange>,
-    editorName: string | undefined,
-    repositoryPath: string
+    files: ReadonlyArray<WorkingDirectoryFileChange>
   ) {
     return (
       <ul className="unmerged-file-statuses">
-        {files.map(f => this.renderUnmergedFile(f, editorName, repositoryPath))}
+        {files.map(f =>
+          isConflictedFile(f.status)
+            ? renderUnmergedFile({
+                path: f.path,
+                status: f.status,
+                resolvedExternalEditor: this.props.resolvedExternalEditor,
+                openFileInExternalEditor: this.props.openFileInExternalEditor,
+                repository: this.props.repository,
+                dispatcher: this.props.dispatcher,
+                manualResolution: this.props.manualResolutions.get(f.path),
+                ourBranch: this.props.ourBranch,
+                theirBranch: this.props.theirBranch,
+              })
+            : null
+        )}
       </ul>
     )
   }
 
-  private getUnmergedFiles() {
-    return this.props.status.files.filter(
-      file =>
-        file.status === AppFileStatus.Conflicted ||
-        file.status === AppFileStatus.Resolved
+  private renderContent(
+    unmergedFiles: ReadonlyArray<WorkingDirectoryFileChange>,
+    conflictedFilesCount: number
+  ): JSX.Element {
+    if (unmergedFiles.length === 0) {
+      return renderAllResolved()
+    }
+
+    return (
+      <>
+        {renderUnmergedFilesSummary(conflictedFilesCount)}
+        {this.renderUnmergedFiles(unmergedFiles)}
+        {renderShellLink(this.openThisRepositoryInShell)}
+      </>
     )
   }
 
-  private renderUnmergedFilesSummary(conflictedFilesCount: number) {
-    // localization, it burns :vampire:
-    const message =
-      conflictedFilesCount === 1
-        ? `1 conflicted file`
-        : `${conflictedFilesCount} conflicted files`
-    return <h3 className="summary">{message}</h3>
-  }
-
   public render() {
-    const unmergedFiles = this.getUnmergedFiles()
-    const conflictedFilesCount = unmergedFiles.filter(
-      f => f.status === AppFileStatus.Conflicted
+    const unmergedFiles = getUnmergedFiles(this.props.workingDirectory)
+    const conflictedFilesCount = getConflictedFiles(
+      this.props.workingDirectory,
+      this.props.manualResolutions
     ).length
+
     const headerTitle = this.renderHeaderTitle(
-      this.props.currentBranch,
+      this.props.ourBranch,
       this.props.theirBranch
     )
     const tooltipString =
       conflictedFilesCount > 0
         ? 'Resolve all changes before merging'
         : undefined
+
     return (
       <Dialog
         id="merge-conflicts-list"
-        dismissable={false}
-        onDismissed={this.onCancel}
+        dismissable={true}
+        onDismissed={this.onDismissed}
+        disableClickDismissalAlways={true}
         onSubmit={this.onSubmit}
+        title={headerTitle}
       >
-        <DialogHeader title={headerTitle} dismissable={false} />
         <DialogContent>
-          {this.renderUnmergedFilesSummary(conflictedFilesCount)}
-          {this.renderUnmergedFiles(
-            unmergedFiles,
-            this.props.externalEditorName,
-            this.props.repository.path
-          )}
-          {this.renderShellLink(this.openThisRepositoryInShell)}
+          {this.renderContent(unmergedFiles, conflictedFilesCount)}
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>

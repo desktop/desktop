@@ -2,7 +2,10 @@ import { git } from './core'
 import { Repository } from '../../models/repository'
 import { DiffSelectionType } from '../../models/diff'
 import { applyPatchToIndex } from './apply'
-import { AppFileStatus, WorkingDirectoryFileChange } from '../../models/status'
+import {
+  WorkingDirectoryFileChange,
+  AppFileStatusKind,
+} from '../../models/status'
 
 interface IUpdateIndexOptions {
   /**
@@ -109,12 +112,17 @@ export async function stageFiles(
   const normal = []
   const oldRenamed = []
   const partial = []
+  const deletedFiles = []
 
   for (const file of files) {
     if (file.selection.getSelectionType() === DiffSelectionType.All) {
       normal.push(file.path)
-      if (file.status === AppFileStatus.Renamed && file.oldPath) {
-        oldRenamed.push(file.oldPath)
+      if (file.status.kind === AppFileStatusKind.Renamed) {
+        oldRenamed.push(file.status.oldPath)
+      }
+
+      if (file.status.kind === AppFileStatusKind.Deleted) {
+        deletedFiles.push(file.path)
       }
     } else {
       partial.push(file)
@@ -147,6 +155,13 @@ export async function stageFiles(
   // and copied files as well as the destination paths for renamed
   // paths.
   await updateIndex(repository, normal)
+
+  // This third step will only happen if we have files that have been marked
+  // for deletion. This covers us for files that were blown away in the last
+  // updateIndex call
+  if (deletedFiles.length > 0) {
+    await updateIndex(repository, deletedFiles, { forceRemove: true })
+  }
 
   // Finally we run through all files that have partial selections.
   // We don't care about renamed or not here since applyPatchToIndex

@@ -32,8 +32,8 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
     const infoTitle = isCurrentBranch
       ? 'Current branch'
       : lastCommitDate
-        ? lastCommitDate.toString()
-        : ''
+      ? lastCommitDate.toString()
+      : ''
     return (
       <div className="branches-list-item">
         <Octicon className="icon" symbol={icon} />

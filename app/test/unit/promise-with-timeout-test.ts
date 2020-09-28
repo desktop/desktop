@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import { promiseWithMinimumTimeout } from '../../src/lib/promise'
 
 jest.useFakeTimers()
@@ -16,14 +14,14 @@ describe('promiseWithMinimumTimeout', () => {
 
     // promise completes
     jest.advanceTimersByTime(250)
-    expect(resolveMock.mock.calls.length).equals(1)
+    expect(resolveMock.mock.calls).toHaveLength(1)
 
     // timeout completes
     jest.advanceTimersByTime(250)
 
     const result = await promise
 
-    expect(result).equals(42)
+    expect(result).toBe(42)
   })
 
   it('handles promise and timeout finishing together', async () => {
@@ -40,7 +38,7 @@ describe('promiseWithMinimumTimeout', () => {
 
     const result = await promise
 
-    expect(result).equals(42)
+    expect(result).toBe(42)
   })
 
   it('handles promise finishing after timeout', async () => {
@@ -54,14 +52,14 @@ describe('promiseWithMinimumTimeout', () => {
 
     // timeout completes
     jest.advanceTimersByTime(500)
-    expect(resolveMock.mock.calls.length).equals(0)
+    expect(resolveMock.mock.calls).toHaveLength(0)
 
     // promise completes
     jest.advanceTimersByTime(500)
-    expect(resolveMock.mock.calls.length).equals(1)
+    expect(resolveMock.mock.calls).toHaveLength(1)
 
     const result = await promise
 
-    expect(result).equals(42)
+    expect(result).toBe(42)
   })
 })

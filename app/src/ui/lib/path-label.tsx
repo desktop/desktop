@@ -1,14 +1,12 @@
 import * as React from 'react'
 
-import { AppFileStatus } from '../../models/status'
+import { AppFileStatus, AppFileStatusKind } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PathText } from './path-text'
 
 interface IPathLabelProps {
   /** the current path of the file */
   readonly path: string
-  /** the previous path of the file, if applicable */
-  readonly oldPath?: string
   /** the type of change applied to the file */
   readonly status: AppFileStatus
 
@@ -28,21 +26,22 @@ const ResizeArrowPadding = 10
 export class PathLabel extends React.Component<IPathLabelProps, {}> {
   public render() {
     const props: React.HTMLProps<HTMLLabelElement> = {
-      className: 'path',
+      className: 'path-label-component',
     }
 
-    const status = this.props.status
-    const renderBothPaths =
-      status === AppFileStatus.Renamed || status === AppFileStatus.Copied
+    const { status } = this.props
 
     const availableWidth = this.props.availableWidth
-    if (renderBothPaths && this.props.oldPath) {
+    if (
+      status.kind === AppFileStatusKind.Renamed ||
+      status.kind === AppFileStatusKind.Copied
+    ) {
       const segmentWidth = availableWidth
         ? availableWidth / 2 - ResizeArrowPadding
         : undefined
       return (
         <label {...props}>
-          <PathText path={this.props.oldPath} availableWidth={segmentWidth} />
+          <PathText path={status.oldPath} availableWidth={segmentWidth} />
           <Octicon className="rename-arrow" symbol={OcticonSymbol.arrowRight} />
           <PathText path={this.props.path} availableWidth={segmentWidth} />
         </label>

@@ -3,7 +3,7 @@ import * as React from 'react'
 import { ICompareBranch, HistoryTabMode } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
 
 interface IMergeCallToActionProps {
@@ -27,6 +27,11 @@ export class MergeCallToAction extends React.Component<
 
     return (
       <div className="merge-cta">
+        {this.renderMergeDetails(
+          this.props.formState,
+          this.props.currentBranch
+        )}
+
         <Button
           type="submit"
           disabled={count <= 0}
@@ -34,11 +39,6 @@ export class MergeCallToAction extends React.Component<
         >
           Merge into <strong>{this.props.currentBranch.name}</strong>
         </Button>
-
-        {this.renderMergeDetails(
-          this.props.formState,
-          this.props.currentBranch
-        )}
       </div>
     )
   }

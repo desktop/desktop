@@ -19,6 +19,7 @@ import {
   BranchGroupIdentifier,
 } from './group-branches'
 import { NoBranches } from './no-branches'
+import { SelectionDirection } from '../lib/list'
 
 const RowHeight = 30
 
@@ -161,9 +162,9 @@ export class BranchList extends React.Component<
     this.setState(createState(nextProps))
   }
 
-  public selectFirstItem(focus: boolean = false) {
+  public selectNextItem(focus: boolean = false, direction: SelectionDirection) {
     if (this.branchFilterList !== null) {
-      this.branchFilterList.selectFirstItem(focus)
+      this.branchFilterList.selectNextItem(focus, direction)
     }
   }
 

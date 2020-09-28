@@ -2,7 +2,7 @@
  * get all regex captures within a body of text
  * @param text string to search
  * @param re regex to search with. must have global option and one capture
- * @returns ararys of strings captured by supplied regex
+ * @returns arrays of strings captured by supplied regex
  */
 export function getCaptures(
   text: string,
@@ -23,6 +23,12 @@ export function getCaptures(
  * @returns set of strings captured by supplied regex
  */
 export function getMatches(text: string, re: RegExp): Array<RegExpExecArray> {
+  if (re.global === false) {
+    throw new Error(
+      'A regex has been provided that is not marked as global, and has the potential to execute forever if it finds a match'
+    )
+  }
+
   const matches = new Array<RegExpExecArray>()
   let match = re.exec(text)
 

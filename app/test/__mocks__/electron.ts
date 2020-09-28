@@ -3,6 +3,9 @@ export const shell = {
 }
 
 export const remote = {
+  app: {
+    on: jest.fn(),
+  },
   getCurrentWindow: jest.fn().mockImplementation(() => ({
     isFullScreen: jest.fn().mockImplementation(() => true),
     webContents: {

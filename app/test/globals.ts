@@ -1,6 +1,3 @@
-import { use } from 'chai'
-use(require('chai-datetime'))
-
 const Dexie = require('dexie')
 Dexie.dependencies.indexedDB = require('fake-indexeddb')
 Dexie.dependencies.IDBKeyRange = require('fake-indexeddb/lib/FDBKeyRange')

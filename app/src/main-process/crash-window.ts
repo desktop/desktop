@@ -43,6 +43,7 @@ export class CrashWindow {
         // process but our components which relies on ResizeObserver should
         // be able to degrade gracefully.
         experimentalFeatures: false,
+        nodeIntegration: true,
       },
     }
 

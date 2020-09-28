@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import { findNextSelectableRow } from '../../src/ui/lib/list/selection'
 
 describe('list-selection', () => {
@@ -11,7 +9,7 @@ describe('list-selection', () => {
         direction: 'down',
         row: -1,
       })
-      expect(selectedRow).to.equal(0)
+      expect(selectedRow).toBe(0)
     })
 
     it('returns first selectable row when header is first', () => {
@@ -29,7 +27,7 @@ describe('list-selection', () => {
           }
         }
       )
-      expect(selectedRow).to.equal(1)
+      expect(selectedRow).toBe(1)
     })
 
     it('returns first row when selecting down from last row', () => {
@@ -38,7 +36,7 @@ describe('list-selection', () => {
         direction: 'down',
         row: lastRow,
       })
-      expect(selectedRow).to.equal(0)
+      expect(selectedRow).toBe(0)
     })
 
     it('returns last row when selecting up from top row', () => {
@@ -46,7 +44,7 @@ describe('list-selection', () => {
         direction: 'up',
         row: 0,
       })
-      expect(selectedRow).to.equal(4)
+      expect(selectedRow).toBe(4)
     })
   })
 })
