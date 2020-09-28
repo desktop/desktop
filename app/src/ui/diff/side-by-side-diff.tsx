@@ -774,15 +774,20 @@ function getModifiedRows(
     }
   }
 
+  let indexModifiedRow = 0
+
   while (
     showSideBySideDiff &&
-    addedLines.length > 0 &&
-    deletedLines.length > 0
+    indexModifiedRow < addedLines.length &&
+    indexModifiedRow < deletedLines.length
   ) {
-    const addedLine = forceUnwrap('Unexpected null line', addedLines.shift())
+    const addedLine = forceUnwrap(
+      'Unexpected null line',
+      addedLines[indexModifiedRow]
+    )
     const deletedLine = forceUnwrap(
       'Unexpected null line',
-      deletedLines.shift()
+      deletedLines[indexModifiedRow]
     )
 
     // Modified lines
@@ -806,10 +811,12 @@ function getModifiedRows(
       ),
       hunkStartLine,
     })
+
+    indexModifiedRow++
   }
 
-  while (deletedLines.length > 0) {
-    const line = forceUnwrap('Unexpected null line', deletedLines.shift())
+  for (let i = indexModifiedRow; i < deletedLines.length; i++) {
+    const line = forceUnwrap('Unexpected null line', deletedLines[i])
 
     output.push({
       type: DiffRowType.Deleted,
@@ -824,8 +831,9 @@ function getModifiedRows(
       hunkStartLine,
     })
   }
-  while (addedLines.length > 0) {
-    const line = forceUnwrap('Unexpected null line', addedLines.shift())
+
+  for (let i = indexModifiedRow; i < addedLines.length; i++) {
+    const line = forceUnwrap('Unexpected null line', addedLines[i])
 
     // Added line
     output.push({
