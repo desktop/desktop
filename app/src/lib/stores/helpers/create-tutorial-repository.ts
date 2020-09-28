@@ -80,7 +80,7 @@ async function pushRepo(
     }
   )
 
-  const args = ['push', '-u', remote.name, 'master']
+  const args = ['push', '-u', remote.name, 'HEAD']
   await git(args, path, 'tutorial:push', pushOpts)
 }
 
@@ -118,6 +118,7 @@ export async function createTutorialRepository(
 
   await ensureDir(path)
   await git(['init'], path, 'tutorial:init')
+  await git(['checkout', '-b', 'main'], path, 'tutorial:create-default-branch')
 
   await writeFile(Path.join(path, 'README.md'), InititalReadmeContents)
 
