@@ -26,6 +26,8 @@ export enum DiffRowType {
   Modified = 'Modified',
 }
 
+export type SimplifiedDiffRowData = Omit<IDiffRowData, 'isSelected'>
+
 export interface IDiffRowData {
   /**
    * The actual contents of the diff line.
@@ -65,13 +67,13 @@ export interface IDiffRowData {
 /**
  * IDiffRowAdded represents a row that displays an added line.
  */
-interface IDiffRowAdded {
+interface IDiffRowAdded<T = IDiffRowData> {
   readonly type: DiffRowType.Added
 
   /**
    * The data object contains information about that added line in the diff.
    */
-  readonly data: IDiffRowData
+  readonly data: T
 
   /**
    * The start line of the hunk where this line belongs in the diff.
@@ -86,13 +88,13 @@ interface IDiffRowAdded {
 /**
  * IDiffRowDeleted represents a row that displays a deleted line.
  */
-interface IDiffRowDeleted {
+interface IDiffRowDeleted<T = IDiffRowData> {
   readonly type: DiffRowType.Deleted
 
   /**
    * The data object contains information about that deleted line in the diff.
    */
-  readonly data: IDiffRowData
+  readonly data: T
 
   /**
    * The start line of the hunk where this line belongs in the diff.
@@ -108,18 +110,18 @@ interface IDiffRowDeleted {
  * IDiffRowModified represents a row that displays both a deleted line inline
  * with an added line.
  */
-interface IDiffRowModified {
+interface IDiffRowModified<T = IDiffRowData> {
   readonly type: DiffRowType.Modified
 
   /**
    * The beforeData object contains information about the deleted line in the diff.
    */
-  readonly beforeData: IDiffRowData
+  readonly beforeData: T
 
   /**
    * The beforeData object contains information about the added line in the diff.
    */
-  readonly afterData: IDiffRowData
+  readonly afterData: T
 
   /**
    * The start line of the hunk where this line belongs in the diff.
@@ -181,6 +183,13 @@ export type DiffRow =
   | IDiffRowAdded
   | IDiffRowDeleted
   | IDiffRowModified
+  | IDiffRowContext
+  | IDiffRowHunk
+
+export type SimplifiedDiffRow =
+  | IDiffRowAdded<SimplifiedDiffRowData>
+  | IDiffRowDeleted<SimplifiedDiffRowData>
+  | IDiffRowModified<SimplifiedDiffRowData>
   | IDiffRowContext
   | IDiffRowHunk
 
