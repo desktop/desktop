@@ -26,6 +26,7 @@ export enum ExternalEditor {
   GoLand = 'GoLand',
   AndroidStudio = 'Android Studio',
   Rider = 'Rider',
+  Nova = 'Nova',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -94,6 +95,9 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.Rider) {
     return ExternalEditor.Rider
   }
+  if (label === ExternalEditor.Nova) {
+    return ExternalEditor.Nova
+  }
   return null
 }
 
@@ -146,6 +150,8 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['com.google.android.studio']
     case ExternalEditor.Rider:
       return ['com.jetbrains.rider']
+    case ExternalEditor.Nova:
+      return ['com.panic.Nova']
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -211,6 +217,8 @@ function getExecutableShim(
       return Path.join(installPath, 'Contents', 'MacOS', 'studio')
     case ExternalEditor.Rider:
       return Path.join(installPath, 'Contents', 'MacOS', 'rider')
+    case ExternalEditor.Nova:
+      return Path.join(installPath, 'Contents', 'SharedSupport', 'nova')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -267,6 +275,7 @@ export async function getAvailableEditors(): Promise<
     golandPath,
     androidStudioPath,
     riderPath,
+    novaPath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.MacVim),
@@ -289,6 +298,7 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.GoLand),
     findApplication(ExternalEditor.AndroidStudio),
     findApplication(ExternalEditor.Rider),
+    findApplication(ExternalEditor.Nova),
   ])
 
   if (atomPath) {
@@ -379,6 +389,10 @@ export async function getAvailableEditors(): Promise<
 
   if (riderPath) {
     results.push({ editor: ExternalEditor.Rider, path: riderPath })
+  }
+
+  if (novaPath) {
+    results.push({ editor: ExternalEditor.Nova, path: novaPath })
   }
 
   return results
