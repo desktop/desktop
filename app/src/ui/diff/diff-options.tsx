@@ -3,10 +3,13 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IDiffOptionsProps {
-  readonly hideWhitespaceChanges: boolean
-  readonly onHideWhitespaceChangesChanged: (
+  readonly hideWhitespaceChanges?: boolean
+  readonly onHideWhitespaceChangesChanged?: (
     hideWhitespaceChanges: boolean
   ) => void
+
+  readonly showSideBySideDiff: boolean
+  readonly onShowSideBySideDiffChanged: (showSideBySideDiff: boolean) => void
 }
 
 interface IDiffOptionsState {
@@ -30,8 +33,17 @@ export class DiffOptions extends React.Component<
   private onHideWhitespaceChangesChanged = (
     event: React.FormEvent<HTMLInputElement>
   ) => {
-    this.props.onHideWhitespaceChangesChanged(event.currentTarget.checked)
+    if (this.props.onHideWhitespaceChangesChanged !== undefined) {
+      this.props.onHideWhitespaceChangesChanged(event.currentTarget.checked)
+    }
   }
+
+  private onShowSideBySideDiffChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.props.onShowSideBySideDiffChanged(event.currentTarget.checked)
+  }
+
   public render() {
     return (
       <div className="diff-options-component">
@@ -47,27 +59,34 @@ export class DiffOptions extends React.Component<
   private renderPopover() {
     return (
       <div className="popover">
+        {this.renderHideWhitespaceChanges()}
         <Checkbox
           value={
-            this.props.hideWhitespaceChanges
-              ? CheckboxValue.On
-              : CheckboxValue.Off
+            this.props.showSideBySideDiff ? CheckboxValue.On : CheckboxValue.Off
           }
-          onChange={this.onHideWhitespaceChangesChanged}
-          label={
-            __DARWIN__ ? 'Hide Whitespace Changes' : 'Hide whitespace changes'
-          }
-        />
-        <Checkbox
-          value={
-            this.props.hideWhitespaceChanges
-              ? CheckboxValue.On
-              : CheckboxValue.Off
-          }
-          onChange={this.onHideWhitespaceChangesChanged}
+          onChange={this.onShowSideBySideDiffChanged}
           label={__DARWIN__ ? 'Side by Side' : 'Side by side'}
         />
       </div>
+    )
+  }
+
+  private renderHideWhitespaceChanges() {
+    if (this.props.hideWhitespaceChanges === undefined) {
+      return null
+    }
+    return (
+      <Checkbox
+        value={
+          this.props.hideWhitespaceChanges
+            ? CheckboxValue.On
+            : CheckboxValue.Off
+        }
+        onChange={this.onHideWhitespaceChangesChanged}
+        label={
+          __DARWIN__ ? 'Hide Whitespace Changes' : 'Hide whitespace changes'
+        }
+      />
     )
   }
 }
