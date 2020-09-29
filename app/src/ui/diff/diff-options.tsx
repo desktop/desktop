@@ -23,12 +23,62 @@ export class DiffOptions extends React.Component<
   IDiffOptionsProps,
   IDiffOptionsState
 > {
+  private diffOptionsRef: HTMLDivElement | null = null
+
+  private focusOutTimeout: number | null = null
+
   public constructor(props: IDiffOptionsProps) {
     super(props)
     this.state = {
       isOpen: false,
       showNewCallout: getBoolean('has-seen-split-diff-option') !== true,
     }
+  }
+
+  private onDiffOptionsRef = (diffOptions: HTMLDivElement | null) => {
+    if (this.diffOptionsRef) {
+      this.diffOptionsRef.removeEventListener('focusin', this.onFocusIn)
+      this.diffOptionsRef.removeEventListener('focusout', this.onFocusOut)
+    }
+
+    this.diffOptionsRef = diffOptions
+
+    if (this.diffOptionsRef) {
+      this.diffOptionsRef.addEventListener('focusin', this.onFocusIn)
+      this.diffOptionsRef.addEventListener('focusout', this.onFocusOut)
+    }
+  }
+
+  private onFocusIn = (event: FocusEvent) => {
+    console.log('focusin', event.target)
+    this.clearFocusOutTimeout()
+  }
+
+  private onFocusOut = (event: Event) => {
+    console.log('focusout', event.target)
+
+    // When keyboard focus moves from one descendant within the
+    // menu bar to another we will receive one 'focusout' event
+    // followed quickly by a 'focusin' event. As such we
+    // can't tell whether we've lost focus until we're certain
+    // that we've only gotten the 'focusout' event.
+    //
+    // In order to achieve this we schedule our call to onLostFocusWithin
+    // and clear that timeout if we receive a 'focusin' event.
+    this.clearFocusOutTimeout()
+    this.focusOutTimeout = requestAnimationFrame(this.onLostFocusWithin)
+  }
+
+  private clearFocusOutTimeout() {
+    if (this.focusOutTimeout !== null) {
+      cancelAnimationFrame(this.focusOutTimeout)
+      this.focusOutTimeout = null
+    }
+  }
+
+  private onLostFocusWithin = () => {
+    this.focusOutTimeout = null
+    this.onClose()
   }
 
   private onTogglePopover = (event: React.FormEvent<HTMLButtonElement>) => {
@@ -59,9 +109,11 @@ export class DiffOptions extends React.Component<
     }
   }
 
+  public componentDidMount() {}
+
   public render() {
     return (
-      <div className="diff-options-component">
+      <div className="diff-options-component" ref={this.onDiffOptionsRef}>
         <button onClick={this.onTogglePopover}>
           <Octicon symbol={OcticonSymbol.gear} />
           <Octicon symbol={OcticonSymbol.triangleDown} />
@@ -76,7 +128,7 @@ export class DiffOptions extends React.Component<
 
   private renderPopover() {
     return (
-      <div className="popover">
+      <div className="popover" tabIndex={-1}>
         {this.renderHideWhitespaceChanges()}
         {this.renderShowSideBySide()}
       </div>
