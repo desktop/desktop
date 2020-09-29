@@ -20,6 +20,22 @@
         flex-direction: row-reverse;
         border-right: none;
       }
+
+      &.deleted .before {
+        width: calc(50% + 4px);
+
+        .line-number {
+          border-right-width: 4px;
+        }
+      }
+
+      &.added .after {
+        width: calc(50% + 4px);
+
+        .line-number {
+          border-left-width: 4px;
+        }
+      }
     }
 
     .before .line-number {
@@ -185,22 +201,6 @@
       .line-number {
         background: var(--diff-hunk-background-color);
         border-color: var(--diff-border-color);
-      }
-    }
-
-    &.deleted .before {
-      width: calc(50% + 4px);
-
-      .line-number {
-        border-right-width: 4px;
-      }
-    }
-
-    &.added .after {
-      width: calc(50% + 4px);
-
-      .line-number {
-        border-left-width: 4px;
       }
     }
 
