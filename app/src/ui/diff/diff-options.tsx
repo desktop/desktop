@@ -2,6 +2,7 @@ import * as React from 'react'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { RadioButton } from '../lib/radio-button'
+import { getBoolean, setBoolean } from '../../lib/local-storage'
 
 interface IDiffOptionsProps {
   readonly hideWhitespaceChanges?: boolean
@@ -15,6 +16,7 @@ interface IDiffOptionsProps {
 
 interface IDiffOptionsState {
   readonly isOpen: boolean
+  readonly showNewCallout: boolean
 }
 
 export class DiffOptions extends React.Component<
@@ -23,12 +25,30 @@ export class DiffOptions extends React.Component<
 > {
   public constructor(props: IDiffOptionsProps) {
     super(props)
-    this.state = { isOpen: false }
+    this.state = {
+      isOpen: false,
+      showNewCallout: getBoolean('has-seen-split-diff-option') !== true,
+    }
   }
 
-  private onOpen = (event: React.FormEvent<HTMLButtonElement>) => {
+  private onTogglePopover = (event: React.FormEvent<HTMLButtonElement>) => {
     event.preventDefault()
-    this.setState({ isOpen: !this.state.isOpen })
+    if (this.state.isOpen) {
+      this.onClose()
+    } else {
+      this.onOpen()
+    }
+  }
+
+  private onOpen = () => {
+    this.setState({ isOpen: true })
+  }
+
+  private onClose = () => {
+    if (this.state.showNewCallout) {
+      setBoolean('has-seen-split-diff-option', true)
+    }
+    this.setState({ isOpen: false, showNewCallout: false })
   }
 
   private onHideWhitespaceChangesChanged = (
@@ -42,10 +62,12 @@ export class DiffOptions extends React.Component<
   public render() {
     return (
       <div className="diff-options-component">
-        <button onClick={this.onOpen}>
+        <button onClick={this.onTogglePopover}>
           <Octicon symbol={OcticonSymbol.gear} />
           <Octicon symbol={OcticonSymbol.triangleDown} />
-          <div className="call-to-action-bubble">New</div>
+          {this.state.showNewCallout && (
+            <div className="call-to-action-bubble">New</div>
+          )}
         </button>
         {this.state.isOpen && this.renderPopover()}
       </div>
