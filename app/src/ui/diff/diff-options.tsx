@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { RadioButton } from '../lib/radio-button'
 
 interface IDiffOptionsProps {
   readonly hideWhitespaceChanges?: boolean
@@ -38,17 +39,12 @@ export class DiffOptions extends React.Component<
     }
   }
 
-  private onShowSideBySideDiffChanged = (
-    event: React.FormEvent<HTMLInputElement>
-  ) => {
-    this.props.onShowSideBySideDiffChanged(event.currentTarget.checked)
-  }
-
   public render() {
     return (
       <div className="diff-options-component">
         <button onClick={this.onOpen}>
           <Octicon symbol={OcticonSymbol.gear} />
+          <Octicon symbol={OcticonSymbol.triangleDown} />
           <div className="call-to-action-bubble">New</div>
         </button>
         {this.state.isOpen && this.renderPopover()}
@@ -60,14 +56,37 @@ export class DiffOptions extends React.Component<
     return (
       <div className="popover">
         {this.renderHideWhitespaceChanges()}
-        <Checkbox
-          value={
-            this.props.showSideBySideDiff ? CheckboxValue.On : CheckboxValue.Off
-          }
-          onChange={this.onShowSideBySideDiffChanged}
-          label={__DARWIN__ ? 'Side by Side' : 'Side by side'}
-        />
+        {this.renderShowSideBySide()}
       </div>
+    )
+  }
+
+  private onUnifiedSelected = () => {
+    this.props.onShowSideBySideDiffChanged(false)
+  }
+  private onSideBySideSelected = () => {
+    this.props.onShowSideBySideDiffChanged(true)
+  }
+
+  private renderShowSideBySide() {
+    return (
+      <section>
+        <h3>
+          Diff display <div className="call-to-action-bubble">Beta</div>
+        </h3>
+        <RadioButton
+          value="Unified"
+          checked={!this.props.showSideBySideDiff}
+          label="Unified"
+          onSelected={this.onUnifiedSelected}
+        />
+        <RadioButton
+          value="Split"
+          checked={this.props.showSideBySideDiff}
+          label="Split"
+          onSelected={this.onSideBySideSelected}
+        />
+      </section>
     )
   }
 
@@ -76,17 +95,20 @@ export class DiffOptions extends React.Component<
       return null
     }
     return (
-      <Checkbox
-        value={
-          this.props.hideWhitespaceChanges
-            ? CheckboxValue.On
-            : CheckboxValue.Off
-        }
-        onChange={this.onHideWhitespaceChangesChanged}
-        label={
-          __DARWIN__ ? 'Hide Whitespace Changes' : 'Hide whitespace changes'
-        }
-      />
+      <section>
+        <h3>Whitespace</h3>
+        <Checkbox
+          value={
+            this.props.hideWhitespaceChanges
+              ? CheckboxValue.On
+              : CheckboxValue.Off
+          }
+          onChange={this.onHideWhitespaceChangesChanged}
+          label={
+            __DARWIN__ ? 'Hide Whitespace Changes' : 'Hide whitespace changes'
+          }
+        />
+      </section>
     )
   }
 }

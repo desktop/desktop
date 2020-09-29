@@ -449,8 +449,8 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --pr-open-icon-color: #{$green-500};
   --pr-draft-icon-color: #{$gray-500};
 
-  --call-to-action-bubble-background-color: #{$blue};
-  --call-to-action-bubble-color: #{$white};
+  --call-to-action-bubble-border-color: #{$green};
+  --call-to-action-bubble-color: #{$green};
 }
 
 ::backdrop {
