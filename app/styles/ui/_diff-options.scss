@@ -1,0 +1,72 @@
+.diff-options-component {
+  position: relative;
+
+  > button {
+    -webkit-appearance: none;
+    font-family: inherit;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    color: var(--text-color);
+
+    &:hover {
+      color: var(--text-secondary-color);
+    }
+
+    .call-to-action-bubble {
+      font-size: var(--font-size-sm);
+      text-transform: uppercase;
+      background: var(--notification-bubble-background-color);
+      color: var(--notification-bubble-color);
+      padding: 2px 3px;
+      border-radius: var(--border-radius);
+    }
+  }
+
+  .popover {
+    position: absolute;
+    left: 28px;
+    margin-left: -250px;
+    top: 27px;
+    z-index: var(--foldout-z-index);
+
+    background: var(--background-color);
+    color: var(--text-color);
+    border-radius: var(--border-radius);
+    border: var(--base-border);
+
+    padding: var(--spacing-double);
+    width: 250px;
+
+    box-shadow: var(--base-box-shadow);
+
+    // Carets
+    &::before,
+    &::after {
+      position: absolute;
+      right: 20px;
+      display: inline-block;
+      content: '';
+    }
+
+    &::before {
+      top: -16px;
+      margin-right: -9px;
+      border: 8px solid transparent;
+      border-bottom-color: var(--box-border-color);
+    }
+
+    &::after {
+      top: -14px;
+      margin-right: -8px;
+      border: 7px solid transparent;
+      border-bottom-color: var(--background-color);
+    }
+  }
+}

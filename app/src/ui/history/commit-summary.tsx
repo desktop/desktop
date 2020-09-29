@@ -16,6 +16,7 @@ import {
 } from '../../lib/feature-flag'
 import { Tokenizer, TokenResult } from '../../lib/text-token-parser'
 import { wrapRichTextCommitMessage } from '../../lib/wrap-rich-text-commit-message'
+import { DiffOptions } from '../diff/diff-options'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -375,20 +376,33 @@ export class CommitSummary extends React.Component<
             </li>
 
             {enableSideBySideDiffs() && (
-              <li
-                className="commit-summary-meta-item without-truncation"
-                title="Split View"
-              >
-                <Checkbox
-                  label="Split View"
-                  value={
-                    this.props.showSideBySideDiff
-                      ? CheckboxValue.On
-                      : CheckboxValue.Off
-                  }
-                  onChange={this.onShowSideBySideDiffChanged}
-                />
-              </li>
+              <>
+                <li
+                  className="commit-summary-meta-item without-truncation"
+                  title="Split View"
+                >
+                  <DiffOptions
+                    onHideWhitespaceChangesChanged={
+                      this.props.onHideWhitespaceInDiffChanged
+                    }
+                    hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
+                  />
+                </li>
+                <li
+                  className="commit-summary-meta-item without-truncation"
+                  title="Split View"
+                >
+                  <Checkbox
+                    label="Split View"
+                    value={
+                      this.props.showSideBySideDiff
+                        ? CheckboxValue.On
+                        : CheckboxValue.Off
+                    }
+                    onChange={this.onShowSideBySideDiffChanged}
+                  />
+                </li>
+              </>
             )}
           </ul>
         </div>

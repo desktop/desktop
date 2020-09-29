@@ -448,6 +448,9 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   // PR status icon colors
   --pr-open-icon-color: #{$green-500};
   --pr-draft-icon-color: #{$gray-500};
+
+  --call-to-action-bubble-background-color: #{$blue};
+  --call-to-action-bubble-color: #{$white};
 }
 
 ::backdrop {
