@@ -1,5 +1,6 @@
 .diff-options-component {
   position: relative;
+  display: flex;
 
   > button {
     -webkit-appearance: none;
@@ -22,10 +23,11 @@
     .call-to-action-bubble {
       font-size: var(--font-size-sm);
       text-transform: uppercase;
-      background: var(--notification-bubble-background-color);
-      color: var(--notification-bubble-color);
+      background: var(--call-to-action-bubble-background-color);
+      color: var(--call-to-action-bubble-color);
       padding: 2px 3px;
       border-radius: var(--border-radius);
+      margin-left: var(--spacing-third);
     }
   }
 
@@ -53,6 +55,7 @@
       right: 20px;
       display: inline-block;
       content: '';
+      pointer-events: none;
     }
 
     &::before {
