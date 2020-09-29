@@ -26,6 +26,11 @@ export enum DiffRowType {
   Modified = 'Modified',
 }
 
+export enum DiffColumn {
+  Before = 'before',
+  After = 'after',
+}
+
 export type SimplifiedDiffRowData = Omit<IDiffRowData, 'isSelected'>
 
 export interface IDiffRowData {

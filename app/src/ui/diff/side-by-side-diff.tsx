@@ -38,6 +38,7 @@ import {
   SimplifiedDiffRowData,
   SimplifiedDiffRow,
   IDiffRowData,
+  DiffColumn,
 } from './diff-helpers'
 import { showContextualMenu } from '../main-process-proxy'
 import { getTokens } from './diff-syntax-mode'
@@ -46,8 +47,14 @@ const DefaultRowHeight = 20
 const MaxLineLengthToCalculateDiff = 240
 
 export interface ISelection {
-  readonly from: number
-  readonly to: number
+  readonly from: {
+    readonly column: DiffColumn
+    readonly row: number
+  }
+  readonly to: {
+    readonly column: DiffColumn
+    readonly row: number
+  }
   readonly isSelected: boolean
 }
 
@@ -218,7 +225,7 @@ export class SideBySideDiff extends React.Component<
       return null
     }
 
-    const rowWithTokens = this.createFullRow(row)
+    const rowWithTokens = this.createFullRow(row, index)
 
     const isHunkHovered =
       'hunkStartLine' in row && this.state.hoveredHunk === row.hunkStartLine
@@ -235,6 +242,7 @@ export class SideBySideDiff extends React.Component<
         <div key={key} style={style}>
           <SideBySideDiffRow
             row={rowWithTokens}
+            numRow={index}
             isDiffSelectable={canSelect(this.props.file)}
             isHunkHovered={isHunkHovered}
             showSideBySideDiff={this.props.showSideBySideDiff}
@@ -293,18 +301,28 @@ export class SideBySideDiff extends React.Component<
     return canSelect(this.props.file) ? this.props.file.selection : undefined
   }
 
-  private createFullRow(row: SimplifiedDiffRow): DiffRow {
+  private createFullRow(row: SimplifiedDiffRow, numRow: number): DiffRow {
     if (row.type === DiffRowType.Added) {
       return {
         ...row,
-        data: this.getRowDataPopulated(row.data, this.state.afterTokens),
+        data: this.getRowDataPopulated(
+          row.data,
+          numRow,
+          this.props.showSideBySideDiff ? DiffColumn.After : DiffColumn.Before,
+          this.state.afterTokens
+        ),
       }
     }
 
     if (row.type === DiffRowType.Deleted) {
       return {
         ...row,
-        data: this.getRowDataPopulated(row.data, this.state.beforeTokens),
+        data: this.getRowDataPopulated(
+          row.data,
+          numRow,
+          DiffColumn.Before,
+          this.state.beforeTokens
+        ),
       }
     }
 
@@ -313,10 +331,14 @@ export class SideBySideDiff extends React.Component<
         ...row,
         beforeData: this.getRowDataPopulated(
           row.beforeData,
+          numRow,
+          DiffColumn.Before,
           this.state.beforeTokens
         ),
         afterData: this.getRowDataPopulated(
           row.afterData,
+          numRow,
+          DiffColumn.After,
           this.state.afterTokens
         ),
       }
@@ -339,6 +361,8 @@ export class SideBySideDiff extends React.Component<
 
   private getRowDataPopulated(
     data: SimplifiedDiffRowData,
+    row: number,
+    column: DiffColumn,
     tokens: ITokens | undefined
   ): IDiffRowData {
     const lineTokens = getTokens(data.lineNumber, tokens)
@@ -348,10 +372,37 @@ export class SideBySideDiff extends React.Component<
       tokens: lineTokens ? [...data.tokens, lineTokens] : data.tokens,
       isSelected: isInSelection(
         data.diffLineNumber,
+        row,
+        column,
         this.getSelection(),
         this.state.temporarySelection
       ),
     }
+  }
+
+  private getDiffLineNumber(
+    rowNumber: number,
+    column: DiffColumn
+  ): number | null {
+    const rows = getDiffRows(this.props.diff, this.props.showSideBySideDiff)
+
+    if (rows[rowNumber] === undefined) {
+      return null
+    }
+
+    const row = rows[rowNumber]
+
+    if (row.type === DiffRowType.Added || row.type === DiffRowType.Deleted) {
+      return row.data.diffLineNumber
+    }
+
+    if (row.type === DiffRowType.Modified) {
+      return column === DiffColumn.After
+        ? row.afterData.diffLineNumber
+        : row.beforeData.diffLineNumber
+    }
+
+    return null
   }
 
   /**
@@ -382,11 +433,15 @@ export class SideBySideDiff extends React.Component<
     }
   }
 
-  private onStartSelection = (lineNumber: number, select: boolean) => {
+  private onStartSelection = (
+    row: number,
+    column: DiffColumn,
+    select: boolean
+  ) => {
     this.setState({
       temporarySelection: {
-        from: lineNumber,
-        to: lineNumber,
+        from: { row, column },
+        to: { row, column },
         isSelected: select,
       },
     })
@@ -394,7 +449,7 @@ export class SideBySideDiff extends React.Component<
     document.addEventListener('mouseup', this.onEndSelection, { once: true })
   }
 
-  private onUpdateSelection = (lineNumber: number) => {
+  private onUpdateSelection = (row: number, column: DiffColumn) => {
     if (this.state.temporarySelection === undefined) {
       return
     }
@@ -402,13 +457,13 @@ export class SideBySideDiff extends React.Component<
     this.setState({
       temporarySelection: {
         ...this.state.temporarySelection,
-        to: lineNumber,
+        to: { row, column },
       },
     })
   }
 
   private onEndSelection = () => {
-    const selection = this.getSelection()
+    let selection = this.getSelection()
     if (selection === undefined) {
       return
     }
@@ -421,22 +476,41 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    const from = Math.min(
-      this.state.temporarySelection.from,
-      this.state.temporarySelection.to
+    const fromRow = Math.min(
+      this.state.temporarySelection.from.row,
+      this.state.temporarySelection.to.row
     )
-    const to = Math.max(
-      this.state.temporarySelection.from,
-      this.state.temporarySelection.to
+    const toRow = Math.max(
+      this.state.temporarySelection.from.row,
+      this.state.temporarySelection.to.row
     )
 
-    this.props.onIncludeChanged(
-      selection.withRangeSelection(
-        from,
-        to - from + 1,
-        this.state.temporarySelection.isSelected
+    for (let row = fromRow; row <= toRow; row++) {
+      const lineBefore = this.getDiffLineNumber(
+        row,
+        this.state.temporarySelection.from.column
       )
-    )
+      const lineAfter = this.getDiffLineNumber(
+        row,
+        this.state.temporarySelection.to.column
+      )
+
+      if (lineBefore !== null) {
+        selection = selection?.withLineSelection(
+          lineBefore,
+          this.state.temporarySelection.isSelected
+        )
+      }
+
+      if (lineAfter !== null) {
+        selection = selection?.withLineSelection(
+          lineAfter,
+          this.state.temporarySelection.isSelected
+        )
+      }
+    }
+
+    this.props.onIncludeChanged(selection)
 
     this.setState({
       temporarySelection: undefined,
@@ -617,7 +691,7 @@ function highlightParametersEqual(
 const getDiffRows = memoize(function (
   diff: ITextDiff,
   showSideBySideDiff: boolean
-): SimplifiedDiffRow[] {
+): ReadonlyArray<SimplifiedDiffRow> {
   const outputRows: SimplifiedDiffRow[] = []
 
   for (const hunk of diff.hunks) {
@@ -852,6 +926,8 @@ function getDataFromLine(
 
 function isInSelection(
   diffLineNumber: number,
+  row: number,
+  column: DiffColumn,
   selection: DiffSelection | undefined,
   temporarySelection: ISelection | undefined
 ) {
@@ -861,10 +937,7 @@ function isInSelection(
     return isInStoredSelection
   }
 
-  const isInTemporary = isInTemporarySelection(
-    diffLineNumber,
-    temporarySelection
-  )
+  const isInTemporary = isInTemporarySelection(row, column, temporarySelection)
 
   if (temporarySelection.isSelected) {
     return isInStoredSelection || isInTemporary
@@ -874,14 +947,21 @@ function isInSelection(
 }
 
 export function isInTemporarySelection(
-  lineNumber: number,
+  row: number,
+  column: DiffColumn,
   selection: ISelection | undefined
 ): selection is ISelection {
   if (selection === undefined) {
     return false
   }
-  return (
-    lineNumber >= Math.min(selection.from, selection.to) &&
-    lineNumber <= Math.max(selection.to, selection.from)
-  )
+
+  if (
+    row >= Math.min(selection.from.row, selection.to.row) &&
+    row <= Math.max(selection.to.row, selection.from.row) &&
+    (column === selection.from.column || column === selection.to.column)
+  ) {
+    return true
+  }
+
+  return false
 }

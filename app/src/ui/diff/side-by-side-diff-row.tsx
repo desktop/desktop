@@ -5,6 +5,7 @@ import {
   DiffRow,
   DiffRowType,
   IDiffRowData,
+  DiffColumn,
 } from './diff-helpers'
 import { ILineTokens } from '../../lib/highlighter/types'
 import classNames from 'classnames'
@@ -34,19 +35,28 @@ interface ISideBySideDiffRowProps {
   readonly showSideBySideDiff: boolean
 
   /**
+   * The index of the row in the displayed diff.
+   */
+  readonly numRow: number
+
+  /**
    * Called when a line selection is started. Called with the
-   * diff line number and a flag to indicate if the user is
-   * selecting or unselecting lines.
+   * row and column of the selected line and a flag to indicate
+   * if the user is selecting or unselecting lines.
    * (only relevant when isDiffSelectable is true)
    */
-  readonly onStartSelection: (diffLineNumber: number, select: boolean) => void
+  readonly onStartSelection: (
+    row: number,
+    column: DiffColumn,
+    select: boolean
+  ) => void
 
   /**
    * Called when a line selection is updated. Called with the
-   * currently hovered diff line number.
+   * row and column of the hovered line.
    * (only relevant when isDiffSelectable is true)
    */
-  readonly onUpdateSelection: (diffLineNumber: number) => void
+  readonly onUpdateSelection: (row: number, column: DiffColumn) => void
 
   /**
    * Called when the user hovers the hunk handle. Called with the start
@@ -334,6 +344,32 @@ export class SideBySideDiffRow extends React.Component<
     return this.renderLineNumbers([lineNumber], isSelected)
   }
 
+  private getDiffColumn(targetElement?: Element): DiffColumn | null {
+    const row = this.props.row
+
+    // On unified diffs we don't have columns so we always use "before" to not
+    // mess up with line selections.
+    if (!this.props.showSideBySideDiff) {
+      return DiffColumn.Before
+    }
+
+    if (row.type === DiffRowType.Added) {
+      return DiffColumn.After
+    }
+
+    if (row.type === DiffRowType.Deleted) {
+      return DiffColumn.Before
+    }
+
+    if (row.type === DiffRowType.Modified) {
+      return targetElement?.closest('.after')
+        ? DiffColumn.After
+        : DiffColumn.Before
+    }
+
+    return null
+  }
+
   /**
    * Returns the data object for the current row if the current row is
    * added, deleted or modified, null otherwise.
@@ -369,8 +405,12 @@ export class SideBySideDiffRow extends React.Component<
     if (data === null) {
       return
     }
+    const column = this.getDiffColumn(evt.currentTarget)
+    if (column === null) {
+      return
+    }
 
-    this.props.onStartSelection(data.diffLineNumber, !data.isSelected)
+    this.props.onStartSelection(this.props.numRow, column, !data.isSelected)
   }
 
   private onMouseEnterLineNumber = (evt: React.MouseEvent) => {
@@ -378,8 +418,12 @@ export class SideBySideDiffRow extends React.Component<
     if (data === null) {
       return
     }
+    const column = this.getDiffColumn(evt.currentTarget)
+    if (column === null) {
+      return
+    }
 
-    this.props.onUpdateSelection(data.diffLineNumber)
+    this.props.onUpdateSelection(this.props.numRow, column)
   }
 
   private onMouseEnterHunk = () => {
