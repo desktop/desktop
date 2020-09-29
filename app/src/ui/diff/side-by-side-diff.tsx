@@ -1097,7 +1097,7 @@ function calcSearchTokens(
 
       if (tokens !== null) {
         searchTokens[rowNumber] = {
-          [DiffColumn.After]: tokens,
+          [showSideBySideDiffs ? DiffColumn.After : DiffColumn.Before]: tokens,
         }
       }
     }
@@ -1199,7 +1199,7 @@ function findNextToken(
         return [currentRow, result, currentColumn]
       }
 
-      if (currentColumn === DiffColumn.Before) {
+      if (currentColumn === DiffColumn.Before && showSideBySideDiff) {
         currentColumn = DiffColumn.After
 
         const result = findNextTokenInLine(lineTokens[currentColumn], 0)

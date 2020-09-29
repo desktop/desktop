@@ -123,7 +123,7 @@ export class SideBySideDiffRow extends React.Component<
                   row.beforeLineNumber,
                   row.afterLineNumber,
                 ])}
-                {this.renderContentFromString(row.content, row.afterTokens)}
+                {this.renderContentFromString(row.content, row.beforeTokens)}
               </div>
             </div>
           )

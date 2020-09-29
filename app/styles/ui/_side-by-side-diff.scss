@@ -233,7 +233,7 @@
     .row {
       .before,
       .after {
-        width: 100%;
+        width: 100% !important;
         border: none;
         flex-direction: row;
       }
