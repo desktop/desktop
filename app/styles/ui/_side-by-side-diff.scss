@@ -5,6 +5,7 @@
   overflow: hidden;
   flex-grow: 1;
   user-select: contain;
+  position: relative;
 
   &.selecting-before .after,
   &.selecting-after .before {
@@ -266,6 +267,21 @@
 
     &.editable .row .line-number {
       border-right-width: 4px;
+    }
+  }
+
+  .diff-search {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 10;
+  }
+
+  .cm-search-result {
+    background: yellow;
+
+    &.cm-selected {
+      background: orange;
     }
   }
 }

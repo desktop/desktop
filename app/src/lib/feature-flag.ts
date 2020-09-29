@@ -137,7 +137,7 @@ export function enableSideBySideDiffs(): boolean {
  * Should we use the new diff viewer for unified diffs?
  */
 export function enableExperimentalDiffViewer(): boolean {
-  return false
+  return true
 }
 
 /**

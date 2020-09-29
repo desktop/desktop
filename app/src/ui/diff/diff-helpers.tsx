@@ -150,6 +150,8 @@ interface IDiffRowContext {
    */
   readonly content: string
 
+  readonly diffLineNumber: number
+
   /**
    * The line number of this row in the previous state source file.
    */
@@ -161,15 +163,14 @@ interface IDiffRowContext {
   readonly afterLineNumber: number
 
   /**
-   * Tokens to use to syntax highlight the contents of the line.
-   *
-   * TODO: It would be more resiliant to have separate tokens for the
-   * before version and the after one, since the syntax highlighting
-   * depends on previous lines. That's currently not possible because an
-   * optimization done in getLineFilters() that avoids calculating
-   * the syntax highlighting of the after state of context lines.
+   * * Tokens to use to syntax highlight the contents of the before version of the line.
    */
-  readonly tokens: ReadonlyArray<ILineTokens>
+  readonly beforeTokens: ReadonlyArray<ILineTokens>
+
+  /**
+   * Tokens to use to syntax highlight the contents of the after version of the line.
+   */
+  readonly afterTokens: ReadonlyArray<ILineTokens>
 }
 
 /**
