@@ -116,9 +116,7 @@ export class DiffOptions extends React.Component<
   private renderShowSideBySide() {
     return (
       <section>
-        <h3>
-          Diff display <div className="call-to-action-bubble">Beta</div>
-        </h3>
+        <h3>Diff display</h3>
         <RadioButton
           value="Unified"
           checked={!this.props.showSideBySideDiff}
@@ -128,7 +126,12 @@ export class DiffOptions extends React.Component<
         <RadioButton
           value="Split"
           checked={this.props.showSideBySideDiff}
-          label="Split"
+          label={
+            <>
+              <div>Split</div>
+              <div className="call-to-action-bubble">Beta</div>
+            </>
+          }
           onSelected={this.onSideBySideSelected}
         />
       </section>
