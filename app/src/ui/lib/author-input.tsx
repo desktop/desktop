@@ -10,6 +10,7 @@ import classNames from 'classnames'
 import { UserAutocompletionProvider, IUserHit } from '../autocompletion'
 import { compare } from '../../lib/compare'
 import { arrayEquals } from '../../lib/equality'
+import { syncClockwise } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { IAuthor } from '../../models/author'
 import { showContextualMenu } from '../main-process-proxy'
@@ -306,7 +307,7 @@ function renderUnknownHandleMarkReplacementElement(
     ? `Could not find user with username ${username}`
     : `Searching for @${username}`
 
-  const symbol = isError ? OcticonSymbol.stop : OcticonSymbol.sync
+  const symbol = isError ? OcticonSymbol.stop : syncClockwise
 
   const spinner = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
   spinner.classList.add('icon')

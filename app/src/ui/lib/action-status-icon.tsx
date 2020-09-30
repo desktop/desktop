@@ -55,7 +55,7 @@ export class ActionStatusIcon extends React.Component<IActionStatusIconProps> {
 function getSymbolForState(status: ComputedAction): OcticonSymbolType {
   switch (status) {
     case ComputedAction.Loading:
-      return OcticonSymbol.primitiveDot
+      return OcticonSymbol.dotFill
     case ComputedAction.Conflicts:
       return OcticonSymbol.alert
     case ComputedAction.Invalid:

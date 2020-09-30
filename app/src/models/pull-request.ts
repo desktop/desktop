@@ -1,4 +1,3 @@
-import { APIRefState } from '../lib/api'
 import { GitHubRepository } from './github-repository'
 
 export class PullRequestRef {
@@ -13,13 +12,6 @@ export class PullRequestRef {
     public readonly sha: string,
     public readonly gitHubRepository: GitHubRepository
   ) {}
-}
-
-/** The commit status and metadata for a given ref */
-export interface ICommitStatus {
-  readonly id: number
-  readonly state: APIRefState
-  readonly description: string
 }
 
 export class PullRequest {
@@ -39,6 +31,7 @@ export class PullRequest {
     public readonly pullRequestNumber: number,
     public readonly head: PullRequestRef,
     public readonly base: PullRequestRef,
-    public readonly author: string
+    public readonly author: string,
+    public readonly draft: boolean
   ) {}
 }

@@ -16,8 +16,7 @@ import {
   getNonForkGitHubRepository,
 } from '../../models/repository'
 import { Button } from '../lib/button'
-import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import { Octicon, syncClockwise } from '../octicons'
 import { FoldoutType } from '../../lib/app-state'
 import { startTimer } from '../lib/timing'
 
@@ -167,6 +166,7 @@ export class PullRequestList extends React.Component<
         number={pr.pullRequestNumber}
         created={pr.created}
         author={pr.author}
+        draft={pr.draft}
         matches={matches}
         dispatcher={this.props.dispatcher}
         repository={pr.base.gitHubRepository}
@@ -226,7 +226,7 @@ export class PullRequestList extends React.Component<
         tooltip="Refresh the list of pull requests"
       >
         <Octicon
-          symbol={OcticonSymbol.sync}
+          symbol={syncClockwise}
           className={this.props.isLoadingPullRequests ? 'spin' : undefined}
         />
       </Button>

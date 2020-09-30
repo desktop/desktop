@@ -26,7 +26,8 @@ function createSamplePullRequest(gitHubRepository: GitHubRepository) {
       sha: 'deadbeef',
       gitHubRepository,
     },
-    'shiftkey'
+    'shiftkey',
+    false
   )
 }
 

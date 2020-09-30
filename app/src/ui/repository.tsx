@@ -150,10 +150,7 @@ export class RepositoryView extends React.Component<
           {enableNDDBBanner() &&
           this.props.state.compareState.divergingBranchBannerState
             .isNudgeVisible ? (
-            <Octicon
-              className="indicator"
-              symbol={OcticonSymbol.primitiveDot}
-            />
+            <Octicon className="indicator" symbol={OcticonSymbol.dotFill} />
           ) : null}
         </div>
       </TabBar>

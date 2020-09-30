@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Octicon } from '../octicons'
+import { Octicon, syncClockwise } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 
 interface IDialogHeaderProps {
@@ -81,7 +81,7 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, {}> {
 
   public render() {
     const spinner = this.props.loading ? (
-      <Octicon className="icon spin" symbol={OcticonSymbol.sync} />
+      <Octicon className="icon spin" symbol={syncClockwise} />
     ) : null
 
     return (

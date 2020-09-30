@@ -7,7 +7,7 @@ import { TipState } from '../../models/tip'
 import { FetchType } from '../../models/fetch'
 
 import { Dispatcher } from '../dispatcher'
-import { Octicon } from '../octicons'
+import { Octicon, syncClockwise } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RelativeTime } from '../relative-time'
 
@@ -75,7 +75,7 @@ function renderAheadBehind(aheadBehind: IAheadBehind, numTagsToPush: number) {
     content.push(
       <span key="ahead">
         {ahead + numTagsToPush}
-        <Octicon symbol={OcticonSymbol.arrowSmallUp} />
+        <Octicon symbol={OcticonSymbol.arrowUp} />
       </span>
     )
   }
@@ -84,7 +84,7 @@ function renderAheadBehind(aheadBehind: IAheadBehind, numTagsToPush: number) {
     content.push(
       <span key="behind">
         {behind}
-        <Octicon symbol={OcticonSymbol.arrowSmallDown} />
+        <Octicon symbol={OcticonSymbol.arrowDown} />
       </span>
     )
   }
@@ -117,7 +117,7 @@ function progressButton(progress: Progress, networkActionInProgress: boolean) {
       title={progress.title}
       description={progress.description || 'Hang on…'}
       progressValue={progress.value}
-      icon={OcticonSymbol.sync}
+      icon={syncClockwise}
       iconClassName={networkActionInProgress ? 'spin' : ''}
       tooltip={progress.description}
       disabled={true}
@@ -132,7 +132,7 @@ function publishRepositoryButton(onClick: () => void) {
       title="Publish repository"
       description="Publish this repository to GitHub"
       className="push-pull-button"
-      icon={OcticonSymbol.cloudUpload}
+      icon={OcticonSymbol.upload}
       style={ToolbarButtonStyle.Subtitle}
       onClick={onClick}
     />
@@ -145,7 +145,7 @@ function unbornRepositoryButton() {
       {...defaultProps}
       title="Publish branch"
       description="Cannot publish unborn HEAD"
-      icon={OcticonSymbol.cloudUpload}
+      icon={OcticonSymbol.upload}
       disabled={true}
     />
   )
@@ -161,7 +161,7 @@ function detachedHeadButton(rebaseInProgress: boolean) {
       {...defaultProps}
       title="Publish branch"
       description={description}
-      icon={OcticonSymbol.cloudUpload}
+      icon={OcticonSymbol.upload}
       disabled={true}
     />
   )
@@ -185,7 +185,7 @@ function publishBranchButton(
       {...defaultProps}
       title="Publish branch"
       description={description}
-      icon={OcticonSymbol.cloudUpload}
+      icon={OcticonSymbol.upload}
       onClick={onClick}
       className={className}
     />
@@ -205,7 +205,7 @@ function fetchButton(
       {...defaultProps}
       title={title}
       description={renderLastFetched(lastFetched)}
-      icon={OcticonSymbol.sync}
+      icon={syncClockwise}
       onClick={onClick}
     >
       {renderAheadBehind(aheadBehind, numTagsToPush)}
@@ -262,10 +262,15 @@ function pushButton(
  * This represents the "double arrow" icon used to show a force-push, and is a
  * less complicated icon than the generated Octicon from the `octicons` package.
  */
-const forcePushIcon = {
+const forcePushIcon: OcticonSymbol.OcticonSymbolType = {
   w: 10,
   h: 16,
-  d: 'M3 11H0l5-6 5 6H7v4H3v-4zM5 1l5 6H8.33L5 3 1.662 7H0l5-6z',
+  d:
+    'M0 6a.75.75 0 0 0 .974.714L4.469 3.22a.75.75 0 0 1 1.06 0l3.478 3.478a.75.75 ' +
+    '0 0 0 .772-1.228L5.53 1.22a.75.75 0 0 0-1.06 0L.22 5.47A.75.75 0 0 0 0 6zm0 ' +
+    '3a.75.75 0 0 0 1.28.53l2.97-2.97V14a.75.75 0 1 0 1.5 0V6.56l2.97 2.97a.75.75 ' +
+    '0 0 0 1.06-1.06L5.53 4.22a.75.75 0 0 0-1.06 0L.22 8.47A.75.75 0 0 0 0 9z',
+  fr: 'evenodd',
 }
 
 function forcePushButton(

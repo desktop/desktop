@@ -24,8 +24,31 @@
     margin-bottom: var(--spacing-third);
   }
 
+  :invalid {
+    border-color: var(--error-color);
+  }
+
   input {
     @include textboxish;
     @include textboxish-disabled;
+
+    // Customize the "clear" icon on search text inputs to match our
+    // theme icons and colors.
+    //
+    // To do so, we're creating an opaque 16x16 element with the background color
+    // that we want the icon to appear in and then apply the icon path
+    // as a mask, that way we can control the color dynamically based on
+    // our variables instead of hardcoding it in the SVG.
+    &[type='search']::-webkit-search-cancel-button {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      margin-right: 0;
+      background-color: var(--text-color);
+      // The following SVG corresponds to the `x` octicon in 16px size:
+      // https://github.com/primer/octicons/blob/4661c1e0aa30c7d252318d2b003af782a6891089/icons/x-16.svg#L1
+      -webkit-mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M3.72 3.72a.75.75 0 011.06 0L8 6.94l3.22-3.22a.75.75 0 111.06 1.06L9.06 8l3.22 3.22a.75.75 0 11-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 01-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 010-1.06z"/></svg>');
+      -webkit-mask-repeat: no-repeat;
+    }
   }
 }
