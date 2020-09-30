@@ -5,6 +5,7 @@ import { IDiff, DiffType } from '../../models/diff'
 import { Octicon, OcticonSymbol, iconForStatus } from '../octicons'
 import { mapStatus } from '../../lib/status'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import { enableSideBySideDiffs } from '../../lib/feature-flag'
 
 interface IChangedFileDetailsProps {
   readonly path: string
@@ -32,13 +33,17 @@ export class ChangedFileDetails extends React.Component<
         <PathLabel path={this.props.path} status={this.props.status} />
         {this.renderDecorator()}
 
-        <Checkbox
-          label="Split View"
-          value={
-            this.props.showSideBySideDiff ? CheckboxValue.On : CheckboxValue.Off
-          }
-          onChange={this.onShowSideBySideDiffChanged}
-        />
+        {enableSideBySideDiffs() && (
+          <Checkbox
+            label="Split View"
+            value={
+              this.props.showSideBySideDiff
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onShowSideBySideDiffChanged}
+          />
+        )}
 
         <Octicon
           symbol={iconForStatus(status)}
