@@ -21,7 +21,7 @@ jobs:
           - os: macos-10.15
             friendlyName: macOS
           - os: windows-2019
-            friendlyName: Windows ${{ matrix.arch }}
+            friendlyName: Windows
         exclude:
           - os: macos-10.15
             arch: arm64
