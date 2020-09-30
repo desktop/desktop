@@ -24,6 +24,7 @@ export class DiffOptions extends React.Component<
   IDiffOptionsState
 > {
   private diffOptionsRef: HTMLDivElement | null = null
+  private popoverRef: HTMLDivElement | null = null
 
   private focusOutTimeout: number | null = null
 
@@ -47,6 +48,10 @@ export class DiffOptions extends React.Component<
       this.diffOptionsRef.addEventListener('focusin', this.onFocusIn)
       this.diffOptionsRef.addEventListener('focusout', this.onFocusOut)
     }
+  }
+
+  private onPopoverRef = (popoverRef: HTMLDivElement | null) => {
+    this.popoverRef = popoverRef
   }
 
   private onFocusIn = (event: FocusEvent) => {
@@ -78,6 +83,18 @@ export class DiffOptions extends React.Component<
     this.onClose()
   }
 
+  private onDocumentMouseDown = (event: MouseEvent) => {
+    if (this.popoverRef === null) {
+      return
+    }
+
+    if (event.target instanceof Node) {
+      if (!this.popoverRef.contains(event.target)) {
+        this.onClose()
+      }
+    }
+  }
+
   private onTogglePopover = (event: React.FormEvent<HTMLButtonElement>) => {
     event.preventDefault()
     if (this.state.isOpen) {
@@ -106,7 +123,9 @@ export class DiffOptions extends React.Component<
     }
   }
 
-  public componentDidMount() {}
+  public componentWillUnmount() {
+    document.removeEventListener('mousedown', this.onDocumentMouseDown)
+  }
 
   public render() {
     return (
@@ -125,7 +144,7 @@ export class DiffOptions extends React.Component<
 
   private renderPopover() {
     return (
-      <div className="popover" tabIndex={-1}>
+      <div className="popover" tabIndex={-1} ref={this.onPopoverRef}>
         {this.renderHideWhitespaceChanges()}
         {this.renderShowSideBySide()}
       </div>
