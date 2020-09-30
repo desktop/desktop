@@ -108,14 +108,27 @@ export class DiffOptions extends React.Component<
   }
 
   private onOpen = () => {
-    this.setState({ isOpen: true })
+    this.setState(prevState => {
+      if (!prevState.isOpen) {
+        document.addEventListener('mousedown', this.onDocumentMouseDown)
+        return { isOpen: true }
+      }
+      return null
+    })
   }
 
   private onClose = () => {
-    if (this.state.showNewCallout) {
-      setBoolean('has-seen-split-diff-option', true)
-    }
-    this.setState({ isOpen: false, showNewCallout: false })
+    this.setState(prevState => {
+      if (prevState.isOpen) {
+        if (this.state.showNewCallout) {
+          setBoolean('has-seen-split-diff-option', true)
+        }
+        document.removeEventListener('mousedown', this.onDocumentMouseDown)
+        return { isOpen: false, showNewCallout: false }
+      }
+
+      return null
+    })
   }
 
   private onHideWhitespaceChangesChanged = (
