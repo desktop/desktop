@@ -3,6 +3,8 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { RadioButton } from '../lib/radio-button'
 import { getBoolean, setBoolean } from '../../lib/local-storage'
+import FocusTrap from 'focus-trap-react'
+import { Options as FocusTrapOptions } from 'focus-trap'
 
 interface IDiffOptionsProps {
   readonly hideWhitespaceChanges?: boolean
@@ -23,10 +25,7 @@ export class DiffOptions extends React.Component<
   IDiffOptionsProps,
   IDiffOptionsState
 > {
-  private diffOptionsRef: HTMLDivElement | null = null
-  private popoverRef: HTMLDivElement | null = null
-
-  private focusOutTimeout: number | null = null
+  private focusTrapOptions: FocusTrapOptions
 
   public constructor(props: IDiffOptionsProps) {
     super(props)
@@ -34,64 +33,11 @@ export class DiffOptions extends React.Component<
       isOpen: false,
       showNewCallout: getBoolean('has-seen-split-diff-option') !== true,
     }
-  }
 
-  private onDiffOptionsRef = (diffOptions: HTMLDivElement | null) => {
-    if (this.diffOptionsRef) {
-      this.diffOptionsRef.removeEventListener('focusin', this.onFocusIn)
-      this.diffOptionsRef.removeEventListener('focusout', this.onFocusOut)
-    }
-
-    this.diffOptionsRef = diffOptions
-
-    if (this.diffOptionsRef) {
-      this.diffOptionsRef.addEventListener('focusin', this.onFocusIn)
-      this.diffOptionsRef.addEventListener('focusout', this.onFocusOut)
-    }
-  }
-
-  private onPopoverRef = (popoverRef: HTMLDivElement | null) => {
-    this.popoverRef = popoverRef
-  }
-
-  private onFocusIn = (event: FocusEvent) => {
-    this.clearFocusOutTimeout()
-  }
-
-  private onFocusOut = (event: Event) => {
-    // When keyboard focus moves from one descendant within the
-    // menu bar to another we will receive one 'focusout' event
-    // followed quickly by a 'focusin' event. As such we
-    // can't tell whether we've lost focus until we're certain
-    // that we've only gotten the 'focusout' event.
-    //
-    // In order to achieve this we schedule our call to onLostFocusWithin
-    // and clear that timeout if we receive a 'focusin' event.
-    this.clearFocusOutTimeout()
-    this.focusOutTimeout = requestAnimationFrame(this.onLostFocusWithin)
-  }
-
-  private clearFocusOutTimeout() {
-    if (this.focusOutTimeout !== null) {
-      cancelAnimationFrame(this.focusOutTimeout)
-      this.focusOutTimeout = null
-    }
-  }
-
-  private onLostFocusWithin = () => {
-    this.focusOutTimeout = null
-    this.closePopover()
-  }
-
-  private onDocumentMouseDown = (event: MouseEvent) => {
-    if (this.popoverRef === null) {
-      return
-    }
-
-    if (event.target instanceof Node) {
-      if (!this.popoverRef.contains(event.target)) {
-        this.closePopover()
-      }
+    this.focusTrapOptions = {
+      clickOutsideDeactivates: true,
+      escapeDeactivates: true,
+      onDeactivate: this.closePopover,
     }
   }
 
@@ -107,7 +53,6 @@ export class DiffOptions extends React.Component<
   private openPopover = () => {
     this.setState(prevState => {
       if (!prevState.isOpen) {
-        document.addEventListener('mousedown', this.onDocumentMouseDown)
         return { isOpen: true }
       }
       return null
@@ -120,7 +65,6 @@ export class DiffOptions extends React.Component<
         if (this.state.showNewCallout) {
           setBoolean('has-seen-split-diff-option', true)
         }
-        document.removeEventListener('mousedown', this.onDocumentMouseDown)
         return { isOpen: false, showNewCallout: false }
       }
 
@@ -136,26 +80,9 @@ export class DiffOptions extends React.Component<
     }
   }
 
-  private onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (this.state.isOpen) {
-      if (event.key === 'Escape') {
-        event.preventDefault()
-        this.closePopover()
-      }
-    }
-  }
-
-  public componentWillUnmount() {
-    document.removeEventListener('mousedown', this.onDocumentMouseDown)
-  }
-
   public render() {
     return (
-      <div
-        className="diff-options-component"
-        ref={this.onDiffOptionsRef}
-        onKeyDown={this.onKeyDown}
-      >
+      <div className="diff-options-component">
         <button onClick={this.onTogglePopover}>
           <Octicon symbol={OcticonSymbol.gear} />
           <Octicon symbol={OcticonSymbol.triangleDown} />
@@ -170,10 +97,12 @@ export class DiffOptions extends React.Component<
 
   private renderPopover() {
     return (
-      <div className="popover" tabIndex={-1} ref={this.onPopoverRef}>
-        {this.renderHideWhitespaceChanges()}
-        {this.renderShowSideBySide()}
-      </div>
+      <FocusTrap active={true} focusTrapOptions={this.focusTrapOptions}>
+        <div className="popover" tabIndex={-1}>
+          {this.renderHideWhitespaceChanges()}
+          {this.renderShowSideBySide()}
+        </div>
+      </FocusTrap>
     )
   }
 
