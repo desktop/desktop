@@ -50,13 +50,10 @@ export class DiffOptions extends React.Component<
   }
 
   private onFocusIn = (event: FocusEvent) => {
-    console.log('focusin', event.target)
     this.clearFocusOutTimeout()
   }
 
   private onFocusOut = (event: Event) => {
-    console.log('focusout', event.target)
-
     // When keyboard focus moves from one descendant within the
     // menu bar to another we will receive one 'focusout' event
     // followed quickly by a 'focusin' event. As such we
