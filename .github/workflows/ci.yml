@@ -16,7 +16,6 @@ jobs:
       matrix:
         node: [12.14.1]
         os: [macos-10.15, windows-2019]
-        npm_archs: [x64, arm64]
         include:
           - os: macos-10.15
             arch: x64
