@@ -136,6 +136,15 @@ export class DiffOptions extends React.Component<
     }
   }
 
+  private onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (this.state.isOpen) {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        this.closePopover()
+      }
+    }
+  }
+
   public componentWillUnmount() {
     document.removeEventListener('mousedown', this.onDocumentMouseDown)
   }
