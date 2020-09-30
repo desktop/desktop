@@ -21,9 +21,11 @@ jobs:
             arch: x64
             friendlyName: macOS
           - os: windows-2019
+            node: 12.14.1
             arch: x64
             friendlyName: Windows x64
           - os: windows-2019
+            node: 12.14.1
             arch: arm64
             friendlyName: Windows arm64
     timeout-minutes: 45
