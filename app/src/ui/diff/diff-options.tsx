@@ -21,6 +21,8 @@ interface IDiffOptionsState {
   readonly showNewCallout: boolean
 }
 
+const HasSeenSplitDiffKey = 'has-seen-split-diff-option'
+
 export class DiffOptions extends React.Component<
   IDiffOptionsProps,
   IDiffOptionsState
@@ -32,7 +34,7 @@ export class DiffOptions extends React.Component<
     super(props)
     this.state = {
       isOpen: false,
-      showNewCallout: getBoolean('has-seen-split-diff-option') !== true,
+      showNewCallout: getBoolean(HasSeenSplitDiffKey) !== true,
     }
 
     this.focusTrapOptions = {
@@ -65,7 +67,7 @@ export class DiffOptions extends React.Component<
     this.setState(prevState => {
       if (prevState.isOpen) {
         if (this.state.showNewCallout) {
-          setBoolean('has-seen-split-diff-option', true)
+          setBoolean(HasSeenSplitDiffKey, true)
         }
         document.removeEventListener('mousedown', this.onDocumentMouseDown)
         return { isOpen: false, showNewCallout: false }
