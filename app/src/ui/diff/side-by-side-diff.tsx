@@ -419,12 +419,14 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
+    if (!(event.target instanceof HTMLElement)) {
+      return
+    }
+
     // We need to use the event target since the current target will
     // always point to the container.
-    const target = event.target as HTMLDivElement
-
-    const isSelectingBeforeText = target.closest('.before')
-    const isSelectingAfterText = target.closest('.after')
+    const isSelectingBeforeText = event.target.closest('.before')
+    const isSelectingAfterText = event.target.closest('.after')
 
     if (isSelectingBeforeText !== null) {
       this.setState({ selectingTextInRow: 'before' })
