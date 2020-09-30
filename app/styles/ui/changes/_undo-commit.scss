@@ -16,6 +16,10 @@
     flex-direction: column;
     font-size: var(--font-size-sm);
 
+    .summary {
+      font-size: var(--font-size);
+    }
+
     .summary,
     .ago {
       @include ellipsis;
