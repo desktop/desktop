@@ -20,22 +20,6 @@
         flex-direction: row-reverse;
         border-right: none;
       }
-
-      &.deleted .before {
-        width: calc(50% + 4px);
-
-        .line-number {
-          border-right-width: 4px;
-        }
-      }
-
-      &.added .after {
-        width: calc(50% + 4px);
-
-        .line-number {
-          border-left-width: 4px;
-        }
-      }
     }
 
     .before .line-number {
@@ -214,8 +198,7 @@
 
       .line-number {
         background: var(--diff-empty-row-gutter-background-color);
-        border-right-width: 0;
-        border-left-width: 0;
+        border-color: var(--diff-border-color);
       }
     }
 
