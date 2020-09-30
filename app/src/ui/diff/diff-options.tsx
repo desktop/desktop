@@ -51,9 +51,6 @@ export class DiffOptions extends React.Component<
   }
 
   private onPopoverRef = (popoverRef: HTMLDivElement | null) => {
-    if (popoverRef) {
-      popoverRef.focus()
-    }
     this.popoverRef = popoverRef
   }
 
@@ -145,7 +142,11 @@ export class DiffOptions extends React.Component<
 
   public render() {
     return (
-      <div className="diff-options-component" ref={this.onDiffOptionsRef}>
+      <div
+        className="diff-options-component"
+        ref={this.onDiffOptionsRef}
+        onKeyDown={this.onKeyDown}
+      >
         <button onClick={this.onTogglePopover}>
           <Octicon symbol={OcticonSymbol.gear} />
           <Octicon symbol={OcticonSymbol.triangleDown} />
