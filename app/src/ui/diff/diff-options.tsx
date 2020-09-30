@@ -51,6 +51,9 @@ export class DiffOptions extends React.Component<
   }
 
   private onPopoverRef = (popoverRef: HTMLDivElement | null) => {
+    if (popoverRef) {
+      popoverRef.focus()
+    }
     this.popoverRef = popoverRef
   }
 
