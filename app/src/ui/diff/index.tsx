@@ -29,7 +29,10 @@ import {
 import { BinaryFile } from './binary-file'
 import { TextDiff } from './text-diff'
 import { SideBySideDiff } from './side-by-side-diff'
-import { enableExperimentalDiffViewer } from '../../lib/feature-flag'
+import {
+  enableExperimentalDiffViewer,
+  enableSideBySideDiffs,
+} from '../../lib/feature-flag'
 
 // image used when no diff is displayed
 const NoDiffImage = encodePathAsUrl(__dirname, 'static/ufo-alert.svg')
@@ -243,7 +246,10 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   private renderTextDiff(diff: ITextDiff) {
-    if (enableExperimentalDiffViewer() || this.props.showSideBySideDiff) {
+    if (
+      enableExperimentalDiffViewer() ||
+      (enableSideBySideDiffs() && this.props.showSideBySideDiff)
+    ) {
       return (
         <SideBySideDiff
           repository={this.props.repository}
