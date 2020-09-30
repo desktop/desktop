@@ -98,7 +98,7 @@ export class DiffOptions extends React.Component<
   private renderPopover() {
     return (
       <FocusTrap active={true} focusTrapOptions={this.focusTrapOptions}>
-        <div className="popover" tabIndex={-1}>
+        <div className="popover">
           {this.renderHideWhitespaceChanges()}
           {this.renderShowSideBySide()}
         </div>
