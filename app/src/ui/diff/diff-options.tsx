@@ -83,7 +83,7 @@ export class DiffOptions extends React.Component<
 
   private onLostFocusWithin = () => {
     this.focusOutTimeout = null
-    this.onClose()
+    this.closePopover()
   }
 
   private onDocumentMouseDown = (event: MouseEvent) => {
@@ -93,7 +93,7 @@ export class DiffOptions extends React.Component<
 
     if (event.target instanceof Node) {
       if (!this.popoverRef.contains(event.target)) {
-        this.onClose()
+        this.closePopover()
       }
     }
   }
@@ -101,13 +101,13 @@ export class DiffOptions extends React.Component<
   private onTogglePopover = (event: React.FormEvent<HTMLButtonElement>) => {
     event.preventDefault()
     if (this.state.isOpen) {
-      this.onClose()
+      this.closePopover()
     } else {
-      this.onOpen()
+      this.openPopover()
     }
   }
 
-  private onOpen = () => {
+  private openPopover = () => {
     this.setState(prevState => {
       if (!prevState.isOpen) {
         document.addEventListener('mousedown', this.onDocumentMouseDown)
@@ -117,7 +117,7 @@ export class DiffOptions extends React.Component<
     })
   }
 
-  private onClose = () => {
+  private closePopover = () => {
     this.setState(prevState => {
       if (prevState.isOpen) {
         if (this.state.showNewCallout) {
