@@ -99,11 +99,5 @@ export function mapKeysEqual<T>(x: Map<T, unknown>, y: Map<T, unknown>) {
     }
   }
 
-  for (const key of y.keys()) {
-    if (!x.has(key)) {
-      return false
-    }
-  }
-
   return true
 }
