@@ -164,6 +164,10 @@ export class SideBySideDiff extends React.Component<
     this.initDiffSyntaxMode()
   }
 
+  public componentWillUnmount() {
+    document.removeEventListener('mouseup', this.onEndSelection)
+  }
+
   public componentDidUpdate(prevProps: ISideBySideDiffProps) {
     if (!highlightParametersEqual(this.props, prevProps)) {
       this.initDiffSyntaxMode()
