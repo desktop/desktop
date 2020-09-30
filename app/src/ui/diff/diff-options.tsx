@@ -26,6 +26,7 @@ export class DiffOptions extends React.Component<
   IDiffOptionsState
 > {
   private focusTrapOptions: FocusTrapOptions
+  private diffOptionsRef = React.createRef<HTMLDivElement>()
 
   public constructor(props: IDiffOptionsProps) {
     super(props)
@@ -35,7 +36,7 @@ export class DiffOptions extends React.Component<
     }
 
     this.focusTrapOptions = {
-      clickOutsideDeactivates: true,
+      allowOutsideClick: true,
       escapeDeactivates: true,
       onDeactivate: this.closePopover,
     }
@@ -53,6 +54,7 @@ export class DiffOptions extends React.Component<
   private openPopover = () => {
     this.setState(prevState => {
       if (!prevState.isOpen) {
+        document.addEventListener('mousedown', this.onDocumentMouseDown)
         return { isOpen: true }
       }
       return null
@@ -65,11 +67,25 @@ export class DiffOptions extends React.Component<
         if (this.state.showNewCallout) {
           setBoolean('has-seen-split-diff-option', true)
         }
+        document.removeEventListener('mousedown', this.onDocumentMouseDown)
         return { isOpen: false, showNewCallout: false }
       }
 
       return null
     })
+  }
+
+  public componentWillUnmount() {
+    document.removeEventListener('mousedown', this.onDocumentMouseDown)
+  }
+
+  private onDocumentMouseDown = (event: MouseEvent) => {
+    const { current: ref } = this.diffOptionsRef
+    const { target } = event
+
+    if (ref !== null && target instanceof Node && !ref.contains(target)) {
+      this.closePopover()
+    }
   }
 
   private onHideWhitespaceChangesChanged = (
@@ -82,7 +98,7 @@ export class DiffOptions extends React.Component<
 
   public render() {
     return (
-      <div className="diff-options-component">
+      <div className="diff-options-component" ref={this.diffOptionsRef}>
         <button onClick={this.onTogglePopover}>
           <Octicon symbol={OcticonSymbol.gear} />
           <Octicon symbol={OcticonSymbol.triangleDown} />
