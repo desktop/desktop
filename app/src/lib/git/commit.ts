@@ -1,8 +1,10 @@
-import { git, GitError, IGitResult } from './core'
+import { git, GitError, parseCommitSHA } from './core'
 import { stageFiles } from './update-index'
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { unstageAll } from './reset'
+import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
+import { stageManualConflictResolution } from './stage'
 
 /**
  * @param repository repository to execute merge in
@@ -40,20 +42,32 @@ export async function createCommit(
 /**
  * Creates a commit to finish an in-progress merge
  * assumes that all conflicts have already been resolved
+ * *Warning:* Does _not_ clear staged files before it commits!
  *
  * @param repository repository to execute merge in
  * @param files files to commit
  */
 export async function createMergeCommit(
   repository: Repository,
-  files: ReadonlyArray<WorkingDirectoryFileChange>
+  files: ReadonlyArray<WorkingDirectoryFileChange>,
+  manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map()
 ): Promise<string | undefined> {
-  // Clear the staging area, our diffs reflect the difference between the
-  // working directory and the last commit (if any) so our commits should
-  // do the same thing.
   try {
-    await unstageAll(repository)
-    await stageFiles(repository, files)
+    // apply manual conflict resolutions
+    for (const [path, resolution] of manualResolutions) {
+      const file = files.find(f => f.path === path)
+      if (file !== undefined) {
+        await stageManualConflictResolution(repository, file, resolution)
+      } else {
+        log.error(
+          `couldn't find file ${path} even though there's a manual resolution for it`
+        )
+      }
+    }
+
+    const otherFiles = files.filter(f => !manualResolutions.has(f.path))
+
+    await stageFiles(repository, otherFiles)
     const result = await git(
       [
         'commit',
@@ -92,10 +106,6 @@ export async function createMergeCommit(
     logCommitError(e)
     return undefined
   }
-}
-
-function parseCommitSHA(result: IGitResult): string {
-  return result.stdout.split(']')[0].split(' ')[1]
 }
 
 /**

@@ -2,14 +2,9 @@ import { git } from './core'
 import { GitError } from 'dugite'
 
 import { Repository } from '../../models/repository'
-import { Commit } from '../../models/commit'
 import { Branch, BranchType } from '../../models/branch'
 import { CommitIdentity } from '../../models/commit-identity'
 import { ForkedRemotePrefix } from '../../models/remote'
-import {
-  getTrailerSeparatorCharacters,
-  parseRawUnfoldedTrailers,
-} from './interpret-trailers'
 
 const ForksReferencesPrefix = `refs/remotes/${ForkedRemotePrefix}`
 
@@ -26,13 +21,10 @@ export async function getBranches(
     '%(refname:short)',
     '%(upstream:short)',
     '%(objectname)', // SHA
+    '%(objectname:short)', // short SHA
     '%(author)',
     '%(committer)',
-    '%(parent)', // parent SHAs
     '%(symref)',
-    '%(subject)',
-    '%(body)',
-    '%(trailers:unfold,only)',
     `%${delimiter}`, // indicate end-of-line as %(body) may contain newlines
   ].join('%00')
 
@@ -64,8 +56,6 @@ export async function getBranches(
     return []
   }
 
-  const trailerSeparators = await getTrailerSeparatorCharacters(repository)
-
   const branches = []
 
   for (const [ix, line] of lines.entries()) {
@@ -76,36 +66,27 @@ export async function getBranches(
     const name = pieces[1]
     const upstream = pieces[2]
     const sha = pieces[3]
+    const shortSha = pieces[4]
 
-    const authorIdentity = pieces[4]
+    const authorIdentity = pieces[5]
     const author = CommitIdentity.parseIdentity(authorIdentity)
 
     if (!author) {
-      throw new Error(`Couldn't parse author identity ${authorIdentity}`)
+      throw new Error(`Couldn't parse author identity for '${shortSha}'`)
     }
 
-    const committerIdentity = pieces[5]
+    const committerIdentity = pieces[6]
     const committer = CommitIdentity.parseIdentity(committerIdentity)
 
     if (!committer) {
-      throw new Error(`Couldn't parse committer identity ${committerIdentity}`)
+      throw new Error(`Couldn't parse committer identity for '${shortSha}'`)
     }
 
-    const parentSHAs = pieces[6].split(' ')
     const symref = pieces[7]
-    const summary = pieces[8]
-    const body = pieces[9]
-    const trailers = parseRawUnfoldedTrailers(pieces[10], trailerSeparators)
-
-    const tip = new Commit(
+    const branchTip = {
       sha,
-      summary,
-      body,
       author,
-      committer,
-      parentSHAs,
-      trailers
-    )
+    }
 
     const type = ref.startsWith('refs/head')
       ? BranchType.Local
@@ -125,7 +106,7 @@ export async function getBranches(
     }
 
     branches.push(
-      new Branch(name, upstream.length > 0 ? upstream : null, tip, type)
+      new Branch(name, upstream.length > 0 ? upstream : null, branchTip, type)
     )
   }
 

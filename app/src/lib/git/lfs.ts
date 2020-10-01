@@ -1,6 +1,5 @@
 import { git } from './core'
 import { Repository } from '../../models/repository'
-import { caseInsensitiveCompare } from '../compare'
 
 /** Install the global LFS filters. */
 export async function installGlobalLFSFilters(force: boolean): Promise<void> {
@@ -69,20 +68,11 @@ export async function isTrackedByLFS(
   //
   // README.md: filter: unspecified
 
-  const lfsFilterRegex = /(.*): filter: lfs/
+  const lfsFilterRegex = /: filter: lfs/
 
   const match = lfsFilterRegex.exec(stdout)
 
-  if (match == null || match.length !== 2) {
-    return false
-  }
-
-  const fileName = match[1]
-  if (caseInsensitiveCompare(fileName, path) !== 0) {
-    return false
-  }
-
-  return true
+  return match !== null
 }
 
 /**

@@ -1,22 +1,12 @@
-/* eslint-disable no-sync */
-
 import * as Path from 'path'
 import * as FSE from 'fs-extra'
-
-const klawSync = require('klaw-sync')
-
+import { mkdirSync } from './temp'
+import klawSync, { Item } from 'klaw-sync'
 import { Repository } from '../../src/models/repository'
 import { GitProcess } from 'dugite'
-
-type KlawEntry = {
-  path: string
-}
-
-import * as temp from 'temp'
-const _temp = temp.track()
-
-export const mkdirSync = _temp.mkdirSync
-export const openSync = _temp.openSync
+import { makeCommit, switchTo } from './repository-scaffolding'
+import { writeFile } from 'fs-extra'
+import { git } from '../../src/lib/git'
 
 /**
  * Set up the named fixture repository to be used in a test.
@@ -32,7 +22,7 @@ export async function setupFixtureRepository(
     'fixtures',
     repositoryName
   )
-  const testRepoPath = _temp.mkdirSync('desktop-git-test-')
+  const testRepoPath = mkdirSync('desktop-git-test-')
   await FSE.copy(testRepoFixturePath, testRepoPath)
 
   await FSE.rename(
@@ -40,12 +30,12 @@ export async function setupFixtureRepository(
     Path.join(testRepoPath, '.git')
   )
 
-  const ignoreHiddenFiles = function(item: KlawEntry) {
+  const ignoreHiddenFiles = function (item: Item) {
     const basename = Path.basename(item.path)
     return basename === '.' || basename[0] !== '.'
   }
 
-  const entries: ReadonlyArray<KlawEntry> = klawSync(testRepoPath)
+  const entries = klawSync(testRepoPath)
   const visiblePaths = entries.filter(ignoreHiddenFiles)
   const submodules = visiblePaths.filter(
     entry => Path.basename(entry.path) === '_git'
@@ -66,7 +56,7 @@ export async function setupFixtureRepository(
  * @returns the new local repository
  */
 export async function setupEmptyRepository(): Promise<Repository> {
-  const repoPath = _temp.mkdirSync('desktop-empty-repo-')
+  const repoPath = mkdirSync('desktop-empty-repo-')
   await GitProcess.exec(['init'], repoPath)
 
   return new Repository(repoPath, -1, null, false)
@@ -78,7 +68,7 @@ export async function setupEmptyRepository(): Promise<Repository> {
  * interactions.
  */
 export function setupEmptyDirectory(): Repository {
-  const repoPath = _temp.mkdirSync('no-repository-here')
+  const repoPath = mkdirSync('no-repository-here')
   return new Repository(repoPath, -1, null, false)
 }
 
@@ -94,23 +84,77 @@ export function setupEmptyDirectory(): Repository {
  */
 export async function setupConflictedRepo(): Promise<Repository> {
   const repo = await setupEmptyRepository()
-  const filePath = Path.join(repo.path, 'foo')
 
-  await FSE.writeFile(filePath, '')
-  await GitProcess.exec(['add', 'foo'], repo.path)
-  await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
+  const firstCommit = {
+    entries: [{ path: 'foo', contents: '' }],
+  }
 
+  await makeCommit(repo, firstCommit)
+
+  // create this branch starting from the first commit, but don't checkout it
+  // because we want to create a divergent history
   await GitProcess.exec(['branch', 'other-branch'], repo.path)
 
-  await FSE.writeFile(filePath, 'b1')
-  await GitProcess.exec(['add', 'foo'], repo.path)
-  await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
+  const secondCommit = {
+    entries: [{ path: 'foo', contents: 'b1' }],
+  }
 
-  await GitProcess.exec(['checkout', 'other-branch'], repo.path)
+  await makeCommit(repo, secondCommit)
 
-  await FSE.writeFile(filePath, 'b2')
-  await GitProcess.exec(['add', 'foo'], repo.path)
-  await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
+  await switchTo(repo, 'other-branch')
+
+  const thirdCommit = {
+    entries: [{ path: 'foo', contents: 'b2' }],
+  }
+  await makeCommit(repo, thirdCommit)
+
+  await GitProcess.exec(['merge', 'master'], repo.path)
+
+  return repo
+}
+
+/**
+ * Setup a repository and create a merge conflict
+ *
+ * @returns the new local repository
+ *
+ * The current branch will be 'other-branch' and the merged branch will be
+ * 'master' in your test harness.
+ *
+ * The conflicted file will be 'foo'. There will also be uncommitted changes unrelated to the merge in 'perlin'.
+ */
+export async function setupConflictedRepoWithUnrelatedCommittedChange(): Promise<
+  Repository
+> {
+  const repo = await setupEmptyRepository()
+
+  const firstCommit = {
+    entries: [
+      { path: 'foo', contents: '' },
+      { path: 'perlin', contents: 'perlin' },
+    ],
+  }
+
+  await makeCommit(repo, firstCommit)
+
+  // create this branch starting from the first commit, but don't checkout it
+  // because we want to create a divergent history
+  await GitProcess.exec(['branch', 'other-branch'], repo.path)
+
+  const secondCommit = {
+    entries: [{ path: 'foo', contents: 'b1' }],
+  }
+
+  await makeCommit(repo, secondCommit)
+
+  await switchTo(repo, 'other-branch')
+
+  const thirdCommit = {
+    entries: [{ path: 'foo', contents: 'b2' }],
+  }
+  await makeCommit(repo, thirdCommit)
+
+  await writeFile(Path.join(repo.path, 'perlin'), 'noise')
 
   await GitProcess.exec(['merge', 'master'], repo.path)
 
@@ -131,35 +175,85 @@ export async function setupConflictedRepoWithMultipleFiles(): Promise<
   Repository
 > {
   const repo = await setupEmptyRepository()
-  const filePaths = [
-    Path.join(repo.path, 'foo'),
-    Path.join(repo.path, 'bar'),
-    Path.join(repo.path, 'baz'),
-  ]
 
-  await FSE.writeFile(filePaths[0], '')
-  await FSE.writeFile(filePaths[1], '')
-  await FSE.writeFile(filePaths[2], '')
-  await GitProcess.exec(['add', 'foo', 'bar', 'baz'], repo.path)
-  await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
+  const firstCommit = {
+    entries: [
+      { path: 'foo', contents: 'b0' },
+      { path: 'bar', contents: 'b0' },
+    ],
+  }
 
+  await makeCommit(repo, firstCommit)
+
+  // create this branch starting from the first commit, but don't checkout it
+  // because we want to create a divergent history
   await GitProcess.exec(['branch', 'other-branch'], repo.path)
 
-  await FSE.writeFile(filePaths[0], 'b1')
-  await FSE.writeFile(filePaths[1], 'b1')
-  await FSE.writeFile(filePaths[2], 'b1')
-  await GitProcess.exec(['add', 'foo', 'bar', 'baz'], repo.path)
-  await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
+  const secondCommit = {
+    entries: [
+      { path: 'foo', contents: 'b1' },
+      { path: 'bar', contents: null },
+      { path: 'baz', contents: 'b1' },
+      { path: 'cat', contents: 'b1' },
+    ],
+  }
 
-  await GitProcess.exec(['checkout', 'other-branch'], repo.path)
+  await makeCommit(repo, secondCommit)
 
-  await FSE.writeFile(filePaths[0], 'b2')
-  await FSE.writeFile(filePaths[1], 'b2')
-  await FSE.writeFile(filePaths[2], 'b2')
-  await GitProcess.exec(['add', 'foo', 'bar', 'baz'], repo.path)
-  await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
+  await switchTo(repo, 'other-branch')
+
+  const thirdCommit = {
+    entries: [
+      { path: 'foo', contents: 'b2' },
+      { path: 'bar', contents: 'b2' },
+      { path: 'baz', contents: 'b2' },
+      { path: 'cat', contents: 'b2' },
+    ],
+  }
+
+  await makeCommit(repo, thirdCommit)
+
+  await FSE.writeFile(Path.join(repo.path, 'dog'), 'touch')
 
   await GitProcess.exec(['merge', 'master'], repo.path)
 
   return repo
+}
+/**
+ * Setup a repo with a single commit
+ *
+ * files are `great-file` and `good-file`, which are both added in the one commit
+ */
+export async function setupTwoCommitRepo(): Promise<Repository> {
+  const repo = await setupEmptyRepository()
+
+  const firstCommit = {
+    entries: [
+      { path: 'good-file', contents: 'wishes it was great' },
+      { path: 'great-file', contents: 'wishes it was good' },
+    ],
+  }
+  const secondCommit = {
+    entries: [
+      { path: 'good-file', contents: 'is great' },
+      { path: 'great-file', contents: 'is good' },
+    ],
+  }
+
+  await makeCommit(repo, firstCommit)
+  await makeCommit(repo, secondCommit)
+  return repo
+}
+
+/**
+ * Sets up a local fork of the provided repository
+ * and configures the origin remote to point to the
+ * local "upstream" repository.
+ */
+export async function setupLocalForkOfRepository(
+  upstream: Repository
+): Promise<Repository> {
+  const path = mkdirSync('desktop-fork-repo-')
+  await git(['clone', '--local', `${upstream.path}`, path], path, 'clone')
+  return new Repository(path, -1, null, false)
 }

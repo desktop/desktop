@@ -2,20 +2,31 @@ import * as Path from 'path'
 import { pathExists } from 'fs-extra'
 import { IFoundEditor } from './found-editor'
 import { assertNever } from '../fatal-error'
+import appPath from 'app-path'
 
 export enum ExternalEditor {
   Atom = 'Atom',
   MacVim = 'MacVim',
-  VisualStudioCode = 'Visual Studio Code',
-  VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
+  VSCode = 'Visual Studio Code',
+  VSCodeInsiders = 'Visual Studio Code (Insiders)',
+  VSCodium = 'VSCodium',
   SublimeText = 'Sublime Text',
   BBEdit = 'BBEdit',
   PhpStorm = 'PhpStorm',
+  PyCharm = 'PyCharm',
   RubyMine = 'RubyMine',
   TextMate = 'TextMate',
   Brackets = 'Brackets',
   WebStorm = 'WebStorm',
   Typora = 'Typora',
+  CodeRunner = 'CodeRunner',
+  SlickEdit = 'SlickEdit',
+  IntelliJ = 'IntelliJ',
+  Xcode = 'Xcode',
+  GoLand = 'GoLand',
+  AndroidStudio = 'Android Studio',
+  Rider = 'Rider',
+  Nova = 'Nova',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -25,12 +36,17 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.MacVim) {
     return ExternalEditor.MacVim
   }
-  if (label === ExternalEditor.VisualStudioCode) {
-    return ExternalEditor.VisualStudioCode
+  if (label === ExternalEditor.VSCode) {
+    return ExternalEditor.VSCode
   }
-  if (label === ExternalEditor.VisualStudioCodeInsiders) {
-    return ExternalEditor.VisualStudioCodeInsiders
+  if (label === ExternalEditor.VSCodeInsiders) {
+    return ExternalEditor.VSCodeInsiders
   }
+
+  if (label === ExternalEditor.VSCodium) {
+    return ExternalEditor.VSCodium
+  }
+
   if (label === ExternalEditor.SublimeText) {
     return ExternalEditor.SublimeText
   }
@@ -39,6 +55,9 @@ export function parse(label: string): ExternalEditor | null {
   }
   if (label === ExternalEditor.PhpStorm) {
     return ExternalEditor.PhpStorm
+  }
+  if (label === ExternalEditor.PyCharm) {
+    return ExternalEditor.PyCharm
   }
   if (label === ExternalEditor.RubyMine) {
     return ExternalEditor.RubyMine
@@ -55,13 +74,32 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.Typora) {
     return ExternalEditor.Typora
   }
+  if (label === ExternalEditor.CodeRunner) {
+    return ExternalEditor.CodeRunner
+  }
+  if (label === ExternalEditor.SlickEdit) {
+    return ExternalEditor.SlickEdit
+  }
+  if (label === ExternalEditor.IntelliJ) {
+    return ExternalEditor.IntelliJ
+  }
+  if (label === ExternalEditor.Xcode) {
+    return ExternalEditor.Xcode
+  }
+  if (label === ExternalEditor.GoLand) {
+    return ExternalEditor.GoLand
+  }
+  if (label === ExternalEditor.AndroidStudio) {
+    return ExternalEditor.AndroidStudio
+  }
+  if (label === ExternalEditor.Rider) {
+    return ExternalEditor.Rider
+  }
+  if (label === ExternalEditor.Nova) {
+    return ExternalEditor.Nova
+  }
   return null
 }
-
-/**
- * appPath will raise an error if it cannot find the program.
- */
-const appPath: (bundleId: string) => Promise<string> = require('app-path')
 
 function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
   switch (editor) {
@@ -69,18 +107,24 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['com.github.atom']
     case ExternalEditor.MacVim:
       return ['org.vim.MacVim']
-    case ExternalEditor.VisualStudioCode:
+    case ExternalEditor.VSCode:
       return ['com.microsoft.VSCode']
-    case ExternalEditor.VisualStudioCodeInsiders:
+    case ExternalEditor.VSCodeInsiders:
       return ['com.microsoft.VSCodeInsiders']
+    case ExternalEditor.VSCodium:
+      return ['com.visualstudio.code.oss']
     case ExternalEditor.SublimeText:
       return ['com.sublimetext.3']
     case ExternalEditor.BBEdit:
       return ['com.barebones.bbedit']
     case ExternalEditor.PhpStorm:
       return ['com.jetbrains.PhpStorm']
+    case ExternalEditor.PyCharm:
+      return ['com.jetbrains.PyCharm']
     case ExternalEditor.RubyMine:
       return ['com.jetbrains.RubyMine']
+    case ExternalEditor.IntelliJ:
+      return ['com.jetbrains.intellij']
     case ExternalEditor.TextMate:
       return ['com.macromates.TextMate']
     case ExternalEditor.Brackets:
@@ -89,6 +133,25 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['com.jetbrains.WebStorm']
     case ExternalEditor.Typora:
       return ['abnerworks.Typora']
+    case ExternalEditor.CodeRunner:
+      return ['com.krill.CodeRunner']
+    case ExternalEditor.SlickEdit:
+      return [
+        'com.slickedit.SlickEditPro2018',
+        'com.slickedit.SlickEditPro2017',
+        'com.slickedit.SlickEditPro2016',
+        'com.slickedit.SlickEditPro2015',
+      ]
+    case ExternalEditor.Xcode:
+      return ['com.apple.dt.Xcode']
+    case ExternalEditor.GoLand:
+      return ['com.jetbrains.goland']
+    case ExternalEditor.AndroidStudio:
+      return ['com.google.android.studio']
+    case ExternalEditor.Rider:
+      return ['com.jetbrains.rider']
+    case ExternalEditor.Nova:
+      return ['com.panic.Nova']
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -101,8 +164,17 @@ function getExecutableShim(
   switch (editor) {
     case ExternalEditor.Atom:
       return Path.join(installPath, 'Contents', 'Resources', 'app', 'atom.sh')
-    case ExternalEditor.VisualStudioCode:
-    case ExternalEditor.VisualStudioCodeInsiders:
+    case ExternalEditor.VSCode:
+    case ExternalEditor.VSCodeInsiders:
+      return Path.join(
+        installPath,
+        'Contents',
+        'Resources',
+        'app',
+        'bin',
+        'code'
+      )
+    case ExternalEditor.VSCodium:
       return Path.join(
         installPath,
         'Contents',
@@ -119,6 +191,8 @@ function getExecutableShim(
       return Path.join(installPath, 'Contents', 'Helpers', 'bbedit_tool')
     case ExternalEditor.PhpStorm:
       return Path.join(installPath, 'Contents', 'MacOS', 'phpstorm')
+    case ExternalEditor.PyCharm:
+      return Path.join(installPath, 'Contents', 'MacOS', 'pycharm')
     case ExternalEditor.RubyMine:
       return Path.join(installPath, 'Contents', 'MacOS', 'rubymine')
     case ExternalEditor.TextMate:
@@ -127,8 +201,24 @@ function getExecutableShim(
       return Path.join(installPath, 'Contents', 'MacOS', 'Brackets')
     case ExternalEditor.WebStorm:
       return Path.join(installPath, 'Contents', 'MacOS', 'WebStorm')
+    case ExternalEditor.IntelliJ:
+      return Path.join(installPath, 'Contents', 'MacOS', 'idea')
     case ExternalEditor.Typora:
       return Path.join(installPath, 'Contents', 'MacOS', 'Typora')
+    case ExternalEditor.CodeRunner:
+      return Path.join(installPath, 'Contents', 'MacOS', 'CodeRunner')
+    case ExternalEditor.SlickEdit:
+      return Path.join(installPath, 'Contents', 'MacOS', 'vs')
+    case ExternalEditor.Xcode:
+      return '/usr/bin/xed'
+    case ExternalEditor.GoLand:
+      return Path.join(installPath, 'Contents', 'MacOS', 'goland')
+    case ExternalEditor.AndroidStudio:
+      return Path.join(installPath, 'Contents', 'MacOS', 'studio')
+    case ExternalEditor.Rider:
+      return Path.join(installPath, 'Contents', 'MacOS', 'rider')
+    case ExternalEditor.Nova:
+      return Path.join(installPath, 'Contents', 'SharedSupport', 'nova')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -168,27 +258,47 @@ export async function getAvailableEditors(): Promise<
     macVimPath,
     codePath,
     codeInsidersPath,
+    codiumPath,
     sublimePath,
     bbeditPath,
     phpStormPath,
+    pyCharmPath,
     rubyMinePath,
     textMatePath,
     bracketsPath,
     webStormPath,
     typoraPath,
+    codeRunnerPath,
+    slickeditPath,
+    intellijPath,
+    xcodePath,
+    golandPath,
+    androidStudioPath,
+    riderPath,
+    novaPath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.MacVim),
-    findApplication(ExternalEditor.VisualStudioCode),
-    findApplication(ExternalEditor.VisualStudioCodeInsiders),
+    findApplication(ExternalEditor.VSCode),
+    findApplication(ExternalEditor.VSCodeInsiders),
+    findApplication(ExternalEditor.VSCodium),
     findApplication(ExternalEditor.SublimeText),
     findApplication(ExternalEditor.BBEdit),
     findApplication(ExternalEditor.PhpStorm),
+    findApplication(ExternalEditor.PyCharm),
     findApplication(ExternalEditor.RubyMine),
     findApplication(ExternalEditor.TextMate),
     findApplication(ExternalEditor.Brackets),
     findApplication(ExternalEditor.WebStorm),
     findApplication(ExternalEditor.Typora),
+    findApplication(ExternalEditor.CodeRunner),
+    findApplication(ExternalEditor.SlickEdit),
+    findApplication(ExternalEditor.IntelliJ),
+    findApplication(ExternalEditor.Xcode),
+    findApplication(ExternalEditor.GoLand),
+    findApplication(ExternalEditor.AndroidStudio),
+    findApplication(ExternalEditor.Rider),
+    findApplication(ExternalEditor.Nova),
   ])
 
   if (atomPath) {
@@ -200,14 +310,18 @@ export async function getAvailableEditors(): Promise<
   }
 
   if (codePath) {
-    results.push({ editor: ExternalEditor.VisualStudioCode, path: codePath })
+    results.push({ editor: ExternalEditor.VSCode, path: codePath })
   }
 
   if (codeInsidersPath) {
     results.push({
-      editor: ExternalEditor.VisualStudioCodeInsiders,
+      editor: ExternalEditor.VSCodeInsiders,
       path: codeInsidersPath,
     })
+  }
+
+  if (codiumPath) {
+    results.push({ editor: ExternalEditor.VSCodium, path: codiumPath })
   }
 
   if (sublimePath) {
@@ -220,6 +334,10 @@ export async function getAvailableEditors(): Promise<
 
   if (phpStormPath) {
     results.push({ editor: ExternalEditor.PhpStorm, path: phpStormPath })
+  }
+
+  if (pyCharmPath) {
+    results.push({ editor: ExternalEditor.PyCharm, path: pyCharmPath })
   }
 
   if (rubyMinePath) {
@@ -240,6 +358,41 @@ export async function getAvailableEditors(): Promise<
 
   if (typoraPath) {
     results.push({ editor: ExternalEditor.Typora, path: typoraPath })
+  }
+
+  if (codeRunnerPath) {
+    results.push({ editor: ExternalEditor.CodeRunner, path: codeRunnerPath })
+  }
+
+  if (slickeditPath) {
+    results.push({ editor: ExternalEditor.SlickEdit, path: slickeditPath })
+  }
+
+  if (intellijPath) {
+    results.push({ editor: ExternalEditor.IntelliJ, path: intellijPath })
+  }
+
+  if (xcodePath) {
+    results.push({ editor: ExternalEditor.Xcode, path: xcodePath })
+  }
+
+  if (golandPath) {
+    results.push({ editor: ExternalEditor.GoLand, path: golandPath })
+  }
+
+  if (androidStudioPath) {
+    results.push({
+      editor: ExternalEditor.AndroidStudio,
+      path: androidStudioPath,
+    })
+  }
+
+  if (riderPath) {
+    results.push({ editor: ExternalEditor.Rider, path: riderPath })
+  }
+
+  if (novaPath) {
+    results.push({ editor: ExternalEditor.Nova, path: novaPath })
   }
 
   return results

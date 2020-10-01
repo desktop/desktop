@@ -1,8 +1,9 @@
 import { ipcRenderer } from 'electron'
 import { ExecutableMenuItem } from '../models/app-menu'
-import { MenuIDs, MenuLabels } from '../main-process/menu'
+import { MenuIDs } from '../models/menu-ids'
 import { IMenuItemState } from '../lib/menu-update'
-import { IMenuItem } from '../lib/menu-item'
+import { IMenuItem, ISerializableMenuItem } from '../lib/menu-item'
+import { MenuLabelsEvent } from '../models/menu-labels'
 
 /** Set the menu item's enabledness. */
 export function updateMenuState(
@@ -19,6 +20,11 @@ export function sendReady(time: number) {
 /** Tell the main process to execute (i.e. simulate a click of) the menu item. */
 export function executeMenuItem(item: ExecutableMenuItem) {
   ipcRenderer.send('execute-menu-item', { id: item.id })
+}
+
+/** Tell the main process to execute (i.e. simulate a click of) the menu item. */
+export function executeMenuItemById(id: MenuIDs) {
+  ipcRenderer.send('execute-menu-item', { id })
 }
 
 /**
@@ -53,47 +59,58 @@ export function getAppMenu() {
   ipcRenderer.send('get-app-menu')
 }
 
-/**
- * There's currently no way for us to know when a contextual menu is closed (see
- * https://github.com/electron/electron/issues/9441). So we'll store the latest
- * contextual menu items we presented and assume any actions we receive are
- * coming from it.
- */
-let currentContextualMenuItems: ReadonlyArray<IMenuItem> | null = null
+function findSubmenuItem(
+  currentContextualMenuItems: ReadonlyArray<IMenuItem>,
+  indices: ReadonlyArray<number>
+): IMenuItem | undefined {
+  let foundMenuItem: IMenuItem | undefined = {
+    submenu: currentContextualMenuItems,
+  }
 
-/**
- * Register a global handler for dispatching contextual menu actions. This
- * should be called only once, around app load time.
- */
-export function registerContextualMenuActionDispatcher() {
-  ipcRenderer.on(
-    'contextual-menu-action',
-    (event: Electron.IpcMessageEvent, index: number) => {
-      if (!currentContextualMenuItems) {
-        return
-      }
-      if (index >= currentContextualMenuItems.length) {
-        return
-      }
-
-      const item = currentContextualMenuItems[index]
-      const action = item.action
-      if (action) {
-        action()
-        currentContextualMenuItems = null
-      }
+  // Traverse the submenus of the context menu until we find the appropiate index.
+  for (const index of indices) {
+    if (foundMenuItem === undefined || foundMenuItem.submenu === undefined) {
+      return undefined
     }
-  )
+
+    foundMenuItem = foundMenuItem.submenu[index]
+  }
+
+  return foundMenuItem
 }
 
 /** Show the given menu items in a contextual menu. */
-export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
-  currentContextualMenuItems = items
-  ipcRenderer.send('show-contextual-menu', items)
+export async function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
+  const indices: ReadonlyArray<number> | null = await ipcRenderer.invoke(
+    'show-contextual-menu',
+    serializeMenuItems(items)
+  )
+
+  if (indices !== null) {
+    const menuItem = findSubmenuItem(items, indices)
+
+    if (menuItem !== undefined && menuItem.action !== undefined) {
+      menuItem.action()
+    }
+  }
+}
+
+/**
+ * Remove the menu items properties that can't be serializable in
+ * order to pass them via IPC.
+ */
+function serializeMenuItems(
+  items: ReadonlyArray<IMenuItem>
+): ReadonlyArray<ISerializableMenuItem> {
+  return items.map(item => ({
+    ...item,
+    action: undefined,
+    submenu: item.submenu ? serializeMenuItems(item.submenu) : undefined,
+  }))
 }
 
 /** Update the menu item labels with the user's preferred apps. */
-export function updatePreferredAppMenuItemLabels(labels: MenuLabels) {
+export function updatePreferredAppMenuItemLabels(labels: MenuLabelsEvent) {
   ipcRenderer.send('update-preferred-app-menu-item-labels', labels)
 }
 
@@ -111,10 +128,12 @@ export function reportUncaughtException(error: Error) {
 
 export function sendErrorReport(
   error: Error,
-  extra: { [key: string]: string } = {}
+  extra: { [key: string]: string } = {},
+  nonFatal?: boolean
 ) {
   ipcRenderer.send('send-error-report', {
     error: getIpcFriendlyError(error),
     extra,
+    nonFatal,
   })
 }

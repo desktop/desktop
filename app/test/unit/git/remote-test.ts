@@ -3,6 +3,7 @@ import {
   getRemotes,
   addRemote,
   removeRemote,
+  setRemoteURL,
 } from '../../../src/lib/git/remote'
 import {
   setupFixtureRepository,
@@ -63,6 +64,11 @@ describe('git/remote', () => {
   })
 
   describe('findDefaultRemote', () => {
+    it('returns null for empty array', async () => {
+      const result = await findDefaultRemote([])
+      expect(result).toBeNull()
+    })
+
     it('returns origin when multiple remotes found', async () => {
       const testRepoPath = await setupFixtureRepository(
         'repo-with-multiple-remotes'
@@ -118,6 +124,32 @@ describe('git/remote', () => {
     it('silently fails when remote not defined', async () => {
       const repository = await setupEmptyRepository()
       expect(removeRemote(repository, 'origin')).resolves.not.toThrow()
+    })
+  })
+
+  describe('setRemoteURL', () => {
+    let repository: Repository
+    const remoteName = 'origin'
+    const remoteUrl = 'https://fakeweb.com/owner/name'
+    const newUrl = 'https://github.com/desktop/desktop'
+
+    beforeEach(async () => {
+      repository = await setupEmptyRepository()
+      await addRemote(repository, remoteName, remoteUrl)
+    })
+    it('can set the url for an existing remote', async () => {
+      expect(await setRemoteURL(repository, remoteName, newUrl)).toBeTrue()
+
+      const remotes = await getRemotes(repository)
+      expect(remotes).toHaveLength(1)
+      expect(remotes[0].url).toEqual(newUrl)
+    })
+    it('returns false for unknown remote name', async () => {
+      expect(setRemoteURL(repository, 'none', newUrl)).rejects.toThrow()
+
+      const remotes = await getRemotes(repository)
+      expect(remotes).toHaveLength(1)
+      expect(remotes[0].url).toEqual(remoteUrl)
     })
   })
 })

@@ -58,6 +58,20 @@ describe('git-lfs', () => {
       const found = await isTrackedByLFS(repository, file)
       expect(found).toBe(true)
     })
+
+    it('returns true after tracking file with character issues in Git LFS', async () => {
+      const repository = await setupEmptyRepository()
+
+      const file =
+        'Top Ten Worst Repositories to host on GitHub - Carlos Martín Nieto.md'
+      const readme = Path.join(repository.path, file)
+      await writeFile(readme, 'Hello world!')
+
+      await GitProcess.exec(['lfs', 'track', '*.md'], repository.path)
+
+      const found = await isTrackedByLFS(repository, file)
+      expect(found).toBe(true)
+    })
   })
 
   describe('filesNotTrackedByLFS', () => {

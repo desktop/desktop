@@ -3,12 +3,16 @@ import { Ref } from '../lib/ref'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Branch } from '../../models/branch'
 import { Button } from '../lib/button'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { HistoryTabMode, ComparisonMode } from '../../lib/app-state'
 import { PopupType } from '../../models/popup'
 
-export type DismissalReason = 'close' | 'compare' | 'merge'
+export enum DismissalReason {
+  Close = 'close',
+  Compare = 'compare',
+  Merge = 'merge',
+}
 
 interface INewCommitsBannerProps {
   readonly dispatcher: Dispatcher
@@ -86,7 +90,7 @@ export class NewCommitsBanner extends React.Component<
   }
 
   private onDismissed = () => {
-    this.props.onDismiss('close')
+    this.props.onDismiss(DismissalReason.Close)
   }
 
   private onComparedClicked = () => {
@@ -98,7 +102,7 @@ export class NewCommitsBanner extends React.Component<
       comparisonMode: ComparisonMode.Behind,
     })
     dispatcher.recordDivergingBranchBannerInitiatedCompare()
-    this.props.onDismiss('compare')
+    this.props.onDismiss(DismissalReason.Compare)
   }
 
   private onMergeClicked = () => {
@@ -110,6 +114,6 @@ export class NewCommitsBanner extends React.Component<
       repository,
     })
     dispatcher.recordDivergingBranchBannerInitatedMerge()
-    this.props.onDismiss('merge')
+    this.props.onDismiss(DismissalReason.Merge)
   }
 }

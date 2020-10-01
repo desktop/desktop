@@ -5,6 +5,7 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+  max-height: 100%;
 
   // Necessary so that the diff doesn't expand
   // beyond the width of the history
@@ -15,43 +16,11 @@
   flex-grow: 0;
 }
 
-#commit-details {
-  display: flex;
-  flex-direction: row;
-  flex: 1;
-
-  .fill-window {
-    // necessary for "no files in commit" view to
-    // look right alongside blank diff
-    border-right: var(--base-border);
-  }
-
-  .panel {
-    display: flex;
-    flex: 1;
-
-    &.empty,
-    &.renamed,
-    &.binary {
-      justify-content: center;
-      align-items: center;
-    }
-    &.large-diff {
-      margin: var(--spacing-double);
-      text-align: center;
-      justify-content: initial;
-
-      .blankslate-image {
-        max-height: 150px;
-      }
-    }
-  }
-}
-
 #compare-view {
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-height: 0;
 
   .filter-list .filter-field-row {
     margin: 0;
@@ -68,6 +37,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
+    min-height: 0;
   }
 
   .merge-status {

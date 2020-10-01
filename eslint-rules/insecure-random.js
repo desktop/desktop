@@ -1,5 +1,3 @@
-'use strict'
-
 // strings from https://github.com/Microsoft/tslint-microsoft-contrib/blob/b720cd9/src/insecureRandomRule.ts
 const MATH_FAIL_STRING =
   'Math.random produces insecure random numbers. ' +

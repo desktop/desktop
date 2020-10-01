@@ -37,7 +37,7 @@ GitHub Desktop recently announced its
 [1.0 release](https://github.com/blog/2437-announcing-github-desktop-1-0) and
 are working towards deprecating the classic Mac and Windows applications.
 
-Beyond that, we are working on a roadmap you can read [here](https://github.com/desktop/desktop/blob/master/docs/process/roadmap.md).
+Beyond that, we are working on a roadmap you can read [here](https://github.com/desktop/desktop/blob/development/docs/process/roadmap.md).
 The immediate milestones are more detailed, and the latter milestones are more
 fuzzy and subject to change.
 
@@ -67,7 +67,7 @@ to see if the problem has already been reported. If it does exist, add a
 :thumbsup: to the issue to indicate this is also an issue for you, and add a
 comment to the existing issue if there is extra information you can contribute.
 
-#### How Do I Submit A (Good) Bug Report?
+#### How Do I Submit A Bug Report?
 
 Bugs are tracked as [GitHub issues](https://guides.github.com/features/issues/).
 
@@ -102,7 +102,7 @@ to see if the enhancement has already been suggested. If it has, add a
 :thumbsup: to indicate your interest in it, or comment if there is additional
 information you would like to add.
 
-#### How Do I Submit A (Good) Enhancement Suggestion?
+#### How Do I Submit An Enhancement Suggestion?
 
 Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com/features/issues/).
 
@@ -139,15 +139,15 @@ interested in the issue.
 
 ### Set Up Your Machine
 
-Start [here](https://github.com/desktop/desktop/blob/master/docs/contributing/setup.md).
+Start [here](https://github.com/desktop/desktop/blob/development/docs/contributing/setup.md).
 
 
 ## Process Documentation
 
 These documents are useful resources for contributors  to learn more about the project and how it is run:
 
- - [Teams](https://github.com/desktop/desktop/blob/master/docs/process/teams.md)
- - [Release Planning](https://github.com/desktop/desktop/blob/master/docs/process/release-planning.md)
- - [Issue Triage](https://github.com/desktop/desktop/blob/master/docs/process/issue-triage.md)
- - [Issue and Pull Request Labels](https://github.com/desktop/desktop/blob/master/docs/process/labels.md)
- - [Pull Request Triage](https://github.com/desktop/desktop/blob/master/docs/process/pull-request-triage.md)
+ - [Teams](https://github.com/desktop/desktop/blob/development/docs/process/teams.md)
+ - [Release Planning](https://github.com/desktop/desktop/blob/development/docs/process/release-planning.md)
+ - [Issue Triage](https://github.com/desktop/desktop/blob/development/docs/process/issue-triage.md)
+ - [Issue and Pull Request Labels](https://github.com/desktop/desktop/blob/development/docs/process/labels.md)
+ - [Pull Requests](https://github.com/desktop/desktop/blob/development/docs/process/pull-requests.md)

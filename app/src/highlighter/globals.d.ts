@@ -1,4 +1,4 @@
-/* eslint-disable typescript/interface-name-prefix */
+/* eslint-disable @typescript-eslint/naming-convention */
 
 declare namespace CodeMirror {
   interface EditorConfiguration {

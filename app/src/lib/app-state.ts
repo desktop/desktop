@@ -4,7 +4,7 @@ import { IDiff, ImageDiffType } from '../models/diff'
 import { Repository, ILocalRepositoryState } from '../models/repository'
 import { Branch, IAheadBehind } from '../models/branch'
 import { Tip } from '../models/tip'
-import { Commit } from '../models/commit'
+import { Commit, CommitOneLine } from '../models/commit'
 import { CommittedFileChange, WorkingDirectoryStatus } from '../models/status'
 import { CloningRepository } from '../models/cloning-repository'
 import { IMenu } from '../models/app-menu'
@@ -13,7 +13,7 @@ import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
 import { IAuthor } from '../models/author'
-import { MergeResultKind } from '../models/merge'
+import { MergeTreeResult } from '../models/merge'
 import { ICommitMessage } from '../models/commit-message'
 import {
   IRevertProgress,
@@ -23,7 +23,6 @@ import {
 } from '../models/progress'
 import { Popup } from '../models/popup'
 
-import { IGitHubUser } from './databases/github-user-database'
 import { SignInState } from './stores/sign-in-store'
 
 import { WindowState } from './window-state'
@@ -32,6 +31,14 @@ import { Shell } from './shells'
 import { ComparisonCache } from './comparison-cache'
 
 import { ApplicationTheme } from '../ui/lib/application-theme'
+import { IAccountRepositories } from './stores/api-repositories-store'
+import { ManualConflictResolution } from '../models/manual-conflict-resolution'
+import { Banner } from '../models/banner'
+import { GitRebaseProgress } from '../models/rebase'
+import { RebaseFlowStep } from '../models/rebase-flow-step'
+import { IStashEntry } from '../models/stash-entry'
+import { TutorialStep } from '../models/tutorial-step'
+import { UncommittedChangesStrategyKind } from '../models/uncommitted-changes-strategy'
 
 export enum SelectionType {
   Repository,
@@ -59,6 +66,11 @@ export interface IAppState {
    * The current list of repositories tracked in the application
    */
   readonly repositories: ReadonlyArray<Repository | CloningRepository>
+
+  /**
+   * List of IDs of the most recently opened repositories (most recent first)
+   */
+  readonly recentRepositories: ReadonlyArray<number>
 
   /**
    * A cache of the latest repository state values, keyed by the repository id
@@ -94,8 +106,10 @@ export interface IAppState {
   readonly appIsFocused: boolean
 
   readonly showWelcomeFlow: boolean
+  readonly focusCommitMessage: boolean
   readonly currentPopup: Popup | null
   readonly currentFoldout: Foldout | null
+  readonly currentBanner: Banner | null
 
   /**
    * A list of currently open menus with their selected items
@@ -139,8 +153,8 @@ export interface IAppState {
   /** The width of the commit summary column in the history view */
   readonly commitSummaryWidth: number
 
-  /** Whether we should hide the toolbar (and show inverted window controls) */
-  readonly titleBarStyle: 'light' | 'dark'
+  /** The width of the files list in the stash view */
+  readonly stashedFilesWidth: number
 
   /**
    * Used to highlight access keys throughout the app when the
@@ -151,18 +165,23 @@ export interface IAppState {
   /** Whether we should show the update banner */
   readonly isUpdateAvailableBannerVisible: boolean
 
-  /** Whether we should show the merge success banner */
-  readonly successfulMergeBannerState: SuccessfulMergeBannerState
-
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnRepositoryRemoval: boolean
 
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnDiscardChanges: boolean
 
-  /** The external editor to use when opening repositories */
-  readonly selectedExternalEditor?: ExternalEditor
+  /** Should the app prompt the user to confirm a force push? */
+  readonly askForConfirmationOnForcePush: boolean
 
+  /** How the app should handle uncommitted changes when switching branches */
+  readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
+
+  /** The external editor to use when opening repositories */
+  readonly selectedExternalEditor: ExternalEditor | null
+
+  /** The current setting for whether the user has disable usage reports */
+  readonly optOutOfUsageTracking: boolean
   /**
    * A cached entry representing an external editor found on the user's machine:
    *
@@ -175,6 +194,9 @@ export interface IAppState {
 
   /** What type of visual diff mode we should use to compare images */
   readonly imageDiffType: ImageDiffType
+
+  /** Whether we should hide white space changes in diff */
+  readonly hideWhitespaceInDiff: boolean
 
   /** The user's preferred shell. */
   readonly selectedShell: Shell
@@ -190,6 +212,37 @@ export interface IAppState {
 
   /** The currently selected appearance (aka theme) */
   readonly selectedTheme: ApplicationTheme
+
+  /** Whether we should automatically change the currently selected appearance (aka theme) */
+  readonly automaticallySwitchTheme: boolean
+
+  /**
+   * A map keyed on a user account (GitHub.com or GitHub Enterprise)
+   * containing an object with repositories that the authenticated
+   * user has explicit permission (:read, :write, or :admin) to access
+   * as well as information about whether the list of repositories
+   * is currently being loaded or not.
+   *
+   * If a currently signed in account is missing from the map that
+   * means that the list of accessible repositories has not yet been
+   * loaded. An entry for an account with an empty list of repositories
+   * means that no accessible repositories was found for the account.
+   *
+   * See the ApiRepositoriesStore for more details on loading repositories
+   */
+  readonly apiRepositories: ReadonlyMap<Account, IAccountRepositories>
+
+  /** Which step the user is on in the Onboarding Tutorial */
+  readonly currentOnboardingTutorialStep: TutorialStep
+
+  /**
+   * Whether or not the app should update the repository indicators (the
+   * blue dot and the ahead/behind arrows in the repository list used to
+   * indicate that the repository has uncommitted changes or is out of sync
+   * with its remote) in the background. See `RepositoryIndicatorUpdater`
+   * for more information
+   */
+  readonly repositoryIndicatorsEnabled: boolean
 }
 
 export enum FoldoutType {
@@ -219,10 +272,14 @@ export type AppMenuFoldout = {
   openedWithAccessKey?: boolean
 }
 
+export type BranchFoldout = {
+  type: FoldoutType.Branch
+}
+
 export type Foldout =
   | { type: FoldoutType.Repository }
-  | { type: FoldoutType.Branch }
   | { type: FoldoutType.AddMenu }
+  | BranchFoldout
   | AppMenuFoldout
 
 export enum RepositorySectionTab {
@@ -233,10 +290,68 @@ export enum RepositorySectionTab {
 /**
  * Stores information about a merge conflict when it occurs
  */
-export interface IConflictState {
+export type MergeConflictState = {
+  readonly kind: 'merge'
   readonly currentBranch: string
   readonly currentTip: string
+  readonly manualResolutions: Map<string, ManualConflictResolution>
 }
+
+/** Guard function for checking conflicts are from a merge  */
+export function isMergeConflictState(
+  conflictStatus: ConflictState
+): conflictStatus is MergeConflictState {
+  return conflictStatus.kind === 'merge'
+}
+
+/**
+ * Stores information about a rebase conflict when it occurs
+ */
+export type RebaseConflictState = {
+  readonly kind: 'rebase'
+  /**
+   * This is the commit ID of the HEAD of the in-flight rebase
+   */
+  readonly currentTip: string
+  /**
+   * The branch chosen by the user to be rebased
+   */
+  readonly targetBranch: string
+  /**
+   * The branch chosen as the baseline for the rebase
+   */
+  readonly baseBranch?: string
+
+  /**
+   * The commit ID of the target branch before the rebase was initiated
+   */
+  readonly originalBranchTip: string
+  /**
+   * The commit ID of the base branch onto which the history will be applied
+   */
+  readonly baseBranchTip: string
+  /**
+   * Manual resolutions chosen by the user for conflicted files to be applied
+   * before continuing the rebase.
+   */
+  readonly manualResolutions: Map<string, ManualConflictResolution>
+}
+
+/** Guard function for checking conflicts are from a rebase  */
+export function isRebaseConflictState(
+  conflictStatus: ConflictState
+): conflictStatus is RebaseConflictState {
+  return conflictStatus.kind === 'rebase'
+}
+
+/**
+ * Conflicts can occur during a rebase or a merge.
+ *
+ * Callers should inspect the `kind` field to determine the kind of conflict
+ * that is occurring, as this will then provide additional information specific
+ * to the conflict, to help with resolving the issue.
+ */
+export type ConflictState = MergeConflictState | RebaseConflictState
 
 export interface IRepositoryState {
   readonly commitSelection: ICommitSelection
@@ -254,12 +369,7 @@ export interface IRepositoryState {
 
   readonly branchesState: IBranchesState
 
-  /**
-   * Mapping from lowercased email addresses to the associated GitHub user. Note
-   * that an email address may not have an associated GitHub user, or the user
-   * may still be loading.
-   */
-  readonly gitHubUsers: Map<string, IGitHubUser>
+  readonly rebaseState: IRebaseState
 
   /** The commits loaded, keyed by their full SHA. */
   readonly commitLookup: Map<string, Commit>
@@ -276,7 +386,10 @@ export interface IRepositoryState {
   /** The state of the current branch in relation to its upstream. */
   readonly aheadBehind: IAheadBehind | null
 
-  /** Is a push/pull/update in progress? */
+  /** The tags that will get pushed if the user performs a push operation. */
+  readonly tagsToPush: ReadonlyArray<string> | null
+
+  /** Is a push/pull/fetch in progress? */
   readonly isPushPullFetchInProgress: boolean
 
   /** Is a commit in progress? */
@@ -309,6 +422,8 @@ export interface IRepositoryState {
    * null if no such operation is in flight.
    */
   readonly revertProgress: IRevertProgress | null
+
+  readonly localTags: Map<string, string> | null
 }
 
 export interface IBranchesState {
@@ -347,6 +462,52 @@ export interface IBranchesState {
 
   /** The pull request associated with the current branch. */
   readonly currentPullRequest: PullRequest | null
+
+  /**
+   * Is the current branch configured to rebase on pull?
+   *
+   * This is the value returned from git config (local or global) for `git config pull.rebase`
+   *
+   * If this value is not found in config, this will be `undefined` to indicate
+   * that the default Git behaviour will occur.
+   */
+  readonly pullWithRebase?: boolean
+
+  /** Tracking branches that have been rebased within Desktop */
+  readonly rebasedBranches: ReadonlyMap<string, string>
+}
+
+/** State associated with a rebase being performed on a repository */
+export interface IRebaseState {
+  /**
+   * The current step of the flow the user should see.
+   *
+   * `null` indicates that there is no rebase underway.
+   */
+  readonly step: RebaseFlowStep | null
+
+  /**
+   * The underlying Git information associated with the current rebase
+   *
+   * This will be set to `null` when no base branch has been selected to
+   * initiate the rebase.
+   */
+  readonly progress: GitRebaseProgress | null
+
+  /**
+   * The known range of commits that will be applied to the repository
+   *
+   * This will be set to `null` when no base branch has been selected to
+   * initiate the rebase.
+   */
+  readonly commits: ReadonlyArray<CommitOneLine> | null
+
+  /**
+   * Whether the user has done work to resolve any conflicts as part of this
+   * rebase, as the rebase flow should confirm the user wishes to abort the
+   * rebase and lose that work.
+   */
+  readonly userHasResolvedConflicts: boolean
 }
 
 export interface ICommitSelection {
@@ -363,19 +524,41 @@ export interface ICommitSelection {
   readonly diff: IDiff | null
 }
 
-export interface IChangesState {
-  readonly workingDirectory: WorkingDirectoryStatus
+export enum ChangesSelectionKind {
+  WorkingDirectory = 'WorkingDirectory',
+  Stash = 'Stash',
+}
+
+export type ChangesWorkingDirectorySelection = {
+  readonly kind: ChangesSelectionKind.WorkingDirectory
 
   /**
    * The ID of the selected files. The files themselves can be looked up in
-   * `workingDirectory`.
+   * the `workingDirectory` property in `IChangesState`.
    */
-  readonly selectedFileIDs: string[]
-
+  readonly selectedFileIDs: ReadonlyArray<string>
   readonly diff: IDiff | null
+}
+
+export type ChangesStashSelection = {
+  readonly kind: ChangesSelectionKind.Stash
+
+  /** Currently selected file in the stash diff viewer UI (aka the file we want to show the diff for) */
+  readonly selectedStashedFile: CommittedFileChange | null
+
+  /** Currently selected file's diff */
+  readonly selectedStashedFileDiff: IDiff | null
+}
+
+export type ChangesSelection =
+  | ChangesWorkingDirectorySelection
+  | ChangesStashSelection
+
+export interface IChangesState {
+  readonly workingDirectory: WorkingDirectoryStatus
 
   /** The commit message for a work-in-progress commit in the changes view. */
-  readonly commitMessage: ICommitMessage | null
+  readonly commitMessage: ICommitMessage
 
   /**
    * Whether or not to show a field for adding co-authors to
@@ -393,11 +576,28 @@ export interface IChangesState {
   readonly coAuthors: ReadonlyArray<IAuthor>
 
   /**
-   * Stores information about a merge conflict when it occurs
+   * Stores information about conflicts in the working directory
    *
-   * The absence of a value means there is no merge conflict
+   * The absence of a value means there is no merge or rebase conflict underway
    */
-  readonly conflictState: IConflictState | null
+  readonly conflictState: ConflictState | null
+
+  /**
+   * The latest GitHub Desktop stash entry for the current branch, or `null`
+   * if no stash exists for the current branch.
+   */
+  readonly stashEntry: IStashEntry | null
+
+  /**
+   * The current selection state in the Changes view. Can be either
+   * working directory or a stash. In the case of a working directory
+   * selection multiple files may be selected. See `ChangesSelection`
+   * for more information about the differences between the two.
+   */
+  readonly selection: ChangesSelection
+
+  /** `true` if the GitHub API reports that the branch is protected */
+  readonly currentBranchProtected: boolean
 }
 
 /**
@@ -446,14 +646,14 @@ export interface ICompareBranch {
 }
 
 export interface ICompareState {
-  /** Show the diverging notification banner */
-  readonly isDivergingBranchBannerVisible: boolean
+  /** The current state of the NBBD banner */
+  readonly divergingBranchBannerState: IDivergingBranchBannerState
 
   /** The current state of the compare form, based on user input */
   readonly formState: IDisplayHistory | ICompareBranch
 
   /** The result of merging the compare branch into the current branch, if a branch selected */
-  readonly mergeStatus: MergeResultStatus | null
+  readonly mergeStatus: MergeTreeResult | null
 
   /** Whether the branch list should be expanded or hidden */
   readonly showBranchList: boolean
@@ -501,6 +701,17 @@ export interface ICompareState {
   }
 }
 
+export interface IDivergingBranchBannerState {
+  /** Show the diverging notification banner */
+  readonly isPromptVisible: boolean
+
+  /** Has the user dismissed the notification banner? */
+  readonly isPromptDismissed: boolean
+
+  /** Show the diverging notification nudge on the tab */
+  readonly isNudgeVisible: boolean
+}
+
 export interface ICompareFormUpdate {
   /** The updated filter text to set */
   readonly filterText: string
@@ -508,17 +719,6 @@ export interface ICompareFormUpdate {
   /** Thew new state of the branches list */
   readonly showBranchList: boolean
 }
-
-export type MergeResultStatus =
-  | {
-      kind: MergeResultKind.Loading
-    }
-  | {
-      kind: MergeResultKind.Conflicts
-      conflictedFiles: number
-    }
-  | { kind: MergeResultKind.Clean }
-  | { kind: MergeResultKind.Invalid }
 
 export interface IViewHistory {
   readonly kind: HistoryTabMode.History
@@ -534,8 +734,3 @@ export interface ICompareToBranch {
  * An action to send to the application store to update the compare state
  */
 export type CompareAction = IViewHistory | ICompareToBranch
-
-export type SuccessfulMergeBannerState = {
-  ourBranch: string
-  theirBranch?: string
-} | null

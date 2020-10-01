@@ -1,11 +1,15 @@
-import { MenuIDs } from '../main-process/menu'
+import { MenuIDs } from '../models/menu-ids'
 import { merge } from './merge'
 import { IAppState, SelectionType } from '../lib/app-state'
-import { Repository } from '../models/repository'
+import {
+  Repository,
+  isRepositoryWithGitHubRepository,
+} from '../models/repository'
 import { CloningRepository } from '../models/cloning-repository'
 import { TipState } from '../models/tip'
 import { updateMenuState as ipcUpdateMenuState } from '../ui/main-process-proxy'
 import { AppMenu, MenuItem } from '../models/app-menu'
+import { hasConflictedFiles } from './status'
 
 export interface IMenuItemState {
   readonly enabled?: boolean
@@ -100,10 +104,13 @@ function menuItemStateEqual(state: IMenuItemState, menuItem: MenuItem) {
 const allMenuIds: ReadonlyArray<MenuIDs> = [
   'rename-branch',
   'delete-branch',
+  'discard-all-changes',
+  'stash-all-changes',
   'preferences',
   'update-branch',
   'compare-to-branch',
   'merge-branch',
+  'rebase-branch',
   'view-repository-on-github',
   'compare-on-github',
   'open-in-shell',
@@ -111,6 +118,7 @@ const allMenuIds: ReadonlyArray<MenuIDs> = [
   'pull',
   'branch',
   'repository',
+  'go-to-commit-message',
   'create-branch',
   'show-changes',
   'show-history',
@@ -147,18 +155,25 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   let onNonDefaultBranch = false
   let onBranch = false
   let onDetachedHead = false
+  let hasChangedFiles = false
+  let hasConflicts = false
   let hasDefaultBranch = false
   let hasPublishedBranch = false
   let networkActionInProgress = false
   let tipStateIsUnknown = false
   let branchIsUnborn = false
-
-  let hasRemote = false
+  let rebaseInProgress = false
+  let branchHasStashEntry = false
+  // check that its a github repo and if so, that is has issues enabled
+  const repoIssuesEnabled =
+    selectedState !== null &&
+    selectedState.repository instanceof Repository &&
+    getRepoIssuesEnabled(selectedState.repository)
 
   if (selectedState && selectedState.type === SelectionType.Repository) {
     repositorySelected = true
 
-    const branchesState = selectedState.state.branchesState
+    const { branchesState, changesState } = selectedState.state
     const tip = branchesState.tip
     const defaultBranch = branchesState.defaultBranch
 
@@ -177,16 +192,25 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     if (tip.kind === TipState.Valid) {
       if (defaultBranch !== null) {
         onNonDefaultBranch = tip.branch.name !== defaultBranch.name
+      } else {
+        onNonDefaultBranch = true
       }
 
       hasPublishedBranch = !!tip.branch.upstream
+      branchHasStashEntry = changesState.stashEntry !== null
     } else {
       onNonDefaultBranch = true
     }
 
-    hasRemote = !!selectedState.state.remote
-
     networkActionInProgress = selectedState.state.isPushPullFetchInProgress
+
+    const { conflictState, workingDirectory } = selectedState.state.changesState
+
+    rebaseInProgress = conflictState !== null && conflictState.kind === 'rebase'
+    hasConflicts =
+      changesState.conflictState !== null ||
+      hasConflictedFiles(workingDirectory)
+    hasChangedFiles = workingDirectory.files.length > 0
   }
 
   // These are IDs for menu items that are entirely _and only_
@@ -199,6 +223,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     'open-in-shell',
     'open-working-directory',
     'show-repository-settings',
+    'go-to-commit-message',
     'show-changes',
     'show-history',
     'show-branches-list',
@@ -219,7 +244,9 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
 
     menuStateBuilder.setEnabled(
       'rename-branch',
-      onNonDefaultBranch && !branchIsUnborn && !onDetachedHead
+      (onNonDefaultBranch || !hasPublishedBranch) &&
+        !branchIsUnborn &&
+        !onDetachedHead
     )
     menuStateBuilder.setEnabled(
       'delete-branch',
@@ -230,6 +257,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
       onNonDefaultBranch && hasDefaultBranch && !onDetachedHead
     )
     menuStateBuilder.setEnabled('merge-branch', onBranch)
+    menuStateBuilder.setEnabled('rebase-branch', onBranch)
     menuStateBuilder.setEnabled(
       'compare-on-github',
       isHostedOnGitHub && hasPublishedBranch
@@ -237,12 +265,16 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
 
     menuStateBuilder.setEnabled('view-repository-on-github', isHostedOnGitHub)
     menuStateBuilder.setEnabled(
+      'create-issue-in-repository-on-github',
+      repoIssuesEnabled
+    )
+    menuStateBuilder.setEnabled(
       'create-pull-request',
       isHostedOnGitHub && !branchIsUnborn && !onDetachedHead
     )
     menuStateBuilder.setEnabled(
       'push',
-      hasRemote && !branchIsUnborn && !networkActionInProgress
+      !branchIsUnborn && !onDetachedHead && !networkActionInProgress
     )
     menuStateBuilder.setEnabled(
       'pull',
@@ -250,10 +282,21 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     )
     menuStateBuilder.setEnabled(
       'create-branch',
-      !tipStateIsUnknown && !branchIsUnborn
+      !tipStateIsUnknown && !branchIsUnborn && !rebaseInProgress
+    )
+
+    menuStateBuilder.setEnabled(
+      'discard-all-changes',
+      repositoryActive && hasChangedFiles && !rebaseInProgress
+    )
+
+    menuStateBuilder.setEnabled(
+      'stash-all-changes',
+      hasChangedFiles && onBranch && !rebaseInProgress && !hasConflicts
     )
 
     menuStateBuilder.setEnabled('compare-to-branch', !onDetachedHead)
+    menuStateBuilder.setEnabled('toggle-stashed-changes', branchHasStashEntry)
 
     if (
       selectedState &&
@@ -282,14 +325,19 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     menuStateBuilder.disable('create-branch')
     menuStateBuilder.disable('rename-branch')
     menuStateBuilder.disable('delete-branch')
+    menuStateBuilder.disable('discard-all-changes')
+    menuStateBuilder.disable('stash-all-changes')
     menuStateBuilder.disable('update-branch')
     menuStateBuilder.disable('merge-branch')
+    menuStateBuilder.disable('rebase-branch')
 
     menuStateBuilder.disable('push')
     menuStateBuilder.disable('pull')
     menuStateBuilder.disable('compare-to-branch')
     menuStateBuilder.disable('compare-on-github')
+    menuStateBuilder.disable('toggle-stashed-changes')
   }
+
   return menuStateBuilder
 }
 
@@ -300,7 +348,8 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
 
   return getAllMenusEnabledBuilder()
     .merge(getRepositoryMenuBuilder(state))
-    .merge(getInWelcomeFlowBuilder(state.showWelcomeFlow)).state
+    .merge(getInWelcomeFlowBuilder(state.showWelcomeFlow))
+    .merge(getNoRepositoriesBuilder(state)).state
 }
 
 function getAllMenusEnabledBuilder(): MenuStateBuilder {
@@ -332,6 +381,40 @@ function getInWelcomeFlowBuilder(inWelcomeFlow: boolean): MenuStateBuilder {
   }
 
   return menuStateBuilder
+}
+
+function getNoRepositoriesBuilder(state: IAppState): MenuStateBuilder {
+  const noRepositoriesDisabledIds: ReadonlyArray<MenuIDs> = [
+    'show-repository-list',
+  ]
+
+  const menuStateBuilder = new MenuStateBuilder()
+  if (state.repositories.length === 0) {
+    for (const id of noRepositoriesDisabledIds) {
+      menuStateBuilder.disable(id)
+    }
+  }
+
+  return menuStateBuilder
+}
+
+function getRepoIssuesEnabled(repository: Repository): boolean {
+  if (isRepositoryWithGitHubRepository(repository)) {
+    const ghRepo = repository.gitHubRepository
+
+    if (ghRepo.parent) {
+      // issues enabled on parent repo
+      return (
+        ghRepo.parent.issuesEnabled !== false &&
+        ghRepo.parent.isArchived !== true
+      )
+    }
+
+    // issues enabled on repo
+    return ghRepo.issuesEnabled !== false && ghRepo.isArchived !== true
+  }
+
+  return false
 }
 
 /**

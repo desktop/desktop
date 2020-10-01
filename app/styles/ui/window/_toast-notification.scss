@@ -27,12 +27,8 @@
   }
 
   kbd {
-    border-radius: var(--border-radius);
-    border: var(--base-border);
-    display: inline-block;
-    font-family: var(--font-family-monospace);
     padding: var(--spacing-half);
-    line-height: 1;
+    border-color: $gray-300;
   }
 }
 
@@ -47,7 +43,7 @@
     transition: all 100ms ease-out;
   }
 
-  &-leave-active {
+  &-exit-active {
     opacity: 0;
     transition: all 250ms ease-out;
   }

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon, OcticonSymbol, syncClockwise } from '../octicons'
 
 interface IDialogHeaderProps {
   /**
@@ -63,7 +63,12 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, {}> {
     // I don't know and we may want to revisit it at some point but for
     // now an anchor will have to do.
     return (
-      <a className="close" onClick={this.onCloseButtonClick}>
+      <a
+        className="close"
+        onClick={this.onCloseButtonClick}
+        aria-label="close"
+        role="button"
+      >
         <Octicon symbol={OcticonSymbol.x} />
       </a>
     )
@@ -75,7 +80,7 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, {}> {
 
   public render() {
     const spinner = this.props.loading ? (
-      <Octicon className="icon spin" symbol={OcticonSymbol.sync} />
+      <Octicon className="icon spin" symbol={syncClockwise} />
     ) : null
 
     return (

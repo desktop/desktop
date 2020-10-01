@@ -1,11 +1,12 @@
 import * as React from 'react'
-import * as moment from 'moment'
-import * as classNames from 'classnames'
+import moment from 'moment'
+import classNames from 'classnames'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { CIStatus } from './ci-status'
-import { PullRequestStatus } from '../../models/pull-request'
 import { HighlightText } from '../lib/highlight-text'
 import { IMatches } from '../../lib/fuzzy-find'
+import { GitHubRepository } from '../../models/github-repository'
+import { Dispatcher } from '../dispatcher'
 
 export interface IPullRequestListItemProps {
   /** The title. */
@@ -20,8 +21,8 @@ export interface IPullRequestListItemProps {
   /** The author login. */
   readonly author: string
 
-  /** The CI status. */
-  readonly status: PullRequestStatus | null
+  /** Whether or not the PR is in draft mode. */
+  readonly draft: boolean
 
   /**
    * Whether or not this list item is a skeleton item
@@ -34,6 +35,11 @@ export interface IPullRequestListItemProps {
 
   /** The characters in the PR title to highlight */
   readonly matches: IMatches
+
+  readonly dispatcher: Dispatcher
+
+  /** The GitHub repository to use when looking up commit status. */
+  readonly repository: GitHubRepository
 }
 
 /** Pull requests as rendered in the Pull Requests list. */
@@ -46,7 +52,9 @@ export class PullRequestListItem extends React.Component<
     }
 
     const timeAgo = moment(this.props.created).fromNow()
-    return `#${this.props.number} opened ${timeAgo} by ${this.props.author}`
+    const subtitle = `#${this.props.number} opened ${timeAgo} by ${this.props.author}`
+
+    return this.props.draft ? `${subtitle} • Draft` : subtitle
   }
 
   public render() {
@@ -55,6 +63,8 @@ export class PullRequestListItem extends React.Component<
     const matches = this.props.matches
     const className = classNames('pull-request-item', {
       loading: this.props.loading === true,
+      open: !this.props.draft,
+      draft: this.props.draft,
     })
 
     return (
@@ -74,12 +84,15 @@ export class PullRequestListItem extends React.Component<
   }
 
   private renderPullRequestStatus() {
-    const status = this.props.status
-
-    if (!status || status.totalCount === 0) {
-      return null
-    }
-
-    return <CIStatus status={status} />
+    const ref = `refs/pull/${this.props.number}/head`
+    return (
+      <div className="ci-status-container">
+        <CIStatus
+          dispatcher={this.props.dispatcher}
+          repository={this.props.repository}
+          commitRef={ref}
+        />
+      </div>
+    )
   }
 }

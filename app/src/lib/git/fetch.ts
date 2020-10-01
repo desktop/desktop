@@ -3,17 +3,22 @@ import { Repository } from '../../models/repository'
 import { IGitAccount } from '../../models/git-account'
 import { IFetchProgress } from '../../models/progress'
 import { FetchProgressParser, executionOptionsWithProgress } from '../progress'
-import { envForAuthentication } from './authentication'
 import { enableRecurseSubmodulesFlag } from '../feature-flag'
+import { IRemote } from '../../models/remote'
+import { envForRemoteOperation } from './environment'
 
-function getFetchArgs(
+async function getFetchArgs(
+  repository: Repository,
   remote: string,
+  account: IGitAccount | null,
   progressCallback?: (progress: IFetchProgress) => void
 ) {
+  const networkArguments = await gitNetworkArguments(repository, account)
+
   if (enableRecurseSubmodulesFlag()) {
     return progressCallback != null
       ? [
-          ...gitNetworkArguments,
+          ...networkArguments,
           'fetch',
           '--progress',
           '--prune',
@@ -21,7 +26,7 @@ function getFetchArgs(
           remote,
         ]
       : [
-          ...gitNetworkArguments,
+          ...networkArguments,
           'fetch',
           '--prune',
           '--recurse-submodules=on-demand',
@@ -29,8 +34,8 @@ function getFetchArgs(
         ]
   } else {
     return progressCallback != null
-      ? [...gitNetworkArguments, 'fetch', '--progress', '--prune', remote]
-      : [...gitNetworkArguments, 'fetch', '--prune', remote]
+      ? [...networkArguments, 'fetch', '--progress', '--prune', remote]
+      : [...networkArguments, 'fetch', '--prune', remote]
   }
 }
 
@@ -52,16 +57,16 @@ function getFetchArgs(
 export async function fetch(
   repository: Repository,
   account: IGitAccount | null,
-  remote: string,
+  remote: IRemote,
   progressCallback?: (progress: IFetchProgress) => void
 ): Promise<void> {
   let opts: IGitExecutionOptions = {
     successExitCodes: new Set([0]),
-    env: envForAuthentication(account),
+    env: await envForRemoteOperation(account, remote.url),
   }
 
   if (progressCallback) {
-    const title = `Fetching ${remote}`
+    const title = `Fetching ${remote.name}`
     const kind = 'fetch'
 
     opts = await executionOptionsWithProgress(
@@ -82,15 +87,26 @@ export async function fetch(
           progress.kind === 'progress' ? progress.details.text : progress.text
         const value = progress.percent
 
-        progressCallback({ kind, title, description, value, remote })
+        progressCallback({
+          kind,
+          title,
+          description,
+          value,
+          remote: remote.name,
+        })
       }
     )
 
     // Initial progress
-    progressCallback({ kind, title, value: 0, remote })
+    progressCallback({ kind, title, value: 0, remote: remote.name })
   }
 
-  const args = getFetchArgs(remote, progressCallback)
+  const args = await getFetchArgs(
+    repository,
+    remote.name,
+    account,
+    progressCallback
+  )
   await git(args, repository.path, 'fetch', opts)
 }
 
@@ -98,15 +114,17 @@ export async function fetch(
 export async function fetchRefspec(
   repository: Repository,
   account: IGitAccount | null,
-  remote: string,
+  remote: IRemote,
   refspec: string
 ): Promise<void> {
   const options = {
     successExitCodes: new Set([0, 128]),
-    env: envForAuthentication(account),
+    env: await envForRemoteOperation(account, remote.url),
   }
 
-  const args = [...gitNetworkArguments, 'fetch', remote, refspec]
+  const networkArguments = await gitNetworkArguments(repository, account)
+
+  const args = [...networkArguments, 'fetch', remote.name, refspec]
 
   await git(args, repository.path, 'fetchRefspec', options)
 }

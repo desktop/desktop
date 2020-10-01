@@ -9,6 +9,8 @@ const version = getVersion()
 
 const projectRoot = Path.join(__dirname, '..')
 
+const publishChannels = ['production', 'test', 'beta']
+
 export function getDistRoot() {
   return Path.join(projectRoot, 'dist')
 }
@@ -98,13 +100,26 @@ export function getBundleSizes() {
   return { rendererSize: rendererStats.size, mainSize: mainStats.size }
 }
 
-export function getReleaseChannel() {
+export function isPublishable(): boolean {
+  const channelFromBranch = getChannelFromBranch()
+  return channelFromBranch !== undefined
+    ? publishChannels.includes(channelFromBranch)
+    : false
+}
+
+export function getChannel() {
+  const channelFromBranch = getChannelFromBranch()
+  return channelFromBranch !== undefined
+    ? channelFromBranch
+    : process.env.NODE_ENV || 'development'
+}
+
+function getChannelFromBranch(): string | undefined {
   // Branch name format: __release-CHANNEL-DEPLOY_ID
   const pieces = getReleaseBranchName().split('-')
   if (pieces.length < 3 || pieces[0] !== '__release') {
-    return process.env.NODE_ENV || 'development'
+    return
   }
-
   return pieces[1]
 }
 
@@ -119,12 +134,17 @@ export function getReleaseSHA() {
 }
 
 export function getUpdatesURL() {
-  return `https://central.github.com/api/deployments/desktop/desktop/latest?version=${version}&env=${getReleaseChannel()}`
+  return `https://central.github.com/api/deployments/desktop/desktop/latest?version=${version}&env=${getChannel()}`
 }
 
 export function shouldMakeDelta() {
   // Only production and beta channels include deltas. Test releases aren't
   // necessarily sequential so deltas wouldn't make sense.
   const channelsWithDeltas = ['production', 'beta']
-  return channelsWithDeltas.indexOf(getReleaseChannel()) > -1
+  return channelsWithDeltas.indexOf(getChannel()) > -1
+}
+
+export function getIconFileName(): string {
+  const baseName = 'icon-logo'
+  return getChannel() === 'development' ? `${baseName}-yellow` : baseName
 }

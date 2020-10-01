@@ -1,0 +1,12 @@
+.path-label-component {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  align-self: center;
+  min-width: 0;
+  margin-right: var(--spacing-half);
+
+  .rename-arrow {
+    margin: 0 var(--spacing-half);
+  }
+}

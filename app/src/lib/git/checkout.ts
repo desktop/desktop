@@ -7,16 +7,27 @@ import {
   CheckoutProgressParser,
   executionOptionsWithProgress,
 } from '../progress'
-import { envForAuthentication, AuthenticationErrors } from './authentication'
+import { AuthenticationErrors } from './authentication'
 import { enableRecurseSubmodulesFlag } from '../feature-flag'
+import {
+  envForRemoteOperation,
+  getFallbackUrlForProxyResolve,
+} from './environment'
 
 export type ProgressCallback = (progress: ICheckoutProgress) => void
 
-function getCheckoutArgs(branch: Branch, progressCallback?: ProgressCallback) {
+async function getCheckoutArgs(
+  repository: Repository,
+  branch: Branch,
+  account: IGitAccount | null,
+  progressCallback?: ProgressCallback
+) {
+  const networkArguments = await gitNetworkArguments(repository, account)
+
   const baseArgs =
     progressCallback != null
-      ? [...gitNetworkArguments, 'checkout', '--progress']
-      : [...gitNetworkArguments, 'checkout']
+      ? [...networkArguments, 'checkout', '--progress']
+      : [...networkArguments, 'checkout']
 
   if (enableRecurseSubmodulesFlag()) {
     return branch.type === BranchType.Remote
@@ -54,9 +65,12 @@ export async function checkoutBranch(
   account: IGitAccount | null,
   branch: Branch,
   progressCallback?: ProgressCallback
-): Promise<void> {
+): Promise<true> {
   let opts: IGitExecutionOptions = {
-    env: envForAuthentication(account),
+    env: await envForRemoteOperation(
+      account,
+      getFallbackUrlForProxyResolve(account, repository)
+    ),
     expectedErrors: AuthenticationErrors,
   }
 
@@ -82,9 +96,17 @@ export async function checkoutBranch(
     progressCallback({ kind, title, value: 0, targetBranch })
   }
 
-  const args = getCheckoutArgs(branch, progressCallback)
+  const args = await getCheckoutArgs(
+    repository,
+    branch,
+    account,
+    progressCallback
+  )
 
   await git(args, repository.path, 'checkoutBranch', opts)
+  // we return `true` here so `GitStore.performFailableGitOperation`
+  // will return _something_ differentiable from `undefined` if this succeeds
+  return true
 }
 
 /** Check out the paths at HEAD. */
@@ -96,5 +118,22 @@ export async function checkoutPaths(
     ['checkout', 'HEAD', '--', ...paths],
     repository.path,
     'checkoutPaths'
+  )
+}
+
+/**
+ * Create and checkout the given branch.
+ *
+ * @param repository The repository.
+ * @param branchName The branch to create and checkout.
+ */
+export async function createAndCheckoutBranch(
+  repository: Repository,
+  branchName: string
+): Promise<void> {
+  await git(
+    ['checkout', '-b', branchName],
+    repository.path,
+    'createAndCheckoutBranch'
   )
 }

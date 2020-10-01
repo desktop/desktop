@@ -9,43 +9,158 @@ import {
   setupFixtureRepository,
   setupEmptyRepository,
   setupEmptyDirectory,
-  setupConflictedRepo,
+  setupConflictedRepoWithMultipleFiles,
 } from '../../helpers/repositories'
-import { AppFileStatus } from '../../../src/models/status'
+import {
+  AppFileStatusKind,
+  UnmergedEntrySummary,
+  GitStatusEntry,
+  isManualConflict,
+} from '../../../src/models/status'
 import * as temp from 'temp'
 import { getStatus } from '../../../src/lib/git'
+import { isConflictedFile } from '../../../src/lib/status'
+import { setupLocalConfig } from '../../helpers/local-config'
+import { generateString } from '../../helpers/random-data'
 
 const _temp = temp.track()
 const mkdir = _temp.mkdir
 
 describe('git/status', () => {
   describe('getStatus', () => {
-    let repository: Repository | null = null
+    let repository: Repository
 
     describe('with conflicted repo', () => {
       let filePath: string
 
       beforeEach(async () => {
-        repository = await setupConflictedRepo()
+        repository = await setupConflictedRepoWithMultipleFiles()
         filePath = path.join(repository.path, 'foo')
       })
 
-      it('parses conflicted files', async () => {
-        const status = await getStatusOrThrow(repository!)
+      it('parses conflicted files with markers', async () => {
+        const status = await getStatusOrThrow(repository)
+        const files = status.workingDirectory.files
+        expect(files).toHaveLength(5)
+        const conflictedFiles = files.filter(
+          f => f.status.kind === AppFileStatusKind.Conflicted
+        )
+        expect(conflictedFiles).toHaveLength(4)
+
+        const fooFile = files.find(f => f.path === 'foo')!
+        expect(fooFile.status).toEqual({
+          kind: AppFileStatusKind.Conflicted,
+          entry: {
+            kind: 'conflicted',
+            action: UnmergedEntrySummary.BothModified,
+            them: GitStatusEntry.UpdatedButUnmerged,
+            us: GitStatusEntry.UpdatedButUnmerged,
+          },
+          conflictMarkerCount: 3,
+        })
+
+        const bazFile = files.find(f => f.path === 'baz')!
+        expect(bazFile.status).toEqual({
+          kind: AppFileStatusKind.Conflicted,
+          entry: {
+            kind: 'conflicted',
+            action: UnmergedEntrySummary.BothAdded,
+            them: GitStatusEntry.Added,
+            us: GitStatusEntry.Added,
+          },
+          conflictMarkerCount: 3,
+        })
+
+        const catFile = files.find(f => f.path === 'cat')!
+        expect(catFile.status).toEqual({
+          kind: AppFileStatusKind.Conflicted,
+          entry: {
+            kind: 'conflicted',
+            action: UnmergedEntrySummary.BothAdded,
+            them: GitStatusEntry.Added,
+            us: GitStatusEntry.Added,
+          },
+          conflictMarkerCount: 3,
+        })
+      })
+
+      it('parses conflicted files without markers', async () => {
+        const status = await getStatusOrThrow(repository)
+        const files = status.workingDirectory.files
+        expect(files).toHaveLength(5)
+        expect(
+          files.filter(f => f.status.kind === AppFileStatusKind.Conflicted)
+        ).toHaveLength(4)
+
+        const barFile = files.find(f => f.path === 'bar')!
+        expect(barFile.status).toEqual({
+          kind: AppFileStatusKind.Conflicted,
+          entry: {
+            kind: 'conflicted',
+            action: UnmergedEntrySummary.DeletedByThem,
+            us: GitStatusEntry.UpdatedButUnmerged,
+            them: GitStatusEntry.Deleted,
+          },
+        })
+      })
+
+      it('parses conflicted files resulting from popping a stash', async () => {
+        const repository = await setupEmptyRepository()
+        const readme = path.join(repository.path, 'README.md')
+        await FSE.writeFile(readme, '')
+        await GitProcess.exec(['add', 'README.md'], repository.path)
+        await GitProcess.exec(
+          ['commit', '-m', 'initial commit'],
+          repository.path
+        )
+
+        // write a change to the readme into the stash
+        await FSE.appendFile(readme, generateString())
+        await GitProcess.exec(['stash'], repository.path)
+
+        // write a different change to the README and commit it
+        await FSE.appendFile(readme, generateString())
+        await GitProcess.exec(
+          ['commit', '-am', 'later commit'],
+          repository.path
+        )
+
+        // pop the stash to introduce a conflict into the index
+        await GitProcess.exec(['stash', 'pop'], repository.path)
+
+        const status = await getStatusOrThrow(repository)
         const files = status.workingDirectory.files
         expect(files).toHaveLength(1)
 
-        const file = files[0]
-        expect(file.status).toBe(AppFileStatus.Conflicted)
+        const conflictedFiles = files.filter(
+          f => f.status.kind === AppFileStatusKind.Conflicted
+        )
+        expect(conflictedFiles).toHaveLength(1)
       })
 
       it('parses resolved files', async () => {
         await FSE.writeFile(filePath, 'b1b2')
-        const status = await getStatusOrThrow(repository!)
+        const status = await getStatusOrThrow(repository)
         const files = status.workingDirectory.files
-        expect(files).toHaveLength(1)
-        const file = files[0]
-        expect(file.status).toBe(AppFileStatus.Resolved)
+
+        expect(files).toHaveLength(5)
+
+        // all files are now considered conflicted
+        expect(
+          files.filter(f => f.status.kind === AppFileStatusKind.Conflicted)
+        ).toHaveLength(4)
+
+        const file = files.find(f => f.path === 'foo')
+        expect(file!.status).toEqual({
+          kind: AppFileStatusKind.Conflicted,
+          entry: {
+            kind: 'conflicted',
+            action: UnmergedEntrySummary.BothModified,
+            them: GitStatusEntry.UpdatedButUnmerged,
+            us: GitStatusEntry.UpdatedButUnmerged,
+          },
+          conflictMarkerCount: 0,
+        })
       })
     })
 
@@ -59,7 +174,7 @@ describe('git/status', () => {
       })
 
       it('parses conflicted image file on merge', async () => {
-        const repo = repository!
+        const repo = repository
 
         await GitProcess.exec(['merge', 'master'], repo.path)
 
@@ -68,11 +183,14 @@ describe('git/status', () => {
         expect(files).toHaveLength(1)
 
         const file = files[0]
-        expect(file.status).toBe(AppFileStatus.Conflicted)
+        expect(file.status.kind).toBe(AppFileStatusKind.Conflicted)
+        expect(
+          isConflictedFile(file.status) && isManualConflict(file.status)
+        ).toBe(true)
       })
 
       it('parses conflicted image file on merge after removing', async () => {
-        const repo = repository!
+        const repo = repository
 
         await GitProcess.exec(['rm', 'my-cool-image.png'], repo.path)
         await GitProcess.exec(['commit', '-am', 'removed the image'], repo.path)
@@ -84,7 +202,10 @@ describe('git/status', () => {
         expect(files).toHaveLength(1)
 
         const file = files[0]
-        expect(file.status).toBe(AppFileStatus.Conflicted)
+        expect(file.status.kind).toBe(AppFileStatusKind.Conflicted)
+        expect(
+          isConflictedFile(file.status) && isManualConflict(file.status)
+        ).toBe(true)
       })
     })
 
@@ -96,21 +217,21 @@ describe('git/status', () => {
 
       it('parses changed files', async () => {
         await FSE.writeFile(
-          path.join(repository!.path, 'README.md'),
+          path.join(repository.path, 'README.md'),
           'Hi world\n'
         )
 
-        const status = await getStatusOrThrow(repository!)
+        const status = await getStatusOrThrow(repository)
         const files = status.workingDirectory.files
         expect(files).toHaveLength(1)
 
         const file = files[0]
         expect(file.path).toBe('README.md')
-        expect(file.status).toBe(AppFileStatus.Modified)
+        expect(file.status.kind).toBe(AppFileStatusKind.Modified)
       })
 
       it('returns an empty array when there are no changes', async () => {
-        const status = await getStatusOrThrow(repository!)
+        const status = await getStatusOrThrow(repository)
         const files = status.workingDirectory.files
         expect(files).toHaveLength(0)
       })
@@ -128,9 +249,11 @@ describe('git/status', () => {
         const files = status.workingDirectory.files
 
         expect(files).toHaveLength(1)
-        expect(files[0].status).toBe(AppFileStatus.Renamed)
-        expect(files[0].oldPath).toBe('foo')
         expect(files[0].path).toBe('bar')
+        expect(files[0].status).toEqual({
+          kind: AppFileStatusKind.Renamed,
+          oldPath: 'foo',
+        })
       })
 
       it('reflects copies', async () => {
@@ -142,10 +265,7 @@ describe('git/status', () => {
         // Git 2.18 now uses a new config value to handle detecting copies, so
         // users who have this enabled will see this. For reference, Desktop does
         // not enable this by default.
-        await GitProcess.exec(
-          ['config', '--local', 'status.renames', 'copies'],
-          repository.path
-        )
+        await setupLocalConfig(repository, [['status.renames', 'copies']])
 
         await GitProcess.exec(['add', '.'], repository.path)
 
@@ -154,42 +274,35 @@ describe('git/status', () => {
 
         expect(files).toHaveLength(2)
 
-        expect(files[0].status).toBe(AppFileStatus.Modified)
-        expect(files[0].oldPath).toBeUndefined()
+        expect(files[0].status.kind).toBe(AppFileStatusKind.Modified)
         expect(files[0].path).toBe('CONTRIBUTING.md')
 
-        expect(files[1].status).toBe(AppFileStatus.Copied)
-        expect(files[1].oldPath).toBe('CONTRIBUTING.md')
         expect(files[1].path).toBe('docs/OVERVIEW.md')
+        expect(files[1].status).toEqual({
+          kind: AppFileStatusKind.Copied,
+          oldPath: 'CONTRIBUTING.md',
+        })
       })
 
-      it(
-        'Handles at least 10k untracked files without failing',
-        async () => {
-          const numFiles = 10000
-          const basePath = repository!.path
+      it.skip('Handles at least 10k untracked files without failing', async () => {
+        const numFiles = 10000
+        const basePath = repository.path
 
-          await mkdir(basePath)
+        await mkdir(basePath)
 
-          // create a lot of files
-          const promises = []
-          for (let i = 0; i < numFiles; i++) {
-            promises.push(
-              FSE.writeFile(
-                path.join(basePath, `test-file-${i}`),
-                'Hey there\n'
-              )
-            )
-          }
-          await Promise.all(promises)
+        // create a lot of files
+        const promises = []
+        for (let i = 0; i < numFiles; i++) {
+          promises.push(
+            FSE.writeFile(path.join(basePath, `test-file-${i}`), 'Hey there\n')
+          )
+        }
+        await Promise.all(promises)
 
-          const status = await getStatusOrThrow(repository!)
-          const files = status.workingDirectory.files
-          expect(files).toHaveLength(numFiles)
-        },
-        // needs a little extra time on CI
-        25000
-      )
+        const status = await getStatusOrThrow(repository)
+        const files = status.workingDirectory.files
+        expect(files).toHaveLength(numFiles)
+      }, 25000) // needs a little extra time on CI
 
       it('returns null for directory without a .git directory', async () => {
         repository = setupEmptyDirectory()

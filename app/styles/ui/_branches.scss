@@ -4,14 +4,15 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  width: 350px;
+  width: 365px;
 
   & > .tab-bar {
     border-top: var(--base-border);
   }
 
   .branches-list {
-    width: 350px;
+    width: 365px;
+    min-height: 0;
   }
 }
 
@@ -49,39 +50,14 @@
   }
 }
 
-#pr-transition-div {
-  display: flex;
-  flex: 1;
-  position: relative;
-
-  .cross-fade-enter {
-    opacity: 0;
-  }
-
-  .cross-fade-enter.cross-fade-enter-active {
-    opacity: 1;
-    transition: opacity 300ms ease-in;
-  }
-
-  .cross-fade-leave {
-    opacity: 1;
-  }
-
-  .cross-fade-leave.cross-fade-leave-active {
-    opacity: 0;
-    transition: opacity 200ms ease-in;
-  }
-}
-
 .pull-request-list {
-  position: absolute;
   height: 100%;
   width: 100%;
 
-  .filter-list-filter-field {
+  &.filter-list .filter-field-row {
     // The rows have built-in margin to their content so
     // we only need half a spacer here
-    padding-bottom: var(--spacing-half);
+    margin-bottom: var(--spacing-half);
   }
 
   .list-item.selected:focus {
@@ -108,12 +84,19 @@
       margin-top: 2px;
     }
 
+    &.open .icon {
+      color: var(--pr-open-icon-color);
+    }
+    &.draft .icon {
+      color: var(--pr-draft-icon-color);
+    }
+
     .info {
       display: flex;
       flex-direction: column;
       min-width: 0;
       flex-grow: 1;
-      margin-right: var(--spacing);
+      margin-right: var(--spacing-half);
 
       .title {
         @include ellipsis;
@@ -130,56 +113,16 @@
       }
     }
 
-    .ci-status {
+    .ci-status-container {
       margin-right: var(--spacing-half);
-    }
-
-    &.loading {
-      .icon {
-        color: var(--box-skeleton-background-color);
-      }
-
-      .info {
-        .title,
-        .subtitle {
-          background-color: var(--box-skeleton-background-color);
-          // The title with text in it is 18px (1em = 12px and with 1.5 x
-          // line height we'll get 18) but we don't want to fill the entire
-          // box because then we'll end up with one big slab of gray rather
-          // than two fake gray text lines. So we'll split the difference
-          // between 1em and 1.5em between the top and bottom margin so that
-          // it looks nicely positioned with the text that'll fade in later.
-          height: 1em;
-          margin-top: 0.2em;
-          margin-bottom: 0.3em;
-
-          border-radius: 1px;
-        }
-      }
-
-      .ci-status {
-        color: var(--box-skeleton-background-color);
-      }
-
-      &::after {
-        background: var(--skeleton-background-gradient);
-        content: '';
-        display: block;
-        height: 100%;
-        width: 100%;
-        position: absolute;
-        animation: loading-pulse 1.5s ease-in-out infinite;
-      }
+      min-width: 16px;
+      text-align: center;
+      flex-shrink: 0;
     }
   }
-}
 
-@keyframes loading-pulse {
-  from {
-    transform: translate(-100%, 0);
-  }
-  to {
-    transform: translate(200%, 0);
+  .filter-list-group-header {
+    @include ellipsis;
   }
 }
 
@@ -228,7 +171,7 @@
 }
 
 .no-pull-requests {
-  width: 300px;
+  width: 365px;
   display: flex;
   flex-direction: column;
 
@@ -246,5 +189,8 @@
 
   .call-to-action {
     font-size: var(--font-size-sm);
+    .link-button-component {
+      display: unset;
+    }
   }
 }

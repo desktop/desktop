@@ -3,13 +3,21 @@ import * as React from 'react'
 
 import { ChangesList } from './changes-list'
 import { DiffSelectionType } from '../../models/diff'
-import { IChangesState } from '../../lib/app-state'
-import { Repository } from '../../models/repository'
-import { Dispatcher } from '../../lib/dispatcher'
-import { IGitHubUser } from '../../lib/databases'
+import {
+  IChangesState,
+  RebaseConflictState,
+  isRebaseConflictState,
+  ChangesSelectionKind,
+} from '../../lib/app-state'
+import {
+  Repository,
+  getNonForkGitHubRepository,
+  isRepositoryWithGitHubRepository,
+} from '../../models/repository'
+import { Dispatcher } from '../dispatcher'
 import { IssuesStore, GitHubUserStore } from '../../lib/stores'
 import { CommitIdentity } from '../../models/commit-identity'
-import { Commit } from '../../models/commit'
+import { Commit, ICommitContext } from '../../models/commit'
 import { UndoCommit } from './undo-commit'
 import {
   IAutocompletionProvider,
@@ -19,11 +27,13 @@ import {
 } from '../autocompletion'
 import { ClickSource } from '../lib/list'
 import { WorkingDirectoryFileChange } from '../../models/status'
-import { CSSTransitionGroup } from 'react-transition-group'
-import { openFile } from '../../lib/open-file'
-import { ITrailer } from '../../lib/git/interpret-trailers'
+import { TransitionGroup, CSSTransition } from 'react-transition-group'
+import { openFile } from '../lib/open-file'
 import { Account } from '../../models/account'
 import { PopupType } from '../../models/popup'
+import { filesNotTrackedByLFS } from '../../lib/git/lfs'
+import { getLargeFilePaths } from '../../lib/large-files'
+import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -39,7 +49,6 @@ interface IChangesSidebarProps {
   readonly dispatcher: Dispatcher
   readonly commitAuthor: CommitIdentity | null
   readonly branch: string | null
-  readonly gitHubUsers: Map<string, IGitHubUser>
   readonly emoji: Map<string, string>
   readonly mostRecentLocalCommit: Commit | null
   readonly issuesStore: IssuesStore
@@ -47,6 +56,7 @@ interface IChangesSidebarProps {
   readonly isCommitting: boolean
   readonly isPushPullFetchInProgress: boolean
   readonly gitHubUserStore: GitHubUserStore
+  readonly focusCommitMessage: boolean
   readonly askForConfirmationOnDiscardChanges: boolean
   readonly accounts: ReadonlyArray<Account>
   /** The name of the currently selected external editor */
@@ -58,6 +68,14 @@ interface IChangesSidebarProps {
    * @param fullPath The full path to the file on disk
    */
   readonly onOpenInExternalEditor: (fullPath: string) => void
+  readonly onChangesListScrolled: (scrollTop: number) => void
+  readonly changesListScrollTop?: number
+
+  /**
+   * Whether we should show the onboarding tutorial nudge
+   * arrow pointing at the commit summary box
+   */
+  readonly shouldNudgeToCommit: boolean
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
@@ -87,8 +105,12 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
       ]
 
       // Issues autocompletion is only available for GitHub repositories.
-      const gitHubRepository = props.repository.gitHubRepository
-      if (gitHubRepository) {
+      const { repository } = props
+      const gitHubRepository = isRepositoryWithGitHubRepository(repository)
+        ? getNonForkGitHubRepository(repository)
+        : null
+
+      if (gitHubRepository !== null) {
         autocompletionProviders.push(
           new IssuesAutocompletionProvider(
             props.issuesStore,
@@ -114,22 +136,74 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     }
   }
 
-  private onCreateCommit = (
-    summary: string,
-    description: string | null,
-    trailers?: ReadonlyArray<ITrailer>
+  private onCreateCommit = async (
+    context: ICommitContext
   ): Promise<boolean> => {
+    const { workingDirectory } = this.props.changes
+
+    const overSizedFiles = await getLargeFilePaths(
+      this.props.repository,
+      workingDirectory,
+      100
+    )
+    const filesIgnoredByLFS = await filesNotTrackedByLFS(
+      this.props.repository,
+      overSizedFiles
+    )
+
+    if (filesIgnoredByLFS.length !== 0) {
+      this.props.dispatcher.showPopup({
+        type: PopupType.OversizedFiles,
+        oversizedFiles: filesIgnoredByLFS,
+        context: context,
+        repository: this.props.repository,
+      })
+
+      return false
+    }
+
+    // are any conflicted files left?
+    const conflictedFilesLeft = workingDirectory.files.filter(
+      f =>
+        isConflictedFile(f.status) &&
+        f.selection.getSelectionType() === DiffSelectionType.None
+    )
+
+    if (conflictedFilesLeft.length === 0) {
+      this.props.dispatcher.clearBanner()
+      this.props.dispatcher.recordUnguidedConflictedMergeCompletion()
+    }
+
+    // which of the files selected for committing are conflicted (with markers)?
+    const conflictedFilesSelected = workingDirectory.files.filter(
+      f =>
+        isConflictedFile(f.status) &&
+        hasUnresolvedConflicts(f.status) &&
+        f.selection.getSelectionType() !== DiffSelectionType.None
+    )
+
+    if (conflictedFilesSelected.length > 0) {
+      this.props.dispatcher.showPopup({
+        type: PopupType.CommitConflictsWarning,
+        files: conflictedFilesSelected,
+        repository: this.props.repository,
+        context,
+      })
+      return false
+    }
+
     return this.props.dispatcher.commitIncludedChanges(
       this.props.repository,
-      summary,
-      description,
-      trailers
+      context
     )
   }
 
   private onFileSelectionChanged = (rows: ReadonlyArray<number>) => {
     const files = rows.map(i => this.props.changes.workingDirectory.files[i])
-    this.props.dispatcher.changeChangesSelection(this.props.repository, files)
+    this.props.dispatcher.selectWorkingDirectoryFiles(
+      this.props.repository,
+      files
+    )
   }
 
   private onIncludeChanged = (path: string, include: boolean) => {
@@ -169,9 +243,9 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     }
   }
 
-  private onDiscardAllChanges = (
+  private onDiscardChangesFromFiles = (
     files: ReadonlyArray<WorkingDirectoryFileChange>,
-    isDiscardingAllChanges: boolean = true
+    isDiscardingAllChanges: boolean
   ) => {
     this.props.dispatcher.showPopup({
       type: PopupType.ConfirmDiscardChanges,
@@ -188,6 +262,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
 
   /**
    * Open file with default application.
+   *
    * @param path The path of the file relative to the root of the repository
    */
   private onOpenItem = (path: string) => {
@@ -241,7 +316,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   private onUndo = () => {
     const commit = this.props.mostRecentLocalCommit
 
-    if (commit) {
+    if (commit && commit.tags.length === 0) {
       this.props.dispatcher.undoCommit(this.props.repository, commit)
     }
   }
@@ -249,50 +324,72 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   private renderMostRecentLocalCommit() {
     const commit = this.props.mostRecentLocalCommit
     let child: JSX.Element | null = null
-    if (commit) {
+
+    // We don't allow undoing commits that have tags associated to them, since then
+    // the commit won't be completely deleted because the tag will still point to it.
+    if (commit && commit.tags.length === 0) {
       child = (
-        <UndoCommit
-          isPushPullFetchInProgress={this.props.isPushPullFetchInProgress}
-          commit={commit}
-          onUndo={this.onUndo}
-          emoji={this.props.emoji}
-        />
+        <CSSTransition
+          classNames="undo"
+          appear={true}
+          timeout={UndoCommitAnimationTimeout}
+        >
+          <UndoCommit
+            isPushPullFetchInProgress={this.props.isPushPullFetchInProgress}
+            commit={commit}
+            onUndo={this.onUndo}
+            emoji={this.props.emoji}
+            isCommitting={this.props.isCommitting}
+          />
+        </CSSTransition>
       )
     }
 
-    return (
-      <CSSTransitionGroup
-        transitionName="undo"
-        transitionAppear={true}
-        transitionAppearTimeout={UndoCommitAnimationTimeout}
-        transitionEnterTimeout={UndoCommitAnimationTimeout}
-        transitionLeaveTimeout={UndoCommitAnimationTimeout}
-      >
-        {child}
-      </CSSTransitionGroup>
-    )
+    return <TransitionGroup>{child}</TransitionGroup>
+  }
+
+  private renderUndoCommit = (
+    rebaseConflictState: RebaseConflictState | null
+  ): JSX.Element | null => {
+    if (rebaseConflictState !== null) {
+      return null
+    }
+
+    return this.renderMostRecentLocalCommit()
   }
 
   public render() {
-    const changesState = this.props.changes
-    const selectedFileIDs = changesState.selectedFileIDs
-
-    // TODO: I think user will expect the avatar to match that which
-    // they have configured in GitHub.com as well as GHE so when we add
-    // support for GHE we should revisit this and try to update the logic
-    // to look up based on email _and_ host.
-    const email = this.props.commitAuthor ? this.props.commitAuthor.email : null
-    let user: IGitHubUser | null = null
-    if (email) {
-      user = this.props.gitHubUsers.get(email.toLowerCase()) || null
+    const {
+      workingDirectory,
+      commitMessage,
+      showCoAuthoredBy,
+      coAuthors,
+      conflictState,
+      selection,
+      currentBranchProtected,
+    } = this.props.changes
+    let rebaseConflictState: RebaseConflictState | null = null
+    if (conflictState !== null) {
+      rebaseConflictState = isRebaseConflictState(conflictState)
+        ? conflictState
+        : null
     }
 
+    const selectedFileIDs =
+      selection.kind === ChangesSelectionKind.WorkingDirectory
+        ? selection.selectedFileIDs
+        : []
+
+    const isShowingStashEntry = selection.kind === ChangesSelectionKind.Stash
+
     return (
-      <div id="changes-sidebar-contents">
+      <div className="panel">
         <ChangesList
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
-          workingDirectory={changesState.workingDirectory}
+          workingDirectory={workingDirectory}
+          conflictState={conflictState}
+          rebaseConflictState={rebaseConflictState}
           selectedFileIDs={selectedFileIDs}
           onFileSelectionChanged={this.onFileSelectionChanged}
           onCreateCommit={this.onCreateCommit}
@@ -302,23 +399,29 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           askForConfirmationOnDiscardChanges={
             this.props.askForConfirmationOnDiscardChanges
           }
-          onDiscardAllChanges={this.onDiscardAllChanges}
+          onDiscardChangesFromFiles={this.onDiscardChangesFromFiles}
           onOpenItem={this.onOpenItem}
           onRowClick={this.onChangedItemClick}
           commitAuthor={this.props.commitAuthor}
           branch={this.props.branch}
-          gitHubUser={user}
-          commitMessage={this.props.changes.commitMessage}
+          commitMessage={commitMessage}
+          focusCommitMessage={this.props.focusCommitMessage}
           autocompletionProviders={this.autocompletionProviders!}
           availableWidth={this.props.availableWidth}
           onIgnore={this.onIgnore}
           isCommitting={this.props.isCommitting}
-          showCoAuthoredBy={this.props.changes.showCoAuthoredBy}
-          coAuthors={this.props.changes.coAuthors}
+          showCoAuthoredBy={showCoAuthoredBy}
+          coAuthors={coAuthors}
           externalEditorLabel={this.props.externalEditorLabel}
           onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+          onChangesListScrolled={this.props.onChangesListScrolled}
+          changesListScrollTop={this.props.changesListScrollTop}
+          stashEntry={this.props.changes.stashEntry}
+          isShowingStashEntry={isShowingStashEntry}
+          currentBranchProtected={currentBranchProtected}
+          shouldNudgeToCommit={this.props.shouldNudgeToCommit}
         />
-        {this.renderMostRecentLocalCommit()}
+        {this.renderUndoCommit(rebaseConflictState)}
       </div>
     )
   }

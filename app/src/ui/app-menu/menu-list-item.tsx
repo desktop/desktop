@@ -1,9 +1,10 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 
 import { Octicon, OcticonSymbol } from '../octicons'
 import { MenuItem } from '../../models/app-menu'
 import { AccessText } from '../lib/access-text'
+import { getPlatformSpecificNameOrSymbolForModifier } from '../../lib/menu-item'
 
 interface IMenuListItemProps {
   readonly item: MenuItem
@@ -35,45 +36,6 @@ interface IMenuListItemProps {
 }
 
 /**
- * Converts Electron accelerator modifiers to their platform specific
- * name or symbol.
- *
- * Example: CommandOrControl becomes either '⌘' or 'Ctrl' depending on platform.
- *
- * See https://github.com/electron/electron/blob/fb74f55/docs/api/accelerator.md
- */
-function getPlatformSpecificNameOrSymbolForModifier(modifier: string): string {
-  switch (modifier.toLowerCase()) {
-    case 'cmdorctrl':
-    case 'commandorcontrol':
-      return __DARWIN__ ? '⌘' : 'Ctrl'
-
-    case 'ctrl':
-    case 'control':
-      return __DARWIN__ ? '⌃' : 'Ctrl'
-
-    case 'shift':
-      return __DARWIN__ ? '⇧' : 'Shift'
-    case 'alt':
-      return __DARWIN__ ? '⌥' : 'Alt'
-
-    // Mac only
-    case 'cmd':
-    case 'command':
-      return '⌘'
-    case 'option':
-      return '⌥'
-
-    // Special case space because no one would be able to see it
-    case ' ':
-      return 'Space'
-  }
-
-  // Not a known modifier, likely a normal key
-  return modifier
-}
-
-/**
  * Returns a platform specific human readable version of an Electron
  * accelerator string. See getPlatformSpecificNameOrSymbolForModifier
  * for more information.
@@ -90,7 +52,7 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
     if (item.type === 'checkbox' && item.checked) {
       return <Octicon className="icon" symbol={OcticonSymbol.check} />
     } else if (item.type === 'radio' && item.checked) {
-      return <Octicon className="icon" symbol={OcticonSymbol.primitiveDot} />
+      return <Octicon className="icon" symbol={OcticonSymbol.dotFill} />
     }
 
     return null

@@ -1,19 +1,33 @@
 import * as React from 'react'
+import { clipboard } from 'electron'
+import { pathExists } from 'fs-extra'
 import * as Path from 'path'
 
-import { CommitSummary } from './commit-summary'
-import { Diff } from '../diff'
-import { FileList } from './file-list'
 import { Repository } from '../../models/repository'
-import { CommittedFileChange, FileChange } from '../../models/status'
+import { CommittedFileChange } from '../../models/status'
 import { Commit } from '../../models/commit'
-import { Dispatcher } from '../../lib/dispatcher'
-import { encodePathAsUrl } from '../../lib/path'
-import { ThrottledScheduler } from '../lib/throttled-scheduler'
-import { IGitHubUser } from '../../lib/databases'
-import { Resizable } from '../resizable'
-import { openFile } from '../../lib/open-file'
 import { IDiff, ImageDiffType } from '../../models/diff'
+
+import { encodePathAsUrl } from '../../lib/path'
+import { revealInFileManager } from '../../lib/app-shell'
+
+import { openFile } from '../lib/open-file'
+import {
+  isSafeFileExtension,
+  CopyFilePathLabel,
+  DefaultEditorLabel,
+  RevealInFileManagerLabel,
+  OpenWithDefaultProgramLabel,
+} from '../lib/context-menu'
+import { ThrottledScheduler } from '../lib/throttled-scheduler'
+
+import { Dispatcher } from '../dispatcher'
+import { Resizable } from '../resizable'
+import { showContextualMenu } from '../main-process-proxy'
+
+import { CommitSummary } from './commit-summary'
+import { FileList } from './file-list'
+import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
 
 interface ISelectedCommitProps {
   readonly repository: Repository
@@ -24,16 +38,29 @@ interface ISelectedCommitProps {
   readonly selectedFile: CommittedFileChange | null
   readonly currentDiff: IDiff | null
   readonly commitSummaryWidth: number
-  readonly gitHubUsers: Map<string, IGitHubUser>
   readonly selectedDiffType: ImageDiffType
   /** The name of the currently selected external editor */
   readonly externalEditorLabel?: string
 
   /**
    * Called to open a file using the user's configured applications
+   *
    * @param path The path of the file relative to the root of the repository
    */
   readonly onOpenInExternalEditor: (path: string) => void
+  readonly hideWhitespaceInDiff: boolean
+
+  /**
+   * Called when the user requests to open a binary file in an the
+   * system-assigned application for said file type.
+   */
+  readonly onOpenBinaryFile: (fullPath: string) => void
+
+  /**
+   * Called when the user is viewing an image diff and requests
+   * to change the diff presentation mode.
+   */
+  readonly onChangeImageDiffType: (type: ImageDiffType) => void
 }
 
 interface ISelectedCommitState {
@@ -58,11 +85,8 @@ export class SelectedCommit extends React.Component<
     }
   }
 
-  private onFileSelected = (file: FileChange) => {
-    this.props.dispatcher.changeFileSelection(
-      this.props.repository,
-      file as CommittedFileChange
-    )
+  private onFileSelected = (file: CommittedFileChange) => {
+    this.props.dispatcher.changeFileSelection(this.props.repository, file)
   }
 
   private onHistoryRef = (ref: HTMLDivElement | null) => {
@@ -93,7 +117,7 @@ export class SelectedCommit extends React.Component<
     const file = this.props.selectedFile
     const diff = this.props.currentDiff
 
-    if (file == null || diff == null) {
+    if (file == null) {
       // don't show both 'empty' messages
       const message =
         this.props.changedFiles.length === 0 ? '' : 'No file selected'
@@ -106,13 +130,15 @@ export class SelectedCommit extends React.Component<
     }
 
     return (
-      <Diff
+      <SeamlessDiffSwitcher
         repository={this.props.repository}
         imageDiffType={this.props.selectedDiffType}
         file={file}
         diff={diff}
         readOnly={true}
-        dispatcher={this.props.dispatcher}
+        hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+        onOpenBinaryFile={this.props.onOpenBinaryFile}
+        onChangeImageDiffType={this.props.onChangeImageDiffType}
       />
     )
   }
@@ -124,11 +150,12 @@ export class SelectedCommit extends React.Component<
         files={this.props.changedFiles}
         emoji={this.props.emoji}
         repository={this.props.repository}
-        gitHubUsers={this.props.gitHubUsers}
         onExpandChanged={this.onExpandChanged}
         isExpanded={this.state.isExpanded}
         onDescriptionBottomChanged={this.onDescriptionBottomChanged}
         hideDescriptionBorder={this.state.hideDescriptionBorder}
+        hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+        onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
       />
     )
   }
@@ -144,6 +171,14 @@ export class SelectedCommit extends React.Component<
         hideDescriptionBorder: descriptionBottom >= historyBottom,
       })
     }
+  }
+
+  private onHideWhitespaceInDiffChanged = (hideWhitespaceInDiff: boolean) => {
+    this.props.dispatcher.onHideWhitespaceInDiffChanged(
+      hideWhitespaceInDiff,
+      this.props.repository,
+      this.props.selectedFile as CommittedFileChange
+    )
   }
 
   private onCommitSummaryReset = () => {
@@ -169,16 +204,14 @@ export class SelectedCommit extends React.Component<
         onSelectedFileChanged={this.onFileSelected}
         selectedFile={this.props.selectedFile}
         availableWidth={availableWidth}
-        onOpenItem={this.onOpenItem}
-        externalEditorLabel={this.props.externalEditorLabel}
-        onOpenInExternalEditor={this.props.onOpenInExternalEditor}
-        repository={this.props.repository}
+        onContextMenu={this.onContextMenu}
       />
     )
   }
 
   /**
    * Open file with default application.
+   *
    * @param path The path of the file relative to the root of the repository
    */
   private onOpenItem = (path: string) => {
@@ -198,7 +231,7 @@ export class SelectedCommit extends React.Component<
     return (
       <div id="history" ref={this.onHistoryRef} className={className}>
         {this.renderCommitSummary(commit)}
-        <div id="commit-details">
+        <div className="commit-details">
           <Resizable
             width={this.props.commitSummaryWidth}
             onResize={this.onCommitSummaryResize}
@@ -210,6 +243,59 @@ export class SelectedCommit extends React.Component<
         </div>
       </div>
     )
+  }
+
+  private onContextMenu = async (event: React.MouseEvent<HTMLDivElement>) => {
+    event.preventDefault()
+
+    if (this.props.selectedFile == null) {
+      return
+    }
+
+    const filePath = this.props.selectedFile.path
+    const fullPath = Path.join(this.props.repository.path, filePath)
+    const fileExistsOnDisk = await pathExists(fullPath)
+    if (!fileExistsOnDisk) {
+      showContextualMenu([
+        {
+          label: __DARWIN__
+            ? 'File Does Not Exist on Disk'
+            : 'File does not exist on disk',
+          enabled: false,
+        },
+      ])
+      return
+    }
+
+    const extension = Path.extname(filePath)
+
+    const isSafeExtension = isSafeFileExtension(extension)
+    const openInExternalEditor = this.props.externalEditorLabel
+      ? `Open in ${this.props.externalEditorLabel}`
+      : DefaultEditorLabel
+
+    const items = [
+      {
+        label: CopyFilePathLabel,
+        action: () => clipboard.writeText(fullPath),
+      },
+      {
+        label: RevealInFileManagerLabel,
+        action: () => revealInFileManager(this.props.repository, filePath),
+        enabled: fileExistsOnDisk,
+      },
+      {
+        label: openInExternalEditor,
+        action: () => this.props.onOpenInExternalEditor(fullPath),
+        enabled: isSafeExtension && fileExistsOnDisk,
+      },
+      {
+        label: OpenWithDefaultProgramLabel,
+        action: () => this.onOpenItem(filePath),
+        enabled: isSafeExtension && fileExistsOnDisk,
+      },
+    ]
+    showContextualMenu(items)
   }
 }
 

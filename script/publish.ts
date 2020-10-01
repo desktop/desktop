@@ -1,10 +1,9 @@
-const PUBLISH_CHANNELS = ['production', 'test', 'beta']
 import * as distInfo from './dist-info'
 import * as gitInfo from '../app/git-info'
 import * as packageInfo from '../app/package-info'
 import * as platforms from './build-platforms'
 
-if (PUBLISH_CHANNELS.indexOf(distInfo.getReleaseChannel()) < 0) {
+if (!distInfo.isPublishable()) {
   console.log('Not a publishable build. Skipping publish.')
   process.exit(0)
 }
@@ -27,10 +26,10 @@ import * as Fs from 'fs'
 import { execSync } from 'child_process'
 import * as AWS from 'aws-sdk'
 import * as Crypto from 'crypto'
-import * as request from 'request'
+import request from 'request'
 
 console.log('Packaging…')
-execSync('yarn package')
+execSync('yarn package', { stdio: 'inherit' })
 
 const sha = platforms.getSha().substr(0, 8)
 
@@ -40,7 +39,7 @@ function getSecret() {
   }
 
   throw new Error(
-    `Unable to get deployment seret environment variable. Deployment aborting...`
+    `Unable to get deployment secret environment variable. Deployment aborting...`
   )
 }
 
@@ -58,7 +57,7 @@ if (process.platform === 'darwin') {
 
 uploadPromise!
   .then(artifacts => {
-    const names = artifacts.map(function(item, index) {
+    const names = artifacts.map(function (item, index) {
       return item.name
     })
     console.log(`Uploaded artifacts: ${names}`)
