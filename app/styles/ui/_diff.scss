@@ -594,15 +594,6 @@
     color: var(--syntax-header-color);
   }
 
-  // Intra line markings takes precedence over syntax highlighting.
-  .cm-diff-delete-inner {
-    color: var(--diff-delete-text-color);
-  }
-
-  .cm-diff-add-inner {
-    color: var(--diff-add-text-color);
-  }
-
   .cm-m-css {
     &.cm-property {
       color: var(--syntax-atom-color);
@@ -619,6 +610,15 @@
     &.cm-type {
       color: var(--syntax-variable-color);
     }
+  }
+
+  // Intra line markings takes precedence over syntax highlighting.
+  .cm-diff-delete-inner {
+    color: var(--diff-delete-text-color) !important;
+  }
+
+  .cm-diff-add-inner {
+    color: var(--diff-add-text-color) !important;
   }
 }
 

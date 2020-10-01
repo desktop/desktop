@@ -291,6 +291,9 @@ body.theme-dark {
   --diff-delete-hover-gutter-color: #{$red-700};
   --diff-delete-hover-text-color: var(--text-color);
 
+  --diff-empty-row-background-color: #{darken($gray-900, 1%)};
+  --diff-empty-row-gutter-background-color: var(--diff-gutter-background-color);
+
   // Syntax highlighting text colors
   --syntax-variable-color: #{$purple-300};
   --syntax-alt-variable-color: #{$blue-300};

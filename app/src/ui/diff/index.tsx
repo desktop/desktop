@@ -28,6 +28,11 @@ import {
 } from './image-diffs'
 import { BinaryFile } from './binary-file'
 import { TextDiff } from './text-diff'
+import { SideBySideDiff } from './side-by-side-diff'
+import {
+  enableExperimentalDiffViewer,
+  enableSideBySideDiffs,
+} from '../../lib/feature-flag'
 
 // image used when no diff is displayed
 const NoDiffImage = encodePathAsUrl(__dirname, 'static/ufo-alert.svg')
@@ -59,6 +64,9 @@ interface IDiffProps {
 
   /** Hiding whitespace in diff. */
   readonly hideWhitespaceInDiff: boolean
+
+  /** Whether we should display side by side diffs. */
+  readonly showSideBySideDiff: boolean
 
   /** Whether we should show a confirmation dialog when the user discards changes */
   readonly askForConfirmationOnDiscardChanges?: boolean
@@ -238,6 +246,25 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   private renderTextDiff(diff: ITextDiff) {
+    if (
+      enableExperimentalDiffViewer() ||
+      (enableSideBySideDiffs() && this.props.showSideBySideDiff)
+    ) {
+      return (
+        <SideBySideDiff
+          repository={this.props.repository}
+          file={this.props.file}
+          diff={diff}
+          showSideBySideDiff={this.props.showSideBySideDiff}
+          onIncludeChanged={this.props.onIncludeChanged}
+          onDiscardChanges={this.props.onDiscardChanges}
+          askForConfirmationOnDiscardChanges={
+            this.props.askForConfirmationOnDiscardChanges
+          }
+        />
+      )
+    }
+
     return (
       <TextDiff
         repository={this.props.repository}

@@ -40,6 +40,11 @@ interface IChangesProps {
    * discards changes
    */
   readonly askForConfirmationOnDiscardChanges: boolean
+
+  /**
+   * Whether we should display side by side diffs.
+   */
+  readonly showSideBySideDiff: boolean
 }
 
 export class Changes extends React.Component<IChangesProps, {}> {
@@ -80,7 +85,13 @@ export class Changes extends React.Component<IChangesProps, {}> {
     const isCommitting = this.props.isCommitting
     return (
       <div className="changed-file">
-        <ChangedFileDetails path={file.path} status={file.status} diff={diff} />
+        <ChangedFileDetails
+          path={file.path}
+          status={file.status}
+          diff={diff}
+          showSideBySideDiff={this.props.showSideBySideDiff}
+          onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
+        />
         <SeamlessDiffSwitcher
           repository={this.props.repository}
           imageDiffType={this.props.imageDiffType}
@@ -90,6 +101,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
           onDiscardChanges={this.onDiscardChanges}
           diff={diff}
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+          showSideBySideDiff={this.props.showSideBySideDiff}
           askForConfirmationOnDiscardChanges={
             this.props.askForConfirmationOnDiscardChanges
           }
@@ -98,5 +110,9 @@ export class Changes extends React.Component<IChangesProps, {}> {
         />
       </div>
     )
+  }
+
+  private onShowSideBySideDiffChanged = (showSideBySideDiff: boolean) => {
+    this.props.dispatcher.onShowSideBySideDiffChanged(showSideBySideDiff)
   }
 }
