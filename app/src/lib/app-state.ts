@@ -383,6 +383,9 @@ export interface IRepositoryState {
   /** The remote currently associated with the repository, if defined in the configuration */
   readonly remote: IRemote | null
 
+  /** The upstream (aka parent) remote currently associated with the repository */
+  readonly upstreamRemote: IRemote | null
+
   /** The state of the current branch in relation to its upstream. */
   readonly aheadBehind: IAheadBehind | null
 
