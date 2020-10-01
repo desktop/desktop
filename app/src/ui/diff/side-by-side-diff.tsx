@@ -178,21 +178,17 @@ export class SideBySideDiff extends React.Component<
   }
 
   public render() {
-    const diffRows = getDiffRows(this.props.diff, this.props.showSideBySideDiff)
+    const rows = getDiffRows(this.props.diff, this.props.showSideBySideDiff)
+    const containerClassName = classNames('side-by-side-diff-container', {
+      'unified-diff': !this.props.showSideBySideDiff,
+      [`selecting-${this.state.selectingTextInRow}`]:
+        this.props.showSideBySideDiff &&
+        this.state.selectingTextInRow !== undefined,
+      editable: canSelect(this.props.file),
+    })
+
     return (
-      <div
-        className={classNames([
-          {
-            'side-by-side-diff-container': true,
-            'unified-diff': !this.props.showSideBySideDiff,
-            [`selecting-${this.state.selectingTextInRow}`]:
-              this.props.showSideBySideDiff &&
-              this.state.selectingTextInRow !== undefined,
-            editable: canSelect(this.props.file),
-          },
-        ])}
-        onMouseDown={this.onMouseDown}
-      >
+      <div className={containerClassName} onMouseDown={this.onMouseDown}>
         <div className="side-by-side-diff cm-s-default">
           <AutoSizer onResize={this.clearListRowsHeightCache}>
             {({ height, width }) => (
@@ -200,7 +196,7 @@ export class SideBySideDiff extends React.Component<
                 deferredMeasurementCache={listRowsHeightCache}
                 width={width}
                 height={height}
-                rowCount={diffRows.length}
+                rowCount={rows.length}
                 rowHeight={this.getRowHeight}
                 rowRenderer={this.renderRow}
                 // The following properties are passed to the list
