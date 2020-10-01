@@ -6,7 +6,7 @@
 
     .rebase-status {
       background: var(--background-color);
-      border-width: 0 var(--spacing-half);
+      border-width: 0 var(--spacer-2);
       border: solid transparent;
       box-sizing: content-box;
       position: relative;
@@ -42,14 +42,14 @@
   }
 
   .rebase-message {
-    padding-bottom: var(--spacing);
+    padding-bottom: var(--spacer-3);
   }
 }
 
 dialog#rebase {
   .rebase-info {
-    margin-top: var(--spacing-half);
-    margin-bottom: var(--spacing);
+    margin-top: var(--spacer-2);
+    margin-bottom: var(--spacer-3);
   }
 
   .rebase-status-component {
@@ -63,6 +63,6 @@ dialog#rebase {
   }
 
   .dialog-footer {
-    padding-top: var(--spacing);
+    padding-top: var(--spacer-3);
   }
 }

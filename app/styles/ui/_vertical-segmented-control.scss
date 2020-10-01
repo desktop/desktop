@@ -11,7 +11,7 @@ fieldset.vertical-segmented-control {
   width: 100%;
 
   legend {
-    margin-bottom: var(--spacing-third);
+    margin-bottom: var(--spacer-1);
     padding: 0 0 5px 0;
     @include ellipsis;
   }
@@ -22,7 +22,7 @@ fieldset.vertical-segmented-control {
     margin: 0;
 
     li {
-      padding: var(--spacing);
+      padding: var(--spacer-3);
       margin: 0;
       border-left: var(--base-border);
       border-right: var(--base-border);

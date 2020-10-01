@@ -9,7 +9,7 @@
 
   display: flex;
   background-color: var(--box-alt-background-color);
-  padding: var(--spacing);
+  padding: var(--spacer-2);
 
   .summary {
     display: flex;
@@ -17,7 +17,7 @@
 
     .summary-field {
       flex: 1;
-      margin-bottom: var(--spacing);
+      margin-bottom: var(--spacer-2);
 
       input {
         width: 100%;
@@ -28,7 +28,8 @@
       flex-shrink: 0;
       width: var(--text-field-height);
       height: var(--text-field-height);
-      margin-right: var(--spacing-half);
+      border: var(--base-border);
+      margin-right: var(--spacer-2);
     }
   }
 
@@ -94,7 +95,7 @@
       color: currentColor;
       font-size: var(--font-size);
       font-family: var(--font-family-sans-serif);
-      padding: var(--spacing-half);
+      padding: var(--spacer-2);
       resize: none;
       min-height: 100px;
 
@@ -106,7 +107,7 @@
     }
 
     .action-bar {
-      padding: var(--spacing-half);
+      padding: var(--spacer-1);
       background: var(--box-background-color);
       border-radius: var(--border-radius);
 
@@ -136,7 +137,7 @@
       display: block;
 
       height: 16px;
-      width: 18px;
+      width: 16px;
       cursor: pointer;
 
       &:after {
@@ -162,8 +163,8 @@
       }
 
       svg {
-        height: 13px;
-        width: 18px;
+        height: 7px;
+        width: 12px;
         pointer-events: none;
       }
     }
@@ -171,7 +172,7 @@
 
   .commit-button {
     max-width: 100%;
-    margin-top: var(--spacing);
+    margin-top: var(--spacer-2);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -179,7 +180,7 @@
     .octicon {
       flex-shrink: 0;
       flex-grow: 0;
-      margin-right: var(--spacing-half);
+      margin-right: var(--spacer-2);
     }
 
     /* Due to some weirdo bug in Chrome that affects Windows

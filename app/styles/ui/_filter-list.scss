@@ -8,7 +8,7 @@
   min-width: inherit;
 
   .filter-field-row {
-    margin: var(--spacing);
+    margin: var(--spacer-2);
     min-width: 0;
 
     .filter-list-filter-field {
@@ -26,7 +26,7 @@
 }
 
 .filter-list-group-header {
-  padding: 0 var(--spacing);
+  padding: 0 var(--spacer-2);
   font-weight: var(--font-weight-semibold);
 }
 
@@ -45,10 +45,10 @@
     display: flex;
     flex-direction: column;
     border-top: var(--base-border);
-    padding: var(--spacing);
+    padding: var(--spacer-2);
   }
 
   .icon {
-    margin-right: var(--spacing-half);
+    margin-right: var(--spacer-1);
   }
 }

@@ -8,7 +8,7 @@
 
   display: flex;
   background-color: var(--box-alt-background-color);
-  padding-top: var(--spacing);
+  padding-top: var(--spacer-3);
 
   .warning-message {
     margin-bottom: 0;
@@ -30,7 +30,7 @@
       color: var(--dialog-warning-color);
 
       background: var(--box-alt-background-color);
-      border-width: 0 var(--spacing-half);
+      border-width: 0 var(--spacer-2);
       border: solid transparent;
       box-sizing: content-box;
       position: relative;
@@ -45,7 +45,7 @@
       z-index: 0;
       display: block;
       width: 100%;
-      top: var(--spacing);
+      top: var(--spacer-3);
     }
   }
 }

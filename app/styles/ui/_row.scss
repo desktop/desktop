@@ -3,7 +3,7 @@
   flex-direction: row;
 
   & > *:not(:last-child) {
-    margin-right: var(--spacing);
+    margin-right: var(--spacer-2);
   }
 
   .button-component {

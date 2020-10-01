@@ -89,12 +89,15 @@
     // Only add left margin if both ahead and behind are
     // showing at the same time.
     &:nth-child(2) {
-      margin-left: var(--spacing-half);
+      margin-left: var(--spacer-2);
     }
 
+    // We're using arrowSmallUp and arrowSmallDown which are
+    // both exactly 6px wide. Let's use that so that spacing
+    // gets easier to reason about.
     .octicon {
-      width: 10px;
-      margin-left: var(--spacing-third);
+      width: 6px;
+      margin-left: var(--spacer-1);
     }
   }
 }

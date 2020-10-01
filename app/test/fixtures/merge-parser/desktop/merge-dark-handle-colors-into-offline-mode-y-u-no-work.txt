@@ -4,7 +4,7 @@ changed in both
   their  100644 d6df99e979ae35224a6767759f74dee365b15eba app/styles/_variables.scss
 @@ -378,6 +378,10 @@
    --path-segment-background: $blue-000;
-   --path-segment-padding: var(--spacing-third);
+   --path-segment-padding: var(--spacer-1);
  
 +  /** Co-author colors **/
 +  --handle-background: $blue-000;

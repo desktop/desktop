@@ -503,7 +503,7 @@ changed in both
     */
    .repository-list-item {
 +<<<<<<< .our
-     padding: 0 var(--spacing);
+     padding: 0 var(--spacer-3);
 +=======
 +>>>>>>> .their
  

@@ -24,7 +24,7 @@ pre.error {
   font-family: var(--font-family-monospace);
   background: rgba($blue-100, 0.3);
   color: $gray-900;
-  padding: var(--spacing);
+  padding: var(--spacer-3);
   border-radius: var(--border-radius);
 
   user-select: text;
@@ -32,11 +32,11 @@ pre.error {
 
   overflow: auto;
 
-  margin: 0 0 var(--spacing-double) 0;
+  margin: 0 0 var(--spacer-4) 0;
 }
 
 header {
-  margin-bottom: var(--spacing-double);
+  margin-bottom: var(--spacer-4);
   display: flex;
   flex: none;
   align-items: center;
@@ -50,7 +50,7 @@ header {
     flex: none;
     color: $red-700;
     height: 32px;
-    margin-right: var(--spacing);
+    margin-right: var(--spacer-3);
     // In case the title wraps we should render the icon up top
     align-self: flex-start;
     // Add a little margin so it looks like it's centered if
@@ -60,13 +60,13 @@ header {
 }
 
 p {
-  margin: 0 0 var(--spacing-double) 0;
+  margin: 0 0 var(--spacer-4) 0;
   max-width: 500px;
   flex-shrink: 0;
 }
 
 main {
-  margin: var(--spacing-quad);
+  margin: var(--spacer-6);
   display: flex;
   flex-direction: column;
   flex-grow: 1;
@@ -86,8 +86,8 @@ main {
 
 .background-graphic-bottom {
   position: absolute;
-  right: var(--spacing);
-  bottom: var(--spacing);
+  right: var(--spacer-3);
+  bottom: var(--spacer-3);
 
   height: 45%;
   // I hate this but we'll have to live with it for beta.

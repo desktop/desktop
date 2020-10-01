@@ -28,8 +28,8 @@
   border-radius: var(--border-radius);
   border-width: 0;
 
-  margin-right: var(--spacing);
-  padding: var(--spacing-half);
+  margin-right: var(--spacer-3);
+  padding: var(--spacer-2);
 
   .number {
     font-size: var(--font-size-sm);
@@ -40,7 +40,7 @@
   }
 
   .ci-status {
-    margin-left: var(--spacing-half);
+    margin-left: var(--spacer-2);
   }
 }
 

@@ -1,6 +1,6 @@
 #configure-git-user {
   .form-component {
-    margin: var(--spacing-double) 0;
+    margin: var(--spacer-4) 0;
   }
 
   .config-lock-file-exists-component {
@@ -23,13 +23,13 @@
 
     .header {
       background: rgb(242, 248, 254);
-      padding: var(--spacing-half) var(--spacing);
+      padding: var(--spacer-2) var(--spacer-3);
       font-size: var(--font-size-sm);
     }
 
     .commit {
       font-size: var(--font-size);
-      padding: var(--spacing-half) var(--spacing);
+      padding: var(--spacer-2) var(--spacer-3);
       width: 280px;
       border-bottom: none;
     }

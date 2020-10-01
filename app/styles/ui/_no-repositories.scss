@@ -1,11 +1,11 @@
 #no-repositories {
   display: flex;
-  padding: calc(var(--spacing) * 6);
+  padding: calc(var(--spacer-3) * 6);
   align-items: center;
 
   header {
     align-self: flex-start;
-    margin-bottom: var(--spacing-quad);
+    margin-bottom: var(--spacer-6);
 
     h1 {
       font-size: var(--font-size-xxl);
@@ -35,11 +35,11 @@
       flex-grow: 1;
 
       &:not(:last-child) {
-        padding-right: var(--spacing);
+        padding-right: var(--spacer-3);
       }
 
       &:not(:first-child) {
-        padding-left: var(--spacing);
+        padding-left: var(--spacer-3);
       }
     }
 
@@ -50,15 +50,15 @@
       flex-grow: 1;
 
       li {
-        margin-bottom: var(--spacing);
+        margin-bottom: var(--spacer-3);
         width: 100%;
 
         .button-component {
           width: 100%;
-          padding: var(--spacing);
+          padding: var(--spacer-3);
           height: auto;
           text-align: left;
-          margin-bottom: var(--spacing);
+          margin-bottom: var(--spacer-3);
           display: flex;
           flex-direction: row;
           align-items: center;
@@ -69,7 +69,7 @@
           min-width: 0;
 
           .octicon {
-            margin: var(--spacing-half) var(--spacing) var(--spacing-half) var(--spacing-half);
+            margin: var(--spacer-2) var(--spacer-3) var(--spacer-2) var(--spacer-2);
             height: 24px;
             width: 24px;
           }
@@ -82,19 +82,19 @@
     background: var(--tip-box-background-color);
     border: 2px dashed var(--tip-box-border-color);
     border-radius: var(--border-radius);
-    padding: var(--spacing-double);
+    padding: var(--spacer-4);
     display: flex;
     flex-direction: row;
 
     .octicon {
-      margin-right: var(--spacing);
+      margin-right: var(--spacer-3);
     }
   }
 
   .no-repositories-graphic-bottom {
     position: absolute;
-    right: var(--spacing);
-    bottom: var(--spacing);
+    right: var(--spacer-3);
+    bottom: var(--spacer-3);
 
     width: auto;
     max-width: 40%;
@@ -115,7 +115,7 @@
 
   .content-pane.repository-list {
     .tab-bar {
-      margin-bottom: var(--spacing);
+      margin-bottom: var(--spacer-3);
       border: var(--base-border);
       border-radius: var(--border-radius);
 
@@ -124,22 +124,22 @@
       }
     }
     .clone-selected-repository {
-      margin-top: var(--spacing);
+      margin-top: var(--spacer-3);
       width: 100%;
     }
 
     .filter-list {
       .filter-field-row {
         margin: 0;
-        margin-bottom: var(--spacing);
+        margin-bottom: var(--spacer-3);
       }
 
       .clone-repository-list-group-header {
-        padding: var(--spacing);
+        padding: var(--spacer-3);
       }
 
       .clone-repository-list-item {
-        padding: 0 var(--spacing);
+        padding: 0 var(--spacer-3);
       }
     }
   }
@@ -181,10 +181,10 @@
 // in the app window)
 @media (max-height: 400px) {
   #no-repositories {
-    padding: var(--spacing);
+    padding: var(--spacer-3);
 
     header {
-      margin-bottom: var(--spacing);
+      margin-bottom: var(--spacer-3);
     }
 
     .drag-drop-info {
