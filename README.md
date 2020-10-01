@@ -31,6 +31,7 @@ beta channel to get access to early builds of Desktop:
 
 ### Community Releases
 
+Hi there this is a thing Allison asked me for.
 There are several community-supported package managers that can be used to
 install GitHub Desktop:
  - Windows users can install using [Chocolatey](https://chocolatey.org/) package manager:
