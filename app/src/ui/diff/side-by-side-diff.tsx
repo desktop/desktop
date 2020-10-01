@@ -178,6 +178,7 @@ export class SideBySideDiff extends React.Component<
   }
 
   public render() {
+    const diffRows = getDiffRows(this.props.diff, this.props.showSideBySideDiff)
     return (
       <div
         className={classNames([
@@ -199,10 +200,7 @@ export class SideBySideDiff extends React.Component<
                 deferredMeasurementCache={listRowsHeightCache}
                 width={width}
                 height={height}
-                rowCount={
-                  getDiffRows(this.props.diff, this.props.showSideBySideDiff)
-                    .length
-                }
+                rowCount={diffRows.length}
                 rowHeight={this.getRowHeight}
                 rowRenderer={this.renderRow}
                 // The following properties are passed to the list
