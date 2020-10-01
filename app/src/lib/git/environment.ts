@@ -91,6 +91,14 @@ export async function envForProxy(
     return undefined
   }
 
+  const protocolMatch = /^(https?):\/\//i.exec(remoteUrl)
+
+  // We can only resolve and use a proxy for the protocols where cURL
+  // would be involved (i.e http and https). git:// relies on ssh.
+  if (protocolMatch === null) {
+    return
+  }
+
   // We'll play it safe and say that if the user has configured
   // the ALL_PROXY environment variable they probably know what
   // they're doing and wouldn't want us to override it with a
@@ -99,15 +107,6 @@ export async function envForProxy(
   // https://github.com/curl/curl/blob/14916a82e/lib/url.c#L2180-L2185
   if ('ALL_PROXY' in env || 'all_proxy' in env) {
     log.info(`proxy url not resolved, ALL_PROXY already set`)
-    return
-  }
-
-  const protocolMatch = /^(https?):\/\//i.exec(remoteUrl)
-
-  // We can only resolve and use a proxy for the protocols where cURL
-  // would be involved (i.e http and https). git:// relies on ssh.
-  if (protocolMatch === null) {
-    log.info(`proxy url not resolved, protocol not supported`)
     return
   }
 
