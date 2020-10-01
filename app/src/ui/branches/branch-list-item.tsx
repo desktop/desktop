@@ -1,7 +1,7 @@
 import * as React from 'react'
 import moment from 'moment'
 
-import { IMatches } from '../../lib/fuzzy-find'
+import { IMatches } from '../../models/filter-list'
 
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'

@@ -2,6 +2,7 @@ import * as React from 'react'
 import { TransitionGroup, CSSTransition } from 'react-transition-group'
 
 import { Commit } from '../../models/commit'
+import { IMatches } from '../../models/filter-list'
 import {
   HistoryTabMode,
   ICompareState,
@@ -22,7 +23,7 @@ import { CompareBranchListItem } from './compare-branch-list-item'
 import { FancyTextBox } from '../lib/fancy-text-box'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { SelectionSource } from '../lib/filter-list'
-import { IMatches } from '../../lib/fuzzy-find'
+
 import { Ref } from '../lib/ref'
 import {
   NewCommitsBanner,

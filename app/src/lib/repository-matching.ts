@@ -2,7 +2,7 @@ import * as URL from 'url'
 import * as Path from 'path'
 
 import { CloningRepository } from '../models/cloning-repository'
-import { Repository } from '../models/repository'
+import { Repository, IRepositoryListItem } from '../models/repository'
 import { Account } from '../models/account'
 import { IRemote } from '../models/remote'
 import { getHTMLURL } from './api'
@@ -77,11 +77,11 @@ function matchRemoteWithAccount(
  * @param path The path on disk which might be a repository
  */
 export function matchExistingRepository(
-  repositories: ReadonlyArray<Repository | CloningRepository>,
+  repositories: ReadonlyArray<IRepositoryListItem>,
   path: string
 ): Repository | CloningRepository | null {
   return (
-    repositories.find(r => {
+    repositories.map(r => r.source).find(r => {
       if (__WIN32__) {
         // Windows is guaranteed to be case-insensitive so we can be a
         // bit more accepting.

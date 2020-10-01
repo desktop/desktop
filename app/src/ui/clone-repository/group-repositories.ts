@@ -1,5 +1,6 @@
+import { IFilterListGroup, IFilterListItem } from '../../models/filter-list'
+
 import { IAPIRepository } from '../../lib/api'
-import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
 import { caseInsensitiveCompare } from '../../lib/compare'
 import { OcticonSymbolType } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'

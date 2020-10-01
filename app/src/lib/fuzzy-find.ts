@@ -1,21 +1,10 @@
 import * as fuzzAldrin from 'fuzzaldrin-plus'
 
 import { compareDescending } from './compare'
+import { IMatch } from '../models/filter-list'
 
 function score(str: string, query: string, maxScore: number) {
   return fuzzAldrin.score(str, query) / maxScore
-}
-
-export interface IMatches {
-  readonly title: ReadonlyArray<number>
-  readonly subtitle: ReadonlyArray<number>
-}
-
-export interface IMatch<T> {
-  /** `0 <= score <= 1` */
-  score: number
-  item: T
-  matches: IMatches
 }
 
 export type KeyFunction<T> = (item: T) => ReadonlyArray<string>

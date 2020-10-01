@@ -1,10 +1,10 @@
 import * as React from 'react'
 
 import { Branch } from '../../models/branch'
+import { IMatches } from '../../models/filter-list'
 
 import { IBranchListItem } from './group-branches'
 import { BranchListItem } from './branch-list-item'
-import { IMatches } from '../../lib/fuzzy-find'
 
 export function renderDefaultBranch(
   item: IBranchListItem,
