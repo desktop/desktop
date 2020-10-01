@@ -1,3 +1,4 @@
+import { remote } from 'electron'
 import * as React from 'react'
 
 /**
@@ -9,12 +10,20 @@ import * as React from 'react'
 export class Resizable extends React.Component<IResizableProps, {}> {
   public static defaultProps: IResizableProps = {
     width: 250,
-    maximumWidth: 350,
     minimumWidth: 200,
   }
 
+  private maximumWidth = this.calcMaxWidth()
+
   private startWidth: number | null = null
   private startX: number | null = null
+
+  /**
+   * Set maximum width to one-third of the main window.
+   */
+  private calcMaxWidth() {
+    return Math.floor(remote.getCurrentWindow().getSize()[0] / 3)
+  }
 
   /**
    * Returns the current width as determined by props.
@@ -33,7 +42,7 @@ export class Resizable extends React.Component<IResizableProps, {}> {
   private clampWidth(width: number) {
     return Math.max(
       this.props.minimumWidth!,
-      Math.min(this.props.maximumWidth!, width)
+      Math.min(this.maximumWidth, width)
     )
   }
 
@@ -42,6 +51,7 @@ export class Resizable extends React.Component<IResizableProps, {}> {
    * handle.
    */
   private handleDragStart = (e: React.MouseEvent<any>) => {
+    this.maximumWidth = this.calcMaxWidth()
     this.startX = e.clientX
     this.startWidth = this.getCurrentWidth() || null
 
@@ -96,7 +106,7 @@ export class Resizable extends React.Component<IResizableProps, {}> {
   public render() {
     const style: React.CSSProperties = {
       width: this.getCurrentWidth(),
-      maxWidth: this.props.maximumWidth,
+      maxWidth: this.maximumWidth,
       minWidth: this.props.minimumWidth,
     }
 
@@ -115,12 +125,6 @@ export class Resizable extends React.Component<IResizableProps, {}> {
 
 export interface IResizableProps {
   readonly width: number
-
-  /** The maximum width the panel can be resized to.
-   *
-   * @default 350
-   */
-  readonly maximumWidth?: number
 
   /**
    * The minimum width the panel can be resized to.

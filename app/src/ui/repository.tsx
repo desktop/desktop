@@ -31,9 +31,6 @@ import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { ExternalEditor } from '../lib/editors'
 import { openFile } from './lib/open-file'
 
-/** The widest the sidebar can be with the minimum window size. */
-const MaxSidebarWidth = 495
-
 interface IRepositoryViewProps {
   readonly repository: Repository
   readonly state: IRepositoryState
@@ -273,7 +270,6 @@ export class RepositoryView extends React.Component<
           width={this.props.sidebarWidth}
           onReset={this.handleSidebarWidthReset}
           onResize={this.handleSidebarResize}
-          maximumWidth={MaxSidebarWidth}
         >
           {this.renderTabs()}
           {this.renderSidebarContents()}
