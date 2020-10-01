@@ -31,7 +31,10 @@ export class PullRequestStore {
     repository: GitHubRepository,
     pullRequests: ReadonlyArray<PullRequest>
   ) {
-    this.emitter.emit('onPullRequestsChanged', { repository, pullRequests })
+    this.emitter.emit('onPullRequestsChanged', {
+      repository,
+      pullRequests,
+    })
   }
 
   /** Register a function to be called when the store updates. */
@@ -117,9 +120,16 @@ export class PullRequestStore {
     api: API,
     repository: GitHubRepository
   ) {
-    const { name, owner } = getNameWithOwner(repository)
-    const open = await api.fetchAllOpenPullRequests(owner, name)
-    await this.storePullRequestsAndEmitUpdate(open, repository)
+    const bothPrLists = await Promise.all([
+      fetchOpenPullRequests(api, repository),
+      repository.fork && repository.parent
+        ? fetchOpenPullRequests(api, repository)
+        : Promise.resolve([]),
+    ])
+    await this.storePullRequestsAndEmitUpdate(
+      [...bothPrLists[0], ...bothPrLists[1]],
+      repository
+    )
   }
 
   private async fetchAndStoreUpdatedPullRequests(
@@ -297,7 +307,9 @@ export class PullRequestStore {
         return fatalError('PR cannot have a null base repo')
       }
 
-      const baseGitHubRepo = await upsertRepo(endpoint, pr.base.repo)
+      const baseGitHubRepo = repository.fork
+        ? repository
+        : await upsertRepo(endpoint, pr.base.repo)
 
       if (baseGitHubRepo.dbID === null) {
         return fatalError('PR cannot have a null parent database id')
@@ -377,6 +389,14 @@ export class PullRequestStore {
 
     return true
   }
+}
+
+async function fetchOpenPullRequests(
+  api: API,
+  repository: GitHubRepository
+): Promise<ReadonlyArray<IAPIPullRequest>> {
+  const { name, owner } = getNameWithOwner(repository)
+  return await api.fetchAllOpenPullRequests(owner, name)
 }
 
 function getNameWithOwner(repository: GitHubRepository) {
