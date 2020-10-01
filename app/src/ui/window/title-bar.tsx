@@ -3,7 +3,8 @@ import * as React from 'react'
 import { remote } from 'electron'
 import { WindowState } from '../../lib/window-state'
 import { WindowControls } from './window-controls'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons/octicon'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 
 interface ITitleBarProps {
   /**
