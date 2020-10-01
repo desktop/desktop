@@ -443,7 +443,7 @@ changed in both
   our    100644 94ed12c8ef668212eaa0f41d6f741a8cc444b2da app/styles/ui/changes/_changes-view.scss
   their  100644 65c5af2ea88cf23e747e2b83a4de02734e02ec5a app/styles/ui/changes/_changes-view.scss
 @@ -59,10 +59,13 @@
-       margin: var(--spacing-double);
+       margin: var(--spacer-4);
        text-align: center;
        justify-content: initial;
 +<<<<<<< .our
@@ -469,7 +469,7 @@ changed in both
 +
 +>>>>>>> .their
      &.large-diff {
-       margin: var(--spacing-double);
+       margin: var(--spacer-4);
        text-align: center;
        justify-content: initial;
 +<<<<<<< .our

@@ -20,7 +20,7 @@
   li {
     flex-shrink: 0;
     height: 29px;
-    padding: 0 var(--spacing);
+    padding: 0 var(--spacer-3);
   }
 
   // We can't replicate the nice scrollbars that we have in
@@ -90,7 +90,7 @@
   flex-grow: 1;
   height: 100%;
   min-width: 0;
-  padding: 0 var(--spacing);
+  padding: 0 var(--spacer-3);
 
   /* Used to highlight substring matches in autocompletion texts */
   mark {
@@ -112,7 +112,7 @@
       flex-shrink: 0;
       height: 20px;
       width: 20px;
-      margin-right: var(--spacing-half);
+      margin-right: var(--spacer-2);
     }
 
     .title {
@@ -130,7 +130,7 @@
     width: 100%;
 
     .number {
-      margin-right: var(--spacing-half);
+      margin-right: var(--spacer-2);
     }
 
     .title {
@@ -163,7 +163,7 @@
     .username {
       @include ellipsis;
       font-weight: var(--font-weight-semibold);
-      margin-right: var(--spacing-half);
+      margin-right: var(--spacer-2);
     }
 
     .name {

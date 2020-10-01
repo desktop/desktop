@@ -82,7 +82,7 @@
     flex-direction: row;
     align-items: center;
 
-    padding: var(--spacing);
+    padding: var(--spacer-2);
     margin: 0;
     overflow: hidden;
 
@@ -93,7 +93,7 @@
 
     .icon {
       flex-shrink: 0;
-      margin-right: var(--spacing);
+      margin-right: var(--spacer-3);
       position: relative;
     }
 
@@ -107,7 +107,7 @@
       flex-direction: column;
       flex-grow: 1;
       min-width: 0;
-      margin-right: var(--spacing);
+      margin-right: var(--spacer-3);
       position: relative;
     }
 

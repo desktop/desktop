@@ -2,10 +2,10 @@
   display: flex;
   flex-direction: column;
 
-  margin: var(--spacing-half) 0;
+  margin: var(--spacer-2) 0;
 
   & > *:not(:last-child) {
-    margin-bottom: var(--spacing);
+    margin-bottom: var(--spacer-3);
   }
 
   hr {

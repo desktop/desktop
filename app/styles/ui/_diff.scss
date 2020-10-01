@@ -29,7 +29,7 @@
 
   pre.CodeMirror-line,
   pre.CodeMirror-line-like {
-    padding: 2px 0 2px var(--spacing-half);
+    padding: 2px 0 2px var(--spacer-2);
 
     svg.no-newline {
       height: 8px;
@@ -67,9 +67,9 @@
     left: auto;
     border: var(--base-border);
     border-top: 0;
-    right: var(--spacing);
+    right: var(--spacer-3);
     border-radius: 0 0 var(--border-radius) var(--border-radius);
-    padding: var(--spacing-half) var(--spacing);
+    padding: var(--spacer-2) var(--spacer-3);
     box-shadow: var(--base-box-shadow);
 
     .CodeMirror-search-label,
@@ -141,7 +141,7 @@
 
   .diff-line-number {
     width: 50%;
-    padding: 0 var(--spacing-half);
+    padding: 0 var(--spacer-2);
   }
 
   &.diff-add,
@@ -304,11 +304,11 @@
 }
 
 #diff .panel {
-  padding-top: var(--spacing);
+  padding-top: var(--spacer-3);
 }
 
 #diff .image-header {
-  padding: var(--spacing) 0 var(--spacing-half) 0;
+  padding: var(--spacer-3) 0 var(--spacer-2) 0;
   margin-left: auto;
   margin-right: auto;
   flex-shrink: 0;
@@ -380,15 +380,15 @@
   .image-diff-two-up {
     display: flex;
     max-height: 100%;
-    padding: 0 var(--spacing-double);
+    padding: 0 var(--spacer-4);
 
     .image-diff-previous {
-      margin-right: var(--spacing-half);
-      margin-bottom: var(--spacing-half);
+      margin-right: var(--spacer-2);
+      margin-bottom: var(--spacer-2);
     }
     .image-diff-current {
-      margin-left: var(--spacing-half);
-      margin-bottom: var(--spacing-half);
+      margin-left: var(--spacer-2);
+      margin-bottom: var(--spacer-2);
     }
   }
 
@@ -443,7 +443,7 @@
 
   .sizing-container {
     margin: 0;
-    margin-bottom: var(--spacing-half);
+    margin-bottom: var(--spacer-2);
     flex: 1;
     display: flex;
     justify-content: center;
@@ -486,7 +486,7 @@
 
   .sizing-container {
     margin: 0;
-    margin-bottom: var(--spacing-half);
+    margin-bottom: var(--spacer-2);
     flex: 1;
     display: flex;
     justify-content: center;

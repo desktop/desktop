@@ -1110,7 +1110,7 @@ changed in both
 +// ***************************************************************************************************************************
 +
 +#diff .submodule-header {
-+  margin: var(--spacing-half) var(--spacing);
++  margin: var(--spacer-2) var(--spacer-3);
 +
 +  .octicon {
 +    vertical-align: text-top;
@@ -1118,11 +1118,11 @@ changed in both
 +}
 +
 +#diff .submodule-changes {
-+  margin: 0px var(--spacing-triple);
++  margin: 0px var(--spacer-5);
 +
 +  .stats {
 +    text-align: right;
-+    padding-right: var(--spacing);
++    padding-right: var(--spacer-3);
 +    box-sizing: border-box
 +  }
 +

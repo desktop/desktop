@@ -209,7 +209,7 @@ changed in both
      > .octicon {
        flex-grow: 0;
        flex-shrink: 0;
-       margin-right: var(--spacing);
+       margin-right: var(--spacer-3);
      }
 +
 +    &.dialog-warning {
@@ -233,7 +233,7 @@ changed in both
      width: 400px;
 +=======
 +    .resend-sms-link-row {
-+      margin-top: calc(var(--spacing-half) * -1);
++      margin-top: calc(var(--spacer-2) * -1);
 +    }
 +>>>>>>> .their
    }

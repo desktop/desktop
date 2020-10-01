@@ -19,7 +19,7 @@
       right: 0;
       bottom: 0;
       left: 0;
-      padding: 0 var(--spacing-double);
+      padding: 0 var(--spacer-4);
     }
 
     .release-note-graphic-left {
@@ -78,8 +78,8 @@
     max-height: 200px;
     display: flex;
     flex-direction: row;
-    padding-left: var(--spacing-triple);
-    padding-right: var(--spacing-triple);
+    padding-left: var(--spacer-5);
+    padding-right: var(--spacer-5);
     overflow-x: hidden;
     overflow-y: auto;
     justify-content: space-around;
@@ -87,10 +87,10 @@
     .column {
       flex: 1 1 275px;
       max-width: 75%;
-      margin: 0 calc(var(--spacing) * 1.5);
+      margin: 0 calc(var(--spacer-3) * 1.5);
 
       .section {
-        margin: var(--spacing-double) 0;
+        margin: var(--spacer-4) 0;
         .header {
           font-size: 12px;
           font-weight: var(--font-weight-semibold);

@@ -13,12 +13,12 @@
   .expander {
     position: absolute;
     width: 75px;
-    top: var(--spacing);
-    right: var(--spacing);
+    top: var(--spacer-3);
+    right: var(--spacer-3);
 
     svg {
       vertical-align: text-top;
-      margin-right: var(--spacing-half);
+      margin-right: var(--spacer-2);
     }
   }
 
@@ -69,14 +69,14 @@
 .commit-summary {
   &-title,
   &-meta {
-    padding: var(--spacing);
+    padding: var(--spacer-2);
   }
 
   &-title {
     font-size: var(--font-size-md);
     font-weight: var(--font-weight-semibold);
     line-height: 16px;
-    padding: var(--spacing);
+    padding: var(--spacer-2);
     word-wrap: break-word;
   }
 
@@ -113,14 +113,14 @@
     font-size: var(--font-size-sm);
     word-wrap: break-word;
     white-space: pre-line;
-    padding: var(--spacing);
+    padding: var(--spacer-2);
   }
 
   &-meta {
     display: flex;
     list-style: none;
     margin: 0;
-    padding: 0 var(--spacing) var(--spacing);
+    padding: 0 var(--spacer-2) var(--spacer-2);
   }
 
   &-meta-item:not(.without-truncation) {
@@ -132,14 +132,14 @@
     display: flex;
     flex-direction: row;
     min-width: 0;
-    margin-right: var(--spacing);
+    margin-right: var(--spacer-3);
     font-size: var(--font-size-sm);
     flex-shrink: 0;
 
     .avatar,
     .octicon {
       display: inline-block;
-      margin-right: var(--spacing-third);
+      margin-right: var(--spacer-1);
       vertical-align: bottom; // For some reason, `bottom` places the text in the middle
     }
 

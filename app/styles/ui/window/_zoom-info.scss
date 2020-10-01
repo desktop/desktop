@@ -12,7 +12,7 @@
   left: 0;
 
   & > div {
-    padding: var(--spacing);
+    padding: var(--spacer-3);
     min-width: 100px;
     background: var(--toast-notification-background-color);
     color: var(--toast-notification-color);

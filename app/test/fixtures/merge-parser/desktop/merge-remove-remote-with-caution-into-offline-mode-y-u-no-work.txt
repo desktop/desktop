@@ -274,7 +274,7 @@ changed in both
   our    100644 94b86d54fb9b0314deb1ef48cc9e1466578ed390 app/styles/ui/_dialog.scss
   their  100644 9cf3db7cc7ea8b2e7116074e23a87ebdc17fd27e app/styles/ui/_dialog.scss
 @@ -362,3 +362,12 @@
-     margin-right: var(--spacing-half);
+     margin-right: var(--spacer-2);
    }
  }
 +
@@ -283,6 +283,6 @@ changed in both
 +
 +  .octicon {
 +    fill: var(--dialog-error-color);
-+    margin-right: var(--spacing-half);
++    margin-right: var(--spacer-2);
 +  }
 +}

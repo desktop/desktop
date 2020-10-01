@@ -26,13 +26,13 @@ dialog#merge {
       border-bottom: var(--base-border);
 
       .filter-list-filter-field {
-        padding: 0 var(--spacing-double);
-        padding-bottom: var(--spacing);
+        padding: 0 var(--spacer-4);
+        padding-bottom: var(--spacer-3);
       }
     }
 
     .list-item {
-      padding: 0 var(--spacing-double);
+      padding: 0 var(--spacer-4);
 
       .filter-list-group-header,
       .branches-list-item {
@@ -45,7 +45,7 @@ dialog#merge {
     button[type='submit'] {
       height: auto;
       width: 100%;
-      padding: var(--spacing-half);
+      padding: var(--spacer-2);
     }
   }
 }
