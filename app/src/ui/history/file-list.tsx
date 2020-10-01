@@ -1,18 +1,26 @@
 import * as React from 'react'
-import { FileChange, mapStatus, iconForStatus } from '../../models/status'
+
+import { CommittedFileChange } from '../../models/status'
+
 import { PathLabel } from '../lib/path-label'
-import { Octicon } from '../octicons'
 import { List } from '../lib/list'
 
+import { Octicon, iconForStatus } from '../octicons'
+import { mapStatus } from '../../lib/status'
+
 interface IFileListProps {
-  readonly files: ReadonlyArray<FileChange>
-  readonly selectedFile: FileChange | null
-  readonly onSelectedFileChanged: (file: FileChange) => void
+  readonly files: ReadonlyArray<CommittedFileChange>
+  readonly selectedFile: CommittedFileChange | null
+  readonly onSelectedFileChanged: (file: CommittedFileChange) => void
   readonly availableWidth: number
+  readonly onContextMenu?: (event: React.MouseEvent<HTMLDivElement>) => void
 }
 
-export class FileList extends React.Component<IFileListProps, {}> {
-  private onSelectionChanged = (row: number) => {
+/**
+ * Display a list of changed files as part of a commit or stash
+ */
+export class FileList extends React.Component<IFileListProps> {
+  private onSelectedRowChanged = (row: number) => {
     const file = this.props.files[row]
     this.props.onSelectedFileChanged(file)
   }
@@ -32,10 +40,9 @@ export class FileList extends React.Component<IFileListProps, {}> {
       statusWidth
 
     return (
-      <div className="file">
+      <div className="file" onContextMenu={this.props.onContextMenu}>
         <PathLabel
           path={file.path}
-          oldPath={file.oldPath}
           status={file.status}
           availableWidth={availablePathWidth}
         />
@@ -49,7 +56,7 @@ export class FileList extends React.Component<IFileListProps, {}> {
     )
   }
 
-  private rowForFile(file: FileChange | null): number {
+  private rowForFile(file: CommittedFileChange | null): number {
     return file ? this.props.files.findIndex(f => f.path === file.path) : -1
   }
 
@@ -60,8 +67,8 @@ export class FileList extends React.Component<IFileListProps, {}> {
           rowRenderer={this.renderFile}
           rowCount={this.props.files.length}
           rowHeight={29}
-          selectedRow={this.rowForFile(this.props.selectedFile)}
-          onSelectionChanged={this.onSelectionChanged}
+          selectedRows={[this.rowForFile(this.props.selectedFile)]}
+          onSelectedRowChanged={this.onSelectedRowChanged}
         />
       </div>
     )

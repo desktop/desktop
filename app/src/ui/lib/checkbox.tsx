@@ -36,7 +36,7 @@ interface ICheckboxState {
 
 /** A checkbox component which supports the mixed value. */
 export class Checkbox extends React.Component<ICheckboxProps, ICheckboxState> {
-  private input: HTMLInputElement | null
+  private input: HTMLInputElement | null = null
 
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
     if (this.props.onChange) {

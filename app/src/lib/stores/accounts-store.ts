@@ -3,7 +3,7 @@ import { getKeyForAccount } from '../auth'
 import { Account } from '../../models/account'
 import { fetchUser, EmailVisibility } from '../api'
 import { fatalError } from '../fatal-error'
-import { BaseStore } from './base-store'
+import { TypedBaseStore } from './base-store'
 
 /** The data-only interface for storage. */
 interface IEmail {
@@ -46,7 +46,7 @@ interface IAccount {
 }
 
 /** The store for logged in accounts. */
-export class AccountsStore extends BaseStore {
+export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   private dataStore: IDataStore
   private secureStore: ISecureStore
 
@@ -75,22 +75,12 @@ export class AccountsStore extends BaseStore {
   /**
    * Add the account to the store.
    */
-  public async addAccount(account: Account): Promise<void> {
+  public async addAccount(account: Account): Promise<Account | null> {
     await this.loadingPromise
 
-    let updated = account
     try {
-      updated = await updatedAccount(account)
-    } catch (e) {
-      log.warn(`Failed to fetch user ${account.login}`, e)
-    }
-
-    try {
-      await this.secureStore.setItem(
-        getKeyForAccount(updated),
-        updated.login,
-        updated.token
-      )
+      const key = getKeyForAccount(account)
+      await this.secureStore.setItem(key, account.login, account.token)
     } catch (e) {
       log.error(`Error adding account '${account.login}'`, e)
 
@@ -103,12 +93,19 @@ export class AccountsStore extends BaseStore {
       } else {
         this.emitError(e)
       }
-      return
+      return null
     }
 
-    this.accounts = [...this.accounts, updated]
+    const accountsByEndpoint = this.accounts.reduce(
+      (map, x) => map.set(x.endpoint, x),
+      new Map<string, Account>()
+    )
+    accountsByEndpoint.set(account.endpoint, account)
+
+    this.accounts = [...accountsByEndpoint.values()]
 
     this.save()
+    return account
   }
 
   /** Refresh all accounts by fetching their latest info from the API. */
@@ -118,7 +115,7 @@ export class AccountsStore extends BaseStore {
     )
 
     this.save()
-    this.emitUpdate()
+    this.emitUpdate(this.accounts)
   }
 
   /**
@@ -158,7 +155,9 @@ export class AccountsStore extends BaseStore {
       return
     }
 
-    this.accounts = this.accounts.filter(a => a.id !== account.id)
+    this.accounts = this.accounts.filter(
+      a => !(a.endpoint === account.endpoint && a.id === account.id)
+    )
 
     this.save()
   }
@@ -197,7 +196,7 @@ export class AccountsStore extends BaseStore {
     }
 
     this.accounts = accountsWithTokens
-    this.emitUpdate()
+    this.emitUpdate(this.accounts)
   }
 
   private save() {
@@ -206,14 +205,14 @@ export class AccountsStore extends BaseStore {
     )
     this.dataStore.setItem('users', JSON.stringify(usersWithoutTokens))
 
-    this.emitUpdate()
+    this.emitUpdate(this.accounts)
   }
 }
 
 async function updatedAccount(account: Account): Promise<Account> {
   if (!account.token) {
     return fatalError(
-      `Cannot update an account which doesn't have a token: ${account}`
+      `Cannot update an account which doesn't have a token: ${account.login}`
     )
   }
 

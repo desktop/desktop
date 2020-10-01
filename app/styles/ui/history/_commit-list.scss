@@ -5,6 +5,7 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-height: 0;
 
   .commit {
     display: flex;
@@ -15,14 +16,17 @@
 
     border-bottom: var(--base-border);
 
-    padding: 0 var(--spacing);
+    // We need to give a bit more padding to the right to make place for the scrollbar
+    padding-right: calc(var(--spacing) + var(--spacing-half));
+    padding-left: var(--spacing);
 
     .info {
       display: flex;
+      flex: 1 1 auto;
       flex-direction: column;
       margin-top: -4px;
       overflow: hidden;
-      width: 100%;
+      min-width: 50px;
 
       .description {
         display: flex;
@@ -37,6 +41,88 @@
       .summary,
       .byline {
         @include ellipsis;
+      }
+    }
+
+    .commit-indicators {
+      display: flex;
+      flex-flow: nowrap row;
+      flex: 1 1 auto;
+      justify-content: flex-end;
+      margin-left: var(--spacing);
+      color: var(--list-item-badge-color);
+      height: 16px;
+      line-height: 16px;
+      max-width: 50%;
+
+      .tag-indicator {
+        display: flex;
+        flex: 0 1 auto;
+        height: 100%;
+        min-width: 0;
+
+        .tag-name {
+          flex: 1 1 auto;
+          padding: 0 var(--spacing-half);
+          border-radius: var(--border-radius);
+          background: var(--list-item-badge-background-color);
+          box-shadow: 1px 0 0 var(--background-color);
+          z-index: 3;
+          @include ellipsis;
+        }
+        .tag-indicator-more {
+          flex: 0 0 auto;
+          width: var(--spacing);
+          margin-left: -5px;
+          border-radius: 0 var(--border-radius) var(--border-radius) 0;
+          background: var(--list-item-badge-background-color);
+        }
+      }
+
+      .unpushed-indicator {
+        flex: 0 0 auto;
+        height: 100%;
+        border-radius: 8px;
+        padding: 0 var(--spacing-half);
+        background: var(--list-item-badge-background-color);
+        margin-left: var(--spacing-half);
+      }
+    }
+  }
+
+  .list-item.selected {
+    .commit {
+      .unpushed-indicator {
+        background: var(--list-item-selected-badge-background-color);
+        color: var(--list-item-selected-badge-color);
+      }
+      .tag-name {
+        background: var(--list-item-selected-badge-background-color);
+        color: var(--list-item-selected-badge-color);
+        box-shadow: 1px 0 0 var(--box-selected-background-color);
+      }
+      .tag-indicator-more {
+        background: var(--list-item-selected-badge-background-color);
+      }
+    }
+  }
+
+  .focus-within {
+    .list-item.selected {
+      .commit {
+        .unpushed-indicator {
+          background: var(--list-item-selected-active-badge-background-color);
+          color: var(--list-item-selected-active-badge-color);
+        }
+        .tag-name {
+          background: var(--list-item-selected-active-badge-background-color);
+          color: var(--list-item-selected-active-badge-color);
+          box-shadow: 1px 0 0 var(--box-selected-active-background-color);
+        }
+        .tag-indicator-more {
+          background: var(--list-item-selected-active-badge-background-color);
+          color: var(--list-item-selected-active-badge-color);
+        }
       }
     }
   }

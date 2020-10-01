@@ -1,0 +1,7 @@
+# These folders contain scripts to enhance the code coverage reports and are
+# already ignored by .gitignore, but because they live under app and script they
+# might be included when linting
+app/coverage
+script/coverage
+node_modules
+app/node_modules

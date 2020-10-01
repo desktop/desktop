@@ -1,5 +1,6 @@
 import { Commit } from './commit'
 import { removeRemotePrefix } from '../lib/remove-remote-prefix'
+import { CommitIdentity } from './commit-identity'
 
 // NOTE: The values here matter as they are used to sort
 // local and remote branches, Local should come before Remote
@@ -8,31 +9,70 @@ export enum BranchType {
   Remote = 1,
 }
 
+/** The number of commits a revision range is ahead/behind. */
+export interface IAheadBehind {
+  readonly ahead: number
+  readonly behind: number
+}
+
+/** The result of comparing two refs in a repository. */
+export interface ICompareResult extends IAheadBehind {
+  readonly commits: ReadonlyArray<Commit>
+}
+
+/** Basic data about the latest commit on the branch. */
+export interface IBranchTip {
+  readonly sha: string
+  readonly author: CommitIdentity
+}
+
+/** Default rules for where to create a branch from */
+export enum StartPoint {
+  CurrentBranch = 'CurrentBranch',
+  DefaultBranch = 'DefaultBranch',
+  Head = 'Head',
+  /** Only valid for forks */
+  UpstreamDefaultBranch = 'UpstreamDefaultBranch',
+}
+
+/**
+ * Check if a branch is eligible for being fast-forwarded.
+ *
+ * Requirements:
+ *   1. It's local.
+ *   2. It's not the current branch.
+ *   3. It has an upstream.
+ *
+ * @param branch The branch to validate
+ * @param currentBranchName The current branch in the repository
+ */
+export function eligibleForFastForward(
+  branch: Branch,
+  currentBranchName: string | null
+): boolean {
+  return (
+    branch.type === BranchType.Local &&
+    branch.name !== currentBranchName &&
+    branch.upstream != null
+  )
+}
+
 /** A branch as loaded from Git. */
 export class Branch {
-  /** The short name of the branch. E.g., `master`. */
-  public readonly name: string
-
-  /** The remote-prefixed upstream name. E.g., `origin/master`. */
-  public readonly upstream: string | null
-
-  /** The type of branch, e.g., local or remote. */
-  public readonly type: BranchType
-
-  /** The commit associated with this branch */
-  public readonly tip: Commit
-
+  /**
+   * A branch as loaded from Git.
+   *
+   * @param name The short name of the branch. E.g., `master`.
+   * @param upstream The remote-prefixed upstream name. E.g., `origin/master`.
+   * @param tip Basic information (sha and author) of the latest commit on the branch.
+   * @param type The type of branch, e.g., local or remote.
+   */
   public constructor(
-    name: string,
-    upstream: string | null,
-    tip: Commit,
-    type: BranchType
-  ) {
-    this.name = name
-    this.upstream = upstream
-    this.tip = tip
-    this.type = type
-  }
+    public readonly name: string,
+    public readonly upstream: string | null,
+    public readonly tip: IBranchTip,
+    public readonly type: BranchType
+  ) {}
 
   /** The name of the upstream's remote. */
   public get remote(): string | null {

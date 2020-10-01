@@ -3,10 +3,8 @@ import * as Fs from 'fs'
 import * as React from 'react'
 import { getAppPath } from '../lib/app-proxy'
 import { Loading } from '../lib/loading'
-import { Button } from '../lib/button'
 import { LinkButton } from '../lib/link-button'
-import { ButtonGroup } from '../lib/button-group'
-import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { Dialog, DialogContent, DefaultDialogFooter } from '../dialog'
 
 const WebsiteURL = 'https://desktop.github.com'
 const RepositoryURL = 'https://github.com/desktop/desktop'
@@ -48,14 +46,13 @@ export class Acknowledgements extends React.Component<
     const path = Path.join(getAppPath(), 'static', 'licenses.json')
     Fs.readFile(path, 'utf8', (err, data) => {
       if (err) {
-        console.error('Error loading licenses')
-        console.error(err)
+        log.error('Error loading licenses', err)
         return
       }
 
       const parsed = JSON.parse(data)
       if (!parsed) {
-        console.error(`Couldn't parse licenses!`)
+        log.warn(`Couldn't parse licenses!`)
         return
       }
 
@@ -65,9 +62,7 @@ export class Acknowledgements extends React.Component<
 
   private renderLicenses(licenses: Licenses) {
     const elements = []
-    for (const [index, key] of Object.keys(licenses)
-      .sort()
-      .entries()) {
+    for (const [index, key] of Object.keys(licenses).sort().entries()) {
       // The first entry is Desktop itself. We don't need to thank us.
       if (index === 0) {
         continue
@@ -139,11 +134,7 @@ export class Acknowledgements extends React.Component<
           {licenses ? this.renderLicenses(licenses) : <Loading />}
         </DialogContent>
 
-        <DialogFooter>
-          <ButtonGroup>
-            <Button type="submit">Close</Button>
-          </ButtonGroup>
-        </DialogFooter>
+        <DefaultDialogFooter />
       </Dialog>
     )
   }

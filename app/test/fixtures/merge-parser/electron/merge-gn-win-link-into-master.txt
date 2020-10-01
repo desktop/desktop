@@ -1,0 +1,23 @@
+changed in both
+  base   100644 7924a3df59a30ca33bd03d84022f277bc7c1032c BUILD.gn
+  our    100644 d00c4b1e3d3523641210ff20fda41d76c9eb546c BUILD.gn
+  their  100644 1e1f73e015ab8b326f05816317ad9f4589ec6ccb BUILD.gn
+@@ -329,6 +329,18 @@
+       "//ui/wm",
+     ]
+     configs += [ ":gio_unix" ]
++<<<<<<< .our
++=======
++  }
++  if (is_win) {
++    libs = [ "dwmapi.lib" ]
++  }
++  defines = [
++    # Disable warnings for g_settings_list_schemas.
++    "GLIB_DISABLE_DEPRECATION_WARNINGS",
++  ]
++  if (is_component_build) {
++>>>>>>> .their
+     defines += [
+       # Disable warnings for g_settings_list_schemas.
+       "GLIB_DISABLE_DEPRECATION_WARNINGS",

@@ -51,8 +51,8 @@
         // Positioning
         position: absolute;
         top: 0px;
-        right: 3px;
-        width: 15px;
+        right: 1px;
+        width: 12px;
 
         // Only support vertical scrolling for now
         overflow-y: auto;
@@ -62,31 +62,17 @@
   }
 }
 
-.list-item {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-
-  width: 100%;
-  height: 100%;
-
-  &.selected {
-    --text-color: var(--box-selected-text-color);
-    --text-secondary-color: var(--box-selected-text-color);
+.list-focus-container {
+  // The selected items must act as the focused element when inside
+  &.focus-within .list-item.selected {
+    --text-color: var(--box-selected-active-text-color);
+    --text-secondary-color: var(--box-selected-active-text-color);
 
     color: var(--text-color);
-    background-color: var(--box-selected-background-color);
-
-    &:focus {
-      --text-color: var(--box-selected-active-text-color);
-      --text-secondary-color: var(--box-selected-active-text-color);
-
-      color: var(--text-color);
-      background-color: var(--box-selected-active-background-color);
-    }
+    background-color: var(--box-selected-active-background-color);
   }
+}
 
-  &:focus {
-    outline: none;
-  }
+.list-item {
+  @include list-item;
 }

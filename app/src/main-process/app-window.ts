@@ -8,8 +8,7 @@ import { ILaunchStats } from '../lib/stats'
 import { menuFromElectronMenu } from '../models/app-menu'
 import { now } from './now'
 import * as path from 'path'
-
-let windowStateKeeper: any | null = null
+import windowStateKeeper from 'electron-window-state'
 
 export class AppWindow {
   private window: Electron.BrowserWindow
@@ -22,13 +21,6 @@ export class AppWindow {
   private minHeight = 660
 
   public constructor() {
-    if (!windowStateKeeper) {
-      // `electron-window-state` requires Electron's `screen` module, which can
-      // only be required after the app has emitted `ready`. So require it
-      // lazily.
-      windowStateKeeper = require('electron-window-state')
-    }
-
     const savedWindowState = windowStateKeeper({
       defaultWidth: this.minWidth,
       defaultHeight: this.minHeight,
@@ -49,8 +41,9 @@ export class AppWindow {
         // Disable auxclick event
         // See https://developers.google.com/web/updates/2016/10/auxclick
         disableBlinkFeatures: 'Auxclick',
-        // Enable, among other things, the ResizeObserver
-        experimentalFeatures: true,
+        nodeIntegration: true,
+        enableRemoteModule: true,
+        spellcheck: false,
       },
       acceptFirstMouse: true,
     }
@@ -71,7 +64,7 @@ export class AppWindow {
       quitting = true
     })
 
-    ipcMain.on('will-quit', (event: Electron.IpcMessageEvent) => {
+    ipcMain.on('will-quit', (event: Electron.IpcMainEvent) => {
       quitting = true
       event.returnValue = true
     })
@@ -85,6 +78,29 @@ export class AppWindow {
           e.preventDefault()
           Menu.sendActionToFirstResponder('hide:')
         }
+      })
+    }
+
+    if (__WIN32__) {
+      // workaround for known issue with fullscreen-ing the app and restoring
+      // is that some Chromium API reports the incorrect bounds, so that it
+      // will leave a small space at the top of the screen on every other
+      // maximize
+      //
+      // adapted from https://github.com/electron/electron/issues/12971#issuecomment-403956396
+      //
+      // can be tidied up once https://github.com/electron/electron/issues/12971
+      // has been confirmed as resolved
+      this.window.once('ready-to-show', () => {
+        this.window.on('unmaximize', () => {
+          setTimeout(() => {
+            const bounds = this.window.getBounds()
+            bounds.width += 1
+            this.window.setBounds(bounds)
+            bounds.width -= 1
+            this.window.setBounds(bounds)
+          }, 5)
+        })
       })
     }
   }
@@ -126,7 +142,7 @@ export class AppWindow {
     // TODO: This should be scoped by the window.
     ipcMain.once(
       'renderer-ready',
-      (event: Electron.IpcMessageEvent, readyTime: number) => {
+      (event: Electron.IpcMainEvent, readyTime: number) => {
         this._rendererReadyTime = readyTime
 
         this.maybeEmitDidLoad()

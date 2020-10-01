@@ -8,9 +8,13 @@ import { getDotComAPIEndpoint } from '../../lib/api'
 import { clipboard } from 'electron'
 import { showContextualMenu } from '../main-process-proxy'
 import { CommitAttribution } from '../lib/commit-attribution'
-import { IGitHubUser } from '../../lib/databases/github-user-database'
 import { AvatarStack } from '../lib/avatar-stack'
 import { IMenuItem } from '../../lib/menu-item'
+import { Octicon, OcticonSymbol } from '../octicons'
+import {
+  enableGitTagsDisplay,
+  enableGitTagsCreation,
+} from '../../lib/feature-flag'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
@@ -19,7 +23,11 @@ interface ICommitProps {
   readonly isLocal: boolean
   readonly onRevertCommit?: (commit: Commit) => void
   readonly onViewCommitOnGitHub?: (sha: string) => void
-  readonly gitHubUsers: Map<string, IGitHubUser> | null
+  readonly onCreateTag?: (targetCommitSha: string) => void
+  readonly onDeleteTag?: (tagName: string) => void
+  readonly showUnpushedIndicator: boolean
+  readonly unpushedIndicatorTitle?: string
+  readonly unpushedTags?: ReadonlyArray<string>
 }
 
 interface ICommitListItemState {
@@ -27,7 +35,7 @@ interface ICommitListItemState {
 }
 
 /** A component which displays a single commit in a commit list. */
-export class CommitListItem extends React.Component<
+export class CommitListItem extends React.PureComponent<
   ICommitProps,
   ICommitListItemState
 > {
@@ -37,7 +45,6 @@ export class CommitListItem extends React.Component<
     this.state = {
       avatarUsers: getAvatarUsersForCommit(
         props.gitHubRepository,
-        props.gitHubUsers,
         props.commit
       ),
     }
@@ -48,7 +55,6 @@ export class CommitListItem extends React.Component<
       this.setState({
         avatarUsers: getAvatarUsersForCommit(
           nextProps.gitHubRepository,
-          nextProps.gitHubUsers,
           nextProps.commit
         ),
       })
@@ -57,7 +63,9 @@ export class CommitListItem extends React.Component<
 
   public render() {
     const commit = this.props.commit
-    const author = commit.author
+    const {
+      author: { date },
+    } = commit
 
     return (
       <div className="commit" onContextMenu={this.onContextMenu}>
@@ -74,17 +82,48 @@ export class CommitListItem extends React.Component<
               <CommitAttribution
                 gitHubRepository={this.props.gitHubRepository}
                 commit={commit}
-              />{' '}
-              <RelativeTime date={author.date} />
+              />
+              {renderRelativeTime(date)}
             </div>
           </div>
         </div>
+        {this.renderCommitIndicators()}
       </div>
     )
   }
 
-  public shouldComponentUpdate(nextProps: ICommitProps): boolean {
-    return this.props.commit.sha !== nextProps.commit.sha
+  private renderCommitIndicators() {
+    const tagIndicator = enableGitTagsDisplay()
+      ? renderCommitListItemTags(this.props.commit.tags)
+      : null
+
+    const unpushedIndicator = this.renderUnpushedIndicator()
+
+    if (tagIndicator || unpushedIndicator) {
+      return (
+        <div className="commit-indicators">
+          {tagIndicator}
+          {unpushedIndicator}
+        </div>
+      )
+    }
+
+    return null
+  }
+
+  private renderUnpushedIndicator() {
+    if (!this.props.showUnpushedIndicator) {
+      return null
+    }
+
+    return (
+      <div
+        className="unpushed-indicator"
+        title={this.props.unpushedIndicatorTitle}
+      >
+        <Octicon symbol={OcticonSymbol.arrowUp} />
+      </div>
+    )
   }
 
   private onCopySHA = () => {
@@ -94,6 +133,12 @@ export class CommitListItem extends React.Component<
   private onViewOnGitHub = () => {
     if (this.props.onViewCommitOnGitHub) {
       this.props.onViewCommitOnGitHub(this.props.commit.sha)
+    }
+  }
+
+  private onCreateTag = () => {
+    if (this.props.onCreateTag) {
+      this.props.onCreateTag(this.props.commit.sha)
     }
   }
 
@@ -112,13 +157,36 @@ export class CommitListItem extends React.Component<
 
     const items: IMenuItem[] = [
       {
-        label: __DARWIN__ ? 'Revert This Commit' : 'Revert this commit',
+        label: __DARWIN__ ? 'Revert this Commit' : 'Revert this commit',
         action: () => {
           if (this.props.onRevertCommit) {
             this.props.onRevertCommit(this.props.commit)
           }
         },
+        enabled: this.props.onRevertCommit !== undefined,
       },
+    ]
+
+    if (enableGitTagsCreation()) {
+      items.push({
+        label: 'Create Tag…',
+        action: this.onCreateTag,
+        enabled: this.props.onCreateTag !== undefined,
+      })
+
+      const deleteTagsMenuItem = this.getDeleteTagsMenuItem()
+
+      if (deleteTagsMenuItem !== null) {
+        items.push(
+          {
+            type: 'separator',
+          },
+          deleteTagsMenuItem
+        )
+      }
+    }
+
+    items.push(
       { type: 'separator' },
       {
         label: 'Copy SHA',
@@ -128,9 +196,71 @@ export class CommitListItem extends React.Component<
         label: viewOnGitHubLabel,
         action: this.onViewOnGitHub,
         enabled: !this.props.isLocal && !!gitHubRepository,
-      },
-    ]
+      }
+    )
 
     showContextualMenu(items)
   }
+
+  private getDeleteTagsMenuItem(): IMenuItem | null {
+    const { unpushedTags, onDeleteTag, commit } = this.props
+
+    if (
+      onDeleteTag === undefined ||
+      unpushedTags === undefined ||
+      commit.tags.length === 0
+    ) {
+      return null
+    }
+
+    if (commit.tags.length === 1) {
+      const tagName = commit.tags[0]
+
+      return {
+        label: `Delete tag ${tagName}`,
+        action: () => onDeleteTag(tagName),
+        enabled: unpushedTags.includes(tagName),
+      }
+    }
+
+    // Convert tags to a Set to avoid O(n^2)
+    const unpushedTagsSet = new Set(unpushedTags)
+
+    return {
+      label: 'Delete tag…',
+      submenu: commit.tags.map(tagName => {
+        return {
+          label: tagName,
+          action: () => onDeleteTag(tagName),
+          enabled: unpushedTagsSet.has(tagName),
+        }
+      }),
+    }
+  }
+}
+
+function renderRelativeTime(date: Date) {
+  return (
+    <>
+      {` • `}
+      <RelativeTime date={date} abbreviate={true} />
+    </>
+  )
+}
+
+function renderCommitListItemTags(tags: ReadonlyArray<string>) {
+  if (tags.length === 0) {
+    return null
+  }
+  const [firstTag] = tags
+  return (
+    <span className="tag-indicator">
+      <span className="tag-name" key={firstTag}>
+        {firstTag}
+      </span>
+      {tags.length > 1 && (
+        <span key={tags.length} className="tag-indicator-more" />
+      )}
+    </span>
+  )
 }

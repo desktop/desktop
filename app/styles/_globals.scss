@@ -68,6 +68,12 @@ body {
   }
 }
 
+.selectable-text {
+  -webkit-user-select: text;
+  user-select: text;
+  cursor: auto;
+}
+
 img {
   -webkit-user-drag: none;
   user-select: none;
@@ -115,6 +121,7 @@ button {
   align-items: center;
   justify-content: center;
   text-align: center;
+  padding: var(--spacing);
 }
 
 // Stretches an element to fill the entire window (such as an overlay)
@@ -144,7 +151,8 @@ button {
 
 // http://stackoverflow.com/questions/7538771/what-is-webkit-focus-ring-color
 :focus {
-  outline: auto 5px var(--focus-color);
+  outline: auto;
+  outline-color: var(--focus-color);
 }
 .more-dropdown {
   color: var(--text-color) !important;
@@ -158,4 +166,23 @@ button {
 
 .brutalism {
   background: salmon;
+}
+
+kbd {
+  border-radius: var(--border-radius);
+  border: var(--base-border);
+
+  display: inline-block;
+
+  padding: 1px 2px;
+  line-height: 1;
+  min-height: 16px;
+
+  font-family: var(--font-family);
+  text-align: center;
+  min-width: 1.5em;
+
+  &:not(:last-child) {
+    margin-right: 2px;
+  }
 }

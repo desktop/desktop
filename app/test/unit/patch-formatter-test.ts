@@ -1,15 +1,11 @@
-/* eslint-disable no-sync */
-
-import { expect } from 'chai'
-
 import * as Path from 'path'
-import * as FS from 'fs'
+import * as FSE from 'fs-extra'
 
 import { Repository } from '../../src/models/repository'
 import {
   WorkingDirectoryFileChange,
   FileChange,
-  AppFileStatus,
+  AppFileStatusKind,
 } from '../../src/models/status'
 import {
   DiffSelection,
@@ -26,18 +22,20 @@ async function parseDiff(diff: string): Promise<ITextDiff> {
   const parser = new DiffParser()
   const rawDiff = parser.parse(diff)
   const repository = new Repository('', -1, null, false)
-  const fileChange = new FileChange('file.txt', AppFileStatus.Modified)
+  const fileChange = new FileChange('file.txt', {
+    kind: AppFileStatusKind.Modified,
+  })
   const output = await convertDiff(repository, fileChange, rawDiff, 'HEAD')
   expect(output.kind === DiffType.Text)
   return output as ITextDiff
 }
 
 describe('patch formatting', () => {
-  let repository: Repository | null = null
+  let repository: Repository
 
   describe('formatPatchesForModifiedFile', () => {
-    beforeEach(() => {
-      const testRepoPath = setupFixtureRepository('repo-with-changes')
+    beforeEach(async () => {
+      const testRepoPath = await setupFixtureRepository('repo-with-changes')
       repository = new Repository(testRepoPath, -1, null, false)
     })
 
@@ -49,11 +47,11 @@ describe('patch formatting', () => {
       )
       const file = new WorkingDirectoryFileChange(
         modifiedFile,
-        AppFileStatus.Modified,
+        { kind: AppFileStatusKind.Modified },
         unselectedFile
       )
 
-      const diff = await getWorkingDirectoryDiff(repository!, file)
+      const diff = await getWorkingDirectoryDiff(repository, file)
 
       expect(diff.kind === DiffType.Text)
 
@@ -70,15 +68,15 @@ describe('patch formatting', () => {
 
       const updatedFile = new WorkingDirectoryFileChange(
         modifiedFile,
-        AppFileStatus.Modified,
+        { kind: AppFileStatusKind.Modified },
         selection
       )
 
       const patch = formatPatch(updatedFile, textDiff)
 
-      expect(patch).to.have.string('--- a/modified-file.md\n')
-      expect(patch).to.have.string('+++ b/modified-file.md\n')
-      expect(patch).to.have.string('@@ -4,10 +4,6 @@')
+      expect(patch).toContain('--- a/modified-file.md\n')
+      expect(patch).toContain('+++ b/modified-file.md\n')
+      expect(patch).toContain('@@ -4,10 +4,6 @@')
     })
 
     it('creates right patch when second hunk is selected', async () => {
@@ -88,11 +86,11 @@ describe('patch formatting', () => {
       )
       const file = new WorkingDirectoryFileChange(
         modifiedFile,
-        AppFileStatus.Modified,
+        { kind: AppFileStatusKind.Modified },
         unselectedFile
       )
 
-      const diff = await getWorkingDirectoryDiff(repository!, file)
+      const diff = await getWorkingDirectoryDiff(repository, file)
 
       expect(diff.kind === DiffType.Text)
 
@@ -109,15 +107,15 @@ describe('patch formatting', () => {
 
       const updatedFile = new WorkingDirectoryFileChange(
         modifiedFile,
-        AppFileStatus.Modified,
+        { kind: AppFileStatusKind.Modified },
         selection
       )
 
       const patch = formatPatch(updatedFile, textDiff)
 
-      expect(patch).to.have.string('--- a/modified-file.md\n')
-      expect(patch).to.have.string('+++ b/modified-file.md\n')
-      expect(patch).to.have.string('@@ -21,6 +17,10 @@')
+      expect(patch).toContain('--- a/modified-file.md\n')
+      expect(patch).toContain('+++ b/modified-file.md\n')
+      expect(patch).toContain('@@ -21,6 +17,10 @@')
     })
 
     it('creates right patch when first and third hunk is selected', async () => {
@@ -128,11 +126,11 @@ describe('patch formatting', () => {
       )
       const file = new WorkingDirectoryFileChange(
         modifiedFile,
-        AppFileStatus.Modified,
+        { kind: AppFileStatusKind.Modified },
         unselectedFile
       )
 
-      const diff = await getWorkingDirectoryDiff(repository!, file)
+      const diff = await getWorkingDirectoryDiff(repository, file)
 
       expect(diff.kind === DiffType.Text)
 
@@ -148,31 +146,31 @@ describe('patch formatting', () => {
       )
       const updatedFile = new WorkingDirectoryFileChange(
         modifiedFile,
-        AppFileStatus.Modified,
+        { kind: AppFileStatusKind.Modified },
         selection
       )
 
       const patch = formatPatch(updatedFile, textDiff)
 
-      expect(patch).to.have.string('--- a/modified-file.md\n')
-      expect(patch).to.have.string('+++ b/modified-file.md\n')
-      expect(patch).to.have.string('@@ -31,3 +31,8 @@')
+      expect(patch).toContain('--- a/modified-file.md\n')
+      expect(patch).toContain('+++ b/modified-file.md\n')
+      expect(patch).toContain('@@ -31,3 +31,8 @@')
     })
 
     it(`creates the right patch when an addition is selected but preceding deletions aren't`, async () => {
       const modifiedFile = 'modified-file.md'
-      FS.writeFileSync(Path.join(repository!.path, modifiedFile), 'line 1\n')
+      await FSE.writeFile(Path.join(repository.path, modifiedFile), 'line 1\n')
 
       const unselectedFile = DiffSelection.fromInitialSelection(
         DiffSelectionType.None
       )
       const file = new WorkingDirectoryFileChange(
         modifiedFile,
-        AppFileStatus.Modified,
+        { kind: AppFileStatusKind.Modified },
         unselectedFile
       )
 
-      const diff = await getWorkingDirectoryDiff(repository!, file)
+      const diff = await getWorkingDirectoryDiff(repository, file)
 
       expect(diff.kind === DiffType.Text)
 
@@ -191,7 +189,7 @@ describe('patch formatting', () => {
 
       const updatedFile = new WorkingDirectoryFileChange(
         modifiedFile,
-        AppFileStatus.Modified,
+        { kind: AppFileStatusKind.Modified },
         selection
       )
 
@@ -234,7 +232,7 @@ describe('patch formatting', () => {
   urna, ac porta justo leo sed magna.
 +line 1
 `
-      expect(patch).to.equal(expectedPatch)
+      expect(patch).toBe(expectedPatch)
     })
 
     it("doesn't include unselected added lines as context", async () => {
@@ -257,12 +255,12 @@ describe('patch formatting', () => {
 
       const file = new WorkingDirectoryFileChange(
         'file.md',
-        AppFileStatus.Modified,
+        { kind: AppFileStatusKind.Modified },
         selection
       )
       const patch = formatPatch(file, diff)
 
-      expect(patch).to.equal(`--- a/file.md
+      expect(patch).toBe(`--- a/file.md
 +++ b/file.md
 @@ -10,2 +10,3 @@
  context
@@ -288,13 +286,13 @@ describe('patch formatting', () => {
 
       const file = new WorkingDirectoryFileChange(
         'file.md',
-        AppFileStatus.New,
+        { kind: AppFileStatusKind.New },
         selection
       )
       const patch = formatPatch(file, diff)
 
-      expect(patch).to.have.string('@@ -0,0 +1 @@')
-      expect(patch).to.have.string('+added line 2')
+      expect(patch).toContain('@@ -0,0 +1 @@')
+      expect(patch).toContain('+added line 2')
     })
 
     it('includes empty context lines', async () => {
@@ -314,14 +312,14 @@ describe('patch formatting', () => {
 
       const file = new WorkingDirectoryFileChange(
         'file.md',
-        AppFileStatus.Modified,
+        { kind: AppFileStatusKind.Modified },
         selection
       )
       const patch = formatPatch(file, diff)
 
-      expect(patch).to.have.string('@@ -1 +1,2 @@')
-      expect(patch).to.have.string(' ')
-      expect(patch).to.have.string('+added line 2')
+      expect(patch).toContain('@@ -1 +1,2 @@')
+      expect(patch).toContain(' ')
+      expect(patch).toContain('+added line 2')
     })
 
     it('creates the right patch when a `No newline` marker is involved', async () => {
@@ -347,14 +345,14 @@ describe('patch formatting', () => {
 
       const file = new WorkingDirectoryFileChange(
         'file.md',
-        AppFileStatus.Modified,
+        { kind: AppFileStatusKind.Modified },
         selection
       )
 
       const patch = formatPatch(file, diff)
 
-      expect(patch).to.contain('\\ No newline at end of file')
-      expect(patch).to.contain('+it could be')
+      expect(patch).toContain('\\ No newline at end of file')
+      expect(patch).toContain('+it could be')
     })
   })
 })

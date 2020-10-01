@@ -10,12 +10,19 @@
     }
   }
 
+  .toolbar-dropdown.open > .toolbar-button > button {
+    background-color: var(--app-menu-button-active-background-color);
+    color: var(--app-menu-button-active-color);
+  }
+
   .toolbar-dropdown:not(.open) > .toolbar-button > button {
-    color: var(--toolbar-button-secondary-color);
+    color: var(--app-menu-button-color);
+    background: transparent;
 
     &:hover,
     &:focus {
-      color: var(--toolbar-button-color);
+      color: var(--app-menu-button-hover-color);
+      background: var(--app-menu-button-hover-background-color);
     }
   }
 
@@ -39,8 +46,25 @@
     pointer-events: none;
 
     .menu-pane {
+      --background-color: var(--app-menu-pane-background-color);
       background: var(--background-color);
+
+      --text-color: var(--app-menu-pane-color);
+      color: var(--text-color);
+
+      --text-secondary-color: var(--app-menu-pane-secondary-color);
+
       pointer-events: all;
+    }
+
+    .menu-item:hover {
+      &:not(.disabled) {
+        --text-color: var(--box-selected-active-text-color);
+        --text-secondary-color: var(--box-selected-active-text-color);
+
+        color: var(--text-color);
+        background-color: var(--box-selected-active-background-color);
+      }
     }
   }
 }

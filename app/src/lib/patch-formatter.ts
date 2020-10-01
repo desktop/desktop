@@ -1,6 +1,6 @@
 import { assertNever } from '../lib/fatal-error'
-import { WorkingDirectoryFileChange, AppFileStatus } from '../models/status'
-import { DiffLineType, ITextDiff } from '../models/diff'
+import { WorkingDirectoryFileChange, AppFileStatusKind } from '../models/status'
+import { DiffLineType, ITextDiff, DiffSelection } from '../models/diff'
 
 /**
  * Generates a string matching the format of a GNU unified diff header excluding
@@ -36,24 +36,31 @@ function formatPatchHeader(from: string | null, to: string | null): string {
  * on the file state of the given WorkingDirectoryFileChange
  */
 function formatPatchHeaderForFile(file: WorkingDirectoryFileChange) {
-  switch (file.status) {
-    case AppFileStatus.New:
+  switch (file.status.kind) {
+    case AppFileStatusKind.New:
+    case AppFileStatusKind.Untracked:
       return formatPatchHeader(null, file.path)
 
-    case AppFileStatus.Conflicted:
     // One might initially believe that renamed files should diff
     // against their old path. This is, after all, how git diff
     // does it right after a rename. But if we're creating a patch
     // to be applied along with a rename we must target the renamed
     // file.
-    case AppFileStatus.Renamed:
-    case AppFileStatus.Deleted:
-    case AppFileStatus.Modified:
-    case AppFileStatus.Copied:
+    case AppFileStatusKind.Renamed:
+    case AppFileStatusKind.Deleted:
+    case AppFileStatusKind.Modified:
+    case AppFileStatusKind.Copied:
+    // We should not have the ability to format a file that's marked as
+    // conflicted without more information about it's current state.
+    // I'd like to get to a point where `WorkingDirectoryFileChange` can be
+    // differentiated between ordinary, renamed/copied and unmerged entries
+    // and we can then verify the conflicted file is in a known good state but
+    // that work needs to be done waaaaaaaay before we get to this point.
+    case AppFileStatusKind.Conflicted:
       return formatPatchHeader(file.path, file.path)
+    default:
+      return assertNever(file.status, `Unknown file status ${file.status}`)
   }
-
-  return assertNever(file.status, `Unknown file status ${file.status}`)
 }
 
 /**
@@ -162,7 +169,10 @@ export function formatPatch(
         // partial patch. If the user has elected not to commit a particular
         // addition we need to generate a patch that pretends that the line
         // never existed.
-        if (file.status === AppFileStatus.New) {
+        if (
+          file.status.kind === AppFileStatusKind.New ||
+          file.status.kind === AppFileStatusKind.Untracked
+        ) {
           return
         }
 
@@ -207,12 +217,114 @@ export function formatPatch(
   // If we get into this state we should never have been called in the first
   // place. Someone gave us a faulty diff and/or faulty selection state.
   if (!patch.length) {
-    throw new Error(
-      `Could not generate a patch for file ${file.path}, patch empty`
-    )
+    log.debug(`formatPatch: empty path for ${file.path}`)
+    throw new Error(`Could not generate a patch, no changes`)
   }
 
   patch = formatPatchHeaderForFile(file) + patch
 
   return patch
+}
+
+/**
+ * Creates a GNU unified diff to discard a set of changes (determined by the selection object)
+ * based on the passed diff and a number of selected or unselected lines.
+ *
+ * The patch is formatted with the intention of being used for applying against an index
+ * with git apply.
+ *
+ * Note that the diff must have at least one selected addition or deletion.
+ *
+ * This method is the opposite of formatPatch(). TODO: share logic between the two methods.
+ *
+ * @param filePath    The path of the file that the resulting patch will be applied to.
+ *                    This is used to determine the from and to paths for the
+ *                    patch header.
+ * @param diff        All the local changes for that file.
+ * @param selecction  A selection of lines from the diff object that we want to discard.
+ */
+export function formatPatchToDiscardChanges(
+  filePath: string,
+  diff: ITextDiff,
+  selection: DiffSelection
+): string | null {
+  let patch = ''
+
+  diff.hunks.forEach((hunk, hunkIndex) => {
+    let hunkBuf = ''
+
+    let oldCount = 0
+    let newCount = 0
+
+    let anyAdditionsOrDeletions = false
+
+    hunk.lines.forEach((line, lineIndex) => {
+      const absoluteIndex = hunk.unifiedDiffStart + lineIndex
+
+      // We write our own hunk headers
+      if (line.type === DiffLineType.Hunk) {
+        return
+      }
+
+      // Context lines can always be let through, they will
+      // never appear for new files.
+      if (line.type === DiffLineType.Context) {
+        hunkBuf += `${line.text}\n`
+        oldCount++
+        newCount++
+      } else if (selection.isSelected(absoluteIndex)) {
+        // Reverse the change (if it was an added line, treat it as removed and vice versa).
+        if (line.type === DiffLineType.Add) {
+          hunkBuf += `-${line.text.substr(1)}\n`
+          newCount++
+        } else if (line.type === DiffLineType.Delete) {
+          hunkBuf += `+${line.text.substr(1)}\n`
+          oldCount++
+        } else {
+          assertNever(line.type, `Unsupported line type ${line.type}`)
+        }
+
+        anyAdditionsOrDeletions = true
+      } else {
+        if (line.type === DiffLineType.Add) {
+          // An unselected added line will stay in the file after discarding the changes,
+          // so we just print it untouched on the diff.
+          oldCount++
+          newCount++
+          hunkBuf += ` ${line.text.substr(1)}\n`
+        } else if (line.type === DiffLineType.Delete) {
+          // An unselected removed line has no impact on this patch since it's not
+          // found on the current working copy of the file, so we can ignore it.
+          return
+        } else {
+          // Guarantee that we've covered all the line types.
+          assertNever(line.type, `Unsupported line type ${line.type}`)
+        }
+      }
+
+      if (line.noTrailingNewLine) {
+        hunkBuf += '\\ No newline at end of file\n'
+      }
+    })
+
+    // Skip writing this hunk if all there is is context lines.
+    if (!anyAdditionsOrDeletions) {
+      return
+    }
+
+    patch += formatHunkHeader(
+      hunk.header.newStartLine,
+      newCount,
+      hunk.header.oldStartLine,
+      oldCount
+    )
+    patch += hunkBuf
+  })
+
+  if (patch.length === 0) {
+    // The selection resulted in an empty patch.
+    return null
+  }
+
+  return formatPatchHeader(filePath, filePath) + patch
 }

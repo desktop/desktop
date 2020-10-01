@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import {
   parsePorcelainStatus,
   IStatusEntry,
@@ -16,19 +14,19 @@ describe('parsePorcelainStatus', () => {
       ].join('\0') + '\0'
     ) as ReadonlyArray<IStatusEntry>
 
-    expect(entries.length).to.equal(3)
+    expect(entries).toHaveLength(3)
 
     let i = 0
-    expect(entries[i].statusCode).to.equal('.D')
-    expect(entries[i].path).to.equal('deleted')
+    expect(entries[i].statusCode).toBe('.D')
+    expect(entries[i].path).toBe('deleted')
     i++
 
-    expect(entries[i].statusCode).to.equal('.M')
-    expect(entries[i].path).to.equal('modified')
+    expect(entries[i].statusCode).toBe('.M')
+    expect(entries[i].path).toBe('modified')
     i++
 
-    expect(entries[i].statusCode).to.equal('??')
-    expect(entries[i].path).to.equal('untracked')
+    expect(entries[i].statusCode).toBe('??')
+    expect(entries[i].path).toBe('untracked')
   })
 
   it('parses renames', () => {
@@ -39,18 +37,18 @@ describe('parsePorcelainStatus', () => {
       ].join('\0') + '\0'
     ) as ReadonlyArray<IStatusEntry>
 
-    expect(entries.length).to.equal(2)
+    expect(entries).toHaveLength(2)
 
     let i = 0
 
-    expect(entries[i].statusCode).to.equal('R.')
-    expect(entries[i].path).to.equal('new')
-    expect(entries[i].oldPath).to.equal('old')
+    expect(entries[i].statusCode).toBe('R.')
+    expect(entries[i].path).toBe('new')
+    expect(entries[i].oldPath).toBe('old')
     i++
 
-    expect(entries[i].statusCode).to.equal('RM')
-    expect(entries[i].path).to.equal('to')
-    expect(entries[i].oldPath).to.equal('from')
+    expect(entries[i].statusCode).toBe('RM')
+    expect(entries[i].path).toBe('to')
+    expect(entries[i].oldPath).toBe('from')
   })
 
   it('ignores ignored files', () => {
@@ -61,7 +59,7 @@ describe('parsePorcelainStatus', () => {
       ['! foo'].join('\0') + '\0'
     ) as ReadonlyArray<IStatusEntry>
 
-    expect(entries.length).to.equal(0)
+    expect(entries).toHaveLength(0)
   })
 
   it('parses status headers', () => {
@@ -77,16 +75,16 @@ describe('parsePorcelainStatus', () => {
       ].join('\0') + '\0'
     ) as ReadonlyArray<IStatusHeader>
 
-    expect(entries.length).to.equal(4)
+    expect(entries).toHaveLength(4)
 
     let i = 0
 
-    expect(entries[i++].value).to.equal(
+    expect(entries[i++].value).toBe(
       'branch.oid 2de0487c2d3e977f5f560b746833f9d7f9a054fd'
     )
-    expect(entries[i++].value).to.equal('branch.head master')
-    expect(entries[i++].value).to.equal('branch.upstream origin/master')
-    expect(entries[i++].value).to.equal('branch.ab +1 -0')
+    expect(entries[i++].value).toBe('branch.head master')
+    expect(entries[i++].value).toBe('branch.upstream origin/master')
+    expect(entries[i++].value).toBe('branch.ab +1 -0')
   })
 
   it('parses a path which includes a newline', () => {
@@ -94,12 +92,12 @@ describe('parsePorcelainStatus', () => {
       /.DS_Store`
     const entries = parsePorcelainStatus(x) as ReadonlyArray<IStatusEntry>
 
-    expect(entries.length).to.equal(1)
+    expect(entries).toHaveLength(1)
 
-    expect(entries[0].path).to
-      .equal(`ProjectSID/Images.xcassets/iPhone 67/Status Center/Report X68 Y461
+    expect(entries[0].path)
+      .toBe(`ProjectSID/Images.xcassets/iPhone 67/Status Center/Report X68 Y461
       /.DS_Store`)
-    expect(entries[0].statusCode).to.equal('D.')
+    expect(entries[0].statusCode).toBe('D.')
   })
 
   it('parses a typechange', () => {
@@ -107,9 +105,9 @@ describe('parsePorcelainStatus', () => {
       '1 .T N... 120000 120000 100755 6165716e8b408ad09b51d1a37aa1ef50e7f84376 6165716e8b408ad09b51d1a37aa1ef50e7f84376 pdf_linux-x64/lib/libQt5Core.so.5'
     const entries = parsePorcelainStatus(x) as ReadonlyArray<IStatusEntry>
 
-    expect(entries.length).to.equal(1)
+    expect(entries).toHaveLength(1)
 
-    expect(entries[0].path).to.equal('pdf_linux-x64/lib/libQt5Core.so.5')
-    expect(entries[0].statusCode).to.equal('.T')
+    expect(entries[0].path).toBe('pdf_linux-x64/lib/libQt5Core.so.5')
+    expect(entries[0].statusCode).toBe('.T')
   })
 })

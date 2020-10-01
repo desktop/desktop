@@ -1,4 +1,7 @@
+@import '../mixins';
+
 .button-component {
+  @include ellipsis;
   // Chrome on Windows ignores the body element
   // font-family and uses Arial so we redefine
   // it here
@@ -33,9 +36,14 @@
   .octicon {
     vertical-align: middle;
   }
+
+  &.button-with-icon .octicon {
+    margin-left: var(--spacing);
+  }
 }
 
-.button-component[type='submit'] {
+.button-component[type='submit'],
+.button-component-primary {
   background-color: var(--button-background);
   color: var(--button-text-color);
   border: 1px solid var(--button-background);
@@ -79,4 +87,38 @@
   font-size: var(--font-size-sm);
   padding: 0 var(--spacing-half);
   height: 21px;
+}
+
+.button-group-item {
+  border-right-width: 0;
+  border-radius: 0;
+
+  &:first-child {
+    border-top-left-radius: var(--button-border-radius);
+    border-bottom-left-radius: var(--button-border-radius);
+  }
+
+  &:last-child {
+    border-right-width: 1px;
+    border-top-right-radius: var(--button-border-radius);
+    border-bottom-right-radius: var(--button-border-radius);
+  }
+
+  &.selected,
+  &:focus,
+  &:active,
+  &:hover {
+    border-right-width: 1px;
+
+    + .button-group-item {
+      border-left-width: 0;
+    }
+  }
+}
+
+.button-group-item {
+  &:focus,
+  &:active {
+    z-index: 1;
+  }
 }

@@ -26,7 +26,7 @@
   }
 
   &.menu-pane-file {
-    width: 200px;
+    width: 205px;
   }
 
   // Open panes (except the first one) should have a border on their
@@ -116,6 +116,6 @@
     width: 100%;
     border: none;
     height: 1px;
-    border-bottom: var(--base-border);
+    border-bottom: 1px solid var(--app-menu-divider-color);
   }
 }

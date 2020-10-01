@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
 import { clamp } from '../../lib/clamp'
@@ -160,9 +160,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, {}> {
           className="progress"
           style={{ transform: `scaleX(${progressValue})` }}
         />
-      ) : (
-        undefined
-      )
+      ) : undefined
 
     return (
       <div

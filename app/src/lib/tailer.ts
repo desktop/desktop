@@ -1,4 +1,4 @@
-import * as Fs from 'fs-extra'
+import * as Fs from 'fs'
 import { Emitter, Disposable } from 'event-kit'
 
 interface ICurrentFileTailState {
@@ -32,21 +32,34 @@ export class Tailer {
   }
 
   /**
+   * Register a function to be called whenever an error is reported by the underlying
+   * filesystem watcher.
+   */
+  public onError(fn: (error: Error) => void): Disposable {
+    return this.emitter.on('error', fn)
+  }
+
+  private handleError(error: Error) {
+    this.state = null
+    this.emitter.emit('error', error)
+  }
+
+  /**
    * Start tailing the file. This can only be called again after calling `stop`.
    */
   public start() {
     if (this.state) {
-      throw new Error(
-        `Cannot start an already started Tailer for "${this.path}"!`
-      )
+      throw new Error(`Tailer already running`)
     }
 
     try {
       const watcher = Fs.watch(this.path, this.onWatchEvent)
+      watcher.on('error', error => {
+        this.handleError(error)
+      })
       this.state = { watcher, position: 0 }
-    } catch (e) {
-      log.debug(`unable to watch path: ${this.path}`, e)
-      this.state = null
+    } catch (error) {
+      this.handleError(error)
     }
   }
 

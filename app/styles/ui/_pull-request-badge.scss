@@ -1,9 +1,9 @@
 .toolbar-dropdown.open .pr-badge {
-  background: $gray-200;
+  background: var(--toolbar-badge-active-background-color);
 }
 
 .toolbar-dropdown:not(.open) .pr-badge {
-  background: $gray-700;
+  background: var(--toolbar-badge-background-color);
 }
 
 .pr-badge {
@@ -12,6 +12,16 @@
   display: flex;
   flex-direction: row;
   height: var(--height);
+
+  // This is necessary for our absolutely positioned progress bar to work.
+  // We position the toolbar button container relatively so that we can
+  // position the progress bar absolutely in relation to the container.
+  // We then explicitly position all child elements of the container
+  // relatively in order for the progress bar not to position itself
+  // above all the other content.
+  //
+  // See toolbar/_button.scss
+  position: relative;
 
   align-items: center;
 

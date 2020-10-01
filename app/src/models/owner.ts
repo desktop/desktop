@@ -1,18 +1,13 @@
 /** The owner of a GitHubRepository. */
 export class Owner {
   /**
-   * The database ID. This may be null if the object wasn't retrieved from the
-   * database.
+   * @param id The database ID. This may be null if the object wasn't retrieved from the database.
    */
-  public readonly id: number | null
-  public readonly login: string
-  public readonly endpoint: string
-
-  public constructor(login: string, endpoint: string, id: number | null) {
-    this.login = login
-    this.endpoint = endpoint
-    this.id = id
-  }
+  public constructor(
+    public readonly login: string,
+    public readonly endpoint: string,
+    public readonly id: number | null
+  ) {}
 
   /**
    * A hash of the properties of the object.

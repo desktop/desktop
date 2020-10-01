@@ -1,0 +1,141 @@
+changed in both
+  base   100644 3086dbd7b532f99ec2f892b434c4e8662039f845 extensions/emmet/package.json
+  our    100644 d9be62f74d1063d961b7895eab86495b34482691 extensions/emmet/package.json
+  their  100644 866c77d69c8ebc5e521188fad65e089765cc47c4 extensions/emmet/package.json
+@@ -87,6 +87,7 @@
+                     "type": "boolean",
+                     "default": false,
+                     "description": "%emmetTriggerExpansionOnTab%"
++<<<<<<< .our
+                 },
+                 "emmet.preferences": {
+                     "type": "object",
+@@ -216,6 +217,8 @@
+                     "type": "boolean",
+                     "default": true,
+                     "markdownDescription": "%emmetOptimizeStylesheetParsing%"
++=======
++>>>>>>> .their
+                 }
+             }
+         },
+changed in both
+  base   100644 5a21d5bc4790ef86ab1e71cb5bf337a469ab3263 extensions/emmet/package.nls.json
+  our    100644 3f3bf912fd84e40ee4fbf65592c9123e2f4d160a extensions/emmet/package.nls.json
+  their  100644 cafd59328708f3a4d33f9f213864c80eb69aeec3 extensions/emmet/package.nls.json
+@@ -24,6 +24,7 @@
+ 	"command.incrementNumberByTen": "Increment by 10",
+ 	"command.decrementNumberByTen": "Decrement by 10",
+ 	"emmetSyntaxProfiles": "Define profile for specified syntax or use your own profile with specific rules.",
++<<<<<<< .our
+ 	"emmetExclude": "An array of languages where Emmet abbreviations should not be expanded.",
+ 	"emmetExtensionsPath": "Path to a folder containing Emmet profiles and snippets.",
+ 	"emmetShowExpandedAbbreviation": "Shows expanded Emmet abbreviations as suggestions.\nThe option `\"inMarkupAndStylesheetFilesOnly\"` applies to html, haml, jade, slim, xml, xsl, css, scss, sass, less and stylus.\nThe option `\"always\"` applies to all parts of the file regardless of markup/css.",
+@@ -56,3 +57,13 @@
+ 	"emmetPreferencesCssFuzzySearchMinScore": "The minimum score (from 0 to 1) that fuzzy-matched abbreviation should achieve. Lower values may produce many false-positive matches, higher values may reduce possible matches.",
+ 	"emmetOptimizeStylesheetParsing": "When set to `false`, the whole file is parsed to determine if current position is valid for expanding Emmet abbreviations. When set to `true`, only the content around the current position in css/scss/less files is parsed."
+ }
++=======
++	"emmetExclude": "An array of languages where emmet abbreviations should not be expanded.",
++	"emmetExtensionsPath": "Path to a folder containing emmet profiles and snippets.'",
++	"emmetShowExpandedAbbreviation": "Shows expanded emmet abbreviations as suggestions.\nThe option \"inMarkupAndStylesheetFilesOnly\" applies to html, haml, jade, slim, xml, xsl, css, scss, sass, less and stylus.\nThe option \"always\" applies to all parts of the file regardless of markup/css.",
++	"emmetShowAbbreviationSuggestions": "Shows possible emmet abbreviations as suggestions. Not applicable in stylesheets or when emmet.showExpandedAbbreviation is set to \"never\".",
++	"emmetIncludeLanguages": "Enable emmet abbreviations in languages that are not supported by default. Add a mapping here between the language and emmet supported language.\n Eg: {\"vue-html\": \"html\", \"javascript\": \"javascriptreact\"}",
++	"emmetVariables": "Variables to be used in emmet snippets",
++	"emmetTriggerExpansionOnTab": "When enabled, emmet abbreviations are expanded when pressing TAB."
++}
++>>>>>>> .their
+changed in both
+  base   100644 4bb8908f31d4b758324f2a4b9129845b301bc4f8 extensions/emmet/src/abbreviationActions.ts
+  our    100644 26444af31e5994ebc9cddebb9de151cacae3311b extensions/emmet/src/abbreviationActions.ts
+  their  100644 f3d16d0a7aa224cf3e564bff5a911224bea796cc extensions/emmet/src/abbreviationActions.ts
+@@ -225,6 +225,7 @@
+ 	});
+ }
+ 
++<<<<<<< .our
+ export function expandEmmetAbbreviation(args: any): Thenable<boolean | undefined> {
+ 	if (!validate() || !vscode.window.activeTextEditor) {
+ 		return fallbackTab();
+@@ -241,6 +242,11 @@
+ 	}
+ 	const syntax = getSyntaxFromArgs(args);
+ 	if (!syntax) {
++=======
++export function expandEmmetAbbreviation(args): Thenable<boolean> {
++	const syntax = getSyntaxFromArgs(args);
++	if (!syntax || !validate()) {
++>>>>>>> .their
+ 		return fallbackTab();
+ 	}
+ 
+@@ -253,8 +259,13 @@
+ 		rootNode = parseDocument(editor.document, false);
+ 	}
+ 
++<<<<<<< .our
+ 	// When tabbed on a non empty selection, do not treat it as an emmet abbreviation, and fallback to tab instead
+ 	if (vscode.workspace.getConfiguration('emmet')['triggerExpansionOnTab'] === true && editor.selections.find(x => !x.isEmpty)) {
++=======
++	let rootNode = parseDocument(editor.document);
++	if (!rootNode) {
++>>>>>>> .their
+ 		return fallbackTab();
+ 	}
+ 
+@@ -349,11 +360,18 @@
+ 	});
+ }
+ 
++<<<<<<< .our
+ function fallbackTab(): Thenable<boolean | undefined> {
+ 	if (vscode.workspace.getConfiguration('emmet')['triggerExpansionOnTab'] === true) {
+ 		return vscode.commands.executeCommand('tab');
+ 	}
+ 	return Promise.resolve(true);
++=======
++function fallbackTab(): Thenable<boolean> {
++	if (vscode.workspace.getConfiguration('emmet')['triggerExpansionOnTab'] === true) {
++		return vscode.commands.executeCommand('tab');
++	}
++>>>>>>> .their
+ }
+ /**
+  * Checks if given position is a valid location to expand emmet abbreviation.
+changed in both
+  base   100644 b40d18fabcf7a11767324ef5cd5d0006c27fb2cf src/vs/workbench/parts/emmet/electron-browser/actions/expandAbbreviation.ts
+  our    100644 42968c4b84603ff59a9acfd4957937949e3cc7cd src/vs/workbench/parts/emmet/electron-browser/actions/expandAbbreviation.ts
+  their  100644 fc9136fce72fa856746b6d08c7abb2ba8a7b1351 src/vs/workbench/parts/emmet/electron-browser/actions/expandAbbreviation.ts
+@@ -10,8 +10,11 @@
+ import { EditorContextKeys } from 'vs/editor/common/editorContextKeys';
+ import { KeyCode } from 'vs/base/common/keyCodes';
+ import { ContextKeyExpr } from 'vs/platform/contextkey/common/contextkey';
++<<<<<<< .our
+ import { KeybindingWeight } from 'vs/platform/keybinding/common/keybindingsRegistry';
+ import { MenuId } from 'vs/platform/actions/common/actions';
++=======
++>>>>>>> .their
+ 
+ class ExpandAbbreviationAction extends EmmetEditorAction {
+ 
+@@ -25,6 +28,7 @@
+ 			kbOpts: {
+ 				primary: KeyCode.Tab,
+ 				kbExpr: ContextKeyExpr.and(
++<<<<<<< .our
+ 					EditorContextKeys.editorTextFocus,
+ 					EditorContextKeys.tabDoesNotMoveFocus,
+ 					ContextKeyExpr.has('config.emmet.triggerExpansionOnTab')
+@@ -36,6 +40,12 @@
+ 				group: '5_insert',
+ 				title: nls.localize({ key: 'miEmmetExpandAbbreviation', comment: ['&& denotes a mnemonic'] }, "Emmet: E&&xpand Abbreviation"),
+ 				order: 3
++=======
++					EditorContextKeys.textFocus,
++					EditorContextKeys.tabDoesNotMoveFocus,
++					ContextKeyExpr.has('config.emmet.triggerExpansionOnTab')
++				)
++>>>>>>> .their
+ 			}
+ 		});
+ 

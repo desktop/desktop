@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { DiffImage } from './diff-image'
+import { ImageContainer } from './image-container'
 import { ICommonImageDiffProperties } from './modified-image-diff'
 
 export class DifferenceBlend extends React.Component<
@@ -22,7 +22,7 @@ export class DifferenceBlend extends React.Component<
         <div className="sizing-container">
           <div className="image-container" style={style}>
             <div className="image-diff-previous">
-              <DiffImage
+              <ImageContainer
                 image={this.props.previous}
                 onElementLoad={this.props.onPreviousImageLoad}
                 style={maxSize}
@@ -30,7 +30,7 @@ export class DifferenceBlend extends React.Component<
             </div>
 
             <div className="image-diff-current">
-              <DiffImage
+              <ImageContainer
                 image={this.props.current}
                 onElementLoad={this.props.onCurrentImageLoad}
                 style={{

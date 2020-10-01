@@ -12,13 +12,7 @@ progress {
   }
 
   &:indeterminate {
-    background-image: -webkit-linear-gradient(
-      -45deg,
-      transparent 33%,
-      var(--text-color) 33%,
-      var(--text-color) 66%,
-      transparent 66%
-    );
+    background-image: -webkit-linear-gradient(-45deg, transparent 33%, var(--text-color) 33%, var(--text-color) 66%, transparent 66%);
     background-size: 25px 10px, 100% 100%, 100% 100%;
 
     -webkit-animation: progress-indeterminate-animation 5s linear infinite;

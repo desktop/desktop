@@ -1,0 +1,11 @@
+@import '../../mixins';
+
+dialog#abort-merge-warning {
+  width: 450px;
+
+  .column-left {
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: start;
+  }
+}

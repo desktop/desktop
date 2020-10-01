@@ -1,3 +1,5 @@
+import { GitError as DugiteError } from 'dugite'
+
 import {
   git,
   IGitExecutionOptions,
@@ -5,13 +7,22 @@ import {
   GitError,
 } from './core'
 import { Repository } from '../../models/repository'
+import { IPushProgress } from '../../models/progress'
+import { IGitAccount } from '../../models/git-account'
 import { PushProgressParser, executionOptionsWithProgress } from '../progress'
-import { IPushProgress } from '../app-state'
-import {
-  IGitAccount,
-  envForAuthentication,
-  AuthenticationErrors,
-} from './authentication'
+import { AuthenticationErrors } from './authentication'
+import { IRemote } from '../../models/remote'
+import { envForRemoteOperation } from './environment'
+
+export type PushOptions = {
+  /**
+   * Force-push the branch without losing changes in the remote that
+   * haven't been fetched.
+   *
+   * See https://git-scm.com/docs/git-push#Documentation/git-push.txt---no-force-with-lease
+   */
+  readonly forceWithLease: boolean
+}
 
 /**
  * Push from the remote to the branch, optionally setting the upstream.
@@ -26,8 +37,10 @@ import {
  *
  * @param remoteBranch - The remote branch to push to
  *
- * @param setUpstream - Whether or not to update the tracking information
- *                      of the specified branch to point to the remote.
+ * @param tagsToPush - The tags to push along with the branch.
+ *
+ * @param options - Optional customizations for the push execution.
+ *                  see PushOptions for more information.
  *
  * @param progressCallback - An optional function which will be invoked
  *                           with information about the current progress
@@ -38,30 +51,44 @@ import {
 export async function push(
   repository: Repository,
   account: IGitAccount | null,
-  remote: string,
+  remote: IRemote,
   localBranch: string,
   remoteBranch: string | null,
+  tagsToPush: ReadonlyArray<string> | null,
+  options: PushOptions = {
+    forceWithLease: false,
+  },
   progressCallback?: (progress: IPushProgress) => void
 ): Promise<void> {
+  const networkArguments = await gitNetworkArguments(repository, account)
+
   const args = [
-    ...gitNetworkArguments,
+    ...networkArguments,
     'push',
-    remote,
+    remote.name,
     remoteBranch ? `${localBranch}:${remoteBranch}` : localBranch,
   ]
 
+  if (tagsToPush !== null) {
+    args.push(...tagsToPush)
+  }
   if (!remoteBranch) {
     args.push('--set-upstream')
+  } else if (options.forceWithLease === true) {
+    args.push('--force-with-lease')
   }
 
+  const expectedErrors = new Set<DugiteError>(AuthenticationErrors)
+  expectedErrors.add(DugiteError.ProtectedBranchForcePush)
+
   let opts: IGitExecutionOptions = {
-    env: envForAuthentication(account),
-    expectedErrors: AuthenticationErrors,
+    env: await envForRemoteOperation(account, remote.url),
+    expectedErrors,
   }
 
   if (progressCallback) {
     args.push('--progress')
-    const title = `Pushing to ${remote}`
+    const title = `Pushing to ${remote.name}`
     const kind = 'push'
 
     opts = await executionOptionsWithProgress(
@@ -77,7 +104,7 @@ export async function push(
           title,
           description,
           value,
-          remote,
+          remote: remote.name,
           branch: localBranch,
         })
       }
@@ -88,7 +115,7 @@ export async function push(
       kind: 'push',
       title,
       value: 0,
-      remote,
+      remote: remote.name,
       branch: localBranch,
     })
   }

@@ -68,15 +68,23 @@ That will present the generic error dialog to the user.
 +-------------------------+
 ```
 
-### Subclasses
+### `Error` subclasses
 
-We have a couple `Error` subclasses which we use to provide more context to
-error handlers:
+We define some `Error` subclasses that are used in the codebase use to provide
+more context to error handlers:
 
 * [`GitError`](https://github.com/desktop/desktop/blob/75445ea61177347b2df08e846aae30e637d5f1de/app/src/lib/git/core.ts#L62) -
-All errors coming from git should be `GitError`s.
+wraps a raw `Error` raise by `dugite` with additional git information.
 * [`ErrorWithMetadata`](https://github.com/desktop/desktop/blob/75445ea61177347b2df08e846aae30e637d5f1de/app/src/lib/error-with-metadata.ts) -
-Wraps an existing `Error` with additional metadata.
+wraps an existing `Error` with additional metadata.
 
-`ErrorWithMetadata` instances can provide a [`RetryAction`](https://github.com/desktop/desktop/blob/75445ea61177347b2df08e846aae30e637d5f1de/app/src/lib/retry-actions.ts)
-which gives error handlers the ability to retry whatever action caused the error.
+In addition to the global information like the repository associated with the
+error, `ErrorWithMetadata` supports providing additional details:
+
+ - a [`RetryAction`](https://github.com/desktop/desktop/blob/75445ea61177347b2df08e846aae30e637d5f1de/app/src/lib/retry-actions.ts)
+  can be set to let the user retry the action that previously failed, allowing
+  error handlers the ability to retry whatever action caused the error.
+ - a [`IGitErrorContext`](https://github.com/desktop/desktop/blob/c60350c52daeab04fe9e8743c5a5079bc87daa0e/app/src/lib/git-error-context.ts)
+  can be set to add custom details about the Git operation that failed, so that
+  error handlers have more context to provide the user about how to recover
+

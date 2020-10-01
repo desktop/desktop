@@ -7,16 +7,18 @@
   height: 100%;
 
   .list-item {
-    padding: 0 var(--spacing);
     border-bottom: var(--base-border);
   }
 
-  // Only use special colors for the change type icons when
-  // the list item doesn't have active focus. If it does we
-  // fall back to using the ambient foreground color of the
-  // list item.
-  .list-item:not(:focus) {
-    @include octicon-status;
+  .list-focus-container {
+    // Default to using status aware colors for the change type
+    // octicons (i.e. green for added, yellowish for modified etc)
+    // but fall back to picking up the ambient text color when the
+    // list item is both focused and selected.
+    &.focus-within .list-item:not(.selected),
+    &:not(.focus-within) .list-item {
+      @include octicon-status;
+    }
   }
 
   .file {
@@ -26,6 +28,8 @@
 
     // See https://css-tricks.com/flexbox-truncated-text/
     min-width: 0;
+    height: 100%;
+    padding: 0 var(--spacing);
 
     .checkbox-component {
       flex-shrink: 0;
@@ -34,19 +38,6 @@
 
     input,
     .status {
-      flex-shrink: 0;
-    }
-
-    .path {
-      display: flex;
-      flex-direction: row;
-      flex-grow: 1;
-      min-width: 0;
-      margin-right: var(--spacing-half);
-    }
-
-    .rename-arrow {
-      flex: 1;
       flex-shrink: 0;
     }
 

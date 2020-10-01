@@ -1,0 +1,813 @@
+changed in both
+  base   100644 2cecde52c1e4b8e3aa0313c3780fce9cc4066161 app/.npmrc
+  our    100644 3169cbf51513c96d00aa269ce03a024f499a47d8 app/.npmrc
+  their  100644 abdc4fc3b94178f210cc4fc3988302c4bed1e2c6 app/.npmrc
+@@ -1,4 +1,8 @@
+ runtime = electron
+ disturl = https://atom.io/download/electron
++<<<<<<< .our
+ target = 2.0.5
++=======
++target = 1.6.11
++>>>>>>> .their
+ arch = x64
+changed in both
+  base   100644 bf47089de434c876948ae48cab85a2995530462a app/src/crash/crash-app.tsx
+  our    100644 d74ab08d432e7f3011711b9f5b4a9c82326b861f app/src/crash/crash-app.tsx
+  their  100644 98c0095143ceed7afe574fd926fd18037367f9f6 app/src/crash/crash-app.tsx
+@@ -102,12 +102,18 @@
+       this.setState({ windowState: getWindowState(window) })
+     })
+ 
++<<<<<<< .our
+     ipcRenderer.on(
+       'error',
+       (event: Electron.IpcMessageEvent, crashDetails: ICrashDetails) => {
+         this.setState(crashDetails)
+       }
+     )
++=======
++    ipcRenderer.on('error', (event: Electron.IpcMessageEvent, crashDetails: ICrashDetails) => {
++      this.setState(crashDetails)
++    })
++>>>>>>> .their
+ 
+     ipcRenderer.send('crash-ready')
+   }
+removed in local
+  base   100644 d29f875f91f14d3399f3ba8c5f4256913ce5e11f app/src/lib/dispatcher/app-store.ts
+  their  100644 853b472fe10d08536fabe3fc37ba781d2cd36a30 app/src/lib/dispatcher/app-store.ts
+changed in both
+  base   100644 9cdf93716561976efbd6c0a0f8765209455da4b1 app/src/lib/dispatcher/dispatcher.ts
+  our    100644 5e56c00e713342e76f5ccba040062e322e8c90cb app/src/lib/dispatcher/dispatcher.ts
+  their  100644 aacb02c83758e786988eecefe1509299d47cd15d app/src/lib/dispatcher/dispatcher.ts
+@@ -81,11 +81,71 @@
+ 
+   public constructor(appStore: AppStore) {
+     this.appStore = appStore
++<<<<<<< .our
+   }
+ 
+   /** Load the initial state for the app. */
+   public loadInitialState(): Promise<void> {
+     return this.appStore.loadInitialState()
++=======
++
++    appStore.onDidAuthenticate((user) => {
++      this.addAccount(user)
++    })
++
++    ipcRenderer.on('shared/did-update', (event: Electron.IpcMessageEvent, args: any[]) => this.onSharedDidUpdate(event, args))
++  }
++
++  public async loadInitialState(): Promise<void> {
++    const users = await this.loadUsers()
++    const repositories = await this.loadRepositories()
++    this.appStore._loadFromSharedProcess(users, repositories, true)
++  }
++
++  private dispatchToSharedProcess<T>(action: Action): Promise<T> {
++    return this.send(action.name, action)
++  }
++
++  private send<T>(name: string, args: Object): Promise<T> {
++    return new Promise<T>((resolve, reject) => {
++
++      const requestGuid = uuid()
++      ipcRenderer.once(`shared/response/${requestGuid}`, (event: any, args: any[]) => {
++        const response: IPCResponse<T> = args[0]
++        if (response.type === 'result') {
++          resolve(response.result)
++        } else {
++          const errorInfo = response.error
++          const error = new IPCError(errorInfo.name, errorInfo.message, errorInfo.stack || '')
++          if (__DEV__) {
++          }
++
++          reject(error)
++        }
++      })
++
++      ipcRenderer.send('shared/request', [ { guid: requestGuid, name, args } ])
++    })
++  }
++
++  private onSharedDidUpdate(event: Electron.IpcMessageEvent, args: any[]) {
++    const state: { repositories: ReadonlyArray<IRepository>, accounts: ReadonlyArray<IAccount> } = args[0].state
++    const inflatedAccounts = state.accounts.map(Account.fromJSON)
++    const inflatedRepositories = state.repositories.map(Repository.fromJSON)
++    this.appStore._loadFromSharedProcess(inflatedAccounts, inflatedRepositories, false)
++  }
++
++  /** Get the users */
++  private async loadUsers(): Promise<ReadonlyArray<Account>> {
++    const json = await this.dispatchToSharedProcess<ReadonlyArray<IAccount>>({ name: 'get-accounts' })
++    return json.map(Account.fromJSON)
++  }
++
++  /** Get the repositories the user has added to the app. */
++  private async loadRepositories(): Promise<ReadonlyArray<Repository>> {
++    const json = await this.dispatchToSharedProcess<ReadonlyArray<IRepository>>({ name: 'get-repositories' })
++    return json.map(Repository.fromJSON)
++>>>>>>> .their
+   }
+ 
+   /**
+changed in both
+  base   100644 f6ac32b3b8b3ec828c89fa4c6db6f083121bb202 app/src/lib/globals.d.ts
+  our    100644 fe0ba976e925a57a73938c30e3022a0b0c08fbde app/src/lib/globals.d.ts
+  their  100644 2eb28637921bd47faf2a10723ed165974c4b89e9 app/src/lib/globals.d.ts
+@@ -32,9 +32,12 @@
+ 
+ declare const __CLI_COMMANDS__: ReadonlyArray<string>
+ 
++<<<<<<< .our
+ /** The URL for Squirrel's updates. */
+ declare const __UPDATES_URL__: string
+ 
++=======
++>>>>>>> .their
+ /**
+  * The currently executing process kind, this is specific to desktop
+  * and identifies the processes that we have.
+@@ -75,6 +78,7 @@
+   readonly timeRemaining: () => DOMHighResTimeStamp
+ }
+ 
++<<<<<<< .our
+ /**
+  * Contains optional configuration parameters for the requestIdleCallback
+  * function.
+@@ -112,6 +116,51 @@
+ ): number
+ 
+ interface IDesktopLogger {
++=======
++// these changes should be pushed into the Electron declarations
++
++declare namespace NodeJS {
++  // tslint:disable-next-line:interface-name
++  interface Process extends EventEmitter {
++    once(event: 'uncaughtException', listener: (error: Error) => void): this
++    on(event: 'uncaughtException', listener: (error: Error) => void): this
++  }
++}
++
++declare namespace Electron {
++  // tslint:disable-next-line:interface-name
++  interface MenuItem {
++    readonly accelerator?: Electron.Accelerator
++    readonly submenu?: Electron.Menu
++    readonly role?: string
++    readonly type: 'normal' | 'separator' | 'submenu' | 'checkbox' | 'radio'
++  }
++
++  // tslint:disable-next-line:interface-name
++  interface RequestOptions {
++    readonly method: string
++    readonly url: string
++    readonly headers: any
++  }
++
++  type AppleActionOnDoubleClickPref = 'Maximize' | 'Minimize' | 'None'
++
++  // tslint:disable-next-line:interface-name
++  interface SystemPreferences {
++    getUserDefault(key: 'AppleActionOnDoubleClick', type: 'string'): AppleActionOnDoubleClickPref
++  }
++
++  // these methods have been marked with optional parameters, where we hadn't assumed this before
++  // tslint:disable-next-line:interface-name
++  interface App extends EventEmitter {
++    makeSingleInstance(callback: (argv: string[], workingDirectory: string) => void): boolean
++
++    on(event: 'open-url', listener: (event: Electron.Event, url: string) => void): this
++  }
++}
++
++declare interface IDesktopLogger {
++>>>>>>> .their
+   /**
+    * Writes a log message at the 'error' level.
+    *
+changed in both
+  base   100644 f5ac8a810391ffca533591ee49e21aea13dcbc01 app/src/lib/shell.ts
+  our    100644 f77c6e295b680a46baafb43a6ecd079b919b109e app/src/lib/shell.ts
+  their  100644 e36aea83aa9b48f38185921e64c366ac516a1784 app/src/lib/shell.ts
+@@ -77,7 +77,8 @@
+ 
+     child.on('close', (code: number, signal) => {
+       done = true
+-      process.removeListener('exit', cleanup)
++      const p = process as any
++      p.removeListener('exit', cleanup)
+       if (buffers.length) {
+         stdout = Buffer.concat(buffers).toString('utf8')
+       }
+changed in both
+  base   100644 0367d7504c8571509d8641ff1632f36fdf25b152 app/src/main-process/app-window.ts
+  our    100644 127b6b7d515d8acf689f1d96cf4c7b078ea2893b app/src/main-process/app-window.ts
+  their  100644 aabfdad495add832deca037239d0e340c427dd12 app/src/main-process/app-window.ts
+@@ -81,6 +81,11 @@
+     // renderer.
+     if (__DARWIN__) {
+       this.window.on('close', e => {
++
++        // TODO
++        // we expected this event to be populated here but it is not
++        if (!e) { return }
++
+         if (!quitting) {
+           e.preventDefault()
+           Menu.sendActionToFirstResponder('hide:')
+@@ -147,10 +152,15 @@
+     })
+ 
+     // TODO: This should be scoped by the window.
++<<<<<<< .our
+     ipcMain.once(
+       'renderer-ready',
+       (event: Electron.IpcMessageEvent, readyTime: number) => {
+         this._rendererReadyTime = readyTime
++=======
++    ipcMain.once('renderer-ready', (event: Electron.IpcMessageEvent, readyTime: number) => {
++      this._rendererReadyTime = readyTime
++>>>>>>> .their
+ 
+         this.maybeEmitDidLoad()
+       }
+changed in both
+  base   100644 06d131fbf21ffe73bf8bc370f75c0c817468b637 app/src/main-process/main.ts
+  our    100644 a406ea4cd47e8c9a733faee41a125eab3f743aa2 app/src/main-process/main.ts
+  their  100644 f0473fd41c33a7c7de640fba201b67373ff5920b app/src/main-process/main.ts
+@@ -120,6 +120,11 @@
+ app.on('will-finish-launching', () => {
+   // macOS only
+   app.on('open-url', (event, url) => {
++
++    // TODO
++    // both of these parameters we had assumed would be defined
++    if (!event || !url) { return }
++
+     event.preventDefault()
+     handleAppURL(url)
+   })
+@@ -204,6 +209,7 @@
+   let menu = buildDefaultMenu()
+   Menu.setApplicationMenu(menu)
+ 
++<<<<<<< .our
+   ipcMain.on(
+     'update-preferred-app-menu-item-labels',
+     (
+@@ -222,6 +228,8 @@
+     }
+   )
+ 
++=======
++>>>>>>> .their
+   ipcMain.on('menu-event', (event: Electron.IpcMessageEvent, args: any[]) => {
+     const { name }: { name: MenuEvent } = event as any
+     if (mainWindow) {
+@@ -233,9 +241,26 @@
+    * An event sent by the renderer asking that the menu item with the given id
+    * is executed (ie clicked).
+    */
++<<<<<<< .our
+   ipcMain.on(
+     'execute-menu-item',
+     (event: Electron.IpcMessageEvent, { id }: { id: string }) => {
++=======
++  ipcMain.on('execute-menu-item', (event: Electron.IpcMessageEvent, { id }: { id: string }) => {
++    const menuItem = findMenuItemByID(menu, id)
++    if (menuItem) {
++      const window = BrowserWindow.fromWebContents(event.sender)
++      const fakeEvent = { preventDefault: () => {}, sender: event.sender }
++      menuItem.click(fakeEvent, window, event.sender)
++    }
++  })
++
++  ipcMain.on('update-menu-state', (event: Electron.IpcMessageEvent, items: Array<{ id: string, state: IMenuItemState }>) => {
++    let sendMenuChangedEvent = false
++
++    for (const item of items) {
++      const { id, state } = item
++>>>>>>> .their
+       const menuItem = findMenuItemByID(menu, id)
+       if (menuItem) {
+         const window = BrowserWindow.fromWebContents(event.sender)
+@@ -279,12 +304,25 @@
+     }
+   )
+ 
++<<<<<<< .our
+   ipcMain.on(
+     'show-contextual-menu',
+     (event: Electron.IpcMessageEvent, items: ReadonlyArray<IMenuItem>) => {
+       const menu = buildContextMenu(items, ix =>
+         event.sender.send('contextual-menu-action', ix)
+       )
++=======
++  ipcMain.on('show-contextual-menu', (event: Electron.IpcMessageEvent, items: ReadonlyArray<any>) => {
++    const menu = new Menu()
++    const menuItems = items.map((item, i) => {
++      return new MenuItem({
++        label: item.label,
++        click: () => event.sender.send('contextual-menu-action', i),
++        type: item.type,
++        enabled: item.enabled,
++      })
++    })
++>>>>>>> .their
+ 
+       const window = BrowserWindow.fromWebContents(event.sender)
+       menu.popup({ window })
+@@ -301,6 +339,7 @@
+     }
+   })
+ 
++<<<<<<< .our
+   ipcMain.on(
+     'show-certificate-trust-dialog',
+     (
+@@ -316,9 +355,18 @@
+           window.showCertificateTrustDialog(certificate, message)
+         })
+       }
++=======
++  ipcMain.on('show-certificate-trust-dialog', (event: Electron.IpcMessageEvent, { certificate, message }: { certificate: Electron.Certificate, message: string }) => {
++    // This API's only implemented on macOS right now.
++    if (__DARWIN__) {
++      onDidLoad(window => {
++        window.showCertificateTrustDialog(certificate, message)
++      })
++>>>>>>> .their
+     }
+   )
+ 
++<<<<<<< .our
+   ipcMain.on(
+     'log',
+     (event: Electron.IpcMessageEvent, level: LogLevel, message: string) => {
+@@ -376,6 +424,31 @@
+       })
+     }
+   )
++=======
++  ipcMain.on('log', (event: Electron.IpcMessageEvent, level: LogLevel, message: string) => {
++    writeLog(level, message)
++  })
++
++  ipcMain.on('uncaught-exception', (event: Electron.IpcMessageEvent, error: Error) => {
++    uncaughtException(error)
++  })
++
++  ipcMain.on('send-error-report', (event: Electron.IpcMessageEvent, { error, extra }: { error: Error, extra: { [key: string]: string } }) => {
++    reportError(error, extra)
++  })
++
++  autoUpdater.on('error', err => {
++    // TODO
++    // we expected this event to be populated here but it is not
++    if (!err) {
++      return
++    }
++
++    onDidLoad(window => {
++      window.sendAutoUpdaterError(err)
++    })
++  })
++>>>>>>> .their
+ })
+ 
+ app.on('activate', () => {
+@@ -385,17 +458,40 @@
+ })
+ 
+ app.on('web-contents-created', (event, contents) => {
++
++  // TODO
++  // we expected this event to be populated here but it is not
++  if (!contents) { return }
++
+   contents.on('new-window', (event, url) => {
++
++    // TODO
++    // we expected this event to be populated here but it is not
++    if (!event) { return }
++
+     // Prevent links or window.open from opening new windows
+     event.preventDefault()
+     log.warn(`Prevented new window to: ${url}`)
+   })
+ })
+ 
++<<<<<<< .our
+ app.on(
+   'certificate-error',
+   (event, webContents, url, error, certificate, callback) => {
+     callback(false)
++=======
++app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
++
++  // TODO
++  // we expected this event to be populated here but it is not
++
++  if (!callback || !certificate || !error || !url) {
++    return
++  }
++
++  callback(false)
++>>>>>>> .their
+ 
+     onDidLoad(window => {
+       window.sendCertificateError(certificate, error, url)
+changed in both
+  base   100644 490a3a3588751681e05006beeccc79275d8abd79 app/src/main-process/menu/build-default-menu.ts
+  our    100644 7ec8c001136d655a2ecce3d56b9a6804762172fa app/src/main-process/menu/build-default-menu.ts
+  their  100644 e3671806fb873c96717bb896a2b9fac6beb270b7 app/src/main-process/menu/build-default-menu.ts
+@@ -4,6 +4,7 @@
+ import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
+ import { ensureDir } from 'fs-extra'
+ 
++<<<<<<< .our
+ import { log } from '../log'
+ import { openDirectorySafe } from '../shell'
+ 
+@@ -22,6 +23,9 @@
+   shellLabel: string = defaultShellLabel,
+   pullRequestLabel: string = defaultPullRequestLabel
+ ): Electron.Menu {
++=======
++export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
++>>>>>>> .their
+   const template = new Array<Electron.MenuItemConstructorOptions>()
+   const separator: Electron.MenuItemConstructorOptions = { type: 'separator' }
+ 
+@@ -347,8 +351,13 @@
+     },
+   }
+ 
++<<<<<<< .our
+   const showUserGuides: Electron.MenuItemConstructorOptions = {
+     label: 'Show User Guides',
++=======
++  const showLogsItem: Electron.MenuItemConstructorOptions = {
++    label: __DARWIN__ ? 'Show Logs in Finder' : 'S&how logs in Explorer',
++>>>>>>> .their
+     click() {
+       shell.openExternal('https://help.github.com/desktop/guides/')
+     },
+changed in both
+  base   100644 ba2f59d5334d7f98a1fd334b52501fc2bc6eb55b app/src/main-process/menu/ensure-item-ids.ts
+  our    100644 70b98c203563f4c9fdb2c59f9a55d91ed872e630 app/src/main-process/menu/ensure-item-ids.ts
+  their  100644 16d55f9b8e18336b301b08e424b1898cd846746c app/src/main-process/menu/ensure-item-ids.ts
+@@ -13,11 +13,15 @@
+  * Note that this does not do anything to prevent the case where items have
+  * explicitly been given duplicate ids.
+  */
++<<<<<<< .our
+ export function ensureItemIds(
+   template: ReadonlyArray<Electron.MenuItemConstructorOptions>,
+   prefix = '@',
+   seenIds = new Set<string>()
+ ) {
++=======
++export function ensureItemIds(template: ReadonlyArray<Electron.MenuItemConstructorOptions>, prefix = '@', seenIds = new Set<string>()) {
++>>>>>>> .their
+   for (const item of template) {
+     let counter = 0
+     let id = item.id
+@@ -35,9 +39,13 @@
+     seenIds.add(id)
+ 
+     if (item.submenu) {
++<<<<<<< .our
+       const subMenuTemplate = item.submenu as ReadonlyArray<
+         Electron.MenuItemConstructorOptions
+       >
++=======
++      const subMenuTemplate = item.submenu as ReadonlyArray<Electron.MenuItemConstructorOptions>
++>>>>>>> .their
+       ensureItemIds(subMenuTemplate, item.id, seenIds)
+     }
+   }
+changed in both
+  base   100644 5a2231cecfbbdbccb35226a3ac4269408f169b64 app/src/models/app-menu.ts
+  our    100644 5aaebf59f63ce1bc3d3ff7dca44b2ef668a19b0d app/src/models/app-menu.ts
+  their  100644 27e474d30979f82122d9fc3b70a299c194b7ae8f app/src/models/app-menu.ts
+removed in local
+  base   100644 46e5f5b50a3b1b2ad7f96c2f0c04f0da148fc5f6 app/src/shared-process/communication.ts
+  their  100644 b56ffad7380a096347f6d38f74306925c7904892 app/src/shared-process/communication.ts
+removed in local
+  base   100644 432313c156ec448d02765de169008e03d738c2a2 app/src/shared-process/shared-process.ts
+  their  100644 9c13bf39872c82ef65df1a27e1dcf608ad35fc8a app/src/shared-process/shared-process.ts
+changed in both
+  base   100644 bcf4d1a734aa6217571b14b6f0af97000981b55a app/src/ui/app.tsx
+  our    100644 c38c806e36c237ea70f3cdeee739941530c0c7cd app/src/ui/app.tsx
+  their  100644 f1e27ff69e7c6699631a69294d35d8976dbd0658 app/src/ui/app.tsx
+@@ -177,12 +177,18 @@
+       props.dispatcher.postError(error)
+     })
+ 
++<<<<<<< .our
+     ipcRenderer.on(
+       'menu-event',
+       (event: Electron.IpcMessageEvent, { name }: { name: MenuEvent }) => {
+         this.onMenuEvent(name)
+       }
+     )
++=======
++    ipcRenderer.on('menu-event', (event: Electron.IpcMessageEvent, { name }: { name: MenuEvent }) => {
++      this.onMenuEvent(name)
++    })
++>>>>>>> .their
+ 
+     updateStore.onDidChange(state => {
+       const status = state.status
+@@ -211,9 +217,16 @@
+         console.info(`Load time: ${stats.loadTime}ms`)
+         console.info(`Renderer ready time: ${stats.rendererReadyTime}ms`)
+ 
++<<<<<<< .our
+         this.props.dispatcher.recordLaunchStats(stats)
+       }
+     )
++=======
++    ipcRenderer.on('launch-timing-stats', (event: Electron.IpcMessageEvent, { stats }: { stats: ILaunchStats }) => {
++      console.info(`App ready time: ${stats.mainReadyTime}ms`)
++      console.info(`Load time: ${stats.loadTime}ms`)
++      console.info(`Renderer ready time: ${stats.rendererReadyTime}ms`)
++>>>>>>> .their
+ 
+     ipcRenderer.on(
+       'certificate-error',
+@@ -234,8 +247,18 @@
+     )
+   }
+ 
++<<<<<<< .our
+   public componentWillUnmount() {
+     window.clearInterval(this.updateIntervalHandle)
++=======
++    ipcRenderer.on('certificate-error', (event: Electron.IpcMessageEvent, { certificate, error, url }: { certificate: Electron.Certificate, error: string, url: string }) => {
++      this.props.dispatcher.showPopup({
++        type: PopupType.UntrustedCertificate,
++        certificate,
++        url,
++      })
++    })
++>>>>>>> .their
+   }
+ 
+   private performDeferredLaunchActions() {
+changed in both
+  base   100644 349e06c78238860ffddde0c2a56c192b923d96d9 app/src/ui/index.tsx
+  our    100644 f8f8200917327048c8f002fcfade473dfd6668d1 app/src/ui/index.tsx
+  their  100644 9d69fef01d8872138546bb13775dcc75ab71bd8f app/src/ui/index.tsx
+@@ -174,12 +174,18 @@
+   dispatcher.setAppFocusState(false)
+ })
+ 
++<<<<<<< .our
+ ipcRenderer.on(
+   'url-action',
+   (event: Electron.IpcMessageEvent, { action }: { action: URLActionType }) => {
+     dispatcher.dispatchURLAction(action)
+   }
+ )
++=======
++ipcRenderer.on('url-action', (event: Electron.IpcMessageEvent, { action }: { action: URLActionType }) => {
++  dispatcher.dispatchURLAction(action)
++})
++>>>>>>> .their
+ 
+ ReactDOM.render(
+   <App dispatcher={dispatcher} appStore={appStore} startTime={startTime} />,
+changed in both
+  base   100644 ffbeb3a62a9f9f9cc5aceffa8b263d92dd3d4657 app/src/ui/lib/update-store.ts
+  our    100644 043bd6b6ec57efda2974dff91759487d0537202f app/src/ui/lib/update-store.ts
+  their  100644 c9ac3becaf5032297b7fb0430cc40e00691a31c4 app/src/ui/lib/update-store.ts
+@@ -53,7 +53,17 @@
+       }
+     }
+ 
++<<<<<<< .our
+     autoUpdater.on('error', this.onAutoUpdaterError)
++=======
++    // We're using our own error event instead of `autoUpdater`s so that we can
++    // properly serialize the `Error` object for transport over IPC. See
++    // https://github.com/desktop/desktop/issues/1266.
++    ipcRenderer.on('auto-updater-error', (event: Electron.IpcMessageEvent, error: Error) => {
++      this.onAutoUpdaterError(error)
++    })
++
++>>>>>>> .their
+     autoUpdater.on('checking-for-update', this.onCheckingForUpdate)
+     autoUpdater.on('update-available', this.onUpdateAvailable)
+     autoUpdater.on('update-not-available', this.onUpdateNotAvailable)
+changed in both
+  base   100644 029ab5c3684b6a3e60d1d963a0377a59d548739e app/src/ui/main-process-proxy.ts
+  our    100644 3ab029492d92e1c831e2d9ea8307c72e3daab383 app/src/ui/main-process-proxy.ts
+  their  100644 9eb2744a0e2a28002d12edcac65089a4404d6176 app/src/ui/main-process-proxy.ts
+@@ -66,6 +66,7 @@
+  * should be called only once, around app load time.
+  */
+ export function registerContextualMenuActionDispatcher() {
++<<<<<<< .our
+   ipcRenderer.on(
+     'contextual-menu-action',
+     (event: Electron.IpcMessageEvent, index: number) => {
+@@ -82,6 +83,17 @@
+         action()
+         currentContextualMenuItems = null
+       }
++=======
++  ipcRenderer.on('contextual-menu-action', (event: Electron.IpcMessageEvent, index: number) => {
++    if (!currentContextualMenuItems) { return }
++    if (index >= currentContextualMenuItems.length) { return }
++
++    const item = currentContextualMenuItems[index]
++    const action = item.action
++    if (action) {
++      action()
++      currentContextualMenuItems = null
++>>>>>>> .their
+     }
+   )
+ }
+changed in both
+  base   100644 014cd67343b58a448ac2b3743dbd6b30a2357074 app/src/ui/window/title-bar.tsx
+  our    100644 8fe8df4251980f3b61cd747d621ab0206a88f8c9 app/src/ui/window/title-bar.tsx
+  their  100644 7f47455de9e5e87be61cd78896d07e8cea02b8b6 app/src/ui/window/title-bar.tsx
+@@ -31,6 +31,10 @@
+   readonly style?: React.CSSProperties
+ }
+ 
++<<<<<<< .our
++=======
++
++>>>>>>> .their
+ function getState(props: ITitleBarProps): ITitleBarState {
+   // See windowZoomFactor in ITitleBarProps, this is only
+   // applicable on macOS.
+@@ -52,10 +56,14 @@
+   }
+ 
+   private onTitlebarDoubleClickDarwin = () => {
++<<<<<<< .our
+     const actionOnDoubleClick = remote.systemPreferences.getUserDefault(
+       'AppleActionOnDoubleClick',
+       'string'
+     )
++=======
++    const actionOnDoubleClick = remote.systemPreferences.getUserDefault('AppleActionOnDoubleClick', 'string')
++>>>>>>> .their
+     const mainWindow = remote.getCurrentWindow()
+ 
+     switch (actionOnDoubleClick) {
+changed in both
+  base   100644 42b430f128bbe81af43d6a1eca08aa11eee1159a app/src/ui/window/window-controls.tsx
+  our    100644 06500dcb9df1933061dd5a0b0f238a8ce5f2c4bb app/src/ui/window/window-controls.tsx
+  their  100644 8a2503c29c49147040f159e9640a1069a27ca734 app/src/ui/window/window-controls.tsx
+@@ -50,10 +50,14 @@
+     return nextState.windowState !== this.state.windowState
+   }
+ 
++<<<<<<< .our
+   private onWindowStateChanged = (
+     event: Electron.IpcMessageEvent,
+     args: any
+   ) => {
++=======
++  private onWindowStateChanged = (event: Electron.IpcMessageEvent, args: any) => {
++>>>>>>> .their
+     this.setState({ windowState: args as WindowState })
+   }
+ 
+changed in both
+  base   100644 52444d15ac755f2eaf479e2bfa2792121ac14277 app/test/unit/main-process/menu-test.ts
+  our    100644 0b0db198f51c86f465b1e78f32409595952b4e9e app/test/unit/main-process/menu-test.ts
+  their  100644 be1eda7cbb087fa010222b546b891ff136eb67e8 app/test/unit/main-process/menu-test.ts
+@@ -15,9 +15,13 @@
+     })
+ 
+     it('assigns ids to items which lack it', () => {
++<<<<<<< .our
+       const template: Electron.MenuItemConstructorOptions[] = [
+         { label: 'File' },
+       ]
++=======
++      const template: Electron.MenuItemConstructorOptions[] = [ { label: 'File' } ]
++>>>>>>> .their
+ 
+       ensureItemIds(template)
+ 
+@@ -44,15 +48,23 @@
+ 
+       expect(template[0].id).to.equal('foo')
+ 
++<<<<<<< .our
+       const firstSubmenu = template[0]
+         .submenu! as Electron.MenuItemConstructorOptions[]
++=======
++      const firstSubmenu = template[0].submenu! as Electron.MenuItemConstructorOptions[]
++>>>>>>> .their
+ 
+       expect(firstSubmenu[0].id).to.equal('foo.Open')
+       expect(firstSubmenu[1].id).to.equal('foo.Close')
+       expect(firstSubmenu[2].id).to.equal('foo.More')
+ 
++<<<<<<< .our
+       const secondSubmenu = firstSubmenu[2]
+         .submenu! as Electron.MenuItemConstructorOptions[]
++=======
++      const secondSubmenu = firstSubmenu[2].submenu! as Electron.MenuItemConstructorOptions[]
++>>>>>>> .their
+ 
+       expect(secondSubmenu[0].id).to.equal('foo.More.Even more')
+     })
+changed in both
+  base   100644 c41bdb847b5c540cec431ca1ffd18250ee8bcc7d package.json
+  our    100644 2006bfb748810f6ea8bdbd26edf7c09524a1388a package.json
+  their  100644 000f00feea0bf7627c2db0f4e2e7266ab00dd86e package.json
+@@ -61,6 +61,7 @@
+     "chai": "^4.1.1",
+     "chai-as-promised": "^7.1.1",
+     "chai-datetime": "^1.4.1",
++<<<<<<< .our
+     "chalk": "^2.2.0",
+     "clean-webpack-plugin": "^0.1.19",
+     "cross-env": "^5.0.5",
+@@ -86,6 +87,26 @@
+     "octicons": "^7.0.1",
+     "parallel-webpack": "^2.3.0",
+     "prettier": "^1.14.2",
++=======
++    "clean-webpack-plugin": "^0.1.16",
++    "cross-env": "^3.2.3",
++    "css-loader": "^0.26.2",
++    "electron": "1.6.11",
++    "electron-mocha": "^3.5.0",
++    "electron-packager": "8.6.0",
++    "electron-winstaller": "2.5.2",
++    "express": "^4.15.0",
++    "extract-text-webpack-plugin": "^2.1.0",
++    "fs-extra": "^2.1.2",
++    "got": "^6.3.0",
++    "html-webpack-plugin": "^2.28.0",
++    "klaw-sync": "^1.1.2",
++    "legal-eagle": "0.15.0",
++    "mocha": "^3.4.2",
++    "node-native-loader": "^1.1.1",
++    "node-sass": "^4.5.2",
++    "parallel-webpack": "^1.6.1",
++>>>>>>> .their
+     "request": "^2.72.0",
+     "rimraf": "^2.5.2",
+     "sass-loader": "^7.0.1",
+@@ -109,6 +130,7 @@
+     "xvfb-maybe": "^0.2.1"
+   },
+   "devDependencies": {
++<<<<<<< .our
+     "@types/byline": "^4.2.31",
+     "@types/chai": "^4.1.2",
+     "@types/chai-datetime": "^0.0.31",
+@@ -118,6 +140,12 @@
+     "@types/double-ended-queue": "^2.1.0",
+     "@types/electron-packager": "^12.0.0",
+     "@types/electron-winstaller": "^2.6.0",
++=======
++    "@types/chai": "^3.4.30",
++    "@types/chai-datetime": "0.0.30",
++    "@types/classnames": "^0.0.32",
++    "@types/codemirror": "0.0.38",
++>>>>>>> .their
+     "@types/event-kit": "^1.2.28",
+     "@types/express": "^4.11.0",
+     "@types/extract-text-webpack-plugin": "^3.0.3",
+@@ -127,6 +155,7 @@
+     "@types/glob": "^5.0.35",
+     "@types/html-webpack-plugin": "^2.30.3",
+     "@types/keytar": "^4.0.0",
++<<<<<<< .our
+     "@types/legal-eagle": "^0.15.0",
+     "@types/mini-css-extract-plugin": "^0.2.0",
+     "@types/mocha": "^2.2.48",
+@@ -142,6 +171,15 @@
+     "@types/temp": "^0.8.29",
+     "@types/textarea-caret": "^3.0.0",
+     "@types/to-camel-case": "^1.0.0",
++=======
++    "@types/mocha": "^2.2.29",
++    "@types/node": "^7.0.18",
++    "@types/react": "15.0.23",
++    "@types/react-addons-test-utils": "^0.14.17",
++    "@types/react-dom": "^15.5.0",
++    "@types/react-transition-group": "^1.1.0",
++    "@types/react-virtualized": "^9.7.0",
++>>>>>>> .their
+     "@types/ua-parser-js": "^0.7.30",
+     "@types/untildify": "^3.0.0",
+     "@types/uuid": "^3.4.0",

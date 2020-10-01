@@ -1,8 +1,10 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "esnext",
     "moduleResolution": "node",
     "target": "es2017",
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noUnusedLocals": true,

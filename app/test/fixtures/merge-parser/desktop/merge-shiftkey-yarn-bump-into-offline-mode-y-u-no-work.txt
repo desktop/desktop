@@ -1,0 +1,98 @@
+changed in both
+  base   100644 fde223649b6eef6edf60d8726f22ddd799873819 .travis.yml
+  our    100644 7e0e74ba2993836baa0a7461123da84818d6a990 .travis.yml
+  their  100644 df10666f88d7c94e6f08caad298af5b6f2ad5d31 .travis.yml
+@@ -48,6 +48,13 @@
+     - .eslintcache
+     - $HOME/.cache/electron-builder
+ 
++<<<<<<< .our
++=======
++before_install:
++  - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.7.0
++  - export PATH=$HOME/.yarn/bin:$PATH
++
++>>>>>>> .their
+ install:
+   - yarn install --offline
+ 
+removed in local
+  base   100644 19865d13f3ab50d13c233da23115035bf423212e circle.yml
+  their  100644 2f7175ea65c162d0a071a6e84a3993a2f30ff480 circle.yml
+changed in both
+  base   100644 1f98235d11d633403ddaa711926d2a73f53456e0 vsts.yml
+  our    100644 dcf24cca01f5cd69beee03d16eb12c73081b9793 vsts.yml
+  their  100644 8a07441df176251ae82204268f07997e7310cb3e vsts.yml
+@@ -1,4 +1,5 @@
+ phases:
++<<<<<<< .our
+   - phase: Windows
+     queue: Hosted VS2017
+     steps:
+@@ -57,3 +58,66 @@
+       - script: |
+           yarn test:setup && yarn test
+         name: Test
++=======
++- phase: Windows
++  queue: Hosted VS2017
++  steps:
++  - task: NodeTool@0
++    inputs:
++      versionSpec: "8.11.1"
++  - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
++    inputs:
++      versionSpec: "1.7.0"
++  - script: |
++       yarn install --force
++    name: Install
++  - script: |
++      yarn lint && yarn build:prod
++    name: Build
++  - script: |
++      yarn test:setup && yarn test
++    name: Test
++
++- phase: Linux
++  queue: Hosted Linux Preview
++  steps:
++  - script: |
++      apt-get update
++      apt-get install -y --no-install-recommends libsecret-1-dev xvfb fakeroot dpkg rpm xz-utils xorriso zsync libxss1 libgconf2-4 libgtk-3-0
++  - task: NodeTool@0
++    inputs:
++      versionSpec: "8.11.1"
++  - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
++    inputs:
++      versionSpec: "1.7.0"
++  - script: |
++       yarn install --force
++    name: Install
++  - script: |
++       yarn lint && yarn build:prod
++    name: Build
++  - script: |
++       export DISPLAY=':99.0'
++       Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
++       yarn test:setup && yarn test
++    name: Test
++
++- phase: macOS
++  queue: Hosted macOS Preview
++  steps:
++  - task: NodeTool@0
++    inputs:
++      versionSpec: "8.11.1"
++  - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
++    inputs:
++      versionSpec: "1.7.0"
++  - script: |
++      yarn install --force
++    name: Install
++  - script: |
++       yarn lint && yarn build:prod
++    name: Build
++  - script: |
++      yarn test:setup && yarn test
++    name: Test
++>>>>>>> .their

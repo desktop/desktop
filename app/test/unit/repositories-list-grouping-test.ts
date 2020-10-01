@@ -1,11 +1,10 @@
-import { expect } from 'chai'
-
-import { groupRepositories } from '../../src/ui/repositories-list/group-repositories'
-import { Repository } from '../../src/models/repository'
-import { GitHubRepository } from '../../src/models/github-repository'
-import { Owner } from '../../src/models/owner'
-import { getDotComAPIEndpoint } from '../../src/lib/api'
+import {
+  groupRepositories,
+  KnownRepositoryGroup,
+} from '../../src/ui/repositories-list/group-repositories'
+import { Repository, ILocalRepositoryState } from '../../src/models/repository'
 import { CloningRepository } from '../../src/models/cloning-repository'
+import { gitHubRepoFixture } from '../helpers/github-repo-builder'
 
 describe('repository list grouping', () => {
   const repositories: Array<Repository | CloningRepository> = [
@@ -13,42 +12,44 @@ describe('repository list grouping', () => {
     new Repository(
       'repo2',
       2,
-      new GitHubRepository(
-        'my-repo2',
-        new Owner('', getDotComAPIEndpoint(), null),
-        1
-      ),
+      gitHubRepoFixture({ owner: 'me', name: 'my-repo2' }),
       false
     ),
     new Repository(
       'repo3',
       3,
-      new GitHubRepository('my-repo3', new Owner('', '', null), 1),
+      gitHubRepoFixture({
+        owner: '',
+        name: 'my-repo3',
+        endpoint: 'github.big-corp.com',
+      }),
       false
     ),
   ]
 
-  it('groups repositories by GitHub/Enterprise/Other', () => {
-    const grouped = groupRepositories(repositories)
-    expect(grouped.length).to.equal(3)
+  const cache = new Map<number, ILocalRepositoryState>()
 
-    expect(grouped[0].identifier).to.equal('github')
-    expect(grouped[0].items.length).to.equal(1)
+  it('groups repositories by owners/Enterprise/Other', () => {
+    const grouped = groupRepositories(repositories, cache)
+    expect(grouped).toHaveLength(3)
+
+    expect(grouped[0].identifier).toBe('me')
+    expect(grouped[0].items).toHaveLength(1)
 
     let item = grouped[0].items[0]
-    expect(item.repository.path).to.equal('repo2')
+    expect(item.repository.path).toBe('repo2')
 
-    expect(grouped[1].identifier).to.equal('enterprise')
-    expect(grouped[1].items.length).to.equal(1)
+    expect(grouped[1].identifier).toBe(KnownRepositoryGroup.Enterprise)
+    expect(grouped[1].items).toHaveLength(1)
 
     item = grouped[1].items[0]
-    expect(item.repository.path).to.equal('repo3')
+    expect(item.repository.path).toBe('repo3')
 
-    expect(grouped[2].identifier).to.equal('other')
-    expect(grouped[2].items.length).to.equal(1)
+    expect(grouped[2].identifier).toBe(KnownRepositoryGroup.NonGitHub)
+    expect(grouped[2].items).toHaveLength(1)
 
     item = grouped[2].items[0]
-    expect(item.repository.path).to.equal('repo1')
+    expect(item.repository.path).toBe('repo1')
   })
 
   it('sorts repositories alphabetically within each group', () => {
@@ -56,83 +57,96 @@ describe('repository list grouping', () => {
     const repoB = new Repository(
       'b',
       2,
-      new GitHubRepository('b', new Owner('', getDotComAPIEndpoint(), null), 1),
+      gitHubRepoFixture({ owner: 'me', name: 'b' }),
       false
     )
     const repoC = new Repository('c', 2, null, false)
     const repoD = new Repository(
       'd',
       2,
-      new GitHubRepository('d', new Owner('', getDotComAPIEndpoint(), null), 1),
+      gitHubRepoFixture({ owner: 'me', name: 'd' }),
       false
     )
     const repoZ = new Repository('z', 3, null, false)
 
-    const grouped = groupRepositories([repoC, repoB, repoZ, repoD, repoA])
-    expect(grouped.length).to.equal(2)
+    const grouped = groupRepositories(
+      [repoC, repoB, repoZ, repoD, repoA],
+      cache
+    )
+    expect(grouped).toHaveLength(2)
 
-    expect(grouped[0].identifier).to.equal('github')
-    expect(grouped[0].items.length).to.equal(2)
+    expect(grouped[0].identifier).toBe('me')
+    expect(grouped[0].items).toHaveLength(2)
 
     let items = grouped[0].items
-    expect(items[0].repository.path).to.equal('b')
-    expect(items[1].repository.path).to.equal('d')
+    expect(items[0].repository.path).toBe('b')
+    expect(items[1].repository.path).toBe('d')
 
-    expect(grouped[1].identifier).to.equal('other')
-    expect(grouped[1].items.length).to.equal(3)
+    expect(grouped[1].identifier).toBe(KnownRepositoryGroup.NonGitHub)
+    expect(grouped[1].items).toHaveLength(3)
 
     items = grouped[1].items
-    expect(items[0].repository.path).to.equal('a')
-    expect(items[1].repository.path).to.equal('c')
-    expect(items[2].repository.path).to.equal('z')
+    expect(items[0].repository.path).toBe('a')
+    expect(items[1].repository.path).toBe('c')
+    expect(items[2].repository.path).toBe('z')
   })
 
-  it('marks repositories for disambiguation if they have the same name', () => {
+  it('only disambiguates Enterprise repositories', () => {
     const repoA = new Repository(
       'repo',
       1,
-      new GitHubRepository(
-        'repo',
-        new Owner('user1', getDotComAPIEndpoint(), null),
-        1
-      ),
+      gitHubRepoFixture({ owner: 'user1', name: 'repo' }),
       false
     )
     const repoB = new Repository(
-      'cool-repo',
+      'repo',
       2,
-      new GitHubRepository(
-        'cool-repo',
-        new Owner('user2', getDotComAPIEndpoint(), null),
-        2
-      ),
+      gitHubRepoFixture({ owner: 'user2', name: 'repo' }),
       false
     )
     const repoC = new Repository(
-      'repo',
-      2,
-      new GitHubRepository(
-        'repo',
-        new Owner('user2', getDotComAPIEndpoint(), null),
-        2
-      ),
+      'enterprise-repo',
+      3,
+      gitHubRepoFixture({
+        owner: 'business',
+        name: 'enterprise-repo',
+        endpoint: '',
+      }),
+      false
+    )
+    const repoD = new Repository(
+      'enterprise-repo',
+      3,
+      gitHubRepoFixture({
+        owner: 'silliness',
+        name: 'enterprise-repo',
+        endpoint: '',
+      }),
       false
     )
 
-    const grouped = groupRepositories([repoA, repoB, repoC])
-    expect(grouped.length).to.equal(1)
+    const grouped = groupRepositories([repoA, repoB, repoC, repoD], cache)
+    expect(grouped).toHaveLength(3)
 
-    expect(grouped[0].identifier).to.equal('github')
-    expect(grouped[0].items.length).to.equal(3)
+    expect(grouped[0].identifier).toBe('user1')
+    expect(grouped[0].items).toHaveLength(1)
 
-    const items = grouped[0].items
-    expect(items[0].text).to.equal('cool-repo')
-    expect(items[0].needsDisambiguation).to.equal(false)
+    expect(grouped[1].identifier).toBe('user2')
+    expect(grouped[1].items).toHaveLength(1)
 
-    expect(items[1].text).to.equal('repo')
-    expect(items[1].needsDisambiguation).to.equal(true)
+    expect(grouped[2].identifier).toBe(KnownRepositoryGroup.Enterprise)
+    expect(grouped[2].items).toHaveLength(2)
 
-    expect(items[2].text).to.equal('repo')
-    expect(items[2].needsDisambiguation).to.equal(true)
+    expect(grouped[0].items[0].text[0]).toBe('repo')
+    expect(grouped[0].items[0].needsDisambiguation).toBe(false)
+
+    expect(grouped[1].items[0].text[0]).toBe('repo')
+    expect(grouped[1].items[0].needsDisambiguation).toBe(false)
+
+    expect(grouped[2].items[0].text[0]).toBe('enterprise-repo')
+    expect(grouped[2].items[0].needsDisambiguation).toBe(true)
+
+    expect(grouped[2].items[1].text[0]).toBe('enterprise-repo')
+    expect(grouped[2].items[1].needsDisambiguation).toBe(true)
   })
 })

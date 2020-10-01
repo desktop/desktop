@@ -1,21 +1,14 @@
 // This shouldn't be necessary, but without this CI fails on Windows. Seems to
 // be a bug in TS itself or ts-node.
-/// <reference path="../../../node_modules/@types/node/index.d.ts" />
+/// <reference types="node" />
 
-import 'mocha'
-import * as chai from 'chai'
+import { Application } from 'spectron'
+import * as path from 'path'
 
-const chaiAsPromised = require('chai-as-promised')
-const { Application } = require('spectron')
-const path = require('path')
+describe('App', function (this: any) {
+  let app: Application
 
-chai.should()
-chai.use(chaiAsPromised)
-
-describe('App', function(this: any) {
-  let app: any
-
-  beforeEach(function() {
+  beforeEach(function () {
     let appPath = path.join(
       __dirname,
       '..',
@@ -28,36 +21,45 @@ describe('App', function(this: any) {
     if (process.platform === 'win32') {
       appPath += '.cmd'
     }
+
+    const root = path.resolve(__dirname, '..', '..', '..')
+
     app = new Application({
       path: appPath,
-      args: [path.join(__dirname, '..', '..', '..', 'out')],
+      args: [path.join(root, 'out')],
     })
     return app.start()
   })
 
-  beforeEach(function() {
-    chaiAsPromised.transferPromiseness = app.transferPromiseness
-  })
-
-  afterEach(function() {
+  afterEach(function () {
     if (app && app.isRunning()) {
       return app.stop()
     }
+    return Promise.resolve()
   })
 
-  it('opens a window on launch', function() {
-    return app.client
-      .waitUntil(() => app.browserWindow.isVisible(), 5000)
-      .getWindowCount()
-      .should.eventually.equal(1)
-      .browserWindow.isMinimized()
-      .should.eventually.be.false.browserWindow.isDevToolsOpened()
-      .should.eventually.be.false.browserWindow.isVisible()
-      .should.eventually.be.true.browserWindow.getBounds()
-      .should.eventually.have.property('width')
-      .and.be.above(0)
-      .browserWindow.getBounds()
-      .should.eventually.have.property('height')
-      .and.be.above(0)
+  it('opens a window on launch', async () => {
+    await app.client.waitUntil(
+      () => Promise.resolve(app.browserWindow.isVisible()),
+      { timeout: 5000 }
+    )
+
+    const count = await app.client.getWindowCount()
+    // When running tests against development versions of Desktop
+    // (which usually happens locally when developing), the number
+    // of windows will be greater than 1, since the devtools are
+    // considered a window.
+    expect(count).toBeGreaterThan(0)
+
+    const window = app.browserWindow
+    expect(window.isVisible()).resolves.toBe(true)
+    expect(window.isMinimized()).resolves.toBe(false)
+
+    expect(window.isMinimized()).resolves.toBe(false)
+
+    const bounds = await window.getBounds()
+
+    expect(bounds.width).toBeGreaterThan(0)
+    expect(bounds.height).toBeGreaterThan(0)
   })
 })

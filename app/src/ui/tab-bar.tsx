@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 
 /** The tab bar type. */
 export enum TabBarType {
@@ -8,6 +8,9 @@ export enum TabBarType {
 
   /** Simpler switch appearance */
   Switch,
+
+  /** Vertical tabs */
+  Vertical,
 }
 
 interface ITabBarProps {
@@ -30,11 +33,17 @@ export class TabBar extends React.Component<ITabBarProps, {}> {
   private readonly tabRefsByIndex = new Map<number, HTMLButtonElement>()
 
   public render() {
+    const { type } = this.props
+
     return (
       <div
         className={
           'tab-bar ' +
-          (this.props.type === TabBarType.Switch ? 'switch' : 'tabs')
+          (type === TabBarType.Switch
+            ? 'switch'
+            : type === TabBarType.Vertical
+            ? 'vertical'
+            : 'tabs')
         }
         role="tablist"
       >
@@ -47,9 +56,9 @@ export class TabBar extends React.Component<ITabBarProps, {}> {
     direction: 'next' | 'previous',
     index: number
   ) => {
-    const children = this.props.children as ReadonlyArray<JSX.Element> | null
+    const children = React.Children.toArray(this.props.children)
 
-    if (!children || !children.length) {
+    if (children.length === 0) {
       return
     }
 
@@ -80,10 +89,7 @@ export class TabBar extends React.Component<ITabBarProps, {}> {
   }
 
   private renderItems() {
-    const children = this.props.children as ReadonlyArray<JSX.Element> | null
-    if (!children) {
-      return null
-    }
+    const children = React.Children.toArray(this.props.children)
 
     return children.map((child, index) => {
       const selected = index === this.props.selectedIndex
@@ -95,6 +101,7 @@ export class TabBar extends React.Component<ITabBarProps, {}> {
           onClick={this.onTabClicked}
           onSelectAdjacent={this.onSelectAdjacentTab}
           onButtonRef={this.onTabRef}
+          type={this.props.type}
         >
           {child}
         </TabBarItem>
@@ -115,6 +122,7 @@ interface ITabBarItemProps {
     index: number,
     button: HTMLButtonElement | null
   ) => void
+  readonly type?: TabBarType
 }
 
 class TabBarItem extends React.Component<ITabBarItemProps, {}> {
@@ -123,11 +131,14 @@ class TabBarItem extends React.Component<ITabBarItemProps, {}> {
   }
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
-    if (event.key === 'ArrowLeft') {
-      this.props.onSelectAdjacent('previous', this.props.index)
+    const { type, index } = this.props
+    const previousKey = type === TabBarType.Vertical ? 'ArrowUp' : 'ArrowLeft'
+    const nextKey = type === TabBarType.Vertical ? 'ArrowDown' : 'ArrowRight'
+    if (event.key === previousKey) {
+      this.props.onSelectAdjacent('previous', index)
       event.preventDefault()
-    } else if (event.key === 'ArrowRight') {
-      this.props.onSelectAdjacent('next', this.props.index)
+    } else if (event.key === nextKey) {
+      this.props.onSelectAdjacent('next', index)
       event.preventDefault()
     }
   }
@@ -146,7 +157,7 @@ class TabBarItem extends React.Component<ITabBarItemProps, {}> {
         onClick={this.onClick}
         role="tab"
         aria-selected={selected}
-        tabIndex={selected ? 0 : -1}
+        tabIndex={selected ? undefined : -1}
         onKeyDown={this.onKeyDown}
         type="button"
       >

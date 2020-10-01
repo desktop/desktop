@@ -1,8 +1,11 @@
 import * as React from 'react'
 
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
-import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  OkCancelButtonGroup,
+} from '../dialog'
 
 interface IShellErrorProps {
   /**
@@ -27,7 +30,10 @@ interface IShellErrorProps {
  * shell.
  */
 export class ShellError extends React.Component<IShellErrorProps, {}> {
-  private onShowPreferencesDialog = () => {
+  private onShowPreferencesDialog = (
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    e.preventDefault()
     this.props.onDismissed()
     this.props.showPreferencesDialog()
   }
@@ -46,14 +52,11 @@ export class ShellError extends React.Component<IShellErrorProps, {}> {
           <p>{this.props.message}</p>
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup>
-            <Button type="submit" onClick={this.props.onDismissed}>
-              Close
-            </Button>
-            <Button onClick={this.onShowPreferencesDialog}>
-              {__DARWIN__ ? 'Open Preferences' : 'Open options'}
-            </Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            okButtonText="Close"
+            cancelButtonText={__DARWIN__ ? 'Open Preferences' : 'Open options'}
+            onCancelButtonClick={this.onShowPreferencesDialog}
+          />
         </DialogFooter>
       </Dialog>
     )

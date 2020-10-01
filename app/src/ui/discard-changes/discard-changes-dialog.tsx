@@ -1,20 +1,26 @@
 import * as React from 'react'
 
 import { Repository } from '../../models/repository'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { WorkingDirectoryFileChange } from '../../models/status'
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { PathText } from '../lib/path-text'
-import { Monospaced } from '../lib/monospaced'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import { TrashNameLabel } from '../lib/context-menu'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IDiscardChangesProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly files: ReadonlyArray<WorkingDirectoryFileChange>
   readonly confirmDiscardChanges: boolean
+  /**
+   * Determines whether to show the option
+   * to ask for confirmation when discarding
+   * changes
+   */
+  readonly discardingAllChanges: boolean
+  readonly showDiscardChangesSetting: boolean
   readonly onDismissed: () => void
   readonly onConfirmDiscardChangesChanged: (optOut: boolean) => void
 }
@@ -49,43 +55,74 @@ export class DiscardChanges extends React.Component<
     }
   }
 
+  private getOkButtonLabel() {
+    if (this.props.discardingAllChanges) {
+      return __DARWIN__ ? 'Discard All Changes' : 'Discard all changes'
+    }
+    return __DARWIN__ ? 'Discard Changes' : 'Discard changes'
+  }
+
+  private getDialogTitle() {
+    if (this.props.discardingAllChanges) {
+      return __DARWIN__
+        ? 'Confirm Discard All Changes'
+        : 'Confirm discard all changes'
+    }
+    return __DARWIN__ ? 'Confirm Discard Changes' : 'Confirm discard changes'
+  }
+
   public render() {
-    const trashName = __DARWIN__ ? 'Trash' : 'Recycle Bin'
+    const isDiscardingChanges = this.state.isDiscardingChanges
+
     return (
       <Dialog
         id="discard-changes"
-        title={
-          __DARWIN__ ? 'Confirm Discard Changes' : 'Confirm discard changes'
-        }
+        title={this.getDialogTitle()}
         onDismissed={this.props.onDismissed}
+        onSubmit={this.discard}
+        dismissable={isDiscardingChanges ? false : true}
+        loading={isDiscardingChanges}
+        disabled={isDiscardingChanges}
         type="warning"
       >
         <DialogContent>
           {this.renderFileList()}
           <p>
-            Changes can be restored by retrieving them from the {trashName}.
+            Changes can be restored by retrieving them from the {TrashNameLabel}
+            .
           </p>
-          <Checkbox
-            label="Do not show this message again"
-            value={
-              this.state.confirmDiscardChanges
-                ? CheckboxValue.Off
-                : CheckboxValue.On
-            }
-            onChange={this.onCheckboxChanged}
-          />
+          {this.renderConfirmDiscardChanges()}
         </DialogContent>
 
         <DialogFooter>
-          <ButtonGroup destructive={true}>
-            <Button type="submit">Cancel</Button>
-            <Button onClick={this.discard}>
-              {__DARWIN__ ? 'Discard Changes' : 'Discard changes'}
-            </Button>
-          </ButtonGroup>
+          <OkCancelButtonGroup
+            destructive={true}
+            okButtonText={this.getOkButtonLabel()}
+          />
         </DialogFooter>
       </Dialog>
     )
+  }
+
+  private renderConfirmDiscardChanges() {
+    if (this.props.showDiscardChangesSetting) {
+      return (
+        <Checkbox
+          label="Do not show this message again"
+          value={
+            this.state.confirmDiscardChanges
+              ? CheckboxValue.Off
+              : CheckboxValue.On
+          }
+          onChange={this.onConfirmDiscardChangesChanged}
+        />
+      )
+    } else {
+      // since we ignore the users option to not show
+      // confirmation, we don't want to show a checkbox
+      // that will have no effect
+      return null
+    }
   }
 
   private renderFileList() {
@@ -103,9 +140,7 @@ export class DiscardChanges extends React.Component<
           <ul>
             {this.props.files.map(p => (
               <li key={p.id}>
-                <Monospaced>
-                  <PathText path={p.path} />
-                </Monospaced>
+                <PathText path={p.path} />
               </li>
             ))}
           </ul>
@@ -126,7 +161,9 @@ export class DiscardChanges extends React.Component<
     this.props.onDismissed()
   }
 
-  private onCheckboxChanged = (event: React.FormEvent<HTMLInputElement>) => {
+  private onConfirmDiscardChangesChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
     const value = !event.currentTarget.checked
 
     this.setState({ confirmDiscardChanges: value })

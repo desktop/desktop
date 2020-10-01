@@ -1,0 +1,29 @@
+changed in both
+  base   100644 9158b587adcc03325e344c03f5157e1eb24ea782 .yarnrc
+  our    100644 58d37cc88fb09a1944c25f4599a9bf93b42a143e .yarnrc
+  their  100644 d92b61027d0e3fbf6e4ca53022d41584dbbb30da .yarnrc
+@@ -1,3 +1,7 @@
+ disturl "https://atom.io/download/electron"
++<<<<<<< .our
+ target "2.0.7"
++=======
++target "1.8.2-beta.4"
++>>>>>>> .their
+ runtime "electron"
+changed in both
+  base   100644 51176c67d93334b9fbfcd5f217cba204e915764f package.json
+  our    100644 d0e982ce0b76c5b1b5eb02b673e459e47f3353a4 package.json
+  their  100644 dacbec56db93aed5da81515729d4ac8a3062e9a7 package.json
+@@ -1,7 +1,12 @@
+ {
+   "name": "code-oss-dev",
++<<<<<<< .our
+   "version": "1.27.0",
+   "distro": "a4155d9780fbbc94ead6cb3017dd0fc3806c57b8",
++=======
++  "version": "1.20.0",
++  "distro": "c149a13812097dbdb4e9c7322e79f087091e226e",
++>>>>>>> .their
+   "author": {
+     "name": "Microsoft Corporation"
+   },

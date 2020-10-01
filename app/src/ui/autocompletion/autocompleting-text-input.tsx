@@ -1,15 +1,20 @@
 import * as React from 'react'
-import { List, SelectionSource } from '../lib/list'
+import {
+  List,
+  SelectionSource,
+  findNextSelectableRow,
+  SelectionDirection,
+} from '../lib/list'
 import { IAutocompletionProvider } from './index'
 import { fatalError } from '../../lib/fatal-error'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 
 interface IRange {
   readonly start: number
   readonly length: number
 }
 
-import getCaretCoordinates = require('textarea-caret')
+import getCaretCoordinates from 'textarea-caret'
 import { showContextualMenu } from '../main-process-proxy'
 
 interface IAutocompletingTextInputProps<ElementType> {
@@ -27,6 +32,9 @@ interface IAutocompletingTextInputProps<ElementType> {
 
   /** Disabled state for input field. */
   readonly disabled?: boolean
+
+  /** Indicates if input field should be required */
+  readonly isRequired?: boolean
 
   /**
    * Called when the user changes the value in the input field.
@@ -96,10 +104,15 @@ export abstract class AutocompletingTextInput<
   IAutocompletingTextInputState<Object>
 > {
   private element: ElementType | null = null
-  private autocompletionList: List | null = null
 
   /** The identifier for each autocompletion request. */
   private autocompletionRequestID = 0
+
+  /**
+   * To be implemented by subclasses. It must return the element tag name which
+   * should correspond to the ElementType over which it is parameterized.
+   */
+  protected abstract getElementTagName(): 'textarea' | 'input'
 
   public constructor(props: IAutocompletingTextInputProps<ElementType>) {
     super(props)
@@ -120,10 +133,6 @@ export abstract class AutocompletingTextInput<
         {state.provider.renderItem(item)}
       </div>
     )
-  }
-
-  private storeAutocompletionListRef = (ref: List | null) => {
-    this.autocompletionList = ref
   }
 
   private renderAutocompletions() {
@@ -152,12 +161,20 @@ export abstract class AutocompletingTextInput<
       : -1
     const rect = element.getBoundingClientRect()
     const popupAbsoluteTop = rect.top + coordinates.top
-    const windowHeight = element.ownerDocument.defaultView.innerHeight
-    const spaceToBottomOfWindow = windowHeight - popupAbsoluteTop - YOffset
 
     // The maximum height we can use for the popup without it extending beyond
     // the Window bounds.
-    const maxHeight = Math.min(DefaultPopupHeight, spaceToBottomOfWindow)
+    let maxHeight: number
+    if (
+      element.ownerDocument !== null &&
+      element.ownerDocument.defaultView !== null
+    ) {
+      const windowHeight = element.ownerDocument.defaultView.innerHeight
+      const spaceToBottomOfWindow = windowHeight - popupAbsoluteTop - YOffset
+      maxHeight = Math.min(DefaultPopupHeight, spaceToBottomOfWindow)
+    } else {
+      maxHeight = DefaultPopupHeight
+    }
 
     // The height needed to accomodate all the matched items without overflowing
     //
@@ -180,17 +197,16 @@ export abstract class AutocompletingTextInput<
     return (
       <div className={className} style={{ top, left, height }}>
         <List
-          ref={this.storeAutocompletionListRef}
           rowCount={items.length}
           rowHeight={RowHeight}
-          selectedRow={selectedRow}
+          selectedRows={[selectedRow]}
           rowRenderer={this.renderItem}
           scrollToRow={selectedRow}
           selectOnHover={true}
           focusOnHover={false}
           onRowMouseDown={this.onRowMouseDown}
           onRowClick={this.insertCompletionOnClick}
-          onSelectionChanged={this.onSelectionChanged}
+          onSelectedRowChanged={this.onSelectedRowChanged}
           invalidationProps={searchText}
         />
       </div>
@@ -211,7 +227,7 @@ export abstract class AutocompletingTextInput<
     }
   }
 
-  private onSelectionChanged = (row: number, source: SelectionSource) => {
+  private onSelectedRowChanged = (row: number, source: SelectionSource) => {
     const currentAutoCompletionState = this.state.autocompletionState
 
     if (!currentAutoCompletionState) {
@@ -244,12 +260,6 @@ export abstract class AutocompletingTextInput<
     this.insertCompletion(item, 'mouseclick')
   }
 
-  /**
-   * To be implemented by subclasses. It must return the element tag name which
-   * should correspond to the ElementType over which it is parameterized.
-   */
-  protected abstract getElementTagName(): 'textarea' | 'input'
-
   private onContextMenu = (event: React.MouseEvent<any>) => {
     if (this.props.onContextMenu) {
       this.props.onContextMenu(event)
@@ -270,6 +280,7 @@ export abstract class AutocompletingTextInput<
       onBlur: this.onBlur,
       onContextMenu: this.onContextMenu,
       disabled: this.props.disabled,
+      'aria-required': this.props.isRequired ? true : false,
     }
 
     return React.createElement<React.HTMLAttributes<ElementType>, ElementType>(
@@ -363,7 +374,7 @@ export abstract class AutocompletingTextInput<
 
   private getMovementDirection(
     event: React.KeyboardEvent<any>
-  ): 'up' | 'down' | null {
+  ): SelectionDirection | null {
     switch (event.key) {
       case 'ArrowUp':
         return 'up'
@@ -401,11 +412,12 @@ export abstract class AutocompletingTextInput<
     const direction = this.getMovementDirection(event)
     if (direction) {
       event.preventDefault()
+      const rowCount = currentAutoCompletionState.items.length
 
-      const nextRow = this.autocompletionList!.nextSelectableRow(
+      const nextRow = findNextSelectableRow(rowCount, {
         direction,
-        selectedRow
-      )
+        row: selectedRow,
+      })
 
       if (nextRow !== null) {
         const newSelectedItem = currentAutoCompletionState.items[nextRow]
@@ -445,7 +457,6 @@ export abstract class AutocompletingTextInput<
         fatalError(
           `The regex (${regex}) returned from ${provider} isn't global, but it should be!`
         )
-        continue
       }
 
       let result: RegExpExecArray | null = null
@@ -472,7 +483,18 @@ export abstract class AutocompletingTextInput<
       this.props.onValueChanged(str)
     }
 
-    const caretPosition = this.element!.selectionStart
+    const element = this.element
+
+    if (element === null) {
+      return
+    }
+
+    const caretPosition = element.selectionStart
+
+    if (caretPosition === null) {
+      return
+    }
+
     const requestID = ++this.autocompletionRequestID
     const autocompletionState = await this.attemptAutocompletion(
       str,

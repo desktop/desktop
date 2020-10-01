@@ -1,0 +1,21 @@
+changed in both
+  base   100644 05e6e4501ffa3e5ed0e7b4a7d467c8bbb5f9b073 atom/common/api/atom_api_native_image.cc
+  our    100644 09edfdaac9107386241505d2d5763b1b24aa73a4 atom/common/api/atom_api_native_image.cc
+  their  100644 fe3ba33412bb277b80b192e26bb90ed0fe5feef1 atom/common/api/atom_api_native_image.cc
+changed in both
+  base   100644 2b61fda68c8a163f607eba83ce0fdf258216602c spec/api-native-image-spec.js
+  our    100644 0546971b716e0d29d1e76d689be0a182c3f4b52d spec/api-native-image-spec.js
+  their  100644 81ba7465d201748b8811fe724389aac59e818dd9 spec/api-native-image-spec.js
+@@ -164,6 +164,12 @@
+       const imageI = nativeImage.createFromBuffer(imageA.toBitmap(),
+         {width: 538, height: 190, scaleFactor: 2.0})
+       expect(imageI.getSize()).to.deep.equal({width: 269, height: 95})
++<<<<<<< .our
++=======
++
++      const imageJ = nativeImage.createFromBuffer(imageA.toPNG(), {scaleFactor: 2.0})
++      expect(imageJ.getSize()).to.deep.equal({width: 269, height: 95})
++>>>>>>> .their
+     })
+   })
+ 

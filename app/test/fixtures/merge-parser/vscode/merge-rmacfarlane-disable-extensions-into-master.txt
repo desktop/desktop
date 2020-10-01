@@ -1,0 +1,50 @@
+changed in both
+  base   100644 063a7a4172e00055a6806ac6fca6ba3f94055fdc src/vs/code/electron-main/window.ts
+  our    100644 98a4328213e146b214e8da866ab92dc7f9c449a9 src/vs/code/electron-main/window.ts
+  their  100644 5f99b37e2e2ab86775e5383c9dd5b274f9e90de5 src/vs/code/electron-main/window.ts
+@@ -504,6 +504,7 @@
+ 		});
+ 	}
+ 
++<<<<<<< .our
+ 	addTabbedWindow(window: ICodeWindow): void {
+ 		if (isMacintosh) {
+ 			this._win.addTabbedWindow(window.win);
+@@ -511,6 +512,9 @@
+ 	}
+ 
+ 	load(config: IWindowConfiguration, isReload?: boolean, disableExtensions?: boolean): void {
++=======
++	public load(config: IWindowConfiguration, isReload?: boolean, disableExtensions?: boolean): void {
++>>>>>>> .their
+ 
+ 		// If this is the first time the window is loaded, we associate the paths
+ 		// directly with the window because we assume the loading will just work
+@@ -551,7 +555,11 @@
+ 		}
+ 
+ 		// Load URL
++<<<<<<< .our
+ 		perf.mark('main:loadWindow');
++=======
++		mark('main:loadWindow');
++>>>>>>> .their
+ 		this._win.loadURL(this.getUrl(configuration));
+ 
+ 		// Make window visible if it did not open in N seconds because this indicates an error
+changed in both
+  base   100644 d912fb8062732dbd1f57e5911248509efa9ed192 src/vs/platform/windows/electron-main/windows.ts
+  our    100644 20b7711912c4db633052e4e4941fa5b15b602380 src/vs/platform/windows/electron-main/windows.ts
+  their  100644 ce2eba8895b79acb60b67a5f7bb1c593bf39421a src/vs/platform/windows/electron-main/windows.ts
+@@ -48,8 +48,11 @@
+ 	readyState: ReadyState;
+ 	ready(): TPromise<ICodeWindow>;
+ 
++<<<<<<< .our
+ 	addTabbedWindow(window: ICodeWindow): void;
+ 
++=======
++>>>>>>> .their
+ 	load(config: IWindowConfiguration, isReload?: boolean, disableExtensions?: boolean): void;
+ 	reload(configuration?: IWindowConfiguration, cli?: ParsedArgs): void;
+ 

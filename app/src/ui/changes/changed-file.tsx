@@ -1,45 +1,30 @@
 import * as React from 'react'
-import * as Path from 'path'
 
-import { AppFileStatus, mapStatus, iconForStatus } from '../../models/status'
 import { PathLabel } from '../lib/path-label'
-import { Octicon } from '../octicons'
-import { showContextualMenu } from '../main-process-proxy'
+import { Octicon, iconForStatus } from '../octicons'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
-import { IMenuItem } from '../../lib/menu-item'
-
-const GitIgnoreFileName = '.gitignore'
-
-const RestrictedFileExtensions = ['.cmd', '.exe', '.bat', '.sh']
+import { mapStatus } from '../../lib/status'
+import { WorkingDirectoryFileChange } from '../../models/status'
 
 interface IChangedFileProps {
-  readonly path: string
-  readonly status: AppFileStatus
-  readonly oldPath?: string
+  readonly file: WorkingDirectoryFileChange
   readonly include: boolean | null
-  readonly onIncludeChanged: (path: string, include: boolean) => void
-  readonly onDiscardChanges: (path: string) => void
-
-  /**
-   * Called to reveal a file in the native file manager.
-   * @param path The path of the file relative to the root of the repository
-   */
-  readonly onRevealInFileManager: (path: string) => void
-
-  /**
-   * Called to open a file it its default application
-   * @param path The path of the file relative to the root of the repository
-   */
-  readonly onOpenItem: (path: string) => void
   readonly availableWidth: number
-  readonly onIgnore: (pattern: string) => void
+  readonly disableSelection: boolean
+  readonly onIncludeChanged: (path: string, include: boolean) => void
+
+  /** Callback called when user right-clicks on an item */
+  readonly onContextMenu: (
+    file: WorkingDirectoryFileChange,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => void
 }
 
 /** a changed file in the working directory for a given repository */
 export class ChangedFile extends React.Component<IChangedFileProps, {}> {
   private handleCheckboxChange = (event: React.FormEvent<HTMLInputElement>) => {
     const include = event.currentTarget.checked
-    this.props.onIncludeChanged(this.props.path, include)
+    this.props.onIncludeChanged(this.props.file.path, include)
   }
 
   private get checkboxValue(): CheckboxValue {
@@ -53,7 +38,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
   }
 
   public render() {
-    const status = this.props.status
+    const { status, path } = this.props.file
     const fileStatus = mapStatus(status)
 
     const listItemPadding = 10 * 2
@@ -77,12 +62,12 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
           tabIndex={-1}
           value={this.checkboxValue}
           onChange={this.handleCheckboxChange}
+          disabled={this.props.disableSelection}
         />
 
         <PathLabel
-          path={this.props.path}
-          oldPath={this.props.oldPath}
-          status={this.props.status}
+          path={path}
+          status={status}
           availableWidth={availablePathWidth}
         />
 
@@ -95,58 +80,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
     )
   }
 
-  private onContextMenu = (event: React.MouseEvent<any>) => {
-    event.preventDefault()
-
-    const extension = Path.extname(this.props.path)
-    const fileName = Path.basename(this.props.path)
-    const items: IMenuItem[] = [
-      {
-        label: __DARWIN__ ? 'Discard Changes…' : 'Discard changes…',
-        action: () => this.props.onDiscardChanges(this.props.path),
-      },
-      { type: 'separator' },
-      {
-        label: 'Ignore',
-        action: () => this.props.onIgnore(this.props.path),
-        enabled: fileName !== GitIgnoreFileName,
-      },
-    ]
-
-    if (extension.length) {
-      items.push({
-        label: __DARWIN__
-          ? `Ignore All ${extension} Files`
-          : `Ignore all ${extension} files`,
-        action: () => this.props.onIgnore(`*${extension}`),
-        enabled: fileName !== GitIgnoreFileName,
-      })
-    }
-
-    const isSafeExtension = __WIN32__
-      ? RestrictedFileExtensions.indexOf(extension.toLowerCase()) === -1
-      : true
-
-    const revealInFileManagerLabel = __DARWIN__
-      ? 'Reveal in Finder'
-      : __WIN32__ ? 'Show in Explorer' : 'Show in your File Manager'
-
-    items.push(
-      { type: 'separator' },
-      {
-        label: revealInFileManagerLabel,
-        action: () => this.props.onRevealInFileManager(this.props.path),
-        enabled: this.props.status !== AppFileStatus.Deleted,
-      },
-      {
-        label: __DARWIN__
-          ? 'Open with Default Program'
-          : 'Open with default program',
-        action: () => this.props.onOpenItem(this.props.path),
-        enabled: isSafeExtension && this.props.status !== AppFileStatus.Deleted,
-      }
-    )
-
-    showContextualMenu(items)
+  private onContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+    this.props.onContextMenu(this.props.file, event)
   }
 }

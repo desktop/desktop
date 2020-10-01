@@ -1,12 +1,26 @@
 import * as React from 'react'
-import { Button } from '../lib/button'
-import { Dispatcher } from '../../lib/dispatcher'
+
+import { getAheadBehind, mergeTree } from '../../lib/git'
+import { Dispatcher } from '../dispatcher'
+
 import { Branch } from '../../models/branch'
 import { Repository } from '../../models/repository'
-import { getAheadBehind } from '../../lib/git'
-import { ButtonGroup } from '../lib/button-group'
-import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { BranchList } from '../branches'
+
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  OkCancelButtonGroup,
+} from '../dialog'
+import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
+import { revSymmetricDifference } from '../../lib/git'
+import { IMatches } from '../../lib/fuzzy-find'
+import { MergeTreeResult } from '../../models/merge'
+import { ComputedAction } from '../../models/computed-action'
+import { ActionStatusIcon } from '../lib/action-status-icon'
+import { promiseWithMinimumTimeout } from '../../lib/promise'
+import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
+import { ClickSource } from '../lib/list'
 
 interface IMergeProps {
   readonly dispatcher: Dispatcher
@@ -18,9 +32,9 @@ interface IMergeProps {
   readonly defaultBranch: Branch | null
 
   /**
-   * The currently checked out branch or null if HEAD is detached
+   * The currently checked out branch
    */
-  readonly currentBranch: Branch | null
+  readonly currentBranch: Branch
 
   /**
    * See IBranchesState.allBranches
@@ -33,6 +47,11 @@ interface IMergeProps {
   readonly recentBranches: ReadonlyArray<Branch>
 
   /**
+   * The branch to select when the merge dialog is opened
+   */
+  readonly initialBranch?: Branch
+
+  /**
    * A function that's called when the dialog is dismissed by the user in the
    * ways described in the Dialog component's dismissable prop.
    */
@@ -42,6 +61,9 @@ interface IMergeProps {
 interface IMergeState {
   /** The currently selected branch. */
   readonly selectedBranch: Branch | null
+
+  /** The merge result of comparing the selected branch to the current branch */
+  readonly mergeStatus: MergeTreeResult | null
 
   /**
    * The number of commits that would be brought in by the merge.
@@ -59,14 +81,13 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   public constructor(props: IMergeProps) {
     super(props)
 
-    const currentBranch = props.currentBranch
-    const defaultBranch = props.defaultBranch
+    const selectedBranch = this.resolveSelectedBranch()
 
     this.state = {
-      // Select the default branch unless that's currently checked out
-      selectedBranch: currentBranch === defaultBranch ? null : defaultBranch,
+      selectedBranch,
       commitCount: undefined,
       filterText: '',
+      mergeStatus: null,
     }
   }
 
@@ -76,74 +97,201 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
       return
     }
 
-    this.updateCommitCount(branch)
+    this.updateMergeStatus(branch)
   }
 
   private onFilterTextChanged = (filterText: string) => {
     this.setState({ filterText })
   }
 
+  private onItemClick = (branch: Branch, source: ClickSource) => {
+    if (source.kind !== 'keyboard' || source.event.key !== 'Enter') {
+      return
+    }
+
+    source.event.preventDefault()
+    const { selectedBranch } = this.state
+
+    if (selectedBranch !== null && selectedBranch.name === branch.name) {
+      this.merge()
+    }
+  }
+
   private onSelectionChanged = async (selectedBranch: Branch | null) => {
-    if (selectedBranch) {
+    if (selectedBranch != null) {
       this.setState({ selectedBranch })
-      await this.updateCommitCount(selectedBranch)
+      await this.updateMergeStatus(selectedBranch)
     } else {
-      this.setState({ selectedBranch, commitCount: 0 })
+      this.setState({ selectedBranch, commitCount: 0, mergeStatus: null })
     }
   }
 
   private renderMergeInfo() {
-    const commitCount = this.state.commitCount
-    const selectedBranch = this.state.selectedBranch
-    const currentBranch = this.props.currentBranch
+    const { currentBranch } = this.props
+    const { selectedBranch, mergeStatus, commitCount } = this.state
 
     if (
-      selectedBranch === null ||
-      currentBranch === null ||
-      currentBranch.name === selectedBranch.name
+      mergeStatus == null ||
+      currentBranch == null ||
+      selectedBranch == null ||
+      currentBranch.name === selectedBranch.name ||
+      commitCount == null
     ) {
       return null
     }
 
-    if (commitCount === 0) {
-      return <p className="merge-info">Nothing to merge</p>
+    return (
+      <div className="merge-status-component">
+        <ActionStatusIcon
+          status={this.state.mergeStatus}
+          classNamePrefix="merge-status"
+        />
+        <p className="merge-info">
+          {this.renderMergeStatusMessage(
+            mergeStatus,
+            selectedBranch,
+            currentBranch,
+            commitCount
+          )}
+        </p>
+      </div>
+    )
+  }
+
+  private renderMergeStatusMessage(
+    mergeStatus: MergeTreeResult,
+    branch: Branch,
+    currentBranch: Branch,
+    commitCount: number
+  ): JSX.Element {
+    if (mergeStatus.kind === ComputedAction.Loading) {
+      return this.renderLoadingMergeMessage()
     }
 
-    const countPlural = commitCount === 1 ? 'commit' : 'commits'
-    const countText =
-      commitCount === undefined ? (
-        'commits'
-      ) : (
-        <strong>
-          {commitCount} {countPlural}
-        </strong>
+    if (mergeStatus.kind === ComputedAction.Clean) {
+      return this.renderCleanMergeMessage(branch, currentBranch, commitCount)
+    }
+
+    if (mergeStatus.kind === ComputedAction.Invalid) {
+      return this.renderInvalidMergeMessage()
+    }
+
+    return this.renderConflictedMergeMessage(
+      branch,
+      currentBranch,
+      mergeStatus.conflictedFiles
+    )
+  }
+
+  private renderLoadingMergeMessage() {
+    return (
+      <React.Fragment>
+        Checking for ability to merge automatically...
+      </React.Fragment>
+    )
+  }
+
+  private renderCleanMergeMessage(
+    branch: Branch,
+    currentBranch: Branch,
+    commitCount: number
+  ) {
+    if (commitCount === 0) {
+      return (
+        <React.Fragment>
+          {`This branch is up to date with `}
+          <strong>{branch.name}</strong>
+        </React.Fragment>
       )
+    }
+
+    const pluralized = commitCount === 1 ? 'commit' : 'commits'
+    return (
+      <React.Fragment>
+        This will merge
+        <strong>{` ${commitCount} ${pluralized}`}</strong>
+        {` from `}
+        <strong>{branch.name}</strong>
+        {` into `}
+        <strong>{currentBranch.name}</strong>
+      </React.Fragment>
+    )
+  }
+
+  private renderInvalidMergeMessage() {
+    return (
+      <React.Fragment>
+        Unable to merge unrelated histories in this repository
+      </React.Fragment>
+    )
+  }
+
+  private renderConflictedMergeMessage(
+    branch: Branch,
+    currentBranch: Branch,
+    count: number
+  ) {
+    const pluralized = count === 1 ? 'file' : 'files'
+    return (
+      <React.Fragment>
+        There will be
+        <strong>{` ${count} conflicted ${pluralized}`}</strong>
+        {` when merging `}
+        <strong>{branch.name}</strong>
+        {` into `}
+        <strong>{currentBranch.name}</strong>
+      </React.Fragment>
+    )
+  }
+
+  private renderBranch = (item: IBranchListItem, matches: IMatches) => {
+    return renderDefaultBranch(item, matches, this.props.currentBranch)
+  }
+
+  private canMergeSelectedBranch() {
+    const selectedBranch = this.state.selectedBranch
+    const currentBranch = this.props.currentBranch
+
+    const selectedBranchIsCurrentBranch =
+      selectedBranch !== null &&
+      currentBranch !== null &&
+      selectedBranch.name === currentBranch.name
+
+    const isBehind =
+      this.state.commitCount !== undefined && this.state.commitCount > 0
+
+    const canMergeBranch =
+      this.state.mergeStatus === null ||
+      this.state.mergeStatus.kind !== ComputedAction.Invalid
 
     return (
-      <p className="merge-info">
-        This will bring in {countText}
-        {' from '}
-        <strong>{selectedBranch ? selectedBranch.name : 'HEAD'}</strong>
-      </p>
+      selectedBranch !== null &&
+      !selectedBranchIsCurrentBranch &&
+      isBehind &&
+      canMergeBranch
     )
   }
 
   public render() {
     const selectedBranch = this.state.selectedBranch
     const currentBranch = this.props.currentBranch
+    const disabled = !this.canMergeSelectedBranch()
 
-    const disabled =
-      selectedBranch === null ||
-      currentBranch === null ||
-      currentBranch.name === selectedBranch.name ||
-      this.state.commitCount === 0
-
+    // the amount of characters to allow before we truncate was chosen arbitrarily
+    const currentBranchName = truncateWithEllipsis(
+      this.props.currentBranch.name,
+      40
+    )
     return (
       <Dialog
         id="merge"
-        title={__DARWIN__ ? 'Merge Branch' : 'Merge branch'}
         onDismissed={this.props.onDismissed}
         onSubmit={this.merge}
+        title={
+          <>
+            Merge into <strong>{currentBranchName}</strong>
+          </>
+        }
       >
         <DialogContent>
           <BranchList
@@ -156,23 +304,43 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
             selectedBranch={selectedBranch}
             onSelectionChanged={this.onSelectionChanged}
             canCreateNewBranch={false}
+            renderBranch={this.renderBranch}
+            onItemClick={this.onItemClick}
           />
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup>
-            <Button type="submit" disabled={disabled}>
-              Merge into{' '}
-              <strong>{currentBranch ? currentBranch.name : ''}</strong>
-            </Button>
-          </ButtonGroup>
           {this.renderMergeInfo()}
+          <OkCancelButtonGroup
+            okButtonText={
+              <>
+                Merge{' '}
+                <strong>{selectedBranch ? selectedBranch.name : ''}</strong>{' '}
+                into <strong>{currentBranch ? currentBranch.name : ''}</strong>
+              </>
+            }
+            okButtonDisabled={disabled}
+            cancelButtonVisible={false}
+          />
         </DialogFooter>
       </Dialog>
     )
   }
 
-  private async updateCommitCount(branch: Branch) {
-    const range = `...${branch.name}`
+  private async updateMergeStatus(branch: Branch) {
+    this.setState({ mergeStatus: { kind: ComputedAction.Loading } })
+
+    const { currentBranch } = this.props
+
+    if (currentBranch != null) {
+      const mergeStatus = await promiseWithMinimumTimeout(
+        () => mergeTree(this.props.repository, currentBranch, branch),
+        500
+      )
+
+      this.setState({ mergeStatus })
+    }
+
+    const range = revSymmetricDifference('', branch.name)
     const aheadBehind = await getAheadBehind(this.props.repository, range)
     const commitCount = aheadBehind ? aheadBehind.behind : 0
 
@@ -185,12 +353,37 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   }
 
   private merge = () => {
+    if (!this.canMergeSelectedBranch()) {
+      return
+    }
+
     const branch = this.state.selectedBranch
     if (!branch) {
       return
     }
 
-    this.props.dispatcher.mergeBranch(this.props.repository, branch.name)
-    this.props.dispatcher.closePopup()
+    this.props.dispatcher.mergeBranch(
+      this.props.repository,
+      branch.name,
+      this.state.mergeStatus
+    )
+    this.props.onDismissed()
+  }
+
+  /**
+   * Returns the branch to use as the selected branch
+   *
+   * The initial branch is used if passed
+   * otherwise, the default branch will be used iff it's
+   * not the currently checked out branch
+   */
+  private resolveSelectedBranch() {
+    const { currentBranch, defaultBranch, initialBranch } = this.props
+
+    if (initialBranch !== undefined) {
+      return initialBranch
+    }
+
+    return currentBranch === defaultBranch ? null : defaultBranch
   }
 }

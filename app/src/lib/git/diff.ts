@@ -7,7 +7,7 @@ import { Repository } from '../../models/repository'
 import {
   WorkingDirectoryFileChange,
   FileChange,
-  AppFileStatus,
+  AppFileStatusKind,
 } from '../../models/status'
 import {
   DiffType,
@@ -24,6 +24,8 @@ import {
 import { spawnAndComplete } from './spawn'
 
 import { DiffParser } from '../diff-parser'
+import { getOldPathOrDefault } from '../get-old-path'
+import { getCaptures } from '../helpers/regex'
 
 /**
  * V8 has a limit on the size of string it can create (~256MB), and unless we want to
@@ -44,7 +46,7 @@ const MaxReasonableDiffSize = MaxDiffBufferSize / 16 // ~4.375MB in decimal
  * The longest line length we should try to display. If a diff has a line longer
  * than this, we probably shouldn't attempt it
  */
-const MaxLineLength = 500000
+const MaxCharactersPerLine = 5000
 
 /**
  * Utility function to check whether parsing this buffer is going to cause
@@ -65,7 +67,7 @@ function isBufferTooLarge(buffer: Buffer) {
 function isDiffTooLarge(diff: IRawDiff) {
   for (const hunk of diff.hunks) {
     for (const line of hunk.lines) {
-      if (line.text.length > MaxLineLength) {
+      if (line.text.length > MaxCharactersPerLine) {
         return true
       }
     }
@@ -84,6 +86,7 @@ const imageFileExtensions = new Set([
   '.gif',
   '.ico',
   '.webp',
+  '.bmp',
 ])
 
 /**
@@ -95,11 +98,13 @@ const imageFileExtensions = new Set([
 export async function getCommitDiff(
   repository: Repository,
   file: FileChange,
-  commitish: string
+  commitish: string,
+  hideWhitespaceInDiff: boolean = false
 ): Promise<IDiff> {
   const args = [
     'log',
     commitish,
+    ...(hideWhitespaceInDiff ? ['-w'] : []),
     '-m',
     '-1',
     '--first-parent',
@@ -110,8 +115,11 @@ export async function getCommitDiff(
     file.path,
   ]
 
-  if (file.oldPath != null) {
-    args.push(file.oldPath)
+  if (
+    file.status.kind === AppFileStatusKind.Renamed ||
+    file.status.kind === AppFileStatusKind.Copied
+  ) {
+    args.push(file.status.oldPath)
   }
 
   const { output } = await spawnAndComplete(
@@ -138,7 +146,10 @@ export async function getWorkingDirectoryDiff(
   // `--no-ext-diff` should be provided wherever we invoke `git diff` so that any
   // diff.external program configured by the user is ignored
 
-  if (file.status === AppFileStatus.New) {
+  if (
+    file.status.kind === AppFileStatusKind.New ||
+    file.status.kind === AppFileStatusKind.Untracked
+  ) {
     // `git diff --no-index` seems to emulate the exit codes from `diff` irrespective of
     // whether you set --exit-code
     //
@@ -161,7 +172,7 @@ export async function getWorkingDirectoryDiff(
       '/dev/null',
       file.path,
     ]
-  } else if (file.status === AppFileStatus.Renamed) {
+  } else if (file.status.kind === AppFileStatusKind.Renamed) {
     // NB: Technically this is incorrect, the best kind of incorrect.
     // In order to show exactly what will end up in the commit we should
     // perform a diff between the new file and the old file as it appears
@@ -215,39 +226,45 @@ async function getImageDiff(
     // No idea what to do about this, a conflicted binary (presumably) file.
     // Ideally we'd show all three versions and let the user pick but that's
     // a bit out of scope for now.
-    if (file.status === AppFileStatus.Conflicted) {
+    if (file.status.kind === AppFileStatusKind.Conflicted) {
       return { kind: DiffType.Image }
     }
 
     // Does it even exist in the working directory?
-    if (file.status !== AppFileStatus.Deleted) {
+    if (file.status.kind !== AppFileStatusKind.Deleted) {
       current = await getWorkingDirectoryImage(repository, file)
     }
 
-    if (file.status !== AppFileStatus.New) {
+    if (
+      file.status.kind !== AppFileStatusKind.New &&
+      file.status.kind !== AppFileStatusKind.Untracked
+    ) {
       // If we have file.oldPath that means it's a rename so we'll
       // look for that file.
       previous = await getBlobImage(
         repository,
-        file.oldPath || file.path,
+        getOldPathOrDefault(file),
         'HEAD'
       )
     }
   } else {
     // File status can't be conflicted for a file in a commit
-    if (file.status !== AppFileStatus.Deleted) {
+    if (file.status.kind !== AppFileStatusKind.Deleted) {
       current = await getBlobImage(repository, file.path, commitish)
     }
 
     // File status can't be conflicted for a file in a commit
-    if (file.status !== AppFileStatus.New) {
+    if (
+      file.status.kind !== AppFileStatusKind.New &&
+      file.status.kind !== AppFileStatusKind.Untracked
+    ) {
       // TODO: commitish^ won't work for the first commit
       //
       // If we have file.oldPath that means it's a rename so we'll
       // look for that file.
       previous = await getBlobImage(
         repository,
-        file.oldPath || file.path,
+        getOldPathOrDefault(file),
         `${commitish}^`
       )
     }
@@ -267,9 +284,9 @@ export async function convertDiff(
   commitish: string,
   lineEndingsChange?: LineEndingsChange
 ): Promise<IDiff> {
-  if (diff.isBinary) {
-    const extension = Path.extname(file.path)
+  const extension = Path.extname(file.path).toLowerCase()
 
+  if (diff.isBinary) {
     // some extension we don't know how to parse, never mind
     if (!imageFileExtensions.has(extension)) {
       return {
@@ -306,6 +323,9 @@ function getMediaType(extension: string) {
   }
   if (extension === '.webp') {
     return 'image/webp'
+  }
+  if (extension === '.bmp') {
+    return 'image/bmp'
   }
 
   // fallback value as per the spec
@@ -405,11 +425,11 @@ export async function getBlobImage(
 ): Promise<Image> {
   const extension = Path.extname(path)
   const contents = await getBlobContents(repository, commitish, path)
-  const diff: Image = {
-    contents: contents.toString('base64'),
-    mediaType: getMediaType(extension),
-  }
-  return diff
+  return new Image(
+    contents.toString('base64'),
+    getMediaType(extension),
+    contents.length
+  )
 }
 /**
  * Retrieve the binary contents of a blob from the working directory
@@ -427,9 +447,38 @@ export async function getWorkingDirectoryImage(
   const contents = await fileSystem.readFile(
     Path.join(repository.path, file.path)
   )
-  const diff: Image = {
-    contents: contents.toString('base64'),
-    mediaType: getMediaType(Path.extname(file.path)),
-  }
-  return diff
+  return new Image(
+    contents.toString('base64'),
+    getMediaType(Path.extname(file.path)),
+    contents.length
+  )
 }
+
+/**
+ * List the modified binary files' paths in the given repository
+ *
+ * @param repository to run git operation in
+ * @param ref ref (sha, branch, etc) to compare the working index against
+ *
+ * if you're mid-merge pass `'MERGE_HEAD'` to ref to get a diff of `HEAD` vs `MERGE_HEAD`,
+ * otherwise you should probably pass `'HEAD'` to get a diff of the working tree vs `HEAD`
+ */
+export async function getBinaryPaths(
+  repository: Repository,
+  ref: string
+): Promise<ReadonlyArray<string>> {
+  const { output } = await spawnAndComplete(
+    ['diff', '--numstat', '-z', ref],
+    repository.path,
+    'getBinaryPaths'
+  )
+  const captures = getCaptures(output.toString('utf8'), binaryListRegex)
+  if (captures.length === 0) {
+    return []
+  }
+  // flatten the list (only does one level deep)
+  const flatCaptures = captures.reduce((acc, val) => acc.concat(val))
+  return flatCaptures
+}
+
+const binaryListRegex = /-\t-\t(?:\0.+\0)?([^\0]*)/gi

@@ -1,0 +1,41 @@
+@import '../mixins';
+
+.fancy-text-box-component {
+  background: var(--box-background-color);
+  display: flex;
+  align-items: center;
+  border: var(--base-border);
+  border-radius: var(--border-radius);
+
+  .fancy-octicon {
+    height: var(--text-field-height);
+    padding: var(--spacing-half) 0 var(--spacing-half) 7px;
+    border-right: none;
+    border-radius: var(--border-radius) 0 0 var(--border-radius);
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+  }
+
+  &.focused {
+    @include textboxish-focus-styles;
+
+    .fancy-octicon {
+      opacity: 1;
+    }
+  }
+
+  input {
+    border-left: none;
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+    border: none;
+    box-shadow: none;
+
+    &:focus {
+      box-shadow: none;
+    }
+  }
+
+  &.disabled {
+    background: var(--box-alt-background-color);
+  }
+}
