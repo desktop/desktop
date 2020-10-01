@@ -88,7 +88,7 @@ export async function envForProxy(
   resolve: (url: string) => Promise<string | undefined> = resolveGitProxy
 ): Promise<NodeJS.ProcessEnv | undefined> {
   if (!enableAutomaticGitProxyConfiguration()) {
-    return undefined
+    return
   }
 
   const protocolMatch = /^(https?):\/\//i.exec(remoteUrl)
