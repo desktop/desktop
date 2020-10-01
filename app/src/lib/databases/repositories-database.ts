@@ -1,6 +1,5 @@
 import Dexie from 'dexie'
 import { BaseDatabase } from './base-database'
-import { WorkflowPreferences } from '../../models/workflow-preferences'
 
 export interface IDatabaseOwner {
   readonly id?: number | null
@@ -23,10 +22,7 @@ export interface IDatabaseGitHubRepository {
   /** The last time a prune was attempted on the repository */
   readonly lastPruneDate: number | null
 
-  readonly issuesEnabled?: boolean
-  readonly isArchived?: boolean
-
-  readonly permissions?: 'read' | 'write' | 'admin' | null
+  readonly permissions: 'read' | 'write' | 'admin' | null
 }
 
 /** A record to track the protected branch information for a GitHub repository */
@@ -48,8 +44,6 @@ export interface IDatabaseRepository {
 
   /** The last time the stash entries were checked for the repository */
   readonly lastStashCheckDate: number | null
-
-  readonly workflowPreferences?: WorkflowPreferences
 
   /**
    * True if the repository is a tutorial repository created as part

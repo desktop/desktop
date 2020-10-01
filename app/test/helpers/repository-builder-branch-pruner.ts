@@ -6,8 +6,6 @@ import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cach
 import { Repository } from '../../src/models/repository'
 import { IAPIRepository } from '../../src/lib/api'
 import { shell } from './test-app-shell'
-import { StatsStore, StatsDatabase } from '../../src/lib/stats'
-import { UiActivityMonitor } from '../../src/ui/lib/ui-activity-monitor'
 
 export async function createRepository() {
   const repo = await setupEmptyRepository()
@@ -83,8 +81,7 @@ export async function setupRepository(
       fork: false,
       default_branch: defaultBranchName,
       pushed_at: 'string',
-      has_issues: true,
-      archived: false,
+      parent: null,
       permissions: {
         pull: true,
         push: true,
@@ -115,14 +112,7 @@ async function primeCaches(
   repository: Repository,
   repositoriesStateCache: RepositoryStateCache
 ) {
-  const gitStore = new GitStore(
-    repository,
-    shell,
-    new StatsStore(
-      new StatsDatabase('test-StatsDatabase'),
-      new UiActivityMonitor()
-    )
-  )
+  const gitStore = new GitStore(repository, shell)
 
   // rather than re-create the branches and stuff as objects, these calls
   // will run the underlying Git operations and update the GitStore state

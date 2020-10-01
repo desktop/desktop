@@ -20,7 +20,6 @@ describe('RepositoriesDatabase', () => {
       parentID: null,
       lastPruneDate: null,
       permissions: 'write',
-      issuesEnabled: true,
     }
     const originalId = await db.gitHubRepositories.add({ ...gitHubRepo })
     const duplicateId = await db.gitHubRepositories.add({ ...gitHubRepo })
