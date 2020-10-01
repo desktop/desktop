@@ -12,7 +12,7 @@ dialog#rebase-conflicts-list {
   }
 
   .dialog-content {
-    padding-bottom: var(--spacing);
+    padding-bottom: var(--spacer-3);
   }
 
   .green-circle {
@@ -33,12 +33,12 @@ dialog#rebase-conflicts-list {
     overflow-y: auto;
 
     li {
-      margin-bottom: var(--spacing-double);
+      margin-bottom: var(--spacer-4);
       padding-left: 0;
     }
 
     li:last-of-type {
-      margin-bottom: calc(var(--spacing) * 2);
+      margin-bottom: calc(var(--spacer-3) * 2);
     }
 
     li.unmerged-file-status-resolved,
@@ -47,7 +47,7 @@ dialog#rebase-conflicts-list {
       flex-flow: row nowrap;
 
       .file-octicon {
-        margin-right: var(--spacing);
+        margin-right: var(--spacer-3);
       }
 
       .column-left {
@@ -55,7 +55,7 @@ dialog#rebase-conflicts-list {
         flex-flow: column nowrap;
         align-items: start;
         max-width: 50%;
-        padding-right: var(--spacing);
+        padding-right: var(--spacer-3);
 
         .path-text-component {
           text-overflow: ellipsis;
@@ -74,7 +74,7 @@ dialog#rebase-conflicts-list {
 
       .green-circle:last-child {
         margin-left: auto;
-        margin-top: var(--spacing);
+        margin-top: var(--spacer-3);
         flex-shrink: 0;
         flex: 0 1 auto;
       }
@@ -98,11 +98,11 @@ dialog#rebase-conflicts-list {
   .all-conflicts-resolved {
     display: flex;
     flex-flow: row nowrap;
-    padding: var(--spacing) 0 var(--spacing-double);
+    padding: var(--spacer-3) 0 var(--spacer-4);
 
     .message {
-      padding-left: var(--spacing);
-      padding-top: var(--spacing-third);
+      padding-left: var(--spacer-3);
+      padding-top: var(--spacer-1);
     }
   }
 

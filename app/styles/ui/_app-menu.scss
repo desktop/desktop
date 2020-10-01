@@ -73,8 +73,8 @@
 
     .label {
       flex-grow: 1;
-      margin-left: var(--spacing-double);
-      margin-right: var(--spacing);
+      margin-left: var(--spacer-4);
+      margin-right: var(--spacer-3);
       @include ellipsis;
     }
 
@@ -83,12 +83,12 @@
       opacity: 0.7;
       // TODO: Draw a custom path here instead of resizing the existing arrow
       height: 12px;
-      margin-right: var(--spacing);
+      margin-right: var(--spacer-3);
     }
 
     .accelerator {
       flex-shrink: 0;
-      margin-right: var(--spacing);
+      margin-right: var(--spacer-3);
       color: var(--text-secondary-color);
     }
 
@@ -103,7 +103,7 @@
       // space we have left in the space before the label.
       .icon {
         flex-grow: 0;
-        margin: calc((var(--spacing-double) - 16) / 2) 0;
+        margin: calc((var(--spacer-4) - 16) / 2) 0;
       }
     }
 

@@ -121,7 +121,7 @@ button {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: var(--spacing);
+  padding: var(--spacer-3);
 }
 
 // Stretches an element to fill the entire window (such as an overlay)
@@ -156,10 +156,10 @@ button {
 }
 .more-dropdown {
   color: var(--text-color) !important;
-  margin-left: var(--spacing);
+  margin-left: var(--spacer-3);
 
   .octicon {
-    margin-left: var(--spacing-third);
+    margin-left: var(--spacer-1);
     width: 8px;
   }
 }

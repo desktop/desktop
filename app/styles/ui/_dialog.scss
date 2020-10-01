@@ -114,11 +114,11 @@ dialog {
     display: flex;
     flex-direction: row;
     align-items: center;
-    padding: var(--spacing-double);
+    padding: var(--spacer-4);
 
     svg.icon {
       flex-shrink: 0;
-      margin-right: var(--spacing);
+      margin-right: var(--spacer-3);
     }
 
     h1 {
@@ -126,7 +126,7 @@ dialog {
       font-size: var(--font-size-md);
       margin: 0;
       padding: 0;
-      margin-right: var(--spacing);
+      margin-right: var(--spacer-3);
 
       @include ellipsis;
     }
@@ -142,7 +142,7 @@ dialog {
       // on the right hand side of the dialog and add a -10px right hand
       // side margin to put the button where it should be (we use a double
       // margin for the header itself).
-      margin: 0 calc(var(--spacing) * -1) 0 auto;
+      margin: 0 calc(var(--spacer-3) * -1) 0 auto;
       padding: 0;
       background: transparent;
 
@@ -171,16 +171,16 @@ dialog {
   &.error {
     .dialog-content {
       position: relative;
-      margin-left: var(--spacing-double);
+      margin-left: var(--spacer-4);
       // A zero padding would mean the icon and the text lines up so we
       // add another double spacing plus the width of the icon to ensure
       // we have a decently horizontally centered placement of the icon.
-      padding-left: calc(var(--spacing-double) + var(--dialog-icon-size));
+      padding-left: calc(var(--spacer-4) + var(--dialog-icon-size));
 
       // Ensure that the dialog contents always have room for the icon,
       // account for two double spacers at top and bottom plus the 5px
       // icon offset (margin-top) and the size of the icon itself.
-      min-height: calc(var(--spacing-double) * 2 + var(--spacing-half) + var(--dialog-icon-size));
+      min-height: calc(var(--spacer-4) * 2 + var(--spacer-2) + var(--dialog-icon-size));
 
       // We're creating an opaque 24 by 24px div with the background color
       // that we want the icon to appear in and then apply the icon path
@@ -215,18 +215,18 @@ dialog {
   }
 
   .dialog-content {
-    padding: var(--spacing-double);
+    padding: var(--spacer-4);
 
     // This allows for using <Rows> to structure content within dialog content.
     // All Rows that are direct descendants of dialog content except for the
     // last one receive a bottom margin.
     .row-component:not(:last-child) {
-      margin-bottom: var(--spacing);
+      margin-bottom: var(--spacer-3);
     }
 
     p {
       margin-top: 0;
-      margin-bottom: var(--spacing);
+      margin-bottom: var(--spacer-3);
 
       &:last-child {
         margin-bottom: 0;
@@ -237,7 +237,7 @@ dialog {
     h3 {
       font-weight: var(--font-weight-semibold);
       margin-top: 0;
-      margin-bottom: var(--spacing);
+      margin-bottom: var(--spacer-3);
 
       &:last-child {
         margin-bottom: 0;
@@ -254,7 +254,7 @@ dialog {
     ul,
     ol {
       margin-top: 0;
-      padding-left: var(--spacing-double);
+      padding-left: var(--spacer-4);
       list-style-position: outside;
 
       &:last-child {
@@ -262,8 +262,8 @@ dialog {
       }
 
       li {
-        margin-bottom: var(--spacing);
-        padding-left: var(--spacing-half);
+        margin-bottom: var(--spacer-3);
+        padding-left: var(--spacer-2);
       }
     }
   }
@@ -273,7 +273,7 @@ dialog {
     flex-direction: column;
 
     border-top: var(--base-border);
-    padding: var(--spacing-double);
+    padding: var(--spacer-4);
 
     .button-group {
       display: flex;
@@ -283,7 +283,7 @@ dialog {
 
     button {
       @include ellipsis;
-      margin-right: var(--spacing-half);
+      margin-right: var(--spacer-2);
       min-width: 120px;
 
       &:last-child {
@@ -296,7 +296,7 @@ dialog {
   // the header (if the dialog has one).
   .dialog-error {
     display: flex;
-    padding: var(--spacing);
+    padding: var(--spacer-3);
     align-items: center;
 
     // Error messages may contains newlines which separates sections
@@ -311,7 +311,7 @@ dialog {
     > .octicon {
       flex-grow: 0;
       flex-shrink: 0;
-      margin-right: var(--spacing);
+      margin-right: var(--spacer-3);
     }
   }
 
@@ -419,6 +419,6 @@ dialog {
 
   .octicon {
     fill: var(--dialog-warning-color);
-    margin-right: var(--spacing-half);
+    margin-right: var(--spacer-2);
   }
 }

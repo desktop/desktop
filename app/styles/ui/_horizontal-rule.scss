@@ -1,7 +1,7 @@
 .horizontal-rule {
   text-align: center;
   position: relative;
-  margin-bottom: var(--spacing-half);
+  margin-bottom: var(--spacer-2);
   width: 100%;
 
   &:after {
@@ -25,6 +25,6 @@
 hr.short-rule {
   border: none;
   border-top: var(--base-border);
-  margin: var(--spacing-double) 0;
+  margin: var(--spacer-4) 0;
   width: 5em;
 }

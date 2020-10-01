@@ -1,7 +1,7 @@
 .suggested-action {
   border: var(--base-border);
   border-bottom: 0;
-  padding: var(--spacing-double);
+  padding: var(--spacer-4);
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -26,7 +26,7 @@
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    margin-right: var(--spacing-double);
+    margin-right: var(--spacer-4);
   }
 
   .image-wrapper {
@@ -35,7 +35,7 @@
     justify-content: center;
     width: 24px;
     height: 24px;
-    margin-right: var(--spacing-double);
+    margin-right: var(--spacer-4);
     flex-shrink: 0;
     .octicon {
       height: 100%;
@@ -55,7 +55,7 @@
     margin: 0;
     padding: 0;
     font-size: var(--font-size);
-    margin-bottom: var(--spacing-half);
+    margin-bottom: var(--spacer-2);
   }
 
   p.discoverability {
@@ -80,7 +80,7 @@
 
     .text-wrapper {
       margin-right: 0;
-      margin-bottom: var(--spacing-double);
+      margin-bottom: var(--spacer-4);
     }
   }
 }

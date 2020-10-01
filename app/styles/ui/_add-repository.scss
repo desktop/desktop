@@ -4,7 +4,7 @@
   width: 350px;
 
   .content {
-    margin: var(--spacing-double);
+    margin: var(--spacer-4);
   }
 }
 
@@ -12,18 +12,18 @@
   height: 250px;
 
   &.filter-list .filter-field-row {
-    margin: var(--spacing-double);
-    margin-bottom: var(--spacing);
+    margin: var(--spacer-4);
+    margin-bottom: var(--spacer-3);
   }
 
   .clone-repository-list {
     &-group-header {
       font-weight: var(--font-weight-semibold);
-      padding: var(--spacing) var(--spacing-double);
+      padding: var(--spacer-3) var(--spacer-4);
     }
 
     &-item {
-      padding: 0 var(--spacing-double);
+      padding: 0 var(--spacer-4);
 
       .name {
         @include ellipsis;
@@ -39,7 +39,7 @@
 
       .icon {
         fill: var(--text-secondary-color);
-        margin-right: var(--spacing-half);
+        margin-right: var(--spacer-2);
         width: 16px; // Force a consistent width
         flex-shrink: 0;
       }
@@ -53,7 +53,7 @@
   }
 
   &.clone-generic-repository-content {
-    padding: var(--spacing-double);
+    padding: var(--spacer-4);
   }
 }
 
@@ -62,6 +62,6 @@
 
   .local-path-field {
     border-top: var(--base-border);
-    padding: var(--spacing-double);
+    padding: var(--spacer-4);
   }
 }

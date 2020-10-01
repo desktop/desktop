@@ -6,13 +6,13 @@ import { IAheadBehind } from '../../models/branch'
 import { TipState } from '../../models/tip'
 import { FetchType } from '../../models/fetch'
 
+import { enablePullWithRebase } from '../../lib/feature-flag'
+
 import { Dispatcher } from '../dispatcher'
-import { Octicon, syncClockwise } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import { Octicon, OcticonSymbol } from '../octicons'
 import { RelativeTime } from '../relative-time'
 
 import { ToolbarButton, ToolbarButtonStyle } from './button'
-import classNames from 'classnames'
 
 interface IPushPullButtonProps {
   /**
@@ -53,29 +53,21 @@ interface IPushPullButtonProps {
   readonly rebaseInProgress: boolean
 
   /** If the current branch has been rebased, the user is permitted to force-push */
-  readonly isForcePush: boolean
-
-  /** Whether this component should show its onboarding tutorial nudge arrow */
-  readonly shouldNudge: boolean
-
-  /**
-   * The number of tags that would get pushed if the user performed a push.
-   */
-  readonly numTagsToPush: number
+  readonly branchWasRebased: boolean
 }
 
-function renderAheadBehind(aheadBehind: IAheadBehind, numTagsToPush: number) {
+function renderAheadBehind(aheadBehind: IAheadBehind) {
   const { ahead, behind } = aheadBehind
-  if (ahead === 0 && behind === 0 && numTagsToPush === 0) {
+  if (ahead === 0 && behind === 0) {
     return null
   }
 
   const content = new Array<JSX.Element>()
-  if (ahead > 0 || numTagsToPush > 0) {
+  if (ahead > 0) {
     content.push(
       <span key="ahead">
-        {ahead + numTagsToPush}
-        <Octicon symbol={OcticonSymbol.arrowUp} />
+        {ahead}
+        <Octicon symbol={OcticonSymbol.arrowSmallUp} />
       </span>
     )
   }
@@ -84,7 +76,7 @@ function renderAheadBehind(aheadBehind: IAheadBehind, numTagsToPush: number) {
     content.push(
       <span key="behind">
         {behind}
-        <Octicon symbol={OcticonSymbol.arrowDown} />
+        <Octicon symbol={OcticonSymbol.arrowSmallDown} />
       </span>
     )
   }
@@ -117,7 +109,7 @@ function progressButton(progress: Progress, networkActionInProgress: boolean) {
       title={progress.title}
       description={progress.description || 'Hang on…'}
       progressValue={progress.value}
-      icon={syncClockwise}
+      icon={OcticonSymbol.sync}
       iconClassName={networkActionInProgress ? 'spin' : ''}
       tooltip={progress.description}
       disabled={true}
@@ -132,7 +124,7 @@ function publishRepositoryButton(onClick: () => void) {
       title="Publish repository"
       description="Publish this repository to GitHub"
       className="push-pull-button"
-      icon={OcticonSymbol.upload}
+      icon={OcticonSymbol.cloudUpload}
       style={ToolbarButtonStyle.Subtitle}
       onClick={onClick}
     />
@@ -145,7 +137,7 @@ function unbornRepositoryButton() {
       {...defaultProps}
       title="Publish branch"
       description="Cannot publish unborn HEAD"
-      icon={OcticonSymbol.upload}
+      icon={OcticonSymbol.cloudUpload}
       disabled={true}
     />
   )
@@ -161,33 +153,24 @@ function detachedHeadButton(rebaseInProgress: boolean) {
       {...defaultProps}
       title="Publish branch"
       description={description}
-      icon={OcticonSymbol.upload}
+      icon={OcticonSymbol.cloudUpload}
       disabled={true}
     />
   )
 }
 
-function publishBranchButton(
-  isGitHub: boolean,
-  onClick: () => void,
-  shouldNudge: boolean
-) {
+function publishBranchButton(isGitHub: boolean, onClick: () => void) {
   const description = isGitHub
     ? 'Publish this branch to GitHub'
     : 'Publish this branch to the remote'
-
-  const className = classNames(defaultProps.className, 'nudge-arrow', {
-    'nudge-arrow-up': shouldNudge,
-  })
 
   return (
     <ToolbarButton
       {...defaultProps}
       title="Publish branch"
       description={description}
-      icon={OcticonSymbol.upload}
+      icon={OcticonSymbol.cloudUpload}
       onClick={onClick}
-      className={className}
     />
   )
 }
@@ -195,7 +178,6 @@ function publishBranchButton(
 function fetchButton(
   remoteName: string,
   aheadBehind: IAheadBehind,
-  numTagsToPush: number,
   lastFetched: Date | null,
   onClick: () => void
 ) {
@@ -205,10 +187,10 @@ function fetchButton(
       {...defaultProps}
       title={title}
       description={renderLastFetched(lastFetched)}
-      icon={syncClockwise}
+      icon={OcticonSymbol.sync}
       onClick={onClick}
     >
-      {renderAheadBehind(aheadBehind, numTagsToPush)}
+      {renderAheadBehind(aheadBehind)}
     </ToolbarButton>
   )
 }
@@ -216,14 +198,14 @@ function fetchButton(
 function pullButton(
   remoteName: string,
   aheadBehind: IAheadBehind,
-  numTagsToPush: number,
   lastFetched: Date | null,
   pullWithRebase: boolean,
   onClick: () => void
 ) {
-  const title = pullWithRebase
-    ? `Pull ${remoteName} with rebase`
-    : `Pull ${remoteName}`
+  const title =
+    pullWithRebase && enablePullWithRebase()
+      ? `Pull ${remoteName} with rebase`
+      : `Pull ${remoteName}`
 
   return (
     <ToolbarButton
@@ -233,7 +215,7 @@ function pullButton(
       icon={OcticonSymbol.arrowDown}
       onClick={onClick}
     >
-      {renderAheadBehind(aheadBehind, numTagsToPush)}
+      {renderAheadBehind(aheadBehind)}
     </ToolbarButton>
   )
 }
@@ -241,7 +223,6 @@ function pullButton(
 function pushButton(
   remoteName: string,
   aheadBehind: IAheadBehind,
-  numTagsToPush: number,
   lastFetched: Date | null,
   onClick: () => void
 ) {
@@ -253,7 +234,7 @@ function pushButton(
       icon={OcticonSymbol.arrowUp}
       onClick={onClick}
     >
-      {renderAheadBehind(aheadBehind, numTagsToPush)}
+      {renderAheadBehind(aheadBehind)}
     </ToolbarButton>
   )
 }
@@ -262,21 +243,15 @@ function pushButton(
  * This represents the "double arrow" icon used to show a force-push, and is a
  * less complicated icon than the generated Octicon from the `octicons` package.
  */
-const forcePushIcon: OcticonSymbol.OcticonSymbolType = {
-  w: 10,
-  h: 16,
-  d:
-    'M0 6a.75.75 0 0 0 .974.714L4.469 3.22a.75.75 0 0 1 1.06 0l3.478 3.478a.75.75 ' +
-    '0 0 0 .772-1.228L5.53 1.22a.75.75 0 0 0-1.06 0L.22 5.47A.75.75 0 0 0 0 6zm0 ' +
-    '3a.75.75 0 0 0 1.28.53l2.97-2.97V14a.75.75 0 1 0 1.5 0V6.56l2.97 2.97a.75.75 ' +
-    '0 0 0 1.06-1.06L5.53 4.22a.75.75 0 0 0-1.06 0L.22 8.47A.75.75 0 0 0 0 9z',
-  fr: 'evenodd',
-}
+const forcePushIcon = new OcticonSymbol(
+  10,
+  16,
+  'M3 11H0l5-6 5 6H7v4H3v-4zM5 1l5 6H8.33L5 3 1.662 7H0l5-6z'
+)
 
 function forcePushButton(
   remoteName: string,
   aheadBehind: IAheadBehind,
-  numTagsToPush: number,
   lastFetched: Date | null,
   onClick: () => void
 ) {
@@ -288,7 +263,7 @@ function forcePushButton(
       icon={forcePushIcon}
       onClick={onClick}
     >
-      {renderAheadBehind(aheadBehind, numTagsToPush)}
+      {renderAheadBehind(aheadBehind)}
     </ToolbarButton>
   )
 }
@@ -303,7 +278,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
   }
 
   private forcePushWithLease = () => {
-    this.props.dispatcher.confirmOrForcePush(this.props.repository)
+    this.props.dispatcher.push(this.props.repository, { forceWithLease: true })
   }
 
   private pull = () => {
@@ -322,14 +297,13 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
       progress,
       networkActionInProgress,
       aheadBehind,
-      numTagsToPush,
       remoteName,
       repository,
       tipState,
       rebaseInProgress,
       lastFetched,
       pullWithRebase,
-      isForcePush,
+      branchWasRebased,
     } = this.props
 
     if (progress !== null) {
@@ -350,30 +324,19 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
 
     if (aheadBehind === null) {
       const isGitHubRepository = repository.gitHubRepository !== null
-      return publishBranchButton(
-        isGitHubRepository,
-        this.push,
-        this.props.shouldNudge
-      )
+      return publishBranchButton(isGitHubRepository, this.push)
     }
 
     const { ahead, behind } = aheadBehind
 
-    if (ahead === 0 && behind === 0 && numTagsToPush === 0) {
-      return fetchButton(
-        remoteName,
-        aheadBehind,
-        numTagsToPush,
-        lastFetched,
-        this.fetch
-      )
+    if (ahead === 0 && behind === 0) {
+      return fetchButton(remoteName, aheadBehind, lastFetched, this.fetch)
     }
 
-    if (isForcePush) {
+    if (branchWasRebased && aheadBehind.behind > 0 && aheadBehind.ahead > 0) {
       return forcePushButton(
         remoteName,
         aheadBehind,
-        numTagsToPush,
         lastFetched,
         this.forcePushWithLease
       )
@@ -383,19 +346,12 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
       return pullButton(
         remoteName,
         aheadBehind,
-        numTagsToPush,
         lastFetched,
         pullWithRebase || false,
         this.pull
       )
     }
 
-    return pushButton(
-      remoteName,
-      aheadBehind,
-      numTagsToPush,
-      lastFetched,
-      this.push
-    )
+    return pushButton(remoteName, aheadBehind, lastFetched, this.push)
   }
 }

@@ -8,10 +8,10 @@
 
   display: flex;
   background-color: var(--box-alt-background-color);
-  padding: var(--spacing);
+  padding: var(--spacer-3);
 
   .warning-untracked-files {
-    padding-top: var(--spacing-half);
+    padding-top: var(--spacer-2);
     text-align: center;
   }
 
@@ -24,7 +24,7 @@
     .octicon {
       flex-shrink: 0;
       flex-grow: 0;
-      margin-right: var(--spacing-half);
+      margin-right: var(--spacer-2);
     }
 
     /* Due to some weirdo bug in Chrome that affects Windows

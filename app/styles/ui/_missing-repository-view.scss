@@ -20,7 +20,7 @@
    * content doesn't touch the edge of the sideline or
    * window when space is scarce.
    */
-  padding: var(--spacing-double);
+  padding: var(--spacer-4);
 
   /*  Center children horizontally */
   align-items: center;
@@ -36,7 +36,7 @@
     flex-direction: column;
     align-items: center;
 
-    margin-bottom: var(--spacing);
+    margin-bottom: var(--spacer-3);
   }
 
   /* xl-sized title */
@@ -47,8 +47,8 @@
   }
 
   .details {
-    margin-top: var(--spacing);
-    margin-bottom: var(--spacing);
+    margin-top: var(--spacer-3);
+    margin-bottom: var(--spacer-3);
     text-align: center;
 
     .path {
