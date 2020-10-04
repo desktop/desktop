@@ -1,0 +1,327 @@
+added in both
+  our    100644 8a89122dafb8dcbe4e91533e3e4b61fe25255b43 extensions/emmet/.vscode/launch.json
+  their  100644 1009ac683facba7ce9da1904b93034f83b90cd95 extensions/emmet/.vscode/launch.json
+@@ -10,11 +10,19 @@
+             "name": "Launch Extension",
+             "runtimeExecutable": "${execPath}",
+             "args": [
++<<<<<<< .our
+                 "--extensionDevelopmentPath=${workspaceFolder}"
+             ],
+             "sourceMaps": true,
+             "outFiles": [
+                 "${workspaceFolder}/out/**/*.js"
++=======
++                "--extensionDevelopmentPath=${workspaceRoot}"
++            ],
++            "sourceMaps": true,
++            "outFiles": [
++                "${workspaceRoot}/out/**/*.js"
++>>>>>>> .their
+             ]
+         }
+     ]
+changed in both
+  base   100644 482ef44988c21aae2c8e7c55a33d7ac12285c937 extensions/emmet/package.json
+  our    100644 d9be62f74d1063d961b7895eab86495b34482691 extensions/emmet/package.json
+  their  100644 7a2288a96c2aa39450dbd447d3997981873342b6 extensions/emmet/package.json
+@@ -64,7 +64,11 @@
+                         }
+                     },
+                     "default": {},
++<<<<<<< .our
+                     "description": "%emmetVariables%"
++=======
++                    "description": "Applicable only when emmet.useNewEmmet is set to true.\nVariables to be used in emmet snippets"
++>>>>>>> .their
+                 },
+                 "emmet.syntaxProfiles": {
+                     "type": "object",
+@@ -73,15 +77,20 @@
+                 },
+                 "emmet.excludeLanguages": {
+                     "type": "array",
++<<<<<<< .our
+                     "default": [
+                         "markdown"
+                     ],
++=======
++                    "default": ["markdown"],
++>>>>>>> .their
+                     "description": "%emmetExclude%"
+                 },
+                 "emmet.extensionsPath": {
+                     "type": "string",
+                     "default": null,
+                     "description": "%emmetExtensionsPath%"
++<<<<<<< .our
+                 },
+                 "emmet.triggerExpansionOnTab": {
+                     "type": "boolean",
+@@ -216,6 +225,8 @@
+                     "type": "boolean",
+                     "default": true,
+                     "markdownDescription": "%emmetOptimizeStylesheetParsing%"
++=======
++>>>>>>> .their
+                 }
+             }
+         },
+changed in both
+  base   100644 79a18e731d7f03ca08377be335dc90e6bfb8460a extensions/emmet/package.nls.json
+  our    100644 3f3bf912fd84e40ee4fbf65592c9123e2f4d160a extensions/emmet/package.nls.json
+  their  100644 9655779d355c783b2b5b5211bbe52c20ae187ec5 extensions/emmet/package.nls.json
+@@ -23,6 +23,7 @@
+ 	"command.decrementNumberByOneTenth": "Decrement by 0.1",
+ 	"command.incrementNumberByTen": "Increment by 10",
+ 	"command.decrementNumberByTen": "Decrement by 10",
++<<<<<<< .our
+ 	"emmetSyntaxProfiles": "Define profile for specified syntax or use your own profile with specific rules.",
+ 	"emmetExclude": "An array of languages where Emmet abbreviations should not be expanded.",
+ 	"emmetExtensionsPath": "Path to a folder containing Emmet profiles and snippets.",
+@@ -56,3 +57,9 @@
+ 	"emmetPreferencesCssFuzzySearchMinScore": "The minimum score (from 0 to 1) that fuzzy-matched abbreviation should achieve. Lower values may produce many false-positive matches, higher values may reduce possible matches.",
+ 	"emmetOptimizeStylesheetParsing": "When set to `false`, the whole file is parsed to determine if current position is valid for expanding Emmet abbreviations. When set to `true`, only the content around the current position in css/scss/less files is parsed."
+ }
++=======
++	"emmetExclude":"An array of languages where emmet abbreviations should not be expanded.",
++	"emmetExtensionsPath":"Path to a folder containing emmet profiles and snippets",
++	"emmetSyntaxProfiles":"Define profile for specified syntax or use your own profile with specific rules."
++}
++>>>>>>> .their
+changed in both
+  base   100644 2b7211fac756d6aa253cbd566d260ce0724d6f09 extensions/emmet/src/test/abbreviationAction.test.ts
+  our    100644 b5fb87d8b0791993b65959e4e4c9219aa4e8388c extensions/emmet/src/test/abbreviationAction.test.ts
+  their  100644 1b65ca181390ebceac8073acd7386f8ad42eec42 extensions/emmet/src/test/abbreviationAction.test.ts
+@@ -271,6 +271,7 @@
+ 		});
+ 	});
+ 
++<<<<<<< .our
+ 	test('No expanding text in completion list inside style tag if position is not for property name (HTML)', () => {
+ 		return withRandomFileEditor(htmlContents, 'html', (editor, doc) => {
+ 			editor.selection = new Selection(13, 14, 13, 14);
+@@ -294,6 +295,10 @@
+ 				return Promise.resolve();
+ 			});
+ 		});
++=======
++	test('Expand using bem filter', () => {
++		//return testHtmlExpandAbbreviation(new Selection(16, 55, 16, 55), bemFilterExample, expectedBemFilterOutput);
++>>>>>>> .their
+ 	});
+ 
+ 	test('Expand css when inside style attribute in completion list (HTML)', () => {
+removed in local
+  base   100644 ded0fe27c3cb84a182bb2e8594901feaeb781e68 npm-shrinkwrap.json
+  their  100644 b69ed5f866e39ffe2761dd576a6b74185bb8cc41 npm-shrinkwrap.json
+changed in both
+  base   100644 6dbb4c4d4bf6858ca6c4c0472bfbcae9c7620658 package.json
+  our    100644 d0e982ce0b76c5b1b5eb02b673e459e47f3353a4 package.json
+  their  100644 c9dec43802c6f464f4d791ef4dc85d9788c622d6 package.json
+@@ -25,7 +25,12 @@
+     "download-builtin-extensions": "node build/lib/builtInExtensions.js"
+   },
+   "dependencies": {
++<<<<<<< .our
+     "applicationinsights": "0.18.0",
++=======
++    "applicationinsights": "0.17.1",
++    "chokidar": "bpasero/chokidar#vscode",
++>>>>>>> .their
+     "fast-plist": "0.1.2",
+     "gc-signals": "^0.0.1",
+     "getmac": "1.4.1",
+changed in both
+  base   100644 05acd8aa0459e8e63068f80575ee8b56dd6d559e src/vs/workbench/parts/emmet/electron-browser/actions/expandAbbreviation.ts
+  our    100644 42968c4b84603ff59a9acfd4957937949e3cc7cd src/vs/workbench/parts/emmet/electron-browser/actions/expandAbbreviation.ts
+  their  100644 e2abb29c80e803b7d87b2f21549e7c494b48a7c5 src/vs/workbench/parts/emmet/electron-browser/actions/expandAbbreviation.ts
+@@ -4,6 +4,7 @@
+  *--------------------------------------------------------------------------------------------*/
+ 
+ 'use strict';
++<<<<<<< .our
+ import * as nls from 'vs/nls';
+ import { EmmetEditorAction } from 'vs/workbench/parts/emmet/electron-browser/emmetActions';
+ import { registerEditorAction } from 'vs/editor/browser/editorExtensions';
+@@ -13,6 +14,15 @@
+ import { KeybindingWeight } from 'vs/platform/keybinding/common/keybindingsRegistry';
+ import { MenuId } from 'vs/platform/actions/common/actions';
+ 
++=======
++
++import nls = require('vs/nls');
++import { EmmetEditorAction } from 'vs/workbench/parts/emmet/electron-browser/emmetActions';
++import { editorAction } from 'vs/editor/common/editorCommonExtensions';
++import { EditorContextKeys } from 'vs/editor/common/editorContextKeys';
++
++@editorAction
++>>>>>>> .their
+ class ExpandAbbreviationAction extends EmmetEditorAction {
+ 
+ 	constructor() {
+@@ -21,6 +31,7 @@
+ 			label: nls.localize('expandAbbreviationAction', "Emmet: Expand Abbreviation"),
+ 			alias: 'Emmet: Expand Abbreviation',
+ 			precondition: EditorContextKeys.writable,
++<<<<<<< .our
+ 			actionName: 'expand_abbreviation',
+ 			kbOpts: {
+ 				primary: KeyCode.Tab,
+@@ -37,6 +48,9 @@
+ 				title: nls.localize({ key: 'miEmmetExpandAbbreviation', comment: ['&& denotes a mnemonic'] }, "Emmet: E&&xpand Abbreviation"),
+ 				order: 3
+ 			}
++=======
++			actionName: 'expand_abbreviation'
++>>>>>>> .their
+ 		});
+ 
+ 	}
+removed in local
+  base   100644 ab7d540a33147de4b2711d2556562683302be412 src/vs/workbench/parts/emmet/electron-browser/actions/wrapWithAbbreviation.ts
+  their  100644 db6ab3833d1ba005763d6287831417c47708ccb0 src/vs/workbench/parts/emmet/electron-browser/actions/wrapWithAbbreviation.ts
+changed in both
+  base   100644 39241708d43e23bd5a78d63c2c09f371589f1272 src/vs/workbench/parts/emmet/electron-browser/emmet.contribution.ts
+  our    100644 686f51fa59ade654e6a1199463e46a64561f79d1 src/vs/workbench/parts/emmet/electron-browser/emmet.contribution.ts
+  their  100644 107c401d147279a60431706d31dba6b20b4a628c src/vs/workbench/parts/emmet/electron-browser/emmet.contribution.ts
+@@ -6,4 +6,8 @@
+ 'use strict';
+ 
+ import './actions/expandAbbreviation';
++<<<<<<< .our
++=======
++import './actions/wrapWithAbbreviation';
++>>>>>>> .their
+ 
+changed in both
+  base   100644 a614323904289009181501f4209567e4f3de21a8 src/vs/workbench/parts/emmet/electron-browser/emmetActions.ts
+  our    100644 bf59f107638768b79dc868ff93ca7a7050471ddb src/vs/workbench/parts/emmet/electron-browser/emmetActions.ts
+  their  100644 3f822b3c801f73cd4677b0939df8a01cc49f5006 src/vs/workbench/parts/emmet/electron-browser/emmetActions.ts
+@@ -5,6 +5,7 @@
+ 'use strict';
+ 
+ import { TPromise } from 'vs/base/common/winjs.base';
++<<<<<<< .our
+ import { EditorAction, ServicesAccessor, IActionOptions } from 'vs/editor/browser/editorExtensions';
+ import { grammarsExtPoint, ITMSyntaxExtensionPoint } from 'vs/workbench/services/textMate/electron-browser/TMGrammars';
+ import { IModeService } from 'vs/editor/common/services/modeService';
+@@ -12,6 +13,15 @@
+ import { ICommandService } from 'vs/platform/commands/common/commands';
+ import { LanguageId, LanguageIdentifier } from 'vs/editor/common/modes';
+ import { ICodeEditor } from 'vs/editor/browser/editorBrowser';
++=======
++import { ICommonCodeEditor } from 'vs/editor/common/editorCommon';
++import { EditorAction, ServicesAccessor, IActionOptions } from 'vs/editor/common/editorCommonExtensions';
++import { grammarsExtPoint, ITMSyntaxExtensionPoint } from 'vs/workbench/services/textMate/electron-browser/TMGrammars';
++import { IModeService } from 'vs/editor/common/services/modeService';
++import { IExtensionService, ExtensionPointContribution } from 'vs/platform/extensions/common/extensions';
++import { ICommandService } from 'vs/platform/commands/common/commands';
++import { LanguageId, LanguageIdentifier } from 'vs/editor/common/modes';
++>>>>>>> .their
+ 
+ interface ModeScopeMap {
+ 	[key: string]: string;
+@@ -78,21 +88,38 @@
+ 		return this._lastGrammarContributions;
+ 	}
+ 
++<<<<<<< .our
+ 	public run(accessor: ServicesAccessor, editor: ICodeEditor): TPromise<void> {
++=======
++	public run(accessor: ServicesAccessor, editor: ICommonCodeEditor): TPromise<void> {
++>>>>>>> .their
+ 		const extensionService = accessor.get(IExtensionService);
+ 		const modeService = accessor.get(IModeService);
+ 		const commandService = accessor.get(ICommandService);
+ 
++<<<<<<< .our
+ 		return this._withGrammarContributions(extensionService).then((grammarContributions) => {
+ 
+ 			if (this.id === 'editor.emmet.action.expandAbbreviation') {
+ 				return commandService.executeCommand<void>('emmet.expandAbbreviation', EmmetEditorAction.getLanguage(modeService, editor, grammarContributions));
++=======
++		let mappedCommand = this.actionMap[this.id];
++		if (mappedCommand && mappedCommand !== 'emmet.expandAbbreviation' && mappedCommand !== 'emmet.wrapWithAbbreviation') {
++			return commandService.executeCommand<void>(mappedCommand);
++		}
++
++		return this._withGrammarContributions(extensionService).then((grammarContributions) => {
++
++			if (mappedCommand === 'emmet.expandAbbreviation' || mappedCommand === 'emmet.wrapWithAbbreviation') {
++				return commandService.executeCommand<void>(mappedCommand, EmmetEditorAction.getLanguage(modeService, editor, grammarContributions));
++>>>>>>> .their
+ 			}
+ 
+ 			return undefined;
+ 		});
+ 
+ 	}
++<<<<<<< .our
+ 
+ 	public static getLanguage(languageIdentifierResolver: ILanguageIdentifierResolver, editor: ICodeEditor, grammars: IGrammarContributions) {
+ 		let position = editor.getSelection().getStartPosition();
+@@ -101,6 +128,16 @@
+ 		let language = languageIdentifierResolver.getLanguageIdentifier(languageId).language;
+ 		let syntax = language.split('.').pop();
+ 
++=======
++
++	public static getLanguage(languageIdentifierResolver: ILanguageIdentifierResolver, editor: ICommonCodeEditor, grammars: IGrammarContributions) {
++		let position = editor.getSelection().getStartPosition();
++		editor.getModel().forceTokenization(position.lineNumber);
++		let languageId = editor.getModel().getLanguageIdAtPosition(position.lineNumber, position.column);
++		let language = languageIdentifierResolver.getLanguageIdentifier(languageId).language;
++		let syntax = language.split('.').pop();
++
++>>>>>>> .their
+ 		let checkParentMode = (): string => {
+ 			let languageGrammar = grammars.getGrammar(syntax);
+ 			if (!languageGrammar) {
+@@ -127,3 +164,5 @@
+ 
+ 
+ }
++
++
+added in both
+  our    100644 6dcb146ee6a0d0177fc2c40235f34629bbfecd95 src/vs/workbench/parts/emmet/test/electron-browser/emmetAction.test.ts
+  their  100644 7cd89850e85ddaa97fbf8a09a49cf124482521f5 src/vs/workbench/parts/emmet/test/electron-browser/emmetAction.test.ts
+@@ -6,8 +6,13 @@
+ 'use strict';
+ 
+ import { IGrammarContributions, ILanguageIdentifierResolver, EmmetEditorAction } from 'vs/workbench/parts/emmet/electron-browser/emmetActions';
++<<<<<<< .our
+ import { withTestCodeEditor } from 'vs/editor/test/browser/testCodeEditor';
+ import * as assert from 'assert';
++=======
++import { withMockCodeEditor } from 'vs/editor/test/common/mocks/mockCodeEditor';
++import assert = require('assert');
++>>>>>>> .their
+ import { LanguageId, LanguageIdentifier } from 'vs/editor/common/modes';
+ 
+ //
+@@ -16,7 +21,11 @@
+ // 	"name": "Stacks Tests",
+ // 	"type": "node",
+ // 	"request": "launch",
++<<<<<<< .our
+ // 	"program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
++=======
++// 	"program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
++>>>>>>> .their
+ // 	"stopOnEntry": false,
+ // 	"args": [
+ // 		"--timeout",
+@@ -43,7 +52,11 @@
+ suite('Emmet', () => {
+ 
+ 	test('Get language mode and parent mode for emmet', () => {
++<<<<<<< .our
+ 		withTestCodeEditor([], {}, (editor) => {
++=======
++		withMockCodeEditor([], {}, (editor) => {
++>>>>>>> .their
+ 
+ 			function testIsEnabled(mode: string, scopeName: string, expectedLanguage?: string, expectedParentLanguage?: string) {
+ 				const languageIdentifier = new LanguageIdentifier(mode, 73);

@@ -10,27 +10,16 @@
     margin-bottom: var(--spacing-third);
   }
 
-  // Select boxes look absolutely horrible on Windows so we'll make them
-  // look as good as we possibly can. There's nothing we can do about the
-  // drop down itself but at least we can style the base element a bit.
-  @include win32 {
-    select {
-      // Get rid of all default UA styling, we can do better
-      -webkit-appearance: none;
+  // Custom styles for select components because a) they look horrible
+  // on Windows and b) because we need them to inherit colors and other
+  // appearance from our global variables. Therefore we treat them more
+  // or less exactly as a text box.
+  select {
+    // Make the select look like a text box.
+    @include textboxish;
+    @include textboxish-disabled;
 
-      // Make the select look like a text box.
-      @include textboxish;
-      @include textboxish-disabled;
-
-      // Add back the arrow that got removed with appearance: none.
-      // This is a custom version of the triangle-down octicon that was
-      // adapted to be 8 by 5px. The gif is in 2x and the background-size
-      // scales it back down so that we can have crisp arrows on high-dpi
-      // displays. The path is M 0,0 4,5 8,0 Z and the color is #6a737d.
-      background-image: url('data:image/gif;base64,R0lGODlhEAAKAMQAAGpzff///8PHy6arsXqCi46UnN7g4vHy8/v7+253gYuSmm12gO/w8dve4Pz8/KassniAicfLzwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAAAAAAALAAAAAAQAAoAAAUw4ACMZFk+TmGugIIEB8GSEBPcRjIvze1HM4FvKDI9hsNUyYUcxka1JjLHkzYFwmYIADs=');
-      background-size: 8px 5px;
-      background-repeat: no-repeat;
-      background-position: right var(--spacing-half) center;
-    }
+    // Don't include the default padding from textboxish, it's too much
+    padding: 0;
   }
 }

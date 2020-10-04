@@ -2,7 +2,7 @@ import * as React from 'react'
 import { WelcomeStep } from './welcome'
 import { Button } from '../lib/button'
 import { SignIn } from '../lib/sign-in'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { SignInState } from '../../lib/stores'
 
 interface ISignInEnterpriseProps {
@@ -26,7 +26,7 @@ export class SignInEnterprise extends React.Component<
     return (
       <div id="sign-in-enterprise">
         <h1 className="welcome-title">
-          Sign in to your GitHub Enterprise server
+          Sign in to your GitHub Enterprise Server
         </h1>
 
         <SignIn signInState={state} dispatcher={this.props.dispatcher}>

@@ -32,7 +32,7 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
           ? this.renderAccount(this.props.dotComAccount)
           : this.renderSignIn(SignInType.DotCom)}
 
-        <h2>Enterprise</h2>
+        <h2>GitHub Enterprise Server</h2>
         {this.props.enterpriseAccount
           ? this.renderAccount(this.props.enterpriseAccount)
           : this.renderSignIn(SignInType.Enterprise)}
@@ -41,13 +41,11 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
   }
 
   private renderAccount(account: Account) {
-    const found = lookupPreferredEmail(account.emails)
-    const email = found ? found.email : ''
-
     const avatarUser: IAvatarUser = {
       name: account.name,
-      email: email,
+      email: lookupPreferredEmail(account),
       avatarURL: account.avatarURL,
+      endpoint: account.endpoint,
     }
 
     return (
@@ -94,8 +92,8 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
             onAction={this.onEnterpriseSignIn}
           >
             <div>
-              If you have a GitHub Enterprise account at work, sign in to it to
-              get access to your repositories.
+              If you have a GitHub Enterprise Server account at work, sign in to
+              it to get access to your repositories.
             </div>
           </CallToAction>
         )

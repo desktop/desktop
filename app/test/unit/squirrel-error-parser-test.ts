@@ -1,5 +1,3 @@
-import { expect } from 'chai'
-
 import { parseError } from '../../src/lib/squirrel-error-parser'
 
 describe('parseError', () => {
@@ -10,7 +8,7 @@ describe('parseError', () => {
 
     const output = parseError(input)
 
-    expect(output).to.not.be.null
+    expect(output).not.toBeNull()
   })
 
   it('parses a Squirrel network error', () => {
@@ -77,7 +75,7 @@ describe('parseError', () => {
 
     const output = parseError(input)
 
-    expect(output).to.not.be.null
+    expect(output).not.toBeNull()
   })
 
   it('parses a timeout error', () => {
@@ -148,7 +146,7 @@ describe('parseError', () => {
 
     const output = parseError(input)
 
-    expect(output).to.not.be.null
+    expect(output).not.toBeNull()
   })
 
   it('passes through an empty error', () => {
@@ -156,6 +154,6 @@ describe('parseError', () => {
 
     const output = parseError(input)
 
-    expect(output).to.be.null
+    expect(output).toBeNull()
   })
 })

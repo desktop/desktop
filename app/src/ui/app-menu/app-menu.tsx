@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { MenuPane } from './menu-pane'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher } from '../dispatcher'
 import { IMenu, MenuItem, ISubmenuItem } from '../../models/app-menu'
 import { SelectionSource, ClickSource } from '../lib/list'
 
@@ -74,7 +74,7 @@ function menuPaneClassNameFromId(id: string) {
     // Get rid of the leading @. for auto-generated ids
     .replace(/^@\./, '')
     // No accelerator key modifier necessary
-    .replace('&', '')
+    .replace(/&/g, '')
     // Get rid of stuff that's not safe for css class names
     .replace(/[^a-z0-9_]+/gi, '-')
     // Get rid of redundant underscores
@@ -148,7 +148,8 @@ export class AppMenu extends React.Component<IAppMenuProps, {}> {
       const sourceIsAccessKey =
         this.props.enableAccessKeyNavigation &&
         source.kind === 'keyboard' &&
-        (source.event.key !== 'Enter' && source.event.key !== ' ')
+        source.event.key !== 'Enter' &&
+        source.event.key !== ' '
 
       this.props.dispatcher.setAppMenuState(menu =>
         menu.withOpenedMenu(item, sourceIsAccessKey)

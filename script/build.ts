@@ -1,18 +1,17 @@
-/* tslint:disable:no-sync-functions */
 /* eslint-disable no-sync */
 /// <reference path="./globals.d.ts" />
 
 import * as path from 'path'
 import * as cp from 'child_process'
 import * as fs from 'fs-extra'
-import * as packager from 'electron-packager'
-
-const legalEagle: LegalEagle = require('legal-eagle')
-
-interface IFrontMatterResult<T> {
-  readonly attributes: T
-  readonly body: string
-}
+import packager, {
+  arch,
+  ElectronNotarizeOptions,
+  ElectronOsXSignOptions,
+  Options,
+} from 'electron-packager'
+import frontMatter from 'front-matter'
+import { externals } from '../app/webpack.common'
 
 interface IChooseALicense {
   readonly title: string
@@ -28,25 +27,33 @@ export interface ILicense {
   readonly hidden: boolean
 }
 
-const frontMatter: <T>(
-  path: string
-) => IFrontMatterResult<T> = require('front-matter')
-
 import {
   getBundleID,
   getCompanyName,
   getProductName,
-  getVersion,
 } from '../app/package-info'
 
-import { getReleaseChannel, getDistRoot, getExecutableName } from './dist-info'
+import {
+  getChannel,
+  getDistRoot,
+  getExecutableName,
+  isPublishable,
+  getIconFileName,
+} from './dist-info'
+import { isCircleCI, isGitHubActions } from './build-platforms'
+
+import { updateLicenseDump } from './licenses/update-license-dump'
+import { verifyInjectedSassVariables } from './validate-sass/validate-all'
 
 const projectRoot = path.join(__dirname, '..')
+const entitlementsPath = `${projectRoot}/script/entitlements.plist`
+const extendInfoPath = `${projectRoot}/script/info.plist`
 const outRoot = path.join(projectRoot, 'out')
 
-const isPublishableBuild = getReleaseChannel() !== 'development'
+const isPublishableBuild = isPublishable()
+const isDevelopmentBuild = getChannel() === 'development'
 
-console.log(`Building for ${getReleaseChannel()}…`)
+console.log(`Building for ${getChannel()}…`)
 
 console.log('Removing old distribution…')
 fs.removeSync(getDistRoot())
@@ -65,35 +72,45 @@ generateLicenseMetadata(outRoot)
 
 moveAnalysisFiles()
 
-const isFork = process.env.CIRCLE_PR_USERNAME
-if (process.platform === 'darwin' && process.env.CIRCLECI && !isFork) {
+if (isGitHubActions() && process.platform === 'darwin' && isPublishableBuild) {
   console.log('Setting up keychain…')
   cp.execSync(path.join(__dirname, 'setup-macos-keychain'))
 }
 
-console.log('Updating our licenses dump…')
-updateLicenseDump(err => {
-  if (err) {
+verifyInjectedSassVariables(outRoot)
+  .catch(err => {
     console.error(
-      'Error updating the license dump. This is fatal for a published build.'
+      'Error verifying the Sass variables in the rendered app. This is fatal for a published build.'
     )
-    console.error(err)
 
-    if (isPublishableBuild) {
+    if (!isDevelopmentBuild) {
       process.exit(1)
-    }
-  }
-
-  console.log('Packaging…')
-  packageApp((err, appPaths) => {
-    if (err) {
-      console.error(err)
-      process.exit(1)
-    } else {
-      console.log(`Built to ${appPaths}`)
     }
   })
-})
+  .then(() => {
+    console.log('Updating our licenses dump…')
+    return updateLicenseDump(projectRoot, outRoot).catch(err => {
+      console.error(
+        'Error updating the license dump. This is fatal for a published build.'
+      )
+      console.error(err)
+
+      if (!isDevelopmentBuild) {
+        process.exit(1)
+      }
+    })
+  })
+  .then(() => {
+    console.log('Packaging…')
+    return packageApp()
+  })
+  .catch(err => {
+    console.error(err)
+    process.exit(1)
+  })
+  .then(appPaths => {
+    console.log(`Built to ${appPaths}`)
+  })
 
 /**
  * The additional packager options not included in the existing typing.
@@ -105,11 +122,12 @@ interface IPackageAdditionalOptions {
     readonly name: string
     readonly schemes: ReadonlyArray<string>
   }>
+  readonly osxSign: ElectronOsXSignOptions & {
+    readonly hardenedRuntime?: boolean
+  }
 }
 
-function packageApp(
-  callback: (error: Error | null, appPaths: string | string[]) => void
-) {
+function packageApp() {
   // not sure if this is needed anywhere, so I'm just going to inline it here
   // for now and see what the future brings...
   const toPackagePlatform = (platform: NodeJS.Platform) => {
@@ -117,19 +135,47 @@ function packageApp(
       return platform
     }
     throw new Error(
-      `Unable to convert to platform for electron-packager: '${
-        process.platform
-      }`
+      `Unable to convert to platform for electron-packager: '${process.platform}`
     )
   }
 
-  const options: packager.Options & IPackageAdditionalOptions = {
+  const toPackageArch = (targetArch: string | undefined): arch => {
+    if (targetArch === undefined) {
+      return 'x64'
+    }
+
+    if (targetArch === 'arm64' || targetArch === 'x64') {
+      return targetArch
+    }
+
+    throw new Error(
+      `Building Desktop for architecture '${targetArch}'  is not supported`
+    )
+  }
+
+  // get notarization deets, unless we're not going to publish this
+  const notarizationCredentials = isPublishableBuild
+    ? getNotarizationCredentials()
+    : undefined
+  if (
+    isPublishableBuild &&
+    (isCircleCI() || isGitHubActions()) &&
+    process.platform === 'darwin' &&
+    notarizationCredentials === undefined
+  ) {
+    // we can't publish a mac build without these
+    throw new Error(
+      'Unable to retreive appleId and/or appleIdPassword to notarize macOS build'
+    )
+  }
+
+  const options: Options & IPackageAdditionalOptions = {
     name: getExecutableName(),
     platform: toPackagePlatform(process.platform),
-    arch: process.env.TARGET_ARCH || 'x64',
+    arch: toPackageArch(process.env.TARGET_ARCH),
     asar: false, // TODO: Probably wanna enable this down the road.
     out: getDistRoot(),
-    icon: path.join(projectRoot, 'app', 'static', 'logos', 'icon-logo'),
+    icon: path.join(projectRoot, 'app', 'static', 'logos', getIconFileName()),
     dir: outRoot,
     overwrite: true,
     tmpdir: false,
@@ -146,12 +192,19 @@ function packageApp(
     // macOS
     appBundleId: getBundleID(),
     appCategoryType: 'public.app-category.developer-tools',
-    osxSign: true,
+    darwinDarkModeSupport: true,
+    osxSign: {
+      hardenedRuntime: true,
+      entitlements: entitlementsPath,
+      'entitlements-inherit': entitlementsPath,
+      type: isPublishableBuild ? 'distribution' : 'development',
+    },
+    osxNotarize: notarizationCredentials,
     protocols: [
       {
         name: getBundleID(),
         schemes: [
-          isPublishableBuild
+          !isDevelopmentBuild
             ? 'x-github-desktop-auth'
             : 'x-github-desktop-dev-auth',
           'x-github-client',
@@ -159,6 +212,7 @@ function packageApp(
         ],
       },
     ],
+    extendInfo: extendInfoPath,
 
     // Windows
     win32metadata: {
@@ -170,13 +224,7 @@ function packageApp(
     },
   }
 
-  packager(options, (err: Error, appPaths: string | string[]) => {
-    if (err) {
-      callback(err, appPaths)
-    } else {
-      callback(null, appPaths)
-    }
-  })
+  return packager(options)
 }
 
 function removeAndCopy(source: string, destination: string) {
@@ -223,16 +271,12 @@ function moveAnalysisFiles() {
 }
 
 function copyDependencies() {
-  // eslint-disable-next-line import/no-dynamic-require
   const originalPackage: Package = require(path.join(
     projectRoot,
     'app',
     'package.json'
   ))
 
-  // eslint-disable-next-line import/no-dynamic-require
-  const commonConfig = require(path.resolve(__dirname, '../app/webpack.common'))
-  const externals = commonConfig.externals
   const oldDependencies = originalPackage.dependencies
   const newDependencies: PackageLookup = {}
 
@@ -246,7 +290,7 @@ function copyDependencies() {
   const oldDevDependencies = originalPackage.devDependencies
   const newDevDependencies: PackageLookup = {}
 
-  if (!isPublishableBuild) {
+  if (isDevelopmentBuild) {
     for (const name of Object.keys(oldDevDependencies)) {
       const spec = oldDevDependencies[name]
       if (externals.indexOf(name) !== -1) {
@@ -263,7 +307,7 @@ function copyDependencies() {
     devDependencies: newDevDependencies,
   })
 
-  if (isPublishableBuild) {
+  if (!isDevelopmentBuild) {
     delete updatedPackage.devDependencies
   }
 
@@ -280,18 +324,6 @@ function copyDependencies() {
   ) {
     console.log('  Installing dependencies via yarn…')
     cp.execSync('yarn install', { cwd: outRoot, env: process.env })
-  }
-
-  if (!isPublishableBuild) {
-    console.log(
-      '  Installing 7zip (dependency for electron-devtools-installer)'
-    )
-
-    const sevenZipSource = path.resolve(projectRoot, 'app/node_modules/7zip')
-    const sevenZipDestination = path.resolve(outRoot, 'node_modules/7zip')
-
-    fs.mkdirpSync(sevenZipDestination)
-    fs.copySync(sevenZipSource, sevenZipDestination)
   }
 
   console.log('  Copying git environment…')
@@ -337,67 +369,6 @@ function copyDependencies() {
   }
 }
 
-function updateLicenseDump(callback: (err: Error | null) => void) {
-  const appRoot = path.join(projectRoot, 'app')
-  const outPath = path.join(outRoot, 'static', 'licenses.json')
-  const licenseOverrides: LicenseLookup = require('./license-overrides')
-
-  legalEagle(
-    { path: appRoot, overrides: licenseOverrides, omitPermissive: true },
-    (err, summary) => {
-      if (err) {
-        callback(err)
-        return
-      }
-
-      if (Object.keys(summary).length > 0) {
-        const overridesPath = path.join(__dirname, 'license-overrides.js')
-        let licensesMessage = ''
-        for (const key in summary) {
-          const license = summary[key]
-          licensesMessage += `${key} (${license.repository}): ${
-            license.license
-          }\n`
-        }
-
-        const message = `The following dependencies have unknown or non-permissive licenses. Check it out and update ${overridesPath} if appropriate:\n${licensesMessage}`
-        callback(new Error(message))
-      } else {
-        legalEagle(
-          { path: appRoot, overrides: licenseOverrides },
-          (err, summary) => {
-            if (err) {
-              callback(err)
-              return
-            }
-
-            // legal-eagle still chooses to ignore the LICENSE at the root
-            // this injects the current license and pins the source URL before we
-            // dump the JSON file to disk
-            const licenseSource = path.join(projectRoot, 'LICENSE')
-            const licenseText = fs.readFileSync(licenseSource, {
-              encoding: 'utf-8',
-            })
-            const appVersion = getVersion()
-
-            summary[`desktop@${appVersion}`] = {
-              repository: 'https://github.com/desktop/desktop',
-              license: 'MIT',
-              source: `https://github.com/desktop/desktop/blob/release-${appVersion}/LICENSE`,
-              sourceText: licenseText,
-            }
-
-            fs.writeFileSync(outPath, JSON.stringify(summary), {
-              encoding: 'utf8',
-            })
-            callback(null)
-          }
-        )
-      }
-    }
-  )
-}
-
 function generateLicenseMetadata(outRoot: string) {
   const chooseALicense = path.join(outRoot, 'static', 'choosealicense.com')
   const licensesDir = path.join(chooseALicense, '_licenses')
@@ -409,12 +380,18 @@ function generateLicenseMetadata(outRoot: string) {
     const fullPath = path.join(licensesDir, file)
     const contents = fs.readFileSync(fullPath, 'utf8')
     const result = frontMatter<IChooseALicense>(contents)
+
+    const licenseText = result.body.trim()
+    // ensure that any license file created in the app does not trigger the
+    // "no newline at end of file" warning when viewing diffs
+    const licenseTextWithNewLine = `${licenseText}\n`
+
     const license: ILicense = {
       name: result.attributes.nickname || result.attributes.title,
       featured: result.attributes.featured || false,
       hidden:
         result.attributes.hidden === undefined || result.attributes.hidden,
-      body: result.body.trim(),
+      body: licenseTextWithNewLine,
     }
 
     if (!license.hidden) {
@@ -447,4 +424,16 @@ ${licenseText}`
 
   // sweep up the choosealicense directory as the important bits have been bundled in the app
   fs.removeSync(chooseALicense)
+}
+
+function getNotarizationCredentials(): ElectronNotarizeOptions | undefined {
+  const appleId = process.env.APPLE_ID
+  const appleIdPassword = process.env.APPLE_ID_PASSWORD
+  if (appleId === undefined || appleIdPassword === undefined) {
+    return undefined
+  }
+  return {
+    appleId,
+    appleIdPassword,
+  }
 }

@@ -1,0 +1,393 @@
+changed in both
+  base   100644 ff426dd08c8e39bcb23aeff2cdf03f2db414529e atom/browser/net/url_request_fetch_job.cc
+  our    100644 68539433f4de80a96bc672de3a2834b299d6c04b atom/browser/net/url_request_fetch_job.cc
+  their  100644 1663889c22eab0ed2ba50e3b29616e82f3740d74 atom/browser/net/url_request_fetch_job.cc
+@@ -12,12 +12,15 @@
+ #include "base/guid.h"
+ #include "base/memory/ptr_util.h"
+ #include "base/strings/string_util.h"
++#include "brightray/browser/url_request_context_getter.h"
++#include "content/browser/streams/stream_context.h"
+ #include "native_mate/dictionary.h"
+ #include "net/base/io_buffer.h"
+ #include "net/base/net_errors.h"
+ #include "net/http/http_response_headers.h"
+ #include "net/url_request/url_fetcher.h"
+ #include "net/url_request/url_fetcher_response_writer.h"
++#include "url/url_constants.h"
+ 
+ using content::BrowserThread;
+ 
+@@ -62,7 +65,9 @@
+       job_->HeadersCompleted();
+       first_write_ = false;
+     }
+-    return job_->DataAvailable(buffer, num_bytes, callback);
++
++    job_->stream()->AddData(buffer->data(), num_bytes);
++    return num_bytes;
+   }
+   int Finish(int net_error, const net::CompletionCallback& callback) override {
+     return net::OK;
+@@ -79,9 +84,15 @@
+ 
+ URLRequestFetchJob::URLRequestFetchJob(net::URLRequest* request,
+                                        net::NetworkDelegate* network_delegate)
++<<<<<<< .our
+     : JsAsker<net::URLRequestJob>(request, network_delegate) {}
+ 
+ URLRequestFetchJob::~URLRequestFetchJob() = default;
++=======
++    : JsAsker<net::URLRequestJob>(request, network_delegate),
++      pending_buffer_size_(0),
++      total_bytes_read_(0) {}
++>>>>>>> .their
+ 
+ void URLRequestFetchJob::BeforeStartInUI(v8::Isolate* isolate,
+                                          v8::Local<v8::Value> value) {
+@@ -166,7 +177,22 @@
+   fetcher_->SetExtraRequestHeaders(
+       request()->extra_request_headers().ToString());
+ 
+-  fetcher_->Start();
++  // Create readable stream for URLFetcher response.
++  content::StreamContext* stream_context =
++      static_cast<brightray::URLRequestContextGetter*>(request_context_getter())
++          ->stream_context();
++
++  if (stream_context) {
++    GURL stream_url(std::string(url::kBlobScheme) + ":" +
++                    formated_url.GetOrigin().spec() + base::GenerateGUID());
++    stream_ =
++        new content::Stream(stream_context->registry(), nullptr, stream_url);
++    stream_->SetReadObserver(this);
++    fetcher_->Start();
++  } else {
++    NotifyStartError(net::URLRequestStatus(net::URLRequestStatus::CANCELED,
++                                           net::ERR_ABORTED));
++  }
+ }
+ 
+ void URLRequestFetchJob::HeadersCompleted() {
+@@ -175,6 +201,7 @@
+   NotifyHeadersComplete();
+ }
+ 
++<<<<<<< .our
+ int URLRequestFetchJob::DataAvailable(net::IOBuffer* buffer,
+                                       int num_bytes,
+                                       const net::CompletionCallback& callback) {
+@@ -196,25 +223,57 @@
+   return bytes_read;
+ }
+ 
++=======
++>>>>>>> .their
+ void URLRequestFetchJob::Kill() {
+   JsAsker<URLRequestJob>::Kill();
++  ClearStream();
+   fetcher_.reset();
+ }
+ 
++void URLRequestFetchJob::OnDataAvailable(content::Stream* stream) {
++  if (!pending_buffer_.get())
++    return;
++
++  int result = 0;
++  auto state = stream_->ReadRawData(pending_buffer_.get(), pending_buffer_size_,
++                                    &result);
++  if (state == content::Stream::STREAM_ABORTED)
++    result = net::ERR_CONNECTION_RESET;
++
++  // Clear the buffers before notifying the read is complete, so that it is
++  // safe for the observer to read.
++  pending_buffer_ = nullptr;
++  pending_buffer_size_ = 0;
++
++  if (result > 0)
++    total_bytes_read_ += result;
++  ReadRawDataComplete(result);
++}
++
+ int URLRequestFetchJob::ReadRawData(net::IOBuffer* dest, int dest_size) {
+   if (GetResponseCode() == 204) {
+     request()->set_received_response_content_length(prefilter_bytes_read());
+     return net::OK;
+   }
+ 
+-  // When write_buffer_ is empty, there is no data valable yet, we have to save
+-  // the dest buffer util DataAvailable.
+-  if (!write_buffer_.get()) {
+-    pending_buffer_ = dest;
+-    pending_buffer_size_ = dest_size;
+-    return net::ERR_IO_PENDING;
++  int bytes_read = 0;
++  switch (stream_->ReadRawData(dest, dest_size, &bytes_read)) {
++    case content::Stream::STREAM_HAS_DATA:
++      total_bytes_read_ += bytes_read;
++      return bytes_read;
++    case content::Stream::STREAM_COMPLETE:
++      return stream_->GetStatus();
++    case content::Stream::STREAM_EMPTY:
++      pending_buffer_ = dest;
++      pending_buffer_size_ = dest_size;
++      return net::ERR_IO_PENDING;
++    case content::Stream::STREAM_ABORTED:
++      // Handle this as connection reset.
++      return net::ERR_CONNECTION_RESET;
+   }
+ 
++<<<<<<< .our
+   // Read from the write buffer and clear them after reading.
+   int bytes_read =
+       BufferCopy(write_buffer_.get(), write_num_bytes_, dest, dest_size);
+@@ -222,6 +281,10 @@
+   ClearWriteBuffer();
+   write_callback.Run(bytes_read);
+   return bytes_read;
++=======
++  NOTREACHED();
++  return net::ERR_FAILED;
++>>>>>>> .their
+ }
+ 
+ bool URLRequestFetchJob::GetMimeType(std::string* mime_type) const {
+@@ -243,11 +306,18 @@
+   return response_info_->headers->response_code();
+ }
+ 
+-void URLRequestFetchJob::OnURLFetchComplete(const net::URLFetcher* source) {
+-  ClearPendingBuffer();
+-  ClearWriteBuffer();
++int64_t URLRequestFetchJob::GetTotalReceivedBytes() const {
++  int64_t total_received_bytes = 0;
++  if (response_info_)
++    total_received_bytes = response_info_->headers->raw_headers().size();
++  if (stream_.get())
++    total_received_bytes += total_bytes_read_;
++  return total_received_bytes;
++}
+ 
+-  if (fetcher_->GetStatus().is_success()) {
++void URLRequestFetchJob::OnURLFetchComplete(const net::URLFetcher* source) {
++  auto status = fetcher_->GetStatus();
++  if (status.is_success()) {
+     if (!response_info_) {
+       // Since we notify header completion only after first write there will be
+       // no response object constructed for http respones with no content 204.
+@@ -255,14 +325,20 @@
+       HeadersCompleted();
+       return;
+     }
++<<<<<<< .our
+     if (request_->status().is_io_pending()) {
+       ReadRawDataComplete(0);
+     }
++=======
++    stream_->Finalize(0);
++>>>>>>> .their
+   } else {
+-    NotifyStartError(fetcher_->GetStatus());
++    stream_->Finalize(status.error());
++    NotifyStartError(status);
+   }
+ }
+ 
++<<<<<<< .our
+ int URLRequestFetchJob::BufferCopy(net::IOBuffer* source,
+                                    int num_bytes,
+                                    net::IOBuffer* target,
+@@ -281,6 +357,11 @@
+   write_buffer_ = nullptr;
+   write_num_bytes_ = 0;
+   write_callback_.Reset();
++=======
++void URLRequestFetchJob::ClearStream() {
++  stream_->RemoveReadObserver(this);
++  stream_ = nullptr;
++>>>>>>> .their
+ }
+ 
+ }  // namespace atom
+changed in both
+  base   100644 11ef11b7331ce8c14927f2c7e8f2f86116a6e534 atom/browser/net/url_request_fetch_job.h
+  our    100644 c38be1cbf86c72ac427b136cd5ebcb7fc0256d21 atom/browser/net/url_request_fetch_job.h
+  their  100644 5bd11e9ca4d7de018814007bcfe6dd7f5365e016 atom/browser/net/url_request_fetch_job.h
+@@ -18,16 +18,21 @@
+ class AtomBrowserContext;
+ 
+ class URLRequestFetchJob : public JsAsker<net::URLRequestJob>,
++<<<<<<< .our
+                            public net::URLFetcherDelegate {
++=======
++                           public net::URLFetcherDelegate,
++                           public brightray::URLRequestContextGetter::Delegate,
++                           public content::StreamReadObserver {
++>>>>>>> .their
+  public:
+   URLRequestFetchJob(net::URLRequest*, net::NetworkDelegate*);
+   ~URLRequestFetchJob() override;
+ 
+   // Called by response writer.
+   void HeadersCompleted();
+-  int DataAvailable(net::IOBuffer* buffer,
+-                    int num_bytes,
+-                    const net::CompletionCallback& callback);
++
++  content::Stream* stream() const { return stream_.get(); }
+ 
+  protected:
+   // JsAsker:
+@@ -40,31 +45,45 @@
+   bool GetMimeType(std::string* mime_type) const override;
+   void GetResponseInfo(net::HttpResponseInfo* info) override;
+   int GetResponseCode() const override;
++  int64_t GetTotalReceivedBytes() const override;
+ 
+   // net::URLFetcherDelegate:
+   void OnURLFetchComplete(const net::URLFetcher* source) override;
+ 
++  // content::StreamReadObserver:
++  void OnDataAvailable(content::Stream* stream) override;
++
+  private:
++<<<<<<< .our
+   int BufferCopy(net::IOBuffer* source,
+                  int num_bytes,
+                  net::IOBuffer* target,
+                  int target_size);
+   void ClearPendingBuffer();
+   void ClearWriteBuffer();
++=======
++  void ClearStream();
++>>>>>>> .their
+ 
+   scoped_refptr<AtomBrowserContext> custom_browser_context_;
+   scoped_refptr<net::URLRequestContextGetter> url_request_context_getter_;
+   std::unique_ptr<net::URLFetcher> fetcher_;
+   std::unique_ptr<net::HttpResponseInfo> response_info_;
++  scoped_refptr<content::Stream> stream_;
+ 
+   // Saved arguments passed to ReadRawData.
+   scoped_refptr<net::IOBuffer> pending_buffer_;
++<<<<<<< .our
+   int pending_buffer_size_ = 0;
+ 
+   // Saved arguments passed to DataAvailable.
+   scoped_refptr<net::IOBuffer> write_buffer_;
+   int write_num_bytes_ = 0;
+   net::CompletionCallback write_callback_;
++=======
++  int pending_buffer_size_;
++  int total_bytes_read_;
++>>>>>>> .their
+ 
+   DISALLOW_COPY_AND_ASSIGN(URLRequestFetchJob);
+ };
+changed in both
+  base   100644 3dfff106e0b5d60a481b70135317ae2fd8137002 brightray/browser/browser_context.cc
+  our    100644 1eff7344e9aef78bb88720c38c0f75fb92e6bc09 brightray/browser/browser_context.cc
+  their  100644 a1781e0c6a2058bb4ed0b1b79fd0957f185e08af brightray/browser/browser_context.cc
+@@ -17,6 +17,7 @@
+ #include "components/prefs/pref_registry_simple.h"
+ #include "components/prefs/pref_service.h"
+ #include "components/prefs/pref_service_factory.h"
++#include "content/browser/streams/stream_context.h"
+ #include "content/public/browser/browser_thread.h"
+ #include "content/public/browser/storage_partition.h"
+ #include "net/base/escape.h"
+@@ -130,6 +131,10 @@
+   return media_device_id_salt_->GetSalt();
+ }
+ 
++content::StreamContext* BrowserContext::GetStreamContext() {
++  return content::StreamContext::GetFor(this);
++}
++
+ base::FilePath BrowserContext::GetPath() const {
+   return path_;
+ }
+changed in both
+  base   100644 16b37b935fe9737623b7366f026443a147f1b6c0 brightray/browser/browser_context.h
+  our    100644 1fb1c59b8043dbb711a364fca3c357c11993bedc brightray/browser/browser_context.h
+  their  100644 e740f4579f6b130fb4c0921be0afc4f8190048fe brightray/browser/browser_context.h
+@@ -82,6 +82,16 @@
+   // Subclasses should override this to register custom preferences.
+   virtual void RegisterPrefs(PrefRegistrySimple* pref_registry) {}
+ 
++<<<<<<< .our
++=======
++  // URLRequestContextGetter::Delegate:
++  net::NetworkDelegate* CreateNetworkDelegate() override;
++  MediaDeviceIDSalt* GetMediaDeviceIDSalt() override;
++  content::StreamContext* GetStreamContext() override;
++
++  base::FilePath GetPath() const override;
++
++>>>>>>> .their
+  private:
+   friend class base::RefCountedThreadSafe<BrowserContext,
+                                           BrowserContextDeleter>;
+changed in both
+  base   100644 a7ced2ea7be77b563e6707336c4179953ba9ff80 brightray/browser/url_request_context_getter.h
+  our    100644 941a5782b14a941bb25a7a9ef6ca6d73f8bc3ec1 brightray/browser/url_request_context_getter.h
+  their  100644 d1fa00c48582469a743cb04c3b907486baf4fb0c brightray/browser/url_request_context_getter.h
+@@ -22,6 +22,10 @@
+ #include "base/debug/leak_tracker.h"
+ #endif
+ 
++namespace content {
++class StreamContext;
++}
++
+ namespace net {
+ class HostMappingRules;
+ class HostResolver;
+@@ -52,6 +56,7 @@
+         net::URLRequestContext* url_request_context,
+         content::ProtocolHandlerMap* protocol_handlers) = 0;
+     virtual net::HttpCache::BackendFactory* CreateHttpCacheBackendFactory(
++<<<<<<< .our
+         const base::FilePath& base_path) = 0;
+     virtual std::unique_ptr<net::CertVerifier> CreateCertVerifier(
+         RequireCTDelegate* ct_delegate) = 0;
+@@ -59,6 +64,18 @@
+         std::vector<std::string>* cookie_schemes) {}
+     virtual void OnCookieChanged(const net::CanonicalCookie& cookie,
+                                  net::CookieChangeCause cause) {}
++=======
++        const base::FilePath& base_path);
++    virtual std::unique_ptr<net::CertVerifier> CreateCertVerifier();
++    virtual net::SSLConfigService* CreateSSLConfigService();
++    virtual std::vector<std::string> GetCookieableSchemes();
++    virtual net::TransportSecurityState::RequireCTDelegate*
++    GetRequireCTDelegate() {
++      return nullptr;
++    }
++    virtual MediaDeviceIDSalt* GetMediaDeviceIDSalt() { return nullptr; }
++    virtual content::StreamContext* GetStreamContext() { return nullptr; }
++>>>>>>> .their
+   };
+ 
+   URLRequestContextGetter(
+@@ -76,11 +93,20 @@
+       const override;
+ 
+   net::URLRequestJobFactory* job_factory() const { return job_factory_; }
++<<<<<<< .our
+   void set_delegate(Delegate* delegate) { delegate_ = delegate; }
+ 
+   // Discard reference to URLRequestContext and inform observers to
+   // shutdown. Must be called only on IO thread.
+   void NotifyContextShuttingDown(std::unique_ptr<ResourceContext>);
++=======
++  MediaDeviceIDSalt* GetMediaDeviceIDSalt() const {
++    return delegate_->GetMediaDeviceIDSalt();
++  }
++  content::StreamContext* stream_context() const {
++    return delegate_->GetStreamContext();
++  }
++>>>>>>> .their
+ 
+  private:
+   friend class BrowserContext;

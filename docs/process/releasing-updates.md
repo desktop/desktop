@@ -6,7 +6,7 @@ We have three channels to which we can release: `production`, `beta`, and `test`
 
 - `production` is the channel from which the general public downloads and receives updates. It should be stable and polished.
 
-- `beta` is released more often than `production`. We want to ensure `master` is always in a state where it can be released to users, so it should be used as the source for `beta` releases as an opportunity for additional QA before releasing to `production`.
+- `beta` is released more often than `production`. We want to ensure `development` is always in a state where it can be released to users, so it should be used as the source for `beta` releases as an opportunity for additional QA before releasing to `production`.
 
 - `test` is unlike the other two. It does not receive updates. Each test release is locked in time. It's used entirely for providing test releases.
 
@@ -14,7 +14,7 @@ We have three channels to which we can release: `production`, `beta`, and `test`
 
 ### 1. GitHub Access Token
 
-From a clean working directory, set the `GITHUB_ACCESS_TOKEN` environment variable to a valid [Personal Access Token](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/) 
+From a clean working directory, set the `GITHUB_ACCESS_TOKEN` environment variable to a valid [Personal Access Token](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/)
 
 To check that this environment variable is set in your shell:
 
@@ -37,7 +37,7 @@ If you are creating a new Personal Access Token on GitHub:
 * make the token memorable - use a description like `Desktop Draft Release and Changelog Generator`
 * the `read:org` scope is the **only** required scope for drafting releases
 
-To set this access token as an environment in your shell: 
+To set this access token as an environment in your shell:
 
 **Bash (macOS, Linux or Git Bash)**
 ```shellsession
@@ -54,15 +54,29 @@ $ set GITHUB_ACCESS_TOKEN={your token here}
 $ $env:GITHUB_ACCESS_TOKEN="{your token here}"
 ```
 
-### 2. Create Draft Release
+### 2. Create Release Branch
 
-Once the personal access token is set, run the script below, which will determine the next version from what was previously published, based on the desired channel.
+Create a new branch to represent the work that will be released to users:
+
+ - for `beta` releases, branch from `development` to ensure the latest changes are published
+ - for `production` releases, branch from the latest beta tag
+    - to find this tag: `git tag | grep 'beta' | sort -r | head -n 1`
+
+When naming the branch, ensure you use the `releases/[version]` pattern to ensure all CI platforms are aware of the branch and will build any PRs that target the branch.
+
+### 3. Create Draft Release
+
+Run the script below (which relies on the your personal acccess token being set), which will determine the next version from what was previously published, based on the desired channel.
 
 For `production` and `beta` releases, run:
 
 ```shellsession
 $ yarn draft-release (production|beta)
 ```
+
+If you are creating a new beta release, the `yarn draft-release beta` command will help you find the new release entries for the changelog.
+
+If you are create a new `production` release, you should just combine and sort the previous `beta` changelog entries.
 
 (For `test` releases, follow the directions in the steps below to update `app/package.json`'s `version` to a higher version and add a changelog entry. The script does not support test yet.)
 
@@ -87,19 +101,17 @@ Here's what you should do next:
     "[Fixed] Line endings are hard, lets go shopping - #3514",
   ]
 }
-
-3. Remove any entries of contributions that don't affect the end user
-3. Update the release notes to have user-friendly summary lines
-4. For issues prefixed with [???], look at the PR and update the prefix to one of: [New], [Added], [Fixed], [Improved], [Removed]
-5. Sort the entries so that the prefixes are ordered: [New], [Added], [Fixed], [Improved], [Removed]
-6. Commit the changes (on master or as new branch) and push them to GitHub
-7. Read this to perform the release: https://github.com/desktop/desktop/blob/master/docs/process/releasing-updates.md
+3. Revise the release notes according to https://github.com/desktop/desktop/blob/development/docs/process/writing-release-notes.md
+4. Commit the changes (on development or as new branch) and push them to GitHub
+5. Read this to perform the release: https://github.com/desktop/desktop/blob/development/docs/process/releasing-updates.md
 ```
 
-** Note: You should ensure the `version` in `app/package.json` is set to the new version and follows the [semver format](https://semver.org/) of `major.minor.patch`. 
+See our [release notes writing guide](./writing-release-notes.md) for more info on how we write and review our release notes.
+
+_Note: You should ensure the `version` in `app/package.json` is set to the new version and follows the [semver format](https://semver.org/) of `major.minor.patch`._
 
 Examples:
-* for prod, `1.1.0` -> `1.1.1` or `1.1.13` -> `1.2.0` 
+* for prod, `1.1.0` -> `1.1.1` or `1.1.13` -> `1.2.0`
 * for beta, `1.1.0-beta1` -> `1.1.0-beta2` or `1.1.13-beta3` -> `1.2.0-beta1`
 * for test, `1.0.14-test2` -> `1.0.14-test3` or `1.1.14-test3` -> `1.2.0-test1`
 
@@ -118,26 +130,29 @@ Here's an example of the previous changelog draft after it has been edited:
 }
 ```
 
-Once you've pushed up the version update and the changelog changes, you're ready to release! Get the others on the team to :thumbsup: in a PR if you're not sure. Note that any version change that does not have an associated changelog entry will not successfully release.
+Add your new changelog entries to `changelog.json`, update the version in `app/package.json`, commit the changes, and push this branch to GitHub. This becomes the release branch, and lets other maintainers continue to merge into `development` without affecting your release.
 
-### 3. Releasing
+If a maintainer would like to backport a pull request to the next release, it is their responsibilty to co-ordinate with the release owner and ensure they are fine with accepting this work.
 
-When you feel ready to start the deployment, run this command in Chat:
+Once your release branch is ready to review and ship, ask the other maintainers to review and approve the changes!
+
+IMPORTANT NOTE: Do NOT "Update branch" and merge development into the release branch. This might be tempting if the "branch is out-of-date with the base branch" dotcom feature is enabled. However, doing so would inadvertently release everything on development to production or beta 🙀
+
+### 4. Releasing
+
+When you are ready to start the deployment, run this command in chat (where `X.Y.Z-release` is the name of your release branch):
 
 ```
-.release! desktop/YOUR_BRANCH to {production|beta|test}
+.release! desktop/X.Y.Z-release to {production|beta|test}
 ```
-
-If you are releasing from master, YOUR_BRANCH is unnecessary; write:
-```
-.release! desktop to {production|beta|test}
-``` 
 
 We're using `.release` with a bang so that we don't have to wait for any current CI on the branch to finish. This might feel a little wrong, but it's OK since making the release itself will also run CI.
 
-If you're releasing a `production` update, release a `beta` update for the next version too, so that beta users are on the latest release.
+If you're releasing a `production` update, release a `beta` update for the next version too, so that beta users are on the latest release. For example, if the version just released to production is `1.2.0` then the beta release should be `1.2.1-beta0` to indicate there are no new changes on top of what's currently on `production`.
 
-### 4. Check for Completed Release
+IMPORTANT NOTE: Ensure that you indicate which channel to release to. If not, chatops will default to releasing to production 🙀
+
+### 5. Check for Completed Release
 
 Go to [Central's Deployments](https://central.github.com/deployments) to find your release; you'll see something at the top of the page like:
 ```
@@ -148,24 +163,45 @@ it will initially specify its state as `State: pending` and will be completed wh
 You will also see this in Chat:
 `desktopbot tagged desktop/release-{YOUR_VERSION}`
 
-### 5. Test that your app auto-updates to new version
+### 6. Test that your app auto-updates to new version
 
 When the release in Central is in `State: released` for `beta` or `production`, switch to your installed Desktop instance and make sure that the corresponding (prod|beta) app auto-updates.
 
-Testing that an update is detected, downloaded, and applied correctly is very important - if this is somehow broken during development then our users will not likely stay up to date!  
+Testing that an update is detected, downloaded, and applied correctly is very important - if this is somehow broken during development then our users will not likely stay up to date!
 
-If you don't have the app for `beta`, for example, you can always download the previous version on Central to see it update 
+If you don't have the app for `beta`, for example, you can always download the previous version on Central to see it update
 
-** Make sure you move your application out of the Downloads folder and into the Applications folder for macOS or it won't auto-update.
+_Make sure you move your application out of the Downloads folder and into the Applications folder for macOS or it won't auto-update_.
 
-### 6. Check Error Reporting
+### 7. Merge PR with changelog entries
+
+So that we keep the `changelog.json` up to date. Beta entries will be used for the upcoming production release.
+
+### 8. Check Error Reporting
 
 If an error occurs during the release process, a needle will be reported to Central's [Haystack](https://haystack.githubapp.com/central).
 
-It is normal to monitor Haystack closely for 15 minutes just to make sure.
+After the release is deployed, you should monitor Desktop's [Haystack](https://haystack.githubapp.com/desktop) closely for 15 minutes to ensure no unexpected needles appear.
 
-### 6. Celebrate
+#### Final Beta release
+If the active beta is the last beta prior to a production release, extra care should be taken when looking at Desktop's [Haystack](https://haystack.githubapp.com/desktop) roll-ups. The lead engineer responsible for deployment should produce a _Haystack report_ the day before and after the release. The report should contain a list of any new or unexpected errors from the past beta releases in the milestone and be published to the team's Slack channel.
+
+### 9. Celebrate
 
 Once your app updates and you see the visible changes in your app and there are no spikes in errors, celebrate 🎉!!! You did it!
 
 Also it might make sense to continue to monitor Haystack in the background for the next 24 hours.
+
+## Stopping a Release Mid-flight
+
+So let's say you kicked off a release with chatops on accident. Here's how you fix that.
+
+When you kicked off the release, a branch with the prefix `__release-${channel}-` was created in the GitHub repo. Use that branch name to find the proper CI jobs below.
+
+1. Delete the pending release from Central
+2. Cancel the Appveyor release job
+3. Cancel the CircleCI release job
+4. Delete the CI release job branch from GitHub
+5. Breathe a sigh of relief
+
+You don't need to do anything with your manually created release branch, that you referred to in the chatops command. Feel free to re-use it.

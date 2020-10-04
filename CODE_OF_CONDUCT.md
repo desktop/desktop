@@ -30,6 +30,8 @@ advances
   address, without explicit permission
 * Other conduct which could reasonably be considered inappropriate in a
   professional setting
+* Attempting to contact maintainers outside of GitHub.com without an explicit
+  invitation to do so.
 
 ## Our Responsibilities
 

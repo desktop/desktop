@@ -1,4 +1,8 @@
-import { Repository } from '../models/repository'
+import {
+  Repository,
+  isRepositoryWithGitHubRepository,
+  getNonForkGitHubRepository,
+} from '../models/repository'
 import { GitHubRepository } from '../models/github-repository'
 import { getHTMLURL } from './api'
 
@@ -59,8 +63,8 @@ export class Tokenizer {
   public constructor(emoji: Map<string, string>, repository?: Repository) {
     this.emoji = emoji
 
-    if (repository) {
-      this.repository = repository.gitHubRepository
+    if (repository && isRepositoryWithGitHubRepository(repository)) {
+      this.repository = getNonForkGitHubRepository(repository)
     }
   }
 
@@ -131,8 +135,28 @@ export class Tokenizer {
     index: number,
     repository: GitHubRepository
   ): LookupResult | null {
-    const nextIndex = this.scanForEndOfWord(text, index)
-    const maybeIssue = text.slice(index, nextIndex)
+    let nextIndex = this.scanForEndOfWord(text, index)
+    let maybeIssue = text.slice(index, nextIndex)
+
+    // handle situation where issue reference is wrapped in parentheses
+    // like the generated "squash and merge" commits on GitHub
+    if (maybeIssue.endsWith(')')) {
+      nextIndex -= 1
+      maybeIssue = text.slice(index, nextIndex)
+    }
+
+    // release notes may add a full stop as part of formatting the entry
+    if (maybeIssue.endsWith('.')) {
+      nextIndex -= 1
+      maybeIssue = text.slice(index, nextIndex)
+    }
+
+    // handle list of issues
+    if (maybeIssue.endsWith(',')) {
+      nextIndex -= 1
+      maybeIssue = text.slice(index, nextIndex)
+    }
+
     if (!/^#\d+$/.test(maybeIssue)) {
       return null
     }
@@ -160,8 +184,15 @@ export class Tokenizer {
       return null
     }
 
-    const nextIndex = this.scanForEndOfWord(text, index)
-    const maybeMention = text.slice(index, nextIndex)
+    let nextIndex = this.scanForEndOfWord(text, index)
+    let maybeMention = text.slice(index, nextIndex)
+
+    // release notes add a ! to the very last user, or use , to separate users
+    if (maybeMention.endsWith('!') || maybeMention.endsWith(',')) {
+      nextIndex -= 1
+      maybeMention = text.slice(index, nextIndex)
+    }
+
     if (!/^@[a-zA-Z0-9\-]+$/.test(maybeMention)) {
       return null
     }

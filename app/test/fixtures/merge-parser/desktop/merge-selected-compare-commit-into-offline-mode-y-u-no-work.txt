@@ -1,0 +1,402 @@
+changed in both
+  base   100644 86b3c6de0194dc7492ad693937f515e539e85002 app/src/lib/app-state.ts
+  our    100644 b30f0fe080d909b81d2fb683ceb8deb365fb0191 app/src/lib/app-state.ts
+  their  100644 3e0e9a02ae5c99656f88283a2e811b94e86d5960 app/src/lib/app-state.ts
+@@ -564,8 +564,17 @@
+ export interface ICommitSelection {
+   /** The commit currently selected in the app */
+   readonly sha: string | null
++<<<<<<< .our
+ 
+   /** The list of files associated with the current commit */
++=======
++  readonly file: CommittedFileChange | null
++}
++
++export interface IHistoryState {
++  readonly selection: IHistorySelection
++
++>>>>>>> .their
+   readonly changedFiles: ReadonlyArray<CommittedFileChange>
+ 
+   /** The selected file inside the selected commit */
+@@ -623,6 +632,11 @@
+  */
+ export interface IDisplayHistory {
+   readonly kind: ComparisonView.None
++
++  readonly selectedCommitSHA: string | null
++
++  /** The SHAs of commits to render in the list */
++  readonly commitSHAs: ReadonlyArray<string>
+ }
+ 
+ /**
+@@ -638,12 +652,18 @@
+ 
+   /** The number of commits the selected branch is ahead/behind the current branch */
+   readonly aheadBehind: IAheadBehind
++
++  readonly selectedCommitSHA: string | null
++
++  /** The SHAs of commits to render in the list */
++  readonly commitSHAs: ReadonlyArray<string>
+ }
+ 
+ export interface ICompareState {
+   /** The current state of the compare form, based on user input */
+   readonly formState: IDisplayHistory | ICompareBranch
+ 
++<<<<<<< .our
+   /** Whether the branch list should be expanded or hidden */
+   readonly showBranchList: boolean
+ 
+@@ -653,6 +673,8 @@
+   /** The SHAs of commits to render in the compare list */
+   readonly commitSHAs: ReadonlyArray<string>
+ 
++=======
++>>>>>>> .their
+   /** A list of all branches (remote and local) currently in the repository. */
+   readonly allBranches: ReadonlyArray<Branch>
+ 
+changed in both
+  base   100644 7660f27c9fa483bd947f1ffde2576ef075b5cf1b app/src/lib/dispatcher/dispatcher.ts
+  our    100644 5e56c00e713342e76f5ccba040062e322e8c90cb app/src/lib/dispatcher/dispatcher.ts
+  their  100644 69eeff384875a8663ab57a5a84ebdb207b5f7795 app/src/lib/dispatcher/dispatcher.ts
+@@ -148,6 +148,13 @@
+     return this.appStore._changeCommitSelection(repository, sha)
+   }
+ 
++  public changeCompareCommitSelection(
++    repository: Repository,
++    sha: string
++  ): Promise<void> {
++    return this.appStore._changeCompareCommitSelection(repository, sha)
++  }
++
+   /**
+    * Change the selected changed file in the history view.
+    *
+changed in both
+  base   100644 913f0d9877d9d1681da13a02004091689e826c67 app/src/lib/stores/app-store.ts
+  our    100644 1a4e387e4d192d34abfd0621b4b5ebe8cc34d8d1 app/src/lib/stores/app-store.ts
+  their  100644 b6383b0080b772a8e9b61fe679fdbe0912f9e93b app/src/lib/stores/app-store.ts
+@@ -461,10 +461,18 @@
+         isLoadingPullRequests: false,
+       },
+       compareState: {
++<<<<<<< .our
+         formState: { kind: ComparisonView.None },
+         showBranchList: false,
+         filterText: '',
+         commitSHAs: [],
++=======
++        formState: {
++          kind: ComparisonView.None,
++          selectedCommitSHA: null,
++          commitSHAs: [],
++        },
++>>>>>>> .their
+         aheadBehindCache: new ComparisonCache(),
+         allBranches: new Array<Branch>(),
+         recentBranches: new Array<Branch>(),
+@@ -617,6 +625,21 @@
+   }
+ 
+   private onGitStoreUpdated(repository: Repository, gitStore: GitStore) {
++<<<<<<< .our
++=======
++    this.updateCompareState(repository, state => {
++      if (state.formState.kind === ComparisonView.None) {
++        return {
++          formState: { ...state.formState, commitSHAs: gitStore.history },
++        }
++      }
++
++      // TODO: This is a workaround for Pick<T> expecting at least one
++      // property, it's ugly and there has to be a workaround for it.
++      return { formState: state.formState }
++    })
++
++>>>>>>> .their
+     this.updateBranchesState(repository, state => ({
+       tip: gitStore.tip,
+       defaultBranch: gitStore.defaultBranch,
+@@ -700,6 +723,7 @@
+   }
+ 
+   /** This shouldn't be called directly. See `Dispatcher`. */
++<<<<<<< .our
+   public async _changeCommitSelection(
+     repository: Repository,
+     sha: string
+@@ -730,12 +754,35 @@
+         // -> clear the selection in the app state
+         selectedSHA = null
+         this.clearSelectedCommit(repository)
++=======
++  public async _loadHistory(repository: Repository): Promise<void> {
++    const gitStore = this.getGitStore(repository)
++    await gitStore.loadHistory()
++
++    const state = this.getRepositoryState(repository).compareState
++
++    if (state.formState.kind === ComparisonView.None) {
++      const { commitSHAs } = state.formState
++      let selectedSHA = state.formState.selectedCommitSHA
++      if (selectedSHA) {
++        const index = commitSHAs.findIndex(sha => sha === selectedSHA)
++        // Our selected SHA disappeared, so clear the selection.
++        if (index < 0) {
++          selectedSHA = null
++        }
++>>>>>>> .their
+       }
+-    }
+ 
++<<<<<<< .our
+     if (selectedSHA == null && commitSHAs.length > 0) {
+       this._changeCommitSelection(repository, commitSHAs[0])
+       this._loadChangedFilesForCurrentSelection(repository)
++=======
++      if (selectedSHA === null && commitSHAs.length > 0) {
++        this._changeHistoryCommitSelection(repository, commitSHAs[0])
++        this._loadChangedFilesForCurrentSelection(repository)
++      }
++>>>>>>> .their
+     }
+   }
+ 
+@@ -871,20 +918,30 @@
+     const kind = action.kind
+ 
+     if (action.kind === CompareActionKind.History) {
++<<<<<<< .our
+       // load initial group of commits for current branch
+       const commits = await gitStore.loadCommitBatch('HEAD')
+ 
+       if (commits === null) {
+         return
+       }
++=======
++      await gitStore.loadHistory()
++      const commits = gitStore.history
++>>>>>>> .their
+ 
+       this.updateCompareState(repository, () => ({
+         formState: {
+           kind: ComparisonView.None,
++          selectedCommitSHA: commits.length ? commits[0] : null,
++          commitSHAs: commits,
+         },
++<<<<<<< .our
+         commitSHAs: commits,
+         filterText: '',
+         showBranchList: false,
++=======
++>>>>>>> .their
+       }))
+       this.updateOrSelectFirstCommit(repository, commits)
+ 
+@@ -939,7 +996,21 @@
+       commitSHAs,
+     }))
+ 
++<<<<<<< .our
+     const tip = gitStore.tip
++=======
++      if (compare !== null) {
++        const commits = compare.commits.map(commit => commit.sha)
++        this.updateCompareState(repository, s => ({
++          formState: {
++            comparisonBranch,
++            kind: action.mode,
++            selectedCommitSHA: commits.length ? commits[0] : null,
++            aheadBehind: { ahead: compare.ahead, behind: compare.behind },
++            commitSHAs: commits,
++          },
++        }))
++>>>>>>> .their
+ 
+     let currentSha: string | null = null
+ 
+@@ -1079,6 +1150,40 @@
+   }
+ 
+   /** This shouldn't be called directly. See `Dispatcher`. */
++<<<<<<< .our
++=======
++  public async _changeHistoryCommitSelection(
++    repository: Repository,
++    sha: string
++  ): Promise<void> {
++    this.updateHistoryState(repository, state => {
++      const commitChanged = state.selection.sha !== sha
++      const changedFiles = commitChanged
++        ? new Array<CommittedFileChange>()
++        : state.changedFiles
++      const file = commitChanged ? null : state.selection.file
++      const selection = { sha, file }
++      const diff = null
++
++      return { selection, changedFiles, diff }
++    })
++    this.emitUpdate()
++  }
++
++  /** This shouldn't be called directly. See `Dispatcher`. */
++  public async _changeCompareCommitSelection(
++    repository: Repository,
++    sha: string
++  ): Promise<void> {
++    this.updateCompareState(repository, state => {
++      const newFormState = { ...state.formState, selectedCommitSHA: sha }
++      return { formState: newFormState }
++    })
++    this.emitUpdate()
++  }
++
++  /** This shouldn't be called directly. See `Dispatcher`. */
++>>>>>>> .their
+   public async _setRepositoryFilterText(text: string): Promise<void> {
+     this.repositoryFilterText = text
+     this.emitUpdate()
+changed in both
+  base   100644 2bb0d1e69b6e6acc7bc7b9b7b8cd79ba486625a8 app/src/ui/history/compare.tsx
+  our    100644 c0be0e26ce79b9a590edfa3a9fd3718fa58782d4 app/src/ui/history/compare.tsx
+  their  100644 cc767f0ad425e2a97efa57513e52ccda7536bd31 app/src/ui/history/compare.tsx
+@@ -53,12 +53,17 @@
+    * For all other cases, use the prop
+    */
+   readonly focusedBranch: Branch | null
++<<<<<<< .our
+ 
+   /**
+    * Flag that tracks whether the user interacted with one of the notification's
+    * "call to action" buttons
+    */
+   readonly hasConsumedNotification: boolean
++=======
++  readonly filterText: string
++  readonly showBranchList: boolean
++>>>>>>> .their
+ }
+ 
+ /** If we're within this many rows from the bottom, load the next history batch. */
+@@ -79,7 +84,12 @@
+ 
+     this.state = {
+       focusedBranch: null,
++<<<<<<< .our
+       hasConsumedNotification: false,
++=======
++      filterText: '',
++      showBranchList: false,
++>>>>>>> .their
+     }
+   }
+ 
+@@ -238,7 +248,13 @@
+   }
+ 
+   private renderCommitList() {
++<<<<<<< .our
+     const { formState, commitSHAs } = this.props.compareState
++=======
++    const compareState = this.props.compareState
++    const { formState } = compareState
++    const { commitSHAs, selectedCommitSHA } = formState
++>>>>>>> .their
+ 
+     let emptyListMessage: string | JSX.Element
+     if (formState.kind === ComparisonView.None) {
+@@ -265,7 +281,11 @@
+         gitHubRepository={this.props.repository.gitHubRepository}
+         commitLookup={this.props.commitLookup}
+         commitSHAs={commitSHAs}
++<<<<<<< .our
+         selectedSHA={this.props.selectedCommitSha}
++=======
++        selectedSHA={selectedCommitSHA}
++>>>>>>> .their
+         gitHubUsers={this.props.gitHubUsers}
+         localCommitSHAs={this.props.localCommitSHAs}
+         emoji={this.props.emoji}
+@@ -447,6 +467,11 @@
+       commit.sha
+     )
+ 
++    this.props.dispatcher.changeCompareCommitSelection(
++      this.props.repository,
++      commit.sha
++    )
++
+     this.loadChangedFilesScheduler.queue(() => {
+       this.props.dispatcher.loadChangedFilesForCurrentSelection(
+         this.props.repository
+@@ -464,7 +489,7 @@
+       return
+     }
+ 
+-    const commits = compareState.commitSHAs
++    const commits = compareState.formState.commitSHAs
+     if (commits.length - end <= CloseToBottomThreshold) {
+       if (this.loadingMoreCommitsPromise != null) {
+         // as this callback fires for any scroll event we need to guard
+removed in local
+  base   100644 0f7ba2c51eb72711ce866811c1cdf6ec2a641439 app/src/ui/history/sidebar.tsx
+  their  100644 0dde562e164abfa27a4dd7bf40a08af7f7a4eb54 app/src/ui/history/sidebar.tsx
+changed in both
+  base   100644 2fe9280cbce5add68c32917de0f29293a5c1f684 app/src/ui/repository.tsx
+  our    100644 efb00423012b8da0dfa5e8897acacaeb0a5e648a app/src/ui/repository.tsx
+  their  100644 9d3ba9d30a822ca2f1cd262769b0e7e7af5e34a1 app/src/ui/repository.tsx
+@@ -14,6 +14,7 @@
+   IRepositoryState,
+   RepositorySectionTab,
+   ImageDiffType,
++  ComparisonView,
+ } from '../lib/app-state'
+ import { Dispatcher } from '../lib/dispatcher'
+ import { IssuesStore, GitHubUserStore } from '../lib/stores'
+@@ -156,6 +157,31 @@
+     )
+   }
+ 
++<<<<<<< .our
++=======
++  private renderHistorySidebar(): JSX.Element | null {
++    const formState = this.props.state.compareState.formState
++
++    if (formState.kind !== ComparisonView.None) {
++      return null
++    }
++
++    return (
++      <HistorySidebar
++        repository={this.props.repository}
++        dispatcher={this.props.dispatcher}
++        history={formState}
++        gitHubUsers={this.props.state.gitHubUsers}
++        emoji={this.props.emoji}
++        commitLookup={this.props.state.commitLookup}
++        localCommitSHAs={this.props.state.localCommitSHAs}
++        onRevertCommit={this.onRevertCommit}
++        onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
++      />
++    )
++  }
++
++>>>>>>> .their
+   private renderCompareSidebar(): JSX.Element {
+     const tip = this.props.state.branchesState.tip
+     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+@@ -180,7 +206,7 @@
+     )
+   }
+ 
+-  private renderSidebarContents(): JSX.Element {
++  private renderSidebarContents(): JSX.Element | null {
+     const selectedSection = this.props.state.selectedSection
+ 
+     if (selectedSection === RepositorySectionTab.Changes) {

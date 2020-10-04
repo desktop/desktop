@@ -96,8 +96,8 @@ export class Resizable extends React.Component<IResizableProps, {}> {
   public render() {
     const style: React.CSSProperties = {
       width: this.getCurrentWidth(),
-      maximumWidth: this.props.maximumWidth,
-      minimumWidth: this.props.minimumWidth,
+      maxWidth: this.props.maximumWidth,
+      minWidth: this.props.minimumWidth,
     }
 
     return (
@@ -113,7 +113,7 @@ export class Resizable extends React.Component<IResizableProps, {}> {
   }
 }
 
-export interface IResizableProps extends React.Props<Resizable> {
+export interface IResizableProps {
   readonly width: number
 
   /** The maximum width the panel can be resized to.

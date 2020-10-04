@@ -1,52 +1,25 @@
 import * as React from 'react'
-import * as Path from 'path'
-import { pathExists } from 'fs-extra'
-import { revealInFileManager } from '../../lib/app-shell'
 
-import { FileChange, mapStatus, iconForStatus } from '../../models/status'
-import { Repository } from '../../models/repository'
+import { CommittedFileChange } from '../../models/status'
 
 import { PathLabel } from '../lib/path-label'
-import {
-  isSafeFileExtension,
-  DefaultEditorLabel,
-  RevealInFileManagerLabel,
-  OpenWithDefaultProgramLabel,
-} from '../lib/context-menu'
 import { List } from '../lib/list'
 
-import { Octicon } from '../octicons'
-import { showContextualMenu } from '../main-process-proxy'
+import { Octicon, iconForStatus } from '../octicons'
+import { mapStatus } from '../../lib/status'
 
 interface IFileListProps {
-  readonly files: ReadonlyArray<FileChange>
-  readonly selectedFile: FileChange | null
-  readonly onSelectedFileChanged: (file: FileChange) => void
+  readonly files: ReadonlyArray<CommittedFileChange>
+  readonly selectedFile: CommittedFileChange | null
+  readonly onSelectedFileChanged: (file: CommittedFileChange) => void
   readonly availableWidth: number
-
-  /**
-   * Called to open a file with its default application
-   * @param path The path of the file relative to the root of the repository
-   */
-  readonly onOpenItem: (path: string) => void
-
-  /** The name of the currently selected external editor */
-  readonly externalEditorLabel?: string
-
-  /**
-   * Called to open a file using the user's configured applications
-   * @param path The path of the file relative to the root of the repository
-   */
-  readonly onOpenInExternalEditor: (path: string) => void
-
-  /**
-   * Repository that we use to get the base path and build
-   * full path for the file in commit to check for file existence
-   */
-  readonly repository: Repository
+  readonly onContextMenu?: (event: React.MouseEvent<HTMLDivElement>) => void
 }
 
-export class FileList extends React.Component<IFileListProps, {}> {
+/**
+ * Display a list of changed files as part of a commit or stash
+ */
+export class FileList extends React.Component<IFileListProps> {
   private onSelectedRowChanged = (row: number) => {
     const file = this.props.files[row]
     this.props.onSelectedFileChanged(file)
@@ -67,10 +40,9 @@ export class FileList extends React.Component<IFileListProps, {}> {
       statusWidth
 
     return (
-      <div className="file" onContextMenu={this.onContextMenu}>
+      <div className="file" onContextMenu={this.props.onContextMenu}>
         <PathLabel
           path={file.path}
-          oldPath={file.oldPath}
           status={file.status}
           availableWidth={availablePathWidth}
         />
@@ -84,7 +56,7 @@ export class FileList extends React.Component<IFileListProps, {}> {
     )
   }
 
-  private rowForFile(file: FileChange | null): number {
+  private rowForFile(file: CommittedFileChange | null): number {
     return file ? this.props.files.findIndex(f => f.path === file.path) : -1
   }
 
@@ -100,54 +72,5 @@ export class FileList extends React.Component<IFileListProps, {}> {
         />
       </div>
     )
-  }
-
-  private onContextMenu = async (event: React.MouseEvent<HTMLDivElement>) => {
-    event.preventDefault()
-
-    if (this.props.selectedFile == null) {
-      return
-    }
-
-    const filePath = this.props.selectedFile.path
-    const fullPath = Path.join(this.props.repository.path, filePath)
-    const fileExistsOnDisk = await pathExists(fullPath)
-    if (!fileExistsOnDisk) {
-      showContextualMenu([
-        {
-          label: __DARWIN__
-            ? 'File Does Not Exist on Disk'
-            : 'File does not exist on disk',
-          enabled: false,
-        },
-      ])
-      return
-    }
-
-    const extension = Path.extname(filePath)
-
-    const isSafeExtension = isSafeFileExtension(extension)
-    const openInExternalEditor = this.props.externalEditorLabel
-      ? `Open in ${this.props.externalEditorLabel}`
-      : DefaultEditorLabel
-
-    const items = [
-      {
-        label: RevealInFileManagerLabel,
-        action: () => revealInFileManager(this.props.repository, filePath),
-        enabled: fileExistsOnDisk,
-      },
-      {
-        label: openInExternalEditor,
-        action: () => this.props.onOpenInExternalEditor(fullPath),
-        enabled: isSafeExtension && fileExistsOnDisk,
-      },
-      {
-        label: OpenWithDefaultProgramLabel,
-        action: () => this.props.onOpenItem(filePath),
-        enabled: isSafeExtension && fileExistsOnDisk,
-      },
-    ]
-    showContextualMenu(items)
   }
 }

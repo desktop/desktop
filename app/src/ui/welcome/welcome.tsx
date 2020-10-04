@@ -1,7 +1,10 @@
 import * as React from 'react'
-import { Dispatcher } from '../../lib/dispatcher'
+import classNames from 'classnames'
+
+import { Dispatcher } from '../dispatcher'
 import { encodePathAsUrl } from '../../lib/path'
-import { AppStore, SignInState, SignInStep } from '../../lib/stores'
+import { Account } from '../../models/account'
+import { SignInState, SignInStep } from '../../lib/stores'
 import { assertNever } from '../../lib/fatal-error'
 import { Start } from './start'
 import { SignInDotCom } from './sign-in-dot-com'
@@ -9,10 +12,12 @@ import { SignInEnterprise } from './sign-in-enterprise'
 import { ConfigureGit } from './configure-git'
 import { UiView } from '../ui-view'
 import { UsageOptOut } from './usage-opt-out'
+import { Disposable } from 'event-kit'
 
 /** The steps along the Welcome flow. */
 export enum WelcomeStep {
   Start = 'Start',
+  SignInToDotComWithBrowser = 'SignInToDotComWithBrowser',
   SignInToDotCom = 'SignInToDotCom',
   SignInToEnterprise = 'SignInToEnterprise',
   ConfigureGit = 'ConfigureGit',
@@ -21,12 +26,27 @@ export enum WelcomeStep {
 
 interface IWelcomeProps {
   readonly dispatcher: Dispatcher
-  readonly appStore: AppStore
+  readonly optOut: boolean
+  readonly accounts: ReadonlyArray<Account>
   readonly signInState: SignInState | null
 }
 
 interface IWelcomeState {
   readonly currentStep: WelcomeStep
+
+  /**
+   * Whether the welcome wizard is terminating. Used
+   * in order to delay the actual dismissal of the view
+   * such that the exit animations (defined in css) have
+   * time to run to completion.
+   */
+  readonly exiting: boolean
+
+  /**
+   * Whether or not GitHub.com supports authenticating with username
+   * and password or if we have to enforce the web flow
+   */
+  readonly dotComSupportsBasicAuth: boolean
 }
 
 // Note that we're reusing the welcome illustrations in the crash process, any
@@ -35,25 +55,51 @@ const WelcomeRightImageUri = encodePathAsUrl(
   __dirname,
   'static/welcome-illustration-right.svg'
 )
-const WelcomeLeftTopImageUri = encodePathAsUrl(
+export const WelcomeLeftTopImageUri = encodePathAsUrl(
   __dirname,
   'static/welcome-illustration-left-top.svg'
 )
-const WelcomeLeftBottomImageUri = encodePathAsUrl(
+export const WelcomeLeftBottomImageUri = encodePathAsUrl(
   __dirname,
   'static/welcome-illustration-left-bottom.svg'
 )
 
 /** The Welcome flow. */
 export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
+  private dotComSupportsBasicAuthSubscription: Disposable | null = null
+
   public constructor(props: IWelcomeProps) {
     super(props)
 
-    this.state = { currentStep: WelcomeStep.Start }
+    this.state = {
+      currentStep: WelcomeStep.Start,
+      exiting: false,
+      dotComSupportsBasicAuth: props.dispatcher.tryGetDotComSupportsBasicAuth(),
+    }
   }
 
   public componentWillReceiveProps(nextProps: IWelcomeProps) {
     this.advanceOnSuccessfulSignIn(nextProps)
+  }
+
+  public componentDidMount() {
+    this.props.dispatcher.recordWelcomeWizardInitiated()
+    this.dotComSupportsBasicAuthSubscription = this.props.dispatcher.onDotComSupportsBasicAuthUpdated(
+      this.onDotComSupportsBasicAuthUpdated
+    )
+  }
+
+  public componentWillUnmount() {
+    if (this.dotComSupportsBasicAuthSubscription !== null) {
+      this.dotComSupportsBasicAuthSubscription.dispose()
+      this.dotComSupportsBasicAuthSubscription = null
+    }
+  }
+
+  private onDotComSupportsBasicAuthUpdated = (
+    dotComSupportsBasicAuth: boolean
+  ) => {
+    this.setState({ dotComSupportsBasicAuth })
   }
 
   /**
@@ -63,6 +109,10 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
    */
   private get inSignInStep() {
     if (this.state.currentStep === WelcomeStep.SignInToDotCom) {
+      return true
+    }
+
+    if (this.state.currentStep === WelcomeStep.SignInToDotComWithBrowser) {
       return true
     }
 
@@ -103,9 +153,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
     // Only advance when the state first changes...
     if (this.props.signInState.kind === nextProps.signInState.kind) {
       log.info(
-        `[Welcome] kind ${this.props.signInState.kind} is the same as ${
-          nextProps.signInState.kind
-        }. ignoring...`
+        `[Welcome] kind ${this.props.signInState.kind} is the same as ${nextProps.signInState.kind}. ignoring...`
       )
       return
     }
@@ -123,7 +171,21 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
 
     switch (step) {
       case WelcomeStep.Start:
-        return <Start advance={this.advanceToStep} />
+      case WelcomeStep.SignInToDotComWithBrowser:
+        const loadingBrowserAuth =
+          step === WelcomeStep.SignInToDotComWithBrowser &&
+          signInState !== null &&
+          signInState.kind === SignInStep.Authentication &&
+          signInState.loading
+
+        return (
+          <Start
+            advance={this.advanceToStep}
+            dispatcher={this.props.dispatcher}
+            loadingBrowserAuth={loadingBrowserAuth}
+            dotComSupportsBasicAuth={this.state.dotComSupportsBasicAuth}
+          />
+        )
 
       case WelcomeStep.SignInToDotCom:
         return (
@@ -147,7 +209,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
         return (
           <ConfigureGit
             advance={this.advanceToStep}
-            accounts={this.props.appStore.getState().accounts}
+            accounts={this.props.accounts}
           />
         )
 
@@ -156,7 +218,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
           <UsageOptOut
             dispatcher={this.props.dispatcher}
             advance={this.advanceToStep}
-            optOut={this.props.appStore.getStatsOptOut()}
+            optOut={this.props.optOut}
             done={this.done}
           />
         )
@@ -178,12 +240,21 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
   }
 
   private done = () => {
-    this.props.dispatcher.endWelcomeFlow()
+    // Add a delay so that the exit animations (defined in css)
+    // have time to run to completion.
+    this.setState({ exiting: true }, () => {
+      setTimeout(() => {
+        this.props.dispatcher.endWelcomeFlow()
+      }, 250)
+    })
   }
 
   public render() {
+    const className = classNames({
+      exiting: this.state.exiting,
+    })
     return (
-      <UiView id="welcome">
+      <UiView id="welcome" className={className}>
         <div className="welcome-left">
           <div className="welcome-content">
             {this.getComponentForCurrentStep()}

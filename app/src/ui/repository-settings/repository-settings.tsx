@@ -1,16 +1,23 @@
 import * as React from 'react'
-import { TabBar } from '../tab-bar'
+import { TabBar, TabBarType } from '../tab-bar'
 import { Remote } from './remote'
 import { GitIgnore } from './git-ignore'
 import { assertNever } from '../../lib/fatal-error'
 import { IRemote } from '../../models/remote'
-import { Dispatcher } from '../../lib/dispatcher'
-import { PopupType } from '../../lib/app-state'
-import { Repository } from '../../models/repository'
-import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
+import { Dispatcher } from '../dispatcher'
+import { PopupType } from '../../models/popup'
+import {
+  Repository,
+  getForkContributionTarget,
+  isRepositoryWithForkedGitHubRepository,
+} from '../../models/repository'
 import { Dialog, DialogError, DialogFooter } from '../dialog'
 import { NoRemote } from './no-remote'
+import { readGitIgnoreAtRoot } from '../../lib/git'
+import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import { ForkSettings } from './fork-settings'
+import { ForkContributionTarget } from '../../models/workflow-preferences'
+import { enableForkSettings } from '../../lib/feature-flag'
 
 interface IRepositorySettingsProps {
   readonly dispatcher: Dispatcher
@@ -22,6 +29,7 @@ interface IRepositorySettingsProps {
 enum RepositorySettingsTab {
   Remote = 0,
   IgnoredFiles,
+  ForkSettings,
 }
 
 interface IRepositorySettingsState {
@@ -31,6 +39,7 @@ interface IRepositorySettingsState {
   readonly ignoreTextHasChanged: boolean
   readonly disabled: boolean
   readonly errors?: ReadonlyArray<JSX.Element | string>
+  readonly forkContributionTarget: ForkContributionTarget
 }
 
 export class RepositorySettings extends React.Component<
@@ -46,23 +55,20 @@ export class RepositorySettings extends React.Component<
       ignoreText: null,
       ignoreTextHasChanged: false,
       disabled: false,
+      forkContributionTarget: getForkContributionTarget(props.repository),
     }
   }
 
   public async componentWillMount() {
     try {
-      const ignoreText = await this.props.dispatcher.readGitIgnore(
-        this.props.repository
-      )
+      const ignoreText = await readGitIgnoreAtRoot(this.props.repository)
       this.setState({ ignoreText })
     } catch (e) {
       log.error(
-        `RepositorySettings: unable to read .gitignore file at ${
-          this.props.repository.path
-        }`,
+        `RepositorySettings: unable to read root .gitignore file for ${this.props.repository.path}`,
         e
       )
-      this.setState({ errors: [`Could not read .gitignore: ${e}`] })
+      this.setState({ errors: [`Could not read root .gitignore: ${e}`] })
     }
   }
 
@@ -80,6 +86,10 @@ export class RepositorySettings extends React.Component<
   }
 
   public render() {
+    const showForkSettings =
+      enableForkSettings() &&
+      isRepositoryWithForkedGitHubRepository(this.props.repository)
+
     return (
       <Dialog
         id="repository-settings"
@@ -90,15 +100,21 @@ export class RepositorySettings extends React.Component<
       >
         {this.renderErrors()}
 
-        <TabBar
-          onTabClicked={this.onTabClicked}
-          selectedIndex={this.state.selectedTab}
-        >
-          <span>Remote</span>
-          <span>{__DARWIN__ ? 'Ignored Files' : 'Ignored files'}</span>
-        </TabBar>
+        <div className="tab-container">
+          <TabBar
+            onTabClicked={this.onTabClicked}
+            selectedIndex={this.state.selectedTab}
+            type={TabBarType.Vertical}
+          >
+            <span>Remote</span>
+            <span>{__DARWIN__ ? 'Ignored Files' : 'Ignored files'}</span>
+            {showForkSettings && (
+              <span>{__DARWIN__ ? 'Fork Behavior' : 'Fork behavior'}</span>
+            )}
+          </TabBar>
 
-        {this.renderActiveTab()}
+          <div className="active-tab">{this.renderActiveTab()}</div>
+        </div>
         {this.renderFooter()}
       </Dialog>
     )
@@ -113,10 +129,7 @@ export class RepositorySettings extends React.Component<
 
     return (
       <DialogFooter>
-        <ButtonGroup>
-          <Button type="submit">Save</Button>
-          <Button onClick={this.props.onDismissed}>Cancel</Button>
-        </ButtonGroup>
+        <OkCancelButtonGroup okButtonText="Save" />
       </DialogFooter>
     )
   }
@@ -146,9 +159,24 @@ export class RepositorySettings extends React.Component<
           />
         )
       }
-    }
+      case RepositorySettingsTab.ForkSettings: {
+        if (!isRepositoryWithForkedGitHubRepository(this.props.repository)) {
+          return null
+        }
 
-    return assertNever(tab, `Unknown tab type: ${tab}`)
+        return (
+          <ForkSettings
+            forkContributionTarget={this.state.forkContributionTarget}
+            repository={this.props.repository}
+            onForkContributionTargetChanged={
+              this.onForkContributionTargetChanged
+            }
+          />
+        )
+      }
+      default:
+        return assertNever(tab, `Unknown tab type: ${tab}`)
+    }
   }
 
   private onPublish = () => {
@@ -176,9 +204,7 @@ export class RepositorySettings extends React.Component<
           )
         } catch (e) {
           log.error(
-            `RepositorySettings: unable to set remote URL at ${
-              this.props.repository.path
-            }`,
+            `RepositorySettings: unable to set remote URL at ${this.props.repository.path}`,
             e
           )
           errors.push(`Failed setting the remote URL: ${e}`)
@@ -194,13 +220,25 @@ export class RepositorySettings extends React.Component<
         )
       } catch (e) {
         log.error(
-          `RepositorySettings: unable to save gitignore at ${
-            this.props.repository.path
-          }`,
+          `RepositorySettings: unable to save gitignore at ${this.props.repository.path}`,
           e
         )
         errors.push(`Failed saving the .gitignore file: ${e}`)
       }
+    }
+
+    // only update this if it will be different from what we have stored
+    if (
+      this.state.forkContributionTarget !==
+      this.props.repository.workflowPreferences.forkContributionTarget
+    ) {
+      await this.props.dispatcher.updateRepositoryWorkflowPreferences(
+        this.props.repository,
+        {
+          ...this.props.repository.workflowPreferences,
+          forkContributionTarget: this.state.forkContributionTarget,
+        }
+      )
     }
 
     if (!errors.length) {
@@ -227,5 +265,13 @@ export class RepositorySettings extends React.Component<
 
   private onTabClicked = (index: number) => {
     this.setState({ selectedTab: index })
+  }
+
+  private onForkContributionTargetChanged = (
+    forkContributionTarget: ForkContributionTarget
+  ) => {
+    this.setState({
+      forkContributionTarget,
+    })
   }
 }

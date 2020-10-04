@@ -1,18 +1,10 @@
+import { getBoolean } from '../../lib/local-storage'
+
 function getFeatureOverride(
   featureName: string,
   defaultValue: boolean
 ): boolean {
-  const override = localStorage.getItem(`features/${featureName}`)
-
-  if (override) {
-    if (override === '1' || override === 'true') {
-      return true
-    } else if (override === '0' || override === 'false') {
-      return false
-    }
-  }
-
-  return defaultValue
+  return getBoolean(`features/${featureName}`, defaultValue)
 }
 
 function featureFlag(

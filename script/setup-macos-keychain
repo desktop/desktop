@@ -11,3 +11,7 @@ security unlock-keychain -p travis $KEY_CHAIN
 security set-keychain-settings -t 3600 -u $KEY_CHAIN
 
 security default-keychain -s $KEY_CHAIN
+
+# set key partition list to avoid UI permission popup that causes hanging at CI
+security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k travis $KEY_CHAIN
+

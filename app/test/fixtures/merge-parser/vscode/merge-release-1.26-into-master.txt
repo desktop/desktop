@@ -1,0 +1,682 @@
+changed in both
+  base   100644 8f167afc9049e8db15fd3175ce33a6ad4738b9f1 OSSREADME.json
+  our    100644 e15cccabcadbd5afb0980967f0af53c135710fc0 OSSREADME.json
+  their  100644 ddfe2a1fa05af54ab5c44aeb8a7cdcafcf729f19 OSSREADME.json
+@@ -51,7 +51,11 @@
+ },
+ {
+ 	"name": "electron",
++<<<<<<< .our
+ 	"version": "2.0.7",
++=======
++	"version": "2.0.5",
++>>>>>>> .their
+ 	"license": "MIT",
+ 	"repositoryURL": "https://github.com/electron/electron",
+ 	"isProd": true
+changed in both
+  base   100644 663f81987ccc076e4b3e08e95663fdd475e09b93 build/builtInExtensions.json
+  our    100644 b3efcd2cc657706605008661521b555c93a32c16 build/builtInExtensions.json
+  their  100644 e607dada4f85a5d32fa133c9fb0ea836f3a1d185 build/builtInExtensions.json
+@@ -6,7 +6,11 @@
+ 	},
+ 	{
+ 		"name": "ms-vscode.node-debug2",
++<<<<<<< .our
+ 		"version": "1.27.0",
++=======
++		"version": "1.26.8",
++>>>>>>> .their
+ 		"repo": "https://github.com/Microsoft/vscode-node-debug2"
+ 	}
+ ]
+changed in both
+  base   100644 41c826ea71b62bf0e564ddfcac99872abd92bebd extensions/typescript-language-features/package.json
+  our    100644 1f06df0476dc5d308133ff5129ffa65d8caeb6fb extensions/typescript-language-features/package.json
+  their  100644 0e50c0c15cdeb80e9ed53ea6f9b29d65b68939c2 extensions/typescript-language-features/package.json
+changed in both
+  base   100644 4a4588e38b35333ba0d79b6b7a3f80a890cbf3bb package.json
+  our    100644 d0e982ce0b76c5b1b5eb02b673e459e47f3353a4 package.json
+  their  100644 25d4af6706ee427a7162e0db0c5e8742bf8ec3d2 package.json
+@@ -1,7 +1,12 @@
+ {
+   "name": "code-oss-dev",
++<<<<<<< .our
+   "version": "1.27.0",
+   "distro": "a4155d9780fbbc94ead6cb3017dd0fc3806c57b8",
++=======
++  "version": "1.26.1",
++  "distro": "73cb7173636931afba8d741be343ceafb11a177e",
++>>>>>>> .their
+   "author": {
+     "name": "Microsoft Corporation"
+   },
+@@ -49,7 +54,11 @@
+     "vscode-nsfw": "1.0.17",
+     "vscode-ripgrep": "1.1.0",
+     "vscode-textmate": "^4.0.1",
++<<<<<<< .our
+     "vscode-xterm": "3.7.0-beta4",
++=======
++    "vscode-xterm": "3.6.0-beta13",
++>>>>>>> .their
+     "winreg": "^1.2.4",
+     "yauzl": "^2.9.1"
+   },
+changed in both
+  base   100644 c09f6334b7f4654eacac6cfeb531defabef081f3 src/vs/base/common/resources.ts
+  our    100644 53357fe29f5f8919d794f7850dfaffd61f179591 src/vs/base/common/resources.ts
+  their  100644 af2d8eaa6a157d980ae81406148fe28fc4ea1dbf src/vs/base/common/resources.ts
+changed in both
+  base   100644 1b10a58da57e62ebfcbf4235da835802bbb3c050 src/vs/code/electron-main/app.ts
+  our    100644 c0185b039e95315e65379ca7cda7ff397219bdf9 src/vs/code/electron-main/app.ts
+  their  100644 a52ce64b90dbb29413f31e75d30df26f5dfeaaca src/vs/code/electron-main/app.ts
+@@ -63,10 +63,15 @@
+ import { IMenubarService } from 'vs/platform/menubar/common/menubar';
+ import { MenubarService } from 'vs/platform/menubar/electron-main/menubarService';
+ import { MenubarChannel } from 'vs/platform/menubar/common/menubarIpc';
++<<<<<<< .our
+ import { IUriLabelService } from 'vs/platform/uriLabel/common/uriLabel';
+ import { CodeMenu } from 'vs/code/electron-main/menus';
+ import { hasArgs } from 'vs/platform/environment/node/argv';
+ import { RunOnceScheduler } from 'vs/base/common/async';
++=======
++import { IUriDisplayService } from 'vs/platform/uriDisplay/common/uriDisplay';
++import { CodeMenu } from 'vs/code/electron-main/menus';
++>>>>>>> .their
+ 
+ export class CodeApplication {
+ 
+changed in both
+  base   100644 b4bd6f0412ba41d3832e7c6c08b5ded48bc13c7a src/vs/code/electron-main/menubar.ts
+  our    100644 1bbfd9834bb83d9b49a3ce4b6f9cd46089cd2168 src/vs/code/electron-main/menubar.ts
+  their  100644 5605ff20117fd1390258d6c9f76e72f18eec8c26 src/vs/code/electron-main/menubar.ts
+@@ -252,15 +252,6 @@
+ 			menubar.append(gotoMenuItem);
+ 		}
+ 
+-		// Terminal
+-		const terminalMenu = new Menu();
+-		const terminalMenuItem = new MenuItem({ label: this.mnemonicLabel(nls.localize({ key: 'mTerminal', comment: ['&& denotes a mnemonic'] }, "Ter&&minal")), submenu: terminalMenu });
+-
+-		if (this.shouldDrawMenu('Terminal')) {
+-			this.setMenuById(terminalMenu, 'Terminal');
+-			menubar.append(terminalMenuItem);
+-		}
+-
+ 		// Debug
+ 		const debugMenu = new Menu();
+ 		const debugMenuItem = new MenuItem({ label: this.mnemonicLabel(nls.localize({ key: 'mDebug', comment: ['&& denotes a mnemonic'] }, "&&Debug")), submenu: debugMenu });
+added in both
+  our    100644 9d5657cff26b159c842f9790d6387967d829e168 src/vs/code/electron-main/menus.ts
+  their  100644 e367f93d5c309e6d05c32b9a7f8b5f8c944ada12 src/vs/code/electron-main/menus.ts
+@@ -24,7 +24,11 @@
+ import { IHistoryMainService } from 'vs/platform/history/common/history';
+ import { IWorkspaceIdentifier, getWorkspaceLabel, ISingleFolderWorkspaceIdentifier, isSingleFolderWorkspaceIdentifier, isWorkspaceIdentifier } from 'vs/platform/workspaces/common/workspaces';
+ import URI from 'vs/base/common/uri';
++<<<<<<< .our
+ import { IUriLabelService } from 'vs/platform/uriLabel/common/uriLabel';
++=======
++import { IUriDisplayService } from 'vs/platform/uriDisplay/common/uriDisplay';
++>>>>>>> .their
+ 
+ interface IMenuItemClickHandler {
+ 	inDevTools: (contents: Electron.WebContents) => void;
+@@ -68,7 +72,11 @@
+ 		@IEnvironmentService private environmentService: IEnvironmentService,
+ 		@ITelemetryService private telemetryService: ITelemetryService,
+ 		@IHistoryMainService private historyMainService: IHistoryMainService,
++<<<<<<< .our
+ 		@IUriLabelService private uriLabelService: IUriLabelService
++=======
++		@IUriDisplayService private uriDisplayService: IUriDisplayService
++>>>>>>> .their
+ 	) {
+ 		this.nativeTabMenuItems = [];
+ 
+@@ -242,11 +250,14 @@
+ 		const gotoMenuItem = new MenuItem({ label: this.mnemonicLabel(nls.localize({ key: 'mGoto', comment: ['&& denotes a mnemonic'] }, "&&Go")), submenu: gotoMenu });
+ 		this.setGotoMenu(gotoMenu);
+ 
++<<<<<<< .our
+ 		// Terminal
+ 		const terminalMenu = new Menu();
+ 		const terminalMenuItem = new MenuItem({ label: this.mnemonicLabel(nls.localize({ key: 'mTerminal', comment: ['&& denotes a mnemonic'] }, "Ter&&minal")), submenu: terminalMenu });
+ 		this.setTerminalMenu(terminalMenu);
+ 
++=======
++>>>>>>> .their
+ 		// Debug
+ 		const debugMenu = new Menu();
+ 		const debugMenuItem = new MenuItem({ label: this.mnemonicLabel(nls.localize({ key: 'mDebug', comment: ['&& denotes a mnemonic'] }, "&&Debug")), submenu: debugMenu });
+@@ -280,7 +291,10 @@
+ 		menubar.append(selectionMenuItem);
+ 		menubar.append(viewMenuItem);
+ 		menubar.append(gotoMenuItem);
++<<<<<<< .our
+ 		menubar.append(terminalMenuItem);
++=======
++>>>>>>> .their
+ 		menubar.append(debugMenuItem);
+ 		menubar.append(taskMenuItem);
+ 
+@@ -439,7 +453,10 @@
+ 
+ 	private getPreferencesMenu(): Electron.MenuItem {
+ 		const settings = this.createMenuItem(nls.localize({ key: 'miOpenSettings', comment: ['&& denotes a mnemonic'] }, "&&Settings"), 'workbench.action.openSettings');
++<<<<<<< .our
+ 		const extensions = this.createMenuItem(nls.localize({ key: 'miOpenExtensions', comment: ['&& denotes a mnemonic'] }, '&&Extensions'), 'workbench.view.extensions');
++=======
++>>>>>>> .their
+ 		const kebindingSettings = this.createMenuItem(nls.localize({ key: 'miOpenKeymap', comment: ['&& denotes a mnemonic'] }, "&&Keyboard Shortcuts"), 'workbench.action.openGlobalKeybindings');
+ 		const keymapExtensions = this.createMenuItem(nls.localize({ key: 'miOpenKeymapExtensions', comment: ['&& denotes a mnemonic'] }, "&&Keymap Extensions"), 'workbench.extensions.action.showRecommendedKeymapExtensions');
+ 		const snippetsSettings = this.createMenuItem(nls.localize({ key: 'miOpenSnippets', comment: ['&& denotes a mnemonic'] }, "User &&Snippets"), 'workbench.action.openSnippets');
+@@ -448,7 +465,10 @@
+ 
+ 		const preferencesMenu = new Menu();
+ 		preferencesMenu.append(settings);
++<<<<<<< .our
+ 		preferencesMenu.append(extensions);
++=======
++>>>>>>> .their
+ 		preferencesMenu.append(__separator__());
+ 		preferencesMenu.append(kebindingSettings);
+ 		preferencesMenu.append(keymapExtensions);
+@@ -496,6 +516,7 @@
+ 		let label: string;
+ 		let uri: URI;
+ 		if (isSingleFolderWorkspaceIdentifier(workspace)) {
++<<<<<<< .our
+ 			label = unmnemonicLabel(getWorkspaceLabel(workspace, this.environmentService, this.uriLabelService, { verbose: true }));
+ 			uri = workspace;
+ 		} else if (isWorkspaceIdentifier(workspace)) {
+@@ -504,6 +525,16 @@
+ 		} else {
+ 			uri = URI.file(workspace);
+ 			label = unmnemonicLabel(this.uriLabelService.getLabel(uri));
++=======
++			label = unmnemonicLabel(getWorkspaceLabel(workspace, this.environmentService, this.uriDisplayService, { verbose: true }));
++			uri = workspace;
++		} else if (isWorkspaceIdentifier(workspace)) {
++			label = getWorkspaceLabel(workspace, this.environmentService, this.uriDisplayService, { verbose: true });
++			uri = URI.file(workspace.configPath);
++		} else {
++			uri = URI.file(workspace);
++			label = unmnemonicLabel(this.uriDisplayService.getLabel(uri));
++>>>>>>> .their
+ 		}
+ 
+ 		return new MenuItem(this.likeAction(commandId, {
+@@ -882,6 +913,7 @@
+ 		].forEach(item => gotoMenu.append(item));
+ 	}
+ 
++<<<<<<< .our
+ 	private setTerminalMenu(terminalMenu: Electron.Menu): void {
+ 		const newTerminal = this.createMenuItem(nls.localize({ key: 'miNewTerminal', comment: ['&& denotes a mnemonic'] }, "&&New Terminal"), 'workbench.action.terminal.new');
+ 		const splitTerminal = this.createMenuItem(nls.localize({ key: 'miSplitTerminal', comment: ['&& denotes a mnemonic'] }, "&&Split Terminal"), 'workbench.action.terminal.split');
+@@ -912,6 +944,8 @@
+ 		menuItems.forEach(item => terminalMenu.append(item));
+ 	}
+ 
++=======
++>>>>>>> .their
+ 	private setDebugMenu(debugMenu: Electron.Menu): void {
+ 		const start = this.createMenuItem(nls.localize({ key: 'miStartDebugging', comment: ['&& denotes a mnemonic'] }, "&&Start Debugging"), 'workbench.action.debug.start');
+ 		const startWithoutDebugging = this.createMenuItem(nls.localize({ key: 'miStartWithoutDebugging', comment: ['&& denotes a mnemonic'] }, "Start &&Without Debugging"), 'workbench.action.debug.run');
+@@ -973,7 +1007,10 @@
+ 		if (this.currentEnableNativeTabs) {
+ 			const hasMultipleWindows = this.windowsMainService.getWindowCount() > 1;
+ 
++<<<<<<< .our
+ 			this.nativeTabMenuItems.push(this.createMenuItem(nls.localize('mNewTab', "New Tab"), 'workbench.action.newWindowTab'));
++=======
++>>>>>>> .their
+ 			this.nativeTabMenuItems.push(this.createMenuItem(nls.localize('mShowPreviousTab', "Show Previous Tab"), 'workbench.action.showPreviousWindowTab', hasMultipleWindows));
+ 			this.nativeTabMenuItems.push(this.createMenuItem(nls.localize('mShowNextTab', "Show Next Tab"), 'workbench.action.showNextWindowTab', hasMultipleWindows));
+ 			this.nativeTabMenuItems.push(this.createMenuItem(nls.localize('mMoveTabToNewWindow', "Move Tab to New Window"), 'workbench.action.moveWindowTabToNewWindow', hasMultipleWindows));
+@@ -1319,4 +1356,8 @@
+ 
+ function __separator__(): Electron.MenuItem {
+ 	return new MenuItem({ type: 'separator' });
++<<<<<<< .our
++}
++=======
+ }
++>>>>>>> .their
+merged
+  result 100644 5bb9d8adba33a0c638cc28e059bc992ac40add8b src/vs/platform/actions/common/actions.ts
+  our    100644 f0ba370d22dfa5eb5e51b75ad8f132f6de5991a7 src/vs/platform/actions/common/actions.ts
+@@ -100,7 +100,6 @@
+ 	static readonly MenubarTasksMenu = new MenuId();
+ 	static readonly MenubarPreferencesMenu = new MenuId();
+ 	static readonly MenubarHelpMenu = new MenuId();
+-	static readonly MenubarTerminalMenu = new MenuId();
+ 
+ 	readonly id: string = String(MenuId.ID++);
+ }
+changed in both
+  base   100644 796cfaffb92a7933b73b49d3d7031e8a3ca9edd6 src/vs/platform/history/electron-main/historyMainService.ts
+  our    100644 3f2657d385162e51b58c9ce88c62add6ba3ec1a3 src/vs/platform/history/electron-main/historyMainService.ts
+  their  100644 518916342b01071767f2ff5be57db947566195ce src/vs/platform/history/electron-main/historyMainService.ts
+@@ -26,12 +26,20 @@
+ 
+ interface ISerializedRecentlyOpened {
+ 	workspaces2: (IWorkspaceIdentifier | string)[]; // IWorkspaceIdentifier or URI.toString()
++<<<<<<< .our
+ 	files2: string[]; // files as URI.toString()
+ }
+ 
+ interface ILegacySerializedRecentlyOpened {
+ 	workspaces: (IWorkspaceIdentifier | string | UriComponents)[]; // legacy (UriComponents was also supported for a few insider builds)
+ 	files: string[]; // files as paths
++=======
++	files: string[];
++>>>>>>> .their
++}
++
++interface ILegacySerializedRecentlyOpened {
++	workspaces: (IWorkspaceIdentifier | string | UriComponents)[]; // legacy (UriComponents was also supported for a few insider builds)
+ }
+ 
+ export class HistoryMainService implements IHistoryMainService {
+@@ -271,7 +279,10 @@
+ 					}
+ 				}
+ 			} else if (Array.isArray(storedRecents.workspaces)) {
++<<<<<<< .our
+ 				// TODO@martin legacy support can be removed at some point (6 month?)
++=======
++>>>>>>> .their
+ 				// format of 1.25 and before
+ 				for (const workspace of storedRecents.workspaces) {
+ 					if (typeof workspace === 'string') {
+@@ -284,6 +295,7 @@
+ 					}
+ 				}
+ 			}
++<<<<<<< .our
+ 			if (Array.isArray(storedRecents.files2)) {
+ 				for (const file of storedRecents.files2) {
+ 					if (typeof file === 'string') {
+@@ -294,6 +306,12 @@
+ 				for (const file of storedRecents.files) {
+ 					if (typeof file === 'string') {
+ 						result.files.push(URI.file(file));
++=======
++			if (Array.isArray(storedRecents.files)) {
++				for (const file of storedRecents.files) {
++					if (typeof file === 'string') {
++						result.files.push(file);
++>>>>>>> .their
+ 					}
+ 				}
+ 			}
+@@ -302,7 +320,11 @@
+ 	}
+ 
+ 	private saveRecentlyOpened(recent: IRecentlyOpened): void {
++<<<<<<< .our
+ 		const serialized: ISerializedRecentlyOpened = { workspaces2: [], files2: [] };
++=======
++		const serialized: ISerializedRecentlyOpened = { workspaces2: [], files: recent.files };
++>>>>>>> .their
+ 		for (const workspace of recent.workspaces) {
+ 			if (isSingleFolderWorkspaceIdentifier(workspace)) {
+ 				serialized.workspaces2.push(workspace.toString());
+@@ -310,9 +332,12 @@
+ 				serialized.workspaces2.push(workspace);
+ 			}
+ 		}
++<<<<<<< .our
+ 		for (const file of recent.files) {
+ 			serialized.files2.push(file.toString());
+ 		}
++=======
++>>>>>>> .their
+ 		this.stateService.setItem(HistoryMainService.recentlyOpenedStorageKey, serialized);
+ 	}
+ 
+changed in both
+  base   100644 b4ed6f55eab488ad1302bbc7e30d7ffe795635f7 src/vs/platform/node/product.ts
+  our    100644 dbb84fd473f8212ea96a20a8f12d66c5b703786a src/vs/platform/node/product.ts
+  their  100644 a3dce3929b2bca1fa088832dc9ee386e46db7224 src/vs/platform/node/product.ts
+changed in both
+  base   100644 b1543ed3d2f9f297cb6222076ea75e8d4a0186da src/vs/platform/theme/common/colorRegistry.ts
+  our    100644 674f67411d4ee542ee937fac9146ef0768ec982d src/vs/platform/theme/common/colorRegistry.ts
+  their  100644 8d984bd6f21c8450d851a4c038289b73296eec90 src/vs/platform/theme/common/colorRegistry.ts
+@@ -223,6 +223,14 @@
+ 
+ export const progressBarBackground = registerColor('progressBar.background', { dark: Color.fromHex('#0E70C0'), light: Color.fromHex('#0E70C0'), hc: contrastBorder }, nls.localize('progressBarBackground', "Background color of the progress bar that can show for long running operations."));
+ 
++<<<<<<< .our
++=======
++export const breadcrumbsForeground = registerColor('breadcrumb.foreground', { light: Color.fromHex('#6C6C6C').transparent(.7), dark: Color.fromHex('#CCCCCC').transparent(.7), hc: Color.white.transparent(.7) }, nls.localize('breadcrumbsFocusForeground', "Color of focused breadcrumb items."));
++export const breadcrumbsFocusForeground = registerColor('breadcrumb.focusForeground', { light: '#6C6C6C', dark: '#CCCCCC', hc: Color.white }, nls.localize('breadcrumbsFocusForeground', "Color of focused breadcrumb items."));
++export const breadcrumbsActiveSelectionForeground = registerColor('breadcrumb.activeSelectionForeground', { light: '#6C6C6C', dark: '#CCCCCC', hc: Color.white }, nls.localize('breadcrumbsSelectedForegound', "Color of selected breadcrumb items."));
++export const breadcrumbsPickerBackground = registerColor('breadcrumbPicker.background', { light: '#ECECEC', dark: '#252526', hc: Color.black }, nls.localize('breadcrumbsSelectedBackground', "Background color of breadcrumb item picker."));
++
++>>>>>>> .their
+ /**
+  * Editor background color.
+  * Because of bug https://monacotools.visualstudio.com/DefaultCollection/Monaco/_workitems/edit/13254
+removed in local
+  base   100644 486aeb0d77e7ff491c92249ce1081606b4bf9308 src/vs/platform/uriDisplay/common/uriDisplay.ts
+  their  100644 cd53cee444feaa967bf2275c495c16fe7fd790bb src/vs/platform/uriDisplay/common/uriDisplay.ts
+changed in both
+  base   100644 98eaf7888ca700629ba1266892ad9135c5089abf src/vs/workbench/api/node/apiCommands.ts
+  our    100644 d04d6b2334c914b4573cb10d4adea8925172017a src/vs/workbench/api/node/apiCommands.ts
+  their  100644 156a9b18147954d4dca508b961735e338eaf27c1 src/vs/workbench/api/node/apiCommands.ts
+@@ -12,6 +12,7 @@
+ import { ITextEditorOptions } from 'vs/platform/editor/common/editor';
+ import { EditorViewColumn } from 'vs/workbench/api/shared/editor';
+ import { EditorGroupLayout } from 'vs/workbench/services/group/common/editorGroupsService';
++import { isWindows } from 'vs/base/common/platform';
+ 
+ // -----------------------------------------------------------------
+ // The following commands are registered on both sides separately.
+@@ -49,11 +50,18 @@
+ 		if (!uri) {
+ 			return executor.executeCommand('_files.pickFolderAndOpen', forceNewWindow);
+ 		}
++<<<<<<< .our
+ 		let correctedUri = isMalformedFileUri(uri);
+ 		if (correctedUri) {
+ 			// workaround for #55916 and #55891, will be removed in 1.28
+ 			console.warn(`'vscode.openFolder' command invoked with an invalid URI (file:// scheme missing): '${uri}'. Converted to a 'file://' URI: ${correctedUri}`);
+ 			uri = correctedUri;
++=======
++		if (!uri.scheme || isWindows && uri.scheme.match(/^[a-zA-Z]$/)) {
++			// workaround for #55916 and #55891, will be removed in 1.28
++			console.warn(`'vscode.openFolder' command invoked with an invalid URI (file:// scheme missing): '${uri}'. Converted to a 'file://' URI.`);
++			uri = URI.file((uri.scheme ? uri.scheme + ':' : '') + uri.path);
++>>>>>>> .their
+ 		}
+ 
+ 		return executor.executeCommand('_files.windowOpen', [uri], forceNewWindow);
+removed in local
+  base   100644 39c87100cce551f263420f6904834d778e9e2aab src/vs/workbench/browser/parts/menubar/menubar.contribution.ts
+  their  100644 04235f1557ddc62d458e20a7ae6f23675f8ef542 src/vs/workbench/browser/parts/menubar/menubar.contribution.ts
+removed in local
+  base   100644 b0cbfbf570f3193ab5f142bbbcca373b9c12cb5c src/vs/workbench/browser/parts/menubar/menubarPart.ts
+  their  100644 2f7e0891892de9bf1d0e8e3cd9b1ad8c6074f822 src/vs/workbench/browser/parts/menubar/menubarPart.ts
+changed in both
+  base   100644 a63062b1035a2a74babcf30cad76bc5c5f7796ba src/vs/workbench/browser/parts/quickopen/quickOpenController.ts
+  our    100644 428a391e24bbf78b82754330a477c9733d9d5fba src/vs/workbench/browser/parts/quickopen/quickOpenController.ts
+  their  100644 e35dd586dd82181150897fae02f537e281974668 src/vs/workbench/browser/parts/quickopen/quickOpenController.ts
+changed in both
+  base   100644 b6b6953d245256eb8e700f5bf342a1eb4d50d1cd src/vs/workbench/electron-browser/window.ts
+  our    100644 b19e6c63fa80338a757edd069d788b28e35bdcb8 src/vs/workbench/electron-browser/window.ts
+  their  100644 f46b093c862fdc9dffff201109d36a050fe88a9c src/vs/workbench/electron-browser/window.ts
+changed in both
+  base   100644 defea5dd0cce8b5e900820a926a0fabbb6b7e729 src/vs/workbench/electron-browser/workbench.ts
+  our    100644 78add76eb65984b5c27c1721cb6482b45327e839 src/vs/workbench/electron-browser/workbench.ts
+  their  100644 410d8fcc188d48692aae13c6ca35b5dec205e020 src/vs/workbench/electron-browser/workbench.ts
+changed in both
+  base   100644 b8d45826a4489e21e6c35732d6afcf0085a73e68 src/vs/workbench/parts/debug/electron-browser/debugService.ts
+  our    100644 a5e2dcee7a0eb14bc388d84c6c7cac591067b1b2 src/vs/workbench/parts/debug/electron-browser/debugService.ts
+  their  100644 61162e90a69902a792aaf58874d941a1a57435cc src/vs/workbench/parts/debug/electron-browser/debugService.ts
+@@ -171,7 +171,9 @@
+ 			} else {
+ 				const root = raw.root;
+ 				raw.disconnect().done(undefined, errors.onUnexpectedError);
+-				this.doCreateSession(root, { resolved: session.configuration, unresolved: session.unresolvedConfiguration }, session.getId());
++				setTimeout(_ => {
++					this.doCreateSession(root, { resolved: session.configuration, unresolved: session.unresolvedConfiguration }, session.getId());
++				}, 1000);
+ 			}
+ 
+ 			return;
+changed in both
+  base   100644 8fc5ed3bca172f911cb941e7aa300e1d97bd1963 src/vs/workbench/parts/extensions/electron-browser/extensionsViews.ts
+  our    100644 3bfb6cffba943bf68a9fa9c24fb1903c66dd3fad src/vs/workbench/parts/extensions/electron-browser/extensionsViews.ts
+  their  100644 70edc1d5fabc96d5d5c5cd512c403afdba337619 src/vs/workbench/parts/extensions/electron-browser/extensionsViews.ts
+changed in both
+  base   100644 5930310b95e18f917a88acfaf6160b84a8974345 src/vs/workbench/parts/extensions/node/extensionsWorkbenchService.ts
+  our    100644 dde370485c80817a804989c810abe2f1db9c0966 src/vs/workbench/parts/extensions/node/extensionsWorkbenchService.ts
+  their  100644 650be5868e0a3cb324ea3b7eafdb27e1b21cf2a7 src/vs/workbench/parts/extensions/node/extensionsWorkbenchService.ts
+changed in both
+  base   100644 133884c00ddb28e203b90a104b3b006ab927d115 src/vs/workbench/parts/markers/electron-browser/markersTreeViewer.ts
+  our    100644 20ca3e0b0d0026e1148512f08c0b9be4edd11514 src/vs/workbench/parts/markers/electron-browser/markersTreeViewer.ts
+  their  100644 a9e50477237e7bfc3fcf42a389d4424882ce7e4a src/vs/workbench/parts/markers/electron-browser/markersTreeViewer.ts
+changed in both
+  base   100644 849d454f33dac6022061ddd66b34aa49cc0d4a06 src/vs/workbench/parts/splash/electron-browser/partsSplash.contribution.ts
+  our    100644 5f76b802ea5a6e6aafeb989856a8672f1d126c9d src/vs/workbench/parts/splash/electron-browser/partsSplash.contribution.ts
+  their  100644 4632aaf6efb6ed7dc220c62187dbb4c1320cda14 src/vs/workbench/parts/splash/electron-browser/partsSplash.contribution.ts
+@@ -17,8 +17,12 @@
+ import { IDisposable, dispose } from 'vs/base/common/lifecycle';
+ import { debounceEvent } from 'vs/base/common/event';
+ import { DEFAULT_EDITOR_MIN_DIMENSIONS } from 'vs/workbench/browser/parts/editor/editor';
++<<<<<<< .our
+ import { ColorIdentifier, editorBackground, foreground } from 'vs/platform/theme/common/colorRegistry';
+ import { Color } from 'vs/base/common/color';
++=======
++import { ColorIdentifier } from 'vs/platform/theme/common/colorRegistry';
++>>>>>>> .their
+ 
+ class PartsSplash {
+ 
+@@ -45,10 +49,14 @@
+ 	}
+ 
+ 	private _savePartsSplash() {
++<<<<<<< .our
+ 		const baseTheme = getThemeTypeSelector(this._themeService.getTheme().type);
+ 		const colorInfo = {
+ 			foreground: this._getThemeColor(foreground),
+ 			editorBackground: this._getThemeColor(editorBackground),
++=======
++		const colorInfo = {
++>>>>>>> .their
+ 			titleBarBackground: this._getThemeColor(themes.TITLE_BAR_ACTIVE_BACKGROUND),
+ 			activityBarBackground: this._getThemeColor(themes.ACTIVITY_BAR_BACKGROUND),
+ 			sideBarBackground: this._getThemeColor(themes.SIDE_BAR_BACKGROUND),
+@@ -82,6 +90,12 @@
+ 		return color ? color.toString() : undefined;
+ 	}
+ 
++	private _getThemeColor(id: ColorIdentifier): string {
++		const theme = this._themeService.getTheme();
++		const color = theme.getColor(id);
++		return color ? color.toString() : undefined;
++	}
++
+ 	private _removePartsSplash(): void {
+ 		let element = document.getElementById(PartsSplash._splashElementId);
+ 		if (element) {
+removed in remote
+  base   100644 52498a02f5195349043389a3f51361135c2c0723 src/vs/workbench/parts/terminal/common/terminalMenu.ts
+  our    100644 52498a02f5195349043389a3f51361135c2c0723 src/vs/workbench/parts/terminal/common/terminalMenu.ts
+@@ -1,120 +0,0 @@
+-/*---------------------------------------------------------------------------------------------
+- *  Copyright (c) Microsoft Corporation. All rights reserved.
+- *  Licensed under the MIT License. See License.txt in the project root for license information.
+- *--------------------------------------------------------------------------------------------*/
+-
+-import * as nls from 'vs/nls';
+-import { MenuRegistry, MenuId } from 'vs/platform/actions/common/actions';
+-import { TERMINAL_COMMAND_ID } from 'vs/workbench/parts/terminal/common/terminalCommands';
+-import { ContextKeyExpr } from 'vs/platform/contextkey/common/contextkey';
+-
+-export function setupTerminalMenu() {
+-
+-	// View menu
+-
+-	MenuRegistry.appendMenuItem(MenuId.MenubarViewMenu, {
+-		group: '4_panels',
+-		command: {
+-			id: TERMINAL_COMMAND_ID.TOGGLE,
+-			title: nls.localize({ key: 'miToggleIntegratedTerminal', comment: ['&& denotes a mnemonic'] }, "&&Integrated Terminal")
+-		},
+-		order: 3
+-	});
+-
+-	// Manage
+-	const manageGroup = '1_manage';
+-	MenuRegistry.appendMenuItem(MenuId.MenubarTerminalMenu, {
+-		group: manageGroup,
+-		command: {
+-			id: TERMINAL_COMMAND_ID.NEW,
+-			title: nls.localize({ key: 'miNewTerminal', comment: ['&& denotes a mnemonic'] }, "&&New Terminal")
+-		},
+-		order: 1
+-	});
+-	MenuRegistry.appendMenuItem(MenuId.MenubarTerminalMenu, {
+-		group: manageGroup,
+-		command: {
+-			id: TERMINAL_COMMAND_ID.SPLIT,
+-			title: nls.localize({ key: 'miSplitTerminal', comment: ['&& denotes a mnemonic'] }, "&&Split Terminal"),
+-			precondition: ContextKeyExpr.has('terminalIsOpen')
+-		},
+-		order: 2
+-	});
+-
+-	MenuRegistry.appendMenuItem(MenuId.MenubarTerminalMenu, {
+-		group: manageGroup,
+-		command: {
+-			id: TERMINAL_COMMAND_ID.KILL,
+-			title: nls.localize({ key: 'miKillTerminal', comment: ['&& denotes a mnemonic'] }, "&&Kill Terminal"),
+-			precondition: ContextKeyExpr.has('terminalIsOpen')
+-		},
+-		order: 3
+-	});
+-
+-	// Run
+-	const runGroup = '2_run';
+-	MenuRegistry.appendMenuItem(MenuId.MenubarTerminalMenu, {
+-		group: runGroup,
+-		command: {
+-			id: TERMINAL_COMMAND_ID.CLEAR,
+-			title: nls.localize({ key: 'miClear', comment: ['&& denotes a mnemonic'] }, "&&Clear"),
+-			precondition: ContextKeyExpr.has('terminalIsOpen')
+-		},
+-		order: 1
+-	});
+-	MenuRegistry.appendMenuItem(MenuId.MenubarTerminalMenu, {
+-		group: runGroup,
+-		command: {
+-			id: TERMINAL_COMMAND_ID.RUN_ACTIVE_FILE,
+-			title: nls.localize({ key: 'miRunActiveFile', comment: ['&& denotes a mnemonic'] }, "Run &&Active File")
+-		},
+-		order: 2
+-	});
+-	MenuRegistry.appendMenuItem(MenuId.MenubarTerminalMenu, {
+-		group: runGroup,
+-		command: {
+-			id: TERMINAL_COMMAND_ID.RUN_SELECTED_TEXT,
+-			title: nls.localize({ key: 'miRunSelectedText', comment: ['&& denotes a mnemonic'] }, "Run &&Selected Text")
+-		},
+-		order: 3
+-	});
+-
+-	// Navigation
+-	const navigationGroup = '3_navigation';
+-	MenuRegistry.appendMenuItem(MenuId.MenubarTerminalMenu, {
+-		group: navigationGroup,
+-		command: {
+-			id: TERMINAL_COMMAND_ID.SCROLL_TO_PREVIOUS_COMMAND,
+-			title: nls.localize({ key: 'miScrollToPreviousCommand', comment: ['&& denotes a mnemonic'] }, "Scroll To Previous Command"),
+-			precondition: ContextKeyExpr.has('terminalIsOpen')
+-		},
+-		order: 1
+-	});
+-	MenuRegistry.appendMenuItem(MenuId.MenubarTerminalMenu, {
+-		group: navigationGroup,
+-		command: {
+-			id: TERMINAL_COMMAND_ID.SCROLL_TO_NEXT_COMMAND,
+-			title: nls.localize({ key: 'miScrollToNextCommand', comment: ['&& denotes a mnemonic'] }, "Scroll To Next Command"),
+-			precondition: ContextKeyExpr.has('terminalIsOpen')
+-		},
+-		order: 2
+-	});
+-	MenuRegistry.appendMenuItem(MenuId.MenubarTerminalMenu, {
+-		group: navigationGroup,
+-		command: {
+-			id: TERMINAL_COMMAND_ID.SELECT_TO_PREVIOUS_COMMAND,
+-			title: nls.localize({ key: 'miSelectToPreviousCommand', comment: ['&& denotes a mnemonic'] }, "Select To Previous Command"),
+-			precondition: ContextKeyExpr.has('terminalIsOpen')
+-		},
+-		order: 3
+-	});
+-	MenuRegistry.appendMenuItem(MenuId.MenubarTerminalMenu, {
+-		group: navigationGroup,
+-		command: {
+-			id: TERMINAL_COMMAND_ID.SELECT_TO_NEXT_COMMAND,
+-			title: nls.localize({ key: 'miSelectToNextCommand', comment: ['&& denotes a mnemonic'] }, "Select To Next Command"),
+-			precondition: ContextKeyExpr.has('terminalIsOpen')
+-		},
+-		order: 4
+-	});
+-}
+changed in both
+  base   100644 4e288255067120a2f2e0e30d5b5c348f01427502 src/vs/workbench/parts/terminal/electron-browser/terminal.contribution.ts
+  our    100644 9ef058f2994595d2b04a5e832c71a30592895aac src/vs/workbench/parts/terminal/electron-browser/terminal.contribution.ts
+  their  100644 074c048a09cb976e2f5d590dbe917e65c877b811 src/vs/workbench/parts/terminal/electron-browser/terminal.contribution.ts
+@@ -37,7 +37,6 @@
+ import { TerminalPanel } from 'vs/workbench/parts/terminal/electron-browser/terminalPanel';
+ import { TerminalPickerHandler } from 'vs/workbench/parts/terminal/browser/terminalQuickOpen';
+ import { setupTerminalCommands, TERMINAL_COMMAND_ID } from 'vs/workbench/parts/terminal/common/terminalCommands';
+-import { setupTerminalMenu } from 'vs/workbench/parts/terminal/common/terminalMenu';
+ 
+ const quickOpenRegistry = (Registry.as<IQuickOpenRegistry>(QuickOpenExtensions.Quickopen));
+ 
+@@ -535,6 +534,5 @@
+ actionRegistry.registerWorkbenchAction(new SyncActionDescriptor(ToggleEscapeSequenceLoggingAction, ToggleEscapeSequenceLoggingAction.ID, ToggleEscapeSequenceLoggingAction.LABEL), 'Terminal: Toggle Escape Sequence Logging', category);
+ 
+ setupTerminalCommands();
+-setupTerminalMenu();
+ 
+ registerColors();
+changed in both
+  base   100644 2ce9bd83b960352f59226489b3f1ae767fe7a82d src/vs/workbench/parts/update/electron-browser/update.ts
+  our    100644 2e468debc61fae01ce2d9c4b673a81993982cc62 src/vs/workbench/parts/update/electron-browser/update.ts
+  their  100644 04edd26fd77e5fc54160c4dd3155caa68d3b45ea src/vs/workbench/parts/update/electron-browser/update.ts
+@@ -249,10 +249,13 @@
+ 		@IOpenerService private openerService: IOpenerService,
+ 		@IUpdateService private updateService: IUpdateService
+ 	) {
++<<<<<<< .our
+ 		if (!environmentService.isBuilt) {
+ 			return;
+ 		}
+ 
++=======
++>>>>>>> .their
+ 		const neverShowAgain = new NeverShowAgain(WinUserSetupContribution.KEY_BOTH, this.storageService);
+ 
+ 		if (!neverShowAgain.shouldShow()) {
+@@ -267,12 +270,22 @@
+ 			}
+ 
+ 			const handle = this.notificationService.prompt(
++<<<<<<< .our
+ 				severity.Info,
+ 				nls.localize('usersetupsystem', "You are running the system-wide installation of {0}, while having the user-wide distribution installed as well.", product.nameShort),
+ 				[
+ 					{ label: nls.localize('ok', "OK"), run: () => null },
+ 					{
+ 						label: nls.localize('okneveragain', "OK, Don't Show Again"),
++=======
++				severity.Warning,
++				nls.localize('usersetupsystem', "You are running the system-wide installation of {0}, while having the user-wide distribution installed as well. Make sure you're running the {0} version you expect.", product.nameShort),
++				[
++					{ label: nls.localize('ok', "OK"), run: () => null },
++					{
++						label: nls.localize('neveragain', "Don't Show Again"),
++						isSecondary: true,
++>>>>>>> .their
+ 						run: () => {
+ 							neverShowAgain.action.run(handle);
+ 							neverShowAgain.action.dispose();
+changed in both
+  base   100644 f89264988a1761e43f94e0ea3ab80f82af5dd51d src/vs/workbench/services/search/node/searchService.ts
+  our    100644 5bf7b93503cb5ecead2832c567244eabe2f261f3 src/vs/workbench/services/search/node/searchService.ts
+  their  100644 dc0755924b6bb358b0210a7219249145f473b921 src/vs/workbench/services/search/node/searchService.ts
+changed in both
+  base   100644 41e23fc99811fdb6c8d80ca026eef510574e9115 src/vs/workbench/services/textfile/common/textFileEditorModel.ts
+  our    100644 6faef447dc315ab88c3c3c652840860db088fa46 src/vs/workbench/services/textfile/common/textFileEditorModel.ts
+  their  100644 0c3642145b3164f68b07cbb474726b0f76c297bb src/vs/workbench/services/textfile/common/textFileEditorModel.ts
+changed in both
+  base   100644 b0b61b7a439360d1f66858259ab408ba819b2ea9 yarn.lock
+  our    100644 b56aa332449f9eb6db4b03a16548d91df21604bb yarn.lock
+  their  100644 79f54d1676d113d2142fe751cd1aa121ecbef2e3 yarn.lock

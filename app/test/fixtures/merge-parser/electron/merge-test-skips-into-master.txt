@@ -1,0 +1,106 @@
+changed in both
+  base   100644 0eda951b15d6fff609b6612589e222adb4f0720e spec/api-app-spec.js
+  our    100644 d224eda2989332c18d655cef05a8bacc2eb6d4b8 spec/api-app-spec.js
+  their  100644 238db1a6a0164d7f61f12d947086230edaaa7b1f spec/api-app-spec.js
+@@ -491,11 +491,7 @@
+     })
+ 
+     it('allows you to pass a custom executable and arguments', function () {
+-      if (process.platform !== 'win32') {
+-        // FIXME(alexeykuzmin): Skip the test.
+-        // this.skip()
+-        return
+-      }
++      if (process.platform !== 'win32') this.skip()
+ 
+       app.setLoginItemSettings({openAtLogin: true, path: updateExe, args: processStartArgs})
+ 
+@@ -732,9 +728,7 @@
+     // doesn't affect nested `describe`s.
+     beforeEach(function () {
+       // FIXME Get these specs running on Linux CI
+-      if (process.platform === 'linux' && isCI) {
+-        this.skip()
+-      }
++      if (isCI && process.platform === 'linux') this.skip()
+     })
+ 
+     it('fetches a non-empty icon', done => {
+@@ -756,7 +750,12 @@
+       })
+     })
+ 
+-    describe('size option', () => {
++    describe('size option', function () {
++      beforeEach(function () {
++        // FIXME Get these specs running on Linux CI
++        if (isCI && process.platform === 'linux') this.skip()
++      })
++
+       it('fetches a small icon', (done) => {
+         app.getFileIcon(iconPath, { size: 'small' }, (err, icon) => {
+           const size = icon.getSize()
+@@ -779,11 +778,7 @@
+ 
+       it('fetches a large icon', function (done) {
+         // macOS does not support large icons
+-        if (process.platform === 'darwin') {
+-          // FIXME(alexeykuzmin): Skip the test.
+-          // this.skip()
+-          return done()
+-        }
++        if (process.platform === 'darwin') this.skip()
+ 
+         app.getFileIcon(iconPath, { size: 'large' }, (err, icon) => {
+           const size = icon.getSize()
+@@ -841,14 +836,7 @@
+     let server = null
+     const socketPath = process.platform === 'win32' ? '\\\\.\\pipe\\electron-mixed-sandbox' : '/tmp/electron-mixed-sandbox'
+ 
+-    beforeEach(function (done) {
+-      // XXX(alexeykuzmin): Calling `.skip()` inside a `before` hook
+-      // doesn't affect nested `describe`s.
+-      // FIXME Get these specs running on Linux
+-      if (process.platform === 'linux') {
+-        this.skip()
+-      }
+-
++    beforeEach((done) => {
+       fs.unlink(socketPath, () => {
+         server = net.createServer()
+         server.listen(socketPath)
+@@ -869,7 +857,16 @@
+     })
+ 
+     describe('when app.enableMixedSandbox() is called', () => {
++<<<<<<< .our
+       it('adds --enable-sandbox to render processes created with sandbox: true', done => {
++=======
++      beforeEach(function (done) {
++        // FIXME Get these specs running on Linux
++        if (process.platform === 'linux') this.skip()
++      })
++
++      it('adds --enable-sandbox to render processes created with sandbox: true', (done) => {
++>>>>>>> .their
+         const appPath = path.join(__dirname, 'fixtures', 'api', 'mixed-sandbox-app')
+         appProcess = ChildProcess.spawn(remote.process.execPath, [appPath])
+ 
+@@ -895,10 +892,17 @@
+         const appPath = path.join(__dirname, 'fixtures', 'api', 'mixed-sandbox-app')
+         appProcess = ChildProcess.spawn(remote.process.execPath, [appPath, '--enable-mixed-sandbox'])
+ 
++<<<<<<< .our
+         server.once('error', error => { done(error) })
+ 
+         server.on('connection', client => {
+           client.once('data', data => {
++=======
++        server.once('error', (error) => { done(error) })
++
++        server.on('connection', (client) => {
++          client.once('data', (data) => {
++>>>>>>> .their
+             const argv = JSON.parse(data)
+             expect(argv.sandbox).to.include('--enable-sandbox')
+             expect(argv.sandbox).to.not.include('--no-sandbox')

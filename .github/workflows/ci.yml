@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - development
+      - __release-*
+  pull_request:
+
+jobs:
+  build:
+    name: ${{ matrix.friendlyName }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [12.14.1]
+        os: [macos-10.15, windows-2019]
+        include:
+          - os: macos-10.15
+            friendlyName: macOS
+          - os: windows-2019
+            friendlyName: Windows
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - uses: actions/cache@v2
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+            ${{ runner.os }}-yarn-
+
+      - name: Install and build dependencies
+        run: yarn
+      - name: Lint
+        run: yarn lint
+      - name: Validate changelog
+        run: yarn validate-changelog
+      - name: Ensure a clean working directory
+        run: yarn check-modified
+      - name: Build production app
+        run: yarn build:prod
+        env:
+          DESKTOP_OAUTH_CLIENT_ID: ${{ secrets.DESKTOP_OAUTH_CLIENT_ID }}
+          DESKTOP_OAUTH_CLIENT_SECRET:
+            ${{ secrets.DESKTOP_OAUTH_CLIENT_SECRET }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          DESKTOPBOT_TOKEN: ${{ secrets.DESKTOPBOT_TOKEN }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      - name: Prepare testing environment
+        run: yarn test:setup
+      - name: Run unit tests
+        run: yarn test:unit:cov
+      - name: Run script tests
+        run: yarn test:script:cov
+      - name: Run integration tests
+        run: yarn test:integration
+      - name: Publish production app
+        run: yarn run publish
+        env:
+          DESKTOPBOT_TOKEN: ${{ secrets.DESKTOPBOT_TOKEN }}
+          WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          DEPLOYMENT_SECRET: ${{ secrets.DEPLOYMENT_SECRET }}
+          S3_KEY: ${{ secrets.S3_KEY }}
+          S3_SECRET: ${{ secrets.S3_SECRET }}
+          S3_BUCKET: github-desktop

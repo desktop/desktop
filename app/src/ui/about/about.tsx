@@ -1,17 +1,23 @@
 import * as React from 'react'
-import { clipboard } from 'electron'
 
 import { Row } from '../lib/row'
 import { Button } from '../lib/button'
-import { ButtonGroup } from '../lib/button-group'
-import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
-import { Octicon, OcticonSymbol } from '../octicons'
+import {
+  Dialog,
+  DialogError,
+  DialogContent,
+  DefaultDialogFooter,
+} from '../dialog'
 import { LinkButton } from '../lib/link-button'
 import { updateStore, IUpdateState, UpdateStatus } from '../lib/update-store'
 import { Disposable } from 'event-kit'
 import { Loading } from '../lib/loading'
 import { RelativeTime } from '../relative-time'
 import { assertNever } from '../../lib/fatal-error'
+import { ReleaseNotesUri } from '../lib/releases'
+import { encodePathAsUrl } from '../../lib/path'
+
+const DesktopLogo = encodePathAsUrl(__dirname, 'static/logo-64x64@2x.png')
 
 interface IAboutProps {
   /**
@@ -43,14 +49,11 @@ interface IAboutState {
   readonly updateState: IUpdateState
 }
 
-const releaseNotesUri = 'https://desktop.github.com/release-notes/'
-
 /**
  * A dialog that presents information about the
  * running application such as name and version.
  */
 export class About extends React.Component<IAboutProps, IAboutState> {
-  private closeButton: Button | null = null
   private updateStoreEventHandle: Disposable | null = null
 
   public constructor(props: IAboutProps) {
@@ -61,16 +64,8 @@ export class About extends React.Component<IAboutProps, IAboutState> {
     }
   }
 
-  private onCloseButtonRef = (button: Button | null) => {
-    this.closeButton = button
-  }
-
   private onUpdateStateChanged = (updateState: IUpdateState) => {
     this.setState({ updateState })
-  }
-
-  private onClickVersion = () => {
-    clipboard.writeText(this.props.applicationVersion)
   }
 
   public componentDidMount() {
@@ -78,15 +73,6 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       this.onUpdateStateChanged
     )
     this.setState({ updateState: updateStore.state })
-
-    // A modal dialog autofocuses the first element that can receive
-    // focus (and our dialog even uses the autofocus attribute on its
-    // fieldset). In our case that's the release notes link button and
-    // we don't want that to have focus so we'll move it over to the
-    // close button instead.
-    if (this.closeButton) {
-      this.closeButton.focus()
-    }
   }
 
   public componentWillUnmount() {
@@ -246,8 +232,10 @@ export class About extends React.Component<IAboutProps, IAboutState> {
     const name = this.props.applicationName
     const version = this.props.applicationVersion
     const releaseNotesLink = (
-      <LinkButton uri={releaseNotesUri}>release notes</LinkButton>
+      <LinkButton uri={ReleaseNotesUri}>release notes</LinkButton>
     )
+
+    const versionText = __DEV__ ? `Build ${version}` : `Version ${version}`
 
     return (
       <Dialog
@@ -258,18 +246,17 @@ export class About extends React.Component<IAboutProps, IAboutState> {
         {this.renderUpdateErrors()}
         <DialogContent>
           <Row className="logo">
-            <Octicon symbol={OcticonSymbol.markGithub} />
+            <img
+              src={DesktopLogo}
+              alt="GitHub Desktop"
+              width="64"
+              height="64"
+            />
           </Row>
           <h2>{name}</h2>
           <p className="no-padding">
-            <LinkButton
-              title="Click to copy"
-              className="version-text"
-              onClick={this.onClickVersion}
-            >
-              Version {version}
-            </LinkButton>{' '}
-            ({releaseNotesLink})
+            <span className="selectable-text">{versionText}</span> (
+            {releaseNotesLink})
           </p>
           <p className="no-padding">
             <LinkButton onClick={this.props.onShowTermsAndConditions}>
@@ -284,17 +271,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
           {this.renderUpdateDetails()}
           {this.renderUpdateButton()}
         </DialogContent>
-
-        <DialogFooter>
-          <ButtonGroup>
-            <Button
-              ref={this.onCloseButtonRef}
-              onClick={this.props.onDismissed}
-            >
-              Close
-            </Button>
-          </ButtonGroup>
-        </DialogFooter>
+        <DefaultDialogFooter />
       </Dialog>
     )
   }

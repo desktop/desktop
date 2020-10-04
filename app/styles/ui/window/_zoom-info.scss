@@ -14,8 +14,8 @@
   & > div {
     padding: var(--spacing);
     min-width: 100px;
-    background: rgba($gray-900, 0.6);
-    color: $gray-000;
+    background: var(--toast-notification-background-color);
+    color: var(--toast-notification-color);
     text-align: center;
     border-radius: 100px;
     font-size: var(--font-size-md);
@@ -42,7 +42,7 @@
 
   .zoom-in,
   .zoom-out {
-    &-leave-active {
+    &-exit-active {
       opacity: 0;
       transition: opacity 100ms ease-out;
     }

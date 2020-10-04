@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 
 export interface IButtonProps {
   /**
@@ -16,11 +16,14 @@ export interface IButtonProps {
    */
   readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
 
+  /** An optional tooltip to render when hovering over the button */
+  readonly tooltip?: string
+
   /** Is the button disabled? */
   readonly disabled?: boolean
 
   /** Whether the button is a submit. */
-  readonly type?: 'submit'
+  readonly type?: 'submit' | 'reset' | 'button'
 
   /** CSS class names */
   readonly className?: string
@@ -125,6 +128,7 @@ export class Button extends React.Component<IButtonProps, {}> {
         ref={this.onButtonRef}
         tabIndex={this.props.tabIndex}
         onMouseEnter={this.props.onMouseEnter}
+        title={this.props.tooltip}
         role={this.props.role}
         aria-expanded={this.props.ariaExpanded}
         aria-haspopup={this.props.ariaHasPopup}
@@ -135,12 +139,12 @@ export class Button extends React.Component<IButtonProps, {}> {
   }
 
   private onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    if (this.props.type !== 'submit') {
-      event.preventDefault()
-    }
-
     if (this.props.onClick) {
       this.props.onClick(event)
+    }
+
+    if (this.props.type === undefined) {
+      event.preventDefault()
     }
   }
 }

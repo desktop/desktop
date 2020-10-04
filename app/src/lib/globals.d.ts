@@ -1,4 +1,4 @@
-/* eslint-disable typescript/interface-name-prefix */
+/* eslint-disable @typescript-eslint/naming-convention */
 /** Is the app running in dev mode? */
 declare const __DEV__: boolean
 
@@ -45,20 +45,6 @@ declare const __PROCESS_KIND__:
   | 'crash'
   | 'askpass'
   | 'highlighter'
-
-/**
- * The DOMHighResTimeStamp type is a double and is used to store a time value.
- *
- * The value could be a discrete point in time or the difference in time between
- * two discrete points in time. The unit is milliseconds and should be accurate
- * to 5 µs (microseconds). However, if the browser is unable to provide a time
- * value accurate to 5 microseconds (due, for example, to hardware or software
- * constraints), the browser can represent the value as a time in milliseconds
- * accurate to a millisecond.
- *
- * See https://developer.mozilla.org/en-US/docs/Web/API/DOMHighResTimeStamp
- */
-declare type DOMHighResTimeStamp = number
 
 /**
  * The IdleDeadline interface is used as the data type of the input parameter to
@@ -186,21 +172,31 @@ declare const log: IDesktopLogger
 
 declare namespace NodeJS {
   interface Process extends EventEmitter {
+    once(event: 'exit', listener: Function): this
     once(event: 'uncaughtException', listener: (error: Error) => void): this
     on(event: 'uncaughtException', listener: (error: Error) => void): this
+    on(
+      event: 'send-non-fatal-exception',
+      listener: (error: Error, context?: { [key: string]: string }) => void
+    ): this
+    emit(
+      event: 'send-non-fatal-exception',
+      error: Error,
+      context?: { [key: string]: string }
+    ): this
     removeListener(event: 'exit', listener: Function): this
-    once(event: 'exit', listener: Function): this
   }
 }
 
-declare namespace Electron {
-  interface MenuItem {
-    readonly accelerator?: Electron.Accelerator
-    readonly submenu?: Electron.Menu
-    readonly role?: string
-    readonly type: 'normal' | 'separator' | 'submenu' | 'checkbox' | 'radio'
-  }
+interface XMLHttpRequest extends XMLHttpRequestEventTarget {
+  /**
+   * Initiates the request. The optional argument provides the request body. The argument is ignored if request method is GET or HEAD.
+   * Throws an "InvalidStateError" DOMException if either state is not opened or the send() flag is set.
+   */
+  send(body?: Document | BodyInit | null): void
+}
 
+declare namespace Electron {
   interface RequestOptions {
     readonly method: string
     readonly url: string
@@ -215,31 +211,6 @@ declare namespace Electron {
       type: 'string'
     ): AppleActionOnDoubleClickPref
   }
-
-  interface WebviewTag extends HTMLElement {
-    // Copied from https://github.com/electron/electron-typescript-definitions/pull/81
-    // until we can upgrade to a version of Electron which includes the fix.
-    addEventListener<K extends keyof HTMLElementEventMap>(
-      type: K,
-      listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
-      useCapture?: boolean
-    ): void
-    addEventListener(
-      type: string,
-      listener: EventListenerOrEventListenerObject,
-      useCapture?: boolean
-    ): void
-    removeEventListener<K extends keyof HTMLElementEventMap>(
-      type: K,
-      listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
-      useCapture?: boolean
-    ): void
-    removeEventListener(
-      type: string,
-      listener: EventListenerOrEventListenerObject,
-      useCapture?: boolean
-    ): void
-  }
 }
 
 // https://wicg.github.io/ResizeObserver/#resizeobserverentry
@@ -253,4 +224,10 @@ declare class ResizeObserver {
 
   public disconnect(): void
   public observe(e: HTMLElement): void
+}
+
+declare module 'file-metadata' {
+  // eslint-disable-next-line no-restricted-syntax
+  function fileMetadata(path: string): Promise<plist.PlistObject>
+  export = fileMetadata
 }

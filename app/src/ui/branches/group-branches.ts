@@ -4,7 +4,7 @@ import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
 export type BranchGroupIdentifier = 'default' | 'recent' | 'other'
 
 export interface IBranchListItem extends IFilterListItem {
-  readonly text: string
+  readonly text: ReadonlyArray<string>
   readonly id: string
   readonly branch: Branch
 }
@@ -22,7 +22,7 @@ export function groupBranches(
       identifier: 'default',
       items: [
         {
-          text: defaultBranch.name,
+          text: [defaultBranch.name],
           id: defaultBranch.name,
           branch: defaultBranch,
         },
@@ -40,7 +40,7 @@ export function groupBranches(
 
     for (const branch of recentBranchesWithoutDefault) {
       recentBranches.push({
-        text: branch.name,
+        text: [branch.name],
         id: branch.name,
         branch,
       })
@@ -57,7 +57,7 @@ export function groupBranches(
     b => b.name !== defaultBranchName && !recentBranchNames.has(b.name)
   )
   const remainingItems = remainingBranches.map(b => ({
-    text: b.name,
+    text: [b.name],
     id: b.name,
     branch: b,
   }))

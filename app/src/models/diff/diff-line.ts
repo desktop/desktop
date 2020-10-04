@@ -8,25 +8,13 @@ export enum DiffLineType {
 
 /** track details related to each line in the diff */
 export class DiffLine {
-  public readonly text: string
-  public readonly type: DiffLineType
-  public readonly oldLineNumber: number | null
-  public readonly newLineNumber: number | null
-  public readonly noTrailingNewLine: boolean
-
   public constructor(
-    text: string,
-    type: DiffLineType,
-    oldLineNumber: number | null,
-    newLineNuber: number | null,
-    noTrailingNewLine: boolean = false
-  ) {
-    this.text = text
-    this.type = type
-    this.oldLineNumber = oldLineNumber
-    this.newLineNumber = newLineNuber
-    this.noTrailingNewLine = noTrailingNewLine
-  }
+    public readonly text: string,
+    public readonly type: DiffLineType,
+    public readonly oldLineNumber: number | null,
+    public readonly newLineNumber: number | null,
+    public readonly noTrailingNewLine: boolean = false
+  ) {}
 
   public withNoTrailingNewLine(noTrailingNewLine: boolean): DiffLine {
     return new DiffLine(

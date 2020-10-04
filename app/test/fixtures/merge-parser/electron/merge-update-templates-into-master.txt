@@ -1,0 +1,77 @@
+added in both
+  our    100644 10cb69a7a8e4ca3b2e9ca08515eacced297bb277 .github/ISSUE_TEMPLATE/Bug_report.md
+  their  100644 a5cad57bfaef1e29296926448a251d1fe3e5419f .github/ISSUE_TEMPLATE/Bug_report.md
+@@ -1,3 +1,4 @@
++<<<<<<< .our
+ ---
+ name: Bug report
+ about: Create a report to help us improve Electron
+@@ -30,3 +31,37 @@
+ 
+ **Additional Information**
+ Add any other context about the problem here.
++=======
++---
++name: Bug report
++about: Create a report to help us improve Electron
++
++---
++
++* Electron Version:
++* Operating System (Platform and Version):
++* Last known working Electron version: 
++
++**Expected Behavior**
++A clear and concise description of what you expected to happen.
++
++**Actual behavior**
++A clear and concise description of what actually happened.
++
++**To Reproduce**
++Your best chance of getting this bug looked at quickly is to provide a REPOSITORY that can be cloned and run.
++
++You can fork [electron-quick-start](https://github.com/electron/electron-quick-start) and include a link to the branch with your changes.
++
++If you provide a URL, please list the commands required to clone/setup/run your repo e.g.
++```sh
++$ git clone $YOUR_URL -b $BRANCH
++$ npm install
++$ npm start || electron .
++```
++**Screenshots**
++If applicable, add screenshots to help explain your problem.
++
++**Additional Information**
++Add any other context about the problem here.
++>>>>>>> .their
+added in both
+  our    100644 51c2e6c8d52c9343a0853d2d2ec5b205a3aca790 .github/ISSUE_TEMPLATE/Feature_request.md
+  their  100644 9f3aa9e21d7bf082f3d486f49603406bb10fd8f5 .github/ISSUE_TEMPLATE/Feature_request.md
+@@ -1,3 +1,4 @@
++<<<<<<< .our
+ ---
+ name: Feature request
+ about: Suggest an idea for Electron
+@@ -15,3 +16,22 @@
+ 
+ **Additional context**
+ Add any other context or screenshots about the feature request here.
++=======
++---
++name: Feature request
++about: Suggest an idea for Electron
++
++---
++
++**Is your feature request related to a problem? Please describe.**
++A clear and concise description of what the problem is.
++
++**Describe the solution you'd like**
++A clear and concise description of what you want to happen.
++
++**Describe alternatives you've considered**
++A clear and concise description of any alternative solutions or features you've considered.
++
++**Additional context**
++Add any other context or screenshots about the feature request here.
++>>>>>>> .their

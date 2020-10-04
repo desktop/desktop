@@ -3,6 +3,7 @@
   flex-direction: column;
   flex-grow: 1;
   min-width: 0;
+  max-height: 100%;
 
   .header {
     span {
@@ -19,14 +20,11 @@
 
     padding: var(--spacing-half) var(--spacing);
 
-    .path {
-      flex-grow: 1;
-      align-self: center;
-      display: flex;
-      min-width: 0;
-    }
-
     @include octicon-status;
+
+    .checkbox-component {
+      margin-right: var(--spacing-half);
+    }
 
     .octicon {
       flex-shrink: 0;
@@ -59,12 +57,10 @@
       margin: var(--spacing-double);
       text-align: center;
       justify-content: initial;
+
+      .blankslate-image {
+        max-height: 150px;
+      }
     }
   }
-}
-
-.diff-wrapper {
-  display: flex;
-  flex-grow: 1;
-  min-width: 0;
 }

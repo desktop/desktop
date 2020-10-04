@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 import { createUniqueId, releaseUniqueId } from './id-pool'
 import { LinkButton } from './link-button'
 import { showContextualMenu } from '../main-process-proxy'
@@ -42,7 +42,7 @@ export interface ITextBoxProps {
   readonly onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void
 
   /** The type of the input. Defaults to `text`. */
-  readonly type?: 'text' | 'search' | 'password'
+  readonly type?: 'text' | 'search' | 'password' | 'email'
 
   /**
    * An optional text for a link label element. A link label is, for the purposes
@@ -82,8 +82,10 @@ export interface ITextBoxProps {
 
   /**
    * Callback used when the component loses focus.
+   *
+   * The function is called with the current text value of the text input.
    */
-  readonly onBlur?: () => void
+  readonly onBlur?: (value: string) => void
 
   /**
    * Callback used when the user has cleared the search text.
@@ -252,7 +254,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
       value === ''
     ) {
       if (this.props.onBlur) {
-        this.props.onBlur()
+        this.props.onBlur(value)
         if (this.inputElement !== null) {
           this.inputElement.blur()
         }
@@ -299,7 +301,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
 
   private onBlur = (event: React.FocusEvent<HTMLInputElement>) => {
     if (this.props.onBlur !== undefined) {
-      this.props.onBlur()
+      this.props.onBlur(event.target.value)
     }
   }
 }

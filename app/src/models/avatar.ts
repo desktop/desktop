@@ -1,10 +1,8 @@
-import { IGitHubUser } from '../lib/databases/github-user-database'
 import { Commit } from './commit'
 import { CommitIdentity } from './commit-identity'
 import { GitAuthor } from './git-author'
-import { generateGravatarUrl } from '../lib/gravatar'
-import { getDotComAPIEndpoint } from '../lib/api'
 import { GitHubRepository } from './github-repository'
+import { isWebFlowCommitter } from '../lib/web-flow-committer'
 
 /** The minimum properties we need in order to display a user's avatar. */
 export interface IAvatarUser {
@@ -12,46 +10,30 @@ export interface IAvatarUser {
   readonly email: string
 
   /** The user's avatar URL. */
-  readonly avatarURL: string
+  readonly avatarURL: string | undefined
 
   /** The user's name. */
   readonly name: string
+
+  /**
+   * The endpoint of the repository that this user is associated with.
+   * This will be https://api.github.com for GitHub.com-hosted
+   * repositories, something like `https://github.example.com/api/v3`
+   * for GitHub Enterprise Server and null for local repositories or
+   * repositories hosted on non-GitHub services.
+   */
+  readonly endpoint: string | null
 }
 
-function getFallbackAvatarUrlForAuthor(
-  gitHubRepository: GitHubRepository | null,
-  author: CommitIdentity | GitAuthor
+export function getAvatarUserFromAuthor(
+  author: CommitIdentity | GitAuthor,
+  gitHubRepository: GitHubRepository | null
 ) {
-  if (
-    gitHubRepository &&
-    gitHubRepository.endpoint === getDotComAPIEndpoint()
-  ) {
-    return `https://avatars.githubusercontent.com/u/e?email=${encodeURIComponent(
-      author.email
-    )}&s=60`
-  }
-
-  return generateGravatarUrl(author.email)
-}
-
-function getAvatarUserFromAuthor(
-  gitHubRepository: GitHubRepository | null,
-  gitHubUsers: Map<string, IGitHubUser> | null,
-  author: CommitIdentity | GitAuthor
-) {
-  const gitHubUser =
-    gitHubUsers === null
-      ? null
-      : gitHubUsers.get(author.email.toLowerCase()) || null
-
-  const avatarURL = gitHubUser
-    ? gitHubUser.avatarURL
-    : getFallbackAvatarUrlForAuthor(gitHubRepository, author)
-
   return {
     email: author.email,
     name: author.name,
-    avatarURL,
+    endpoint: gitHubRepository === null ? null : gitHubRepository.endpoint,
+    avatarURL: undefined,
   }
 }
 
@@ -61,7 +43,7 @@ function getAvatarUserFromAuthor(
  *
  * Avatars are returned ordered, starting with the author, followed
  * by all co-authors and finally the committer (if different from
- * author).
+ * author and any co-author).
  *
  * @param gitHubRepository
  * @param gitHubUsers
@@ -69,26 +51,29 @@ function getAvatarUserFromAuthor(
  */
 export function getAvatarUsersForCommit(
   gitHubRepository: GitHubRepository | null,
-  gitHubUsers: Map<string, IGitHubUser> | null,
   commit: Commit
 ) {
   const avatarUsers = []
 
+  avatarUsers.push(getAvatarUserFromAuthor(commit.author, gitHubRepository))
   avatarUsers.push(
-    getAvatarUserFromAuthor(gitHubRepository, gitHubUsers, commit.author)
-  )
-  avatarUsers.push(
-    ...commit.coAuthors.map(x =>
-      getAvatarUserFromAuthor(gitHubRepository, gitHubUsers, x)
-    )
+    ...commit.coAuthors.map(x => getAvatarUserFromAuthor(x, gitHubRepository))
   )
 
-  const isWebFlowCommitter =
-    gitHubRepository !== null && commit.isWebFlowCommitter(gitHubRepository)
+  const coAuthoredByCommitter = commit.coAuthors.some(
+    x => x.name === commit.committer.name && x.email === commit.committer.email
+  )
 
-  if (!commit.authoredByCommitter && !isWebFlowCommitter) {
+  const webFlowCommitter =
+    gitHubRepository !== null && isWebFlowCommitter(commit, gitHubRepository)
+
+  if (
+    !commit.authoredByCommitter &&
+    !webFlowCommitter &&
+    !coAuthoredByCommitter
+  ) {
     avatarUsers.push(
-      getAvatarUserFromAuthor(gitHubRepository, gitHubUsers, commit.committer)
+      getAvatarUserFromAuthor(commit.committer, gitHubRepository)
     )
   }
 
