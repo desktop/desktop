@@ -41,13 +41,14 @@ import { uuid } from '../../lib/uuid'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { enableDiscardLines } from '../../lib/feature-flag'
+import { canSelect } from './diff-helpers'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
 
 // This is a custom version of the no-newline octicon that's exactly as
 // tall as it needs to be (8px) which helps with aligning it on the line.
-const narrowNoNewlineSymbol = new OcticonSymbol(
+export const narrowNoNewlineSymbol = new OcticonSymbol(
   16,
   8,
   'm 16,1 0,3 c 0,0.55 -0.45,1 -1,1 l -3,0 0,2 -3,-3 3,-3 0,2 2,0 0,-2 2,0 z M 8,4 C 8,6.2 6.2,8 4,8 1.8,8 0,6.2 0,4 0,1.8 1.8,0 4,0 6.2,0 8,1.8 8,4 Z M 1.5,5.66 5.66,1.5 C 5.18,1.19 4.61,1 4,1 2.34,1 1,2.34 1,4 1,4.61 1.19,5.17 1.5,5.66 Z M 7,4 C 7,3.39 6.81,2.83 6.5,2.34 L 2.34,6.5 C 2.82,6.81 3.39,7 4,7 5.66,7 7,5.66 7,4 Z'
@@ -126,11 +127,6 @@ function inSelection(s: ISelection | null, ix: number): s is ISelection {
 /** Utility function for checking whether an event target has a given CSS class */
 function targetHasClass(target: EventTarget | null, token: string) {
   return target instanceof HTMLElement && target.classList.contains(token)
-}
-
-/** Utility function for checking whether a file supports selection */
-function canSelect(file: ChangedFile): file is WorkingDirectoryFileChange {
-  return file instanceof WorkingDirectoryFileChange
 }
 
 interface ITextDiffProps {

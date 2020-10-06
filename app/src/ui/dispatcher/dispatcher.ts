@@ -1965,6 +1965,11 @@ export class Dispatcher {
     )
   }
 
+  /** Change the side by side diff setting */
+  public onShowSideBySideDiffChanged(showSideBySideDiff: boolean) {
+    return this.appStore._setShowSideBySideDiff(showSideBySideDiff)
+  }
+
   /** Install the global Git LFS filters. */
   public installGlobalLFSFilters(force: boolean): Promise<void> {
     return this.appStore._installGlobalLFSFilters(force)
