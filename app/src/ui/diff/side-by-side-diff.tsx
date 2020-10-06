@@ -937,7 +937,7 @@ function isInSelection(
   selection: DiffSelection | undefined,
   temporarySelection: ISelection | undefined
 ) {
-  const isInStoredSelection = selection?.isSelected(diffLineNumber) || false
+  const isInStoredSelection = selection?.isSelected(diffLineNumber) ?? false
 
   if (temporarySelection === undefined) {
     return isInStoredSelection
