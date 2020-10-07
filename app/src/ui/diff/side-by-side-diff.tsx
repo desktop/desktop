@@ -354,10 +354,7 @@ export class SideBySideDiff extends React.Component<
         getTokens(row.afterLineNumber, this.state.afterTokens)
       const tokens = lineTokens ? [...row.tokens, lineTokens] : row.tokens
 
-      return {
-        ...row,
-        tokens,
-      }
+      return { ...row, tokens }
     }
 
     return row
@@ -701,11 +698,7 @@ const getDiffRows = memoize(function (
   const outputRows = new Array<SimplifiedDiffRow>()
 
   for (const hunk of diff.hunks) {
-    const rows = getDiffRowsFromHunk(hunk, showSideBySideDiff)
-
-    for (const row of rows) {
-      outputRows.push(row)
-    }
+    outputRows.push(...getDiffRowsFromHunk(hunk, showSideBySideDiff))
   }
 
   return outputRows
@@ -746,19 +739,12 @@ function getDiffRowsFromHunk(
     if (modifiedLines.length > 0) {
       // If the current line is not added/deleted and we have any added/deleted
       // line stored, we need to process them.
-      const modifiedRows = getModifiedRows(modifiedLines, showSideBySideDiff)
-      for (const row of modifiedRows) {
-        rows.push(row)
-      }
-
+      rows.push(...getModifiedRows(modifiedLines, showSideBySideDiff))
       modifiedLines = []
     }
 
     if (line.type === DiffLineType.Hunk) {
-      rows.push({
-        type: DiffRowType.Hunk,
-        content: line.content,
-      })
+      rows.push({ type: DiffRowType.Hunk, content: line.content })
       continue
     }
 
@@ -787,10 +773,7 @@ function getDiffRowsFromHunk(
 
   // Do one more pass to process the remaining list of modified lines.
   if (modifiedLines.length > 0) {
-    const modifiedRows = getModifiedRows(modifiedLines, showSideBySideDiff)
-    for (const row of modifiedRows) {
-      rows.push(row)
-    }
+    rows.push(...getModifiedRows(modifiedLines, showSideBySideDiff))
   }
 
   return rows
