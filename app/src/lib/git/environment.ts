@@ -88,8 +88,21 @@ export async function envForProxy(
   resolve: (url: string) => Promise<string | undefined> = resolveGitProxy
 ): Promise<NodeJS.ProcessEnv | undefined> {
   if (!enableAutomaticGitProxyConfiguration()) {
-    return undefined
+    return
   }
+
+  const protocolMatch = /^(https?):\/\//i.exec(remoteUrl)
+
+  // We can only resolve and use a proxy for the protocols where cURL
+  // would be involved (i.e http and https). git:// relies on ssh.
+  if (protocolMatch === null) {
+    return
+  }
+
+  // Note that HTTPS here doesn't mean that the proxy is HTTPS, only
+  // that all requests to HTTPS protocols should be proxied. The
+  // proxy protocol is defined by the url returned by `this.resolve()`
+  const proto = protocolMatch[1].toLowerCase() // http or https
 
   // We'll play it safe and say that if the user has configured
   // the ALL_PROXY environment variable they probably know what
@@ -101,20 +114,6 @@ export async function envForProxy(
     log.info(`proxy url not resolved, ALL_PROXY already set`)
     return
   }
-
-  const protocolMatch = /^(https?):\/\//i.exec(remoteUrl)
-
-  // We can only resolve and use a proxy for the protocols where cURL
-  // would be involved (i.e http and https). git:// relies on ssh.
-  if (protocolMatch === null) {
-    log.info(`proxy url not resolved, protocol not supported`)
-    return
-  }
-
-  // Note that HTTPS here doesn't mean that the proxy is HTTPS, only
-  // that all requests to HTTPS protocols should be proxied. The
-  // proxy protocol is defined by the url returned by `this.resolve()`
-  const proto = protocolMatch[1].toLowerCase() // http or https
 
   // Lower case environment variables due to
   // https://ec.haxx.se/usingcurl/usingcurl-proxies#http_proxy-in-lower-case-only
