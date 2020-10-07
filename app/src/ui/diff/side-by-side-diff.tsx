@@ -725,8 +725,8 @@ const getDiffRows = memoize(function (
 function getDiffRowsFromHunk(
   hunk: DiffHunk,
   showSideBySideDiff: boolean
-): SimplifiedDiffRow[] {
   const rows: SimplifiedDiffRow[] = []
+): ReadonlyArray<SimplifiedDiffRow> {
 
   /**
    * Array containing multiple consecutive added/deleted lines. This
