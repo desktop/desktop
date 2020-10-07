@@ -188,9 +188,6 @@ export class SideBySideDiff extends React.Component<
 
   public componentWillUnmount() {
     window.removeEventListener('keydown', this.toggleSearchInput)
-  }
-
-  public componentWillUnmount() {
     document.removeEventListener('mouseup', this.onEndSelection)
   }
 
