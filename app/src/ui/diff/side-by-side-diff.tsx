@@ -728,11 +728,10 @@ function getDiffRowsFromHunk(
   let modifiedLines = new Array<{ line: DiffLine; diffLineNumber: number }>()
 
   for (const [num, line] of hunk.lines.entries()) {
+    const diffLineNumber = hunk.unifiedDiffStart + num
+
     if (line.type === DiffLineType.Delete || line.type === DiffLineType.Add) {
-      modifiedLines.push({
-        line,
-        diffLineNumber: hunk.unifiedDiffStart + num,
-      })
+      modifiedLines.push({ line, diffLineNumber })
       continue
     }
 
@@ -751,11 +750,11 @@ function getDiffRowsFromHunk(
     if (line.type === DiffLineType.Context) {
       assertNonNullable(
         line.oldLineNumber,
-        `Expecting oldLineNumber value for ${line}`
+        `No oldLineNumber for ${diffLineNumber}`
       )
       assertNonNullable(
         line.newLineNumber,
-        `Expecting newLineNumber value for ${line}`
+        `No newLineNumber for ${diffLineNumber}`
       )
 
       rows.push({
