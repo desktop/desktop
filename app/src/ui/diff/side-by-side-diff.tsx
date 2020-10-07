@@ -698,7 +698,7 @@ const getDiffRows = memoize(function (
   diff: ITextDiff,
   showSideBySideDiff: boolean
 ): ReadonlyArray<SimplifiedDiffRow> {
-  const outputRows: SimplifiedDiffRow[] = []
+  const outputRows = new Array<SimplifiedDiffRow>()
 
   for (const hunk of diff.hunks) {
     const rows = getDiffRowsFromHunk(hunk, showSideBySideDiff)
@@ -725,17 +725,14 @@ const getDiffRows = memoize(function (
 function getDiffRowsFromHunk(
   hunk: DiffHunk,
   showSideBySideDiff: boolean
-  const rows: SimplifiedDiffRow[] = []
 ): ReadonlyArray<SimplifiedDiffRow> {
+  const rows = new Array<SimplifiedDiffRow>()
 
   /**
    * Array containing multiple consecutive added/deleted lines. This
    * is used to be able to merge them into modified rows.
    */
-  let modifiedLines: {
-    line: DiffLine
-    diffLineNumber: number
-  }[] = []
+  let modifiedLines = new Array<{ line: DiffLine; diffLineNumber: number }>()
 
   for (const [num, line] of hunk.lines.entries()) {
     if (line.type === DiffLineType.Delete || line.type === DiffLineType.Add) {
@@ -818,10 +815,10 @@ function getModifiedRows(
     ({ line }) => line.type === DiffLineType.Delete
   )
 
-  const output: Array<SimplifiedDiffRow> = []
+  const output = new Array<SimplifiedDiffRow>()
 
-  const diffTokensBefore: Array<ILineTokens | undefined> = []
-  const diffTokensAfter: Array<ILineTokens | undefined> = []
+  const diffTokensBefore = new Array<ILineTokens | undefined>()
+  const diffTokensAfter = new Array<ILineTokens | undefined>()
 
   // To match the behavior of github.com, we only highlight differences between
   // lines on hunks that have the same number of added and deleted lines.
