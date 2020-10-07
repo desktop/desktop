@@ -788,13 +788,16 @@ function getModifiedRows(
     return []
   }
   const hunkStartLine = addedDeletedLines[0].diffLineNumber
+  const addedLines = new Array<ModifiedLine>()
+  const deletedLines = new Array<ModifiedLine>()
 
-  const addedLines = addedDeletedLines.filter(
-    ({ line }) => line.type === DiffLineType.Add
-  )
-  const deletedLines = addedDeletedLines.filter(
-    ({ line }) => line.type === DiffLineType.Delete
-  )
+  for (const line of addedDeletedLines) {
+    if (line.line.type === DiffLineType.Add) {
+      addedLines.push(line)
+    } else if (line.line.type === DiffLineType.Delete) {
+      deletedLines.push(line)
+    }
+  }
 
   const output = new Array<SimplifiedDiffRow>()
 
