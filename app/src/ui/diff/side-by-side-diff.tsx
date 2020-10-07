@@ -58,6 +58,8 @@ export interface ISelection {
   readonly isSelected: boolean
 }
 
+type ModifiedLine = { line: DiffLine; diffLineNumber: number }
+
 interface ISideBySideDiffProps {
   readonly repository: Repository
 
@@ -725,7 +727,7 @@ function getDiffRowsFromHunk(
    * Array containing multiple consecutive added/deleted lines. This
    * is used to be able to merge them into modified rows.
    */
-  let modifiedLines = new Array<{ line: DiffLine; diffLineNumber: number }>()
+  let modifiedLines = new Array<ModifiedLine>()
 
   for (const [num, line] of hunk.lines.entries()) {
     const diffLineNumber = hunk.unifiedDiffStart + num
@@ -779,10 +781,7 @@ function getDiffRowsFromHunk(
 }
 
 function getModifiedRows(
-  addedDeletedLines: ReadonlyArray<{
-    line: DiffLine
-    diffLineNumber: number
-  }>,
+  addedDeletedLines: ReadonlyArray<ModifiedLine>,
   showSideBySideDiff: boolean
 ): ReadonlyArray<SimplifiedDiffRow> {
   if (addedDeletedLines.length === 0) {
