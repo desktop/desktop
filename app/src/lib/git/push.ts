@@ -131,19 +131,12 @@ export async function push(
       const stderr = e.result.stderr.trim()
       const stdout = e.result.stdout.trim()
 
-      let message = ''
-      if (stderr.length > 0) {
-        // append stderr
-        message += stderr
-      }
-      if (stdout.length > 0) {
-        // append stdout
-        message += stdout
-      }
+      const combined = stderr.concat(stdout)
+      const message = combined.length > 0 ? `, with output: '${combined}'` : ''
 
       const exitCode = e.result.exitCode
       const error = new Error(
-        `Push failed - exit code ${exitCode} received ${message}`
+        `Push failed - exit code ${exitCode} received${message}`
       )
       error.name = 'push-failed'
       throw error
