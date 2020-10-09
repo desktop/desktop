@@ -8,12 +8,21 @@ import { Octicon, iconForStatus } from '../octicons'
 interface ICommittedFileItemProps {
   readonly availableWidth: number
   readonly file: CommittedFileChange
-  readonly onContextMenu?: (event: React.MouseEvent<HTMLDivElement>) => void
+  readonly onContextMenu?: (
+    file: CommittedFileChange,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => void
 }
 
 export class CommittedFileItem extends React.Component<
   ICommittedFileItemProps
 > {
+  private onContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (this.props.onContextMenu !== undefined) {
+      this.props.onContextMenu(this.props.file, event)
+    }
+  }
+
   public render() {
     const { file } = this.props
     const status = file.status
@@ -29,7 +38,7 @@ export class CommittedFileItem extends React.Component<
       statusWidth
 
     return (
-      <div className="file" onContextMenu={this.props.onContextMenu}>
+      <div className="file" onContextMenu={this.onContextMenu}>
         <PathLabel
           path={file.path}
           status={file.status}

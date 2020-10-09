@@ -9,7 +9,10 @@ interface IFileListProps {
   readonly selectedFile: CommittedFileChange | null
   readonly onSelectedFileChanged: (file: CommittedFileChange) => void
   readonly availableWidth: number
-  readonly onContextMenu?: (event: React.MouseEvent<HTMLDivElement>) => void
+  readonly onContextMenu?: (
+    file: CommittedFileChange,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => void
 }
 
 /**
