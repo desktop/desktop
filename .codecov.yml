@@ -5,3 +5,4 @@ coverage:
   range: '10...80'
   status: off
 comment: off
+rating: on
