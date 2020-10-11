@@ -46,7 +46,7 @@ interface IDBMentionableUser extends IMentionableUser {
 export interface IMentionableCacheEntry {
   readonly gitHubRepositoryID: number
   /**
-   * The time (in milliseconds since the epoc) that
+   * The time (in milliseconds since the epoch) that
    * the mentionable users was last updated for this
    * repository
    */

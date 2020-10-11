@@ -7,7 +7,7 @@ import { isWebFlowCommitter } from '../../lib/web-flow-committer'
 
 interface ICommitAttributionProps {
   /**
-   * The commit from where to extract the author, commiter
+   * The commit from where to extract the author, committer
    * and co-authors from.
    */
   readonly commit: Commit

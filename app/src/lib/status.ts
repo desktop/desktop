@@ -95,7 +95,7 @@ type UnmergedStatusEntry =
   | GitStatusEntry.Deleted
 
 /** Returns a human-readable description for a chosen version of a file
- *  intended for use with manually resolved merge conficts
+ *  intended for use with manually resolved merge conflicts
  */
 export function getUnmergedStatusEntryDescription(
   entry: UnmergedStatusEntry,
@@ -116,7 +116,7 @@ export function getUnmergedStatusEntryDescription(
 }
 
 /** Returns a human-readable description for an available manual resolution method
- *  intended for use with manually resolved merge conficts
+ *  intended for use with manually resolved merge conflicts
  */
 export function getLabelForManualResolutionOption(
   entry: UnmergedStatusEntry,

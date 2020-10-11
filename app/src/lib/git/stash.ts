@@ -105,7 +105,7 @@ export async function getLastDesktopStashEntryForBranch(
   )
 }
 
-/** Creates a stash entry message that idicates the entry was created by Desktop */
+/** Creates a stash entry message that indicates the entry was created by Desktop */
 export function createDesktopStashMessage(branchName: string) {
   return `${DesktopStashEntryMarker}<${branchName}>`
 }

@@ -149,7 +149,7 @@ interface IOnboardingStats {
    *
    * A negative value means that this action hasn't yet
    * taken place while undefined means that the current
-   * user installed desktop prior to this metric beeing
+   * user installed desktop prior to this metric being
    * added and we will thus never be able to provide a
    * value.
    */
@@ -162,7 +162,7 @@ interface IOnboardingStats {
    *
    * A negative value means that this action hasn't yet
    * taken place while undefined means that the current
-   * user installed desktop prior to this metric beeing
+   * user installed desktop prior to this metric being
    * added and we will thus never be able to provide a
    * value.
    */
@@ -175,7 +175,7 @@ interface IOnboardingStats {
    *
    * A negative value means that this action hasn't yet
    * taken place while undefined means that the current
-   * user installed desktop prior to this metric beeing
+   * user installed desktop prior to this metric being
    * added and we will thus never be able to provide a
    * value.
    */
@@ -188,7 +188,7 @@ interface IOnboardingStats {
    *
    * A negative value means that this action hasn't yet
    * taken place while undefined means that the current
-   * user installed desktop prior to this metric beeing
+   * user installed desktop prior to this metric being
    * added and we will thus never be able to provide a
    * value.
    */
@@ -215,7 +215,7 @@ interface IOnboardingStats {
    *
    * A negative value means that this action hasn't yet
    * taken place while undefined means that the current
-   * user installed desktop prior to this metric beeing
+   * user installed desktop prior to this metric being
    * added and we will thus never be able to provide a
    * value.
    */
@@ -228,7 +228,7 @@ interface IOnboardingStats {
    *
    * A negative value means that this action hasn't yet
    * taken place while undefined means that the current
-   * user installed desktop prior to this metric beeing
+   * user installed desktop prior to this metric being
    * added and we will thus never be able to provide a
    * value.
    */
@@ -236,7 +236,7 @@ interface IOnboardingStats {
 
   /**
    * The method that was used when authenticating a
-   * user in the welcome flow. If multiple succesful
+   * user in the welcome flow. If multiple successful
    * authentications happened during the welcome flow
    * due to the user stepping back and signing in to
    * another account this will reflect the last one.
@@ -862,7 +862,7 @@ export class StatsStore implements IStatsStore {
     }))
 
     // Note, this is not a typo. We track both GitHub.com and
-    // GitHub Enteprise under the same key
+    // GitHub Enterprise under the same key
     createLocalStorageTimestamp(FirstPushToGitHubAtKey)
   }
 

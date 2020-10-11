@@ -54,11 +54,11 @@ export function getFallbackUrlForProxyResolve(
  * authentication, and resolving proxy urls if necessary.
  *
  * @param account   The authentication information (if available) to provide
- *                  to Git for use when connectingt to the remote
+ *                  to Git for use when connecting to the remote
  * @param remoteUrl The primary remote URL for this operation. Note that Git
  *                  might connect to other remotes in order to fulfill the
  *                  operation. As an example, a clone of
- *                  https://github.com/desktop/desktop could containt a submodule
+ *                  https://github.com/desktop/desktop could contain a submodule
  *                  pointing to another host entirely. Used to resolve which
  *                  proxy (if any) should be used for the operation.
  */

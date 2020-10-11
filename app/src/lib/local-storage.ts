@@ -50,7 +50,7 @@ export function setBoolean(key: string, value: boolean) {
 /**
  * Retrieve a `number` value from a given local storage entry if found, or the
  * provided `defaultValue` if the key doesn't exist or if the value cannot be
- * convered into a number
+ * converted into a number
  *
  * @param key local storage entry to read
  * @param defaultValue fallback value if unable to find key or valid value

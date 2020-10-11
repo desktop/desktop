@@ -1384,7 +1384,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         const tip = state.branchesState.tip
 
         // we should never get in this state since we disable the menu
-        // item in a detatched HEAD state, this check is so TSC is happy
+        // item in a detached HEAD state, this check is so TSC is happy
         if (tip.kind !== TipState.Valid) {
           return null
         }

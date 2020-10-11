@@ -66,7 +66,7 @@ import { PullRequestCoordinator } from '../lib/stores/pull-request-coordinator'
 // We're using a polyfill for the upcoming CSS4 `:focus-ring` pseudo-selector.
 // This allows us to not have to override default accessibility driven focus
 // styles for buttons in the case when a user clicks on a button. This also
-// gives better visiblity to individuals who navigate with the keyboard.
+// gives better visibility to individuals who navigate with the keyboard.
 //
 // See:
 //   https://github.com/WICG/focus-ring

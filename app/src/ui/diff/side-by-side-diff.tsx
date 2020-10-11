@@ -91,7 +91,7 @@ interface ISideBySideDiffProps {
   readonly askForConfirmationOnDiscardChanges?: boolean
 
   /**
-   * Whether we'll show the diff in a side-by-side layour.
+   * Whether we'll show the diff in a side-by-side layout.
    */
   readonly showSideBySideDiff: boolean
 }
@@ -141,7 +141,7 @@ interface ISideBySideDiffState {
    * |  -line 4
    * |  +line 4a
    *
-   * This differenciation makes selecting multiple lines by clicking on the
+   * This differentiation makes selecting multiple lines by clicking on the
    * gutter more user friendly, since only consecutive modified lines get selected.
    */
   readonly hoveredHunk?: number
