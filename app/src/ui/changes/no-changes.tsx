@@ -176,7 +176,7 @@ export class NoChanges extends React.Component<
 
   /**
    * ID for the timer that's activated when the component
-   * mounts. See componentDidMount/componenWillUnmount.
+   * mounts. See componentDidMount/componentWillUnmount.
    */
   private transitionTimer: number | null = null
 

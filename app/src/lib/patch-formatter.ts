@@ -241,7 +241,7 @@ export function formatPatch(
  *                    This is used to determine the from and to paths for the
  *                    patch header.
  * @param diff        All the local changes for that file.
- * @param selecction  A selection of lines from the diff object that we want to discard.
+ * @param selection  A selection of lines from the diff object that we want to discard.
  */
 export function formatPatchToDiscardChanges(
   filePath: string,

@@ -26,7 +26,7 @@ function featureFlag(
  * Gets a value indicating whether the renderer should be responsible for
  * rendering an application menu.
  *
- * Can be overriden with the localStorage variable
+ * Can be overridden with the localStorage variable
  *
  *  features/should-render-application-menu
  *

@@ -6,7 +6,7 @@ const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']
  * Formats a number of bytes into a human readable string.
  *
  * This method will uses the IEC representation for orders
- * of magnitute (KiB/MiB rather than MB/KB) in order to match
+ * of magnitude (KiB/MiB rather than MB/KB) in order to match
  * the format that Git uses.
  *
  * Example output:

@@ -115,7 +115,7 @@ export interface IAppState {
    * A list of currently open menus with their selected items
    * in the application menu.
    *
-   * The semantics around what constitues an open menu and how
+   * The semantics around what constitutes an open menu and how
    * selection works is defined by the AppMenu class and the
    * individual components transforming that state.
    *

@@ -502,7 +502,7 @@ export class GitStore extends BaseStore {
   /**
    * Resolve the default branch name for the current repository,
    * using the available API data, remote information or branch
-   * name conventionns.
+   * name conventions.
    */
   private async resolveDefaultBranch(): Promise<string> {
     const { gitHubRepository } = this.repository

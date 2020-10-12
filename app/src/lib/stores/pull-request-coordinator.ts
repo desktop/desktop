@@ -34,11 +34,11 @@ export class PullRequestCoordinator {
   > = new Array<RepositoryWithGitHubRepository>()
 
   /**
-   * Contains the last set of PRs retreived by `PullRequestCoordinator`
+   * Contains the last set of PRs retrieved by `PullRequestCoordinator`
    * from `PullRequestStore` for a specific `GitHubRepository`.
    * Keyed by `GitHubRepository` database ID to a list of pull requests.
    *
-   * This is used to improve perforamnce by reducing
+   * This is used to improve performance by reducing
    * duplicate queries to the pull request database.
    *
    */

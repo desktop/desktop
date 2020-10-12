@@ -44,7 +44,7 @@ export function lookupPreferredEmail(account: Account): string {
  */
 function isEmailPublic(email: IAPIEmail): boolean {
   // If an email doesn't have a visibility setting it means it's coming from an
-  // older Enterprise Server which doesn't have the concept of visiblity.
+  // older Enterprise Server which doesn't have the concept of visibility.
   return email.visibility === 'public' || !email.visibility
 }
 
@@ -100,7 +100,7 @@ export function getStealthEmailForUser(
 
 /**
  * Produces a list of all email addresses that when used as the author email
- * in a commit we'll know will end up getting attributted to the given
+ * in a commit we'll know will end up getting attributed to the given
  * account when pushed to GitHub.com or GitHub Enterprise Server.
  *
  * The list of email addresses consists of all the email addresses we get

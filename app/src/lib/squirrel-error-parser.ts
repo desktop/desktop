@@ -9,7 +9,7 @@ const squirrelTimeoutRegex = /A connection attempt failed because the connected 
 
 /**
  * This method parses known error messages from Squirrel.Windows and returns a
- * friendier message to the user.
+ * friendlier message to the user.
  *
  * @param error The underlying error from Squirrel.
  *

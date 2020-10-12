@@ -67,7 +67,7 @@ function findSubmenuItem(
     submenu: currentContextualMenuItems,
   }
 
-  // Traverse the submenus of the context menu until we find the appropiate index.
+  // Traverse the submenus of the context menu until we find the appropriate index.
   for (const index of indices) {
     if (foundMenuItem === undefined || foundMenuItem.submenu === undefined) {
       return undefined

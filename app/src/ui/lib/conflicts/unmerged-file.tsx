@@ -423,7 +423,7 @@ function getBranchForResolution(
 }
 
 /**
- * Calculates the number of merge conclicts in a file from the number of markers
+ * Calculates the number of merge conflicts in a file from the number of markers
  * divides by three and rounds up since each conflict is indicated by three separate markers
  * (`<<<<<`, `>>>>>`, and `=====`)
  *

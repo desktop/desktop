@@ -22,7 +22,7 @@ export class PullRequest {
    * @param title The title of the PR.
    * @param number The number.
    * @param head The ref from which the pull request's changes are coming.
-   * @param base The ref which the pull request is targetting.
+   * @param base The ref which the pull request is targeting.
    * @param author The author's login.
    */
   public constructor(

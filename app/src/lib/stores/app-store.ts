@@ -3032,7 +3032,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // started to refresh the repository indicators let's do so.
     if (foldout.type === FoldoutType.Repository) {
       // N.B: RepositoryIndicatorUpdater.prototype.start is
-      // indempotent.
+      // idempotent.
       this.repositoryIndicatorUpdater.start()
     }
   }

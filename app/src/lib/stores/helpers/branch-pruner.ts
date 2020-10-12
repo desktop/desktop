@@ -140,7 +140,7 @@ export class BranchPruner {
     const dateNow = moment()
     const threshold = dateNow.subtract(24, 'hours')
 
-    // Using type coelescing behavior to deal with Dexie returning `undefined`
+    // Using type coalescing behavior to deal with Dexie returning `undefined`
     // for records that haven't been updated with the new field yet
     if (
       options.enforcePruneThreshold &&
