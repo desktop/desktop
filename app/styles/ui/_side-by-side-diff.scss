@@ -273,8 +273,35 @@
   .diff-search {
     position: absolute;
     top: 0;
-    right: 0;
-    z-index: 10;
+    right: var(--spacing);
+    border: var(--base-border);
+    border-top: 0;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    padding: var(--spacing-half) var(--spacing);
+    box-shadow: var(--base-box-shadow);
+    z-index: var(--popup-z-index);
+    background: var(--background-color);
+
+    .text-box-component {
+      input {
+        border: 0;
+        box-shadow: none;
+
+        background: var(--box-background-color);
+        color: var(--text-color);
+        font-size: var(--font-size);
+        font-family: var(--font-family-sans-serif);
+        height: var(--text-field-height);
+        padding: 0;
+        width: 180px;
+
+        &:focus {
+          border: none;
+          outline: 0;
+          box-shadow: none;
+        }
+      }
+    }
   }
 
   .cm-search-result {
