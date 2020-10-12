@@ -1866,7 +1866,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         const { repository, branchToCheckout: branchToCheckout } = popup
         return (
           <OverwriteStash
-            key="overwite-stash"
+            key="overwrite-stash"
             dispatcher={this.props.dispatcher}
             repository={repository}
             branchToCheckout={branchToCheckout}
@@ -2021,7 +2021,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         if (conflictState === null || conflictState.kind === 'merge') {
           log.debug(
-            `[App.onShowRebasConflictsBanner] no conflict state found, ignoring...`
+            `[App.onShowRebaseConflictsBanner] no conflict state found, ignoring...`
           )
           return
         }

@@ -67,6 +67,6 @@ export async function stageManualConflictResolution(
       break
     }
     default:
-      assertNever(chosen, 'unnacounted for git status entry possibility')
+      assertNever(chosen, 'unaccounted for git status entry possibility')
   }
 }
