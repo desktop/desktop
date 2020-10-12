@@ -1,5 +1,11 @@
 {
   "releases": {
+    "2.5.7-beta1": [
+      "[New] Split diffs! Toggle between viewing diffs in split or unified mode - #10617",
+      "[Fixed] Actions in the context menu of a non-selected file in history no longer acts on the previously selected item - #10743",
+      "[Added] Add `toml` syntax highlight - #10763. Thanks @samundra!",
+      "[Added] Add support for Nova as external editor on macOS - #10645. Thanks @greystate!"
+    ],
     "2.5.6": [
       "[New] Newly created repositories use 'main' as the default branch name - #10527",
       "[New] Users can configure the default branch name in Preferences/Options - #10527",
