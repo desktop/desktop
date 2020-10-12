@@ -73,7 +73,7 @@ interface IChooseBranchDialogState {
   readonly filterText: string
 }
 
-/** A component for initating a rebase of the current branch. */
+/** A component for initiating a rebase of the current branch. */
 export class ChooseBranchDialog extends React.Component<
   IChooseBranchDialogProps,
   IChooseBranchDialogState

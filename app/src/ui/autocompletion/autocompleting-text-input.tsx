@@ -176,7 +176,7 @@ export abstract class AutocompletingTextInput<
       maxHeight = DefaultPopupHeight
     }
 
-    // The height needed to accomodate all the matched items without overflowing
+    // The height needed to accommodate all the matched items without overflowing
     //
     // Magic number warning! The autocompletion-popup container adds a border
     // which we have to account for in case we want to show N number of items

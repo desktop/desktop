@@ -33,7 +33,7 @@ const EnterpriseTooOldMessage = `The GitHub Enterprise Server version does not s
 
 /**
  * An enumeration of the possible steps that the sign in
- * store can be in save for the unitialized state (null).
+ * store can be in save for the uninitialized state (null).
  */
 export enum SignInStep {
   EndpointEntry = 'EndpointEntry',
@@ -44,7 +44,7 @@ export enum SignInStep {
 
 /**
  * The union type of all possible states that the sign in
- * store can be in save the unitialized state (null).
+ * store can be in save the uninitialized state (null).
  */
 export type SignInState =
   | IEndpointEntryState
@@ -140,13 +140,13 @@ export interface ITwoFactorAuthenticationState extends ISignInState {
   readonly endpoint: string
 
   /**
-   * The username specified by the user in the preceeding
+   * The username specified by the user in the preceding
    * Authentication step
    */
   readonly username: string
 
   /**
-   * The password specified by the user in the preceeding
+   * The password specified by the user in the preceding
    * Authentication step
    */
   readonly password: string

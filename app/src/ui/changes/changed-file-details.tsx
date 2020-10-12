@@ -4,8 +4,8 @@ import { AppFileStatus } from '../../models/status'
 import { IDiff, DiffType } from '../../models/diff'
 import { Octicon, OcticonSymbol, iconForStatus } from '../octicons'
 import { mapStatus } from '../../lib/status'
-import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { enableSideBySideDiffs } from '../../lib/feature-flag'
+import { DiffOptions } from '../diff/diff-options'
 
 interface IChangedFileDetailsProps {
   readonly path: string
@@ -34,14 +34,9 @@ export class ChangedFileDetails extends React.Component<
         {this.renderDecorator()}
 
         {enableSideBySideDiffs() && (
-          <Checkbox
-            label="Split View"
-            value={
-              this.props.showSideBySideDiff
-                ? CheckboxValue.On
-                : CheckboxValue.Off
-            }
-            onChange={this.onShowSideBySideDiffChanged}
+          <DiffOptions
+            onShowSideBySideDiffChanged={this.props.onShowSideBySideDiffChanged}
+            showSideBySideDiff={this.props.showSideBySideDiff}
           />
         )}
 
@@ -52,12 +47,6 @@ export class ChangedFileDetails extends React.Component<
         />
       </div>
     )
-  }
-
-  private onShowSideBySideDiffChanged = (
-    event: React.FormEvent<HTMLInputElement>
-  ) => {
-    this.props.onShowSideBySideDiffChanged(event.currentTarget.checked)
   }
 
   private renderDecorator() {

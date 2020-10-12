@@ -18,7 +18,7 @@ function getApp(): Electron.App {
 /**
  * Get the version of the app.
  *
- * This is preferrable to using `remote` directly because we cache the result.
+ * This is preferable to using `remote` directly because we cache the result.
  */
 export function getVersion(): string {
   if (!version) {
@@ -31,7 +31,7 @@ export function getVersion(): string {
 /**
  * Get the name of the app.
  *
- * This is preferrable to using `remote` directly because we cache the result.
+ * This is preferable to using `remote` directly because we cache the result.
  */
 export function getName(): string {
   if (!name) {
@@ -44,7 +44,7 @@ export function getName(): string {
 /**
  * Get the path to the application.
  *
- * This is preferrable to using `remote` directly because we cache the result.
+ * This is preferable to using `remote` directly because we cache the result.
  */
 export function getAppPath(): string {
   if (!path) {
@@ -57,7 +57,7 @@ export function getAppPath(): string {
 /**
  * Get the path to the user's data.
  *
- * This is preferrable to using `remote` directly because we cache the result.
+ * This is preferable to using `remote` directly because we cache the result.
  */
 export function getUserDataPath(): string {
   if (!userDataPath) {
@@ -70,7 +70,7 @@ export function getUserDataPath(): string {
 /**
  * Get the path to the user's documents path.
  *
- * This is preferrable to using `remote` directly because we cache the result.
+ * This is preferable to using `remote` directly because we cache the result.
  */
 export function getDocumentsPath(): string {
   if (!documentsPath) {

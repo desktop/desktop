@@ -73,7 +73,7 @@ const noCommitsOnBranchRe = new RegExp(
  * Returns a map keyed on branch names
  *
  * @param repository the repository who's reflog you want to check
- * @param afterDate filters checkouts so that only those occuring on or after this date are returned
+ * @param afterDate filters checkouts so that only those occurring on or after this date are returned
  * @returns map of branch name -> checkout date
  */
 export async function getBranchCheckouts(

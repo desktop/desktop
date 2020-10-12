@@ -163,7 +163,7 @@ interface IDiffRowContext {
   readonly afterLineNumber: number
 
   /**
-   * * Tokens to use to syntax highlight the contents of the before version of the line.
+   * Tokens to use to syntax highlight the contents of the before version of the line.
    */
   readonly beforeTokens: ReadonlyArray<ILineTokens>
 

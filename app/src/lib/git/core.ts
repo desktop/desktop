@@ -235,7 +235,7 @@ const lockFilePathRe = /^error: could not lock config file (.+?): File exists$/m
 
 /**
  * If the `result` is associated with an config lock file error (as determined
- * by `isConfigFileLockError`) this method will attempt to extract an absoluet
+ * by `isConfigFileLockError`) this method will attempt to extract an absolute
  * path (i.e. rooted) to the configuration lock file in question from the Git
  * output.
  */

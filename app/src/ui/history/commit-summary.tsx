@@ -16,6 +16,7 @@ import {
 } from '../../lib/feature-flag'
 import { Tokenizer, TokenResult } from '../../lib/text-token-parser'
 import { wrapRichTextCommitMessage } from '../../lib/wrap-rich-text-commit-message'
+import { DiffOptions } from '../diff/diff-options'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -157,13 +158,6 @@ export class CommitSummary extends React.Component<
   ) => {
     const value = event.currentTarget.checked
     this.props.onHideWhitespaceInDiffChanged(value)
-  }
-
-  private onShowSideBySideDiffChanged = (
-    event: React.FormEvent<HTMLInputElement>
-  ) => {
-    const value = event.currentTarget.checked
-    this.props.onShowSideBySideDiffChanged(value)
   }
 
   private onResized = () => {
@@ -359,36 +353,41 @@ export class CommitSummary extends React.Component<
             </li>
             {this.renderTags()}
 
-            <li
-              className="commit-summary-meta-item without-truncation"
-              title="Hide Whitespace"
-            >
-              <Checkbox
-                label="Hide Whitespace"
-                value={
-                  this.props.hideWhitespaceInDiff
-                    ? CheckboxValue.On
-                    : CheckboxValue.Off
-                }
-                onChange={this.onHideWhitespaceInDiffChanged}
-              />
-            </li>
-
-            {enableSideBySideDiffs() && (
+            {enableSideBySideDiffs() || (
               <li
                 className="commit-summary-meta-item without-truncation"
-                title="Split View"
+                title="Hide Whitespace"
               >
                 <Checkbox
-                  label="Split View"
+                  label="Hide Whitespace"
                   value={
-                    this.props.showSideBySideDiff
+                    this.props.hideWhitespaceInDiff
                       ? CheckboxValue.On
                       : CheckboxValue.Off
                   }
-                  onChange={this.onShowSideBySideDiffChanged}
+                  onChange={this.onHideWhitespaceInDiffChanged}
                 />
               </li>
+            )}
+
+            {enableSideBySideDiffs() && (
+              <>
+                <li
+                  className="commit-summary-meta-item without-truncation"
+                  title="Split View"
+                >
+                  <DiffOptions
+                    onHideWhitespaceChangesChanged={
+                      this.props.onHideWhitespaceInDiffChanged
+                    }
+                    hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
+                    showSideBySideDiff={this.props.showSideBySideDiff}
+                    onShowSideBySideDiffChanged={
+                      this.props.onShowSideBySideDiffChanged
+                    }
+                  />
+                </li>
+              </>
             )}
           </ul>
         </div>

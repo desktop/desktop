@@ -91,7 +91,7 @@ interface IListProps {
   readonly onRowClick?: (row: number, soure: ClickSource) => void
 
   /**
-   * This prop defines the behaviour of the selection of items whithin this list.
+   * This prop defines the behaviour of the selection of items within this list.
    *  - 'single' : (default) single list-item selection. [shift] and [ctrl] have
    * no effect. Use in combination with one of:
    *             onSelectedRowChanged(row: number)
@@ -382,7 +382,7 @@ export class List extends React.Component<IListProps, IListState> {
 
     const source: SelectionSource = { kind: 'keyboard', event }
 
-    // Home is Cmd+ArowUp on macOS, end is Cmd+ArrowDown, see
+    // Home is Cmd+ArrowUp on macOS, end is Cmd+ArrowDown, see
     // https://github.com/desktop/desktop/pull/8644#issuecomment-645965884
     const isHomeKey = __DARWIN__
       ? event.metaKey && event.key === 'ArrowUp'

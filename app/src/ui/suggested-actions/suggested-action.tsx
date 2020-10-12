@@ -55,9 +55,9 @@ interface ISuggestedActionProps {
 }
 
 /**
- * A small container component for rendering a "suggsted action",
+ * A small container component for rendering a "suggested action",
  * which was first used in the "No Changes" view. An action is
- * usally contained within an `SuggestedActionGroup`, which visually
+ * usually contained within an `SuggestedActionGroup`, which visually
  * connects one or more actions. An action component has a title,
  * a description, a button label, and an optional image.
  */

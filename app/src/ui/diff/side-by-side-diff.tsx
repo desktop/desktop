@@ -96,7 +96,7 @@ interface ISideBySideDiffProps {
   readonly askForConfirmationOnDiscardChanges?: boolean
 
   /**
-   * Whether we'll show the diff in a side-by-side layour.
+   * Whether we'll show the diff in a side-by-side layout.
    */
   readonly showSideBySideDiff: boolean
 }
@@ -146,7 +146,7 @@ interface ISideBySideDiffState {
    * |  -line 4
    * |  +line 4a
    *
-   * This differenciation makes selecting multiple lines by clicking on the
+   * This differentiation makes selecting multiple lines by clicking on the
    * gutter more user friendly, since only consecutive modified lines get selected.
    */
   readonly hoveredHunk?: number
@@ -199,20 +199,17 @@ export class SideBySideDiff extends React.Component<
   }
 
   public render() {
+    const rows = getDiffRows(this.props.diff, this.props.showSideBySideDiff)
+    const containerClassName = classNames('side-by-side-diff-container', {
+      'unified-diff': !this.props.showSideBySideDiff,
+      [`selecting-${this.state.selectingTextInRow}`]:
+        this.props.showSideBySideDiff &&
+        this.state.selectingTextInRow !== undefined,
+      editable: canSelect(this.props.file),
+    })
+
     return (
-      <div
-        className={classNames([
-          {
-            'side-by-side-diff-container': true,
-            'unified-diff': !this.props.showSideBySideDiff,
-            [`selecting-${this.state.selectingTextInRow}`]:
-              this.props.showSideBySideDiff &&
-              this.state.selectingTextInRow !== undefined,
-            editable: canSelect(this.props.file),
-          },
-        ])}
-        onMouseDown={this.onMouseDown}
-      >
+      <div className={containerClassName} onMouseDown={this.onMouseDown}>
         {this.state.isSearching && (
           <DiffSearchInput
             onSearch={this.onSearch}
@@ -226,13 +223,10 @@ export class SideBySideDiff extends React.Component<
                 deferredMeasurementCache={listRowsHeightCache}
                 width={width}
                 height={height}
-                rowCount={
-                  getDiffRows(this.props.diff, this.props.showSideBySideDiff)
-                    .length
-                }
-                ref={this.virtualListRef}
+                rowCount={rows.length}
                 rowHeight={this.getRowHeight}
                 rowRenderer={this.renderRow}
+                ref={this.virtualListRef}
                 // The following properties are passed to the list
                 // to make sure that it gets re-rendered when any of
                 // them change.

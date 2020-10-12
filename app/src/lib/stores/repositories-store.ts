@@ -272,7 +272,7 @@ export class RepositoriesStore extends TypedBaseStore<
   /**
    * Update the workflow preferences for the specified repository.
    *
-   * @param repository            The repositosy to update.
+   * @param repository            The repository to update.
    * @param workflowPreferences   The object with the workflow settings to use.
    */
   public async updateRepositoryWorkflowPreferences(
@@ -529,7 +529,7 @@ export class RepositoriesStore extends TypedBaseStore<
       // This update flow is organized into two stages:
       //
       // - update the in-memory cache
-      // - update the underyling database state
+      // - update the underlying database state
       //
       // This should ensure any stale values are not being used, and avoids
       // the need to query the database while the results are in memory.

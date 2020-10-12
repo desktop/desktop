@@ -93,7 +93,7 @@ export async function getBranches(
       : BranchType.Remote
 
     if (symref.length > 0) {
-      // excude symbolic refs from the branch list
+      // exclude symbolic refs from the branch list
       continue
     }
 
