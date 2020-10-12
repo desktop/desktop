@@ -255,15 +255,13 @@ export class SelectedCommit extends React.Component<
     )
   }
 
-  private onContextMenu = async (event: React.MouseEvent<HTMLDivElement>) => {
+  private onContextMenu = async (
+    file: CommittedFileChange,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => {
     event.preventDefault()
 
-    if (this.props.selectedFile == null) {
-      return
-    }
-
-    const filePath = this.props.selectedFile.path
-    const fullPath = Path.join(this.props.repository.path, filePath)
+    const fullPath = Path.join(this.props.repository.path, file.path)
     const fileExistsOnDisk = await pathExists(fullPath)
     if (!fileExistsOnDisk) {
       showContextualMenu([
@@ -277,7 +275,7 @@ export class SelectedCommit extends React.Component<
       return
     }
 
-    const extension = Path.extname(filePath)
+    const extension = Path.extname(file.path)
 
     const isSafeExtension = isSafeFileExtension(extension)
     const openInExternalEditor = this.props.externalEditorLabel
@@ -291,7 +289,7 @@ export class SelectedCommit extends React.Component<
       },
       {
         label: RevealInFileManagerLabel,
-        action: () => revealInFileManager(this.props.repository, filePath),
+        action: () => revealInFileManager(this.props.repository, file.path),
         enabled: fileExistsOnDisk,
       },
       {
@@ -301,7 +299,7 @@ export class SelectedCommit extends React.Component<
       },
       {
         label: OpenWithDefaultProgramLabel,
-        action: () => this.onOpenItem(filePath),
+        action: () => this.onOpenItem(file.path),
         enabled: isSafeExtension && fileExistsOnDisk,
       },
     ]
