@@ -42,7 +42,7 @@ underlying Git implementation.
 The rebase flow that Desktop currently uses is the simple
 `git rebase <upstream> <branch>`. In the rest of this document I will refer to
 `<upstream>` as the **base branch** and `<branch>` as the **target branch**, to
-differenitate from the upstream remote.
+differentiate from the upstream remote.
 
 When `git` invokes `git rebase <upstream> <branch>` it performs these steps as
 setup:

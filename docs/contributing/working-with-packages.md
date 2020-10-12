@@ -41,7 +41,7 @@ To upgrade a package to it's latest version:
 > yarn upgrade --latest [package-name]
 ```
 
-To upgrade a package to a speific version (or [version range](https://docs.npmjs.com/misc/semver#x-ranges-12x-1x-12-)):
+To upgrade a package to a specific version (or [version range](https://docs.npmjs.com/misc/semver#x-ranges-12x-1x-12-)):
 
 ```sh
 > yarn upgrade [package-name]@[version]
