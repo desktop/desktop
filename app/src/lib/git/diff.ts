@@ -138,7 +138,8 @@ export async function getCommitDiff(
  */
 export async function getWorkingDirectoryDiff(
   repository: Repository,
-  file: WorkingDirectoryFileChange
+  file: WorkingDirectoryFileChange,
+  hideWhitespaceInDiff: boolean = false
 ): Promise<IDiff> {
   let successExitCodes: Set<number> | undefined
   let args: Array<string>
@@ -163,6 +164,7 @@ export async function getWorkingDirectoryDiff(
     successExitCodes = new Set([0, 1])
     args = [
       'diff',
+      ...(hideWhitespaceInDiff ? ['-w'] : []),
       '--no-ext-diff',
       '--no-index',
       '--patch-with-raw',
@@ -182,6 +184,7 @@ export async function getWorkingDirectoryDiff(
     // git diff <blob> <blob> but that seems a bit excessive.
     args = [
       'diff',
+      ...(hideWhitespaceInDiff ? ['-w'] : []),
       '--no-ext-diff',
       '--patch-with-raw',
       '-z',
@@ -193,6 +196,7 @@ export async function getWorkingDirectoryDiff(
     args = [
       'diff',
       'HEAD',
+      ...(hideWhitespaceInDiff ? ['-w'] : []),
       '--no-ext-diff',
       '--patch-with-raw',
       '-z',

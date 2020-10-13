@@ -43,7 +43,7 @@ interface ICommitSummaryProps {
 
   /** Whether we should display side by side diffs. */
   readonly showSideBySideDiff: boolean
-  readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
+  readonly onHideWhitespaceInDiffChanged: (checked: boolean) => Promise<void>
 
   /** Called when the user changes the side by side diffs setting. */
   readonly onShowSideBySideDiffChanged: (checked: boolean) => void
@@ -153,11 +153,11 @@ export class CommitSummary extends React.Component<
     }
   }
 
-  private onHideWhitespaceInDiffChanged = (
+  private onHideWhitespaceInDiffChanged = async (
     event: React.FormEvent<HTMLInputElement>
   ) => {
     const value = event.currentTarget.checked
-    this.props.onHideWhitespaceInDiffChanged(value)
+    await this.props.onHideWhitespaceInDiffChanged(value)
   }
 
   private onResized = () => {

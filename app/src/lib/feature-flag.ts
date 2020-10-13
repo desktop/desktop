@@ -47,6 +47,10 @@ export function enableWSLDetection(): boolean {
   return enableBetaFeatures()
 }
 
+export function enableHideWhitespaceInDiffOption(): boolean {
+  return enableBetaFeatures()
+}
+
 /**
  * Should we show the create fork dialog flow?
  */

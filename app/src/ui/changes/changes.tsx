@@ -9,6 +9,7 @@ import {
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
+import { enableHideWhitespaceInDiffOption } from '../../lib/feature-flag'
 import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
 import { PopupType } from '../../models/popup'
 
@@ -82,7 +83,10 @@ export class Changes extends React.Component<IChangesProps, {}> {
   public render() {
     const diff = this.props.diff
     const file = this.props.file
-    const isCommitting = this.props.isCommitting
+    const isReadonly =
+      this.props.isCommitting ||
+      (enableHideWhitespaceInDiffOption() && this.props.hideWhitespaceInDiff)
+
     return (
       <div className="changed-file">
         <ChangedFileDetails
@@ -91,12 +95,15 @@ export class Changes extends React.Component<IChangesProps, {}> {
           diff={diff}
           showSideBySideDiff={this.props.showSideBySideDiff}
           onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
+          hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+          onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
         />
+
         <SeamlessDiffSwitcher
           repository={this.props.repository}
           imageDiffType={this.props.imageDiffType}
           file={file}
-          readOnly={isCommitting}
+          readOnly={isReadonly}
           onIncludeChanged={this.onDiffLineIncludeChanged}
           onDiscardChanges={this.onDiscardChanges}
           diff={diff}
@@ -114,5 +121,14 @@ export class Changes extends React.Component<IChangesProps, {}> {
 
   private onShowSideBySideDiffChanged = (showSideBySideDiff: boolean) => {
     this.props.dispatcher.onShowSideBySideDiffChanged(showSideBySideDiff)
+  }
+
+  private onHideWhitespaceInDiffChanged = async (
+    hideWhitespaceInDiff: boolean
+  ) => {
+    await this.props.dispatcher.onHideWhitespaceInDiffChanged(
+      hideWhitespaceInDiff,
+      this.props.repository
+    )
   }
 }

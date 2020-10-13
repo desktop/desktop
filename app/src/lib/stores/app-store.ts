@@ -225,7 +225,10 @@ import {
   ManualConflictResolutionKind,
 } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableUpdateRemoteUrl } from '../feature-flag'
+import {
+  enableHideWhitespaceInDiffOption,
+  enableUpdateRemoteUrl,
+} from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import moment from 'moment'
 import { isDarkModeEnabled } from '../../ui/lib/dark-theme'
@@ -2283,7 +2286,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const diff = await getWorkingDirectoryDiff(
       repository,
-      selectedFileBeforeLoad
+      selectedFileBeforeLoad,
+      this.hideWhitespaceInDiff
     )
 
     const stateAfterLoad = this.repositoryStateCache.get(repository)
@@ -4738,13 +4742,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-  public _setHideWhitespaceInDiff(
+  public async _setHideWhitespaceInDiff(
     hideWhitespaceInDiff: boolean,
     repository: Repository,
     file: CommittedFileChange | null
   ): Promise<void> {
     setBoolean(hideWhitespaceInDiffKey, hideWhitespaceInDiff)
     this.hideWhitespaceInDiff = hideWhitespaceInDiff
+
+    if (enableHideWhitespaceInDiffOption()) {
+      await this.refreshChangesSection(repository, {
+        includingStatus: true,
+        clearPartialState: true,
+      })
+    }
 
     if (file === null) {
       return this.updateChangesWorkingDirectoryDiff(repository)

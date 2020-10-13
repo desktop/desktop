@@ -7,10 +7,10 @@ import FocusTrap from 'focus-trap-react'
 import { Options as FocusTrapOptions } from 'focus-trap'
 
 interface IDiffOptionsProps {
-  readonly hideWhitespaceChanges?: boolean
-  readonly onHideWhitespaceChangesChanged?: (
+  readonly hideWhitespaceChanges: boolean
+  readonly onHideWhitespaceChangesChanged: (
     hideWhitespaceChanges: boolean
-  ) => void
+  ) => Promise<void>
 
   readonly showSideBySideDiff: boolean
   readonly onShowSideBySideDiffChanged: (showSideBySideDiff: boolean) => void
@@ -90,12 +90,10 @@ export class DiffOptions extends React.Component<
     }
   }
 
-  private onHideWhitespaceChangesChanged = (
+  private onHideWhitespaceChangesChanged = async (
     event: React.FormEvent<HTMLInputElement>
   ) => {
-    if (this.props.onHideWhitespaceChangesChanged !== undefined) {
-      this.props.onHideWhitespaceChangesChanged(event.currentTarget.checked)
-    }
+    await this.props.onHideWhitespaceChangesChanged(event.currentTarget.checked)
   }
 
   public render() {
@@ -157,9 +155,6 @@ export class DiffOptions extends React.Component<
   }
 
   private renderHideWhitespaceChanges() {
-    if (this.props.hideWhitespaceChanges === undefined) {
-      return null
-    }
     return (
       <section>
         <h3>Whitespace</h3>

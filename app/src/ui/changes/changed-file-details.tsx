@@ -17,6 +17,12 @@ interface IChangedFileDetailsProps {
 
   /** Called when the user changes the side by side diffs setting. */
   readonly onShowSideBySideDiffChanged: (checked: boolean) => void
+
+  /** Whether we should hide whitespace in diffs. */
+  readonly hideWhitespaceInDiff: boolean
+
+  /** Called when the user changes the hide whitespace in diffs setting. */
+  readonly onHideWhitespaceInDiffChanged: (checked: boolean) => Promise<void>
 }
 
 /** Displays information about a file */
@@ -35,6 +41,10 @@ export class ChangedFileDetails extends React.Component<
 
         {enableSideBySideDiffs() && (
           <DiffOptions
+            onHideWhitespaceChangesChanged={
+              this.props.onHideWhitespaceInDiffChanged
+            }
+            hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
             onShowSideBySideDiffChanged={this.props.onShowSideBySideDiffChanged}
             showSideBySideDiff={this.props.showSideBySideDiff}
           />
