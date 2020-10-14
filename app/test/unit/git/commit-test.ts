@@ -579,6 +579,48 @@ describe('git/commit', () => {
         expect(newStatus.workingDirectory.files).toHaveLength(1)
       })
 
+      it('checks out our content for file added in both branches', async () => {
+        const status = await getStatusOrThrow(repository)
+        const trackedFiles = status.workingDirectory.files.filter(
+          f => f.status.kind !== AppFileStatusKind.Untracked
+        )
+        const manualResolutions = new Map([
+          ['baz', ManualConflictResolutionKind.ours],
+        ])
+        const sha = await createMergeCommit(
+          repository,
+          trackedFiles,
+          manualResolutions
+        )
+        expect(await FSE.readFile(path.join(repository.path, 'baz'))).toEqual(
+          'b1'
+        )
+        const newStatus = await getStatusOrThrow(repository)
+        expect(sha).toHaveLength(7)
+        expect(newStatus.workingDirectory.files).toHaveLength(1)
+      })
+
+      it('checks out their content for file added in both branches', async () => {
+        const status = await getStatusOrThrow(repository)
+        const trackedFiles = status.workingDirectory.files.filter(
+          f => f.status.kind !== AppFileStatusKind.Untracked
+        )
+        const manualResolutions = new Map([
+          ['baz', ManualConflictResolutionKind.theirs],
+        ])
+        const sha = await createMergeCommit(
+          repository,
+          trackedFiles,
+          manualResolutions
+        )
+        expect(await FSE.readFile(path.join(repository.path, 'baz'))).toEqual(
+          'b2'
+        )
+        const newStatus = await getStatusOrThrow(repository)
+        expect(sha).toHaveLength(7)
+        expect(newStatus.workingDirectory.files).toHaveLength(1)
+      })
+
       describe('binary file conflicts', () => {
         let fileName: string
         let fileContentsOurs: string, fileContentsTheirs: string
