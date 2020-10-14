@@ -14,6 +14,7 @@ import {
   getFallbackUrlForProxyResolve,
 } from './environment'
 import { WorkingDirectoryFileChange } from '../../models/status'
+import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 
 export type ProgressCallback = (progress: ICheckoutProgress) => void
 
