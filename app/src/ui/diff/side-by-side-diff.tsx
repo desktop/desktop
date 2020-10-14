@@ -774,26 +774,17 @@ export class SideBySideDiff extends React.Component<
     }
   }
 
-  private onSearch = (query: string) => {
+  private onSearch = (searchQuery: string) => {
     let { selectedSearchResult: from, searchTokens } = this.state
+    const { diff, showSideBySideDiff } = this.props
 
     // If the query is unchanged and we've got tokens we'll continue, else we'll restart
-    if (query === this.state.searchQuery && searchTokens !== undefined) {
+    if (searchQuery === this.state.searchQuery && searchTokens !== undefined) {
       from = { ...from, offset: from.offset + 1 }
     } else {
-      const { diff, showSideBySideDiff } = this.props
-      searchTokens = calcSearchTokens(diff, showSideBySideDiff, query)
+      searchTokens = calcSearchTokens(diff, showSideBySideDiff, searchQuery)
     }
 
-    this.findNext(query, searchTokens, from)
-  }
-
-  private findNext(
-    searchQuery: string,
-    searchTokens: SearchTokens,
-    from: ISelectionPosition
-  ) {
-    const { diff, showSideBySideDiff } = this.props
     const hit = findNextToken(searchTokens, diff, showSideBySideDiff, from)
 
     if (hit !== null) {
