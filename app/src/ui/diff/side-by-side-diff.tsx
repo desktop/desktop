@@ -47,7 +47,7 @@ import { DiffSearchInput } from './diff-seach-input'
 const DefaultRowHeight = 20
 const MaxLineLengthToCalculateDiff = 240
 
-const InitialPosition: SelectionPosition = {
+const InitialPosition: ISelectionPosition = {
   row: 0,
   char: 0,
   diffColumn: DiffColumn.Before,
@@ -66,7 +66,11 @@ export interface ISelection {
 }
 
 type ModifiedLine = { line: DiffLine; diffLineNumber: number }
-type SelectionPosition = { row: number; char: number; diffColumn: DiffColumn }
+interface ISelectionPosition {
+  readonly row: number
+  readonly char: number
+  readonly diffColumn: DiffColumn
+}
 type SearchTokens = { [key: number]: { [key: string]: ILineTokens } }
 
 interface ISideBySideDiffProps {
@@ -161,7 +165,7 @@ interface ISideBySideDiffState {
 
   readonly searchTokens?: SearchTokens
 
-  readonly selectedSearchResult: SelectionPosition
+  readonly selectedSearchResult: ISelectionPosition
 }
 
 const listRowsHeightCache = new CellMeasurerCache({
@@ -1177,8 +1181,8 @@ function findNextToken(
   searchTokens: SearchTokens,
   diff: ITextDiff,
   showSideBySideDiff: boolean,
-  initialPosition: SelectionPosition
-): SelectionPosition | null {
+  initialPosition: ISelectionPosition
+): ISelectionPosition | null {
   const {
     row: initialLine,
     char: initialRow,
