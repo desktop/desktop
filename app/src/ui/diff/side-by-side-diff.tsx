@@ -766,18 +766,17 @@ export class SideBySideDiff extends React.Component<
   }
 
   private onSearch = (query: string) => {
-    const { searchQuery, searchTokens, selectedSearchResult } = this.state
+    let { selectedSearchResult: from, searchTokens } = this.state
 
-    if (query === searchQuery && searchTokens !== undefined) {
-      this.findNext(query, searchTokens, {
-        ...selectedSearchResult,
-        offset: selectedSearchResult.offset + 1,
-      })
+    // If the query is unchanged and we've got tokens we'll continue, else we'll restart
+    if (query === this.state.searchQuery && searchTokens !== undefined) {
+      from = { ...from, offset: from.offset + 1 }
     } else {
       const { diff, showSideBySideDiff } = this.props
-      const newTokens = calcSearchTokens(diff, showSideBySideDiff, query)
-      this.findNext(query, newTokens, selectedSearchResult)
+      searchTokens = calcSearchTokens(diff, showSideBySideDiff, query)
     }
+
+    this.findNext(query, searchTokens, from)
   }
 
   private findNext(
@@ -789,15 +788,11 @@ export class SideBySideDiff extends React.Component<
     const hit = findNextToken(searchTokens, diff, showSideBySideDiff, from)
 
     if (hit !== null) {
-      this.scrollToRow(hit.row)
+      this.virtualListRef.current?.scrollToRow(hit.row)
     }
 
     const selectedSearchResult = hit ?? from ?? InitialPosition
     this.setState({ searchQuery, searchTokens, selectedSearchResult })
-  }
-
-  private scrollToRow(row: number) {
-    this.virtualListRef.current?.scrollToRow(row)
   }
 
   private onSearchCancel = () => {
