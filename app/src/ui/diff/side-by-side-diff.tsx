@@ -71,7 +71,8 @@ interface ISelectionPosition {
   readonly offset: number
   readonly diffColumn: DiffColumn
 }
-type SearchTokens = { [key: number]: { [key: string]: ILineTokens } }
+type RowSearchTokens = { [key: string]: ILineTokens }
+type SearchTokens = Map<number, RowSearchTokens>
 
 interface ISideBySideDiffProps {
   readonly repository: Repository
@@ -439,29 +440,28 @@ export class SideBySideDiff extends React.Component<
   }
 
   private getSearchTokens(row: number, column: DiffColumn) {
-    const searchTokens = this.state.searchTokens
-    const selectedSearchResult = this.state.selectedSearchResult
-    const finalTokens: ILineTokens[] = []
+    const { searchTokens, selectedSearchResult } = this.state
+    const finalTokens = new Array<ILineTokens>()
 
-    if (
-      searchTokens !== undefined &&
-      searchTokens[row] !== undefined &&
-      searchTokens[row][column] !== undefined
-    ) {
-      finalTokens.push(searchTokens[row][column])
+    const rowSearchTokens = searchTokens?.get(row)
+    const diffColumnTokens =
+      rowSearchTokens !== undefined ? rowSearchTokens[column] : undefined
+
+    if (diffColumnTokens === undefined) {
+      return finalTokens
     }
+
+    finalTokens.push(diffColumnTokens)
+    const tokenAtSearchOffset = diffColumnTokens[selectedSearchResult.offset]
 
     if (
       selectedSearchResult.row === row &&
-      searchTokens !== undefined &&
-      searchTokens[row] !== undefined &&
-      searchTokens[row][column] !== undefined &&
-      searchTokens[row][column][selectedSearchResult.offset] !== undefined &&
+      tokenAtSearchOffset !== undefined &&
       column === selectedSearchResult.diffColumn
     ) {
       finalTokens.push({
         [selectedSearchResult.offset]: {
-          length: searchTokens[row][column][selectedSearchResult.offset].length,
+          length: tokenAtSearchOffset.length,
           token: 'selected',
         },
       })
@@ -1078,13 +1078,13 @@ function calcSearchTokens(
   showSideBySideDiffs: boolean,
   searchQuery?: string
 ): SearchTokens {
+  const searchTokens = new Map<number, RowSearchTokens>()
+
   if (searchQuery === undefined || searchQuery.length === 0) {
-    return []
+    return searchTokens
   }
 
   const rows = getDiffRows(diff, showSideBySideDiffs)
-
-  const searchTokens: SearchTokens = {}
 
   for (const [rowNumber, row] of rows.entries()) {
     if (row.type === DiffRowType.Hunk) {
@@ -1095,9 +1095,9 @@ function calcSearchTokens(
       const tokens = getSearchTokensForLine(row.data.content, searchQuery)
 
       if (tokens !== null) {
-        searchTokens[rowNumber] = {
+        searchTokens.set(rowNumber, {
           [showSideBySideDiffs ? DiffColumn.After : DiffColumn.Before]: tokens,
-        }
+        })
       }
     }
 
@@ -1105,9 +1105,7 @@ function calcSearchTokens(
       const tokens = getSearchTokensForLine(row.data.content, searchQuery)
 
       if (tokens !== null) {
-        searchTokens[rowNumber] = {
-          [DiffColumn.Before]: tokens,
-        }
+        searchTokens.set(rowNumber, { [DiffColumn.Before]: tokens })
       }
     }
 
@@ -1115,10 +1113,10 @@ function calcSearchTokens(
       const tokens = getSearchTokensForLine(row.content, searchQuery)
 
       if (tokens !== null) {
-        searchTokens[rowNumber] = {
+        searchTokens.set(rowNumber, {
           [DiffColumn.Before]: tokens,
           [DiffColumn.After]: tokens,
-        }
+        })
       }
     }
 
@@ -1133,13 +1131,14 @@ function calcSearchTokens(
       )
 
       if (beforeTokens !== null || afterTokens !== null) {
-        searchTokens[rowNumber] = {}
+        const tokens: RowSearchTokens = {}
         if (beforeTokens !== null) {
-          searchTokens[rowNumber][DiffColumn.Before] = beforeTokens
+          tokens[DiffColumn.Before] = beforeTokens
         }
         if (afterTokens !== null) {
-          searchTokens[rowNumber][DiffColumn.After] = afterTokens
+          tokens[DiffColumn.After] = afterTokens
         }
+        searchTokens.set(rowNumber, tokens)
       }
     }
   }
@@ -1183,8 +1182,7 @@ function findNextToken(
   showSideBySideDiff: boolean,
   initialPosition: ISelectionPosition
 ): ISelectionPosition | null {
-  for (const [rowNumber, lineTokens] of Object.entries(searchTokens)) {
-    const currentRow = parseInt(rowNumber, 10)
+  for (const [currentRow, lineTokens] of searchTokens.entries()) {
     let currentColumn = initialPosition.diffColumn
 
     if (currentRow === initialPosition.row) {
