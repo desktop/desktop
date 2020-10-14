@@ -43,6 +43,7 @@ import {
 import { showContextualMenu } from '../main-process-proxy'
 import { getTokens } from './diff-syntax-mode'
 import { DiffSearchInput } from './diff-seach-input'
+import { escapeRegExp } from '../../lib/helpers/regex'
 
 const DefaultRowHeight = 20
 const MaxLineLengthToCalculateDiff = 240
@@ -1154,10 +1155,7 @@ function getSearchTokensForLine(
     return null
   }
 
-  const regexp = new RegExp(
-    searchQuery.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'),
-    'gi'
-  )
+  const regexp = new RegExp(escapeRegExp(searchQuery), 'gi')
   const matches = lineContents.matchAll(regexp)
 
   const searchTokens: ILineTokens = []
