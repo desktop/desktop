@@ -9,7 +9,6 @@ import {
   ManualConflictResolution,
   ManualConflictResolutionKind,
 } from '../../models/manual-conflict-resolution'
-import { git } from './core'
 import { assertNever } from '../fatal-error'
 import { removeConflictedFile } from './rm'
 import { checkoutConflictedFile } from './checkout'
