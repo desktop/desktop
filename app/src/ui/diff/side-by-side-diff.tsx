@@ -1136,7 +1136,7 @@ function getSearchTokensForLine(
 ): ILineTokens | null {
   const matches = lineContents.matchAll(regexp)
 
-  const searchTokens: ILineTokens = []
+  const searchTokens: ILineTokens = {}
   let found = false
 
   for (const match of matches) {
