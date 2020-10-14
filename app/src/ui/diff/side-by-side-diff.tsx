@@ -770,43 +770,40 @@ export class SideBySideDiff extends React.Component<
       searchQuery === this.state.searchQuery &&
       this.state.searchTokens !== undefined
     ) {
-      const selectedSearchResult =
-        findNextToken(
-          this.state.searchTokens,
-          this.props.diff,
-          this.props.showSideBySideDiff,
-          {
-            row: this.state.selectedSearchResult.row,
-            offset: this.state.selectedSearchResult.offset + 1,
-            diffColumn: this.state.selectedSearchResult.diffColumn,
-          }
-        ) ?? this.state.selectedSearchResult
-
-      if (selectedSearchResult !== null) {
-        this.scrollToRow(selectedSearchResult.row)
-      }
-      this.setState({ selectedSearchResult })
+      this.findNext(this.state.searchTokens, this.state.selectedSearchResult)
       return
     }
 
-    const searchTokens = calcSearchTokens(
-      this.props.diff,
-      this.props.showSideBySideDiff,
-      searchQuery
-    )
+    const { diff, showSideBySideDiff } = this.props
+
+    const searchTokens = calcSearchTokens(diff, showSideBySideDiff, searchQuery)
     const selectedSearchResult =
       findNextToken(
         searchTokens,
-        this.props.diff,
-        this.props.showSideBySideDiff,
+        diff,
+        showSideBySideDiff,
         this.state.selectedSearchResult
       ) ?? this.state.selectedSearchResult
 
-    if (selectedSearchResult !== null) {
-      this.scrollToRow(selectedSearchResult.row)
-    }
-
+    this.scrollToRow(selectedSearchResult.row)
     this.setState({ searchTokens, searchQuery, selectedSearchResult })
+  }
+
+  private findNext(
+    searchTokens: SearchTokens,
+    currentSelection: ISelectionPosition
+  ) {
+    const { diff, showSideBySideDiff } = this.props
+    const startPosition = {
+      ...currentSelection,
+      offset: currentSelection.offset + 1,
+    }
+    const selectedSearchResult =
+      findNextToken(searchTokens, diff, showSideBySideDiff, startPosition) ??
+      currentSelection
+
+    this.scrollToRow(selectedSearchResult.row)
+    this.setState({ selectedSearchResult })
   }
 
   private scrollToRow(row: number) {
