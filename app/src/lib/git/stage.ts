@@ -9,8 +9,11 @@ import {
   ManualConflictResolution,
   ManualConflictResolutionKind,
 } from '../../models/manual-conflict-resolution'
-import { git } from '.'
+import { git } from './core'
 import { assertNever } from '../fatal-error'
+import { removeConflictedFile } from './rm'
+import { checkoutConflictedFile } from './checkout'
+import { addConflictedFile } from './add'
 
 /**
  * Stages a file with the given manual resolution method. Useful for resolving binary conflicts at commit-time.
@@ -49,21 +52,15 @@ export async function stageManualConflictResolution(
     status.entry.them === GitStatusEntry.Added
 
   if (chosen === GitStatusEntry.UpdatedButUnmerged || addedInBoth) {
-    await git(
-      ['checkout', `--${manualResolution}`, '--', file.path],
-      repository.path,
-      'checkoutConflictedFile'
-    )
+    await checkoutConflictedFile(repository, file, manualResolution)
   }
 
   switch (chosen) {
     case GitStatusEntry.Deleted:
-      await git(['rm', file.path], repository.path, 'removeConflictedFile')
-      break
+      return removeConflictedFile(repository, file)
     case GitStatusEntry.Added:
     case GitStatusEntry.UpdatedButUnmerged:
-      await git(['add', file.path], repository.path, 'addConflictedFile')
-      break
+      return addConflictedFile(repository, file)
     default:
       assertNever(chosen, 'unnacounted for git status entry possibility')
   }
