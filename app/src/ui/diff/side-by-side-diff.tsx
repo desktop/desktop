@@ -193,11 +193,11 @@ export class SideBySideDiff extends React.Component<
   public componentDidMount() {
     this.initDiffSyntaxMode()
 
-    window.addEventListener('keydown', this.toggleSearchInput)
+    window.addEventListener('keydown', this.onWindowKeyDown)
   }
 
   public componentWillUnmount() {
-    window.removeEventListener('keydown', this.toggleSearchInput)
+    window.removeEventListener('keydown', this.onWindowKeyDown)
     document.removeEventListener('mouseup', this.onEndSelection)
   }
 
@@ -754,7 +754,7 @@ export class SideBySideDiff extends React.Component<
     this.props.onDiscardChanges(this.props.diff, newSelection)
   }
 
-  private toggleSearchInput = (evt: KeyboardEvent) => {
+  private onWindowKeyDown = (evt: KeyboardEvent) => {
     if (evt.metaKey && evt.key === 'f') {
       this.setState({
         isSearching: !this.state.isSearching,
