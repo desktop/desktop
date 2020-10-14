@@ -1085,6 +1085,7 @@ function calcSearchTokens(
     return searchTokens
   }
 
+  const searchRegExp = new RegExp(escapeRegExp(searchQuery), 'gi')
   const rows = getDiffRows(diff, showSideBySideDiffs)
 
   for (const [rowNumber, row] of rows.entries()) {
@@ -1093,7 +1094,7 @@ function calcSearchTokens(
     }
 
     if (row.type === DiffRowType.Added) {
-      const tokens = getSearchTokensForLine(row.data.content, searchQuery)
+      const tokens = getSearchTokensForLine(row.data.content, searchRegExp)
 
       if (tokens !== null) {
         searchTokens.set(rowNumber, {
@@ -1103,7 +1104,7 @@ function calcSearchTokens(
     }
 
     if (row.type === DiffRowType.Deleted) {
-      const tokens = getSearchTokensForLine(row.data.content, searchQuery)
+      const tokens = getSearchTokensForLine(row.data.content, searchRegExp)
 
       if (tokens !== null) {
         searchTokens.set(rowNumber, { [DiffColumn.Before]: tokens })
@@ -1111,7 +1112,7 @@ function calcSearchTokens(
     }
 
     if (row.type === DiffRowType.Context) {
-      const tokens = getSearchTokensForLine(row.content, searchQuery)
+      const tokens = getSearchTokensForLine(row.content, searchRegExp)
 
       if (tokens !== null) {
         searchTokens.set(rowNumber, {
@@ -1124,11 +1125,11 @@ function calcSearchTokens(
     if (row.type === DiffRowType.Modified) {
       const beforeTokens = getSearchTokensForLine(
         row.beforeData.content,
-        searchQuery
+        searchRegExp
       )
       const afterTokens = getSearchTokensForLine(
         row.afterData.content,
-        searchQuery
+        searchRegExp
       )
 
       if (beforeTokens !== null || afterTokens !== null) {
@@ -1149,22 +1150,17 @@ function calcSearchTokens(
 
 function getSearchTokensForLine(
   lineContents: string,
-  searchQuery?: string
+  regexp: RegExp
 ): ILineTokens | null {
-  if (searchQuery === undefined || searchQuery.length === 0) {
-    return null
-  }
-
-  const regexp = new RegExp(escapeRegExp(searchQuery), 'gi')
   const matches = lineContents.matchAll(regexp)
 
   const searchTokens: ILineTokens = []
   let found = false
 
   for (const match of matches) {
-    if (match?.index !== undefined) {
+    if (match.index !== undefined) {
       searchTokens[match.index] = {
-        length: searchQuery.length,
+        length: match[0].length,
         token: 'search-result',
       }
       found = true
