@@ -810,11 +810,7 @@ export class SideBySideDiff extends React.Component<
   }
 
   private scrollToRow(row: number) {
-    if (this.virtualListRef.current === null) {
-      return
-    }
-
-    this.virtualListRef.current.scrollToRow(row)
+    this.virtualListRef.current?.scrollToRow(row)
   }
 
   private onSearchCancel = () => {
