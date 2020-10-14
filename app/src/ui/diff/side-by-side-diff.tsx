@@ -769,10 +769,8 @@ export class SideBySideDiff extends React.Component<
 
   private showSearch = () => {
     if (!this.state.isSearching) {
-      this.setState({
-        isSearching: true,
-        selectedSearchResult: InitialPosition,
-      })
+      const selectedSearchResult = InitialPosition
+      this.setState({ isSearching: true, selectedSearchResult })
     }
   }
 
