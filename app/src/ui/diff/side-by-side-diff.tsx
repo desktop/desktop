@@ -48,7 +48,7 @@ const DefaultRowHeight = 20
 const MaxLineLengthToCalculateDiff = 240
 
 const InitialPosition: SelectionPosition = {
-  line: 0,
+  row: 0,
   char: 0,
   diffColumn: DiffColumn.Before,
 }
@@ -66,7 +66,7 @@ export interface ISelection {
 }
 
 type ModifiedLine = { line: DiffLine; diffLineNumber: number }
-type SelectionPosition = { line: number; char: number; diffColumn: DiffColumn }
+type SelectionPosition = { row: number; char: number; diffColumn: DiffColumn }
 type SearchTokens = { [key: number]: { [key: string]: ILineTokens } }
 
 interface ISideBySideDiffProps {
@@ -448,7 +448,7 @@ export class SideBySideDiff extends React.Component<
     }
 
     if (
-      selectedSearchResult.line === row &&
+      selectedSearchResult.row === row &&
       searchTokens !== undefined &&
       searchTokens[row] !== undefined &&
       searchTokens[row][column] !== undefined &&
@@ -772,14 +772,14 @@ export class SideBySideDiff extends React.Component<
           this.props.diff,
           this.props.showSideBySideDiff,
           {
-            line: this.state.selectedSearchResult.line,
+            row: this.state.selectedSearchResult.row,
             char: this.state.selectedSearchResult.char + 1,
             diffColumn: this.state.selectedSearchResult.diffColumn,
           }
         ) ?? this.state.selectedSearchResult
 
       if (selectedSearchResult !== null) {
-        this.scrollToRow(selectedSearchResult.line)
+        this.scrollToRow(selectedSearchResult.row)
       }
       this.setState({ selectedSearchResult })
       return
@@ -799,7 +799,7 @@ export class SideBySideDiff extends React.Component<
       ) ?? this.state.selectedSearchResult
 
     if (selectedSearchResult !== null) {
-      this.scrollToRow(selectedSearchResult.line)
+      this.scrollToRow(selectedSearchResult.row)
     }
 
     this.setState({ searchTokens, searchQuery, selectedSearchResult })
@@ -1180,7 +1180,7 @@ function findNextToken(
   initialPosition: SelectionPosition
 ): SelectionPosition | null {
   const {
-    line: initialLine,
+    row: initialLine,
     char: initialRow,
     diffColumn: initialColumn,
   } = initialPosition
@@ -1193,7 +1193,7 @@ function findNextToken(
       const result = findNextTokenInLine(lineTokens[currentColumn], initialRow)
 
       if (result !== null) {
-        return { line: currentRow, char: result, diffColumn: currentColumn }
+        return { row: currentRow, char: result, diffColumn: currentColumn }
       }
 
       if (currentColumn === DiffColumn.Before && showSideBySideDiff) {
@@ -1202,7 +1202,7 @@ function findNextToken(
         const result = findNextTokenInLine(lineTokens[currentColumn], 0)
 
         if (result !== null) {
-          return { line: currentRow, char: result, diffColumn: currentColumn }
+          return { row: currentRow, char: result, diffColumn: currentColumn }
         }
       }
     }
@@ -1213,7 +1213,7 @@ function findNextToken(
       const result = findNextTokenInLine(lineTokens[currentColumn], 0)
 
       if (result !== null) {
-        return { line: currentRow, char: result, diffColumn: currentColumn }
+        return { row: currentRow, char: result, diffColumn: currentColumn }
       }
 
       currentColumn = DiffColumn.After
@@ -1221,7 +1221,7 @@ function findNextToken(
       const result2 = findNextTokenInLine(lineTokens[currentColumn], 0)
 
       if (result2 !== null) {
-        return { line: currentRow, char: result2, diffColumn: currentColumn }
+        return { row: currentRow, char: result2, diffColumn: currentColumn }
       }
     }
   }
