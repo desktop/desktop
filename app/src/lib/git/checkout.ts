@@ -139,6 +139,10 @@ export async function createAndCheckoutBranch(
   )
 }
 
+/**
+ * Check out either stage #2 (ours) or #3 (theirs) for a conflicted
+ * file.
+ */
 export async function checkoutConflictedFile(
   repository: Repository,
   file: WorkingDirectoryFileChange,
