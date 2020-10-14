@@ -1183,20 +1183,14 @@ function findNextToken(
   showSideBySideDiff: boolean,
   initialPosition: ISelectionPosition
 ): ISelectionPosition | null {
-  const {
-    row: initialLine,
-    offset: initialOffset,
-    diffColumn: initialColumn,
-  } = initialPosition
-
   for (const [rowNumber, lineTokens] of Object.entries(searchTokens)) {
     const currentRow = parseInt(rowNumber, 10)
-    let currentColumn = initialColumn
+    let currentColumn = initialPosition.diffColumn
 
-    if (currentRow === initialLine) {
+    if (currentRow === initialPosition.row) {
       const result = findNextTokenInLine(
         lineTokens[currentColumn],
-        initialOffset
+        initialPosition.offset
       )
 
       if (result !== null) {
@@ -1214,7 +1208,7 @@ function findNextToken(
       }
     }
 
-    if (currentRow > initialLine) {
+    if (currentRow > initialPosition.row) {
       currentColumn = DiffColumn.Before
 
       const result = findNextTokenInLine(lineTokens[currentColumn], 0)
@@ -1233,7 +1227,7 @@ function findNextToken(
     }
   }
 
-  return initialLine === 0 && initialOffset === 0
+  return initialPosition.row === 0 && initialPosition.offset === 0
     ? null
     : findNextToken(searchTokens, diff, showSideBySideDiff, InitialPosition)
 }
