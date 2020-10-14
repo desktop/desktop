@@ -194,11 +194,16 @@ export class SideBySideDiff extends React.Component<
     this.initDiffSyntaxMode()
 
     window.addEventListener('keydown', this.onWindowKeyDown)
+
+    // Listen for the custom event find-text (see app.tsx)
+    // and trigger the search plugin if we see it.
+    document.addEventListener('find-text', this.showSearch)
   }
 
   public componentWillUnmount() {
     window.removeEventListener('keydown', this.onWindowKeyDown)
     document.removeEventListener('mouseup', this.onEndSelection)
+    document.removeEventListener('find-text', this.showSearch)
   }
 
   public componentDidUpdate(prevProps: ISideBySideDiffProps) {
@@ -756,11 +761,16 @@ export class SideBySideDiff extends React.Component<
 
   private onWindowKeyDown = (evt: KeyboardEvent) => {
     if (evt.metaKey && evt.key === 'f') {
+      evt.preventDefault()
+      this.showSearch()
+    }
+  }
+
+  private showSearch = () => {
+    if (!this.state.isSearching) {
       this.setState({
-        isSearching: !this.state.isSearching,
+        isSearching: true,
         selectedSearchResult: InitialPosition,
-        searchQuery: undefined,
-        searchTokens: undefined,
       })
     }
   }
