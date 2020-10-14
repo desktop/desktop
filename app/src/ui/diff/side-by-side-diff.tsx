@@ -1041,7 +1041,7 @@ function getDataFromLine(
     line[lineToUse]
   )
 
-  const tokens: ILineTokens[] = []
+  const tokens = new Array<ILineTokens>()
 
   if (diffTokens !== undefined) {
     tokens.push(diffTokens)
