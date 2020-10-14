@@ -765,45 +765,35 @@ export class SideBySideDiff extends React.Component<
     }
   }
 
-  private onSearch = (searchQuery: string) => {
-    if (
-      searchQuery === this.state.searchQuery &&
-      this.state.searchTokens !== undefined
-    ) {
-      this.findNext(this.state.searchTokens, this.state.selectedSearchResult)
-      return
+  private onSearch = (query: string) => {
+    const { searchQuery, searchTokens, selectedSearchResult } = this.state
+
+    if (query === searchQuery && searchTokens !== undefined) {
+      this.findNext(query, searchTokens, {
+        ...selectedSearchResult,
+        offset: selectedSearchResult.offset + 1,
+      })
+    } else {
+      const { diff, showSideBySideDiff } = this.props
+      const newTokens = calcSearchTokens(diff, showSideBySideDiff, query)
+      this.findNext(query, newTokens, selectedSearchResult)
     }
-
-    const { diff, showSideBySideDiff } = this.props
-
-    const searchTokens = calcSearchTokens(diff, showSideBySideDiff, searchQuery)
-    const selectedSearchResult =
-      findNextToken(
-        searchTokens,
-        diff,
-        showSideBySideDiff,
-        this.state.selectedSearchResult
-      ) ?? this.state.selectedSearchResult
-
-    this.scrollToRow(selectedSearchResult.row)
-    this.setState({ searchTokens, searchQuery, selectedSearchResult })
   }
 
   private findNext(
+    searchQuery: string,
     searchTokens: SearchTokens,
-    currentSelection: ISelectionPosition
+    from: ISelectionPosition
   ) {
     const { diff, showSideBySideDiff } = this.props
-    const startPosition = {
-      ...currentSelection,
-      offset: currentSelection.offset + 1,
-    }
-    const selectedSearchResult =
-      findNextToken(searchTokens, diff, showSideBySideDiff, startPosition) ??
-      currentSelection
+    const hit = findNextToken(searchTokens, diff, showSideBySideDiff, from)
 
-    this.scrollToRow(selectedSearchResult.row)
-    this.setState({ selectedSearchResult })
+    if (hit !== null) {
+      this.scrollToRow(hit.row)
+    }
+
+    const selectedSearchResult = hit ?? from ?? InitialPosition
+    this.setState({ searchQuery, searchTokens, selectedSearchResult })
   }
 
   private scrollToRow(row: number) {
