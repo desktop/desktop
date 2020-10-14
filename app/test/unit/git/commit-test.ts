@@ -592,9 +592,9 @@ describe('git/commit', () => {
           trackedFiles,
           manualResolutions
         )
-        expect(await FSE.readFile(path.join(repository.path, 'baz'))).toEqual(
-          'b1'
-        )
+        expect(
+          await FSE.readFile(path.join(repository.path, 'baz'), 'utf8')
+        ).toEqual('b2')
         const newStatus = await getStatusOrThrow(repository)
         expect(sha).toHaveLength(7)
         expect(newStatus.workingDirectory.files).toHaveLength(1)
@@ -613,9 +613,9 @@ describe('git/commit', () => {
           trackedFiles,
           manualResolutions
         )
-        expect(await FSE.readFile(path.join(repository.path, 'baz'))).toEqual(
-          'b2'
-        )
+        expect(
+          await FSE.readFile(path.join(repository.path, 'baz'), 'utf8')
+        ).toEqual('b1')
         const newStatus = await getStatusOrThrow(repository)
         expect(sha).toHaveLength(7)
         expect(newStatus.workingDirectory.files).toHaveLength(1)
