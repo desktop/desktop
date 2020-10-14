@@ -44,6 +44,18 @@ export async function stageManualConflictResolution(
       ? status.entry.them
       : status.entry.us
 
+  const addedInBoth =
+    status.entry.us === GitStatusEntry.Added &&
+    status.entry.them === GitStatusEntry.Added
+
+  if (chosen === GitStatusEntry.UpdatedButUnmerged || addedInBoth) {
+    await git(
+      ['checkout', `--${manualResolution}`, '--', file.path],
+      repository.path,
+      'checkoutConflictedFile'
+    )
+  }
+
   switch (chosen) {
     case GitStatusEntry.Deleted:
       await git(['rm', file.path], repository.path, 'removeConflictedFile')
@@ -52,15 +64,6 @@ export async function stageManualConflictResolution(
       await git(['add', file.path], repository.path, 'addConflictedFile')
       break
     case GitStatusEntry.UpdatedButUnmerged:
-      const choiceFlag =
-        manualResolution === ManualConflictResolutionKind.theirs
-          ? 'theirs'
-          : 'ours'
-      await git(
-        ['checkout', `--${choiceFlag}`, '--', file.path],
-        repository.path,
-        'checkoutConflictedFile'
-      )
       await git(['add', file.path], repository.path, 'addConflictedFile')
       break
     default:
