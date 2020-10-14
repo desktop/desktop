@@ -1188,8 +1188,8 @@ changed in both
  function convert(
 -  repositories: ReadonlyArray<IAPIRepository>
 +  repositories: ReadonlyArray<IRepositoryAPIResult>
- ): ReadonlyArray<IClonableRepositoryListItem> {
-   const repos: ReadonlyArray<IClonableRepositoryListItem> = repositories.map(
+ ): ReadonlyArray<ICloneableRepositoryListItem> {
+   const repos: ReadonlyArray<ICloneableRepositoryListItem> = repositories.map(
      repo => {
 @@ -55,7 +55,7 @@
  }
@@ -1198,7 +1198,7 @@ changed in both
 -  repositories: ReadonlyArray<IAPIRepository>,
 +  repositories: ReadonlyArray<IRepositoryAPIResult>,
    login: string
- ): ReadonlyArray<IFilterListGroup<IClonableRepositoryListItem>> {
+ ): ReadonlyArray<IFilterListGroup<ICloneableRepositoryListItem>> {
    const userRepos = repositories.filter(repo => repo.owner.type === 'User')
 merged
   result 100644 0046063ad8f56f2b7cb21d2a88898cdc0fa75a91 app/src/ui/publish-repository/publish-repository.tsx
