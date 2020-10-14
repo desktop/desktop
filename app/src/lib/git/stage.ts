@@ -61,8 +61,6 @@ export async function stageManualConflictResolution(
       await git(['rm', file.path], repository.path, 'removeConflictedFile')
       break
     case GitStatusEntry.Added:
-      await git(['add', file.path], repository.path, 'addConflictedFile')
-      break
     case GitStatusEntry.UpdatedButUnmerged:
       await git(['add', file.path], repository.path, 'addConflictedFile')
       break
