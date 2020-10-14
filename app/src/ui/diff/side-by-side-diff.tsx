@@ -766,7 +766,6 @@ export class SideBySideDiff extends React.Component<
   }
 
   private onSearch = (searchQuery: string) => {
-    // TODO: check also diff??
     if (
       searchQuery === this.state.searchQuery &&
       this.state.searchTokens !== undefined
