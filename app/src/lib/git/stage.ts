@@ -45,15 +45,13 @@ export async function stageManualConflictResolution(
       : status.entry.us
 
   switch (chosen) {
-    case GitStatusEntry.Deleted: {
+    case GitStatusEntry.Deleted:
       await git(['rm', file.path], repository.path, 'removeConflictedFile')
       break
-    }
-    case GitStatusEntry.Added: {
+    case GitStatusEntry.Added:
       await git(['add', file.path], repository.path, 'addConflictedFile')
       break
-    }
-    case GitStatusEntry.UpdatedButUnmerged: {
+    case GitStatusEntry.UpdatedButUnmerged:
       const choiceFlag =
         manualResolution === ManualConflictResolutionKind.theirs
           ? 'theirs'
@@ -65,7 +63,6 @@ export async function stageManualConflictResolution(
       )
       await git(['add', file.path], repository.path, 'addConflictedFile')
       break
-    }
     default:
       assertNever(chosen, 'unnacounted for git status entry possibility')
   }
