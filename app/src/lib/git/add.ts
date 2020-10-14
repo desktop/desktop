@@ -12,5 +12,5 @@ export async function addConflictedFile(
   repository: Repository,
   file: WorkingDirectoryFileChange
 ) {
-  await git(['add', file.path], repository.path, 'addConflictedFile')
+  await git(['add', '--', file.path], repository.path, 'addConflictedFile')
 }

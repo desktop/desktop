@@ -27,5 +27,5 @@ export async function removeConflictedFile(
   repository: Repository,
   file: WorkingDirectoryFileChange
 ) {
-  await git(['rm', file.path], repository.path, 'removeConflictedFile')
+  await git(['rm', '--', file.path], repository.path, 'removeConflictedFile')
 }
