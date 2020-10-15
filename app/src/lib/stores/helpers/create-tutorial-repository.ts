@@ -12,6 +12,7 @@ import { git } from '../../git'
 import { friendlyEndpointName } from '../../friendly-endpoint-name'
 import { IRemote } from '../../../models/remote'
 import { envForRemoteOperation } from '../../git/environment'
+import { DefaultBranchInGit } from '../../helpers/default-branch'
 
 const nl = __WIN32__ ? '\r\n' : '\n'
 const InititalReadmeContents =
@@ -63,6 +64,7 @@ async function pushRepo(
   path: string,
   account: Account,
   remote: IRemote,
+  remoteBranchName: string,
   progressCb: (title: string, value: number, description?: string) => void
 ) {
   const pushTitle = `Pushing repository to ${friendlyEndpointName(account)}`
@@ -80,7 +82,7 @@ async function pushRepo(
     }
   )
 
-  const args = ['push', '-u', remote.name, 'master']
+  const args = ['push', '-u', remote.name, remoteBranchName]
   await git(args, path, 'tutorial:push', pushOpts)
 }
 
@@ -113,11 +115,16 @@ export async function createTutorialRepository(
   }
 
   const repo = await createAPIRepository(account, name)
+  const branch = repo.default_branch ?? 'main'
 
   progressCb('Initializing local repository', 0.2)
 
   await ensureDir(path)
   await git(['init'], path, 'tutorial:init')
+
+  if (branch !== DefaultBranchInGit) {
+    await git(['checkout', '-b', branch], path, 'tutorial:rename-branch')
+  }
 
   await writeFile(Path.join(path, 'README.md'), InititalReadmeContents)
 
@@ -136,7 +143,7 @@ export async function createTutorialRepository(
     'tutorial:add-remote'
   )
 
-  await pushRepo(path, account, remote, (title, value, description) => {
+  await pushRepo(path, account, remote, branch, (title, value, description) => {
     progressCb(title, 0.3 + value * 0.6, description)
   })
 
