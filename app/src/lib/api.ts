@@ -353,7 +353,7 @@ export interface IAPIBranch {
   /**
    * The name of the branch stored on the remote.
    *
-   * NOTE: this is NOT a fully-qualified ref (i.e. `refs/heads/master`)
+   * NOTE: this is NOT a fully-qualified ref (i.e. `refs/heads/main`)
    */
   readonly name: string
   /**

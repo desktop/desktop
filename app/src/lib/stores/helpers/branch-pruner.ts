@@ -190,7 +190,7 @@ export class BranchPruner {
       [...recentlyCheckedOutBranches.keys()].map(formatAsLocalRef)
     )
 
-    // get the locally cached branches of remotes (ie `remotes/origin/master`)
+    // get the locally cached branches of remotes (ie `remotes/origin/main`)
     const remoteBranches = (
       await getBranches(this.repository, `refs/remotes/`)
     ).map(b => formatAsLocalRef(b.name))

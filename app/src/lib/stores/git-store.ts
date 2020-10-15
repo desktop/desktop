@@ -527,7 +527,7 @@ export class GitStore extends BaseStore {
       ) {
         // strip out everything related to the remote because this
         // is likely to be a tracked branch locally
-        // e.g. `master`, `develop`, etc
+        // e.g. `main`, `develop`, etc
         return match.substr(remoteNamespace.length)
       }
     }
@@ -567,7 +567,7 @@ export class GitStore extends BaseStore {
     return this._tip
   }
 
-  /** The default branch, or `master` if there is no default. */
+  /** The default branch or null if the default branch could not be inferred. */
   public get defaultBranch(): Branch | null {
     return this._defaultBranch
   }

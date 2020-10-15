@@ -644,7 +644,7 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  /** Record that a branch comparison has been made to the `master` branch */
+  /** Record that a branch comparison has been made to the default branch */
   public recordDefaultBranchComparison(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       defaultBranchComparisons: m.defaultBranchComparisons + 1,
