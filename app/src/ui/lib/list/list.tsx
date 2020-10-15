@@ -88,7 +88,7 @@ interface IListProps {
    * Consumers of this event do _not_ have to call event.preventDefault,
    * when this event is subscribed to the list will automatically call it.
    */
-  readonly onRowClick?: (row: number, soure: ClickSource) => void
+  readonly onRowClick?: (row: number, source: ClickSource) => void
 
   /**
    * This prop defines the behaviour of the selection of items within this list.
