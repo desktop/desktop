@@ -18,6 +18,7 @@ import moment from 'moment'
 const BackgroundPruneMinimumInterval = 1000 * 60 * 60 * 4
 const ReservedRefs = [
   'HEAD',
+  'refs/heads/main',
   'refs/heads/master',
   'refs/heads/gh-pages',
   'refs/heads/develop',
