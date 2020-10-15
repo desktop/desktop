@@ -19,19 +19,21 @@ type RemotesGetter = (repository: Repository) => Promise<ReadonlyArray<IRemote>>
  * 1. Given a pull request -> target branch of PR
  * 2. Given a forked repository -> default branch on `upstream`
  * 3. Given a hosted repository -> default branch on `origin`
- * 4. Fallback -> `master` branch
+ * 4. Fallback -> default branch
  *
  * @param repository The repository the branch belongs to
  * @param branches The list of all branches for the repository
  * @param currentPullRequest The pull request to use for finding the branch
  * @param getRemotes callback used to get all remotes for the current repository
+ * @param defaultBranch the current default branch or null if default branch is not known
  */
 
 export async function inferComparisonBranch(
   repository: Repository,
   branches: ReadonlyArray<Branch>,
   currentPullRequest: PullRequest | null,
-  getRemotes: RemotesGetter
+  getRemotes: RemotesGetter,
+  defaultBranch: Branch | null
 ): Promise<Branch | null> {
   if (currentPullRequest !== null) {
     const prBranch = getTargetBranchOfPullRequest(branches, currentPullRequest)
@@ -61,11 +63,7 @@ export async function inferComparisonBranch(
     }
   }
 
-  return getMasterBranch(branches)
-}
-
-function getMasterBranch(branches: ReadonlyArray<Branch>): Branch | null {
-  return findBranch(branches, 'master')
+  return defaultBranch
 }
 
 function getDefaultBranchOfGitHubRepo(
