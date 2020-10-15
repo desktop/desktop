@@ -129,14 +129,9 @@ export async function createTutorialRepository(
   await writeFile(Path.join(path, 'README.md'), InititalReadmeContents)
 
   await git(['add', '--', 'README.md'], path, 'tutorial:add')
-  await git(
-    ['commit', '-m', 'Initial commit', '--', 'README.md'],
-    path,
-    'tutorial:commit'
-  )
+  await git(['commit', '-m', 'Initial commit'], path, 'tutorial:commit')
 
   const remote: IRemote = { name: 'origin', url: repo.clone_url }
-
   await git(
     ['remote', 'add', remote.name, remote.url],
     path,
