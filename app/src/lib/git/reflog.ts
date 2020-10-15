@@ -1,10 +1,16 @@
 import { git } from './core'
 import { Repository } from '../../models/repository'
 
-/** Get the `limit` most recently checked out branches. */
+/**
+ * Get the `limit` most recently checked out branches.
+ *
+ * @param defaultBranchName The name of the default branch (will be excluded
+ *                          from the list of recent branches)
+ */
 export async function getRecentBranches(
   repository: Repository,
-  limit: number
+  limit: number,
+  defaultBranchName: string | undefined
 ): Promise<ReadonlyArray<string>> {
   // "git reflog show" is just an alias for "git log -g --abbrev-commit --pretty=oneline"
   // but by using log we can give it a max number which should prevent us from balling out
@@ -36,8 +42,13 @@ export async function getRecentBranches(
 
   const lines = result.stdout.split('\n')
   const names = new Set<string>()
-  // exclude master from recent branches
-  const excludedNames = new Set<String>(['master'])
+  const excludedNames = new Set<String>()
+
+  // The default branch already has its own section in the branch
+  // list so we exclude it here.
+  if (defaultBranchName !== undefined) {
+    excludedNames.add(defaultBranchName)
+  }
 
   for (const line of lines) {
     const result = regex.exec(line)

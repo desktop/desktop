@@ -381,10 +381,11 @@ export class GitStore extends BaseStore {
 
   /** Load all the branches. */
   public async loadBranches() {
+    const defaultBranch = this.defaultBranch?.name
     const [localAndRemoteBranches, recentBranchNames] = await Promise.all([
       this.performFailableOperation(() => getBranches(this.repository)) || [],
       this.performFailableOperation(() =>
-        getRecentBranches(this.repository, RecentBranchesLimit)
+        getRecentBranches(this.repository, RecentBranchesLimit, defaultBranch)
       ),
     ])
 

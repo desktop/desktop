@@ -35,7 +35,7 @@ describe('git/reflog', () => {
       await createAndCheckout(repository, 'branch-1')
       await createAndCheckout(repository, 'branch-2')
 
-      const branches = await getRecentBranches(repository, 10)
+      const branches = await getRecentBranches(repository, 10, 'master')
       expect(branches).toContain('branch-1')
       expect(branches).toContain('branch-2')
     })
@@ -51,7 +51,7 @@ describe('git/reflog', () => {
 
       await renameBranch(repository, currentBranch!, 'branch-2-test')
 
-      const branches = await getRecentBranches(repository, 10)
+      const branches = await getRecentBranches(repository, 10, 'master')
       expect(branches).not.toContain('master')
       expect(branches).not.toContain('branch-2')
       expect(branches).toContain('branch-1')
@@ -64,7 +64,7 @@ describe('git/reflog', () => {
       await createAndCheckout(repository, 'branch-3')
       await createAndCheckout(repository, 'branch-4')
 
-      const branches = await getRecentBranches(repository, 2)
+      const branches = await getRecentBranches(repository, 2, 'master')
       expect(branches).toHaveLength(2)
       expect(branches).toContain('branch-4')
       expect(branches).toContain('branch-3')
