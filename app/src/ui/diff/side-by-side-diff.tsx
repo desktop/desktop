@@ -42,7 +42,7 @@ import {
 } from './diff-helpers'
 import { showContextualMenu } from '../main-process-proxy'
 import { getTokens } from './diff-syntax-mode'
-import { DiffSearchInput } from './diff-seach-input'
+import { DiffSearchInput } from './diff-search-input'
 import { escapeRegExp } from '../../lib/helpers/regex'
 
 const DefaultRowHeight = 20
