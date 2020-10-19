@@ -5762,17 +5762,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const {
       changesState: { workingDirectory },
     } = this.repositoryStateCache.get(repository)
-    const gitStore = this.gitStoreCache.get(repository)
-    const isStashCreated = await gitStore.performFailableOperation(() => {
-      return createDesktopStashEntry(
-        repository,
-        branchToCheckout.name,
-        getUntrackedFiles(workingDirectory)
-      )
-    })
 
-    if (!isStashCreated) {
-      return
+    const files = getUntrackedFiles(workingDirectory)
+    const branch = branchToCheckout.name
+
+    try {
+      if (!(await createDesktopStashEntry(repository, branch, files))) {
+        return false
+      }
+    } catch (e) {
+      log.error('Failed creating stash entry', e)
+      return false
     }
 
     const transientStashEntry = await getLastDesktopStashEntryForBranch(
@@ -5784,6 +5784,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       transientStashEntry,
     }
     await this._checkoutBranch(repository, branchToCheckout, strategy)
+    return true
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
