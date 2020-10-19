@@ -368,11 +368,11 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private onKeyDown = (event: React.KeyboardEvent<any>) => {
-    this.props.selectedRows.forEach(row => {
-      if (this.props.onRowKeyDown) {
+    if (this.props.onRowKeyDown) {
+      for (const row of this.props.selectedRows) {
         this.props.onRowKeyDown(row, event)
       }
-    })
+    }
 
     // The consumer is given a change to prevent the default behavior for
     // keyboard navigation so that they can customize its behavior as needed.
