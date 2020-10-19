@@ -14,7 +14,7 @@ import { IRemote } from '../../../models/remote'
 import { envForRemoteOperation } from '../../git/environment'
 
 const nl = __WIN32__ ? '\r\n' : '\n'
-const InititalReadmeContents =
+const InitialReadmeContents =
   `# Welcome to GitHub Desktop!${nl}${nl}` +
   `This is your README. READMEs are where you can communicate ` +
   `what your project is and how to use it.${nl}${nl}` +
@@ -119,7 +119,7 @@ export async function createTutorialRepository(
   await ensureDir(path)
   await git(['init'], path, 'tutorial:init')
 
-  await writeFile(Path.join(path, 'README.md'), InititalReadmeContents)
+  await writeFile(Path.join(path, 'README.md'), InitialReadmeContents)
 
   await git(['add', '--', 'README.md'], path, 'tutorial:add')
   await git(

@@ -100,7 +100,7 @@ contribution is opened by the community.
 ### Application dependencies
 
 This group of dependencies represent the rest of the listed dependencies in
-`app/pacakge.json` - there are lots of small dependencies which are approachable
+`app/package.json` - there are lots of small dependencies which are approachable
 for external contributions.
 
 If you are interested in upgrading one of these, take a look at where it is

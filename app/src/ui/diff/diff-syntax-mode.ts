@@ -51,27 +51,38 @@ function skipLine(stream: CodeMirror.StringStream, state: IState) {
  * important because for context lines we might only have tokens in
  * one version and we need to be resilient about that.
  */
-function getTokensForDiffLine(
+export function getTokensForDiffLine(
   diffLine: DiffLine,
   oldTokens: ITokens | undefined,
   newTokens: ITokens | undefined
 ) {
+  const oldTokensResult = getTokens(diffLine.oldLineNumber, oldTokens)
+
+  if (oldTokensResult !== null) {
+    return oldTokensResult
+  }
+
+  return getTokens(diffLine.newLineNumber, newTokens)
+}
+
+/**
+ * Attempt to get tokens for a particular diff line. This will attempt
+ * to look up tokens in both the old tokens and the new which is
+ * important because for context lines we might only have tokens in
+ * one version and we need to be resilient about that.
+ */
+export function getTokens(
+  lineNumber: number | null,
+  tokens: ITokens | undefined
+) {
   // Note: Diff lines numbers start at one so we adjust this in order
   // to get the line _index_ in the before or after file contents.
   if (
-    oldTokens &&
-    diffLine.oldLineNumber &&
-    oldTokens[diffLine.oldLineNumber - 1]
+    tokens !== undefined &&
+    lineNumber !== null &&
+    tokens[lineNumber - 1] !== undefined
   ) {
-    return oldTokens[diffLine.oldLineNumber - 1]
-  }
-
-  if (
-    newTokens &&
-    diffLine.newLineNumber &&
-    newTokens[diffLine.newLineNumber - 1]
-  ) {
-    return newTokens[diffLine.newLineNumber - 1]
+    return tokens[lineNumber - 1]
   }
 
   return null

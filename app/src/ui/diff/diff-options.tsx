@@ -4,6 +4,8 @@ import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RadioButton } from '../lib/radio-button'
 import { getBoolean, setBoolean } from '../../lib/local-storage'
+import FocusTrap from 'focus-trap-react'
+import { Options as FocusTrapOptions } from 'focus-trap'
 
 interface IDiffOptionsProps {
   readonly hideWhitespaceChanges?: boolean
@@ -20,86 +22,73 @@ interface IDiffOptionsState {
   readonly showNewCallout: boolean
 }
 
+const HasSeenSplitDiffKey = 'has-seen-split-diff-option'
+
 export class DiffOptions extends React.Component<
   IDiffOptionsProps,
   IDiffOptionsState
 > {
-  private diffOptionsRef: HTMLDivElement | null = null
-
-  private focusOutTimeout: number | null = null
+  private focusTrapOptions: FocusTrapOptions
+  private diffOptionsRef = React.createRef<HTMLDivElement>()
 
   public constructor(props: IDiffOptionsProps) {
     super(props)
     this.state = {
       isOpen: false,
-      showNewCallout: getBoolean('has-seen-split-diff-option') !== true,
-    }
-  }
-
-  private onDiffOptionsRef = (diffOptions: HTMLDivElement | null) => {
-    if (this.diffOptionsRef) {
-      this.diffOptionsRef.removeEventListener('focusin', this.onFocusIn)
-      this.diffOptionsRef.removeEventListener('focusout', this.onFocusOut)
+      showNewCallout: getBoolean(HasSeenSplitDiffKey) !== true,
     }
 
-    this.diffOptionsRef = diffOptions
-
-    if (this.diffOptionsRef) {
-      this.diffOptionsRef.addEventListener('focusin', this.onFocusIn)
-      this.diffOptionsRef.addEventListener('focusout', this.onFocusOut)
+    this.focusTrapOptions = {
+      allowOutsideClick: true,
+      escapeDeactivates: true,
+      onDeactivate: this.closePopover,
     }
-  }
-
-  private onFocusIn = (event: FocusEvent) => {
-    console.log('focusin', event.target)
-    this.clearFocusOutTimeout()
-  }
-
-  private onFocusOut = (event: Event) => {
-    console.log('focusout', event.target)
-
-    // When keyboard focus moves from one descendant within the
-    // menu bar to another we will receive one 'focusout' event
-    // followed quickly by a 'focusin' event. As such we
-    // can't tell whether we've lost focus until we're certain
-    // that we've only gotten the 'focusout' event.
-    //
-    // In order to achieve this we schedule our call to onLostFocusWithin
-    // and clear that timeout if we receive a 'focusin' event.
-    this.clearFocusOutTimeout()
-    this.focusOutTimeout = requestAnimationFrame(this.onLostFocusWithin)
-  }
-
-  private clearFocusOutTimeout() {
-    if (this.focusOutTimeout !== null) {
-      cancelAnimationFrame(this.focusOutTimeout)
-      this.focusOutTimeout = null
-    }
-  }
-
-  private onLostFocusWithin = () => {
-    this.focusOutTimeout = null
-    this.onClose()
   }
 
   private onTogglePopover = (event: React.FormEvent<HTMLButtonElement>) => {
     event.preventDefault()
     if (this.state.isOpen) {
-      this.onClose()
+      this.closePopover()
     } else {
-      this.onOpen()
+      this.openPopover()
     }
   }
 
-  private onOpen = () => {
-    this.setState({ isOpen: true })
+  private openPopover = () => {
+    this.setState(prevState => {
+      if (!prevState.isOpen) {
+        document.addEventListener('mousedown', this.onDocumentMouseDown)
+        return { isOpen: true }
+      }
+      return null
+    })
   }
 
-  private onClose = () => {
-    if (this.state.showNewCallout) {
-      setBoolean('has-seen-split-diff-option', true)
+  private closePopover = () => {
+    this.setState(prevState => {
+      if (prevState.isOpen) {
+        if (this.state.showNewCallout) {
+          setBoolean(HasSeenSplitDiffKey, true)
+        }
+        document.removeEventListener('mousedown', this.onDocumentMouseDown)
+        return { isOpen: false, showNewCallout: false }
+      }
+
+      return null
+    })
+  }
+
+  public componentWillUnmount() {
+    document.removeEventListener('mousedown', this.onDocumentMouseDown)
+  }
+
+  private onDocumentMouseDown = (event: MouseEvent) => {
+    const { current: ref } = this.diffOptionsRef
+    const { target } = event
+
+    if (ref !== null && target instanceof Node && !ref.contains(target)) {
+      this.closePopover()
     }
-    this.setState({ isOpen: false, showNewCallout: false })
   }
 
   private onHideWhitespaceChangesChanged = (
@@ -110,11 +99,9 @@ export class DiffOptions extends React.Component<
     }
   }
 
-  public componentDidMount() {}
-
   public render() {
     return (
-      <div className="diff-options-component" ref={this.onDiffOptionsRef}>
+      <div className="diff-options-component" ref={this.diffOptionsRef}>
         <button onClick={this.onTogglePopover}>
           <Octicon symbol={OcticonSymbol.gear} />
           <Octicon symbol={OcticonSymbol.triangleDown} />
@@ -129,10 +116,12 @@ export class DiffOptions extends React.Component<
 
   private renderPopover() {
     return (
-      <div className="popover" tabIndex={-1}>
-        {this.renderHideWhitespaceChanges()}
-        {this.renderShowSideBySide()}
-      </div>
+      <FocusTrap active={true} focusTrapOptions={this.focusTrapOptions}>
+        <div className="popover">
+          {this.renderHideWhitespaceChanges()}
+          {this.renderShowSideBySide()}
+        </div>
+      </FocusTrap>
     )
   }
 
@@ -146,9 +135,7 @@ export class DiffOptions extends React.Component<
   private renderShowSideBySide() {
     return (
       <section>
-        <h3>
-          Diff display <div className="call-to-action-bubble">Beta</div>
-        </h3>
+        <h3>Diff display</h3>
         <RadioButton
           value="Unified"
           checked={!this.props.showSideBySideDiff}
@@ -158,7 +145,12 @@ export class DiffOptions extends React.Component<
         <RadioButton
           value="Split"
           checked={this.props.showSideBySideDiff}
-          label="Split"
+          label={
+            <>
+              <div>Split</div>
+              <div className="call-to-action-bubble">Beta</div>
+            </>
+          }
           onSelected={this.onSideBySideSelected}
         />
       </section>

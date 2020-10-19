@@ -3,7 +3,7 @@
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "2.5.6",
+  "version": "2.5.7-beta1",
   "main": "./main.js",
   "repository": {
     "type": "git",
@@ -33,6 +33,7 @@
     "file-metadata": "^1.0.0",
     "file-uri-to-path": "^2.0.0",
     "file-url": "^2.0.2",
+    "focus-trap-react": "^8.1.0",
     "fs-admin": "^0.15.0",
     "fs-extra": "^7.0.1",
     "fuzzaldrin-plus": "^0.6.0",

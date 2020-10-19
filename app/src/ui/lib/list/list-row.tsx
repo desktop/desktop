@@ -29,7 +29,7 @@ interface IListRowProps {
   /** callback to fire when the row receives a mouseover event */
   readonly onRowMouseOver: (index: number, e: React.MouseEvent<any>) => void
 
-  /** callback to fire when the row receieves a mousedown event */
+  /** callback to fire when the row receives a mousedown event */
   readonly onRowMouseDown: (index: number, e: React.MouseEvent<any>) => void
 
   /** callback to fire when the row is clicked */

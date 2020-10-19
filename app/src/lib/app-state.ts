@@ -115,7 +115,7 @@ export interface IAppState {
    * A list of currently open menus with their selected items
    * in the application menu.
    *
-   * The semantics around what constitues an open menu and how
+   * The semantics around what constitutes an open menu and how
    * selection works is defined by the AppMenu class and the
    * individual components transforming that state.
    *
@@ -197,6 +197,9 @@ export interface IAppState {
 
   /** Whether we should hide white space changes in diff */
   readonly hideWhitespaceInDiff: boolean
+
+  /** Whether we should show side by side diffs */
+  readonly showSideBySideDiff: boolean
 
   /** The user's preferred shell. */
   readonly selectedShell: Shell

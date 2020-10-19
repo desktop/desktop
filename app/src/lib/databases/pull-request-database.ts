@@ -33,7 +33,7 @@ export interface IPullRequest {
   /** The ref from which the pull request's changes are coming. */
   readonly head: IPullRequestRef
 
-  /** The ref which the pull request is targetting. */
+  /** The ref which the pull request is targeting. */
   readonly base: IPullRequestRef
 
   /** The login of the author. */

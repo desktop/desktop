@@ -7,7 +7,7 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 /** The identifier for the "Your Repositories" grouping. */
 export const YourRepositoriesIdentifier = 'your-repositories'
 
-export interface IClonableRepositoryListItem extends IFilterListItem {
+export interface ICloneableRepositoryListItem extends IFilterListItem {
   /** The identifier for the item. */
   readonly id: string
 
@@ -37,8 +37,8 @@ function getIcon(gitHubRepo: IAPIRepository): OcticonSymbolType {
 
 function convert(
   repositories: ReadonlyArray<IAPIRepository>
-): ReadonlyArray<IClonableRepositoryListItem> {
-  const repos: ReadonlyArray<IClonableRepositoryListItem> = repositories.map(
+): ReadonlyArray<ICloneableRepositoryListItem> {
+  const repos: ReadonlyArray<ICloneableRepositoryListItem> = repositories.map(
     repo => {
       const icon = getIcon(repo)
 
@@ -58,7 +58,7 @@ function convert(
 export function groupRepositories(
   repositories: ReadonlyArray<IAPIRepository>,
   login: string
-): ReadonlyArray<IFilterListGroup<IClonableRepositoryListItem>> {
+): ReadonlyArray<IFilterListGroup<ICloneableRepositoryListItem>> {
   const userRepos = repositories.filter(repo => repo.owner.type === 'User')
   const orgRepos = repositories.filter(
     repo => repo.owner.type === 'Organization'
