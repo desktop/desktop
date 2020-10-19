@@ -56,7 +56,8 @@ interface IUpdateIndexOptions {
 }
 
 /**
- * Updates the index with file contents from the working tree.
+ * Updates the index with file contents from the working tree. This method
+ * is a noop when no paths are provided.
  *
  * @param paths   A list of paths which are to be updated with file contents and
  *                status from the working directory.
