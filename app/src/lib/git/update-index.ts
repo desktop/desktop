@@ -158,9 +158,7 @@ export async function stageFiles(
   // This third step will only happen if we have files that have been marked
   // for deletion. This covers us for files that were blown away in the last
   // updateIndex call
-  if (deletedFiles.length > 0) {
-    await updateIndex(repository, deletedFiles, { forceRemove: true })
-  }
+  await updateIndex(repository, deletedFiles, { forceRemove: true })
 
   // Finally we run through all files that have partial selections.
   // We don't care about renamed or not here since applyPatchToIndex
