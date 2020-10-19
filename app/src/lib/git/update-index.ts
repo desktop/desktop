@@ -119,9 +119,7 @@ export async function stageFiles(
       normal.push(file.path)
       if (file.status.kind === AppFileStatusKind.Renamed) {
         oldRenamed.push(file.status.oldPath)
-      }
-
-      if (file.status.kind === AppFileStatusKind.Deleted) {
+      } else if (file.status.kind === AppFileStatusKind.Deleted) {
         deletedFiles.push(file.path)
       }
     } else {
@@ -166,9 +164,7 @@ export async function stageFiles(
   // Finally we run through all files that have partial selections.
   // We don't care about renamed or not here since applyPatchToIndex
   // has logic to support that scenario.
-  if (partial.length) {
-    for (const file of partial) {
-      await applyPatchToIndex(repository, file)
-    }
+  for (const file of partial) {
+    await applyPatchToIndex(repository, file)
   }
 }
