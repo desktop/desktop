@@ -263,7 +263,7 @@ export class List extends React.Component<IListProps, IListState> {
   private lastScroll: 'grid' | 'fake' | null = null
 
   private list: HTMLDivElement | null = null
-  private grid: React.Component<any, any> | null = null
+  private grid: Grid | null = null
   private readonly resizeObserver: ResizeObserver | null = null
   private updateSizeTimeoutId: NodeJS.Immediate | null = null
 
@@ -424,7 +424,58 @@ export class List extends React.Component<IListProps, IListState> {
       // on Windows. Clicking on the menu item still emits the
       // 'select-all' custom DOM event.
       this.onSelectAll(event)
+    } else if (event.key === 'PageDown') {
+      this.moveSelectionByPage('down', event)
+    } else if (event.key === 'PageUp') {
+      this.moveSelectionByPage('up', event)
     }
+  }
+
+  private moveSelectionByPage(
+    direction: SelectionDirection,
+    event: React.KeyboardEvent<any>
+  ) {
+    const { height: listHeight } = this.state
+    const { selectedRows, rowCount } = this.props
+    const lastSelection = selectedRows[selectedRows.length - 1] ?? 0
+
+    if (listHeight === undefined) {
+      return
+    }
+
+    let offset = 0
+    let newSelection = lastSelection
+    const delta = direction === 'up' ? -1 : 1
+
+    // Starting from the last selected row, move up or down depending
+    // on the direction, keeping a sum of the height of all the rows
+    // we've seen until the accumulated height is about to exceed that
+    // of the list height. Once we've found the index of the item that
+    // just about exceeds the height we'll pick that one as the next
+    // selection.
+    for (let i = lastSelection; i < rowCount && i >= 0; i += delta) {
+      const h = this.getRowHeight(i)
+
+      if (offset + h > listHeight) {
+        break
+      }
+      offset += h
+
+      if (this.canSelectRow(i)) {
+        newSelection = i
+      }
+    }
+
+    if (newSelection !== lastSelection) {
+      this.moveSelectionTo(newSelection, { kind: 'keyboard', event })
+    }
+
+    event.preventDefault()
+  }
+
+  private getRowHeight(index: number) {
+    const { rowHeight } = this.props
+    return typeof rowHeight === 'number' ? rowHeight : rowHeight({ index })
   }
 
   private onRowKeyDown = (
@@ -775,7 +826,7 @@ export class List extends React.Component<IListProps, IListState> {
     return this.renderGrid(width, height)
   }
 
-  private onGridRef = (ref: React.Component<any, any> | null) => {
+  private onGridRef = (ref: Grid | null) => {
     this.grid = ref
   }
 
