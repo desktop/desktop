@@ -425,9 +425,25 @@ export class List extends React.Component<IListProps, IListState> {
       // 'select-all' custom DOM event.
       this.onSelectAll(event)
     } else if (event.key === 'PageDown') {
-      this.moveSelectionByPage('down', event)
+      if (
+        event.shiftKey &&
+        this.props.selectionMode &&
+        this.props.selectionMode !== 'single'
+      ) {
+        this.addSelectionByPage('down', event)
+      } else {
+        this.moveSelectionByPage('down', event)
+      }
     } else if (event.key === 'PageUp') {
-      this.moveSelectionByPage('up', event)
+      if (
+        event.shiftKey &&
+        this.props.selectionMode &&
+        this.props.selectionMode !== 'single'
+      ) {
+        this.addSelectionByPage('up', event)
+      } else {
+        this.moveSelectionByPage('up', event)
+      }
     }
   }
 
@@ -435,16 +451,68 @@ export class List extends React.Component<IListProps, IListState> {
     direction: SelectionDirection,
     event: React.KeyboardEvent<any>
   ) {
-    const { height: listHeight } = this.state
-    const { selectedRows, rowCount } = this.props
+    event.preventDefault()
+
+    const { selectedRows } = this.props
     const lastSelection = selectedRows[selectedRows.length - 1] ?? 0
 
+    const newSelection = this.findNextPageSelectableRow(
+      lastSelection,
+      direction
+    )
+
+    this.moveSelectionTo(newSelection, { kind: 'keyboard', event })
+  }
+
+  private addSelectionByPage(
+    direction: SelectionDirection,
+    event: React.KeyboardEvent<any>
+  ) {
+    const { selectedRows } = this.props
+    const lastSelection = selectedRows[selectedRows.length - 1] ?? 0
+
+    const newSelection = this.findNextPageSelectableRow(
+      lastSelection,
+      direction
+    )
+
+    const firstSelection = selectedRows[0] ?? 0
+    const range = createSelectionBetween(firstSelection, newSelection)
+    const source: SelectionSource = { kind: 'keyboard', event }
+
+    if (this.props.onSelectionChanged) {
+      this.props.onSelectionChanged(range, source)
+    }
+
+    if (this.props.onSelectedRangeChanged) {
+      this.props.onSelectedRangeChanged(
+        range[0],
+        range[range.length - 1],
+        source
+      )
+    }
+
+    this.scrollRowToVisible(newSelection)
+  }
+
+  private getRowHeight(index: number) {
+    const { rowHeight } = this.props
+    return typeof rowHeight === 'number' ? rowHeight : rowHeight({ index })
+  }
+
+  private findNextPageSelectableRow(
+    fromRow: number,
+    direction: SelectionDirection
+  ) {
+    const { height: listHeight } = this.state
+    const { rowCount } = this.props
+
     if (listHeight === undefined) {
-      return
+      return fromRow
     }
 
     let offset = 0
-    let newSelection = lastSelection
+    let newSelection = fromRow
     const delta = direction === 'up' ? -1 : 1
 
     // Starting from the last selected row, move up or down depending
@@ -453,7 +521,7 @@ export class List extends React.Component<IListProps, IListState> {
     // of the list height. Once we've found the index of the item that
     // just about exceeds the height we'll pick that one as the next
     // selection.
-    for (let i = lastSelection; i < rowCount && i >= 0; i += delta) {
+    for (let i = fromRow; i < rowCount && i >= 0; i += delta) {
       const h = this.getRowHeight(i)
 
       if (offset + h > listHeight) {
@@ -466,16 +534,7 @@ export class List extends React.Component<IListProps, IListState> {
       }
     }
 
-    if (newSelection !== lastSelection) {
-      this.moveSelectionTo(newSelection, { kind: 'keyboard', event })
-    }
-
-    event.preventDefault()
-  }
-
-  private getRowHeight(index: number) {
-    const { rowHeight } = this.props
-    return typeof rowHeight === 'number' ? rowHeight : rowHeight({ index })
+    return newSelection
   }
 
   private onRowKeyDown = (
