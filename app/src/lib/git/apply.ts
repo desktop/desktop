@@ -59,7 +59,7 @@ export async function applyPatchToIndex(
 
   const diff = await getWorkingDirectoryDiff(repository, file)
 
-  if (diff.kind !== DiffType.Text) {
+  if (diff.kind !== DiffType.Text && diff.kind !== DiffType.LargeText) {
     throw new Error(`Unexpected diff result returned: '${diff.kind}'`)
   }
 
