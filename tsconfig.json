@@ -4,6 +4,7 @@
     "moduleResolution": "node",
     "target": "es2017",
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "importHelpers": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,

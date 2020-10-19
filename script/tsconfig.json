@@ -3,6 +3,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "importHelpers": true,
     "target": "es2017",
     "allowUnreachableCode": false,
