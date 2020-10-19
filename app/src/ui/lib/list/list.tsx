@@ -391,27 +391,24 @@ export class List extends React.Component<IListProps, IListState> {
       ? event.metaKey && event.key === 'ArrowDown'
       : event.key === 'End'
 
+    const isRangeSelection =
+      event.shiftKey &&
+      this.props.selectionMode !== undefined &&
+      this.props.selectionMode !== 'single'
+
     if (isHomeKey) {
       this.moveSelectionToFirstSelectableRow(source)
     } else if (isEndKey) {
       this.moveSelectionToLastSelectableRow(source)
     } else if (event.key === 'ArrowDown') {
-      if (
-        event.shiftKey &&
-        this.props.selectionMode &&
-        this.props.selectionMode !== 'single'
-      ) {
+      if (isRangeSelection) {
         this.addSelection('down', source)
       } else {
         this.moveSelection('down', source)
       }
       event.preventDefault()
     } else if (event.key === 'ArrowUp') {
-      if (
-        event.shiftKey &&
-        this.props.selectionMode &&
-        this.props.selectionMode !== 'single'
-      ) {
+      if (isRangeSelection) {
         this.addSelection('up', source)
       } else {
         this.moveSelection('up', source)
@@ -425,34 +422,26 @@ export class List extends React.Component<IListProps, IListState> {
       // 'select-all' custom DOM event.
       this.onSelectAll(event)
     } else if (event.key === 'PageDown') {
-      if (
-        event.shiftKey &&
-        this.props.selectionMode &&
-        this.props.selectionMode !== 'single'
-      ) {
-        this.addSelectionByPage('down', event)
+      if (isRangeSelection) {
+        this.addSelectionByPage('down', source)
       } else {
-        this.moveSelectionByPage('down', event)
+        this.moveSelectionByPage('down', source)
       }
+      event.preventDefault()
     } else if (event.key === 'PageUp') {
-      if (
-        event.shiftKey &&
-        this.props.selectionMode &&
-        this.props.selectionMode !== 'single'
-      ) {
-        this.addSelectionByPage('up', event)
+      if (isRangeSelection) {
+        this.addSelectionByPage('up', source)
       } else {
-        this.moveSelectionByPage('up', event)
+        this.moveSelectionByPage('up', source)
       }
+      event.preventDefault()
     }
   }
 
   private moveSelectionByPage(
     direction: SelectionDirection,
-    event: React.KeyboardEvent<any>
+    source: SelectionSource
   ) {
-    event.preventDefault()
-
     const { selectedRows } = this.props
     const lastSelection = selectedRows[selectedRows.length - 1] ?? 0
 
@@ -461,12 +450,12 @@ export class List extends React.Component<IListProps, IListState> {
       direction
     )
 
-    this.moveSelectionTo(newSelection, { kind: 'keyboard', event })
+    this.moveSelectionTo(newSelection, source)
   }
 
   private addSelectionByPage(
     direction: SelectionDirection,
-    event: React.KeyboardEvent<any>
+    source: SelectionSource
   ) {
     const { selectedRows } = this.props
     const lastSelection = selectedRows[selectedRows.length - 1] ?? 0
@@ -478,7 +467,6 @@ export class List extends React.Component<IListProps, IListState> {
 
     const firstSelection = selectedRows[0] ?? 0
     const range = createSelectionBetween(firstSelection, newSelection)
-    const source: SelectionSource = { kind: 'keyboard', event }
 
     if (this.props.onSelectionChanged) {
       this.props.onSelectionChanged(range, source)
