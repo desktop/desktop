@@ -434,14 +434,7 @@ export class List extends React.Component<IListProps, IListState> {
     direction: SelectionDirection,
     source: SelectionSource
   ) {
-    const { selectedRows } = this.props
-    const lastSelection = selectedRows[selectedRows.length - 1] ?? 0
-
-    const newSelection = this.findNextPageSelectableRow(
-      lastSelection,
-      direction
-    )
-
+    const newSelection = this.getNextPageRowIndex(direction)
     this.moveSelectionTo(newSelection, source)
   }
 
@@ -450,13 +443,7 @@ export class List extends React.Component<IListProps, IListState> {
     source: SelectionSource
   ) {
     const { selectedRows } = this.props
-    const lastSelection = selectedRows[selectedRows.length - 1] ?? 0
-
-    const newSelection = this.findNextPageSelectableRow(
-      lastSelection,
-      direction
-    )
-
+    const newSelection = this.getNextPageRowIndex(direction)
     const firstSelection = selectedRows[0] ?? 0
     const range = createSelectionBetween(firstSelection, newSelection)
 
@@ -473,6 +460,13 @@ export class List extends React.Component<IListProps, IListState> {
     }
 
     this.scrollRowToVisible(newSelection)
+  }
+
+  private getNextPageRowIndex(direction: SelectionDirection) {
+    const { selectedRows } = this.props
+    const lastSelection = selectedRows[selectedRows.length - 1] ?? 0
+
+    return this.findNextPageSelectableRow(lastSelection, direction)
   }
 
   private getRowHeight(index: number) {
@@ -675,11 +669,9 @@ export class List extends React.Component<IListProps, IListState> {
     }
 
     if (this.props.onSelectedRangeChanged) {
-      this.props.onSelectedRangeChanged(
-        range[0],
-        range[range.length - 1],
-        source
-      )
+      const from = range[0] ?? 0
+      const to = range[range.length - 1] ?? 0
+      this.props.onSelectedRangeChanged(from, to, source)
     }
 
     this.scrollRowToVisible(row)
