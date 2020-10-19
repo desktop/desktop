@@ -68,7 +68,7 @@ async function updateIndex(
   paths: ReadonlyArray<string>,
   options: IUpdateIndexOptions = {}
 ) {
-  if (!paths.length) {
+  if (paths.length === 0) {
     return
   }
 
