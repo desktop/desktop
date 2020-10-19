@@ -396,22 +396,20 @@ export class List extends React.Component<IListProps, IListState> {
       this.props.selectionMode !== undefined &&
       this.props.selectionMode !== 'single'
 
-    if (isHomeKey) {
-      this.moveSelectionToFirstSelectableRow(source)
-    } else if (isEndKey) {
-      this.moveSelectionToLastSelectableRow(source)
-    } else if (event.key === 'ArrowDown') {
+    if (isHomeKey || isEndKey) {
+      const direction = isHomeKey ? 'up' : 'down'
       if (isRangeSelection) {
-        this.addSelection('down', source)
+        this.addSelectionToLastSelectableRow(direction, source)
       } else {
-        this.moveSelection('down', source)
+        this.moveSelectionToLastSelectableRow(direction, source)
       }
       event.preventDefault()
-    } else if (event.key === 'ArrowUp') {
+    } else if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+      const direction = event.key === 'ArrowUp' ? 'up' : 'down'
       if (isRangeSelection) {
-        this.addSelection('up', source)
+        this.addSelection(direction, source)
       } else {
-        this.moveSelection('up', source)
+        this.moveSelection(direction, source)
       }
       event.preventDefault()
     } else if (!__DARWIN__ && event.key === 'a' && event.ctrlKey) {
@@ -421,18 +419,12 @@ export class List extends React.Component<IListProps, IListState> {
       // on Windows. Clicking on the menu item still emits the
       // 'select-all' custom DOM event.
       this.onSelectAll(event)
-    } else if (event.key === 'PageDown') {
+    } else if (event.key === 'PageUp' || event.key === 'PageDown') {
+      const direction = event.key === 'PageUp' ? 'up' : 'down'
       if (isRangeSelection) {
-        this.addSelectionByPage('down', source)
+        this.addSelectionByPage(direction, source)
       } else {
-        this.moveSelectionByPage('down', source)
-      }
-      event.preventDefault()
-    } else if (event.key === 'PageUp') {
-      if (isRangeSelection) {
-        this.addSelectionByPage('up', source)
-      } else {
-        this.moveSelectionByPage('up', source)
+        this.moveSelectionByPage(direction, source)
       }
       event.preventDefault()
     }
@@ -650,24 +642,47 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private moveSelectionToFirstSelectableRow(source: SelectionSource) {
+  private moveSelectionToLastSelectableRow(
+    direction: SelectionDirection,
+    source: SelectionSource
+  ) {
     const { canSelectRow, props } = this
     const { rowCount } = props
-    const row = findLastSelectableRow('up', rowCount, canSelectRow)
+    const row = findLastSelectableRow(direction, rowCount, canSelectRow)
 
     if (row !== null) {
       this.moveSelectionTo(row, source)
     }
   }
 
-  private moveSelectionToLastSelectableRow(source: SelectionSource) {
+  private addSelectionToLastSelectableRow(
+    direction: SelectionDirection,
+    source: SelectionSource
+  ) {
     const { canSelectRow, props } = this
-    const { rowCount } = props
-    const row = findLastSelectableRow('down', rowCount, canSelectRow)
+    const { rowCount, selectedRows } = props
+    const row = findLastSelectableRow(direction, rowCount, canSelectRow)
 
-    if (row !== null) {
-      this.moveSelectionTo(row, source)
+    if (row === null) {
+      return
     }
+
+    const firstSelection = selectedRows[0] ?? 0
+    const range = createSelectionBetween(firstSelection, row)
+
+    if (this.props.onSelectionChanged) {
+      this.props.onSelectionChanged(range, source)
+    }
+
+    if (this.props.onSelectedRangeChanged) {
+      this.props.onSelectedRangeChanged(
+        range[0],
+        range[range.length - 1],
+        source
+      )
+    }
+
+    this.scrollRowToVisible(row)
   }
 
   private moveSelectionTo(row: number, source: SelectionSource) {
