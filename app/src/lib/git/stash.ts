@@ -117,7 +117,7 @@ export async function createDesktopStashEntry(
   repository: Repository,
   branchName: string,
   untrackedFilesToStage: ReadonlyArray<WorkingDirectoryFileChange>
-): Promise<true> {
+): Promise<boolean> {
   // We must ensure that no untracked files are present before stashing
   // See https://github.com/desktop/desktop/pull/8085
   // First ensure that all changes in file are selected
@@ -151,6 +151,11 @@ export async function createDesktopStashEntry(
     log.info(
       `[createDesktopStashEntry] a stash was created successfully but exit code ${result.exitCode} reported. stderr: ${result.stderr}`
     )
+  }
+
+  // Stash doesn't consider it an error that there aren't any local changes to save.
+  if (result.stdout === 'No local changes to save\n') {
+    return false
   }
 
   return true
