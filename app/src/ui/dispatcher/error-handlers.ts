@@ -471,9 +471,14 @@ export async function localChangesOverwrittenOnCheckoutHandler(
     return error
   }
 
-  const { branchToCheckout } = gitContext
+  const { branchToCheckout: branch } = gitContext
 
-  await dispatcher.moveChangesToBranchAndCheckout(repository, branchToCheckout)
+  // If we fail to create and move the stash entry we'll let the original
+  // error message bubble up instead of showing a "Could not create stash"
+  // error which isn't helpful.
+  if (!(await dispatcher.moveChangesToBranchAndCheckout(repository, branch))) {
+    return error
+  }
 
   return null
 }
