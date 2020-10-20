@@ -18,3 +18,5 @@ requestInfoLabelToAdd: more-info-needed
 requestInfoOn:
   pullRequest: false
   issue: true
+
+checkIssueTemplate: true
