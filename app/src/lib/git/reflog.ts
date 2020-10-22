@@ -9,8 +9,7 @@ import { Repository } from '../../models/repository'
  */
 export async function getRecentBranches(
   repository: Repository,
-  limit: number,
-  defaultBranchName: string | undefined
+  limit: number
 ): Promise<ReadonlyArray<string>> {
   // "git reflog show" is just an alias for "git log -g --abbrev-commit --pretty=oneline"
   // but by using log we can give it a max number which should prevent us from balling out
@@ -43,12 +42,6 @@ export async function getRecentBranches(
   const lines = result.stdout.split('\n')
   const names = new Set<string>()
   const excludedNames = new Set<String>()
-
-  // The default branch already has its own section in the branch
-  // list so we exclude it here.
-  if (defaultBranchName !== undefined) {
-    excludedNames.add(defaultBranchName)
-  }
 
   for (const line of lines) {
     const result = regex.exec(line)

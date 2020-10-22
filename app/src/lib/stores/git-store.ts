@@ -381,11 +381,10 @@ export class GitStore extends BaseStore {
 
   /** Load all the branches. */
   public async loadBranches() {
-    const defaultBranch = this.defaultBranch?.name
     const [localAndRemoteBranches, recentBranchNames] = await Promise.all([
       this.performFailableOperation(() => getBranches(this.repository)) || [],
       this.performFailableOperation(() =>
-        getRecentBranches(this.repository, RecentBranchesLimit, defaultBranch)
+        getRecentBranches(this.repository, RecentBranchesLimit)
       ),
     ])
 
@@ -550,6 +549,12 @@ export class GitStore extends BaseStore {
 
     const recentBranches = new Array<Branch>()
     for (const name of recentBranchNames) {
+      // The default branch already has its own section in the branch
+      // list so we exclude it here.
+      if (name === this.defaultBranch?.name) {
+        continue
+      }
+
       const branch = branchesByName.get(name)
       if (!branch) {
         // This means the recent branch has been deleted. That's fine.
