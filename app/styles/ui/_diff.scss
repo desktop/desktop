@@ -327,6 +327,8 @@
   display: flex;
   flex: 1;
   padding: var(--spacing);
+  min-width: 0;
+  min-height: 0;
 
   .tab-bar {
     width: 350px;
@@ -350,6 +352,8 @@
   .image-diff-previous,
   .image-diff-current {
     text-align: center;
+    min-height: 0;
+    min-width: 0;
 
     img {
       @include checkboard-background;
@@ -378,11 +382,13 @@
   justify-content: center;
   align-items: center;
   min-height: 0;
+  min-width: 0;
 
   .image-diff-two-up {
     display: flex;
     max-height: 100%;
     min-height: 0;
+    min-width: 0;
     padding: 0 var(--spacing-double);
 
     .image-diff-previous {
@@ -412,6 +418,7 @@
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  min-width: 0;
 
   .sizing-container {
     flex: 1;
@@ -419,6 +426,7 @@
     justify-content: center;
     align-items: center;
     min-height: 0;
+    min-width: 0;
 
     .image-container {
       position: relative;
@@ -428,6 +436,8 @@
         position: absolute;
         top: 0;
         left: 0;
+        min-height: 0;
+        min-width: 0;
         img {
           border: 0;
           background: transparent;
@@ -442,6 +452,7 @@
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  min-width: 0;
 
   .slider {
     align-self: center;
@@ -455,12 +466,15 @@
     justify-content: center;
     align-items: center;
     min-height: 0;
+    min-width: 0;
 
     .image-diff-previous,
     .image-diff-current {
       position: absolute;
       margin: 0;
       overflow: hidden;
+      min-height: 0;
+      min-width: 0;
 
       img {
         border: 0;
@@ -487,6 +501,7 @@
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  min-width: 0;
 
   .slider {
     align-self: center;
@@ -500,6 +515,7 @@
     justify-content: center;
     align-items: center;
     min-height: 0;
+    min-width: 0;
 
     .image-container {
       position: relative;
@@ -510,6 +526,8 @@
         position: absolute;
         margin: 0;
         overflow: hidden;
+        min-height: 0;
+        min-width: 0;
 
         img {
           border: 0;
