@@ -33,7 +33,7 @@ import {
   DiffType,
 } from '../../../src/models/diff'
 import { getStatusOrThrow } from '../../helpers/status'
-import { ManualConflictResolutionKind } from '../../../src/models/manual-conflict-resolution'
+import { ManualConflictResolution } from '../../../src/models/manual-conflict-resolution'
 import { isConflictedFile } from '../../../src/lib/status'
 
 async function getTextDiff(
@@ -543,7 +543,7 @@ describe('git/commit', () => {
           f => f.status.kind !== AppFileStatusKind.Untracked
         )
         const manualResolutions = new Map([
-          ['bar', ManualConflictResolutionKind.ours],
+          ['bar', ManualConflictResolution.ours],
         ])
         const sha = await createMergeCommit(
           repository,
@@ -564,7 +564,7 @@ describe('git/commit', () => {
           f => f.status.kind !== AppFileStatusKind.Untracked
         )
         const manualResolutions = new Map([
-          ['bar', ManualConflictResolutionKind.theirs],
+          ['bar', ManualConflictResolution.theirs],
         ])
         const sha = await createMergeCommit(
           repository,
@@ -585,7 +585,7 @@ describe('git/commit', () => {
           f => f.status.kind !== AppFileStatusKind.Untracked
         )
         const manualResolutions = new Map([
-          ['baz', ManualConflictResolutionKind.ours],
+          ['baz', ManualConflictResolution.ours],
         ])
         const sha = await createMergeCommit(
           repository,
@@ -606,7 +606,7 @@ describe('git/commit', () => {
           f => f.status.kind !== AppFileStatusKind.Untracked
         )
         const manualResolutions = new Map([
-          ['baz', ManualConflictResolutionKind.theirs],
+          ['baz', ManualConflictResolution.theirs],
         ])
         const sha = await createMergeCommit(
           repository,
@@ -666,7 +666,7 @@ describe('git/commit', () => {
           )
 
           const manualResolutions = new Map([
-            [file.path, ManualConflictResolutionKind.theirs],
+            [file.path, ManualConflictResolution.theirs],
           ])
           await createMergeCommit(repository, trackedFiles, manualResolutions)
 
@@ -699,7 +699,7 @@ describe('git/commit', () => {
           )
 
           const manualResolutions = new Map([
-            [file.path, ManualConflictResolutionKind.ours],
+            [file.path, ManualConflictResolution.ours],
           ])
           await createMergeCommit(repository, trackedFiles, manualResolutions)
 

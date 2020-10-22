@@ -5,10 +5,7 @@ import {
   GitStatusEntry,
   isConflictWithMarkers,
 } from '../../models/status'
-import {
-  ManualConflictResolution,
-  ManualConflictResolutionKind,
-} from '../../models/manual-conflict-resolution'
+import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { assertNever } from '../fatal-error'
 import { removeConflictedFile } from './rm'
 import { checkoutConflictedFile } from './checkout'
@@ -42,7 +39,7 @@ export async function stageManualConflictResolution(
   }
 
   const chosen =
-    manualResolution === ManualConflictResolutionKind.theirs
+    manualResolution === ManualConflictResolution.theirs
       ? status.entry.them
       : status.entry.us
 
