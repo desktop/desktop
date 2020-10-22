@@ -643,7 +643,7 @@ export class CloneRepository extends React.Component<
     try {
       this.cloneImpl(url.trim(), path)
     } catch (e) {
-      log.error(`CloneRepostiory: clone failed to complete to ${path}`, e)
+      log.error(`CloneRepository: clone failed to complete to ${path}`, e)
       this.setState({ loading: false })
       this.setSelectedTabState({ error: e })
     }

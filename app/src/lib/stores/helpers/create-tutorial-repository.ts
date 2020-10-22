@@ -15,7 +15,7 @@ import { envForRemoteOperation } from '../../git/environment'
 import { DefaultBranchInGit } from '../../helpers/default-branch'
 
 const nl = __WIN32__ ? '\r\n' : '\n'
-const InititalReadmeContents =
+const InitialReadmeContents =
   `# Welcome to GitHub Desktop!${nl}${nl}` +
   `This is your README. READMEs are where you can communicate ` +
   `what your project is and how to use it.${nl}${nl}` +
