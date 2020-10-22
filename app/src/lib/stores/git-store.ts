@@ -394,9 +394,12 @@ export class GitStore extends BaseStore {
 
     this._allBranches = this.mergeRemoteAndLocalBranches(localAndRemoteBranches)
 
-    this.refreshDefaultBranch()
-    this.refreshRecentBranches(recentBranchNames)
-    this.checkPullWithRebase()
+    await Promise.all([
+      this.refreshDefaultBranch().then(() =>
+        this.refreshRecentBranches(recentBranchNames)
+      ),
+      this.checkPullWithRebase(),
+    ])
     this.emitUpdate()
   }
 
