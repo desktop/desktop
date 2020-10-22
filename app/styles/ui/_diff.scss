@@ -330,7 +330,7 @@
 
   .tab-bar {
     width: 350px;
-    margin: 10px auto 0;
+    margin: var(--spacing) auto 0;
   }
 
   // https://stackoverflow.com/a/30792956/2114
