@@ -126,7 +126,7 @@ export async function createTutorialRepository(
     await git(['checkout', '-b', branch], path, 'tutorial:rename-branch')
   }
 
-  await writeFile(Path.join(path, 'README.md'), InititalReadmeContents)
+  await writeFile(Path.join(path, 'README.md'), InitialReadmeContents)
 
   await git(['add', '--', 'README.md'], path, 'tutorial:add')
   await git(['commit', '-m', 'Initial commit'], path, 'tutorial:commit')
