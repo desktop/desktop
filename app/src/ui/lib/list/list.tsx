@@ -239,10 +239,7 @@ function createSelectionBetween(
 }
 
 export class List extends React.Component<IListProps, IListState> {
-  private focusItem: HTMLDivElement | null = null
   private fakeScroll: HTMLDivElement | null = null
-
-  private scrollToRow = -1
   private focusRow = -1
 
   /**
@@ -269,12 +266,6 @@ export class List extends React.Component<IListProps, IListState> {
 
   public constructor(props: IListProps) {
     super(props)
-
-    // If we have a selected row when we're about to mount
-    // we'll scroll to it immediately.
-    if (props.selectedRows.length > 0) {
-      this.scrollToRow = props.selectedRows[0]
-    }
 
     this.state = {}
 
@@ -699,26 +690,38 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private scrollRowToVisible(row: number) {
-    this.scrollToRow = row
-
-    if (this.props.focusOnHover !== false) {
+    if (this.grid !== null) {
+      this.grid.scrollToCell({ rowIndex: row, columnIndex: 0 })
       this.focusRow = row
     }
+  }
 
-    this.forceUpdate()
+  public componentDidMount() {
+    const { props, grid } = this
+    const { selectedRows, scrollToRow, setScrollTop } = props
+
+    // Prefer scrollTop position over scrollToRow
+    if (grid !== null && setScrollTop === undefined) {
+      if (scrollToRow !== undefined) {
+        grid.scrollToCell({ rowIndex: scrollToRow, columnIndex: 0 })
+      } else if (selectedRows.length > 0) {
+        // If we have a selected row when we're about to mount
+        // we'll scroll to it immediately.
+        grid.scrollToCell({ rowIndex: selectedRows[0], columnIndex: 0 })
+      }
+    }
   }
 
   public componentDidUpdate(prevProps: IListProps, prevState: IListState) {
-    // If this state is set it means that someone just used arrow keys (or pgup/down)
-    // to change the selected row. When this happens we need to explicitly shift
-    // keyboard focus to the newly selected item. If focusItem is null then
-    // we're probably just loading more items and we'll catch it on the next
-    // render pass.
-    if (this.focusRow >= 0 && this.focusItem) {
-      this.focusItem.focus()
-      this.focusRow = -1
-      this.forceUpdate()
-    } else if (this.grid) {
+    const { scrollToRow, setScrollTop } = this.props
+    if (scrollToRow !== undefined && prevProps.scrollToRow !== scrollToRow) {
+      // Prefer scrollTop position over scrollToRow
+      if (setScrollTop === undefined) {
+        this.scrollRowToVisible(scrollToRow)
+      }
+    }
+
+    if (this.grid) {
       // A non-exhaustive set of checks to see if our current update has already
       // triggered a re-render of the Grid. In order to do this perfectly we'd
       // have to do a shallow compare on all the props we pass to Grid but
@@ -771,7 +774,11 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private onFocusedItemRef = (element: HTMLDivElement | null) => {
-    this.focusItem = element
+    if (this.props.focusOnHover !== false && element !== null) {
+      element.focus()
+    }
+
+    this.focusRow = -1
   }
 
   private renderRow = (params: IRowRendererParams) => {
@@ -895,17 +902,6 @@ export class List extends React.Component<IListProps, IListState> {
    * @param height - The height of the Grid as given by AutoSizer
    */
   private renderGrid(width: number, height: number) {
-    let scrollToRow = this.props.scrollToRow
-    if (scrollToRow === undefined) {
-      scrollToRow = this.scrollToRow
-    }
-    this.scrollToRow = -1
-
-    // Prefer scrollTop position over scrollToRow
-    if (this.props.setScrollTop !== undefined) {
-      scrollToRow = -1
-    }
-
     // The currently selected list item is focusable but if
     // there's no focused item (and there's items to switch between)
     // the list itself needs to be focusable so that you can reach
@@ -931,7 +927,6 @@ export class List extends React.Component<IListProps, IListState> {
           rowHeight={this.props.rowHeight}
           cellRenderer={this.renderRow}
           onScroll={this.onScroll}
-          scrollToRow={scrollToRow}
           scrollTop={this.props.setScrollTop}
           overscanRowCount={4}
           style={this.gridStyle}
@@ -1176,15 +1171,6 @@ export class List extends React.Component<IListProps, IListState> {
           element.focus()
         }
       }
-    }
-  }
-
-  public forceUpdate(callback?: () => any) {
-    super.forceUpdate(callback)
-
-    const grid = this.grid
-    if (grid) {
-      grid.forceUpdate()
     }
   }
 }
