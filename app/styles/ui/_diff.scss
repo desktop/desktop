@@ -354,6 +354,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     min-height: 0;
     min-width: 0;
 
@@ -439,12 +440,6 @@
         height: 100%;
         width: 100%;
 
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 0;
-        min-width: 0;
-
         img {
           border: 0;
           background: transparent;
@@ -478,13 +473,8 @@
     .image-diff-previous,
     .image-diff-current {
       position: absolute;
-      margin: 0;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 0;
-      min-width: 0;
+      width: 100%;
+      height: 100%;
 
       img {
         border: 0;
@@ -534,13 +524,6 @@
       .image-diff-current {
         @include checkboard-background;
         position: absolute;
-        margin: 0;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 0;
-        min-width: 0;
 
         img {
           border: 0;
