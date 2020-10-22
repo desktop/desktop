@@ -5,6 +5,10 @@ import { ISize } from './sizing'
 import { formatBytes } from '../../lib/bytes'
 import classNames from 'classnames'
 
+function percentDiff(previous: number, current: number) {
+  return `${Math.abs(Math.round((current / previous) * 100))}%`
+}
+
 interface ITwoUpProps extends ICommonImageDiffProperties {
   readonly previousImageSize: ISize | null
   readonly currentImageSize: ISize | null
@@ -12,12 +16,6 @@ interface ITwoUpProps extends ICommonImageDiffProperties {
 
 export class TwoUp extends React.Component<ITwoUpProps, {}> {
   public render() {
-    const percentDiff = (previous: number, current: number) => {
-      const diff = Math.round((100 * (current - previous)) / previous)
-      const sign = diff > 0 ? '+' : ''
-      return sign + diff + '%'
-    }
-
     const zeroSize = { width: 0, height: 0 }
     const previousImageSize = this.props.previousImageSize || zeroSize
     const currentImageSize = this.props.currentImageSize || zeroSize
@@ -26,7 +24,7 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
       this.props.current.bytes
     )
     const diffBytes = this.props.current.bytes - this.props.previous.bytes
-    const diffBytesSign = diffBytes >= 0 ? '+' : '-'
+    const diffBytesSign = diffBytes >= 0 ? '+' : ''
 
     const style: React.CSSProperties = {
       maxWidth: this.props.maxSize.width,
@@ -46,7 +44,7 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
               <span className="strong">W:</span> {previousImageSize.width}
               px | <span className="strong">H:</span> {previousImageSize.height}
               px | <span className="strong">Size:</span>{' '}
-              {formatBytes(this.props.previous.bytes)}
+              {formatBytes(this.props.previous.bytes, 2, false)}
             </div>
           </div>
 
@@ -61,7 +59,7 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
               <span className="strong">W:</span> {currentImageSize.width}
               px | <span className="strong">H:</span> {currentImageSize.height}
               px | <span className="strong">Size:</span>{' '}
-              {formatBytes(this.props.current.bytes)}
+              {formatBytes(this.props.current.bytes, 2, false)}
             </div>
           </div>
         </div>
@@ -74,7 +72,11 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
             })}
           >
             {diffBytes !== 0
-              ? `${diffBytesSign}${formatBytes(diffBytes)} (${diffPercent})`
+              ? `${diffBytesSign}${formatBytes(
+                  diffBytes,
+                  2,
+                  false
+                )} (${diffPercent})`
               : 'No size difference'}
           </span>
         </div>
