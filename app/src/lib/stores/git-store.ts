@@ -384,7 +384,10 @@ export class GitStore extends BaseStore {
     const [localAndRemoteBranches, recentBranchNames] = await Promise.all([
       this.performFailableOperation(() => getBranches(this.repository)) || [],
       this.performFailableOperation(() =>
-        getRecentBranches(this.repository, RecentBranchesLimit)
+        // Chances are that the recent branches list will contain the default
+        // branch which we filter out in refreshRecentBranches. So grab one
+        // more than we need to account for that.
+        getRecentBranches(this.repository, RecentBranchesLimit + 1)
       ),
     ])
 
@@ -565,6 +568,10 @@ export class GitStore extends BaseStore {
       }
 
       recentBranches.push(branch)
+
+      if (recentBranches.length >= RecentBranchesLimit) {
+        break
+      }
     }
 
     this._recentBranches = recentBranches
