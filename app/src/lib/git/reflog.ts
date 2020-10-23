@@ -3,9 +3,6 @@ import { Repository } from '../../models/repository'
 
 /**
  * Get the `limit` most recently checked out branches.
- *
- * @param defaultBranchName The name of the default branch (will be excluded
- *                          from the list of recent branches)
  */
 export async function getRecentBranches(
   repository: Repository,
