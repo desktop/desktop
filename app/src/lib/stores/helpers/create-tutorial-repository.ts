@@ -12,7 +12,10 @@ import { git } from '../../git'
 import { friendlyEndpointName } from '../../friendly-endpoint-name'
 import { IRemote } from '../../../models/remote'
 import { envForRemoteOperation } from '../../git/environment'
-import { DefaultBranchInGit } from '../../helpers/default-branch'
+import {
+  DefaultBranchInGit,
+  DefaultBranchInDesktop,
+} from '../../helpers/default-branch'
 
 const nl = __WIN32__ ? '\r\n' : '\n'
 const InitialReadmeContents =
@@ -115,8 +118,7 @@ export async function createTutorialRepository(
   }
 
   const repo = await createAPIRepository(account, name)
-  const branch = repo.default_branch ?? 'main'
-
+  const branch = repo.default_branch ?? DefaultBranchInDesktop
   progressCb('Initializing local repository', 0.2)
 
   await ensureDir(path)
