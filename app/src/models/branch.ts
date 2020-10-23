@@ -62,8 +62,8 @@ export class Branch {
   /**
    * A branch as loaded from Git.
    *
-   * @param name The short name of the branch. E.g., `master`.
-   * @param upstream The remote-prefixed upstream name. E.g., `origin/master`.
+   * @param name The short name of the branch. E.g., `main`.
+   * @param upstream The remote-prefixed upstream name. E.g., `origin/main`.
    * @param tip Basic information (sha and author) of the latest commit on the branch.
    * @param type The type of branch, e.g., local or remote.
    */

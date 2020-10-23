@@ -67,7 +67,7 @@ export async function getMergeBase(
     {
       // - 1 is returned if a common ancestor cannot be resolved
       // - 128 is returned if a ref cannot be found
-      //   "warning: ignoring broken ref refs/remotes/origin/master."
+      //   "warning: ignoring broken ref refs/remotes/origin/main."
       successExitCodes: new Set([0, 1, 128]),
     }
   )

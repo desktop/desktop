@@ -1063,7 +1063,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         repository,
         allBranches,
         currentPullRequest,
-        getRemotes
+        getRemotes,
+        cachedDefaultBranch
       )
 
       if (inferredBranch !== null) {

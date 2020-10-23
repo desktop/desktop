@@ -16,7 +16,7 @@ export class GitHubRepository {
     public readonly dbID: number | null,
     public readonly isPrivate: boolean | null = null,
     public readonly htmlURL: string | null = null,
-    public readonly defaultBranch: string | null = 'master',
+    public readonly defaultBranch: string | null = null,
     public readonly cloneURL: string | null = null,
     public readonly issuesEnabled: boolean | null = null,
     public readonly isArchived: boolean | null = null,

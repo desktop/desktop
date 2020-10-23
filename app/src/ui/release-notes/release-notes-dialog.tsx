@@ -36,7 +36,7 @@ const repository = new Repository(
     isPrivate: false,
     parent: null,
     htmlURL: 'https://github.com/desktop/desktop',
-    defaultBranch: 'master',
+    defaultBranch: 'development',
     cloneURL: 'https://github.com/desktop/desktop',
     endpoint: getDotComAPIEndpoint(),
     fullName: 'desktop/desktop',

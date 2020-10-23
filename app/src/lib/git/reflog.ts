@@ -1,7 +1,9 @@
 import { git } from './core'
 import { Repository } from '../../models/repository'
 
-/** Get the `limit` most recently checked out branches. */
+/**
+ * Get the `limit` most recently checked out branches.
+ */
 export async function getRecentBranches(
   repository: Repository,
   limit: number
@@ -36,8 +38,7 @@ export async function getRecentBranches(
 
   const lines = result.stdout.split('\n')
   const names = new Set<string>()
-  // exclude master from recent branches
-  const excludedNames = new Set<String>(['master'])
+  const excludedNames = new Set<String>()
 
   for (const line of lines) {
     const result = regex.exec(line)
