@@ -305,10 +305,13 @@
   }
 
   .cm-search-result {
-    background: yellow;
+    // match codemirror for now
+    // https://github.com/codemirror/CodeMirror/blob/264022ee4af4abca1c158944dc299a8faf8696d6/lib/codemirror.css#L333
+    background-color: rgba(255, 255, 0, 0.4);
 
     &.cm-selected {
-      background: orange;
+      background: Highlight;
+      color: HighlightText;
     }
   }
 }
