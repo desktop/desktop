@@ -42,6 +42,7 @@ export class DiffSearchInput extends React.Component<
       <form onSubmit={this.onSearch} className="diff-search">
         <TextBox
           placeholder="Search..."
+          type="search"
           autoFocus={true}
           onValueChanged={this.onChange}
           onKeyDown={this.onKeyDown}
@@ -55,7 +56,8 @@ export class DiffSearchInput extends React.Component<
     this.setState({ value })
   }
 
-  private onSearch = () => {
+  private onSearch = (event: React.FormEvent) => {
+    event.preventDefault()
     this.props.onSearch(this.state.value)
   }
 
