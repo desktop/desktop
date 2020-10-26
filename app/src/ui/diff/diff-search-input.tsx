@@ -66,7 +66,8 @@ export class DiffSearchInput extends React.Component<
   }
 
   private onKeyDown = (evt: React.KeyboardEvent<HTMLInputElement>) => {
-    if (evt.key === 'Escape') {
+    if (evt.key === 'Escape' && !evt.defaultPrevented) {
+      evt.preventDefault()
       this.props.onClose()
     }
   }
