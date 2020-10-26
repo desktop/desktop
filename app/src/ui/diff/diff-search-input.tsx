@@ -2,8 +2,19 @@ import * as React from 'react'
 import { TextBox } from '../lib/text-box'
 
 interface IDiffSearchInputProps {
+  /**
+   * Called when the user indicated that they either
+   * want to initiate a search or want to advance to
+   * the next hit (typically done by hitting `Enter`).
+   */
   readonly onSearch: (queryString: string) => void
 
+  /**
+   * Called when the user indicates that they want
+   * to abort the search, typically done by clicking
+   * outside of the diff search input component or
+   * by hitting `Escape`.
+   */
   readonly onClose: () => void
 }
 
