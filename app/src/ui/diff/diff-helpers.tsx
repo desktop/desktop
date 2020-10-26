@@ -150,8 +150,6 @@ interface IDiffRowContext {
    */
   readonly content: string
 
-  readonly diffLineNumber: number
-
   /**
    * The line number of this row in the previous state source file.
    */

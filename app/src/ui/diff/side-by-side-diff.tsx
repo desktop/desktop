@@ -900,7 +900,6 @@ function getDiffRowsFromHunk(
       rows.push({
         type: DiffRowType.Context,
         content: line.content,
-        diffLineNumber,
         beforeLineNumber: line.oldLineNumber,
         afterLineNumber: line.newLineNumber,
         beforeTokens: [],
