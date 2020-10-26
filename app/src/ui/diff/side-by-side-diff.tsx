@@ -403,11 +403,8 @@ export class SideBySideDiff extends React.Component<
         afterTokens.push(lineTokens)
       }
 
-      const searchBeforeTokens = this.getSearchTokens(numRow, DiffColumn.Before)
-      const searchAfterTokens = this.getSearchTokens(numRow, DiffColumn.After)
-
-      beforeTokens.push(...searchBeforeTokens)
-      afterTokens.push(...searchAfterTokens)
+      beforeTokens.push(...this.getSearchTokens(numRow, DiffColumn.Before))
+      afterTokens.push(...this.getSearchTokens(numRow, DiffColumn.After))
 
       return { ...row, beforeTokens, afterTokens }
     }
