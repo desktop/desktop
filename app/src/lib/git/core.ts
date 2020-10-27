@@ -335,7 +335,7 @@ function getDescriptionForError(error: DugiteError): string | null {
     case DugiteError.CannotMergeUnrelatedHistories:
       return 'Unable to merge unrelated histories in this repository.'
     case DugiteError.PushWithPrivateEmail:
-      return 'Cannot push these commits as they contain an email address marked as private on GitHub.'
+      return 'Cannot push these commits as they contain an email address marked as private on GitHub. To workaround this go to https://github.com/settings/emails and uncheck the "Keep my email address private" checkbox. Then switch back to GitHub Desktop to push your commits. You can then enable the checkbox again.'
     case DugiteError.LFSAttributeDoesNotMatch:
       return 'Git LFS attribute found in global Git configuration does not match expected value.'
     case DugiteError.ProtectedBranchDeleteRejected:
