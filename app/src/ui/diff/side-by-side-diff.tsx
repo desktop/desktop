@@ -1027,7 +1027,7 @@ function calcSearchTokens(
     return searchTokens
   }
 
-  const searchRegExp = new RegExp(escapeRegExp(searchQuery), 'gi')
+  const searchRe = new RegExp(escapeRegExp(searchQuery), 'gi')
   const rows = getDiffRows(diff, showSideBySideDiffs)
 
   for (const [rowNumber, row] of rows.entries()) {
@@ -1036,7 +1036,7 @@ function calcSearchTokens(
     }
 
     if (row.type === DiffRowType.Added) {
-      const tokens = getSearchTokensForLine(row.data.content, searchRegExp)
+      const tokens = getSearchTokensForLine(row.data.content, searchRe)
 
       if (tokens !== null) {
         searchTokens.set(rowNumber, {
@@ -1046,7 +1046,7 @@ function calcSearchTokens(
     }
 
     if (row.type === DiffRowType.Deleted) {
-      const tokens = getSearchTokensForLine(row.data.content, searchRegExp)
+      const tokens = getSearchTokensForLine(row.data.content, searchRe)
 
       if (tokens !== null) {
         searchTokens.set(rowNumber, { [DiffColumn.Before]: tokens })
@@ -1054,7 +1054,7 @@ function calcSearchTokens(
     }
 
     if (row.type === DiffRowType.Context) {
-      const tokens = getSearchTokensForLine(row.content, searchRegExp)
+      const tokens = getSearchTokensForLine(row.content, searchRe)
 
       if (tokens !== null) {
         searchTokens.set(rowNumber, {
@@ -1065,22 +1065,16 @@ function calcSearchTokens(
     }
 
     if (row.type === DiffRowType.Modified) {
-      const beforeTokens = getSearchTokensForLine(
-        row.beforeData.content,
-        searchRegExp
-      )
-      const afterTokens = getSearchTokensForLine(
-        row.afterData.content,
-        searchRegExp
-      )
+      const before = getSearchTokensForLine(row.beforeData.content, searchRe)
+      const after = getSearchTokensForLine(row.afterData.content, searchRe)
 
-      if (beforeTokens !== null || afterTokens !== null) {
+      if (before !== null || after !== null) {
         const tokens: RowSearchTokens = {}
-        if (beforeTokens !== null) {
-          tokens[DiffColumn.Before] = beforeTokens
+        if (before !== null) {
+          tokens[DiffColumn.Before] = before ?? undefined
         }
-        if (afterTokens !== null) {
-          tokens[DiffColumn.After] = afterTokens
+        if (after !== null) {
+          tokens[DiffColumn.After] = after ?? undefined
         }
         searchTokens.set(rowNumber, tokens)
       }
