@@ -751,6 +751,10 @@ export class SideBySideDiff extends React.Component<
       searchTokens = calcSearchTokens(diff, showSideBySideDiff, searchQuery)
     }
 
+    if (searchTokens === undefined) {
+      return
+    }
+
     const hit = findNextToken(searchTokens, from)
 
     if (hit !== null) {
@@ -1019,14 +1023,13 @@ function getDataFromLine(
 function calcSearchTokens(
   diff: ITextDiff,
   showSideBySideDiffs: boolean,
-  searchQuery?: string
-): SearchTokens {
-  const searchTokens = new Map<number, RowSearchTokens>()
-
-  if (searchQuery === undefined || searchQuery.length === 0) {
-    return searchTokens
+  searchQuery: string
+): SearchTokens | undefined {
+  if (searchQuery.length === 0) {
+    return undefined
   }
 
+  const searchTokens = new Map<number, RowSearchTokens>()
   const searchRe = new RegExp(escapeRegExp(searchQuery), 'gi')
   const rows = getDiffRows(diff, showSideBySideDiffs)
 
@@ -1035,53 +1038,43 @@ function calcSearchTokens(
       continue
     }
 
-    if (row.type === DiffRowType.Added) {
-      const tokens = getSearchTokensForLine(row.data.content, searchRe)
+    for (const column of enumerateColumnContents(row, showSideBySideDiffs)) {
+      const tokens = getSearchTokensForLine(column.content, searchRe)
 
       if (tokens !== null) {
-        searchTokens.set(rowNumber, {
-          [showSideBySideDiffs ? DiffColumn.After : DiffColumn.Before]: tokens,
-        })
-      }
-    }
-
-    if (row.type === DiffRowType.Deleted) {
-      const tokens = getSearchTokensForLine(row.data.content, searchRe)
-
-      if (tokens !== null) {
-        searchTokens.set(rowNumber, { [DiffColumn.Before]: tokens })
-      }
-    }
-
-    if (row.type === DiffRowType.Context) {
-      const tokens = getSearchTokensForLine(row.content, searchRe)
-
-      if (tokens !== null) {
-        searchTokens.set(rowNumber, {
-          [DiffColumn.Before]: tokens,
-          [DiffColumn.After]: tokens,
-        })
-      }
-    }
-
-    if (row.type === DiffRowType.Modified) {
-      const before = getSearchTokensForLine(row.beforeData.content, searchRe)
-      const after = getSearchTokensForLine(row.afterData.content, searchRe)
-
-      if (before !== null || after !== null) {
-        const tokens: RowSearchTokens = {}
-        if (before !== null) {
-          tokens[DiffColumn.Before] = before ?? undefined
+        const existing = searchTokens.get(rowNumber)
+        if (existing !== undefined) {
+          existing[column.type] = tokens
+        } else {
+          searchTokens.set(rowNumber, { [column.type]: tokens })
         }
-        if (after !== null) {
-          tokens[DiffColumn.After] = after ?? undefined
-        }
-        searchTokens.set(rowNumber, tokens)
       }
     }
   }
 
   return searchTokens
+}
+
+function* enumerateColumnContents(
+  row: SimplifiedDiffRow,
+  showSideBySideDiffs: boolean
+): IterableIterator<{ type: DiffColumn; content: string }> {
+  if (row.type === DiffRowType.Hunk) {
+    yield { type: DiffColumn.Before, content: row.content }
+  } else if (row.type === DiffRowType.Added) {
+    const type = showSideBySideDiffs ? DiffColumn.After : DiffColumn.Before
+    yield { type, content: row.data.content }
+  } else if (row.type === DiffRowType.Deleted) {
+    yield { type: DiffColumn.Before, content: row.data.content }
+  } else if (row.type === DiffRowType.Context) {
+    yield { type: DiffColumn.Before, content: row.content }
+    if (showSideBySideDiffs) {
+      yield { type: DiffColumn.After, content: row.content }
+    }
+  } else if (row.type === DiffRowType.Modified) {
+    yield { type: DiffColumn.Before, content: row.beforeData.content }
+    yield { type: DiffColumn.After, content: row.afterData.content }
+  }
 }
 
 function getSearchTokensForLine(lineContents: string, regexp: RegExp) {
@@ -1109,14 +1102,14 @@ function findNextToken(
     if (row >= start.row) {
       const isStartRow = row === start.row
       const offset = isStartRow ? start.offset : 0
-      const column = isStartRow ? start.diffColumn : DiffColumn.Before
-      const nextOffset = findNextTokenInLine(tokens[column], offset)
+      const diffColumn = isStartRow ? start.diffColumn : DiffColumn.Before
+      const nextOffset = findNextTokenInLine(tokens[diffColumn], offset)
 
       if (nextOffset !== null) {
-        return { row, offset: nextOffset, diffColumn: column }
+        return { row, offset: nextOffset, diffColumn }
       }
 
-      if (column === DiffColumn.Before) {
+      if (diffColumn === DiffColumn.Before) {
         const afterOffset = findNextTokenInLine(tokens[DiffColumn.After], 0)
 
         if (afterOffset !== null) {
