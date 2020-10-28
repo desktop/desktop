@@ -1115,45 +1115,35 @@ function findNextToken(
   showSideBySideDiff: boolean,
   initialPosition: ISelectionPosition
 ): ISelectionPosition | null {
-  for (const [currentRow, lineTokens] of searchTokens.entries()) {
-    let currentColumn = initialPosition.diffColumn
+  const { row: initialRow } = initialPosition
+  for (const [row, tokens] of searchTokens.entries()) {
+    let diffColumn = initialPosition.diffColumn
 
-    if (currentRow === initialPosition.row) {
-      const result = findNextTokenInLine(
-        lineTokens[currentColumn],
-        initialPosition.offset
-      )
+    if (row === initialRow) {
+      const offset = initialPosition.offset
+      const result = findNextTokenInColumn(row, diffColumn, offset, tokens)
 
       if (result !== null) {
-        return { row: currentRow, offset: result, diffColumn: currentColumn }
+        return result
       }
 
-      if (currentColumn === DiffColumn.Before && showSideBySideDiff) {
-        currentColumn = DiffColumn.After
-
-        const result = findNextTokenInLine(lineTokens[currentColumn], 0)
+      if (diffColumn === DiffColumn.Before && showSideBySideDiff) {
+        diffColumn = DiffColumn.After
+        const result = findNextTokenInColumn(row, diffColumn, offset, tokens)
 
         if (result !== null) {
-          return { row: currentRow, offset: result, diffColumn: currentColumn }
+          return result
         }
       }
     }
 
-    if (currentRow > initialPosition.row) {
-      currentColumn = DiffColumn.Before
+    if (row > initialRow) {
+      const next =
+        findNextTokenInColumn(row, DiffColumn.Before, 0, tokens) ??
+        findNextTokenInColumn(row, DiffColumn.After, 0, tokens)
 
-      const result = findNextTokenInLine(lineTokens[currentColumn], 0)
-
-      if (result !== null) {
-        return { row: currentRow, offset: result, diffColumn: currentColumn }
-      }
-
-      currentColumn = DiffColumn.After
-
-      const result2 = findNextTokenInLine(lineTokens[currentColumn], 0)
-
-      if (result2 !== null) {
-        return { row: currentRow, offset: result2, diffColumn: currentColumn }
+      if (next !== null) {
+        return next
       }
     }
   }
@@ -1161,6 +1151,16 @@ function findNextToken(
   return initialPosition.row === 0 && initialPosition.offset === 0
     ? null
     : findNextToken(searchTokens, showSideBySideDiff, InitialPosition)
+}
+
+function findNextTokenInColumn(
+  row: number,
+  diffColumn: DiffColumn,
+  offset: number,
+  tokens: RowSearchTokens
+) {
+  const result = findNextTokenInLine(tokens[diffColumn], offset)
+  return result === null ? null : { row, offset: result, diffColumn }
 }
 
 function findNextTokenInLine(
