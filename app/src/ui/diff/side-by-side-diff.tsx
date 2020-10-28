@@ -1113,42 +1113,32 @@ function getSearchTokensForLine(
 function findNextToken(
   searchTokens: SearchTokens,
   showSideBySideDiff: boolean,
-  initialPosition: ISelectionPosition
+  start: ISelectionPosition
 ): ISelectionPosition | null {
-  const { row: initialRow } = initialPosition
   for (const [row, tokens] of searchTokens.entries()) {
-    let diffColumn = initialPosition.diffColumn
+    if (row < start.row) {
+      continue
+    }
 
-    if (row === initialRow) {
-      const offset = initialPosition.offset
-      const result = findNextTokenInColumn(row, diffColumn, offset, tokens)
+    const isStartRow = row === start.row
+    const offset = isStartRow ? start.offset : 0
+    const column = isStartRow ? start.diffColumn : DiffColumn.Before
+    const result = findNextTokenInColumn(row, column, offset, tokens)
+
+    if (result !== null) {
+      return result
+    }
+
+    if (column === DiffColumn.Before && showSideBySideDiff) {
+      const result = findNextTokenInColumn(row, DiffColumn.After, 0, tokens)
 
       if (result !== null) {
         return result
       }
-
-      if (diffColumn === DiffColumn.Before && showSideBySideDiff) {
-        diffColumn = DiffColumn.After
-        const result = findNextTokenInColumn(row, diffColumn, 0, tokens)
-
-        if (result !== null) {
-          return result
-        }
-      }
-    }
-
-    if (row > initialRow) {
-      const next =
-        findNextTokenInColumn(row, DiffColumn.Before, 0, tokens) ??
-        findNextTokenInColumn(row, DiffColumn.After, 0, tokens)
-
-      if (next !== null) {
-        return next
-      }
     }
   }
 
-  return initialPosition.row === 0 && initialPosition.offset === 0
+  return start.row === 0 && start.offset === 0
     ? null
     : findNextToken(searchTokens, showSideBySideDiff, InitialPosition)
 }
