@@ -476,12 +476,11 @@ export class SideBySideDiff extends React.Component<
     column: DiffColumn
   ): number | null {
     const rows = getDiffRows(this.props.diff, this.props.showSideBySideDiff)
+    const row = rows[rowNumber]
 
-    if (rows[rowNumber] === undefined) {
+    if (row === undefined) {
       return null
     }
-
-    const row = rows[rowNumber]
 
     if (row.type === DiffRowType.Added || row.type === DiffRowType.Deleted) {
       return row.data.diffLineNumber
