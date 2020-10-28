@@ -1112,7 +1112,6 @@ function getSearchTokensForLine(
 
 function findNextToken(
   searchTokens: SearchTokens,
-  diff: ITextDiff,
   showSideBySideDiff: boolean,
   initialPosition: ISelectionPosition
 ): ISelectionPosition | null {
@@ -1161,7 +1160,7 @@ function findNextToken(
 
   return initialPosition.row === 0 && initialPosition.offset === 0
     ? null
-    : findNextToken(searchTokens, diff, showSideBySideDiff, InitialPosition)
+    : findNextToken(searchTokens, showSideBySideDiff, InitialPosition)
 }
 
 function findNextTokenInLine(
