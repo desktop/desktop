@@ -17,6 +17,7 @@
     flex-direction: row;
     flex-shrink: 0;
     flex-grow: 0;
+    align-items: center;
 
     padding: var(--spacing-half) var(--spacing);
 
@@ -26,12 +27,12 @@
       margin-right: var(--spacing-half);
     }
 
-    .octicon {
+    .octicon.status {
       flex-shrink: 0;
       vertical-align: text-bottom;
       position: relative;
-      top: 1px;
       align-self: center;
+      flex-shrink: 0;
     }
 
     .line-endings {
