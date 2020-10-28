@@ -1084,24 +1084,21 @@ function calcSearchTokens(
   return searchTokens
 }
 
-function getSearchTokensForLine(
-  lineContents: string,
-  regexp: RegExp
-): ILineTokens | null {
-  const searchTokens: ILineTokens = {}
-  let found = false
+function getSearchTokensForLine(lineContents: string, regexp: RegExp) {
+  let searchTokens: ILineTokens | null = null
 
   for (const match of lineContents.matchAll(regexp)) {
+    searchTokens = searchTokens ?? {}
+
     if (match.index !== undefined) {
       searchTokens[match.index] = {
         length: match[0].length,
         token: 'search-result',
       }
-      found = true
     }
   }
 
-  return found ? searchTokens : null
+  return searchTokens
 }
 
 function findNextToken(
