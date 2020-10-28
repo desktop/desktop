@@ -12,7 +12,7 @@ import {
   getFileContents,
   highlightContents,
 } from './syntax-highlighting'
-import { ITokens, ILineTokens } from '../../lib/highlighter/types'
+import { ITokens, ILineTokens, IToken } from '../../lib/highlighter/types'
 import {
   assertNever,
   assertNonNullable,
@@ -48,12 +48,6 @@ import { escapeRegExp } from '../../lib/helpers/regex'
 const DefaultRowHeight = 20
 const MaxLineLengthToCalculateDiff = 240
 
-const InitialPosition: ISelectionPosition = {
-  row: 0,
-  offset: 0,
-  diffColumn: DiffColumn.Before,
-}
-
 export interface ISelectionPoint {
   readonly column: DiffColumn
   readonly row: number
@@ -66,13 +60,9 @@ export interface ISelection {
 }
 
 type ModifiedLine = { line: DiffLine; diffLineNumber: number }
-interface ISelectionPosition {
-  readonly row: number
-  readonly offset: number
-  readonly diffColumn: DiffColumn
-}
-type RowSearchTokens = { [key: string]: ILineTokens }
 type SearchTokens = Map<number, RowSearchTokens>
+type RowSearchTokens = { [key: string]: ColumnSearchTokens }
+type ColumnSearchTokens = Map<number, IToken>
 
 interface ISideBySideDiffProps {
   readonly repository: Repository
@@ -164,9 +154,9 @@ interface ISideBySideDiffState {
 
   readonly searchQuery?: string
 
-  readonly searchTokens?: SearchTokens
+  readonly searchTokens?: SearchResults
 
-  readonly selectedSearchResult: ISelectionPosition
+  readonly selectedSearchResult: number | undefined
 }
 
 const listRowsHeightCache = new CellMeasurerCache({
@@ -185,7 +175,7 @@ export class SideBySideDiff extends React.Component<
 
     this.state = {
       isSearching: false,
-      selectedSearchResult: InitialPosition,
+      selectedSearchResult: undefined,
     }
   }
 
@@ -403,12 +393,12 @@ export class SideBySideDiff extends React.Component<
 
       const beforeSearchTokens = this.getSearchTokens(numRow, DiffColumn.Before)
       if (beforeSearchTokens !== undefined) {
-        beforeTokens.push(...beforeSearchTokens)
+        beforeTokens.push(beforeSearchTokens)
       }
 
       const afterSearchTokens = this.getSearchTokens(numRow, DiffColumn.After)
       if (afterSearchTokens !== undefined) {
-        afterTokens.push(...afterSearchTokens)
+        afterTokens.push(afterSearchTokens)
       }
 
       return { ...row, beforeTokens, afterTokens }
@@ -428,7 +418,7 @@ export class SideBySideDiff extends React.Component<
     const finalTokens = [...data.tokens]
 
     if (searchTokens !== undefined) {
-      finalTokens.push(...searchTokens)
+      finalTokens.push(searchTokens)
     }
     if (lineTokens !== null) {
       finalTokens.push(lineTokens)
@@ -453,34 +443,32 @@ export class SideBySideDiff extends React.Component<
     if (searchTokens === undefined) {
       return undefined
     }
+    const lineTokens = searchTokens.getLineTokens(row, column)
 
-    const finalTokens = new Array<ILineTokens>()
-
-    const rowSearchTokens = searchTokens?.get(row)
-    const diffColumnTokens =
-      rowSearchTokens !== undefined ? rowSearchTokens[column] : undefined
-
-    if (diffColumnTokens === undefined) {
-      return finalTokens
+    if (lineTokens === undefined) {
+      return undefined
     }
 
-    finalTokens.push(diffColumnTokens)
-    const tokenAtSearchOffset = diffColumnTokens[selectedSearchResult.offset]
+    const current =
+      selectedSearchResult === undefined
+        ? undefined
+        : searchTokens.get(selectedSearchResult)
 
-    if (
-      selectedSearchResult.row === row &&
-      tokenAtSearchOffset !== undefined &&
-      column === selectedSearchResult.diffColumn
-    ) {
-      finalTokens.push({
-        [selectedSearchResult.offset]: {
-          length: tokenAtSearchOffset.length,
-          token: 'selected',
-        },
-      })
+    if (current !== undefined) {
+      const [selectedRow, selectedColumn, selectedOffset] = current
+
+      if (row === selectedRow && column === selectedColumn) {
+        const existing = lineTokens[selectedOffset]
+        if (existing !== undefined) {
+          lineTokens[selectedOffset] = {
+            length: existing.length,
+            token: `${existing.token} selected`,
+          }
+        }
+      }
     }
 
-    return finalTokens
+    return lineTokens
   }
 
   private getDiffLineNumber(
@@ -735,39 +723,52 @@ export class SideBySideDiff extends React.Component<
 
   private showSearch = () => {
     if (!this.state.isSearching) {
-      const selectedSearchResult = InitialPosition
-      this.setState({ isSearching: true, selectedSearchResult })
+      this.setState({ isSearching: true, selectedSearchResult: undefined })
     }
   }
 
-  private onSearch = (searchQuery: string) => {
-    let { selectedSearchResult: from, searchTokens } = this.state
+  private onSearch = (searchQuery: string, direction: 'next' | 'previous') => {
+    let { selectedSearchResult, searchTokens } = this.state
     const { diff, showSideBySideDiff } = this.props
 
     // If the query is unchanged and we've got tokens we'll continue, else we'll restart
     if (searchQuery === this.state.searchQuery && searchTokens !== undefined) {
-      from = { ...from, offset: from.offset + 1 }
+      if (selectedSearchResult === undefined) {
+        selectedSearchResult = 0
+      } else {
+        const delta = direction === 'next' ? 1 : -1
+
+        // http://javascript.about.com/od/problemsolving/a/modulobug.htm
+        selectedSearchResult =
+          (selectedSearchResult + delta + searchTokens.length) %
+          searchTokens.length
+      }
     } else {
       searchTokens = calcSearchTokens(diff, showSideBySideDiff, searchQuery)
+      selectedSearchResult = 0
     }
 
-    if (searchTokens === undefined) {
+    if (searchTokens === undefined || searchTokens.length === 0) {
+      this.setState({
+        searchQuery,
+        searchTokens: undefined,
+        selectedSearchResult: undefined,
+      })
       return
     }
 
-    const hit = findNextToken(searchTokens, from)
+    const scrollToRow = searchTokens.getRowForResultAt(selectedSearchResult)
 
-    if (hit !== null) {
-      this.virtualListRef.current?.scrollToRow(hit.row)
+    if (scrollToRow !== undefined) {
+      this.virtualListRef.current?.scrollToRow(scrollToRow)
     }
 
-    const selectedSearchResult = hit ?? from ?? InitialPosition
     this.setState({ searchQuery, searchTokens, selectedSearchResult })
   }
 
   private onSearchCancel = () => {
     this.setState({
-      selectedSearchResult: InitialPosition,
+      selectedSearchResult: undefined,
       searchQuery: undefined,
       searchTokens: undefined,
       isSearching: false,
@@ -1020,16 +1021,71 @@ function getDataFromLine(
   }
 }
 
+class SearchResults {
+  private readonly hitsByRow: SearchTokens = new Map<number, RowSearchTokens>()
+  private readonly hits = new Array<[number, DiffColumn, number]>()
+  public constructor() {}
+
+  public add(row: number, column: DiffColumn, offset: number, length: number) {
+    const existingRow = this.hitsByRow.get(row)
+    const token: IToken = { length, token: 'search-result' }
+
+    if (existingRow) {
+      if (existingRow[column] === undefined) {
+        existingRow[column] = new Map<number, IToken>()
+      }
+      existingRow[column].set(offset, token)
+    } else {
+      this.hitsByRow.set(row, {
+        [column]: new Map<number, IToken>([[offset, token]]),
+      })
+    }
+
+    this.hits.push([row, column, offset])
+  }
+
+  public get length() {
+    return this.hits.length
+  }
+
+  public get(index: number) {
+    const hit = this.hits[index]
+    return hit === undefined ? undefined : hit
+  }
+
+  public getRowForResultAt(index: number) {
+    return this.get(index)?.[0]
+  }
+
+  public getLineTokens(
+    row: number,
+    column: DiffColumn
+  ): ILineTokens | undefined {
+    const rowHits = this.hitsByRow.get(row)
+    const columnHits = rowHits === undefined ? undefined : rowHits[column]
+
+    if (columnHits === undefined) {
+      return undefined
+    }
+
+    const lineTokens: ILineTokens = {}
+    for (const [offset, token] of columnHits) {
+      lineTokens[offset] = token
+    }
+    return lineTokens
+  }
+}
+
 function calcSearchTokens(
   diff: ITextDiff,
   showSideBySideDiffs: boolean,
   searchQuery: string
-): SearchTokens | undefined {
+): SearchResults | undefined {
   if (searchQuery.length === 0) {
     return undefined
   }
 
-  const searchTokens = new Map<number, RowSearchTokens>()
+  const hits = new SearchResults()
   const searchRe = new RegExp(escapeRegExp(searchQuery), 'gi')
   const rows = getDiffRows(diff, showSideBySideDiffs)
 
@@ -1039,20 +1095,15 @@ function calcSearchTokens(
     }
 
     for (const column of enumerateColumnContents(row, showSideBySideDiffs)) {
-      const tokens = getSearchTokensForLine(column.content, searchRe)
-
-      if (tokens !== null) {
-        const existing = searchTokens.get(rowNumber)
-        if (existing !== undefined) {
-          existing[column.type] = tokens
-        } else {
-          searchTokens.set(rowNumber, { [column.type]: tokens })
+      for (const match of column.content.matchAll(searchRe)) {
+        if (match.index !== undefined) {
+          hits.add(rowNumber, column.type, match.index, match[0].length)
         }
       }
     }
   }
 
-  return searchTokens
+  return hits
 }
 
 function* enumerateColumnContents(
@@ -1077,66 +1128,6 @@ function* enumerateColumnContents(
   } else {
     assertNever(row, `Unknown row type ${row}`)
   }
-}
-
-function getSearchTokensForLine(lineContents: string, regexp: RegExp) {
-  let searchTokens: ILineTokens | null = null
-
-  for (const match of lineContents.matchAll(regexp)) {
-    searchTokens = searchTokens ?? {}
-
-    if (match.index !== undefined) {
-      searchTokens[match.index] = {
-        length: match[0].length,
-        token: 'search-result',
-      }
-    }
-  }
-
-  return searchTokens
-}
-
-function findNextToken(
-  searchTokens: SearchTokens,
-  start: ISelectionPosition
-): ISelectionPosition | null {
-  for (const [row, tokens] of searchTokens.entries()) {
-    if (row >= start.row) {
-      const isStartRow = row === start.row
-      const offset = isStartRow ? start.offset : 0
-      const diffColumn = isStartRow ? start.diffColumn : DiffColumn.Before
-      const nextOffset = findNextTokenInLine(tokens[diffColumn], offset)
-
-      if (nextOffset !== null) {
-        return { row, offset: nextOffset, diffColumn }
-      }
-
-      if (diffColumn === DiffColumn.Before) {
-        const afterOffset = findNextTokenInLine(tokens[DiffColumn.After], 0)
-
-        if (afterOffset !== null) {
-          return { row, offset: afterOffset, diffColumn: DiffColumn.After }
-        }
-      }
-    }
-  }
-
-  return start.row === 0 && start.offset === 0
-    ? null
-    : findNextToken(searchTokens, InitialPosition)
-}
-
-function findNextTokenInLine(tokens: ILineTokens | undefined, offset: number) {
-  if (tokens !== undefined) {
-    for (const [index] of Object.entries(tokens)) {
-      const ix = parseInt(index, 10)
-      if (ix >= offset) {
-        return ix
-      }
-    }
-  }
-
-  return null
 }
 
 function isInSelection(

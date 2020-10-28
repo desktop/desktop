@@ -7,7 +7,10 @@ interface IDiffSearchInputProps {
    * want to initiate a search or want to advance to
    * the next hit (typically done by hitting `Enter`).
    */
-  readonly onSearch: (queryString: string) => void
+  readonly onSearch: (
+    queryString: string,
+    direction: 'next' | 'previous'
+  ) => void
 
   /**
    * Called when the user indicates that they want
@@ -59,7 +62,7 @@ export class DiffSearchInput extends React.Component<
 
   private onSearch = (event: React.FormEvent) => {
     event.preventDefault()
-    this.props.onSearch(this.state.value)
+    this.props.onSearch(this.state.value, 'next')
   }
 
   private onBlur = () => {
@@ -70,6 +73,9 @@ export class DiffSearchInput extends React.Component<
     if (evt.key === 'Escape' && !evt.defaultPrevented) {
       evt.preventDefault()
       this.props.onClose()
+    } else if (evt.key === 'Enter' && evt.shiftKey && !evt.defaultPrevented) {
+      evt.preventDefault()
+      this.props.onSearch(this.state.value, 'previous')
     }
   }
 }
