@@ -22,11 +22,6 @@ interface IDiffSearchInputState {
   readonly value: string
 }
 
-/**
- * A component which attempts to minimize the need for unmounting
- * and remounting text diff components with the ultimate goal of
- * avoiding flickering when rapidly switching between files.
- */
 export class DiffSearchInput extends React.Component<
   IDiffSearchInputProps,
   IDiffSearchInputState
