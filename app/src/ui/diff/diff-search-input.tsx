@@ -38,7 +38,7 @@ export class DiffSearchInput extends React.Component<
 
   public render() {
     return (
-      <form onSubmit={this.onSearch} className="diff-search">
+      <div className="diff-search">
         <TextBox
           placeholder="Search..."
           type="search"
@@ -48,17 +48,12 @@ export class DiffSearchInput extends React.Component<
           onBlur={this.onBlur}
           value={this.state.value}
         />
-      </form>
+      </div>
     )
   }
 
   private onChange = (value: string) => {
     this.setState({ value })
-  }
-
-  private onSearch = (event: React.FormEvent) => {
-    event.preventDefault()
-    this.props.onSearch(this.state.value, 'next')
   }
 
   private onBlur = () => {
@@ -69,9 +64,9 @@ export class DiffSearchInput extends React.Component<
     if (evt.key === 'Escape' && !evt.defaultPrevented) {
       evt.preventDefault()
       this.props.onClose()
-    } else if (evt.key === 'Enter' && evt.shiftKey && !evt.defaultPrevented) {
+    } else if (evt.key === 'Enter' && !evt.defaultPrevented) {
       evt.preventDefault()
-      this.props.onSearch(this.state.value, 'previous')
+      this.props.onSearch(this.state.value, evt.shiftKey ? 'previous' : 'next')
     }
   }
 }
