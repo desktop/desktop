@@ -1,5 +1,6 @@
 import { git } from './core'
 import { Repository } from '../../models/repository'
+import { WorkingDirectoryFileChange } from '../../models/status'
 
 /**
  * Remove all files from the index
@@ -17,4 +18,14 @@ export async function unstageAllFiles(repository: Repository): Promise<void> {
     repository.path,
     'unstageAllFiles'
   )
+}
+
+/**
+ * Remove conflicted file from  working tree and index
+ */
+export async function removeConflictedFile(
+  repository: Repository,
+  file: WorkingDirectoryFileChange
+) {
+  await git(['rm', '--', file.path], repository.path, 'removeConflictedFile')
 }

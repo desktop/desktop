@@ -9,10 +9,7 @@ import {
   WorkingDirectoryFileChange,
 } from '../models/status'
 import { assertNever } from './fatal-error'
-import {
-  ManualConflictResolution,
-  ManualConflictResolutionKind,
-} from '../models/manual-conflict-resolution'
+import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 
 /**
  * Convert a given `AppFileStatusKind` value to a human-readable string to be
@@ -153,7 +150,7 @@ export function getUntrackedFiles(
 /** Filter working directory changes for resolved files  */
 export function getResolvedFiles(
   status: WorkingDirectoryStatus,
-  manualResolutions: Map<string, ManualConflictResolutionKind>
+  manualResolutions: Map<string, ManualConflictResolution>
 ) {
   return status.files.filter(
     f =>
@@ -165,7 +162,7 @@ export function getResolvedFiles(
 /** Filter working directory changes for conflicted files  */
 export function getConflictedFiles(
   status: WorkingDirectoryStatus,
-  manualResolutions: Map<string, ManualConflictResolutionKind>
+  manualResolutions: Map<string, ManualConflictResolution>
 ) {
   return status.files.filter(
     f =>

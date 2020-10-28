@@ -5,12 +5,11 @@ import {
   GitStatusEntry,
   isConflictWithMarkers,
 } from '../../models/status'
-import {
-  ManualConflictResolution,
-  ManualConflictResolutionKind,
-} from '../../models/manual-conflict-resolution'
-import { git } from '.'
+import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { assertNever } from '../fatal-error'
+import { removeConflictedFile } from './rm'
+import { checkoutConflictedFile } from './checkout'
+import { addConflictedFile } from './add'
 
 /**
  * Stages a file with the given manual resolution method. Useful for resolving binary conflicts at commit-time.
@@ -40,33 +39,25 @@ export async function stageManualConflictResolution(
   }
 
   const chosen =
-    manualResolution === ManualConflictResolutionKind.theirs
+    manualResolution === ManualConflictResolution.theirs
       ? status.entry.them
       : status.entry.us
 
+  const addedInBoth =
+    status.entry.us === GitStatusEntry.Added &&
+    status.entry.them === GitStatusEntry.Added
+
+  if (chosen === GitStatusEntry.UpdatedButUnmerged || addedInBoth) {
+    await checkoutConflictedFile(repository, file, manualResolution)
+  }
+
   switch (chosen) {
-    case GitStatusEntry.Deleted: {
-      await git(['rm', file.path], repository.path, 'removeConflictedFile')
-      break
-    }
-    case GitStatusEntry.Added: {
-      await git(['add', file.path], repository.path, 'addConflictedFile')
-      break
-    }
-    case GitStatusEntry.UpdatedButUnmerged: {
-      const choiceFlag =
-        manualResolution === ManualConflictResolutionKind.theirs
-          ? 'theirs'
-          : 'ours'
-      await git(
-        ['checkout', `--${choiceFlag}`, '--', file.path],
-        repository.path,
-        'checkoutConflictedFile'
-      )
-      await git(['add', file.path], repository.path, 'addConflictedFile')
-      break
-    }
+    case GitStatusEntry.Deleted:
+      return removeConflictedFile(repository, file)
+    case GitStatusEntry.Added:
+    case GitStatusEntry.UpdatedButUnmerged:
+      return addConflictedFile(repository, file)
     default:
-      assertNever(chosen, 'unnacounted for git status entry possibility')
+      assertNever(chosen, 'unaccounted for git status entry possibility')
   }
 }
