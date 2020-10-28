@@ -7,10 +7,7 @@ interface IDiffSearchInputProps {
    * want to initiate a search or want to advance to
    * the next hit (typically done by hitting `Enter`).
    */
-  readonly onSearch: (
-    queryString: string,
-    direction: 'next' | 'previous'
-  ) => void
+  readonly onSearch: (query: string, direction: 'next' | 'previous') => void
 
   /**
    * Called when the user indicates that they want
@@ -36,7 +33,6 @@ export class DiffSearchInput extends React.Component<
 > {
   public constructor(props: IDiffSearchInputProps) {
     super(props)
-
     this.state = { value: '' }
   }
 
