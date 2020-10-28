@@ -1074,6 +1074,8 @@ function* enumerateColumnContents(
   } else if (row.type === DiffRowType.Modified) {
     yield { type: DiffColumn.Before, content: row.beforeData.content }
     yield { type: DiffColumn.After, content: row.afterData.content }
+  } else {
+    assertNever(row, `Unknown row type ${row}`)
   }
 }
 
