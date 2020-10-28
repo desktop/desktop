@@ -54,15 +54,14 @@ const InitialPosition: ISelectionPosition = {
   diffColumn: DiffColumn.Before,
 }
 
+export interface ISelectionPoint {
+  readonly column: DiffColumn
+  readonly row: number
+}
+
 export interface ISelection {
-  readonly from: {
-    readonly column: DiffColumn
-    readonly row: number
-  }
-  readonly to: {
-    readonly column: DiffColumn
-    readonly row: number
-  }
+  readonly from: ISelectionPoint
+  readonly to: ISelectionPoint
   readonly isSelected: boolean
 }
 
@@ -531,93 +530,59 @@ export class SideBySideDiff extends React.Component<
   private onStartSelection = (
     row: number,
     column: DiffColumn,
-    select: boolean
+    isSelected: boolean
   ) => {
-    this.setState({
-      temporarySelection: {
-        from: { row, column },
-        to: { row, column },
-        isSelected: select,
-      },
-    })
+    const point: ISelectionPoint = { row, column }
+    const temporarySelection = { from: point, to: point, isSelected }
+    this.setState({ temporarySelection })
 
     document.addEventListener('mouseup', this.onEndSelection, { once: true })
   }
 
   private onUpdateSelection = (row: number, column: DiffColumn) => {
-    if (this.state.temporarySelection === undefined) {
+    const { temporarySelection } = this.state
+    if (temporarySelection === undefined) {
       return
     }
 
-    this.setState({
-      temporarySelection: {
-        ...this.state.temporarySelection,
-        to: { row, column },
-      },
-    })
+    const to = { row, column }
+    this.setState({ temporarySelection: { ...temporarySelection, to } })
   }
 
   private onEndSelection = () => {
     let selection = this.getSelection()
-    if (selection === undefined) {
+    const { temporarySelection } = this.state
+
+    if (selection === undefined || temporarySelection === undefined) {
       return
     }
 
-    if (this.state.temporarySelection === undefined) {
-      return
-    }
+    const { from: tmpFrom, to: tmpTo, isSelected } = temporarySelection
 
-    if (this.props.onIncludeChanged === undefined) {
-      return
-    }
-
-    const fromRow = Math.min(
-      this.state.temporarySelection.from.row,
-      this.state.temporarySelection.to.row
-    )
-    const toRow = Math.max(
-      this.state.temporarySelection.from.row,
-      this.state.temporarySelection.to.row
-    )
+    const fromRow = Math.min(tmpFrom.row, tmpTo.row)
+    const toRow = Math.max(tmpFrom.row, tmpTo.row)
 
     for (let row = fromRow; row <= toRow; row++) {
-      const lineBefore = this.getDiffLineNumber(
-        row,
-        this.state.temporarySelection.from.column
-      )
-      const lineAfter = this.getDiffLineNumber(
-        row,
-        this.state.temporarySelection.to.column
-      )
+      const lineBefore = this.getDiffLineNumber(row, tmpFrom.column)
+      const lineAfter = this.getDiffLineNumber(row, tmpTo.column)
 
       if (lineBefore !== null) {
-        selection = selection?.withLineSelection(
-          lineBefore,
-          this.state.temporarySelection.isSelected
-        )
+        selection = selection.withLineSelection(lineBefore, isSelected)
       }
 
       if (lineAfter !== null) {
-        selection = selection?.withLineSelection(
-          lineAfter,
-          this.state.temporarySelection.isSelected
-        )
+        selection = selection.withLineSelection(lineAfter, isSelected)
       }
     }
 
-    this.props.onIncludeChanged(selection)
-
-    this.setState({
-      temporarySelection: undefined,
-    })
+    this.props.onIncludeChanged?.(selection)
+    this.setState({ temporarySelection: undefined })
   }
 
   private onMouseEnterHunk = (hunkStartLine: number) => {
-    if (this.state.temporarySelection !== undefined) {
-      return
+    if (this.state.temporarySelection === undefined) {
+      this.setState({ hoveredHunk: hunkStartLine })
     }
-
-    this.setState({ hoveredHunk: hunkStartLine })
   }
 
   private onMouseLeaveHunk = () => {
