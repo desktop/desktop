@@ -47,6 +47,7 @@ export class DiffSearchInput extends React.Component<
           onValueChanged={this.onChange}
           onKeyDown={this.onKeyDown}
           onBlur={this.onBlur}
+          value={this.state.value}
         />
       </form>
     )
