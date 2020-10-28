@@ -1094,12 +1094,10 @@ function getSearchTokensForLine(
   lineContents: string,
   regexp: RegExp
 ): ILineTokens | null {
-  const matches = lineContents.matchAll(regexp)
-
   const searchTokens: ILineTokens = {}
   let found = false
 
-  for (const match of matches) {
+  for (const match of lineContents.matchAll(regexp)) {
     if (match.index !== undefined) {
       searchTokens[match.index] = {
         length: match[0].length,
