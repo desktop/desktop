@@ -280,7 +280,6 @@ export class SideBySideDiff extends React.Component<
         cache={listRowsHeightCache}
         columnIndex={0}
         key={key}
-        overscanRowCount={10}
         parent={parent}
         rowIndex={index}
       >
