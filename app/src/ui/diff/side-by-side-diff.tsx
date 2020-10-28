@@ -588,25 +588,21 @@ export class SideBySideDiff extends React.Component<
   }
 
   private onClickHunk = (hunkStartLine: number, select: boolean) => {
-    const selection = this.getSelection()
-    if (selection === undefined) {
-      return
-    }
-
-    const range = findInteractiveDiffRange(this.props.diff.hunks, hunkStartLine)
-    if (range === null) {
-      return
-    }
-
-    const { from, to } = range
-
     if (this.props.onIncludeChanged === undefined) {
       return
     }
 
-    this.props.onIncludeChanged(
-      selection.withRangeSelection(from, to - from + 1, select)
-    )
+    const { diff } = this.props
+    const selection = this.getSelection()
+
+    if (selection !== undefined) {
+      const range = findInteractiveDiffRange(diff.hunks, hunkStartLine)
+      if (range !== null) {
+        const { from, to } = range
+        const sel = selection.withRangeSelection(from, to - from + 1, select)
+        this.props.onIncludeChanged(sel)
+      }
+    }
   }
 
   /**
@@ -631,7 +627,8 @@ export class SideBySideDiff extends React.Component<
    * @param diffLineNumber the line number the diff where the user clicked
    */
   private onContextMenuLine = (diffLineNumber: number) => {
-    if (!canSelect(this.props.file)) {
+    const { file, diff } = this.props
+    if (!canSelect(file)) {
       return
     }
 
@@ -639,11 +636,8 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    const range = findInteractiveDiffRange(
-      this.props.diff.hunks,
-      diffLineNumber
-    )
-    if (range?.type == null) {
+    const range = findInteractiveDiffRange(diff.hunks, diffLineNumber)
+    if (range === null || range.type === null) {
       return
     }
 
@@ -670,7 +664,7 @@ export class SideBySideDiff extends React.Component<
     }
 
     const range = findInteractiveDiffRange(this.props.diff.hunks, hunkStartLine)
-    if (range?.type == null) {
+    if (range === null || range.type === null) {
       return
     }
 
