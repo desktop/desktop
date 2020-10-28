@@ -3,17 +3,14 @@ import { TextBox } from '../lib/text-box'
 
 interface IDiffSearchInputProps {
   /**
-   * Called when the user indicated that they either
-   * want to initiate a search or want to advance to
-   * the next hit (typically done by hitting `Enter`).
+   * Called when the user indicated that they either want to initiate a search
+   * or want to advance to the next hit (typically done by hitting `Enter`).
    */
   readonly onSearch: (query: string, direction: 'next' | 'previous') => void
 
   /**
-   * Called when the user indicates that they want
-   * to abort the search, typically done by clicking
-   * outside of the diff search input component or
-   * by hitting `Escape`.
+   * Called when the user indicates that they want to abort the search,
+   * either by clicking outside of the component or by hitting `Escape`.
    */
   readonly onClose: () => void
 }
