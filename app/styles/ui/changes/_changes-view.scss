@@ -25,6 +25,7 @@
 
     .diff-options-component {
       margin-right: var(--spacing-half);
+      flex-shrink: 0;
     }
 
     .octicon.status {
