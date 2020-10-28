@@ -751,7 +751,7 @@ export class SideBySideDiff extends React.Component<
       searchTokens = calcSearchTokens(diff, showSideBySideDiff, searchQuery)
     }
 
-    const hit = findNextToken(searchTokens, diff, showSideBySideDiff, from)
+    const hit = findNextToken(searchTokens, showSideBySideDiff, from)
 
     if (hit !== null) {
       this.virtualListRef.current?.scrollToRow(hit.row)
