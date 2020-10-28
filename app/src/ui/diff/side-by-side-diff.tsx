@@ -1129,7 +1129,7 @@ function findNextToken(
 
       if (diffColumn === DiffColumn.Before && showSideBySideDiff) {
         diffColumn = DiffColumn.After
-        const result = findNextTokenInColumn(row, diffColumn, offset, tokens)
+        const result = findNextTokenInColumn(row, diffColumn, 0, tokens)
 
         if (result !== null) {
           return result
