@@ -401,8 +401,15 @@ export class SideBySideDiff extends React.Component<
         afterTokens.push(lineTokens)
       }
 
-      beforeTokens.push(...this.getSearchTokens(numRow, DiffColumn.Before))
-      afterTokens.push(...this.getSearchTokens(numRow, DiffColumn.After))
+      const beforeSearchTokens = this.getSearchTokens(numRow, DiffColumn.Before)
+      if (beforeSearchTokens !== undefined) {
+        beforeTokens.push(...beforeSearchTokens)
+      }
+
+      const afterSearchTokens = this.getSearchTokens(numRow, DiffColumn.After)
+      if (afterSearchTokens !== undefined) {
+        afterTokens.push(...afterSearchTokens)
+      }
 
       return { ...row, beforeTokens, afterTokens }
     }
@@ -420,7 +427,7 @@ export class SideBySideDiff extends React.Component<
     const lineTokens = getTokens(data.lineNumber, tokens)
     const finalTokens = [...data.tokens]
 
-    if (searchTokens !== null) {
+    if (searchTokens !== undefined) {
       finalTokens.push(...searchTokens)
     }
     if (lineTokens !== null) {
@@ -442,6 +449,11 @@ export class SideBySideDiff extends React.Component<
 
   private getSearchTokens(row: number, column: DiffColumn) {
     const { searchTokens, selectedSearchResult } = this.state
+
+    if (searchTokens === undefined) {
+      return undefined
+    }
+
     const finalTokens = new Array<ILineTokens>()
 
     const rowSearchTokens = searchTokens?.get(row)
