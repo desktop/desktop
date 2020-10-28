@@ -151,7 +151,7 @@ interface ISideBySideDiffState {
 
   readonly searchQuery?: string
 
-  readonly searchTokens?: SearchResults
+  readonly searchResults?: SearchResults
 
   readonly selectedSearchResult: number | undefined
 }
@@ -435,7 +435,7 @@ export class SideBySideDiff extends React.Component<
   }
 
   private getSearchTokens(row: number, column: DiffColumn) {
-    const { searchTokens, selectedSearchResult } = this.state
+    const { searchResults: searchTokens, selectedSearchResult } = this.state
 
     if (searchTokens === undefined) {
       return undefined
@@ -716,16 +716,16 @@ export class SideBySideDiff extends React.Component<
 
   private showSearch = () => {
     if (!this.state.isSearching) {
-      this.setState({ isSearching: true, selectedSearchResult: undefined })
+      this.resetSearch(true)
     }
   }
 
   private onSearch = (searchQuery: string, direction: 'next' | 'previous') => {
-    let { selectedSearchResult, searchTokens } = this.state
+    let { selectedSearchResult, searchResults: searchResults } = this.state
     const { diff, showSideBySideDiff } = this.props
 
     // If the query is unchanged and we've got tokens we'll continue, else we'll restart
-    if (searchQuery === this.state.searchQuery && searchTokens !== undefined) {
+    if (searchQuery === this.state.searchQuery && searchResults !== undefined) {
       if (selectedSearchResult === undefined) {
         selectedSearchResult = 0
       } else {
@@ -733,38 +733,38 @@ export class SideBySideDiff extends React.Component<
 
         // http://javascript.about.com/od/problemsolving/a/modulobug.htm
         selectedSearchResult =
-          (selectedSearchResult + delta + searchTokens.length) %
-          searchTokens.length
+          (selectedSearchResult + delta + searchResults.length) %
+          searchResults.length
       }
     } else {
-      searchTokens = calcSearchTokens(diff, showSideBySideDiff, searchQuery)
+      searchResults = calcSearchTokens(diff, showSideBySideDiff, searchQuery)
       selectedSearchResult = 0
+
+      if (searchResults === undefined || searchResults.length === 0) {
+        this.resetSearch(true)
+        return
+      }
     }
 
-    if (searchTokens === undefined || searchTokens.length === 0) {
-      this.setState({
-        searchQuery,
-        searchTokens: undefined,
-        selectedSearchResult: undefined,
-      })
-      return
+    const scrollToRow = searchResults.get(selectedSearchResult)?.row
+
+    if (scrollToRow !== undefined) {
+      this.virtualListRef.current?.scrollToRow(scrollToRow)
     }
 
-    const currentHit = searchTokens.get(selectedSearchResult)
-
-    if (currentHit !== undefined) {
-      this.virtualListRef.current?.scrollToRow(currentHit.row)
-    }
-
-    this.setState({ searchQuery, searchTokens, selectedSearchResult })
+    this.setState({ searchQuery, searchResults, selectedSearchResult })
   }
 
   private onSearchCancel = () => {
+    this.resetSearch(false)
+  }
+
+  private resetSearch(isSearching: boolean) {
     this.setState({
       selectedSearchResult: undefined,
       searchQuery: undefined,
-      searchTokens: undefined,
-      isSearching: false,
+      searchResults: undefined,
+      isSearching,
     })
   }
 }
