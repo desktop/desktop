@@ -1014,6 +1014,11 @@ function getDataFromLine(
   }
 }
 
+/**
+ * Helper class that lets us index search results both by their row
+ * and column for fast lookup durig the render phase but also by their
+ * relative order (index) allowing us to efficiently perform backwards search.
+ */
 class SearchResults {
   private readonly lookup = new Map<string, ILineTokens>()
   private readonly hits = new Array<[number, DiffColumn, number, number]>()
