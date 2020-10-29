@@ -12,7 +12,7 @@ import {
   getFileContents,
   highlightContents,
 } from './syntax-highlighting'
-import { ITokens, ILineTokens } from '../../lib/highlighter/types'
+import { ITokens, ILineTokens, IToken } from '../../lib/highlighter/types'
 import {
   assertNever,
   assertNonNullable,
@@ -42,19 +42,20 @@ import {
 } from './diff-helpers'
 import { showContextualMenu } from '../main-process-proxy'
 import { getTokens } from './diff-syntax-mode'
+import { DiffSearchInput } from './diff-search-input'
+import { escapeRegExp } from '../../lib/helpers/regex'
 
 const DefaultRowHeight = 20
 const MaxLineLengthToCalculateDiff = 240
 
+export interface ISelectionPoint {
+  readonly column: DiffColumn
+  readonly row: number
+}
+
 export interface ISelection {
-  readonly from: {
-    readonly column: DiffColumn
-    readonly row: number
-  }
-  readonly to: {
-    readonly column: DiffColumn
-    readonly row: number
-  }
+  readonly from: ISelectionPoint
+  readonly to: ISelectionPoint
   readonly isSelected: boolean
 }
 
@@ -145,6 +146,14 @@ interface ISideBySideDiffState {
    * gutter more user friendly, since only consecutive modified lines get selected.
    */
   readonly hoveredHunk?: number
+
+  readonly isSearching: boolean
+
+  readonly searchQuery?: string
+
+  readonly searchResults?: SearchResults
+
+  readonly selectedSearchResult: number | undefined
 }
 
 const listRowsHeightCache = new CellMeasurerCache({
@@ -156,18 +165,31 @@ export class SideBySideDiff extends React.Component<
   ISideBySideDiffProps,
   ISideBySideDiffState
 > {
+  private virtualListRef = React.createRef<List>()
+
   public constructor(props: ISideBySideDiffProps) {
     super(props)
 
-    this.state = {}
+    this.state = {
+      isSearching: false,
+      selectedSearchResult: undefined,
+    }
   }
 
   public componentDidMount() {
     this.initDiffSyntaxMode()
+
+    window.addEventListener('keydown', this.onWindowKeyDown)
+
+    // Listen for the custom event find-text (see app.tsx)
+    // and trigger the search plugin if we see it.
+    document.addEventListener('find-text', this.showSearch)
   }
 
   public componentWillUnmount() {
+    window.removeEventListener('keydown', this.onWindowKeyDown)
     document.removeEventListener('mouseup', this.onEndSelection)
+    document.removeEventListener('find-text', this.showSearch)
   }
 
   public componentDidUpdate(prevProps: ISideBySideDiffProps) {
@@ -189,6 +211,12 @@ export class SideBySideDiff extends React.Component<
 
     return (
       <div className={containerClassName} onMouseDown={this.onMouseDown}>
+        {this.state.isSearching && (
+          <DiffSearchInput
+            onSearch={this.onSearch}
+            onClose={this.onSearchCancel}
+          />
+        )}
         <div className="side-by-side-diff cm-s-default">
           <AutoSizer onResize={this.clearListRowsHeightCache}>
             {({ height, width }) => (
@@ -199,9 +227,13 @@ export class SideBySideDiff extends React.Component<
                 rowCount={rows.length}
                 rowHeight={this.getRowHeight}
                 rowRenderer={this.renderRow}
+                ref={this.virtualListRef}
                 // The following properties are passed to the list
                 // to make sure that it gets re-rendered when any of
                 // them change.
+                isSearching={this.state.isSearching}
+                selectedSearchResult={this.state.selectedSearchResult}
+                searchQuery={this.state.searchQuery}
                 showSideBySideDiff={this.props.showSideBySideDiff}
                 beforeTokens={this.state.beforeTokens}
                 afterTokens={this.state.afterTokens}
@@ -235,7 +267,6 @@ export class SideBySideDiff extends React.Component<
         cache={listRowsHeightCache}
         columnIndex={0}
         key={key}
-        overscanRowCount={10}
         parent={parent}
         rowIndex={index}
       >
@@ -348,9 +379,26 @@ export class SideBySideDiff extends React.Component<
       const lineTokens =
         getTokens(row.beforeLineNumber, this.state.beforeTokens) ??
         getTokens(row.afterLineNumber, this.state.afterTokens)
-      const tokens = lineTokens ? [...row.tokens, lineTokens] : row.tokens
 
-      return { ...row, tokens }
+      const beforeTokens = [...row.beforeTokens]
+      const afterTokens = [...row.afterTokens]
+
+      if (lineTokens !== null) {
+        beforeTokens.push(lineTokens)
+        afterTokens.push(lineTokens)
+      }
+
+      const beforeSearchTokens = this.getSearchTokens(numRow, DiffColumn.Before)
+      if (beforeSearchTokens !== undefined) {
+        beforeTokens.push(...beforeSearchTokens)
+      }
+
+      const afterSearchTokens = this.getSearchTokens(numRow, DiffColumn.After)
+      if (afterSearchTokens !== undefined) {
+        afterTokens.push(...afterSearchTokens)
+      }
+
+      return { ...row, beforeTokens, afterTokens }
     }
 
     return row
@@ -362,11 +410,20 @@ export class SideBySideDiff extends React.Component<
     column: DiffColumn,
     tokens: ITokens | undefined
   ): IDiffRowData {
+    const searchTokens = this.getSearchTokens(row, column)
     const lineTokens = getTokens(data.lineNumber, tokens)
+    const finalTokens = [...data.tokens]
+
+    if (searchTokens !== undefined) {
+      finalTokens.push(...searchTokens)
+    }
+    if (lineTokens !== null) {
+      finalTokens.push(lineTokens)
+    }
 
     return {
       ...data,
-      tokens: lineTokens ? [...data.tokens, lineTokens] : data.tokens,
+      tokens: finalTokens,
       isSelected: isInSelection(
         data.diffLineNumber,
         row,
@@ -377,17 +434,46 @@ export class SideBySideDiff extends React.Component<
     }
   }
 
+  private getSearchTokens(row: number, column: DiffColumn) {
+    const { searchResults: searchTokens, selectedSearchResult } = this.state
+
+    if (searchTokens === undefined) {
+      return undefined
+    }
+
+    const lineTokens = searchTokens.getLineTokens(row, column)
+
+    if (lineTokens === undefined) {
+      return undefined
+    }
+
+    if (lineTokens !== undefined && selectedSearchResult !== undefined) {
+      const selected = searchTokens.get(selectedSearchResult)
+
+      if (row === selected?.row && column === selected.column) {
+        if (lineTokens[selected.offset] !== undefined) {
+          const selectedToken = {
+            [selected.offset]: { length: selected.length, token: 'selected' },
+          }
+
+          return [lineTokens, selectedToken]
+        }
+      }
+    }
+
+    return [lineTokens]
+  }
+
   private getDiffLineNumber(
     rowNumber: number,
     column: DiffColumn
   ): number | null {
     const rows = getDiffRows(this.props.diff, this.props.showSideBySideDiff)
+    const row = rows[rowNumber]
 
-    if (rows[rowNumber] === undefined) {
+    if (row === undefined) {
       return null
     }
-
-    const row = rows[rowNumber]
 
     if (row.type === DiffRowType.Added || row.type === DiffRowType.Deleted) {
       return row.data.diffLineNumber
@@ -435,93 +521,59 @@ export class SideBySideDiff extends React.Component<
   private onStartSelection = (
     row: number,
     column: DiffColumn,
-    select: boolean
+    isSelected: boolean
   ) => {
-    this.setState({
-      temporarySelection: {
-        from: { row, column },
-        to: { row, column },
-        isSelected: select,
-      },
-    })
+    const point: ISelectionPoint = { row, column }
+    const temporarySelection = { from: point, to: point, isSelected }
+    this.setState({ temporarySelection })
 
     document.addEventListener('mouseup', this.onEndSelection, { once: true })
   }
 
   private onUpdateSelection = (row: number, column: DiffColumn) => {
-    if (this.state.temporarySelection === undefined) {
+    const { temporarySelection } = this.state
+    if (temporarySelection === undefined) {
       return
     }
 
-    this.setState({
-      temporarySelection: {
-        ...this.state.temporarySelection,
-        to: { row, column },
-      },
-    })
+    const to = { row, column }
+    this.setState({ temporarySelection: { ...temporarySelection, to } })
   }
 
   private onEndSelection = () => {
     let selection = this.getSelection()
-    if (selection === undefined) {
+    const { temporarySelection } = this.state
+
+    if (selection === undefined || temporarySelection === undefined) {
       return
     }
 
-    if (this.state.temporarySelection === undefined) {
-      return
-    }
+    const { from: tmpFrom, to: tmpTo, isSelected } = temporarySelection
 
-    if (this.props.onIncludeChanged === undefined) {
-      return
-    }
-
-    const fromRow = Math.min(
-      this.state.temporarySelection.from.row,
-      this.state.temporarySelection.to.row
-    )
-    const toRow = Math.max(
-      this.state.temporarySelection.from.row,
-      this.state.temporarySelection.to.row
-    )
+    const fromRow = Math.min(tmpFrom.row, tmpTo.row)
+    const toRow = Math.max(tmpFrom.row, tmpTo.row)
 
     for (let row = fromRow; row <= toRow; row++) {
-      const lineBefore = this.getDiffLineNumber(
-        row,
-        this.state.temporarySelection.from.column
-      )
-      const lineAfter = this.getDiffLineNumber(
-        row,
-        this.state.temporarySelection.to.column
-      )
+      const lineBefore = this.getDiffLineNumber(row, tmpFrom.column)
+      const lineAfter = this.getDiffLineNumber(row, tmpTo.column)
 
       if (lineBefore !== null) {
-        selection = selection?.withLineSelection(
-          lineBefore,
-          this.state.temporarySelection.isSelected
-        )
+        selection = selection.withLineSelection(lineBefore, isSelected)
       }
 
       if (lineAfter !== null) {
-        selection = selection?.withLineSelection(
-          lineAfter,
-          this.state.temporarySelection.isSelected
-        )
+        selection = selection.withLineSelection(lineAfter, isSelected)
       }
     }
 
-    this.props.onIncludeChanged(selection)
-
-    this.setState({
-      temporarySelection: undefined,
-    })
+    this.props.onIncludeChanged?.(selection)
+    this.setState({ temporarySelection: undefined })
   }
 
   private onMouseEnterHunk = (hunkStartLine: number) => {
-    if (this.state.temporarySelection !== undefined) {
-      return
+    if (this.state.temporarySelection === undefined) {
+      this.setState({ hoveredHunk: hunkStartLine })
     }
-
-    this.setState({ hoveredHunk: hunkStartLine })
   }
 
   private onMouseLeaveHunk = () => {
@@ -529,25 +581,21 @@ export class SideBySideDiff extends React.Component<
   }
 
   private onClickHunk = (hunkStartLine: number, select: boolean) => {
-    const selection = this.getSelection()
-    if (selection === undefined) {
-      return
-    }
-
-    const range = findInteractiveDiffRange(this.props.diff.hunks, hunkStartLine)
-    if (range === null) {
-      return
-    }
-
-    const { from, to } = range
-
     if (this.props.onIncludeChanged === undefined) {
       return
     }
 
-    this.props.onIncludeChanged(
-      selection.withRangeSelection(from, to - from + 1, select)
-    )
+    const { diff } = this.props
+    const selection = this.getSelection()
+
+    if (selection !== undefined) {
+      const range = findInteractiveDiffRange(diff.hunks, hunkStartLine)
+      if (range !== null) {
+        const { from, to } = range
+        const sel = selection.withRangeSelection(from, to - from + 1, select)
+        this.props.onIncludeChanged(sel)
+      }
+    }
   }
 
   /**
@@ -572,7 +620,8 @@ export class SideBySideDiff extends React.Component<
    * @param diffLineNumber the line number the diff where the user clicked
    */
   private onContextMenuLine = (diffLineNumber: number) => {
-    if (!canSelect(this.props.file)) {
+    const { file, diff } = this.props
+    if (!canSelect(file)) {
       return
     }
 
@@ -580,11 +629,8 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    const range = findInteractiveDiffRange(
-      this.props.diff.hunks,
-      diffLineNumber
-    )
-    if (range?.type == null) {
+    const range = findInteractiveDiffRange(diff.hunks, diffLineNumber)
+    if (range === null || range.type === null) {
       return
     }
 
@@ -611,7 +657,7 @@ export class SideBySideDiff extends React.Component<
     }
 
     const range = findInteractiveDiffRange(this.props.diff.hunks, hunkStartLine)
-    if (range?.type == null) {
+    if (range === null || range.type === null) {
       return
     }
 
@@ -658,6 +704,68 @@ export class SideBySideDiff extends React.Component<
       .withRangeSelection(startLine, endLine - startLine + 1, true)
 
     this.props.onDiscardChanges(this.props.diff, newSelection)
+  }
+
+  private onWindowKeyDown = (event: KeyboardEvent) => {
+    const isShortcutKey = __DARWIN__ ? event.metaKey : event.ctrlKey
+    if (isShortcutKey && event.key === 'f' && !event.defaultPrevented) {
+      event.preventDefault()
+      this.showSearch()
+    }
+  }
+
+  private showSearch = () => {
+    if (!this.state.isSearching) {
+      this.resetSearch(true)
+    }
+  }
+
+  private onSearch = (searchQuery: string, direction: 'next' | 'previous') => {
+    let { selectedSearchResult, searchResults: searchResults } = this.state
+    const { diff, showSideBySideDiff } = this.props
+
+    // If the query is unchanged and we've got tokens we'll continue, else we'll restart
+    if (searchQuery === this.state.searchQuery && searchResults !== undefined) {
+      if (selectedSearchResult === undefined) {
+        selectedSearchResult = 0
+      } else {
+        const delta = direction === 'next' ? 1 : -1
+
+        // http://javascript.about.com/od/problemsolving/a/modulobug.htm
+        selectedSearchResult =
+          (selectedSearchResult + delta + searchResults.length) %
+          searchResults.length
+      }
+    } else {
+      searchResults = calcSearchTokens(diff, showSideBySideDiff, searchQuery)
+      selectedSearchResult = 0
+
+      if (searchResults === undefined || searchResults.length === 0) {
+        this.resetSearch(true)
+        return
+      }
+    }
+
+    const scrollToRow = searchResults.get(selectedSearchResult)?.row
+
+    if (scrollToRow !== undefined) {
+      this.virtualListRef.current?.scrollToRow(scrollToRow)
+    }
+
+    this.setState({ searchQuery, searchResults, selectedSearchResult })
+  }
+
+  private onSearchCancel = () => {
+    this.resetSearch(false)
+  }
+
+  private resetSearch(isSearching: boolean) {
+    this.setState({
+      selectedSearchResult: undefined,
+      searchQuery: undefined,
+      searchResults: undefined,
+      isSearching,
+    })
   }
 }
 
@@ -758,7 +866,8 @@ function getDiffRowsFromHunk(
         content: line.content,
         beforeLineNumber: line.oldLineNumber,
         afterLineNumber: line.newLineNumber,
-        tokens: [],
+        beforeTokens: [],
+        afterTokens: [],
       })
       continue
     }
@@ -890,7 +999,7 @@ function getDataFromLine(
     line[lineToUse]
   )
 
-  const tokens = []
+  const tokens = new Array<ILineTokens>()
 
   if (diffTokens !== undefined) {
     tokens.push(diffTokens)
@@ -902,6 +1011,103 @@ function getDataFromLine(
     diffLineNumber,
     noNewLineIndicator: line.noTrailingNewLine,
     tokens,
+  }
+}
+
+/**
+ * Helper class that lets us index search results both by their row
+ * and column for fast lookup durig the render phase but also by their
+ * relative order (index) allowing us to efficiently perform backwards search.
+ */
+class SearchResults {
+  private readonly lookup = new Map<string, ILineTokens>()
+  private readonly hits = new Array<[number, DiffColumn, number, number]>()
+
+  private getKey(row: number, column: DiffColumn) {
+    return `${row}.${column}`
+  }
+
+  public add(row: number, column: DiffColumn, offset: number, length: number) {
+    const key = this.getKey(row, column)
+    const existing = this.lookup.get(key)
+    const token: IToken = { length, token: 'search-result' }
+
+    if (existing !== undefined) {
+      existing[offset] = token
+    } else {
+      this.lookup.set(key, { [offset]: token })
+    }
+
+    this.hits.push([row, column, offset, length])
+  }
+
+  public get length() {
+    return this.hits.length
+  }
+
+  public get(index: number) {
+    const hit = this.hits[index]
+    return hit === undefined
+      ? undefined
+      : { row: hit[0], column: hit[1], offset: hit[2], length: hit[3] }
+  }
+
+  public getLineTokens(row: number, column: DiffColumn) {
+    return this.lookup.get(this.getKey(row, column))
+  }
+}
+
+function calcSearchTokens(
+  diff: ITextDiff,
+  showSideBySideDiffs: boolean,
+  searchQuery: string
+): SearchResults | undefined {
+  if (searchQuery.length === 0) {
+    return undefined
+  }
+
+  const hits = new SearchResults()
+  const searchRe = new RegExp(escapeRegExp(searchQuery), 'gi')
+  const rows = getDiffRows(diff, showSideBySideDiffs)
+
+  for (const [rowNumber, row] of rows.entries()) {
+    if (row.type === DiffRowType.Hunk) {
+      continue
+    }
+
+    for (const column of enumerateColumnContents(row, showSideBySideDiffs)) {
+      for (const match of column.content.matchAll(searchRe)) {
+        if (match.index !== undefined) {
+          hits.add(rowNumber, column.type, match.index, match[0].length)
+        }
+      }
+    }
+  }
+
+  return hits
+}
+
+function* enumerateColumnContents(
+  row: SimplifiedDiffRow,
+  showSideBySideDiffs: boolean
+): IterableIterator<{ type: DiffColumn; content: string }> {
+  if (row.type === DiffRowType.Hunk) {
+    yield { type: DiffColumn.Before, content: row.content }
+  } else if (row.type === DiffRowType.Added) {
+    const type = showSideBySideDiffs ? DiffColumn.After : DiffColumn.Before
+    yield { type, content: row.data.content }
+  } else if (row.type === DiffRowType.Deleted) {
+    yield { type: DiffColumn.Before, content: row.data.content }
+  } else if (row.type === DiffRowType.Context) {
+    yield { type: DiffColumn.Before, content: row.content }
+    if (showSideBySideDiffs) {
+      yield { type: DiffColumn.After, content: row.content }
+    }
+  } else if (row.type === DiffRowType.Modified) {
+    yield { type: DiffColumn.Before, content: row.beforeData.content }
+    yield { type: DiffColumn.After, content: row.afterData.content }
+  } else {
+    assertNever(row, `Unknown row type ${row}`)
   }
 }
 
