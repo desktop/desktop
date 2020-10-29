@@ -1,5 +1,14 @@
 {
   "releases": {
+    "2.5.7-beta2": [
+      "[New] Search text within split diffs - #10755",
+      "[Improved] Use Page down, Page up, Home, and End keys to navigate and select items in lists - #10837",
+      "[Fixed] Comparison of different size image changes no longer overflow the bounds of the diff view - #2480 #9717",
+      "[Fixed] Repository indicator refresh can no longer be manually triggered when disabled - #10905",
+      "[Fixed] Choosing to resolve a conflicted file added in both the source and target branch no longer results in merge conflict markers appearing in the merge commit - #10820",
+      "[Fixed] Small partial commit of very large text files no longer runs the risk of failing due to unexpected diff results - #10640",
+      "[Fixed] Long commit message are scrollable once again - #10815"
+    ],
     "2.5.7-beta1": [
       "[New] Split diffs! Toggle between viewing diffs in split or unified mode - #10617",
       "[Fixed] Actions in the context menu of a non-selected file in history no longer acts on the previously selected item - #10743",
