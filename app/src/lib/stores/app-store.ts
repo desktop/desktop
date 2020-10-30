@@ -3217,10 +3217,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     branch: Branch,
     strategy = this.uncommittedChangesStrategy
   ): Promise<Repository> {
-    const repositoryState = this.repositoryStateCache.get(repository)
-    const { workingDirectory } = repositoryState.changesState
-
     if (strategy === UncommittedChangesStrategy.AskForConfirmation) {
+      const repositoryState = this.repositoryStateCache.get(repository)
+      const { workingDirectory } = repositoryState.changesState
+
       if (workingDirectory.files.length > 0) {
         this.showConfirmStashPopup(repository, branch)
         return repository
