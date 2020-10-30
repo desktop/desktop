@@ -1363,9 +1363,7 @@ export class App extends React.Component<IAppProps, IAppState> {
               this.state.askForConfirmationOnDiscardChanges
             }
             confirmForcePush={this.state.askForConfirmationOnForcePush}
-            uncommittedChangesStrategyKind={
-              this.state.uncommittedChangesStrategyKind
-            }
+            uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
             selectedExternalEditor={this.state.selectedExternalEditor}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             enterpriseAccount={this.getEnterpriseAccount()}
@@ -1499,7 +1497,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             initialName={popup.initialName || ''}
             currentBranchProtected={currentBranchProtected}
             selectedUncommittedChangesStrategy={
-              this.state.uncommittedChangesStrategyKind
+              this.state.uncommittedChangesStrategy
             }
           />
         )
@@ -2452,7 +2450,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           this.state.currentOnboardingTutorialStep === TutorialStep.CreateBranch
         }
         selectedUncommittedChangesStrategy={
-          this.state.uncommittedChangesStrategyKind
+          this.state.uncommittedChangesStrategy
         }
         couldOverwriteStash={hasChanges && hasAssociatedStash}
       />

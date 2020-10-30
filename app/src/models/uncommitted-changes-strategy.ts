@@ -1,26 +1,26 @@
-export enum UncommittedChangesStrategyKind {
+export enum UncommittedChangesStrategy {
   AskForConfirmation = 'AskForConfirmation',
   StashOnCurrentBranch = 'StashOnCurrentBranch',
   MoveToNewBranch = 'MoveToNewBranch',
 }
 
-export const uncommittedChangesStrategyKindDefault: UncommittedChangesStrategyKind =
-  UncommittedChangesStrategyKind.AskForConfirmation
+export const defaultUncommittedChangesStrategy: UncommittedChangesStrategy =
+  UncommittedChangesStrategy.AskForConfirmation
 
 /**
- * Parse a string into a valid `UncommittedChangesStrategyKind`,
+ * Parse a string into a valid `UncommittedChangesStrategy`,
  * if possible. Returns `null` if not.
  */
 export function parseStrategy(
   strategy: string | null
-): UncommittedChangesStrategyKind | null {
+): UncommittedChangesStrategy | null {
   switch (strategy) {
-    case UncommittedChangesStrategyKind.AskForConfirmation:
-      return UncommittedChangesStrategyKind.AskForConfirmation
-    case UncommittedChangesStrategyKind.StashOnCurrentBranch:
-      return UncommittedChangesStrategyKind.StashOnCurrentBranch
-    case UncommittedChangesStrategyKind.MoveToNewBranch:
-      return UncommittedChangesStrategyKind.MoveToNewBranch
+    case UncommittedChangesStrategy.AskForConfirmation:
+      return UncommittedChangesStrategy.AskForConfirmation
+    case UncommittedChangesStrategy.StashOnCurrentBranch:
+      return UncommittedChangesStrategy.StashOnCurrentBranch
+    case UncommittedChangesStrategy.MoveToNewBranch:
+      return UncommittedChangesStrategy.MoveToNewBranch
     default:
       return null
   }

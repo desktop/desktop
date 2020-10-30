@@ -25,7 +25,7 @@ import { IBranchListItem } from './group-branches'
 import { renderDefaultBranch } from './branch-renderer'
 import { IMatches } from '../../lib/fuzzy-find'
 import { startTimer } from '../lib/timing'
-import { UncommittedChangesStrategyKind } from '../../models/uncommitted-changes-strategy'
+import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -45,7 +45,7 @@ interface IBranchesContainerProps {
 
   readonly currentBranchProtected: boolean
 
-  readonly selectedUncommittedChangesStrategy: UncommittedChangesStrategyKind
+  readonly selectedUncommittedChangesStrategy: UncommittedChangesStrategy
 
   readonly couldOverwriteStash: boolean
 }
@@ -247,7 +247,7 @@ export class BranchesContainer extends React.Component<
       if (
         !currentBranchProtected &&
         this.props.selectedUncommittedChangesStrategy ===
-          UncommittedChangesStrategyKind.StashOnCurrentBranch &&
+          UncommittedChangesStrategy.StashOnCurrentBranch &&
         couldOverwriteStash
       ) {
         dispatcher.showPopup({
@@ -262,7 +262,7 @@ export class BranchesContainer extends React.Component<
 
       // Never prompt to stash changes if someone is switching away from a protected branch
       const strategy = currentBranchProtected
-        ? UncommittedChangesStrategyKind.MoveToNewBranch
+        ? UncommittedChangesStrategy.MoveToNewBranch
         : this.props.selectedUncommittedChangesStrategy
 
       this.props.dispatcher

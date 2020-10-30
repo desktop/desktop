@@ -235,8 +235,8 @@ import {
   dropDesktopStashEntry,
 } from '../git/stash'
 import {
-  UncommittedChangesStrategyKind,
-  uncommittedChangesStrategyKindDefault,
+  UncommittedChangesStrategy,
+  defaultUncommittedChangesStrategy,
   parseStrategy,
 } from '../../models/uncommitted-changes-strategy'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
@@ -295,8 +295,7 @@ const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
 const confirmForcePushKey: string = 'confirmForcePush'
 
-const uncommittedChangesStrategyKindKey: string =
-  'uncommittedChangesStrategyKind'
+const uncommittedChangesStrategyKey: string = 'uncommittedChangesStrategyKind'
 
 const externalEditorKey: string = 'externalEditor'
 
@@ -393,7 +392,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private hideWhitespaceInDiff: boolean = hideWhitespaceInDiffDefault
   private showSideBySideDiff: boolean = showSideBySideDiffDefault
 
-  private uncommittedChangesStrategyKind: UncommittedChangesStrategyKind = uncommittedChangesStrategyKindDefault
+  private uncommittedChangesStrategy = defaultUncommittedChangesStrategy
 
   private selectedExternalEditor: ExternalEditor | null = null
 
@@ -755,7 +754,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         .askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
       askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
-      uncommittedChangesStrategyKind: this.uncommittedChangesStrategyKind,
+      uncommittedChangesStrategy: this.uncommittedChangesStrategy,
       selectedExternalEditor: this.selectedExternalEditor,
       imageDiffType: this.imageDiffType,
       hideWhitespaceInDiff: this.hideWhitespaceInDiff,
@@ -1820,10 +1819,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     const strategy = parseStrategy(
-      localStorage.getItem(uncommittedChangesStrategyKindKey)
+      localStorage.getItem(uncommittedChangesStrategyKey)
     )
-    this.uncommittedChangesStrategyKind =
-      strategy || uncommittedChangesStrategyKindDefault
+    this.uncommittedChangesStrategy =
+      strategy || defaultUncommittedChangesStrategy
 
     this.updateSelectedExternalEditor(
       await this.lookupSelectedExternalEditor()
@@ -3067,7 +3066,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     name: string,
     startPoint: string | null,
-    uncommittedChangesStrategy = this.uncommittedChangesStrategyKind,
+    uncommittedChangesStrategy = this.uncommittedChangesStrategy,
     noTrackOption: boolean = false
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
@@ -3090,7 +3089,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       hasChanges &&
       currentBranch !== null &&
       uncommittedChangesStrategy ===
-        UncommittedChangesStrategyKind.AskForConfirmation
+        UncommittedChangesStrategy.AskForConfirmation
     ) {
       this._showPopup({
         type: PopupType.StashAndSwitchBranch,
@@ -3167,7 +3166,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async checkoutImpl(
     repository: Repository,
     branch: Branch,
-    strategy: UncommittedChangesStrategyKind,
+    strategy: UncommittedChangesStrategy,
     account: IGitAccount | null,
     progress: ProgressCallback
   ) {
@@ -3180,16 +3179,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // changes with us to the destination branch. Note that this will not
     // overwrite any existing stash on the destination branch.
     if (tip.kind !== TipState.Valid) {
-      strategy = UncommittedChangesStrategyKind.MoveToNewBranch
+      strategy = UncommittedChangesStrategy.MoveToNewBranch
     } else if (
-      strategy === UncommittedChangesStrategyKind.AskForConfirmation &&
+      strategy === UncommittedChangesStrategy.AskForConfirmation &&
       hasChanges
     ) {
       this.showStashAndSwitchDialog(repository, branch)
       return
-    } else if (
-      strategy === UncommittedChangesStrategyKind.StashOnCurrentBranch
-    ) {
+    } else if (strategy === UncommittedChangesStrategy.StashOnCurrentBranch) {
       await this.createStashAndDropPreviousEntry(repository, tip.branch.name)
       this.statsStore.recordStashCreatedOnCurrentBranch()
     }
@@ -3227,7 +3224,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         // have a chance to sort this because the
         // `stashToPopAfterBranchCheckout` method will only create a stash prior
         // to checkout if there are deleted files in the working directory
-        strategy !== UncommittedChangesStrategyKind.MoveToNewBranch
+        strategy !== UncommittedChangesStrategy.MoveToNewBranch
       ) {
         throw new ErrorWithMetadata(checkoutError, metadata)
       }
@@ -3298,7 +3295,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _checkoutBranch(
     repository: Repository,
     branch: Branch,
-    strategy = this.uncommittedChangesStrategyKind
+    strategy = this.uncommittedChangesStrategy
   ): Promise<Repository> {
     return this.withAuthenticatingUser(repository, (repository, account) => {
       const progress = (p: ICheckoutProgress) =>
@@ -4695,12 +4692,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-  public _setUncommittedChangesStrategyKindSetting(
-    value: UncommittedChangesStrategyKind
+  public _setUncommittedChangesStrategySetting(
+    value: UncommittedChangesStrategy
   ): Promise<void> {
-    this.uncommittedChangesStrategyKind = value
+    this.uncommittedChangesStrategy = value
 
-    localStorage.setItem(uncommittedChangesStrategyKindKey, value)
+    localStorage.setItem(uncommittedChangesStrategyKey, value)
 
     this.emitUpdate()
     return Promise.resolve()
