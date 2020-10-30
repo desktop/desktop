@@ -603,23 +603,26 @@ export async function localChangesOverwrittenHandler(
     return error
   }
 
-  const { repository } = e.metadata
+  const { repository, retryAction } = e.metadata
 
   if (!(repository instanceof Repository)) {
     return error
   }
 
-  if (e.metadata.retryAction === undefined) {
+  if (retryAction === undefined) {
     return error
+  }
+
+  if (e.metadata.gitContext?.kind === 'checkout') {
+    dispatcher.recordErrorWhenSwitchingBranchesWithUncommmittedChanges()
   }
 
   const files = parseFilesToBeOverwritten(gitError.result.stderr)
 
-  dispatcher.recordErrorWhenSwitchingBranchesWithUncommmittedChanges()
   dispatcher.showPopup({
     type: PopupType.LocalChangesOverwritten,
     repository,
-    retryAction: e.metadata.retryAction,
+    retryAction,
     files,
   })
 
