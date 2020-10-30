@@ -238,7 +238,6 @@ import {
   UncommittedChangesStrategyKind,
   uncommittedChangesStrategyKindDefault,
   getUncommittedChangesStrategy,
-  askToStash,
   parseStrategy,
 } from '../../models/uncommitted-changes-strategy'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
