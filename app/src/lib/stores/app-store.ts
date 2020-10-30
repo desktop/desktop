@@ -3238,10 +3238,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             return repository
           }
 
-          stashToPop = await this._moveChangesToBranchAndCheckout(
-            repository,
-            branch
-          )
+          stashToPop = await this.createStashEntry(repository, branch)
 
           // Failing to stash the changes when we know that there are changes
           // preventing a checkout is very likely due to the assume-unchanged
@@ -5815,14 +5812,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return createdStash === true
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _moveChangesToBranchAndCheckout(
-    repository: Repository,
-    branchToCheckout: Branch
-  ) {
     const {
       changesState: { workingDirectory },
     } = this.repositoryStateCache.get(repository)
+  private async createStashEntry(repository: Repository, branch: Branch) {
 
     const untrackedFiles = getUntrackedFiles(workingDirectory)
     const branch = branchToCheckout.name
