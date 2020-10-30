@@ -2501,19 +2501,6 @@ export class Dispatcher {
     return this.statsStore.recordSuggestedStepViewStash()
   }
 
-  /**
-   * Moves uncommitted changes to the branch being checked out
-   */
-  public async moveChangesToBranchAndCheckout(
-    repository: Repository,
-    branchToCheckout: Branch
-  ) {
-    return this.appStore._moveChangesToBranchAndCheckout(
-      repository,
-      branchToCheckout
-    )
-  }
-
   /** Record when the user takes no action on the stash entry */
   public recordNoActionTakenOnStash(): Promise<void> {
     return this.statsStore.recordNoActionTakenOnStash()
