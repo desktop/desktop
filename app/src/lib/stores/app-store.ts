@@ -3279,7 +3279,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this.hasUserViewedStash = false
-    return repository
   }
 
   private async refreshRepositoryAfterCheckout(
