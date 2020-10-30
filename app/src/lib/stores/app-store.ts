@@ -3171,7 +3171,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     progress: ProgressCallback
   ) {
     const repositoryState = this.repositoryStateCache.get(repository)
-    const { workingDirectory, stashEntry } = repositoryState.changesState
+    const { workingDirectory } = repositoryState.changesState
     const { tip } = repositoryState.branchesState
     const hasChanges = workingDirectory.files.length > 0
 
@@ -3206,7 +3206,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         // If the checkout failed for a different reason than there being
         // local changes in the working directory there's nothing for us to
         // do.
-        !isLocalChangesOverwrittenError(checkoutError) ||
         // There are three possible strategies at play here.
         //
         // If we've gotten to here with the `AskForConfirmation` strategy we're
@@ -3224,6 +3223,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         // have a chance to sort this because the
         // `stashToPopAfterBranchCheckout` method will only create a stash prior
         // to checkout if there are deleted files in the working directory
+        !isLocalChangesOverwrittenError(checkoutError) ||
         strategy !== UncommittedChangesStrategy.MoveToNewBranch
       ) {
         throw new ErrorWithMetadata(checkoutError, metadata)
@@ -3263,32 +3263,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.statsStore.recordChangesTakenToNewBranch()
       }
     }
-
-    this.clearBranchProtectionState(repository)
-
-    // Make sure changes or suggested next step are visible after branch checkout
-    this._selectWorkingDirectoryFiles(repository)
-
-    try {
-      const title = `Refreshing ${__DARWIN__ ? 'Repository' : 'repository'}`
-      progress({ kind: 'checkout', title, value: 1, targetBranch: branch.name })
-
-      await this._refreshRepository(repository)
-    } finally {
-      this._initializeCompare(repository, {
-        kind: HistoryTabMode.History,
-      })
-    }
-
-    if (branch.name !== repositoryState.branchesState.defaultBranch?.name) {
-      this.statsStore.recordNonDefaultBranchCheckout()
-    }
-
-    if (stashEntry !== null && !this.hasUserViewedStash) {
-      this.statsStore.recordStashNotViewedAfterCheckout()
-    }
-
-    this.hasUserViewedStash = false
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -3301,11 +3275,54 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const progress = (p: ICheckoutProgress) =>
         this.updateCheckoutProgress(repository, p)
 
+      // We always want to end with refreshing the repository regardless of
+      // whether the checkout succeeded or not in order to present the most
+      // up-to-date information to the user.
       return this.checkoutImpl(repository, branch, strategy, account, progress)
+        .then(() => this.onSuccessfullCheckout(repository, branch))
         .catch(e => this.emitError(e))
-        .then(() => repository)
+        .then(() => this.refreshRepositoryAfterCheckout(repository, branch))
         .finally(() => this.updateCheckoutProgress(repository, null))
     })
+  }
+
+  private async onSuccessfullCheckout(repository: Repository, branch: Branch) {
+    const repositoryState = this.repositoryStateCache.get(repository)
+    const { stashEntry } = repositoryState.changesState
+    const { defaultBranch } = repositoryState.branchesState
+
+    this.clearBranchProtectionState(repository)
+
+    // Make sure changes or suggested next step are visible after branch checkout
+    await this._selectWorkingDirectoryFiles(repository)
+
+    this._initializeCompare(repository, { kind: HistoryTabMode.History })
+
+    if (branch.name !== defaultBranch?.name) {
+      this.statsStore.recordNonDefaultBranchCheckout()
+    }
+
+    if (stashEntry !== null && !this.hasUserViewedStash) {
+      this.statsStore.recordStashNotViewedAfterCheckout()
+    }
+
+    this.hasUserViewedStash = false
+    return repository
+  }
+
+  private async refreshRepositoryAfterCheckout(
+    repository: Repository,
+    branch: Branch
+  ) {
+    this.updateCheckoutProgress(repository, {
+      kind: 'checkout',
+      title: `Refreshing ${__DARWIN__ ? 'Repository' : 'repository'}`,
+      value: 1,
+      targetBranch: branch.name,
+    })
+
+    await this._refreshRepository(repository)
+    return repository
   }
 
   /**
