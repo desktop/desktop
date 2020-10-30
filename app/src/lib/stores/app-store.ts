@@ -5737,7 +5737,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (entry !== null) {
       const { stashSha, branchName } = entry
       const droppedStash = await gitStore.performFailableOperation(async () => {
-        dropDesktopStashEntry(repository, entry.stashSha)
+        await dropDesktopStashEntry(repository, entry.stashSha)
         log.info(`Dropped stash '${stashSha}' associated with ${branchName}`)
         return true
       })
