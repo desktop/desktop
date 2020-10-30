@@ -3154,11 +3154,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
   }
 
-  private showConfirmStashPopup(repository: Repository, branch: Branch) {
-    const type = PopupType.StashAndSwitchBranch
-    this._showPopup({ type, branchToCheckout: branch, repository })
-  }
-
   private async checkoutIgnoringChanges(
     repository: Repository,
     branch: Branch,
@@ -3222,7 +3217,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const { workingDirectory } = repositoryState.changesState
 
       if (workingDirectory.files.length > 0) {
-        this.showConfirmStashPopup(repository, branch)
+        const type = PopupType.StashAndSwitchBranch
+        this._showPopup({ type, branchToCheckout: branch, repository })
         return repository
       }
     }
