@@ -3186,6 +3186,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       uncommittedChangesStrategy.kind ===
       UncommittedChangesStrategyKind.StashOnCurrentBranch
 
+    const moveToNewBranch =
+      uncommittedChangesStrategy.kind ===
+      UncommittedChangesStrategyKind.MoveToNewBranch
+
     if (workingDirectory.files.length > 0) {
       if (askToStash) {
         this.showStashAndSwitchDialog(repository, branch)
@@ -3233,24 +3237,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
             return repository
           }
 
-          // If we've gotten to here with the AskForConfirmation strategy we're
-          // almost certainly running into the assume unchanged scenario
+          // There are three possible strategies at play here.
+          //
+          // If we've gotten to here with the `AskForConfirmation` strategy
+          // we're almost certainly running into the assume unchanged scenario
           // described above or we're encountering a race condition where the
           // status of the working directory has changed from the last time we
           // updated the working directory status.
-          if (askToStash) {
-            this.showStashAndSwitchDialog(repository, branch)
-            this.updateCheckoutProgress(repository, null)
-            return repository
-          }
-
-          stashToPop = await this.createStashEntry(repository, branch)
-          // If we've gotten here with the StashOnCurrentBranch strategy we've
+          //
+          // If we've gotten here with the `StashOnCurrentBranch` strategy we've
           // already made an attempt at stashing the changes and are still
           // running into the local changes would be overwritten error. Best not
           // to tempt fate any longer and surface the error to the user.
-          if (stashOnCurrentBranch) {
-            this.emitError(new ErrorWithMetadata(e, metadata))
+          //
+          // If we've gotten here with the `MoveToNewBranch` strategy however we
+          // have a chance to sort this because the
+          // `stashToPopAfterBranchCheckout` method will only create a stash
+          // prior to checkout if there are deleted files in the working
+          // directory
+          if (!moveToNewBranch) {
+            this.showStashAndSwitchDialog(repository, branch)
             this.updateCheckoutProgress(repository, null)
             return repository
           }
@@ -3266,6 +3272,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             return repository
           }
 
+          // TODO THIS CAN THROW
           await checkoutBranch(repository, account, branch, progress => {
             this.updateCheckoutProgress(repository, progress)
           })
