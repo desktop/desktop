@@ -156,6 +156,7 @@ import {
   IStatusResult,
   GitError,
   MergeResult,
+  ProgressCallback,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -3167,26 +3168,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
-  private checkoutWithUserAndProgress(repository: Repository, branch: Branch) {
-    return this.withAuthenticatingUser(
-      repository,
-      async (repository, account) => {
-        await checkoutBranch(repository, account, branch, progress => {
-          this.updateCheckoutProgress(repository, progress)
-        })
-        return repository
-      }
-    )
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _checkoutBranch(
+  private async checkoutImpl(
     repository: Repository,
     branch: Branch,
-    uncommittedChangesStrategy: UncommittedChangesStrategy = getUncommittedChangesStrategy(
-      this.uncommittedChangesStrategyKind
-    )
-  ): Promise<Repository> {
+    strategy: UncommittedChangesStrategy,
+    account: IGitAccount | null,
+    progress: ProgressCallback
+  ) {
     const gitStore = this.gitStoreCache.get(repository)
     const repositoryState = this.repositoryStateCache.get(repository)
     const { workingDirectory, stashEntry } = repositoryState.changesState
@@ -3194,28 +3182,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
     let stashToPop: IStashEntry | null = null
 
     const askToStash =
-      uncommittedChangesStrategy.kind ===
-      UncommittedChangesStrategyKind.AskForConfirmation
+      strategy.kind === UncommittedChangesStrategyKind.AskForConfirmation
 
     const moveToNewBranch =
-      uncommittedChangesStrategy.kind ===
-      UncommittedChangesStrategyKind.MoveToNewBranch
+      strategy.kind === UncommittedChangesStrategyKind.MoveToNewBranch
 
     if (workingDirectory.files.length > 0) {
       if (askToStash) {
         this.showStashAndSwitchDialog(repository, branch)
-        return repository
+        return
       }
 
       stashToPop = await this.stashToPopAfterBranchCheckout(
         repository,
         branch,
-        uncommittedChangesStrategy
+        strategy
       )
     }
 
     try {
-      repository = await this.checkoutWithUserAndProgress(repository, branch)
+      await checkoutBranch(repository, account, branch, progress)
     } catch (checkoutError) {
       const retryAction: RetryAction = {
         type: RetryActionType.Checkout,
@@ -3226,16 +3212,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const metadata = { repository, retryAction }
 
       if (
-        // If the checkout failed for a different reason that there being
+        // If the checkout failed for a different reason than there being
         // local changes in the working directory there's nothing for us to
         // do.
         !isLocalChangesOverwrittenError(checkoutError) ||
-        // Similarly, if we had already created a stash (which we would
-        // have at least attempted if there were changes in the working
-        // directory then we need to abort or else we'll overwrite that stash.
-        // This can happen if the changes that would be
-        // overwritten aren't visibile to git status due to the assume
-        // unchanged bit being set.
+        // Similarly, if we had already created a stash (which we might have
+        // attempted if there were changes in the working directory then we need
+        // to abort or else we'll overwrite that stash. This can happen if the
+        // changes that would be overwritten aren't visible to git status due to
+        // the assume unchanged bit being set.
         //
         // See https://github.com/desktop/desktop/issues/9297
         // See https://git-scm.com/docs/git-update-index#_notes
@@ -3260,9 +3245,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         // directory
         !moveToNewBranch
       ) {
-        this.emitError(new ErrorWithMetadata(checkoutError, metadata))
-        this.updateCheckoutProgress(repository, null)
-        return repository
+        throw new ErrorWithMetadata(checkoutError, metadata)
       }
 
       try {
@@ -3272,17 +3255,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
         // create stash" error we'll show the checkout error to the user and
         // let them figure it out.
         if (!(await this.createStashEntry(repository, branch.name))) {
-          this.updateCheckoutProgress(repository, null)
-          this.emitError(new ErrorWithMetadata(checkoutError, metadata))
-          return repository
+          throw new ErrorWithMetadata(checkoutError, metadata)
         }
       } catch (stashError) {
         // This is a legit error from `git stash`, i.e. not just a "nothing to
         // stash" scenario but an actual crash. Should be rare, better show this
         // actual error in case it contains useful information.
-        this.updateCheckoutProgress(repository, null)
-        this.emitError(new ErrorWithMetadata(stashError, metadata))
-        return repository
+        throw new ErrorWithMetadata(stashError, metadata)
       }
 
       stashToPop = await getLastDesktopStashEntryForBranch(
@@ -3291,11 +3270,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
 
       try {
-        repository = await this.checkoutWithUserAndProgress(repository, branch)
+        await checkoutBranch(repository, account, branch, progress)
       } catch (innerError) {
-        this.updateCheckoutProgress(repository, null)
-        this.emitError(new ErrorWithMetadata(innerError, metadata))
-        return repository
+        throw new ErrorWithMetadata(innerError, metadata)
       }
     }
 
@@ -3321,7 +3298,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._selectWorkingDirectoryFiles(repository)
 
     try {
-      this.updateCheckoutProgress(repository, {
+      progress({
         kind: 'checkout',
         title: __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository',
         value: 1,
@@ -3330,7 +3307,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       await this._refreshRepository(repository)
     } finally {
-      this.updateCheckoutProgress(repository, null)
       this._initializeCompare(repository, {
         kind: HistoryTabMode.History,
       })
@@ -3345,8 +3321,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this.hasUserViewedStash = false
+  }
 
-    return repository
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _checkoutBranch(
+    repository: Repository,
+    branch: Branch,
+    strategy: UncommittedChangesStrategy = getUncommittedChangesStrategy(
+      this.uncommittedChangesStrategyKind
+    )
+  ): Promise<Repository> {
+    return this.withAuthenticatingUser(repository, (repository, account) => {
+      const progress = (p: ICheckoutProgress) =>
+        this.updateCheckoutProgress(repository, p)
+
+      return this.checkoutImpl(repository, branch, strategy, account, progress)
+        .catch(e => this.emitError(e))
+        .then(() => repository)
+        .finally(() => this.updateCheckoutProgress(repository, null))
+    })
   }
 
   // Depending on the UncommittedChangesStrategy and the state of the uncommitted
