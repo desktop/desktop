@@ -5758,17 +5758,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
 
       if (!droppedStash) {
-        return
+        return false
       }
     }
 
     const { changesState } = this.repositoryStateCache.get(repository)
     const { workingDirectory } = changesState
 
-    const files = getUntrackedFiles(workingDirectory)
-    await gitStore.performFailableOperation(() =>
-      createDesktopStashEntry(repository, branch, files)
+    const untrackedFiles = getUntrackedFiles(workingDirectory)
+    const createdStash = await gitStore.performFailableOperation(() =>
+      createDesktopStashEntry(repository, branch, untrackedFiles)
     )
+
+    return createdStash === true
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
