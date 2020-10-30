@@ -3163,7 +3163,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
-    const kind = 'checkout'
 
     const { changesState, branchesState } = this.repositoryStateCache.get(
       repository
@@ -3243,7 +3242,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     try {
       this.updateCheckoutProgress(repository, {
-        kind,
+        kind: 'checkout',
         title: __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository',
         value: 1,
         targetBranch: branch.name,
