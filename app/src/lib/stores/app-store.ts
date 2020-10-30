@@ -5729,28 +5729,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _createStashAndDropPreviousEntry(
     repository: Repository,
-    branchName: string
+    branch: string
   ) {
-    const previousStashEntry = await getLastDesktopStashEntryForBranch(
-      repository,
-      branchName
-    )
+    const entry = await getLastDesktopStashEntryForBranch(repository, branch)
+    const gitStore = this.gitStoreCache.get(repository)
 
-    if (previousStashEntry !== null) {
-      await dropDesktopStashEntry(repository, previousStashEntry.stashSha)
-      log.info(
-        `Dropped stash '${previousStashEntry.stashSha}' associated with ${previousStashEntry.branchName}`
-      )
+    if (entry !== null) {
+      const { stashSha, branchName } = entry
+      const droppedStash = await gitStore.performFailableOperation(async () => {
+        dropDesktopStashEntry(repository, entry.stashSha)
+        log.info(`Dropped stash '${stashSha}' associated with ${branchName}`)
+        return true
+      })
+
+      if (!droppedStash) {
+        return
+      }
     }
 
-    const {
-      changesState: { workingDirectory },
-    } = this.repositoryStateCache.get(repository)
+    const { changesState } = this.repositoryStateCache.get(repository)
+    const { workingDirectory } = changesState
 
-    await createDesktopStashEntry(
-      repository,
-      branchName,
-      getUntrackedFiles(workingDirectory)
+    const files = getUntrackedFiles(workingDirectory)
+    await gitStore.performFailableOperation(() =>
+      createDesktopStashEntry(repository, branch, files)
     )
   }
 
