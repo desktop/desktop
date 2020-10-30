@@ -266,9 +266,7 @@ export class BranchesContainer extends React.Component<
 
       // Never prompt to stash changes if someone is switching away from a protected branch
       const strategy: UncommittedChangesStrategy = currentBranchProtected
-        ? {
-            kind: UncommittedChangesStrategyKind.MoveToNewBranch,
-          }
+        ? { kind: UncommittedChangesStrategyKind.MoveToNewBranch }
         : this.props.selectedUncommittedChangesStrategy
 
       this.props.dispatcher
