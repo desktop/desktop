@@ -3205,11 +3205,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
 
       await this.checkoutIgnoringChanges(repository, branch, account)
+      await popStashEntry(repository, stash.stashSha)
 
-      if (stash !== null) {
-        await popStashEntry(repository, stash.stashSha)
-        this.statsStore.recordChangesTakenToNewBranch()
-      }
+      this.statsStore.recordChangesTakenToNewBranch()
     }
   }
 
