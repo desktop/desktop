@@ -5742,15 +5742,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async createAndGetStashEntry(repository: Repository, branch: Branch) {
-    const { changesState } = this.repositoryStateCache.get(repository)
-    const { workingDirectory } = changesState
-    const untrackedFiles = getUntrackedFiles(workingDirectory)
-
-    if (!(await createDesktopStashEntry(repository, branch, untrackedFiles))) {
-      return null
-    }
-
-    return getLastDesktopStashEntryForBranch(repository, branch)
+    return (await this.createStashEntry(repository, branch))
+      ? getLastDesktopStashEntryForBranch(repository, branch)
+      : null
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
