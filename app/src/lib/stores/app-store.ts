@@ -3362,10 +3362,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
     }
 
-    await this._createStashAndDropPreviousEntry(repository, currentBranch.name)
-    this.statsStore.recordStashCreatedOnCurrentBranch()
+    const createdStash = await this._createStashAndDropPreviousEntry(
+      repository,
+      currentBranch.name
+    )
+
+    if (createdStash) {
+      this.statsStore.recordStashCreatedOnCurrentBranch()
+    }
 
     await this._refreshRepository(repository)
+    return createdStash
   }
 
   /**
