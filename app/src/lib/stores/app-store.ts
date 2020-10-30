@@ -238,6 +238,9 @@ import {
   UncommittedChangesStrategy,
   defaultUncommittedChangesStrategy,
   parseStrategy,
+  askForConfirmation,
+  moveToNewBranch,
+  stashOnCurrentBranch,
 } from '../../models/uncommitted-changes-strategy'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
@@ -3155,6 +3158,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
   }
 
+  private showConfirmStashPopup(repository: Repository, branch: Branch) {
+    const type = PopupType.StashAndSwitchBranch
+    this._showPopup({ type, branchToCheckout: branch, repository })
+  }
+
   private async checkoutImpl(
     repository: Repository,
     branch: Branch,
@@ -3167,22 +3175,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { tip } = repositoryState.branchesState
     const hasChanges = workingDirectory.files.length > 0
 
+    if (strategy === askForConfirmation && hasChanges) {
+      return this.showConfirmStashPopup(repository, branch)
+    }
+
     // If we're on a detached head the only thing we can do is to bring the
     // changes with us to the destination branch. Note that this will not
     // overwrite any existing stash on the destination branch.
     if (tip.kind !== TipState.Valid) {
-      strategy = UncommittedChangesStrategy.MoveToNewBranch
-    } else if (
-      strategy === UncommittedChangesStrategy.AskForConfirmation &&
-      hasChanges
-    ) {
-      this._showPopup({
-        type: PopupType.StashAndSwitchBranch,
-        branchToCheckout: branch,
-        repository,
-      })
-      return
-    } else if (strategy === UncommittedChangesStrategy.StashOnCurrentBranch) {
+      strategy = moveToNewBranch
+    } else if (strategy === stashOnCurrentBranch) {
       await this.createStashAndDropPreviousEntry(repository, tip.branch.name)
       this.statsStore.recordStashCreatedOnCurrentBranch()
     }
@@ -3220,7 +3222,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         // `stashToPopAfterBranchCheckout` method will only create a stash prior
         // to checkout if there are deleted files in the working directory
         !isLocalChangesOverwrittenError(checkoutError) ||
-        strategy !== UncommittedChangesStrategy.MoveToNewBranch
+        strategy !== moveToNewBranch
       ) {
         throw new ErrorWithMetadata(checkoutError, metadata)
       }

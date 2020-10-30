@@ -25,3 +25,8 @@ export function parseStrategy(
       return null
   }
 }
+
+export const moveToNewBranch = UncommittedChangesStrategy.MoveToNewBranch
+export const askForConfirmation = UncommittedChangesStrategy.AskForConfirmation
+export const stashOnCurrentBranch =
+  UncommittedChangesStrategy.StashOnCurrentBranch
