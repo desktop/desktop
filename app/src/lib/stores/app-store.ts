@@ -3222,7 +3222,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (
       uncommittedChangesStrategy.kind ===
         UncommittedChangesStrategyKind.MoveToNewBranch &&
-      checkoutSucceeded
+      UncommittedChangesStrategyKind.MoveToNewBranch
     ) {
       // We increment the metric after checkout succeeds to guard
       // against double counting when an error occurs on checkout.
@@ -3287,16 +3287,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       branchesState: { tip },
     } = this.repositoryStateCache.get(repository)
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+    const currentBranchName = currentBranch?.name
 
     if (
-      currentBranch !== null &&
+      currentBranchName !== undefined &&
       uncommittedChangesStrategy.kind ===
         UncommittedChangesStrategyKind.StashOnCurrentBranch
     ) {
-      await this._createStashAndDropPreviousEntry(
-        repository,
-        currentBranch.name
-      )
+      await this._createStashAndDropPreviousEntry(repository, currentBranchName)
       this.statsStore.recordStashCreatedOnCurrentBranch()
     } else if (
       uncommittedChangesStrategy.kind ===
