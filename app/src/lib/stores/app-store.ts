@@ -3315,61 +3315,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
-  // Depending on the UncommittedChangesStrategy and the state of the uncommitted
-  // changes there could be a stash to pop after checking out a branch. This method
-  // handles retrieving or creating the stash so it can be popped after the checkout
-  // is complete.
-  private async stashToPopAfterBranchCheckout(
-    repository: Repository,
-    branch: Branch,
-    uncommittedChangesStrategy: UncommittedChangesStrategy = getUncommittedChangesStrategy(
-      this.uncommittedChangesStrategyKind
-    )
-  ): Promise<IStashEntry | null> {
-    const {
-      changesState,
-      branchesState: { tip },
-    } = this.repositoryStateCache.get(repository)
-    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
-    const currentBranchName = currentBranch?.name
-
-    if (
-      currentBranchName !== undefined &&
-      uncommittedChangesStrategy.kind ===
-        UncommittedChangesStrategyKind.StashOnCurrentBranch
-    ) {
-      await this.createStashAndDropPreviousEntry(repository, currentBranchName)
-      this.statsStore.recordStashCreatedOnCurrentBranch()
-    } else if (
-      uncommittedChangesStrategy.kind ===
-      UncommittedChangesStrategyKind.MoveToNewBranch
-    ) {
-      // If there's deleted files in the working directory there's a very high
-      // likelihood that an attempted checkout would fail so we'll preemptively
-      // create a stash rather than wait for the checkout to fail due to local
-      // changes being overwritten.
-      const hasDeletedFiles = changesState.workingDirectory.files.some(
-        file => file.status.kind === AppFileStatusKind.Deleted
-      )
-
-      if (hasDeletedFiles) {
-        const gitStore = this.gitStoreCache.get(repository)
-        const { workingDirectory } = changesState
-        const untrackedFiles = getUntrackedFiles(workingDirectory)
-
-        const stashCreated = await gitStore.performFailableOperation(() =>
-          createDesktopStashEntry(repository, branch.name, untrackedFiles)
-        )
-
-        if (stashCreated) {
-          return getLastDesktopStashEntryForBranch(repository, branch.name)
-        }
-      }
-    }
-
-    return null
-  }
-
   /**
    * Creates a stash associated to the current checked out branch.
    *
