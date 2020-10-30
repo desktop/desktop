@@ -3206,7 +3206,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       let stashCreated
 
       try {
-        await this.createStashEntry(repository, branch)
+        stashCreated = await this.createStashEntry(repository, branch)
       } catch (e) {
         // This is a legit error from `git stash`, i.e. not just a "nothing to
         // stash" scenario but an actual crash. Should be rare, better show this
