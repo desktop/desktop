@@ -3252,7 +3252,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           // prior to checkout if there are deleted files in the working
           // directory
           if (!moveToNewBranch) {
-            this.showStashAndSwitchDialog(repository, branch)
+            this.emitError(new ErrorWithMetadata(e, metadata))
             this.updateCheckoutProgress(repository, null)
             return repository
           }
