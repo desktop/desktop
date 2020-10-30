@@ -3228,7 +3228,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // whether the checkout succeeded or not in order to present the most
       // up-to-date information to the user.
       return this.checkoutImplementation(repository, branch, account, strategy)
-        .then(() => this.onSuccessfullCheckout(repository, branch))
+        .then(() => this.onSuccessfulCheckout(repository, branch))
         .catch(e => this.emitError(new CheckoutError(e, repository, branch)))
         .then(() => this.refreshRepositoryAfterCheckout(repository, branch))
         .finally(() => this.updateCheckoutProgress(repository, null))
@@ -3258,7 +3258,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.checkoutIgnoringChanges(repository, branch, account)
   }
 
-  private async onSuccessfullCheckout(repository: Repository, branch: Branch) {
+  private async onSuccessfulCheckout(repository: Repository, branch: Branch) {
     const repositoryState = this.repositoryStateCache.get(repository)
     const { stashEntry } = repositoryState.changesState
     const { defaultBranch } = repositoryState.branchesState
