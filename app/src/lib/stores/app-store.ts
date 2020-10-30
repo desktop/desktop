@@ -240,6 +240,8 @@ import {
   uncommittedChangesStrategyKindDefault,
   getUncommittedChangesStrategy,
   parseStrategy,
+  stashOnCurrentBranch,
+  askToStash,
 } from '../../models/uncommitted-changes-strategy'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
@@ -3171,33 +3173,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async checkoutImpl(
     repository: Repository,
     branch: Branch,
-    strategy: UncommittedChangesStrategy,
+    strategy: UncommittedChangesStrategyKind,
     account: IGitAccount | null,
     progress: ProgressCallback
   ) {
-    const gitStore = this.gitStoreCache.get(repository)
     const repositoryState = this.repositoryStateCache.get(repository)
     const { workingDirectory, stashEntry } = repositoryState.changesState
+    const { tip } = repositoryState.branchesState
+    const hasChanges = workingDirectory.files.length > 0
 
-    let stashToPop: IStashEntry | null = null
-
-    const askToStash =
-      strategy.kind === UncommittedChangesStrategyKind.AskForConfirmation
-
-    const moveToNewBranch =
-      strategy.kind === UncommittedChangesStrategyKind.MoveToNewBranch
-
-    if (workingDirectory.files.length > 0) {
-      if (askToStash) {
-        this.showStashAndSwitchDialog(repository, branch)
-        return
-      }
-
-      stashToPop = await this.stashToPopAfterBranchCheckout(
-        repository,
-        branch,
-        strategy
-      )
+    // If we're on a detached head the only thing we can do is to bring the
+    // changes with us to the destination branch. Note that this will not
+    // overwrite any existing stash on the destination branch.
+    if (tip.kind !== TipState.Valid) {
+      strategy = UncommittedChangesStrategyKind.MoveToNewBranch
+    } else if (strategy === askToStash.kind && hasChanges) {
+      this.showStashAndSwitchDialog(repository, branch)
+      return
+    } else if (strategy === stashOnCurrentBranch.kind) {
+      await this.createStashAndDropPreviousEntry(repository, tip.branch.name)
+      this.statsStore.recordStashCreatedOnCurrentBranch()
     }
 
     try {
@@ -3216,34 +3211,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
         // local changes in the working directory there's nothing for us to
         // do.
         !isLocalChangesOverwrittenError(checkoutError) ||
-        // Similarly, if we had already created a stash (which we might have
-        // attempted if there were changes in the working directory then we need
-        // to abort or else we'll overwrite that stash. This can happen if the
-        // changes that would be overwritten aren't visible to git status due to
-        // the assume unchanged bit being set.
-        //
-        // See https://github.com/desktop/desktop/issues/9297
-        // See https://git-scm.com/docs/git-update-index#_notes
-        stashToPop !== null ||
         // There are three possible strategies at play here.
         //
-        // If we've gotten to here with the `AskForConfirmation` strategy
-        // we're almost certainly running into the assume unchanged scenario
-        // described above or we're encountering a race condition where the
-        // status of the working directory has changed from the last time we
-        // updated the working directory status.
+        // If we've gotten to here with the `AskForConfirmation` strategy we're
+        // almost certainly running into the assume unchanged scenario (see
+        // https://github.com/desktop/desktop/issues/9297) or we're encountering
+        // a race condition where the status of the working directory has
+        // changed from the last time we updated the working directory status.
         //
         // If we've gotten here with the `StashOnCurrentBranch` strategy we've
-        // already made an attempt at stashing the changes and are still
-        // running into the local changes would be overwritten error. Best not
-        // to tempt fate any longer and surface the error to the user.
+        // already made an attempt at stashing the changes and are still running
+        // into the local changes would be overwritten error. Best not to tempt
+        // fate any longer and surface the error to the user.
         //
         // If we've gotten here with the `MoveToNewBranch` strategy however we
         // have a chance to sort this because the
-        // `stashToPopAfterBranchCheckout` method will only create a stash
-        // prior to checkout if there are deleted files in the working
-        // directory
-        !moveToNewBranch
+        // `stashToPopAfterBranchCheckout` method will only create a stash prior
+        // to checkout if there are deleted files in the working directory
+        strategy !== UncommittedChangesStrategyKind.MoveToNewBranch
       ) {
         throw new ErrorWithMetadata(checkoutError, metadata)
       }
@@ -3266,7 +3251,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           throw new ErrorWithMetadata(e, metadata)
         })
 
-      stashToPop = await getLastDesktopStashEntryForBranch(
+      const stashToPop = await getLastDesktopStashEntryForBranch(
         repository,
         branch.name
       )
@@ -3274,25 +3259,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await checkoutBranch(repository, account, branch, progress).catch(e => {
         throw new ErrorWithMetadata(e, metadata)
       })
+
+      if (stashToPop !== null) {
+        await popStashEntry(repository, stashToPop.stashSha).catch(e => {
+          throw new ErrorWithMetadata(e, metadata)
+        })
+        this.statsStore.recordChangesTakenToNewBranch()
+      }
     }
 
     this.clearBranchProtectionState(repository)
-
-    if (moveToNewBranch) {
-      // We increment the metric after checkout succeeds to guard
-      // against double counting when an error occurs on checkout.
-      // When an error occurs, one of our error handlers will inspect
-      // it and make a call to `moveChangesToBranchAndCheckout` which will
-      // call this method again once the working directory has been cleared.
-      this.statsStore.recordChangesTakenToNewBranch()
-
-      if (stashToPop) {
-        const stashSha = stashToPop.stashSha
-        await gitStore.performFailableOperation(() => {
-          return popStashEntry(repository, stashSha)
-        })
-      }
-    }
 
     // Make sure changes or suggested next step are visible after branch checkout
     this._selectWorkingDirectoryFiles(repository)
@@ -3330,8 +3306,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.withAuthenticatingUser(repository, (repository, account) => {
       const progress = (p: ICheckoutProgress) =>
         this.updateCheckoutProgress(repository, p)
+      const kind = strategy.kind
 
-      return this.checkoutImpl(repository, branch, strategy, account, progress)
+      return this.checkoutImpl(repository, branch, kind, account, progress)
         .catch(e => this.emitError(e))
         .then(() => repository)
         .finally(() => this.updateCheckoutProgress(repository, null))
@@ -3403,7 +3380,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _createStashForCurrentBranch(
     repository: Repository,
     showConfirmationDialog: boolean
-  ) {
   ): Promise<boolean> {
     const repositoryState = this.repositoryStateCache.get(repository)
     const tip = repositoryState.branchesState.tip
@@ -3411,12 +3387,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const hasExistingStash = repositoryState.changesState.stashEntry !== null
 
     if (currentBranch === null) {
-      return
       return false
     }
 
     if (showConfirmationDialog && hasExistingStash) {
-      return this._showPopup({
       this._showPopup({
         type: PopupType.ConfirmOverwriteStash,
         branchToCheckout: null,
