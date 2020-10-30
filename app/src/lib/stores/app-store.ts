@@ -3229,6 +3229,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           // See https://git-scm.com/docs/git-update-index#_notes
           if (!isLocalChangesOverwrittenError(e) || stashToPop !== null) {
             this.emitError(new ErrorWithMetadata(e, metadata))
+            this.updateCheckoutProgress(repository, null)
             return repository
           }
 
@@ -3239,6 +3240,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           // updated the working directory status.
           if (askToStash) {
             this.showStashAndSwitchDialog(repository, branch)
+            this.updateCheckoutProgress(repository, null)
             return repository
           }
 
@@ -3249,6 +3251,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           // to tempt fate any longer and surface the error to the user.
           if (stashOnCurrentBranch) {
             this.emitError(new ErrorWithMetadata(e, metadata))
+            this.updateCheckoutProgress(repository, null)
             return repository
           }
 
