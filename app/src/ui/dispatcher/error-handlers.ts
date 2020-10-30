@@ -439,7 +439,7 @@ export async function localChangesOverwrittenOnCheckoutHandler(
 
   const gitError = asGitError(e.underlyingError)
 
-  if (gitError?.result?.gitError !== DugiteError.LocalChangesOverwritten) {
+  if (gitError?.result.gitError !== DugiteError.LocalChangesOverwritten) {
     return error
   }
 
