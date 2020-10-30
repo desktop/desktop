@@ -3171,10 +3171,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
-
-    const { changesState, branchesState } = this.repositoryStateCache.get(
-      repository
-    )
+    const repositoryState = this.repositoryStateCache.get(repository)
+    const { workingDirectory, stashEntry } = repositoryState.changesState
 
     let stashToPop: IStashEntry | null = null
 
@@ -3260,12 +3258,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
     }
 
-    const { defaultBranch } = branchesState
-    if (defaultBranch !== null && branch.name !== defaultBranch.name) {
+    if (branch.name !== repositoryState.branchesState.defaultBranch?.name) {
       this.statsStore.recordNonDefaultBranchCheckout()
     }
 
-    if (changesState.stashEntry !== null && !this.hasUserViewedStash) {
+    if (stashEntry !== null && !this.hasUserViewedStash) {
       this.statsStore.recordStashNotViewedAfterCheckout()
     }
 
