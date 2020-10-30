@@ -640,9 +640,6 @@ export async function localChangesOverwrittenHandler(
   }
 
   const dugiteError = gitError.result.gitError
-  if (dugiteError === null) {
-    return error
-  }
 
   if (
     dugiteError !== DugiteError.LocalChangesOverwritten &&
