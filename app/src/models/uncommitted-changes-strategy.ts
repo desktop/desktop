@@ -1,4 +1,3 @@
-import { IStashEntry } from './stash-entry'
 import { assertNever } from '../lib/fatal-error'
 
 export enum UncommittedChangesStrategyKind {
