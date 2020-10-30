@@ -13,10 +13,7 @@ export const uncommittedChangesStrategyKindDefault: UncommittedChangesStrategyKi
 export type UncommittedChangesStrategy =
   | { kind: UncommittedChangesStrategyKind.AskForConfirmation }
   | { kind: UncommittedChangesStrategyKind.StashOnCurrentBranch }
-  | {
-      kind: UncommittedChangesStrategyKind.MoveToNewBranch
-      transientStashEntry: IStashEntry | null
-    }
+  | { kind: UncommittedChangesStrategyKind.MoveToNewBranch }
 
 export const askToStash: UncommittedChangesStrategy = {
   kind: UncommittedChangesStrategyKind.AskForConfirmation,
@@ -26,7 +23,6 @@ export const stashOnCurrentBranch: UncommittedChangesStrategy = {
 }
 export const moveToNewBranch: UncommittedChangesStrategy = {
   kind: UncommittedChangesStrategyKind.MoveToNewBranch,
-  transientStashEntry: null,
 }
 
 /**

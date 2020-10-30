@@ -268,7 +268,6 @@ export class BranchesContainer extends React.Component<
       const strategy: UncommittedChangesStrategy = currentBranchProtected
         ? {
             kind: UncommittedChangesStrategyKind.MoveToNewBranch,
-            transientStashEntry: null,
           }
         : this.props.selectedUncommittedChangesStrategy
 

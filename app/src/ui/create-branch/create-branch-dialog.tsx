@@ -272,10 +272,7 @@ export class CreateBranch extends React.Component<
     if (name.length > 0) {
       // never prompt to stash changes if someone is switching away from a protected branch
       const strategy: UncommittedChangesStrategy = currentBranchProtected
-        ? {
-            kind: UncommittedChangesStrategyKind.MoveToNewBranch,
-            transientStashEntry: null,
-          }
+        ? { kind: UncommittedChangesStrategyKind.MoveToNewBranch }
         : this.props.selectedUncommittedChangesStrategy
 
       this.setState({ isCreatingBranch: true })
