@@ -424,52 +424,6 @@ export async function rebaseConflictsHandler(
   return null
 }
 
-/**
- * Handler for when we attempt to checkout a branch and there are some files
- * that would be overwritten.
- */
-export async function localChangesOverwrittenOnCheckoutHandler(
-  error: Error,
-  dispatcher: Dispatcher
-): Promise<Error | null> {
-  const e = asErrorWithMetadata(error)
-  if (!e) {
-    return error
-  }
-
-  const gitError = asGitError(e.underlyingError)
-
-  if (gitError?.result.gitError !== DugiteError.LocalChangesOverwritten) {
-    return error
-  }
-
-  const { repository, gitContext } = e.metadata
-
-  if (!(repository instanceof Repository)) {
-    return error
-  }
-
-  // This indicates to us whether the action which triggered the
-  // LocalChangesOverwritten was the AppStore _checkoutBranch method. Other
-  // actions that might trigger this error such as deleting a branch will not
-  // provide this specific gitContext and that's how we know we can safely move
-  // the changes to the destination branch.
-  if (gitContext?.kind !== 'checkout') {
-    dispatcher.recordErrorWhenSwitchingBranchesWithUncommmittedChanges()
-    return error
-  }
-
-  const { branchToCheckout: branch } = gitContext
-
-  // If we fail to create and move the stash entry we'll let the original error
-  // message bubble up instead of showing a "Could not create stash" error which
-  // isn't helpful.
-  if (!(await dispatcher.moveChangesToBranchAndCheckout(repository, branch))) {
-    return error
-  }
-
-  return null
-}
 const rejectedPathRe = /^ ! \[remote rejected\] .*? -> .*? \(refusing to allow an OAuth App to create or update workflow `(.*?)` without `workflow` scope\)/m
 
 /**
@@ -661,6 +615,7 @@ export async function localChangesOverwrittenHandler(
 
   const files = parseFilesToBeOverwritten(gitError.result.stderr)
 
+  dispatcher.recordErrorWhenSwitchingBranchesWithUncommmittedChanges()
   dispatcher.showPopup({
     type: PopupType.LocalChangesOverwritten,
     repository,
