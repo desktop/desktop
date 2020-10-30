@@ -37,19 +37,11 @@ export class ErrorWithMetadata extends Error {
 }
 
 export class CheckoutError extends ErrorWithMetadata {
-  public constructor(
-    underlyingError: Error,
-    repository: Repository,
-    branch: Branch
-  ) {
-    super(underlyingError, {
+  public constructor(error: Error, repository: Repository, branch: Branch) {
+    super(error, {
       gitContext: { kind: 'checkout', branchToCheckout: branch },
+      retryAction: { type: RetryActionType.Checkout, branch, repository },
       repository,
-      retryAction: {
-        type: RetryActionType.Checkout,
-        branch,
-        repository,
-      },
     })
   }
 }
