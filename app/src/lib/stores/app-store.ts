@@ -3248,32 +3248,32 @@ export class AppStore extends TypedBaseStore<IAppState> {
         throw new ErrorWithMetadata(checkoutError, metadata)
       }
 
-      try {
-        // Failing to stash the changes when we know that there are changes
-        // preventing a checkout is very likely due to the assume-unchanged
-        // shenanigans described above. So instead of showing a "could not
-        // create stash" error we'll show the checkout error to the user and
-        // let them figure it out.
-        if (!(await this.createStashEntry(repository, branch.name))) {
-          throw new ErrorWithMetadata(checkoutError, metadata)
-        }
-      } catch (stashError) {
-        // This is a legit error from `git stash`, i.e. not just a "nothing to
-        // stash" scenario but an actual crash. Should be rare, better show this
-        // actual error in case it contains useful information.
-        throw new ErrorWithMetadata(stashError, metadata)
-      }
+      await this.createStashEntry(repository, branch.name)
+        .then(stashCreated => {
+          // Failing to stash the changes when we know that there are changes
+          // preventing a checkout is very likely due to the assume-unchanged
+          // shenanigans described above. So instead of showing a "could not
+          // create stash" error we'll show the checkout error to the user and
+          // let them figure it out.
+          if (!stashCreated) {
+            throw new ErrorWithMetadata(checkoutError, metadata)
+          }
+        })
+        .catch(e => {
+          // This is a legit error from `git stash`, i.e. not just a "nothing to
+          // stash" scenario but an actual crash. Should be rare, better show this
+          // actual error in case it contains useful information.
+          throw new ErrorWithMetadata(e, metadata)
+        })
 
       stashToPop = await getLastDesktopStashEntryForBranch(
         repository,
         branch.name
       )
 
-      try {
-        await checkoutBranch(repository, account, branch, progress)
-      } catch (innerError) {
-        throw new ErrorWithMetadata(innerError, metadata)
-      }
+      await checkoutBranch(repository, account, branch, progress).catch(e => {
+        throw new ErrorWithMetadata(e, metadata)
+      })
     }
 
     this.clearBranchProtectionState(repository)
@@ -3298,12 +3298,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._selectWorkingDirectoryFiles(repository)
 
     try {
-      progress({
-        kind: 'checkout',
-        title: __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository',
-        value: 1,
-        targetBranch: branch.name,
-      })
+      const title = `Refreshing ${__DARWIN__ ? 'Repository' : 'repository'}`
+      progress({ kind: 'checkout', title, value: 1, targetBranch: branch.name })
 
       await this._refreshRepository(repository)
     } finally {
