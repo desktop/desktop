@@ -438,23 +438,12 @@ export async function localChangesOverwrittenOnCheckoutHandler(
   }
 
   const gitError = asGitError(e.underlyingError)
-  if (!gitError) {
-    return error
-  }
 
-  const dugiteError = gitError.result.gitError
-  if (!dugiteError) {
-    return error
-  }
-
-  if (dugiteError !== DugiteError.LocalChangesOverwritten) {
+  if (gitError?.result?.gitError !== DugiteError.LocalChangesOverwritten) {
     return error
   }
 
   const { repository, gitContext } = e.metadata
-  if (repository == null) {
-    return error
-  }
 
   if (!(repository instanceof Repository)) {
     return error
@@ -466,7 +455,7 @@ export async function localChangesOverwrittenOnCheckoutHandler(
   // a branch will not provide this specific gitContext and that's
   // how we know we can safely move the changes to the destination
   // branch.
-  if (gitContext === undefined || gitContext.kind !== 'checkout') {
+  if (gitContext?.kind !== 'checkout') {
     dispatcher.recordErrorWhenSwitchingBranchesWithUncommmittedChanges()
     return error
   }
