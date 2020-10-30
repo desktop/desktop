@@ -3300,11 +3300,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       uncommittedChangesStrategy.kind ===
       UncommittedChangesStrategyKind.MoveToNewBranch
     ) {
+      if (uncommittedChangesStrategy.transientStashEntry !== null) {
+        return uncommittedChangesStrategy.transientStashEntry
+      }
+
       const hasDeletedFiles = changesState.workingDirectory.files.some(
         file => file.status.kind === AppFileStatusKind.Deleted
       )
-      const { transientStashEntry } = uncommittedChangesStrategy
-      if (hasDeletedFiles && !transientStashEntry) {
+
+      if (hasDeletedFiles) {
         const gitStore = this.gitStoreCache.get(repository)
         const stashCreated = await gitStore.performFailableOperation(() => {
           return createDesktopStashEntry(
@@ -3318,8 +3322,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
           return getLastDesktopStashEntryForBranch(repository, branch.name)
         }
       }
-
-      return transientStashEntry
     }
 
     return null
