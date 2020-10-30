@@ -3154,6 +3154,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
   }
 
+  private showStashAndSwitchDialog(repository: Repository, branch: Branch) {
+    this._showPopup({
+      type: PopupType.StashAndSwitchBranch,
+      branchToCheckout: branch,
+      repository,
+    })
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _checkoutBranch(
     repository: Repository,
@@ -3176,11 +3184,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (workingDirectory.files.length > 0) {
       if (askToStash) {
-        this._showPopup({
-          type: PopupType.StashAndSwitchBranch,
-          branchToCheckout: branch,
-          repository,
-        })
+        this.showStashAndSwitchDialog(repository, branch)
         return repository
       }
 
