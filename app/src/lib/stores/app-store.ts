@@ -3164,19 +3164,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     branch: Branch,
     account: IGitAccount | null
   ) {
-    try {
-      await checkoutBranch(repository, account, branch, progress => {
-        this.updateCheckoutProgress(repository, progress)
-      })
-    } catch (error) {
-      const retryAction: RetryAction = {
-        type: RetryActionType.Checkout,
-        repository,
-        branch,
-      }
-
-      throw new ErrorWithMetadata(error, { repository, retryAction })
-    }
+    await checkoutBranch(repository, account, branch, progress => {
+      this.updateCheckoutProgress(repository, progress)
+    })
   }
 
   private async checkoutAndLeaveChanges(
@@ -3203,34 +3193,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
         throw checkoutError
       }
 
-      let stashCreated
-
-      try {
-        stashCreated = await this.createStashEntry(repository, branch)
-      } catch (e) {
-        // This is a legit error from `git stash`, i.e. not just a "nothing to
-        // stash" scenario but an actual crash. Should be rare, better show this
-        // actual error in case it contains useful information.
-        throw new CheckoutError(e, repository, branch)
-      }
+      const stash = await this.createAndGetStashEntry(repository, branch)
 
       // Failing to stash the changes when we know that there are changes
-      // preventing a checkout is very likely due to the assume-unchanged
-      // shenanigans described above. So instead of showing a "could not
-      // create stash" error we'll show the checkout error to the user and
-      // let them figure it out.
-      if (!stashCreated) {
+      // preventing a checkout is very likely due to assume-unchanged or
+      // skip-worktree shenanigans. So instead of showing a "could not create
+      // stash" error we'll show the checkout error to the user and let them
+      // figure it out.
+      if (stash === null) {
         throw checkoutError
       }
-
-      const stash = await getLastDesktopStashEntryForBranch(repository, branch)
 
       await this.checkoutIgnoringChanges(repository, branch, account)
 
       if (stash !== null) {
-        await popStashEntry(repository, stash.stashSha).catch(e => {
-          throw new CheckoutError(e, repository, branch)
-        })
+        await popStashEntry(repository, stash.stashSha)
         this.statsStore.recordChangesTakenToNewBranch()
       }
     }
@@ -3258,7 +3235,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // up-to-date information to the user.
       return this.checkoutImplementation(repository, branch, account, strategy)
         .then(() => this.onSuccessfullCheckout(repository, branch))
-        .catch(e => this.emitError(e))
+        .catch(e => this.emitError(new CheckoutError(e, repository, branch)))
         .then(() => this.refreshRepositoryAfterCheckout(repository, branch))
         .finally(() => this.updateCheckoutProgress(repository, null))
     })
@@ -5764,6 +5741,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const untrackedFiles = getUntrackedFiles(workingDirectory)
 
     return await createDesktopStashEntry(repository, branch, untrackedFiles)
+  }
+
+  private async createAndGetStashEntry(repository: Repository, branch: Branch) {
+    const { changesState } = this.repositoryStateCache.get(repository)
+    const { workingDirectory } = changesState
+    const untrackedFiles = getUntrackedFiles(workingDirectory)
+
+    if (!(await createDesktopStashEntry(repository, branch, untrackedFiles))) {
+      return null
+    }
+
+    return getLastDesktopStashEntryForBranch(repository, branch)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
