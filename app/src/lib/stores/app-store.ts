@@ -3164,6 +3164,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
+  private checkoutWithUserAndProgress(repository: Repository, branch: Branch) {
+    return this.withAuthenticatingUser(
+      repository,
+      async (repository, account) => {
+        await checkoutBranch(repository, account, branch, progress => {
+          this.updateCheckoutProgress(repository, progress)
+        })
+        return repository
+      }
+    )
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _checkoutBranch(
     repository: Repository,
@@ -3199,91 +3211,85 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     }
 
-    repository = await this.withAuthenticatingUser(
-      repository,
-      async (repository, account) => {
-        try {
-          await checkoutBranch(repository, account, branch, progress => {
-            this.updateCheckoutProgress(repository, progress)
-          })
-        } catch (e) {
-          const retryAction: RetryAction = {
-            type: RetryActionType.Checkout,
-            repository,
-            branch,
-          }
+    try {
+      repository = await this.checkoutWithUserAndProgress(repository, branch)
+    } catch (e) {
+      const retryAction: RetryAction = {
+        type: RetryActionType.Checkout,
+        repository,
+        branch,
+      }
 
-          const metadata = { repository, retryAction }
+      const metadata = { repository, retryAction }
 
-          // If the checkout failed for a different reason that there being
-          // local changes in the working directory there's nothing for us to
-          // do. Similarly, if we had already created a stash (which we would
-          // have at least attempted if there were changes in the working
-          // directory then we need to abort or else we'll overwrite that stash.
-          //
-          // The latter scenario can happen if the changes that would be
-          // overwritten aren't visibile to git status due to the assume
-          // unchanged bit being set.
-          //
-          // See https://github.com/desktop/desktop/issues/9297
-          // See https://git-scm.com/docs/git-update-index#_notes
-          if (!isLocalChangesOverwrittenError(e) || stashToPop !== null) {
-            this.emitError(new ErrorWithMetadata(e, metadata))
-            this.updateCheckoutProgress(repository, null)
-            return repository
-          }
-
-          // There are three possible strategies at play here.
-          //
-          // If we've gotten to here with the `AskForConfirmation` strategy
-          // we're almost certainly running into the assume unchanged scenario
-          // described above or we're encountering a race condition where the
-          // status of the working directory has changed from the last time we
-          // updated the working directory status.
-          //
-          // If we've gotten here with the `StashOnCurrentBranch` strategy we've
-          // already made an attempt at stashing the changes and are still
-          // running into the local changes would be overwritten error. Best not
-          // to tempt fate any longer and surface the error to the user.
-          //
-          // If we've gotten here with the `MoveToNewBranch` strategy however we
-          // have a chance to sort this because the
-          // `stashToPopAfterBranchCheckout` method will only create a stash
-          // prior to checkout if there are deleted files in the working
-          // directory
-          if (!moveToNewBranch) {
-            this.emitError(new ErrorWithMetadata(e, metadata))
-            this.updateCheckoutProgress(repository, null)
-            return repository
-          }
-
-
-          // Failing to stash the changes when we know that there are changes
-          // preventing a checkout is very likely due to the assume-unchanged
-          // shenanigans described above. So instead of showing a "could not
-          // create stash" error we'll show the checkout error to the user and
-          // let them figure it out.
-          if (stashToPop === null) {
-            this.emitError(new ErrorWithMetadata(e, metadata))
-            return repository
-          }
-
-          // TODO THIS CAN THROW
-          await checkoutBranch(repository, account, branch, progress => {
-            this.updateCheckoutProgress(repository, progress)
-          })
-        }
-
+      // If the checkout failed for a different reason that there being
+      // local changes in the working directory there's nothing for us to
+      // do. Similarly, if we had already created a stash (which we would
+      // have at least attempted if there were changes in the working
+      // directory then we need to abort or else we'll overwrite that stash.
+      //
+      // The latter scenario can happen if the changes that would be
+      // overwritten aren't visibile to git status due to the assume
+      // unchanged bit being set.
+      //
+      // See https://github.com/desktop/desktop/issues/9297
+      // See https://git-scm.com/docs/git-update-index#_notes
+      if (!isLocalChangesOverwrittenError(e) || stashToPop !== null) {
+        this.emitError(new ErrorWithMetadata(e, metadata))
+        this.updateCheckoutProgress(repository, null)
         return repository
       }
-    )
+
+      // There are three possible strategies at play here.
+      //
+      // If we've gotten to here with the `AskForConfirmation` strategy
+      // we're almost certainly running into the assume unchanged scenario
+      // described above or we're encountering a race condition where the
+      // status of the working directory has changed from the last time we
+      // updated the working directory status.
+      //
+      // If we've gotten here with the `StashOnCurrentBranch` strategy we've
+      // already made an attempt at stashing the changes and are still
+      // running into the local changes would be overwritten error. Best not
+      // to tempt fate any longer and surface the error to the user.
+      //
+      // If we've gotten here with the `MoveToNewBranch` strategy however we
+      // have a chance to sort this because the
+      // `stashToPopAfterBranchCheckout` method will only create a stash
+      // prior to checkout if there are deleted files in the working
+      // directory
+      if (!moveToNewBranch) {
+        this.emitError(new ErrorWithMetadata(e, metadata))
+        this.updateCheckoutProgress(repository, null)
+        return repository
+      }
+
+      // const stashCreated = await gitStore.performFailableOperation(() =>
+      //   this.createStashEntry(repository, branch.name)
+      // )
+
+      // Failing to stash the changes when we know that there are changes
+      // preventing a checkout is very likely due to the assume-unchanged
+      // shenanigans described above. So instead of showing a "could not
+      // create stash" error we'll show the checkout error to the user and
+      // let them figure it out.
+      if (stashToPop === null) {
+        this.emitError(new ErrorWithMetadata(e, metadata))
+        return repository
+      }
+
+      try {
+        repository = await this.checkoutWithUserAndProgress(repository, branch)
+      } catch (innerError) {
+        this.updateCheckoutProgress(repository, null)
+        this.emitError(new ErrorWithMetadata(innerError, metadata))
+        return repository
+      }
+    }
 
     this.clearBranchProtectionState(repository)
 
-    if (
-      uncommittedChangesStrategy.kind ===
-      UncommittedChangesStrategyKind.MoveToNewBranch
-    ) {
+    if (moveToNewBranch) {
       // We increment the metric after checkout succeeds to guard
       // against double counting when an error occurs on checkout.
       // When an error occurs, one of our error handlers will inspect
