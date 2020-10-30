@@ -3381,13 +3381,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       if (hasDeletedFiles) {
         const gitStore = this.gitStoreCache.get(repository)
-        const stashCreated = await gitStore.performFailableOperation(() => {
-          return createDesktopStashEntry(
-            repository,
-            branch.name,
-            getUntrackedFiles(changesState.workingDirectory)
-          )
-        })
+        const { workingDirectory } = changesState
+        const untrackedFiles = getUntrackedFiles(workingDirectory)
+
+        const stashCreated = await gitStore.performFailableOperation(() =>
+          createDesktopStashEntry(repository, branch.name, untrackedFiles)
+        )
 
         if (stashCreated) {
           return getLastDesktopStashEntryForBranch(repository, branch.name)
