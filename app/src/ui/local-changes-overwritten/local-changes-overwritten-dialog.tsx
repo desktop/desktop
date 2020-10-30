@@ -136,7 +136,10 @@ export class LocalChangesOverwrittenDialog extends React.Component<
 
     this.setState({ stashingAndRetrying: true })
 
-    await dispatcher.createStashForCurrentBranch(repository, true)
+    // We know that there's no stash for the current branch so we can safely
+    // tell createStashForCurrentBranch not to show a confirmation dialog which
+    // would disrupt the async flow (since you can't await a dialog).
+    await dispatcher.createStashForCurrentBranch(repository, false)
     await dispatcher.performRetry(retryAction)
 
     this.props.onDismissed()
