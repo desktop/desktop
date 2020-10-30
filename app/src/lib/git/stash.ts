@@ -12,6 +12,7 @@ import {
 } from '../../models/status'
 import { parseChangedFiles } from './log'
 import { stageFiles } from './update-index'
+import { Branch } from '../../models/branch'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 
@@ -94,9 +95,10 @@ export async function getStashes(repository: Repository): Promise<StashResult> {
  */
 export async function getLastDesktopStashEntryForBranch(
   repository: Repository,
-  branchName: string
+  branch: Branch | string
 ) {
   const stash = await getStashes(repository)
+  const branchName = typeof branch === 'string' ? branch : branch.name
 
   // Since stash objects are returned in a LIFO manner, the first
   // entry found is guaranteed to be the last entry created
@@ -115,7 +117,7 @@ export function createDesktopStashMessage(branchName: string) {
  */
 export async function createDesktopStashEntry(
   repository: Repository,
-  branchName: string,
+  branch: Branch | string,
   untrackedFilesToStage: ReadonlyArray<WorkingDirectoryFileChange>
 ): Promise<boolean> {
   // We must ensure that no untracked files are present before stashing
@@ -127,6 +129,7 @@ export async function createDesktopStashEntry(
   )
   await stageFiles(repository, fullySelectedUntrackedFiles)
 
+  const branchName = typeof branch === 'string' ? branch : branch.name
   const message = createDesktopStashMessage(branchName)
   const args = ['stash', 'push', '-m', message]
 
