@@ -267,7 +267,7 @@ import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updat
 import { getAttributableEmailsFor } from '../email'
 import { TrashNameLabel } from '../../ui/lib/context-menu'
 import { GitError as DugiteError } from 'dugite'
-import { ErrorWithMetadata } from '../error-with-metadata'
+import { ErrorWithMetadata, CheckoutError } from '../error-with-metadata'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -3164,9 +3164,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     branch: Branch,
     account: IGitAccount | null
   ) {
-    await checkoutBranch(repository, account, branch, progress => {
-      this.updateCheckoutProgress(repository, progress)
-    })
+    try {
+      await checkoutBranch(repository, account, branch, progress => {
+        this.updateCheckoutProgress(repository, progress)
+      })
+    } catch (error) {
+      const retryAction: RetryAction = {
+        type: RetryActionType.Checkout,
+        repository,
+        branch,
+      }
+
+      throw new ErrorWithMetadata(error, { repository, retryAction })
+    }
   }
 
   private async checkoutAndLeaveChanges(
@@ -3186,19 +3196,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     branch: Branch,
     account: IGitAccount | null
   ) {
-    const retryAction: RetryAction = {
-      type: RetryActionType.Checkout,
-      repository,
-      branch,
-    }
-
-    const metadata = { repository, retryAction }
-
     try {
       await this.checkoutIgnoringChanges(repository, branch, account)
     } catch (checkoutError) {
       if (!isLocalChangesOverwrittenError(checkoutError)) {
-        throw new ErrorWithMetadata(checkoutError, metadata)
+        throw checkoutError
       }
 
       let stashCreated
@@ -3209,7 +3211,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         // This is a legit error from `git stash`, i.e. not just a "nothing to
         // stash" scenario but an actual crash. Should be rare, better show this
         // actual error in case it contains useful information.
-        throw new ErrorWithMetadata(e, metadata)
+        throw new CheckoutError(e, repository, branch)
       }
 
       // Failing to stash the changes when we know that there are changes
@@ -3218,20 +3220,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // create stash" error we'll show the checkout error to the user and
       // let them figure it out.
       if (!stashCreated) {
-        throw new ErrorWithMetadata(checkoutError, metadata)
+        throw checkoutError
       }
 
       const stash = await getLastDesktopStashEntryForBranch(repository, branch)
 
-      try {
-        await this.checkoutIgnoringChanges(repository, branch, account)
-      } catch (e) {
-        throw new ErrorWithMetadata(e, metadata)
-      }
+      await this.checkoutIgnoringChanges(repository, branch, account)
 
       if (stash !== null) {
         await popStashEntry(repository, stash.stashSha).catch(e => {
-          throw new ErrorWithMetadata(e, metadata)
+          throw new CheckoutError(e, repository, branch)
         })
         this.statsStore.recordChangesTakenToNewBranch()
       }
@@ -5989,7 +5987,11 @@ function userIsStartingRebaseFlow(
   return false
 }
 
-function isLocalChangesOverwrittenError(error: Error) {
+function isLocalChangesOverwrittenError(error: Error): boolean {
+  if (error instanceof ErrorWithMetadata) {
+    return isLocalChangesOverwrittenError(error.underlyingError)
+  }
+
   return (
     error instanceof GitError &&
     error.result.gitError === DugiteError.LocalChangesOverwritten
