@@ -3244,9 +3244,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     branch: Branch,
     strategy = this.uncommittedChangesStrategy
   ): Promise<Repository> {
+    const repositoryState = this.repositoryStateCache.get(repository)
+    const { workingDirectory } = repositoryState.changesState
+
     if (strategy === UncommittedChangesStrategy.AskForConfirmation) {
-      this.showConfirmStashPopup(repository, branch)
-      return repository
+      if (workingDirectory.files.length > 0) {
+        this.showConfirmStashPopup(repository, branch)
+        return repository
+      }
     }
 
     return this.withAuthenticatingUser(repository, (repository, account) => {
