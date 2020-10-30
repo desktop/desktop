@@ -3182,6 +3182,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       uncommittedChangesStrategy.kind ===
       UncommittedChangesStrategyKind.AskForConfirmation
 
+    const stashOnCurrentBranch =
+      uncommittedChangesStrategy.kind ===
+      UncommittedChangesStrategyKind.StashOnCurrentBranch
+
     if (workingDirectory.files.length > 0) {
       if (askToStash) {
         this.showStashAndSwitchDialog(repository, branch)
@@ -3239,6 +3243,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
           }
 
           stashToPop = await this.createStashEntry(repository, branch)
+          // If we've gotten here with the StashOnCurrentBranch strategy we've
+          // already made an attempt at stashing the changes and are still
+          // running into the local changes would be overwritten error. Best not
+          // to tempt fate any longer and surface the error to the user.
+          if (stashOnCurrentBranch) {
+            this.emitError(new ErrorWithMetadata(e, metadata))
+            return repository
+          }
+
 
           // Failing to stash the changes when we know that there are changes
           // preventing a checkout is very likely due to the assume-unchanged
