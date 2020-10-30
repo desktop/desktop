@@ -3172,8 +3172,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     let stashToPop: IStashEntry | null = null
 
+    const askToStash =
+      uncommittedChangesStrategy.kind ===
+      UncommittedChangesStrategyKind.AskForConfirmation
+
     if (workingDirectory.files.length > 0) {
-      if (uncommittedChangesStrategy.kind === askToStash.kind) {
+      if (askToStash) {
         this._showPopup({
           type: PopupType.StashAndSwitchBranch,
           branchToCheckout: branch,
