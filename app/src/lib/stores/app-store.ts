@@ -3404,6 +3404,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     showConfirmationDialog: boolean
   ) {
+  ): Promise<boolean> {
     const repositoryState = this.repositoryStateCache.get(repository)
     const tip = repositoryState.branchesState.tip
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
@@ -3411,14 +3412,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (currentBranch === null) {
       return
+      return false
     }
 
     if (showConfirmationDialog && hasExistingStash) {
       return this._showPopup({
+      this._showPopup({
         type: PopupType.ConfirmOverwriteStash,
         branchToCheckout: null,
         repository,
       })
+      return false
     }
 
     const createdStash = await this.createStashAndDropPreviousEntry(
