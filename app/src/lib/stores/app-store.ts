@@ -3155,14 +3155,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
   }
 
-  private showStashAndSwitchDialog(repository: Repository, branch: Branch) {
-    this._showPopup({
-      type: PopupType.StashAndSwitchBranch,
-      branchToCheckout: branch,
-      repository,
-    })
-  }
-
   private async checkoutImpl(
     repository: Repository,
     branch: Branch,
@@ -3184,7 +3176,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       strategy === UncommittedChangesStrategy.AskForConfirmation &&
       hasChanges
     ) {
-      this.showStashAndSwitchDialog(repository, branch)
+      this._showPopup({
+        type: PopupType.StashAndSwitchBranch,
+        branchToCheckout: branch,
+        repository,
+      })
       return
     } else if (strategy === UncommittedChangesStrategy.StashOnCurrentBranch) {
       await this.createStashAndDropPreviousEntry(repository, tip.branch.name)
