@@ -3338,7 +3338,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       uncommittedChangesStrategy.kind ===
         UncommittedChangesStrategyKind.StashOnCurrentBranch
     ) {
-      await this._createStashAndDropPreviousEntry(repository, currentBranchName)
+      await this.createStashAndDropPreviousEntry(repository, currentBranchName)
       this.statsStore.recordStashCreatedOnCurrentBranch()
     } else if (
       uncommittedChangesStrategy.kind ===
@@ -3404,7 +3404,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
     }
 
-    const createdStash = await this._createStashAndDropPreviousEntry(
+    const createdStash = await this.createStashAndDropPreviousEntry(
       repository,
       currentBranch.name
     )
@@ -5784,7 +5784,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  private async _createStashAndDropPreviousEntry(
+  private async createStashAndDropPreviousEntry(
     repository: Repository,
     branch: string
   ) {
