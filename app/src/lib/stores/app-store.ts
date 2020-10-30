@@ -268,6 +268,8 @@ import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updater'
 import { getAttributableEmailsFor } from '../email'
 import { TrashNameLabel } from '../../ui/lib/context-menu'
+import { GitError as DugiteError } from 'dugite'
+import { ErrorWithMetadata } from '../error-with-metadata'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -3193,35 +3195,77 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     }
 
-    const checkoutSucceeded =
-      (await this.withAuthenticatingUser(repository, (repository, account) =>
-        gitStore.performFailableOperation(
-          () =>
-            checkoutBranch(repository, account, branch, progress => {
-              this.updateCheckoutProgress(repository, progress)
-            }),
-          {
+    repository = await this.withAuthenticatingUser(
+      repository,
+      async (repository, account) => {
+        try {
+          await checkoutBranch(repository, account, branch, progress => {
+            this.updateCheckoutProgress(repository, progress)
+          })
+        } catch (e) {
+          const retryAction: RetryAction = {
+            type: RetryActionType.Checkout,
             repository,
-            retryAction: {
-              type: RetryActionType.Checkout,
-              repository,
-              branch,
-            },
-            gitContext: {
-              kind: 'checkout',
-              branchToCheckout: branch,
-            },
+            branch,
           }
-        )
-      )) !== undefined
 
-    if (checkoutSucceeded) {
-      this.clearBranchProtectionState(repository)
-    }
+          const metadata = { repository, retryAction }
+
+          // If the checkout failed for a different reason that there being
+          // local changes in the working directory there's nothing for us to
+          // do. Similarly, if we had already created a stash (which we would
+          // have at least attempted if there were changes in the working
+          // directory then we need to abort or else we'll overwrite that stash.
+          //
+          // The latter scenario can happen if the changes that would be
+          // overwritten aren't visibile to git status due to the assume
+          // unchanged bit being set.
+          //
+          // See https://github.com/desktop/desktop/issues/9297
+          // See https://git-scm.com/docs/git-update-index#_notes
+          if (!isLocalChangesOverwrittenError(e) || stashToPop !== null) {
+            this.emitError(new ErrorWithMetadata(e, metadata))
+            return repository
+          }
+
+          // If we've gotten to here with the AskForConfirmation strategy we're
+          // almost certainly running into the assume unchanged scenario
+          // described above or we're encountering a race condition where the
+          // status of the working directory has changed from the last time we
+          // updated the working directory status.
+          if (askToStash) {
+            this.showStashAndSwitchDialog(repository, branch)
+            return repository
+          }
+
+          stashToPop = await this._moveChangesToBranchAndCheckout(
+            repository,
+            branch
+          )
+
+          // Failing to stash the changes when we know that there are changes
+          // preventing a checkout is very likely due to the assume-unchanged
+          // shenanigans described above. So instead of showing a "could not
+          // create stash" error we'll show the checkout error to the user and
+          // let them figure it out.
+          if (stashToPop === null) {
+            this.emitError(new ErrorWithMetadata(e, metadata))
+            return repository
+          }
+
+          await checkoutBranch(repository, account, branch, progress => {
+            this.updateCheckoutProgress(repository, progress)
+          })
+        }
+
+        return repository
+      }
+    )
+
+    this.clearBranchProtectionState(repository)
 
     if (
       uncommittedChangesStrategy.kind ===
-        UncommittedChangesStrategyKind.MoveToNewBranch &&
       UncommittedChangesStrategyKind.MoveToNewBranch
     ) {
       // We increment the metric after checkout succeeds to guard
@@ -6019,4 +6063,11 @@ function userIsStartingRebaseFlow(
   }
 
   return false
+}
+
+function isLocalChangesOverwrittenError(error: Error) {
+  return (
+    error instanceof GitError &&
+    error.result.gitError === DugiteError.LocalChangesOverwritten
+  )
 }
