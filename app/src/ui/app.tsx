@@ -109,7 +109,6 @@ import { enableForkyCreateBranchUI } from '../lib/feature-flag'
 import { ConfirmExitTutorial } from './tutorial'
 import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { WorkflowPushRejectedDialog } from './workflow-push-rejected/workflow-push-rejected'
-import { getUncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
 import { SAMLReauthRequiredDialog } from './saml-reauth-required/saml-reauth-required'
 import { CreateForkDialog } from './forks/create-fork-dialog'
 import { findDefaultUpstreamBranch } from '../lib/branch'
@@ -1499,9 +1498,9 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             initialName={popup.initialName || ''}
             currentBranchProtected={currentBranchProtected}
-            selectedUncommittedChangesStrategy={getUncommittedChangesStrategy(
+            selectedUncommittedChangesStrategy={
               this.state.uncommittedChangesStrategyKind
-            )}
+            }
           />
         )
       }
@@ -2452,9 +2451,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         shouldNudge={
           this.state.currentOnboardingTutorialStep === TutorialStep.CreateBranch
         }
-        selectedUncommittedChangesStrategy={getUncommittedChangesStrategy(
+        selectedUncommittedChangesStrategy={
           this.state.uncommittedChangesStrategyKind
-        )}
+        }
         couldOverwriteStash={hasChanges && hasAssociatedStash}
       />
     )

@@ -22,10 +22,7 @@ import { renderBranchNameExistsOnRemoteWarning } from '../lib/branch-name-warnin
 import { getStartPoint } from '../../lib/create-branch'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { startTimer } from '../lib/timing'
-import {
-  UncommittedChangesStrategy,
-  UncommittedChangesStrategyKind,
-} from '../../models/uncommitted-changes-strategy'
+import { UncommittedChangesStrategyKind } from '../../models/uncommitted-changes-strategy'
 import { GitHubRepository } from '../../models/github-repository'
 import { RefNameTextBox } from '../lib/ref-name-text-box'
 
@@ -40,7 +37,7 @@ interface ICreateBranchProps {
   readonly allBranches: ReadonlyArray<Branch>
   readonly initialName: string
   readonly currentBranchProtected: boolean
-  readonly selectedUncommittedChangesStrategy: UncommittedChangesStrategy
+  readonly selectedUncommittedChangesStrategy: UncommittedChangesStrategyKind
 }
 
 interface ICreateBranchState {
@@ -271,8 +268,8 @@ export class CreateBranch extends React.Component<
 
     if (name.length > 0) {
       // never prompt to stash changes if someone is switching away from a protected branch
-      const strategy: UncommittedChangesStrategy = currentBranchProtected
-        ? { kind: UncommittedChangesStrategyKind.MoveToNewBranch }
+      const strategy = currentBranchProtected
+        ? UncommittedChangesStrategyKind.MoveToNewBranch
         : this.props.selectedUncommittedChangesStrategy
 
       this.setState({ isCreatingBranch: true })

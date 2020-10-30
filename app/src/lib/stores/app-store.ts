@@ -235,13 +235,9 @@ import {
   dropDesktopStashEntry,
 } from '../git/stash'
 import {
-  UncommittedChangesStrategy,
   UncommittedChangesStrategyKind,
   uncommittedChangesStrategyKindDefault,
-  getUncommittedChangesStrategy,
   parseStrategy,
-  stashOnCurrentBranch,
-  askToStash,
 } from '../../models/uncommitted-changes-strategy'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
@@ -3071,9 +3067,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     name: string,
     startPoint: string | null,
-    uncommittedChangesStrategy: UncommittedChangesStrategy = getUncommittedChangesStrategy(
-      this.uncommittedChangesStrategyKind
-    ),
+    uncommittedChangesStrategy = this.uncommittedChangesStrategyKind,
     noTrackOption: boolean = false
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
@@ -3095,7 +3089,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (
       hasChanges &&
       currentBranch !== null &&
-      uncommittedChangesStrategy.kind ===
+      uncommittedChangesStrategy ===
         UncommittedChangesStrategyKind.AskForConfirmation
     ) {
       this._showPopup({
@@ -3187,10 +3181,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // overwrite any existing stash on the destination branch.
     if (tip.kind !== TipState.Valid) {
       strategy = UncommittedChangesStrategyKind.MoveToNewBranch
-    } else if (strategy === askToStash.kind && hasChanges) {
+    } else if (
+      strategy === UncommittedChangesStrategyKind.AskForConfirmation &&
+      hasChanges
+    ) {
       this.showStashAndSwitchDialog(repository, branch)
       return
-    } else if (strategy === stashOnCurrentBranch.kind) {
+    } else if (
+      strategy === UncommittedChangesStrategyKind.StashOnCurrentBranch
+    ) {
       await this.createStashAndDropPreviousEntry(repository, tip.branch.name)
       this.statsStore.recordStashCreatedOnCurrentBranch()
     }
@@ -3299,16 +3298,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _checkoutBranch(
     repository: Repository,
     branch: Branch,
-    strategy: UncommittedChangesStrategy = getUncommittedChangesStrategy(
-      this.uncommittedChangesStrategyKind
-    )
+    strategy = this.uncommittedChangesStrategyKind
   ): Promise<Repository> {
     return this.withAuthenticatingUser(repository, (repository, account) => {
       const progress = (p: ICheckoutProgress) =>
         this.updateCheckoutProgress(repository, p)
-      const kind = strategy.kind
 
-      return this.checkoutImpl(repository, branch, kind, account, progress)
+      return this.checkoutImpl(repository, branch, strategy, account, progress)
         .catch(e => this.emitError(e))
         .then(() => repository)
         .finally(() => this.updateCheckoutProgress(repository, null))

@@ -4,8 +4,8 @@ import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { Dispatcher } from '../dispatcher'
 import { Row } from '../lib/row'
-import { stashOnCurrentBranch } from '../../models/uncommitted-changes-strategy'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import { UncommittedChangesStrategyKind } from '../../models/uncommitted-changes-strategy'
 
 interface IOverwriteStashProps {
   readonly dispatcher: Dispatcher
@@ -71,7 +71,7 @@ export class OverwriteStash extends React.Component<
         await dispatcher.checkoutBranch(
           repository,
           branchToCheckout,
-          stashOnCurrentBranch
+          UncommittedChangesStrategyKind.StashOnCurrentBranch
         )
       } else {
         await dispatcher.createStashForCurrentBranch(repository, false)

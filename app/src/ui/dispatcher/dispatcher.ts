@@ -92,10 +92,7 @@ import {
   ICombinedRefCheck,
 } from '../../lib/stores/commit-status-store'
 import { MergeTreeResult } from '../../models/merge'
-import {
-  UncommittedChangesStrategy,
-  UncommittedChangesStrategyKind,
-} from '../../models/uncommitted-changes-strategy'
+import { UncommittedChangesStrategyKind } from '../../models/uncommitted-changes-strategy'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { IStashEntry } from '../../models/stash-entry'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
@@ -483,7 +480,7 @@ export class Dispatcher {
     repository: Repository,
     name: string,
     startPoint: string | null,
-    uncommittedChangesStrategy?: UncommittedChangesStrategy,
+    uncommittedChangesStrategy?: UncommittedChangesStrategyKind,
     noTrackOption: boolean = false
   ): Promise<Repository> {
     return this.appStore._createBranch(
@@ -549,7 +546,7 @@ export class Dispatcher {
   public checkoutBranch(
     repository: Repository,
     branch: Branch,
-    uncommittedChangesStrategy?: UncommittedChangesStrategy
+    uncommittedChangesStrategy?: UncommittedChangesStrategyKind
   ): Promise<Repository> {
     return this.appStore._checkoutBranch(
       repository,
