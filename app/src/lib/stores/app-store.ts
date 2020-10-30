@@ -3300,10 +3300,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       uncommittedChangesStrategy.kind ===
       UncommittedChangesStrategyKind.MoveToNewBranch
     ) {
+      // If there's already a transient stash entry we're not gonna overwrite it
       if (uncommittedChangesStrategy.transientStashEntry !== null) {
         return uncommittedChangesStrategy.transientStashEntry
       }
 
+      // If there's deleted files in the working directory there's a very high
+      // likelihood that an attempted checkout would fail so we'll preemptively
+      // create a stash rather than wait for the checkout to fail due to local
+      // changes being overwritten.
       const hasDeletedFiles = changesState.workingDirectory.files.some(
         file => file.status.kind === AppFileStatusKind.Deleted
       )
