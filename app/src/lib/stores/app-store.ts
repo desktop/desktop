@@ -3182,10 +3182,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       uncommittedChangesStrategy.kind ===
       UncommittedChangesStrategyKind.AskForConfirmation
 
-    const stashOnCurrentBranch =
-      uncommittedChangesStrategy.kind ===
-      UncommittedChangesStrategyKind.StashOnCurrentBranch
-
     const moveToNewBranch =
       uncommittedChangesStrategy.kind ===
       UncommittedChangesStrategyKind.MoveToNewBranch
