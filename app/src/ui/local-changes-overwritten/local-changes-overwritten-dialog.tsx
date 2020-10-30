@@ -124,21 +124,20 @@ export class LocalChangesOverwrittenDialog extends React.Component<
   }
 
   private onSubmit = async () => {
-    if (this.props.hasExistingStash) {
-      // When there's an existing stash we don't let the user stash the changes and we
-      // only show a "Close" button on the modal.
-      // In that case, the "Close" button submits the dialog and should only dismiss it.
+    const { hasExistingStash, repository, dispatcher, retryAction } = this.props
+
+    if (hasExistingStash) {
+      // When there's an existing stash we don't let the user stash the changes
+      // and we only show a "Close" button on the modal. In that case, the
+      // "Close" button submits the dialog and should only dismiss it.
       this.props.onDismissed()
       return
     }
 
     this.setState({ stashingAndRetrying: true })
 
-    await this.props.dispatcher.createStashForCurrentBranch(
-      this.props.repository,
-      true
-    )
-    await this.props.dispatcher.performRetry(this.props.retryAction)
+    await dispatcher.createStashForCurrentBranch(repository, true)
+    await dispatcher.performRetry(retryAction)
 
     this.props.onDismissed()
   }
