@@ -3170,8 +3170,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     branch: Branch,
     account: IGitAccount | null
   ) {
-    await this.createStashAndDropPreviousEntry(repository, currentBranch)
-    this.statsStore.recordStashCreatedOnCurrentBranch()
+    if (this.hasWorkingDirectoryChanges(repository)) {
+      await this.createStashAndDropPreviousEntry(repository, currentBranch)
+      this.statsStore.recordStashCreatedOnCurrentBranch()
+    }
 
     return this.checkoutIgnoringChanges(repository, branch, account)
   }
@@ -3213,10 +3215,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     strategy = this.uncommittedChangesStrategy
   ): Promise<Repository> {
     if (strategy === UncommittedChangesStrategy.AskForConfirmation) {
-      const repositoryState = this.repositoryStateCache.get(repository)
-      const { workingDirectory } = repositoryState.changesState
-
-      if (workingDirectory.files.length > 0) {
+      if (this.hasWorkingDirectoryChanges(repository)) {
         const type = PopupType.StashAndSwitchBranch
         this._showPopup({ type, branchToCheckout: branch, repository })
         return repository
@@ -3233,6 +3232,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
         .then(() => this.refreshRepositoryAfterCheckout(repository, branch))
         .finally(() => this.updateCheckoutProgress(repository, null))
     })
+  }
+
+  private hasWorkingDirectoryChanges(repository: Repository) {
+    const { changesState } = this.repositoryStateCache.get(repository)
+    return changesState.workingDirectory.files.length > 0
   }
 
   private checkoutImplementation(
