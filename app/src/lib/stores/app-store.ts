@@ -5708,22 +5708,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const entry = await getLastDesktopStashEntryForBranch(repository, branch)
     const gitStore = this.gitStoreCache.get(repository)
 
-    if (entry !== null) {
-      const { stashSha, branchName } = entry
-      const droppedStash = await gitStore.performFailableOperation(async () => {
-        await dropDesktopStashEntry(repository, entry.stashSha)
-        log.info(`Dropped stash '${stashSha}' associated with ${branchName}`)
-        return true
-      })
-
-      if (!droppedStash) {
-        return false
-      }
-    }
-
     const createdStash = await gitStore.performFailableOperation(() =>
       this.createStashEntry(repository, branch)
     )
+
+    if (createdStash === true && entry !== null) {
+      const { stashSha, branchName } = entry
+      await gitStore.performFailableOperation(async () => {
+        await dropDesktopStashEntry(repository, entry.stashSha)
+        log.info(`Dropped stash '${stashSha}' associated with ${branchName}`)
+      })
+    }
 
     return createdStash === true
   }
