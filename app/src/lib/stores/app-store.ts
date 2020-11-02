@@ -3136,12 +3136,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _checkoutBranch(
     repository: Repository,
     branch: Branch,
-    strategy = this.uncommittedChangesStrategy
+    explicitStrategy?: UncommittedChangesStrategy
   ): Promise<Repository> {
     const repositoryState = this.repositoryStateCache.get(repository)
     const { changesState, branchesState } = repositoryState
-    const { currentBranchProtected } = changesState
+    const { currentBranchProtected, stashEntry } = changesState
     const { tip } = branchesState
+    const hasChanges = changesState.workingDirectory.files.length > 0
+
+    const defaultStrategy = this.uncommittedChangesStrategy
+    let strategy = explicitStrategy || defaultStrategy
+
+    if (explicitStrategy === undefined) {
+      if (defaultStrategy === UncommittedChangesStrategy.StashOnCurrentBranch) {
+        if (hasChanges && stashEntry !== null) {
+          const type = PopupType.ConfirmOverwriteStash
+          this._showPopup({ type, repository, branchToCheckout: branch })
+          return repository
+        }
+      }
+    }
 
     // Always move changes to new branch if we're on a detached head, unborn
     // branch, or a protected branch.
@@ -3152,7 +3166,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (strategy === UncommittedChangesStrategy.AskForConfirmation) {
-      if (this.hasWorkingDirectoryChanges(repository)) {
+      if (hasChanges) {
         const type = PopupType.StashAndSwitchBranch
         this._showPopup({ type, branchToCheckout: branch, repository })
         return repository
@@ -3179,20 +3193,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     strategy: UncommittedChangesStrategy
   ) {
     if (strategy === UncommittedChangesStrategy.StashOnCurrentBranch) {
-      const repositoryState = this.repositoryStateCache.get(repository)
-      const { tip } = repositoryState.branchesState
-
-      // If we're on a detached head or unborn branch it doesn't make sense
-      // to stash changes on that branch so we'll deffault to ignoring changes.
-      if (tip.kind === TipState.Valid) {
-        const head = tip.branch
-        return this.checkoutAndLeaveChanges(head, repository, branch, account)
-      }
+      return this.checkoutAndLeaveChanges(repository, branch, account)
     } else if (strategy === UncommittedChangesStrategy.MoveToNewBranch) {
       return this.checkoutAndBringChanges(repository, branch, account)
+    } else {
+      return this.checkoutIgnoringChanges(repository, branch, account)
     }
-
-    return this.checkoutIgnoringChanges(repository, branch, account)
   }
 
   private async checkoutIgnoringChanges(
@@ -3206,13 +3212,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async checkoutAndLeaveChanges(
-    currentBranch: Branch,
     repository: Repository,
     branch: Branch,
     account: IGitAccount | null
   ) {
-    if (this.hasWorkingDirectoryChanges(repository)) {
-      await this.createStashAndDropPreviousEntry(repository, currentBranch)
+    const repositoryState = this.repositoryStateCache.get(repository)
+    const { workingDirectory } = repositoryState.changesState
+    const { tip } = repositoryState.branchesState
+
+    if (tip.kind === TipState.Valid && workingDirectory.files.length > 0) {
+      await this.createStashAndDropPreviousEntry(repository, tip.branch)
       this.statsStore.recordStashCreatedOnCurrentBranch()
     }
 

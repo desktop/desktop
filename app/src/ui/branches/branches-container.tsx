@@ -233,42 +233,11 @@ export class BranchesContainer extends React.Component<
   }
 
   private onBranchItemClick = (branch: Branch) => {
-    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+    const { repository, dispatcher } = this.props
+    dispatcher.closeFoldout(FoldoutType.Branch)
 
-    const {
-      currentBranch,
-      repository,
-      currentBranchProtected,
-      dispatcher,
-      couldOverwriteStash,
-    } = this.props
-
-    if (currentBranch == null || currentBranch.name !== branch.name) {
-      if (
-        !currentBranchProtected &&
-        this.props.selectedUncommittedChangesStrategy ===
-          UncommittedChangesStrategy.StashOnCurrentBranch &&
-        couldOverwriteStash
-      ) {
-        dispatcher.showPopup({
-          type: PopupType.ConfirmOverwriteStash,
-          repository,
-          branchToCheckout: branch,
-        })
-        return
-      }
-
-      const timer = startTimer('checkout branch from list', repository)
-
-      // Never prompt to stash changes if someone is switching away from a protected branch
-      const strategy = currentBranchProtected
-        ? UncommittedChangesStrategy.MoveToNewBranch
-        : this.props.selectedUncommittedChangesStrategy
-
-      this.props.dispatcher
-        .checkoutBranch(repository, branch, strategy)
-        .then(() => timer.done())
-    }
+    const timer = startTimer('checkout branch from list', repository)
+    dispatcher.checkoutBranch(repository, branch).then(() => timer.done())
   }
 
   private onBranchSelectionChanged = (selectedBranch: Branch | null) => {
