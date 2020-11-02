@@ -27,10 +27,7 @@ export class OverwriteStash extends React.Component<
 > {
   public constructor(props: IOverwriteStashProps) {
     super(props)
-
-    this.state = {
-      isLoading: false,
-    }
+    this.state = { isLoading: false }
   }
 
   public render() {
@@ -61,25 +58,17 @@ export class OverwriteStash extends React.Component<
 
   private onSubmit = async () => {
     const { dispatcher, repository, branchToCheckout, onDismissed } = this.props
-
-    this.setState({
-      isLoading: true,
-    })
+    this.setState({ isLoading: true })
 
     try {
       if (branchToCheckout !== null) {
-        await dispatcher.checkoutBranch(
-          repository,
-          branchToCheckout,
-          UncommittedChangesStrategy.StashOnCurrentBranch
-        )
+        const strategy = UncommittedChangesStrategy.StashOnCurrentBranch
+        await dispatcher.checkoutBranch(repository, branchToCheckout, strategy)
       } else {
         await dispatcher.createStashForCurrentBranch(repository, false)
       }
     } finally {
-      this.setState({
-        isLoading: false,
-      })
+      this.setState({ isLoading: false })
     }
 
     onDismissed()
