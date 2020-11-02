@@ -1806,7 +1806,7 @@ export class Dispatcher {
     return this.appStore._setShell(shell)
   }
 
-  public async checkoutLocalBranch(repository: Repository, branch: string) {
+  private async checkoutLocalBranch(repository: Repository, branch: string) {
     let shouldCheckoutBranch = true
 
     const state = this.repositoryStateManager.get(repository)
