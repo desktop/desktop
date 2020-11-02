@@ -3065,7 +3065,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     name: string,
     startPoint: string | null,
-    uncommittedChangesStrategy = this.uncommittedChangesStrategy,
     noTrackOption: boolean = false
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
@@ -3073,17 +3072,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       createBranch(repository, name, startPoint, noTrackOption)
     )
 
-    if (branch == null) {
+    if (branch === null || branch === undefined) {
       return repository
+    } else {
+      return this._checkoutBranch(repository, branch)
     }
-
-    const repo = await this._checkoutBranch(
-      repository,
-      branch,
-      uncommittedChangesStrategy
-    )
-    this._closePopup()
-    return repo
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -3290,11 +3283,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     await this._refreshRepository(repository)
     return repository
-  }
-
-  private hasWorkingDirectoryChanges(repository: Repository) {
-    const { changesState } = this.repositoryStateCache.get(repository)
-    return changesState.workingDirectory.files.length > 0
   }
 
   /**

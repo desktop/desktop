@@ -25,7 +25,6 @@ import { IBranchListItem } from './group-branches'
 import { renderDefaultBranch } from './branch-renderer'
 import { IMatches } from '../../lib/fuzzy-find'
 import { startTimer } from '../lib/timing'
-import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -42,12 +41,6 @@ interface IBranchesContainerProps {
 
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
-
-  readonly currentBranchProtected: boolean
-
-  readonly selectedUncommittedChangesStrategy: UncommittedChangesStrategy
-
-  readonly couldOverwriteStash: boolean
 }
 
 interface IBranchesContainerState {
@@ -249,13 +242,12 @@ export class BranchesContainer extends React.Component<
   }
 
   private onCreateBranchWithName = (name: string) => {
-    const { repository, currentBranchProtected } = this.props
+    const { repository, dispatcher } = this.props
 
-    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
-    this.props.dispatcher.showPopup({
+    dispatcher.closeFoldout(FoldoutType.Branch)
+    dispatcher.showPopup({
       type: PopupType.CreateBranch,
       repository,
-      currentBranchProtected,
       initialName: name,
     })
   }

@@ -480,14 +480,12 @@ export class Dispatcher {
     repository: Repository,
     name: string,
     startPoint: string | null,
-    uncommittedChangesStrategy?: UncommittedChangesStrategy,
     noTrackOption: boolean = false
   ): Promise<Repository> {
     return this.appStore._createBranch(
       repository,
       name,
       startPoint,
-      uncommittedChangesStrategy,
       noTrackOption
     )
   }

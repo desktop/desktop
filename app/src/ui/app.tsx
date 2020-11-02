@@ -1461,7 +1461,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.CreateBranch: {
         const state = this.props.repositoryStateManager.get(popup.repository)
         const branchesState = state.branchesState
-        const currentBranchProtected = state.changesState.currentBranchProtected
         const repository = popup.repository
 
         if (branchesState.tip.kind === TipState.Unknown) {
@@ -1495,10 +1494,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}
             initialName={popup.initialName || ''}
-            currentBranchProtected={currentBranchProtected}
-            selectedUncommittedChangesStrategy={
-              this.state.uncommittedChangesStrategy
-            }
           />
         )
       }
@@ -2375,13 +2370,9 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const repository = selection.repository
 
-    const state = this.props.repositoryStateManager.get(repository)
-    const currentBranchProtected = state.changesState.currentBranchProtected
-
     return this.props.dispatcher.showPopup({
       type: PopupType.CreateBranch,
       repository,
-      currentBranchProtected,
     })
   }
 
@@ -2431,9 +2422,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       currentFoldout !== null && currentFoldout.type === FoldoutType.Branch
 
     const repository = selection.repository
-    const { branchesState, changesState } = selection.state
-    const hasAssociatedStash = changesState.stashEntry !== null
-    const hasChanges = changesState.workingDirectory.files.length > 0
+    const { branchesState } = selection.state
 
     return (
       <BranchDropdown
@@ -2449,10 +2438,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         shouldNudge={
           this.state.currentOnboardingTutorialStep === TutorialStep.CreateBranch
         }
-        selectedUncommittedChangesStrategy={
-          this.state.uncommittedChangesStrategy
-        }
-        couldOverwriteStash={hasChanges && hasAssociatedStash}
       />
     )
   }
