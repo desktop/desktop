@@ -3077,28 +3077,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
-    const { changesState, branchesState } = this.repositoryStateCache.get(
-      repository
-    )
-    const { tip } = branchesState
-    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
-    const hasChanges = changesState.workingDirectory.files.length > 0
-
-    if (
-      hasChanges &&
-      currentBranch !== null &&
-      uncommittedChangesStrategy ===
-        UncommittedChangesStrategy.AskForConfirmation
-    ) {
-      this._showPopup({
-        type: PopupType.StashAndSwitchBranch,
-        branchToCheckout: branch,
-        repository,
-      })
-
-      return repository
-    }
-
     const repo = await this._checkoutBranch(
       repository,
       branch,
@@ -3160,6 +3138,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     branch: Branch,
     strategy = this.uncommittedChangesStrategy
   ): Promise<Repository> {
+    const repositoryState = this.repositoryStateCache.get(repository)
+    const { changesState, branchesState } = repositoryState
+    const { currentBranchProtected } = changesState
+    const { tip } = branchesState
+
+    // Always move changes to new branch if we're on a detached head, unborn
+    // branch, or a protected branch.
+    if (strategy !== UncommittedChangesStrategy.MoveToNewBranch) {
+      if (tip.kind !== TipState.Valid || currentBranchProtected) {
+        strategy = UncommittedChangesStrategy.MoveToNewBranch
+      }
+    }
+
     if (strategy === UncommittedChangesStrategy.AskForConfirmation) {
       if (this.hasWorkingDirectoryChanges(repository)) {
         const type = PopupType.StashAndSwitchBranch
