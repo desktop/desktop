@@ -3194,9 +3194,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const head = tip.branch
         return this.checkoutAndLeaveChanges(head, repository, branch, account)
       }
-    }
-
-    if (strategy === UncommittedChangesStrategy.MoveToNewBranch) {
+    } else if (strategy === UncommittedChangesStrategy.MoveToNewBranch) {
       return this.checkoutAndBringChanges(repository, branch, account)
     }
 
