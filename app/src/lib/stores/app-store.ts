@@ -3125,7 +3125,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
+  /**
+   * Checkout the given branch, using given stashing strategy or the default.
+   *
+   * When `explicitStrategy` is undefined we'll use the default strategy
+   * configurable by the user in preferences. Without an explicit strategy
+   * this method will take care of presenting the user with any necessary
+   * confirmation dialogs and choices depending on the state of their
+   * repository.
+   *
+   * When provided with an explicit strategy other than `AskForConfirmation`
+   * we assume the user has been informed of any risks of overwritten stashes
+   * and such. In other words the only consumers who should pass an explicit
+   * strategy are dialogs and other confirmation constructs where the user
+   * has made an explicit choice about how to proceed.
+   *
+   * Note: This shouldn't be called directly. See `Dispatcher`.
+   */
   public async _checkoutBranch(
     repository: Repository,
     branch: Branch,
@@ -3198,6 +3214,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  /** Checkout the given branch without taking local changes into account */
   private async checkoutIgnoringChanges(
     repository: Repository,
     branch: Branch,
@@ -3208,6 +3225,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
+  /**
+   * Checkout the given branch and leave any local changes on the current branch
+   *
+   * Note that this will ovewrite any existing stash enty on the current branch.
+   */
   private async checkoutAndLeaveChanges(
     repository: Repository,
     branch: Branch,
@@ -3225,6 +3247,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.checkoutIgnoringChanges(repository, branch, account)
   }
 
+  /**
+   * Checkout the given branch and move any local changes along.
+   *
+   * Will attempt to simply check out the branch and if that fails due to
+   * local changes risking being overwritten it'll create a transient stash
+   * entry, switch branches, and pop said stash entry.
+   *
+   * Note that the transient stash entry will not overwrite any current stash
+   * entry for the target branch.
+   */
   private async checkoutAndBringChanges(
     repository: Repository,
     branch: Branch,
