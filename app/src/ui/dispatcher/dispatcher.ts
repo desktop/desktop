@@ -546,13 +546,9 @@ export class Dispatcher {
   public checkoutBranch(
     repository: Repository,
     branch: Branch,
-    uncommittedChangesStrategy?: UncommittedChangesStrategy
+    strategy?: UncommittedChangesStrategy
   ): Promise<Repository> {
-    return this.appStore._checkoutBranch(
-      repository,
-      branch,
-      uncommittedChangesStrategy
-    )
+    return this.appStore._checkoutBranch(repository, branch, strategy)
   }
 
   /** Push the current branch. */
