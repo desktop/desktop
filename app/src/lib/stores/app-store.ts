@@ -3154,6 +3154,55 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _checkoutBranch(
+    repository: Repository,
+    branch: Branch,
+    strategy = this.uncommittedChangesStrategy
+  ): Promise<Repository> {
+    if (strategy === UncommittedChangesStrategy.AskForConfirmation) {
+      if (this.hasWorkingDirectoryChanges(repository)) {
+        const type = PopupType.StashAndSwitchBranch
+        this._showPopup({ type, branchToCheckout: branch, repository })
+        return repository
+      }
+    }
+
+    return this.withAuthenticatingUser(repository, (repository, account) => {
+      // We always want to end with refreshing the repository regardless of
+      // whether the checkout succeeded or not in order to present the most
+      // up-to-date information to the user.
+      return this.checkoutImplementation(repository, branch, account, strategy)
+        .then(() => this.onSuccessfulCheckout(repository, branch))
+        .catch(e => this.emitError(new CheckoutError(e, repository, branch)))
+        .then(() => this.refreshRepositoryAfterCheckout(repository, branch))
+        .finally(() => this.updateCheckoutProgress(repository, null))
+    })
+  }
+
+  private checkoutImplementation(
+    repository: Repository,
+    branch: Branch,
+    account: IGitAccount | null,
+    strategy: UncommittedChangesStrategy
+  ) {
+    if (strategy === UncommittedChangesStrategy.StashOnCurrentBranch) {
+      const repositoryState = this.repositoryStateCache.get(repository)
+      const { tip } = repositoryState.branchesState
+
+      if (tip.kind === TipState.Valid) {
+        const head = tip.branch
+        return this.checkoutAndLeaveChanges(head, repository, branch, account)
+      }
+    }
+
+    if (strategy === UncommittedChangesStrategy.MoveToNewBranch) {
+      return this.checkoutAndBringChanges(repository, branch, account)
+    }
+
+    return this.checkoutIgnoringChanges(repository, branch, account)
+  }
+
   private async checkoutIgnoringChanges(
     repository: Repository,
     branch: Branch,
@@ -3208,60 +3257,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _checkoutBranch(
-    repository: Repository,
-    branch: Branch,
-    strategy = this.uncommittedChangesStrategy
-  ): Promise<Repository> {
-    if (strategy === UncommittedChangesStrategy.AskForConfirmation) {
-      if (this.hasWorkingDirectoryChanges(repository)) {
-        const type = PopupType.StashAndSwitchBranch
-        this._showPopup({ type, branchToCheckout: branch, repository })
-        return repository
-      }
-    }
-
-    return this.withAuthenticatingUser(repository, (repository, account) => {
-      // We always want to end with refreshing the repository regardless of
-      // whether the checkout succeeded or not in order to present the most
-      // up-to-date information to the user.
-      return this.checkoutImplementation(repository, branch, account, strategy)
-        .then(() => this.onSuccessfulCheckout(repository, branch))
-        .catch(e => this.emitError(new CheckoutError(e, repository, branch)))
-        .then(() => this.refreshRepositoryAfterCheckout(repository, branch))
-        .finally(() => this.updateCheckoutProgress(repository, null))
-    })
-  }
-
-  private hasWorkingDirectoryChanges(repository: Repository) {
-    const { changesState } = this.repositoryStateCache.get(repository)
-    return changesState.workingDirectory.files.length > 0
-  }
-
-  private checkoutImplementation(
-    repository: Repository,
-    branch: Branch,
-    account: IGitAccount | null,
-    strategy: UncommittedChangesStrategy
-  ) {
-    if (strategy === UncommittedChangesStrategy.StashOnCurrentBranch) {
-      const repositoryState = this.repositoryStateCache.get(repository)
-      const { tip } = repositoryState.branchesState
-
-      if (tip.kind === TipState.Valid) {
-        const head = tip.branch
-        return this.checkoutAndLeaveChanges(head, repository, branch, account)
-      }
-    }
-
-    if (strategy === UncommittedChangesStrategy.MoveToNewBranch) {
-      return this.checkoutAndBringChanges(repository, branch, account)
-    }
-
-    return this.checkoutIgnoringChanges(repository, branch, account)
-  }
-
   private async onSuccessfulCheckout(repository: Repository, branch: Branch) {
     const repositoryState = this.repositoryStateCache.get(repository)
     const { stashEntry } = repositoryState.changesState
@@ -3298,6 +3293,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     await this._refreshRepository(repository)
     return repository
+  }
+
+  private hasWorkingDirectoryChanges(repository: Repository) {
+    const { changesState } = this.repositoryStateCache.get(repository)
+    return changesState.workingDirectory.files.length > 0
   }
 
   /**
