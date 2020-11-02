@@ -3241,9 +3241,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       // Failing to stash the changes when we know that there are changes
       // preventing a checkout is very likely due to assume-unchanged or
-      // skip-worktree shenanigans. So instead of showing a "could not create
-      // stash" error we'll show the checkout error to the user and let them
-      // figure it out.
+      // skip-worktree. So instead of showing a "could not create stash" error
+      // we'll show the checkout error to the user and let them figure it out.
       if (stash === null) {
         throw checkoutError
       }
