@@ -3201,12 +3201,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.checkoutIgnoringChanges(repository, branch, account)
   }
 
-  private checkoutIgnoringChanges(
+  private async checkoutIgnoringChanges(
     repository: Repository,
     branch: Branch,
     account: IGitAccount | null
   ) {
-    return checkoutBranch(repository, account, branch, progress => {
+    await checkoutBranch(repository, account, branch, progress => {
       this.updateCheckoutProgress(repository, progress)
     })
   }
