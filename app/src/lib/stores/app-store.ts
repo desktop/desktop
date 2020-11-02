@@ -3175,7 +3175,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return this.checkoutImplementation(repository, branch, account, strategy)
         .then(() => this.onSuccessfulCheckout(repository, branch))
         .catch(e => this.emitError(new CheckoutError(e, repository, branch)))
-        .then(() => this.refreshRepositoryAfterCheckout(repository, branch))
+        .then(() => this.refreshAfterCheckout(repository, branch))
         .finally(() => this.updateCheckoutProgress(repository, null))
     })
   }
@@ -3280,10 +3280,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.hasUserViewedStash = false
   }
 
-  private async refreshRepositoryAfterCheckout(
-    repository: Repository,
-    branch: Branch
-  ) {
+  private async refreshAfterCheckout(repository: Repository, branch: Branch) {
     this.updateCheckoutProgress(repository, {
       kind: 'checkout',
       title: `Refreshing ${__DARWIN__ ? 'Repository' : 'repository'}`,
