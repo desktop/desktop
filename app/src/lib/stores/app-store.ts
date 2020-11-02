@@ -3180,6 +3180,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
+  /** Invoke the best checkout implementation for the selected strategy */
   private checkoutImplementation(
     repository: Repository,
     branch: Branch,
@@ -3190,6 +3191,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const repositoryState = this.repositoryStateCache.get(repository)
       const { tip } = repositoryState.branchesState
 
+      // If we're on a detached head or unborn branch it doesn't make sense
+      // to stash changes on that branch so we'll deffault to ignoring changes.
       if (tip.kind === TipState.Valid) {
         const head = tip.branch
         return this.checkoutAndLeaveChanges(head, repository, branch, account)
