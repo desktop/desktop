@@ -3158,7 +3158,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     // The user hasn't been presented with an explicit choice
     if (explicitStrategy === undefined) {
-      // Event if the user has chosen to "always stash on current branch" in
+      // Even if the user has chosen to "always stash on current branch" in
       // preferences we still want to let them know changes might be lost
       if (defaultStrategy === UncommittedChangesStrategy.StashOnCurrentBranch) {
         if (hasChanges && stashEntry !== null) {
