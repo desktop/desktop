@@ -3153,14 +3153,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { tip } = branchesState
     const hasChanges = changesState.workingDirectory.files.length > 0
 
-    const defaultStrategy = this.uncommittedChangesStrategy
-    let strategy = explicitStrategy || defaultStrategy
+    let strategy = explicitStrategy ?? this.uncommittedChangesStrategy
 
     // The user hasn't been presented with an explicit choice
     if (explicitStrategy === undefined) {
       // Even if the user has chosen to "always stash on current branch" in
       // preferences we still want to let them know changes might be lost
-      if (defaultStrategy === UncommittedChangesStrategy.StashOnCurrentBranch) {
+      if (strategy === UncommittedChangesStrategy.StashOnCurrentBranch) {
         if (hasChanges && stashEntry !== null) {
           const type = PopupType.ConfirmOverwriteStash
           this._showPopup({ type, repository, branchToCheckout: branch })
