@@ -21,6 +21,7 @@ import {
   setNumberArray,
 } from '../local-storage'
 import { PushOptions } from '../git'
+import { getShowSideBySideDiff } from '../../ui/lib/diff-mode'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -306,6 +307,8 @@ interface ICalculatedStats {
    * them into their own interface
    */
   readonly repositoriesCommittedInWithoutWriteAccess: number
+
+  readonly diffMode: 'split' | 'unified'
 }
 
 type DailyStats = ICalculatedStats &
@@ -465,6 +468,7 @@ export class StatsStore implements IStatsStore {
     const repositoriesCommittedInWithoutWriteAccess = getNumberArray(
       RepositoriesCommittedInWithoutWriteAccessKey
     ).length
+    const diffMode = getShowSideBySideDiff() ? 'split' : 'unified'
 
     return {
       eventType: 'usage',
@@ -481,6 +485,7 @@ export class StatsStore implements IStatsStore {
       guid: getGUID(),
       ...repositoryCounts,
       repositoriesCommittedInWithoutWriteAccess,
+      diffMode,
     }
   }
 
