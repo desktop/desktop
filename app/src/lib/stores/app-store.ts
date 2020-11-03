@@ -269,6 +269,11 @@ import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updater'
 import { getAttributableEmailsFor } from '../email'
 import { TrashNameLabel } from '../../ui/lib/context-menu'
+import {
+  showSideBySideDiffDefault,
+  getShowSideBySideDiff,
+  setShowSideBySideDiff,
+} from '../../ui/lib/diff-mode'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -305,9 +310,6 @@ const imageDiffTypeKey = 'image-diff-type'
 
 const hideWhitespaceInDiffDefault = false
 const hideWhitespaceInDiffKey = 'hide-whitespace-in-diff'
-
-const showSideBySideDiffDefault = false
-const showSideBySideDiffKey = 'show-side-by-side-diff'
 
 const shellKey = 'shell'
 
@@ -1841,7 +1843,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         : parseInt(imageDiffTypeValue)
 
     this.hideWhitespaceInDiff = getBoolean(hideWhitespaceInDiffKey, false)
-    this.showSideBySideDiff = getBoolean(showSideBySideDiffKey, false)
+    this.showSideBySideDiff = getShowSideBySideDiff()
 
     this.automaticallySwitchTheme = getAutoSwitchPersistedTheme()
 
@@ -4755,7 +4757,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public _setShowSideBySideDiff(showSideBySideDiff: boolean) {
-    setBoolean(showSideBySideDiffKey, showSideBySideDiff)
+    setShowSideBySideDiff(showSideBySideDiff)
     this.showSideBySideDiff = showSideBySideDiff
 
     this.emitUpdate()
