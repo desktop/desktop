@@ -363,7 +363,7 @@ export interface IDailyMeasures {
   readonly tagsDeleted: number
 
   readonly diffModeChangeCount: number
-  readonly hasViewedDiffOptions: boolean
+  readonly diffOptionsViewedCount: number
 }
 
 export class StatsDatabase extends Dexie {
