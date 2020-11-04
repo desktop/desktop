@@ -361,6 +361,8 @@ export interface IDailyMeasures {
    * How many tags have been deleted.
    */
   readonly tagsDeleted: number
+
+  readonly hasViewedDiffOptions: boolean
 }
 
 export class StatsDatabase extends Dexie {

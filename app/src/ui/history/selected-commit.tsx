@@ -64,6 +64,7 @@ interface ISelectedCommitProps {
    * to change the diff presentation mode.
    */
   readonly onChangeImageDiffType: (type: ImageDiffType) => void
+  readonly onDiffOptionsOpened: () => void
 }
 
 interface ISelectedCommitState {
@@ -162,6 +163,7 @@ export class SelectedCommit extends React.Component<
         showSideBySideDiff={this.props.showSideBySideDiff}
         onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
         onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
+        onDiffOptionsOpened={this.props.onDiffOptionsOpened}
       />
     )
   }
