@@ -362,6 +362,7 @@ export interface IDailyMeasures {
    */
   readonly tagsDeleted: number
 
+  readonly diffModeChangeCount: number
   readonly hasViewedDiffOptions: boolean
 }
 

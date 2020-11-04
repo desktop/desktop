@@ -140,6 +140,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   tagsCreatedInDesktop: 0,
   tagsCreated: 0,
   tagsDeleted: 0,
+  diffModeChangeCount: 0,
   hasViewedDiffOptions: false,
 }
 
@@ -1383,8 +1384,12 @@ export class StatsStore implements IStatsStore {
   }
 
   public recordDiffOptionsViewed() {
+    return this.updateDailyMeasures(m => ({ hasViewedDiffOptions: true }))
+  }
+
+  public recordDiffModeChanged() {
     return this.updateDailyMeasures(m => ({
-      hasViewedDiffOptions: true,
+      diffModeChangeCount: m.diffModeChangeCount + 1,
     }))
   }
 

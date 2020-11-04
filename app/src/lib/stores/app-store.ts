@@ -4757,10 +4757,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public _setShowSideBySideDiff(showSideBySideDiff: boolean) {
-    setShowSideBySideDiff(showSideBySideDiff)
-    this.showSideBySideDiff = showSideBySideDiff
-
-    this.emitUpdate()
+    if (showSideBySideDiff !== this.showSideBySideDiff) {
+      setShowSideBySideDiff(showSideBySideDiff)
+      this.showSideBySideDiff = showSideBySideDiff
+      this.statsStore.recordDiffModeChanged()
+      this.emitUpdate()
+    }
   }
 
   public _setUpdateBannerVisibility(visibility: boolean) {
