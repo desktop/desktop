@@ -362,7 +362,10 @@ export interface IDailyMeasures {
    */
   readonly tagsDeleted: number
 
+  /** Number of times the user has changed between unified and split diffs */
   readonly diffModeChangeCount: number
+
+  /** Number of times the user has opened the diff options popover */
   readonly diffOptionsViewedCount: number
 }
 
