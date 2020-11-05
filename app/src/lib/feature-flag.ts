@@ -125,6 +125,22 @@ export function enableDiscardLines(): boolean {
 }
 
 /**
+ * Should we show the checkbox to enable side by side diffs?
+ *
+ * Note: side by side diffs will use the new diff viewer.
+ */
+export function enableSideBySideDiffs(): boolean {
+  return enableBetaFeatures()
+}
+
+/**
+ * Should we use the new diff viewer for unified diffs?
+ */
+export function enableExperimentalDiffViewer(): boolean {
+  return false
+}
+
+/**
  * Should we allow to change the default branch when creating new repositories?
  */
 export function enableDefaultBranchSetting(): boolean {

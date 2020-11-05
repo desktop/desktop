@@ -13,6 +13,8 @@ import {
   envForRemoteOperation,
   getFallbackUrlForProxyResolve,
 } from './environment'
+import { WorkingDirectoryFileChange } from '../../models/status'
+import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 
 export type ProgressCallback = (progress: ICheckoutProgress) => void
 
@@ -135,5 +137,21 @@ export async function createAndCheckoutBranch(
     ['checkout', '-b', branchName],
     repository.path,
     'createAndCheckoutBranch'
+  )
+}
+
+/**
+ * Check out either stage #2 (ours) or #3 (theirs) for a conflicted
+ * file.
+ */
+export async function checkoutConflictedFile(
+  repository: Repository,
+  file: WorkingDirectoryFileChange,
+  resolution: ManualConflictResolution
+) {
+  await git(
+    ['checkout', `--${resolution}`, '--', file.path],
+    repository.path,
+    'checkoutConflictedFile'
   )
 }

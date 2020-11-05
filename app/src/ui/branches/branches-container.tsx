@@ -96,34 +96,34 @@ export class BranchesContainer extends React.Component<
     }
   }
 
-  private getBranchName = (): string => {
-    const { currentBranch, defaultBranch } = this.props
-    if (currentBranch != null) {
-      return currentBranch.name
-    }
-
-    if (defaultBranch != null) {
-      return defaultBranch.name
-    }
-
-    return 'master'
-  }
-
   public render() {
-    const branchName = this.getBranchName()
     return (
       <div className="branches-container">
         {this.renderTabBar()}
         {this.renderSelectedTab()}
-        <Row className="merge-button-row">
-          <Button className="merge-button" onClick={this.onMergeClick}>
-            <Octicon className="icon" symbol={OcticonSymbol.gitMerge} />
-            <span title={`Merge a branch into ${branchName}`}>
-              Choose a branch to merge into <strong>{branchName}</strong>
-            </span>
-          </Button>
-        </Row>
+        {this.renderMergeButtonRow()}
       </div>
+    )
+  }
+
+  private renderMergeButtonRow() {
+    const { currentBranch } = this.props
+
+    // This could happen if HEAD is detached, in that
+    // case it's better to not render anything at all.
+    if (currentBranch === null) {
+      return null
+    }
+
+    return (
+      <Row className="merge-button-row">
+        <Button className="merge-button" onClick={this.onMergeClick}>
+          <Octicon className="icon" symbol={OcticonSymbol.gitMerge} />
+          <span title={`Merge a branch into ${currentBranch.name}`}>
+            Choose a branch to merge into <strong>{currentBranch.name}</strong>
+          </span>
+        </Button>
+      </Row>
     )
   }
 

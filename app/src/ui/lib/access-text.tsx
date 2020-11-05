@@ -8,7 +8,7 @@ interface IAccessTextProps {
    * highlighted when the highlight property is set. Literal ampersand
    * characters need to be escaped by using two ampersand characters (&&).
    *
-   * At most one character is allowed to have a preceeding ampersand character.
+   * At most one character is allowed to have a preceding ampersand character.
    */
   readonly text: string
 

@@ -116,7 +116,7 @@ import {
   launchExternalEditor,
   parse,
 } from '../editors'
-import { assertNever, fatalError, forceUnwrap } from '../fatal-error'
+import { assertNever, fatalError } from '../fatal-error'
 
 import { formatCommitMessage } from '../format-commit-message'
 import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
@@ -220,10 +220,7 @@ import {
   updateConflictState,
   selectWorkingDirectoryFiles,
 } from './updates/changes-state'
-import {
-  ManualConflictResolution,
-  ManualConflictResolutionKind,
-} from '../../models/manual-conflict-resolution'
+import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
 import { enableUpdateRemoteUrl } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
@@ -268,10 +265,6 @@ import { parseRemote } from '../../lib/remote-parsing'
 import { createTutorialRepository } from './helpers/create-tutorial-repository'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { getDefaultDir } from '../../ui/lib/default-dir'
-import {
-  UpstreamRemoteName,
-  findUpstreamRemote,
-} from './helpers/find-upstream-remote'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updater'
 import { getAttributableEmailsFor } from '../email'
@@ -312,6 +305,9 @@ const imageDiffTypeKey = 'image-diff-type'
 
 const hideWhitespaceInDiffDefault = false
 const hideWhitespaceInDiffKey = 'hide-whitespace-in-diff'
+
+const showSideBySideDiffDefault = false
+const showSideBySideDiffKey = 'show-side-by-side-diff'
 
 const shellKey = 'shell'
 
@@ -395,6 +391,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
   private hideWhitespaceInDiff: boolean = hideWhitespaceInDiffDefault
+  private showSideBySideDiff: boolean = showSideBySideDiffDefault
 
   private uncommittedChangesStrategyKind: UncommittedChangesStrategyKind = uncommittedChangesStrategyKindDefault
 
@@ -762,6 +759,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedExternalEditor: this.selectedExternalEditor,
       imageDiffType: this.imageDiffType,
       hideWhitespaceInDiff: this.hideWhitespaceInDiff,
+      showSideBySideDiff: this.showSideBySideDiff,
       selectedShell: this.selectedShell,
       repositoryFilterText: this.repositoryFilterText,
       resolvedExternalEditor: this.resolvedExternalEditor,
@@ -1065,7 +1063,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         repository,
         allBranches,
         currentPullRequest,
-        getRemotes
+        getRemotes,
+        cachedDefaultBranch
       )
 
       if (inferredBranch !== null) {
@@ -1842,6 +1841,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         : parseInt(imageDiffTypeValue)
 
     this.hideWhitespaceInDiff = getBoolean(hideWhitespaceInDiffKey, false)
+    this.showSideBySideDiff = getBoolean(showSideBySideDiffKey, false)
 
     this.automaticallySwitchTheme = getAutoSwitchPersistedTheme()
 
@@ -3028,9 +3028,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     // If the user is opening the repository list and we haven't yet
     // started to refresh the repository indicators let's do so.
-    if (foldout.type === FoldoutType.Repository) {
+    if (
+      foldout.type === FoldoutType.Repository &&
+      this.repositoryIndicatorsEnabled
+    ) {
       // N.B: RepositoryIndicatorUpdater.prototype.start is
-      // indempotent.
+      // idempotent.
       this.repositoryIndicatorUpdater.start()
     }
   }
@@ -4567,7 +4570,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _finishConflictedMerge(
     repository: Repository,
     workingDirectory: WorkingDirectoryStatus,
-    manualResolutions: Map<string, ManualConflictResolutionKind>
+    manualResolutions: Map<string, ManualConflictResolution>
   ): Promise<string | undefined> {
     /**
      *  The assumption made here is that all other files that were part of this merge
@@ -4749,6 +4752,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     } else {
       return this._changeFileSelection(repository, file)
     }
+  }
+
+  public _setShowSideBySideDiff(showSideBySideDiff: boolean) {
+    setBoolean(showSideBySideDiffKey, showSideBySideDiff)
+    this.showSideBySideDiff = showSideBySideDiff
+
+    this.emitUpdate()
   }
 
   public _setUpdateBannerVisibility(visibility: boolean) {
@@ -5501,36 +5511,38 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // https://youtu.be/IjmtVKOAHPM
     if (branch !== null) {
       await this._checkoutBranch(repository, branch)
+      this.statsStore.recordPRBranchCheckout()
+      return
+    }
+
+    const remoteName = forkPullRequestRemoteName(ownerLogin)
+    const remotes = await getRemotes(repository)
+    const remote =
+      remotes.find(r => r.name === remoteName) ||
+      (await addRemote(repository, remoteName, headCloneUrl))
+
+    if (remote.url !== headCloneUrl) {
+      const error = new Error(
+        `Expected PR remote ${remoteName} url to be ${headCloneUrl} got ${remote.url}.`
+      )
+
+      log.error(error.message)
+      return this.emitError(error)
+    }
+
+    await this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
+
+    const localBranchName = `pr/${prNumber}`
+    const existingBranch = this.getLocalBranch(repository, localBranchName)
+
+    if (existingBranch === null) {
+      await this._createBranch(
+        repository,
+        localBranchName,
+        `${remoteName}/${headRefName}`
+      )
     } else {
-      const remoteName = forkPullRequestRemoteName(ownerLogin)
-      const remotes = await getRemotes(repository)
-      const remote =
-        remotes.find(r => r.name === remoteName) ||
-        (await addRemote(repository, remoteName, headCloneUrl))
-
-      if (remote.url !== headCloneUrl) {
-        const error = new Error(
-          `Expected PR remote ${remoteName} url to be ${headCloneUrl} got ${remote.url}.`
-        )
-
-        log.error(error.message)
-        return this.emitError(error)
-      }
-
-      await this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
-
-      const localBranchName = `pr/${prNumber}`
-      const existingBranch = this.getLocalBranch(repository, localBranchName)
-
-      if (existingBranch === null) {
-        await this._createBranch(
-          repository,
-          localBranchName,
-          `${remoteName}/${headRefName}`
-        )
-      } else {
-        await this._checkoutBranch(repository, existingBranch)
-      }
+      await this._checkoutBranch(repository, existingBranch)
     }
 
     this.statsStore.recordPRBranchCheckout()
@@ -5541,12 +5553,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
     headCloneURL: string,
     headRefName: string
   ): Promise<Branch | null> {
-    const gitHubRepository = repository.gitHubRepository
-    const isRefInThisRepo = headCloneURL === gitHubRepository.cloneURL
-    const isRefInUpstream =
-      gitHubRepository.parent !== null &&
-      headCloneURL === gitHubRepository.parent.cloneURL
+    const { cloneURL, parent } = repository.gitHubRepository
+    const gitStore = this.gitStoreCache.get(repository)
 
+    let remote = null
+
+    // Determine whether the ref is in the current repository or the parent
+    if (headCloneURL === cloneURL) {
+      remote = gitStore.defaultRemote
+    } else if (headCloneURL === parent?.cloneURL) {
+      remote = gitStore.upstreamRemote
+    }
+
+    if (remote !== null) {
+      return this.findPullRequestHeadInRemote(repository, remote, headRefName)
+    }
+
+    return null
+  }
+
+  private async findPullRequestHeadInRemote(
+    repository: Repository,
+    remote: IRemote,
+    headRefName: string
+  ) {
     const gitStore = this.gitStoreCache.get(repository)
 
     // Find a remote branch matching the given name or a local branch
@@ -5559,59 +5589,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
           : branch.name === name
       ) ?? null
 
-    // If we don't have a default remote here, it's probably going
-    // to just crash and burn on checkout, but that's okay
-    if (isRefInThisRepo) {
-      const defaultRemote = forceUnwrap(
-        `Unexpected state: repository without a default remote`,
-        gitStore.defaultRemote
-      )
+    const remoteRef = `${remote.name}/${headRefName}`
+    const branch = findBranch(remoteRef)
 
-      // The remote ref will be something like `origin/my-cool-branch`
-      const remoteRef = `${defaultRemote.name}/${headRefName}`
-      const originBranch = findBranch(remoteRef)
-
-      if (originBranch !== null) {
-        return originBranch
-      }
-
-      // Fetch the remote and try finding the branch again
-      if (originBranch === null) {
-        await this._fetchRemote(
-          repository,
-          defaultRemote,
-          FetchType.UserInitiatedTask
-        )
-      }
-
-      return findBranch(remoteRef)
+    if (branch !== null) {
+      return branch
     }
 
-    if (isRefInUpstream) {
-      // the remote ref will be something like `upstream/my-cool-branch`
-      const remoteRef = `${UpstreamRemoteName}/${headRefName}`
-      const branch = findBranch(remoteRef)
-
-      if (branch !== null) {
-        return branch
-      }
-
-      // Fetch the remote and try finding the branch again
-      const remotes = await getRemotes(repository)
-      const remoteUpstream = forceUnwrap(
-        'Cannot add the upstream repository as a remote of the current repository',
-        findUpstreamRemote(forceUnwrap('', gitHubRepository.parent), remotes)
-      )
-      await this._fetchRemote(
-        repository,
-        remoteUpstream,
-        FetchType.UserInitiatedTask
-      )
-
-      return findBranch(remoteRef)
+    // Fetch the remote and try finding the branch again
+    if (branch === null) {
+      await this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
     }
 
-    return null
+    return findBranch(remoteRef)
   }
 
   /**

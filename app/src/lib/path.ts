@@ -32,7 +32,7 @@ export function encodePathAsUrl(...pathSegments: string[]): string {
  * @param options      A subset of the Path module. Requires the join,
  *                     resolve, and normalize path functions. Defaults
  *                     to the platform specific path functions but can
- *                     be overriden by providing either Path.win32 or
+ *                     be overridden by providing either Path.win32 or
  *                     Path.posix
  */
 async function _resolveWithin(

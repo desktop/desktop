@@ -73,7 +73,8 @@ describe('inferComparisonBranch', () => {
       repo,
       branches,
       null,
-      mockGetRemotes
+      mockGetRemotes,
+      branches[0]
     )
 
     expect(branch).not.toBeNull()
@@ -88,7 +89,8 @@ describe('inferComparisonBranch', () => {
       repo,
       branches,
       null,
-      mockGetRemotes
+      mockGetRemotes,
+      branches[0]
     )
 
     expect(branch).not.toBeNull()
@@ -106,7 +108,8 @@ describe('inferComparisonBranch', () => {
       repo,
       branches,
       pr,
-      mockGetRemotes
+      mockGetRemotes,
+      branches[0]
     )
 
     expect(branch).not.toBeNull()
@@ -136,7 +139,8 @@ describe('inferComparisonBranch', () => {
       repo,
       branches,
       null,
-      mockGetRemotes
+      mockGetRemotes,
+      branches[0]
     )
 
     expect(branch).not.toBeNull()

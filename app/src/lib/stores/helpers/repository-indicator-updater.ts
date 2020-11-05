@@ -65,7 +65,7 @@ export class RepositoryIndicatorUpdater {
   }
 
   private async refreshAllRepositories() {
-    // We're only ever called by the setTimout so it's safe for us to clear
+    // We're only ever called by the setTimeout so it's safe for us to clear
     // this without calling clearTimeout
     this.refreshTimeoutId = null
     log.debug('[RepositoryIndicatorUpdater] Running refreshAllRepositories')

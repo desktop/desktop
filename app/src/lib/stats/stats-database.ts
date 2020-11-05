@@ -44,7 +44,7 @@ export interface IDailyMeasures {
   /** The number of times a branch is compared to an arbitrary branch */
   readonly branchComparisons: number
 
-  /** The number of times a branch is compared to `master` */
+  /** The number of times a branch is compared to the default branch */
   readonly defaultBranchComparisons: number
 
   /** The number of times a merge is initiated in the `compare` sidebar */
@@ -313,7 +313,7 @@ export interface IDailyMeasures {
 
   /**
    * _[Onboarding tutorial]_
-   * Has the user compeleted the create a PR step?
+   * Has the user completed the create a PR step?
    */
   readonly tutorialPrCreated: boolean
 

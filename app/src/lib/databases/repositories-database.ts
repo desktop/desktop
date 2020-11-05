@@ -35,7 +35,7 @@ export interface IDatabaseProtectedBranch {
   /**
    * The branch name associated with the branch protection settings
    *
-   * NOTE: this is NOT a fully-qualified ref (i.e. `refs/heads/master`)
+   * NOTE: this is NOT a fully-qualified ref (i.e. `refs/heads/main`)
    */
   readonly name: string
 }

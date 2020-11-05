@@ -191,7 +191,7 @@ export async function getChangedFiles(
  * Parses git `log` or `diff` output into a list of changed files
  * (see `getChangedFiles` for an example of use)
  *
- * @param stdout raw ouput from a git `-z` and `--name-status` flags
+ * @param stdout raw output from a git `-z` and `--name-status` flags
  * @param committish commitish command was run against
  */
 export function parseChangedFiles(

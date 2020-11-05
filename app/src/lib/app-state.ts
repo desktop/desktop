@@ -115,7 +115,7 @@ export interface IAppState {
    * A list of currently open menus with their selected items
    * in the application menu.
    *
-   * The semantics around what constitues an open menu and how
+   * The semantics around what constitutes an open menu and how
    * selection works is defined by the AppMenu class and the
    * individual components transforming that state.
    *
@@ -197,6 +197,9 @@ export interface IAppState {
 
   /** Whether we should hide white space changes in diff */
   readonly hideWhitespaceInDiff: boolean
+
+  /** Whether we should show side by side diffs */
+  readonly showSideBySideDiff: boolean
 
   /** The user's preferred shell. */
   readonly selectedShell: Shell
@@ -434,9 +437,14 @@ export interface IBranchesState {
   readonly tip: Tip
 
   /**
-   * The default branch for a given repository. Most commonly this
-   * will be the 'master' branch but GitHub users are able to change
-   * their default branch in the web UI.
+   * The default branch for a given repository. Historically it's been
+   * common to use 'master' as the default branch but as of September 2020
+   * GitHub Desktop and GitHub.com default to using 'main' as the default branch.
+   *
+   * GitHub Desktop users are able to configure the `init.defaultBranch` Git
+   * setting in preferences.
+   *
+   * GitHub.com users are able to change their default branch in the web UI.
    */
   readonly defaultBranch: Branch | null
 
@@ -679,9 +687,14 @@ export interface ICompareState {
   readonly recentBranches: ReadonlyArray<Branch>
 
   /**
-   * The default branch for a given repository. Most commonly this
-   * will be the 'master' branch but GitHub users are able to change
-   * their default branch in the web UI.
+   * The default branch for a given repository. Historically it's been
+   * common to use 'master' as the default branch but as of September 2020
+   * GitHub Desktop and GitHub.com default to using 'main' as the default branch.
+   *
+   * GitHub Desktop users are able to configure the `init.defaultBranch` Git
+   * setting in preferences.
+   *
+   * GitHub.com users are able to change their default branch in the web UI.
    */
   readonly defaultBranch: Branch | null
 

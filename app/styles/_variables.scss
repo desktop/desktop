@@ -385,6 +385,9 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --diff-delete-hover-gutter-color: #{$red-300};
   --diff-delete-hover-text-color: var(--text-color);
 
+  --diff-empty-row-background-color: #{$gray-000};
+  --diff-empty-row-gutter-background-color: var(--diff-empty-row-background-color);
+
   // Syntax highlighting text colors
   --syntax-variable-color: #6f42c1;
   --syntax-alt-variable-color: #24292e;
@@ -445,6 +448,9 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   // PR status icon colors
   --pr-open-icon-color: #{$green-500};
   --pr-draft-icon-color: #{$gray-500};
+
+  --call-to-action-bubble-border-color: #{$green};
+  --call-to-action-bubble-color: #{$green};
 }
 
 ::backdrop {

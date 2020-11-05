@@ -9,10 +9,7 @@ import {
   WorkingDirectoryFileChange,
 } from '../models/status'
 import { assertNever } from './fatal-error'
-import {
-  ManualConflictResolution,
-  ManualConflictResolutionKind,
-} from '../models/manual-conflict-resolution'
+import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 
 /**
  * Convert a given `AppFileStatusKind` value to a human-readable string to be
@@ -95,7 +92,7 @@ type UnmergedStatusEntry =
   | GitStatusEntry.Deleted
 
 /** Returns a human-readable description for a chosen version of a file
- *  intended for use with manually resolved merge conficts
+ *  intended for use with manually resolved merge conflicts
  */
 export function getUnmergedStatusEntryDescription(
   entry: UnmergedStatusEntry,
@@ -116,7 +113,7 @@ export function getUnmergedStatusEntryDescription(
 }
 
 /** Returns a human-readable description for an available manual resolution method
- *  intended for use with manually resolved merge conficts
+ *  intended for use with manually resolved merge conflicts
  */
 export function getLabelForManualResolutionOption(
   entry: UnmergedStatusEntry,
@@ -153,7 +150,7 @@ export function getUntrackedFiles(
 /** Filter working directory changes for resolved files  */
 export function getResolvedFiles(
   status: WorkingDirectoryStatus,
-  manualResolutions: Map<string, ManualConflictResolutionKind>
+  manualResolutions: Map<string, ManualConflictResolution>
 ) {
   return status.files.filter(
     f =>
@@ -165,7 +162,7 @@ export function getResolvedFiles(
 /** Filter working directory changes for conflicted files  */
 export function getConflictedFiles(
   status: WorkingDirectoryStatus,
-  manualResolutions: Map<string, ManualConflictResolutionKind>
+  manualResolutions: Map<string, ManualConflictResolution>
 ) {
   return status.files.filter(
     f =>

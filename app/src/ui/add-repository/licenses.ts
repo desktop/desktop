@@ -50,7 +50,7 @@ export async function getLicenses(): Promise<ReadonlyArray<ILicense>> {
 }
 
 function replaceToken(body: string, token: string, value: string): string {
-  // The license templates are inconsitent :( Sometimes they use [token] and
+  // The license templates are inconsistent :( Sometimes they use [token] and
   // sometimes {token}. So we'll standardize first to {token} and then do
   // replacements.
   const oldPattern = new RegExp(`\\[${token}\\]`, 'g')

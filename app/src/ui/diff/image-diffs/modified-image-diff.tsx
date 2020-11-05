@@ -108,8 +108,8 @@ export class ModifiedImageDiff extends React.Component<
     this.resizedTimeoutID = null
 
     const containerSize = {
-      width: contentRect.width,
-      height: contentRect.height,
+      width: target.offsetWidth,
+      height: target.offsetHeight,
     }
     this.setState({ containerSize })
   }

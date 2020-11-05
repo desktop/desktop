@@ -42,7 +42,7 @@ interface IRepositoryListItemProps {
   /** The characters in the repository name to highlight */
   readonly matches: IMatches
 
-  /** Number of commits this local repo branch is behind or ahead of its remote brance */
+  /** Number of commits this local repo branch is behind or ahead of its remote branch */
   readonly aheadBehind: IAheadBehind | null
 
   /** Number of uncommitted changes */

@@ -17,21 +17,23 @@
     flex-direction: row;
     flex-shrink: 0;
     flex-grow: 0;
+    align-items: center;
 
     padding: var(--spacing-half) var(--spacing);
 
     @include octicon-status;
 
-    .checkbox-component {
+    .diff-options-component {
       margin-right: var(--spacing-half);
+      flex-shrink: 0;
     }
 
-    .octicon {
+    .octicon.status {
       flex-shrink: 0;
       vertical-align: text-bottom;
       position: relative;
-      top: 1px;
       align-self: center;
+      flex-shrink: 0;
     }
 
     .line-endings {
