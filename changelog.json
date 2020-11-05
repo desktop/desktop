@@ -1,5 +1,8 @@
 {
   "releases": {
+    "2.5.7": [
+      "[Improved] Upgrade embedded Git LFS - #10973"
+    ],
     "2.5.6": [
       "[New] Newly created repositories use 'main' as the default branch name - #10527",
       "[New] Users can configure the default branch name in Preferences/Options - #10527",
