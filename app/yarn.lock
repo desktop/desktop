@@ -355,7 +355,7 @@ double-ended-queue@^2.1.0-0:
   resolved "https://registry.yarnpkg.com/double-ended-queue/-/double-ended-queue-2.1.0-0.tgz#103d3527fd31528f40188130c841efdd78264e5c"
   integrity sha1-ED01J/0xUo9AGIEwyEHv3XgmTlw=
 
-dugite@^1.92.0:
+dugite@1.92.0:
   version "1.92.0"
   resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.92.0.tgz#34a32a35ba5e69a61c62afa686a9a27944e0f5f0"
   integrity sha512-Xra5E2ISwy+sCUrlcBkBsOpP85u5lsbaMnRpnvMJpO+KSoCGccMUimekGS+Ry8ZRni80gHw83MKSrdycaH2bZg==
