@@ -313,6 +313,11 @@ dialog {
       flex-shrink: 0;
       margin-right: var(--spacing);
     }
+
+    div { 
+      overflow-wrap: break-word;
+      overflow-x: hidden;
+    }
   }
 
   &#app-error {
