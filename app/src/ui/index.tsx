@@ -76,6 +76,7 @@ import 'wicg-focus-ring'
 // setup this moment.js plugin so we can use easier
 // syntax for formatting time duration
 import momentDurationFormatSetup from 'moment-duration-format'
+import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 
 if (__DEV__) {
   installDevGlobals()
@@ -225,6 +226,10 @@ process.on(
  */
 window.addEventListener('unhandledrejection', ev => {
   if (ev.reason !== null && ev.reason !== undefined) {
+    if (ev.reason instanceof Error) {
+      sendNonFatalException('unhandledRejection', ev.reason)
+    }
+
     try {
       lastUnhandledRejection = `${ev.reason}`
       lastUnhandledRejectionTime = new Date()
