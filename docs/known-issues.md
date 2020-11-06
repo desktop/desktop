@@ -1,3 +1,18 @@
+# Table of contents
+
+- [macOS](#macos)
+  - ['The username or passphrase you entered is not correct' error after signing into account](#the-username-or-passphrase-you-entered-is-not-correct-error-after-signing-into-account)
+  - [Checking for updates triggers a 'Could not create temporary directory: Permission denied' message](#checking-for-updates-triggers-a-could-not-create-temporary-directory-permission-denied-message)
+- [Windows](#windows)
+  - [Window is hidden after detaching secondary monitor](#window-is-hidden-after-detaching-secondary-monitor)
+  - [Certificate revocation check fails](#certificate-revocation-check-fails)
+  - [Using a repository configured with Folder Redirection](#using-a-repository-configured-with-folder-redirection)
+  - [Enable Mandatory ASLR triggers cygheap errors](#enable-mandatory-aslr-triggers-cygheap-errors)
+  - [I get a black screen when launching Desktop](#i-get-a-black-screen-when-launching-desktop)
+  - [Failed to open CA file after an update](#failed-to-open-ca-file-after-an-update)
+  - [`ask-pass-trampoline.bat` errors](#ask-pass-trampolinebat-errors)
+  - [Authentication errors due to modified registry entries](#authentication-errors-due-to-modified-registry-entries)
+
 # Known Issues
 
 This document outlines acknowledged issues with GitHub Desktop, including workarounds if known.
