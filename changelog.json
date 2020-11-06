@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.5.7": ["[Improved] Upgrade embedded Git LFS - #10973"],
     "2.5.7-beta2": [
       "[New] Search text within split diffs - #10755",
       "[Improved] Use Page down, Page up, Home, and End keys to navigate and select items in lists - #10837",
