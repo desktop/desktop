@@ -18,7 +18,9 @@ Please check the [open](https://github.com/desktop/desktop/labels/bug) and [clos
 
 ## macOS
 
-### 'The username or passphrase you entered is not correct' error after signing into account - [#3263](https://github.com/desktop/desktop/issues/3263)
+### 'The username or passphrase you entered is not correct' error after signing into account
+
+Tracking issue: [#3263](https://github.com/desktop/desktop/issues/3263)
 
 This seems to be caused by the Keychain being in an invalid state, affecting applications that try to use the keychain to store or retrieve credentials. This has been reported from macOS High Sierra 10.13 (17A365) to macOS Mojave 10.14.5 (18F132).
 
@@ -29,7 +31,9 @@ This seems to be caused by the Keychain being in an invalid state, affecting app
 - Right-click on the `login` keychain and try unlocking it
 - Sign into your GitHub account again
 
-### Checking for updates triggers a 'Could not create temporary directory: Permission denied' message - [#4115](https://github.com/desktop/desktop/issues/4115)
+### Checking for updates triggers a 'Could not create temporary directory: Permission denied' message
+
+Tracking issue: [#4115](https://github.com/desktop/desktop/issues/4115)
 
 This issue seems to be caused by missing permissions for the `~/Library/Caches/com.github.GitHubClient.ShipIt` folder. This is a directory that Desktop uses to create and unpack temporary files as part of updating the application.
 
@@ -45,7 +49,9 @@ This issue seems to be caused by missing permissions for the `~/Library/Caches/c
 
 ## Windows
 
-### Window is hidden after detaching secondary monitor - [#2107](https://github.com/desktop/desktop/issues/2107)
+### Window is hidden after detaching secondary monitor
+
+Tracking issue: [#2107](https://github.com/desktop/desktop/issues/2107)
 
 This is related to Desktop tracking the window position between launches, but not changes to your display configuration such as removing the secondary monitor where Desktop was positioned.
 
@@ -54,7 +60,9 @@ This is related to Desktop tracking the window position between launches, but no
  - Remove `%APPDATA%\GitHub Desktop\window-state.json`
  - Restart Desktop
 
-### Certificate revocation check fails - [#3326](https://github.com/desktop/desktop/issues/3326)
+### Certificate revocation check fails
+
+Tracking issue: [#3326](https://github.com/desktop/desktop/issues/3326)
 
 If you are using Desktop on a corporate network, you may encounter an error like this:
 
@@ -74,7 +82,9 @@ Run this command in your Git shell to disable the revocation check:
 $ git config --global http.schannelCheckRevoke false
 ```
 
-### Using a repository configured with Folder Redirection - [#2972](https://github.com/desktop/desktop/issues/2972)
+### Using a repository configured with Folder Redirection
+
+Tracking issue: [#2972](https://github.com/desktop/desktop/issues/2972)
 
 [Folder Redirection](https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2008-R2-and-2008/cc753996(v%3dws.11)) is a feature of Windows for administrators to ensure files and folders are managed on a network server, instead.
 
@@ -98,7 +108,9 @@ Error(s) during clone:
 git clone failed: exit status 128
 ```
 
-### Enable Mandatory ASLR triggers cygheap errors - [#3096](https://github.com/desktop/desktop/issues/3096)
+### Enable Mandatory ASLR triggers cygheap errors
+
+Tracking issue: [#3096](https://github.com/desktop/desktop/issues/3096)
 
 Windows 10 Fall Creators Edition (version 1709 or later) added enhancements to the Enhanced Mitigation Experience Toolkit, one being to enable Mandatory ASLR. This setting affects the embedded Git shipped in Desktop, and produces errors that look like this:
 
@@ -124,9 +136,11 @@ Electron enables hardware accelerated graphics by default, but some graphics car
 
 1. Open PowerShell
 2. Run the command `$env:GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION=1`
-3. Launch GitHub Desktop 
+3. Launch GitHub Desktop
 
-### Failed to open CA file after an update - [#4832](https://github.com/desktop/desktop/issues/4832)
+### Failed to open CA file after an update
+
+Tracking issue: [#4832](https://github.com/desktop/desktop/issues/4832)
 
 A recent upgrade to Git for Windows changed how it uses `http.sslCAInfo`.
 
@@ -162,7 +176,9 @@ file:"C:\ProgramData/Git/config" http.sslcainfo=[some value here]
 sslCAInfo = [some value here]
 ```
 
-### `ask-pass-trampoline.bat` errors - [#2623](https://github.com/desktop/desktop/issues/2623), [#4124](https://github.com/desktop/desktop/issues/4124), [#6882](https://github.com/desktop/desktop/issues/6882), [#6789](https://github.com/desktop/desktop/issues/6879)
+### `ask-pass-trampoline.bat` errors
+
+Tracking issues: - [#2623](https://github.com/desktop/desktop/issues/2623), [#4124](https://github.com/desktop/desktop/issues/4124), [#6882](https://github.com/desktop/desktop/issues/6882), [#6789](https://github.com/desktop/desktop/issues/6879)
 
 An example of the error message:
 
@@ -188,7 +204,7 @@ Known causes and workarounds:
   2. Delete the `%AppData%\GitHub Desktop\` directory
   3. Delete the `%LocalAppData%\GitHubDesktop\` directory
   4. Reinstall GitHub Desktop from [desktop.github.com](https://desktop.github.com)
-  
+
 ### Authentication errors due to modified registry entries
 
 If either the user or an application has modified the `Command Processor` registry entries it can cause GitHub Desktop to throw an `Authentication failed` error. To check if these registry entries have been modified open the Registry Editor (regedit.exe) and navigate to the following locations:
