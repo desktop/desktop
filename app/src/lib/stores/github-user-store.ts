@@ -532,6 +532,6 @@ function userWithLowerCase(user: IGitHubUser): IGitHubUser {
   return {
     ...user,
     email: user.email.toLowerCase(),
-    login: user.login,    // Not LowerCaseing to avoid username casing
+    login: user.login,    // Not Lowercasing to avoid username casing
   }
 }
