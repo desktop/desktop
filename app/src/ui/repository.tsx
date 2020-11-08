@@ -50,6 +50,7 @@ interface IRepositoryViewProps {
   readonly showSideBySideDiff: boolean
   readonly askForConfirmationOnDiscardChanges: boolean
   readonly focusCommitMessage: boolean
+  readonly commitSpellcheckEnabled: boolean;
   readonly accounts: ReadonlyArray<Account>
 
   /**
@@ -211,6 +212,7 @@ export class RepositoryView extends React.Component<
         shouldNudgeToCommit={
           this.props.currentTutorialStep === TutorialStep.MakeCommit
         }
+        commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
       />
     )
   }

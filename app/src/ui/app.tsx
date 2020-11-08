@@ -2589,6 +2589,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           onExitTutorial={this.onExitTutorial}
           isShowingModal={this.isShowingModal}
           isShowingFoldout={this.state.currentFoldout !== null}
+          commitSpellcheckEnabled={this.state.commitSpellcheckEnabled}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
