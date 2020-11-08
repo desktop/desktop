@@ -10,11 +10,13 @@ interface IAdvancedPreferencesProps {
   readonly optOutOfUsageTracking: boolean
   readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
   readonly repositoryIndicatorsEnabled: boolean
+  readonly commitSpellcheckEnabled: boolean
   readonly onOptOutofReportingchanged: (checked: boolean) => void
   readonly onUncommittedChangesStrategyKindChanged: (
     value: UncommittedChangesStrategyKind
   ) => void
   readonly onRepositoryIndicatorsEnabledChanged: (enabled: boolean) => void
+  readonly onCommitSpellcheckEnabledChanged: (enabled: boolean) => void
 }
 
 interface IAdvancedPreferencesState {
@@ -55,6 +57,12 @@ export class Advanced extends React.Component<
     event: React.FormEvent<HTMLInputElement>
   ) => {
     this.props.onRepositoryIndicatorsEnabledChanged(event.currentTarget.checked)
+  }
+
+  private onCommitSpellcheckEnabledChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.props.onCommitSpellcheckEnabledChanged(event.currentTarget.checked)
   }
 
   private reportDesktopUsageLabel() {
@@ -129,6 +137,22 @@ export class Advanced extends React.Component<
             }
             onChange={this.onReportingOptOutChanged}
           />
+        </div>
+        <div className="advanced-section">
+          <h2>Other</h2>
+          <Checkbox
+            label="Enable spellcheck on commit summary and description"
+            value={
+              this.props.commitSpellcheckEnabled
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onCommitSpellcheckEnabledChanged}
+          />
+          <p className="git-settings-description">
+            Allows the display of up-to-date status indicators in the repository
+            list. Disabling this may improve performance with many repositories.
+          </p>
         </div>
       </DialogContent>
     )
