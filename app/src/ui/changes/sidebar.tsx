@@ -77,7 +77,7 @@ interface IChangesSidebarProps {
    */
   readonly shouldNudgeToCommit: boolean
 
-  readonly commitSpellcheckEnabled: boolean;
+  readonly commitSpellcheckEnabled: boolean
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {

@@ -43,7 +43,7 @@ export class AppWindow {
         disableBlinkFeatures: 'Auxclick',
         nodeIntegration: true,
         enableRemoteModule: true,
-        spellcheck: true
+        spellcheck: true,
       },
       acceptFirstMouse: true,
     }

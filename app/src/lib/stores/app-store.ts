@@ -775,7 +775,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       optOutOfUsageTracking: this.statsStore.getOptOut(),
       currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
       repositoryIndicatorsEnabled: this.repositoryIndicatorsEnabled,
-      commitSpellcheckEnabled: this.commitSpellcheckEnabled
+      commitSpellcheckEnabled: this.commitSpellcheckEnabled,
     }
   }
 
@@ -1847,7 +1847,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.hideWhitespaceInDiff = getBoolean(hideWhitespaceInDiffKey, false)
     this.showSideBySideDiff = getBoolean(showSideBySideDiffKey, false)
-    this.commitSpellcheckEnabled = getBoolean(showSideBySideDiffKey, false);
+    this.commitSpellcheckEnabled = getBoolean(showSideBySideDiffKey, false)
 
     this.automaticallySwitchTheme = getAutoSwitchPersistedTheme()
 

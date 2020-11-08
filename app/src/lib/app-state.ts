@@ -247,7 +247,7 @@ export interface IAppState {
    */
   readonly repositoryIndicatorsEnabled: boolean
 
-   /**
+  /**
    * Whether or not the app should use spell check on commit summary and description
    */
   readonly commitSpellcheckEnabled: boolean

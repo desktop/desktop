@@ -64,7 +64,6 @@ interface IAutocompletingTextInputProps<ElementType> {
    * in the input field.
    */
   readonly onContextMenu?: (event: React.MouseEvent<any>) => void
-  
 }
 
 interface IAutocompletionState<T> {

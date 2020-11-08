@@ -113,7 +113,7 @@ export class Preferences extends React.Component<
       availableShells: [],
       selectedShell: this.props.selectedShell,
       repositoryIndicatorsEnabled: this.props.repositoryIndicatorsEnabled,
-      commitSpellcheckEnabled: this.props.commitSpellcheckEnabled
+      commitSpellcheckEnabled: this.props.commitSpellcheckEnabled,
     }
   }
 

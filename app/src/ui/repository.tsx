@@ -50,7 +50,7 @@ interface IRepositoryViewProps {
   readonly showSideBySideDiff: boolean
   readonly askForConfirmationOnDiscardChanges: boolean
   readonly focusCommitMessage: boolean
-  readonly commitSpellcheckEnabled: boolean;
+  readonly commitSpellcheckEnabled: boolean
   readonly accounts: ReadonlyArray<Account>
 
   /**

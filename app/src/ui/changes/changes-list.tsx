@@ -187,7 +187,7 @@ interface IChangesListProps {
    */
   readonly shouldNudgeToCommit: boolean
 
-  readonly commitSpellcheckEnabled: boolean;
+  readonly commitSpellcheckEnabled: boolean
 }
 
 interface IChangesState {

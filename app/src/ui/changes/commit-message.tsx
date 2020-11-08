@@ -74,7 +74,7 @@ interface ICommitMessageProps {
   /** Whether this component should show its onboarding tutorial nudge arrow */
   readonly shouldNudge: boolean
 
-  readonly commitSpellcheckEnabled: boolean;
+  readonly commitSpellcheckEnabled: boolean
 }
 
 interface ICommitMessageState {

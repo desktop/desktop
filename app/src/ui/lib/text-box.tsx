@@ -93,7 +93,7 @@ export interface ITextBoxProps {
   readonly onSearchCleared?: () => void
 
   /** Indicates if input field applies spellcheck */
-  readonly spellcheck?: boolean;
+  readonly spellcheck?: boolean
 }
 
 interface ITextBoxState {
