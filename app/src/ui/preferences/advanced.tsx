@@ -149,10 +149,6 @@ export class Advanced extends React.Component<
             }
             onChange={this.onCommitSpellcheckEnabledChanged}
           />
-          <p className="git-settings-description">
-            Allows the display of up-to-date status indicators in the repository
-            list. Disabling this may improve performance with many repositories.
-          </p>
         </div>
       </DialogContent>
     )
