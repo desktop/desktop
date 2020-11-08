@@ -73,6 +73,8 @@ interface ICommitMessageProps {
 
   /** Whether this component should show its onboarding tutorial nudge arrow */
   readonly shouldNudge: boolean
+
+  readonly commitSpellcheckEnabled: boolean;
 }
 
 interface ICommitMessageState {
@@ -547,6 +549,7 @@ export class CommitMessage extends React.Component<
             autocompletionProviders={this.props.autocompletionProviders}
             onContextMenu={this.onAutocompletingInputContextMenu}
             disabled={this.props.isCommitting}
+            spellcheck={this.props.commitSpellcheckEnabled}
           />
         </div>
 
@@ -564,6 +567,7 @@ export class CommitMessage extends React.Component<
             onElementRef={this.onDescriptionTextAreaRef}
             onContextMenu={this.onAutocompletingInputContextMenu}
             disabled={this.props.isCommitting}
+            spellcheck={this.props.commitSpellcheckEnabled}
           />
           {this.renderActionBar()}
         </FocusContainer>
