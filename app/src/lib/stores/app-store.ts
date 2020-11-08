@@ -309,6 +309,9 @@ const hideWhitespaceInDiffKey = 'hide-whitespace-in-diff'
 const showSideBySideDiffDefault = false
 const showSideBySideDiffKey = 'show-side-by-side-diff'
 
+const commitSpellcheckEnabledDefault = false
+const commitSpellcheckEnabledKey = 'commit-spellcheck-enabled'
+
 const shellKey = 'shell'
 
 const repositoryIndicatorsEnabledKey = 'enable-repository-indicators'
@@ -392,6 +395,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
   private hideWhitespaceInDiff: boolean = hideWhitespaceInDiffDefault
   private showSideBySideDiff: boolean = showSideBySideDiffDefault
+  private commitSpellcheckEnabled: boolean = commitSpellcheckEnabledDefault
 
   private uncommittedChangesStrategyKind: UncommittedChangesStrategyKind = uncommittedChangesStrategyKindDefault
 
@@ -771,6 +775,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       optOutOfUsageTracking: this.statsStore.getOptOut(),
       currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
       repositoryIndicatorsEnabled: this.repositoryIndicatorsEnabled,
+      commitSpellcheckEnabled: this.commitSpellcheckEnabled
     }
   }
 
@@ -1842,6 +1847,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.hideWhitespaceInDiff = getBoolean(hideWhitespaceInDiffKey, false)
     this.showSideBySideDiff = getBoolean(showSideBySideDiffKey, false)
+    this.commitSpellcheckEnabled = getBoolean(showSideBySideDiffKey, false);
 
     this.automaticallySwitchTheme = getAutoSwitchPersistedTheme()
 
@@ -2926,6 +2932,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     } else {
       this.repositoryIndicatorUpdater.stop()
     }
+
+    this.emitUpdate()
+  }
+
+  public _setCommitSpellcheckEnabled(commitSpellcheckEnabled: boolean) {
+    if (this.commitSpellcheckEnabled === commitSpellcheckEnabled) {
+      return
+    }
+
+    setBoolean(commitSpellcheckEnabledKey, commitSpellcheckEnabled)
+    this.commitSpellcheckEnabled = commitSpellcheckEnabled
 
     this.emitUpdate()
   }
