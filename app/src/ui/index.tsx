@@ -215,10 +215,8 @@ process.on(
  * See https://developer.mozilla.org/en-US/docs/Web/API/Window/unhandledrejection_event
  */
 window.addEventListener('unhandledrejection', ev => {
-  if (ev.reason !== null && ev.reason !== undefined) {
-    if (ev.reason instanceof Error) {
-      sendNonFatalException('unhandledRejection', ev.reason)
-    }
+  if (ev.reason instanceof Error) {
+    sendNonFatalException('unhandledRejection', ev.reason)
   }
 })
 
