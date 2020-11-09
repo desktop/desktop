@@ -119,7 +119,7 @@ let currentState: IAppState | null = null
 
 const sendErrorWithContext = (
   error: Error,
-  context: { [key: string]: string } = {},
+  context: Record<string, string> = {},
   nonFatal?: boolean
 ) => {
   error = withSourceMappedStack(error)
