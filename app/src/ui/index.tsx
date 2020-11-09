@@ -116,8 +116,6 @@ if (__DARWIN__) {
 }
 
 let currentState: IAppState | null = null
-let lastUnhandledRejection: string | null = null
-let lastUnhandledRejectionTime: Date | null = null
 
 const sendErrorWithContext = (
   error: Error,
@@ -173,14 +171,6 @@ const sendErrorWithContext = (
           extra.activeAppErrors = `${currentState.errors.length}`
         }
 
-        if (
-          lastUnhandledRejection !== null &&
-          lastUnhandledRejectionTime !== null
-        ) {
-          extra.lastUnhandledRejection = lastUnhandledRejection
-          extra.lastUnhandledRejectionTime = lastUnhandledRejectionTime.toString()
-        }
-
         extra.repositoryCount = `${currentState.repositories.length}`
         extra.windowState = currentState.windowState
         extra.accounts = `${currentState.accounts.length}`
@@ -228,13 +218,6 @@ window.addEventListener('unhandledrejection', ev => {
   if (ev.reason !== null && ev.reason !== undefined) {
     if (ev.reason instanceof Error) {
       sendNonFatalException('unhandledRejection', ev.reason)
-    }
-
-    try {
-      lastUnhandledRejection = `${ev.reason}`
-      lastUnhandledRejectionTime = new Date()
-    } catch (err) {
-      /* ignore */
     }
   }
 })
