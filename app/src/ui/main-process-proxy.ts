@@ -131,9 +131,6 @@ export function sendErrorReport(
   extra: Record<string, string> = {},
   nonFatal?: boolean
 ) {
-  ipcRenderer.send('send-error-report', {
-    error: getIpcFriendlyError(error),
-    extra,
-    nonFatal,
-  })
+  const event = { error: getIpcFriendlyError(error), extra, nonFatal }
+  ipcRenderer.send('send-error-report', event)
 }
