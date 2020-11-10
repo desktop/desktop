@@ -311,6 +311,10 @@ interface ICalculatedStats {
    */
   readonly repositoriesCommittedInWithoutWriteAccess: number
 
+  /**
+   * whether not to the user has chosent to view diffs in split, or unified (the
+   * default) diff view mode
+   */
   readonly diffMode: 'split' | 'unified'
 }
 
