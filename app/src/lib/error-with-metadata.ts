@@ -36,6 +36,10 @@ export class ErrorWithMetadata extends Error {
   }
 }
 
+/**
+ * An error thrown when a failure occurs while checking out a branch.
+ * Technically just a convience class on top of ErrorWithMetadata
+ */
 export class CheckoutError extends ErrorWithMetadata {
   public constructor(error: Error, repository: Repository, branch: Branch) {
     super(error, {
