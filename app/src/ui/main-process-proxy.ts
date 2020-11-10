@@ -128,12 +128,9 @@ export function reportUncaughtException(error: Error) {
 
 export function sendErrorReport(
   error: Error,
-  extra: { [key: string]: string } = {},
+  extra: Record<string, string> = {},
   nonFatal?: boolean
 ) {
-  ipcRenderer.send('send-error-report', {
-    error: getIpcFriendlyError(error),
-    extra,
-    nonFatal,
-  })
+  const event = { error: getIpcFriendlyError(error), extra, nonFatal }
+  ipcRenderer.send('send-error-report', event)
 }
