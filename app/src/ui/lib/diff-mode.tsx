@@ -1,7 +1,7 @@
 import { getBoolean, setBoolean } from '../../lib/local-storage'
 
 export const showSideBySideDiffDefault = false
-export const showSideBySideDiffKey = 'show-side-by-side-diff'
+const showSideBySideDiffKey = 'show-side-by-side-diff'
 
 /**
  * Gets a value indicating whether not to present diffs in a split view mode
