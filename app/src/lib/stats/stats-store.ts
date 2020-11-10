@@ -609,12 +609,7 @@ export class StatsStore implements IStatsStore {
         ...defaultMeasures,
         ...measures,
       }
-      const delta = fn(measuresWithDefaults)
-      const newMeasures = merge(measuresWithDefaults, delta)
-
-      for (const [k, v] of Object.entries(delta)) {
-        console.log(`StatsStore: Updated metric ${k}: ${v}`)
-      }
+      const newMeasures = merge(measuresWithDefaults, fn(measuresWithDefaults))
 
       return this.db.dailyMeasures.put(newMeasures)
     })
