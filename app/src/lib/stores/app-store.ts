@@ -270,7 +270,7 @@ import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updat
 import { getAttributableEmailsFor } from '../email'
 import { TrashNameLabel } from '../../ui/lib/context-menu'
 import {
-  showSideBySideDiffDefault,
+  ShowSideBySideDiffDefault,
   getShowSideBySideDiff,
   setShowSideBySideDiff,
 } from '../../ui/lib/diff-mode'
@@ -393,7 +393,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
   private hideWhitespaceInDiff: boolean = hideWhitespaceInDiffDefault
-  private showSideBySideDiff: boolean = showSideBySideDiffDefault
+  private showSideBySideDiff: boolean = ShowSideBySideDiffDefault
 
   private uncommittedChangesStrategyKind: UncommittedChangesStrategyKind = uncommittedChangesStrategyKindDefault
 

@@ -1,6 +1,6 @@
 import { getBoolean, setBoolean } from '../../lib/local-storage'
 
-export const showSideBySideDiffDefault = false
+export const ShowSideBySideDiffDefault = false
 const showSideBySideDiffKey = 'show-side-by-side-diff'
 
 /**
@@ -8,7 +8,7 @@ const showSideBySideDiffKey = 'show-side-by-side-diff'
  * as opposed to unified (the default).
  */
 export function getShowSideBySideDiff(): boolean {
-  return getBoolean(showSideBySideDiffKey, showSideBySideDiffDefault)
+  return getBoolean(showSideBySideDiffKey, ShowSideBySideDiffDefault)
 }
 
 /**
