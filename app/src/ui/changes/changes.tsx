@@ -45,6 +45,8 @@ interface IChangesProps {
    * Whether we should display side by side diffs.
    */
   readonly showSideBySideDiff: boolean
+
+  /** Called when the user opens the diff options popover */
   readonly onDiffOptionsOpened: () => void
 }
 

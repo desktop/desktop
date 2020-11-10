@@ -17,6 +17,8 @@ interface IChangedFileDetailsProps {
 
   /** Called when the user changes the side by side diffs setting. */
   readonly onShowSideBySideDiffChanged: (checked: boolean) => void
+
+  /** Called when the user opens the diff options popover */
   readonly onDiffOptionsOpened: () => void
 }
 

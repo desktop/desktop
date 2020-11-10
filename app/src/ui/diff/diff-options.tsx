@@ -14,6 +14,8 @@ interface IDiffOptionsProps {
 
   readonly showSideBySideDiff: boolean
   readonly onShowSideBySideDiffChanged: (showSideBySideDiff: boolean) => void
+
+  /** Called when the user opens the diff options popover */
   readonly onDiffOptionsOpened: () => void
 }
 

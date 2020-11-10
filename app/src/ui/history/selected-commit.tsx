@@ -64,6 +64,8 @@ interface ISelectedCommitProps {
    * to change the diff presentation mode.
    */
   readonly onChangeImageDiffType: (type: ImageDiffType) => void
+
+  /** Called when the user opens the diff options popover */
   readonly onDiffOptionsOpened: () => void
 }
 
