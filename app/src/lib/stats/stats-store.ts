@@ -142,6 +142,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   tagsDeleted: 0,
   diffModeChangeCount: 0,
   diffOptionsViewedCount: 0,
+  repositoryViewChangeCount: 0,
 }
 
 interface IOnboardingStats {
@@ -1386,6 +1387,12 @@ export class StatsStore implements IStatsStore {
   public recordDiffOptionsViewed() {
     return this.updateDailyMeasures(m => ({
       diffOptionsViewedCount: m.diffOptionsViewedCount + 1,
+    }))
+  }
+
+  public recordRepositoryViewChanged() {
+    return this.updateDailyMeasures(m => ({
+      repositoryViewChangeCount: m.repositoryViewChangeCount + 1,
     }))
   }
 

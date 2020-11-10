@@ -367,6 +367,9 @@ export interface IDailyMeasures {
 
   /** Number of times the user has opened the diff options popover */
   readonly diffOptionsViewedCount: number
+
+  /** Number of times the user has switched to or from History/Changes */
+  readonly repositoryViewChangeCount: number
 }
 
 export class StatsDatabase extends Dexie {

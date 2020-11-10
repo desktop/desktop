@@ -2199,9 +2199,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     selectedSection: RepositorySectionTab
   ): Promise<void> {
-    this.repositoryStateCache.update(repository, () => ({
-      selectedSection,
-    }))
+    this.repositoryStateCache.update(repository, (state) => {
+      if (state.selectedSection !== selectedSection) {
+        this.statsStore.recordRepositoryViewChanged()
+      }
+      return { selectedSection }
+    })
     this.emitUpdate()
 
     if (selectedSection === RepositorySectionTab.History) {
