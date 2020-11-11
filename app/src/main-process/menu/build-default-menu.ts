@@ -52,14 +52,6 @@ export function buildDefaultMenu({
     ? showPullRequestLabel
     : createPullRequestLabel
 
-  const shellLabel = __DARWIN__
-    ? `Open in ${selectedShell ?? platformDefaultShell}`
-    : `O&pen in ${selectedShell ?? platformDefaultShell}`
-
-  const editorLabel = __DARWIN__
-    ? `Open in ${selectedExternalEditor ?? 'External Editor'}`
-    : `&Open in ${selectedExternalEditor ?? 'external editor'}`
-
   const template = new Array<Electron.MenuItemConstructorOptions>()
   const separator: Electron.MenuItemConstructorOptions = { type: 'separator' }
 
@@ -303,7 +295,9 @@ export function buildDefaultMenu({
         click: emit('view-repository-on-github'),
       },
       {
-        label: shellLabel,
+        label: __DARWIN__
+          ? `Open in ${selectedShell ?? platformDefaultShell}`
+          : `O&pen in ${selectedShell ?? platformDefaultShell}`,
         id: 'open-in-shell',
         accelerator: 'Ctrl+`',
         click: emit('open-in-shell'),
@@ -319,7 +313,9 @@ export function buildDefaultMenu({
         click: emit('open-working-directory'),
       },
       {
-        label: editorLabel,
+        label: __DARWIN__
+          ? `Open in ${selectedExternalEditor ?? 'External Editor'}`
+          : `&Open in ${selectedExternalEditor ?? 'external editor'}`,
         id: 'open-external-editor',
         accelerator: 'CmdOrCtrl+Shift+A',
         click: emit('open-external-editor'),
