@@ -351,8 +351,13 @@ export class RepositoryView extends React.Component<
         showSideBySideDiff={this.props.showSideBySideDiff}
         onOpenBinaryFile={this.onOpenBinaryFile}
         onChangeImageDiffType={this.onChangeImageDiffType}
+        onDiffOptionsOpened={this.onDiffOptionsOpened}
       />
     )
+  }
+
+  private onDiffOptionsOpened = () => {
+    this.props.dispatcher.recordDiffOptionsViewed()
   }
 
   private renderTutorialPane(): JSX.Element {
@@ -425,6 +430,7 @@ export class RepositoryView extends React.Component<
           askForConfirmationOnDiscardChanges={
             this.props.askForConfirmationOnDiscardChanges
           }
+          onDiffOptionsOpened={this.onDiffOptionsOpened}
         />
       )
     }
