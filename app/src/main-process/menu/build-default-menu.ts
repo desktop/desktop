@@ -7,11 +7,8 @@ import { ensureDir } from 'fs-extra'
 import { UNSAFE_openDirectory } from '../shell'
 import { enableCreateGitHubIssueFromMenu } from '../../lib/feature-flag'
 import { MenuLabelsEvent } from '../../models/menu-labels'
-import { DefaultEditorLabel } from '../../ui/lib/context-menu'
 
-const defaultShellLabel = __DARWIN__
-  ? 'Open in Terminal'
-  : 'Open in Command Prompt'
+const platformDefaultShell = __DARWIN__ ? 'Terminal' : 'Command Prompt'
 const createPullRequestLabel = __DARWIN__
   ? 'Create Pull Request'
   : 'Create &pull request'
@@ -55,13 +52,13 @@ export function buildDefaultMenu({
     ? showPullRequestLabel
     : createPullRequestLabel
 
-  const shellLabel =
-    selectedShell === null ? defaultShellLabel : `Open in ${selectedShell}`
+  const shellLabel = __DARWIN__
+    ? `Open in ${selectedShell ?? platformDefaultShell}`
+    : `O&pen in ${selectedShell ?? platformDefaultShell}`
 
-  const editorLabel =
-    selectedExternalEditor === null
-      ? DefaultEditorLabel
-      : `Open in ${selectedExternalEditor}`
+  const editorLabel = __DARWIN__
+    ? `Open in ${selectedExternalEditor ?? 'External Editor'}`
+    : `&Open in ${selectedExternalEditor ?? 'external editor'}`
 
   const template = new Array<Electron.MenuItemConstructorOptions>()
   const separator: Electron.MenuItemConstructorOptions = { type: 'separator' }
