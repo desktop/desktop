@@ -8,7 +8,7 @@ import { UNSAFE_openDirectory } from '../shell'
 import { enableCreateGitHubIssueFromMenu } from '../../lib/feature-flag'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 
-const platformDefaultShell = __DARWIN__ ? 'Terminal' : 'Command Prompt'
+const platformDefaultShell = __WIN32__ ? 'Command Prompt' : 'Terminal'
 const createPullRequestLabel = __DARWIN__
   ? 'Create Pull Request'
   : 'Create &pull request'
