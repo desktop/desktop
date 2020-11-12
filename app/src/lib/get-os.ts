@@ -1,17 +1,11 @@
-import { compare } from 'compare-versions'
 import * as OS from 'os'
-import { UAParser } from 'ua-parser-js'
+import { compare } from 'compare-versions'
 import memoizeOne from 'memoize-one'
 
 /** Get the OS we're currently running on. */
 export function getOS() {
   if (__DARWIN__) {
-    // On macOS, OS.release() gives us the kernel version which isn't terribly
-    // meaningful to any human being, so we'll parse the User Agent instead.
-    // See https://github.com/desktop/desktop/issues/1130.
-    const parser = new UAParser()
-    const os = parser.getOS()
-    return `${os.name} ${os.version}`
+    return `Mac OS ${process.getSystemVersion()}`
   } else if (__WIN32__) {
     return `Windows ${OS.release()}`
   } else {
@@ -20,19 +14,9 @@ export function getOS() {
 }
 
 /** We're currently running macOS and it is at least Mojave. */
-export function isMacOsAndMojaveOrLater() {
-  if (__DARWIN__) {
-    const parser = new UAParser()
-    const os = parser.getOS()
-
-    if (os.version === undefined) {
-      return false
-    }
-
-    return compare(os.version, '10.13.0', '>=')
-  }
-  return false
-}
+export const isMacOsAndMojaveOrLater = memoizeOne(
+  () => __DARWIN__ && compare(process.getSystemVersion(), '10.13.0', '>=')
+)
 
 /** We're currently running macOS and it is at least Big Sur. */
 export const isMacOSBigSurOrLater = memoizeOne(
