@@ -6,6 +6,13 @@ import { WindowControls } from './window-controls'
 import { Octicon, OcticonSymbol } from '../octicons'
 import memoizeOne from 'memoize-one'
 
+/**
+ * Get the height (in pixels) of the title bar depending on the platform
+ */
+export function getTitleBarHeight() {
+  return __DARWIN__ ? 22 : 28
+}
+
 interface ITitleBarProps {
   /**
    * The current state of the Window, ie maximized, minimized full-screen etc.
@@ -30,13 +37,16 @@ interface ITitleBarProps {
 
 export class TitleBar extends React.Component<ITitleBarProps> {
   private getStyle = memoizeOne((windowZoomFactor: number | undefined) => {
-    // See windowZoomFactor in ITitleBarProps, this is only
-    // applicable on macOS.
-    if (!__DARWIN__) {
-      return undefined
+    const style: React.CSSProperties = {
+      height: getTitleBarHeight(),
     }
 
-    return windowZoomFactor ? { zoom: 1 / windowZoomFactor } : undefined
+    // See windowZoomFactor in ITitleBarProps, this is only applicable on macOS.
+    if (__DARWIN__ && windowZoomFactor !== undefined) {
+      style.zoom = 1 / windowZoomFactor
+    }
+
+    return style
   })
 
   private onTitlebarDoubleClickDarwin = () => {
