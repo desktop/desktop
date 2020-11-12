@@ -172,6 +172,6 @@
     "electron": "^11.0.0-beta.20",
     "electron-builder": "^22.7.0",
     "electron-packager": "^15.1.0",
-    "electron-winstaller": "4.0.0"
+    "electron-winstaller": "^4.0.1"
   }
 }
