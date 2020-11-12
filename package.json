@@ -171,7 +171,7 @@
     "@types/xml2js": "^0.4.0",
     "electron": "9.3.1",
     "electron-builder": "^22.7.0",
-    "electron-packager": "^14.2.1",
+    "electron-packager": "^15.1.0",
     "electron-winstaller": "4.0.0"
   }
 }
