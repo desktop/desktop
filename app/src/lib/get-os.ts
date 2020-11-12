@@ -23,12 +23,13 @@ function systemVersionGreaterThanOrEqualTo(version: string) {
 
 /** Get the OS we're currently running on. */
 export function getOS() {
+  const version = getSystemVersionSafe()
   if (__DARWIN__) {
-    return `Mac OS ${getSystemVersionSafe()}`
+    return `Mac OS ${version}`
   } else if (__WIN32__) {
-    return `Windows ${OS.release()}`
+    return `Windows ${version}`
   } else {
-    return `${OS.type()} ${OS.release()}`
+    return `${OS.type()} ${version}`
   }
 }
 
