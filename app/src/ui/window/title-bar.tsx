@@ -5,12 +5,18 @@ import { WindowState } from '../../lib/window-state'
 import { WindowControls } from './window-controls'
 import { Octicon, OcticonSymbol } from '../octicons'
 import memoizeOne from 'memoize-one'
+import { isMacOSBigSurOrLater } from '../../lib/get-os'
 
 /**
  * Get the height (in pixels) of the title bar depending on the platform
  */
 export function getTitleBarHeight() {
-  return __DARWIN__ ? 22 : 28
+  if (__DARWIN__) {
+    // Title bars got taller in Big Sur
+    return isMacOSBigSurOrLater() ? 26 : 22
+  }
+
+  return 28
 }
 
 interface ITitleBarProps {
