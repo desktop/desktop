@@ -4,6 +4,7 @@ import { remote } from 'electron'
 import { WindowState } from '../../lib/window-state'
 import { WindowControls } from './window-controls'
 import { Octicon, OcticonSymbol } from '../octicons'
+import memoizeOne from 'memoize-one'
 
 interface ITitleBarProps {
   /**
@@ -27,29 +28,16 @@ interface ITitleBarProps {
   readonly windowZoomFactor?: number
 }
 
-interface ITitleBarState {
-  readonly style?: React.CSSProperties
-}
+export class TitleBar extends React.Component<ITitleBarProps> {
+  private getStyle = memoizeOne((windowZoomFactor: number | undefined) => {
+    // See windowZoomFactor in ITitleBarProps, this is only
+    // applicable on macOS.
+    if (!__DARWIN__) {
+      return undefined
+    }
 
-function getState(props: ITitleBarProps): ITitleBarState {
-  // See windowZoomFactor in ITitleBarProps, this is only
-  // applicable on macOS.
-  if (!__DARWIN__) {
-    return { style: undefined }
-  }
-
-  return {
-    style: props.windowZoomFactor
-      ? { zoom: 1 / props.windowZoomFactor }
-      : undefined,
-  }
-}
-
-export class TitleBar extends React.Component<ITitleBarProps, ITitleBarState> {
-  public constructor(props: ITitleBarProps) {
-    super(props)
-    this.state = getState(props)
-  }
+    return windowZoomFactor ? { zoom: 1 / windowZoomFactor } : undefined
+  })
 
   private onTitlebarDoubleClickDarwin = () => {
     const actionOnDoubleClick = remote.systemPreferences.getUserDefault(
@@ -69,14 +57,6 @@ export class TitleBar extends React.Component<ITitleBarProps, ITitleBarState> {
       case 'Minimize':
         mainWindow.minimize()
         break
-    }
-  }
-
-  public componentWillReceiveProps(nextProps: ITitleBarProps) {
-    if (__DARWIN__) {
-      if (this.props.windowZoomFactor !== nextProps.windowZoomFactor) {
-        this.setState(getState(nextProps))
-      }
     }
   }
 
@@ -111,12 +91,14 @@ export class TitleBar extends React.Component<ITitleBarProps, ITitleBarState> {
       ? this.onTitlebarDoubleClickDarwin
       : undefined
 
+    const style = this.getStyle(this.props.windowZoomFactor)
+
     return (
       <div
         className={titleBarClass}
         id="desktop-app-title-bar"
         onDoubleClick={onTitlebarDoubleClick}
-        style={this.state.style}
+        style={style}
       >
         {topResizeHandle}
         {leftResizeHandle}
