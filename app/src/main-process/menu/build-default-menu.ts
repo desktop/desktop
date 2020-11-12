@@ -584,7 +584,7 @@ function getStashedChangesLabel(isStashedChangesVisible: boolean): string {
 type ClickHandler = (
   menuItem: Electron.MenuItem,
   browserWindow: Electron.BrowserWindow | undefined,
-  event: Electron.Event
+  event: Electron.KeyboardEvent
 ) => void
 
 /**
