@@ -37,7 +37,7 @@
     "fs-admin": "^0.15.0",
     "fs-extra": "^7.0.1",
     "fuzzaldrin-plus": "^0.6.0",
-    "keytar": "^6.0.1",
+    "keytar": "^7.0.0",
     "mem": "^4.3.0",
     "memoize-one": "^4.0.3",
     "moment": "^2.24.0",
