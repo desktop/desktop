@@ -19,16 +19,17 @@ jobs:
         arch: [x64, arm64]
         include:
           - os: macos-10.15
-            friendlyName: macOS
+            arch: x64
+            friendlyName: macOS x64
+          - os: macos-10.15
+            arch: arm64
+            friendlyName: macOS arm64
           - os: windows-2019
             arch: x64
             friendlyName: Windows x64
           - os: windows-2019
             arch: arm64
             friendlyName: Windows arm64
-        exclude:
-          - os: macos-10.15
-            arch: arm64
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v2
