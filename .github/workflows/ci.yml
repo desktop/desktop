@@ -16,11 +16,19 @@ jobs:
       matrix:
         node: [12.14.1]
         os: [macos-10.15, windows-2019]
+        arch: [x64, arm64]
         include:
           - os: macos-10.15
             friendlyName: macOS
           - os: windows-2019
-            friendlyName: Windows
+            arch: x64
+            friendlyName: Windows x64
+          - os: windows-2019
+            arch: arm64
+            friendlyName: Windows arm64
+        exclude:
+          - os: macos-10.15
+            arch: arm64
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v2
@@ -46,6 +54,9 @@ jobs:
 
       - name: Install and build dependencies
         run: yarn
+        env:
+          npm_config_arch: ${{ matrix.arch }}
+          TARGET_ARCH: ${{ matrix.arch }}
       - name: Lint
         run: yarn lint
       - name: Validate changelog
@@ -62,6 +73,8 @@ jobs:
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           DESKTOPBOT_TOKEN: ${{ secrets.DESKTOPBOT_TOKEN }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          npm_config_arch: ${{ matrix.arch }}
+          TARGET_ARCH: ${{ matrix.arch }}
       - name: Prepare testing environment
         run: yarn test:setup
       - name: Run unit tests
