@@ -1,6 +1,7 @@
 import { compare } from 'compare-versions'
 import * as OS from 'os'
 import { UAParser } from 'ua-parser-js'
+import memoizeOne from 'memoize-one'
 
 /** Get the OS we're currently running on. */
 export function getOS() {
@@ -32,6 +33,11 @@ export function isMacOsAndMojaveOrLater() {
   }
   return false
 }
+
+/** We're currently running macOS and it is at least Big Sur. */
+export const isMacOSBigSurOrLater = memoizeOne(
+  () => __DARWIN__ && compare(process.getSystemVersion(), '11.0.0', '>=')
+)
 
 /** We're currently running Windows 10 and it is at least 1809 Preview Build 17666. */
 export function isWindows10And1809Preview17666OrLater() {
