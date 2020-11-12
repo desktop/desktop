@@ -3,11 +3,17 @@ import { compare } from 'compare-versions'
 import memoizeOne from 'memoize-one'
 
 function getSystemVersionSafe() {
-  // getSystemVersion only exists when running under Electron, and not when
-  // running unit tests which frequently end up calling this. There are no
-  // other known reasons why getSystemVersion() would return anything other
-  // than a string
-  return 'getSystemVersion' in process ? process.getSystemVersion() : undefined
+  if (__DARWIN__) {
+    // getSystemVersion only exists when running under Electron, and not when
+    // running unit tests which frequently end up calling this. There are no
+    // other known reasons why getSystemVersion() would return anything other
+    // than a string
+    return 'getSystemVersion' in process
+      ? process.getSystemVersion()
+      : undefined
+  } else {
+    return OS.release()
+  }
 }
 
 function systemVersionGreaterThanOrEqualTo(version: string) {
