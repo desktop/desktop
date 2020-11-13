@@ -40,7 +40,9 @@ export const isMacOsAndMojaveOrLater = memoizeOne(
 
 /** We're currently running macOS and it is at least Big Sur. */
 export const isMacOSBigSurOrLater = memoizeOne(
-  () => __DARWIN__ && systemVersionGreaterThanOrEqualTo('11.0.0')
+  // We're using 10.16 rather than 11.0 here due to
+  // https://github.com/electron/electron/issues/26419
+  () => __DARWIN__ && systemVersionGreaterThanOrEqualTo('10.16')
 )
 
 /** We're currently running Windows 10 and it is at least 1809 Preview Build 17666. */
