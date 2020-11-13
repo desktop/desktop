@@ -1,18 +1,15 @@
 import * as React from 'react'
-
+import memoizeOne from 'memoize-one'
 import { remote } from 'electron'
 import { WindowState } from '../../lib/window-state'
 import { WindowControls } from './window-controls'
 import { Octicon, OcticonSymbol } from '../octicons'
-import memoizeOne from 'memoize-one'
 import { isMacOSBigSurOrLater } from '../../lib/get-os'
 
-/**
- * Get the height (in pixels) of the title bar depending on the platform
- */
+/** Get the height (in pixels) of the title bar depending on the platform */
 export function getTitleBarHeight() {
   if (__DARWIN__) {
-    // Title bars got taller in Big Sur
+    // Big Sur has taller title bars, see #10980
     return isMacOSBigSurOrLater() ? 26 : 22
   }
 
