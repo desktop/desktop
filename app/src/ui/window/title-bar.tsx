@@ -40,9 +40,7 @@ interface ITitleBarProps {
 
 export class TitleBar extends React.Component<ITitleBarProps> {
   private getStyle = memoizeOne((windowZoomFactor: number | undefined) => {
-    const style: React.CSSProperties = {
-      height: getTitleBarHeight(),
-    }
+    const style: React.CSSProperties = { height: getTitleBarHeight() }
 
     // See windowZoomFactor in ITitleBarProps, this is only applicable on macOS.
     if (__DARWIN__ && windowZoomFactor !== undefined) {
@@ -104,14 +102,12 @@ export class TitleBar extends React.Component<ITitleBarProps> {
       ? this.onTitlebarDoubleClickDarwin
       : undefined
 
-    const style = this.getStyle(this.props.windowZoomFactor)
-
     return (
       <div
         className={titleBarClass}
         id="desktop-app-title-bar"
         onDoubleClick={onTitlebarDoubleClick}
-        style={style}
+        style={this.getStyle(this.props.windowZoomFactor)}
       >
         {topResizeHandle}
         {leftResizeHandle}
