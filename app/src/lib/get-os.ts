@@ -34,7 +34,7 @@ export function getOS() {
 }
 
 /** We're currently running macOS and it is at least Mojave. */
-export const isMacOsAndMojaveOrLater = memoizeOne(
+export const isMacOSMojaveOrLater = memoizeOne(
   () => __DARWIN__ && systemVersionGreaterThanOrEqualTo('10.13.0')
 )
 
