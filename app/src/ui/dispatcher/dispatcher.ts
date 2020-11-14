@@ -2558,7 +2558,7 @@ export class Dispatcher {
   public setContextMenuItems(items: IMenuItem[]) {
     return this.appStore._setContextMenuItems(items)
   }
-  
+
   public recordDiffOptionsViewed() {
     return this.statsStore.recordDiffOptionsViewed()
   }
