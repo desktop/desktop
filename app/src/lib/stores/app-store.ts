@@ -313,9 +313,6 @@ const imageDiffTypeKey = 'image-diff-type'
 const hideWhitespaceInDiffDefault = false
 const hideWhitespaceInDiffKey = 'hide-whitespace-in-diff'
 
-const showSideBySideDiffDefault = false
-const showSideBySideDiffKey = 'show-side-by-side-diff'
-
 const commitSpellcheckEnabledDefault = false
 const commitSpellcheckEnabledKey = 'commit-spellcheck-enabled'
 
@@ -1857,7 +1854,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         : parseInt(imageDiffTypeValue)
 
     this.hideWhitespaceInDiff = getBoolean(hideWhitespaceInDiffKey, false)
-    this.commitSpellcheckEnabled = getBoolean(showSideBySideDiffKey, false)
+    this.commitSpellcheckEnabled = getBoolean(commitSpellcheckEnabledKey, false)
     this.showSideBySideDiff = getShowSideBySideDiff()
 
     this.automaticallySwitchTheme = getAutoSwitchPersistedTheme()
