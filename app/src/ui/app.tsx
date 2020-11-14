@@ -283,8 +283,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     // This will fire any time a user right-clicks to invoke a context-menu
     // unless the component enacts event.preventDefault()
     remote
-      .getCurrentWindow()
-      .webContents.on('context-menu', this.onWebContentsContextMenu)
+      .getCurrentWebContents()
+      .on('context-menu', this.onWebContentsContextMenu)
   }
 
   public componentWillUnmount() {
