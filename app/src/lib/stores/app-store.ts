@@ -1854,7 +1854,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
         : parseInt(imageDiffTypeValue)
 
     this.hideWhitespaceInDiff = getBoolean(hideWhitespaceInDiffKey, false)
-    this.commitSpellcheckEnabled = getBoolean(commitSpellcheckEnabledKey, false)
+    this.commitSpellcheckEnabled = getBoolean(
+      commitSpellcheckEnabledKey,
+      commitSpellcheckEnabledDefault
+    )
     this.showSideBySideDiff = getShowSideBySideDiff()
 
     this.automaticallySwitchTheme = getAutoSwitchPersistedTheme()
