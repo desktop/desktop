@@ -188,29 +188,8 @@ interface IAuthenticationEvent {
   readonly method: SignInMethod
 }
 
-interface IDotComSupportsBasicAuthEvent {
-  readonly dotComSupportsBasicAuth: boolean
-}
-
 /** The maximum time to wait for a `/meta` API call in milliseconds */
 const ServerMetaDataTimeout = 2000
-
-/**
- * GitHub.com is planning on shutting down the ability to authenticate
- * with username and password on the 13th of November 2020.
- *
- * See https://developer.github.com/changes/2020-02-14-deprecating-oauth-auth-endpoint/
- */
-const DotComAuthorizationAPIRemovalDate = Date.parse('2020-11-13T16:00:00.000Z')
-
-/**
- * Whether or not the current date and time is before the planned deadline
- * for the removal of username and password authentication on GitHub.com,
- * see DotComAuthorizationAPIRemovalDate
- */
-function isBeforeDotComAuthorizationAPIRemoval() {
-  return Date.now() < DotComAuthorizationAPIRemovalDate
-}
 
 /**
  * A store encapsulating all logic related to signing in a user
@@ -245,51 +224,6 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
     )
   }
 
-  private emitDotComSupportsBasicAuthUpdated(dotComSupportsBasicAuth: boolean) {
-    const event: IDotComSupportsBasicAuthEvent = { dotComSupportsBasicAuth }
-    this.emitter.emit('dotComSupportsBasicAuthUpdated', event)
-  }
-
-  /**
-   * Subscribe to an event which is emitted whenever the sign in store re-evaluates
-   * whether or not GitHub.com supports username and password authentication.
-   *
-   * Note that this event may fire without the state having changed as it's
-   * fired when refreshed and not when changed.
-   */
-  public onDotComSupportsBasicAuthUpdated(
-    fn: (dotComSupportsBasicAuth: boolean) => void
-  ): Disposable {
-    if (!this.endpointSupportBasicAuth.has(getDotComAPIEndpoint())) {
-      this.endpointSupportsBasicAuth(getDotComAPIEndpoint()).catch(err => {})
-    }
-
-    return this.emitter.on(
-      'dotComSupportsBasicAuthUpdated',
-      ({ dotComSupportsBasicAuth }: IDotComSupportsBasicAuthEvent) => {
-        fn(dotComSupportsBasicAuth)
-      }
-    )
-  }
-
-  /**
-   * Attempt to _synchronously_ retrieve whether GitHub.com supports
-   * username and password authentication. If the SignInStore has
-   * previously checked the API to determine the actual status that
-   * cached value is returned. If not we attempt to calculate the
-   * most probably state based on the current date and the deprecation
-   * timeline.
-   */
-  public tryGetDotComSupportsBasicAuth(): boolean {
-    const supportsBasicAuth = this.endpointSupportBasicAuth.get(
-      getDotComAPIEndpoint()
-    )
-
-    return supportsBasicAuth === undefined
-      ? isBeforeDotComAuthorizationAPIRemoval()
-      : supportsBasicAuth
-  }
-
   /**
    * Returns the current state of the sign in store or null if
    * no sign in process is in flight.
@@ -308,6 +242,10 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
   }
 
   private async endpointSupportsBasicAuth(endpoint: string): Promise<boolean> {
+    if (endpoint === getDotComAPIEndpoint()) {
+      return false
+    }
+
     const cached = this.endpointSupportBasicAuth.get(endpoint)
     const fallbackValue =
       cached === undefined
@@ -325,22 +263,12 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
         response.verifiable_password_authentication === true
       this.endpointSupportBasicAuth.set(endpoint, supportsBasicAuth)
 
-      if (endpoint === getDotComAPIEndpoint()) {
-        this.emitDotComSupportsBasicAuthUpdated(supportsBasicAuth)
-      }
-
       return supportsBasicAuth
     }
 
-    if (endpoint === getDotComAPIEndpoint()) {
-      const supportsBasicAuth = isBeforeDotComAuthorizationAPIRemoval()
-      this.emitDotComSupportsBasicAuthUpdated(supportsBasicAuth)
-      return supportsBasicAuth
-    } else {
-      throw new Error(
-        `Unable to authenticate with the GitHub Enterprise Server instance. Verify that the URL is correct, that your GitHub Enterprise Server instance is running version ${minimumSupportedEnterpriseVersion} or later, that you have an internet connection and try again.`
-      )
-    }
+    throw new Error(
+      `Unable to authenticate with the GitHub Enterprise Server instance. Verify that the URL is correct, that your GitHub Enterprise Server instance is running version ${minimumSupportedEnterpriseVersion} or later, that you have an internet connection and try again.`
+    )
   }
 
   private getForgotPasswordURL(endpoint: string): string {
@@ -365,7 +293,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
     this.setState({
       kind: SignInStep.Authentication,
       endpoint,
-      supportsBasicAuth: this.tryGetDotComSupportsBasicAuth(),
+      supportsBasicAuth: false,
       error: null,
       loading: false,
       forgotPasswordUrl: this.getForgotPasswordURL(endpoint),

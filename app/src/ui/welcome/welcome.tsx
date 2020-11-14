@@ -7,18 +7,15 @@ import { Account } from '../../models/account'
 import { SignInState, SignInStep } from '../../lib/stores'
 import { assertNever } from '../../lib/fatal-error'
 import { Start } from './start'
-import { SignInDotCom } from './sign-in-dot-com'
 import { SignInEnterprise } from './sign-in-enterprise'
 import { ConfigureGit } from './configure-git'
 import { UiView } from '../ui-view'
 import { UsageOptOut } from './usage-opt-out'
-import { Disposable } from 'event-kit'
 
 /** The steps along the Welcome flow. */
 export enum WelcomeStep {
   Start = 'Start',
   SignInToDotComWithBrowser = 'SignInToDotComWithBrowser',
-  SignInToDotCom = 'SignInToDotCom',
   SignInToEnterprise = 'SignInToEnterprise',
   ConfigureGit = 'ConfigureGit',
   UsageOptOut = 'UsageOptOut',
@@ -41,12 +38,6 @@ interface IWelcomeState {
    * time to run to completion.
    */
   readonly exiting: boolean
-
-  /**
-   * Whether or not GitHub.com supports authenticating with username
-   * and password or if we have to enforce the web flow
-   */
-  readonly dotComSupportsBasicAuth: boolean
 }
 
 // Note that we're reusing the welcome illustrations in the crash process, any
@@ -66,15 +57,12 @@ export const WelcomeLeftBottomImageUri = encodePathAsUrl(
 
 /** The Welcome flow. */
 export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
-  private dotComSupportsBasicAuthSubscription: Disposable | null = null
-
   public constructor(props: IWelcomeProps) {
     super(props)
 
     this.state = {
       currentStep: WelcomeStep.Start,
       exiting: false,
-      dotComSupportsBasicAuth: props.dispatcher.tryGetDotComSupportsBasicAuth(),
     }
   }
 
@@ -84,22 +72,6 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
 
   public componentDidMount() {
     this.props.dispatcher.recordWelcomeWizardInitiated()
-    this.dotComSupportsBasicAuthSubscription = this.props.dispatcher.onDotComSupportsBasicAuthUpdated(
-      this.onDotComSupportsBasicAuthUpdated
-    )
-  }
-
-  public componentWillUnmount() {
-    if (this.dotComSupportsBasicAuthSubscription !== null) {
-      this.dotComSupportsBasicAuthSubscription.dispose()
-      this.dotComSupportsBasicAuthSubscription = null
-    }
-  }
-
-  private onDotComSupportsBasicAuthUpdated = (
-    dotComSupportsBasicAuth: boolean
-  ) => {
-    this.setState({ dotComSupportsBasicAuth })
   }
 
   /**
@@ -108,10 +80,6 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
    * in or enterprise sign in.
    */
   private get inSignInStep() {
-    if (this.state.currentStep === WelcomeStep.SignInToDotCom) {
-      return true
-    }
-
     if (this.state.currentStep === WelcomeStep.SignInToDotComWithBrowser) {
       return true
     }
@@ -183,16 +151,6 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
             advance={this.advanceToStep}
             dispatcher={this.props.dispatcher}
             loadingBrowserAuth={loadingBrowserAuth}
-            dotComSupportsBasicAuth={this.state.dotComSupportsBasicAuth}
-          />
-        )
-
-      case WelcomeStep.SignInToDotCom:
-        return (
-          <SignInDotCom
-            dispatcher={this.props.dispatcher}
-            advance={this.advanceToStep}
-            signInState={signInState}
           />
         )
 
@@ -230,9 +188,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
 
   private advanceToStep = (step: WelcomeStep) => {
     log.info(`[Welcome] advancing to step: ${step}`)
-    if (step === WelcomeStep.SignInToDotCom) {
-      this.props.dispatcher.beginDotComSignIn()
-    } else if (step === WelcomeStep.SignInToEnterprise) {
+    if (step === WelcomeStep.SignInToEnterprise) {
       this.props.dispatcher.beginEnterpriseSignIn()
     }
 
