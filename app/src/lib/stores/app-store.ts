@@ -269,6 +269,7 @@ import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updater'
 import { getAttributableEmailsFor } from '../email'
 import { TrashNameLabel } from '../../ui/lib/context-menu'
+import { IMenuItem } from '../menu-item'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -395,7 +396,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
   private hideWhitespaceInDiff: boolean = hideWhitespaceInDiffDefault
   private showSideBySideDiff: boolean = showSideBySideDiffDefault
+  /** Whether or not the spellchecker is enabled for commit summary and description */
   private commitSpellcheckEnabled: boolean = commitSpellcheckEnabledDefault
+  /** Items to display in next context menu */
+  private currentContextMenuItems: IMenuItem[] = []
 
   private uncommittedChangesStrategyKind: UncommittedChangesStrategyKind = uncommittedChangesStrategyKindDefault
 
@@ -776,6 +780,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
       repositoryIndicatorsEnabled: this.repositoryIndicatorsEnabled,
       commitSpellcheckEnabled: this.commitSpellcheckEnabled,
+      currentContextMenuItems: this.currentContextMenuItems,
     }
   }
 
@@ -2944,6 +2949,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     setBoolean(commitSpellcheckEnabledKey, commitSpellcheckEnabled)
     this.commitSpellcheckEnabled = commitSpellcheckEnabled
 
+    this.emitUpdate()
+  }
+
+  public _setContextMenuItems(items: IMenuItem[]) {
+    this.currentContextMenuItems = items
     this.emitUpdate()
   }
 

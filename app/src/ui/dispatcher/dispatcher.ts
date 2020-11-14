@@ -101,6 +101,7 @@ import { IStashEntry } from '../../models/stash-entry'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { enableForkSettings } from '../../lib/feature-flag'
 import { resolveWithin } from '../../lib/path'
+import { IMenuItem } from '../../lib/menu-item'
 
 /**
  * An error handler function.
@@ -2577,5 +2578,9 @@ export class Dispatcher {
 
   public setCommitSpellcheckEnabled(commitSpellcheckEnabled: boolean) {
     this.appStore._setCommitSpellcheckEnabled(commitSpellcheckEnabled)
+  }
+
+  public setContextMenuItems(items: IMenuItem[]) {
+    return this.appStore._setContextMenuItems(items)
   }
 }

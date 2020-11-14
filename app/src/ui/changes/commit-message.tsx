@@ -18,7 +18,6 @@ import { Avatar } from '../lib/avatar'
 import { Loading } from '../lib/loading'
 import { AuthorInput } from '../lib/author-input'
 import { FocusContainer } from '../lib/focus-container'
-import { showContextualMenu } from '../main-process-proxy'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { IAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
@@ -114,9 +113,16 @@ export class CommitMessage extends React.Component<
   private descriptionTextArea: HTMLTextAreaElement | null = null
   private descriptionTextAreaScrollDebounceId: number | null = null
 
+  /**
+   * Whether or not the oonAutoCompletingInputContextMenu event has fired.
+   * This is used because the commit message container will also fire onContextMenu
+   * and we do not want to process new context menu logic if it has
+   * already been handled by the onAutoCompletingInputContextMenu method.
+   */
+  private hasAutoCompletingInputContextMenuFired: boolean = false
+
   public constructor(props: ICommitMessageProps) {
     super(props)
-
     const { commitMessage } = this.props
 
     this.state = {
@@ -333,27 +339,41 @@ export class CommitMessage extends React.Component<
     }
   }
 
-  private onContextMenu = (event: React.MouseEvent<any>) => {
-    if (event.defaultPrevented) {
+  private onContextMenu = () => {
+    // if AutoCompletingInputContextMenu already fired,
+    // then context menu has already been set
+    if (this.hasAutoCompletingInputContextMenuFired) {
+      this.hasAutoCompletingInputContextMenuFired = false
       return
     }
 
-    event.preventDefault()
-
     const items: IMenuItem[] = [this.getAddRemoveCoAuthorsMenuItem()]
-    showContextualMenu(items)
+    this.props.dispatcher.setContextMenuItems(items)
   }
 
-  private onAutocompletingInputContextMenu = (event: React.MouseEvent<any>) => {
-    event.preventDefault()
+  private onAutocompletingInputContextMenu = () => {
+    this.hasAutoCompletingInputContextMenuFired = true
 
     const items: IMenuItem[] = [
       this.getAddRemoveCoAuthorsMenuItem(),
       { type: 'separator' },
       { role: 'editMenu' },
+      { type: 'separator' },
     ]
 
-    showContextualMenu(items)
+    if (this.props.commitSpellcheckEnabled) {
+      items.push({
+        label: 'Disable Commit Spellcheck',
+        action: () => this.props.dispatcher.setCommitSpellcheckEnabled(false),
+      })
+    } else {
+      items.push({
+        label: 'Enable Commit Spellcheck',
+        action: () => this.props.dispatcher.setCommitSpellcheckEnabled(true),
+      })
+    }
+
+    this.props.dispatcher.setContextMenuItems(items)
   }
 
   private onCoAuthorToggleButtonClick = (
