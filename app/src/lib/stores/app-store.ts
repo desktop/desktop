@@ -269,6 +269,11 @@ import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updater'
 import { getAttributableEmailsFor } from '../email'
 import { TrashNameLabel } from '../../ui/lib/context-menu'
+import {
+  ShowSideBySideDiffDefault,
+  getShowSideBySideDiff,
+  setShowSideBySideDiff,
+} from '../../ui/lib/diff-mode'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -305,9 +310,6 @@ const imageDiffTypeKey = 'image-diff-type'
 
 const hideWhitespaceInDiffDefault = false
 const hideWhitespaceInDiffKey = 'hide-whitespace-in-diff'
-
-const showSideBySideDiffDefault = false
-const showSideBySideDiffKey = 'show-side-by-side-diff'
 
 const shellKey = 'shell'
 
@@ -391,7 +393,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
   private hideWhitespaceInDiff: boolean = hideWhitespaceInDiffDefault
-  private showSideBySideDiff: boolean = showSideBySideDiffDefault
+  private showSideBySideDiff: boolean = ShowSideBySideDiffDefault
 
   private uncommittedChangesStrategyKind: UncommittedChangesStrategyKind = uncommittedChangesStrategyKindDefault
 
@@ -1841,7 +1843,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         : parseInt(imageDiffTypeValue)
 
     this.hideWhitespaceInDiff = getBoolean(hideWhitespaceInDiffKey, false)
-    this.showSideBySideDiff = getBoolean(showSideBySideDiffKey, false)
+    this.showSideBySideDiff = getShowSideBySideDiff()
 
     this.automaticallySwitchTheme = getAutoSwitchPersistedTheme()
 
@@ -2197,9 +2199,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     selectedSection: RepositorySectionTab
   ): Promise<void> {
-    this.repositoryStateCache.update(repository, () => ({
-      selectedSection,
-    }))
+    this.repositoryStateCache.update(repository, state => {
+      if (state.selectedSection !== selectedSection) {
+        this.statsStore.recordRepositoryViewChanged()
+      }
+      return { selectedSection }
+    })
     this.emitUpdate()
 
     if (selectedSection === RepositorySectionTab.History) {
@@ -4755,10 +4760,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public _setShowSideBySideDiff(showSideBySideDiff: boolean) {
-    setBoolean(showSideBySideDiffKey, showSideBySideDiff)
-    this.showSideBySideDiff = showSideBySideDiff
-
-    this.emitUpdate()
+    if (showSideBySideDiff !== this.showSideBySideDiff) {
+      setShowSideBySideDiff(showSideBySideDiff)
+      this.showSideBySideDiff = showSideBySideDiff
+      this.statsStore.recordDiffModeChanged()
+      this.emitUpdate()
+    }
   }
 
   public _setUpdateBannerVisibility(visibility: boolean) {
@@ -4837,31 +4844,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _resetSignInState(): Promise<void> {
     this.signInStore.reset()
     return Promise.resolve()
-  }
-
-  /**
-   * Subscribe to an event which is emitted whenever the sign in store re-evaluates
-   * whether or not GitHub.com supports username and password authentication.
-   *
-   * Note that this event may fire without the state having changed as it's
-   * fired when refreshed and not when changed.
-   */
-  public _onDotComSupportsBasicAuthUpdated(
-    fn: (dotComSupportsBasicAuth: boolean) => void
-  ) {
-    return this.signInStore.onDotComSupportsBasicAuthUpdated(fn)
-  }
-
-  /**
-   * Attempt to _synchronously_ retrieve whether GitHub.com supports
-   * username and password authentication. If the SignInStore has
-   * previously checked the API to determine the actual status that
-   * cached value is returned. If not we attempt to calculate the
-   * most probably state based on the current date and the deprecation
-   * timeline.
-   */
-  public _tryGetDotComSupportsBasicAuth(): boolean {
-    return this.signInStore.tryGetDotComSupportsBasicAuth()
   }
 
   public _beginDotComSignIn(): Promise<void> {
