@@ -1,5 +1,12 @@
 {
   "releases": {
+    "2.6.0-beta1": [
+      "[Fixed] Proper title bar height on macOS Big Sur - #10980",
+      "[Fixed] Restore Windows menu keyboard accessibility - #11007",
+      "[Fixed] Fix broken issues links in release notes - #10977",
+      "[Fixed] Fixes overflow issues with long branch names - #5970. Thanks @juliarvalenti!",
+      "[Removed] Sign in to GitHub.com with username/password is no longer supported"
+    ],
     "2.5.8-beta1": ["[Improved] Upgrade embedded Git LFS - #10973"],
     "2.5.7": ["[Improved] Upgrade embedded Git LFS - #10973"],
     "2.5.7-beta2": [
