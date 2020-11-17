@@ -7,7 +7,7 @@
       "[Added] Add support for Nova as external editor on macOS - #10645. Thanks @greystate!",
       "[Fixed] Restore Windows menu keyboard accessibility - #11007",
       "[Fixed] Actions in context menu of a non-selected file act on the chosen one instead of the previous one - #10743",
-      "[Fixed] Proper title bar height on macOS Big Sur - #10980",
+      "[Fixed] Correct title bar height on macOS Big Sur - #10980",
       "[Fixed] Fix broken issues links in release notes - #10977",
       "[Fixed] Fixes overflow issues with long branch names - #5970. Thanks @juliarvalenti!",
       "[Fixed] Comparison of different size image changes no longer overflow the bounds of the diff view - #2480 #9717",
