@@ -15,7 +15,7 @@
       "[Fixed] Resolving a conflicted file added in both the source and target branch no longer results in merge conflict markers appearing in the merge commit - #10820",
       "[Fixed] Small partial commit of very large text files no longer intermittently fails due to unexpected diff results - #10640",
       "[Fixed] Long commit message are scrollable again - #10815",
-      "[Removed] Sign in to GitHub.com with username/password is no longer supported"
+      "[Removed] Sign in to GitHub.com with username/password is no longer supported to improve account security"
     ],
     "2.6.0-beta1": [
       "[Fixed] Proper title bar height on macOS Big Sur - #10980",
