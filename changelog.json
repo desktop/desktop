@@ -6,7 +6,7 @@
       "[Added] Add `toml` syntax highlight - #10763. Thanks @samundra!",
       "[Added] Add support for Nova as external editor on macOS - #10645. Thanks @greystate!",
       "[Fixed] Restore Windows menu keyboard accessibility - #11007",
-      "[Fixed] Actions in the context menu of a non-selected file in history no longer acts on the previously selected item - #10743",
+      "[Fixed] Actions in context menu of a non-selected file act on the chosen one instead of the previous one - #10743",
       "[Fixed] Proper title bar height on macOS Big Sur - #10980",
       "[Fixed] Fix broken issues links in release notes - #10977",
       "[Fixed] Fixes overflow issues with long branch names - #5970. Thanks @juliarvalenti!",
