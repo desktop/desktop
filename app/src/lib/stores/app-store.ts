@@ -893,56 +893,48 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async refreshBranchProtectionState(repository: Repository) {
-    const gitStore = this.gitStoreCache.get(repository)
+    const { tip, currentRemote } = this.gitStoreCache.get(repository)
 
-    if (
-      gitStore.tip.kind === TipState.Valid &&
-      repository.gitHubRepository !== null
-    ) {
-      const gitHubRepo = repository.gitHubRepository
-      const branchName = findRemoteBranchName(
-        gitStore.tip,
-        gitStore.currentRemote,
-        gitHubRepo
-      )
+    if (tip.kind !== TipState.Valid || repository.gitHubRepository === null) {
+      return
+    }
 
-      if (branchName !== null) {
-        const account = getAccountForEndpoint(
-          this.accounts,
-          gitHubRepo.endpoint
-        )
+    const gitHubRepo = repository.gitHubRepository
+    const branchName = findRemoteBranchName(tip, currentRemote, gitHubRepo)
 
-        if (account === null) {
-          return
-        }
+    if (branchName !== null) {
+      const account = getAccountForEndpoint(this.accounts, gitHubRepo.endpoint)
 
-        // If the user doesn't have write access to the repository
-        // it doesn't matter if the branch is protected or not and
-        // we can avoid the API call. See the `showNoWriteAccess`
-        // prop in the `CommitMessage` component where we specifically
-        // test for this scenario and show a message specifically
-        // about write access before showing a branch protection
-        // warning.
-        if (!hasWritePermission(gitHubRepo)) {
-          this.repositoryStateCache.updateChangesState(repository, () => ({
-            currentBranchProtected: false,
-          }))
-          this.emitUpdate()
-          return
-        }
+      if (account === null) {
+        return
+      }
 
-        const name = gitHubRepo.name
-        const owner = gitHubRepo.owner.login
-        const api = API.fromAccount(account)
-
-        const pushControl = await api.fetchPushControl(owner, name, branchName)
-        const currentBranchProtected = !isBranchPushable(pushControl)
-
+      // If the user doesn't have write access to the repository
+      // it doesn't matter if the branch is protected or not and
+      // we can avoid the API call. See the `showNoWriteAccess`
+      // prop in the `CommitMessage` component where we specifically
+      // test for this scenario and show a message specifically
+      // about write access before showing a branch protection
+      // warning.
+      if (!hasWritePermission(gitHubRepo)) {
         this.repositoryStateCache.updateChangesState(repository, () => ({
-          currentBranchProtected,
+          currentBranchProtected: false,
         }))
         this.emitUpdate()
+        return
       }
+
+      const name = gitHubRepo.name
+      const owner = gitHubRepo.owner.login
+      const api = API.fromAccount(account)
+
+      const pushControl = await api.fetchPushControl(owner, name, branchName)
+      const currentBranchProtected = !isBranchPushable(pushControl)
+
+      this.repositoryStateCache.updateChangesState(repository, () => ({
+        currentBranchProtected,
+      }))
+      this.emitUpdate()
     }
   }
 
@@ -3429,8 +3421,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       apiRepo
     )
 
-    await this.refreshBranchProtectionState(repository)
-
+    await this.refreshBranchProtectionState(updatedRepository)
     return updatedRepository
   }
 
