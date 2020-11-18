@@ -143,6 +143,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   diffModeChangeCount: 0,
   diffOptionsViewedCount: 0,
   repositoryViewChangeCount: 0,
+  unhandledRejectionCount: 0,
 }
 
 interface IOnboardingStats {
@@ -361,6 +362,8 @@ export class StatsStore implements IStatsStore {
     }
 
     this.enableUiActivityMonitoring()
+
+    window.addEventListener('unhandledrejection', this.recordUnhandledRejection)
   }
 
   /** Should the app report its daily stats? */
@@ -1403,6 +1406,12 @@ export class StatsStore implements IStatsStore {
   public recordDiffModeChanged() {
     return this.updateDailyMeasures(m => ({
       diffModeChangeCount: m.diffModeChangeCount + 1,
+    }))
+  }
+
+  public recordUnhandledRejection() {
+    return this.updateDailyMeasures(m => ({
+      unhandledRejectionCount: m.unhandledRejectionCount + 1,
     }))
   }
 
