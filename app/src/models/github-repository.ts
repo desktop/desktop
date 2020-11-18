@@ -10,10 +10,8 @@ export class GitHubRepository {
     /**
      * The ID of the repository in the app's local database. This is no relation
      * to the API ID.
-     *
-     * May be `null` if it hasn't been inserted or retrieved from the database.
      */
-    public readonly dbID: number | null,
+    public readonly dbID: number,
     public readonly isPrivate: boolean | null = null,
     public readonly htmlURL: string | null = null,
     public readonly defaultBranch: string | null = null,
