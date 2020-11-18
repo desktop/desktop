@@ -47,7 +47,6 @@ export class RepositoriesStore extends TypedBaseStore<
   ): Promise<GitHubRepository> {
     return this.db.transaction(
       'rw',
-      this.db.repositories,
       this.db.gitHubRepositories,
       this.db.owners,
       async () => {
