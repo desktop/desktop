@@ -1,4 +1,7 @@
-import { Repository } from '../../../models/repository'
+import {
+  Repository,
+  isRepositoryWithGitHubRepository,
+} from '../../../models/repository'
 import { RepositoriesStore } from '../repositories-store'
 import { Branch } from '../../../models/branch'
 import { GitStoreCache } from '../git-store-cache'
@@ -127,8 +130,7 @@ export class BranchPruner {
   private async pruneLocalBranches(
     options: PruneRuntimeOptions
   ): Promise<void> {
-    const { gitHubRepository } = this.repository
-    if (gitHubRepository === null) {
+    if (!isRepositoryWithGitHubRepository(this.repository)) {
       return
     }
 

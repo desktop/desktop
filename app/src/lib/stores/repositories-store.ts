@@ -8,13 +8,18 @@ import {
   GitHubRepository,
   GitHubRepositoryPermission,
 } from '../../models/github-repository'
-import { Repository } from '../../models/repository'
+import {
+  Repository,
+  isRepositoryWithGitHubRepository,
+  RepositoryWithGitHubRepository,
+} from '../../models/repository'
 import { fatalError, assertNonNullable } from '../fatal-error'
 import { IAPIRepository, IAPIBranch, IAPIRepositoryPermissions } from '../api'
 import { TypedBaseStore } from './base-store'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { clearTagsToPush } from './helpers/tags-to-push-storage'
 import { IMatchedGitHubRepository } from '../repository-matching'
+import { assert } from 'console'
 
 /** The store for local repositories. */
 export class RepositoriesStore extends TypedBaseStore<
@@ -408,7 +413,7 @@ export class RepositoriesStore extends TypedBaseStore<
 
     const existingRepo = await this.db.gitHubRepositories
       .where('[ownerID+name]')
-      .equals([owner.id!, gitHubRepository.name])
+      .equals([owner.id, gitHubRepository.name])
       .first()
 
     // If we can't resolve permissions for the current repository
@@ -427,7 +432,7 @@ export class RepositoriesStore extends TypedBaseStore<
       (existingRepo ? existingRepo.permissions : undefined)
 
     let updatedGitHubRepo: IDatabaseGitHubRepository = {
-      ownerID: owner.id!,
+      ownerID: owner.id,
       name: gitHubRepository.name,
       private: gitHubRepository.private,
       htmlURL: gitHubRepository.html_url,
@@ -523,31 +528,10 @@ export class RepositoriesStore extends TypedBaseStore<
    * @param date The date and time in which the last prune took place
    */
   public async updateLastPruneDate(
-    repository: Repository,
+    repository: RepositoryWithGitHubRepository,
     date: number
   ): Promise<void> {
-    const repoID = repository.id
-    if (repoID === 0) {
-      return fatalError(
-        '`updateLastPruneDate` can only update the last prune date for a repository which has been added to the database.'
-      )
-    }
-
-    const githubRepo = repository.gitHubRepository
-    if (githubRepo === null) {
-      return fatalError(
-        `'updateLastPruneDate' can only update GitHub repositories`
-      )
-    }
-
-    const gitHubRepositoryID = githubRepo.dbID
-    if (gitHubRepositoryID === null) {
-      return fatalError(
-        `'updateLastPruneDate' can only update GitHub repositories with a valid ID: received ID of ${gitHubRepositoryID}`
-      )
-    }
-
-    await this.db.gitHubRepositories.update(gitHubRepositoryID, {
+    await this.db.gitHubRepositories.update(repository.gitHubRepository.dbID, {
       lastPruneDate: date,
     })
 
@@ -555,38 +539,16 @@ export class RepositoriesStore extends TypedBaseStore<
   }
 
   public async getLastPruneDate(
-    repository: Repository
+    repository: RepositoryWithGitHubRepository
   ): Promise<number | null> {
-    const repoID = repository.id
-    if (!repoID) {
-      return fatalError(
-        '`getLastPruneDate` - can only retrieve the last prune date for a repositories that have been stored in the database.'
-      )
-    }
-
-    const githubRepo = repository.gitHubRepository
-    if (githubRepo === null) {
-      return fatalError(
-        `'getLastPruneDate' - can only retrieve the last prune date for GitHub repositories.`
-      )
-    }
-
-    const gitHubRepositoryID = githubRepo.dbID
-    if (gitHubRepositoryID === null) {
-      return fatalError(
-        `'getLastPruneDate' - can only retrieve the last prune date for GitHub repositories that have been stored in the database.`
-      )
-    }
-
-    const record = await this.db.gitHubRepositories.get(gitHubRepositoryID)
+    const id = repository.gitHubRepository.dbID
+    const record = await this.db.gitHubRepositories.get(id)
 
     if (record === undefined) {
-      return fatalError(
-        `'getLastPruneDate' - unable to find GitHub repository with ID: ${gitHubRepositoryID}`
-      )
+      return fatalError(`getLastPruneDate: No such GitHub repository: ${id}`)
     }
 
-    return record!.lastPruneDate
+    return record.lastPruneDate
   }
 
   /**
