@@ -459,31 +459,15 @@ export class RepositoriesStore extends TypedBaseStore<
       this.db.repositories,
       this.db.gitHubRepositories,
       this.db.owners,
-      async () => {
-        const localRepo = (await this.db.repositories.get(repoID))!
-        const updatedGitHubRepo = await this.putGitHubRepository(
-          endpoint,
-          gitHubRepository
+      async () =>
+        this.setGitHubRepository(
+          repository,
+          await this.putGitHubRepository(endpoint, gitHubRepository)
         )
-
-        await this.db.repositories.update(localRepo.id!, {
-          gitHubRepositoryID: updatedGitHubRepo.dbID,
-        })
-
-        return updatedGitHubRepo
-      }
     )
 
     this.emitUpdatedRepositories()
-
-    return new Repository(
-      repository.path,
-      repository.id,
-      updatedGitHubRepo,
-      repository.missing,
-      repository.workflowPreferences,
-      repository.isTutorialRepository
-    )
+    return updatedGitHubRepo
   }
 
   /** Add or update the branch protections associated with a GitHub repository. */
