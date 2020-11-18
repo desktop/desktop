@@ -407,29 +407,36 @@ export class RepositoriesStore extends TypedBaseStore<
   public async upsertGitHubRepositoryFromMatch(
     match: IMatchedGitHubRepository
   ) {
-    const owner = await this.putOwner(match.endpoint, match.owner)
-    const existingRepo = await this.db.gitHubRepositories
-      .where('[ownerID+name]')
-      .equals([owner.id, match.name])
-      .first()
+    return await this.db.transaction(
+      'rw',
+      this.db.gitHubRepositories,
+      this.db.owners,
+      async () => {
+        const owner = await this.putOwner(match.endpoint, match.owner)
+        const existingRepo = await this.db.gitHubRepositories
+          .where('[ownerID+name]')
+          .equals([owner.id, match.name])
+          .first()
 
-    if (existingRepo) {
-      return this.toGitHubRepository(existingRepo, owner)
-    }
+        if (existingRepo) {
+          return this.toGitHubRepository(existingRepo, owner)
+        }
 
-    const skeletonRepo: IDatabaseGitHubRepository = {
-      cloneURL: null,
-      defaultBranch: null,
-      htmlURL: null,
-      lastPruneDate: null,
-      name: match.name,
-      ownerID: owner.id,
-      parentID: null,
-      private: null,
-    }
+        const skeletonRepo: IDatabaseGitHubRepository = {
+          cloneURL: null,
+          defaultBranch: null,
+          htmlURL: null,
+          lastPruneDate: null,
+          name: match.name,
+          ownerID: owner.id,
+          parentID: null,
+          private: null,
+        }
 
-    const id = await this.db.gitHubRepositories.put(skeletonRepo)
-    return this.toGitHubRepository({ ...skeletonRepo, id }, owner, null)
+        const id = await this.db.gitHubRepositories.put(skeletonRepo)
+        return this.toGitHubRepository({ ...skeletonRepo, id }, owner, null)
+      }
+    )
   }
 
   public async setGitHubRepository(repo: Repository, ghRepo: GitHubRepository) {
