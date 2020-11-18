@@ -545,11 +545,6 @@ export class RepositoriesStore extends TypedBaseStore<
     protectedBranches: ReadonlyArray<IAPIBranch>
   ): Promise<void> {
     const dbID = gitHubRepository.dbID
-    if (!dbID) {
-      return fatalError(
-        '`updateBranchProtections` can only update a GitHub repository for a repository which has been added to the database.'
-      )
-    }
 
     await this.db.transaction('rw', this.db.protectedBranches, async () => {
       // This update flow is organized into two stages:
@@ -570,10 +565,7 @@ export class RepositoriesStore extends TypedBaseStore<
       }
 
       const branchRecords = protectedBranches.map<IDatabaseProtectedBranch>(
-        b => ({
-          repoId: dbID,
-          name: b.name,
-        })
+        b => ({ repoId: dbID, name: b.name })
       )
 
       // update cached values to avoid database lookup
@@ -698,19 +690,12 @@ export class RepositoriesStore extends TypedBaseStore<
   public async hasBranchProtectionsConfigured(
     gitHubRepository: GitHubRepository
   ): Promise<boolean> {
-    if (gitHubRepository.dbID === null) {
-      return fatalError(
-        'unable to get protected branches, GitHub repository has a null dbID'
-      )
-    }
-
-    const { dbID } = gitHubRepository
     const branchProtectionsFound = this.branchProtectionSettingsFoundCache.get(
-      dbID
+      gitHubRepository.dbID
     )
 
     if (branchProtectionsFound === undefined) {
-      return this.loadAndCacheBranchProtection(dbID)
+      return this.loadAndCacheBranchProtection(gitHubRepository.dbID)
     }
 
     return branchProtectionsFound

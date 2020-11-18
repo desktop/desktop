@@ -2603,11 +2603,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
           !hasWritePermission(repository.gitHubRepository)
         ) {
           this.statsStore.recordCommitToRepositoryWithoutWriteAccess()
-          if (repository.gitHubRepository.dbID !== null) {
-            this.statsStore.recordRepositoryCommitedInWithoutWriteAccess(
-              repository.gitHubRepository.dbID
-            )
-          }
+          this.statsStore.recordRepositoryCommitedInWithoutWriteAccess(
+            repository.gitHubRepository.dbID
+          )
         }
       }
 
@@ -3437,10 +3435,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async updateBranchProtectionsFromAPI(repository: Repository) {
-    if (
-      repository.gitHubRepository === null ||
-      repository.gitHubRepository.dbID === null
-    ) {
+    if (repository.gitHubRepository === null) {
       return
     }
 
