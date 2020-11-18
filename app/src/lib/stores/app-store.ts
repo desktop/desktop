@@ -83,6 +83,7 @@ import {
   IAPIOrganization,
   IAPIRepository,
   getEndpointForRepository,
+  IAPIFullRepository,
 } from '../api'
 import { shell } from '../app-shell'
 import {
@@ -4941,7 +4942,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _addTutorialRepository(
     path: string,
     endpoint: string,
-    apiRepository: IAPIRepository
+    apiRepository: IAPIFullRepository
   ) {
     const validatedPath = await validatedRepositoryPath(path)
     if (validatedPath) {

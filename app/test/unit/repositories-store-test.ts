@@ -1,6 +1,6 @@
 import { RepositoriesStore } from '../../src/lib/stores/repositories-store'
 import { TestRepositoriesDatabase } from '../helpers/databases'
-import { IAPIRepository } from '../../src/lib/api'
+import { IAPIFullRepository } from '../../src/lib/api'
 
 describe('RepositoriesStore', () => {
   let repositoriesStore: RepositoriesStore
@@ -33,7 +33,7 @@ describe('RepositoriesStore', () => {
   })
 
   describe('updating a GitHub repository', () => {
-    const gitHubRepo: IAPIRepository = {
+    const gitHubRepo: IAPIFullRepository = {
       clone_url: 'https://github.com/my-user/my-repo',
       ssh_url: 'git@github.com:my-user/my-repo.git',
       html_url: 'https://github.com/my-user/my-repo',
@@ -56,6 +56,7 @@ describe('RepositoriesStore', () => {
         push: true,
         admin: false,
       },
+      parent: undefined,
     }
 
     it('adds a new GitHub repository', async () => {

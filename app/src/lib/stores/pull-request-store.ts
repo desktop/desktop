@@ -252,7 +252,7 @@ export class PullRequestStore {
     // to use the upsert just to ensure that the repo exists in the database
     // and reuse the same object without going to the database for all that
     // follow.
-    const upsertRepo = mem(store.upsertGitHubRepository.bind(store), {
+    const upsertRepo = mem(store.upsertGitHubRepositoryLight.bind(store), {
       // The first argument which we're ignoring here is the endpoint
       // which is constant throughout the lifetime of this function.
       // The second argument is an `IAPIRepository` which is basically

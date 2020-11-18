@@ -13,7 +13,7 @@ import {
   RepositoryWithGitHubRepository,
 } from '../../models/repository'
 import { fatalError, assertNonNullable } from '../fatal-error'
-import { IAPIRepository, IAPIBranch, IAPIRepositoryPermissions } from '../api'
+import { IAPIRepository, IAPIBranch, IAPIFullRepository } from '../api'
 import { TypedBaseStore } from './base-store'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { clearTagsToPush } from './helpers/tags-to-push-storage'
@@ -42,17 +42,44 @@ export class RepositoriesStore extends TypedBaseStore<
     super()
   }
 
-  /** Find the matching GitHub repository or add it if it doesn't exist. */
-  public async upsertGitHubRepository(
+  /**
+   * Insert or update the GitHub repository database record based on the
+   * provided API information while preserving any knowledge of the repository's
+   * parent.
+   *
+   * See the documentation inside putGitHubRepository for more information but
+   * the TL;DR is that if you've got an IAPIRepository you should use this
+   * method and if you've got an IAPIFullRepository you should use
+   * `upsertGitHubRepository`
+   */
+  public async upsertGitHubRepositoryLight(
     endpoint: string,
     apiRepository: IAPIRepository
+  ) {
+    return this.db.transaction(
+      'rw',
+      this.db.gitHubRepositories,
+      this.db.owners,
+      async () => {
+        return this.putGitHubRepository(endpoint, apiRepository, true)
+      }
+    )
+  }
+
+  /**
+   * Insert or update the GitHub repository database record based on the
+   * provided API information
+   */
+  public async upsertGitHubRepository(
+    endpoint: string,
+    apiRepository: IAPIFullRepository
   ): Promise<GitHubRepository> {
     return this.db.transaction(
       'rw',
       this.db.gitHubRepositories,
       this.db.owners,
       async () => {
-        return this.putGitHubRepository(endpoint, apiRepository)
+        return this.putGitHubRepository(endpoint, apiRepository, false)
       }
     )
   }
@@ -154,7 +181,7 @@ export class RepositoriesStore extends TypedBaseStore<
   public async addTutorialRepository(
     path: string,
     endpoint: string,
-    apiRepository: IAPIRepository
+    apiRepository: IAPIFullRepository
   ) {
     await this.db.transaction(
       'rw',
@@ -400,11 +427,17 @@ export class RepositoriesStore extends TypedBaseStore<
 
   private async putGitHubRepository(
     endpoint: string,
-    gitHubRepository: IAPIRepository
+    gitHubRepository: IAPIRepository | IAPIFullRepository,
+    ignoreParent = false
   ): Promise<GitHubRepository> {
-    const parent = gitHubRepository.parent
-      ? await this.putGitHubRepository(endpoint, gitHubRepository.parent)
-      : null
+    const parent =
+      'parent' in gitHubRepository && gitHubRepository.parent !== undefined
+        ? await this.putGitHubRepository(
+            endpoint,
+            gitHubRepository.parent,
+            true
+          )
+        : null
 
     const login = gitHubRepository.owner.login.toLowerCase()
     const owner = await this.putOwner(endpoint, login)
@@ -424,27 +457,50 @@ export class RepositoriesStore extends TypedBaseStore<
     // perpetual race condition where updating the fork will clear the
     // permissions on the parent and updating the parent will reinstate them.
     const permissions =
-      getPermissionsString(gitHubRepository.permissions) ||
-      (existingRepo ? existingRepo.permissions : undefined)
+      getPermissionsString(gitHubRepository) ??
+      existingRepo?.permissions ??
+      undefined
 
-    let updatedGitHubRepo: IDatabaseGitHubRepository = {
+    // If we're told to ignore the parent then we'll attempt to use the existing
+    // parent and if that fails set it to null. This happens when we want to
+    // ensure we have a GitHubRepository record but we acquired the API data for
+    // said repository from an API endpoint that doesn't include the parent
+    // property like when loading pull requests. Similarly even when retrieving
+    // a full API repository its parent won't be a full repo so we'll never know
+    // if the parent of a repository has a parent (confusing, right?)
+    //
+    // We do all this to ensure that we only set the parent to null when we know
+    // that it needs to be cleared. Otherwise we could have a scenario where
+    // we've got a repository network where C is a fork of B and B is a fork of
+    // A which is the root. If we attempt to upsert C without these checks in
+    // place we'd wipe our knowledge of B being a fork of A.
+    //
+    // Since going from having a parent to not having a parent is incredibly
+    // rare (deleting a forked repository and creating it from scratch again
+    // with the same name or the parent getting deleted, etc) we assume that the
+    // value we've got is valid until we're certain its not.
+    const parentID = ignoreParent
+      ? existingRepo?.parentID ?? null
+      : parent?.dbID ?? null
+
+    const updatedGitHubRepo: IDatabaseGitHubRepository = {
       ownerID: owner.id,
       name: gitHubRepository.name,
       private: gitHubRepository.private,
       htmlURL: gitHubRepository.html_url,
       defaultBranch: gitHubRepository.default_branch,
       cloneURL: gitHubRepository.clone_url,
-      parentID: parent ? parent.dbID : null,
+      parentID,
       lastPruneDate: null,
       issuesEnabled: gitHubRepository.has_issues,
       isArchived: gitHubRepository.archived,
       permissions,
     }
-    if (existingRepo) {
-      updatedGitHubRepo = { ...updatedGitHubRepo, id: existingRepo.id }
-    }
 
-    const id = await this.db.gitHubRepositories.put(updatedGitHubRepo)
+    const id = await this.db.gitHubRepositories.put(
+      updatedGitHubRepo,
+      existingRepo?.id ?? undefined
+    )
     return this.toGitHubRepository({ ...updatedGitHubRepo, id }, owner, parent)
   }
 
@@ -608,9 +664,11 @@ function getKeyPrefix(dbID: number) {
 }
 
 function getPermissionsString(
-  permissions: IAPIRepositoryPermissions | undefined
+  repo: IAPIRepository | IAPIFullRepository
 ): GitHubRepositoryPermission {
-  if (!permissions) {
+  const permissions = 'permissions' in repo ? repo.permissions : undefined
+
+  if (permissions === undefined) {
     return null
   } else if (permissions.admin) {
     return 'admin'

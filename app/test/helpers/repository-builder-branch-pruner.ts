@@ -3,8 +3,11 @@ import { makeCommit, switchTo } from './repository-scaffolding'
 import { GitProcess } from 'dugite'
 import { RepositoriesStore, GitStore } from '../../src/lib/stores'
 import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
-import { Repository } from '../../src/models/repository'
-import { IAPIRepository } from '../../src/lib/api'
+import {
+  Repository,
+  isRepositoryWithGitHubRepository,
+} from '../../src/models/repository'
+import { IAPIFullRepository } from '../../src/lib/api'
 import { shell } from './test-app-shell'
 import { StatsStore, StatsDatabase } from '../../src/lib/stats'
 import { UiActivityMonitor } from '../../src/ui/lib/ui-activity-monitor'
@@ -67,7 +70,7 @@ export async function setupRepository(
 ) {
   let repository = await repositoriesStore.addRepository(path)
   if (includesGhRepo) {
-    const ghAPIResult: IAPIRepository = {
+    const ghAPIResult: IAPIFullRepository = {
       clone_url: 'string',
       ssh_url: 'string',
       html_url: 'string',
@@ -90,6 +93,7 @@ export async function setupRepository(
         push: true,
         admin: false,
       },
+      parent: undefined,
     }
 
     repository = await repositoriesStore.updateGitHubRepository(
@@ -100,7 +104,7 @@ export async function setupRepository(
   }
   await primeCaches(repository, repositoriesStateCache)
 
-  if (lastPruneDate) {
+  if (lastPruneDate && isRepositoryWithGitHubRepository(repository)) {
     repositoriesStore.updateLastPruneDate(repository, lastPruneDate.getTime())
   }
 
