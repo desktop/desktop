@@ -350,7 +350,7 @@ export class StatsStore implements IStatsStore {
     this.db = db
     this.uiActivityMonitor = uiActivityMonitor
 
-    const storedValue = getBoolean(StatsOptOutKey)
+    const storedValue = getHasOptedOutOfStats()
 
     this.optOut = storedValue || false
 
@@ -1536,4 +1536,12 @@ function getWelcomeWizardSignInMethod(): 'basic' | 'web' | undefined {
     log.error(`Could not parse welcome wizard sign in method`, ex)
     return undefined
   }
+}
+
+/**
+ * Return a value indicating whether the user has opted out of stats reporting
+ * or not.
+ */
+export function getHasOptedOutOfStats() {
+  return getBoolean(StatsOptOutKey)
 }
