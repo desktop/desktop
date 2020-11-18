@@ -1,7 +1,6 @@
 import {
   RepositoriesDatabase,
   IDatabaseGitHubRepository,
-  IDatabaseOwner,
   IDatabaseProtectedBranch,
 } from '../databases/repositories-database'
 import { Owner } from '../../models/owner'
