@@ -15,6 +15,7 @@ import { IAPIRepository, IAPIBranch, IAPIRepositoryPermissions } from '../api'
 import { TypedBaseStore } from './base-store'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { clearTagsToPush } from './helpers/tags-to-push-storage'
+import { IMatchedGitHubRepository } from '../repository-matching'
 
 /** The store for local repositories. */
 export class RepositoriesStore extends TypedBaseStore<
@@ -404,6 +405,34 @@ export class RepositoriesStore extends TypedBaseStore<
     }
     const id = await this.db.owners.add(dbOwner)
     return new Owner(login, endpoint, id)
+  }
+
+  public async upsertGitHubRepositoryFromMatch(
+    match: IMatchedGitHubRepository
+  ) {
+    const owner = await this.putOwner(match.endpoint, match.owner)
+    const existingRepo = await this.db.gitHubRepositories
+      .where('[ownerID+name]')
+      .equals([owner.id, match.name])
+      .first()
+
+    if (existingRepo) {
+      return this.toGitHubRepository(existingRepo, owner)
+    }
+
+    const skeletonRepo: IDatabaseGitHubRepository = {
+      cloneURL: null,
+      defaultBranch: null,
+      htmlURL: null,
+      lastPruneDate: null,
+      name: match.name,
+      ownerID: owner.id,
+      parentID: null,
+      private: null,
+    }
+
+    const id = await this.db.gitHubRepositories.put(skeletonRepo)
+    return this.toGitHubRepository({ ...skeletonRepo, id }, owner, null)
   }
 
   private async putGitHubRepository(
