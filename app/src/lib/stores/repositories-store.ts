@@ -451,18 +451,17 @@ export class RepositoriesStore extends TypedBaseStore<
   public async updateGitHubRepository(
     repository: Repository,
     endpoint: string,
-    gitHubRepository: IAPIRepository
+    apiRepo: IAPIRepository
   ): Promise<Repository> {
     const updatedGitHubRepo = await this.db.transaction(
       'rw',
       this.db.repositories,
       this.db.gitHubRepositories,
       this.db.owners,
-      async () =>
-        this.setGitHubRepository(
-          repository,
-          await this.putGitHubRepository(endpoint, gitHubRepository)
-        )
+      async () => {
+        const ghRepo = await this.putGitHubRepository(endpoint, apiRepo)
+        return this.setGitHubRepository(repository, ghRepo)
+      }
     )
 
     this.emitUpdatedRepositories()
