@@ -78,7 +78,6 @@ import 'wicg-focus-ring'
 import momentDurationFormatSetup from 'moment-duration-format'
 import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 import { enableUnhandledRejectionReporting } from '../lib/feature-flag'
-import { getHasOptedOutOfStats } from '../lib/stats/stats-store'
 
 if (__DEV__) {
   installDevGlobals()
@@ -216,7 +215,7 @@ process.on(
  */
 window.addEventListener('unhandledrejection', ev => {
   if (ev.reason instanceof Error) {
-    if (enableUnhandledRejectionReporting() && !getHasOptedOutOfStats()) {
+    if (enableUnhandledRejectionReporting()) {
       sendNonFatalException('unhandledRejection', ev.reason)
     }
   }

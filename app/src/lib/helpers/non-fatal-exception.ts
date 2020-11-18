@@ -23,6 +23,10 @@
  * @param error - the caught error
  */
 
+import { getHasOptedOutOfStats } from '../stats/stats-store'
+
 export function sendNonFatalException(kind: string, error: Error) {
-  process.emit('send-non-fatal-exception', error, { kind })
+  if (!getHasOptedOutOfStats()) {
+    process.emit('send-non-fatal-exception', error, { kind })
+  }
 }
