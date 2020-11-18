@@ -10,7 +10,7 @@ import {
   GitHubRepositoryPermission,
 } from '../../models/github-repository'
 import { Repository } from '../../models/repository'
-import { fatalError } from '../fatal-error'
+import { fatalError, assertNonNullable } from '../fatal-error'
 import { IAPIRepository, IAPIBranch, IAPIRepositoryPermissions } from '../api'
 import { TypedBaseStore } from './base-store'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
