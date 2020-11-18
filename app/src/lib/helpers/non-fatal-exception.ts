@@ -25,8 +25,25 @@
 
 import { getHasOptedOutOfStats } from '../stats/stats-store'
 
+let lastNonFatalException: number | undefined = undefined
+
+/** Max one non fatal exeception per minute */
+const minIntervalBetweenNonFatalExceptions = 60 * 1000
+
 export function sendNonFatalException(kind: string, error: Error) {
-  if (!getHasOptedOutOfStats()) {
-    process.emit('send-non-fatal-exception', error, { kind })
+  if (getHasOptedOutOfStats()) {
+    return
   }
+
+  const now = Date.now()
+
+  if (
+    lastNonFatalException === undefined ||
+    now - lastNonFatalException < minIntervalBetweenNonFatalExceptions
+  ) {
+    return
+  }
+
+  lastNonFatalException = now
+  process.emit('send-non-fatal-exception', error, { kind })
 }
