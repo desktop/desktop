@@ -51,17 +51,7 @@ export class RepositoriesStore extends TypedBaseStore<
       this.db.gitHubRepositories,
       this.db.owners,
       async () => {
-        const gitHubRepository = await this.db.gitHubRepositories
-          .where('cloneURL')
-          .equals(apiRepository.clone_url)
-          .limit(1)
-          .first()
-
-        if (gitHubRepository == null) {
-          return this.putGitHubRepository(endpoint, apiRepository)
-        } else {
-          return this.toGitHubRepository(gitHubRepository)
-        }
+        return this.putGitHubRepository(endpoint, apiRepository)
       }
     )
   }
