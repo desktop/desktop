@@ -457,7 +457,7 @@ export class RepositoriesStore extends TypedBaseStore<
     repository: Repository,
     endpoint: string,
     apiRepo: IAPIRepository
-  ): Promise<Repository> {
+  ): Promise<RepositoryWithGitHubRepository> {
     const updatedGitHubRepo = await this.db.transaction(
       'rw',
       this.db.repositories,
