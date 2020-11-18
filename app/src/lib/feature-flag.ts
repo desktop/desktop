@@ -146,3 +146,10 @@ export function enableExperimentalDiffViewer(): boolean {
 export function enableDefaultBranchSetting(): boolean {
   return true
 }
+
+/**
+ * Should we allow reporting unhandled rejections as if they were crashes?
+ */
+export function enableUnhandledRejectionReporting(): boolean {
+  return enableBetaFeatures()
+}
