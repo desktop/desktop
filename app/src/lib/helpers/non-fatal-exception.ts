@@ -34,7 +34,7 @@ export function sendNonFatalException(kind: string, error: Error) {
   const now = Date.now()
 
   if (
-    lastNonFatalException === undefined ||
+    lastNonFatalException !== undefined &&
     now - lastNonFatalException < minIntervalBetweenNonFatalExceptions
   ) {
     return
