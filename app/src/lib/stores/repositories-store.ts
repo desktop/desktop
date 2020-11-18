@@ -483,7 +483,7 @@ export class RepositoriesStore extends TypedBaseStore<
       ? existingRepo?.parentID ?? null
       : parent?.dbID ?? null
 
-    const updatedGitHubRepo: IDatabaseGitHubRepository = {
+    let updatedGitHubRepo: IDatabaseGitHubRepository = {
       ownerID: owner.id,
       name: gitHubRepository.name,
       private: gitHubRepository.private,
@@ -497,10 +497,11 @@ export class RepositoriesStore extends TypedBaseStore<
       permissions,
     }
 
-    const id = await this.db.gitHubRepositories.put(
-      updatedGitHubRepo,
-      existingRepo?.id ?? undefined
-    )
+    if (existingRepo?.id !== undefined && existingRepo?.id !== null) {
+      updatedGitHubRepo = { ...updatedGitHubRepo, id: existingRepo.id }
+    }
+
+    const id = await this.db.gitHubRepositories.put(updatedGitHubRepo)
     return this.toGitHubRepository({ ...updatedGitHubRepo, id }, owner, parent)
   }
 
