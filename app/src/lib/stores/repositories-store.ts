@@ -395,15 +395,12 @@ export class RepositoriesStore extends TypedBaseStore<
       .where('[endpoint+login]')
       .equals([endpoint, login])
       .first()
+
     if (existingOwner) {
       return new Owner(login, endpoint, existingOwner.id!)
     }
 
-    const dbOwner: IDatabaseOwner = {
-      login,
-      endpoint,
-    }
-    const id = await this.db.owners.add(dbOwner)
+    const id = await this.db.owners.add({ login, endpoint })
     return new Owner(login, endpoint, id)
   }
 
