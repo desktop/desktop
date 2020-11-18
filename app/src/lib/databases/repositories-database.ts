@@ -117,6 +117,10 @@ export class RepositoriesDatabase extends BaseDatabase {
     this.conditionalVersion(6, {
       protectedBranches: '[repoId+name], repoId',
     })
+
+    this.conditionalVersion(7, {
+      gitHubRepositories: '++id, &[ownerID+name]',
+    })
   }
 }
 
