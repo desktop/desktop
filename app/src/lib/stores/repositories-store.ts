@@ -410,10 +410,9 @@ export class RepositoriesStore extends TypedBaseStore<
     endpoint: string,
     gitHubRepository: IAPIRepository
   ): Promise<GitHubRepository> {
-    let parent: GitHubRepository | null = null
-    if (gitHubRepository.parent) {
-      parent = await this.putGitHubRepository(endpoint, gitHubRepository.parent)
-    }
+    const parent = gitHubRepository.parent
+      ? await this.putGitHubRepository(endpoint, gitHubRepository.parent)
+      : null
 
     const login = gitHubRepository.owner.login.toLowerCase()
     const owner = await this.putOwner(endpoint, login)
