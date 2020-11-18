@@ -241,14 +241,7 @@ export class RepositoriesStore extends TypedBaseStore<
     repository: Repository,
     missing: boolean
   ): Promise<Repository> {
-    const repoID = repository.id
-    if (!repoID) {
-      return fatalError(
-        '`updateRepositoryMissing` can only update `missing` for a repository which has been added to the database.'
-      )
-    }
-
-    await this.db.repositories.update(repoID, { missing })
+    await this.db.repositories.update(repository.id, { missing })
 
     this.emitUpdatedRepositories()
 
@@ -272,15 +265,7 @@ export class RepositoriesStore extends TypedBaseStore<
     repository: Repository,
     workflowPreferences: WorkflowPreferences
   ): Promise<void> {
-    const repoID = repository.id
-
-    if (!repoID) {
-      return fatalError(
-        '`updateRepositoryWorkflowPreferences` can only update `workflowPreferences` for a repository which has been added to the database.'
-      )
-    }
-
-    await this.db.repositories.update(repoID, { workflowPreferences })
+    await this.db.repositories.update(repository.id, { workflowPreferences })
 
     this.emitUpdatedRepositories()
   }
@@ -290,17 +275,7 @@ export class RepositoriesStore extends TypedBaseStore<
     repository: Repository,
     path: string
   ): Promise<Repository> {
-    const repoID = repository.id
-    if (!repoID) {
-      return fatalError(
-        '`updateRepositoryPath` can only update the path for a repository which has been added to the database.'
-      )
-    }
-
-    await this.db.repositories.update(repoID, {
-      missing: false,
-      path,
-    })
+    await this.db.repositories.update(repository.id, { missing: false, path })
 
     this.emitUpdatedRepositories()
 
@@ -325,18 +300,11 @@ export class RepositoriesStore extends TypedBaseStore<
     repository: Repository,
     date: number = Date.now()
   ): Promise<void> {
-    const repoID = repository.id
-    if (repoID === 0) {
-      return fatalError(
-        '`updateLastStashCheckDate` can only update the last stash check date for a repository which has been added to the database.'
-      )
-    }
-
-    await this.db.repositories.update(repoID, {
+    await this.db.repositories.update(repository.id, {
       lastStashCheckDate: date,
     })
 
-    this.lastStashCheckCache.set(repoID, date)
+    this.lastStashCheckCache.set(repository.id, date)
 
     // this update doesn't affect the list (or its items) we emit from this store, so no need to `emitUpdatedRepositories`
   }
@@ -349,29 +317,22 @@ export class RepositoriesStore extends TypedBaseStore<
   public async getLastStashCheckDate(
     repository: Repository
   ): Promise<number | null> {
-    const repoID = repository.id
-    if (!repoID) {
-      return fatalError(
-        '`getLastStashCheckDate` - can only retrieve the last stash check date for a repositories that have been stored in the database.'
-      )
-    }
-
-    let lastCheckDate = this.lastStashCheckCache.get(repoID) || null
+    let lastCheckDate = this.lastStashCheckCache.get(repository.id) || null
     if (lastCheckDate !== null) {
       return lastCheckDate
     }
 
-    const record = await this.db.repositories.get(repoID)
+    const record = await this.db.repositories.get(repository.id)
 
     if (record === undefined) {
       return fatalError(
-        `'getLastStashCheckDate' - unable to find repository with ID: ${repoID}`
+        `'getLastStashCheckDate' - unable to find repository with ID: ${repository.id}`
       )
     }
 
     lastCheckDate = record.lastStashCheckDate
     if (lastCheckDate !== null) {
-      this.lastStashCheckCache.set(repoID, lastCheckDate)
+      this.lastStashCheckCache.set(repository.id, lastCheckDate)
     }
 
     return lastCheckDate
@@ -493,13 +454,6 @@ export class RepositoriesStore extends TypedBaseStore<
     endpoint: string,
     gitHubRepository: IAPIRepository
   ): Promise<Repository> {
-    const repoID = repository.id
-    if (!repoID) {
-      return fatalError(
-        '`updateGitHubRepository` can only update a GitHub repository for a repository which has been added to the database.'
-      )
-    }
-
     const updatedGitHubRepo = await this.db.transaction(
       'rw',
       this.db.repositories,
