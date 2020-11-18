@@ -10,7 +10,6 @@ import {
 } from '../../models/github-repository'
 import {
   Repository,
-  isRepositoryWithGitHubRepository,
   RepositoryWithGitHubRepository,
 } from '../../models/repository'
 import { fatalError, assertNonNullable } from '../fatal-error'
@@ -19,7 +18,6 @@ import { TypedBaseStore } from './base-store'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { clearTagsToPush } from './helpers/tags-to-push-storage'
 import { IMatchedGitHubRepository } from '../repository-matching'
-import { assert } from 'console'
 
 /** The store for local repositories. */
 export class RepositoriesStore extends TypedBaseStore<
