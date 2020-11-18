@@ -59,37 +59,46 @@ export class RepositoriesStore extends TypedBaseStore<
         if (gitHubRepository == null) {
           return this.putGitHubRepository(endpoint, apiRepository)
         } else {
-          return this.buildGitHubRepository(gitHubRepository)
+          return this.toGitHubRepository(gitHubRepository)
         }
       }
     )
   }
 
-  private async buildGitHubRepository(
-    dbRepo: IDatabaseGitHubRepository
+  private async toGitHubRepository(
+    repo: IDatabaseGitHubRepository,
+    owner?: Owner,
+    parent?: GitHubRepository | null
   ): Promise<GitHubRepository> {
-    const owner = await this.db.owners.get(dbRepo.ownerID)
+    assertNonNullable(repo.id, 'Need db id to create GitHubRepository')
 
-    if (owner == null) {
-      throw new Error(`Couldn't find repository owner ${dbRepo.ownerID}`)
+    // Note the difference between parent being null and undefined. Null means
+    // that the caller explicitly wants us to initialize a GitHubRepository
+    // without a parent, undefined means we should try to dig it up.
+    if (parent === undefined && repo.parentID !== null) {
+      const dbParent = await this.db.gitHubRepositories.get(repo.parentID)
+      if (dbParent !== undefined) {
+        parent = await this.toGitHubRepository(dbParent)
+      }
     }
 
-    let parent: GitHubRepository | null = null
-    if (dbRepo.parentID) {
-      parent = await this.findGitHubRepositoryByID(dbRepo.parentID)
+    if (owner === undefined) {
+      const dbOwner = await this.db.owners.get(repo.ownerID)
+      assertNonNullable(dbOwner, "Couldn't find repository owner")
+      owner = new Owner(dbOwner.login, dbOwner.endpoint, dbOwner.id!)
     }
 
     return new GitHubRepository(
-      dbRepo.name,
-      new Owner(owner.login, owner.endpoint, owner.id!),
-      dbRepo.id!,
-      dbRepo.private,
-      dbRepo.htmlURL,
-      dbRepo.defaultBranch,
-      dbRepo.cloneURL,
-      dbRepo.issuesEnabled,
-      dbRepo.isArchived,
-      dbRepo.permissions,
+      repo.name,
+      owner,
+      repo.id,
+      repo.private,
+      repo.htmlURL,
+      repo.defaultBranch,
+      repo.cloneURL,
+      repo.issuesEnabled,
+      repo.isArchived,
+      repo.permissions,
       parent
     )
   }
@@ -99,11 +108,9 @@ export class RepositoriesStore extends TypedBaseStore<
     id: number
   ): Promise<GitHubRepository | null> {
     const gitHubRepository = await this.db.gitHubRepositories.get(id)
-    if (!gitHubRepository) {
-      return null
-    }
-
-    return this.buildGitHubRepository(gitHubRepository)
+    return gitHubRepository !== undefined
+      ? this.toGitHubRepository(gitHubRepository)
+      : null
   }
 
   /** Get all the local repositories. */
@@ -449,19 +456,7 @@ export class RepositoriesStore extends TypedBaseStore<
     }
 
     const id = await this.db.gitHubRepositories.put(updatedGitHubRepo)
-    return new GitHubRepository(
-      updatedGitHubRepo.name,
-      owner,
-      id,
-      updatedGitHubRepo.private,
-      updatedGitHubRepo.htmlURL,
-      updatedGitHubRepo.defaultBranch,
-      updatedGitHubRepo.cloneURL,
-      updatedGitHubRepo.issuesEnabled,
-      updatedGitHubRepo.isArchived,
-      updatedGitHubRepo.permissions,
-      parent
-    )
+    return this.toGitHubRepository({ ...updatedGitHubRepo, id }, owner, parent)
   }
 
   /** Add or update the repository's GitHub repository. */
