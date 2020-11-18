@@ -435,6 +435,13 @@ export class RepositoriesStore extends TypedBaseStore<
     return this.toGitHubRepository({ ...skeletonRepo, id }, owner, null)
   }
 
+  public async setGitHubRepository(repo: Repository, ghRepo: GitHubRepository) {
+    await this.db.transaction('rw', this.db.repositories, () =>
+      this.db.repositories.update(repo.id, { gitHubRepositoryID: ghRepo.dbID })
+    )
+    return repo.withGitHubRepository(ghRepo)
+  }
+
   private async putGitHubRepository(
     endpoint: string,
     gitHubRepository: IAPIRepository
