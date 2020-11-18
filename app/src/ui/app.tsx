@@ -1003,7 +1003,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       if (addedRepositories.length > 0) {
         this.props.dispatcher.recordAddExistingRepository()
       }
-    } else {
+    } else if (paths.length === 1) {
       // user may accidentally provide a folder within the repository
       // this ensures we use the repository root, if it is actually a repository
       // otherwise we consider it an untracked repository
