@@ -6,7 +6,7 @@ import {
   WorkflowPreferences,
   ForkContributionTarget,
 } from './workflow-preferences'
-import { assertNever } from '../lib/fatal-error'
+import { assertNever, fatalError } from '../lib/fatal-error'
 
 function getBaseName(path: string): string {
   const baseName = Path.basename(path)
@@ -78,8 +78,10 @@ export class Repository {
   }
 
   /** Create a copy of the repository model with the provided GitHubRepository */
-  public withGitHubRepository(gitHubRepository: GitHubRepository): Repository {
-    return new Repository(
+  public withGitHubRepository(
+    gitHubRepository: GitHubRepository
+  ): RepositoryWithGitHubRepository {
+    const repo = new Repository(
       this.path,
       this.id,
       gitHubRepository,
@@ -87,6 +89,9 @@ export class Repository {
       this.workflowPreferences,
       this._isTutorialRepository
     )
+
+    assertIsRepositoryWithGitHubRepository(repo)
+    return repo
   }
 }
 
@@ -120,6 +125,17 @@ export function isRepositoryWithGitHubRepository(
   repository: Repository
 ): repository is RepositoryWithGitHubRepository {
   return repository.gitHubRepository instanceof GitHubRepository
+}
+
+/**
+ * Asserts that the passed repository is a GitHub repository.
+ */
+export function assertIsRepositoryWithGitHubRepository(
+  repository: Repository
+): asserts repository is RepositoryWithGitHubRepository {
+  if (!isRepositoryWithGitHubRepository(repository)) {
+    return fatalError(`Repository must be GitHub repository`)
+  }
 }
 
 /**
