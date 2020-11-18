@@ -32,7 +32,6 @@ import {
   GitHubRepository,
   hasWritePermission,
 } from '../../models/github-repository'
-import { Owner } from '../../models/owner'
 import { PullRequest } from '../../models/pull-request'
 import {
   forkPullRequestRemoteName,
@@ -3376,74 +3375,43 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async repositoryWithRefreshedGitHubRepository(
     repository: Repository
   ): Promise<Repository> {
-    const oldGitHubRepository = repository.gitHubRepository
+    const oldEndpoint = repository.gitHubRepository?.endpoint
+    const repoStore = this.repositoriesStore
 
-    const matchedGitHubRepository = await this.matchGitHubRepository(repository)
-    if (!matchedGitHubRepository) {
+    const match = await this.matchGitHubRepository(repository)
+    if (!match) {
       // TODO: We currently never clear GitHub repository associations (see
       // https://github.com/desktop/desktop/issues/1144). So we can bail early
       // at this point.
       return repository
     }
 
-    // This is the repository with the GitHub repository as matched. It's not
-    // ideal because the GitHub repository hasn't been fetched from the API yet
-    // and so it is incomplete. But if we _can't_ fetch it from the API, it's
-    // better than nothing.
-    const skeletonOwner = new Owner(
-      matchedGitHubRepository.owner,
-      matchedGitHubRepository.endpoint,
-      null
-    )
-    const skeletonGitHubRepository = new GitHubRepository(
-      matchedGitHubRepository.name,
-      skeletonOwner,
-      null
-    )
-    const skeletonRepository = new Repository(
-      repository.path,
-      repository.id,
-      skeletonGitHubRepository,
-      repository.missing,
-      {},
-      false
-    )
-
-    const account = getAccountForEndpoint(
-      this.accounts,
-      matchedGitHubRepository.endpoint
-    )
+    const account = getAccountForEndpoint(this.accounts, match.endpoint)
     if (!account) {
       // If the repository given to us had a GitHubRepository instance we want
       // to try to preserve that if possible since the updated GitHubRepository
       // instance won't have any API information while the previous one might.
       // We'll only swap it out if the endpoint has changed in which case the
       // old API information will be invalid anyway.
-      if (
-        !oldGitHubRepository ||
-        matchedGitHubRepository.endpoint !== oldGitHubRepository.endpoint
-      ) {
-        return skeletonRepository
+      if (match.endpoint !== oldEndpoint) {
+        const ghRepo = await repoStore.upsertGitHubRepositoryFromMatch(match)
+        return repoStore.setGitHubRepository(repository, ghRepo)
       }
 
       return repository
     }
 
-    const { owner, name } = matchedGitHubRepository
-
     const api = API.fromAccount(account)
-    const apiRepo = await api.fetchRepository(owner, name)
+    const apiRepo = await api.fetchRepository(match.owner, match.name)
 
     if (!apiRepo) {
       // This is the same as above. If the request fails, we wanna preserve the
       // existing GitHub repository info. But if we didn't have a GitHub
       // repository already or the endpoint changed, the skeleton repository is
       // better than nothing.
-      if (
-        !oldGitHubRepository ||
-        matchedGitHubRepository.endpoint !== oldGitHubRepository.endpoint
-      ) {
-        return skeletonRepository
+      if (match.endpoint !== oldEndpoint) {
+        const ghRepo = await repoStore.upsertGitHubRepositoryFromMatch(match)
+        return repoStore.setGitHubRepository(repository, ghRepo)
       }
 
       return repository
@@ -3457,10 +3425,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     }
 
-    const endpoint = matchedGitHubRepository.endpoint
-    const updatedRepository = await this.repositoriesStore.updateGitHubRepository(
+    const updatedRepository = await repoStore.updateGitHubRepository(
       repository,
-      endpoint,
+      match.endpoint,
       apiRepo
     )
 
