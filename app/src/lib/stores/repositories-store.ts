@@ -20,8 +20,6 @@ import { clearTagsToPush } from './helpers/tags-to-push-storage'
 export class RepositoriesStore extends TypedBaseStore<
   ReadonlyArray<Repository>
 > {
-  private db: RepositoriesDatabase
-
   // Key-repo ID, Value-date
   private lastStashCheckCache = new Map<number, number>()
 
@@ -37,10 +35,8 @@ export class RepositoriesStore extends TypedBaseStore<
    */
   private protectionEnabledForBranchCache = new Map<string, boolean>()
 
-  public constructor(db: RepositoriesDatabase) {
+  public constructor(private readonly db: RepositoriesDatabase) {
     super()
-
-    this.db = db
   }
 
   /** Find the matching GitHub repository or add it if it doesn't exist. */
