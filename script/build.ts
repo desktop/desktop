@@ -142,7 +142,7 @@ function packageApp() {
 
   const toPackageArch = (targetArch: string | undefined): arch => {
     if (targetArch === undefined) {
-      targetArch = os.arch();
+      targetArch = os.arch()
     }
 
     if (targetArch === 'arm64' || targetArch === 'x64') {
