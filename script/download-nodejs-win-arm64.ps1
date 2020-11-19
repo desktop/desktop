@@ -1,3 +1,6 @@
+# This script can be removed as soon as official Windows arm64 builds are published:
+# https://github.com/nodejs/build/issues/2450#issuecomment-705853342
+
 $nodeVersion = $args[0]
 
 If ($null -eq $nodeVersion) {

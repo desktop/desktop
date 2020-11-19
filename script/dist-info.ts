@@ -1,5 +1,6 @@
 import * as Path from 'path'
 import * as Fs from 'fs'
+import * as os from 'os'
 
 import { getProductName, getVersion } from '../app/package-info'
 import { getReleaseBranchName } from './build-platforms'
@@ -16,7 +17,7 @@ export function getDistRoot() {
 }
 
 export function getDistPath() {
-  let arch = process.arch
+  let arch = os.arch();
 
   if (process.env.npm_config_arch) {
     // If a specific npm_config_arch is set, we use that one instead of the OS arch (to support cross compilation)
