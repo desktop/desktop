@@ -4,6 +4,7 @@
 import * as path from 'path'
 import * as cp from 'child_process'
 import * as fs from 'fs-extra'
+import * as os from 'os'
 import packager, {
   arch,
   ElectronNotarizeOptions,
@@ -141,7 +142,7 @@ function packageApp() {
 
   const toPackageArch = (targetArch: string | undefined): arch => {
     if (targetArch === undefined) {
-      return 'x64'
+      targetArch = os.arch();
     }
 
     if (targetArch === 'arm64' || targetArch === 'x64') {
@@ -149,7 +150,7 @@ function packageApp() {
     }
 
     throw new Error(
-      `Building Desktop for architecture '${targetArch}'  is not supported`
+      `Building Desktop for architecture '${targetArch}' is not supported`
     )
   }
 
