@@ -143,6 +143,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   diffModeChangeCount: 0,
   diffOptionsViewedCount: 0,
   repositoryViewChangeCount: 0,
+  unhandledRejectionCount: 0,
 }
 
 interface IOnboardingStats {
@@ -350,7 +351,7 @@ export class StatsStore implements IStatsStore {
     this.db = db
     this.uiActivityMonitor = uiActivityMonitor
 
-    const storedValue = getBoolean(StatsOptOutKey)
+    const storedValue = getHasOptedOutOfStats()
 
     this.optOut = storedValue || false
 
@@ -361,6 +362,8 @@ export class StatsStore implements IStatsStore {
     }
 
     this.enableUiActivityMonitoring()
+
+    window.addEventListener('unhandledrejection', this.recordUnhandledRejection)
   }
 
   /** Should the app report its daily stats? */
@@ -1406,6 +1409,12 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  public recordUnhandledRejection() {
+    return this.updateDailyMeasures(m => ({
+      unhandledRejectionCount: m.unhandledRejectionCount + 1,
+    }))
+  }
+
   /** Post some data to our stats endpoint. */
   private post(body: object): Promise<Response> {
     const options: RequestInit = {
@@ -1536,4 +1545,12 @@ function getWelcomeWizardSignInMethod(): 'basic' | 'web' | undefined {
     log.error(`Could not parse welcome wizard sign in method`, ex)
     return undefined
   }
+}
+
+/**
+ * Return a value indicating whether the user has opted out of stats reporting
+ * or not.
+ */
+export function getHasOptedOutOfStats() {
+  return getBoolean(StatsOptOutKey)
 }

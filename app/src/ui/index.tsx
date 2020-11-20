@@ -76,6 +76,7 @@ import 'wicg-focus-ring'
 // syntax for formatting time duration
 import momentDurationFormatSetup from 'moment-duration-format'
 import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
+import { enableUnhandledRejectionReporting } from '../lib/feature-flag'
 
 if (__DEV__) {
   installDevGlobals()
@@ -200,21 +201,19 @@ process.on(
 )
 
 /**
- * Chromium won't crash on an unhandled rejection (similar to how
- * it won't crash on an unhandled error). We've taken the approach
- * that unhandled errors should crash the app and very likely we
- * should do the same thing for unhandled promise rejections but
- * that's a bit too risky to do until we've established some sense
- * of how often it happens. For now this simply stores the last
- * rejection so that we can pass it along with the crash report
- * if the app does crash. Note that this does not prevent the
- * default browser behavior of logging since we're not calling
- * `preventDefault` on the event.
+ * Chromium won't crash on an unhandled rejection (similar to how it won't crash
+ * on an unhandled error). We've taken the approach that unhandled errors should
+ * crash the app and very likely we should do the same thing for unhandled
+ * promise rejections but that's a bit too risky to do until we've established
+ * some sense of how often it happens. For now this simply stores the last
+ * rejection so that we can pass it along with the crash report if the app does
+ * crash. Note that this does not prevent the default browser behavior of
+ * logging since we're not calling `preventDefault` on the event.
  *
  * See https://developer.mozilla.org/en-US/docs/Web/API/Window/unhandledrejection_event
  */
 window.addEventListener('unhandledrejection', ev => {
-  if (ev.reason instanceof Error) {
+  if (enableUnhandledRejectionReporting() && ev.reason instanceof Error) {
     sendNonFatalException('unhandledRejection', ev.reason)
   }
 })

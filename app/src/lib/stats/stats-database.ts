@@ -370,6 +370,9 @@ export interface IDailyMeasures {
 
   /** Number of times the user has switched to or from History/Changes */
   readonly repositoryViewChangeCount: number
+
+  /** Number of times the user has encountered an unhandled rejection */
+  readonly unhandledRejectionCount: number
 }
 
 export class StatsDatabase extends Dexie {
