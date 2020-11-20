@@ -1,3 +1,5 @@
+import { parseEnumValue } from './enum'
+
 /**
  * Returns the value for the provided key from local storage interpreted as a
  * boolean or the provided `defaultValue` if the key doesn't exist.
@@ -159,3 +161,11 @@ export function setStringArray(key: string, values: ReadonlyArray<string>) {
 
 /** Default delimiter for stringifying and parsing arrays of numbers */
 const NumberArrayDelimiter = ','
+
+export function getEnum<T>(
+  key: string,
+  enumObj: Record<string, T>
+): T | undefined {
+  const storedValue = localStorage.getItem(key)
+  return storedValue === null ? undefined : parseEnumValue(enumObj, storedValue)
+}
