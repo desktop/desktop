@@ -827,10 +827,10 @@ export class List extends React.Component<IListProps, IListState> {
     let content: JSX.Element[] | JSX.Element | null
 
     if (this.resizeObserver) {
-      content =
-        this.state.width && this.state.height
-          ? this.renderContents(this.state.width, this.state.height)
-          : null
+      content = this.renderContents(
+        this.state.width ?? 0,
+        this.state.height ?? 0
+      )
     } else {
       // Legacy in the event that we don't have ResizeObserver
       content = (

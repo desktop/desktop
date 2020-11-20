@@ -1,5 +1,29 @@
 {
   "releases": {
+    "2.6.0": [
+      "[New] Split diffs! Toggle between viewing diffs in split or unified mode - #10617",
+      "[Added] Use Page down, Page up, Home, and End keys to navigate and select items in lists - #10837",
+      "[Added] Add `toml` syntax highlight - #10763. Thanks @samundra!",
+      "[Added] Add support for Nova as external editor on macOS - #10645. Thanks @greystate!",
+      "[Fixed] Restore Windows menu keyboard accessibility - #11007",
+      "[Fixed] Actions in context menu of a non-selected file act on the chosen one instead of the previous one - #10743",
+      "[Fixed] Correct title bar height on macOS Big Sur - #10980",
+      "[Fixed] Fix broken issues links in release notes - #10977",
+      "[Fixed] Fix overflow issues with long branch names - #5970. Thanks @juliarvalenti!",
+      "[Fixed] Images fit correctly in the diff view when their sizes have changed - #2480 #9717",
+      "[Fixed] Repository indicator refresh can no longer be manually triggered when disabled - #10905",
+      "[Fixed] Resolving a conflicted file added in both the source and target branch no longer results in merge conflict markers appearing in the merge commit - #10820",
+      "[Fixed] Small partial commit of very large text files no longer intermittently fails due to unexpected diff results - #10640",
+      "[Fixed] Long commit message are scrollable again - #10815",
+      "[Removed] Sign in to GitHub.com with username/password is no longer supported to improve account security"
+    ],
+    "2.6.0-beta1": [
+      "[Fixed] Proper title bar height on macOS Big Sur - #10980",
+      "[Fixed] Restore Windows menu keyboard accessibility - #11007",
+      "[Fixed] Fix broken issues links in release notes - #10977",
+      "[Fixed] Fixes overflow issues with long branch names - #5970. Thanks @juliarvalenti!",
+      "[Removed] Sign in to GitHub.com with username/password is no longer supported"
+    ],
     "2.5.8-beta1": ["[Improved] Upgrade embedded Git LFS - #10973"],
     "2.5.7": ["[Improved] Upgrade embedded Git LFS - #10973"],
     "2.5.7-beta2": [

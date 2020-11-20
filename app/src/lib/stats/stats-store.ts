@@ -21,6 +21,7 @@ import {
   setNumberArray,
 } from '../local-storage'
 import { PushOptions } from '../git'
+import { getShowSideBySideDiff } from '../../ui/lib/diff-mode'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -139,6 +140,9 @@ const DefaultDailyMeasures: IDailyMeasures = {
   tagsCreatedInDesktop: 0,
   tagsCreated: 0,
   tagsDeleted: 0,
+  diffModeChangeCount: 0,
+  diffOptionsViewedCount: 0,
+  repositoryViewChangeCount: 0,
 }
 
 interface IOnboardingStats {
@@ -306,6 +310,12 @@ interface ICalculatedStats {
    * them into their own interface
    */
   readonly repositoriesCommittedInWithoutWriteAccess: number
+
+  /**
+   * whether not to the user has chosent to view diffs in split, or unified (the
+   * default) diff view mode
+   */
+  readonly diffMode: 'split' | 'unified'
 }
 
 type DailyStats = ICalculatedStats &
@@ -465,6 +475,7 @@ export class StatsStore implements IStatsStore {
     const repositoriesCommittedInWithoutWriteAccess = getNumberArray(
       RepositoriesCommittedInWithoutWriteAccessKey
     ).length
+    const diffMode = getShowSideBySideDiff() ? 'split' : 'unified'
 
     return {
       eventType: 'usage',
@@ -481,6 +492,7 @@ export class StatsStore implements IStatsStore {
       guid: getGUID(),
       ...repositoryCounts,
       repositoriesCommittedInWithoutWriteAccess,
+      diffMode,
     }
   }
 
@@ -1373,6 +1385,24 @@ export class StatsStore implements IStatsStore {
   public recordTagDeleted() {
     return this.updateDailyMeasures(m => ({
       tagsDeleted: m.tagsDeleted + 1,
+    }))
+  }
+
+  public recordDiffOptionsViewed() {
+    return this.updateDailyMeasures(m => ({
+      diffOptionsViewedCount: m.diffOptionsViewedCount + 1,
+    }))
+  }
+
+  public recordRepositoryViewChanged() {
+    return this.updateDailyMeasures(m => ({
+      repositoryViewChangeCount: m.repositoryViewChangeCount + 1,
+    }))
+  }
+
+  public recordDiffModeChanged() {
+    return this.updateDailyMeasures(m => ({
+      diffModeChangeCount: m.diffModeChangeCount + 1,
     }))
   }
 
