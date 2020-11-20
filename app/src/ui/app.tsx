@@ -989,11 +989,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private async handleDragAndDrop(fileList: FileList) {
-    const paths: string[] = []
-    for (let i = 0; i < fileList.length; i++) {
-      const file = fileList[i]
-      paths.push(file.path)
-    }
+    const paths = [...fileList].map(x => x.path)
 
     // If they're bulk adding repositories then just blindly try to add them.
     // But if they just dragged one, use the dialog so that they can initialize
@@ -1003,25 +999,20 @@ export class App extends React.Component<IAppProps, IAppState> {
       if (addedRepositories.length > 0) {
         this.props.dispatcher.recordAddExistingRepository()
       }
-    } else {
+    } else if (paths.length === 1) {
       // user may accidentally provide a folder within the repository
       // this ensures we use the repository root, if it is actually a repository
       // otherwise we consider it an untracked repository
       const first = paths[0]
-      const path = (await validatedRepositoryPath(first)) || first
+      const path = (await validatedRepositoryPath(first)) ?? first
 
-      const existingRepository = matchExistingRepository(
-        this.state.repositories,
-        path
-      )
+      const { repositories } = this.state
+      const existingRepository = matchExistingRepository(repositories, path)
 
       if (existingRepository) {
         await this.props.dispatcher.selectRepository(existingRepository)
       } else {
-        await this.showPopup({
-          type: PopupType.AddRepository,
-          path,
-        })
+        await this.showPopup({ type: PopupType.AddRepository, path })
       }
     }
   }
