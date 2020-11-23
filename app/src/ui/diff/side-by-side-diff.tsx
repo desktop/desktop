@@ -707,8 +707,14 @@ export class SideBySideDiff extends React.Component<
   }
 
   private onWindowKeyDown = (event: KeyboardEvent) => {
-    const isShortcutKey = __DARWIN__ ? event.metaKey : event.ctrlKey
-    if (isShortcutKey && event.key === 'f' && !event.defaultPrevented) {
+    if (event.defaultPrevented) {
+      return
+    }
+
+    const isCmdOrCtrl = __DARWIN__ ? event.metaKey : event.ctrlKey
+    const isShortcutKey = isCmdOrCtrl && !event.shiftKey && !event.altKey
+
+    if (isShortcutKey && event.key === 'f') {
       event.preventDefault()
       this.showSearch()
     }
