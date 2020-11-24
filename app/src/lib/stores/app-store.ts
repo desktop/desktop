@@ -3301,7 +3301,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this._initializeCompare(repository, { kind: HistoryTabMode.History })
 
-    if (branch.name !== defaultBranch?.name) {
+    if (defaultBranch !== null && branch.name !== defaultBranch.name) {
       this.statsStore.recordNonDefaultBranchCheckout()
     }
 
