@@ -299,7 +299,7 @@ const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
 const confirmForcePushKey: string = 'confirmForcePush'
 
-const uncommittedChangesStrategyKey: string = 'uncommittedChangesStrategyKind'
+const uncommittedChangesStrategyKey = 'uncommittedChangesStrategyKind'
 
 const externalEditorKey: string = 'externalEditor'
 
