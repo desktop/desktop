@@ -10,7 +10,6 @@ import { assertNever } from '../../lib/fatal-error'
 import { BranchesTab } from '../../models/branches-tab'
 import { PullRequest } from '../../models/pull-request'
 import classNames from 'classnames'
-import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -46,10 +45,6 @@ interface IBranchDropdownProps {
 
   /** Whether this component should show its onboarding tutorial nudge arrow */
   readonly shouldNudge: boolean
-
-  readonly selectedUncommittedChangesStrategy: UncommittedChangesStrategy
-
-  readonly couldOverwriteStash: boolean
 }
 
 /**
@@ -59,8 +54,6 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
   private renderBranchFoldout = (): JSX.Element | null => {
     const repositoryState = this.props.repositoryState
     const branchesState = repositoryState.branchesState
-    const currentBranchProtected =
-      repositoryState.changesState.currentBranchProtected
 
     const tip = repositoryState.branchesState.tip
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
@@ -77,11 +70,6 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         pullRequests={this.props.pullRequests}
         currentPullRequest={this.props.currentPullRequest}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
-        currentBranchProtected={currentBranchProtected}
-        selectedUncommittedChangesStrategy={
-          this.props.selectedUncommittedChangesStrategy
-        }
-        couldOverwriteStash={this.props.couldOverwriteStash}
       />
     )
   }

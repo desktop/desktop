@@ -109,7 +109,6 @@ import { enableForkyCreateBranchUI } from '../lib/feature-flag'
 import { ConfirmExitTutorial } from './tutorial'
 import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { WorkflowPushRejectedDialog } from './workflow-push-rejected/workflow-push-rejected'
-import { getUncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
 import { SAMLReauthRequiredDialog } from './saml-reauth-required/saml-reauth-required'
 import { CreateForkDialog } from './forks/create-fork-dialog'
 import { findDefaultUpstreamBranch } from '../lib/branch'
@@ -1355,9 +1354,7 @@ export class App extends React.Component<IAppProps, IAppState> {
               this.state.askForConfirmationOnDiscardChanges
             }
             confirmForcePush={this.state.askForConfirmationOnForcePush}
-            uncommittedChangesStrategyKind={
-              this.state.uncommittedChangesStrategyKind
-            }
+            uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
             selectedExternalEditor={this.state.selectedExternalEditor}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             enterpriseAccount={this.getEnterpriseAccount()}
@@ -1455,7 +1452,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.CreateBranch: {
         const state = this.props.repositoryStateManager.get(popup.repository)
         const branchesState = state.branchesState
-        const currentBranchProtected = state.changesState.currentBranchProtected
         const repository = popup.repository
 
         if (branchesState.tip.kind === TipState.Unknown) {
@@ -1489,10 +1485,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}
             initialName={popup.initialName || ''}
-            currentBranchProtected={currentBranchProtected}
-            selectedUncommittedChangesStrategy={getUncommittedChangesStrategy(
-              this.state.uncommittedChangesStrategyKind
-            )}
           />
         )
       }
@@ -2369,13 +2361,9 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const repository = selection.repository
 
-    const state = this.props.repositoryStateManager.get(repository)
-    const currentBranchProtected = state.changesState.currentBranchProtected
-
     return this.props.dispatcher.showPopup({
       type: PopupType.CreateBranch,
       repository,
-      currentBranchProtected,
     })
   }
 
@@ -2425,9 +2413,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       currentFoldout !== null && currentFoldout.type === FoldoutType.Branch
 
     const repository = selection.repository
-    const { branchesState, changesState } = selection.state
-    const hasAssociatedStash = changesState.stashEntry !== null
-    const hasChanges = changesState.workingDirectory.files.length > 0
+    const { branchesState } = selection.state
 
     return (
       <BranchDropdown
@@ -2443,10 +2429,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         shouldNudge={
           this.state.currentOnboardingTutorialStep === TutorialStep.CreateBranch
         }
-        selectedUncommittedChangesStrategy={getUncommittedChangesStrategy(
-          this.state.uncommittedChangesStrategyKind
-        )}
-        couldOverwriteStash={hasChanges && hasAssociatedStash}
       />
     )
   }
