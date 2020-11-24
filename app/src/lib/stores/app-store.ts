@@ -3175,10 +3175,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     // Always move changes to new branch if we're on a detached head, unborn
     // branch, or a protected branch.
-    if (strategy !== UncommittedChangesStrategy.MoveToNewBranch) {
-      if (tip.kind !== TipState.Valid || currentBranchProtected) {
-        strategy = UncommittedChangesStrategy.MoveToNewBranch
-      }
+    if (tip.kind !== TipState.Valid || currentBranchProtected) {
+      strategy = UncommittedChangesStrategy.MoveToNewBranch
     }
 
     if (strategy === UncommittedChangesStrategy.AskForConfirmation) {
