@@ -3270,7 +3270,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
         throw checkoutError
       }
 
-      const stash = await this.createAndGetStashEntry(repository, branch)
+      const stash = (await this.createStashEntry(repository, branch))
+        ? await getLastDesktopStashEntryForBranch(repository, branch)
+        : null
 
       // Failing to stash the changes when we know that there are changes
       // preventing a checkout is very likely due to assume-unchanged or
@@ -5732,12 +5734,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const untrackedFiles = getUntrackedFiles(workingDirectory)
 
     return await createDesktopStashEntry(repository, branch, untrackedFiles)
-  }
-
-  private async createAndGetStashEntry(repository: Repository, branch: Branch) {
-    return (await this.createStashEntry(repository, branch))
-      ? getLastDesktopStashEntryForBranch(repository, branch)
-      : null
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
