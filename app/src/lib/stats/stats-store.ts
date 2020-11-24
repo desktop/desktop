@@ -363,11 +363,13 @@ export class StatsStore implements IStatsStore {
 
     this.enableUiActivityMonitoring()
 
-    window.addEventListener('unhandledrejection', () =>
-      this.recordUnhandledRejection().catch(err =>
+    window.addEventListener('unhandledrejection', async () => {
+      try {
+        this.recordUnhandledRejection()
+      } catch (err) {
         log.error(`Failed recording unhandled rejection`, err)
-      )
-    )
+      }
+    })
   }
 
   /** Should the app report its daily stats? */
