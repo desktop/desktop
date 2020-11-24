@@ -170,7 +170,7 @@ const NumberArrayDelimiter = ','
  * @param key     The localStorage key to read from
  * @param enumObj The Enum type definition
  */
-export function getEnum<T>(
+export function getEnum<T extends string>(
   key: string,
   enumObj: Record<string, T>
 ): T | undefined {
