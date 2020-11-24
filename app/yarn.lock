@@ -16,34 +16,6 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
-"@shiftkey/node-abi@2.19.2-pre":
-  version "2.19.2-pre"
-  resolved "https://registry.yarnpkg.com/@shiftkey/node-abi/-/node-abi-2.19.2-pre.tgz#02599b37253e414f8f6ef3c67ea704e37da640a9"
-  integrity sha512-+LfXo6nd2uZ8cGSJ66zL3OuddvG2oMWMc9GzpDoX2ZNMLmYpu+ReoEKXtmoKVwd6JSavDymldebCxSJh9NQ9cg==
-  dependencies:
-    semver "^5.4.1"
-
-"@shiftkey/prebuild-install@6.0.1-pre2":
-  version "6.0.1-pre2"
-  resolved "https://registry.yarnpkg.com/@shiftkey/prebuild-install/-/prebuild-install-6.0.1-pre2.tgz#8cea022dd9aa0eb064164987b6ab12539efb892e"
-  integrity sha512-wDV1DgFxi0F+kTpyGNdnDctdw3Rb9aP8RBAGFE2wXr1+pXSCJRRA+Qh5ko5dKc0LeNIBZzjEECjmtAykajv+Xw==
-  dependencies:
-    "@shiftkey/node-abi" "2.19.2-pre"
-    detect-libc "^1.0.3"
-    expand-template "^2.0.3"
-    github-from-package "0.0.0"
-    minimist "^1.2.3"
-    mkdirp-classic "^0.5.3"
-    napi-build-utils "^1.0.1"
-    noop-logger "^0.1.1"
-    npmlog "^4.0.1"
-    pump "^3.0.0"
-    rc "^1.2.7"
-    simple-get "^3.0.3"
-    tar-fs "^2.0.0"
-    tunnel-agent "^0.6.0"
-    which-pm-runs "^1.0.0"
-
 "@sindresorhus/is@^0.14.0":
   version "0.14.0"
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
@@ -823,13 +795,13 @@ keyboardevents-areequal@^0.2.1:
   resolved "https://registry.yarnpkg.com/keyboardevents-areequal/-/keyboardevents-areequal-0.2.2.tgz#88191ec738ce9f7591c25e9056de928b40277194"
   integrity sha512-Nv+Kr33T0mEjxR500q+I6IWisOQ0lK1GGOncV0kWE6n4KFmpcu7RUX5/2B0EUtX51Cb0HjZ9VJsSY3u4cBa0kw==
 
-keytar@^7.1.0:
-  version "7.1.0"
-  resolved "https://registry.yarnpkg.com/keytar/-/keytar-7.1.0.tgz#961e6c5cf0615f2c184a48752d3265063e492925"
-  integrity sha512-ciDrtCcvhKpmVfPMVAiKSeKKQd+8S2VWOIcJP0Rdwz/ezSxHxYrycpwufDGpEHJqLyi/F7C7iwoz0eKGllzcMw==
+keytar@^7.2.0:
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/keytar/-/keytar-7.2.0.tgz#4db2bec4f9700743ffd9eda22eebb658965c8440"
+  integrity sha512-ECSaWvoLKI5SI0pGpZQeUV1/lpBYfkaxvoSp3zkiPOz05VavwSfLi8DdEaa9N2ekQZv3Chy+o7aP6n9mairBgw==
   dependencies:
-    "@shiftkey/prebuild-install" "6.0.1-pre2"
     node-addon-api "^3.0.0"
+    prebuild-install "^6.0.0"
 
 keyv@^3.0.0:
   version "3.1.0"
@@ -1163,6 +1135,27 @@ prebuild-install@5.3.5, prebuild-install@^5.3.5:
     github-from-package "0.0.0"
     minimist "^1.2.3"
     mkdirp "^0.5.1"
+    napi-build-utils "^1.0.1"
+    node-abi "^2.7.0"
+    noop-logger "^0.1.1"
+    npmlog "^4.0.1"
+    pump "^3.0.0"
+    rc "^1.2.7"
+    simple-get "^3.0.3"
+    tar-fs "^2.0.0"
+    tunnel-agent "^0.6.0"
+    which-pm-runs "^1.0.0"
+
+prebuild-install@^6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/prebuild-install/-/prebuild-install-6.0.0.tgz#669022bcde57c710a869e39c5ca6bf9cd207f316"
+  integrity sha512-h2ZJ1PXHKWZpp1caLw0oX9sagVpL2YTk+ZwInQbQ3QqNd4J03O6MpFNmMTJlkfgPENWqe5kP0WjQLqz5OjLfsw==
+  dependencies:
+    detect-libc "^1.0.3"
+    expand-template "^2.0.3"
+    github-from-package "0.0.0"
+    minimist "^1.2.3"
+    mkdirp-classic "^0.5.3"
     napi-build-utils "^1.0.1"
     node-abi "^2.7.0"
     noop-logger "^0.1.1"
