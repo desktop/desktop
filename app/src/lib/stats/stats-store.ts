@@ -364,7 +364,9 @@ export class StatsStore implements IStatsStore {
     this.enableUiActivityMonitoring()
 
     window.addEventListener('unhandledrejection', () =>
-      this.recordUnhandledRejection()
+      this.recordUnhandledRejection().catch(err =>
+        log.error(`Failed recording unhandled rejection`, err)
+      )
     )
   }
 
