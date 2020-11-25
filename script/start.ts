@@ -3,8 +3,6 @@ import webpack from 'webpack'
 import devMiddleware from 'webpack-dev-middleware'
 import hotMiddleware from 'webpack-hot-middleware'
 
-import { forceUnwrap as u } from '../app/src/lib/fatal-error'
-
 import configs from '../app/webpack.development'
 
 import { run } from './run'
@@ -45,25 +43,16 @@ if (process.env.NODE_ENV === 'production') {
   const compiler = webpack(rendererConfig)
   const port = getPortOrDefault()
 
-  const message = 'Could not find public path from configuration'
-  server.use(
-    devMiddleware(compiler, {
-      publicPath: u(
-        message,
-        u(message, u(message, rendererConfig).output).publicPath
-      ),
-      logLevel: 'error',
-    })
-  )
+  const publicPath = rendererConfig.output?.publicPath
 
+  if (publicPath === undefined) {
+    throw new Error('Could not find public path from configuration')
+  }
+
+  server.use(devMiddleware(compiler, { publicPath, logLevel: 'error' }))
   server.use(hotMiddleware(compiler))
 
-  server.listen(port, 'localhost', (err: Error | null) => {
-    if (err) {
-      console.log(err)
-      process.exit(1)
-    }
-
+  server.listen(port, 'localhost', () => {
     console.log(`Server running at http://localhost:${port}`)
     startApp()
   })
