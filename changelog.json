@@ -1,5 +1,12 @@
 {
   "releases": {
+    "2.6.1-beta1": [
+      "[Fixed] Very large text diffs could cause the app to crash when viewed in split diff mode - #11064",
+      "[Fixed] Refactor checkout branch and stash logic - #9297 #10956 #8099 #7617",
+      "[Fixed] Let the user know when a checkout fails due to use of assume-unchanged or skip-worktree - #9297",
+      "[Fixed] Always show confirmation prompt before overwriting existing stash entry - #10956",
+      "[Fixed] The fullscreen keyboard shortcut on macOS now works when using split diff mode - #11069"
+    ],
     "2.6.0": [
       "[New] Split diffs! Toggle between viewing diffs in split or unified mode - #10617",
       "[Added] Use Page down, Page up, Home, and End keys to navigate and select items in lists - #10837",
