@@ -212,6 +212,7 @@ import {
   getNumber,
   getNumberArray,
   setNumberArray,
+  getEnum,
 } from '../local-storage'
 import { ExternalEditorError } from '../editors/shared'
 import { ApiRepositoriesStore } from './api-repositories-store'
@@ -236,7 +237,6 @@ import {
 import {
   UncommittedChangesStrategy,
   defaultUncommittedChangesStrategy,
-  parseStrategy,
 } from '../../models/uncommitted-changes-strategy'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
@@ -1819,11 +1819,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnForcePushDefault
     )
 
-    const strategy = parseStrategy(
-      localStorage.getItem(uncommittedChangesStrategyKey)
-    )
     this.uncommittedChangesStrategy =
-      strategy || defaultUncommittedChangesStrategy
+      getEnum(uncommittedChangesStrategyKey, UncommittedChangesStrategy) ??
+      defaultUncommittedChangesStrategy
 
     this.updateSelectedExternalEditor(
       await this.lookupSelectedExternalEditor()

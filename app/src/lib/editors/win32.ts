@@ -11,6 +11,7 @@ import { pathExists } from 'fs-extra'
 import { IFoundEditor } from './found-editor'
 
 import { assertNever } from '../fatal-error'
+import { parseEnumValue } from '../enum'
 
 export enum ExternalEditor {
   Atom = 'Atom',
@@ -30,50 +31,7 @@ export enum ExternalEditor {
 }
 
 export function parse(label: string): ExternalEditor | null {
-  if (label === ExternalEditor.Atom) {
-    return ExternalEditor.Atom
-  }
-  if (label === ExternalEditor.AtomBeta) {
-    return ExternalEditor.AtomBeta
-  }
-  if (label === ExternalEditor.AtomNightly) {
-    return ExternalEditor.AtomNightly
-  }
-  if (label === ExternalEditor.VSCode) {
-    return ExternalEditor.VSCode
-  }
-  if (label === ExternalEditor.VSCodeInsiders) {
-    return ExternalEditor.VSCodeInsiders
-  }
-  if (label === ExternalEditor.VSCodium) {
-    return ExternalEditor.VSCodium
-  }
-  if (label === ExternalEditor.SublimeText) {
-    return ExternalEditor.SublimeText
-  }
-  if (label === ExternalEditor.CFBuilder) {
-    return ExternalEditor.CFBuilder
-  }
-  if (label === ExternalEditor.Typora) {
-    return ExternalEditor.Typora
-  }
-  if (label === ExternalEditor.SlickEdit) {
-    return ExternalEditor.SlickEdit
-  }
-  if (label === ExternalEditor.Webstorm) {
-    return ExternalEditor.Webstorm
-  }
-  if (label === ExternalEditor.Phpstorm) {
-    return ExternalEditor.Phpstorm
-  }
-  if (label === ExternalEditor.NotepadPlusPlus) {
-    return ExternalEditor.NotepadPlusPlus
-  }
-  if (label === ExternalEditor.Rider) {
-    return ExternalEditor.Rider
-  }
-
-  return null
+  return parseEnumValue(ExternalEditor, label) ?? null
 }
 
 /**
