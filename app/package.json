@@ -66,7 +66,6 @@
     "winston-daily-rotate-file": "^1.4.5"
   },
   "devDependencies": {
-    "electron-debug": "^3.1.0",
     "electron-devtools-installer": "^3.1.1",
     "temp": "^0.8.3",
     "webpack-hot-middleware": "^2.10.0"
