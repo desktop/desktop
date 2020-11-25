@@ -282,7 +282,7 @@ if (process.env.GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION) {
   app.disableHardwareAcceleration()
 }
 
-app.on('ready', () => {
+app.on('ready', async () => {
   if (isDuplicateInstance || handlingSquirrelEvent) {
     return
   }
@@ -291,7 +291,7 @@ app.on('ready', () => {
 
   possibleProtocols.forEach(protocol => setAsDefaultProtocolClient(protocol))
 
-  createWindow()
+  await createWindow()
 
   Menu.setApplicationMenu(
     buildDefaultMenu({
@@ -653,16 +653,20 @@ app.on(
   }
 )
 
-function createWindow() {
+async function createWindow() {
   const window = new AppWindow()
 
   if (__DEV__) {
-    const {
-      default: installExtension,
-      REACT_DEVELOPER_TOOLS,
-    } = require('electron-devtools-installer')
+    const { default: installExtension, REACT_DEVELOPER_TOOLS } = await import(
+      'electron-devtools-installer'
+    )
 
-    require('electron-debug')({ showDevTools: true })
+    // https://github.com/sindresorhus/electron-debug/blob/3f92ef4bc1cea841b789d851af8b4e19ca31568b/index.js#L98-L101
+    app.on('browser-window-created', (event, win) => {
+      win.webContents.once('dom-ready', () => {
+        win.webContents.openDevTools()
+      })
+    })
 
     const ChromeLens = {
       id: 'idikgljglpfilbhaboonnpnnincjhjkd',
@@ -672,9 +676,9 @@ function createWindow() {
     const extensions = [REACT_DEVELOPER_TOOLS, ChromeLens]
 
     for (const extension of extensions) {
-      try {
-        installExtension(extension)
-      } catch (e) {}
+      await installExtension(extension)
+        .then(name => log.debug(`Installed extension '${name}'`))
+        .catch(err => log.debug('Failed installing extension', err))
     }
   }
 

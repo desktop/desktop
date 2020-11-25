@@ -325,6 +325,11 @@
   resolved "https://registry.yarnpkg.com/@types/double-ended-queue/-/double-ended-queue-2.1.0.tgz#adc862d8d53bdf7d1b23a7d85559815ec1fbb92c"
   integrity sha512-pCS41/Odn6GMQyqnt8aPTSTQFGriAryYQwVONKk1QhUEhulxueLPE1kDNqDOuJqiv34VLVWXxF4I1EKz3+ftzQ==
 
+"@types/electron-devtools-installer@^2.2.0":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@types/electron-devtools-installer/-/electron-devtools-installer-2.2.0.tgz#32ee4ebbe99b3daf9847a6d2097dc00b5de94f10"
+  integrity sha512-HJNxpaOXuykCK4rQ6FOMxAA0NLFYsf7FiPFGmab0iQmtVBHSAfxzy3MRFpLTTDDWbV0yD2YsHOQvdu8yCqtCfw==
+
 "@types/electron-packager@^14.0.0":
   version "14.0.0"
   resolved "https://registry.yarnpkg.com/@types/electron-packager/-/electron-packager-14.0.0.tgz#f6dab1542fe02a3dd235d9bf66c8cb365f123902"

@@ -126,6 +126,7 @@
     "@types/codemirror": "0.0.76",
     "@types/deep-equal": "^1.0.1",
     "@types/double-ended-queue": "^2.1.0",
+    "@types/electron-devtools-installer": "^2.2.0",
     "@types/electron-packager": "^14.0.0",
     "@types/electron-winstaller": "^2.6.0",
     "@types/event-kit": "^1.2.28",
