@@ -511,10 +511,10 @@
 
     .image-container {
       position: relative;
+      @include checkboard-background;
 
       .image-diff-previous,
       .image-diff-current {
-        @include checkboard-background;
         position: absolute;
 
         img {
