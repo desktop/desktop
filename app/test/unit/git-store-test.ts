@@ -12,8 +12,14 @@ import { AppFileStatusKind } from '../../src/models/status'
 import { Repository } from '../../src/models/repository'
 import { Commit } from '../../src/models/commit'
 import { TipState, IValidBranch } from '../../src/models/tip'
-import { getCommit } from '../../src/lib/git'
+import { getCommit, getRemotes } from '../../src/lib/git'
 import { getStatusOrThrow } from '../helpers/status'
+import {
+  makeCommit,
+  switchTo,
+  cloneLocalRepository,
+} from '../helpers/repository-scaffolding'
+import { BranchType } from '../../src/models/branch'
 
 describe('GitStore', () => {
   describe('loadCommitBatch', () => {
@@ -96,41 +102,41 @@ describe('GitStore', () => {
   })
 
   describe('undo first commit', () => {
-    let repo: Repository | null = null
+    let repository: Repository
     let firstCommit: Commit | null = null
 
     const commitMessage = 'added file'
 
     beforeEach(async () => {
-      repo = await setupEmptyRepository()
+      repository = await setupEmptyRepository()
 
       const file = 'README.md'
-      const filePath = Path.join(repo.path, file)
+      const filePath = Path.join(repository.path, file)
 
       await FSE.writeFile(filePath, 'SOME WORDS GO HERE\n')
 
-      await GitProcess.exec(['add', file], repo.path)
-      await GitProcess.exec(['commit', '-m', commitMessage], repo.path)
+      await GitProcess.exec(['add', file], repository.path)
+      await GitProcess.exec(['commit', '-m', commitMessage], repository.path)
 
-      firstCommit = await getCommit(repo!, 'master')
+      firstCommit = await getCommit(repository, 'master')
       expect(firstCommit).not.toBeNull()
       expect(firstCommit!.parentSHAs).toHaveLength(0)
     })
 
     it('reports the repository is unborn', async () => {
-      const gitStore = new GitStore(repo!, shell)
+      const gitStore = new GitStore(repository, shell)
 
       await gitStore.loadStatus()
       expect(gitStore.tip.kind).toEqual(TipState.Valid)
 
       await gitStore.undoCommit(firstCommit!)
 
-      const after = await getStatusOrThrow(repo!)
+      const after = await getStatusOrThrow(repository)
       expect(after.currentTip).toBeUndefined()
     })
 
     it('pre-fills the commit message', async () => {
-      const gitStore = new GitStore(repo!, shell)
+      const gitStore = new GitStore(repository, shell)
 
       await gitStore.undoCommit(firstCommit!)
 
@@ -140,7 +146,7 @@ describe('GitStore', () => {
     })
 
     it('clears the undo commit dialog', async () => {
-      const gitStore = new GitStore(repo!, shell)
+      const gitStore = new GitStore(repository, shell)
 
       await gitStore.loadStatus()
 
@@ -160,7 +166,7 @@ describe('GitStore', () => {
     })
 
     it('has no staged files', async () => {
-      const gitStore = new GitStore(repo!, shell)
+      const gitStore = new GitStore(repository, shell)
 
       await gitStore.loadStatus()
 
@@ -181,7 +187,7 @@ describe('GitStore', () => {
           '-z',
           '4b825dc642cb6eb9a060e54bf8d69288fbee4904',
         ],
-        repo!.path
+        repository.path
       )
       expect(result.stdout.length).toEqual(0)
     })
@@ -207,6 +213,106 @@ describe('GitStore', () => {
       status = await getStatusOrThrow(repo)
       files = status.workingDirectory.files
       expect(files.length).toEqual(0)
+    })
+  })
+
+  describe('loadBranches', () => {
+    let upstream: Repository
+    let repository: Repository
+    beforeEach(async () => {
+      upstream = await setupEmptyRepository()
+      await makeCommit(upstream, {
+        commitMessage: 'first commit',
+        entries: [
+          {
+            path: 'README.md',
+            contents: 'some words go here',
+          },
+        ],
+      })
+      await makeCommit(upstream, {
+        commitMessage: 'second commit',
+        entries: [
+          {
+            path: 'README.md',
+            contents: 'some words go here\nand some more words',
+          },
+        ],
+      })
+      await switchTo(upstream, 'some-other-branch')
+      await makeCommit(upstream, {
+        commitMessage: 'branch commit',
+        entries: [
+          {
+            path: 'README.md',
+            contents: 'changing some words',
+          },
+        ],
+      })
+      await makeCommit(upstream, {
+        commitMessage: 'second branch commit',
+        entries: [
+          {
+            path: 'README.md',
+            contents: 'and even more changing of words',
+          },
+        ],
+      })
+
+      // move this repository back to `master` before cloning
+      await switchTo(upstream, 'master')
+
+      repository = await cloneLocalRepository(upstream)
+    })
+
+    it('has a remote defined', async () => {
+      const remotes = await getRemotes(repository)
+      expect(remotes).toHaveLength(1)
+    })
+
+    it('will merge a local and remote branch when tracking branch set', async () => {
+      const gitStore = new GitStore(repository, shell)
+      await gitStore.loadBranches()
+
+      expect(gitStore.allBranches).toHaveLength(2)
+
+      const defaultBranch = gitStore.allBranches.find(b => b.name === 'master')
+      expect(defaultBranch!.upstream).toBe('origin/master')
+
+      const remoteBranch = gitStore.allBranches.find(
+        b => b.name === 'origin/some-other-branch'
+      )
+      expect(remoteBranch!.type).toBe(BranchType.Remote)
+    })
+
+    it('the tracking branch is not cleared when the remote branch is removed', async () => {
+      // checkout the other branch after cloning
+      await GitProcess.exec(['checkout', 'some-other-branch'], repository.path)
+
+      const gitStore = new GitStore(repository, shell)
+      await gitStore.loadBranches()
+
+      const currentBranchBefore = gitStore.allBranches.find(
+        b => b.name === 'some-other-branch'
+      )
+      expect(currentBranchBefore!.upstream).toBe('origin/some-other-branch')
+
+      // delete the ref in the upstream branch
+      await GitProcess.exec(
+        ['branch', '-D', 'some-other-branch'],
+        upstream.path
+      )
+
+      // update the local repository state to remove the remote ref
+      await GitProcess.exec(['fetch', '--prune', '--all'], repository.path)
+      await gitStore.loadBranches()
+
+      const currentBranchAfter = gitStore.allBranches.find(
+        b => b.name === 'some-other-branch'
+      )
+
+      // ensure the tracking information is unchanged
+      expect(currentBranchAfter!.upstream).toBe('origin/some-other-branch')
     })
   })
 })

@@ -139,12 +139,12 @@ export class Button extends React.Component<IButtonProps, {}> {
   }
 
   private onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    if (this.props.type !== 'submit') {
-      event.preventDefault()
-    }
-
     if (this.props.onClick) {
       this.props.onClick(event)
+    }
+
+    if (this.props.type !== 'submit') {
+      event.preventDefault()
     }
   }
 }

@@ -17,7 +17,6 @@ coverage:
         base: pr
         paths:
           - 'app/src/lib/stores'
-          - 'app/src/lib/dispatcher'
           - 'app/src/lib/databases'
       models:
         target: auto

@@ -1,18 +1,10 @@
 import { git, GitError, parseCommitSHA } from './core'
 import { stageFiles } from './update-index'
 import { Repository } from '../../models/repository'
-import {
-  WorkingDirectoryFileChange,
-  isManualConflict,
-  isConflictedFileStatus,
-  GitStatusEntry,
-} from '../../models/status'
+import { WorkingDirectoryFileChange } from '../../models/status'
 import { unstageAll } from './reset'
-import {
-  ManualConflictResolution,
-  ManualConflictResolutionKind,
-} from '../../models/manual-conflict-resolution'
-import { assertNever } from '../fatal-error'
+import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
+import { stageManualConflictResolution } from './stage'
 
 /**
  * @param repository repository to execute merge in
@@ -50,6 +42,7 @@ export async function createCommit(
 /**
  * Creates a commit to finish an in-progress merge
  * assumes that all conflicts have already been resolved
+ * *Warning:* Does _not_ clear staged files before it commits!
  *
  * @param repository repository to execute merge in
  * @param files files to commit
@@ -59,12 +52,7 @@ export async function createMergeCommit(
   files: ReadonlyArray<WorkingDirectoryFileChange>,
   manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map()
 ): Promise<string | undefined> {
-  // Clear the staging area, our diffs reflect the difference between the
-  // working directory and the last commit (if any) so our commits should
-  // do the same thing.
   try {
-    await unstageAll(repository)
-
     // apply manual conflict resolutions
     for (const [path, resolution] of manualResolutions) {
       const file = files.find(f => f.path === path)
@@ -118,63 +106,6 @@ export async function createMergeCommit(
     logCommitError(e)
     return undefined
   }
-}
-
-/**
- * Stages a file with the given manual resolution method. Useful for resolving binary conflicts at commit-time.
- *
- * @param repository
- * @param file conflicted file to stage
- * @param manualResolution method to resolve the conflict of file
- * @returns true if successful, false if something went wrong
- */
-async function stageManualConflictResolution(
-  repository: Repository,
-  file: WorkingDirectoryFileChange,
-  manualResolution: ManualConflictResolution
-): Promise<boolean> {
-  const { status } = file
-  // if somehow the file isn't in a conflicted state
-  if (!isConflictedFileStatus(status)) {
-    log.error(`tried to manually resolve unconflicted file (${file.path})`)
-    return false
-  }
-  if (!isManualConflict(status)) {
-    log.error(
-      `tried to manually resolve conflicted file with markers (${file.path})`
-    )
-    return false
-  }
-
-  const chosen =
-    manualResolution === ManualConflictResolutionKind.theirs
-      ? status.entry.them
-      : status.entry.us
-
-  let exitCode: number = -1
-
-  switch (chosen) {
-    case GitStatusEntry.Deleted: {
-      exitCode = (await git(
-        ['rm', file.path],
-        repository.path,
-        'removeConflictedFile'
-      )).exitCode
-      break
-    }
-    case GitStatusEntry.Added:
-    case GitStatusEntry.UpdatedButUnmerged: {
-      exitCode = (await git(
-        ['add', file.path],
-        repository.path,
-        'addConflictedFile'
-      )).exitCode
-      break
-    }
-    default:
-      assertNever(chosen, 'unnacounted for git status entry possibility')
-  }
-  return exitCode === 0
 }
 
 /**

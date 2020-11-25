@@ -14,6 +14,16 @@ describe('getAbsoluteUrl', () => {
       const result = getAbsoluteUrl(dotcomEndpoint, 'user/repos')
       expect(result).toBe('https://api.github.com/user/repos')
     })
+
+    it("doesn't mangle encoded query parameters", () => {
+      const result = getAbsoluteUrl(
+        getDotComAPIEndpoint(),
+        '/issues?since=2019-05-10T16%3A00%3A00Z'
+      )
+      expect(result).toBe(
+        'https://api.github.com/issues?since=2019-05-10T16%3A00%3A00Z'
+      )
+    })
   })
 
   describe('enterprise endpoint', () => {
@@ -35,6 +45,16 @@ describe('getAbsoluteUrl', () => {
         '/api/v3/user/repos?page=2'
       )
       expect(result).toBe(`${enterpriseEndpoint}/user/repos?page=2`)
+    })
+
+    it("doesn't mangle encoded query parameters", () => {
+      const result = getAbsoluteUrl(
+        enterpriseEndpoint,
+        '/issues?since=2019-05-10T16%3A00%3A00Z'
+      )
+      expect(result).toBe(
+        `${enterpriseEndpoint}/issues?since=2019-05-10T16%3A00%3A00Z`
+      )
     })
   })
 })

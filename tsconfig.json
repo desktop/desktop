@@ -17,11 +17,7 @@
       "name": "typescript-tslint-plugin"
     }
   ],
-  "include": [
-    "app/**/*.ts",
-    "app/**/*.tsx",
-    "app/**/*.d.tsx"
-  ],
+  "include": ["app/**/*.ts", "app/**/*.tsx", "app/**/*.d.tsx"],
   "exclude": [
     "node_modules",
     "app/node_modules",

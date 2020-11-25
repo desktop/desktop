@@ -108,9 +108,9 @@ export class ApiRepositoriesStore extends BaseStore {
     IAccountRepositories
   >()
 
-  public constructor(private readonly accountsStore: AccountsStore) {
+  public constructor(accountsStore: AccountsStore) {
     super()
-    accountsStore.onDidUpdate(() => this.onAccountsChanged())
+    accountsStore.onDidUpdate(this.onAccountsChanged)
   }
 
   /**
@@ -123,8 +123,7 @@ export class ApiRepositoriesStore extends BaseStore {
    * method therefore attempts to merge its internal state
    * with the new accounts.
    */
-  private async onAccountsChanged() {
-    const accounts = await this.accountsStore.getAll()
+  private onAccountsChanged = (accounts: ReadonlyArray<Account>) => {
     const newState = new Map<Account, IAccountRepositories>()
 
     for (const account of accounts) {
@@ -172,15 +171,16 @@ export class ApiRepositoriesStore extends BaseStore {
    * the provided account has explicit permissions to access.
    */
   public async loadRepositories(account: Account) {
-    const existingRepositories = this.accountState.get(account)
+    const existingAccount = resolveAccount(account, this.accountState)
+    const existingRepositories = this.accountState.get(existingAccount)
 
     if (existingRepositories !== undefined && existingRepositories.loading) {
       return
     }
 
-    this.updateAccount(account, { loading: true })
+    this.updateAccount(existingAccount, { loading: true })
 
-    const api = API.fromAccount(account)
+    const api = API.fromAccount(existingAccount)
     const repositories = await api.fetchRepositories()
 
     if (repositories === null) {

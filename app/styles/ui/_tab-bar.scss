@@ -66,6 +66,10 @@
       border-radius: 20px;
       line-height: 1;
     }
+
+    &.focus-ring {
+      outline-offset: -4px;
+    }
   }
 
   &.switch &-item {

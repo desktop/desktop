@@ -23,5 +23,16 @@
   "prettier.singleQuote": true,
   "prettier.trailingComma": "es5",
   "editor.formatOnSave": true,
-  "prettier.ignorePath": ".prettierignore"
+  "prettier.ignorePath": ".prettierignore",
+  "tslint.ignoreDefinitionFiles": true,
+  "eslint.options": {
+    "configFile": ".eslintrc.yml",
+    "rulePaths": ["eslint-rules"]
+  },
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ]
 }

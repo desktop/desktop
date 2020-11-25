@@ -1,13 +1,16 @@
 import * as React from 'react'
 import { CIStatus } from './ci-status'
-import { PullRequestStatus } from '../../models/pull-request'
+import { GitHubRepository } from '../../models/github-repository'
+import { Dispatcher } from '../dispatcher'
 
 interface IPullRequestBadgeProps {
-  /** The CI status of the pull request. */
-  readonly status: PullRequestStatus | null
-
   /** The pull request's number. */
   readonly number: number
+
+  readonly dispatcher: Dispatcher
+
+  /** The GitHub repository to use when looking up commit status. */
+  readonly repository: GitHubRepository
 }
 
 /** The pull request info badge. */
@@ -16,14 +19,15 @@ export class PullRequestBadge extends React.Component<
   {}
 > {
   public render() {
-    const status = this.props.status
-
+    const ref = `refs/pull/${this.props.number}/head`
     return (
       <div className="pr-badge">
         <span className="number">#{this.props.number}</span>
-        {status != null && status.totalCount > 0 ? (
-          <CIStatus status={status} />
-        ) : null}
+        <CIStatus
+          commitRef={ref}
+          dispatcher={this.props.dispatcher}
+          repository={this.props.repository}
+        />
       </div>
     )
   }

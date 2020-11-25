@@ -8,6 +8,7 @@ import {
   ICompareState,
   ICompareBranch,
   ComparisonMode,
+  IDisplayHistory,
 } from '../../lib/app-state'
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
@@ -260,7 +261,11 @@ export class CompareSidebar extends React.Component<
         localCommitSHAs={this.props.localCommitSHAs}
         emoji={this.props.emoji}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
-        onRevertCommit={this.props.onRevertCommit}
+        onRevertCommit={
+          ableToRevertCommit(this.props.compareState.formState)
+            ? this.props.onRevertCommit
+            : undefined
+        }
         onCommitSelected={this.onCommitSelected}
         onScroll={this.onScroll}
         emptyListMessage={emptyListMessage}
@@ -396,35 +401,34 @@ export class CompareSidebar extends React.Component<
         event.preventDefault()
         return
       }
+      const branch = this.state.focusedBranch
 
-      if (this.props.compareState.filterText.length === 0) {
-        this.handleEscape()
+      if (branch === null) {
+        this.viewHistoryForBranch()
       } else {
-        if (this.state.focusedBranch == null) {
-          this.viewHistoryForBranch()
-        } else {
-          const branch = this.state.focusedBranch
+        this.props.dispatcher.executeCompare(this.props.repository, {
+          kind: HistoryTabMode.Compare,
+          comparisonMode: ComparisonMode.Behind,
+          branch,
+        })
 
-          this.props.dispatcher.executeCompare(this.props.repository, {
-            kind: HistoryTabMode.Compare,
-            comparisonMode: ComparisonMode.Behind,
-            branch,
-          })
+        this.props.dispatcher.updateCompareForm(this.props.repository, {
+          filterText: branch.name,
+        })
+      }
 
-          this.props.dispatcher.updateCompareForm(this.props.repository, {
-            filterText: branch.name,
-          })
-        }
-
-        if (this.textbox) {
-          this.textbox.blur()
-        }
+      if (this.textbox) {
+        this.textbox.blur()
       }
     } else if (key === 'Escape') {
       this.handleEscape()
     } else if (key === 'ArrowDown') {
       if (this.branchList !== null) {
-        this.branchList.selectFirstItem(true)
+        this.branchList.selectNextItem(true, 'down')
+      }
+    } else if (key === 'ArrowUp') {
+      if (this.branchList !== null) {
+        this.branchList.selectNextItem(true, 'up')
       }
     }
   }
@@ -583,4 +587,17 @@ function getPlaceholderText(state: ICompareState) {
   } else {
     return undefined
   }
+}
+
+// determine if the `onRevertCommit` function should be exposed to the CommitList/CommitListItem.
+// `onRevertCommit` is only exposed if the form state of the branch compare form is either
+// 1: History mode, 2: Comparison Mode with the 'Ahead' list shown.
+// When not exposed, the context menu item 'Revert this commit' is disabled.
+function ableToRevertCommit(
+  formState: IDisplayHistory | ICompareBranch
+): boolean {
+  return (
+    formState.kind === HistoryTabMode.History ||
+    formState.comparisonMode === ComparisonMode.Ahead
+  )
 }

@@ -8,10 +8,12 @@ import {
   getGlobalConfigValue,
   setGlobalConfigValue,
 } from '../../../src/lib/git'
-import { setupFixtureRepository, mkdirSync } from '../../helpers/repositories'
+
+import { mkdirSync } from '../../helpers/temp'
+import { setupFixtureRepository } from '../../helpers/repositories'
 
 describe('git/config', () => {
-  let repository: Repository | null = null
+  let repository: Repository
 
   beforeEach(async () => {
     const testRepoPath = await setupFixtureRepository('test-repo')
@@ -20,15 +22,12 @@ describe('git/config', () => {
 
   describe('config', () => {
     it('looks up config values', async () => {
-      const bare = await getConfigValue(repository!, 'core.bare')
+      const bare = await getConfigValue(repository, 'core.bare')
       expect(bare).toBe('false')
     })
 
     it('returns null for undefined values', async () => {
-      const value = await getConfigValue(
-        repository!,
-        'core.the-meaning-of-life'
-      )
+      const value = await getConfigValue(repository, 'core.the-meaning-of-life')
       expect(value).toBeNull()
     })
   })

@@ -39,7 +39,9 @@ import {
 
 import { getReleaseChannel, getDistRoot, getExecutableName } from './dist-info'
 import { isRunningOnFork, isCircleCI } from './build-platforms'
+
 import { updateLicenseDump } from './licenses/update-license-dump'
+import { verifyInjectedSassVariables } from './validate-sass/validate-all'
 
 const projectRoot = path.join(__dirname, '..')
 const outRoot = path.join(projectRoot, 'out')
@@ -70,17 +72,28 @@ if (isCircleCI() && !isRunningOnFork()) {
   cp.execSync(path.join(__dirname, 'setup-macos-keychain'))
 }
 
-console.log('Updating our licenses dump…')
-updateLicenseDump(projectRoot, outRoot)
+verifyInjectedSassVariables(outRoot)
   .catch(err => {
     console.error(
-      'Error updating the license dump. This is fatal for a published build.'
+      'Error verifying the Sass variables in the rendered app. This is fatal for a published build.'
     )
-    console.error(err)
 
     if (isPublishableBuild) {
       process.exit(1)
     }
+  })
+  .then(() => {
+    console.log('Updating our licenses dump…')
+    return updateLicenseDump(projectRoot, outRoot).catch(err => {
+      console.error(
+        'Error updating the license dump. This is fatal for a published build.'
+      )
+      console.error(err)
+
+      if (isPublishableBuild) {
+        process.exit(1)
+      }
+    })
   })
   .then(() => {
     console.log('Packaging…')
@@ -157,6 +170,7 @@ function packageApp() {
     // macOS
     appBundleId: getBundleID(),
     appCategoryType: 'public.app-category.developer-tools',
+    darwinDarkModeSupport: true,
     osxSign: true,
     protocols: [
       {
@@ -351,12 +365,18 @@ function generateLicenseMetadata(outRoot: string) {
     const fullPath = path.join(licensesDir, file)
     const contents = fs.readFileSync(fullPath, 'utf8')
     const result = frontMatter<IChooseALicense>(contents)
+
+    const licenseText = result.body.trim()
+    // ensure that any license file created in the app does not trigger the
+    // "no newline at end of file" warning when viewing diffs
+    const licenseTextWithNewLine = `${licenseText}\n`
+
     const license: ILicense = {
       name: result.attributes.nickname || result.attributes.title,
       featured: result.attributes.featured || false,
       hidden:
         result.attributes.hidden === undefined || result.attributes.hidden,
-      body: result.body.trim(),
+      body: licenseTextWithNewLine,
     }
 
     if (!license.hidden) {

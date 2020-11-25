@@ -21,8 +21,8 @@ export class Start extends React.Component<IStartProps, {}> {
         <h1 className="welcome-title">Welcome to GitHub&nbsp;Desktop</h1>
         <p className="welcome-text">
           GitHub Desktop is a seamless way to contribute to projects on GitHub
-          and GitHub Enterprise. Sign in below to get started with your existing
-          projects.
+          and GitHub Enterprise Server. Sign in below to get started with your
+          existing projects.
         </p>
 
         <p className="welcome-text">
@@ -45,7 +45,7 @@ export class Start extends React.Component<IStartProps, {}> {
             className="welcome-button"
             onClick={this.signInToEnterprise}
           >
-            Sign in to GitHub Enterprise
+            Sign in to GitHub Enterprise Server
           </LinkButton>
         </div>
 

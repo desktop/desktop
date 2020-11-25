@@ -52,7 +52,7 @@ export type CopiedOrRenamedFileStatus = {
  * Details about a file marked as conflicted in the index which may have
  * conflict markers to inspect.
  */
-type ConflictsWithMarkers = {
+export type ConflictsWithMarkers = {
   kind: AppFileStatusKind.Conflicted
   entry: TextConflictEntry
   conflictMarkerCount: number
@@ -62,7 +62,7 @@ type ConflictsWithMarkers = {
  * Details about a file marked as conflicted in the index which needs to be
  * resolved manually by the user.
  */
-type ManualConflict = {
+export type ManualConflict = {
   kind: AppFileStatusKind.Conflicted
   entry: ManualConflictEntry
 }
@@ -70,7 +70,7 @@ type ManualConflict = {
 /** Union of potential conflict scenarios the application should handle */
 export type ConflictedFileStatus = ConflictsWithMarkers | ManualConflict
 
-/** Custom typeguard to differentiate ConflictsWithMarkers from other Conflict types */
+/** Custom typeguard to differentiate Conflict files from other types */
 export function isConflictedFileStatus(
   appFileStatus: AppFileStatus
 ): appFileStatus is ConflictedFileStatus {

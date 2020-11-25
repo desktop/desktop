@@ -1,330 +1,334 @@
+import mem from 'mem'
+
 import {
   PullRequestDatabase,
   IPullRequest,
-  IPullRequestStatus,
-} from '../databases'
+  PullRequestKey,
+  getPullRequestKey,
+} from '../databases/pull-request-database'
 import { GitHubRepository } from '../../models/github-repository'
 import { Account } from '../../models/account'
-import { API, IAPIPullRequest } from '../api'
-import { fatalError, forceUnwrap } from '../fatal-error'
+import { API, IAPIPullRequest, MaxResultsError } from '../api'
+import { fatalError } from '../fatal-error'
 import { RepositoriesStore } from './repositories-store'
-import {
-  PullRequest,
-  PullRequestRef,
-  PullRequestStatus,
-} from '../../models/pull-request'
-import { TypedBaseStore } from './base-store'
-import { Repository } from '../../models/repository'
-import { getRemotes, removeRemote } from '../git'
-import { IRemote, ForkedRemotePrefix } from '../../models/remote'
-
-const Decrement = (n: number) => n - 1
-const Increment = (n: number) => n + 1
+import { PullRequest, PullRequestRef } from '../../models/pull-request'
+import { structuralEquals } from '../equality'
+import { Emitter, Disposable } from 'event-kit'
+import { APIError } from '../http'
 
 /** The store for GitHub Pull Requests. */
-export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
-  private readonly pullRequestDatabase: PullRequestDatabase
-  private readonly repositoryStore: RepositoriesStore
-  private readonly activeFetchCountPerRepository = new Map<number, number>()
+export class PullRequestStore {
+  protected readonly emitter = new Emitter()
+  private readonly currentRefreshOperations = new Map<number, Promise<void>>()
+  private readonly lastRefreshForRepository = new Map<number, number>()
 
   public constructor(
-    db: PullRequestDatabase,
-    repositoriesStore: RepositoriesStore
-  ) {
-    super()
+    private readonly db: PullRequestDatabase,
+    private readonly repositoryStore: RepositoriesStore
+  ) {}
 
-    this.pullRequestDatabase = db
-    this.repositoryStore = repositoriesStore
+  private emitPullRequestsChanged(
+    repository: GitHubRepository,
+    pullRequests: ReadonlyArray<PullRequest>
+  ) {
+    this.emitter.emit('onPullRequestsChanged', { repository, pullRequests })
+  }
+
+  /** Register a function to be called when the store updates. */
+  public onPullRequestsChanged(
+    fn: (
+      repository: GitHubRepository,
+      pullRequests: ReadonlyArray<PullRequest>
+    ) => void
+  ): Disposable {
+    return this.emitter.on('onPullRequestsChanged', value => {
+      const { repository, pullRequests } = value
+      fn(repository, pullRequests)
+    })
+  }
+
+  private emitIsLoadingPullRequests(
+    repository: GitHubRepository,
+    isLoadingPullRequests: boolean
+  ) {
+    this.emitter.emit('onIsLoadingPullRequest', {
+      repository,
+      isLoadingPullRequests,
+    })
+  }
+
+  /** Register a function to be called when the store updates. */
+  public onIsLoadingPullRequests(
+    fn: (repository: GitHubRepository, isLoadingPullRequests: boolean) => void
+  ): Disposable {
+    return this.emitter.on('onIsLoadingPullRequest', value => {
+      const { repository, isLoadingPullRequests } = value
+      fn(repository, isLoadingPullRequests)
+    })
   }
 
   /** Loads all pull requests against the given repository. */
-  public async fetchAndCachePullRequests(
-    repository: Repository,
+  public refreshPullRequests(repo: GitHubRepository, account: Account) {
+    const dbId = repo.dbID
+
+    if (dbId === null) {
+      // This can happen when the `repositoryWithRefreshedGitHubRepository`
+      // method in AppStore fails to retrieve API information about the current
+      // repository either due to the user being signed out or the API failing
+      // to provide a response. There's nothing for us to do when that happens
+      // so instead of crashing we'll bail here.
+      return Promise.resolve()
+    }
+
+    const currentOp = this.currentRefreshOperations.get(dbId)
+
+    if (currentOp !== undefined) {
+      return currentOp
+    }
+
+    this.lastRefreshForRepository.set(dbId, Date.now())
+    this.emitIsLoadingPullRequests(repo, true)
+
+    const promise = this.fetchAndStorePullRequests(repo, account)
+      .catch(err => {
+        log.error(`Error refreshing pull requests for '${repo.fullName}'`, err)
+      })
+      .then(() => {
+        this.currentRefreshOperations.delete(dbId)
+        this.emitIsLoadingPullRequests(repo, false)
+      })
+
+    this.currentRefreshOperations.set(dbId, promise)
+    return promise
+  }
+
+  /**
+   * Fetches pull requests from the API (either all open PRs if it's the
+   * first time fetching for this repository or all updated PRs if not).
+   *
+   * Returns a value indicating whether it's safe to avoid
+   * emitting an event that the store has been updated. In other words, when
+   * this method returns false it's safe to say that nothing has been changed
+   * in the pull requests table.
+   */
+  private async fetchAndStorePullRequests(
+    repo: GitHubRepository,
     account: Account
-  ): Promise<void> {
-    const githubRepo = forceUnwrap(
-      'Can only refresh pull requests for GitHub repositories',
-      repository.gitHubRepository
-    )
-    const apiClient = API.fromAccount(account)
+  ) {
+    const api = API.fromAccount(account)
+    const lastUpdatedAt = await this.db.getLastUpdated(repo)
 
-    this.updateActiveFetchCount(githubRepo, Increment)
-
-    try {
-      const apiResult = await apiClient.fetchPullRequests(
-        githubRepo.owner.login,
-        githubRepo.name,
-        'open'
-      )
-
-      await this.cachePullRequests(apiResult, githubRepo)
-
-      const prs = await this.fetchPullRequestsFromCache(githubRepo)
-
-      await this.fetchAndCachePullRequestStatus(prs, githubRepo, account)
-      await this.pruneForkedRemotes(repository, prs)
-
-      this.emitUpdate(githubRepo)
-    } catch (error) {
-      log.warn(`Error refreshing pull requests for '${repository.name}'`, error)
-    } finally {
-      this.updateActiveFetchCount(githubRepo, Decrement)
+    // If we don't have a lastUpdatedAt that mean we haven't fetched any PRs
+    // for the repository yet which in turn means we only have to fetch the
+    // currently open PRs. If we have fetched before we get all PRs
+    // If we have a lastUpdatedAt that mean we have fetched PRs
+    // for the repository before. If we have fetched before we get all PRs
+    // that have been modified since the last time we fetched so that we
+    // can prune closed issues from our database. Note that since
+    // `api.fetchUpdatedPullRequests` returns all issues modified _at_ or
+    // after the timestamp we give it we will always get at least one issue
+    // back. See `storePullRequests` for details on how that's handled.
+    if (!lastUpdatedAt) {
+      return this.fetchAndStoreOpenPullRequests(api, repo)
+    } else {
+      return this.fetchAndStoreUpdatedPullRequests(api, repo, lastUpdatedAt)
     }
   }
 
-  /** Is the store currently fetching the list of open pull requests? */
-  public isFetchingPullRequests(repository: GitHubRepository): boolean {
-    const repoDbId = forceUnwrap(
-      'Cannot fetch PRs for a repository which is not in the database',
-      repository.dbID
-    )
-    const currentCount = this.activeFetchCountPerRepository.get(repoDbId) || 0
-
-    return currentCount > 0
-  }
-
-  /** Loads the status for the given pull request. */
-  public async fetchPullRequestStatus(
-    repository: GitHubRepository,
-    account: Account,
-    pullRequest: PullRequest
-  ): Promise<void> {
-    await this.fetchAndCachePullRequestStatus(
-      [pullRequest],
-      repository,
-      account
-    )
-  }
-
-  /** Loads the status for all pull request against a given repository. */
-  public async fetchPullRequestStatuses(
-    repository: GitHubRepository,
-    account: Account
-  ): Promise<void> {
-    const prs = await this.fetchPullRequestsFromCache(repository)
-
-    try {
-      await this.fetchAndCachePullRequestStatus(prs, repository, account)
-    } catch (e) {
-      log.warn('Error updating pull request statuses', e)
-    }
-  }
-
-  /** Gets the pull requests against the given repository. */
-  public async fetchPullRequestsFromCache(
+  private async fetchAndStoreOpenPullRequests(
+    api: API,
     repository: GitHubRepository
-  ): Promise<ReadonlyArray<PullRequest>> {
-    const gitHubRepositoryID = repository.dbID
+  ) {
+    const { name, owner } = getNameWithOwner(repository)
+    const open = await api.fetchAllOpenPullRequests(owner, name)
+    await this.storePullRequestsAndEmitUpdate(open, repository)
+  }
 
-    if (gitHubRepositoryID == null) {
-      return fatalError(
-        "Cannot get pull requests for a repository that hasn't been inserted into the database!"
+  private async fetchAndStoreUpdatedPullRequests(
+    api: API,
+    repository: GitHubRepository,
+    lastUpdatedAt: Date
+  ) {
+    const { name, owner } = getNameWithOwner(repository)
+    const updated = await api
+      .fetchUpdatedPullRequests(owner, name, lastUpdatedAt)
+      .catch(e =>
+        // Any other error we'll bubble up but these ones we
+        // can handle, see below.
+        e instanceof MaxResultsError || e instanceof APIError
+          ? Promise.resolve(null)
+          : Promise.reject(e)
       )
+
+    if (updated !== null) {
+      return await this.storePullRequestsAndEmitUpdate(updated, repository)
+    } else {
+      // If we fail to load updated pull requests either because
+      // there's too many updated PRs since the last time we
+      // fetched (and it's likely that it'll be much more
+      // efficient to just load the open PRs) or it's because the
+      // API told us we couldn't load PRs (rate limit or permissions
+      // problems). In either case we delete the PRs we've got
+      // for this repo and attempt to load just the open ones.
+      //
+      // This scenario can happen for repositories that are
+      // very active while simultaneously infrequently used
+      // by the user. Think of a very active open source repository
+      // where the user only visits once a year to make a contribution.
+      // It's likely that there's at most a few hundred PRs open but
+      // the number of merged PRs since the last time we fetched could
+      // number in the thousands.
+      await this.db.deleteAllPullRequestsInRepository(repository)
+      await this.fetchAndStoreOpenPullRequests(api, repository)
+    }
+  }
+
+  public getLastRefreshed(repository: GitHubRepository) {
+    return repository.dbID
+      ? this.lastRefreshForRepository.get(repository.dbID)
+      : undefined
+  }
+
+  /** Gets all stored pull requests for the given repository. */
+  public async getAll(repository: GitHubRepository) {
+    if (repository.dbID === null) {
+      // This can happen when the `repositoryWithRefreshedGitHubRepository`
+      // method in AppStore fails to retrieve API information about the current
+      // repository either due to the user being signed out or the API failing
+      // to provide a response. There's nothing for us to do when that happens
+      // so instead of crashing we'll bail here.
+      return []
     }
 
-    const records = await this.pullRequestDatabase.pullRequests
-      .where('base.repoId')
-      .equals(gitHubRepositoryID)
-      .reverse()
-      .sortBy('number')
-
+    const records = await this.db.getAllPullRequestsInRepository(repository)
     const result = new Array<PullRequest>()
 
-    for (const record of records) {
-      const repositoryDbId = record.head.repoId
-      let githubRepository: GitHubRepository | null = null
+    // In order to avoid what would otherwise be a very expensive
+    // N+1 (N+2 really) query where we look up the head and base
+    // GitHubRepository from IndexedDB for each pull request we'll memoize
+    // already retrieved GitHubRepository instances.
+    //
+    // This optimization decreased the run time of this method from 6
+    // seconds to just under 26 ms while testing using an internal
+    // repository with 1k+ PRs. Even in the worst-case scenario (i.e
+    // a repository with a huge number of open PRs from forks) this
+    // will reduce the N+2 to N+1.
+    const store = this.repositoryStore
+    const getRepo = mem(store.findGitHubRepositoryByID.bind(store))
 
-      if (repositoryDbId != null) {
-        githubRepository = await this.repositoryStore.findGitHubRepositoryByID(
-          repositoryDbId
-        )
+    for (const record of records) {
+      const headRepository = await getRepo(record.head.repoId)
+      const baseRepository = await getRepo(record.base.repoId)
+
+      if (headRepository === null) {
+        return fatalError("head repository can't be null")
       }
 
-      // We know the base repo ID can't be null since it's the repository we
-      // fetched the PR from in the first place.
-      const parentRepositoryDbId = forceUnwrap(
-        'A pull request cannot have a null base repo id',
-        record.base.repoId
-      )
-      const parentGitGubRepository: GitHubRepository | null = await this.repositoryStore.findGitHubRepositoryByID(
-        parentRepositoryDbId
-      )
-      const parentGitHubRepository = forceUnwrap(
-        'PR cannot have a null base repo',
-        parentGitGubRepository
-      )
-
-      // We can be certain the PR ID is valid since we just got it from the
-      // database.
-      const pullRequestDbId = forceUnwrap(
-        'PR cannot have a null ID after being retrieved from the database',
-        record.id
-      )
-
-      const pullRequestStatus = await this.findPullRequestStatus(
-        record.head.sha,
-        pullRequestDbId
-      )
+      if (baseRepository === null) {
+        return fatalError("base repository can't be null")
+      }
 
       result.push(
         new PullRequest(
-          pullRequestDbId,
           new Date(record.createdAt),
-          pullRequestStatus,
           record.title,
           record.number,
-          new PullRequestRef(
-            record.head.ref,
-            record.head.sha,
-            githubRepository
-          ),
-          new PullRequestRef(
-            record.base.ref,
-            record.base.sha,
-            parentGitHubRepository
-          ),
+          new PullRequestRef(record.head.ref, record.head.sha, headRepository),
+          new PullRequestRef(record.base.ref, record.base.sha, baseRepository),
           record.author
         )
       )
     }
 
-    return result
+    // Reversing the results in place manually instead of using
+    // .reverse on the IndexedDB query has been measured to have favorable
+    // performance characteristics for repositories with a lot of pull
+    // requests since it means Dexie is able to leverage the IndexedDB
+    // getAll method as opposed to creating a reverse cursor. Reversing
+    // in place versus unshifting is also dramatically more performant.
+    return result.reverse()
   }
 
-  private async pruneForkedRemotes(
-    repository: Repository,
-    pullRequests: ReadonlyArray<PullRequest>
-  ) {
-    const remotes = await getRemotes(repository)
-    const forkedRemotesToDelete = this.getRemotesToDelete(remotes, pullRequests)
-
-    await this.deleteRemotes(repository, forkedRemotesToDelete)
-  }
-
-  private getRemotesToDelete(
-    remotes: ReadonlyArray<IRemote>,
-    openPullRequests: ReadonlyArray<PullRequest>
-  ): ReadonlyArray<IRemote> {
-    const forkedRemotes = remotes.filter(remote =>
-      remote.name.startsWith(ForkedRemotePrefix)
-    )
-    const remotesOfPullRequests = new Set<string>()
-
-    openPullRequests.forEach(pr => {
-      const { gitHubRepository } = pr.head
-
-      if (gitHubRepository != null && gitHubRepository.cloneURL != null) {
-        remotesOfPullRequests.add(gitHubRepository.cloneURL)
-      }
-    })
-
-    const result = forkedRemotes.filter(
-      forkedRemote => !remotesOfPullRequests.has(forkedRemote.url)
-    )
-
-    return result
-  }
-
-  private async deleteRemotes(
-    repository: Repository,
-    remotes: ReadonlyArray<IRemote>
-  ) {
-    const promises: Array<Promise<void>> = []
-
-    remotes.forEach(r => promises.push(removeRemote(repository, r.name)))
-    await Promise.all(promises)
-  }
-
-  private updateActiveFetchCount(
-    repository: GitHubRepository,
-    update: (count: number) => number
-  ) {
-    const repoDbId = forceUnwrap(
-      'Cannot fetch PRs for a repository which is not in the database',
-      repository.dbID
-    )
-    const currentCount = this.activeFetchCountPerRepository.get(repoDbId) || 0
-    const newCount = update(currentCount)
-
-    this.activeFetchCountPerRepository.set(repoDbId, newCount)
-    this.emitUpdate(repository)
-  }
-
-  private async fetchAndCachePullRequestStatus(
-    pullRequests: ReadonlyArray<PullRequest>,
-    repository: GitHubRepository,
-    account: Account
-  ): Promise<void> {
-    const apiClient = API.fromAccount(account)
-    const statuses: Array<IPullRequestStatus> = []
-
-    for (const pr of pullRequests) {
-      const combinedRefStatus = await apiClient.fetchCombinedRefStatus(
-        repository.owner.login,
-        repository.name,
-        pr.head.sha
-      )
-
-      statuses.push({
-        pullRequestId: pr.id,
-        state: combinedRefStatus.state,
-        totalCount: combinedRefStatus.total_count,
-        sha: pr.head.sha,
-        statuses: combinedRefStatus.statuses,
-      })
-    }
-
-    await this.cachePullRequestStatuses(statuses)
-    this.emitUpdate(repository)
-  }
-
-  private async findPullRequestStatus(
-    sha: string,
-    pullRequestId: number
-  ): Promise<PullRequestStatus | null> {
-    const result = await this.pullRequestDatabase.pullRequestStatus
-      .where('[sha+pullRequestId]')
-      .equals([sha, pullRequestId])
-      .limit(1)
-      .first()
-
-    if (!result) {
-      return null
-    }
-
-    const combinedRefStatuses = (result.statuses || []).map(x => {
-      return {
-        id: x.id,
-        state: x.state,
-        description: x.description,
-      }
-    })
-
-    return new PullRequestStatus(
-      result.pullRequestId,
-      result.state,
-      result.totalCount,
-      result.sha,
-      combinedRefStatuses
-    )
-  }
-
-  private async cachePullRequests(
+  /**
+   * Stores all pull requests that are open and deletes all that are merged
+   * or closed. Returns a value indicating whether an update notification
+   * has been emitted, see `storePullRequests` for more details.
+   */
+  private async storePullRequestsAndEmitUpdate(
     pullRequestsFromAPI: ReadonlyArray<IAPIPullRequest>,
     repository: GitHubRepository
-  ): Promise<void> {
-    const repoDbId = repository.dbID
+  ) {
+    if (await this.storePullRequests(pullRequestsFromAPI, repository)) {
+      this.emitPullRequestsChanged(repository, await this.getAll(repository))
+    }
+  }
 
-    if (repoDbId == null) {
-      return fatalError(
-        "Cannot store pull requests for a repository that hasn't been inserted into the database!"
-      )
+  /**
+   * Stores all pull requests that are open and deletes all that are merged
+   * or closed. Returns a value indicating whether it's safe to avoid
+   * emitting an event that the store has been updated. In other words, when
+   * this method returns false it's safe to say that nothing has been changed
+   * in the pull requests table.
+   */
+  private async storePullRequests(
+    pullRequestsFromAPI: ReadonlyArray<IAPIPullRequest>,
+    repository: GitHubRepository
+  ) {
+    if (pullRequestsFromAPI.length === 0) {
+      return false
     }
 
-    const table = this.pullRequestDatabase.pullRequests
-    const prsToInsert = new Array<IPullRequest>()
+    let mostRecentlyUpdated = pullRequestsFromAPI[0].updated_at
+
+    const prsToDelete = new Array<PullRequestKey>()
+    const prsToUpsert = new Array<IPullRequest>()
+
+    // The API endpoint for this PR, i.e api.github.com or a GHE url
+    const { endpoint } = repository
+    const store = this.repositoryStore
+
+    // Upsert will always query the database for a repository. Given that
+    // we've receive these repositories in a batch response from the API
+    // it's pretty unlikely that they'd differ between PRs so we're going
+    // to use the upsert just to ensure that the repo exists in the database
+    // and reuse the same object without going to the database for all that
+    // follow.
+    const upsertRepo = mem(store.upsertGitHubRepository.bind(store), {
+      // The first argument which we're ignoring here is the endpoint
+      // which is constant throughout the lifetime of this function.
+      // The second argument is an `IAPIRepository` which is basically
+      // the raw object that we got from the API which could consist of
+      // more than just the fields we've modelled in the interface. The
+      // only thing we really care about to determine whether the
+      // repository has already been inserted in the database is the clone
+      // url since that's what the upsert method uses as its key.
+      cacheKey: (_, repo) => repo.clone_url,
+    })
 
     for (const pr of pullRequestsFromAPI) {
+      // We can do this string comparison here rather than convert to date
+      // because ISO8601 is lexicographically sortable
+      if (pr.updated_at > mostRecentlyUpdated) {
+        mostRecentlyUpdated = pr.updated_at
+      }
+
+      // We know the base repo isn't null since that's where we got the PR from
+      // in the first place.
+      if (pr.base.repo === null) {
+        return fatalError('PR cannot have a null base repo')
+      }
+
+      const baseGitHubRepo = await upsertRepo(endpoint, pr.base.repo)
+
+      if (baseGitHubRepo.dbID === null) {
+        return fatalError('PR cannot have a null parent database id')
+      }
+
+      if (pr.state === 'closed') {
+        prsToDelete.push(getPullRequestKey(baseGitHubRepo, pr.number))
+        continue
+      }
+
       // `pr.head.repo` represents the source of the pull request. It might be
       // a branch associated with the current repository, or a fork of the
       // current repository.
@@ -332,92 +336,73 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       // In cases where the user has removed the fork of the repository after
       // opening a pull request, this can be `null`, and the app will not store
       // this pull request.
-
       if (pr.head.repo == null) {
         log.debug(
           `Unable to store pull request #${pr.number} for repository ${
             repository.fullName
           } as it has no head repository associated with it`
         )
+        prsToDelete.push(getPullRequestKey(baseGitHubRepo, pr.number))
         continue
       }
 
-      const githubRepo = await this.repositoryStore.upsertGitHubRepository(
-        repository.endpoint,
-        pr.head.repo
-      )
+      const headRepo = await upsertRepo(endpoint, pr.head.repo)
 
-      const githubRepoDbId = forceUnwrap(
-        'PR cannot have non-existent repo',
-        githubRepo.dbID
-      )
+      if (headRepo.dbID === null) {
+        return fatalError('PR cannot have non-existent repo')
+      }
 
-      // We know the base repo isn't null since that's where we got the PR from
-      // in the first place.
-      const parentRepo = forceUnwrap(
-        'PR cannot have a null base repo',
-        pr.base.repo
-      )
-      const parentGitHubRepo = await this.repositoryStore.upsertGitHubRepository(
-        repository.endpoint,
-        parentRepo
-      )
-      const parentGitHubRepoDbId = forceUnwrap(
-        'PR cannot have a null parent database id',
-        parentGitHubRepo.dbID
-      )
-
-      prsToInsert.push({
+      prsToUpsert.push({
         number: pr.number,
         title: pr.title,
         createdAt: pr.created_at,
+        updatedAt: pr.updated_at,
         head: {
           ref: pr.head.ref,
           sha: pr.head.sha,
-          repoId: githubRepoDbId,
+          repoId: headRepo.dbID,
         },
         base: {
           ref: pr.base.ref,
           sha: pr.base.sha,
-          repoId: parentGitHubRepoDbId,
+          repoId: baseGitHubRepo.dbID,
         },
         author: pr.user.login,
       })
     }
 
-    return this.pullRequestDatabase.transaction('rw', table, async () => {
-      // we need to delete the stales PRs from the db
-      // so we remove all for a repo to avoid having to
-      // do diffing
-      await table
-        .where('base.repoId')
-        .equals(repoDbId)
-        .delete()
+    // When loading only PRs that has changed since the last fetch
+    // we get back all PRs modified _at_ or after the timestamp we give it
+    // meaning we will always get at least one issue back but. This
+    // check detect this particular condition and lets us avoid expensive
+    // branch pruning and updates for a single PR that hasn't actually
+    // been updated.
+    if (prsToDelete.length === 0 && prsToUpsert.length === 1) {
+      const cur = prsToUpsert[0]
+      const prev = await this.db.getPullRequest(repository, cur.number)
 
-      if (prsToInsert.length > 0) {
-        await table.bulkAdd(prsToInsert)
+      if (prev !== undefined && structuralEquals(cur, prev)) {
+        return false
       }
-    })
-  }
+    }
 
-  private async cachePullRequestStatuses(
-    statuses: Array<IPullRequestStatus>
-  ): Promise<void> {
-    const table = this.pullRequestDatabase.pullRequestStatus
-
-    await this.pullRequestDatabase.transaction('rw', table, async () => {
-      for (const status of statuses) {
-        const record = await table
-          .where('[sha+pullRequestId]')
-          .equals([status.sha, status.pullRequestId])
-          .first()
-
-        if (record == null) {
-          await table.add(status)
-        } else {
-          await table.put({ id: record.id, ...status })
-        }
+    await this.db.transaction(
+      'rw',
+      this.db.pullRequests,
+      this.db.pullRequestsLastUpdated,
+      async () => {
+        await this.db.deletePullRequests(prsToDelete)
+        await this.db.putPullRequests(prsToUpsert)
+        await this.db.setLastUpdated(repository, new Date(mostRecentlyUpdated))
       }
-    })
+    )
+
+    return true
   }
+}
+
+function getNameWithOwner(repository: GitHubRepository) {
+  const owner = repository.owner.login
+  const name = repository.name
+  return { name, owner }
 }

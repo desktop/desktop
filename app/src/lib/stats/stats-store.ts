@@ -13,6 +13,7 @@ import { Disposable } from 'event-kit'
 import { SignInMethod } from '../stores'
 import { assertNever } from '../fatal-error'
 import { getNumber, setNumber, getBoolean, setBoolean } from '../local-storage'
+import { PushOptions } from '../git'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -62,8 +63,11 @@ const DefaultDailyMeasures: IDailyMeasures = {
   divergingBranchBannerInfluencedMerge: 0,
   divergingBranchBannerDisplayed: 0,
   dotcomPushCount: 0,
+  dotcomForcePushCount: 0,
   enterprisePushCount: 0,
+  enterpriseForcePushCount: 0,
   externalPushCount: 0,
+  externalForcePushCount: 0,
   active: false,
   mergeConflictFromPullCount: 0,
   mergeConflictFromExplicitMergeCount: 0,
@@ -80,6 +84,34 @@ const DefaultDailyMeasures: IDailyMeasures = {
   mergeConflictsDialogReopenedCount: 0,
   guidedConflictedMergeCompletionCount: 0,
   unguidedConflictedMergeCompletionCount: 0,
+  createPullRequestCount: 0,
+  rebaseConflictsDialogDismissalCount: 0,
+  rebaseConflictsDialogReopenedCount: 0,
+  rebaseAbortedAfterConflictsCount: 0,
+  rebaseSuccessAfterConflictsCount: 0,
+  rebaseSuccessWithoutConflictsCount: 0,
+  pullWithRebaseCount: 0,
+  pullWithDefaultSettingCount: 0,
+  stashEntriesCreatedOutsideDesktop: 0,
+  errorWhenSwitchingBranchesWithUncommmittedChanges: 0,
+  rebaseCurrentBranchMenuCount: 0,
+  stashViewedAfterCheckoutCount: 0,
+  stashCreatedOnCurrentBranchCount: 0,
+  stashNotViewedAfterCheckoutCount: 0,
+  changesTakenToNewBranchCount: 0,
+  stashRestoreCount: 0,
+  stashDiscardCount: 0,
+  stashViewCount: 0,
+  noActionTakenOnStashCount: 0,
+  suggestedStepOpenInExternalEditor: 0,
+  suggestedStepOpenWorkingDirectory: 0,
+  suggestedStepViewOnGitHub: 0,
+  suggestedStepPublishRepository: 0,
+  suggestedStepPublishBranch: 0,
+  suggestedStepCreatePullRequest: 0,
+  suggestedStepViewStash: 0,
+  commitsToProtectedBranch: 0,
+  commitsToRepositoryWithBranchProtections: 0,
 }
 
 interface IOnboardingStats {
@@ -139,7 +171,7 @@ interface IOnboardingStats {
    * Time (in seconds) from when the user first launched
    * the application and entered the welcome wizard until
    * the user performed their first push of a repository
-   * to GitHub.com or GitHub Enterprise. This metric
+   * to GitHub.com or GitHub Enterprise Server. This metric
    * does not track pushes to non-GitHub remotes.
    */
   readonly timeToFirstGitHubPush?: number
@@ -221,7 +253,7 @@ interface ICalculatedStats {
   /** Is the user logged in with a GitHub.com account? */
   readonly dotComAccount: boolean
 
-  /** Is the user logged in with an Enterprise account? */
+  /** Is the user logged in with an Enterprise Server account? */
   readonly enterpriseAccount: boolean
 
   /**
@@ -254,6 +286,8 @@ type DailyStats = ICalculatedStats &
 export interface IStatsStore {
   recordMergeAbortedAfterConflicts: () => void
   recordMergeSuccessAfterConflicts: () => void
+  recordRebaseAbortedAfterConflicts: () => void
+  recordRebaseSuccessAfterConflicts: () => void
 }
 
 /** The store for the app's stats. */
@@ -607,6 +641,12 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  public recordMenuInitiatedRebase(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      rebaseCurrentBranchMenuCount: m.rebaseCurrentBranchMenuCount + 1,
+    }))
+  }
+
   /** Record that the user checked out a PR branch */
   public recordPRBranchCheckout(): Promise<void> {
     return this.updateDailyMeasures(m => ({
@@ -628,8 +668,8 @@ export class StatsStore implements IStatsStore {
   /**
    * Records that the user made a commit using an email address that
    * was not associated with the user's account on GitHub.com or GitHub
-   * Enterprise, meaning that the commit will not be attributed to the user's
-   * account.
+   * Enterprise Server, meaning that the commit will not be attributed to the
+   * user's account.
    */
   public recordUnattributedCommit(): Promise<void> {
     return this.updateDailyMeasures(m => ({
@@ -639,7 +679,7 @@ export class StatsStore implements IStatsStore {
 
   /**
    * Records that the user made a commit to a repository hosted on
-   * a GitHub Enterprise instance
+   * a GitHub Enterprise Server instance
    */
   public recordCommitToEnterprise(): Promise<void> {
     return this.updateDailyMeasures(m => ({
@@ -651,6 +691,21 @@ export class StatsStore implements IStatsStore {
   public recordCommitToDotcom(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       dotcomCommits: m.dotcomCommits + 1,
+    }))
+  }
+
+  /** Record the user made a commit to a protected GitHub or GitHub Enterprise Server repository */
+  public recordCommitToProtectedBranch(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      commitsToProtectedBranch: m.commitsToProtectedBranch + 1,
+    }))
+  }
+
+  /** Record the user made a commit to repository which has branch protections enabled */
+  public recordCommitToRepositoryWithBranchProtections(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      commitsToRepositoryWithBranchProtections:
+        m.commitsToRepositoryWithBranchProtections + 1,
     }))
   }
 
@@ -678,14 +733,14 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record that user dismissed diverging branch notification */
-  public async recordDivergingBranchBannerDismissal(): Promise<void> {
+  public recordDivergingBranchBannerDismissal(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       divergingBranchBannerDismissal: m.divergingBranchBannerDismissal + 1,
     }))
   }
 
   /** Record that user initiated a merge from within the notification banner */
-  public async recordDivergingBranchBannerInitatedMerge(): Promise<void> {
+  public recordDivergingBranchBannerInitatedMerge(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       divergingBranchBannerInitatedMerge:
         m.divergingBranchBannerInitatedMerge + 1,
@@ -693,7 +748,7 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record that user initiated a compare from within the notification banner */
-  public async recordDivergingBranchBannerInitiatedCompare(): Promise<void> {
+  public recordDivergingBranchBannerInitiatedCompare(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       divergingBranchBannerInitiatedCompare:
         m.divergingBranchBannerInitiatedCompare + 1,
@@ -704,7 +759,7 @@ export class StatsStore implements IStatsStore {
    * Record that user initiated a merge after getting to compare view
    * from within notification banner
    */
-  public async recordDivergingBranchBannerInfluencedMerge(): Promise<void> {
+  public recordDivergingBranchBannerInfluencedMerge(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       divergingBranchBannerInfluencedMerge:
         m.divergingBranchBannerInfluencedMerge + 1,
@@ -712,14 +767,33 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record that the user was shown the notification banner */
-  public async recordDivergingBranchBannerDisplayed(): Promise<void> {
+  public recordDivergingBranchBannerDisplayed(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       divergingBranchBannerDisplayed: m.divergingBranchBannerDisplayed + 1,
     }))
   }
 
+  public async recordPush(
+    githubAccount: Account | null,
+    options?: PushOptions
+  ) {
+    if (githubAccount === null) {
+      await this.recordPushToGenericRemote(options)
+    } else if (githubAccount.endpoint === getDotComAPIEndpoint()) {
+      await this.recordPushToGitHub(options)
+    } else {
+      await this.recordPushToGitHubEnterprise(options)
+    }
+  }
+
   /** Record that the user pushed to GitHub.com */
-  public async recordPushToGitHub(): Promise<void> {
+  private async recordPushToGitHub(options?: PushOptions): Promise<void> {
+    if (options && options.forceWithLease) {
+      await this.updateDailyMeasures(m => ({
+        dotcomForcePushCount: m.dotcomForcePushCount + 1,
+      }))
+    }
+
     await this.updateDailyMeasures(m => ({
       dotcomPushCount: m.dotcomPushCount + 1,
     }))
@@ -727,8 +801,16 @@ export class StatsStore implements IStatsStore {
     createLocalStorageTimestamp(FirstPushToGitHubAtKey)
   }
 
-  /** Record that the user pushed to a GitHub Enterprise instance */
-  public async recordPushToGitHubEnterprise(): Promise<void> {
+  /** Record that the user pushed to a GitHub Enterprise Server instance */
+  private async recordPushToGitHubEnterprise(
+    options?: PushOptions
+  ): Promise<void> {
+    if (options && options.forceWithLease) {
+      await this.updateDailyMeasures(m => ({
+        enterpriseForcePushCount: m.enterpriseForcePushCount + 1,
+      }))
+    }
+
     await this.updateDailyMeasures(m => ({
       enterprisePushCount: m.enterprisePushCount + 1,
     }))
@@ -739,28 +821,36 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record that the user pushed to a generic remote */
-  public async recordPushToGenericRemote(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
+  private async recordPushToGenericRemote(
+    options?: PushOptions
+  ): Promise<void> {
+    if (options && options.forceWithLease) {
+      await this.updateDailyMeasures(m => ({
+        externalForcePushCount: m.externalForcePushCount + 1,
+      }))
+    }
+
+    await this.updateDailyMeasures(m => ({
       externalPushCount: m.externalPushCount + 1,
     }))
   }
 
   /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
-  public async recordUserProceededWhileLoading(): Promise<void> {
+  public recordUserProceededWhileLoading(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergedWithLoadingHintCount: m.mergedWithLoadingHintCount + 1,
     }))
   }
 
   /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
-  public async recordMergeHintSuccessAndUserProceeded(): Promise<void> {
+  public recordMergeHintSuccessAndUserProceeded(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergedWithCleanMergeHintCount: m.mergedWithCleanMergeHintCount + 1,
     }))
   }
 
   /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
-  public async recordUserProceededAfterConflictWarning(): Promise<void> {
+  public recordUserProceededAfterConflictWarning(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergedWithConflictWarningHintCount:
         m.mergedWithConflictWarningHintCount + 1,
@@ -770,7 +860,7 @@ export class StatsStore implements IStatsStore {
   /**
    * Increments the `mergeConflictsDialogDismissalCount` metric
    */
-  public async recordMergeConflictsDialogDismissal(): Promise<void> {
+  public recordMergeConflictsDialogDismissal(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergeConflictsDialogDismissalCount:
         m.mergeConflictsDialogDismissalCount + 1,
@@ -780,7 +870,7 @@ export class StatsStore implements IStatsStore {
   /**
    * Increments the `anyConflictsLeftOnMergeConflictsDialogDismissalCount` metric
    */
-  public async recordAnyConflictsLeftOnMergeConflictsDialogDismissal(): Promise<
+  public recordAnyConflictsLeftOnMergeConflictsDialogDismissal(): Promise<
     void
   > {
     return this.updateDailyMeasures(m => ({
@@ -792,7 +882,7 @@ export class StatsStore implements IStatsStore {
   /**
    * Increments the `mergeConflictsDialogReopenedCount` metric
    */
-  public async recordMergeConflictsDialogReopened(): Promise<void> {
+  public recordMergeConflictsDialogReopened(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergeConflictsDialogReopenedCount:
         m.mergeConflictsDialogReopenedCount + 1,
@@ -802,7 +892,7 @@ export class StatsStore implements IStatsStore {
   /**
    * Increments the `guidedConflictedMergeCompletionCount` metric
    */
-  public async recordGuidedConflictedMergeCompletion(): Promise<void> {
+  public recordGuidedConflictedMergeCompletion(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       guidedConflictedMergeCompletionCount:
         m.guidedConflictedMergeCompletionCount + 1,
@@ -812,10 +902,84 @@ export class StatsStore implements IStatsStore {
   /**
    * Increments the `unguidedConflictedMergeCompletionCount` metric
    */
-  public async recordUnguidedConflictedMergeCompletion(): Promise<void> {
+  public recordUnguidedConflictedMergeCompletion(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       unguidedConflictedMergeCompletionCount:
         m.unguidedConflictedMergeCompletionCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `createPullRequestCount` metric
+   */
+  public recordCreatePullRequest(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      createPullRequestCount: m.createPullRequestCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `rebaseConflictsDialogDismissalCount` metric
+   */
+  public recordRebaseConflictsDialogDismissal(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      rebaseConflictsDialogDismissalCount:
+        m.rebaseConflictsDialogDismissalCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `rebaseConflictsDialogReopenedCount` metric
+   */
+  public recordRebaseConflictsDialogReopened(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      rebaseConflictsDialogReopenedCount:
+        m.rebaseConflictsDialogReopenedCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `rebaseAbortedAfterConflictsCount` metric
+   */
+  public recordRebaseAbortedAfterConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      rebaseAbortedAfterConflictsCount: m.rebaseAbortedAfterConflictsCount + 1,
+    }))
+  }
+  /**
+   * Increments the `pullWithRebaseCount` metric
+   */
+  public recordPullWithRebaseEnabled() {
+    return this.updateDailyMeasures(m => ({
+      pullWithRebaseCount: m.pullWithRebaseCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `rebaseSuccessWithoutConflictsCount` metric
+   */
+  public recordRebaseSuccessWithoutConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      rebaseSuccessWithoutConflictsCount:
+        m.rebaseSuccessWithoutConflictsCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `rebaseSuccessAfterConflictsCount` metric
+   */
+  public recordRebaseSuccessAfterConflicts(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      rebaseSuccessAfterConflictsCount: m.rebaseSuccessAfterConflictsCount + 1,
+    }))
+  }
+
+  /**
+   * Increments the `pullWithDefaultSettingCount` metric
+   */
+  public recordPullWithDefaultSetting() {
+    return this.updateDailyMeasures(m => ({
+      pullWithDefaultSettingCount: m.pullWithDefaultSettingCount + 1,
     }))
   }
 
@@ -849,16 +1013,167 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record when a conflicted merge was successfully completed by the user */
-  public async recordMergeSuccessAfterConflicts(): Promise<void> {
+  public recordMergeSuccessAfterConflicts(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergeSuccessAfterConflictsCount: m.mergeSuccessAfterConflictsCount + 1,
     }))
   }
 
   /** Record when a conflicted merge was aborted by the user */
-  public async recordMergeAbortedAfterConflicts(): Promise<void> {
+  public recordMergeAbortedAfterConflicts(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       mergeAbortedAfterConflictsCount: m.mergeAbortedAfterConflictsCount + 1,
+    }))
+  }
+
+  /** Record when the user views a stash entry after checking out a branch */
+  public recordStashViewedAfterCheckout(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      stashViewedAfterCheckoutCount: m.stashViewedAfterCheckoutCount + 1,
+    }))
+  }
+
+  /** Record when the user **doesn't** view a stash entry after checking out a branch */
+  public recordStashNotViewedAfterCheckout(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      stashNotViewedAfterCheckoutCount: m.stashNotViewedAfterCheckoutCount + 1,
+    }))
+  }
+
+  /** Record when the user elects to take changes to new branch over stashing */
+  public recordChangesTakenToNewBranch(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      changesTakenToNewBranchCount: m.changesTakenToNewBranchCount + 1,
+    }))
+  }
+
+  /** Record when the user elects to stash changes on the current branch */
+  public recordStashCreatedOnCurrentBranch(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      stashCreatedOnCurrentBranchCount: m.stashCreatedOnCurrentBranchCount + 1,
+    }))
+  }
+
+  /** Record when the user discards a stash entry */
+  public recordStashDiscard(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      stashDiscardCount: m.stashDiscardCount + 1,
+    }))
+  }
+
+  /** Record when the user views a stash entry */
+  public recordStashView(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      stashViewCount: m.stashViewCount + 1,
+    }))
+  }
+
+  /** Record when the user restores a stash entry */
+  public recordStashRestore(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      stashRestoreCount: m.stashRestoreCount + 1,
+    }))
+  }
+
+  /** Record when the user takes no action on the stash entry */
+  public recordNoActionTakenOnStash(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      noActionTakenOnStashCount: m.noActionTakenOnStashCount + 1,
+    }))
+  }
+
+  /** Record the number of stash entries created outside of Desktop for the day */
+  public addStashEntriesCreatedOutsideDesktop(
+    stashCount: number
+  ): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      stashEntriesCreatedOutsideDesktop:
+        m.stashEntriesCreatedOutsideDesktop + stashCount,
+    }))
+  }
+
+  /**
+   * Record the number of times the user experiences the error
+   * "Some of your changes would be overwritten" when switching branches
+   */
+  public recordErrorWhenSwitchingBranchesWithUncommmittedChanges(): Promise<
+    void
+  > {
+    return this.updateDailyMeasures(m => ({
+      errorWhenSwitchingBranchesWithUncommmittedChanges:
+        m.errorWhenSwitchingBranchesWithUncommmittedChanges + 1,
+    }))
+  }
+
+  /**
+   * Increment the number of times the user has opened their external editor
+   * from the suggested next steps view
+   */
+  public recordSuggestedStepOpenInExternalEditor(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepOpenInExternalEditor:
+        m.suggestedStepOpenInExternalEditor + 1,
+    }))
+  }
+
+  /**
+   * Increment the number of times the user has opened their repository in
+   * Finder/Explorer from the suggested next steps view
+   */
+  public recordSuggestedStepOpenWorkingDirectory(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepOpenWorkingDirectory:
+        m.suggestedStepOpenWorkingDirectory + 1,
+    }))
+  }
+
+  /**
+   * Increment the number of times the user has opened their repository on
+   * GitHub from the suggested next steps view
+   */
+  public recordSuggestedStepViewOnGitHub(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepViewOnGitHub: m.suggestedStepViewOnGitHub + 1,
+    }))
+  }
+
+  /**
+   * Increment the number of times the user has used the publish repository
+   * action from the suggested next steps view
+   */
+  public recordSuggestedStepPublishRepository(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepPublishRepository: m.suggestedStepPublishRepository + 1,
+    }))
+  }
+
+  /**
+   * Increment the number of times the user has used the publish branch
+   * action branch from the suggested next steps view
+   */
+  public recordSuggestedStepPublishBranch(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepPublishBranch: m.suggestedStepPublishBranch + 1,
+    }))
+  }
+
+  /**
+   * Increment the number of times the user has used the Create PR suggestion
+   * in the suggested next steps view.
+   */
+  public recordSuggestedStepCreatePullRequest(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepCreatePullRequest: m.suggestedStepCreatePullRequest + 1,
+    }))
+  }
+
+  /**
+   * Increment the number of times the user has used the View Stash suggestion
+   * in the suggested next steps view.
+   */
+  public recordSuggestedStepViewStash(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      suggestedStepViewStash: m.suggestedStepViewStash + 1,
     }))
   }
 

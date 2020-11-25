@@ -31,7 +31,7 @@ interface IBlankSlateActionProps {
    * A callback which is invoked when the user clicks
    * or activates the action using their keyboard.
    */
-  readonly onClick: () => void
+  readonly onClick: (e: React.MouseEvent<HTMLButtonElement>) => void
 
   /**
    * The type of action, currently supported actions are

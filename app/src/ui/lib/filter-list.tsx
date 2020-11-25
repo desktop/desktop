@@ -6,6 +6,7 @@ import {
   SelectionSource as ListSelectionSource,
   findNextSelectableRow,
   ClickSource,
+  SelectionDirection,
 } from '../lib/list'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
@@ -265,19 +266,37 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     )
   }
 
-  public selectFirstItem(focus: boolean = false) {
+  public selectNextItem(
+    focus: boolean = false,
+    inDirection: SelectionDirection = 'down'
+  ) {
     if (this.list === null) {
       return
     }
+    let next: number | null = null
 
-    const next = findNextSelectableRow(
-      this.state.rows.length,
-      {
-        direction: 'down',
-        row: -1,
-      },
-      this.canSelectRow
-    )
+    if (
+      this.state.selectedRow === -1 ||
+      this.state.selectedRow === this.state.rows.length
+    ) {
+      next = findNextSelectableRow(
+        this.state.rows.length,
+        {
+          direction: inDirection,
+          row: -1,
+        },
+        this.canSelectRow
+      )
+    } else {
+      next = findNextSelectableRow(
+        this.state.rows.length,
+        {
+          direction: inDirection,
+          row: this.state.selectedRow,
+        },
+        this.canSelectRow
+      )
+    }
 
     if (next !== null) {
       this.setState({ selectedRow: next }, () => {

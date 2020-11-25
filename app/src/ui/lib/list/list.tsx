@@ -264,7 +264,7 @@ export class List extends React.Component<IListProps, IListState> {
   private list: HTMLDivElement | null = null
   private grid: React.Component<any, any> | null = null
   private readonly resizeObserver: ResizeObserver | null = null
-  private updateSizeTimeoutId: number | null = null
+  private updateSizeTimeoutId: NodeJS.Immediate | null = null
 
   public constructor(props: IListProps) {
     super(props)
@@ -312,7 +312,7 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private onSelectAll = (event: Event) => {
+  private onSelectAll = (event: Event | React.SyntheticEvent<any>) => {
     const selectionMode = this.props.selectionMode
 
     if (selectionMode !== 'range' && selectionMode !== 'multi') {
@@ -401,6 +401,13 @@ export class List extends React.Component<IListProps, IListState> {
         this.moveSelection('up', event)
       }
       event.preventDefault()
+    } else if (!__DARWIN__ && event.key === 'a' && event.ctrlKey) {
+      // On Windows Chromium will steal the Ctrl+A shortcut before
+      // Electron gets its hands on it meaning that the Select all
+      // menu item can't be invoked by means of keyboard shortcuts
+      // on Windows. Clicking on the menu item still emits the
+      // 'select-all' custom DOM event.
+      this.onSelectAll(event)
     }
   }
 

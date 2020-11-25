@@ -39,7 +39,7 @@ interface ICommitListProps {
   readonly onScroll: (start: number, end: number) => void
 
   /** Callback to fire to revert a given commit in the current repository */
-  readonly onRevertCommit: (commit: Commit) => void
+  readonly onRevertCommit: ((commit: Commit) => void) | undefined
 
   /** Callback to fire to open a given commit on GitHub */
   readonly onViewCommitOnGitHub: (sha: string) => void

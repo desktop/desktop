@@ -2,17 +2,34 @@ import {
   RepositoriesDatabase,
   IDatabaseGitHubRepository,
   IDatabaseOwner,
+  IDatabaseProtectedBranch,
 } from '../databases/repositories-database'
 import { Owner } from '../../models/owner'
 import { GitHubRepository } from '../../models/github-repository'
 import { Repository } from '../../models/repository'
 import { fatalError } from '../fatal-error'
-import { IAPIRepository } from '../api'
+import { IAPIRepository, IAPIBranch } from '../api'
 import { BaseStore } from './base-store'
+import { enableBranchProtectionChecks } from '../feature-flag'
 
 /** The store for local repositories. */
 export class RepositoriesStore extends BaseStore {
   private db: RepositoriesDatabase
+
+  // Key-repo ID, Value-date
+  private lastStashCheckCache = new Map<number, number>()
+
+  /**
+   * Key is the GitHubRepository id, value is the protected branch count reported
+   * by the GitHub API.
+   */
+  private branchProtectionSettingsFoundCache = new Map<number, boolean>()
+
+  /**
+   * Key is the lookup by the GitHubRepository id and branch name, value is the
+   * flag whether this branch is considered protected by the GitHub API
+   */
+  private protectionEnabledForBranchCache = new Map<string, boolean>()
 
   public constructor(db: RepositoriesDatabase) {
     super()
@@ -147,6 +164,7 @@ export class RepositoriesStore extends BaseStore {
             path,
             gitHubRepositoryID: null,
             missing: false,
+            lastStashCheckDate: null,
           })
         }
 
@@ -181,11 +199,16 @@ export class RepositoriesStore extends BaseStore {
     const gitHubRepositoryID = repository.gitHubRepository
       ? repository.gitHubRepository.dbID
       : null
+    const oldRecord = await this.db.repositories.get(repoID)
+    const lastStashCheckDate =
+      oldRecord !== undefined ? oldRecord.lastStashCheckDate : null
+
     await this.db.repositories.put({
       id: repository.id,
       path: repository.path,
       missing,
       gitHubRepositoryID,
+      lastStashCheckDate,
     })
 
     this.emitUpdate()
@@ -213,11 +236,16 @@ export class RepositoriesStore extends BaseStore {
     const gitHubRepositoryID = repository.gitHubRepository
       ? repository.gitHubRepository.dbID
       : null
+    const oldRecord = await this.db.repositories.get(repoID)
+    const lastStashCheckDate =
+      oldRecord !== undefined ? oldRecord.lastStashCheckDate : null
+
     await this.db.repositories.put({
       id: repository.id,
       missing: false,
-      path: path,
+      path,
       gitHubRepositoryID,
+      lastStashCheckDate,
     })
 
     this.emitUpdate()
@@ -228,6 +256,69 @@ export class RepositoriesStore extends BaseStore {
       repository.gitHubRepository,
       false
     )
+  }
+
+  /**
+   * Sets the last time the repository was checked for stash entries
+   *
+   * @param repository The repository in which to update the last stash check date for
+   * @param date The date and time in which the last stash check took place; defaults to
+   * the current time
+   */
+  public async updateLastStashCheckDate(
+    repository: Repository,
+    date: number = Date.now()
+  ): Promise<void> {
+    const repoID = repository.id
+    if (repoID === 0) {
+      return fatalError(
+        '`updateLastStashCheckDate` can only update the last stash check date for a repository which has been added to the database.'
+      )
+    }
+
+    await this.db.repositories.update(repoID, {
+      lastStashCheckDate: date,
+    })
+
+    this.lastStashCheckCache.set(repoID, date)
+
+    this.emitUpdate()
+  }
+
+  /**
+   * Gets the last time the repository was checked for stash entries
+   *
+   * @param repository The repository in which to update the last stash check date for
+   */
+  public async getLastStashCheckDate(
+    repository: Repository
+  ): Promise<number | null> {
+    const repoID = repository.id
+    if (!repoID) {
+      return fatalError(
+        '`getLastStashCheckDate` - can only retrieve the last stash check date for a repositories that have been stored in the database.'
+      )
+    }
+
+    let lastCheckDate = this.lastStashCheckCache.get(repoID) || null
+    if (lastCheckDate !== null) {
+      return lastCheckDate
+    }
+
+    const record = await this.db.repositories.get(repoID)
+
+    if (record === undefined) {
+      return fatalError(
+        `'getLastStashCheckDate' - unable to find repository with ID: ${repoID}`
+      )
+    }
+
+    lastCheckDate = record.lastStashCheckDate
+    if (lastCheckDate !== null) {
+      this.lastStashCheckCache.set(repoID, lastCheckDate)
+    }
+
+    return lastCheckDate
   }
 
   private async putOwner(endpoint: string, login: string): Promise<Owner> {
@@ -274,6 +365,7 @@ export class RepositoriesStore extends BaseStore {
       defaultBranch: gitHubRepository.default_branch,
       cloneURL: gitHubRepository.clone_url,
       parentID: parent ? parent.dbID : null,
+      lastPruneDate: null,
     }
     if (existingRepo) {
       updatedGitHubRepo = { ...updatedGitHubRepo, id: existingRepo.id }
@@ -334,4 +426,233 @@ export class RepositoriesStore extends BaseStore {
       repository.missing
     )
   }
+
+  /** Add or update the branch protections associated with a GitHub repository. */
+  public async updateBranchProtections(
+    gitHubRepository: GitHubRepository,
+    protectedBranches: ReadonlyArray<IAPIBranch>
+  ): Promise<void> {
+    if (!enableBranchProtectionChecks()) {
+      return
+    }
+
+    const dbID = gitHubRepository.dbID
+    if (!dbID) {
+      return fatalError(
+        '`updateBranchProtections` can only update a GitHub repository for a repository which has been added to the database.'
+      )
+    }
+
+    await this.db.transaction('rw', this.db.protectedBranches, async () => {
+      // This update flow is organized into two stages:
+      //
+      // - update the in-memory cache
+      // - update the underyling database state
+      //
+      // This should ensure any stale values are not being used, and avoids
+      // the need to query the database while the results are in memory.
+
+      const prefix = getKeyPrefix(dbID)
+
+      for (const key of this.protectionEnabledForBranchCache.keys()) {
+        // invalidate any cached entries belonging to this repository
+        if (key.startsWith(prefix)) {
+          this.protectionEnabledForBranchCache.delete(key)
+        }
+      }
+
+      const branchRecords = protectedBranches.map<IDatabaseProtectedBranch>(
+        b => ({
+          repoId: dbID,
+          name: b.name,
+        })
+      )
+
+      // update cached values to avoid database lookup
+      for (const item of branchRecords) {
+        const key = getKey(dbID, item.name)
+        this.protectionEnabledForBranchCache.set(key, true)
+      }
+
+      await this.db.protectedBranches
+        .where('repoId')
+        .equals(dbID)
+        .delete()
+
+      const protectionsFound = branchRecords.length > 0
+      this.branchProtectionSettingsFoundCache.set(dbID, protectionsFound)
+
+      if (branchRecords.length > 0) {
+        await this.db.protectedBranches.bulkAdd(branchRecords)
+      }
+    })
+
+    this.emitUpdate()
+  }
+
+  /**
+   * Set's the last time the repository was checked for pruning
+   *
+   * @param repository The repository in which to update the prune date for
+   * @param date The date and time in which the last prune took place
+   */
+  public async updateLastPruneDate(
+    repository: Repository,
+    date: number
+  ): Promise<void> {
+    const repoID = repository.id
+    if (repoID === 0) {
+      return fatalError(
+        '`updateLastPruneDate` can only update the last prune date for a repository which has been added to the database.'
+      )
+    }
+
+    const githubRepo = repository.gitHubRepository
+    if (githubRepo === null) {
+      return fatalError(
+        `'updateLastPruneDate' can only update GitHub repositories`
+      )
+    }
+
+    const gitHubRepositoryID = githubRepo.dbID
+    if (gitHubRepositoryID === null) {
+      return fatalError(
+        `'updateLastPruneDate' can only update GitHub repositories with a valid ID: received ID of ${gitHubRepositoryID}`
+      )
+    }
+
+    await this.db.gitHubRepositories.update(gitHubRepositoryID, {
+      lastPruneDate: date,
+    })
+
+    this.emitUpdate()
+  }
+
+  public async getLastPruneDate(
+    repository: Repository
+  ): Promise<number | null> {
+    const repoID = repository.id
+    if (!repoID) {
+      return fatalError(
+        '`getLastPruneDate` - can only retrieve the last prune date for a repositories that have been stored in the database.'
+      )
+    }
+
+    const githubRepo = repository.gitHubRepository
+    if (githubRepo === null) {
+      return fatalError(
+        `'getLastPruneDate' - can only retrieve the last prune date for GitHub repositories.`
+      )
+    }
+
+    const gitHubRepositoryID = githubRepo.dbID
+    if (gitHubRepositoryID === null) {
+      return fatalError(
+        `'getLastPruneDate' - can only retrieve the last prune date for GitHub repositories that have been stored in the database.`
+      )
+    }
+
+    const record = await this.db.gitHubRepositories.get(gitHubRepositoryID)
+
+    if (record === undefined) {
+      return fatalError(
+        `'getLastPruneDate' - unable to find GitHub repository with ID: ${gitHubRepositoryID}`
+      )
+    }
+
+    return record!.lastPruneDate
+  }
+
+  /**
+   * Load the branch protection information for a repository from the database
+   * and cache the results in memory
+   */
+  private async loadAndCacheBranchProtection(dbID: number) {
+    // query the database to find any protected branches
+    const branches = await this.db.protectedBranches
+      .where('repoId')
+      .equals(dbID)
+      .toArray()
+
+    const branchProtectionsFound = branches.length > 0
+    this.branchProtectionSettingsFoundCache.set(dbID, branchProtectionsFound)
+
+    // fill the retrieved records into the per-branch cache
+    for (const branch of branches) {
+      const key = getKey(dbID, branch.name)
+      this.protectionEnabledForBranchCache.set(key, true)
+    }
+
+    return branchProtectionsFound
+  }
+
+  /**
+   * Check if any branch protection settings are enabled for the repository
+   * through the GitHub API.
+   */
+  public async hasBranchProtectionsConfigured(
+    gitHubRepository: GitHubRepository
+  ): Promise<boolean> {
+    if (gitHubRepository.dbID === null) {
+      return fatalError(
+        'unable to get protected branches, GitHub repository has a null dbID'
+      )
+    }
+
+    const { dbID } = gitHubRepository
+    const branchProtectionsFound = this.branchProtectionSettingsFoundCache.get(
+      dbID
+    )
+
+    if (branchProtectionsFound === undefined) {
+      return this.loadAndCacheBranchProtection(dbID)
+    }
+
+    return branchProtectionsFound
+  }
+
+  /**
+   * Check if the given branch for the repository is protected through the
+   * GitHub API.
+   */
+  public async isBranchProtectedOnRemote(
+    gitHubRepository: GitHubRepository,
+    branchName: string
+  ): Promise<boolean> {
+    if (gitHubRepository.dbID === null) {
+      return fatalError(
+        'unable to get protected branches, GitHub repository has a null dbID'
+      )
+    }
+
+    const { dbID } = gitHubRepository
+    const key = getKey(dbID, branchName)
+
+    const cachedProtectionValue = this.protectionEnabledForBranchCache.get(key)
+    if (cachedProtectionValue === true) {
+      return cachedProtectionValue
+    }
+
+    const databaseValue = await this.db.protectedBranches.get([
+      dbID,
+      branchName,
+    ])
+
+    // if no row found, this means no protection is found for the branch
+    const value = databaseValue !== undefined
+
+    this.protectionEnabledForBranchCache.set(key, value)
+
+    return value
+  }
+}
+
+/** Compute the key for the branch protection cache */
+function getKey(dbID: number, branchName: string) {
+  return `${getKeyPrefix(dbID)}${branchName}`
+}
+
+/** Compute the key prefix for the branch protection cache */
+function getKeyPrefix(dbID: number) {
+  return `${dbID}-`
 }

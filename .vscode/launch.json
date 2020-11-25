@@ -14,12 +14,12 @@
       ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "env":{
+      "env": {
         "ELECTRON_RUN_AS_NODE": "1"
       },
       "windows": {
         "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
-      },
+      }
     },
     {
       "type": "node",
@@ -35,12 +35,12 @@
       ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "env":{
+      "env": {
         "ELECTRON_RUN_AS_NODE": "1"
       },
       "windows": {
         "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
-      },
-    },
+      }
+    }
   ]
 }

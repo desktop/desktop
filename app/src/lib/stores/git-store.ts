@@ -14,7 +14,7 @@ import {
 } from '../../models/branch'
 import { Tip, TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
-import { IRemote } from '../../models/remote'
+import { IRemote, ForkedRemotePrefix } from '../../models/remote'
 import { IFetchProgress, IRevertProgress } from '../../models/progress'
 import {
   ICommitMessage,
@@ -62,6 +62,8 @@ import {
   revRange,
   revSymmetricDifference,
   getSymbolicRef,
+  getConfigValue,
+  removeRemote,
 } from '../git'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import { UpstreamAlreadyExistsError } from './upstream-already-exists-error'
@@ -76,6 +78,10 @@ import { formatCommitMessage } from '../format-commit-message'
 import { GitAuthor } from '../../models/git-author'
 import { IGitAccount } from '../../models/git-account'
 import { BaseStore } from './base-store'
+import { enableStashing } from '../feature-flag'
+import { getStashes, getStashedFiles } from '../git/stash'
+import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
+import { PullRequest } from '../../models/pull-request'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -91,6 +97,8 @@ export class GitStore extends BaseStore {
 
   /** The commits keyed by their SHA. */
   public readonly commitLookup = new Map<string, Commit>()
+
+  public pullWithRebase?: boolean
 
   private _history: ReadonlyArray<string> = new Array()
 
@@ -123,6 +131,10 @@ export class GitStore extends BaseStore {
   private _upstreamRemote: IRemote | null = null
 
   private _lastFetched: Date | null = null
+
+  private _desktopStashEntries = new Map<string, IStashEntry>()
+
+  private _stashEntryCount = 0
 
   public constructor(repository: Repository, shell: IAppShell) {
     super()
@@ -266,6 +278,7 @@ export class GitStore extends BaseStore {
 
     this.refreshDefaultBranch()
     this.refreshRecentBranches(recentBranchNames)
+    this.checkPullWithRebase()
 
     const commits = this._allBranches.map(b => b.tip)
 
@@ -318,6 +331,22 @@ export class GitStore extends BaseStore {
     }
 
     return allBranchesWithUpstream
+  }
+
+  private async checkPullWithRebase() {
+    const result = await getConfigValue(this.repository, 'pull.rebase')
+
+    if (result === null || result === '') {
+      this.pullWithRebase = undefined
+    } else if (result === 'true') {
+      this.pullWithRebase = true
+    } else if (result === 'false') {
+      this.pullWithRebase = false
+    } else {
+      log.warn(`Unexpected value found for pull.rebase in config: '${result}'`)
+      // ensure any previous value is purged from app state
+      this.pullWithRebase = undefined
+    }
   }
 
   private async refreshDefaultBranch() {
@@ -942,6 +971,107 @@ export class GitStore extends BaseStore {
     throw new Error(`Could not load commit: '${sha}'`)
   }
 
+  /**
+   * Refreshes the list of GitHub Desktop created stash entries for the repository
+   */
+  public async loadStashEntries(): Promise<void> {
+    if (!enableStashing()) {
+      return
+    }
+
+    const map = new Map<string, IStashEntry>()
+    const stash = await getStashes(this.repository)
+
+    for (const entry of stash.desktopEntries) {
+      // we only want the first entry we find for each branch,
+      // so we skip all subsequent ones
+      if (!map.has(entry.branchName)) {
+        const existing = this._desktopStashEntries.get(entry.branchName)
+
+        // If we've already loaded the files for this stash there's
+        // no point in us doing it again. We know the contents haven't
+        // changed since the SHA is the same.
+        if (existing !== undefined && existing.stashSha === entry.stashSha) {
+          map.set(entry.branchName, { ...entry, files: existing.files })
+        } else {
+          map.set(entry.branchName, entry)
+        }
+      }
+    }
+
+    this._desktopStashEntries = map
+    this._stashEntryCount = stash.stashEntryCount
+    this.emitUpdate()
+
+    this.loadFilesForCurrentStashEntry()
+  }
+
+  /**
+   * A GitHub Desktop created stash entries for the current branch or
+   * null if no entry exists
+   */
+  public get currentBranchStashEntry() {
+    return this._tip && this._tip.kind === TipState.Valid
+      ? this._desktopStashEntries.get(this._tip.branch.name) || null
+      : null
+  }
+
+  /** The total number of stash entries */
+  public get stashEntryCount(): number {
+    return this._stashEntryCount
+  }
+
+  /** The number of stash entries created by Desktop */
+  public get desktopStashEntryCount(): number {
+    return this._desktopStashEntries.size
+  }
+
+  /**
+   * Updates the latest stash entry with a list of files that it changes
+   */
+  private async loadFilesForCurrentStashEntry() {
+    if (!enableStashing()) {
+      return
+    }
+
+    const stashEntry = this.currentBranchStashEntry
+
+    if (
+      !stashEntry ||
+      stashEntry.files.kind !== StashedChangesLoadStates.NotLoaded
+    ) {
+      return
+    }
+
+    const { branchName } = stashEntry
+
+    this._desktopStashEntries.set(branchName, {
+      ...stashEntry,
+      files: { kind: StashedChangesLoadStates.Loading },
+    })
+    this.emitUpdate()
+
+    const files = await getStashedFiles(this.repository, stashEntry.stashSha)
+
+    // It's possible that we've refreshed the list of stash entries since we
+    // started getStashedFiles. Load the latest entry for the branch and make
+    // sure the SHAs match up.
+    const currentEntry = this._desktopStashEntries.get(branchName)
+
+    if (!currentEntry || currentEntry.stashSha !== stashEntry.stashSha) {
+      return
+    }
+
+    this._desktopStashEntries.set(branchName, {
+      ...currentEntry,
+      files: {
+        kind: StashedChangesLoadStates.Loaded,
+        files,
+      },
+    })
+    this.emitUpdate()
+  }
+
   public async loadRemotes(): Promise<void> {
     const remotes = await getRemotes(this.repository)
     this._defaultRemote = findDefaultRemote(remotes)
@@ -1110,10 +1240,20 @@ export class GitStore extends BaseStore {
 
   /** Merge the named branch into the current branch. */
   public merge(branch: string): Promise<boolean | undefined> {
+    if (this.tip.kind !== TipState.Valid) {
+      throw new Error(
+        `unable to merge as tip state is '${
+          this.tip.kind
+        }' and the application expects the repository to be on a branch currently`
+      )
+    }
+
+    const currentBranch = this.tip.branch.name
+
     return this.performFailableOperation(() => merge(this.repository, branch), {
       gitContext: {
         kind: 'merge',
-        tip: this.tip,
+        currentBranch,
         theirBranch: branch,
       },
     })
@@ -1297,6 +1437,23 @@ export class GitStore extends BaseStore {
       commits,
       ahead: aheadBehind.ahead,
       behind: aheadBehind.behind,
+    }
+  }
+
+  public async pruneForkedRemotes(openPRs: ReadonlyArray<PullRequest>) {
+    const remotes = await getRemotes(this.repository)
+    const prRemotes = new Set<string>()
+
+    for (const pr of openPRs) {
+      if (pr.head.gitHubRepository.cloneURL !== null) {
+        prRemotes.add(pr.head.gitHubRepository.cloneURL)
+      }
+    }
+
+    for (const r of remotes) {
+      if (r.name.startsWith(ForkedRemotePrefix) && !prRemotes.has(r.url)) {
+        await removeRemote(this.repository, r.name)
+      }
     }
   }
 }

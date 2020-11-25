@@ -3,7 +3,12 @@ import * as React from 'react'
 
 import { ChangesList } from './changes-list'
 import { DiffSelectionType } from '../../models/diff'
-import { IChangesState } from '../../lib/app-state'
+import {
+  IChangesState,
+  RebaseConflictState,
+  isRebaseConflictState,
+  ChangesSelectionKind,
+} from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { IGitHubUser } from '../../lib/databases'
@@ -23,7 +28,6 @@ import { CSSTransitionGroup } from 'react-transition-group'
 import { openFile } from '../lib/open-file'
 import { Account } from '../../models/account'
 import { PopupType } from '../../models/popup'
-import { enableFileSizeWarningCheck } from '../../lib/feature-flag'
 import { filesNotTrackedByLFS } from '../../lib/git/lfs'
 import { getLargeFilePaths } from '../../lib/large-files'
 import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
@@ -123,43 +127,43 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   private onCreateCommit = async (
     context: ICommitContext
   ): Promise<boolean> => {
-    if (enableFileSizeWarningCheck()) {
-      const overSizedFiles = await getLargeFilePaths(
-        this.props.repository,
-        this.props.changes.workingDirectory,
-        100
-      )
-      const filesIgnoredByLFS = await filesNotTrackedByLFS(
-        this.props.repository,
-        overSizedFiles
-      )
+    const { workingDirectory } = this.props.changes
 
-      if (filesIgnoredByLFS.length !== 0) {
-        this.props.dispatcher.showPopup({
-          type: PopupType.OversizedFiles,
-          oversizedFiles: filesIgnoredByLFS,
-          context: context,
-          repository: this.props.repository,
-        })
+    const overSizedFiles = await getLargeFilePaths(
+      this.props.repository,
+      workingDirectory,
+      100
+    )
+    const filesIgnoredByLFS = await filesNotTrackedByLFS(
+      this.props.repository,
+      overSizedFiles
+    )
 
-        return false
-      }
+    if (filesIgnoredByLFS.length !== 0) {
+      this.props.dispatcher.showPopup({
+        type: PopupType.OversizedFiles,
+        oversizedFiles: filesIgnoredByLFS,
+        context: context,
+        repository: this.props.repository,
+      })
+
+      return false
     }
 
     // are any conflicted files left?
-    const conflictedFilesLeft = this.props.changes.workingDirectory.files.filter(
+    const conflictedFilesLeft = workingDirectory.files.filter(
       f =>
         isConflictedFile(f.status) &&
         f.selection.getSelectionType() === DiffSelectionType.None
     )
 
     if (conflictedFilesLeft.length === 0) {
-      this.props.dispatcher.clearMergeConflictsBanner()
+      this.props.dispatcher.clearBanner()
       this.props.dispatcher.recordUnguidedConflictedMergeCompletion()
     }
 
-    // which of the files selected for committing are conflicted?
-    const conflictedFilesSelected = this.props.changes.workingDirectory.files.filter(
+    // which of the files selected for committing are conflicted (with markers)?
+    const conflictedFilesSelected = workingDirectory.files.filter(
       f =>
         isConflictedFile(f.status) &&
         hasUnresolvedConflicts(f.status) &&
@@ -184,7 +188,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
 
   private onFileSelectionChanged = (rows: ReadonlyArray<number>) => {
     const files = rows.map(i => this.props.changes.workingDirectory.files[i])
-    this.props.dispatcher.changeChangesSelection(this.props.repository, files)
+    this.props.dispatcher.selectWorkingDirectoryFiles(
+      this.props.repository,
+      files
+    )
   }
 
   private onIncludeChanged = (path: string, include: boolean) => {
@@ -224,9 +231,9 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     }
   }
 
-  private onDiscardAllChanges = (
+  private onDiscardChangesFromFiles = (
     files: ReadonlyArray<WorkingDirectoryFileChange>,
-    isDiscardingAllChanges: boolean = true
+    isDiscardingAllChanges: boolean
   ) => {
     this.props.dispatcher.showPopup({
       type: PopupType.ConfirmDiscardChanges,
@@ -311,6 +318,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           commit={commit}
           onUndo={this.onUndo}
           emoji={this.props.emoji}
+          isCommitting={this.props.isCommitting}
         />
       )
     }
@@ -328,9 +336,26 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     )
   }
 
+  private renderUndoCommit = (
+    rebaseConflictState: RebaseConflictState | null
+  ): JSX.Element | null => {
+    if (rebaseConflictState !== null) {
+      return null
+    }
+
+    return this.renderMostRecentLocalCommit()
+  }
+
   public render() {
-    const changesState = this.props.changes
-    const selectedFileIDs = changesState.selectedFileIDs
+    const {
+      workingDirectory,
+      commitMessage,
+      showCoAuthoredBy,
+      coAuthors,
+      conflictState,
+      selection,
+      currentBranchProtected,
+    } = this.props.changes
 
     // TODO: I think user will expect the avatar to match that which
     // they have configured in GitHub.com as well as GHE so when we add
@@ -342,12 +367,27 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
       user = this.props.gitHubUsers.get(email.toLowerCase()) || null
     }
 
+    let rebaseConflictState: RebaseConflictState | null = null
+    if (conflictState !== null) {
+      rebaseConflictState = isRebaseConflictState(conflictState)
+        ? conflictState
+        : null
+    }
+
+    const selectedFileIDs =
+      selection.kind === ChangesSelectionKind.WorkingDirectory
+        ? selection.selectedFileIDs
+        : []
+
+    const isShowingStashEntry = selection.kind === ChangesSelectionKind.Stash
+
     return (
       <div id="changes-sidebar-contents">
         <ChangesList
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
-          workingDirectory={changesState.workingDirectory}
+          workingDirectory={workingDirectory}
+          rebaseConflictState={rebaseConflictState}
           selectedFileIDs={selectedFileIDs}
           onFileSelectionChanged={this.onFileSelectionChanged}
           onCreateCommit={this.onCreateCommit}
@@ -357,26 +397,29 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           askForConfirmationOnDiscardChanges={
             this.props.askForConfirmationOnDiscardChanges
           }
-          onDiscardAllChanges={this.onDiscardAllChanges}
+          onDiscardChangesFromFiles={this.onDiscardChangesFromFiles}
           onOpenItem={this.onOpenItem}
           onRowClick={this.onChangedItemClick}
           commitAuthor={this.props.commitAuthor}
           branch={this.props.branch}
           gitHubUser={user}
-          commitMessage={this.props.changes.commitMessage}
+          commitMessage={commitMessage}
           focusCommitMessage={this.props.focusCommitMessage}
           autocompletionProviders={this.autocompletionProviders!}
           availableWidth={this.props.availableWidth}
           onIgnore={this.onIgnore}
           isCommitting={this.props.isCommitting}
-          showCoAuthoredBy={this.props.changes.showCoAuthoredBy}
-          coAuthors={this.props.changes.coAuthors}
+          showCoAuthoredBy={showCoAuthoredBy}
+          coAuthors={coAuthors}
           externalEditorLabel={this.props.externalEditorLabel}
           onOpenInExternalEditor={this.props.onOpenInExternalEditor}
           onChangesListScrolled={this.props.onChangesListScrolled}
           changesListScrollTop={this.props.changesListScrollTop}
+          stashEntry={this.props.changes.stashEntry}
+          isShowingStashEntry={isShowingStashEntry}
+          currentBranchProtected={currentBranchProtected}
         />
-        {this.renderMostRecentLocalCommit()}
+        {this.renderUndoCommit(rebaseConflictState)}
       </div>
     )
   }

@@ -2,15 +2,14 @@
 
 You will need to install these tools on your machine:
 
- - Node.js v8.12.0 (also ensure you can build native modules)
+ - Node.js
  - Yarn
- - Python 2.7
+ - Python 2
  - Electron dependencies
 
 ## Node.js
 
-The GitHub Desktop toolchain currently requires Node 8.x currently, and the
-NodeJS project has instructions for installing across a variety of
+The NodeJS project has instructions for installing across a variety of
 distributions and package managers.
 
 Find your distribution on [this list](https://nodejs.org/en/download/package-manager/)
@@ -62,3 +61,6 @@ $ sudo dnf install -y libsecret-devel libXScrnSaver
 $ sudo apt install libsecret-1-dev libgconf-2-4
 ```
 
+## Back to setup
+
+Once you've installed the necessary dependencies, head back to the [setup page](https://github.com/desktop/desktop/blob/development/docs/contributing/setup.md) to finish getting set up.

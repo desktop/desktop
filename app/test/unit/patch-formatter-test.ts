@@ -31,7 +31,7 @@ async function parseDiff(diff: string): Promise<ITextDiff> {
 }
 
 describe('patch formatting', () => {
-  let repository: Repository | null = null
+  let repository: Repository
 
   describe('formatPatchesForModifiedFile', () => {
     beforeEach(async () => {
@@ -51,7 +51,7 @@ describe('patch formatting', () => {
         unselectedFile
       )
 
-      const diff = await getWorkingDirectoryDiff(repository!, file)
+      const diff = await getWorkingDirectoryDiff(repository, file)
 
       expect(diff.kind === DiffType.Text)
 
@@ -90,7 +90,7 @@ describe('patch formatting', () => {
         unselectedFile
       )
 
-      const diff = await getWorkingDirectoryDiff(repository!, file)
+      const diff = await getWorkingDirectoryDiff(repository, file)
 
       expect(diff.kind === DiffType.Text)
 
@@ -130,7 +130,7 @@ describe('patch formatting', () => {
         unselectedFile
       )
 
-      const diff = await getWorkingDirectoryDiff(repository!, file)
+      const diff = await getWorkingDirectoryDiff(repository, file)
 
       expect(diff.kind === DiffType.Text)
 
@@ -159,7 +159,7 @@ describe('patch formatting', () => {
 
     it(`creates the right patch when an addition is selected but preceding deletions aren't`, async () => {
       const modifiedFile = 'modified-file.md'
-      await FSE.writeFile(Path.join(repository!.path, modifiedFile), 'line 1\n')
+      await FSE.writeFile(Path.join(repository.path, modifiedFile), 'line 1\n')
 
       const unselectedFile = DiffSelection.fromInitialSelection(
         DiffSelectionType.None
@@ -170,7 +170,7 @@ describe('patch formatting', () => {
         unselectedFile
       )
 
-      const diff = await getWorkingDirectoryDiff(repository!, file)
+      const diff = await getWorkingDirectoryDiff(repository, file)
 
       expect(diff.kind === DiffType.Text)
 

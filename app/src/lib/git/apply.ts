@@ -1,10 +1,11 @@
+import { GitError as DugiteError } from 'dugite'
 import { git } from './core'
 import {
   WorkingDirectoryFileChange,
   AppFileStatusKind,
 } from '../../models/status'
 import { DiffType } from '../../models/diff'
-import { Repository } from '../../models/repository'
+import { Repository, WorkingTree } from '../../models/repository'
 import { getWorkingDirectoryDiff } from './diff'
 import { formatPatch } from '../patch-formatter'
 
@@ -66,4 +67,36 @@ export async function applyPatchToIndex(
   await git(applyArgs, repository.path, 'applyPatchToIndex', { stdin: patch })
 
   return Promise.resolve()
+}
+
+/**
+ * Test a patch to see if it will apply cleanly.
+ *
+ * @param workTree work tree (which should be checked out to a specific commit)
+ * @param patch a Git patch (or patch series) to try applying
+ * @returns whether the patch applies cleanly
+ *
+ * See `formatPatch` to generate a patch series from existing Git commits
+ */
+export async function checkPatch(
+  workTree: WorkingTree,
+  patch: string
+): Promise<boolean> {
+  const result = await git(
+    ['apply', '--check', '-'],
+    workTree.path,
+    'checkPatch',
+    {
+      stdin: patch,
+      stdinEncoding: 'utf8',
+      expectedErrors: new Set<DugiteError>([DugiteError.PatchDoesNotApply]),
+    }
+  )
+
+  if (result.gitError === DugiteError.PatchDoesNotApply) {
+    // other errors will be thrown if encountered, so this is fine for now
+    return false
+  }
+
+  return true
 }

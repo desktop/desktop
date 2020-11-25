@@ -1,15 +1,13 @@
 import * as React from 'react'
 
-import { AppFileStatus } from '../../models/status'
 import { PathLabel } from '../lib/path-label'
 import { Octicon, iconForStatus } from '../octicons'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { mapStatus } from '../../lib/status'
+import { WorkingDirectoryFileChange } from '../../models/status'
 
 interface IChangedFileProps {
-  readonly id: string
-  readonly path: string
-  readonly status: AppFileStatus
+  readonly file: WorkingDirectoryFileChange
   readonly include: boolean | null
   readonly availableWidth: number
   readonly disableSelection: boolean
@@ -17,9 +15,7 @@ interface IChangedFileProps {
 
   /** Callback called when user right-clicks on an item */
   readonly onContextMenu: (
-    id: string,
-    path: string,
-    status: AppFileStatus,
+    file: WorkingDirectoryFileChange,
     event: React.MouseEvent<HTMLDivElement>
   ) => void
 }
@@ -28,7 +24,7 @@ interface IChangedFileProps {
 export class ChangedFile extends React.Component<IChangedFileProps, {}> {
   private handleCheckboxChange = (event: React.FormEvent<HTMLInputElement>) => {
     const include = event.currentTarget.checked
-    this.props.onIncludeChanged(this.props.path, include)
+    this.props.onIncludeChanged(this.props.file.path, include)
   }
 
   private get checkboxValue(): CheckboxValue {
@@ -42,7 +38,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
   }
 
   public render() {
-    const status = this.props.status
+    const { status, path } = this.props.file
     const fileStatus = mapStatus(status)
 
     const listItemPadding = 10 * 2
@@ -70,8 +66,8 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
         />
 
         <PathLabel
-          path={this.props.path}
-          status={this.props.status}
+          path={path}
+          status={status}
           availableWidth={availablePathWidth}
         />
 
@@ -85,11 +81,6 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
   }
 
   private onContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
-    this.props.onContextMenu(
-      this.props.id,
-      this.props.path,
-      this.props.status,
-      event
-    )
+    this.props.onContextMenu(this.props.file, event)
   }
 }

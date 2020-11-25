@@ -19,28 +19,19 @@ async function getPullArgs(
 ) {
   const networkArguments = await gitNetworkArguments(repository, account)
 
+  const args = [...networkArguments, 'pull']
+
   if (enableRecurseSubmodulesFlag()) {
-    return progressCallback != null
-      ? [
-          ...networkArguments,
-          'pull',
-          '--no-rebase',
-          '--recurse-submodules',
-          '--progress',
-          remote,
-        ]
-      : [
-          ...networkArguments,
-          'pull',
-          '--no-rebase',
-          '--recurse-submodules',
-          remote,
-        ]
-  } else {
-    return progressCallback != null
-      ? [...networkArguments, 'pull', '--no-rebase', '--progress', remote]
-      : [...networkArguments, 'pull', '--no-rebase', remote]
+    args.push('--recurse-submodules')
   }
+
+  if (progressCallback != null) {
+    args.push('--progress')
+  }
+
+  args.push(remote)
+
+  return args
 }
 
 /**
