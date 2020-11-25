@@ -16,7 +16,7 @@ export class Swipe extends React.Component<
   public constructor(props: ICommonImageDiffProperties) {
     super(props)
 
-    this.state = { percentage: 1 }
+    this.state = { percentage: 0 }
   }
 
   public render() {
