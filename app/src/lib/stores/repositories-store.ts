@@ -136,29 +136,28 @@ export class RepositoriesStore extends TypedBaseStore<
       this.db.gitHubRepositories,
       this.db.owners,
       async () => {
-        const inflatedRepos = new Array<Repository>()
-        const repos = await this.db.repositories.toArray()
-        for (const repo of repos) {
-          let inflatedRepo: Repository | null = null
-          let gitHubRepository: GitHubRepository | null = null
-          if (repo.gitHubRepositoryID) {
-            gitHubRepository = await this.findGitHubRepositoryByID(
-              repo.gitHubRepositoryID
-            )
-          }
+        const repos = new Array<Repository>()
 
-          inflatedRepo = new Repository(
-            repo.path,
-            repo.id!,
-            gitHubRepository,
-            repo.missing,
-            repo.workflowPreferences,
-            repo.isTutorialRepository
+        for (const dbRepo of await this.db.repositories.toArray()) {
+          const ghRepo =
+            dbRepo.gitHubRepositoryID !== null
+              ? await this.findGitHubRepositoryByID(dbRepo.gitHubRepositoryID)
+              : null
+
+          assertNonNullable(dbRepo.id, 'no id after loading from db')
+          repos.push(
+            new Repository(
+              dbRepo.path,
+              dbRepo.id,
+              ghRepo,
+              dbRepo.missing,
+              dbRepo.workflowPreferences,
+              dbRepo.isTutorialRepository
+            )
           )
-          inflatedRepos.push(inflatedRepo)
         }
 
-        return inflatedRepos
+        return repos
       }
     )
   }
