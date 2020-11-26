@@ -4963,7 +4963,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<ReadonlyArray<Repository>> {
     const addedRepositories = new Array<Repository>()
     const lfsRepositories = new Array<Repository>()
-    const invalidPaths: Array<string> = []
+    const invalidPaths = new Array<string>()
 
     for (const path of paths) {
       const validatedPath = await validatedRepositoryPath(path)
