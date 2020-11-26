@@ -4970,6 +4970,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (validatedPath) {
         log.info(`[AppStore] adding repository at ${validatedPath} to store`)
 
+        const existing = this.repositories.find(x => x.path === validatedPath)
+
+        // We don't have to worry about repositoryWithRefreshedGitHubRepository
+        // and isUsingLFS if the repo already exists in the app.
+        if (existing !== undefined) {
+          addedRepositories.push(existing)
+          continue
+        }
+
         const addedRepo = await this.repositoriesStore.addRepository(
           validatedPath
         )
