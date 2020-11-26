@@ -19,6 +19,7 @@
     ".awcache": true,
     ".eslintcache": true
   },
+  "files.insertFinalNewline": true,
   "editor.tabSize": 2,
   "prettier.semi": false,
   "prettier.singleQuote": true,

@@ -212,6 +212,7 @@ import {
   getNumber,
   getNumberArray,
   setNumberArray,
+  getEnum,
 } from '../local-storage'
 import { ExternalEditorError } from '../editors/shared'
 import { ApiRepositoriesStore } from './api-repositories-store'
@@ -235,11 +236,7 @@ import {
 } from '../git/stash'
 import {
   UncommittedChangesStrategy,
-  UncommittedChangesStrategyKind,
-  uncommittedChangesStrategyKindDefault,
-  getUncommittedChangesStrategy,
-  askToStash,
-  parseStrategy,
+  defaultUncommittedChangesStrategy,
 } from '../../models/uncommitted-changes-strategy'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
@@ -269,6 +266,8 @@ import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updater'
 import { getAttributableEmailsFor } from '../email'
 import { TrashNameLabel } from '../../ui/lib/context-menu'
+import { GitError as DugiteError } from 'dugite'
+import { ErrorWithMetadata, CheckoutError } from '../error-with-metadata'
 import {
   ShowSideBySideDiffDefault,
   getShowSideBySideDiff,
@@ -300,8 +299,7 @@ const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
 const confirmForcePushKey: string = 'confirmForcePush'
 
-const uncommittedChangesStrategyKindKey: string =
-  'uncommittedChangesStrategyKind'
+const uncommittedChangesStrategyKey = 'uncommittedChangesStrategyKind'
 
 const externalEditorKey: string = 'externalEditor'
 
@@ -395,7 +393,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private hideWhitespaceInDiff: boolean = hideWhitespaceInDiffDefault
   private showSideBySideDiff: boolean = ShowSideBySideDiffDefault
 
-  private uncommittedChangesStrategyKind: UncommittedChangesStrategyKind = uncommittedChangesStrategyKindDefault
+  private uncommittedChangesStrategy = defaultUncommittedChangesStrategy
 
   private selectedExternalEditor: ExternalEditor | null = null
 
@@ -757,7 +755,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         .askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
       askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
-      uncommittedChangesStrategyKind: this.uncommittedChangesStrategyKind,
+      uncommittedChangesStrategy: this.uncommittedChangesStrategy,
       selectedExternalEditor: this.selectedExternalEditor,
       imageDiffType: this.imageDiffType,
       hideWhitespaceInDiff: this.hideWhitespaceInDiff,
@@ -1813,11 +1811,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnForcePushDefault
     )
 
-    const strategy = parseStrategy(
-      localStorage.getItem(uncommittedChangesStrategyKindKey)
-    )
-    this.uncommittedChangesStrategyKind =
-      strategy || uncommittedChangesStrategyKindDefault
+    this.uncommittedChangesStrategy =
+      getEnum(uncommittedChangesStrategyKey, UncommittedChangesStrategy) ??
+      defaultUncommittedChangesStrategy
 
     this.updateSelectedExternalEditor(
       await this.lookupSelectedExternalEditor()
@@ -3062,9 +3058,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     name: string,
     startPoint: string | null,
-    uncommittedChangesStrategy: UncommittedChangesStrategy = getUncommittedChangesStrategy(
-      this.uncommittedChangesStrategyKind
-    ),
     noTrackOption: boolean = false
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
@@ -3072,39 +3065,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       createBranch(repository, name, startPoint, noTrackOption)
     )
 
-    if (branch == null) {
+    if (branch === null || branch === undefined) {
       return repository
+    } else {
+      return this._checkoutBranch(repository, branch)
     }
-
-    const { changesState, branchesState } = this.repositoryStateCache.get(
-      repository
-    )
-    const { tip } = branchesState
-    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
-    const hasChanges = changesState.workingDirectory.files.length > 0
-
-    if (
-      hasChanges &&
-      currentBranch !== null &&
-      uncommittedChangesStrategy.kind ===
-        UncommittedChangesStrategyKind.AskForConfirmation
-    ) {
-      this._showPopup({
-        type: PopupType.StashAndSwitchBranch,
-        branchToCheckout: branch,
-        repository,
-      })
-
-      return repository
-    }
-
-    const repo = await this._checkoutBranch(
-      repository,
-      branch,
-      uncommittedChangesStrategy
-    )
-    this._closePopup()
-    return repo
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -3135,7 +3100,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       checkoutProgress,
     }))
 
-    if (this.selectedRepository === repository) {
+    if (
+      this.selectedRepository instanceof Repository &&
+      this.selectedRepository.id === repository.id
+    ) {
       this.emitUpdate()
     }
   }
@@ -3150,174 +3118,198 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
+  /**
+   * Checkout the given branch, using given stashing strategy or the default.
+   *
+   * When `explicitStrategy` is undefined we'll use the default strategy
+   * configurable by the user in preferences. Without an explicit strategy
+   * this method will take care of presenting the user with any necessary
+   * confirmation dialogs and choices depending on the state of their
+   * repository.
+   *
+   * When provided with an explicit strategy other than `AskForConfirmation`
+   * we assume the user has been informed of any risks of overwritten stashes
+   * and such. In other words the only consumers who should pass an explicit
+   * strategy are dialogs and other confirmation constructs where the user
+   * has made an explicit choice about how to proceed.
+   *
+   * Note: This shouldn't be called directly. See `Dispatcher`.
+   */
   public async _checkoutBranch(
     repository: Repository,
     branch: Branch,
-    uncommittedChangesStrategy: UncommittedChangesStrategy = getUncommittedChangesStrategy(
-      this.uncommittedChangesStrategyKind
-    )
+    explicitStrategy?: UncommittedChangesStrategy
   ): Promise<Repository> {
-    const gitStore = this.gitStoreCache.get(repository)
-    const kind = 'checkout'
-
-    const { changesState, branchesState } = this.repositoryStateCache.get(
-      repository
-    )
-
-    let stashToPop: IStashEntry | null = null
-
+    const repositoryState = this.repositoryStateCache.get(repository)
+    const { changesState, branchesState } = repositoryState
+    const { currentBranchProtected, stashEntry } = changesState
+    const { tip } = branchesState
     const hasChanges = changesState.workingDirectory.files.length > 0
-    if (hasChanges) {
-      if (uncommittedChangesStrategy.kind === askToStash.kind) {
-        this._showPopup({
-          type: PopupType.StashAndSwitchBranch,
-          branchToCheckout: branch,
-          repository,
-        })
+
+    let strategy = explicitStrategy ?? this.uncommittedChangesStrategy
+
+    // The user hasn't been presented with an explicit choice
+    if (explicitStrategy === undefined) {
+      // Even if the user has chosen to "always stash on current branch" in
+      // preferences we still want to let them know changes might be lost
+      if (strategy === UncommittedChangesStrategy.StashOnCurrentBranch) {
+        if (hasChanges && stashEntry !== null) {
+          const type = PopupType.ConfirmOverwriteStash
+          this._showPopup({ type, repository, branchToCheckout: branch })
+          return repository
+        }
+      }
+    }
+
+    // Always move changes to new branch if we're on a detached head, unborn
+    // branch, or a protected branch.
+    if (tip.kind !== TipState.Valid || currentBranchProtected) {
+      strategy = UncommittedChangesStrategy.MoveToNewBranch
+    }
+
+    if (strategy === UncommittedChangesStrategy.AskForConfirmation) {
+      if (hasChanges) {
+        const type = PopupType.StashAndSwitchBranch
+        this._showPopup({ type, branchToCheckout: branch, repository })
         return repository
       }
-
-      stashToPop = await this.stashToPopAfterBranchCheckout(
-        repository,
-        branch,
-        uncommittedChangesStrategy
-      )
     }
 
-    const checkoutSucceeded =
-      (await this.withAuthenticatingUser(repository, (repository, account) =>
-        gitStore.performFailableOperation(
-          () =>
-            checkoutBranch(repository, account, branch, progress => {
-              this.updateCheckoutProgress(repository, progress)
-            }),
-          {
-            repository,
-            retryAction: {
-              type: RetryActionType.Checkout,
-              repository,
-              branch,
-            },
-            gitContext: {
-              kind: 'checkout',
-              branchToCheckout: branch,
-            },
-          }
-        )
-      )) !== undefined
+    return this.withAuthenticatingUser(repository, (repository, account) => {
+      // We always want to end with refreshing the repository regardless of
+      // whether the checkout succeeded or not in order to present the most
+      // up-to-date information to the user.
+      return this.checkoutImplementation(repository, branch, account, strategy)
+        .then(() => this.onSuccessfulCheckout(repository, branch))
+        .catch(e => this.emitError(new CheckoutError(e, repository, branch)))
+        .then(() => this.refreshAfterCheckout(repository, branch))
+        .finally(() => this.updateCheckoutProgress(repository, null))
+    })
+  }
 
-    if (checkoutSucceeded) {
-      this.clearBranchProtectionState(repository)
+  /** Invoke the best checkout implementation for the selected strategy */
+  private checkoutImplementation(
+    repository: Repository,
+    branch: Branch,
+    account: IGitAccount | null,
+    strategy: UncommittedChangesStrategy
+  ) {
+    if (strategy === UncommittedChangesStrategy.StashOnCurrentBranch) {
+      return this.checkoutAndLeaveChanges(repository, branch, account)
+    } else if (strategy === UncommittedChangesStrategy.MoveToNewBranch) {
+      return this.checkoutAndBringChanges(repository, branch, account)
+    } else {
+      return this.checkoutIgnoringChanges(repository, branch, account)
+    }
+  }
+
+  /** Checkout the given branch without taking local changes into account */
+  private async checkoutIgnoringChanges(
+    repository: Repository,
+    branch: Branch,
+    account: IGitAccount | null
+  ) {
+    await checkoutBranch(repository, account, branch, progress => {
+      this.updateCheckoutProgress(repository, progress)
+    })
+  }
+
+  /**
+   * Checkout the given branch and leave any local changes on the current branch
+   *
+   * Note that this will ovewrite any existing stash enty on the current branch.
+   */
+  private async checkoutAndLeaveChanges(
+    repository: Repository,
+    branch: Branch,
+    account: IGitAccount | null
+  ) {
+    const repositoryState = this.repositoryStateCache.get(repository)
+    const { workingDirectory } = repositoryState.changesState
+    const { tip } = repositoryState.branchesState
+
+    if (tip.kind === TipState.Valid && workingDirectory.files.length > 0) {
+      await this.createStashAndDropPreviousEntry(repository, tip.branch)
+      this.statsStore.recordStashCreatedOnCurrentBranch()
     }
 
-    if (
-      uncommittedChangesStrategy.kind ===
-        UncommittedChangesStrategyKind.MoveToNewBranch &&
-      checkoutSucceeded
-    ) {
-      // We increment the metric after checkout succeeds to guard
-      // against double counting when an error occurs on checkout.
-      // When an error occurs, one of our error handlers will inspect
-      // it and make a call to `moveChangesToBranchAndCheckout` which will
-      // call this method again once the working directory has been cleared.
-      this.statsStore.recordChangesTakenToNewBranch()
+    return this.checkoutIgnoringChanges(repository, branch, account)
+  }
 
-      if (stashToPop) {
-        const stashSha = stashToPop.stashSha
-        await gitStore.performFailableOperation(() => {
-          return popStashEntry(repository, stashSha)
-        })
+  /**
+   * Checkout the given branch and move any local changes along.
+   *
+   * Will attempt to simply check out the branch and if that fails due to
+   * local changes risking being overwritten it'll create a transient stash
+   * entry, switch branches, and pop said stash entry.
+   *
+   * Note that the transient stash entry will not overwrite any current stash
+   * entry for the target branch.
+   */
+  private async checkoutAndBringChanges(
+    repository: Repository,
+    branch: Branch,
+    account: IGitAccount | null
+  ) {
+    try {
+      await this.checkoutIgnoringChanges(repository, branch, account)
+    } catch (checkoutError) {
+      if (!isLocalChangesOverwrittenError(checkoutError)) {
+        throw checkoutError
       }
+
+      const stash = (await this.createStashEntry(repository, branch))
+        ? await getLastDesktopStashEntryForBranch(repository, branch)
+        : null
+
+      // Failing to stash the changes when we know that there are changes
+      // preventing a checkout is very likely due to assume-unchanged or
+      // skip-worktree. So instead of showing a "could not create stash" error
+      // we'll show the checkout error to the user and let them figure it out.
+      if (stash === null) {
+        throw checkoutError
+      }
+
+      await this.checkoutIgnoringChanges(repository, branch, account)
+      await popStashEntry(repository, stash.stashSha)
+
+      this.statsStore.recordChangesTakenToNewBranch()
     }
+  }
+
+  private async onSuccessfulCheckout(repository: Repository, branch: Branch) {
+    const repositoryState = this.repositoryStateCache.get(repository)
+    const { stashEntry } = repositoryState.changesState
+    const { defaultBranch } = repositoryState.branchesState
+
+    this.clearBranchProtectionState(repository)
 
     // Make sure changes or suggested next step are visible after branch checkout
-    this._selectWorkingDirectoryFiles(repository)
+    await this._selectWorkingDirectoryFiles(repository)
 
-    try {
-      this.updateCheckoutProgress(repository, {
-        kind,
-        title: __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository',
-        value: 1,
-        targetBranch: branch.name,
-      })
+    this._initializeCompare(repository, { kind: HistoryTabMode.History })
 
-      await this._refreshRepository(repository)
-    } finally {
-      this.updateCheckoutProgress(repository, null)
-      this._initializeCompare(repository, {
-        kind: HistoryTabMode.History,
-      })
-    }
-
-    const { defaultBranch } = branchesState
     if (defaultBranch !== null && branch.name !== defaultBranch.name) {
       this.statsStore.recordNonDefaultBranchCheckout()
     }
 
-    if (changesState.stashEntry !== null && !this.hasUserViewedStash) {
+    if (stashEntry !== null && !this.hasUserViewedStash) {
       this.statsStore.recordStashNotViewedAfterCheckout()
     }
 
     this.hasUserViewedStash = false
-
-    return repository
   }
 
-  // Depending on the UncommittedChangesStrategy and the state of the uncommitted
-  // changes there could be a stash to pop after checking out a branch. This method
-  // handles retrieving or creating the stash so it can be popped after the checkout
-  // is complete.
-  private async stashToPopAfterBranchCheckout(
-    repository: Repository,
-    branch: Branch,
-    uncommittedChangesStrategy: UncommittedChangesStrategy = getUncommittedChangesStrategy(
-      this.uncommittedChangesStrategyKind
-    )
-  ): Promise<IStashEntry | null> {
-    const {
-      changesState,
-      branchesState: { tip },
-    } = this.repositoryStateCache.get(repository)
-    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+  private async refreshAfterCheckout(repository: Repository, branch: Branch) {
+    this.updateCheckoutProgress(repository, {
+      kind: 'checkout',
+      title: `Refreshing ${__DARWIN__ ? 'Repository' : 'repository'}`,
+      value: 1,
+      targetBranch: branch.name,
+    })
 
-    if (
-      currentBranch !== null &&
-      uncommittedChangesStrategy.kind ===
-        UncommittedChangesStrategyKind.StashOnCurrentBranch
-    ) {
-      await this._createStashAndDropPreviousEntry(
-        repository,
-        currentBranch.name
-      )
-      this.statsStore.recordStashCreatedOnCurrentBranch()
-    } else if (
-      uncommittedChangesStrategy.kind ===
-      UncommittedChangesStrategyKind.MoveToNewBranch
-    ) {
-      const hasDeletedFiles = changesState.workingDirectory.files.some(
-        file => file.status.kind === AppFileStatusKind.Deleted
-      )
-      const { transientStashEntry } = uncommittedChangesStrategy
-      if (hasDeletedFiles && !transientStashEntry) {
-        const gitStore = this.gitStoreCache.get(repository)
-        const stashCreated = await gitStore.performFailableOperation(() => {
-          return createDesktopStashEntry(
-            repository,
-            branch.name,
-            getUntrackedFiles(changesState.workingDirectory)
-          )
-        })
-
-        if (stashCreated) {
-          return getLastDesktopStashEntryForBranch(repository, branch.name)
-        }
-      }
-
-      return transientStashEntry
-    }
-
-    return null
+    await this._refreshRepository(repository)
+    return repository
   }
 
   /**
@@ -3330,28 +3322,32 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _createStashForCurrentBranch(
     repository: Repository,
     showConfirmationDialog: boolean
-  ) {
+  ): Promise<boolean> {
     const repositoryState = this.repositoryStateCache.get(repository)
     const tip = repositoryState.branchesState.tip
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
     const hasExistingStash = repositoryState.changesState.stashEntry !== null
 
     if (currentBranch === null) {
-      return
+      return false
     }
 
     if (showConfirmationDialog && hasExistingStash) {
-      return this._showPopup({
+      this._showPopup({
         type: PopupType.ConfirmOverwriteStash,
         branchToCheckout: null,
         repository,
       })
+      return false
     }
 
-    await this._createStashAndDropPreviousEntry(repository, currentBranch.name)
-    this.statsStore.recordStashCreatedOnCurrentBranch()
+    if (await this.createStashAndDropPreviousEntry(repository, currentBranch)) {
+      this.statsStore.recordStashCreatedOnCurrentBranch()
+      await this._refreshRepository(repository)
+      return true
+    }
 
-    await this._refreshRepository(repository)
+    return false
   }
 
   /**
@@ -4660,12 +4656,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-  public _setUncommittedChangesStrategyKindSetting(
-    value: UncommittedChangesStrategyKind
+  public _setUncommittedChangesStrategySetting(
+    value: UncommittedChangesStrategy
   ): Promise<void> {
-    this.uncommittedChangesStrategyKind = value
+    this.uncommittedChangesStrategy = value
 
-    localStorage.setItem(uncommittedChangesStrategyKindKey, value)
+    localStorage.setItem(uncommittedChangesStrategyKey, value)
 
     this.emitUpdate()
     return Promise.resolve()
@@ -5662,64 +5658,34 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _createStashAndDropPreviousEntry(
+  private async createStashAndDropPreviousEntry(
     repository: Repository,
-    branchName: string
+    branch: Branch
   ) {
-    const previousStashEntry = await getLastDesktopStashEntryForBranch(
-      repository,
-      branchName
+    const entry = await getLastDesktopStashEntryForBranch(repository, branch)
+    const gitStore = this.gitStoreCache.get(repository)
+
+    const createdStash = await gitStore.performFailableOperation(() =>
+      this.createStashEntry(repository, branch)
     )
 
-    if (previousStashEntry !== null) {
-      await dropDesktopStashEntry(repository, previousStashEntry.stashSha)
-      log.info(
-        `Dropped stash '${previousStashEntry.stashSha}' associated with ${previousStashEntry.branchName}`
-      )
+    if (createdStash === true && entry !== null) {
+      const { stashSha, branchName } = entry
+      await gitStore.performFailableOperation(async () => {
+        await dropDesktopStashEntry(repository, stashSha)
+        log.info(`Dropped stash '${stashSha}' associated with ${branchName}`)
+      })
     }
 
-    const {
-      changesState: { workingDirectory },
-    } = this.repositoryStateCache.get(repository)
-
-    await createDesktopStashEntry(
-      repository,
-      branchName,
-      getUntrackedFiles(workingDirectory)
-    )
+    return createdStash === true
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _moveChangesToBranchAndCheckout(
-    repository: Repository,
-    branchToCheckout: Branch
-  ) {
-    const {
-      changesState: { workingDirectory },
-    } = this.repositoryStateCache.get(repository)
-    const gitStore = this.gitStoreCache.get(repository)
-    const isStashCreated = await gitStore.performFailableOperation(() => {
-      return createDesktopStashEntry(
-        repository,
-        branchToCheckout.name,
-        getUntrackedFiles(workingDirectory)
-      )
-    })
+  private async createStashEntry(repository: Repository, branch: Branch) {
+    const { changesState } = this.repositoryStateCache.get(repository)
+    const { workingDirectory } = changesState
+    const untrackedFiles = getUntrackedFiles(workingDirectory)
 
-    if (!isStashCreated) {
-      return
-    }
-
-    const transientStashEntry = await getLastDesktopStashEntryForBranch(
-      repository,
-      branchToCheckout.name
-    )
-    const strategy: UncommittedChangesStrategy = {
-      kind: UncommittedChangesStrategyKind.MoveToNewBranch,
-      transientStashEntry,
-    }
-    await this._checkoutBranch(repository, branchToCheckout, strategy)
+    return await createDesktopStashEntry(repository, branch, untrackedFiles)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -5941,4 +5907,15 @@ function userIsStartingRebaseFlow(
   }
 
   return false
+}
+
+function isLocalChangesOverwrittenError(error: Error): boolean {
+  if (error instanceof ErrorWithMetadata) {
+    return isLocalChangesOverwrittenError(error.underlyingError)
+  }
+
+  return (
+    error instanceof GitError &&
+    error.result.gitError === DugiteError.LocalChangesOverwritten
+  )
 }
