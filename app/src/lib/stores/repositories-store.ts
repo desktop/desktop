@@ -60,9 +60,7 @@ export class RepositoriesStore extends TypedBaseStore<
       'rw',
       this.db.gitHubRepositories,
       this.db.owners,
-      async () => {
-        return this.putGitHubRepository(endpoint, apiRepository, true)
-      }
+      () => this.putGitHubRepository(endpoint, apiRepository, true)
     )
   }
 
@@ -78,9 +76,7 @@ export class RepositoriesStore extends TypedBaseStore<
       'rw',
       this.db.gitHubRepositories,
       this.db.owners,
-      async () => {
-        return this.putGitHubRepository(endpoint, apiRepository, false)
-      }
+      () => this.putGitHubRepository(endpoint, apiRepository, false)
     )
   }
 
