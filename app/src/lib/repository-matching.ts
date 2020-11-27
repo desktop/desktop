@@ -79,15 +79,13 @@ function matchRemoteWithAccount(
 export function matchExistingRepository<
   T extends Repository | CloningRepository
 >(repos: ReadonlyArray<T>, path: string): T | undefined {
-  if (__WIN32__) {
-    // Windows is guaranteed to be case-insensitive so we can be a
-    // bit more accepting.
-    const needle = Path.normalize(path).toLowerCase()
-    return repos.find(r => Path.normalize(r.path).toLowerCase() === needle)
-  } else {
-    const needle = Path.normalize(path)
-    return repos.find(r => Path.normalize(r.path) === needle)
-  }
+  // Windows is guaranteed to be case-insensitive so we can be a bit less strict
+  const normalize = __WIN32__
+    ? (p: string) => Path.normalize(p).toLowerCase()
+    : (p: string) => Path.normalize(p)
+
+  const needle = normalize(path)
+  return repos.find(r => normalize(r.path) === needle)
 }
 
 /**
