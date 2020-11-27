@@ -46,7 +46,6 @@
     "p-limit": "^2.2.0",
     "primer-support": "^4.0.0",
     "prop-types": "^15.7.2",
-    "queue": "^5.0.0",
     "quick-lru": "^3.0.0",
     "react": "^16.8.4",
     "react-css-transition-replace": "^3.0.3",
