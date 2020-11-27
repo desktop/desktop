@@ -116,13 +116,8 @@ export class AheadBehindStore {
   }
 
   /**
-   * Subscribe to ahead behind status updates for a particular ref.
-   *
-   * @param repository The GitHub repository to use when looking up ahead behind status.
-   * @param ref        The commit ref (can be a SHA or a Git ref) for which to
-   *                   fetch status.
-   * @param callback   A callback which will be invoked whenever the
-   *                   store updates a ahead behind status for the given ref.
+   * Subscribe to the result of calculating the ahead behind status for the
+   * given range.
    */
   public subscribe(
     repository: Repository,
