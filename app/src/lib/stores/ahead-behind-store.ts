@@ -14,7 +14,7 @@ interface IAheadBehindSubscription {
 
   /**
    * One or more callbacks to notify when the ahead/behind status between the
-   * two references has been calculated (or updated)
+   * two references has been calculated
    */
   readonly callbacks: Set<AheadBehindCallback>
 }
