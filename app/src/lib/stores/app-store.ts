@@ -3071,15 +3071,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     noTrackOption: boolean = false
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
-    const branch = await gitStore.performFailableOperation(() =>
-      createBranch(repository, name, startPoint, noTrackOption)
-    )
+    const branch = await gitStore.createBranch(name, startPoint, noTrackOption)
 
-    if (branch === null || branch === undefined) {
-      return repository
-    } else {
-      return this._checkoutBranch(repository, branch)
-    }
+    return branch === null
+      ? repository
+      : this._checkoutBranch(repository, branch)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

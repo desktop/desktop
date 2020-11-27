@@ -66,6 +66,7 @@ import {
   getAllTags,
   deleteTag,
   MergeResult,
+  createBranch,
 } from '../git'
 import { GitError as DugiteError } from '../../lib/git'
 import { GitError } from 'dugite'
@@ -332,6 +333,23 @@ export class GitStore extends BaseStore {
     }
 
     this.storeCommits(commitsToStore)
+  }
+
+  public async createBranch(
+    name: string,
+    startPoint: string | null,
+    noTrackOption: boolean = false
+  ) {
+    const branch =
+      (await this.performFailableOperation(() =>
+        createBranch(this.repository, name, startPoint, noTrackOption)
+      )) ?? null
+
+    if (branch !== null) {
+      await this.loadBranches()
+    }
+
+    return branch
   }
 
   public async createTag(name: string, targetCommitSha: string) {
