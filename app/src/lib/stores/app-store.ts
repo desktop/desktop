@@ -3105,16 +3105,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  private getLocalBranch(
-    repository: Repository,
-    branch: string
-  ): Branch | null {
-    const gitStore = this.gitStoreCache.get(repository)
-    return (
-      gitStore.allBranches.find(b => b.nameWithoutRemote === branch) || null
-    )
-  }
-
   /**
    * Checkout the given branch, using given stashing strategy or the default.
    *
@@ -5498,9 +5488,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
 
     const localBranchName = `pr/${prNumber}`
-    const existingBranch = this.getLocalBranch(repository, localBranchName)
+    const existingBranch = this.gitStoreCache
+      .get(repository)
+      .allBranches.find(b => b.nameWithoutRemote === branch)
 
-    if (existingBranch === null) {
+    if (existingBranch === undefined) {
       await this._createBranch(
         repository,
         localBranchName,
