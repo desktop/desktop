@@ -29,7 +29,7 @@ const MaxConcurrent = 1
 export class AheadBehindStore {
   /**
    * A map keyed on the value of `getCacheKey` containing one object per active
-   * subscription which contain all the information required to update a ahead
+   * subscription which contain all the information required to update an ahead
    * behind status and notify subscribers.
    */
   private readonly subscriptions = new Map<string, IAheadBehindSubscription>()
