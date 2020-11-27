@@ -13,9 +13,6 @@ interface ICompareBranchListItemProps {
   readonly currentBranch: Branch | null
   readonly repository: Repository
 
-  /** Specifies whether this item is currently selected */
-  readonly isCurrentBranch: boolean
-
   /** The characters in the branch name to highlight */
   readonly matches: IMatches
 
@@ -105,8 +102,9 @@ export class CompareBranchListItem extends React.Component<
   }
 
   public render() {
-    const { isCurrentBranch, branch } = this.props
+    const { currentBranch, branch } = this.props
     const { aheadBehind } = this.state
+    const isCurrentBranch = branch.name === currentBranch?.name
     const icon = isCurrentBranch ? OcticonSymbol.check : OcticonSymbol.gitBranch
 
     const aheadBehindElement = aheadBehind ? (

@@ -331,16 +331,10 @@ export class CompareSidebar extends React.Component<
     item: IBranchListItem,
     matches: IMatches
   ) => {
-    const currentBranch = this.props.currentBranch
-
-    const currentBranchName = currentBranch != null ? currentBranch.name : null
-    const branch = item.branch
-
     return (
       <CompareBranchListItem
-        branch={branch}
-        isCurrentBranch={branch.name === currentBranchName}
-        currentBranch={currentBranch}
+        branch={item.branch}
+        currentBranch={this.props.currentBranch}
         matches={matches}
         repository={this.props.repository}
         aheadBehindStore={this.props.aheadBehindStore}
