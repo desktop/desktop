@@ -5778,12 +5778,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     fork: IAPIFullRepository
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
-    const defaultRemoteName = gitStore.defaultRemote
-      ? gitStore.defaultRemote.name
-      : undefined
-    const remoteUrl = gitStore.defaultRemote
-      ? gitStore.defaultRemote.url
-      : undefined
+    const defaultRemoteName = gitStore.defaultRemote?.name
+    const remoteUrl = gitStore.defaultRemote?.url
+
     // make sure there is a default remote (there should be)
     if (defaultRemoteName !== undefined && remoteUrl !== undefined) {
       // update default remote
