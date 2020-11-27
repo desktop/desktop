@@ -3072,7 +3072,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitStore = this.gitStoreCache.get(repository)
     const branch = await gitStore.createBranch(name, startPoint, noTrackOption)
 
-    if (branch !== null) {
+    if (branch !== undefined) {
       await this._checkoutBranch(repository, branch)
     }
   }

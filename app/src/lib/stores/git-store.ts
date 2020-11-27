@@ -340,16 +340,19 @@ export class GitStore extends BaseStore {
     startPoint: string | null,
     noTrackOption: boolean = false
   ) {
-    const branch =
-      (await this.performFailableOperation(() =>
-        createBranch(this.repository, name, startPoint, noTrackOption)
-      )) ?? null
+    const createdBranch = await this.performFailableOperation(async () => {
+      await createBranch(this.repository, name, startPoint, noTrackOption)
+      return true
+    })
 
-    if (branch !== null) {
+    if (createdBranch === true) {
       await this.loadBranches()
+      return this.allBranches.find(
+        x => x.type === BranchType.Local && x.name === name
+      )
     }
 
-    return branch
+    return undefined
   }
 
   public async createTag(name: string, targetCommitSha: string) {
