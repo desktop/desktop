@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { TransitionGroup, CSSTransition } from 'react-transition-group'
 
 import { Commit } from '../../models/commit'
 import {
@@ -24,15 +23,7 @@ import { OcticonSymbol } from '../octicons'
 import { SelectionSource } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
-import {
-  NewCommitsBanner,
-  DismissalReason,
-} from '../notification/new-commits-banner'
 import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
-import { assertNever } from '../../lib/fatal-error'
-import { enableNDDBBanner } from '../../lib/feature-flag'
-
-const DivergingBannerAnimationTimeout = 300
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -59,12 +50,6 @@ interface ICompareSidebarState {
    * For all other cases, use the prop
    */
   readonly focusedBranch: Branch | null
-
-  /**
-   * Flag that tracks whether the user interacted with one of the notification's
-   * "call to action" buttons
-   */
-  readonly hasConsumedNotification: boolean
 }
 
 /** If we're within this many rows from the bottom, load the next history batch. */
@@ -83,17 +68,7 @@ export class CompareSidebar extends React.Component<
   public constructor(props: ICompareSidebarProps) {
     super(props)
 
-    this.state = {
-      focusedBranch: null,
-      hasConsumedNotification: false,
-    }
-  }
-
-  public componentDidMount() {
-    this.props.dispatcher.setDivergingBranchNudgeVisibility(
-      this.props.repository,
-      false
-    )
+    this.state = { focusedBranch: null }
   }
 
   public componentWillReceiveProps(nextProps: ICompareSidebarProps) {
@@ -162,10 +137,6 @@ export class CompareSidebar extends React.Component<
 
     return (
       <div id="compare-view">
-        {enableNDDBBanner() && (
-          <TransitionGroup>{this.renderNotificationBanner()}</TransitionGroup>
-        )}
-
         <div className="compare-form">
           <FancyTextBox
             symbol={OcticonSymbol.gitBranch}
@@ -188,38 +159,6 @@ export class CompareSidebar extends React.Component<
 
   private onBranchesListRef = (branchList: BranchList | null) => {
     this.branchList = branchList
-  }
-
-  private renderNotificationBanner() {
-    const bannerState = this.props.compareState.divergingBranchBannerState
-
-    if (!bannerState.isPromptVisible || bannerState.isPromptDismissed) {
-      return null
-    }
-
-    const { inferredComparisonBranch } = this.props.compareState
-
-    return inferredComparisonBranch.branch !== null &&
-      inferredComparisonBranch.aheadBehind !== null &&
-      inferredComparisonBranch.aheadBehind.behind > 0 ? (
-      <CSSTransition
-        classNames="diverge-banner"
-        appear={true}
-        timeout={DivergingBannerAnimationTimeout}
-      >
-        <div className="diverge-banner-wrapper">
-          <NewCommitsBanner
-            dispatcher={this.props.dispatcher}
-            repository={this.props.repository}
-            commitsBehindBaseBranch={
-              inferredComparisonBranch.aheadBehind.behind
-            }
-            baseBranch={inferredComparisonBranch.branch}
-            onDismiss={this.onNotificationBannerDismissed}
-          />
-        </div>
-      </CSSTransition>
-    ) : null
   }
 
   private renderCommits() {
@@ -349,7 +288,6 @@ export class CompareSidebar extends React.Component<
         currentBranch={this.props.currentBranch}
         comparisonBranch={formState.comparisonBranch}
         commitsBehind={formState.aheadBehind.behind}
-        onMerged={this.onMerge}
       />
     )
   }
@@ -562,31 +500,6 @@ export class CompareSidebar extends React.Component<
 
   private onTextBoxRef = (textbox: TextBox) => {
     this.textbox = textbox
-  }
-
-  private onNotificationBannerDismissed = (reason: DismissalReason) => {
-    if (reason === DismissalReason.Close) {
-      this.props.dispatcher.dismissDivergingBranchBanner(this.props.repository)
-    }
-    this.props.dispatcher.recordDivergingBranchBannerDismissal()
-
-    switch (reason) {
-      case DismissalReason.Close:
-        this.setState({ hasConsumedNotification: false })
-        break
-      case DismissalReason.Compare:
-      case DismissalReason.Merge:
-        this.setState({ hasConsumedNotification: true })
-        break
-      default:
-        assertNever(reason, 'Unknown reason')
-    }
-  }
-
-  private onMerge = () => {
-    if (this.state.hasConsumedNotification) {
-      this.props.dispatcher.recordDivergingBranchBannerInfluencedMerge()
-    }
   }
 
   private onCreateTag = (targetCommitSha: string) => {
