@@ -125,7 +125,6 @@ import {
   abortMerge,
   addRemote,
   checkoutBranch,
-  createBranch,
   createCommit,
   deleteBranch,
   formatAsLocalRef,
