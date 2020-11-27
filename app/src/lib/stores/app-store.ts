@@ -81,7 +81,6 @@ import {
   getAccountForEndpoint,
   getDotComAPIEndpoint,
   IAPIOrganization,
-  IAPIRepository,
   getEndpointForRepository,
   IAPIFullRepository,
 } from '../api'
