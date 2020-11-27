@@ -5,19 +5,6 @@ import { IAheadBehind } from '../../models/branch'
 import { revSymmetricDifference, getAheadBehind } from '../git'
 import { Repository } from '../../models/repository'
 
-interface IAheadBehindCacheEntry {
-  /**
-   * The combined ref status from the API or null if
-   * the status could not be retrieved.
-   */
-  readonly aheadBehind: IAheadBehind | undefined
-  /**
-   * The timestamp for when this cache entry was last
-   * fetched from the API (i.e. when it was created).
-   */
-  readonly fetchedAt: Date
-}
-
 export type AheadBehindCallback = (aheadBehind: IAheadBehind) => void
 
 interface IAheadBehindSubscription {
@@ -43,20 +30,20 @@ export class AheadBehindStore {
   /**
    * A map keyed on the value of `getCacheKey` containing one object
    * per active subscription which contain all the information required
-   * to update a commit status from the API and notify subscribers.
+   * to update a ahead behind status and notify subscribers.
    */
   private readonly subscriptions = new Map<string, IAheadBehindSubscription>()
 
   /**
    * A map keyed on the value of `getCacheKey` containing one object per
-   * reference (repository specific) with the last retrieved commit status
+   * reference (repository specific) with the last retrieved ahead behind status
    * for that reference.
    *
    * This map also functions as a least recently used cache and will evict
    * the least recently used comparisons to ensure the cache won't grow
    * unbounded
    */
-  private readonly cache = new QuickLRU<string, IAheadBehindCacheEntry>({
+  private readonly cache = new QuickLRU<string, IAheadBehind>({
     maxSize: 2500,
   })
 
@@ -89,40 +76,23 @@ export class AheadBehindStore {
       })
       .then(x => x ?? undefined)
 
-    if (aheadBehind === undefined) {
-      // Okay, so we failed calculating the ahead/behind status for one reason
-      // or another. That's a bummer, but we still need to put something in the
-      // cache or else we'll consider this subscription eligible for refresh
-      // from here on until we succeed in calculating. By putting a blank cache
-      // entry (or potentially reusing the last entry) in and not notifying
-      // subscribers we ensure they keep their current status if they have one
-      // and that we attempt to fetch it again on the same schedule as the
-      // others.
-      const existingEntry = this.cache.get(key)
-      const aheadBehind = existingEntry?.aheadBehind
-
-      this.cache.set(key, { aheadBehind, fetchedAt: new Date() })
-      return
+    if (aheadBehind !== undefined) {
+      this.cache.set(key, aheadBehind)
+      subscription.callbacks.forEach(cb => cb(aheadBehind))
     }
-
-    this.cache.set(key, { aheadBehind: aheadBehind, fetchedAt: new Date() })
-    subscription.callbacks.forEach(cb => cb(aheadBehind))
   }
 
   /**
-   * Attempt to _synchronously_ retrieve a commit status for a particular
-   * ref. If the ref doesn't exist in the cache this function returns null.
+   * Attempt to _synchronously_ retrieve an ahead behind status for a particular
+   * range. If the range doesn't exist in the cache this function returns
+   * undefined.
    *
    * Useful for component who wish to have a value for the initial render
    * instead of waiting for the subscription to produce an event.
    */
-  public tryGetStatus(
-    repository: Repository,
-    from: string,
-    to: string
-  ): IAheadBehind | undefined {
+  public tryGetStatus(repository: Repository, from: string, to: string) {
     const key = getCacheKey(repository, from, to)
-    return this.cache.get(key)?.aheadBehind
+    return this.cache.get(key)
   }
 
   private getOrCreateSubscription(
@@ -146,13 +116,13 @@ export class AheadBehindStore {
   }
 
   /**
-   * Subscribe to commit status updates for a particular ref.
+   * Subscribe to ahead behind status updates for a particular ref.
    *
-   * @param repository The GitHub repository to use when looking up commit status.
+   * @param repository The GitHub repository to use when looking up ahead behind status.
    * @param ref        The commit ref (can be a SHA or a Git ref) for which to
    *                   fetch status.
    * @param callback   A callback which will be invoked whenever the
-   *                   store updates a commit status for the given ref.
+   *                   store updates a ahead behind status for the given ref.
    */
   public subscribe(
     repository: Repository,
