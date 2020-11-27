@@ -155,9 +155,10 @@ describe('git/tag', () => {
 
     it('does not return a tag created on a non-pushed branch', async () => {
       // Create a tag on a local branch that's not pushed to the remote.
-      await createBranch(repository, 'new-branch', 'master')
-      const [branch] = await getBranches(repository, `refs/heads/${name}`)
-      assertNonNullable(branch, `Could not create branch ${name}`)
+      const branchName = 'new-branch'
+      await createBranch(repository, branchName, 'master')
+      const [branch] = await getBranches(repository, `refs/heads/${branchName}`)
+      assertNonNullable(branch, `Could not create branch ${branchName}`)
 
       await FSE.writeFile(path.join(repository.path, 'README.md'), 'Hi world\n')
       const status = await getStatusOrThrow(repository)
