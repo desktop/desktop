@@ -3412,10 +3412,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     }
 
-    const updatedRepository = await repoStore.updateGitHubRepository(
+    const updatedRepository = await repoStore.setGitHubRepository(
       repository,
-      match.endpoint,
-      apiRepo
+      await repoStore.upsertGitHubRepository(endpoint, apiRepo)
     )
 
     await this.refreshBranchProtectionState(updatedRepository)
