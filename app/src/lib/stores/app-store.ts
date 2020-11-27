@@ -5780,6 +5780,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitStore = this.gitStoreCache.get(repository)
     const defaultRemoteName = gitStore.defaultRemote?.name
     const remoteUrl = gitStore.defaultRemote?.url
+    const { endpoint } = repository.gitHubRepository
 
     // make sure there is a default remote (there should be)
     if (defaultRemoteName !== undefined && remoteUrl !== undefined) {
@@ -5787,7 +5788,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (await gitStore.setRemoteURL(defaultRemoteName, fork.clone_url)) {
         await gitStore.ensureUpstreamRemoteURL(remoteUrl)
         // update associated github repo
-        const { endpoint } = repository.gitHubRepository
         return this.repositoriesStore.setGitHubRepository(
           repository,
           await this.repositoriesStore.upsertGitHubRepository(endpoint, fork)
