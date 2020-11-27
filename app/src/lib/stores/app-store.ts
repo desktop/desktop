@@ -168,6 +168,7 @@ import { merge } from '../merge'
 import {
   IMatchedGitHubRepository,
   matchGitHubRepository,
+  matchExistingRepository,
 } from '../repository-matching'
 import {
   initializeRebaseFlowForConflictedRepository,
@@ -4970,7 +4971,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (validatedPath) {
         log.info(`[AppStore] adding repository at ${validatedPath} to store`)
 
-        const existing = this.repositories.find(x => x.path === validatedPath)
+        const repositories = this.repositories
+        const existing = matchExistingRepository(repositories, validatedPath)
 
         // We don't have to worry about repositoryWithRefreshedGitHubRepository
         // and isUsingLFS if the repo already exists in the app.
