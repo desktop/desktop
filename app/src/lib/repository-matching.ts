@@ -73,27 +73,21 @@ function matchRemoteWithAccount(
 /**
  * Find an existing repository associated with this path
  *
- * @param repositories The list of repositories tracked in the app
+ * @param repos The list of repositories tracked in the app
  * @param path The path on disk which might be a repository
  */
-export function matchExistingRepository(
-  repositories: ReadonlyArray<Repository | CloningRepository>,
-  path: string
-): Repository | CloningRepository | null {
-  return (
-    repositories.find(r => {
-      if (__WIN32__) {
-        // Windows is guaranteed to be case-insensitive so we can be a
-        // bit more accepting.
-        return (
-          Path.normalize(r.path).toLowerCase() ===
-          Path.normalize(path).toLowerCase()
-        )
-      } else {
-        return Path.normalize(r.path) === Path.normalize(path)
-      }
-    }) || null
-  )
+export function matchExistingRepository<
+  T extends Repository | CloningRepository
+>(repos: ReadonlyArray<T>, path: string): T | undefined {
+  if (__WIN32__) {
+    // Windows is guaranteed to be case-insensitive so we can be a
+    // bit more accepting.
+    const needle = Path.normalize(path).toLowerCase()
+    return repos.find(r => Path.normalize(r.path).toLowerCase() === needle)
+  } else {
+    const needle = Path.normalize(path)
+    return repos.find(r => Path.normalize(r.path) === needle)
+  }
 }
 
 /**
