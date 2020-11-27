@@ -4,9 +4,14 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { HighlightText } from '../lib/highlight-text'
 import { Branch, IAheadBehind } from '../../models/branch'
 import { IMatches } from '../../lib/fuzzy-find'
+import { AheadBehindStore } from '../../lib/stores/ahead-behind-store'
+import { Repository } from '../../models/repository'
+import { IDisposable } from 'event-kit'
 
 interface ICompareBranchListItemProps {
   readonly branch: Branch
+  readonly currentBranch: Branch | null
+  readonly repository: Repository
 
   /** Specifies whether this item is currently selected */
   readonly isCurrentBranch: boolean
@@ -14,19 +19,95 @@ interface ICompareBranchListItemProps {
   /** The characters in the branch name to highlight */
   readonly matches: IMatches
 
-  readonly aheadBehind: IAheadBehind | null
+  readonly aheadBehindStore: AheadBehindStore
+}
+
+interface ICompareBranchListItemState {
+  readonly comparisonFrom?: string
+  readonly comparisonTo?: string
+  readonly aheadBehind?: IAheadBehind
 }
 
 export class CompareBranchListItem extends React.Component<
   ICompareBranchListItemProps,
-  {}
+  ICompareBranchListItemState
 > {
-  public render() {
-    const isCurrentBranch = this.props.isCurrentBranch
-    const branch = this.props.branch
-    const icon = isCurrentBranch ? OcticonSymbol.check : OcticonSymbol.gitBranch
+  public static getDerivedStateFromProps(
+    props: ICompareBranchListItemProps,
+    state: ICompareBranchListItemState
+  ): Partial<ICompareBranchListItemState> | null {
+    const { repository, aheadBehindStore } = props
+    const from = props.currentBranch?.tip.sha
+    const to = props.branch.tip.sha
 
-    const aheadBehind = this.props.aheadBehind
+    if (from === state.comparisonFrom && to === state.comparisonTo) {
+      return null
+    }
+
+    const aheadBehind =
+      from === undefined || to === undefined
+        ? undefined
+        : aheadBehindStore.tryGetStatus(repository, from, to)
+
+    return {
+      aheadBehind,
+      comparisonFrom: from,
+      comparisonTo: to,
+    }
+  }
+
+  private aheadBehindSubscription: IDisposable | null = null
+
+  public constructor(props: ICompareBranchListItemProps) {
+    super(props)
+    this.state = {}
+  }
+
+  public componentDidMount() {
+    this.subscribeToAheadBehindStore()
+  }
+
+  public componentDidUpdate(
+    prevProps: ICompareBranchListItemProps,
+    prevState: ICompareBranchListItemState
+  ) {
+    const { comparisonFrom: from, comparisonTo: to } = this.state
+
+    if (prevState.comparisonFrom !== from || prevState.comparisonTo !== to) {
+      this.subscribeToAheadBehindStore()
+    }
+  }
+
+  public componentWillUnmount() {
+    this.unsubscribeFromAheadBehindStore()
+  }
+
+  private subscribeToAheadBehindStore() {
+    const { aheadBehindStore, repository } = this.props
+    const { comparisonFrom: from, comparisonTo: to } = this.state
+
+    this.unsubscribeFromAheadBehindStore()
+
+    if (from !== undefined && to !== undefined) {
+      this.aheadBehindSubscription = aheadBehindStore.subscribe(
+        repository,
+        from,
+        to,
+        aheadBehind => this.setState({ aheadBehind })
+      )
+    }
+  }
+
+  private unsubscribeFromAheadBehindStore() {
+    if (this.aheadBehindSubscription !== null) {
+      this.aheadBehindSubscription.dispose()
+    }
+  }
+
+  public render() {
+    const { isCurrentBranch, branch } = this.props
+    const { aheadBehind } = this.state
+    const icon = isCurrentBranch ? OcticonSymbol.check : OcticonSymbol.gitBranch
 
     const aheadBehindElement = aheadBehind ? (
       <div className="branch-commit-counter">
