@@ -3086,8 +3086,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitStore = this.gitStoreCache.get(repository)
 
     await gitStore.createTag(name, targetCommitSha)
-
-    this._closePopup()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
