@@ -417,6 +417,7 @@ export class RepositoriesStore extends TypedBaseStore<
     await this.db.transaction('rw', this.db.repositories, () =>
       this.db.repositories.update(repo.id, { gitHubRepositoryID: ghRepo.dbID })
     )
+    this.emitUpdatedRepositories()
     return repo.withGitHubRepository(ghRepo)
   }
 
@@ -498,27 +499,6 @@ export class RepositoriesStore extends TypedBaseStore<
 
     const id = await this.db.gitHubRepositories.put(updatedGitHubRepo)
     return this.toGitHubRepository({ ...updatedGitHubRepo, id }, owner, parent)
-  }
-
-  /** Add or update the repository's GitHub repository. */
-  public async updateGitHubRepository(
-    repository: Repository,
-    endpoint: string,
-    apiRepo: IAPIRepository
-  ): Promise<RepositoryWithGitHubRepository> {
-    const updatedGitHubRepo = await this.db.transaction(
-      'rw',
-      this.db.repositories,
-      this.db.gitHubRepositories,
-      this.db.owners,
-      async () => {
-        const ghRepo = await this.putGitHubRepository(endpoint, apiRepo)
-        return this.setGitHubRepository(repository, ghRepo)
-      }
-    )
-
-    this.emitUpdatedRepositories()
-    return updatedGitHubRepo
   }
 
   /** Add or update the branch protections associated with a GitHub repository. */

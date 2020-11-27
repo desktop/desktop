@@ -7,7 +7,7 @@ import {
   Repository,
   isRepositoryWithGitHubRepository,
 } from '../../src/models/repository'
-import { IAPIFullRepository } from '../../src/lib/api'
+import { IAPIFullRepository, getDotComAPIEndpoint } from '../../src/lib/api'
 import { shell } from './test-app-shell'
 import { StatsStore, StatsDatabase } from '../../src/lib/stats'
 import { UiActivityMonitor } from '../../src/ui/lib/ui-activity-monitor'
@@ -70,7 +70,7 @@ export async function setupRepository(
 ) {
   let repository = await repositoriesStore.addRepository(path)
   if (includesGhRepo) {
-    const ghAPIResult: IAPIFullRepository = {
+    const apiRepo: IAPIFullRepository = {
       clone_url: 'string',
       ssh_url: 'string',
       html_url: 'string',
@@ -96,10 +96,10 @@ export async function setupRepository(
       parent: undefined,
     }
 
-    repository = await repositoriesStore.updateGitHubRepository(
+    const endpoint = getDotComAPIEndpoint()
+    repository = await repositoriesStore.setGitHubRepository(
       repository,
-      '',
-      ghAPIResult
+      await repositoriesStore.upsertGitHubRepository(endpoint, apiRepo)
     )
   }
   await primeCaches(repository, repositoriesStateCache)

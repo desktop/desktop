@@ -1,6 +1,6 @@
 import { RepositoriesStore } from '../../src/lib/stores/repositories-store'
 import { TestRepositoriesDatabase } from '../helpers/databases'
-import { IAPIFullRepository } from '../../src/lib/api'
+import { IAPIFullRepository, getDotComAPIEndpoint } from '../../src/lib/api'
 import { assertIsRepositoryWithGitHubRepository } from '../../src/models/repository'
 
 describe('RepositoriesStore', () => {
@@ -34,7 +34,7 @@ describe('RepositoriesStore', () => {
   })
 
   describe('updating a GitHub repository', () => {
-    const gitHubRepo: IAPIFullRepository = {
+    const apiRepo: IAPIFullRepository = {
       clone_url: 'https://github.com/my-user/my-repo',
       ssh_url: 'git@github.com:my-user/my-repo.git',
       html_url: 'https://github.com/my-user/my-repo',
@@ -59,14 +59,12 @@ describe('RepositoriesStore', () => {
       },
       parent: undefined,
     }
+    const endpoint = getDotComAPIEndpoint()
 
     it('adds a new GitHub repository', async () => {
-      const addedRepo = await repositoriesStore.addRepository('/some/cool/path')
-
-      await repositoriesStore.updateGitHubRepository(
-        addedRepo,
-        'https://api.github.com',
-        gitHubRepo
+      await repositoriesStore.setGitHubRepository(
+        await repositoriesStore.addRepository('/some/cool/path'),
+        await repositoriesStore.upsertGitHubRepository(endpoint, apiRepo)
       )
 
       const repositories = await repositoriesStore.getAll()
@@ -80,24 +78,18 @@ describe('RepositoriesStore', () => {
     })
 
     it('reuses an existing GitHub repository', async () => {
-      const firstRepo = await repositoriesStore.addRepository('/some/cool/path')
-      const updatedFirstRepo = await repositoriesStore.updateGitHubRepository(
-        firstRepo,
-        'https://api.github.com',
-        gitHubRepo
+      const firstRepo = await repositoriesStore.setGitHubRepository(
+        await repositoriesStore.addRepository('/some/cool/path'),
+        await repositoriesStore.upsertGitHubRepository(endpoint, apiRepo)
       )
 
-      const secondRepo = await repositoriesStore.addRepository(
-        '/some/other/path'
-      )
-      const updatedSecondRepo = await repositoriesStore.updateGitHubRepository(
-        secondRepo,
-        'https://api.github.com',
-        gitHubRepo
+      const secondRepo = await repositoriesStore.setGitHubRepository(
+        await repositoriesStore.addRepository('/some/other/path'),
+        await repositoriesStore.upsertGitHubRepository(endpoint, apiRepo)
       )
 
-      expect(updatedFirstRepo.gitHubRepository.dbID).toBe(
-        updatedSecondRepo.gitHubRepository.dbID
+      expect(firstRepo.gitHubRepository.dbID).toBe(
+        secondRepo.gitHubRepository.dbID
       )
     })
   })
