@@ -43,9 +43,7 @@ export class AheadBehindStore {
    * the least recently used comparisons to ensure the cache won't grow
    * unbounded
    */
-  private readonly cache = new QuickLRU<string, IAheadBehind>({
-    maxSize: 2500,
-  })
+  private readonly cache = new QuickLRU<string, IAheadBehind>({ maxSize: 2500 })
 
   /**
    * A set containing the currently executing cache keys (produced by
