@@ -177,6 +177,7 @@ describe('git/branch', () => {
 
     it('deletes local branches', async () => {
       const name = 'test-branch'
+      await createBranch(repository, name, null)
       const [branch] = await getBranches(repository, `refs/heads/${name}`)
       assertNonNullable(branch, `Could not create branch ${name}`)
 
