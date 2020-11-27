@@ -5,7 +5,8 @@
     "**/dist": true,
     "**/node_modules": true,
     "**/out": true,
-    "app/test/fixtures": true
+    "app/test/fixtures": true,
+    "vendor": true
   },
   "files.exclude": {
     "**/.git": true,
