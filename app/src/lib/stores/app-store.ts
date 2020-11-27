@@ -5775,7 +5775,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   public async _convertRepositoryToFork(
     repository: RepositoryWithGitHubRepository,
-    fork: IAPIRepository
+    fork: IAPIFullRepository
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
     const defaultRemoteName = gitStore.defaultRemote
@@ -5790,12 +5790,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (await gitStore.setRemoteURL(defaultRemoteName, fork.clone_url)) {
         await gitStore.ensureUpstreamRemoteURL(remoteUrl)
         // update associated github repo
-        const updatedRepository = await this.repositoriesStore.updateGitHubRepository(
+        const { endpoint } = repository.gitHubRepository
+        return this.repositoriesStore.setGitHubRepository(
           repository,
-          repository.gitHubRepository.endpoint,
-          fork
+          await this.repositoriesStore.upsertGitHubRepository(endpoint, fork)
         )
-        return updatedRepository
       }
     }
     return repository

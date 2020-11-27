@@ -3,7 +3,6 @@ import { Disposable, IDisposable } from 'event-kit'
 
 import {
   IAPIOrganization,
-  IAPIRepository,
   IAPIPullRequest,
   IAPIFullRepository,
 } from '../../lib/api'
@@ -2151,7 +2150,7 @@ export class Dispatcher {
    */
   public async convertRepositoryToFork(
     repository: RepositoryWithGitHubRepository,
-    fork: IAPIRepository
+    fork: IAPIFullRepository
   ): Promise<Repository> {
     return this.appStore._convertRepositoryToFork(repository, fork)
   }
