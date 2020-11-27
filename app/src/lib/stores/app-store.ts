@@ -3373,7 +3373,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
-    const account = getAccountForEndpoint(this.accounts, match.endpoint)
+    const { endpoint, owner, name } = match
+    const account = getAccountForEndpoint(this.accounts, endpoint)
     if (!account) {
       // If the repository given to us had a GitHubRepository instance we want
       // to try to preserve that if possible since the updated GitHubRepository
@@ -3389,7 +3390,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const api = API.fromAccount(account)
-    const apiRepo = await api.fetchRepository(match.owner, match.name)
+    const apiRepo = await api.fetchRepository(owner, name)
 
     if (!apiRepo) {
       // This is the same as above. If the request fails, we wanna preserve the
