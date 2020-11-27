@@ -3078,20 +3078,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _createTag(
-    repository: Repository,
-    name: string,
-    targetCommitSha: string
-  ): Promise<void> {
+  public async _createTag(repository: Repository, name: string, sha: string) {
     const gitStore = this.gitStoreCache.get(repository)
-
-    await gitStore.createTag(name, targetCommitSha)
+    await gitStore.createTag(name, sha)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _deleteTag(repository: Repository, name: string): Promise<void> {
+  public async _deleteTag(repository: Repository, name: string) {
     const gitStore = this.gitStoreCache.get(repository)
-
     await gitStore.deleteTag(name)
   }
 
