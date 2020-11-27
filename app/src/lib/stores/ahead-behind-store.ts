@@ -67,13 +67,8 @@ export class AheadBehindStore {
     const { repository, from, to } = subscription
     const range = revSymmetricDifference(from, to)
     const aheadBehind = await getAheadBehind(repository, range)
-      .catch(e => {
-        log.error(`Failed calculating ahead/behind status for ${range}`, e)
-        return undefined
-      })
-      .then(x => x ?? undefined)
 
-    if (aheadBehind !== undefined) {
+    if (aheadBehind !== null) {
       this.cache.set(key, aheadBehind)
       subscription.callbacks.forEach(cb => cb(aheadBehind))
     }
