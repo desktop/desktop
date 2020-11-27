@@ -28,9 +28,9 @@ const MaxConcurrent = 1
 
 export class AheadBehindStore {
   /**
-   * A map keyed on the value of `getCacheKey` containing one object
-   * per active subscription which contain all the information required
-   * to update a ahead behind status and notify subscribers.
+   * A map keyed on the value of `getCacheKey` containing one object per active
+   * subscription which contain all the information required to update a ahead
+   * behind status and notify subscribers.
    */
   private readonly subscriptions = new Map<string, IAheadBehindSubscription>()
 
@@ -39,9 +39,8 @@ export class AheadBehindStore {
    * reference (repository specific) with the last retrieved ahead behind status
    * for that reference.
    *
-   * This map also functions as a least recently used cache and will evict
-   * the least recently used comparisons to ensure the cache won't grow
-   * unbounded
+   * This map also functions as a least recently used cache and will evict the
+   * least recently used comparisons to ensure the cache won't grow unbounded
    */
   private readonly cache = new QuickLRU<string, IAheadBehind>({ maxSize: 2500 })
 
