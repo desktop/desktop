@@ -125,7 +125,7 @@ export class AheadBehindStore {
     if (!this.cache.has(key) && !this.queue.has(key)) {
       this.limit(() => this.getAheadBehind(key))
         .catch(e => log.error('Failed calculating ahead/behind status', e))
-        .then(() => this.queue.delete(key))
+        .finally(() => this.queue.delete(key))
 
       this.queue.add(key)
     }
