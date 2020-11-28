@@ -136,7 +136,6 @@
     "@types/glob": "^5.0.35",
     "@types/html-webpack-plugin": "^2.30.3",
     "@types/jest": "^23.3.1",
-    "@types/keytar": "^4.4.2",
     "@types/klaw-sync": "^6.0.0",
     "@types/legal-eagle": "^0.15.0",
     "@types/memoize-one": "^3.1.1",

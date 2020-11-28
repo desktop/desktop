@@ -68,8 +68,9 @@ jobs:
         run: yarn test:unit:cov
       - name: Run script tests
         run: yarn test:script:cov
-      - name: Run integration tests
-        run: yarn test:integration
+      #- name: Run integration tests
+      #  timeout-minutes: 5
+      #  run: yarn test:integration
       - name: Publish production app
         run: yarn run publish
         env:
