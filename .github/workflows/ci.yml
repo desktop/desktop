@@ -14,10 +14,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [12.14.1]
-        os: [macos-10.15, windows-2019]
+        node: [14.x]
+        os: [macos-11, windows-2019]
         include:
-          - os: macos-10.15
+          - os: macos-11
             friendlyName: macOS
           - os: windows-2019
             friendlyName: Windows
