@@ -386,7 +386,8 @@ export class RepositoriesStore extends TypedBaseStore<
       this.db.gitHubRepositories,
       this.db.owners,
       async () => {
-        const owner = await this.putOwner(match.endpoint, match.owner)
+        const { account } = match
+        const owner = await this.putOwner(account.endpoint, match.owner)
         const existingRepo = await this.db.gitHubRepositories
           .where('[ownerID+name]')
           .equals([owner.id, match.name])

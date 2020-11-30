@@ -3373,31 +3373,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
-    const { endpoint, owner, name } = match
-    const account = getAccountForEndpoint(this.accounts, endpoint)
-    if (!account) {
-      // If the repository given to us had a GitHubRepository instance we want
-      // to try to preserve that if possible since the updated GitHubRepository
-      // instance won't have any API information while the previous one might.
-      // We'll only swap it out if the endpoint has changed in which case the
-      // old API information will be invalid anyway.
-      if (match.endpoint !== oldEndpoint) {
-        const ghRepo = await repoStore.upsertGitHubRepositoryFromMatch(match)
-        return repoStore.setGitHubRepository(repository, ghRepo)
-      }
-
-      return repository
-    }
-
+    const { account, owner, name } = match
     const api = API.fromAccount(account)
     const apiRepo = await api.fetchRepository(owner, name)
 
     if (!apiRepo) {
-      // This is the same as above. If the request fails, we wanna preserve the
-      // existing GitHub repository info. But if we didn't have a GitHub
-      // repository already or the endpoint changed, the skeleton repository is
-      // better than nothing.
-      if (match.endpoint !== oldEndpoint) {
+      // If the request fails, we want to preserve the existing GitHub
+      // repository info. But if we didn't have a GitHub repository already or
+      // the endpoint changed, the skeleton repository is better than nothing.
+      if (account.endpoint !== oldEndpoint) {
         const ghRepo = await repoStore.upsertGitHubRepositoryFromMatch(match)
         return repoStore.setGitHubRepository(repository, ghRepo)
       }
@@ -3415,7 +3399,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const updatedRepository = await repoStore.setGitHubRepository(
       repository,
-      await repoStore.upsertGitHubRepository(endpoint, apiRepo)
+      await repoStore.upsertGitHubRepository(account.endpoint, apiRepo)
     )
 
     await this.refreshBranchProtectionState(updatedRepository)
@@ -3994,20 +3978,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private getAccountForRemoteURL(remote: string): IGitAccount | null {
-    const gitHubRepository = matchGitHubRepository(this.accounts, remote)
-    if (gitHubRepository) {
-      const account = getAccountForEndpoint(
-        this.accounts,
-        gitHubRepository.endpoint
+    const account = matchGitHubRepository(this.accounts, remote)?.account
+    if (account !== undefined) {
+      const hasValidToken =
+        account.token.length > 0 ? 'has token' : 'empty token'
+      log.info(
+        `[AppStore.getAccountForRemoteURL] account found for remote: ${remote} - ${account.login} (${hasValidToken})`
       )
-      if (account) {
-        const hasValidToken =
-          account.token.length > 0 ? 'has token' : 'empty token'
-        log.info(
-          `[AppStore.getAccountForRemoteURL] account found for remote: ${remote} - ${account.login} (${hasValidToken})`
-        )
-        return account
-      }
+      return account
     }
 
     const hostname = getGenericHostname(remote)

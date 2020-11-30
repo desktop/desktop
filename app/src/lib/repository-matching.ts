@@ -23,8 +23,8 @@ export interface IMatchedGitHubRepository {
    */
   readonly owner: string
 
-  /** The API endpoint. */
-  readonly endpoint: string
+  /** The account matching the repository remote */
+  readonly account: Account
 }
 
 /** Try to use the list of users and a remote URL to guess a GitHub repository. */
@@ -64,7 +64,7 @@ function matchRemoteWithAccount(
     owner &&
     name
   ) {
-    return { name, owner, endpoint: account.endpoint }
+    return { name, owner, account }
   }
 
   return null
