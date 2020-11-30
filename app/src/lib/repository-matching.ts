@@ -55,8 +55,7 @@ function matchRemoteWithAccount(
     return null
   }
 
-  const owner = parsedRemote.owner
-  const name = parsedRemote.name
+  const { owner, name } = parsedRemote
 
   if (
     host &&
