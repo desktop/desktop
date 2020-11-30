@@ -124,7 +124,6 @@ import {
   abortMerge,
   addRemote,
   checkoutBranch,
-  createBranch,
   createCommit,
   deleteBranch,
   formatAsLocalRef,
@@ -3005,36 +3004,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
     name: string,
     startPoint: string | null,
     noTrackOption: boolean = false
-  ): Promise<Repository> {
+  ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
-    const branch = await gitStore.performFailableOperation(() =>
-      createBranch(repository, name, startPoint, noTrackOption)
-    )
+    const branch = await gitStore.createBranch(name, startPoint, noTrackOption)
 
-    if (branch === null || branch === undefined) {
-      return repository
-    } else {
-      return this._checkoutBranch(repository, branch)
+    if (branch !== undefined) {
+      await this._checkoutBranch(repository, branch)
     }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _createTag(
-    repository: Repository,
-    name: string,
-    targetCommitSha: string
-  ): Promise<void> {
+  public async _createTag(repository: Repository, name: string, sha: string) {
     const gitStore = this.gitStoreCache.get(repository)
-
-    await gitStore.createTag(name, targetCommitSha)
-
-    this._closePopup()
+    await gitStore.createTag(name, sha)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _deleteTag(repository: Repository, name: string): Promise<void> {
+  public async _deleteTag(repository: Repository, name: string) {
     const gitStore = this.gitStoreCache.get(repository)
-
     await gitStore.deleteTag(name)
   }
 
@@ -3052,16 +3039,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     ) {
       this.emitUpdate()
     }
-  }
-
-  private getLocalBranch(
-    repository: Repository,
-    branch: string
-  ): Branch | null {
-    const gitStore = this.gitStoreCache.get(repository)
-    return (
-      gitStore.allBranches.find(b => b.nameWithoutRemote === branch) || null
-    )
   }
 
   /**
@@ -5422,9 +5399,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
 
     const localBranchName = `pr/${prNumber}`
-    const existingBranch = this.getLocalBranch(repository, localBranchName)
+    const existingBranch = this.gitStoreCache
+      .get(repository)
+      .allBranches.find(b => b.nameWithoutRemote === branch)
 
-    if (existingBranch === null) {
+    if (existingBranch === undefined) {
       await this._createBranch(
         repository,
         localBranchName,
