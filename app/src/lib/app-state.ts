@@ -654,9 +654,6 @@ export interface ICompareBranch {
 }
 
 export interface ICompareState {
-  /** The current state of the NBBD banner */
-  readonly divergingBranchBannerState: IDivergingBranchBannerState
-
   /** The current state of the compare form, based on user input */
   readonly formState: IDisplayHistory | ICompareBranch
 
@@ -702,27 +699,6 @@ export interface ICompareState {
    * A local cache of ahead/behind computations to compare other refs to the current branch
    */
   readonly aheadBehindCache: ComparisonCache
-
-  /**
-   * The best candidate branch to compare the current branch to.
-   * Also includes the ahead/behind info for the inferred branch
-   * relative to the current branch.
-   */
-  readonly inferredComparisonBranch: {
-    branch: Branch | null
-    aheadBehind: IAheadBehind | null
-  }
-}
-
-export interface IDivergingBranchBannerState {
-  /** Show the diverging notification banner */
-  readonly isPromptVisible: boolean
-
-  /** Has the user dismissed the notification banner? */
-  readonly isPromptDismissed: boolean
-
-  /** Show the diverging notification nudge on the tab */
-  readonly isNudgeVisible: boolean
 }
 
 export interface ICompareFormUpdate {
