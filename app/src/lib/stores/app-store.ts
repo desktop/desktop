@@ -3374,14 +3374,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const { account, owner, name } = match
+    const { endpoint } = account
     const api = API.fromAccount(account)
     const apiRepo = await api.fetchRepository(owner, name)
 
-    if (!apiRepo) {
+    if (apiRepo === null) {
       // If the request fails, we want to preserve the existing GitHub
       // repository info. But if we didn't have a GitHub repository already or
       // the endpoint changed, the skeleton repository is better than nothing.
-      if (account.endpoint !== oldEndpoint) {
+      if (endpoint !== oldEndpoint) {
         const ghRepo = await repoStore.upsertGitHubRepositoryFromMatch(match)
         return repoStore.setGitHubRepository(repository, ghRepo)
       }
@@ -3390,20 +3391,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (enableUpdateRemoteUrl() && repository.gitHubRepository) {
-      await updateRemoteUrl(
-        this.gitStoreCache.get(repository),
-        repository.gitHubRepository,
-        apiRepo
-      )
+      const gitStore = this.gitStoreCache.get(repository)
+      await updateRemoteUrl(gitStore, repository.gitHubRepository, apiRepo)
     }
 
-    const updatedRepository = await repoStore.setGitHubRepository(
-      repository,
-      await repoStore.upsertGitHubRepository(account.endpoint, apiRepo)
-    )
+    const ghRepo = await repoStore.upsertGitHubRepository(endpoint, apiRepo)
+    const freshRepo = await repoStore.setGitHubRepository(repository, ghRepo)
 
-    await this.refreshBranchProtectionState(updatedRepository)
-    return updatedRepository
+    await this.refreshBranchProtectionState(freshRepo)
+    return freshRepo
   }
 
   private async updateBranchProtectionsFromAPI(repository: Repository) {
