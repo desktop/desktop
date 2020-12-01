@@ -213,29 +213,20 @@ export class RepositoriesStore extends TypedBaseStore<
       this.db.gitHubRepositories,
       this.db.owners,
       async () => {
-        const repos = await this.db.repositories.toArray()
-        const record = repos.find(r => r.path === path)
-        let recordId: number
-        let gitHubRepo: GitHubRepository | null = null
+        const existing = await this.db.repositories.get({ path })
 
-        if (record != null) {
-          recordId = record.id!
-
-          if (record.gitHubRepositoryID != null) {
-            gitHubRepo = await this.findGitHubRepositoryByID(
-              record.gitHubRepositoryID
-            )
-          }
-        } else {
-          recordId = await this.db.repositories.add({
-            path,
-            gitHubRepositoryID: null,
-            missing: false,
-            lastStashCheckDate: null,
-          })
+        if (existing !== undefined) {
+          return await this.toRepository(existing)
         }
 
-        return new Repository(path, recordId, gitHubRepo, false)
+        const dbRepo: IDatabaseRepository = {
+          path,
+          gitHubRepositoryID: null,
+          missing: false,
+          lastStashCheckDate: null,
+        }
+        const id = await this.db.repositories.add(dbRepo)
+        return this.toRepository({ id, ...dbRepo })
       }
     )
 
