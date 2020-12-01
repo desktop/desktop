@@ -497,7 +497,7 @@ export class RepositoriesStore extends TypedBaseStore<
       defaultBranch: gitHubRepository.default_branch,
       cloneURL: gitHubRepository.clone_url,
       parentID,
-      lastPruneDate: null,
+      lastPruneDate: existingRepo?.lastPruneDate ?? null,
       issuesEnabled: gitHubRepository.has_issues,
       isArchived: gitHubRepository.archived,
       permissions,
