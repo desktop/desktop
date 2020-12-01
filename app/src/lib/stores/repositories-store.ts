@@ -42,6 +42,8 @@ export class RepositoriesStore extends TypedBaseStore<
    */
   private protectionEnabledForBranchCache = new Map<string, boolean>()
 
+  private emitQueued = false
+
   public constructor(private readonly db: RepositoriesDatabase) {
     super()
   }
@@ -639,7 +641,17 @@ export class RepositoriesStore extends TypedBaseStore<
    * (This is the only way we emit updates from this store.)
    */
   private async emitUpdatedRepositories() {
-    this.emitUpdate(await this.getAll())
+    if (!this.emitQueued) {
+      setImmediate(async () => {
+        try {
+          this.emitUpdate(await this.getAll())
+        } catch (err) {
+          log.error(`Failed emitting update`, err)
+        } finally {
+          this.emitQueued = false
+        }
+      })
+    }
   }
 }
 
