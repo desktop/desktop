@@ -176,7 +176,7 @@ export class RepositoriesStore extends TypedBaseStore<
   public async addTutorialRepository(
     path: string,
     endpoint: string,
-    apiRepository: IAPIFullRepository
+    apiRepo: IAPIFullRepository
   ) {
     await this.db.transaction(
       'rw',
@@ -184,25 +184,17 @@ export class RepositoriesStore extends TypedBaseStore<
       this.db.gitHubRepositories,
       this.db.owners,
       async () => {
-        const gitHubRepository = await this.upsertGitHubRepository(
-          endpoint,
-          apiRepository
-        )
-
+        const ghRepo = await this.upsertGitHubRepository(endpoint, apiRepo)
         const existingRepo = await this.db.repositories.get({ path })
-        const existingRepoId =
-          existingRepo && existingRepo.id !== null ? existingRepo.id : undefined
 
-        return await this.db.repositories.put(
-          {
-            path,
-            gitHubRepositoryID: gitHubRepository.dbID,
-            missing: false,
-            lastStashCheckDate: null,
-            isTutorialRepository: true,
-          },
-          existingRepoId
-        )
+        return await this.db.repositories.put({
+          ...(existingRepo?.id !== undefined && { id: existingRepo.id }),
+          path,
+          gitHubRepositoryID: ghRepo.dbID,
+          missing: false,
+          lastStashCheckDate: null,
+          isTutorialRepository: true,
+        })
       }
     )
 
