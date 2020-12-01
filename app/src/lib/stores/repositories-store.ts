@@ -13,6 +13,7 @@ import {
   Repository,
   RepositoryWithGitHubRepository,
   assertIsRepositoryWithGitHubRepository,
+  isRepositoryWithGitHubRepository,
 } from '../../models/repository'
 import { fatalError, assertNonNullable } from '../fatal-error'
 import { IAPIRepository, IAPIBranch, IAPIFullRepository } from '../api'
@@ -403,8 +404,10 @@ export class RepositoriesStore extends TypedBaseStore<
     // If nothing has changed we can skip writing to the database and (more
     // importantly) avoid telling store consumers that the repo store has
     // changed and just return the repo that was given to us.
-    if (repo.gitHubRepository?.hash === ghRepo.hash) {
-      return repo
+    if (isRepositoryWithGitHubRepository(repo)) {
+      if (repo.gitHubRepository.hash === ghRepo.hash) {
+        return repo
+      }
     }
 
     await this.db.transaction('rw', this.db.repositories, () =>
