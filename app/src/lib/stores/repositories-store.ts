@@ -642,14 +642,11 @@ export class RepositoriesStore extends TypedBaseStore<
    */
   private async emitUpdatedRepositories() {
     if (!this.emitQueued) {
-      setImmediate(async () => {
-        try {
-          this.emitUpdate(await this.getAll())
-        } catch (err) {
-          log.error(`Failed emitting update`, err)
-        } finally {
-          this.emitQueued = false
-        }
+      setImmediate(() => {
+        this.getAll()
+          .then(repos => this.emitUpdate(repos))
+          .catch(e => log.error(`Failed emitting update`, e))
+          .finally(() => (this.emitQueued = false))
       })
     }
   }
