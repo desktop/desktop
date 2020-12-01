@@ -154,22 +154,8 @@ export class RepositoriesStore extends TypedBaseStore<
         const repos = new Array<Repository>()
 
         for (const dbRepo of await this.db.repositories.toArray()) {
-          const ghRepo =
-            dbRepo.gitHubRepositoryID !== null
-              ? await this.findGitHubRepositoryByID(dbRepo.gitHubRepositoryID)
-              : null
-
           assertNonNullable(dbRepo.id, 'no id after loading from db')
-          repos.push(
-            new Repository(
-              dbRepo.path,
-              dbRepo.id,
-              ghRepo,
-              dbRepo.missing,
-              dbRepo.workflowPreferences,
-              dbRepo.isTutorialRepository
-            )
-          )
+          repos.push(await this.toRepository(dbRepo))
         }
 
         return repos
