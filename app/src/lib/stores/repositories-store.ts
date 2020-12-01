@@ -66,7 +66,7 @@ export class RepositoriesStore extends TypedBaseStore<
       'rw',
       this.db.gitHubRepositories,
       this.db.owners,
-      () => this.putGitHubRepository(endpoint, apiRepository, true)
+      () => this._upsertGitHubRepository(endpoint, apiRepository, true)
     )
   }
 
@@ -82,7 +82,7 @@ export class RepositoriesStore extends TypedBaseStore<
       'rw',
       this.db.gitHubRepositories,
       this.db.owners,
-      () => this.putGitHubRepository(endpoint, apiRepository, false)
+      () => this._upsertGitHubRepository(endpoint, apiRepository, false)
     )
   }
 
@@ -429,14 +429,14 @@ export class RepositoriesStore extends TypedBaseStore<
     return updatedRepo
   }
 
-  private async putGitHubRepository(
+  private async _upsertGitHubRepository(
     endpoint: string,
     gitHubRepository: IAPIRepository | IAPIFullRepository,
     ignoreParent = false
   ): Promise<GitHubRepository> {
     const parent =
       'parent' in gitHubRepository && gitHubRepository.parent !== undefined
-        ? await this.putGitHubRepository(
+        ? await this._upsertGitHubRepository(
             endpoint,
             gitHubRepository.parent,
             true
