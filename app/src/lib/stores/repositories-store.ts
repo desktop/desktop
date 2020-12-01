@@ -119,6 +119,20 @@ export class RepositoriesStore extends TypedBaseStore<
     )
   }
 
+  private async toRepository(repo: IDatabaseRepository) {
+    assertNonNullable(repo.id, "can't convert to Repository without id")
+    return new Repository(
+      repo.path,
+      repo.id,
+      repo.gitHubRepositoryID !== null
+        ? await this.findGitHubRepositoryByID(repo.gitHubRepositoryID)
+        : null,
+      repo.missing,
+      repo.workflowPreferences,
+      repo.isTutorialRepository
+    )
+  }
+
   /** Find a GitHub repository by its DB ID. */
   public async findGitHubRepositoryByID(
     id: number
