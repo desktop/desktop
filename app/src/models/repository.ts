@@ -35,6 +35,13 @@ export class Repository {
   private readonly mainWorkTree: WorkingTree
 
   /**
+   * A hash of the properties of the object.
+   *
+   * Objects with the same hash are guaranteed to be structurally equal.
+   */
+  public hash: string
+
+  /**
    * @param path The working directory of this repository
    * @param missing Was the repository missing on disk last we checked?
    */
@@ -53,23 +60,19 @@ export class Repository {
   ) {
     this.mainWorkTree = { path }
     this.name = (gitHubRepository && gitHubRepository.name) || getBaseName(path)
+
+    this.hash = [
+      path,
+      this.id,
+      gitHubRepository?.hash,
+      this.missing,
+      this.workflowPreferences,
+      this.isTutorialRepository,
+    ].join('+')
   }
 
   public get path(): string {
     return this.mainWorkTree.path
-  }
-
-  /**
-   * A hash of the properties of the object.
-   *
-   * Objects with the same hash are guaranteed to be structurally equal.
-   */
-  public get hash(): string {
-    return `${this.id}+${this.gitHubRepository && this.gitHubRepository.hash}+${
-      this.path
-    }+${this.missing}+${this.name}+${this.isTutorialRepository}+${
-      this.workflowPreferences.forkContributionTarget
-    }`
   }
 }
 
