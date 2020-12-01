@@ -2,6 +2,7 @@ import {
   RepositoriesDatabase,
   IDatabaseGitHubRepository,
   IDatabaseProtectedBranch,
+  IDatabaseRepository,
 } from '../databases/repositories-database'
 import { Owner } from '../../models/owner'
 import {
@@ -19,6 +20,7 @@ import { TypedBaseStore } from './base-store'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { clearTagsToPush } from './helpers/tags-to-push-storage'
 import { IMatchedGitHubRepository } from '../repository-matching'
+import { shallowEquals } from '../equality'
 
 /** The store for local repositories. */
 export class RepositoriesStore extends TypedBaseStore<
@@ -489,7 +491,17 @@ export class RepositoriesStore extends TypedBaseStore<
       permissions,
     }
 
+    if (existingRepo !== undefined) {
+      // If nothing has changed since the last time we persisted the API info
+      // we can skip writing to the database and (more importantly) avoid
+      // telling store consumers that the repo store has changed.
+      if (shallowEquals(existingRepo, updatedGitHubRepo)) {
+        return this.toGitHubRepository(existingRepo, owner, parent)
+      }
+    }
+
     const id = await this.db.gitHubRepositories.put(updatedGitHubRepo)
+    this.emitUpdatedRepositories()
     return this.toGitHubRepository({ ...updatedGitHubRepo, id }, owner, parent)
   }
 
