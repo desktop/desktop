@@ -3,13 +3,13 @@ import { BaseDatabase } from './base-database'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 
 export interface IDatabaseOwner {
-  readonly id?: number | null
+  readonly id?: number
   readonly login: string
   readonly endpoint: string
 }
 
 export interface IDatabaseGitHubRepository {
-  readonly id?: number | null
+  readonly id?: number
   readonly ownerID: number
   readonly name: string
   readonly private: boolean | null
@@ -41,7 +41,7 @@ export interface IDatabaseProtectedBranch {
 }
 
 export interface IDatabaseRepository {
-  readonly id?: number | null
+  readonly id?: number
   readonly gitHubRepositoryID: number | null
   readonly path: string
   readonly missing: boolean
