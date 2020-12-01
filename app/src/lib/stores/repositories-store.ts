@@ -104,7 +104,7 @@ export class RepositoriesStore extends TypedBaseStore<
 
     if (owner === undefined) {
       const dbOwner = await this.db.owners.get(repo.ownerID)
-      assertNonNullable(dbOwner, "Couldn't find repository owner")
+      assertNonNullable(dbOwner, `Missing owner '${repo.ownerID}'`)
       owner = new Owner(dbOwner.login, dbOwner.endpoint, dbOwner.id!)
     }
 
