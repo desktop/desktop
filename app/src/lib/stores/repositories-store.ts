@@ -98,9 +98,8 @@ export class RepositoriesStore extends TypedBaseStore<
     // without a parent, undefined means we should try to dig it up.
     if (parent === undefined && repo.parentID !== null) {
       const dbParent = await this.db.gitHubRepositories.get(repo.parentID)
-      if (dbParent !== undefined) {
-        parent = await this.toGitHubRepository(dbParent)
-      }
+      assertNonNullable(dbParent, `Missing parent '${repo.id}'`)
+      parent = await this.toGitHubRepository(dbParent)
     }
 
     if (owner === undefined) {
