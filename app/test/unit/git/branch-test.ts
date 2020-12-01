@@ -24,6 +24,7 @@ import {
 } from '../../../src/lib/git'
 import { StatsStore, StatsDatabase } from '../../../src/lib/stats'
 import { UiActivityMonitor } from '../../../src/ui/lib/ui-activity-monitor'
+import { assertNonNullable } from '../../../src/lib/fatal-error'
 
 describe('git/branch', () => {
   let statsStore: StatsStore
@@ -176,7 +177,10 @@ describe('git/branch', () => {
 
     it('deletes local branches', async () => {
       const name = 'test-branch'
-      const branch = await createBranch(repository, name, null)
+      await createBranch(repository, name, null)
+      const [branch] = await getBranches(repository, `refs/heads/${name}`)
+      assertNonNullable(branch, `Could not create branch ${name}`)
+
       const ref = `refs/heads/${name}`
 
       expect(branch).not.toBeNull()

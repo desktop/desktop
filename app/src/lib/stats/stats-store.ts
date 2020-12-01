@@ -68,11 +68,6 @@ const DefaultDailyMeasures: IDailyMeasures = {
   prBranchCheckouts: 0,
   repoWithIndicatorClicked: 0,
   repoWithoutIndicatorClicked: 0,
-  divergingBranchBannerDismissal: 0,
-  divergingBranchBannerInitatedMerge: 0,
-  divergingBranchBannerInitiatedCompare: 0,
-  divergingBranchBannerInfluencedMerge: 0,
-  divergingBranchBannerDisplayed: 0,
   dotcomPushCount: 0,
   dotcomForcePushCount: 0,
   enterprisePushCount: 0,
@@ -797,47 +792,6 @@ export class StatsStore implements IStatsStore {
   /** Has the user opted out of stats reporting? */
   public getOptOut(): boolean {
     return this.optOut
-  }
-
-  /** Record that user dismissed diverging branch notification */
-  public recordDivergingBranchBannerDismissal(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      divergingBranchBannerDismissal: m.divergingBranchBannerDismissal + 1,
-    }))
-  }
-
-  /** Record that user initiated a merge from within the notification banner */
-  public recordDivergingBranchBannerInitatedMerge(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      divergingBranchBannerInitatedMerge:
-        m.divergingBranchBannerInitatedMerge + 1,
-    }))
-  }
-
-  /** Record that user initiated a compare from within the notification banner */
-  public recordDivergingBranchBannerInitiatedCompare(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      divergingBranchBannerInitiatedCompare:
-        m.divergingBranchBannerInitiatedCompare + 1,
-    }))
-  }
-
-  /**
-   * Record that user initiated a merge after getting to compare view
-   * from within notification banner
-   */
-  public recordDivergingBranchBannerInfluencedMerge(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      divergingBranchBannerInfluencedMerge:
-        m.divergingBranchBannerInfluencedMerge + 1,
-    }))
-  }
-
-  /** Record that the user was shown the notification banner */
-  public recordDivergingBranchBannerDisplayed(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      divergingBranchBannerDisplayed: m.divergingBranchBannerDisplayed + 1,
-    }))
   }
 
   public async recordPush(

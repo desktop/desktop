@@ -15,8 +15,9 @@ async function createAndCheckout(
   repository: Repository,
   name: string
 ): Promise<void> {
-  const branch = await createBranch(repository, name, null)
-  if (branch == null) {
+  await createBranch(repository, name, null)
+  const [branch] = await getBranches(repository, `refs/heads/${name}`)
+  if (branch === undefined) {
     throw new Error(`Unable to create branch: ${name}`)
   }
   await checkoutBranch(repository, null, branch)
