@@ -1436,11 +1436,9 @@ export class StatsStore implements IStatsStore {
  * overwritten.
  */
 function createLocalStorageTimestamp(key: string) {
-  if (localStorage.getItem(key) !== null) {
-    return
+  if (localStorage.getItem(key) === null) {
+    setNumber(key, Date.now())
   }
-
-  setNumber(key, Date.now())
 }
 
 /**
