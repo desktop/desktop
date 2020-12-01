@@ -4,6 +4,13 @@ export type GitHubRepositoryPermission = 'read' | 'write' | 'admin' | null
 
 /** A GitHub repository. */
 export class GitHubRepository {
+  /**
+   * A hash of the properties of the object.
+   *
+   * Objects with the same hash are guaranteed to be structurally equal.
+   */
+  public readonly hash: string
+
   public constructor(
     public readonly name: string,
     public readonly owner: Owner,
@@ -21,7 +28,21 @@ export class GitHubRepository {
     /** The user's permissions for this github repository. `null` if unknown. */
     public readonly permissions: GitHubRepositoryPermission = null,
     public readonly parent: GitHubRepository | null = null
-  ) {}
+  ) {
+    this.hash = [
+      this.name,
+      this.owner,
+      this.dbID,
+      this.isPrivate,
+      this.htmlURL,
+      this.defaultBranch,
+      this.cloneURL,
+      this.issuesEnabled,
+      this.isArchived,
+      this.permissions,
+      this.parent?.hash,
+    ].join('+')
+  }
 
   public get endpoint(): string {
     return this.owner.endpoint
@@ -35,19 +56,6 @@ export class GitHubRepository {
   /** Is the repository a fork? */
   public get fork(): boolean {
     return !!this.parent
-  }
-
-  /**
-   * A hash of the properties of the object.
-   *
-   * Objects with the same hash are guaranteed to be structurally equal.
-   */
-  public get hash(): string {
-    return `${this.dbID}+${this.defaultBranch}+${this.isPrivate}+${
-      this.cloneURL
-    }+${this.name}+${this.htmlURL}+${this.owner.hash}+${
-      this.parent && this.parent.hash
-    }`
   }
 }
 
