@@ -76,23 +76,6 @@ export class Repository {
   public get isTutorialRepository() {
     return this._isTutorialRepository === true
   }
-
-  /** Create a copy of the repository model with the provided GitHubRepository */
-  public withGitHubRepository(
-    gitHubRepository: GitHubRepository
-  ): RepositoryWithGitHubRepository {
-    const repo = new Repository(
-      this.path,
-      this.id,
-      gitHubRepository,
-      this.missing,
-      this.workflowPreferences,
-      this._isTutorialRepository
-    )
-
-    assertIsRepositoryWithGitHubRepository(repo)
-    return repo
-  }
 }
 
 /** A worktree linked to a main working tree (aka `Repository`) */

@@ -11,6 +11,7 @@ import {
 import {
   Repository,
   RepositoryWithGitHubRepository,
+  assertIsRepositoryWithGitHubRepository,
 } from '../../models/repository'
 import { fatalError, assertNonNullable } from '../fatal-error'
 import { IAPIRepository, IAPIBranch, IAPIFullRepository } from '../api'
@@ -419,7 +420,18 @@ export class RepositoriesStore extends TypedBaseStore<
       this.db.repositories.update(repo.id, { gitHubRepositoryID: ghRepo.dbID })
     )
     this.emitUpdatedRepositories()
-    return repo.withGitHubRepository(ghRepo)
+
+    const updatedRepo = new Repository(
+      repo.path,
+      repo.id,
+      ghRepo,
+      repo.missing,
+      repo.workflowPreferences,
+      repo.isTutorialRepository
+    )
+
+    assertIsRepositoryWithGitHubRepository(updatedRepo)
+    return updatedRepo
   }
 
   private async putGitHubRepository(
