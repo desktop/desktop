@@ -400,6 +400,13 @@ export class RepositoriesStore extends TypedBaseStore<
   }
 
   public async setGitHubRepository(repo: Repository, ghRepo: GitHubRepository) {
+    // If nothing has changed we can skip writing to the database and (more
+    // importantly) avoid telling store consumers that the repo store has
+    // changed and just return the repo that was given to us.
+    if (repo.gitHubRepository?.hash === ghRepo.hash) {
+      return repo
+    }
+
     await this.db.transaction('rw', this.db.repositories, () =>
       this.db.repositories.update(repo.id, { gitHubRepositoryID: ghRepo.dbID })
     )
