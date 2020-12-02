@@ -20,17 +20,20 @@ export class AppWindow {
   private minWidth = 960
   private minHeight = 660
 
+  private savedWindowState: windowStateKeeper.State | null = null
+
   public constructor() {
-    const savedWindowState = windowStateKeeper({
+    this.savedWindowState = windowStateKeeper({
       defaultWidth: this.minWidth,
       defaultHeight: this.minHeight,
+      maximize: false,
     })
 
     const windowOptions: Electron.BrowserWindowConstructorOptions = {
-      x: savedWindowState.x,
-      y: savedWindowState.y,
-      width: savedWindowState.width,
-      height: savedWindowState.height,
+      x: this.savedWindowState.x,
+      y: this.savedWindowState.y,
+      width: this.savedWindowState.width,
+      height: this.savedWindowState.height,
       minWidth: this.minWidth,
       minHeight: this.minHeight,
       show: false,
@@ -57,7 +60,7 @@ export class AppWindow {
     }
 
     this.window = new BrowserWindow(windowOptions)
-    savedWindowState.manage(this.window)
+    this.savedWindowState.manage(this.window)
 
     let quitting = false
     app.on('before-quit', () => {
@@ -204,7 +207,11 @@ export class AppWindow {
 
   /** Show the window. */
   public show() {
-    this.window.show()
+    if (this.savedWindowState?.isMaximized) {
+      this.window.maximize() // maximize will also call show()
+    } else {
+      this.window.show()
+    }
   }
 
   /** Send the menu event to the renderer. */
