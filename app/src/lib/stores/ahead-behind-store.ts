@@ -24,6 +24,12 @@ function getCacheKey(repository: Repository, from: string, to: string) {
   return `${repository.path}:${from}:${to}`
 }
 
+/**
+ * The maximum number of _concurrent_ `git rev-list` operations we'll run. We're
+ * gonna play it safe and stick to no concurrent operations initially since
+ * that's how the previous ahead/behind logic worked but it should be safe to
+ * bump this to 3 or so to squeeze some more performance out of it.
+ */
 const MaxConcurrent = 1
 
 export class AheadBehindStore {
