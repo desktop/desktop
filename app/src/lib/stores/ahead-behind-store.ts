@@ -87,6 +87,11 @@ export class AheadBehindStore {
    *
    * Useful for component who wish to have a value for the initial render
    * instead of waiting for the subscription to produce an event.
+   *
+   * Note that while it's technically possible to use refs or revision
+   * expressions instead of commit ids here it's strongly recommended against as
+   * the store has no way of knowing when these refs are updated. Using oids
+   * means we can rely on the ids themselves for invalidation.
    */
   public tryGetStatus(repository: Repository, from: string, to: string) {
     const key = getCacheKey(repository, from, to)
