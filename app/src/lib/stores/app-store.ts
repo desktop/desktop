@@ -32,7 +32,6 @@ import {
   GitHubRepository,
   hasWritePermission,
 } from '../../models/github-repository'
-import { Owner } from '../../models/owner'
 import { PullRequest } from '../../models/pull-request'
 import {
   forkPullRequestRemoteName,
@@ -82,8 +81,8 @@ import {
   getAccountForEndpoint,
   getDotComAPIEndpoint,
   IAPIOrganization,
-  IAPIRepository,
   getEndpointForRepository,
+  IAPIFullRepository,
 } from '../api'
 import { shell } from '../app-shell'
 import {
@@ -166,6 +165,7 @@ import { merge } from '../merge'
 import {
   IMatchedGitHubRepository,
   matchGitHubRepository,
+  matchExistingRepository,
 } from '../repository-matching'
 import {
   initializeRebaseFlowForConflictedRepository,
@@ -889,56 +889,48 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async refreshBranchProtectionState(repository: Repository) {
-    const gitStore = this.gitStoreCache.get(repository)
+    const { tip, currentRemote } = this.gitStoreCache.get(repository)
 
-    if (
-      gitStore.tip.kind === TipState.Valid &&
-      repository.gitHubRepository !== null
-    ) {
-      const gitHubRepo = repository.gitHubRepository
-      const branchName = findRemoteBranchName(
-        gitStore.tip,
-        gitStore.currentRemote,
-        gitHubRepo
-      )
+    if (tip.kind !== TipState.Valid || repository.gitHubRepository === null) {
+      return
+    }
 
-      if (branchName !== null) {
-        const account = getAccountForEndpoint(
-          this.accounts,
-          gitHubRepo.endpoint
-        )
+    const gitHubRepo = repository.gitHubRepository
+    const branchName = findRemoteBranchName(tip, currentRemote, gitHubRepo)
 
-        if (account === null) {
-          return
-        }
+    if (branchName !== null) {
+      const account = getAccountForEndpoint(this.accounts, gitHubRepo.endpoint)
 
-        // If the user doesn't have write access to the repository
-        // it doesn't matter if the branch is protected or not and
-        // we can avoid the API call. See the `showNoWriteAccess`
-        // prop in the `CommitMessage` component where we specifically
-        // test for this scenario and show a message specifically
-        // about write access before showing a branch protection
-        // warning.
-        if (!hasWritePermission(gitHubRepo)) {
-          this.repositoryStateCache.updateChangesState(repository, () => ({
-            currentBranchProtected: false,
-          }))
-          this.emitUpdate()
-          return
-        }
+      if (account === null) {
+        return
+      }
 
-        const name = gitHubRepo.name
-        const owner = gitHubRepo.owner.login
-        const api = API.fromAccount(account)
-
-        const pushControl = await api.fetchPushControl(owner, name, branchName)
-        const currentBranchProtected = !isBranchPushable(pushControl)
-
+      // If the user doesn't have write access to the repository
+      // it doesn't matter if the branch is protected or not and
+      // we can avoid the API call. See the `showNoWriteAccess`
+      // prop in the `CommitMessage` component where we specifically
+      // test for this scenario and show a message specifically
+      // about write access before showing a branch protection
+      // warning.
+      if (!hasWritePermission(gitHubRepo)) {
         this.repositoryStateCache.updateChangesState(repository, () => ({
-          currentBranchProtected,
+          currentBranchProtected: false,
         }))
         this.emitUpdate()
+        return
       }
+
+      const name = gitHubRepo.name
+      const owner = gitHubRepo.owner.login
+      const api = API.fromAccount(account)
+
+      const pushControl = await api.fetchPushControl(owner, name, branchName)
+      const currentBranchProtected = !isBranchPushable(pushControl)
+
+      this.repositoryStateCache.updateChangesState(repository, () => ({
+        currentBranchProtected,
+      }))
+      this.emitUpdate()
     }
   }
 
@@ -2535,11 +2527,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
           !hasWritePermission(repository.gitHubRepository)
         ) {
           this.statsStore.recordCommitToRepositoryWithoutWriteAccess()
-          if (repository.gitHubRepository.dbID !== null) {
-            this.statsStore.recordRepositoryCommitedInWithoutWriteAccess(
-              repository.gitHubRepository.dbID
-            )
-          }
+          this.statsStore.recordRepositoryCommitedInWithoutWriteAccess(
+            repository.gitHubRepository.dbID
+          )
         }
       }
 
@@ -3285,104 +3275,47 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async repositoryWithRefreshedGitHubRepository(
     repository: Repository
   ): Promise<Repository> {
-    const oldGitHubRepository = repository.gitHubRepository
+    const repoStore = this.repositoriesStore
+    const match = await this.matchGitHubRepository(repository)
 
-    const matchedGitHubRepository = await this.matchGitHubRepository(repository)
-    if (!matchedGitHubRepository) {
-      // TODO: We currently never clear GitHub repository associations (see
-      // https://github.com/desktop/desktop/issues/1144). So we can bail early
-      // at this point.
+    // TODO: We currently never clear GitHub repository associations (see
+    // https://github.com/desktop/desktop/issues/1144). So we can bail early at
+    // this point.
+    if (!match) {
       return repository
     }
 
-    // This is the repository with the GitHub repository as matched. It's not
-    // ideal because the GitHub repository hasn't been fetched from the API yet
-    // and so it is incomplete. But if we _can't_ fetch it from the API, it's
-    // better than nothing.
-    const skeletonOwner = new Owner(
-      matchedGitHubRepository.owner,
-      matchedGitHubRepository.endpoint,
-      null
-    )
-    const skeletonGitHubRepository = new GitHubRepository(
-      matchedGitHubRepository.name,
-      skeletonOwner,
-      null
-    )
-    const skeletonRepository = new Repository(
-      repository.path,
-      repository.id,
-      skeletonGitHubRepository,
-      repository.missing,
-      {},
-      false
-    )
-
-    const account = getAccountForEndpoint(
-      this.accounts,
-      matchedGitHubRepository.endpoint
-    )
-    if (!account) {
-      // If the repository given to us had a GitHubRepository instance we want
-      // to try to preserve that if possible since the updated GitHubRepository
-      // instance won't have any API information while the previous one might.
-      // We'll only swap it out if the endpoint has changed in which case the
-      // old API information will be invalid anyway.
-      if (
-        !oldGitHubRepository ||
-        matchedGitHubRepository.endpoint !== oldGitHubRepository.endpoint
-      ) {
-        return skeletonRepository
-      }
-
-      return repository
-    }
-
-    const { owner, name } = matchedGitHubRepository
-
+    const { account, owner, name } = match
+    const { endpoint } = account
     const api = API.fromAccount(account)
     const apiRepo = await api.fetchRepository(owner, name)
 
-    if (!apiRepo) {
-      // This is the same as above. If the request fails, we wanna preserve the
-      // existing GitHub repository info. But if we didn't have a GitHub
-      // repository already or the endpoint changed, the skeleton repository is
-      // better than nothing.
-      if (
-        !oldGitHubRepository ||
-        matchedGitHubRepository.endpoint !== oldGitHubRepository.endpoint
-      ) {
-        return skeletonRepository
+    if (apiRepo === null) {
+      // If the request fails, we want to preserve the existing GitHub
+      // repository info. But if we didn't have a GitHub repository already or
+      // the endpoint changed, the skeleton repository is better than nothing.
+      if (endpoint !== repository.gitHubRepository?.endpoint) {
+        const ghRepo = await repoStore.upsertGitHubRepositoryFromMatch(match)
+        return repoStore.setGitHubRepository(repository, ghRepo)
       }
 
       return repository
     }
 
     if (enableUpdateRemoteUrl() && repository.gitHubRepository) {
-      await updateRemoteUrl(
-        this.gitStoreCache.get(repository),
-        repository.gitHubRepository,
-        apiRepo
-      )
+      const gitStore = this.gitStoreCache.get(repository)
+      await updateRemoteUrl(gitStore, repository.gitHubRepository, apiRepo)
     }
 
-    const endpoint = matchedGitHubRepository.endpoint
-    const updatedRepository = await this.repositoriesStore.updateGitHubRepository(
-      repository,
-      endpoint,
-      apiRepo
-    )
+    const ghRepo = await repoStore.upsertGitHubRepository(endpoint, apiRepo)
+    const freshRepo = await repoStore.setGitHubRepository(repository, ghRepo)
 
-    await this.refreshBranchProtectionState(repository)
-
-    return updatedRepository
+    await this.refreshBranchProtectionState(freshRepo)
+    return freshRepo
   }
 
   private async updateBranchProtectionsFromAPI(repository: Repository) {
-    if (
-      repository.gitHubRepository === null ||
-      repository.gitHubRepository.dbID === null
-    ) {
+    if (repository.gitHubRepository === null) {
       return
     }
 
@@ -3953,20 +3886,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private getAccountForRemoteURL(remote: string): IGitAccount | null {
-    const gitHubRepository = matchGitHubRepository(this.accounts, remote)
-    if (gitHubRepository) {
-      const account = getAccountForEndpoint(
-        this.accounts,
-        gitHubRepository.endpoint
+    const account = matchGitHubRepository(this.accounts, remote)?.account
+    if (account !== undefined) {
+      const hasValidToken =
+        account.token.length > 0 ? 'has token' : 'empty token'
+      log.info(
+        `[AppStore.getAccountForRemoteURL] account found for remote: ${remote} - ${account.login} (${hasValidToken})`
       )
-      if (account) {
-        const hasValidToken =
-          account.token.length > 0 ? 'has token' : 'empty token'
-        log.info(
-          `[AppStore.getAccountForRemoteURL] account found for remote: ${remote} - ${account.login} (${hasValidToken})`
-        )
-        return account
-      }
+      return account
     }
 
     const hostname = getGenericHostname(remote)
@@ -4872,7 +4799,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _addTutorialRepository(
     path: string,
     endpoint: string,
-    apiRepository: IAPIRepository
+    apiRepository: IAPIFullRepository
   ) {
     const validatedPath = await validatedRepositoryPath(path)
     if (validatedPath) {
@@ -4897,12 +4824,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<ReadonlyArray<Repository>> {
     const addedRepositories = new Array<Repository>()
     const lfsRepositories = new Array<Repository>()
-    const invalidPaths: Array<string> = []
+    const invalidPaths = new Array<string>()
 
     for (const path of paths) {
       const validatedPath = await validatedRepositoryPath(path)
       if (validatedPath) {
         log.info(`[AppStore] adding repository at ${validatedPath} to store`)
+
+        const repositories = this.repositories
+        const existing = matchExistingRepository(repositories, validatedPath)
+
+        // We don't have to worry about repositoryWithRefreshedGitHubRepository
+        // and isUsingLFS if the repo already exists in the app.
+        if (existing !== undefined) {
+          addedRepositories.push(existing)
+          continue
+        }
 
         const addedRepo = await this.repositoriesStore.addRepository(
           validatedPath
@@ -5700,27 +5637,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   public async _convertRepositoryToFork(
     repository: RepositoryWithGitHubRepository,
-    fork: IAPIRepository
+    fork: IAPIFullRepository
   ): Promise<Repository> {
     const gitStore = this.gitStoreCache.get(repository)
-    const defaultRemoteName = gitStore.defaultRemote
-      ? gitStore.defaultRemote.name
-      : undefined
-    const remoteUrl = gitStore.defaultRemote
-      ? gitStore.defaultRemote.url
-      : undefined
+    const defaultRemoteName = gitStore.defaultRemote?.name
+    const remoteUrl = gitStore.defaultRemote?.url
+    const { endpoint } = repository.gitHubRepository
+
     // make sure there is a default remote (there should be)
     if (defaultRemoteName !== undefined && remoteUrl !== undefined) {
       // update default remote
       if (await gitStore.setRemoteURL(defaultRemoteName, fork.clone_url)) {
         await gitStore.ensureUpstreamRemoteURL(remoteUrl)
         // update associated github repo
-        const updatedRepository = await this.repositoriesStore.updateGitHubRepository(
+        return this.repositoriesStore.setGitHubRepository(
           repository,
-          repository.gitHubRepository.endpoint,
-          fork
+          await this.repositoriesStore.upsertGitHubRepository(endpoint, fork)
         )
-        return updatedRepository
       }
     }
     return repository

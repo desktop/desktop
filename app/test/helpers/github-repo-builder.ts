@@ -49,7 +49,7 @@ export function gitHubRepoFixture({
     new Owner(
       owner,
       endpoint !== undefined ? endpoint : getDotComAPIEndpoint(),
-      null
+      id_counter++
     ),
     id_counter++,
     isPrivate !== undefined ? isPrivate : null,
