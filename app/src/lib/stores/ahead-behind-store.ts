@@ -94,8 +94,7 @@ export class AheadBehindStore {
    * means we can rely on the ids themselves for invalidation.
    */
   public tryGetStatus(repository: Repository, from: string, to: string) {
-    const key = getCacheKey(repository, from, to)
-    return this.cache.get(key)
+    return this.cache.get(getCacheKey(repository, from, to))
   }
 
   private getOrCreateSubscription(
