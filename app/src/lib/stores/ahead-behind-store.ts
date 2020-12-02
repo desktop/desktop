@@ -93,7 +93,7 @@ export class AheadBehindStore {
    * the store has no way of knowing when these refs are updated. Using oids
    * means we can rely on the ids themselves for invalidation.
    */
-  public tryGetStatus(repository: Repository, from: string, to: string) {
+  public tryGetAheadBehind(repository: Repository, from: string, to: string) {
     return this.cache.get(getCacheKey(repository, from, to))
   }
 

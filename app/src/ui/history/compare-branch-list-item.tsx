@@ -41,16 +41,12 @@ export class CompareBranchListItem extends React.Component<
       return null
     }
 
-    const aheadBehind =
-      from === undefined || to === undefined
-        ? undefined
-        : aheadBehindStore.tryGetStatus(repository, from, to)
-
-    return {
-      aheadBehind,
-      comparisonFrom: from,
-      comparisonTo: to,
+    if (from === undefined || to === undefined) {
+      return { aheadBehind: undefined, comparisonFrom: from, comparisonTo: to }
     }
+
+    const aheadBehind = aheadBehindStore.tryGetAheadBehind(repository, from, to)
+    return { aheadBehind, comparisonFrom: from, comparisonTo: to }
   }
 
   private aheadBehindSubscription: IDisposable | null = null
