@@ -24,6 +24,7 @@ import { SelectionSource } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
 import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
+import { AheadBehindStore } from '../../lib/stores/ahead-behind-store'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -41,6 +42,7 @@ interface ICompareSidebarProps {
   readonly compareListScrollTop?: number
   readonly localTags: Map<string, string> | null
   readonly tagsToPush: ReadonlyArray<string> | null
+  readonly aheadBehindStore: AheadBehindStore
 }
 
 interface ICompareSidebarState {
@@ -329,24 +331,13 @@ export class CompareSidebar extends React.Component<
     item: IBranchListItem,
     matches: IMatches
   ) => {
-    const currentBranch = this.props.currentBranch
-
-    const currentBranchName = currentBranch != null ? currentBranch.name : null
-    const branch = item.branch
-
-    const aheadBehind = currentBranch
-      ? this.props.compareState.aheadBehindCache.get(
-          currentBranch.tip.sha,
-          branch.tip.sha
-        )
-      : null
-
     return (
       <CompareBranchListItem
-        branch={branch}
-        isCurrentBranch={branch.name === currentBranchName}
+        branch={item.branch}
+        currentBranch={this.props.currentBranch}
         matches={matches}
-        aheadBehind={aheadBehind}
+        repository={this.props.repository}
+        aheadBehindStore={this.props.aheadBehindStore}
       />
     )
   }

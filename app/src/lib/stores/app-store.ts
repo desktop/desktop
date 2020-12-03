@@ -98,7 +98,6 @@ import {
   PossibleSelections,
   RepositorySectionTab,
   SelectionType,
-  ComparisonMode,
   MergeConflictState,
   isMergeConflictState,
   RebaseConflictState,
@@ -193,7 +192,6 @@ import {
   windowStateChannelName,
 } from '../window-state'
 import { TypedBaseStore } from './base-store'
-import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import { MergeTreeResult } from '../../models/merge'
 import { promiseWithMinimumTimeout, sleep } from '../promise'
 import { BackgroundFetcher } from './helpers/background-fetcher'
@@ -333,9 +331,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** The background fetcher for the currently selected repository. */
   private currentBackgroundFetcher: BackgroundFetcher | null = null
-
-  /** The ahead/behind updater or the currently selected repository */
-  private currentAheadBehindUpdater: AheadBehindUpdater | null = null
 
   private currentBranchPruner: BranchPruner | null = null
 
@@ -986,34 +981,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  private startAheadBehindUpdater(repository: Repository) {
-    if (this.currentAheadBehindUpdater != null) {
-      fatalError(
-        `An ahead/behind updater is already active and cannot start updating on ${repository.name}`
-      )
-    }
-
-    const updater = new AheadBehindUpdater(repository, aheadBehindCache => {
-      this.repositoryStateCache.updateCompareState(repository, () => ({
-        aheadBehindCache,
-      }))
-      this.emitUpdate()
-    })
-
-    this.currentAheadBehindUpdater = updater
-
-    this.currentAheadBehindUpdater.start()
-  }
-
-  private stopAheadBehindUpdate() {
-    const updater = this.currentAheadBehindUpdater
-
-    if (updater != null) {
-      updater.stop()
-      this.currentAheadBehindUpdater = null
-    }
-  }
-
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _initializeCompare(
     repository: Repository,
@@ -1170,27 +1137,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const tip = gitStore.tip
 
-    let currentSha: string | null = null
-
-    if (tip.kind === TipState.Valid) {
-      currentSha = tip.branch.tip.sha
-    } else if (tip.kind === TipState.Detached) {
-      currentSha = tip.currentSha
-    }
-
-    if (this.currentAheadBehindUpdater != null && currentSha != null) {
-      const from =
-        action.comparisonMode === ComparisonMode.Ahead
-          ? comparisonBranch.tip.sha
-          : currentSha
-      const to =
-        action.comparisonMode === ComparisonMode.Ahead
-          ? currentSha
-          : comparisonBranch.tip.sha
-
-      this.currentAheadBehindUpdater.insert(from, to, aheadBehind)
-    }
-
     const loadingMerge: MergeTreeResult = {
       kind: ComputedAction.Loading,
     }
@@ -1257,31 +1203,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.emitUpdate()
-
-    const { branchesState, compareState } = this.repositoryStateCache.get(
-      repository
-    )
-
-    if (branchesState.tip.kind !== TipState.Valid) {
-      return
-    }
-
-    if (this.currentAheadBehindUpdater === null) {
-      return
-    }
-
-    if (compareState.showBranchList) {
-      const currentBranch = branchesState.tip.branch
-
-      this.currentAheadBehindUpdater.schedule(
-        currentBranch,
-        compareState.defaultBranch,
-        compareState.recentBranches,
-        compareState.allBranches
-      )
-    } else {
-      this.currentAheadBehindUpdater.clear()
-    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -1527,13 +1448,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // ensures we clean up the existing background fetcher correctly (if set)
     this.stopBackgroundFetching()
     this.stopPullRequestUpdater()
-    this.stopAheadBehindUpdate()
     this.stopBackgroundPruner()
 
     this.startBackgroundFetching(repository, !previouslySelectedRepository)
     this.startPullRequestUpdater(repository)
 
-    this.startAheadBehindUpdater(repository)
     this.startBackgroundPruner(repository)
 
     this.addUpstreamRemoteIfNeeded(repository)
