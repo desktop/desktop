@@ -7,18 +7,6 @@ import { Repository } from '../../models/repository'
 
 export type AheadBehindCallback = (aheadBehind: IAheadBehind) => void
 
-interface IAheadBehindSubscription {
-  readonly repository: Repository
-  readonly from: string
-  readonly to: string
-
-  /**
-   * One or more callbacks to notify when the ahead/behind status between the
-   * two references has been calculated
-   */
-  readonly callbacks: Set<AheadBehindCallback>
-}
-
 /** Creates a cache key for a particular commit range in a specific repository */
 function getCacheKey(repository: Repository, from: string, to: string) {
   return `${repository.path}:${from}:${to}`
@@ -34,13 +22,6 @@ const MaxConcurrent = 1
 
 export class AheadBehindStore {
   /**
-   * A map keyed on the value of `getCacheKey` containing one object per active
-   * subscription which contain all the information required to update an ahead
-   * behind status and notify subscribers.
-   */
-  private readonly subscriptions = new Map<string, IAheadBehindSubscription>()
-
-  /**
    * A map keyed on the value of `getCacheKey` containing one object per
    * reference (repository specific) with the last retrieved ahead behind status
    * for that reference.
@@ -48,37 +29,18 @@ export class AheadBehindStore {
    * This map also functions as a least recently used cache and will evict the
    * least recently used comparisons to ensure the cache won't grow unbounded
    */
-  private readonly cache = new QuickLRU<string, IAheadBehind>({ maxSize: 2500 })
+  private readonly cache = new QuickLRU<string, IAheadBehind | null>({
+    maxSize: 2500,
+  })
 
-  /**
-   * A set containing the currently executing cache keys (produced by
-   * `getCacheKey`).
-   */
-  private readonly queue = new Set<string>()
+  /** Currently executing workers. Contains at most `MaxConcurrent` workers */
+  private readonly workers = new Map<string, Promise<IAheadBehind | null>>()
 
   /**
    * A concurrency limiter which ensures that we only run `MaxConcurrent`
    * ahead/behind calculations concurrently
    */
   private readonly limit = pLimit(MaxConcurrent)
-
-  private async getAheadBehind(key: string) {
-    // Make sure it's still a valid subscription that someone might care about
-    const subscription = this.subscriptions.get(key)
-
-    if (subscription === undefined) {
-      return
-    }
-
-    const { repository, from, to } = subscription
-    const range = revSymmetricDifference(from, to)
-    const aheadBehind = await getAheadBehind(repository, range)
-
-    if (aheadBehind !== null) {
-      this.cache.set(key, aheadBehind)
-      subscription.callbacks.forEach(cb => cb(aheadBehind))
-    }
-  }
 
   /**
    * Attempt to _synchronously_ retrieve an ahead behind status for a particular
@@ -94,57 +56,66 @@ export class AheadBehindStore {
    * means we can rely on the ids themselves for invalidation.
    */
   public tryGetAheadBehind(repository: Repository, from: string, to: string) {
-    return this.cache.get(getCacheKey(repository, from, to))
-  }
-
-  private getOrCreateSubscription(
-    repository: Repository,
-    from: string,
-    to: string
-  ) {
-    const key = getCacheKey(repository, from, to)
-    let subscription = this.subscriptions.get(key)
-
-    if (subscription !== undefined) {
-      return subscription
-    }
-
-    const callbacks = new Set<AheadBehindCallback>()
-    subscription = { repository, from, to, callbacks }
-
-    this.subscriptions.set(key, subscription)
-
-    return subscription
+    return this.cache.get(getCacheKey(repository, from, to)) ?? undefined
   }
 
   /**
    * Subscribe to the result of calculating the ahead behind status for the
-   * given range.
+   * given range. The operation can be aborted using the returned Disposable.
+   *
+   * Aborting means that the callback won't execute.
    */
-  public subscribe(
+  public getAheadBehind(
     repository: Repository,
     from: string,
     to: string,
     callback: AheadBehindCallback
   ): IDisposable {
     const key = getCacheKey(repository, from, to)
-    const subscription = this.getOrCreateSubscription(repository, from, to)
+    const existing = this.cache.get(key)
+    const disposable = new Disposable(() => {})
 
-    subscription.callbacks.add(callback)
-
-    if (!this.cache.has(key) && !this.queue.has(key)) {
-      this.limit(() => this.getAheadBehind(key))
-        .catch(e => log.error('Failed calculating ahead/behind status', e))
-        .finally(() => this.queue.delete(key))
-
-      this.queue.add(key)
+    // We failed loading
+    if (existing === null || existing !== undefined) {
+      return disposable
     }
 
-    return new Disposable(() => {
-      subscription.callbacks.delete(callback)
-      if (subscription.callbacks.size === 0) {
-        this.subscriptions.delete(key)
+    if (existing !== undefined) {
+      callback(existing)
+      return disposable
+    }
+
+    this.limit(async () => {
+      const existing = this.cache.get(key)
+
+      // The caller has either aborted or we've previously failed loading ahead/
+      // behind status for this ref pair. We don't retry previously failed ops
+      if (disposable.disposed || existing === null) {
+        return
       }
-    })
+
+      if (existing !== undefined) {
+        callback(existing)
+        return
+      }
+
+      let worker = this.workers.get(key)
+
+      if (worker === undefined) {
+        worker = getAheadBehind(repository, revSymmetricDifference(from, to))
+          .catch(e => {
+            log.error('Failed calculating ahead/behind status', e)
+            return null
+          })
+          .then(aheadBehind => this.cache.set(key, aheadBehind) && aheadBehind)
+          .finally(() => this.workers.delete(key))
+
+        this.workers.set(key, worker)
+      }
+
+      return worker.then(x => x !== null && !disposable.disposed && callback(x))
+    }).catch(e => log.error('Failed calculating ahead/behind status', e))
+
+    return disposable
   }
 }
