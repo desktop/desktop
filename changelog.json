@@ -1,5 +1,10 @@
 {
   "releases": {
+    "2.6.1-beta2": [
+      "[Improved] Less ambiguous menu label for reverting commits - #10515. Thanks @halitogunc!",
+      "[Fixed] Refresh branches after creating a new branch - #11125",
+      "[Fixed] The image diff swipe mode overlays the two versions on top of each other again - #11120"
+    ],
     "2.6.1-beta1": [
       "[Fixed] Very large text diffs could cause the app to crash when viewed in split diff mode - #11064",
       "[Fixed] Refactor checkout branch and stash logic - #9297 #10956 #8099 #7617",
