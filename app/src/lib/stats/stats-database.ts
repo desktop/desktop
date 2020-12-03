@@ -65,24 +65,6 @@ export interface IDailyMeasures {
   /** The numbers of times a repo without indicators is clicked on repo list view */
   readonly repoWithoutIndicatorClicked: number
 
-  /** The number of times the user dismisses the diverged branch notification */
-  readonly divergingBranchBannerDismissal: number
-
-  /** The number of times the user merges from the diverged branch notification merge CTA button */
-  readonly divergingBranchBannerInitatedMerge: number
-
-  /** The number of times the user compares from the diverged branch notification compare CTA button */
-  readonly divergingBranchBannerInitiatedCompare: number
-
-  /**
-   * The number of times the user merges from the compare view after getting to that state
-   * from the diverged branch notification compare CTA button
-   */
-  readonly divergingBranchBannerInfluencedMerge: number
-
-  /** The number of times the diverged branch notification is displayed */
-  readonly divergingBranchBannerDisplayed: number
-
   /** The number of times the user pushes to GitHub.com */
   readonly dotcomPushCount: number
 
@@ -370,6 +352,9 @@ export interface IDailyMeasures {
 
   /** Number of times the user has switched to or from History/Changes */
   readonly repositoryViewChangeCount: number
+
+  /** Number of times the user has encountered an unhandled rejection */
+  readonly unhandledRejectionCount: number
 }
 
 export class StatsDatabase extends Dexie {

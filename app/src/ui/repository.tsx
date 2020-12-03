@@ -20,13 +20,11 @@ import { IssuesStore, GitHubUserStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { Account } from '../models/account'
 import { FocusContainer } from './lib/focus-container'
-import { OcticonSymbol, Octicon } from './octicons'
 import { ImageDiffType } from '../models/diff'
 import { IMenu } from '../models/app-menu'
 import { StashDiffViewer } from './stashing'
 import { StashedChangesLoadStates } from '../models/stash-entry'
 import { TutorialPanel, TutorialWelcome, TutorialDone } from './tutorial'
-import { enableNDDBBanner } from '../lib/feature-flag'
 import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { ExternalEditor } from '../lib/editors'
 import { openFile } from './lib/open-file'
@@ -147,11 +145,6 @@ export class RepositoryView extends React.Component<
 
         <div className="with-indicator">
           <span>History</span>
-          {enableNDDBBanner() &&
-          this.props.state.compareState.divergingBranchBannerState
-            .isNudgeVisible ? (
-            <Octicon className="indicator" symbol={OcticonSymbol.dotFill} />
-          ) : null}
         </div>
       </TabBar>
     )

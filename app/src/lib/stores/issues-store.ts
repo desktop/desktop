@@ -44,8 +44,6 @@ export class IssuesStore {
   private async getLatestUpdatedAt(
     repository: GitHubRepository
   ): Promise<Date | null> {
-    assertPersisted(repository)
-
     const db = this.db
 
     const latestUpdatedIssue = await db.issues
@@ -94,8 +92,6 @@ export class IssuesStore {
     issues: ReadonlyArray<IAPIIssue>,
     repository: GitHubRepository
   ): Promise<void> {
-    assertPersisted(repository)
-
     const issuesToDelete = issues.filter(i => i.state === 'closed')
     const issuesToUpsert = issues
       .filter(i => i.state === 'open')
@@ -152,8 +148,6 @@ export class IssuesStore {
   }
 
   private async getAllIssueHitsFor(repository: GitHubRepository) {
-    assertPersisted(repository)
-
     const hits = await this.db.getIssuesForRepository(repository.dbID)
     return hits.map(i => ({ number: i.number, title: i.title }))
   }
@@ -164,8 +158,6 @@ export class IssuesStore {
     text: string,
     maxHits = DefaultMaxHits
   ): Promise<ReadonlyArray<IIssueHit>> {
-    assertPersisted(repository)
-
     const issues =
       this.queryCache?.repository.dbID === repository.dbID
         ? this.queryCache?.issues
@@ -219,15 +211,5 @@ export class IssuesStore {
       clearTimeout(this.pruneQueryCacheTimeoutId)
       this.pruneQueryCacheTimeoutId = null
     }
-  }
-}
-
-function assertPersisted(
-  repo: GitHubRepository
-): asserts repo is GitHubRepository & { dbID: number } {
-  if (repo.dbID === null) {
-    throw new Error(
-      `Need a GitHubRepository that's been inserted into the database`
-    )
   }
 }

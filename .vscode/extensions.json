@@ -1,8 +1,7 @@
 {
   "recommendations": [
-    "ms-vscode.vscode-typescript-tslint-plugin",
-    "msjsdiag.debugger-for-chrome",
     "esbenp.prettier-vscode",
-    "dbaeumer.vscode-eslint"
+    "dbaeumer.vscode-eslint",
+    "stkb.rewrap"
   ]
 }

@@ -3,6 +3,7 @@ import { pathExists } from 'fs-extra'
 import { IFoundEditor } from './found-editor'
 import { assertNever } from '../fatal-error'
 import appPath from 'app-path'
+import { parseEnumValue } from '../enum'
 
 export enum ExternalEditor {
   Atom = 'Atom',
@@ -30,75 +31,7 @@ export enum ExternalEditor {
 }
 
 export function parse(label: string): ExternalEditor | null {
-  if (label === ExternalEditor.Atom) {
-    return ExternalEditor.Atom
-  }
-  if (label === ExternalEditor.MacVim) {
-    return ExternalEditor.MacVim
-  }
-  if (label === ExternalEditor.VSCode) {
-    return ExternalEditor.VSCode
-  }
-  if (label === ExternalEditor.VSCodeInsiders) {
-    return ExternalEditor.VSCodeInsiders
-  }
-
-  if (label === ExternalEditor.VSCodium) {
-    return ExternalEditor.VSCodium
-  }
-
-  if (label === ExternalEditor.SublimeText) {
-    return ExternalEditor.SublimeText
-  }
-  if (label === ExternalEditor.BBEdit) {
-    return ExternalEditor.BBEdit
-  }
-  if (label === ExternalEditor.PhpStorm) {
-    return ExternalEditor.PhpStorm
-  }
-  if (label === ExternalEditor.PyCharm) {
-    return ExternalEditor.PyCharm
-  }
-  if (label === ExternalEditor.RubyMine) {
-    return ExternalEditor.RubyMine
-  }
-  if (label === ExternalEditor.TextMate) {
-    return ExternalEditor.TextMate
-  }
-  if (label === ExternalEditor.Brackets) {
-    return ExternalEditor.Brackets
-  }
-  if (label === ExternalEditor.WebStorm) {
-    return ExternalEditor.WebStorm
-  }
-  if (label === ExternalEditor.Typora) {
-    return ExternalEditor.Typora
-  }
-  if (label === ExternalEditor.CodeRunner) {
-    return ExternalEditor.CodeRunner
-  }
-  if (label === ExternalEditor.SlickEdit) {
-    return ExternalEditor.SlickEdit
-  }
-  if (label === ExternalEditor.IntelliJ) {
-    return ExternalEditor.IntelliJ
-  }
-  if (label === ExternalEditor.Xcode) {
-    return ExternalEditor.Xcode
-  }
-  if (label === ExternalEditor.GoLand) {
-    return ExternalEditor.GoLand
-  }
-  if (label === ExternalEditor.AndroidStudio) {
-    return ExternalEditor.AndroidStudio
-  }
-  if (label === ExternalEditor.Rider) {
-    return ExternalEditor.Rider
-  }
-  if (label === ExternalEditor.Nova) {
-    return ExternalEditor.Nova
-  }
-  return null
+  return parseEnumValue(ExternalEditor, label) ?? null
 }
 
 function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
