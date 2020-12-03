@@ -77,12 +77,12 @@ export class CompareBranchListItem extends React.Component<
 
   private subscribeToAheadBehindStore() {
     const { aheadBehindStore, repository } = this.props
-    const { comparisonFrom: from, comparisonTo: to } = this.state
+    const { comparisonFrom: from, comparisonTo: to, aheadBehind } = this.state
 
     this.unsubscribeFromAheadBehindStore()
 
-    if (from !== undefined && to !== undefined) {
       this.aheadBehindSubscription = aheadBehindStore.subscribe(
+    if (from !== undefined && to !== undefined && aheadBehind === undefined) {
         repository,
         from,
         to,
