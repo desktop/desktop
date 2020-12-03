@@ -63,7 +63,12 @@ export class AheadBehindStore {
    * Subscribe to the result of calculating the ahead behind status for the
    * given range. The operation can be aborted using the returned Disposable.
    *
-   * Aborting means that the callback won't execute.
+   * Aborting means that the callback won't execute and if that we'll try to
+   * avoid invoking Git unless we've already done so or there's another caller
+   * requesting that calculation.
+   *
+   * The callback will not fire if we were unsuccessful in calculating the
+   * ahead/behind status.
    */
   public getAheadBehind(
     repository: Repository,
