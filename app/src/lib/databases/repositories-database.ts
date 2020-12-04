@@ -47,7 +47,7 @@ export interface IDatabaseRepository {
   readonly missing: boolean
 
   /** The last time the stash entries were checked for the repository */
-  readonly lastStashCheckDate: number | null
+  readonly lastStashCheckDate?: number | null
 
   readonly workflowPreferences?: WorkflowPreferences
 
