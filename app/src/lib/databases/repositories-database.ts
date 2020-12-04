@@ -121,6 +121,8 @@ export class RepositoriesDatabase extends BaseDatabase {
     this.conditionalVersion(7, {
       gitHubRepositories: '++id, &[ownerID+name]',
     })
+
+    this.conditionalVersion(8, {}, ensureNoUndefinedParentID)
   }
 }
 
@@ -145,4 +147,20 @@ function removeDuplicateGitHubRepositories(transaction: Dexie.Transaction) {
       seenKeys.add(key)
     }
   })
+}
+
+async function ensureNoUndefinedParentID(transaction: Dexie.Transaction) {
+  const table = transaction.table<IDatabaseGitHubRepository, number>(
+    'gitHubRepositories'
+  )
+  const updatedRepositories = new Array<IDatabaseGitHubRepository>()
+
+  await table.each(ghRepo => {
+    if (ghRepo.parentID === undefined && ghRepo.id !== undefined) {
+      updatedRepositories.push({ ...ghRepo, parentID: null })
+    }
+  })
+
+  log.info(`Fixing ${updatedRepositories.length} repos with missing parentIDs`)
+  await table.bulkPut(updatedRepositories)
 }
