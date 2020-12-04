@@ -647,6 +647,7 @@ export class RepositoriesStore extends TypedBaseStore<
           .catch(e => log.error(`Failed emitting update`, e))
           .finally(() => (this.emitQueued = false))
       })
+      this.emitQueued = true
     }
   }
 }
