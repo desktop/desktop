@@ -149,18 +149,11 @@ function removeDuplicateGitHubRepositories(transaction: Dexie.Transaction) {
   })
 }
 
-async function ensureNoUndefinedParentID(transaction: Dexie.Transaction) {
-  const table = transaction.table<IDatabaseGitHubRepository, number>(
-    'gitHubRepositories'
-  )
-  const updatedRepositories = new Array<IDatabaseGitHubRepository>()
-
-  await table.each(ghRepo => {
-    if (ghRepo.parentID === undefined && ghRepo.id !== undefined) {
-      updatedRepositories.push({ ...ghRepo, parentID: null })
-    }
-  })
-
-  log.info(`Fixing ${updatedRepositories.length} repos with missing parentIDs`)
-  await table.bulkPut(updatedRepositories)
+async function ensureNoUndefinedParentID(tx: Dexie.Transaction) {
+  return tx
+    .table<IDatabaseGitHubRepository, number>('gitHubRepositories')
+    .toCollection()
+    .filter(ghRepo => ghRepo.parentID === undefined)
+    .modify(() => ({ parentID: null }))
+    .then(modified => log.info(`ensureNoUndefinedParentID: ${modified}`))
 }
