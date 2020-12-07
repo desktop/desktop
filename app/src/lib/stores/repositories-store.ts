@@ -130,7 +130,7 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.id,
       repo.gitHubRepositoryID !== null
         ? await this.findGitHubRepositoryByID(repo.gitHubRepositoryID)
-        : null,
+        : await Promise.resolve(null), // Dexie gets confused if we return null
       repo.missing,
       repo.workflowPreferences,
       repo.isTutorialRepository
@@ -144,7 +144,7 @@ export class RepositoriesStore extends TypedBaseStore<
     const gitHubRepository = await this.db.gitHubRepositories.get(id)
     return gitHubRepository !== undefined
       ? this.toGitHubRepository(gitHubRepository)
-      : null
+      : Promise.resolve(null) // Dexie gets confused if we return null
   }
 
   /** Get all the local repositories. */
@@ -441,7 +441,7 @@ export class RepositoriesStore extends TypedBaseStore<
             gitHubRepository.parent,
             true
           )
-        : null
+        : await Promise.resolve(null) // Dexie gets confused if we return null
 
     const login = gitHubRepository.owner.login.toLowerCase()
     const owner = await this.putOwner(endpoint, login)

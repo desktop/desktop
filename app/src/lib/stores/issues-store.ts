@@ -160,7 +160,8 @@ export class IssuesStore {
   ): Promise<ReadonlyArray<IIssueHit>> {
     const issues =
       this.queryCache?.repository.dbID === repository.dbID
-        ? this.queryCache?.issues
+        ? // Dexie gets confused if we return without wrapping in promise
+          await Promise.resolve(this.queryCache?.issues)
         : await this.getAllIssueHitsFor(repository)
 
     this.setQueryCache(repository, issues)
