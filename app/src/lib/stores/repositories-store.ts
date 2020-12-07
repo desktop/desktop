@@ -639,7 +639,7 @@ export class RepositoriesStore extends TypedBaseStore<
    * Helper method to emit updates consistently
    * (This is the only way we emit updates from this store.)
    */
-  private async emitUpdatedRepositories() {
+  private emitUpdatedRepositories() {
     if (!this.emitQueued) {
       setImmediate(() => {
         this.getAll()
@@ -647,6 +647,7 @@ export class RepositoriesStore extends TypedBaseStore<
           .catch(e => log.error(`Failed emitting update`, e))
           .finally(() => (this.emitQueued = false))
       })
+      this.emitQueued = true
     }
   }
 }
