@@ -154,6 +154,6 @@ async function ensureNoUndefinedParentID(tx: Dexie.Transaction) {
     .table<IDatabaseGitHubRepository, number>('gitHubRepositories')
     .toCollection()
     .filter(ghRepo => ghRepo.parentID === undefined)
-    .modify(() => ({ parentID: null }))
+    .modify({ parentID: null })
     .then(modified => log.info(`ensureNoUndefinedParentID: ${modified}`))
 }
