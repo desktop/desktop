@@ -47,7 +47,7 @@ export interface IDatabaseRepository {
   readonly missing: boolean
 
   /** The last time the stash entries were checked for the repository */
-  readonly lastStashCheckDate: number | null
+  readonly lastStashCheckDate?: number | null
 
   readonly workflowPreferences?: WorkflowPreferences
 
@@ -121,6 +121,8 @@ export class RepositoriesDatabase extends BaseDatabase {
     this.conditionalVersion(7, {
       gitHubRepositories: '++id, &[ownerID+name]',
     })
+
+    this.conditionalVersion(8, {}, ensureNoUndefinedParentID)
   }
 }
 
@@ -145,4 +147,13 @@ function removeDuplicateGitHubRepositories(transaction: Dexie.Transaction) {
       seenKeys.add(key)
     }
   })
+}
+
+async function ensureNoUndefinedParentID(tx: Dexie.Transaction) {
+  return tx
+    .table<IDatabaseGitHubRepository, number>('gitHubRepositories')
+    .toCollection()
+    .filter(ghRepo => ghRepo.parentID === undefined)
+    .modify({ parentID: null })
+    .then(modified => log.info(`ensureNoUndefinedParentID: ${modified}`))
 }
