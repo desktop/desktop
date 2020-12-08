@@ -171,7 +171,7 @@ export async function getMergedBranches(
     canonicalRef: '%(refname)',
   })
 
-  const args = ['branch', `--format=${parser.format}`, '--merged', branchName]
+  const args = ['branch', ...parser.gitArgs, '--merged', branchName]
   const mergedBranches = new Map<string, string>()
   const { stdout } = await git(args, repository.path, 'mergedBranches')
 

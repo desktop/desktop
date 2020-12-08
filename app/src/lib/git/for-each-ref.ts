@@ -27,7 +27,7 @@ export async function getBranches(
   // see https://github.com/desktop/desktop/pull/5299#discussion_r206603442 for
   // discussion about what needs to change
   const result = await git(
-    ['for-each-ref', `--format=${parser.format}`, ...prefixes],
+    ['for-each-ref', ...parser.gitArgs, ...prefixes],
     repository.path,
     'getBranches',
     { expectedErrors: new Set([GitError.NotAGitRepository]) }
