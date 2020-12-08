@@ -89,7 +89,7 @@ export async function getCommits(
       `--max-count=${limit}`,
       '--no-show-signature',
       '--no-color',
-      ...parser.format,
+      `--format=${parser.format}`,
       ...additionalArgs,
       revisionRange,
       '--',
