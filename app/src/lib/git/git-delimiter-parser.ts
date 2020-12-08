@@ -1,6 +1,4 @@
-/**
- * Base class for the two Git --format output parsers.
- */
+/** Base class for the two Git --format output parsers */
 class NullDelimiterParser<T extends Record<string, string>> {
   private readonly keys = new Array<keyof T>()
   public readonly format: string = ''
@@ -93,10 +91,10 @@ class NullDelimiterParser<T extends Record<string, string>> {
  * commits.
  */
 export class GitLogParser<
-  T extends { [name: string]: string }
+  T extends Record<string, string>
 > extends NullDelimiterParser<T> {
   /**
-   * Create a new `GitLogFormatParser` suitable for parsing --format output from
+   * Create a new `GitLogParser` suitable for parsing --format output from
    * commands such as `git log`, `git stash`, and other commands that are not
    * derived from `ref-filter`.
    *
@@ -105,7 +103,7 @@ export class GitLogParser<
    *
    *               Example:
    *
-   *               `new GitFormatParser({ sha: '%H' })`
+   *               `new GitLogParser({ sha: '%H' })`
    *
    */
   public constructor(fields: T) {
@@ -126,19 +124,19 @@ export class GitLogParser<
  * on references.
  */
 export class GitForEachRefParser<
-  T extends { [name: string]: string }
+  T extends Record<string, string>
 > extends NullDelimiterParser<T> {
   /**
-   * Create a new `GitFormatParser` suitable for parsing --format output from
-   * commands such as `git for-each-ref`, `git branch`, and other commands that
-   * are not derived from `git log`.
+   * Create a new `GitForEachRefParser` suitable for parsing --format output
+   * from commands such as `git for-each-ref`, `git branch`, and other commands
+   * that are not derived from `git log`.
    *
    * @param fields An object keyed on the friendly name of the value being
    *               parsed with the value being the format string of said value.
    *
    *               Example:
    *
-   *               `new GitFormatParser({ sha: '%(objectname)' })`
+   *               `new GitForEachRefParser({ sha: '%(objectname)' })`
    *
    */
   public constructor(fields: T) {
