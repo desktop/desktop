@@ -14,7 +14,7 @@ import {
   parseRawUnfoldedTrailers,
 } from './interpret-trailers'
 import { getCaptures } from '../helpers/regex'
-import { GitLogParser } from './format-parser'
+import { GitLogParser } from './git-delimiter-parser'
 
 /**
  * Map the raw status text from Git to an app-friendly value

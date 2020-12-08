@@ -3,7 +3,7 @@ import { GitError } from 'dugite'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType, IBranchTip } from '../../models/branch'
 import { CommitIdentity } from '../../models/commit-identity'
-import { GitForEachRefParser } from './format-parser'
+import { GitForEachRefParser } from './git-delimiter-parser'
 
 /** Get all the branches. */
 export async function getBranches(

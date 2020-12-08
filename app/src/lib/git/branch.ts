@@ -10,7 +10,7 @@ import {
   envForRemoteOperation,
   getFallbackUrlForProxyResolve,
 } from './environment'
-import { GitForEachRefParser } from './format-parser'
+import { GitForEachRefParser } from './git-delimiter-parser'
 
 /**
  * Create a new branch from the given start point.

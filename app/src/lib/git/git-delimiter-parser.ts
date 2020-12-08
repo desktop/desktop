@@ -85,7 +85,7 @@ export class GitLogParser<
    * An array containing -z and --format arguments to use
    * when calling git log derived commands.
    */
-  public readonly formatArgs: Array<string>
+  public readonly formatArgs: ReadonlyArray<string>
 
   /**
    * Create a new `GitLogFormatParser` suitable for parsing --format
@@ -123,6 +123,12 @@ export class GitForEachRefParser<
   T extends { [name: string]: string }
 > extends NullDelimiterParser<T> {
   /**
+   * An array containing --format argument to use
+   * when calling git for-each-ref derived commands.
+   */
+  public readonly formatArgs: ReadonlyArray<string>
+
+  /**
    * Create a new `GitFormatParser` suitable for parsing --format
    * output from commands such as `git for-each-ref`, `git branch`,
    * and other commands that are not derived from `git log`.
@@ -138,5 +144,6 @@ export class GitForEachRefParser<
    */
   public constructor(fields: T) {
     super(fields, '%00')
+    this.formatArgs = [`--format=${this.format}`]
   }
 }
