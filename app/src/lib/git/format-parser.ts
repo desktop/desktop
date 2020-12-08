@@ -1,8 +1,8 @@
 /**
  * Base class for the two Git --format output parsers.
  */
-class NullDelimiterParser<T extends { [name: string]: string }> {
-  private readonly keys = new Array<string>()
+class NullDelimiterParser<T extends Record<string, string>> {
+  private readonly keys = new Array<keyof T>()
   public readonly format: string = ''
 
   /**
@@ -24,17 +24,18 @@ class NullDelimiterParser<T extends { [name: string]: string }> {
    * Parses `git ... --format` output according to the provided
    * fields and delimiter string provided in the constructor.
    */
-  public parse(output: string): T[] {
+  public parse(output: string): ReadonlyArray<{ [P in keyof T]: string }> {
     const { keys } = this
-    const entries = new Array<T>()
+    const entries = new Array<{ [K in keyof T]: string }>()
 
     let head = 0
     let tail = 0
     let fieldIndex = 0
-    let entry = {} as T
+    let entry = {} as { [P in keyof T]: string }
 
     while (head < output.length && (tail = output.indexOf('\0', head)) !== -1) {
-      entry[keys[fieldIndex % keys.length]] = output.substring(head, tail)
+      const key = keys[fieldIndex % keys.length]
+      entry[key] = output.substring(head, tail)
 
       head = tail + 1
       fieldIndex++
@@ -42,7 +43,7 @@ class NullDelimiterParser<T extends { [name: string]: string }> {
       // Have we filled up an entire entry yet?
       if (fieldIndex % keys.length === 0) {
         entries.push(entry)
-        entry = {} as T
+        entry = {} as { [P in keyof T]: string }
 
         // Look for the record terminator, NULL or NL.
         if (head < output.length) {
