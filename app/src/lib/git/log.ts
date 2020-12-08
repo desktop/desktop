@@ -14,7 +14,7 @@ import {
   parseRawUnfoldedTrailers,
 } from './interpret-trailers'
 import { getCaptures } from '../helpers/regex'
-import { GitLogFormatParser } from './format-parser'
+import { GitLogParser } from './format-parser'
 
 /**
  * Map the raw status text from Git to an app-friendly value
@@ -67,7 +67,7 @@ export async function getCommits(
   limit: number,
   additionalArgs: ReadonlyArray<string> = []
 ): Promise<ReadonlyArray<Commit>> {
-  const parser = new GitLogFormatParser({
+  const parser = new GitLogParser({
     sha: '%H', // SHA
     shortSha: '%h', // short SHA
     summary: '%s', // summary

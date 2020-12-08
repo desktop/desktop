@@ -59,6 +59,9 @@ class NullDelimiterParser<T extends Record<string, string>> {
         }
       }
     }
+
+    // todo: throw if there are fields we haven't read yet
+
     return entries
   }
 }
@@ -75,7 +78,7 @@ class NullDelimiterParser<T extends Record<string, string>> {
  * `git log` such as `git log` itself, `git stash` and other
  * commands which operate primarily on commits.
  */
-export class GitLogFormatParser<
+export class GitLogParser<
   T extends { [name: string]: string }
 > extends NullDelimiterParser<T> {
   /**
@@ -116,7 +119,7 @@ export class GitLogFormatParser<
  * `ref-filter` such as `git for-each-ref`, `git branch` and
  * other commands which operate primarily on references.
  */
-export class GitFormatParser<
+export class GitForEachRefParser<
   T extends { [name: string]: string }
 > extends NullDelimiterParser<T> {
   /**

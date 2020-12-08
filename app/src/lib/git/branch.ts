@@ -10,7 +10,7 @@ import {
   envForRemoteOperation,
   getFallbackUrlForProxyResolve,
 } from './environment'
-import { GitFormatParser } from './format-parser'
+import { GitForEachRefParser } from './format-parser'
 
 /**
  * Create a new branch from the given start point.
@@ -166,7 +166,7 @@ export async function getMergedBranches(
   branchName: string
 ): Promise<Map<string, string>> {
   const canonicalBranchRef = formatAsLocalRef(branchName)
-  const parser = new GitFormatParser({
+  const parser = new GitForEachRefParser({
     sha: '%(objectname)',
     canonicalRef: '%(refname)',
   })
