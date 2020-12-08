@@ -1,5 +1,9 @@
 {
   "releases": {
+    "2.6.1-beta3": [
+      "[Fixed] Desktop would fail to launch for some users due to objects in the database using an old format - #11176",
+      "[Fixed] Desktop would fail to launch for a small percentage of users that had several non-GitHub repositories in the app - #11192"
+    ],
     "2.6.1-beta2": [
       "[Improved] Clearer menu label for reverting commits - #10515. Thanks @halitogunc!",
       "[Fixed] Refresh branches after creating a new branch - #11125",
