@@ -53,26 +53,28 @@ class NullDelimiterParser<T extends Record<string, string>> {
       fieldIndex++
 
       // Have we filled up an entire entry yet?
-      if (fieldIndex % keys.length === 0) {
-        entries.push(entry)
-        entry = {} as { [P in keyof T]: string }
-
-        // Look for the record terminator, NULL or NL.
-        if (head < output.length) {
-          // We can support both NULL and NL here because we always terminate
-          // our records with NULL.
-          if (output[head] !== '\0' && output[head] !== '\n') {
-            const char = output.charCodeAt(head)
-            throw new Error(
-              `Unexpected character at end of record: '0x${char.toString(16)}'`
-            )
-          }
-          head++
-        }
+      if (fieldIndex % keys.length !== 0) {
+        continue
       }
+
+      // Look for the record terminator, NULL or NL.
+      if (head < output.length) {
+        // We can support both NULL and NL here because we always terminate
+        // our records with NULL.
+        if (output[head] !== '\0' && output[head] !== '\n') {
+          const char = `0x${output.charCodeAt(head).toString(16)}`
+          throw new Error(`Unexpected character at end of record: '${char}'`)
+        }
+        head++
+      }
+
+      entries.push(entry)
+      entry = {} as { [P in keyof T]: string }
     }
 
-    // todo: throw if there are fields we haven't read yet
+    if (fieldIndex % keys.length !== 0) {
+      throw new Error('Unexpected end of output')
+    }
 
     return entries
   }
