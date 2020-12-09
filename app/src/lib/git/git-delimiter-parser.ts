@@ -36,14 +36,14 @@ class NullDelimiterParser<T extends Record<string, string>> {
    * Parses `git ... --format` output according to the provided fields and
    * delimiter string provided in the constructor.
    */
-  public parse(output: string): ReadonlyArray<{ [P in keyof T]: string }> {
+  public parse(output: string): ReadonlyArray<{ [K in keyof T]: string }> {
     const { keys } = this
     const entries = new Array<{ [K in keyof T]: string }>()
 
     let head = 0
     let tail = 0
     let fieldIndex = 0
-    let entry = {} as { [P in keyof T]: string }
+    let entry = {} as { [K in keyof T]: string }
 
     while (head < output.length && (tail = output.indexOf('\0', head)) !== -1) {
       const key = keys[fieldIndex % keys.length]
