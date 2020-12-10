@@ -419,7 +419,7 @@ export class CreateRepository extends React.Component<
     return (
       <Row>
         <Select
-          label={__DARWIN__ ? '.gitignore' : '.gitignore'}
+          label={'.gitignore'}
           value={this.state.gitIgnore}
           onChange={this.onGitIgnoreChange}
         >
