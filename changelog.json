@@ -1,5 +1,14 @@
 {
   "releases": {
+    "2.6.1": [
+      "[Improved] Clearer menu label for reverting commits - #10515. Thanks @halitogunc!",
+      "[Fixed] Refresh branches after creating a new branch - #11125",
+      "[Fixed] Correct image diff swipe mode layout - #11120",
+      "[Fixed] Very large text diffs could cause the app to crash when viewed in split diff mode - #11064",
+      "[Fixed] Let the user know when a checkout fails due to use of assume-unchanged or skip-worktree - #9297",
+      "[Fixed] Always show confirmation prompt before overwriting existing stash entry - #10956",
+      "[Fixed] The fullscreen keyboard shortcut on macOS now works when using split diff mode - #11069"
+    ],
     "2.6.1-beta3": [
       "[Fixed] Desktop would fail to launch for some users due to objects in the database using an old format - #11176",
       "[Fixed] Desktop would fail to launch for a small percentage of users that had several non-GitHub repositories in the app - #11192"
