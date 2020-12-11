@@ -1,5 +1,5 @@
 import { APIRefState } from '../../src/lib/api'
-import { getRefStatusSummary } from '../../src/ui/branches/pull-request-status'
+import { getPRStatusSummary } from '../../src/ui/branches/pull-request-status'
 
 const failure: APIRefState = 'failure'
 const pending: APIRefState = 'pending'
@@ -7,113 +7,83 @@ const success: APIRefState = 'success'
 
 describe('pull request status', () => {
   it('uses the state when no statuses found', () => {
-    const status = {
+    const prStatus = {
+      pullRequestNumber: 23,
       state: success,
-      total_count: 0,
+      totalCount: 0,
+      sha: '',
       statuses: [],
     }
-    expect(getRefStatusSummary(status)).toBe('Commit status: success')
+    expect(getPRStatusSummary(prStatus)).toBe('Commit status: success')
   })
 
   it('changes the failure message to something more friendly', () => {
-    const status = {
+    const prStatus = {
+      pullRequestNumber: 23,
       state: failure,
-      total_count: 0,
+      totalCount: 0,
+      sha: '',
       statuses: [],
     }
-    expect(getRefStatusSummary(status)).toBe('Commit status: failed')
+    expect(getPRStatusSummary(prStatus)).toBe('Commit status: failed')
   })
 
   it('reads the statuses when they are populated', () => {
-    const status = {
+    const prStatus = {
+      pullRequestNumber: 23,
       state: success,
-      total_count: 2,
+      totalCount: 2,
+      sha: '',
       statuses: [
-        {
-          id: 1,
-          state: success,
-          description: 'first',
-          target_url: '',
-          context: '2',
-        },
-        {
-          id: 2,
-          state: success,
-          description: 'second',
-          target_url: '',
-          context: '2',
-        },
+        { id: 1, state: success, description: 'first' },
+        { id: 2, state: success, description: 'second' },
       ],
     }
-    expect(getRefStatusSummary(status)).toBe('2/2 checks OK')
+    expect(getPRStatusSummary(prStatus)).toBe('2/2 checks OK')
   })
 
   it('a successful status shows the description', () => {
-    const status = {
+    const prStatus = {
+      pullRequestNumber: 23,
       state: success,
-      total_count: 2,
+      totalCount: 2,
+      sha: '',
       statuses: [
-        {
-          id: 1,
-          state: success,
-          description: 'The Travis CI build passed',
-          target_url: '',
-          context: '1',
-        },
+        { id: 1, state: success, description: 'The Travis CI build passed' },
       ],
     }
-    expect(getRefStatusSummary(status)).toBe(
+    expect(getPRStatusSummary(prStatus)).toBe(
       'Success: The Travis CI build passed'
     )
   })
 
   it('an error status shows the description', () => {
-    const status = {
+    const prStatus = {
+      pullRequestNumber: 23,
       state: success,
-      total_count: 2,
+      totalCount: 2,
+      sha: '',
       statuses: [
-        {
-          id: 1,
-          state: failure,
-          description: 'The Travis CI build failed',
-          target_url: '',
-          context: '1',
-        },
+        { id: 1, state: failure, description: 'The Travis CI build failed' },
       ],
     }
-    expect(getRefStatusSummary(status)).toBe(
+    expect(getPRStatusSummary(prStatus)).toBe(
       'Failure: The Travis CI build failed'
     )
   })
 
   it('only counts the successful statuses', () => {
-    const status = {
+    const prStatus = {
+      pullRequestNumber: 23,
       state: success,
-      total_count: 3,
+      totalCount: 3,
+      sha: '',
       statuses: [
-        {
-          id: 1,
-          state: success,
-          description: 'first',
-          target_url: '',
-          context: '1',
-        },
-        {
-          id: 2,
-          state: pending,
-          description: 'second',
-          target_url: '',
-          context: '2',
-        },
-        {
-          id: 2,
-          state: pending,
-          description: 'third',
-          target_url: '',
-          context: '3',
-        },
+        { id: 1, state: success, description: 'first' },
+        { id: 2, state: pending, description: 'second' },
+        { id: 2, state: pending, description: 'third' },
       ],
     }
-    expect(getRefStatusSummary(status)).toBe('1/3 checks OK')
+    expect(getPRStatusSummary(prStatus)).toBe('1/3 checks OK')
   })
 })

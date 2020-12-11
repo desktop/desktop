@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { OcticonSymbol } from './octicons.generated'
 import * as classNames from 'classnames'
-import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
 
 interface IOcticonProps {
   /**
@@ -31,47 +30,51 @@ interface IOcticonProps {
  * not the minimum size.
  *
  * Usage: `<Octicon symbol={OcticonSymbol.mark_github} />`
+ *
+ * @see OcticonProps
+ * @extends React.Component<OcticonProps, void>
  */
 export class Octicon extends React.Component<IOcticonProps, {}> {
-  private titleId: string | null = null
+  public static defaultProps: IOcticonProps = {
+    symbol: OcticonSymbol.markGithub,
+  }
 
-  public componentWillUnmount() {
-    if (this.titleId !== null) {
-      releaseUniqueId(this.titleId)
+  public shouldComponentUpdate(nextProps: IOcticonProps) {
+    if (
+      nextProps.symbol.w !== this.props.symbol.w ||
+      nextProps.symbol.h !== this.props.symbol.h ||
+      nextProps.symbol.d !== this.props.symbol.d ||
+      nextProps.className !== this.props.className
+    ) {
+      return true
     }
+
+    return false
+  }
+
+  private renderTitle() {
+    const title = this.props.title
+
+    if (!title) {
+      return null
+    }
+
+    return <title>{title}</title>
   }
 
   public render() {
-    const { symbol, title } = this.props
+    const symbol = this.props.symbol
     const viewBox = `0 0 ${symbol.w} ${symbol.h}`
     const className = classNames('octicon', this.props.className)
 
-    let labelledBy: string | undefined = undefined
-    let titleElem: JSX.Element | null = null
-
-    if (title && title.length > 0) {
-      if (this.titleId === null) {
-        this.titleId = createUniqueId('Octicon_Title')
-      }
-      labelledBy = this.titleId
-      titleElem = <title id={this.titleId}>{title}</title>
-    }
-
-    // Hide the octicon from screen readers when it's only being used
-    // as a visual without any attached meaning applicable to users
-    // consuming the app through an accessibility interface.
-    const ariaHidden = labelledBy === undefined ? 'true' : undefined
-
     return (
       <svg
-        aria-labelledby={labelledBy}
-        aria-hidden={ariaHidden}
+        aria-hidden="true"
         className={className}
         version="1.1"
         viewBox={viewBox}
       >
-        {titleElem}
-        <path d={symbol.d} />
+        <path d={symbol.d}>{this.renderTitle()}</path>
       </svg>
     )
   }

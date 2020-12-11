@@ -2,7 +2,7 @@ import {
   groupRepositories,
   YourRepositoriesIdentifier,
 } from '../../src/ui/clone-repository/group-repositories'
-import { IAPIRepository, IAPIIdentity } from '../../src/lib/api'
+import { IAPIRepository, IAPIUser } from '../../src/lib/api'
 
 const users = {
   shiftkey: {
@@ -12,7 +12,7 @@ const users = {
     avatar_url: '',
     name: 'Brendan Forster',
     type: 'User',
-  } as IAPIIdentity,
+  } as IAPIUser,
   desktop: {
     id: 2,
     url: '',
@@ -20,7 +20,7 @@ const users = {
     avatar_url: '',
     name: 'Desktop',
     type: 'Organization',
-  } as IAPIIdentity,
+  } as IAPIUser,
   octokit: {
     id: 3,
     url: '',
@@ -28,7 +28,7 @@ const users = {
     avatar_url: '',
     name: 'Octokit',
     type: 'Organization',
-  } as IAPIIdentity,
+  } as IAPIUser,
 }
 
 describe('clone repository grouping', () => {

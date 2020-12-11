@@ -18,6 +18,7 @@ export async function measure<T>(
 ): Promise<T> {
   const id = ++markID
 
+  log.debug(`Executing ${cmd}`)
   const startTime = performance && performance.now ? performance.now() : null
 
   markBegin(id, cmd)
@@ -26,7 +27,7 @@ export async function measure<T>(
   } finally {
     if (startTime) {
       const rawTime = performance.now() - startTime
-      if (__DEV__ || rawTime > 1000) {
+      if (rawTime > 1000) {
         const timeInSeconds = (rawTime / 1000).toFixed(3)
         log.info(`Executing ${cmd} (took ${timeInSeconds}s)`)
       }

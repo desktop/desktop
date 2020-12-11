@@ -27,15 +27,14 @@ import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
 import { TestActivityMonitor } from '../helpers/test-activity-monitor'
 import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
 import { ApiRepositoriesStore } from '../../src/lib/stores/api-repositories-store'
-import { CommitStatusStore } from '../../src/lib/stores/commit-status-store'
 
 describe('App', () => {
-  let appStore: AppStore
-  let dispatcher: Dispatcher
-  let statsStore: StatsStore
-  let repositoryStateManager: RepositoryStateCache
-  let githubUserStore: GitHubUserStore
-  let issuesStore: IssuesStore
+  let appStore: AppStore | null = null
+  let dispatcher: Dispatcher | null = null
+  let statsStore: StatsStore | null = null
+  let repositoryStateManager: RepositoryStateCache | null = null
+  let githubUserStore: GitHubUserStore | null = null
+  let issuesStore: IssuesStore | null = null
 
   beforeEach(async () => {
     const db = new TestGitHubUserDatabase()
@@ -66,11 +65,10 @@ describe('App', () => {
     issuesStore = new IssuesStore(issuesDb)
 
     repositoryStateManager = new RepositoryStateCache(repo =>
-      githubUserStore.getUsersForRepository(repo)
+      githubUserStore!.getUsersForRepository(repo)
     )
 
     const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
-    const commitStatusStore = new CommitStatusStore(accountsStore)
 
     appStore = new AppStore(
       githubUserStore,
@@ -88,19 +86,18 @@ describe('App', () => {
     dispatcher = new InMemoryDispatcher(
       appStore,
       repositoryStateManager,
-      statsStore,
-      commitStatusStore
+      statsStore
     )
   })
 
   it('renders', async () => {
     const app = TestUtils.renderIntoDocument(
       <App
-        dispatcher={dispatcher}
-        appStore={appStore}
-        repositoryStateManager={repositoryStateManager}
-        issuesStore={issuesStore}
-        gitHubUserStore={githubUserStore}
+        dispatcher={dispatcher!}
+        appStore={appStore!}
+        repositoryStateManager={repositoryStateManager!}
+        issuesStore={issuesStore!}
+        gitHubUserStore={githubUserStore!}
         startTime={0}
       />
     ) as React.Component<any, any>

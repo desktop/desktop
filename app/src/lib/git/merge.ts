@@ -5,8 +5,7 @@ import { git } from './core'
 import { GitError } from 'dugite'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
-import { MergeResult } from '../../models/merge'
-import { ComputedAction } from '../../models/computed-action'
+import { MergeResult, MergeResultKind } from '../../models/merge'
 import { parseMergeResult } from '../merge-tree-parser'
 import { spawnAndComplete } from './spawn'
 
@@ -78,11 +77,11 @@ export async function mergeTree(
   const mergeBase = await getMergeBase(repository, ours.tip.sha, theirs.tip.sha)
 
   if (mergeBase === null) {
-    return { kind: ComputedAction.Invalid }
+    return { kind: MergeResultKind.Invalid }
   }
 
   if (mergeBase === ours.tip.sha || mergeBase === theirs.tip.sha) {
-    return { kind: ComputedAction.Clean, entries: [] }
+    return { kind: MergeResultKind.Clean, entries: [] }
   }
 
   const result = await spawnAndComplete(
@@ -95,7 +94,7 @@ export async function mergeTree(
 
   if (output.length === 0) {
     // the merge commit will be empty - this is fine!
-    return { kind: ComputedAction.Clean, entries: [] }
+    return { kind: MergeResultKind.Clean, entries: [] }
   }
 
   return parseMergeResult(output)

@@ -3,10 +3,8 @@ import * as Path from 'path'
 
 const DefaultReadmeName = 'README.md'
 
-function defaultReadmeContents(name: string, description?: string): string {
-  return description !== undefined
-    ? `# ${name}\n ${description}\n`
-    : `# ${name}\n`
+function defaultReadmeContents(name: string): string {
+  return `# ${name}\n`
 }
 
 /**
@@ -14,10 +12,9 @@ function defaultReadmeContents(name: string, description?: string): string {
  */
 export async function writeDefaultReadme(
   path: string,
-  name: string,
-  description?: string
+  name: string
 ): Promise<void> {
   const fullPath = Path.join(path, DefaultReadmeName)
-  const contents = defaultReadmeContents(name, description)
+  const contents = defaultReadmeContents(name)
   await writeFile(fullPath, contents)
 }

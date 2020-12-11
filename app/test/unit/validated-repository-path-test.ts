@@ -1,7 +1,6 @@
 /* eslint-disable no-sync */
 
-import { setupFixtureRepository } from '../helpers/repositories'
-import { openSync } from '../helpers/temp'
+import { setupFixtureRepository, openSync } from '../helpers/repositories'
 import { validatedRepositoryPath } from '../../src/lib/stores/helpers/validated-repository-path'
 
 describe('validatedRepositoryPath', () => {

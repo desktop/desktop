@@ -59,12 +59,15 @@ function createTestGhRepo(
   )
 }
 
-function createTestPrRef(branch: Branch, ghRepo: GitHubRepository) {
+function createTestPrRef(
+  branch: Branch,
+  ghRepo: GitHubRepository | null = null
+) {
   return new PullRequestRef(branch.name, branch.tip.sha, ghRepo)
 }
 
 function createTestPr(head: PullRequestRef, base: PullRequestRef) {
-  return new PullRequest(new Date(), '', 1, head, base, '')
+  return new PullRequest(-1, new Date(), null, '', 1, head, base, '')
 }
 
 function createTestRepo(ghRepo: GitHubRepository | null = null) {
@@ -126,8 +129,8 @@ describe('inferComparisonBranch', () => {
   it('Returns the branch associated with the PR', async () => {
     const ghRepo: GitHubRepository = createTestGhRepo('test', 'default')
     const repo = createTestRepo(ghRepo)
-    const head = createTestPrRef(branches[4], ghRepo)
-    const base = createTestPrRef(branches[5], ghRepo)
+    const head = createTestPrRef(branches[4])
+    const base = createTestPrRef(branches[5])
     const pr: PullRequest = createTestPr(head, base)
 
     const branch = await inferComparisonBranch(

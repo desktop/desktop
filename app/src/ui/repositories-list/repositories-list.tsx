@@ -6,11 +6,10 @@ import {
   IRepositoryListItem,
   Repositoryish,
   RepositoryGroupIdentifier,
-  KnownRepositoryGroup,
-  makeRecentRepositoriesGroup,
 } from './group-repositories'
 import { FilterList, IFilterListGroup } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
+import { assertNever } from '../../lib/fatal-error'
 import { ILocalRepositoryState } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
@@ -20,16 +19,12 @@ import { IMenuItem } from '../../lib/menu-item'
 import { PopupType } from '../../models/popup'
 import { encodePathAsUrl } from '../../lib/path'
 import memoizeOne from 'memoize-one'
-import { enableGroupRepositoriesByOwner } from '../../lib/feature-flag'
 
 const BlankSlateImage = encodePathAsUrl(__dirname, 'static/empty-no-repo.svg')
-
-const recentRepositoriesThreshold = 7
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
   readonly repositories: ReadonlyArray<Repositoryish>
-  readonly recentRepositories: ReadonlyArray<number>
 
   /** A cache of the latest repository state values, keyed by the repository id */
   readonly localRepositoryStateLookup: ReadonlyMap<
@@ -149,23 +144,22 @@ export class RepositoriesList extends React.Component<
   }
 
   private getGroupLabel(identifier: RepositoryGroupIdentifier) {
-    if (identifier === KnownRepositoryGroup.Enterprise) {
+    if (identifier === 'github') {
+      return 'GitHub.com'
+    } else if (identifier === 'enterprise') {
       return 'Enterprise'
-    } else if (identifier === KnownRepositoryGroup.NonGitHub) {
+    } else if (identifier === 'other') {
       return 'Other'
     } else {
-      return identifier
+      return assertNever(identifier, `Unknown identifier: ${identifier}`)
     }
   }
 
   private renderGroupHeader = (id: string) => {
     const identifier = id as RepositoryGroupIdentifier
     const label = this.getGroupLabel(identifier)
-    const className = enableGroupRepositoriesByOwner()
-      ? 'filter-list-group-header group-repositories-by-owner'
-      : 'filter-list-group-header'
     return (
-      <div key={identifier} className={className}>
+      <div key={identifier} className="filter-list-group-header">
         {label}
       </div>
     )
@@ -182,28 +176,15 @@ export class RepositoriesList extends React.Component<
   }
 
   public render() {
-    const baseGroups = this.getRepositoryGroups(
+    const groups = this.getRepositoryGroups(
       this.props.repositories,
       this.props.localRepositoryStateLookup
     )
 
     const selectedItem = this.getSelectedListItem(
-      baseGroups,
+      groups,
       this.props.selectedRepository
     )
-
-    const groups =
-      enableGroupRepositoriesByOwner() &&
-      this.props.repositories.length > recentRepositoriesThreshold
-        ? [
-            makeRecentRepositoriesGroup(
-              this.props.recentRepositories,
-              this.props.repositories,
-              this.props.localRepositoryStateLookup
-            ),
-            ...baseGroups,
-          ]
-        : baseGroups
 
     return (
       <div className="repository-list">

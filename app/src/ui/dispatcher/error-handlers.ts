@@ -11,8 +11,10 @@ import { GitError } from '../../lib/git/core'
 import { ShellError } from '../../lib/shells'
 import { UpstreamAlreadyExistsError } from '../../lib/stores/upstream-already-exists-error'
 
+import { FetchType } from '../../models/fetch'
 import { PopupType } from '../../models/popup'
 import { Repository } from '../../models/repository'
+import { TipState } from '../../models/tip'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -240,9 +242,10 @@ export async function pushNeedsPullHandler(
     return error
   }
 
-  dispatcher.showPopup({ type: PopupType.PushNeedsPull, repository })
+  // Since they need to pull, go ahead and do a fetch for them.
+  dispatcher.fetch(repository, FetchType.UserInitiatedTask)
 
-  return null
+  return error
 }
 
 /**
@@ -285,10 +288,6 @@ export async function mergeConflictHandler(
     return error
   }
 
-  if (!(gitContext.kind === 'merge' || gitContext.kind === 'pull')) {
-    return error
-  }
-
   switch (gitContext.kind) {
     case 'pull':
       dispatcher.mergeConflictDetectedFromPull()
@@ -298,12 +297,15 @@ export async function mergeConflictHandler(
       break
   }
 
-  const { currentBranch, theirBranch } = gitContext
+  const { tip, theirBranch } = gitContext
+  if (tip == null || tip.kind !== TipState.Valid) {
+    return error
+  }
 
   dispatcher.showPopup({
     type: PopupType.MergeConflicts,
     repository,
-    ourBranch: currentBranch,
+    ourBranch: tip.branch.name,
     theirBranch,
   })
 
@@ -354,111 +356,6 @@ export async function upstreamAlreadyExistsHandler(
     repository: error.repository,
     existingRemote: error.existingRemote,
   })
-
-  return null
-}
-
-/*
- * Handler for detecting when a merge conflict is reported to direct the user
- * to a different dialog than the generic Git error dialog.
- */
-export async function rebaseConflictsHandler(
-  error: Error,
-  dispatcher: Dispatcher
-): Promise<Error | null> {
-  const e = asErrorWithMetadata(error)
-  if (!e) {
-    return error
-  }
-
-  const gitError = asGitError(e.underlyingError)
-  if (!gitError) {
-    return error
-  }
-
-  const dugiteError = gitError.result.gitError
-  if (!dugiteError) {
-    return error
-  }
-
-  if (dugiteError !== DugiteError.RebaseConflicts) {
-    return error
-  }
-
-  const { repository, gitContext } = e.metadata
-  if (repository == null) {
-    return error
-  }
-
-  if (!(repository instanceof Repository)) {
-    return error
-  }
-
-  if (gitContext == null) {
-    return error
-  }
-
-  if (!(gitContext.kind === 'merge' || gitContext.kind === 'pull')) {
-    return error
-  }
-
-  const { currentBranch } = gitContext
-
-  dispatcher.launchRebaseFlow(repository, currentBranch)
-
-  return null
-}
-
-/**
- * Handler for when we attempt to checkout a branch and there are some files that would
- * be overwritten.
- */
-export async function localChangesOverwrittenHandler(
-  error: Error,
-  dispatcher: Dispatcher
-): Promise<Error | null> {
-  const e = asErrorWithMetadata(error)
-  if (!e) {
-    return error
-  }
-
-  const gitError = asGitError(e.underlyingError)
-  if (!gitError) {
-    return error
-  }
-
-  const dugiteError = gitError.result.gitError
-  if (!dugiteError) {
-    return error
-  }
-
-  if (dugiteError !== DugiteError.LocalChangesOverwritten) {
-    return error
-  }
-
-  const { repository, gitContext } = e.metadata
-  if (repository == null) {
-    return error
-  }
-
-  if (!(repository instanceof Repository)) {
-    return error
-  }
-
-  // This indicates to us whether the action which triggered the
-  // LocalChangesOverwritten was the AppStore _checkoutBranch method.
-  // Other actions that might trigger this error such as deleting
-  // a branch will not provide this specific gitContext and that's
-  // how we know we can safely move the changes to the destination
-  // branch.
-  if (gitContext === undefined || gitContext.kind !== 'checkout') {
-    dispatcher.recordErrorWhenSwitchingBranchesWithUncommmittedChanges()
-    return error
-  }
-
-  const { branchToCheckout } = gitContext
-
-  await dispatcher.moveChangesToBranchAndCheckout(repository, branchToCheckout)
 
   return null
 }

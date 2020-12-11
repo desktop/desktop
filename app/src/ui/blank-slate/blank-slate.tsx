@@ -12,7 +12,6 @@ import { TabBar } from '../tab-bar'
 import { CloneableRepositoryFilterList } from '../clone-repository/cloneable-repository-filter-list'
 import { IAPIRepository } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
-import { ClickSource } from '../lib/list'
 
 interface IBlankSlateProps {
   /** A function to call when the user chooses to create a repository. */
@@ -27,11 +26,11 @@ interface IBlankSlateProps {
   /** The logged in account for GitHub.com. */
   readonly dotComAccount: Account | null
 
-  /** The logged in account for GitHub Enterprise Server. */
+  /** The logged in account for GitHub Enterprise. */
   readonly enterpriseAccount: Account | null
 
   /**
-   * A map keyed on a user account (GitHub.com or GitHub Enterprise Server)
+   * A map keyed on a user account (GitHub.com or GitHub Enterprise)
    * containing an object with repositories that the authenticated
    * user has explicit permission (:read, :write, or :admin) to access
    * as well as information about whether the list of repositories
@@ -142,24 +141,15 @@ export class BlankSlateView extends React.Component<
     this.ensureRepositoriesForAccount(this.getSelectedAccount())
   }
 
-  public componentDidUpdate(
-    prevProps: IBlankSlateProps,
-    prevState: IBlankSlateState
-  ) {
-    if (
-      prevProps.dotComAccount !== this.props.dotComAccount ||
-      prevProps.enterpriseAccount !== this.props.enterpriseAccount ||
-      prevState.selectedTab !== this.state.selectedTab
-    ) {
-      this.ensureRepositoriesForAccount(this.getSelectedAccount())
-    }
+  public componentDidUpdate(prevProps: IBlankSlateProps) {
+    this.ensureRepositoriesForAccount(this.getSelectedAccount())
   }
 
   private ensureRepositoriesForAccount(account: Account | null) {
     if (account !== null) {
       const accountState = this.props.apiRepositories.get(account)
 
-      if (accountState === undefined) {
+      if (accountState === undefined || accountState.repositories === null) {
         this.props.onRefreshRepositories(account)
       }
     }
@@ -227,17 +217,10 @@ export class BlankSlateView extends React.Component<
           repositories={repositories}
           onSelectionChanged={this.onSelectionChanged}
           onFilterTextChanged={this.onFilterTextChanged}
-          onItemClicked={this.onItemClicked}
         />
         {this.renderCloneSelectedRepositoryButton(selectedItem)}
       </>
     )
-  }
-
-  private onItemClicked = (repository: IAPIRepository, source: ClickSource) => {
-    if (source.kind === 'keyboard' && source.event.key === 'Enter') {
-      this.onCloneSelectedRepository()
-    }
   }
 
   private renderCloneSelectedRepositoryButton(
@@ -308,7 +291,7 @@ export class BlankSlateView extends React.Component<
     return (
       <TabBar selectedIndex={selectedIndex} onTabClicked={this.onTabClicked}>
         <span>GitHub.com</span>
-        <span>GitHub Enterprise Server</span>
+        <span>Enterprise</span>
       </TabBar>
     )
   }
@@ -342,7 +325,7 @@ export class BlankSlateView extends React.Component<
               <Octicon symbol={OcticonSymbol.plus} />
               <div>
                 {__DARWIN__
-                  ? 'Create a New Repository on your Hard Drive…'
+                  ? 'Create a New Repository on Your Hard Drive…'
                   : 'Create a New Repository on your hard drive…'}
               </div>
             </Button>
@@ -352,7 +335,7 @@ export class BlankSlateView extends React.Component<
               <Octicon symbol={OcticonSymbol.fileDirectory} />
               <div>
                 {__DARWIN__
-                  ? 'Add an Existing Repository from your Hard Drive…'
+                  ? 'Add an Existing Repository from Your Hard Drive…'
                   : 'Add an Existing Repository from your hard drive…'}
               </div>
             </Button>

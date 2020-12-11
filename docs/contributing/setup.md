@@ -19,13 +19,13 @@ versions look similar to the below output:
 
 ```shellsession
 $ node -v
-v10.15.4
+v8.12.0
 
 $ yarn -v
-1.15.2
+1.9.4
 
 $ python --version
-Python 2.7.15
+Python 2.7.13
 ```
 
 There are also [additional resources](tooling.md) to configure your favorite
@@ -33,9 +33,8 @@ editor to work nicely with the GitHub Desktop repository.
 
 ## Building Desktop
 
-First, create a fork of `desktop/desktop` and then clone the repository to your local machine. You'll need to be inside the repository in order to build the application locally.
-
-The typical workflow to get up running is as follows:
+After cloning the repository, the typical workflow to get up running
+is as follows:
 
 * Run `yarn` to get all required dependencies on your machine.
 * Run `yarn build:dev` to create a development build of the app.

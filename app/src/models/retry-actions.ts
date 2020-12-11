@@ -1,6 +1,5 @@
 import { Repository } from './repository'
 import { CloneOptions } from './clone-options'
-import { Branch } from './branch'
 
 /** The types of actions that can be retried. */
 export enum RetryActionType {
@@ -8,7 +7,6 @@ export enum RetryActionType {
   Pull,
   Fetch,
   Clone,
-  Checkout,
 }
 
 /** The retriable actions and their associated data. */
@@ -21,9 +19,4 @@ export type RetryAction =
       url: string
       path: string
       options: CloneOptions
-    }
-  | {
-      type: RetryActionType.Checkout
-      repository: Repository
-      branch: Branch | string
     }

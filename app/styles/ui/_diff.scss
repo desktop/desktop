@@ -20,6 +20,7 @@
 
   pre {
     border: none;
+    padding: 0;
   }
 
   // Remove blank space at the top of the diff
@@ -28,7 +29,18 @@
   }
 
   &-line {
-    padding: 2px 0 2px var(--spacing-half);
+    display: flex;
+    padding: 0;
+
+    // The last immediate `span` is the actual content class.
+    > span:last-child {
+      // Add a little bit of space to the left of code diff
+      // `padding-left` here means mouse move events are not raised
+      padding-left: var(--spacing-half);
+      padding-top: var(--diff-line-padding-y);
+      padding-bottom: var(--diff-line-padding-y);
+      display: inline-block;
+    }
 
     svg.no-newline {
       height: 8px;
@@ -39,83 +51,18 @@
     }
   }
 
-  .CodeMirror-code {
+  &-code > div:last-of-type {
     // Add a border to the end of the diff
     border-bottom: var(--base-border);
-  }
-
-  .CodeMirror-gutters {
-    background: transparent;
-    border: none;
-  }
-
-  .CodeMirror-gutter-wrapper {
-    top: 0;
-    bottom: 0;
-  }
-
-  .CodeMirror-gutter-elt {
-    height: 100%;
-  }
-
-  .diff-gutter {
-    width: 125px;
-  }
-
-  .CodeMirror-search-dialog {
-    left: auto;
-    border: var(--base-border);
-    border-top: 0;
-    right: var(--spacing);
-    border-radius: 0 0 var(--border-radius) var(--border-radius);
-    padding: var(--spacing-half) var(--spacing);
-    box-shadow: var(--base-box-shadow);
-
-    .CodeMirror-search-hint {
-      display: none;
-    }
-
-    input.CodeMirror-search-field {
-      background: var(--box-background-color);
-      color: var(--text-color);
-      font-size: var(--font-size);
-      font-family: var(--font-family-sans-serif);
-      height: var(--text-field-height);
-      padding: 0;
-      width: 180px;
-    }
-
-    .buttons {
-      display: inline-block;
-    }
   }
 }
 
 // The container element which holds the before and after
 // diff-line-number spans.
-.CodeMirror-lines .diff-line-gutter {
+.diff-line-gutter {
   display: flex;
   height: 100%;
   background: var(--diff-gutter-background-color);
-  box-sizing: border-box;
-  position: relative;
-  cursor: default;
-
-  * {
-    cursor: default;
-  }
-
-  .hunk-handle {
-    position: absolute;
-    height: 100%;
-    width: 20px;
-    right: -8px;
-    top: 0;
-
-    &.includeable {
-      cursor: pointer;
-    }
-  }
 
   &.diff-add {
     background: var(--diff-add-gutter-background-color);
@@ -138,14 +85,15 @@
   }
 
   .diff-line-number {
-    width: 50%;
-    padding: 0 var(--spacing-half);
+    cursor: default;
   }
 
   &.diff-add,
   &.diff-delete {
-    &:not(.read-only) * {
-      cursor: pointer;
+    &:not(.read-only) {
+      .diff-line-number {
+        cursor: pointer;
+      }
     }
   }
 
@@ -157,6 +105,8 @@
 .diff-line-number {
   display: inline-block;
   color: var(--diff-line-number-color);
+  width: var(--diff-line-number-column-width);
+  padding: var(--diff-line-padding-y) var(--spacing-half);
   text-align: right;
 }
 
@@ -178,8 +128,9 @@
   }
 }
 
-.CodeMirror .diff-line-gutter.diff-add {
+.CodeMirror pre.diff-add {
   color: var(--diff-add-text-color);
+  padding: 0;
 
   .diff-line-number {
     border-color: var(--diff-add-border-color);
@@ -190,8 +141,9 @@
   }
 }
 
-.CodeMirror .diff-line-gutter.diff-delete {
+.CodeMirror pre.diff-delete {
   color: var(--diff-delete-text-color);
+  padding: 0;
 
   .diff-line-number {
     border-color: var(--diff-delete-border-color);
@@ -202,8 +154,9 @@
   }
 }
 
-.CodeMirror .diff-line-gutter.diff-context {
+.CodeMirror pre.diff-context {
   color: var(--diff-text-color);
+  padding: 0;
 
   .diff-line-number {
     border-color: var(--diff-border-color);
@@ -215,31 +168,33 @@
 }
 
 // The cm- prefix means it's styling the line content.
-.CodeMirror-line {
-  &.diff-hunk {
-    color: var(--diff-hunk-text-color);
-  }
-  &.diff-delete {
-    color: var(--diff-delete-text-color);
-  }
-  &.diff-add {
-    color: var(--diff-add-text-color);
-  }
-  &.diff-context {
-    color: var(--diff-text-color);
-  }
+.cm-diff-hunk {
+  color: var(--diff-hunk-text-color);
+}
+
+.cm-diff-delete {
+  color: var(--diff-delete-text-color);
 }
 
 .cm-diff-delete-inner {
   background: var(--diff-delete-inner-background-color);
 }
 
+.cm-diff-add {
+  color: var(--diff-add-text-color);
+}
+
 .cm-diff-add-inner {
   background: var(--diff-add-inner-background-color);
 }
 
-.CodeMirror .diff-line-gutter.diff-hunk {
+.cm-diff-context {
+  color: var(--diff-text-color);
+}
+
+.CodeMirror pre.diff-hunk {
   color: var(--diff-hunk-text-color);
+  padding: 0;
 
   .diff-line-number {
     border-color: var(--diff-hunk-border-color);
@@ -250,7 +205,7 @@
   }
 }
 
-.CodeMirror .diff-line-gutter.diff-line-selected {
+.CodeMirror pre.CodeMirror-line .diff-line-selected {
   .diff-line-number {
     background: var(--diff-selected-background-color);
     border-color: var(--diff-selected-border-color);
@@ -262,8 +217,7 @@
   }
 }
 
-.CodeMirror .diff-line-gutter.diff-line-hover,
-.CodeMirror .diff-line-gutter.includeable:hover {
+.CodeMirror pre.CodeMirror-line .diff-line-hover {
   .diff-line-number {
     background: var(--diff-hover-background-color);
     border-color: var(--diff-hover-border-color);

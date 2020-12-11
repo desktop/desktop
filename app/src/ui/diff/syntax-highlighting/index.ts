@@ -45,7 +45,7 @@ async function getOldFileContent(
     file.status.kind === AppFileStatusKind.New ||
     file.status.kind === AppFileStatusKind.Untracked
   ) {
-    return Buffer.alloc(0)
+    return new Buffer(0)
   }
 
   let commitish
@@ -75,7 +75,7 @@ async function getNewFileContent(
   file: ChangedFile
 ): Promise<Buffer> {
   if (file.status.kind === AppFileStatusKind.Deleted) {
-    return Buffer.alloc(0)
+    return new Buffer(0)
   }
 
   if (file instanceof WorkingDirectoryFileChange) {
@@ -103,20 +103,20 @@ export async function getFileContents(
 ): Promise<IFileContents> {
   const oldContentsPromise = lineFilters.oldLineFilter.length
     ? getOldFileContent(repo, file)
-    : Promise.resolve(Buffer.alloc(0))
+    : Promise.resolve(new Buffer(0))
 
   const newContentsPromise = lineFilters.newLineFilter.length
     ? getNewFileContent(repo, file)
-    : Promise.resolve(Buffer.alloc(0))
+    : Promise.resolve(new Buffer(0))
 
   const [oldContents, newContents] = await Promise.all([
     oldContentsPromise.catch(e => {
       log.error('Could not load old contents for syntax highlighting', e)
-      return Buffer.alloc(0)
+      return new Buffer(0)
     }),
     newContentsPromise.catch(e => {
       log.error('Could not load new contents for syntax highlighting', e)
-      return Buffer.alloc(0)
+      return new Buffer(0)
     }),
   ])
 

@@ -1,6 +1,5 @@
 import * as Fs from 'fs'
 import * as Path from 'path'
-import { encodePathAsUrl } from './path'
 
 /**
  * Type representing the contents of the gemoji json database
@@ -29,7 +28,7 @@ interface IGemojiDefinition {
 }
 
 function getEmojiImageUrlFromRelativePath(relativePath: string): string {
-  return encodePathAsUrl(__dirname, 'emoji', relativePath)
+  return `file://${Path.join(__dirname, 'emoji', relativePath)}`
 }
 
 /**

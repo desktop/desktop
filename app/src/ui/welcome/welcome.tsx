@@ -3,8 +3,7 @@ import * as classNames from 'classnames'
 
 import { Dispatcher } from '../dispatcher'
 import { encodePathAsUrl } from '../../lib/path'
-import { Account } from '../../models/account'
-import { SignInState, SignInStep } from '../../lib/stores'
+import { AppStore, SignInState, SignInStep } from '../../lib/stores'
 import { assertNever } from '../../lib/fatal-error'
 import { Start } from './start'
 import { SignInDotCom } from './sign-in-dot-com'
@@ -24,8 +23,7 @@ export enum WelcomeStep {
 
 interface IWelcomeProps {
   readonly dispatcher: Dispatcher
-  readonly optOut: boolean
-  readonly accounts: ReadonlyArray<Account>
+  readonly appStore: AppStore
   readonly signInState: SignInState | null
 }
 
@@ -163,7 +161,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
         return (
           <ConfigureGit
             advance={this.advanceToStep}
-            accounts={this.props.accounts}
+            accounts={this.props.appStore.getState().accounts}
           />
         )
 
@@ -172,7 +170,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
           <UsageOptOut
             dispatcher={this.props.dispatcher}
             advance={this.advanceToStep}
-            optOut={this.props.optOut}
+            optOut={this.props.appStore.getStatsOptOut()}
             done={this.done}
           />
         )

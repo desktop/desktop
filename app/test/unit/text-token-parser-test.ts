@@ -42,7 +42,8 @@ describe('Tokenizer', () => {
     const htmlURL = `${host}/${login}/${name}`
     const cloneURL = `${host}/${login}/${name}.git`
 
-    const gitHubRepository: GitHubRepository = {
+    let gitHubRepository: GitHubRepository | null = null
+    gitHubRepository = {
       dbID: 1,
       name,
       owner: {

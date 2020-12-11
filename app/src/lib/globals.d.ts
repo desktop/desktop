@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/interface-name-prefix */
+/* eslint-disable typescript/interface-name-prefix */
 /** Is the app running in dev mode? */
 declare const __DEV__: boolean
 
@@ -188,6 +188,13 @@ interface XMLHttpRequest extends XMLHttpRequestEventTarget {
 }
 
 declare namespace Electron {
+  interface MenuItem {
+    readonly accelerator?: Electron.Accelerator
+    readonly submenu?: Electron.Menu
+    readonly role?: string
+    readonly type: 'normal' | 'separator' | 'submenu' | 'checkbox' | 'radio'
+  }
+
   interface RequestOptions {
     readonly method: string
     readonly url: string

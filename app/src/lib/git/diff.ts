@@ -98,13 +98,11 @@ const imageFileExtensions = new Set([
 export async function getCommitDiff(
   repository: Repository,
   file: FileChange,
-  commitish: string,
-  hideWhitespaceInDiff: boolean = false
+  commitish: string
 ): Promise<IDiff> {
   const args = [
     'log',
     commitish,
-    ...(hideWhitespaceInDiff ? ['-w'] : []),
     '-m',
     '-1',
     '--first-parent',

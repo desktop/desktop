@@ -17,16 +17,12 @@ interface IUndoCommitProps {
 
   /** whether a push, pull or fetch is in progress */
   readonly isPushPullFetchInProgress: boolean
-
-  /** whether a committing is in progress */
-  readonly isCommitting: boolean
 }
 
 /** The Undo Commit component. */
 export class UndoCommit extends React.Component<IUndoCommitProps, {}> {
   public render() {
-    const disabled =
-      this.props.isPushPullFetchInProgress || this.props.isCommitting
+    const disabled = this.props.isPushPullFetchInProgress
     const title = disabled
       ? 'Undo is disabled while the repository is being updated'
       : undefined
