@@ -1,12 +1,7 @@
 import { Repository } from '../../models/repository'
 import { Account } from '../../models/account'
 import { GitHubRepository } from '../../models/github-repository'
-import {
-  API,
-  getAccountForEndpoint,
-  getDotComAPIEndpoint,
-  IAPIIdentity,
-} from '../api'
+import { API, getAccountForEndpoint, getDotComAPIEndpoint } from '../api'
 import {
   GitHubUserDatabase,
   IGitHubUser,
@@ -16,17 +11,6 @@ import { getAvatarWithEnterpriseFallback } from '../gravatar'
 import { fatalError } from '../fatal-error'
 import { compare } from '../compare'
 import { BaseStore } from './base-store'
-
-function isValidAuthor(
-  author: IAPIIdentity | {} | null
-): author is IAPIIdentity {
-  return (
-    author !== null &&
-    typeof author === 'object' &&
-    'avatar_url' in author &&
-    'login' in author
-  )
-}
 
 /**
  * The store for GitHub users. This is used to match commit authors to GitHub
@@ -193,7 +177,7 @@ export class GitHubUserStore extends BaseStore {
   public async _loadAndCacheUser(
     accounts: ReadonlyArray<Account>,
     repository: Repository,
-    sha: string,
+    sha: string | null,
     email: string
   ) {
     const endpoint = repository.gitHubRepository
@@ -257,22 +241,19 @@ export class GitHubUserStore extends BaseStore {
   private async findUserWithAPI(
     account: Account,
     repository: GitHubRepository,
-    sha: string,
+    sha: string | null,
     email: string
   ): Promise<IGitHubUser | null> {
     const api = API.fromAccount(account)
-
-    const apiCommit = await api.fetchCommit(
-      repository.owner.login,
-      repository.name,
-      sha
-    )
-
-    if (apiCommit) {
-      const { author } = apiCommit
-      if (isValidAuthor(author)) {
+    if (sha) {
+      const apiCommit = await api.fetchCommit(
+        repository.owner.login,
+        repository.name,
+        sha
+      )
+      if (apiCommit && apiCommit.author) {
         const avatarURL = getAvatarWithEnterpriseFallback(
-          author.avatar_url,
+          apiCommit.author.avatar_url,
           email,
           account.endpoint
         )
@@ -280,9 +261,9 @@ export class GitHubUserStore extends BaseStore {
         return {
           email,
           avatarURL,
-          login: author.login,
+          login: apiCommit.author.login,
           endpoint: account.endpoint,
-          name: author.login,
+          name: apiCommit.author.name || apiCommit.author.login,
         }
       }
     }
@@ -299,7 +280,7 @@ export class GitHubUserStore extends BaseStore {
         login: matchingUser.login,
         avatarURL,
         endpoint: account.endpoint,
-        name: matchingUser.login,
+        name: matchingUser.name || matchingUser.login,
       }
     }
 

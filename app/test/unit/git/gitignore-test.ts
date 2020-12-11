@@ -9,7 +9,6 @@ import {
   readGitIgnoreAtRoot,
   appendIgnoreRule,
 } from '../../../src/lib/git'
-import { setupLocalConfig } from '../../helpers/local-config'
 
 describe('gitignore', () => {
   describe('readGitIgnoreAtRoot', () => {
@@ -38,12 +37,16 @@ describe('gitignore', () => {
     it('when autocrlf=true and safecrlf=true, appends CRLF to file', async () => {
       const repo = await setupEmptyRepository()
 
-      await setupLocalConfig(repo, [
-        ['core.autocrlf', 'true'],
-        ['core.safecrlf', 'true'],
-      ])
+      await GitProcess.exec(
+        ['config', '--local', 'core.autocrlf', 'true'],
+        repo.path
+      )
+      await GitProcess.exec(
+        ['config', '--local', 'core.safecrlf', 'true'],
+        repo.path
+      )
 
-      const { path } = repo
+      const path = repo.path
 
       await saveGitIgnore(repo, 'node_modules')
       await GitProcess.exec(['add', '.gitignore'], path)
@@ -61,14 +64,16 @@ describe('gitignore', () => {
     it('when autocrlf=input, appends LF to file', async () => {
       const repo = await setupEmptyRepository()
 
-      setupLocalConfig(repo, [
-        // ensure this repository only ever sticks to LF
-        ['core.eol', 'lf'],
-        // do not do any conversion of line endings when committing
-        ['core.autocrlf', 'input'],
-      ])
+      // ensure this repository only ever sticks to LF
+      await GitProcess.exec(['config', '--local', 'core.eol', 'lf'], repo.path)
 
-      const { path } = repo
+      // do not do any conversion of line endings when committing
+      await GitProcess.exec(
+        ['config', '--local', 'core.autocrlf', 'input'],
+        repo.path
+      )
+
+      const path = repo.path
 
       await saveGitIgnore(repo, 'node_modules')
       await GitProcess.exec(['add', '.gitignore'], path)
@@ -134,10 +139,12 @@ describe('gitignore', () => {
   describe('appendIgnoreRule', () => {
     it('appends one rule', async () => {
       const repo = await setupEmptyRepository()
+      const path = repo.path
 
-      await setupLocalConfig(repo, [['core.autocrlf', 'true']])
-
-      const { path } = repo
+      await GitProcess.exec(
+        ['config', '--local', 'core.autocrlf', 'true'],
+        path
+      )
 
       const ignoreFile = `${path}/.gitignore`
       await FSE.writeFile(ignoreFile, 'node_modules\n')
@@ -152,10 +159,12 @@ describe('gitignore', () => {
 
     it('appends multiple rules', async () => {
       const repo = await setupEmptyRepository()
+      const path = repo.path
 
-      await setupLocalConfig(repo, [['core.autocrlf', 'true']])
-
-      const { path } = repo
+      await GitProcess.exec(
+        ['config', '--local', 'core.autocrlf', 'true'],
+        path
+      )
 
       const ignoreFile = `${path}/.gitignore`
       await FSE.writeFile(ignoreFile, 'node_modules\n')

@@ -1,9 +1,8 @@
 import { ipcRenderer } from 'electron'
 import { ExecutableMenuItem } from '../models/app-menu'
-import { MenuIDs } from '../models/menu-ids'
+import { MenuIDs, MenuLabels } from '../main-process/menu'
 import { IMenuItemState } from '../lib/menu-update'
 import { IMenuItem } from '../lib/menu-item'
-import { MenuLabelsEvent } from '../models/menu-labels'
 
 /** Set the menu item's enabledness. */
 export function updateMenuState(
@@ -99,7 +98,7 @@ export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
 }
 
 /** Update the menu item labels with the user's preferred apps. */
-export function updatePreferredAppMenuItemLabels(labels: MenuLabelsEvent) {
+export function updatePreferredAppMenuItemLabels(labels: MenuLabels) {
   ipcRenderer.send('update-preferred-app-menu-item-labels', labels)
 }
 

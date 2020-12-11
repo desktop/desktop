@@ -3,7 +3,7 @@ import { getKeyForAccount } from '../auth'
 import { Account } from '../../models/account'
 import { fetchUser, EmailVisibility } from '../api'
 import { fatalError } from '../fatal-error'
-import { TypedBaseStore } from './base-store'
+import { BaseStore } from './base-store'
 
 /** The data-only interface for storage. */
 interface IEmail {
@@ -46,7 +46,7 @@ interface IAccount {
 }
 
 /** The store for logged in accounts. */
-export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
+export class AccountsStore extends BaseStore {
   private dataStore: IDataStore
   private secureStore: ISecureStore
 
@@ -75,7 +75,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   /**
    * Add the account to the store.
    */
-  public async addAccount(account: Account): Promise<Account | null> {
+  public async addAccount(account: Account): Promise<void> {
     await this.loadingPromise
 
     let updated = account
@@ -103,13 +103,12 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       } else {
         this.emitError(e)
       }
-      return null
+      return
     }
 
     this.accounts = [...this.accounts, updated]
 
     this.save()
-    return updated
   }
 
   /** Refresh all accounts by fetching their latest info from the API. */
@@ -119,7 +118,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     )
 
     this.save()
-    this.emitUpdate(this.accounts)
+    this.emitUpdate()
   }
 
   /**
@@ -198,7 +197,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     }
 
     this.accounts = accountsWithTokens
-    this.emitUpdate(this.accounts)
+    this.emitUpdate()
   }
 
   private save() {
@@ -207,7 +206,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     )
     this.dataStore.setItem('users', JSON.stringify(usersWithoutTokens))
 
-    this.emitUpdate(this.accounts)
+    this.emitUpdate()
   }
 }
 

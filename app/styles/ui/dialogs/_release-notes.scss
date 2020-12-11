@@ -10,16 +10,10 @@
 
   .dialog-header {
     height: 100px;
-    position: relative;
 
     .release-notes-header {
       display: flex;
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      padding: 0 var(--spacing-double);
+      flex: 1;
     }
 
     .release-note-graphic-left {
@@ -31,15 +25,8 @@
     }
 
     .title {
-      display: flex;
-      flex-direction: column;
-      flex-grow: 1;
-      justify-content: center;
       text-align: center;
-
-      p {
-        margin: 0;
-      }
+      flex-grow: 1;
 
       .version {
         font-size: 14px;
@@ -66,11 +53,6 @@
     li {
       padding-left: 0;
     }
-  }
-
-  a.close {
-    align-self: flex-start;
-    z-index: 1;
   }
 
   .container {

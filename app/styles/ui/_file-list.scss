@@ -7,6 +7,7 @@
   height: 100%;
 
   .list-item {
+    padding: 0 var(--spacing);
     border-bottom: var(--base-border);
   }
 
@@ -28,8 +29,6 @@
 
     // See https://css-tricks.com/flexbox-truncated-text/
     min-width: 0;
-    height: 100%;
-    padding: 0 var(--spacing);
 
     .checkbox-component {
       flex-shrink: 0;

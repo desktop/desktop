@@ -127,7 +127,6 @@ These shells are currently supported:
  - [Hyper](https://hyper.sh/)
  - [iTerm2](https://www.iterm2.com/)
  - [PowerShell Core](https://github.com/powershell/powershell/)
- - [Kitty](https://sw.kovidgoyal.net/kitty/)
 
 These are defined in an enum at the top of the file:
 
@@ -137,7 +136,6 @@ export enum Shell {
   Hyper = 'Hyper',
   iTerm2 = 'iTerm2',
   PowerShellCore = 'PowerShell Core',
-  Kitty = 'Kitty',
 }
 ```
 
@@ -170,13 +168,11 @@ export async function getAvailableShells(): Promise<
     hyperPath,
     iTermPath,
     powerShellCorePath,
-    kittyPath,
   ] = await Promise.all([
     getShellPath(Shell.Terminal),
     getShellPath(Shell.Hyper),
     getShellPath(Shell.iTerm2),
     getShellPath(Shell.PowerShellCore),
-    getShellPath(Shell.Kitty),
   ])
 
   // other code

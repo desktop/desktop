@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Account } from '../../models/account'
-import { API, IAPIOrganization } from '../../lib/api'
+import { API, IAPIUser } from '../../lib/api'
 import { TextBox } from '../lib/text-box'
 import { Select } from '../lib/select'
 import { DialogContent } from '../dialog'
@@ -9,21 +9,37 @@ import { merge } from '../../lib/merge'
 import { caseInsensitiveCompare } from '../../lib/compare'
 import { sanitizedRepositoryName } from '../add-repository/sanitized-repository-name'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { RepositoryPublicationSettings } from '../../models/publish-settings'
 
 interface IPublishRepositoryProps {
   /** The user to use for publishing. */
   readonly account: Account
 
   /** The settings to use when publishing the repository. */
-  readonly settings: RepositoryPublicationSettings
+  readonly settings: IPublishRepositorySettings
 
   /** The function called when any of the publish settings are changed. */
-  readonly onSettingsChanged: (settings: RepositoryPublicationSettings) => void
+  readonly onSettingsChanged: (settings: IPublishRepositorySettings) => void
+}
+
+export interface IPublishRepositorySettings {
+  /** The name to use when publishing the repository. */
+  readonly name: string
+
+  /** The repository's description. */
+  readonly description: string
+
+  /** Should the repository be private? */
+  readonly private: boolean
+
+  /**
+   * The org to which this repository belongs. If null, the repository should be
+   * published as a personal repository.
+   */
+  readonly org: IAPIUser | null
 }
 
 interface IPublishRepositoryState {
-  readonly orgs: ReadonlyArray<IAPIOrganization>
+  readonly orgs: ReadonlyArray<IAPIUser>
 }
 
 /** The Publish Repository component. */
@@ -55,14 +71,13 @@ export class PublishRepository extends React.Component<
 
   private async fetchOrgs(account: Account) {
     const api = API.fromAccount(account)
-    const apiOrgs = await api.fetchOrgs()
-    const orgs = [...apiOrgs]
+    const orgs = (await api.fetchOrgs()) as Array<IAPIUser>
     orgs.sort((a, b) => caseInsensitiveCompare(a.login, b.login))
     this.setState({ orgs })
   }
 
-  private updateSettings<K extends keyof RepositoryPublicationSettings>(
-    subset: Pick<RepositoryPublicationSettings, K>
+  private updateSettings<K extends keyof IPublishRepositorySettings>(
+    subset: Pick<IPublishRepositorySettings, K>
   ) {
     const existingSettings = this.props.settings
     const newSettings = merge(existingSettings, subset)
@@ -85,19 +100,14 @@ export class PublishRepository extends React.Component<
   }
 
   private onOrgChange = (event: React.FormEvent<HTMLSelectElement>) => {
-    const { settings } = this.props
-
     const value = event.currentTarget.value
     const index = parseInt(value, 10)
-    let newSettings: RepositoryPublicationSettings
     if (index < 0 || isNaN(index)) {
-      newSettings = { ...settings, org: null }
+      this.updateSettings({ org: null })
     } else {
       const org = this.state.orgs[index]
-      newSettings = { ...settings, org }
+      this.updateSettings({ org })
     }
-
-    this.props.onSettingsChanged(newSettings)
   }
 
   private renderOrgs(): JSX.Element | null {
@@ -113,7 +123,6 @@ export class PublishRepository extends React.Component<
     )
 
     let selectedIndex = -1
-
     const selectedOrg = this.props.settings.org
     for (const [index, org] of this.state.orgs.entries()) {
       if (selectedOrg && selectedOrg.id === org.id) {

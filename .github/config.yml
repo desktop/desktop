@@ -13,7 +13,7 @@ requestInfoReplyComment: >
 
   Thanks for understanding and meeting us halfway 😀
 
-requestInfoLabelToAdd: more-info-needed
+requestInfoLabelToAdd: more-information-needed
 
 requestInfoOn:
   pullRequest: false

@@ -1,5 +1,8 @@
 import * as React from 'react'
-import { PublishRepository } from './publish-repository'
+import {
+  PublishRepository,
+  IPublishRepositorySettings,
+} from './publish-repository'
 import { Dispatcher } from '../dispatcher'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -11,46 +14,10 @@ import { getDotComAPIEndpoint } from '../../lib/api'
 import { assertNever, fatalError } from '../../lib/fatal-error'
 import { CallToAction } from '../lib/call-to-action'
 import { getGitDescription } from '../../lib/git'
-import {
-  IDotcomPublicationSettings,
-  IEnterprisePublicationSettings,
-  RepositoryPublicationSettings,
-  PublishSettingsType,
-} from '../../models/publish-settings'
 
 enum PublishTab {
   DotCom = 0,
   Enterprise,
-}
-
-type TabState = IDotcomTabState | IEnterpriseTabState
-
-interface IDotcomTabState {
-  readonly kind: 'dotcom'
-
-  /** The settings for publishing the repository. */
-  readonly settings: IDotcomPublicationSettings
-
-  /**
-   * An error which, if present, is presented to the
-   * user in close proximity to the actions or input fields
-   * related to the current step.
-   */
-  readonly error: Error | null
-}
-
-interface IEnterpriseTabState {
-  readonly kind: 'enterprise'
-
-  /** The settings for publishing the repository. */
-  readonly settings: IEnterprisePublicationSettings
-
-  /**
-   * An error which, if present, is presented to the
-   * user in close proximity to the actions or input fields
-   * related to the current step.
-   */
-  readonly error: Error | null
 }
 
 interface IPublishProps {
@@ -69,8 +36,23 @@ interface IPublishProps {
 interface IPublishState {
   /** The currently selected tab. */
   readonly currentTab: PublishTab
-  readonly dotcomTabState: IDotcomTabState
-  readonly enterpriseTabState: IEnterpriseTabState
+
+  /** The settings for publishing the repository. */
+  readonly publishSettings: IPublishRepositorySettings
+
+  /**
+   * An error which, if present, is presented to the
+   * user in close proximity to the actions or input fields
+   * related to the current step.
+   */
+  readonly error: Error | null
+
+  /**
+   * The error pertaining to the tab the user is not
+   * actively using. It is swapped when the user changes
+   * the current tab.
+   */
+  readonly inactiveTabError: Error | null
 
   /** Is the repository currently being published? */
   readonly publishing: boolean
@@ -90,43 +72,23 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       startingTab = PublishTab.Enterprise
     }
 
-    const publicationSettings = {
+    const publishSettings = {
       name: props.repository.name,
       description: '',
       private: true,
-    }
-
-    const dotcomTabState: IDotcomTabState = {
-      kind: 'dotcom',
-      settings: {
-        ...publicationSettings,
-        kind: PublishSettingsType.dotcom,
-        org: null,
-      },
-      error: null,
-    }
-
-    const enterpriseTabState: IEnterpriseTabState = {
-      kind: 'enterprise',
-      settings: {
-        ...publicationSettings,
-        kind: PublishSettingsType.enterprise,
-        org: null,
-      },
-      error: null,
+      org: null,
     }
 
     this.state = {
       currentTab: startingTab,
-      dotcomTabState,
-      enterpriseTabState,
+      publishSettings,
+      error: null,
+      inactiveTabError: null,
       publishing: false,
     }
   }
 
   public render() {
-    const currentTabState = this.getCurrentTabState()
-
     return (
       <Dialog
         id="publish-repository"
@@ -141,11 +103,11 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
           selectedIndex={this.state.currentTab}
         >
           <span>GitHub.com</span>
-          <span>GitHub Enterprise Server</span>
+          <span>Enterprise</span>
         </TabBar>
 
-        {currentTabState.error ? (
-          <DialogError>{currentTabState.error.message}</DialogError>
+        {this.state.error ? (
+          <DialogError>{this.state.error.message}</DialogError>
         ) : null}
 
         {this.renderContent()}
@@ -155,16 +117,14 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
   }
 
   public async componentDidMount() {
-    const currentTabState = this.getCurrentTabState()
-
     try {
       const description = await getGitDescription(this.props.repository.path)
       const settings = {
-        ...currentTabState.settings,
+        ...this.state.publishSettings,
         description,
       }
 
-      this.setCurrentTabSettings(settings)
+      this.setState({ publishSettings: settings })
     } catch (error) {
       log.warn(`Couldn't get the repository's description`, error)
     }
@@ -172,13 +132,12 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
 
   private renderContent() {
     const tab = this.state.currentTab
-    const currentTabState = this.getCurrentTabState()
     const account = this.getAccountForTab(tab)
     if (account) {
       return (
         <PublishRepository
           account={account}
-          settings={currentTabState.settings}
+          settings={this.state.publishSettings}
           onSettingsChanged={this.onSettingsChanged}
         />
       )
@@ -187,23 +146,8 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
     }
   }
 
-  private onSettingsChanged = (settings: RepositoryPublicationSettings) => {
-    let tabState: TabState
-    if (settings.kind === PublishSettingsType.enterprise) {
-      tabState = {
-        kind: 'enterprise',
-        settings: settings,
-        error: this.state.enterpriseTabState.error,
-      }
-    } else {
-      tabState = {
-        kind: 'dotcom',
-        settings: settings,
-        error: this.state.dotcomTabState.error,
-      }
-    }
-
-    this.setTabState(tabState)
+  private onSettingsChanged = (settings: IPublishRepositorySettings) => {
+    this.setState({ publishSettings: settings })
   }
 
   private getAccountForTab(tab: PublishTab): Account | null {
@@ -236,8 +180,8 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
             onAction={this.signInEnterprise}
           >
             <div>
-              If you have a GitHub Enterprise Server account at work, sign in to
-              it to get access to your repositories.
+              If you have a GitHub Enterprise account at work, sign in to it to
+              get access to your repositories.
             </div>
           </CallToAction>
         )
@@ -247,8 +191,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
   }
 
   private renderFooter() {
-    const currentTabState = this.getCurrentTabState()
-    const disabled = !currentTabState.settings.name.length
+    const disabled = !this.state.publishSettings.name.length
     const tab = this.state.currentTab
     const user = this.getAccountForTab(tab)
     if (user) {
@@ -276,10 +219,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
   }
 
   private publishRepository = async () => {
-    const currentTabState = this.getCurrentTabState()
-
-    this.setCurrentTabError(null)
-    this.setState({ publishing: true })
+    this.setState({ error: null, publishing: true })
 
     const tab = this.state.currentTab
     const account = this.getAccountForTab(tab)
@@ -288,8 +228,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       return
     }
 
-    const settings = currentTabState.settings
-    const { org } = currentTabState.settings
+    const settings = this.state.publishSettings
 
     try {
       await this.props.dispatcher.publishRepository(
@@ -298,56 +237,27 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
         settings.description,
         settings.private,
         account,
-        org
+        settings.org
       )
 
       this.props.onDismissed()
     } catch (e) {
-      this.setCurrentTabError(e)
-      this.setState({ publishing: false })
+      this.setState({ error: e, publishing: false })
     }
   }
 
   private onTabClicked = (index: PublishTab) => {
     const isTabChanging = index !== this.state.currentTab
     if (isTabChanging) {
-      this.setState({ currentTab: index })
+      // Clear the selected org since dot com and Enterprise will have a different
+      // set of orgs.
+      const settings = { ...this.state.publishSettings, org: null }
+      this.setState({ currentTab: index, publishSettings: settings })
+      // Swap the current stored error from the active tab with the error from
+      // the inactive tab. So that each tab saves and displays their own error.
+      const temporaryError: Error | null = this.state.error
+      this.setState({ error: this.state.inactiveTabError })
+      this.setState({ inactiveTabError: temporaryError })
     }
-  }
-
-  private getCurrentTabState = () =>
-    this.state.currentTab === PublishTab.DotCom
-      ? this.state.dotcomTabState
-      : this.state.enterpriseTabState
-
-  private setTabState = (state: TabState) => {
-    if (state.kind === 'enterprise') {
-      this.setState({ enterpriseTabState: state })
-    } else {
-      this.setState({ dotcomTabState: state })
-    }
-  }
-
-  private setCurrentTabSettings = (settings: RepositoryPublicationSettings) => {
-    if (settings.kind === PublishSettingsType.enterprise) {
-      const enterpriseTabState = {
-        ...this.state.enterpriseTabState,
-        settings: settings,
-      }
-      this.setTabState(enterpriseTabState)
-    } else {
-      const dotcomTabState = {
-        ...this.state.dotcomTabState,
-        settings: settings,
-      }
-      this.setTabState(dotcomTabState)
-    }
-  }
-
-  private setCurrentTabError = (error: Error | null) => {
-    this.setTabState({
-      ...this.getCurrentTabState(),
-      error: error,
-    })
   }
 }

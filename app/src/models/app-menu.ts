@@ -162,24 +162,6 @@ function getAccessKey(text: string): string | null {
   return m ? m[1] : null
 }
 
-/** Workaround for missing type information on Electron.MenuItem.type */
-function parseMenuItem(
-  type: string
-): 'normal' | 'separator' | 'submenu' | 'checkbox' | 'radio' {
-  switch (type) {
-    case 'normal':
-    case 'separator':
-    case 'submenu':
-    case 'checkbox':
-    case 'radio':
-      return type
-    default:
-      throw new Error(
-        `Unable to parse string ${type} to a valid menu item type`
-      )
-  }
-}
-
 /**
  * Creates an instance of one of the types in the MenuItem type union based
  * on an Electron MenuItem instance. Will recurse through all sub menus and
@@ -200,10 +182,8 @@ function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
   const accelerator = getAccelerator(menuItem)
   const accessKey = getAccessKey(menuItem.label)
 
-  const type = parseMenuItem(menuItem.type)
-
   // normal, separator, submenu, checkbox or radio.
-  switch (type) {
+  switch (menuItem.type) {
     case 'normal':
       return {
         id,
@@ -250,7 +230,10 @@ function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
         accessKey,
       }
     default:
-      return assertNever(type, `Unknown menu item type ${type}`)
+      return assertNever(
+        menuItem.type,
+        `Unknown menu item type ${menuItem.type}`
+      )
   }
 }
 /**

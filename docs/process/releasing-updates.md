@@ -124,8 +124,6 @@ Create a new branch to represent the work that will be released to users:
  - for `production` releases, branch from the latest beta tag
     - to find this tag: `git tag | grep 'beta' | sort -r | head -n 1`
 
-When naming the branch, ensure you use the `releases/[version]` pattern to ensure all CI platforms are aware of the branch and will build any PRs that target the branch.
-
 If you are creating a new beta release, the `yarn draft-release beta` command will help you find the new release entries for the changelog.
 
 If you are create a new `production` release, you should just combine and sort the previous `beta` changelog entries.
@@ -174,9 +172,6 @@ _Make sure you move your application out of the Downloads folder and into the Ap
 If an error occurs during the release process, a needle will be reported to Central's [Haystack](https://haystack.githubapp.com/central).
 
 After the release is deployed, you should monitor Desktop's [Haystack](https://haystack.githubapp.com/desktop) closely for 15 minutes to ensure no unexpected needles appear.
-
-#### Final Beta release
-If the active beta is the last beta prior to a production release, extra care should be taken when looking at Desktop's [Haystack](https://haystack.githubapp.com/desktop) roll-ups. The lead engineer responsible for deployment should produce a _Haystack report_ the day before and after the release. The report should contain a list of any new or unexpected errors from the past beta releases in the milestone and be published to the team's Slack channel.
 
 ### 6. Celebrate
 

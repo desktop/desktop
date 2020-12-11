@@ -1,18 +1,17 @@
 import * as React from 'react'
 
-import { HistoryTabMode } from '../../lib/app-state'
+import { MergeResultStatus, HistoryTabMode } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
-import { ActionStatusIcon } from '../lib/action-status-icon'
-import { MergeResult } from '../../models/merge'
-import { ComputedAction } from '../../models/computed-action'
+import { MergeStatusHeader } from './merge-status-header'
+import { MergeResultKind } from '../../models/merge'
 
 interface IMergeCallToActionWithConflictsProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
-  readonly mergeStatus: MergeResult | null
+  readonly mergeStatus: MergeResultStatus | null
   readonly currentBranch: Branch
   readonly comparisonBranch: Branch
   readonly commitsBehind: number
@@ -32,7 +31,7 @@ export class MergeCallToActionWithConflicts extends React.Component<
 
     const cannotMergeBranch =
       this.props.mergeStatus != null &&
-      this.props.mergeStatus.kind === ComputedAction.Invalid
+      this.props.mergeStatus.kind === MergeResultKind.Invalid
 
     const disabled = commitsBehind <= 0 || cannotMergeBranch
 
@@ -52,10 +51,7 @@ export class MergeCallToActionWithConflicts extends React.Component<
   private renderMergeStatus() {
     return (
       <div className="merge-status-component">
-        <ActionStatusIcon
-          status={this.props.mergeStatus}
-          classNamePrefix="merge-status"
-        />
+        <MergeStatusHeader status={this.props.mergeStatus} />
 
         {this.renderMergeDetails(
           this.props.currentBranch,
@@ -70,27 +66,27 @@ export class MergeCallToActionWithConflicts extends React.Component<
   private renderMergeDetails(
     currentBranch: Branch,
     comparisonBranch: Branch,
-    mergeStatus: MergeResult | null,
+    mergeStatus: MergeResultStatus | null,
     behindCount: number
   ) {
     if (mergeStatus === null) {
       return null
     }
 
-    if (mergeStatus.kind === ComputedAction.Loading) {
+    if (mergeStatus.kind === MergeResultKind.Loading) {
       return this.renderLoadingMergeMessage()
     }
-    if (mergeStatus.kind === ComputedAction.Clean) {
+    if (mergeStatus.kind === MergeResultKind.Clean) {
       return this.renderCleanMergeMessage(
         currentBranch,
         comparisonBranch,
         behindCount
       )
     }
-    if (mergeStatus.kind === ComputedAction.Invalid) {
+    if (mergeStatus.kind === MergeResultKind.Invalid) {
       return this.renderInvalidMergeMessage()
     }
-    if (mergeStatus.kind === ComputedAction.Conflicts) {
+    if (mergeStatus.kind === MergeResultKind.Conflicts) {
       return this.renderConflictedMergeMessage(
         currentBranch,
         comparisonBranch,

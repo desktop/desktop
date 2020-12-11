@@ -53,7 +53,7 @@ export function lineNumberForDiffLine(
 export function findInteractiveDiffRange(
   hunks: ReadonlyArray<DiffHunk>,
   index: number
-): { from: number; to: number } | null {
+): { start: number; end: number } | null {
   const hunk = diffHunkForIndex(hunks, index)
   if (!hunk) {
     return null
@@ -71,10 +71,9 @@ export function findInteractiveDiffRange(
     }
   }
 
-  const from =
-    contextLineBeforeIndex !== null
-      ? contextLineBeforeIndex
-      : hunk.unifiedDiffStart + 1
+  const start = contextLineBeforeIndex
+    ? contextLineBeforeIndex
+    : hunk.unifiedDiffStart + 1
 
   let contextLineAfterIndex: number | null = null
 
@@ -87,8 +86,9 @@ export function findInteractiveDiffRange(
     }
   }
 
-  const to =
-    contextLineAfterIndex !== null ? contextLineAfterIndex : hunk.unifiedDiffEnd
+  const end = contextLineAfterIndex
+    ? contextLineAfterIndex
+    : hunk.unifiedDiffEnd
 
-  return { from, to }
+  return { start, end }
 }

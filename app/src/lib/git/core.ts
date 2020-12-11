@@ -7,6 +7,7 @@ import {
 
 import { assertNever } from '../fatal-error'
 import { getDotComAPIEndpoint } from '../api'
+import { enableGitProtocolVersionTwo } from '../feature-flag'
 
 import { IGitAccount } from '../../models/git-account'
 
@@ -43,7 +44,7 @@ export interface IGitExecutionOptions extends DugiteExecutionOptions {
  */
 export interface IGitResult extends DugiteResult {
   /**
-   * The parsed git error. This will be null when the exit code is included in
+   * The parsed git error. This will be null when the exit code is include in
    * the `successExitCodes`, or when dugite was unable to parse the
    * error.
    */
@@ -148,18 +149,16 @@ export async function git(
   }
 
   // The caller should either handle this error, or expect that exit code.
-  const errorMessage = new Array<string>()
+  const errorMessage = []
   errorMessage.push(
     `\`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}.`
   )
 
   if (result.stdout) {
-    errorMessage.push('stdout:')
     errorMessage.push(result.stdout)
   }
 
   if (result.stderr) {
-    errorMessage.push('stderr:')
     errorMessage.push(result.stderr)
   }
 
@@ -181,16 +180,9 @@ function getDescriptionForError(error: DugiteError): string {
     case DugiteError.SSHAuthenticationFailed:
     case DugiteError.SSHPermissionDenied:
     case DugiteError.HTTPSAuthenticationFailed:
-      const menuHint = __DARWIN__
-        ? 'GitHub Desktop > Preferences.'
-        : 'File > Options.'
-      return `Authentication failed. Some common reasons include:
-
-- You are not logged in to your account: see ${menuHint}
-- You may need to log out and log back in to refresh your token.
-- You do not have permission to access this repository.
-- The repository is archived on GitHub. Check the repository settings to confirm you are still permitted to push commits.
-- If you use SSH authentication, check that your key is added to the ssh-agent and associated with your account.`
+      return `Authentication failed. You may not have permission to access the repository or the repository may have been archived. Open ${
+        __DARWIN__ ? 'preferences' : 'options'
+      } and verify that you're signed in with an account that has permission to access this repository.`
     case DugiteError.RemoteDisconnection:
       return 'The remote disconnected. Check your Internet connection and try again.'
     case DugiteError.HostDown:
@@ -272,12 +264,6 @@ function getDescriptionForError(error: DugiteError): string {
       return 'A lock file already exists in the repository, which blocks this operation from completing.'
     case DugiteError.NoMergeToAbort:
       return 'There is no merge in progress, so there is nothing to abort.'
-    case DugiteError.NoExistingRemoteBranch:
-      return 'The remote branch does not exist.'
-    case DugiteError.LocalChangesOverwritten:
-      return 'Unable to switch branches as there are working directory changes which would be overwritten. Please commit or stash your changes.'
-    case DugiteError.UnresolvedConflicts:
-      return 'There are unresolved conflicts in the working directory.'
     default:
       return assertNever(error, `Unknown error: ${error}`)
   }
@@ -313,6 +299,10 @@ export async function gitNetworkArguments(
     '-c',
     'credential.helper=',
   ]
+
+  if (!enableGitProtocolVersionTwo()) {
+    return baseArgs
+  }
 
   if (account === null) {
     return baseArgs

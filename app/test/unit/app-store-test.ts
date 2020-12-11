@@ -22,7 +22,6 @@ import {
 import {
   setupEmptyRepository,
   setupConflictedRepoWithMultipleFiles,
-  setupConflictedRepoWithUnrelatedCommittedChange,
 } from '../helpers/repositories'
 import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
 
@@ -41,13 +40,12 @@ import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cach
 import { ApiRepositoriesStore } from '../../src/lib/stores/api-repositories-store'
 import { getStatusOrThrow } from '../helpers/status'
 import { AppFileStatusKind } from '../../src/models/status'
-import { ManualConflictResolutionKind } from '../../src/models/manual-conflict-resolution'
 
 // enable mocked version
 jest.mock('../../src/lib/window-state')
 
 describe('AppStore', () => {
-  async function createAppStore() {
+  async function createAppStore(): Promise<AppStore> {
     const db = new TestGitHubUserDatabase()
     await db.reset()
 
@@ -79,7 +77,7 @@ describe('AppStore', () => {
 
     const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 
-    const appStore = new AppStore(
+    return new AppStore(
       githubUserStore,
       new CloningRepositoriesStore(),
       new IssuesStore(issuesDb),
@@ -91,18 +89,12 @@ describe('AppStore', () => {
       repositoryStateManager,
       apiRepositoriesStore
     )
-
-    return { appStore, repositoriesStore }
   }
 
   it('can select a repository', async () => {
-    const { appStore, repositoriesStore } = await createAppStore()
+    const appStore = await createAppStore()
 
-    const { path } = await setupEmptyRepository()
-    const repositories = await appStore._addRepositories([path])
-    const repo = repositories[0]
-
-    await repositoriesStore.updateLastStashCheckDate(repo)
+    const repo = await setupEmptyRepository()
 
     await appStore._selectRepository(repo)
 
@@ -130,21 +122,21 @@ describe('AppStore', () => {
       }
     }
 
-    let repository: Repository
+    let repo: Repository | null = null
     let firstCommit: Commit | null = null
 
     beforeEach(async () => {
-      repository = await setupEmptyRepository()
+      repo = await setupEmptyRepository()
 
       const file = 'README.md'
-      const filePath = Path.join(repository.path, file)
+      const filePath = Path.join(repo.path, file)
 
       await FSE.writeFile(filePath, 'SOME WORDS GO HERE\n')
 
-      await GitProcess.exec(['add', file], repository.path)
-      await GitProcess.exec(['commit', '-m', 'added file'], repository.path)
+      await GitProcess.exec(['add', file], repo.path)
+      await GitProcess.exec(['commit', '-m', 'added file'], repo.path)
 
-      firstCommit = await getCommit(repository, 'master')
+      firstCommit = await getCommit(repo, 'master')
       expect(firstCommit).not.toBeNull()
       expect(firstCommit!.parentSHAs).toHaveLength(0)
     })
@@ -159,7 +151,9 @@ describe('AppStore', () => {
     // I've opened https://github.com/desktop/desktop/issues/5543
     // to ensure this isn't forgotten.
     it.skip('clears the undo commit dialog', async () => {
-      const { appStore } = await createAppStore()
+      const repository = repo!
+
+      const appStore = await createAppStore()
 
       // select the repository and show the changes view
       await appStore._selectRepository(repository)
@@ -177,82 +171,31 @@ describe('AppStore', () => {
       expect(state.localCommitSHAs).toHaveLength(0)
     })
   })
-
-  // skipping these tests because its not worth the time it would take
-  // to make them reliable. the underlying problem is that this scenario
-  // triggers an asynchronous call to the stats db that sometimes doesn't
-  // finish before the test is over (which then errors out)
-  describe.skip('_finishConflictedMerge', () => {
-    let appStore: AppStore
-    let repositoriesStore: RepositoriesStore
+  describe('_finishConflictedMerge', () => {
+    let appStore: AppStore, repo: Repository, status: IStatusResult
 
     beforeEach(async () => {
-      const result = await createAppStore()
-      appStore = result.appStore
-      repositoriesStore = result.repositoriesStore
+      appStore = await createAppStore()
+      repo = await setupConflictedRepoWithMultipleFiles()
+      await appStore._selectRepository(repo)
+      status = await getStatusOrThrow(repo)
     })
 
-    describe('with tracked and untracked files', () => {
-      it('commits tracked files', async () => {
-        let repo = await setupConflictedRepoWithMultipleFiles()
-        repo = (await appStore._addRepositories([repo.path]))[0]
-
-        await repositoriesStore.updateLastStashCheckDate(repo)
-
-        const status = await getStatusOrThrow(repo)
-
-        await appStore._finishConflictedMerge(
-          repo,
-          status.workingDirectory,
-          new Map<string, ManualConflictResolutionKind>()
-        )
-        const newStatus = await getStatusOrThrow(repo)
-        const trackedFiles = newStatus.workingDirectory.files.filter(
-          f => f.status.kind !== AppFileStatusKind.Untracked
-        )
-        expect(trackedFiles).toHaveLength(0)
-      })
-      it('leaves untracked files untracked', async () => {
-        let repo = await setupConflictedRepoWithMultipleFiles()
-        repo = (await appStore._addRepositories([repo.path]))[0]
-
-        await repositoriesStore.updateLastStashCheckDate(repo)
-
-        const status = await getStatusOrThrow(repo)
-        await appStore._finishConflictedMerge(
-          repo,
-          status.workingDirectory,
-          new Map<string, ManualConflictResolutionKind>()
-        )
-        const newStatus = await getStatusOrThrow(repo)
-        const untrackedfiles = newStatus.workingDirectory.files.filter(
-          f => f.status.kind === AppFileStatusKind.Untracked
-        )
-        expect(untrackedfiles).toHaveLength(1)
-      })
+    it('commits tracked files', async () => {
+      await appStore._finishConflictedMerge(repo, status.workingDirectory)
+      const newStatus = await getStatusOrThrow(repo)
+      const trackedFiles = newStatus.workingDirectory.files.filter(
+        f => f.status.kind !== AppFileStatusKind.Untracked
+      )
+      expect(trackedFiles).toHaveLength(0)
     })
-
-    describe('with unrelated changes that are uncommitted', () => {
-      let repo: Repository, status: IStatusResult
-
-      beforeEach(async () => {
-        repo = await setupConflictedRepoWithUnrelatedCommittedChange()
-        repo = (await appStore._addRepositories([repo.path]))[0]
-        await repositoriesStore.updateLastStashCheckDate(repo)
-        status = await getStatusOrThrow(repo)
-      })
-      it("doesn't commit unrelated changes", async () => {
-        await appStore._finishConflictedMerge(
-          repo,
-          status.workingDirectory,
-          new Map<string, ManualConflictResolutionKind>()
-        )
-        const newStatus = await getStatusOrThrow(repo)
-        const modifiedFiles = newStatus.workingDirectory.files.filter(
-          f => f.status.kind === AppFileStatusKind.Modified
-        )
-        expect(modifiedFiles).toHaveLength(1)
-      })
+    it('leaves untracked files untracked', async () => {
+      await appStore._finishConflictedMerge(repo, status.workingDirectory)
+      const newStatus = await getStatusOrThrow(repo)
+      const untrackedfiles = newStatus.workingDirectory.files.filter(
+        f => f.status.kind === AppFileStatusKind.Untracked
+      )
+      expect(untrackedfiles).toHaveLength(1)
     })
   })
 })

@@ -4,11 +4,8 @@ import * as ReactCSSTransitionReplace from 'react-css-transition-replace'
 import { encodePathAsUrl } from '../../lib/path'
 import { Repository } from '../../models/repository'
 import { LinkButton } from '../lib/link-button'
-import {
-  enableNoChangesCreatePRBlankslateAction,
-  enableStashing,
-} from '../../lib/feature-flag'
-import { MenuIDs } from '../../models/menu-ids'
+import { enableNoChangesCreatePRBlankslateAction } from '../../lib/feature-flag'
+import { MenuIDs } from '../../main-process/menu'
 import { IMenu, MenuItem } from '../../models/app-menu'
 import memoizeOne from 'memoize-one'
 import { getPlatformSpecificNameOrSymbolForModifier } from '../../lib/menu-item'
@@ -19,9 +16,6 @@ import { TipState, IValidBranch } from '../../models/tip'
 import { Ref } from '../lib/ref'
 import { IAheadBehind } from '../../models/branch'
 import { IRemote } from '../../models/remote'
-import { isCurrentBranchForcePush } from '../../lib/rebase'
-import { StashedChangesLoadStates } from '../../models/stash-entry'
-import { Dispatcher } from '../dispatcher'
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
@@ -39,8 +33,6 @@ function formatParentMenuLabel(menuItem: IMenuItemInfo) {
 const PaperStackImage = encodePathAsUrl(__dirname, 'static/paper-stack.svg')
 
 interface INoChangesProps {
-  readonly dispatcher: Dispatcher
-
   /**
    * The currently selected repository
    */
@@ -217,8 +209,7 @@ export class NoChanges extends React.Component<
   private renderMenuBackedAction(
     itemId: MenuIDs,
     title: string,
-    description?: string | JSX.Element,
-    onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
+    description?: string | JSX.Element
   ) {
     const menuItem = this.getMenuItemInfo(itemId)
 
@@ -235,7 +226,6 @@ export class NoChanges extends React.Component<
         menuItemId={itemId}
         buttonText={formatMenuItemLabel(menuItem.label)}
         disabled={!menuItem.enabled}
-        onClick={onClick}
       />
     )
   }
@@ -245,14 +235,9 @@ export class NoChanges extends React.Component<
 
     return this.renderMenuBackedAction(
       'open-working-directory',
-      `View the files of your repository in ${fileManager}`,
-      undefined,
-      this.onShowInFileManagerClicked
+      `View the files in your repository in ${fileManager}`
     )
   }
-
-  private onShowInFileManagerClicked = () =>
-    this.props.dispatcher.recordSuggestedStepOpenWorkingDirectory()
 
   private renderViewOnGitHub() {
     const isGitHub = this.props.repository.gitHubRepository !== null
@@ -263,14 +248,9 @@ export class NoChanges extends React.Component<
 
     return this.renderMenuBackedAction(
       'view-repository-on-github',
-      `Open the repository page on GitHub in your browser`,
-      undefined,
-      this.onViewOnGitHubClicked
+      `Open the repository page on GitHub in your browser`
     )
   }
-
-  private onViewOnGitHubClicked = () =>
-    this.props.dispatcher.recordSuggestedStepViewOnGitHub()
 
   private openPreferences = () => {
     executeMenuItemById('preferences')
@@ -300,23 +280,15 @@ export class NoChanges extends React.Component<
 
     const description = (
       <>
-        Select your editor in{' '}
+        Configure which editor you wish to use in{' '}
         <LinkButton onClick={this.openPreferences}>
-          {__DARWIN__ ? 'Preferences' : 'Options'}
+          {__DARWIN__ ? 'preferences' : 'options'}
         </LinkButton>
       </>
     )
 
-    return this.renderMenuBackedAction(
-      itemId,
-      title,
-      description,
-      this.onOpenInExternalEditorClicked
-    )
+    return this.renderMenuBackedAction(itemId, title, description)
   }
-
-  private onOpenInExternalEditorClicked = () =>
-    this.props.dispatcher.recordSuggestedStepOpenInExternalEditor()
 
   private renderRemoteAction() {
     const { remote, aheadBehind, branchesState } = this.props.repositoryState
@@ -333,14 +305,6 @@ export class NoChanges extends React.Component<
     // Branch not published
     if (aheadBehind === null) {
       return this.renderPublishBranchAction(tip)
-    }
-
-    const isForcePush = isCurrentBranchForcePush(branchesState, aheadBehind)
-    if (isForcePush) {
-      // do not render an action currently after the rebase has completed, as
-      // the default behaviour is currently to pull in changes from the tracking
-      // branch which will could potentially lead to a more confusing history
-      return null
     }
 
     if (aheadBehind.behind > 0) {
@@ -364,65 +328,6 @@ export class NoChanges extends React.Component<
 
     return null
   }
-
-  private renderViewStashAction() {
-    if (!enableStashing()) {
-      return null
-    }
-
-    const { changesState, branchesState } = this.props.repositoryState
-
-    const { tip } = branchesState
-    if (tip.kind !== TipState.Valid) {
-      return null
-    }
-
-    const { stashEntry } = changesState
-    if (stashEntry === null) {
-      return null
-    }
-
-    if (stashEntry.files.kind !== StashedChangesLoadStates.Loaded) {
-      return null
-    }
-
-    const numChanges = stashEntry.files.files.length
-    const description = (
-      <>
-        You have {numChanges} {numChanges === 1 ? 'change' : 'changes'} in
-        progress that you have not yet committed.
-      </>
-    )
-    const discoverabilityContent = (
-      <>
-        When a stash exists, access it at the bottom of the Changes tab to the
-        left.
-      </>
-    )
-    const itemId: MenuIDs = 'toggle-stashed-changes'
-    const menuItem = this.getMenuItemInfo(itemId)
-    if (menuItem === undefined) {
-      log.error(`Could not find matching menu item for ${itemId}`)
-      return null
-    }
-
-    return (
-      <MenuBackedBlankslateAction
-        key="view-stash-action"
-        title="View your stashed changes"
-        menuItemId={itemId}
-        description={description}
-        discoverabilityContent={discoverabilityContent}
-        buttonText="View stash"
-        type="primary"
-        disabled={menuItem !== null && !menuItem.enabled}
-        onClick={this.onViewStashClicked}
-      />
-    )
-  }
-
-  private onViewStashClicked = () =>
-    this.props.dispatcher.recordSuggestedStepViewStash()
 
   private renderPublishRepositoryAction() {
     // This is a bit confusing, there's no dedicated
@@ -454,13 +359,9 @@ export class NoChanges extends React.Component<
         menuItemId={itemId}
         type="primary"
         disabled={!menuItem.enabled}
-        onClick={this.onPublishRepositoryClicked}
       />
     )
   }
-
-  private onPublishRepositoryClicked = () =>
-    this.props.dispatcher.recordSuggestedStepPublishRepository()
 
   private renderPublishBranchAction(tip: IValidBranch) {
     // This is a bit confusing, there's no dedicated
@@ -503,13 +404,9 @@ export class NoChanges extends React.Component<
         buttonText="Publish branch"
         type="primary"
         disabled={!menuItem.enabled}
-        onClick={this.onPublishBranchClicked}
       />
     )
   }
-
-  private onPublishBranchClicked = () =>
-    this.props.dispatcher.recordSuggestedStepPublishBranch()
 
   private renderPullBranchAction(
     tip: IValidBranch,
@@ -582,7 +479,7 @@ export class NoChanges extends React.Component<
       <>
         You have{' '}
         {aheadBehind.ahead === 1 ? 'one local commit' : 'local commits'} waiting
-        to be pushed to {isGitHub ? 'GitHub' : 'the remote'}.
+        to be pushed to {isGitHub ? 'GitHub' : 'the remote'}
       </>
     )
 
@@ -643,13 +540,9 @@ export class NoChanges extends React.Component<
         discoverabilityContent={this.renderDiscoverabilityElements(menuItem)}
         type="primary"
         disabled={!menuItem.enabled}
-        onClick={this.onCreatePullRequestClicked}
       />
     )
   }
-
-  private onCreatePullRequestClicked = () =>
-    this.props.dispatcher.recordSuggestedStepCreatePullRequest()
 
   private renderActions() {
     return (
@@ -665,7 +558,7 @@ export class NoChanges extends React.Component<
           transitionEnterTimeout={750}
           transitionLeaveTimeout={500}
         >
-          {this.renderViewStashAction() || this.renderRemoteAction()}
+          {this.renderRemoteAction()}
         </ReactCSSTransitionReplace>
         <div className="actions">
           {this.renderOpenInExternalEditor()}
@@ -697,8 +590,8 @@ export class NoChanges extends React.Component<
             <div className="text">
               <h1>No local changes</h1>
               <p>
-                There are no uncommitted changes for this repository. Here are
-                some actions you may find useful:
+                You have no uncommitted changes in your repository! Here are
+                some friendly suggestions for what to do next.
               </p>
             </div>
             <img src={PaperStackImage} className="blankslate-image" />

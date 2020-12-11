@@ -136,7 +136,7 @@ describe('git/branch', () => {
       beforeEach(async () => {
         const path = await setupFixtureRepository('repo-with-multiple-remotes')
         repository = new Repository(path, -1, null, false)
-        await createBranch(repository, 'other-branch', null)
+        await createBranch(repository, 'other-branch')
       })
       it('finds multiple branch names', async () => {
         const branches = await getBranchesPointedAt(repository, 'HEAD')

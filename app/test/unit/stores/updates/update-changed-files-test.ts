@@ -8,16 +8,8 @@ import {
   DiffSelection,
   DiffSelectionType,
   DiffType,
-  IBinaryDiff,
 } from '../../../../src/models/diff'
-import {
-  createState,
-  createStatus,
-} from '../../../helpers/changes-state-helper'
-import {
-  ChangesSelectionKind,
-  ChangesWorkingDirectorySelection,
-} from '../../../../src/lib/app-state'
+import { createState, createStatus } from './changes-state-helper'
 
 const allSelected = DiffSelection.fromInitialSelection(DiffSelectionType.All)
 const noneSelected = DiffSelection.fromInitialSelection(DiffSelectionType.None)
@@ -123,11 +115,8 @@ describe('updateChangedFiles', () => {
       const status = createStatus({
         workingDirectory: WorkingDirectoryStatus.fromFiles(files),
       })
-      const { selection } = updateChangedFiles(prevState, status, false)
+      const { selectedFileIDs } = updateChangedFiles(prevState, status, false)
 
-      expect(selection.kind).toBe(ChangesSelectionKind.WorkingDirectory)
-      const workingDirectorySelection = selection as ChangesWorkingDirectorySelection
-      const { selectedFileIDs } = workingDirectorySelection
       expect(selectedFileIDs).toHaveLength(1)
       // NOTE: `updateChangedFiles` sorts the paths and `app/package.json` will
       // appear in list before `README.md`
@@ -137,21 +126,14 @@ describe('updateChangedFiles', () => {
     it('remembers previous selection if file is found in status', () => {
       const firstFile = files[0].id
       const prevState = createState({
-        selection: {
-          kind: ChangesSelectionKind.WorkingDirectory,
-          selectedFileIDs: [firstFile],
-          diff: null,
-        },
+        selectedFileIDs: [firstFile],
       })
 
       const status = createStatus({
         workingDirectory: WorkingDirectoryStatus.fromFiles(files),
       })
-      const { selection } = updateChangedFiles(prevState, status, false)
+      const { selectedFileIDs } = updateChangedFiles(prevState, status, false)
 
-      expect(selection.kind).toBe(ChangesSelectionKind.WorkingDirectory)
-      const workingDirectorySelection = selection as ChangesWorkingDirectorySelection
-      const { selectedFileIDs } = workingDirectorySelection
       expect(selectedFileIDs).toHaveLength(1)
       expect(selectedFileIDs[0]).toBe(firstFile)
     })
@@ -159,19 +141,12 @@ describe('updateChangedFiles', () => {
     it('clears selection if no files found in status', () => {
       const firstFile = files[0].id
       const prevState = createState({
-        selection: {
-          kind: ChangesSelectionKind.WorkingDirectory,
-          selectedFileIDs: [firstFile],
-          diff: null,
-        },
+        selectedFileIDs: [firstFile],
       })
 
       const status = createStatus({})
-      const { selection } = updateChangedFiles(prevState, status, false)
+      const { selectedFileIDs } = updateChangedFiles(prevState, status, false)
 
-      expect(selection.kind).toBe(ChangesSelectionKind.WorkingDirectory)
-      const workingDirectorySelection = selection as ChangesWorkingDirectorySelection
-      const { selectedFileIDs } = workingDirectorySelection
       expect(selectedFileIDs).toHaveLength(0)
     })
   })
@@ -182,21 +157,15 @@ describe('updateChangedFiles', () => {
 
       const prevState = createState({
         workingDirectory: workingDirectory,
-        selection: {
-          kind: ChangesSelectionKind.WorkingDirectory,
-          // an unknown file was set as selected last time
-          selectedFileIDs: ['id-from-file-not-in-status'],
-          diff: { kind: DiffType.Binary },
-        },
+        // an unknown file was set as selected last time
+        selectedFileIDs: ['id-from-file-not-in-status'],
+        diff: { kind: DiffType.Binary },
       })
 
       const status = createStatus({ workingDirectory })
-      const { selection } = updateChangedFiles(prevState, status, false)
+      const { diff } = updateChangedFiles(prevState, status, false)
 
-      expect(selection.kind).toBe(ChangesSelectionKind.WorkingDirectory)
-
-      const workingDirectorySelection = selection as ChangesWorkingDirectorySelection
-      expect(workingDirectorySelection.diff).toBeNull()
+      expect(diff).toBeNull()
     })
 
     it('returns same diff if selected file from previous state is found', () => {
@@ -204,24 +173,19 @@ describe('updateChangedFiles', () => {
 
       // first file was selected the last time we updated state
       const selectedFileIDs = [files[0].id]
-      const diff: IBinaryDiff = { kind: DiffType.Binary }
 
       const prevState = createState({
         workingDirectory,
-        selection: {
-          kind: ChangesSelectionKind.WorkingDirectory,
-          selectedFileIDs,
-          diff,
-        },
+        selectedFileIDs,
+        diff: { kind: DiffType.Binary },
       })
 
       // same working directory is provided as last time
       const status = createStatus({ workingDirectory })
 
-      const { selection } = updateChangedFiles(prevState, status, false)
-      expect(selection.kind).toBe(ChangesSelectionKind.WorkingDirectory)
-      const workingDirectorySelection = selection as ChangesWorkingDirectorySelection
-      expect(workingDirectorySelection.diff).toBe(diff)
+      const { diff } = updateChangedFiles(prevState, status, false)
+
+      expect(diff).toBe(prevState.diff)
     })
   })
 })
