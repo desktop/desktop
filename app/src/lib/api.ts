@@ -76,7 +76,7 @@ const DotComOAuthScopes = ['repo', 'user', 'workflow']
 
 /**
  * The OAuth scopes we want to request from GitHub
- * Enterprise Server.
+ * Enterprise.
  */
 const EnterpriseOAuthScopes = ['repo', 'user']
 
@@ -631,7 +631,7 @@ export class API {
       // Ordinarily you'd be correct but turns out there's super
       // rare circumstances where a user has been deleted but the
       // repository hasn't. Such cases are usually addressed swiftly
-      // but in some cases like GitHub Enterprise Server instances
+      // but in some cases like GitHub Enterprise instances
       // they can linger for longer than we'd like so we'll make
       // sure to exclude any such dangling repository, chances are
       // they won't be cloneable anyway.
@@ -1310,7 +1310,7 @@ export function getHTMLURL(endpoint: string): string {
   // In the case of GitHub.com, the HTML site lives on the parent domain.
   //  E.g., https://api.github.com -> https://github.com
   //
-  // Whereas with Enterprise Server, it lives on the same domain but without the
+  // Whereas with Enterprise, it lives on the same domain but without the
   // API path:
   //  E.g., https://github.mycompany.com/api/v3 -> https://github.mycompany.com
   //

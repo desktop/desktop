@@ -46,7 +46,7 @@ export class TermsAndConditions extends React.Component<
             the GitHub.com website or with an instance of GitHub Enterprise
             Server, your use of the Software will also be governed your
             applicable GitHub.com website Terms of Service and/or the license
-            agreement applicable to your instance of GitHub Enterprise Server
+            agreement applicable to your instance of GitHub Enterprise
             ("GitHub Terms").
           </p>
 
