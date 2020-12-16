@@ -31,7 +31,7 @@ export class GitHubRepository {
   ) {
     this.hash = [
       this.name,
-      this.owner,
+      this.owner.login,
       this.dbID,
       this.isPrivate,
       this.htmlURL,
