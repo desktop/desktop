@@ -5310,8 +5310,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       (await addRemote(repository, forkRemoteName, headCloneUrl))
 
     const remoteRef = `${remote.name}/${headRefName}`
-    // Start by trying to find a local (i.e. refs/heads/xyz) branch that is
-    // tracking the remote ref.
+
+    // Start by trying to find a local branch that is tracking the remote ref.
     let existingBranch = gitStore.allBranches.find(
       x => x.type === BranchType.Local && x.upstream === remoteRef
     )
