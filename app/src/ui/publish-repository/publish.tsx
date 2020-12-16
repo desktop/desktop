@@ -235,8 +235,8 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
             onAction={this.signInEnterprise}
           >
             <div>
-              If you have a GitHub Enterprise or AE account at work, sign in to it to
-              get access to your repositories.
+              If you have a GitHub Enterprise or AE account at work, sign in to
+              it to get access to your repositories.
             </div>
           </CallToAction>
         )
