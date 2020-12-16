@@ -30,8 +30,8 @@ export class Start extends React.Component<IStartProps, {}> {
           <>
             <p className="welcome-text">
               GitHub Desktop is a seamless way to contribute to projects on
-              GitHub and GitHub Enterprise. Sign in below to get started
-              with your existing projects.
+              GitHub and GitHub Enterprise. Sign in below to get started with
+              your existing projects.
             </p>
             <p className="welcome-text">
               New to GitHub?{' '}

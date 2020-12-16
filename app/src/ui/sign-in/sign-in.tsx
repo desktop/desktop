@@ -199,8 +199,8 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         return (
           <DialogContent>
             <p>
-              Your GitHub Enterprise instance requires you to sign in
-              with your browser.
+              Your GitHub Enterprise instance requires you to sign in with your
+              browser.
             </p>
           </DialogContent>
         )
