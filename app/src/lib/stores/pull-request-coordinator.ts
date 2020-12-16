@@ -29,9 +29,7 @@ export class PullRequestCoordinator {
    * All `Repository`s in RepositoryStore associated with `GitHubRepository`
    * This is updated whenever `RepositoryStore` emits an update
    */
-  private repositories: ReadonlyArray<
-    RepositoryWithGitHubRepository
-  > = new Array<RepositoryWithGitHubRepository>()
+  private repositories: Promise<ReadonlyArray<RepositoryWithGitHubRepository>>
 
   /**
    * Contains the last set of PRs retrieved by `PullRequestCoordinator`
@@ -53,10 +51,18 @@ export class PullRequestCoordinator {
   ) {
     // register an update handler for the repositories store
     this.repositoriesStore.onDidUpdate(allRepositories => {
-      this.repositories = allRepositories.filter(
-        isRepositoryWithGitHubRepository
+      this.repositories = Promise.resolve(
+        allRepositories.filter(isRepositoryWithGitHubRepository)
       )
     })
+
+    this.repositories = this.repositoriesStore
+      .getAll()
+      .then(x => x.filter(isRepositoryWithGitHubRepository))
+      .catch(e => {
+        log.error(`PullRequestCoordinator: Error loading repositories`)
+        return []
+      })
   }
 
   /**
@@ -80,13 +86,13 @@ export class PullRequestCoordinator {
     ) => void
   ): Disposable {
     return this.pullRequestStore.onPullRequestsChanged(
-      (ghRepo, pullRequests) => {
+      async (ghRepo, pullRequests) => {
         this.prCache.set(ghRepo.dbID, pullRequests)
 
         // find all related repos
         const matches = findRepositoriesForGitHubRepository(
           ghRepo,
-          this.repositories
+          await this.repositories
         )
 
         // emit updates for matches
@@ -144,7 +150,7 @@ export class PullRequestCoordinator {
     // get all matches for the repository to be refreshed
     const matches = findRepositoriesForGitHubRepository(
       gitHubRepository,
-      this.repositories
+      await this.repositories
     )
     // mark all matching repos as now loading
     for (const match of matches) {
