@@ -5323,22 +5323,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const findRemoteBranch = (name: string, remote: IRemote) =>
+    const findRemoteBranch = (name: string) =>
       gitStore.allBranches.find(
-        x =>
-          x.type === BranchType.Remote &&
-          x.remote === remote.name &&
-          x.name === name
+        x => x.type === BranchType.Remote && x.name === name
       )
 
     // No such luck, let's see if we can at least find the remote branch then
-    existingBranch = findRemoteBranch(headRefName, remote)
+    existingBranch = findRemoteBranch(remoteRef)
 
     // If quite possible that the PR was created after our last fetch of the
     // remote so let's fetch it and then try again.
     if (existingBranch === undefined) {
       await this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
-      existingBranch = findRemoteBranch(headRefName, remote)
+      existingBranch = findRemoteBranch(remoteRef)
     }
 
     if (existingBranch === undefined) {
