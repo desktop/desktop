@@ -54,7 +54,7 @@ export class EnterpriseServerEntry extends React.Component<
     return (
       <Form onSubmit={this.onSubmit}>
         <TextBox
-          label="Enterprise address"
+          label="Enterprise or AE address"
           autoFocus={true}
           disabled={disableEntry}
           onValueChanged={this.onServerAddressChanged}
