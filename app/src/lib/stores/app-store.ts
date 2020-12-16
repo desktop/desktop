@@ -5306,7 +5306,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // Find an existing remote (regardless if set up by us or outside of
     // Desktop). If we can't find one we'll create a Desktop for remote.
     const remote =
-      remotes.find(r => urlMatchesRemote(headCloneUrl, r)) ||
+      remotes.find(r => urlMatchesRemote(headCloneUrl, r)) ??
       (await addRemote(repository, forkRemoteName, headCloneUrl))
 
     const remoteRef = `${remote.name}/${headRefName}`
