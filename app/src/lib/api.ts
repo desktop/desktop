@@ -103,7 +103,23 @@ export interface IAPIRepository {
   readonly pushed_at: string
   readonly has_issues: boolean
   readonly archived: boolean
-  readonly parent?: IAPIRepository
+}
+
+export interface IAPIFullRepository extends IAPIRepository {
+  /**
+   * The parent repository of a fork.
+   *
+   * HACK: BEWARE: This is defined as `parent: IAPIRepository | undefined`
+   * rather than `parent?: ...` even though the parent property is actually
+   * optional in the API response. So we're lying a bit to the type system
+   * here saying that this will be present but the only time the difference
+   * between omission and explicit undefined matters is when using constructs
+   * like `x in y` or `y.hasOwnProperty('x')` which we do very rarely.
+   *
+   * Without at least one non-optional type in this interface TypeScript will
+   * happily let us pass an IAPIRepository in place of an IAPIFullRepository.
+   */
+  readonly parent: IAPIRepository | undefined
 
   /**
    * The high-level permissions that the currently authenticated
@@ -353,7 +369,7 @@ export interface IAPIBranch {
   /**
    * The name of the branch stored on the remote.
    *
-   * NOTE: this is NOT a fully-qualified ref (i.e. `refs/heads/master`)
+   * NOTE: this is NOT a fully-qualified ref (i.e. `refs/heads/main`)
    */
   readonly name: string
   /**
@@ -559,14 +575,14 @@ export class API {
   public async fetchRepository(
     owner: string,
     name: string
-  ): Promise<IAPIRepository | null> {
+  ): Promise<IAPIFullRepository | null> {
     try {
       const response = await this.request('GET', `repos/${owner}/${name}`)
       if (response.status === HttpStatusCode.NotFound) {
         log.warn(`fetchRepository: '${owner}/${name}' returned a 404`)
         return null
       }
-      return await parsedResponse<IAPIRepository>(response)
+      return await parsedResponse<IAPIFullRepository>(response)
     } catch (e) {
       log.warn(`fetchRepository: an error occurred for '${owner}/${name}'`, e)
       return null
@@ -667,7 +683,7 @@ export class API {
     name: string,
     description: string,
     private_: boolean
-  ): Promise<IAPIRepository> {
+  ): Promise<IAPIFullRepository> {
     try {
       const apiPath = org ? `orgs/${org.login}/repos` : 'user/repos'
       const response = await this.request('POST', apiPath, {
@@ -676,7 +692,7 @@ export class API {
         private: private_,
       })
 
-      return await parsedResponse<IAPIRepository>(response)
+      return await parsedResponse<IAPIFullRepository>(response)
     } catch (e) {
       if (e instanceof APIError) {
         if (org !== null) {
@@ -698,11 +714,11 @@ export class API {
   public async forkRepository(
     owner: string,
     name: string
-  ): Promise<IAPIRepository> {
+  ): Promise<IAPIFullRepository> {
     try {
       const apiPath = `/repos/${owner}/${name}/forks`
       const response = await this.request('POST', apiPath)
-      return await parsedResponse<IAPIRepository>(response)
+      return await parsedResponse<IAPIFullRepository>(response)
     } catch (e) {
       log.error(
         `forkRepository: failed to fork ${owner}/${name} at endpoint: ${this.endpoint}`,

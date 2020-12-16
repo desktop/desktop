@@ -44,7 +44,7 @@ export interface IDailyMeasures {
   /** The number of times a branch is compared to an arbitrary branch */
   readonly branchComparisons: number
 
-  /** The number of times a branch is compared to `master` */
+  /** The number of times a branch is compared to the default branch */
   readonly defaultBranchComparisons: number
 
   /** The number of times a merge is initiated in the `compare` sidebar */
@@ -64,24 +64,6 @@ export interface IDailyMeasures {
 
   /** The numbers of times a repo without indicators is clicked on repo list view */
   readonly repoWithoutIndicatorClicked: number
-
-  /** The number of times the user dismisses the diverged branch notification */
-  readonly divergingBranchBannerDismissal: number
-
-  /** The number of times the user merges from the diverged branch notification merge CTA button */
-  readonly divergingBranchBannerInitatedMerge: number
-
-  /** The number of times the user compares from the diverged branch notification compare CTA button */
-  readonly divergingBranchBannerInitiatedCompare: number
-
-  /**
-   * The number of times the user merges from the compare view after getting to that state
-   * from the diverged branch notification compare CTA button
-   */
-  readonly divergingBranchBannerInfluencedMerge: number
-
-  /** The number of times the diverged branch notification is displayed */
-  readonly divergingBranchBannerDisplayed: number
 
   /** The number of times the user pushes to GitHub.com */
   readonly dotcomPushCount: number
@@ -361,6 +343,18 @@ export interface IDailyMeasures {
    * How many tags have been deleted.
    */
   readonly tagsDeleted: number
+
+  /** Number of times the user has changed between unified and split diffs */
+  readonly diffModeChangeCount: number
+
+  /** Number of times the user has opened the diff options popover */
+  readonly diffOptionsViewedCount: number
+
+  /** Number of times the user has switched to or from History/Changes */
+  readonly repositoryViewChangeCount: number
+
+  /** Number of times the user has encountered an unhandled rejection */
+  readonly unhandledRejectionCount: number
 }
 
 export class StatsDatabase extends Dexie {

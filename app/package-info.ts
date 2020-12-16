@@ -15,5 +15,7 @@ export function getVersion() {
 }
 
 export function getBundleID() {
-  return bundleID
+  return process.env.NODE_ENV === 'development'
+    ? `${bundleID}Dev`
+    : bundleID
 }

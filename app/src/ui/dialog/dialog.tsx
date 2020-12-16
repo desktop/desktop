@@ -2,6 +2,7 @@ import * as React from 'react'
 import classNames from 'classnames'
 import { DialogHeader } from './header'
 import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
+import { getTitleBarHeight } from '../window/title-bar'
 
 /**
  * The time (in milliseconds) from when the dialog is mounted
@@ -17,9 +18,9 @@ const dismissGracePeriodMs = 250
 const DisableClickDismissalDelay = 500
 
 /**
- * Title bar height in pixels. Values taken from 'app/styles/_variables.scss'.
+ * Title bar height in pixels
  */
-const titleBarHeight = __DARWIN__ ? 22 : 28
+const titleBarHeight = getTitleBarHeight()
 
 interface IDialogProps {
   /**

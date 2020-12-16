@@ -1,12 +1,12 @@
 import { remote } from 'electron'
 import {
-  isMacOsAndMojaveOrLater,
+  isMacOSMojaveOrLater,
   isWindows10And1809Preview17666OrLater,
 } from '../../lib/get-os'
 
 export function supportsDarkMode() {
   if (__DARWIN__) {
-    return isMacOsAndMojaveOrLater()
+    return isMacOSMojaveOrLater()
   } else if (__WIN32__) {
     // Its technically possible this would still work on prior versions of Windows 10 but 1809
     // was released October 2nd, 2018 that the feature can just be "attained" by upgrading

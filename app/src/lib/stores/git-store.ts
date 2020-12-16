@@ -66,6 +66,7 @@ import {
   getAllTags,
   deleteTag,
   MergeResult,
+  createBranch,
 } from '../git'
 import { GitError as DugiteError } from '../../lib/git'
 import { GitError } from 'dugite'
@@ -334,6 +335,26 @@ export class GitStore extends BaseStore {
     this.storeCommits(commitsToStore)
   }
 
+  public async createBranch(
+    name: string,
+    startPoint: string | null,
+    noTrackOption: boolean = false
+  ) {
+    const createdBranch = await this.performFailableOperation(async () => {
+      await createBranch(this.repository, name, startPoint, noTrackOption)
+      return true
+    })
+
+    if (createdBranch === true) {
+      await this.loadBranches()
+      return this.allBranches.find(
+        x => x.type === BranchType.Local && x.name === name
+      )
+    }
+
+    return undefined
+  }
+
   public async createTag(name: string, targetCommitSha: string) {
     const result = await this.performFailableOperation(async () => {
       await createTag(this.repository, name, targetCommitSha)
@@ -384,7 +405,10 @@ export class GitStore extends BaseStore {
     const [localAndRemoteBranches, recentBranchNames] = await Promise.all([
       this.performFailableOperation(() => getBranches(this.repository)) || [],
       this.performFailableOperation(() =>
-        getRecentBranches(this.repository, RecentBranchesLimit)
+        // Chances are that the recent branches list will contain the default
+        // branch which we filter out in refreshRecentBranches. So grab one
+        // more than we need to account for that.
+        getRecentBranches(this.repository, RecentBranchesLimit + 1)
       ),
     ])
 
@@ -394,9 +418,12 @@ export class GitStore extends BaseStore {
 
     this._allBranches = this.mergeRemoteAndLocalBranches(localAndRemoteBranches)
 
-    this.refreshDefaultBranch()
+    // refreshRecentBranches is dependent on having a default branch
+    await this.refreshDefaultBranch()
     this.refreshRecentBranches(recentBranchNames)
-    this.checkPullWithRebase()
+
+    await this.checkPullWithRebase()
+
     this.emitUpdate()
   }
 
@@ -526,7 +553,7 @@ export class GitStore extends BaseStore {
       ) {
         // strip out everything related to the remote because this
         // is likely to be a tracked branch locally
-        // e.g. `master`, `develop`, etc
+        // e.g. `main`, `develop`, etc
         return match.substr(remoteNamespace.length)
       }
     }
@@ -549,6 +576,12 @@ export class GitStore extends BaseStore {
 
     const recentBranches = new Array<Branch>()
     for (const name of recentBranchNames) {
+      // The default branch already has its own section in the branch
+      // list so we exclude it here.
+      if (name === this.defaultBranch?.name) {
+        continue
+      }
+
       const branch = branchesByName.get(name)
       if (!branch) {
         // This means the recent branch has been deleted. That's fine.
@@ -556,6 +589,10 @@ export class GitStore extends BaseStore {
       }
 
       recentBranches.push(branch)
+
+      if (recentBranches.length >= RecentBranchesLimit) {
+        break
+      }
     }
 
     this._recentBranches = recentBranches
@@ -566,7 +603,7 @@ export class GitStore extends BaseStore {
     return this._tip
   }
 
-  /** The default branch, or `master` if there is no default. */
+  /** The default branch or null if the default branch could not be inferred. */
   public get defaultBranch(): Branch | null {
     return this._defaultBranch
   }

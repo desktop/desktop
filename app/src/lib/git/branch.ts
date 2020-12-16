@@ -1,5 +1,4 @@
 import { git, gitNetworkArguments } from './core'
-import { getBranches } from './for-each-ref'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType } from '../../models/branch'
 import { IGitAccount } from '../../models/git-account'
@@ -26,7 +25,7 @@ export async function createBranch(
   name: string,
   startPoint: string | null,
   noTrack?: boolean
-): Promise<Branch | null> {
+): Promise<void> {
   const args =
     startPoint !== null ? ['branch', name, startPoint] : ['branch', name]
 
@@ -38,12 +37,6 @@ export async function createBranch(
   }
 
   await git(args, repository.path, 'createBranch')
-  const branches = await getBranches(repository, `refs/heads/${name}`)
-  if (branches.length > 0) {
-    return branches[0]
-  }
-
-  return null
 }
 
 /** Rename the given branch to a new name. */
@@ -149,7 +142,7 @@ export async function getBranchesPointedAt(
     {
       // - 1 is returned if a common ancestor cannot be resolved
       // - 129 is returned if ref is malformed
-      //   "warning: ignoring broken ref refs/remotes/origin/master."
+      //   "warning: ignoring broken ref refs/remotes/origin/main."
       successExitCodes: new Set([0, 1, 129]),
     }
   )

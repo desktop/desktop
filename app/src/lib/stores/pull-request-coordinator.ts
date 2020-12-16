@@ -81,10 +81,7 @@ export class PullRequestCoordinator {
   ): Disposable {
     return this.pullRequestStore.onPullRequestsChanged(
       (ghRepo, pullRequests) => {
-        // update cache
-        if (ghRepo.dbID !== null) {
-          this.prCache.set(ghRepo.dbID, pullRequests)
-        }
+        this.prCache.set(ghRepo.dbID, pullRequests)
 
         // find all related repos
         const matches = findRepositoriesForGitHubRepository(
@@ -235,20 +232,13 @@ export class PullRequestCoordinator {
   private async getPullRequestsFor(
     gitHubRepository: GitHubRepository
   ): Promise<ReadonlyArray<PullRequest>> {
-    const { dbID } = gitHubRepository
-    // this check should never be true, but we have to check
-    // for typescript and provide a sensible fallback
-    if (dbID === null) {
-      return []
-    }
-
-    if (!this.prCache.has(dbID)) {
+    if (!this.prCache.has(gitHubRepository.dbID)) {
       this.prCache.set(
-        dbID,
+        gitHubRepository.dbID,
         await this.pullRequestStore.getAll(gitHubRepository)
       )
     }
-    return this.prCache.get(dbID) || []
+    return this.prCache.get(gitHubRepository.dbID) || []
   }
 }
 

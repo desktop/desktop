@@ -74,8 +74,6 @@ export class GitHubUserStore extends BaseStore {
     repository: GitHubRepository,
     account: Account
   ): Promise<void> {
-    assertPersisted(repository)
-
     const api = API.fromAccount(account)
 
     const cacheEntry = await this.database.getMentionableCacheEntry(
@@ -127,7 +125,6 @@ export class GitHubUserStore extends BaseStore {
   public async getMentionableUsers(
     repository: GitHubRepository
   ): Promise<ReadonlyArray<IMentionableUser>> {
-    assertPersisted(repository)
     return this.database.getAllMentionablesForRepository(repository.dbID)
   }
 
@@ -152,8 +149,6 @@ export class GitHubUserStore extends BaseStore {
     query: string,
     maxHits: number = DefaultMaxHits
   ): Promise<ReadonlyArray<IMentionableUser>> {
-    assertPersisted(repository)
-
     const users =
       this.queryCache?.repository.dbID === repository.dbID
         ? this.queryCache.users
@@ -206,15 +201,5 @@ export class GitHubUserStore extends BaseStore {
       clearTimeout(this.pruneQueryCacheTimeoutId)
       this.pruneQueryCacheTimeoutId = null
     }
-  }
-}
-
-function assertPersisted(
-  repo: GitHubRepository
-): asserts repo is GitHubRepository & { dbID: number } {
-  if (repo.dbID === null) {
-    throw new Error(
-      `Need a GitHubRepository that's been inserted into the database`
-    )
   }
 }

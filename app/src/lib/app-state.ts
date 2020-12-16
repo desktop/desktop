@@ -38,7 +38,7 @@ import { GitRebaseProgress } from '../models/rebase'
 import { RebaseFlowStep } from '../models/rebase-flow-step'
 import { IStashEntry } from '../models/stash-entry'
 import { TutorialStep } from '../models/tutorial-step'
-import { UncommittedChangesStrategyKind } from '../models/uncommitted-changes-strategy'
+import { UncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
 
 export enum SelectionType {
   Repository,
@@ -175,7 +175,7 @@ export interface IAppState {
   readonly askForConfirmationOnForcePush: boolean
 
   /** How the app should handle uncommitted changes when switching branches */
-  readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
+  readonly uncommittedChangesStrategy: UncommittedChangesStrategy
 
   /** The external editor to use when opening repositories */
   readonly selectedExternalEditor: ExternalEditor | null
@@ -437,9 +437,14 @@ export interface IBranchesState {
   readonly tip: Tip
 
   /**
-   * The default branch for a given repository. Most commonly this
-   * will be the 'master' branch but GitHub users are able to change
-   * their default branch in the web UI.
+   * The default branch for a given repository. Historically it's been
+   * common to use 'master' as the default branch but as of September 2020
+   * GitHub Desktop and GitHub.com default to using 'main' as the default branch.
+   *
+   * GitHub Desktop users are able to configure the `init.defaultBranch` Git
+   * setting in preferences.
+   *
+   * GitHub.com users are able to change their default branch in the web UI.
    */
   readonly defaultBranch: Branch | null
 
@@ -649,9 +654,6 @@ export interface ICompareBranch {
 }
 
 export interface ICompareState {
-  /** The current state of the NBBD banner */
-  readonly divergingBranchBannerState: IDivergingBranchBannerState
-
   /** The current state of the compare form, based on user input */
   readonly formState: IDisplayHistory | ICompareBranch
 
@@ -682,9 +684,14 @@ export interface ICompareState {
   readonly recentBranches: ReadonlyArray<Branch>
 
   /**
-   * The default branch for a given repository. Most commonly this
-   * will be the 'master' branch but GitHub users are able to change
-   * their default branch in the web UI.
+   * The default branch for a given repository. Historically it's been
+   * common to use 'master' as the default branch but as of September 2020
+   * GitHub Desktop and GitHub.com default to using 'main' as the default branch.
+   *
+   * GitHub Desktop users are able to configure the `init.defaultBranch` Git
+   * setting in preferences.
+   *
+   * GitHub.com users are able to change their default branch in the web UI.
    */
   readonly defaultBranch: Branch | null
 
@@ -692,27 +699,6 @@ export interface ICompareState {
    * A local cache of ahead/behind computations to compare other refs to the current branch
    */
   readonly aheadBehindCache: ComparisonCache
-
-  /**
-   * The best candidate branch to compare the current branch to.
-   * Also includes the ahead/behind info for the inferred branch
-   * relative to the current branch.
-   */
-  readonly inferredComparisonBranch: {
-    branch: Branch | null
-    aheadBehind: IAheadBehind | null
-  }
-}
-
-export interface IDivergingBranchBannerState {
-  /** Show the diverging notification banner */
-  readonly isPromptVisible: boolean
-
-  /** Has the user dismissed the notification banner? */
-  readonly isPromptDismissed: boolean
-
-  /** Show the diverging notification nudge on the tab */
-  readonly isNudgeVisible: boolean
 }
 
 export interface ICompareFormUpdate {

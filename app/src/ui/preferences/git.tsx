@@ -151,7 +151,7 @@ export class Git extends React.Component<IGitProps, IGitState> {
    *
    * We don't want to call this handler on changes to the text box since that
    * will cause the text box to be hidden if the user types a branch name
-   * that starts with one of the suggested branch names (e.g `mastera`).
+   * that starts with one of the suggested branch names (e.g `mainXYZ`).
    *
    * @param defaultBranch string the selected default branch
    */

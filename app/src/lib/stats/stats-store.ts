@@ -21,6 +21,7 @@ import {
   setNumberArray,
 } from '../local-storage'
 import { PushOptions } from '../git'
+import { getShowSideBySideDiff } from '../../ui/lib/diff-mode'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -67,11 +68,6 @@ const DefaultDailyMeasures: IDailyMeasures = {
   prBranchCheckouts: 0,
   repoWithIndicatorClicked: 0,
   repoWithoutIndicatorClicked: 0,
-  divergingBranchBannerDismissal: 0,
-  divergingBranchBannerInitatedMerge: 0,
-  divergingBranchBannerInitiatedCompare: 0,
-  divergingBranchBannerInfluencedMerge: 0,
-  divergingBranchBannerDisplayed: 0,
   dotcomPushCount: 0,
   dotcomForcePushCount: 0,
   enterprisePushCount: 0,
@@ -139,6 +135,10 @@ const DefaultDailyMeasures: IDailyMeasures = {
   tagsCreatedInDesktop: 0,
   tagsCreated: 0,
   tagsDeleted: 0,
+  diffModeChangeCount: 0,
+  diffOptionsViewedCount: 0,
+  repositoryViewChangeCount: 0,
+  unhandledRejectionCount: 0,
 }
 
 interface IOnboardingStats {
@@ -306,6 +306,12 @@ interface ICalculatedStats {
    * them into their own interface
    */
   readonly repositoriesCommittedInWithoutWriteAccess: number
+
+  /**
+   * whether not to the user has chosent to view diffs in split, or unified (the
+   * default) diff view mode
+   */
+  readonly diffMode: 'split' | 'unified'
 }
 
 type DailyStats = ICalculatedStats &
@@ -340,7 +346,7 @@ export class StatsStore implements IStatsStore {
     this.db = db
     this.uiActivityMonitor = uiActivityMonitor
 
-    const storedValue = getBoolean(StatsOptOutKey)
+    const storedValue = getHasOptedOutOfStats()
 
     this.optOut = storedValue || false
 
@@ -351,6 +357,14 @@ export class StatsStore implements IStatsStore {
     }
 
     this.enableUiActivityMonitoring()
+
+    window.addEventListener('unhandledrejection', async () => {
+      try {
+        this.recordUnhandledRejection()
+      } catch (err) {
+        log.error(`Failed recording unhandled rejection`, err)
+      }
+    })
   }
 
   /** Should the app report its daily stats? */
@@ -465,6 +479,7 @@ export class StatsStore implements IStatsStore {
     const repositoriesCommittedInWithoutWriteAccess = getNumberArray(
       RepositoriesCommittedInWithoutWriteAccessKey
     ).length
+    const diffMode = getShowSideBySideDiff() ? 'split' : 'unified'
 
     return {
       eventType: 'usage',
@@ -481,6 +496,7 @@ export class StatsStore implements IStatsStore {
       guid: getGUID(),
       ...repositoryCounts,
       repositoriesCommittedInWithoutWriteAccess,
+      diffMode,
     }
   }
 
@@ -644,7 +660,7 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  /** Record that a branch comparison has been made to the `master` branch */
+  /** Record that a branch comparison has been made to the default branch */
   public recordDefaultBranchComparison(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       defaultBranchComparisons: m.defaultBranchComparisons + 1,
@@ -776,47 +792,6 @@ export class StatsStore implements IStatsStore {
   /** Has the user opted out of stats reporting? */
   public getOptOut(): boolean {
     return this.optOut
-  }
-
-  /** Record that user dismissed diverging branch notification */
-  public recordDivergingBranchBannerDismissal(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      divergingBranchBannerDismissal: m.divergingBranchBannerDismissal + 1,
-    }))
-  }
-
-  /** Record that user initiated a merge from within the notification banner */
-  public recordDivergingBranchBannerInitatedMerge(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      divergingBranchBannerInitatedMerge:
-        m.divergingBranchBannerInitatedMerge + 1,
-    }))
-  }
-
-  /** Record that user initiated a compare from within the notification banner */
-  public recordDivergingBranchBannerInitiatedCompare(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      divergingBranchBannerInitiatedCompare:
-        m.divergingBranchBannerInitiatedCompare + 1,
-    }))
-  }
-
-  /**
-   * Record that user initiated a merge after getting to compare view
-   * from within notification banner
-   */
-  public recordDivergingBranchBannerInfluencedMerge(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      divergingBranchBannerInfluencedMerge:
-        m.divergingBranchBannerInfluencedMerge + 1,
-    }))
-  }
-
-  /** Record that the user was shown the notification banner */
-  public recordDivergingBranchBannerDisplayed(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      divergingBranchBannerDisplayed: m.divergingBranchBannerDisplayed + 1,
-    }))
   }
 
   public async recordPush(
@@ -1376,6 +1351,30 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
+  public recordDiffOptionsViewed() {
+    return this.updateDailyMeasures(m => ({
+      diffOptionsViewedCount: m.diffOptionsViewedCount + 1,
+    }))
+  }
+
+  public recordRepositoryViewChanged() {
+    return this.updateDailyMeasures(m => ({
+      repositoryViewChangeCount: m.repositoryViewChangeCount + 1,
+    }))
+  }
+
+  public recordDiffModeChanged() {
+    return this.updateDailyMeasures(m => ({
+      diffModeChangeCount: m.diffModeChangeCount + 1,
+    }))
+  }
+
+  public recordUnhandledRejection() {
+    return this.updateDailyMeasures(m => ({
+      unhandledRejectionCount: m.unhandledRejectionCount + 1,
+    }))
+  }
+
   /** Post some data to our stats endpoint. */
   private post(body: object): Promise<Response> {
     const options: RequestInit = {
@@ -1437,11 +1436,9 @@ export class StatsStore implements IStatsStore {
  * overwritten.
  */
 function createLocalStorageTimestamp(key: string) {
-  if (localStorage.getItem(key) !== null) {
-    return
+  if (localStorage.getItem(key) === null) {
+    setNumber(key, Date.now())
   }
-
-  setNumber(key, Date.now())
 }
 
 /**
@@ -1506,4 +1503,12 @@ function getWelcomeWizardSignInMethod(): 'basic' | 'web' | undefined {
     log.error(`Could not parse welcome wizard sign in method`, ex)
     return undefined
   }
+}
+
+/**
+ * Return a value indicating whether the user has opted out of stats reporting
+ * or not.
+ */
+export function getHasOptedOutOfStats() {
+  return getBoolean(StatsOptOutKey)
 }

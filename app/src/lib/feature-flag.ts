@@ -86,16 +86,6 @@ export function enableForkyCreateBranchUI(): boolean {
 }
 
 /**
- * Should we show the NDDB banner?
- *
- * (It's a notification in the history sidebar that there
- * are new commits upstream.)
- */
-export function enableNDDBBanner(): boolean {
-  return false
-}
-
-/**
  * Should we show the git tag information in the app UI?
  */
 export function enableGitTagsDisplay(): boolean {
@@ -130,7 +120,7 @@ export function enableDiscardLines(): boolean {
  * Note: side by side diffs will use the new diff viewer.
  */
 export function enableSideBySideDiffs(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /**
@@ -145,4 +135,11 @@ export function enableExperimentalDiffViewer(): boolean {
  */
 export function enableDefaultBranchSetting(): boolean {
   return true
+}
+
+/**
+ * Should we allow reporting unhandled rejections as if they were crashes?
+ */
+export function enableUnhandledRejectionReporting(): boolean {
+  return enableBetaFeatures()
 }

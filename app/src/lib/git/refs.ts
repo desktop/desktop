@@ -6,8 +6,8 @@ import { Repository } from '../../models/repository'
  * is ambiguous are handled.
  *
  * Examples:
- *  - master -> refs/heads/master
- *  - heads/Microsoft/master -> refs/heads/Microsoft/master
+ *  - main -> refs/heads/main
+ *  - heads/Microsoft/main -> refs/heads/Microsoft/main
  *
  * @param branch The local branch name
  */

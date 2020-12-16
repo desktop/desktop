@@ -140,11 +140,6 @@ function getInitialRepositoryState(): IRepositoryState {
       rebasedBranches: new Map<string, string>(),
     },
     compareState: {
-      divergingBranchBannerState: {
-        isPromptVisible: false,
-        isPromptDismissed: false,
-        isNudgeVisible: false,
-      },
       formState: {
         kind: HistoryTabMode.History,
       },
@@ -157,7 +152,6 @@ function getInitialRepositoryState(): IRepositoryState {
       allBranches: new Array<Branch>(),
       recentBranches: new Array<Branch>(),
       defaultBranch: null,
-      inferredComparisonBranch: { branch: null, aheadBehind: null },
     },
     rebaseState: {
       step: null,
