@@ -4,8 +4,14 @@ on:
   push:
     branches:
       - development
-      - __release-*
+      - linux
+      - 'linux-release-*'
+    tags:
+      - 'release-*.*.*-linux*'
   pull_request:
+    branches:
+      - linux
+      - 'linux-release-*'
 
 jobs:
   build:
@@ -16,13 +22,18 @@ jobs:
       fail-fast: false
       matrix:
         node: [16.13.0]
-        os: [macos-10.15, windows-2019]
+        os: [macos-10.15, windows-2019, ubuntu-20.04]
         arch: [x64, arm64]
         include:
           - os: macos-10.15
             friendlyName: macOS
           - os: windows-2019
             friendlyName: Windows
+          - os: ubuntu-20.04
+            friendlyName: Ubuntu
+        exclude:
+          - os: ubuntu-18.04
+            arch: arm64
     timeout-minutes: 60
     env:
       # Needed for macOS arm64 until hosted macos-11.0 runners become available
@@ -69,13 +80,6 @@ jobs:
       - name: Build production app
         run: yarn build:prod
         env:
-          DESKTOP_OAUTH_CLIENT_ID: ${{ secrets.DESKTOP_OAUTH_CLIENT_ID }}
-          DESKTOP_OAUTH_CLIENT_SECRET:
-            ${{ secrets.DESKTOP_OAUTH_CLIENT_SECRET }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-          DESKTOPBOT_TOKEN: ${{ secrets.DESKTOPBOT_TOKEN }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           npm_config_arch: ${{ matrix.arch }}
           TARGET_ARCH: ${{ matrix.arch }}
       - name: Prepare testing environment
@@ -87,15 +91,7 @@ jobs:
       - name: Run script tests
         if: matrix.arch == 'x64'
         run: yarn test:script:cov
-      - name: Publish production app
-        run: yarn run publish
-        env:
-          npm_config_arch: ${{ matrix.arch }}
-          DESKTOPBOT_TOKEN: ${{ secrets.DESKTOPBOT_TOKEN }}
-          WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          DEPLOYMENT_SECRET: ${{ secrets.DEPLOYMENT_SECRET }}
-          AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
-          AZURE_STORAGE_ACCESS_KEY: ${{ secrets.AZURE_STORAGE_ACCESS_KEY }}
-          AZURE_BLOB_CONTAINER: ${{ secrets.AZURE_BLOB_CONTAINER }}
-          AZURE_STORAGE_URL: ${{ secrets.AZURE_STORAGE_URL }}
+      - name: Run integration tests
+        if: matrix.arch == 'x64'
+        timeout-minutes: 5
+        run: yarn test:integration
