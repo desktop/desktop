@@ -27,38 +27,6 @@ pr:
       - '*'
 
 jobs:
-  - job: Windows
-    pool:
-      vmImage: windows-2019
-    steps:
-      - task: NodeTool@0
-        inputs:
-          versionSpec: '10.x'
-      - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
-        inputs:
-          versionSpec: '1.5.1'
-      - script: |
-          yarn install --force
-        name: Install
-      - script: |
-          yarn build:prod
-        name: Build
-      - script: |
-          yarn test:setup && yarn test
-        name: Test
-      - task: PublishTestResults@2
-        displayName: 'Publish Test Results'
-        inputs:
-          testResultsFiles: '**junit*.xml'
-          testRunTitle: $(Agent.OS) Test Results
-        condition: always()
-      - task: PublishCodeCoverageResults@1
-        displayName: 'Publish code coverage results'
-        inputs:
-          codeCoverageTool: 'cobertura'
-          summaryFileLocation: '**/app/coverage/cobertura-coverage.xml'
-        condition: always()
-
   - job: Linux
     pool:
       vmImage: ubuntu-16.04
@@ -103,15 +71,3 @@ jobs:
         condition:
           and(succeeded(), startsWith(variables['Build.SourceBranch'],
           'refs/tags/'))
-      - task: PublishTestResults@2
-        displayName: 'Publish Test Results'
-        inputs:
-          testResultsFiles: '**junit*.xml'
-          testRunTitle: $(Agent.OS) Test Results
-        condition: always()
-      - task: PublishCodeCoverageResults@1
-        displayName: 'Publish code coverage results'
-        inputs:
-          codeCoverageTool: 'cobertura'
-          summaryFileLocation: '**/app/coverage/cobertura-coverage.xml'
-        condition: always()
