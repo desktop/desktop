@@ -4,8 +4,14 @@ on:
   push:
     branches:
       - development
-      - __release-*
+      - linux
+      - 'linux-release-*'
+    tags:
+      - 'release-*.*.*-linux*'
   pull_request:
+    branches:
+      - linux
+      - 'linux-release-*'
 
 jobs:
   build:
@@ -15,12 +21,14 @@ jobs:
       fail-fast: false
       matrix:
         node: [14.x]
-        os: [macos-10.15, windows-2019]
+        os: [macos-10.15, windows-2019, ubuntu-20.04]
         include:
           - os: macos-10.15
             friendlyName: macOS
           - os: windows-2019
             friendlyName: Windows
+          - os: ubuntu-20.04
+            friendlyName: Ubuntu
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v2
@@ -46,22 +54,12 @@ jobs:
 
       - name: Install and build dependencies
         run: yarn
-      - name: Lint
-        run: yarn lint
       - name: Validate changelog
         run: yarn validate-changelog
       - name: Ensure a clean working directory
         run: yarn check-modified
       - name: Build production app
         run: yarn build:prod
-        env:
-          DESKTOP_OAUTH_CLIENT_ID: ${{ secrets.DESKTOP_OAUTH_CLIENT_ID }}
-          DESKTOP_OAUTH_CLIENT_SECRET:
-            ${{ secrets.DESKTOP_OAUTH_CLIENT_SECRET }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-          DESKTOPBOT_TOKEN: ${{ secrets.DESKTOPBOT_TOKEN }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       - name: Prepare testing environment
         run: yarn test:setup
       - name: Run unit tests
@@ -71,13 +69,3 @@ jobs:
       - name: Run integration tests
         timeout-minutes: 5
         run: yarn test:integration
-      - name: Publish production app
-        run: yarn run publish
-        env:
-          DESKTOPBOT_TOKEN: ${{ secrets.DESKTOPBOT_TOKEN }}
-          WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          DEPLOYMENT_SECRET: ${{ secrets.DEPLOYMENT_SECRET }}
-          S3_KEY: ${{ secrets.S3_KEY }}
-          S3_SECRET: ${{ secrets.S3_SECRET }}
-          S3_BUCKET: github-desktop
