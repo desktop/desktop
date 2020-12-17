@@ -85,7 +85,7 @@ function getAvatarUrlCandidates(
       }
     }
   } else if (endpoint !== null) {
-    // We're dealing with a repository hosted on GitHub Enterprise Server
+    // We're dealing with a repository hosted on GitHub Enterprise
     // so we're unable to get to the avatar by requesting the avatarURL due
     // to the private mode (see https://github.com/desktop/desktop/issues/821).
     // So we have no choice but to fall back to gravatar for now.
