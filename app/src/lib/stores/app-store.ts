@@ -5301,13 +5301,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
     const remotes = await getRemotes(repository)
-    const forkRemoteName = forkPullRequestRemoteName(headRepoOwner)
 
     // Find an existing remote (regardless if set up by us or outside of
-    // Desktop). If we can't find one we'll create a Desktop for remote.
-    const remote =
-      remotes.find(r => urlMatchesRemote(headCloneUrl, r)) ??
-      (await addRemote(repository, forkRemoteName, headCloneUrl))
+    // Desktop).
+    let remote = remotes.find(r => urlMatchesRemote(headCloneUrl, r))
+
+    // If we can't find one we'll create a Desktop fork remote.
+    if (remote === undefined) {
+      try {
+        const forkRemoteName = forkPullRequestRemoteName(headRepoOwner)
+        remote = await addRemote(repository, forkRemoteName, headCloneUrl)
+      } catch (e) {
+        this.emitError(e)
+        return
+      }
+    }
 
     const remoteRef = `${remote.name}/${headRefName}`
 
