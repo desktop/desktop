@@ -5312,7 +5312,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const forkRemoteName = forkPullRequestRemoteName(headRepoOwner)
         remote = await addRemote(repository, forkRemoteName, headCloneUrl)
       } catch (e) {
-        this.emitError(e)
+        this.emitError(
+          new Error(`Couldn't checkout PR, adding remote failed: ${e.message}`)
+        )
         return
       }
     }
