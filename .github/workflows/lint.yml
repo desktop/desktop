@@ -13,7 +13,8 @@ on:
       - 'linux-release-*'
 
 jobs:
-  build:
+  run:
+    name: 'Check source code'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
