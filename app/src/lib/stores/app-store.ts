@@ -5342,8 +5342,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // If quite possible that the PR was created after our last fetch of the
     // remote so let's fetch it and then try again.
     if (existingBranch === undefined) {
-      await this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
-      existingBranch = findRemoteBranch(remoteRef)
+      try {
+        await this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
+        existingBranch = findRemoteBranch(remoteRef)
+      } catch (e) {
+        log.error(`Failed fetching remote ${remote?.name}`, e)
+      }
     }
 
     if (existingBranch === undefined) {
