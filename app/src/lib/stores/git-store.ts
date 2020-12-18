@@ -1642,16 +1642,17 @@ export class GitStore extends BaseStore {
 
   public async pruneForkedRemotes(openPRs: ReadonlyArray<PullRequest>) {
     const remotes = await getRemotes(this.repository)
-    const prRemotes = new Set<string>()
-
-    for (const pr of openPRs) {
-      if (pr.head.gitHubRepository.cloneURL !== null) {
-        prRemotes.add(pr.head.gitHubRepository.cloneURL)
-      }
-    }
+    const prRemoteUrls = new Set(
+      openPRs.map(pr => pr.head.gitHubRepository.cloneURL)
+    )
+    const branchRemotes = new Set(this.allBranches.map(branch => branch.remote))
 
     for (const r of remotes) {
-      if (r.name.startsWith(ForkedRemotePrefix) && !prRemotes.has(r.url)) {
+      if (
+        r.name.startsWith(ForkedRemotePrefix) &&
+        !prRemoteUrls.has(r.url) &&
+        !branchRemotes.has(r.name)
+      ) {
         await removeRemote(this.repository, r.name)
       }
     }
