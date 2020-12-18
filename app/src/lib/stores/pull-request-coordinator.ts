@@ -56,6 +56,9 @@ export class PullRequestCoordinator {
       )
     })
 
+    // The `onDidUpdate` event only triggers when the list of repositories
+    // changes or a repository's information is changed. This may now happen for
+    // a very long time so we need to eagerly load the list of repositories.
     this.repositories = this.repositoriesStore
       .getAll()
       .then(x => x.filter(isRepositoryWithGitHubRepository))
