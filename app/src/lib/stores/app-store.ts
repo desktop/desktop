@@ -166,6 +166,7 @@ import {
   IMatchedGitHubRepository,
   matchGitHubRepository,
   matchExistingRepository,
+  urlMatchesRemote,
 } from '../repository-matching'
 import {
   initializeRebaseFlowForConflictedRepository,
@@ -5294,119 +5295,88 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _checkoutPullRequest(
     repository: RepositoryWithGitHubRepository,
     prNumber: number,
-    ownerLogin: string,
+    headRepoOwner: string,
     headCloneUrl: string,
     headRefName: string
   ): Promise<void> {
-    const branch = await this._getPullRequestHeadBranchInRepo(
-      repository,
-      headCloneUrl,
-      headRefName
+    const gitStore = this.gitStoreCache.get(repository)
+    const remotes = await getRemotes(repository)
+
+    // Find an existing remote (regardless if set up by us or outside of
+    // Desktop).
+    let remote = remotes.find(r => urlMatchesRemote(headCloneUrl, r))
+
+    // If we can't find one we'll create a Desktop fork remote.
+    if (remote === undefined) {
+      try {
+        const forkRemoteName = forkPullRequestRemoteName(headRepoOwner)
+        remote = await addRemote(repository, forkRemoteName, headCloneUrl)
+      } catch (e) {
+        this.emitError(
+          new Error(`Couldn't checkout PR, adding remote failed: ${e.message}`)
+        )
+        return
+      }
+    }
+
+    const remoteRef = `${remote.name}/${headRefName}`
+
+    // Start by trying to find a local branch that is tracking the remote ref.
+    let existingBranch = gitStore.allBranches.find(
+      x => x.type === BranchType.Local && x.upstream === remoteRef
     )
 
-    // N.B: This looks weird, and it is. _checkoutBranch used
-    // to behave this way (silently ignoring checkout) when given
-    // a branch name string that does not correspond to a local branch
-    // in the git store. When rewriting _checkoutBranch
-    // to remove the support for string branch names the behavior
-    // was moved up to this method to not alter the current behavior.
-    //
-    // https://youtu.be/IjmtVKOAHPM
-    if (branch !== null) {
-      await this._checkoutBranch(repository, branch)
+    // If we found one, let's check it out and get out of here, quick
+    if (existingBranch !== undefined) {
+      await this._checkoutBranch(repository, existingBranch)
       this.statsStore.recordPRBranchCheckout()
       return
     }
 
-    const remoteName = forkPullRequestRemoteName(ownerLogin)
-    const remotes = await getRemotes(repository)
-    const remote =
-      remotes.find(r => r.name === remoteName) ||
-      (await addRemote(repository, remoteName, headCloneUrl))
-
-    if (remote.url !== headCloneUrl) {
-      const error = new Error(
-        `Expected PR remote ${remoteName} url to be ${headCloneUrl} got ${remote.url}.`
+    const findRemoteBranch = (name: string) =>
+      gitStore.allBranches.find(
+        x => x.type === BranchType.Remote && x.name === name
       )
 
-      log.error(error.message)
-      return this.emitError(error)
+    // No such luck, let's see if we can at least find the remote branch then
+    existingBranch = findRemoteBranch(remoteRef)
+
+    // If quite possible that the PR was created after our last fetch of the
+    // remote so let's fetch it and then try again.
+    if (existingBranch === undefined) {
+      try {
+        await this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
+        existingBranch = findRemoteBranch(remoteRef)
+      } catch (e) {
+        log.error(`Failed fetching remote ${remote?.name}`, e)
+      }
     }
 
-    await this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
-
-    const localBranchName = `pr/${prNumber}`
-    const existingBranch = this.gitStoreCache
-      .get(repository)
-      .allBranches.find(b => b.nameWithoutRemote === branch)
-
     if (existingBranch === undefined) {
-      await this._createBranch(
-        repository,
-        localBranchName,
-        `${remoteName}/${headRefName}`
+      this.emitError(
+        new Error(
+          `Couldn't find branch '${headRefName}' in remote '${remote.name}'. ` +
+            `A common cause for this is if the PR author has deleted their ` +
+            `branch or their forked repository.`
+        )
       )
+      return
+    }
+
+    // For fork remotes we checkout the ref as pr/[123] instead of using the
+    // head ref name since many PRs from forks are created from their default
+    // branch so we'll have a very high likelihood of a conflicting local branch
+    const isForkRemote =
+      remote.name !== gitStore.defaultRemote?.name &&
+      remote.name !== gitStore.upstreamRemote?.name
+
+    if (isForkRemote) {
+      await this._createBranch(repository, `pr/${prNumber}`, remoteRef)
     } else {
       await this._checkoutBranch(repository, existingBranch)
     }
 
     this.statsStore.recordPRBranchCheckout()
-  }
-
-  private async _getPullRequestHeadBranchInRepo(
-    repository: RepositoryWithGitHubRepository,
-    headCloneURL: string,
-    headRefName: string
-  ): Promise<Branch | null> {
-    const { cloneURL, parent } = repository.gitHubRepository
-    const gitStore = this.gitStoreCache.get(repository)
-
-    let remote = null
-
-    // Determine whether the ref is in the current repository or the parent
-    if (headCloneURL === cloneURL) {
-      remote = gitStore.defaultRemote
-    } else if (headCloneURL === parent?.cloneURL) {
-      remote = gitStore.upstreamRemote
-    }
-
-    if (remote !== null) {
-      return this.findPullRequestHeadInRemote(repository, remote, headRefName)
-    }
-
-    return null
-  }
-
-  private async findPullRequestHeadInRemote(
-    repository: Repository,
-    remote: IRemote,
-    headRefName: string
-  ) {
-    const gitStore = this.gitStoreCache.get(repository)
-
-    // Find a remote branch matching the given name or a local branch
-    // whose upstream tracking branch matches the given name (i.e someone
-    // has already checked out the remote branch)
-    const findBranch = (name: string) =>
-      gitStore.allBranches.find(branch =>
-        branch.type === BranchType.Local
-          ? branch.upstream === name
-          : branch.name === name
-      ) ?? null
-
-    const remoteRef = `${remote.name}/${headRefName}`
-    const branch = findBranch(remoteRef)
-
-    if (branch !== null) {
-      return branch
-    }
-
-    // Fetch the remote and try finding the branch again
-    if (branch === null) {
-      await this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
-    }
-
-    return findBranch(remoteRef)
   }
 
   /**
