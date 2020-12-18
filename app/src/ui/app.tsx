@@ -1205,6 +1205,12 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.state.currentFoldout &&
       this.state.currentFoldout.type === FoldoutType.AppMenu
 
+    // As Linux still uses the classic Electron menu, we are opting out of the
+    // custom menu that is shown as part of the title bar below
+    if (__LINUX__) {
+      return null
+    }
+
     // When we're in full-screen mode on Windows we only need to render
     // the title bar when the menu bar is active. On other platforms we
     // never render the title bar while in full-screen mode.
