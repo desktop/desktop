@@ -3060,6 +3060,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { tip } = branchesState
     const hasChanges = changesState.workingDirectory.files.length > 0
 
+    // No point in checking out the currently checked out branch.
+    if (tip.kind === TipState.Valid && tip.branch.name === branch.name) {
+      return repository
+    }
+
     let strategy = explicitStrategy ?? this.uncommittedChangesStrategy
 
     // The user hasn't been presented with an explicit choice
