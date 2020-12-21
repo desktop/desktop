@@ -208,10 +208,9 @@ export class AppWindow {
 
   /** Show the window. */
   public show() {
+    this.window.show()
     if (this.shouldMaximizeOnShow) {
-      this.window.maximize() // maximize will also call show()
-    } else {
-      this.window.show()
+      this.window.maximize()
     }
   }
 
