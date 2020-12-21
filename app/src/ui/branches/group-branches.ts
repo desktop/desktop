@@ -1,6 +1,5 @@
-import { Branch, BranchType } from '../../models/branch'
+import { Branch } from '../../models/branch'
 import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
-import { ForkedRemotePrefix } from '../../models/remote'
 
 export type BranchGroupIdentifier = 'default' | 'recent' | 'other'
 
