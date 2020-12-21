@@ -573,7 +573,7 @@ export class GitStore extends BaseStore {
 
     for (const branch of this._allBranches) {
       // This is slightly redundant as remote branches should never show up as
-      // having beed checked out in the reflog but it makes the intention clear.
+      // having been checked out in the reflog but it makes the intention clear.
       if (branch.type === BranchType.Local) {
         branchesByName.set(branch.name, branch)
       }
