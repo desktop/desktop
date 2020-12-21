@@ -1026,10 +1026,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { tip } = branchesState
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
 
-    const allBranches =
-      currentBranch != null
-        ? branchesState.allBranches.filter(b => b.name !== currentBranch.name)
-        : branchesState.allBranches
+    const branches = branchesState.allBranches.filter(
+      b => b.name !== currentBranch?.name && !b.isDesktopForkRemoteBranch
+    )
     const recentBranches = currentBranch
       ? branchesState.recentBranches.filter(b => b.name !== currentBranch.name)
       : branchesState.recentBranches
@@ -1046,7 +1045,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         : null
 
     this.repositoryStateCache.updateCompareState(repository, () => ({
-      allBranches,
+      branches,
       recentBranches,
       defaultBranch,
     }))
@@ -1278,7 +1277,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         currentBranch,
         compareState.defaultBranch,
         compareState.recentBranches,
-        compareState.allBranches
+        compareState.branches
       )
     } else {
       this.currentAheadBehindUpdater.clear()
