@@ -28,6 +28,7 @@ const defaultBranch: Branch = {
   remote: null,
   upstreamWithoutRemote: null,
   nameWithoutRemote: 'my-default-branch',
+  isDesktopForkRemoteBranch: false,
 }
 
 const upstreamDefaultBranch = null
@@ -40,6 +41,7 @@ const someOtherBranch: Branch = {
   remote: null,
   upstreamWithoutRemote: null,
   nameWithoutRemote: 'some-other-branch',
+  isDesktopForkRemoteBranch: false,
 }
 
 describe('create-branch/getStartPoint', () => {
