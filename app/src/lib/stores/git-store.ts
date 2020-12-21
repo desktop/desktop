@@ -12,7 +12,7 @@ import {
 } from '../../models/branch'
 import { Tip, TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
-import { IRemote, ForkedRemotePrefix } from '../../models/remote'
+import { IRemote } from '../../models/remote'
 import { IFetchProgress, IRevertProgress } from '../../models/progress'
 import {
   ICommitMessage,
@@ -91,6 +91,7 @@ import { getTagsToPush, storeTagsToPush } from './helpers/tags-to-push-storage'
 import { DiffSelection, ITextDiff } from '../../models/diff'
 import { getDefaultBranch } from '../helpers/default-branch'
 import { stat } from 'fs-extra'
+import { findForkedRemotesToPrune } from './helpers/find-forked-remotes-to-prune'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -1642,19 +1643,15 @@ export class GitStore extends BaseStore {
 
   public async pruneForkedRemotes(openPRs: ReadonlyArray<PullRequest>) {
     const remotes = await getRemotes(this.repository)
-    const prRemoteUrls = new Set(
-      openPRs.map(pr => pr.head.gitHubRepository.cloneURL)
-    )
-    const branchRemotes = new Set(this.allBranches.map(branch => branch.remote))
 
-    for (const r of remotes) {
-      if (
-        r.name.startsWith(ForkedRemotePrefix) &&
-        !prRemoteUrls.has(r.url) &&
-        !branchRemotes.has(r.name)
-      ) {
-        await removeRemote(this.repository, r.name)
-      }
+    const remotesToPrune = findForkedRemotesToPrune(
+      remotes,
+      openPRs,
+      this.allBranches
+    )
+
+    for (const r of remotesToPrune) {
+      await removeRemote(this.repository, r.name)
     }
   }
 }
