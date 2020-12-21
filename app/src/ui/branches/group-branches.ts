@@ -1,5 +1,6 @@
-import { Branch } from '../../models/branch'
+import { Branch, BranchType } from '../../models/branch'
 import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
+import { ForkedRemotePrefix } from '../../models/remote'
 
 export type BranchGroupIdentifier = 'default' | 'recent' | 'other'
 
@@ -54,8 +55,12 @@ export function groupBranches(
   }
 
   const remainingBranches = allBranches.filter(
-    b => b.name !== defaultBranchName && !recentBranchNames.has(b.name)
+    b =>
+      b.name !== defaultBranchName &&
+      !recentBranchNames.has(b.name) &&
+      !b.isDesktopForkRemoteBranch
   )
+
   const remainingItems = remainingBranches.map(b => ({
     text: [b.name],
     id: b.name,
