@@ -65,7 +65,8 @@ export class AheadBehindStore {
    *
    * Aborting means that the callback won't execute and if that we'll try to
    * avoid invoking Git unless we've already done so or there's another caller
-   * requesting that calculation.
+   * requesting that calculation. Aborting after the callback has been invoked
+   * is a no-op.
    *
    * The callback will not fire if we were unsuccessful in calculating the
    * ahead/behind status.
