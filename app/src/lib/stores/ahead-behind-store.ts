@@ -80,7 +80,8 @@ export class AheadBehindStore {
     const existing = this.cache.get(key)
     const disposable = new Disposable(() => {})
 
-    // We failed loading
+    // We failed loading on the last attempt. We cache that failure and don't
+    // retry previously failed ops.
     if (existing === null || existing !== undefined) {
       return disposable
     }
