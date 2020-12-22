@@ -4,7 +4,7 @@
       "[Fixed] Remotes referencing forked repos would be removed even when branches from them were available locally - #11266",
       "[Fixed] Full screen won't start as a white screen anymore - #5631. Thanks @AndreiMaga!",
       "[Fixed] Checking out a pull request from a fork for the first time now correctly identifies the remote branch to create the branch from - #11267",
-      "[Fixed] VSCodium wouldn't be recognized as an editor - #11252. Thanks @KallePM!"
+      "[Fixed] VSCodium wouldn't be recognized as an editor on Windows - #11252. Thanks @KallePM!"
     ],
     "2.6.2-beta1": [
       "[Fixed] Addressed an issue where pull requests could fail to update until the user switched repositories - #11241",
