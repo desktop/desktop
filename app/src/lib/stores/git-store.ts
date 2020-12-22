@@ -1649,14 +1649,15 @@ export class GitStore extends BaseStore {
   public async pruneForkedRemotes(openPRs: ReadonlyArray<PullRequest>) {
     const remotes = await getRemotes(this.repository)
 
+    const branches = this.allBranches
     const remotesToPrune = findForkedRemotesToPrune(
       remotes,
       openPRs,
-      this.allBranches
+      branches
     )
 
-    for (const r of remotesToPrune) {
-      await removeRemote(this.repository, r.name)
+    for (const remote of remotesToPrune) {
+      await removeRemote(this.repository, remote.name)
     }
   }
 }

@@ -16,12 +16,12 @@ function createSamplePullRequest(
     'desktop',
     1,
     {
-      ref: 'refs/heads/master',
+      ref: 'main',
       sha: 'deadbeef',
       gitHubRepository,
     },
     {
-      ref: `refs/heads/${baseBranchName}`,
+      ref: baseBranchName,
       sha: 'deadbeef',
       gitHubRepository,
     },

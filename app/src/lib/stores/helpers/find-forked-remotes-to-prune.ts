@@ -3,8 +3,9 @@ import { PullRequest } from '../../../models/pull-request'
 import { ForkedRemotePrefix, IRemote } from '../../../models/remote'
 
 /**
- * Function to determine which remotes are not referenced anymore (by pull
- * requests or local branches) and can be removed from a repository.
+ * Function to determine which of the fork remotes added by the app are not
+ * referenced anymore (by pull requests or local branches) and can be removed
+ * from a repository.
  *
  * @param remotes All remotes available in the repository.
  * @param openPRs All open pull requests available in the repository.
