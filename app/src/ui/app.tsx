@@ -119,6 +119,7 @@ import { ChooseForkSettings } from './choose-fork-settings'
 import { DiscardSelection } from './discard-changes/discard-selection-dialog'
 import { LocalChangesOverwrittenDialog } from './local-changes-overwritten/local-changes-overwritten-dialog'
 import memoizeOne from 'memoize-one'
+import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -139,6 +140,7 @@ interface IAppProps {
   readonly appStore: AppStore
   readonly issuesStore: IssuesStore
   readonly gitHubUserStore: GitHubUserStore
+  readonly aheadBehindStore: AheadBehindStore
   readonly startTime: number
 }
 
@@ -2555,6 +2557,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           onExitTutorial={this.onExitTutorial}
           isShowingModal={this.isShowingModal}
           isShowingFoldout={this.state.currentFoldout !== null}
+          aheadBehindStore={this.props.aheadBehindStore}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
