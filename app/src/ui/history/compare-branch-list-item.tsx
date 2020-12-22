@@ -57,7 +57,12 @@ export class CompareBranchListItem extends React.Component<
   }
 
   public componentDidMount() {
-    this.subscribeToAheadBehindStore()
+    // If we failed to get a value synchronously in getDerivedStateFromProps
+    // we'll load one asynchronously now, otherwise we'll wait until the next
+    // prop update to see if the comparison revs change.
+    if (this.state.aheadBehind === undefined) {
+      this.subscribeToAheadBehindStore()
+    }
   }
 
   public componentDidUpdate(
