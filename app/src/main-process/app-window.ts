@@ -20,7 +20,8 @@ export class AppWindow {
   private minWidth = 960
   private minHeight = 660
 
-  private shouldMaximizeOnShow: boolean = false
+  // See https://github.com/desktop/desktop/pull/11162
+  private shouldMaximizeOnShow = false
 
   public constructor() {
     const savedWindowState = windowStateKeeper({
