@@ -113,7 +113,10 @@ export class AheadBehindStore {
             log.error('Failed calculating ahead/behind status', e)
             return null
           })
-          .then(aheadBehind => this.cache.set(key, aheadBehind) && aheadBehind)
+          .then(aheadBehind => {
+            this.cache.set(key, aheadBehind)
+            return aheadBehind
+          })
           .finally(() => this.workers.delete(key))
 
         this.workers.set(key, worker)
