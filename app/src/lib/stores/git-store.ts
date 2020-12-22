@@ -1650,11 +1650,7 @@ export class GitStore extends BaseStore {
     const remotes = await getRemotes(this.repository)
 
     const branches = this.allBranches
-    const remotesToPrune = findForkedRemotesToPrune(
-      remotes,
-      openPRs,
-      branches
-    )
+    const remotesToPrune = findForkedRemotesToPrune(remotes, openPRs, branches)
 
     for (const remote of remotesToPrune) {
       await removeRemote(this.repository, remote.name)
