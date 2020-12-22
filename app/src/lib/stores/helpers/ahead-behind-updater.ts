@@ -100,25 +100,22 @@ export class AheadBehindUpdater {
     this.clear()
 
     const from = currentBranch.tip.sha
+    const cache = this.comparisonCache
+    const newRefs = new Set<string>()
 
-    const filterBranchesNotInCache = (branches: ReadonlyArray<Branch>) => {
-      return branches
-        .map(b => b.tip.sha)
-        .filter(to => !this.comparisonCache.has(from, to))
+    const addBranch = (b: Branch | null) => {
+      if (b && !b.isDesktopForkRemoteBranch && !cache.has(from, b.tip.sha)) {
+        newRefs.add(b.tip.sha)
+      }
     }
 
-    const otherBranches = [...recentBranches, ...allBranches]
+    addBranch(defaultBranch)
+    recentBranches.forEach(addBranch)
+    allBranches.forEach(addBranch)
 
-    const branches =
-      defaultBranch !== null ? [defaultBranch, ...otherBranches] : otherBranches
+    log.debug(`[AheadBehindUpdater] - found ${newRefs.size} new refs`)
 
-    const newRefsToCompare = new Set<string>(filterBranchesNotInCache(branches))
-
-    log.debug(
-      `[AheadBehindUpdater] - found ${newRefsToCompare.size} comparisons to perform`
-    )
-
-    for (const sha of newRefsToCompare) {
+    for (const sha of newRefs) {
       this.aheadBehindQueue.push(
         () =>
           new Promise<IAheadBehind | null>((resolve, reject) => {

@@ -1,6 +1,7 @@
 import { Commit } from './commit'
 import { removeRemotePrefix } from '../lib/remove-remote-prefix'
 import { CommitIdentity } from './commit-identity'
+import { ForkedRemotePrefix } from './remote'
 
 // NOTE: The values here matter as they are used to sort
 // local and remote branches, Local should come before Remote
@@ -111,5 +112,22 @@ export class Branch {
       const withoutRemote = removeRemotePrefix(this.name)
       return withoutRemote || this.name
     }
+  }
+
+  /**
+   * Gets a value indicating whether the branch is a remote branch belonging to
+   * one of Desktop's automatically created (and pruned) fork remotes. I.e. a
+   * remote branch from a branch which starts with `github-desktop-`.
+   *
+   * We hide branches from our known Desktop for remotes as these are considered
+   * plumbing and can add noise to everywhere in the user interface where we
+   * display branches as forks will likely contain duplicates of the same ref
+   * names
+   **/
+  public get isDesktopForkRemoteBranch() {
+    return (
+      this.type === BranchType.Remote &&
+      this.name.startsWith(ForkedRemotePrefix)
+    )
   }
 }

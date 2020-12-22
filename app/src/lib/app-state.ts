@@ -672,8 +672,11 @@ export interface ICompareState {
   /** The SHAs of commits to render in the compare list */
   readonly commitSHAs: ReadonlyArray<string>
 
-  /** A list of all branches (remote and local) currently in the repository. */
-  readonly allBranches: ReadonlyArray<Branch>
+  /**
+   * A list of branches (remote and local) except the current branch, and
+   * Desktop fork remote branches (see `Branch.isDesktopForkRemoteBranch`)
+   **/
+  readonly branches: ReadonlyArray<Branch>
 
   /**
    * A list of zero to a few (at time of writing 5 but check loadRecentBranches

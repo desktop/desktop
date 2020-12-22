@@ -149,7 +149,7 @@ function getInitialRepositoryState(): IRepositoryState {
       filterText: '',
       commitSHAs: [],
       aheadBehindCache: new ComparisonCache(),
-      allBranches: new Array<Branch>(),
+      branches: new Array<Branch>(),
       recentBranches: new Array<Branch>(),
       defaultBranch: null,
     },

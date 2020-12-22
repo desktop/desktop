@@ -569,10 +569,15 @@ export class GitStore extends BaseStore {
       return
     }
 
-    const branchesByName = this._allBranches.reduce(
-      (map, branch) => map.set(branch.name, branch),
-      new Map<string, Branch>()
-    )
+    const branchesByName = new Map<string, Branch>()
+
+    for (const branch of this._allBranches) {
+      // This is slightly redundant as remote branches should never show up as
+      // having been checked out in the reflog but it makes the intention clear.
+      if (branch.type === BranchType.Local) {
+        branchesByName.set(branch.name, branch)
+      }
+    }
 
     const recentBranches = new Array<Branch>()
     for (const name of recentBranchNames) {
