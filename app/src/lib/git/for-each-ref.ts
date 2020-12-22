@@ -4,9 +4,6 @@ import { GitError } from 'dugite'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType } from '../../models/branch'
 import { CommitIdentity } from '../../models/commit-identity'
-import { ForkedRemotePrefix } from '../../models/remote'
-
-const ForksReferencesPrefix = `refs/remotes/${ForkedRemotePrefix}`
 
 /** Get all the branches. */
 export async function getBranches(
@@ -94,14 +91,6 @@ export async function getBranches(
 
     if (symref.length > 0) {
       // exclude symbolic refs from the branch list
-      continue
-    }
-
-    if (ref.startsWith(ForksReferencesPrefix)) {
-      // hide refs from our known remotes as these are considered plumbing
-      // and can add noise to everywhere in the user interface where we
-      // display branches as forks will likely contain duplicates of the same
-      // ref names
       continue
     }
 

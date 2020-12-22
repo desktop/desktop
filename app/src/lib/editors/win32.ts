@@ -421,7 +421,10 @@ function isExpectedInstallation(
         publisher === 'Microsoft Corporation'
       )
     case ExternalEditor.VSCodium:
-      return displayName === 'Visual Source Codium' && publisher === 'VSCodium'
+      return (
+        displayName.startsWith('VSCodium') &&
+        publisher === 'Microsoft Corporation'
+      )
     case ExternalEditor.SublimeText:
       return (
         displayName === 'Sublime Text' && publisher === 'Sublime HQ Pty Ltd'
