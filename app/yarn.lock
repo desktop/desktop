@@ -355,10 +355,10 @@ double-ended-queue@^2.1.0-0:
   resolved "https://registry.yarnpkg.com/double-ended-queue/-/double-ended-queue-2.1.0-0.tgz#103d3527fd31528f40188130c841efdd78264e5c"
   integrity sha1-ED01J/0xUo9AGIEwyEHv3XgmTlw=
 
-dugite@1.92.0:
-  version "1.92.0"
-  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.92.0.tgz#34a32a35ba5e69a61c62afa686a9a27944e0f5f0"
-  integrity sha512-Xra5E2ISwy+sCUrlcBkBsOpP85u5lsbaMnRpnvMJpO+KSoCGccMUimekGS+Ry8ZRni80gHw83MKSrdycaH2bZg==
+dugite@^1.93.0:
+  version "1.93.0"
+  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.93.0.tgz#897e9559347db383d534d274cae6d418d9dcc05e"
+  integrity sha512-2xeCD9zaJLscWX4hMQkCcq6YrUkQvj17gBIhJyBkqNRMTLwIzTuSfeu1wNUBvUvZJe9/WBeMy+YcbCkAEHqDNg==
   dependencies:
     checksum "^0.1.1"
     got "^9.6.0"
@@ -709,9 +709,9 @@ inherits@^2.0.3:
   integrity sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==
 
 ini@~1.3.0:
-  version "1.3.5"
-  resolved "https://registry.yarnpkg.com/ini/-/ini-1.3.5.tgz#eee25f56db1c9ec6085e0c22778083f596abf927"
-  integrity sha512-RZY5huIKCMRWDUqZlEi72f/lmXKMvuszcMBduliQ3nnWbx9X/ZBQO7DijMEYS9EhHBb2qacRUMtC7svLwe0lcw==
+  version "1.3.7"
+  resolved "https://registry.yarnpkg.com/ini/-/ini-1.3.7.tgz#a09363e1911972ea16d7a8851005d84cf09a9a84"
+  integrity sha512-iKpRpXP+CrP2jyrxvg1kMUpXDyRUFDWurxbnVT1vQPx+Wz9uCYsMIqYuSBLV+PAaZG/d7kRLKRFc9oDMsH+mFQ==
 
 is-fullwidth-code-point@^1.0.0:
   version "1.0.0"

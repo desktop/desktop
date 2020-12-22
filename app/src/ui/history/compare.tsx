@@ -134,7 +134,7 @@ export class CompareSidebar extends React.Component<
   }
 
   public render() {
-    const { allBranches, filterText, showBranchList } = this.props.compareState
+    const { branches, filterText, showBranchList } = this.props.compareState
     const placeholderText = getPlaceholderText(this.props.compareState)
 
     return (
@@ -146,7 +146,7 @@ export class CompareSidebar extends React.Component<
             placeholder={placeholderText}
             onFocus={this.onTextBoxFocused}
             value={filterText}
-            disabled={allBranches.length === 0}
+            disabled={!branches.some(b => !b.isDesktopForkRemoteBranch)}
             onRef={this.onTextBoxRef}
             onValueChanged={this.onBranchFilterTextChanged}
             onKeyDown={this.onBranchFilterKeyDown}
@@ -252,7 +252,7 @@ export class CompareSidebar extends React.Component<
   private renderFilterList() {
     const {
       defaultBranch,
-      allBranches,
+      branches,
       recentBranches,
       filterText,
     } = this.props.compareState
@@ -262,7 +262,7 @@ export class CompareSidebar extends React.Component<
         ref={this.onBranchesListRef}
         defaultBranch={defaultBranch}
         currentBranch={this.props.currentBranch}
-        allBranches={allBranches}
+        allBranches={branches}
         recentBranches={recentBranches}
         filterText={filterText}
         textbox={this.textbox!}
@@ -507,9 +507,9 @@ export class CompareSidebar extends React.Component<
 }
 
 function getPlaceholderText(state: ICompareState) {
-  const { allBranches, formState } = state
+  const { branches, formState } = state
 
-  if (allBranches.length === 0) {
+  if (!branches.some(b => !b.isDesktopForkRemoteBranch)) {
     return __DARWIN__ ? 'No Branches to Compare' : 'No branches to compare'
   } else if (formState.kind === HistoryTabMode.History) {
     return __DARWIN__

@@ -1641,7 +1641,7 @@ export class Dispatcher {
     await this.appStore._checkoutPullRequest(
       repository,
       pullRequest.number,
-      pullRequest.user.login,
+      pullRequest.head.repo.owner.login,
       pullRequest.head.repo.clone_url,
       pullRequest.head.ref
     )
@@ -2010,7 +2010,7 @@ export class Dispatcher {
     return this.appStore._checkoutPullRequest(
       repository,
       pullRequest.pullRequestNumber,
-      pullRequest.author,
+      pullRequest.head.gitHubRepository.owner.login,
       pullRequest.head.gitHubRepository.cloneURL,
       pullRequest.head.ref
     )

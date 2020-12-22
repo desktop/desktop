@@ -150,7 +150,7 @@ describe('emails', () => {
       )
     })
 
-    it('returns the noreply if there is no public address for GitHub Enterprise Server as well', () => {
+    it('returns the noreply if there is no public address for GitHub Enterprise as well', () => {
       const emails: IAPIEmail[] = [
         {
           email: 'shiftkey@example.com',
@@ -263,7 +263,7 @@ describe('emails', () => {
       ])
     })
 
-    it('returns stealth emails for GitHub Enterprise Server', () => {
+    it('returns stealth emails for GitHub Enterprise', () => {
       const endpoint = `https://github.example.com/api/v3`
       const account = new Account('niik', endpoint, '', [], '', 123, '')
       const attributable = getAttributableEmailsFor(account)
