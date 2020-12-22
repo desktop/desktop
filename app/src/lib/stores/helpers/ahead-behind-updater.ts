@@ -104,7 +104,7 @@ export class AheadBehindUpdater {
     const newRefs = new Set<string>()
 
     const addBranch = (b: Branch | null) => {
-      if (b && b.isDesktopForkRemoteBranch && !cache.has(from, b.tip.sha)) {
+      if (b && !b.isDesktopForkRemoteBranch && !cache.has(from, b.tip.sha)) {
         newRefs.add(b.tip.sha)
       }
     }
