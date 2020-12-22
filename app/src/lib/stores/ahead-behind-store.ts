@@ -119,7 +119,11 @@ export class AheadBehindStore {
         this.workers.set(key, worker)
       }
 
-      return worker.then(x => x !== null && !disposable.disposed && callback(x))
+      const aheadBehind = await worker
+
+      if (aheadBehind !== null && !disposable.disposed) {
+        callback(aheadBehind)
+      }
     }).catch(e => log.error('Failed calculating ahead/behind status', e))
 
     return disposable
