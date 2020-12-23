@@ -2482,4 +2482,12 @@ export class Dispatcher {
   public recordDiffOptionsViewed() {
     return this.statsStore.recordDiffOptionsViewed()
   }
+
+  public recordLaunchedFromDownloadsFolder(
+    launchedFromDownloadsFolder: boolean
+  ) {
+    this.statsStore.recordLaunchedFromDownloadsFolder(
+      launchedFromDownloadsFolder
+    )
+  }
 }
