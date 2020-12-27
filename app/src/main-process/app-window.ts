@@ -8,6 +8,7 @@ import {
 } from 'electron'
 import { shell } from '../lib/app-shell'
 import { Emitter, Disposable } from 'event-kit'
+import { join } from 'path'
 import { encodePathAsUrl } from '../lib/path'
 import {
   getWindowState,
@@ -18,7 +19,6 @@ import { URLActionType } from '../lib/parse-app-url'
 import { ILaunchStats } from '../lib/stats'
 import { menuFromElectronMenu } from '../models/app-menu'
 import { now } from './now'
-import * as path from 'path'
 import windowStateKeeper from 'electron-window-state'
 import * as ipcMain from './ipc-main'
 import * as ipcWebContents from './ipc-webcontents'
@@ -78,7 +78,7 @@ export class AppWindow {
     } else if (__WIN32__) {
       windowOptions.frame = false
     } else if (__LINUX__) {
-      windowOptions.icon = path.join(__dirname, 'static', 'icon-logo.png')
+      windowOptions.icon = join(__dirname, 'static', 'logos', '512x512.png')
 
       // relax restriction here for users trying to run app at a small
       // resolution and any other side-effects of dropping this restriction are
