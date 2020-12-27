@@ -249,6 +249,7 @@ These shells are currently supported:
  - [Terminator](https://gnometerminator.blogspot.com)
  - [Rxvt Unicode](http://software.schmorp.de/pkg/rxvt-unicode.html)
  - [Konsole](https://konsole.kde.org/)
+ - [Xfce4-terminal](https://docs.xfce.org/apps/terminal/start)
  - [XTerm](http://invisible-island.net/xterm/)
  - [Terminology](https://www.enlightenment.org/docs/apps/terminology.md)
 
@@ -262,6 +263,7 @@ export enum Shell {
   Terminator = 'Terminator',
   Urxvt = 'URxvt',
   Konsole = 'Konsole',
+  Xfce4Terminal = 'Xfce4-terminal',
   Xterm = 'XTerm',
   Terminology = 'Terminology',
 }
@@ -296,6 +298,7 @@ export async function getAvailableShells(): Promise<
     terminatorPath,
     urxvtPath,
     konsolePath,
+    xfce4TerminalPath
     xtermPath,
     terminologyPath,
   ] = await Promise.all([
@@ -305,6 +308,7 @@ export async function getAvailableShells(): Promise<
     getShellPath(Shell.Terminator),
     getShellPath(Shell.Urxvt),
     getShellPath(Shell.Konsole),
+    getShellPath(Shell.Xfce4Terminal),
     getShellPath(Shell.Xterm),
     getShellPath(Shell.Terminology),
   ])
@@ -339,6 +343,8 @@ export function launch(
       return spawn(foundShell.path, ['-cd', path])
     case Shell.Konsole:
       return spawn(foundShell.path, ['--workdir', path])
+    case Shell.Xfce4Terminal:
+      return spawn(foundShell.path, ['--default-working-directory', path])
     case Shell.Xterm:
       return spawn(foundShell.path, ['-e', '/bin/bash'], { cwd: path })
     case Shell.Terminology:

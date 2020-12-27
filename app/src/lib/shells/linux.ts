@@ -11,6 +11,7 @@ export enum Shell {
   Terminator = 'Terminator',
   Urxvt = 'URxvt',
   Konsole = 'Konsole',
+  Xfce4Terminal = 'Xfce4-terminal',
   Xterm = 'XTerm',
   Terminology = 'Terminology',
 }
@@ -39,6 +40,8 @@ function getShellPath(shell: Shell): Promise<string | null> {
       return getPathIfAvailable('/usr/bin/urxvt')
     case Shell.Konsole:
       return getPathIfAvailable('/usr/bin/konsole')
+    case Shell.Xfce4Terminal:
+      return getPathIfAvailable('/usr/bin/xfce4-terminal')
     case Shell.Xterm:
       return getPathIfAvailable('/usr/bin/xterm')
     case Shell.Terminology:
@@ -58,6 +61,7 @@ export async function getAvailableShells(): Promise<
     terminatorPath,
     urxvtPath,
     konsolePath,
+    xfce4TerminalPath,
     xtermPath,
     terminologyPath,
   ] = await Promise.all([
@@ -67,6 +71,7 @@ export async function getAvailableShells(): Promise<
     getShellPath(Shell.Terminator),
     getShellPath(Shell.Urxvt),
     getShellPath(Shell.Konsole),
+    getShellPath(Shell.Xfce4Terminal),
     getShellPath(Shell.Xterm),
     getShellPath(Shell.Terminology),
   ])
@@ -96,6 +101,10 @@ export async function getAvailableShells(): Promise<
     shells.push({ shell: Shell.Konsole, path: konsolePath })
   }
 
+  if (xfce4TerminalPath) {
+    shells.push({ shell: Shell.Xfce4Terminal, path: xfce4TerminalPath });
+  }
+
   if (xtermPath) {
     shells.push({ shell: Shell.Xterm, path: xtermPath })
   }
@@ -122,6 +131,8 @@ export function launch(
       return spawn(foundShell.path, ['-cd', path])
     case Shell.Konsole:
       return spawn(foundShell.path, ['--workdir', path])
+    case Shell.Xfce4Terminal:
+      return spawn(foundShell.path, ['--default-working-directory', path])
     case Shell.Xterm:
       return spawn(foundShell.path, ['-e', '/bin/bash'], { cwd: path })
     case Shell.Terminology:
