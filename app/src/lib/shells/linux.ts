@@ -102,7 +102,7 @@ export async function getAvailableShells(): Promise<
   }
 
   if (xfce4TerminalPath) {
-    shells.push({ shell: Shell.Xfce4Terminal, path: xfce4TerminalPath });
+    shells.push({ shell: Shell.Xfce4Terminal, path: xfce4TerminalPath })
   }
 
   if (xtermPath) {
