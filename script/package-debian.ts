@@ -57,6 +57,9 @@ const options: DebianOptions = {
     'gnome-keyring',
   ],
   icon: {
+    '32x32': 'app/static/logos/32x32.png',
+    '64x64': 'app/static/logos/64x64.png',
+    '128x128': 'app/static/logos/128x128.png',
     '256x256': 'app/static/logos/256x256.png',
     '512x512': 'app/static/logos/512x512.png',
     '1024x1024': 'app/static/logos/1024x1024.png',
