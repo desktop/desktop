@@ -355,6 +355,12 @@ export interface IDailyMeasures {
 
   /** Number of times the user has encountered an unhandled rejection */
   readonly unhandledRejectionCount: number
+
+  /**
+   * Whether the app was launched from the Downloads folder or not. This is only
+   * relevant on macOS, null will be sent otherwise.
+   */
+  readonly launchedFromDownloadsFolder: boolean | null
 }
 
 export class StatsDatabase extends Dexie {
