@@ -22,7 +22,6 @@ import {
   pushNeedsPullHandler,
   upstreamAlreadyExistsHandler,
   rebaseConflictsHandler,
-  localChangesOverwrittenOnCheckoutHandler,
   localChangesOverwrittenHandler,
   refusedWorkflowUpdate,
   samlReauthRequired,
@@ -77,6 +76,8 @@ import 'wicg-focus-ring'
 // syntax for formatting time duration
 import momentDurationFormatSetup from 'moment-duration-format'
 import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
+import { enableUnhandledRejectionReporting } from '../lib/feature-flag'
+import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
 
 if (__DEV__) {
   installDevGlobals()
@@ -201,21 +202,19 @@ process.on(
 )
 
 /**
- * Chromium won't crash on an unhandled rejection (similar to how
- * it won't crash on an unhandled error). We've taken the approach
- * that unhandled errors should crash the app and very likely we
- * should do the same thing for unhandled promise rejections but
- * that's a bit too risky to do until we've established some sense
- * of how often it happens. For now this simply stores the last
- * rejection so that we can pass it along with the crash report
- * if the app does crash. Note that this does not prevent the
- * default browser behavior of logging since we're not calling
- * `preventDefault` on the event.
+ * Chromium won't crash on an unhandled rejection (similar to how it won't crash
+ * on an unhandled error). We've taken the approach that unhandled errors should
+ * crash the app and very likely we should do the same thing for unhandled
+ * promise rejections but that's a bit too risky to do until we've established
+ * some sense of how often it happens. For now this simply stores the last
+ * rejection so that we can pass it along with the crash report if the app does
+ * crash. Note that this does not prevent the default browser behavior of
+ * logging since we're not calling `preventDefault` on the event.
  *
  * See https://developer.mozilla.org/en-US/docs/Web/API/Window/unhandledrejection_event
  */
 window.addEventListener('unhandledrejection', ev => {
-  if (ev.reason instanceof Error) {
+  if (enableUnhandledRejectionReporting() && ev.reason instanceof Error) {
     sendNonFatalException('unhandledRejection', ev.reason)
   }
 })
@@ -251,6 +250,7 @@ const repositoryStateManager = new RepositoryStateCache()
 const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 
 const commitStatusStore = new CommitStatusStore(accountsStore)
+const aheadBehindStore = new AheadBehindStore()
 
 const appStore = new AppStore(
   gitHubUserStore,
@@ -289,7 +289,6 @@ dispatcher.registerErrorHandler(samlReauthRequired)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(missingRepositoryHandler)
 dispatcher.registerErrorHandler(localChangesOverwrittenHandler)
-dispatcher.registerErrorHandler(localChangesOverwrittenOnCheckoutHandler)
 dispatcher.registerErrorHandler(rebaseConflictsHandler)
 dispatcher.registerErrorHandler(refusedWorkflowUpdate)
 
@@ -334,6 +333,7 @@ ReactDOM.render(
     repositoryStateManager={repositoryStateManager}
     issuesStore={issuesStore}
     gitHubUserStore={gitHubUserStore}
+    aheadBehindStore={aheadBehindStore}
     startTime={startTime}
   />,
   document.getElementById('desktop-app-container')!

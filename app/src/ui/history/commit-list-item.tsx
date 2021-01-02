@@ -157,7 +157,9 @@ export class CommitListItem extends React.PureComponent<
 
     const items: IMenuItem[] = [
       {
-        label: __DARWIN__ ? 'Revert this Commit' : 'Revert this commit',
+        label: __DARWIN__
+          ? 'Revert Changes in Commit'
+          : 'Revert changes in commit',
         action: () => {
           if (this.props.onRevertCommit) {
             this.props.onRevertCommit(this.props.commit)
