@@ -43,6 +43,7 @@ describe('git/checkout', () => {
         },
       },
       remote: null,
+      isDesktopForkRemoteBranch: false,
     }
 
     let errorRaised = false

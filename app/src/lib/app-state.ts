@@ -28,7 +28,6 @@ import { SignInState } from './stores/sign-in-store'
 import { WindowState } from './window-state'
 import { ExternalEditor } from './editors'
 import { Shell } from './shells'
-import { ComparisonCache } from './comparison-cache'
 
 import { ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
@@ -672,8 +671,11 @@ export interface ICompareState {
   /** The SHAs of commits to render in the compare list */
   readonly commitSHAs: ReadonlyArray<string>
 
-  /** A list of all branches (remote and local) currently in the repository. */
-  readonly allBranches: ReadonlyArray<Branch>
+  /**
+   * A list of branches (remote and local) except the current branch, and
+   * Desktop fork remote branches (see `Branch.isDesktopForkRemoteBranch`)
+   **/
+  readonly branches: ReadonlyArray<Branch>
 
   /**
    * A list of zero to a few (at time of writing 5 but check loadRecentBranches
@@ -694,11 +696,6 @@ export interface ICompareState {
    * GitHub.com users are able to change their default branch in the web UI.
    */
   readonly defaultBranch: Branch | null
-
-  /**
-   * A local cache of ahead/behind computations to compare other refs to the current branch
-   */
-  readonly aheadBehindCache: ComparisonCache
 }
 
 export interface ICompareFormUpdate {

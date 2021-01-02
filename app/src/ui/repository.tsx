@@ -28,6 +28,7 @@ import { TutorialPanel, TutorialWelcome, TutorialDone } from './tutorial'
 import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { ExternalEditor } from '../lib/editors'
 import { openFile } from './lib/open-file'
+import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -83,6 +84,7 @@ interface IRepositoryViewProps {
   readonly currentTutorialStep: TutorialStep
 
   readonly onExitTutorial: () => void
+  readonly aheadBehindStore: AheadBehindStore
 }
 
 interface IRepositoryViewState {
@@ -235,6 +237,7 @@ export class RepositoryView extends React.Component<
         onCompareListScrolled={this.onCompareListScrolled}
         compareListScrollTop={scrollTop}
         tagsToPush={this.props.state.tagsToPush}
+        aheadBehindStore={this.props.aheadBehindStore}
       />
     )
   }
