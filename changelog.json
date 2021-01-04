@@ -1,5 +1,11 @@
 {
   "releases": {
+    "2.6.2-beta2": [
+      "[Fixed] Forked repository remotes are no longer removed when there's local branches tracking them - #11266",
+      "[Fixed] Avoid bright flash for users of the dark theme when launching the app maximized - #5631. Thanks @AndreiMaga!",
+      "[Fixed] Checking out a pull request from a fork for the first time now correctly identifies the remote branch to create the branch from - #11267",
+      "[Fixed] VSCodium is now detected as an editor on Windows - #11252. Thanks @KallePM!"
+    ],
     "2.6.2-beta1": [
       "[Fixed] Addressed an issue where pull requests could fail to update until the user switched repositories - #11241",
       "[Fixed] Don't offer to stash or move changes when clicking on the currently checked out branch in the branch list - #11235",
