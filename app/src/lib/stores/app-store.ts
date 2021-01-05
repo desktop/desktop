@@ -1817,6 +1817,31 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
+  private hasRepositoryChanged(
+    oldRepository: Repository | CloningRepository | null,
+    newRepository: Repository | CloningRepository | null
+  ) {
+    if (oldRepository && newRepository) {
+      // If this is a GitHub repository, check if the workflow preferences
+      // changed too.
+      if (
+        oldRepository instanceof Repository &&
+        isRepositoryWithGitHubRepository(oldRepository) &&
+        newRepository instanceof Repository &&
+        isRepositoryWithGitHubRepository(newRepository) &&
+        oldRepository.workflowPreferences !== newRepository.workflowPreferences
+      ) {
+        return true
+      }
+
+      return oldRepository.hash !== newRepository.hash
+    }
+
+    return (
+      (oldRepository && !newRepository) || (!oldRepository && newRepository)
+    )
+  }
+
   private updateRepositorySelectionAfterRepositoriesChanged() {
     const selectedRepository = this.selectedRepository
     let newSelectedRepository: Repository | CloningRepository | null = this
@@ -1844,13 +1869,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    const repositoryChanged =
-      (selectedRepository &&
-        newSelectedRepository &&
-        selectedRepository.hash !== newSelectedRepository.hash) ||
-      (selectedRepository && !newSelectedRepository) ||
-      (!selectedRepository && newSelectedRepository)
-    if (repositoryChanged) {
+    if (this.hasRepositoryChanged(selectedRepository, newSelectedRepository)) {
       this._selectRepository(newSelectedRepository)
       this.emitUpdate()
     }
