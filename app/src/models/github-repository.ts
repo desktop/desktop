@@ -1,3 +1,4 @@
+import { createHash } from './hash'
 import { Owner } from './owner'
 
 export type GitHubRepositoryPermission = 'read' | 'write' | 'admin' | null
@@ -29,7 +30,7 @@ export class GitHubRepository {
     public readonly permissions: GitHubRepositoryPermission = null,
     public readonly parent: GitHubRepository | null = null
   ) {
-    this.hash = [
+    this.hash = createHash([
       this.name,
       this.owner.login,
       this.dbID,
@@ -41,7 +42,7 @@ export class GitHubRepository {
       this.isArchived,
       this.permissions,
       this.parent?.hash,
-    ].join('+')
+    ])
   }
 
   public get endpoint(): string {
