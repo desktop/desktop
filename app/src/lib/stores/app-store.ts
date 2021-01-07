@@ -1822,8 +1822,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     newRepository: Repository | CloningRepository | null
   ) {
     if (oldRepository && newRepository) {
-      // If this is a GitHub repository, check if the workflow preferences
-      // changed too.
+      // If both are GitHub repositories, check if the workflow preferences
+      // are different too.
       if (
         oldRepository instanceof Repository &&
         isRepositoryWithGitHubRepository(oldRepository) &&
