@@ -295,15 +295,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     log.info(`launching: ${getVersion()} (${getOS()})`)
     log.info(`execPath: '${process.execPath}'`)
-
-    const launchedFromDownloadsFolder = this.isLaunchedFromDownloadsFolder(
-      process.execPath
-    )
-    if (launchedFromDownloadsFolder !== null) {
-      this.props.dispatcher.recordLaunchedFromDownloadsFolder(
-        launchedFromDownloadsFolder
-      )
-    }
   }
 
   private onMenuEvent(name: MenuEvent): any {
@@ -2666,21 +2657,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private isTutorialPaused() {
     return this.state.currentOnboardingTutorialStep === TutorialStep.Paused
-  }
-
-  /**
-   * Whether the app was launched from the Downloads folder or not. This is only
-   * relevant on macOS, null will be returned otherwise.
-   *
-   * @param execPath Path of the process executable.
-   */
-  private isLaunchedFromDownloadsFolder(execPath: string): boolean | null {
-    if (!__DARWIN__) {
-      return null
-    }
-
-    const downloadsPath = remote.app.getPath('downloads')
-    return execPath.startsWith(downloadsPath)
   }
 }
 

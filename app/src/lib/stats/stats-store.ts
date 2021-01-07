@@ -139,7 +139,6 @@ const DefaultDailyMeasures: IDailyMeasures = {
   diffOptionsViewedCount: 0,
   repositoryViewChangeCount: 0,
   unhandledRejectionCount: 0,
-  launchedFromDownloadsFolder: null,
 }
 
 interface IOnboardingStats {
@@ -1373,14 +1372,6 @@ export class StatsStore implements IStatsStore {
   public recordUnhandledRejection() {
     return this.updateDailyMeasures(m => ({
       unhandledRejectionCount: m.unhandledRejectionCount + 1,
-    }))
-  }
-
-  public recordLaunchedFromDownloadsFolder(
-    launchedFromDownloadsFolder: boolean
-  ) {
-    return this.updateDailyMeasures(m => ({
-      launchedFromDownloadsFolder,
     }))
   }
 
