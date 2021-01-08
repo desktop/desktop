@@ -53,11 +53,7 @@ import {
   RevertProgress,
 } from './toolbar'
 import { OcticonSymbol, iconForRepository } from './octicons'
-import {
-  showCertificateTrustDialog,
-  sendReady,
-  showContextualMenu,
-} from './main-process-proxy'
+import { showCertificateTrustDialog, sendReady } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { Welcome } from './welcome'
 import { AppMenuBar } from './app-menu'
@@ -123,7 +119,6 @@ import { ChooseForkSettings } from './choose-fork-settings'
 import { DiscardSelection } from './discard-changes/discard-selection-dialog'
 import { LocalChangesOverwrittenDialog } from './local-changes-overwritten/local-changes-overwritten-dialog'
 import memoizeOne from 'memoize-one'
-import { IMenuItem } from '../lib/menu-item'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
 
 const MinuteInMilliseconds = 1000 * 60
@@ -279,13 +274,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         })
       }
     )
-
-    // Listener for context-menu
-    // This will fire any time a user right-clicks to invoke a context-menu
-    // unless the component enacts event.preventDefault()
-    remote
-      .getCurrentWebContents()
-      .on('context-menu', this.onWebContentsContextMenu)
   }
 
   public componentWillUnmount() {
@@ -2671,77 +2659,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private isTutorialPaused() {
     return this.state.currentOnboardingTutorialStep === TutorialStep.Paused
-  }
-
-  /**
-   * This fires anytime a user right-clicks to invoke the context-menu
-   * unless an event.preventDefault() is called.
-   * This method checks the state of the currentContextMenuItems
-   * and if any items have been set it will add them to the context menu.
-   * Also, if the context menu params has spellchecking properties,
-   * it will add suggestions and add to dictionary
-   */
-  private onWebContentsContextMenu = (
-    event: Electron.Event,
-    params: Electron.ContextMenuParams
-  ) => {
-    const items: IMenuItem[] = this.state.currentContextMenuItems.slice(0)
-    if (items === null || items.length === 0) {
-      return
-    }
-
-    items.push(...this.getSpellCheckMenuItems(params))
-
-    this.setState({ currentContextMenuItems: [] })
-
-    showContextualMenu(items)
-  }
-
-  private getSpellCheckMenuItems(
-    params: Electron.ContextMenuParams
-  ): IMenuItem[] {
-    const items: IMenuItem[] = []
-
-    if (params == null) {
-      return items
-    }
-
-    if (
-      (params.dictionarySuggestions &&
-        params.dictionarySuggestions.length > 0) ||
-      params.misspelledWord
-    ) {
-      items.push({ type: 'separator' })
-    }
-
-    if (
-      params.dictionarySuggestions &&
-      params.dictionarySuggestions.length > 0
-    ) {
-      for (const suggestion of params.dictionarySuggestions) {
-        items.push({
-          label: suggestion,
-          action: () =>
-            remote
-              .getCurrentWindow()
-              .webContents.replaceMisspelling(suggestion),
-        })
-      }
-    }
-
-    if (params.misspelledWord) {
-      items.push({
-        label: 'Add to dictionary',
-        action: () =>
-          remote
-            .getCurrentWindow()
-            .webContents.session.addWordToSpellCheckerDictionary(
-              params.misspelledWord
-            ),
-      })
-    }
-
-    return items
   }
 }
 

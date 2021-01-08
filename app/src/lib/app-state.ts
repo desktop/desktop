@@ -37,7 +37,6 @@ import { GitRebaseProgress } from '../models/rebase'
 import { RebaseFlowStep } from '../models/rebase-flow-step'
 import { IStashEntry } from '../models/stash-entry'
 import { TutorialStep } from '../models/tutorial-step'
-import { IMenuItem } from './menu-item'
 import { UncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
 
 export enum SelectionType {
@@ -251,11 +250,6 @@ export interface IAppState {
    * Whether or not the app should use spell check on commit summary and description
    */
   readonly commitSpellcheckEnabled: boolean
-
-  /**
-   * Items to display in next context menu
-   */
-  readonly currentContextMenuItems: IMenuItem[]
 }
 
 export enum FoldoutType {
