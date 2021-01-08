@@ -79,8 +79,81 @@ function findSubmenuItem(
   return foundMenuItem
 }
 
+let deferredContextMenuItems: ReadonlyArray<IMenuItem> | null = null
+
+function mergeDeferredContextMenuItems(
+  event: Electron.Event,
+  params: Electron.ContextMenuParams
+) {
+  if (deferredContextMenuItems !== null) {
+    showContextualMenu(
+      [...deferredContextMenuItems, ...getSpellCheckMenuItems(params)],
+      false
+    )
+  }
+}
+
+function getSpellCheckMenuItems(
+  params: Electron.ContextMenuParams
+): IMenuItem[] {
+  const items: IMenuItem[] = []
+
+  if (params == null) {
+    return items
+  }
+
+  if (
+    (params.dictionarySuggestions && params.dictionarySuggestions.length > 0) ||
+    params.misspelledWord
+  ) {
+    items.push({ type: 'separator' })
+  }
+
+  if (params.dictionarySuggestions && params.dictionarySuggestions.length > 0) {
+    for (const suggestion of params.dictionarySuggestions) {
+      items.push({
+        label: suggestion,
+        action: () =>
+          remote.getCurrentWindow().webContents.replaceMisspelling(suggestion),
+      })
+    }
+  }
+
+  if (params.misspelledWord) {
+    items.push({
+      label: 'Add to dictionary',
+      action: () =>
+        remote
+          .getCurrentWindow()
+          .webContents.session.addWordToSpellCheckerDictionary(
+            params.misspelledWord
+          ),
+    })
+  }
+
+  return items
+}
+
 /** Show the given menu items in a contextual menu. */
-export async function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
+export async function showContextualMenu(
+  items: ReadonlyArray<IMenuItem>,
+  mergeWithSpellcheckSuggestions = false
+) {
+  if (deferredContextMenuItems !== null) {
+    deferredContextMenuItems = null
+    remote
+      .getCurrentWebContents()
+      .off('context-menu', mergeDeferredContextMenuItems)
+  }
+
+  if (mergeWithSpellcheckSuggestions) {
+    deferredContextMenuItems = items
+    remote
+      .getCurrentWebContents()
+      .once('context-menu', mergeDeferredContextMenuItems)
+    return
+  }
+
   const indices: ReadonlyArray<number> | null = await ipcRenderer.invoke(
     'show-contextual-menu',
     serializeMenuItems(items)
