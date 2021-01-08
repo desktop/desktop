@@ -343,11 +343,7 @@ export class CommitMessage extends React.Component<
     showContextualMenu([this.getAddRemoveCoAuthorsMenuItem()])
   }
 
-  private onAutocompletingInputContextMenu = (
-    event: React.MouseEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    // event.preventDefault()
-
+  private onAutocompletingInputContextMenu = () => {
     const items: IMenuItem[] = [
       this.getAddRemoveCoAuthorsMenuItem(),
       { type: 'separator' },
