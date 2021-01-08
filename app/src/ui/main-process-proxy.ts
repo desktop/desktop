@@ -1,4 +1,4 @@
-import { ipcRenderer } from 'electron'
+import { ipcRenderer, remote } from 'electron'
 import { ExecutableMenuItem } from '../models/app-menu'
 import { MenuIDs } from '../models/menu-ids'
 import { IMenuItemState } from '../lib/menu-update'
