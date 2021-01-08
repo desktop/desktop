@@ -107,8 +107,18 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     }
   }
 
+  public isRawGitError() {
+    if (!this.state.error) {
+      return false
+    }
+
+    const error = getUnderlyingError(this.state.error)
+
+    return error instanceof GitError && error.isRawMessage
+  }
+
   private renderErrorMessage(error: Error) {
-    const e = error instanceof ErrorWithMetadata ? error.underlyingError : error
+    const e = getUnderlyingError(error)
 
     if (e instanceof GitError) {
       // If the error message is just the raw git output, display it in
@@ -147,6 +157,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
         onSubmit={this.onDismissed}
         onDismissed={this.onDismissed}
         disabled={this.state.disabled}
+        className={this.isRawGitError() ? 'raw-git-error' : undefined}
       >
         <DialogContent onRef={this.onDialogContentRef}>
           {this.renderErrorMessage(error)}
