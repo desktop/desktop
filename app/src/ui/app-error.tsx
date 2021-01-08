@@ -111,10 +111,9 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     const e = error instanceof ErrorWithMetadata ? error.underlyingError : error
 
     if (e instanceof GitError) {
-      // See getResultMessage in core.ts
-      // If the error message is the same as stderr or stdout then we know
-      // it's output from git and we'll display it in fixed-width font
-      if (e.message === e.result.stderr || e.message === e.result.stdout) {
+      // If the error message is just the raw git output, display it in
+      // fixed-width font
+      if (e.isRawMessage) {
         const formattedMessage = this.formatGitErrorMessage(e.message)
         return <p className="monospace">{formattedMessage}</p>
       }
