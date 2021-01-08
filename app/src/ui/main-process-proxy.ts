@@ -85,38 +85,23 @@ function mergeDeferredContextMenuItems(
   event: Electron.Event,
   params: Electron.ContextMenuParams
 ) {
-  if (deferredContextMenuItems !== null) {
-    showContextualMenu(
-      [...deferredContextMenuItems, ...getSpellCheckMenuItems(params)],
-      false
-    )
-  }
-}
-
-function getSpellCheckMenuItems(
-  params: Electron.ContextMenuParams
-): IMenuItem[] {
-  const items: IMenuItem[] = []
-
-  if (params == null) {
-    return items
+  if (deferredContextMenuItems === null) {
+    return
   }
 
-  if (
-    (params.dictionarySuggestions && params.dictionarySuggestions.length > 0) ||
-    params.misspelledWord
-  ) {
+  const items = [...deferredContextMenuItems]
+
+  if (params.dictionarySuggestions.length > 0 || params.misspelledWord) {
     items.push({ type: 'separator' })
   }
 
-  if (params.dictionarySuggestions && params.dictionarySuggestions.length > 0) {
-    for (const suggestion of params.dictionarySuggestions) {
-      items.push({
-        label: suggestion,
-        action: () =>
-          remote.getCurrentWindow().webContents.replaceMisspelling(suggestion),
-      })
-    }
+  for (const suggestion of params.dictionarySuggestions) {
+    items.push({
+      label: suggestion,
+      action: () => {
+        remote.getCurrentWindow().webContents.replaceMisspelling(suggestion)
+      },
+    })
   }
 
   if (params.misspelledWord) {
@@ -131,7 +116,7 @@ function getSpellCheckMenuItems(
     })
   }
 
-  return items
+  showContextualMenu(items, false)
 }
 
 /** Show the given menu items in a contextual menu. */
