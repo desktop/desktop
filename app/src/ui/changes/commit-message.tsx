@@ -27,6 +27,7 @@ import { PermissionsCommitWarning } from './permissions-commit-warning'
 import { LinkButton } from '../lib/link-button'
 import { FoldoutType } from '../../lib/app-state'
 import { IAvatarUser, getAvatarUserFromAuthor } from '../../models/avatar'
+import { showContextualMenu } from '../main-process-proxy'
 
 const addAuthorIcon = new OcticonSymbol(
   18,
@@ -112,14 +113,6 @@ export class CommitMessage extends React.Component<
 
   private descriptionTextArea: HTMLTextAreaElement | null = null
   private descriptionTextAreaScrollDebounceId: number | null = null
-
-  /**
-   * Whether or not the oonAutoCompletingInputContextMenu event has fired.
-   * This is used because the commit message container will also fire onContextMenu
-   * and we do not want to process new context menu logic if it has
-   * already been handled by the onAutoCompletingInputContextMenu method.
-   */
-  private hasAutoCompletingInputContextMenuFired: boolean = false
 
   public constructor(props: ICommitMessageProps) {
     super(props)
@@ -339,20 +332,21 @@ export class CommitMessage extends React.Component<
     }
   }
 
-  private onContextMenu = () => {
-    // if AutoCompletingInputContextMenu already fired,
-    // then context menu has already been set
-    if (this.hasAutoCompletingInputContextMenuFired) {
-      this.hasAutoCompletingInputContextMenuFired = false
+  private onContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (
+      event.target instanceof HTMLTextAreaElement ||
+      event.target instanceof HTMLInputElement
+    ) {
       return
     }
 
-    const items: IMenuItem[] = [this.getAddRemoveCoAuthorsMenuItem()]
-    this.props.dispatcher.setContextMenuItems(items)
+    showContextualMenu([this.getAddRemoveCoAuthorsMenuItem()])
   }
 
-  private onAutocompletingInputContextMenu = () => {
-    this.hasAutoCompletingInputContextMenuFired = true
+  private onAutocompletingInputContextMenu = (
+    event: React.MouseEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    // event.preventDefault()
 
     const items: IMenuItem[] = [
       this.getAddRemoveCoAuthorsMenuItem(),
@@ -373,7 +367,7 @@ export class CommitMessage extends React.Component<
       })
     }
 
-    this.props.dispatcher.setContextMenuItems(items)
+    showContextualMenu(items, true)
   }
 
   private onCoAuthorToggleButtonClick = (
