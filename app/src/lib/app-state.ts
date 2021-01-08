@@ -28,7 +28,6 @@ import { SignInState } from './stores/sign-in-store'
 import { WindowState } from './window-state'
 import { ExternalEditor } from './editors'
 import { Shell } from './shells'
-import { ComparisonCache } from './comparison-cache'
 
 import { ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
@@ -38,8 +37,8 @@ import { GitRebaseProgress } from '../models/rebase'
 import { RebaseFlowStep } from '../models/rebase-flow-step'
 import { IStashEntry } from '../models/stash-entry'
 import { TutorialStep } from '../models/tutorial-step'
-import { UncommittedChangesStrategyKind } from '../models/uncommitted-changes-strategy'
 import { IMenuItem } from './menu-item'
+import { UncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
 
 export enum SelectionType {
   Repository,
@@ -176,7 +175,7 @@ export interface IAppState {
   readonly askForConfirmationOnForcePush: boolean
 
   /** How the app should handle uncommitted changes when switching branches */
-  readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
+  readonly uncommittedChangesStrategy: UncommittedChangesStrategy
 
   /** The external editor to use when opening repositories */
   readonly selectedExternalEditor: ExternalEditor | null
@@ -665,9 +664,6 @@ export interface ICompareBranch {
 }
 
 export interface ICompareState {
-  /** The current state of the NBBD banner */
-  readonly divergingBranchBannerState: IDivergingBranchBannerState
-
   /** The current state of the compare form, based on user input */
   readonly formState: IDisplayHistory | ICompareBranch
 
@@ -686,8 +682,11 @@ export interface ICompareState {
   /** The SHAs of commits to render in the compare list */
   readonly commitSHAs: ReadonlyArray<string>
 
-  /** A list of all branches (remote and local) currently in the repository. */
-  readonly allBranches: ReadonlyArray<Branch>
+  /**
+   * A list of branches (remote and local) except the current branch, and
+   * Desktop fork remote branches (see `Branch.isDesktopForkRemoteBranch`)
+   **/
+  readonly branches: ReadonlyArray<Branch>
 
   /**
    * A list of zero to a few (at time of writing 5 but check loadRecentBranches
@@ -708,32 +707,6 @@ export interface ICompareState {
    * GitHub.com users are able to change their default branch in the web UI.
    */
   readonly defaultBranch: Branch | null
-
-  /**
-   * A local cache of ahead/behind computations to compare other refs to the current branch
-   */
-  readonly aheadBehindCache: ComparisonCache
-
-  /**
-   * The best candidate branch to compare the current branch to.
-   * Also includes the ahead/behind info for the inferred branch
-   * relative to the current branch.
-   */
-  readonly inferredComparisonBranch: {
-    branch: Branch | null
-    aheadBehind: IAheadBehind | null
-  }
-}
-
-export interface IDivergingBranchBannerState {
-  /** Show the diverging notification banner */
-  readonly isPromptVisible: boolean
-
-  /** Has the user dismissed the notification banner? */
-  readonly isPromptDismissed: boolean
-
-  /** Show the diverging notification nudge on the tab */
-  readonly isNudgeVisible: boolean
 }
 
 export interface ICompareFormUpdate {

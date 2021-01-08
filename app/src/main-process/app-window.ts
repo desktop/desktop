@@ -20,10 +20,14 @@ export class AppWindow {
   private minWidth = 960
   private minHeight = 660
 
+  // See https://github.com/desktop/desktop/pull/11162
+  private shouldMaximizeOnShow = false
+
   public constructor() {
     const savedWindowState = windowStateKeeper({
       defaultWidth: this.minWidth,
       defaultHeight: this.minHeight,
+      maximize: false,
     })
 
     const windowOptions: Electron.BrowserWindowConstructorOptions = {
@@ -58,6 +62,7 @@ export class AppWindow {
 
     this.window = new BrowserWindow(windowOptions)
     savedWindowState.manage(this.window)
+    this.shouldMaximizeOnShow = savedWindowState.isMaximized
 
     let quitting = false
     app.on('before-quit', () => {
@@ -205,6 +210,9 @@ export class AppWindow {
   /** Show the window. */
   public show() {
     this.window.show()
+    if (this.shouldMaximizeOnShow) {
+      this.window.maximize()
+    }
   }
 
   /** Send the menu event to the renderer. */

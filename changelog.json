@@ -1,5 +1,65 @@
 {
   "releases": {
+    "2.6.2-beta2": [
+      "[Fixed] Forked repository remotes are no longer removed when there's local branches tracking them - #11266",
+      "[Fixed] Avoid bright flash for users of the dark theme when launching the app maximized - #5631. Thanks @AndreiMaga!",
+      "[Fixed] Checking out a pull request from a fork for the first time now correctly identifies the remote branch to create the branch from - #11267",
+      "[Fixed] VSCodium is now detected as an editor on Windows - #11252. Thanks @KallePM!"
+    ],
+    "2.6.2-beta1": [
+      "[Fixed] Addressed an issue where pull requests could fail to update until the user switched repositories - #11241",
+      "[Fixed] Don't offer to stash or move changes when clicking on the currently checked out branch in the branch list - #11235",
+      "[Fixed] Checking out a pull request from a fork repeatedly now detects that there's already a branch that can be reused - #11238"
+    ],
+    "2.6.1": [
+      "[Improved] Clearer menu label for reverting commits - #10515. Thanks @halitogunc!",
+      "[Fixed] Refresh branches after creating a new branch - #11125",
+      "[Fixed] Correct image diff swipe mode layout - #11120",
+      "[Fixed] Very large text diffs could cause the app to crash when viewed in split diff mode - #11064",
+      "[Fixed] Let the user know when a checkout fails due to use of assume-unchanged or skip-worktree - #9297",
+      "[Fixed] Always show confirmation prompt before overwriting existing stash entry - #10956",
+      "[Fixed] The fullscreen keyboard shortcut on macOS now works when using split diff mode - #11069"
+    ],
+    "2.6.1-beta3": [
+      "[Fixed] Desktop would fail to launch for some users due to objects in the database using an old format - #11176",
+      "[Fixed] Desktop would fail to launch for a small percentage of users that had several non-GitHub repositories in the app - #11192"
+    ],
+    "2.6.1-beta2": [
+      "[Improved] Clearer menu label for reverting commits - #10515. Thanks @halitogunc!",
+      "[Fixed] Refresh branches after creating a new branch - #11125",
+      "[Fixed] Correct image diff swipe mode layout - #11120"
+    ],
+    "2.6.1-beta1": [
+      "[Fixed] Very large text diffs could cause the app to crash when viewed in split diff mode - #11064",
+      "[Fixed] Refactor checkout branch and stash logic - #9297 #10956 #8099 #7617",
+      "[Fixed] Let the user know when a checkout fails due to use of assume-unchanged or skip-worktree - #9297",
+      "[Fixed] Always show confirmation prompt before overwriting existing stash entry - #10956",
+      "[Fixed] The fullscreen keyboard shortcut on macOS now works when using split diff mode - #11069"
+    ],
+    "2.6.0": [
+      "[New] Split diffs! Toggle between viewing diffs in split or unified mode - #10617",
+      "[Added] Use Page down, Page up, Home, and End keys to navigate and select items in lists - #10837",
+      "[Added] Add `toml` syntax highlight - #10763. Thanks @samundra!",
+      "[Added] Add support for Nova as external editor on macOS - #10645. Thanks @greystate!",
+      "[Fixed] Restore Windows menu keyboard accessibility - #11007",
+      "[Fixed] Actions in context menu of a non-selected file act on the chosen one instead of the previous one - #10743",
+      "[Fixed] Correct title bar height on macOS Big Sur - #10980",
+      "[Fixed] Fix broken issues links in release notes - #10977",
+      "[Fixed] Fix overflow issues with long branch names - #5970. Thanks @juliarvalenti!",
+      "[Fixed] Images fit correctly in the diff view when their sizes have changed - #2480 #9717",
+      "[Fixed] Repository indicator refresh can no longer be manually triggered when disabled - #10905",
+      "[Fixed] Resolving a conflicted file added in both the source and target branch no longer results in merge conflict markers appearing in the merge commit - #10820",
+      "[Fixed] Small partial commit of very large text files no longer intermittently fails due to unexpected diff results - #10640",
+      "[Fixed] Long commit message are scrollable again - #10815",
+      "[Removed] Sign in to GitHub.com with username/password is no longer supported to improve account security"
+    ],
+    "2.6.0-beta1": [
+      "[Fixed] Proper title bar height on macOS Big Sur - #10980",
+      "[Fixed] Restore Windows menu keyboard accessibility - #11007",
+      "[Fixed] Fix broken issues links in release notes - #10977",
+      "[Fixed] Fixes overflow issues with long branch names - #5970. Thanks @juliarvalenti!",
+      "[Removed] Sign in to GitHub.com with username/password is no longer supported"
+    ],
     "2.5.8-beta1": ["[Improved] Upgrade embedded Git LFS - #10973"],
     "2.5.7": ["[Improved] Upgrade embedded Git LFS - #10973"],
     "2.5.7-beta2": [

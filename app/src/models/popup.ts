@@ -106,8 +106,6 @@ export type Popup =
   | {
       type: PopupType.CreateBranch
       repository: Repository
-      currentBranchProtected: boolean
-
       initialName?: string
     }
   | { type: PopupType.SignIn }

@@ -19,7 +19,6 @@ import {
   IRebaseState,
   ChangesSelectionKind,
 } from '../app-state'
-import { ComparisonCache } from '../comparison-cache'
 import { merge } from '../merge'
 import { DefaultCommitMessage } from '../../models/commit-message'
 
@@ -140,11 +139,6 @@ function getInitialRepositoryState(): IRepositoryState {
       rebasedBranches: new Map<string, string>(),
     },
     compareState: {
-      divergingBranchBannerState: {
-        isPromptVisible: false,
-        isPromptDismissed: false,
-        isNudgeVisible: false,
-      },
       formState: {
         kind: HistoryTabMode.History,
       },
@@ -153,11 +147,9 @@ function getInitialRepositoryState(): IRepositoryState {
       showBranchList: false,
       filterText: '',
       commitSHAs: [],
-      aheadBehindCache: new ComparisonCache(),
-      allBranches: new Array<Branch>(),
+      branches: new Array<Branch>(),
       recentBranches: new Array<Branch>(),
       defaultBranch: null,
-      inferredComparisonBranch: { branch: null, aheadBehind: null },
     },
     rebaseState: {
       step: null,

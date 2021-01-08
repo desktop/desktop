@@ -10,13 +10,13 @@ interface IGitRemoteURL {
    * The owner of the GitHub repository. This will be null if the URL doesn't
    * take the form of a GitHub repository URL (e.g., owner/name).
    */
-  readonly owner: string | null
+  readonly owner: string
 
   /**
    * The name of the GitHub repository. This will be null if the URL doesn't
    * take the form of a GitHub repository URL (e.g., owner/name).
    */
-  readonly name: string | null
+  readonly name: string
 }
 
 // Examples:
@@ -46,16 +46,9 @@ const remoteRegexes: ReadonlyArray<{ protocol: GitProtocol; regex: RegExp }> = [
 /** Parse the remote information from URL. */
 export function parseRemote(url: string): IGitRemoteURL | null {
   for (const { protocol, regex } of remoteRegexes) {
-    const result = url.match(regex)
-    if (!result) {
-      continue
-    }
-
-    const hostname = result[1]
-    const owner = result[2]
-    const name = result[3]
-    if (hostname) {
-      return { protocol, hostname, owner, name }
+    const match = regex.exec(url)
+    if (match !== null && match.length >= 4) {
+      return { protocol, hostname: match[1], owner: match[2], name: match[3] }
     }
   }
 

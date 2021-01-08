@@ -65,34 +65,16 @@ export interface IDailyMeasures {
   /** The numbers of times a repo without indicators is clicked on repo list view */
   readonly repoWithoutIndicatorClicked: number
 
-  /** The number of times the user dismisses the diverged branch notification */
-  readonly divergingBranchBannerDismissal: number
-
-  /** The number of times the user merges from the diverged branch notification merge CTA button */
-  readonly divergingBranchBannerInitatedMerge: number
-
-  /** The number of times the user compares from the diverged branch notification compare CTA button */
-  readonly divergingBranchBannerInitiatedCompare: number
-
-  /**
-   * The number of times the user merges from the compare view after getting to that state
-   * from the diverged branch notification compare CTA button
-   */
-  readonly divergingBranchBannerInfluencedMerge: number
-
-  /** The number of times the diverged branch notification is displayed */
-  readonly divergingBranchBannerDisplayed: number
-
   /** The number of times the user pushes to GitHub.com */
   readonly dotcomPushCount: number
 
   /** The number of times the user pushes with `--force-with-lease` to GitHub.com */
   readonly dotcomForcePushCount: number
 
-  /** The number of times the user pushed to a GitHub Enterprise Server instance */
+  /** The number of times the user pushed to a GitHub Enterprise instance */
   readonly enterprisePushCount: number
 
-  /** The number of times the user pushes with `--force-with-lease` to a GitHub Enterprise Server instance */
+  /** The number of times the user pushes with `--force-with-lease` to a GitHub Enterprise instance */
   readonly enterpriseForcePushCount: number
 
   /** The number of times the users pushes to a generic remote */
@@ -130,14 +112,14 @@ export interface IDailyMeasures {
 
   /**
    * The number of times the user made a commit to a repo hosted on
-   * a GitHub Enterprise Server instance
+   * a GitHub Enterprise instance
    */
   readonly enterpriseCommits: number
 
   /** The number of times the user made a commit to a repo hosted on Github.com */
   readonly dotcomCommits: number
 
-  /** The number of times the user made a commit to a protected GitHub or GitHub Enterprise Server repository */
+  /** The number of times the user made a commit to a protected GitHub or GitHub Enterprise repository */
   readonly commitsToProtectedBranch: number
 
   /** The number of times the user made a commit to a repository with branch protections enabled */
@@ -370,6 +352,9 @@ export interface IDailyMeasures {
 
   /** Number of times the user has switched to or from History/Changes */
   readonly repositoryViewChangeCount: number
+
+  /** Number of times the user has encountered an unhandled rejection */
+  readonly unhandledRejectionCount: number
 }
 
 export class StatsDatabase extends Dexie {

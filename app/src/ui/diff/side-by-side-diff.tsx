@@ -390,12 +390,12 @@ export class SideBySideDiff extends React.Component<
 
       const beforeSearchTokens = this.getSearchTokens(numRow, DiffColumn.Before)
       if (beforeSearchTokens !== undefined) {
-        beforeTokens.push(...beforeSearchTokens)
+        beforeSearchTokens.forEach(x => beforeTokens.push(x))
       }
 
       const afterSearchTokens = this.getSearchTokens(numRow, DiffColumn.After)
       if (afterSearchTokens !== undefined) {
-        afterTokens.push(...afterSearchTokens)
+        afterSearchTokens.forEach(x => afterTokens.push(x))
       }
 
       return { ...row, beforeTokens, afterTokens }
@@ -415,7 +415,7 @@ export class SideBySideDiff extends React.Component<
     const finalTokens = [...data.tokens]
 
     if (searchTokens !== undefined) {
-      finalTokens.push(...searchTokens)
+      searchTokens.forEach(x => finalTokens.push(x))
     }
     if (lineTokens !== null) {
       finalTokens.push(lineTokens)
@@ -707,8 +707,15 @@ export class SideBySideDiff extends React.Component<
   }
 
   private onWindowKeyDown = (event: KeyboardEvent) => {
-    const isShortcutKey = __DARWIN__ ? event.metaKey : event.ctrlKey
-    if (isShortcutKey && event.key === 'f' && !event.defaultPrevented) {
+    if (event.defaultPrevented) {
+      return
+    }
+
+    const isCmdOrCtrl = __DARWIN__
+      ? event.metaKey && !event.ctrlKey
+      : event.ctrlKey
+
+    if (isCmdOrCtrl && !event.shiftKey && !event.altKey && event.key === 'f') {
       event.preventDefault()
       this.showSearch()
     }
@@ -802,7 +809,9 @@ const getDiffRows = memoize(function (
   const outputRows = new Array<SimplifiedDiffRow>()
 
   for (const hunk of diff.hunks) {
-    outputRows.push(...getDiffRowsFromHunk(hunk, showSideBySideDiff))
+    for (const row of getDiffRowsFromHunk(hunk, showSideBySideDiff)) {
+      outputRows.push(row)
+    }
   }
 
   return outputRows
@@ -842,7 +851,9 @@ function getDiffRowsFromHunk(
     if (modifiedLines.length > 0) {
       // If the current line is not added/deleted and we have any added/deleted
       // line stored, we need to process them.
-      rows.push(...getModifiedRows(modifiedLines, showSideBySideDiff))
+      for (const row of getModifiedRows(modifiedLines, showSideBySideDiff)) {
+        rows.push(row)
+      }
       modifiedLines = []
     }
 
@@ -877,7 +888,9 @@ function getDiffRowsFromHunk(
 
   // Do one more pass to process the remaining list of modified lines.
   if (modifiedLines.length > 0) {
-    rows.push(...getModifiedRows(modifiedLines, showSideBySideDiff))
+    for (const row of getModifiedRows(modifiedLines, showSideBySideDiff)) {
+      rows.push(row)
+    }
   }
 
   return rows
