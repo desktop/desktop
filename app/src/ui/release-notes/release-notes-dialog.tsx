@@ -23,12 +23,12 @@ import { Owner } from '../../models/owner'
 // Since release notes are Desktop specific, we can't
 // rely on the repo info we keep in state, so we've
 // stubbed out this repo
-const desktopOwner = new Owner('desktop', getDotComAPIEndpoint(), null)
+const desktopOwner = new Owner('desktop', getDotComAPIEndpoint(), -1)
 const desktopUrl = 'https://github.com/desktop/desktop'
 const desktopRepository = new Repository(
   '',
   -1,
-  new GitHubRepository('desktop', desktopOwner, null, false, desktopUrl),
+  new GitHubRepository('desktop', desktopOwner, -1, false, desktopUrl),
   true
 )
 

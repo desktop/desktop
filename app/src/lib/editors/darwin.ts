@@ -47,7 +47,7 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
     case ExternalEditor.VSCodium:
       return ['com.visualstudio.code.oss']
     case ExternalEditor.SublimeText:
-      return ['com.sublimetext.3']
+      return ['com.sublimetext.4', 'com.sublimetext.3', 'com.sublimetext.2']
     case ExternalEditor.BBEdit:
       return ['com.barebones.bbedit']
     case ExternalEditor.PhpStorm:

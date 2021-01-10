@@ -3,8 +3,8 @@ import { Disposable, IDisposable } from 'event-kit'
 
 import {
   IAPIOrganization,
-  IAPIRepository,
   IAPIPullRequest,
+  IAPIFullRepository,
 } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
@@ -153,7 +153,7 @@ export class Dispatcher {
   public addTutorialRepository(
     path: string,
     endpoint: string,
-    apiRepository: IAPIRepository
+    apiRepository: IAPIFullRepository
   ) {
     return this.appStore._addTutorialRepository(path, endpoint, apiRepository)
   }
@@ -481,7 +481,7 @@ export class Dispatcher {
     name: string,
     startPoint: string | null,
     noTrackOption: boolean = false
-  ): Promise<Repository> {
+  ): Promise<void> {
     return this.appStore._createBranch(
       repository,
       name,
@@ -762,27 +762,6 @@ export class Dispatcher {
    */
   public clearBanner(bannerType?: BannerType) {
     return this.appStore._clearBanner(bannerType)
-  }
-
-  /**
-   * Set the diverging branch notification nudge's visibility
-   */
-  public setDivergingBranchNudgeVisibility(
-    repository: Repository,
-    isVisible: boolean
-  ) {
-    return this.appStore._updateDivergingBranchBannerState(repository, {
-      isNudgeVisible: isVisible,
-    })
-  }
-
-  /**
-   * Hide the diverging branch notification banner
-   */
-  public dismissDivergingBranchBanner(repository: Repository) {
-    return this.appStore._updateDivergingBranchBannerState(repository, {
-      isPromptDismissed: true,
-    })
   }
 
   /**
@@ -1662,7 +1641,7 @@ export class Dispatcher {
     await this.appStore._checkoutPullRequest(
       repository,
       pullRequest.number,
-      pullRequest.user.login,
+      pullRequest.head.repo.owner.login,
       pullRequest.head.repo.clone_url,
       pullRequest.head.ref
     )
@@ -2031,7 +2010,7 @@ export class Dispatcher {
     return this.appStore._checkoutPullRequest(
       repository,
       pullRequest.pullRequestNumber,
-      pullRequest.author,
+      pullRequest.head.gitHubRepository.owner.login,
       pullRequest.head.gitHubRepository.cloneURL,
       pullRequest.head.ref
     )
@@ -2150,7 +2129,7 @@ export class Dispatcher {
    */
   public async convertRepositoryToFork(
     repository: RepositoryWithGitHubRepository,
-    fork: IAPIRepository
+    fork: IAPIFullRepository
   ): Promise<Repository> {
     return this.appStore._convertRepositoryToFork(repository, fork)
   }
@@ -2219,34 +2198,6 @@ export class Dispatcher {
    */
   public recordRepoClicked(repoHasIndicator: boolean) {
     return this.statsStore.recordRepoClicked(repoHasIndicator)
-  }
-
-  /** The number of times the user dismisses the diverged branch notification
-   * Increments the `divergingBranchBannerDismissal` metric
-   */
-  public recordDivergingBranchBannerDismissal() {
-    return this.statsStore.recordDivergingBranchBannerDismissal()
-  }
-
-  /**
-   * Increments the `divergingBranchBannerInitiatedCompare` metric
-   */
-  public recordDivergingBranchBannerInitiatedCompare() {
-    return this.statsStore.recordDivergingBranchBannerInitiatedCompare()
-  }
-
-  /**
-   * Increments the `divergingBranchBannerInfluencedMerge` metric
-   */
-  public recordDivergingBranchBannerInfluencedMerge() {
-    return this.statsStore.recordDivergingBranchBannerInfluencedMerge()
-  }
-
-  /**
-   * Increments the `divergingBranchBannerInitatedMerge` metric
-   */
-  public recordDivergingBranchBannerInitatedMerge() {
-    return this.statsStore.recordDivergingBranchBannerInitatedMerge()
   }
 
   /**

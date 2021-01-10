@@ -6,7 +6,7 @@ export class Owner {
   public constructor(
     public readonly login: string,
     public readonly endpoint: string,
-    public readonly id: number | null
+    public readonly id: number
   ) {}
 
   /**

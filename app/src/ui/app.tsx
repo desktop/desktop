@@ -119,6 +119,7 @@ import { ChooseForkSettings } from './choose-fork-settings'
 import { DiscardSelection } from './discard-changes/discard-selection-dialog'
 import { LocalChangesOverwrittenDialog } from './local-changes-overwritten/local-changes-overwritten-dialog'
 import memoizeOne from 'memoize-one'
+import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -139,6 +140,7 @@ interface IAppProps {
   readonly appStore: AppStore
   readonly issuesStore: IssuesStore
   readonly gitHubUserStore: GitHubUserStore
+  readonly aheadBehindStore: AheadBehindStore
   readonly startTime: number
 }
 
@@ -989,14 +991,17 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private async handleDragAndDrop(fileList: FileList) {
     const paths = [...fileList].map(x => x.path)
+    const { dispatcher } = this.props
 
     // If they're bulk adding repositories then just blindly try to add them.
     // But if they just dragged one, use the dialog so that they can initialize
     // it if needed.
     if (paths.length > 1) {
-      const addedRepositories = await this.addRepositories(paths)
+      const addedRepositories = await dispatcher.addRepositories(paths)
+
       if (addedRepositories.length > 0) {
-        this.props.dispatcher.recordAddExistingRepository()
+        dispatcher.recordAddExistingRepository()
+        await dispatcher.selectRepository(addedRepositories[0])
       }
     } else if (paths.length === 1) {
       // user may accidentally provide a folder within the repository
@@ -1009,7 +1014,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       const existingRepository = matchExistingRepository(repositories, path)
 
       if (existingRepository) {
-        await this.props.dispatcher.selectRepository(existingRepository)
+        await dispatcher.selectRepository(existingRepository)
       } else {
         await this.showPopup({ type: PopupType.AddRepository, path })
       }
@@ -1052,15 +1057,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     return state.repository
-  }
-
-  private async addRepositories(paths: ReadonlyArray<string>) {
-    const repositories = await this.props.dispatcher.addRepositories(paths)
-    if (repositories.length > 0) {
-      this.props.dispatcher.selectRepository(repositories[0])
-    }
-
-    return repositories
   }
 
   private showRebaseDialog() {
@@ -2561,6 +2557,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           onExitTutorial={this.onExitTutorial}
           isShowingModal={this.isShowingModal}
           isShowingFoldout={this.state.currentFoldout !== null}
+          aheadBehindStore={this.props.aheadBehindStore}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {

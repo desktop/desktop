@@ -36,7 +36,7 @@ install GitHub Desktop:
  - Windows users can install using [Chocolatey](https://chocolatey.org/) package manager:
       `c:\> choco install github-desktop`
  - macOS users can install using [Homebrew](https://brew.sh/) package manager:
-      `$ brew cask install github`
+      `$ brew install --cask github`
 
 Installers for various Linux distributions can be found on the
 [`shiftkey/desktop`](https://github.com/shiftkey/desktop) fork.

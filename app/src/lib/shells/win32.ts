@@ -369,31 +369,18 @@ export function launch(
 
   switch (shell) {
     case Shell.PowerShell:
-      const psCommand = `"Set-Location -LiteralPath '${path}'"`
-      return spawn(
-        'START',
-        [
-          '"PowerShell"',
-          `"${foundShell.path}"`,
-          '-NoExit',
-          '-Command',
-          psCommand,
-        ],
-        {
-          shell: true,
-          cwd: path,
-        }
-      )
+      return spawn('START', ['"PowerShell"', `"${foundShell.path}"`], {
+        shell: true,
+        cwd: path,
+      })
     case Shell.PowerShellCore:
-      const psCoreCommand = `"Set-Location -LiteralPath '${path}'"`
       return spawn(
         'START',
         [
           '"PowerShell Core"',
           `"${foundShell.path}"`,
-          '-NoExit',
-          '-Command',
-          psCoreCommand,
+          '-WorkingDirectory',
+          `"${path}"`,
         ],
         {
           shell: true,

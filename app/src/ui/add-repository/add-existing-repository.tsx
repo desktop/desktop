@@ -197,16 +197,14 @@ export class AddExistingRepository extends React.Component<
 
   private addRepository = async () => {
     this.props.onDismissed()
+    const { dispatcher } = this.props
 
     const resolvedPath = this.resolvedPath(this.state.path)
-    const repositories = await this.props.dispatcher.addRepositories([
-      resolvedPath,
-    ])
+    const repositories = await dispatcher.addRepositories([resolvedPath])
 
-    if (repositories && repositories.length) {
-      const repository = repositories[0]
-      this.props.dispatcher.selectRepository(repository)
-      this.props.dispatcher.recordAddExistingRepository()
+    if (repositories.length > 0) {
+      dispatcher.selectRepository(repositories[0])
+      dispatcher.recordAddExistingRepository()
     }
   }
 

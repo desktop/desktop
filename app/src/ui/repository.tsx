@@ -20,16 +20,15 @@ import { IssuesStore, GitHubUserStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { Account } from '../models/account'
 import { FocusContainer } from './lib/focus-container'
-import { OcticonSymbol, Octicon } from './octicons'
 import { ImageDiffType } from '../models/diff'
 import { IMenu } from '../models/app-menu'
 import { StashDiffViewer } from './stashing'
 import { StashedChangesLoadStates } from '../models/stash-entry'
 import { TutorialPanel, TutorialWelcome, TutorialDone } from './tutorial'
-import { enableNDDBBanner } from '../lib/feature-flag'
 import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
 import { ExternalEditor } from '../lib/editors'
 import { openFile } from './lib/open-file'
+import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -85,6 +84,7 @@ interface IRepositoryViewProps {
   readonly currentTutorialStep: TutorialStep
 
   readonly onExitTutorial: () => void
+  readonly aheadBehindStore: AheadBehindStore
 }
 
 interface IRepositoryViewState {
@@ -147,11 +147,6 @@ export class RepositoryView extends React.Component<
 
         <div className="with-indicator">
           <span>History</span>
-          {enableNDDBBanner() &&
-          this.props.state.compareState.divergingBranchBannerState
-            .isNudgeVisible ? (
-            <Octicon className="indicator" symbol={OcticonSymbol.dotFill} />
-          ) : null}
         </div>
       </TabBar>
     )
@@ -242,6 +237,7 @@ export class RepositoryView extends React.Component<
         onCompareListScrolled={this.onCompareListScrolled}
         compareListScrollTop={scrollTop}
         tagsToPush={this.props.state.tagsToPush}
+        aheadBehindStore={this.props.aheadBehindStore}
       />
     )
   }
