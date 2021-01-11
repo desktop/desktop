@@ -16,8 +16,8 @@ import { Repository } from '../../models/repository'
 import { getConfigValue, getGlobalConfigValue } from './config'
 import { isErrnoException } from '../errno-exception'
 import { ChildProcess } from 'child_process'
-import byline from 'byline'
 import { Readable } from 'stream'
+import split2 from 'split2'
 
 /**
  * An extension of the execution options in dugite that
@@ -144,7 +144,7 @@ export async function git(
 
     const combineOutput = (readable: Readable | null) => {
       if (readable) {
-        byline(readable).on('data', (line: string) => {
+        readable.pipe(split2()).on('data', (line: string) => {
           combinedOutput += line + '\n'
         })
       }
