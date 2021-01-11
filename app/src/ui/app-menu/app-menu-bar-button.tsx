@@ -197,7 +197,7 @@ export class AppMenuBarButton extends React.Component<
         // "tabbable", so the app crashes when this prop is set to true and the
         // user opens a menu (on Windows).
         // Besides, we use a custom "focus trap" for menus anyway.
-        focusTrapActive={false}
+        enableFocusTrap={false}
         showDisclosureArrow={false}
         onMouseEnter={this.onMouseEnter}
         onKeyDown={this.onKeyDown}
