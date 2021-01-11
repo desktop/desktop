@@ -107,26 +107,14 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     }
   }
 
-  private isRawGitError() {
-    if (!this.state.error) {
-      return false
-    }
-
-    const error = getUnderlyingError(this.state.error)
-
-    return error instanceof GitError && error.isRawMessage
-  }
-
   private renderErrorMessage(error: Error) {
     const e = getUnderlyingError(error)
 
-    if (e instanceof GitError) {
-      // If the error message is just the raw git output, display it in
-      // fixed-width font
-      if (e.isRawMessage) {
-        const formattedMessage = this.formatGitErrorMessage(e.message)
-        return <p className="monospace">{formattedMessage}</p>
-      }
+    // If the error message is just the raw git output, display it in
+    // fixed-width font
+    if (isRawGitError(e)) {
+      const formattedMessage = this.formatGitErrorMessage(e.message)
+      return <p className="monospace">{formattedMessage}</p>
     }
 
     return <p>{e.message}</p>
@@ -157,7 +145,9 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
         onSubmit={this.onDismissed}
         onDismissed={this.onDismissed}
         disabled={this.state.disabled}
-        className={this.isRawGitError() ? 'raw-git-error' : undefined}
+        className={
+          isRawGitError(this.state.error) ? 'raw-git-error' : undefined
+        }
       >
         <DialogContent onRef={this.onDialogContentRef}>
           {this.renderErrorMessage(error)}
@@ -293,6 +283,14 @@ function isErrorWithMetaData(error: Error): error is ErrorWithMetadata {
 
 function isGitError(error: Error): error is GitError {
   return error instanceof GitError
+}
+
+function isRawGitError(error: Error | null) {
+  if (!error) {
+    return false
+  }
+  const e = getUnderlyingError(error)
+  return e instanceof GitError && e.isRawMessage
 }
 
 function isCloneError(error: Error) {
