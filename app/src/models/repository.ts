@@ -7,7 +7,7 @@ import {
   ForkContributionTarget,
 } from './workflow-preferences'
 import { assertNever, fatalError } from '../lib/fatal-error'
-import { createHash } from './hash'
+import { createEqualityHash } from './equality-hash'
 
 function getBaseName(path: string): string {
   const baseName = Path.basename(path)
@@ -62,14 +62,14 @@ export class Repository {
     this.mainWorkTree = { path }
     this.name = (gitHubRepository && gitHubRepository.name) || getBaseName(path)
 
-    this.hash = createHash([
+    this.hash = createEqualityHash(
       path,
       this.id,
       gitHubRepository?.hash,
       this.missing,
       this.workflowPreferences.forkContributionTarget,
-      this.isTutorialRepository,
-    ])
+      this.isTutorialRepository
+    )
   }
 
   public get path(): string {
