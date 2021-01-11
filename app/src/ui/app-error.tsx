@@ -107,7 +107,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     }
   }
 
-  public isRawGitError() {
+  private isRawGitError() {
     if (!this.state.error) {
       return false
     }
