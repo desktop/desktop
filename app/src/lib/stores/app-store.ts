@@ -98,7 +98,6 @@ import {
   PossibleSelections,
   RepositorySectionTab,
   SelectionType,
-  ComparisonMode,
   MergeConflictState,
   isMergeConflictState,
   RebaseConflictState,
@@ -194,7 +193,6 @@ import {
   windowStateChannelName,
 } from '../window-state'
 import { TypedBaseStore } from './base-store'
-import { AheadBehindUpdater } from './helpers/ahead-behind-updater'
 import { MergeTreeResult } from '../../models/merge'
 import { promiseWithMinimumTimeout, sleep } from '../promise'
 import { BackgroundFetcher } from './helpers/background-fetcher'
@@ -334,9 +332,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** The background fetcher for the currently selected repository. */
   private currentBackgroundFetcher: BackgroundFetcher | null = null
-
-  /** The ahead/behind updater or the currently selected repository */
-  private currentAheadBehindUpdater: AheadBehindUpdater | null = null
 
   private currentBranchPruner: BranchPruner | null = null
 
@@ -987,34 +982,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  private startAheadBehindUpdater(repository: Repository) {
-    if (this.currentAheadBehindUpdater != null) {
-      fatalError(
-        `An ahead/behind updater is already active and cannot start updating on ${repository.name}`
-      )
-    }
-
-    const updater = new AheadBehindUpdater(repository, aheadBehindCache => {
-      this.repositoryStateCache.updateCompareState(repository, () => ({
-        aheadBehindCache,
-      }))
-      this.emitUpdate()
-    })
-
-    this.currentAheadBehindUpdater = updater
-
-    this.currentAheadBehindUpdater.start()
-  }
-
-  private stopAheadBehindUpdate() {
-    const updater = this.currentAheadBehindUpdater
-
-    if (updater != null) {
-      updater.stop()
-      this.currentAheadBehindUpdater = null
-    }
-  }
-
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _initializeCompare(
     repository: Repository,
@@ -1170,27 +1137,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const tip = gitStore.tip
 
-    let currentSha: string | null = null
-
-    if (tip.kind === TipState.Valid) {
-      currentSha = tip.branch.tip.sha
-    } else if (tip.kind === TipState.Detached) {
-      currentSha = tip.currentSha
-    }
-
-    if (this.currentAheadBehindUpdater != null && currentSha != null) {
-      const from =
-        action.comparisonMode === ComparisonMode.Ahead
-          ? comparisonBranch.tip.sha
-          : currentSha
-      const to =
-        action.comparisonMode === ComparisonMode.Ahead
-          ? currentSha
-          : comparisonBranch.tip.sha
-
-      this.currentAheadBehindUpdater.insert(from, to, aheadBehind)
-    }
-
     const loadingMerge: MergeTreeResult = {
       kind: ComputedAction.Loading,
     }
@@ -1257,31 +1203,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.emitUpdate()
-
-    const { branchesState, compareState } = this.repositoryStateCache.get(
-      repository
-    )
-
-    if (branchesState.tip.kind !== TipState.Valid) {
-      return
-    }
-
-    if (this.currentAheadBehindUpdater === null) {
-      return
-    }
-
-    if (compareState.showBranchList) {
-      const currentBranch = branchesState.tip.branch
-
-      this.currentAheadBehindUpdater.schedule(
-        currentBranch,
-        compareState.defaultBranch,
-        compareState.recentBranches,
-        compareState.branches
-      )
-    } else {
-      this.currentAheadBehindUpdater.clear()
-    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -1527,13 +1448,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // ensures we clean up the existing background fetcher correctly (if set)
     this.stopBackgroundFetching()
     this.stopPullRequestUpdater()
-    this.stopAheadBehindUpdate()
     this.stopBackgroundPruner()
 
     this.startBackgroundFetching(repository, !previouslySelectedRepository)
     this.startPullRequestUpdater(repository)
 
-    this.startAheadBehindUpdater(repository)
     this.startBackgroundPruner(repository)
 
     this.addUpstreamRemoteIfNeeded(repository)
@@ -2457,90 +2376,106 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const gitStore = this.gitStoreCache.get(repository)
 
-    const result = await this.isCommitting(repository, () => {
-      return gitStore.performFailableOperation(async () => {
+    return this.withIsCommitting(repository, async () => {
+      const result = await gitStore.performFailableOperation(async () => {
         const message = await formatCommitMessage(repository, context)
         return createCommit(repository, message, selectedFiles)
       })
+
+      if (result !== undefined) {
+        await this._recordCommitStats(
+          gitStore,
+          repository,
+          state,
+          context,
+          files
+        )
+
+        await this._refreshRepository(repository)
+        await this.refreshChangesSection(repository, {
+          includingStatus: true,
+          clearPartialState: true,
+        })
+      }
+
+      return result !== undefined
     })
+  }
 
-    if (result) {
-      this.statsStore.recordCommit()
+  private async _recordCommitStats(
+    gitStore: GitStore,
+    repository: Repository,
+    repositoryState: IRepositoryState,
+    context: ICommitContext,
+    files: readonly WorkingDirectoryFileChange[]
+  ) {
+    this.statsStore.recordCommit()
 
-      const includedPartialSelections = files.some(
-        file => file.selection.getSelectionType() === DiffSelectionType.Partial
-      )
-      if (includedPartialSelections) {
-        this.statsStore.recordPartialCommit()
-      }
-
-      const { trailers } = context
-      if (trailers !== undefined && trailers.some(isCoAuthoredByTrailer)) {
-        this.statsStore.recordCoAuthoredCommit()
-      }
-
-      const account = getAccountForRepository(this.accounts, repository)
-      if (repository.gitHubRepository !== null) {
-        if (account !== null) {
-          if (account.endpoint === getDotComAPIEndpoint()) {
-            this.statsStore.recordCommitToDotcom()
-          } else {
-            this.statsStore.recordCommitToEnterprise()
-          }
-
-          const { commitAuthor } = state
-          if (commitAuthor !== null) {
-            const commitEmail = commitAuthor.email.toLowerCase()
-            const attributableEmails = getAttributableEmailsFor(account)
-            const commitEmailMatchesAccount = attributableEmails.some(
-              email => email.toLowerCase() === commitEmail
-            )
-            if (!commitEmailMatchesAccount) {
-              this.statsStore.recordUnattributedCommit()
-            }
-          }
-        }
-
-        const branchProtectionsFound = await this.repositoriesStore.hasBranchProtectionsConfigured(
-          repository.gitHubRepository
-        )
-
-        if (branchProtectionsFound) {
-          this.statsStore.recordCommitToRepositoryWithBranchProtections()
-        }
-
-        const branchName = findRemoteBranchName(
-          gitStore.tip,
-          gitStore.currentRemote,
-          repository.gitHubRepository
-        )
-
-        if (branchName !== null) {
-          const { changesState } = this.repositoryStateCache.get(repository)
-          if (changesState.currentBranchProtected) {
-            this.statsStore.recordCommitToProtectedBranch()
-          }
-        }
-
-        if (
-          repository.gitHubRepository !== null &&
-          !hasWritePermission(repository.gitHubRepository)
-        ) {
-          this.statsStore.recordCommitToRepositoryWithoutWriteAccess()
-          this.statsStore.recordRepositoryCommitedInWithoutWriteAccess(
-            repository.gitHubRepository.dbID
-          )
-        }
-      }
-
-      await this._refreshRepository(repository)
-      await this.refreshChangesSection(repository, {
-        includingStatus: true,
-        clearPartialState: true,
-      })
+    const includedPartialSelections = files.some(
+      file => file.selection.getSelectionType() === DiffSelectionType.Partial
+    )
+    if (includedPartialSelections) {
+      this.statsStore.recordPartialCommit()
     }
 
-    return result || false
+    const { trailers } = context
+    if (trailers !== undefined && trailers.some(isCoAuthoredByTrailer)) {
+      this.statsStore.recordCoAuthoredCommit()
+    }
+
+    const account = getAccountForRepository(this.accounts, repository)
+    if (repository.gitHubRepository !== null) {
+      if (account !== null) {
+        if (account.endpoint === getDotComAPIEndpoint()) {
+          this.statsStore.recordCommitToDotcom()
+        } else {
+          this.statsStore.recordCommitToEnterprise()
+        }
+
+        const { commitAuthor } = repositoryState
+        if (commitAuthor !== null) {
+          const commitEmail = commitAuthor.email.toLowerCase()
+          const attributableEmails = getAttributableEmailsFor(account)
+          const commitEmailMatchesAccount = attributableEmails.some(
+            email => email.toLowerCase() === commitEmail
+          )
+          if (!commitEmailMatchesAccount) {
+            this.statsStore.recordUnattributedCommit()
+          }
+        }
+      }
+
+      const branchProtectionsFound = await this.repositoriesStore.hasBranchProtectionsConfigured(
+        repository.gitHubRepository
+      )
+
+      if (branchProtectionsFound) {
+        this.statsStore.recordCommitToRepositoryWithBranchProtections()
+      }
+
+      const branchName = findRemoteBranchName(
+        gitStore.tip,
+        gitStore.currentRemote,
+        repository.gitHubRepository
+      )
+
+      if (branchName !== null) {
+        const { changesState } = this.repositoryStateCache.get(repository)
+        if (changesState.currentBranchProtected) {
+          this.statsStore.recordCommitToProtectedBranch()
+        }
+      }
+
+      if (
+        repository.gitHubRepository !== null &&
+        !hasWritePermission(repository.gitHubRepository)
+      ) {
+        this.statsStore.recordCommitToRepositoryWithoutWriteAccess()
+        this.statsStore.recordRepositoryCommitedInWithoutWriteAccess(
+          repository.gitHubRepository.dbID
+        )
+      }
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -3643,14 +3578,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
-  private async isCommitting(
+  private async withIsCommitting(
     repository: Repository,
-    fn: () => Promise<string | undefined>
-  ): Promise<boolean | undefined> {
+    fn: () => Promise<boolean>
+  ): Promise<boolean> {
     const state = this.repositoryStateCache.get(repository)
     // ensure the user doesn't try and commit again
     if (state.isCommitting) {
-      return
+      return false
     }
 
     this.repositoryStateCache.update(repository, () => ({
@@ -3659,8 +3594,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     try {
-      const sha = await fn()
-      return sha !== undefined
+      return await fn()
     } finally {
       this.repositoryStateCache.update(repository, () => ({
         isCommitting: false,

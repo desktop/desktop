@@ -22,6 +22,7 @@ import {
 } from '../local-storage'
 import { PushOptions } from '../git'
 import { getShowSideBySideDiff } from '../../ui/lib/diff-mode'
+import { remote } from 'electron'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -312,6 +313,12 @@ interface ICalculatedStats {
    * default) diff view mode
    */
   readonly diffMode: 'split' | 'unified'
+
+  /**
+   * Whether the app was launched from the Applications folder or not. This is
+   * only relevant on macOS, null will be sent otherwise.
+   */
+  readonly launchedFromApplicationsFolder: boolean | null
 }
 
 type DailyStats = ICalculatedStats &
@@ -481,6 +488,10 @@ export class StatsStore implements IStatsStore {
     ).length
     const diffMode = getShowSideBySideDiff() ? 'split' : 'unified'
 
+    // isInApplicationsFolder is undefined when not running on Darwin
+    const launchedFromApplicationsFolder =
+      remote.app.isInApplicationsFolder?.() ?? null
+
     return {
       eventType: 'usage',
       version: getVersion(),
@@ -497,6 +508,7 @@ export class StatsStore implements IStatsStore {
       ...repositoryCounts,
       repositoriesCommittedInWithoutWriteAccess,
       diffMode,
+      launchedFromApplicationsFolder,
     }
   }
 
