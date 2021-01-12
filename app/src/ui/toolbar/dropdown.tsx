@@ -75,6 +75,9 @@ export interface IToolbarDropdownProps {
   /** The button's style. Defaults to `ToolbarButtonStyle.Standard`. */
   readonly style?: ToolbarButtonStyle
 
+  /** Wether the dropdown will trap focus or not. Defaults to true. */
+  readonly enableFocusTrap?: boolean
+
   /**
    * Sets the styles for the dropdown's foldout. Useful for custom positioning
    * and sizes.
@@ -285,7 +288,10 @@ export class ToolbarDropdown extends React.Component<
     // bar to instantly close before even receiving the onDropdownStateChanged
     // event from us.
     return (
-      <FocusTrap active={true} focusTrapOptions={this.focusTrapOptions}>
+      <FocusTrap
+        active={this.props.enableFocusTrap ?? true}
+        focusTrapOptions={this.focusTrapOptions}
+      >
         <div id="foldout-container" style={this.getFoldoutContainerStyle()}>
           <div
             className="overlay"
