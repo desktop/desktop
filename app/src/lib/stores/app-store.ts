@@ -2382,7 +2382,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         return createCommit(repository, message, selectedFiles)
       })
 
-      if (result) {
+      if (result !== undefined) {
         await this._recordCommitStats(
           gitStore,
           repository,
@@ -2398,7 +2398,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         })
       }
 
-      return !!result
+      return result !== undefined
     })
   }
 

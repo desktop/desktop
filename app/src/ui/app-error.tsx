@@ -187,10 +187,8 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
 
     const e = getUnderlyingError(this.state.error)
 
-    if (isGitError(e)) {
-      if (e.message === e.result.stderr || e.message === e.result.stdout) {
-        this.dialogContent.scrollTop = this.dialogContent.scrollHeight
-      }
+    if (isRawGitError(e)) {
+      this.dialogContent.scrollTop = this.dialogContent.scrollHeight
     }
   }
 
