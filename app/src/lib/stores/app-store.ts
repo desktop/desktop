@@ -2379,10 +2379,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.withIsCommitting(repository, async () => {
       const result = await gitStore.performFailableOperation(async () => {
         const message = await formatCommitMessage(repository, context)
-        return createCommit(repository, message, selectedFiles) !== undefined
+        return createCommit(repository, message, selectedFiles)
       })
 
-      if (result) {
+      if (result !== undefined) {
         await this._recordCommitStats(
           gitStore,
           repository,
@@ -2398,7 +2398,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         })
       }
 
-      return result || false
+      return result !== undefined
     })
   }
 
