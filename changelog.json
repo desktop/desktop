@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.6.2-test4": ["Reverted Windows icons and testing again"],
     "2.6.2-beta2": [
       "[Fixed] Forked repository remotes are no longer removed when there's local branches tracking them - #11266",
       "[Fixed] Avoid bright flash for users of the dark theme when launching the app maximized - #5631. Thanks @AndreiMaga!",
