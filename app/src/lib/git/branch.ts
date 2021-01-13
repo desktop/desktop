@@ -10,7 +10,7 @@ import {
   envForRemoteOperation,
   getFallbackUrlForProxyResolve,
 } from './environment'
-import { GitForEachRefParser } from './git-delimiter-parser'
+import { createForEachRefParser } from './git-delimiter-parser'
 
 /**
  * Create a new branch from the given start point.
@@ -166,16 +166,16 @@ export async function getMergedBranches(
   branchName: string
 ): Promise<Map<string, string>> {
   const canonicalBranchRef = formatAsLocalRef(branchName)
-  const parser = new GitForEachRefParser({
+  const { formatArgs, parse } = createForEachRefParser({
     sha: '%(objectname)',
     canonicalRef: '%(refname)',
   })
 
-  const args = ['branch', ...parser.gitArgs, '--merged', branchName]
+  const args = ['branch', ...formatArgs, '--merged', branchName]
   const mergedBranches = new Map<string, string>()
   const { stdout } = await git(args, repository.path, 'mergedBranches')
 
-  for (const branch of parser.parse(stdout)) {
+  for (const branch of parse(stdout)) {
     // Don't include the branch we're using to compare against
     // in the list of branches merged into that branch.
     if (branch.canonicalRef !== canonicalBranchRef) {

@@ -14,7 +14,7 @@ import {
   parseRawUnfoldedTrailers,
 } from './interpret-trailers'
 import { getCaptures } from '../helpers/regex'
-import { GitLogParser } from './git-delimiter-parser'
+import { createLogParser } from './git-delimiter-parser'
 
 /**
  * Map the raw status text from Git to an app-friendly value
@@ -67,7 +67,7 @@ export async function getCommits(
   limit: number,
   additionalArgs: ReadonlyArray<string> = []
 ): Promise<ReadonlyArray<Commit>> {
-  const parser = new GitLogParser({
+  const { formatArgs, parse } = createLogParser({
     sha: '%H', // SHA
     shortSha: '%h', // short SHA
     summary: '%s', // summary
@@ -89,7 +89,7 @@ export async function getCommits(
       `--max-count=${limit}`,
       '--no-show-signature',
       '--no-color',
-      ...parser.gitArgs,
+      ...formatArgs,
       ...additionalArgs,
       revisionRange,
       '--',
@@ -105,8 +105,9 @@ export async function getCommits(
   }
 
   const trailerSeparators = await getTrailerSeparatorCharacters(repository)
+  const parsed = parse(result.stdout)
 
-  return parser.parse(result.stdout).map(commit => {
+  return parsed.map(commit => {
     const tags = getCaptures(commit.refs, /tag: ([^\s,]+)/g)
       .filter(i => i[0] !== undefined)
       .map(i => i[0])

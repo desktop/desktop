@@ -3,14 +3,14 @@ import { GitError } from 'dugite'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType, IBranchTip } from '../../models/branch'
 import { CommitIdentity } from '../../models/commit-identity'
-import { GitForEachRefParser } from './git-delimiter-parser'
+import { createForEachRefParser } from './git-delimiter-parser'
 
 /** Get all the branches. */
 export async function getBranches(
   repository: Repository,
   ...prefixes: string[]
 ): Promise<ReadonlyArray<Branch>> {
-  const parser = new GitForEachRefParser({
+  const { formatArgs, parse } = createForEachRefParser({
     fullName: '%(refname)',
     shortName: '%(refname:short)',
     upstreamShortName: '%(upstream:short)',
@@ -27,7 +27,7 @@ export async function getBranches(
   // see https://github.com/desktop/desktop/pull/5299#discussion_r206603442 for
   // discussion about what needs to change
   const result = await git(
-    ['for-each-ref', ...parser.gitArgs, ...prefixes],
+    ['for-each-ref', ...formatArgs, ...prefixes],
     repository.path,
     'getBranches',
     { expectedErrors: new Set([GitError.NotAGitRepository]) }
@@ -39,7 +39,7 @@ export async function getBranches(
 
   const branches = []
 
-  for (const ref of parser.parse(result.stdout)) {
+  for (const ref of parse(result.stdout)) {
     // excude symbolic refs from the branch list
     if (ref.symRef.length > 0) {
       continue
