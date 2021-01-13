@@ -20,18 +20,10 @@ export function createLogParser<T extends Record<string, string>>(fields: T) {
   const formatArgs = ['-z', `--format=${format}`]
 
   const parse = (value: string) => {
-    if (value.length === 0) {
-      return []
-    }
-
     const records = value.split('\0')
-    const entries = new Array<{ [K in keyof T]: string }>()
+    const entries = []
 
-    if ((records.length - 1) % keys.length !== 0) {
-      throw new Error(``)
-    }
-
-    for (let i = 0; i < records.length - 1; i += keys.length) {
+    for (let i = 0; i < records.length - keys.length - 1; i += keys.length) {
       const entry = {} as { [K in keyof T]: string }
       keys.forEach((key, ix) => (entry[key] = records[i + ix]))
       entries.push(entry)
