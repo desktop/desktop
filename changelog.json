@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.6.2-test3": ["Testing new icon again"],
     "2.6.2-test2": ["Testing new icon"],
     "2.6.2-beta2": [
       "[Fixed] Forked repository remotes are no longer removed when there's local branches tracking them - #11266",
