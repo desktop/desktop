@@ -23,7 +23,7 @@ export function createLogParser<T extends Record<string, string>>(fields: T) {
     const records = value.split('\0')
     const entries = []
 
-    for (let i = 0; i < records.length - keys.length - 1; i += keys.length) {
+    for (let i = 0; i < records.length - keys.length; i += keys.length) {
       const entry = {} as { [K in keyof T]: string }
       keys.forEach((key, ix) => (entry[key] = records[i + ix]))
       entries.push(entry)
