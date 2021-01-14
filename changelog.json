@@ -1,6 +1,7 @@
 {
   "releases": {
     "2.6.2": [
+      "[Improved] Upgrade embedded Git LFS to 2.13.2 - #11394",
       "[Fixed] Addressed an issue where pull requests could fail to update until the user switched repositories - #11241",
       "[Fixed] Fork behavior changes are now reflected in the app immediately - #11327",
       "[Fixed] Checking out a pull request from a fork for the first time now correctly identifies the remote branch to create the branch from - #11267",
