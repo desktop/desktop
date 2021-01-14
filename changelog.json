@@ -1,7 +1,7 @@
 {
   "releases": {
     "2.6.2-beta3": [
-      "[Improved] Show full output of git hooks on errors - #6403",
+      "[Improved] Show full output of Git hooks on errors - #6403",
       "[Improved] Keep focus in dropdown when pressing tab multiple times - #11278",
       "[Improved] Upgrade embedded Git LFS to 2.13.2 - #11394",
       "[Improved] Add detection of Sublime Text 4 and 2 as editor on macOS. - #11263. Thanks @yurikoles!",
