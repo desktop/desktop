@@ -6,7 +6,7 @@
       "[Fixed] Fork behavior changes are now reflected in the app immediately - #11327",
       "[Fixed] Checking out a pull request from a fork for the first time now correctly identifies the remote branch to create the branch from - #11267",
       "[Fixed] Don't offer to stash or move changes when clicking on the currently checked out branch in the branch list - #11235",
-      "[Fixed] Forked repository remotes are no longer removed when there's local branches tracking them - #11266",
+      "[Fixed] Forked repository remotes are no longer removed when there are local branches tracking them - #11266",
       "[Fixed] Avoid bright flash for users of the dark theme when launching the app maximized - #5631. Thanks @AndreiMaga!",
       "[Fixed] VSCodium is now detected as an editor on Windows - #11252. Thanks @KallePM!"
     ],
