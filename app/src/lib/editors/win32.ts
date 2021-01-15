@@ -9,6 +9,7 @@ import {
 
 import { pathExists } from 'fs-extra'
 import { IFoundEditor } from './found-editor'
+
 interface IWindowsAppInformation {
   displayName: string
   publisher: string
@@ -24,7 +25,9 @@ type ExpectedInstallationChecker = (
   publisher: string
 ) => boolean
 
+/** Represents an external editor on Windows */
 interface IWindowsExternalEditor {
+  /** Name of the editor. It will be used both as identifier and user-facing. */
   readonly name: string
 
   /**
@@ -35,28 +38,40 @@ interface IWindowsExternalEditor {
    */
   readonly registryKeys: ReadonlyArray<{ key: HKEY; subKey: string }>
 
+  /**
+   * List of path components from the editor's instalation folder to the
+   * executable shim.
+   **/
   readonly executableShimPath: ReadonlyArray<string>
 
+  /**
+   * Whether the or not the provided executable for the editor needs to be run
+   * inside of a shell.
+   */
   readonly usesShell?: boolean
 
   /**
    * Function that maps the registry information to a list of known installer
-   * fields.
+   * fields (display name, publisher and installation path).
    *
    * Receives the collection of registry key-value pairs for the app.
    */
   readonly appInformationExtractor?: AppInformationExtractor
 
   /**
-   * Confirm the found installation matches the expected identifier details
+   * Function to check if the found installation matches the expected identifier
+   * details.
    *
-   * @param editor The external editor
    * @param displayName The display name as listed in the registry
    * @param publisher The publisher who created the installer
    */
   readonly expectedInstallationChecker: ExpectedInstallationChecker
 }
 
+/**
+ * This list contains all the external editors supported on Windows. Add a new
+ * entry here to add support for your favorite editor.
+ **/
 const editors: IWindowsExternalEditor[] = [
   {
     name: 'Atom',

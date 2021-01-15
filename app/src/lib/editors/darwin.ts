@@ -1,12 +1,24 @@
 import { pathExists } from 'fs-extra'
 import { IFoundEditor } from './found-editor'
 import appPath from 'app-path'
+
+/** Represents an external editor on macOS */
 interface IDarwinExternalEditor {
+  /** Name of the editor. It will be used both as identifier and user-facing. */
   readonly name: string
+
+  /**
+   * List of bundle identifiers that are used by the app in its multiple
+   * versions.
+   **/
   readonly bundleIdentifiers: string[]
 }
 
-export const editors: IDarwinExternalEditor[] = [
+/**
+ * This list contains all the external editors supported on macOS. Add a new
+ * entry here to add support for your favorite editor.
+ **/
+const editors: IDarwinExternalEditor[] = [
   {
     name: 'Atom',
     bundleIdentifiers: ['com.github.atom'],
