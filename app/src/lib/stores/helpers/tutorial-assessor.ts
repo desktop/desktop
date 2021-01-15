@@ -1,7 +1,6 @@
 import { IRepositoryState } from '../../app-state'
 import { TutorialStep } from '../../../models/tutorial-step'
 import { TipState } from '../../../models/tip'
-import { ExternalEditor } from '../../editors'
 import { setBoolean, getBoolean } from '../../local-storage'
 
 const skipInstallEditorKey = 'tutorial-install-editor-skipped'
@@ -32,7 +31,7 @@ export class OnboardingTutorialAssessor {
 
   public constructor(
     /** Method to call when we need to get the current editor */
-    private getResolvedExternalEditor: () => ExternalEditor | null
+    private getResolvedExternalEditor: () => string | null
   ) {}
 
   /** Determines what step the user needs to complete next in the Onboarding Tutorial */

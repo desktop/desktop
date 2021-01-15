@@ -1,61 +1,34 @@
 import { pathExists } from 'fs-extra'
 import { IFoundEditor } from './found-editor'
 import appPath from 'app-path'
-import { parseEnumValue } from '../enum'
-
-export enum ExternalEditor {
-  Atom = 'Atom',
-  MacVim = 'MacVim',
-  VSCode = 'Visual Studio Code',
-  VSCodeInsiders = 'Visual Studio Code (Insiders)',
-  VSCodium = 'VSCodium',
-  SublimeText = 'Sublime Text',
-  BBEdit = 'BBEdit',
-  PhpStorm = 'PhpStorm',
-  PyCharm = 'PyCharm',
-  RubyMine = 'RubyMine',
-  TextMate = 'TextMate',
-  Brackets = 'Brackets',
-  WebStorm = 'WebStorm',
-  Typora = 'Typora',
-  CodeRunner = 'CodeRunner',
-  SlickEdit = 'SlickEdit',
-  IntelliJ = 'IntelliJ',
-  Xcode = 'Xcode',
-  GoLand = 'GoLand',
-  AndroidStudio = 'Android Studio',
-  Rider = 'Rider',
-  Nova = 'Nova',
-}
-
 interface IDarwinExternalEditor {
-  readonly name: ExternalEditor
+  readonly name: string
   readonly bundleIdentifiers: string[]
 }
 
 export const editors: IDarwinExternalEditor[] = [
   {
-    name: ExternalEditor.Atom,
+    name: 'Atom',
     bundleIdentifiers: ['com.github.atom'],
   },
   {
-    name: ExternalEditor.MacVim,
+    name: 'MacVim',
     bundleIdentifiers: ['org.vim.MacVim'],
   },
   {
-    name: ExternalEditor.VSCode,
+    name: 'Visual Studio Code',
     bundleIdentifiers: ['com.microsoft.VSCode'],
   },
   {
-    name: ExternalEditor.VSCodeInsiders,
+    name: 'Visual Studio Code (Insiders)',
     bundleIdentifiers: ['com.microsoft.VSCodeInsiders'],
   },
   {
-    name: ExternalEditor.VSCodium,
+    name: 'VSCodium',
     bundleIdentifiers: ['com.visualstudio.code.oss'],
   },
   {
-    name: ExternalEditor.SublimeText,
+    name: 'Sublime Text',
     bundleIdentifiers: [
       'com.sublimetext.4',
       'com.sublimetext.3',
@@ -63,47 +36,43 @@ export const editors: IDarwinExternalEditor[] = [
     ],
   },
   {
-    name: ExternalEditor.BBEdit,
+    name: 'BBEdit',
     bundleIdentifiers: ['com.barebones.bbedit'],
   },
   {
-    name: ExternalEditor.PhpStorm,
+    name: 'PhpStorm',
     bundleIdentifiers: ['com.jetbrains.PhpStorm'],
   },
   {
-    name: ExternalEditor.PyCharm,
+    name: 'PyCharm',
     bundleIdentifiers: ['com.jetbrains.PyCharm'],
   },
   {
-    name: ExternalEditor.RubyMine,
+    name: 'RubyMine',
     bundleIdentifiers: ['com.jetbrains.RubyMine'],
   },
   {
-    name: ExternalEditor.IntelliJ,
-    bundleIdentifiers: ['com.jetbrains.intellij'],
-  },
-  {
-    name: ExternalEditor.TextMate,
+    name: 'TextMate',
     bundleIdentifiers: ['com.macromates.TextMate'],
   },
   {
-    name: ExternalEditor.Brackets,
+    name: 'Brackets',
     bundleIdentifiers: ['io.brackets.appshell'],
   },
   {
-    name: ExternalEditor.WebStorm,
+    name: 'WebStorm',
     bundleIdentifiers: ['com.jetbrains.WebStorm'],
   },
   {
-    name: ExternalEditor.Typora,
+    name: 'Typora',
     bundleIdentifiers: ['abnerworks.Typora'],
   },
   {
-    name: ExternalEditor.CodeRunner,
+    name: 'CodeRunner',
     bundleIdentifiers: ['com.krill.CodeRunner'],
   },
   {
-    name: ExternalEditor.SlickEdit,
+    name: 'SlickEdit',
     bundleIdentifiers: [
       'com.slickedit.SlickEditPro2018',
       'com.slickedit.SlickEditPro2017',
@@ -112,30 +81,30 @@ export const editors: IDarwinExternalEditor[] = [
     ],
   },
   {
-    name: ExternalEditor.Xcode,
+    name: 'IntelliJ',
+    bundleIdentifiers: ['com.jetbrains.intellij'],
+  },
+  {
+    name: 'Xcode',
     bundleIdentifiers: ['com.apple.dt.Xcode'],
   },
   {
-    name: ExternalEditor.GoLand,
+    name: 'GoLand',
     bundleIdentifiers: ['com.jetbrains.goland'],
   },
   {
-    name: ExternalEditor.AndroidStudio,
+    name: 'Android Studio',
     bundleIdentifiers: ['com.google.android.studio'],
   },
   {
-    name: ExternalEditor.Rider,
+    name: 'Rider',
     bundleIdentifiers: ['com.jetbrains.rider'],
   },
   {
-    name: ExternalEditor.Nova,
+    name: 'Nova',
     bundleIdentifiers: ['com.panic.Nova'],
   },
 ]
-
-export function parse(label: string): ExternalEditor | null {
-  return parseEnumValue(ExternalEditor, label) ?? null
-}
 
 async function findApplication(
   editor: IDarwinExternalEditor
@@ -162,9 +131,9 @@ async function findApplication(
  * to register itself on a user's machine when installing.
  */
 export async function getAvailableEditors(): Promise<
-  ReadonlyArray<IFoundEditor<ExternalEditor>>
+  ReadonlyArray<IFoundEditor<string>>
 > {
-  const results: Array<IFoundEditor<ExternalEditor>> = []
+  const results: Array<IFoundEditor<string>> = []
 
   const editorPaths = await Promise.all(
     editors.map(editor =>

@@ -9,26 +9,6 @@ import {
 
 import { pathExists } from 'fs-extra'
 import { IFoundEditor } from './found-editor'
-
-import { parseEnumValue } from '../enum'
-
-export enum ExternalEditor {
-  Atom = 'Atom',
-  AtomBeta = 'Atom Beta',
-  AtomNightly = 'Atom Nightly',
-  VSCode = 'Visual Studio Code',
-  VSCodeInsiders = 'Visual Studio Code (Insiders)',
-  VSCodium = 'Visual Studio Codium',
-  SublimeText = 'Sublime Text',
-  CFBuilder = 'ColdFusion Builder',
-  Typora = 'Typora',
-  SlickEdit = 'SlickEdit',
-  Webstorm = 'JetBrains Webstorm',
-  Phpstorm = 'JetBrains Phpstorm',
-  NotepadPlusPlus = 'Notepad++',
-  Rider = 'JetBrains Rider',
-}
-
 interface IWindowsAppInformation {
   displayName: string
   publisher: string
@@ -45,7 +25,7 @@ type ExpectedInstallationChecker = (
 ) => boolean
 
 interface IWindowsExternalEditor {
-  readonly name: ExternalEditor
+  readonly name: string
 
   /**
    * Set of registry keys associated with the installed application.
@@ -79,7 +59,7 @@ interface IWindowsExternalEditor {
 
 const editors: IWindowsExternalEditor[] = [
   {
-    name: ExternalEditor.Atom,
+    name: 'Atom',
     registryKeys: [
       {
         key: HKEY.HKEY_CURRENT_USER,
@@ -92,7 +72,7 @@ const editors: IWindowsExternalEditor[] = [
       displayName === 'Atom' && publisher === 'GitHub Inc.',
   },
   {
-    name: ExternalEditor.AtomBeta,
+    name: 'Atom Beta',
     registryKeys: [
       {
         key: HKEY.HKEY_CURRENT_USER,
@@ -106,7 +86,7 @@ const editors: IWindowsExternalEditor[] = [
       displayName === 'Atom Beta' && publisher === 'GitHub Inc.',
   },
   {
-    name: ExternalEditor.AtomNightly,
+    name: 'Atom Nightly',
     registryKeys: [
       {
         key: HKEY.HKEY_CURRENT_USER,
@@ -120,7 +100,7 @@ const editors: IWindowsExternalEditor[] = [
       displayName === 'Atom Nightly' && publisher === 'GitHub Inc.',
   },
   {
-    name: ExternalEditor.VSCode,
+    name: 'Visual Studio Code',
     registryKeys: [
       // 64-bit version of VSCode (user) - provided by default in 64-bit Windows
       {
@@ -154,7 +134,7 @@ const editors: IWindowsExternalEditor[] = [
       publisher === 'Microsoft Corporation',
   },
   {
-    name: ExternalEditor.VSCodeInsiders,
+    name: 'Visual Studio Code (Insiders)',
     registryKeys: [
       // 64-bit version of VSCode (user) - provided by default in 64-bit Windows
       {
@@ -188,7 +168,7 @@ const editors: IWindowsExternalEditor[] = [
       publisher === 'Microsoft Corporation',
   },
   {
-    name: ExternalEditor.VSCodium,
+    name: 'Visual Studio Codium',
     registryKeys: [
       // 64-bit version of VSCodium (user)
       {
@@ -222,7 +202,7 @@ const editors: IWindowsExternalEditor[] = [
       publisher === 'Microsoft Corporation',
   },
   {
-    name: ExternalEditor.SublimeText,
+    name: 'Sublime Text',
     registryKeys: [
       {
         key: HKEY.HKEY_LOCAL_MACHINE,
@@ -265,7 +245,7 @@ const editors: IWindowsExternalEditor[] = [
       displayName === 'Sublime Text' && publisher === 'Sublime HQ Pty Ltd',
   },
   {
-    name: ExternalEditor.CFBuilder,
+    name: 'ColdFusion Builder',
     registryKeys: [
       // 64-bit version of ColdFusionBuilder3
       {
@@ -287,7 +267,7 @@ const editors: IWindowsExternalEditor[] = [
       publisher === 'Adobe Systems Incorporated',
   },
   {
-    name: ExternalEditor.Typora,
+    name: 'Typora',
     registryKeys: [
       // 64-bit version of Typora
       {
@@ -307,7 +287,7 @@ const editors: IWindowsExternalEditor[] = [
       displayName.startsWith('Typora') && publisher === 'typora.io',
   },
   {
-    name: ExternalEditor.SlickEdit,
+    name: 'SlickEdit',
     registryKeys: [
       // 64-bit version of SlickEdit Pro 2018
       {
@@ -381,7 +361,7 @@ const editors: IWindowsExternalEditor[] = [
       displayName.startsWith('SlickEdit') && publisher === 'SlickEdit Inc.',
   },
   {
-    name: ExternalEditor.Webstorm,
+    name: 'JetBrains Webstorm',
     registryKeys: [
       // Webstorm 2018.3
       {
@@ -448,7 +428,7 @@ const editors: IWindowsExternalEditor[] = [
       displayName.startsWith('WebStorm') && publisher === 'JetBrains s.r.o.',
   },
   {
-    name: ExternalEditor.Phpstorm,
+    name: 'JetBrains Phpstorm',
     registryKeys: [
       // PhpStorm 2019.2
       {
@@ -509,7 +489,7 @@ const editors: IWindowsExternalEditor[] = [
       displayName.startsWith('PhpStorm') && publisher === 'JetBrains s.r.o.',
   },
   {
-    name: ExternalEditor.NotepadPlusPlus,
+    name: 'Notepad++',
     registryKeys: [
       // 64-bit version of Notepad++
       {
@@ -536,7 +516,7 @@ const editors: IWindowsExternalEditor[] = [
       displayName.startsWith('Notepad++') && publisher === 'Notepad++ Team',
   },
   {
-    name: ExternalEditor.Rider,
+    name: 'JetBrains Rider',
     registryKeys: [
       // Rider 2019.3.4
       {
@@ -580,10 +560,6 @@ const editors: IWindowsExternalEditor[] = [
       publisher === 'JetBrains s.r.o.',
   },
 ]
-
-export function parse(label: string): ExternalEditor | null {
-  return parseEnumValue(ExternalEditor, label) ?? null
-}
 
 function getKeyOrEmpty(
   keys: ReadonlyArray<RegistryValue>,
@@ -646,9 +622,9 @@ async function findApplication(
  * applications and their location on disk for Desktop to launch.
  */
 export async function getAvailableEditors(): Promise<
-  ReadonlyArray<IFoundEditor<ExternalEditor>>
+  ReadonlyArray<IFoundEditor<string>>
 > {
-  const results: Array<IFoundEditor<ExternalEditor>> = []
+  const results: Array<IFoundEditor<string>> = []
 
   const editorPaths = await Promise.all(
     editors.map(editor =>
