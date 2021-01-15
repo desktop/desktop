@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.6.2-test5": [],
     "2.6.2-beta3": [
       "[Improved] Show full output of Git hooks on errors - #6403",
       "[Improved] Keep focus in dropdown when pressing tab multiple times - #11278",
