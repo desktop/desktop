@@ -1,6 +1,6 @@
 {
   "releases": {
-    "2.6.2-beta3": [
+    "2.6.2-beta4": [
       "[Improved] Show full output of Git hooks on errors - #6403",
       "[Improved] Keep focus in dropdown when pressing tab multiple times - #11278",
       "[Improved] Upgrade embedded Git LFS to 2.13.2 - #11394",
@@ -8,6 +8,7 @@
       "[Fixed] Fork behavior changes are now reflected in the app immediately - #11327",
       "[Fixed] Commit message remains in text box until user chooses to commit - #7251"
     ],
+    "2.6.2-beta3": ["[Removed] Release removed in favor of 2.6.2-beta4"],
     "2.6.2-beta2": [
       "[Fixed] Forked repository remotes are no longer removed when there's local branches tracking them - #11266",
       "[Fixed] Avoid bright flash for users of the dark theme when launching the app maximized - #5631. Thanks @AndreiMaga!",
