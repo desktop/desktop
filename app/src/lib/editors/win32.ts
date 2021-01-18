@@ -45,12 +45,6 @@ interface IWindowsExternalEditor {
   readonly executableShimPath: ReadonlyArray<string>
 
   /**
-   * Whether the or not the provided executable for the editor needs to be run
-   * inside of a shell.
-   */
-  readonly usesShell?: boolean
-
-  /**
    * Function that maps the registry information to a list of known installer
    * fields (display name, publisher and installation path).
    *
@@ -84,8 +78,7 @@ const editors: IWindowsExternalEditor[] = [
         subKey: 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\atom',
       },
     ],
-    executableShimPath: ['bin', 'atom.cmd'], // remember, CMD must 'usesShell'
-    usesShell: true,
+    executableShimPath: ['bin', 'atom.cmd'],
     expectedInstallationChecker: (displayName, publisher) =>
       displayName === 'Atom' && publisher === 'GitHub Inc.',
   },
@@ -98,8 +91,7 @@ const editors: IWindowsExternalEditor[] = [
           'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\atom-beta',
       },
     ],
-    executableShimPath: ['bin', 'atom-beta.cmd'], // remember, CMD must 'usesShell'
-    usesShell: true,
+    executableShimPath: ['bin', 'atom-beta.cmd'],
     expectedInstallationChecker: (displayName, publisher) =>
       displayName === 'Atom Beta' && publisher === 'GitHub Inc.',
   },
@@ -113,7 +105,6 @@ const editors: IWindowsExternalEditor[] = [
       },
     ],
     executableShimPath: ['bin', 'atom-nightly.cmd'],
-    usesShell: true,
     expectedInstallationChecker: (displayName, publisher) =>
       displayName === 'Atom Nightly' && publisher === 'GitHub Inc.',
   },
@@ -146,7 +137,6 @@ const editors: IWindowsExternalEditor[] = [
       },
     ],
     executableShimPath: ['bin', 'code.cmd'],
-    usesShell: true,
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('Microsoft Visual Studio Code') &&
       publisher === 'Microsoft Corporation',
@@ -180,7 +170,6 @@ const editors: IWindowsExternalEditor[] = [
       },
     ],
     executableShimPath: ['bin', 'code-insiders.cmd'],
-    usesShell: true,
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('Microsoft Visual Studio Code Insiders') &&
       publisher === 'Microsoft Corporation',
@@ -214,7 +203,6 @@ const editors: IWindowsExternalEditor[] = [
       },
     ],
     executableShimPath: ['bin', 'codium.cmd'],
-    usesShell: true,
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('VSCodium') &&
       publisher === 'Microsoft Corporation',
@@ -229,38 +217,9 @@ const editors: IWindowsExternalEditor[] = [
       },
     ],
     executableShimPath: ['subl.exe'],
-    getAppInfo: keys => {
-      let displayName = ''
-      let publisher = ''
-      let installLocation = ''
-
-      for (const item of keys) {
-        // NOTE:
-        // Sublime Text appends the build number to the DisplayName value, so for
-        // forward-compatibility let's do a simple check for the identifier
-        if (
-          item.name === 'DisplayName' &&
-          item.type === RegistryValueType.REG_SZ &&
-          item.data.startsWith('Sublime Text')
-        ) {
-          displayName = 'Sublime Text'
-        } else if (
-          item.name === 'Publisher' &&
-          item.type === RegistryValueType.REG_SZ
-        ) {
-          publisher = item.data
-        } else if (
-          item.name === 'InstallLocation' &&
-          item.type === RegistryValueType.REG_SZ
-        ) {
-          installLocation = item.data
-        }
-      }
-
-      return { displayName, publisher, installLocation }
-    },
     expectedInstallationChecker: (displayName, publisher) =>
-      displayName === 'Sublime Text' && publisher === 'Sublime HQ Pty Ltd',
+      displayName.startsWith('Sublime Text') &&
+      publisher === 'Sublime HQ Pty Ltd',
   },
   {
     name: 'ColdFusion Builder',
@@ -413,35 +372,6 @@ const editors: IWindowsExternalEditor[] = [
       },
     ],
     executableShimPath: ['bin', 'webstorm.exe'],
-    getAppInfo: keys => {
-      let displayName = ''
-      let publisher = ''
-      let installLocation = ''
-
-      for (const item of keys) {
-        // NOTE:
-        // Webstorm adds the current release number to the end of the Display Name, below checks for "WebStorm"
-        if (
-          item.name === 'DisplayName' &&
-          item.type === RegistryValueType.REG_SZ &&
-          item.data.startsWith('WebStorm ')
-        ) {
-          displayName = 'WebStorm'
-        } else if (
-          item.name === 'Publisher' &&
-          item.type === RegistryValueType.REG_SZ
-        ) {
-          publisher = item.data
-        } else if (
-          item.name === 'InstallLocation' &&
-          item.type === RegistryValueType.REG_SZ
-        ) {
-          installLocation = item.data
-        }
-      }
-
-      return { displayName, publisher, installLocation }
-    },
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('WebStorm') && publisher === 'JetBrains s.r.o.',
   },
@@ -474,35 +404,6 @@ const editors: IWindowsExternalEditor[] = [
       },
     ],
     executableShimPath: ['bin', 'phpstorm.exe'],
-    getAppInfo: keys => {
-      let displayName = ''
-      let publisher = ''
-      let installLocation = ''
-
-      for (const item of keys) {
-        // NOTE:
-        // Webstorm adds the current release number to the end of the Display Name, below checks for "PhpStorm"
-        if (
-          item.name === 'DisplayName' &&
-          item.type === RegistryValueType.REG_SZ &&
-          item.data.startsWith('PhpStorm ')
-        ) {
-          displayName = 'PhpStorm'
-        } else if (
-          item.name === 'Publisher' &&
-          item.type === RegistryValueType.REG_SZ
-        ) {
-          publisher = item.data
-        } else if (
-          item.name === 'InstallLocation' &&
-          item.type === RegistryValueType.REG_SZ
-        ) {
-          installLocation = item.data
-        }
-      }
-
-      return { displayName, publisher, installLocation }
-    },
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('PhpStorm') && publisher === 'JetBrains s.r.o.',
   },
@@ -524,11 +425,10 @@ const editors: IWindowsExternalEditor[] = [
     ],
     executableShimPath: [],
     getAppInfo: keys => {
-      const displayName = getKeyOrEmpty(keys, 'DisplayName')
-      const publisher = getKeyOrEmpty(keys, 'Publisher')
-      const installLocation = getKeyOrEmpty(keys, 'DisplayIcon')
-
-      return { displayName, publisher, installLocation }
+      return {
+        ...getFallbackAppInfo(keys),
+        installLocation: getKeyOrEmpty(keys, 'DisplayIcon'),
+      }
     },
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('Notepad++') && publisher === 'Notepad++ Team',
@@ -544,35 +444,6 @@ const editors: IWindowsExternalEditor[] = [
       },
     ],
     executableShimPath: ['bin', 'rider64.exe'],
-    getAppInfo: keys => {
-      let displayName = ''
-      let publisher = ''
-      let installLocation = ''
-
-      for (const item of keys) {
-        // NOTE:
-        // JetBrains Rider adds the current release number to the end of the Display Name, below checks for "JetBrains Rider"
-        if (
-          item.name === 'DisplayName' &&
-          item.type === RegistryValueType.REG_SZ &&
-          item.data.startsWith('JetBrains Rider ')
-        ) {
-          displayName = 'JetBrains Rider'
-        } else if (
-          item.name === 'Publisher' &&
-          item.type === RegistryValueType.REG_SZ
-        ) {
-          publisher = item.data
-        } else if (
-          item.name === 'InstallLocation' &&
-          item.type === RegistryValueType.REG_SZ
-        ) {
-          installLocation = item.data
-        }
-      }
-
-      return { displayName, publisher, installLocation }
-    },
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('JetBrains Rider') &&
       publisher === 'JetBrains s.r.o.',
@@ -643,22 +514,14 @@ export async function getAvailableEditors(): Promise<
 > {
   const results: Array<IFoundEditor<string>> = []
 
-  const editorPaths = await Promise.all(
-    editors.map(editor =>
-      findApplication(editor).then(path => {
-        return { editor, path }
-      })
-    )
-  )
-
-  for (const editorPath of editorPaths) {
-    const { editor, path } = editorPath
+  for (const editor of editors) {
+    const path = await findApplication(editor)
 
     if (path) {
       results.push({
         editor: editor.name,
-        path: path,
-        usesShell: editor.usesShell ?? false,
+        path,
+        usesShell: path.endsWith('.cmd'),
       })
     }
   }
