@@ -16,7 +16,7 @@ interface IWindowsAppInformation {
   installLocation: string
 }
 
-type AppInformationExtractor = (
+type AppInfoExtractor = (
   keys: ReadonlyArray<RegistryValue>
 ) => IWindowsAppInformation
 
@@ -39,7 +39,7 @@ interface IWindowsExternalEditor {
   readonly registryKeys: ReadonlyArray<{ key: HKEY; subKey: string }>
 
   /**
-   * List of path components from the editor's instalation folder to the
+   * List of path components from the editor's installation folder to the
    * executable shim.
    **/
   readonly executableShimPath: ReadonlyArray<string>
@@ -59,7 +59,7 @@ interface IWindowsExternalEditor {
    * Optional. If not provided, those three pieces of info will be obtained from
    * the 'DisplayName', 'Publisher' and 'InstallLocation' keys, respectively.
    */
-  readonly appInformationExtractor?: AppInformationExtractor
+  readonly getAppInfo?: AppInfoExtractor
 
   /**
    * Function to check if the found installation matches the expected identifier
@@ -229,7 +229,7 @@ const editors: IWindowsExternalEditor[] = [
       },
     ],
     executableShimPath: ['subl.exe'],
-    appInformationExtractor: keys => {
+    getAppInfo: keys => {
       let displayName = ''
       let publisher = ''
       let installLocation = ''
@@ -413,7 +413,7 @@ const editors: IWindowsExternalEditor[] = [
       },
     ],
     executableShimPath: ['bin', 'webstorm.exe'],
-    appInformationExtractor: keys => {
+    getAppInfo: keys => {
       let displayName = ''
       let publisher = ''
       let installLocation = ''
@@ -474,7 +474,7 @@ const editors: IWindowsExternalEditor[] = [
       },
     ],
     executableShimPath: ['bin', 'phpstorm.exe'],
-    appInformationExtractor: keys => {
+    getAppInfo: keys => {
       let displayName = ''
       let publisher = ''
       let installLocation = ''
@@ -523,7 +523,7 @@ const editors: IWindowsExternalEditor[] = [
       },
     ],
     executableShimPath: [],
-    appInformationExtractor: keys => {
+    getAppInfo: keys => {
       const displayName = getKeyOrEmpty(keys, 'DisplayName')
       const publisher = getKeyOrEmpty(keys, 'Publisher')
       const installLocation = getKeyOrEmpty(keys, 'DisplayIcon')
@@ -544,7 +544,7 @@ const editors: IWindowsExternalEditor[] = [
       },
     ],
     executableShimPath: ['bin', 'rider64.exe'],
-    appInformationExtractor: keys => {
+    getAppInfo: keys => {
       let displayName = ''
       let publisher = ''
       let installLocation = ''
@@ -587,7 +587,7 @@ function getKeyOrEmpty(
   return entry && entry.type === RegistryValueType.REG_SZ ? entry.data : ''
 }
 
-const defaultAppInformationExtractor: AppInformationExtractor = keys => {
+const getFallbackAppInfo: AppInfoExtractor = keys => {
   const displayName = getKeyOrEmpty(keys, 'DisplayName')
   const publisher = getKeyOrEmpty(keys, 'Publisher')
   const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
@@ -609,8 +609,7 @@ async function findApplication(
     return null
   }
 
-  const appInformationExtractor =
-    editor.appInformationExtractor ?? defaultAppInformationExtractor
+  const appInformationExtractor = editor.getAppInfo ?? getFallbackAppInfo
 
   const { displayName, publisher, installLocation } = appInformationExtractor(
     keys
