@@ -56,6 +56,26 @@ interface IWindowsExternalEditor {
   readonly expectedInstallationChecker: ExpectedInstallationChecker
 }
 
+const registryKey = (key: HKEY, ...subKeys: string[]) => ({
+  key,
+  subKey: Path.win32.join(...subKeys),
+})
+
+const uninstallSubKey =
+  'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall'
+
+const wow64UninstallSubKey =
+  'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall'
+
+const CurrentUserUninstallKey = (subKey: string) =>
+  registryKey(HKEY.HKEY_CURRENT_USER, uninstallSubKey, subKey)
+
+const LocalMachineUninstallKey = (subKey: string) =>
+  registryKey(HKEY.HKEY_LOCAL_MACHINE, uninstallSubKey, subKey)
+
+const Wow64LocalMachineUninstallKey = (subKey: string) =>
+  registryKey(HKEY.HKEY_LOCAL_MACHINE, wow64UninstallSubKey, subKey)
+
 /**
  * This list contains all the external editors supported on Windows. Add a new
  * entry here to add support for your favorite editor.
@@ -63,38 +83,21 @@ interface IWindowsExternalEditor {
 const editors: IWindowsExternalEditor[] = [
   {
     name: 'Atom',
-    registryKeys: [
-      {
-        key: HKEY.HKEY_CURRENT_USER,
-        subKey: 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\atom',
-      },
-    ],
+    registryKeys: [CurrentUserUninstallKey('atom')],
     executableShimPath: ['bin', 'atom.cmd'],
     expectedInstallationChecker: (displayName, publisher) =>
       displayName === 'Atom' && publisher === 'GitHub Inc.',
   },
   {
     name: 'Atom Beta',
-    registryKeys: [
-      {
-        key: HKEY.HKEY_CURRENT_USER,
-        subKey:
-          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\atom-beta',
-      },
-    ],
+    registryKeys: [CurrentUserUninstallKey('atom-beta')],
     executableShimPath: ['bin', 'atom-beta.cmd'],
     expectedInstallationChecker: (displayName, publisher) =>
       displayName === 'Atom Beta' && publisher === 'GitHub Inc.',
   },
   {
     name: 'Atom Nightly',
-    registryKeys: [
-      {
-        key: HKEY.HKEY_CURRENT_USER,
-        subKey:
-          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\atom-nightly',
-      },
-    ],
+    registryKeys: [CurrentUserUninstallKey('atom-nightly')],
     executableShimPath: ['bin', 'atom-nightly.cmd'],
     expectedInstallationChecker: (displayName, publisher) =>
       displayName === 'Atom Nightly' && publisher === 'GitHub Inc.',
@@ -103,29 +106,15 @@ const editors: IWindowsExternalEditor[] = [
     name: 'Visual Studio Code',
     registryKeys: [
       // 64-bit version of VSCode (user) - provided by default in 64-bit Windows
-      {
-        key: HKEY.HKEY_CURRENT_USER,
-        subKey:
-          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{771FD6B0-FA20-440A-A002-3B3BAC16DC50}_is1',
-      },
+      CurrentUserUninstallKey('{771FD6B0-FA20-440A-A002-3B3BAC16DC50}_is1'),
       // 32-bit version of VSCode (user)
-      {
-        key: HKEY.HKEY_CURRENT_USER,
-        subKey:
-          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{D628A17A-9713-46BF-8D57-E671B46A741E}_is1',
-      },
+      CurrentUserUninstallKey('{D628A17A-9713-46BF-8D57-E671B46A741E}_is1'),
       // 64-bit version of VSCode (system) - was default before user scope installation
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{EA457B21-F73E-494C-ACAB-524FDE069978}_is1',
-      },
+      LocalMachineUninstallKey('{EA457B21-F73E-494C-ACAB-524FDE069978}_is1'),
       // 32-bit version of VSCode (system)
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{F8A2A208-72B3-4D61-95FC-8A65D340689B}_is1',
-      },
+      Wow64LocalMachineUninstallKey(
+        '{F8A2A208-72B3-4D61-95FC-8A65D340689B}_is1'
+      ),
     ],
     executableShimPath: ['bin', 'code.cmd'],
     expectedInstallationChecker: (displayName, publisher) =>
@@ -136,29 +125,15 @@ const editors: IWindowsExternalEditor[] = [
     name: 'Visual Studio Code (Insiders)',
     registryKeys: [
       // 64-bit version of VSCode (user) - provided by default in 64-bit Windows
-      {
-        key: HKEY.HKEY_CURRENT_USER,
-        subKey:
-          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{217B4C08-948D-4276-BFBB-BEE930AE5A2C}_is1',
-      },
+      CurrentUserUninstallKey('{217B4C08-948D-4276-BFBB-BEE930AE5A2C}_is1'),
       // 32-bit version of VSCode (user)
-      {
-        key: HKEY.HKEY_CURRENT_USER,
-        subKey:
-          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{26F4A15E-E392-4887-8C09-7BC55712FD5B}_is1',
-      },
+      CurrentUserUninstallKey('{26F4A15E-E392-4887-8C09-7BC55712FD5B}_is1'),
       // 64-bit version of VSCode (system) - was default before user scope installation
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{1287CAD5-7C8D-410D-88B9-0D1EE4A83FF2}_is1',
-      },
+      LocalMachineUninstallKey('{1287CAD5-7C8D-410D-88B9-0D1EE4A83FF2}_is1'),
       // 32-bit version of VSCode (system)
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{C26E74D1-022E-4238-8B9D-1E7564A36CC9}_is1',
-      },
+      Wow64LocalMachineUninstallKey(
+        '{C26E74D1-022E-4238-8B9D-1E7564A36CC9}_is1'
+      ),
     ],
     executableShimPath: ['bin', 'code-insiders.cmd'],
     expectedInstallationChecker: (displayName, publisher) =>
@@ -169,29 +144,15 @@ const editors: IWindowsExternalEditor[] = [
     name: 'Visual Studio Codium',
     registryKeys: [
       // 64-bit version of VSCodium (user)
-      {
-        key: HKEY.HKEY_CURRENT_USER,
-        subKey:
-          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{2E1F05D1-C245-4562-81EE-28188DB6FD17}_is1',
-      },
+      CurrentUserUninstallKey('{2E1F05D1-C245-4562-81EE-28188DB6FD17}_is1'),
       // 32-bit version of VSCodium (user)
-      {
-        key: HKEY.HKEY_CURRENT_USER,
-        subKey:
-          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{C6065F05-9603-4FC4-8101-B9781A25D88E}}_is1',
-      },
+      CurrentUserUninstallKey('{C6065F05-9603-4FC4-8101-B9781A25D88E}}_is1'),
       // 64-bit version of VSCodium (system)
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{D77B7E06-80BA-4137-BCF4-654B95CCEBC5}_is1',
-      },
+      LocalMachineUninstallKey('{D77B7E06-80BA-4137-BCF4-654B95CCEBC5}_is1'),
       // 32-bit version of VSCodium (system)
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{E34003BB-9E10-4501-8C11-BE3FAA83F23F}_is1',
-      },
+      Wow64LocalMachineUninstallKey(
+        '{E34003BB-9E10-4501-8C11-BE3FAA83F23F}_is1'
+      ),
     ],
     executableShimPath: ['bin', 'codium.cmd'],
     expectedInstallationChecker: (displayName, publisher) =>
@@ -200,13 +161,7 @@ const editors: IWindowsExternalEditor[] = [
   },
   {
     name: 'Sublime Text',
-    registryKeys: [
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Sublime Text 3_is1',
-      },
-    ],
+    registryKeys: [LocalMachineUninstallKey('Sublime Text 3_is1')],
     executableShimPath: ['subl.exe'],
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('Sublime Text') &&
@@ -216,17 +171,9 @@ const editors: IWindowsExternalEditor[] = [
     name: 'ColdFusion Builder',
     registryKeys: [
       // 64-bit version of ColdFusionBuilder3
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Adobe ColdFusion Builder 3_is1',
-      },
+      LocalMachineUninstallKey('Adobe ColdFusion Builder 3_is1'),
       // 64-bit version of ColdFusionBuilder2016
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Adobe ColdFusion Builder 2016',
-      },
+      LocalMachineUninstallKey('Adobe ColdFusion Builder 2016'),
     ],
     executableShimPath: ['CFBuilder.exe'],
     expectedInstallationChecker: (displayName, publisher) =>
@@ -238,17 +185,11 @@ const editors: IWindowsExternalEditor[] = [
     name: 'Typora',
     registryKeys: [
       // 64-bit version of Typora
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{37771A20-7167-44C0-B322-FD3E54C56156}_is1',
-      },
+      LocalMachineUninstallKey('{37771A20-7167-44C0-B322-FD3E54C56156}_is1'),
       // 32-bit version of Typora
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{37771A20-7167-44C0-B322-FD3E54C56156}_is1',
-      },
+      Wow64LocalMachineUninstallKey(
+        '{37771A20-7167-44C0-B322-FD3E54C56156}_is1'
+      ),
     ],
     executableShimPath: ['typora.exe'],
     expectedInstallationChecker: (displayName, publisher) =>
@@ -258,71 +199,27 @@ const editors: IWindowsExternalEditor[] = [
     name: 'SlickEdit',
     registryKeys: [
       // 64-bit version of SlickEdit Pro 2018
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{18406187-F49E-4822-CAF2-1D25C0C83BA2}',
-      },
+      LocalMachineUninstallKey('{18406187-F49E-4822-CAF2-1D25C0C83BA2}'),
       // 32-bit version of SlickEdit Pro 2018
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{18006187-F49E-4822-CAF2-1D25C0C83BA2}',
-      },
+      Wow64LocalMachineUninstallKey('{18006187-F49E-4822-CAF2-1D25C0C83BA2}'),
       // 64-bit version of SlickEdit Standard 2018
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{18606187-F49E-4822-CAF2-1D25C0C83BA2}',
-      },
+      LocalMachineUninstallKey('{18606187-F49E-4822-CAF2-1D25C0C83BA2}'),
       // 32-bit version of SlickEdit Standard 2018
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{18206187-F49E-4822-CAF2-1D25C0C83BA2}',
-      },
+      Wow64LocalMachineUninstallKey('{18206187-F49E-4822-CAF2-1D25C0C83BA2}'),
       // 64-bit version of SlickEdit Pro 2017
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{15406187-F49E-4822-CAF2-1D25C0C83BA2}',
-      },
+      LocalMachineUninstallKey('{15406187-F49E-4822-CAF2-1D25C0C83BA2}'),
       // 32-bit version of SlickEdit Pro 2017
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{15006187-F49E-4822-CAF2-1D25C0C83BA2}',
-      },
+      Wow64LocalMachineUninstallKey('{15006187-F49E-4822-CAF2-1D25C0C83BA2}'),
       // 64-bit version of SlickEdit Pro 2016 (21.0.1)
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{10C06187-F49E-4822-CAF2-1D25C0C83BA2}',
-      },
+      LocalMachineUninstallKey('{10C06187-F49E-4822-CAF2-1D25C0C83BA2}'),
       // 64-bit version of SlickEdit Pro 2016 (21.0.0)
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{10406187-F49E-4822-CAF2-1D25C0C83BA2}',
-      },
+      LocalMachineUninstallKey('{10406187-F49E-4822-CAF2-1D25C0C83BA2}'),
       // 64-bit version of SlickEdit Pro 2015 (20.0.3)
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{0DC06187-F49E-4822-CAF2-1D25C0C83BA2}',
-      },
+      LocalMachineUninstallKey('{0DC06187-F49E-4822-CAF2-1D25C0C83BA2}'),
       // 64-bit version of SlickEdit Pro 2015 (20.0.2)
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{0D406187-F49E-4822-CAF2-1D25C0C83BA2}',
-      },
+      LocalMachineUninstallKey('{0D406187-F49E-4822-CAF2-1D25C0C83BA2}'),
       // 64-bit version of SlickEdit Pro 2014 (19.0.2)
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{7CC0E567-ACD6-41E8-95DA-154CEEDB0A18}',
-      },
+      LocalMachineUninstallKey('{7CC0E567-ACD6-41E8-95DA-154CEEDB0A18}'),
     ],
     executableShimPath: ['win', 'vs.exe'],
     expectedInstallationChecker: (displayName, publisher) =>
@@ -332,35 +229,15 @@ const editors: IWindowsExternalEditor[] = [
     name: 'JetBrains Webstorm',
     registryKeys: [
       // Webstorm 2018.3
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\WebStorm 2018.3',
-      },
+      Wow64LocalMachineUninstallKey('WebStorm 2018.3'),
       // Webstorm 2019.2
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\WebStorm 2019.2',
-      },
+      Wow64LocalMachineUninstallKey('WebStorm 2019.2'),
       // Webstorm 2019.2.4
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\WebStorm 2019.2.4',
-      },
+      Wow64LocalMachineUninstallKey('WebStorm 2019.2.4'),
       // Webstorm 2019.3
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\WebStorm 2019.3',
-      },
+      Wow64LocalMachineUninstallKey('WebStorm 2019.3'),
       // Webstorm 2020.1
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\WebStorm 2020.1',
-      },
+      Wow64LocalMachineUninstallKey('WebStorm 2020.1'),
     ],
     executableShimPath: ['bin', 'webstorm.exe'],
     expectedInstallationChecker: (displayName, publisher) =>
@@ -370,29 +247,13 @@ const editors: IWindowsExternalEditor[] = [
     name: 'JetBrains Phpstorm',
     registryKeys: [
       // PhpStorm 2019.2
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\PhpStorm 2019.2',
-      },
+      Wow64LocalMachineUninstallKey('PhpStorm 2019.2'),
       // PhpStorm 2019.2.4
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\PhpStorm 2019.2.4',
-      },
+      Wow64LocalMachineUninstallKey('PhpStorm 2019.2.4'),
       // PhpStorm 2019.3
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\PhpStorm 2019.3',
-      },
+      Wow64LocalMachineUninstallKey('PhpStorm 2019.3'),
       // PhpStorm 2020.1
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\PhpStorm 2020.1',
-      },
+      Wow64LocalMachineUninstallKey('PhpStorm 2020.1'),
     ],
     executableShimPath: ['bin', 'phpstorm.exe'],
     expectedInstallationChecker: (displayName, publisher) =>
@@ -402,17 +263,9 @@ const editors: IWindowsExternalEditor[] = [
     name: 'Notepad++',
     registryKeys: [
       // 64-bit version of Notepad++
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Notepad++',
-      },
+      LocalMachineUninstallKey('Notepad++'),
       // 32-bit version of Notepad++
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Notepad++',
-      },
+      Wow64LocalMachineUninstallKey('Notepad++'),
     ],
     executableShimPath: [],
     installLocationRegistryKey: 'DisplayIcon',
@@ -423,11 +276,7 @@ const editors: IWindowsExternalEditor[] = [
     name: 'JetBrains Rider',
     registryKeys: [
       // Rider 2019.3.4
-      {
-        key: HKEY.HKEY_LOCAL_MACHINE,
-        subKey:
-          'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\JetBrains Rider 2019.3.4',
-      },
+      Wow64LocalMachineUninstallKey('JetBrains Rider 2019.3.4'),
     ],
     executableShimPath: ['bin', 'rider64.exe'],
     expectedInstallationChecker: (displayName, publisher) =>
