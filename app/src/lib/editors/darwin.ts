@@ -147,22 +147,11 @@ export async function getAvailableEditors(): Promise<
 > {
   const results: Array<IFoundEditor<string>> = []
 
-  const editorPaths = await Promise.all(
-    editors.map(editor =>
-      findApplication(editor).then(path => {
-        return { editor, path }
-      })
-    )
-  )
-
-  for (const editorPath of editorPaths) {
-    const { editor, path } = editorPath
+  for (const editor of editors) {
+    const path = await findApplication(editor)
 
     if (path) {
-      results.push({
-        editor: editor.name,
-        path: path,
-      })
+      results.push({ editor: editor.name, path })
     }
   }
 
