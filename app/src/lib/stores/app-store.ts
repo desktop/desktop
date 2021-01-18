@@ -2376,90 +2376,106 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const gitStore = this.gitStoreCache.get(repository)
 
-    const result = await this.isCommitting(repository, () => {
-      return gitStore.performFailableOperation(async () => {
+    return this.withIsCommitting(repository, async () => {
+      const result = await gitStore.performFailableOperation(async () => {
         const message = await formatCommitMessage(repository, context)
         return createCommit(repository, message, selectedFiles)
       })
+
+      if (result !== undefined) {
+        await this._recordCommitStats(
+          gitStore,
+          repository,
+          state,
+          context,
+          files
+        )
+
+        await this._refreshRepository(repository)
+        await this.refreshChangesSection(repository, {
+          includingStatus: true,
+          clearPartialState: true,
+        })
+      }
+
+      return result !== undefined
     })
+  }
 
-    if (result) {
-      this.statsStore.recordCommit()
+  private async _recordCommitStats(
+    gitStore: GitStore,
+    repository: Repository,
+    repositoryState: IRepositoryState,
+    context: ICommitContext,
+    files: readonly WorkingDirectoryFileChange[]
+  ) {
+    this.statsStore.recordCommit()
 
-      const includedPartialSelections = files.some(
-        file => file.selection.getSelectionType() === DiffSelectionType.Partial
-      )
-      if (includedPartialSelections) {
-        this.statsStore.recordPartialCommit()
-      }
-
-      const { trailers } = context
-      if (trailers !== undefined && trailers.some(isCoAuthoredByTrailer)) {
-        this.statsStore.recordCoAuthoredCommit()
-      }
-
-      const account = getAccountForRepository(this.accounts, repository)
-      if (repository.gitHubRepository !== null) {
-        if (account !== null) {
-          if (account.endpoint === getDotComAPIEndpoint()) {
-            this.statsStore.recordCommitToDotcom()
-          } else {
-            this.statsStore.recordCommitToEnterprise()
-          }
-
-          const { commitAuthor } = state
-          if (commitAuthor !== null) {
-            const commitEmail = commitAuthor.email.toLowerCase()
-            const attributableEmails = getAttributableEmailsFor(account)
-            const commitEmailMatchesAccount = attributableEmails.some(
-              email => email.toLowerCase() === commitEmail
-            )
-            if (!commitEmailMatchesAccount) {
-              this.statsStore.recordUnattributedCommit()
-            }
-          }
-        }
-
-        const branchProtectionsFound = await this.repositoriesStore.hasBranchProtectionsConfigured(
-          repository.gitHubRepository
-        )
-
-        if (branchProtectionsFound) {
-          this.statsStore.recordCommitToRepositoryWithBranchProtections()
-        }
-
-        const branchName = findRemoteBranchName(
-          gitStore.tip,
-          gitStore.currentRemote,
-          repository.gitHubRepository
-        )
-
-        if (branchName !== null) {
-          const { changesState } = this.repositoryStateCache.get(repository)
-          if (changesState.currentBranchProtected) {
-            this.statsStore.recordCommitToProtectedBranch()
-          }
-        }
-
-        if (
-          repository.gitHubRepository !== null &&
-          !hasWritePermission(repository.gitHubRepository)
-        ) {
-          this.statsStore.recordCommitToRepositoryWithoutWriteAccess()
-          this.statsStore.recordRepositoryCommitedInWithoutWriteAccess(
-            repository.gitHubRepository.dbID
-          )
-        }
-      }
-
-      await this._refreshRepository(repository)
-      await this.refreshChangesSection(repository, {
-        includingStatus: true,
-        clearPartialState: true,
-      })
+    const includedPartialSelections = files.some(
+      file => file.selection.getSelectionType() === DiffSelectionType.Partial
+    )
+    if (includedPartialSelections) {
+      this.statsStore.recordPartialCommit()
     }
 
-    return result || false
+    const { trailers } = context
+    if (trailers !== undefined && trailers.some(isCoAuthoredByTrailer)) {
+      this.statsStore.recordCoAuthoredCommit()
+    }
+
+    const account = getAccountForRepository(this.accounts, repository)
+    if (repository.gitHubRepository !== null) {
+      if (account !== null) {
+        if (account.endpoint === getDotComAPIEndpoint()) {
+          this.statsStore.recordCommitToDotcom()
+        } else {
+          this.statsStore.recordCommitToEnterprise()
+        }
+
+        const { commitAuthor } = repositoryState
+        if (commitAuthor !== null) {
+          const commitEmail = commitAuthor.email.toLowerCase()
+          const attributableEmails = getAttributableEmailsFor(account)
+          const commitEmailMatchesAccount = attributableEmails.some(
+            email => email.toLowerCase() === commitEmail
+          )
+          if (!commitEmailMatchesAccount) {
+            this.statsStore.recordUnattributedCommit()
+          }
+        }
+      }
+
+      const branchProtectionsFound = await this.repositoriesStore.hasBranchProtectionsConfigured(
+        repository.gitHubRepository
+      )
+
+      if (branchProtectionsFound) {
+        this.statsStore.recordCommitToRepositoryWithBranchProtections()
+      }
+
+      const branchName = findRemoteBranchName(
+        gitStore.tip,
+        gitStore.currentRemote,
+        repository.gitHubRepository
+      )
+
+      if (branchName !== null) {
+        const { changesState } = this.repositoryStateCache.get(repository)
+        if (changesState.currentBranchProtected) {
+          this.statsStore.recordCommitToProtectedBranch()
+        }
+      }
+
+      if (
+        repository.gitHubRepository !== null &&
+        !hasWritePermission(repository.gitHubRepository)
+      ) {
+        this.statsStore.recordCommitToRepositoryWithoutWriteAccess()
+        this.statsStore.recordRepositoryCommitedInWithoutWriteAccess(
+          repository.gitHubRepository.dbID
+        )
+      }
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -3562,14 +3578,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
-  private async isCommitting(
+  private async withIsCommitting(
     repository: Repository,
-    fn: () => Promise<string | undefined>
-  ): Promise<boolean | undefined> {
+    fn: () => Promise<boolean>
+  ): Promise<boolean> {
     const state = this.repositoryStateCache.get(repository)
     // ensure the user doesn't try and commit again
     if (state.isCommitting) {
-      return
+      return false
     }
 
     this.repositoryStateCache.update(repository, () => ({
@@ -3578,8 +3594,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     try {
-      const sha = await fn()
-      return sha !== undefined
+      return await fn()
     } finally {
       this.repositoryStateCache.update(repository, () => ({
         isCommitting: false,
