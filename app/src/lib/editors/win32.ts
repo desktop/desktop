@@ -16,10 +16,6 @@ interface IWindowsAppInformation {
   installLocation: string
 }
 
-type AppInfoExtractor = (
-  keys: ReadonlyArray<RegistryValue>
-) => IWindowsAppInformation
-
 type ExpectedInstallationChecker = (
   displayName: string,
   publisher: string
@@ -45,15 +41,10 @@ interface IWindowsExternalEditor {
   readonly executableShimPath: ReadonlyArray<string>
 
   /**
-   * Function that maps the registry information to a list of known installer
-   * fields (display name, publisher and installation path).
-   *
-   * Receives the collection of registry key-value pairs for the app.
-   *
-   * Optional. If not provided, those three pieces of info will be obtained from
-   * the 'DisplayName', 'Publisher' and 'InstallLocation' keys, respectively.
-   */
-  readonly getAppInfo?: AppInfoExtractor
+   * Registry key with the install location of the app. If not provided,
+   * 'InstallLocation' will be used.
+   **/
+  readonly installLocationRegistryKey?: string
 
   /**
    * Function to check if the found installation matches the expected identifier
@@ -424,12 +415,7 @@ const editors: IWindowsExternalEditor[] = [
       },
     ],
     executableShimPath: [],
-    getAppInfo: keys => {
-      return {
-        ...getFallbackAppInfo(keys),
-        installLocation: getKeyOrEmpty(keys, 'DisplayIcon'),
-      }
-    },
+    installLocationRegistryKey: 'DisplayIcon',
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('Notepad++') && publisher === 'Notepad++ Team',
   },
@@ -458,51 +444,44 @@ function getKeyOrEmpty(
   return entry && entry.type === RegistryValueType.REG_SZ ? entry.data : ''
 }
 
-const getFallbackAppInfo: AppInfoExtractor = keys => {
+function getAppInfo(
+  editor: IWindowsExternalEditor,
+  keys: ReadonlyArray<RegistryValue>
+): IWindowsAppInformation {
   const displayName = getKeyOrEmpty(keys, 'DisplayName')
   const publisher = getKeyOrEmpty(keys, 'Publisher')
-  const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
+  const installLocation = getKeyOrEmpty(
+    keys,
+    editor.installLocationRegistryKey ?? 'InstallLocation'
+  )
   return { displayName, publisher, installLocation }
 }
 
-async function findApplication(
-  editor: IWindowsExternalEditor
-): Promise<string | null> {
-  let keys: ReadonlyArray<RegistryValue> = []
+async function findApplication(editor: IWindowsExternalEditor) {
   for (const { key, subKey } of editor.registryKeys) {
-    keys = enumerateValues(key, subKey)
-    if (keys.length > 0) {
-      break
+    const keys = enumerateValues(key, subKey)
+    if (keys.length === 0) {
+      continue
     }
+
+    const { displayName, publisher, installLocation } = getAppInfo(editor, keys)
+
+    if (!editor.expectedInstallationChecker(displayName, publisher)) {
+      log.debug(`Unexpectted registry entries for ${editor.name}`)
+      continue
+    }
+
+    const path = Path.join(installLocation, ...editor.executableShimPath)
+    const exists = await pathExists(path)
+    if (!exists) {
+      log.debug(`Executable for ${editor.name} not found at '${path}'`)
+      continue
+    }
+
+    return path
   }
 
-  if (keys.length === 0) {
-    return null
-  }
-
-  const appInformationExtractor = editor.getAppInfo ?? getFallbackAppInfo
-
-  const { displayName, publisher, installLocation } = appInformationExtractor(
-    keys
-  )
-
-  if (!editor.expectedInstallationChecker(displayName, publisher)) {
-    log.debug(
-      `Registry entry for ${editor.name} did not match expected publisher settings`
-    )
-    return null
-  }
-
-  const path = Path.join(installLocation, ...editor.executableShimPath)
-  const exists = await pathExists(path)
-  if (!exists) {
-    log.debug(
-      `Command line interface for ${editor.name} not found at '${path}'`
-    )
-    return null
-  }
-
-  return path
+  return null
 }
 
 /**
