@@ -55,6 +55,9 @@ interface IWindowsExternalEditor {
    * fields (display name, publisher and installation path).
    *
    * Receives the collection of registry key-value pairs for the app.
+   *
+   * Optional. If not provided, those three pieces of info will be obtained from
+   * the 'DisplayName', 'Publisher' and 'InstallLocation' keys, respectively.
    */
   readonly appInformationExtractor?: AppInformationExtractor
 
