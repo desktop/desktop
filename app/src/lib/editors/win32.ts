@@ -177,8 +177,7 @@ const editors: IWindowsExternalEditor[] = [
     ],
     executableShimPath: ['CFBuilder.exe'],
     expectedInstallationChecker: (displayName, publisher) =>
-      (displayName === 'Adobe ColdFusion Builder 3' ||
-        displayName === 'Adobe ColdFusion Builder 2016') &&
+      displayName.startsWith('Adobe ColdFusion Builder') &&
       publisher === 'Adobe Systems Incorporated',
   },
   {
@@ -316,7 +315,7 @@ async function findApplication(editor: IWindowsExternalEditor) {
     const { displayName, publisher, installLocation } = getAppInfo(editor, keys)
 
     if (!editor.expectedInstallationChecker(displayName, publisher)) {
-      log.debug(`Unexpectted registry entries for ${editor.name}`)
+      log.debug(`Unexpected registry entries for ${editor.name}`)
       continue
     }
 

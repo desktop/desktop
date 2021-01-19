@@ -126,10 +126,10 @@ enumerate the uninstall keys:
 
 As part of installing to the registry, a program will insert a
 number of key-value pairs - Desktop will enumerate these to ensure it's the
-application it expects, and identify where the install location of the
+application it expects, and identify the install location of the
 application.
 
-There's two steps to this process. The first step is reading the registry, and
+There are two steps to this process. The first step is reading the registry, and
 you can see this code in `getAppInfo()`:
 
 ```ts
@@ -256,7 +256,8 @@ The `CFBundleIdentifier` value in the plist is what applications use to
 uniquely identify themselves, for example `com.github.GitHubClient` is the
 identifier for GitHub Desktop.
 
-With this bundle identifier, the app can obtain the install location of the app.
+With this bundle identifier, the GitHub Desktop can obtain the install location
+of the app.
 
 The `bundleIdentifiers` attribute lists all the bundle identifiers that can
 refer to the editor:
@@ -274,7 +275,6 @@ it will return the path to the application on disk. Otherwise it will raise an
 exception.
 
 ## Linux
-
 
 The source for the editor integration on Linux is found in
 [`app/src/lib/editors/linux.ts`](https://github.com/desktop/desktop/blob/development/app/src/lib/editors/linux.ts).
