@@ -1359,7 +1359,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             selectedTheme={this.state.selectedTheme}
             automaticallySwitchTheme={this.state.automaticallySwitchTheme}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
-            commitSpellcheckEnabled={this.state.commitSpellcheckEnabled}
           />
         )
       case PopupType.MergeBranch: {

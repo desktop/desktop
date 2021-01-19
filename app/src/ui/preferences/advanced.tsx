@@ -10,13 +10,11 @@ interface IAdvancedPreferencesProps {
   readonly optOutOfUsageTracking: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly repositoryIndicatorsEnabled: boolean
-  readonly commitSpellcheckEnabled: boolean
   readonly onOptOutofReportingchanged: (checked: boolean) => void
   readonly onUncommittedChangesStrategyChanged: (
     value: UncommittedChangesStrategy
   ) => void
   readonly onRepositoryIndicatorsEnabledChanged: (enabled: boolean) => void
-  readonly onCommitSpellcheckEnabledChanged: (enabled: boolean) => void
 }
 
 interface IAdvancedPreferencesState {
@@ -57,12 +55,6 @@ export class Advanced extends React.Component<
     event: React.FormEvent<HTMLInputElement>
   ) => {
     this.props.onRepositoryIndicatorsEnabledChanged(event.currentTarget.checked)
-  }
-
-  private onCommitSpellcheckEnabledChanged = (
-    event: React.FormEvent<HTMLInputElement>
-  ) => {
-    this.props.onCommitSpellcheckEnabledChanged(event.currentTarget.checked)
   }
 
   private reportDesktopUsageLabel() {
@@ -136,18 +128,6 @@ export class Advanced extends React.Component<
                 : CheckboxValue.On
             }
             onChange={this.onReportingOptOutChanged}
-          />
-        </div>
-        <div className="advanced-section">
-          <h2>Other</h2>
-          <Checkbox
-            label="Enable spellcheck on commit summary and description"
-            value={
-              this.props.commitSpellcheckEnabled
-                ? CheckboxValue.On
-                : CheckboxValue.Off
-            }
-            onChange={this.onCommitSpellcheckEnabledChanged}
           />
         </div>
       </DialogContent>

@@ -53,7 +53,6 @@ interface IPreferencesProps {
   readonly selectedTheme: ApplicationTheme
   readonly automaticallySwitchTheme: boolean
   readonly repositoryIndicatorsEnabled: boolean
-  readonly commitSpellcheckEnabled: boolean
 }
 
 interface IPreferencesState {
@@ -83,7 +82,6 @@ interface IPreferencesState {
    */
   readonly existingLockFilePath?: string
   readonly repositoryIndicatorsEnabled: boolean
-  readonly commitSpellcheckEnabled: boolean
 }
 
 /** The app-level preferences component. */
@@ -113,7 +111,6 @@ export class Preferences extends React.Component<
       availableShells: [],
       selectedShell: this.props.selectedShell,
       repositoryIndicatorsEnabled: this.props.repositoryIndicatorsEnabled,
-      commitSpellcheckEnabled: this.props.commitSpellcheckEnabled,
     }
   }
 
@@ -326,7 +323,6 @@ export class Preferences extends React.Component<
           <Advanced
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
-            commitSpellcheckEnabled={this.state.commitSpellcheckEnabled}
             uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
             onOptOutofReportingchanged={this.onOptOutofReportingChanged}
             onUncommittedChangesStrategyChanged={
@@ -334,9 +330,6 @@ export class Preferences extends React.Component<
             }
             onRepositoryIndicatorsEnabledChanged={
               this.onRepositoryIndicatorsEnabledChanged
-            }
-            onCommitSpellcheckEnabledChanged={
-              this.onCommitSpellcheckEnabledChanged
             }
           />
         )
@@ -353,12 +346,6 @@ export class Preferences extends React.Component<
     repositoryIndicatorsEnabled: boolean
   ) => {
     this.setState({ repositoryIndicatorsEnabled })
-  }
-
-  private onCommitSpellcheckEnabledChanged = (
-    commitSpellcheckEnabled: boolean
-  ) => {
-    this.setState({ commitSpellcheckEnabled })
   }
 
   private onLockFileDeleted = () => {
@@ -484,15 +471,6 @@ export class Preferences extends React.Component<
       ) {
         this.props.dispatcher.setRepositoryIndicatorsEnabled(
           this.state.repositoryIndicatorsEnabled
-        )
-      }
-
-      if (
-        this.props.commitSpellcheckEnabled !==
-        this.state.commitSpellcheckEnabled
-      ) {
-        this.props.dispatcher.setCommitSpellcheckEnabled(
-          this.state.commitSpellcheckEnabled
         )
       }
     } catch (e) {
