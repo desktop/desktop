@@ -110,12 +110,10 @@ export async function getBranches(
  *
  * @param repository Repository to get the branches from.
  * @param allBranches All known branches in the repository.
- * @param currentBranchName Name of the current branch.
  */
 export async function getBranchesDifferingFromUpstream(
   repository: Repository,
-  allBranches: ReadonlyArray<Branch>,
-  currentBranchName: string | null
+  allBranches: ReadonlyArray<Branch>
 ): Promise<ReadonlyArray<Branch>> {
   const format = [
     '%(refname)',
@@ -123,6 +121,7 @@ export async function getBranchesDifferingFromUpstream(
     '%(objectname)', // SHA
     '%(upstream)',
     '%(symref)',
+    '%(HEAD)',
   ].join('%00')
 
   const prefixes = ['refs/heads', 'refs/remotes']
@@ -154,21 +153,15 @@ export async function getBranchesDifferingFromUpstream(
   // - For local branches with upstream: name, ref, SHA and the upstream.
   // - For remote branches we only need the sha (and the ref as key).
   for (const line of lines) {
-    const pieces = line.split('\0')
+    const [ref, name, sha, upstream, symref, head] = line.split('\0')
 
-    const ref = pieces[0]
-    const name = pieces[1]
-    const sha = pieces[2]
-    const upstream = pieces[3]
-    const symref = pieces[4]
-
-    if (symref.length > 0 || name === currentBranchName) {
+    if (symref.length > 0 || head === '*') {
       // Exclude symbolic refs and the current branch
       continue
     }
 
     if (ref.startsWith('refs/head')) {
-      if (!upstream.length) {
+      if (upstream.length === 0) {
         // Exclude local branches without upstream
         continue
       }

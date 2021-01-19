@@ -3763,14 +3763,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private async fastForwardBranches(repository: Repository) {
     const { branchesState } = this.repositoryStateCache.get(repository)
-    const { allBranches, tip } = branchesState
-    const currentBranchName =
-      tip.kind === TipState.Valid ? tip.branch.name : null
+    const { allBranches } = branchesState
 
     const eligibleBranches = await getBranchesDifferingFromUpstream(
       repository,
-      allBranches,
-      currentBranchName
+      allBranches
     )
 
     for (const branch of eligibleBranches) {
