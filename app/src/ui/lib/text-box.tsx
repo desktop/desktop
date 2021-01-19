@@ -291,7 +291,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           onKeyDown={this.onKeyDown}
           tabIndex={this.props.tabIndex}
           onContextMenu={this.onContextMenu}
-          spellCheck={!!this.props.spellcheck}
+          spellCheck={this.props.spellcheck === true}
         />
       </div>
     )
