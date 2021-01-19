@@ -351,19 +351,27 @@ export class CommitMessage extends React.Component<
       { type: 'separator' },
     ]
 
-    if (this.props.commitSpellcheckEnabled) {
-      items.push({
-        label: 'Disable Commit Spellcheck',
-        action: () => this.props.dispatcher.setCommitSpellcheckEnabled(false),
-      })
-    } else {
-      items.push({
-        label: 'Enable Commit Spellcheck',
-        action: () => this.props.dispatcher.setCommitSpellcheckEnabled(true),
-      })
-    }
+    items.push(
+      this.getCommitSpellcheckEnabilityMenuItem(
+        this.props.commitSpellcheckEnabled
+      )
+    )
 
     showContextualMenu(items, true)
+  }
+
+  private getCommitSpellcheckEnabilityMenuItem(isEnabled: boolean): IMenuItem {
+    const enableLabel = __DARWIN__
+      ? 'Enable Commit Spellcheck'
+      : 'Enable commit spellcheck'
+    const disableLabel = __DARWIN__
+      ? 'Disable Commit Spellcheck'
+      : 'Disable commit spellcheck'
+    return {
+      label: isEnabled ? disableLabel : enableLabel,
+      action: () =>
+        this.props.dispatcher.setCommitSpellcheckEnabled(!isEnabled),
+    }
   }
 
   private onCoAuthorToggleButtonClick = (
