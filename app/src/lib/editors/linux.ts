@@ -52,7 +52,7 @@ const editors: ILinuxExternalEditor[] = [
 ]
 
 async function getAvailablePath(paths: string[]): Promise<string | null> {
-  for (const path in paths) {
+  for (const path of paths) {
     if (await pathExists(path)) {
       return path
     }
