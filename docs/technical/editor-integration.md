@@ -328,6 +328,9 @@ The `CFBundleIdentifier` value in the plist is what applications use to
 uniquely identify themselves, for example `com.github.GitHubClient` is the
 identifier for GitHub Desktop.
 
+To find the bundle identifier for an application, using `PhpStorm` as an example, 
+run `defaults read /Applications/PhpStorm.app/Contents/Info CFBundleIdentifier`.
+
 The `getBundleIdentifier()` method is the lookup method for this value:
 
 ```ts
