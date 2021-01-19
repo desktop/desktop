@@ -288,67 +288,33 @@ These editors are currently supported:
  - [Typora](https://typora.io/)
  - [SlickEdit](https://www.slickedit.com)
 
-These are defined in an enum at the top of the file:
+These are defined in a list at the top of the file:
 
 ```ts
-export enum ExternalEditor {
-  Atom = 'Atom',
-  VSCode = 'Visual Studio Code',
-  VSCodeInsiders = 'Visual Studio Code (Insiders)',
-  VSCodium = 'VSCodium',
-  SublimeText = 'Sublime Text',
-  Typora = 'Typora',
-  SlickEdit = 'SlickEdit',
-}
+/**
+ * This list contains all the external editors supported on Linux. Add a new
+ * entry here to add support for your favorite editor.
+ **/
+const editors: ILinuxExternalEditor[] = [
+...
+]
 ```
 
-If you want to add another editor, add a new key to the `ExternalEditor`
-enum with a friendly name for the value. This will trigger a compiler
-error, and you need to add code to `getEditorPath()` to get the source
-building again.
+If you want to add another editor, you just need to add a new entry to this
+list. The compiler will help you with the info needed about the new editor.
 
-### Step 1: Find executable path
+The `name` attribute will be shown in the list of supported editors inside the
+app, but will also be treated as the identifier of the editor, so it must be
+unique.
 
-The `getEditorPath()` maps the editor enum to an expected path to the
-editor executable. Add a new `case` statement for your editor.
+### Find executable path
 
-```ts
-case ExternalEditor.VisualStudioCode:
-  return getPathIfAvailable('/usr/bin/code')
-```
-### Step 2: Lookup executable
-
-Once you've done that, add code to `getAvailableEditors()` so that it checks
-for your new editor, following the existing patterns.
+The `paths` attribute must contain a list of paths where executables for the
+editor might be found.
 
 ```ts
-export async function getAvailableEditors(): Promise<
-  ReadonlyArray<IFoundEditor<ExternalEditor>>
-> {
-  const results: Array<IFoundEditor<ExternalEditor>> = []
-
-  const [
-    atomPath,
-    codePath,
-    codeInsidersPath,
-    sublimePath,
-    typoraPath,
-    slickeditPath,
-  ] = await Promise.all([
-    getEditorPath(ExternalEditor.Atom),
-    getEditorPath(ExternalEditor.VisualStudioCode),
-    getEditorPath(ExternalEditor.VisualStudioCodeInsiders),
-    getEditorPath(ExternalEditor.SublimeText),
-    getEditorPath(ExternalEditor.Typora),
-    getEditorPath(ExternalEditor.SlickEdit),
-  ])
-
-  ...
-
-  if (codePath) {
-    results.push({ editor: ExternalEditor.VisualStudioCode, path: codePath })
-  }
-
-  ...
-}
+{
+  name: 'Visual Studio Code',
+  paths: ['/usr/bin/code'],
+},
 ```
