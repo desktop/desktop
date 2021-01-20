@@ -305,6 +305,9 @@ const imageDiffTypeKey = 'image-diff-type'
 const hideWhitespaceInDiffDefault = false
 const hideWhitespaceInDiffKey = 'hide-whitespace-in-diff'
 
+const commitSpellcheckEnabledDefault = true
+const commitSpellcheckEnabledKey = 'commit-spellcheck-enabled'
+
 const shellKey = 'shell'
 
 const repositoryIndicatorsEnabledKey = 'enable-repository-indicators'
@@ -384,6 +387,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
   private hideWhitespaceInDiff: boolean = hideWhitespaceInDiffDefault
+  /** Whether or not the spellchecker is enabled for commit summary and description */
+  private commitSpellcheckEnabled: boolean = commitSpellcheckEnabledDefault
   private showSideBySideDiff: boolean = ShowSideBySideDiffDefault
 
   private uncommittedChangesStrategy = defaultUncommittedChangesStrategy
@@ -764,6 +769,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       optOutOfUsageTracking: this.statsStore.getOptOut(),
       currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
       repositoryIndicatorsEnabled: this.repositoryIndicatorsEnabled,
+      commitSpellcheckEnabled: this.commitSpellcheckEnabled,
     }
   }
 
@@ -1685,6 +1691,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
         : parseInt(imageDiffTypeValue)
 
     this.hideWhitespaceInDiff = getBoolean(hideWhitespaceInDiffKey, false)
+    this.commitSpellcheckEnabled = getBoolean(
+      commitSpellcheckEnabledKey,
+      commitSpellcheckEnabledDefault
+    )
     this.showSideBySideDiff = getShowSideBySideDiff()
 
     this.automaticallySwitchTheme = getAutoSwitchPersistedTheme()
@@ -2787,6 +2797,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     } else {
       this.repositoryIndicatorUpdater.stop()
     }
+
+    this.emitUpdate()
+  }
+
+  public _setCommitSpellcheckEnabled(commitSpellcheckEnabled: boolean) {
+    if (this.commitSpellcheckEnabled === commitSpellcheckEnabled) {
+      return
+    }
+
+    setBoolean(commitSpellcheckEnabledKey, commitSpellcheckEnabled)
+    this.commitSpellcheckEnabled = commitSpellcheckEnabled
 
     this.emitUpdate()
   }
