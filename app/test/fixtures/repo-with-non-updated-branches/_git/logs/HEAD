@@ -1,0 +1,20 @@
+0000000000000000000000000000000000000000 7651972017fd29d9d70f3322212860237c542ed5 Sergio Padrino <sergio.padrino@gmail.com> 1611140959 +0100	commit (initial): First commit! :tada:
+7651972017fd29d9d70f3322212860237c542ed5 384b42f88f9d4966116af453ce12490a10e12371 Sergio Padrino <sergio.padrino@gmail.com> 1611141025 +0100	commit: Create new file
+384b42f88f9d4966116af453ce12490a10e12371 9cc7066ef25abd17090aa241022d4cbac8a3382c Sergio Padrino <sergio.padrino@gmail.com> 1611141072 +0100	commit: Another commit
+9cc7066ef25abd17090aa241022d4cbac8a3382c 02b7da775cdf2f4eb8277e95c87ea3b2f8bd47c1 Sergio Padrino <sergio.padrino@gmail.com> 1611141084 +0100	commit: MOAR commits
+02b7da775cdf2f4eb8277e95c87ea3b2f8bd47c1 02b7da775cdf2f4eb8277e95c87ea3b2f8bd47c1 Sergio Padrino <sergio.padrino@gmail.com> 1611141126 +0100	checkout: moving from master to branch-behind
+02b7da775cdf2f4eb8277e95c87ea3b2f8bd47c1 384b42f88f9d4966116af453ce12490a10e12371 Sergio Padrino <sergio.padrino@gmail.com> 1611141249 +0100	reset: moving to 384b42f88f9d4966116af453ce12490a10e12371
+384b42f88f9d4966116af453ce12490a10e12371 384b42f88f9d4966116af453ce12490a10e12371 Sergio Padrino <sergio.padrino@gmail.com> 1611141270 +0100	checkout: moving from branch-behind to HEAD
+384b42f88f9d4966116af453ce12490a10e12371 9cc7066ef25abd17090aa241022d4cbac8a3382c Sergio Padrino <sergio.padrino@gmail.com> 1611141281 +0100	checkout: moving from 384b42f88f9d4966116af453ce12490a10e12371 to 9cc7066ef25abd17090aa241022d4cbac8a3382c
+9cc7066ef25abd17090aa241022d4cbac8a3382c 9cc7066ef25abd17090aa241022d4cbac8a3382c Sergio Padrino <sergio.padrino@gmail.com> 1611141288 +0100	checkout: moving from 9cc7066ef25abd17090aa241022d4cbac8a3382c to branch-ahead
+9cc7066ef25abd17090aa241022d4cbac8a3382c 02b7da775cdf2f4eb8277e95c87ea3b2f8bd47c1 Sergio Padrino <sergio.padrino@gmail.com> 1611141313 +0100	reset: moving to master
+02b7da775cdf2f4eb8277e95c87ea3b2f8bd47c1 02b7da775cdf2f4eb8277e95c87ea3b2f8bd47c1 Sergio Padrino <sergio.padrino@gmail.com> 1611141338 +0100	checkout: moving from branch-ahead to branch-ahead-and-behind
+02b7da775cdf2f4eb8277e95c87ea3b2f8bd47c1 9cc7066ef25abd17090aa241022d4cbac8a3382c Sergio Padrino <sergio.padrino@gmail.com> 1611141348 +0100	checkout: moving from branch-ahead-and-behind to 9cc7066ef25abd17090aa241022d4cbac8a3382c
+9cc7066ef25abd17090aa241022d4cbac8a3382c 02b7da775cdf2f4eb8277e95c87ea3b2f8bd47c1 Sergio Padrino <sergio.padrino@gmail.com> 1611141357 +0100	checkout: moving from 9cc7066ef25abd17090aa241022d4cbac8a3382c to branch-ahead-and-behind
+02b7da775cdf2f4eb8277e95c87ea3b2f8bd47c1 9cc7066ef25abd17090aa241022d4cbac8a3382c Sergio Padrino <sergio.padrino@gmail.com> 1611141361 +0100	reset: moving to 9cc7066ef25abd17090aa241022d4cbac8a3382c
+9cc7066ef25abd17090aa241022d4cbac8a3382c f08576b50226662fef198ab24593e1ef47628707 Sergio Padrino <sergio.padrino@gmail.com> 1611141381 +0100	commit: Another commit, but we're diverging now...
+f08576b50226662fef198ab24593e1ef47628707 02b7da775cdf2f4eb8277e95c87ea3b2f8bd47c1 Sergio Padrino <sergio.padrino@gmail.com> 1611141430 +0100	checkout: moving from branch-ahead-and-behind to master
+02b7da775cdf2f4eb8277e95c87ea3b2f8bd47c1 9cc7066ef25abd17090aa241022d4cbac8a3382c Sergio Padrino <sergio.padrino@gmail.com> 1611141440 +0100	reset: moving to 9cc7066ef25abd17090aa241022d4cbac8a3382c
+9cc7066ef25abd17090aa241022d4cbac8a3382c 02b7da775cdf2f4eb8277e95c87ea3b2f8bd47c1 Sergio Padrino <sergio.padrino@gmail.com> 1611141607 +0100	checkout: moving from master to origin/master
+02b7da775cdf2f4eb8277e95c87ea3b2f8bd47c1 02b7da775cdf2f4eb8277e95c87ea3b2f8bd47c1 Sergio Padrino <sergio.padrino@gmail.com> 1611141623 +0100	checkout: moving from 02b7da775cdf2f4eb8277e95c87ea3b2f8bd47c1 to up-to-date-branch
+02b7da775cdf2f4eb8277e95c87ea3b2f8bd47c1 9cc7066ef25abd17090aa241022d4cbac8a3382c Sergio Padrino <sergio.padrino@gmail.com> 1611142897 +0100	checkout: moving from up-to-date-branch to master
