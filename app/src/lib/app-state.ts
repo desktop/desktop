@@ -26,7 +26,6 @@ import { Popup } from '../models/popup'
 import { SignInState } from './stores/sign-in-store'
 
 import { WindowState } from './window-state'
-import { ExternalEditor } from './editors'
 import { Shell } from './shells'
 
 import { ApplicationTheme } from '../ui/lib/application-theme'
@@ -177,7 +176,7 @@ export interface IAppState {
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
 
   /** The external editor to use when opening repositories */
-  readonly selectedExternalEditor: ExternalEditor | null
+  readonly selectedExternalEditor: string | null
 
   /** The current setting for whether the user has disable usage reports */
   readonly optOutOfUsageTracking: boolean
@@ -189,7 +188,7 @@ export interface IAppState {
    *    based on the search order in `app/src/lib/editors/{platform}.ts`
    *  - If no editors found, this will remain `null`
    */
-  readonly resolvedExternalEditor: ExternalEditor | null
+  readonly resolvedExternalEditor: string | null
 
   /** What type of visual diff mode we should use to compare images */
   readonly imageDiffType: ImageDiffType

@@ -107,11 +107,9 @@ import {
   ChangesWorkingDirectorySelection,
 } from '../app-state'
 import {
-  ExternalEditor,
   findEditorOrDefault,
   getAvailableEditors,
   launchExternalEditor,
-  parse,
 } from '../editors'
 import { assertNever, fatalError } from '../fatal-error'
 
@@ -393,9 +391,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private uncommittedChangesStrategy = defaultUncommittedChangesStrategy
 
-  private selectedExternalEditor: ExternalEditor | null = null
+  private selectedExternalEditor: string | null = null
 
-  private resolvedExternalEditor: ExternalEditor | null = null
+  private resolvedExternalEditor: string | null = null
 
   /** The user's preferred shell. */
   private selectedShell = DefaultShell
@@ -1721,7 +1719,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private updateSelectedExternalEditor(
-    selectedEditor: ExternalEditor | null
+    selectedEditor: string | null
   ): Promise<void> {
     this.selectedExternalEditor = selectedEditor
 
@@ -1730,16 +1728,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this._resolveCurrentEditor()
   }
 
-  private async lookupSelectedExternalEditor(): Promise<ExternalEditor | null> {
+  private async lookupSelectedExternalEditor(): Promise<string | null> {
     const editors = (await getAvailableEditors()).map(found => found.editor)
 
-    const externalEditorValue = localStorage.getItem(externalEditorKey)
-    if (externalEditorValue) {
-      const value = parse(externalEditorValue)
-      // ensure editor is still installed
-      if (value && editors.includes(value)) {
-        return value
-      }
+    const value = localStorage.getItem(externalEditorKey)
+    // ensure editor is still installed
+    if (value && editors.includes(value)) {
+      return value
     }
 
     if (editors.length) {
@@ -4513,7 +4508,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-  public _setExternalEditor(selectedEditor: ExternalEditor) {
+  public _setExternalEditor(selectedEditor: string) {
     const promise = this.updateSelectedExternalEditor(selectedEditor)
     localStorage.setItem(externalEditorKey, selectedEditor)
     this.emitUpdate()

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { Account } from '../../models/account'
 import { PreferencesTab } from '../../models/preferences'
-import { ExternalEditor } from '../../lib/editors'
 import { Dispatcher } from '../dispatcher'
 import { TabBar, TabBarType } from '../tab-bar'
 import { Accounts } from './accounts'
@@ -48,7 +47,7 @@ interface IPreferencesProps {
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
-  readonly selectedExternalEditor: ExternalEditor | null
+  readonly selectedExternalEditor: string | null
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
   readonly automaticallySwitchTheme: boolean
@@ -69,8 +68,8 @@ interface IPreferencesState {
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
-  readonly availableEditors: ReadonlyArray<ExternalEditor>
-  readonly selectedExternalEditor: ExternalEditor | null
+  readonly availableEditors: ReadonlyArray<string>
+  readonly selectedExternalEditor: string | null
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
   /**
@@ -395,7 +394,7 @@ export class Preferences extends React.Component<
     this.setState({ defaultBranch })
   }
 
-  private onSelectedEditorChanged = (editor: ExternalEditor) => {
+  private onSelectedEditorChanged = (editor: string) => {
     this.setState({ selectedExternalEditor: editor })
   }
 

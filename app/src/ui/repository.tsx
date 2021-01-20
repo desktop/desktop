@@ -26,7 +26,6 @@ import { StashDiffViewer } from './stashing'
 import { StashedChangesLoadStates } from '../models/stash-entry'
 import { TutorialPanel, TutorialWelcome, TutorialDone } from './tutorial'
 import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
-import { ExternalEditor } from '../lib/editors'
 import { openFile } from './lib/open-file'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
 
@@ -68,7 +67,7 @@ interface IRepositoryViewProps {
   readonly externalEditorLabel?: string
 
   /** A cached entry representing an external editor found on the user's machine */
-  readonly resolvedExternalEditor: ExternalEditor | null
+  readonly resolvedExternalEditor: string | null
 
   /**
    * Callback to open a selected file using the configured external editor

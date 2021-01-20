@@ -16,7 +16,6 @@ import {
   isMergeConflictState,
   RebaseConflictState,
 } from '../../lib/app-state'
-import { ExternalEditor } from '../../lib/editors'
 import { assertNever, fatalError } from '../../lib/fatal-error'
 import {
   setGenericPassword,
@@ -1749,7 +1748,7 @@ export class Dispatcher {
   /**
    * Sets the user's preference for an external program to open repositories in.
    */
-  public setExternalEditor(editor: ExternalEditor): Promise<void> {
+  public setExternalEditor(editor: string): Promise<void> {
     return this.appStore._setExternalEditor(editor)
   }
 
