@@ -245,7 +245,13 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   }
 
   private renderBranch = (item: IBranchListItem, matches: IMatches) => {
-    return renderDefaultBranch(item, matches, this.props.currentBranch)
+    return renderDefaultBranch(
+      item,
+      matches,
+      this.props.currentBranch,
+      (branchName: string) => {}, // TODO: figure out where this is at & impact
+      (branchName: string) => {} // TODO: figure out where this is at & impact)
+    )
   }
 
   private canMergeSelectedBranch() {
