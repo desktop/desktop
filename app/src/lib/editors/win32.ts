@@ -227,15 +227,10 @@ const editors: IWindowsExternalEditor[] = [
   {
     name: 'JetBrains Webstorm',
     registryKeys: [
-      // Webstorm 2018.3
       Wow64LocalMachineUninstallKey('WebStorm 2018.3'),
-      // Webstorm 2019.2
       Wow64LocalMachineUninstallKey('WebStorm 2019.2'),
-      // Webstorm 2019.2.4
       Wow64LocalMachineUninstallKey('WebStorm 2019.2.4'),
-      // Webstorm 2019.3
       Wow64LocalMachineUninstallKey('WebStorm 2019.3'),
-      // Webstorm 2020.1
       Wow64LocalMachineUninstallKey('WebStorm 2020.1'),
     ],
     executableShimPath: ['bin', 'webstorm.exe'],
@@ -245,13 +240,9 @@ const editors: IWindowsExternalEditor[] = [
   {
     name: 'JetBrains Phpstorm',
     registryKeys: [
-      // PhpStorm 2019.2
       Wow64LocalMachineUninstallKey('PhpStorm 2019.2'),
-      // PhpStorm 2019.2.4
       Wow64LocalMachineUninstallKey('PhpStorm 2019.2.4'),
-      // PhpStorm 2019.3
       Wow64LocalMachineUninstallKey('PhpStorm 2019.3'),
-      // PhpStorm 2020.1
       Wow64LocalMachineUninstallKey('PhpStorm 2020.1'),
     ],
     executableShimPath: ['bin', 'phpstorm.exe'],
@@ -273,10 +264,7 @@ const editors: IWindowsExternalEditor[] = [
   },
   {
     name: 'JetBrains Rider',
-    registryKeys: [
-      // Rider 2019.3.4
-      Wow64LocalMachineUninstallKey('JetBrains Rider 2019.3.4'),
-    ],
+    registryKeys: [Wow64LocalMachineUninstallKey('JetBrains Rider 2019.3.4')],
     executableShimPath: ['bin', 'rider64.exe'],
     expectedInstallationChecker: (displayName, publisher) =>
       displayName.startsWith('JetBrains Rider') &&
