@@ -41,6 +41,7 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
         action: () => this.props.onRenameBranch(this.props.name),
       },
       {
+        enabled: this.props.isLocal,
         label: 'Delete',
         action: () => this.props.onDeleteBranch(this.props.name),
       },
