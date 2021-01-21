@@ -22,6 +22,8 @@ interface IBranchListItemProps {
   readonly matches: IMatches
 
   readonly onRenameBranch: (branchName: string) => void
+  /** Specifies whether the branch is local */
+  readonly isLocal: boolean
 
   readonly onDeleteBranch: (branchName: string) => void
 }
