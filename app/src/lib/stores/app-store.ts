@@ -266,6 +266,7 @@ import {
   getShowSideBySideDiff,
   setShowSideBySideDiff,
 } from '../../ui/lib/diff-mode'
+import { trampolineServer } from '../trampoline-server'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -1626,6 +1627,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** Load the initial state for the app. */
   public async loadInitialState() {
+    trampolineServer.registerCommandHandler('ASKPASS', async parameters => {
+      //return this.withAuthenticatingUser(this.)
+      if (parameters.length !== 1 || parameters[0] !== 'Username') {
+        return undefined
+      }
+
+      // TODO: use the real username
+      return 'fake-test-user'
+    })
+
+    await trampolineServer.run()
+
     const [accounts, repositories] = await Promise.all([
       this.accountsStore.getAll(),
       this.repositoriesStore.getAll(),
