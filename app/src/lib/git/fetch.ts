@@ -6,6 +6,7 @@ import { FetchProgressParser, executionOptionsWithProgress } from '../progress'
 import { enableRecurseSubmodulesFlag } from '../feature-flag'
 import { IRemote } from '../../models/remote'
 import { envForRemoteOperation } from './environment'
+import { Branch } from '../../models/branch'
 
 async function getFetchArgs(
   repository: Repository,
@@ -127,4 +128,63 @@ export async function fetchRefspec(
   const args = [...networkArguments, 'fetch', remote.name, refspec]
 
   await git(args, repository.path, 'fetchRefspec', options)
+}
+
+export async function fastForwardBranches(
+  repository: Repository,
+  branches: ReadonlyArray<Branch>
+): Promise<ReadonlyArray<Branch>> {
+  const opts: IGitExecutionOptions = {
+    successExitCodes: new Set([0, 1]),
+    env: {
+      GIT_REFLOG_ACTION: 'pull',
+    },
+  }
+
+  const branchPairs = branches.map(
+    branch => `refs/remotes/${branch.upstream}:refs/heads/${branch.name}`
+  )
+
+  const result = await git(
+    [
+      '-c',
+      'fetch.output=full',
+      'fetch',
+      '.',
+      '--show-forced-updates',
+      '-v',
+      ...branchPairs,
+    ],
+    repository.path,
+    'fastForwardBranches',
+    opts
+  )
+
+  const lines = result.combinedOutput.split('\n')
+
+  // Remove the first 'From .'  line
+  lines.splice(0, 1)
+
+  // Remove the trailing newline
+  lines.splice(-1, 1)
+
+  const updatedBranches = new Map<String, String>()
+
+  for (const line of lines) {
+    const pieces = line.split(' ').filter(piece => piece.length > 0)
+
+    if (pieces.length === 0) {
+      continue
+    }
+
+    if (pieces[0].indexOf('..') === undefined) {
+      // Omit non-updated branches
+      continue
+    }
+
+    const to = pieces[0].split('..')[1]
+    updatedBranches.set(pieces[pieces.length - 1], to)
+  }
+
+  return branches.filter(branch => updatedBranches.has(branch.name))
 }
