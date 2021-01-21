@@ -21,11 +21,12 @@ interface IBranchListItemProps {
   /** The characters in the branch name to highlight */
   readonly matches: IMatches
 
-  readonly onRenameBranch: (branchName: string) => void
   /** Specifies whether the branch is local */
   readonly isLocal: boolean
 
-  readonly onDeleteBranch: (branchName: string) => void
+  readonly onRenameBranch?: (branchName: string) => void
+
+  readonly onDeleteBranch?: (branchName: string) => void
 }
 
 /** The branch component. */
@@ -33,21 +34,43 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
   private onContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault()
 
+    /*
+      There are multiple instances in the application where a branch list item
+      is rendered. We only want to be able to rename or delete them on the
+      branch dropdown menu. Thus, other places simply won't provide these
+      methods, such as the merge and rebase logic.
+    */
+    if (
+      this.props.onRenameBranch === undefined &&
+      this.props.onDeleteBranch === undefined
+    ) {
+      return
+    }
+
     // TODO: find out - does branch menu have "Rename..." because ... stand
     // for branch name? If so is it needed here? (same for delete)
     // Also, branch menu has & in front for not mac, what is that?
-    // Should it be disabled for current branch?
-    const items: ReadonlyArray<IMenuItem> = [
-      {
+    // Should it be disabled for current branch? - note from prev PR
+    const items: Array<IMenuItem> = []
+
+    if (this.props.onRenameBranch !== undefined) {
+      items.push({
         label: 'Rename',
-        action: () => this.props.onRenameBranch(this.props.name),
-      },
-      {
+        action: () =>
+          this.props.onRenameBranch !== undefined &&
+          this.props.onRenameBranch(this.props.name),
         enabled: this.props.isLocal,
+      })
+    }
+
+    if (this.props.onDeleteBranch !== undefined) {
+      items.push({
         label: 'Delete',
-        action: () => this.props.onDeleteBranch(this.props.name),
-      },
-    ]
+        action: () =>
+          this.props.onDeleteBranch !== undefined &&
+          this.props.onDeleteBranch(this.props.name),
+      })
+    }
 
     showContextualMenu(items)
   }

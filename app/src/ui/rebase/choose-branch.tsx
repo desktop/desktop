@@ -188,13 +188,7 @@ export class ChooseBranchDialog extends React.Component<
   }
 
   private renderBranch = (item: IBranchListItem, matches: IMatches) => {
-    return renderDefaultBranch(
-      item,
-      matches,
-      this.props.currentBranch,
-      (branchName: string) => {}, // TODO: figure out where this is at & impact
-      (branchName: string) => {} // TODO: figure out where this is at & impact
-    )
+    return renderDefaultBranch(item, matches, this.props.currentBranch)
   }
 
   private onItemClick = (branch: Branch, source: ClickSource) => {

@@ -10,8 +10,8 @@ export function renderDefaultBranch(
   item: IBranchListItem,
   matches: IMatches,
   currentBranch: Branch | null,
-  onRenameBranch: (branchName: string) => void,
-  onDeleteBranch: (branchName: string) => void
+  onRenameBranch?: (branchName: string) => void,
+  onDeleteBranch?: (branchName: string) => void
 ): JSX.Element {
   const branch = item.branch
   const commit = branch.tip
