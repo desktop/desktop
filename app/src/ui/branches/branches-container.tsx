@@ -5,7 +5,7 @@ import {
   Repository,
   isRepositoryWithGitHubRepository,
 } from '../../models/repository'
-import { Branch } from '../../models/branch'
+import { Branch, BranchType } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
 import { PopupType } from '../../models/popup'
 
@@ -293,7 +293,12 @@ export class BranchesContainer extends React.Component<
       return
     }
 
-    // TODO: find out about include remote?
-    this.props.dispatcher.deleteBranch(this.props.repository, branch, false)
+    this.props.dispatcher.showPopup({
+      type: PopupType.DeleteBranch,
+      repository: this.props.repository,
+      branch: branch,
+      existsOnRemote:
+        branch.type === BranchType.Remote || branch.remote !== null,
+    })
   }
 }
