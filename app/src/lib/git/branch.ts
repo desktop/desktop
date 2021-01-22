@@ -86,8 +86,6 @@ export async function deleteBranch(
       .replace('/', '')
   }
 
-  debugger
-
   if (includeRemote && remoteName) {
     const networkArguments = await gitNetworkArguments(repository, account)
     const remoteUrl =
