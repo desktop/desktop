@@ -149,6 +149,8 @@ export async function fastForwardBranches(
     [
       '-c',
       'fetch.output=full',
+      '-c',
+      'core.abbrev=40',
       'fetch',
       '.',
       '--show-forced-updates',
@@ -177,7 +179,7 @@ export async function fastForwardBranches(
       continue
     }
 
-    if (pieces[0].indexOf('..') === undefined) {
+    if (pieces[0].indexOf('..') < 0) {
       // Omit non-updated branches
       continue
     }
