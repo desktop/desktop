@@ -78,7 +78,15 @@ export async function deleteBranch(
     await deleteLocalBranch(repository, branch.name)
   }
 
-  const remoteName = branch.remote
+  let remoteName = branch.remote
+
+  if (branch.type === BranchType.Remote) {
+    remoteName = branch.name
+      .replace(branch.nameWithoutRemote, '')
+      .replace('/', '')
+  }
+
+  debugger
 
   if (includeRemote && remoteName) {
     const networkArguments = await gitNetworkArguments(repository, account)
