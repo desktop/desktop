@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
-import { Branch, BranchType } from '../../models/branch'
+import { Branch } from '../../models/branch'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Ref } from '../lib/ref'
@@ -30,7 +30,7 @@ export class DeleteBranch extends React.Component<
     super(props)
 
     this.state = {
-      includeRemoteBranch: this.props.branch.type === BranchType.Remote,
+      includeRemoteBranch: false,
       isDeleting: false,
     }
   }
@@ -39,7 +39,7 @@ export class DeleteBranch extends React.Component<
     return (
       <Dialog
         id="delete-branch"
-        title={this.getDeleteBranchDialogHeader()}
+        title={__DARWIN__ ? 'Delete Branch' : 'Delete branch'}
         type="warning"
         onSubmit={this.deleteBranch}
         onDismissed={this.props.onDismissed}
@@ -61,67 +61,30 @@ export class DeleteBranch extends React.Component<
     )
   }
 
-  private getDeleteBranchDialogHeader(): string {
-    const isOnlyRemote =
-      this.props.branch.type === BranchType.Remote && this.props.existsOnRemote
-    const remoteHeader = __DARWIN__
-      ? 'Delete Remote Branch'
-      : 'Delete remote branch'
-    const localHeader = __DARWIN__ ? 'Delete Branch' : 'Delete branch'
-    return isOnlyRemote ? remoteHeader : localHeader
-  }
-
   private renderDeleteOnRemote() {
-    if (
-      !this.props.existsOnRemote ||
-      (this.props.branch.type !== BranchType.Remote &&
-        this.props.branch.remote === null)
-    ) {
-      return
+    if (this.props.branch.remote && this.props.existsOnRemote) {
+      return (
+        <div>
+          <p>
+            <strong>
+              The branch also exists on the remote, do you wish to delete it
+              there as well?
+            </strong>
+          </p>
+          <Checkbox
+            label="Yes, delete this branch on the remote"
+            value={
+              this.state.includeRemoteBranch
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onIncludeRemoteChanged}
+          />
+        </div>
+      )
     }
 
-    /**
-     * Two possibilities - (1) local and remote or (2) remote only.
-     */
-
-    // local and remote
-    let remoteMessage: string =
-      'The branch also exists on the remote, ' +
-      'do you wish to delete it there as well?'
-    let showCheckBox: boolean = true
-
-    // Remote only
-    if (this.props.branch.type === BranchType.Remote) {
-      remoteMessage =
-        'This branch only exists on the remote, ' +
-        'and does not exist locally.'
-      showCheckBox = false
-    }
-
-    return (
-      <div>
-        <p>
-          <strong>{remoteMessage}</strong>
-        </p>
-        {this.renderCheckBox(showCheckBox)}
-      </div>
-    )
-  }
-
-  private renderCheckBox(showCheckBox: boolean) {
-    if (!showCheckBox) {
-      return
-    }
-
-    return (
-      <Checkbox
-        label="Yes, delete this branch on the remote"
-        value={
-          this.state.includeRemoteBranch ? CheckboxValue.On : CheckboxValue.Off
-        }
-        onChange={this.onIncludeRemoteChanged}
-      />
-    )
+    return null
   }
 
   private onIncludeRemoteChanged = (

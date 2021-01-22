@@ -269,7 +269,7 @@ export class BranchesContainer extends React.Component<
   }
 
   private onRenameBranch = (branchName: string) => {
-    const branch = this.props.allBranches.find(
+    const branch: Branch | undefined = this.props.allBranches.find(
       branch => branch.name === branchName
     )
 
@@ -285,7 +285,7 @@ export class BranchesContainer extends React.Component<
   }
 
   private onDeleteBranch = (branchName: string) => {
-    const branch = this.props.allBranches.find(
+    const branch: Branch | undefined = this.props.allBranches.find(
       branch => branch.name === branchName
     )
 
@@ -293,12 +293,20 @@ export class BranchesContainer extends React.Component<
       return
     }
 
+    if (branch.type === BranchType.Remote) {
+      this.props.dispatcher.showPopup({
+        type: PopupType.DeleteRemoteBranch,
+        repository: this.props.repository,
+        branch: branch,
+      })
+      return
+    }
+
     this.props.dispatcher.showPopup({
       type: PopupType.DeleteBranch,
       repository: this.props.repository,
       branch: branch,
-      existsOnRemote:
-        branch.type === BranchType.Remote || branch.remote !== null,
+      existsOnRemote: branch.remote !== null,
     })
   }
 }
