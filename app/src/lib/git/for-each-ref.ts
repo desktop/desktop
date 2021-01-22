@@ -147,7 +147,7 @@ export async function getBranchesDifferingFromUpstream(
   }
 
   const localBranches = []
-  const remoteBranchShas = new Map<String, String>()
+  const remoteBranchShas = new Map<string, string>()
 
   // First we need to collect the relevant info from the command output:
   // - For local branches with upstream: name, ref, SHA and the upstream.
