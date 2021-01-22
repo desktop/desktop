@@ -86,11 +86,11 @@ describe('git/for-each-ref', () => {
       expect(branchNames).toContain('branch-ahead')
       expect(branchNames).toContain('branch-ahead-and-behind')
 
-      // `master` is the current branch, and shouldn't be included
-      expect(branchNames).not.toContain('master')
+      // `main` is the current branch, and shouldn't be included
+      expect(branchNames).not.toContain('main')
 
       // Branches that are up to date shouldn't be included
-      expect(branchNames).not.toContain('up-to-date-branch')
+      expect(branchNames).not.toContain('branch-up-to-date')
     })
   })
 })
