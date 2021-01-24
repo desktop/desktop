@@ -178,5 +178,8 @@
   "optionalDependencies": {
     "electron-installer-debian": "3.0.0",
     "electron-installer-redhat": "3.0.0"
+  },
+  "resolutions": {
+    "electron/@electron/get": "1.12.2"
   }
 }
