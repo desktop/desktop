@@ -297,7 +297,7 @@ export class BranchesContainer extends React.Component<
       this.props.dispatcher.showPopup({
         type: PopupType.DeleteRemoteBranch,
         repository: this.props.repository,
-        branch: branch,
+        branch,
       })
       return
     }
@@ -305,7 +305,7 @@ export class BranchesContainer extends React.Component<
     this.props.dispatcher.showPopup({
       type: PopupType.DeleteBranch,
       repository: this.props.repository,
-      branch: branch,
+      branch,
       existsOnRemote: branch.remote !== null,
     })
   }
