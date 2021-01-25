@@ -37,38 +37,28 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
     /*
       There are multiple instances in the application where a branch list item
       is rendered. We only want to be able to rename or delete them on the
-      branch dropdown menu. Thus, other places simply won't provide these
+      branch dropdown menu. Thus, other places simply will not provide these
       methods, such as the merge and rebase logic.
     */
-    if (
-      this.props.onRenameBranch === undefined &&
-      this.props.onDeleteBranch === undefined
-    ) {
+    const { onRenameBranch, onDeleteBranch, name, isLocal } = this.props
+    if (onRenameBranch === undefined && onDeleteBranch === undefined) {
       return
     }
 
-    // TODO: find out - does branch menu have "Rename..." because ... stand
-    // for branch name? If so is it needed here? (same for delete)
-    // Also, branch menu has & in front for not mac, what is that?
-    // Should it be disabled for current branch? - note from prev PR
     const items: Array<IMenuItem> = []
 
-    if (this.props.onRenameBranch !== undefined) {
+    if (onRenameBranch !== undefined) {
       items.push({
         label: 'Rename...',
-        action: () =>
-          this.props.onRenameBranch !== undefined &&
-          this.props.onRenameBranch(this.props.name),
-        enabled: this.props.isLocal,
+        action: () => onRenameBranch(name),
+        enabled: isLocal,
       })
     }
 
-    if (this.props.onDeleteBranch !== undefined) {
+    if (onDeleteBranch !== undefined) {
       items.push({
         label: 'Delete...',
-        action: () =>
-          this.props.onDeleteBranch !== undefined &&
-          this.props.onDeleteBranch(this.props.name),
+        action: () => onDeleteBranch(name),
       })
     }
 
