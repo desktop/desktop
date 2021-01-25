@@ -4,6 +4,7 @@ import { LinkButton } from '../lib/link-button'
 import { Row } from '../../ui/lib/row'
 import { Select } from '../lib/select'
 import { Shell, parse as parseShell } from '../../lib/shells'
+import { DEFAULT_EDITOR_NAME, DEFAULT_EDITOR_URL } from '../../lib/stores'
 
 interface IIntegrationsPreferencesProps {
   readonly availableEditors: ReadonlyArray<string>
@@ -97,7 +98,9 @@ export class Integrations extends React.Component<
           <label>{label}</label>
           <span>
             No editors found.{' '}
-            <LinkButton uri="https://atom.io/">Install Atom?</LinkButton>
+            <LinkButton uri={DEFAULT_EDITOR_URL}>
+              Install {DEFAULT_EDITOR_NAME}?
+            </LinkButton>
           </span>
         </div>
       )
