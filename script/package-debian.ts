@@ -47,10 +47,6 @@ const options: DebianOptions = {
   priority: 'extra',
   homepage: 'https://github.com/shiftkey/desktop',
   depends: [
-    // additional core dependencies - are these still needed?
-    'gconf2',
-    'gconf-service',
-    'libappindicator1',
     // Desktop-specific dependencies
     'libcurl3 | libcurl4',
     'libsecret-1-0',

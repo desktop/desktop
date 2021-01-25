@@ -171,13 +171,13 @@
     "@types/winston": "^2.2.0",
     "@types/xml2js": "^0.4.0",
     "electron": "^11.1.1",
-    "electron-builder": "^22.7.0",
-    "electron-packager": "^15.1.0",
+    "electron-builder": "^22.9.1",
+    "electron-packager": "^15.2.0",
     "electron-winstaller": "4.0.2"
   },
   "optionalDependencies": {
-    "electron-installer-debian": "3.0.0",
-    "electron-installer-redhat": "3.0.0"
+    "electron-installer-debian": "3.1.0",
+    "electron-installer-redhat": "3.2.0"
   },
   "resolutions": {
     "electron/@electron/get": "1.12.2"

@@ -304,12 +304,8 @@ function copyDependencies() {
   const updatedPackage = Object.assign({}, originalPackage, {
     productName: getProductName(),
     dependencies: newDependencies,
-    devDependencies: newDevDependencies,
+    devDependencies: isDevelopmentBuild ? newDevDependencies : undefined,
   })
-
-  if (!isDevelopmentBuild) {
-    delete updatedPackage.devDependencies
-  }
 
   fs.writeFileSync(
     path.join(outRoot, 'package.json'),
