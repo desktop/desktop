@@ -14,6 +14,7 @@ import { encodePathAsUrl } from '../../lib/path'
 import { PopupType } from '../../models/popup'
 import { PreferencesTab } from '../../models/preferences'
 import { Ref } from '../lib/ref'
+import { DEFAULT_EDITOR_NAME, DEFAULT_EDITOR_URL } from '../../lib/stores'
 
 const TutorialPanelImage = encodePathAsUrl(
   __dirname,
@@ -115,17 +116,17 @@ export class TutorialPanel extends React.Component<
                   It doesn’t look like you have a text editor installed. We can
                   recommend{' '}
                   <LinkButton
+                    uri={DEFAULT_EDITOR_URL}
+                    title={`Open the ${DEFAULT_EDITOR_NAME} Code website`}
+                  >
+                    {DEFAULT_EDITOR_NAME}
+                  </LinkButton>
+                  {` or `}
+                  <LinkButton
                     uri="https://atom.io"
                     title="Open the Atom website"
                   >
                     Atom
-                  </LinkButton>
-                  {` or `}
-                  <LinkButton
-                    uri="https://code.visualstudio.com"
-                    title="Open the VS Code website"
-                  >
-                    Visual Studio Code
                   </LinkButton>
                   , but feel free to use any.
                 </p>
