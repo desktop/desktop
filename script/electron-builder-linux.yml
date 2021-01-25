@@ -11,10 +11,6 @@ linux:
   maintainer: 'GitHub, Inc <opensource+desktop@github.com>'
 rpm:
   depends:
-    # default Electron dependencies
-    - libXScrnSaver
-    - libappindicator
-    - libnotify
     # dugite-native dependencies
     - libcurl
     # keytar dependencies
