@@ -3616,7 +3616,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
             this.updatePushPullFetchProgress(repository, {
               kind: 'generic',
               title: refreshTitle,
+              description: 'Fast-forwarding branches',
               value: refreshStartProgress,
+            })
+
+            await this.fastForwardBranches(repository)
+
+            this.updatePushPullFetchProgress(repository, {
+              kind: 'generic',
+              title: refreshTitle,
+              value: refreshStartProgress + refreshWeight * 0.5,
             })
 
             // manually refresh branch protections after the push, to ensure
@@ -3624,15 +3633,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
             await this.refreshBranchProtectionState(repository)
 
             await this._refreshRepository(repository)
-
-            this.updatePushPullFetchProgress(repository, {
-              kind: 'generic',
-              title: refreshTitle,
-              description: 'Fast-forwarding branches',
-              value: refreshStartProgress + refreshWeight * 0.5,
-            })
-
-            await this.fastForwardBranches(repository)
           },
           { retryAction }
         )
@@ -3808,7 +3808,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
           this.updatePushPullFetchProgress(repository, {
             kind: 'generic',
             title: refreshTitle,
+            description: 'Fast-forwarding branches',
             value: refreshStartProgress,
+          })
+
+          await this.fastForwardBranches(repository)
+
+          this.updatePushPullFetchProgress(repository, {
+            kind: 'generic',
+            title: refreshTitle,
+            value: refreshStartProgress + refreshWeight * 0.5,
           })
 
           if (mergeBase) {
@@ -3820,15 +3829,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
           await this.refreshBranchProtectionState(repository)
 
           await this._refreshRepository(repository)
-
-          this.updatePushPullFetchProgress(repository, {
-            kind: 'generic',
-            title: refreshTitle,
-            description: 'Fast-forwarding branches',
-            value: refreshStartProgress + refreshWeight * 0.5,
-          })
-
-          await this.fastForwardBranches(repository)
         } finally {
           this.updatePushPullFetchProgress(repository, null)
         }
@@ -4078,7 +4078,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.updatePushPullFetchProgress(repository, {
           kind: 'generic',
           title: refreshTitle,
+          description: 'Fast-forwarding branches',
           value: fetchWeight,
+        })
+
+        await this.fastForwardBranches(repository)
+
+        this.updatePushPullFetchProgress(repository, {
+          kind: 'generic',
+          title: refreshTitle,
+          value: fetchWeight + refreshWeight * 0.5,
         })
 
         // manually refresh branch protections after the push, to ensure
@@ -4086,15 +4095,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         await this.refreshBranchProtectionState(repository)
 
         await this._refreshRepository(repository)
-
-        this.updatePushPullFetchProgress(repository, {
-          kind: 'generic',
-          title: refreshTitle,
-          description: 'Fast-forwarding branches',
-          value: fetchWeight + refreshWeight * 0.5,
-        })
-
-        await this.fastForwardBranches(repository)
       } finally {
         this.updatePushPullFetchProgress(repository, null)
 
