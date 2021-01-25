@@ -3837,15 +3837,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async fastForwardBranches(repository: Repository) {
-    const { branchesState } = this.repositoryStateCache.get(repository)
-    const { allBranches } = branchesState
+    try {
+      const eligibleBranches = await getBranchesDifferingFromUpstream(
+        repository
+      )
 
-    const eligibleBranches = await getBranchesDifferingFromUpstream(
-      repository,
-      allBranches
-    )
-
-    await fastForwardBranches(repository, eligibleBranches)
+      await fastForwardBranches(repository, eligibleBranches)
+    } catch (e) {
+      log.error(`Branch fast-forwarding failed (${e})`)
+      sendNonFatalException('fastForwardBranches', e)
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

@@ -2,7 +2,7 @@ import { git } from './core'
 import { GitError } from 'dugite'
 
 import { Repository } from '../../models/repository'
-import { Branch, BranchType } from '../../models/branch'
+import { Branch, BranchType, IBranchBasicInfo } from '../../models/branch'
 import { CommitIdentity } from '../../models/commit-identity'
 
 /** Get all the branches. */
@@ -115,12 +115,10 @@ export async function getBranches(
  * forwarded.
  *
  * @param repository Repository to get the branches from.
- * @param allBranches All known branches in the repository.
  */
 export async function getBranchesDifferingFromUpstream(
-  repository: Repository,
-  allBranches: ReadonlyArray<Branch>
-): Promise<ReadonlyArray<Branch>> {
+  repository: Repository
+): Promise<ReadonlyArray<IBranchBasicInfo>> {
   const format = [
     '%(refname)',
     '%(refname:short)',
@@ -166,7 +164,7 @@ export async function getBranchesDifferingFromUpstream(
       continue
     }
 
-    if (ref.startsWith('refs/head')) {
+    if (ref.startsWith('refs/heads')) {
       if (upstream.length === 0) {
         // Exclude local branches without upstream
         continue
@@ -178,7 +176,7 @@ export async function getBranchesDifferingFromUpstream(
     }
   }
 
-  const eligibleBranchNames = new Set<String>()
+  const eligibleBranches: IBranchBasicInfo[] = []
 
   // Compare the SHA of every local branch with the SHA of its upstream and
   // collect the names of local branches that differ from their upstream.
@@ -186,18 +184,14 @@ export async function getBranchesDifferingFromUpstream(
     const remoteSha = remoteBranchShas.get(branch.upstream)
 
     if (remoteSha !== undefined && remoteSha !== branch.sha) {
-      eligibleBranchNames.add(branch.name)
+      eligibleBranches.push({
+        ref: branch.ref,
+        sha: branch.sha,
+        upstreamRef: branch.upstream,
+        upstreamSha: remoteSha,
+      })
     }
   }
 
-  if (eligibleBranchNames.size === 0) {
-    return []
-  }
-
-  // Using the names of those eligible branches, pick the branch objects from
-  // all the local branches in the repo.
-  return allBranches.filter(
-    branch =>
-      branch.type === BranchType.Local && eligibleBranchNames.has(branch.name)
-  )
+  return eligibleBranches
 }

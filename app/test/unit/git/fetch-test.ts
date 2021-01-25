@@ -23,11 +23,8 @@ describe('git/fetch', () => {
     })
 
     it('fast-forwards branches using fetch', async () => {
-      const allBranches = await getBranches(repository)
-
       const eligibleBranches = await getBranchesDifferingFromUpstream(
-        repository,
-        allBranches
+        repository
       )
 
       await fastForwardBranches(repository, eligibleBranches)
@@ -63,16 +60,13 @@ describe('git/fetch', () => {
         branchAheadAndBehind.tip.sha
       )
 
-      // The master branch hasn't been updated, since it's the current branch
-      const masterBranch = branchWithName(resultBranches, 'master')
-      const masterUpstream = branchWithName(
-        resultBranches,
-        masterBranch.upstream!
-      )
-      expect(masterUpstream.tip.sha).not.toBe(masterBranch.tip.sha)
+      // The main branch hasn't been updated, since it's the current branch
+      const mainBranch = branchWithName(resultBranches, 'main')
+      const mainUpstream = branchWithName(resultBranches, mainBranch.upstream!)
+      expect(mainUpstream.tip.sha).not.toBe(mainBranch.tip.sha)
 
       // The up-to-date branch is still matching its upstream
-      const upToDateBranch = branchWithName(resultBranches, 'up-to-date-branch')
+      const upToDateBranch = branchWithName(resultBranches, 'branch-up-to-date')
       const upToDateBranchUpstream = branchWithName(
         resultBranches,
         upToDateBranch.upstream!

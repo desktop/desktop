@@ -6,7 +6,7 @@ import { FetchProgressParser, executionOptionsWithProgress } from '../progress'
 import { enableRecurseSubmodulesFlag } from '../feature-flag'
 import { IRemote } from '../../models/remote'
 import { envForRemoteOperation } from './environment'
-import { Branch } from '../../models/branch'
+import { IBranchBasicInfo } from '../../models/branch'
 
 async function getFetchArgs(
   repository: Repository,
@@ -132,8 +132,8 @@ export async function fetchRefspec(
 
 export async function fastForwardBranches(
   repository: Repository,
-  branches: ReadonlyArray<Branch>
-): Promise<ReadonlyArray<Branch>> {
+  branches: ReadonlyArray<IBranchBasicInfo>
+): Promise<void> {
   const opts: IGitExecutionOptions = {
     successExitCodes: new Set([0, 1]),
     env: {
@@ -141,52 +141,23 @@ export async function fastForwardBranches(
     },
   }
 
-  const branchPairs = branches.map(
-    branch => `refs/remotes/${branch.upstream}:refs/heads/${branch.name}`
-  )
+  const refPairs = branches.map(branch => `${branch.upstreamRef}:${branch.ref}`)
 
-  const result = await git(
+  await git(
     [
       '-c',
       'fetch.output=full',
-      '-c',
-      'core.abbrev=40',
       'fetch',
       '.',
       '--show-forced-updates',
       '-v',
-      ...branchPairs,
+      // TODO: Once we upgrade to git 2.29 we can use --stdin to pass the refs,
+      // avoiding hitting any shell limitations related to the length of the
+      // command.
+      ...refPairs,
     ],
     repository.path,
     'fastForwardBranches',
     opts
   )
-
-  const lines = result.combinedOutput.split('\n')
-
-  // Remove the first 'From .'  line
-  lines.splice(0, 1)
-
-  // Remove the trailing newline
-  lines.splice(-1, 1)
-
-  const updatedBranches = new Map<String, String>()
-
-  for (const line of lines) {
-    const pieces = line.split(' ').filter(piece => piece.length > 0)
-
-    if (pieces.length === 0) {
-      continue
-    }
-
-    if (pieces[0].indexOf('..') < 0) {
-      // Omit non-updated branches
-      continue
-    }
-
-    const to = pieces[0].split('..')[1]
-    updatedBranches.set(pieces[pieces.length - 1], to)
-  }
-
-  return branches.filter(branch => updatedBranches.has(branch.name))
 }

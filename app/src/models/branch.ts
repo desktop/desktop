@@ -21,6 +21,14 @@ export interface ICompareResult extends IAheadBehind {
   readonly commits: ReadonlyArray<Commit>
 }
 
+/** Basic data about a branch. */
+export interface IBranchBasicInfo {
+  readonly ref: string
+  readonly sha: string
+  readonly upstreamRef: string
+  readonly upstreamSha: string
+}
+
 /** Basic data about the latest commit on the branch. */
 export interface IBranchTip {
   readonly sha: string
