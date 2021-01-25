@@ -42,10 +42,6 @@ const options: RedhatOptions = {
     'This is the unofficial port of GitHub Desktop for Linux distributions',
   categories: ['GNOME', 'GTK', 'Development'],
   requires: [
-    // default Electron dependencies
-    'libXScrnSaver',
-    '(libX11-xcb or libX11-xcb1)',
-    'alsa-lib',
     // dugite-native dependencies
     '(libcurl or libcurl4)',
     // keytar dependencies
