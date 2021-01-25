@@ -111,6 +111,8 @@ export async function deleteBranch(
       expectedErrors: new Set<DugiteError>([DugiteError.BranchDeletionFailed]),
     })
 
+    log.info(`Deleted branch ${branch.name} (was ${branch.tip.sha})`)
+
     // It's possible that the delete failed because the ref has already
     // been deleted on the remote. If we identify that specific
     // error we can safely remote our remote ref which is what would
