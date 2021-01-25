@@ -4428,8 +4428,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (match === null) {
         this.emitError(
           new ExternalEditorError(
-            'No suitable editors installed for GitHub Desktop to launch. Install Atom for your platform and restart GitHub Desktop to try again.',
-            { suggestAtom: true }
+            `No suitable editors installed for GitHub Desktop to launch. Install ${DEFAULT_EDITOR_NAME} for your platform and restart GitHub Desktop to try again.`,
+            { suggestDefaultEditor: true }
           )
         )
         return
@@ -5701,3 +5701,6 @@ function isLocalChangesOverwrittenError(error: Error): boolean {
     error.result.gitError === DugiteError.LocalChangesOverwritten
   )
 }
+
+export const DEFAULT_EDITOR_NAME = 'Visual Studio Code'
+export const DEFAULT_EDITOR_URL = 'https://code.visualstudio.com'

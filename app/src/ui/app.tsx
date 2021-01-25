@@ -1579,7 +1579,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       case PopupType.ExternalEditorFailed:
         const openPreferences = popup.openPreferences
-        const suggestAtom = popup.suggestAtom
+        const suggestDefaultEditor = popup.suggestDefaultEditor
 
         return (
           <EditorError
@@ -1588,7 +1588,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
             showPreferencesDialog={this.onShowAdvancedPreferences}
             viewPreferences={openPreferences}
-            suggestAtom={suggestAtom}
+            suggestDefaultEditor={suggestDefaultEditor}
           />
         )
       case PopupType.OpenShellFailed:

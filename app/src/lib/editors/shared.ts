@@ -17,8 +17,8 @@ export type FoundEditor = {
 }
 
 interface IErrorMetadata {
-  /** The error dialog should link off to the Atom website */
-  suggestAtom?: boolean
+  /** The error dialog should link off to the default editor's website */
+  suggestDefaultEditor?: boolean
 
   /** The error dialog should direct the user to open Preferences */
   openPreferences?: boolean

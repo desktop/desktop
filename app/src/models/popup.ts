@@ -135,7 +135,7 @@ export type Popup =
   | {
       type: PopupType.ExternalEditorFailed
       message: string
-      suggestAtom?: boolean
+      suggestDefaultEditor?: boolean
       openPreferences?: boolean
     }
   | { type: PopupType.OpenShellFailed; message: string }
