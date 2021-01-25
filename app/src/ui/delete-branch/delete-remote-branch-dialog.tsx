@@ -14,12 +14,9 @@ interface IDeleteRemoteBranchProps {
   readonly onDismissed: () => void
   readonly onDeleted: (repository: Repository) => void
 }
-
 interface IDeleteRemoteBranchState {
-  readonly includeRemoteBranch: boolean
   readonly isDeleting: boolean
 }
-
 export class DeleteRemoteBranch extends React.Component<
   IDeleteRemoteBranchProps,
   IDeleteRemoteBranchState
@@ -28,7 +25,6 @@ export class DeleteRemoteBranch extends React.Component<
     super(props)
 
     this.state = {
-      includeRemoteBranch: true,
       isDeleting: false,
     }
   }
