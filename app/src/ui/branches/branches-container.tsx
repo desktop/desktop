@@ -273,7 +273,7 @@ export class BranchesContainer extends React.Component<
   }
 
   private onRenameBranch = (branchName: string) => {
-    const branch: Branch | undefined = this.getBranchWithName(branchName)
+    const branch = this.getBranchWithName(branchName)
 
     if (branch === undefined) {
       return
@@ -287,7 +287,7 @@ export class BranchesContainer extends React.Component<
   }
 
   private onDeleteBranch = (branchName: string) => {
-    const branch: Branch | undefined = this.getBranchWithName(branchName)
+    const branch = this.getBranchWithName(branchName)
 
     if (branch === undefined) {
       return
