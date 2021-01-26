@@ -18,15 +18,15 @@ interface ILinuxExternalEditor {
 const editors: ILinuxExternalEditor[] = [
   {
     name: 'Atom',
-    paths: ['/usr/bin/atom'],
+    paths: ['/snap/bin/atom', '/usr/bin/atom'],
   },
   {
     name: 'Visual Studio Code',
-    paths: ['/usr/bin/code'],
+    paths: ['/snap/bin/code', '/usr/bin/code'],
   },
   {
     name: 'Visual Studio Code (Insiders)',
-    paths: ['/usr/bin/code-insiders'],
+    paths: ['/snap/bin/code-insiders', '/usr/bin/code-insiders'],
   },
   {
     name: 'VSCodium',
@@ -48,6 +48,12 @@ const editors: ILinuxExternalEditor[] = [
       '/opt/slickedit-pro2016/bin/vs',
       '/opt/slickedit-pro2015/bin/vs',
     ],
+  },
+  {
+    // Code editor for elementary OS
+    // https://github.com/elementary/code
+    name: 'Code',
+    paths: ['/usr/bin/io.elementary.code'],
   },
 ]
 

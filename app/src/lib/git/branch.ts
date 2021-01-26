@@ -69,7 +69,10 @@ export async function deleteRemoteBranch(
   branch: Branch,
   account: IGitAccount | null
 ): Promise<true> {
-  const remoteName = branch.upstreamRemote
+  const remoteName =
+    branch.type === BranchType.Remote
+      ? branch.remoteName
+      : branch.upstreamRemote
 
   // This should not happen - a remote branch should have a remote.
   if (remoteName === null) {

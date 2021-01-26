@@ -36,28 +36,6 @@ export enum StartPoint {
   UpstreamDefaultBranch = 'UpstreamDefaultBranch',
 }
 
-/**
- * Check if a branch is eligible for being fast-forwarded.
- *
- * Requirements:
- *   1. It's local.
- *   2. It's not the current branch.
- *   3. It has an upstream.
- *
- * @param branch The branch to validate
- * @param currentBranchName The current branch in the repository
- */
-export function eligibleForFastForward(
-  branch: Branch,
-  currentBranchName: string | null
-): boolean {
-  return (
-    branch.type === BranchType.Local &&
-    branch.name !== currentBranchName &&
-    branch.upstream != null
-  )
-}
-
 /** A branch as loaded from Git. */
 export class Branch {
   /**
@@ -75,10 +53,8 @@ export class Branch {
     public readonly type: BranchType
   ) {}
 
-  /** The name of the upstream's remote. This will return null if remote branch.
-   * Use `upstreamRemote` if not local.
-   * */
-  public get remote(): string | null {
+  /** The name of the upstream's remote. If remote, will return null */
+  public get upstreamRemote(): string | null {
     const upstream = this.upstream
     if (!upstream) {
       return null
@@ -92,13 +68,10 @@ export class Branch {
     return pieces[1]
   }
 
-  /** The name of the upstream's remote.
-   *  If local, will return `remote`.
-   *  If remote, will use branch name to determine remote.
-   */
-  public get upstreamRemote(): string | null {
+  /** The name of remote for a remote branch. If local, will return null. */
+  public get remoteName(): string | null {
     if (this.type === BranchType.Local) {
-      return this.remote
+      return null
     }
 
     const pieces = this.name.match(/(.*?)\/.*/)
