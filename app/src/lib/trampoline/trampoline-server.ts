@@ -9,7 +9,6 @@ interface ITrampolineCommand {
 }
 
 enum TrampolineCommandParserState {
-  Identifier,
   ParameterCount,
   Parameters,
   EnvironmentVariablesCount,
@@ -18,14 +17,13 @@ enum TrampolineCommandParserState {
 }
 
 class TrampolineCommandParser {
-  private identifier: string | null = null
   private parameterCount: number = 0
   private readonly parameters: string[] = []
   private environmentVariablesCount: number = 0
   private readonly environmentVariables = new Map<string, string>()
 
   private state: TrampolineCommandParserState =
-    TrampolineCommandParserState.Identifier
+    TrampolineCommandParserState.ParameterCount
 
   public hasFinished() {
     return this.state === TrampolineCommandParserState.Finished
@@ -33,12 +31,6 @@ class TrampolineCommandParser {
 
   public processValue(value: string) {
     switch (this.state) {
-      case TrampolineCommandParserState.Identifier:
-        this.identifier = value
-        console.log(`Trampoline parsed identifier ${value}`)
-        this.state = TrampolineCommandParserState.ParameterCount
-        break
-
       case TrampolineCommandParserState.ParameterCount:
         this.parameterCount = parseInt(value)
         console.log(`Trampoline parsed parameterCount ${value}`)
@@ -108,10 +100,12 @@ class TrampolineCommandParser {
       )
     }
 
-    const identifier = this.identifier
+    const identifier = this.environmentVariables.get(
+      'DESKTOP_TRAMPOLINE_IDENTIFIER'
+    )
 
-    if (identifier === null) {
-      throw new Error('The command identifier cannot be null')
+    if (identifier === undefined) {
+      throw new Error('The command identifier is missing')
     }
 
     return {
