@@ -1,15 +1,19 @@
 import { createServer, AddressInfo, Server, Socket } from 'net'
 import split2 from 'split2'
+import { isValidTrampolineToken } from './trampoline-tokens'
 
 interface ITrampolineCommand {
   readonly identifier: string
   readonly parameters: ReadonlyArray<string>
+  readonly environmentVariables: ReadonlyMap<string, string>
 }
 
 enum TrampolineCommandParserState {
   Identifier,
   ParameterCount,
   Parameters,
+  EnvironmentVariablesCount,
+  EnvironmentVariables,
   Finished,
 }
 
@@ -17,6 +21,8 @@ class TrampolineCommandParser {
   private identifier: string | null = null
   private parameterCount: number = 0
   private readonly parameters: string[] = []
+  private environmentVariablesCount: number = 0
+  private readonly environmentVariables = new Map<string, string>()
 
   private state: TrampolineCommandParserState =
     TrampolineCommandParserState.Identifier
@@ -40,7 +46,7 @@ class TrampolineCommandParser {
         if (this.parameterCount > 0) {
           this.state = TrampolineCommandParserState.Parameters
         } else {
-          this.state = TrampolineCommandParserState.Finished
+          this.state = TrampolineCommandParserState.EnvironmentVariablesCount
         }
 
         break
@@ -49,6 +55,43 @@ class TrampolineCommandParser {
         console.log(`Trampoline parsed parameter ${value}`)
         this.parameters.push(value)
         if (this.parameters.length === this.parameterCount) {
+          this.state = TrampolineCommandParserState.EnvironmentVariablesCount
+        }
+        break
+
+      case TrampolineCommandParserState.EnvironmentVariablesCount:
+        this.environmentVariablesCount = parseInt(value)
+        console.log(`Trampoline parsed environmentVariablesCount ${value}`)
+
+        if (this.environmentVariablesCount > 0) {
+          this.state = TrampolineCommandParserState.EnvironmentVariables
+        } else {
+          this.state = TrampolineCommandParserState.Finished
+        }
+
+        break
+
+      case TrampolineCommandParserState.EnvironmentVariables:
+        const match = /([^=]+)=(.*)/.exec(value)
+
+        if (
+          match === null ||
+          // Length must be 3: the 2 groups + the whole string
+          match.length !== 3
+        ) {
+          throw new Error(`Unexpected environment variable format: ${value}`)
+        }
+
+        const variableKey = match[1]
+        const variableValue = match[2]
+
+        console.log(
+          `Trampoline parsed env variable ${variableKey} = ${variableValue}`
+        )
+
+        this.environmentVariables.set(variableKey, variableValue)
+
+        if (this.environmentVariables.size === this.environmentVariablesCount) {
           this.state = TrampolineCommandParserState.Finished
         }
         break
@@ -74,6 +117,7 @@ class TrampolineCommandParser {
     return {
       identifier,
       parameters: this.parameters,
+      environmentVariables: this.environmentVariables,
     }
   }
 }
@@ -167,6 +211,13 @@ export class TrampolineServer {
     console.log(
       `command '${command.identifier}' with arguments ${command.parameters}`
     )
+
+    const token = command.environmentVariables.get('DESKTOP_TRAMPOLINE_TOKEN')
+
+    if (token === undefined || !isValidTrampolineToken(token)) {
+      console.error('Tried to use invalid trampoline token')
+      return
+    }
 
     const handler = this.commandHandlers.get(command.identifier)
 

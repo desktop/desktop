@@ -4,7 +4,8 @@ import { enableAutomaticGitProxyConfiguration } from '../feature-flag'
 import { resolveGitProxy } from '../resolve-git-proxy'
 import { getDotComAPIEndpoint } from '../api'
 import { Repository } from '../../models/repository'
-import { withTrampolineToken } from '../trampoline-tokens'
+import { withTrampolineToken } from '../trampoline/trampoline-tokens'
+import { trampolineServer } from '../trampoline/trampoline-server'
 
 /**
  * For many remote operations it's well known what the primary remote
@@ -80,10 +81,11 @@ export async function withTrampolineEnvForRemoteOperation<T>(
 ): Promise<T> {
   const env = await envForRemoteOperation(account, remoteUrl)
 
-  return withTrampolineToken(token =>
+  return withTrampolineToken(async token =>
     fn({
       ...env,
-      DESKTOP_TOKEN: token,
+      DESKTOP_PORT: await trampolineServer.getPort(),
+      DESKTOP_TRAMPOLINE_TOKEN: token,
     })
   )
 }

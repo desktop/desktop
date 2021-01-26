@@ -1,4 +1,4 @@
-import { uuid } from './uuid'
+import { uuid } from '../uuid'
 
 const trampolineTokens = new Set<string>()
 
