@@ -74,7 +74,7 @@ function branchEquals(x: Branch, y: Branch) {
   return (
     x.type === y.type &&
     x.tip.sha === y.tip.sha &&
-    x.upstreamRemote === y.upstreamRemote &&
+    x.upstreamRemoteName === y.upstreamRemoteName &&
     x.upstream === y.upstream
   )
 }

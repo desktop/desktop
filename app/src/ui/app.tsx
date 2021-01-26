@@ -2312,8 +2312,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     const { aheadBehind, branchesState } = state
     const { pullWithRebase, tip } = branchesState
 
-    if (tip.kind === TipState.Valid && tip.branch.upstreamRemote !== null) {
-      remoteName = tip.branch.upstreamRemote
+    if (tip.kind === TipState.Valid && tip.branch.upstreamRemoteName !== null) {
+      remoteName = tip.branch.upstreamRemoteName
     }
 
     const isForcePush = isCurrentBranchForcePush(branchesState, aheadBehind)

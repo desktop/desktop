@@ -105,7 +105,7 @@ describe('git/branch', () => {
 
       expect(tip.kind).toEqual(TipState.Valid)
       const valid = tip as IValidBranch
-      expect(valid.branch.upstreamRemote).toEqual('bassoon')
+      expect(valid.branch.upstreamRemoteName).toEqual('bassoon')
     })
   })
 
@@ -121,7 +121,7 @@ describe('git/branch', () => {
       expect(tip.kind).toEqual(TipState.Valid)
 
       const valid = tip as IValidBranch
-      expect(valid.branch.upstreamRemote).toEqual('bassoon')
+      expect(valid.branch.upstreamRemoteName).toEqual('bassoon')
       expect(valid.branch.upstream).toEqual('bassoon/master')
       expect(valid.branch.upstreamWithoutRemote).toEqual('master')
     })
