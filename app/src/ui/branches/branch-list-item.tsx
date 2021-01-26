@@ -49,7 +49,7 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
 
     if (onRenameBranch !== undefined) {
       items.push({
-        label: 'Rename...',
+        label: 'Rename…',
         action: () => onRenameBranch(name),
         enabled: isLocal,
       })
@@ -57,7 +57,7 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
 
     if (onDeleteBranch !== undefined) {
       items.push({
-        label: 'Delete...',
+        label: 'Delete…',
         action: () => onDeleteBranch(name),
       })
     }
