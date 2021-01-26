@@ -1627,9 +1627,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** Load the initial state for the app. */
   public async loadInitialState() {
-    trampolineServer.registerCommandHandler('ASKPASS', async parameters => {
-      //return this.withAuthenticatingUser(this.)
-      if (parameters.length !== 1 || parameters[0] !== 'Username') {
+    trampolineServer.registerCommandHandler('ASKPASS', async command => {
+
+      if (
+        command.parameters.length !== 2 ||
+        command.parameters[1] !== 'Username'
+      ) {
         return undefined
       }
 

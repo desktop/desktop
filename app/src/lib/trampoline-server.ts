@@ -1,29 +1,85 @@
 import { createServer, AddressInfo, Server, Socket } from 'net'
 import split2 from 'split2'
 
-class TrampolineCommand {
-  private name: string | null = null
+interface ITrampolineCommand {
+  readonly identifier: string
+  readonly parameters: ReadonlyArray<string>
+}
+
+enum TrampolineCommandParserState {
+  Identifier,
+  ParameterCount,
+  Parameters,
+  Finished,
+}
+
+class TrampolineCommandParser {
+  private identifier: string | null = null
+  private parameterCount: number = 0
   private readonly parameters: string[] = []
 
-  public getName() {
-    return this.name
+  private state: TrampolineCommandParserState =
+    TrampolineCommandParserState.Identifier
+
+  public hasFinished() {
+    return this.state === TrampolineCommandParserState.Finished
   }
 
-  public getParameters(): ReadonlyArray<string> {
-    return this.parameters
+  public processValue(value: string) {
+    switch (this.state) {
+      case TrampolineCommandParserState.Identifier:
+        this.identifier = value
+        console.log(`Trampoline parsed identifier ${value}`)
+        this.state = TrampolineCommandParserState.ParameterCount
+        break
+
+      case TrampolineCommandParserState.ParameterCount:
+        this.parameterCount = parseInt(value)
+        console.log(`Trampoline parsed parameterCount ${value}`)
+
+        if (this.parameterCount > 0) {
+          this.state = TrampolineCommandParserState.Parameters
+        } else {
+          this.state = TrampolineCommandParserState.Finished
+        }
+
+        break
+
+      case TrampolineCommandParserState.Parameters:
+        console.log(`Trampoline parsed parameter ${value}`)
+        this.parameters.push(value)
+        if (this.parameters.length === this.parameterCount) {
+          this.state = TrampolineCommandParserState.Finished
+        }
+        break
+
+      default:
+        throw new Error(`Received value during invalid state: ${this.state}`)
+    }
   }
 
-  public addValue(value: string) {
-    if (this.name === null) {
-      this.name = value
-    } else {
-      this.parameters.push(value)
+  public toCommand(): ITrampolineCommand {
+    if (this.hasFinished() === false) {
+      throw new Error(
+        'The command cannot be generated if parsing is not finished'
+      )
+    }
+
+    const identifier = this.identifier
+
+    if (identifier === null) {
+      throw new Error('The command identifier cannot be null')
+    }
+
+    return {
+      identifier,
+      parameters: this.parameters,
     }
   }
 }
 
 export type TrampolineCommandHandler = (
-  parameters: ReadonlyArray<string>
+  command: ITrampolineCommand
 ) => Promise<string | undefined>
 
 export class TrampolineServer {
@@ -50,7 +106,7 @@ export class TrampolineServer {
 
       this.server.on('error', onListenError)
 
-      this.server.listen(0, 'localhost', async () => {
+      this.server.listen(0, '127.0.0.1', async () => {
         this.server.off('error', onListenError)
         this.server.on('error', this.onErrorReceived)
         resolve()
@@ -83,54 +139,42 @@ export class TrampolineServer {
       .pipe(split2(/\0/))
       .on(
         'data',
-        this.onDataReceived.bind(this, socket, new TrampolineCommand())
+        this.onDataReceived.bind(this, socket, new TrampolineCommandParser())
       )
   }
 
   private onDataReceived(
     socket: Socket,
-    command: TrampolineCommand,
+    parser: TrampolineCommandParser,
     data: Buffer
   ) {
     const value = data.toString('utf8')
+    parser.processValue(value)
 
-    // TODO: Remove this. we should get \0s from the trampoline client
-    // if (value.endsWith('\n')) {
-    //   value = value.substr(0, value.length - 1)
-    // }
-
-    if (value.length === 0) {
-      this.processCommand(socket, command)
-    } else {
-      command.addValue(value)
+    if (parser.hasFinished()) {
+      this.processCommand(socket, parser.toCommand())
     }
   }
 
   public registerCommandHandler(
-    name: string,
+    identifier: string,
     handler: TrampolineCommandHandler
   ) {
-    this.commandHandlers.set(name, handler)
+    this.commandHandlers.set(identifier, handler)
   }
 
-  private async processCommand(socket: Socket, command: TrampolineCommand) {
+  private async processCommand(socket: Socket, command: ITrampolineCommand) {
     console.log(
-      `command '${command.getName()}' with arguments ${command.getParameters()}`
+      `command '${command.identifier}' with arguments ${command.parameters}`
     )
 
-    const name = command.getName()
-
-    if (name === null) {
-      return
-    }
-
-    const handler = this.commandHandlers.get(name)
+    const handler = this.commandHandlers.get(command.identifier)
 
     if (handler === undefined) {
       return
     }
 
-    const result = await handler(command.getParameters())
+    const result = await handler(command)
 
     if (result !== undefined) {
       socket.end(result)
