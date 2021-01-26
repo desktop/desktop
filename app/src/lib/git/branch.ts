@@ -72,7 +72,7 @@ export async function deleteRemoteBranch(
   const remoteName =
     branch.type === BranchType.Remote
       ? branch.remoteName
-      : branch.upstreamRemote
+      : branch.upstreamRemoteName
 
   // This should not happen - a remote branch should have a remote.
   if (remoteName === null) {

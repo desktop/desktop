@@ -42,8 +42,8 @@ describe('git/checkout', () => {
           tzOffset: 0,
         },
       },
-      upstreamRemote: null,
       remoteName: null,
+      upstreamRemoteName: null,
       isDesktopForkRemoteBranch: false,
     }
 
@@ -117,7 +117,7 @@ describe('git/checkout', () => {
     const validBranch = tip as IValidBranch
     expect(validBranch.branch.name).toBe(expectedBranch)
     expect(validBranch.branch.type).toBe(BranchType.Local)
-    expect(validBranch.branch.upstreamRemote).toBe('first-remote')
+    expect(validBranch.branch.upstreamRemoteName).toBe('first-remote')
   })
 
   it('will fail when an existing branch matches the remote branch', async () => {

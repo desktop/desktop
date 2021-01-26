@@ -987,7 +987,7 @@ export class GitStore extends BaseStore {
     if (this.tip.kind === TipState.Valid) {
       const currentBranch = this.tip.branch
       if (
-        currentBranch.upstreamRemote !== null &&
+        currentBranch.upstreamRemoteName !== null &&
         currentBranch.upstream !== null
       ) {
         const range = revSymmetricDifference(
@@ -1250,8 +1250,8 @@ export class GitStore extends BaseStore {
 
     const currentRemoteName =
       this.tip.kind === TipState.Valid &&
-      this.tip.branch.upstreamRemote !== null
-        ? this.tip.branch.upstreamRemote
+      this.tip.branch.upstreamRemoteName !== null
+        ? this.tip.branch.upstreamRemoteName
         : null
 
     // Load the remote that the current branch is tracking. If the branch

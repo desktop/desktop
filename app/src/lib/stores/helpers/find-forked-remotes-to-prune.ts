@@ -20,7 +20,7 @@ export function findForkedRemotesToPrune(
     openPRs.map(pr => pr.head.gitHubRepository.cloneURL)
   )
   const branchRemotes = new Set(
-    allBranches.map(branch => branch.upstreamRemote)
+    allBranches.map(branch => branch.upstreamRemoteName)
   )
 
   return remotes.filter(
