@@ -150,6 +150,7 @@ import {
   IStatusResult,
   GitError,
   MergeResult,
+  getBranchesDifferingFromUpstream,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -238,7 +239,6 @@ import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
 import { updateRemoteUrl } from './updates/update-remote-url'
-import { findBranchesForFastForward } from './helpers/find-branches-for-fast-forward'
 import {
   TutorialStep,
   orderedTutorialSteps,
@@ -3779,8 +3779,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private async fastForwardBranches(repository: Repository) {
     const { branchesState } = this.repositoryStateCache.get(repository)
+    const { allBranches } = branchesState
 
-    const eligibleBranches = findBranchesForFastForward(branchesState)
+    const eligibleBranches = await getBranchesDifferingFromUpstream(
+      repository,
+      allBranches
+    )
 
     for (const branch of eligibleBranches) {
       const aheadBehind = await getBranchAheadBehind(repository, branch)
