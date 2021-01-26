@@ -3445,7 +3445,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (tip.kind === TipState.Valid) {
         const { branch } = tip
 
-        const remoteName = branch.remote || remote.name
+        const remoteName = branch.upstreamRemote || remote.name
 
         const pushTitle = `Pushing to ${remoteName}`
 

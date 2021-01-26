@@ -54,7 +54,7 @@ export class Branch {
   ) {}
 
   /** The name of the upstream's remote. */
-  public get remote(): string | null {
+  public get upstreamRemote(): string | null {
     const upstream = this.upstream
     if (!upstream) {
       return null

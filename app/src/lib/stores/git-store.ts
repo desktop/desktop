@@ -986,7 +986,10 @@ export class GitStore extends BaseStore {
     // any new commits available
     if (this.tip.kind === TipState.Valid) {
       const currentBranch = this.tip.branch
-      if (currentBranch.remote !== null && currentBranch.upstream !== null) {
+      if (
+        currentBranch.upstreamRemote !== null &&
+        currentBranch.upstream !== null
+      ) {
         const range = revSymmetricDifference(
           currentBranch.name,
           currentBranch.upstream
@@ -1246,8 +1249,9 @@ export class GitStore extends BaseStore {
     this._defaultRemote = findDefaultRemote(remotes)
 
     const currentRemoteName =
-      this.tip.kind === TipState.Valid && this.tip.branch.remote !== null
-        ? this.tip.branch.remote
+      this.tip.kind === TipState.Valid &&
+      this.tip.branch.upstreamRemote !== null
+        ? this.tip.branch.upstreamRemote
         : null
 
     // Load the remote that the current branch is tracking. If the branch
