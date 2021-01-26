@@ -268,10 +268,12 @@ export class BranchesContainer extends React.Component<
     this.setState({ selectedPullRequest })
   }
 
+  private getBranchWithName(branchName: string): Branch | undefined {
+    return this.props.allBranches.find(branch => branch.name === branchName)
+  }
+
   private onRenameBranch = (branchName: string) => {
-    const branch: Branch | undefined = this.props.allBranches.find(
-      branch => branch.name === branchName
-    )
+    const branch: Branch | undefined = this.getBranchWithName(branchName)
 
     if (branch === undefined) {
       return
@@ -285,9 +287,7 @@ export class BranchesContainer extends React.Component<
   }
 
   private onDeleteBranch = (branchName: string) => {
-    const branch: Branch | undefined = this.props.allBranches.find(
-      branch => branch.name === branchName
-    )
+    const branch: Branch | undefined = this.getBranchWithName(branchName)
 
     if (branch === undefined) {
       return
