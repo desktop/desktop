@@ -10,11 +10,12 @@ import {
 import { AuthenticationErrors } from './authentication'
 import { enableRecurseSubmodulesFlag } from '../feature-flag'
 import {
-  envForRemoteOperation,
+  withTrampolineEnvForRemoteOperation,
   getFallbackUrlForProxyResolve,
 } from './environment'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
+import { merge } from '../merge'
 
 export type ProgressCallback = (progress: ICheckoutProgress) => void
 
@@ -69,10 +70,6 @@ export async function checkoutBranch(
   progressCallback?: ProgressCallback
 ): Promise<true> {
   let opts: IGitExecutionOptions = {
-    env: await envForRemoteOperation(
-      account,
-      getFallbackUrlForProxyResolve(account, repository)
-    ),
     expectedErrors: AuthenticationErrors,
   }
 
@@ -105,7 +102,17 @@ export async function checkoutBranch(
     progressCallback
   )
 
-  await git(args, repository.path, 'checkoutBranch', opts)
+  await withTrampolineEnvForRemoteOperation(
+    account,
+    getFallbackUrlForProxyResolve(account, repository),
+    env => {
+      return git(args, repository.path, 'checkoutBranch', {
+        ...opts,
+        env: merge(opts.env, env),
+      })
+    }
+  )
+
   // we return `true` here so `GitStore.performFailableGitOperation`
   // will return _something_ differentiable from `undefined` if this succeeds
   return true

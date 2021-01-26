@@ -6,8 +6,9 @@ import { IGitAccount } from '../../models/git-account'
 /** Get the environment for authenticating remote operations. */
 export function envForAuthentication(auth: IGitAccount | null): Object {
   const env = {
-    // DESKTOP_PATH: process.execPath,
-    // DESKTOP_ASKPASS_SCRIPT: getAskPassScriptPath(),
+    DESKTOP_PATH: process.execPath,
+    DESKTOP_ASKPASS_SCRIPT: getAskPassScriptPath(),
+    DESKTOP_IDENTIFIER: 'something',
     GIT_ASKPASS: getAskPassTrampolinePath(),
     // supported since Git 2.3, this is used to ensure we never interactively prompt
     // for credentials - even as a fallback
@@ -21,8 +22,8 @@ export function envForAuthentication(auth: IGitAccount | null): Object {
 
   return {
     ...env,
-    // DESKTOP_USERNAME: auth.login,
-    // DESKTOP_ENDPOINT: auth.endpoint,
+    DESKTOP_USERNAME: auth.login,
+    DESKTOP_ENDPOINT: auth.endpoint,
   }
 }
 
