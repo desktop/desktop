@@ -137,6 +137,8 @@ export async function fastForwardBranches(
   const opts: IGitExecutionOptions = {
     successExitCodes: new Set([0, 1]),
     env: {
+      // This will make sure the reflog entries are correct after
+      // fast-forwarding the branches.
       GIT_REFLOG_ACTION: 'pull',
     },
   }
