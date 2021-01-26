@@ -75,7 +75,9 @@ export class Branch {
     public readonly type: BranchType
   ) {}
 
-  /** The name of the upstream's remote. */
+  /** The name of the upstream's remote. This will return null if remote branch.
+   * Use `upstreamRemote` if not local.
+   * */
   public get remote(): string | null {
     const upstream = this.upstream
     if (!upstream) {
@@ -83,6 +85,23 @@ export class Branch {
     }
 
     const pieces = upstream.match(/(.*?)\/.*/)
+    if (!pieces || pieces.length < 2) {
+      return null
+    }
+
+    return pieces[1]
+  }
+
+  /** The name of the upstream's remote.
+   *  If local, will return `remote`.
+   *  If remote, will use branch name to determine remote.
+   */
+  public get upstreamRemote(): string | null {
+    if (this.type === BranchType.Local) {
+      return this.remote
+    }
+
+    const pieces = this.name.match(/(.*?)\/.*/)
     if (!pieces || pieces.length < 2) {
       return null
     }
