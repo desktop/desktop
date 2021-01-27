@@ -2,7 +2,7 @@ import { git } from './core'
 import { GitError } from 'dugite'
 
 import { Repository } from '../../models/repository'
-import { Branch, BranchType, IBranchBasicInfo } from '../../models/branch'
+import { Branch, BranchType, ITrackingBranch } from '../../models/branch'
 import { CommitIdentity } from '../../models/commit-identity'
 
 /** Get all the branches. */
@@ -118,7 +118,7 @@ export async function getBranches(
  */
 export async function getBranchesDifferingFromUpstream(
   repository: Repository
-): Promise<ReadonlyArray<IBranchBasicInfo>> {
+): Promise<ReadonlyArray<ITrackingBranch>> {
   const format = [
     '%(refname)',
     '%(refname:short)',
@@ -176,7 +176,7 @@ export async function getBranchesDifferingFromUpstream(
     }
   }
 
-  const eligibleBranches: IBranchBasicInfo[] = []
+  const eligibleBranches: ITrackingBranch[] = []
 
   // Compare the SHA of every local branch with the SHA of its upstream and
   // collect the names of local branches that differ from their upstream.

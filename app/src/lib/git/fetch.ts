@@ -6,7 +6,7 @@ import { FetchProgressParser, executionOptionsWithProgress } from '../progress'
 import { enableRecurseSubmodulesFlag } from '../feature-flag'
 import { IRemote } from '../../models/remote'
 import { envForRemoteOperation } from './environment'
-import { IBranchBasicInfo } from '../../models/branch'
+import { ITrackingBranch } from '../../models/branch'
 
 async function getFetchArgs(
   repository: Repository,
@@ -132,7 +132,7 @@ export async function fetchRefspec(
 
 export async function fastForwardBranches(
   repository: Repository,
-  branches: ReadonlyArray<IBranchBasicInfo>
+  branches: ReadonlyArray<ITrackingBranch>
 ): Promise<void> {
   const opts: IGitExecutionOptions = {
     successExitCodes: new Set([0, 1]),
