@@ -85,7 +85,7 @@ export async function getBranches(
       author,
     }
 
-    const type = ref.startsWith('refs/head')
+    const type = ref.startsWith('refs/heads')
       ? BranchType.Local
       : BranchType.Remote
 
@@ -121,7 +121,6 @@ export async function getBranchesDifferingFromUpstream(
 ): Promise<ReadonlyArray<ITrackingBranch>> {
   const format = [
     '%(refname)',
-    '%(refname:short)',
     '%(objectname)', // SHA
     '%(upstream)',
     '%(symref)',
@@ -157,7 +156,7 @@ export async function getBranchesDifferingFromUpstream(
   // - For local branches with upstream: name, ref, SHA and the upstream.
   // - For remote branches we only need the sha (and the ref as key).
   for (const line of lines) {
-    const [ref, name, sha, upstream, symref, head] = line.split('\0')
+    const [ref, sha, upstream, symref, head] = line.split('\0')
 
     if (symref.length > 0 || head === '*') {
       // Exclude symbolic refs and the current branch
@@ -170,7 +169,7 @@ export async function getBranchesDifferingFromUpstream(
         continue
       }
 
-      localBranches.push({ name, ref, sha, upstream })
+      localBranches.push({ ref, sha, upstream })
     } else {
       remoteBranchShas.set(ref, sha)
     }

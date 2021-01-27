@@ -151,8 +151,6 @@ export async function fastForwardBranches(
 
   await git(
     [
-      '-c',
-      'fetch.output=full',
       'fetch',
       '.',
       '--show-forced-updates',
