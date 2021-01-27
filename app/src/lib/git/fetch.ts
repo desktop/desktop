@@ -134,6 +134,10 @@ export async function fastForwardBranches(
   repository: Repository,
   branches: ReadonlyArray<ITrackingBranch>
 ): Promise<void> {
+  if (branches.length === 0) {
+    return
+  }
+
   const opts: IGitExecutionOptions = {
     successExitCodes: new Set([0, 1]),
     env: {
