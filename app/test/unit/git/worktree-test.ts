@@ -128,13 +128,13 @@ describe('git/worktree', () => {
     it('creates worktree at temporary path', async () => {
       const workTree = await createTemporaryWorkTree(repository, 'HEAD')
       const tmpDir = Os.tmpdir()
-      const directories = await FSE.readdir(realpathSync(tmpDir))
-
-      expect(workTree.head).toBe(currentHeadSha)
       // we use realpathSync here because git and windows/macOS report different
       // paths even though they are the same folder
-      const path = realpathSync(workTree.path).split(/\/|\\/)
-      const folder = path[path.length - 1]
+      const directories = await FSE.readdir(realpathSync(tmpDir))
+      const folder = Path.basename(realpathSync(workTree.path))
+
+      expect(workTree.head).toBe(currentHeadSha)
+
       // We are checking if the last folder on worktree path exists in tmpDir
       // because tmpDir on windows uses 8.3 short names
       // and workTree path uses long names; thus, we cannot simply compare paths.
