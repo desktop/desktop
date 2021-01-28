@@ -3402,23 +3402,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return null
     }
 
-    let branchToCheckout = branchesState.defaultBranch
-
-    // If the default branch is null, use the most recent branch excluding the
-    // branch the branch to delete as the branch to checkout.
-    if (branchToCheckout === null) {
-      let i = 0
-
-      while (i < branchesState.recentBranches.length) {
-        if (branchesState.recentBranches[i].name !== branchToDelete.name) {
-          branchToCheckout = branchesState.recentBranches[i]
-          break
-        }
-        i++
-      }
-    }
-
-    if (branchToCheckout === null) {
+    // If the default branch is null, use the most recent branch excluding the branch
+    // the branch to delete as the branch to checkout.
+    const branchToCheckout =
+      branchesState.defaultBranch ??
+      branchesState.recentBranches.find(x => x.name !== branch.name)
+    
+    if (branchToCheckout === undefined) {
       throw new Error(
         `It's not possible to delete the only existing branch in a repository.`
       )
