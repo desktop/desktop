@@ -128,7 +128,7 @@ describe('git/worktree', () => {
     it('creates worktree at temporary path', async () => {
       const workTree = await createTemporaryWorkTree(repository, 'HEAD')
       const tmpDir = Os.tmpdir()
-      const directories = FSE.readdirSync(realpathSync(tmpDir))
+      const directories = await FSE.readdir(realpathSync(tmpDir))
 
       expect(workTree.head).toBe(currentHeadSha)
       // we use realpathSync here because git and windows/macOS report different
