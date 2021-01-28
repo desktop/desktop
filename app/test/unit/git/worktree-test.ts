@@ -128,11 +128,14 @@ describe('git/worktree', () => {
     it('creates worktree at temporary path', async () => {
       const workTree = await createTemporaryWorkTree(repository, 'HEAD')
       const tmpDir = Os.tmpdir()
+      const directories = FSE.readdirSync(realpathSync(tmpDir))
 
       expect(workTree.head).toBe(currentHeadSha)
       // we use realpathSync here because git and windows/macOS report different
       // paths even though they are the same folder
-      expect(realpathSync(workTree.path)).toStartWith(realpathSync(tmpDir))
+      const path = realpathSync(workTree.path).split(/\/|\\/)
+      const folder = path[path.length - 1]
+      expect(directories).toContain(folder)
     })
 
     it('subsequent calls return different results', async () => {
