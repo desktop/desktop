@@ -3067,6 +3067,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return this.checkoutAndLeaveChanges(repository, branch, account)
     } else if (strategy === UncommittedChangesStrategy.MoveToNewBranch) {
       return this.checkoutAndBringChanges(repository, branch, account)
+    }else if (strategy === UncommittedChangesStrategy.DiscardAll) {
+      return this.checkoutDiscardingChanges(repository, branch, account)
     } else {
       return this.checkoutIgnoringChanges(repository, branch, account)
     }
@@ -3144,6 +3146,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       this.statsStore.recordChangesTakenToNewBranch()
     }
+  }
+
+  /**
+   * Checkout the given branch and discard any local changes on the current branch
+   */
+  private async checkoutDiscardingChanges(
+    repository: Repository,
+    branch: Branch,
+    account: IGitAccount | null
+  ){
+    const repositoryState = this.repositoryStateCache.get(repository)
+    const { workingDirectory } = repositoryState.changesState
+    const { tip } = repositoryState.branchesState
+
+    if (tip.kind === TipState.Valid && workingDirectory.files.length > 0) {
+      await this._discardChanges(repository, workingDirectory.files)
+    }
+
+    return this.checkoutIgnoringChanges(repository, branch, account)
   }
 
   private async onSuccessfulCheckout(repository: Repository, branch: Branch) {
