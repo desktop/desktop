@@ -14,6 +14,7 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 enum ExistingChangesAction {
   StashOnCurrentBranch,
   MoveToNewBranch,
+  DiscardAllChanges,
 }
 
 interface ISwitchBranchProps {
