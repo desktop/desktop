@@ -11,7 +11,7 @@ import { PopupType } from '../../models/popup'
 import { startTimer } from '../lib/timing'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
-enum StashAction {
+enum ExistingChangesAction {
   StashOnCurrentBranch,
   MoveToNewBranch,
 }
@@ -31,7 +31,7 @@ interface ISwitchBranchProps {
 
 interface ISwitchBranchState {
   readonly isStashingChanges: boolean
-  readonly selectedStashAction: StashAction
+  readonly selectedStashAction: ExistingChangesAction
   readonly currentBranchName: string
 }
 
@@ -48,7 +48,7 @@ export class StashAndSwitchBranch extends React.Component<
 
     this.state = {
       isStashingChanges: false,
-      selectedStashAction: StashAction.StashOnCurrentBranch,
+      selectedStashAction: ExistingChangesAction.StashOnCurrentBranch,
       currentBranchName: props.currentBranch.name,
     }
   }
@@ -80,7 +80,7 @@ export class StashAndSwitchBranch extends React.Component<
   private renderStashOverwriteWarning() {
     if (
       !this.props.hasAssociatedStash ||
-      this.state.selectedStashAction !== StashAction.StashOnCurrentBranch
+      this.state.selectedStashAction !== ExistingChangesAction.StashOnCurrentBranch
     ) {
       return null
     }
@@ -100,12 +100,12 @@ export class StashAndSwitchBranch extends React.Component<
         title: `Leave my changes on ${this.state.currentBranchName}`,
         description:
           'Your in-progress work will be stashed on this branch for you to return to later',
-        key: StashAction.StashOnCurrentBranch,
+        key: ExistingChangesAction.StashOnCurrentBranch,
       },
       {
         title: `Bring my changes to ${branchToCheckout.name}`,
         description: 'Your in-progress work will follow you to the new branch',
-        key: StashAction.MoveToNewBranch,
+        key: ExistingChangesAction.MoveToNewBranch,
       },
     ]
 
@@ -121,7 +121,7 @@ export class StashAndSwitchBranch extends React.Component<
     )
   }
 
-  private onSelectionChanged = (action: StashAction) => {
+  private onSelectionChanged = (action: ExistingChangesAction) => {
     this.setState({ selectedStashAction: action })
   }
 
@@ -135,7 +135,7 @@ export class StashAndSwitchBranch extends React.Component<
     const { selectedStashAction } = this.state
 
     if (
-      selectedStashAction === StashAction.StashOnCurrentBranch &&
+      selectedStashAction === ExistingChangesAction.StashOnCurrentBranch &&
       hasAssociatedStash
     ) {
       dispatcher.showPopup({
@@ -150,13 +150,13 @@ export class StashAndSwitchBranch extends React.Component<
 
     const timer = startTimer('stash and checkout', repository)
     try {
-      if (selectedStashAction === StashAction.StashOnCurrentBranch) {
+      if (selectedStashAction === ExistingChangesAction.StashOnCurrentBranch) {
         await dispatcher.checkoutBranch(
           repository,
           branchToCheckout,
           UncommittedChangesStrategy.StashOnCurrentBranch
         )
-      } else if (selectedStashAction === StashAction.MoveToNewBranch) {
+      } else if (selectedStashAction === ExistingChangesAction.MoveToNewBranch) {
         // attempt to checkout the branch without creating a stash entry
         await dispatcher.checkoutBranch(
           repository,
