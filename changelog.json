@@ -1,5 +1,10 @@
 {
   "releases": {
+    "2.6.3-beta1": [
+      "[Fixed] When fetching a repository, the app will fast-forward all possible branches (except the current branch) - #11387",
+      "[Improved] Enable spellcheck on commit summary and description - #1597. Thanks @Hovemeyer5!",
+      "[Improved] Bump embedded git to v2.29.2 - #11369"
+    ],
     "2.6.2": [
       "[Improved] Upgrade embedded Git LFS to 2.13.2 - #11394",
       "[Fixed] Pull requests no longer fail to update until the user switches repositories - #11241",
