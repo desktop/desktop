@@ -3,7 +3,7 @@
     "2.6.3-beta1": [
       "[Fixed] Fast-forward all possible branches except the current branch when fetching - #11387",
       "[Improved] Enable spellcheck on commit summary and description - #1597",
-      "[Improved] Bump embedded git to v2.29.2 - #11369"
+      "[Improved] Upgrade embedded Git to v2.29.2 - #11369"
     ],
     "2.6.2": [
       "[Improved] Upgrade embedded Git LFS to 2.13.2 - #11394",
