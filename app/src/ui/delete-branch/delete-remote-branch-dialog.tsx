@@ -63,7 +63,7 @@ export class DeleteRemoteBranch extends React.Component<
 
     this.setState({ isDeleting: true })
 
-    await dispatcher.deleteBranch(repository, branch, true)
+    await dispatcher.deleteRemoteBranch(repository, branch)
     this.props.onDeleted(repository)
 
     this.props.onDismissed()

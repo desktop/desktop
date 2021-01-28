@@ -122,7 +122,6 @@ import {
   addRemote,
   checkoutBranch,
   createCommit,
-  deleteBranch,
   formatAsLocalRef,
   getAuthorIdentity,
   getBranchAheadBehind,
@@ -152,6 +151,8 @@ import {
   GitError,
   MergeResult,
   getBranchesDifferingFromUpstream,
+  deleteRemoteBranch,
+  deleteLocalBranch,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -3345,10 +3346,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _deleteBranch(
+  public async _deleteLocalBranch(
     repository: Repository,
     branch: Branch,
-    includeRemote: boolean
+    includeRemote?: boolean
   ): Promise<void> {
     return this.withAuthenticatingUser(repository, async (r, account) => {
       const { branchesState } = this.repositoryStateCache.get(r)
@@ -3366,7 +3367,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
 
       await gitStore.performFailableOperation(() =>
-        deleteBranch(r, branch, account, includeRemote)
+        deleteLocalBranch(r, branch, account, includeRemote)
+      )
+
+      return this._refreshRepository(r)
+    })
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _deleteRemoteBranch(
+    repository: Repository,
+    branch: Branch
+  ): Promise<void> {
+    return this.withAuthenticatingUser(repository, async (r, account) => {
+      const gitStore = this.gitStoreCache.get(r)
+
+      await gitStore.performFailableOperation(() =>
+        deleteRemoteBranch(r, branch, account)
       )
 
       return this._refreshRepository(r)
@@ -3379,15 +3396,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Branch | null {
     const tip = branchesState.tip
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
-    // if current branch is not the branch being deleted, no need to switch branches
+    // if current branch is not the branch being deleted, no need to switch
+    // branches
     if (currentBranch != null && branchToDelete.name !== currentBranch.name) {
       return null
     }
 
     let branchToCheckout = branchesState.defaultBranch
 
-    // If the default branch is null, use the most recent branch excluding the branch
-    // the branch to delete as the branch to checkout.
+    // If the default branch is null, use the most recent branch excluding the
+    // branch the branch to delete as the branch to checkout.
     if (branchToCheckout === null) {
       let i = 0
 

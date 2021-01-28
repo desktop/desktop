@@ -17,10 +17,11 @@ import { GitProcess } from 'dugite'
 import {
   getBranchesPointedAt,
   createBranch,
-  deleteBranch,
   getBranches,
   git,
   checkoutBranch,
+  deleteLocalBranch,
+  deleteRemoteBranch,
 } from '../../../src/lib/git'
 import { StatsStore, StatsDatabase } from '../../../src/lib/stats'
 import { UiActivityMonitor } from '../../../src/ui/lib/ui-activity-monitor'
@@ -167,7 +168,7 @@ describe('git/branch', () => {
     })
   })
 
-  describe('deleteBranch', () => {
+  describe('deleteLocalBranch', () => {
     let repository: Repository
 
     beforeEach(async () => {
@@ -186,7 +187,7 @@ describe('git/branch', () => {
       expect(branch).not.toBeNull()
       expect(await getBranches(repository, ref)).toBeArrayOfSize(1)
 
-      await deleteBranch(repository, branch!, null, false)
+      await deleteLocalBranch(repository, branch!, null, false)
 
       expect(await getBranches(repository, ref)).toBeArrayOfSize(0)
     })
@@ -214,7 +215,7 @@ describe('git/branch', () => {
       const [localBranch] = await getBranches(fork, localRef)
       expect(localBranch).not.toBeUndefined()
 
-      await deleteBranch(fork, localBranch, null, true)
+      await deleteLocalBranch(fork, localBranch, null, true)
 
       expect(await getBranches(fork, localRef)).toBeArrayOfSize(0)
       expect(await getBranches(fork, remoteRef)).toBeArrayOfSize(0)
@@ -243,17 +244,42 @@ describe('git/branch', () => {
 
       const [upstreamBranch] = await getBranches(repository, localRef)
       expect(upstreamBranch).not.toBeUndefined()
-      await deleteBranch(repository, upstreamBranch, null, true)
+      await deleteLocalBranch(repository, upstreamBranch, null, true)
       expect(await getBranches(repository, localRef)).toBeArrayOfSize(0)
 
       const [localBranch] = await getBranches(fork, localRef)
       expect(localBranch).not.toBeUndefined()
 
-      await deleteBranch(fork, localBranch, null, true)
+      await deleteLocalBranch(fork, localBranch, null, true)
 
       expect(await getBranches(fork, localRef)).toBeArrayOfSize(0)
       expect(await getBranches(fork, remoteRef)).toBeArrayOfSize(0)
       expect(await getBranches(repository, localRef)).toBeArrayOfSize(0)
+    })
+  })
+
+  describe('deleteRemoteBranch', () => {
+    let repository: Repository
+
+    beforeEach(async () => {
+      const path = await setupFixtureRepository('test-repo')
+      repository = new Repository(path, -1, null, false)
+    })
+
+    it('deletes remote branches', async () => {
+      const name = 'test-branch'
+      const branch = await createBranch(repository, name, null)
+      expect(branch).not.toBeNull()
+
+      const fork = await setupLocalForkOfRepository(repository)
+
+      const remoteRef = `refs/remotes/origin/${name}`
+      const [remoteBranch] = await getBranches(fork, remoteRef)
+      expect(remoteBranch).not.toBeUndefined()
+
+      await deleteRemoteBranch(fork, remoteBranch, null)
+
+      expect(await getBranches(fork, remoteRef)).toBeArrayOfSize(0)
     })
   })
 })

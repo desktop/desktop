@@ -10,8 +10,8 @@ import {
   getBranchCheckouts,
   getSymbolicRef,
   formatAsLocalRef,
-  deleteLocalBranch,
   getBranches,
+  deleteLocalBranchWithName,
 } from '../../git'
 import { fatalError } from '../../fatal-error'
 import { RepositoryStateCache } from '../repository-state-cache'
@@ -230,7 +230,7 @@ export class BranchPruner {
 
       if (options.deleteBranch) {
         const isDeleted = await gitStore.performFailableOperation(() =>
-          deleteLocalBranch(this.repository, branchName)
+          deleteLocalBranchWithName(this.repository, branchName)
         )
 
         if (isDeleted) {

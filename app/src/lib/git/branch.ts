@@ -53,10 +53,11 @@ export async function renameBranch(
 }
 
 /**
- * Delete the branch locally, see `deleteBranch` if you're looking to delete the
- * branch from the remote as well.
+ * Delete the branch with given name locally, see `deleteLocalBranch` using
+ * `includeRemote` or `deleteRemoteBranch if you're looking to delete the branch
+ * from the remote as well.
  */
-export async function deleteLocalBranch(
+export async function deleteLocalBranchWithName(
   repository: Repository,
   branchName: string
 ): Promise<true> {
@@ -64,6 +65,11 @@ export async function deleteLocalBranch(
   return true
 }
 
+/**
+ * Delete a remote branch. If given branch is a local branch, it will delete the
+ * branch remotely. See `deleteLocalBranch` or `deleteLocalBranchwithName` if
+ * you're looking to delete the branch locally.
+ */
 export async function deleteRemoteBranch(
   repository: Repository,
   branch: Branch,
@@ -119,21 +125,18 @@ export async function deleteRemoteBranch(
 }
 
 /**
- * Delete the branch. If the branch is a remote branch or `includeRemote` is
- * true, the remote branch will be deleted.
- * Silently deletes local branch if remote one is already deleted.
+ * Delete the branch. This will delete it locally and if `includeRemote` is
+ * true, the remote branch will also be deleted.
  */
-export async function deleteBranch(
+export async function deleteLocalBranch(
   repository: Repository,
   branch: Branch,
   account: IGitAccount | null,
-  includeRemote: boolean
+  includeRemote?: boolean
 ): Promise<true> {
-  if (branch.type === BranchType.Local) {
-    await deleteLocalBranch(repository, branch.name)
-  }
+  await deleteLocalBranchWithName(repository, branch.name)
 
-  if (includeRemote || branch.type === BranchType.Remote) {
+  if (includeRemote === true) {
     await deleteRemoteBranch(repository, branch, account)
   }
 
