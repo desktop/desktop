@@ -31,7 +31,7 @@ interface ISwitchBranchProps {
 
 interface ISwitchBranchState {
   readonly isStashingChanges: boolean
-  readonly selectedStashAction: ExistingChangesAction
+  readonly selectedAction: ExistingChangesAction
   readonly currentBranchName: string
 }
 
@@ -48,7 +48,7 @@ export class StashAndSwitchBranch extends React.Component<
 
     this.state = {
       isStashingChanges: false,
-      selectedStashAction: ExistingChangesAction.StashOnCurrentBranch,
+      selectedAction: ExistingChangesAction.StashOnCurrentBranch,
       currentBranchName: props.currentBranch.name,
     }
   }
@@ -80,7 +80,7 @@ export class StashAndSwitchBranch extends React.Component<
   private renderStashOverwriteWarning() {
     if (
       !this.props.hasAssociatedStash ||
-      this.state.selectedStashAction !== ExistingChangesAction.StashOnCurrentBranch
+      this.state.selectedAction !== ExistingChangesAction.StashOnCurrentBranch
     ) {
       return null
     }
@@ -114,7 +114,7 @@ export class StashAndSwitchBranch extends React.Component<
         <VerticalSegmentedControl
           label="You have changes on this branch. What would you like to do with them?"
           items={items}
-          selectedKey={this.state.selectedStashAction}
+          selectedKey={this.state.selectedAction}
           onSelectionChanged={this.onSelectionChanged}
         />
       </Row>
@@ -122,7 +122,7 @@ export class StashAndSwitchBranch extends React.Component<
   }
 
   private onSelectionChanged = (action: ExistingChangesAction) => {
-    this.setState({ selectedStashAction: action })
+    this.setState({ selectedAction: action })
   }
 
   private onSubmit = async () => {
@@ -132,10 +132,10 @@ export class StashAndSwitchBranch extends React.Component<
       dispatcher,
       hasAssociatedStash,
     } = this.props
-    const { selectedStashAction } = this.state
+    const { selectedAction } = this.state
 
     if (
-      selectedStashAction === ExistingChangesAction.StashOnCurrentBranch &&
+      selectedAction === ExistingChangesAction.StashOnCurrentBranch &&
       hasAssociatedStash
     ) {
       dispatcher.showPopup({
@@ -150,13 +150,13 @@ export class StashAndSwitchBranch extends React.Component<
 
     const timer = startTimer('stash and checkout', repository)
     try {
-      if (selectedStashAction === ExistingChangesAction.StashOnCurrentBranch) {
+      if (selectedAction === ExistingChangesAction.StashOnCurrentBranch) {
         await dispatcher.checkoutBranch(
           repository,
           branchToCheckout,
           UncommittedChangesStrategy.StashOnCurrentBranch
         )
-      } else if (selectedStashAction === ExistingChangesAction.MoveToNewBranch) {
+      } else if (selectedAction === ExistingChangesAction.MoveToNewBranch) {
         // attempt to checkout the branch without creating a stash entry
         await dispatcher.checkoutBranch(
           repository,
