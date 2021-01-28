@@ -25,6 +25,7 @@
     "codemirror-mode-elixir": "^1.1.2",
     "compare-versions": "^3.6.0",
     "deep-equal": "^1.0.1",
+    "desktop-trampoline": "../../desktop-trampoline",
     "dexie": "^2.0.0",
     "double-ended-queue": "^2.1.0-0",
     "dugite": "^1.96.0",

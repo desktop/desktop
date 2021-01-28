@@ -1630,7 +1630,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async loadInitialState() {
     trampolineServer.registerCommandHandler('ASKPASS', askpassTrampolineHandler)
 
-    await trampolineServer.run()
+    // await trampolineServer.run()
 
     const [accounts, repositories] = await Promise.all([
       this.accountsStore.getAll(),

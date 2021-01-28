@@ -47,6 +47,11 @@ export function enableWSLDetection(): boolean {
   return enableBetaFeatures()
 }
 
+/** Should the app use the shiny new TCP-based trampoline? */
+export function enableDesktopTrampoline(): boolean {
+  return true //enableDevelopmentFeatures()
+}
+
 /**
  * Should we show the create fork dialog flow?
  */

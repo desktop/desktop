@@ -1,5 +1,6 @@
 import { createServer, AddressInfo, Server, Socket } from 'net'
 import split2 from 'split2'
+import { enableDesktopTrampoline } from '../feature-flag'
 import { isValidTrampolineToken } from './trampoline-tokens'
 
 interface ITrampolineCommand {
@@ -33,7 +34,6 @@ class TrampolineCommandParser {
     switch (this.state) {
       case TrampolineCommandParserState.ParameterCount:
         this.parameterCount = parseInt(value)
-        console.log(`Trampoline parsed parameterCount ${value}`)
 
         if (this.parameterCount > 0) {
           this.state = TrampolineCommandParserState.Parameters
@@ -44,7 +44,6 @@ class TrampolineCommandParser {
         break
 
       case TrampolineCommandParserState.Parameters:
-        console.log(`Trampoline parsed parameter ${value}`)
         this.parameters.push(value)
         if (this.parameters.length === this.parameterCount) {
           this.state = TrampolineCommandParserState.EnvironmentVariablesCount
@@ -53,7 +52,6 @@ class TrampolineCommandParser {
 
       case TrampolineCommandParserState.EnvironmentVariablesCount:
         this.environmentVariablesCount = parseInt(value)
-        console.log(`Trampoline parsed environmentVariablesCount ${value}`)
 
         if (this.environmentVariablesCount > 0) {
           this.state = TrampolineCommandParserState.EnvironmentVariables
@@ -64,6 +62,7 @@ class TrampolineCommandParser {
         break
 
       case TrampolineCommandParserState.EnvironmentVariables:
+        // Split after the first '='
         const match = /([^=]+)=(.*)/.exec(value)
 
         if (
@@ -76,10 +75,6 @@ class TrampolineCommandParser {
 
         const variableKey = match[1]
         const variableValue = match[2]
-
-        console.log(
-          `Trampoline parsed env variable ${variableKey} = ${variableValue}`
-        )
 
         this.environmentVariables.set(variableKey, variableValue)
 
@@ -127,16 +122,15 @@ export class TrampolineServer {
   private readonly commandHandlers = new Map<string, TrampolineCommandHandler>()
 
   public constructor() {
-    this.server = createServer(this.onNewConnection.bind(this))
-  }
-
-  public async run(): Promise<void> {
-    await this.listen()
-
-    // TODO: retry if it fails? crash the app instead?
+    this.server = createServer(socket => this.onNewConnection(socket))
   }
 
   private async listen(): Promise<void> {
+    if (!enableDesktopTrampoline()) {
+      this.listeningPromise = Promise.resolve()
+      return this.listeningPromise
+    }
+
     this.listeningPromise = new Promise((resolve, reject) => {
       function onListenError(error: Error) {
         reject(error)
@@ -157,12 +151,20 @@ export class TrampolineServer {
   }
 
   public async getPort() {
-    if (this.listeningPromise === null) {
-      return null
+    if (this.port !== null) {
+      return this.port
     }
 
-    await this.listeningPromise
+    if (this.listeningPromise !== null) {
+      await this.listeningPromise
+    } else {
+      await this.listen()
+    }
 
+    return this.port
+  }
+
+  private get port(): number | null {
     const address = this.server.address() as AddressInfo
 
     if (address && address.port) {
@@ -173,12 +175,10 @@ export class TrampolineServer {
   }
 
   private onNewConnection(socket: Socket) {
-    socket
-      .pipe(split2(/\0/))
-      .on(
-        'data',
-        this.onDataReceived.bind(this, socket, new TrampolineCommandParser())
-      )
+    const parser = new TrampolineCommandParser()
+    socket.pipe(split2(/\0/)).on('data', data => {
+      this.onDataReceived(socket, parser, data)
+    })
   }
 
   private onDataReceived(
@@ -202,10 +202,6 @@ export class TrampolineServer {
   }
 
   private async processCommand(socket: Socket, command: ITrampolineCommand) {
-    console.log(
-      `command '${command.identifier}' with arguments ${command.parameters}`
-    )
-
     const token = command.environmentVariables.get('DESKTOP_TRAMPOLINE_TOKEN')
 
     if (token === undefined || !isValidTrampolineToken(token)) {
@@ -228,7 +224,10 @@ export class TrampolineServer {
 
   private onErrorReceived(error: Error) {
     console.error('Error received in trampoline server:', error)
-    // TODO: try to run the server again?
+
+    // Reset the server, it will be restarted lazily the next time it's needed
+    this.server.close()
+    this.listeningPromise = null
   }
 }
 
