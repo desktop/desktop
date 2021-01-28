@@ -135,6 +135,9 @@ describe('git/worktree', () => {
       // paths even though they are the same folder
       const path = realpathSync(workTree.path).split(/\/|\\/)
       const folder = path[path.length - 1]
+      // We are checking if the last folder on worktree path exists in tmpDir
+      // because tmpDir on windows uses 8.3 short names
+      // and workTree path uses long names; thus, we cannot simply compare paths.
       expect(directories).toContain(folder)
     })
 
