@@ -8,6 +8,20 @@ import {
 import { TrampolineCommandParser } from './trampoline-command-parser'
 import { isValidTrampolineToken } from './trampoline-tokens'
 
+/**
+ * This class represents the "trampoline server". The trampoline is something
+ * we'll hand to git in order to communicate with Desktop without noticing. A
+ * notable example of this would be GIT_ASKPASS.
+ *
+ * This server is designed so that it will start lazily when the app performs a
+ * remote git operation. At that point, the app will try to retrieve the
+ * server's port, which will run the server first if needed.
+ *
+ * The idea behind this is to simplify the retry approach in case of error:
+ * instead of reacting to errors with an immediate retry, the server will remain
+ * closed until the next time the app needs it (i.e. in the next git remote
+ * operation).
+ */
 export class TrampolineServer {
   private readonly server: Server
   private listeningPromise: Promise<void> | null = null
@@ -25,12 +39,14 @@ export class TrampolineServer {
     }
 
     this.listeningPromise = new Promise((resolve, reject) => {
+      // Observe errors while trying to start the server
       this.server.on('error', error => {
         reject(error)
         this.close()
       })
 
       this.server.listen(0, '127.0.0.1', async () => {
+        // Replace the error handler
         this.server.removeAllListeners('error')
         this.server.on('error', error => this.onErrorReceived(error))
 
@@ -44,15 +60,24 @@ export class TrampolineServer {
   }
 
   private async close() {
+    // Make sure the server is not trying to start
     if (this.listeningPromise !== null) {
       await this.listeningPromise
     }
+
     // Reset the server, it will be restarted lazily the next time it's needed
     this.server.close()
     this.server.removeAllListeners('error')
     this.listeningPromise = null
   }
 
+  /**
+   * This function will retrieve the port of the server, or null if the server
+   * is not running.
+   *
+   * In order to get the server port, it might need to start the server if it's
+   * not running already.
+   */
   public async getPort() {
     if (this.port !== null) {
       return this.port
@@ -79,6 +104,8 @@ export class TrampolineServer {
 
   private onNewConnection(socket: Socket) {
     const parser = new TrampolineCommandParser()
+
+    // Messages coming from the trampoline client will be separated by \0
     socket.pipe(split2(/\0/)).on('data', data => {
       this.onDataReceived(socket, parser, data)
     })
@@ -97,6 +124,13 @@ export class TrampolineServer {
     }
   }
 
+  /**
+   * Registers a handler for commands with a specific identifier. This will be
+   * invoked when the server receives a command with the given identifier.
+   *
+   * @param identifier Identifier of the command.
+   * @param handler Handler to register.
+   */
   public registerCommandHandler(
     identifier: string,
     handler: TrampolineCommandHandler
@@ -122,6 +156,8 @@ export class TrampolineServer {
 
     if (result !== undefined) {
       socket.end(result)
+    } else {
+      socket.end()
     }
   }
 
