@@ -70,6 +70,20 @@ export class Branch {
     return pieces[1]
   }
 
+  /** The name of remote for a remote branch. If local, will return null. */
+  public get remoteName(): string | null {
+    if (this.type === BranchType.Local) {
+      return null
+    }
+    const remoteRefPrefix = 'refs/remotes/'
+    const remoteBranchName = this.ref.replace(remoteRefPrefix, '')
+    const pieces = remoteBranchName.match(/(.*?)\/.*/)
+    if (!pieces || pieces.length < 2) {
+      return null
+    }
+    return pieces[1]
+  }
+
   /**
    * The name of the branch's upstream without the remote prefix.
    */
