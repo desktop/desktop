@@ -1,6 +1,7 @@
 import { createServer, AddressInfo, Server, Socket } from 'net'
 import split2 from 'split2'
 import { enableDesktopTrampoline } from '../feature-flag'
+import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { askpassTrampolineHandler } from './trampoline-askpass-handler'
 import {
   ITrampolineCommand,
@@ -58,7 +59,7 @@ export class TrampolineServer {
       this.server.listen(0, '127.0.0.1', async () => {
         // Replace the error handler
         this.server.removeAllListeners('error')
-        this.server.on('error', error => this.onErrorReceived(error))
+        this.server.on('error', error => this.onError(error))
 
         resolve()
 
@@ -152,13 +153,13 @@ export class TrampolineServer {
     const token = command.environmentVariables.get('DESKTOP_TRAMPOLINE_TOKEN')
 
     if (token === undefined || !isValidTrampolineToken(token)) {
-      console.error('Tried to use invalid trampoline token')
-      return
+      throw new Error('Tried to use invalid trampoline token')
     }
 
     const handler = this.commandHandlers.get(command.identifier)
 
     if (handler === undefined) {
+      socket.end()
       return
     }
 
@@ -171,9 +172,8 @@ export class TrampolineServer {
     }
   }
 
-  private onErrorReceived(error: Error) {
-    console.error('Error received in trampoline server:', error)
-
+  private onError(error: Error) {
+    sendNonFatalException('trampolineServer', error)
     this.close()
   }
 }
