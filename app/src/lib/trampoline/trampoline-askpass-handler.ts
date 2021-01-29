@@ -1,6 +1,6 @@
 import { getKeyForEndpoint } from '../auth'
 import { TokenStore } from '../stores'
-import { TrampolineCommandHandler } from './trampoline-server'
+import { TrampolineCommandHandler } from './trampoline-command'
 
 export const askpassTrampolineHandler: TrampolineCommandHandler = async command => {
   if (command.parameters.length !== 2) {
