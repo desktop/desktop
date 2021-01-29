@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.6.3-test1": ["Testing new app icon"],
     "2.6.2": [
       "[Improved] Upgrade embedded Git LFS to 2.13.2 - #11394",
       "[Fixed] Pull requests no longer fail to update until the user switches repositories - #11241",
