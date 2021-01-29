@@ -138,6 +138,8 @@ export async function fastForwardBranches(
     return
   }
 
+  const refPairs = branches.map(branch => `${branch.upstreamRef}:${branch.ref}`)
+
   const opts: IGitExecutionOptions = {
     successExitCodes: new Set([0, 1]),
     env: {
@@ -145,20 +147,21 @@ export async function fastForwardBranches(
       // fast-forwarding the branches.
       GIT_REFLOG_ACTION: 'pull',
     },
+    stdin: refPairs.join('\n'),
   }
-
-  const refPairs = branches.map(branch => `${branch.upstreamRef}:${branch.ref}`)
 
   await git(
     [
       'fetch',
       '.',
+      // Make sure we don't try to update branches that can't be fast-forwarded
+      // even if the user disabled this via the git config option
+      // `fetch.showForcedUpdates`
       '--show-forced-updates',
       '-v',
-      // TODO: Once we upgrade to git 2.29 we can use --stdin to pass the refs,
-      // avoiding hitting any shell limitations related to the length of the
-      // command.
-      ...refPairs,
+      // Take branch refs from stdin to circumvent shell max line length
+      // limitations (mainly on Windows)
+      '--stdin',
     ],
     repository.path,
     'fastForwardBranches',
