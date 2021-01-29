@@ -43,5 +43,5 @@ export async function getDefaultBranch(): Promise<string> {
  * @param branchName The default branch name to use.
  */
 export async function setDefaultBranch(branchName: string) {
-  return setGlobalConfigValue('init.defaultBranch', branchName)
+  return setGlobalConfigValue(DefaultBranchSettingName, branchName)
 }
