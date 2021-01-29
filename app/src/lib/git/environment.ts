@@ -4,8 +4,6 @@ import { enableAutomaticGitProxyConfiguration } from '../feature-flag'
 import { resolveGitProxy } from '../resolve-git-proxy'
 import { getDotComAPIEndpoint } from '../api'
 import { Repository } from '../../models/repository'
-import { withTrampolineToken } from '../trampoline/trampoline-tokens'
-import { trampolineServer } from '../trampoline/trampoline-server'
 
 /**
  * For many remote operations it's well known what the primary remote
@@ -64,7 +62,7 @@ export function getFallbackUrlForProxyResolve(
  *                  pointing to another host entirely. Used to resolve which
  *                  proxy (if any) should be used for the operation.
  */
-async function envForRemoteOperation(
+export async function envForRemoteOperation(
   account: IGitAccount | null,
   remoteUrl: string
 ) {
@@ -72,22 +70,6 @@ async function envForRemoteOperation(
     ...envForAuthentication(account),
     ...(await envForProxy(remoteUrl)),
   }
-}
-
-export async function withTrampolineEnvForRemoteOperation<T>(
-  account: IGitAccount | null,
-  remoteUrl: string,
-  fn: (env: Object) => Promise<T>
-): Promise<T> {
-  const env = await envForRemoteOperation(account, remoteUrl)
-
-  return withTrampolineToken(async token =>
-    fn({
-      ...env,
-      DESKTOP_PORT: await trampolineServer.getPort(),
-      DESKTOP_TRAMPOLINE_TOKEN: token,
-    })
-  )
 }
 
 /**

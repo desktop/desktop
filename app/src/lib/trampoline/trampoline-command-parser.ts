@@ -12,6 +12,10 @@ enum TrampolineCommandParserState {
   Finished,
 }
 
+/**
+ * The purpose of this class is to process the data received from the trampoline
+ * client and build a command from it.
+ */
 export class TrampolineCommandParser {
   private parameterCount: number = 0
   private readonly parameters: string[] = []
@@ -21,10 +25,17 @@ export class TrampolineCommandParser {
   private state: TrampolineCommandParserState =
     TrampolineCommandParserState.ParameterCount
 
+  /** Whether or not it has finished parsing the command. */
   public hasFinished() {
     return this.state === TrampolineCommandParserState.Finished
   }
 
+  /**
+   * Takes a chunk of data and processes it depending on the current state.
+   *
+   * Throws an error if it's invoked after the parser has finished, or if
+   * anything unexpected is received.
+   **/
   public processValue(value: string) {
     switch (this.state) {
       case TrampolineCommandParserState.ParameterCount:
@@ -83,6 +94,12 @@ export class TrampolineCommandParser {
     }
   }
 
+  /**
+   * Returns a command.
+   *
+   * Throws an error if the parser hasn't finished yet, or if the identifier
+   * is missing or invalid.
+   **/
   public toCommand(): ITrampolineCommand {
     if (this.hasFinished() === false) {
       throw new Error(

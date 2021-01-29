@@ -4,13 +4,14 @@ import { GitError as DugiteError } from 'dugite'
 import { IGitAccount } from '../../models/git-account'
 import { enableDesktopTrampoline } from '../feature-flag'
 import { getDesktopTrampolineFilename } from 'desktop-trampoline'
+import { TrampolineCommandIdentifier } from '../trampoline/trampoline-command'
 
 /** Get the environment for authenticating remote operations. */
 export function envForAuthentication(auth: IGitAccount | null): Object {
   const env = {
     DESKTOP_PATH: process.execPath,
     DESKTOP_ASKPASS_SCRIPT: getAskPassScriptPath(),
-    DESKTOP_TRAMPOLINE_IDENTIFIER: 'ASKPASS',
+    DESKTOP_TRAMPOLINE_IDENTIFIER: TrampolineCommandIdentifier.AskPass,
     GIT_ASKPASS: enableDesktopTrampoline()
       ? getDesktopTrampolinePath()
       : getAskPassTrampolinePath(),
