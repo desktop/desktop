@@ -65,6 +65,7 @@ export async function deleteLocalBranch(
 
 /**
  * Deletes a remote branch
+ *
  * @param remoteName - the name of the remote to delete the branch from
  * @param remoteBranchName - the name of the branch on the remote
  * @param branchTipSha - the branch's sha is logged for reference, more useful
