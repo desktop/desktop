@@ -10,7 +10,6 @@ import {
   getStatus,
   getAuthorIdentity,
   isGitRepository,
-  createAndCheckoutBranch,
 } from '../../lib/git'
 import { sanitizedRepositoryName } from './sanitized-repository-name'
 import { TextBox } from '../lib/text-box'
