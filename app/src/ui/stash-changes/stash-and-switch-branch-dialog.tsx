@@ -110,7 +110,8 @@ export class StashAndSwitchBranch extends React.Component<
       },
       {
         title: `Discard all changes`,
-        description: 'Changes can be restored by retrieving them from the Recycle Bin',
+        description:
+          'Changes can be restored by retrieving them from the Recycle Bin',
         key: ExistingChangesAction.DiscardAllChanges,
       },
     ]
@@ -156,21 +157,15 @@ export class StashAndSwitchBranch extends React.Component<
 
     const timer = startTimer('checkout', repository)
     try {
-      let strategy = UncommittedChangesStrategy.AskForConfirmation;
-      if (selectedAction === ExistingChangesAction.StashOnCurrentBranch){
-        strategy = UncommittedChangesStrategy.StashOnCurrentBranch;
+      let strategy = UncommittedChangesStrategy.AskForConfirmation
+      if (selectedAction === ExistingChangesAction.StashOnCurrentBranch) {
+        strategy = UncommittedChangesStrategy.StashOnCurrentBranch
+      } else if (selectedAction === ExistingChangesAction.MoveToNewBranch) {
+        strategy = UncommittedChangesStrategy.MoveToNewBranch // attempt to checkout the branch without creating a stash entry
+      } else if (selectedAction === ExistingChangesAction.DiscardAllChanges) {
+        strategy = UncommittedChangesStrategy.DiscardAll
       }
-      else if (selectedAction === ExistingChangesAction.MoveToNewBranch){
-        strategy = UncommittedChangesStrategy.MoveToNewBranch; // attempt to checkout the branch without creating a stash entry
-      }
-      else if (selectedAction === ExistingChangesAction.DiscardAllChanges){
-        strategy = UncommittedChangesStrategy.DiscardAll;
-      }
-      await dispatcher.checkoutBranch(
-        repository,
-        branchToCheckout,
-        strategy
-      )
+      await dispatcher.checkoutBranch(repository, branchToCheckout, strategy)
     } finally {
       timer.done()
       this.setState({ isStashingChanges: false }, () => {

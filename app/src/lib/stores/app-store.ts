@@ -3155,7 +3155,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     branch: Branch,
     account: IGitAccount | null
-  ){
+  ) {
     const repositoryState = this.repositoryStateCache.get(repository)
     const { workingDirectory } = repositoryState.changesState
     const { tip } = repositoryState.branchesState
