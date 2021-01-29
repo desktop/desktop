@@ -154,7 +154,7 @@ export class StashAndSwitchBranch extends React.Component<
 
     this.setState({ isStashingChanges: true })
 
-    const timer = startTimer('stash and checkout', repository)
+    const timer = startTimer('checkout', repository)
     try {
       let strategy = UncommittedChangesStrategy.AskForConfirmation;
       if (selectedAction === ExistingChangesAction.StashOnCurrentBranch){
