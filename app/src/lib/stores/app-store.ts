@@ -121,7 +121,6 @@ import {
   addRemote,
   checkoutBranch,
   createCommit,
-  deleteBranch,
   formatAsLocalRef,
   getAuthorIdentity,
   getBranchAheadBehind,
@@ -151,6 +150,8 @@ import {
   GitError,
   MergeResult,
   getBranchesDifferingFromUpstream,
+  deleteLocalBranch,
+  deleteRemoteBranch,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -3347,44 +3348,89 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _deleteBranch(
     repository: Repository,
     branch: Branch,
-    includeRemote: boolean
+    includeRemote?: boolean
   ): Promise<void> {
     return this.withAuthenticatingUser(repository, async (r, account) => {
-      const { branchesState } = this.repositoryStateCache.get(r)
-      let branchToCheckout = branchesState.defaultBranch
+      const branchToCheckout = this.getBranchToCheckoutAfterDelete(branch, r)
+      const gitStore = this.gitStoreCache.get(r)
 
-      // If the default branch is null, use the most recent branch excluding the branch
-      // the branch to delete as the branch to checkout.
-      if (branchToCheckout === null) {
-        let i = 0
-
-        while (i < branchesState.recentBranches.length) {
-          if (branchesState.recentBranches[i].name !== branch.name) {
-            branchToCheckout = branchesState.recentBranches[i]
-            break
-          }
-          i++
-        }
-      }
-
-      if (branchToCheckout === null) {
-        throw new Error(
-          `It's not possible to delete the only existing branch in a repository.`
+      if (branchToCheckout != null) {
+        await gitStore.performFailableOperation(() =>
+          checkoutBranch(r, account, branchToCheckout)
         )
       }
 
-      const nonNullBranchToCheckout = branchToCheckout
-      const gitStore = this.gitStoreCache.get(r)
-
-      await gitStore.performFailableOperation(() =>
-        checkoutBranch(r, account, nonNullBranchToCheckout)
-      )
-      await gitStore.performFailableOperation(() =>
-        deleteBranch(r, branch, account, includeRemote)
-      )
+      await gitStore.performFailableOperation(async () => {
+        if (branch.type === BranchType.Remote) {
+          // Note: deleting a remote branch implementation not needed.
+          return
+        }
+        this.deleteLocalBranchAndUpstreamBranch(
+          repository,
+          branch,
+          account,
+          includeRemote
+        )
+      })
 
       return this._refreshRepository(r)
     })
+  }
+
+  /**
+   * Deletes the local branch. If the branch `includeRemote` is true, the
+   * upstream branch will be deleted also.
+   */
+  private async deleteLocalBranchAndUpstreamBranch(
+    repository: Repository,
+    branch: Branch,
+    account: IGitAccount | null,
+    includeRemote?: boolean
+  ): Promise<true> {
+    await deleteLocalBranch(repository, branch.name)
+
+    if (
+      includeRemote === true &&
+      branch.upstreamRemoteName !== null &&
+      branch.upstreamWithoutRemote !== null
+    ) {
+      await deleteRemoteBranch(
+        repository,
+        account,
+        branch.upstreamRemoteName,
+        branch.upstreamWithoutRemote,
+        branch.tip.sha
+      )
+    }
+    return true
+  }
+
+  private getBranchToCheckoutAfterDelete(
+    branchToDelete: Branch,
+    repository: Repository
+  ): Branch | null {
+    const { branchesState } = this.repositoryStateCache.get(repository)
+    const tip = branchesState.tip
+    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+    // if current branch is not the branch being deleted, no need to switch
+    // branches
+    if (currentBranch != null && branchToDelete.name !== currentBranch.name) {
+      return null
+    }
+
+    // If the default branch is null, use the most recent branch excluding the branch
+    // the branch to delete as the branch to checkout.
+    const branchToCheckout =
+      branchesState.defaultBranch ??
+      branchesState.recentBranches.find(x => x.name !== branchToDelete.name)
+
+    if (branchToCheckout === undefined) {
+      throw new Error(
+        `It's not possible to delete the only existing branch in a repository.`
+      )
+    }
+
+    return branchToCheckout
   }
 
   private updatePushPullFetchProgress(
