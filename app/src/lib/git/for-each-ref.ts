@@ -175,7 +175,7 @@ export async function getBranchesDifferingFromUpstream(
     }
   }
 
-  const eligibleBranches: ITrackingBranch[] = []
+  const eligibleBranches = new Array<ITrackingBranch>()
 
   // Compare the SHA of every local branch with the SHA of its upstream and
   // collect the names of local branches that differ from their upstream.

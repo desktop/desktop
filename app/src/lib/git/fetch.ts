@@ -141,6 +141,8 @@ export async function fastForwardBranches(
   const refPairs = branches.map(branch => `${branch.upstreamRef}:${branch.ref}`)
 
   const opts: IGitExecutionOptions = {
+    // Fetch exits with an exit code of 1 if one or more refs failed to update
+    // which is what we expect will happen
     successExitCodes: new Set([0, 1]),
     env: {
       // This will make sure the reflog entries are correct after
@@ -154,7 +156,6 @@ export async function fastForwardBranches(
     [
       'fetch',
       '.',
-      '-v',
       // Make sure we don't try to update branches that can't be fast-forwarded
       // even if the user disabled this via the git config option
       // `fetch.showForcedUpdates`
