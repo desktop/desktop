@@ -6,6 +6,8 @@ import {
 } from '../../../src/lib/git/for-each-ref'
 import { Branch } from '../../../src/models/branch'
 import { fastForwardBranches } from '../../../src/lib/git'
+import * as Path from 'path'
+import * as FSE from 'fs-extra'
 
 function branchWithName(branches: ReadonlyArray<Branch>, name: string) {
   return branches.filter(branch => branch.name === name)[0]
@@ -72,6 +74,24 @@ describe('git/fetch', () => {
         upToDateBranch.upstream!
       )
       expect(upToDateBranchUpstream.tip.sha).toBe(upToDateBranch.tip.sha)
+    })
+
+    // We want to avoid messing with the FETCH_HEAD file. Normally, it shouldn't
+    // be something users would rely on, but we want to be good gitizens
+    // (:badpundog:) when possible.
+    it('does not change FETCH_HEAD after fast-forwarding branches with fetch', async () => {
+      const eligibleBranches = await getBranchesDifferingFromUpstream(
+        repository
+      )
+
+      const fetchHeadPath = Path.join(repository.path, '.git', 'FETCH_HEAD')
+      const previousFetchHead = await FSE.readFile(fetchHeadPath, 'utf-8')
+
+      await fastForwardBranches(repository, eligibleBranches)
+
+      const currentFetchHead = await FSE.readFile(fetchHeadPath, 'utf-8')
+
+      expect(currentFetchHead).toBe(previousFetchHead)
     })
   })
 })

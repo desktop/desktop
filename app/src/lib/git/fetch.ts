@@ -154,11 +154,13 @@ export async function fastForwardBranches(
     [
       'fetch',
       '.',
+      '-v',
       // Make sure we don't try to update branches that can't be fast-forwarded
       // even if the user disabled this via the git config option
       // `fetch.showForcedUpdates`
       '--show-forced-updates',
-      '-v',
+      // Prevent `git fetch` from touching the `FETCH_HEAD`
+      '--no-write-fetch-head',
       // Take branch refs from stdin to circumvent shell max line length
       // limitations (mainly on Windows)
       '--stdin',
