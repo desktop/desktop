@@ -3360,12 +3360,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
         )
       }
 
-      await gitStore.performFailableOperation(async () => {
+      await gitStore.performFailableOperation(() => {
         if (branch.type === BranchType.Remote) {
-          // Note: deleting a remote branch implementation not needed.
-          return
+          // Note: deleting a remote branch implementation not needed, yet.
+          return Promise.resolve(true)
         }
-        this.deleteLocalBranchAndUpstreamBranch(
+        return this.deleteLocalBranchAndUpstreamBranch(
           repository,
           branch,
           account,
