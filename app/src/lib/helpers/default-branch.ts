@@ -2,16 +2,10 @@ import { getGlobalConfigValue, setGlobalConfigValue } from '../git'
 import { enableDefaultBranchSetting } from '../feature-flag'
 
 /**
- * The default branch name that Desktop's embedded version of Git
- * will use when initializing a new repository.
- */
-export const DefaultBranchInGit = 'master'
-
-/**
  * The default branch name that GitHub Desktop will use when
  * initializing a new repository.
  */
-export const DefaultBranchInDesktop = 'main'
+const DefaultBranchInDesktop = 'main'
 
 /**
  * The name of the Git configuration variable which holds what
