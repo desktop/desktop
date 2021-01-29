@@ -1,3 +1,7 @@
+export enum TrampolineCommandIdentifier {
+  AskPass = 'ASKPASS',
+}
+
 /** Represents a command in our trampoline mechanism. */
 export interface ITrampolineCommand {
   /**
@@ -6,7 +10,7 @@ export interface ITrampolineCommand {
    * This will be used to find a suitable handler in the app to react to the
    * command.
    */
-  readonly identifier: string
+  readonly identifier: TrampolineCommandIdentifier
 
   /**
    * Parameters of the command.

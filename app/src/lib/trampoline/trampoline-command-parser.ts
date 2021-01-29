@@ -1,4 +1,8 @@
-import { ITrampolineCommand } from './trampoline-command'
+import { parseEnumValue } from '../enum'
+import {
+  ITrampolineCommand,
+  TrampolineCommandIdentifier,
+} from './trampoline-command'
 
 enum TrampolineCommandParserState {
   ParameterCount,
@@ -86,12 +90,23 @@ export class TrampolineCommandParser {
       )
     }
 
-    const identifier = this.environmentVariables.get(
+    const identifierString = this.environmentVariables.get(
       'DESKTOP_TRAMPOLINE_IDENTIFIER'
     )
 
-    if (identifier === undefined) {
+    if (identifierString === undefined) {
       throw new Error('The command identifier is missing')
+    }
+
+    const identifier = parseEnumValue(
+      TrampolineCommandIdentifier,
+      identifierString
+    )
+
+    if (identifier === undefined) {
+      throw new Error(
+        `The command identifier ${identifierString} is not supported`
+      )
     }
 
     return {

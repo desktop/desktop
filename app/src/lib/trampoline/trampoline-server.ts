@@ -1,9 +1,11 @@
 import { createServer, AddressInfo, Server, Socket } from 'net'
 import split2 from 'split2'
 import { enableDesktopTrampoline } from '../feature-flag'
+import { askpassTrampolineHandler } from './trampoline-askpass-handler'
 import {
   ITrampolineCommand,
   TrampolineCommandHandler,
+  TrampolineCommandIdentifier,
 } from './trampoline-command'
 import { TrampolineCommandParser } from './trampoline-command-parser'
 import { isValidTrampolineToken } from './trampoline-tokens'
@@ -26,10 +28,18 @@ export class TrampolineServer {
   private readonly server: Server
   private listeningPromise: Promise<void> | null = null
 
-  private readonly commandHandlers = new Map<string, TrampolineCommandHandler>()
+  private readonly commandHandlers = new Map<
+    TrampolineCommandIdentifier,
+    TrampolineCommandHandler
+  >()
 
   public constructor() {
     this.server = createServer(socket => this.onNewConnection(socket))
+
+    this.registerCommandHandler(
+      TrampolineCommandIdentifier.AskPass,
+      askpassTrampolineHandler
+    )
   }
 
   private async listen(): Promise<void> {
@@ -131,8 +141,8 @@ export class TrampolineServer {
    * @param identifier Identifier of the command.
    * @param handler Handler to register.
    */
-  public registerCommandHandler(
-    identifier: string,
+  private registerCommandHandler(
+    identifier: TrampolineCommandIdentifier,
     handler: TrampolineCommandHandler
   ) {
     this.commandHandlers.set(identifier, handler)
