@@ -132,15 +132,15 @@ export class TrampolineServer {
     }
 
     this.listeningPromise = new Promise((resolve, reject) => {
-      function onListenError(error: Error) {
+      this.server.on('error', error => {
         reject(error)
-      }
-
-      this.server.on('error', onListenError)
+        this.close()
+      })
 
       this.server.listen(0, '127.0.0.1', async () => {
-        this.server.off('error', onListenError)
-        this.server.on('error', this.onErrorReceived)
+        this.server.removeAllListeners('error')
+        this.server.on('error', error => this.onErrorReceived(error))
+
         resolve()
 
         console.log(`Trampoline server port: ${await this.getPort()}`)
@@ -148,6 +148,16 @@ export class TrampolineServer {
     })
 
     return this.listeningPromise
+  }
+
+  private async close() {
+    if (this.listeningPromise !== null) {
+      await this.listeningPromise
+    }
+    // Reset the server, it will be restarted lazily the next time it's needed
+    this.server.close()
+    this.server.removeAllListeners('error')
+    this.listeningPromise = null
   }
 
   public async getPort() {
@@ -225,9 +235,7 @@ export class TrampolineServer {
   private onErrorReceived(error: Error) {
     console.error('Error received in trampoline server:', error)
 
-    // Reset the server, it will be restarted lazily the next time it's needed
-    this.server.close()
-    this.listeningPromise = null
+    this.close()
   }
 }
 
