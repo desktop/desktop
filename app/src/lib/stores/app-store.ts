@@ -3067,7 +3067,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return this.checkoutAndLeaveChanges(repository, branch, account)
     } else if (strategy === UncommittedChangesStrategy.MoveToNewBranch) {
       return this.checkoutAndBringChanges(repository, branch, account)
-    }else if (strategy === UncommittedChangesStrategy.DiscardAll) {
+    } else if (strategy === UncommittedChangesStrategy.DiscardAll) {
       return this.checkoutDiscardingChanges(repository, branch, account)
     } else {
       return this.checkoutIgnoringChanges(repository, branch, account)
