@@ -95,7 +95,13 @@ export async function getBranches(
     }
 
     branches.push(
-      new Branch(name, upstream.length > 0 ? upstream : null, branchTip, type)
+      new Branch(
+        name,
+        upstream.length > 0 ? upstream : null,
+        branchTip,
+        type,
+        ref
+      )
     )
   }
 

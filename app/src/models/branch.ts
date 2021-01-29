@@ -45,12 +45,14 @@ export class Branch {
    * @param upstream The remote-prefixed upstream name. E.g., `origin/main`.
    * @param tip Basic information (sha and author) of the latest commit on the branch.
    * @param type The type of branch, e.g., local or remote.
+   * @param ref The connical ref of the branch
    */
   public constructor(
     public readonly name: string,
     public readonly upstream: string | null,
     public readonly tip: IBranchTip,
-    public readonly type: BranchType
+    public readonly type: BranchType,
+    public readonly ref: string
   ) {}
 
   /** The name of the upstream's remote. */

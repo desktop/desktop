@@ -1110,7 +1110,8 @@ export class GitStore extends BaseStore {
           currentBranch,
           status.currentUpstreamBranch || null,
           branchTipCommit,
-          BranchType.Local
+          BranchType.Local,
+          ''
         )
         this._tip = { kind: TipState.Valid, branch }
       } else if (currentTip) {
