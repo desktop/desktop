@@ -21,7 +21,6 @@ const logoPath = __DARWIN__
   ? 'static/logo-64x64@2x.png'
   : 'static/windows-logo-64x64@2x.png'
 const DesktopLogo = encodePathAsUrl(__dirname, logoPath)
-console.log(DesktopLogo)
 
 interface IAboutProps {
   /**
