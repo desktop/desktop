@@ -3351,8 +3351,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
     includeRemote?: boolean
   ): Promise<void> {
     return this.withAuthenticatingUser(repository, async (r, account) => {
-      const branchToCheckout = this.getBranchToCheckoutAfterDelete(branch, r)
       const gitStore = this.gitStoreCache.get(r)
+
+      // If soley a remote branch, there is no need to checkout a branch.
+      if (branch.type === BranchType.Remote) {
+        await gitStore.performFailableOperation(() => {
+          // Note: deleting a remote branch implementation not needed, yet.
+          return Promise.resolve()
+        })
+
+        return this._refreshRepository(r)
+      }
+
+      // If a local branch, user may have the branch to delete checked out and
+      // we need to switch to a different branch (default or recent).
+      const branchToCheckout = this.getBranchToCheckoutAfterDelete(branch, r)
 
       if (branchToCheckout !== null) {
         await gitStore.performFailableOperation(() =>
@@ -3361,10 +3374,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
 
       await gitStore.performFailableOperation(() => {
-        if (branch.type === BranchType.Remote) {
-          // Note: deleting a remote branch implementation not needed, yet.
-          return Promise.resolve(true)
-        }
         return this.deleteLocalBranchAndUpstreamBranch(
           repository,
           branch,
@@ -3386,7 +3395,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     branch: Branch,
     account: IGitAccount | null,
     includeRemote?: boolean
-  ): Promise<true> {
+  ): Promise<void> {
     await deleteLocalBranch(repository, branch.name)
 
     if (
@@ -3402,7 +3411,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         branch.tip.sha
       )
     }
-    return true
+    return
   }
 
   private getBranchToCheckoutAfterDelete(
