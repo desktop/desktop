@@ -3414,7 +3414,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
     // if current branch is not the branch being deleted, no need to switch
     // branches
-    if (currentBranch != null && branchToDelete.name !== currentBranch.name) {
+    if (currentBranch !== null && branchToDelete.name !== currentBranch.name) {
       return null
     }
 
