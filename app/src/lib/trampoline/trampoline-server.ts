@@ -62,8 +62,6 @@ export class TrampolineServer {
         this.server.on('error', error => this.onError(error))
 
         resolve()
-
-        console.log(`Trampoline server port: ${await this.getPort()}`)
       })
     })
 
