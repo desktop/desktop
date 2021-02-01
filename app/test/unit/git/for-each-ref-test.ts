@@ -73,19 +73,19 @@ describe('git/for-each-ref', () => {
     it('filters branches differing from upstream using for-each-ref', async () => {
       const branches = await getBranchesDifferingFromUpstream(repository)
 
-      const branchNames = branches.map(branch => branch.ref)
-      expect(branchNames).toHaveLength(3)
+      const branchRefs = branches.map(branch => branch.ref)
+      expect(branchRefs).toHaveLength(3)
 
       // All branches that are behind and/or ahead must be included
-      expect(branchNames).toContain('refs/heads/branch-behind')
-      expect(branchNames).toContain('refs/heads/branch-ahead')
-      expect(branchNames).toContain('refs/heads/branch-ahead-and-behind')
+      expect(branchRefs).toContain('refs/heads/branch-behind')
+      expect(branchRefs).toContain('refs/heads/branch-ahead')
+      expect(branchRefs).toContain('refs/heads/branch-ahead-and-behind')
 
       // `main` is the current branch, and shouldn't be included
-      expect(branchNames).not.toContain('refs/heads/main')
+      expect(branchRefs).not.toContain('refs/heads/main')
 
       // Branches that are up to date shouldn't be included
-      expect(branchNames).not.toContain('refs/heads/branch-up-to-date')
+      expect(branchRefs).not.toContain('refs/heads/branch-up-to-date')
     })
   })
 })
