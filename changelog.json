@@ -1,8 +1,6 @@
 {
   "releases": {
-    "2.6.3-beta2": [
-      "[Improved] Update app icon for macOS Big Sur - #10855"
-    ],
+    "2.6.3-beta2": ["[Improved] Update app icon for macOS Big Sur - #10855"],
     "2.6.3-beta1": [
       "[Fixed] Fast-forward all possible branches except the current branch when fetching - #11387",
       "[Improved] Enable spellcheck on commit summary and description - #1597",
