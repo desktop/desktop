@@ -75,11 +75,12 @@ export class Branch {
     if (this.type === BranchType.Local) {
       return null
     }
-    const remoteRefPrefix = 'refs/remotes/'
-    const remoteBranchName = this.ref.replace(remoteRefPrefix, '')
-    const pieces = remoteBranchName.match(/(.*?)\/.*/)
+
+    const pieces = this.ref.match(/^refs\/remotes\/(.*?)\/.*/)
     if (!pieces || pieces.length < 2) {
-      return null
+      // This shouldn't happen, the remote ref should always be prefixed
+      // with refs/remotes
+      throw new Error(`Remote branch ref has unexpected format: ${this.ref}`)
     }
     return pieces[1]
   }
