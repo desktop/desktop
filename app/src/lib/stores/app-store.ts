@@ -3378,7 +3378,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /**
-   * Deletes the local branch. If the branch `includeRemote` is true, the
+   * Deletes the local branch. If the parameter `includeRemote` is true, the
    * upstream branch will be deleted also.
    */
   private async deleteLocalBranchAndUpstreamBranch(
