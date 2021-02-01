@@ -68,15 +68,12 @@ export async function deleteLocalBranch(
  *
  * @param remoteName - the name of the remote to delete the branch from
  * @param remoteBranchName - the name of the branch on the remote
- * @param branchTipSha - the branch's sha is logged for reference, more useful
- * for a remote only branch if the user wants to undo this delete.
  */
 export async function deleteRemoteBranch(
   repository: Repository,
   account: IGitAccount | null,
   remoteName: string,
-  remoteBranchName: string,
-  branchTipSha: string
+  remoteBranchName: string
 ): Promise<true> {
   const networkArguments = await gitNetworkArguments(repository, account)
   const remoteUrl =
@@ -96,10 +93,6 @@ export async function deleteRemoteBranch(
     env: await envForRemoteOperation(account, remoteUrl),
     expectedErrors: new Set<DugiteError>([DugiteError.BranchDeletionFailed]),
   })
-
-  if (branchTipSha !== undefined) {
-    log.info(`Deleted branch ${remoteBranchName} (was ${branchTipSha})`)
-  }
 
   // It's possible that the delete failed because the ref has already
   // been deleted on the remote. If we identify that specific

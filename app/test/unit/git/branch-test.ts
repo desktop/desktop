@@ -236,8 +236,7 @@ describe('git/branch', () => {
         mockLocal,
         null,
         localBranch.upstreamRemoteName,
-        localBranch.upstreamWithoutRemote,
-        localBranch.tip.sha
+        localBranch.upstreamWithoutRemote
       )
 
       expect(await getBranches(mockLocal, localRef)).toBeArrayOfSize(1)
@@ -286,8 +285,7 @@ describe('git/branch', () => {
         mockLocal,
         null,
         localBranch.upstreamRemoteName,
-        localBranch.upstreamWithoutRemote,
-        localBranch.tip.sha
+        localBranch.upstreamWithoutRemote
       )
 
       expect(await getBranches(mockLocal, remoteRef)).toBeArrayOfSize(0)

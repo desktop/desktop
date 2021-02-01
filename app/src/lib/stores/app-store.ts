@@ -3360,6 +3360,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
           return Promise.resolve()
         })
 
+        // We log the remote branch's sha so that the user can recover it.
+        log.info(
+          `Deleted branch ${branch.upstreamWithoutRemote} (was ${branch.tip.sha})`
+        )
+
         return this._refreshRepository(r)
       }
 
@@ -3407,8 +3412,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         repository,
         account,
         branch.upstreamRemoteName,
-        branch.upstreamWithoutRemote,
-        branch.tip.sha
+        branch.upstreamWithoutRemote
       )
     }
     return
