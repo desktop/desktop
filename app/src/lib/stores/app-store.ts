@@ -3353,7 +3353,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.withAuthenticatingUser(repository, async (r, account) => {
       const gitStore = this.gitStoreCache.get(r)
 
-      // If soley a remote branch, there is no need to checkout a branch.
+      // If solely a remote branch, there is no need to checkout a branch.
       if (branch.type === BranchType.Remote) {
         await gitStore.performFailableOperation(() => {
           // Note: deleting a remote branch implementation not needed, yet.
@@ -3399,12 +3399,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     branch: Branch,
     account: IGitAccount | null,
-    includeRemote?: boolean
+    includeUpstream?: boolean
   ): Promise<void> {
     await deleteLocalBranch(repository, branch.name)
 
     if (
-      includeRemote === true &&
+      includeUpstream === true &&
       branch.upstreamRemoteName !== null &&
       branch.upstreamWithoutRemote !== null
     ) {

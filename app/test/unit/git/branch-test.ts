@@ -225,18 +225,11 @@ describe('git/branch', () => {
       expect(localBranch.upstreamRemoteName).not.toBeNull()
       expect(localBranch.upstreamWithoutRemote).not.toBeNull()
 
-      if (
-        localBranch.upstreamRemoteName === null ||
-        localBranch.upstreamWithoutRemote === null
-      ) {
-        return
-      }
-
       await deleteRemoteBranch(
         mockLocal,
         null,
-        localBranch.upstreamRemoteName,
-        localBranch.upstreamWithoutRemote
+        localBranch.upstreamRemoteName!,
+        localBranch.upstreamWithoutRemote!
       )
 
       expect(await getBranches(mockLocal, localRef)).toBeArrayOfSize(1)
@@ -274,18 +267,11 @@ describe('git/branch', () => {
       expect(localBranch.upstreamRemoteName).not.toBeNull()
       expect(localBranch.upstreamWithoutRemote).not.toBeNull()
 
-      if (
-        localBranch.upstreamRemoteName === null ||
-        localBranch.upstreamWithoutRemote === null
-      ) {
-        return
-      }
-
       await deleteRemoteBranch(
         mockLocal,
         null,
-        localBranch.upstreamRemoteName,
-        localBranch.upstreamWithoutRemote
+        localBranch.upstreamRemoteName!,
+        localBranch.upstreamWithoutRemote!
       )
 
       expect(await getBranches(mockLocal, remoteRef)).toBeArrayOfSize(0)
