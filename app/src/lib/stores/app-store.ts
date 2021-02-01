@@ -3354,7 +3354,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const branchToCheckout = this.getBranchToCheckoutAfterDelete(branch, r)
       const gitStore = this.gitStoreCache.get(r)
 
-      if (branchToCheckout != null) {
+      if (branchToCheckout !== null) {
         await gitStore.performFailableOperation(() =>
           checkoutBranch(r, account, branchToCheckout)
         )
