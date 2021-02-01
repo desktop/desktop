@@ -77,7 +77,7 @@ export class Branch {
     }
 
     const pieces = this.ref.match(/^refs\/remotes\/(.*?)\/.*/)
-    if (!pieces || pieces.length < 2) {
+    if (!pieces || pieces.length === 2) {
       // This shouldn't happen, the remote ref should always be prefixed
       // with refs/remotes
       throw new Error(`Remote branch ref has unexpected format: ${this.ref}`)
