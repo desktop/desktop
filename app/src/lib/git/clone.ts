@@ -2,7 +2,7 @@ import { git, IGitExecutionOptions, gitNetworkArguments } from './core'
 import { ICloneProgress } from '../../models/progress'
 import { CloneOptions } from '../../models/clone-options'
 import { CloneProgressParser, executionOptionsWithProgress } from '../progress'
-import { withTrampolineEnvForRemoteOperation } from './environment'
+import { withTrampolineEnvForRemoteOperation } from '../trampoline/trampoline-environment'
 import { merge } from '../merge'
 
 /**

@@ -41,13 +41,10 @@ export const AuthenticationErrors: ReadonlySet<DugiteError> = new Set([
 ])
 
 function getDesktopTrampolinePath(): string {
-  return (
-    '/Users/spadrino/Development/GitHub/desktop-trampoline/build/Release/desktop-trampoline' ||
-    Path.resolve(
-      __dirname,
-      'desktop-trampoline',
-      getDesktopTrampolineFilename()
-    )
+  return Path.resolve(
+    __dirname,
+    'desktop-trampoline',
+    getDesktopTrampolineFilename()
   )
 }
 

@@ -15,7 +15,8 @@ export interface ITrampolineCommand {
   /**
    * Parameters of the command.
    *
-   * This corresponds to the command line arguments (argv).
+   * This corresponds to the command line arguments (argv) except the name of
+   * the program (argv[0]).
    */
   readonly parameters: ReadonlyArray<string>
 

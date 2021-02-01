@@ -9,13 +9,11 @@ import {
 } from '../progress'
 import { AuthenticationErrors } from './authentication'
 import { enableRecurseSubmodulesFlag } from '../feature-flag'
-import {
-  withTrampolineEnvForRemoteOperation,
-  getFallbackUrlForProxyResolve,
-} from './environment'
+import { getFallbackUrlForProxyResolve } from './environment'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { merge } from '../merge'
+import { withTrampolineEnvForRemoteOperation } from '../trampoline/trampoline-environment'
 
 export type ProgressCallback = (progress: ICheckoutProgress) => void
 

@@ -2,7 +2,7 @@ import { git, gitNetworkArguments } from './core'
 import { Repository } from '../../models/repository'
 import { IGitAccount } from '../../models/git-account'
 import { IRemote } from '../../models/remote'
-import { withTrampolineEnvForRemoteOperation } from './environment'
+import { withTrampolineEnvForRemoteOperation } from '../trampoline/trampoline-environment'
 
 /**
  * Create a new tag on the given target commit.

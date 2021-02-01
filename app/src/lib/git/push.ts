@@ -12,8 +12,8 @@ import { IGitAccount } from '../../models/git-account'
 import { PushProgressParser, executionOptionsWithProgress } from '../progress'
 import { AuthenticationErrors } from './authentication'
 import { IRemote } from '../../models/remote'
-import { withTrampolineEnvForRemoteOperation } from './environment'
 import { merge } from '../merge'
+import { withTrampolineEnvForRemoteOperation } from '../trampoline/trampoline-environment'
 
 export type PushOptions = {
   /**

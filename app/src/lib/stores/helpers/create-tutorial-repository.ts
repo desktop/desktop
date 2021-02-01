@@ -11,12 +11,12 @@ import {
 import { git } from '../../git'
 import { friendlyEndpointName } from '../../friendly-endpoint-name'
 import { IRemote } from '../../../models/remote'
-import { withTrampolineEnvForRemoteOperation } from '../../git/environment'
 import {
   DefaultBranchInGit,
   DefaultBranchInDesktop,
 } from '../../helpers/default-branch'
 import { merge } from '../../merge'
+import { withTrampolineEnvForRemoteOperation } from '../../trampoline/trampoline-environment'
 
 const nl = __WIN32__ ? '\r\n' : '\n'
 const InitialReadmeContents =

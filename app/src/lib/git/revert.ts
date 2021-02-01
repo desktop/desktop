@@ -7,11 +7,9 @@ import { IGitAccount } from '../../models/git-account'
 
 import { executionOptionsWithProgress } from '../progress/from-process'
 import { RevertProgressParser } from '../progress/revert'
-import {
-  withTrampolineEnvForRemoteOperation,
-  getFallbackUrlForProxyResolve,
-} from './environment'
+import { getFallbackUrlForProxyResolve } from './environment'
 import { merge } from '../merge'
+import { withTrampolineEnvForRemoteOperation } from '../trampoline/trampoline-environment'
 
 /**
  * Creates a new commit that reverts the changes of a previous commit

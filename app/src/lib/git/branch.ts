@@ -6,10 +6,8 @@ import { formatAsLocalRef } from './refs'
 import { deleteRef } from './update-ref'
 import { GitError as DugiteError } from 'dugite'
 import { getRemoteURL } from './remote'
-import {
-  getFallbackUrlForProxyResolve,
-  withTrampolineEnvForRemoteOperation,
-} from './environment'
+import { getFallbackUrlForProxyResolve } from './environment'
+import { withTrampolineEnvForRemoteOperation } from '../trampoline/trampoline-environment'
 
 /**
  * Create a new branch from the given start point.
