@@ -45,12 +45,14 @@ export class Branch {
    * @param upstream The remote-prefixed upstream name. E.g., `origin/main`.
    * @param tip Basic information (sha and author) of the latest commit on the branch.
    * @param type The type of branch, e.g., local or remote.
+   * @param ref The canonical ref of the branch
    */
   public constructor(
     public readonly name: string,
     public readonly upstream: string | null,
     public readonly tip: IBranchTip,
-    public readonly type: BranchType
+    public readonly type: BranchType,
+    public readonly ref: string
   ) {}
 
   /** The name of the upstream's remote. */
@@ -65,6 +67,21 @@ export class Branch {
       return null
     }
 
+    return pieces[1]
+  }
+
+  /** The name of remote for a remote branch. If local, will return null. */
+  public get remoteName(): string | null {
+    if (this.type === BranchType.Local) {
+      return null
+    }
+
+    const pieces = this.ref.match(/^refs\/remotes\/(.*?)\/.*/)
+    if (!pieces || pieces.length === 2) {
+      // This shouldn't happen, the remote ref should always be prefixed
+      // with refs/remotes
+      throw new Error(`Remote branch ref has unexpected format: ${this.ref}`)
+    }
     return pieces[1]
   }
 
