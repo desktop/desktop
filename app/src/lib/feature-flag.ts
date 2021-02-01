@@ -49,7 +49,7 @@ export function enableWSLDetection(): boolean {
 
 /** Should the app use the shiny new TCP-based trampoline? */
 export function enableDesktopTrampoline(): boolean {
-  return true //enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
 
 /**
