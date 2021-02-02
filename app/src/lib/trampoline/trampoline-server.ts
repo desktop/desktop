@@ -37,6 +37,13 @@ export class TrampolineServer {
   public constructor() {
     this.server = createServer(socket => this.onNewConnection(socket))
 
+    // Make sure the server is always unref'ed, so it doesn't keep the app alive
+    // for longer than needed. Not having this made the CI tasks on Windows
+    // timeout because the unit tests completed in about 7min, but the test
+    // suite runner would never finish, hitting a 45min timeout for the whole
+    // GitHub Action.
+    this.server.unref()
+
     this.registerCommandHandler(
       TrampolineCommandIdentifier.AskPass,
       askpassTrampolineHandler
