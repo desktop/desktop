@@ -686,14 +686,14 @@ export class Dispatcher {
 
   /**
    * Delete the branch. This will delete both the local branch and the remote
-   * branch if includeRemote is true, and then check out the default branch.
+   * branch if includeUpstream is true, and then check out the default branch.
    */
   public deleteLocalBranch(
     repository: Repository,
     branch: Branch,
-    includeRemote?: boolean
+    includeUpstream?: boolean
   ): Promise<void> {
-    return this.appStore._deleteLocalBranch(repository, branch, includeRemote)
+    return this.appStore._deleteBranch(repository, branch, includeUpstream)
   }
 
   /**
@@ -703,7 +703,7 @@ export class Dispatcher {
     repository: Repository,
     branch: Branch
   ): Promise<void> {
-    return this.appStore._deleteRemoteBranch(repository, branch)
+    return this.appStore._deleteBranch(repository, branch)
   }
 
   /** Discard the changes to the given files. */

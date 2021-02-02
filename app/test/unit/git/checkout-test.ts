@@ -46,7 +46,6 @@ describe('git/checkout', () => {
       upstreamRemoteName: null,
       isDesktopForkRemoteBranch: false,
       ref: '',
-      remoteName: '',
     }
 
     let errorRaised = false

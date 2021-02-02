@@ -3346,17 +3346,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _deleteBranch(
     repository: Repository,
     branch: Branch,
-    includeRemote?: boolean
+    includeUpstream?: boolean
   ): Promise<void> {
     return this.withAuthenticatingUser(repository, async (r, account) => {
       const gitStore = this.gitStoreCache.get(r)
 
       // If solely a remote branch, there is no need to checkout a branch.
       if (branch.type === BranchType.Remote) {
-        await gitStore.performFailableOperation(() => {
-          // Note: deleting a remote branch implementation not needed, yet.
-          return Promise.resolve()
-        })
+        if (branch.remoteName === null) {
+          return
+        }
+
+        await gitStore.performFailableOperation(() =>
+          deleteRemoteBranch(
+            r,
+            account,
+            branch.remoteName!,
+            branch.nameWithoutRemote
+          )
+        )
 
         // We log the remote branch's sha so that the user can recover it.
         log.info(
@@ -3381,7 +3389,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           repository,
           branch,
           account,
-          includeRemote
+          includeUpstream
         )
       })
 
@@ -3390,7 +3398,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /**
-   * Deletes the local branch. If the parameter `includeRemote` is true, the
+   * Deletes the local branch. If the parameter `includeUpstream?` is true, the
    * upstream branch will be deleted also.
    */
   private async deleteLocalBranchAndUpstreamBranch(
