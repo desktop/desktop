@@ -121,8 +121,6 @@ import {
   addRemote,
   checkoutBranch,
   createCommit,
-  formatAsLocalRef,
-  deleteBranch,
   getAuthorIdentity,
   getChangedFiles,
   getCommitDiff,
