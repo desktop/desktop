@@ -121,9 +121,7 @@ import {
   addRemote,
   checkoutBranch,
   createCommit,
-  formatAsLocalRef,
   getAuthorIdentity,
-  getBranchAheadBehind,
   getChangedFiles,
   getCommitDiff,
   getMergeBase,
@@ -134,7 +132,6 @@ import {
   pull as pullRepo,
   push as pushRepo,
   renameBranch,
-  updateRef,
   saveGitIgnore,
   appendIgnoreRule,
   createMergeCommit,
@@ -152,6 +149,7 @@ import {
   getBranchesDifferingFromUpstream,
   deleteLocalBranch,
   deleteRemoteBranch,
+  fastForwardBranches,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -3616,7 +3614,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
             this.updatePushPullFetchProgress(repository, {
               kind: 'generic',
               title: refreshTitle,
+              description: 'Fast-forwarding branches',
               value: refreshStartProgress,
+            })
+
+            await this.fastForwardBranches(repository)
+
+            this.updatePushPullFetchProgress(repository, {
+              kind: 'generic',
+              title: refreshTitle,
+              value: refreshStartProgress + refreshWeight * 0.5,
             })
 
             // manually refresh branch protections after the push, to ensure
@@ -3624,15 +3631,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
             await this.refreshBranchProtectionState(repository)
 
             await this._refreshRepository(repository)
-
-            this.updatePushPullFetchProgress(repository, {
-              kind: 'generic',
-              title: refreshTitle,
-              description: 'Fast-forwarding branches',
-              value: refreshStartProgress + refreshWeight * 0.5,
-            })
-
-            await this.fastForwardBranches(repository)
           },
           { retryAction }
         )
@@ -3808,7 +3806,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
           this.updatePushPullFetchProgress(repository, {
             kind: 'generic',
             title: refreshTitle,
+            description: 'Fast-forwarding branches',
             value: refreshStartProgress,
+          })
+
+          await this.fastForwardBranches(repository)
+
+          this.updatePushPullFetchProgress(repository, {
+            kind: 'generic',
+            title: refreshTitle,
+            value: refreshStartProgress + refreshWeight * 0.5,
           })
 
           if (mergeBase) {
@@ -3820,15 +3827,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
           await this.refreshBranchProtectionState(repository)
 
           await this._refreshRepository(repository)
-
-          this.updatePushPullFetchProgress(repository, {
-            kind: 'generic',
-            title: refreshTitle,
-            description: 'Fast-forwarding branches',
-            value: refreshStartProgress + refreshWeight * 0.5,
-          })
-
-          await this.fastForwardBranches(repository)
         } finally {
           this.updatePushPullFetchProgress(repository, null)
         }
@@ -3837,37 +3835,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async fastForwardBranches(repository: Repository) {
-    const { branchesState } = this.repositoryStateCache.get(repository)
-    const { allBranches } = branchesState
+    try {
+      const eligibleBranches = await getBranchesDifferingFromUpstream(
+        repository
+      )
 
-    const eligibleBranches = await getBranchesDifferingFromUpstream(
-      repository,
-      allBranches
-    )
-
-    for (const branch of eligibleBranches) {
-      const aheadBehind = await getBranchAheadBehind(repository, branch)
-      if (!aheadBehind) {
-        continue
-      }
-
-      const { ahead, behind } = aheadBehind
-      // Only perform the fast forward if the branch is behind it's upstream
-      // branch and has no local commits.
-      if (ahead === 0 && behind > 0) {
-        // At this point we're guaranteed this is non-null since we've filtered
-        // out any branches will null upstreams above when creating
-        // `eligibleBranches`.
-        const upstreamRef = branch.upstream!
-        const localRef = formatAsLocalRef(branch.name)
-        await updateRef(
-          repository,
-          localRef,
-          branch.tip.sha,
-          upstreamRef,
-          'pull: Fast-forward'
-        )
-      }
+      await fastForwardBranches(repository, eligibleBranches)
+    } catch (e) {
+      log.error('Branch fast-forwarding failed', e)
+      sendNonFatalException('fastForwardBranches', e)
     }
   }
 
@@ -4100,7 +4076,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.updatePushPullFetchProgress(repository, {
           kind: 'generic',
           title: refreshTitle,
+          description: 'Fast-forwarding branches',
           value: fetchWeight,
+        })
+
+        await this.fastForwardBranches(repository)
+
+        this.updatePushPullFetchProgress(repository, {
+          kind: 'generic',
+          title: refreshTitle,
+          value: fetchWeight + refreshWeight * 0.5,
         })
 
         // manually refresh branch protections after the push, to ensure
@@ -4108,15 +4093,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         await this.refreshBranchProtectionState(repository)
 
         await this._refreshRepository(repository)
-
-        this.updatePushPullFetchProgress(repository, {
-          kind: 'generic',
-          title: refreshTitle,
-          description: 'Fast-forwarding branches',
-          value: fetchWeight + refreshWeight * 0.5,
-        })
-
-        await this.fastForwardBranches(repository)
       } finally {
         this.updatePushPullFetchProgress(repository, null)
 
