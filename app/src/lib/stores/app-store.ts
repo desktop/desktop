@@ -3353,7 +3353,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       // If solely a remote branch, there is no need to checkout a branch.
       if (branch.type === BranchType.Remote) {
-        if (branch.remoteName === null) {
+        const remoteName = branch.remoteName
+        if (remoteName === null) {
           // This is based on the branches ref. It should not be null for a
           // remote branch
           throw new Error(
@@ -3362,12 +3363,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         }
 
         await gitStore.performFailableOperation(() =>
-          deleteRemoteBranch(
-            r,
-            account,
-            branch.remoteName!,
-            branch.nameWithoutRemote
-          )
+          deleteRemoteBranch(r, account, remoteName, branch.nameWithoutRemote)
         )
 
         // We log the remote branch's sha so that the user can recover it.
