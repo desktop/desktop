@@ -5,7 +5,7 @@ import {
   Repository,
   isRepositoryWithGitHubRepository,
 } from '../../models/repository'
-import { Branch } from '../../models/branch'
+import { Branch, BranchType } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
 import { PopupType } from '../../models/popup'
 
@@ -146,7 +146,13 @@ export class BranchesContainer extends React.Component<
   }
 
   private renderBranch = (item: IBranchListItem, matches: IMatches) => {
-    return renderDefaultBranch(item, matches, this.props.currentBranch)
+    return renderDefaultBranch(
+      item,
+      matches,
+      this.props.currentBranch,
+      this.onRenameBranch,
+      this.onDeleteBranch
+    )
   }
 
   private renderSelectedTab() {
@@ -260,5 +266,47 @@ export class BranchesContainer extends React.Component<
     selectedPullRequest: PullRequest | null
   ) => {
     this.setState({ selectedPullRequest })
+  }
+
+  private getBranchWithName(branchName: string): Branch | undefined {
+    return this.props.allBranches.find(branch => branch.name === branchName)
+  }
+
+  private onRenameBranch = (branchName: string) => {
+    const branch = this.getBranchWithName(branchName)
+
+    if (branch === undefined) {
+      return
+    }
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.RenameBranch,
+      repository: this.props.repository,
+      branch: branch,
+    })
+  }
+
+  private onDeleteBranch = (branchName: string) => {
+    const branch = this.getBranchWithName(branchName)
+
+    if (branch === undefined) {
+      return
+    }
+
+    if (branch.type === BranchType.Remote) {
+      this.props.dispatcher.showPopup({
+        type: PopupType.DeleteRemoteBranch,
+        repository: this.props.repository,
+        branch,
+      })
+      return
+    }
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.DeleteBranch,
+      repository: this.props.repository,
+      branch,
+      existsOnRemote: branch.upstreamRemoteName !== null,
+    })
   }
 }

@@ -10,8 +10,8 @@ import {
   getBranchCheckouts,
   getSymbolicRef,
   formatAsLocalRef,
-  deleteLocalBranch,
   getBranches,
+  deleteLocalBranch,
 } from '../../git'
 import { fatalError } from '../../fatal-error'
 import { RepositoryStateCache } from '../repository-state-cache'

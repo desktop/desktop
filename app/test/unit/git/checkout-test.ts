@@ -42,10 +42,10 @@ describe('git/checkout', () => {
           tzOffset: 0,
         },
       },
+      remoteName: null,
       upstreamRemoteName: null,
       isDesktopForkRemoteBranch: false,
       ref: '',
-      remoteName: '',
     }
 
     let errorRaised = false
