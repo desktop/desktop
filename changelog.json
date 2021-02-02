@@ -1,6 +1,6 @@
 {
   "releases": {
-    "2.6.3-test2": [
+    "2.6.3-test3": [
       "[New] Testing a new TCP-based trampoline for GIT_ASKPASS - #11510"
     ],
     "2.6.3-beta2": ["[Improved] Update app icon for macOS Big Sur - #10855"],
