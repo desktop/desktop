@@ -3354,7 +3354,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // If solely a remote branch, there is no need to checkout a branch.
       if (branch.type === BranchType.Remote) {
         if (branch.remoteName === null) {
-          return
+          // This is based on the branches ref. It should not be null for a
+          // remote branch
+          throw new Error(
+            `Could not determine remote name from: ${branch.ref}.`
+          )
         }
 
         await gitStore.performFailableOperation(() =>
