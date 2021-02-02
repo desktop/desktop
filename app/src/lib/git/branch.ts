@@ -1,6 +1,6 @@
 import { git, gitNetworkArguments } from './core'
 import { Repository } from '../../models/repository'
-import { Branch, BranchType } from '../../models/branch'
+import { Branch } from '../../models/branch'
 import { IGitAccount } from '../../models/git-account'
 import { formatAsLocalRef } from './refs'
 import { deleteRef } from './update-ref'
@@ -53,11 +53,9 @@ export async function renameBranch(
 }
 
 /**
- * Delete the branch with given name locally, see `deleteLocalBranch` using
- * `includeRemote` or `deleteRemoteBranch if you're looking to delete the branch
- * from the remote as well.
+ * Delete the branch locally.
  */
-export async function deleteLocalBranchWithName(
+export async function deleteLocalBranch(
   repository: Repository,
   branchName: string
 ): Promise<true> {
@@ -66,26 +64,17 @@ export async function deleteLocalBranchWithName(
 }
 
 /**
- * Delete a remote branch. If given branch is a local branch, it will delete the
- * branch remotely. See `deleteLocalBranch` or `deleteLocalBranchwithName` if
- * you're looking to delete the branch locally.
+ * Deletes a remote branch
+ *
+ * @param remoteName - the name of the remote to delete the branch from
+ * @param remoteBranchName - the name of the branch on the remote
  */
 export async function deleteRemoteBranch(
   repository: Repository,
-  branch: Branch,
-  account: IGitAccount | null
+  account: IGitAccount | null,
+  remoteName: string,
+  remoteBranchName: string
 ): Promise<true> {
-  const remoteName =
-    branch.type === BranchType.Remote
-      ? branch.remoteName
-      : branch.upstreamRemoteName
-
-  // This should not happen - a remote branch should have a remote.
-  if (remoteName === null) {
-    log.error(`Could not determine the branch's remote ${remoteName}`)
-    return true
-  }
-
   const networkArguments = await gitNetworkArguments(repository, account)
   const remoteUrl =
     (await getRemoteURL(repository, remoteName).catch(err => {
@@ -96,12 +85,7 @@ export async function deleteRemoteBranch(
       return null
     })) || getFallbackUrlForProxyResolve(account, repository)
 
-  const args = [
-    ...networkArguments,
-    'push',
-    remoteName,
-    `:${branch.nameWithoutRemote}`,
-  ]
+  const args = [...networkArguments, 'push', remoteName, `:${remoteBranchName}`]
 
   // If the user is not authenticated, the push is going to fail
   // Let this propagate and leave it to the caller to handle
@@ -110,34 +94,13 @@ export async function deleteRemoteBranch(
     expectedErrors: new Set<DugiteError>([DugiteError.BranchDeletionFailed]),
   })
 
-  log.info(`Deleted branch ${branch.name} (was ${branch.tip.sha})`)
-
   // It's possible that the delete failed because the ref has already
   // been deleted on the remote. If we identify that specific
-  // error we can safely remote our remote ref which is what would
+  // error we can safely remove our remote ref which is what would
   // happen if the push didn't fail.
   if (result.gitError === DugiteError.BranchDeletionFailed) {
-    const ref = `refs/remotes/${remoteName}/${branch.nameWithoutRemote}`
+    const ref = `refs/remotes/${remoteName}/${remoteBranchName}`
     await deleteRef(repository, ref)
-  }
-
-  return true
-}
-
-/**
- * Delete the branch. This will delete it locally and if `includeRemote` is
- * true, the remote branch will also be deleted.
- */
-export async function deleteLocalBranch(
-  repository: Repository,
-  branch: Branch,
-  account: IGitAccount | null,
-  includeRemote?: boolean
-): Promise<true> {
-  await deleteLocalBranchWithName(repository, branch.name)
-
-  if (includeRemote === true) {
-    await deleteRemoteBranch(repository, branch, account)
   }
 
   return true

@@ -187,99 +187,95 @@ describe('git/branch', () => {
       expect(branch).not.toBeNull()
       expect(await getBranches(repository, ref)).toBeArrayOfSize(1)
 
-      await deleteLocalBranch(repository, branch!, null, false)
+      await deleteLocalBranch(repository, branch.name)
 
       expect(await getBranches(repository, ref)).toBeArrayOfSize(0)
-    })
-
-    it('deletes remote branches', async () => {
-      const name = 'test-branch'
-      const branch = await createBranch(repository, name, null)
-      const localRef = `refs/heads/${name}`
-
-      expect(branch).not.toBeNull()
-      expect(await getBranches(repository, localRef)).toBeArrayOfSize(1)
-
-      const fork = await setupLocalForkOfRepository(repository)
-
-      const remoteRef = `refs/remotes/origin/${name}`
-      const [remoteBranch] = await getBranches(fork, remoteRef)
-      expect(remoteBranch).not.toBeUndefined()
-
-      await checkoutBranch(fork, null, remoteBranch)
-      await git(['checkout', '-'], fork.path, 'checkoutPrevious')
-
-      expect(await getBranches(fork, localRef)).toBeArrayOfSize(1)
-      expect(await getBranches(repository, localRef)).toBeArrayOfSize(1)
-
-      const [localBranch] = await getBranches(fork, localRef)
-      expect(localBranch).not.toBeUndefined()
-
-      await deleteLocalBranch(fork, localBranch, null, true)
-
-      expect(await getBranches(fork, localRef)).toBeArrayOfSize(0)
-      expect(await getBranches(fork, remoteRef)).toBeArrayOfSize(0)
-      expect(await getBranches(repository, localRef)).toBeArrayOfSize(0)
-    })
-
-    it('handles attempted delete of removed remote branch', async () => {
-      const name = 'test-branch'
-      const branch = await createBranch(repository, name, null)
-      const localRef = `refs/heads/${name}`
-
-      expect(branch).not.toBeNull()
-      expect(await getBranches(repository, localRef)).toBeArrayOfSize(1)
-
-      const fork = await setupLocalForkOfRepository(repository)
-
-      const remoteRef = `refs/remotes/origin/${name}`
-      const [remoteBranch] = await getBranches(fork, remoteRef)
-      expect(remoteBranch).not.toBeUndefined()
-
-      await checkoutBranch(fork, null, remoteBranch)
-      await git(['checkout', '-'], fork.path, 'checkoutPrevious')
-
-      expect(await getBranches(fork, localRef)).toBeArrayOfSize(1)
-      expect(await getBranches(repository, localRef)).toBeArrayOfSize(1)
-
-      const [upstreamBranch] = await getBranches(repository, localRef)
-      expect(upstreamBranch).not.toBeUndefined()
-      await deleteLocalBranch(repository, upstreamBranch, null, true)
-      expect(await getBranches(repository, localRef)).toBeArrayOfSize(0)
-
-      const [localBranch] = await getBranches(fork, localRef)
-      expect(localBranch).not.toBeUndefined()
-
-      await deleteLocalBranch(fork, localBranch, null, true)
-
-      expect(await getBranches(fork, localRef)).toBeArrayOfSize(0)
-      expect(await getBranches(fork, remoteRef)).toBeArrayOfSize(0)
-      expect(await getBranches(repository, localRef)).toBeArrayOfSize(0)
     })
   })
 
   describe('deleteRemoteBranch', () => {
-    let repository: Repository
+    let mockRemote: Repository
 
     beforeEach(async () => {
       const path = await setupFixtureRepository('test-repo')
-      repository = new Repository(path, -1, null, false)
+      mockRemote = new Repository(path, -1, null, false)
     })
 
-    it('deletes remote branches', async () => {
+    it('delete a local branches upstream branch', async () => {
       const name = 'test-branch'
-      const branch = await createBranch(repository, name, null)
+      const branch = await createBranch(mockRemote, name, null)
+      const localRef = `refs/heads/${name}`
+
       expect(branch).not.toBeNull()
 
-      const fork = await setupLocalForkOfRepository(repository)
+      const mockLocal = await setupLocalForkOfRepository(mockRemote)
 
       const remoteRef = `refs/remotes/origin/${name}`
-      const [remoteBranch] = await getBranches(fork, remoteRef)
+      const [remoteBranch] = await getBranches(mockLocal, remoteRef)
       expect(remoteBranch).not.toBeUndefined()
 
-      await deleteRemoteBranch(fork, remoteBranch, null)
+      await checkoutBranch(mockLocal, null, remoteBranch)
+      await git(['checkout', '-'], mockLocal.path, 'checkoutPrevious')
 
-      expect(await getBranches(fork, remoteRef)).toBeArrayOfSize(0)
+      expect(await getBranches(mockLocal, localRef)).toBeArrayOfSize(1)
+      expect(await getBranches(mockRemote, localRef)).toBeArrayOfSize(1)
+
+      const [localBranch] = await getBranches(mockLocal, localRef)
+      expect(localBranch).not.toBeUndefined()
+      expect(localBranch.upstreamRemoteName).not.toBeNull()
+      expect(localBranch.upstreamWithoutRemote).not.toBeNull()
+
+      await deleteRemoteBranch(
+        mockLocal,
+        null,
+        localBranch.upstreamRemoteName!,
+        localBranch.upstreamWithoutRemote!
+      )
+
+      expect(await getBranches(mockLocal, localRef)).toBeArrayOfSize(1)
+      expect(await getBranches(mockLocal, remoteRef)).toBeArrayOfSize(0)
+      expect(await getBranches(mockRemote, localRef)).toBeArrayOfSize(0)
+    })
+
+    it('handles attempted delete of removed remote branch', async () => {
+      const name = 'test-branch'
+      const branch = await createBranch(mockRemote, name, null)
+      const localRef = `refs/heads/${name}`
+
+      expect(branch).not.toBeNull()
+      expect(await getBranches(mockRemote, localRef)).toBeArrayOfSize(1)
+
+      const mockLocal = await setupLocalForkOfRepository(mockRemote)
+
+      const remoteRef = `refs/remotes/origin/${name}`
+      const [remoteBranch] = await getBranches(mockLocal, remoteRef)
+      expect(remoteBranch).not.toBeUndefined()
+
+      await checkoutBranch(mockLocal, null, remoteBranch)
+      await git(['checkout', '-'], mockLocal.path, 'checkoutPrevious')
+
+      expect(await getBranches(mockLocal, localRef)).toBeArrayOfSize(1)
+      expect(await getBranches(mockRemote, localRef)).toBeArrayOfSize(1)
+
+      const [upstreamBranch] = await getBranches(mockRemote, localRef)
+      expect(upstreamBranch).not.toBeUndefined()
+      await deleteLocalBranch(mockRemote, upstreamBranch.name)
+      expect(await getBranches(mockRemote, localRef)).toBeArrayOfSize(0)
+
+      const [localBranch] = await getBranches(mockLocal, localRef)
+      expect(localBranch).not.toBeUndefined()
+      expect(localBranch.upstreamRemoteName).not.toBeNull()
+      expect(localBranch.upstreamWithoutRemote).not.toBeNull()
+
+      await deleteRemoteBranch(
+        mockLocal,
+        null,
+        localBranch.upstreamRemoteName!,
+        localBranch.upstreamWithoutRemote!
+      )
+
+      expect(await getBranches(mockLocal, remoteRef)).toBeArrayOfSize(0)
+      expect(await getBranches(mockRemote, localRef)).toBeArrayOfSize(0)
     })
   })
 })

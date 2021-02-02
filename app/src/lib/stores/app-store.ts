@@ -105,7 +105,6 @@ import {
   IRepositoryState,
   ChangesSelectionKind,
   ChangesWorkingDirectorySelection,
-  IBranchesState,
 } from '../app-state'
 import {
   findEditorOrDefault,
@@ -122,9 +121,7 @@ import {
   addRemote,
   checkoutBranch,
   createCommit,
-  formatAsLocalRef,
   getAuthorIdentity,
-  getBranchAheadBehind,
   getChangedFiles,
   getCommitDiff,
   getMergeBase,
@@ -135,7 +132,6 @@ import {
   pull as pullRepo,
   push as pushRepo,
   renameBranch,
-  updateRef,
   saveGitIgnore,
   appendIgnoreRule,
   createMergeCommit,
@@ -151,8 +147,9 @@ import {
   GitError,
   MergeResult,
   getBranchesDifferingFromUpstream,
-  deleteRemoteBranch,
   deleteLocalBranch,
+  deleteRemoteBranch,
+  fastForwardBranches,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -3346,59 +3343,89 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _deleteLocalBranch(
+  public async _deleteBranch(
     repository: Repository,
     branch: Branch,
     includeRemote?: boolean
   ): Promise<void> {
     return this.withAuthenticatingUser(repository, async (r, account) => {
-      const { branchesState } = this.repositoryStateCache.get(r)
-
-      const branchToCheckout = this.getBranchToCheckoutAfterDelete(
-        branch,
-        branchesState
-      )
       const gitStore = this.gitStoreCache.get(r)
 
-      if (branchToCheckout != null) {
+      // If solely a remote branch, there is no need to checkout a branch.
+      if (branch.type === BranchType.Remote) {
+        await gitStore.performFailableOperation(() => {
+          // Note: deleting a remote branch implementation not needed, yet.
+          return Promise.resolve()
+        })
+
+        // We log the remote branch's sha so that the user can recover it.
+        log.info(
+          `Deleted branch ${branch.upstreamWithoutRemote} (was ${branch.tip.sha})`
+        )
+
+        return this._refreshRepository(r)
+      }
+
+      // If a local branch, user may have the branch to delete checked out and
+      // we need to switch to a different branch (default or recent).
+      const branchToCheckout = this.getBranchToCheckoutAfterDelete(branch, r)
+
+      if (branchToCheckout !== null) {
         await gitStore.performFailableOperation(() =>
           checkoutBranch(r, account, branchToCheckout)
         )
       }
 
-      await gitStore.performFailableOperation(() =>
-        deleteLocalBranch(r, branch, account, includeRemote)
-      )
+      await gitStore.performFailableOperation(() => {
+        return this.deleteLocalBranchAndUpstreamBranch(
+          repository,
+          branch,
+          account,
+          includeRemote
+        )
+      })
 
       return this._refreshRepository(r)
     })
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _deleteRemoteBranch(
+  /**
+   * Deletes the local branch. If the parameter `includeRemote` is true, the
+   * upstream branch will be deleted also.
+   */
+  private async deleteLocalBranchAndUpstreamBranch(
     repository: Repository,
-    branch: Branch
+    branch: Branch,
+    account: IGitAccount | null,
+    includeUpstream?: boolean
   ): Promise<void> {
-    return this.withAuthenticatingUser(repository, async (r, account) => {
-      const gitStore = this.gitStoreCache.get(r)
+    await deleteLocalBranch(repository, branch.name)
 
-      await gitStore.performFailableOperation(() =>
-        deleteRemoteBranch(r, branch, account)
+    if (
+      includeUpstream === true &&
+      branch.upstreamRemoteName !== null &&
+      branch.upstreamWithoutRemote !== null
+    ) {
+      await deleteRemoteBranch(
+        repository,
+        account,
+        branch.upstreamRemoteName,
+        branch.upstreamWithoutRemote
       )
-
-      return this._refreshRepository(r)
-    })
+    }
+    return
   }
 
   private getBranchToCheckoutAfterDelete(
     branchToDelete: Branch,
-    branchesState: IBranchesState
+    repository: Repository
   ): Branch | null {
+    const { branchesState } = this.repositoryStateCache.get(repository)
     const tip = branchesState.tip
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
     // if current branch is not the branch being deleted, no need to switch
     // branches
-    if (currentBranch != null && branchToDelete.name !== currentBranch.name) {
+    if (currentBranch !== null && branchToDelete.name !== currentBranch.name) {
       return null
     }
 
@@ -3587,7 +3614,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
             this.updatePushPullFetchProgress(repository, {
               kind: 'generic',
               title: refreshTitle,
+              description: 'Fast-forwarding branches',
               value: refreshStartProgress,
+            })
+
+            await this.fastForwardBranches(repository)
+
+            this.updatePushPullFetchProgress(repository, {
+              kind: 'generic',
+              title: refreshTitle,
+              value: refreshStartProgress + refreshWeight * 0.5,
             })
 
             // manually refresh branch protections after the push, to ensure
@@ -3595,15 +3631,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
             await this.refreshBranchProtectionState(repository)
 
             await this._refreshRepository(repository)
-
-            this.updatePushPullFetchProgress(repository, {
-              kind: 'generic',
-              title: refreshTitle,
-              description: 'Fast-forwarding branches',
-              value: refreshStartProgress + refreshWeight * 0.5,
-            })
-
-            await this.fastForwardBranches(repository)
           },
           { retryAction }
         )
@@ -3779,7 +3806,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
           this.updatePushPullFetchProgress(repository, {
             kind: 'generic',
             title: refreshTitle,
+            description: 'Fast-forwarding branches',
             value: refreshStartProgress,
+          })
+
+          await this.fastForwardBranches(repository)
+
+          this.updatePushPullFetchProgress(repository, {
+            kind: 'generic',
+            title: refreshTitle,
+            value: refreshStartProgress + refreshWeight * 0.5,
           })
 
           if (mergeBase) {
@@ -3791,15 +3827,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
           await this.refreshBranchProtectionState(repository)
 
           await this._refreshRepository(repository)
-
-          this.updatePushPullFetchProgress(repository, {
-            kind: 'generic',
-            title: refreshTitle,
-            description: 'Fast-forwarding branches',
-            value: refreshStartProgress + refreshWeight * 0.5,
-          })
-
-          await this.fastForwardBranches(repository)
         } finally {
           this.updatePushPullFetchProgress(repository, null)
         }
@@ -3808,37 +3835,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async fastForwardBranches(repository: Repository) {
-    const { branchesState } = this.repositoryStateCache.get(repository)
-    const { allBranches } = branchesState
+    try {
+      const eligibleBranches = await getBranchesDifferingFromUpstream(
+        repository
+      )
 
-    const eligibleBranches = await getBranchesDifferingFromUpstream(
-      repository,
-      allBranches
-    )
-
-    for (const branch of eligibleBranches) {
-      const aheadBehind = await getBranchAheadBehind(repository, branch)
-      if (!aheadBehind) {
-        continue
-      }
-
-      const { ahead, behind } = aheadBehind
-      // Only perform the fast forward if the branch is behind it's upstream
-      // branch and has no local commits.
-      if (ahead === 0 && behind > 0) {
-        // At this point we're guaranteed this is non-null since we've filtered
-        // out any branches will null upstreams above when creating
-        // `eligibleBranches`.
-        const upstreamRef = branch.upstream!
-        const localRef = formatAsLocalRef(branch.name)
-        await updateRef(
-          repository,
-          localRef,
-          branch.tip.sha,
-          upstreamRef,
-          'pull: Fast-forward'
-        )
-      }
+      await fastForwardBranches(repository, eligibleBranches)
+    } catch (e) {
+      log.error('Branch fast-forwarding failed', e)
+      sendNonFatalException('fastForwardBranches', e)
     }
   }
 
@@ -4071,7 +4076,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.updatePushPullFetchProgress(repository, {
           kind: 'generic',
           title: refreshTitle,
+          description: 'Fast-forwarding branches',
           value: fetchWeight,
+        })
+
+        await this.fastForwardBranches(repository)
+
+        this.updatePushPullFetchProgress(repository, {
+          kind: 'generic',
+          title: refreshTitle,
+          value: fetchWeight + refreshWeight * 0.5,
         })
 
         // manually refresh branch protections after the push, to ensure
@@ -4079,15 +4093,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         await this.refreshBranchProtectionState(repository)
 
         await this._refreshRepository(repository)
-
-        this.updatePushPullFetchProgress(repository, {
-          kind: 'generic',
-          title: refreshTitle,
-          description: 'Fast-forwarding branches',
-          value: fetchWeight + refreshWeight * 0.5,
-        })
-
-        await this.fastForwardBranches(repository)
       } finally {
         this.updatePushPullFetchProgress(repository, null)
 

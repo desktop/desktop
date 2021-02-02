@@ -2,7 +2,7 @@ import { git } from './core'
 import { GitError } from 'dugite'
 
 import { Repository } from '../../models/repository'
-import { Branch, BranchType } from '../../models/branch'
+import { Branch, BranchType, ITrackingBranch } from '../../models/branch'
 import { CommitIdentity } from '../../models/commit-identity'
 
 /** Get all the branches. */
@@ -85,7 +85,7 @@ export async function getBranches(
       author,
     }
 
-    const type = ref.startsWith('refs/head')
+    const type = ref.startsWith('refs/heads')
       ? BranchType.Local
       : BranchType.Remote
 
@@ -95,7 +95,13 @@ export async function getBranches(
     }
 
     branches.push(
-      new Branch(name, upstream.length > 0 ? upstream : null, branchTip, type)
+      new Branch(
+        name,
+        upstream.length > 0 ? upstream : null,
+        branchTip,
+        type,
+        ref
+      )
     )
   }
 
@@ -109,15 +115,12 @@ export async function getBranches(
  * forwarded.
  *
  * @param repository Repository to get the branches from.
- * @param allBranches All known branches in the repository.
  */
 export async function getBranchesDifferingFromUpstream(
-  repository: Repository,
-  allBranches: ReadonlyArray<Branch>
-): Promise<ReadonlyArray<Branch>> {
+  repository: Repository
+): Promise<ReadonlyArray<ITrackingBranch>> {
   const format = [
     '%(refname)',
-    '%(refname:short)',
     '%(objectname)', // SHA
     '%(upstream)',
     '%(symref)',
@@ -153,26 +156,26 @@ export async function getBranchesDifferingFromUpstream(
   // - For local branches with upstream: name, ref, SHA and the upstream.
   // - For remote branches we only need the sha (and the ref as key).
   for (const line of lines) {
-    const [ref, name, sha, upstream, symref, head] = line.split('\0')
+    const [ref, sha, upstream, symref, head] = line.split('\0')
 
     if (symref.length > 0 || head === '*') {
       // Exclude symbolic refs and the current branch
       continue
     }
 
-    if (ref.startsWith('refs/head')) {
+    if (ref.startsWith('refs/heads')) {
       if (upstream.length === 0) {
         // Exclude local branches without upstream
         continue
       }
 
-      localBranches.push({ name, ref, sha, upstream })
+      localBranches.push({ ref, sha, upstream })
     } else {
       remoteBranchShas.set(ref, sha)
     }
   }
 
-  const eligibleBranchNames = new Set<String>()
+  const eligibleBranches = new Array<ITrackingBranch>()
 
   // Compare the SHA of every local branch with the SHA of its upstream and
   // collect the names of local branches that differ from their upstream.
@@ -180,18 +183,14 @@ export async function getBranchesDifferingFromUpstream(
     const remoteSha = remoteBranchShas.get(branch.upstream)
 
     if (remoteSha !== undefined && remoteSha !== branch.sha) {
-      eligibleBranchNames.add(branch.name)
+      eligibleBranches.push({
+        ref: branch.ref,
+        sha: branch.sha,
+        upstreamRef: branch.upstream,
+        upstreamSha: remoteSha,
+      })
     }
   }
 
-  if (eligibleBranchNames.size === 0) {
-    return []
-  }
-
-  // Using the names of those eligible branches, pick the branch objects from
-  // all the local branches in the repo.
-  return allBranches.filter(
-    branch =>
-      branch.type === BranchType.Local && eligibleBranchNames.has(branch.name)
-  )
+  return eligibleBranches
 }
