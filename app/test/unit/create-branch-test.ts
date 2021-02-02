@@ -25,10 +25,12 @@ const defaultBranch: Branch = {
   upstream: null,
   tip: stubTip,
   type: BranchType.Local,
-  remote: null,
+  upstreamRemoteName: null,
   upstreamWithoutRemote: null,
   nameWithoutRemote: 'my-default-branch',
   isDesktopForkRemoteBranch: false,
+  ref: '',
+  remoteName: '',
 }
 
 const upstreamDefaultBranch = null
@@ -38,10 +40,12 @@ const someOtherBranch: Branch = {
   upstream: null,
   tip: stubTip,
   type: BranchType.Local,
-  remote: null,
+  upstreamRemoteName: null,
   upstreamWithoutRemote: null,
   nameWithoutRemote: 'some-other-branch',
   isDesktopForkRemoteBranch: false,
+  ref: '',
+  remoteName: '',
 }
 
 describe('create-branch/getStartPoint', () => {

@@ -42,7 +42,7 @@ function createSampleBranch(name: string, upstream: string | null) {
     author,
   }
 
-  return new Branch(name, upstream, branchTip, BranchType.Local)
+  return new Branch(name, upstream, branchTip, BranchType.Local, '')
 }
 
 describe('findForkedRemotesToPrune', () => {
