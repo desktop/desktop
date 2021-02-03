@@ -117,7 +117,7 @@ export class TutorialPanel extends React.Component<
                   recommend{' '}
                   <LinkButton
                     uri={suggestedExternalEditor.url}
-                    title={`Open the ${suggestedExternalEditor.name} Code website`}
+                    title={`Open the ${suggestedExternalEditor.name} website`}
                   >
                     {suggestedExternalEditor.name}
                   </LinkButton>
