@@ -14,7 +14,7 @@ import { encodePathAsUrl } from '../../lib/path'
 import { PopupType } from '../../models/popup'
 import { PreferencesTab } from '../../models/preferences'
 import { Ref } from '../lib/ref'
-import { DEFAULT_EDITOR_NAME, DEFAULT_EDITOR_URL } from '../../lib/stores'
+import { suggestedExternalEditor } from '../../lib/editors/shared'
 
 const TutorialPanelImage = encodePathAsUrl(
   __dirname,
@@ -116,10 +116,10 @@ export class TutorialPanel extends React.Component<
                   It doesn’t look like you have a text editor installed. We can
                   recommend{' '}
                   <LinkButton
-                    uri={DEFAULT_EDITOR_URL}
-                    title={`Open the ${DEFAULT_EDITOR_NAME} Code website`}
+                    uri={suggestedExternalEditor.url}
+                    title={`Open the ${suggestedExternalEditor.name} Code website`}
                   >
-                    {DEFAULT_EDITOR_NAME}
+                    {suggestedExternalEditor.name}
                   </LinkButton>
                   {` or `}
                   <LinkButton

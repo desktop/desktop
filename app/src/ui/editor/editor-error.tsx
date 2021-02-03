@@ -8,10 +8,7 @@ import {
   OkCancelButtonGroup,
 } from '../dialog'
 import { shell } from '../../lib/app-shell'
-import {
-  DEFAULT_EDITOR_NAME,
-  DEFAULT_EDITOR_URL,
-} from '../../lib/stores/app-store'
+import { suggestedExternalEditor } from '../../lib/editors/shared'
 
 interface IEditorErrorProps {
   /**
@@ -47,7 +44,7 @@ export class EditorError extends React.Component<IEditorErrorProps, {}> {
   }
 
   private onExternalLink = () => {
-    shell.openExternal(DEFAULT_EDITOR_URL)
+    shell.openExternal(suggestedExternalEditor.url)
   }
 
   private onShowPreferencesDialog = (
@@ -76,7 +73,7 @@ export class EditorError extends React.Component<IEditorErrorProps, {}> {
         <DialogFooter>
           <OkCancelButtonGroup
             okButtonText="Close"
-            cancelButtonText={`Download ${DEFAULT_EDITOR_NAME}`}
+            cancelButtonText={`Download ${suggestedExternalEditor.name}`}
             onCancelButtonClick={this.onExternalLink}
           />
         </DialogFooter>

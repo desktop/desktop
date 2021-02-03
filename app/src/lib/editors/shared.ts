@@ -34,3 +34,8 @@ export class ExternalEditorError extends Error {
     this.metadata = metadata
   }
 }
+
+export const suggestedExternalEditor = {
+  name: 'Visual Studio Code',
+  url: 'https://code.visualstudio.com',
+}
