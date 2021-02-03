@@ -27,7 +27,7 @@ interface IEditorErrorProps {
    */
   readonly message: string
 
-  /** Render the "Install ${Default}"" link as the default action */
+  /** Render the "Install ${Default}" link as the default action */
   readonly suggestDefaultEditor?: boolean
 
   /** Render the "Open Preferences" link as the default action */
