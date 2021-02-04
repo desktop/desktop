@@ -66,7 +66,7 @@ export function createForEachRefParser<T extends Record<string, string>>(
     let consumed = 0
 
     // start at 1 to avoid 0 modulo X problem. The first record is guaranteed
-    // to be empty anyway (due to %00 at the start of --formatt)
+    // to be empty anyway (due to %00 at the start of --format)
     for (let i = 1; i < records.length - 1; i++) {
       if (i % (keys.length + 1) === 0) {
         if (records[i] !== '\n') {
@@ -76,7 +76,9 @@ export function createForEachRefParser<T extends Record<string, string>>(
       }
 
       entry = entry ?? ({} as { [K in keyof T]: string })
-      entry[keys[consumed++ % keys.length]] = records[i]
+      const key = keys[consumed % keys.length]
+      entry[key] = records[i]
+      consumed++
 
       if (consumed % keys.length === 0) {
         entries.push(entry)
