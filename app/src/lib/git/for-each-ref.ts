@@ -77,18 +77,18 @@ export async function getBranches(
 export async function getBranchesDifferingFromUpstream(
   repository: Repository
 ): Promise<ReadonlyArray<ITrackingBranch>> {
-  const format = [
-    '%(refname)',
-    '%(objectname)', // SHA
-    '%(upstream)',
-    '%(symref)',
-    '%(HEAD)',
-  ].join('%00')
+  const { formatArgs, parse } = createForEachRefParser({
+    fullName: '%(refname)',
+    sha: '%(objectname)', // SHA
+    upstream: '%(upstream)',
+    symref: '%(symref)',
+    head: '%(HEAD)',
+  })
 
   const prefixes = ['refs/heads', 'refs/remotes']
 
   const result = await git(
-    ['for-each-ref', `--format=${format}`, ...prefixes],
+    ['for-each-ref', ...formatArgs, ...prefixes],
     repository.path,
     'getBranchesDifferingFromUpstream',
     { expectedErrors: new Set([GitError.NotAGitRepository]) }
@@ -98,38 +98,31 @@ export async function getBranchesDifferingFromUpstream(
     return []
   }
 
-  const lines = result.stdout.split('\n')
-
-  // Remove the trailing newline
-  lines.splice(-1, 1)
-
-  if (lines.length === 0) {
-    return []
-  }
-
   const localBranches = []
   const remoteBranchShas = new Map<string, string>()
 
   // First we need to collect the relevant info from the command output:
   // - For local branches with upstream: name, ref, SHA and the upstream.
   // - For remote branches we only need the sha (and the ref as key).
-  for (const line of lines) {
-    const [ref, sha, upstream, symref, head] = line.split('\0')
-
-    if (symref.length > 0 || head === '*') {
+  for (const ref of parse(result.stdout)) {
+    if (ref.symref.length > 0 || ref.head === '*') {
       // Exclude symbolic refs and the current branch
       continue
     }
 
-    if (ref.startsWith('refs/heads')) {
-      if (upstream.length === 0) {
+    if (ref.fullName.startsWith('refs/heads')) {
+      if (ref.upstream.length === 0) {
         // Exclude local branches without upstream
         continue
       }
 
-      localBranches.push({ ref, sha, upstream })
+      localBranches.push({
+        ref: ref.fullName,
+        sha: ref.sha,
+        upstream: ref.upstream,
+      })
     } else {
-      remoteBranchShas.set(ref, sha)
+      remoteBranchShas.set(ref.fullName, ref.sha)
     }
   }
 
