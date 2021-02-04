@@ -11,10 +11,10 @@ import {
   orderedTutorialSteps,
 } from '../../models/tutorial-step'
 import { encodePathAsUrl } from '../../lib/path'
-import { ExternalEditor } from '../../lib/editors'
 import { PopupType } from '../../models/popup'
 import { PreferencesTab } from '../../models/preferences'
 import { Ref } from '../lib/ref'
+import { suggestedExternalEditor } from '../../lib/editors/shared'
 
 const TutorialPanelImage = encodePathAsUrl(
   __dirname,
@@ -28,7 +28,7 @@ interface ITutorialPanelProps {
   /** name of the configured external editor
    * (`undefined` if none is configured.)
    */
-  readonly resolvedExternalEditor: ExternalEditor | null
+  readonly resolvedExternalEditor: string | null
   readonly currentTutorialStep: ValidTutorialStep
   readonly onExitTutorial: () => void
 }
@@ -116,17 +116,17 @@ export class TutorialPanel extends React.Component<
                   It doesn’t look like you have a text editor installed. We can
                   recommend{' '}
                   <LinkButton
+                    uri={suggestedExternalEditor.url}
+                    title={`Open the ${suggestedExternalEditor.name} website`}
+                  >
+                    {suggestedExternalEditor.name}
+                  </LinkButton>
+                  {` or `}
+                  <LinkButton
                     uri="https://atom.io"
                     title="Open the Atom website"
                   >
                     Atom
-                  </LinkButton>
-                  {` or `}
-                  <LinkButton
-                    uri="https://code.visualstudio.com"
-                    title="Open the VS Code website"
-                  >
-                    Visual Studio Code
                   </LinkButton>
                   , but feel free to use any.
                 </p>

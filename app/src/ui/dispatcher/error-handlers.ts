@@ -194,12 +194,12 @@ export async function externalEditorErrorHandler(
     return error
   }
 
-  const { suggestAtom, openPreferences } = e.metadata
+  const { suggestDefaultEditor, openPreferences } = e.metadata
 
   await dispatcher.showPopup({
     type: PopupType.ExternalEditorFailed,
     message: e.message,
-    suggestAtom,
+    suggestDefaultEditor,
     openPreferences,
   })
 

@@ -2,11 +2,23 @@
 
 The following are the larger areas of upcoming work the GitHub Desktop team intends to explore. This is not inclusive of everything we're working on, and it's not written in stone. We'll continue to update it as our priorities evolve.
 
-#### Add and view Tags in Desktop
+#### Commits are not always attributed to someone's GitHub user
 
-- Allow people to add tags to commits and view tags in history: [#4829](https://github.com/desktop/desktop/issues/4829)
+- Warn and provide a way to ensure your commits will be attributed to you: [#610](https://github.com/desktop/desktop/issues/610)
+
+#### Cherry picking commits from one branch to another
+
+- Cherry pick commits with a context menu and interactively: [#1685](https://github.com/desktop/desktop/issues/1685)
 
 ## Shipped in previous releases
+
+#### Split diffs (2.6)
+
+- Give people the ability to use split diffs in Desktop in addition to unified diffs: [#10617](https://github.com/desktop/desktop/issues/10617)
+
+#### Add and view Tags in Desktop (2.5)
+
+- Allow people to add tags to commits and view tags in history: [#4829](https://github.com/desktop/desktop/issues/4829)
 
 #### Users behind corporate proxies cannot clone repositories in Desktop without manual setup (2.4)
 

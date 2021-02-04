@@ -21,6 +21,14 @@ export interface ICompareResult extends IAheadBehind {
   readonly commits: ReadonlyArray<Commit>
 }
 
+/** Basic data about a branch, and the branch it's tracking. */
+export interface ITrackingBranch {
+  readonly ref: string
+  readonly sha: string
+  readonly upstreamRef: string
+  readonly upstreamSha: string
+}
+
 /** Basic data about the latest commit on the branch. */
 export interface IBranchTip {
   readonly sha: string
@@ -36,28 +44,6 @@ export enum StartPoint {
   UpstreamDefaultBranch = 'UpstreamDefaultBranch',
 }
 
-/**
- * Check if a branch is eligible for being fast-forwarded.
- *
- * Requirements:
- *   1. It's local.
- *   2. It's not the current branch.
- *   3. It has an upstream.
- *
- * @param branch The branch to validate
- * @param currentBranchName The current branch in the repository
- */
-export function eligibleForFastForward(
-  branch: Branch,
-  currentBranchName: string | null
-): boolean {
-  return (
-    branch.type === BranchType.Local &&
-    branch.name !== currentBranchName &&
-    branch.upstream != null
-  )
-}
-
 /** A branch as loaded from Git. */
 export class Branch {
   /**
@@ -67,16 +53,18 @@ export class Branch {
    * @param upstream The remote-prefixed upstream name. E.g., `origin/main`.
    * @param tip Basic information (sha and author) of the latest commit on the branch.
    * @param type The type of branch, e.g., local or remote.
+   * @param ref The canonical ref of the branch
    */
   public constructor(
     public readonly name: string,
     public readonly upstream: string | null,
     public readonly tip: IBranchTip,
-    public readonly type: BranchType
+    public readonly type: BranchType,
+    public readonly ref: string
   ) {}
 
   /** The name of the upstream's remote. */
-  public get remote(): string | null {
+  public get upstreamRemoteName(): string | null {
     const upstream = this.upstream
     if (!upstream) {
       return null
@@ -90,6 +78,20 @@ export class Branch {
     return pieces[1]
   }
 
+  /** The name of remote for a remote branch. If local, will return null. */
+  public get remoteName(): string | null {
+    if (this.type === BranchType.Local) {
+      return null
+    }
+
+    const pieces = this.ref.match(/^refs\/remotes\/(.*?)\/.*/)
+    if (!pieces || pieces.length !== 2) {
+      // This shouldn't happen, the remote ref should always be prefixed
+      // with refs/remotes
+      throw new Error(`Remote branch ref has unexpected format: ${this.ref}`)
+    }
+    return pieces[1]
+  }
   /**
    * The name of the branch's upstream without the remote prefix.
    */
