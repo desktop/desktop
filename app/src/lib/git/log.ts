@@ -119,7 +119,7 @@ export async function getCommits(
       commit.body,
       CommitIdentity.parseIdentity(commit.author),
       CommitIdentity.parseIdentity(commit.committer),
-      commit.parents.split(' '),
+      commit.parents.length > 0 ? commit.parents.split(' ') : [],
       parseRawUnfoldedTrailers(commit.trailers, trailerSeparators),
       tags
     )
