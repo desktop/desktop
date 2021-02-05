@@ -1,5 +1,6 @@
 {
   "releases": {
+    "2.6.3-test6": ["Testing new Windows icon again"],
     "2.6.3-beta3": [
       "[Fixed] Remote git operations (like cloning a repo) won't fail on old macOS versions - #11516",
       "[Fixed] Updated about modal dialog on macOS to match the new Big Sur icon - #11511"
