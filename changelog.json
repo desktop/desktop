@@ -1,5 +1,12 @@
 {
   "releases": {
+    "2.6.3": [
+      "[Improved] Upgrade embedded Git to v2.29.2 - #11369",
+      "[Improved] Enable spellcheck on commit summary and description - #1597",
+      "[Improved] Update app icon for macOS Big Sur - #10855",
+      "[Fixed] Remote git operations (like cloning a repo) won't fail on old macOS versions - #11516",
+      "[Fixed] Fast-forward all possible branches except the current branch when fetching - #11387"
+    ],
     "2.6.3-beta3": [
       "[Fixed] Remote git operations (like cloning a repo) won't fail on old macOS versions - #11516",
       "[Fixed] Updated about modal dialog on macOS to match the new Big Sur icon - #11511"
