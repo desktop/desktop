@@ -1,3 +1,5 @@
+import * as FSE from 'fs-extra'
+import * as Path from 'path'
 import { getCommit, getCommits } from '../../../src/lib/git'
 import { cherryPick, CherryPickResult } from '../../../src/lib/git/cherry-pick'
 import { Branch } from '../../../src/models/branch'
@@ -103,6 +105,26 @@ describe('git/cherry-pick', () => {
 
     it('the result is that it completed without error', async () => {
       expect(result).toBe(CherryPickResult.CompletedWithoutError)
+    })
+  })
+
+  describe('handles errors', () => {
+    it('Cherry pick when working tree is not clean returns an expected error', async () => {
+      await FSE.writeFile(
+        Path.join(repository.path, 'THING.md'),
+        '# HELLO WORLD! \nTHINGS GO HERE\nFEATURE BRANCH UNDERWAY\n'
+      )
+      // This error is not one of the parsed dugite errors
+      // https://github.com/desktop/dugite/blob/master/lib/errors.ts
+      // TODO: add to dugite error so we can make use of
+      // `localChangesOverwrittenHandler` in `error-handler.ts`
+      try {
+        result = await cherryPick(repository, featureBranch.tip.sha)
+      } catch (error) {
+        expect(error.toString()).toContain(
+          'The following untracked working tree files would be overwritten by merge'
+        )
+      }
     })
   })
 })
