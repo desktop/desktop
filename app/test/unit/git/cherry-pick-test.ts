@@ -90,7 +90,7 @@ describe('git/cherry-pick', () => {
       result = await cherryPick(repository, commitRange)
     })
 
-    it('the target branch has the commits inside cherry pick rangeS', async () => {
+    it('the target branch has the commits inside cherry pick range', async () => {
       const cherryPickedCommit = await getCommit(
         repository,
         featureBranch.tip.sha
