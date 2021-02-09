@@ -1,7 +1,13 @@
 import { GitProcess } from 'dugite'
 import * as FSE from 'fs-extra'
 import * as Path from 'path'
-import { getCommit, getCommits, merge, MergeResult } from '../../../src/lib/git'
+import {
+  getCommit,
+  getCommits,
+  merge,
+  MergeResult,
+  revRangeInclusive,
+} from '../../../src/lib/git'
 import { cherryPick, CherryPickResult } from '../../../src/lib/git/cherry-pick'
 import { Branch } from '../../../src/models/branch'
 import { Repository } from '../../../src/models/repository'
@@ -103,7 +109,7 @@ describe('git/cherry-pick', () => {
     featureBranch = await getBranchOrError(repository, featureBranchName)
     await switchTo(repository, targetBranchName)
 
-    const commitRange = `${firstCommitSha}^..${featureBranch.tip.sha}`
+    const commitRange = revRangeInclusive(firstCommitSha, featureBranch.tip.sha)
     result = await cherryPick(repository, commitRange)
 
     const commits = await getCommits(repository, targetBranch.ref, 5)
@@ -227,7 +233,10 @@ describe('git/cherry-pick', () => {
     await switchTo(repository, targetBranchName)
 
     try {
-      const commitRange = `${firstCommitSha}^..${featureBranch.tip.sha}`
+      const commitRange = revRangeInclusive(
+        firstCommitSha,
+        featureBranch.tip.sha
+      )
       result = await cherryPick(repository, commitRange)
     } catch (error) {
       expect(error.toString()).toContain('There are no changes to commit')
