@@ -4,7 +4,7 @@ import { makeCommit, switchTo, createBranch } from './repository-scaffolding'
 
 /**
  * Creates a test repository to be used for testing cherry pick behaviour with:
- *  - one commits on default branch,
+ *  - one commit on default branch,
  *  - one commit on `featureBranchName` to cherry pick
  *  - creates `targetBranchName` off of default branch
  */
