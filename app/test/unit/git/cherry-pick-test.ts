@@ -70,7 +70,15 @@ describe('git/cherry-pick', () => {
     featureBranch = await getBranchOrError(repository, featureBranchName)
     await switchTo(repository, targetBranchName)
 
+    // confirm feature branch tip is has empty message
+    const emptyMessageCommit = await getCommit(
+      repository,
+      featureBranch.tip.sha
+    )
+    expect(emptyMessageCommit?.summary).toBe('')
+
     result = await cherryPick(repository, featureBranch.tip.sha)
+
     const commits = await getCommits(repository, targetBranch.ref, 5)
     expect(commits.length).toBe(2)
     expect(commits[0]!.summary).toBe('')
