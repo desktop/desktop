@@ -70,7 +70,7 @@ describe('git/cherry-pick', () => {
     featureBranch = await getBranchOrError(repository, featureBranchName)
     await switchTo(repository, targetBranchName)
 
-    // confirm feature branch tip is has empty message
+    // confirm feature branch tip has an empty message
     const emptyMessageCommit = await getCommit(
       repository,
       featureBranch.tip.sha
