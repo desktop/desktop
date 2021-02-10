@@ -112,6 +112,7 @@ export async function getBranchAheadBehind(
 /**
  * Get a list of commits from the target branch that do not exist on the base
  * branch, ordered how they will be applied to the base branch.
+ * Therefore, this will not include the baseBranchSha commit.
  *
  * This emulates how `git rebase` initially determines what will be applied to
  * the repository.
