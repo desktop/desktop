@@ -1,1 +1,0 @@
-export { Preferences } from './preferences'
