@@ -1,5 +1,6 @@
+import { GitError } from 'dugite'
 import { Repository } from '../../models/repository'
-import { git, IGitResult } from './core'
+import { git, IGitExecutionOptions, IGitResult } from './core'
 
 /** The app-specific results from attempting to cherry pick commits*/
 export enum CherryPickResult {
@@ -8,7 +9,11 @@ export enum CherryPickResult {
    * signal success to the user.
    */
   CompletedWithoutError = 'CompletedWithoutError',
-
+  /**
+   * The cherry pick encountered conflicts while attempting to cherry pick and
+   * need to be resolved by the user can continue.
+   */
+  ConflictsEncountered = 'ConflictsEncountered',
   /**
    * An unexpected error as part of the cherry pick flow was caught and handled.
    *
@@ -27,10 +32,15 @@ export async function cherryPick(
   repository: Repository,
   revisionRange: string
 ): Promise<CherryPickResult> {
+  const baseOptions: IGitExecutionOptions = {
+    expectedErrors: new Set([GitError.MergeConflicts]),
+  }
+
   const result = await git(
     ['cherry-pick', revisionRange],
     repository.path,
-    'cherry pick'
+    'cherry pick',
+    baseOptions
   )
 
   return parseCherryPickResult(result)
@@ -41,7 +51,10 @@ function parseCherryPickResult(result: IGitResult): CherryPickResult {
     return CherryPickResult.CompletedWithoutError
   }
 
-  // TODO: handle known exceptions
-
-  throw new Error(`Unhandled result found: '${JSON.stringify(result)}'`)
+  switch (result.gitError) {
+    case GitError.MergeConflicts:
+      return CherryPickResult.ConflictsEncountered
+    default:
+      throw new Error(`Unhandled result found: '${JSON.stringify(result)}'`)
+  }
 }

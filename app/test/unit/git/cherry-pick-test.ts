@@ -11,6 +11,7 @@ import {
 import { cherryPick, CherryPickResult } from '../../../src/lib/git/cherry-pick'
 import { Branch } from '../../../src/models/branch'
 import { Repository } from '../../../src/models/repository'
+import { AppFileStatusKind } from '../../../src/models/status'
 import { getBranchOrError } from '../../helpers/git'
 import { createRepository } from '../../helpers/repository-builder-cherry-pick-test'
 import {
@@ -18,6 +19,7 @@ import {
   makeCommit,
   switchTo,
 } from '../../helpers/repository-scaffolding'
+import { getStatusOrThrow } from '../../helpers/status'
 
 const featureBranchName = 'this-is-a-feature'
 const targetBranchName = 'target-branch'
@@ -263,5 +265,30 @@ describe('git/cherry-pick', () => {
       expect(error.toString()).toContain('There are no changes to commit')
     }
     expect(result).toBe(null)
+  })
+
+  it('successfully detect cherry pick with conflicts', async () => {
+    // In the `beforeEach`, we call `createRepository` which adds a commit to
+    // feature branch with a file called THING.md. In order to make a conflict,
+    // we will add the same file to the target branch.
+    const conflictingCommit = {
+      commitMessage: 'Conflicting Commit!',
+      entries: [
+        {
+          path: 'THING.md',
+          contents: '# HELLO WORLD! \n CREATING CONFLICT! FUN TIMES!\n',
+        },
+      ],
+    }
+    await makeCommit(repository, conflictingCommit)
+
+    result = await cherryPick(repository, featureBranch.tip.sha)
+    expect(result).toBe(CherryPickResult.ConflictsEncountered)
+
+    const status = await getStatusOrThrow(repository)
+    const conflictedFiles = status.workingDirectory.files.filter(
+      f => f.status.kind === AppFileStatusKind.Conflicted
+    )
+    expect(conflictedFiles).toHaveLength(1)
   })
 })
