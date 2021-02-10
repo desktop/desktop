@@ -1,9 +1,0 @@
-[submodule "gemoji"]
-	path = gemoji
-	url = https://github.com/github/gemoji.git
-[submodule "app/static/common/gitignore"]
-	path = app/static/common/gitignore
-	url = https://github.com/github/gitignore.git
-[submodule "app/static/common/choosealicense.com"]
-	path = app/static/common/choosealicense.com
-	url = https://github.com/github/choosealicense.com.git
