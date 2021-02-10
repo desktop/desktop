@@ -119,13 +119,25 @@ export async function getBranchAheadBehind(
  * Returns `null` when the rebase is not possible to perform, because of a
  * missing commit ID
  */
-export async function getCommitsInRange(
+export async function getCommitsBetweenCommits(
   repository: Repository,
   baseBranchSha: string,
   targetBranchSha: string
 ): Promise<ReadonlyArray<CommitOneLine> | null> {
   const range = revRange(baseBranchSha, targetBranchSha)
 
+  return getCommitsInRange(repository, range)
+}
+
+/**
+ * Get a list of commits inside the provided range.
+ *
+ * Returns `null` when it is not possible to perform because of a bad range.
+ */
+export async function getCommitsInRange(
+  repository: Repository,
+  range: string
+): Promise<ReadonlyArray<CommitOneLine> | null> {
   const args = [
     'rev-list',
     range,
@@ -144,12 +156,6 @@ export async function getCommitsInRange(
   const result = await git(args, repository.path, 'getCommitsInRange', options)
 
   if (result.gitError === GitError.BadRevision) {
-    // BadRevision can be raised here if git rev-list is unable to resolve a ref
-    // to a commit ID, so we need to signal to the caller that this rebase is
-    // not possible to perform
-    log.warn(
-      'Unable to rebase these branches because one or both of the refs do not exist in the repository'
-    )
     return null
   }
 
