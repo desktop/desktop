@@ -25,7 +25,7 @@ import {
   isGitRepository,
   RebaseResult,
   PushOptions,
-  getCommitsInRange,
+  getCommitsBetweenCommits,
   getBranches,
 } from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
@@ -381,7 +381,7 @@ export class Dispatcher {
     }
 
     // and the remote branch has commits that don't exist on the base branch
-    const remoteCommits = await getCommitsInRange(
+    const remoteCommits = await getCommitsBetweenCommits(
       repository,
       baseBranch.tip.sha,
       targetBranch.upstream
