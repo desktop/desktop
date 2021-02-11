@@ -136,6 +136,9 @@ export class GitConfigUserForm extends React.Component<
       return null
     }
 
+    // Only show the "Email" label above the textbox when the textbox is
+    // presented independently, without the email dropdown, not when presented
+    // as a consequence of the option "Other" selected in the dropdown.
     const label = this.state.emailIsOther ? undefined : 'Email'
 
     return (
@@ -181,6 +184,8 @@ export class GitConfigUserForm extends React.Component<
       emailIsOther: value === OtherEmailSelectValue,
     })
 
+    // If the dropdown selection is "Other", the email address itself didn't
+    // change, technically, so no need to emit an update notification.
     if (value !== OtherEmailSelectValue) {
       this.props.onEmailChanged?.(value)
     }
