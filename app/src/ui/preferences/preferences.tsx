@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { Account } from '../../models/account'
 import { PreferencesTab } from '../../models/preferences'
-import { ExternalEditor } from '../../lib/editors'
 import { Dispatcher } from '../dispatcher'
 import { TabBar, TabBarType } from '../tab-bar'
 import { Accounts } from './accounts'
@@ -22,8 +21,8 @@ import { ApplicationTheme } from '../lib/application-theme'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Integrations } from './integrations'
 import {
-  UncommittedChangesStrategyKind,
-  uncommittedChangesStrategyKindDefault,
+  UncommittedChangesStrategy,
+  defaultUncommittedChangesStrategy,
 } from '../../models/uncommitted-changes-strategy'
 import { Octicon, OcticonSymbol } from '../octicons'
 import {
@@ -47,8 +46,8 @@ interface IPreferencesProps {
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
-  readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
-  readonly selectedExternalEditor: ExternalEditor | null
+  readonly uncommittedChangesStrategy: UncommittedChangesStrategy
+  readonly selectedExternalEditor: string | null
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
   readonly automaticallySwitchTheme: boolean
@@ -68,9 +67,9 @@ interface IPreferencesState {
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
-  readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
-  readonly availableEditors: ReadonlyArray<ExternalEditor>
-  readonly selectedExternalEditor: ExternalEditor | null
+  readonly uncommittedChangesStrategy: UncommittedChangesStrategy
+  readonly availableEditors: ReadonlyArray<string>
+  readonly selectedExternalEditor: string | null
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
   /**
@@ -106,7 +105,7 @@ export class Preferences extends React.Component<
       confirmRepositoryRemoval: false,
       confirmDiscardChanges: false,
       confirmForcePush: false,
-      uncommittedChangesStrategyKind: uncommittedChangesStrategyKindDefault,
+      uncommittedChangesStrategy: defaultUncommittedChangesStrategy,
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
       selectedShell: this.props.selectedShell,
@@ -158,7 +157,7 @@ export class Preferences extends React.Component<
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
       confirmForcePush: this.props.confirmForcePush,
-      uncommittedChangesStrategyKind: this.props.uncommittedChangesStrategyKind,
+      uncommittedChangesStrategy: this.props.uncommittedChangesStrategy,
       availableShells,
       availableEditors,
     })
@@ -323,12 +322,10 @@ export class Preferences extends React.Component<
           <Advanced
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
-            uncommittedChangesStrategyKind={
-              this.state.uncommittedChangesStrategyKind
-            }
+            uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
             onOptOutofReportingchanged={this.onOptOutofReportingChanged}
-            onUncommittedChangesStrategyKindChanged={
-              this.onUncommittedChangesStrategyKindChanged
+            onUncommittedChangesStrategyChanged={
+              this.onUncommittedChangesStrategyChanged
             }
             onRepositoryIndicatorsEnabledChanged={
               this.onRepositoryIndicatorsEnabledChanged
@@ -374,10 +371,10 @@ export class Preferences extends React.Component<
     this.setState({ confirmForcePush: value })
   }
 
-  private onUncommittedChangesStrategyKindChanged = (
-    value: UncommittedChangesStrategyKind
+  private onUncommittedChangesStrategyChanged = (
+    uncommittedChangesStrategy: UncommittedChangesStrategy
   ) => {
-    this.setState({ uncommittedChangesStrategyKind: value })
+    this.setState({ uncommittedChangesStrategy })
   }
 
   private onCommitterNameChanged = (committerName: string) => {
@@ -397,7 +394,7 @@ export class Preferences extends React.Component<
     this.setState({ defaultBranch })
   }
 
-  private onSelectedEditorChanged = (editor: ExternalEditor) => {
+  private onSelectedEditorChanged = (editor: string) => {
     this.setState({ selectedExternalEditor: editor })
   }
 
@@ -515,8 +512,8 @@ export class Preferences extends React.Component<
       this.state.confirmDiscardChanges
     )
 
-    await this.props.dispatcher.setUncommittedChangesStrategyKindSetting(
-      this.state.uncommittedChangesStrategyKind
+    await this.props.dispatcher.setUncommittedChangesStrategySetting(
+      this.state.uncommittedChangesStrategy
     )
 
     this.props.onDismissed()

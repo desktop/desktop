@@ -19,6 +19,7 @@ import { ITextDiff, DiffSelection } from './diff'
 export enum PopupType {
   RenameBranch = 1,
   DeleteBranch,
+  DeleteRemoteBranch,
   ConfirmDiscardChanges,
   Preferences,
   MergeBranch,
@@ -77,6 +78,11 @@ export type Popup =
       existsOnRemote: boolean
     }
   | {
+      type: PopupType.DeleteRemoteBranch
+      repository: Repository
+      branch: Branch
+    }
+  | {
       type: PopupType.ConfirmDiscardChanges
       repository: Repository
       files: ReadonlyArray<WorkingDirectoryFileChange>
@@ -106,8 +112,6 @@ export type Popup =
   | {
       type: PopupType.CreateBranch
       repository: Repository
-      currentBranchProtected: boolean
-
       initialName?: string
     }
   | { type: PopupType.SignIn }
@@ -137,7 +141,7 @@ export type Popup =
   | {
       type: PopupType.ExternalEditorFailed
       message: string
-      suggestAtom?: boolean
+      suggestDefaultEditor?: boolean
       openPreferences?: boolean
     }
   | { type: PopupType.OpenShellFailed; message: string }

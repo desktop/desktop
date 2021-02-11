@@ -13,6 +13,7 @@ import {
   createCommit,
   checkoutBranch,
   deleteTag,
+  getBranches,
 } from '../../../src/lib/git'
 import {
   setupFixtureRepository,
@@ -23,6 +24,7 @@ import { getDotComAPIEndpoint } from '../../../src/lib/api'
 import { IRemote } from '../../../src/models/remote'
 import { findDefaultRemote } from '../../../src/lib/stores/helpers/find-default-remote'
 import { getStatusOrThrow } from '../../helpers/status'
+import { assertNonNullable } from '../../../src/lib/fatal-error'
 
 describe('git/tag', () => {
   let repository: Repository
@@ -153,7 +155,10 @@ describe('git/tag', () => {
 
     it('does not return a tag created on a non-pushed branch', async () => {
       // Create a tag on a local branch that's not pushed to the remote.
-      const branch = await createBranch(repository, 'new-branch', 'master')
+      const branchName = 'new-branch'
+      await createBranch(repository, branchName, 'master')
+      const [branch] = await getBranches(repository, `refs/heads/${branchName}`)
+      assertNonNullable(branch, `Could not create branch ${branchName}`)
 
       await FSE.writeFile(path.join(repository.path, 'README.md'), 'Hi world\n')
       const status = await getStatusOrThrow(repository)
@@ -161,7 +166,7 @@ describe('git/tag', () => {
 
       await checkoutBranch(repository, account, branch!)
       const commitSha = await createCommit(repository, 'a commit', files)
-      await createTag(repository, 'my-new-tag', commitSha!)
+      await createTag(repository, 'my-new-tag', commitSha)
 
       expect(
         await fetchTagsToPush(repository, account, originRemote, 'master')

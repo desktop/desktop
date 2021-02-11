@@ -2,6 +2,7 @@ import { spawn, ChildProcess } from 'child_process'
 import { pathExists } from 'fs-extra'
 import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
+import { parseEnumValue } from '../enum'
 
 export enum Shell {
   Gnome = 'GNOME Terminal',
@@ -17,39 +18,7 @@ export enum Shell {
 export const Default = Shell.Gnome
 
 export function parse(label: string): Shell {
-  if (label === Shell.Gnome) {
-    return Shell.Gnome
-  }
-
-  if (label === Shell.Mate) {
-    return Shell.Mate
-  }
-
-  if (label === Shell.Tilix) {
-    return Shell.Tilix
-  }
-
-  if (label === Shell.Terminator) {
-    return Shell.Terminator
-  }
-
-  if (label === Shell.Urxvt) {
-    return Shell.Urxvt
-  }
-
-  if (label === Shell.Konsole) {
-    return Shell.Konsole
-  }
-
-  if (label === Shell.Xterm) {
-    return Shell.Xterm
-  }
-
-  if (label === Shell.Terminology) {
-    return Shell.Terminology
-  }
-
-  return Default
+  return parseEnumValue(Shell, label) ?? Default
 }
 
 async function getPathIfAvailable(path: string): Promise<string | null> {

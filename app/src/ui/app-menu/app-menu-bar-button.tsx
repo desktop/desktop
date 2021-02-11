@@ -193,6 +193,11 @@ export class AppMenuBarButton extends React.Component<
         dropdownState={dropDownState}
         onDropdownStateChanged={this.onDropdownStateChanged}
         dropdownContentRenderer={this.dropDownContentRenderer}
+        // Disable the dropdown focus trap for menus. Items in the menus are not
+        // "tabbable", so the app crashes when this prop is set to true and the
+        // user opens a menu (on Windows).
+        // Besides, we use a custom "focus trap" for menus anyway.
+        enableFocusTrap={false}
         showDisclosureArrow={false}
         onMouseEnter={this.onMouseEnter}
         onKeyDown={this.onKeyDown}

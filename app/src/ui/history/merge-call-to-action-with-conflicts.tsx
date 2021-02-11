@@ -16,11 +16,6 @@ interface IMergeCallToActionWithConflictsProps {
   readonly currentBranch: Branch
   readonly comparisonBranch: Branch
   readonly commitsBehind: number
-
-  /**
-   * Callback to execute after a merge has been performed
-   */
-  readonly onMerged: () => void
 }
 
 export class MergeCallToActionWithConflicts extends React.Component<
@@ -175,6 +170,5 @@ export class MergeCallToActionWithConflicts extends React.Component<
       showBranchList: false,
       filterText: '',
     })
-    this.props.onMerged()
   }
 }

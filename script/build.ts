@@ -6,9 +6,9 @@ import * as cp from 'child_process'
 import * as fs from 'fs-extra'
 import * as os from 'os'
 import packager, {
-  arch,
-  ElectronNotarizeOptions,
-  ElectronOsXSignOptions,
+  OfficialArch,
+  OsxNotarizeOptions,
+  OsxSignOptions,
   Options,
 } from 'electron-packager'
 import frontMatter from 'front-matter'
@@ -123,7 +123,7 @@ interface IPackageAdditionalOptions {
     readonly name: string
     readonly schemes: ReadonlyArray<string>
   }>
-  readonly osxSign: ElectronOsXSignOptions & {
+  readonly osxSign: OsxSignOptions & {
     readonly hardenedRuntime?: boolean
   }
 }
@@ -140,7 +140,7 @@ function packageApp() {
     )
   }
 
-  const toPackageArch = (targetArch: string | undefined): arch => {
+  const toPackageArch = (targetArch: string | undefined): OfficialArch => {
     if (targetArch === undefined) {
       targetArch = os.arch()
     }
@@ -427,7 +427,7 @@ ${licenseText}`
   fs.removeSync(chooseALicense)
 }
 
-function getNotarizationCredentials(): ElectronNotarizeOptions | undefined {
+function getNotarizationCredentials(): OsxNotarizeOptions | undefined {
   const appleId = process.env.APPLE_ID
   const appleIdPassword = process.env.APPLE_ID_PASSWORD
   if (appleId === undefined || appleIdPassword === undefined) {

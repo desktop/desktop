@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { TransitionGroup, CSSTransition } from 'react-transition-group'
 
 import { Commit } from '../../models/commit'
 import {
@@ -24,15 +23,8 @@ import { OcticonSymbol } from '../octicons'
 import { SelectionSource } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
-import {
-  NewCommitsBanner,
-  DismissalReason,
-} from '../notification/new-commits-banner'
 import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
-import { assertNever } from '../../lib/fatal-error'
-import { enableNDDBBanner } from '../../lib/feature-flag'
-
-const DivergingBannerAnimationTimeout = 300
+import { AheadBehindStore } from '../../lib/stores/ahead-behind-store'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -50,6 +42,7 @@ interface ICompareSidebarProps {
   readonly compareListScrollTop?: number
   readonly localTags: Map<string, string> | null
   readonly tagsToPush: ReadonlyArray<string> | null
+  readonly aheadBehindStore: AheadBehindStore
 }
 
 interface ICompareSidebarState {
@@ -59,12 +52,6 @@ interface ICompareSidebarState {
    * For all other cases, use the prop
    */
   readonly focusedBranch: Branch | null
-
-  /**
-   * Flag that tracks whether the user interacted with one of the notification's
-   * "call to action" buttons
-   */
-  readonly hasConsumedNotification: boolean
 }
 
 /** If we're within this many rows from the bottom, load the next history batch. */
@@ -83,17 +70,7 @@ export class CompareSidebar extends React.Component<
   public constructor(props: ICompareSidebarProps) {
     super(props)
 
-    this.state = {
-      focusedBranch: null,
-      hasConsumedNotification: false,
-    }
-  }
-
-  public componentDidMount() {
-    this.props.dispatcher.setDivergingBranchNudgeVisibility(
-      this.props.repository,
-      false
-    )
+    this.state = { focusedBranch: null }
   }
 
   public componentWillReceiveProps(nextProps: ICompareSidebarProps) {
@@ -157,15 +134,11 @@ export class CompareSidebar extends React.Component<
   }
 
   public render() {
-    const { allBranches, filterText, showBranchList } = this.props.compareState
+    const { branches, filterText, showBranchList } = this.props.compareState
     const placeholderText = getPlaceholderText(this.props.compareState)
 
     return (
       <div id="compare-view">
-        {enableNDDBBanner() && (
-          <TransitionGroup>{this.renderNotificationBanner()}</TransitionGroup>
-        )}
-
         <div className="compare-form">
           <FancyTextBox
             symbol={OcticonSymbol.gitBranch}
@@ -173,7 +146,7 @@ export class CompareSidebar extends React.Component<
             placeholder={placeholderText}
             onFocus={this.onTextBoxFocused}
             value={filterText}
-            disabled={allBranches.length === 0}
+            disabled={!branches.some(b => !b.isDesktopForkRemoteBranch)}
             onRef={this.onTextBoxRef}
             onValueChanged={this.onBranchFilterTextChanged}
             onKeyDown={this.onBranchFilterKeyDown}
@@ -188,38 +161,6 @@ export class CompareSidebar extends React.Component<
 
   private onBranchesListRef = (branchList: BranchList | null) => {
     this.branchList = branchList
-  }
-
-  private renderNotificationBanner() {
-    const bannerState = this.props.compareState.divergingBranchBannerState
-
-    if (!bannerState.isPromptVisible || bannerState.isPromptDismissed) {
-      return null
-    }
-
-    const { inferredComparisonBranch } = this.props.compareState
-
-    return inferredComparisonBranch.branch !== null &&
-      inferredComparisonBranch.aheadBehind !== null &&
-      inferredComparisonBranch.aheadBehind.behind > 0 ? (
-      <CSSTransition
-        classNames="diverge-banner"
-        appear={true}
-        timeout={DivergingBannerAnimationTimeout}
-      >
-        <div className="diverge-banner-wrapper">
-          <NewCommitsBanner
-            dispatcher={this.props.dispatcher}
-            repository={this.props.repository}
-            commitsBehindBaseBranch={
-              inferredComparisonBranch.aheadBehind.behind
-            }
-            baseBranch={inferredComparisonBranch.branch}
-            onDismiss={this.onNotificationBannerDismissed}
-          />
-        </div>
-      </CSSTransition>
-    ) : null
   }
 
   private renderCommits() {
@@ -311,7 +252,7 @@ export class CompareSidebar extends React.Component<
   private renderFilterList() {
     const {
       defaultBranch,
-      allBranches,
+      branches,
       recentBranches,
       filterText,
     } = this.props.compareState
@@ -321,7 +262,7 @@ export class CompareSidebar extends React.Component<
         ref={this.onBranchesListRef}
         defaultBranch={defaultBranch}
         currentBranch={this.props.currentBranch}
-        allBranches={allBranches}
+        allBranches={branches}
         recentBranches={recentBranches}
         filterText={filterText}
         textbox={this.textbox!}
@@ -349,7 +290,6 @@ export class CompareSidebar extends React.Component<
         currentBranch={this.props.currentBranch}
         comparisonBranch={formState.comparisonBranch}
         commitsBehind={formState.aheadBehind.behind}
-        onMerged={this.onMerge}
       />
     )
   }
@@ -391,24 +331,13 @@ export class CompareSidebar extends React.Component<
     item: IBranchListItem,
     matches: IMatches
   ) => {
-    const currentBranch = this.props.currentBranch
-
-    const currentBranchName = currentBranch != null ? currentBranch.name : null
-    const branch = item.branch
-
-    const aheadBehind = currentBranch
-      ? this.props.compareState.aheadBehindCache.get(
-          currentBranch.tip.sha,
-          branch.tip.sha
-        )
-      : null
-
     return (
       <CompareBranchListItem
-        branch={branch}
-        isCurrentBranch={branch.name === currentBranchName}
+        branch={item.branch}
+        currentBranch={this.props.currentBranch}
         matches={matches}
-        aheadBehind={aheadBehind}
+        repository={this.props.repository}
+        aheadBehindStore={this.props.aheadBehindStore}
       />
     )
   }
@@ -564,31 +493,6 @@ export class CompareSidebar extends React.Component<
     this.textbox = textbox
   }
 
-  private onNotificationBannerDismissed = (reason: DismissalReason) => {
-    if (reason === DismissalReason.Close) {
-      this.props.dispatcher.dismissDivergingBranchBanner(this.props.repository)
-    }
-    this.props.dispatcher.recordDivergingBranchBannerDismissal()
-
-    switch (reason) {
-      case DismissalReason.Close:
-        this.setState({ hasConsumedNotification: false })
-        break
-      case DismissalReason.Compare:
-      case DismissalReason.Merge:
-        this.setState({ hasConsumedNotification: true })
-        break
-      default:
-        assertNever(reason, 'Unknown reason')
-    }
-  }
-
-  private onMerge = () => {
-    if (this.state.hasConsumedNotification) {
-      this.props.dispatcher.recordDivergingBranchBannerInfluencedMerge()
-    }
-  }
-
   private onCreateTag = (targetCommitSha: string) => {
     this.props.dispatcher.showCreateTagDialog(
       this.props.repository,
@@ -603,9 +507,9 @@ export class CompareSidebar extends React.Component<
 }
 
 function getPlaceholderText(state: ICompareState) {
-  const { allBranches, formState } = state
+  const { branches, formState } = state
 
-  if (allBranches.length === 0) {
+  if (!branches.some(b => !b.isDesktopForkRemoteBranch)) {
     return __DARWIN__ ? 'No Branches to Compare' : 'No branches to compare'
   } else if (formState.kind === HistoryTabMode.History) {
     return __DARWIN__

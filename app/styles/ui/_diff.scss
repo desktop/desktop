@@ -511,10 +511,10 @@
 
     .image-container {
       position: relative;
+      @include checkboard-background;
 
       .image-diff-previous,
       .image-diff-current {
-        @include checkboard-background;
         position: absolute;
 
         img {
@@ -522,12 +522,7 @@
         }
       }
 
-      .image-diff-current {
-        right: 0;
-      }
-
       .swiper {
-        border-left: 1px solid var(--text-secondary-color);
         margin: 0;
         overflow: hidden;
         position: absolute;

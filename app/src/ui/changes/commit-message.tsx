@@ -18,7 +18,6 @@ import { Avatar } from '../lib/avatar'
 import { Loading } from '../lib/loading'
 import { AuthorInput } from '../lib/author-input'
 import { FocusContainer } from '../lib/focus-container'
-import { showContextualMenu } from '../main-process-proxy'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { IAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
@@ -28,6 +27,7 @@ import { PermissionsCommitWarning } from './permissions-commit-warning'
 import { LinkButton } from '../lib/link-button'
 import { FoldoutType } from '../../lib/app-state'
 import { IAvatarUser, getAvatarUserFromAuthor } from '../../models/avatar'
+import { showContextualMenu } from '../main-process-proxy'
 
 const addAuthorIcon = new OcticonSymbol(
   18,
@@ -73,6 +73,8 @@ interface ICommitMessageProps {
 
   /** Whether this component should show its onboarding tutorial nudge arrow */
   readonly shouldNudge: boolean
+
+  readonly commitSpellcheckEnabled: boolean
 }
 
 interface ICommitMessageState {
@@ -114,7 +116,6 @@ export class CommitMessage extends React.Component<
 
   public constructor(props: ICommitMessageProps) {
     super(props)
-
     const { commitMessage } = this.props
 
     this.state = {
@@ -331,27 +332,46 @@ export class CommitMessage extends React.Component<
     }
   }
 
-  private onContextMenu = (event: React.MouseEvent<any>) => {
-    if (event.defaultPrevented) {
+  private onContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (
+      event.target instanceof HTMLTextAreaElement ||
+      event.target instanceof HTMLInputElement
+    ) {
       return
     }
 
-    event.preventDefault()
-
-    const items: IMenuItem[] = [this.getAddRemoveCoAuthorsMenuItem()]
-    showContextualMenu(items)
+    showContextualMenu([this.getAddRemoveCoAuthorsMenuItem()])
   }
 
-  private onAutocompletingInputContextMenu = (event: React.MouseEvent<any>) => {
-    event.preventDefault()
-
+  private onAutocompletingInputContextMenu = () => {
     const items: IMenuItem[] = [
       this.getAddRemoveCoAuthorsMenuItem(),
       { type: 'separator' },
       { role: 'editMenu' },
+      { type: 'separator' },
     ]
 
-    showContextualMenu(items)
+    items.push(
+      this.getCommitSpellcheckEnabilityMenuItem(
+        this.props.commitSpellcheckEnabled
+      )
+    )
+
+    showContextualMenu(items, true)
+  }
+
+  private getCommitSpellcheckEnabilityMenuItem(isEnabled: boolean): IMenuItem {
+    const enableLabel = __DARWIN__
+      ? 'Enable Commit Spellcheck'
+      : 'Enable commit spellcheck'
+    const disableLabel = __DARWIN__
+      ? 'Disable Commit Spellcheck'
+      : 'Disable commit spellcheck'
+    return {
+      label: isEnabled ? disableLabel : enableLabel,
+      action: () =>
+        this.props.dispatcher.setCommitSpellcheckEnabled(!isEnabled),
+    }
   }
 
   private onCoAuthorToggleButtonClick = (
@@ -547,6 +567,7 @@ export class CommitMessage extends React.Component<
             autocompletionProviders={this.props.autocompletionProviders}
             onContextMenu={this.onAutocompletingInputContextMenu}
             disabled={this.props.isCommitting}
+            spellcheck={this.props.commitSpellcheckEnabled}
           />
         </div>
 
@@ -564,6 +585,7 @@ export class CommitMessage extends React.Component<
             onElementRef={this.onDescriptionTextAreaRef}
             onContextMenu={this.onAutocompletingInputContextMenu}
             disabled={this.props.isCommitting}
+            spellcheck={this.props.commitSpellcheckEnabled}
           />
           {this.renderActionBar()}
         </FocusContainer>

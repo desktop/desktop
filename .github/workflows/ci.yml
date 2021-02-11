@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [12.14.1]
+        node: [14.x]
         os: [macos-10.15, windows-2019]
         arch: [x64, arm64]
         include:
@@ -92,6 +92,7 @@ jobs:
         run: yarn test:script:cov
       - name: Run integration tests
         if: matrix.arch == 'x64'
+        timeout-minutes: 5
         run: yarn test:integration
       - name: Publish production app
         run: yarn run publish
