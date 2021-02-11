@@ -29,7 +29,10 @@ export class GitEmailNotFoundWarning extends React.Component<
   }
 
   public render() {
-    if (this.accountEmails.includes(this.props.email)) {
+    if (
+      this.props.accounts.length === 0 ||
+      this.accountEmails.includes(this.props.email)
+    ) {
       return null
     }
 
