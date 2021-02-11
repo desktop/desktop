@@ -59,17 +59,6 @@ export class GitConfigUserForm extends React.Component<
   }
 
   public render() {
-    const dotComEmails =
-      this.props.dotComAccount?.emails.map(e => e.email) ?? []
-    const enterpriseEmails =
-      this.props.enterpriseAccount?.emails.map(e => e.email) ?? []
-
-    const shouldShowAccountType =
-      this.props.dotComAccount !== null && this.props.enterpriseAccount !== null
-
-    const dotComSuffix = shouldShowAccountType ? '(GitHub.com)' : ''
-    const enterpriseSuffix = shouldShowAccountType ? '(GitHub Enterprise)' : ''
-
     return (
       <div>
         <Row>
@@ -79,44 +68,78 @@ export class GitConfigUserForm extends React.Component<
             onValueChanged={this.props.onNameChanged}
           />
         </Row>
-        <Row>
-          <Select
-            label="Email"
-            value={
-              this.state.emailIsOther ? OtherEmailSelectValue : this.props.email
-            }
-            onChange={this.onEmailSelectChange}
-          >
-            {dotComEmails.map(e => (
-              <option key={e} value={e}>
-                {e} {dotComSuffix}
-              </option>
-            ))}
-            {enterpriseEmails.map(e => (
-              <option key={e} value={e}>
-                {e} {enterpriseSuffix}
-              </option>
-            ))}
-            <option key={OtherEmailSelectValue} value={OtherEmailSelectValue}>
-              {OtherEmailSelectValue}
-            </option>
-          </Select>
-        </Row>
-        {this.state.emailIsOther && (
-          <Row>
-            <TextBox
-              ref={this.emailInputRef}
-              type="email"
-              value={this.props.email}
-              onValueChanged={this.props.onEmailChanged}
-            />
-          </Row>
-        )}
+        {this.renderEmailDropdown()}
+        {this.renderEmailTextBox()}
         <GitEmailNotFoundWarning
           accounts={this.accounts}
           email={this.props.email}
         />
       </div>
+    )
+  }
+
+  private renderEmailDropdown() {
+    if (this.accountEmails.length === 0) {
+      return null
+    }
+
+    const dotComEmails =
+      this.props.dotComAccount?.emails.map(e => e.email) ?? []
+    const enterpriseEmails =
+      this.props.enterpriseAccount?.emails.map(e => e.email) ?? []
+
+    // When the user signed in both accounts, show a suffix to differentiate
+    // the origin of each email address
+    const shouldShowAccountType =
+      this.props.dotComAccount !== null && this.props.enterpriseAccount !== null
+
+    const dotComSuffix = shouldShowAccountType ? '(GitHub.com)' : ''
+    const enterpriseSuffix = shouldShowAccountType ? '(GitHub Enterprise)' : ''
+
+    return (
+      <Row>
+        <Select
+          label="Email"
+          value={
+            this.state.emailIsOther ? OtherEmailSelectValue : this.props.email
+          }
+          onChange={this.onEmailSelectChange}
+        >
+          {dotComEmails.map(e => (
+            <option key={e} value={e}>
+              {e} {dotComSuffix}
+            </option>
+          ))}
+          {enterpriseEmails.map(e => (
+            <option key={e} value={e}>
+              {e} {enterpriseSuffix}
+            </option>
+          ))}
+          <option key={OtherEmailSelectValue} value={OtherEmailSelectValue}>
+            {OtherEmailSelectValue}
+          </option>
+        </Select>
+      </Row>
+    )
+  }
+
+  private renderEmailTextBox() {
+    if (this.state.emailIsOther === false && this.accountEmails.length > 0) {
+      return null
+    }
+
+    const label = this.state.emailIsOther ? undefined : 'Email'
+
+    return (
+      <Row>
+        <TextBox
+          ref={this.emailInputRef}
+          label={label}
+          type="email"
+          value={this.props.email}
+          onValueChanged={this.props.onEmailChanged}
+        />
+      </Row>
     )
   }
 
