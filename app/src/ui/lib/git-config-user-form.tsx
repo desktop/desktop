@@ -27,6 +27,14 @@ interface IGitConfigUserFormState {
   readonly emailIsOther: boolean
 }
 
+/**
+ * Form with a name and email address used to present and change the user's info
+ * via git config.
+ *
+ * It'll offer the email addresses from the user's accounts (if any), and an
+ * option to enter a custom email address. In this case, it will also warn the
+ * user when this custom email address could result in misattributed commits.
+ */
 export class GitConfigUserForm extends React.Component<
   IGitConfigUserFormProps,
   IGitConfigUserFormState
