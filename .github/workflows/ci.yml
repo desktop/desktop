@@ -56,7 +56,7 @@ jobs:
       # https://github.com/nodejs/build/issues/2450#issuecomment-705853342
       - name: Get NodeJS node-gyp lib for Windows arm64
         if: ${{ matrix.os == 'windows-2019' && matrix.arch == 'arm64' }}
-        run: .\script\download-nodejs-win-arm64.ps1 ${{ matrix.node }}
+        run: .\script\download-nodejs-win-arm64.ps1 14.15.4
 
       - name: Install and build dependencies
         run: yarn
