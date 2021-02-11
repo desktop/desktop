@@ -1,6 +1,16 @@
+import * as Path from 'path'
+import * as FSE from 'fs-extra'
 import { GitError } from 'dugite'
+import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { Repository } from '../../models/repository'
+import {
+  AppFileStatusKind,
+  WorkingDirectoryFileChange,
+} from '../../models/status'
 import { git, IGitExecutionOptions, IGitResult } from './core'
+import { stageManualConflictResolution } from './stage'
+import { getStatus } from './status'
+import { stageFiles } from './update-index'
 
 /** The app-specific results from attempting to cherry pick commits*/
 export enum CherryPickResult {
@@ -14,6 +24,17 @@ export enum CherryPickResult {
    * need to be resolved by the user can continue.
    */
   ConflictsEncountered = 'ConflictsEncountered',
+  /**
+   * The cherry pick was not able to continue as tracked files were not staged in
+   * the index.
+   */
+  OutstandingFilesNotStaged = 'OutstandingFilesNotStaged',
+  /**
+   * The cherry pick was not attempted because it could not check the status of
+   * the repository. The caller needs to confirm the repository is in a usable
+   * state.
+   */
+  Aborted = 'Aborted',
   /**
    * An unexpected error as part of the cherry pick flow was caught and handled.
    *
@@ -54,7 +75,125 @@ function parseCherryPickResult(result: IGitResult): CherryPickResult {
   switch (result.gitError) {
     case GitError.MergeConflicts:
       return CherryPickResult.ConflictsEncountered
+    case GitError.UnresolvedConflicts:
+      return CherryPickResult.OutstandingFilesNotStaged
     default:
       throw new Error(`Unhandled result found: '${JSON.stringify(result)}'`)
+  }
+}
+
+/**
+ * Proceed with the current cherry pick operation and report back on whether it completed
+ *
+ * It is expected that the index has staged files which are cleanly cherry
+ * picked onto the base branch, and the remaining unstaged files are those which
+ * need manual resolution or were changed by the user to address inline
+ * conflicts.
+ *
+ */
+export async function continueCherryPick(
+  repository: Repository,
+  files: ReadonlyArray<WorkingDirectoryFileChange>,
+  manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map()
+): Promise<CherryPickResult> {
+  const trackedFiles = files.filter(f => {
+    return f.status.kind !== AppFileStatusKind.Untracked
+  })
+
+  // apply conflict resolutions
+  for (const [path, resolution] of manualResolutions) {
+    const file = files.find(f => f.path === path)
+    if (file !== undefined) {
+      await stageManualConflictResolution(repository, file, resolution)
+    } else {
+      log.error(
+        `[continuePick] couldn't find file ${path} even though there's a manual resolution for it`
+      )
+    }
+  }
+
+  const otherFiles = trackedFiles.filter(f => !manualResolutions.has(f.path))
+
+  await stageFiles(repository, otherFiles)
+
+  const status = await getStatus(repository)
+  if (status == null) {
+    log.warn(
+      `[continueCherryPick] unable to get status after staging changes, skipping any other steps`
+    )
+    return CherryPickResult.Aborted
+  }
+
+  // make sure cherry pick is still in progress to continue
+  const rebaseCurrentCommit = await readCherryPickHead(repository)
+  if (rebaseCurrentCommit === null) {
+    return CherryPickResult.Aborted
+  }
+
+  const trackedFilesAfter = status.workingDirectory.files.filter(
+    f => f.status.kind !== AppFileStatusKind.Untracked
+  )
+
+  const options: IGitExecutionOptions = {
+    expectedErrors: new Set([
+      GitError.MergeConflicts,
+      GitError.UnresolvedConflicts,
+    ]),
+    env: {
+      GIT_EDITOR: ':',
+    },
+  }
+
+  if (trackedFilesAfter.length === 0) {
+    log.warn(
+      `[cherryPick] no tracked changes to commit for ${rebaseCurrentCommit},
+       continuing cherrypick but skipping this commit`
+    )
+
+    const result = await git(
+      ['cherry-pick', '--skip'],
+      repository.path,
+      'continueCherryPickSkipCurrentCommit',
+      options
+    )
+
+    return parseCherryPickResult(result)
+  }
+
+  const result = await git(
+    ['cherry-pick', '--continue'],
+    repository.path,
+    'continueCherryPick',
+    options
+  )
+
+  return parseCherryPickResult(result)
+}
+
+/**
+ * Attempt to read the `.git/CHERRY_PICK_HEAD` file inside a repository to confirm
+ * the cherry pick is still active.
+ */
+async function readCherryPickHead(
+  repository: Repository
+): Promise<string | null> {
+  try {
+    const cherryPickHead = Path.join(
+      repository.path,
+      '.git',
+      'CHERRY_PICK_HEAD'
+    )
+    const cherryPickCurrentCommitOutput = await FSE.readFile(
+      cherryPickHead,
+      'utf8'
+    )
+    return cherryPickCurrentCommitOutput.trim()
+  } catch (err) {
+    log.warn(
+      `[cherryPick] a problem was encountered reading .git/CHERRY_PICK_HEAD,
+       so it is unsafe to continue cherry picking`,
+      err
+    )
+    return null
   }
 }
