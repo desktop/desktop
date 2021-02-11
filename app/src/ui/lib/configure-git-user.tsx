@@ -20,6 +20,7 @@ import { ConfigLockFileExists } from './config-lock-file-exists'
 import { RadioButton } from './radio-button'
 import { Select } from './select'
 import { GitEmailNotFoundWarning } from './git-email-not-found-warning'
+import { getDotComAPIEndpoint } from '../../lib/api'
 
 interface IConfigureGitUserProps {
   /** The logged-in accounts. */
@@ -255,14 +256,19 @@ export class ConfigureGitUser extends React.Component<
   }
 
   private renderAuthorOptions() {
-    if (this.props.accounts.length === 0) {
+    const account = this.account
+
+    if (account === null) {
       return
     }
+
+    const accountTypeSuffix =
+      account.endpoint === getDotComAPIEndpoint() ? '' : ' Enterprise'
 
     return (
       <div>
         <RadioButton
-          label="Use my GitHub account name and email address"
+          label={`Use my GitHub${accountTypeSuffix} account name and email address`}
           checked={this.state.useGitHubAuthorInfo}
           onSelected={this.onUseGitHubInfoSelected}
           value="github-account"
