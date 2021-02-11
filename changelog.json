@@ -1,5 +1,34 @@
 {
   "releases": {
+    "2.6.3-beta3": [
+      "[Fixed] Remote git operations (like cloning a repo) won't fail on old macOS versions - #11516",
+      "[Fixed] Updated about modal dialog on macOS to match the new Big Sur icon - #11511"
+    ],
+    "2.6.3-beta2": ["[Improved] Update app icon for macOS Big Sur - #10855"],
+    "2.6.3-beta1": [
+      "[Fixed] Fast-forward all possible branches except the current branch when fetching - #11387",
+      "[Improved] Enable spellcheck on commit summary and description - #1597",
+      "[Improved] Upgrade embedded Git to v2.29.2 - #11369"
+    ],
+    "2.6.2": [
+      "[Improved] Upgrade embedded Git LFS to 2.13.2 - #11394",
+      "[Fixed] Pull requests no longer fail to update until the user switches repositories - #11241",
+      "[Fixed] Fork behavior changes are now reflected in the app immediately - #11327",
+      "[Fixed] Checking out a pull request from a fork for the first time now correctly identifies the remote branch to create the branch from - #11267",
+      "[Fixed] Don't offer to stash changes when clicking on the currently checked out branch in the branch list - #11235",
+      "[Fixed] Forked repository remotes are no longer removed when there are local branches tracking them - #11266",
+      "[Fixed] Avoid bright flash for users of the dark theme when launching the app maximized - #5631. Thanks @AndreiMaga!",
+      "[Fixed] VSCodium is now detected as an editor on Windows - #11252. Thanks @KallePM!"
+    ],
+    "2.6.2-beta4": [
+      "[Improved] Show full output of Git hooks on errors - #6403",
+      "[Improved] Keep focus in dropdown when pressing tab multiple times - #11278",
+      "[Improved] Upgrade embedded Git LFS to 2.13.2 - #11394",
+      "[Improved] Add detection of Sublime Text 4 and 2 as editor on macOS. - #11263. Thanks @yurikoles!",
+      "[Fixed] Fork behavior changes are now reflected in the app immediately - #11327",
+      "[Fixed] Commit message remains in text box until user chooses to commit - #7251"
+    ],
+    "2.6.2-beta3": ["[Removed] Release removed in favor of 2.6.2-beta4"],
     "2.6.2-beta2": [
       "[Fixed] Forked repository remotes are no longer removed when there's local branches tracking them - #11266",
       "[Fixed] Avoid bright flash for users of the dark theme when launching the app maximized - #5631. Thanks @AndreiMaga!",

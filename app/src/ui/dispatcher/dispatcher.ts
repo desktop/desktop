@@ -16,7 +16,6 @@ import {
   isMergeConflictState,
   RebaseConflictState,
 } from '../../lib/app-state'
-import { ExternalEditor } from '../../lib/editors'
 import { assertNever, fatalError } from '../../lib/fatal-error'
 import {
   setGenericPassword,
@@ -647,7 +646,7 @@ export class Dispatcher {
   public async clone(
     url: string,
     path: string,
-    options?: { branch?: string }
+    options?: { branch?: string; defaultBranch?: string }
   ): Promise<Repository | null> {
     return this.appStore._completeOpenInDesktop(async () => {
       const { promise, repository } = this.appStore._clone(url, path, options)
@@ -687,14 +686,24 @@ export class Dispatcher {
 
   /**
    * Delete the branch. This will delete both the local branch and the remote
-   * branch, and then check out the default branch.
+   * branch if includeUpstream is true, and then check out the default branch.
    */
-  public deleteBranch(
+  public deleteLocalBranch(
     repository: Repository,
     branch: Branch,
-    includeRemote: boolean
+    includeUpstream?: boolean
   ): Promise<void> {
-    return this.appStore._deleteBranch(repository, branch, includeRemote)
+    return this.appStore._deleteBranch(repository, branch, includeUpstream)
+  }
+
+  /**
+   * Delete the remote branch.
+   */
+  public deleteRemoteBranch(
+    repository: Repository,
+    branch: Branch
+  ): Promise<void> {
+    return this.appStore._deleteBranch(repository, branch)
   }
 
   /** Discard the changes to the given files. */
@@ -1749,7 +1758,7 @@ export class Dispatcher {
   /**
    * Sets the user's preference for an external program to open repositories in.
    */
-  public setExternalEditor(editor: ExternalEditor): Promise<void> {
+  public setExternalEditor(editor: string): Promise<void> {
     return this.appStore._setExternalEditor(editor)
   }
 
@@ -2477,6 +2486,10 @@ export class Dispatcher {
 
   public setRepositoryIndicatorsEnabled(repositoryIndicatorsEnabled: boolean) {
     this.appStore._setRepositoryIndicatorsEnabled(repositoryIndicatorsEnabled)
+  }
+
+  public setCommitSpellcheckEnabled(commitSpellcheckEnabled: boolean) {
+    this.appStore._setCommitSpellcheckEnabled(commitSpellcheckEnabled)
   }
 
   public recordDiffOptionsViewed() {

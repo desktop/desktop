@@ -105,6 +105,18 @@ export interface IAPIRepository {
   readonly archived: boolean
 }
 
+/** Information needed to clone a repository. */
+export interface IAPIRepositoryCloneInfo {
+  /** Canonical clone URL of the repository. */
+  readonly url: string
+
+  /**
+   * Default branch of the repository, if any. This is usually either retrieved
+   * from the API for GitHub repositories, or undefined for other repositories.
+   */
+  readonly defaultBranch?: string
+}
+
 export interface IAPIFullRepository extends IAPIRepository {
   /**
    * The parent repository of a fork.
@@ -590,8 +602,11 @@ export class API {
   }
 
   /**
-   * Fetch the canonical clone URL for a repository, respecting the protocol
-   * preference if provided.
+   * Fetch info needed to clone a repository. That includes:
+   *  - The canonical clone URL for a repository, respecting the protocol
+   *    preference if provided.
+   *  - The default branch of the repository, in case the repository is empty.
+   *    Only available for GitHub repositories.
    *
    * Returns null if the request returned a 404 (NotFound). NotFound doesn't
    * necessarily mean that the repository doesn't exist, it could exist and
@@ -606,11 +621,11 @@ export class API {
    * @param name     The repository name (node in https://github.com/nodejs/node)
    * @param protocol The preferred Git protocol (https or ssh)
    */
-  public async fetchRepositoryCloneUrl(
+  public async fetchRepositoryCloneInfo(
     owner: string,
     name: string,
     protocol: GitProtocol | undefined
-  ): Promise<string | null> {
+  ): Promise<IAPIRepositoryCloneInfo | null> {
     const response = await this.request('GET', `repos/${owner}/${name}`)
 
     if (response.status === HttpStatusCode.NotFound) {
@@ -618,7 +633,10 @@ export class API {
     }
 
     const repo = await parsedResponse<IAPIRepository>(response)
-    return protocol === 'ssh' ? repo.ssh_url : repo.clone_url
+    return {
+      url: protocol === 'ssh' ? repo.ssh_url : repo.clone_url,
+      defaultBranch: repo.default_branch,
+    }
   }
 
   /** Fetch all repos a user has access to. */

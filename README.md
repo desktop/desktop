@@ -28,6 +28,8 @@ beta channel to get access to early builds of Desktop:
 
  - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin?env=beta)
  - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32?env=beta)
+ 
+The release notes for the latest beta versions are available [here](https://desktop.github.com/release-notes/?env=beta).
 
 ### Community Releases
 

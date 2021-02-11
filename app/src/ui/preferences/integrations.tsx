@@ -3,20 +3,20 @@ import { DialogContent } from '../dialog'
 import { LinkButton } from '../lib/link-button'
 import { Row } from '../../ui/lib/row'
 import { Select } from '../lib/select'
-import { ExternalEditor, parse as parseEditor } from '../../lib/editors'
 import { Shell, parse as parseShell } from '../../lib/shells'
+import { suggestedExternalEditor } from '../../lib/editors/shared'
 
 interface IIntegrationsPreferencesProps {
-  readonly availableEditors: ReadonlyArray<ExternalEditor>
-  readonly selectedExternalEditor: ExternalEditor | null
+  readonly availableEditors: ReadonlyArray<string>
+  readonly selectedExternalEditor: string | null
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
-  readonly onSelectedEditorChanged: (editor: ExternalEditor) => void
+  readonly onSelectedEditorChanged: (editor: string) => void
   readonly onSelectedShellChanged: (shell: Shell) => void
 }
 
 interface IIntegrationsPreferencesState {
-  readonly selectedExternalEditor: ExternalEditor | null
+  readonly selectedExternalEditor: string | null
   readonly selectedShell: Shell
 }
 
@@ -67,7 +67,7 @@ export class Integrations extends React.Component<
   private onSelectedEditorChanged = (
     event: React.FormEvent<HTMLSelectElement>
   ) => {
-    const value = parseEditor(event.currentTarget.value)
+    const value = event.currentTarget.value
     if (value) {
       this.setState({ selectedExternalEditor: value })
       this.props.onSelectedEditorChanged(value)
@@ -98,7 +98,9 @@ export class Integrations extends React.Component<
           <label>{label}</label>
           <span>
             No editors found.{' '}
-            <LinkButton uri="https://atom.io/">Install Atom?</LinkButton>
+            <LinkButton uri={suggestedExternalEditor.url}>
+              Install {suggestedExternalEditor.name}?
+            </LinkButton>
           </span>
         </div>
       )

@@ -36,6 +36,9 @@ interface IAutocompletingTextInputProps<ElementType> {
   /** Indicates if input field should be required */
   readonly isRequired?: boolean
 
+  /** Indicates if input field applies spellcheck */
+  readonly spellcheck?: boolean
+
   /**
    * Called when the user changes the value in the input field.
    */
@@ -281,6 +284,7 @@ export abstract class AutocompletingTextInput<
       onContextMenu: this.onContextMenu,
       disabled: this.props.disabled,
       'aria-required': this.props.isRequired ? true : false,
+      spellCheck: this.props.spellcheck,
     }
 
     return React.createElement<React.HTMLAttributes<ElementType>, ElementType>(

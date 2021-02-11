@@ -1,4 +1,4 @@
-import { ipcRenderer } from 'electron'
+import { ipcRenderer, remote } from 'electron'
 import { ExecutableMenuItem } from '../models/app-menu'
 import { MenuIDs } from '../models/menu-ids'
 import { IMenuItemState } from '../lib/menu-update'
@@ -79,8 +79,79 @@ function findSubmenuItem(
   return foundMenuItem
 }
 
+let deferredContextMenuItems: ReadonlyArray<IMenuItem> | null = null
+
+/** Takes a context menu and spelling suggestions from electron and merges them
+ * into one context menu. */
+function mergeDeferredContextMenuItems(
+  event: Electron.Event,
+  params: Electron.ContextMenuParams
+) {
+  if (deferredContextMenuItems === null) {
+    return
+  }
+
+  const items = [...deferredContextMenuItems]
+  const { misspelledWord, dictionarySuggestions } = params
+
+  if (!misspelledWord && dictionarySuggestions.length === 0) {
+    showContextualMenu(items, false)
+    return
+  }
+
+  items.push({ type: 'separator' })
+
+  const { webContents } = remote.getCurrentWindow()
+
+  for (const suggestion of dictionarySuggestions) {
+    items.push({
+      label: suggestion,
+      action: () => webContents.replaceMisspelling(suggestion),
+    })
+  }
+
+  if (misspelledWord) {
+    items.push({
+      label: __DARWIN__ ? 'Add to Dictionary' : 'Add to dictionary',
+      action: () =>
+        webContents.session.addWordToSpellCheckerDictionary(misspelledWord),
+    })
+  }
+
+  showContextualMenu(items, false)
+}
+
 /** Show the given menu items in a contextual menu. */
-export async function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
+export async function showContextualMenu(
+  items: ReadonlyArray<IMenuItem>,
+  mergeWithSpellcheckSuggestions = false
+) {
+  /*
+    When a user right clicks on a misspelled word in an input, we get event from
+    electron. That event comes after the context menu event that we get from the
+    dom. In order merge the spelling suggestions from electron with the context
+    menu that the input wants to show, we stash the context menu items from the
+    input away while we wait for the event from electron.
+  */
+  if (deferredContextMenuItems !== null) {
+    deferredContextMenuItems = null
+    remote
+      .getCurrentWebContents()
+      .off('context-menu', mergeDeferredContextMenuItems)
+  }
+
+  if (mergeWithSpellcheckSuggestions) {
+    deferredContextMenuItems = items
+    remote
+      .getCurrentWebContents()
+      .once('context-menu', mergeDeferredContextMenuItems)
+    return
+  }
+
+  /*
+  This is a regular context menu that does not need to merge with spellcheck
+  items. They can be shown right away.
+  */
   const indices: ReadonlyArray<number> | null = await ipcRenderer.invoke(
     'show-contextual-menu',
     serializeMenuItems(items)

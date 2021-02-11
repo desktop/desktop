@@ -107,11 +107,9 @@ import {
   ChangesWorkingDirectorySelection,
 } from '../app-state'
 import {
-  ExternalEditor,
   findEditorOrDefault,
   getAvailableEditors,
   launchExternalEditor,
-  parse,
 } from '../editors'
 import { assertNever, fatalError } from '../fatal-error'
 
@@ -123,10 +121,7 @@ import {
   addRemote,
   checkoutBranch,
   createCommit,
-  deleteBranch,
-  formatAsLocalRef,
   getAuthorIdentity,
-  getBranchAheadBehind,
   getChangedFiles,
   getCommitDiff,
   getMergeBase,
@@ -137,7 +132,6 @@ import {
   pull as pullRepo,
   push as pushRepo,
   renameBranch,
-  updateRef,
   saveGitIgnore,
   appendIgnoreRule,
   createMergeCommit,
@@ -152,6 +146,10 @@ import {
   IStatusResult,
   GitError,
   MergeResult,
+  getBranchesDifferingFromUpstream,
+  deleteLocalBranch,
+  deleteRemoteBranch,
+  fastForwardBranches,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -210,7 +208,7 @@ import {
   setNumberArray,
   getEnum,
 } from '../local-storage'
-import { ExternalEditorError } from '../editors/shared'
+import { ExternalEditorError, suggestedExternalEditor } from '../editors/shared'
 import { ApiRepositoriesStore } from './api-repositories-store'
 import {
   updateChangedFiles,
@@ -240,7 +238,6 @@ import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
 import { updateRemoteUrl } from './updates/update-remote-url'
-import { findBranchesForFastForward } from './helpers/find-branches-for-fast-forward'
 import {
   TutorialStep,
   orderedTutorialSteps,
@@ -304,6 +301,9 @@ const imageDiffTypeKey = 'image-diff-type'
 
 const hideWhitespaceInDiffDefault = false
 const hideWhitespaceInDiffKey = 'hide-whitespace-in-diff'
+
+const commitSpellcheckEnabledDefault = true
+const commitSpellcheckEnabledKey = 'commit-spellcheck-enabled'
 
 const shellKey = 'shell'
 
@@ -384,13 +384,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
   private hideWhitespaceInDiff: boolean = hideWhitespaceInDiffDefault
+  /** Whether or not the spellchecker is enabled for commit summary and description */
+  private commitSpellcheckEnabled: boolean = commitSpellcheckEnabledDefault
   private showSideBySideDiff: boolean = ShowSideBySideDiffDefault
 
   private uncommittedChangesStrategy = defaultUncommittedChangesStrategy
 
-  private selectedExternalEditor: ExternalEditor | null = null
+  private selectedExternalEditor: string | null = null
 
-  private resolvedExternalEditor: ExternalEditor | null = null
+  private resolvedExternalEditor: string | null = null
 
   /** The user's preferred shell. */
   private selectedShell = DefaultShell
@@ -764,6 +766,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       optOutOfUsageTracking: this.statsStore.getOptOut(),
       currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
       repositoryIndicatorsEnabled: this.repositoryIndicatorsEnabled,
+      commitSpellcheckEnabled: this.commitSpellcheckEnabled,
     }
   }
 
@@ -1685,6 +1688,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
         : parseInt(imageDiffTypeValue)
 
     this.hideWhitespaceInDiff = getBoolean(hideWhitespaceInDiffKey, false)
+    this.commitSpellcheckEnabled = getBoolean(
+      commitSpellcheckEnabledKey,
+      commitSpellcheckEnabledDefault
+    )
     this.showSideBySideDiff = getShowSideBySideDiff()
 
     this.automaticallySwitchTheme = getAutoSwitchPersistedTheme()
@@ -1711,7 +1718,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private updateSelectedExternalEditor(
-    selectedEditor: ExternalEditor | null
+    selectedEditor: string | null
   ): Promise<void> {
     this.selectedExternalEditor = selectedEditor
 
@@ -1720,16 +1727,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this._resolveCurrentEditor()
   }
 
-  private async lookupSelectedExternalEditor(): Promise<ExternalEditor | null> {
+  private async lookupSelectedExternalEditor(): Promise<string | null> {
     const editors = (await getAvailableEditors()).map(found => found.editor)
 
-    const externalEditorValue = localStorage.getItem(externalEditorKey)
-    if (externalEditorValue) {
-      const value = parse(externalEditorValue)
-      // ensure editor is still installed
-      if (value && editors.includes(value)) {
-        return value
-      }
+    const value = localStorage.getItem(externalEditorKey)
+    // ensure editor is still installed
+    if (value && editors.includes(value)) {
+      return value
     }
 
     if (editors.length) {
@@ -2791,6 +2795,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  public _setCommitSpellcheckEnabled(commitSpellcheckEnabled: boolean) {
+    if (this.commitSpellcheckEnabled === commitSpellcheckEnabled) {
+      return
+    }
+
+    setBoolean(commitSpellcheckEnabledKey, commitSpellcheckEnabled)
+    this.commitSpellcheckEnabled = commitSpellcheckEnabled
+
+    this.emitUpdate()
+  }
+
   /**
    * Refresh all the data for the Changes section.
    *
@@ -3331,44 +3346,110 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _deleteBranch(
     repository: Repository,
     branch: Branch,
-    includeRemote: boolean
+    includeUpstream?: boolean
   ): Promise<void> {
     return this.withAuthenticatingUser(repository, async (r, account) => {
-      const { branchesState } = this.repositoryStateCache.get(r)
-      let branchToCheckout = branchesState.defaultBranch
+      const gitStore = this.gitStoreCache.get(r)
 
-      // If the default branch is null, use the most recent branch excluding the branch
-      // the branch to delete as the branch to checkout.
-      if (branchToCheckout === null) {
-        let i = 0
-
-        while (i < branchesState.recentBranches.length) {
-          if (branchesState.recentBranches[i].name !== branch.name) {
-            branchToCheckout = branchesState.recentBranches[i]
-            break
-          }
-          i++
+      // If solely a remote branch, there is no need to checkout a branch.
+      if (branch.type === BranchType.Remote) {
+        const { remoteName, tip, nameWithoutRemote } = branch
+        if (remoteName === null) {
+          // This is based on the branches ref. It should not be null for a
+          // remote branch
+          throw new Error(
+            `Could not determine remote name from: ${branch.ref}.`
+          )
         }
+
+        await gitStore.performFailableOperation(() =>
+          deleteRemoteBranch(r, account, remoteName, nameWithoutRemote)
+        )
+
+        // We log the remote branch's sha so that the user can recover it.
+        log.info(
+          `Deleted branch ${branch.upstreamWithoutRemote} (was ${tip.sha})`
+        )
+
+        return this._refreshRepository(r)
       }
 
-      if (branchToCheckout === null) {
-        throw new Error(
-          `It's not possible to delete the only existing branch in a repository.`
+      // If a local branch, user may have the branch to delete checked out and
+      // we need to switch to a different branch (default or recent).
+      const branchToCheckout = this.getBranchToCheckoutAfterDelete(branch, r)
+
+      if (branchToCheckout !== null) {
+        await gitStore.performFailableOperation(() =>
+          checkoutBranch(r, account, branchToCheckout)
         )
       }
 
-      const nonNullBranchToCheckout = branchToCheckout
-      const gitStore = this.gitStoreCache.get(r)
-
-      await gitStore.performFailableOperation(() =>
-        checkoutBranch(r, account, nonNullBranchToCheckout)
-      )
-      await gitStore.performFailableOperation(() =>
-        deleteBranch(r, branch, account, includeRemote)
-      )
+      await gitStore.performFailableOperation(() => {
+        return this.deleteLocalBranchAndUpstreamBranch(
+          repository,
+          branch,
+          account,
+          includeUpstream
+        )
+      })
 
       return this._refreshRepository(r)
     })
+  }
+
+  /**
+   * Deletes the local branch. If the parameter `includeUpstream` is true, the
+   * upstream branch will be deleted also.
+   */
+  private async deleteLocalBranchAndUpstreamBranch(
+    repository: Repository,
+    branch: Branch,
+    account: IGitAccount | null,
+    includeUpstream?: boolean
+  ): Promise<void> {
+    await deleteLocalBranch(repository, branch.name)
+
+    if (
+      includeUpstream === true &&
+      branch.upstreamRemoteName !== null &&
+      branch.upstreamWithoutRemote !== null
+    ) {
+      await deleteRemoteBranch(
+        repository,
+        account,
+        branch.upstreamRemoteName,
+        branch.upstreamWithoutRemote
+      )
+    }
+    return
+  }
+
+  private getBranchToCheckoutAfterDelete(
+    branchToDelete: Branch,
+    repository: Repository
+  ): Branch | null {
+    const { branchesState } = this.repositoryStateCache.get(repository)
+    const tip = branchesState.tip
+    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+    // if current branch is not the branch being deleted, no need to switch
+    // branches
+    if (currentBranch !== null && branchToDelete.name !== currentBranch.name) {
+      return null
+    }
+
+    // If the default branch is null, use the most recent branch excluding the branch
+    // the branch to delete as the branch to checkout.
+    const branchToCheckout =
+      branchesState.defaultBranch ??
+      branchesState.recentBranches.find(x => x.name !== branchToDelete.name)
+
+    if (branchToCheckout === undefined) {
+      throw new Error(
+        `It's not possible to delete the only existing branch in a repository.`
+      )
+    }
+
+    return branchToCheckout
   }
 
   private updatePushPullFetchProgress(
@@ -3429,7 +3510,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (tip.kind === TipState.Valid) {
         const { branch } = tip
 
-        const remoteName = branch.remote || remote.name
+        const remoteName = branch.upstreamRemoteName || remote.name
 
         const pushTitle = `Pushing to ${remoteName}`
 
@@ -3541,7 +3622,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
             this.updatePushPullFetchProgress(repository, {
               kind: 'generic',
               title: refreshTitle,
+              description: 'Fast-forwarding branches',
               value: refreshStartProgress,
+            })
+
+            await this.fastForwardBranches(repository)
+
+            this.updatePushPullFetchProgress(repository, {
+              kind: 'generic',
+              title: refreshTitle,
+              value: refreshStartProgress + refreshWeight * 0.5,
             })
 
             // manually refresh branch protections after the push, to ensure
@@ -3549,15 +3639,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
             await this.refreshBranchProtectionState(repository)
 
             await this._refreshRepository(repository)
-
-            this.updatePushPullFetchProgress(repository, {
-              kind: 'generic',
-              title: refreshTitle,
-              description: 'Fast-forwarding branches',
-              value: refreshStartProgress + refreshWeight * 0.5,
-            })
-
-            await this.fastForwardBranches(repository)
           },
           { retryAction }
         )
@@ -3733,7 +3814,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
           this.updatePushPullFetchProgress(repository, {
             kind: 'generic',
             title: refreshTitle,
+            description: 'Fast-forwarding branches',
             value: refreshStartProgress,
+          })
+
+          await this.fastForwardBranches(repository)
+
+          this.updatePushPullFetchProgress(repository, {
+            kind: 'generic',
+            title: refreshTitle,
+            value: refreshStartProgress + refreshWeight * 0.5,
           })
 
           if (mergeBase) {
@@ -3745,15 +3835,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
           await this.refreshBranchProtectionState(repository)
 
           await this._refreshRepository(repository)
-
-          this.updatePushPullFetchProgress(repository, {
-            kind: 'generic',
-            title: refreshTitle,
-            description: 'Fast-forwarding branches',
-            value: refreshStartProgress + refreshWeight * 0.5,
-          })
-
-          await this.fastForwardBranches(repository)
         } finally {
           this.updatePushPullFetchProgress(repository, null)
         }
@@ -3762,33 +3843,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async fastForwardBranches(repository: Repository) {
-    const { branchesState } = this.repositoryStateCache.get(repository)
+    try {
+      const eligibleBranches = await getBranchesDifferingFromUpstream(
+        repository
+      )
 
-    const eligibleBranches = findBranchesForFastForward(branchesState)
-
-    for (const branch of eligibleBranches) {
-      const aheadBehind = await getBranchAheadBehind(repository, branch)
-      if (!aheadBehind) {
-        continue
-      }
-
-      const { ahead, behind } = aheadBehind
-      // Only perform the fast forward if the branch is behind it's upstream
-      // branch and has no local commits.
-      if (ahead === 0 && behind > 0) {
-        // At this point we're guaranteed this is non-null since we've filtered
-        // out any branches will null upstreams above when creating
-        // `eligibleBranches`.
-        const upstreamRef = branch.upstream!
-        const localRef = formatAsLocalRef(branch.name)
-        await updateRef(
-          repository,
-          localRef,
-          branch.tip.sha,
-          upstreamRef,
-          'pull: Fast-forward'
-        )
-      }
+      await fastForwardBranches(repository, eligibleBranches)
+    } catch (e) {
+      log.error('Branch fast-forwarding failed', e)
+      sendNonFatalException('fastForwardBranches', e)
     }
   }
 
@@ -3855,7 +3918,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _clone(
     url: string,
     path: string,
-    options?: { branch?: string }
+    options?: { branch?: string; defaultBranch?: string }
   ): {
     promise: Promise<boolean>
     repository: CloningRepository
@@ -4021,7 +4084,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.updatePushPullFetchProgress(repository, {
           kind: 'generic',
           title: refreshTitle,
+          description: 'Fast-forwarding branches',
           value: fetchWeight,
+        })
+
+        await this.fastForwardBranches(repository)
+
+        this.updatePushPullFetchProgress(repository, {
+          kind: 'generic',
+          title: refreshTitle,
+          value: fetchWeight + refreshWeight * 0.5,
         })
 
         // manually refresh branch protections after the push, to ensure
@@ -4029,15 +4101,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         await this.refreshBranchProtectionState(repository)
 
         await this._refreshRepository(repository)
-
-        this.updatePushPullFetchProgress(repository, {
-          kind: 'generic',
-          title: refreshTitle,
-          description: 'Fast-forwarding branches',
-          value: fetchWeight + refreshWeight * 0.5,
-        })
-
-        await this.fastForwardBranches(repository)
       } finally {
         this.updatePushPullFetchProgress(repository, null)
 
@@ -4412,8 +4475,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (match === null) {
         this.emitError(
           new ExternalEditorError(
-            'No suitable editors installed for GitHub Desktop to launch. Install Atom for your platform and restart GitHub Desktop to try again.',
-            { suggestAtom: true }
+            `No suitable editors installed for GitHub Desktop to launch. Install ${suggestedExternalEditor.name} for your platform and restart GitHub Desktop to try again.`,
+            { suggestDefaultEditor: true }
           )
         )
         return
@@ -4492,7 +4555,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-  public _setExternalEditor(selectedEditor: ExternalEditor) {
+  public _setExternalEditor(selectedEditor: string) {
     const promise = this.updateSelectedExternalEditor(selectedEditor)
     localStorage.setItem(externalEditorKey, selectedEditor)
     this.emitUpdate()
