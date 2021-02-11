@@ -33,21 +33,10 @@ export class GitEmailNotFoundWarning extends React.Component<
       return null
     }
 
-    return this.props.accounts.length === 1
-      ? this.renderForSingleAccount(this.props.accounts[0])
-      : this.renderForMultipleAccounts()
-  }
-
-  private renderForSingleAccount(account: Account) {
-    const accountType =
-      account.endpoint === getDotComAPIEndpoint()
-        ? 'GitHub'
-        : 'GitHub Enterprise'
-
     return (
       <div>
-        ⚠️ This email address doesn't match your {accountType} account, so your
-        commits will be wrongly attributed.{' '}
+        ⚠️ This email address doesn't match {this.getAccountTypeDescription()},
+        so your commits will be wrongly attributed.{' '}
         <LinkButton uri="https://docs.github.com/en/github/committing-changes-to-your-project/why-are-my-commits-linked-to-the-wrong-user">
           Learn more.
         </LinkButton>
@@ -55,15 +44,16 @@ export class GitEmailNotFoundWarning extends React.Component<
     )
   }
 
-  private renderForMultipleAccounts() {
-    return (
-      <div>
-        ⚠️ This email address doesn't match either of your GitHub.com nor GitHub
-        Enterprise accounts, so your commits will be wrongly attributed.{' '}
-        <LinkButton uri="https://docs.github.com/en/github/committing-changes-to-your-project/why-are-my-commits-linked-to-the-wrong-user">
-          Learn more.
-        </LinkButton>
-      </div>
-    )
+  private getAccountTypeDescription() {
+    if (this.props.accounts.length === 1) {
+      const accountType =
+        this.props.accounts[0].endpoint === getDotComAPIEndpoint()
+          ? 'GitHub'
+          : 'GitHub Enterprise'
+
+      return `your ${accountType} account`
+    }
+
+    return 'either of your GitHub.com nor GitHub Enterprise accounts'
   }
 }
