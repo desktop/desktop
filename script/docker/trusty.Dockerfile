@@ -26,7 +26,7 @@ RUN apt-get install --quiet --yes \
 RUN add-apt-repository ppa:git-core/ppa
 
 # install the latest LTS version of Node
-RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
+RUN curl -fsSL https://deb.nodesource.com/setup_14.x | bash -
 
 # install the latest version of Yarn
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
