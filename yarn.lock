@@ -4128,10 +4128,10 @@ electron-publish@22.7.0:
     lazy-val "^1.0.4"
     mime "^2.4.5"
 
-electron-winstaller@4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/electron-winstaller/-/electron-winstaller-4.0.0.tgz#d2717eca6665724f922acd2ac7a94d6fd55dd5d7"
-  integrity sha512-Rq5YUQ/zBiGiDW3ezVaRigF3QbohVjDtfcpZpzmhJxX/1jndc96OQJw2x1HulHmhPV7n9R4WEsMkzkHObufU9g==
+electron-winstaller@4.0.2:
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/electron-winstaller/-/electron-winstaller-4.0.2.tgz#e3aa7e95db8232eeb337b28c11ad80b93dcafe6d"
+  integrity sha512-tYmzIyi+W0CXd9o/jmR0VT+vwJ+nOaE/dQz8f64IlbQ/J9d2lpwsmmOKxx6veAVKeYiJHYQHR1eYsLzznNzd5g==
   dependencies:
     asar "^2.0.1"
     debug "^4.1.1"

@@ -1,4 +1,8 @@
 #welcome {
+  // Override the height of some components to make them bigger
+  --text-field-height: 29px;
+  --button-height: var(--text-field-height);
+
   align-items: stretch;
   justify-content: center;
   flex-direction: row;
@@ -62,13 +66,19 @@
   }
 
   input,
-  button {
+  button,
+  select {
     font-size: var(--font-size-md);
-    height: auto;
   }
 
   input {
     padding: var(--spacing-half);
+  }
+
+  select {
+    // We need to tweak the horizontal padding a bit here to fit correctly with
+    // the bigger size
+    padding: 0 1px;
   }
 
   button {
