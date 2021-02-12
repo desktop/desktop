@@ -15,6 +15,7 @@ import {
   continueCherryPick,
 } from '../../../src/lib/git/cherry-pick'
 import { Branch } from '../../../src/models/branch'
+import { ICherryPickProgress } from '../../../src/models/progress'
 import { Repository } from '../../../src/models/repository'
 import { AppFileStatusKind } from '../../../src/models/status'
 import { getBranchOrError } from '../../helpers/git'
@@ -391,6 +392,27 @@ describe('git/cherry-pick', () => {
       // file from cherry pick removed after abort
       const statusAfterAbort = await getStatusOrThrow(repository)
       expect(statusAfterAbort.workingDirectory.files).toHaveLength(0)
+    })
+  })
+
+  describe('cherry picking progress', () => {
+    fit('can parse progress', async () => {
+      const progress = new Array<ICherryPickProgress>()
+      result = await cherryPick(repository, featureBranch.tip.sha, p =>
+        progress.push(p)
+      )
+      expect(result).toBe(CherryPickResult.CompletedWithoutError)
+
+      expect(progress).toEqual([
+        {
+          currentCommitSummary: 'Cherry Picked Feature!',
+          kind: 'cherryPick',
+          cherryPickCommitCount: 1,
+          title: 'Cherry picking commit 1 of 1 commits',
+          totalCommitCount: 1,
+          value: 1,
+        },
+      ])
     })
   })
 })
