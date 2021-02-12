@@ -1,14 +1,12 @@
 import * as Path from 'path'
 import * as FSE from 'fs-extra'
 import { GitError } from 'dugite'
-import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { Repository } from '../../models/repository'
 import {
   AppFileStatusKind,
   WorkingDirectoryFileChange,
 } from '../../models/status'
 import { git, IGitExecutionOptions, IGitResult } from './core'
-import { stageManualConflictResolution } from './stage'
 import { getStatus } from './status'
 import { stageFiles } from './update-index'
 
@@ -93,46 +91,28 @@ function parseCherryPickResult(result: IGitResult): CherryPickResult {
  */
 export async function continueCherryPick(
   repository: Repository,
-  files: ReadonlyArray<WorkingDirectoryFileChange>,
-  manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map()
+  files: ReadonlyArray<WorkingDirectoryFileChange>
 ): Promise<CherryPickResult> {
+  // only stage files related to cherry pick
   const trackedFiles = files.filter(f => {
     return f.status.kind !== AppFileStatusKind.Untracked
   })
-
-  // apply conflict resolutions
-  for (const [path, resolution] of manualResolutions) {
-    const file = files.find(f => f.path === path)
-    if (file !== undefined) {
-      await stageManualConflictResolution(repository, file, resolution)
-    } else {
-      log.error(
-        `[continuePick] couldn't find file ${path} even though there's a manual resolution for it`
-      )
-    }
-  }
-
-  const otherFiles = trackedFiles.filter(f => !manualResolutions.has(f.path))
-
-  await stageFiles(repository, otherFiles)
+  await stageFiles(repository, trackedFiles)
 
   const status = await getStatus(repository)
   if (status == null) {
     log.warn(
-      `[continueCherryPick] unable to get status after staging changes, skipping any other steps`
+      `[continueCherryPick] unable to get status after staging changes,
+        skipping any other steps`
     )
     return CherryPickResult.Aborted
   }
 
   // make sure cherry pick is still in progress to continue
-  const rebaseCurrentCommit = await readCherryPickHead(repository)
-  if (rebaseCurrentCommit === null) {
+  const cherryPickCurrentCommit = await readCherryPickHead(repository)
+  if (cherryPickCurrentCommit === null) {
     return CherryPickResult.Aborted
   }
-
-  const trackedFilesAfter = status.workingDirectory.files.filter(
-    f => f.status.kind !== AppFileStatusKind.Untracked
-  )
 
   const options: IGitExecutionOptions = {
     expectedErrors: new Set([
@@ -140,24 +120,9 @@ export async function continueCherryPick(
       GitError.UnresolvedConflicts,
     ]),
     env: {
+      // if we don't provide editor, we can't detect git errors
       GIT_EDITOR: ':',
     },
-  }
-
-  if (trackedFilesAfter.length === 0) {
-    log.warn(
-      `[cherryPick] no tracked changes to commit for ${rebaseCurrentCommit},
-       continuing cherrypick but skipping this commit`
-    )
-
-    const result = await git(
-      ['cherry-pick', '--skip'],
-      repository.path,
-      'continueCherryPickSkipCurrentCommit',
-      options
-    )
-
-    return parseCherryPickResult(result)
   }
 
   const result = await git(

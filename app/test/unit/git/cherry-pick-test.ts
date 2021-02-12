@@ -271,130 +271,110 @@ describe('git/cherry-pick', () => {
     expect(result).toBe(null)
   })
 
-  it('successfully detect cherry pick with conflicts', async () => {
-    // In the `beforeEach`, we call `createRepository` which adds a commit to
-    // feature branch with a file called THING.md. In order to make a conflict,
-    // we will add the same file to the target branch.
-    const conflictingCommit = {
-      commitMessage: 'Conflicting Commit!',
-      entries: [
-        {
-          path: 'THING.md',
-          contents: '# HELLO WORLD! \n CREATING CONFLICT! FUN TIMES!\n',
-        },
-      ],
-    }
-    await makeCommit(repository, conflictingCommit)
+  describe('cherry picking with conflicts', () => {
+    beforeEach(async () => {
+      // In the 'git/cherry-pick' `beforeEach`, we call `createRepository` which
+      // adds a commit to the feature branch with a file called THING.md. In
+      // order to make a conflict, we will add the same file to the target
+      // branch.
+      const conflictingCommit = {
+        commitMessage: 'Conflicting Commit!',
+        entries: [
+          {
+            path: 'THING.md',
+            contents: '# HELLO WORLD! \n CREATING CONFLICT! FUN TIMES!\n',
+          },
+        ],
+      }
+      await makeCommit(repository, conflictingCommit)
+    })
 
-    result = await cherryPick(repository, featureBranch.tip.sha)
-    expect(result).toBe(CherryPickResult.ConflictsEncountered)
+    it('successfully detect cherry pick with conflicts', async () => {
+      result = await cherryPick(repository, featureBranch.tip.sha)
+      expect(result).toBe(CherryPickResult.ConflictsEncountered)
 
-    const status = await getStatusOrThrow(repository)
-    const conflictedFiles = status.workingDirectory.files.filter(
-      f => f.status.kind === AppFileStatusKind.Conflicted
-    )
-    expect(conflictedFiles).toHaveLength(1)
-  })
+      const status = await getStatusOrThrow(repository)
+      const conflictedFiles = status.workingDirectory.files.filter(
+        f => f.status.kind === AppFileStatusKind.Conflicted
+      )
+      expect(conflictedFiles).toHaveLength(1)
+    })
 
-  it('successfully cherry pick with conflicts by resolving them', async () => {
-    // In the `beforeEach`, we call `createRepository` which adds a commit to
-    // feature branch with a file called THING.md. In order to make a conflict,
-    // we will add the same file to the target branch.
-    const conflictingCommit = {
-      commitMessage: 'Conflicting Commit!',
-      entries: [
-        {
-          path: 'THING.md',
-          contents: '# HELLO WORLD! \n CREATING CONFLICT! FUN TIMES!\n',
-        },
-      ],
-    }
-    await makeCommit(repository, conflictingCommit)
+    it('successfully continue cherry pick with conflicts after resolving them', async () => {
+      result = await cherryPick(repository, featureBranch.tip.sha)
+      expect(result).toBe(CherryPickResult.ConflictsEncountered)
 
-    result = await cherryPick(repository, featureBranch.tip.sha)
-    expect(result).toBe(CherryPickResult.ConflictsEncountered)
+      const statusAfterCherryPick = await getStatusOrThrow(repository)
+      const { files } = statusAfterCherryPick.workingDirectory
 
-    const statusAfterCherryPick = await getStatusOrThrow(repository)
-    const { files } = statusAfterCherryPick.workingDirectory
+      const diffCheckBefore = await GitProcess.exec(
+        ['diff', '--check'],
+        repository.path
+      )
 
-    const diffCheckBefore = await GitProcess.exec(
-      ['diff', '--check'],
-      repository.path
-    )
+      expect(diffCheckBefore.exitCode).toBeGreaterThan(0)
 
-    expect(diffCheckBefore.exitCode).toBeGreaterThan(0)
+      // resolve conflicts by writing files to disk
+      await FSE.writeFile(
+        Path.join(repository.path, 'THING.md'),
+        '# HELLO WORLD! \nTHINGS GO HERE\nFEATURE BRANCH UNDERWAY\n'
+      )
 
-    // resolve conflicts by writing files to disk
-    await FSE.writeFile(
-      Path.join(repository.path, 'THING.md'),
-      '# HELLO WORLD! \nTHINGS GO HERE\nFEATURE BRANCH UNDERWAY\n'
-    )
+      const diffCheckAfter = await GitProcess.exec(
+        ['diff', '--check'],
+        repository.path
+      )
 
-    const diffCheckAfter = await GitProcess.exec(
-      ['diff', '--check'],
-      repository.path
-    )
+      expect(diffCheckAfter.exitCode).toEqual(0)
 
-    expect(diffCheckAfter.exitCode).toEqual(0)
+      result = await continueCherryPick(repository, files)
 
-    result = await continueCherryPick(repository, files)
+      expect(result).toBe(CherryPickResult.CompletedWithoutError)
+    })
 
-    expect(result).toBe(CherryPickResult.CompletedWithoutError)
-  })
+    it('successfully detect cherry pick with outstanding files not staged', async () => {
+      result = await cherryPick(repository, featureBranch.tip.sha)
+      expect(result).toBe(CherryPickResult.ConflictsEncountered)
 
-  it('successfully detect cherry pick with outstanding files not staged', async () => {
-    // In the `beforeEach`, we call `createRepository` which adds a commit to
-    // feature branch with a file called THING.md. In order to make a conflict,
-    // we will add the same file to the target branch.
-    const conflictingCommit = {
-      commitMessage: 'Conflicting Commit!',
-      entries: [
-        {
-          path: 'THING.md',
-          contents: '# HELLO WORLD! \n CREATING CONFLICT! FUN TIMES!\n',
-        },
-      ],
-    }
-    await makeCommit(repository, conflictingCommit)
+      result = await continueCherryPick(repository, [])
+      expect(result).toBe(CherryPickResult.OutstandingFilesNotStaged)
 
-    result = await cherryPick(repository, featureBranch.tip.sha)
-    expect(result).toBe(CherryPickResult.ConflictsEncountered)
+      const status = await getStatusOrThrow(repository)
+      const conflictedFiles = status.workingDirectory.files.filter(
+        f => f.status.kind === AppFileStatusKind.Conflicted
+      )
+      expect(conflictedFiles).toHaveLength(1)
+    })
 
-    result = await continueCherryPick(repository, [])
-    expect(result).toBe(CherryPickResult.OutstandingFilesNotStaged)
+    it('successfully continue cherry pick with additional changes unrelated to conflicted files', async () => {
+      result = await cherryPick(repository, featureBranch.tip.sha)
+      expect(result).toBe(CherryPickResult.ConflictsEncountered)
 
-    const status = await getStatusOrThrow(repository)
-    const conflictedFiles = status.workingDirectory.files.filter(
-      f => f.status.kind === AppFileStatusKind.Conflicted
-    )
-    expect(conflictedFiles).toHaveLength(1)
-  })
+      // resolve conflicts by writing files to disk
+      await FSE.writeFile(
+        Path.join(repository.path, 'THING.md'),
+        '# HELLO WORLD! \nTHINGS GO HERE\nFEATURE BRANCH UNDERWAY\n'
+      )
 
-  it('successfully detect cherry pick with outstanding files not staged', async () => {
-    // In the `beforeEach`, we call `createRepository` which adds a commit to
-    // feature branch with a file called THING.md. In order to make a conflict,
-    // we will add the same file to the target branch.
-    const conflictingCommit = {
-      commitMessage: 'Conflicting Commit!',
-      entries: [
-        {
-          path: 'THING.md',
-          contents: '# HELLO WORLD! \n CREATING CONFLICT! FUN TIMES!\n',
-        },
-      ],
-    }
-    await makeCommit(repository, conflictingCommit)
+      // change files unrelated to conflicts
+      await FSE.writeFile(
+        Path.join(repository.path, 'UNRELATED_FILE.md'),
+        '# HELLO WORLD! \nUNRELATED FILE STUFF IN HERE\n'
+      )
 
-    result = await cherryPick(repository, featureBranch.tip.sha)
-    expect(result).toBe(CherryPickResult.ConflictsEncountered)
+      const statusAfterCherryPick = await getStatusOrThrow(repository)
+      const { files } = statusAfterCherryPick.workingDirectory
 
-    result = await continueCherryPick(repository, [])
-    expect(result).toBe(CherryPickResult.OutstandingFilesNotStaged)
+      // THING.MD and UNRELEATED_FILE.md should be in working directory
+      expect(files.length).toBe(2)
 
-    const status = await getStatusOrThrow(repository)
-    const conflictedFiles = status.workingDirectory.files.filter(
-      f => f.status.kind === AppFileStatusKind.Conflicted
-    )
-    expect(conflictedFiles).toHaveLength(1)
+      result = await continueCherryPick(repository, files)
+      expect(result).toBe(CherryPickResult.CompletedWithoutError)
+
+      // Only UNRELATED_FILE.md should be in working directory
+      // THING.md committed with cherry pick
+      const status = await getStatusOrThrow(repository)
+      expect(status.workingDirectory.files[0].path).toBe('UNRELATED_FILE.md')
+    })
   })
 })
