@@ -13,6 +13,7 @@ import { DiffSelectionType } from '../../models/diff'
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
 import { Repository } from '../../models/repository'
+import { Account } from '../../models/account'
 import { IAuthor } from '../../models/author'
 import { List, ClickSource } from '../lib/list'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
@@ -97,6 +98,7 @@ function getIncludeAllValue(
 
 interface IChangesListProps {
   readonly repository: Repository
+  readonly repositoryAccount: Account | null
   readonly workingDirectory: WorkingDirectoryStatus
   /**
    * An object containing the conflicts in the working directory.
@@ -605,6 +607,7 @@ export class ChangesList extends React.Component<
       rebaseConflictState,
       workingDirectory,
       repository,
+      repositoryAccount,
       dispatcher,
       isCommitting,
       currentBranchProtected,
@@ -661,6 +664,7 @@ export class ChangesList extends React.Component<
         commitAuthor={this.props.commitAuthor}
         anyFilesSelected={anyFilesSelected}
         repository={repository}
+        repositoryAccount={repositoryAccount}
         dispatcher={dispatcher}
         commitMessage={this.props.commitMessage}
         focusCommitMessage={this.props.focusCommitMessage}

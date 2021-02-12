@@ -14,7 +14,6 @@ import {
   isRepositoryWithGitHubRepository,
 } from '../../models/repository'
 import { Button } from '../lib/button'
-import { Avatar } from '../lib/avatar'
 import { Loading } from '../lib/loading'
 import { AuthorInput } from '../lib/author-input'
 import { FocusContainer } from '../lib/focus-container'
@@ -28,6 +27,8 @@ import { LinkButton } from '../lib/link-button'
 import { FoldoutType } from '../../lib/app-state'
 import { IAvatarUser, getAvatarUserFromAuthor } from '../../models/avatar'
 import { showContextualMenu } from '../main-process-proxy'
+import { Account } from '../../models/account'
+import { CommitMessageAvatar } from './commit-message-avatar'
 
 const addAuthorIcon = new OcticonSymbol(
   18,
@@ -48,6 +49,7 @@ interface ICommitMessageProps {
   readonly focusCommitMessage: boolean
   readonly commitMessage: ICommitMessage | null
   readonly repository: Repository
+  readonly repositoryAccount: Account | null
   readonly dispatcher: Dispatcher
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
   readonly isCommitting: boolean
@@ -269,7 +271,16 @@ export class CommitMessage extends React.Component<
         ? getAvatarUserFromAuthor(commitAuthor, gitHubRepository)
         : undefined
 
-    return <Avatar user={avatarUser} title={avatarTitle} />
+    return (
+      <CommitMessageAvatar
+        user={avatarUser}
+        title={avatarTitle}
+        email={commitAuthor?.email}
+        repository={this.props.repository}
+        repositoryAccount={this.props.repositoryAccount}
+        dispatcher={this.props.dispatcher}
+      />
+    )
   }
 
   private get isCoAuthorInputEnabled() {
