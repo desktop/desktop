@@ -296,7 +296,7 @@ describe('git/cherry-pick', () => {
     expect(conflictedFiles).toHaveLength(1)
   })
 
-  it('successfully detect cherry pick with conflicts', async () => {
+  it('successfully cherry pick with conflicts by resolving them', async () => {
     // In the `beforeEach`, we call `createRepository` which adds a commit to
     // feature branch with a file called THING.md. In order to make a conflict,
     // we will add the same file to the target branch.
@@ -342,7 +342,35 @@ describe('git/cherry-pick', () => {
     expect(result).toBe(CherryPickResult.CompletedWithoutError)
   })
 
-  fit('successfully detect cherry pick with outstanding files not staged', async () => {
+  it('successfully detect cherry pick with outstanding files not staged', async () => {
+    // In the `beforeEach`, we call `createRepository` which adds a commit to
+    // feature branch with a file called THING.md. In order to make a conflict,
+    // we will add the same file to the target branch.
+    const conflictingCommit = {
+      commitMessage: 'Conflicting Commit!',
+      entries: [
+        {
+          path: 'THING.md',
+          contents: '# HELLO WORLD! \n CREATING CONFLICT! FUN TIMES!\n',
+        },
+      ],
+    }
+    await makeCommit(repository, conflictingCommit)
+
+    result = await cherryPick(repository, featureBranch.tip.sha)
+    expect(result).toBe(CherryPickResult.ConflictsEncountered)
+
+    result = await continueCherryPick(repository, [])
+    expect(result).toBe(CherryPickResult.OutstandingFilesNotStaged)
+
+    const status = await getStatusOrThrow(repository)
+    const conflictedFiles = status.workingDirectory.files.filter(
+      f => f.status.kind === AppFileStatusKind.Conflicted
+    )
+    expect(conflictedFiles).toHaveLength(1)
+  })
+
+  it('successfully detect cherry pick with outstanding files not staged', async () => {
     // In the `beforeEach`, we call `createRepository` which adds a commit to
     // feature branch with a file called THING.md. In order to make a conflict,
     // we will add the same file to the target branch.
