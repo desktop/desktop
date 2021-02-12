@@ -3,8 +3,8 @@
     "2.6.4-beta1": [
       "[Added] Add branch context menu with rename and delete to branch dropdown list - #5803 #10432",
       "[Fixed] Always respect the default branch name chosen by the user - #11447",
-      "[Fixed] Notepad++ is not closed anymore with GitHub Desktop - #11518",
-      "[Improved] Suggest email addresses from GitHub accounts and warn about misattributed commits during the onboarding and in Preferences - #11561 #11566",
+      "[Fixed] Notepad++ is not closed anymore when GitHub Desktop closes - #11518",
+      "[Improved] Suggest emails from GitHub accounts and warn about misattributed commits in onboarding and Preferences - #11561 #11566",
       "[Improved] Update app icon for Windows - #11541",
       "[Improved] Automatic branch fast-forwarding is now faster - #11463"
     ],
