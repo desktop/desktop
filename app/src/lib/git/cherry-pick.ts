@@ -135,6 +135,11 @@ export async function continueCherryPick(
   return parseCherryPickResult(result)
 }
 
+/** Abandon the current cherry pick operation */
+export async function abortCherryPick(repository: Repository) {
+  await git(['cherry-pick', '--abort'], repository.path, 'abortCherryPick')
+}
+
 /**
  * Attempt to read the `.git/CHERRY_PICK_HEAD` file inside a repository to confirm
  * the cherry pick is still active.

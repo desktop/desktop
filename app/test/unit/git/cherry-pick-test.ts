@@ -9,6 +9,7 @@ import {
   revRangeInclusive,
 } from '../../../src/lib/git'
 import {
+  abortCherryPick,
   cherryPick,
   CherryPickResult,
   continueCherryPick,
@@ -375,6 +376,21 @@ describe('git/cherry-pick', () => {
       // THING.md committed with cherry pick
       const status = await getStatusOrThrow(repository)
       expect(status.workingDirectory.files[0].path).toBe('UNRELATED_FILE.md')
+    })
+
+    it('successfully abort cherry pick after conflict', async () => {
+      result = await cherryPick(repository, featureBranch.tip.sha)
+      expect(result).toBe(CherryPickResult.ConflictsEncountered)
+
+      // files from cherry pick exist in conflicted state
+      const statusAfterConflict = await getStatusOrThrow(repository)
+      expect(statusAfterConflict.workingDirectory.files).toHaveLength(1)
+
+      await abortCherryPick(repository)
+
+      // file from cherry pick removed after abort
+      const statusAfterAbort = await getStatusOrThrow(repository)
+      expect(statusAfterAbort.workingDirectory.files).toHaveLength(0)
     })
   })
 })
