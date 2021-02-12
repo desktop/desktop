@@ -50,7 +50,7 @@ describe('git/cherry-pick', () => {
     result = null
   })
 
-  it('successfully cherry pick one commit without conflicts', async () => {
+  it('successfully cherry picked one commit without conflicts', async () => {
     result = await cherryPick(repository, featureBranch.tip.sha)
     const cherryPickedCommit = await getCommit(
       repository,
@@ -63,7 +63,7 @@ describe('git/cherry-pick', () => {
     expect(result).toBe(CherryPickResult.CompletedWithoutError)
   })
 
-  it('successfully cherry pick a commit with empty message', async () => {
+  it('successfully cherry picked a commit with empty message', async () => {
     // add a commit with no message
     await switchTo(repository, featureBranchName)
     const filePath = Path.join(repository.path, 'EMPTY_MESSAGE.md')
@@ -92,7 +92,7 @@ describe('git/cherry-pick', () => {
     expect(result).toBe(CherryPickResult.CompletedWithoutError)
   })
 
-  it('successfully cherry pick multiple commits without conflicts', async () => {
+  it('successfully cherry picked multiple commits without conflicts', async () => {
     // keep reference to the first commit in cherry pick range
     const firstCommitSha = featureBranch.tip.sha
 
@@ -134,7 +134,7 @@ describe('git/cherry-pick', () => {
     expect(result).toBe(CherryPickResult.CompletedWithoutError)
   })
 
-  it('fails to cherry pick invalid revision range', async () => {
+  it('fails to cherry pick an invalid revision range', async () => {
     result = null
     try {
       result = await cherryPick(repository, 'no such revision')
@@ -290,7 +290,7 @@ describe('git/cherry-pick', () => {
       await makeCommit(repository, conflictingCommit)
     })
 
-    it('successfully detect cherry pick with conflicts', async () => {
+    it('successfully detects cherry pick with conflicts', async () => {
       result = await cherryPick(repository, featureBranch.tip.sha)
       expect(result).toBe(CherryPickResult.ConflictsEncountered)
 
@@ -301,7 +301,7 @@ describe('git/cherry-pick', () => {
       expect(conflictedFiles).toHaveLength(1)
     })
 
-    it('successfully continue cherry pick with conflicts after resolving them', async () => {
+    it('successfully continues cherry picking with conflicts after resolving them', async () => {
       result = await cherryPick(repository, featureBranch.tip.sha)
       expect(result).toBe(CherryPickResult.ConflictsEncountered)
 
@@ -333,7 +333,7 @@ describe('git/cherry-pick', () => {
       expect(result).toBe(CherryPickResult.CompletedWithoutError)
     })
 
-    it('successfully detect cherry pick with outstanding files not staged', async () => {
+    it('successfully detects cherry picking with outstanding files not staged', async () => {
       result = await cherryPick(repository, featureBranch.tip.sha)
       expect(result).toBe(CherryPickResult.ConflictsEncountered)
 
@@ -347,7 +347,7 @@ describe('git/cherry-pick', () => {
       expect(conflictedFiles).toHaveLength(1)
     })
 
-    it('successfully continue cherry pick with additional changes unrelated to conflicted files', async () => {
+    it('successfully continues cherry picking with additional changes unrelated to conflicted files', async () => {
       result = await cherryPick(repository, featureBranch.tip.sha)
       expect(result).toBe(CherryPickResult.ConflictsEncountered)
 
@@ -378,7 +378,7 @@ describe('git/cherry-pick', () => {
       expect(status.workingDirectory.files[0].path).toBe('UNRELATED_FILE.md')
     })
 
-    it('successfully abort cherry pick after conflict', async () => {
+    it('successfully aborts cherry pick after conflict', async () => {
       result = await cherryPick(repository, featureBranch.tip.sha)
       expect(result).toBe(CherryPickResult.ConflictsEncountered)
 
