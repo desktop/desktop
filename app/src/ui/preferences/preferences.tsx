@@ -282,6 +282,8 @@ export class Preferences extends React.Component<
               name={this.state.committerName}
               email={this.state.committerEmail}
               defaultBranch={this.state.defaultBranch}
+              dotComAccount={this.props.dotComAccount}
+              enterpriseAccount={this.props.enterpriseAccount}
               onNameChanged={this.onCommitterNameChanged}
               onEmailChanged={this.onCommitterEmailChanged}
               onDefaultBranchChanged={this.onDefaultBranchChanged}
