@@ -19,7 +19,7 @@ export enum CherryPickResult {
   CompletedWithoutError = 'CompletedWithoutError',
   /**
    * The cherry pick encountered conflicts while attempting to cherry pick and
-   * need to be resolved by the user can continue.
+   * need to be resolved before the user can continue.
    */
   ConflictsEncountered = 'ConflictsEncountered',
   /**
