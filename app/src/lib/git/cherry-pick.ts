@@ -9,6 +9,8 @@ import {
 import { git, IGitExecutionOptions, IGitResult } from './core'
 import { getStatus } from './status'
 import { stageFiles } from './update-index'
+import { ICherryPickProgress } from '../../models/progress'
+import { getCommitsInRange } from './rev-list'
 
 /** The app-specific results from attempting to cherry pick commits*/
 export enum CherryPickResult {
@@ -49,10 +51,21 @@ export enum CherryPickResult {
  */
 export async function cherryPick(
   repository: Repository,
-  revisionRange: string
+  revisionRange: string,
+  progressCallback?: (progress: ICherryPickProgress) => void
 ): Promise<CherryPickResult> {
   const baseOptions: IGitExecutionOptions = {
     expectedErrors: new Set([GitError.MergeConflicts]),
+  }
+
+  if (progressCallback !== undefined) {
+    const commits = await getCommitsInRange(repository, revisionRange)
+
+    if (commits === null) {
+      return CherryPickResult.Error
+    }
+
+    // TODO: configure options with progress call back for each commit
   }
 
   const result = await git(
