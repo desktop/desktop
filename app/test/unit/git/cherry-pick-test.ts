@@ -308,11 +308,12 @@ describe('git/cherry-pick', () => {
       const statusAfterCherryPick = await getStatusOrThrow(repository)
       const { files } = statusAfterCherryPick.workingDirectory
 
+      // git diff --check warns if conflict markers exist and will exit with
+      // non-zero status if conflicts found
       const diffCheckBefore = await GitProcess.exec(
         ['diff', '--check'],
         repository.path
       )
-
       expect(diffCheckBefore.exitCode).toBeGreaterThan(0)
 
       // resolve conflicts by writing files to disk
@@ -321,11 +322,11 @@ describe('git/cherry-pick', () => {
         '# HELLO WORLD! \nTHINGS GO HERE\nFEATURE BRANCH UNDERWAY\n'
       )
 
+      // diff --check to verify no conflicts exist (exitCode should be 0)
       const diffCheckAfter = await GitProcess.exec(
         ['diff', '--check'],
         repository.path
       )
-
       expect(diffCheckAfter.exitCode).toEqual(0)
 
       result = await continueCherryPick(repository, files)
@@ -347,7 +348,7 @@ describe('git/cherry-pick', () => {
       expect(conflictedFiles).toHaveLength(1)
     })
 
-    it('successfully continues cherry picking with additional changes unrelated to conflicted files', async () => {
+    it('successfully continues cherry picking with additional changes to untracked files', async () => {
       result = await cherryPick(repository, featureBranch.tip.sha)
       expect(result).toBe(CherryPickResult.ConflictsEncountered)
 
@@ -357,25 +358,25 @@ describe('git/cherry-pick', () => {
         '# HELLO WORLD! \nTHINGS GO HERE\nFEATURE BRANCH UNDERWAY\n'
       )
 
-      // change files unrelated to conflicts
+      // changes to untracked file
       await FSE.writeFile(
-        Path.join(repository.path, 'UNRELATED_FILE.md'),
-        '# HELLO WORLD! \nUNRELATED FILE STUFF IN HERE\n'
+        Path.join(repository.path, 'UNTRACKED_FILE.md'),
+        '# HELLO WORLD! \nUNTRACKED FILE STUFF IN HERE\n'
       )
 
       const statusAfterCherryPick = await getStatusOrThrow(repository)
       const { files } = statusAfterCherryPick.workingDirectory
 
-      // THING.MD and UNRELEATED_FILE.md should be in working directory
+      // THING.MD and UNTRACKED_FILE.md should be in working directory
       expect(files.length).toBe(2)
 
       result = await continueCherryPick(repository, files)
       expect(result).toBe(CherryPickResult.CompletedWithoutError)
 
-      // Only UNRELATED_FILE.md should be in working directory
+      // Only UNTRACKED_FILE.md should be in working directory
       // THING.md committed with cherry pick
       const status = await getStatusOrThrow(repository)
-      expect(status.workingDirectory.files[0].path).toBe('UNRELATED_FILE.md')
+      expect(status.workingDirectory.files[0].path).toBe('UNTRACKED_FILE.md')
     })
 
     it('successfully aborts cherry pick after conflict', async () => {

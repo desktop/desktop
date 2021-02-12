@@ -88,6 +88,8 @@ function parseCherryPickResult(result: IGitResult): CherryPickResult {
  * need manual resolution or were changed by the user to address inline
  * conflicts.
  *
+ * @param files - The working directory of files. These are the files that are
+ * detected to have changes that we want to stage for the cherry pick.
  */
 export async function continueCherryPick(
   repository: Repository,
