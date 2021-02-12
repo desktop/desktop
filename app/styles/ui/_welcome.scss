@@ -1,7 +1,8 @@
 #welcome {
-  // Override the height of some components to make them bigger
-  --text-field-height: 29px;
-  --button-height: var(--text-field-height);
+  // Override the height of some components to make them bigger. The new height
+  // is platform specific and defined as --welcome-item-height
+  --text-field-height: var(--welcome-item-height);
+  --button-height: var(--welcome-item-height);
 
   align-items: stretch;
   justify-content: center;
@@ -246,4 +247,16 @@
 .forgot-password-link {
   align-self: center;
   margin-left: var(--spacing);
+}
+
+@include win32-context {
+  #welcome {
+    --welcome-item-height: 31.5px;
+  }
+}
+
+@include darwin-context {
+  #welcome {
+    --welcome-item-height: 29px;
+  }
 }
