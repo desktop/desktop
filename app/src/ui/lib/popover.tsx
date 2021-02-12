@@ -2,8 +2,20 @@ import * as React from 'react'
 import FocusTrap from 'focus-trap-react'
 import { Options as FocusTrapOptions } from 'focus-trap'
 
+/**
+ * Position of the caret relative to the pop up. It's composed by 2 dimensions:
+ * - The first one is the edge on which the caret will rest.
+ * - The second one is the alignment of the caret within that edge.
+ *
+ * Example: TopRight means the caret will be in the top edge, on its right side.
+ **/
+export enum PopoverCaretPosition {
+  TopRight = 'top-right',
+  LeftTop = 'left-top',
+}
 interface IPopoverProps {
   readonly onClickOutside: () => void
+  readonly caretPosition: PopoverCaretPosition
 }
 
 export class Popover extends React.Component<IPopoverProps> {
@@ -43,12 +55,18 @@ export class Popover extends React.Component<IPopoverProps> {
   }
 
   public render() {
+    const classNames = ['popover-component', this.getClassNameForCaret()]
+
     return (
       <FocusTrap active={true} focusTrapOptions={this.focusTrapOptions}>
-        <div className="popover-component" ref={this.divRef}>
+        <div className={classNames.join(' ')} ref={this.divRef}>
           {this.props.children}
         </div>
       </FocusTrap>
     )
+  }
+
+  private getClassNameForCaret() {
+    return `popover-caret-${this.props.caretPosition}`
   }
 }

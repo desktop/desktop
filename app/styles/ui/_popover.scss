@@ -12,8 +12,10 @@
   padding: var(--spacing-double);
 
   box-shadow: var(--base-box-shadow);
+}
 
-  // Carets
+// Carets
+.popover-component.popover-caret-top-right {
   &::before,
   &::after {
     position: absolute;
@@ -35,5 +37,30 @@
     margin-right: -8px;
     border: 7px solid transparent;
     border-bottom-color: var(--background-color);
+  }
+}
+
+.popover-component.popover-caret-left-top {
+  &::before,
+  &::after {
+    position: absolute;
+    top: 20px;
+    display: inline-block;
+    content: '';
+    pointer-events: none;
+  }
+
+  &::before {
+    left: -16px;
+    margin-top: -9px;
+    border: 8px solid transparent;
+    border-right-color: var(--box-border-color);
+  }
+
+  &::after {
+    left: -14px;
+    margin-top: -8px;
+    border: 7px solid transparent;
+    border-right-color: var(--background-color);
   }
 }

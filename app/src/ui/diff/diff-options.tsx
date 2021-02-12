@@ -3,7 +3,7 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { RadioButton } from '../lib/radio-button'
 import { getBoolean, setBoolean } from '../../lib/local-storage'
-import { Popover } from '../lib/popover'
+import { Popover, PopoverCaretPosition } from '../lib/popover'
 
 interface IDiffOptionsProps {
   readonly hideWhitespaceChanges?: boolean
@@ -96,7 +96,10 @@ export class DiffOptions extends React.Component<
 
   private renderPopover() {
     return (
-      <Popover onClickOutside={this.closePopover}>
+      <Popover
+        caretPosition={PopoverCaretPosition.TopRight}
+        onClickOutside={this.closePopover}
+      >
         {this.renderHideWhitespaceChanges()}
         {this.renderShowSideBySide()}
       </Popover>
