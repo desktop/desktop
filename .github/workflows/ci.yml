@@ -69,3 +69,6 @@ jobs:
       - name: Run integration tests
         timeout-minutes: 5
         run: yarn test:integration
+      - name: Package application
+        run: yarn run package
+        if: ${{ matrix.os == 'ubuntu-20.04' }}
