@@ -32,6 +32,7 @@ import {
 import { Account } from '../../models/account'
 
 interface IRepositorySettingsProps {
+  readonly initialSelectedTab?: RepositorySettingsTab
   readonly dispatcher: Dispatcher
   readonly remote: IRemote | null
   readonly repository: Repository
@@ -39,7 +40,7 @@ interface IRepositorySettingsProps {
   readonly onDismissed: () => void
 }
 
-enum RepositorySettingsTab {
+export enum RepositorySettingsTab {
   Remote = 0,
   IgnoredFiles,
   GitConfig,
@@ -73,7 +74,8 @@ export class RepositorySettings extends React.Component<
     super(props)
 
     this.state = {
-      selectedTab: RepositorySettingsTab.Remote,
+      selectedTab:
+        this.props.initialSelectedTab || RepositorySettingsTab.Remote,
       remote: props.remote,
       ignoreText: null,
       ignoreTextHasChanged: false,

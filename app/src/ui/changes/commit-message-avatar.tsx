@@ -42,6 +42,8 @@ interface ICommitMessageAvatarProps {
   readonly preferredAccountEmail: string
 
   readonly onUpdateEmail: (email: string) => void
+
+  readonly onOpenRepositorySettings: () => void
 }
 
 /**
@@ -146,6 +148,15 @@ export class CommitMessageAvatar extends React.Component<
             ))}
           </Select>
         </Row>
+        <Row>
+          <div>
+            You can also choose an email only for this repository from the{' '}
+            <LinkButton onClick={this.onRepositorySettingsClick}>
+              repository settings
+            </LinkButton>
+            .
+          </div>
+        </Row>
         <Row className="button-row">
           <Button onClick={this.onIgnoreClick} tooltip="Ignore" type="button">
             Ignore
@@ -160,6 +171,11 @@ export class CommitMessageAvatar extends React.Component<
         </Row>
       </Popover>
     )
+  }
+
+  private onRepositorySettingsClick = () => {
+    this.closePopover()
+    this.props.onOpenRepositorySettings()
   }
 
   private onIgnoreClick = (event: React.MouseEvent<HTMLButtonElement>) => {

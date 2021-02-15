@@ -1419,6 +1419,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <RepositorySettings
             key={`repository-settings-${repository.hash}`}
+            initialSelectedTab={popup.initialSelectedTab}
             remote={state.remote}
             dispatcher={this.props.dispatcher}
             repository={repository}

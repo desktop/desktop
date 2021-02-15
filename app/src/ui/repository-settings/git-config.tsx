@@ -18,20 +18,13 @@ interface IGitConfigProps {
   readonly onEmailChanged: (email: string) => void
 }
 
-interface IGitConfigState {
-  readonly gitConfigLocation: GitConfigLocation
-}
-
 export enum GitConfigLocation {
   Global = 'Global',
   Local = 'Local',
 }
 
 /** A view for creating or modifying the repository's gitignore file */
-export class GitConfig extends React.Component<
-  IGitConfigProps,
-  IGitConfigState
-> {
+export class GitConfig extends React.Component<IGitConfigProps> {
   public constructor(props: IGitConfigProps) {
     super(props)
 
@@ -65,7 +58,7 @@ export class GitConfig extends React.Component<
               id={GitConfigLocation.Global}
               value={GitConfigLocation.Global}
               checked={
-                this.state.gitConfigLocation === GitConfigLocation.Global
+                this.props.gitConfigLocation === GitConfigLocation.Global
               }
               onChange={this.onGitConfigLocationChanged}
             />
@@ -78,7 +71,7 @@ export class GitConfig extends React.Component<
               type="radio"
               id={GitConfigLocation.Local}
               value={GitConfigLocation.Local}
-              checked={this.state.gitConfigLocation === GitConfigLocation.Local}
+              checked={this.props.gitConfigLocation === GitConfigLocation.Local}
               onChange={this.onGitConfigLocationChanged}
             />
             <label htmlFor={GitConfigLocation.Local}>
@@ -88,18 +81,18 @@ export class GitConfig extends React.Component<
         </div>
         <GitConfigUserForm
           email={
-            this.state.gitConfigLocation === GitConfigLocation.Global
+            this.props.gitConfigLocation === GitConfigLocation.Global
               ? this.props.globalEmail
               : this.props.email
           }
           name={
-            this.state.gitConfigLocation === GitConfigLocation.Global
+            this.props.gitConfigLocation === GitConfigLocation.Global
               ? this.props.globalName
               : this.props.name
           }
           enterpriseAccount={enterpriseAccount}
           dotComAccount={dotComAccount}
-          disabled={this.state.gitConfigLocation === GitConfigLocation.Global}
+          disabled={this.props.gitConfigLocation === GitConfigLocation.Global}
           onEmailChanged={this.props.onEmailChanged}
           onNameChanged={this.props.onNameChanged}
         />
