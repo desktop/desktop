@@ -123,7 +123,7 @@ export class CommitMessageAvatar extends React.Component<
 
     return (
       <Popover
-        caretPosition={PopoverCaretPosition.LeftTop}
+        caretPosition={PopoverCaretPosition.LeftBottom}
         onClickOutside={this.closePopover}
       >
         <h3>This commit will be misattributed</h3>

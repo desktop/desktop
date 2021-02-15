@@ -1,4 +1,7 @@
 .commit-message-avatar-component {
+  // With this, the popover's absolute position will be relative to its parent
+  position: relative;
+
   .warning-badge {
     background-color: #f6f8fa;
     width: 18px;
@@ -54,8 +57,8 @@
     }
 
     position: absolute;
-    margin-left: 23px;
-    margin-top: -48px;
+    margin-left: 21px;
+    bottom: 13px;
 
     width: 300px;
   }
