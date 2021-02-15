@@ -120,6 +120,7 @@ import { DiscardSelection } from './discard-changes/discard-selection-dialog'
 import { LocalChangesOverwrittenDialog } from './local-changes-overwritten/local-changes-overwritten-dialog'
 import memoizeOne from 'memoize-one'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
+import { getAccountForRepository } from '../lib/get-account-for-repository'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1410,6 +1411,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.RepositorySettings: {
         const repository = popup.repository
         const state = this.props.repositoryStateManager.get(repository)
+        const repositoryAccount = getAccountForRepository(
+          this.state.accounts,
+          repository
+        )
 
         return (
           <RepositorySettings
@@ -1417,6 +1422,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             remote={state.remote}
             dispatcher={this.props.dispatcher}
             repository={repository}
+            repositoryAccount={repositoryAccount}
             onDismissed={onPopupDismissedFn}
           />
         )

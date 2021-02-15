@@ -1,9 +1,12 @@
 import * as React from 'react'
 import { DialogContent } from '../dialog'
-import { TextBox } from '../lib/text-box'
-import { Row } from '../lib/row'
+import { Account } from '../../models/account'
+import { GitConfigUserForm } from '../lib/git-config-user-form'
+import { getDotComAPIEndpoint } from '../../lib/api'
 
 interface IGitConfigProps {
+  readonly account: Account | null
+
   readonly gitConfigLocation: GitConfigLocation
   readonly name: string
   readonly email: string
@@ -46,6 +49,12 @@ export class GitConfig extends React.Component<
   }
 
   public render() {
+    const isDotComAccount =
+      this.props.account !== null &&
+      this.props.account.endpoint === getDotComAPIEndpoint()
+    const enterpriseAccount = isDotComAccount ? null : this.props.account
+    const dotComAccount = isDotComAccount ? this.props.account : null
+
     return (
       <DialogContent>
         <div className="advanced-section">
@@ -77,30 +86,23 @@ export class GitConfig extends React.Component<
             </label>
           </div>
         </div>
-        <Row>
-          <TextBox
-            label="Name"
-            value={
-              this.state.gitConfigLocation === GitConfigLocation.Global
-                ? this.props.globalName
-                : this.props.name
-            }
-            onValueChanged={this.props.onNameChanged}
-            disabled={this.state.gitConfigLocation === GitConfigLocation.Global}
-          />
-        </Row>
-        <Row>
-          <TextBox
-            label="Email"
-            value={
-              this.state.gitConfigLocation === GitConfigLocation.Global
-                ? this.props.globalEmail
-                : this.props.email
-            }
-            onValueChanged={this.props.onEmailChanged}
-            disabled={this.state.gitConfigLocation === GitConfigLocation.Global}
-          />
-        </Row>
+        <GitConfigUserForm
+          email={
+            this.state.gitConfigLocation === GitConfigLocation.Global
+              ? this.props.globalEmail
+              : this.props.email
+          }
+          name={
+            this.state.gitConfigLocation === GitConfigLocation.Global
+              ? this.props.globalName
+              : this.props.name
+          }
+          enterpriseAccount={enterpriseAccount}
+          dotComAccount={dotComAccount}
+          disabled={this.state.gitConfigLocation === GitConfigLocation.Global}
+          onEmailChanged={this.props.onEmailChanged}
+          onNameChanged={this.props.onNameChanged}
+        />
       </DialogContent>
     )
   }

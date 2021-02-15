@@ -22,17 +22,20 @@ import { GitConfigLocation, GitConfig } from './git-config'
 import {
   getConfigValue,
   getGlobalConfigValue,
+  removeConfigValue,
   setConfigValue,
 } from '../../lib/git/config'
 import {
   gitAuthorNameIsValid,
   InvalidGitAuthorNameMessage,
 } from '../lib/identifier-rules'
+import { Account } from '../../models/account'
 
 interface IRepositorySettingsProps {
   readonly dispatcher: Dispatcher
   readonly remote: IRemote | null
   readonly repository: Repository
+  readonly repositoryAccount: Account | null
   readonly onDismissed: () => void
 }
 
@@ -250,6 +253,7 @@ export class RepositorySettings extends React.Component<
       case RepositorySettingsTab.GitConfig: {
         return (
           <GitConfig
+            account={this.props.repositoryAccount}
             gitConfigLocation={this.state.gitConfigLocation}
             onGitConfigLocationChanged={this.onGitConfigLocationChanged}
             name={this.state.committerName}
