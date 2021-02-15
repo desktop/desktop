@@ -8,6 +8,11 @@ import { Options as FocusTrapOptions } from 'focus-trap'
  * - The second one is the alignment of the caret within that edge.
  *
  * Example: TopRight means the caret will be in the top edge, on its right side.
+ *
+ * **Note:** If new positions are added to this enum, the value given to them
+ * is prepended with `popover-caret-` to create a class name which defines, in
+ * `app/styles/ui/_popover.scss`, where the caret is located for that specific
+ * position.
  **/
 export enum PopoverCaretPosition {
   TopRight = 'top-right',
