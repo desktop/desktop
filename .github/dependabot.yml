@@ -1,0 +1,11 @@
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    open-pull-requests-limit: 5
+    schedule:
+      interval: 'weekly'
+    allow:
+      - dependency-name: 'electron-builder'
+      - dependency-name: 'electron-packager'
+      - dependency-name: 'electron-installer-*'
