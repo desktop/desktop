@@ -25,7 +25,7 @@ interface IPopoverProps {
 
 export class Popover extends React.Component<IPopoverProps> {
   private focusTrapOptions: FocusTrapOptions
-  private divRef = React.createRef<HTMLDivElement>()
+  private containerDivRef = React.createRef<HTMLDivElement>()
 
   public constructor(props: IPopoverProps) {
     super(props)
@@ -46,7 +46,7 @@ export class Popover extends React.Component<IPopoverProps> {
   }
 
   private onDocumentMouseDown = (event: MouseEvent) => {
-    const { current: ref } = this.divRef
+    const { current: ref } = this.containerDivRef
     const { target } = event
 
     if (
@@ -64,7 +64,7 @@ export class Popover extends React.Component<IPopoverProps> {
 
     return (
       <FocusTrap active={true} focusTrapOptions={this.focusTrapOptions}>
-        <div className={classNames.join(' ')} ref={this.divRef}>
+        <div className={classNames.join(' ')} ref={this.containerDivRef}>
           {this.props.children}
         </div>
       </FocusTrap>
