@@ -3449,10 +3449,10 @@ electron-installer-debian@3.1.0:
     word-wrap "^1.2.3"
     yargs "^15.0.1"
 
-electron-installer-redhat@3.2.0:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/electron-installer-redhat/-/electron-installer-redhat-3.2.0.tgz#2c0f5da6f4a244453e4675ab1eca0877a66788c5"
-  integrity sha512-XMA+fQj3ULNVMl4eG+hIvrYITEqP1pfpERvx6kRwuPd06vdtB4KucL9241DAHT0NR5E9gnyJHM9Y6N24kk0mcA==
+electron-installer-redhat@3.3.0:
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/electron-installer-redhat/-/electron-installer-redhat-3.3.0.tgz#acdb59d13d738c55debc5214114d36096eda1aed"
+  integrity sha512-hXIXB3uQXmXZy/v3MpbwWN4Of28ALpPt9ZyUDNEoSe0w7QZceL9IqI2K6Q6imiBJCLRC0hmT94WhlKj1RyGOWg==
   dependencies:
     "@malept/cross-spawn-promise" "^1.0.0"
     debug "^4.1.1"
@@ -3460,7 +3460,7 @@ electron-installer-redhat@3.2.0:
     fs-extra "^9.0.0"
     lodash "^4.17.15"
     word-wrap "^1.2.3"
-    yargs "^15.1.0"
+    yargs "^16.0.2"
 
 electron-notarize@^1.0.0:
   version "1.0.0"
@@ -10086,7 +10086,7 @@ yargs@^15.0.1:
     y18n "^4.0.0"
     yargs-parser "^18.1.1"
 
-yargs@^15.1.0, yargs@^15.4.1:
+yargs@^15.4.1:
   version "15.4.1"
   resolved "https://registry.yarnpkg.com/yargs/-/yargs-15.4.1.tgz#0d87a16de01aee9d8bec2bfbf74f67851730f4f8"
   integrity sha512-aePbxDmcYW++PaqBsJ+HYUFwCdv4LVvdnhBy78E57PIor8/OVvhMrADFFEDh8DHDFRv/O9i3lPhsENjO7QX0+A==
@@ -10103,7 +10103,7 @@ yargs@^15.1.0, yargs@^15.4.1:
     y18n "^4.0.0"
     yargs-parser "^18.1.2"
 
-yargs@^16.0.3:
+yargs@^16.0.2, yargs@^16.0.3:
   version "16.2.0"
   resolved "https://registry.yarnpkg.com/yargs/-/yargs-16.2.0.tgz#1c82bf0f6b6a66eafce7ef30e376f49a12477f66"
   integrity sha512-D1mvvtDG0L5ft/jGWkLpG1+m0eQxOfaBvTNELraWj22wSVUMWxZUvYgJYcKh6jGGIkJFhH4IZPQhR4TKpc8mBw==
