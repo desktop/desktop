@@ -329,33 +329,47 @@ export class RepositorySettings extends React.Component<
       )
     }
 
+    let shouldRefreshAuthor = false
     const gitLocationChanged =
       this.state.gitConfigLocation !== this.state.initialGitConfigLocation
 
     if (
-      gitLocationChanged ||
-      this.state.committerName !== this.state.initialCommitterName
+      gitLocationChanged &&
+      this.state.gitConfigLocation === GitConfigLocation.Global
     ) {
-      await setConfigValue(
-        this.props.repository,
-        'user.name',
-        this.state.gitConfigLocation === GitConfigLocation.Global
-          ? this.state.globalCommitterName
-          : this.state.committerName
-      )
+      // If it's now configured to use the global config, just delete the local
+      // user info in this repository.
+      await removeConfigValue(this.props.repository, 'user.name')
+      await removeConfigValue(this.props.repository, 'user.email')
+
+      shouldRefreshAuthor = true
+    } else {
+      // Otherwise, update the local name and email if needed
+      if (this.state.committerName !== this.state.initialCommitterName) {
+        await setConfigValue(
+          this.props.repository,
+          'user.name',
+          this.state.gitConfigLocation === GitConfigLocation.Global
+            ? this.state.globalCommitterName
+            : this.state.committerName
+        )
+        shouldRefreshAuthor = true
+      }
+
+      if (this.state.committerEmail !== this.state.initialCommitterEmail) {
+        await setConfigValue(
+          this.props.repository,
+          'user.email',
+          this.state.gitConfigLocation === GitConfigLocation.Global
+            ? this.state.globalCommitterEmail
+            : this.state.committerEmail
+        )
+        shouldRefreshAuthor = true
+      }
     }
 
-    if (
-      gitLocationChanged ||
-      this.state.committerEmail !== this.state.initialCommitterEmail
-    ) {
-      await setConfigValue(
-        this.props.repository,
-        'user.email',
-        this.state.gitConfigLocation === GitConfigLocation.Global
-          ? this.state.globalCommitterEmail
-          : this.state.committerEmail
-      )
+    if (shouldRefreshAuthor) {
+      this.props.dispatcher.refreshAuthor(this.props.repository)
     }
 
     if (!errors.length) {
