@@ -96,7 +96,7 @@ export class CommitMessageAvatar extends React.Component<
 
   private renderMisattributedCommitWarning() {
     return (
-      <div className="misattributed-commit-warning">
+      <div className="misattributed-commit-warning-badge">
         <Octicon symbol={OcticonSymbol.alert} />
       </div>
     )
