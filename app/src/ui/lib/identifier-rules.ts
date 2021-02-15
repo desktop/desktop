@@ -20,5 +20,5 @@ export function gitAuthorNameIsValid(name: string): boolean {
   return !crudCharactersRe.test(name)
 }
 
-export const invalidGitAuthorNameMessage =
+export const InvalidGitAuthorNameMessage =
   'Name is invalid, it consists only of disallowed characters.'

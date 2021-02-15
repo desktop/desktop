@@ -17,7 +17,7 @@ import { Shell, getAvailableShells } from '../../lib/shells'
 import { getAvailableEditors } from '../../lib/editors/lookup'
 import {
   gitAuthorNameIsValid,
-  invalidGitAuthorNameMessage,
+  InvalidGitAuthorNameMessage,
 } from '../lib/identifier-rules'
 import { Appearance } from './appearance'
 import { ApplicationTheme } from '../lib/application-theme'
@@ -389,7 +389,7 @@ export class Preferences extends React.Component<
       committerName,
       disallowedCharactersMessage: gitAuthorNameIsValid(committerName)
         ? null
-        : invalidGitAuthorNameMessage,
+        : InvalidGitAuthorNameMessage,
     })
   }
 

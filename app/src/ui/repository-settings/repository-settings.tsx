@@ -26,7 +26,7 @@ import {
 } from '../../lib/git/config'
 import {
   gitAuthorNameIsValid,
-  invalidGitAuthorNameMessage,
+  InvalidGitAuthorNameMessage,
 } from '../lib/identifier-rules'
 
 interface IRepositorySettingsProps {
@@ -397,7 +397,7 @@ export class RepositorySettings extends React.Component<
       this.setState({ saveDisabled: false })
     } else {
       this.setState({ saveDisabled: true })
-      errors.push(invalidGitAuthorNameMessage)
+      errors.push(InvalidGitAuthorNameMessage)
     }
 
     this.setState({ committerName, errors })
