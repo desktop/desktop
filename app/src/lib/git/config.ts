@@ -176,6 +176,53 @@ async function setConfigValueInPath(
   flags.push('--replace-all', name, value)
 
   await git(flags, path || __dirname, 'setConfigValueInPath', options)
+}
 
-  await git(flags, __dirname, 'setConfigValueInPath', options)
+/** Remove the local config value by name. */
+export async function removeConfigValue(
+  repository: Repository,
+  name: string,
+  env?: {
+    HOME: string
+  }
+): Promise<void> {
+  removeConfigValueInPath(name, repository.path, env)
+}
+
+/** Remove the global config value by name. */
+export async function removeGlobalConfigValue(
+  name: string,
+  env?: {
+    HOME: string
+  }
+): Promise<void> {
+  removeConfigValueInPath(name, null, env)
+}
+
+/**
+ * Remove config value by name
+ *
+ * @param path The path to execute the `git` command in. If null
+ *             we'll use the global configuration (i.e. --global)
+ *             and execute the Git call from the same location that
+ *             GitHub Desktop is installed in.
+ */
+async function removeConfigValueInPath(
+  name: string,
+  path: string | null,
+  env?: {
+    HOME: string
+  }
+): Promise<void> {
+  const options = env ? { env } : undefined
+
+  const flags = ['config']
+
+  if (!path) {
+    flags.push('--global')
+  }
+
+  flags.push('--unset-all', name)
+
+  await git(flags, path || __dirname, 'removeConfigValueInPath', options)
 }
