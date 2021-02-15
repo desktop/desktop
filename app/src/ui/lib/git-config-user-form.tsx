@@ -55,6 +55,15 @@ export class GitConfigUserForm extends React.Component<
     prevProps: IGitConfigUserFormProps,
     prevState: IGitConfigUserFormState
   ) {
+    // If the email coming from the props has changed, it means a new config
+    // was loaded into the form. In that case, make sure to only select the
+    // option "Other" if strictly needed.
+    if (prevProps.email !== this.props.email) {
+      this.setState({
+        emailIsOther: !this.accountEmails.includes(this.props.email),
+      })
+    }
+
     // Focus the text input that allows the user to enter a custom
     // email address when the user selects "Other".
     if (
