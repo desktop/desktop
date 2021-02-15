@@ -57,7 +57,12 @@ export class Repository {
      * onboarding flow. Tutorial repositories trigger a tutorial user experience
      * which introduces new users to some core concepts of Git and GitHub.
      */
-    public readonly isTutorialRepository: boolean = false
+    public readonly isTutorialRepository: boolean = false,
+    /**
+     * True if the user decided to ignore when the user email is wrong for this
+     * repository and will result in misattributed commits.
+     */
+    public readonly ignoreWrongUserEmail: boolean = false
   ) {
     this.mainWorkTree = { path }
     this.name = (gitHubRepository && gitHubRepository.name) || getBaseName(path)
@@ -68,7 +73,8 @@ export class Repository {
       gitHubRepository?.hash,
       this.missing,
       this.workflowPreferences.forkContributionTarget,
-      this.isTutorialRepository
+      this.isTutorialRepository,
+      this.ignoreWrongUserEmail
     )
   }
 

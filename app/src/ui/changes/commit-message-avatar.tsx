@@ -70,7 +70,9 @@ export class CommitMessageAvatar extends React.Component<
   private shouldShowMisattributedCommitWarning() {
     if (
       this.props.email === undefined ||
-      this.props.repositoryAccount === null
+      this.props.repositoryAccount === null ||
+      this.props.repository === null ||
+      this.props.repository.ignoreWrongUserEmail
     ) {
       return false
     }
@@ -189,10 +191,18 @@ export class CommitMessageAvatar extends React.Component<
   private onIgnoreClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
     this.closePopover()
+
+    const repository = this.props.repository
+    if (repository === null) {
+      return
+    }
+
+    this.props.dispatcher.updateRepositoryIgnoreWrongUserEmail(repository, true)
   }
 
   private onSaveClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
+    this.closePopover()
 
     const repository = this.props.repository
     if (repository === null) {
@@ -203,8 +213,6 @@ export class CommitMessageAvatar extends React.Component<
       await setGlobalConfigValue('user.email', this.state.accountEmail)
       this.props.dispatcher.refreshAuthor(repository)
     }
-
-    this.closePopover()
   }
 
   private onSelectedGitHubEmailChange = (

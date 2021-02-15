@@ -58,6 +58,12 @@ export interface IDatabaseRepository {
    * of Git and GitHub.
    */
   readonly isTutorialRepository?: boolean
+
+  /**
+   * True if the user decided to ignore when the user email is wrong for this
+   * repository and will result in misattributed commits.
+   */
+  readonly ignoreWrongUserEmail?: boolean
 }
 
 /**

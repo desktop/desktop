@@ -4787,6 +4787,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _updateRepositoryIgnoreWrongUserEmail(
+    repository: Repository,
+    ignoreWrongUserEmail: boolean
+  ): Promise<void> {
+    await this.repositoriesStore.updateRepositoryIgnoreWrongUserEmail(
+      repository,
+      ignoreWrongUserEmail
+    )
+  }
+
   /**
    * Add a tutorial repository.
    *

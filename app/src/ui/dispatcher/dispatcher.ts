@@ -1481,6 +1481,25 @@ export class Dispatcher {
     )
   }
 
+  /**
+   * Update the user preference to ignore a wrong email address for the
+   * specified repository.
+   *
+   * @param repository            The repository to update.
+   * @param ignoreWrongUserEmail  True if the user doesn't want to be notified
+   *                              about a wrong email address used in the
+   *                              specified repository.
+   */
+  public async updateRepositoryIgnoreWrongUserEmail(
+    repository: Repository,
+    ignoreWrongUserEmail: boolean
+  ) {
+    await this.appStore._updateRepositoryIgnoreWrongUserEmail(
+      repository,
+      ignoreWrongUserEmail
+    )
+  }
+
   /** Update the repository's path. */
   private async updateRepositoryPath(
     repository: Repository,
