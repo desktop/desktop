@@ -15,10 +15,10 @@ import { Dispatcher } from '../dispatcher'
 import { setGlobalConfigValue } from '../../lib/git'
 
 interface ICommitMessageAvatarState {
-  isPopoverOpen: boolean
+  readonly isPopoverOpen: boolean
 
   /** Currently selected account email address. */
-  accountEmail: string
+  readonly accountEmail: string
 }
 
 interface ICommitMessageAvatarProps {
