@@ -39,8 +39,8 @@ interface IRepositorySettingsProps {
 enum RepositorySettingsTab {
   Remote = 0,
   IgnoredFiles,
-  ForkSettings,
   GitConfig,
+  ForkSettings,
 }
 
 interface IRepositorySettingsState {
@@ -170,10 +170,10 @@ export class RepositorySettings extends React.Component<
           >
             <span>Remote</span>
             <span>{__DARWIN__ ? 'Ignored Files' : 'Ignored files'}</span>
+            <span>{__DARWIN__ ? 'Git Config' : 'Git config'}</span>
             {showForkSettings && (
               <span>{__DARWIN__ ? 'Fork Behavior' : 'Fork behavior'}</span>
             )}
-            <span>{__DARWIN__ ? 'Git Config' : 'Git config'}</span>
           </TabBar>
 
           <div className="active-tab">{this.renderActiveTab()}</div>
