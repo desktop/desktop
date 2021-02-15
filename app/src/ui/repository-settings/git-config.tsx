@@ -25,19 +25,10 @@ export enum GitConfigLocation {
 
 /** A view for creating or modifying the repository's gitignore file */
 export class GitConfig extends React.Component<IGitConfigProps> {
-  public constructor(props: IGitConfigProps) {
-    super(props)
-
-    this.state = {
-      gitConfigLocation: this.props.gitConfigLocation,
-    }
-  }
   private onGitConfigLocationChanged = (
     event: React.FormEvent<HTMLInputElement>
   ) => {
     const value = event.currentTarget.value as GitConfigLocation
-
-    this.setState({ gitConfigLocation: value })
     this.props.onGitConfigLocationChanged(value)
   }
 
