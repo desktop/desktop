@@ -82,8 +82,8 @@ export class RepositorySettings extends React.Component<
       committerEmail: '',
       globalCommitterName: '',
       globalCommitterEmail: '',
-      initialCommitterName: null,
       initialGitConfigLocation: GitConfigLocation.Global,
+      initialCommitterName: null,
       initialCommitterEmail: null,
     }
   }
@@ -100,13 +100,15 @@ export class RepositorySettings extends React.Component<
       this.setState({ errors: [`Could not read root .gitignore: ${e}`] })
     }
 
-    const initialCommitterName = await getConfigValue(
+    const localCommitterName = await getConfigValue(
       this.props.repository,
-      'user.name'
+      'user.name',
+      true
     )
-    const initialCommitterEmail = await getConfigValue(
+    const localCommitterEmail = await getConfigValue(
       this.props.repository,
-      'user.email'
+      'user.email',
+      true
     )
 
     const globalCommitterName = (await getGlobalConfigValue('user.name')) || ''
@@ -114,13 +116,17 @@ export class RepositorySettings extends React.Component<
       (await getGlobalConfigValue('user.email')) || ''
 
     const gitConfigLocation =
-      initialCommitterName === globalCommitterName &&
-      initialCommitterEmail === globalCommitterEmail
+      localCommitterName === null && localCommitterEmail === null
         ? GitConfigLocation.Global
         : GitConfigLocation.Local
 
-    const committerName = initialCommitterName || ''
-    const committerEmail = initialCommitterEmail || ''
+    let committerName = globalCommitterName
+    let committerEmail = globalCommitterEmail
+
+    if (gitConfigLocation === GitConfigLocation.Local) {
+      committerName = localCommitterName ?? ''
+      committerEmail = localCommitterEmail ?? ''
+    }
 
     this.setState({
       gitConfigLocation,
@@ -129,8 +135,8 @@ export class RepositorySettings extends React.Component<
       globalCommitterName,
       globalCommitterEmail,
       initialGitConfigLocation: gitConfigLocation,
-      initialCommitterName,
-      initialCommitterEmail,
+      initialCommitterName: localCommitterName,
+      initialCommitterEmail: localCommitterEmail,
     })
   }
 
