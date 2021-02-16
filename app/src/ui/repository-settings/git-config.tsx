@@ -3,6 +3,8 @@ import { DialogContent } from '../dialog'
 import { Account } from '../../models/account'
 import { GitConfigUserForm } from '../lib/git-config-user-form'
 import { getDotComAPIEndpoint } from '../../lib/api'
+import { Row } from '../lib/row'
+import { RadioButton } from '../lib/radio-button'
 
 interface IGitConfigProps {
   readonly account: Account | null
@@ -25,10 +27,7 @@ export enum GitConfigLocation {
 
 /** A view for creating or modifying the repository's gitignore file */
 export class GitConfig extends React.Component<IGitConfigProps> {
-  private onGitConfigLocationChanged = (
-    event: React.FormEvent<HTMLInputElement>
-  ) => {
-    const value = event.currentTarget.value as GitConfigLocation
+  private onGitConfigLocationChanged = (value: GitConfigLocation) => {
     this.props.onGitConfigLocationChanged(value)
   }
 
@@ -43,50 +42,44 @@ export class GitConfig extends React.Component<IGitConfigProps> {
       <DialogContent>
         <div className="advanced-section">
           <h2>For this repository I wish to</h2>
-          <div className="radio-component">
-            <input
-              type="radio"
-              id={GitConfigLocation.Global}
-              value={GitConfigLocation.Global}
-              checked={
-                this.props.gitConfigLocation === GitConfigLocation.Global
-              }
-              onChange={this.onGitConfigLocationChanged}
-            />
-            <label htmlFor={GitConfigLocation.Global}>
-              Use my global Git config
-            </label>
-          </div>
-          <div className="radio-component">
-            <input
-              type="radio"
-              id={GitConfigLocation.Local}
-              value={GitConfigLocation.Local}
-              checked={this.props.gitConfigLocation === GitConfigLocation.Local}
-              onChange={this.onGitConfigLocationChanged}
-            />
-            <label htmlFor={GitConfigLocation.Local}>
-              Use a local Git config
-            </label>
-          </div>
+          <Row>
+            <div>
+              <RadioButton
+                label="Use my global Git config"
+                checked={
+                  this.props.gitConfigLocation === GitConfigLocation.Global
+                }
+                value={GitConfigLocation.Global}
+                onSelected={this.onGitConfigLocationChanged}
+              />
+              <RadioButton
+                label="Use a local Git config"
+                checked={
+                  this.props.gitConfigLocation === GitConfigLocation.Local
+                }
+                value={GitConfigLocation.Local}
+                onSelected={this.onGitConfigLocationChanged}
+              />
+            </div>
+          </Row>
+          <GitConfigUserForm
+            email={
+              this.props.gitConfigLocation === GitConfigLocation.Global
+                ? this.props.globalEmail
+                : this.props.email
+            }
+            name={
+              this.props.gitConfigLocation === GitConfigLocation.Global
+                ? this.props.globalName
+                : this.props.name
+            }
+            enterpriseAccount={enterpriseAccount}
+            dotComAccount={dotComAccount}
+            disabled={this.props.gitConfigLocation === GitConfigLocation.Global}
+            onEmailChanged={this.props.onEmailChanged}
+            onNameChanged={this.props.onNameChanged}
+          />
         </div>
-        <GitConfigUserForm
-          email={
-            this.props.gitConfigLocation === GitConfigLocation.Global
-              ? this.props.globalEmail
-              : this.props.email
-          }
-          name={
-            this.props.gitConfigLocation === GitConfigLocation.Global
-              ? this.props.globalName
-              : this.props.name
-          }
-          enterpriseAccount={enterpriseAccount}
-          dotComAccount={dotComAccount}
-          disabled={this.props.gitConfigLocation === GitConfigLocation.Global}
-          onEmailChanged={this.props.onEmailChanged}
-          onNameChanged={this.props.onNameChanged}
-        />
       </DialogContent>
     )
   }
