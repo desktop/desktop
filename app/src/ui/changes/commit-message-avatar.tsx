@@ -4,15 +4,9 @@ import { Button } from '../lib/button'
 import { Row } from '../lib/row'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
 import { IAvatarUser } from '../../models/avatar'
-import { Account } from '../../models/account'
 import { Avatar } from '../lib/avatar'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { lookupPreferredEmail } from '../../lib/email'
 import { LinkButton } from '../lib/link-button'
-import { getDotComAPIEndpoint } from '../../lib/api'
-import { Repository } from '../../models/repository'
-import { Dispatcher } from '../dispatcher'
-import { setGlobalConfigValue } from '../../lib/git'
 
 interface ICommitMessageAvatarState {
   readonly isPopoverOpen: boolean
@@ -35,17 +29,21 @@ interface ICommitMessageAvatarProps {
   /** Current email address configured by the user. */
   readonly email?: string
 
-  /** Repository where the user could commit right now. */
-  readonly repository: Repository | null
+  /** Whether or not the warning badge on the avatar should be visible. */
+  readonly warningBadgeVisible: boolean
 
-  /**
-   * Best GitHub (Enterprise) account match for this repository. Usually, that
-   * means the GitHub account for GitHub repositories, the GitHub Enterprise
-   * account for GHE repositories, and null for any other git repository.
-   */
-  readonly repositoryAccount: Account | null
+  /** Whether or not the user's account is a GHE account. */
+  readonly isEnterpriseAccount: boolean
 
-  readonly dispatcher: Dispatcher
+  /** Email addresses available in the relevant GitHub (Enterprise) account. */
+  readonly accountEmails: ReadonlyArray<string>
+
+  /** Preferred email address from the user's account. */
+  readonly preferredAccountEmail: string
+
+  readonly onSave: (email: string) => void
+
+  readonly onIgnore: () => void
 }
 
 /**
@@ -59,34 +57,17 @@ export class CommitMessageAvatar extends React.Component<
   public constructor(props: ICommitMessageAvatarProps) {
     super(props)
 
-    const account = this.props.repositoryAccount
-
     this.state = {
       isPopoverOpen: false,
-      accountEmail: account !== null ? lookupPreferredEmail(account) : '',
+      accountEmail: this.props.preferredAccountEmail,
     }
-  }
-
-  private shouldShowMisattributedCommitWarning() {
-    if (
-      this.props.email === undefined ||
-      this.props.repositoryAccount === null ||
-      this.props.repository === null ||
-      this.props.repository.ignoreWrongUserEmail
-    ) {
-      return false
-    }
-
-    const emails = this.props.repositoryAccount.emails.map(e => e.email)
-    return emails.includes(this.props.email) === false
   }
 
   public render() {
     return (
       <div className="commit-message-avatar-component">
         <div onClick={this.onAvatarClick}>
-          {this.shouldShowMisattributedCommitWarning() &&
-            this.renderMisattributedCommitWarning()}
+          {this.props.warningBadgeVisible && this.renderWarningBadge()}
           <Avatar user={this.props.user} title={this.props.title} />
         </div>
         {this.state.isPopoverOpen && this.renderPopover()}
@@ -94,9 +75,9 @@ export class CommitMessageAvatar extends React.Component<
     )
   }
 
-  private renderMisattributedCommitWarning() {
+  private renderWarningBadge() {
     return (
-      <div className="misattributed-commit-warning-badge">
+      <div className="warning-badge">
         <Octicon symbol={OcticonSymbol.alert} />
       </div>
     )
@@ -121,7 +102,7 @@ export class CommitMessageAvatar extends React.Component<
   }
 
   private onAvatarClick = (event: React.FormEvent<HTMLDivElement>) => {
-    if (this.shouldShowMisattributedCommitWarning() === false) {
+    if (this.props.warningBadgeVisible === false) {
       return
     }
 
@@ -134,15 +115,9 @@ export class CommitMessageAvatar extends React.Component<
   }
 
   private renderPopover() {
-    const account = this.props.repositoryAccount
-    if (account === null) {
-      return
-    }
-
-    const allEmails = account.emails.map(e => e.email)
-
-    const accountTypeSuffix =
-      account.endpoint === getDotComAPIEndpoint() ? '' : ' Enterprise'
+    const accountTypeSuffix = this.props.isEnterpriseAccount
+      ? ' Enterprise'
+      : ''
 
     return (
       <Popover
@@ -169,7 +144,7 @@ export class CommitMessageAvatar extends React.Component<
             value={this.state.accountEmail}
             onChange={this.onSelectedGitHubEmailChange}
           >
-            {allEmails.map(n => (
+            {this.props.accountEmails.map(n => (
               <option key={n} value={n}>
                 {n}
               </option>
@@ -191,27 +166,15 @@ export class CommitMessageAvatar extends React.Component<
   private onIgnoreClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
     this.closePopover()
-
-    const repository = this.props.repository
-    if (repository === null) {
-      return
-    }
-
-    this.props.dispatcher.updateRepositoryIgnoreWrongUserEmail(repository, true)
+    this.props.onIgnore?.()
   }
 
   private onSaveClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
     this.closePopover()
 
-    const repository = this.props.repository
-    if (repository === null) {
-      return
-    }
-
     if (this.props.email !== this.state.accountEmail) {
-      await setGlobalConfigValue('user.email', this.state.accountEmail)
-      this.props.dispatcher.refreshAuthor(repository)
+      this.props.onSave(this.state.accountEmail)
     }
   }
 

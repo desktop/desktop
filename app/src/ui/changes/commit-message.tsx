@@ -29,6 +29,9 @@ import { IAvatarUser, getAvatarUserFromAuthor } from '../../models/avatar'
 import { showContextualMenu } from '../main-process-proxy'
 import { Account } from '../../models/account'
 import { CommitMessageAvatar } from './commit-message-avatar'
+import { getDotComAPIEndpoint } from '../../lib/api'
+import { lookupPreferredEmail } from '../../lib/email'
+import { setGlobalConfigValue } from '../../lib/git/config'
 
 const addAuthorIcon = new OcticonSymbol(
   18,
@@ -271,15 +274,46 @@ export class CommitMessage extends React.Component<
         ? getAvatarUserFromAuthor(commitAuthor, gitHubRepository)
         : undefined
 
+    const repositoryAccount = this.props.repositoryAccount
+    const accountEmails = repositoryAccount?.emails.map(e => e.email) ?? []
+    const email = commitAuthor?.email
+
+    const warningBadgeVisible =
+      email !== undefined &&
+      repositoryAccount !== null &&
+      repository.ignoreWrongUserEmail === false &&
+      accountEmails.includes(email) === false
+
     return (
       <CommitMessageAvatar
         user={avatarUser}
         title={avatarTitle}
         email={commitAuthor?.email}
-        repository={this.props.repository}
-        repositoryAccount={this.props.repositoryAccount}
-        dispatcher={this.props.dispatcher}
+        isEnterpriseAccount={
+          this.props.repositoryAccount?.endpoint !== getDotComAPIEndpoint()
+        }
+        warningBadgeVisible={warningBadgeVisible}
+        accountEmails={accountEmails}
+        preferredAccountEmail={
+          repositoryAccount !== null
+            ? lookupPreferredEmail(repositoryAccount)
+            : ''
+        }
+        onSave={this.onSaveUserEmail}
+        onIgnore={this.onIgnoreWrongUserEmailWarning}
       />
+    )
+  }
+
+  private onSaveUserEmail = async (email: string) => {
+    await setGlobalConfigValue('user.email', email)
+    this.props.dispatcher.refreshAuthor(this.props.repository)
+  }
+
+  private onIgnoreWrongUserEmailWarning = () => {
+    this.props.dispatcher.updateRepositoryIgnoreWrongUserEmail(
+      this.props.repository,
+      true
     )
   }
 
