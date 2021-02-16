@@ -281,7 +281,6 @@ export class CommitMessage extends React.Component<
     const warningBadgeVisible =
       email !== undefined &&
       repositoryAccount !== null &&
-      repository.ignoreWrongUserEmail === false &&
       accountEmails.includes(email) === false
 
     return (
@@ -290,7 +289,7 @@ export class CommitMessage extends React.Component<
         title={avatarTitle}
         email={commitAuthor?.email}
         isEnterpriseAccount={
-          this.props.repositoryAccount?.endpoint !== getDotComAPIEndpoint()
+          repositoryAccount?.endpoint !== getDotComAPIEndpoint()
         }
         warningBadgeVisible={warningBadgeVisible}
         accountEmails={accountEmails}
@@ -299,22 +298,14 @@ export class CommitMessage extends React.Component<
             ? lookupPreferredEmail(repositoryAccount)
             : ''
         }
-        onSave={this.onSaveUserEmail}
-        onIgnore={this.onIgnoreWrongUserEmailWarning}
+        onUpdateEmail={this.onUpdateUserEmail}
       />
     )
   }
 
-  private onSaveUserEmail = async (email: string) => {
+  private onUpdateUserEmail = async (email: string) => {
     await setGlobalConfigValue('user.email', email)
     this.props.dispatcher.refreshAuthor(this.props.repository)
-  }
-
-  private onIgnoreWrongUserEmailWarning = () => {
-    this.props.dispatcher.updateRepositoryIgnoreWrongUserEmail(
-      this.props.repository,
-      true
-    )
   }
 
   private get isCoAuthorInputEnabled() {

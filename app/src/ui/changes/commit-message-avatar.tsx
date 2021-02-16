@@ -42,8 +42,6 @@ interface ICommitMessageAvatarProps {
   readonly preferredAccountEmail: string
 
   readonly onSave: (email: string) => void
-
-  readonly onIgnore: () => void
 }
 
 /**
@@ -166,7 +164,6 @@ export class CommitMessageAvatar extends React.Component<
   private onIgnoreClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
     this.closePopover()
-    this.props.onIgnore?.()
   }
 
   private onSaveClick = async (event: React.MouseEvent<HTMLButtonElement>) => {

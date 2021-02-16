@@ -133,8 +133,7 @@ export class RepositoriesStore extends TypedBaseStore<
         : await Promise.resolve(null), // Dexie gets confused if we return null
       repo.missing,
       repo.workflowPreferences,
-      repo.isTutorialRepository,
-      repo.ignoreWrongUserEmail
+      repo.isTutorialRepository
     )
   }
 
@@ -263,8 +262,7 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.gitHubRepository,
       missing,
       repository.workflowPreferences,
-      repository.isTutorialRepository,
-      repository.ignoreWrongUserEmail
+      repository.isTutorialRepository
     )
   }
 
@@ -279,24 +277,6 @@ export class RepositoriesStore extends TypedBaseStore<
     workflowPreferences: WorkflowPreferences
   ): Promise<void> {
     await this.db.repositories.update(repository.id, { workflowPreferences })
-
-    this.emitUpdatedRepositories()
-  }
-
-  /**
-   * Update the user preference to ignore a wrong email address for the
-   * specified repository.
-   *
-   * @param repository            The repository to update.
-   * @param ignoreWrongUserEmail  True if the user doesn't want to be notified
-   *                              about a wrong email address used in the
-   *                              specified repository.
-   */
-  public async updateRepositoryIgnoreWrongUserEmail(
-    repository: Repository,
-    ignoreWrongUserEmail: boolean
-  ): Promise<void> {
-    await this.db.repositories.update(repository.id, { ignoreWrongUserEmail })
 
     this.emitUpdatedRepositories()
   }
@@ -316,8 +296,7 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.gitHubRepository,
       false,
       repository.workflowPreferences,
-      repository.isTutorialRepository,
-      repository.ignoreWrongUserEmail
+      repository.isTutorialRepository
     )
   }
 
@@ -443,8 +422,7 @@ export class RepositoriesStore extends TypedBaseStore<
       ghRepo,
       repo.missing,
       repo.workflowPreferences,
-      repo.isTutorialRepository,
-      repo.ignoreWrongUserEmail
+      repo.isTutorialRepository
     )
 
     assertIsRepositoryWithGitHubRepository(updatedRepo)
