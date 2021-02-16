@@ -176,7 +176,7 @@ function buildMenuItemInfoMap(
 export class NoChanges extends React.Component<
   INoChangesProps,
   INoChangesState
-  > {
+> {
   private getMenuInfoMap = memoizeOne((menu: IMenu | undefined) =>
     menu === undefined
       ? new Map<string, IMenuItemInfo>()
@@ -593,8 +593,9 @@ export class NoChanges extends React.Component<
       </>
     )
 
-    const title = `Pull ${aheadBehind.behind} ${aheadBehind.behind === 1 ? 'commit' : 'commits'
-      } from the ${remote.name} remote`
+    const title = `Pull ${aheadBehind.behind} ${
+      aheadBehind.behind === 1 ? 'commit' : 'commits'
+    } from the ${remote.name} remote`
 
     const buttonText = `Pull ${remote.name}`
 
@@ -658,8 +659,9 @@ export class NoChanges extends React.Component<
       </>
     )
 
-    const title = `Push ${itemsToPushTypes.join(' and ')} to the ${remote.name
-      } remote`
+    const title = `Push ${itemsToPushTypes.join(' and ')} to the ${
+      remote.name
+    } remote`
 
     const buttonText = `Push ${remote.name}`
 

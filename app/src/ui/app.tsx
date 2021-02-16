@@ -1274,7 +1274,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.RenameBranch:
         const stash =
           this.state.selectedState !== null &&
-            this.state.selectedState.type === SelectionType.Repository
+          this.state.selectedState.type === SelectionType.Repository
             ? this.state.selectedState.state.changesState.stashEntry
             : null
         return (
@@ -1963,7 +1963,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         const existingStash =
           selectedState !== null &&
-            selectedState.type === SelectionType.Repository
+          selectedState.type === SelectionType.Repository
             ? selectedState.state.changesState.stashEntry
             : null
 
@@ -2536,10 +2536,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       const externalEditorLabel = state.selectedExternalEditor
         ? state.selectedExternalEditor
         : undefined
-      const shellLabel = state.selectedShell
-        ? state.selectedShell
-        : undefined
-
+      const shellLabel = state.selectedShell ? state.selectedShell : undefined
 
       return (
         <RepositoryView

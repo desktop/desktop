@@ -103,7 +103,7 @@ const enum Tab {
 export class RepositoryView extends React.Component<
   IRepositoryViewProps,
   IRepositoryViewState
-  > {
+> {
   private previousSection: RepositorySectionTab = this.props.state
     .selectedSection
 
@@ -400,9 +400,7 @@ export class RepositoryView extends React.Component<
             isExternalEditorAvailable={
               this.props.externalEditorLabel !== undefined
             }
-            isShellAvailable={
-              this.props.shellLabel !== undefined
-            }
+            isShellAvailable={this.props.shellLabel !== undefined}
             dispatcher={this.props.dispatcher}
           />
         )
