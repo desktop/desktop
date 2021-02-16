@@ -149,7 +149,7 @@ export class CommitMessageAvatar extends React.Component<
           </Select>
         </Row>
         <Row>
-          <div>
+          <div className="secondary-text">
             You can also choose an email only for this repository from the{' '}
             <LinkButton onClick={this.onRepositorySettingsClick}>
               repository settings
