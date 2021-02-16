@@ -41,7 +41,7 @@ interface ICommitMessageAvatarProps {
   /** Preferred email address from the user's account. */
   readonly preferredAccountEmail: string
 
-  readonly onSave: (email: string) => void
+  readonly onUpdateEmail: (email: string) => void
 }
 
 /**
@@ -117,6 +117,8 @@ export class CommitMessageAvatar extends React.Component<
       ? ' Enterprise'
       : ''
 
+    const updateEmailTitle = __DARWIN__ ? 'Update Email' : 'Update email'
+
     return (
       <Popover
         caretPosition={PopoverCaretPosition.LeftTop}
@@ -125,13 +127,8 @@ export class CommitMessageAvatar extends React.Component<
         <h3>This commit will be misattributed</h3>
         <Row>
           <div>
-            The email in your{' '}
-            <span className="highlighted-text">git config</span> (
-            {this.props.email}) doesn't match your{' '}
-            <span className="highlighted-text">
-              GitHub{accountTypeSuffix} account
-            </span>
-            .{' '}
+            The email in your git config ({this.props.email}) doesn't match your
+            GitHub{accountTypeSuffix} account.{' '}
             <LinkButton uri="https://docs.github.com/en/github/committing-changes-to-your-project/why-are-my-commits-linked-to-the-wrong-user">
               Learn more.
             </LinkButton>
@@ -153,8 +150,12 @@ export class CommitMessageAvatar extends React.Component<
           <Button onClick={this.onIgnoreClick} tooltip="Ignore" type="button">
             Ignore
           </Button>
-          <Button onClick={this.onSaveClick} tooltip="Save" type="submit">
-            Save
+          <Button
+            onClick={this.onUpdateEmailClick}
+            tooltip={updateEmailTitle}
+            type="submit"
+          >
+            {updateEmailTitle}
           </Button>
         </Row>
       </Popover>
@@ -166,12 +167,14 @@ export class CommitMessageAvatar extends React.Component<
     this.closePopover()
   }
 
-  private onSaveClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
+  private onUpdateEmailClick = async (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
     event.preventDefault()
     this.closePopover()
 
     if (this.props.email !== this.state.accountEmail) {
-      this.props.onSave(this.state.accountEmail)
+      this.props.onUpdateEmail(this.state.accountEmail)
     }
   }
 
