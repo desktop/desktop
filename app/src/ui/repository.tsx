@@ -66,6 +66,9 @@ interface IRepositoryViewProps {
   /** The name of the currently selected external editor */
   readonly externalEditorLabel?: string
 
+  /** The name of the currently selected shell */
+  readonly shellLabel?: string
+
   /** A cached entry representing an external editor found on the user's machine */
   readonly resolvedExternalEditor: string | null
 
@@ -100,7 +103,7 @@ const enum Tab {
 export class RepositoryView extends React.Component<
   IRepositoryViewProps,
   IRepositoryViewState
-> {
+  > {
   private previousSection: RepositorySectionTab = this.props.state
     .selectedSection
 
@@ -396,6 +399,9 @@ export class RepositoryView extends React.Component<
             repositoryState={this.props.state}
             isExternalEditorAvailable={
               this.props.externalEditorLabel !== undefined
+            }
+            isShellAvailable={
+              this.props.shellLabel !== undefined
             }
             dispatcher={this.props.dispatcher}
           />

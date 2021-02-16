@@ -67,6 +67,15 @@ interface INoChangesProps {
    * opening the repository in an external editor.
    */
   readonly isExternalEditorAvailable: boolean
+
+  /**
+   * Whether or not the user has a configured (explicitly,
+   * or automatically) shell. Used to
+   * determine whether or not to render the action for
+   * opening the repository in an shell.
+   */
+
+  readonly isShellAvailable: boolean
 }
 
 /**
@@ -167,7 +176,7 @@ function buildMenuItemInfoMap(
 export class NoChanges extends React.Component<
   INoChangesProps,
   INoChangesState
-> {
+  > {
   private getMenuInfoMap = memoizeOne((menu: IMenu | undefined) =>
     menu === undefined
       ? new Map<string, IMenuItemInfo>()
@@ -302,6 +311,44 @@ export class NoChanges extends React.Component<
     const description = (
       <>
         Select your editor in{' '}
+        <LinkButton onClick={this.openPreferences}>
+          {__DARWIN__ ? 'Preferences' : 'Options'}
+        </LinkButton>
+      </>
+    )
+
+    return this.renderMenuBackedAction(
+      itemId,
+      title,
+      description,
+      this.onOpenInExternalEditorClicked
+    )
+  }
+  private renderOpenInShell() {
+    if (!this.props.isShellAvailable) {
+      return null
+    }
+
+    const itemId: MenuIDs = 'open-in-shell'
+    const menuItem = this.getMenuItemInfo(itemId)
+
+    if (menuItem === undefined) {
+      log.error(`Could not find matching menu item for ${itemId}`)
+      return null
+    }
+
+    const preferencesMenuItem = this.getMenuItemInfo('preferences')
+
+    if (preferencesMenuItem === undefined) {
+      log.error(`Could not find matching menu item for ${itemId}`)
+      return null
+    }
+
+    const title = `Open the repository in your shell`
+
+    const description = (
+      <>
+        Select your shell in{' '}
         <LinkButton onClick={this.openPreferences}>
           {__DARWIN__ ? 'Preferences' : 'Options'}
         </LinkButton>
@@ -546,9 +593,8 @@ export class NoChanges extends React.Component<
       </>
     )
 
-    const title = `Pull ${aheadBehind.behind} ${
-      aheadBehind.behind === 1 ? 'commit' : 'commits'
-    } from the ${remote.name} remote`
+    const title = `Pull ${aheadBehind.behind} ${aheadBehind.behind === 1 ? 'commit' : 'commits'
+      } from the ${remote.name} remote`
 
     const buttonText = `Pull ${remote.name}`
 
@@ -612,9 +658,8 @@ export class NoChanges extends React.Component<
       </>
     )
 
-    const title = `Push ${itemsToPushTypes.join(' and ')} to the ${
-      remote.name
-    } remote`
+    const title = `Push ${itemsToPushTypes.join(' and ')} to the ${remote.name
+      } remote`
 
     const buttonText = `Push ${remote.name}`
 
@@ -682,6 +727,7 @@ export class NoChanges extends React.Component<
         </SuggestedActionGroup>
         <SuggestedActionGroup>
           {this.renderOpenInExternalEditor()}
+          {this.renderOpenInShell()}
           {this.renderShowInFileManager()}
           {this.renderViewOnGitHub()}
         </SuggestedActionGroup>
