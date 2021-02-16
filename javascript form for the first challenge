@@ -1,0 +1,25 @@
+<!-- simple form for the first challenges -->
+
+    <form method="post" action=""  onsubmit="return checkform();">
+<p><span style="width:180px">Username: </span><input type="text" name="Username" id='un'></p>
+<p><span style="width:180px">Password: </span><input type="password" name="Password" id='pw'></p>
+<!-- checks the onsubmit-->
+<input type="submit" value="SUBMIT" />
+</form>
+    <!--simple javascript, to check if username and password are correct , it uses the post method to verivy  -->
+   <script language="javascript">
+              //check form line 52 
+               function checkform(){
+                // checks the actualy username and password value, being teun and mywebsite
+    if(document.getElementById("un").value == 'teun' && document.getElementById("pw").value == 'mywebsite' ){
+        //lets user know login was successful
+        alert("Login Successful");
+        //setTimeout makes it work 
+        setTimeout(function() {window.location = "home.html" });
+    }
+    // if ether username or password dont match, send error to the user 
+    else{
+        alert("Access denied. Valid username and password is required.");
+    }
+}
+</script>
