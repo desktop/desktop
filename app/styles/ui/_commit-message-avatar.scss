@@ -45,6 +45,10 @@
     justify-content: flex-end;
   }
 
+  .select-component {
+    overflow: hidden;
+  }
+
   .popover-component {
     // This allows for using <Rows> to structure content within dialog content.
     // All Rows that are direct descendants of dialog content except for the
