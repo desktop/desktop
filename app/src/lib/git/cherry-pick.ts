@@ -185,7 +185,7 @@ function parseCherryPickResult(result: IGitResult): CherryPickResult {
 }
 
 /**
- * Inspect the `.git/sequencer/todo` folder and convert the current cherry pick
+ * Inspect the `.git/sequencer` folder and convert the current cherry pick
  * state into am `ICherryPickProgress` instance as well as return an array of
  * remaining commits queued for cherry picking.
  *  - Progress instance required to display progress to user.
