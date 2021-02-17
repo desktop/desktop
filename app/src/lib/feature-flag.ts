@@ -148,3 +148,10 @@ export function enableDefaultBranchSetting(): boolean {
 export function enableUnhandledRejectionReporting(): boolean {
   return enableBetaFeatures()
 }
+
+/**
+ * Should we allow cherry picking
+ */
+export function enableCherryPicking(): boolean {
+  return false // enableBetaFeatures()
+}

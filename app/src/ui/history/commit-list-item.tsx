@@ -14,6 +14,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import {
   enableGitTagsDisplay,
   enableGitTagsCreation,
+  enableCherryPicking,
 } from '../../lib/feature-flag'
 
 interface ICommitProps {
@@ -25,6 +26,7 @@ interface ICommitProps {
   readonly onViewCommitOnGitHub?: (sha: string) => void
   readonly onCreateTag?: (targetCommitSha: string) => void
   readonly onDeleteTag?: (tagName: string) => void
+  readonly onCherryPick?: (commitSha: string) => void
   readonly showUnpushedIndicator: boolean
   readonly unpushedIndicatorTitle?: string
   readonly unpushedTags?: ReadonlyArray<string>
@@ -142,6 +144,12 @@ export class CommitListItem extends React.PureComponent<
     }
   }
 
+  private onCherryPick = () => {
+    if (this.props.onCherryPick !== undefined) {
+      this.props.onCherryPick(this.props.commit.sha)
+    }
+  }
+
   private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
 
@@ -186,6 +194,13 @@ export class CommitListItem extends React.PureComponent<
           deleteTagsMenuItem
         )
       }
+    }
+
+    if (enableCherryPicking()) {
+      items.push({
+        label: __DARWIN__ ? 'Cherry Pick Commit…' : 'Cherry pick commit…',
+        action: this.onCherryPick,
+      })
     }
 
     items.push(

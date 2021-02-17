@@ -67,6 +67,7 @@ export enum PopupType {
   LocalChangesOverwritten,
   ChooseForkSettings,
   ConfirmDiscardSelection,
+  CherryPick,
 }
 
 export type Popup =
@@ -263,4 +264,9 @@ export type Popup =
       repository: Repository
       retryAction: RetryAction
       files: ReadonlyArray<string>
+    }
+  | {
+      type: PopupType.CherryPick
+      repository: Repository
+      commitSha: string
     }

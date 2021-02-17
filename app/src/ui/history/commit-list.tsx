@@ -48,6 +48,9 @@ interface ICommitListProps {
   /** Callback to fire to delete an unpushed tag */
   readonly onDeleteTag: (tagName: string) => void
 
+  /** Callback to fire to cherry picking the commit  */
+  readonly onCherryPick: (commitSha: string) => void
+
   /**
    * Optional callback that fires on page scroll in order to allow passing
    * a new scrollTop value up to the parent component for storing.
@@ -119,6 +122,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         emoji={this.props.emoji}
         onCreateTag={this.props.onCreateTag}
         onDeleteTag={this.props.onDeleteTag}
+        onCherryPick={this.props.onCherryPick}
         onRevertCommit={this.props.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
       />
