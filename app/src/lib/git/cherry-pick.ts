@@ -64,7 +64,7 @@ class GitCherryPickParser {
   public constructor(private readonly commits: ReadonlyArray<CommitOneLine>) {}
 
   public parse(line: string): ICherryPickProgress | null {
-    const cherryPickRe = /\[(.*\s.*)\]/
+    const cherryPickRe = /^\[(.*\s.*)\]/
     const match = cherryPickRe.exec(line)
     if (match === null) {
       // Skip lines that don't represent the first line of a successfully picked
