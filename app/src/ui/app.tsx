@@ -1984,6 +1984,9 @@ export class App extends React.Component<IAppProps, IAppState> {
             files={popup.files}
           />
         )
+      case PopupType.CherryPick:
+        // TODO: Create Cherry Pick Branch Dialog
+        return null
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }

@@ -2503,4 +2503,18 @@ export class Dispatcher {
   public recordDiffOptionsViewed() {
     return this.statsStore.recordDiffOptionsViewed()
   }
+
+  /**
+   * Show the cherry pick branch selection dialog
+   */
+  public showCherryPickBranchDialog(
+    repository: Repository,
+    commitSha: string
+  ): Promise<void> {
+    return this.showPopup({
+      type: PopupType.CherryPick,
+      repository,
+      commitSha,
+    })
+  }
 }
