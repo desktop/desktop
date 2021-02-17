@@ -349,15 +349,13 @@ export class RepositorySettings extends React.Component<
       await removeConfigValue(this.props.repository, 'user.email')
 
       shouldRefreshAuthor = true
-    } else {
+    } else if (this.state.gitConfigLocation === GitConfigLocation.Local) {
       // Otherwise, update the local name and email if needed
       if (this.state.committerName !== this.state.initialCommitterName) {
         await setConfigValue(
           this.props.repository,
           'user.name',
-          this.state.gitConfigLocation === GitConfigLocation.Global
-            ? this.state.globalCommitterName
-            : this.state.committerName
+          this.state.committerName
         )
         shouldRefreshAuthor = true
       }
@@ -366,9 +364,7 @@ export class RepositorySettings extends React.Component<
         await setConfigValue(
           this.props.repository,
           'user.email',
-          this.state.gitConfigLocation === GitConfigLocation.Global
-            ? this.state.globalCommitterEmail
-            : this.state.committerEmail
+          this.state.committerEmail
         )
         shouldRefreshAuthor = true
       }
