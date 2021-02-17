@@ -326,6 +326,23 @@ function copyDependencies() {
     cp.execSync('yarn install', { cwd: outRoot, env: process.env })
   }
 
+  console.log('  Copying desktop-trampoline…')
+  const desktopTrampolineDir = path.resolve(outRoot, 'desktop-trampoline')
+  const desktopTrampolineFile =
+    process.platform === 'win32'
+      ? 'desktop-trampoline.exe'
+      : 'desktop-trampoline'
+  fs.removeSync(desktopTrampolineDir)
+  fs.mkdirSync(desktopTrampolineDir)
+  fs.copySync(
+    path.resolve(
+      projectRoot,
+      'app/node_modules/desktop-trampoline/build/Release',
+      desktopTrampolineFile
+    ),
+    path.resolve(desktopTrampolineDir, desktopTrampolineFile)
+  )
+
   console.log('  Copying git environment…')
   const gitDir = path.resolve(outRoot, 'git')
   fs.removeSync(gitDir)
