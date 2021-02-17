@@ -10,7 +10,13 @@ import { git, IGitExecutionOptions, IGitResult } from './core'
 import { getStatus } from './status'
 import { stageFiles } from './update-index'
 import { ICherryPickProgress } from '../../models/progress'
-import { getCommitsInRange } from './rev-list'
+import { getCommitsInRange, revRangeInclusive } from './rev-list'
+import { CommitOneLine } from '../../models/commit'
+import { merge } from '../merge'
+import { ChildProcess } from 'child_process'
+import { round } from '../../ui/lib/round'
+import byline from 'byline'
+import { ICherryPickSnapshot } from '../../models/cherry-pick'
 
 /** The app-specific results from attempting to cherry pick commits*/
 export enum CherryPickResult {
@@ -44,6 +50,74 @@ export enum CherryPickResult {
 }
 
 /**
+ * A parser to read and emit cherry pick progress from Git `stdout`.
+ *
+ * Each successful cherry picked commit outputs a set of lines similar to the
+ * following example:
+ *    [branchName commitSha] commitSummary
+ *    Date: timestamp
+ *    1 file changed, 1 insertion(+)
+ *    create mode 100644 filename
+ */
+class GitCherryPickParser {
+  private count = 0
+  public constructor(private readonly commits: ReadonlyArray<CommitOneLine>) {}
+
+  public parse(line: string): ICherryPickProgress | null {
+    const cherryPickRe = /\[(.*\s.*)\]/
+    const match = cherryPickRe.exec(line)
+    if (match === null) {
+      // Skip lines that don't represent the first line of a successfully picked
+      // commit. -- i.e. timestamp, files changed, conflicts, etc..
+      return null
+    }
+    this.count++
+
+    return {
+      kind: 'cherryPick',
+      title: `Cherry picking commit ${this.count} of ${this.commits.length} commits`,
+      value: round(this.count / this.commits.length, 2),
+      cherryPickCommitCount: this.count,
+      totalCommitCount: this.commits.length,
+      currentCommitSummary: this.commits[this.count - 1]?.summary ?? '',
+    }
+  }
+}
+
+/**
+ * This method merges `baseOptions` with a call back method that obtains a
+ * `ICherryPickProgress` instance from `stdout` parsing.
+ *
+ * @param baseOptions - contains git execution options other than the
+ * progressCallBack such as expectedErrors
+ * @param commits - used by the parser to form `ICherryPickProgress` instance
+ * @param progressCallback - the callback method that accepts an
+ * `ICherryPickProgress` instance created by the parser
+ */
+function configureOptionsWithCallBack(
+  baseOptions: IGitExecutionOptions,
+  commits: readonly CommitOneLine[],
+  progressCallback: (progress: ICherryPickProgress) => void
+) {
+  return merge(baseOptions, {
+    processCallback: (process: ChildProcess) => {
+      if (process.stdout === null) {
+        return
+      }
+      const parser = new GitCherryPickParser(commits)
+
+      byline(process.stdout).on('data', (line: string) => {
+        const progress = parser.parse(line)
+
+        if (progress != null) {
+          progressCallback(progress)
+        }
+      })
+    },
+  })
+}
+
+/**
  * A stub function to initiate cherry picking in the app.
  *
  * @param revisionRange - this could be a single commit sha or could be a range
@@ -54,18 +128,35 @@ export async function cherryPick(
   revisionRange: string,
   progressCallback?: (progress: ICherryPickProgress) => void
 ): Promise<CherryPickResult> {
-  const baseOptions: IGitExecutionOptions = {
+  let baseOptions: IGitExecutionOptions = {
     expectedErrors: new Set([GitError.MergeConflicts]),
   }
 
   if (progressCallback !== undefined) {
+    // If it is a single commit sha, format it as tho it is a range
+    // so getCommitsInRange only pulls back single commit.
+    if (revisionRange.includes('..') === false) {
+      revisionRange = revRangeInclusive(revisionRange, revisionRange)
+    }
+
     const commits = await getCommitsInRange(repository, revisionRange)
 
     if (commits === null) {
+      // BadRevision can be raised here if git rev-list is unable to resolve a
+      // revision range, so we need to signal to the caller that this cherry
+      // pick is not possible to perform
+      log.warn(
+        `Unable to cherry pick these branches
+        because one or both of the refs do not exist in the repository`
+      )
       return CherryPickResult.Error
     }
 
-    // TODO: configure options with progress call back for each commit
+    baseOptions = await configureOptionsWithCallBack(
+      baseOptions,
+      commits,
+      progressCallback
+    )
   }
 
   const result = await git(
@@ -94,6 +185,111 @@ function parseCherryPickResult(result: IGitResult): CherryPickResult {
 }
 
 /**
+ * Inspect the `.git/sequencer/todo` folder and convert the current cherry pick
+ * state into am `ICherryPickProgress` instance as well as return an array of
+ * remaining commits queued for cherry picking.
+ *  - Progress instance required to display progress to user.
+ *  - Commits required to track progress after a conflict has been resolved.
+ *
+ * This is required when Desktop is not responsible for initiating the cherry
+ * pick and when continuing a cherry pick after conflicts are resolved:
+ *
+ * It returns null if it cannot parse an ongoing cherry pick. This happens when,
+ *  - There isn't a cherry pick in progress (expected null outcome).
+ *  - Runs into errors parsing cherry pick files. This is expected if cherry
+ *    pick is aborted or finished during parsing. It could also occur if cherry
+ *    pick sequencer files are corrupted.
+ */
+export async function getCherryPickSnapShot(
+  repository: Repository
+): Promise<ICherryPickSnapshot | null> {
+  const cherryPickHead = readCherryPickHead(repository)
+  if (cherryPickHead === null) {
+    // If there no cherry pick head, there is no cherry pick in progress.
+    return null
+  }
+
+  let firstSha: string = ''
+  let lastSha: string = ''
+  const remainingShas: string[] = []
+  // Try block included as files may throw an error if it cannot locate
+  // the sequencer files. This is possible if cherry pick is continued
+  // or aborted at the same time.
+  try {
+    // This contains the sha of the first committed pick.
+    firstSha = (
+      await FSE.readFile(
+        Path.join(repository.path, '.git', 'sequencer', 'abort-safety'),
+        'utf8'
+      )
+    ).trim()
+
+    if (firstSha === '') {
+      // Technically possible if someone continued or aborted the cherry pick at
+      // the same time
+      return null
+    }
+
+    // This contains a reference to the remaining commits to cherry pick.
+    // Each line is of the format pick shortSha commitSummary
+    const remainingPicks = (
+      await FSE.readFile(
+        Path.join(repository.path, '.git', 'sequencer', 'todo'),
+        'utf8'
+      )
+    ).trim()
+
+    if (remainingPicks === '') {
+      // Technically possible if someone continued or aborted the cherry pick at
+      // the same time
+      return null
+    }
+
+    remainingPicks.split('\n').forEach(line => {
+      const linePieces = line.split(' ')
+      if (linePieces.length > 2) {
+        remainingShas.push(linePieces[1])
+      }
+    })
+
+    if (remainingShas.length === 0) {
+      // This should only be possible with corrupt sequencer files.
+      return null
+    }
+    lastSha = remainingShas[remainingShas.length - 1]
+
+    if (lastSha === '') {
+      // This should only be possible with corrupt sequencer files.
+      return null
+    }
+  } catch {}
+
+  const commits = await getCommitsInRange(
+    repository,
+    revRangeInclusive(firstSha, lastSha)
+  )
+
+  if (commits === null || commits.length === 0) {
+    // This should only be possible with corrupt sequencer files resulting in a
+    // bad revision range.
+    return null
+  }
+
+  const count = commits.length - remainingShas.length
+  return {
+    progress: {
+      kind: 'cherryPick',
+      title: `Cherry picking commit ${count} of ${commits.length} commits`,
+      value: round(count / commits.length, 2),
+      cherryPickCommitCount: count,
+      totalCommitCount: commits.length,
+      currentCommitSummary: commits[count - 1].summary ?? '',
+    },
+    remainingCommits: commits.slice(count, commits.length),
+  }
+}
+
+/**
  * Proceed with the current cherry pick operation and report back on whether it completed
  *
  * It is expected that the index has staged files which are cleanly cherry
@@ -106,7 +302,8 @@ function parseCherryPickResult(result: IGitResult): CherryPickResult {
  */
 export async function continueCherryPick(
   repository: Repository,
-  files: ReadonlyArray<WorkingDirectoryFileChange>
+  files: ReadonlyArray<WorkingDirectoryFileChange>,
+  progressCallback?: (progress: ICherryPickProgress) => void
 ): Promise<CherryPickResult> {
   // only stage files related to cherry pick
   const trackedFiles = files.filter(f => {
@@ -129,7 +326,7 @@ export async function continueCherryPick(
     return CherryPickResult.Aborted
   }
 
-  const options: IGitExecutionOptions = {
+  let options: IGitExecutionOptions = {
     expectedErrors: new Set([
       GitError.MergeConflicts,
       GitError.UnresolvedConflicts,
@@ -138,6 +335,21 @@ export async function continueCherryPick(
       // if we don't provide editor, we can't detect git errors
       GIT_EDITOR: ':',
     },
+  }
+
+  if (progressCallback !== undefined) {
+    const snapshot = await getCherryPickSnapShot(repository)
+    if (snapshot === null) {
+      log.warn(
+        `[continueCherryPick] unable to get cherry pick status, skipping other steps`
+      )
+      return CherryPickResult.Aborted
+    }
+    options = configureOptionsWithCallBack(
+      options,
+      snapshot.remainingCommits,
+      progressCallback
+    )
   }
 
   const result = await git(
