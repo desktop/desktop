@@ -55,9 +55,9 @@ export enum CherryPickResult {
  * Each successful cherry picked commit outputs a set of lines similar to the
  * following example:
  *    [branchName commitSha] commitSummary
- *    Date: timestamp
- *    1 file changed, 1 insertion(+)
- *    create mode 100644 filename
+ *      Date: timestamp
+ *      1 file changed, 1 insertion(+)
+ *      create mode 100644 filename
  */
 class GitCherryPickParser {
   private count = 0
@@ -200,7 +200,7 @@ function parseCherryPickResult(result: IGitResult): CherryPickResult {
  *    pick is aborted or finished during parsing. It could also occur if cherry
  *    pick sequencer files are corrupted.
  */
-export async function getCherryPickSnapShot(
+export async function getCherryPickSnapshot(
   repository: Repository
 ): Promise<ICherryPickSnapshot | null> {
   const cherryPickHead = readCherryPickHead(repository)
@@ -231,7 +231,6 @@ export async function getCherryPickSnapShot(
     }
 
     // This contains a reference to the remaining commits to cherry pick.
-    // Each line is of the format: `pick shortSha commitSummary`
     const remainingPicks = (
       await FSE.readFile(
         Path.join(repository.path, '.git', 'sequencer', 'todo'),
@@ -245,6 +244,7 @@ export async function getCherryPickSnapShot(
       return null
     }
 
+    // Each line is of the format: `pick shortSha commitSummary`
     remainingPicks.split('\n').forEach(line => {
       const linePieces = line.split(' ')
       if (linePieces.length > 2) {
@@ -338,7 +338,7 @@ export async function continueCherryPick(
   }
 
   if (progressCallback !== undefined) {
-    const snapshot = await getCherryPickSnapShot(repository)
+    const snapshot = await getCherryPickSnapshot(repository)
     if (snapshot === null) {
       log.warn(
         `[continueCherryPick] unable to get cherry pick status, skipping other steps`

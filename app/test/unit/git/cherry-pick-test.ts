@@ -13,7 +13,7 @@ import {
   cherryPick,
   CherryPickResult,
   continueCherryPick,
-  getCherryPickSnapShot,
+  getCherryPickSnapshot,
 } from '../../../src/lib/git/cherry-pick'
 import { Branch } from '../../../src/models/branch'
 import { ICherryPickProgress } from '../../../src/models/progress'
@@ -452,7 +452,7 @@ describe('git/cherry-pick', () => {
       // resolution.
       expect(progress).toHaveLength(2)
 
-      const snapshot = await getCherryPickSnapShot(repository)
+      const snapshot = await getCherryPickSnapshot(repository)
       expect(snapshot?.progress).toEqual(progress[1])
 
       // resolve conflicts and continue
