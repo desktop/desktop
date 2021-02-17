@@ -231,7 +231,7 @@ export async function getCherryPickSnapShot(
     }
 
     // This contains a reference to the remaining commits to cherry pick.
-    // Each line is of the format pick shortSha commitSummary
+    // Each line is of the format: `pick shortSha commitSummary`
     const remainingPicks = (
       await FSE.readFile(
         Path.join(repository.path, '.git', 'sequencer', 'todo'),
