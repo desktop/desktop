@@ -1,5 +1,24 @@
 {
   "releases": {
+    "2.6.4-beta1": [
+      "[Added] Add branch context menu with rename and delete to branch dropdown list - #5803 #10432",
+      "[Fixed] Always respect the default branch name chosen by the user - #11447",
+      "[Fixed] Notepad++ is not closed anymore when GitHub Desktop closes - #11518",
+      "[Improved] Suggest emails from GitHub accounts and warn about misattributed commits in onboarding and Preferences - #11561 #11566",
+      "[Improved] Update app icon for Windows - #11541",
+      "[Improved] Automatic branch fast-forwarding is now faster - #11463"
+    ],
+    "2.6.3": [
+      "[Improved] Upgrade embedded Git to v2.29.2 - #11369",
+      "[Improved] Enable spellcheck on commit summary and description - #1597",
+      "[Improved] Update app icon for macOS - #10855",
+      "[Fixed] Remote Git operations (like cloning a repo) won't fail on old macOS versions - #11516",
+      "[Fixed] Fast-forward all possible branches except the current branch when fetching - #11387"
+    ],
+    "2.6.3-beta3": [
+      "[Fixed] Remote git operations (like cloning a repo) won't fail on old macOS versions - #11516",
+      "[Fixed] Updated about modal dialog on macOS to match the new Big Sur icon - #11511"
+    ],
     "2.6.3-beta2": ["[Improved] Update app icon for macOS Big Sur - #10855"],
     "2.6.3-beta1": [
       "[Fixed] Fast-forward all possible branches except the current branch when fetching - #11387",

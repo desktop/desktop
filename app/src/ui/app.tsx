@@ -42,7 +42,7 @@ import { TitleBar, ZoomInfo, FullScreenInfo } from './window'
 import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
 import { RenameBranch } from './rename-branch'
-import { DeleteBranch } from './delete-branch'
+import { DeleteBranch, DeleteRemoteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
 import {
   Toolbar,
@@ -1299,6 +1299,17 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDeleted={this.onBranchDeleted}
           />
         )
+      case PopupType.DeleteRemoteBranch:
+        return (
+          <DeleteRemoteBranch
+            key="delete-remote-branch"
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            branch={popup.branch}
+            onDismissed={onPopupDismissedFn}
+            onDeleted={this.onBranchDeleted}
+          />
+        )
       case PopupType.ConfirmDiscardChanges:
         const showSetting =
           popup.showDiscardChangesSetting === undefined
@@ -1579,7 +1590,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       case PopupType.ExternalEditorFailed:
         const openPreferences = popup.openPreferences
-        const suggestAtom = popup.suggestAtom
+        const suggestDefaultEditor = popup.suggestDefaultEditor
 
         return (
           <EditorError
@@ -1588,7 +1599,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
             showPreferencesDialog={this.onShowAdvancedPreferences}
             viewPreferences={openPreferences}
-            suggestAtom={suggestAtom}
+            suggestDefaultEditor={suggestDefaultEditor}
           />
         )
       case PopupType.OpenShellFailed:

@@ -12,7 +12,7 @@ import {
   parseRemote,
 } from '../../lib/remote-parsing'
 import { findAccountForRemoteURL } from '../../lib/find-account'
-import { API, IAPIRepository } from '../../lib/api'
+import { API, IAPIRepository, IAPIRepositoryCloneInfo } from '../../lib/api'
 import { Dialog, DialogError, DialogFooter, DialogContent } from '../dialog'
 import { TabBar } from '../tab-bar'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
@@ -583,9 +583,10 @@ export class CloneRepository extends React.Component<
 
   /**
    * Lookup the account associated with the clone (if applicable) and resolve
-   * the repository alias to the clone URL.
+   * the repository alias to the clone URL and the repository default branch,
+   * if possible.
    */
-  private async resolveCloneURL(): Promise<string | null> {
+  private async resolveCloneInfo(): Promise<IAPIRepositoryCloneInfo | null> {
     const { url, lastParsedIdentifier } = this.getSelectedTabState()
 
     const accounts = new Array<Account>()
@@ -604,17 +605,13 @@ export class CloneRepository extends React.Component<
       // Respect the user's preference if they provided an SSH URL
       const protocol = parseRemote(url)?.protocol
 
-      const cloneUrl = await api
-        .fetchRepositoryCloneUrl(owner, name, protocol)
-        .catch(err => {
-          log.error(`Failed to look up canonical clone url for '${url}'`, err)
-          return url
-        })
-
-      return cloneUrl
+      return api.fetchRepositoryCloneInfo(owner, name, protocol).catch(err => {
+        log.error(`Failed to look up repository clone info for '${url}'`, err)
+        return { url }
+      })
     }
 
-    return url
+    return { url }
   }
 
   private onItemClicked = (repository: IAPIRepository, source: ClickSource) => {
@@ -628,10 +625,10 @@ export class CloneRepository extends React.Component<
   private clone = async () => {
     this.setState({ loading: true })
 
-    const url = await this.resolveCloneURL()
+    const cloneInfo = await this.resolveCloneInfo()
     const { path } = this.getSelectedTabState()
 
-    if (!url) {
+    if (!cloneInfo) {
       const error = new Error(
         `We couldn't find that repository. Check that you are logged in, the network is accessible, and the URL or repository alias are spelled correctly.`
       )
@@ -640,8 +637,10 @@ export class CloneRepository extends React.Component<
       return
     }
 
+    const { url, defaultBranch } = cloneInfo
+
     try {
-      this.cloneImpl(url.trim(), path)
+      this.cloneImpl(url.trim(), path, defaultBranch)
     } catch (e) {
       log.error(`CloneRepository: clone failed to complete to ${path}`, e)
       this.setState({ loading: false })
@@ -649,8 +648,8 @@ export class CloneRepository extends React.Component<
     }
   }
 
-  private cloneImpl(url: string, path: string) {
-    this.props.dispatcher.clone(url, path)
+  private cloneImpl(url: string, path: string, defaultBranch?: string) {
+    this.props.dispatcher.clone(url, path, { defaultBranch })
     this.props.onDismissed()
 
     setDefaultDir(Path.resolve(path, '..'))

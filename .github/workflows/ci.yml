@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [12.14.1]
+        node: [14.x]
         os: [macos-10.15, windows-2019]
         include:
           - os: macos-10.15
@@ -69,6 +69,7 @@ jobs:
       - name: Run script tests
         run: yarn test:script:cov
       - name: Run integration tests
+        timeout-minutes: 5
         run: yarn test:integration
       - name: Publish production app
         run: yarn run publish

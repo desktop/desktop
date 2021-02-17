@@ -211,6 +211,9 @@ export class AppWindow {
   public show() {
     this.window.show()
     if (this.shouldMaximizeOnShow) {
+      // Only maximize the window the first time it's shown, not every time.
+      // Otherwise, it causes the problem described in desktop/desktop#11590
+      this.shouldMaximizeOnShow = false
       this.window.maximize()
     }
   }

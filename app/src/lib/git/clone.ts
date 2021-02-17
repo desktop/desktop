@@ -4,6 +4,7 @@ import { CloneOptions } from '../../models/clone-options'
 import { CloneProgressParser, executionOptionsWithProgress } from '../progress'
 import { withTrampolineEnvForRemoteOperation } from '../trampoline/trampoline-environment'
 import { merge } from '../merge'
+import { getDefaultBranch } from '../helpers/default-branch'
 
 /**
  * Clones a repository from a given url into to the specified path.
@@ -33,7 +34,15 @@ export async function clone(
 ): Promise<void> {
   const networkArguments = await gitNetworkArguments(null, options.account)
 
-  const args = [...networkArguments, 'clone', '--recursive']
+  const defaultBranch = options.defaultBranch ?? (await getDefaultBranch())
+
+  const args = [
+    ...networkArguments,
+    '-c',
+    `init.defaultBranch=${defaultBranch}`,
+    'clone',
+    '--recursive',
+  ]
 
   let opts: IGitExecutionOptions = {}
 
