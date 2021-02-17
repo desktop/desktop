@@ -1348,6 +1348,12 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.Preferences:
+        let repository = this.getRepository()
+
+        if (repository instanceof CloningRepository) {
+          repository = null
+        }
+
         return (
           <Preferences
             key="preferences"
@@ -1365,6 +1371,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             selectedExternalEditor={this.state.selectedExternalEditor}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             enterpriseAccount={this.getEnterpriseAccount()}
+            repository={repository}
             onDismissed={onPopupDismissedFn}
             selectedShell={this.state.selectedShell}
             selectedTheme={this.state.selectedTheme}
