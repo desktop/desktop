@@ -1,5 +1,11 @@
 {
   "releases": {
+    "2.6.4-beta2": [
+      "[Fixed] Allow users to modify git config on a per repository basis - #9449. Thanks @say25!",
+      "[Fixed] The app is not maximized on macOS every time the user clicks on the app's icon in the Dock - #11590",
+      "[Improved] Suggest emails from GitHub accounts and warn about misattributed commits in the commit message area - #11591",
+      "[Improved] Remote Git operations are now faster and less prone to errors on Windows - #11510"
+    ],
     "2.6.4-beta1": [
       "[Added] Add branch context menu with rename and delete to branch dropdown list - #5803 #10432",
       "[Fixed] Always respect the default branch name chosen by the user - #11447",
