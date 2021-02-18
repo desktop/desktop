@@ -8,6 +8,7 @@ import {
   FoldoutType,
   SelectionType,
   HistoryTabMode,
+  ICherryPickState,
 } from '../lib/app-state'
 import { Dispatcher } from './dispatcher'
 import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
@@ -120,6 +121,8 @@ import { DiscardSelection } from './discard-changes/discard-selection-dialog'
 import { LocalChangesOverwrittenDialog } from './local-changes-overwritten/local-changes-overwritten-dialog'
 import memoizeOne from 'memoize-one'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
+import { CherryPickFlow } from './cherry-pick/cherry-pick-flow'
+import { CherryPickStep, ChooseTargetBranchesStep } from '../models/cherry-pick'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1984,9 +1987,29 @@ export class App extends React.Component<IAppProps, IAppState> {
             files={popup.files}
           />
         )
-      case PopupType.CherryPick:
-        // TODO: Create Cherry Pick Branch Dialog
-        return null
+      case PopupType.CherryPick: {
+        this.initializeCherryPickFlowWithoutBranch()
+
+        const cherryPickState = this.getCherryPickState()
+        if (cherryPickState === null || cherryPickState.step == null) {
+          log.warn(
+            `[App] Invalid state encountered:
+            cherry pick flow should not be active when step is null
+            or the selected app state is not a repository state.`
+          )
+          return null
+        }
+
+        return (
+          <CherryPickFlow
+            key="cherry-pick-flow"
+            repository={popup.repository}
+            dispatcher={this.props.dispatcher}
+            onDismissed={onPopupDismissedFn}
+            step={cherryPickState.step}
+          />
+        )
+      }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -2679,6 +2702,55 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private isTutorialPaused() {
     return this.state.currentOnboardingTutorialStep === TutorialStep.Paused
+  }
+
+  private initializeCherryPickFlowWithoutBranch(): void {
+    const repository = this.getRepository()
+
+    if (!repository || repository instanceof CloningRepository) {
+      return
+    }
+
+    const repositoryState = this.props.repositoryStateManager.get(repository)
+
+    const {
+      defaultBranch,
+      allBranches,
+      recentBranches,
+      tip,
+    } = repositoryState.branchesState
+    let currentBranch: Branch | null = null
+
+    if (tip.kind === TipState.Valid) {
+      currentBranch = tip.branch
+    } else {
+      throw new Error(
+        'Tip is not in a valid state, which is required to start the rebase flow'
+      )
+    }
+
+    const initialStep: ChooseTargetBranchesStep = {
+      kind: CherryPickStep.ChooseTargetBranch,
+      defaultBranch,
+      currentBranch,
+      allBranches,
+      recentBranches,
+    }
+
+    this.props.dispatcher.setCherryPickFlowStep(repository, initialStep)
+  }
+
+  private getCherryPickState(): ICherryPickState | null {
+    const { selectedState } = this.state
+    if (
+      selectedState === null ||
+      selectedState.type !== SelectionType.Repository
+    ) {
+      return null
+    }
+
+    const { cherryPickState } = selectedState.state
+    return cherryPickState
   }
 }
 
