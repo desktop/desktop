@@ -97,6 +97,7 @@ import { IStashEntry } from '../../models/stash-entry'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { enableForkSettings } from '../../lib/feature-flag'
 import { resolveWithin } from '../../lib/path'
+import { CherryPickFlowStep } from '../../models/cherry-pick'
 
 /**
  * An error handler function.
@@ -2516,5 +2517,15 @@ export class Dispatcher {
       repository,
       commitSha,
     })
+  }
+
+  /**
+   * Move the cherry pick flow to a new state.
+   */
+  public setCherryPickFlowStep(
+    repository: Repository,
+    step: CherryPickFlowStep
+  ): Promise<void> {
+    return this.appStore._setCherryPickFlowStep(repository, step)
   }
 }
