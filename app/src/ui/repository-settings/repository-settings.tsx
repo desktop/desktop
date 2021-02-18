@@ -18,17 +18,32 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { ForkSettings } from './fork-settings'
 import { ForkContributionTarget } from '../../models/workflow-preferences'
 import { enableForkSettings } from '../../lib/feature-flag'
+import { GitConfigLocation, GitConfig } from './git-config'
+import {
+  getConfigValue,
+  getGlobalConfigValue,
+  removeConfigValue,
+  setConfigValue,
+} from '../../lib/git/config'
+import {
+  gitAuthorNameIsValid,
+  InvalidGitAuthorNameMessage,
+} from '../lib/identifier-rules'
+import { Account } from '../../models/account'
 
 interface IRepositorySettingsProps {
+  readonly initialSelectedTab?: RepositorySettingsTab
   readonly dispatcher: Dispatcher
   readonly remote: IRemote | null
   readonly repository: Repository
+  readonly repositoryAccount: Account | null
   readonly onDismissed: () => void
 }
 
-enum RepositorySettingsTab {
+export enum RepositorySettingsTab {
   Remote = 0,
   IgnoredFiles,
+  GitConfig,
   ForkSettings,
 }
 
@@ -38,6 +53,15 @@ interface IRepositorySettingsState {
   readonly ignoreText: string | null
   readonly ignoreTextHasChanged: boolean
   readonly disabled: boolean
+  readonly saveDisabled: boolean
+  readonly gitConfigLocation: GitConfigLocation
+  readonly committerName: string
+  readonly committerEmail: string
+  readonly globalCommitterName: string
+  readonly globalCommitterEmail: string
+  readonly initialGitConfigLocation: GitConfigLocation
+  readonly initialCommitterName: string | null
+  readonly initialCommitterEmail: string | null
   readonly errors?: ReadonlyArray<JSX.Element | string>
   readonly forkContributionTarget: ForkContributionTarget
 }
@@ -50,12 +74,22 @@ export class RepositorySettings extends React.Component<
     super(props)
 
     this.state = {
-      selectedTab: RepositorySettingsTab.Remote,
+      selectedTab:
+        this.props.initialSelectedTab || RepositorySettingsTab.Remote,
       remote: props.remote,
       ignoreText: null,
       ignoreTextHasChanged: false,
       disabled: false,
       forkContributionTarget: getForkContributionTarget(props.repository),
+      saveDisabled: false,
+      gitConfigLocation: GitConfigLocation.Global,
+      committerName: '',
+      committerEmail: '',
+      globalCommitterName: '',
+      globalCommitterEmail: '',
+      initialGitConfigLocation: GitConfigLocation.Global,
+      initialCommitterName: null,
+      initialCommitterEmail: null,
     }
   }
 
@@ -70,6 +104,45 @@ export class RepositorySettings extends React.Component<
       )
       this.setState({ errors: [`Could not read root .gitignore: ${e}`] })
     }
+
+    const localCommitterName = await getConfigValue(
+      this.props.repository,
+      'user.name',
+      true
+    )
+    const localCommitterEmail = await getConfigValue(
+      this.props.repository,
+      'user.email',
+      true
+    )
+
+    const globalCommitterName = (await getGlobalConfigValue('user.name')) || ''
+    const globalCommitterEmail =
+      (await getGlobalConfigValue('user.email')) || ''
+
+    const gitConfigLocation =
+      localCommitterName === null && localCommitterEmail === null
+        ? GitConfigLocation.Global
+        : GitConfigLocation.Local
+
+    let committerName = globalCommitterName
+    let committerEmail = globalCommitterEmail
+
+    if (gitConfigLocation === GitConfigLocation.Local) {
+      committerName = localCommitterName ?? ''
+      committerEmail = localCommitterEmail ?? ''
+    }
+
+    this.setState({
+      gitConfigLocation,
+      committerName,
+      committerEmail,
+      globalCommitterName,
+      globalCommitterEmail,
+      initialGitConfigLocation: gitConfigLocation,
+      initialCommitterName: localCommitterName,
+      initialCommitterEmail: localCommitterEmail,
+    })
   }
 
   private renderErrors(): JSX.Element[] | null {
@@ -108,6 +181,7 @@ export class RepositorySettings extends React.Component<
           >
             <span>Remote</span>
             <span>{__DARWIN__ ? 'Ignored Files' : 'Ignored files'}</span>
+            <span>{__DARWIN__ ? 'Git Config' : 'Git config'}</span>
             {showForkSettings && (
               <span>{__DARWIN__ ? 'Fork Behavior' : 'Fork behavior'}</span>
             )}
@@ -129,7 +203,10 @@ export class RepositorySettings extends React.Component<
 
     return (
       <DialogFooter>
-        <OkCancelButtonGroup okButtonText="Save" />
+        <OkCancelButtonGroup
+          okButtonText="Save"
+          okButtonDisabled={this.state.saveDisabled}
+        />
       </DialogFooter>
     )
   }
@@ -174,6 +251,23 @@ export class RepositorySettings extends React.Component<
           />
         )
       }
+
+      case RepositorySettingsTab.GitConfig: {
+        return (
+          <GitConfig
+            account={this.props.repositoryAccount}
+            gitConfigLocation={this.state.gitConfigLocation}
+            onGitConfigLocationChanged={this.onGitConfigLocationChanged}
+            name={this.state.committerName}
+            email={this.state.committerEmail}
+            globalName={this.state.globalCommitterName}
+            globalEmail={this.state.globalCommitterEmail}
+            onNameChanged={this.onCommitterNameChanged}
+            onEmailChanged={this.onCommitterEmailChanged}
+          />
+        )
+      }
+
       default:
         return assertNever(tab, `Unknown tab type: ${tab}`)
     }
@@ -241,6 +335,45 @@ export class RepositorySettings extends React.Component<
       )
     }
 
+    let shouldRefreshAuthor = false
+    const gitLocationChanged =
+      this.state.gitConfigLocation !== this.state.initialGitConfigLocation
+
+    if (
+      gitLocationChanged &&
+      this.state.gitConfigLocation === GitConfigLocation.Global
+    ) {
+      // If it's now configured to use the global config, just delete the local
+      // user info in this repository.
+      await removeConfigValue(this.props.repository, 'user.name')
+      await removeConfigValue(this.props.repository, 'user.email')
+
+      shouldRefreshAuthor = true
+    } else if (this.state.gitConfigLocation === GitConfigLocation.Local) {
+      // Otherwise, update the local name and email if needed
+      if (this.state.committerName !== this.state.initialCommitterName) {
+        await setConfigValue(
+          this.props.repository,
+          'user.name',
+          this.state.committerName
+        )
+        shouldRefreshAuthor = true
+      }
+
+      if (this.state.committerEmail !== this.state.initialCommitterEmail) {
+        await setConfigValue(
+          this.props.repository,
+          'user.email',
+          this.state.committerEmail
+        )
+        shouldRefreshAuthor = true
+      }
+    }
+
+    if (shouldRefreshAuthor) {
+      this.props.dispatcher.refreshAuthor(this.props.repository)
+    }
+
     if (!errors.length) {
       this.props.onDismissed()
     } else {
@@ -273,5 +406,26 @@ export class RepositorySettings extends React.Component<
     this.setState({
       forkContributionTarget,
     })
+  }
+
+  private onGitConfigLocationChanged = (value: GitConfigLocation) => {
+    this.setState({ gitConfigLocation: value })
+  }
+
+  private onCommitterNameChanged = (committerName: string) => {
+    const errors = new Array<JSX.Element | string>()
+
+    if (gitAuthorNameIsValid(committerName)) {
+      this.setState({ saveDisabled: false })
+    } else {
+      this.setState({ saveDisabled: true })
+      errors.push(InvalidGitAuthorNameMessage)
+    }
+
+    this.setState({ committerName, errors })
+  }
+
+  private onCommitterEmailChanged = (committerEmail: string) => {
+    this.setState({ committerEmail })
   }
 }

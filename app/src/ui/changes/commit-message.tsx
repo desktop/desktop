@@ -32,6 +32,8 @@ import { CommitMessageAvatar } from './commit-message-avatar'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { lookupPreferredEmail } from '../../lib/email'
 import { setGlobalConfigValue } from '../../lib/git/config'
+import { PopupType } from '../../models/popup'
+import { RepositorySettingsTab } from '../repository-settings/repository-settings'
 
 const addAuthorIcon = new OcticonSymbol(
   18,
@@ -299,6 +301,7 @@ export class CommitMessage extends React.Component<
             : ''
         }
         onUpdateEmail={this.onUpdateUserEmail}
+        onOpenRepositorySettings={this.onOpenRepositorySettings}
       />
     )
   }
@@ -306,6 +309,14 @@ export class CommitMessage extends React.Component<
   private onUpdateUserEmail = async (email: string) => {
     await setGlobalConfigValue('user.email', email)
     this.props.dispatcher.refreshAuthor(this.props.repository)
+  }
+
+  private onOpenRepositorySettings = () => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.RepositorySettings,
+      repository: this.props.repository,
+      initialSelectedTab: RepositorySettingsTab.GitConfig,
+    })
   }
 
   private get isCoAuthorInputEnabled() {

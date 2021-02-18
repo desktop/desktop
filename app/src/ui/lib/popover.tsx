@@ -17,6 +17,7 @@ import { Options as FocusTrapOptions } from 'focus-trap'
 export enum PopoverCaretPosition {
   TopRight = 'top-right',
   LeftTop = 'left-top',
+  LeftBottom = 'left-bottom',
 }
 interface IPopoverProps {
   readonly onClickOutside: () => void

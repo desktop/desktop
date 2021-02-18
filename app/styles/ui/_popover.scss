@@ -64,3 +64,28 @@
     border-right-color: var(--background-color);
   }
 }
+
+.popover-component.popover-caret-left-bottom {
+  &::before,
+  &::after {
+    position: absolute;
+    bottom: 20px;
+    display: inline-block;
+    content: '';
+    pointer-events: none;
+  }
+
+  &::before {
+    left: -16px;
+    margin-bottom: -9px;
+    border: 8px solid transparent;
+    border-right-color: var(--box-border-color);
+  }
+
+  &::after {
+    left: -14px;
+    margin-bottom: -8px;
+    border: 7px solid transparent;
+    border-right-color: var(--background-color);
+  }
+}

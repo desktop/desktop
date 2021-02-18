@@ -15,7 +15,10 @@ import {
 import { lookupPreferredEmail } from '../../lib/email'
 import { Shell, getAvailableShells } from '../../lib/shells'
 import { getAvailableEditors } from '../../lib/editors/lookup'
-import { gitAuthorNameIsValid } from './identifier-rules'
+import {
+  gitAuthorNameIsValid,
+  InvalidGitAuthorNameMessage,
+} from '../lib/identifier-rules'
 import { Appearance } from './appearance'
 import { ApplicationTheme } from '../lib/application-theme'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
@@ -386,7 +389,7 @@ export class Preferences extends React.Component<
       committerName,
       disallowedCharactersMessage: gitAuthorNameIsValid(committerName)
         ? null
-        : 'Name is invalid, it consists only of disallowed characters.',
+        : InvalidGitAuthorNameMessage,
     })
   }
 
