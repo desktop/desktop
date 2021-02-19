@@ -26,10 +26,10 @@ jobs:
           - os: windows-2019
             arch: arm64
             friendlyName: Windows arm64
-        exclude:
-          - os: macos-10.15
-            arch: arm64
     timeout-minutes: 45
+    env:
+      # Needed for macOS arm64 until hosted macos-11.0 runners become available
+      SDKROOT: /Library/Developer/CommandLineTools/SDKs/MacOSX11.1.sdk
     steps:
       - uses: actions/checkout@v2
         with:
