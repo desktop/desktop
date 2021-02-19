@@ -86,7 +86,6 @@ export class ChooseTargetBranchDialog extends React.Component<
     source.event.preventDefault()
 
     const { selectedBranch } = this.state
-
     if (selectedBranch !== null && selectedBranch.name === branch.name) {
       this.startCherryPick()
     }
@@ -164,7 +163,8 @@ export class ChooseTargetBranchDialog extends React.Component<
 
   private startCherryPick = async () => {
     const { selectedBranch } = this.state
-    if (!selectedBranch) {
+
+    if (selectedBranch === null || !this.canCherryPickOntoSelectedBranch()) {
       return
     }
 
