@@ -87,7 +87,7 @@ const imageFileExtensions = new Set([
   '.ico',
   '.webp',
   '.bmp',
-  '.avif'
+  '.avif',
 ])
 
 /**
