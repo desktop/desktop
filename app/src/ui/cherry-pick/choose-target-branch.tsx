@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { Branch } from '../../models/branch'
 import { IMatches } from '../../lib/fuzzy-find'
-import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 import {
   Dialog,
   DialogContent,

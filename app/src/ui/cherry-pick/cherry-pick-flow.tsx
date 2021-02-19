@@ -22,7 +22,7 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
     this.props.onDismissed()
   }
 
-  private onCherryPick(targetBranch: Branch) {
+  private onCherryPick = (targetBranch: Branch) => {
     // TODO: call this.props.dispatcher.cherryPick
     this.props.onDismissed()
   }
