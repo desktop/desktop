@@ -743,10 +743,12 @@
   resolved "https://registry.yarnpkg.com/@types/double-ended-queue/-/double-ended-queue-2.1.0.tgz#adc862d8d53bdf7d1b23a7d85559815ec1fbb92c"
   integrity sha512-pCS41/Odn6GMQyqnt8aPTSTQFGriAryYQwVONKk1QhUEhulxueLPE1kDNqDOuJqiv34VLVWXxF4I1EKz3+ftzQ==
 
-"@types/electron-winstaller@^2.6.0":
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/@types/electron-winstaller/-/electron-winstaller-2.6.0.tgz#703073ee2109fefe8a958fdadb746dfc0a827918"
-  integrity sha512-pQke6avqSYtkNunEec7NF2dTDSFsf2e1Ti9VkaJFzI15UfTEOjwz22lKoImja7nXPLu8nINYSaVaPgw0XHJEkA==
+"@types/electron-winstaller@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@types/electron-winstaller/-/electron-winstaller-4.0.0.tgz#7377b2cdaab361956cbf1fc41419abb77172d8eb"
+  integrity sha512-IpgXedqMlSjBIq7+mpj7pkxxZHramuVnrQTyYZbV4M6eABRCNVkbLfXnD35F2+kW3lKFOW9qTcCDo5aGKn7rnQ==
+  dependencies:
+    electron-winstaller "*"
 
 "@types/eslint-visitor-keys@^1.0.0":
   version "1.0.0"
@@ -4128,10 +4130,10 @@ electron-publish@22.7.0:
     lazy-val "^1.0.4"
     mime "^2.4.5"
 
-electron-winstaller@4.0.2:
-  version "4.0.2"
-  resolved "https://registry.yarnpkg.com/electron-winstaller/-/electron-winstaller-4.0.2.tgz#e3aa7e95db8232eeb337b28c11ad80b93dcafe6d"
-  integrity sha512-tYmzIyi+W0CXd9o/jmR0VT+vwJ+nOaE/dQz8f64IlbQ/J9d2lpwsmmOKxx6veAVKeYiJHYQHR1eYsLzznNzd5g==
+electron-winstaller@*, electron-winstaller@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/electron-winstaller/-/electron-winstaller-5.0.0.tgz#0db968f34d498b16c69566a40848f562e70e7bcc"
+  integrity sha512-V+jFda7aVAm0htCG8Q95buPUpmXZW9ujh1HdhSlWY6y4QnJnw4TfrmxTlQWV4p2ioF/71JMI/1YF+/qbSICogA==
   dependencies:
     asar "^2.0.1"
     debug "^4.1.1"
