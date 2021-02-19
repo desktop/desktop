@@ -2626,7 +2626,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       gitStore.loadRemotes(),
       gitStore.updateLastFetched(),
       gitStore.loadStashEntries(),
-      this.refreshAuthor(repository),
+      this._refreshAuthor(repository),
       refreshSectionPromise,
     ])
 
@@ -2853,7 +2853,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
   }
 
-  private async refreshAuthor(repository: Repository): Promise<void> {
+  public async _refreshAuthor(repository: Repository): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
     const commitAuthor =
       (await gitStore.performFailableOperation(() =>

@@ -1,4 +1,4 @@
-import { gitAuthorNameIsValid } from '../../src/ui/preferences/identifier-rules'
+import { gitAuthorNameIsValid } from '../../src/ui/lib/identifier-rules'
 
 describe('Identifier rules', () => {
   describe('gitAuthorNameIsValid', () => {

@@ -120,6 +120,7 @@ import { DiscardSelection } from './discard-changes/discard-selection-dialog'
 import { LocalChangesOverwrittenDialog } from './local-changes-overwritten/local-changes-overwritten-dialog'
 import memoizeOne from 'memoize-one'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
+import { getAccountForRepository } from '../lib/get-account-for-repository'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1348,6 +1349,12 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.Preferences:
+        let repository = this.getRepository()
+
+        if (repository instanceof CloningRepository) {
+          repository = null
+        }
+
         return (
           <Preferences
             key="preferences"
@@ -1365,6 +1372,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             selectedExternalEditor={this.state.selectedExternalEditor}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             enterpriseAccount={this.getEnterpriseAccount()}
+            repository={repository}
             onDismissed={onPopupDismissedFn}
             selectedShell={this.state.selectedShell}
             selectedTheme={this.state.selectedTheme}
@@ -1403,13 +1411,19 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.RepositorySettings: {
         const repository = popup.repository
         const state = this.props.repositoryStateManager.get(repository)
+        const repositoryAccount = getAccountForRepository(
+          this.state.accounts,
+          repository
+        )
 
         return (
           <RepositorySettings
             key={`repository-settings-${repository.hash}`}
+            initialSelectedTab={popup.initialSelectedTab}
             remote={state.remote}
             dispatcher={this.props.dispatcher}
             repository={repository}
+            repositoryAccount={repositoryAccount}
             onDismissed={onPopupDismissedFn}
           />
         )
@@ -1977,6 +1991,9 @@ export class App extends React.Component<IAppProps, IAppState> {
             files={popup.files}
           />
         )
+      case PopupType.CherryPick:
+        // TODO: Create Cherry Pick Branch Dialog
+        return null
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }

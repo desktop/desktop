@@ -47,6 +47,11 @@ export function enableWSLDetection(): boolean {
   return enableBetaFeatures()
 }
 
+/** Should the app use the shiny new TCP-based trampoline? */
+export function enableDesktopTrampoline(): boolean {
+  return enableBetaFeatures()
+}
+
 /**
  * Should we show the create fork dialog flow?
  */
@@ -142,4 +147,11 @@ export function enableDefaultBranchSetting(): boolean {
  */
 export function enableUnhandledRejectionReporting(): boolean {
   return enableBetaFeatures()
+}
+
+/**
+ * Should we allow cherry picking
+ */
+export function enableCherryPicking(): boolean {
+  return false // enableBetaFeatures()
 }

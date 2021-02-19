@@ -15,7 +15,10 @@ import {
 import { lookupPreferredEmail } from '../../lib/email'
 import { Shell, getAvailableShells } from '../../lib/shells'
 import { getAvailableEditors } from '../../lib/editors/lookup'
-import { gitAuthorNameIsValid } from './identifier-rules'
+import {
+  gitAuthorNameIsValid,
+  InvalidGitAuthorNameMessage,
+} from '../lib/identifier-rules'
 import { Appearance } from './appearance'
 import { ApplicationTheme } from '../lib/application-theme'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
@@ -35,11 +38,13 @@ import {
   getDefaultBranch,
 } from '../../lib/helpers/default-branch'
 import { Prompts } from './prompts'
+import { Repository } from '../../models/repository'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
   readonly dotComAccount: Account | null
   readonly enterpriseAccount: Account | null
+  readonly repository: Repository | null
   readonly onDismissed: () => void
   readonly optOutOfUsageTracking: boolean
   readonly initialSelectedTab?: PreferencesTab
@@ -282,6 +287,8 @@ export class Preferences extends React.Component<
               name={this.state.committerName}
               email={this.state.committerEmail}
               defaultBranch={this.state.defaultBranch}
+              dotComAccount={this.props.dotComAccount}
+              enterpriseAccount={this.props.enterpriseAccount}
               onNameChanged={this.onCommitterNameChanged}
               onEmailChanged={this.onCommitterEmailChanged}
               onDefaultBranchChanged={this.onDefaultBranchChanged}
@@ -382,7 +389,7 @@ export class Preferences extends React.Component<
       committerName,
       disallowedCharactersMessage: gitAuthorNameIsValid(committerName)
         ? null
-        : 'Name is invalid, it consists only of disallowed characters.',
+        : InvalidGitAuthorNameMessage,
     })
   }
 
@@ -442,12 +449,20 @@ export class Preferences extends React.Component<
 
   private onSave = async () => {
     try {
+      let shouldRefreshAuthor = false
+
       if (this.state.committerName !== this.state.initialCommitterName) {
         await setGlobalConfigValue('user.name', this.state.committerName)
+        shouldRefreshAuthor = true
       }
 
       if (this.state.committerEmail !== this.state.initialCommitterEmail) {
         await setGlobalConfigValue('user.email', this.state.committerEmail)
+        shouldRefreshAuthor = true
+      }
+
+      if (this.props.repository !== null && shouldRefreshAuthor) {
+        this.props.dispatcher.refreshAuthor(this.props.repository)
       }
 
       // If the entered default branch is empty, we don't store it and keep

@@ -15,6 +15,7 @@ import { IStashEntry } from './stash-entry'
 import { Account } from '../models/account'
 import { Progress } from './progress'
 import { ITextDiff, DiffSelection } from './diff'
+import { RepositorySettingsTab } from '../ui/repository-settings/repository-settings'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -67,6 +68,7 @@ export enum PopupType {
   LocalChangesOverwritten,
   ChooseForkSettings,
   ConfirmDiscardSelection,
+  CherryPick,
 }
 
 export type Popup =
@@ -102,7 +104,11 @@ export type Popup =
       repository: Repository
       branch?: Branch
     }
-  | { type: PopupType.RepositorySettings; repository: Repository }
+  | {
+      type: PopupType.RepositorySettings
+      repository: Repository
+      initialSelectedTab?: RepositorySettingsTab
+    }
   | { type: PopupType.AddRepository; path?: string }
   | { type: PopupType.CreateRepository; path?: string }
   | {
@@ -263,4 +269,9 @@ export type Popup =
       repository: Repository
       retryAction: RetryAction
       files: ReadonlyArray<string>
+    }
+  | {
+      type: PopupType.CherryPick
+      repository: Repository
+      commitSha: string
     }

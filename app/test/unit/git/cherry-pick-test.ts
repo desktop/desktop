@@ -8,9 +8,17 @@ import {
   MergeResult,
   revRangeInclusive,
 } from '../../../src/lib/git'
-import { cherryPick, CherryPickResult } from '../../../src/lib/git/cherry-pick'
+import {
+  abortCherryPick,
+  cherryPick,
+  CherryPickResult,
+  continueCherryPick,
+  getCherryPickSnapshot,
+} from '../../../src/lib/git/cherry-pick'
 import { Branch } from '../../../src/models/branch'
+import { ICherryPickProgress } from '../../../src/models/progress'
 import { Repository } from '../../../src/models/repository'
+import { AppFileStatusKind } from '../../../src/models/status'
 import { getBranchOrError } from '../../helpers/git'
 import { createRepository } from '../../helpers/repository-builder-cherry-pick-test'
 import {
@@ -18,6 +26,7 @@ import {
   makeCommit,
   switchTo,
 } from '../../helpers/repository-scaffolding'
+import { getStatusOrThrow } from '../../helpers/status'
 
 const featureBranchName = 'this-is-a-feature'
 const targetBranchName = 'target-branch'
@@ -43,7 +52,7 @@ describe('git/cherry-pick', () => {
     result = null
   })
 
-  it('successfully cherry pick one commit without conflicts', async () => {
+  it('successfully cherry picked one commit without conflicts', async () => {
     result = await cherryPick(repository, featureBranch.tip.sha)
     const cherryPickedCommit = await getCommit(
       repository,
@@ -56,7 +65,7 @@ describe('git/cherry-pick', () => {
     expect(result).toBe(CherryPickResult.CompletedWithoutError)
   })
 
-  it('successfully cherry pick a commit with empty message', async () => {
+  it('successfully cherry picked a commit with empty message', async () => {
     // add a commit with no message
     await switchTo(repository, featureBranchName)
     const filePath = Path.join(repository.path, 'EMPTY_MESSAGE.md')
@@ -85,35 +94,11 @@ describe('git/cherry-pick', () => {
     expect(result).toBe(CherryPickResult.CompletedWithoutError)
   })
 
-  it('successfully cherry pick multiple commits without conflicts', async () => {
+  it('successfully cherry picked multiple commits without conflicts', async () => {
     // keep reference to the first commit in cherry pick range
     const firstCommitSha = featureBranch.tip.sha
 
-    // add two more commits to cherry pick
-    await switchTo(repository, featureBranchName)
-
-    const featureBranchCommitTwo = {
-      commitMessage: 'Cherry Picked Feature! Number Two',
-      entries: [
-        {
-          path: 'THING_TWO.md',
-          contents: '# HELLO WORLD! \nTHINGS GO HERE\n',
-        },
-      ],
-    }
-    await makeCommit(repository, featureBranchCommitTwo)
-
-    const featureBranchCommitThree = {
-      commitMessage: 'Cherry Picked Feature! Number Three',
-      entries: [
-        {
-          path: 'THING_THREE.md',
-          contents: '# HELLO WORLD! \nTHINGS GO HERE\n',
-        },
-      ],
-    }
-    await makeCommit(repository, featureBranchCommitThree)
-
+    await addThreeMoreCommitsOntoFeatureBranch(repository)
     featureBranch = await getBranchOrError(repository, featureBranchName)
     await switchTo(repository, targetBranchName)
 
@@ -121,13 +106,13 @@ describe('git/cherry-pick', () => {
     result = await cherryPick(repository, commitRange)
 
     const commits = await getCommits(repository, targetBranch.ref, 5)
-    expect(commits.length).toBe(4)
-    expect(commits[0].summary).toBe(featureBranchCommitThree.commitMessage)
-    expect(commits[1].summary).toBe(featureBranchCommitTwo.commitMessage)
+    expect(commits.length).toBe(5)
+    expect(commits[1].summary).toBe('Cherry Picked Feature! Number Three')
+    expect(commits[2].summary).toBe('Cherry Picked Feature! Number Two')
     expect(result).toBe(CherryPickResult.CompletedWithoutError)
   })
 
-  it('fails to cherry pick invalid revision range', async () => {
+  it('fails to cherry pick an invalid revision range', async () => {
     result = null
     try {
       result = await cherryPick(repository, 'no such revision')
@@ -264,4 +249,272 @@ describe('git/cherry-pick', () => {
     }
     expect(result).toBe(null)
   })
+
+  describe('cherry picking with conflicts', () => {
+    beforeEach(async () => {
+      // In the 'git/cherry-pick' `beforeEach`, we call `createRepository` which
+      // adds a commit to the feature branch with a file called THING.md. In
+      // order to make a conflict, we will add the same file to the target
+      // branch.
+      const conflictingCommit = {
+        commitMessage: 'Conflicting Commit!',
+        entries: [
+          {
+            path: 'THING.md',
+            contents: '# HELLO WORLD! \n CREATING CONFLICT! FUN TIMES!\n',
+          },
+        ],
+      }
+      await makeCommit(repository, conflictingCommit)
+    })
+
+    it('successfully detects cherry pick with conflicts', async () => {
+      result = await cherryPick(repository, featureBranch.tip.sha)
+      expect(result).toBe(CherryPickResult.ConflictsEncountered)
+
+      const status = await getStatusOrThrow(repository)
+      const conflictedFiles = status.workingDirectory.files.filter(
+        f => f.status.kind === AppFileStatusKind.Conflicted
+      )
+      expect(conflictedFiles).toHaveLength(1)
+    })
+
+    it('successfully continues cherry picking with conflicts after resolving them', async () => {
+      result = await cherryPick(repository, featureBranch.tip.sha)
+      expect(result).toBe(CherryPickResult.ConflictsEncountered)
+
+      const statusAfterCherryPick = await getStatusOrThrow(repository)
+      const { files } = statusAfterCherryPick.workingDirectory
+
+      // git diff --check warns if conflict markers exist and will exit with
+      // non-zero status if conflicts found
+      const diffCheckBefore = await GitProcess.exec(
+        ['diff', '--check'],
+        repository.path
+      )
+      expect(diffCheckBefore.exitCode).toBeGreaterThan(0)
+
+      // resolve conflicts by writing files to disk
+      await FSE.writeFile(
+        Path.join(repository.path, 'THING.md'),
+        '# HELLO WORLD! \nTHINGS GO HERE\nFEATURE BRANCH UNDERWAY\n'
+      )
+
+      // diff --check to verify no conflicts exist (exitCode should be 0)
+      const diffCheckAfter = await GitProcess.exec(
+        ['diff', '--check'],
+        repository.path
+      )
+      expect(diffCheckAfter.exitCode).toEqual(0)
+
+      result = await continueCherryPick(repository, files)
+
+      expect(result).toBe(CherryPickResult.CompletedWithoutError)
+    })
+
+    it('successfully detects cherry picking with outstanding files not staged', async () => {
+      result = await cherryPick(repository, featureBranch.tip.sha)
+      expect(result).toBe(CherryPickResult.ConflictsEncountered)
+
+      result = await continueCherryPick(repository, [])
+      expect(result).toBe(CherryPickResult.OutstandingFilesNotStaged)
+
+      const status = await getStatusOrThrow(repository)
+      const conflictedFiles = status.workingDirectory.files.filter(
+        f => f.status.kind === AppFileStatusKind.Conflicted
+      )
+      expect(conflictedFiles).toHaveLength(1)
+    })
+
+    it('successfully continues cherry picking with additional changes to untracked files', async () => {
+      result = await cherryPick(repository, featureBranch.tip.sha)
+      expect(result).toBe(CherryPickResult.ConflictsEncountered)
+
+      // resolve conflicts by writing files to disk
+      await FSE.writeFile(
+        Path.join(repository.path, 'THING.md'),
+        '# HELLO WORLD! \nTHINGS GO HERE\nFEATURE BRANCH UNDERWAY\n'
+      )
+
+      // changes to untracked file
+      await FSE.writeFile(
+        Path.join(repository.path, 'UNTRACKED_FILE.md'),
+        '# HELLO WORLD! \nUNTRACKED FILE STUFF IN HERE\n'
+      )
+
+      const statusAfterCherryPick = await getStatusOrThrow(repository)
+      const { files } = statusAfterCherryPick.workingDirectory
+
+      // THING.MD and UNTRACKED_FILE.md should be in working directory
+      expect(files.length).toBe(2)
+
+      result = await continueCherryPick(repository, files)
+      expect(result).toBe(CherryPickResult.CompletedWithoutError)
+
+      // Only UNTRACKED_FILE.md should be in working directory
+      // THING.md committed with cherry pick
+      const status = await getStatusOrThrow(repository)
+      expect(status.workingDirectory.files[0].path).toBe('UNTRACKED_FILE.md')
+    })
+
+    it('successfully aborts cherry pick after conflict', async () => {
+      result = await cherryPick(repository, featureBranch.tip.sha)
+      expect(result).toBe(CherryPickResult.ConflictsEncountered)
+
+      // files from cherry pick exist in conflicted state
+      const statusAfterConflict = await getStatusOrThrow(repository)
+      expect(statusAfterConflict.workingDirectory.files).toHaveLength(1)
+
+      await abortCherryPick(repository)
+
+      // file from cherry pick removed after abort
+      const statusAfterAbort = await getStatusOrThrow(repository)
+      expect(statusAfterAbort.workingDirectory.files).toHaveLength(0)
+    })
+  })
+
+  describe('cherry picking progress', () => {
+    let progress = new Array<ICherryPickProgress>()
+    beforeEach(() => {
+      progress = []
+    })
+
+    it('errors when given invalid revision range', async () => {
+      const progress = new Array<ICherryPickProgress>()
+      result = await cherryPick(repository, 'INVALID REF', p =>
+        progress.push(p)
+      )
+      expect(result).toBe(CherryPickResult.Error)
+    })
+
+    it('successfully parses progress for a single commit', async () => {
+      result = await cherryPick(repository, featureBranch.tip.sha, p =>
+        progress.push(p)
+      )
+
+      // commit summary set up in before each is "Cherry Picked Feature"
+      expect(progress).toEqual([
+        {
+          currentCommitSummary: 'Cherry Picked Feature!',
+          kind: 'cherryPick',
+          cherryPickCommitCount: 1,
+          title: 'Cherry picking commit 1 of 1 commits',
+          totalCommitCount: 1,
+          value: 1,
+        },
+      ])
+    })
+
+    it('successfully parses progress for multiple commits', async () => {
+      const firstCommitSha = featureBranch.tip.sha
+
+      await addThreeMoreCommitsOntoFeatureBranch(repository)
+      featureBranch = await getBranchOrError(repository, featureBranchName)
+      await switchTo(repository, targetBranchName)
+
+      const commitRange = revRangeInclusive(
+        firstCommitSha,
+        featureBranch.tip.sha
+      )
+      result = await cherryPick(repository, commitRange, p => progress.push(p))
+
+      expect(result).toBe(CherryPickResult.CompletedWithoutError)
+      expect(progress).toHaveLength(4)
+    })
+
+    it('successfully parses progress for multiple commits including a conflict', async () => {
+      const firstCommitSha = featureBranch.tip.sha
+
+      await addThreeMoreCommitsOntoFeatureBranch(repository)
+      featureBranch = await getBranchOrError(repository, featureBranchName)
+      await switchTo(repository, targetBranchName)
+
+      // Add a commit to the target branch to conflict with the third commit on
+      // the target branch.
+      const targetBranchConflictingCommitTwo = {
+        commitMessage: 'Conflicting with 2nd commit on feature branch',
+        entries: [
+          {
+            path: 'THING_THREE.md',
+            contents: '# Conflict with feature branch here',
+          },
+        ],
+      }
+      await makeCommit(repository, targetBranchConflictingCommitTwo)
+
+      const commitRange = revRangeInclusive(
+        firstCommitSha,
+        featureBranch.tip.sha
+      )
+      result = await cherryPick(repository, commitRange, p => progress.push(p))
+      expect(result).toBe(CherryPickResult.ConflictsEncountered)
+      // First commit and second cherry picked and rest are waiting on conflict
+      // resolution.
+      expect(progress).toHaveLength(2)
+
+      const snapshot = await getCherryPickSnapshot(repository)
+      expect(snapshot?.progress).toEqual(progress[1])
+
+      // resolve conflicts and continue
+      const statusAfterConflictedCherryPick = await getStatusOrThrow(repository)
+      const { files } = statusAfterConflictedCherryPick.workingDirectory
+      await FSE.writeFile(
+        Path.join(repository.path, 'THING_THREE.md'),
+        '# Resolve conflicts!'
+      )
+      result = await continueCherryPick(repository, files, p =>
+        progress.push(p)
+      )
+      expect(result).toBe(CherryPickResult.CompletedWithoutError)
+      // After 3rd commit resolved, 3rd and 4th were cherry picked
+      expect(progress).toHaveLength(4)
+      expect(progress[0].currentCommitSummary).toEqual('Cherry Picked Feature!')
+      expect(progress[1].currentCommitSummary).toEqual(
+        'Cherry Picked Feature! Number Two'
+      )
+      expect(progress[2].currentCommitSummary).toEqual(
+        'Cherry Picked Feature! Number Three'
+      )
+      expect(progress[3].currentCommitSummary).toEqual(
+        'Cherry Picked Feature! Number Four'
+      )
+    })
+  })
 })
+
+async function addThreeMoreCommitsOntoFeatureBranch(repository: Repository) {
+  await switchTo(repository, featureBranchName)
+
+  const featureBranchCommitTwo = {
+    commitMessage: 'Cherry Picked Feature! Number Two',
+    entries: [
+      {
+        path: 'THING_TWO.md',
+        contents: '# HELLO WORLD! \nTHINGS GO HERE\n',
+      },
+    ],
+  }
+  await makeCommit(repository, featureBranchCommitTwo)
+
+  const featureBranchCommitThree = {
+    commitMessage: 'Cherry Picked Feature! Number Three',
+    entries: [
+      {
+        path: 'THING_THREE.md',
+        contents: '# HELLO WORLD! \nTHINGS GO HERE\n',
+      },
+    ],
+  }
+  await makeCommit(repository, featureBranchCommitThree)
+
+  const featureBranchCommitFour = {
+    commitMessage: 'Cherry Picked Feature! Number Four',
+    entries: [
+      {
+        path: 'THING_FOUR.md',
+        contents: '# HELLO WORLD! \nTHINGS GO HERE\n',
+      },
+    ],
+  }
+  await makeCommit(repository, featureBranchCommitFour)
+}

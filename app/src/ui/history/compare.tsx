@@ -230,6 +230,7 @@ export class CompareSidebar extends React.Component<
         onScroll={this.onScroll}
         onCreateTag={this.onCreateTag}
         onDeleteTag={this.onDeleteTag}
+        onCherryPick={this.onCherryPick}
         emptyListMessage={emptyListMessage}
         onCompareListScrolled={this.props.onCompareListScrolled}
         compareListScrollTop={this.props.compareListScrollTop}
@@ -503,6 +504,13 @@ export class CompareSidebar extends React.Component<
 
   private onDeleteTag = (tagName: string) => {
     this.props.dispatcher.showDeleteTagDialog(this.props.repository, tagName)
+  }
+
+  private onCherryPick = (commitSha: string) => {
+    this.props.dispatcher.showCherryPickBranchDialog(
+      this.props.repository,
+      commitSha
+    )
   }
 }
 

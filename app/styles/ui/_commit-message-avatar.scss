@@ -1,0 +1,69 @@
+.commit-message-avatar-component {
+  // With this, the popover's absolute position will be relative to its parent
+  position: relative;
+
+  .warning-badge {
+    background-color: #f6f8fa;
+    width: 18px;
+    height: 18px;
+    position: absolute;
+    margin-top: -6px;
+    margin-left: -7px;
+    border-radius: 9px;
+    border: #d1d5da 1px solid;
+
+    > svg {
+      height: 10px;
+      // With width=100%, the icon will be centered horizontally
+      width: 100%;
+    }
+  }
+
+  label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  h3 {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  section + section {
+    margin-top: var(--spacing);
+  }
+
+  section.button-group {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .button-row {
+    justify-content: flex-end;
+  }
+
+  .secondary-text {
+    color: var(--text-secondary-color);
+  }
+
+  .select-component {
+    overflow: hidden;
+  }
+
+  .popover-component {
+    // This allows for using <Rows> to structure content within dialog content.
+    // All Rows that are direct descendants of dialog content except for the
+    // last one receive a bottom margin.
+    .row-component:not(:last-child) {
+      margin-bottom: var(--spacing);
+    }
+
+    position: absolute;
+    margin-left: 21px;
+    bottom: 13px;
+
+    width: 300px;
+  }
+}
