@@ -11,7 +11,7 @@ export function SuccessfulCherryPick({
 }) {
   const message = (
     <span>
-      {'Successfully cherry picked commit '}
+      {'Successfully cherry picked commit to '}
       <strong>{targetBranchName}</strong>
     </span>
   )
