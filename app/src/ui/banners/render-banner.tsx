@@ -11,6 +11,7 @@ import { SuccessfulMerge } from './successful-merge'
 import { RebaseConflictsBanner } from './rebase-conflicts-banner'
 import { SuccessfulRebase } from './successful-rebase'
 import { BranchAlreadyUpToDate } from './branch-already-up-to-date-banner'
+import { SuccessfulCherryPick } from './successful-cherry-pick'
 
 export function renderBanner(
   banner: Banner,
@@ -64,6 +65,14 @@ export function renderBanner(
           onDismissed={onDismissed}
           key={'branch-already-up-to-date'}
         ></BranchAlreadyUpToDate>
+      )
+    case BannerType.SuccessfulCherryPick:
+      return (
+        <SuccessfulCherryPick
+          key="successful-cherry-pick"
+          targetBranchName={banner.targetBranchName}
+          onDismissed={onDismissed}
+        ></SuccessfulCherryPick>
       )
     default:
       return assertNever(banner, `Unknown popup type: ${banner}`)
