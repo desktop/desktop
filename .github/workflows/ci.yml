@@ -9,8 +9,8 @@ on:
 
 jobs:
   build:
-    name: ${{ matrix.friendlyName }}
-    runs-on: ${{ matrix.os }} ${{ matrix.arch }}
+    name: ${{ matrix.friendlyName }} ${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
