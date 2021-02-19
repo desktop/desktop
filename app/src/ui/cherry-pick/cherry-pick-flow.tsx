@@ -1,6 +1,7 @@
 import * as React from 'react'
 
 import { assertNever } from '../../lib/fatal-error'
+import { Branch } from '../../models/branch'
 import { CherryPickFlowStep, CherryPickStep } from '../../models/cherry-pick'
 
 import { Repository } from '../../models/repository'
@@ -21,8 +22,9 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
     this.props.onDismissed()
   }
 
-  private onCherryPick() {
+  private onCherryPick(targetBranch: Branch) {
     // TODO: call this.props.dispatcher.cherryPick
+    this.props.onDismissed()
   }
 
   public render() {
@@ -38,7 +40,7 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
         } = step
         return (
           <ChooseTargetBranchDialog
-            key="choose-branch"
+            key="choose-target-branch"
             allBranches={allBranches}
             defaultBranch={defaultBranch}
             recentBranches={recentBranches}

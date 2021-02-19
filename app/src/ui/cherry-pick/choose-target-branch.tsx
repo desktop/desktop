@@ -113,15 +113,9 @@ export class ChooseTargetBranchDialog extends React.Component<
 
     const { selectedBranch } = this.state
     if (selectedBranch !== null) {
-      // the amount of characters to allow before we truncate was chosen
-      // arbitrarily and matches rebase choose branch dialog
-      const truncatedSelectedBranch = truncateWithEllipsis(
-        selectedBranch.name,
-        40
-      )
       return (
         <>
-          {okButtonText} to <strong>{truncatedSelectedBranch}</strong>…
+          {okButtonText} to <strong>{selectedBranch.name}</strong>…
         </>
       )
     }
