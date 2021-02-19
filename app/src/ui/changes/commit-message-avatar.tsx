@@ -42,6 +42,8 @@ interface ICommitMessageAvatarProps {
   readonly preferredAccountEmail: string
 
   readonly onUpdateEmail: (email: string) => void
+
+  readonly onOpenRepositorySettings: () => void
 }
 
 /**
@@ -121,14 +123,14 @@ export class CommitMessageAvatar extends React.Component<
 
     return (
       <Popover
-        caretPosition={PopoverCaretPosition.LeftTop}
+        caretPosition={PopoverCaretPosition.LeftBottom}
         onClickOutside={this.closePopover}
       >
         <h3>This commit will be misattributed</h3>
         <Row>
           <div>
-            The email in your git config ({this.props.email}) doesn't match your
-            GitHub{accountTypeSuffix} account.{' '}
+            The email in your global Git config ({this.props.email}) doesn't
+            match your GitHub{accountTypeSuffix} account.{' '}
             <LinkButton uri="https://docs.github.com/en/github/committing-changes-to-your-project/why-are-my-commits-linked-to-the-wrong-user">
               Learn more.
             </LinkButton>
@@ -146,6 +148,15 @@ export class CommitMessageAvatar extends React.Component<
             ))}
           </Select>
         </Row>
+        <Row>
+          <div className="secondary-text">
+            You can also choose an email local to this repository from the{' '}
+            <LinkButton onClick={this.onRepositorySettingsClick}>
+              repository settings
+            </LinkButton>
+            .
+          </div>
+        </Row>
         <Row className="button-row">
           <Button onClick={this.onIgnoreClick} tooltip="Ignore" type="button">
             Ignore
@@ -160,6 +171,11 @@ export class CommitMessageAvatar extends React.Component<
         </Row>
       </Popover>
     )
+  }
+
+  private onRepositorySettingsClick = () => {
+    this.closePopover()
+    this.props.onOpenRepositorySettings()
   }
 
   private onIgnoreClick = (event: React.MouseEvent<HTMLButtonElement>) => {

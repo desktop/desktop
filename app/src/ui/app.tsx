@@ -123,6 +123,7 @@ import memoizeOne from 'memoize-one'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
 import { CherryPickFlow } from './cherry-pick/cherry-pick-flow'
 import { CherryPickStep, ChooseTargetBranchesStep } from '../models/cherry-pick'
+import { getAccountForRepository } from '../lib/get-account-for-repository'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1413,13 +1414,19 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.RepositorySettings: {
         const repository = popup.repository
         const state = this.props.repositoryStateManager.get(repository)
+        const repositoryAccount = getAccountForRepository(
+          this.state.accounts,
+          repository
+        )
 
         return (
           <RepositorySettings
             key={`repository-settings-${repository.hash}`}
+            initialSelectedTab={popup.initialSelectedTab}
             remote={state.remote}
             dispatcher={this.props.dispatcher}
             repository={repository}
+            repositoryAccount={repositoryAccount}
             onDismissed={onPopupDismissedFn}
           />
         )

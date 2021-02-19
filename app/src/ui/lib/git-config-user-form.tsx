@@ -14,6 +14,8 @@ interface IGitConfigUserFormProps {
   readonly dotComAccount: Account | null
   readonly enterpriseAccount: Account | null
 
+  readonly disabled?: boolean
+
   readonly onNameChanged: (name: string) => void
   readonly onEmailChanged: (email: string) => void
 }
@@ -53,6 +55,15 @@ export class GitConfigUserForm extends React.Component<
     prevProps: IGitConfigUserFormProps,
     prevState: IGitConfigUserFormState
   ) {
+    // If the email coming from the props has changed, it means a new config
+    // was loaded into the form. In that case, make sure to only select the
+    // option "Other" if strictly needed.
+    if (prevProps.email !== this.props.email) {
+      this.setState({
+        emailIsOther: !this.accountEmails.includes(this.props.email),
+      })
+    }
+
     // Focus the text input that allows the user to enter a custom
     // email address when the user selects "Other".
     if (
@@ -73,6 +84,7 @@ export class GitConfigUserForm extends React.Component<
           <TextBox
             label="Name"
             value={this.props.name}
+            disabled={this.props.disabled}
             onValueChanged={this.props.onNameChanged}
           />
         </Row>
@@ -111,6 +123,7 @@ export class GitConfigUserForm extends React.Component<
           value={
             this.state.emailIsOther ? OtherEmailSelectValue : this.props.email
           }
+          disabled={this.props.disabled}
           onChange={this.onEmailSelectChange}
         >
           {dotComEmails.map(e => (
@@ -148,6 +161,7 @@ export class GitConfigUserForm extends React.Component<
           label={label}
           type="email"
           value={this.props.email}
+          disabled={this.props.disabled}
           onValueChanged={this.props.onEmailChanged}
         />
       </Row>
