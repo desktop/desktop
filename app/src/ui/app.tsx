@@ -2732,7 +2732,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       currentBranch = tip.branch
     } else {
       throw new Error(
-        'Tip is not in a valid state, which is required to start the rebase flow'
+        'Tip is not in a valid state, which is required to start the cherry pick flow'
       )
     }
 
