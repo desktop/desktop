@@ -13,7 +13,7 @@ export interface ICherryPickSnapshot {
 /** Union type representing the possible states of the cherry pick flow */
 export type CherryPickFlowStep = ChooseTargetBranchesStep
 
-export const enum CherryPickStep {
+export const enum CherryPickStepKind {
   /**
    * The initial state of a cherry pick.
    *
@@ -26,7 +26,7 @@ export const enum CherryPickStep {
 
 /** Shape of data needed to choose the base branch for a cherry pick  */
 export type ChooseTargetBranchesStep = {
-  readonly kind: CherryPickStep.ChooseTargetBranch
+  readonly kind: CherryPickStepKind.ChooseTargetBranch
   readonly defaultBranch: Branch | null
   readonly currentBranch: Branch
   readonly allBranches: ReadonlyArray<Branch>

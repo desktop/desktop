@@ -122,7 +122,10 @@ import { LocalChangesOverwrittenDialog } from './local-changes-overwritten/local
 import memoizeOne from 'memoize-one'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
 import { CherryPickFlow } from './cherry-pick/cherry-pick-flow'
-import { CherryPickStep, ChooseTargetBranchesStep } from '../models/cherry-pick'
+import {
+  CherryPickStepKind,
+  ChooseTargetBranchesStep,
+} from '../models/cherry-pick'
 import { getAccountForRepository } from '../lib/get-account-for-repository'
 
 const MinuteInMilliseconds = 1000 * 60
@@ -2737,7 +2740,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const initialStep: ChooseTargetBranchesStep = {
-      kind: CherryPickStep.ChooseTargetBranch,
+      kind: CherryPickStepKind.ChooseTargetBranch,
       defaultBranch,
       currentBranch,
       allBranches,

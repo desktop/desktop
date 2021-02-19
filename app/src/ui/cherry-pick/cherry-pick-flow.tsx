@@ -2,7 +2,10 @@ import * as React from 'react'
 
 import { assertNever } from '../../lib/fatal-error'
 import { Branch } from '../../models/branch'
-import { CherryPickFlowStep, CherryPickStep } from '../../models/cherry-pick'
+import {
+  CherryPickFlowStep,
+  CherryPickStepKind,
+} from '../../models/cherry-pick'
 
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
@@ -31,7 +34,7 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
     const { step } = this.props
 
     switch (step.kind) {
-      case CherryPickStep.ChooseTargetBranch: {
+      case CherryPickStepKind.ChooseTargetBranch: {
         const {
           allBranches,
           defaultBranch,
