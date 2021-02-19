@@ -6,6 +6,7 @@ export enum BannerType {
   SuccessfulRebase = 'SuccessfulRebase',
   RebaseConflictsFound = 'RebaseConflictsFound',
   BranchAlreadyUpToDate = 'BranchAlreadyUpToDate',
+  SuccessfulCherryPick = 'SuccessfulCherryPick',
 }
 
 export type Banner =
@@ -43,4 +44,9 @@ export type Banner =
       readonly ourBranch: string
       /** name of the branch we merged into `ourBranch` */
       readonly theirBranch?: string
+    }
+  | {
+      readonly type: BannerType.SuccessfulCherryPick
+      /** name of the branch that was cherry picked to */
+      readonly targetBranchName: string
     }
