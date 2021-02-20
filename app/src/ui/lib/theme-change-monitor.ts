@@ -28,7 +28,7 @@ class ThemeChangeMonitor implements IDisposable {
     const theme = darkModeEnabled
       ? ApplicationTheme.Dark
       : ApplicationTheme.Light
-      
+
     this.emitThemeChanged(theme)
   }
 

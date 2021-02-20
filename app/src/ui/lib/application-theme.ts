@@ -13,7 +13,9 @@ export enum ApplicationTheme {
  * in persisting to storage and/or calculating the required
  * body class name to set in order to apply the theme.
  */
-export function getThemeName(theme: ApplicationTheme): 'light' | 'dark' | 'system' {
+export function getThemeName(
+  theme: ApplicationTheme
+): 'light' | 'dark' | 'system' {
   switch (theme) {
     case ApplicationTheme.Light:
       return 'light'
@@ -28,15 +30,14 @@ export function getThemeName(theme: ApplicationTheme): 'light' | 'dark' | 'syste
  * Load the currently selected theme
  */
 export function getPersistedTheme(): ApplicationTheme {
-  const currentTheme = remote.nativeTheme.themeSource;
+  const currentTheme = remote.nativeTheme.themeSource
 
-  switch (currentTheme)
-  {
-    case 'light':       
+  switch (currentTheme) {
+    case 'light':
       return ApplicationTheme.Light
     case 'dark':
       return ApplicationTheme.Dark
-    default:       
+    default:
       return ApplicationTheme.System
   }
 }
@@ -52,5 +53,5 @@ export function getPersistedThemeName(): string {
  * Store the given theme in the persistent store.
  */
 export function setPersistedTheme(theme: ApplicationTheme) {
-  remote.nativeTheme.themeSource = getThemeName(theme);
+  remote.nativeTheme.themeSource = getThemeName(theme)
 }
