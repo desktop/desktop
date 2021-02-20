@@ -176,9 +176,7 @@ const sendErrorWithContext = (
         extra.windowState = currentState.windowState
         extra.accounts = `${currentState.accounts.length}`
 
-        if (__DARWIN__) {
-          extra.automaticallySwitchTheme = `${currentState.automaticallySwitchTheme}`
-        }
+        extra.automaticallySwitchTheme = `${currentState.automaticallySwitchTheme}`
       }
     } catch (err) {
       /* ignore */
