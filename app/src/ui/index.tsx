@@ -79,6 +79,7 @@ import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 import { enableUnhandledRejectionReporting } from '../lib/feature-flag'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
 import { ApplicationTheme } from './lib/application-theme'
+import { supportsSystemThemeChanges } from './lib/dark-theme'
 
 if (__DEV__) {
   installDevGlobals()
@@ -178,7 +179,8 @@ const sendErrorWithContext = (
         extra.accounts = `${currentState.accounts.length}`
 
         extra.automaticallySwitchTheme = `${
-          currentState.selectedTheme === ApplicationTheme.System
+          currentState.selectedTheme === ApplicationTheme.System &&
+          supportsSystemThemeChanges()
         }`
       }
     } catch (err) {
