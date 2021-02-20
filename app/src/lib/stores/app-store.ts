@@ -69,8 +69,6 @@ import {
   ApplicationTheme,
   getPersistedTheme,
   setPersistedTheme,
-  getAutoSwitchPersistedTheme,
-  setAutoSwitchPersistedTheme,
 } from '../../ui/lib/application-theme'
 import {
   getAppMenu,
@@ -220,7 +218,6 @@ import { BranchPruner } from './helpers/branch-pruner'
 import { enableUpdateRemoteUrl } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import moment from 'moment'
-import { isDarkModeEnabled } from '../../ui/lib/dark-theme'
 import { ComputedAction } from '../../models/computed-action'
 import {
   createDesktopStashEntry,
@@ -410,7 +407,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private selectedCloneRepositoryTab = CloneRepositoryTab.DotCom
 
   private selectedBranchesTab = BranchesTab.Branches
-  private selectedTheme = ApplicationTheme.Light
+  private selectedTheme = ApplicationTheme.System
   private automaticallySwitchTheme = false
 
   private hasUserViewedStash = false
@@ -761,7 +758,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
       selectedTheme: this.selectedTheme,
-      automaticallySwitchTheme: this.automaticallySwitchTheme,
       apiRepositories: this.apiRepositoriesStore.getState(),
       optOutOfUsageTracking: this.statsStore.getOptOut(),
       currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
@@ -1694,16 +1690,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
     this.showSideBySideDiff = getShowSideBySideDiff()
 
-    this.automaticallySwitchTheme = getAutoSwitchPersistedTheme()
-
-    if (this.automaticallySwitchTheme) {
-      this.selectedTheme = isDarkModeEnabled()
-        ? ApplicationTheme.Dark
-        : ApplicationTheme.Light
-      setPersistedTheme(this.selectedTheme)
-    } else {
-      this.selectedTheme = getPersistedTheme()
-    }
+    this.selectedTheme = getPersistedTheme()
+    this.automaticallySwitchTheme = this.selectedTheme === ApplicationTheme.System
+    setPersistedTheme(this.selectedTheme)
 
     themeChangeMonitor.onThemeChanged(theme => {
       if (this.automaticallySwitchTheme) {
@@ -5411,18 +5400,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   public _setSelectedTheme(theme: ApplicationTheme) {
     setPersistedTheme(theme)
+    this.automaticallySwitchTheme = theme === ApplicationTheme.System
     this.selectedTheme = theme
-    this.emitUpdate()
-
-    return Promise.resolve()
-  }
-
-  /**
-   * Set the application-wide theme
-   */
-  public _setAutomaticallySwitchTheme(automaticallySwitchTheme: boolean) {
-    setAutoSwitchPersistedTheme(automaticallySwitchTheme)
-    this.automaticallySwitchTheme = automaticallySwitchTheme
     this.emitUpdate()
 
     return Promise.resolve()

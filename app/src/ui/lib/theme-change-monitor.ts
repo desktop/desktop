@@ -1,7 +1,7 @@
 import { remote } from 'electron'
 import { ApplicationTheme } from './application-theme'
 import { IDisposable, Disposable, Emitter } from 'event-kit'
-import { supportsDarkMode, isDarkModeEnabled } from './dark-theme'
+import { supportsSystemThemeChanges, isDarkModeEnabled } from './dark-theme'
 
 class ThemeChangeMonitor implements IDisposable {
   private readonly emitter = new Emitter()
@@ -15,7 +15,7 @@ class ThemeChangeMonitor implements IDisposable {
   }
 
   private subscribe = () => {
-    if (!supportsDarkMode()) {
+    if (!supportsSystemThemeChanges()) {
       return
     }
 
@@ -28,6 +28,7 @@ class ThemeChangeMonitor implements IDisposable {
     const theme = darkModeEnabled
       ? ApplicationTheme.Dark
       : ApplicationTheme.Light
+      
     this.emitThemeChanged(theme)
   }
 

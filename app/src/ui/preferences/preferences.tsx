@@ -55,7 +55,6 @@ interface IPreferencesProps {
   readonly selectedExternalEditor: string | null
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
-  readonly automaticallySwitchTheme: boolean
   readonly repositoryIndicatorsEnabled: boolean
 }
 
@@ -302,10 +301,6 @@ export class Preferences extends React.Component<
           <Appearance
             selectedTheme={this.props.selectedTheme}
             onSelectedThemeChanged={this.onSelectedThemeChanged}
-            automaticallySwitchTheme={this.props.automaticallySwitchTheme}
-            onAutomaticallySwitchThemeChanged={
-              this.onAutomaticallySwitchThemeChanged
-            }
           />
         )
         break
@@ -411,14 +406,6 @@ export class Preferences extends React.Component<
 
   private onSelectedThemeChanged = (theme: ApplicationTheme) => {
     this.props.dispatcher.setSelectedTheme(theme)
-  }
-
-  private onAutomaticallySwitchThemeChanged = (
-    automaticallySwitchTheme: boolean
-  ) => {
-    this.props.dispatcher.onAutomaticallySwitchThemeChanged(
-      automaticallySwitchTheme
-    )
   }
 
   private renderFooter() {

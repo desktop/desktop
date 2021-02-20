@@ -1,11 +1,11 @@
-import { assertNever } from '../../lib/fatal-error'
-import { getBoolean, setBoolean } from '../../lib/local-storage'
+import { remote } from 'electron'
 /**
  * A set of the user-selectable appearances (aka themes)
  */
 export enum ApplicationTheme {
   Light,
   Dark,
+  System,
 }
 
 /**
@@ -13,64 +13,44 @@ export enum ApplicationTheme {
  * in persisting to storage and/or calculating the required
  * body class name to set in order to apply the theme.
  */
-export function getThemeName(theme: ApplicationTheme): string {
+export function getThemeName(theme: ApplicationTheme): 'light' | 'dark' | 'system' {
   switch (theme) {
     case ApplicationTheme.Light:
       return 'light'
     case ApplicationTheme.Dark:
       return 'dark'
     default:
-      return assertNever(theme, `Unknown theme ${theme}`)
+      return 'system'
   }
 }
 
-// The key under which the currently selected theme is persisted
-// in localStorage.
-const applicationThemeKey = 'theme'
-
 /**
- * Load the currently selected theme from the persistent
- * store (localStorage). If no theme is selected the default
- * theme will be returned.
+ * Load the currently selected theme
  */
 export function getPersistedTheme(): ApplicationTheme {
-  return localStorage.getItem(applicationThemeKey) === 'dark'
-    ? ApplicationTheme.Dark
-    : ApplicationTheme.Light
+  const currentTheme = remote.nativeTheme.themeSource;
+
+  switch (currentTheme)
+  {
+    case 'light':       
+      return ApplicationTheme.Light
+    case 'dark':
+      return ApplicationTheme.Dark
+    default:       
+      return ApplicationTheme.System
+  }
 }
 
 /**
- * Load the name of the currently selected theme from the persistent
- * store (localStorage). If no theme is selected the default
- * theme name will be returned.
+ * Load the name of the currently selected theme
  */
 export function getPersistedThemeName(): string {
-  return getThemeName(getPersistedTheme())
+  return remote.nativeTheme.themeSource
 }
 
 /**
- * Store the given theme in the persistent store (localStorage).
+ * Store the given theme in the persistent store.
  */
 export function setPersistedTheme(theme: ApplicationTheme) {
-  localStorage.setItem(applicationThemeKey, getThemeName(theme))
-}
-
-// The key under which the decision to automatically switch the theme is persisted
-// in localStorage.
-const automaticallySwitchApplicationThemeKey = 'autoSwitchTheme'
-
-/**
- * Load the whether or not the user wishes to automatically switch the selected theme from the persistent
- * store (localStorage). If no theme is selected the default
- * theme will be returned.
- */
-export function getAutoSwitchPersistedTheme(): boolean {
-  return getBoolean(automaticallySwitchApplicationThemeKey, false)
-}
-
-/**
- * Store whether or not the user wishes to automatically switch the selected theme in the persistent store (localStorage).
- */
-export function setAutoSwitchPersistedTheme(autoSwitchTheme: boolean) {
-  setBoolean(automaticallySwitchApplicationThemeKey, autoSwitchTheme)
+  remote.nativeTheme.themeSource = getThemeName(theme);
 }

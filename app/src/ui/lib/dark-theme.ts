@@ -4,7 +4,10 @@ import {
   isWindows10And1809Preview17666OrLater,
 } from '../../lib/get-os'
 
-export function supportsDarkMode() {
+/**
+ * Whether or not the current OS supports System Theme Changes
+ */
+export function supportsSystemThemeChanges() {
   if (__DARWIN__) {
     return isMacOSMojaveOrLater()
   } else if (__WIN32__) {
@@ -18,7 +21,7 @@ export function supportsDarkMode() {
 }
 
 export function isDarkModeEnabled() {
-  if (!supportsDarkMode()) {
+  if (!supportsSystemThemeChanges()) {
     return false
   }
 
