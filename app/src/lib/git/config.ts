@@ -146,7 +146,7 @@ export async function setGlobalConfigValue(
     HOME: string
   }
 ): Promise<void> {
-  setConfigValueInPath(name, value, null, env)
+  await setConfigValueInPath(name, value, null, env)
 }
 
 /**
