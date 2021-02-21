@@ -76,6 +76,8 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
             emoji={this.props.emoji}
           />
         )
+      case CherryPickStepKind.ShowConflicts:
+        return null
       default:
         return assertNever(step, 'Unknown cherry pick step found')
     }

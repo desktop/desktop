@@ -2552,7 +2552,7 @@ export class Dispatcher {
     log.info(`[cherryPick] - git reset ${beforeSha} --hard`)
   }
 
-  /** Starts a cherry pick from commits in the revisionRange onto the target
+  /** Starts a cherry pick of the commits onto the target
    * branch */
   public async cherryPick(
     repository: Repository,
@@ -2571,7 +2571,11 @@ export class Dispatcher {
       case CherryPickResult.CompletedWithoutError:
         await this.completeCherryPick(repository, targetBranch.name)
         break
-      // TODO: handle conflicts and other handled errors
+      case CherryPickResult.ConflictsEncountered:
+        this.setCherryPickFlowStep(repository, {
+          kind: CherryPickStepKind.ShowConflicts,
+        })
+        break
       default:
         this.appStore._endCherryPickFlow(repository)
         throw Error(
