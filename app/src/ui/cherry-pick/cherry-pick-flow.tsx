@@ -12,11 +12,13 @@ import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { ChooseTargetBranchDialog } from './choose-target-branch'
 import { CherryPickProgressDialog } from './cherry-pick-progress-dialog'
+import { CommitOneLine } from '../../models/commit'
 
 interface ICherryPickFlowProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly step: CherryPickFlowStep
+  readonly commits: CommitOneLine[]
   readonly progress: ICherryPickProgress | null
   readonly emoji: Map<string, string>
 
@@ -30,8 +32,11 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
   }
 
   private onCherryPick = (targetBranch: Branch) => {
-    // TODO: call this.props.dispatcher.cherryPick
-    this.props.onDismissed()
+    this.props.dispatcher.startCherryPick(
+      this.props.repository,
+      targetBranch,
+      this.props.commits
+    )
   }
 
   public render() {

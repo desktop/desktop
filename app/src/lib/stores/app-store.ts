@@ -60,6 +60,7 @@ import {
   IFetchProgress,
   IRevertProgress,
   IRebaseProgress,
+  ICherryPickProgress,
 } from '../../models/progress'
 import { Popup, PopupType } from '../../models/popup'
 import { IGitAccount } from '../../models/git-account'
@@ -150,6 +151,7 @@ import {
   deleteLocalBranch,
   deleteRemoteBranch,
   fastForwardBranches,
+  revRangeInclusive,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -266,7 +268,12 @@ import {
   getShowSideBySideDiff,
   setShowSideBySideDiff,
 } from '../../ui/lib/diff-mode'
-import { CherryPickFlowStep } from '../../models/cherry-pick'
+import {
+  CherryPickFlowStep,
+  CherryPickStepKind,
+} from '../../models/cherry-pick'
+import { cherryPick, CherryPickResult } from '../git/cherry-pick'
+import { round } from '../../ui/lib/round'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -5690,6 +5697,91 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     this.repositoryStateCache.updateCherryPickState(repository, () => ({
       step,
+    }))
+
+    this.emitUpdate()
+
+    if (step.kind === CherryPickStepKind.ShowProgress && step.action !== null) {
+      // this timeout is intended to defer the action from running immediately
+      // after the progress UI is shown, to better show that cherry picking is
+      // progressing rather than suddenly appearing and disappearing again
+      await sleep(1000)
+      await step.action()
+    }
+  }
+
+  public _initializeCherryPickProgress(
+    repository: Repository,
+    commits: CommitOneLine[]
+  ) {
+    if (commits.length === 0) {
+      // This shouldn't happen... but in case throw error.
+      throw new Error(
+        'Unable to initialize cherry pick progress. No commits provided.'
+      )
+    }
+
+    this.repositoryStateCache.updateCherryPickState(repository, () => {
+      return {
+        progress: {
+          kind: 'cherryPick',
+          title: `Cherry picking commit 1 of ${commits.length} commits`,
+          value: round(0, 2),
+          cherryPickCommitCount: 1,
+          totalCommitCount: commits.length,
+          currentCommitSummary: commits[0].summary,
+        },
+      }
+    })
+
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _cherryPick(
+    repository: Repository,
+    targetBranch: Branch,
+    commits: CommitOneLine[]
+  ): Promise<CherryPickResult> {
+    if (commits.length === 0) {
+      // This shouldn't happen... but in case throw error.
+      throw new Error('Unable to cherry pick. No commits provided.')
+    }
+
+    const gitStore = this.gitStoreCache.get(repository)
+    await this.withAuthenticatingUser(repository, async (r, account) => {
+      await gitStore.performFailableOperation(() =>
+        checkoutBranch(repository, account, targetBranch)
+      )
+    })
+
+    const progressCallback = (progress: ICherryPickProgress) => {
+      this.repositoryStateCache.updateCherryPickState(repository, () => ({
+        progress,
+      }))
+      this.emitUpdate()
+    }
+
+    let revisionRange: string
+    if (commits.length === 1) {
+      revisionRange = commits[0].sha
+    } else {
+      const lastCommit = commits[commits.length - 1]
+      revisionRange = revRangeInclusive(commits[0].sha, lastCommit.sha)
+    }
+
+    const result = await gitStore.performFailableOperation(() =>
+      cherryPick(repository, revisionRange, progressCallback)
+    )
+
+    return result || CherryPickResult.Error
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _endCherryPickFlow(repository: Repository): void {
+    this.repositoryStateCache.updateCherryPickState(repository, () => ({
+      step: null,
+      progress: null,
     }))
 
     this.emitUpdate()

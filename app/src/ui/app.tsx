@@ -2018,6 +2018,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             step={cherryPickState.step}
             emoji={this.state.emoji}
             progress={cherryPickState.progress}
+            commits={popup.commits}
           />
         )
       }
