@@ -14,6 +14,8 @@
 @import 'dialogs/create-tutorial-repository';
 @import 'dialogs/create-fork';
 @import 'dialogs/fork-settings';
+@import 'dialogs/cherry-pick';
+@import 'dialogs/cherry-pick-progress';
 
 // The styles herein attempt to follow a flow where margins are only applied
 // to the bottom of elements (with the exception of the last child). This to
@@ -321,6 +323,12 @@ dialog {
   }
 
   &#app-error {
+    // Use wider dialogs for raw git errors, to make sure we can display lines
+    // up to 80 characters long without wrapping them.
+    &.raw-git-error {
+      max-width: 700px;
+    }
+
     .dialog-content {
       p {
         -webkit-user-select: text;

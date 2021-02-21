@@ -438,7 +438,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --easing-ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
 
   /** rebase progress bar */
-  --dialog-rebase-progress-background: #{$green};
+  --dialog-progress-background: #{$green};
 
   /** merge/rebase status indicators */
   --status-pending-color: #{$yellow-700};
