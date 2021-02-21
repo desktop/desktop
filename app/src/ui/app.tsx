@@ -2016,6 +2016,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             onDismissed={onPopupDismissedFn}
             step={cherryPickState.step}
+            emoji={this.state.emoji}
+            progress={cherryPickState.progress}
           />
         )
       }

@@ -11,7 +11,7 @@ export interface ICherryPickSnapshot {
 }
 
 /** Union type representing the possible states of the cherry pick flow */
-export type CherryPickFlowStep = ChooseTargetBranchesStep
+export type CherryPickFlowStep = ChooseTargetBranchesStep | ShowProgressStep
 
 export const enum CherryPickStepKind {
   /**
@@ -22,6 +22,13 @@ export const enum CherryPickStepKind {
    * drag and drop onto a specific branch.
    */
   ChooseTargetBranch = 'ChooseTargetBranch',
+  /**
+   * After the user chooses the target branch of the cherry pick, the
+   * progress view shows the cherry pick is progressing.
+   *
+   * This should be the default view when there are no conflicts to address.
+   */
+  ShowProgress = 'ShowProgress',
 }
 
 /** Shape of data needed to choose the base branch for a cherry pick  */
@@ -31,4 +38,17 @@ export type ChooseTargetBranchesStep = {
   readonly currentBranch: Branch
   readonly allBranches: ReadonlyArray<Branch>
   readonly recentBranches: ReadonlyArray<Branch>
+}
+
+/** Shape of data to show progress of the current cherry pick */
+export type ShowProgressStep = {
+  readonly kind: CherryPickStepKind.ShowProgress
+
+  /**
+   * An optional action to run when the component is mounted.
+   *
+   * This is provided to the component because a cherry pick can be very fast,
+   * and we want to defer until we can show a progress indication to the user.
+   */
+  readonly action: (() => Promise<void>) | null
 }
