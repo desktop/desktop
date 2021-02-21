@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: ${{ matrix.friendlyName }}
+    name: ${{ matrix.friendlyName }} ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -21,15 +21,11 @@ jobs:
           - os: macos-10.15
             friendlyName: macOS
           - os: windows-2019
-            arch: x64
-            friendlyName: Windows x64
-          - os: windows-2019
-            arch: arm64
-            friendlyName: Windows arm64
-        exclude:
-          - os: macos-10.15
-            arch: arm64
+            friendlyName: Windows
     timeout-minutes: 45
+    env:
+      # Needed for macOS arm64 until hosted macos-11.0 runners become available
+      SDKROOT: /Library/Developer/CommandLineTools/SDKs/MacOSX11.1.sdk
     steps:
       - uses: actions/checkout@v2
         with:
