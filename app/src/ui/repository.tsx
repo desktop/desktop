@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Repository } from '../models/repository'
-import { Commit } from '../models/commit'
+import { Commit, CommitOneLine } from '../models/commit'
 import { TipState } from '../models/tip'
 import { UiView } from './ui-view'
 import { Changes, ChangesSidebar } from './changes'
@@ -85,6 +85,10 @@ interface IRepositoryViewProps {
 
   readonly onExitTutorial: () => void
   readonly aheadBehindStore: AheadBehindStore
+  readonly onCherryPick: (
+    repository: Repository,
+    commits: CommitOneLine[]
+  ) => void
 }
 
 interface IRepositoryViewState {
@@ -236,6 +240,7 @@ export class RepositoryView extends React.Component<
         onRevertCommit={this.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         onCompareListScrolled={this.onCompareListScrolled}
+        onCherryPick={this.props.onCherryPick}
         compareListScrollTop={scrollTop}
         tagsToPush={this.props.state.tagsToPush}
         aheadBehindStore={this.props.aheadBehindStore}
