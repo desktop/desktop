@@ -1,3 +1,4 @@
+import { CherryPickConflictState } from '../lib/app-state'
 import { Branch } from './branch'
 import { CommitOneLine } from './commit'
 import { ICherryPickProgress } from './progress'
@@ -68,4 +69,5 @@ export type ShowProgressStep = {
 /** Shape of data to show conflicts that need to be resolved by the user */
 export type ShowConflictsStep = {
   readonly kind: CherryPickStepKind.ShowConflicts
+  conflictState: CherryPickConflictState
 }

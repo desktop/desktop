@@ -157,6 +157,13 @@ function getConflictState(
     }
   }
 
+  if (status.isCherryPickingHeadFound) {
+    return {
+      kind: 'cherryPick',
+      manualResolutions,
+    }
+  }
+
   return null
 }
 

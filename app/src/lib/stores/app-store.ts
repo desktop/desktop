@@ -1895,6 +1895,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
 
     this.updateRebaseFlowConflictsIfFound(repository)
+    this.updateCherryPickFlowConflictsIfFound(repository)
 
     if (this.selectedRepository === repository) {
       this._triggerConflictsFlow(repository)
@@ -1939,6 +1940,32 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       this.repositoryStateCache.updateRebaseState(repository, () => ({
         step: { ...step, conflictState: newConflictsState },
+      }))
+    }
+  }
+
+  /**
+   * Push changes from latest conflicts into current cherry pick flow step, if needed
+   *  - i.e. - multiple instance of running in to conflicts
+   */
+  private updateCherryPickFlowConflictsIfFound(repository: Repository) {
+    const { changesState, cherryPickState } = this.repositoryStateCache.get(
+      repository
+    )
+    const { conflictState } = changesState
+
+    if (conflictState === null || !isCherryPickConflictState(conflictState)) {
+      return
+    }
+
+    const { step } = cherryPickState
+    if (step === null) {
+      return
+    }
+
+    if (step.kind === CherryPickStepKind.ShowConflicts) {
+      this.repositoryStateCache.updateCherryPickState(repository, () => ({
+        step: { ...step, conflictState },
       }))
     }
   }

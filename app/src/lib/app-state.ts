@@ -762,19 +762,6 @@ export interface ICherryPickState {
  */
 export type CherryPickConflictState = {
   readonly kind: 'cherryPick'
-  /**
-   * The branch chosen by the user to be rebased
-   */
-  readonly targetBranch: string
-  /**
-   * The branch chosen as the baseline for the rebase
-   */
-  readonly sourceBranch?: string
-
-  /**
-   * The commit ID of the target branch before the rebase was initiated
-   */
-  readonly originalTargetBranchTip: string
 
   /**
    * Manual resolutions chosen by the user for conflicted files to be applied

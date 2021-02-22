@@ -15,6 +15,7 @@ import {
   RepositorySectionTab,
   RebaseConflictState,
   isRebaseConflictState,
+  isCherryPickConflictState,
 } from '../../lib/app-state'
 import { assertNever, fatalError } from '../../lib/fatal-error'
 import {
@@ -2567,14 +2568,16 @@ export class Dispatcher {
       commits
     )
 
+    // This will update the conflict state of the app. This is needed to start
+    // conflict flow if cherry pick results in conflict.
+    await this.appStore._loadStatus(repository)
+
     switch (result) {
       case CherryPickResult.CompletedWithoutError:
         await this.completeCherryPick(repository, targetBranch.name)
         break
       case CherryPickResult.ConflictsEncountered:
-        this.setCherryPickFlowStep(repository, {
-          kind: CherryPickStepKind.ShowConflicts,
-        })
+        this.startConflictCherryPickFlow(repository)
         break
       default:
         this.appStore._endCherryPickFlow(repository)
@@ -2583,6 +2586,21 @@ export class Dispatcher {
           This should not happen as all expected errors were handled.`
         )
     }
+  }
+
+  private startConflictCherryPickFlow(repository: Repository): void {
+    const stateAfter = this.repositoryStateManager.get(repository)
+    const { conflictState } = stateAfter.changesState
+    if (conflictState === null || !isCherryPickConflictState(conflictState)) {
+      log.warn(
+        '[cherryPick] - conflict state was null or not in a cherry pick conflict state - unable to continue'
+      )
+      return
+    }
+    this.setCherryPickFlowStep(repository, {
+      kind: CherryPickStepKind.ShowConflicts,
+      conflictState,
+    })
   }
 
   /** Tidy up the cherry pick flow after reaching the end */
