@@ -5702,7 +5702,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _initializeCherryPickProgress(
     repository: Repository,
-    commits: CommitOneLine[]
+    commits: ReadonlyArray<CommitOneLine>
   ) {
     if (commits.length === 0) {
       // This shouldn't happen... but in case throw error.
@@ -5731,7 +5731,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _cherryPick(
     repository: Repository,
     targetBranch: Branch,
-    commits: CommitOneLine[]
+    commits: ReadonlyArray<CommitOneLine>
   ): Promise<CherryPickResult> {
     if (commits.length === 0) {
       // This shouldn't happen... but in case throw error.

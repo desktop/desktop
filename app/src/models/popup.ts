@@ -273,5 +273,5 @@ export type Popup =
   | {
       type: PopupType.CherryPick
       repository: Repository
-      commits: CommitOneLine[]
+      commits: ReadonlyArray<CommitOneLine>
     }

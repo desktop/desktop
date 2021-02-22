@@ -2729,7 +2729,7 @@ export class App extends React.Component<IAppProps, IAppState> {
    */
   private startCherryPickWithoutBranch = (
     repository: Repository,
-    commits: CommitOneLine[]
+    commits: ReadonlyArray<CommitOneLine>
   ) => {
     const repositoryState = this.props.repositoryStateManager.get(repository)
 

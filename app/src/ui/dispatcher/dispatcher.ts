@@ -2524,7 +2524,7 @@ export class Dispatcher {
   public async startCherryPick(
     repository: Repository,
     targetBranch: Branch,
-    commits: CommitOneLine[]
+    commits: ReadonlyArray<CommitOneLine>
   ): Promise<void> {
     this.appStore._initializeCherryPickProgress(repository, commits)
 
@@ -2560,7 +2560,7 @@ export class Dispatcher {
   public async cherryPick(
     repository: Repository,
     targetBranch: Branch,
-    commits: CommitOneLine[]
+    commits: ReadonlyArray<CommitOneLine>
   ): Promise<void> {
     this.logHowToRevertCherryPick(repository, targetBranch)
 
