@@ -266,6 +266,7 @@ import {
   getShowSideBySideDiff,
   setShowSideBySideDiff,
 } from '../../ui/lib/diff-mode'
+import { CherryPickFlowStep } from '../../models/cherry-pick'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -5680,6 +5681,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     } finally {
       this._closePopup(PopupType.CreateTutorialRepository)
     }
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _setCherryPickFlowStep(
+    repository: Repository,
+    step: CherryPickFlowStep
+  ): Promise<void> {
+    this.repositoryStateCache.updateCherryPickState(repository, () => ({
+      step,
+    }))
+
+    this.emitUpdate()
   }
 }
 
