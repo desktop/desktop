@@ -268,10 +268,7 @@ import {
   getShowSideBySideDiff,
   setShowSideBySideDiff,
 } from '../../ui/lib/diff-mode'
-import {
-  CherryPickFlowStep,
-  CherryPickStepKind,
-} from '../../models/cherry-pick'
+import { CherryPickFlowStep } from '../../models/cherry-pick'
 import { cherryPick, CherryPickResult } from '../git/cherry-pick'
 import { round } from '../../ui/lib/round'
 
@@ -5700,16 +5697,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
 
     this.emitUpdate()
-
-    if (step.kind === CherryPickStepKind.ShowProgress && step.action !== null) {
-      // this timeout is intended to defer the action from running immediately
-      // after the progress UI is shown, to better show that cherry picking is
-      // progressing rather than suddenly appearing and disappearing again
-      await sleep(1000)
-      await step.action()
-    }
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public _initializeCherryPickProgress(
     repository: Repository,
     commits: CommitOneLine[]

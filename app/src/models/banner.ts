@@ -49,4 +49,6 @@ export type Banner =
       readonly type: BannerType.SuccessfulCherryPick
       /** name of the branch that was cherry picked to */
       readonly targetBranchName: string
+      /** number of commits cherry picked */
+      readonly countCherryPicked: number
     }

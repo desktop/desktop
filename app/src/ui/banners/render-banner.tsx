@@ -71,6 +71,7 @@ export function renderBanner(
         <SuccessfulCherryPick
           key="successful-cherry-pick"
           targetBranchName={banner.targetBranchName}
+          countCherryPicked={banner.countCherryPicked}
           onDismissed={onDismissed}
         ></SuccessfulCherryPick>
       )
