@@ -203,8 +203,7 @@ function parseCherryPickResult(result: IGitResult): CherryPickResult {
 export async function getCherryPickSnapshot(
   repository: Repository
 ): Promise<ICherryPickSnapshot | null> {
-  const cherryPickHead = readCherryPickHead(repository)
-  if (cherryPickHead === null) {
+  if (isCherryPickHeadFound(repository)) {
     // If there no cherry pick head, there is no cherry pick in progress.
     return null
   }
@@ -321,8 +320,7 @@ export async function continueCherryPick(
   }
 
   // make sure cherry pick is still in progress to continue
-  const cherryPickCurrentCommit = await readCherryPickHead(repository)
-  if (cherryPickCurrentCommit === null) {
+  if (await isCherryPickHeadFound(repository)) {
     return CherryPickResult.Aborted
   }
 
@@ -368,29 +366,24 @@ export async function abortCherryPick(repository: Repository) {
 }
 
 /**
- * Attempt to read the `.git/CHERRY_PICK_HEAD` file inside a repository to confirm
- * the cherry pick is still active.
+ * Check if the `.git/CHERRY_PICK_HEAD` file exists
  */
-async function readCherryPickHead(
+export async function isCherryPickHeadFound(
   repository: Repository
-): Promise<string | null> {
+): Promise<boolean> {
   try {
-    const cherryPickHead = Path.join(
+    const cherryPickHeadPath = Path.join(
       repository.path,
       '.git',
       'CHERRY_PICK_HEAD'
     )
-    const cherryPickCurrentCommitOutput = await FSE.readFile(
-      cherryPickHead,
-      'utf8'
-    )
-    return cherryPickCurrentCommitOutput.trim()
+    return FSE.pathExists(cherryPickHeadPath)
   } catch (err) {
     log.warn(
       `[cherryPick] a problem was encountered reading .git/CHERRY_PICK_HEAD,
        so it is unsafe to continue cherry picking`,
       err
     )
-    return null
+    return false
   }
 }
