@@ -27,7 +27,6 @@ import {
 } from '../dialog'
 import { Dispatcher } from '../dispatcher'
 import { ShowConflictsStep } from '../../models/cherry-pick'
-import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 
 interface ICherryPickConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -37,6 +36,9 @@ interface ICherryPickConflictsDialogProps {
 
   readonly userHasResolvedConflicts: boolean
   readonly workingDirectory: WorkingDirectoryStatus
+
+  // For display in manual resolution context menu
+  readonly sourceBranchName: string
 
   readonly onDismissed: () => void
   readonly onContinueCherryPick: (step: ShowConflictsStep) => void
@@ -65,16 +67,19 @@ export class CherryPickConflictsDialog extends React.Component<
   }
 
   public componentWillUnmount() {
-    const { workingDirectory, userHasResolvedConflicts } = this.props
+    const { workingDirectory, step, userHasResolvedConflicts } = this.props
 
     // skip this work once we know conflicts have been resolved
     if (userHasResolvedConflicts) {
       return
     }
 
+    const { conflictState } = step
+    const { manualResolutions } = conflictState
+
     const resolvedConflicts = getResolvedFiles(
       workingDirectory,
-      new Map<string, ManualConflictResolution>()
+      manualResolutions
     )
 
     if (resolvedConflicts.length > 0) {
@@ -106,6 +111,20 @@ export class CherryPickConflictsDialog extends React.Component<
   private renderUnmergedFiles(
     files: ReadonlyArray<WorkingDirectoryFileChange>
   ) {
+    const {
+      resolvedExternalEditor,
+      openFileInExternalEditor,
+      repository,
+      dispatcher,
+      step,
+      sourceBranchName: ourBranch,
+    } = this.props
+
+    const {
+      manualResolutions,
+      targetBranchName: theirBranch,
+    } = step.conflictState
+
     return (
       <ul className="unmerged-file-statuses">
         {files.map(f =>
@@ -113,10 +132,13 @@ export class CherryPickConflictsDialog extends React.Component<
             ? renderUnmergedFile({
                 path: f.path,
                 status: f.status,
-                resolvedExternalEditor: this.props.resolvedExternalEditor,
-                openFileInExternalEditor: this.props.openFileInExternalEditor,
-                repository: this.props.repository,
-                dispatcher: this.props.dispatcher,
+                resolvedExternalEditor,
+                openFileInExternalEditor,
+                repository,
+                dispatcher,
+                manualResolution: manualResolutions.get(f.path),
+                theirBranch,
+                ourBranch,
               })
             : null
         )}
@@ -142,18 +164,22 @@ export class CherryPickConflictsDialog extends React.Component<
   }
 
   public render() {
-    const { workingDirectory } = this.props
+    const { workingDirectory, step } = this.props
+    const { manualResolutions } = step.conflictState
 
     const unmergedFiles = getUnmergedFiles(workingDirectory)
     const conflictedFilesCount = getConflictedFiles(
       workingDirectory,
-      new Map<string, ManualConflictResolution>()
+      manualResolutions
     ).length
 
     const tooltipString =
       conflictedFilesCount > 0
         ? 'Resolve all conflicts before continuing'
         : undefined
+
+    const ok = __DARWIN__ ? 'Continue Cherry Pick' : 'Continue cherry pick'
+    const cancel = __DARWIN__ ? 'Abort Cherry Pick' : 'Abort cherry pick'
 
     return (
       <Dialog
@@ -167,14 +193,10 @@ export class CherryPickConflictsDialog extends React.Component<
         </DialogContent>
         <DialogFooter>
           <OkCancelButtonGroup
-            okButtonText={
-              __DARWIN__ ? 'Continue Cherry Pick' : 'Continue cherry pick'
-            }
+            okButtonText={ok}
             okButtonDisabled={conflictedFilesCount > 0}
             okButtonTitle={tooltipString}
-            cancelButtonText={
-              __DARWIN__ ? 'Abort Cherry Pick' : 'Abort cherry pick'
-            }
+            cancelButtonText={cancel}
             cancelButtonDisabled={this.state.isAborting}
             onCancelButtonClick={this.onCancel}
           />

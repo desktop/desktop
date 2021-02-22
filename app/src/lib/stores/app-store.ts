@@ -5523,8 +5523,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     })
 
-    // update rebase flow state after choosing manual resolution
+    this.updateRebaseStateAfterManualResolution(repository)
+    this.updateCherryPickStateAfterManualResolution(repository)
 
+    this.emitUpdate()
+  }
+
+  /**
+   * Updates the rebase flow conflict step state as the manual resolutions
+   * have been changed.
+   */
+  private updateRebaseStateAfterManualResolution(repository: Repository) {
     const currentState = this.repositoryStateCache.get(repository)
 
     const { changesState, rebaseState } = currentState
@@ -5541,8 +5550,33 @@ export class AppStore extends TypedBaseStore<IAppState> {
         step: { ...step, conflictState },
       }))
     }
+  }
 
-    this.emitUpdate()
+  /**
+   * Updates the cherry pick flow conflict step state as the manual resolutions
+   * have been changed.
+   */
+  private updateCherryPickStateAfterManualResolution(
+    repository: Repository
+  ): void {
+    const currentState = this.repositoryStateCache.get(repository)
+
+    const { changesState, cherryPickState } = currentState
+    const { conflictState } = changesState
+    const { step } = cherryPickState
+
+    if (
+      conflictState === null ||
+      step === null ||
+      !isCherryPickConflictState(conflictState) ||
+      step.kind !== CherryPickStepKind.ShowConflicts
+    ) {
+      return
+    }
+
+    this.repositoryStateCache.updateCherryPickState(repository, () => ({
+      step: { ...step, conflictState },
+    }))
   }
 
   private async createStashAndDropPreviousEntry(

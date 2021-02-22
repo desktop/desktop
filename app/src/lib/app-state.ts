@@ -768,6 +768,11 @@ export type CherryPickConflictState = {
    * before continuing the cherry pick.
    */
   readonly manualResolutions: Map<string, ManualConflictResolution>
+
+  /**
+   * The branch chosen by the user to copy the cherry picked commits to
+   */
+  readonly targetBranchName: string
 }
 
 /** Guard function for checking conflicts are from a rebase  */

@@ -114,6 +114,7 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
           dispatcher,
           workingDirectory,
           userHasResolvedConflicts,
+          sourceBranch,
         } = this.props
 
         return (
@@ -130,6 +131,7 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
             openFileInExternalEditor={openFileInExternalEditor}
             resolvedExternalEditor={resolvedExternalEditor}
             openRepositoryInShell={openRepositoryInShell}
+            sourceBranchName={sourceBranch.name}
           />
         )
       default:
