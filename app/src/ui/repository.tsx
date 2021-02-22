@@ -87,7 +87,7 @@ interface IRepositoryViewProps {
   readonly aheadBehindStore: AheadBehindStore
   readonly onCherryPick: (
     repository: Repository,
-    commits: CommitOneLine[]
+    commits: ReadonlyArray<CommitOneLine>
   ) => void
 }
 

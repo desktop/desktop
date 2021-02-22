@@ -5735,19 +5735,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
 
     this.emitUpdate()
-
-    if (step.kind === CherryPickStepKind.ShowProgress && step.action !== null) {
-      // this timeout is intended to defer the action from running immediately
-      // after the progress UI is shown, to better show that cherry picking is
-      // progressing rather than suddenly appearing and disappearing again
-      await sleep(1000)
-      await step.action()
-    }
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public _initializeCherryPickProgress(
     repository: Repository,
-    commits: CommitOneLine[]
+    commits: ReadonlyArray<CommitOneLine>
   ) {
     if (commits.length === 0) {
       // This shouldn't happen... but in case throw error.
@@ -5776,7 +5769,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _cherryPick(
     repository: Repository,
     targetBranch: Branch,
-    commits: CommitOneLine[]
+    commits: ReadonlyArray<CommitOneLine>
   ): Promise<CherryPickResult> {
     if (commits.length === 0) {
       // This shouldn't happen... but in case throw error.

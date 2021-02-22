@@ -21,7 +21,7 @@ interface ICherryPickFlowProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly step: CherryPickFlowStep
-  readonly commits: CommitOneLine[]
+  readonly commits: ReadonlyArray<CommitOneLine>
   readonly progress: ICherryPickProgress | null
   readonly emoji: Map<string, string>
 

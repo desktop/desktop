@@ -56,14 +56,6 @@ export type ChooseTargetBranchesStep = {
 /** Shape of data to show progress of the current cherry pick */
 export type ShowProgressStep = {
   readonly kind: CherryPickStepKind.ShowProgress
-
-  /**
-   * An optional action to run when the component is mounted.
-   *
-   * This is provided to the component because a cherry pick can be very fast,
-   * and we want to defer until we can show a progress indication to the user.
-   */
-  readonly action: (() => Promise<void>) | null
 }
 
 /** Shape of data to show conflicts that need to be resolved by the user */

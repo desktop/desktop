@@ -49,7 +49,7 @@ interface ICommitListProps {
   readonly onDeleteTag: (tagName: string) => void
 
   /** Callback to fire to cherry picking the commit  */
-  readonly onCherryPick: (commits: CommitOneLine[]) => void
+  readonly onCherryPick: (commits: ReadonlyArray<CommitOneLine>) => void
 
   /**
    * Optional callback that fires on page scroll in order to allow passing

@@ -26,7 +26,7 @@ interface ICommitProps {
   readonly onViewCommitOnGitHub?: (sha: string) => void
   readonly onCreateTag?: (targetCommitSha: string) => void
   readonly onDeleteTag?: (tagName: string) => void
-  readonly onCherryPick?: (commits: CommitOneLine[]) => void
+  readonly onCherryPick?: (commits: ReadonlyArray<CommitOneLine>) => void
   readonly showUnpushedIndicator: boolean
   readonly unpushedIndicatorTitle?: string
   readonly unpushedTags?: ReadonlyArray<string>

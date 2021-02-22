@@ -41,7 +41,7 @@ interface ICompareSidebarProps {
   readonly onCompareListScrolled: (scrollTop: number) => void
   readonly onCherryPick: (
     repository: Repository,
-    commits: CommitOneLine[]
+    commits: ReadonlyArray<CommitOneLine>
   ) => void
   readonly compareListScrollTop?: number
   readonly localTags: Map<string, string> | null
@@ -510,7 +510,7 @@ export class CompareSidebar extends React.Component<
     this.props.dispatcher.showDeleteTagDialog(this.props.repository, tagName)
   }
 
-  private onCherryPick = (commits: CommitOneLine[]) => {
+  private onCherryPick = (commits: ReadonlyArray<CommitOneLine>) => {
     this.props.onCherryPick(this.props.repository, commits)
   }
 }

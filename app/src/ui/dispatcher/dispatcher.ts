@@ -103,6 +103,7 @@ import {
   CherryPickStepKind,
 } from '../../models/cherry-pick'
 import { CherryPickResult } from '../../lib/git/cherry-pick'
+import { sleep } from '../../lib/promise'
 
 /**
  * An error handler function.
@@ -2524,16 +2525,19 @@ export class Dispatcher {
   public async startCherryPick(
     repository: Repository,
     targetBranch: Branch,
-    commits: CommitOneLine[]
+    commits: ReadonlyArray<CommitOneLine>
   ): Promise<void> {
     this.appStore._initializeCherryPickProgress(repository, commits)
 
     this.setCherryPickFlowStep(repository, {
       kind: CherryPickStepKind.ShowProgress,
-      action: () => {
-        return this.cherryPick(repository, targetBranch, commits)
-      },
     })
+
+    // This timeout is intended to defer cherry picking from running immediately
+    // to better show that cherry picking is progressing rather than suddenly
+    // appearing and disappearing again.
+    await sleep(500)
+    this.cherryPick(repository, targetBranch, commits)
   }
 
   private logHowToRevertCherryPick(
@@ -2553,12 +2557,11 @@ export class Dispatcher {
     log.info(`[cherryPick] - git reset ${beforeSha} --hard`)
   }
 
-  /** Starts a cherry pick of the commits onto the target
-   * branch */
+  /** Starts a cherry pick of the given commits onto the target branch */
   public async cherryPick(
     repository: Repository,
     targetBranch: Branch,
-    commits: CommitOneLine[]
+    commits: ReadonlyArray<CommitOneLine>
   ): Promise<void> {
     this.logHowToRevertCherryPick(repository, targetBranch)
 
@@ -2574,7 +2577,11 @@ export class Dispatcher {
 
     switch (result) {
       case CherryPickResult.CompletedWithoutError:
-        await this.completeCherryPick(repository, targetBranch.name)
+        await this.completeCherryPick(
+          repository,
+          targetBranch.name,
+          commits.length
+        )
         break
       case CherryPickResult.ConflictsEncountered:
         this.startConflictCherryPickFlow(repository)
@@ -2588,6 +2595,10 @@ export class Dispatcher {
     }
   }
 
+  /**
+   * Obtains the current app conflict state and switches cherry pick flow to
+   * show conflicts step
+   */
   private startConflictCherryPickFlow(repository: Repository): void {
     const stateAfter = this.repositoryStateManager.get(repository)
     const { conflictState } = stateAfter.changesState
@@ -2604,15 +2615,22 @@ export class Dispatcher {
   }
 
   /** Tidy up the cherry pick flow after reaching the end */
+  /** Wrap cherry pick up actions:
+   * - closes flow popup
+   * - displays success banner
+   * - clears out cherry pick flow state
+   */
   private async completeCherryPick(
     repository: Repository,
-    targetBranchName: string
+    targetBranchName: string,
+    countCherryPicked: number
   ): Promise<void> {
     this.closePopup()
 
     const banner: Banner = {
       type: BannerType.SuccessfulCherryPick,
       targetBranchName,
+      countCherryPicked,
     }
     this.setBanner(banner)
 
