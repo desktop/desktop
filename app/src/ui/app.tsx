@@ -9,6 +9,7 @@ import {
   SelectionType,
   HistoryTabMode,
   ICherryPickState,
+  isRebaseConflictState,
 } from '../lib/app-state'
 import { Dispatcher } from './dispatcher'
 import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
@@ -2069,9 +2070,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
         const { conflictState } = changesState
 
-        if (conflictState === null || conflictState.kind === 'merge') {
+        if (conflictState === null || !isRebaseConflictState(conflictState)) {
           log.debug(
-            `[App.onShowRebaseConflictsBanner] no conflict state found, ignoring...`
+            `[App.onShowRebaseConflictsBanner] no rebase conflict state found, ignoring...`
           )
           return
         }
