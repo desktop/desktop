@@ -5,6 +5,7 @@ import { Branch } from '../../models/branch'
 import {
   CherryPickFlowStep,
   CherryPickStepKind,
+  ShowConflictsStep,
 } from '../../models/cherry-pick'
 import { ICherryPickProgress } from '../../models/progress'
 
@@ -13,6 +14,8 @@ import { Dispatcher } from '../dispatcher'
 import { ChooseTargetBranchDialog } from './choose-target-branch'
 import { CherryPickProgressDialog } from './cherry-pick-progress-dialog'
 import { CommitOneLine } from '../../models/commit'
+import { CherryPickConflictsDialog } from './cherry-pick-conflicts-dialog'
+import { WorkingDirectoryStatus } from '../../models/status'
 
 interface ICherryPickFlowProps {
   readonly repository: Repository
@@ -21,6 +24,18 @@ interface ICherryPickFlowProps {
   readonly commits: CommitOneLine[]
   readonly progress: ICherryPickProgress | null
   readonly emoji: Map<string, string>
+
+  /** Properties required for conflict flow step. */
+  readonly workingDirectory: WorkingDirectoryStatus
+  readonly userHasResolvedConflicts: boolean
+
+  /**
+   * Callbacks for the conflict selection components to let the user jump out
+   * to their preferred editor.
+   */
+  readonly openFileInExternalEditor: (path: string) => void
+  readonly resolvedExternalEditor: string | null
+  readonly openRepositoryInShell: (repository: Repository) => void
 
   readonly onDismissed: () => void
 }
@@ -37,6 +52,18 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
       targetBranch,
       this.props.commits
     )
+  }
+
+  private onContinueCherryPick = (step: ShowConflictsStep) => {
+    // TODO: dispatch to continue the cherry pick
+  }
+
+  private onAbortCherryPick = (step: ShowConflictsStep) => {
+    // TODO: dispatch to abort the cherry pick
+  }
+
+  private showCherryPickConflictsBanner = (step: ShowConflictsStep) => {
+    // TODO: dispatch to show cherry pick conflicts banner
   }
 
   public render() {
@@ -77,7 +104,32 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
           />
         )
       case CherryPickStepKind.ShowConflicts:
-        return null
+        const {
+          repository,
+          resolvedExternalEditor,
+          openFileInExternalEditor,
+          openRepositoryInShell,
+          dispatcher,
+          workingDirectory,
+          userHasResolvedConflicts,
+        } = this.props
+
+        return (
+          <CherryPickConflictsDialog
+            dispatcher={dispatcher}
+            repository={repository}
+            step={step}
+            userHasResolvedConflicts={userHasResolvedConflicts}
+            workingDirectory={workingDirectory}
+            onDismissed={this.onFlowEnded}
+            onContinueCherryPick={this.onContinueCherryPick}
+            onAbortCherryPick={this.onAbortCherryPick}
+            showCherryPickConflictsBanner={this.showCherryPickConflictsBanner}
+            openFileInExternalEditor={openFileInExternalEditor}
+            resolvedExternalEditor={resolvedExternalEditor}
+            openRepositoryInShell={openRepositoryInShell}
+          />
+        )
       default:
         return assertNever(step, 'Unknown cherry pick step found')
     }

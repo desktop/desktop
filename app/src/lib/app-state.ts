@@ -746,4 +746,10 @@ export interface ICherryPickState {
    * initiate the rebase.
    */
   readonly progress: ICherryPickProgress | null
+
+  /**
+   * Whether the user has done work to resolve any conflicts as part of this
+   * cherry pick.
+   */
+  readonly userHasResolvedConflicts: boolean
 }

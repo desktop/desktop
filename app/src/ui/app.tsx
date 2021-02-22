@@ -128,6 +128,7 @@ import {
 } from '../models/cherry-pick'
 import { getAccountForRepository } from '../lib/get-account-for-repository'
 import { CommitOneLine } from '../models/commit'
+import { WorkingDirectoryStatus } from '../models/status'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2000,14 +2001,22 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       case PopupType.CherryPick: {
         const cherryPickState = this.getCherryPickState()
-        if (cherryPickState === null || cherryPickState.step == null) {
+        const workingDirectory = this.getWorkingDirectory()
+        if (
+          cherryPickState === null ||
+          cherryPickState.step == null ||
+          workingDirectory === null
+        ) {
           log.warn(
             `[App] Invalid state encountered:
-            cherry pick flow should not be active when step is null
-            or the selected app state is not a repository state.`
+            cherry pick flow should not be active when step is null,
+            the selected app state is not a repository state,
+            or cannot obtain the working directory.`
           )
           return null
         }
+
+        const { step, progress, userHasResolvedConflicts } = cherryPickState
 
         return (
           <CherryPickFlow
@@ -2015,10 +2024,15 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             dispatcher={this.props.dispatcher}
             onDismissed={onPopupDismissedFn}
-            step={cherryPickState.step}
+            step={step}
             emoji={this.state.emoji}
-            progress={cherryPickState.progress}
+            progress={progress}
             commits={popup.commits}
+            openFileInExternalEditor={this.openFileInExternalEditor}
+            workingDirectory={workingDirectory}
+            userHasResolvedConflicts={userHasResolvedConflicts}
+            resolvedExternalEditor={this.state.resolvedExternalEditor}
+            openRepositoryInShell={this.openCurrentRepositoryInShell}
           />
         )
       }
@@ -2777,6 +2791,17 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const { cherryPickState } = selectedState.state
     return cherryPickState
+  }
+
+  private getWorkingDirectory(): WorkingDirectoryStatus | null {
+    const { selectedState } = this.state
+    if (
+      selectedState === null ||
+      selectedState.type !== SelectionType.Repository
+    ) {
+      return null
+    }
+    return selectedState.state.changesState.workingDirectory
   }
 }
 
