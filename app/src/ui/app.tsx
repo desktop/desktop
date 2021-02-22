@@ -2033,6 +2033,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             userHasResolvedConflicts={userHasResolvedConflicts}
             resolvedExternalEditor={this.state.resolvedExternalEditor}
             openRepositoryInShell={this.openCurrentRepositoryInShell}
+            sourceBranch={popup.sourceBranch}
           />
         )
       }
@@ -2777,6 +2778,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       type: PopupType.CherryPick,
       repository,
       commits,
+      sourceBranch: currentBranch,
     })
   }
 

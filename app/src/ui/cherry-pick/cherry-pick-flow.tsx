@@ -25,6 +25,9 @@ interface ICherryPickFlowProps {
   readonly progress: ICherryPickProgress | null
   readonly emoji: Map<string, string>
 
+  /** The branch the commits come from - needed so abort can switch back to it */
+  readonly sourceBranch: Branch
+
   /** Properties required for conflict flow step. */
   readonly workingDirectory: WorkingDirectoryStatus
   readonly userHasResolvedConflicts: boolean
@@ -47,11 +50,8 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
   }
 
   private onCherryPick = (targetBranch: Branch) => {
-    this.props.dispatcher.startCherryPick(
-      this.props.repository,
-      targetBranch,
-      this.props.commits
-    )
+    const { dispatcher, repository, commits } = this.props
+    dispatcher.startCherryPick(repository, targetBranch, commits)
   }
 
   private onContinueCherryPick = (step: ShowConflictsStep) => {
@@ -59,7 +59,9 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
   }
 
   private onAbortCherryPick = (step: ShowConflictsStep) => {
-    // TODO: dispatch to abort the cherry pick
+    const { dispatcher, repository, sourceBranch } = this.props
+    dispatcher.abortCherryPick(repository, sourceBranch)
+    dispatcher.closePopup()
   }
 
   private showCherryPickConflictsBanner = (step: ShowConflictsStep) => {

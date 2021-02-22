@@ -274,4 +274,5 @@ export type Popup =
       type: PopupType.CherryPick
       repository: Repository
       commits: CommitOneLine[]
+      sourceBranch: Branch
     }

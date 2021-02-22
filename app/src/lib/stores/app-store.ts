@@ -272,7 +272,11 @@ import {
   CherryPickFlowStep,
   CherryPickStepKind,
 } from '../../models/cherry-pick'
-import { cherryPick, CherryPickResult } from '../git/cherry-pick'
+import {
+  abortCherryPick,
+  cherryPick,
+  CherryPickResult,
+} from '../git/cherry-pick'
 import { round } from '../../ui/lib/round'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -5777,11 +5781,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return result || CherryPickResult.Error
   }
 
+  public async _abortCherryPick(
+    repository: Repository,
+    sourceBranch: Branch
+  ): Promise<void> {
+    const gitStore = this.gitStoreCache.get(repository)
+
+    await gitStore.performFailableOperation(() => abortCherryPick(repository))
+
+    await this.withAuthenticatingUser(repository, async (r, account) => {
+      await gitStore.performFailableOperation(() =>
+        checkoutBranch(repository, account, sourceBranch)
+      )
+    })
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _endCherryPickFlow(repository: Repository): void {
     this.repositoryStateCache.updateCherryPickState(repository, () => ({
       step: null,
       progress: null,
+      userHasResolvedConflicts: false,
     }))
 
     this.emitUpdate()
