@@ -16,6 +16,7 @@ import {
   RebaseConflictState,
   isRebaseConflictState,
   isCherryPickConflictState,
+  CherryPickConflictState,
 } from '../../lib/app-state'
 import { assertNever, fatalError } from '../../lib/fatal-error'
 import {
@@ -2640,6 +2641,31 @@ export class Dispatcher {
       kind: CherryPickStepKind.ShowProgress,
     })
     await sleep(500)
+  }
+  /**
+   * Continue with the cherryPick after the user has resolved all conflicts with
+   * tracked files in the working directory.
+   */
+  public async continueCherryPick(
+    repository: Repository,
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    conflictsState: CherryPickConflictState,
+    commitsCount: number
+  ): Promise<void> {
+    await this.switchCherryPickingFlowToShowProgress(repository)
+
+    const result = await this.appStore._continueCherryPick(
+      repository,
+      files,
+      conflictsState.manualResolutions
+    )
+
+    this.processCherryPickResult(
+      repository,
+      result,
+      conflictsState.targetBranchName,
+      commitsCount
+    )
   }
 
   /**
