@@ -288,6 +288,7 @@ export async function getCherryPickSnapshot(
       currentCommitSummary: commits[commitSummaryIndex].summary ?? '',
     },
     remainingCommits: commits.slice(count, commits.length),
+    commits,
   }
 }
 
