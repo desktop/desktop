@@ -10,6 +10,7 @@ import {
   HistoryTabMode,
   ICherryPickState,
   isRebaseConflictState,
+  isCherryPickConflictState,
 } from '../lib/app-state'
 import { Dispatcher } from './dispatcher'
 import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
@@ -2035,6 +2036,9 @@ export class App extends React.Component<IAppProps, IAppState> {
             resolvedExternalEditor={this.state.resolvedExternalEditor}
             openRepositoryInShell={this.openCurrentRepositoryInShell}
             sourceBranch={popup.sourceBranch}
+            onShowCherryPickConflictsBanner={
+              this.onShowCherryPickConflictsBanner
+            }
           />
         )
       }
@@ -2794,6 +2798,52 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const { cherryPickState } = selectedState.state
     return cherryPickState
+  }
+
+  private onShowCherryPickConflictsBanner = (
+    repository: Repository,
+    targetBranchName: string,
+    sourceBranch: Branch,
+    commits: ReadonlyArray<CommitOneLine>
+  ) => {
+    this.props.dispatcher.setCherryPickFlowStep(repository, {
+      kind: CherryPickStepKind.HideConflicts,
+    })
+
+    this.props.dispatcher.setBanner({
+      type: BannerType.CherryPickConflictsFound,
+      targetBranchName,
+      onOpenConflictsDialog: async () => {
+        const { changesState } = this.props.repositoryStateManager.get(
+          repository
+        )
+        const { conflictState } = changesState
+
+        if (
+          conflictState === null ||
+          !isCherryPickConflictState(conflictState)
+        ) {
+          log.debug(
+            `[App.onShowCherryPickConflictsBanner] no cherry pick conflict state found, ignoring...`
+          )
+          return
+        }
+
+        await this.props.dispatcher.setCherryPickProgressFromState(repository)
+
+        this.props.dispatcher.setCherryPickFlowStep(repository, {
+          kind: CherryPickStepKind.ShowConflicts,
+          conflictState,
+        })
+
+        this.props.dispatcher.showPopup({
+          type: PopupType.CherryPick,
+          repository,
+          commits,
+          sourceBranch,
+        })
+      },
+    })
   }
 
   private getWorkingDirectory(): WorkingDirectoryStatus | null {
