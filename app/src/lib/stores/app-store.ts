@@ -270,7 +270,6 @@ import {
 } from '../../ui/lib/diff-mode'
 import { CherryPickFlowStep } from '../../models/cherry-pick'
 import { cherryPick, CherryPickResult } from '../git/cherry-pick'
-import { round } from '../../ui/lib/round'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -5716,7 +5715,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         progress: {
           kind: 'cherryPick',
           title: `Cherry picking commit 1 of ${commits.length} commits`,
-          value: round(0, 2),
+          value: 0,
           cherryPickCommitCount: 1,
           totalCommitCount: commits.length,
           currentCommitSummary: commits[0].summary,
