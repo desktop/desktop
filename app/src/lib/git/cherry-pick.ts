@@ -277,6 +277,7 @@ export async function getCherryPickSnapshot(
   }
 
   const count = commits.length - remainingShas.length
+  const commitSummaryIndex = (count > 0 ? count : 1) - 1
   return {
     progress: {
       kind: 'cherryPick',
@@ -284,7 +285,7 @@ export async function getCherryPickSnapshot(
       value: round(count / commits.length, 2),
       cherryPickCommitCount: count,
       totalCommitCount: commits.length,
-      currentCommitSummary: commits[count - 1].summary ?? '',
+      currentCommitSummary: commits[commitSummaryIndex].summary ?? '',
     },
     remainingCommits: commits.slice(count, commits.length),
   }
@@ -365,6 +366,27 @@ export async function continueCherryPick(
       snapshot.remainingCommits,
       progressCallback
     )
+  }
+
+  const trackedFilesAfter = status.workingDirectory.files.filter(
+    f => f.status.kind !== AppFileStatusKind.Untracked
+  )
+
+  if (trackedFilesAfter.length === 0) {
+    log.warn(
+      `[cherryPick] no tracked changes to commit, continuing cherry pick but skipping this commit`
+    )
+
+    // This commits the empty commit so that the cherry picked commit still
+    // shows up in the target branches history.
+    const result = await git(
+      ['commit', '--allow-empty'],
+      repository.path,
+      'continueCherryPickSkipCurrentCommit',
+      options
+    )
+
+    return parseCherryPickResult(result)
   }
 
   const result = await git(

@@ -342,6 +342,34 @@ describe('git/cherry-pick', () => {
       expect(result).toBe(CherryPickResult.CompletedWithoutError)
     })
 
+    it('successfully continues cherry picking with conflicts after resolving them manually and no changes to commit', async () => {
+      result = await cherryPick(repository, featureBranch.tip.sha)
+      expect(result).toBe(CherryPickResult.ConflictsEncountered)
+
+      const statusAfterCherryPick = await getStatusOrThrow(repository)
+      const { files } = statusAfterCherryPick.workingDirectory
+
+      // git diff --check warns if conflict markers exist and will exit with
+      // non-zero status if conflicts found
+      const diffCheckBefore = await GitProcess.exec(
+        ['diff', '--check'],
+        repository.path
+      )
+      expect(diffCheckBefore.exitCode).toBeGreaterThan(0)
+
+      const manualResolutions = new Map<string, ManualConflictResolution>()
+
+      for (const file of files) {
+        if (isConflictedFile(file.status)) {
+          manualResolutions.set(file.path, ManualConflictResolution.ours)
+        }
+      }
+
+      result = await continueCherryPick(repository, files, manualResolutions)
+
+      expect(result).toBe(CherryPickResult.CompletedWithoutError)
+    })
+
     it('successfully detects cherry picking with outstanding files not staged', async () => {
       result = await cherryPick(repository, featureBranch.tip.sha)
       expect(result).toBe(CherryPickResult.ConflictsEncountered)
