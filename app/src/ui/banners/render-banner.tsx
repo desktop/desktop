@@ -79,7 +79,6 @@ export function renderBanner(
     case BannerType.CherryPickConflictsFound:
       return (
         <CherryPickConflictsBanner
-          dispatcher={dispatcher}
           targetBranchName={banner.targetBranchName}
           onOpenConflictsDialog={banner.onOpenConflictsDialog}
           onDismissed={onDismissed}

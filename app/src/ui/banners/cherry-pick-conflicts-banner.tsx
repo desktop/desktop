@@ -1,11 +1,9 @@
 import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Banner } from './banner'
-import { Dispatcher } from '../dispatcher'
 import { LinkButton } from '../lib/link-button'
 
 interface ICherryPickConflictsBannerProps {
-  readonly dispatcher: Dispatcher
   /** branch the user is rebasing into */
   readonly targetBranchName: string
   /** callback to fire when the dialog should be reopened */
