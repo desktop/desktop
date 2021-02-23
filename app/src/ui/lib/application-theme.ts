@@ -52,6 +52,6 @@ export function getPersistedThemeName(): string {
 /**
  * Store the given theme in the persistent store.
  */
-export function setPersistedTheme(theme: ApplicationTheme) {
+export function setPersistedTheme(theme: ApplicationTheme): void {
   remote.nativeTheme.themeSource = getThemeName(theme)
 }

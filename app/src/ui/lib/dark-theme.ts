@@ -7,7 +7,7 @@ import {
 /**
  * Whether or not the current OS supports System Theme Changes
  */
-export function supportsSystemThemeChanges() {
+export function supportsSystemThemeChanges(): boolean {
   if (__DARWIN__) {
     return isMacOSMojaveOrLater()
   } else if (__WIN32__) {
@@ -20,7 +20,7 @@ export function supportsSystemThemeChanges() {
   return false
 }
 
-export function isDarkModeEnabled() {
+export function isDarkModeEnabled(): boolean {
   if (!supportsSystemThemeChanges()) {
     return false
   }
