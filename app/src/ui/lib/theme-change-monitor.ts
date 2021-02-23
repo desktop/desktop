@@ -1,7 +1,10 @@
 import { remote } from 'electron'
-import { ApplicationTheme } from './application-theme'
+import {
+  ApplicationTheme,
+  supportsSystemThemeChanges,
+  isDarkModeEnabled,
+} from './application-theme'
 import { IDisposable, Disposable, Emitter } from 'event-kit'
-import { supportsSystemThemeChanges, isDarkModeEnabled } from './dark-theme'
 
 class ThemeChangeMonitor implements IDisposable {
   private readonly emitter = new Emitter()

@@ -1,6 +1,9 @@
 import * as React from 'react'
-import { ApplicationTheme, getThemeName } from './lib/application-theme'
-import { isDarkModeEnabled } from './lib/dark-theme'
+import {
+  ApplicationTheme,
+  getThemeName,
+  isDarkModeEnabled,
+} from './lib/application-theme'
 
 interface IAppThemeProps {
   readonly theme: ApplicationTheme

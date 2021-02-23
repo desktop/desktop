@@ -1,15 +1,15 @@
 import * as React from 'react'
 import {
+  ApplicationTheme,
   supportsSystemThemeChanges,
   isDarkModeEnabled,
-} from '../lib/dark-theme'
+} from '../lib/application-theme'
 import { Row } from '../lib/row'
 import { DialogContent } from '../dialog'
 import {
   VerticalSegmentedControl,
   ISegmentedItem,
 } from '../lib/vertical-segmented-control'
-import { ApplicationTheme } from '../lib/application-theme'
 
 interface IAppearanceProps {
   readonly selectedTheme: ApplicationTheme

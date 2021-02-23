@@ -78,8 +78,10 @@ import momentDurationFormatSetup from 'moment-duration-format'
 import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 import { enableUnhandledRejectionReporting } from '../lib/feature-flag'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
-import { ApplicationTheme } from './lib/application-theme'
-import { supportsSystemThemeChanges } from './lib/dark-theme'
+import {
+  ApplicationTheme,
+  supportsSystemThemeChanges,
+} from './lib/application-theme'
 
 if (__DEV__) {
   installDevGlobals()
