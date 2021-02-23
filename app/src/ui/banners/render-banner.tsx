@@ -64,7 +64,7 @@ export function renderBanner(
           theirBranch={banner.theirBranch}
           onDismissed={onDismissed}
           key={'branch-already-up-to-date'}
-        ></BranchAlreadyUpToDate>
+        />
       )
     case BannerType.SuccessfulCherryPick:
       return (
@@ -73,7 +73,7 @@ export function renderBanner(
           targetBranchName={banner.targetBranchName}
           countCherryPicked={banner.countCherryPicked}
           onDismissed={onDismissed}
-        ></SuccessfulCherryPick>
+        />
       )
     default:
       return assertNever(banner, `Unknown popup type: ${banner}`)
