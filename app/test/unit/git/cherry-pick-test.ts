@@ -15,7 +15,9 @@ import {
   continueCherryPick,
   getCherryPickSnapshot,
 } from '../../../src/lib/git/cherry-pick'
+import { isConflictedFile } from '../../../src/lib/status'
 import { Branch } from '../../../src/models/branch'
+import { ManualConflictResolution } from '../../../src/models/manual-conflict-resolution'
 import { ICherryPickProgress } from '../../../src/models/progress'
 import { Repository } from '../../../src/models/repository'
 import { AppFileStatusKind } from '../../../src/models/status'
@@ -279,7 +281,7 @@ describe('git/cherry-pick', () => {
       expect(conflictedFiles).toHaveLength(1)
     })
 
-    it('successfully continues cherry picking with conflicts after resolving them', async () => {
+    it('successfully continues cherry picking with conflicts after resolving them by overwriting', async () => {
       result = await cherryPick(repository, featureBranch.tip.sha)
       expect(result).toBe(CherryPickResult.ConflictsEncountered)
 
@@ -308,6 +310,34 @@ describe('git/cherry-pick', () => {
       expect(diffCheckAfter.exitCode).toEqual(0)
 
       result = await continueCherryPick(repository, files)
+
+      expect(result).toBe(CherryPickResult.CompletedWithoutError)
+    })
+
+    it('successfully continues cherry picking with conflicts after resolving them manually', async () => {
+      result = await cherryPick(repository, featureBranch.tip.sha)
+      expect(result).toBe(CherryPickResult.ConflictsEncountered)
+
+      const statusAfterCherryPick = await getStatusOrThrow(repository)
+      const { files } = statusAfterCherryPick.workingDirectory
+
+      // git diff --check warns if conflict markers exist and will exit with
+      // non-zero status if conflicts found
+      const diffCheckBefore = await GitProcess.exec(
+        ['diff', '--check'],
+        repository.path
+      )
+      expect(diffCheckBefore.exitCode).toBeGreaterThan(0)
+
+      const manualResolutions = new Map<string, ManualConflictResolution>()
+
+      for (const file of files) {
+        if (isConflictedFile(file.status)) {
+          manualResolutions.set(file.path, ManualConflictResolution.theirs)
+        }
+      }
+
+      result = await continueCherryPick(repository, files, manualResolutions)
 
       expect(result).toBe(CherryPickResult.CompletedWithoutError)
     })
@@ -462,7 +492,7 @@ describe('git/cherry-pick', () => {
         Path.join(repository.path, 'THING_THREE.md'),
         '# Resolve conflicts!'
       )
-      result = await continueCherryPick(repository, files, p =>
+      result = await continueCherryPick(repository, files, new Map(), p =>
         progress.push(p)
       )
       expect(result).toBe(CherryPickResult.CompletedWithoutError)

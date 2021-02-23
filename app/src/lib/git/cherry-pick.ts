@@ -17,6 +17,8 @@ import { ChildProcess } from 'child_process'
 import { round } from '../../ui/lib/round'
 import byline from 'byline'
 import { ICherryPickSnapshot } from '../../models/cherry-pick'
+import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
+import { stageManualConflictResolution } from './stage'
 
 /** The app-specific results from attempting to cherry pick commits*/
 export enum CherryPickResult {
@@ -203,7 +205,7 @@ function parseCherryPickResult(result: IGitResult): CherryPickResult {
 export async function getCherryPickSnapshot(
   repository: Repository
 ): Promise<ICherryPickSnapshot | null> {
-  if (isCherryPickHeadFound(repository)) {
+  if (!isCherryPickHeadFound(repository)) {
     // If there no cherry pick head, there is no cherry pick in progress.
     return null
   }
@@ -302,13 +304,28 @@ export async function getCherryPickSnapshot(
 export async function continueCherryPick(
   repository: Repository,
   files: ReadonlyArray<WorkingDirectoryFileChange>,
+  manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map(),
   progressCallback?: (progress: ICherryPickProgress) => void
 ): Promise<CherryPickResult> {
   // only stage files related to cherry pick
   const trackedFiles = files.filter(f => {
     return f.status.kind !== AppFileStatusKind.Untracked
   })
-  await stageFiles(repository, trackedFiles)
+
+  // apply conflict resolutions
+  for (const [path, resolution] of manualResolutions) {
+    const file = files.find(f => f.path === path)
+    if (file !== undefined) {
+      await stageManualConflictResolution(repository, file, resolution)
+    } else {
+      log.error(
+        `[continueCherryPick] couldn't find file ${path} even though there's a manual resolution for it`
+      )
+    }
+  }
+
+  const otherFiles = trackedFiles.filter(f => !manualResolutions.has(f.path))
+  await stageFiles(repository, otherFiles)
 
   const status = await getStatus(repository)
   if (status == null) {
@@ -320,7 +337,7 @@ export async function continueCherryPick(
   }
 
   // make sure cherry pick is still in progress to continue
-  if (await isCherryPickHeadFound(repository)) {
+  if (await !isCherryPickHeadFound(repository)) {
     return CherryPickResult.Aborted
   }
 
