@@ -1697,7 +1697,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     themeChangeMonitor.onThemeChanged(theme => {
       if (this.automaticallySwitchTheme) {
-        this.selectedTheme = theme
         this.emitUpdate()
       }
     })
