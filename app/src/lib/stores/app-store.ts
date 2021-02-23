@@ -5839,6 +5839,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return result || CherryPickResult.Error
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _abortCherryPick(
     repository: Repository,
     sourceBranch: Branch
@@ -5863,6 +5864,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
 
     this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _setCherryPickConflictsResolved(repository: Repository) {
+    // an update is not emitted here because there is no need
+    // to trigger a re-render at this point
+
+    this.repositoryStateCache.updateCherryPickState(repository, () => ({
+      userHasResolvedConflicts: true,
+    }))
   }
 }
 

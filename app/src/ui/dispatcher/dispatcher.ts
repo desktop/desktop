@@ -2644,4 +2644,12 @@ export class Dispatcher {
     await this.appStore._abortCherryPick(repository, sourceBranch)
     this.appStore._endCherryPickFlow(repository)
   }
+
+  /**
+   * Update the cherry pick state to indicate the user has resolved conflicts in
+   * the current repository.
+   */
+  public setCherryPickConflictsResolved(repository: Repository) {
+    return this.appStore._setCherryPickConflictsResolved(repository)
+  }
 }

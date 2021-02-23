@@ -67,7 +67,13 @@ export class CherryPickConflictsDialog extends React.Component<
   }
 
   public componentWillUnmount() {
-    const { workingDirectory, step, userHasResolvedConflicts } = this.props
+    const {
+      workingDirectory,
+      step,
+      userHasResolvedConflicts,
+      dispatcher,
+      repository,
+    } = this.props
 
     // skip this work once we know conflicts have been resolved
     if (userHasResolvedConflicts) {
@@ -83,7 +89,7 @@ export class CherryPickConflictsDialog extends React.Component<
     )
 
     if (resolvedConflicts.length > 0) {
-      this.props.dispatcher.setConflictsResolved(this.props.repository)
+      dispatcher.setCherryPickConflictsResolved(repository)
     }
   }
 
