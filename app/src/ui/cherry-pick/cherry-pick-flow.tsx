@@ -6,15 +6,21 @@ import {
   CherryPickFlowStep,
   CherryPickStepKind,
 } from '../../models/cherry-pick'
+import { ICherryPickProgress } from '../../models/progress'
 
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { ChooseTargetBranchDialog } from './choose-target-branch'
+import { CherryPickProgressDialog } from './cherry-pick-progress-dialog'
+import { CommitOneLine } from '../../models/commit'
 
 interface ICherryPickFlowProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly step: CherryPickFlowStep
+  readonly commits: ReadonlyArray<CommitOneLine>
+  readonly progress: ICherryPickProgress | null
+  readonly emoji: Map<string, string>
 
   readonly onDismissed: () => void
 }
@@ -26,8 +32,11 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
   }
 
   private onCherryPick = (targetBranch: Branch) => {
-    // TODO: call this.props.dispatcher.cherryPick
-    this.props.onDismissed()
+    this.props.dispatcher.startCherryPick(
+      this.props.repository,
+      targetBranch,
+      this.props.commits
+    )
   }
 
   public render() {
@@ -53,8 +62,22 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
           />
         )
       }
+      case CherryPickStepKind.ShowProgress:
+        if (this.props.progress === null) {
+          log.error(
+            `[CherryPickFlow] cherry pick progress should not be null
+            when showing progress. Skipping rendering..`
+          )
+          return null
+        }
+        return (
+          <CherryPickProgressDialog
+            progress={this.props.progress}
+            emoji={this.props.emoji}
+          />
+        )
       default:
-        return assertNever(step.kind, 'Unknown cherry pick step found')
+        return assertNever(step, 'Unknown cherry pick step found')
     }
   }
 }

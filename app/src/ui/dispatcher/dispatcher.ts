@@ -97,7 +97,12 @@ import { IStashEntry } from '../../models/stash-entry'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { enableForkSettings } from '../../lib/feature-flag'
 import { resolveWithin } from '../../lib/path'
-import { CherryPickFlowStep } from '../../models/cherry-pick'
+import {
+  CherryPickFlowStep,
+  CherryPickStepKind,
+} from '../../models/cherry-pick'
+import { CherryPickResult } from '../../lib/git/cherry-pick'
+import { sleep } from '../../lib/promise'
 
 /**
  * An error handler function.
@@ -2506,20 +2511,6 @@ export class Dispatcher {
   }
 
   /**
-   * Show the cherry pick branch selection dialog
-   */
-  public showCherryPickBranchDialog(
-    repository: Repository,
-    commitSha: string
-  ): Promise<void> {
-    return this.showPopup({
-      type: PopupType.CherryPick,
-      repository,
-      commitSha,
-    })
-  }
-
-  /**
    * Move the cherry pick flow to a new state.
    */
   public setCherryPickFlowStep(
@@ -2527,5 +2518,97 @@ export class Dispatcher {
     step: CherryPickFlowStep
   ): Promise<void> {
     return this.appStore._setCherryPickFlowStep(repository, step)
+  }
+
+  /** Initialize and start the cherry pick operation */
+  public async startCherryPick(
+    repository: Repository,
+    targetBranch: Branch,
+    commits: ReadonlyArray<CommitOneLine>
+  ): Promise<void> {
+    this.appStore._initializeCherryPickProgress(repository, commits)
+
+    this.setCherryPickFlowStep(repository, {
+      kind: CherryPickStepKind.ShowProgress,
+    })
+
+    // This timeout is intended to defer cherry picking from running immediately
+    // to better show that cherry picking is progressing rather than suddenly
+    // appearing and disappearing again.
+    await sleep(500)
+    this.cherryPick(repository, targetBranch, commits)
+  }
+
+  private logHowToRevertCherryPick(
+    repository: Repository,
+    targetBranch: Branch
+  ) {
+    const stateBefore = this.repositoryStateManager.get(repository)
+    const beforeSha = getTipSha(stateBefore.branchesState.tip)
+
+    log.info(
+      `[cherryPick] starting cherry pick for ${targetBranch.name} at ${beforeSha}`
+    )
+    log.info(
+      `[cherryPick] to restore the previous state if this completed cherry pick is unsatisfactory:`
+    )
+    log.info(`[cherryPick] - git checkout ${targetBranch.name}`)
+    log.info(`[cherryPick] - git reset ${beforeSha} --hard`)
+  }
+
+  /** Starts a cherry pick of the given commits onto the target branch */
+  public async cherryPick(
+    repository: Repository,
+    targetBranch: Branch,
+    commits: ReadonlyArray<CommitOneLine>
+  ): Promise<void> {
+    this.logHowToRevertCherryPick(repository, targetBranch)
+
+    const result = await this.appStore._cherryPick(
+      repository,
+      targetBranch,
+      commits
+    )
+
+    switch (result) {
+      case CherryPickResult.CompletedWithoutError:
+        await this.completeCherryPick(
+          repository,
+          targetBranch.name,
+          commits.length
+        )
+        break
+      // TODO: handle conflicts and other handled errors
+      default:
+        this.appStore._endCherryPickFlow(repository)
+        throw Error(
+          `Unable to perform cherry pick operation.
+          This should not happen as all expected errors were handled.`
+        )
+    }
+  }
+
+  /** Wrap cherry pick up actions:
+   * - closes flow popup
+   * - displays success banner
+   * - clears out cherry pick flow state
+   */
+  private async completeCherryPick(
+    repository: Repository,
+    targetBranchName: string,
+    countCherryPicked: number
+  ): Promise<void> {
+    this.closePopup()
+
+    const banner: Banner = {
+      type: BannerType.SuccessfulCherryPick,
+      targetBranchName,
+      countCherryPicked,
+    }
+    this.setBanner(banner)
+
+    this.appStore._endCherryPickFlow(repository)
+
+    await this.refreshRepository(repository)
   }
 }

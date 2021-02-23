@@ -127,6 +127,7 @@ import {
   ChooseTargetBranchesStep,
 } from '../models/cherry-pick'
 import { getAccountForRepository } from '../lib/get-account-for-repository'
+import { CommitOneLine } from '../models/commit'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1998,8 +1999,6 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.CherryPick: {
-        this.initializeCherryPickFlowWithoutBranch()
-
         const cherryPickState = this.getCherryPickState()
         if (cherryPickState === null || cherryPickState.step == null) {
           log.warn(
@@ -2017,6 +2016,9 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             onDismissed={onPopupDismissedFn}
             step={cherryPickState.step}
+            emoji={this.state.emoji}
+            progress={cherryPickState.progress}
+            commits={popup.commits}
           />
         )
       }
@@ -2613,6 +2615,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           isShowingFoldout={this.state.currentFoldout !== null}
           aheadBehindStore={this.props.aheadBehindStore}
           commitSpellcheckEnabled={this.state.commitSpellcheckEnabled}
+          onCherryPick={this.startCherryPickWithoutBranch}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
@@ -2714,13 +2717,20 @@ export class App extends React.Component<IAppProps, IAppState> {
     return this.state.currentOnboardingTutorialStep === TutorialStep.Paused
   }
 
-  private initializeCherryPickFlowWithoutBranch(): void {
-    const repository = this.getRepository()
-
-    if (!repository || repository instanceof CloningRepository) {
-      return
-    }
-
+  /**
+   * When starting cherry pick from context menu, we need to initialize the
+   * cherry pick state flow step with the ChooseTargetBranch as opposed
+   * to drag and drop which will start at the ShowProgress step.
+   *
+   * Step initialization must be done before and outside of the
+   * `currentPopupContent` method because it is a rendering method that is
+   * re-run on every update. It will just keep showing the step initialized
+   * there otherwise - not allowing for other flow steps.
+   */
+  private startCherryPickWithoutBranch = (
+    repository: Repository,
+    commits: ReadonlyArray<CommitOneLine>
+  ) => {
     const repositoryState = this.props.repositoryStateManager.get(repository)
 
     const {
@@ -2748,6 +2758,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.setCherryPickFlowStep(repository, initialStep)
+
+    this.showPopup({
+      type: PopupType.CherryPick,
+      repository,
+      commits,
+    })
   }
 
   private getCherryPickState(): ICherryPickState | null {
