@@ -5843,11 +5843,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _abortCherryPick(
     repository: Repository,
-    sourceBranch: Branch
+    sourceBranch: Branch | null
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
 
     await gitStore.performFailableOperation(() => abortCherryPick(repository))
+
+    if (sourceBranch === null) {
+      return
+    }
 
     await this.withAuthenticatingUser(repository, async (r, account) => {
       await gitStore.performFailableOperation(() =>

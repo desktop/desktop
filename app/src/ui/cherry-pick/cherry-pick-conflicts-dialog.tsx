@@ -38,7 +38,7 @@ interface ICherryPickConflictsDialogProps {
   readonly workingDirectory: WorkingDirectoryStatus
 
   // For display in manual resolution context menu
-  readonly sourceBranchName: string
+  readonly sourceBranchName: string | null
 
   readonly onDismissed: () => void
   readonly onContinueCherryPick: (step: ShowConflictsStep) => void
@@ -123,13 +123,18 @@ export class CherryPickConflictsDialog extends React.Component<
       repository,
       dispatcher,
       step,
-      sourceBranchName: ourBranch,
+      sourceBranchName,
     } = this.props
 
     const {
       manualResolutions,
       targetBranchName: theirBranch,
     } = step.conflictState
+
+    let ourBranch: string
+    if (sourceBranchName !== null) {
+      ourBranch = sourceBranchName
+    }
 
     return (
       <ul className="unmerged-file-statuses">

@@ -25,8 +25,13 @@ interface ICherryPickFlowProps {
   readonly progress: ICherryPickProgress | null
   readonly emoji: Map<string, string>
 
-  /** The branch the commits come from - needed so abort can switch back to it */
-  readonly sourceBranch: Branch
+  /**
+   * The branch the commits come from - needed so abort can switch back to it
+   *
+   * This can be null because if a cherry pick is started outside of Desktop
+   * it is difficult to obtain the sourceBranch.
+   */
+  readonly sourceBranch: Branch | null
 
   /** Properties required for conflict flow step. */
   readonly workingDirectory: WorkingDirectoryStatus
@@ -49,7 +54,7 @@ interface ICherryPickFlowProps {
   readonly onShowCherryPickConflictsBanner: (
     repository: Repository,
     targetBranchName: string,
-    sourceBranch: Branch,
+    sourceBranch: Branch | null,
     commits: ReadonlyArray<CommitOneLine>
   ) => void
 }
@@ -154,7 +159,7 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
             openFileInExternalEditor={openFileInExternalEditor}
             resolvedExternalEditor={resolvedExternalEditor}
             openRepositoryInShell={openRepositoryInShell}
-            sourceBranchName={sourceBranch.name}
+            sourceBranchName={sourceBranch ? sourceBranch.name : null}
           />
         )
       case CherryPickStepKind.HideConflicts:
