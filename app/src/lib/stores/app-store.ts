@@ -1691,9 +1691,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.showSideBySideDiff = getShowSideBySideDiff()
 
     this.selectedTheme = getPersistedTheme()
-    this.automaticallySwitchTheme =
-      this.selectedTheme === ApplicationTheme.System
-    setPersistedTheme(this.selectedTheme)
+    this.automaticallySwitchTheme = setPersistedTheme(this.selectedTheme)
 
     themeChangeMonitor.onThemeChanged(theme => {
       if (this.automaticallySwitchTheme) {
@@ -5399,8 +5397,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * Set the application-wide theme
    */
   public _setSelectedTheme(theme: ApplicationTheme) {
-    setPersistedTheme(theme)
-    this.automaticallySwitchTheme = theme === ApplicationTheme.System
+    this.automaticallySwitchTheme = setPersistedTheme(theme)
     this.selectedTheme = theme
     this.emitUpdate()
 
