@@ -2528,15 +2528,7 @@ export class Dispatcher {
     commits: ReadonlyArray<CommitOneLine>
   ): Promise<void> {
     this.appStore._initializeCherryPickProgress(repository, commits)
-
-    this.setCherryPickFlowStep(repository, {
-      kind: CherryPickStepKind.ShowProgress,
-    })
-
-    // This timeout is intended to defer cherry picking from running immediately
-    // to better show that cherry picking is progressing rather than suddenly
-    // appearing and disappearing again.
-    await sleep(500)
+    this.switchCherryPickingFlowToShowProgress(repository)
     this.cherryPick(repository, targetBranch, commits)
   }
 
@@ -2652,5 +2644,17 @@ export class Dispatcher {
    */
   public setCherryPickConflictsResolved(repository: Repository) {
     return this.appStore._setCherryPickConflictsResolved(repository)
+  }
+
+  /**
+   * Moves cherry pick flow step to progress and defers to allow user to
+   * see the cherry picking progress dialog instead of suddenly appearing
+   * and disappearing again.
+   */
+  private async switchCherryPickingFlowToShowProgress(repository: Repository) {
+    this.setCherryPickFlowStep(repository, {
+      kind: CherryPickStepKind.ShowProgress,
+    })
+    await sleep(500)
   }
 }
