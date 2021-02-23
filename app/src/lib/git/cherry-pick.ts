@@ -203,7 +203,7 @@ function parseCherryPickResult(result: IGitResult): CherryPickResult {
 export async function getCherryPickSnapshot(
   repository: Repository
 ): Promise<ICherryPickSnapshot | null> {
-  if (isCherryPickHeadFound(repository)) {
+  if (!isCherryPickHeadFound(repository)) {
     // If there no cherry pick head, there is no cherry pick in progress.
     return null
   }
@@ -320,7 +320,7 @@ export async function continueCherryPick(
   }
 
   // make sure cherry pick is still in progress to continue
-  if (await isCherryPickHeadFound(repository)) {
+  if (await !isCherryPickHeadFound(repository)) {
     return CherryPickResult.Aborted
   }
 
