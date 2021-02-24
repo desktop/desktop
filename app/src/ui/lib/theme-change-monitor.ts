@@ -3,6 +3,7 @@ import {
   ApplicationTheme,
   supportsSystemThemeChanges,
   getCurrentlyAppliedTheme,
+  ApplicableTheme,
 } from './application-theme'
 import { IDisposable, Disposable, Emitter } from 'event-kit'
 
@@ -33,15 +34,11 @@ class ThemeChangeMonitor implements IDisposable {
     this.emitThemeChanged(theme)
   }
 
-  public onThemeChanged(
-    fn: (theme: ApplicationTheme.Light | ApplicationTheme.Dark) => void
-  ): Disposable {
+  public onThemeChanged(fn: (theme: ApplicableTheme) => void): Disposable {
     return this.emitter.on('theme-changed', fn)
   }
 
-  private emitThemeChanged(
-    theme: ApplicationTheme.Light | ApplicationTheme.Dark
-  ) {
+  private emitThemeChanged(theme: ApplicableTheme) {
     this.emitter.emit('theme-changed', theme)
   }
 }

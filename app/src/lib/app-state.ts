@@ -28,7 +28,7 @@ import { SignInState } from './stores/sign-in-store'
 import { WindowState } from './window-state'
 import { Shell } from './shells'
 
-import { ApplicationTheme } from '../ui/lib/application-theme'
+import { ApplicableTheme, ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { Banner } from '../models/banner'
@@ -215,7 +215,7 @@ export interface IAppState {
   readonly selectedTheme: ApplicationTheme
 
   /** The currently applied appearance (aka theme) */
-  readonly currentTheme: ApplicationTheme.Light | ApplicationTheme.Dark
+  readonly currentTheme: ApplicableTheme
 
   /**
    * A map keyed on a user account (GitHub.com or GitHub Enterprise)

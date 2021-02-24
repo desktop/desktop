@@ -13,6 +13,8 @@ export enum ApplicationTheme {
   System,
 }
 
+export type ApplicableTheme = ApplicationTheme.Light | ApplicationTheme.Dark
+
 /**
  * Gets the friendly name of an application theme for use
  * in persisting to storage and/or calculating the required
@@ -57,9 +59,7 @@ export function getPersistedThemeName(): string {
 /**
  * Load the name of the currently selected theme
  */
-export function getCurrentlyAppliedTheme():
-  | ApplicationTheme.Light
-  | ApplicationTheme.Dark {
+export function getCurrentlyAppliedTheme(): ApplicableTheme {
   return isDarkModeEnabled() ? ApplicationTheme.Dark : ApplicationTheme.Light
 }
 

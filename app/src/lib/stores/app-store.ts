@@ -66,6 +66,7 @@ import { IGitAccount } from '../../models/git-account'
 import { themeChangeMonitor } from '../../ui/lib/theme-change-monitor'
 import { getAppPath } from '../../ui/lib/app-proxy'
 import {
+  ApplicableTheme,
   ApplicationTheme,
   getCurrentlyAppliedTheme,
   getPersistedTheme,
@@ -409,8 +410,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.System
-  private currentTheme: ApplicationTheme.Light | ApplicationTheme.Dark =
-    ApplicationTheme.Light
+  private currentTheme: ApplicableTheme = ApplicationTheme.Light
 
   private hasUserViewedStash = false
 
