@@ -2,7 +2,7 @@ import * as fs from 'fs'
 import * as Path from 'path'
 
 import { getSHA } from './git-info'
-import { getUpdatesURL, getChannel } from '../script/dist-info'
+import { getChannel } from '../script/dist-info'
 
 const projectRoot = Path.dirname(__dirname)
 
@@ -34,7 +34,6 @@ export function getReplacements() {
     __LINUX__: process.platform === 'linux',
     __DEV__: channel === 'development',
     __RELEASE_CHANNEL__: s(channel),
-    __UPDATES_URL__: s(getUpdatesURL()),
     __SHA__: s(getSHA()),
     __CLI_COMMANDS__: s(getCLICommands()),
     'process.platform': s(process.platform),

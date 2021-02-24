@@ -14,7 +14,6 @@ g['__DARWIN__'] = process.platform === 'darwin'
 g['__LINUX__'] = process.platform === 'linux'
 g['__DEV__'] = 'false'
 g['__RELEASE_CHANNEL__'] = 'development'
-g['__UPDATES_URL__'] = ''
 g['__SHA__'] = 'test'
 
 g['log'] = {

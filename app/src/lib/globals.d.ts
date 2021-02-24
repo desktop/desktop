@@ -32,9 +32,6 @@ declare const __RELEASE_CHANNEL__:
 
 declare const __CLI_COMMANDS__: ReadonlyArray<string>
 
-/** The URL for Squirrel's updates. */
-declare const __UPDATES_URL__: string
-
 /**
  * The currently executing process kind, this is specific to desktop
  * and identifies the processes that we have.

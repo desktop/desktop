@@ -44,7 +44,6 @@ function getReplacements() {
     __LINUX__: process.platform === 'linux',
     __DEV__: channel === 'development',
     __RELEASE_CHANNEL__: s(channel),
-    __UPDATES_URL__: s(distInfo.getUpdatesURL()),
     __SHA__: s(gitInfo.getSHA()),
     __CLI_COMMANDS__: s(getCLICommands()),
     'process.platform': s(process.platform),
