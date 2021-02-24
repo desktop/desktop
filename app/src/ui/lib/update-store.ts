@@ -4,6 +4,7 @@ import { remote } from 'electron'
 // use with `remote`.
 const autoUpdater = remote.autoUpdater
 const lastSuccessfulCheckKey = 'last-successful-update-check'
+const appUpdateChannelKey = 'app-update-channel'
 
 import { Emitter, Disposable } from 'event-kit'
 
@@ -13,7 +14,12 @@ import { parseError } from '../../lib/squirrel-error-parser'
 
 import { ReleaseSummary } from '../../models/release-notes'
 import { generateReleaseSummary } from '../../lib/release-notes'
-import { setNumber, getNumber } from '../../lib/local-storage'
+import { setNumber, getNumber, getEnum } from '../../lib/local-storage'
+import { getVersion } from './app-proxy'
+import {
+  AppUpdateChannel,
+  defaultAppUpdateChannel,
+} from '../../models/app-update-channel'
 
 /** The states the auto updater can be in. */
 export enum UpdateStatus {
@@ -42,6 +48,7 @@ class UpdateStore {
   private status = UpdateStatus.UpdateNotAvailable
   private lastSuccessfulCheck: Date | null = null
   private newRelease: ReleaseSummary | null = null
+  private appUpdateChannel: AppUpdateChannel = defaultAppUpdateChannel
 
   /** Is the most recent update check user initiated? */
   private userInitiatedUpdate = true
@@ -52,6 +59,9 @@ class UpdateStore {
     if (lastSuccessfulCheckTime > 0) {
       this.lastSuccessfulCheck = new Date(lastSuccessfulCheckTime)
     }
+
+    this.appUpdateChannel =
+      getEnum(appUpdateChannelKey, AppUpdateChannel) ?? defaultAppUpdateChannel
 
     autoUpdater.on('error', this.onAutoUpdaterError)
     autoUpdater.on('checking-for-update', this.onCheckingForUpdate)
@@ -163,11 +173,33 @@ class UpdateStore {
     this.userInitiatedUpdate = !inBackground
 
     try {
-      autoUpdater.setFeedURL({ url: __UPDATES_URL__ })
+      autoUpdater.setFeedURL({ url: this.getUpdatesURL() })
       autoUpdater.checkForUpdates()
     } catch (e) {
       this.emitError(e)
     }
+  }
+
+  private getUpdatesURL() {
+    const env =
+      this.appUpdateChannel === AppUpdateChannel.Stable ? 'production' : 'beta'
+    return `https://central.github.com/api/deployments/desktop/desktop/latest?version=${getVersion()}&env=${env}`
+  }
+
+  public setAppUpdateChannel(channel: AppUpdateChannel): Promise<void> {
+    if (this.appUpdateChannel === channel) {
+      return Promise.resolve()
+    }
+
+    this.appUpdateChannel = channel
+    localStorage.setItem(appUpdateChannelKey, channel)
+    this.checkForUpdates(true)
+
+    return Promise.resolve()
+  }
+
+  public getAppUpdateChannel() {
+    return this.appUpdateChannel
   }
 
   /** Quit and install the update. */

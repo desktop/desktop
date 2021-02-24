@@ -39,7 +39,6 @@ import { IStashEntry } from '../models/stash-entry'
 import { TutorialStep } from '../models/tutorial-step'
 import { UncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
 import { CherryPickFlowStep } from '../models/cherry-pick'
-import { AppUpdateChannel } from '../models/app-update-channel'
 
 export enum SelectionType {
   Repository,
@@ -177,9 +176,6 @@ export interface IAppState {
 
   /** How the app should handle uncommitted changes when switching branches */
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
-
-  /** Channel used for app version updates */
-  readonly appUpdateChannel: AppUpdateChannel
 
   /** The external editor to use when opening repositories */
   readonly selectedExternalEditor: string | null

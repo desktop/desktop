@@ -270,10 +270,6 @@ import {
 } from '../../ui/lib/diff-mode'
 import { CherryPickFlowStep } from '../../models/cherry-pick'
 import { cherryPick, CherryPickResult } from '../git/cherry-pick'
-import {
-  AppUpdateChannel,
-  defaultAppUpdateChannel,
-} from '../../models/app-update-channel'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -299,7 +295,6 @@ const askForConfirmationOnForcePushDefault = true
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
 const confirmForcePushKey: string = 'confirmForcePush'
-const appUpdateChannelKey: string = 'appUpdateChannel'
 
 const uncommittedChangesStrategyKey = 'uncommittedChangesStrategyKind'
 
@@ -398,8 +393,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private showSideBySideDiff: boolean = ShowSideBySideDiffDefault
 
   private uncommittedChangesStrategy = defaultUncommittedChangesStrategy
-
-  private appUpdateChannel = defaultAppUpdateChannel
 
   private selectedExternalEditor: string | null = null
 
@@ -762,7 +755,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
       askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
       uncommittedChangesStrategy: this.uncommittedChangesStrategy,
-      appUpdateChannel: this.appUpdateChannel,
       selectedExternalEditor: this.selectedExternalEditor,
       imageDiffType: this.imageDiffType,
       hideWhitespaceInDiff: this.hideWhitespaceInDiff,
@@ -1683,9 +1675,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.uncommittedChangesStrategy =
       getEnum(uncommittedChangesStrategyKey, UncommittedChangesStrategy) ??
       defaultUncommittedChangesStrategy
-
-    this.appUpdateChannel =
-      getEnum(appUpdateChannelKey, AppUpdateChannel) ?? defaultAppUpdateChannel
 
     this.updateSelectedExternalEditor(
       await this.lookupSelectedExternalEditor()
@@ -4565,15 +4554,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.uncommittedChangesStrategy = value
 
     localStorage.setItem(uncommittedChangesStrategyKey, value)
-
-    this.emitUpdate()
-    return Promise.resolve()
-  }
-
-  public _setAppUpdateChannelSetting(value: AppUpdateChannel): Promise<void> {
-    this.appUpdateChannel = value
-
-    localStorage.setItem(appUpdateChannelKey, value)
 
     this.emitUpdate()
     return Promise.resolve()

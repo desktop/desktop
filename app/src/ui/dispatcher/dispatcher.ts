@@ -104,6 +104,7 @@ import {
 import { CherryPickResult } from '../../lib/git/cherry-pick'
 import { sleep } from '../../lib/promise'
 import { AppUpdateChannel } from '../../models/app-update-channel'
+import { updateStore } from '../lib/update-store'
 
 /**
  * An error handler function.
@@ -1772,7 +1773,7 @@ export class Dispatcher {
 
   /** Sets the user's preferred app update channel. */
   public setAppUpdateChannelSetting(value: AppUpdateChannel): Promise<void> {
-    return this.appStore._setAppUpdateChannelSetting(value)
+    return updateStore.setAppUpdateChannel(value)
   }
 
   /**
