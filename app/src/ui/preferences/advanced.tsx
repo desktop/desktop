@@ -171,9 +171,9 @@ export class Advanced extends React.Component<
           <option value={AppUpdateChannel.Beta}>Beta</option>
         </Select>
         <p className="git-settings-description">
-          · Stable versions get updates less frequently but are more reliable.
-          <br />· Beta versions get updates more frequently with new features
-          and might be less reliable.
+          · Stable: less frequent updates, but more reliable.
+          <br />· Beta: more frequent updates, with early access to new
+          features.
         </p>
       </>
     )
