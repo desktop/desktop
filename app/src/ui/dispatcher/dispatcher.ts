@@ -103,6 +103,7 @@ import {
 } from '../../models/cherry-pick'
 import { CherryPickResult } from '../../lib/git/cherry-pick'
 import { sleep } from '../../lib/promise'
+import { AppUpdateChannel } from '../../models/app-update-channel'
 
 /**
  * An error handler function.
@@ -1767,6 +1768,11 @@ export class Dispatcher {
     value: UncommittedChangesStrategy
   ): Promise<void> {
     return this.appStore._setUncommittedChangesStrategySetting(value)
+  }
+
+  /** Sets the user's preferred app update channel. */
+  public setAppUpdateChannelSetting(value: AppUpdateChannel): Promise<void> {
+    return this.appStore._setAppUpdateChannelSetting(value)
   }
 
   /**

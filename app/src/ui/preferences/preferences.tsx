@@ -39,6 +39,7 @@ import {
 } from '../../lib/helpers/default-branch'
 import { Prompts } from './prompts'
 import { Repository } from '../../models/repository'
+import { AppUpdateChannel } from '../../models/app-update-channel'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -52,6 +53,7 @@ interface IPreferencesProps {
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
+  readonly appUpdateChannel: AppUpdateChannel
   readonly selectedExternalEditor: string | null
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
@@ -73,6 +75,7 @@ interface IPreferencesState {
   readonly confirmDiscardChanges: boolean
   readonly confirmForcePush: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
+  readonly appUpdateChannel: AppUpdateChannel
   readonly availableEditors: ReadonlyArray<string>
   readonly selectedExternalEditor: string | null
   readonly availableShells: ReadonlyArray<Shell>
@@ -111,6 +114,7 @@ export class Preferences extends React.Component<
       confirmDiscardChanges: false,
       confirmForcePush: false,
       uncommittedChangesStrategy: defaultUncommittedChangesStrategy,
+      appUpdateChannel: this.props.appUpdateChannel,
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
       selectedShell: this.props.selectedShell,
@@ -163,6 +167,7 @@ export class Preferences extends React.Component<
       confirmDiscardChanges: this.props.confirmDiscardChanges,
       confirmForcePush: this.props.confirmForcePush,
       uncommittedChangesStrategy: this.props.uncommittedChangesStrategy,
+      appUpdateChannel: this.props.appUpdateChannel,
       availableShells,
       availableEditors,
     })
@@ -330,6 +335,7 @@ export class Preferences extends React.Component<
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
             uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
+            appUpdateChannel={this.state.appUpdateChannel}
             onOptOutofReportingchanged={this.onOptOutofReportingChanged}
             onUncommittedChangesStrategyChanged={
               this.onUncommittedChangesStrategyChanged
@@ -337,6 +343,7 @@ export class Preferences extends React.Component<
             onRepositoryIndicatorsEnabledChanged={
               this.onRepositoryIndicatorsEnabledChanged
             }
+            onAppUpdateChannelChanged={this.onAppUpdateChannelChanged}
           />
         )
         break
@@ -364,6 +371,10 @@ export class Preferences extends React.Component<
 
   private onOptOutofReportingChanged = (value: boolean) => {
     this.setState({ optOutOfUsageTracking: value })
+  }
+
+  private onAppUpdateChannelChanged = (value: AppUpdateChannel) => {
+    this.setState({ appUpdateChannel: value })
   }
 
   private onConfirmRepositoryRemovalChanged = (value: boolean) => {
@@ -529,6 +540,10 @@ export class Preferences extends React.Component<
 
     await this.props.dispatcher.setUncommittedChangesStrategySetting(
       this.state.uncommittedChangesStrategy
+    )
+
+    await this.props.dispatcher.setAppUpdateChannelSetting(
+      this.state.appUpdateChannel
     )
 
     this.props.onDismissed()

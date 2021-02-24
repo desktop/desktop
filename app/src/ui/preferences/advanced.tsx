@@ -5,16 +5,25 @@ import { LinkButton } from '../lib/link-button'
 import { SamplesURL } from '../../lib/stats'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { RadioButton } from '../lib/radio-button'
+import { Select } from '../lib/select'
+import { AppUpdateChannel } from '../../models/app-update-channel'
+import { parseEnumValue } from '../../lib/enum'
+import {
+  canUpdateApp,
+  getUnableToUpdateAppWarning,
+} from '../lib/version-update-warning'
 
 interface IAdvancedPreferencesProps {
   readonly optOutOfUsageTracking: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly repositoryIndicatorsEnabled: boolean
+  readonly appUpdateChannel: AppUpdateChannel
   readonly onOptOutofReportingchanged: (checked: boolean) => void
   readonly onUncommittedChangesStrategyChanged: (
     value: UncommittedChangesStrategy
   ) => void
   readonly onRepositoryIndicatorsEnabledChanged: (enabled: boolean) => void
+  readonly onAppUpdateChannelChanged: (channel: AppUpdateChannel) => void
 }
 
 interface IAdvancedPreferencesState {
@@ -42,6 +51,15 @@ export class Advanced extends React.Component<
 
     this.setState({ optOutOfUsageTracking: value })
     this.props.onOptOutofReportingchanged(value)
+  }
+
+  private onUpdateChannelChanged = (
+    event: React.FormEvent<HTMLSelectElement>
+  ) => {
+    const value = parseEnumValue(AppUpdateChannel, event.currentTarget.value)
+    if (value !== undefined) {
+      this.props.onAppUpdateChannelChanged(value)
+    }
   }
 
   private onUncommittedChangesStrategyChanged = (
@@ -130,7 +148,34 @@ export class Advanced extends React.Component<
             onChange={this.onReportingOptOutChanged}
           />
         </div>
+        <div className="advanced-section">
+          <h2>Updates channel</h2>
+          {this.renderUpdatesChannelContent()}
+        </div>
       </DialogContent>
+    )
+  }
+
+  private renderUpdatesChannelContent() {
+    if (!canUpdateApp()) {
+      return <p>{getUnableToUpdateAppWarning()}</p>
+    }
+
+    return (
+      <>
+        <Select
+          value={this.props.appUpdateChannel}
+          onChange={this.onUpdateChannelChanged}
+        >
+          <option value={AppUpdateChannel.Stable}>Stable</option>
+          <option value={AppUpdateChannel.Beta}>Beta</option>
+        </Select>
+        <p className="git-settings-description">
+          · Stable versions get updates less frequently but are more reliable.
+          <br />· Beta versions get updates more frequently with new features
+          and might be less reliable.
+        </p>
+      </>
     )
   }
 }

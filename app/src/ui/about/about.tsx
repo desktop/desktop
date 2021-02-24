@@ -16,6 +16,10 @@ import { RelativeTime } from '../relative-time'
 import { assertNever } from '../../lib/fatal-error'
 import { ReleaseNotesUri } from '../lib/releases'
 import { encodePathAsUrl } from '../../lib/path'
+import {
+  canUpdateApp,
+  getUnableToUpdateAppWarning,
+} from '../lib/version-update-warning'
 
 const logoPath = __DARWIN__
   ? 'static/logo-64x64@2x.png'
@@ -175,16 +179,8 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       return null
     }
 
-    if (
-      __RELEASE_CHANNEL__ === 'development' ||
-      __RELEASE_CHANNEL__ === 'test'
-    ) {
-      return (
-        <p>
-          The application is currently running in development or test mode and
-          will not receive any updates.
-        </p>
-      )
+    if (!canUpdateApp()) {
+      return <p>{getUnableToUpdateAppWarning()}</p>
     }
 
     const updateState = this.state.updateState
