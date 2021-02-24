@@ -1535,9 +1535,11 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
             applicationName={getName()}
             applicationVersion={version}
+            appUpdateChannel={updateStore.getAppUpdateChannel()}
             onCheckForUpdates={this.onCheckForUpdates}
             onShowAcknowledgements={this.showAcknowledgements}
             onShowTermsAndConditions={this.showTermsAndConditions}
+            onOpenAdvancedPreferences={this.openAdvancedPreferences}
           />
         )
       case PopupType.PublishRepository:
@@ -2150,6 +2152,13 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private showTermsAndConditions = () => {
     this.props.dispatcher.showPopup({ type: PopupType.TermsAndConditions })
+  }
+
+  private openAdvancedPreferences = () => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.Preferences,
+      initialSelectedTab: PreferencesTab.Advanced,
+    })
   }
 
   private renderPopup() {

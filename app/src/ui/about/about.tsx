@@ -20,6 +20,7 @@ import {
   canUpdateApp,
   getUnableToUpdateAppWarning,
 } from '../lib/version-update-warning'
+import { AppUpdateChannel } from '../../models/app-update-channel'
 
 const logoPath = __DARWIN__
   ? 'static/logo-64x64@2x.png'
@@ -43,10 +44,15 @@ interface IAboutProps {
    */
   readonly applicationVersion: string
 
+  /** The currently selected app update channel. */
+  readonly appUpdateChannel: AppUpdateChannel
+
   /** A function to call to kick off an update check. */
   readonly onCheckForUpdates: () => void
 
   readonly onShowAcknowledgements: () => void
+
+  readonly onOpenAdvancedPreferences: () => void
 
   /** A function to call when the user wants to see Terms and Conditions. */
   readonly onShowTermsAndConditions: () => void
@@ -94,10 +100,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
   }
 
   private renderUpdateButton() {
-    if (
-      __RELEASE_CHANNEL__ === 'development' ||
-      __RELEASE_CHANNEL__ === 'test'
-    ) {
+    if (!canUpdateApp()) {
       return null
     }
 
@@ -130,6 +133,38 @@ export class About extends React.Component<IAboutProps, IAboutState> {
           `Unknown update status ${updateStatus}`
         )
     }
+  }
+
+  private renderUpdateChannelHint() {
+    const linkToAdvancedPreferences = (
+      <LinkButton onClick={this.props.onOpenAdvancedPreferences}>
+        Advanced preferences dialog
+      </LinkButton>
+    )
+
+    if (
+      __RELEASE_CHANNEL__ === 'production' &&
+      this.props.appUpdateChannel === AppUpdateChannel.Stable
+    ) {
+      return (
+        <p>
+          If you want early access to the latest features, you can subscribe to
+          the Beta update channel from the {linkToAdvancedPreferences}.
+        </p>
+      )
+    } else if (
+      __RELEASE_CHANNEL__ === 'beta' &&
+      this.props.appUpdateChannel === AppUpdateChannel.Beta
+    ) {
+      return (
+        <p>
+          This is a beta version. If you find it unreliable, you can switch back
+          to the Stable update channel from the {linkToAdvancedPreferences}.
+        </p>
+      )
+    }
+
+    return
   }
 
   private renderCheckingForUpdate() {
@@ -207,10 +242,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       return null
     }
 
-    if (
-      __RELEASE_CHANNEL__ === 'development' ||
-      __RELEASE_CHANNEL__ === 'test'
-    ) {
+    if (!canUpdateApp()) {
       return null
     }
 
@@ -269,6 +301,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
           </p>
           {this.renderUpdateDetails()}
           {this.renderUpdateButton()}
+          {this.renderUpdateChannelHint()}
         </DialogContent>
         <DefaultDialogFooter />
       </Dialog>
