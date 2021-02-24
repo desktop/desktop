@@ -55,14 +55,21 @@ export function getPersistedThemeName(): string {
 }
 
 /**
+ * Load the name of the currently selected theme
+ */
+export function getCurrentlyAppliedTheme():
+  | ApplicationTheme.Light
+  | ApplicationTheme.Dark {
+  return isDarkModeEnabled() ? ApplicationTheme.Dark : ApplicationTheme.Light
+}
+
+/**
  * Stores the given theme in the persistent store.
  *
  * @returns If currently set to ApplicationTheme.System
  */
-export function setPersistedTheme(theme: ApplicationTheme): boolean {
+export function setPersistedTheme(theme: ApplicationTheme): void {
   remote.nativeTheme.themeSource = getThemeName(theme)
-
-  return theme === ApplicationTheme.System
 }
 
 /**
@@ -81,6 +88,6 @@ export function supportsSystemThemeChanges(): boolean {
   return false
 }
 
-export function isDarkModeEnabled(): boolean {
+function isDarkModeEnabled(): boolean {
   return remote.nativeTheme.shouldUseDarkColors
 }

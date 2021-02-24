@@ -2,7 +2,7 @@ import * as React from 'react'
 import {
   ApplicationTheme,
   supportsSystemThemeChanges,
-  isDarkModeEnabled,
+  getCurrentlyAppliedTheme,
 } from '../lib/application-theme'
 import { Row } from '../lib/row'
 import { DialogContent } from '../dialog'
@@ -48,9 +48,7 @@ export class Appearance extends React.Component<IAppearanceProps, {}> {
       this.props.selectedTheme === ApplicationTheme.System &&
       !supportsSystemThemeChanges()
     ) {
-      selectedTheme = isDarkModeEnabled()
-        ? ApplicationTheme.Dark
-        : ApplicationTheme.Light
+      selectedTheme = getCurrentlyAppliedTheme()
     }
 
     return (

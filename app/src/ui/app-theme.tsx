@@ -2,7 +2,7 @@ import * as React from 'react'
 import {
   ApplicationTheme,
   getThemeName,
-  isDarkModeEnabled,
+  getCurrentlyAppliedTheme,
 } from './lib/application-theme'
 
 interface IAppThemeProps {
@@ -38,9 +38,7 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
     let themeToDisplay = this.props.theme
 
     if (this.props.theme === ApplicationTheme.System) {
-      themeToDisplay = isDarkModeEnabled()
-        ? ApplicationTheme.Dark
-        : ApplicationTheme.Light
+      themeToDisplay = getCurrentlyAppliedTheme()
     }
 
     const newThemeClassName = `theme-${getThemeName(themeToDisplay)}`

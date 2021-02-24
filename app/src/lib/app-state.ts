@@ -211,8 +211,11 @@ export interface IAppState {
   /** The currently selected tab for the Branches foldout. */
   readonly selectedBranchesTab: BranchesTab
 
-  /** The currently selected appearance (aka theme) */
+  /** The selected appearance (aka theme) preference */
   readonly selectedTheme: ApplicationTheme
+
+  /** The currently applied appearance (aka theme) */
+  readonly currentTheme: ApplicationTheme.Light | ApplicationTheme.Dark
 
   /**
    * A map keyed on a user account (GitHub.com or GitHub Enterprise)

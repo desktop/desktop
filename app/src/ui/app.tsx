@@ -2627,7 +2627,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const currentTheme = this.state.showWelcomeFlow
       ? ApplicationTheme.Light
-      : this.state.selectedTheme
+      : this.state.currentTheme
 
     return (
       <div id="desktop-app-chrome" className={className}>

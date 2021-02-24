@@ -67,6 +67,7 @@ import { themeChangeMonitor } from '../../ui/lib/theme-change-monitor'
 import { getAppPath } from '../../ui/lib/app-proxy'
 import {
   ApplicationTheme,
+  getCurrentlyAppliedTheme,
   getPersistedTheme,
   setPersistedTheme,
 } from '../../ui/lib/application-theme'
@@ -408,7 +409,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.System
-  private automaticallySwitchTheme = false
+  private currentTheme: ApplicationTheme.Light | ApplicationTheme.Dark =
+    ApplicationTheme.Light
 
   private hasUserViewedStash = false
 
@@ -758,6 +760,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
       selectedTheme: this.selectedTheme,
+      currentTheme: this.currentTheme,
       apiRepositories: this.apiRepositoriesStore.getState(),
       optOutOfUsageTracking: this.statsStore.getOptOut(),
       currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
@@ -1691,12 +1694,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.showSideBySideDiff = getShowSideBySideDiff()
 
     this.selectedTheme = getPersistedTheme()
-    this.automaticallySwitchTheme = setPersistedTheme(this.selectedTheme)
+    this.currentTheme = getCurrentlyAppliedTheme()
 
     themeChangeMonitor.onThemeChanged(theme => {
-      if (this.automaticallySwitchTheme) {
-        this.emitUpdate()
-      }
+      this.currentTheme = theme
+      this.emitUpdate()
     })
 
     this.emitUpdateNow()
@@ -5397,7 +5399,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * Set the application-wide theme
    */
   public _setSelectedTheme(theme: ApplicationTheme) {
-    this.automaticallySwitchTheme = setPersistedTheme(theme)
+    setPersistedTheme(theme)
     this.selectedTheme = theme
     this.emitUpdate()
 

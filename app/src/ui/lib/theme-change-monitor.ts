@@ -2,7 +2,7 @@ import { remote } from 'electron'
 import {
   ApplicationTheme,
   supportsSystemThemeChanges,
-  isDarkModeEnabled,
+  getCurrentlyAppliedTheme,
 } from './application-theme'
 import { IDisposable, Disposable, Emitter } from 'event-kit'
 
@@ -22,24 +22,26 @@ class ThemeChangeMonitor implements IDisposable {
       return
     }
 
-    remote.nativeTheme.addListener('updated', this.onThemeNotificationFromOS)
+    remote.nativeTheme.addListener('updated', this.onThemeNotificationUpdated)
   }
 
-  private onThemeNotificationFromOS = (event: string, userInfo: any) => {
-    const darkModeEnabled = isDarkModeEnabled()
-
-    const theme = darkModeEnabled
+  private onThemeNotificationUpdated = (event: string, userInfo: any) => {
+    const theme = getCurrentlyAppliedTheme()
       ? ApplicationTheme.Dark
       : ApplicationTheme.Light
 
     this.emitThemeChanged(theme)
   }
 
-  public onThemeChanged(fn: (theme: ApplicationTheme) => void): Disposable {
+  public onThemeChanged(
+    fn: (theme: ApplicationTheme.Light | ApplicationTheme.Dark) => void
+  ): Disposable {
     return this.emitter.on('theme-changed', fn)
   }
 
-  private emitThemeChanged(theme: ApplicationTheme) {
+  private emitThemeChanged(
+    theme: ApplicationTheme.Light | ApplicationTheme.Dark
+  ) {
     this.emitter.emit('theme-changed', theme)
   }
 }
