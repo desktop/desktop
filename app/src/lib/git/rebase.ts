@@ -30,7 +30,7 @@ import {
 import { stageManualConflictResolution } from './stage'
 import { stageFiles } from './update-index'
 import { getStatus } from './status'
-import { getCommitsInRange } from './rev-list'
+import { getCommitsBetweenCommits } from './rev-list'
 import { Branch } from '../../models/branch'
 
 /** The app-specific results from attempting to rebase a repository */
@@ -218,7 +218,7 @@ export async function getRebaseSnapshot(
     const percentage = next / last
     const value = formatRebaseValue(percentage)
 
-    const commits = await getCommitsInRange(
+    const commits = await getCommitsBetweenCommits(
       repository,
       baseBranchTip,
       originalBranchTip
@@ -273,42 +273,41 @@ async function readRebaseHead(repository: Repository): Promise<string | null> {
 }
 
 /** Regex for identifying when rebase applied each commit onto the base branch */
-const rebaseApplyingRe = /^Applying: (.*)/
+const rebasingRe = /^Rebasing \((\d+)\/(\d+)\)$/
 
 /**
- * A parser to read and emit rebase progress from Git `stdout`
+ * A parser to read and emit rebase progress from Git `stderr`
  */
 class GitRebaseParser {
-  public constructor(
-    private rebasedCommitCount: number,
-    private readonly totalCommitCount: number
-  ) {}
+  public constructor(private readonly commits: ReadonlyArray<CommitOneLine>) {}
 
   public parse(line: string): IRebaseProgress | null {
-    const match = rebaseApplyingRe.exec(line)
-    if (match === null || match.length !== 2) {
+    const match = rebasingRe.exec(line)
+    if (match === null || match.length !== 3) {
       // Git will sometimes emit other output (for example, when it tries to
       // resolve conflicts) and this does not match the expected output
       return null
     }
 
-    const currentCommitSummary = match[1]
-    this.rebasedCommitCount++
+    const rebasedCommitCount = parseInt(match[1], 10)
+    const totalCommitCount = parseInt(match[2], 10)
 
-    const progress = this.rebasedCommitCount / this.totalCommitCount
-    const value = formatRebaseValue(progress)
-
-    // TODO: dig into why we sometimes get an extra progress event reported
-    if (this.rebasedCommitCount > this.totalCommitCount) {
-      this.rebasedCommitCount = this.totalCommitCount
+    if (isNaN(rebasedCommitCount) || isNaN(totalCommitCount)) {
+      return null
     }
+
+    const currentCommitSummary =
+      this.commits[rebasedCommitCount - 1]?.summary ?? ''
+
+    const progress = rebasedCommitCount / totalCommitCount
+    const value = formatRebaseValue(progress)
 
     return {
       kind: 'rebase',
-      title: `Rebasing commit ${this.rebasedCommitCount} of ${this.totalCommitCount} commits`,
+      title: `Rebasing commit ${rebasedCommitCount} of ${totalCommitCount} commits`,
       value,
-      rebasedCommitCount: this.rebasedCommitCount,
-      totalCommitCount: this.totalCommitCount,
+      rebasedCommitCount: rebasedCommitCount,
+      totalCommitCount: totalCommitCount,
       currentCommitSummary,
     }
   }
@@ -322,19 +321,18 @@ function configureOptionsForRebase(
     return options
   }
 
-  const { rebasedCommitCount, totalCommitCount, progressCallback } = progress
+  const { commits, progressCallback } = progress
 
   return merge(options, {
     processCallback: (process: ChildProcess) => {
       // If Node.js encounters a synchronous runtime error while spawning
-      // `stdout` will be undefined and the error will be emitted asynchronously
-      if (!process.stdout) {
+      // `stderr` will be undefined and the error will be emitted asynchronously
+      if (process.stderr === null) {
         return
       }
-      const parser = new GitRebaseParser(rebasedCommitCount, totalCommitCount)
+      const parser = new GitRebaseParser(commits)
 
-      // rebase emits progress messages on `stdout`, not `stderr`
-      byline(process.stdout).on('data', (line: string) => {
+      byline(process.stderr).on('data', (line: string) => {
         const progress = parser.parse(line)
 
         if (progress != null) {
@@ -370,21 +368,24 @@ export async function rebase(
   let options = baseOptions
 
   if (progressCallback !== undefined) {
-    const commits = await getCommitsInRange(
+    const commits = await getCommitsBetweenCommits(
       repository,
       baseBranch.tip.sha,
       targetBranch.tip.sha
     )
 
     if (commits === null) {
+      // BadRevision can be raised here if git rev-list is unable to resolve a
+      // ref to a commit ID, so we need to signal to the caller that this rebase
+      // is not possible to perform
+      log.warn(
+        'Unable to rebase these branches because one or both of the refs do not exist in the repository'
+      )
       return RebaseResult.Error
     }
 
-    const totalCommitCount = commits.length
-
     options = configureOptionsForRebase(baseOptions, {
-      rebasedCommitCount: 0,
-      totalCommitCount,
+      commits,
       progressCallback,
     })
   }
@@ -493,12 +494,8 @@ export async function continueRebase(
       return RebaseResult.Aborted
     }
 
-    const { progress } = snapshot
-    const { rebasedCommitCount, totalCommitCount } = progress
-
     options = configureOptionsForRebase(baseOptions, {
-      rebasedCommitCount,
-      totalCommitCount,
+      commits: snapshot.commits,
       progressCallback,
     })
   }

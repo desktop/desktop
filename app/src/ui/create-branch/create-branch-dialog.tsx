@@ -22,10 +22,6 @@ import { renderBranchNameExistsOnRemoteWarning } from '../lib/branch-name-warnin
 import { getStartPoint } from '../../lib/create-branch'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { startTimer } from '../lib/timing'
-import {
-  UncommittedChangesStrategy,
-  UncommittedChangesStrategyKind,
-} from '../../models/uncommitted-changes-strategy'
 import { GitHubRepository } from '../../models/github-repository'
 import { RefNameTextBox } from '../lib/ref-name-text-box'
 
@@ -39,8 +35,6 @@ interface ICreateBranchProps {
   readonly upstreamDefaultBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
   readonly initialName: string
-  readonly currentBranchProtected: boolean
-  readonly selectedUncommittedChangesStrategy: UncommittedChangesStrategy
 }
 
 interface ICreateBranchState {
@@ -236,12 +230,7 @@ export class CreateBranch extends React.Component<
     let startPoint: string | null = null
     let noTrack = false
 
-    const {
-      defaultBranch,
-      upstreamDefaultBranch,
-      currentBranchProtected,
-      repository,
-    } = this.props
+    const { defaultBranch, upstreamDefaultBranch, repository } = this.props
 
     if (this.state.startPoint === StartPoint.DefaultBranch) {
       // This really shouldn't happen, we take all kinds of precautions
@@ -270,24 +259,16 @@ export class CreateBranch extends React.Component<
     }
 
     if (name.length > 0) {
-      // never prompt to stash changes if someone is switching away from a protected branch
-      const strategy: UncommittedChangesStrategy = currentBranchProtected
-        ? {
-            kind: UncommittedChangesStrategyKind.MoveToNewBranch,
-            transientStashEntry: null,
-          }
-        : this.props.selectedUncommittedChangesStrategy
-
       this.setState({ isCreatingBranch: true })
       const timer = startTimer('create branch', repository)
       await this.props.dispatcher.createBranch(
         repository,
         name,
         startPoint,
-        strategy,
         noTrack
       )
       timer.done()
+      this.props.onDismissed()
     }
   }
 

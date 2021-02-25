@@ -8,6 +8,7 @@ import { DiffType, ITextDiff, DiffSelection } from '../../models/diff'
 import { Repository, WorkingTree } from '../../models/repository'
 import { getWorkingDirectoryDiff } from './diff'
 import { formatPatch, formatPatchToDiscardChanges } from '../patch-formatter'
+import { assertNever } from '../fatal-error'
 
 export async function applyPatchToIndex(
   repository: Repository,
@@ -59,8 +60,21 @@ export async function applyPatchToIndex(
 
   const diff = await getWorkingDirectoryDiff(repository, file)
 
-  if (diff.kind !== DiffType.Text) {
-    throw new Error(`Unexpected diff result returned: '${diff.kind}'`)
+  if (diff.kind !== DiffType.Text && diff.kind !== DiffType.LargeText) {
+    const { kind } = diff
+    switch (diff.kind) {
+      case DiffType.Binary:
+      case DiffType.Image:
+        throw new Error(
+          `Can't create partial commit in binary file: ${file.path}`
+        )
+      case DiffType.Unrenderable:
+        throw new Error(
+          `File diff is too large to generate a partial commit: ${file.path}`
+        )
+      default:
+        assertNever(diff, `Unknown diff kind: ${kind}`)
+    }
   }
 
   const patch = await formatPatch(file, diff)

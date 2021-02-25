@@ -11,7 +11,7 @@ import { friendlyEndpointName } from '../../lib/friendly-endpoint-name'
 
 interface ICreateTutorialRepositoryDialogProps {
   /**
-   * The GitHub.com, or GitHub Enterprise Server account that will
+   * The GitHub.com, or GitHub Enterprise account that will
    * be the owner of the tutorial repository.
    */
   readonly account: Account
@@ -39,7 +39,7 @@ interface ICreateTutorialRepositoryDialogProps {
 }
 
 /**
- * A dialog component reponsible for initializing, publishing, and adding
+ * A dialog component responsible for initializing, publishing, and adding
  * a tutorial repository to the application.
  */
 export class CreateTutorialRepositoryDialog extends React.Component<

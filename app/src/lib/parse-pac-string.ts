@@ -6,10 +6,10 @@
  * for a good primer on PAC files.
  *
  * Note that this method is not intended to be a fully compliant PAC parser
- * nor is it indended to handle common PAC string mistakes (such as including
+ * nor is it intended to handle common PAC string mistakes (such as including
  * the protocol in the host portion of the spec). It's specifically designed
  * to translate PAC strings returned from Electron's resolveProxy method which
- * in turn relies on Chromium's `ProxyList::ToPacString()` implementatiton.
+ * in turn relies on Chromium's `ProxyList::ToPacString()` implementation.
  *
  * Proxy protocols not supported by cURL (QUIC) will be silently omitted.
  *
@@ -19,7 +19,7 @@
  * state. As such we can take several shortcuts not available to generic PAC
  * parsers.
  *
- * See the following links for a high-level step-through of the logic involed
+ * See the following links for a high-level step-through of the logic involved
  * in getting the PAC string from Electron/Chromium
  *
  * https://github.com/electron/electron/blob/d9321f4df751/shell/browser/net/resolve_proxy_helper.cc#L77
@@ -103,7 +103,7 @@ function urlFromProtocolAndEndpoint(protocol: string, endpoint: string) {
   // HTTP is an alias for PROXY (or vice versa idk). I don't believe
   // we'll ever see an 'HTTP' protocol from Chromium based on my reading of
   // https://github.com/chromium/chromium/blob/2ca8c5037021/net/base/proxy_server.cc#L164-L184
-  // but we'll suppor it nonetheless.
+  // but we'll support it nonetheless.
   //
   // SOCKS is an alias for SOCKS4
   switch (protocol.toLowerCase()) {

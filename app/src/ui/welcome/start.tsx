@@ -18,12 +18,6 @@ interface IStartProps {
   readonly advance: (step: WelcomeStep) => void
   readonly dispatcher: Dispatcher
   readonly loadingBrowserAuth: boolean
-
-  /**
-   * Whether or not GitHub.com supports authenticating with username
-   * and password or if we have to enforce the web flow
-   */
-  readonly dotComSupportsBasicAuth: boolean
 }
 
 /** The first step of the Welcome flow. */
@@ -36,8 +30,8 @@ export class Start extends React.Component<IStartProps, {}> {
           <>
             <p className="welcome-text">
               GitHub Desktop is a seamless way to contribute to projects on
-              GitHub and GitHub Enterprise Server. Sign in below to get started
-              with your existing projects.
+              GitHub and GitHub Enterprise. Sign in below to get started with
+              your existing projects.
             </p>
             <p className="welcome-text">
               New to GitHub?{' '}
@@ -68,22 +62,10 @@ export class Start extends React.Component<IStartProps, {}> {
             <Button onClick={this.cancelBrowserAuth}>Cancel</Button>
           ) : (
             <Button onClick={this.signInToEnterprise}>
-              Sign in to GitHub Enterprise Server
+              Sign in to GitHub Enterprise
             </Button>
           )}
         </div>
-        {/* don't render this link if the user is already mid-browser sign in */}
-        {!this.props.loadingBrowserAuth && this.props.dotComSupportsBasicAuth && (
-          <div>
-            <LinkButton
-              onClick={this.signInToDotCom}
-              className="basic-auth-link"
-            >
-              Sign in to GitHub.com using your username and password
-            </LinkButton>
-          </div>
-        )}
-
         <div className="skip-action-container">
           <LinkButton className="skip-button" onClick={this.skip}>
             Skip this step
@@ -104,10 +86,6 @@ export class Start extends React.Component<IStartProps, {}> {
 
   private cancelBrowserAuth = () => {
     this.props.advance(WelcomeStep.Start)
-  }
-
-  private signInToDotCom = () => {
-    this.props.advance(WelcomeStep.SignInToDotCom)
   }
 
   private signInToEnterprise = () => {

@@ -291,6 +291,9 @@ body.theme-dark {
   --diff-delete-hover-gutter-color: #{$red-700};
   --diff-delete-hover-text-color: var(--text-color);
 
+  --diff-empty-row-background-color: #{darken($gray-900, 1%)};
+  --diff-empty-row-gutter-background-color: var(--diff-gutter-background-color);
+
   // Syntax highlighting text colors
   --syntax-variable-color: #{$purple-300};
   --syntax-alt-variable-color: #{$blue-300};
@@ -325,11 +328,6 @@ body.theme-dark {
     filter: #{'invert()'} grayscale(1) brightness(8) contrast(0.6);
   }
 
-  /** Diverging notification banner colors */
-  --notification-banner-background: #{$gray-800};
-  --notification-banner-border-color: #{$gray-700};
-  --notification-ref-background: #{$gray-700};
-
   /** merge/rebase status indicators */
   --status-pending-color: #{$yellow-700};
   --status-error-color: #{$red-500};
@@ -338,6 +336,9 @@ body.theme-dark {
   // PR status icon colors
   --pr-open-icon-color: #{$green-500};
   --pr-draft-icon-color: #{$gray-400};
+
+  --call-to-action-bubble-background-color: #{$blue};
+  --call-to-action-bubble-color: #{$white};
 }
 
 // this emulates the cursor for the co-author input because it isn't exactly

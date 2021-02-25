@@ -25,10 +25,7 @@ export type RebaseInternalState = {
  * Options to pass in to rebase progress reporting
  */
 export type RebaseProgressOptions = {
-  /** The number of commits already rebased as part of the operation */
-  rebasedCommitCount: number
-  /** The number of commits to be rebased as part of the operation */
-  totalCommitCount: number
+  commits: ReadonlyArray<CommitOneLine>
   /** The callback to fire when rebase progress is reported */
   progressCallback: (progress: IRebaseProgress) => void
 }

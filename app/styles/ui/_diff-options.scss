@@ -1,0 +1,68 @@
+.diff-options-component {
+  position: relative;
+  display: flex;
+
+  > button {
+    -webkit-appearance: none;
+    font-family: inherit;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+
+    color: var(--text-color);
+
+    &:hover {
+      color: var(--text-secondary-color);
+    }
+
+    .octicon {
+      margin-right: 0;
+    }
+  }
+
+  .call-to-action-bubble {
+    font-weight: var(--font-weight-semibold);
+    display: inline-block;
+    font-size: var(--font-size-xs);
+    border: 1px solid var(--call-to-action-bubble-border-color);
+    color: var(--call-to-action-bubble-color);
+    padding: 1px 5px;
+    border-radius: var(--border-radius);
+    margin-left: var(--spacing-third);
+  }
+
+  label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  h3 {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  section + section {
+    margin-top: var(--spacing);
+  }
+
+  section.button-group {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .popover-component {
+    position: absolute;
+    left: 28px;
+    margin-left: -250px;
+    top: 27px;
+
+    width: 250px;
+  }
+}

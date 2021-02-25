@@ -10,7 +10,6 @@ import {
   getStatus,
   getAuthorIdentity,
   isGitRepository,
-  createAndCheckoutBranch,
 } from '../../lib/git'
 import { sanitizedRepositoryName } from './sanitized-repository-name'
 import { TextBox } from '../lib/text-box'
@@ -31,10 +30,6 @@ import { PopupType } from '../../models/popup'
 import { Ref } from '../lib/ref'
 import { enableReadmeOverwriteWarning } from '../../lib/feature-flag'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
-import {
-  getDefaultBranch,
-  DefaultBranchInGit,
-} from '../../lib/helpers/default-branch'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -244,25 +239,6 @@ export class CreateRepository extends React.Component<
     }
 
     const repository = repositories[0]
-
-    const defaultBranch = await getDefaultBranch()
-
-    if (defaultBranch !== DefaultBranchInGit) {
-      try {
-        // Manually checkout to the configured default branch.
-        // TODO (git@2.28): Remove this code when upgrading to git v2.28
-        // since this will be natively implemented.
-        await createAndCheckoutBranch(repository, defaultBranch)
-      } catch (e) {
-        // When we cannot checkout the default branch just log the error,
-        // since we don't want to stop the repository creation (since we're
-        // in the middle of the creation process).
-        log.error(
-          `createRepository: unable to create default branch "${defaultBranch}"`,
-          e
-        )
-      }
-    }
 
     if (this.state.createWithReadme) {
       try {

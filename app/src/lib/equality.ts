@@ -77,3 +77,27 @@ export function arrayEquals<T>(x: ReadonlyArray<T>, y: ReadonlyArray<T>) {
 
   return true
 }
+
+/**
+ * Compares two maps for key reference equality.
+ *
+ * Two maps are considered equal if all their keys coincide, if they're
+ * both empty or if they're the same object.
+ */
+export function mapKeysEqual<T>(x: Map<T, unknown>, y: Map<T, unknown>) {
+  if (x === y) {
+    return true
+  }
+
+  if (x.size !== y.size) {
+    return false
+  }
+
+  for (const key of x.keys()) {
+    if (!y.has(key)) {
+      return false
+    }
+  }
+
+  return true
+}

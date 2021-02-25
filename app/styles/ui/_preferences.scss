@@ -8,11 +8,15 @@
 
     .advanced-section {
       &:not(:last-child) {
-        margin-bottom: var(--spacing-double);
+        margin-bottom: var(--spacing);
       }
 
       .checkbox-component:not(:last-child) {
         margin-bottom: var(--spacing-half);
+      }
+
+      .git-settings-description {
+        margin-top: var(--spacing);
       }
     }
   }

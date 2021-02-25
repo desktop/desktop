@@ -119,6 +119,8 @@ export class CreateTag extends React.Component<
         this.props.targetCommitSha
       )
       timer.done()
+
+      this.props.onDismissed()
     }
   }
 }

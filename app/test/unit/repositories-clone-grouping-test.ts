@@ -2,7 +2,7 @@ import {
   groupRepositories,
   YourRepositoriesIdentifier,
 } from '../../src/ui/clone-repository/group-repositories'
-import { IAPIRepository, IAPIIdentity } from '../../src/lib/api'
+import { IAPIIdentity, IAPIFullRepository } from '../../src/lib/api'
 
 const users = {
   shiftkey: {
@@ -33,7 +33,7 @@ const users = {
 
 describe('clone repository grouping', () => {
   it('groups repositories by organization', () => {
-    const repositories: Array<IAPIRepository> = [
+    const repositories: Array<IAPIFullRepository> = [
       {
         clone_url: '',
         ssh_url: '',
@@ -51,6 +51,7 @@ describe('clone repository grouping', () => {
           push: true,
           admin: false,
         },
+        parent: undefined,
       },
       {
         clone_url: '',
@@ -69,6 +70,7 @@ describe('clone repository grouping', () => {
           push: true,
           admin: false,
         },
+        parent: undefined,
       },
       {
         clone_url: '',
@@ -87,6 +89,7 @@ describe('clone repository grouping', () => {
           push: true,
           admin: false,
         },
+        parent: undefined,
       },
     ]
 

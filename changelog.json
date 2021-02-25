@@ -1,13 +1,187 @@
 {
   "releases": {
-    "2.5.5-beta2": [
-      "[Added] Differentiate between draft and regular PRs - #7170",
-      "[Fixed] Only focus compare branch input when the compareState changes - #10485",
-      "[Fixed] Don't discard all submodules when no submodules are specified - #10469",
+    "2.6.4-beta2": [
+      "[Fixed] Allow users to modify git config on a per repository basis - #9449. Thanks @say25!",
+      "[Fixed] The app is not maximized on macOS every time the user clicks on the app's icon in the Dock - #11590",
+      "[Improved] Suggest emails from GitHub accounts and warn about misattributed commits in the commit message area - #11591",
+      "[Improved] Remote Git operations are now faster and less prone to errors on Windows - #11510"
+    ],
+    "2.6.4-beta1": [
+      "[Added] Add branch context menu with rename and delete to branch dropdown list - #5803 #10432",
+      "[Fixed] Always respect the default branch name chosen by the user - #11447",
+      "[Fixed] Notepad++ is not closed anymore when GitHub Desktop closes - #11518",
+      "[Improved] Suggest emails from GitHub accounts and warn about misattributed commits in onboarding and Preferences - #11561 #11566",
+      "[Improved] Update app icon for Windows - #11541",
+      "[Improved] Automatic branch fast-forwarding is now faster - #11463"
+    ],
+    "2.6.3": [
+      "[Improved] Upgrade embedded Git to v2.29.2 - #11369",
+      "[Improved] Enable spellcheck on commit summary and description - #1597",
+      "[Improved] Update app icon for macOS - #10855",
+      "[Fixed] Remote Git operations (like cloning a repo) won't fail on old macOS versions - #11516",
+      "[Fixed] Fast-forward all possible branches except the current branch when fetching - #11387"
+    ],
+    "2.6.3-beta3": [
+      "[Fixed] Remote git operations (like cloning a repo) won't fail on old macOS versions - #11516",
+      "[Fixed] Updated about modal dialog on macOS to match the new Big Sur icon - #11511"
+    ],
+    "2.6.3-beta2": ["[Improved] Update app icon for macOS Big Sur - #10855"],
+    "2.6.3-beta1": [
+      "[Fixed] Fast-forward all possible branches except the current branch when fetching - #11387",
+      "[Improved] Enable spellcheck on commit summary and description - #1597",
+      "[Improved] Upgrade embedded Git to v2.29.2 - #11369"
+    ],
+    "2.6.2": [
+      "[Improved] Upgrade embedded Git LFS to 2.13.2 - #11394",
+      "[Fixed] Pull requests no longer fail to update until the user switches repositories - #11241",
+      "[Fixed] Fork behavior changes are now reflected in the app immediately - #11327",
+      "[Fixed] Checking out a pull request from a fork for the first time now correctly identifies the remote branch to create the branch from - #11267",
+      "[Fixed] Don't offer to stash changes when clicking on the currently checked out branch in the branch list - #11235",
+      "[Fixed] Forked repository remotes are no longer removed when there are local branches tracking them - #11266",
+      "[Fixed] Avoid bright flash for users of the dark theme when launching the app maximized - #5631. Thanks @AndreiMaga!",
+      "[Fixed] VSCodium is now detected as an editor on Windows - #11252. Thanks @KallePM!"
+    ],
+    "2.6.2-beta4": [
+      "[Improved] Show full output of Git hooks on errors - #6403",
+      "[Improved] Keep focus in dropdown when pressing tab multiple times - #11278",
+      "[Improved] Upgrade embedded Git LFS to 2.13.2 - #11394",
+      "[Improved] Add detection of Sublime Text 4 and 2 as editor on macOS. - #11263. Thanks @yurikoles!",
+      "[Fixed] Fork behavior changes are now reflected in the app immediately - #11327",
+      "[Fixed] Commit message remains in text box until user chooses to commit - #7251"
+    ],
+    "2.6.2-beta3": ["[Removed] Release removed in favor of 2.6.2-beta4"],
+    "2.6.2-beta2": [
+      "[Fixed] Forked repository remotes are no longer removed when there's local branches tracking them - #11266",
+      "[Fixed] Avoid bright flash for users of the dark theme when launching the app maximized - #5631. Thanks @AndreiMaga!",
+      "[Fixed] Checking out a pull request from a fork for the first time now correctly identifies the remote branch to create the branch from - #11267",
+      "[Fixed] VSCodium is now detected as an editor on Windows - #11252. Thanks @KallePM!"
+    ],
+    "2.6.2-beta1": [
+      "[Fixed] Addressed an issue where pull requests could fail to update until the user switched repositories - #11241",
+      "[Fixed] Don't offer to stash or move changes when clicking on the currently checked out branch in the branch list - #11235",
+      "[Fixed] Checking out a pull request from a fork repeatedly now detects that there's already a branch that can be reused - #11238"
+    ],
+    "2.6.1": [
+      "[Improved] Clearer menu label for reverting commits - #10515. Thanks @halitogunc!",
+      "[Fixed] Refresh branches after creating a new branch - #11125",
+      "[Fixed] Correct image diff swipe mode layout - #11120",
+      "[Fixed] Very large text diffs could cause the app to crash when viewed in split diff mode - #11064",
+      "[Fixed] Let the user know when a checkout fails due to use of assume-unchanged or skip-worktree - #9297",
+      "[Fixed] Always show confirmation prompt before overwriting existing stash entry - #10956",
+      "[Fixed] The fullscreen keyboard shortcut on macOS now works when using split diff mode - #11069"
+    ],
+    "2.6.1-beta3": [
+      "[Fixed] Desktop would fail to launch for some users due to objects in the database using an old format - #11176",
+      "[Fixed] Desktop would fail to launch for a small percentage of users that had several non-GitHub repositories in the app - #11192"
+    ],
+    "2.6.1-beta2": [
+      "[Improved] Clearer menu label for reverting commits - #10515. Thanks @halitogunc!",
+      "[Fixed] Refresh branches after creating a new branch - #11125",
+      "[Fixed] Correct image diff swipe mode layout - #11120"
+    ],
+    "2.6.1-beta1": [
+      "[Fixed] Very large text diffs could cause the app to crash when viewed in split diff mode - #11064",
+      "[Fixed] Refactor checkout branch and stash logic - #9297 #10956 #8099 #7617",
+      "[Fixed] Let the user know when a checkout fails due to use of assume-unchanged or skip-worktree - #9297",
+      "[Fixed] Always show confirmation prompt before overwriting existing stash entry - #10956",
+      "[Fixed] The fullscreen keyboard shortcut on macOS now works when using split diff mode - #11069"
+    ],
+    "2.6.0": [
+      "[New] Split diffs! Toggle between viewing diffs in split or unified mode - #10617",
+      "[Added] Use Page down, Page up, Home, and End keys to navigate and select items in lists - #10837",
+      "[Added] Add `toml` syntax highlight - #10763. Thanks @samundra!",
+      "[Added] Add support for Nova as external editor on macOS - #10645. Thanks @greystate!",
+      "[Fixed] Restore Windows menu keyboard accessibility - #11007",
+      "[Fixed] Actions in context menu of a non-selected file act on the chosen one instead of the previous one - #10743",
+      "[Fixed] Correct title bar height on macOS Big Sur - #10980",
+      "[Fixed] Fix broken issues links in release notes - #10977",
+      "[Fixed] Fix overflow issues with long branch names - #5970. Thanks @juliarvalenti!",
+      "[Fixed] Images fit correctly in the diff view when their sizes have changed - #2480 #9717",
+      "[Fixed] Repository indicator refresh can no longer be manually triggered when disabled - #10905",
+      "[Fixed] Resolving a conflicted file added in both the source and target branch no longer results in merge conflict markers appearing in the merge commit - #10820",
+      "[Fixed] Small partial commit of very large text files no longer intermittently fails due to unexpected diff results - #10640",
+      "[Fixed] Long commit message are scrollable again - #10815",
+      "[Removed] Sign in to GitHub.com with username/password is no longer supported to improve account security"
+    ],
+    "2.6.0-beta1": [
+      "[Fixed] Proper title bar height on macOS Big Sur - #10980",
+      "[Fixed] Restore Windows menu keyboard accessibility - #11007",
+      "[Fixed] Fix broken issues links in release notes - #10977",
+      "[Fixed] Fixes overflow issues with long branch names - #5970. Thanks @juliarvalenti!",
+      "[Removed] Sign in to GitHub.com with username/password is no longer supported"
+    ],
+    "2.5.8-beta1": ["[Improved] Upgrade embedded Git LFS - #10973"],
+    "2.5.7": ["[Improved] Upgrade embedded Git LFS - #10973"],
+    "2.5.7-beta2": [
+      "[New] Search text within split diffs - #10755",
+      "[Improved] Use Page down, Page up, Home, and End keys to navigate and select items in lists - #10837",
+      "[Fixed] Comparison of different size image changes no longer overflow the bounds of the diff view - #2480 #9717",
+      "[Fixed] Repository indicator refresh can no longer be manually triggered when disabled - #10905",
+      "[Fixed] Choosing to resolve a conflicted file added in both the source and target branch no longer results in merge conflict markers appearing in the merge commit - #10820",
+      "[Fixed] Small partial commit of very large text files no longer runs the risk of failing due to unexpected diff results - #10640",
+      "[Fixed] Long commit message are scrollable once again - #10815"
+    ],
+    "2.5.7-beta1": [
+      "[New] Split diffs! Toggle between viewing diffs in split or unified mode - #10617",
+      "[Fixed] Actions in the context menu of a non-selected file in history no longer acts on the previously selected item - #10743",
+      "[Added] Add `toml` syntax highlight - #10763. Thanks @samundra!",
+      "[Added] Add support for Nova as external editor on macOS - #10645. Thanks @greystate!"
+    ],
+    "2.5.6": [
+      "[New] Newly created repositories use 'main' as the default branch name - #10527",
+      "[New] Users can configure the default branch name in Preferences/Options - #10527",
+      "[New] Show status of GitHub Action runs for pull requests - #9819. Thanks @Raul6469!",
+      "[New] Differentiate between draft and regular Pull Requests - #7170",
+      "[Added] Periodic background fetch and status updates can now be disabled in the Advanced section of Preferences/Options - #10593",
+      "[Added] Syntax highlighting for ASP.Net and unified diff / patch - #10410. Thanks @say25!",
+      "[Improved] Allow renaming the default branch - #10415",
+      "[Improved] Show which files are blocking a merge-like operation - #10441",
+      "[Improved] Updated icons and border radiuses to align with GitHub.com - #10396, #10224",
+      "[Improved] Show loading indicator when committing a merge - #10458",
+      "[Improved] Show confirmation that branch is already up to date when merging from default branch - #9095",
+      "[Improved] Enter key now initiates action in rebase and merge dialogs - #10511",
+      "[Improved] After failing to move a repository to Trash, show error and keep the repository listed in Desktop - #8333",
+      "[Improved] Email address validation in welcome flow and preferences dialog - #10214. Thanks @Pragya007!",
+      "[Improved] Show helpful error when attempting to clone non-existent or inaccessible GitHub repositories - #5661. Thanks @kanishk98!",
+      "[Fixed] Don't update submodules when discarding files - #10469",
+      "[Fixed] Full screen notification is removed after a few seconds when starting the app in full screen",
+      "[Fixed] Update rebase progress parser to parse output from the merge rebase backend - #10590",
+      "[Fixed] Only show full screen toast notification when making the app window full-screen. Thanks @Sam-Spencer - #7916",
+      "[Fixed] Ensure application window doesn't overlap second monitor - #10267",
       "[Fixed] Use UNIX line endings in WSL GitHub helper script - #10461",
-      "[Improved] Allow renaming the default branch before publishing - #10415",
+      "[Removed] Remove setting to disable all certificate validation in favor of new best-effort approach - #10581"
+    ],
+    "2.5.6-beta3": [
+      "[Improved] Email address validation in welcome flow and preferences dialog - #10214. Thanks @Pragya007!",
+      "[Improved] Show helpful error when attempting to clone non-existent or inaccessible GitHub repositories - #5661. Thanks @kanishk98!",
+      "[Fixed] Full screen notification is removed after a few seconds when starting the app in full screen",
+      "[Fixed] Align resolve button text and size icon appropriately - #10646"
+    ],
+    "2.5.6-beta2": [
+      "[New] Newly created repositories use 'main' as the default branch name - #10527",
+      "[New] Users can configure the default branch name in Preferences/Options - #10527",
+      "[Added] Periodic background fetch and status updates can now be disabled in the Advanced section of Preferences/Options - #10593",
+      "[Fixed] Update rebase progress parser to parse output from the merge rebase backend - #10590",
+      "[Fixed] Checking out a PR attempts to locate an existing branch tracking the PR base branch - #10598",
+      "[Fixed] Only show full screen toast notification when making the app window full-screen. Thanks @Sam-Spencer - #7916",
+      "[Fixed] Ensure application window doesn't overlap second monitor - #10267",
+      "[Improved] Show which files are blocking a merge-like operation - #10441",
+      "[Improved] After failing to move a repository to Trash, show error and keep the repository listed in Desktop - #8333",
+      "[Improved] Allow using Enter key to confirm in rebase and merge dialogs - #10511",
+      "[Removed] Remove setting to disable all certificate validation in favor of new best-effort approach - #10581"
+    ],
+    "2.5.6-beta1": [
+      "[Fixed] Don't update submodules when discarding files - #10469",
+      "[Fixed] Clicking on a branch in the compare branch list resets focus to the filter text box - #10485",
+      "[Fixed] Use UNIX line endings in WSL GitHub helper script - #10461",
+      "[Fixed] Differentiate between draft and regular PRs - #7170",
+      "[Improved] Allow renaming the default branch - #10415",
       "[Improved] Show loading indicator when committing a merge - #10458",
       "[Improved] Show confirmation that branch is already up to date when merging from default branch - #9095"
+    ],
+    "2.5.5": [
+      "[Fixed] Don't update submodules when discarding files - #10469",
+      "[Fixed] Clicking on a branch in the compare branch list resets focus to the filter text box - #10485"
     ],
     "2.5.5-beta1": [
       "[Added] Show status of GitHub Action runs for pull requests - #9819. Thanks @Raul6469!",

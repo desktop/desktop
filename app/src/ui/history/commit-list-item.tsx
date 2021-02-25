@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Commit } from '../../models/commit'
+import { Commit, CommitOneLine } from '../../models/commit'
 import { GitHubRepository } from '../../models/github-repository'
 import { IAvatarUser, getAvatarUsersForCommit } from '../../models/avatar'
 import { RichText } from '../lib/rich-text'
@@ -14,6 +14,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import {
   enableGitTagsDisplay,
   enableGitTagsCreation,
+  enableCherryPicking,
 } from '../../lib/feature-flag'
 
 interface ICommitProps {
@@ -25,6 +26,7 @@ interface ICommitProps {
   readonly onViewCommitOnGitHub?: (sha: string) => void
   readonly onCreateTag?: (targetCommitSha: string) => void
   readonly onDeleteTag?: (tagName: string) => void
+  readonly onCherryPick?: (commits: ReadonlyArray<CommitOneLine>) => void
   readonly showUnpushedIndicator: boolean
   readonly unpushedIndicatorTitle?: string
   readonly unpushedTags?: ReadonlyArray<string>
@@ -142,6 +144,12 @@ export class CommitListItem extends React.PureComponent<
     }
   }
 
+  private onCherryPick = () => {
+    if (this.props.onCherryPick !== undefined) {
+      this.props.onCherryPick([this.props.commit])
+    }
+  }
+
   private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
 
@@ -157,7 +165,9 @@ export class CommitListItem extends React.PureComponent<
 
     const items: IMenuItem[] = [
       {
-        label: __DARWIN__ ? 'Revert this Commit' : 'Revert this commit',
+        label: __DARWIN__
+          ? 'Revert Changes in Commit'
+          : 'Revert changes in commit',
         action: () => {
           if (this.props.onRevertCommit) {
             this.props.onRevertCommit(this.props.commit)
@@ -184,6 +194,13 @@ export class CommitListItem extends React.PureComponent<
           deleteTagsMenuItem
         )
       }
+    }
+
+    if (enableCherryPicking()) {
+      items.push({
+        label: __DARWIN__ ? 'Cherry Pick Commit…' : 'Cherry pick commit…',
+        action: this.onCherryPick,
+      })
     }
 
     items.push(

@@ -44,7 +44,7 @@ export function lookupPreferredEmail(account: Account): string {
  */
 function isEmailPublic(email: IAPIEmail): boolean {
   // If an email doesn't have a visibility setting it means it's coming from an
-  // older Enterprise Server which doesn't have the concept of visiblity.
+  // older Enterprise version which doesn't have the concept of visibility.
   return email.visibility === 'public' || !email.visibility
 }
 
@@ -67,7 +67,7 @@ function getStealthEmailHostForEndpoint(endpoint: string) {
  *
  * @param login    The user handle or "login"
  * @param endpoint The API endpoint that this login belongs to,
- *                 either GitHub.com or a GitHub Enterprise Server
+ *                 either GitHub.com or a GitHub Enterprise
  *                 instance
  */
 export function getLegacyStealthEmailForUser(login: string, endpoint: string) {
@@ -86,7 +86,7 @@ export function getLegacyStealthEmailForUser(login: string, endpoint: string) {
  *                 is available.
  * @param login    The user handle or "login"
  * @param endpoint The API endpoint that this login belongs to,
- *                 either GitHub.com or a GitHub Enterprise Server
+ *                 either GitHub.com or a GitHub Enterprise
  *                 instance
  */
 export function getStealthEmailForUser(
@@ -100,8 +100,8 @@ export function getStealthEmailForUser(
 
 /**
  * Produces a list of all email addresses that when used as the author email
- * in a commit we'll know will end up getting attributted to the given
- * account when pushed to GitHub.com or GitHub Enterprise Server.
+ * in a commit we'll know will end up getting attributed to the given
+ * account when pushed to GitHub.com or GitHub Enterprise.
  *
  * The list of email addresses consists of all the email addresses we get
  * from the API (since this is for the currently signed in user we get

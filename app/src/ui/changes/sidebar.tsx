@@ -34,6 +34,7 @@ import { PopupType } from '../../models/popup'
 import { filesNotTrackedByLFS } from '../../lib/git/lfs'
 import { getLargeFilePaths } from '../../lib/large-files'
 import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
+import { getAccountForRepository } from '../../lib/get-account-for-repository'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -76,6 +77,8 @@ interface IChangesSidebarProps {
    * arrow pointing at the commit summary box
    */
   readonly shouldNudgeToCommit: boolean
+
+  readonly commitSpellcheckEnabled: boolean
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
@@ -381,12 +384,17 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
         : []
 
     const isShowingStashEntry = selection.kind === ChangesSelectionKind.Stash
+    const repositoryAccount = getAccountForRepository(
+      this.props.accounts,
+      this.props.repository
+    )
 
     return (
       <div className="panel">
         <ChangesList
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
+          repositoryAccount={repositoryAccount}
           workingDirectory={workingDirectory}
           conflictState={conflictState}
           rebaseConflictState={rebaseConflictState}
@@ -420,6 +428,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           isShowingStashEntry={isShowingStashEntry}
           currentBranchProtected={currentBranchProtected}
           shouldNudgeToCommit={this.props.shouldNudgeToCommit}
+          commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
         />
         {this.renderUndoCommit(rebaseConflictState)}
       </div>

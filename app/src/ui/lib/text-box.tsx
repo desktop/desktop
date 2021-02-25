@@ -42,7 +42,7 @@ export interface ITextBoxProps {
   readonly onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void
 
   /** The type of the input. Defaults to `text`. */
-  readonly type?: 'text' | 'search' | 'password'
+  readonly type?: 'text' | 'search' | 'password' | 'email'
 
   /**
    * An optional text for a link label element. A link label is, for the purposes
@@ -91,6 +91,9 @@ export interface ITextBoxProps {
    * Callback used when the user has cleared the search text.
    */
   readonly onSearchCleared?: () => void
+
+  /** Indicates if input field applies spellcheck */
+  readonly spellcheck?: boolean
 }
 
 interface ITextBoxState {
@@ -288,6 +291,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           onKeyDown={this.onKeyDown}
           tabIndex={this.props.tabIndex}
           onContextMenu={this.onContextMenu}
+          spellCheck={this.props.spellcheck === true}
         />
       </div>
     )
