@@ -135,6 +135,8 @@ import classNames from 'classnames'
 import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { MoveToApplicationsFolder } from './move-to-applications-folder'
 import { ChangeRepositoryAlias } from './change-repository-alias/change-repository-alias-dialog'
+import { ThankYou } from './thank-you'
+import { generateReleaseSummary } from '../lib/release-notes'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -222,6 +224,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
 
     this.state = props.appStore.getState()
+
     props.appStore.onDidUpdate(state => {
       this.setState(state)
     })
@@ -239,7 +242,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     updateStore.onDidChange(state => {
       const status = state.status
-
       if (
         !(
           __RELEASE_CHANNEL__ === 'development' ||
@@ -318,6 +320,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     ) {
       this.showPopup({ type: PopupType.MoveToApplicationsFolder })
     }
+    this.checkIfThanksIsInOrder()
   }
 
   private onMenuEvent(name: MenuEvent): any {
@@ -461,6 +464,12 @@ export class App extends React.Component<IAppProps, IAppState> {
             {
               kind: 'other',
               message: 'In other news...',
+            },
+          ],
+          thankYous: [
+            {
+              kind: 'other',
+              message: 'In other news... . Thanks @some-body-to-thank!',
             },
           ],
         },
@@ -2058,6 +2067,17 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.ThankYou:
+        return (
+          <ThankYou
+            key="thank-you"
+            emoji={this.state.emoji}
+            userReleaseNotes={popup.userReleaseNotes}
+            friendlyName={popup.friendlyName}
+            version={popup.version}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -2936,6 +2956,46 @@ export class App extends React.Component<IAppProps, IAppState> {
    */
   private onDragLeaveBranch = (): void => {
     dragAndDropManager.emitLeaveDropTarget()
+  }
+
+  private async checkIfThanksIsInOrder(): Promise<void> {
+    if (this.state.accounts.length === 0) {
+      // if there are no accounts then there is not a way to check if
+      // external contributions belong to user.
+      return
+    }
+    // TODO: check if user has already received thanks for this release
+    // or this check for thanks has already been already been performed.
+    // local storage -> reset on any update and any account?
+
+    const latestReleaseSummary = await generateReleaseSummary()
+    const hasExternalContributions = latestReleaseSummary.thankYous.length > 0
+    if (!hasExternalContributions) {
+      return
+    }
+
+    const userReleaseNotes = latestReleaseSummary.thankYous.filter(ty => {
+      return (
+        this.state.accounts.find(a => ty.message.includes(a.login)) !==
+        undefined
+      )
+    })
+
+    if (userReleaseNotes.length === 0) {
+      // TODO: set local storage saying check has been performed
+      // so that we don't retrieve release summary every time app is opened.
+      return
+    }
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.ThankYou,
+      userReleaseNotes,
+      friendlyName:
+        this.state.accounts[0].name === ''
+          ? this.state.accounts[0].login
+          : this.state.accounts[0].name,
+      version: latestReleaseSummary.latestVersion,
+    })
   }
 }
 
