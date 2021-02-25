@@ -3068,9 +3068,11 @@ export class Dispatcher {
   }
 
   /** Set whether thanks you is in order for external contributions */
-  public setVersionAndUserOfLastThankYou(
-    versionAndUserOfLastThankYou: ReadonlyArray<string>
+  public setVersionAndUsersOfLastThankYou(
+    versionAndUsersOfLastThankYou: ReadonlyArray<string>
   ) {
-    this.appStore._setVersionAndUserOfLastThankYou(versionAndUserOfLastThankYou)
+    this.appStore._setVersionAndUsersOfLastThankYou(
+      versionAndUsersOfLastThankYou
+    )
   }
 }

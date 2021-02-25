@@ -277,7 +277,7 @@ export interface IAppState {
    * String of the form [version-number, user-login, user-login, user-login].
    * This will be reset for each new version.
    */
-  readonly versionAndUserOfLastThankYou: ReadonlyArray<string>
+  readonly versionAndUsersOfLastThankYou: ReadonlyArray<string>
 }
 
 export enum FoldoutType {

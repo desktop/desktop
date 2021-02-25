@@ -137,6 +137,10 @@ import { MoveToApplicationsFolder } from './move-to-applications-folder'
 import { ChangeRepositoryAlias } from './change-repository-alias/change-repository-alias-dialog'
 import { ThankYou } from './thank-you'
 import { generateReleaseSummary } from '../lib/release-notes'
+import {
+  hasUserAlreadyBeenCheckedOrThanked,
+  updateLastThankYou,
+} from '../lib/thank-you'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2971,8 +2975,9 @@ export class App extends React.Component<IAppProps, IAppState> {
    * be able to be detected.
    */
   private async checkIfThankYouIsInOrder(): Promise<void> {
+    const { accounts, versionAndUsersOfLastThankYou: lastThankYou } = this.state
     // There should only be one dotcom account possible at a time.
-    const dotComAccount = this.state.accounts.find(
+    const dotComAccount = accounts.find(
       a => a.endpoint === getDotComAPIEndpoint()
     )
 
@@ -2982,11 +2987,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const { login, friendlyName } = dotComAccount
-    if (this.hasTheUserAlreadyBeenCheckedOrThanked(login)) {
+    if (hasUserAlreadyBeenCheckedOrThanked(lastThankYou, login, getVersion())) {
       return
     }
 
-    this.updateLastThankYou(login)
+    // Regardless of contributions, so we don't keep retrieving release notes.
+    updateLastThankYou(this.props.dispatcher, lastThankYou, login, getVersion())
 
     const { thankYous, latestVersion } = await generateReleaseSummary()
     const userContributions = thankYous.filter(ty => ty.message.includes(login))
@@ -3001,36 +3007,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       friendlyName,
       latestVersion,
     })
-  }
-
-  /**
-   * Compares locally stored version and user of last thank you to currently
-   * login in user and version
-   */
-  private hasTheUserAlreadyBeenCheckedOrThanked(dotComLogin: string): boolean {
-    const { versionAndUserOfLastThankYou: lastThankYou } = this.state
-    if (lastThankYou.length > 0) {
-      return false
-    }
-
-    const lastVersion = lastThankYou[0]
-    const checkedUsers = lastThankYou.slice(1)
-
-    return checkedUsers.includes(dotComLogin) && lastVersion === getVersion()
-  }
-
-  /** Updates the local storage of version and users that have been checked for
-   * external contributions. We do this regardless of contributions so that
-   * we don't keep pinging for release notes. */
-  private async updateLastThankYou(dotComLogin: string): Promise<void> {
-    const { versionAndUserOfLastThankYou: lastThankYou } = this.state
-    const lastVersion = lastThankYou[0]
-    // If new version, clear out last version users.
-    const checkedUsers =
-      lastVersion !== getVersion() ? [] : lastThankYou.slice(1)
-    checkedUsers.push(dotComLogin)
-    const updatedLastThankYou = [getVersion(), ...checkedUsers]
-    this.props.dispatcher.setVersionAndUserOfLastThankYou(updatedLastThankYou)
   }
 }
 
