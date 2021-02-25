@@ -2073,9 +2073,9 @@ export class App extends React.Component<IAppProps, IAppState> {
           <ThankYou
             key="thank-you"
             emoji={this.state.emoji}
-            userReleaseNotes={popup.userReleaseNotes}
+            userContributions={popup.userContributions}
             friendlyName={popup.friendlyName}
-            version={popup.version}
+            latestVersion={popup.latestVersion}
             onDismissed={onPopupDismissedFn}
           />
         )
@@ -2967,65 +2967,70 @@ export class App extends React.Component<IAppProps, IAppState> {
    * Notes: A user signed into a GHE account should not be contributing to
    * Desktop as that account should be used for GHE repos. Tho, technically it
    * is possible through commit misattribution and we are intentionally ignoring
-   * this scenario. And as would be expected any misattributed commit would not
+   * this scenario as it would be expected any misattributed commit would not
    * be able to be detected.
    */
   private async checkIfThankYouIsInOrder(): Promise<void> {
-    const { accounts, versionAndUserOfLastThankYou: lastThankYou } = this.state
     // There should only be one dotcom account possible at a time.
-    const dotComAccount = accounts.find(
+    const dotComAccount = this.state.accounts.find(
       a => a.endpoint === getDotComAPIEndpoint()
     )
 
     if (dotComAccount === undefined) {
-      // There is not a way to check if contributions belong to the user (either
-      // they are a GHE user who should not have any or user is not signed in).
+      // The user is not signed in or is a GHE user who should not have any.
       return
     }
 
-    let checkedUsers: Array<string> = []
-    if (lastThankYou.length > 0) {
-      const lastVersion = lastThankYou[0]
-      checkedUsers = lastThankYou.slice(1)
-
-      const alreadyBeenCheckedOrThanked =
-        checkedUsers.includes(dotComAccount.login) &&
-        lastVersion === getVersion()
-
-      if (alreadyBeenCheckedOrThanked) {
-        return
-      }
-
-      if (lastVersion !== getVersion()) {
-        // new version clear record of users of last version
-        checkedUsers = []
-      }
+    const { login, friendlyName } = dotComAccount
+    if (this.hasTheUserAlreadyBeenCheckedOrThanked(login)) {
+      return
     }
 
-    // This sets it so that whether there is contributions or not we have
-    // performed the check and do not need to keep retrieving latest
-    // release summary.
-    checkedUsers.push(dotComAccount.login)
-    const updatedLastThankYou = [getVersion(), ...checkedUsers]
-    this.props.dispatcher.setVersionAndUserOfLastThankYou(updatedLastThankYou)
+    this.updateLastThankYou(login)
 
-    const { thankYous, latestVersion: version } = await generateReleaseSummary()
-    const userReleaseNotes = thankYous.filter(ty =>
-      ty.message.includes(dotComAccount.login)
-    )
+    const { thankYous, latestVersion } = await generateReleaseSummary()
+    const userContributions = thankYous.filter(ty => ty.message.includes(login))
 
-    // User doesn't have any contributions.
-    if (userReleaseNotes.length === 0) {
+    if (userContributions.length === 0) {
       return
     }
 
     this.props.dispatcher.showPopup({
       type: PopupType.ThankYou,
-      userReleaseNotes,
-      friendlyName:
-        dotComAccount.name === '' ? dotComAccount.login : dotComAccount.name,
-      version,
+      userContributions,
+      friendlyName,
+      latestVersion,
     })
+  }
+
+  /**
+   * Compares locally stored version and user of last thank you to currently
+   * login in user and version
+   */
+  private hasTheUserAlreadyBeenCheckedOrThanked(dotComLogin: string): boolean {
+    const { versionAndUserOfLastThankYou: lastThankYou } = this.state
+    if (lastThankYou.length > 0) {
+      return false
+    }
+
+    const lastVersion = lastThankYou[0]
+    const checkedUsers = lastThankYou.slice(1)
+
+    return checkedUsers.includes(dotComLogin) && lastVersion === getVersion()
+  }
+
+  /** Updates the local storage of version and users that have been checked for
+   * external contributions. We do this regardless of contributions so that
+   * we don't keep pinging for release notes. */
+  private async updateLastThankYou(dotComLogin: string): Promise<void> {
+    const { versionAndUserOfLastThankYou: lastThankYou } = this.state
+    const lastVersion = lastThankYou[0]
+    // If new version, clear out last version users.
+    const checkedUsers =
+      lastVersion !== getVersion() ? [] : lastThankYou.slice(1)
+    checkedUsers.push(dotComLogin)
+    const updatedLastThankYou = [getVersion(), ...checkedUsers]
+    this.props.dispatcher.setVersionAndUserOfLastThankYou(updatedLastThankYou)
   }
 }
 

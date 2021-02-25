@@ -38,9 +38,9 @@ const ReleaseNoteHeaderRightUri = encodePathAsUrl(
 interface IThankYouProps {
   readonly onDismissed: () => void
   readonly emoji: Map<string, string>
-  readonly userReleaseNotes: ReleaseNote[]
+  readonly userContributions: ReleaseNote[]
   readonly friendlyName: string
-  readonly version: string
+  readonly latestVersion: string
 }
 
 export class ThankYou extends React.Component<IThankYouProps, {}> {
@@ -125,10 +125,10 @@ export class ThankYou extends React.Component<IThankYouProps, {}> {
           <div className="container">
             <div className="thank-you-note">
               Thank you for all your hard work on GitHub Desktop version{' '}
-              {this.props.version}. You contributed:
+              {this.props.latestVersion}. You contributed:
             </div>
             <div className="contributions">
-              {this.renderList(this.props.userReleaseNotes)}
+              {this.renderList(this.props.userContributions)}
             </div>
             <div
               className="confetti-container"
