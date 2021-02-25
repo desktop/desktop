@@ -320,7 +320,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     ) {
       this.showPopup({ type: PopupType.MoveToApplicationsFolder })
     }
-    this.checkIfThanksIsInOrder()
+
+    this.checkIfThankYouIsInOrder()
   }
 
   private onMenuEvent(name: MenuEvent): any {
@@ -2958,32 +2959,63 @@ export class App extends React.Component<IAppProps, IAppState> {
     dragAndDropManager.emitLeaveDropTarget()
   }
 
-  private async checkIfThanksIsInOrder(): Promise<void> {
-    if (this.state.accounts.length === 0) {
-      // if there are no accounts then there is not a way to check if
-      // external contributions belong to user.
+  /**
+   * Check if the user signed into their dotCom account has any external
+   * contributions in the latest release notes. Also, if they already have
+   * received a thank you.
+   *
+   * Notes: A user signed into a GHE account should not be contributing to
+   * Desktop as that account should be used for GHE repos. Tho, technically it
+   * is possible through commit misattribution and we are intentionally ignoring
+   * this scenario. And as would be expected any misattributed commit would not
+   * be able to be detected.
+   */
+  private async checkIfThankYouIsInOrder(): Promise<void> {
+    const { accounts, versionAndUserOfLastThankYou: lastThankYou } = this.state
+    // There should only be one dotcom account possible at a time.
+    const dotComAccount = accounts.find(
+      a => a.endpoint === getDotComAPIEndpoint()
+    )
+
+    if (dotComAccount === undefined) {
+      // There is not a way to check if contributions belong to the user (either
+      // they are a GHE user who should not have any or user is not signed in).
       return
     }
-    // TODO: check if user has already received thanks for this release
-    // or this check for thanks has already been already been performed.
-    // local storage -> reset on any update and any account?
 
-    const latestReleaseSummary = await generateReleaseSummary()
-    const hasExternalContributions = latestReleaseSummary.thankYous.length > 0
-    if (!hasExternalContributions) {
-      return
+    let checkedUsers: Array<string> = []
+    if (lastThankYou.length > 0) {
+      const lastVersion = lastThankYou[0]
+      checkedUsers = lastThankYou.slice(1)
+
+      const alreadyBeenCheckedOrThanked =
+        checkedUsers.includes(dotComAccount.login) &&
+        lastVersion === getVersion()
+
+      if (alreadyBeenCheckedOrThanked) {
+        return
+      }
+
+      if (lastVersion !== getVersion()) {
+        // new version clear record of users of last version
+        checkedUsers = []
+      }
     }
 
-    const userReleaseNotes = latestReleaseSummary.thankYous.filter(ty => {
-      return (
-        this.state.accounts.find(a => ty.message.includes(a.login)) !==
-        undefined
-      )
-    })
+    // This sets it so that whether there is contributions or not we have
+    // performed the check and do not need to keep retrieving latest
+    // release summary.
+    checkedUsers.push(dotComAccount.login)
+    const updatedLastThankYou = [getVersion(), ...checkedUsers]
+    this.props.dispatcher.setVersionAndUserOfLastThankYou(updatedLastThankYou)
 
+    const { thankYous, latestVersion: version } = await generateReleaseSummary()
+    const userReleaseNotes = thankYous.filter(ty =>
+      ty.message.includes(dotComAccount.login)
+    )
+
+    // User doesn't have any contributions.
     if (userReleaseNotes.length === 0) {
-      // TODO: set local storage saying check has been performed
-      // so that we don't retrieve release summary every time app is opened.
       return
     }
 
@@ -2991,10 +3023,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       type: PopupType.ThankYou,
       userReleaseNotes,
       friendlyName:
-        this.state.accounts[0].name === ''
-          ? this.state.accounts[0].login
-          : this.state.accounts[0].name,
-      version: latestReleaseSummary.latestVersion,
+        dotComAccount.name === '' ? dotComAccount.login : dotComAccount.name,
+      version,
     })
   }
 }

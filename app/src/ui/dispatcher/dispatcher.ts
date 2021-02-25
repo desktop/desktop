@@ -3066,4 +3066,11 @@ export class Dispatcher {
   ): Promise<IAheadBehind | null> {
     return this.appStore._getBranchAheadBehind(repository, branch)
   }
+
+  /** Set whether thanks you is in order for external contributions */
+  public setVersionAndUserOfLastThankYou(
+    versionAndUserOfLastThankYou: ReadonlyArray<string>
+  ) {
+    this.appStore._setVersionAndUserOfLastThankYou(versionAndUserOfLastThankYou)
+  }
 }

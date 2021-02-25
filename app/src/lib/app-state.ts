@@ -269,6 +269,15 @@ export interface IAppState {
    * Whether or not the user has been introduced to the cherry pick feature
    */
   readonly hasShownCherryPickIntro: boolean
+
+  /**
+   * Record of what logged in users have been checked to see if thank you is in
+   * order for external contributions in latest release.
+   *
+   * String of the form [version-number, user-login, user-login, user-login].
+   * This will be reset for each new version.
+   */
+  readonly versionAndUserOfLastThankYou: ReadonlyArray<string>
 }
 
 export enum FoldoutType {
