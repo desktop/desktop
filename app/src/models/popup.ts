@@ -5,7 +5,7 @@ import {
 } from './repository'
 import { PullRequest } from './pull-request'
 import { Branch } from './branch'
-import { ReleaseSummary } from './release-notes'
+import { ReleaseNote, ReleaseSummary } from './release-notes'
 import { IRemote } from './remote'
 import { RetryAction } from './retry-actions'
 import { WorkingDirectoryFileChange } from './status'
@@ -70,6 +70,7 @@ export enum PopupType {
   CherryPick,
   MoveToApplicationsFolder,
   ChangeRepositoryAlias,
+  ThankYou,
 }
 
 export type Popup =
@@ -278,3 +279,9 @@ export type Popup =
     }
   | { type: PopupType.MoveToApplicationsFolder }
   | { type: PopupType.ChangeRepositoryAlias; repository: Repository }
+  | {
+      type: PopupType.ThankYou
+      userReleaseNotes: ReleaseNote[]
+      friendlyName: string
+      version: string
+    }
