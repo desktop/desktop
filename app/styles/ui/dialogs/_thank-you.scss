@@ -77,9 +77,8 @@
 
   .container {
     width: 600px;
-    max-height: 200px;
-    padding-left: var(--spacing-quint);
-    padding-right: var(--spacing-quint);
+    padding-left: 80px;
+    padding-right: 80px;
     padding-top: var(--spacing-triple);
     padding-bottom: var(--spacing-triple);
     overflow-x: hidden;
@@ -88,6 +87,14 @@
     .thank-you-note {
       font-weight: var(--font-weight-semibold);
       padding-bottom: var(--spacing-triple);
+    }
+
+    .contributions-heading {
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .contributions {
+      max-height: 150px;
     }
   }
 
@@ -102,26 +109,27 @@
     position: absolute;
   }
 
-  $colors: (#d13447, #ffbf00, #263672);
+  $colors: (#e7001b, #ffe600, #0ebd25, #0f2679, #e21bd2);
 
   @for $i from 0 through 1500 {
     $w: random(8);
     $l: random(100);
+
     .confetti:nth-child(#{$i}) {
       width: #{$w}px;
       height: #{$w * 0.4}px;
-      background-color: nth($colors, random(3));
+      background-color: nth($colors, random(5));
       top: -10%;
       left: unquote($l + '%');
       opacity: random() + 0.5;
       transform: rotate(#{random() * 360}deg);
-      animation-name: drop-#{$i};
+      animation-name: falling-#{$i};
       animation-duration: unquote(5 + random() + 's');
       animation-delay: unquote('-' + random() + 's');
       animation-iteration-count: 1;
     }
 
-    @keyframes drop-#{$i} {
+    @keyframes falling-#{$i} {
       100% {
         top: 110%;
         left: unquote($l + random(15) + '%');

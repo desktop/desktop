@@ -125,8 +125,9 @@ export class ThankYou extends React.Component<IThankYouProps, {}> {
           <div className="container">
             <div className="thank-you-note">
               Thank you for all your hard work on GitHub Desktop version{' '}
-              {this.props.latestVersion}. You contributed:
+              {this.props.latestVersion}.
             </div>
+            <div className="contributions-heading">You contributed:</div>
             <div className="contributions">
               {this.renderList(this.props.userContributions)}
             </div>
