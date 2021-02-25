@@ -336,6 +336,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    */
 
   --diff-line-padding-y: 2px;
+  --diff-hunk-double-extra-padding: 10px;
 
   --diff-text-color: #{$gray-900};
   --diff-border-color: #{$gray-200};

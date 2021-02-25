@@ -113,9 +113,61 @@
     width: 20px;
     right: -8px;
     top: 0;
+  }
 
-    &.includeable {
+  .hunk-expand-up-handle {
+    position: absolute;
+    height: 50%;
+    width: 100%;
+    right: 0;
+    top: 0;
+  }
+
+  .hunk-expand-down-handle {
+    position: absolute;
+    height: 50%;
+    width: 100%;
+    right: 0;
+    bottom: 0;
+  }
+
+  .hunk-expand-whole-handle {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    right: 0;
+    top: 0;
+  }
+
+  &:not(.includeable) {
+    .hunk-handle {
+      display: none;
+    }
+  }
+
+  &.expandable-up,
+  &.expandable-down,
+  &.expandable-short {
+    .hunk-expand-up-handle,
+    .hunk-expand-down-handle {
+      display: none;
+    }
+  }
+
+  &.expandable-both {
+    padding-top: var(--diff-hunk-double-extra-padding);
+    padding-bottom: var(--diff-hunk-double-extra-padding);
+
+    :hover {
       cursor: pointer;
+
+      background: var(--diff-hover-background-color);
+      border-color: var(--diff-hover-border-color);
+      color: var(--diff-hover-text-color);
+
+      &:last-child {
+        border-color: var(--diff-hover-gutter-color);
+      }
     }
   }
 
@@ -248,6 +300,20 @@
 
     &:last-child {
       border-color: var(--diff-hunk-gutter-color);
+    }
+  }
+
+  &.expandable-up:hover,
+  &.expandable-down:hover,
+  &.expandable-short:hover {
+    cursor: pointer;
+
+    background: var(--diff-hover-background-color);
+    border-color: var(--diff-hover-border-color);
+    color: var(--diff-hover-text-color);
+
+    &:last-child {
+      border-color: var(--diff-hover-gutter-color);
     }
   }
 }
