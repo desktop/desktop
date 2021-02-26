@@ -213,7 +213,9 @@ export function expandTextDiffHunk(
   // reached the top of the file. Store in an array to make it easier to add
   // later to the new list of lines.
   const newDiffHunkLine =
-    diffHunkLine === null || (isExpandingUp && from <= 0)
+    diffHunkLine === null
+      ? [firstHunkLine]
+      : isExpandingUp && from <= 0
       ? []
       : [
           new DiffLine(
