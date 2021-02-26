@@ -537,8 +537,9 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       return
     }
 
-    const diffLine = diffLineForIndex(diff.hunks, this.expansion.lineNumber)
-    if (diffLine === null) {
+    // Grab the hunk line of the hunk to expand
+    const diffHunkLine = hunk.lines[0]
+    if (!diffHunkLine || diffHunkLine.type !== DiffLineType.Hunk) {
       return
     }
 
@@ -554,38 +555,39 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       Math.max(from, 0),
       Math.min(to, this.newContentLines.length)
     )
-    const actualDistance = newLines.length
+    const numberOfLinesToAdd = newLines.length
 
     // Nothing to do here
-    if (actualDistance === 0) {
+    if (numberOfLinesToAdd === 0) {
       return
     }
 
+    // Create the DiffLine instances using the right line numbers.
     const newLineDiffs = newLines.map((line, index) => {
-      if (isExpandingUp) {
-        return new DiffLine(
-          ' ' + line,
-          DiffLineType.Context,
-          newLineNumber - (actualDistance - index),
-          oldLineNumber - (actualDistance - index),
-          false
-        )
-      } else {
-        return new DiffLine(
-          ' ' + line,
-          DiffLineType.Context,
-          newLineNumber + 1 + index,
-          oldLineNumber + 1 + index,
-          false
-        )
-      }
+      const newNewLineNumber = isExpandingUp
+        ? newLineNumber - (numberOfLinesToAdd - index)
+        : newLineNumber + 1 + index
+      const newOldLineNumber = isExpandingUp
+        ? oldLineNumber - (numberOfLinesToAdd - index)
+        : oldLineNumber + 1 + index
+
+      // We need to prepend a space before the line text to match the diff
+      // output.
+      return new DiffLine(
+        ' ' + line,
+        DiffLineType.Context,
+        newNewLineNumber,
+        newOldLineNumber,
+        false
+      )
     })
 
+    // Update the resulting hunk header with the new line count
     const newHunkHeader = new DiffHunkHeader(
-      hunk.header.oldStartLine - actualDistance,
-      hunk.header.oldLineCount + actualDistance,
-      hunk.header.newStartLine - actualDistance,
-      hunk.header.newLineCount + actualDistance
+      hunk.header.oldStartLine - numberOfLinesToAdd,
+      hunk.header.oldLineCount + numberOfLinesToAdd,
+      hunk.header.newStartLine - numberOfLinesToAdd,
+      hunk.header.newLineCount + numberOfLinesToAdd
     )
 
     // Create a new Hunk header line, except if we're expanding up and we
@@ -599,26 +601,32 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
             new DiffLine(
               `@@ ${newHunkHeader.toDiffRepresentation()} @@`,
               DiffLineType.Hunk,
-              diffLine.oldLineNumber,
-              diffLine.newLineNumber,
-              diffLine.noTrailingNewLine
+              diffHunkLine.oldLineNumber,
+              diffHunkLine.newLineNumber,
+              diffHunkLine.noTrailingNewLine
             ),
           ]
 
     const allButDiffLine = hunk.lines.slice(1)
 
+    // Update the diff lines of the hunk with the new lines
     const updatedHunkLines = isExpandingUp
       ? [...newDiffHunkLine, ...newLineDiffs, ...allButDiffLine]
       : [...newDiffHunkLine, ...allButDiffLine, ...newLineDiffs]
 
+    const numberOfNewDiffLines = updatedHunkLines.length - hunk.lines.length
+
+    // Update the hunk with all the new info (header, lines, start/end...)
     const updatedHunk = new DiffHunk(
       newHunkHeader,
       updatedHunkLines,
       hunk.unifiedDiffStart,
-      hunk.unifiedDiffEnd + actualDistance
+      hunk.unifiedDiffEnd + numberOfNewDiffLines
     )
 
     const previousHunks = diff.hunks.slice(0, hunkIndex)
+
+    // Grab the hunks after the current one, and update their start/end
     const followingHunks = diff.hunks
       .slice(hunkIndex + 1)
       .map(
@@ -626,13 +634,17 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
           new DiffHunk(
             hunk.header,
             hunk.lines,
-            hunk.unifiedDiffStart + actualDistance,
-            hunk.unifiedDiffEnd + actualDistance
+            hunk.unifiedDiffStart + numberOfNewDiffLines,
+            hunk.unifiedDiffEnd + numberOfNewDiffLines
           )
       )
 
     // TODO: merge hunks
+
+    // Create the new list of hunks of the diff
     const newHunks = [...previousHunks, updatedHunk, ...followingHunks]
+
+    // Grab all hunk lines and rebuild the diff text from it
     const newDiffLines = newHunks.reduce<ReadonlyArray<DiffLine>>(
       (result, hunk) => result.concat(hunk.lines),
       []
@@ -1116,15 +1128,43 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     const hunkExpandUpHandle = document.createElement('div')
     hunkExpandUpHandle.classList.add('hunk-expand-up-handle')
+    hunkExpandUpHandle.addEventListener(
+      'mousedown',
+      this.onHunkExpandHandleMouseDown.bind(this, index, 'up')
+    )
     marker.appendChild(hunkExpandUpHandle)
 
     const hunkExpandDownHandle = document.createElement('div')
     hunkExpandDownHandle.classList.add('hunk-expand-down-handle')
+    hunkExpandDownHandle.addEventListener(
+      'mousedown',
+      this.onHunkExpandHandleMouseDown.bind(this, index, 'down')
+    )
     marker.appendChild(hunkExpandDownHandle)
 
     this.updateGutterMarker(marker, index, hunks, hunk, diffLine)
 
     return marker
+  }
+
+  private onHunkExpandHandleMouseDown = (
+    index: number,
+    kind: ExpansionKind,
+    ev: MouseEvent
+  ) => {
+    if (!this.codeMirror) {
+      return
+    }
+
+    // We only care about the primary button here, secondary
+    // button clicks are handled by `onContextMenu`
+    if (ev.button !== 0) {
+      return
+    }
+
+    ev.preventDefault()
+
+    this.startExpansion(index, kind)
   }
 
   private updateGutterMarker(
@@ -1206,7 +1246,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   }
 
   private onDiffLineGutterMouseDown = (
-    lineNumber: number,
+    index: number,
     diffLine: DiffLine,
     ev: MouseEvent
   ) => {
@@ -1228,7 +1268,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     if (diffLine.type === DiffLineType.Hunk) {
       ev.preventDefault()
       // TODO: detect expand up or down (or both?)
-      this.startExpansion(lineNumber, 'up')
+      this.startExpansion(index, 'up')
       return
     }
 
@@ -1238,7 +1278,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     ev.preventDefault()
 
-    this.startSelection(file, diff.hunks, lineNumber, 'range')
+    this.startSelection(file, diff.hunks, index, 'range')
   }
 
   private startExpansion(lineNumber: number, kind: ExpansionKind) {

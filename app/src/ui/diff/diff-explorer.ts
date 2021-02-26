@@ -42,20 +42,8 @@ export function diffHunkForIndex(
 }
 
 /**
- * Locate the diff line for the given (absolute) line number in the diff.
+ * Locate the diff line and hunk for the given (absolute) line number in the diff.
  */
-export function diffLineForIndex(
-  hunks: ReadonlyArray<DiffHunk>,
-  index: number
-): DiffLine | null {
-  const hunk = diffHunkForIndex(hunks, index)
-  if (!hunk) {
-    return null
-  }
-
-  return hunk.lines[index - hunk.unifiedDiffStart] || null
-}
-
 export function diffLineInfoForIndex(
   hunks: ReadonlyArray<DiffHunk>,
   index: number
@@ -66,11 +54,26 @@ export function diffLineInfoForIndex(
   }
 
   const line = hunk.lines[index - hunk.unifiedDiffStart]
-  if (line === null) {
+  if (!line) {
     return null
   }
 
   return { hunk, line }
+}
+
+/**
+ * Locate the diff line for the given (absolute) line number in the diff.
+ */
+export function diffLineForIndex(
+  hunks: ReadonlyArray<DiffHunk>,
+  index: number
+): DiffLine | null {
+  const diffLineInfo = diffLineInfoForIndex(hunks, index)
+  if (diffLineInfo === null) {
+    return null
+  }
+
+  return diffLineInfo.line
 }
 
 /** Get the line number as represented in the diff text itself. */
