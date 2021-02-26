@@ -74,6 +74,27 @@ export function expandTextDiffHunk(
     return
   }
 
+  const isExpandingUp = kind === 'up'
+  const adjacentHunk =
+    isExpandingUp && hunkIndex > 0
+      ? diff.hunks[hunkIndex - 1]
+      : !isExpandingUp && hunkIndex < diff.hunks.length - 1
+      ? diff.hunks[hunkIndex + 1]
+      : null
+
+  // The adjacent hunk can only be the dummy hunk at the bottom if:
+  //  - We're expanding down.
+  //  - It only has one line.
+  //  - That line is of type "Hunk".
+  //  - The currently expanded hunk is the second-to-last (meaning the adjacent
+  //    is the last hunk).
+  const isAdjacentDummyHunk =
+    adjacentHunk !== null &&
+    isExpandingUp === false &&
+    adjacentHunk.lines.length === 1 &&
+    adjacentHunk.lines[0].type === DiffLineType.Hunk &&
+    hunkIndex === diff.hunks.length - 2
+
   // Grab the hunk line of the hunk to expand
   const firstHunkLine = hunk.lines[0]
   const diffHunkLine =
@@ -82,13 +103,28 @@ export function expandTextDiffHunk(
   const newLineNumber = hunk.header.newStartLine
   const oldLineNumber = hunk.header.oldStartLine
 
-  const isExpandingUp = kind === 'up'
-  const [from, to] = isExpandingUp
+  let [from, to] = isExpandingUp
     ? [newLineNumber - DiffExpansionDistance, newLineNumber]
     : [
         newLineNumber + hunk.header.newLineCount,
         newLineNumber + hunk.header.newLineCount + DiffExpansionDistance,
       ]
+
+  if (adjacentHunk !== null) {
+    if (isExpandingUp) {
+      from = Math.max(
+        from,
+        adjacentHunk.header.newStartLine + adjacentHunk.header.newLineCount
+      )
+    } else {
+      // Make sure we're not comparing against the dummy hunk at the bottom,
+      // which is effectively taking all the undiscovered file contents and
+      // would prevent us from expanding down the diff.
+      if (isAdjacentDummyHunk === false) {
+        to = Math.min(to, adjacentHunk.header.newStartLine - 1)
+      }
+    }
+  }
 
   const newLines = newContentLines.slice(
     Math.max(from - 1, 0),
