@@ -38,7 +38,7 @@ const ReleaseNoteHeaderRightUri = encodePathAsUrl(
 interface IThankYouProps {
   readonly onDismissed: () => void
   readonly emoji: Map<string, string>
-  readonly userContributions: ReleaseNote[]
+  readonly userContributions: ReadonlyArray<ReleaseNote>
   readonly friendlyName: string
   readonly latestVersion: string
 }

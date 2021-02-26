@@ -281,7 +281,7 @@ export type Popup =
   | { type: PopupType.ChangeRepositoryAlias; repository: Repository }
   | {
       type: PopupType.ThankYou
-      userContributions: ReleaseNote[]
+      userContributions: ReadonlyArray<ReleaseNote>
       friendlyName: string
       latestVersion: string
     }

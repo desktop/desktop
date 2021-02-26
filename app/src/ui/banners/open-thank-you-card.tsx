@@ -34,7 +34,7 @@ export class OpenThankYouCard extends React.Component<
     )
   }
 
-  private onThrewCardAway(): void {
+  private onThrewCardAway = () => {
     this.props.onDismissed()
     this.props.onThrewCardAway()
   }
