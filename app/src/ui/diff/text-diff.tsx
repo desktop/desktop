@@ -1307,9 +1307,9 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     // but we probably swapped out the document
     if (
       this.codeMirror !== null &&
-      this.props.file !== prevProps.file &&
-      this.props.file.id === prevProps.file.id &&
-      (this.props.diff.text !== prevProps.diff.text ||
+      ((this.props.file !== prevProps.file &&
+        this.props.file.id === prevProps.file.id &&
+        this.props.diff.text !== prevProps.diff.text) ||
         this.state.diff.text !== prevState.diff.text)
     ) {
       return this.codeMirror.getScrollInfo()
