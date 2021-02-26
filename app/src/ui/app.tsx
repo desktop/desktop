@@ -102,7 +102,7 @@ import {
   initializeRebaseFlowForConflictedRepository,
   isCurrentBranchForcePush,
 } from '../lib/rebase'
-import { BannerType } from '../models/banner'
+import { Banner, BannerType } from '../models/banner'
 import { StashAndSwitchBranch } from './stash-changes/stash-and-switch-branch-dialog'
 import { OverwriteStash } from './stash-changes/overwrite-stashed-changes-dialog'
 import { ConfirmDiscardStashDialog } from './stashing/confirm-discard-stash'
@@ -2991,9 +2991,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    // Regardless of contributions, so we don't keep retrieving release notes.
-    updateLastThankYou(this.props.dispatcher, lastThankYou, login, getVersion())
-
     const { thankYous, latestVersion } = await generateReleaseSummary()
     const userContributions = thankYous.filter(ty => ty.message.includes(login))
 
@@ -3001,12 +2998,27 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    this.props.dispatcher.showPopup({
-      type: PopupType.ThankYou,
-      userContributions,
-      friendlyName,
-      latestVersion,
-    })
+    const banner: Banner = {
+      type: BannerType.OpenThankYouCard,
+      onOpenCard: () => {
+        this.props.dispatcher.showPopup({
+          type: PopupType.ThankYou,
+          userContributions,
+          friendlyName,
+          latestVersion,
+        })
+      },
+      onThrewCardAway: () => {
+        // This way banner will remain to they throw it away.
+        updateLastThankYou(
+          this.props.dispatcher,
+          lastThankYou,
+          login,
+          getVersion()
+        )
+      },
+    }
+    this.props.dispatcher.setBanner(banner)
   }
 }
 
