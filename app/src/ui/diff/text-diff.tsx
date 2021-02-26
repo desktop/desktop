@@ -1012,7 +1012,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     marker.addEventListener(
       'mousedown',
-      this.onDiffLineGutterMouseDown.bind(this, index, hunk, diffLine)
+      this.onDiffLineGutterMouseDown.bind(this, index, hunks, hunk, diffLine)
     )
 
     const oldLineNumber = document.createElement('div')
@@ -1151,6 +1151,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
   private onDiffLineGutterMouseDown = (
     index: number,
+    hunks: ReadonlyArray<DiffHunk>,
     hunk: DiffHunk,
     diffLine: DiffLine,
     ev: MouseEvent
@@ -1172,8 +1173,26 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     if (diffLine.type === DiffLineType.Hunk) {
       ev.preventDefault()
-      // TODO: detect expand up or down (or both?)
-      this.startExpansion(hunk, 'up')
+
+      // This code is invoked when the user clicks a hunk line gutter that is
+      // not splitted in half, meaning it can only be expanded either up or down
+      // (or the distance between hunks is too short it doesn't matter). It
+      // won't be invoked when the user can choose to expand it up or down.
+      //
+      // With that in mind, in those situations, we'll ALWAYS expand the hunk
+      // up except when it's the last "dummy" hunk we placed to allow expanding
+      // the diff from the bottom. In that case, we'll expand the second-to-last
+      // hunk down.
+      if (
+        hunk.lines.length === 1 &&
+        hunks.length > 1 &&
+        hunk === hunks[hunks.length - 1]
+      ) {
+        const previousHunk = hunks[hunks.length - 2]
+        this.startExpansion(previousHunk, 'down')
+      } else {
+        this.startExpansion(hunk, 'up')
+      }
       return
     }
 

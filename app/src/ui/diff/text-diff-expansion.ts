@@ -75,22 +75,24 @@ export function expandTextDiffHunk(
   }
 
   // Grab the hunk line of the hunk to expand
-  const diffHunkLine = hunk.lines[0]
-  if (!diffHunkLine || diffHunkLine.type !== DiffLineType.Hunk) {
-    return
-  }
+  const firstHunkLine = hunk.lines[0]
+  const diffHunkLine =
+    firstHunkLine.type === DiffLineType.Hunk ? firstHunkLine : null
 
   const newLineNumber = hunk.header.newStartLine
   const oldLineNumber = hunk.header.oldStartLine
 
   const isExpandingUp = kind === 'up'
   const [from, to] = isExpandingUp
-    ? [newLineNumber - DiffExpansionDistance - 1, newLineNumber - 1]
-    : [newLineNumber + 1, newLineNumber + DiffExpansionDistance + 1]
+    ? [newLineNumber - DiffExpansionDistance, newLineNumber]
+    : [
+        newLineNumber + hunk.header.newLineCount,
+        newLineNumber + hunk.header.newLineCount + DiffExpansionDistance,
+      ]
 
   const newLines = newContentLines.slice(
-    Math.max(from, 0),
-    Math.min(to, newContentLines.length)
+    Math.max(from - 1, 0),
+    Math.min(to - 1, newContentLines.length)
   )
   const numberOfLinesToAdd = newLines.length
 
@@ -103,40 +105,43 @@ export function expandTextDiffHunk(
   const newLineDiffs = newLines.map((line, index) => {
     const newNewLineNumber = isExpandingUp
       ? newLineNumber - (numberOfLinesToAdd - index)
-      : newLineNumber + 1 + index
+      : newLineNumber + hunk.header.newLineCount + index
     const newOldLineNumber = isExpandingUp
       ? oldLineNumber - (numberOfLinesToAdd - index)
-      : oldLineNumber + 1 + index
+      : oldLineNumber + hunk.header.oldLineCount + index
 
     // We need to prepend a space before the line text to match the diff
     // output.
     return new DiffLine(
       ' ' + line,
       DiffLineType.Context,
-      newNewLineNumber,
       newOldLineNumber,
+      newNewLineNumber,
       false
     )
   })
 
   // Update the resulting hunk header with the new line count
   const newHunkHeader = new DiffHunkHeader(
-    hunk.header.oldStartLine - numberOfLinesToAdd,
+    isExpandingUp
+      ? hunk.header.oldStartLine - numberOfLinesToAdd
+      : hunk.header.oldStartLine,
     hunk.header.oldLineCount + numberOfLinesToAdd,
-    hunk.header.newStartLine - numberOfLinesToAdd,
+    isExpandingUp
+      ? hunk.header.newStartLine - numberOfLinesToAdd
+      : hunk.header.newStartLine,
     hunk.header.newLineCount + numberOfLinesToAdd
   )
 
   // Create a new Hunk header line, except if we're expanding up and we
   // reached the top of the file. Store in an array to make it easier to add
   // later to the new list of lines.
-  // TODO: handle similar scenario when expanding down
   const newDiffHunkLine =
-    isExpandingUp && from <= 0
+    diffHunkLine === null || (isExpandingUp && from <= 0)
       ? []
       : [
           new DiffLine(
-            `@@ ${newHunkHeader.toDiffRepresentation()} @@`,
+            newHunkHeader.toDiffLineRepresentation(),
             DiffLineType.Hunk,
             diffHunkLine.oldLineNumber,
             diffHunkLine.newLineNumber,
@@ -163,18 +168,24 @@ export function expandTextDiffHunk(
 
   const previousHunks = diff.hunks.slice(0, hunkIndex)
 
-  // Grab the hunks after the current one, and update their start/end
-  const followingHunks = diff.hunks
-    .slice(hunkIndex + 1)
-    .map(
-      hunk =>
-        new DiffHunk(
-          hunk.header,
-          hunk.lines,
-          hunk.unifiedDiffStart + numberOfNewDiffLines,
-          hunk.unifiedDiffEnd + numberOfNewDiffLines
-        )
-    )
+  // Grab the hunks after the current one, and update their start/end, but only
+  // if the currently expanded hunk didn't reach the bottom of the file.
+  const newHunkLastLine =
+    newHunkHeader.newStartLine + newHunkHeader.newLineCount - 1
+  const followingHunks =
+    newHunkLastLine >= newContentLines.length
+      ? []
+      : diff.hunks
+          .slice(hunkIndex + 1)
+          .map(
+            hunk =>
+              new DiffHunk(
+                hunk.header,
+                hunk.lines,
+                hunk.unifiedDiffStart + numberOfNewDiffLines,
+                hunk.unifiedDiffEnd + numberOfNewDiffLines
+              )
+          )
 
   // TODO: merge hunks
 

@@ -31,8 +31,8 @@ export class DiffHunkHeader {
     public readonly newLineCount: number
   ) {}
 
-  public toDiffRepresentation() {
-    return `-${this.oldStartLine},${this.oldLineCount} +${this.newStartLine},${this.newLineCount} `
+  public toDiffLineRepresentation() {
+    return `@@ -${this.oldStartLine},${this.oldLineCount} +${this.newStartLine},${this.newLineCount} @@`
   }
 }
 
