@@ -45,6 +45,7 @@ import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 import { enableDiscardLines } from '../../lib/feature-flag'
 import { canSelect } from './diff-helpers'
+import { getDiffTextFromHunks } from './diff-expansion'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -398,15 +399,60 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     // TODO: what about \r or \r\n?? I_dont_know_what_im_doing.gif
     this.newContentLines = contents.newContents.split('\n')
 
+    const hunks = this.state.diff.hunks.slice()
+    let newDiff = null
+
+    if (hunks.length !== 0) {
+      // If the last hunk doesn't reach the end of the file, create a dummy hunk
+      // at the end to allow expanding the diff down.
+      const lastHunk = hunks[hunks.length - 1]
+      const lastHunkNewLine =
+        lastHunk.header.newStartLine + lastHunk.header.newLineCount
+
+      if (lastHunkNewLine < this.newContentLines.length) {
+        const oldContentsLength = contents.oldContents.split('\n').length
+
+        const dummyOldStartLine =
+          lastHunk.header.oldStartLine + lastHunk.header.oldLineCount
+        const dummyNewStartLine =
+          lastHunk.header.newStartLine + lastHunk.header.newLineCount
+        const dummyLine = new DiffLine('', DiffLineType.Hunk, null, null, false)
+        const dummyHeader = new DiffHunkHeader(
+          dummyOldStartLine,
+          oldContentsLength - dummyOldStartLine + 1,
+          dummyNewStartLine,
+          this.newContentLines.length - dummyNewStartLine + 1
+        )
+        const dummyHunk = new DiffHunk(
+          dummyHeader,
+          [dummyLine],
+          lastHunk.unifiedDiffEnd + 1,
+          lastHunk.unifiedDiffEnd + 1
+        )
+        hunks.push(dummyHunk)
+
+        newDiff = {
+          ...this.state.diff,
+          text: getDiffTextFromHunks(hunks),
+          hunks: hunks,
+        }
+      }
+    }
+
     const spec: IDiffSyntaxModeSpec = {
       name: DiffSyntaxMode.ModeName,
-      hunks: this.state.diff.hunks,
+      hunks: hunks,
       oldTokens: tokens.oldTokens,
       newTokens: tokens.newTokens,
     }
 
     if (this.codeMirror) {
       this.codeMirror.setOption('mode', spec)
+    }
+
+    // If there is a new diff with the fake hunk at the end, update the state
+    if (newDiff !== null) {
+      this.setState({ diff: newDiff })
     }
   }
 
@@ -641,15 +687,9 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     // TODO: merge hunks
 
-    // Create the new list of hunks of the diff
+    // Create the new list of hunks of the diff, and the new diff text
     const newHunks = [...previousHunks, updatedHunk, ...followingHunks]
-
-    // Grab all hunk lines and rebuild the diff text from it
-    const newDiffLines = newHunks.reduce<ReadonlyArray<DiffLine>>(
-      (result, hunk) => result.concat(hunk.lines),
-      []
-    )
-    const newDiffText = newDiffLines.map(diffLine => diffLine.text).join('\n')
+    const newDiffText = getDiffTextFromHunks(newHunks)
 
     const updatedDiff = {
       ...diff,
