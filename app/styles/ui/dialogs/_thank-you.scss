@@ -104,7 +104,19 @@
     height: 110vh;
     top: -50vh;
     left: -33vw;
+    animation: remove-confetti-container 0s ease-in 4s forwards;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
   }
+
+  @keyframes remove-confetti-container {
+    to {
+      width: 0;
+      height: 0;
+      overflow: hidden;
+    }
+  }
+
   .confetti {
     position: absolute;
   }

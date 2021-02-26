@@ -40,7 +40,7 @@ interface IThankYouProps {
   readonly emoji: Map<string, string>
   readonly userContributions: ReadonlyArray<ReleaseNote>
   readonly friendlyName: string
-  readonly latestVersion: string
+  readonly latestVersion: string | null
 }
 
 export class ThankYou extends React.Component<IThankYouProps, {}> {
@@ -115,6 +115,18 @@ export class ThankYou extends React.Component<IThankYouProps, {}> {
       </div>
     )
 
+    const thankYou = 'Thank you for all your hard work on GitHub Desktop'
+    let thankYouNote
+    if (this.props.latestVersion === null) {
+      thankYouNote = <>{thankYou}</>
+    } else {
+      thankYouNote = (
+        <>
+          {thankYou} version {this.props.latestVersion}
+        </>
+      )
+    }
+
     return (
       <Dialog
         id="thank-you-notes"
@@ -123,10 +135,7 @@ export class ThankYou extends React.Component<IThankYouProps, {}> {
       >
         <DialogContent>
           <div className="container">
-            <div className="thank-you-note">
-              Thank you for all your hard work on GitHub Desktop version{' '}
-              {this.props.latestVersion}.
-            </div>
+            <div className="thank-you-note">{thankYouNote}.</div>
             <div className="contributions-heading">You contributed:</div>
             <div className="contributions">
               {this.renderList(this.props.userContributions)}

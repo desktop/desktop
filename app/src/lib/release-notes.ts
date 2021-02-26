@@ -1,3 +1,4 @@
+import { String } from 'aws-sdk/clients/cloudsearchdomain'
 import moment from 'moment'
 
 import {
@@ -100,4 +101,38 @@ export async function generateReleaseSummary(): Promise<ReleaseSummary> {
   const releases = await getChangeLog()
   const latestRelease = releases[0]
   return getReleaseSummary(latestRelease)
+}
+
+export async function getThankYouByUser(): Promise<
+  Map<string, ReadonlyArray<ReleaseNote>>
+> {
+  let releaseMetaData = await getChangeLog()
+  if (__RELEASE_CHANNEL__ === 'beta' || __RELEASE_CHANNEL__ === 'development') {
+    releaseMetaData = [...releaseMetaData, ...(await getChangeLog(''))]
+  }
+  const summaries = releaseMetaData.map(getReleaseSummary)
+  const thankYousByUser = new Map<string, Array<ReleaseNote>>()
+  summaries.forEach(s => {
+    if (s.thankYous.length === 0) {
+      return
+    }
+
+    const thanksRE = /\.\sThanks\s@.+!/i
+    s.thankYous.forEach(ty => {
+      const match = thanksRE.exec(ty.message)
+      if (match === null) {
+        return
+      }
+      const userHandle = match[0].slice(10, -1)
+      let usersThanksYous = thankYousByUser.get(userHandle)
+      if (usersThanksYous === undefined) {
+        usersThanksYous = [ty]
+      } else {
+        usersThanksYous.push(ty)
+      }
+      thankYousByUser.set(userHandle, usersThanksYous)
+    })
+  })
+
+  return thankYousByUser
 }

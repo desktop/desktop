@@ -16,6 +16,7 @@ import { RelativeTime } from '../relative-time'
 import { assertNever } from '../../lib/fatal-error'
 import { ReleaseNotesUri } from '../lib/releases'
 import { encodePathAsUrl } from '../../lib/path'
+import { ReleaseNote } from '../../models/release-notes'
 
 const logoPath = __DARWIN__
   ? 'static/logo-64x64@2x.png'
@@ -46,6 +47,14 @@ interface IAboutProps {
 
   /** A function to call when the user wants to see Terms and Conditions. */
   readonly onShowTermsAndConditions: () => void
+
+  /** An array of release notes specific to the logged in dotcom user. */
+  readonly userContributions: ReadonlyArray<ReleaseNote> | null
+
+  /** Function to open user thank you */
+  readonly onOpenThankYouCard: (
+    userContributions: ReadonlyArray<ReleaseNote>
+  ) => void
 }
 
 interface IAboutState {
@@ -231,6 +240,27 @@ export class About extends React.Component<IAboutProps, IAboutState> {
     return null
   }
 
+  private onOpenThankYouCard = () => {
+    const { onOpenThankYouCard, userContributions } = this.props
+    if (userContributions === null) {
+      return
+    }
+    onOpenThankYouCard(userContributions)
+  }
+
+  private renderThankYou() {
+    if (this.props.userContributions === null) {
+      return null
+    }
+
+    return (
+      <p>
+        You contributed!{' '}
+        <LinkButton onClick={this.onOpenThankYouCard}>Open Card</LinkButton>
+      </p>
+    )
+  }
+
   public render() {
     const name = this.props.applicationName
     const version = this.props.applicationVersion
@@ -273,6 +303,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
           </p>
           {this.renderUpdateDetails()}
           {this.renderUpdateButton()}
+          {this.renderThankYou()}
         </DialogContent>
         <DefaultDialogFooter />
       </Dialog>

@@ -123,7 +123,10 @@ export type Popup =
       initialName?: string
     }
   | { type: PopupType.SignIn }
-  | { type: PopupType.About }
+  | {
+      type: PopupType.About
+      userContributions: ReadonlyArray<ReleaseNote> | null
+    }
   | { type: PopupType.InstallGit; path: string }
   | { type: PopupType.PublishRepository; repository: Repository }
   | { type: PopupType.Acknowledgements }
@@ -283,5 +286,5 @@ export type Popup =
       type: PopupType.ThankYou
       userContributions: ReadonlyArray<ReleaseNote>
       friendlyName: string
-      latestVersion: string
+      latestVersion: string | null
     }

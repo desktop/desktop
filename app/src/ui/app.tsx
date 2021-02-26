@@ -136,11 +136,12 @@ import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { MoveToApplicationsFolder } from './move-to-applications-folder'
 import { ChangeRepositoryAlias } from './change-repository-alias/change-repository-alias-dialog'
 import { ThankYou } from './thank-you'
-import { generateReleaseSummary } from '../lib/release-notes'
+import { generateReleaseSummary, getThankYouByUser } from '../lib/release-notes'
 import {
   hasUserAlreadyBeenCheckedOrThanked,
   updateLastThankYou,
 } from '../lib/thank-you'
+import { ReleaseNote } from '../models/release-notes'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -773,8 +774,18 @@ export class App extends React.Component<IAppProps, IAppState> {
     return isTutorialRepository ? selectedRepository : null
   }
 
-  private showAbout() {
-    this.props.dispatcher.showPopup({ type: PopupType.About })
+  private async showAbout(): Promise<void> {
+    const dotComAccount = this.getDotComAccount()
+    let userContributions = null
+    if (dotComAccount !== null) {
+      const tysByUsers = await getThankYouByUser()
+      let { login } = dotComAccount
+      userContributions = tysByUsers.get(login) || null
+    }
+    this.props.dispatcher.showPopup({
+      type: PopupType.About,
+      userContributions,
+    })
   }
 
   private async showHistory(showBranchList: boolean = false) {
@@ -1562,6 +1573,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             onCheckForUpdates={this.onCheckForUpdates}
             onShowAcknowledgements={this.showAcknowledgements}
             onShowTermsAndConditions={this.showTermsAndConditions}
+            onOpenThankYouCard={this.openThankYouCard}
+            userContributions={popup.userContributions}
           />
         )
       case PopupType.PublishRepository:
@@ -2975,18 +2988,16 @@ export class App extends React.Component<IAppProps, IAppState> {
    * be able to be detected.
    */
   private async checkIfThankYouIsInOrder(): Promise<void> {
-    const { accounts, versionAndUsersOfLastThankYou: lastThankYou } = this.state
+    const { versionAndUsersOfLastThankYou: lastThankYou } = this.state
     // There should only be one dotcom account possible at a time.
-    const dotComAccount = accounts.find(
-      a => a.endpoint === getDotComAPIEndpoint()
-    )
+    const dotComAccount = this.getDotComAccount()
 
-    if (dotComAccount === undefined) {
+    if (dotComAccount === null) {
       // The user is not signed in or is a GHE user who should not have any.
       return
     }
 
-    const { login, friendlyName } = dotComAccount
+    const { login } = dotComAccount
     if (hasUserAlreadyBeenCheckedOrThanked(lastThankYou, login, getVersion())) {
       return
     }
@@ -3000,14 +3011,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const banner: Banner = {
       type: BannerType.OpenThankYouCard,
-      onOpenCard: () => {
-        this.props.dispatcher.showPopup({
-          type: PopupType.ThankYou,
-          userContributions,
-          friendlyName,
-          latestVersion,
-        })
-      },
+      onOpenCard: () => this.openThankYouCard(userContributions, latestVersion),
       onThrewCardAway: () => {
         // This way banner will remain to they throw it away.
         updateLastThankYou(
@@ -3019,6 +3023,26 @@ export class App extends React.Component<IAppProps, IAppState> {
       },
     }
     this.props.dispatcher.setBanner(banner)
+  }
+
+  private openThankYouCard = (
+    userContributions: ReadonlyArray<ReleaseNote>,
+    latestVersion: string | null = null
+  ) => {
+    const dotComAccount = this.getDotComAccount()
+
+    if (dotComAccount === null) {
+      // The user is not signed in or is a GHE user who should not have any.
+      return
+    }
+    let { friendlyName } = dotComAccount
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.ThankYou,
+      userContributions,
+      friendlyName,
+      latestVersion,
+    })
   }
 }
 
