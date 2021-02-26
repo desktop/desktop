@@ -1034,7 +1034,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     hunkExpandUpHandle.classList.add('hunk-expand-up-handle')
     hunkExpandUpHandle.addEventListener(
       'mousedown',
-      this.onHunkExpandHandleMouseDown.bind(this, hunk, 'up')
+      this.onHunkExpandHandleMouseDown.bind(this, hunks, hunk, 'up')
     )
     marker.appendChild(hunkExpandUpHandle)
 
@@ -1042,7 +1042,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     hunkExpandDownHandle.classList.add('hunk-expand-down-handle')
     hunkExpandDownHandle.addEventListener(
       'mousedown',
-      this.onHunkExpandHandleMouseDown.bind(this, hunk, 'down')
+      this.onHunkExpandHandleMouseDown.bind(this, hunks, hunk, 'down')
     )
     marker.appendChild(hunkExpandDownHandle)
 
@@ -1052,6 +1052,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   }
 
   private onHunkExpandHandleMouseDown = (
+    hunks: ReadonlyArray<DiffHunk>,
     hunk: DiffHunk,
     kind: ExpansionKind,
     ev: MouseEvent
@@ -1068,7 +1069,22 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     ev.preventDefault()
 
-    this.startExpansion(hunk, kind)
+    // This code is run when the user clicks on a hunk header line gutter that
+    // is split in two, meaning you can expand up or down the gap the line is
+    // located.
+    // Expanding it down will basically expand *up* the hunk to which that line
+    // belongs.
+    // Expanding that gap up, however, will expand *down* the hunk that is
+    // located right above this one.
+    if (kind === 'up') {
+      const hunkIndex = hunks.indexOf(hunk)
+      if (hunkIndex > 0) {
+        const previousHunk = hunks[hunkIndex - 1]
+        this.startExpansion(previousHunk, 'down')
+      }
+    } else {
+      this.startExpansion(hunk, 'up')
+    }
   }
 
   private updateGutterMarker(
