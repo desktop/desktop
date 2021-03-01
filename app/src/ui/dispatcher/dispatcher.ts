@@ -2639,6 +2639,21 @@ export class Dispatcher {
     await this.refreshRepository(repository)
   }
 
+  /** Aborts an ongoing cherry pick and switches back to the source branch. */
+  public async abortCherryPick(repository: Repository, sourceBranch: Branch) {
+    await this.appStore._abortCherryPick(repository, sourceBranch)
+    await this.appStore._loadStatus(repository)
+    this.appStore._endCherryPickFlow(repository)
+  }
+
+  /**
+   * Update the cherry pick state to indicate the user has resolved conflicts in
+   * the current repository.
+   */
+  public setCherryPickConflictsResolved(repository: Repository) {
+    return this.appStore._setCherryPickConflictsResolved(repository)
+  }
+
   public async startCherryPickWithBranch(
     repository: Repository,
     branchName: string
@@ -2666,20 +2681,5 @@ export class Dispatcher {
     // appearing and disappearing again.
     await sleep(500)
     this.cherryPick(repository, targetBranch, commits)
-  }
-
-  /** Aborts an ongoing cherry pick and switches back to the source branch. */
-  public async abortCherryPick(repository: Repository, sourceBranch: Branch) {
-    await this.appStore._abortCherryPick(repository, sourceBranch)
-    await this.appStore._loadStatus(repository)
-    this.appStore._endCherryPickFlow(repository)
-  }
-
-  /**
-   * Update the cherry pick state to indicate the user has resolved conflicts in
-   * the current repository.
-   */
-  public setCherryPickConflictsResolved(repository: Repository) {
-    return this.appStore._setCherryPickConflictsResolved(repository)
   }
 }
