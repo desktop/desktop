@@ -2611,4 +2611,33 @@ export class Dispatcher {
 
     await this.refreshRepository(repository)
   }
+
+  public async startCherryPickWithBranch(
+    repository: Repository,
+    branchName: string
+  ): Promise<void> {
+    const repositoryState = this.repositoryStateManager.get(repository)
+    const targetBranch = repositoryState.branchesState.allBranches.find(
+      b => b.name === branchName
+    )
+
+    if (targetBranch === undefined) {
+      // This should not happen, the branch name sent in was from a list of
+      // branches provided from the repository.
+      return
+    }
+
+    // TODO: set the commits in a cherry pick state and retrieve them
+    const commits: ReadonlyArray<CommitOneLine> = []
+
+    this.setCherryPickFlowStep(repository, {
+      kind: CherryPickStepKind.ShowProgress,
+    })
+
+    // This timeout is intended to defer cherry picking from running immediately
+    // to better show that cherry picking is progressing rather than suddenly
+    // appearing and disappearing again.
+    await sleep(500)
+    this.cherryPick(repository, targetBranch, commits)
+  }
 }

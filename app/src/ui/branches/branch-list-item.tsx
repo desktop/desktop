@@ -27,6 +27,11 @@ interface IBranchListItemProps {
   readonly onRenameBranch?: (branchName: string) => void
 
   readonly onDeleteBranch?: (branchName: string) => void
+
+  /**
+   * A function that's called whenever something is dropped on this branch.
+   */
+  readonly onDrop?: (branchName: string) => void
 }
 
 /** The branch component. */
@@ -65,6 +70,19 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
     showContextualMenu(items)
   }
 
+  private onDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    if (this.props.onDrop !== undefined) {
+      event.preventDefault()
+    }
+  }
+
+  private onDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    const { onDrop, name } = this.props
+    if (onDrop !== undefined) {
+      onDrop(name)
+    }
+  }
+
   public render() {
     const lastCommitDate = this.props.lastCommitDate
     const isCurrentBranch = this.props.isCurrentBranch
@@ -78,7 +96,12 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
       ? lastCommitDate.toString()
       : ''
     return (
-      <div onContextMenu={this.onContextMenu} className="branches-list-item">
+      <div
+        onContextMenu={this.onContextMenu}
+        className="branches-list-item"
+        onDragOver={this.onDragOver}
+        onDrop={this.onDrop}
+      >
         <Octicon className="icon" symbol={icon} />
         <div className="name" title={name}>
           <HighlightText text={name} highlight={this.props.matches.title} />

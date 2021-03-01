@@ -69,8 +69,15 @@ export class CommitListItem extends React.PureComponent<
       author: { date },
     } = commit
 
+    const isDraggable = this.onCherryPick !== undefined && enableCherryPicking()
+
     return (
-      <div className="commit" onContextMenu={this.onContextMenu}>
+      <div
+        className="commit"
+        onContextMenu={this.onContextMenu}
+        draggable={isDraggable}
+        onDragStart={this.onDrag}
+      >
         <div className="info">
           <RichText
             className="summary"
@@ -253,6 +260,10 @@ export class CommitListItem extends React.PureComponent<
         }
       }),
     }
+  }
+
+  private onDrag = (event: React.DragEvent<HTMLDivElement>): void => {
+    // TODO: Bubble up and set a "Dragged Commit State"
   }
 }
 

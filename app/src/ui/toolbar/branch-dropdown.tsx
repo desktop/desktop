@@ -4,7 +4,11 @@ import { OcticonSymbol, syncClockwise } from '../octicons'
 import { Repository } from '../../models/repository'
 import { TipState } from '../../models/tip'
 import { ToolbarDropdown, DropdownState } from './dropdown'
-import { IRepositoryState, isRebaseConflictState } from '../../lib/app-state'
+import {
+  FoldoutType,
+  IRepositoryState,
+  isRebaseConflictState,
+} from '../../lib/app-state'
 import { BranchesContainer, PullRequestBadge } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
 import { BranchesTab } from '../../models/branches-tab'
@@ -168,10 +172,16 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         showDisclosureArrow={canOpen}
         progressValue={progressValue}
         buttonClassName={buttonClassName}
+        onDragOver={this.onDragOver}
       >
         {this.renderPullRequestInfo()}
       </ToolbarDropdown>
     )
+  }
+
+  private onDragOver = (event: React.DragEvent<HTMLDivElement>): void => {
+    event.preventDefault()
+    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
   }
 
   private renderPullRequestInfo() {

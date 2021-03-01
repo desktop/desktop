@@ -151,7 +151,8 @@ export class BranchesContainer extends React.Component<
       matches,
       this.props.currentBranch,
       this.onRenameBranch,
-      this.onDeleteBranch
+      this.onDeleteBranch,
+      this.onDrop
     )
   }
 
@@ -308,5 +309,16 @@ export class BranchesContainer extends React.Component<
       branch,
       existsOnRemote: branch.upstreamRemoteName !== null,
     })
+  }
+
+  /**
+   * Tho currently this is being implemented in conjuction with
+   * cherry picking.
+   */
+  private onDrop = (branchName: string) => {
+    this.props.dispatcher.startCherryPickWithBranch(
+      this.props.repository,
+      branchName
+    )
   }
 }
