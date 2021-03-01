@@ -28,7 +28,8 @@ export class OpenThankYouCard extends React.Component<
             Open Your Card
           </LinkButton>{' '}
           or{' '}
-          <LinkButton onClick={this.onThrewCardAway}>Throw It Away</LinkButton>.
+          <LinkButton onClick={this.onThrewCardAway}>Throw It Away</LinkButton>.{' '}
+          Psst.. check out the About modal.
         </span>
       </Banner>
     )

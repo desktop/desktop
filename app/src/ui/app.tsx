@@ -779,7 +779,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     let userContributions = null
     if (dotComAccount !== null) {
       const tysByUsers = await getThankYouByUser()
-      let { login } = dotComAccount
+      const { login } = dotComAccount
       userContributions = tysByUsers.get(login) || null
     }
     this.props.dispatcher.showPopup({
@@ -2997,7 +2997,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const { login } = dotComAccount
+    let { login } = dotComAccount
     if (hasUserAlreadyBeenCheckedOrThanked(lastThankYou, login, getVersion())) {
       return
     }
@@ -3035,7 +3035,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       // The user is not signed in or is a GHE user who should not have any.
       return
     }
-    let { friendlyName } = dotComAccount
+    const { friendlyName } = dotComAccount
 
     this.props.dispatcher.showPopup({
       type: PopupType.ThankYou,
