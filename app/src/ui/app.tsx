@@ -2997,7 +2997,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    let { login } = dotComAccount
+    const { login } = dotComAccount
     if (hasUserAlreadyBeenCheckedOrThanked(lastThankYou, login, getVersion())) {
       return
     }
