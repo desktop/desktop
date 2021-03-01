@@ -121,6 +121,7 @@
     width: 100%;
     right: 0;
     top: 0;
+    text-align: center;
   }
 
   .hunk-expand-down-handle {
@@ -129,14 +130,7 @@
     width: 100%;
     right: 0;
     bottom: 0;
-  }
-
-  .hunk-expand-whole-handle {
-    position: absolute;
-    height: 100%;
-    width: 100%;
-    right: 0;
-    top: 0;
+    text-align: center;
   }
 
   &:not(.includeable) {
@@ -145,9 +139,7 @@
     }
   }
 
-  &.expandable-up,
-  &.expandable-down,
-  &.expandable-short {
+  &:not(.expandable-both) {
     .hunk-expand-up-handle,
     .hunk-expand-down-handle {
       display: none;
