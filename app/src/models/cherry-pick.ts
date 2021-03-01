@@ -16,8 +16,16 @@ export type CherryPickFlowStep =
   | ChooseTargetBranchesStep
   | ShowProgressStep
   | ShowConflictsStep
+  | CommitsChosenStep
 
 export const enum CherryPickStepKind {
+  /**
+   * The initial state of a cherry pick.
+   *
+   * This is where the user picks has started dragging a commit or set
+   * of commits but has not yet dropped them.
+   */
+  CommitsChosen = 'CommitsChosen',
   /**
    * The initial state of a cherry pick.
    *
@@ -62,4 +70,13 @@ export type ShowProgressStep = {
 export type ShowConflictsStep = {
   readonly kind: CherryPickStepKind.ShowConflicts
   conflictState: CherryPickConflictState
+}
+
+/**
+ * Shape of data to when a user has chosen commits to cherry pick but not yet
+ * selected a target branch.
+ */
+export type CommitsChosenStep = {
+  readonly kind: CherryPickStepKind.CommitsChosen
+  commits: ReadonlyArray<CommitOneLine>
 }

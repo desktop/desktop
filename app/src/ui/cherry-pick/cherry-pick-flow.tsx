@@ -134,6 +134,8 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
             sourceBranchName={sourceBranch.name}
           />
         )
+      case CherryPickStepKind.CommitsChosen:
+        return null
       default:
         return assertNever(step, 'Unknown cherry pick step found')
     }

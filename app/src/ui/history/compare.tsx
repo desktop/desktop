@@ -25,6 +25,7 @@ import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
 import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
 import { AheadBehindStore } from '../../lib/stores/ahead-behind-store'
+import { CherryPickStepKind } from '../../models/cherry-pick'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -239,6 +240,7 @@ export class CompareSidebar extends React.Component<
         onCompareListScrolled={this.props.onCompareListScrolled}
         compareListScrollTop={this.props.compareListScrollTop}
         tagsToPush={this.props.tagsToPush}
+        onDragCommit={this.onDragCommit}
       />
     )
   }
@@ -512,6 +514,13 @@ export class CompareSidebar extends React.Component<
 
   private onCherryPick = (commits: ReadonlyArray<CommitOneLine>) => {
     this.props.onCherryPick(this.props.repository, commits)
+  }
+
+  private onDragCommit = (commits: ReadonlyArray<CommitOneLine>) => {
+    this.props.dispatcher.setCherryPickFlowStep(this.props.repository, {
+      kind: CherryPickStepKind.CommitsChosen,
+      commits,
+    })
   }
 }
 

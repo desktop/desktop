@@ -2654,32 +2654,50 @@ export class Dispatcher {
     return this.appStore._setCherryPickConflictsResolved(repository)
   }
 
+  /**
+   * When starting cherry pick from drag and drop onto a branch, we need to
+   * initialize the cherry pick state flow step with the ShowProgress step.
+   */
   public async startCherryPickWithBranch(
     repository: Repository,
     branchName: string
   ): Promise<void> {
-    const repositoryState = this.repositoryStateManager.get(repository)
-    const targetBranch = repositoryState.branchesState.allBranches.find(
-      b => b.name === branchName
+    const { branchesState, cherryPickState } = this.repositoryStateManager.get(
+      repository
     )
-
+    const { allBranches, tip } = branchesState
+    const targetBranch = allBranches.find(b => b.name === branchName)
     if (targetBranch === undefined) {
-      // This should not happen, the branch name sent in was from a list of
-      // branches provided from the repository.
+      log.warn('[cherryPick] - could not determine target branch')
       return
     }
 
-    // TODO: set the commits in a cherry pick state and retrieve them
-    const commits: ReadonlyArray<CommitOneLine> = []
+    if (
+      cherryPickState.step == null ||
+      cherryPickState.step.kind !== CherryPickStepKind.CommitsChosen
+    ) {
+      log.warn('[cherryPick] - could not determine selected commits')
+      return
+    }
 
-    this.setCherryPickFlowStep(repository, {
-      kind: CherryPickStepKind.ShowProgress,
+    let sourceBranch: Branch | null = null
+    if (tip.kind === TipState.Valid) {
+      sourceBranch = tip.branch
+    } else {
+      throw new Error(
+        'Tip is not in a valid state, which is required to start the cherry pick flow.'
+      )
+    }
+
+    const commits = cherryPickState.step.commits
+
+    this.showPopup({
+      type: PopupType.CherryPick,
+      repository,
+      commits,
+      sourceBranch,
     })
 
-    // This timeout is intended to defer cherry picking from running immediately
-    // to better show that cherry picking is progressing rather than suddenly
-    // appearing and disappearing again.
-    await sleep(500)
-    this.cherryPick(repository, targetBranch, commits)
+    this.startCherryPick(repository, targetBranch, commits)
   }
 }

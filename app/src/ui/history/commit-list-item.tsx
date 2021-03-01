@@ -27,6 +27,7 @@ interface ICommitProps {
   readonly onCreateTag?: (targetCommitSha: string) => void
   readonly onDeleteTag?: (tagName: string) => void
   readonly onCherryPick?: (commits: ReadonlyArray<CommitOneLine>) => void
+  readonly onDrag?: (commits: ReadonlyArray<CommitOneLine>) => void
   readonly showUnpushedIndicator: boolean
   readonly unpushedIndicatorTitle?: string
   readonly unpushedTags?: ReadonlyArray<string>
@@ -69,7 +70,7 @@ export class CommitListItem extends React.PureComponent<
       author: { date },
     } = commit
 
-    const isDraggable = this.onCherryPick !== undefined && enableCherryPicking()
+    const isDraggable = this.onDrag !== undefined && enableCherryPicking()
 
     return (
       <div
@@ -263,7 +264,9 @@ export class CommitListItem extends React.PureComponent<
   }
 
   private onDrag = (event: React.DragEvent<HTMLDivElement>): void => {
-    // TODO: Bubble up and set a "Dragged Commit State"
+    if (this.props.onDrag !== undefined) {
+      this.props.onDrag([this.props.commit])
+    }
   }
 }
 
