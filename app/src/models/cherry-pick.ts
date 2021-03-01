@@ -1,3 +1,4 @@
+import { CherryPickConflictState } from '../lib/app-state'
 import { Branch } from './branch'
 import { CommitOneLine } from './commit'
 import { ICherryPickProgress } from './progress'
@@ -11,7 +12,10 @@ export interface ICherryPickSnapshot {
 }
 
 /** Union type representing the possible states of the cherry pick flow */
-export type CherryPickFlowStep = ChooseTargetBranchesStep | ShowProgressStep
+export type CherryPickFlowStep =
+  | ChooseTargetBranchesStep
+  | ShowProgressStep
+  | ShowConflictsStep
 
 export const enum CherryPickStepKind {
   /**
@@ -29,6 +33,15 @@ export const enum CherryPickStepKind {
    * This should be the default view when there are no conflicts to address.
    */
   ShowProgress = 'ShowProgress',
+
+  /**
+   * The cherry pick has encountered conflicts that need resolved. This will be
+   * shown as a list of files and the conflict state.
+   *
+   * Once the conflicts are resolved, the user can continue the cherry pick and
+   * the view will switch back to `ShowProgress`.
+   */
+  ShowConflicts = 'ShowConflicts',
 }
 
 /** Shape of data needed to choose the base branch for a cherry pick  */
@@ -43,4 +56,10 @@ export type ChooseTargetBranchesStep = {
 /** Shape of data to show progress of the current cherry pick */
 export type ShowProgressStep = {
   readonly kind: CherryPickStepKind.ShowProgress
+}
+
+/** Shape of data to show conflicts that need to be resolved by the user */
+export type ShowConflictsStep = {
+  readonly kind: CherryPickStepKind.ShowConflicts
+  conflictState: CherryPickConflictState
 }

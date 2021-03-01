@@ -100,12 +100,14 @@ import {
   RepositorySectionTab,
   SelectionType,
   MergeConflictState,
-  isMergeConflictState,
   RebaseConflictState,
   IRebaseState,
   IRepositoryState,
   ChangesSelectionKind,
   ChangesWorkingDirectorySelection,
+  isRebaseConflictState,
+  isCherryPickConflictState,
+  isMergeConflictState,
 } from '../app-state'
 import {
   findEditorOrDefault,
@@ -268,8 +270,15 @@ import {
   getShowSideBySideDiff,
   setShowSideBySideDiff,
 } from '../../ui/lib/diff-mode'
-import { CherryPickFlowStep } from '../../models/cherry-pick'
-import { cherryPick, CherryPickResult } from '../git/cherry-pick'
+import {
+  CherryPickFlowStep,
+  CherryPickStepKind,
+} from '../../models/cherry-pick'
+import {
+  abortCherryPick,
+  cherryPick,
+  CherryPickResult,
+} from '../git/cherry-pick'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -1885,6 +1894,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
 
     this.updateRebaseFlowConflictsIfFound(repository)
+    this.updateCherryPickFlowConflictsIfFound(repository)
 
     if (this.selectedRepository === repository) {
       this._triggerConflictsFlow(repository)
@@ -1906,7 +1916,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
     const { conflictState } = changesState
 
-    if (conflictState === null || isMergeConflictState(conflictState)) {
+    if (conflictState === null || !isRebaseConflictState(conflictState)) {
       return
     }
 
@@ -1933,6 +1943,32 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  /**
+   * Push changes from latest conflicts into current cherry pick flow step, if needed
+   *  - i.e. - multiple instance of running in to conflicts
+   */
+  private updateCherryPickFlowConflictsIfFound(repository: Repository) {
+    const { changesState, cherryPickState } = this.repositoryStateCache.get(
+      repository
+    )
+    const { conflictState } = changesState
+
+    if (conflictState === null || !isCherryPickConflictState(conflictState)) {
+      return
+    }
+
+    const { step } = cherryPickState
+    if (step === null) {
+      return
+    }
+
+    if (step.kind === CherryPickStepKind.ShowConflicts) {
+      this.repositoryStateCache.updateCherryPickState(repository, () => ({
+        step: { ...step, conflictState },
+      }))
+    }
+  }
+
   private async _triggerConflictsFlow(repository: Repository) {
     const state = this.repositoryStateCache.get(repository)
     const { conflictState } = state.changesState
@@ -1942,10 +1978,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    if (conflictState.kind === 'merge') {
+    if (isMergeConflictState(conflictState)) {
       await this.showMergeConflictsDialog(repository, conflictState)
-    } else if (conflictState.kind === 'rebase') {
+    } else if (isRebaseConflictState(conflictState)) {
       await this.showRebaseConflictsDialog(repository, conflictState)
+    } else if (isCherryPickConflictState(conflictState)) {
+      // TODO: launch cherry pick conflicts dialog
     } else {
       assertNever(conflictState, `Unsupported conflict kind`)
     }
@@ -5484,8 +5522,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     })
 
-    // update rebase flow state after choosing manual resolution
+    this.updateRebaseStateAfterManualResolution(repository)
+    this.updateCherryPickStateAfterManualResolution(repository)
 
+    this.emitUpdate()
+  }
+
+  /**
+   * Updates the rebase flow conflict step state as the manual resolutions
+   * have been changed.
+   */
+  private updateRebaseStateAfterManualResolution(repository: Repository) {
     const currentState = this.repositoryStateCache.get(repository)
 
     const { changesState, rebaseState } = currentState
@@ -5502,8 +5549,33 @@ export class AppStore extends TypedBaseStore<IAppState> {
         step: { ...step, conflictState },
       }))
     }
+  }
 
-    this.emitUpdate()
+  /**
+   * Updates the cherry pick flow conflict step state as the manual resolutions
+   * have been changed.
+   */
+  private updateCherryPickStateAfterManualResolution(
+    repository: Repository
+  ): void {
+    const currentState = this.repositoryStateCache.get(repository)
+
+    const { changesState, cherryPickState } = currentState
+    const { conflictState } = changesState
+    const { step } = cherryPickState
+
+    if (
+      conflictState === null ||
+      step === null ||
+      !isCherryPickConflictState(conflictState) ||
+      step.kind !== CherryPickStepKind.ShowConflicts
+    ) {
+      return
+    }
+
+    this.repositoryStateCache.updateCherryPickState(repository, () => ({
+      step: { ...step, conflictState },
+    }))
   }
 
   private async createStashAndDropPreviousEntry(
@@ -5767,13 +5839,40 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _abortCherryPick(
+    repository: Repository,
+    sourceBranch: Branch
+  ): Promise<void> {
+    const gitStore = this.gitStoreCache.get(repository)
+
+    await gitStore.performFailableOperation(() => abortCherryPick(repository))
+
+    await this.withAuthenticatingUser(repository, async (r, account) => {
+      await gitStore.performFailableOperation(() =>
+        checkoutBranch(repository, account, sourceBranch)
+      )
+    })
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public _endCherryPickFlow(repository: Repository): void {
     this.repositoryStateCache.updateCherryPickState(repository, () => ({
       step: null,
       progress: null,
+      userHasResolvedConflicts: false,
     }))
 
     this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _setCherryPickConflictsResolved(repository: Repository) {
+    // an update is not emitted here because there is no need
+    // to trigger a re-render at this point
+
+    this.repositoryStateCache.updateCherryPickState(repository, () => ({
+      userHasResolvedConflicts: true,
+    }))
   }
 }
 

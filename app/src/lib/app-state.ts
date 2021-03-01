@@ -353,13 +353,16 @@ export function isRebaseConflictState(
 }
 
 /**
- * Conflicts can occur during a rebase or a merge.
+ * Conflicts can occur during a rebase, merge, or cherry pick.
  *
  * Callers should inspect the `kind` field to determine the kind of conflict
  * that is occurring, as this will then provide additional information specific
  * to the conflict, to help with resolving the issue.
  */
-export type ConflictState = MergeConflictState | RebaseConflictState
+export type ConflictState =
+  | MergeConflictState
+  | RebaseConflictState
+  | CherryPickConflictState
 
 export interface IRepositoryState {
   readonly commitSelection: ICommitSelection
@@ -746,4 +749,35 @@ export interface ICherryPickState {
    * initiate the rebase.
    */
   readonly progress: ICherryPickProgress | null
+
+  /**
+   * Whether the user has done work to resolve any conflicts as part of this
+   * cherry pick.
+   */
+  readonly userHasResolvedConflicts: boolean
+}
+
+/**
+ * Stores information about a cherry pick conflict when it occurs
+ */
+export type CherryPickConflictState = {
+  readonly kind: 'cherryPick'
+
+  /**
+   * Manual resolutions chosen by the user for conflicted files to be applied
+   * before continuing the cherry pick.
+   */
+  readonly manualResolutions: Map<string, ManualConflictResolution>
+
+  /**
+   * The branch chosen by the user to copy the cherry picked commits to
+   */
+  readonly targetBranchName: string
+}
+
+/** Guard function for checking conflicts are from a rebase  */
+export function isCherryPickConflictState(
+  conflictStatus: ConflictState
+): conflictStatus is CherryPickConflictState {
+  return conflictStatus.kind === 'cherryPick'
 }

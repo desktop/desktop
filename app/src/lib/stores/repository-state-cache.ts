@@ -185,6 +185,7 @@ function getInitialRepositoryState(): IRepositoryState {
     cherryPickState: {
       step: null,
       progress: null,
+      userHasResolvedConflicts: false,
     },
   }
 }
