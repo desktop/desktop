@@ -38,6 +38,9 @@ interface IListRowProps {
   /** callback to fire when the row receives a keyboard event */
   readonly onRowKeyDown: (index: number, e: React.KeyboardEvent<any>) => void
 
+  /** callback to fire when the something is dropped on a row */
+  readonly onDrop?: (index: number, e: React.DragEvent<HTMLDivElement>) => void
+
   /**
    * Whether or not this list row is going to be selectable either through
    * keyboard navigation, pointer clicks, or both. This is used to determine
@@ -49,7 +52,16 @@ interface IListRowProps {
   readonly className?: string
 }
 
-export class ListRow extends React.Component<IListRowProps, {}> {
+export class ListRow extends React.Component<
+  IListRowProps,
+  { readonly isDraggedOver: boolean }
+> {
+  public constructor(props: IListRowProps) {
+    super(props)
+
+    this.state = { isDraggedOver: false }
+  }
+
   private onRowMouseOver = (e: React.MouseEvent<HTMLDivElement>) => {
     this.props.onRowMouseOver(this.props.rowIndex, e)
   }
@@ -66,12 +78,32 @@ export class ListRow extends React.Component<IListRowProps, {}> {
     this.props.onRowKeyDown(this.props.rowIndex, e)
   }
 
+  private onDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    this.setState({ isDraggedOver: true })
+  }
+
+  private onDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    this.setState({ isDraggedOver: false })
+  }
+
+  private onDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+  }
+
+  private onDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    const { onDrop, rowIndex } = this.props
+    if (onDrop !== undefined) {
+      onDrop(rowIndex, e)
+    }
+  }
+
   public render() {
     const selected = this.props.selected
     const className = classNames(
       'list-item',
       { selected },
       { 'not-selectable': this.props.selectable === false },
+      { 'dragged-over': this.state.isDraggedOver },
       this.props.className
     )
     const role = this.props.ariaMode === 'menu' ? 'menuitem' : 'option'
@@ -100,6 +132,10 @@ export class ListRow extends React.Component<IListRowProps, {}> {
         onClick={this.onRowClick}
         onKeyDown={this.onRowKeyDown}
         style={style}
+        onDragLeave={this.onDragLeave}
+        onDragEnter={this.onDragEnter}
+        onDragOver={this.onDragOver}
+        onDrop={this.onDrop}
       >
         {this.props.children}
       </div>

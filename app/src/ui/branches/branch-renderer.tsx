@@ -11,8 +11,7 @@ export function renderDefaultBranch(
   matches: IMatches,
   currentBranch: Branch | null,
   onRenameBranch?: (branchName: string) => void,
-  onDeleteBranch?: (branchName: string) => void,
-  onDrop?: (branchName: string) => void
+  onDeleteBranch?: (branchName: string) => void
 ): JSX.Element {
   const branch = item.branch
   const commit = branch.tip
@@ -26,7 +25,6 @@ export function renderDefaultBranch(
       matches={matches}
       onRenameBranch={onRenameBranch}
       onDeleteBranch={onDeleteBranch}
-      onDrop={onDrop}
     />
   )
 }

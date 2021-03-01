@@ -151,8 +151,7 @@ export class BranchesContainer extends React.Component<
       matches,
       this.props.currentBranch,
       this.onRenameBranch,
-      this.onDeleteBranch,
-      this.onDrop
+      this.onDeleteBranch
     )
   }
 
@@ -178,6 +177,7 @@ export class BranchesContainer extends React.Component<
             canCreateNewBranch={true}
             onCreateNewBranch={this.onCreateBranchWithName}
             renderBranch={this.renderBranch}
+            onBranchDrop={this.onBranchDrop}
           />
         )
 
@@ -312,13 +312,14 @@ export class BranchesContainer extends React.Component<
   }
 
   /**
-   * Tho currently this is being implemented in conjuction with
-   * cherry picking.
+   * Currently this is being implemented with
+   * cherry picking. But, this could be expanded if we ever
+   * dropped something else on a branch.
    */
-  private onDrop = (branchName: string) => {
+  private onBranchDrop = (branch: Branch) => {
     this.props.dispatcher.startCherryPickWithBranch(
       this.props.repository,
-      branchName
+      branch
     )
   }
 }

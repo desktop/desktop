@@ -2660,17 +2660,11 @@ export class Dispatcher {
    */
   public async startCherryPickWithBranch(
     repository: Repository,
-    branchName: string
+    targetBranch: Branch
   ): Promise<void> {
     const { branchesState, cherryPickState } = this.repositoryStateManager.get(
       repository
     )
-    const { allBranches, tip } = branchesState
-    const targetBranch = allBranches.find(b => b.name === branchName)
-    if (targetBranch === undefined) {
-      log.warn('[cherryPick] - could not determine target branch')
-      return
-    }
 
     if (
       cherryPickState.step == null ||
@@ -2680,6 +2674,7 @@ export class Dispatcher {
       return
     }
 
+    const { tip } = branchesState
     let sourceBranch: Branch | null = null
     if (tip.kind === TipState.Valid) {
       sourceBranch = tip.branch
