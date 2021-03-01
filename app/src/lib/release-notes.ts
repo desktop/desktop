@@ -1,4 +1,3 @@
-import { String } from 'aws-sdk/clients/cloudsearchdomain'
 import moment from 'moment'
 
 import {
