@@ -71,7 +71,8 @@ export class CommitListItem extends React.PureComponent<
       author: { date },
     } = commit
 
-    const isDraggable = this.onDragStart !== undefined && enableCherryPicking()
+    const isDraggable =
+      this.props.onDragStart !== undefined && enableCherryPicking()
 
     return (
       <div
@@ -266,18 +267,22 @@ export class CommitListItem extends React.PureComponent<
   }
 
   /**
-   * Note for typescript purposes event is required parameter, but at this point
-   * in time we don't need to bubble it up.
+   * Note: For typing, event is required parameter.
    **/
   private onDragStart = (event: React.DragEvent<HTMLDivElement>): void => {
     if (this.props.onDragStart !== undefined) {
       this.props.onDragStart([this.props.commit])
+
+      // This is done so that we can check if a dropzone should be enabled based
+      // on what is being dropped. The 'dataTransfer' will be readonly and we
+      // cannot access the hash map in the dropzone so we will just be checking
+      // that the 'commit' key exists and not the data.
+      event.dataTransfer.setData('commit', '')
     }
   }
 
   /**
-   * Note for typescript purposes event is required parameter, but at this point
-   * in time we don't need to bubble it up.
+   * Note: For typing, event is required parameter.
    **/
   private onDragEnd = (event: React.DragEvent<HTMLDivElement>): void => {
     if (this.props.onDragEnd !== undefined) {

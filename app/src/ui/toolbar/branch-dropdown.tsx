@@ -179,9 +179,18 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     )
   }
 
+  /**
+   * Method to capture when something is dragged over the branch dropdown. A
+   * data piece with type 'commit' was added to the `commit-list-item` drag
+   * event's dataTransfer. This was done preventively in case we ever drag
+   * anything else, the branch dropdown won't automatically open.
+   */
   private onDragOver = (event: React.DragEvent<HTMLDivElement>): void => {
     event.preventDefault()
-    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
+    const commitType = event.dataTransfer.types.find(t => t === 'commit')
+    if (commitType !== undefined) {
+      this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
+    }
   }
 
   private renderPullRequestInfo() {

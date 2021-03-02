@@ -518,6 +518,12 @@ export class CompareSidebar extends React.Component<
     this.props.onCherryPick(this.props.repository, commits)
   }
 
+  /**
+   * This method is a generic event handler for when a commit has started being
+   * dragged.
+   *
+   * Currently only used for cherry picking, but this could be more generic.
+   */
   private onDragCommitStart = (commits: ReadonlyArray<CommitOneLine>) => {
     this.props.dispatcher.setCherryPickFlowStep(this.props.repository, {
       kind: CherryPickStepKind.CommitsChosen,
@@ -525,6 +531,12 @@ export class CompareSidebar extends React.Component<
     })
   }
 
+  /**
+   * This method is a generic event handler for when a commit has ended being
+   * dragged.
+   *
+   * Currently only used for cherry picking, but this could be more generic.
+   */
   private onDragCommitEnd = () => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
   }

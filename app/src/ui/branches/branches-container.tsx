@@ -312,9 +312,13 @@ export class BranchesContainer extends React.Component<
   }
 
   /**
-   * Currently this is being implemented with
-   * cherry picking. But, this could be expanded if we ever
-   * dropped something else on a branch.
+   * Method is to handle when something is dragged and dropped onto a branch
+   * list item.
+   *
+   * Currently this is being implemented with cherry picking. But, this could be
+   * expanded if we ever dropped something else on a branch; in which case,
+   * we would likely have to check the app state to see what action is being
+   * performed.
    */
   private onBranchDrop = (branch: Branch) => {
     this.props.dispatcher.startCherryPickWithBranch(

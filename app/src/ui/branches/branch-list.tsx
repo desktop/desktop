@@ -105,6 +105,10 @@ interface IBranchListProps {
    */
   readonly onFilterListResultsChanged?: (resultCount: number) => void
 
+  /**
+   * Callback to fire when something has been dragged and dropped onto a branch
+   * list item.
+   */
   readonly onBranchDrop?: (branch: Branch) => void
 }
 

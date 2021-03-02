@@ -2631,7 +2631,7 @@ export class Dispatcher {
     return this.appStore._setCherryPickConflictsResolved(repository)
   }
 
-  /*
+  /**
    * Moves cherry pick flow step to progress and defers to allow user to
    * see the cherry picking progress dialog instead of suddenly appearing
    * and disappearing again.
@@ -2642,6 +2642,7 @@ export class Dispatcher {
     })
     await sleep(500)
   }
+
   /**
    * Continue with the cherryPick after the user has resolved all conflicts with
    * tracked files in the working directory.
@@ -2705,8 +2706,12 @@ export class Dispatcher {
   }
 
   /**
-   * When starting cherry pick from drag and drop onto a branch, we need to
-   * initialize the cherry pick state flow step with the ShowProgress step.
+   * This method starts a cherry pick after drag and dropping on a branch.
+   * It needs to:
+   *  - get the current branch,
+   *  - get the commits dragged from cherry picking state
+   *  - invoke popup
+   *  - invoke cherry pick
    */
   public async startCherryPickWithBranch(
     repository: Repository,
@@ -2720,20 +2725,19 @@ export class Dispatcher {
       cherryPickState.step == null ||
       cherryPickState.step.kind !== CherryPickStepKind.CommitsChosen
     ) {
-      log.warn('[cherryPick] - could not determine selected commits')
+      log.warn(
+        '[cherryPick] Invalid Cherry Picking State: Could not determine selected commits.'
+      )
       return
     }
 
     const { tip } = branchesState
-    let sourceBranch: Branch | null = null
-    if (tip.kind === TipState.Valid) {
-      sourceBranch = tip.branch
-    } else {
+    if (tip.kind !== TipState.Valid) {
       throw new Error(
         'Tip is not in a valid state, which is required to start the cherry pick flow.'
       )
     }
-
+    const sourceBranch = tip.branch
     const commits = cherryPickState.step.commits
 
     this.showPopup({

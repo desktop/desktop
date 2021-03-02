@@ -502,6 +502,10 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     }
   }
 
+  /**
+   * Method to find the item that something was dragged and dropped onto
+   * and bubble up a more meaningful object.
+   */
   private onRowDrop = (index: number, e: React.DragEvent<HTMLDivElement>) => {
     if (this.props.onRowDrop === undefined) {
       return
