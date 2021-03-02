@@ -55,7 +55,13 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
   }
 
   private onContinueCherryPick = (step: ShowConflictsStep) => {
-    // TODO: dispatch to continue the cherry pick
+    const { dispatcher, repository, workingDirectory, commits } = this.props
+    dispatcher.continueCherryPick(
+      repository,
+      workingDirectory.files,
+      step.conflictState,
+      commits.length
+    )
   }
 
   private onAbortCherryPick = (step: ShowConflictsStep) => {

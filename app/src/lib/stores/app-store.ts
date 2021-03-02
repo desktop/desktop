@@ -278,6 +278,7 @@ import {
   abortCherryPick,
   cherryPick,
   CherryPickResult,
+  continueCherryPick,
 } from '../git/cherry-pick'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -5873,6 +5874,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoryStateCache.updateCherryPickState(repository, () => ({
       userHasResolvedConflicts: true,
     }))
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _continueCherryPick(
+    repository: Repository,
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    manualResolutions: ReadonlyMap<string, ManualConflictResolution>
+  ): Promise<CherryPickResult> {
+    const progressCallback = (progress: ICherryPickProgress) => {
+      this.repositoryStateCache.updateCherryPickState(repository, () => ({
+        progress,
+      }))
+      this.emitUpdate()
+    }
+
+    const gitStore = this.gitStoreCache.get(repository)
+    const result = await gitStore.performFailableOperation(() =>
+      continueCherryPick(repository, files, manualResolutions, progressCallback)
+    )
+
+    return result || CherryPickResult.Error
   }
 }
 
