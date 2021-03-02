@@ -16,6 +16,7 @@ export type CherryPickFlowStep =
   | ChooseTargetBranchesStep
   | ShowProgressStep
   | ShowConflictsStep
+  | HideConflictsStep
 
 export const enum CherryPickStepKind {
   /**
@@ -42,6 +43,13 @@ export const enum CherryPickStepKind {
    * the view will switch back to `ShowProgress`.
    */
   ShowConflicts = 'ShowConflicts',
+  /**
+   * The user may wish to leave the conflict dialog and view the files in
+   * the Changes tab to get a better context. In this situation, the application
+   * will show a banner to indicate this context and help the user return to the
+   * conflicted list.
+   */
+  HideConflicts = 'HideConflicts',
 }
 
 /** Shape of data needed to choose the base branch for a cherry pick  */
@@ -62,4 +70,9 @@ export type ShowProgressStep = {
 export type ShowConflictsStep = {
   readonly kind: CherryPickStepKind.ShowConflicts
   conflictState: CherryPickConflictState
+}
+
+/** Shape of data to track when user hides conflicts dialog */
+export type HideConflictsStep = {
+  readonly kind: CherryPickStepKind.HideConflicts
 }
