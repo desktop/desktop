@@ -1,5 +1,17 @@
 {
   "releases": {
+    "2.6.4": [
+      "[Added] Add branch context menu with rename and delete to branch dropdown list - #5803 #10432",
+      "[Fixed] Allow users to modify git config on a per repository basis - #9449. Thanks @say25!",
+      "[Fixed] The app is not maximized on macOS every time the user clicks on the app's icon in the dock - #11590",
+      "[Fixed] Always respect the default branch name chosen by the user - #11447",
+      "[Fixed] Notepad++ is not closed anymore when GitHub Desktop closes - #11518",
+      "[Improved] Update app icon for Windows - #11541",
+      "[Improved] Suggest emails from GitHub accounts and warn about misattributed commits in the commit message area - #11591",
+      "[Improved] Suggest emails from GitHub accounts and warn about misattributed commits in onboarding and preferences - #11561 #11566",
+      "[Improved] Remote Git operations are faster and less prone to errors on Windows - #11510",
+      "[Improved] Automatic branch fast-forwarding is now faster - #11463"
+    ],
     "2.6.4-beta2": [
       "[Fixed] Allow users to modify git config on a per repository basis - #9449. Thanks @say25!",
       "[Fixed] The app is not maximized on macOS every time the user clicks on the app's icon in the Dock - #11590",
