@@ -277,7 +277,7 @@ export async function getCherryPickSnapshot(
   }
 
   const count = commits.length - remainingShas.length
-  const commitSummaryIndex = (count > 0 ? count : 1) - 1
+  const commitSummaryIndex = count > 0 ? count - 1 : 0
   return {
     progress: {
       kind: 'cherryPick',
@@ -316,13 +316,13 @@ export async function continueCherryPick(
   // apply conflict resolutions
   for (const [path, resolution] of manualResolutions) {
     const file = files.find(f => f.path === path)
-    if (file !== undefined) {
-      await stageManualConflictResolution(repository, file, resolution)
-    } else {
+    if (file === undefined) {
       log.error(
         `[continueCherryPick] couldn't find file ${path} even though there's a manual resolution for it`
       )
+      continue
     }
+    await stageManualConflictResolution(repository, file, resolution)
   }
 
   const otherFiles = trackedFiles.filter(f => !manualResolutions.has(f.path))
