@@ -17,6 +17,8 @@ import { ChildProcess } from 'child_process'
 import { round } from '../../ui/lib/round'
 import byline from 'byline'
 import { ICherryPickSnapshot } from '../../models/cherry-pick'
+import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
+import { stageManualConflictResolution } from './stage'
 
 /** The app-specific results from attempting to cherry pick commits*/
 export enum CherryPickResult {
@@ -275,6 +277,7 @@ export async function getCherryPickSnapshot(
   }
 
   const count = commits.length - remainingShas.length
+  const commitSummaryIndex = count > 0 ? count - 1 : 0
   return {
     progress: {
       kind: 'cherryPick',
@@ -282,7 +285,7 @@ export async function getCherryPickSnapshot(
       value: round(count / commits.length, 2),
       cherryPickCommitCount: count,
       totalCommitCount: commits.length,
-      currentCommitSummary: commits[count - 1].summary ?? '',
+      currentCommitSummary: commits[commitSummaryIndex].summary ?? '',
     },
     remainingCommits: commits.slice(count, commits.length),
   }
@@ -302,13 +305,28 @@ export async function getCherryPickSnapshot(
 export async function continueCherryPick(
   repository: Repository,
   files: ReadonlyArray<WorkingDirectoryFileChange>,
+  manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map(),
   progressCallback?: (progress: ICherryPickProgress) => void
 ): Promise<CherryPickResult> {
   // only stage files related to cherry pick
   const trackedFiles = files.filter(f => {
     return f.status.kind !== AppFileStatusKind.Untracked
   })
-  await stageFiles(repository, trackedFiles)
+
+  // apply conflict resolutions
+  for (const [path, resolution] of manualResolutions) {
+    const file = files.find(f => f.path === path)
+    if (file === undefined) {
+      log.error(
+        `[continueCherryPick] couldn't find file ${path} even though there's a manual resolution for it`
+      )
+      continue
+    }
+    await stageManualConflictResolution(repository, file, resolution)
+  }
+
+  const otherFiles = trackedFiles.filter(f => !manualResolutions.has(f.path))
+  await stageFiles(repository, otherFiles)
 
   const status = await getStatus(repository)
   if (status == null) {
@@ -348,6 +366,27 @@ export async function continueCherryPick(
       snapshot.remainingCommits,
       progressCallback
     )
+  }
+
+  const trackedFilesAfter = status.workingDirectory.files.filter(
+    f => f.status.kind !== AppFileStatusKind.Untracked
+  )
+
+  if (trackedFilesAfter.length === 0) {
+    log.warn(
+      `[cherryPick] no tracked changes to commit, continuing cherry pick but skipping this commit`
+    )
+
+    // This commits the empty commit so that the cherry picked commit still
+    // shows up in the target branches history.
+    const result = await git(
+      ['commit', '--allow-empty'],
+      repository.path,
+      'continueCherryPickSkipCurrentCommit',
+      options
+    )
+
+    return parseCherryPickResult(result)
   }
 
   const result = await git(

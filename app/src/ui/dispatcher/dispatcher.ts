@@ -16,6 +16,7 @@ import {
   RebaseConflictState,
   isRebaseConflictState,
   isCherryPickConflictState,
+  CherryPickConflictState,
 } from '../../lib/app-state'
 import { assertNever, fatalError } from '../../lib/fatal-error'
 import {
@@ -2528,15 +2529,7 @@ export class Dispatcher {
     commits: ReadonlyArray<CommitOneLine>
   ): Promise<void> {
     this.appStore._initializeCherryPickProgress(repository, commits)
-
-    this.setCherryPickFlowStep(repository, {
-      kind: CherryPickStepKind.ShowProgress,
-    })
-
-    // This timeout is intended to defer cherry picking from running immediately
-    // to better show that cherry picking is progressing rather than suddenly
-    // appearing and disappearing again.
-    await sleep(500)
+    this.switchCherryPickingFlowToShowProgress(repository)
     this.cherryPick(repository, targetBranch, commits)
   }
 
@@ -2571,28 +2564,12 @@ export class Dispatcher {
       commits
     )
 
-    // This will update the conflict state of the app. This is needed to start
-    // conflict flow if cherry pick results in conflict.
-    await this.appStore._loadStatus(repository)
-
-    switch (result) {
-      case CherryPickResult.CompletedWithoutError:
-        await this.completeCherryPick(
-          repository,
-          targetBranch.name,
-          commits.length
-        )
-        break
-      case CherryPickResult.ConflictsEncountered:
-        this.startConflictCherryPickFlow(repository)
-        break
-      default:
-        this.appStore._endCherryPickFlow(repository)
-        throw Error(
-          `Unable to perform cherry pick operation.
-          This should not happen as all expected errors were handled.`
-        )
-    }
+    this.processCherryPickResult(
+      repository,
+      result,
+      targetBranch.name,
+      commits.length
+    )
   }
 
   /**
@@ -2652,5 +2629,78 @@ export class Dispatcher {
    */
   public setCherryPickConflictsResolved(repository: Repository) {
     return this.appStore._setCherryPickConflictsResolved(repository)
+  }
+
+  /**
+   * Moves cherry pick flow step to progress and defers to allow user to
+   * see the cherry picking progress dialog instead of suddenly appearing
+   * and disappearing again.
+   */
+  private async switchCherryPickingFlowToShowProgress(repository: Repository) {
+    this.setCherryPickFlowStep(repository, {
+      kind: CherryPickStepKind.ShowProgress,
+    })
+    await sleep(500)
+  }
+  /**
+   * Continue with the cherryPick after the user has resolved all conflicts with
+   * tracked files in the working directory.
+   */
+  public async continueCherryPick(
+    repository: Repository,
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    conflictsState: CherryPickConflictState,
+    commitsCount: number
+  ): Promise<void> {
+    await this.switchCherryPickingFlowToShowProgress(repository)
+
+    const result = await this.appStore._continueCherryPick(
+      repository,
+      files,
+      conflictsState.manualResolutions
+    )
+
+    this.processCherryPickResult(
+      repository,
+      result,
+      conflictsState.targetBranchName,
+      commitsCount
+    )
+  }
+
+  /**
+   * Processes the cherry pick result.
+   *  1. Completes the cherry pick with banner if successful.
+   *  2. Moves cherry pick flow if conflicts.
+   *  3. Handles errors.
+   */
+  private async processCherryPickResult(
+    repository: Repository,
+    cherryPickResult: CherryPickResult,
+    targetBranchName: string,
+    commitsCount: number
+  ): Promise<void> {
+    // This will update the conflict state of the app. This is needed to start
+    // conflict flow if cherry pick results in conflict.
+    await this.appStore._loadStatus(repository)
+
+    switch (cherryPickResult) {
+      case CherryPickResult.CompletedWithoutError:
+        await this.completeCherryPick(
+          repository,
+          targetBranchName,
+          commitsCount
+        )
+        break
+      case CherryPickResult.ConflictsEncountered:
+        this.startConflictCherryPickFlow(repository)
+        break
+      default:
+        this.appStore._endCherryPickFlow(repository)
+        throw Error(
+          `Unable to perform cherry pick operation.
+          This should not happen as all expected errors were handled.`
+        )
+    }
   }
 }
