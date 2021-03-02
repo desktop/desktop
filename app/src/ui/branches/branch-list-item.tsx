@@ -7,6 +7,8 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { HighlightText } from '../lib/highlight-text'
 import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
+import { String } from 'aws-sdk/clients/apigateway'
+import classNames from 'classnames'
 
 interface IBranchListItemProps {
   /** The name of the branch */
@@ -27,10 +29,24 @@ interface IBranchListItemProps {
   readonly onRenameBranch?: (branchName: string) => void
 
   readonly onDeleteBranch?: (branchName: string) => void
+
+  readonly onDropOntoBranch?: (branchName: String) => void
+}
+interface IBranchListItemState {
+  readonly isDraggedOver: boolean
 }
 
 /** The branch component. */
-export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
+export class BranchListItem extends React.Component<
+  IBranchListItemProps,
+  IBranchListItemState
+> {
+  public constructor(props: IBranchListItemProps) {
+    super(props)
+
+    this.state = { isDraggedOver: false }
+  }
+
   private onContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault()
 
@@ -65,6 +81,26 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
     showContextualMenu(items)
   }
 
+  private onDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    this.setState({ isDraggedOver: true })
+  }
+
+  private onDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    this.setState({ isDraggedOver: false })
+  }
+
+  private onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+  }
+
+  private onDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    const { onDropOntoBranch, name } = this.props
+
+    if (onDropOntoBranch !== undefined) {
+      onDropOntoBranch(name)
+    }
+  }
+
   public render() {
     const lastCommitDate = this.props.lastCommitDate
     const isCurrentBranch = this.props.isCurrentBranch
@@ -77,8 +113,20 @@ export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
       : lastCommitDate
       ? lastCommitDate.toString()
       : ''
+
+    const className = classNames('branches-list-item', {
+      'dragged-over': this.state.isDraggedOver,
+    })
+
     return (
-      <div onContextMenu={this.onContextMenu} className="branches-list-item">
+      <div
+        onContextMenu={this.onContextMenu}
+        className={className}
+        onDragLeave={this.onDragLeave}
+        onDragEnter={this.onDragEnter}
+        onDragOver={this.onDragOver}
+        onDrop={this.onDrop}
+      >
         <Octicon className="icon" symbol={icon} />
         <div className="name" title={name}>
           <HighlightText text={name} highlight={this.props.matches.title} />

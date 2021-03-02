@@ -148,9 +148,6 @@ interface IFilterListProps<T extends IFilterListItem> {
 
   /** Placeholder text for text box. Default is "Filter". */
   readonly placeholderText?: string
-
-  /** callback to fire when the something is dropped on a row */
-  readonly onRowDrop?: (item: T, e?: React.DragEvent<HTMLDivElement>) => void
 }
 
 interface IFilterListState<T extends IFilterListItem> {
@@ -332,7 +329,6 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
             ...this.props,
             ...this.props.invalidationProps,
           }}
-          onRowDrop={this.onRowDrop}
         />
       )
     }
@@ -499,22 +495,6 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       if (row != null) {
         this.onRowClick(row, { kind: 'keyboard', event })
       }
-    }
-  }
-
-  /**
-   * Method to find the item that something was dragged and dropped onto
-   * and bubble up a more meaningful object.
-   */
-  private onRowDrop = (index: number, e: React.DragEvent<HTMLDivElement>) => {
-    if (this.props.onRowDrop === undefined) {
-      return
-    }
-
-    const row = this.state.rows[index]
-
-    if (row.kind === 'item') {
-      this.props.onRowDrop(row.item, e)
     }
   }
 }

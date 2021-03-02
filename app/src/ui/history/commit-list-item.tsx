@@ -272,12 +272,6 @@ export class CommitListItem extends React.PureComponent<
   private onDragStart = (event: React.DragEvent<HTMLDivElement>): void => {
     if (this.props.onDragStart !== undefined) {
       this.props.onDragStart([this.props.commit])
-
-      // This is done so that we can check if a dropzone should be enabled based
-      // on what is being dropped. The 'dataTransfer' will be readonly and we
-      // cannot access the hash map in the dropzone so we will just be checking
-      // that the 'commit' key exists and not the data.
-      event.dataTransfer.setData('commit', '')
     }
   }
 

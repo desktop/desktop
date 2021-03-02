@@ -211,12 +211,6 @@ interface IListProps {
    * where to scroll do on rendering of the list.
    */
   readonly setScrollTop?: number
-
-  /** callback to fire when the something is dropped on a row */
-  readonly onRowDrop?: (
-    index: number,
-    e: React.DragEvent<HTMLDivElement>
-  ) => void
 }
 
 interface IListState {
@@ -821,7 +815,6 @@ export class List extends React.Component<IListProps, IListState> {
         onRowKeyDown={this.onRowKeyDown}
         onRowMouseDown={this.onRowMouseDown}
         onRowMouseOver={this.onRowMouseOver}
-        onDrop={this.props.onRowDrop}
         style={params.style}
         tabIndex={tabIndex}
         children={element}

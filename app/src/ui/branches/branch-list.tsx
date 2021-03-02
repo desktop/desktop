@@ -104,12 +104,6 @@ interface IBranchListProps {
    * Callback to fire when the items in the filter list are updated
    */
   readonly onFilterListResultsChanged?: (resultCount: number) => void
-
-  /**
-   * Callback to fire when something has been dragged and dropped onto a branch
-   * list item.
-   */
-  readonly onBranchDrop?: (branch: Branch) => void
 }
 
 interface IBranchListState {
@@ -194,7 +188,6 @@ export class BranchList extends React.Component<
         renderNoItems={this.onRenderNoItems}
         filterTextBox={this.props.textbox}
         onFilterListResultsChanged={this.props.onFilterListResultsChanged}
-        onRowDrop={this.onBranchDrop}
       />
     )
   }
@@ -280,12 +273,6 @@ export class BranchList extends React.Component<
   private onCreateNewBranch = () => {
     if (this.props.onCreateNewBranch) {
       this.props.onCreateNewBranch(this.props.filterText)
-    }
-  }
-
-  private onBranchDrop = (branchListItem: IBranchListItem) => {
-    if (this.props.onBranchDrop !== undefined) {
-      this.props.onBranchDrop(branchListItem.branch)
     }
   }
 }
