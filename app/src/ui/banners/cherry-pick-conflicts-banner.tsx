@@ -37,7 +37,7 @@ export class CherryPickConflictsBanner extends React.Component<
         <Octicon className="alert-icon" symbol={OcticonSymbol.alert} />
         <div className="banner-message">
           <span>
-            Resolve conflicts to continue cherry picking{' '}
+            Resolve conflicts to continue cherry picking onto{' '}
             <strong>{this.props.targetBranchName}</strong>.
           </span>
           <LinkButton onClick={this.openDialog}>View conflicts</LinkButton>
