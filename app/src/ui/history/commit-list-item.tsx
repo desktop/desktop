@@ -27,7 +27,8 @@ interface ICommitProps {
   readonly onCreateTag?: (targetCommitSha: string) => void
   readonly onDeleteTag?: (tagName: string) => void
   readonly onCherryPick?: (commits: ReadonlyArray<CommitOneLine>) => void
-  readonly onDrag?: (commits: ReadonlyArray<CommitOneLine>) => void
+  readonly onDragStart?: (commits: ReadonlyArray<CommitOneLine>) => void
+  readonly onDragEnd?: () => void
   readonly showUnpushedIndicator: boolean
   readonly unpushedIndicatorTitle?: string
   readonly unpushedTags?: ReadonlyArray<string>
@@ -70,14 +71,15 @@ export class CommitListItem extends React.PureComponent<
       author: { date },
     } = commit
 
-    const isDraggable = this.onDrag !== undefined && enableCherryPicking()
+    const isDraggable = this.onDragStart !== undefined && enableCherryPicking()
 
     return (
       <div
         className="commit"
         onContextMenu={this.onContextMenu}
         draggable={isDraggable}
-        onDragStart={this.onDrag}
+        onDragStart={this.onDragStart}
+        onDragEnd={this.onDragEnd}
       >
         <div className="info">
           <RichText
@@ -263,9 +265,23 @@ export class CommitListItem extends React.PureComponent<
     }
   }
 
-  private onDrag = (event: React.DragEvent<HTMLDivElement>): void => {
-    if (this.props.onDrag !== undefined) {
-      this.props.onDrag([this.props.commit])
+  /**
+   * Note for typescript purposes event is required parameter, but at this point
+   * in time we don't need to bubble it up.
+   **/
+  private onDragStart = (event: React.DragEvent<HTMLDivElement>): void => {
+    if (this.props.onDragStart !== undefined) {
+      this.props.onDragStart([this.props.commit])
+    }
+  }
+
+  /**
+   * Note for typescript purposes event is required parameter, but at this point
+   * in time we don't need to bubble it up.
+   **/
+  private onDragEnd = (event: React.DragEvent<HTMLDivElement>): void => {
+    if (this.props.onDragEnd !== undefined) {
+      this.props.onDragEnd()
     }
   }
 }

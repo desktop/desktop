@@ -7,6 +7,7 @@ import {
   ICompareBranch,
   ComparisonMode,
   IDisplayHistory,
+  FoldoutType,
 } from '../../lib/app-state'
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
@@ -240,7 +241,8 @@ export class CompareSidebar extends React.Component<
         onCompareListScrolled={this.props.onCompareListScrolled}
         compareListScrollTop={this.props.compareListScrollTop}
         tagsToPush={this.props.tagsToPush}
-        onDragCommit={this.onDragCommit}
+        onDragCommitStart={this.onDragCommitStart}
+        onDragCommitEnd={this.onDragCommitEnd}
       />
     )
   }
@@ -516,11 +518,15 @@ export class CompareSidebar extends React.Component<
     this.props.onCherryPick(this.props.repository, commits)
   }
 
-  private onDragCommit = (commits: ReadonlyArray<CommitOneLine>) => {
+  private onDragCommitStart = (commits: ReadonlyArray<CommitOneLine>) => {
     this.props.dispatcher.setCherryPickFlowStep(this.props.repository, {
       kind: CherryPickStepKind.CommitsChosen,
       commits,
     })
+  }
+
+  private onDragCommitEnd = () => {
+    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
   }
 }
 
