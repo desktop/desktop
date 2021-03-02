@@ -5829,8 +5829,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (commits.length === 1) {
       revisionRange = commits[0].sha
     } else {
-      const lastCommit = commits[commits.length - 1]
-      revisionRange = revRangeInclusive(commits[0].sha, lastCommit.sha)
+      const earliestCommit = commits[commits.length - 1]
+      revisionRange = revRangeInclusive(earliestCommit.sha, commits[0].sha)
     }
 
     const result = await gitStore.performFailableOperation(() =>

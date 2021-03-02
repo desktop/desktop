@@ -3,7 +3,7 @@ import memoize from 'memoize-one'
 import { GitHubRepository } from '../../models/github-repository'
 import { Commit, CommitOneLine } from '../../models/commit'
 import { CommitListItem } from './commit-list-item'
-import { List } from '../lib/list'
+import { List, SelectionSource } from '../lib/list'
 import { arrayEquals } from '../../lib/equality'
 
 const RowHeight = 50
@@ -70,6 +70,7 @@ interface ICommitListProps {
 /** A component which displays the list of commits. */
 export class CommitList extends React.Component<ICommitListProps, {}> {
   private commitsHash = memoize(makeCommitsHash, arrayEquals)
+  private selectedCommits: ReadonlyArray<Commit> = []
 
   private getVisibleCommits(): ReadonlyArray<Commit> {
     const commits = new Array<Commit>()
@@ -125,6 +126,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         onCherryPick={this.props.onCherryPick}
         onRevertCommit={this.props.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
+        selectedCommits={this.selectedCommits}
       />
     )
   }
@@ -146,9 +148,24 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     return undefined
   }
 
-  private onSelectedRowChanged = (row: number) => {
-    const sha = this.props.commitSHAs[row]
-    const commit = this.props.commitLookup.get(sha)
+  private onSelectedRangeChanged = (
+    start: number,
+    end: number,
+    source: SelectionSource
+  ) => {
+    const commitSHARange = this.props.commitSHAs.slice(start, end + 1)
+    const selectedCommits: Commit[] = []
+    commitSHARange.forEach(sha => {
+      const commit = this.props.commitLookup.get(sha)
+      if (commit !== undefined) {
+        selectedCommits.push(commit)
+      }
+    })
+    this.selectedCommits = selectedCommits
+    // Preserved the behavior of on selection change updating commit selected
+    // TODO: need to determine if this should really just do nothing
+    // if more than one commit is selected vs. marking first one always
+    const commit = this.selectedCommits[0]
     if (commit) {
       this.props.onCommitSelected(commit)
     }
@@ -187,9 +204,10 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         <List
           rowCount={this.props.commitSHAs.length}
           rowHeight={RowHeight}
-          selectedRows={[this.rowForSHA(this.props.selectedSHA)]}
+          selectedRows={this.selectedCommits.map(sc => this.rowForSHA(sc.sha))}
           rowRenderer={this.renderCommit}
-          onSelectedRowChanged={this.onSelectedRowChanged}
+          onSelectedRangeChanged={this.onSelectedRangeChanged}
+          selectionMode="range"
           onScroll={this.onScroll}
           invalidationProps={{
             commits: this.props.commitSHAs,
