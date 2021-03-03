@@ -159,7 +159,7 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
             openFileInExternalEditor={openFileInExternalEditor}
             resolvedExternalEditor={resolvedExternalEditor}
             openRepositoryInShell={openRepositoryInShell}
-            sourceBranchName={sourceBranch ? sourceBranch.name : null}
+            sourceBranchName={sourceBranch !== null ? sourceBranch.name : null}
           />
         )
       case CherryPickStepKind.HideConflicts:

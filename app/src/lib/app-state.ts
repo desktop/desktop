@@ -353,7 +353,7 @@ export function isRebaseConflictState(
 }
 
 /**
- * Conflicts can occur during a rebase, merge, or cherry pick
+ * Conflicts can occur during a rebase, merge, or cherry pick.
  *
  * Callers should inspect the `kind` field to determine the kind of conflict
  * that is occurring, as this will then provide additional information specific
