@@ -3,6 +3,7 @@ import * as Fs from 'fs'
 
 import { getProductName, getVersion } from '../app/package-info'
 import { getReleaseBranchName } from './build-platforms'
+import { remote } from 'electron'
 
 const productName = getProductName()
 const version = getVersion()
@@ -18,7 +19,7 @@ export function getDistRoot() {
 export function getDistPath() {
   return Path.join(
     getDistRoot(),
-    `${getExecutableName()}-${process.platform}-x64`
+    `${getExecutableName()}-${process.platform}-${getArchitecture()}`
   )
 }
 
@@ -133,8 +134,30 @@ export function getReleaseSHA() {
   return pieces[2]
 }
 
+export function getArchitecture(): 'arm64' | 'x64' {
+  if (process.arch === 'arm64') {
+    return 'arm64'
+  }
+
+  if (remote.app.runningUnderRosettaTranslation === true) {
+    return 'arm64'
+  }
+
+  // TODO: Check if it's x64 running on an arm64 Windows with IsWow64Process2
+  // More info: https://www.rudyhuyn.com/blog/2017/12/13/how-to-detect-that-your-x86-application-runs-on-windows-on-arm/
+  // Right now (March 3, 2021) is not very important because support for x64
+  // apps on an arm64 Windows is experimental. See:
+  // https://blogs.windows.com/windows-insider/2020/12/10/introducing-x64-emulation-in-preview-for-windows-10-on-arm-pcs-to-the-windows-insider-program/
+
+  if (process.env.npm_config_arch === 'arm64') {
+    return 'arm64'
+  }
+
+  return 'x64'
+}
+
 export function getUpdatesURL() {
-  return `https://central.github.com/api/deployments/desktop/desktop/latest?version=${version}&env=${getChannel()}`
+  return `https://central.github.com/api/deployments/desktop/desktop/latest?version=${version}&env=${getChannel()}&architecture=${getArchitecture()}`
 }
 
 export function shouldMakeDelta() {
