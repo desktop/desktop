@@ -20,6 +20,7 @@ import {
   Progress,
   ICheckoutProgress,
   ICloneProgress,
+  ICherryPickProgress,
 } from '../models/progress'
 import { Popup } from '../models/popup'
 
@@ -37,6 +38,7 @@ import { RebaseFlowStep } from '../models/rebase-flow-step'
 import { IStashEntry } from '../models/stash-entry'
 import { TutorialStep } from '../models/tutorial-step'
 import { UncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
+import { CherryPickFlowStep } from '../models/cherry-pick'
 
 export enum SelectionType {
   Repository,
@@ -351,13 +353,16 @@ export function isRebaseConflictState(
 }
 
 /**
- * Conflicts can occur during a rebase or a merge.
+ * Conflicts can occur during a rebase, merge, or cherry pick.
  *
  * Callers should inspect the `kind` field to determine the kind of conflict
  * that is occurring, as this will then provide additional information specific
  * to the conflict, to help with resolving the issue.
  */
-export type ConflictState = MergeConflictState | RebaseConflictState
+export type ConflictState =
+  | MergeConflictState
+  | RebaseConflictState
+  | CherryPickConflictState
 
 export interface IRepositoryState {
   readonly commitSelection: ICommitSelection
@@ -430,6 +435,9 @@ export interface IRepositoryState {
   readonly revertProgress: IRevertProgress | null
 
   readonly localTags: Map<string, string> | null
+
+  /** State associated with a cherry pick being performed */
+  readonly cherryPickState: ICherryPickState
 }
 
 export interface IBranchesState {
@@ -724,3 +732,52 @@ export interface ICompareToBranch {
  * An action to send to the application store to update the compare state
  */
 export type CompareAction = IViewHistory | ICompareToBranch
+
+/** State associated with a cherry pick being performed on a repository */
+export interface ICherryPickState {
+  /**
+   * The current step of the flow the user should see.
+   *
+   * `null` indicates that there is no cherry pick underway.
+   */
+  readonly step: CherryPickFlowStep | null
+
+  /**
+   * The underlying Git information associated with the current cherry pick
+   *
+   * This will be set to `null` when no target branch has been selected to
+   * initiate the rebase.
+   */
+  readonly progress: ICherryPickProgress | null
+
+  /**
+   * Whether the user has done work to resolve any conflicts as part of this
+   * cherry pick.
+   */
+  readonly userHasResolvedConflicts: boolean
+}
+
+/**
+ * Stores information about a cherry pick conflict when it occurs
+ */
+export type CherryPickConflictState = {
+  readonly kind: 'cherryPick'
+
+  /**
+   * Manual resolutions chosen by the user for conflicted files to be applied
+   * before continuing the cherry pick.
+   */
+  readonly manualResolutions: Map<string, ManualConflictResolution>
+
+  /**
+   * The branch chosen by the user to copy the cherry picked commits to
+   */
+  readonly targetBranchName: string
+}
+
+/** Guard function for checking conflicts are from a rebase  */
+export function isCherryPickConflictState(
+  conflictStatus: ConflictState
+): conflictStatus is CherryPickConflictState {
+  return conflictStatus.kind === 'cherryPick'
+}

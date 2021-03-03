@@ -10,15 +10,17 @@ import { IRemote } from './remote'
 import { RetryAction } from './retry-actions'
 import { WorkingDirectoryFileChange } from './status'
 import { PreferencesTab } from './preferences'
-import { ICommitContext } from './commit'
+import { CommitOneLine, ICommitContext } from './commit'
 import { IStashEntry } from './stash-entry'
 import { Account } from '../models/account'
 import { Progress } from './progress'
 import { ITextDiff, DiffSelection } from './diff'
+import { RepositorySettingsTab } from '../ui/repository-settings/repository-settings'
 
 export enum PopupType {
   RenameBranch = 1,
   DeleteBranch,
+  DeleteRemoteBranch,
   ConfirmDiscardChanges,
   Preferences,
   MergeBranch,
@@ -66,6 +68,7 @@ export enum PopupType {
   LocalChangesOverwritten,
   ChooseForkSettings,
   ConfirmDiscardSelection,
+  CherryPick,
 }
 
 export type Popup =
@@ -75,6 +78,11 @@ export type Popup =
       repository: Repository
       branch: Branch
       existsOnRemote: boolean
+    }
+  | {
+      type: PopupType.DeleteRemoteBranch
+      repository: Repository
+      branch: Branch
     }
   | {
       type: PopupType.ConfirmDiscardChanges
@@ -96,7 +104,11 @@ export type Popup =
       repository: Repository
       branch?: Branch
     }
-  | { type: PopupType.RepositorySettings; repository: Repository }
+  | {
+      type: PopupType.RepositorySettings
+      repository: Repository
+      initialSelectedTab?: RepositorySettingsTab
+    }
   | { type: PopupType.AddRepository; path?: string }
   | { type: PopupType.CreateRepository; path?: string }
   | {
@@ -135,7 +147,7 @@ export type Popup =
   | {
       type: PopupType.ExternalEditorFailed
       message: string
-      suggestAtom?: boolean
+      suggestDefaultEditor?: boolean
       openPreferences?: boolean
     }
   | { type: PopupType.OpenShellFailed; message: string }
@@ -257,4 +269,10 @@ export type Popup =
       repository: Repository
       retryAction: RetryAction
       files: ReadonlyArray<string>
+    }
+  | {
+      type: PopupType.CherryPick
+      repository: Repository
+      commits: ReadonlyArray<CommitOneLine>
+      sourceBranch: Branch
     }

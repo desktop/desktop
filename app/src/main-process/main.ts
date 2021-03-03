@@ -30,19 +30,6 @@ import { stat } from 'fs-extra'
 import { isApplicationBundle } from '../lib/is-application-bundle'
 
 app.setAppLogsPath()
-
-/**
- * While testing Electron 9 on Windows we were seeing fairly
- * consistent hangs that seem similar to the following issues
- *
- * https://github.com/electron/electron/issues/24173
- * https://github.com/electron/electron/issues/23910
- * https://github.com/electron/electron/issues/24338
- *
- * TODO: Try removing when upgrading to Electron vNext
- */
-app.allowRendererProcessReuse = false
-
 enableSourceMaps()
 
 let mainWindow: AppWindow | null = null

@@ -11,6 +11,8 @@ import { SuccessfulMerge } from './successful-merge'
 import { RebaseConflictsBanner } from './rebase-conflicts-banner'
 import { SuccessfulRebase } from './successful-rebase'
 import { BranchAlreadyUpToDate } from './branch-already-up-to-date-banner'
+import { SuccessfulCherryPick } from './successful-cherry-pick'
+import { CherryPickConflictsBanner } from './cherry-pick-conflicts-banner'
 
 export function renderBanner(
   banner: Banner,
@@ -63,7 +65,25 @@ export function renderBanner(
           theirBranch={banner.theirBranch}
           onDismissed={onDismissed}
           key={'branch-already-up-to-date'}
-        ></BranchAlreadyUpToDate>
+        />
+      )
+    case BannerType.SuccessfulCherryPick:
+      return (
+        <SuccessfulCherryPick
+          key="successful-cherry-pick"
+          targetBranchName={banner.targetBranchName}
+          countCherryPicked={banner.countCherryPicked}
+          onDismissed={onDismissed}
+        />
+      )
+    case BannerType.CherryPickConflictsFound:
+      return (
+        <CherryPickConflictsBanner
+          targetBranchName={banner.targetBranchName}
+          onOpenConflictsDialog={banner.onOpenConflictsDialog}
+          onDismissed={onDismissed}
+          key={'cherry-pick-conflicts'}
+        />
       )
     default:
       return assertNever(banner, `Unknown popup type: ${banner}`)

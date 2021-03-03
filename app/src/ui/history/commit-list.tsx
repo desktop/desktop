@@ -1,7 +1,7 @@
 import * as React from 'react'
 import memoize from 'memoize-one'
 import { GitHubRepository } from '../../models/github-repository'
-import { Commit } from '../../models/commit'
+import { Commit, CommitOneLine } from '../../models/commit'
 import { CommitListItem } from './commit-list-item'
 import { List } from '../lib/list'
 import { arrayEquals } from '../../lib/equality'
@@ -47,6 +47,9 @@ interface ICommitListProps {
 
   /** Callback to fire to delete an unpushed tag */
   readonly onDeleteTag: (tagName: string) => void
+
+  /** Callback to fire to cherry picking the commit  */
+  readonly onCherryPick: (commits: ReadonlyArray<CommitOneLine>) => void
 
   /**
    * Optional callback that fires on page scroll in order to allow passing
@@ -119,6 +122,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         emoji={this.props.emoji}
         onCreateTag={this.props.onCreateTag}
         onDeleteTag={this.props.onDeleteTag}
+        onCherryPick={this.props.onCherryPick}
         onRevertCommit={this.props.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
       />

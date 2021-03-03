@@ -11,6 +11,9 @@ interface ISelectProps {
   /** The default value of the select control. */
   readonly defaultValue?: string
 
+  /** Whether or not the select control is disabled. False by default. */
+  readonly disabled?: boolean
+
   /** Called when the user changes the selected valued. */
   readonly onChange?: (event: React.FormEvent<HTMLSelectElement>) => void
 }
@@ -59,6 +62,7 @@ export class Select extends React.Component<ISelectProps, ISelectState> {
           onChange={this.props.onChange}
           value={this.props.value}
           defaultValue={this.props.defaultValue}
+          disabled={this.props.disabled}
         >
           {this.props.children}
         </select>

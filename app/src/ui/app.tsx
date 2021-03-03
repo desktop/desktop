@@ -8,6 +8,9 @@ import {
   FoldoutType,
   SelectionType,
   HistoryTabMode,
+  ICherryPickState,
+  isRebaseConflictState,
+  isCherryPickConflictState,
 } from '../lib/app-state'
 import { Dispatcher } from './dispatcher'
 import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
@@ -42,7 +45,7 @@ import { TitleBar, ZoomInfo, FullScreenInfo } from './window'
 import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
 import { RenameBranch } from './rename-branch'
-import { DeleteBranch } from './delete-branch'
+import { DeleteBranch, DeleteRemoteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
 import {
   Toolbar,
@@ -120,6 +123,14 @@ import { DiscardSelection } from './discard-changes/discard-selection-dialog'
 import { LocalChangesOverwrittenDialog } from './local-changes-overwritten/local-changes-overwritten-dialog'
 import memoizeOne from 'memoize-one'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
+import { CherryPickFlow } from './cherry-pick/cherry-pick-flow'
+import {
+  CherryPickStepKind,
+  ChooseTargetBranchesStep,
+} from '../models/cherry-pick'
+import { getAccountForRepository } from '../lib/get-account-for-repository'
+import { CommitOneLine } from '../models/commit'
+import { WorkingDirectoryStatus } from '../models/status'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1299,6 +1310,17 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDeleted={this.onBranchDeleted}
           />
         )
+      case PopupType.DeleteRemoteBranch:
+        return (
+          <DeleteRemoteBranch
+            key="delete-remote-branch"
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            branch={popup.branch}
+            onDismissed={onPopupDismissedFn}
+            onDeleted={this.onBranchDeleted}
+          />
+        )
       case PopupType.ConfirmDiscardChanges:
         const showSetting =
           popup.showDiscardChangesSetting === undefined
@@ -1337,6 +1359,12 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.Preferences:
+        let repository = this.getRepository()
+
+        if (repository instanceof CloningRepository) {
+          repository = null
+        }
+
         return (
           <Preferences
             key="preferences"
@@ -1354,6 +1382,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             selectedExternalEditor={this.state.selectedExternalEditor}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             enterpriseAccount={this.getEnterpriseAccount()}
+            repository={repository}
             onDismissed={onPopupDismissedFn}
             selectedShell={this.state.selectedShell}
             selectedTheme={this.state.selectedTheme}
@@ -1392,13 +1421,19 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.RepositorySettings: {
         const repository = popup.repository
         const state = this.props.repositoryStateManager.get(repository)
+        const repositoryAccount = getAccountForRepository(
+          this.state.accounts,
+          repository
+        )
 
         return (
           <RepositorySettings
             key={`repository-settings-${repository.hash}`}
+            initialSelectedTab={popup.initialSelectedTab}
             remote={state.remote}
             dispatcher={this.props.dispatcher}
             repository={repository}
+            repositoryAccount={repositoryAccount}
             onDismissed={onPopupDismissedFn}
           />
         )
@@ -1579,7 +1614,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       case PopupType.ExternalEditorFailed:
         const openPreferences = popup.openPreferences
-        const suggestAtom = popup.suggestAtom
+        const suggestDefaultEditor = popup.suggestDefaultEditor
 
         return (
           <EditorError
@@ -1588,7 +1623,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
             showPreferencesDialog={this.onShowAdvancedPreferences}
             viewPreferences={openPreferences}
-            suggestAtom={suggestAtom}
+            suggestDefaultEditor={suggestDefaultEditor}
           />
         )
       case PopupType.OpenShellFailed:
@@ -1966,6 +2001,47 @@ export class App extends React.Component<IAppProps, IAppState> {
             files={popup.files}
           />
         )
+      case PopupType.CherryPick: {
+        const cherryPickState = this.getCherryPickState()
+        const workingDirectory = this.getWorkingDirectory()
+        if (
+          cherryPickState === null ||
+          cherryPickState.step == null ||
+          workingDirectory === null
+        ) {
+          log.warn(
+            `[App] Invalid state encountered:
+            cherry pick flow should not be active when step is null,
+            the selected app state is not a repository state,
+            or cannot obtain the working directory.`
+          )
+          return null
+        }
+
+        const { step, progress, userHasResolvedConflicts } = cherryPickState
+
+        return (
+          <CherryPickFlow
+            key="cherry-pick-flow"
+            repository={popup.repository}
+            dispatcher={this.props.dispatcher}
+            onDismissed={onPopupDismissedFn}
+            step={step}
+            emoji={this.state.emoji}
+            progress={progress}
+            commits={popup.commits}
+            openFileInExternalEditor={this.openFileInExternalEditor}
+            workingDirectory={workingDirectory}
+            userHasResolvedConflicts={userHasResolvedConflicts}
+            resolvedExternalEditor={this.state.resolvedExternalEditor}
+            openRepositoryInShell={this.openCurrentRepositoryInShell}
+            sourceBranch={popup.sourceBranch}
+            onShowCherryPickConflictsBanner={
+              this.onShowCherryPickConflictsBanner
+            }
+          />
+        )
+      }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -1998,9 +2074,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
         const { conflictState } = changesState
 
-        if (conflictState === null || conflictState.kind === 'merge') {
+        if (conflictState === null || !isRebaseConflictState(conflictState)) {
           log.debug(
-            `[App.onShowRebaseConflictsBanner] no conflict state found, ignoring...`
+            `[App.onShowRebaseConflictsBanner] no rebase conflict state found, ignoring...`
           )
           return
         }
@@ -2559,6 +2635,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           isShowingFoldout={this.state.currentFoldout !== null}
           aheadBehindStore={this.props.aheadBehindStore}
           commitSpellcheckEnabled={this.state.commitSpellcheckEnabled}
+          onCherryPick={this.startCherryPickWithoutBranch}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
@@ -2658,6 +2735,126 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private isTutorialPaused() {
     return this.state.currentOnboardingTutorialStep === TutorialStep.Paused
+  }
+
+  /**
+   * When starting cherry pick from context menu, we need to initialize the
+   * cherry pick state flow step with the ChooseTargetBranch as opposed
+   * to drag and drop which will start at the ShowProgress step.
+   *
+   * Step initialization must be done before and outside of the
+   * `currentPopupContent` method because it is a rendering method that is
+   * re-run on every update. It will just keep showing the step initialized
+   * there otherwise - not allowing for other flow steps.
+   */
+  private startCherryPickWithoutBranch = (
+    repository: Repository,
+    commits: ReadonlyArray<CommitOneLine>
+  ) => {
+    const repositoryState = this.props.repositoryStateManager.get(repository)
+
+    const {
+      defaultBranch,
+      allBranches,
+      recentBranches,
+      tip,
+    } = repositoryState.branchesState
+    let currentBranch: Branch | null = null
+
+    if (tip.kind === TipState.Valid) {
+      currentBranch = tip.branch
+    } else {
+      throw new Error(
+        'Tip is not in a valid state, which is required to start the cherry pick flow'
+      )
+    }
+
+    const initialStep: ChooseTargetBranchesStep = {
+      kind: CherryPickStepKind.ChooseTargetBranch,
+      defaultBranch,
+      currentBranch,
+      allBranches,
+      recentBranches,
+    }
+
+    this.props.dispatcher.setCherryPickFlowStep(repository, initialStep)
+
+    this.showPopup({
+      type: PopupType.CherryPick,
+      repository,
+      commits,
+      sourceBranch: currentBranch,
+    })
+  }
+
+  private getCherryPickState(): ICherryPickState | null {
+    const { selectedState } = this.state
+    if (
+      selectedState === null ||
+      selectedState.type !== SelectionType.Repository
+    ) {
+      return null
+    }
+
+    const { cherryPickState } = selectedState.state
+    return cherryPickState
+  }
+
+  private onShowCherryPickConflictsBanner = (
+    repository: Repository,
+    targetBranchName: string,
+    sourceBranch: Branch,
+    commits: ReadonlyArray<CommitOneLine>
+  ) => {
+    this.props.dispatcher.setCherryPickFlowStep(repository, {
+      kind: CherryPickStepKind.HideConflicts,
+    })
+
+    this.props.dispatcher.setBanner({
+      type: BannerType.CherryPickConflictsFound,
+      targetBranchName,
+      onOpenConflictsDialog: async () => {
+        const { changesState } = this.props.repositoryStateManager.get(
+          repository
+        )
+        const { conflictState } = changesState
+
+        if (
+          conflictState === null ||
+          !isCherryPickConflictState(conflictState)
+        ) {
+          log.debug(
+            `[App.onShowCherryPickConflictsBanner] no cherry pick conflict state found, ignoring...`
+          )
+          return
+        }
+
+        await this.props.dispatcher.setCherryPickProgressFromState(repository)
+
+        this.props.dispatcher.setCherryPickFlowStep(repository, {
+          kind: CherryPickStepKind.ShowConflicts,
+          conflictState,
+        })
+
+        this.props.dispatcher.showPopup({
+          type: PopupType.CherryPick,
+          repository,
+          commits,
+          sourceBranch,
+        })
+      },
+    })
+  }
+
+  private getWorkingDirectory(): WorkingDirectoryStatus | null {
+    const { selectedState } = this.state
+    if (
+      selectedState === null ||
+      selectedState.type !== SelectionType.Repository
+    ) {
+      return null
+    }
+    return selectedState.state.changesState.workingDirectory
   }
 }
 

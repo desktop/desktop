@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { Commit } from '../../models/commit'
+import { Commit, CommitOneLine } from '../../models/commit'
 import {
   HistoryTabMode,
   ICompareState,
@@ -39,6 +39,10 @@ interface ICompareSidebarProps {
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
   readonly onCompareListScrolled: (scrollTop: number) => void
+  readonly onCherryPick: (
+    repository: Repository,
+    commits: ReadonlyArray<CommitOneLine>
+  ) => void
   readonly compareListScrollTop?: number
   readonly localTags: Map<string, string> | null
   readonly tagsToPush: ReadonlyArray<string> | null
@@ -230,6 +234,7 @@ export class CompareSidebar extends React.Component<
         onScroll={this.onScroll}
         onCreateTag={this.onCreateTag}
         onDeleteTag={this.onDeleteTag}
+        onCherryPick={this.onCherryPick}
         emptyListMessage={emptyListMessage}
         onCompareListScrolled={this.props.onCompareListScrolled}
         compareListScrollTop={this.props.compareListScrollTop}
@@ -503,6 +508,10 @@ export class CompareSidebar extends React.Component<
 
   private onDeleteTag = (tagName: string) => {
     this.props.dispatcher.showDeleteTagDialog(this.props.repository, tagName)
+  }
+
+  private onCherryPick = (commits: ReadonlyArray<CommitOneLine>) => {
+    this.props.onCherryPick(this.props.repository, commits)
   }
 }
 
