@@ -116,7 +116,7 @@ function upload(assetName: string, assetPath: string) {
   const s3 = new AWS.S3(s3Info)
 
   const bucket = process.env.S3_BUCKET || ''
-  const key = `releases/${packageInfo.getVersion()}-${sha}/${assetName.replace(
+  const key = `releases/${packageInfo.getVersion()}-${sha}/${distInfo.getArchitecture()}/${assetName.replace(
     / /g,
     ''
   )}`
@@ -160,10 +160,16 @@ function createSignature(body: any, secret: string) {
   return `sha1=${hmac.digest('hex')}`
 }
 
+function getContext() {
+  return (
+    process.platform + (distInfo.getArchitecture() === 'arm64' ? '-arm64' : '')
+  )
+}
+
 function updateDeploy(artifacts: ReadonlyArray<IUploadResult>, secret: string) {
   const { rendererSize, mainSize } = distInfo.getBundleSizes()
   const body = {
-    context: process.platform,
+    context: getContext(),
     branch_name: platforms.getReleaseBranchName(),
     artifacts,
     stats: {

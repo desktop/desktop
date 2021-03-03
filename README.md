@@ -26,8 +26,13 @@ from disk onto the application to get started.
 Want to test out new features and get fixes before everyone else? Install the
 beta channel to get access to early builds of Desktop:
 
+#### x64 builds
  - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin?env=beta)
  - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32?env=beta)
+
+#### arm64 builds
+ - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin-arm64?env=beta)
+ - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32-arm64?env=beta)
  
 The release notes for the latest beta versions are available [here](https://desktop.github.com/release-notes/?env=beta).
 
