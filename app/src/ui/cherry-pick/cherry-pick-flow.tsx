@@ -41,6 +41,17 @@ interface ICherryPickFlowProps {
   readonly openRepositoryInShell: (repository: Repository) => void
 
   readonly onDismissed: () => void
+
+  /**
+   * Callback to hide the cherry pick flow and show a banner about the current
+   * state of conflicts.
+   */
+  readonly onShowCherryPickConflictsBanner: (
+    repository: Repository,
+    targetBranchName: string,
+    sourceBranch: Branch,
+    commits: ReadonlyArray<CommitOneLine>
+  ) => void
 }
 
 /** A component for initiating and performing a cherry pick. */
@@ -71,7 +82,13 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
   }
 
   private showCherryPickConflictsBanner = (step: ShowConflictsStep) => {
-    // TODO: dispatch to show cherry pick conflicts banner
+    const { repository, sourceBranch, commits } = this.props
+    this.props.onShowCherryPickConflictsBanner(
+      repository,
+      step.conflictState.targetBranchName,
+      sourceBranch,
+      commits
+    )
   }
 
   public render() {
@@ -141,6 +158,8 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
           />
         )
       case CherryPickStepKind.CommitsChosen:
+      case CherryPickStepKind.HideConflicts:
+        // no ui for this part of flow
         return null
       default:
         return assertNever(step, 'Unknown cherry pick step found')

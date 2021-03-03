@@ -7,6 +7,7 @@ export enum BannerType {
   RebaseConflictsFound = 'RebaseConflictsFound',
   BranchAlreadyUpToDate = 'BranchAlreadyUpToDate',
   SuccessfulCherryPick = 'SuccessfulCherryPick',
+  CherryPickConflictsFound = 'CherryPickConflictsFound',
 }
 
 export type Banner =
@@ -51,4 +52,11 @@ export type Banner =
       readonly targetBranchName: string
       /** number of commits cherry picked */
       readonly countCherryPicked: number
+    }
+  | {
+      readonly type: BannerType.CherryPickConflictsFound
+      /** name of the branch that the commits are being cherry picked onto */
+      readonly targetBranchName: string
+      /** callback to run when user clicks on link in banner text */
+      readonly onOpenConflictsDialog: () => void
     }

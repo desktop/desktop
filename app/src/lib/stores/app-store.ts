@@ -279,6 +279,7 @@ import {
   cherryPick,
   CherryPickResult,
   continueCherryPick,
+  getCherryPickSnapshot,
 } from '../git/cherry-pick'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -5895,6 +5896,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     return result || CherryPickResult.Error
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _setCherryPickProgressFromState(repository: Repository) {
+    const snapshot = await getCherryPickSnapshot(repository)
+    if (snapshot === null) {
+      return
+    }
+
+    const { progress } = snapshot
+
+    this.repositoryStateCache.updateCherryPickState(repository, () => ({
+      progress,
+    }))
   }
 }
 
