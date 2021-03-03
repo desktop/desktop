@@ -46,11 +46,12 @@ jobs:
 
       - name: Install and build dependencies
         run: yarn
-      - name: Pre-build checks (Linting)
-        run: |
-          yarn lint
-          yarn validate-changelog
-          yarn check-modified
+      - name: Lint
+        run: yarn lint
+      - name: Validate changelog
+        run: yarn validate-changelog
+      - name: Ensure a clean working directory
+        run: yarn check-modified
       - name: Build production app
         run: yarn build:prod
         env:

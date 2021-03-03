@@ -65,7 +65,7 @@ export class RepositoryIndicatorUpdater {
   }
 
   private async refreshAllRepositories() {
-    // We're only ever called by the setTimout so it's safe for us to clear
+    // We're only ever called by the setTimeout so it's safe for us to clear
     // this without calling clearTimeout
     this.refreshTimeoutId = null
     log.debug('[RepositoryIndicatorUpdater] Running refreshAllRepositories')
@@ -140,8 +140,6 @@ export class RepositoryIndicatorUpdater {
 
   public pause() {
     if (this.paused === false) {
-      log.debug('[RepositoryIndicatorUpdater] Pausing')
-
       // Disable the lint warning since we're storing the `resolve`
       // tslint:disable-next-line:promise-must-complete
       this.pausePromise = new Promise<void>(resolve => {
@@ -154,8 +152,6 @@ export class RepositoryIndicatorUpdater {
 
   public resume() {
     if (this.paused) {
-      log.debug('[RepositoryIndicatorUpdater] Resuming')
-
       if (this.resolvePausePromise !== null) {
         this.resolvePausePromise()
         this.resolvePausePromise = null

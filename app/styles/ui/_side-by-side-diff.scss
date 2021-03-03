@@ -1,0 +1,317 @@
+.side-by-side-diff-container {
+  --width-line-number: 55px;
+
+  width: 100%;
+  overflow: hidden;
+  flex-grow: 1;
+  user-select: contain;
+  position: relative;
+
+  &.selecting-before .after,
+  &.selecting-after .before {
+    span,
+    div {
+      user-select: none;
+    }
+  }
+
+  &.editable {
+    .row {
+      .before {
+        flex-direction: row-reverse;
+        border-right: none;
+      }
+    }
+
+    .before .line-number {
+      border-right-width: 2px;
+      border-right-style: solid;
+    }
+
+    .after .line-number {
+      border-left-width: 2px;
+      border-left-style: solid;
+    }
+  }
+
+  .side-by-side-diff {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    height: 100%;
+    width: 100%;
+    font-family: var(--font-family-monospace);
+    font-size: var(--font-size-sm);
+    color: var(--diff-text-color);
+    background: var(--background-color);
+  }
+
+  .ReactVirtualized__Grid:focus {
+    outline: none;
+  }
+
+  .ReactVirtualized__Grid__innerScrollContainer {
+    border-bottom: 1px solid var(--diff-border-color);
+  }
+
+  .row .line-number {
+    width: var(--width-line-number);
+    flex-shrink: 0;
+    background: var(--diff-gutter-background-color);
+    color: var(--diff-line-number-color);
+    display: flex;
+    box-sizing: content-box;
+
+    span {
+      flex: 1;
+      user-select: none;
+      padding: 0 var(--spacing-half);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      // Workaround to show the ellipsis at the beginning of
+      // the line number when it's too long.
+      direction: rtl;
+    }
+
+    &.selectable {
+      span {
+        cursor: pointer;
+      }
+
+      &.line-selected {
+        background: var(--diff-selected-background-color);
+        color: var(--diff-selected-text-color);
+        border-color: var(--diff-selected-border-color);
+
+        &:hover,
+        &.hover {
+          background: var(--diff-hover-background-color);
+          color: var(--diff-hover-text-color);
+          border-color: var(--diff-hover-border-color);
+        }
+      }
+    }
+  }
+
+  .hunk-handle {
+    position: absolute;
+    height: 100%;
+    width: 20px;
+    left: calc(50% - 10px);
+    top: 0;
+    cursor: pointer;
+  }
+
+  .content {
+    padding-left: var(--spacing);
+    white-space: pre-wrap;
+    overflow-y: auto;
+    flex-grow: 1;
+    word-break: break-all;
+
+    &,
+    * {
+      cursor: text;
+      user-select: text;
+    }
+
+    &:before {
+      content: ' ';
+      padding-right: var(--spacing);
+    }
+
+    .octicon {
+      height: 8px;
+      fill: var(--error-color);
+      display: inline-block;
+      margin-left: 3px;
+      margin-bottom: -1px;
+    }
+  }
+
+  .before,
+  .after {
+    width: 50%;
+    display: flex;
+    flex-direction: row;
+  }
+
+  .before {
+    color: var(--diff-delete-text-color);
+    background: var(--diff-delete-background-color);
+    border-right: 1px solid var(--diff-border-color);
+
+    .line-number {
+      background: var(--diff-delete-gutter-background-color);
+      border-color: var(--diff-delete-border-color);
+    }
+
+    .selectable:hover,
+    .selectable.hover {
+      background: var(--diff-delete-hover-background-color);
+      color: var(--diff-delete-hover-text-color);
+      border-color: var(--diff-delete-hover-border-color);
+    }
+  }
+
+  .after {
+    color: var(--diff-add-text-color);
+    background: var(--diff-add-background-color);
+
+    .line-number {
+      background: var(--diff-add-gutter-background-color);
+      border-color: var(--diff-add-border-color);
+    }
+
+    .selectable:hover,
+    .selectable.hover {
+      background: var(--diff-add-hover-background-color);
+      color: var(--diff-add-hover-text-color);
+      border-color: var(--diff-add-hover-border-color);
+    }
+  }
+
+  .row {
+    display: flex;
+    flex-direction: row;
+    line-height: 20px;
+    position: relative;
+
+    &.hunk-info {
+      background: var(--diff-hunk-background-color);
+      color: var(--diff-hunk-text-color);
+
+      div,
+      span {
+        user-select: none;
+        cursor: default;
+      }
+
+      .line-number {
+        background: var(--diff-hunk-background-color);
+        border-color: var(--diff-border-color);
+      }
+    }
+
+    &.added .before,
+    &.deleted .after {
+      background: var(--diff-empty-row-background-color);
+
+      .line-number {
+        background: var(--diff-empty-row-gutter-background-color);
+        border-color: var(--diff-border-color);
+      }
+    }
+
+    &.added,
+    &.modified {
+      .after .content:before {
+        content: '+';
+      }
+    }
+
+    &.deleted,
+    &.modified {
+      .before .content:before {
+        content: '-';
+      }
+    }
+
+    &.context .before,
+    &.context .after {
+      background: var(--diff-background-color);
+      color: var(--diff-text-color);
+
+      .line-number {
+        background: var(--diff-gutter-background-color);
+        border-color: var(--diff-border-color);
+      }
+    }
+  }
+
+  &.unified-diff {
+    .row {
+      .before,
+      .after {
+        width: 100% !important;
+        border: none;
+        flex-direction: row;
+      }
+
+      .hunk-handle {
+        left: 100px;
+      }
+
+      &.hunk-info .line-number {
+        background: var(--diff-hunk-gutter-background-color);
+        border-color: var(--diff-hunk-border-color);
+      }
+
+      .line-number {
+        width: calc(var(--width-line-number) * 2);
+        border-left: none;
+        border-right-width: 1px;
+        border-right-style: solid;
+
+        span:first-child {
+          border-right-width: 1px;
+          border-right-style: solid;
+          border-color: inherit;
+        }
+
+        span:last-child {
+          border: none;
+        }
+      }
+    }
+
+    &.editable .row .line-number {
+      border-right-width: 4px;
+    }
+  }
+
+  .diff-search {
+    position: absolute;
+    top: 0;
+    right: var(--spacing);
+    border: var(--base-border);
+    border-top: 0;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    padding: var(--spacing-half) var(--spacing);
+    box-shadow: var(--base-box-shadow);
+    z-index: var(--popup-z-index);
+    background: var(--background-color);
+
+    .text-box-component {
+      input {
+        border: 0;
+        box-shadow: none;
+
+        background: var(--box-background-color);
+        color: var(--text-color);
+        font-size: var(--font-size);
+        font-family: var(--font-family-sans-serif);
+        height: var(--text-field-height);
+        padding: 0;
+        width: 180px;
+
+        &:focus {
+          border: none;
+          outline: 0;
+          box-shadow: none;
+        }
+      }
+    }
+  }
+
+  .cm-search-result {
+    // match codemirror for now
+    // https://github.com/codemirror/CodeMirror/blob/264022ee4af4abca1c158944dc299a8faf8696d6/lib/codemirror.css#L333
+    background-color: rgba(255, 255, 0, 0.4);
+
+    &.cm-selected {
+      background: Highlight;
+      color: HighlightText;
+    }
+  }
+}

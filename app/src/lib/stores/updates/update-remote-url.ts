@@ -27,11 +27,11 @@ export async function updateRemoteUrl(
   // manually configured their remote to use this format and we don't
   // want to change what they've done just to be safe
   const parsedRemoteUrl = URL.parse(remoteUrl)
-  const parsedUpdaedRemoteUrl = URL.parse(updatedRemoteUrl)
+  const parsedUpdatedRemoteUrl = URL.parse(updatedRemoteUrl)
   const protocolsMatch =
     parsedRemoteUrl.protocol !== null &&
-    parsedUpdaedRemoteUrl.protocol !== null &&
-    parsedRemoteUrl.protocol === parsedUpdaedRemoteUrl.protocol
+    parsedUpdatedRemoteUrl.protocol !== null &&
+    parsedRemoteUrl.protocol === parsedUpdatedRemoteUrl.protocol
 
   // Check if the default remote url has been manually changed from the
   // clone url retrieved from the GitHub API previously

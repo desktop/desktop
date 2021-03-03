@@ -1,4 +1,7 @@
-import { Repository } from '../../../models/repository'
+import {
+  Repository,
+  isRepositoryWithGitHubRepository,
+} from '../../../models/repository'
 import { RepositoriesStore } from '../repositories-store'
 import { Branch } from '../../../models/branch'
 import { GitStoreCache } from '../git-store-cache'
@@ -18,6 +21,7 @@ import moment from 'moment'
 const BackgroundPruneMinimumInterval = 1000 * 60 * 60 * 4
 const ReservedRefs = [
   'HEAD',
+  'refs/heads/main',
   'refs/heads/master',
   'refs/heads/gh-pages',
   'refs/heads/develop',
@@ -126,8 +130,7 @@ export class BranchPruner {
   private async pruneLocalBranches(
     options: PruneRuntimeOptions
   ): Promise<void> {
-    const { gitHubRepository } = this.repository
-    if (gitHubRepository === null) {
+    if (!isRepositoryWithGitHubRepository(this.repository)) {
       return
     }
 
@@ -140,7 +143,7 @@ export class BranchPruner {
     const dateNow = moment()
     const threshold = dateNow.subtract(24, 'hours')
 
-    // Using type coelescing behavior to deal with Dexie returning `undefined`
+    // Using type coalescing behavior to deal with Dexie returning `undefined`
     // for records that haven't been updated with the new field yet
     if (
       options.enforcePruneThreshold &&
@@ -189,7 +192,7 @@ export class BranchPruner {
       [...recentlyCheckedOutBranches.keys()].map(formatAsLocalRef)
     )
 
-    // get the locally cached branches of remotes (ie `remotes/origin/master`)
+    // get the locally cached branches of remotes (ie `remotes/origin/main`)
     const remoteBranches = (
       await getBranches(this.repository, `refs/remotes/`)
     ).map(b => formatAsLocalRef(b.name))

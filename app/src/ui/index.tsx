@@ -22,12 +22,10 @@ import {
   pushNeedsPullHandler,
   upstreamAlreadyExistsHandler,
   rebaseConflictsHandler,
-  localChangesOverwrittenOnCheckoutHandler,
   localChangesOverwrittenHandler,
   refusedWorkflowUpdate,
   samlReauthRequired,
   insufficientGitHubRepoPermissions,
-  schannelUnableToCheckRevocationForCertificate,
 } from './dispatcher'
 import {
   AppStore,
@@ -67,7 +65,7 @@ import { PullRequestCoordinator } from '../lib/stores/pull-request-coordinator'
 // We're using a polyfill for the upcoming CSS4 `:focus-ring` pseudo-selector.
 // This allows us to not have to override default accessibility driven focus
 // styles for buttons in the case when a user clicks on a button. This also
-// gives better visiblity to individuals who navigate with the keyboard.
+// gives better visibility to individuals who navigate with the keyboard.
 //
 // See:
 //   https://github.com/WICG/focus-ring
@@ -77,6 +75,9 @@ import 'wicg-focus-ring'
 // setup this moment.js plugin so we can use easier
 // syntax for formatting time duration
 import momentDurationFormatSetup from 'moment-duration-format'
+import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
+import { enableUnhandledRejectionReporting } from '../lib/feature-flag'
+import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
 
 if (__DEV__) {
   installDevGlobals()
@@ -116,12 +117,10 @@ if (__DARWIN__) {
 }
 
 let currentState: IAppState | null = null
-let lastUnhandledRejection: string | null = null
-let lastUnhandledRejectionTime: Date | null = null
 
 const sendErrorWithContext = (
   error: Error,
-  context: { [key: string]: string } = {},
+  context: Record<string, string> = {},
   nonFatal?: boolean
 ) => {
   error = withSourceMappedStack(error)
@@ -173,14 +172,6 @@ const sendErrorWithContext = (
           extra.activeAppErrors = `${currentState.errors.length}`
         }
 
-        if (
-          lastUnhandledRejection !== null &&
-          lastUnhandledRejectionTime !== null
-        ) {
-          extra.lastUnhandledRejection = lastUnhandledRejection
-          extra.lastUnhandledRejectionTime = lastUnhandledRejectionTime.toString()
-        }
-
         extra.repositoryCount = `${currentState.repositories.length}`
         extra.windowState = currentState.windowState
         extra.accounts = `${currentState.accounts.length}`
@@ -211,27 +202,20 @@ process.on(
 )
 
 /**
- * Chromium won't crash on an unhandled rejection (similar to how
- * it won't crash on an unhandled error). We've taken the approach
- * that unhandled errors should crash the app and very likely we
- * should do the same thing for unhandled promise rejections but
- * that's a bit too risky to do until we've established some sense
- * of how often it happens. For now this simply stores the last
- * rejection so that we can pass it along with the crash report
- * if the app does crash. Note that this does not prevent the
- * default browser behavior of logging since we're not calling
- * `preventDefault` on the event.
+ * Chromium won't crash on an unhandled rejection (similar to how it won't crash
+ * on an unhandled error). We've taken the approach that unhandled errors should
+ * crash the app and very likely we should do the same thing for unhandled
+ * promise rejections but that's a bit too risky to do until we've established
+ * some sense of how often it happens. For now this simply stores the last
+ * rejection so that we can pass it along with the crash report if the app does
+ * crash. Note that this does not prevent the default browser behavior of
+ * logging since we're not calling `preventDefault` on the event.
  *
  * See https://developer.mozilla.org/en-US/docs/Web/API/Window/unhandledrejection_event
  */
 window.addEventListener('unhandledrejection', ev => {
-  if (ev.reason !== null && ev.reason !== undefined) {
-    try {
-      lastUnhandledRejection = `${ev.reason}`
-      lastUnhandledRejectionTime = new Date()
-    } catch (err) {
-      /* ignore */
-    }
+  if (enableUnhandledRejectionReporting() && ev.reason instanceof Error) {
+    sendNonFatalException('unhandledRejection', ev.reason)
   }
 })
 
@@ -266,6 +250,7 @@ const repositoryStateManager = new RepositoryStateCache()
 const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 
 const commitStatusStore = new CommitStatusStore(accountsStore)
+const aheadBehindStore = new AheadBehindStore()
 
 const appStore = new AppStore(
   gitHubUserStore,
@@ -298,14 +283,12 @@ dispatcher.registerErrorHandler(openShellErrorHandler)
 dispatcher.registerErrorHandler(mergeConflictHandler)
 dispatcher.registerErrorHandler(lfsAttributeMismatchHandler)
 dispatcher.registerErrorHandler(insufficientGitHubRepoPermissions)
-dispatcher.registerErrorHandler(schannelUnableToCheckRevocationForCertificate)
 dispatcher.registerErrorHandler(gitAuthenticationErrorHandler)
 dispatcher.registerErrorHandler(pushNeedsPullHandler)
 dispatcher.registerErrorHandler(samlReauthRequired)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(missingRepositoryHandler)
 dispatcher.registerErrorHandler(localChangesOverwrittenHandler)
-dispatcher.registerErrorHandler(localChangesOverwrittenOnCheckoutHandler)
 dispatcher.registerErrorHandler(rebaseConflictsHandler)
 dispatcher.registerErrorHandler(refusedWorkflowUpdate)
 
@@ -350,6 +333,7 @@ ReactDOM.render(
     repositoryStateManager={repositoryStateManager}
     issuesStore={issuesStore}
     gitHubUserStore={gitHubUserStore}
+    aheadBehindStore={aheadBehindStore}
     startTime={startTime}
   />,
   document.getElementById('desktop-app-container')!

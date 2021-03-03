@@ -25,11 +25,6 @@ import { IBranchListItem } from './group-branches'
 import { renderDefaultBranch } from './branch-renderer'
 import { IMatches } from '../../lib/fuzzy-find'
 import { startTimer } from '../lib/timing'
-import {
-  UncommittedChangesStrategyKind,
-  UncommittedChangesStrategy,
-  stashOnCurrentBranch,
-} from '../../models/uncommitted-changes-strategy'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -46,12 +41,6 @@ interface IBranchesContainerProps {
 
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
-
-  readonly currentBranchProtected: boolean
-
-  readonly selectedUncommittedChangesStrategy: UncommittedChangesStrategy
-
-  readonly couldOverwriteStash: boolean
 }
 
 interface IBranchesContainerState {
@@ -96,34 +85,34 @@ export class BranchesContainer extends React.Component<
     }
   }
 
-  private getBranchName = (): string => {
-    const { currentBranch, defaultBranch } = this.props
-    if (currentBranch != null) {
-      return currentBranch.name
-    }
-
-    if (defaultBranch != null) {
-      return defaultBranch.name
-    }
-
-    return 'master'
-  }
-
   public render() {
-    const branchName = this.getBranchName()
     return (
       <div className="branches-container">
         {this.renderTabBar()}
         {this.renderSelectedTab()}
-        <Row className="merge-button-row">
-          <Button className="merge-button" onClick={this.onMergeClick}>
-            <Octicon className="icon" symbol={OcticonSymbol.gitMerge} />
-            <span title={`Merge a branch into ${branchName}`}>
-              Choose a branch to merge into <strong>{branchName}</strong>
-            </span>
-          </Button>
-        </Row>
+        {this.renderMergeButtonRow()}
       </div>
+    )
+  }
+
+  private renderMergeButtonRow() {
+    const { currentBranch } = this.props
+
+    // This could happen if HEAD is detached, in that
+    // case it's better to not render anything at all.
+    if (currentBranch === null) {
+      return null
+    }
+
+    return (
+      <Row className="merge-button-row">
+        <Button className="merge-button" onClick={this.onMergeClick}>
+          <Octicon className="icon" symbol={OcticonSymbol.gitMerge} />
+          <span title={`Merge a branch into ${currentBranch.name}`}>
+            Choose a branch to merge into <strong>{currentBranch.name}</strong>
+          </span>
+        </Button>
+      </Row>
     )
   }
 
@@ -237,45 +226,11 @@ export class BranchesContainer extends React.Component<
   }
 
   private onBranchItemClick = (branch: Branch) => {
-    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+    const { repository, dispatcher } = this.props
+    dispatcher.closeFoldout(FoldoutType.Branch)
 
-    const {
-      currentBranch,
-      repository,
-      currentBranchProtected,
-      dispatcher,
-      couldOverwriteStash,
-    } = this.props
-
-    if (currentBranch == null || currentBranch.name !== branch.name) {
-      if (
-        !currentBranchProtected &&
-        this.props.selectedUncommittedChangesStrategy.kind ===
-          stashOnCurrentBranch.kind &&
-        couldOverwriteStash
-      ) {
-        dispatcher.showPopup({
-          type: PopupType.ConfirmOverwriteStash,
-          repository,
-          branchToCheckout: branch,
-        })
-        return
-      }
-
-      const timer = startTimer('checkout branch from list', repository)
-
-      // Never prompt to stash changes if someone is switching away from a protected branch
-      const strategy: UncommittedChangesStrategy = currentBranchProtected
-        ? {
-            kind: UncommittedChangesStrategyKind.MoveToNewBranch,
-            transientStashEntry: null,
-          }
-        : this.props.selectedUncommittedChangesStrategy
-
-      this.props.dispatcher
-        .checkoutBranch(repository, branch, strategy)
-        .then(() => timer.done())
-    }
+    const timer = startTimer('checkout branch from list', repository)
+    dispatcher.checkoutBranch(repository, branch).then(() => timer.done())
   }
 
   private onBranchSelectionChanged = (selectedBranch: Branch | null) => {
@@ -287,13 +242,12 @@ export class BranchesContainer extends React.Component<
   }
 
   private onCreateBranchWithName = (name: string) => {
-    const { repository, currentBranchProtected } = this.props
+    const { repository, dispatcher } = this.props
 
-    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
-    this.props.dispatcher.showPopup({
+    dispatcher.closeFoldout(FoldoutType.Branch)
+    dispatcher.showPopup({
       type: PopupType.CreateBranch,
       repository,
-      currentBranchProtected,
       initialName: name,
     })
   }

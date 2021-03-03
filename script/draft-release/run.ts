@@ -89,7 +89,7 @@ function printInstructions(nextVersion: string, entries: Array<string>) {
 }
 
 /**
- * adds a number to the beginning fo each line and prints them in sequence
+ * adds a number to the beginning of each line and prints them in sequence
  */
 function printSteps(steps: ReadonlyArray<string>) {
   console.log("Here's what you should do next:\n")

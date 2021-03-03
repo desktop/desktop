@@ -4,6 +4,7 @@
 #commit-summary {
   display: flex;
   flex-direction: column;
+  min-height: 0;
 
   .avatar {
     width: 16px;
@@ -85,6 +86,7 @@
     // So that we have something to position the expander against
     position: relative;
     border-bottom: var(--base-border);
+    min-height: 0;
   }
 
   &-description-scroll-view {
@@ -114,6 +116,7 @@
     word-wrap: break-word;
     white-space: pre-line;
     padding: var(--spacing);
+    min-height: 0;
   }
 
   &-meta {

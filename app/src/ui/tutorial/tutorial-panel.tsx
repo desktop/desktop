@@ -11,7 +11,6 @@ import {
   orderedTutorialSteps,
 } from '../../models/tutorial-step'
 import { encodePathAsUrl } from '../../lib/path'
-import { ExternalEditor } from '../../lib/editors'
 import { PopupType } from '../../models/popup'
 import { PreferencesTab } from '../../models/preferences'
 import { Ref } from '../lib/ref'
@@ -28,7 +27,7 @@ interface ITutorialPanelProps {
   /** name of the configured external editor
    * (`undefined` if none is configured.)
    */
-  readonly resolvedExternalEditor: ExternalEditor | null
+  readonly resolvedExternalEditor: string | null
   readonly currentTutorialStep: ValidTutorialStep
   readonly onExitTutorial: () => void
 }

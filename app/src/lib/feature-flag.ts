@@ -47,20 +47,15 @@ export function enableWSLDetection(): boolean {
   return enableBetaFeatures()
 }
 
+/** Should the app use the shiny new TCP-based trampoline? */
+export function enableDesktopTrampoline(): boolean {
+  return enableBetaFeatures()
+}
+
 /**
  * Should we show the create fork dialog flow?
  */
 export function enableCreateForkFlow(): boolean {
-  return true
-}
-
-/**
- * Whether or not we should attempt to detect the specific curl
- * error from the WinSSL (schannel) https backend when it fails
- * to check the revocation details of a certificate due to lacking
- * CRL distribution points and/or an offiline revocation server.
- */
-export function enableSchannelCheckRevokeOptOut(): boolean {
   return true
 }
 
@@ -96,16 +91,6 @@ export function enableForkyCreateBranchUI(): boolean {
 }
 
 /**
- * Should we show the NDDB banner?
- *
- * (It's a notification in the history sidebar that there
- * are new commits upstream.)
- */
-export function enableNDDBBanner(): boolean {
-  return false
-}
-
-/**
  * Should we show the git tag information in the app UI?
  */
 export function enableGitTagsDisplay(): boolean {
@@ -135,8 +120,31 @@ export function enableDiscardLines(): boolean {
 }
 
 /**
+ * Should we show the checkbox to enable side by side diffs?
+ *
+ * Note: side by side diffs will use the new diff viewer.
+ */
+export function enableSideBySideDiffs(): boolean {
+  return true
+}
+
+/**
+ * Should we use the new diff viewer for unified diffs?
+ */
+export function enableExperimentalDiffViewer(): boolean {
+  return false
+}
+
+/**
  * Should we allow to change the default branch when creating new repositories?
  */
 export function enableDefaultBranchSetting(): boolean {
+  return true
+}
+
+/**
+ * Should we allow reporting unhandled rejections as if they were crashes?
+ */
+export function enableUnhandledRejectionReporting(): boolean {
   return enableBetaFeatures()
 }

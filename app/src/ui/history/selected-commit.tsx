@@ -50,6 +50,9 @@ interface ISelectedCommitProps {
   readonly onOpenInExternalEditor: (path: string) => void
   readonly hideWhitespaceInDiff: boolean
 
+  /** Whether we should display side by side diffs. */
+  readonly showSideBySideDiff: boolean
+
   /**
    * Called when the user requests to open a binary file in an the
    * system-assigned application for said file type.
@@ -61,6 +64,9 @@ interface ISelectedCommitProps {
    * to change the diff presentation mode.
    */
   readonly onChangeImageDiffType: (type: ImageDiffType) => void
+
+  /** Called when the user opens the diff options popover */
+  readonly onDiffOptionsOpened: () => void
 }
 
 interface ISelectedCommitState {
@@ -137,6 +143,7 @@ export class SelectedCommit extends React.Component<
         diff={diff}
         readOnly={true}
         hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+        showSideBySideDiff={this.props.showSideBySideDiff}
         onOpenBinaryFile={this.props.onOpenBinaryFile}
         onChangeImageDiffType={this.props.onChangeImageDiffType}
       />
@@ -155,7 +162,10 @@ export class SelectedCommit extends React.Component<
         onDescriptionBottomChanged={this.onDescriptionBottomChanged}
         hideDescriptionBorder={this.state.hideDescriptionBorder}
         hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+        showSideBySideDiff={this.props.showSideBySideDiff}
         onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
+        onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
+        onDiffOptionsOpened={this.props.onDiffOptionsOpened}
       />
     )
   }
@@ -179,6 +189,10 @@ export class SelectedCommit extends React.Component<
       this.props.repository,
       this.props.selectedFile as CommittedFileChange
     )
+  }
+
+  private onShowSideBySideDiffChanged = (showSideBySideDiff: boolean) => {
+    this.props.dispatcher.onShowSideBySideDiffChanged(showSideBySideDiff)
   }
 
   private onCommitSummaryReset = () => {
@@ -245,15 +259,13 @@ export class SelectedCommit extends React.Component<
     )
   }
 
-  private onContextMenu = async (event: React.MouseEvent<HTMLDivElement>) => {
+  private onContextMenu = async (
+    file: CommittedFileChange,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => {
     event.preventDefault()
 
-    if (this.props.selectedFile == null) {
-      return
-    }
-
-    const filePath = this.props.selectedFile.path
-    const fullPath = Path.join(this.props.repository.path, filePath)
+    const fullPath = Path.join(this.props.repository.path, file.path)
     const fileExistsOnDisk = await pathExists(fullPath)
     if (!fileExistsOnDisk) {
       showContextualMenu([
@@ -267,7 +279,7 @@ export class SelectedCommit extends React.Component<
       return
     }
 
-    const extension = Path.extname(filePath)
+    const extension = Path.extname(file.path)
 
     const isSafeExtension = isSafeFileExtension(extension)
     const openInExternalEditor = this.props.externalEditorLabel
@@ -281,7 +293,7 @@ export class SelectedCommit extends React.Component<
       },
       {
         label: RevealInFileManagerLabel,
-        action: () => revealInFileManager(this.props.repository, filePath),
+        action: () => revealInFileManager(this.props.repository, file.path),
         enabled: fileExistsOnDisk,
       },
       {
@@ -291,7 +303,7 @@ export class SelectedCommit extends React.Component<
       },
       {
         label: OpenWithDefaultProgramLabel,
-        action: () => this.onOpenItem(filePath),
+        action: () => this.onOpenItem(file.path),
         enabled: isSafeExtension && fileExistsOnDisk,
       },
     ]

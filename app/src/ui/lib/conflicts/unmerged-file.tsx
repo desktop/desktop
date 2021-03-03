@@ -12,10 +12,7 @@ import { Dispatcher } from '../../dispatcher'
 import { showContextualMenu } from '../../main-process-proxy'
 import { Octicon, OcticonSymbol } from '../../octicons'
 import { PathText } from '../path-text'
-import {
-  ManualConflictResolutionKind,
-  ManualConflictResolution,
-} from '../../../models/manual-conflict-resolution'
+import { ManualConflictResolution } from '../../../models/manual-conflict-resolution'
 import {
   OpenWithDefaultProgramLabel,
   RevealInFileManagerLabel,
@@ -339,7 +336,7 @@ function getManualResolutionMenuItems(
         dispatcher.updateManualConflictResolution(
           repository,
           relativeFilePath,
-          ManualConflictResolutionKind.ours
+          ManualConflictResolution.ours
         ),
     },
 
@@ -349,7 +346,7 @@ function getManualResolutionMenuItems(
         dispatcher.updateManualConflictResolution(
           repository,
           relativeFilePath,
-          ManualConflictResolutionKind.theirs
+          ManualConflictResolution.theirs
         ),
     },
   ]
@@ -360,10 +357,10 @@ function resolvedFileStatusString(
   manualResolution?: ManualConflictResolution,
   branch?: string
 ): string {
-  if (manualResolution === ManualConflictResolutionKind.ours) {
+  if (manualResolution === ManualConflictResolution.ours) {
     return getUnmergedStatusEntryDescription(status.entry.us, branch)
   }
-  if (manualResolution === ManualConflictResolutionKind.theirs) {
+  if (manualResolution === ManualConflictResolution.theirs) {
     return getUnmergedStatusEntryDescription(status.entry.them, branch)
   }
   return 'No conflicts remaining'
@@ -413,17 +410,17 @@ function getBranchForResolution(
   ourBranch?: string,
   theirBranch?: string
 ): string | undefined {
-  if (manualResolution === ManualConflictResolutionKind.ours) {
+  if (manualResolution === ManualConflictResolution.ours) {
     return ourBranch
   }
-  if (manualResolution === ManualConflictResolutionKind.theirs) {
+  if (manualResolution === ManualConflictResolution.theirs) {
     return theirBranch
   }
   return undefined
 }
 
 /**
- * Calculates the number of merge conclicts in a file from the number of markers
+ * Calculates the number of merge conflicts in a file from the number of markers
  * divides by three and rounds up since each conflict is indicated by three separate markers
  * (`<<<<<`, `>>>>>`, and `=====`)
  *

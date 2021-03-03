@@ -1,6 +1,9 @@
 import { GitStore, RepositoriesStore } from '../../../../src/lib/stores'
 import { TestRepositoriesDatabase } from '../../../helpers/databases'
-import { IAPIRepository } from '../../../../src/lib/api'
+import {
+  IAPIFullRepository,
+  getDotComAPIEndpoint,
+} from '../../../../src/lib/api'
 import { updateRemoteUrl } from '../../../../src/lib/stores/updates/update-remote-url'
 import { shell } from '../../../helpers/test-app-shell'
 import { setupFixtureRepository } from '../../../helpers/repositories'
@@ -9,7 +12,7 @@ import { StatsStore, StatsDatabase } from '../../../../src/lib/stats'
 import { UiActivityMonitor } from '../../../../src/ui/lib/ui-activity-monitor'
 
 describe('Update remote url', () => {
-  const apiRepository: IAPIRepository = {
+  const apiRepository: IAPIFullRepository = {
     clone_url: 'https://github.com/my-user/my-repo',
     ssh_url: 'git@github.com:my-user/my-repo.git',
     html_url: 'https://github.com/my-user/my-repo',
@@ -27,12 +30,14 @@ describe('Update remote url', () => {
     pushed_at: '1995-12-17T03:24:00',
     has_issues: true,
     archived: false,
+    parent: undefined,
   }
+  const endpoint = getDotComAPIEndpoint()
 
   let gitStore: GitStore
 
   const createRepository = async (
-    apiRepo: IAPIRepository,
+    apiRepo: IAPIFullRepository,
     remoteUrl: string | null = null
   ) => {
     const db = new TestRepositoriesDatabase()
@@ -40,11 +45,9 @@ describe('Update remote url', () => {
     const repositoriesStore = new RepositoriesStore(db)
 
     const repoPath = await setupFixtureRepository('test-repo')
-    const blankRepo = await repositoriesStore.addRepository(repoPath)
-    const repository = await repositoriesStore.updateGitHubRepository(
-      blankRepo,
-      '',
-      apiRepo
+    const repository = await repositoriesStore.setGitHubRepository(
+      await repositoriesStore.addRepository(repoPath),
+      await repositoriesStore.upsertGitHubRepository(endpoint, apiRepo)
     )
     await addRemote(repository, 'origin', remoteUrl || apiRepo.clone_url)
     gitStore = new GitStore(

@@ -12,6 +12,7 @@ import {
 } from '../../models/status'
 import { parseChangedFiles } from './log'
 import { stageFiles } from './update-index'
+import { Branch } from '../../models/branch'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 
@@ -94,9 +95,10 @@ export async function getStashes(repository: Repository): Promise<StashResult> {
  */
 export async function getLastDesktopStashEntryForBranch(
   repository: Repository,
-  branchName: string
+  branch: Branch | string
 ) {
   const stash = await getStashes(repository)
+  const branchName = typeof branch === 'string' ? branch : branch.name
 
   // Since stash objects are returned in a LIFO manner, the first
   // entry found is guaranteed to be the last entry created
@@ -105,7 +107,7 @@ export async function getLastDesktopStashEntryForBranch(
   )
 }
 
-/** Creates a stash entry message that idicates the entry was created by Desktop */
+/** Creates a stash entry message that indicates the entry was created by Desktop */
 export function createDesktopStashMessage(branchName: string) {
   return `${DesktopStashEntryMarker}<${branchName}>`
 }
@@ -115,9 +117,9 @@ export function createDesktopStashMessage(branchName: string) {
  */
 export async function createDesktopStashEntry(
   repository: Repository,
-  branchName: string,
+  branch: Branch | string,
   untrackedFilesToStage: ReadonlyArray<WorkingDirectoryFileChange>
-): Promise<true> {
+): Promise<boolean> {
   // We must ensure that no untracked files are present before stashing
   // See https://github.com/desktop/desktop/pull/8085
   // First ensure that all changes in file are selected
@@ -127,6 +129,7 @@ export async function createDesktopStashEntry(
   )
   await stageFiles(repository, fullySelectedUntrackedFiles)
 
+  const branchName = typeof branch === 'string' ? branch : branch.name
   const message = createDesktopStashMessage(branchName)
   const args = ['stash', 'push', '-m', message]
 
@@ -151,6 +154,11 @@ export async function createDesktopStashEntry(
     log.info(
       `[createDesktopStashEntry] a stash was created successfully but exit code ${result.exitCode} reported. stderr: ${result.stderr}`
     )
+  }
+
+  // Stash doesn't consider it an error that there aren't any local changes to save.
+  if (result.stdout === 'No local changes to save\n') {
+    return false
   }
 
   return true

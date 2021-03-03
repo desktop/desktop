@@ -3,8 +3,8 @@ import { Disposable, IDisposable } from 'event-kit'
 
 import {
   IAPIOrganization,
-  IAPIRepository,
   IAPIPullRequest,
+  IAPIFullRepository,
 } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
@@ -16,7 +16,6 @@ import {
   isMergeConflictState,
   RebaseConflictState,
 } from '../../lib/app-state'
-import { ExternalEditor } from '../../lib/editors'
 import { assertNever, fatalError } from '../../lib/fatal-error'
 import {
   setGenericPassword,
@@ -92,10 +91,7 @@ import {
   ICombinedRefCheck,
 } from '../../lib/stores/commit-status-store'
 import { MergeTreeResult } from '../../models/merge'
-import {
-  UncommittedChangesStrategy,
-  UncommittedChangesStrategyKind,
-} from '../../models/uncommitted-changes-strategy'
+import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { IStashEntry } from '../../models/stash-entry'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
@@ -156,7 +152,7 @@ export class Dispatcher {
   public addTutorialRepository(
     path: string,
     endpoint: string,
-    apiRepository: IAPIRepository
+    apiRepository: IAPIFullRepository
   ) {
     return this.appStore._addTutorialRepository(path, endpoint, apiRepository)
   }
@@ -171,18 +167,18 @@ export class Dispatcher {
     return this.appStore._pauseTutorial(repository)
   }
 
-  /** Remove the repositories represented by the given IDs from local storage. */
-  public async removeRepositories(
-    repositories: ReadonlyArray<Repository | CloningRepository>,
+  /**
+   * Remove the repositories represented by the given IDs from local storage.
+   *
+   * When `moveToTrash` is enabled, only the repositories that were successfully
+   * deleted on disk are removed from the app. If some failed due to files being
+   * open elsewhere, an error is thrown.
+   */
+  public async removeRepository(
+    repository: Repository | CloningRepository,
     moveToTrash: boolean
   ): Promise<void> {
-    if (moveToTrash) {
-      repositories.forEach(repository => {
-        shell.moveItemToTrash(repository.path)
-      })
-    }
-
-    return this.appStore._removeRepositories(repositories)
+    return this.appStore._removeRepository(repository, moveToTrash)
   }
 
   /** Update the repository's `missing` flag. */
@@ -404,10 +400,10 @@ export class Dispatcher {
   ): Promise<void> {
     const { askForConfirmationOnForcePush } = this.appStore.getState()
 
-    const hasOverridenForcePushCheck =
+    const hasOverriddenForcePushCheck =
       options !== undefined && options.continueWithForcePush
 
-    if (askForConfirmationOnForcePush && !hasOverridenForcePushCheck) {
+    if (askForConfirmationOnForcePush && !hasOverriddenForcePushCheck) {
       const showWarning = await this.warnAboutRemoteCommits(
         repository,
         baseBranch,
@@ -483,14 +479,12 @@ export class Dispatcher {
     repository: Repository,
     name: string,
     startPoint: string | null,
-    uncommittedChangesStrategy?: UncommittedChangesStrategy,
     noTrackOption: boolean = false
-  ): Promise<Repository> {
+  ): Promise<void> {
     return this.appStore._createBranch(
       repository,
       name,
       startPoint,
-      uncommittedChangesStrategy,
       noTrackOption
     )
   }
@@ -549,13 +543,9 @@ export class Dispatcher {
   public checkoutBranch(
     repository: Repository,
     branch: Branch,
-    uncommittedChangesStrategy?: UncommittedChangesStrategy
+    strategy?: UncommittedChangesStrategy
   ): Promise<Repository> {
-    return this.appStore._checkoutBranch(
-      repository,
-      branch,
-      uncommittedChangesStrategy
-    )
+    return this.appStore._checkoutBranch(repository, branch, strategy)
   }
 
   /** Push the current branch. */
@@ -771,27 +761,6 @@ export class Dispatcher {
    */
   public clearBanner(bannerType?: BannerType) {
     return this.appStore._clearBanner(bannerType)
-  }
-
-  /**
-   * Set the divering branch notification nudge's visibility
-   */
-  public setDivergingBranchNudgeVisibility(
-    repository: Repository,
-    isVisible: boolean
-  ) {
-    return this.appStore._updateDivergingBranchBannerState(repository, {
-      isNudgeVisible: isVisible,
-    })
-  }
-
-  /**
-   * Hide the divering branch notification banner
-   */
-  public dismissDivergingBranchBanner(repository: Repository) {
-    return this.appStore._updateDivergingBranchBannerState(repository, {
-      isPromptDismissed: true,
-    })
   }
 
   /**
@@ -1082,7 +1051,7 @@ export class Dispatcher {
   }
 
   /**
-   * Continue with the rebase after the user has resovled all conflicts with
+   * Continue with the rebase after the user has resolved all conflicts with
    * tracked files in the working directory.
    */
   public async continueRebase(
@@ -1319,31 +1288,6 @@ export class Dispatcher {
   }
 
   /**
-   * Subscribe to an event which is emitted whenever the sign in store re-evaluates
-   * whether or not GitHub.com supports username and password authentication.
-   *
-   * Note that this event may fire without the state having changed as it's
-   * fired when refreshed and not when changed.
-   */
-  public onDotComSupportsBasicAuthUpdated(
-    fn: (dotComSupportsBasicAuth: boolean) => void
-  ) {
-    return this.appStore._onDotComSupportsBasicAuthUpdated(fn)
-  }
-
-  /**
-   * Attempt to _synchronously_ retrieve whether GitHub.com supports
-   * username and password authentication. If the SignInStore has
-   * previously checked the API to determine the actual status that
-   * cached value is returned. If not we attempt to calculate the
-   * most probably state based on the current date and the deprecation
-   * timeline.
-   */
-  public tryGetDotComSupportsBasicAuth(): boolean {
-    return this.appStore._tryGetDotComSupportsBasicAuth()
-  }
-
-  /**
    * Initiate a sign in flow for github.com. This will put the store
    * in the Authentication step ready to receive user credentials.
    */
@@ -1466,7 +1410,7 @@ export class Dispatcher {
   public async showCreateForkDialog(
     repository: RepositoryWithGitHubRepository
   ): Promise<void> {
-    await this.appStore._showCreateforkDialog(repository)
+    await this.appStore._showCreateForkDialog(repository)
   }
 
   /**
@@ -1506,7 +1450,7 @@ export class Dispatcher {
   /**
    * Change the workflow preferences for the specified repository.
    *
-   * @param repository            The repositosy to update.
+   * @param repository            The repository to update.
    * @param workflowPreferences   The object with the workflow settings to use.
    */
   public async updateRepositoryWorkflowPreferences(
@@ -1696,7 +1640,7 @@ export class Dispatcher {
     await this.appStore._checkoutPullRequest(
       repository,
       pullRequest.number,
-      pullRequest.user.login,
+      pullRequest.head.repo.owner.login,
       pullRequest.head.repo.clone_url,
       pullRequest.head.ref
     )
@@ -1795,16 +1739,16 @@ export class Dispatcher {
   /**
    * Sets the user's preference for handling uncommitted changes when switching branches
    */
-  public setUncommittedChangesStrategyKindSetting(
-    value: UncommittedChangesStrategyKind
+  public setUncommittedChangesStrategySetting(
+    value: UncommittedChangesStrategy
   ): Promise<void> {
-    return this.appStore._setUncommittedChangesStrategyKindSetting(value)
+    return this.appStore._setUncommittedChangesStrategySetting(value)
   }
 
   /**
    * Sets the user's preference for an external program to open repositories in.
    */
-  public setExternalEditor(editor: ExternalEditor): Promise<void> {
+  public setExternalEditor(editor: string): Promise<void> {
     return this.appStore._setExternalEditor(editor)
   }
 
@@ -1815,7 +1759,7 @@ export class Dispatcher {
     return this.appStore._setShell(shell)
   }
 
-  public async checkoutLocalBranch(repository: Repository, branch: string) {
+  private async checkoutLocalBranch(repository: Repository, branch: string) {
     let shouldCheckoutBranch = true
 
     const state = this.repositoryStateManager.get(repository)
@@ -1965,6 +1909,11 @@ export class Dispatcher {
     )
   }
 
+  /** Change the side by side diff setting */
+  public onShowSideBySideDiffChanged(showSideBySideDiff: boolean) {
+    return this.appStore._setShowSideBySideDiff(showSideBySideDiff)
+  }
+
   /** Install the global Git LFS filters. */
   public installGlobalLFSFilters(force: boolean): Promise<void> {
     return this.appStore._installGlobalLFSFilters(force)
@@ -2060,7 +2009,7 @@ export class Dispatcher {
     return this.appStore._checkoutPullRequest(
       repository,
       pullRequest.pullRequestNumber,
-      pullRequest.author,
+      pullRequest.head.gitHubRepository.owner.login,
       pullRequest.head.gitHubRepository.cloneURL,
       pullRequest.head.ref
     )
@@ -2093,7 +2042,7 @@ export class Dispatcher {
   }
 
   /**
-   * Initialze the compare state for the current repository.
+   * Initialize the compare state for the current repository.
    */
   public initializeCompare(
     repository: Repository,
@@ -2179,7 +2128,7 @@ export class Dispatcher {
    */
   public async convertRepositoryToFork(
     repository: RepositoryWithGitHubRepository,
-    fork: IAPIRepository
+    fork: IAPIFullRepository
   ): Promise<Repository> {
     return this.appStore._convertRepositoryToFork(repository, fork)
   }
@@ -2248,34 +2197,6 @@ export class Dispatcher {
    */
   public recordRepoClicked(repoHasIndicator: boolean) {
     return this.statsStore.recordRepoClicked(repoHasIndicator)
-  }
-
-  /** The number of times the user dismisses the diverged branch notification
-   * Increments the `divergingBranchBannerDismissal` metric
-   */
-  public recordDivergingBranchBannerDismissal() {
-    return this.statsStore.recordDivergingBranchBannerDismissal()
-  }
-
-  /**
-   * Increments the `divergingBranchBannerInitiatedCompare` metric
-   */
-  public recordDivergingBranchBannerInitiatedCompare() {
-    return this.statsStore.recordDivergingBranchBannerInitiatedCompare()
-  }
-
-  /**
-   * Increments the `divergingBranchBannerInfluencedMerge` metric
-   */
-  public recordDivergingBranchBannerInfluencedMerge() {
-    return this.statsStore.recordDivergingBranchBannerInfluencedMerge()
-  }
-
-  /**
-   * Increments the `divergingBranchBannerInitatedMerge` metric
-   */
-  public recordDivergingBranchBannerInitatedMerge() {
-    return this.statsStore.recordDivergingBranchBannerInitatedMerge()
   }
 
   /**
@@ -2450,7 +2371,7 @@ export class Dispatcher {
 
   /**
    * Increment the number of times the user has opened their repository in
-   * Finder/Explorerfrom the suggested next steps view
+   * Finder/Explorer from the suggested next steps view
    */
   public recordSuggestedStepOpenWorkingDirectory(): Promise<void> {
     return this.statsStore.recordSuggestedStepOpenWorkingDirectory()
@@ -2494,19 +2415,6 @@ export class Dispatcher {
    */
   public recordSuggestedStepViewStash(): Promise<void> {
     return this.statsStore.recordSuggestedStepViewStash()
-  }
-
-  /**
-   * Moves unconmitted changes to the branch being checked out
-   */
-  public async moveChangesToBranchAndCheckout(
-    repository: Repository,
-    branchToCheckout: Branch
-  ) {
-    return this.appStore._moveChangesToBranchAndCheckout(
-      repository,
-      branchToCheckout
-    )
   }
 
   /** Record when the user takes no action on the stash entry */
@@ -2564,5 +2472,17 @@ export class Dispatcher {
     } else {
       return false
     }
+  }
+
+  public setRepositoryIndicatorsEnabled(repositoryIndicatorsEnabled: boolean) {
+    this.appStore._setRepositoryIndicatorsEnabled(repositoryIndicatorsEnabled)
+  }
+
+  public setCommitSpellcheckEnabled(commitSpellcheckEnabled: boolean) {
+    this.appStore._setCommitSpellcheckEnabled(commitSpellcheckEnabled)
+  }
+
+  public recordDiffOptionsViewed() {
+    return this.statsStore.recordDiffOptionsViewed()
   }
 }

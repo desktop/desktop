@@ -61,11 +61,9 @@ export enum PopupType {
   PushRejectedDueToMissingWorkflowScope,
   SAMLReauthRequired,
   CreateFork,
-  SChannelNoRevocationCheck,
   CreateTag,
   DeleteTag,
   LocalChangesOverwritten,
-  RebaseConflicts,
   ChooseForkSettings,
   ConfirmDiscardSelection,
 }
@@ -108,8 +106,6 @@ export type Popup =
   | {
       type: PopupType.CreateBranch
       repository: Repository
-      currentBranchProtected: boolean
-
       initialName?: string
     }
   | { type: PopupType.SignIn }
@@ -241,10 +237,6 @@ export type Popup =
       account: Account
     }
   | {
-      type: PopupType.SChannelNoRevocationCheck
-      url: string
-    }
-  | {
       type: PopupType.CreateTag
       repository: Repository
       targetCommitSha: string
@@ -264,4 +256,5 @@ export type Popup =
       type: PopupType.LocalChangesOverwritten
       repository: Repository
       retryAction: RetryAction
+      files: ReadonlyArray<string>
     }

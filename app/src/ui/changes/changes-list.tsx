@@ -186,6 +186,8 @@ interface IChangesListProps {
    * arrow pointing at the commit summary box
    */
   readonly shouldNudgeToCommit: boolean
+
+  readonly commitSpellcheckEnabled: boolean
 }
 
 interface IChangesState {
@@ -675,6 +677,7 @@ export class ChangesList extends React.Component<
         showBranchProtected={fileCount > 0 && currentBranchProtected}
         showNoWriteAccess={fileCount > 0 && !hasWritePermissionForRepository}
         shouldNudge={this.props.shouldNudgeToCommit}
+        commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
       />
     )
   }
@@ -776,7 +779,10 @@ export class ChangesList extends React.Component<
           selectedRows={this.state.selectedRows}
           selectionMode="multi"
           onSelectionChanged={this.props.onFileSelectionChanged}
-          invalidationProps={this.props.workingDirectory}
+          invalidationProps={{
+            workingDirectory: this.props.workingDirectory,
+            isCommitting: this.props.isCommitting,
+          }}
           onRowClick={this.props.onRowClick}
           onScroll={this.onScroll}
           setScrollTop={this.props.changesListScrollTop}

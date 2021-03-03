@@ -10,9 +10,13 @@ import { getAvatarUsersForCommit, IAvatarUser } from '../../models/avatar'
 import { AvatarStack } from '../lib/avatar-stack'
 import { CommitAttribution } from '../lib/commit-attribution'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
-import { enableGitTagsDisplay } from '../../lib/feature-flag'
+import {
+  enableGitTagsDisplay,
+  enableSideBySideDiffs,
+} from '../../lib/feature-flag'
 import { Tokenizer, TokenResult } from '../../lib/text-token-parser'
 import { wrapRichTextCommitMessage } from '../../lib/wrap-rich-text-commit-message'
+import { DiffOptions } from '../diff/diff-options'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -36,7 +40,16 @@ interface ICommitSummaryProps {
   readonly hideDescriptionBorder: boolean
 
   readonly hideWhitespaceInDiff: boolean
+
+  /** Whether we should display side by side diffs. */
+  readonly showSideBySideDiff: boolean
   readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
+
+  /** Called when the user changes the side by side diffs setting. */
+  readonly onShowSideBySideDiffChanged: (checked: boolean) => void
+
+  /** Called when the user opens the diff options popover */
+  readonly onDiffOptionsOpened: () => void
 }
 
 interface ICommitSummaryState {
@@ -343,20 +356,43 @@ export class CommitSummary extends React.Component<
             </li>
             {this.renderTags()}
 
-            <li
-              className="commit-summary-meta-item without-truncation"
-              title={filesDescription}
-            >
-              <Checkbox
-                label="Hide Whitespace"
-                value={
-                  this.props.hideWhitespaceInDiff
-                    ? CheckboxValue.On
-                    : CheckboxValue.Off
-                }
-                onChange={this.onHideWhitespaceInDiffChanged}
-              />
-            </li>
+            {enableSideBySideDiffs() || (
+              <li
+                className="commit-summary-meta-item without-truncation"
+                title="Hide Whitespace"
+              >
+                <Checkbox
+                  label="Hide Whitespace"
+                  value={
+                    this.props.hideWhitespaceInDiff
+                      ? CheckboxValue.On
+                      : CheckboxValue.Off
+                  }
+                  onChange={this.onHideWhitespaceInDiffChanged}
+                />
+              </li>
+            )}
+
+            {enableSideBySideDiffs() && (
+              <>
+                <li
+                  className="commit-summary-meta-item without-truncation"
+                  title="Split View"
+                >
+                  <DiffOptions
+                    onHideWhitespaceChangesChanged={
+                      this.props.onHideWhitespaceInDiffChanged
+                    }
+                    hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
+                    showSideBySideDiff={this.props.showSideBySideDiff}
+                    onShowSideBySideDiffChanged={
+                      this.props.onShowSideBySideDiffChanged
+                    }
+                    onDiffOptionsOpened={this.props.onDiffOptionsOpened}
+                  />
+                </li>
+              </>
+            )}
           </ul>
         </div>
 

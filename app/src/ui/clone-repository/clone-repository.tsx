@@ -32,7 +32,7 @@ interface ICloneRepositoryProps {
   /** The logged in accounts. */
   readonly dotComAccount: Account | null
 
-  /** The logged in Enterprise Server account. */
+  /** The logged in Enterprise account. */
   readonly enterpriseAccount: Account | null
 
   /** The initial URL or `owner/name` shortcut to use. */
@@ -45,7 +45,7 @@ interface ICloneRepositoryProps {
   readonly onTabSelected: (tab: CloneRepositoryTab) => void
 
   /**
-   * A map keyed on a user account (GitHub.com or GitHub Enterprise Server)
+   * A map keyed on a user account (GitHub.com or GitHub Enterprise)
    * containing an object with repositories that the authenticated
    * user has explicit permission (:read, :write, or :admin) to access
    * as well as information about whether the list of repositories
@@ -90,7 +90,7 @@ interface ICloneRepositoryState {
 
   /**
    * The persisted state of the CloneGitHubRepository component for
-   * the GitHub Enterprise Server account.
+   * the GitHub Enterprise account.
    */
   readonly enterpriseTabState: IGitHubTabState
 
@@ -216,7 +216,7 @@ export class CloneRepository extends React.Component<
           selectedIndex={this.props.selectedTab}
         >
           <span>GitHub.com</span>
-          <span>GitHub Enterprise Server</span>
+          <span>GitHub Enterprise</span>
           <span>URL</span>
         </TabBar>
 
@@ -446,7 +446,7 @@ export class CloneRepository extends React.Component<
             onAction={this.signInEnterprise}
           >
             <div>
-              If you have a GitHub Enterprise Server account at work, sign in to
+              If you have a GitHub Enterprise or AE account at work, sign in to
               it to get access to your repositories.
             </div>
           </CallToAction>
@@ -586,10 +586,9 @@ export class CloneRepository extends React.Component<
    * the repository alias to the clone URL.
    */
   private async resolveCloneURL(): Promise<string | null> {
-    const tabState = this.getSelectedTabState()
-    const identifier = tabState.lastParsedIdentifier
-    let url = tabState.url
-    const accounts: Array<Account> = []
+    const { url, lastParsedIdentifier } = this.getSelectedTabState()
+
+    const accounts = new Array<Account>()
     if (this.props.dotComAccount) {
       accounts.push(this.props.dotComAccount)
     }
@@ -599,19 +598,20 @@ export class CloneRepository extends React.Component<
     }
 
     const account = await findAccountForRemoteURL(url, accounts)
-    if (identifier && account) {
+    if (lastParsedIdentifier !== null && account !== null) {
       const api = API.fromAccount(account)
-      const repo = await api.fetchRepository(identifier.owner, identifier.name)
-      if (repo) {
-        // respect the user's preference if they pasted an SSH URL into the
-        // Clone Generic Repository tab
-        const parsedUrl = parseRemote(url)
-        if (parsedUrl && parsedUrl.protocol === 'ssh') {
-          url = repo.ssh_url
-        } else {
-          url = repo.clone_url
-        }
-      }
+      const { owner, name } = lastParsedIdentifier
+      // Respect the user's preference if they provided an SSH URL
+      const protocol = parseRemote(url)?.protocol
+
+      const cloneUrl = await api
+        .fetchRepositoryCloneUrl(owner, name, protocol)
+        .catch(err => {
+          log.error(`Failed to look up canonical clone url for '${url}'`, err)
+          return url
+        })
+
+      return cloneUrl
     }
 
     return url
@@ -643,7 +643,7 @@ export class CloneRepository extends React.Component<
     try {
       this.cloneImpl(url.trim(), path)
     } catch (e) {
-      log.error(`CloneRepostiory: clone failed to complete to ${path}`, e)
+      log.error(`CloneRepository: clone failed to complete to ${path}`, e)
       this.setState({ loading: false })
       this.setSelectedTabState({ error: e })
     }
