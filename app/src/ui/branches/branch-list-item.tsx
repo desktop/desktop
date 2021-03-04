@@ -32,6 +32,7 @@ interface IBranchListItemProps {
 
   readonly onDropOntoBranch?: (branchName: String) => void
 }
+
 interface IBranchListItemState {
   readonly isDraggedOver: boolean
 }
