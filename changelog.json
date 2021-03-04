@@ -1,5 +1,10 @@
 {
   "releases": {
+    "2.6.6-beta1": [
+      "[Added] Add .avif image support - #11625. Thanks @brendonbarreto!",
+      "[Fixed] Performing remote Git operations in rare cases displays an error message instead of crashing the app - #11694",
+      "[Improved] Clicking on \"Add Co-Author\" moves the focus to the co-authors text field - #11621"
+    ],
     "2.6.5": ["[Fixed] Performing remote Git operations could crash the app"],
     "2.6.4": [
       "[Added] Allow users to rename and delete branches via a new context menu on branches in the branches list - #5803 #10432",
