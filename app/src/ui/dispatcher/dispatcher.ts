@@ -220,9 +220,9 @@ export class Dispatcher {
    */
   public changeCommitSelection(
     repository: Repository,
-    sha: string
+    shas: ReadonlyArray<string>
   ): Promise<void> {
-    return this.appStore._changeCommitSelection(repository, sha)
+    return this.appStore._changeCommitSelection(repository, shas)
   }
 
   /**
