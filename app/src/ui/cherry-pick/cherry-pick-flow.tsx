@@ -162,6 +162,7 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
             sourceBranchName={sourceBranch !== null ? sourceBranch.name : null}
           />
         )
+      case CherryPickStepKind.CommitsChosen:
       case CherryPickStepKind.HideConflicts:
         // no ui for this part of flow
         return null

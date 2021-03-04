@@ -28,6 +28,8 @@ interface ICommitProps {
   readonly onCreateTag?: (targetCommitSha: string) => void
   readonly onDeleteTag?: (tagName: string) => void
   readonly onCherryPick?: (commits: ReadonlyArray<CommitOneLine>) => void
+  readonly onDragStart?: (commits: ReadonlyArray<CommitOneLine>) => void
+  readonly onDragEnd?: () => void
   readonly showUnpushedIndicator: boolean
   readonly unpushedIndicatorTitle?: string
   readonly unpushedTags?: ReadonlyArray<string>
@@ -70,8 +72,17 @@ export class CommitListItem extends React.PureComponent<
       author: { date },
     } = commit
 
+    const isDraggable =
+      this.props.onDragStart !== undefined && enableCherryPicking()
+
     return (
-      <div className="commit" onContextMenu={this.onContextMenu}>
+      <div
+        className="commit"
+        onContextMenu={this.onContextMenu}
+        draggable={isDraggable}
+        onDragStart={this.onDragStart}
+        onDragEnd={this.onDragEnd}
+      >
         <div className="info">
           <RichText
             className="summary"
@@ -282,6 +293,24 @@ export class CommitListItem extends React.PureComponent<
           enabled: unpushedTagsSet.has(tagName),
         }
       }),
+    }
+  }
+
+  /**
+   * Note: For typing, event is required parameter.
+   **/
+  private onDragStart = (event: React.DragEvent<HTMLDivElement>): void => {
+    if (this.props.onDragStart !== undefined) {
+      this.props.onDragStart([this.props.commit])
+    }
+  }
+
+  /**
+   * Note: For typing, event is required parameter.
+   **/
+  private onDragEnd = (event: React.DragEvent<HTMLDivElement>): void => {
+    if (this.props.onDragEnd !== undefined) {
+      this.props.onDragEnd()
     }
   }
 }

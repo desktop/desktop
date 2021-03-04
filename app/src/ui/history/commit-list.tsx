@@ -51,6 +51,11 @@ interface ICommitListProps {
   /** Callback to fire to cherry picking the commit  */
   readonly onCherryPick: (commits: ReadonlyArray<CommitOneLine>) => void
 
+  /** Callback to fire to when has started being dragged  */
+  readonly onDragCommitStart: (commits: ReadonlyArray<CommitOneLine>) => void
+
+  /** Callback to fire to when has started being dragged  */
+  readonly onDragCommitEnd: () => void
   /**
    * Optional callback that fires on page scroll in order to allow passing
    * a new scrollTop value up to the parent component for storing.
@@ -127,6 +132,8 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         onRevertCommit={this.props.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         selectedCommits={this.selectedCommits}
+        onDragStart={this.props.onDragCommitStart}
+        onDragEnd={this.props.onDragCommitEnd}
       />
     )
   }

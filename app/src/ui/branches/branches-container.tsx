@@ -151,7 +151,8 @@ export class BranchesContainer extends React.Component<
       matches,
       this.props.currentBranch,
       this.onRenameBranch,
-      this.onDeleteBranch
+      this.onDeleteBranch,
+      this.onDropOntoBranch
     )
   }
 
@@ -308,5 +309,31 @@ export class BranchesContainer extends React.Component<
       branch,
       existsOnRemote: branch.upstreamRemoteName !== null,
     })
+  }
+
+  /**
+   * Method is to handle when something is dragged and dropped onto a branch
+   * in the branch dropdown.
+   *
+   * Currently this is being implemented with cherry picking. But, this could be
+   * expanded if we ever dropped something else on a branch; in which case,
+   * we would likely have to check the app state to see what action is being
+   * performed. As this branch container is not being used anywhere except
+   * for the branch dropdown, we are not going to pass the repository state down
+   * during this implementation.
+   */
+  private onDropOntoBranch = (branchName: string) => {
+    const branch = this.props.allBranches.find(b => b.name === branchName)
+    if (branch === undefined) {
+      log.warn(
+        '[branches-container] - Branch name of branch dropped on does not exist.'
+      )
+      return
+    }
+
+    this.props.dispatcher.startCherryPickWithBranch(
+      this.props.repository,
+      branch
+    )
   }
 }
