@@ -7,6 +7,8 @@ import { ICherryPickProgress } from './progress'
 export interface ICherryPickSnapshot {
   /** The sequence of commits remaining to be cherry picked */
   readonly remainingCommits: ReadonlyArray<CommitOneLine>
+  /** The sequence of commits being cherry picked */
+  readonly commits: ReadonlyArray<CommitOneLine>
   /** The progress of the operation */
   readonly progress: ICherryPickProgress
 }

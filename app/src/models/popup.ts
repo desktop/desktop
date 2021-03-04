@@ -274,5 +274,5 @@ export type Popup =
       type: PopupType.CherryPick
       repository: Repository
       commits: ReadonlyArray<CommitOneLine>
-      sourceBranch: Branch
+      sourceBranch: Branch | null
     }

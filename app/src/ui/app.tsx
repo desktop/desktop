@@ -2803,7 +2803,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onShowCherryPickConflictsBanner = (
     repository: Repository,
     targetBranchName: string,
-    sourceBranch: Branch,
+    sourceBranch: Branch | null,
     commits: ReadonlyArray<CommitOneLine>
   ) => {
     this.props.dispatcher.setCherryPickFlowStep(repository, {

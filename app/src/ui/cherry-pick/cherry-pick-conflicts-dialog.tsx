@@ -38,7 +38,7 @@ interface ICherryPickConflictsDialogProps {
   readonly workingDirectory: WorkingDirectoryStatus
 
   // For display in manual resolution context menu
-  readonly sourceBranchName: string
+  readonly sourceBranchName: string | null
 
   readonly onDismissed: () => void
   readonly onContinueCherryPick: (step: ShowConflictsStep) => void
@@ -123,7 +123,7 @@ export class CherryPickConflictsDialog extends React.Component<
       repository,
       dispatcher,
       step,
-      sourceBranchName: ourBranch,
+      sourceBranchName,
     } = this.props
 
     const {
@@ -144,7 +144,8 @@ export class CherryPickConflictsDialog extends React.Component<
                 dispatcher,
                 manualResolution: manualResolutions.get(f.path),
                 theirBranch,
-                ourBranch,
+                ourBranch:
+                  sourceBranchName !== null ? sourceBranchName : undefined,
               })
             : null
         )}
