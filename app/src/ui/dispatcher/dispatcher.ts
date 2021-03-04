@@ -2617,7 +2617,10 @@ export class Dispatcher {
   }
 
   /** Aborts an ongoing cherry pick and switches back to the source branch. */
-  public async abortCherryPick(repository: Repository, sourceBranch: Branch) {
+  public async abortCherryPick(
+    repository: Repository,
+    sourceBranch: Branch | null
+  ) {
     await this.appStore._abortCherryPick(repository, sourceBranch)
     await this.appStore._loadStatus(repository)
     this.appStore._endCherryPickFlow(repository)

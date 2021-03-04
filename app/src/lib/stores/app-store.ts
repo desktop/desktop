@@ -108,6 +108,7 @@ import {
   isRebaseConflictState,
   isCherryPickConflictState,
   isMergeConflictState,
+  CherryPickConflictState,
 } from '../app-state'
 import {
   findEditorOrDefault,
@@ -1985,7 +1986,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     } else if (isRebaseConflictState(conflictState)) {
       await this.showRebaseConflictsDialog(repository, conflictState)
     } else if (isCherryPickConflictState(conflictState)) {
-      // TODO: launch cherry pick conflicts dialog
+      await this.showCherryPickConflictsDialog(repository, conflictState)
     } else {
       assertNever(conflictState, `Unsupported conflict kind`)
     }
@@ -5843,11 +5844,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _abortCherryPick(
     repository: Repository,
-    sourceBranch: Branch
+    sourceBranch: Branch | null
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
 
     await gitStore.performFailableOperation(() => abortCherryPick(repository))
+
+    if (sourceBranch === null) {
+      return
+    }
 
     await this.withAuthenticatingUser(repository, async (r, account) => {
       await gitStore.performFailableOperation(() =>
@@ -5910,6 +5915,51 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoryStateCache.updateCherryPickState(repository, () => ({
       progress,
     }))
+  }
+
+  /** display the cherry pick flow, if not already in this flow */
+  private async showCherryPickConflictsDialog(
+    repository: Repository,
+    conflictState: CherryPickConflictState
+  ) {
+    const alreadyInFlow =
+      this.currentPopup !== null &&
+      this.currentPopup.type === PopupType.CherryPick
+
+    if (alreadyInFlow) {
+      return
+    }
+
+    const displayingBanner =
+      this.currentBanner !== null &&
+      this.currentBanner.type === BannerType.CherryPickConflictsFound
+
+    if (displayingBanner) {
+      return
+    }
+
+    await this._setCherryPickProgressFromState(repository)
+
+    this._setCherryPickFlowStep(repository, {
+      kind: CherryPickStepKind.ShowConflicts,
+      conflictState,
+    })
+
+    const snapshot = await getCherryPickSnapshot(repository)
+
+    if (snapshot === null) {
+      log.warn(
+        `[showCherryPickConflictsDialog] unable to get cherry pick status from git, unable to continue`
+      )
+      return
+    }
+
+    this._showPopup({
+      type: PopupType.CherryPick,
+      repository,
+      commits: snapshot?.commits,
+      sourceBranch: null,
+    })
   }
 }
 
