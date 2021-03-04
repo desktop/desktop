@@ -131,11 +131,6 @@ export class CherryPickConflictsDialog extends React.Component<
       targetBranchName: theirBranch,
     } = step.conflictState
 
-    let ourBranch: string
-    if (sourceBranchName !== null) {
-      ourBranch = sourceBranchName
-    }
-
     return (
       <ul className="unmerged-file-statuses">
         {files.map(f =>
@@ -149,7 +144,8 @@ export class CherryPickConflictsDialog extends React.Component<
                 dispatcher,
                 manualResolution: manualResolutions.get(f.path),
                 theirBranch,
-                ourBranch,
+                ourBranch:
+                  sourceBranchName !== null ? sourceBranchName : undefined,
               })
             : null
         )}
