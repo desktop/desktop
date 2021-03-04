@@ -186,7 +186,8 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
   private onDragOver = (event: React.DragEvent<HTMLDivElement>): void => {
     event.preventDefault()
 
-    // If the cherry picking state is initiated, open the branch menu.
+    // If the cherry picking state is initiated, we assume the user is
+    // dragging commits. Therefore, we should open the branch menu.
     const { cherryPickState } = this.props.repositoryState
     if (
       cherryPickState.step !== null &&
