@@ -18,17 +18,29 @@ export type CherryPickFlowStep =
   | ChooseTargetBranchesStep
   | ShowProgressStep
   | ShowConflictsStep
+  | CommitsChosenStep
   | HideConflictsStep
 
 export const enum CherryPickStepKind {
   /**
-   * The initial state of a cherry pick.
+   * An initial state of a cherry pick.
+   *
+   * This is where the user has started dragging a commit or set of commits but
+   * has not yet dropped them on a branch or an area to launch to choose branch
+   * dialog.
+   */
+  CommitsChosen = 'CommitsChosen',
+
+  /**
+   * An initial state of a cherry pick.
    *
    * This is where the user picks which is the target of the cherry pick.
    * This step will be skipped when cherry pick is initiated through
-   * drag and drop onto a specific branch.
+   * drag and drop onto a specific branch. But, it will be the first step
+   * if the cherry pick is initiated through the context menu.
    */
   ChooseTargetBranch = 'ChooseTargetBranch',
+
   /**
    * After the user chooses the target branch of the cherry pick, the
    * progress view shows the cherry pick is progressing.
@@ -77,4 +89,13 @@ export type ShowConflictsStep = {
 /** Shape of data to track when user hides conflicts dialog */
 export type HideConflictsStep = {
   readonly kind: CherryPickStepKind.HideConflicts
+}
+
+/**
+ * Shape of data for when a user has chosen commits to cherry pick but not yet
+ * selected a target branch.
+ */
+export type CommitsChosenStep = {
+  readonly kind: CherryPickStepKind.CommitsChosen
+  commits: ReadonlyArray<CommitOneLine>
 }
