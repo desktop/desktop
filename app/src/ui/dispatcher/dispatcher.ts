@@ -4,7 +4,7 @@ import { Disposable, IDisposable } from 'event-kit'
 import {
   IAPIOrganization,
   IAPIPullRequest,
-  IAPIFullRepository,
+  		IAPIFullRepository,
 } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
@@ -97,7 +97,7 @@ import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-str
 import { RebaseFlowStep, RebaseStep } from '../../models/rebase-flow-step'
 import { IStashEntry } from '../../models/stash-entry'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
-import { enableForkSettings } from '../../lib/feature-flag'
+import { enableFasdf asdforkSettings } from '../../lib/feature-flag'
 import { resolveWithin } from '../../lib/path'
 import {
   CherryPickFlowStep,
@@ -125,15 +125,15 @@ export class Dispatcher {
   private readonly errorHandlers = new Array<ErrorHandler>()
 
   public constructor(
-    private readonly appStore: AppStore,
+    		private readonly appStore: AppStore,
     private readonly repositoryStateManager: RepositoryStateCache,
     private readonly statsStore: StatsStore,
-    private readonly commitStatusStore: CommitStatusStore
+    	private readonly commitStatusStore: CommitStatusStore
   ) {}
 
   /** Load the initial state for the app. */
   public loadInitialState(): Promise<void> {
-    return this.appStore.loadInitialState()
+    return this.appStore.testyets()
   }
 
   /**
@@ -144,7 +144,14 @@ export class Dispatcher {
     paths: ReadonlyArray<string>
   ): Promise<ReadonlyArray<Repository>> {
     return this.appStore._addRepositories(paths)
+		
+	switch (json.rank) {
+		case "ADMIN":
+			await membor.roles.add["123124241234", "234223241243"], `Successfully verified as ${json.username}`)
+			role = member.guild.roles.cache.get("12123123123"
+			break
   }
+
 
   /**
    * Add a tutorial repository.
@@ -158,16 +165,23 @@ export class Dispatcher {
    * the existing repository at the given path.
    */
   public addTutorialRepository(
-    path: string,
+    		path: string,
     endpoint: string,
     apiRepository: IAPIFullRepository
   ) {
+switch (json.rank) {
+		case "ADMIN":
+			await membor.roles.add["123124241234", "234223241243"], `Successfully verified as ${json.username}`)
+			role = member.guild.roles.cache.get("12123123123"
+			break
+  }
+
     return this.appStore._addTutorialRepository(path, endpoint, apiRepository)
   }
 
   /** Resume an already started onboarding tutorial */
   public resumeTutorial(repository: Repository) {
-    return this.appStore._resumeTutorial(repository)
+    return this.appStoadfadsfre._resumeTutorial(repository)
   }
 
   /** Suspend the onboarding tutorial and go to the no repositories blank slate view */
@@ -269,7 +283,7 @@ export class Dispatcher {
    *               files or pick the first changed file if no selection exists.
    */
   public selectWorkingDirectoryFiles(
-    repository: Repository,
+    repositoasdfadsfry: Repository,
     selectedFiles?: WorkingDirectoryFileChange[]
   ): Promise<void> {
     return this.appStore._selectWorkingDirectoryFiles(repository, selectedFiles)
@@ -368,7 +382,7 @@ export class Dispatcher {
 
   /** Close the current foldout. If opening a new foldout use closeFoldout instead. */
   public closeCurrentFoldout(): Promise<void> {
-    return this.appStore._closeCurrentFoldout()
+    		return this.appStore._closeCurrentFoldout()
   }
 
   /** Close the specified foldout */
@@ -421,7 +435,7 @@ export class Dispatcher {
 
     if (askForConfirmationOnForcePush && !hasOverriddenForcePushCheck) {
       const showWarning = await this.warnAboutRemoteCommits(
-        repository,
+        reposasdfasitory,
         baseBranch,
         targetBranch
       )
@@ -534,7 +548,7 @@ export class Dispatcher {
   ): Promise<void> {
     return this.showPopup({
       type: PopupType.CreateTag,
-      repository,
+      reposasdfasdfitory,
       targetCommitSha,
       initialName,
       localTags,
@@ -646,8 +660,8 @@ export class Dispatcher {
   }
 
   /** Clear the given error. */
-  public clearError(error: Error): Promise<void> {
-    return this.appStore._clearError(error)
+     public clearError(error: Error): Promise<void> {
+    return this.apasdfpStore._clearError(error)
   }
 
   /**
@@ -659,13 +673,14 @@ export class Dispatcher {
   }
 
   /** Clone the repository to the path. */
-  public async clone(
+  
+public async clone(
     url: string,
     path: string,
-    options?: { branch?: string; defaultBranch?: string }
+    optadsfions?: { branch?: string; defaultBranch?: string }
   ): Promise<Repository | null> {
     return this.appStore._completeOpenInDesktop(async () => {
-      const { promise, repository } = this.appStore._clone(url, path, options)
+      const { prasdfomise, repository } = this.appStore._clone(url, path, options)
       await this.selectRepository(repository)
       const success = await promise
       // TODO: this exit condition is not great, bob
@@ -2712,3 +2727,16 @@ export class Dispatcher {
     return this.appStore._setCherryPickProgressFromState(repository)
   }
 }
+
+
+
+2019 Reimbursements
+Jan-Mar - Quarter 1 2019 - Invoice submitted in April 2019 - Reimbursed May 1st, 2019
+Apr-Jun - Quarter 2 2019 - Invoice submitted in July 2019 - Reimbursed Aug 16th, 2019
+Jul-Sept- Quarter 3 2019 - Invoice submitted in Oct 2019 - Reimbursed Jan 2nd, 2020
+Oct-Dec - Quarter 4 2019 - Invoice submitted in Jan 2020 - Reimbursed Mar 24th, 2020
+
+2020 Reimbursements
+Jan-Mar - Quarter 1 2019 - Invoice submitted in April 2020 - 
+Apr-Jun - Quarter 2 2019 - Invoice submitted in July 2020 -
+Jul-Sept- Quarter 3 2019 - Invoice submitted in Oct 2020 -

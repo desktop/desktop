@@ -18,8 +18,8 @@ interface ICommitListProps {
   /** The commits loaded, keyed by their full SHA. */
   readonly commitLookup: Map<string, Commit>
 
-  /** The SHA of the selected commit */
-  readonly selectedSHA: string | null
+  /** The SHAs of the selected commits */
+  readonly selectedSHAs: ReadonlyArray<string>
 
   /** The emoji lookup to render images inline */
   readonly emoji: Map<string, string>
@@ -31,7 +31,7 @@ interface ICommitListProps {
   readonly emptyListMessage: JSX.Element | string
 
   /** Callback which fires when a commit has been selected in the list */
-  readonly onCommitSelected: (commit: Commit) => void
+  readonly onCommitsSelected: (commits: ReadonlyArray<Commit>) => void
 
   /** Callback that fires when a scroll event has occurred */
   readonly onScroll: (start: number, end: number) => void
@@ -161,14 +161,8 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         selectedCommits.push(commit)
       }
     })
-    this.selectedCommits = selectedCommits
-    // Preserved the behavior of on selection change updating commit selected
-    // TODO: need to determine if this should really just do nothing
-    // if more than one commit is selected vs. marking first one always
-    const commit = this.selectedCommits[0]
-    if (commit) {
-      this.props.onCommitSelected(commit)
-    }
+
+    this.props.onCommitsSelected(selectedCommits)
   }
 
   private onScroll = (scrollTop: number, clientHeight: number) => {
@@ -204,7 +198,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         <List
           rowCount={this.props.commitSHAs.length}
           rowHeight={RowHeight}
-          selectedRows={this.selectedCommits.map(sc => this.rowForSHA(sc.sha))}
+          selectedRows={this.props.selectedSHAs.map(this.rowForSHA)}
           rowRenderer={this.renderCommit}
           onSelectedRangeChanged={this.onSelectedRangeChanged}
           selectionMode="range"
