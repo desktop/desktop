@@ -2705,7 +2705,7 @@ export class Dispatcher {
     }
   }
 
-  /*
+  /**
    * Update the cherry pick progress in application state by querying the Git
    * repository state.
    */
