@@ -198,7 +198,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         <List
           rowCount={this.props.commitSHAs.length}
           rowHeight={RowHeight}
-          selectedRows={this.props.selectedSHAs.map(this.rowForSHA)}
+          selectedRows={this.props.selectedSHAs.map(sha => this.rowForSHA(sha))}
           rowRenderer={this.renderCommit}
           onSelectedRangeChanged={this.onSelectedRangeChanged}
           selectionMode="range"
