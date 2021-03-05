@@ -75,8 +75,6 @@ interface ICommitListProps {
 /** A component which displays the list of commits. */
 export class CommitList extends React.Component<ICommitListProps, {}> {
   private commitsHash = memoize(makeCommitsHash, arrayEquals)
-  private selectedCommits: ReadonlyArray<Commit> = []
-
   private getVisibleCommits(): ReadonlyArray<Commit> {
     const commits = new Array<Commit>()
     for (const sha of this.props.commitSHAs) {
@@ -131,7 +129,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         onCherryPick={this.props.onCherryPick}
         onRevertCommit={this.props.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
-        selectedCommits={this.selectedCommits}
+        selectedCommits={this.lookupCommits(this.props.selectedSHAs)}
         onDragStart={this.props.onDragCommitStart}
         onDragEnd={this.props.onDragCommitEnd}
       />
@@ -161,15 +159,25 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     source: SelectionSource
   ) => {
     const commitSHARange = this.props.commitSHAs.slice(start, end + 1)
-    const selectedCommits: Commit[] = []
-    commitSHARange.forEach(sha => {
-      const commit = this.props.commitLookup.get(sha)
-      if (commit !== undefined) {
-        selectedCommits.push(commit)
-      }
-    })
-
+    const selectedCommits = this.lookupCommits(commitSHARange)
     this.props.onCommitsSelected(selectedCommits)
+  }
+
+  private lookupCommits(
+    commitSHAs: ReadonlyArray<string>
+  ): ReadonlyArray<Commit> {
+    const commits: Commit[] = []
+    commitSHAs.forEach(sha => {
+      const commit = this.props.commitLookup.get(sha)
+      if (commit === undefined) {
+        log.warn(
+          '[Commit List] - Unable to lookup commit from sha - This should not happen.'
+        )
+        return
+      }
+      commits.push(commit)
+    })
+    return commits
   }
 
   private onScroll = (scrollTop: number, clientHeight: number) => {

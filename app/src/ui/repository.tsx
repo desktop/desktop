@@ -355,7 +355,7 @@ export class RepositoryView extends React.Component<
         onOpenBinaryFile={this.onOpenBinaryFile}
         onChangeImageDiffType={this.onChangeImageDiffType}
         onDiffOptionsOpened={this.onDiffOptionsOpened}
-        areMultipleCommitsSelected={false} //commitSelection.shas.length > 1}
+        areMultipleCommitsSelected={commitSelection.shas.length > 1}
       />
     )
   }

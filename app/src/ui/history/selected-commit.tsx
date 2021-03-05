@@ -336,11 +336,11 @@ function MultipleCommitsSelected() {
   return (
     <div className="panel blankslate">
       <p>Unable to display diff when multiple commits are selected.</p>
-      <p>Please, do one of the following:</p>
+      <p>You can:</p>
       <ul>
         <li>Select a single commit to view a diff.</li>
-        <li>Drag the commits to cherry pick them.</li>
-        <li>Open context menu on multiple commits.</li>
+        <li>Drag the commits to the branch menu to cherry pick them.</li>
+        <li>Right click on multiple commits to see options.</li>
       </ul>
     </div>
   )
