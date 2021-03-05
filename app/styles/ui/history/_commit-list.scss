@@ -7,7 +7,8 @@
   flex: 1;
   min-height: 0;
 
-  .commit {
+  .commit,
+  .commit-drag-ghost {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -19,6 +20,7 @@
     // We need to give a bit more padding to the right to make place for the scrollbar
     padding-right: calc(var(--spacing) + var(--spacing-half));
     padding-left: var(--spacing);
+    z-index: 2;
 
     .info {
       display: flex;
@@ -87,6 +89,35 @@
         background: var(--list-item-badge-background-color);
         margin-left: var(--spacing-half);
       }
+    }
+  }
+
+  .commit-drag-ghost {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    height: 0;
+    overflow: hidden;
+
+    .unpushed-indicator {
+      background: var(--list-item-selected-badge-background-color);
+      color: var(--list-item-selected-badge-color);
+    }
+    .tag-name {
+      background: var(--list-item-selected-badge-background-color);
+      color: var(--list-item-selected-badge-color);
+      box-shadow: 1px 0 0 var(--box-selected-background-color);
+    }
+    .tag-indicator-more {
+      background: var(--list-item-selected-badge-background-color);
+    }
+
+    color: var(--box-selected-text-color);
+    background-color: var(--background-color);
+
+    &.boo {
+      height: 100%;
     }
   }
 
