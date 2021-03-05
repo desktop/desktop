@@ -1073,7 +1073,7 @@ export class List extends React.Component<IListProps, IListState> {
         // Do nothing. Multiple rows are already selected for a range. We assume
         // the user is pressing down on multiple and may desire to start
         // dragging. We will invoke the single selection `onRowMouseUp` if they
-        // let go here and no special keys being pressed.
+        // let go here and no special keys are being pressed.
       } else if (
         this.props.selectedRows.length !== 1 ||
         (this.props.selectedRows.length === 1 &&
@@ -1108,7 +1108,7 @@ export class List extends React.Component<IListProps, IListState> {
     if (
       !event.shiftKey &&
       !multiSelectKey &&
-      this.props.selectedRows.length > 0 &&
+      this.props.selectedRows.length > 1 &&
       this.props.selectionMode === 'range'
     ) {
       // No special keys are depressed and multiple rows were selected in a
