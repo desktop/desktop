@@ -32,6 +32,9 @@ interface IListRowProps {
   /** callback to fire when the row receives a mousedown event */
   readonly onRowMouseDown: (index: number, e: React.MouseEvent<any>) => void
 
+  /** callback to fire when the row receives a mouseup event */
+  readonly onRowMouseUp: (index: number, e: React.MouseEvent<any>) => void
+
   /** callback to fire when the row is clicked */
   readonly onRowClick: (index: number, e: React.MouseEvent<any>) => void
 
@@ -56,6 +59,10 @@ export class ListRow extends React.Component<IListRowProps, {}> {
 
   private onRowMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     this.props.onRowMouseDown(this.props.rowIndex, e)
+  }
+
+  private onRowMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+    this.props.onRowMouseUp(this.props.rowIndex, e)
   }
 
   private onRowClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -97,6 +104,7 @@ export class ListRow extends React.Component<IListRowProps, {}> {
         ref={this.props.onRef}
         onMouseOver={this.onRowMouseOver}
         onMouseDown={this.onRowMouseDown}
+        onMouseUp={this.onRowMouseUp}
         onClick={this.onRowClick}
         onKeyDown={this.onRowKeyDown}
         style={style}
