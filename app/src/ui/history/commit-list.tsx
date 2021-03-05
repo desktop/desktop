@@ -158,7 +158,12 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     end: number,
     source: SelectionSource
   ) => {
-    const commitSHARange = this.props.commitSHAs.slice(start, end + 1)
+    // if user selects a range top down, start < end.
+    // if user selects a range down to up, start > end and need to be inverted.
+    // .slice is exclusive of last range end, thus + 1
+    const rangeStart = start < end ? start : end
+    const rangeEnd = start < end ? end + 1 : start + 1
+    const commitSHARange = this.props.commitSHAs.slice(rangeStart, rangeEnd)
     const selectedCommits = this.lookupCommits(commitSHARange)
     this.props.onCommitsSelected(selectedCommits)
   }
