@@ -333,15 +333,23 @@ function NoCommitSelected() {
 }
 
 function MultipleCommitsSelected() {
+  const BlankSlateImage = encodePathAsUrl(
+    __dirname,
+    'static/empty-no-commit.svg'
+  )
+
   return (
-    <div className="panel blankslate">
-      <p>Unable to display diff when multiple commits are selected.</p>
-      <p>You can:</p>
-      <ul>
-        <li>Select a single commit to view a diff.</li>
-        <li>Drag the commits to the branch menu to cherry pick them.</li>
-        <li>Right click on multiple commits to see options.</li>
-      </ul>
+    <div id="multiple-commits-selected" className="panel blankslate">
+      <img src={BlankSlateImage} className="blankslate-image" />
+      <div>
+        <p>Unable to display diff when multiple commits are selected.</p>
+        <div>You can:</div>
+        <ul>
+          <li>Select a single commit to view a diff.</li>
+          <li>Drag the commits to the branch menu to cherry pick them.</li>
+          <li>Right click on multiple commits to see options.</li>
+        </ul>
+      </div>
     </div>
   )
 }
