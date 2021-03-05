@@ -155,6 +155,8 @@ import {
   deleteRemoteBranch,
   fastForwardBranches,
   revRangeInclusive,
+  GitResetMode,
+  reset,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -5873,6 +5875,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
+  public _setCherryPickTargetBranchUndoSha(
+    repository: Repository,
+    sha: string
+  ): void {
+    // An update is not emitted here because there is no need
+    // to trigger a re-render at this point. (storing for later)
+    this.repositoryStateCache.updateCherryPickState(repository, () => ({
+      targetBranchUndoSha: sha,
+    }))
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public _setCherryPickConflictsResolved(repository: Repository) {
     // an update is not emitted here because there is no need
     // to trigger a re-render at this point
@@ -5960,6 +5974,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commits: snapshot?.commits,
       sourceBranch: null,
     })
+  }
+
+  public async _undoCherryPick(repository: Repository): Promise<void> {
+    const {
+      cherryPickState: { targetBranchUndoSha },
+    } = this.repositoryStateCache.get(repository)
+
+    if (targetBranchUndoSha === null) {
+      log.warn('[undoCherryPick] - Could not determine target branch undo sha')
+      return
+    }
+
+    const gitStore = this.gitStoreCache.get(repository)
+    await gitStore.performFailableOperation(() =>
+      reset(repository, GitResetMode.Hard, targetBranchUndoSha)
+    )
+
+    return this._refreshRepository(repository)
   }
 }
 
