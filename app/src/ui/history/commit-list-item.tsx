@@ -301,7 +301,7 @@ export class CommitListItem extends React.PureComponent<
    **/
   private onDragStart = (event: React.DragEvent<HTMLDivElement>): void => {
     if (this.props.onDragStart !== undefined) {
-      this.props.onDragStart([this.props.commit])
+      this.props.onDragStart(this.props.selectedCommits)
     }
   }
 
