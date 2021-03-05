@@ -5976,7 +5976,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
-  public async _undoCherryPick(repository: Repository): Promise<void> {
+  public async _undoCherryPick(
+    repository: Repository,
+    targetBranchName: string
+  ): Promise<void> {
+    const { branchesState } = this.repositoryStateCache.get(repository)
+    const { tip } = branchesState
+    if (tip.kind !== TipState.Valid || tip.branch.name !== targetBranchName) {
+      log.warn(
+        '[undoCherryPick] - Could not undo cherry pick.  User no longer on target branch.'
+      )
+      return
+    }
+
     const {
       cherryPickState: { targetBranchUndoSha },
     } = this.repositoryStateCache.get(repository)
@@ -5985,7 +5997,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       log.warn('[undoCherryPick] - Could not determine target branch undo sha')
       return
     }
-
     const gitStore = this.gitStoreCache.get(repository)
     await gitStore.performFailableOperation(() =>
       reset(repository, GitResetMode.Hard, targetBranchUndoSha)

@@ -2608,7 +2608,7 @@ export class Dispatcher {
       targetBranchName,
       countCherryPicked,
       onUndoCherryPick: () => {
-        this.undoCherryPick(repository)
+        this.undoCherryPick(repository, targetBranchName)
       },
     }
     this.setBanner(banner)
@@ -2767,7 +2767,10 @@ export class Dispatcher {
    * This method will perform a hard reset back to the tip of the target branch
    * before the cherry pick happened.
    */
-  private async undoCherryPick(repository: Repository): Promise<void> {
-    await this.appStore._undoCherryPick(repository)
+  private async undoCherryPick(
+    repository: Repository,
+    targetBranchName: string
+  ): Promise<void> {
+    await this.appStore._undoCherryPick(repository, targetBranchName)
   }
 }
