@@ -20,6 +20,7 @@ export type CherryPickFlowStep =
   | ShowConflictsStep
   | CommitsChosenStep
   | HideConflictsStep
+  | ConfirmAbortStep
 
 export const enum CherryPickStepKind {
   /**
@@ -57,6 +58,7 @@ export const enum CherryPickStepKind {
    * the view will switch back to `ShowProgress`.
    */
   ShowConflicts = 'ShowConflicts',
+
   /**
    * The user may wish to leave the conflict dialog and view the files in
    * the Changes tab to get a better context. In this situation, the application
@@ -64,6 +66,13 @@ export const enum CherryPickStepKind {
    * conflicted list.
    */
   HideConflicts = 'HideConflicts',
+
+  /**
+   * If the user attempts to abort the in-progress cherry pick and the user has
+   * resolved conflicts, the application should ask the user to confirm that
+   * they wish to abort.
+   */
+  ConfirmAbort = 'ConfirmAbort',
 }
 
 /** Shape of data needed to choose the base branch for a cherry pick  */
@@ -98,4 +107,10 @@ export type HideConflictsStep = {
 export type CommitsChosenStep = {
   readonly kind: CherryPickStepKind.CommitsChosen
   commits: ReadonlyArray<CommitOneLine>
+}
+
+/** Shape of data to use when confirming user should abort rebase */
+export type ConfirmAbortStep = {
+  readonly kind: CherryPickStepKind.ConfirmAbort
+  readonly conflictState: CherryPickConflictState
 }
