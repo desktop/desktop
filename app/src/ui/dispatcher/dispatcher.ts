@@ -1911,6 +1911,12 @@ export class Dispatcher {
           retryAction.baseBranch,
           retryAction.targetBranch
         )
+      case RetryActionType.CherryPick:
+        return this.cherryPick(
+          retryAction.repository,
+          retryAction.targetBranch,
+          retryAction.commits
+        )
 
       default:
         return assertNever(retryAction, `Unknown retry action: ${retryAction}`)
@@ -2523,14 +2529,12 @@ export class Dispatcher {
   }
 
   /** Initialize and start the cherry pick operation */
-  public async startCherryPick(
+  public async initializeCherryPickFlow(
     repository: Repository,
-    targetBranch: Branch,
     commits: ReadonlyArray<CommitOneLine>
   ): Promise<void> {
     this.appStore._initializeCherryPickProgress(repository, commits)
     this.switchCherryPickingFlowToShowProgress(repository)
-    this.cherryPick(repository, targetBranch, commits)
   }
 
   private logHowToRevertCherryPick(
@@ -2556,6 +2560,7 @@ export class Dispatcher {
     targetBranch: Branch,
     commits: ReadonlyArray<CommitOneLine>
   ): Promise<void> {
+    this.initializeCherryPickFlow(repository, commits)
     this.logHowToRevertCherryPick(repository, targetBranch)
 
     const result = await this.appStore._cherryPick(
@@ -2699,8 +2704,15 @@ export class Dispatcher {
       case CherryPickResult.ConflictsEncountered:
         this.startConflictCherryPickFlow(repository)
         break
+      case CherryPickResult.UnableToStart:
+        // This is an expected error such as not being able to checkout the
+        // target branch which means the cherry pick operation never started or
+        // was cleanly aborted.
+        this.appStore._endCherryPickFlow(repository)
+        return
       default:
         this.appStore._endCherryPickFlow(repository)
+        this.appStore._closePopup()
         throw Error(
           `Unable to perform cherry pick operation.
           This should not happen as all expected errors were handled.`
@@ -2758,6 +2770,6 @@ export class Dispatcher {
       sourceBranch,
     })
 
-    this.startCherryPick(repository, targetBranch, commits)
+    this.cherryPick(repository, targetBranch, commits)
   }
 }
