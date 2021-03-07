@@ -1,4 +1,4 @@
-import * as React from 'react'
+import React, { Component } from 'react'
 
 import { Row } from '../lib/row'
 import { Button } from '../lib/button'
@@ -56,7 +56,7 @@ interface IAboutState {
  * A dialog that presents information about the
  * running application such as name and version.
  */
-export class About extends React.Component<IAboutProps, IAboutState> {
+export class About extends Component<IAboutProps, IAboutState> {
   private updateStoreEventHandle: Disposable | null = null
 
   public constructor(props: IAboutProps) {
