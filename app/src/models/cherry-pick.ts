@@ -109,7 +109,7 @@ export type CommitsChosenStep = {
   commits: ReadonlyArray<CommitOneLine>
 }
 
-/** Shape of data to use when confirming user should abort rebase */
+/** Shape of data to use when confirming user should abort cherry pick */
 export type ConfirmAbortStep = {
   readonly kind: CherryPickStepKind.ConfirmAbort
   readonly conflictState: CherryPickConflictState
