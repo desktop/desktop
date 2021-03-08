@@ -49,6 +49,7 @@ interface ICompareSidebarProps {
   readonly localTags: Map<string, string> | null
   readonly tagsToPush: ReadonlyArray<string> | null
   readonly aheadBehindStore: AheadBehindStore
+  readonly hasShownCherryPickIntro: boolean
 }
 
 interface ICompareSidebarState {
@@ -243,8 +244,14 @@ export class CompareSidebar extends React.Component<
         tagsToPush={this.props.tagsToPush}
         onDragCommitStart={this.onDragCommitStart}
         onDragCommitEnd={this.onDragCommitEnd}
+        hasShownCherryPickIntro={this.props.hasShownCherryPickIntro}
+        onDismissCherryPickIntro={this.onDismissCherryPickIntro}
       />
     )
+  }
+
+  private onDismissCherryPickIntro = () => {
+    this.props.dispatcher.dismissCherryPickIntro()
   }
 
   private renderActiveTab(view: ICompareBranch) {

@@ -2557,6 +2557,7 @@ export class Dispatcher {
     commits: ReadonlyArray<CommitOneLine>,
     sourceBranch: Branch | null
   ): Promise<void> {
+    this.dismissCherryPickIntro()
     this.logHowToRevertCherryPick(repository, targetBranch)
 
     const result = await this.appStore._cherryPick(
@@ -2780,6 +2781,11 @@ export class Dispatcher {
     })
 
     this.startCherryPick(repository, targetBranch, commits, sourceBranch)
+  }
+
+  /** Method to dismiss cherry pick intro */
+  public dismissCherryPickIntro(): void {
+    this.appStore._dismissCherryPickIntro()
   }
 
   /**

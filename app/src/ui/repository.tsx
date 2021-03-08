@@ -89,6 +89,8 @@ interface IRepositoryViewProps {
     repository: Repository,
     commits: ReadonlyArray<CommitOneLine>
   ) => void
+  /* Whether or not the user has been introduced to cherry picking feature */
+  readonly hasShownCherryPickIntro: boolean
 }
 
 interface IRepositoryViewState {
@@ -244,6 +246,7 @@ export class RepositoryView extends React.Component<
         compareListScrollTop={scrollTop}
         tagsToPush={this.props.state.tagsToPush}
         aheadBehindStore={this.props.aheadBehindStore}
+        hasShownCherryPickIntro={this.props.hasShownCherryPickIntro}
       />
     )
   }
