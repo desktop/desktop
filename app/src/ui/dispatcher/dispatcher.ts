@@ -2556,6 +2556,7 @@ export class Dispatcher {
     targetBranch: Branch,
     commits: ReadonlyArray<CommitOneLine>
   ): Promise<void> {
+    this.dismissCherryPickIntro()
     this.logHowToRevertCherryPick(repository, targetBranch)
 
     const result = await this.appStore._cherryPick(
