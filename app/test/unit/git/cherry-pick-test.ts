@@ -96,6 +96,76 @@ describe('git/cherry-pick', () => {
     expect(result).toBe(CherryPickResult.CompletedWithoutError)
   })
 
+  it('successfully cherry picks a redundant commit', async () => {
+    result = await cherryPick(repository, featureBranch.tip.sha)
+
+    const commits = await getCommits(repository, targetBranch.ref, 5)
+    expect(commits.length).toBe(2)
+    expect(result).toBe(CherryPickResult.CompletedWithoutError)
+
+    result = await cherryPick(repository, featureBranch.tip.sha)
+
+    const commitsAfterRedundant = await getCommits(
+      repository,
+      targetBranch.ref,
+      5
+    )
+    expect(commitsAfterRedundant.length).toBe(3)
+    expect(result).toBe(CherryPickResult.CompletedWithoutError)
+  })
+
+  it('successfully cherry picks an empty commit', async () => {
+    // add empty commit to feature branch
+    await switchTo(repository, featureBranchName)
+    await GitProcess.exec(
+      ['commit', '--allow-empty', '-m', 'Empty Commit'],
+      repository.path
+    )
+
+    featureBranch = await getBranchOrError(repository, featureBranchName)
+    await switchTo(repository, targetBranchName)
+
+    result = await cherryPick(repository, featureBranch.tip.sha)
+
+    const commits = await getCommits(repository, targetBranch.ref, 5)
+    expect(commits.length).toBe(2)
+    expect(result).toBe(CherryPickResult.CompletedWithoutError)
+  })
+
+  it('successfully cherry picks an empty commit inside a range', async () => {
+    const firstCommitSha = featureBranch.tip.sha
+
+    // add empty commit to feature branch
+    await switchTo(repository, featureBranchName)
+    await GitProcess.exec(
+      ['commit', '--allow-empty', '-m', 'Empty Commit'],
+      repository.path
+    )
+
+    // add another commit so empty commit will be inside a range
+    const featureBranchCommitTwo = {
+      commitMessage: 'Cherry Picked Feature! Number Two',
+      entries: [
+        {
+          path: 'THING_TWO.md',
+          contents: '# HELLO WORLD! \nTHINGS GO HERE\n',
+        },
+      ],
+    }
+    await makeCommit(repository, featureBranchCommitTwo)
+
+    featureBranch = await getBranchOrError(repository, featureBranchName)
+    await switchTo(repository, targetBranchName)
+
+    // cherry picking 3 (on added in setup, empty, featureBranchCommitTwo)
+    const commitRange = revRangeInclusive(firstCommitSha, featureBranch.tip.sha)
+    result = await cherryPick(repository, commitRange)
+
+    const commits = await getCommits(repository, targetBranch.ref, 5)
+    expect(commits.length).toBe(4) // original commit + 4 cherry picked
+    expect(result).toBe(CherryPickResult.CompletedWithoutError)
+  })
+
   it('successfully cherry picked multiple commits without conflicts', async () => {
     // keep reference to the first commit in cherry pick range
     const firstCommitSha = featureBranch.tip.sha
@@ -180,76 +250,6 @@ describe('git/cherry-pick', () => {
       expect(error.toString()).toContain(
         'is a merge but no -m option was given'
       )
-    }
-    expect(result).toBe(null)
-  })
-
-  it('fails to cherry pick an empty commit', async () => {
-    // add empty commit to feature branch
-    await switchTo(repository, featureBranchName)
-    await GitProcess.exec(
-      ['commit', '--allow-empty', '-m', 'Empty Commit'],
-      repository.path
-    )
-
-    featureBranch = await getBranchOrError(repository, featureBranchName)
-    await switchTo(repository, targetBranchName)
-
-    result = null
-    try {
-      result = await cherryPick(repository, featureBranch.tip.sha)
-    } catch (error) {
-      expect(error.toString()).toContain('There are no changes to commit')
-    }
-    expect(result).toBe(null)
-  })
-
-  it('fails to cherry pick an empty commit inside a range', async () => {
-    const firstCommitSha = featureBranch.tip.sha
-
-    // add empty commit to feature branch
-    await switchTo(repository, featureBranchName)
-    await GitProcess.exec(
-      ['commit', '--allow-empty', '-m', 'Empty Commit'],
-      repository.path
-    )
-
-    // add another commit so empty commit will be inside a range
-    const featureBranchCommitTwo = {
-      commitMessage: 'Cherry Picked Feature! Number Two',
-      entries: [
-        {
-          path: 'THING_TWO.md',
-          contents: '# HELLO WORLD! \nTHINGS GO HERE\n',
-        },
-      ],
-    }
-    await makeCommit(repository, featureBranchCommitTwo)
-
-    featureBranch = await getBranchOrError(repository, featureBranchName)
-    await switchTo(repository, targetBranchName)
-
-    try {
-      const commitRange = revRangeInclusive(
-        firstCommitSha,
-        featureBranch.tip.sha
-      )
-      result = await cherryPick(repository, commitRange)
-    } catch (error) {
-      expect(error.toString()).toContain('There are no changes to commit')
-    }
-    expect(result).toBe(null)
-  })
-
-  it('fails to cherry pick a redundant commit', async () => {
-    result = await cherryPick(repository, featureBranch.tip.sha)
-    expect(result).toBe(CherryPickResult.CompletedWithoutError)
-
-    result = null
-    try {
-      result = await cherryPick(repository, featureBranch.tip.sha)
-    } catch (error) {
-      expect(error.toString()).toContain('There are no changes to commit')
     }
     expect(result).toBe(null)
   })
