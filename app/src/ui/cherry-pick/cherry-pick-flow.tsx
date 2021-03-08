@@ -69,17 +69,24 @@ export class CherryPickFlow extends React.Component<ICherryPickFlowProps> {
   }
 
   private onCherryPick = (targetBranch: Branch) => {
-    const { dispatcher, repository, commits } = this.props
-    dispatcher.cherryPick(repository, targetBranch, commits)
+    const { dispatcher, repository, commits, sourceBranch } = this.props
+    dispatcher.cherryPick(repository, targetBranch, commits, sourceBranch)
   }
 
   private onContinueCherryPick = (step: ShowConflictsStep) => {
-    const { dispatcher, repository, workingDirectory, commits } = this.props
+    const {
+      dispatcher,
+      repository,
+      workingDirectory,
+      commits,
+      sourceBranch,
+    } = this.props
     dispatcher.continueCherryPick(
       repository,
       workingDirectory.files,
       step.conflictState,
-      commits.length
+      commits.length,
+      sourceBranch
     )
   }
 

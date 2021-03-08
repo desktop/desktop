@@ -6060,7 +6060,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _undoCherryPick(
     repository: Repository,
-    targetBranchName: string
+    targetBranchName: string,
+    sourceBranch: Branch | null,
+    countCherryPicked: number
   ): Promise<void> {
     const { branchesState } = this.repositoryStateCache.get(repository)
     const { tip } = branchesState
@@ -6083,6 +6085,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await gitStore.performFailableOperation(() =>
       reset(repository, GitResetMode.Hard, targetBranchUndoSha)
     )
+
+    if (sourceBranch === null) {
+      return this._refreshRepository(repository)
+    }
+
+    await this.withAuthenticatingUser(repository, async (r, account) => {
+      await gitStore.performFailableOperation(() =>
+        checkoutBranch(repository, account, sourceBranch)
+      )
+    })
+
+    const banner: Banner = {
+      type: BannerType.CherryPickUndone,
+      targetBranchName,
+      countCherryPicked,
+    }
+    this._setBanner(banner)
 
     return this._refreshRepository(repository)
   }
