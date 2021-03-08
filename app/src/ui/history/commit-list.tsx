@@ -5,6 +5,7 @@ import { Commit, CommitOneLine } from '../../models/commit'
 import { CommitListItem } from './commit-list-item'
 import { List, SelectionSource } from '../lib/list'
 import { arrayEquals } from '../../lib/equality'
+import { enableCherryPicking } from '../../lib/feature-flag'
 
 const RowHeight = 50
 
@@ -168,6 +169,16 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     this.props.onCommitsSelected(selectedCommits)
   }
 
+  // This is only needed to support the cherry picking feature flag once,
+  // cherry picking in place. This will be dead code.
+  private onSelectedRowChanged = (row: number) => {
+    const sha = this.props.commitSHAs[row]
+    const commit = this.props.commitLookup.get(sha)
+    if (commit) {
+      this.props.onCommitsSelected([commit])
+    }
+  }
+
   private lookupCommits(
     commitSHAs: ReadonlyArray<string>
   ): ReadonlyArray<Commit> {
@@ -221,7 +232,8 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
           selectedRows={this.props.selectedSHAs.map(sha => this.rowForSHA(sha))}
           rowRenderer={this.renderCommit}
           onSelectedRangeChanged={this.onSelectedRangeChanged}
-          selectionMode="range"
+          onSelectedRowChanged={this.onSelectedRowChanged}
+          selectionMode={enableCherryPicking() ? 'range' : 'single'}
           onScroll={this.onScroll}
           invalidationProps={{
             commits: this.props.commitSHAs,
