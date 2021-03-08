@@ -49,4 +49,5 @@ export type RetryAction =
       repository: Repository
       targetBranch: Branch
       commits: ReadonlyArray<CommitOneLine>
+      sourceBranch: Branch | null
     }

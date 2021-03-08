@@ -1915,7 +1915,8 @@ export class Dispatcher {
         return this.cherryPick(
           retryAction.repository,
           retryAction.targetBranch,
-          retryAction.commits
+          retryAction.commits,
+          retryAction.sourceBranch
         )
 
       default:
@@ -2566,7 +2567,8 @@ export class Dispatcher {
     const result = await this.appStore._cherryPick(
       repository,
       targetBranch,
-      commits
+      commits,
+      sourceBranch
     )
 
     this.processCherryPickResult(

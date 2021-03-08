@@ -5808,7 +5808,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _cherryPick(
     repository: Repository,
     targetBranch: Branch,
-    commits: ReadonlyArray<CommitOneLine>
+    commits: ReadonlyArray<CommitOneLine>,
+    sourceBranch: Branch | null
   ): Promise<CherryPickResult> {
     if (commits.length === 0) {
       log.warn('[_cherryPick] - Unable to cherry pick. No commits provided.')
@@ -5819,7 +5820,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     result = this.checkForUncommittedChangesBeforeCherryPick(
       repository,
       targetBranch,
-      commits
+      commits,
+      sourceBranch
     )
 
     if (result !== null) {
@@ -5869,7 +5871,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private checkForUncommittedChangesBeforeCherryPick(
     repository: Repository,
     targetBranch: Branch,
-    commits: ReadonlyArray<CommitOneLine>
+    commits: ReadonlyArray<CommitOneLine>,
+    sourceBranch: Branch | null
   ): CherryPickResult | null {
     const { changesState } = this.repositoryStateCache.get(repository)
     const hasChanges = changesState.workingDirectory.files.length > 0
@@ -5885,6 +5888,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         repository,
         targetBranch,
         commits,
+        sourceBranch,
       },
       files: changesState.workingDirectory.files.map(f => f.path),
     })
@@ -5904,11 +5908,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<CherryPickResult | null> {
     const gitStore = this.gitStoreCache.get(repository)
 
-    let checkoutSuccessful = await this.withAuthenticatingUser(repository, (r, account) => {
-      return gitStore.performFailableOperation(() =>
-        checkoutBranch(repository, account, targetBranch)
-      )
-    })
+    let checkoutSuccessful = await this.withAuthenticatingUser(
+      repository,
+      (r, account) => {
+        return gitStore.performFailableOperation(() =>
+          checkoutBranch(repository, account, targetBranch)
+        )
+      }
+    )
 
     return checkoutSuccessful === true ? null : CherryPickResult.UnableToStart
   }
