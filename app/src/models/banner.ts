@@ -52,6 +52,8 @@ export type Banner =
       readonly targetBranchName: string
       /** number of commits cherry picked */
       readonly countCherryPicked: number
+      /** callback to run when user clicks undo link in banner */
+      readonly onUndoCherryPick: () => void
     }
   | {
       readonly type: BannerType.CherryPickConflictsFound

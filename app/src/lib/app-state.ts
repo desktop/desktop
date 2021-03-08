@@ -755,6 +755,13 @@ export interface ICherryPickState {
    * cherry pick.
    */
   readonly userHasResolvedConflicts: boolean
+
+  /**
+   * The sha of the target branch tip before cherry pick initiated.
+   *
+   * This will be set to null if no cherry pick has been initiated.
+   */
+  readonly targetBranchUndoSha: string | null
 }
 
 /**
