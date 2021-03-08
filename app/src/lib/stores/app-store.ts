@@ -5908,7 +5908,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<CherryPickResult | null> {
     const gitStore = this.gitStoreCache.get(repository)
 
-    let checkoutSuccessful = await this.withAuthenticatingUser(
+    const checkoutSuccessful = await this.withAuthenticatingUser(
       repository,
       (r, account) => {
         return gitStore.performFailableOperation(() =>
