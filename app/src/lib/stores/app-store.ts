@@ -5978,7 +5978,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public async _undoCherryPick(
     repository: Repository,
-    targetBranchName: string
+    targetBranchName: string,
+    sourceBranch: Branch | null
   ): Promise<void> {
     const { branchesState } = this.repositoryStateCache.get(repository)
     const { tip } = branchesState
@@ -6001,6 +6002,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await gitStore.performFailableOperation(() =>
       reset(repository, GitResetMode.Hard, targetBranchUndoSha)
     )
+
+    if (sourceBranch === null) {
+      return this._refreshRepository(repository)
+    }
+
+    await this.withAuthenticatingUser(repository, async (r, account) => {
+      await gitStore.performFailableOperation(() =>
+        checkoutBranch(repository, account, sourceBranch)
+      )
+    })
 
     return this._refreshRepository(repository)
   }
