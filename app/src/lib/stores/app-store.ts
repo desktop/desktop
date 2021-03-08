@@ -155,6 +155,8 @@ import {
   deleteRemoteBranch,
   fastForwardBranches,
   revRangeInclusive,
+  GitResetMode,
+  reset,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -281,6 +283,7 @@ import {
   CherryPickResult,
   continueCherryPick,
   getCherryPickSnapshot,
+  isCherryPickHeadFound,
 } from '../git/cherry-pick'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -5889,6 +5892,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
+  public _setCherryPickTargetBranchUndoSha(
+    repository: Repository,
+    sha: string
+  ): void {
+    // An update is not emitted here because there is no need
+    // to trigger a re-render at this point. (storing for later)
+    this.repositoryStateCache.updateCherryPickState(repository, () => ({
+      targetBranchUndoSha: sha,
+    }))
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public _setCherryPickConflictsResolved(repository: Repository) {
     // an update is not emitted here because there is no need
     // to trigger a re-render at this point
@@ -5926,10 +5941,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const { progress } = snapshot
+    const { progress, targetBranchUndoSha } = snapshot
 
     this.repositoryStateCache.updateCherryPickState(repository, () => ({
       progress,
+      targetBranchUndoSha,
     }))
   }
 
@@ -5976,6 +5992,46 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commits: snapshot?.commits,
       sourceBranch: null,
     })
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _clearCherryPickingHead(repository: Repository): Promise<void> {
+    if (!isCherryPickHeadFound(repository)) {
+      return
+    }
+
+    const gitStore = this.gitStoreCache.get(repository)
+    await gitStore.performFailableOperation(() => abortCherryPick(repository))
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _undoCherryPick(
+    repository: Repository,
+    targetBranchName: string
+  ): Promise<void> {
+    const { branchesState } = this.repositoryStateCache.get(repository)
+    const { tip } = branchesState
+    if (tip.kind !== TipState.Valid || tip.branch.name !== targetBranchName) {
+      log.warn(
+        '[undoCherryPick] - Could not undo cherry pick.  User no longer on target branch.'
+      )
+      return
+    }
+
+    const {
+      cherryPickState: { targetBranchUndoSha },
+    } = this.repositoryStateCache.get(repository)
+
+    if (targetBranchUndoSha === null) {
+      log.warn('[undoCherryPick] - Could not determine target branch undo sha')
+      return
+    }
+    const gitStore = this.gitStoreCache.get(repository)
+    await gitStore.performFailableOperation(() =>
+      reset(repository, GitResetMode.Hard, targetBranchUndoSha)
+    )
+
+    return this._refreshRepository(repository)
   }
 }
 

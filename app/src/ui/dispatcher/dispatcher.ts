@@ -2537,9 +2537,8 @@ export class Dispatcher {
     repository: Repository,
     targetBranch: Branch
   ) {
-    const stateBefore = this.repositoryStateManager.get(repository)
-    const beforeSha = getTipSha(stateBefore.branchesState.tip)
-
+    const beforeSha = targetBranch.tip.sha
+    this.appStore._setCherryPickTargetBranchUndoSha(repository, beforeSha)
     log.info(
       `[cherryPick] starting cherry pick for ${targetBranch.name} at ${beforeSha}`
     )
@@ -2608,6 +2607,9 @@ export class Dispatcher {
       type: BannerType.SuccessfulCherryPick,
       targetBranchName,
       countCherryPicked,
+      onUndoCherryPick: () => {
+        this.undoCherryPick(repository, targetBranchName)
+      },
     }
     this.setBanner(banner)
 
@@ -2700,6 +2702,10 @@ export class Dispatcher {
         this.startConflictCherryPickFlow(repository)
         break
       default:
+        // If the user closes error dialog and tries to cherry pick again, it
+        // will fail again due to ongoing cherry pick. Thus, if we get to an
+        // unhandled error state, we want to abort any ongoing cherry pick.
+        this.appStore._clearCherryPickingHead(repository)
         this.appStore._endCherryPickFlow(repository)
         throw Error(
           `Unable to perform cherry pick operation.
@@ -2759,5 +2765,16 @@ export class Dispatcher {
     })
 
     this.startCherryPick(repository, targetBranch, commits)
+  }
+
+  /**
+   * This method will perform a hard reset back to the tip of the target branch
+   * before the cherry pick happened.
+   */
+  private async undoCherryPick(
+    repository: Repository,
+    targetBranchName: string
+  ): Promise<void> {
+    await this.appStore._undoCherryPick(repository, targetBranchName)
   }
 }
