@@ -246,13 +246,11 @@ export class CommitListItem extends React.PureComponent<
     const items: IMenuItem[] = []
 
     const count = this.props.selectedCommits.length
-    const pluralize = count === 1 ? '' : 's'
-    const countOut = count === 1 ? '' : ` ${count} `
     if (enableCherryPicking()) {
       items.push({
         label: __DARWIN__
-          ? `Cherry Pick${countOut}Commit${pluralize}…`
-          : `Cherry pick${countOut}commit${pluralize}…`,
+          ? `Cherry Pick ${count} Commits…`
+          : `Cherry pick ${count} commits…`,
         action: this.onCherryPick,
       })
     }
