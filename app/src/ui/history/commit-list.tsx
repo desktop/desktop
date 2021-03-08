@@ -64,9 +64,6 @@ interface ICommitListProps {
    */
   readonly onCompareListScrolled?: (scrollTop: number) => void
 
-  /** Callback to fire when cherry pick intro popover has been dismissed */
-  readonly onDismissCherryPickIntroPopover: () => void
-
   /* The scrollTop of the compareList. It is stored to allow for scroll position persistence */
   readonly compareListScrollTop?: number
 
@@ -77,7 +74,10 @@ interface ICommitListProps {
   readonly tagsToPush: ReadonlyArray<string> | null
 
   /* Whether or not the user has been introduced to cherry picking feature */
-  readonly showCherryPickIntroPopover: boolean
+  readonly hasShownCherryPickIntro: boolean
+
+  /** Callback to fire when cherry pick intro popover has been dismissed */
+  readonly onDismissCherryPickIntro: () => void
 }
 
 /** A component which displays the list of commits. */
@@ -191,7 +191,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
   }
 
   private renderCherryPickIntroPopover() {
-    if (!this.props.showCherryPickIntroPopover) {
+    if (this.props.hasShownCherryPickIntro) {
       return null
     }
 
@@ -206,10 +206,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
           branch in the branch menu, or by right clicking on a commit.
         </p>
         <div>
-          <Button
-            onClick={this.props.onDismissCherryPickIntroPopover}
-            type="submit"
-          >
+          <Button onClick={this.props.onDismissCherryPickIntro} type="submit">
             Got it
           </Button>
         </div>

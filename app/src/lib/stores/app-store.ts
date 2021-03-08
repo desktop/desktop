@@ -337,6 +337,8 @@ const InitialRepositoryIndicatorTimeout = 2 * 60 * 1000
 
 const MaxInvalidFoldersToDisplay = 3
 
+const hasShownCherryPickIntroKey = 'has-shown-cherry-pick-intro'
+
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
 
@@ -436,6 +438,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** Which step the user needs to complete next in the onboarding tutorial */
   private currentOnboardingTutorialStep = TutorialStep.NotApplicable
   private readonly tutorialAssessor: OnboardingTutorialAssessor
+
+  /**
+   * Whether or not the user has been introduced to the cherry pick feature
+   */
+  private hasShownCherryPickIntro: boolean = false
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
@@ -783,6 +790,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
       repositoryIndicatorsEnabled: this.repositoryIndicatorsEnabled,
       commitSpellcheckEnabled: this.commitSpellcheckEnabled,
+      hasShownCherryPickIntro: this.hasShownCherryPickIntro,
     }
   }
 
@@ -1727,6 +1735,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.emitUpdate()
       }
     })
+
+    this.hasShownCherryPickIntro = getBoolean(hasShownCherryPickIntroKey, true)
 
     this.emitUpdateNow()
 
@@ -5960,6 +5970,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commits: snapshot?.commits,
       sourceBranch: null,
     })
+  }
+
+  public _dismissCherryPickIntro() {
+    setBoolean(hasShownCherryPickIntroKey, true)
+    this.hasShownCherryPickIntro = true
+    this.emitUpdate()
   }
 }
 

@@ -2760,4 +2760,8 @@ export class Dispatcher {
 
     this.startCherryPick(repository, targetBranch, commits)
   }
+
+  public dismissCherryPickIntro(): void {
+    this.appStore._dismissCherryPickIntro()
+  }
 }
