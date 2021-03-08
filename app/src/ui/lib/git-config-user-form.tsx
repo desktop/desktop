@@ -55,10 +55,17 @@ export class GitConfigUserForm extends React.Component<
     prevProps: IGitConfigUserFormProps,
     prevState: IGitConfigUserFormState
   ) {
+    const isEmailInputFocused =
+      this.emailInputRef.current !== null &&
+      this.emailInputRef.current.isFocused
+
     // If the email coming from the props has changed, it means a new config
     // was loaded into the form. In that case, make sure to only select the
-    // option "Other" if strictly needed.
-    if (prevProps.email !== this.props.email) {
+    // option "Other" if strictly needed, and select one of the account emails
+    // otherwise.
+    // If the "Other email" input field is currently focused, we won't hide it
+    // from the user, to prevent annoying UI glitches.
+    if (prevProps.email !== this.props.email && !isEmailInputFocused) {
       this.setState({
         emailIsOther: !this.accountEmails.includes(this.props.email),
       })
