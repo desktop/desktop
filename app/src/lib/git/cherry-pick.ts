@@ -41,7 +41,7 @@ export enum CherryPickResult {
    * The cherry pick was not attempted:
    * - it could not check the status of the repository.
    * - there was an invalid revision range provided.
-   * - there where uncommitted changes present.
+   * - there were uncommitted changes present.
    * - there were errors in checkout the target branch
    */
   UnableToStart = 'UnableToStart',
